@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Linky</title>  
+    <strong><link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}"></strong>
+  </head>
+  <body>
+   
+    <header>
+      <div class="container">
+        <h1 class="logo">Linky</h1>
+      </div>
+    </header> 
+     
+    <div class="container">
+      {% block content %}
+      {% endblock %}
+    </div>
+     
+  </body>
+</html>
