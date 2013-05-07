@@ -15,7 +15,7 @@ app = Flask(__name__)
  
 @app.route('/')
 def home():
-    return render_template('landing.html')
+    return render_template('landing.html', web_base=config['WEB_BASE'])
 
 
 @app.route('/api/linky/', methods=['POST'])
