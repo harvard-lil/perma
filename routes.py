@@ -9,7 +9,7 @@ from pymongo import MongoClient
  
 
 config = {}
-execfile('../etc/linky.conf', config) 
+execfile('etc/linky.conf', config) 
 
 app = Flask(__name__)
  
@@ -71,15 +71,12 @@ def api_get(linky_id):
     linky_db = client.linky
     links_collection = linky_db.links
 
-    existing_linky = links_collection.find_one({"linky_id": linky_id})
+    existing_linky = linky_db.links.find_one({"linky_id": linky_id})
 
     if not existing_linky:
         abort(404)
 
-    if not existing_linky:
-        response_object = {"linky_id": existing_linky.linky_id, 'linky_url': '/static/img/linkys/' + existing_linky.linky_id + '.jpg'}
-    else:
-        response_object = {"linky_id": None, "linky_url": None}
+    response_object = {"linky_id": existing_linky['linky_id'], 'linky_url': '/static/img/linkys/' + existing_linky  ['linky_id'] + '.jpg'}
 
     response = jsonify(response_object)
     response.headers['Content-Type'] = "application/json"
