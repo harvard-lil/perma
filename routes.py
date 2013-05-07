@@ -28,7 +28,7 @@ def api_post():
         abort(404)
     
     # Generate the PDF
-    wkhtml_to_pdf_command = config['WKHTMLTOPDF_FS_PATH'] + ' --quiet --load-error-handling ignore -B 0 -L 0 -R 0 -T 0 ' + target_url + ' ' + config['IMAGE_DIR'] + linky_id + '.pdf'    
+    wkhtml_to_pdf_command = config['WKHTMLTOPDF_FS_PATH'] + ' --quiet --ignore-load-errors -B 0 -L 0 -R 0 -T 0 ' + target_url + ' ' + config['IMAGE_DIR'] + linky_id + '.pdf'    
     subprocess.call(wkhtml_to_pdf_command, shell=True)
 
     # Generate the full-size image
@@ -85,4 +85,4 @@ def api_get(linky_id):
     return response
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', port=5002, debug=True)
