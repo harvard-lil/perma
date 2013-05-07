@@ -17,8 +17,7 @@ app = Flask(__name__)
  
 @app.route('/')
 def home():
-    return render_template('landing.html')
-    
+    return render_template('landing.html', web_base=config['WEB_BASE'])
 
 @app.route('/api/linky/', methods=['POST'])
 def api_post():
@@ -86,4 +85,4 @@ def api_get(linky_id):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', port=5002, debug=True)
