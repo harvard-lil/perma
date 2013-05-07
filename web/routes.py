@@ -11,19 +11,15 @@ from pymongo import MongoClient
 config = {}
 execfile('../etc/linky.conf', config) 
 
-app = Flask(__name__)      
+app = Flask(__name__)
  
 @app.route('/')
 def home():
-    return render_template('home.html')
+    return render_template('landing.html')
 
 
 @app.route('/api/linky/', methods=['POST'])
 def api_post():
-    
-    #put file to disk, insert rec into mongodb
-    #file could be generated from incoming url
-    #or, could be from an upload
 
     target_url = request.form['url']
     linky_id = str(uuid.uuid4())

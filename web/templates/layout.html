@@ -2,7 +2,9 @@
 <html>
   <head>
     <title>Linky</title>  
-    <strong><link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}"></strong>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
+    {% block styles %}
+    {% endblock %}  
   </head>
   <body>
    
@@ -16,6 +18,9 @@
       {% block content %}
       {% endblock %}
     </div>
-     
+    <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
+    {% block scripts %}
+    {% endblock %}   
   </body>
 </html>
