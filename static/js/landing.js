@@ -1,8 +1,7 @@
-var linkyLinks = [];
 var linkyUrl = '';
 $(document).ready(function() {
+  $('#linky-confirm').modal({show: false});
   $('#rawUrl').focus();
-  //var params = getParams();
   
   $('#linker').submit(function() {
 		linkIt();
@@ -13,15 +12,19 @@ $(document).ready(function() {
 
 function linkIt(){
   var rawUrl = $("#rawUrl").val();
+  
+  // This is a fill in.  We will get the real linky from the api and fill it in instead.
   $('#linkyUrl').text(rawUrl);
-  $('#myModal').modal();
+  
+  $('#linky-confirm').modal('show');
   $('#saveLinky').on('click', function(event){
     event.preventDefault();
     linkyUrl = rawUrl;
-    $('#myModal').modal('hide');
+    $('#linky-confirm').modal('hide');
   });
 }
 
-$('#myModal').on('hidden', function () {
+$('#linky-confirm').on('hidden', function () {
+  $('#rawUrl').val('').focus();
   $('#linky-list ul').append('<li>' + linkyUrl + '</li>');
 });
