@@ -6,6 +6,8 @@ import subprocess
     
 import pymongo
 from pymongo import MongoClient
+
+from lib.hashids import hashids
  
 
 config = {}
@@ -16,10 +18,21 @@ app = Flask(__name__)
 @app.route('/')
 def home():
     return render_template('landing.html')
-
+    
 
 @app.route('/api/linky/', methods=['POST'])
 def api_post():
+
+    # Playing around with short url hashes
+    hashids_lib = hashids("this is my salt")
+    hash = hashids_lib.encrypt(1, 2, 3)
+    numbers = hashids_lib.decrypt(hash)
+
+    print(hash)
+    print(numbers)
+
+
+
 
     target_url = request.form['url']
     linky_id = str(uuid.uuid4())
@@ -27,22 +40,8 @@ def api_post():
     if not target_url:
         abort(404)
     
-    # Generate the PDF
-    wkhtml_to_pdf_command = config['WKHTMLTOPDF_FS_PATH'] + ' --quiet --load-error-handling ignore -B 0 -L 0 -R 0 -T 0 ' + target_url + ' ' + config['IMAGE_DIR'] + linky_id + '.pdf'    
-    subprocess.call(wkhtml_to_pdf_command, shell=True)
-
-    # Generate the full-size image
-    convert_command = config['CONVERT_PATH'] + ' -quiet ' + config['IMAGE_DIR'] + linky_id + '.pdf[0] ' + config['IMAGE_DIR'] + linky_id + '.jpg'
-    subprocess.call(convert_command, shell=True)
-
-    # Remove the PDF
-    subprocess.call('rm ' + config['IMAGE_DIR'] + linky_id + '.pdf', shell=True)
-    
-
-    #exec($master_config['WKHTMLTOPDF_FS_PATH'] . ' --quiet --load-error-handling ignore -B 0 -L 0 -R 0 -T 0 ' . $url . ' ' . $thumbs_dir . $slug . '.pdf');
-    #exec('convert -quiet ' . $thumbs_dir . $slug . '.pdf[0] ' . $thumbs_dir . $slug . '.jpg');
-    #exec('convert -quiet ' . $thumbs_dir . $slug . '.jpg -resize 250x250 ' . $thumbs_dir . $slug . '_thumb.jpg');
-
+    image_generation_command = config['LINKY_HOME'] + '/lib/phantomjs ' + config['LINKY_HOME'] + '/lib/rasterize.js "' + target_url + '" ' + config['LINKY_HOME'] + '/static/img/linkys/' + linky_id + '.png'
+    subprocess.call(image_generation_command, shell=True)
 
     # If we were able to get the image to disk, let's add the entry our datastore
     client = MongoClient(config['MONGO_HOST'], config['MONGO_PORT'])
@@ -57,13 +56,14 @@ def api_post():
     #f = request.files['the_file']
     #f.save('/var/www/uploads/uploaded_file.txt')
     
-    response_object = {"linky_id": linky_id, 'linky_url': '/static/img/linkys/' + linky_id + '.jpg'}
+    response_object = {"linky_id": linky_id, 'linky_url': '/static/img/linkys/' + linky_id + '.png'}
     
     response = jsonify(response_object)
     response.headers['Content-Type'] = "application/json"
     response.status_code = 201
     
     return response
+ 
  
 @app.route('/api/linky/<linky_id>', methods=['GET'])
 def api_get(linky_id):
@@ -76,13 +76,14 @@ def api_get(linky_id):
     if not existing_linky:
         abort(404)
 
-    response_object = {"linky_id": existing_linky['linky_id'], 'linky_url': '/static/img/linkys/' + existing_linky  ['linky_id'] + '.jpg'}
+    response_object = {"linky_id": existing_linky['linky_id'], 'linky_url': '/static/img/linkys/' + existing_linky['linky_id'] + '.png'}
 
     response = jsonify(response_object)
     response.headers['Content-Type'] = "application/json"
     response.status_code = 200        
 
     return response
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)

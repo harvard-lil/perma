@@ -2,3 +2,4 @@ etc/linky.conf
 static/img/linkys/*
 !static/img/linkys/README
 *.pyc
+lib/phantomjs
