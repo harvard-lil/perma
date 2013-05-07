@@ -19,6 +19,9 @@ function linkIt(){
   $('#linky-confirm').modal('show');
   $('#saveLinky').on('click', function(event){
     event.preventDefault();
+    $.post('http://localhost:5000/api/linky/', { url: rawUrl}, function(data) {
+      linkyUrl = static_url + '/linkys/' + data.linky_url + '.jpg';
+    });
     linkyUrl = rawUrl;
     $('#linky-confirm').modal('hide');
   });

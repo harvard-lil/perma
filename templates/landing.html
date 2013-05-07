@@ -32,5 +32,8 @@
   </div>
 {% endblock %}
 {% block scripts %}
+<script>
+  var static_url = "{{url_for('static', filename='img')}}";
+</script>
 <script src="{{ url_for('static', filename='js/landing.js') }}"></script>
 {% endblock %}
