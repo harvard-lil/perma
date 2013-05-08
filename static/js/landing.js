@@ -1,6 +1,6 @@
 var linkyUrl = '';
 var rawUrl = '';
-$(document).ready(function() {console.log(web_base);
+$(document).ready(function() {
   $('#linky-confirm').modal({show: false});
   $('#rawUrl').focus();
   
@@ -17,13 +17,13 @@ function linkIt(){
   $('#linkyUrl a').attr('href', '').html('<i class="icon-spinner icon-spin icon-2x text-center"></i>');
   rawUrl = $("#rawUrl").val();
   var request = $.ajax({
-    url: "http://hlsl7.law.harvard.edu:5002/api/linky/",
+    url: web_base + "/api/linky/",
     type: "POST",
     data: {url: rawUrl},
     dataType: "json"
   });
   request.done(function(data) {
-    linkyUrl = web_base + data.linky_url;
+    linkyUrl = data.linky_url;
     $('#linkyUrl').toggleClass('text-center');
     $('#linkyUrl a').html(linkyUrl).attr('href', linkyUrl);
     $('#linky-preview img').attr('src', linkyUrl);

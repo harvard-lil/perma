@@ -30,15 +30,16 @@ def api_post():
     print(hash)
     print(numbers)
 
-
-
-
     target_url = request.form['url']
-    linky_id = str(uuid.uuid4())
-
+	
     if not target_url:
         abort(404)
-    
+        
+    if target_url[0:4] != 'http':
+        target_url = 'http://' + target_url
+        
+    linky_id = str(uuid.uuid4())
+
     image_generation_command = config['LINKY_HOME'] + '/lib/phantomjs ' + config['LINKY_HOME'] + '/lib/rasterize.js "' + target_url + '" ' + config['LINKY_HOME'] + '/static/img/linkys/' + linky_id + '.png'
     subprocess.call(image_generation_command, shell=True)
 
@@ -48,14 +49,14 @@ def api_post():
     links_collection = linky_db.links
     links_collection.ensure_index([('linky_id', pymongo.DESCENDING)])
 
-    new_linky = {"url": request.form['url'], "linky_id": linky_id}
+    new_linky = {"url": target_url, "linky_id": linky_id}
     links_collection.insert(new_linky)
         
     # if we want to do some file uploading
     #f = request.files['the_file']
     #f.save('/var/www/uploads/uploaded_file.txt')
     
-    response_object = {"linky_id": linky_id, 'linky_url': '/static/img/linkys/' + linky_id + '.png'}
+    response_object = {"linky_id": linky_id, 'linky_url': config['WEB_BASE'] + '/static/img/linkys/' + linky_id + '.png'}
     
     response = jsonify(response_object)
     response.headers['Content-Type'] = "application/json"
@@ -75,7 +76,7 @@ def api_get(linky_id):
     if not existing_linky:
         abort(404)
 
-    response_object = {"linky_id": existing_linky['linky_id'], 'linky_url': '/static/img/linkys/' + existing_linky['linky_id'] + '.png'}
+    response_object = {"linky_id": existing_linky['linky_id'], 'linky_url': config['WEB_BASE'] + '/static/img/linkys/' + existing_linky['linky_id'] + '.png'}
 
     response = jsonify(response_object)
     response.headers['Content-Type'] = "application/json"
@@ -85,4 +86,4 @@ def api_get(linky_id):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5002, debug=True)
+    app.run(host=config['FLASK_HOST'], port=config['FLASK_PORT'], debug=config['FLASK_DEBUG'])
