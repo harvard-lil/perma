@@ -25,7 +25,7 @@ function linkIt(){
   request.done(function(data) {
     linkyUrl = data.linky_url;
     $('#linkyUrl').toggleClass('text-center');
-    $('#linkyUrl a').html(linkyUrl).attr('href', linkyUrl);
+    $('#linkyUrl a').html(web_base  + '/' + data.linky_id).attr('href', web_base + '/' + data.linky_id);
     $('#linky-preview img').attr('src', linkyUrl);
   });
   request.fail(function(jqXHR, responseText) {
