@@ -149,7 +149,7 @@ def linky_display(linky_id):
         abort(404)
     
     created_datestamp = existing_linky['_id'].generation_time
-    pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M %p")
+    pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
     
     return render_template('detail.html', web_base=config['WEB_BASE'], asset_number=linky_number, pretty_date=pretty_date, indexed_url=existing_linky['url'])
 
