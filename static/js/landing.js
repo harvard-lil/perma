@@ -8,6 +8,15 @@ $(document).ready(function() {
 		linkIt();
 		return false;
 	});
+	
+	$('#email_request').keyup(function() {                   
+    if( !$(this).val() ) {
+      $('#saveLinky').text('Save this Linky');    
+    }
+    else {
+      $('#saveLinky').text('Save and send this Linky');
+    }
+  });
 
 });
 
@@ -50,5 +59,5 @@ function linkIt(){
 $('#linky-confirm').on('hidden', function () {
   $('#rawUrl').val('').focus();
   $('#linky-list').fadeIn();
-  $('#linky-list tbody').append('<tr><td><a href="' + linkyUrl + '">' + linkyUrl + '</a></td><td><a href="' + rawUrl + '">' + rawUrl + '</a></td></tr>');
+  $('#linky-list tbody').append('<tr><td><a href="' + linkyUrl + '" target="_blank">' + linkyUrl + '</a></td><td><a href="' + rawUrl + '">' + rawUrl + '</a></td></tr>');
 });
