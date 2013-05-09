@@ -1,6 +1,10 @@
 from flask import Flask, render_template, request, abort, jsonify
 from bson import json_util
 
+import smtplib
+
+from email.mime.text import MIMEText
+
 import uuid, json
 import subprocess
     
@@ -88,6 +92,42 @@ def api_get(linky_id):
     response.status_code = 200        
 
     return response
+    
+
+@app.route('/service/email-confirm/', methods=['POST'])
+def service_email_confirm():
+    email_address = request.form['email_address']
+    linky_link = request.form['linky_link']
+    
+    if not email_address:
+        abort(400)
+    
+    # TODO: we should obviously only send messages that we send.
+    # lock this down.
+    
+    from_address = "lil@law.harvard.edu"
+    to_address = email_address
+    content = linky_link
+
+    msg = MIMEText(content)
+    msg['Subject'] = "The Linky link you requested"
+    msg['From'] = from_address
+    msg['To'] = to_address
+
+    # Send the message via our own SMTP server, but don't include the
+    # envelope header.
+    s = smtplib.SMTP('localhost')
+    s.sendmail(from_address, [to_address], msg.as_string())
+    s.quit()
+
+    response_object = {"sent": True}
+
+    response = jsonify(response_object)
+    response.headers['Content-Type'] = "application/json"
+    response.status_code = 200        
+
+    return response
+
 
 @app.route('/<linky_id>/')
 def linky_display(linky_id):

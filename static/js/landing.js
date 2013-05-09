@@ -34,6 +34,14 @@ function linkIt(){
   
   $('#linky-confirm').modal('show');
   $('#saveLinky').on('click', function(event){
+            
+    var request = $.ajax({
+      url: web_base + "/service/email-confirm/",
+      type: "POST",
+      data: {email_address: $('#email_request').val(), linky_link: $('#linkyUrl a').attr('href')},
+      dataType: "json"
+    });
+      
     event.preventDefault();
     $('#linky-confirm').modal('hide');
   });
