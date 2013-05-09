@@ -23,13 +23,13 @@ function linkIt(){
     dataType: "json"
   });
   request.done(function(data) {
-    linkyUrl = data.linky_url;
+    linkyUrl = web_base  + '/' + data.linky_id;
     $('#linkyUrl').toggleClass('text-center');
     $('#linkyUrl a').html(web_base  + '/' + data.linky_id).attr('href', web_base + '/' + data.linky_id);
-    $('#linky-preview img').attr('src', linkyUrl);
+    $('#linky-preview img').attr('src', data.linky_url);
   });
   request.fail(function(jqXHR, responseText) {
-    console.log( jqXHR );
+    //console.log( jqXHR );
   });
   
   $('#linky-confirm').modal('show');
