@@ -3,3 +3,4 @@ static/img/linkys/*
 !static/img/linkys/README
 *.pyc
 lib/phantomjs
+linky/linky/settings.py
