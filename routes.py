@@ -22,6 +22,14 @@ app = Flask(__name__)
 @app.route('/')
 def home():
     return render_template('landing.html', web_base=config['WEB_BASE'])
+    
+@app.route('/editor/')
+def editor():
+    return render_template('editor-list-view.html', web_base=config['WEB_BASE'])
+
+@app.route('/accounts/')
+def accounts():
+    return render_template('accounts.html', web_base=config['WEB_BASE'])
 
 @app.route('/api/linky/', methods=['POST'])
 def api_post():
