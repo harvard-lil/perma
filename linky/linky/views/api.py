@@ -1,6 +1,19 @@
+import logging, json, subprocess
+
+
+from linky.models import Link
 from django.shortcuts import render_to_response, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 
+logger = logging.getLogger(__name__)
 
+try:
+    from linky.local_settings import *
+except ImportError, e:
+    logger.error('Unable to load local_settings.py:', e)
+
+# TODO: If we're going to csrf exempt this, we should keep an eye on things
+@csrf_exempt
 def linky_post(request):
     """ When we receive a Linky POST """
     target_url = request.POST.get('url')
@@ -9,22 +22,22 @@ def linky_post(request):
         return HttpResponse(status=400)
         
     if target_url[0:4] != 'http':
-        target_url = 'http://' + target_url
+        target_url = 'http://' + target_url        
         
-    image_generation_command = config['LINKY_HOME'] + '/lib/phantomjs ' + config['LINKY_HOME'] + '/lib/rasterize.js "' + target_url + '" ' + config['LINKY_HOME'] + '/static/img/linkys/' + str(linky_number) + '.png'
+        
+    link = Link(submitted_url=target_url)
+    link.save()
+    
+    
+    image_generation_command = INTERNAL['APP_FILEPATH'] + '/lib/phantomjs ' + INTERNAL['APP_FILEPATH'] + '/lib/rasterize.js "' + target_url + '" ' + INTERNAL['APP_FILEPATH'] + '/static/img/linkys/' + link.hash_id + '.png'
     subprocess.call(image_generation_command, shell=True)
 
-    new_linky = {"url": target_url, "linky_number": linky_number}
-    links_collection.insert(new_linky)
+    print image_generation_command
 
     # if we want to do some file uploading
     #f = request.files['the_file']
     #f.save('/var/www/uploads/uploaded_file.txt')
     
-    response_object = {"linky_id": linky_hash, 'linky_url': config['WEB_BASE'] + '/static/img/linkys/' + str(linky_number) + '.png'}
-    
-    response = jsonify(response_object)
-    response.headers['Content-Type'] = "application/json"
-    response.status_code = 201
-    
-    return response
+    response_object = {'linky_id': link.hash_id, 'linky_url': 'http://' + request.get_host() + '/static/img/linkys/' + link.hash_id + '.png'}
+
+    return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)

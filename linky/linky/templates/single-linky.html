@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block styles %}
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
+{% endblock %}
+{% block content %}
+  <div class="jumbo">
+	{{indexed_url}} index on {{pretty_date}}
+	<img src="{{ STATIC_PREFIX }}img/linkys/{{linky_id}}.png">
+  </div>
+{% endblock %}
+{% block scripts %}
+<script>
+  var web_base = "{{web_base}}";
+</script>
+<script src="{{ STATIC_PREFIX }}js/landing.js"></script>
+{% endblock %}

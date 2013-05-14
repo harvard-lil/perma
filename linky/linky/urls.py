@@ -10,7 +10,8 @@ urlpatterns = patterns('linky.views',
 
     # Common Pages
     url(r'^$', 'common.landing', name='landing'),
-
+    url(r'^api/linky/$', 'api.linky_post', name='api_linky_post'),
+    url(r'^(?P<linky_id>[a-zA-Z0-9]+)/?$', 'common.single_linky', name='single_linky'),
     
     # Session/account management
 """    url(r'^password/change/$', auth_views.password_change, {'template_name': 'registration/password_change_form.html'}, name='auth_password_change'),
