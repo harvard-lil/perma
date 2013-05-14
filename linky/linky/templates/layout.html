@@ -1,0 +1,32 @@
+{% load static %}
+{% get_static_prefix as STATIC_PREFIX %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Linky</title>
+	<link href="{{ STATIC_PREFIX }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
+    <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap.css">
+    {% block styles %}
+    {% endblock %}  
+  </head>
+  <body>
+   
+    <header>
+      {% block navbar %}
+      {% endblock %}
+      <div class="container">
+        <h1 class="logo">Linky</h1>
+      </div>
+    </header> 
+     
+    <div class="container">
+      {% block content %}
+      {% endblock %}
+    </div>
+    <script src="{{ STATIC_PREFIX }}js/jquery.js"></script>
+    <script src="{{ STATIC_PREFIX }}js/bootstrap.js"></script>
+    {% block scripts %}
+    {% endblock %}   
+  </body>
+</html>

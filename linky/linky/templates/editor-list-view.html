@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+{% block styles %}
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
+{% endblock %}
+
+{% block navbar %}
+<div class="navbar">
+  <div class="navbar-inner">
+    <ul class="nav pull-right">
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Account<b class="caret"></b></a>
+        <ul class="dropdown-menu">
+          <li><a href="#">Sign out</a></li>
+          <li><a href="#">Create linky</a></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+  <div class="jumbo">
+  <h4>Linkies for JOURNAL_NAME</h4>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Linky link</th>
+        <th>Original link</th>
+        <th>Vested date</th>
+        <th>Vested by</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a href="LINKY_LINK">LINKY.COM/SHORTID</a></td>
+        <td><a href="ORIGINAL_LINK">EXAMPLE.COM</a></td>
+        <td>May 10, 2013</td>
+        <td>Annie Cain</td>
+      </tr>
+      <tr>
+        <td><a href="LINKY_LINK">LINKY.COM/SHORTID</a></td>
+        <td><a href="ORIGINAL_LINK">EXAMPLE.COM</a></td>
+        <td>May 7, 2013</td>
+        <td>Annie Cain</td>
+      </tr>
+      <tr>
+        <td><a href="LINKY_LINK">LINKY.COM/SHORTID</a></td>
+        <td><a href="ORIGINAL_LINK">EXAMPLE.COM</a></td>
+        <td>May 3, 2013</td>
+        <td>Matt Phillips</td>
+      </tr>
+      <tr>
+        <td><a href="LINKY_LINK">LINKY.COM/SHORTID</a></td>
+        <td><a href="ORIGINAL_LINK">EXAMPLE.COM</a></td>
+        <td>May 3, 2013</td>
+        <td>Jeff Goldenson</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+{% endblock %}
+{% block scripts %}
+<script>
+  var web_base = "{{web_base}}";
+</script>
+<script src="{{ STATIC_PREFIX }}js/landing.js"></script>
+{% endblock %}

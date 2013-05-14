@@ -1,0 +1,36 @@
+#linky-confirm {
+	width: 900px; /* SET THE WIDTH OF THE MODAL */
+	margin-left: -450px; /* CHANGE MARGINS TO ACCOMODATE THE NEW WIDTH (original = margin: -250px 0 0 -280px;) */
+}
+
+#linky-desc {
+  float:left;
+  margin-left:15px;
+  width:320px;
+}
+
+#linky-preview img {
+  max-width:500px;
+}
+
+#linky-preview {
+  max-height:400px;
+  width:515px;
+  overflow:auto;
+}
+
+#linkyUrl {
+  height:100px;
+}
+
+#saveLinky {
+  margin-top:45px;
+}
+
+#linky-list {
+  display:none;
+}
+
+#linky-list th {
+  width:200px;
+}
