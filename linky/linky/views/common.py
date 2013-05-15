@@ -43,7 +43,9 @@ def editor_home(request):
     linkys = Link.objects.filter(vetted_by_editor=request.user)
     linky_list = list(linkys)    
 
-    print linky_list
+    for linky in linky_list:
+        if linky.submitted_url[0:4] != 'http':
+            linky.submitted_url = 'http://' + linky.submitted_url
 
     context = {'linky_list': linky_list, 'user': request.user, 'host': request.get_host()}
 
