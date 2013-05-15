@@ -36,8 +36,8 @@ $(document).ready(function() {
 
 function linkIt(){
   $('#linkyUrl').toggleClass('text-center');
-  $('#linky-preview img').attr('src', 'http://placekitten.com/500/400');
-  $('#linkyUrl a').attr('href', '').html('<i class="icon-spinner icon-spin icon-2x text-center"></i>');
+  $('#linky-preview img').attr('src', web_base + '/static/img/infinity_500_400.gif');
+
   rawUrl = $("#rawUrl").val();
   var request = $.ajax({
     url: web_base + "/api/linky/",
