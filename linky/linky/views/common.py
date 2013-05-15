@@ -32,3 +32,19 @@ def single_linky(request, linky_id):
         context.update(csrf(request))
 
     return render_to_response('single-linky.html', context)
+    
+def editor_home(request):
+    """The the editor user's admin home """
+    
+    if not request.user.is_authenticated():
+        return HttpResponseRedirect(reverse('auth_login'))
+
+
+    linkys = Link.objects.filter(vetted_by_editor=request.user)
+    linky_list = list(linkys)    
+
+    print linky_list
+
+    context = {'linky_list': linky_list, 'user': request.user, 'host': request.get_host()}
+
+    return render_to_response('editor-list-view.html', context)

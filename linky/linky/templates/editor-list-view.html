@@ -22,6 +22,15 @@
 
 {% block content %}
   <div class="jumbo">
+
+	<ul>
+	{% for linky in linky_list %}
+	    <li>{{ linky.submitted_url }}</li>
+	{% empty %}
+	    <li>It appears as if you haven't vetted any Linkys.</li>
+	{% endfor %}
+	<ul>
+	
   <h4>Linkies for JOURNAL_NAME</h4>
   <table class="table">
     <thead>

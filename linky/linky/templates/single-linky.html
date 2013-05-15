@@ -5,6 +5,7 @@
 {% endblock %}
 {% block content %}
   <div class="jumbo">
+	{{user.username}}
 	{% if user.is_authenticated and not linky.vetted %}
 	<form action="" method="post">
 		{% csrf_token %}

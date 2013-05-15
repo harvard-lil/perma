@@ -10,6 +10,7 @@ urlpatterns = patterns('linky.views',
 
     # Common Pages
     url(r'^$', 'common.landing', name='landing'),
+    url(r'^editor/?$', 'common.editor_home', name='editor_home'),
     
     #API routes
     url(r'^api/linky/?$', 'api.linky_post', name='api_linky_post'),
