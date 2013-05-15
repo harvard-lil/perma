@@ -36,16 +36,13 @@
   width:200px;
 }
 
-.logo-img {
-	width:30px;
-	margin-top:-116px;
-	margin-left:70px;
-}
+
 
 .big {
 	font-size:24px;
 	color:#09f;
 }
+
 
 .big:hover {
 	color:#06f;
@@ -63,9 +60,31 @@ header {
 	color:#035;
 }
 
+.logo-big {
+	color:#035;
+	font-size:48px;
+}
+
+.logo-img {
+	width:30px;
+	margin-top:-116px;
+	margin-left:70px;
+}
+
+.logo-big-img {
+	width:37px;
+	margin-top:-123px;
+	margin-left:88px;
+}
+
 .jumbo {
 	color:#09f;
 	padding-bottom:20px;
+}
+
+.center {
+	text-align:center;
+	margin:auto;
 }
 
 .jumbo img {
@@ -77,9 +96,19 @@ header {
 box-shadow: 0 0 2px 2px #eee;
 }
 
-.watermark{
-	border:0px;
-	margin-top:-600px;
+img.watermark-image {
+position:relative;
+margin:auto;
+border:none;
+	margin-bottom:-450px;
+	border-radius:3px;
+	-moz-box-shadow: none;
+-webkit-box-shadow: none;
+box-shadow: none;
+background:repeat;
+height:300px;
+
+opacity:.4;
 }
 
 .indexed {
