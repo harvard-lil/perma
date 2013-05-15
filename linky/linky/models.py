@@ -13,10 +13,19 @@ try:
 except ImportError, e:
     logger.error('Unable to load local_settings.py:', e)
 
+class Publication(models.Model):
+    user = models.ForeignKey(User)
+    name = models.CharField(max_length=400)
+
+    def __unicode__(self):
+        return self.name
+
 class Link(models.Model):
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)
     creation_time = models.DateTimeField(auto_now=True)
     vetted = models.BooleanField(default=False)
+    vetted_by_editor = models.ForeignKey(User, null=True, blank=True)
+    vetted_by_publication = models.ForeignKey(Publication, null=True, blank=True)
     hash_id = models.CharField(max_length=100, unique=True) # Should we store this? For backup reasons?
 
     def save(self, *args, **kwargs):

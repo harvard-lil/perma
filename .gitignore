@@ -2,6 +2,6 @@ etc/linky.conf
 linky/static/img/linkys/*
 !linky/static/img/linkys/README
 *.pyc
-lib/phantomjs
+linky/lib/phantomjs
 linky/linky/settings.py
 linky/linky/local_settings.py

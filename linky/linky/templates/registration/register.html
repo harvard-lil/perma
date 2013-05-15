@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+{% load static %}
+{% get_static_prefix as STATIC_PREFIX %}
+
+
+{% block styles %}
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap.css" type="text/css" />
+<link rel="stylesheet" media="all" href="{{ STATIC_PREFIX }}css/awesome.css" />
+{% endblock styles %}
+
+{% block content %}
+<body>
+<div id="wrapper">	
+	<header id="branding">
+		<h1>Awesome Box</h1>
+	</header>
+	<div id="content">
+		<article class="register thin-centered">
+			<h1>Create an Account</h1>
+
+			<form action="." method="post">
+				{% csrf_token %}
+
+				<h2>User Account</h2>
+				{{ editor_reg_form }}
+				<br />
+				<button type="submit" class="button positive icon-ok immediate">Create Account</button>
+			</form>
+			<br />
+		</article>
+	</div><!-- end content -->
+</div> <!-- end wrapper -->
+{% endblock content %}
+
+{% block scripts %}
+<script src="{{ STATIC_PREFIX }}js/modernizr.custom.37797.js"></script> 
+<!-- Grab Google CDN's jQuery. fall back to local if necessary --> 
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script>!window.jQuery && document.write('<script src="{{ STATIC_PREFIX }}/js/jquery-1.7.1.min.js"><\/script>')</script>
+
+
+{% endblock scripts %}

@@ -5,6 +5,9 @@
 {% endblock %}
 {% block content %}
   <div class="jumbo">
+	{% if user.is_authenticated %}
+		<p>put "This is legit. Vet." button here</p>
+	{% endif %}
 	{{indexed_url}} index on {{pretty_date}}
 	<img src="{{ STATIC_PREFIX }}img/linkys/{{linky_id}}.png">
   </div>

@@ -15,4 +15,4 @@ def single_linky(request, linky_id):
     created_datestamp = link.creation_time
     pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
 
-    return render_to_response('single-linky.html', {'linky_id': link.hash_id, 'pretty_date': pretty_date, 'indexed_url': link.submitted_url})
+    return render_to_response('single-linky.html', {'linky_id': link.hash_id, 'pretty_date': pretty_date, 'indexed_url': link.submitted_url, 'user': request.user})
