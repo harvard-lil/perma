@@ -5,11 +5,17 @@
 {% endblock %}
 {% block content %}
   <div class="jumbo">
-	{% if user.is_authenticated %}
-		<p>put "This is legit. Vet." button here</p>
+	{% if user.is_authenticated and not linky.vetted %}
+	<form action="" method="post">
+		{% csrf_token %}
+		<input type="submit" value="vet" name="vet">
+	</form>
 	{% endif %}
-	{{indexed_url}} index on {{pretty_date}}
-	<img src="{{ STATIC_PREFIX }}img/linkys/{{linky_id}}.png">
+	{% if linky.vetted %}
+		<p>Vetted at {{linky.vetted_timestamp}}<p>
+	{% endif %}
+	{{linky.submitted_url}} index on {{linky.creation_time}}
+	<img src="{{ STATIC_PREFIX }}img/linkys/{{linky.hash_id}}.png">
   </div>
 {% endblock %}
 {% block scripts %}

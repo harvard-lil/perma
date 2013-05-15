@@ -25,6 +25,7 @@ class Link(models.Model):
     creation_time = models.DateTimeField(auto_now=True)
     vetted = models.BooleanField(default=False)
     vetted_by_editor = models.ForeignKey(User, null=True, blank=True)
+    vetted_timestamp = models.DateTimeField(null=True, blank=True)
     vetted_by_publication = models.ForeignKey(Publication, null=True, blank=True)
     hash_id = models.CharField(max_length=100, unique=True) # Should we store this? For backup reasons?
 
