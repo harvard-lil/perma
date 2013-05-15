@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">	
+	<form action="" method="post">
+		{% csrf_token %}
+
+		<h2>Create a User Account</h2>
+		{{ editor_reg_form }}
+		<br />
+		<button type="submit" class="btn btn-primary">Create Account</button>
+	</form>
+</div>
+{% endblock content %}

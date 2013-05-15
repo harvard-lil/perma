@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
 {% endblock %}
 {% block content %}
   <div class="jumbo">
@@ -44,7 +44,7 @@
 {% endblock %}
 {% block scripts %}
 <script>
-  var web_base = "{{web_base}}";
+  var web_base = "http://{{host}}";
 </script>
-<script src="{{ url_for('static', filename='js/landing.js') }}"></script>
+<script src="{{ STATIC_PREFIX }}js/landing.js"></script>
 {% endblock %}

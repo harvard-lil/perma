@@ -1,5 +1,11 @@
 var linkyUrl = '';
 var rawUrl = '';
+var newLinky = {};
+var allLinkies = new Array();
+if(('localStorage' in window) && window['localStorage'] !== null){
+  storedLinkies = JSON.parse(localStorage.getItem('linkies'));
+}
+
 $(document).ready(function() {
   $('#linky-confirm').modal({show: false});
   $('#rawUrl').focus();
@@ -17,6 +23,14 @@ $(document).ready(function() {
       $('#saveLinky').text('Save and send this Linky');
     }
   });
+  
+  if(storedLinkies) {
+    allLinkies = storedLinkies;
+    $.each( allLinkies, function( key, value ) {
+      $('#linky-list tbody').append('<tr><td><a href="' + value.url + '" target="_blank">' + value.url + '</a></td><td><a href="' + value.original + '" target="_blank">' + value.original + '</a></td></tr>');
+    });
+    $('#linky-list').fadeIn();
+  }
 
 });
 
@@ -33,6 +47,12 @@ function linkIt(){
   });
   request.done(function(data) {
     linkyUrl = web_base  + '/' + data.linky_id;
+    newLinky.url = linkyUrl;
+    newLinky.original = rawUrl;
+    allLinkies.push(newLinky);
+    if(('localStorage' in window) && window['localStorage'] !== null){ 
+      localStorage.setItem( 'linkies', JSON.stringify(allLinkies));
+    }
     $('#linkyUrl').toggleClass('text-center');
     $('#linkyUrl a').html(web_base  + '/' + data.linky_id).attr('href', web_base + '/' + data.linky_id);
     $('#linky-preview img').attr('src', data.linky_url);
@@ -59,5 +79,5 @@ function linkIt(){
 $('#linky-confirm').on('hidden', function () {
   $('#rawUrl').val('').focus();
   $('#linky-list').fadeIn();
-  $('#linky-list tbody').append('<tr><td><a href="' + linkyUrl + '" target="_blank">' + linkyUrl + '</a></td><td><a href="' + rawUrl + '">' + rawUrl + '</a></td></tr>');
+  $('#linky-list tbody').append('<tr><td><a href="' + linkyUrl + '" target="_blank">' + linkyUrl + '</a></td><td><a href="' + rawUrl + '" target="_blank">' + rawUrl + '</a></td></tr>');
 });

@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="row">
+	<h2>Login</h2>
+		
+			{% if next %}
+				<form method="post" action="?next={{ next }}">
+			{% else %}
+				<form method="post" action=".">
+			{% endif %}
+				{% csrf_token %}
+				{{ form.as_p }}
+				<button type="submit" class="btn btn-primary">Login</button>
+			</form>
+			<br />
+			<p>Can't remember your password? No problem, we can help you <a href="{% url auth_password_reset %}">create a new one.</a></p>
+	</div><!-- end content -->
+{% endblock content %}

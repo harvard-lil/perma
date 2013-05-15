@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block styles %}
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
+{% endblock %}
+{% block content %}
+  <div class="jumbo">
+	{{user.username}}
+	{% if user.is_authenticated and not linky.vetted %}
+	<form action="" method="post">
+		{% csrf_token %}
+		<input type="submit" value="vet" name="vet">
+	</form>
+	{% endif %}
+	{% if linky.vetted %}
+		<p>Vetted at {{linky.vetted_timestamp}}<p>
+	{% endif %}
+	{{linky.submitted_url}} index on {{linky.creation_time}}
+	<img src="{{ STATIC_PREFIX }}img/linkys/{{linky.hash_id}}.png">
+  </div>
+{% endblock %}
+{% block scripts %}
+<script>
+  var web_base = "{{web_base}}";
+</script>
+<script src="{{ STATIC_PREFIX }}js/landing.js"></script>
+{% endblock %}
