@@ -8,7 +8,7 @@
 			{% if next %}
 				<form method="post" action="?next={{ next }}">
 			{% else %}
-				<form method="post" action=".">
+				<form method="post" action="">
 			{% endif %}
 				{% csrf_token %}
 				{{ form.as_p }}
