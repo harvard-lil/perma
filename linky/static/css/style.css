@@ -34,3 +34,40 @@
 #linky-list th {
   width:200px;
 }
+
+.logo-img {
+	width:30px;
+	margin-top:-116px;
+	margin-left:70px;
+}
+
+.big {
+	font-size:24px;
+	color:#09f;
+}
+
+.big:hover {
+	color:#06f;
+}
+
+header {
+	margin-top:40px;	
+}
+
+.loading-icon {
+	height:2px;
+}
+
+.logo {
+	color:#035;
+}
+
+.jumbo {
+	color:#ddd;
+}
+
+.jumbo img {
+	border:1px solid #ddd;
+	margin-bottom:40px;
+	
+}
