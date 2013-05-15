@@ -8,8 +8,8 @@
 	{% if user.is_authenticated %}
 		<p>put "This is legit. Vet." button here</p>
 	{% endif %}
-	{{indexed_url}} index on {{pretty_date}}
-	<img src="{{ STATIC_PREFIX }}img/linkys/{{linky_id}}.png">
+	<h4 class="indexed"><a href="{{indexed_url}}">{{indexed_url}}</a> <small>indexed on {{pretty_date}}</small></h4>
+	<a href="{{indexed_url}}"><img src="{{ STATIC_PREFIX }}img/linkys/{{linky_id}}.png"></a>
   </div>
 {% endblock %}
 {% block scripts %}

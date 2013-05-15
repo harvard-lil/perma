@@ -16,6 +16,7 @@
 #linky-preview {
   max-height:400px;
   width:515px;
+  border:1px solid #ddd;
   overflow:auto;
 }
 
@@ -51,7 +52,7 @@
 }
 
 header {
-	margin-top:40px;	
+	margin-top:25px;	
 }
 
 .loading-icon {
@@ -63,11 +64,19 @@ header {
 }
 
 .jumbo {
-	color:#ddd;
+	color:#09f;
+	padding-bottom:20px;
 }
 
 .jumbo img {
-	border:1px solid #ddd;
+	border:1px solid #ccc;
 	margin-bottom:40px;
-	
+	border-radius:3px;
+	-moz-box-shadow: 0 0 2px 2px #eee;
+-webkit-box-shadow: 0 0 2px 2px#eee;
+box-shadow: 0 0 2px 2px #eee;
+}
+
+.indexed {
+	margin-bottom:15px;
 }

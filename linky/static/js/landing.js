@@ -23,7 +23,7 @@ $(document).ready(function() {
 function linkIt(){
   $('#linkyUrl').toggleClass('text-center');
   $('#linky-preview img').attr('src', web_base + '/static/img/infinity_500_400.gif');
-  $('#linkyUrl a').attr('href', '').html('<i class="icon-spinner icon-spin icon-2x text-center"></i>');
+
   rawUrl = $("#rawUrl").val();
   var request = $.ajax({
     url: web_base + "/api/linky/",
