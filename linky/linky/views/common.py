@@ -40,7 +40,7 @@ def editor_home(request):
         return HttpResponseRedirect(reverse('auth_login'))
 
 
-    linkys = Link.objects.filter(vetted_by_editor=request.user)
+    linkys = Link.objects.filter(vetted_by_editor=request.user).order_by('-vetted_timestamp')
     linky_list = list(linkys)    
 
     for linky in linky_list:

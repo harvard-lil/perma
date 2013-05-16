@@ -9,6 +9,10 @@
   width:320px;
 }
 
+.unavailable {
+    opacity: .6;
+}
+
 #linky-preview img {
   max-width:500px;
 }
@@ -35,8 +39,6 @@
 #linky-list th {
   width:200px;
 }
-
-
 
 .big {
 	font-size:24px;

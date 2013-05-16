@@ -46,6 +46,8 @@ function linkIt(){
     dataType: "json"
   });
   request.done(function(data) {
+    $('#linky_generation_message').html('Your linky has been created at');
+    $('#linky-desc').toggleClass('unavailable');
     linkyUrl = web_base  + '/' + data.linky_id;
     newLinky.url = linkyUrl;
     newLinky.original = rawUrl;
@@ -80,4 +82,8 @@ $('#linky-confirm').on('hidden', function () {
   $('#rawUrl').val('').focus();
   $('#linky-list').fadeIn();
   $('#linky-list tbody').append('<tr><td><a href="' + linkyUrl + '" target="_blank">' + linkyUrl + '</a></td><td><a href="' + rawUrl + '" target="_blank">' + rawUrl + '</a></td></tr>');
+
+  $('#linky_generation_message').html('Creating your Linky. Hold tight.');
+  $('#linkyUrl a').html('').attr('');
+  $('#linky-desc').toggleClass('unavailable');
 });
