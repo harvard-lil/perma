@@ -10,7 +10,7 @@ from linky.models import Link
 def landing(request):
     """The landing page"""
 
-    return render_to_response('landing.html', {'host': request.get_host()})
+    return render_to_response('landing.html', {'host': request.get_host(), 'user': request.user})
     
 def single_linky(request, linky_id):
     """Given a Linky ID, serve it up. Vetting also takes place here. """

@@ -25,7 +25,7 @@ $(document).ready(function() {
   });
   
   if(storedLinkies) {
-    allLinkies = storedLinkies;
+    allLinkies = storedLinkies.reverse();
     $.each( allLinkies, function( key, value ) {
       $('#linky-list tbody').append('<tr><td><a href="' + value.url + '" target="_blank">' + value.url + '</a></td><td><a href="' + value.original + '" target="_blank">' + value.original + '</a></td></tr>');
     });
@@ -81,9 +81,9 @@ function linkIt(){
 $('#linky-confirm').on('hidden', function () {
   $('#rawUrl').val('').focus();
   $('#linky-list').fadeIn();
-  $('#linky-list tbody').append('<tr><td><a href="' + linkyUrl + '" target="_blank">' + linkyUrl + '</a></td><td><a href="' + rawUrl + '" target="_blank">' + rawUrl + '</a></td></tr>');
 
   $('#linky_generation_message').html('Creating your Linky. Hold tight.');
   $('#linkyUrl a').html('').attr('');
   $('#linky-desc').toggleClass('unavailable');
+  $('#linky-list tbody').prepend('<tr><td><a href="' + linkyUrl + '" target="_blank">' + linkyUrl + '</a></td><td><a href="' + rawUrl + '" target="_blank">' + rawUrl + '</a></td></tr>');
 });

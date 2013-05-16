@@ -16,10 +16,9 @@
     {% endblock %}  
   </head>
   <body>
-   
+  {% block navbar %}
+  {% endblock %}
     <header>
-      {% block navbar %}
-      {% endblock %}
       <div class="container">
         <h1 class="logo-big">Linky</h1>
         <img class="logo-big-img" src="{{ STATIC_PREFIX }}img/infinity.png"/>
