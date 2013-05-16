@@ -1,4 +1,4 @@
-Linky -- indelible links
+Linky - indelible links
 =====
 
 ## Install
@@ -28,7 +28,7 @@ Linky uses two settings files. You'll find example files in the codebase. Copy t
     cp ./settings.example.py ./settings.py
     cp ./local_settings.py ./local_settings.py
 
-### Phantomjs
+### PhantomJS
 
 We use PhantomJS to generate our images. Download [PhantomJS](http://phantomjs.org/) and place the binary in your lib directory. Your lib directory might look something like this:
 
