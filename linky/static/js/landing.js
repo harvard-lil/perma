@@ -2,9 +2,6 @@ var linkyUrl = '';
 var rawUrl = '';
 var newLinky = {};
 var allLinkies = new Array();
-if(('localStorage' in window) && window['localStorage'] !== null){
-  storedLinkies = JSON.parse(localStorage.getItem('linkies'));
-}
 
 $(document).ready(function() {
   $('#linky-confirm').modal({show: false});
@@ -16,7 +13,7 @@ $(document).ready(function() {
 	});
 	
 	$('#email_request').keyup(function() {                   
-    if( !$(this).val() ) {
+    if(!$(this).val()) {
       $('#saveLinky').text('Save this Linky');    
     }
     else {
@@ -24,18 +21,10 @@ $(document).ready(function() {
     }
   });
   
-  if(storedLinkies) {
-    allLinkies = storedLinkies.reverse();
-    $.each( allLinkies, function( key, value ) {
-      $('#linky-list tbody').append('<tr><td><a href="' + value.url + '" target="_blank">' + value.url + '</a></td><td><a href="' + value.original + '" target="_blank">' + value.original + '</a></td></tr>');
-    });
-    $('#linky-list').fadeIn();
-  }
-
+  drawLinks();
 });
 
 function linkIt(){
-  $('#linkyUrl').toggleClass('text-center');
   $('#linky-preview img').attr('src', web_base + '/static/img/infinity_500_400.gif');
 
   rawUrl = $("#rawUrl").val();
@@ -53,9 +42,8 @@ function linkIt(){
     newLinky.original = rawUrl;
     allLinkies.push(newLinky);
     if(('localStorage' in window) && window['localStorage'] !== null){ 
-      localStorage.setItem( 'linkies', JSON.stringify(allLinkies));
+      localStorage.setItem( 'linky-list', JSON.stringify(allLinkies));
     }
-    $('#linkyUrl').toggleClass('text-center');
     $('#linkyUrl a').html(web_base  + '/' + data.linky_id).attr('href', web_base + '/' + data.linky_id);
     $('#linky-preview img').attr('src', data.linky_url);
   });
@@ -76,14 +64,28 @@ function linkIt(){
     event.preventDefault();
     $('#linky-confirm').modal('hide');
   });
+  
+  $('#linky-confirm').on('hidden', function () {
+    $('#rawUrl').val('').focus();
+    $('#linky-list').fadeIn();
+  
+    $('#linky_generation_message').html('Creating your Linky. Hold tight.');
+    $('#linkyUrl a').html('').attr('');
+    $('#linky-desc').toggleClass('unavailable');
+    drawLinks();
+  });
 }
 
-$('#linky-confirm').on('hidden', function () {
-  $('#rawUrl').val('').focus();
-  $('#linky-list').fadeIn();
-
-  $('#linky_generation_message').html('Creating your Linky. Hold tight.');
-  $('#linkyUrl a').html('').attr('');
-  $('#linky-desc').toggleClass('unavailable');
-  $('#linky-list tbody').prepend('<tr><td><a href="' + linkyUrl + '" target="_blank">' + linkyUrl + '</a></td><td><a href="' + rawUrl + '" target="_blank">' + rawUrl + '</a></td></tr>');
-});
+function drawLinks() {
+  if(('localStorage' in window) && window['localStorage'] !== null){
+    storedLinkies = JSON.parse(localStorage.getItem('linky-list'));
+  }
+  if(storedLinkies) {
+    allLinkies = storedLinkies.reverse();
+    $('#linky-list tbody').html('');
+    $.each( allLinkies, function( key, value ) {
+      $('#linky-list tbody').append('<tr><td><a href="' + value.url + '" target="_blank">' + value.url + '</a></td><td><a href="' + value.original + '" target="_blank">' + value.original + '</a></td></tr>');
+    });
+    $('#linky-list').fadeIn();
+  }
+}
