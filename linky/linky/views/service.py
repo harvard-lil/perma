@@ -4,7 +4,7 @@ from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
 from django.views.decorators.csrf import csrf_exempt
 
-import smtplib
+import smtplib, json
 from email.mime.text import MIMEText
 
 
