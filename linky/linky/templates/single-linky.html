@@ -4,22 +4,23 @@
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
 {% endblock %}
 {% block content %}
-  <div class="jumbo">
-	{{user.username}}
-	{% if user.is_authenticated and not linky.vetted %}
-	<form action="" method="post">
-		{% csrf_token %}
-		<input type="submit" value="vet" name="vet">
-	</form>
-	{% endif %}
-
-	<h4 class="indexed"><a href="{{linky.submitted_url}}">{{linky.submitted_url}}</a> <small>indexed on {{linky.creation_time}}</small></h4>
-	<div class="watermark center">
+<div class="row">
+  <div class="span10">
+	  <h4 class="indexed"><a href="{{linky.submitted_url}}">{{linky.submitted_url}}</a> <small>indexed on {{linky.creation_time}}</small></h4>
+	</div>
+	<div class="span1 offset1">
+    {% if user.is_authenticated and not linky.vetted %}
+    <form action="" method="post">
+      {% csrf_token %}
+      <input type="submit" value="vet" name="vet" class="btn btn-primary">
+    </form>
+    {% endif %}
+  </div>
+  <div class="watermark center">
 		<img class="watermark-image" src="{{ STATIC_PREFIX }}img/watermark.png"/>
 		<a href="{{linky.submitted_url}}"><img src="{{ STATIC_PREFIX }}img/linkys/{{linky.hash_id}}.png"></a>
 	</div>
-
-  </div>
+</div>
 {% endblock %}
 {% block scripts %}
 <script>
