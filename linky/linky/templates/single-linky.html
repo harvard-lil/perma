@@ -4,6 +4,7 @@
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
 {% endblock %}
 {% block content %}
+
 <div class="row">
   <div class="span10">
 	  <h4 class="indexed"><a href="{{linky.submitted_url}}">{{linky.submitted_url}}</a> <small>indexed on {{linky.creation_time}}</small></h4>
@@ -17,7 +18,7 @@
     {% endif %}
   </div>
   <div class="watermark center">
-		<img class="watermark-image" src="{{ STATIC_PREFIX }}img/watermark.png"/>
+		{% if not linky.vetted %}<img class="watermark-image" src="{{ STATIC_PREFIX }}img/watermark.png"/>{% endif %}
 		<a href="{{linky.submitted_url}}"><img src="{{ STATIC_PREFIX }}img/linkys/{{linky.hash_id}}.png"></a>
 	</div>
 </div>

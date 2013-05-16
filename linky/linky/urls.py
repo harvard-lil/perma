@@ -15,6 +15,9 @@ urlpatterns = patterns('linky.views',
     #API routes
     url(r'^api/linky/?$', 'api.linky_post', name='api_linky_post'),
     
+    #Services
+    url(r'^service/email-confirm/?$', 'service.email_confirm', name='service_email_confirm'),
+    
     # Session/account management
     url(r'^password/change/$', auth_views.password_change, {'template_name': 'registration/password_change_form.html'}, name='auth_password_change'),
     url(r'^login/?$', auth_views.login, {'template_name': 'registration/login.html'}, name='auth_login'),

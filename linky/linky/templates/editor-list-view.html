@@ -22,52 +22,35 @@
 
 {% block content %}
   <div class="jumbo">
+  <h4>Linkys vetted by {{user.username}}</h4>
 
-	<ul>
-	{% for linky in linky_list %}
-	    <li>{{ linky.submitted_url }}</li>
-	{% empty %}
-	    <li>It appears as if you haven't vetted any Linkys.</li>
-	{% endfor %}
-	<ul>
+	{% if linky_list %}
+	  <table class="table">
+	    <thead>
+	      <tr>
+	        <th>Linky link</th>
+	        <th>Original link</th>
+	        <th>Vetted date</th>
+	        <!--<th>Vetted by</th>-->
+	      </tr>
+	    </thead>
+	    <tbody>	
 	
-  <h4>Linkies for JOURNAL_NAME</h4>
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Linky link</th>
-        <th>Original link</th>
-        <th>Vested date</th>
-        <th>Vested by</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a href="LINKY_LINK">LINKY.COM/SHORTID</a></td>
-        <td><a href="ORIGINAL_LINK">EXAMPLE.COM</a></td>
-        <td>May 10, 2013</td>
-        <td>Annie Cain</td>
-      </tr>
-      <tr>
-        <td><a href="LINKY_LINK">LINKY.COM/SHORTID</a></td>
-        <td><a href="ORIGINAL_LINK">EXAMPLE.COM</a></td>
-        <td>May 7, 2013</td>
-        <td>Annie Cain</td>
-      </tr>
-      <tr>
-        <td><a href="LINKY_LINK">LINKY.COM/SHORTID</a></td>
-        <td><a href="ORIGINAL_LINK">EXAMPLE.COM</a></td>
-        <td>May 3, 2013</td>
-        <td>Matt Phillips</td>
-      </tr>
-      <tr>
-        <td><a href="LINKY_LINK">LINKY.COM/SHORTID</a></td>
-        <td><a href="ORIGINAL_LINK">EXAMPLE.COM</a></td>
-        <td>May 3, 2013</td>
-        <td>Jeff Goldenson</td>
-      </tr>
-    </tbody>
-  </table>
+		{% for linky in linky_list %}
+	      <tr>
+	        <td><a href="http://{{host}}/{{ linky.hash_id }}">http://{{host}}/{{ linky.hash_id }}</a></td>
+	        <td><a href="{{ linky.submitted_url }}">{{ linky.submitted_url }}</a></td>
+	        <td>{{linky.vetted_timestamp}}</td>
+	        <!--<td>{{linky.vetted_by_editor.username}}</td>-->
+	      </tr>
+		{% endfor %}
+		
+		</tbody>
+	  </table>
+	{% else %}
+	    <p>It appears as if you haven't vetted any Linkys.</p>
+	{% endif %}
+
   </div>
 {% endblock %}
 {% block scripts %}
