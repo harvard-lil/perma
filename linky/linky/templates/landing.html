@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block navbar %}
+
 <div class="navbar">
   <div class="navbar-inner">
     <ul class="nav pull-right">
@@ -23,14 +24,38 @@
     </ul>
   </div>
 </div>
+
+
 {% endblock %}
 
 {% block content %}
+<div class="row">
+<div class="span12">
   <div class="jumbo">
     <form class="form-inline" id="linker">
       <input type="text" id="rawUrl" class="input-xxlarge" placeholder="Enter URL">
       <button type="submit" class="btn big">&infin;</button>
     </form>
+</div> <!--span-->
+</div> <!--row-->
+
+<div class="row">
+	<div class="span4">
+		 <div class="center"><img src="{{ STATIC_PREFIX }}img/linky-1-export.png"></div>
+		 <h3>Create a Linky</h3>
+	</div> <!--span-->
+	<div class="span4">
+		 <div class="center"><img src="{{ STATIC_PREFIX }}img/linky-2-export.png"></div>
+		 <h3>We'll hang on to it for a while</h3>
+	</div> <!--span-->
+	<div class="span4">
+		 <div class="center"><img src="{{ STATIC_PREFIX }}img/linky-3-export.png"></div>
+		 <h3>If it's published, we'll hang on to it 4 eva</h3>
+	</div> <!--span-->
+</div> <!--row-->
+
+<div class="row">
+<div class="span12">
     <table id="linky-list" class="table">
       <thead>
         <tr>
@@ -66,6 +91,8 @@
       <!--<p>Linky capture not right? Upload your own.</p>-->
     </div>
   </div>
+  </div> <!--span-->
+</div> <!--row-->
 {% endblock %}
 {% block scripts %}
 <script>

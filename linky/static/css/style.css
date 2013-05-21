@@ -103,6 +103,11 @@ header {
 	padding-bottom:20px;
 }
 
+h3 {
+	color:#f60;
+	line-height: 30px;
+}
+
 .center {
 	text-align:center;
 	margin:auto;
