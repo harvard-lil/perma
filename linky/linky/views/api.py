@@ -1,4 +1,4 @@
-import logging, json, subprocess
+import logging, json, subprocess, lxml.html
 
 
 from linky.models import Link
@@ -17,6 +17,8 @@ except ImportError, e:
 def linky_post(request):
     """ When we receive a Linky POST """
     target_url = request.POST.get('url')
+    t = lxml.html.parse(target_url)
+    target_title = t.find(".//title").text
 
     if not target_url:
         return HttpResponse(status=400)
@@ -25,7 +27,7 @@ def linky_post(request):
         target_url = 'http://' + target_url        
         
         
-    link = Link(submitted_url=target_url)
+    link = Link(submitted_url=target_url, submitted_title=target_title)
     link.save()
     
     
@@ -38,6 +40,6 @@ def linky_post(request):
     #f = request.files['the_file']
     #f.save('/var/www/uploads/uploaded_file.txt')
     
-    response_object = {'linky_id': link.hash_id, 'linky_url': 'http://' + request.get_host() + '/static/img/linkys/' + link.hash_id + '.png'}
+    response_object = {'linky_id': link.hash_id, 'linky_url': 'http://' + request.get_host() + '/static/img/linkys/' + link.hash_id + '.png', 'linky_title': link.submitted_title}
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)

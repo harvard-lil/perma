@@ -23,6 +23,7 @@ class Publication(models.Model):
 class Link(models.Model):
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)
     creation_time = models.DateTimeField(auto_now=True)
+    submitted_title = models.CharField(max_length=2100, null=False, blank=False)
     vetted = models.BooleanField(default=False)
     vetted_by_editor = models.ForeignKey(User, null=True, blank=True)
     vetted_timestamp = models.DateTimeField(null=True, blank=True)

@@ -40,11 +40,13 @@ function linkIt(){
     linkyUrl = web_base  + '/' + data.linky_id;
     newLinky.url = linkyUrl;
     newLinky.original = rawUrl;
+    newLinky.title = data.linky_title;
     allLinkies.push(newLinky);
     if(('localStorage' in window) && window['localStorage'] !== null){ 
       localStorage.setItem( 'linky-list', JSON.stringify(allLinkies));
     }
     $('#linkyUrl a').html(web_base  + '/' + data.linky_id).attr('href', web_base + '/' + data.linky_id);
+    //$('#linky_title').text(data.linky_title);
     $('#linky-preview img').attr('src', data.linky_url);
   });
   request.fail(function(jqXHR, responseText) {
@@ -83,8 +85,10 @@ function drawLinks() {
   if(storedLinkies) {
     allLinkies = storedLinkies.reverse();
     $('#linky-list tbody').html('');
+    $('#linky-ul').html('');
     $.each( allLinkies, function( key, value ) {
       $('#linky-list tbody').append('<tr><td><a href="' + value.url + '" target="_blank">' + value.url + '</a></td><td><a href="' + value.original + '" target="_blank">' + value.original + '</a></td></tr>');
+      $('#linky-ul').append('<li><h4><a href="' + value.url + '" target="_blank">' + value.title + '</a></h4><small>' + value.original + '</small><br><h5><a href="' + value.url + '" target="_blank">' + value.url + '</a></h5></li>');
     });
     $('#linky-list').fadeIn();
   }
