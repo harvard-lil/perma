@@ -17,14 +17,15 @@ except ImportError, e:
 def linky_post(request):
     """ When we receive a Linky POST """
     target_url = request.POST.get('url')
-    t = lxml.html.parse(target_url)
-    target_title = t.find(".//title").text
 
     if not target_url:
         return HttpResponse(status=400)
         
     if target_url[0:4] != 'http':
         target_url = 'http://' + target_url        
+
+    t = lxml.html.parse(target_url)
+    target_title = t.find(".//title").text
         
         
     link = Link(submitted_url=target_url, submitted_title=target_title)
@@ -33,8 +34,6 @@ def linky_post(request):
     
     image_generation_command = INTERNAL['APP_FILEPATH'] + '/lib/phantomjs ' + INTERNAL['APP_FILEPATH'] + '/lib/rasterize.js "' + target_url + '" ' + INTERNAL['APP_FILEPATH'] + '/static/img/linkys/' + link.hash_id + '.png'
     subprocess.call(image_generation_command, shell=True)
-
-    print image_generation_command
 
     # if we want to do some file uploading
     #f = request.files['the_file']

@@ -32,8 +32,8 @@ Linky uses two settings files. You'll find example files in the codebase. Copy t
 
 We use PhantomJS to generate our images. Download [PhantomJS](http://phantomjs.org/) and place the binary in your lib directory. Your lib directory might look something like this:
 
-$ ls lib
-__init__.py hashids.py phantomjs rasterize.js
+    $ ls lib
+    __init__.py hashids.py phantomjs rasterize.js
 
 ### Create your tables and fire up Django
 
