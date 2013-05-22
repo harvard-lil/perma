@@ -3,7 +3,9 @@ import logging
 
 from lib.hashids import hashids
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission, Group
+from django.db.models.signals import post_syncdb
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 logger = logging.getLogger(__name__)
@@ -29,6 +31,7 @@ class Link(models.Model):
     vetted_timestamp = models.DateTimeField(null=True, blank=True)
     vetted_by_publication = models.ForeignKey(Publication, null=True, blank=True)
     hash_id = models.CharField(max_length=100, unique=True) # Should we store this? For backup reasons?
+    vetted_by_dr_seuss = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         # We compute our hash from our auto
@@ -47,3 +50,55 @@ class Link(models.Model):
 
     def __unicode__(self):
         return self.submitted_url
+        
+
+# Non-model stuff
+
+def add_groups_and_permissions(sender, **kwargs):
+    """
+    This syncdb hook adds our permissions and our groups
+    """
+    
+    # Add our groups
+    initial_groups = [
+      {
+        "model": "auth.group",
+        "fields": {
+          "name": "linky_admin"
+        },
+        "perms": [{
+            "codename": "can_vet",
+              "name": "Can vet Linky Links"
+        }]
+      },
+      {
+        "model": "auth.group",
+        "fields": {
+          "name": "librarian"
+        }
+      },
+      {
+        "model": "auth.group",
+        "fields": {
+          "name": "editor"
+        }
+      }
+    ]
+    
+    existing_groups = Group.objects.filter()
+    
+    if not existing_groups:
+        # We need a content_type for our perms. We'll use link for now, but this isn't right
+        content_type = ContentType.objects.get_for_model(Link)
+        
+        for initial_group in initial_groups:
+            group = Group.objects.create(name=initial_group['fields']['name'])
+            if 'perms' in initial_group:
+                for initial_perm in initial_group['perms']:
+                    perm = Permission.objects.create(content_type=content_type, codename=initial_perm['codename'], name=initial_perm['name'])
+                    group.permissions.add(perm)
+                    group.save()
+            
+        
+# load groups and permissions
+post_syncdb.connect(add_groups_and_permissions)
