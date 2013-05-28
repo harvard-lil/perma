@@ -31,7 +31,6 @@ class Link(models.Model):
     vetted_timestamp = models.DateTimeField(null=True, blank=True)
     vetted_by_publication = models.ForeignKey(Publication, null=True, blank=True)
     hash_id = models.CharField(max_length=100, unique=True) # Should we store this? For backup reasons?
-    vetted_by_dr_seuss = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         # We compute our hash from our auto

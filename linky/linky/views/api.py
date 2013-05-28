@@ -1,4 +1,6 @@
-import logging, json, subprocess, lxml.html
+import logging, json, subprocess, urllib2
+
+import lxml.html
 
 
 from linky.models import Link
@@ -24,8 +26,12 @@ def linky_post(request):
     if target_url[0:4] != 'http':
         target_url = 'http://' + target_url        
 
-    t = lxml.html.parse(target_url)
-    target_title = t.find(".//title").text
+    target_title = 'Title unknown'
+    
+    parsed_html = lxml.html.parse(urllib2.urlopen(target_url))
+    
+    if parsed_html:
+        target_title = parsed_html.find(".//title").text
         
         
     link = Link(submitted_url=target_url, submitted_title=target_title)
