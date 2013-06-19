@@ -31,7 +31,9 @@ urlpatterns = patterns('linky.views',
     url(r'^password/reset/done/?$', auth_views.password_reset_done, {'template_name': 'registration/password_reset_done.html'}, name='auth_password_reset_done'),
     
     # Manage/Linky Admin routes
-#    url(r'^manage/?$', 'manage.landing', name='manage_landing'),
+    url(r'^manage/?$', 'user_management.landing', name='user_management_landing'),
+    url(r'^manage/registrar/?$', 'user_management.manage_registrar', name='user_management_manage_registrar'),
+    url(r'^manage/registrar/member/?$', 'user_management.manage_registrar_member', name='user_management_manage_registrar_member'),
 #    url(r'^manage/users/?$', 'manage.users', name='manage_users'),
 #    url(r'^manage/account/?$', 'manage.account', name='manage_account'),
 #    url(r'^manage/activity/?$', 'manage.activity', name='manage_activity'),

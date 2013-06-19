@@ -23,7 +23,7 @@
 
 {% block content %}
   <div class="jumbo">
-  <h4>Linkys vetted by {{user.username}}</h4>
+  <h4>Linkys vested by {{user.username}}</h4>
 
 	{% if linky_list %}
 	  <table class="table">
@@ -31,8 +31,8 @@
 	      <tr>
 	        <th>Linky link</th>
 	        <th>Original link</th>
-	        <th>Vetted date</th>
-	        <!--<th>Vetted by</th>-->
+	        <th>vested date</th>
+	        <!--<th>vested by</th>-->
 	      </tr>
 	    </thead>
 	    <tbody>	
@@ -41,15 +41,15 @@
 	      <tr>
 	        <td><a href="http://{{host}}/{{ linky.hash_id }}">http://{{host}}/{{ linky.hash_id }}</a></td>
 	        <td><a href="{{ linky.submitted_url }}">{{ linky.submitted_url }}</a></td>
-	        <td>{{linky.vetted_timestamp}}</td>
-	        <!--<td>{{linky.vetted_by_editor.username}}</td>-->
+	        <td>{{linky.vested_timestamp}}</td>
+	        <!--<td>{{linky.vested_by_editor.username}}</td>-->
 	      </tr>
 		{% endfor %}
 		
 		</tbody>
 	  </table>
 	{% else %}
-	    <p>It appears as if you haven't vetted any Linkys.</p>
+	    <p>It appears as if you haven't vested any Linkys.</p>
 	{% endif %}
 
   </div>

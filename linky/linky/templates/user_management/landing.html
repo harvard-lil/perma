@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+{% block styles %}
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
+{% endblock %}
+
+{% block navbar %}
+<div class="container">
+<div class="navbar">
+  <div class="navbar-inner">
+    <ul class="nav pull-right">
+      {% if user.is_authenticated %}
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Account<b class="caret"></b></a>
+        <ul class="dropdown-menu">
+          <li><a href="{% url auth_logout %}">Sign out</a></li>
+          <li><a href="{% url landing %}">Create linky</a></li>
+          <li><a href="{% url editor_home %}">View linkies</a></li>
+        </ul>
+      </li>
+      {% else %}
+      <li><a href="{% url auth_login %}">Login</a></li>
+      {% endif %}
+    </ul>
+  </div>
+</div>
+
+
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+	<div class="span12 center">
+		<p><a href="{% url user_management_manage_registrar %}">Manage registrars (libraries)</a></p>
+		<p><a href="{% url user_management_manage_registrar_member %}">Manage registrars members (librarians)</a></p>
+	</div> <!--span-->
+</div> <!--row-->
+
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}
