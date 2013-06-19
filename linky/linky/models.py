@@ -7,6 +7,7 @@ from django.contrib.auth.models import User, Permission, Group
 from django.db.models.signals import post_syncdb
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models.signals import post_save
 from django.contrib.auth.models import User
 
 logger = logging.getLogger(__name__)
@@ -23,10 +24,26 @@ class Registrar(models.Model):
     def __unicode__(self):
         return self.name
 
-class UserProfile(models.Model):
-    # Extending Djnango's user model
-    user = models.OneToOneField(User)
-    registrar = models.ForeignKey(Registrar)
+####################################
+# Extending Django's user
+# This is something we'll rework when we upgrage to 1.5
+####################################
+class UserProfile(models.Model):  
+    user = models.OneToOneField(User)  
+    #other fields here
+    registrar = models.ForeignKey(Registrar, null=True)
+    
+    def __str__(self):  
+          return "%s's profile" % self.user  
+
+def create_user_profile(sender, instance, created, **kwargs):  
+    if created:  
+       profile, created = UserProfile.objects.get_or_create(user=instance)  
+
+post_save.connect(create_user_profile, sender=User)
+####################################
+# End of user profile stuff
+####################################
 
 class Link(models.Model):
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)

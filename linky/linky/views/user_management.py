@@ -1,6 +1,6 @@
 import logging
 
-from linky.forms import EditorRegForm, regisrtar_register_form, registrar_form
+from linky.forms import EditorRegForm, regisrtar_member_register_form, registrar_form
 from linky.models import Registrar
 
 from django.contrib.auth.decorators import login_required
@@ -24,6 +24,8 @@ except ImportError, e:
 def landing(request):
     """ The logged-in user's dashboard """
     
+    print request.user.groups.values_list('name',flat=True)
+    
     context = {'user': request.user}
 
     return render_to_response('user_management/landing.html', context)
@@ -40,7 +42,7 @@ def manage_members(request):
 
     if request.method == 'POST':
 
-        form = regisrtar_register_form(request.POST, prefix = "a")
+        form = regisrtar_member_register_form(request.POST, prefix = "a")
 
         if form.is_valid():
             new_user = form.save()
@@ -51,15 +53,15 @@ def manage_members(request):
             group = Group.objects.get(name='registrar_member')
             group.user_set.add(new_user)
 
-            return HttpResponseRedirect(reverse('user_management_manage_registrars'))
+            return HttpResponseRedirect(reverse('user_management_manage_registrar_member'))
 
         else:
             context.update({'regisrtar_register_form': form,})                      
     else:
-        form = regisrtar_register_form(prefix = "a")
+        form = regisrtar_member_register_form(prefix = "a")
         context.update({'regisrtar_register_form': form,}) 
 
-    return render_to_response('user_management/manage_registrars.html', context)
+    return render_to_response('user_management/manage_registrar_members.html', context)
     
 @login_required
 def manage_registrar(request):
@@ -92,14 +94,14 @@ def manage_registrar(request):
 def manage_registrar_member(request):
     """ Linky admins can manage registrar members (librarians) """
 
-    registrars = User.objects.filter(groups__name='registrar')
+    registrar_members = User.objects.filter(groups__name='registrar_member')
 
-    context = {'user': request.user, 'registrars': list(registrars)}
+    context = {'user': request.user, 'registrar_members': list(registrar_members)}
     context.update(csrf(request))
     
     if request.method == 'POST':
 
-        form = regisrtar_register_form(request.POST, prefix = "a")
+        form = regisrtar_member_register_form(request.POST, prefix = "a")
         
         if form.is_valid():
             new_user = form.save()
@@ -107,18 +109,18 @@ def manage_registrar_member(request):
             new_user.backend='django.contrib.auth.backends.ModelBackend'
             auth.login(request, new_user)
 
-            group = Group.objects.get(name='registrar')
+            group = Group.objects.get(name='registrar_member')
             group.user_set.add(new_user)
             
-            return HttpResponseRedirect(reverse('user_management_manage_registrars'))
+            return HttpResponseRedirect(reverse('user_management_manage_registrar_member'))
         
         else:
-            context.update({'regisrtar_register_form': form,})                      
+            context.update({'form': form,})                      
     else:
-        form = regisrtar_register_form(prefix = "a")
-        context.update({'regisrtar_register_form': form,}) 
+        form = regisrtar_member_register_form(prefix = "a")
+        context.update({'form': form,}) 
 
-    return render_to_response('user_management/manage_registrars.html', context)
+    return render_to_response('user_management/manage_registrar_members.html', context)
 
 
 def process_register(request):

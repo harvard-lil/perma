@@ -32,8 +32,11 @@
 
 <div class="row">
 	<div class="span12 center">
+		{% ifequal user.groups.all.0.name 'registry_member' %}
 		<p><a href="{% url user_management_manage_registrar %}">Manage registrars (libraries)</a></p>
 		<p><a href="{% url user_management_manage_registrar_member %}">Manage registrars members (librarians)</a></p>
+		{% endifequal %}
+
 	</div> <!--span-->
 </div> <!--row-->
 

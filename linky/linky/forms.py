@@ -10,7 +10,7 @@ class registrar_form(ModelForm):
         model = Registrar
         fields = ['name']
 
-class regisrtar_register_form(forms.ModelForm):
+class regisrtar_member_register_form(forms.ModelForm):
     """
     stripped down user reg form
     This is mostly a django.contrib.auth.forms.UserCreationForm
@@ -36,10 +36,13 @@ class regisrtar_register_form(forms.ModelForm):
     
     
     password = forms.CharField(label="Password", widget=forms.PasswordInput)
+    
+    registrar = forms.ModelChoiceField(queryset=Registrar.objects.all(), empty_label=None)
 
     class Meta:
         model = User
-        fields = ("username", "email", "password")
+        fields = ("username", "email", "password", "registrar")
+
 
     def clean_username(self):
         # Since User.username is unique, this check is redundant,
@@ -62,11 +65,20 @@ class regisrtar_register_form(forms.ModelForm):
             return email
         raise forms.ValidationError(self.error_messages['duplicate_email'])
 
+    def clean_registrar(self):
+        return self.data.get('a-registrar')
+
     def save(self, commit=True):
-        user = super(regisrtar_register_form, self).save(commit=False)
+        user = super(regisrtar_member_register_form, self).save(commit=False)
         user.set_password(self.cleaned_data["password"])
+
         if commit:
             user.save()
+            
+            profile = user.get_profile()
+            registrar = Registrar.objects.get(id=self.cleaned_data["registrar"])
+            profile.registrar = registrar
+            profile.save()
         return user
         
 

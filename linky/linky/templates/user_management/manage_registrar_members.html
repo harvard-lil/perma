@@ -30,22 +30,22 @@
 
 <div class="row">
 	<div class="span12 center">
-		<p>existing registrars</p>
+		<p>existing registrar members</p>
 		<ul>
-		{% for member in registrars %}
-		    <li>{{ registrar.email }}</li>
+		{% for registrar_member in registrar_members %}
+		    <li>{{ registrar_member.email }}, {{ registrar_member.get_profile.registrar.name }}</li>
 		{% empty %}
-		    <li>No registrars found.</li>
+		    <li>No registrar members found.</li>
 		{% endfor %}
 		<ul>
 
 		<form action="" method="post">
 			{% csrf_token %}
 
-			<h2>Add a new registrar</h2>
-			{{ regisrtar_register_form }}
+			<h2>Add a new registrar member</h2>
+			{{ form }}
 			<br />
-			<button type="submit" class="btn btn-primary">Create new registrar</button>
+			<button type="submit" class="btn btn-primary">Create new registrar member</button>
 		</form>
 	</div> <!--span-->
 </div> <!--row-->

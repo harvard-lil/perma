@@ -32,8 +32,8 @@ urlpatterns = patterns('linky.views',
     
     # Manage/Linky Admin routes
     url(r'^manage/?$', 'user_management.landing', name='user_management_landing'),
-    url(r'^manage/registrar/?$', 'user_management.manage_registrar', name='user_management_manage_registrar'),
-    url(r'^manage/registrar/member/?$', 'user_management.manage_registrar_member', name='user_management_manage_registrar_member'),
+    url(r'^manage/registrars/?$', 'user_management.manage_registrar', name='user_management_manage_registrar'),
+    url(r'^manage/registrar-members/?$', 'user_management.manage_registrar_member', name='user_management_manage_registrar_member'),
 #    url(r'^manage/users/?$', 'manage.users', name='manage_users'),
 #    url(r'^manage/account/?$', 'manage.account', name='manage_account'),
 #    url(r'^manage/activity/?$', 'manage.activity', name='manage_activity'),
