@@ -24,31 +24,20 @@
     </ul>
   </div>
 </div>
-
-
 {% endblock %}
 
 {% block content %}
 
 <div class="row">
 	<div class="span12 center">
-		<p>existing journal members</p>
+		<p>Your vested linky links</p>
 		<ul>
-		{% for member in journal_members %}
-		    <li>{{ member.email }}</li>
+		{% for linky_link in linky_links %}
+		    <li>{{ linky_link.submitted_url }}</li>
 		{% empty %}
-		    <li>No registrars found.</li>
+		    <li>No linky links found.</li>
 		{% endfor %}
 		<ul>
-
-		<form action="" method="post">
-			{% csrf_token %}
-
-			<h2>Add a new registrar</h2>
-			{{ form }}
-			<br />
-			<button type="submit" class="btn btn-primary">Create new journal member</button>
-		</form>
 	</div> <!--span-->
 </div> <!--row-->
 

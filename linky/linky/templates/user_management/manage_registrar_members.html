@@ -39,6 +39,7 @@
 		{% endfor %}
 		<ul>
 
+		{% ifequal user.groups.all.0.name 'registry_member' %}
 		<form action="" method="post">
 			{% csrf_token %}
 
@@ -47,6 +48,7 @@
 			<br />
 			<button type="submit" class="btn btn-primary">Create new registrar member</button>
 		</form>
+		{% endifequal %}
 	</div> <!--span-->
 </div> <!--row-->
 

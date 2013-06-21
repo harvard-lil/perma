@@ -1,7 +1,7 @@
 import logging
 
-from linky.forms import EditorRegForm, regisrtar_member_register_form, registrar_form
-from linky.models import Registrar
+from linky.forms import EditorRegForm, regisrtar_member_register_form, registrar_form, member_form
+from linky.models import Registrar, Link
 
 from django.contrib.auth.decorators import login_required
 from django.http import  HttpResponseRedirect
@@ -34,8 +34,7 @@ def landing(request):
 @login_required
 def manage_members(request):
     """ Linky admins can manage jounral members (the folsk taht vest links) """
-
-    registrars = User.objects.filter(groups__name='registrar_member')
+    
 
     context = {'user': request.user, 'registrar_members': list(registrars)}
     context.update(csrf(request))
@@ -48,7 +47,6 @@ def manage_members(request):
             new_user = form.save()
 
             new_user.backend='django.contrib.auth.backends.ModelBackend'
-            auth.login(request, new_user)
 
             group = Group.objects.get(name='registrar_member')
             group.user_set.add(new_user)
@@ -94,7 +92,14 @@ def manage_registrar(request):
 def manage_registrar_member(request):
     """ Linky admins can manage registrar members (librarians) """
 
-    registrar_members = User.objects.filter(groups__name='registrar_member')
+    if request.user.groups.all()[0].name == "registry_member":
+        registrar_members = User.objects.filter(groups__name='registrar_member')
+    elif request.user.groups.all()[0].name == "registrar_member":
+        profile = request.user.get_profile()
+        print profile.registrar
+        registrar_members = User.objects.filter(userprofile__registrar=profile.registrar)
+    else:
+        return HttpResponseRedirect(reverse('user_management_landing'))
 
     context = {'user': request.user, 'registrar_members': list(registrar_members)}
     context.update(csrf(request))
@@ -107,7 +112,6 @@ def manage_registrar_member(request):
             new_user = form.save()
 
             new_user.backend='django.contrib.auth.backends.ModelBackend'
-            auth.login(request, new_user)
 
             group = Group.objects.get(name='registrar_member')
             group.user_set.add(new_user)
@@ -118,9 +122,59 @@ def manage_registrar_member(request):
             context.update({'form': form,})                      
     else:
         form = regisrtar_member_register_form(prefix = "a")
-        context.update({'form': form,}) 
+        context.update({'form': form,})
 
     return render_to_response('user_management/manage_registrar_members.html', context)
+    
+@login_required
+def manage_journal_member(request):
+    """ Linky admins and registrars can manage journal members """
+
+    """if request.user.groups.all()[0].name == "registry_member":
+        registrar_members = User.objects.filter(groups__name='registrar_member')
+    elif request.user.groups.all()[0].name == "registrar_member":
+        profile = request.user.get_profile()
+        print profile.registrar
+        registrar_members = User.objects.filter(userprofile__registrar=profile.registrar)
+    else:
+        return HttpResponseRedirect(reverse('user_management_landing'))"""
+
+    journal_members = User.objects.filter(groups__name='journal_member')
+
+    context = {'user': request.user, 'journal_members': list(journal_members)}
+    context.update(csrf(request))
+
+    if request.method == 'POST':
+
+        form = member_form(request.POST, prefix = "a")
+
+        if form.is_valid():
+            new_user = form.save()
+
+            new_user.backend='django.contrib.auth.backends.ModelBackend'
+
+            group = Group.objects.get(name='journal_member')
+            group.user_set.add(new_user)
+
+            return HttpResponseRedirect(reverse('user_management_manage_journal_member'))
+
+        else:
+            context.update({'form': form,})                      
+    else:
+        form = member_form(prefix = "a")
+        context.update({'form': form,})
+
+    return render_to_response('user_management/manage_journal_members.html', context)
+    
+@login_required
+def manage_links(request):
+    """ Linky admins and registrar members and journal members can vest link links """
+
+    linky_links = Link.objects.filter(vested_by_editor=request.user)
+    
+    context = {'user': request.user, 'linky_links': list(linky_links)}
+
+    return render_to_response('user_management/links.html', context)
 
 
 def process_register(request):
@@ -138,7 +192,6 @@ def process_register(request):
             new_user = editor_reg_form.save()
 
             new_user.backend='django.contrib.auth.backends.ModelBackend'
-            auth.login(request, new_user)
             
             return HttpResponseRedirect(reverse('landing'))
         
