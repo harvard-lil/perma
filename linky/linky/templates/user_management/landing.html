@@ -30,18 +30,24 @@
 <div class="row">
 	<div class="span12 center">
 		{% ifequal user.groups.all.0.name 'registry_member' %}
+		<p><a href="{% url user_management_manage_links %}">Vested Linky links</a></p>
 		<p><a href="{% url user_management_manage_registrar %}">Manage registrars (libraries)</a></p>
 		<p><a href="{% url user_management_manage_registrar_member %}">Manage registrars members (librarians)</a></p>
 		<p><a href="{% url user_management_manage_journal_member %}">Manage journal members</a></p>
 		{% endifequal %}
 
 		{% ifequal user.groups.all.0.name 'registrar_member' %}
+		<h3>You are a registry member at {{user.get_profile.registrar.name}} </h3>
+		<p><a href="{% url user_management_manage_links %}">Vested Linky links</a></p>
 		<p><a href="{% url user_management_manage_journal_member %}">Manage journal members</a></p>
 		{% endifequal %}
 		
 		{% ifequal user.groups.all.0.name 'journal_member' %}
-		<p><a href="{% url user_management_manage_links %}">Manage vested linky links</a></p>
+		<p><a href="{% url user_management_manage_links %}">Vested Linky links</a></p>
+		<p><a href="{% url user_management_sponsoring_library %}">Sponsoring library</a></p>
 		{% endifequal %}
+
+		<p><a href="{% url user_management_manage_account %}">Manage account</a></p>
 
 	</div> <!--span-->
 </div> <!--row-->

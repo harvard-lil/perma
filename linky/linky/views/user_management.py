@@ -24,8 +24,6 @@ except ImportError, e:
 def landing(request):
     """ The logged-in user's dashboard """
     
-    print request.user.groups.values_list('name',flat=True)
-    
     context = {'user': request.user}
 
     return render_to_response('user_management/landing.html', context)
@@ -96,7 +94,6 @@ def manage_registrar_member(request):
         registrar_members = User.objects.filter(groups__name='registrar_member')
     elif request.user.groups.all()[0].name == "registrar_member":
         profile = request.user.get_profile()
-        print profile.registrar
         registrar_members = User.objects.filter(userprofile__registrar=profile.registrar)
     else:
         return HttpResponseRedirect(reverse('user_management_landing'))
@@ -155,6 +152,13 @@ def manage_journal_member(request):
 
             group = Group.objects.get(name='journal_member')
             group.user_set.add(new_user)
+            
+            
+            logged_in_user_profile = request.user.get_profile()
+            
+            new_user_profile = new_user.get_profile()
+            new_user_profile.registrar = logged_in_user_profile.registrar
+            new_user_profile.save()
 
             return HttpResponseRedirect(reverse('user_management_manage_journal_member'))
 
@@ -175,6 +179,25 @@ def manage_links(request):
     context = {'user': request.user, 'linky_links': list(linky_links)}
 
     return render_to_response('user_management/links.html', context)
+    
+@login_required
+def manage_account(request):
+    """ Account mangement stuff. Change password, change email, ... """
+
+    context = {'user': request.user, }
+
+    return render_to_response('user_management/manage-account.html', context)
+
+
+@login_required
+def sponsoring_library(request):
+    """ Journal members can view their sponsoring library (for contact info) """
+
+    profile = request.user.get_profile()
+
+    context = {'user': request.user, 'sponsoring_library_name': profile.registrar.name}
+
+    return render_to_response('user_management/sponsoring-library.html', context)
 
 
 def process_register(request):

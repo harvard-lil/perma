@@ -28,7 +28,7 @@ class Registrar(models.Model):
 # Extending Django's user
 # This is something we'll rework when we upgrage to 1.5
 ####################################
-class UserProfile(models.Model):  
+class UserProfile(models.Model):
     user = models.OneToOneField(User)  
     #other fields here
     registrar = models.ForeignKey(Registrar, null=True)

@@ -30,14 +30,9 @@
 
 <div class="row">
 	<div class="span12 center">
-		<p>Linky links vested by you</p>
-		<ul>
-		{% for linky_link in linky_links %}
-		    <li>{{ linky_link.submitted_title }}, {{ linky_link.submitted_url }}, {{linky_link.hash_id}} at {{linky_link.vested_timestamp}}</li>
-		{% empty %}
-		    <li>No linky links found.</li>
-		{% endfor %}
-		<ul>
+		<p>Your sponsoring library</p>
+
+		<p>{{sponsoring_library_name}}</p>
 	</div> <!--span-->
 </div> <!--row-->
 

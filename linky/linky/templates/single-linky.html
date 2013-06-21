@@ -34,15 +34,14 @@
 	  <p><a href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p> 
 	</div>
 	<div class="span1 offset1">
-    {% if user.is_authenticated and not linky.vested %}
+    {% if not linky.vested and user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'journal_member' %}
     <form action="" method="post">
       {% csrf_token %}
-      <input type="submit" value="vet" name="vet" class="btn btn-primary">
+      <input type="submit" value="vest" name="vet" class="btn btn-primary">
     </form>
     {% endif %}
   </div>
 </div>
-
 
 <div class="row">
 	<div class="offset3 span6">
