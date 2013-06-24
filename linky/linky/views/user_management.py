@@ -28,12 +28,13 @@ def landing(request):
 
     return render_to_response('user_management/landing.html', context)
     
-
 @login_required
 def manage_members(request):
-    """ Linky admins can manage jounral members (the folsk taht vest links) """
+    """ registry and registrar members can manage journal members (the folks that vest links) """
     
-
+    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
+        return HttpResponseRedirect(reverse('user_management_landing'))
+    
     context = {'user': request.user, 'registrar_members': list(registrars)}
     context.update(csrf(request))
 
@@ -63,6 +64,9 @@ def manage_members(request):
 def manage_registrar(request):
     """ Linky admins can manage registrars (libraries) """
 
+    if request.user.groups.all()[0].name not in ['registry_member']:
+        return HttpResponseRedirect(reverse('user_management_landing'))
+
     # TODO: support paging at some point
     registrars = Registrar.objects.all()[:500]
 
@@ -89,6 +93,9 @@ def manage_registrar(request):
 @login_required
 def manage_registrar_member(request):
     """ Linky admins can manage registrar members (librarians) """
+
+    if request.user.groups.all()[0].name not in ['registry_member']:
+        return HttpResponseRedirect(reverse('user_management_landing'))
 
     if request.user.groups.all()[0].name == "registry_member":
         registrar_members = User.objects.filter(groups__name='registrar_member')
@@ -127,14 +134,8 @@ def manage_registrar_member(request):
 def manage_journal_member(request):
     """ Linky admins and registrars can manage journal members """
 
-    """if request.user.groups.all()[0].name == "registry_member":
-        registrar_members = User.objects.filter(groups__name='registrar_member')
-    elif request.user.groups.all()[0].name == "registrar_member":
-        profile = request.user.get_profile()
-        print profile.registrar
-        registrar_members = User.objects.filter(userprofile__registrar=profile.registrar)
-    else:
-        return HttpResponseRedirect(reverse('user_management_landing'))"""
+    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
+        return HttpResponseRedirect(reverse('user_management_landing'))
 
     journal_members = User.objects.filter(groups__name='journal_member')
 
@@ -173,6 +174,9 @@ def manage_journal_member(request):
 @login_required
 def manage_links(request):
     """ Linky admins and registrar members and journal members can vest link links """
+
+    if request.user.groups.all()[0].name not in ['journal_member', 'registrar_member', 'registry_member']:
+        return HttpResponseRedirect(reverse('user_management_landing'))
 
     linky_links = Link.objects.filter(vested_by_editor=request.user)
     
