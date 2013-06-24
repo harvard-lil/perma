@@ -10,7 +10,7 @@ class registrar_form(ModelForm):
         model = Registrar
         fields = ['name']
 
-class regisrtar_member_register_form(forms.ModelForm):
+class regisrtar_member_form(forms.ModelForm):
     """
     stripped down user reg form
     This is mostly a django.contrib.auth.forms.UserCreationForm
@@ -69,7 +69,7 @@ class regisrtar_member_register_form(forms.ModelForm):
         return self.data.get('a-registrar')
 
     def save(self, commit=True):
-        user = super(regisrtar_member_register_form, self).save(commit=False)
+        user = super(regisrtar_member_form, self).save(commit=False)
         user.set_password(self.cleaned_data["password"])
 
         if commit:
@@ -82,11 +82,7 @@ class regisrtar_member_register_form(forms.ModelForm):
         return user
         
         
-        
-        
-        
-        
-class member_form(forms.ModelForm):
+class journal_member_form(forms.ModelForm):
     """
     stripped down user reg form
     This is mostly a django.contrib.auth.forms.UserCreationForm
@@ -141,7 +137,7 @@ class member_form(forms.ModelForm):
         raise forms.ValidationError(self.error_messages['duplicate_email'])
 
     def save(self, commit=True):
-        user = super(member_form, self).save(commit=False)
+        user = super(journal_member_form, self).save(commit=False)
         user.set_password(self.cleaned_data["password"])
 
         if commit:
@@ -150,7 +146,7 @@ class member_form(forms.ModelForm):
         return user
         
 
-class EditorRegForm(forms.ModelForm):
+class user_reg_form(forms.ModelForm):
     """
     stripped down user reg form
     This is mostly a django.contrib.auth.forms.UserCreationForm
@@ -203,7 +199,7 @@ class EditorRegForm(forms.ModelForm):
         raise forms.ValidationError(self.error_messages['duplicate_email'])
 
     def save(self, commit=True):
-        user = super(EditorRegForm, self).save(commit=False)
+        user = super(user_reg_form, self).save(commit=False)
         user.set_password(self.cleaned_data["password"])
         if commit:
             user.save()

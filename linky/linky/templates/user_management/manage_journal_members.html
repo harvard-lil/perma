@@ -35,7 +35,7 @@
 		<p>existing journal members</p>
 		<ul>
 		{% for member in journal_members %}
-		    <li>{{ member.email }}</li>
+		    <li>{{ member.email }} delete button here</li>
 		{% empty %}
 		    <li>No registrars found.</li>
 		{% endfor %}
@@ -44,10 +44,10 @@
 		<form action="" method="post">
 			{% csrf_token %}
 
-			<h2>Add a new registrar</h2>
+			<h3>Add a new journal member</h3>
 			{{ form }}
 			<br />
-			<button type="submit" class="btn btn-primary">Create new journal member</button>
+			<button type="submit" class="btn btn-primary">Add journal member</button>
 		</form>
 	</div> <!--span-->
 </div> <!--row-->

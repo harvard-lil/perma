@@ -46,6 +46,10 @@
 		<p><a href="{% url user_management_manage_links %}">Vested Linky links</a></p>
 		<p><a href="{% url user_management_sponsoring_library %}">Sponsoring library</a></p>
 		{% endifequal %}
+		
+		{% ifequal user.groups.all.0.name 'user' %}
+		<p><a href="">My Linky links</a></p>
+		{% endifequal %}
 
 		<p><a href="{% url user_management_manage_account %}">Manage account</a></p>
 
