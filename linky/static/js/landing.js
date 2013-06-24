@@ -22,6 +22,7 @@ $(document).ready(function() {
   });
   
   drawLinks();
+  
 });
 
 function linkIt(){
@@ -84,11 +85,15 @@ function drawLinks() {
   }
   if(storedLinkies) {
     allLinkies = storedLinkies.reverse();
-    $('#linky-list tbody').html('');
     $('#linky-ul').html('');
     $.each( allLinkies, function( key, value ) {
-      $('#linky-list tbody').append('<tr><td><a href="' + value.url + '" target="_blank">' + value.url + '</a></td><td><a href="' + value.original + '" target="_blank">' + value.original + '</a></td></tr>');
-      $('#linky-ul').append('<li><h4><a href="' + value.url + '" target="_blank">' + value.title + '</a></h4><small>' + value.original + '</small><br><h5><a href="' + value.url + '" target="_blank">' + value.url + '</a></h5></li>');
+    	//workaround, why isn't Handlebars Helper working?
+    	value.url = value.url.replace(/.*?:\/\//g, "");
+    	value.original = value.original.replace(/.*?:\/\//g, "");
+    	//
+      var source = $("#list-template").html();
+	  	var template = Handlebars.compile(source);
+    	$('#linky-ul').append(template(value));
     });
     $('#linky-list').fadeIn();
   }

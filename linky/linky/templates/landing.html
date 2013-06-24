@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% load templatetag_handlebars %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
@@ -52,48 +53,39 @@
 		 <h3>If it's published, we'll hang on to it 4 eva</h3>
 	</div> <!--span-->
 </div> <!--row-->
+</div>
 
 <div class="row">
-	<div class="span12">
-    	<table id="linky-list" class="table">
-      		<thead>
-        		<tr>
-          			<th>Linky link</th>
-          			<th>Original link</th>
-        		</tr>
-      		</thead>
-      	<tbody>
-      	</tbody>
-    	</table>
-    </div>
-</div>
-  <div class="row">
-	<div class="span12">  
-    <ul id="linky-ul" style="display:none;">
-    </ul>
-  </div>
-  <div id="linky-confirm" class="modal hide fade">
-    <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-      <h1 class="logo-big">Linky Preview</h1>
-        		<img class="logo-big-img" src="{{ STATIC_PREFIX }}img/infinity.png"/>
-    </div>
-    <div class="modal-body">
-      <div id="linky-preview" class="pull-left">
-        <div class="center"><img src="{{ STATIC_PREFIX }}img/infinity_500_400.gif"></div>
+	<div id="linky-list" class="span10 offset1" style="display:none;">
+		<hr>
+  	<h4 class="text-center linky-ul-header">Most recently created</h4>
+  	<ul id="linky-ul"></ul>
+	</div>
+
+  <div class="span12 center">
+    <div id="linky-confirm" class="modal hide fade">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h1 class="logo-big">Linky Preview</h1>
+        <img class="logo-big-img" src="{{ STATIC_PREFIX }}img/infinity.png"/>
       </div>
-      <div id="linky-desc" class="unavailable">
-        <h4 id="linky_generation_message">Creating your Linky. Hold tight.</h4>
-        <p id="linkyUrl"><a href="" target="_blank"></a><br ><small id="linky_title"></small></p>
-        <h4>Email this Linky</h4>
-        <p><input id="email_request" class="input-xlarge" type="text" placeholder="user@example.com"></p>
-        <p><a href="#" id="saveLinky" class="btn btn-primary btn-large btn-block">Save this Linky</a></p>
+    
+      <div class="modal-body">
+        <div id="linky-preview" class="pull-left">
+          <div class="center"><img src="{{ STATIC_PREFIX }}img/infinity_500_400.gif"></div>
+        </div>
+        <div id="linky-desc" class="unavailable">
+          <h4 id="linky_generation_message">Creating your Linky. Hold tight.</h4>
+          <p id="linkyUrl"><a href="" target="_blank"></a><br ><small id="linky_title"></small></p>
+          <h4>Email this Linky</h4>
+          <p><input id="email_request" class="input-xlarge" type="text" placeholder="user@example.com"></p>
+          <p><a href="#" id="saveLinky" class="btn btn-primary btn-large btn-block">Save this Linky</a></p>
+        </div>
+      </div>
+      <div class="modal-footer pull-left">
+        <!--<p>Linky capture not right? Upload your own.</p>-->
       </div>
     </div>
-    <div class="modal-footer pull-left">
-      <!--<p>Linky capture not right? Upload your own.</p>-->
-    </div>
-  </div>
   </div> <!--span-->
 </div> <!--row-->
 
@@ -103,5 +95,20 @@
 <script>
   var web_base = "http://{{host}}";
 </script>
+<script src="{{ STATIC_PREFIX }}js/handlebars.js"></script>
 <script src="{{ STATIC_PREFIX }}js/landing.js"></script>
 {% endblock %}
+{% block templates %}
+
+{% tplhandlebars "list-template" %}
+
+<li>
+	<h4><a href="{{url}}" target="_blank">{{title}}</a></h4>
+	<small>{{original}}</small>
+	<br>
+	<p><a href="{{url}}" target="_blank">{{url}}</a></p>
+</li>
+
+{% endtplhandlebars %}
+
+{% endblock templates %}
