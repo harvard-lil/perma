@@ -18,7 +18,7 @@ def single_linky(request, linky_id):
     if request.method == 'POST':
         # TODO: We're forced to use update here because we generate our hash on the model save. This whole thing
         # feels wrong. Evaluate.
-        Link.objects.filter(hash_id=linky_id).update(vetted = True, vetted_by_editor = request.user, vetted_timestamp = datetime.now())
+        Link.objects.filter(hash_id=linky_id).update(vested = True, vested_by_editor = request.user, vested_timestamp = datetime.now())
 
         return HttpResponseRedirect('/%s/' % linky_id)
     else:
@@ -40,7 +40,7 @@ def editor_home(request):
         return HttpResponseRedirect(reverse('auth_login'))
 
 
-    linkys = Link.objects.filter(vetted_by_editor=request.user).order_by('-vetted_timestamp')
+    linkys = Link.objects.filter(vested_by_editor=request.user).order_by('-vested_timestamp')
     linky_list = list(linkys)    
 
     for linky in linky_list:

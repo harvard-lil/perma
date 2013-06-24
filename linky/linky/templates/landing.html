@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block navbar %}
-
+<div class="container">
 <div class="navbar">
   <div class="navbar-inner">
     <ul class="nav pull-right">
@@ -30,63 +30,68 @@
 {% endblock %}
 
 {% block content %}
-<div class="row">
-<div class="span12">
-  <div class="jumbo">
-    <form class="form-inline" id="linker">
-      <input type="text" id="rawUrl" class="input-xxlarge" placeholder="Enter URL">
-      <button type="submit" class="btn big">&infin;</button>
-    </form>
-</div> <!--span-->
-</div> <!--row-->
 
 <div class="row">
+	<div class="span12 center">
+		<form class="form-inline" id="linker">
+    		<input type="text" id="rawUrl" class="input-xlarge" placeholder="Enter URL">
+      		<button type="submit" class="btn big">&infin;</button>
+    	</form>
+	</div> <!--span-->
+</div> <!--row-->
+<div class="row">
 	<div class="span4">
-		 <div class="center"><img src="{{ STATIC_PREFIX }}img/linky-1-export.png"></div>
+		<img src="{{ STATIC_PREFIX }}img/linky-1-export.png">
 		 <h3>Create a Linky</h3>
 	</div> <!--span-->
 	<div class="span4">
-		 <div class="center"><img src="{{ STATIC_PREFIX }}img/linky-2-export.png"></div>
+		 <img src="{{ STATIC_PREFIX }}img/linky-2-export.png">
 		 <h3>We'll hang on to it for a while</h3>
 	</div> <!--span-->
 	<div class="span4">
-		 <div class="center"><img src="{{ STATIC_PREFIX }}img/linky-3-export.png"></div>
+		 <img src="{{ STATIC_PREFIX }}img/linky-3-export.png">
 		 <h3>If it's published, we'll hang on to it 4 eva</h3>
 	</div> <!--span-->
 </div> <!--row-->
+</div>
 
 <div class="row">
-	<div id ="linky-list" class="span10 offset1" style="display:none;">
+	<div id="linky-list" class="span10 offset1" style="display:none;">
 		<hr>
   	<h4 class="text-center linky-ul-header">Most recently created</h4>
   	<ul id="linky-ul"></ul>
 	</div>
-  <div id="linky-confirm" class="modal hide fade">
-    <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-      <h1 class="logo">Linky Preview</h1>
-        <img class="logo-img" src="{{ STATIC_PREFIX }}img/infinity.png"/>
-    </div>
-    <div class="modal-body">
-      <div id="linky-preview" class="pull-left">
-        <div class="center"><img src="{{ STATIC_PREFIX }}img/infinity_500_400.gif"></div>
+
+  <div class="span12 center">
+    <div id="linky-confirm" class="modal hide fade">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h1 class="logo-big">Linky Preview</h1>
+        <img class="logo-big-img" src="{{ STATIC_PREFIX }}img/infinity.png"/>
       </div>
-      <div id="linky-desc" class="unavailable">
-        <h4 id="linky_generation_message">Creating your Linky. Hold tight.</h4>
-        <p id="linkyUrl"><a href="" target="_blank"></a><br ><small id="linky_title"></small></p>
-        <h4>Email this Linky</h4>
-        <p><input id="email_request" class="input-xlarge" type="text" placeholder="user@example.com"></p>
-        <p><a href="#" id="saveLinky" class="btn btn-primary btn-large btn-block">Save this Linky</a></p>
+    
+      <div class="modal-body">
+        <div id="linky-preview" class="pull-left">
+          <div class="center"><img src="{{ STATIC_PREFIX }}img/infinity_500_400.gif"></div>
+        </div>
+        <div id="linky-desc" class="unavailable">
+          <h4 id="linky_generation_message">Creating your Linky. Hold tight.</h4>
+          <p id="linkyUrl"><a href="" target="_blank"></a><br ><small id="linky_title"></small></p>
+          <h4>Email this Linky</h4>
+          <p><input id="email_request" class="input-xlarge" type="text" placeholder="user@example.com"></p>
+          <p><a href="#" id="saveLinky" class="btn btn-primary btn-large btn-block">Save this Linky</a></p>
+        </div>
+      </div>
+      <div class="modal-footer pull-left">
+        <!--<p>Linky capture not right? Upload your own.</p>-->
       </div>
     </div>
-    <div class="modal-footer pull-left">
-      <!--<p>Linky capture not right? Upload your own.</p>-->
-    </div>
-  </div>
   </div> <!--span-->
 </div> <!--row-->
+
 {% endblock %}
 {% block scripts %}
+</div> <!--container-->
 <script>
   var web_base = "http://{{host}}";
 </script>

@@ -5192,8 +5192,8 @@ input[type="submit"].btn.btn-mini {
   top: 10%;
   left: 50%;
   z-index: 1050;
-  width: 560px;
-  margin-left: -280px;
+  width: 700px;
+  margin-left: -350px;
   background-color: #ffffff;
   border: 1px solid #999;
   border: 1px solid rgba(0, 0, 0, 0.3);
@@ -5208,6 +5208,7 @@ input[type="submit"].btn.btn-mini {
   -webkit-background-clip: padding-box;
      -moz-background-clip: padding-box;
           background-clip: padding-box;
+	padding-bottom: 20px;
 }
 
 .modal.fade {
@@ -5223,23 +5224,16 @@ input[type="submit"].btn.btn-mini {
 }
 
 .modal-header {
-  padding: 9px 15px;
-  border-bottom: 1px solid #eee;
+  padding: 9px 15px 3px;
 }
 
 .modal-header .close {
   margin-top: 2px;
 }
 
-.modal-header h3 {
-  margin: 0;
-  line-height: 30px;
-}
-
 .modal-body {
   position: relative;
-
-  padding: 15px;
+  padding: 0px 15px;
   overflow-y: auto;
 }
 

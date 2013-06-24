@@ -20,19 +20,21 @@
   <body>
   {% block navbar %}
   {% endblock %}
-    <header>
+    
       <div class="container">
-      	
-        		<h1 class="logo-big">Linky</h1>
-        		<img class="logo-big-img" src="{{ STATIC_PREFIX }}img/infinity.png"/>
-        	</div>
-  
-    </header> 
-     
-    <div class="container">
-      {% block content %}
-      {% endblock %}
-    </div>
+      		<div class="row">
+				<div class="span12 center">
+        			<a href="{% url landing %}"><h1 class="logo-big">Linky</h1>
+        			<img class="logo-big-img" src="{{ STATIC_PREFIX }}img/infinity.png"/></a>
+        		</div>
+  			</div>
+  			<div class="row">
+				<div class="span12 center">
+    	 			{% block content %}
+      				{% endblock %}
+      			</div>
+      		</div>
+    </div><!--end container -->
     <script src="{{ STATIC_PREFIX }}js/jquery.js"></script>
     <script src="{{ STATIC_PREFIX }}js/bootstrap.js"></script>
     {% block scripts %}

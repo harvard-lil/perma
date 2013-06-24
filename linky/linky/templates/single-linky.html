@@ -6,6 +6,7 @@
 {% endblock %}
 
 {% block navbar %}
+<div class="container">
 <div class="navbar">
   <div class="navbar-inner">
     <ul class="nav pull-right">
@@ -28,27 +29,70 @@
 
 {% block content %}
 <div class="row">
-  <div class="span10">
+  <div class="offset2 span8 center">
 	  <h4 class="indexed">{{linky.submitted_title}}<br><small>indexed on {{linky.creation_time}}</small></h4>
 	  <p><a href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p> 
 	</div>
 	<div class="span1 offset1">
-    {% if user.is_authenticated and not linky.vetted %}
+    {% if user.is_authenticated and not linky.vested %}
     <form action="" method="post">
       {% csrf_token %}
       <input type="submit" value="vet" name="vet" class="btn btn-primary">
     </form>
     {% endif %}
   </div>
-  <div class="watermark center">
-		{% if not linky.vetted %}<img class="watermark-image" src="{{ STATIC_PREFIX }}img/watermark.png"/>{% endif %}
-		<a href="{{linky.submitted_url}}"><img src="{{ STATIC_PREFIX }}img/linkys/{{linky.hash_id}}.png"></a>
-	</div>
 </div>
+
+
+<div class="row">
+	<div class="offset3 span6">
+  		<div class="watermark center">
+			{% if not linky.vested %}<img class="watermark-image" src="{{ STATIC_PREFIX }}img/watermark.png"/>{% endif %}
+			<a href="{{linky.submitted_url}}"><img class="linky-image" src="{{ STATIC_PREFIX }}img/linkys/{{linky.hash_id}}.png"></a>
+		</div>
+   	</div>
+</div><!--row-->
+
+<!-- Modal -->
+<div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <a href="{% url landing %}"><h1 class="logo-big">Linky</h1>
+    <img class="logo-big-img" src="{{ STATIC_PREFIX }}img/infinity.png"/></a>
+  </div>
+  <div class="modal-body">
+  	<h3>Journal Name | Sponsoring Library</h3>
+     <h4 class="indexed">{{linky.submitted_title}}<br><small>indexed on {{linky.creation_time}}<br> <a href="{{linky.submitted_url}}" class="grey">{{linky.submitted_url}}</a></small></h4>
+     <a href="{{linky.submitted_url}}"><img class="linky-image-preview" src="{{ STATIC_PREFIX }}img/linkys/{{linky.hash_id}}.png"></a>
+
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Go to archived Linky</button>
+    <button class="btn btn-primary"><a href="{{linky.submitted_url}}" style="color:white">Go to original page</a></button>
+     <p class="definition"><a href="{% url landing %}" class="grey">Wait, what's a Linky?</a></p>
+  </div>
+</div>
+
+</div><!--container-->
 {% endblock %}
 {% block scripts %}
+
+
+
 <script>
   var web_base = "{{web_base}}";
+</script>
+<script>
+	window.onload = function(){
+$('#myModal').modal('show');
+	//	$(document).modal({
+  	//        show:true;
+  	//    });
+	};
+//  $('#myModal').modal({
+//  	show:true;
+//  });
+
 </script>
 <script src="{{ STATIC_PREFIX }}js/landing.js"></script>
 {% endblock %}

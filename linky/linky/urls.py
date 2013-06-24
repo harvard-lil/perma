@@ -30,6 +30,16 @@ urlpatterns = patterns('linky.views',
     url(r'^password/reset/complete/?$', auth_views.password_reset_complete, {'template_name': 'registration/password_reset_complete.html'}, name='auth_password_reset_complete'),
     url(r'^password/reset/done/?$', auth_views.password_reset_done, {'template_name': 'registration/password_reset_done.html'}, name='auth_password_reset_done'),
     
+    # Manage/Linky Admin routes
+    url(r'^manage/?$', 'user_management.landing', name='user_management_landing'),
+    url(r'^manage/registrars/?$', 'user_management.manage_registrar', name='user_management_manage_registrar'),
+    url(r'^manage/registrar-members/?$', 'user_management.manage_registrar_member', name='user_management_manage_registrar_member'),
+    url(r'^manage/journal-members/?$', 'user_management.manage_journal_member', name='user_management_manage_journal_member'),
+    url(r'^manage/links/?$', 'user_management.manage_links', name='user_management_manage_links'),
+#    url(r'^manage/users/?$', 'manage.users', name='manage_users'),
+#    url(r'^manage/account/?$', 'manage.account', name='manage_account'),
+#    url(r'^manage/activity/?$', 'manage.activity', name='manage_activity'),
+    
     # Our Linky ID catchall
     url(r'^(?P<linky_id>[a-zA-Z0-9]+)/?$', 'common.single_linky', name='single_linky'),    
     
