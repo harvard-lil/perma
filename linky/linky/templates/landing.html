@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% load templatetag_handlebars %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
@@ -55,20 +56,11 @@
 </div> <!--row-->
 
 <div class="row">
-<div class="span12">
-    <table id="linky-list" class="table">
-      <thead>
-        <tr>
-          <th>Linky link</th>
-          <th>Original link</th>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
-    <ul id="linky-ul" style="display:none;">
-    </ul>
-  </div>
+	<div id ="linky-list" class="span10 offset1" style="display:none;">
+		<hr>
+  	<h4 class="text-center linky-ul-header">Most recently created</h4>
+  	<ul id="linky-ul"></ul>
+	</div>
   <div id="linky-confirm" class="modal hide fade">
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -98,5 +90,20 @@
 <script>
   var web_base = "http://{{host}}";
 </script>
+<script src="{{ STATIC_PREFIX }}js/handlebars.js"></script>
 <script src="{{ STATIC_PREFIX }}js/landing.js"></script>
 {% endblock %}
+{% block templates %}
+
+{% tplhandlebars "list-template" %}
+
+<li>
+	<h4><a href="{{url}}" target="_blank">{{title}}</a></h4>
+	<small>{{original}}</small>
+	<br>
+	<p><a href="{{url}}" target="_blank">{{url}}</a></p>
+</li>
+
+{% endtplhandlebars %}
+
+{% endblock templates %}

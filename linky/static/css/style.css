@@ -45,10 +45,15 @@
   width:200px;
 }
 
+.linky-ul-header {
+	margin-top:15px;
+	color:#888;
+}
+
 #linky-ul {
   list-style:none;
   margin-left:0;
-  margin-top:50px;
+  margin-top:15px;
 }
 
 #linky-ul li {
@@ -57,6 +62,10 @@
 
 #linky-ul li h4 {
   margin-bottom:0px;
+}
+
+#linky-ul li h4 a {
+	color: #003355;
 }
 
 .big {
