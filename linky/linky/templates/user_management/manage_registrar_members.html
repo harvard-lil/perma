@@ -1,49 +1,43 @@
 {% extends "layout.html" %}
+{% block title %} | Registrar members{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
 {% endblock %}
 
-{% block navbar %}
-<div class="container">
-<div class="navbar">
-  <div class="navbar-inner">
-    <ul class="nav pull-right">
-      {% if user.is_authenticated %}
-      <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Account<b class="caret"></b></a>
-        <ul class="dropdown-menu">
-          <li><a href="{% url auth_logout %}">Sign out</a></li>
-          <li><a href="{% url landing %}">Create linky</a></li>
-          <li><a href="{% url editor_home %}">View linkies</a></li>
-        </ul>
-      </li>
-      {% else %}
-      <li><a href="{% url auth_login %}">Login</a></li>
-      {% endif %}
-    </ul>
-  </div>
-</div>
-{% endblock %}
-
 {% block content %}
 
 <div class="row">
-	<div class="span12 center">
-		<p>existing registrar members</p>
-		<ul>
-		{% for registrar_member in registrar_members %}
-		    <li>{{ registrar_member.email }}, {{ registrar_member.get_profile.registrar.name }}</li>
-		{% empty %}
-		    <li>No registrar members found.</li>
-		{% endfor %}
-		<ul>
+	<div class="span12">
+		<h3>Existing registrar members</h3>
+		
+	<table class="table">
+    <thead>
+      <tr>
+        <th><input type="checkbox"></th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Username</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for registrar_member in registrar_members %}
+        <tr>
+          <td><input type="checkbox"></td>
+          <td>{{ registrar_member.first_name }} {{ registrar_member.last_name }}</td>
+          <td>{{ registrar_member.email }}</td>
+          <td>{{ registrar_member.username }}</td>
+      {% empty %}
+        <tr>No registrar members found.</tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
 		{% ifequal user.groups.all.0.name 'registry_member' %}
-		<form action="" method="post">
+		<form action="" method="post" class="embedded-form">
 			{% csrf_token %}
 
-			<h2>Add a new registrar member</h2>
+			<h4>Add a new registrar member</h4>
 			{{ form }}
 			<br />
 			<button type="submit" class="btn btn-primary">Create new registrar member</button>

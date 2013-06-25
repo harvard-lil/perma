@@ -24,7 +24,7 @@ def single_linky(request, linky_id):
     else:
         link = get_object_or_404(Link, hash_id=linky_id)
         
-        created_datestamp = link.creation_time
+        created_datestamp = link.creation_timestamp
         pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
     
         context = {'linky': link, 'pretty_date': pretty_date, 'user': request.user}

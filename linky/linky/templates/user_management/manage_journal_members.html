@@ -1,50 +1,42 @@
 {% extends "layout.html" %}
+{% block title %} | Journal members{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
 {% endblock %}
 
-{% block navbar %}
-<div class="container">
-<div class="navbar">
-  <div class="navbar-inner">
-    <ul class="nav pull-right">
-      {% if user.is_authenticated %}
-      <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Account<b class="caret"></b></a>
-        <ul class="dropdown-menu">
-          <li><a href="{% url auth_logout %}">Sign out</a></li>
-          <li><a href="{% url landing %}">Create linky</a></li>
-          <li><a href="{% url editor_home %}">View linkies</a></li>
-        </ul>
-      </li>
-      {% else %}
-      <li><a href="{% url auth_login %}">Login</a></li>
-      {% endif %}
-    </ul>
-  </div>
-</div>
-
-
-{% endblock %}
-
 {% block content %}
 
 <div class="row">
-	<div class="span12 center">
-		<p>existing journal members</p>
-		<ul>
-		{% for member in journal_members %}
-		    <li>{{ member.email }} delete button here</li>
-		{% empty %}
-		    <li>No registrars found.</li>
-		{% endfor %}
-		<ul>
+	<div class="span12">
+		<h3>Existing journal members</h3>
+		
+	<table class="table">
+    <thead>
+      <tr>
+        <th><input type="checkbox"></th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Username</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for member in journal_members %}
+        <tr>
+          <td><input type="checkbox"></td>
+          <td>{{ member.first_name }} {{ member.last_name }}</td>
+          <td>{{ member.email }}</td>
+          <td>{{ member.username }}</td>
+      {% empty %}
+        <tr>No journal members found.</tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
-		<form action="" method="post">
+		<form action="" method="post" class="embedded-form">
 			{% csrf_token %}
 
-			<h3>Add a new journal member</h3>
+			<h4>Add a new journal member</h4>
 			{{ form }}
 			<br />
 			<button type="submit" class="btn btn-primary">Add journal member</button>
