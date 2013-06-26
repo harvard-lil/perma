@@ -171,6 +171,13 @@ a.grey {
   margin-top:10px;
 }
 
+.favicon-preview {
+    float: left;
+    max-height: 16px;
+    max-width: 16px;
+    margin-right: 9px;
+}
+
 .embedded-form {
   margin-top:65px;
 }
