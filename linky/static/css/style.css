@@ -166,3 +166,10 @@ a.grey {
 .indexed {
 	margin-bottom:15px;
 }
+
+.favicon-preview {
+    float: left;
+    max-height: 16px;
+    max-width: 16px;
+    margin-right: 9px;
+}

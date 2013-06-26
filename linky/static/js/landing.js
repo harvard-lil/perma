@@ -42,6 +42,7 @@ function linkIt(){
     newLinky.url = linkyUrl;
     newLinky.original = rawUrl;
     newLinky.title = data.linky_title;
+    newLinky.favicon_url = data.favicon_url;
     allLinkies.push(newLinky);
     if(('localStorage' in window) && window['localStorage'] !== null){ 
       localStorage.setItem( 'linky-list', JSON.stringify(allLinkies));
@@ -90,10 +91,13 @@ function drawLinks() {
     	//workaround, why isn't Handlebars Helper working?
     	value.url = value.url.replace(/.*?:\/\//g, "");
     	value.original = value.original.replace(/.*?:\/\//g, "");
+    	if (value.favicon_url) {
+        	value.favicon_url = value.favicon_url.replace(/.*?:\/\//g, "");
+    	}
     	//
       var source = $("#list-template").html();
-	  	var template = Handlebars.compile(source);
-    	$('#linky-ul').append(template(value));
+      var template = Handlebars.compile(source);
+      $('#linky-ul').append(template(value));
     });
     $('#linky-list').fadeIn();
   }
