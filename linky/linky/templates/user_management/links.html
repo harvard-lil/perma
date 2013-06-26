@@ -1,43 +1,39 @@
 {% extends "layout.html" %}
+{% block title %} | Vested Linky links{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
 {% endblock %}
 
-{% block navbar %}
-<div class="container">
-<div class="navbar">
-  <div class="navbar-inner">
-    <ul class="nav pull-right">
-      {% if user.is_authenticated %}
-      <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Account<b class="caret"></b></a>
-        <ul class="dropdown-menu">
-          <li><a href="{% url auth_logout %}">Sign out</a></li>
-          <li><a href="{% url landing %}">Create linky</a></li>
-          <li><a href="{% url editor_home %}">View linkies</a></li>
-        </ul>
-      </li>
-      {% else %}
-      <li><a href="{% url auth_login %}">Login</a></li>
-      {% endif %}
-    </ul>
-  </div>
-</div>
-{% endblock %}
-
 {% block content %}
 
 <div class="row">
-	<div class="span12 center">
-		<p>Linky links vested by you</p>
-		<ul>
-		{% for linky_link in linky_links %}
-		    <li>{{ linky_link.submitted_title }}, {{ linky_link.submitted_url }}, {{linky_link.hash_id}} at {{linky_link.vested_timestamp}}</li>
-		{% empty %}
-		    <li>No linky links found.</li>
-		{% endfor %}
-		<ul>
+	<div class="span12">
+		<h3>Linky links vested by you</h3>
+		
+	<table class="table">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Original link</th>
+        <th>Linky link</th>
+        <th>Creation date</th>
+        <th>Vested date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for linky_link in linky_links %}
+        <tr>
+          <td>{{ linky_link.submitted_title }}</td>
+          <td>{{ linky_link.submitted_url }}</td>
+          <td><a href="http://{{host}}/{{linky_link.hash_id}}" target="_blank">{{host}}/{{linky_link.hash_id}}</a></td>
+          <td>{{ linky_link.creation_timestamp }}</td>
+          <td>{{ linky_link.creation_timestamp }}</td>
+      {% empty %}
+        <tr><td>No linky links found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
 	</div> <!--span-->
 </div> <!--row-->
 

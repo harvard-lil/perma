@@ -1,0 +1,20 @@
+<div class="container">
+<div class="navbar">
+  <div class="navbar-inner">
+    <ul class="nav pull-right">
+      {% if user.is_authenticated %}
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Account<b class="caret"></b></a>
+        <ul class="dropdown-menu">
+          <li><a href="{% url user_management_manage_links %}">Vested Linkies</a></li>
+          <li><a href="{% url user_management_landing %}">Linky admin</a></li>
+          <li><a href="{% url user_management_manage_account %}">Account settings</a></li>
+          <li><a href="{% url auth_logout %}">Sign out</a></li>
+        </ul>
+      </li>
+      {% else %}
+      <li><a href="{% url auth_login %}">Login</a></li>
+      {% endif %}
+    </ul>
+  </div>
+</div>

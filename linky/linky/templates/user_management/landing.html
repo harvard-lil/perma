@@ -4,47 +4,25 @@
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
 {% endblock %}
 
-{% block navbar %}
-<div class="container">
-<div class="navbar">
-  <div class="navbar-inner">
-    <ul class="nav pull-right">
-      {% if user.is_authenticated %}
-      <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Account<b class="caret"></b></a>
-        <ul class="dropdown-menu">
-          <li><a href="{% url auth_logout %}">Sign out</a></li>
-          <li><a href="{% url landing %}">Create linky</a></li>
-          <li><a href="{% url editor_home %}">View linkies</a></li>
-        </ul>
-      </li>
-      {% else %}
-      <li><a href="{% url auth_login %}">Login</a></li>
-      {% endif %}
-    </ul>
-  </div>
-</div>
-{% endblock %}
-
 {% block content %}
 <div class="row">
-	<div class="span12 center">
+	<div class="span12">
 		{% ifequal user.groups.all.0.name 'registry_member' %}
-		<p><a href="{% url user_management_manage_links %}">Vested Linky links</a></p>
 		<p><a href="{% url user_management_manage_registrar %}">Manage registrars (libraries)</a></p>
 		<p><a href="{% url user_management_manage_registrar_member %}">Manage registrars members (librarians)</a></p>
 		<p><a href="{% url user_management_manage_journal_member %}">Manage journal members</a></p>
+		<p><a href="{% url user_management_manage_links %}">Vested Linky links</a></p>
 		{% endifequal %}
 
 		{% ifequal user.groups.all.0.name 'registrar_member' %}
 		<h3>You are a registry member at {{user.get_profile.registrar.name}} </h3>
-		<p><a href="{% url user_management_manage_links %}">Vested Linky links</a></p>
 		<p><a href="{% url user_management_manage_journal_member %}">Manage journal members</a></p>
+		<p><a href="{% url user_management_manage_links %}">Vested Linky links</a></p>
 		{% endifequal %}
 		
 		{% ifequal user.groups.all.0.name 'journal_member' %}
-		<p><a href="{% url user_management_manage_links %}">Vested Linky links</a></p>
 		<p><a href="{% url user_management_sponsoring_library %}">Sponsoring library</a></p>
+		<p><a href="{% url user_management_manage_links %}">Vested Linky links</a></p>
 		{% endifequal %}
 		
 		{% ifequal user.groups.all.0.name 'user' %}

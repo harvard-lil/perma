@@ -18,10 +18,9 @@
     {% endblock %}  
   </head>
   <body>
-  {% block navbar %}
-  {% endblock %}
     
       <div class="container">
+        {% include "navbar.html" %}
       		<div class="row">
 				<div class="span12 center">
         			<a href="{% url landing %}"><h1 class="logo-big">Linky</h1>
@@ -29,7 +28,7 @@
         		</div>
   			</div>
   			<div class="row">
-				<div class="span12 center">
+				<div class="span12">
     	 			{% block content %}
       				{% endblock %}
       			</div>

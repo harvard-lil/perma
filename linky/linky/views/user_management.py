@@ -180,7 +180,7 @@ def manage_links(request):
 
     linky_links = Link.objects.filter(vested_by_editor=request.user)
     
-    context = {'user': request.user, 'linky_links': list(linky_links)}
+    context = {'user': request.user, 'linky_links': list(linky_links), 'host': request.get_host()}
 
     return render_to_response('user_management/links.html', context)
     
