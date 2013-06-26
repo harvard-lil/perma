@@ -46,12 +46,18 @@ function linkIt(){
   });
   request.done(function(data) {
     $('#linky_generation_message').html('Your linky has been created at');
-    $('#linky-desc').toggleClass('unavailable');
+    $('#linky-desc').removeClass('unavailable');
     linkyUrl = web_base  + '/' + data.linky_id;
     newLinky.url = linkyUrl;
     newLinky.original = rawUrl;
     newLinky.title = data.linky_title;
     newLinky.favicon_url = data.favicon_url;
+    if(JSON.parse(localStorage.getItem('linky-list'))){
+      allLinkies = JSON.parse(localStorage.getItem('linky-list'));
+      if(allLinkies.length >= 10) {
+        allLinkies.splice(0,1);
+      }
+    }
     allLinkies.push(newLinky);
     if(('localStorage' in window) && window['localStorage'] !== null){ 
       localStorage.setItem( 'linky-list', JSON.stringify(allLinkies));
@@ -67,12 +73,13 @@ function linkIt(){
   $('#linky-confirm').modal('show');
   $('#saveLinky').on('click', function(event){
             
-    var request = $.ajax({
+    // email broken right now, commenting out
+    /*var request = $.ajax({
       url: web_base + "/service/email-confirm/",
       type: "POST",
       data: {email_address: $('#email_request').val(), linky_link: $('#linkyUrl a').attr('href')},
       dataType: "json"
-    });
+    });*/
       
     event.preventDefault();
     $('#linky-confirm').modal('hide');
@@ -84,7 +91,7 @@ function linkIt(){
   
     $('#linky_generation_message').html('Creating your Linky. Hold tight.');
     $('#linkyUrl a').html('').attr('');
-    $('#linky-desc').toggleClass('unavailable');
+    $('#linky-desc').addClass('unavailable');
     drawLinks();
   });
 }
@@ -94,9 +101,10 @@ function drawLinks() {
     storedLinkies = JSON.parse(localStorage.getItem('linky-list'));
   }
   if(storedLinkies) {
-    allLinkies = storedLinkies.reverse();
+    allLinkies = storedLinkies;
+    storedLinkies.reverse();
     $('#linky-ul').html('');
-    $.each( allLinkies, function( key, value ) {
+    $.each( storedLinkies, function( key, value ) {
     	//workaround, why isn't Handlebars Helper working?
     	value.url = value.url.replace(/.*?:\/\//g, "");
     	value.original = value.original.replace(/.*?:\/\//g, "");
