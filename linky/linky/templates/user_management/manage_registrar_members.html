@@ -8,7 +8,10 @@
 {% block content %}
 
 <div class="row">
-	<div class="span12">
+	<div class="span2">
+	  {% include "manage-navbar.html" %}
+  </div> <!--span-->
+	<div class="span9 offset1">
 		<h3>Existing registrar members</h3>
 		
 	<table class="table">
@@ -34,14 +37,31 @@
   </table>
 
 		{% ifequal user.groups.all.0.name 'registry_member' %}
-		<form action="" method="post" class="embedded-form">
+		<!--<form action="" method="post" class="embedded-form">
 			{% csrf_token %}
 
 			<h4>Add a new registrar member</h4>
 			{{ form }}
 			<br />
-			<button type="submit" class="btn btn-primary">Create new registrar member</button>
-		</form>
+			<button type="submit" class="btn btn-primary">Add new registrar member</button>
+		</form>-->
+		
+    <form class="embedded-form" method="post">
+      {% csrf_token %}
+		  <h4>Add a new registrar member</h4>
+		  <fieldset>
+        {% for field in form %}
+          <label for="id_{{ field.name }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+          {%elif field.help_text %}
+            <span class="help-inline">{{ field.help_text }}</span>
+          {% endif %}
+        {% endfor %}  
+      </fieldset>
+      <button type="submit" class="btn btn-primary">Add registrar member</button>
+    </form>
 		{% endifequal %}
 	</div> <!--span-->
 </div> <!--row-->

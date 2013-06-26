@@ -167,6 +167,15 @@ a.grey {
 	margin-bottom:15px;
 }
 
+.manage-nav {
+  margin-top:10px;
+}
+
 .embedded-form {
-  margin-top:45px;
+  margin-top:65px;
+}
+
+.embedded-form fieldset {
+  margin-top:25px;
+  margin-bottom:15px;
 }
