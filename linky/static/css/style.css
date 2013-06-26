@@ -62,8 +62,7 @@ If you need more, that's where to get'em.
 }
 
 .linky-ul-header {
-	margin-top:15px;
-	color:#888;
+	margin-top:5px;
 }
 
 #linky-ul {
@@ -73,7 +72,11 @@ If you need more, that's where to get'em.
 }
 
 #linky-ul li {
-  margin-top:35px;
+  margin-top:20px;
+}
+
+#linky-ul li p a{
+
 }
 
 #linky-ul li h4 {
@@ -212,6 +215,14 @@ h1.big-logo {
 
 .span4 img {
 	width:50%;
+}
+
+ul#linky-ul li {
+	margin-left:24px;
+}
+
+img.favicon-preview {
+	margin-left:-20px;
 }
 
 footer {
