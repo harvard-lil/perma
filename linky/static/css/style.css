@@ -183,15 +183,21 @@ a.grey {
 	margin-bottom:15px;
 }
 
+.manage-nav {
+  margin-top:10px;
+}
+
 .favicon-preview {
     float: left;
     max-height: 16px;
     max-width: 16px;
-    margin-right: 9px;
+
 }
-.embedded-form {
-  margin-top:45px;
+
+.recent-linky-summary {
+    margin-left: 27px;
 }
+
 
 h2, h3 {
 	font-weight:normal;
@@ -229,4 +235,9 @@ footer {
 	background:red;
 	height:100%;
 	margin-bottom:0;
+}
+
+.embedded-form fieldset {
+  margin-top:25px;
+  margin-bottom:15px;
 }

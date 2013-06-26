@@ -32,7 +32,13 @@ def linky_post(request):
 
     target_title = url_details.netloc
     
-    parsed_html = lxml.html.parse(urllib2.urlopen(target_url))
+    
+    
+        
+    try:
+        parsed_html = lxml.html.parse(urllib2.urlopen(target_url))
+    except IOError:
+        pass
     
     if parsed_html:
         if parsed_html.find(".//title").text:
@@ -55,16 +61,16 @@ def linky_post(request):
     
     favicon_success = __get_favicon(target_url, parsed_html, link.id, linky_home_disk_path, url_details)
     
-    image_generation_command = INTERNAL['APP_FILEPATH'] + '/lib/phantomjs ' + INTERNAL['APP_FILEPATH'] + '/lib/rasterize.js "' + target_url + '" ' + linky_home_disk_path + '0.png'
+    image_generation_command = INTERNAL['APP_FILEPATH'] + '/lib/phantomjs ' + INTERNAL['APP_FILEPATH'] + '/lib/rasterize.js "' + target_url + '" ' + linky_home_disk_path + 'cap.png'
     subprocess.call(image_generation_command, shell=True)
 
-    manifest['image'] = '0.png'
+    manifest['image'] = 'cap.png'
     
     # if we want to do some file uploading
     #f = request.files['the_file']
     #f.save('/var/www/uploads/uploaded_file.txt')
     
-    response_object = {'linky_id': linky_hash, 'linky_url': 'http://' + request.get_host() + '/static/generated/' + str(link.id) + '/0.png', 'linky_title': link.submitted_title}
+    response_object = {'linky_id': linky_hash, 'linky_url': 'http://' + request.get_host() + '/static/generated/' + str(link.id) + '/cap.png', 'linky_title': link.submitted_title}
     
     if favicon_success:
         response_object['favicon_url'] = 'http://' + request.get_host() + '/static/generated/' + str(link.id) + '/' + favicon_success
@@ -106,10 +112,10 @@ def __get_favicon(target_url, parsed_html, link_hash_id, disk_path, url_details)
         filepath_pieces = os.path.splitext(favicon)
         file_ext = filepath_pieces[1]
         
-        with open(disk_path + '0' + file_ext, "wb") as asset:
+        with open(disk_path + 'fav' + file_ext, "wb") as asset:
             asset.write(data)
 
-        return '0' + file_ext
+        return 'fav' + file_ext
 
 
     # If we haven't returned True above, we didn't find a favicon in the markup.
@@ -119,10 +125,10 @@ def __get_favicon(target_url, parsed_html, link_hash_id, disk_path, url_details)
     try:
         f = urllib2.urlopen(target_favicon_url)
         data = f.read()
-        with open(disk_path + '0.ico' , "wb") as asset:
+        with open(disk_path + 'fav.ico' , "wb") as asset:
             asset.write(data)
 
-        return '0' + '.ico'
+        return 'fav' + '.ico'
     except urllib2.HTTPError:
         pass
         
