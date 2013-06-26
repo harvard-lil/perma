@@ -6,6 +6,7 @@ from django.core.urlresolvers import reverse
 from datetime import datetime
 
 from linky.models import Link
+from linky.utils import base
 
 def landing(request):
     """The landing page"""
@@ -15,14 +16,18 @@ def landing(request):
 def single_linky(request, linky_id):
     """Given a Linky ID, serve it up. Vetting also takes place here. """
 
+    int_id = base.convert(linky_id, base.BASE58, base.BASE10)
+
     if request.method == 'POST':
         # TODO: We're forced to use update here because we generate our hash on the model save. This whole thing
         # feels wrong. Evaluate.
-        Link.objects.filter(hash_id=linky_id).update(vested = True, vested_by_editor = request.user, vested_timestamp = datetime.now())
+        
+        Link.objects.filter(id=int_id).update(vested = True, vested_by_editor = request.user, vested_timestamp = datetime.now())
 
         return HttpResponseRedirect('/%s/' % linky_id)
     else:
-        link = get_object_or_404(Link, hash_id=linky_id)
+
+        link = get_object_or_404(Link, id=int_id)
         
         created_datestamp = link.creation_timestamp
         pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
