@@ -37,7 +37,7 @@ function linkIt(){
   });
   request.done(function(data) {
     $('#linky_generation_message').html('Your linky has been created at');
-    $('#linky-desc').toggleClass('unavailable');
+    $('#linky-desc').removeClass('unavailable');
     linkyUrl = web_base  + '/' + data.linky_id;
     newLinky.url = linkyUrl;
     newLinky.original = rawUrl;
@@ -82,7 +82,7 @@ function linkIt(){
   
     $('#linky_generation_message').html('Creating your Linky. Hold tight.');
     $('#linkyUrl a').html('').attr('');
-    $('#linky-desc').toggleClass('unavailable');
+    $('#linky-desc').addClass('unavailable');
     drawLinks();
   });
 }
