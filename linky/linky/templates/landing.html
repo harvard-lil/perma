@@ -71,6 +71,7 @@
 <script>
   var web_base = "http://{{host}}";
 </script>
+<script src="{{ STATIC_PREFIX }}js/ZeroClipboard/ZeroClipboard.min.js"></script>
 <script src="{{ STATIC_PREFIX }}js/handlebars.js"></script>
 <script src="{{ STATIC_PREFIX }}js/landing.js"></script>
 {% endblock %}
@@ -79,10 +80,14 @@
 {% tplhandlebars "list-template" %}
 
 <li>
-	<h4><a href="{{url}}" target="_blank"><img src="http://{{favicon_url}}" class="favicon-preview">{{title}}</a></h4>
-	<small>{{original}}</small>
-	<br>
-	<p><a href="http://{{url}}" target="_blank">{{url}}</a></p>
+	<div class="favicon-preview">{{#if favicon_url}}<img src="http://{{favicon_url}}">{{/if}}</div>
+	<div class="recent-linky-summary">
+		<h4><a href="{{url}}" target="_blank">{{#truncate title 50}}{{title}}{{/truncate}}</a></h4>
+		<small>{{original}}</small>
+		<br>
+		<p><a href="http://{{url}}" target="_blank">{{url}}</a></p>
+		<button class="copy-button" data-clipboard-text="http://{{url}}" title="Copy Linky Link">Copy Linky Link</button>
+	</div>
 </li>
 
 {% endtplhandlebars %}

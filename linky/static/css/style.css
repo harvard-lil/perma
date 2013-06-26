@@ -175,7 +175,11 @@ a.grey {
     float: left;
     max-height: 16px;
     max-width: 16px;
-    margin-right: 9px;
+
+}
+
+.recent-linky-summary {
+    margin-left: 27px;
 }
 
 .embedded-form {
