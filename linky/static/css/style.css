@@ -1,3 +1,15 @@
+body, .modal {
+	background-image:url('../img/brickwall.png');
+	background-color:#cccccc;
+	border-radius:3px;
+}
+
+/*/ 
+Background by Benjamin Ward.
+This pattern is downloaded from www.subtlepatterns.com 
+If you need more, that's where to get'em.
+/*/
+ 
 #linky-confirm {
 	width: 900px; /* SET THE WIDTH OF THE MODAL */
 	margin-left: -450px; /* CHANGE MARGINS TO ACCOMODATE THE NEW WIDTH (original = margin: -250px 0 0 -280px;) */
@@ -135,6 +147,7 @@ img.linky-image, img.linky-image-preview {
 	-moz-box-shadow: 0 0 2px 2px #eee;
 	-webkit-box-shadow: 0 0 2px 2px#eee;
 	box-shadow: 0 0 2px 2px #eee;
+	background:#fff;
 }
 
 img.linky-image-preview {
@@ -169,4 +182,34 @@ a.grey {
 
 .embedded-form {
   margin-top:45px;
+}
+
+h2, h3 {
+	font-weight:normal;
+	color: #4694a9;
+	text-shadow: 0px 1px 0px #1e4049, 
+				 0px -1px 0px #fff; 
+}
+
+h3 {
+	font-size:21.5px;
+}
+
+h4 {
+	font-weight:normal;
+	color: #777;
+}
+
+h1.big-logo {
+	
+}
+
+.span4 img {
+	width:50%;
+}
+
+footer {
+	background:red;
+	height:100%;
+	margin-bottom:0;
 }

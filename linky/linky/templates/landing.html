@@ -7,7 +7,7 @@
 
 {% block content %}
 
-<div class="row">
+<div class="row-fluid">
 	<div class="span12 center">
 		<form class="form-inline" id="linker">
     		<input type="text" id="rawUrl" class="input-xlarge" placeholder="Enter URL">
@@ -15,26 +15,27 @@
     	</form>
 	</div> <!--span-->
 </div> <!--row-->
-<div class="row">
-	<div class="span4">
-		<img src="{{ STATIC_PREFIX }}img/linky-1-export.png">
-		 <h3>Create a Linky</h3>
-	</div> <!--span-->
-	<div class="span4">
-		 <img src="{{ STATIC_PREFIX }}img/linky-2-export.png">
-		 <h3>We'll hang on to it for a while</h3>
-	</div> <!--span-->
-	<div class="span4">
-		 <img src="{{ STATIC_PREFIX }}img/linky-3-export.png">
-		 <h3>If it's published, we'll hang on to it 4 eva</h3>
-	</div> <!--span-->
-</div> <!--row-->
+<div class="row-fluid">
+	<div class="span12 center">    	
+			<div class="span4">
+				<img src="{{ STATIC_PREFIX }}img/linky-1-export.png">
+		 		<h3>Create a Linky</h3>
+			</div> <!--span-->
+			<div class="span4">
+		 		<img src="{{ STATIC_PREFIX }}img/linky-2-export.png">
+		 		<h3>We'll hang on to it for a while</h3>
+			</div> <!--span-->
+			<div class="span4">
+		 		<img src="{{ STATIC_PREFIX }}img/linky-3-export.png">
+		 		<h3>If it's published, we'll keep it forever</h3>
+			</div> <!--span-->
+	</div> <!--row span10-->
 </div>
 
-<div class="row">
-	<div id="linky-list" class="span10 offset1" style="display:none;">
+<div class="row-fluid">
+	<div id="linky-list" class="span12" style="display:none;">
 		<hr>
-  	<h4 class="text-center linky-ul-header">Most recently created</h4>
+  	<h4 class="text-center linky-ul-header">Recently created</h4>
   	<ul id="linky-ul"></ul>
 	</div>
 
