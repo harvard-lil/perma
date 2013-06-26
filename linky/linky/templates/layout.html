@@ -21,7 +21,7 @@
 	<script type="text/javascript">try{Typekit.load();}catch(e){}</script>
   </head>
   <body>
-    
+
       <div class="container">
         {% include "navbar.html" %}
       		<div class="row">
@@ -36,14 +36,16 @@
       				{% endblock %}
       			</div>
       		</div>
-      		<footer>
-      			<div class="row footer">
-      				<div class="span12">
-      					<h3>Welcome to the Footer</h3>
-      				</div>
+      	 </div><!--end container -->
+
+      	<footer>
+      		<div class="row footer">
+      			<div class="span12">
+      				<h3><small>Brought to you by JZ, Kendra, Shalin, Leonid & <br/><span class="cyan">Harvard Library Innovation Lab</span></small></h3>
       			</div>
-      		</footer>
-    </div><!--end container -->
+      		</div>
+      	</footer>
+   
     <script src="{{ STATIC_PREFIX }}js/jquery.js"></script>
     <script src="{{ STATIC_PREFIX }}js/bootstrap.js"></script>
     {% block scripts %}

@@ -232,12 +232,50 @@ img.favicon-preview {
 }
 
 footer {
-	background:red;
-	height:100%;
-	margin-bottom:0;
+	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+	-moz-box-sizing: border-box;    /* Firefox, other Gecko */
+	box-sizing: border-box;
+	background:rgba(255,255,255,.5);
+	height:100px;
+	border-top-left-radius:3px;
+	border-top-right-radius:3px;
+	padding:10px 20px;
 }
 
 .embedded-form fieldset {
   margin-top:25px;
   margin-bottom:15px;
+}
+
+.btn {
+	color:#09f;
+	font-weight:bold;
+}
+
+.btn:active, .btn:hover {
+	color:#06a;
+}
+
+.copy-button-div {
+	float:right;
+	margin-top:-30px;
+}
+#wrap {
+	min-height: 100%;
+	height: auto !important;
+	height: 100%;
+	margin: 0 auto -100px;
+}
+.cyan {
+	color:#09f;
+}
+
+.none {
+	list-style-type: none;
+}
+.thin {
+	text-align:center;
+	margin-top:10px;
+	margin-bottom:-20px;
+	float:right;
 }

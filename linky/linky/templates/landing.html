@@ -87,8 +87,9 @@
 		<small>{{#truncate original 70}}{{/truncate}}</small>
 		<br>
 		<p><a href="{{#http_it url}}{{/http_it}}" target="_blank">{{url}}</a></p>
-		<button class="copy-button" data-clipboard-text="{{#http_it url}}{{/http_it}}" title="Copy Linky Link">Copy Linky Link</button>
+		
 	</div>
+	<div class="copy-button-div"><button class="btn copy-button" data-clipboard-text="{{#http_it url}}{{/http_it}}" title="Copy Linky Link">Copy Linky &infin;</button></div>
 </li>
 
 {% endtplhandlebars %}
