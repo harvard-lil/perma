@@ -82,11 +82,11 @@
 <li>
 	<div class="favicon-preview">{{#if favicon_url}}<img src="http://{{favicon_url}}">{{/if}}</div>
 	<div class="recent-linky-summary">
-		<h4><a href="{{url}}" target="_blank">{{#truncate title 50}}{{title}}{{/truncate}}</a></h4>
-		<small>{{original}}</small>
+		<h4><a href="{{#http_it url}}{{/http_it}}" target="_blank">{{#truncate title 50}}{{/truncate}}</a></h4>
+		<small>{{#truncate original 70}}{{/truncate}}</small>
 		<br>
-		<p><a href="http://{{url}}" target="_blank">{{url}}</a></p>
-		<button class="copy-button" data-clipboard-text="http://{{url}}" title="Copy Linky Link">Copy Linky Link</button>
+		<p><a href="{{#http_it url}}{{/http_it}}" target="_blank">{{url}}</a></p>
+		<button class="copy-button" data-clipboard-text="{{#http_it url}}{{/http_it}}" title="Copy Linky Link">Copy Linky Link</button>
 	</div>
 </li>
 

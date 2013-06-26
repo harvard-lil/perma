@@ -141,4 +141,11 @@ Handlebars.registerHelper ('truncate', function (str, len) {
         }
         return str;
     });
+    
+Handlebars.registerHelper ('http_it', function (str) {
+        if (str.substring(0,4) != 'http') {
+            return new Handlebars.SafeString ( 'http://' + str ); 
+        }
+        return str;
+    });
 

@@ -32,7 +32,13 @@ def linky_post(request):
 
     target_title = url_details.netloc
     
-    parsed_html = lxml.html.parse(urllib2.urlopen(target_url))
+    
+    
+        
+    try:
+        parsed_html = lxml.html.parse(urllib2.urlopen(target_url))
+    except IOError:
+        pass
     
     if parsed_html:
         if parsed_html.find(".//title").text:
