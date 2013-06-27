@@ -1,14 +1,14 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="row">	
+<div class="row-fluid">	
 	<form action="" method="post">
 		{% csrf_token %}
 
 		<h2>Create a User Account</h2>
 		{{ editor_reg_form }}
 		<br />
-		<button type="submit" class="btn btn-primary">Create Account</button>
+		<button type="submit" class="btn">Create Account</button>
 	</form>
 </div>
 {% endblock content %}

@@ -279,3 +279,7 @@ footer {
 	margin-bottom:-20px;
 	float:right;
 }
+
+small {
+	text-shadow:none;
+}

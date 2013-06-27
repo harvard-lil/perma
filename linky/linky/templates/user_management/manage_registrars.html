@@ -7,7 +7,7 @@
 
 {% block content %}
 
-<div class="row">
+<div class="row-fluid">
   <div class="span2">
 	{% include "manage-navbar.html" %}
   </div> <!--span-->
@@ -48,7 +48,7 @@
         {{ form.name.errors }}
         <label for="id_a-name">Name</label>
         {{ form.name }}
-      <button type="submit" class="btn btn-primary">Create new registrar</button>
+      <button type="submit" class="btn">Create new registrar</button>
     </form>
 	</div> <!--span-->
 </div> <!--row-->
