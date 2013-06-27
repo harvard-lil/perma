@@ -22,6 +22,15 @@ $(document).ready(function() {
   });
   
   drawLinks();
+
+  var clip = new ZeroClipboard( document.getElementsByClassName("copy-button"), {
+    moviePath: web_base + "/static/js/ZeroClipboard/ZeroClipboard.swf"
+  } );
+
+  clip.on( 'complete', function(client, args) {
+      this.text = "Copied";
+    //this.style.display = 'none';
+  } );
   
 });
 
@@ -37,11 +46,18 @@ function linkIt(){
   });
   request.done(function(data) {
     $('#linky_generation_message').html('Your linky has been created at');
-    $('#linky-desc').toggleClass('unavailable');
+    $('#linky-desc').removeClass('unavailable');
     linkyUrl = web_base  + '/' + data.linky_id;
     newLinky.url = linkyUrl;
     newLinky.original = rawUrl;
     newLinky.title = data.linky_title;
+    newLinky.favicon_url = data.favicon_url;
+    if(JSON.parse(localStorage.getItem('linky-list'))){
+      allLinkies = JSON.parse(localStorage.getItem('linky-list'));
+      if(allLinkies.length >= 10) {
+        allLinkies.splice(0,1);
+      }
+    }
     allLinkies.push(newLinky);
     if(('localStorage' in window) && window['localStorage'] !== null){ 
       localStorage.setItem( 'linky-list', JSON.stringify(allLinkies));
@@ -57,12 +73,13 @@ function linkIt(){
   $('#linky-confirm').modal('show');
   $('#saveLinky').on('click', function(event){
             
-    var request = $.ajax({
+    // email broken right now, commenting out
+    /*var request = $.ajax({
       url: web_base + "/service/email-confirm/",
       type: "POST",
       data: {email_address: $('#email_request').val(), linky_link: $('#linkyUrl a').attr('href')},
       dataType: "json"
-    });
+    });*/
       
     event.preventDefault();
     $('#linky-confirm').modal('hide');
@@ -74,7 +91,7 @@ function linkIt(){
   
     $('#linky_generation_message').html('Creating your Linky. Hold tight.');
     $('#linkyUrl a').html('').attr('');
-    $('#linky-desc').toggleClass('unavailable');
+    $('#linky-desc').addClass('unavailable');
     drawLinks();
   });
 }
@@ -84,17 +101,51 @@ function drawLinks() {
     storedLinkies = JSON.parse(localStorage.getItem('linky-list'));
   }
   if(storedLinkies) {
-    allLinkies = storedLinkies.reverse();
+    allLinkies = storedLinkies;
+    storedLinkies.reverse();
     $('#linky-ul').html('');
-    $.each( allLinkies, function( key, value ) {
+    $.each( storedLinkies, function( key, value ) {
     	//workaround, why isn't Handlebars Helper working?
     	value.url = value.url.replace(/.*?:\/\//g, "");
     	value.original = value.original.replace(/.*?:\/\//g, "");
+    	if (value.favicon_url) {
+        	value.favicon_url = value.favicon_url.replace(/.*?:\/\//g, "");
+    	}
     	//
       var source = $("#list-template").html();
-	  	var template = Handlebars.compile(source);
-    	$('#linky-ul').append(template(value));
+      var template = Handlebars.compile(source);
+      $('#linky-ul').append(template(value));
     });
     $('#linky-list').fadeIn();
   }
 }
+
+Handlebars.registerHelper ('truncate', function (str, len) {
+        if (str.length > len) {
+            var new_str = str.substr (0, len+1);
+ 
+            while (new_str.length) {
+                var ch = new_str.substr ( -1 );
+                new_str = new_str.substr ( 0, -1 );
+ 
+                if (ch == ' ') {
+                    break;
+                }
+            }
+ 
+            if ( new_str == '' ) {
+                new_str = str.substr ( 0, len );
+            }
+ 
+            return new Handlebars.SafeString ( new_str +'...' ); 
+        }
+        return str;
+    });
+    
+Handlebars.registerHelper ('http_it', function (str) {
+        if (str.substring(0,4) != 'http') {
+            return new Handlebars.SafeString ( 'http://' + str ); 
+        }
+        return str;
+    });
+

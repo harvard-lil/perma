@@ -1,8 +1,6 @@
 from datetime import datetime
 import logging
 
-from lib.hashids import hashids
-
 from django.contrib.auth.models import User, Permission, Group
 from django.db.models.signals import post_syncdb
 from django.contrib.contenttypes.models import ContentType
@@ -52,9 +50,10 @@ class Link(models.Model):
     vested = models.BooleanField(default=False)
     vested_by_editor = models.ForeignKey(User, null=True, blank=True)
     vested_timestamp = models.DateTimeField(null=True, blank=True)
-    hash_id = models.CharField(max_length=100, unique=True) # Should we store this? For backup reasons?
+#    hash_id = models.CharField(max_length=100, unique=True) # Should we store this? For backup reasons?
 
-    def save(self, *args, **kwargs):
+    
+    """def save(self, *args, **kwargs):
         # We compute our hash from our auto
         #
         # TODO: We're getting a link count each time. Find a better hashing mechanism
@@ -66,8 +65,8 @@ class Link(models.Model):
         computed_hash = hashids_lib.encrypt(link_count)
 
         self.hash_id = computed_hash
-        super(Link, self).save(*args, **kwargs)
-
+        super(Link, self).save(*args, **kwargs)"""
+        
     def __unicode__(self):
         return self.submitted_url
 

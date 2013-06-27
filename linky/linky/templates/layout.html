@@ -12,29 +12,40 @@
 	
 	<link href="{{ STATIC_PREFIX }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
 	
-  <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap.css">
-   <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap-responsive.css">
+	<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap.css">
+	<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap-responsive.css">
+	<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
     {% block styles %}
     {% endblock %}  
+    <script type="text/javascript" src="//use.typekit.net/pjl6esq.js"></script>
+	<script type="text/javascript">try{Typekit.load();}catch(e){}</script>
   </head>
   <body>
-  {% block navbar %}
-  {% endblock %}
-    
+
       <div class="container">
+        {% include "navbar.html" %}
       		<div class="row">
-				<div class="span12 center">
+				<div class="offset1 span10 center">
         			<a href="{% url landing %}"><h1 class="logo-big">Linky</h1>
         			<img class="logo-big-img" src="{{ STATIC_PREFIX }}img/infinity.png"/></a>
         		</div>
   			</div>
   			<div class="row">
-				<div class="span12 center">
+				<div class="offset1 span10">
     	 			{% block content %}
       				{% endblock %}
       			</div>
       		</div>
-    </div><!--end container -->
+      	 </div><!--end container -->
+
+      	<footer>
+      		<div class="row footer">
+      			<div class="span12">
+      				<h3><small>Brought to you by JZ, Kendra, Shalin, Leonid & <br/><span class="cyan">Harvard Library Innovation Lab</span></small></h3>
+      			</div>
+      		</div>
+      	</footer>
+   
     <script src="{{ STATIC_PREFIX }}js/jquery.js"></script>
     <script src="{{ STATIC_PREFIX }}js/bootstrap.js"></script>
     {% block scripts %}

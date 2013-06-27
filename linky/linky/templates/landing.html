@@ -5,33 +5,9 @@
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
 {% endblock %}
 
-{% block navbar %}
-<div class="container">
-<div class="navbar">
-  <div class="navbar-inner">
-    <ul class="nav pull-right">
-      {% if user.is_authenticated %}
-      <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Account<b class="caret"></b></a>
-        <ul class="dropdown-menu">
-          <li><a href="{% url auth_logout %}">Sign out</a></li>
-          <li><a href="{% url landing %}">Create linky</a></li>
-          <li><a href="{% url editor_home %}">View linkies</a></li>
-        </ul>
-      </li>
-      {% else %}
-      <li><a href="{% url auth_login %}">Login</a></li>
-      {% endif %}
-    </ul>
-  </div>
-</div>
-
-
-{% endblock %}
-
 {% block content %}
 
-<div class="row">
+<div class="row-fluid">
 	<div class="span12 center">
 		<form class="form-inline" id="linker">
     		<input type="text" id="rawUrl" class="input-xlarge" placeholder="Enter URL">
@@ -39,26 +15,27 @@
     	</form>
 	</div> <!--span-->
 </div> <!--row-->
-<div class="row">
-	<div class="span4">
-		<img src="{{ STATIC_PREFIX }}img/linky-1-export.png">
-		 <h3>Create a Linky</h3>
-	</div> <!--span-->
-	<div class="span4">
-		 <img src="{{ STATIC_PREFIX }}img/linky-2-export.png">
-		 <h3>We'll hang on to it for a while</h3>
-	</div> <!--span-->
-	<div class="span4">
-		 <img src="{{ STATIC_PREFIX }}img/linky-3-export.png">
-		 <h3>If it's published, we'll hang on to it 4 eva</h3>
-	</div> <!--span-->
-</div> <!--row-->
+<div class="row-fluid">
+	<div class="span12 center">    	
+			<div class="span4">
+				<img src="{{ STATIC_PREFIX }}img/linky-1-export.png">
+		 		<h3>Create a Linky</h3>
+			</div> <!--span-->
+			<div class="span4">
+		 		<img src="{{ STATIC_PREFIX }}img/linky-2-export.png">
+		 		<h3>We'll hang on to it for a while</h3>
+			</div> <!--span-->
+			<div class="span4">
+		 		<img src="{{ STATIC_PREFIX }}img/linky-3-export.png">
+		 		<h3>If it's published, we'll keep it forever</h3>
+			</div> <!--span-->
+	</div> <!--row span10-->
 </div>
 
-<div class="row">
-	<div id="linky-list" class="span10 offset1" style="display:none;">
+<div class="row-fluid">
+	<div id="linky-list" class="span12" style="display:none;">
 		<hr>
-  	<h4 class="text-center linky-ul-header">Most recently created</h4>
+  	<h3 class="text-center linky-ul-header">Recently created</h3>
   	<ul id="linky-ul"></ul>
 	</div>
 
@@ -95,6 +72,7 @@
 <script>
   var web_base = "http://{{host}}";
 </script>
+<script src="{{ STATIC_PREFIX }}js/ZeroClipboard/ZeroClipboard.min.js"></script>
 <script src="{{ STATIC_PREFIX }}js/handlebars.js"></script>
 <script src="{{ STATIC_PREFIX }}js/landing.js"></script>
 {% endblock %}
@@ -103,10 +81,15 @@
 {% tplhandlebars "list-template" %}
 
 <li>
-	<h4><a href="{{url}}" target="_blank">{{title}}</a></h4>
-	<small>{{original}}</small>
-	<br>
-	<p><a href="{{url}}" target="_blank">{{url}}</a></p>
+	<div class="favicon-preview">{{#if favicon_url}}<img src="http://{{favicon_url}}">{{/if}}</div>
+	<div class="recent-linky-summary">
+		<h4><a href="{{#http_it url}}{{/http_it}}" target="_blank">{{#truncate title 50}}{{/truncate}}</a></h4>
+		<small>{{#truncate original 70}}{{/truncate}}</small>
+		<br>
+		<p><a href="{{#http_it url}}{{/http_it}}" target="_blank">{{url}}</a></p>
+		
+	</div>
+	<div class="copy-button-div"><button class="btn copy-button" data-clipboard-text="{{#http_it url}}{{/http_it}}" title="Copy Linky Link">Copy Linky &infin;</button></div>
 </li>
 
 {% endtplhandlebars %}
