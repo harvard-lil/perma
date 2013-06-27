@@ -4,6 +4,30 @@ body, .modal {
 	border-radius:3px;
 }
 
+body {
+	margin: 0 0 100px;
+}
+
+html {
+	position:relative;
+	min-height:100%;
+}
+
+footer {
+	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+	-moz-box-sizing: border-box;    /* Firefox, other Gecko */
+	box-sizing: border-box;
+	background:rgba(255,255,255,.4);
+	height:100px;
+	border-top-left-radius:3px;
+	border-top-right-radius:3px;
+	padding:10px 20px;
+	position:absolute;
+	left:0;
+	bottom: 0;
+	width:100%;
+}
+
 /*/ 
 Background by Benjamin Ward.
 This pattern is downloaded from www.subtlepatterns.com 
@@ -25,14 +49,16 @@ If you need more, that's where to get'em.
     opacity: .6;
 }
 
-#linky-preview img {
+#linky-preview img, .loading-background {
   max-width:500px;
+  background:#fff;
 }
 
 #linky-preview {
   max-height:400px;
   width:515px;
   border:1px solid #ddd;
+  background:#fff;
   overflow:auto;
 }
 
@@ -126,6 +152,12 @@ header {
 	margin-left:88px;
 }
 
+.logo-big-img-preview {
+	width:37px;
+	margin-top:-123px;
+	margin-left:148px;
+}
+
 .jumbo {
 	color:#09f;
 	padding-bottom:20px;
@@ -145,12 +177,19 @@ h3 {
 }
 img.linky-image, img.linky-image-preview {
 	border:1px solid #ccc;
+	margin-top:-40px;
 	margin-bottom:40px;
 	border-radius:3px;
 	-moz-box-shadow: 0 0 2px 2px #eee;
 	-webkit-box-shadow: 0 0 2px 2px#eee;
 	box-shadow: 0 0 2px 2px #eee;
 	background:#fff;
+}
+
+img.linky-image {
+	
+	margin-top:0px;
+
 }
 
 img.linky-image-preview {
@@ -195,15 +234,15 @@ a.grey {
 }
 
 .recent-linky-summary {
-    margin-left: 27px;
+    margin-left: 24px;
+    margin-top:-9px;
 }
 
 
 h2, h3 {
 	font-weight:normal;
-	color: #4694a9;
-	text-shadow: 0px 1px 0px #1e4049, 
-				 0px -1px 0px #fff; 
+	color: #000;
+	text-shadow:  0px -1px 0px #fff; 
 }
 
 h3 {
@@ -221,26 +260,14 @@ h1.big-logo {
 
 .span4 img {
 	width:50%;
+	opacity:.9;
 }
 
 ul#linky-ul li {
-	margin-left:24px;
+	margin-left:5px;
+	margin-right:5px;
 }
 
-img.favicon-preview {
-	margin-left:-20px;
-}
-
-footer {
-	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
-	-moz-box-sizing: border-box;    /* Firefox, other Gecko */
-	box-sizing: border-box;
-	background:rgba(255,255,255,.5);
-	height:100px;
-	border-top-left-radius:3px;
-	border-top-right-radius:3px;
-	padding:10px 20px;
-}
 
 .embedded-form fieldset {
   margin-top:25px;
@@ -258,7 +285,6 @@ footer {
 
 .copy-button-div {
 	float:right;
-	margin-top:-30px;
 }
 #wrap {
 	min-height: 100%;
@@ -280,6 +306,26 @@ footer {
 	float:right;
 }
 
-small {
+h3 small, small {
 	text-shadow:none;
+	font-size:17px;
+}
+
+.white-box {
+	background:rgba(255,255,255,.5);
+	border-radius:3px;
+   -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+   -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+	box-sizing: border-box;
+	padding: 5px 10px 20px;
+	margin-bottom:20px;
+}
+
+ul.dropdown-menu {
+	top:140%;
+	right:-13px;
+}
+
+input[type="text"] {
+	background:rgba(255,255,255,.6);
 }

@@ -44,12 +44,12 @@
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h1 class="logo-big">Linky Preview</h1>
-        <img class="logo-big-img" src="{{ STATIC_PREFIX }}img/infinity.png"/>
+        <img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png"/>
       </div>
     
       <div class="modal-body">
         <div id="linky-preview" class="pull-left">
-          <div class="center"><img src="{{ STATIC_PREFIX }}img/infinity_500_400.gif"></div>
+          <div class="center"><img class="loading-background" src="{{ STATIC_PREFIX }}img/infinity_500_400.gif"></div>
         </div>
         <div id="linky-desc" class="unavailable">
           <h4 id="linky_generation_message">Creating your Linky. Hold tight.</h4>
@@ -79,19 +79,23 @@
 {% block templates %}
 
 {% tplhandlebars "list-template" %}
-
-<li>
-	<div class="favicon-preview">{{#if favicon_url}}<img src="http://{{favicon_url}}">{{/if}}</div>
-	<div class="recent-linky-summary">
-		<h4><a href="{{#http_it url}}{{/http_it}}" target="_blank">{{#truncate title 50}}{{/truncate}}</a></h4>
-		<small>{{#truncate original 70}}{{/truncate}}</small>
-		<br>
-		<p><a href="{{#http_it url}}{{/http_it}}" target="_blank">{{url}}</a></p>
-		
+<div class="row-fluid">
+		<li>
+			<div class="span8">
+				<div class="favicon-preview">{{#if favicon_url}}<img src="http://{{favicon_url}}">{{/if}}</div>
+				<div class="recent-linky-summary">
+					<h4><a href="{{#http_it url}}{{/http_it}}" target="_blank">{{#truncate title 50}}{{/truncate}}</a></h4>
+					<small>{{#truncate original 70}}{{/truncate}}</small>
+					<br>
+					<p><a href="{{#http_it url}}{{/http_it}}" target="_blank">{{url}}</a></p>	
+				</div>
+			</div>
+			<div class="span4">
+				<div class="copy-button-div"><button class="btn copy-button" data-clipboard-text="{{#http_it url}}{{/http_it}}" title="Copy Linky Link">Copy Linky &infin;</button></div>
+			</div>
+		</li>
 	</div>
-	<div class="copy-button-div"><button class="btn copy-button" data-clipboard-text="{{#http_it url}}{{/http_it}}" title="Copy Linky Link">Copy Linky &infin;</button></div>
-</li>
-
+</div>
 {% endtplhandlebars %}
 
 {% endblock templates %}
