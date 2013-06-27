@@ -28,8 +28,8 @@ $(document).ready(function() {
   } );
 
   clip.on( 'complete', function(client, args) {
-      this.text = "Copied";
-    //this.style.display = 'none';
+      $(this).next('.copy-confirm').html('copied').fadeIn(100).fadeOut(3000);
+
   } );
   
 });
