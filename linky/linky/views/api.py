@@ -31,9 +31,6 @@ def linky_post(request):
     url_details = urlparse(target_url)
 
     target_title = url_details.netloc
-    
-    
-    
         
     try:
         parsed_html = lxml.html.parse(urllib2.urlopen(target_url))
@@ -41,7 +38,7 @@ def linky_post(request):
         pass
     
     if parsed_html:
-        if parsed_html.find(".//title").text:
+        if parsed_html.find(".//title"):
             target_title = parsed_html.find(".//title").text
         
     link = Link(submitted_url=target_url, submitted_title=target_title)
