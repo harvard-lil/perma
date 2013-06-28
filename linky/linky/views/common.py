@@ -10,8 +10,11 @@ from linky.utils import base
 
 def landing(request):
     """The landing page"""
+    
+    context = {'host': request.get_host(), 'user': request.user, 'next': request.get_full_path()}
+    context.update(csrf(request))
 
-    return render_to_response('landing.html', {'host': request.get_host(), 'user': request.user})
+    return render_to_response('landing.html', context)
     
 def single_linky(request, linky_id):
     """Given a Linky ID, serve it up. Vetting also takes place here. """
@@ -32,7 +35,7 @@ def single_linky(request, linky_id):
         created_datestamp = link.creation_timestamp
         pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
     
-        context = {'linky': link, 'pretty_date': pretty_date, 'user': request.user}
+        context = {'linky': link, 'pretty_date': pretty_date, 'user': request.user, 'next': request.get_full_path()}
     
         context.update(csrf(request))
 
