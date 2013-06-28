@@ -2,16 +2,15 @@
 {% block title %} | Journal members{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
-<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
 {% endblock %}
 
 {% block content %}
 
-<div class="row">
-	<div class="span2">
+<div class="row-fluid white-box">
+	<div class="span3">
     {% include "manage-navbar.html" %}
   </div> <!--span-->
-	<div class="span9 offset1">
+	<div class="span9">
 		<h3>Existing journal members</h3>
 		
 	<table class="table">
@@ -50,7 +49,7 @@
           {% endif %}
         {% endfor %}  
       </fieldset>
-      <button type="submit" class="btn btn-primary">Add journal member</button>
+      <button type="submit" class="btn">Add journal member</button>
     </form>
 	</div> <!--span-->
 </div> <!--row-->

@@ -22,6 +22,15 @@ $(document).ready(function() {
   });
   
   drawLinks();
+
+  var clip = new ZeroClipboard( document.getElementsByClassName("copy-button"), {
+    moviePath: web_base + "/static/js/ZeroClipboard/ZeroClipboard.swf"
+  } );
+
+  clip.on( 'complete', function(client, args) {
+      $(this).next('.copy-confirm').html('copied').fadeIn(100).fadeOut(3000);
+
+  } );
   
 });
 
@@ -110,3 +119,33 @@ function drawLinks() {
     $('#linky-list').fadeIn();
   }
 }
+
+Handlebars.registerHelper ('truncate', function (str, len) {
+        if (str.length > len) {
+            var new_str = str.substr (0, len+1);
+ 
+            while (new_str.length) {
+                var ch = new_str.substr ( -1 );
+                new_str = new_str.substr ( 0, -1 );
+ 
+                if (ch == ' ') {
+                    break;
+                }
+            }
+ 
+            if ( new_str == '' ) {
+                new_str = str.substr ( 0, len );
+            }
+ 
+            return new Handlebars.SafeString ( new_str +'...' ); 
+        }
+        return str;
+    });
+    
+Handlebars.registerHelper ('http_it', function (str) {
+        if (str.substring(0,4) != 'http') {
+            return new Handlebars.SafeString ( 'http://' + str ); 
+        }
+        return str;
+    });
+
