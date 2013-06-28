@@ -41,7 +41,7 @@ class regisrtar_member_form(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ("username", "email", "password", "registrar")
+        fields = ("first_name", "last_name", "username", "email", "password", "registrar")
 
 
     def clean_username(self):
@@ -112,7 +112,7 @@ class journal_member_form(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ("username", "email", "password")
+        fields = ("first_name", "last_name", "username", "email", "password")
 
 
     def clean_username(self):
