@@ -14,29 +14,29 @@
 	<div class="span9">
 		<h3>Linky links vested by you</h3>
 		
-	<table class="table">
-    <thead>
-      <tr>
-        <th>Title</th>
-        <th>Original link</th>
-        <th>Linky link</th>
-        <th>Creation date</th>
-        <th>Vested date</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for linky_link in linky_links %}
-        <tr>
-          <td>{{ linky_link.submitted_title }}</td>
-          <td>{{ linky_link.submitted_url }}</td>
-          <td><a href="http://{{host}}/{{linky_link.hash_id}}" target="_blank">{{host}}/{{linky_link.hash_id}}</a></td>
-          <td>{{ linky_link.creation_timestamp }}</td>
-          <td>{{ linky_link.creation_timestamp }}</td>
-      {% empty %}
-        <tr><td>No linky links found.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+		<table class="vested-table">
+    	<thead>
+      		<tr>
+        		<th>Title</th>
+			<th>Original link</th>
+			<th>Linky link</th>
+			<th>Creation date</th>
+			<th>Vested date</th>
+		  </tr>
+		</thead>
+		<tbody>
+		  {% for linky_link in linky_links %}
+			<tr>
+			  <td class="link-abbreviation-title">{{ linky_link.submitted_title }}</td>
+			  <td class="link-abbreviation">{{ linky_link.submitted_url }}</td>
+			  <td class="link-abbreviation"><a href="http://{{host}}/{{linky_link.id}}" target="_blank">{{host}}/{{linky_link.hash_id}}</a></td>
+			  <td>{{ linky_link.creation_timestamp }}</td>
+			  <td>{{ linky_link.creation_timestamp }}</td>
+		  {% empty %}
+			<tr><td>No linky links found.</td></tr>
+		  {% endfor %}
+		</tbody>
+	  </table>
 	</div> <!--span-->
 </div> <!--row-->
 

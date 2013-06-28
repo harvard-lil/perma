@@ -155,7 +155,7 @@ header {
 .logo-big-img-preview {
 	width:37px;
 	margin-top:-123px;
-	margin-left:148px;
+	margin-left:-110px;
 }
 
 .jumbo {
@@ -178,7 +178,7 @@ h3 {
 img.linky-image, img.linky-image-preview {
 	border:1px solid #ccc;
 	margin-top:-40px;
-	margin-bottom:40px;
+	margin-bottom:25px;
 	border-radius:3px;
 	-moz-box-shadow: 0 0 2px 2px #eee;
 	-webkit-box-shadow: 0 0 2px 2px#eee;
@@ -328,4 +328,58 @@ ul.dropdown-menu {
 
 input[type="text"] {
 	background:rgba(255,255,255,.6);
+}
+
+table.vested-table {
+	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+	-moz-box-sizing: border-box;    /* Firefox, other Gecko */
+	box-sizing: border-box;
+	width:auto;
+	max-width:auto;
+}
+
+table { 
+  max-width: auto; 
+  width: auto;
+  border-collapse: collapse; 
+}
+
+/* Zebra striping */
+tr:nth-of-type(odd) { 
+
+}
+thead {
+	background:none;
+}
+th { 
+
+}
+td, th { 
+  border: 0px solid #ccc; 
+  text-align: left; 
+  padding:0 6px;
+}
+
+p a.submitted_url {
+	margin-top:-10px;	
+}
+
+.btn-primary {
+	color:#fff;
+}
+
+.btn-primary:hover{
+	color:#fcf04d;
+}
+
+td.link-abbreviation {
+	max-width: 340px;
+	text-wrap:unrestricted;
+	word-break:break-all;
+}
+
+td.link-abbreviation-title {
+	max-width: 230px;
+	text-wrap:unrestricted;
+	word-break:break-all;
 }
