@@ -330,18 +330,14 @@ input[type="text"] {
 	background:rgba(255,255,255,.6);
 }
 
-table.vested-table {
-	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+table { 
+  border-collapse: collapse; 
+  	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
 	-moz-box-sizing: border-box;    /* Firefox, other Gecko */
 	box-sizing: border-box;
-	width:auto;
-	max-width:auto;
-}
-
-table { 
-  max-width: auto; 
-  width: auto;
+	max-width: inherit; 
   border-collapse: collapse; 
+
 }
 
 /* Zebra striping */
@@ -372,14 +368,39 @@ p a.submitted_url {
 	color:#fcf04d;
 }
 
-td.link-abbreviation {
-	max-width: 340px;
+
+td.linky-abbr-title, td.linky-abbr-original-link, td.linky-abbr-linky-link a, .linky-abbr-linky-link, td.linky-abbr-date-time {
 	text-wrap:unrestricted;
 	word-break:break-all;
+	word-wrap: break-word;      /* IE 5.5-7 */
+  	white-space: pre-wrap; /* css-3 */
+	white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+	white-space: -pre-wrap; /* Opera 4-6 */
+	white-space: -o-pre-wrap; /* Opera 7 */
+	word-wrap: break-word; /* Internet Explorer 5.5+ */
 }
 
-td.link-abbreviation-title {
-	max-width: 230px;
-	text-wrap:unrestricted;
-	word-break:break-all;
+td.linky-abbr-title {
+	min-width:110px;
 }
+
+td.linky-abbr-original-link {
+	min-width:auto;
+	width:130px;
+}
+
+.linky-abbr-linky-link a, .linky-abbr-linky-link {
+	min-width:auto;
+	width:200px;
+}
+
+td.linky-abbr-date-time {
+	min-width:auto;
+	width:80px;
+}
+
+.nav {
+	position:relative;
+	z-index:9999;
+}
+
