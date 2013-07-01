@@ -13,6 +13,7 @@ urlpatterns = patterns('linky.views',
     url(r'^editor/?$', 'common.editor_home', name='editor_home'),
     
     #API routes
+    url(r'^api/linky/upload?$', 'api.upload_file', name='api_linky_upload'),
     url(r'^api/linky/?$', 'api.linky_post', name='api_linky_post'),
     
     #Services

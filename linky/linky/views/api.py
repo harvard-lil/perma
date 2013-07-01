@@ -3,11 +3,15 @@ from urlparse import urlparse
 
 import lxml.html
 
+from PIL import Image
+from pyPdf import PdfFileReader
 
 from linky.models import Link
 from linky.utils import base
 from django.shortcuts import render_to_response, HttpResponse
+from django.http import HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
+from django import forms
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +81,7 @@ def linky_post(request):
       json.dump(manifest, outfile)
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
-    
+
     
 def __get_favicon(target_url, parsed_html, link_hash_id, disk_path, url_details):
     """ Given a URL and the markup, see if we can find a favicon.
@@ -131,3 +135,63 @@ def __get_favicon(target_url, parsed_html, link_hash_id, disk_path, url_details)
         
         
     return False
+
+class UploadFileForm(forms.Form):
+    title = forms.CharField(max_length=50, required=True)
+    url = forms.URLField(required=True)
+    file  = forms.FileField(required=True)
+    favicon  = forms.FileField(required=False)
+
+def validate_favicon(upload):
+    # TODO: Figure out how to actually validate a favicon.
+    if upload.name == 'favicon.ico':
+        return True
+    return False
+
+def validate_upload_file(upload):
+    # Make sure files are not corrupted.
+    extention = upload.name[-4:]
+    if extention in ['.jpg', 'jpeg']:
+        try:
+            i = Image.open(upload)
+            if i.format !='JPEG':
+                return False
+        except IOError:
+            return False
+    elif extention == '.png':
+        try:
+            i = Image.open(upload)
+            if i.format !='PNG':
+                return False
+        except IOError:
+            return False
+    elif extention == '.pdf':
+        doc = PdfFileReader(upload)
+        if all([doc.documentInfo, doc.numPages]):
+            return True
+    return False
+
+@csrf_exempt
+def upload_file(request):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            if validate_upload_file(request.FILES['file']):
+                link = Link(submitted_url=form.cleaned_data['url'], submitted_title=form.cleaned_data['title'])
+                link.save()    
+
+                linky_home_disk_path = INTERNAL['APP_FILEPATH'] + '/static/generated/' + str(link.id) + '/'
+                if not os.path.exists(linky_home_disk_path):
+                    os.makedirs(linky_home_disk_path)
+        
+                linky_hash = base.convert(link.id, base.BASE10, base.BASE58)
+                file_name = 'cap.' + request.FILES['file'].name.split('.')[-1]
+                f = open(linky_home_disk_path + file_name, 'w')
+                f.write(request.FILES['file'].file.read())
+
+                #request.FILES['file'].file.read()
+
+                return HttpResponse(json.dumps({'status':'success'}), 'application/json')
+    else:
+        return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Missing file.'}), 'application/json')
+    return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':form.errors}), 'application/json')
