@@ -189,8 +189,6 @@ def upload_file(request):
                 f = open(linky_home_disk_path + file_name, 'w')
                 f.write(request.FILES['file'].file.read())
 
-                #request.FILES['file'].file.read()
-
                 return HttpResponse(json.dumps({'status':'success'}), 'application/json')
     else:
         return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Missing file.'}), 'application/json')
