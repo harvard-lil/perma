@@ -1,39 +1,22 @@
-<!--
-Hey guys, try as I might I just can't crack this one.  THis commented out section works perfdectly in 
-Chrome, but won't work at all in firefox. The code beneath, works in both firefox and chrome, but 
-not perfectly.  The if / then logic doesn't work, it's always an account button, it doesn't swap back
-to a Login.  Perhaps one of you guys can crack it, otherwise, I can kick at it when I get back.
-<div class="nav">
-  <button class="btn thin">
-    <ul class="none">
-      {% if user.is_authenticated %}
-      <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Account&nbsp;<b class="caret"></b></a>
-        <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-          <li><a href="{% url user_management_manage_links %}">Vested Linkies</a></li>
-          <li><a href="{% url user_management_landing %}">Linky admin</a></li>
-          <li><a href="{% url user_management_manage_account %}">Account settings</a></li>
-          <li><a href="{% url auth_logout %}">Sign out</a></li>
-        </ul>
-      </li>
-      {% else %}
-      <li><a href="{% url auth_login %}">Login</a></li>
-      {% endif %}
-    </ul>
-</div>
--->
-
-<div class="dropdown thin"> <a href="#" class="dropdown-toggle btn" data-toggle="dropdown">Account&nbsp;<b class="caret"></b></a>
-    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-    	{% if user.is_authenticated %}
-        <li><a href="{% url user_management_manage_links %}">Vested Linkies</a></li>
-        <li><a href="{% url user_management_landing %}">Linky admin</a></li>
-        <li><a href="{% url user_management_manage_account %}">Account settings</a></li>
-        <li><a href="{% url auth_logout %}">Sign out</a></li>
-    	{% else %}
-      	<li><a href="{% url auth_login %}">Login</a></li>
-      	{% endif %}
-    </ul>
+<div class="dropdown thin pull-right">
+  {% if user.is_authenticated %}
+  <a href="#" class="dropdown-toggle btn" data-toggle="dropdown">Account&nbsp;<b class="caret"></b></a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+    <li><a href="{% url user_management_manage_links %}">Linky admin</a></li>
+    <li><a href="{% url user_management_manage_account %}">Account settings</a></li>
+    <li class="divider"></li>
+    <li><a href="{% url auth_logout %}">Sign out</a></li>
+  </ul>
+  {% else %}
+  <a href="#" class="dropdown-toggle btn" data-toggle="dropdown">Login&nbsp;<b class="caret"></b></a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+    <!--<li><a href="{% url auth_login %}">Login</a></li>-->
+    <li>
+    {% include "login-form.html" %}
+    </li>
+  </ul>
+  {% endif %}
+    
 </div>
 
 <div class="alpha">

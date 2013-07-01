@@ -302,11 +302,14 @@ ul#linky-ul li {
 .none {
 	list-style-type: none;
 }
+
 .thin {
-	text-align:center;
 	margin-top:10px;
 	margin-bottom:-20px;
-	float:right;
+}
+
+.dropdown-form {
+  margin:10px 10px 20px 10px;
 }
 
 h3 small, small {
@@ -322,11 +325,6 @@ h3 small, small {
 	box-sizing: border-box;
 	padding: 5px 10px 20px;
 	margin-bottom:20px;
-}
-
-ul.dropdown-menu {
-	top:140%;
-	right:-13px;
 }
 
 input[type="text"] {
