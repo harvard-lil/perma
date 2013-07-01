@@ -1,6 +1,6 @@
 import logging
 
-from linky.forms import user_reg_form, regisrtar_member_form, registrar_form, journal_member_form, journal_member_form_edit
+from linky.forms import user_reg_form, regisrtar_member_form, registrar_form, journal_member_form, journal_member_form_edit, regisrtar_member_form_edit
 from linky.models import Registrar, Link
 from linky.utils import base
 
@@ -92,19 +92,43 @@ def manage_registrar(request):
     return render_to_response('user_management/manage_registrars.html', context)
     
 @login_required
+def manage_single_registrar(request, registrar_id):
+    """ Linky admins can manage registrars (libraries)
+        in this view, we allow for edit/delete"""
+
+    if request.user.groups.all()[0].name not in ['registry_member']:
+        return HttpResponseRedirect(reverse('user_management_landing'))
+
+    target_registrar = get_object_or_404(Registrar, id=registrar_id)
+
+    context = {'user': request.user, 'target_registrar': target_registrar}
+    context.update(csrf(request))
+
+    if request.method == 'POST':
+
+        form = registrar_form(request.POST, prefix = "a", instance=target_registrar)
+
+        if form.is_valid():
+            new_user = form.save()
+
+            return HttpResponseRedirect(reverse('user_management_manage_registrar'))
+
+        else:
+            context.update({'form': form,})                      
+    else:
+        form = registrar_form(prefix = "a", instance=target_registrar)
+        context.update({'form': form,}) 
+
+    return render_to_response('user_management/manage_single_registrar.html', context)
+    
+@login_required
 def manage_registrar_member(request):
     """ Linky admins can manage registrar members (librarians) """
 
     if request.user.groups.all()[0].name not in ['registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
 
-    if request.user.groups.all()[0].name == "registry_member":
-        registrar_members = User.objects.filter(groups__name='registrar_member')
-    elif request.user.groups.all()[0].name == "registrar_member":
-        profile = request.user.get_profile()
-        registrar_members = User.objects.filter(userprofile__registrar=profile.registrar)
-    else:
-        return HttpResponseRedirect(reverse('user_management_landing'))
+    registrar_members = User.objects.filter(groups__name='registrar_member')
 
     context = {'user': request.user, 'registrar_members': list(registrar_members)}
     context.update(csrf(request))
@@ -131,6 +155,35 @@ def manage_registrar_member(request):
 
     return render_to_response('user_management/manage_registrar_members.html', context)
     
+@login_required
+def manage_single_registrar_member(request, user_id):
+    """ Linky admins can manage registrar members (librarians)
+        in this view, we allow for edit"""
+
+    if request.user.groups.all()[0].name not in ['registry_member']:
+        return HttpResponseRedirect(reverse('user_management_landing'))
+
+    target_registrar_member = get_object_or_404(User, id=user_id)
+
+    context = {'user': request.user, 'target_registrar_member': target_registrar_member}
+    context.update(csrf(request))
+
+    if request.method == 'POST':
+
+        form = regisrtar_member_form_edit(request.POST, prefix = "a", instance=target_registrar_member)
+
+        if form.is_valid():
+            new_user = form.save()
+
+            return HttpResponseRedirect(reverse('user_management_manage_single_registrar_member'))
+
+        else:
+            context.update({'form': form,})                      
+    else:
+        form = regisrtar_member_form_edit(prefix = "a", instance=target_registrar_member)
+        context.update({'form': form,}) 
+
+    return render_to_response('user_management/manage_single_registrar.html', context)
 @login_required
 def manage_journal_member(request):
     """ Linky admins and registrars can manage journal members """

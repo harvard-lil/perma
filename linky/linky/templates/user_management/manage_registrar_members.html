@@ -15,6 +15,8 @@
         <th>Name</th>
         <th>Email</th>
         <th>Username</th>
+        <th>Registrar</th>
+        <th>Admin</th>
       </tr>
     </thead>
     <tbody>
@@ -24,6 +26,8 @@
           <td>{{ registrar_member.first_name }} {{ registrar_member.last_name }}</td>
           <td>{{ registrar_member.email }}</td>
           <td>{{ registrar_member.username }}</td>
+          <td>{{ registrar_member.get_profile.registrar.name }}</td>
+          <td><a href="{% url user_management_manage_single_registrar_member %}{{registrar_member.id}}">edit/delete</a></td>
       {% empty %}
         <tr>No registrar members found.</tr>
       {% endfor %}
