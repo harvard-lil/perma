@@ -22,7 +22,7 @@
         <tr>
           <td><input type="checkbox"></td>
           <td>{{ registrar.name }}</td>
-          <td><a href="{% url user_management_manage_single_registrar registrar.id %}">edit/delete</a></td>
+          <td><a href="{% url user_management_manage_single_registrar registrar.id %}">edit</a></td>
       {% empty %}
         <tr>No registrars found.</tr>
       {% endfor %}
