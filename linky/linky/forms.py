@@ -83,10 +83,17 @@ class regisrtar_member_form(forms.ModelForm):
         
         
 class journal_member_form(forms.ModelForm):
+        
     """
     stripped down user reg form
     This is mostly a django.contrib.auth.forms.UserCreationForm
     """
+    
+    class Meta:
+        model = User
+        fields = ("first_name", "last_name", "username", "email", "password")
+    
+    
     error_messages = {
         'duplicate_username': "A user with that username already exists.",
         'duplicate_email': "A user with that email address already exists.",
@@ -108,11 +115,6 @@ class journal_member_form(forms.ModelForm):
 
 
     password = forms.CharField(label="Password", widget=forms.PasswordInput)
-
-
-    class Meta:
-        model = User
-        fields = ("first_name", "last_name", "username", "email", "password")
 
 
     def clean_username(self):
@@ -145,6 +147,41 @@ class journal_member_form(forms.ModelForm):
 
         return user
         
+        
+class journal_member_form_edit(forms.ModelForm):
+
+    """
+    stripped down user reg form
+    This is mostly a django.contrib.auth.forms.UserCreationForm
+    
+    This is stripped down even further to match out editing needs
+    """
+
+
+
+    class Meta:
+        model = User
+        fields = ("first_name", "last_name", "email")
+
+
+    email = forms.RegexField(label="Email", required=True, max_length=254,
+        regex=r'^[\w.@+-]+$',
+        help_text = "Letters, digits and @/./+/-/_ only. 254 characters or fewer.",
+        error_messages = {
+            'invalid': "This value may contain only letters, numbers and "
+                         "@/./+/-/_ characters."})
+
+
+
+
+    def save(self, commit=True):
+        user = super(journal_member_form_edit, self).save(commit=False)
+
+        if commit:
+            user.save()
+
+        return user
+
 
 class user_reg_form(forms.ModelForm):
     """

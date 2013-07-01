@@ -16,6 +16,7 @@
         <th>Name</th>
         <th>Email</th>
         <th>Username</th>
+        <th>Admin</th>
       </tr>
     </thead>
     <tbody>
@@ -25,6 +26,7 @@
           <td>{{ member.first_name }} {{ member.last_name }}</td>
           <td>{{ member.email }}</td>
           <td>{{ member.username }}</td>
+          <td><a href="{% url user_management_manage_single_journal_member %}{{member.id}}">edit/delete</a></td>
       {% empty %}
         <tr>No journal members found.</tr>
       {% endfor %}

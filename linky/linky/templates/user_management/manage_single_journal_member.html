@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block title %} | Journal members{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+{% endblock %}
+
+{% block content %}
+
+<div class="row-fluid white-box">
+	<div class="span3">
+    {% include "manage-navbar.html" %}
+  </div> <!--span-->
+	<div class="span9">
+		<h3>Existing journal members</h3>
+		
+	
+
+    <form class="embedded-form" method="post">
+      {% csrf_token %}
+		  <h4>Edit journal member</h4>
+		  <fieldset>
+        {% for field in form %}
+          <label for="id_{{ field.name }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+          {%elif field.help_text %}
+            <span class="help-inline">{{ field.help_text }}</span>
+          {% endif %}
+        {% endfor %}  
+      </fieldset>
+      <button type="submit" class="btn">Save journal member</button>
+    </form>
+	</div> <!--span-->
+</div> <!--row-->
+
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}
