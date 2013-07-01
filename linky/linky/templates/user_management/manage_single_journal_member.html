@@ -13,33 +13,11 @@
 	<div class="span9">
 		<h3>Existing journal members</h3>
 		
-	<table class="table">
-    <thead>
-      <tr>
-        <th><input type="checkbox"></th>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Username</th>
-        <th>Admin</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for member in journal_members %}
-        <tr>
-          <td><input type="checkbox"></td>
-          <td>{{ member.first_name }} {{ member.last_name }}</td>
-          <td>{{ member.email }}</td>
-          <td>{{ member.username }}</td>
-          <td><a href="{% url user_management_manage_single_journal_member %}{{member.id}}">edit/delete</a></td>
-      {% empty %}
-        <tr>No journal members found.</tr>
-      {% endfor %}
-    </tbody>
-  </table>
+	
 
     <form class="embedded-form" method="post">
       {% csrf_token %}
-		  <h4>Add a new journal member</h4>
+		  <h4>Edit journal member</h4>
 		  <fieldset>
         {% for field in form %}
           <label for="id_{{ field.name }}">{{ field.label }}</label>
@@ -51,7 +29,7 @@
           {% endif %}
         {% endfor %}  
       </fieldset>
-      <button type="submit" class="btn">Add journal member</button>
+      <button type="submit" class="btn">Save journal member</button>
     </form>
 	</div> <!--span-->
 </div> <!--row-->
