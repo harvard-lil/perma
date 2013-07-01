@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "admin-layout.html" %}
 {% block title %} | Vested Linky links{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
@@ -6,38 +6,27 @@
 
 {% block content %}
 
-<div class="row-fluid white-box">
-	<div class="span3">
-	{% include "manage-navbar.html" %}
-  </div> <!--span-->
-	<div class="span9">
 		<h3>Linky links vested by you</h3>
 		
 		<table class="vested-table">
     	<thead>
       		<tr>
-        	<th>Title</th>
-			<th>Original link</th>
-			<th>Linky link</th>
-			<th>Creation date</th>
-			<th>Vested date</th>
+        	<th>Link</th>
+			<th>Created</th>
+			<th>Vested</th>
 		  </tr>
 		</thead>
 		<tbody>
 		  {% for linky_link in linky_links %}
 			<tr>
-			  <td class="linky-abbr-title">{{ linky_link.submitted_title }}</td>
-			  <td class="linky-abbr-original-link">{{ linky_link.submitted_url }}</td>
-			  <td class="linky-abbr-linky-link"><a href="http://{{host}}/{{linky_link.id}}" target="_blank">{{host}}/{{linky_link.id}}</a></td>
+			  <td>{{ linky_link.submitted_title }}<br>{{ linky_link.submitted_url }}<br><a href="http://{{host}}/{{linky_link.id}}" target="_blank">{{host}}/{{linky_link.id}}</a></td>
 			  <td class="linky-abbr-date-time">{{ linky_link.creation_timestamp }}</td>
-			  <td class="linky-abbr-date-time">{{ linky_link.creation_timestamp }}</td>
+			  <td class="linky-abbr-date-time">{{ linky_link.vested_timestamp }}</td>
 		  {% empty %}
 			<tr><td>No linky links found.</td></tr>
 		  {% endfor %}
 		</tbody>
 	  </table>
-	</div> <!--span-->
-</div> <!--row-->
 
 {% endblock %}
 

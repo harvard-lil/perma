@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "admin-layout.html" %}
 {% block title %} | Registrar members{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
@@ -6,11 +6,6 @@
 
 {% block content %}
 
-<div class="row-fluid white-box">
-	<div class="span3">
-	  {% include "manage-navbar.html" %}
-  </div> <!--span-->
-	<div class="span9">
 		<h3>Existing registrar members</h3>
 		
 	<table class="table">
@@ -62,8 +57,6 @@
       <button type="submit" class="btn">Add registrar member</button>
     </form>
 		{% endifequal %}
-	</div> <!--span-->
-</div> <!--row-->
 
 {% endblock %}
 

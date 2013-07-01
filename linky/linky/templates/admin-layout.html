@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block row %}
+<div class="row-fluid white-box">
+	<div class="span3">
+	  {% include "manage-navbar.html" %}
+
+  </div> <!--span-->
+  <div class="span9">
+  {% block content %}
+  {% endblock %}
+  </div>
+</div> <!--row-->
+{% endblock %}

@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "admin-layout.html" %}
 {% block title %} | Registrars{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
@@ -6,11 +6,7 @@
 
 {% block content %}
 
-<div class="row-fluid white-box">
-  <div class="span3">
-	{% include "manage-navbar.html" %}
-  </div> <!--span-->
-	<div class="span9">
+
 		<h3>Existing registrars</h3>
 		
 		<table class="table">
@@ -49,8 +45,6 @@
         {{ form.name }}
       <button type="submit" class="btn">Create new registrar</button>
     </form>
-	</div> <!--span-->
-</div> <!--row-->
 
 {% endblock %}
 
