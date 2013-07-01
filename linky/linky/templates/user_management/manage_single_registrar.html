@@ -1,21 +1,15 @@
-{% extends "layout.html" %}
-{% block title %} | Journal members{% endblock %}
+{% extends "admin-layout.html" %}
+{% block title %} | Edit registrar{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 {% endblock %}
 
 {% block content %}
 
-<div class="row-fluid white-box">
-	<div class="span3">
-    {% include "manage-navbar.html" %}
-  </div> <!--span-->
-	<div class="span9">
-		<h3>Existing journal members</h3>
+		<h3>Edit registrar</h3>
 
     <form class="embedded-form" method="post">
       {% csrf_token %}
-		  <h4>Edit registrar</h4>
 		  <fieldset>
         {% for field in form %}
           <label for="id_{{ field.name }}">{{ field.label }}</label>
@@ -27,10 +21,8 @@
           {% endif %}
         {% endfor %}  
       </fieldset>
-      <button type="submit" class="btn">Save journal member</button>
+      <button type="submit" class="btn">Save registrar</button>
     </form>
-	</div> <!--span-->
-</div> <!--row-->
 
 {% endblock %}
 
