@@ -128,7 +128,7 @@ def manage_registrar_member(request):
     if request.user.groups.all()[0].name not in ['registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
 
-    registrar_members = User.objects.filter(groups__name='registrar_member')
+    registrar_members = User.objects.filter(groups__name='registrar_member', is_active=True)
 
     context = {'user': request.user, 'registrar_members': list(registrar_members)}
     context.update(csrf(request))
@@ -175,7 +175,7 @@ def manage_single_registrar_member(request, user_id):
         if form.is_valid():
             new_user = form.save()
 
-            return HttpResponseRedirect(reverse('user_management_manage_single_registrar_member'))
+            return HttpResponseRedirect(reverse('user_management_manage_registrar_member'))
 
         else:
             context.update({'form': form,})                      
@@ -184,6 +184,30 @@ def manage_single_registrar_member(request, user_id):
         context.update({'form': form,}) 
 
     return render_to_response('user_management/manage_single_registrar_member.html', context)
+
+@login_required
+def manage_single_registrar_member_delete(request, user_id):
+    """ Linky admins can manage registrar members. Delete a single registrar member here. """
+
+    # Only registry members can delete registrar members
+    if request.user.groups.all()[0].name not in ['registry_member']:
+        return HttpResponseRedirect(reverse('user_management_landing'))
+
+    target_member = get_object_or_404(User, id=user_id)
+
+    context = {'user': request.user, 'target_member': target_member}
+    context.update(csrf(request))
+
+    if request.method == 'POST':
+        target_member.is_active = False
+        target_member.save()
+
+        return HttpResponseRedirect(reverse('user_management_manage_registrar_member'))
+    else:
+        form = journal_member_form_edit(prefix = "a", instance=target_member)
+        context.update({'form': form,})
+
+    return render_to_response('user_management/manage_single_registrar_member_delete_confirm.html', context)
 
 @login_required
 def manage_journal_member(request):
