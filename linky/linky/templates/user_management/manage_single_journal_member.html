@@ -6,9 +6,7 @@
 
 {% block content %}
 
-		<h3>Existing journal members</h3>
-		
-	
+	<h3>Existing journal members</h3>
 
     <form class="embedded-form" method="post">
       {% csrf_token %}
@@ -26,6 +24,8 @@
       </fieldset>
       <button type="submit" class="btn">Save journal member</button>
     </form>
+
+	<a href="{% url user_management_manage_single_journal_member_delete target_member.id %}">Delete user, {{target_member.username}}</a>
 
 {% endblock %}
 
