@@ -1,22 +1,16 @@
-{% extends "layout.html" %}
+{% extends "admin-layout.html" %}
 {% block title %} | Admin{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 {% endblock %}
 
 {% block content %}
-<div class="row-fluid white-box">
-	<div class="span3">
-	  {% include "manage-navbar.html" %}
 
-  </div> <!--span-->
-  <div class="span9">
     <h3>Admin</h3>
     {% if user.groups.all.0.name == 'registry_member' %}
     <!--<h3>You are a registry member at {{user.get_profile.registrar.name}} </h3>-->
     {% endif %}
-  </div>
-</div> <!--row-->
+
 {% endblock %}
 
 {% block scripts %}
