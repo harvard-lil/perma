@@ -2,6 +2,7 @@ import logging
 
 from linky.forms import user_reg_form, regisrtar_member_form, registrar_form, journal_member_form
 from linky.models import Registrar, Link
+from linky.utils import base
 
 from django.contrib.auth.decorators import login_required
 from django.http import  HttpResponseRedirect
@@ -178,9 +179,12 @@ def manage_links(request):
     if request.user.groups.all()[0].name not in ['journal_member', 'registrar_member', 'registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
 
-    linky_links = Link.objects.filter(vested_by_editor=request.user)
+    linky_links = list(Link.objects.filter(vested_by_editor=request.user))
     
-    context = {'user': request.user, 'linky_links': list(linky_links), 'host': request.get_host()}
+    for linky_link in linky_links:
+        linky_link.id =  base.convert(linky_link.id, base.BASE10, base.BASE58)
+    
+    context = {'user': request.user, 'linky_links': linky_links, 'host': request.get_host()}
 
     return render_to_response('user_management/links.html', context)
     
