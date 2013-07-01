@@ -14,6 +14,7 @@
       <tr>
         <th><input type="checkbox"></th>
         <th>Name</th>
+        <th>Admin</th>
       </tr>
     </thead>
     <tbody>
@@ -21,6 +22,7 @@
         <tr>
           <td><input type="checkbox"></td>
           <td>{{ registrar.name }}</td>
+          <td><a href="{% url user_management_manage_single_registrar %}{{registrar.id}}">edit/delete</a></td>
       {% empty %}
         <tr>No registrars found.</tr>
       {% endfor %}
