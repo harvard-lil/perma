@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "admin-layout.html" %}
 {% block title %} | Journal members{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
@@ -6,11 +6,6 @@
 
 {% block content %}
 
-<div class="row-fluid white-box">
-	<div class="span3">
-    {% include "manage-navbar.html" %}
-  </div> <!--span-->
-	<div class="span9">
 		<h3>Existing journal members</h3>
 		
 	
@@ -31,8 +26,6 @@
       </fieldset>
       <button type="submit" class="btn">Save journal member</button>
     </form>
-	</div> <!--span-->
-</div> <!--row-->
 
 {% endblock %}
 
