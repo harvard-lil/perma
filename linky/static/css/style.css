@@ -238,6 +238,10 @@ a.grey {
     margin-top:-9px;
 }
 
+.copy-confirm {
+  margin-top:5px;
+  color:#006dcc;
+}
 
 h2, h3 {
 	font-weight:normal;
