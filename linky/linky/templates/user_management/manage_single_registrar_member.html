@@ -6,26 +6,36 @@
 
 {% block content %}
 
-	<h3>Edit registrar member</h3>
+<h3>Edit registrar member</h3>
+{{target_registrar_member.userprofile.registrar.id}}
+<form class="embedded-form" method="post">
+	{% csrf_token %}
+	<h4>Edit registrar member</h4>
+	<fieldset>
+		{% for field in form %}
+		<label for="id_{{ field.name }}">{{ field.label }}</label>
 
-    <form class="embedded-form" method="post">
-      {% csrf_token %}
-		  <h4>Edit registrar member</h4>
-		  <fieldset>
-        {% for field in form %}
-          <label for="id_{{ field.name }}">{{ field.label }}</label>
-          {{ field }}
-          {% if field.errors %}
-            {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
-          {%elif field.help_text %}
-            <span class="help-inline">{{ field.help_text }}</span>
-          {% endif %}
-        {% endfor %}
-      </fieldset>
-      <button type="submit" class="btn">Save journal member</button>
-    </form>
+		{% if field.name != 'registrar' %}
+		{{ field }}
+		{% else %}
+		<select name="a-registrar" id="id_a-registrar">
+			{% for x,y in form.fields.registrar.choices %}
+			<option value="{{ x }}" {% if x == target_registrar_member.userprofile.registrar.id %} selected {% endif %} >{{ y }}</option>
+			{% endfor %}
+		</select>
 
-	<a href="{% url user_management_manage_single_registrar_member_delete target_registrar_member.id %}">Delete user, {{target_registrar_member.username}}</a>
+		{% endif %}
+		{% if field.errors %}
+		{% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+		{%elif field.help_text %}
+		<span class="help-inline">{{ field.help_text }}</span>
+		{% endif %}
+		{% endfor %}
+	</fieldset>
+	<button type="submit" class="btn">Save journal member</button>
+</form>
+
+<a href="{% url user_management_manage_single_registrar_member_delete target_registrar_member.id %}">Delete user, {{target_registrar_member.username}}</a>
 
 {% endblock %}
 
