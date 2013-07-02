@@ -3,7 +3,6 @@ from urlparse import urlparse
 
 import lxml.html
 
-
 from linky.models import Link
 from linky.utils import base
 from django.shortcuts import render_to_response, HttpResponse
@@ -38,7 +37,7 @@ def linky_post(request):
         pass
     
     if parsed_html:
-        if parsed_html.find(".//title"):
+        if parsed_html.find(".//title") is not None and parsed_html.find(".//title").text:
             target_title = parsed_html.find(".//title").text
         
     link = Link(submitted_url=target_url, submitted_title=target_title)
