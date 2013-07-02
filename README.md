@@ -18,7 +18,7 @@ The required modules are found in requirements.txt. Install them using pip:
 You'll need a Django friendly database. If you want to use MySQL, something like the following can be used to create a new user and a new database:
 
 	mysql -u root -psomepasshere
-	mysql> create database linky; grant all on linky.* to linky@'%' identified by 'linky';
+	mysql> create database linky character set utf8; grant all on linky.* to linky@'%' identified by 'linky';
 	mysql -u linky -plinky linky
 
 ### Settings
