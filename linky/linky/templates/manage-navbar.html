@@ -1,6 +1,6 @@
 <ul class="nav nav-list manage-nav">
-	<li><a href="{% url user_management_landing %}">Manage Home</a></li>
-	<li class="nav-header">Manage Users</li>
+  <li><a href="{% url user_management_manage_links %}">Vested links</a></li>
+	<li><h3><small>Manage users</small><h3></li>
   {% if user.groups.all.0.name == 'registry_member' %}
   <li><a href="{% url user_management_manage_registrar %}">Registrars</a></li>
   <li><a href="{% url user_management_manage_registrar_member %}">Registrar users</a></li>
@@ -14,10 +14,9 @@
   <li><a href="{% url user_management_sponsoring_library %}">Sponsoring library</a></li>
   {% endif %}
       
-  {% if user.groups.all.0.name == 'journal_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' %}
+  <!--{% if user.groups.all.0.name == 'journal_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' %}
   <li class="divider"></li>
-  <li><a href="{% url user_management_manage_links %}">Vested links</a></li>
-  {% endif %}
+  {% endif %}-->
       
   {% ifequal user.groups.all.0.name 'user' %}
   <li><a href="">My links</a></li>

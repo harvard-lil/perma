@@ -1,21 +1,14 @@
-{% extends "layout.html" %}
+{% extends "admin-layout.html" %}
 {% block title %} | Settings{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
-<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
 {% endblock %}
 
 {% block content %}
 
-<div class="row">
-	<div class="span2">
-	{% include "manage-navbar.html" %}
-  </div> <!--span-->
-	<div class="span9 offset1">
 	  <h3>Account settings</h3>
 		<p>Change password and email and so on here</p>
-	</div> <!--span-->
-</div> <!--row-->
+
 
 {% endblock %}
 

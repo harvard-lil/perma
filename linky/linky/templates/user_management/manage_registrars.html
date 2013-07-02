@@ -1,17 +1,12 @@
-{% extends "layout.html" %}
+{% extends "admin-layout.html" %}
 {% block title %} | Registrars{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
-<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
 {% endblock %}
 
 {% block content %}
 
-<div class="row">
-  <div class="span2">
-	{% include "manage-navbar.html" %}
-  </div> <!--span-->
-	<div class="span9 offset1">
+
 		<h3>Existing registrars</h3>
 		
 		<table class="table">
@@ -19,6 +14,7 @@
       <tr>
         <th><input type="checkbox"></th>
         <th>Name</th>
+        <th>Admin</th>
       </tr>
     </thead>
     <tbody>
@@ -26,6 +22,7 @@
         <tr>
           <td><input type="checkbox"></td>
           <td>{{ registrar.name }}</td>
+          <td><a href="{% url user_management_manage_single_registrar registrar.id %}">edit</a></td>
       {% empty %}
         <tr>No registrars found.</tr>
       {% endfor %}
@@ -48,10 +45,8 @@
         {{ form.name.errors }}
         <label for="id_a-name">Name</label>
         {{ form.name }}
-      <button type="submit" class="btn btn-primary">Create new registrar</button>
+      <button type="submit" class="btn">Create new registrar</button>
     </form>
-	</div> <!--span-->
-</div> <!--row-->
 
 {% endblock %}
 

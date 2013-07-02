@@ -1,19 +1,14 @@
-{% extends "layout.html" %}
+{% extends "admin-layout.html" %}
 {% block title %} | Journal members{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
-<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
 {% endblock %}
 
 {% block content %}
 
-<div class="row">
-	<div class="span2">
-    {% include "manage-navbar.html" %}
-  </div> <!--span-->
-	<div class="span9 offset1">
-		<h3>Existing journal members</h3>
-		
+
+	<h3>Existing journal members</h3>
+
 	<table class="table">
     <thead>
       <tr>
@@ -21,6 +16,8 @@
         <th>Name</th>
         <th>Email</th>
         <th>Username</th>
+        {% if user.groups.all.0.name == 'registry_member' %}<th>Registrar</th>{% endif %}
+        <th>Admin</th>
       </tr>
     </thead>
     <tbody>
@@ -30,6 +27,8 @@
           <td>{{ member.first_name }} {{ member.last_name }}</td>
           <td>{{ member.email }}</td>
           <td>{{ member.username }}</td>
+		  {% if user.groups.all.0.name == 'registry_member' %}<td>{{member.userprofile.registrar.name}}</td>{% endif %}
+          <td><a href="{% url user_management_manage_single_journal_member member.id%}">edit/delete</a></td>
       {% empty %}
         <tr>No journal members found.</tr>
       {% endfor %}
@@ -50,10 +49,9 @@
           {% endif %}
         {% endfor %}  
       </fieldset>
-      <button type="submit" class="btn btn-primary">Add journal member</button>
+      <button type="submit" class="btn">Add journal member</button>
     </form>
-	</div> <!--span-->
-</div> <!--row-->
+
 
 {% endblock %}
 

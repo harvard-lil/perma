@@ -2,32 +2,30 @@
 {% block title %} | {{linky.submitted_title}}{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
-<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
 {% endblock %}
 
 {% block content %}
-<div class="row">
-  <div class="offset2 span8 center">
-	  <h4 class="indexed">{{linky.submitted_title}}<br><small>indexed on {{linky.creation_timestamp}}{% if linky.vested %} | vested on {{linky.vested_timestamp}}{% endif %}</small></h4>
-	  <p><a href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p> 
-	</div>
-	<div class="span1 offset1">
-    {% if not linky.vested and user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'journal_member' %}
-    <form action="" method="post">
-      {% csrf_token %}
-      <input type="submit" value="vest" name="vet" class="btn btn-primary">
-    </form>
-    {% endif %}
-  </div>
-</div>
 
-<div class="row">
-	<div class="offset3 span6">
+<div class="row-fluid">
+	<div class="span2">
+		<h4 class="indexed">{{linky.submitted_title}}<br><small>indexed on {{linky.creation_timestamp}}{% if linky.vested %} | vested on {{linky.vested_timestamp}}{% endif %}</small></h4>
+	  
+	</div>
+	<div class="span8">
   		<div class="watermark center">
 			{% if not linky.vested %}<img class="watermark-image" src="{{ STATIC_PREFIX }}img/watermark.png"/>{% endif %}
 			<a href="{{linky.submitted_url}}"><img class="linky-image" src="{{ STATIC_PREFIX }}generated/{{linky.id}}/cap.png"></a>
 		</div>
+		<p><a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p> 
    	</div>
+   	<!--{% include "login-form.html" %}-->
+   	<div class="span2 center">
+    {% if not linky.vested and user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'journal_member' %}
+    	<form action="" method="post">
+      	{% csrf_token %}
+      	<input type="submit" value="vest" name="vet" class="btn">
+    	</form>
+    	{% endif %}
 </div><!--row-->
 
 <!-- Modal -->

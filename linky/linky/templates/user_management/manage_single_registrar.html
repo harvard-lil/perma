@@ -1,0 +1,30 @@
+{% extends "admin-layout.html" %}
+{% block title %} | Edit registrar{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+{% endblock %}
+
+{% block content %}
+
+		<h3>Edit registrar</h3>
+
+    <form class="embedded-form" method="post">
+      {% csrf_token %}
+		  <fieldset>
+        {% for field in form %}
+          <label for="id_{{ field.name }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+          {%elif field.help_text %}
+            <span class="help-inline">{{ field.help_text }}</span>
+          {% endif %}
+        {% endfor %}  
+      </fieldset>
+      <button type="submit" class="btn">Save registrar</button>
+    </form>
+
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}

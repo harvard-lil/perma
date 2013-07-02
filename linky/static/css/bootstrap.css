@@ -1995,14 +1995,14 @@ legend + .control-group {
 }
 
 table {
-  max-width: 100%;
+  max-width: 40%;
   background-color: transparent;
   border-collapse: collapse;
   border-spacing: 0;
 }
 
 .table {
-  width: 100%;
+  width: 40%;
   margin-bottom: 20px;
 }
 

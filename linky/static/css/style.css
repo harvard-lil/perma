@@ -4,6 +4,30 @@ body, .modal {
 	border-radius:3px;
 }
 
+body {
+	margin: 0 0 100px;
+}
+
+html {
+	position:relative;
+	min-height:100%;
+}
+
+footer {
+	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+	-moz-box-sizing: border-box;    /* Firefox, other Gecko */
+	box-sizing: border-box;
+	background:rgba(255,255,255,.4);
+	height:100px;
+	border-top-left-radius:3px;
+	border-top-right-radius:3px;
+	padding:10px 20px;
+	position:absolute;
+	left:0;
+	bottom: 0;
+	width:100%;
+}
+
 /*/ 
 Background by Benjamin Ward.
 This pattern is downloaded from www.subtlepatterns.com 
@@ -25,14 +49,16 @@ If you need more, that's where to get'em.
     opacity: .6;
 }
 
-#linky-preview img {
+#linky-preview img, .loading-background {
   max-width:500px;
+  background:#fff;
 }
 
 #linky-preview {
   max-height:400px;
   width:515px;
   border:1px solid #ddd;
+  background:#fff;
   overflow:auto;
 }
 
@@ -126,6 +152,12 @@ header {
 	margin-left:88px;
 }
 
+.logo-big-img-preview {
+	width:37px;
+	margin-top:-123px;
+	margin-left:-110px;
+}
+
 .jumbo {
 	color:#09f;
 	padding-bottom:20px;
@@ -145,12 +177,19 @@ h3 {
 }
 img.linky-image, img.linky-image-preview {
 	border:1px solid #ccc;
-	margin-bottom:40px;
+	margin-top:-40px;
+	margin-bottom:25px;
 	border-radius:3px;
 	-moz-box-shadow: 0 0 2px 2px #eee;
 	-webkit-box-shadow: 0 0 2px 2px#eee;
 	box-shadow: 0 0 2px 2px #eee;
 	background:#fff;
+}
+
+img.linky-image {
+	
+	margin-top:0px;
+
 }
 
 img.linky-image-preview {
@@ -195,15 +234,19 @@ a.grey {
 }
 
 .recent-linky-summary {
-    margin-left: 27px;
+    margin-left: 24px;
+    margin-top:-9px;
 }
 
+.copy-confirm {
+  margin-top:5px;
+  color:#006dcc;
+}
 
 h2, h3 {
 	font-weight:normal;
-	color: #4694a9;
-	text-shadow: 0px 1px 0px #1e4049, 
-				 0px -1px 0px #fff; 
+	color: #000;
+	text-shadow:  0px -1px 0px #fff; 
 }
 
 h3 {
@@ -221,25 +264,16 @@ h1.big-logo {
 
 .span4 img {
 	width:50%;
+	opacity:.9;
 }
 
 ul#linky-ul li {
-	margin-left:24px;
+	margin-left:5px;
+	margin-right:5px;
 }
 
-img.favicon-preview {
-	margin-left:-20px;
-}
-
-footer {
-	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
-	-moz-box-sizing: border-box;    /* Firefox, other Gecko */
-	box-sizing: border-box;
-	background:rgba(255,255,255,.5);
-	height:100px;
-	border-top-left-radius:3px;
-	border-top-right-radius:3px;
-	padding:10px 20px;
+.embedded-form {
+  margin-top:65px;
 }
 
 .embedded-form fieldset {
@@ -258,7 +292,6 @@ footer {
 
 .copy-button-div {
 	float:right;
-	margin-top:-30px;
 }
 #wrap {
 	min-height: 100%;
@@ -273,9 +306,133 @@ footer {
 .none {
 	list-style-type: none;
 }
+
 .thin {
-	text-align:center;
 	margin-top:10px;
 	margin-bottom:-20px;
-	float:right;
+}
+
+.dropdown-form {
+  margin:10px 10px 20px 10px;
+}
+
+h3 small, small {
+	text-shadow:none;
+	font-size:17px;
+}
+
+.white-box {
+	background:rgba(255,255,255,.5);
+	border-radius:3px;
+   -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+   -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+	box-sizing: border-box;
+	padding: 5px 10px 20px;
+	margin-bottom:20px;
+}
+
+input[type="text"] {
+	background:rgba(255,255,255,.6);
+}
+
+table { 
+  border-collapse: collapse; 
+  	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+	-moz-box-sizing: border-box;    /* Firefox, other Gecko */
+	box-sizing: border-box;
+	max-width: inherit; 
+  border-collapse: collapse; 
+
+}
+
+/* Zebra striping */
+tr:nth-of-type(odd) { 
+
+}
+thead {
+	background:none;
+}
+th { 
+
+}
+td, th { 
+  border: 0px solid #ccc; 
+  text-align: left; 
+  padding:0 6px;
+}
+
+p a.submitted_url {
+	margin-top:-10px;	
+}
+
+.btn-primary {
+	color:#fff;
+}
+
+.btn-primary:hover{
+	color:#fcf04d;
+}
+
+
+td.linky-abbr-title, td.linky-abbr-original-link, td.linky-abbr-linky-link a, .linky-abbr-linky-link, td.linky-abbr-date-time {
+	text-wrap:unrestricted;
+	word-break:break-all;
+	word-wrap: break-word;      /* IE 5.5-7 */
+  	white-space: pre-wrap; /* css-3 */
+	white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+	white-space: -pre-wrap; /* Opera 4-6 */
+	white-space: -o-pre-wrap; /* Opera 7 */
+	word-wrap: break-word; /* Internet Explorer 5.5+ */
+}
+
+td.linky-abbr-title {
+	min-width:110px;
+}
+
+td.linky-abbr-original-link {
+	min-width:auto;
+	width:130px;
+}
+
+.linky-abbr-linky-link a, .linky-abbr-linky-link {
+	min-width:auto;
+	width:200px;
+}
+
+td.linky-abbr-date-time {
+	min-width:auto;
+	width:80px;
+}
+
+.nav {
+	position:relative;
+	z-index:9999;
+}
+
+.carat {
+	margin-top:4px;
+}	
+
+.dropdown {
+	font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+}
+
+.alpha {
+border-radius: 50%;
+	width: 110px;
+	height: 110px; 
+	   line-height: 100px;
+    text-align: center;
+	background:yellow;
+	transform:rotate(-12deg);
+-ms-transform:rotate(-12deg); /* IE 9 */
+-webkit-transform:rotate(-12deg); /* Safari and Chrome */
+	margin-bottom:-100px;
+	opacity:.6;
+}
+
+.alpha h4 {
+	padding-top:25px;
+	font-size:16px;
+	color:#09f;
 }
