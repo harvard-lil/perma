@@ -85,25 +85,33 @@ def __get_favicon(target_url, parsed_html, link_hash_id, disk_path, url_details)
     # We already have the parsed HTML, let's see if there is a favicon in the META elements
     favicons = parsed_html.xpath('//link[@rel="icon"]/@href')
     
-    favicon = None
+    favicon = False
+    
     if len(favicons) > 0:
         favicon = favicons[0]
-    elif not favicon:
+        
+    if not favicon:
         favicons = parsed_html.xpath('//link[@rel="shortcut"]/@href')
         if len(favicons) > 0:
             favicon = favicons[0]
-    elif not favicon:
+
+    if not favicon:
         favicons = parsed_html.xpath('//link[@rel="shortcut icon"]/@href')
         if len(favicons) > 0:
             favicon = favicons[0]
 
     if favicon:
-        
-        if not re.match(r'^http', favicon):
+            
+        if re.match(r'^//', favicon):
+            favicon = url_details.scheme + ':' + favicon
+        elif not re.match(r'^http', favicon):
             favicon = url_details.scheme + '://' + url_details.netloc + favicon
+        
+
         
         f = urllib2.urlopen(favicon)
         data = f.read()
+        
         
         filepath_pieces = os.path.splitext(favicon)
         file_ext = filepath_pieces[1]
