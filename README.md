@@ -41,6 +41,10 @@ You should have the pieces in place. Let's create the tables in your database:
 
     $ python manage.py syncdb
 
+If you want to play with the admin views, load the user, group, and registrar data fixture:
+
+    $ python manage.py loaddata test/fixtures/usersandgroups.json 
+
 Toss in a wsgi config and wire it to your webserver, or use the built in Django webserver and you should be ready to roll:
 
     $ python manage.py runserver
