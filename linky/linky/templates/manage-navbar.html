@@ -1,21 +1,21 @@
 <ul class="nav nav-list manage-nav">
   {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'journal_member' %}
-  <li><a href="{% url user_management_manage_links %}">Vested links</a></li>
+  {% block manage-nav-links %}<li><a href="{% url user_management_manage_links %}">Vested links</a></li>{% endblock %}
   {% endif %}
   {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' %}
 	<li><h3><small>Manage users</small><h3></li>
 	{% endif %}
   {% if user.groups.all.0.name == 'registry_member' %}
-  <li><a href="{% url user_management_manage_registrar %}">Registrars</a></li>
-  <li><a href="{% url user_management_manage_registrar_member %}">Registrar users</a></li>
+  {% block manage-nav-registrar %}<li><a href="{% url user_management_manage_registrar %}">Registrars</a></li>{% endblock %}
+  {% block manage-nav-registry %}<li><a href="{% url user_management_manage_registrar_member %}">Registrar users</a></li>{% endblock %}
   {% endif %}
   
   {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' %}
-  <li><a href="{% url user_management_manage_journal_member %}">Journal users</a></li>
+  {% block manage-nav-journal %}<li><a href="{% url user_management_manage_journal_member %}">Journal users</a></li>{% endblock %}
   {% endif %}
       
   {% if user.groups.all.0.name == 'journal_member' %}
-  <li><a href="{% url user_management_sponsoring_library %}">Sponsoring library</a></li>
+  {% block manage-nav-sponsor %}<li><a href="{% url user_management_sponsoring_library %}">Sponsoring library</a></li>{% endblock %}
   {% endif %}
       
   <!--{% if user.groups.all.0.name == 'journal_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' %}
@@ -28,6 +28,6 @@
       
   {% if user.is_authenticated %}
   <li class="divider"></li>
-  <li><a href="{% url user_management_manage_account %}">Account settings</a></li>
+  {% block manage-nav-settings %}<li><a href="{% url user_management_manage_account %}">Account settings</a></li>{% endblock %}
   {% endif %}
 </ul>
