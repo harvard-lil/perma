@@ -311,6 +311,11 @@ fieldset {
 	list-style-type: none;
 }
 
+.greeting {
+  margin-right: 5px;
+  vertical-align:middle;
+}
+
 .thin {
 	margin-top:10px;
 	margin-bottom:-20px;
