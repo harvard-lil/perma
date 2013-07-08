@@ -7,9 +7,8 @@
 {% block content %}
 
 <h3>Edit registrar member</h3>
-<form class="embedded-form" method="post">
+<form method="post">
 	{% csrf_token %}
-	<h4>Edit registrar member</h4>
 	<fieldset>
 		{% for field in form %}
 		<label for="id_{{ field.name }}">{{ field.label }}</label>
@@ -31,10 +30,10 @@
 		{% endif %}
 		{% endfor %}
 	</fieldset>
-	<button type="submit" class="btn">Save journal member</button>
+	<button type="submit" class="btn">Save changes</button>
 </form>
 
-<a href="{% url user_management_manage_single_registrar_member_delete target_registrar_member.id %}">Delete user, {{target_registrar_member.username}}</a>
+<a href="{% url user_management_manage_single_registrar_member_delete target_registrar_member.id %}"><span class="text-error"><i class="icon-trash"></i> Delete this user</span> <!--{{target_registrar_member.username}}--></a>
 
 {% endblock %}
 

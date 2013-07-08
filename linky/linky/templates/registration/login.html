@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "admin-layout.html" %}
 
 {% block content %}
 
@@ -11,7 +11,17 @@
 				<form method="post" action="">
 			{% endif %}
 				{% csrf_token %}
-				{{ form.as_p }}
+				 <fieldset>
+        {% for field in form %}
+          <label for="id_{{ field.name }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+          {%elif field.help_text %}
+            <span class="help-inline">{{ field.help_text }}</span>
+          {% endif %}
+        {% endfor %}  
+      </fieldset>
 				<button type="submit" class="btn">Login</button>
 			</form>
 			<br />

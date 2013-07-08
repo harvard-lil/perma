@@ -281,6 +281,10 @@ ul#linky-ul li {
   margin-bottom:15px;
 }
 
+fieldset {
+  margin-bottom:15px;
+}
+
 .btn {
 	color:#09f;
 	font-weight:bold;

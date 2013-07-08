@@ -8,7 +8,7 @@
 
 		<h3>Edit registrar</h3>
 
-    <form class="embedded-form" method="post">
+    <form method="post">
       {% csrf_token %}
 		  <fieldset>
         {% for field in form %}
@@ -21,7 +21,7 @@
           {% endif %}
         {% endfor %}  
       </fieldset>
-      <button type="submit" class="btn">Save registrar</button>
+      <button type="submit" class="btn">Save changes</button>
     </form>
 
 {% endblock %}
