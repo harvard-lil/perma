@@ -20,12 +20,14 @@
    	</div>
    	<!--{% include "login-form.html" %}-->
    	<div class="span2 center">
-    {% if not linky.vested and user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'journal_member' %}
-    	<form action="" method="post">
-      	{% csrf_token %}
-      	<input type="submit" value="vest" name="vet" class="btn">
-    	</form>
+    {% if not linky.vested %}
+      {% if user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'journal_member' %}
+        <form action="" method="post">
+          {% csrf_token %}
+          <input type="submit" value="vest" name="vet" class="btn">
+        </form>
     	{% endif %}
+    {% endif %}
 </div><!--row-->
 
 <!-- Modal -->
