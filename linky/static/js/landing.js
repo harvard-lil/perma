@@ -35,7 +35,9 @@ $(document).ready(function() {
 });
 
 function linkIt(){
-  $('#linky-preview img').attr('src', web_base + '/static/img/infinity_500_400.gif');
+  var source = $("#loading-template").html();
+    var template = Handlebars.compile(source);
+    $('.modal-body').html(template({'src': web_base + '/static/img/infinity_500_400.gif'}));
 
   rawUrl = $("#rawUrl").val();
   var request = $.ajax({
@@ -67,7 +69,10 @@ function linkIt(){
     $('#linky-preview img').attr('src', data.linky_url);
   });
   request.fail(function(jqXHR, responseText) {
-    //console.log( jqXHR );
+    var source = $("#error-template").html();
+    var template = Handlebars.compile(source);
+    $('.modal-body').html(template({url: rawUrl}));
+    $('#linky-desc').removeClass('unavailable');
   });
   
   $('#linky-confirm').modal('show');

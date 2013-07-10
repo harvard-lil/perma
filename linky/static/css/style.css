@@ -49,6 +49,10 @@ If you need more, that's where to get'em.
     opacity: .6;
 }
 
+#linky-error h4, #linky-error button {
+  margin:25px 0;
+}
+
 #linky-preview img, .loading-background {
   max-width:500px;
   background:#fff;
