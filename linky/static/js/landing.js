@@ -5,6 +5,8 @@ var allLinkies = new Array();
 
 $(document).ready(function() {
   $('#linky-confirm').modal({show: false});
+  $('#linky-upload-confirm').modal({show: false});
+  $('#linky-upload').modal({show: false});
   $('#rawUrl').focus();
   
   $('#linker').submit(function() {
@@ -31,8 +33,18 @@ $(document).ready(function() {
       $(this).next('.copy-confirm').html('copied').fadeIn(100).fadeOut(3000);
 
   } );
-  
-});
+
+  $('#linky_upload_form').submit(function(){
+	  //$('#linky-upload').modal({show: false});
+	  $('#linky-upload') .modal('hide')
+	  $('#linky-upload-confirm').modal({show: true});
+	  $(this).ajaxSubmit(function(data){
+		  var linkyUrl = web_base  + '/' + data.linky_hash;
+		  $('#linky_upload_generation_message').html('Your linky has been created at ' + linkyUrl);
+	      });
+	  return false;
+      });
+    });
 
 function linkIt(){
   var source = $("#loading-template").html();
@@ -153,3 +165,8 @@ Handlebars.registerHelper ('http_it', function (str) {
         return str;
     });
 
+var upload_form = function(){
+    $('#linky-confirm').modal('hide');
+    $('#linky-upload').modal('show');
+    return false;  
+};

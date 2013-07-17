@@ -2,18 +2,23 @@ import logging, json, subprocess, urllib2, re, os
 from urlparse import urlparse
 
 import lxml.html
+import PythonMagick
+from PIL import Image
+from pyPdf import PdfFileReader
 
 from linky.models import Link
 from linky.utils import base
 from django.shortcuts import render_to_response, HttpResponse
+from django.http import HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
+from django import forms
 
 logger = logging.getLogger(__name__)
 
 try:
     from linky.local_settings import *
 except ImportError, e:
-    logger.error('Unable to load local_settings.py:', e)
+    logger.error('Unable to load local_settings.py: %s', e)
 
 # TODO: If we're going to csrf exempt this, we should keep an eye on things
 @csrf_exempt
@@ -76,7 +81,7 @@ def linky_post(request):
       json.dump(manifest, outfile)
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
-    
+
     
 def __get_favicon(target_url, parsed_html, link_hash_id, disk_path, url_details):
     """ Given a URL and the markup, see if we can find a favicon.
@@ -138,3 +143,73 @@ def __get_favicon(target_url, parsed_html, link_hash_id, disk_path, url_details)
         
         
     return False
+
+class UploadFileForm(forms.Form):
+    title = forms.CharField(max_length=50, required=True)
+    url = forms.URLField(required=True)
+    file  = forms.FileField(required=True)
+    favicon  = forms.FileField(required=False)
+
+def validate_favicon(upload):
+    # TODO: Figure out how to actually validate a favicon.
+    if upload.name == 'favicon.ico':
+        return True
+    return False
+
+def validate_upload_file(upload):
+    # Make sure files are not corrupted.
+    extention = upload.name[-4:]
+    if extention in ['.jpg', 'jpeg']:
+        try:
+            i = Image.open(upload)
+            if i.format == 'JPEG':
+                return True
+        except IOError:
+            return False
+    elif extention == '.png':
+        try:
+            i = Image.open(upload)
+            if i.format =='PNG':
+                return True
+        except IOError:
+            return False
+    elif extention == '.pdf':
+        doc = PdfFileReader(upload)
+        if all([doc.documentInfo, doc.numPages]):
+            return True
+    return False
+
+@csrf_exempt
+def upload_file(request):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid(): 
+            if validate_upload_file(request.FILES['file']):
+                link = Link(submitted_url=form.cleaned_data['url'], submitted_title=form.cleaned_data['title'])
+                link.save()    
+                linky_home_disk_path = INTERNAL['APP_FILEPATH'] + '/static/generated/' + str(link.id) + '/'
+                print '7'
+                if not os.path.exists(linky_home_disk_path):
+                    os.makedirs(linky_home_disk_path)
+        
+                linky_hash = base.convert(link.id, base.BASE10, base.BASE58)
+                file_name = 'cap.' + request.FILES['file'].name.split('.')[-1]
+                request.FILES['file'].file.seek(0)
+                f = open(linky_home_disk_path + file_name, 'w')
+                f.write(request.FILES['file'].file.read())
+                os.fsync(f)
+                f.close()
+                if request.FILES['file'].name.split('.')[-1] == 'pdf':
+                    pass
+                    #print linky_home_disk_path + file_name
+                    #png = PythonMagick.Image(linky_home_disk_path + file_name)
+                    #png.write("file_out.png")
+                    #params = ['convert', linky_home_disk_path + file_name, 'out.png']
+                    #subprocess.check_call(params)
+
+                return HttpResponse(json.dumps({'status':'success', 'linky_id':link.id, 'linky_hash':linky_hash}), 'application/json')
+            else:
+                return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Invalid file.'}), 'application/json')
+        else:
+            return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Missing file.'}), 'application/json')
+    return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':form.errors}), 'application/json')
