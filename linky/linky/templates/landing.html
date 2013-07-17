@@ -60,7 +60,45 @@
         </div>
       </div>
       <div class="modal-footer pull-left">
-        <!--<p>Linky capture not right? Upload your own.</p>-->
+        <p>Linky capture not right? <a href="" onclick="return upload_form();">Upload your own</a>.</p>
+      </div>
+    </div>
+    <div id="linky-upload" class="modal hide fade center">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h1 class="logo-big">Linky Upload</h1>
+	<img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png"/>
+      </div>
+    
+      <div class="modal-body">
+        <div id="linky-desc" class="center" style="float:none;margin:auto;">
+          <h4 id="linky_generation_message">png or pdf</h4>
+          <p id="linkyUpload"><a href="" target="_blank"></a><br ><small id="linky_title"></small></p>
+	  <form class="form-inline" id="linky_upload_form" action="/api/linky/upload" method="post">
+            <h4>Choose a file:</h4>
+            <p><input id="title" name="title" class="input-xlarge" type="text" placeholder="Example Page Title"></p>
+            <p><input id="url" name="url"class="input-xlarge" type="text" placeholder="www.example.com"></p>
+            <p><input id="file" name="file"class="input-xlarge" type="file" placeholder="example.png"></p>
+            <button type="submit" id="uploadLinky" class="btn btn-primary btn-large btn-block">Upload this Linky</button>
+	  </form>
+        </div>
+      </div>
+      <div class="modal-footer pull-left">
+      </div>
+    </div>
+    <div id="linky-upload-confirm" class="modal hide fade center">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h1 class="logo-big">Linky Upload</h1>
+	<img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png"/>
+      </div>
+    
+      <div class="modal-body">
+        <div id="linky-desc" class="center" style="float:none;margin:auto;">
+          <h4 id="linky_upload_generation_message">Uploading your file...</h4>
+        </div>
+      </div>
+      <div class="modal-footer pull-left">
       </div>
     </div>
   </div> <!--span-->
@@ -74,6 +112,7 @@
 </script>
 <script src="{{ STATIC_PREFIX }}js/ZeroClipboard/ZeroClipboard.min.js"></script>
 <script src="{{ STATIC_PREFIX }}js/handlebars.js"></script>
+<script src="http://malsup.github.com/jquery.form.js"></script>
 <script src="{{ STATIC_PREFIX }}js/landing.js"></script>
 {% endblock %}
 {% block templates %}

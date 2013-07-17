@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% load file_exists %}
 {% block title %} | {{linky.submitted_title}}{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
@@ -14,7 +15,7 @@
 	<div class="span8">
   		<div class="watermark center">
 			{% if not linky.vested %}<img class="watermark-image" src="{{ STATIC_PREFIX }}img/watermark.png"/>{% endif %}
-			<a href="{{linky.submitted_url}}"><img class="linky-image" src="{{ STATIC_PREFIX }}generated/{{linky.id}}/cap.png"></a>
+			{% file_exists STATIC_PREFIX linky.id linky.submitted_url %}
 		</div>
 		<p><a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p> 
    	</div>

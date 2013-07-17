@@ -2,7 +2,7 @@ import logging, json, subprocess, urllib2, re, os
 from urlparse import urlparse
 
 import lxml.html
-
+import PythonMagick
 from PIL import Image
 from pyPdf import PdfFileReader
 
@@ -154,15 +154,15 @@ def validate_upload_file(upload):
     if extention in ['.jpg', 'jpeg']:
         try:
             i = Image.open(upload)
-            if i.format !='JPEG':
-                return False
+            if i.format == 'JPEG':
+                return True
         except IOError:
             return False
     elif extention == '.png':
         try:
             i = Image.open(upload)
-            if i.format !='PNG':
-                return False
+            if i.format =='PNG':
+                return True
         except IOError:
             return False
     elif extention == '.pdf':
@@ -175,21 +175,33 @@ def validate_upload_file(upload):
 def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
-        if form.is_valid():
+        if form.is_valid(): 
             if validate_upload_file(request.FILES['file']):
                 link = Link(submitted_url=form.cleaned_data['url'], submitted_title=form.cleaned_data['title'])
                 link.save()    
-
                 linky_home_disk_path = INTERNAL['APP_FILEPATH'] + '/static/generated/' + str(link.id) + '/'
+                print '7'
                 if not os.path.exists(linky_home_disk_path):
                     os.makedirs(linky_home_disk_path)
         
                 linky_hash = base.convert(link.id, base.BASE10, base.BASE58)
                 file_name = 'cap.' + request.FILES['file'].name.split('.')[-1]
+                request.FILES['file'].file.seek(0)
                 f = open(linky_home_disk_path + file_name, 'w')
                 f.write(request.FILES['file'].file.read())
+                os.fsync(f)
+                f.close()
+                if request.FILES['file'].name.split('.')[-1] == 'pdf':
+                    pass
+                    #print linky_home_disk_path + file_name
+                    #png = PythonMagick.Image(linky_home_disk_path + file_name)
+                    #png.write("file_out.png")
+                    #params = ['convert', linky_home_disk_path + file_name, 'out.png']
+                    #subprocess.check_call(params)
 
-                return HttpResponse(json.dumps({'status':'success'}), 'application/json')
-    else:
-        return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Missing file.'}), 'application/json')
+                return HttpResponse(json.dumps({'status':'success', 'linky_id':link.id, 'linky_hash':linky_hash}), 'application/json')
+            else:
+                return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Invalid file.'}), 'application/json')
+        else:
+            return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Missing file.'}), 'application/json')
     return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':form.errors}), 'application/json')
