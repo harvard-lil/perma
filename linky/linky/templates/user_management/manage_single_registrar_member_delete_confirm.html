@@ -7,13 +7,13 @@
 {% block content %}
 
 	<h3>Delete {{ target_member.username }}</h3>
-	
+	<br/>
+	<br/>
 	<p>Yahowza! Do you really want to delete {{ target_member.username }} forever?</p>
-	
+	<br/>
 	<form action="{% url user_management_manage_single_registrar_member_delete target_member.id %}" method="POST">
 	      {% csrf_token %}
-	
-        <button type="submit">Delete {{ target_member.username }} forever</button>
+        <button type="submit" class="btn">Delete {{ target_member.username }} forever</button>
     </form>
 
 {% endblock %}

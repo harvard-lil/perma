@@ -47,7 +47,9 @@ $(document).ready(function() {
     });
 
 function linkIt(){
-  $('#linky-preview img').attr('src', web_base + '/static/img/infinity_500_400.gif');
+  var source = $("#loading-template").html();
+    var template = Handlebars.compile(source);
+    $('.modal-body').html(template({'src': web_base + '/static/img/infinity_500_400.gif'}));
 
   rawUrl = $("#rawUrl").val();
   var request = $.ajax({
@@ -79,19 +81,21 @@ function linkIt(){
     $('#linky-preview img').attr('src', data.linky_url);
   });
   request.fail(function(jqXHR, responseText) {
-    //console.log( jqXHR );
+    var source = $("#error-template").html();
+    var template = Handlebars.compile(source);
+    $('.modal-body').html(template({url: rawUrl}));
+    $('#linky-desc').removeClass('unavailable');
   });
   
   $('#linky-confirm').modal('show');
   $('#saveLinky').on('click', function(event){
             
-    // email broken right now, commenting out
-    /*var request = $.ajax({
+    var request = $.ajax({
       url: web_base + "/service/email-confirm/",
       type: "POST",
       data: {email_address: $('#email_request').val(), linky_link: $('#linkyUrl a').attr('href')},
       dataType: "json"
-    });*/
+    });
       
     event.preventDefault();
     $('#linky-confirm').modal('hide');

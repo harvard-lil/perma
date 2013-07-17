@@ -18,7 +18,7 @@ The required modules are found in requirements.txt. Install them using pip:
 You'll need a Django friendly database. If you want to use MySQL, something like the following can be used to create a new user and a new database:
 
 	mysql -u root -psomepasshere
-	mysql> create database linky; grant all on linky.* to linky@'%' identified by 'linky';
+	mysql> create database linky character set utf8; grant all on linky.* to linky@'%' identified by 'linky';
 	mysql -u linky -plinky linky
 
 ### Settings
@@ -40,6 +40,10 @@ We use PhantomJS to generate our images. Download [PhantomJS](http://phantomjs.o
 You should have the pieces in place. Let's create the tables in your database:
 
     $ python manage.py syncdb
+
+If you want to play with the admin views, load the user, group, and registrar data fixture:
+
+    $ python manage.py loaddata test/fixtures/usersandgroups.json 
 
 Toss in a wsgi config and wire it to your webserver, or use the built in Django webserver and you should be ready to roll:
 

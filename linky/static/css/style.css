@@ -49,6 +49,10 @@ If you need more, that's where to get'em.
     opacity: .6;
 }
 
+#linky-error h4, #linky-error button {
+  margin:25px 0;
+}
+
 #linky-preview img, .loading-background {
   max-width:500px;
   background:#fff;
@@ -281,6 +285,10 @@ ul#linky-ul li {
   margin-bottom:15px;
 }
 
+fieldset {
+  margin-bottom:15px;
+}
+
 .btn {
 	color:#09f;
 	font-weight:bold;
@@ -305,6 +313,11 @@ ul#linky-ul li {
 
 .none {
 	list-style-type: none;
+}
+
+.greeting {
+  margin-right: 5px;
+  vertical-align:middle;
 }
 
 .thin {
@@ -358,7 +371,7 @@ th {
 td, th { 
   border: 0px solid #ccc; 
   text-align: left; 
-  padding:0 6px;
+  padding:0px;
 }
 
 p a.submitted_url {
@@ -373,8 +386,15 @@ p a.submitted_url {
 	color:#fcf04d;
 }
 
+.vested-table {
+  margin-top:20px;
+}
 
-td.linky-abbr-title, td.linky-abbr-original-link, td.linky-abbr-linky-link a, .linky-abbr-linky-link, td.linky-abbr-date-time {
+.vested-table td {
+  padding-top:15px;
+}
+
+td.linky-abbr-title, td.linky-abbr-date-time {
 	text-wrap:unrestricted;
 	word-break:break-all;
 	word-wrap: break-word;      /* IE 5.5-7 */
@@ -386,22 +406,13 @@ td.linky-abbr-title, td.linky-abbr-original-link, td.linky-abbr-linky-link a, .l
 }
 
 td.linky-abbr-title {
-	min-width:110px;
-}
-
-td.linky-abbr-original-link {
-	min-width:auto;
-	width:130px;
-}
-
-.linky-abbr-linky-link a, .linky-abbr-linky-link {
-	min-width:auto;
-	width:200px;
+	min-width:510px;
 }
 
 td.linky-abbr-date-time {
 	min-width:auto;
 	width:80px;
+	vertical-align:top;
 }
 
 .nav {

@@ -1,4 +1,5 @@
 {% extends "admin-layout.html" %}
+{% block manage-nav-links %}<li class="active"><a href="{% url user_management_manage_links %}">Vested links</a></li>{% endblock %}
 {% block title %} | Vested Linky links{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
@@ -19,9 +20,9 @@
 		<tbody>
 		  {% for linky_link in linky_links %}
 			<tr>
-			  <td>{{ linky_link.submitted_title }}<br>{{ linky_link.submitted_url }}<br><a href="http://{{host}}/{{linky_link.id}}" target="_blank">{{host}}/{{linky_link.id}}</a></td>
-			  <td class="linky-abbr-date-time">{{ linky_link.creation_timestamp|date:"m/d/Y" }}<br>{{ linky_link.creation_timestamp|date:"h:i A" }}</td>
-			  <td class="linky-abbr-date-time">{{ linky_link.vested_timestamp|date:"m/d/Y" }}<br>{{ linky_link.vested_timestamp|date:"h:i A" }}</td>
+			  <td class="linky-abbr-title">{{ linky_link.submitted_title }}<br>{{ linky_link.submitted_url }}<br><a href="http://{{host}}/{{linky_link.id}}" target="_blank">{{host}}/{{linky_link.id}}</a></td>
+			  <td class="linky-abbr-date-time">{{ linky_link.creation_timestamp|date:"m/d/Y" }}</td>
+			  <td class="linky-abbr-date-time">{{ linky_link.vested_timestamp|date:"m/d/Y" }}</td>
 		  {% empty %}
 			<tr><td>No linky links found.</td></tr>
 		  {% endfor %}

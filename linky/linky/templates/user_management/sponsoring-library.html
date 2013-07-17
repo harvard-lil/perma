@@ -3,15 +3,14 @@
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 {% endblock %}
 
+{% block manage-nav-sponsor %}<li class="active"><a href="{% url user_management_sponsoring_library %}">Sponsoring library</a></li>{% endblock %}
+
 {% block content %}
 
-<div class="row-fluid">
-	<div class="span12 center">
-		<p>Your sponsoring library</p>
+		<h3>Your sponsoring library</h3>
 
 		<p>{{sponsoring_library_name}}</p>
-	</div> <!--span-->
-</div> <!--row-->
+
 
 {% endblock %}
 

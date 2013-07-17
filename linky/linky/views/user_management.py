@@ -344,7 +344,8 @@ def manage_links(request):
 def manage_account(request):
     """ Account mangement stuff. Change password, change email, ... """
 
-    context = {'user': request.user, }
+    context = {'host': request.get_host(), 'user': request.user, 'next': request.get_full_path()}
+    context.update(csrf(request))
 
     return render_to_response('user_management/manage-account.html', context)
 

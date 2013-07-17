@@ -6,11 +6,10 @@
 
 {% block content %}
 
-	<h3>Existing journal members</h3>
+	<h3>Edit journal member</h3>
 
-    <form class="embedded-form" method="post">
+    <form method="post">
       {% csrf_token %}
-		  <h4>Edit journal member</h4>
 		  <fieldset>
         {% for field in form %}
           <label for="id_{{ field.name }}">{{ field.label }}</label>
@@ -22,10 +21,10 @@
           {% endif %}
         {% endfor %}  
       </fieldset>
-      <button type="submit" class="btn">Save journal member</button>
+      <button type="submit" class="btn">Save changes</button>
     </form>
 
-	<a href="{% url user_management_manage_single_journal_member_delete target_member.id %}">Delete user, {{target_member.username}}</a>
+	<a href="{% url user_management_manage_single_journal_member_delete target_member.id %}"><span class="text-error"><i class="icon-trash"></i> Delete this user</span><!--{{target_member.username}}--></a>
 
 {% endblock %}
 

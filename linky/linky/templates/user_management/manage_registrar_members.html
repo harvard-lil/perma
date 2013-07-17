@@ -4,6 +4,8 @@
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 {% endblock %}
 
+{% block manage-nav-registry %}<li class="active"><a href="{% url user_management_manage_registrar_member %}">Registrar users</a></li>{% endblock %}
+
 {% block content %}
 
 		<h3>Existing registrar members</h3>
