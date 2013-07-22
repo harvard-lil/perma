@@ -47,10 +47,10 @@ class Link(models.Model):
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)
     creation_timestamp = models.DateTimeField(auto_now=True)
     submitted_title = models.CharField(max_length=2100, null=False, blank=False)
+    created_by = models.ForeignKey(User, null=True, blank=True, related_name='created_by',)
     vested = models.BooleanField(default=False)
-    vested_by_editor = models.ForeignKey(User, null=True, blank=True)
+    vested_by_editor = models.ForeignKey(User, null=True, blank=True, related_name='vested_by_editor')
     vested_timestamp = models.DateTimeField(null=True, blank=True)
-#    hash_id = models.CharField(max_length=100, unique=True) # Should we store this? For backup reasons?
 
     
     """def save(self, *args, **kwargs):
