@@ -2,7 +2,7 @@ import logging, json, subprocess, urllib2, re, os
 from urlparse import urlparse
 
 import lxml.html
-import PythonMagick
+#import PythonMagick
 from PIL import Image
 from pyPdf import PdfFileReader
 
@@ -44,8 +44,12 @@ def linky_post(request):
     if parsed_html:
         if parsed_html.find(".//title") is not None and parsed_html.find(".//title").text:
             target_title = parsed_html.find(".//title").text
-        
+    
     link = Link(submitted_url=target_url, submitted_title=target_title)
+    
+    if request.user.is_authenticated():
+        link.created_by = request.user
+
     link.save()
     
     # We've created a linky. Let's create its home on disk

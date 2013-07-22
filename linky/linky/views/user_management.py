@@ -323,6 +323,18 @@ def manage_single_journal_member_delete(request, user_id):
     return render_to_response('user_management/manage_single_journal_member_delete_confirm.html', context)
     
 
+@login_required
+def created_links(request):
+    """ Anyone with an account can view the linky links they've created """
+
+    linky_links = list(Link.objects.filter(created_by=request.user))
+
+    for linky_link in linky_links:
+        linky_link.id =  base.convert(linky_link.id, base.BASE10, base.BASE58)
+
+    context = {'user': request.user, 'linky_links': linky_links, 'host': request.get_host()}
+
+    return render_to_response('user_management/created-links.html', context)
 
 @login_required
 def manage_links(request):
