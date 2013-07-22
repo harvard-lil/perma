@@ -35,7 +35,6 @@ $(document).ready(function() {
   } );
 
   $('#linky_upload_form').submit(function(){
-	  //$('#linky-upload').modal({show: false});
 	  $('#linky-upload') .modal('hide')
 	  $('#linky-upload-confirm').modal({show: true});
 	  $(this).ajaxSubmit(function(data){
