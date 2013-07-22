@@ -45,6 +45,20 @@ If you need more, that's where to get'em.
   width:320px;
 }
 
+#upload-option {
+  margin: 10px 0 0 15px;
+  font-size:13px;
+  color: #777;
+}
+
+#uploadLinky {
+  margin-top:25px;
+}
+
+.modal-footer {
+  min-height:35px;
+}
+
 .unavailable {
     opacity: .6;
 }
@@ -198,6 +212,11 @@ img.linky-image {
 
 img.linky-image-preview {
 	width:300px;
+}
+
+#linky-pdf {
+  min-height: 450px;
+  display:block;
 }
 
 img.watermark-image {

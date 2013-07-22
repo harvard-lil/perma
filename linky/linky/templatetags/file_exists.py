@@ -18,7 +18,7 @@ class File_exists_node(template.Node):
         id = str(self.id.resolve(context))
         url = self.url.resolve(context)
         if os.path.exists(PROJECT_ROOT + self.pdf_path(id)):
-            return ''.join(['<a href="', self.pdf_path(id), '"> PDF </a>'])
+            return ''.join(['<a id="linky-pdf" href="', self.pdf_path(id), '">View this PDF</a>'])
         elif os.path.exists(PROJECT_ROOT + self.jpg_path(id)):
             return ''.join(['<a href="', url, 
                             '"><img class="linky-image" src="',

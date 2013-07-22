@@ -35,20 +35,37 @@ $(document).ready(function() {
   } );
 
   $('#linky_upload_form').submit(function(){
-	  $('#linky-upload') .modal('hide')
+	  $('#linky-upload').modal('hide');
 	  $('#linky-upload-confirm').modal({show: true});
 	  $(this).ajaxSubmit(function(data){
 		  var linkyUrl = web_base  + '/' + data.linky_hash;
-		  $('#linky_upload_generation_message').html('Your linky has been created at ' + linkyUrl);
-	      });
+		  $('#linky_upload_success').text('Your linky has been created at');
+		  $('#uploadedLinkyUrl a').attr('href', linkyUrl).text(linkyUrl);
+		  newLinky.url = linkyUrl;
+      newLinky.original = $('#url').val();
+      newLinky.title = $('#title').val();
+      newLinky.favicon_url = '';
+      if(JSON.parse(localStorage.getItem('linky-list'))){
+        allLinkies = JSON.parse(localStorage.getItem('linky-list'));
+        if(allLinkies.length >= 10) {
+          allLinkies.splice(0,1);
+        }
+      }
+      allLinkies.push(newLinky);
+      if(('localStorage' in window) && window['localStorage'] !== null){ 
+        localStorage.setItem( 'linky-list', JSON.stringify(allLinkies));
+      }
+      drawLinks();
+	  });
 	  return false;
-      });
     });
+  });
 
 function linkIt(){
   var source = $("#loading-template").html();
     var template = Handlebars.compile(source);
-    $('.modal-body').html(template({'src': web_base + '/static/img/infinity_500_400.gif'}));
+    $('#linky-confirm .modal-body').html(template({'src': web_base + '/static/img/infinity_500_400.gif'}));
+    $('#upload-option').hide();
 
   rawUrl = $("#rawUrl").val();
   var request = $.ajax({
@@ -60,6 +77,7 @@ function linkIt(){
   request.done(function(data) {
     $('#linky_generation_message').html('Your linky has been created at');
     $('#linky-desc').removeClass('unavailable');
+    $('#upload-option').fadeIn();
     linkyUrl = web_base  + '/' + data.linky_id;
     newLinky.url = linkyUrl;
     newLinky.original = rawUrl;
@@ -82,7 +100,7 @@ function linkIt(){
   request.fail(function(jqXHR, responseText) {
     var source = $("#error-template").html();
     var template = Handlebars.compile(source);
-    $('.modal-body').html(template({url: rawUrl}));
+    $('#linky-confirm .modal-body').html(template({url: rawUrl}));
     $('#linky-desc').removeClass('unavailable');
   });
   

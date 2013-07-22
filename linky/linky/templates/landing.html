@@ -40,6 +40,7 @@
 	</div>
 
   <div class="span12 center">
+    <!-- Linky creation modal -->
     <div id="linky-confirm" class="modal hide fade">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -60,47 +61,52 @@
         </div>
       </div>
       <div class="modal-footer pull-left">
-        <p>Linky capture not right? <a href="" onclick="return upload_form();">Upload your own</a>.</p>
+        <p id="upload-option">Linky capture not right? <a href="" onclick="return upload_form();">Upload your own</a>.</p>
       </div>
     </div>
+    
+    <!-- Upload file modal -->
     <div id="linky-upload" class="modal hide fade center">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h1 class="logo-big">Linky Upload</h1>
-	<img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png"/>
+	      <img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png"/>
       </div>
     
-      <div class="upload-modal-body">
-        <div id="linky-desc" class="center" style="float:none;margin:auto;">
-          <h4 id="linky_generation_message">png or pdf</h4>
-          <p id="linkyUpload"><a href="" target="_blank"></a><br ><small id="linky_title"></small></p>
-	  <form class="form-inline" id="linky_upload_form" action="/api/linky/upload" method="post">
-            <h4>Choose a file:</h4>
+      <div class="modal-body">
+        <div class="center">
+	        <form class="form-inline" id="linky_upload_form" action="/api/linky/upload" method="post">
+            <h4>Choose a file</h4>
+            <p><input id="file" name="file" class="input-xlarge" type="file" placeholder="example.png"></p>
             <p><input id="title" name="title" class="input-xlarge" type="text" placeholder="Example Page Title"></p>
-            <p><input id="url" name="url"class="input-xlarge" type="text" placeholder="www.example.com"></p>
-            <p><input id="file" name="file"class="input-xlarge" type="file" placeholder="example.png"></p>
-            <button type="submit" id="uploadLinky" class="btn btn-primary btn-large btn-block">Upload this Linky</button>
-	  </form>
+            <p><input id="url" name="url" class="input-xlarge" type="text" placeholder="www.example.com"></p>
+            <button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Upload this Linky</button>
+	        </form>
         </div>
       </div>
       <div class="modal-footer pull-left">
       </div>
     </div>
+    
+    <!-- Upload complete modal -->
     <div id="linky-upload-confirm" class="modal hide fade center">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h1 class="logo-big">Linky Upload</h1>
-	<img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png"/>
+	      <img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png"/>
       </div>
     
-      <div class="upload-modal-body">
-        <div id="linky-desc" class="center" style="float:none;margin:auto;">
-          <h4 id="linky_upload_generation_message">Uploading your file...</h4>
+      <div class="modal-body">
+        <div class="center">
+          <h4 id="linky_upload_success">Uploading your file...</h4>
+          <p id="uploadedLinkyUrl"><a href="" target="_blank"></a></p>
         </div>
       </div>
-      <div class="modal-footer pull-left">
+      <div class="modal-footer upload-footer">
+        <a href="#" class="btn" data-dismiss="modal" aria-hidden="true">Close</a>
       </div>
     </div>
+    
   </div> <!--span-->
 </div> <!--row-->
 
@@ -151,7 +157,7 @@
   <div class="center"><img class="loading-background" src="{{src}}"></div>
 </div>
 <div id="linky-desc" class="unavailable">
-  <h4 id="linky_upload_generation_message">Creating your Linky. Hold tight.</h4>
+  <h4 id="linky_generation_message">Creating your Linky. Hold tight.</h4>
   <p id="linkyUrl"><a href="" target="_blank"></a><br ><small id="linky_title"></small></p>
   <h4>Email this Linky</h4>
   <p><input id="email_request" class="input-xlarge" type="text" placeholder="user@example.com"></p>
