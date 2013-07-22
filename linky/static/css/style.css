@@ -424,6 +424,15 @@ td.linky-abbr-title, td.linky-abbr-date-time {
 	word-wrap: break-word; /* Internet Explorer 5.5+ */
 }
 
+td.linky-abbr-vested {
+  width:15px;
+  font-weight:bold;
+  font-size:22px;
+  padding-right:5px;
+  color:#09f;
+  vertical-align:top;
+}
+
 td.linky-abbr-title {
 	min-width:510px;
 }

@@ -337,7 +337,7 @@ def created_links(request):
     return render_to_response('user_management/created-links.html', context)
 
 @login_required
-def manage_links(request):
+def vested_links(request):
     """ Linky admins and registrar members and journal members can vest link links """
 
     if request.user.groups.all()[0].name not in ['journal_member', 'registrar_member', 'registry_member']:
@@ -350,7 +350,7 @@ def manage_links(request):
     
     context = {'user': request.user, 'linky_links': linky_links, 'host': request.get_host()}
 
-    return render_to_response('user_management/links.html', context)
+    return render_to_response('user_management/vested-links.html', context)
     
 @login_required
 def manage_account(request):
