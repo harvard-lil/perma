@@ -9,6 +9,8 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+PROJECT_ROOT = os.path.abspath(os.path.dirname(__name__))
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
