@@ -23,7 +23,9 @@ except ImportError, e:
 
 @login_required
 def landing(request):
-    """ The logged-in user's dashboard """
+    """ The logged-in user's dashboard. """
+    # TODO: do we need this? We were using this, but it's need has
+    # vanished since we moved the admin panel to the left column (on all admin pages)
     
     context = {'user': request.user}
 
@@ -216,7 +218,6 @@ def manage_journal_member(request):
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
         
-        
     # If registry member, return all active journal members. If registrar member, return just those journal members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
         journal_members = User.objects.filter(groups__name='journal_member', is_active=True)
@@ -360,7 +361,6 @@ def manage_account(request):
     context.update(csrf(request))
 
     return render_to_response('user_management/manage-account.html', context)
-
 
 @login_required
 def sponsoring_library(request):
