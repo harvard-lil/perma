@@ -33,13 +33,6 @@
     },
     {
         "pk": 1,
-        "model": "linky.registrar",
-        "fields": {
-            "name": "Test Library"
-        }
-    },
-    {
-        "pk": 1,
         "model": "auth.user",
         "fields": {
             "username": "test_registry_member",
@@ -48,7 +41,7 @@
             "is_active": true,
             "is_superuser": false,
             "is_staff": false,
-            "last_login": "2013-06-26T22:02:20Z",
+            "last_login": "2013-07-23T18:55:41Z",
             "groups": [
                 4
             ],
@@ -68,7 +61,7 @@
             "is_active": true,
             "is_superuser": false,
             "is_staff": false,
-            "last_login": "2013-06-26T22:03:21Z",
+            "last_login": "2013-07-23T18:56:14Z",
             "groups": [
                 3
             ],
@@ -88,7 +81,7 @@
             "is_active": true,
             "is_superuser": false,
             "is_staff": false,
-            "last_login": "2013-06-26T22:03:54Z",
+            "last_login": "2013-07-23T18:38:27Z",
             "groups": [
                 2
             ],
@@ -108,7 +101,7 @@
             "is_active": true,
             "is_superuser": false,
             "is_staff": false,
-            "last_login": "2013-06-26T22:03:54Z",
+            "last_login": "2013-07-23T18:55:25Z",
             "groups": [
                 1
             ],
