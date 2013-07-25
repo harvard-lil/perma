@@ -6,12 +6,13 @@
 	<h2>Login</h2>
 		
 			{% if next %}
-				<form method="post" action="?next={{ next }}">
+				<form method="post" action="{% url auth_login %}?next={{ next }}">
 			{% else %}
-				<form method="post" action="">
+				<form method="post" action="{% url auth_login %}">
 			{% endif %}
 				{% csrf_token %}
 				 <fieldset>
+				 <span class="text-error">{{ form.non_field_errors }}</span>
         {% for field in form %}
           <label for="id_{{ field.name }}">{{ field.label }}</label>
           {{ field }}

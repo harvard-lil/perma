@@ -308,6 +308,11 @@ fieldset {
   margin-bottom:15px;
 }
 
+.errorlist {
+  list-style-type:none;
+  margin:0 0 10px 0;
+}
+
 .btn {
 	color:#09f;
 	font-weight:bold;

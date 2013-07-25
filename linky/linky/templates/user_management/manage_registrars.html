@@ -41,6 +41,7 @@
 		</form>-->
 		
 		<form action="" method="post" class="embedded-form form-inline">
+		<span class="text-error">{{ form.non_field_errors }}</span>
 		  {% csrf_token %}
       {{ form.non_field_errors }}
       <h4>Add a new registrar</h4>

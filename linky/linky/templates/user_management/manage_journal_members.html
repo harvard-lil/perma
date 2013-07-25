@@ -41,6 +41,7 @@
       {% csrf_token %}
 		  <h4>Add a new journal member</h4>
 		  <fieldset>
+		  <span class="text-error">{{ form.non_field_errors }}</span>
         {% for field in form %}
           <label for="id_{{ field.name }}">{{ field.label }}</label>
           {{ field }}
