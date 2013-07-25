@@ -25,15 +25,6 @@ $(document).ready(function() {
   
   drawLinks();
 
-  var clip = new ZeroClipboard( document.getElementsByClassName("copy-button"), {
-    moviePath: web_base + "/static/js/ZeroClipboard/ZeroClipboard.swf"
-  } );
-
-  clip.on( 'complete', function(client, args) {
-      $(this).next('.copy-confirm').html('copied').fadeIn(100).fadeOut(3000);
-
-  } );
-
   $('#linky_upload_form').submit(function(){
 	  $('#linky-upload').modal('hide');
 	  $('#linky-upload-confirm').modal({show: true});
@@ -148,6 +139,14 @@ function drawLinks() {
       var source = $("#list-template").html();
       var template = Handlebars.compile(source);
       $('#linky-ul').append(template(value));
+      
+      var clip = new ZeroClipboard( document.getElementsByClassName("copy-button"), {
+        moviePath: web_base + "/static/js/ZeroClipboard/ZeroClipboard.swf"
+      });
+
+      clip.on( 'complete', function(client, args) {
+        $(this).next('.copy-confirm').html('copied').fadeIn(100).fadeOut(3000);
+      });
     });
     $('#linky-list').fadeIn();
   }
