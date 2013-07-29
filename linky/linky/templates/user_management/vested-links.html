@@ -20,7 +20,7 @@
 		<tbody>
 		  {% for linky_link in linky_links %}
 			<tr>
-			  <td class="linky-abbr-title">{{ linky_link.submitted_title }}<br>{{ linky_link.submitted_url }}<br><a href="http://{{host}}/{{linky_link.id}}" target="_blank">{{host}}/{{linky_link.id}}</a></td>
+			  <td class="linky-abbr-title">{{ linky_link.submitted_title }}<br><a href="{{ linky_link.submitted_url }}" target="_blank">{{ linky_link.submitted_url }}</a><br><a href="http://{{host}}/{{linky_link.id}}" target="_blank">{{host}}/{{linky_link.id}}</a></td>
 			  <td class="linky-abbr-date-time">{{ linky_link.creation_timestamp|date:"m/d/Y" }}</td>
 			  <td class="linky-abbr-date-time">{{ linky_link.vested_timestamp|date:"m/d/Y" }}</td>
 		  {% empty %}
