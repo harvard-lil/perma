@@ -333,7 +333,8 @@ def created_links(request):
     for linky_link in linky_links:
         linky_link.id =  base.convert(linky_link.id, base.BASE10, base.BASE58)
 
-    context = {'user': request.user, 'linky_links': linky_links, 'host': request.get_host()}
+    context = {'user': request.user, 'linky_links': linky_links, 'host': request.get_host(),
+               'total_created': len(linky_links)}
 
     return render_to_response('user_management/created-links.html', context)
 
@@ -349,7 +350,8 @@ def vested_links(request):
     for linky_link in linky_links:
         linky_link.id =  base.convert(linky_link.id, base.BASE10, base.BASE58)
     
-    context = {'user': request.user, 'linky_links': linky_links, 'host': request.get_host()}
+    context = {'user': request.user, 'linky_links': linky_links, 'host': request.get_host(),
+               'total_vested': len(linky_links)}
 
     return render_to_response('user_management/vested-links.html', context)
     
