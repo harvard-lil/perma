@@ -26,6 +26,7 @@
 				<button type="submit" class="btn">Login</button>
 			</form>
 			<br />
-			<p>Can't remember your password? No problem, we can help you <a href="{% url auth_password_reset %}">create a new one.</a></p>
+			<p>Forgot your password? No problem, we can help you <a href="{% url auth_password_reset %}">create a new one.</a></p>
+			<p><a href="{% url process_register %}">Create an account</a></p>
 	</div><!-- end content -->
 {% endblock content %}

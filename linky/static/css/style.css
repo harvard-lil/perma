@@ -350,7 +350,13 @@ fieldset {
 }
 
 .dropdown-form {
-  margin:10px 10px 20px 10px;
+  margin:10px 10px 10px 10px;
+}
+
+.dropdown-form a {
+  font-size:12px;
+  display:block;
+  margin-top:15px;
 }
 
 h3 small, small {
