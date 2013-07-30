@@ -328,7 +328,7 @@ def manage_single_journal_member_delete(request, user_id):
 def created_links(request):
     """ Anyone with an account can view the linky links they've created """
 
-    linky_links = list(Link.objects.filter(created_by=request.user))
+    linky_links = list(Link.objects.filter(created_by=request.user).order_by('-creation_timestamp'))
 
     for linky_link in linky_links:
         linky_link.id =  base.convert(linky_link.id, base.BASE10, base.BASE58)
@@ -344,7 +344,7 @@ def vested_links(request):
     if request.user.groups.all()[0].name not in ['journal_member', 'registrar_member', 'registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
 
-    linky_links = list(Link.objects.filter(vested_by_editor=request.user))
+    linky_links = list(Link.objects.filter(vested_by_editor=request.user).order_by('-vested_timestamp'))
     
     for linky_link in linky_links:
         linky_link.id =  base.convert(linky_link.id, base.BASE10, base.BASE58)
