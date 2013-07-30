@@ -368,7 +368,7 @@ def sponsoring_library(request):
 
     profile = request.user.get_profile()
 
-    context = {'user': request.user, 'sponsoring_library_name': profile.registrar.name}
+    context = {'user': request.user, 'sponsoring_library_name': profile.registrar.name, 'sponsoring_library_email': profile.registrar.email, 'sponsoring_library_website': profile.registrar.website}
 
     return render_to_response('user_management/sponsoring-library.html', context)
 

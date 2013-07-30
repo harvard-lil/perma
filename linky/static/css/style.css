@@ -448,6 +448,14 @@ td.linky-abbr-date-time {
 	vertical-align:top;
 }
 
+td.registrar-name-cell {
+  min-width:100px;
+}
+
+td.registrar-website-cell {
+  min-width:250px;
+}
+
 .nav {
 	position:relative;
 	z-index:9999;

@@ -19,6 +19,8 @@ except ImportError, e:
 class Registrar(models.Model):
     """ This is generally a library. """
     name = models.CharField(max_length=400)
+    email = models.EmailField(max_length=254)
+    website = models.URLField(max_length=500)
 
     def __unicode__(self):
         return self.name

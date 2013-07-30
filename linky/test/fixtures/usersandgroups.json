@@ -33,6 +33,14 @@
     },
     {
         "pk": 1,
+        "model": "linky.registrar",
+        "fields": {
+            "name": "Test Library",
+            "email": "library@university.edu"
+        }
+    },
+    {
+        "pk": 1,
         "model": "auth.user",
         "fields": {
             "username": "test_registry_member",

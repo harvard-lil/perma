@@ -16,6 +16,8 @@
       <tr>
         <th><input type="checkbox"></th>
         <th>Name</th>
+        <th>Email</th>
+        <th>Website</th>
         <th>Admin</th>
       </tr>
     </thead>
@@ -23,24 +25,17 @@
       {% for registrar in registrars %}
         <tr>
           <td><input type="checkbox"></td>
-          <td>{{ registrar.name }}</td>
+          <td class="registrar-name-cell">{{ registrar.name }}</td>
+          <td>{{ registrar.email }}</td>
+          <td class="registrar-website-cell"><a href="{{ registrar.website }}" target="_blank">{{ registrar.website }}</a></td>
           <td><a href="{% url user_management_manage_single_registrar registrar.id %}">edit</a></td>
       {% empty %}
         <tr>No registrars found.</tr>
       {% endfor %}
     </tbody>
   </table>
-
-		<!--<form action="" method="post" class="embedded-form">
-			{% csrf_token %}
-
-			<h4>Add a new registrar</h4>
-			{{ form }}
-			<br />
-			<button type="submit" class="btn btn-primary">Create new registrar</button>
-		</form>-->
 		
-		<form action="" method="post" class="embedded-form form-inline">
+		<!--<form action="" method="post" class="embedded-form form-inline">
 		<span class="text-error">{{ form.non_field_errors }}</span>
 		  {% csrf_token %}
       {{ form.non_field_errors }}
@@ -48,6 +43,23 @@
         {{ form.name.errors }}
         <label for="id_a-name">Name</label>
         {{ form.name }}
+      <button type="submit" class="btn">Create new registrar</button>
+    </form>-->
+    <form class="embedded-form" method="post">
+      {% csrf_token %}
+		  <h4>Add a new registrar</h4>
+		  <fieldset>
+		  <span class="text-error">{{ form.non_field_errors }}</span>
+        {% for field in form %}
+          <label for="id_{{ field.name }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+          {%elif field.help_text %}
+            <span class="help-inline">{{ field.help_text }}</span>
+          {% endif %}
+        {% endfor %}  
+      </fieldset>
       <button type="submit" class="btn">Create new registrar</button>
     </form>
 

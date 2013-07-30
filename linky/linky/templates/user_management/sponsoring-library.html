@@ -9,7 +9,11 @@
 
 		<h3>Your sponsoring library</h3>
 
-		<p>{{sponsoring_library_name}}</p>
+		<h4>{{sponsoring_library_name}}</h4>
+		{% if sponsoring_library_website %}
+		<p><a href="sponsoring_library_website" target="_blank">{{sponsoring_library_website}}</a></p>
+		{% endif %}
+		<p>{{sponsoring_library_email}}</p>
 
 
 {% endblock %}
