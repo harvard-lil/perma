@@ -8,7 +8,7 @@ from linky.models import Registrar
 class registrar_form(ModelForm):
     class Meta:
         model = Registrar
-        fields = ['name']
+        fields = ['name', 'email', 'website']
 
 class regisrtar_member_form(forms.ModelForm):
     """
