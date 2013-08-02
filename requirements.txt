@@ -1,8 +1,0 @@
-Django==1.4
-MySQL-python==1.2.4
-South==0.7.6
-lxml==3.2.1
-wsgiref==0.1.2
-django-templatetag-handlebars==1.2.0
-pyPdf==1.13
-http://effbot.org/downloads/Imaging-1.1.7.tar.gz

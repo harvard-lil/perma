@@ -1,0 +1,42 @@
+{% extends "admin-layout.html" %}
+{% block title %} | Journal members{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+{% endblock %}
+
+{% block content %}
+
+<h3>Edit registrar member</h3>
+<form method="post">
+	{% csrf_token %}
+	<fieldset>
+	<span class="text-error">{{ form.non_field_errors }}</span>
+		{% for field in form %}
+		<label for="id_{{ field.name }}">{{ field.label }}</label>
+
+		{% if field.name != 'registrar' %}
+		{{ field }}
+		{% else %}
+		<select name="a-registrar" id="id_a-registrar">
+			{% for x,y in form.fields.registrar.choices %}
+			<option value="{{ x }}" {% if x == target_registrar_member.userprofile.registrar.id %} selected {% endif %} >{{ y }}</option>
+			{% endfor %}
+		</select>
+
+		{% endif %}
+		{% if field.errors %}
+		{% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+		{%elif field.help_text %}
+		<span class="help-inline">{{ field.help_text }}</span>
+		{% endif %}
+		{% endfor %}
+	</fieldset>
+	<button type="submit" class="btn">Save changes</button>
+</form>
+
+<a href="{% url 'user_management_manage_single_registrar_member_delete' target_registrar_member.id %}"><span class="text-error"><i class="icon-trash"></i> Delete this user</span> <!--{{target_registrar_member.username}}--></a>
+
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}

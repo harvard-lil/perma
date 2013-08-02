@@ -1,0 +1,54 @@
+{% load static %}
+{% get_static_prefix as STATIC_PREFIX %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Linky{% block title %}{% endblock %}</title>
+
+	<meta charset="UTF-8" />
+	<meta name="google" value="notranslate" />
+	<meta http-equiv="Content-Language" content="en" />
+	
+	<link href="{{ STATIC_PREFIX }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
+	
+	<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap.css">
+	<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap-responsive.css">
+	<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
+    {% block styles %}
+    {% endblock %}  
+    <script type="text/javascript" src="//use.typekit.net/pjl6esq.js"></script>
+	<script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+	
+  </head>
+  <body>
+      <div class="container">
+        {% include "navbar.html" %}
+      		<div class="row">
+				<div class="offset1 span10 center">
+        			<a href="{% url 'landing' %}"><h1 class="logo-big">Linky</h1>
+        			<img class="logo-big-img" src="{{ STATIC_PREFIX }}img/infinity.png"/></a>
+        		</div>
+  			</div>
+      {% block row %}
+      	{% endblock %}
+      	 </div><!--end container -->
+
+      	
+   
+    <script src="{{ STATIC_PREFIX }}js/jquery.js"></script>
+    <script src="{{ STATIC_PREFIX }}js/bootstrap.js"></script>
+    {% block scripts %}
+    {% endblock %}   
+    
+    {% block templates %}
+    {% endblock %} 
+  </body>
+  <footer>
+      		<div class="row footer">
+      			<div class="span12">
+      				<h3><small>Brought to you by JZ, Kendra, Shailin, Leonid & <br/><a href="http://librarylab.law.harvard.edu/"><span class="cyan">Harvard Library Innovation Lab</span></a></small></h3>
+      			</div>
+      		</div>
+      	</footer>
+</html>
