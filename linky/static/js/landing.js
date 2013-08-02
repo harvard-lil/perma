@@ -80,6 +80,9 @@ function linkIt(){
         allLinkies.splice(0,1);
       }
     }
+    var source = $("#list-template").html();
+    var template = Handlebars.compile(source);
+    $('#stored-ul').prepend(template(newLinky));
     allLinkies.push(newLinky);
     if(('localStorage' in window) && window['localStorage'] !== null){ 
       localStorage.setItem( 'linky-list', JSON.stringify(allLinkies));
@@ -111,7 +114,7 @@ function linkIt(){
   
   $('#linky-confirm').on('hidden', function () {
     $('#rawUrl').val('').focus();
-    $('#linky-list').fadeIn();
+    $('#local-list').fadeIn();
   
     $('#linky_generation_message').html('Creating your Linky. Hold tight.');
     $('#linkyUrl a').html('').attr('');
@@ -127,7 +130,7 @@ function drawLinks() {
   if(storedLinkies) {
     allLinkies = storedLinkies;
     storedLinkies.reverse();
-    $('#linky-ul').html('');
+    $('#local-ul').html('');
     $.each( storedLinkies, function( key, value ) {
     	//workaround, why isn't Handlebars Helper working?
     	value.url = value.url.replace(/.*?:\/\//g, "");
@@ -138,7 +141,7 @@ function drawLinks() {
     	//
       var source = $("#list-template").html();
       var template = Handlebars.compile(source);
-      $('#linky-ul').append(template(value));
+      $('#local-ul').append(template(value));
       
       var clip = new ZeroClipboard( document.getElementsByClassName("copy-button"), {
         moviePath: web_base + "/static/js/ZeroClipboard/ZeroClipboard.swf"
@@ -148,7 +151,7 @@ function drawLinks() {
         $(this).next('.copy-confirm').html('copied').fadeIn(100).fadeOut(3000);
       });
     });
-    $('#linky-list').fadeIn();
+    $('#local-list').fadeIn();
   }
 }
 

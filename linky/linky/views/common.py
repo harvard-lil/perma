@@ -4,6 +4,7 @@ from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
 
 from datetime import datetime
+from urlparse import urlparse
 
 from linky.models import Link
 from linky.utils import base
@@ -11,7 +12,23 @@ from linky.utils import base
 def landing(request):
     """The landing page"""
     
-    context = {'host': request.get_host(), 'user': request.user, 'next': request.get_full_path()}
+    if request.user.id >= 0:
+      linky_links = list(Link.objects.filter(created_by=request.user).order_by('-creation_timestamp'))
+      
+      for linky_link in linky_links:
+        linky_link.id =  base.convert(linky_link.id, base.BASE10, base.BASE58)
+        if linky_link.submitted_url.startswith('http://'):
+          linky_link.submitted_url = linky_link.submitted_url[7:]
+        elif linky_link.submitted_url.startswith('https://'):
+          linky_link.submitted_url = linky_link.submitted_url[8:] 
+        if len(linky_link.submitted_title) > 50:
+          linky_link.submitted_title = linky_link.submitted_title[:50] + '...'
+        if len(linky_link.submitted_url) > 79:
+          linky_link.submitted_url = linky_link.submitted_url[:70] + '...'
+    else:
+      linky_links = list();
+    
+    context = {'host': request.get_host(), 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()}
     context.update(csrf(request))
 
     return render_to_response('landing.html', context)
