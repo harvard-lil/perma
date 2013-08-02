@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 {% endblock %}
 
-{% block manage-nav-journal %}<li class="active"><a href="{% url user_management_manage_journal_member %}">Journal users</a></li>{% endblock %}
+{% block manage-nav-journal %}<li class="active"><a href="{% url 'user_management_manage_journal_member' %}">Journal users</a></li>{% endblock %}
 
 {% block content %}
 
@@ -30,7 +30,7 @@
           <td>{{ member.email }}</td>
           <td>{{ member.username }}</td>
 		  {% if user.groups.all.0.name == 'registry_member' %}<td>{{member.userprofile.registrar.name}}</td>{% endif %}
-          <td><a href="{% url user_management_manage_single_journal_member member.id%}">edit/delete</a></td>
+          <td><a href="{% url 'user_management_manage_single_journal_member' member.id%}">edit/delete</a></td>
       {% empty %}
         <tr>No journal members found.</tr>
       {% endfor %}

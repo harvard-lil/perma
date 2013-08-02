@@ -11,7 +11,7 @@
 	<br/>
 	<p>Yahowza! Do you really want to delete {{ target_member.username }} forever?</p>
 	<br/>
-	<form action="{% url user_management_manage_single_registrar_member_delete target_member.id %}" method="POST">
+	<form action="{% url 'user_management_manage_single_registrar_member_delete' target_member.id %}" method="POST">
 	      {% csrf_token %}
         <button type="submit" class="btn">Delete {{ target_member.username }} forever</button>
     </form>

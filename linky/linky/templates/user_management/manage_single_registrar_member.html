@@ -34,7 +34,7 @@
 	<button type="submit" class="btn">Save changes</button>
 </form>
 
-<a href="{% url user_management_manage_single_registrar_member_delete target_registrar_member.id %}"><span class="text-error"><i class="icon-trash"></i> Delete this user</span> <!--{{target_registrar_member.username}}--></a>
+<a href="{% url 'user_management_manage_single_registrar_member_delete' target_registrar_member.id %}"><span class="text-error"><i class="icon-trash"></i> Delete this user</span> <!--{{target_registrar_member.username}}--></a>
 
 {% endblock %}
 

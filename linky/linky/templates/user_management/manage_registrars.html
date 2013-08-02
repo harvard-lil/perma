@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 {% endblock %}
 
-{% block manage-nav-registrar %}<li class="active"><a href="{% url user_management_manage_registrar %}">Registrars</a></li>{% endblock %}
+{% block manage-nav-registrar %}<li class="active"><a href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>{% endblock %}
 
 {% block content %}
 
@@ -28,7 +28,7 @@
           <td class="registrar-name-cell">{{ registrar.name }}</td>
           <td>{{ registrar.email }}</td>
           <td class="registrar-website-cell"><a href="{{ registrar.website }}" target="_blank">{{ registrar.website }}</a></td>
-          <td><a href="{% url user_management_manage_single_registrar registrar.id %}">edit</a></td>
+          <td><a href="{% url 'user_management_manage_single_registrar' registrar.id %}">edit</a></td>
       {% empty %}
         <tr>No registrars found.</tr>
       {% endfor %}

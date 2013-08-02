@@ -1,5 +1,4 @@
 {% extends "layout.html" %}
-{% load templatetag_handlebars %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 {% endblock %}
@@ -123,8 +122,9 @@
 {% endblock %}
 {% block templates %}
 
-{% tplhandlebars "list-template" %}
-<div class="row-fluid">
+{% verbatim %}
+<script id="list-template" type="text/x-handlebars-template">
+	<div class="row-fluid">
 		<li>
 			<div class="span8">
 				<div class="favicon-preview">{{#if favicon_url}}<img src="http://{{favicon_url}}">{{/if}}</div>
@@ -139,30 +139,33 @@
 				<div class="copy-button-div"><button class="btn copy-button" data-clipboard-text="{{#http_it url}}{{/http_it}}" title="Copy Linky Link">Copy Linky &infin;</button><p class="copy-confirm text-center" style="display:none"></p></div>
 			</div>
 		</li>
-</div>
-	
-{% endtplhandlebars %}
+	</div>
+</script>
+{% endverbatim %}
 
-{% tplhandlebars "error-template" %}
-<div id="linky-error">
-  <h2 class="text-warning">There was a problem creating your linky</h4>
-  <h4>{{url}} is gumming up the works</h4>
-  <button class="btn" data-dismiss="modal" aria-hidden="true">Thanks for nothing</button>
-</div>
-	
-{% endtplhandlebars %}
+{% verbatim %}
+<script id="error-template" type="text/x-handlebars-template">
+	<div id="linky-error">
+	  <h2 class="text-warning">There was a problem creating your linky</h4>
+	  <h4>{{url}} is gumming up the works</h4>
+	  <button class="btn" data-dismiss="modal" aria-hidden="true">Thanks for nothing</button>
+	</div>	
+</script>
+{% endverbatim %}
 
-{% tplhandlebars "loading-template" %}
-<div id="linky-preview" class="pull-left">
-  <div class="center"><img class="loading-background" src="{{src}}"></div>
-</div>
-<div id="linky-desc" class="unavailable">
-  <h4 id="linky_generation_message">Creating your Linky. Hold tight.</h4>
-  <p id="linkyUrl"><a href="" target="_blank"></a><br ><small id="linky_title"></small></p>
-  <h4>Email this Linky</h4>
-  <p><input id="email_request" class="input-xlarge" type="text" placeholder="user@example.com"></p>
-  <p><a href="#" id="saveLinky" class="btn btn-primary btn-large btn-block">Save this Linky</a></p>
-</div>
-{% endtplhandlebars %}
+{% verbatim %}
+<script id="loading-template" type="text/x-handlebars-template">
+	<div id="linky-preview" class="pull-left">
+	  <div class="center"><img class="loading-background" src="{{src}}"></div>
+	</div>
+	<div id="linky-desc" class="unavailable">
+	  <h4 id="linky_generation_message">Creating your Linky. Hold tight.</h4>
+	  <p id="linkyUrl"><a href="" target="_blank"></a><br ><small id="linky_title"></small></p>
+	  <h4>Email this Linky</h4>
+	  <p><input id="email_request" class="input-xlarge" type="text" placeholder="user@example.com"></p>
+	  <p><a href="#" id="saveLinky" class="btn btn-primary btn-large btn-block">Save this Linky</a></p>
+	</div>
+</script>
+{% endverbatim %}
 
 {% endblock templates %}

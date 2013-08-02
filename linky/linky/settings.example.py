@@ -38,6 +38,8 @@ ALLOWED_HOSTS = []
 # In a Windows environment this must be set to your system time zone.
 TIME_ZONE = 'America/New_York'
 
+USE_TZ = True
+
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
@@ -129,7 +131,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'linky',
     'south',
-    'templatetag_handlebars',
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:

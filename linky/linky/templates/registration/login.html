@@ -6,9 +6,9 @@
 	<h2>Login</h2>
 		
 			{% if next %}
-				<form method="post" action="{% url auth_login %}?next={{ next }}">
+				<form method="post" action="{% url 'auth_login' %}?next={{ next }}">
 			{% else %}
-				<form method="post" action="{% url auth_login %}">
+				<form method="post" action="{% url 'auth_login' %}">
 			{% endif %}
 				{% csrf_token %}
 				 <fieldset>
@@ -26,7 +26,7 @@
 				<button type="submit" class="btn">Login</button>
 			</form>
 			<br />
-			<p>Forgot your password? No problem, we can help you <a href="{% url auth_password_reset %}">create a new one.</a></p>
-			<p><a href="{% url process_register %}">Create an account</a></p>
+			<p>Forgot your password? No problem, we can help you <a href="{% url 'auth_password_reset' %}">create a new one.</a></p>
+			<p><a href="{% url 'process_register' %}">Create an account</a></p>
 	</div><!-- end content -->
 {% endblock content %}

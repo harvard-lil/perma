@@ -25,7 +25,7 @@
       <button type="submit" class="btn">Save changes</button>
     </form>
 
-	<a href="{% url user_management_manage_single_journal_member_delete target_member.id %}"><span class="text-error"><i class="icon-trash"></i> Delete this user</span><!--{{target_member.username}}--></a>
+	<a href="{% url 'user_management_manage_single_journal_member_delete' target_member.id %}"><span class="text-error"><i class="icon-trash"></i> Delete this user</span><!--{{target_member.username}}--></a>
 
 {% endblock %}
 
