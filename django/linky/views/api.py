@@ -12,6 +12,7 @@ from django.shortcuts import render_to_response, HttpResponse
 from django.http import HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 from django import forms
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -53,8 +54,8 @@ def linky_post(request):
     link.save()
     
     # We've created a linky. Let's create its home on disk
-    
-    linky_home_disk_path = INTERNAL['APP_FILEPATH'] + '/static/generated/' + str(link.id) + '/'
+
+    linky_home_disk_path = settings.PROJECT_ROOT +'/'+ '/static/generated/' + str(link.id) + '/'
     
     if not os.path.exists(linky_home_disk_path):
         os.makedirs(linky_home_disk_path)
@@ -66,7 +67,7 @@ def linky_post(request):
     
     favicon_success = __get_favicon(target_url, parsed_html, link.id, linky_home_disk_path, url_details)
     
-    image_generation_command = INTERNAL['APP_FILEPATH'] + '/lib/phantomjs ' + INTERNAL['APP_FILEPATH'] + '/lib/rasterize.js "' + target_url + '" ' + linky_home_disk_path + 'cap.png'
+    image_generation_command = settings.PROJECT_ROOT + '/lib/phantomjs ' + settings.PROJECT_ROOT + '/lib/rasterize.js "' + target_url + '" ' + linky_home_disk_path + 'cap.png'
     subprocess.call(image_generation_command, shell=True)
 
     manifest['image'] = 'cap.png'
@@ -190,9 +191,9 @@ def upload_file(request):
         if form.is_valid(): 
             if validate_upload_file(request.FILES['file']):
                 link = Link(submitted_url=form.cleaned_data['url'], submitted_title=form.cleaned_data['title'])
-                link.save()    
-                linky_home_disk_path = INTERNAL['APP_FILEPATH'] + '/static/generated/' + str(link.id) + '/'
-                print '7'
+                link.save()
+                linky_home_disk_path = settings.PROJECT_ROOT +'/'+ '/static/generated/' + str(link.id) + '/'
+
                 if not os.path.exists(linky_home_disk_path):
                     os.makedirs(linky_home_disk_path)
         

@@ -1,7 +1,6 @@
-etc/linky.conf
-linky/static/generated/*
-!linky/static/generated/README
+django/static/generated/*
+!django/static/generated/README
 *.pyc
-linky/lib/phantomjs
-linky/linky/settings.py
-linky/linky/local_settings.py
+django/lib/phantomjs
+django/linky/settings.py
+django/linky/local_settings.py
