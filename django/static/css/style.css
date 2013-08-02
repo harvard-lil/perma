@@ -142,7 +142,7 @@ If you need more, that's where to get'em.
   margin-top:45px;
 }
 
-#linky-list {
+#local-list {
   display:none;
 }
 
@@ -154,25 +154,21 @@ If you need more, that's where to get'em.
 	margin-top:5px;
 }
 
-#linky-ul {
+.perma-ul {
   list-style:none;
   margin-left:0;
   margin-top:15px;
 }
 
-#linky-ul li {
+.perma-ul li {
   margin-top:20px;
 }
 
-#linky-ul li p a{
-
-}
-
-#linky-ul li h4 {
+.perma-ul li h4 {
   margin-bottom:0px;
 }
 
-#linky-ul li h4 a {
+.perma-ul li h4 a {
 	color: #003355;
 }
 
