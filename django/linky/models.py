@@ -30,7 +30,7 @@ class Registrar(models.Model):
 # This is something we'll rework when we upgrage to 1.5
 ####################################
 class UserProfile(models.Model):
-    user = models.OneToOneField(User)  
+    user = models.OneToOneField(User)
     registrar = models.ForeignKey(Registrar, null=True)
     
     def __str__(self):  
@@ -41,6 +41,7 @@ def create_user_profile(sender, instance, created, **kwargs):
        profile, created = UserProfile.objects.get_or_create(user=instance)  
 
 post_save.connect(create_user_profile, sender=User)
+
 ####################################
 # End of user profile stuff
 ####################################
@@ -71,6 +72,13 @@ class Link(models.Model):
         
     def __unicode__(self):
         return self.submitted_url
+
+class Asset(models.Model):
+    """ We use this to track our generated assets, per link """
+    link = models.ForeignKey(Link, null=False)
+    favicon = models.CharField(max_length=2100, null=True, blank=True) # Retrieved favicon
+    image_capture = models.CharField(max_length=2100, null=True, blank=True) # Headless browser image capture
+    warc_capture = models.CharField(max_length=2100, null=True, blank=True) # Heretrix capture
 
 
 #######################

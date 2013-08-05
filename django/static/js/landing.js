@@ -89,7 +89,7 @@ function linkIt(){
     }
     $('#linkyUrl a').html(web_base  + '/' + data.linky_id).attr('href', web_base + '/' + data.linky_id);
     //$('#linky_title').text(data.linky_title);
-    $('#linky-preview img').attr('src', data.linky_url);
+    $('#linky-preview img').attr('src', data.linky_cap);
   });
   request.fail(function(jqXHR, responseText) {
     var source = $("#error-template").html();
