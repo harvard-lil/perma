@@ -191,6 +191,8 @@ def upload_file(request):
         if form.is_valid(): 
             if validate_upload_file(request.FILES['file']):
                 link = Link(submitted_url=form.cleaned_data['url'], submitted_title=form.cleaned_data['title'])
+                if request.user.is_authenticated():
+                  link.created_by = request.user
                 link.save()
                 linky_home_disk_path = settings.PROJECT_ROOT +'/'+ '/static/generated/' + str(link.id) + '/'
 
