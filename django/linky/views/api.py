@@ -122,15 +122,10 @@ def __get_favicon(target_url, parsed_html, link_hash_id, disk_path, url_details)
         f = urllib2.urlopen(favicon)
         data = f.read()
         
-        
-        filepath_pieces = os.path.splitext(favicon)
-        file_ext = filepath_pieces[1]
-        
-        with open(disk_path + 'fav' + file_ext, "wb") as asset:
+        with open(disk_path + 'fav.png', "wb") as asset:
             asset.write(data)
 
-        return 'fav' + file_ext
-
+        return 'fav.png'
 
     # If we haven't returned True above, we didn't find a favicon in the markup.
     # let's try the favicon convention: http://example.com/favicon.ico
