@@ -1,7 +1,7 @@
 import logging, json, subprocess, urllib2, re, os
 from urlparse import urlparse
 
-import lxml.html
+import lxml.html, requests
 #import PythonMagick
 from PIL import Image
 from pyPdf import PdfFileReader
@@ -38,7 +38,8 @@ def linky_post(request):
     target_title = url_details.netloc
         
     try:
-        parsed_html = lxml.html.parse(urllib2.urlopen(target_url))
+        r = requests.get(target_url)
+        parsed_html = lxml.html.fromstring(r.content)
     except IOError:
         pass
     
@@ -117,15 +118,16 @@ def __get_favicon(target_url, parsed_html, link_hash_id, disk_path, url_details)
         elif not re.match(r'^http', favicon):
             favicon = url_details.scheme + '://' + url_details.netloc + favicon
         
-
+        try:
+          f = urllib2.urlopen(favicon)
+          data = f.read()
         
-        f = urllib2.urlopen(favicon)
-        data = f.read()
-        
-        with open(disk_path + 'fav.png', "wb") as asset:
+          with open(disk_path + 'fav.png', "wb") as asset:
             asset.write(data)
 
-        return 'fav.png'
+          return 'fav.png'
+        except urllib2.HTTPError:
+          pass
 
     # If we haven't returned True above, we didn't find a favicon in the markup.
     # let's try the favicon convention: http://example.com/favicon.ico
