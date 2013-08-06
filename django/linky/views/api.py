@@ -116,7 +116,7 @@ def __get_favicon(target_url, parsed_html, link_hash_id, disk_path, url_details)
         if re.match(r'^//', favicon):
             favicon = url_details.scheme + ':' + favicon
         elif not re.match(r'^http', favicon):
-            favicon = url_details.scheme + '://' + url_details.netloc + favicon
+            favicon = url_details.scheme + '://' + url_details.netloc + '/' + favicon
         
         try:
           f = urllib2.urlopen(favicon)
