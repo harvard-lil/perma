@@ -35,7 +35,7 @@ $(document).ready(function() {
 		  newLinky.url = linkyUrl;
       newLinky.original = $('#url').val();
       newLinky.title = $('#title').val();
-      newLinky.favicon_url = '';
+      newLinky.favicon_url = data.favicon_url;
       addToStorage(newLinky);
       var source = $("#list-template").html();
       var template = Handlebars.compile(source);

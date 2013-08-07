@@ -210,8 +210,20 @@ def upload_file(request):
                     #png.write("file_out.png")
                     #params = ['convert', linky_home_disk_path + file_name, 'out.png']
                     #subprocess.check_call(params)
+                    
+                response_object = {'status':'success', 'linky_id':link.id, 'linky_hash':linky_hash}    
+                url_details = urlparse(form.cleaned_data['url'])
+                
+                try:
+                	r = requests.get(form.cleaned_data['url'])
+                	parsed_html = lxml.html.fromstring(r.content)
+                except IOError:
+                	pass
+                favicon_success = __get_favicon(form.cleaned_data['url'], parsed_html, link.id, linky_home_disk_path, url_details)
+                if favicon_success:
+                	response_object['favicon_url'] = 'http://' + request.get_host() + '/static/generated/' + str(link.id) + '/' + favicon_success
 
-                return HttpResponse(json.dumps({'status':'success', 'linky_id':link.id, 'linky_hash':linky_hash}), 'application/json')
+                return HttpResponse(json.dumps(response_object), 'application/json')
             else:
                 return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Invalid file.'}), 'application/json')
         else:
