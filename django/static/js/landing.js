@@ -1,7 +1,7 @@
 var linkyUrl = '';
 var rawUrl = '';
 var newLinky = {};
-var allLinkies = new Array();
+var all_links = new Array();
 
 $(document).ready(function() {
   $('#linky-confirm').modal({show: false});
@@ -53,6 +53,7 @@ function linkIt(){
     $('#upload-option').hide();
 
   rawUrl = $("#rawUrl").val();
+  $('#url').val(rawUrl);
   var request = $.ajax({
     url: web_base + "/api/linky/",
     type: "POST",
