@@ -172,6 +172,17 @@ If you need more, that's where to get'em.
 	color: #003355;
 }
 
+.perma-ul .row-fluid:last-child {
+  -moz-mask: -moz-gradient(linear, left top, 
+    left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)));
+  -webkit-mask-image: -webkit-gradient(linear, left top, 
+    left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)));
+}
+
+#register-prompt {
+  margin-top:25px;
+}
+
 .big {
 	font-size:24px;
 	color:#09f;
