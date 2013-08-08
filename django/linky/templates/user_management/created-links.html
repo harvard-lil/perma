@@ -1,5 +1,5 @@
 {% extends "admin-layout.html" %}
-{% block title %} | Vested Linky links{% endblock %}
+{% block title %} | Vested Perma links{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 {% endblock %}
@@ -8,7 +8,7 @@
 
 {% block content %}
 
-		<h3>Linky links created by you</h3>
+		<h3>Perma links created by you</h3>
 		<p>You've created {{ total_created }} links</p>
 		
 		<table class="vested-table">
@@ -28,7 +28,7 @@
 			  <td class="linky-abbr-date-time">{{ linky_link.creation_timestamp|date:"m/d/Y" }}</td>
 			  <td class="linky-abbr-date-time">{{ linky_link.vested_timestamp|date:"m/d/Y" }}</td>
 		  {% empty %}
-			<tr><td>No linky links found.</td></tr>
+			<tr><td>No Perma links found.</td></tr>
 		  {% endfor %}
 		</tbody>
 	  </table>

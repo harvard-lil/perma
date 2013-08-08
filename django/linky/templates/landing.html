@@ -17,7 +17,7 @@
 	<div class="span12 center">    	
 			<div class="span4">
 				<img src="{{ STATIC_PREFIX }}img/linky-1-export.png">
-		 		<h3>Create a Linky</h3>
+		 		<h3>Create a Perma</h3>
 			</div> <!--span-->
 			<div class="span4">
 		 		<img src="{{ STATIC_PREFIX }}img/linky-2-export.png">
@@ -50,7 +50,7 @@
                 </div>
               </div>
               <div class="span4">
-                <div class="copy-button-div"><button class="btn copy-button" data-clipboard-text="{{host}}/{{linky_link.id}}" title="Copy Linky Link">Copy Linky &infin;</button><p class="copy-confirm text-center" style="display:none"></p></div>
+                <div class="copy-button-div"><button class="btn copy-button" data-clipboard-text="{{host}}/{{linky_link.id}}" title="Copy Linky Link">Copy Perma &infin;</button><p class="copy-confirm text-center" style="display:none"></p></div>
               </div>
             </li>
           </div>
@@ -76,7 +76,7 @@
     <div id="linky-confirm" class="modal hide fade">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h1 class="logo-big">Linky Preview</h1>
+        <h1 class="logo-big">Perma Preview</h1>
         <img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png"/>
       </div>
     
@@ -85,15 +85,15 @@
           <div class="center"><img class="loading-background" src="{{ STATIC_PREFIX }}img/infinity_500_400.gif"></div>
         </div>
         <div id="linky-desc" class="unavailable">
-          <h4 id="linky_generation_message">Creating your Linky. Hold tight.</h4>
+          <h4 id="linky_generation_message">Creating your Perma. Hold tight.</h4>
           <p id="linkyUrl"><a href="" target="_blank"></a><br ><small id="linky_title"></small></p>
-          <h4>Email this Linky</h4>
+          <h4>Email this Perma</h4>
           <p><input id="email_request" class="input-xlarge" type="text" placeholder="user@example.com"></p>
-          <p><a href="#" id="saveLinky" class="btn btn-primary btn-large btn-block">Save this Linky</a></p>
+          <p><a href="#" id="saveLinky" class="btn btn-primary btn-large btn-block">Save this Perma</a></p>
         </div>
       </div>
       <div class="modal-footer pull-left">
-        <p id="upload-option">Linky capture not right? <a href="" onclick="return upload_form();">Upload your own</a>.</p>
+        <p id="upload-option">Perma capture not right? <a href="" onclick="return upload_form();">Upload your own</a>.</p>
       </div>
     </div>
     
@@ -101,7 +101,7 @@
     <div id="linky-upload" class="modal hide fade center">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h1 class="logo-big">Linky Upload</h1>
+        <h1 class="logo-big">Perma Upload</h1>
 	      <img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png"/>
       </div>
     
@@ -112,7 +112,7 @@
             <p><input id="file" name="file" class="input-xlarge" type="file" placeholder="example.png"></p>
             <p><input id="title" name="title" class="input-xlarge" type="text" placeholder="Example Page Title"></p>
             <p><input id="url" name="url" class="input-xlarge" type="text" placeholder="www.example.com"></p>
-            <button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Upload this Linky</button>
+            <button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Upload this Perma</button>
             <p id="upload-error" class="text-error"></p>
 	        </form>
         </div>
@@ -125,7 +125,7 @@
     <div id="linky-upload-confirm" class="modal hide fade center">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h1 class="logo-big">Linky Upload</h1>
+        <h1 class="logo-big">Perma Upload</h1>
 	      <img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png"/>
       </div>
     
@@ -170,7 +170,7 @@
 				</div>
 			</div>
 			<div class="span4">
-				<div class="copy-button-div"><button class="btn copy-button" data-clipboard-text="{{#http_it url}}{{/http_it}}" title="Copy Linky Link">Copy Linky &infin;</button><p class="copy-confirm text-center" style="display:none"></p></div>
+				<div class="copy-button-div"><button class="btn copy-button" data-clipboard-text="{{#http_it url}}{{/http_it}}" title="Copy Linky Link">Copy Perma &infin;</button><p class="copy-confirm text-center" style="display:none"></p></div>
 			</div>
 		</li>
 	</div>
@@ -180,7 +180,7 @@
 {% verbatim %}
 <script id="error-template" type="text/x-handlebars-template">
 	<div id="linky-error">
-	  <h2 class="text-warning">There was a problem creating your linky</h4>
+	  <h2 class="text-warning">There was a problem creating your Perma</h4>
 	  <h4>{{url}} is gumming up the works</h4>
 	  <button class="btn" data-dismiss="modal" aria-hidden="true">Thanks for nothing</button>
 	</div>	
@@ -193,11 +193,11 @@
 	  <div class="center"><img class="loading-background" src="{{src}}"></div>
 	</div>
 	<div id="linky-desc" class="unavailable">
-	  <h4 id="linky_generation_message">Creating your Linky. Hold tight.</h4>
+	  <h4 id="linky_generation_message">Creating your Perma. Hold tight.</h4>
 	  <p id="linkyUrl"><a href="" target="_blank"></a><br ><small id="linky_title"></small></p>
-	  <h4>Email this Linky</h4>
+	  <h4>Email this Perma</h4>
 	  <p><input id="email_request" class="input-xlarge" type="text" placeholder="user@example.com"></p>
-	  <p><a href="#" id="saveLinky" class="btn btn-primary btn-large btn-block">Save this Linky</a></p>
+	  <p><a href="#" id="saveLinky" class="btn btn-primary btn-large btn-block">Save this Perma</a></p>
 	</div>
 </script>
 {% endverbatim %}
