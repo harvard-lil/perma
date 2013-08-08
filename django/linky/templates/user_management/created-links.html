@@ -31,6 +31,7 @@
 			<tr><td>No linky links found.</td></tr>
 		  {% endfor %}
 		</tbody>
+        {% if linky_links.has_previous %}<a href="?page={{ linky_links.previous_page_number }}&sort={{ sort }}">&lt;</a>{% endif %} {% if linky_links.has_next  %}<a href="?page={{ linky_links.next_page_number }}&sort={{ sort }}">&gt;</a>{% endif %}
 	  </table>
 
 {% endblock %}

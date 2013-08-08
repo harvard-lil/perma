@@ -11,6 +11,7 @@ from django.core.urlresolvers import reverse
 from django.core.context_processors import csrf
 from django.contrib import auth
 from django.contrib.auth.models import User, Permission, Group
+from django.core.paginator import Paginator
 
 
 logger = logging.getLogger(__name__)
@@ -324,6 +325,8 @@ def manage_single_journal_member_delete(request, user_id):
     return render_to_response('user_management/manage_single_journal_member_delete_confirm.html', context)
 
 
+valid_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp']
+
 @login_required
 def created_links(request):
     """ Anyone with an account can view the linky links they've created """
@@ -331,15 +334,22 @@ def created_links(request):
     DEFAULT_SORT = '-creation_timestamp'
 
     sort = request.GET.get('sort', DEFAULT_SORT)
+    if sort not in valid_sorts:
+        sort = DEFAULT_SORT
+    page = request.GET.get('page', 1)
+    if page < 1:
+        page = 1
 
-    #linky_links = list(Link.objects.filter(created_by=request.user).order_by('-creation_timestamp'))
     linky_links = Link.objects.filter(created_by=request.user).order_by(sort)
+
+    paginator = Paginator(linky_links, 1)
+    linky_links = paginator.page(page)
 
     for linky_link in linky_links:
         linky_link.id =  base.convert(linky_link.id, base.BASE10, base.BASE58)
 
     context = {'user': request.user, 'linky_links': linky_links, 'host': request.get_host(),
-               'total_created': len(linky_links)}
+               'total_created': len(linky_links), sort : sort}
 
     return render_to_response('user_management/created-links.html', context)
 
