@@ -10,14 +10,14 @@
 
 		<h3>Linky links created by you</h3>
 		<p>You've created {{ total_created }} links</p>
-		
+
 		<table class="vested-table">
     	<thead>
       	<tr>
       	<th> </th>
         <th>Link</th>
-			  <th>Created</th>
-			  <th>Vested</th>
+			  <th>Created<a href="?sort=creation_timestamp">^</a><a href="?sort=-creation_timestamp">v</a></th>
+			  <th>Vested<a href="?sort=vested_timestamp">^</a><a href="?sort=-vested_timestamp">v</a></th>
 		  </tr>
 		</thead>
 		<tbody>
@@ -31,6 +31,15 @@
 			<tr><td>No linky links found.</td></tr>
 		  {% endfor %}
 		</tbody>
+        {% if linky_links.has_previous %}<a href="?page={{ linky_links.previous_page_number }}&sort={{ sort }}">&lt;</a>{% endif %}
+        {% for i in linky_links.paginator.page_range %}
+        {% ifequal i linky_links.number %}
+        <a href="">{{ i }}</a>
+        {% else %}
+        <a href="?page={{ i }}">{{ i }}</a>
+        {% endifequal %}
+        {% endfor %}
+        {% if linky_links.has_next  %}<a href="?page={{ linky_links.next_page_number }}&sort={{ sort }}">&gt;</a>{% endif %}
 	  </table>
 
 {% endblock %}
