@@ -1,7 +1,7 @@
 import logging, json, subprocess, urllib2, re, os
 from urlparse import urlparse
 
-import lxml.html
+import lxml.html, requests
 #import PythonMagick
 from PIL import Image
 from pyPdf import PdfFileReader
@@ -38,7 +38,8 @@ def linky_post(request):
     target_title = url_details.netloc
         
     try:
-        parsed_html = lxml.html.parse(urllib2.urlopen(target_url))
+        r = requests.get(target_url)
+        parsed_html = lxml.html.fromstring(r.content)
     except IOError:
         pass
     
@@ -115,17 +116,18 @@ def __get_favicon(target_url, parsed_html, link_hash_id, disk_path, url_details)
         if re.match(r'^//', favicon):
             favicon = url_details.scheme + ':' + favicon
         elif not re.match(r'^http', favicon):
-            favicon = url_details.scheme + '://' + url_details.netloc + favicon
+            favicon = url_details.scheme + '://' + url_details.netloc + '/' + favicon
         
-
+        try:
+          f = urllib2.urlopen(favicon)
+          data = f.read()
         
-        f = urllib2.urlopen(favicon)
-        data = f.read()
-        
-        with open(disk_path + 'fav.png', "wb") as asset:
+          with open(disk_path + 'fav.png', "wb") as asset:
             asset.write(data)
 
-        return 'fav.png'
+          return 'fav.png'
+        except urllib2.HTTPError:
+          pass
 
     # If we haven't returned True above, we didn't find a favicon in the markup.
     # let's try the favicon convention: http://example.com/favicon.ico
@@ -208,8 +210,20 @@ def upload_file(request):
                     #png.write("file_out.png")
                     #params = ['convert', linky_home_disk_path + file_name, 'out.png']
                     #subprocess.check_call(params)
+                    
+                response_object = {'status':'success', 'linky_id':link.id, 'linky_hash':linky_hash}    
+                url_details = urlparse(form.cleaned_data['url'])
+                
+                try:
+                	r = requests.get(form.cleaned_data['url'])
+                	parsed_html = lxml.html.fromstring(r.content)
+                except IOError:
+                	pass
+                favicon_success = __get_favicon(form.cleaned_data['url'], parsed_html, link.id, linky_home_disk_path, url_details)
+                if favicon_success:
+                	response_object['favicon_url'] = 'http://' + request.get_host() + '/static/generated/' + str(link.id) + '/' + favicon_success
 
-                return HttpResponse(json.dumps({'status':'success', 'linky_id':link.id, 'linky_hash':linky_hash}), 'application/json')
+                return HttpResponse(json.dumps(response_object), 'application/json')
             else:
                 return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Invalid file.'}), 'application/json')
         else:

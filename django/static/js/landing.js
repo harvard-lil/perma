@@ -1,7 +1,7 @@
 var linkyUrl = '';
 var rawUrl = '';
 var newLinky = {};
-var allLinkies = new Array();
+var all_links = new Array();
 
 $(document).ready(function() {
   $('#linky-confirm').modal({show: false});
@@ -35,7 +35,7 @@ $(document).ready(function() {
 		  newLinky.url = linkyUrl;
       newLinky.original = $('#url').val();
       newLinky.title = $('#title').val();
-      newLinky.favicon_url = '';
+      newLinky.favicon_url = data.favicon_url;
       addToStorage(newLinky);
       var source = $("#list-template").html();
       var template = Handlebars.compile(source);
@@ -53,6 +53,7 @@ function linkIt(){
     $('#upload-option').hide();
 
   rawUrl = $("#rawUrl").val();
+  $('#url').val(rawUrl);
   var request = $.ajax({
     url: web_base + "/api/linky/",
     type: "POST",
