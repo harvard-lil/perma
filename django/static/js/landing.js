@@ -26,25 +26,36 @@ $(document).ready(function() {
   drawLinks();
 
   $('#linky_upload_form').submit(function(){
-	  $('#linky-upload').modal('hide');
-	  $('#linky-upload-confirm').modal({show: true});
-	  $(this).ajaxSubmit(function(data){
-		  var linkyUrl = web_base  + '/' + data.linky_hash;
-		  $('#linky_upload_success').text('Your linky has been created at');
-		  $('#uploadedLinkyUrl a').attr('href', linkyUrl).text(linkyUrl);
-		  newLinky.url = linkyUrl;
-      newLinky.original = $('#url').val();
-      newLinky.title = $('#title').val();
-      newLinky.favicon_url = data.favicon_url;
-      addToStorage(newLinky);
-      var source = $("#list-template").html();
-      var template = Handlebars.compile(source);
-      $('#stored-ul').prepend(template(newLinky));
-      drawLinks();
-	  });
-	  return false;
+	  $(this).ajaxSubmit({success: uploadIt, error: uploadNot});
+	    return false;
     });
   });
+
+function uploadNot() {
+  $('#upload-error').text('The upload failed');
+}
+
+function uploadIt(data) {
+  if(data.status == 'success') {
+    $('#linky-upload').modal('hide');
+	  $('#linky-upload-confirm').modal({show: true});
+    var linkyUrl = web_base  + '/' + data.linky_hash;
+		$('#linky_upload_success').text('Your linky has been created at');
+		$('#uploadedLinkyUrl a').attr('href', linkyUrl).text(linkyUrl);
+		newLinky.url = linkyUrl;
+    newLinky.original = $('#url').val();
+    newLinky.title = $('#title').val();
+    newLinky.favicon_url = data.favicon_url;
+    addToStorage(newLinky);
+    var source = $("#list-template").html();
+    var template = Handlebars.compile(source);
+    $('#stored-ul').prepend(template(newLinky));
+    drawLinks();
+  }
+  else {
+    return xhr.abort();
+  }
+}
 
 function linkIt(){
   var source = $("#loading-template").html();
@@ -68,6 +79,7 @@ function linkIt(){
     newLinky.url = linkyUrl;
     newLinky.original = rawUrl;
     newLinky.title = data.linky_title;
+    $('#title').val(data.linky_title);
     newLinky.favicon_url = data.favicon_url;
 
     var source = $("#list-template").html();
@@ -187,6 +199,7 @@ Handlebars.registerHelper ('http_it', function (str) {
 
 var upload_form = function(){
     $('#linky-confirm').modal('hide');
+    $('#upload-error').text('');
     $('#linky-upload').modal('show');
     return false;  
 };
