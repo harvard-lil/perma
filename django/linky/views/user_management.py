@@ -342,7 +342,7 @@ def created_links(request):
 
     linky_links = Link.objects.filter(created_by=request.user).order_by(sort)
 
-    paginator = Paginator(linky_links, 1)
+    paginator = Paginator(linky_links, 200)
     linky_links = paginator.page(page)
 
     for linky_link in linky_links:
