@@ -8,21 +8,21 @@ $(document).ready(function() {
   $('#linky-upload-confirm').modal({show: false});
   $('#linky-upload').modal({show: false});
   $('#rawUrl').focus();
-  
+
   $('#linker').submit(function() {
 		linkIt();
 		return false;
 	});
-	
-	$('#email_request').keyup(function() {                   
+
+	$('#email_request').keyup(function() {
     if(!$(this).val()) {
-      $('#saveLinky').text('Save this Linky');    
+      $('#saveLinky').text('Save this Linky');
     }
     else {
       $('#saveLinky').text('Save and send this Linky');
     }
   });
-  
+
   drawLinks();
 
   $('#linky_upload_form').submit(function(){
@@ -97,25 +97,25 @@ function linkIt(){
     $('#linky-confirm .modal-body').html(template({url: rawUrl}));
     $('#linky-desc').removeClass('unavailable');
   });
-  
+
   $('#linky-confirm').modal('show');
   $('#saveLinky').on('click', function(event){
-            
+
     var request = $.ajax({
       url: web_base + "/service/email-confirm/",
       type: "POST",
       data: {email_address: $('#email_request').val(), linky_link: $('#linkyUrl a').attr('href')},
       dataType: "json"
     });
-      
+
     event.preventDefault();
     $('#linky-confirm').modal('hide');
   });
-  
+
   $('#linky-confirm').on('hidden', function () {
     $('#rawUrl').val('').focus();
     $('#local-list').fadeIn();
-  
+
     $('#linky_generation_message').html('Creating your Linky. Hold tight.');
     $('#linkyUrl a').html('').attr('');
     $('#linky-desc').addClass('unavailable');
@@ -142,7 +142,7 @@ function drawLinks() {
       var source = $("#list-template").html();
       var template = Handlebars.compile(source);
       $('#local-ul').append(template(value));
-      
+
       var clip = new ZeroClipboard( document.getElementsByClassName("copy-button"), {
         moviePath: web_base + "/static/js/ZeroClipboard/ZeroClipboard.swf"
       });
@@ -157,13 +157,13 @@ function drawLinks() {
 
 function addToStorage(new_link) {
   if(JSON.parse(localStorage.getItem('linky-list'))){
-    all_links = JSON.parse(localStorage.getItem('linky-list'));
+    all_links = JSON.parse(localStorage.getItem('linky-list')) || [];
     if(all_links.length >= 10) {
       all_links.splice(0,1);
     }
   }
   all_links.push(new_link);
-  if(('localStorage' in window) && window['localStorage'] !== null){ 
+  if(('localStorage' in window) && window['localStorage'] !== null){
     localStorage.setItem( 'linky-list', JSON.stringify(all_links));
   }
 }
@@ -171,28 +171,28 @@ function addToStorage(new_link) {
 Handlebars.registerHelper ('truncate', function (str, len) {
         if (str.length > len) {
             var new_str = str.substr (0, len+1);
- 
+
             while (new_str.length) {
                 var ch = new_str.substr ( -1 );
                 new_str = new_str.substr ( 0, -1 );
- 
+
                 if (ch == ' ') {
                     break;
                 }
             }
- 
+
             if ( new_str == '' ) {
                 new_str = str.substr ( 0, len );
             }
- 
-            return new Handlebars.SafeString ( new_str +'...' ); 
+
+            return new Handlebars.SafeString ( new_str +'...' );
         }
         return str;
     });
-    
+
 Handlebars.registerHelper ('http_it', function (str) {
         if (str.substring(0,4) != 'http') {
-            return new Handlebars.SafeString ( 'http://' + str ); 
+            return new Handlebars.SafeString ( 'http://' + str );
         }
         return str;
     });
@@ -201,5 +201,5 @@ var upload_form = function(){
     $('#linky-confirm').modal('hide');
     $('#upload-error').text('');
     $('#linky-upload').modal('show');
-    return false;  
+    return false;
 };

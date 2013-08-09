@@ -14,7 +14,7 @@
 	</div> <!--span-->
 </div> <!--row-->
 <div class="row-fluid">
-	<div class="span12 center">    	
+	<div class="span12 center">
 			<div class="span4">
 				<img src="{{ STATIC_PREFIX }}img/linky-1-export.png">
 		 		<h3>Create a Perma</h3>
@@ -46,7 +46,8 @@
                   <h4><a href="http://{{host}}/{{linky_link.id}}" target="_blank">{{ linky_link.submitted_title }}</a></h4>
                   <small>{{ linky_link.submitted_url }}</small>
                   <br>
-                  <p><a href="http://{{host}}/{{linky_link.id}}" target="_blank">{{host}}/{{linky_link.id}}</a></p>	
+                  <p><a href="http://{{host}}/{{linky_link.id}}" target="_blank">{{host}}/{{linky_link.id}}</a></p>
+                  <small>Views: {{ linky_link.view_count }}</small>
                 </div>
               </div>
               <div class="span4">
@@ -67,7 +68,7 @@
         <p>Save unlimited links and access them from anywhere</p>
       </div>
 		  </div>
-		  
+
 		{% endif %}
 	</div>
 
@@ -79,7 +80,7 @@
         <h1 class="logo-big">Perma Preview</h1>
         <img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png"/>
       </div>
-    
+
       <div class="modal-body">
         <div id="linky-preview" class="pull-left">
           <div class="center"><img class="loading-background" src="{{ STATIC_PREFIX }}img/infinity_500_400.gif"></div>
@@ -96,7 +97,7 @@
         <p id="upload-option">Perma capture not right? <a href="" onclick="return upload_form();">Upload your own</a>.</p>
       </div>
     </div>
-    
+
     <!-- Upload file modal -->
     <div id="linky-upload" class="modal hide fade center">
       <div class="modal-header">
@@ -104,7 +105,7 @@
         <h1 class="logo-big">Perma Upload</h1>
 	      <img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png"/>
       </div>
-    
+
       <div class="modal-body">
         <div class="center">
 	        <form class="form-inline" id="linky_upload_form" action="/api/linky/upload" method="post">
@@ -120,7 +121,7 @@
       <div class="modal-footer pull-left">
       </div>
     </div>
-    
+
     <!-- Upload complete modal -->
     <div id="linky-upload-confirm" class="modal hide fade center">
       <div class="modal-header">
@@ -128,7 +129,7 @@
         <h1 class="logo-big">Perma Upload</h1>
 	      <img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png"/>
       </div>
-    
+
       <div class="modal-body">
         <div class="center">
           <h4 id="linky_upload_success">Uploading your file...</h4>
@@ -139,7 +140,7 @@
         <a href="#" class="btn" data-dismiss="modal" aria-hidden="true">Close</a>
       </div>
     </div>
-    
+
   </div> <!--span-->
 </div> <!--row-->
 
@@ -166,7 +167,7 @@
 					<h4><a href="{{#http_it url}}{{/http_it}}" target="_blank">{{#truncate title 50}}{{/truncate}}</a></h4>
 					<small>{{#truncate original 70}}{{/truncate}}</small>
 					<br>
-					<p><a href="{{#http_it url}}{{/http_it}}" target="_blank">{{url}}</a></p>	
+					<p><a href="{{#http_it url}}{{/http_it}}" target="_blank">{{url}}</a></p>
 				</div>
 			</div>
 			<div class="span4">
@@ -183,7 +184,7 @@
 	  <h2 class="text-warning">There was a problem creating your Perma</h4>
 	  <h4>{{url}} is gumming up the works</h4>
 	  <button class="btn" data-dismiss="modal" aria-hidden="true">Thanks for nothing</button>
-	</div>	
+	</div>
 </script>
 {% endverbatim %}
 

@@ -30,15 +30,15 @@ class Registrar(models.Model):
 # This is something we'll rework when we upgrage to 1.5
 ####################################
 class UserProfile(models.Model):
-    user = models.OneToOneField(User)  
+    user = models.OneToOneField(User)
     registrar = models.ForeignKey(Registrar, null=True)
-    
-    def __str__(self):  
-          return "%s's profile" % self.user  
 
-def create_user_profile(sender, instance, created, **kwargs):  
-    if created:  
-       profile, created = UserProfile.objects.get_or_create(user=instance)  
+    def __str__(self):
+          return "%s's profile" % self.user
+
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+       profile, created = UserProfile.objects.get_or_create(user=instance)
 
 post_save.connect(create_user_profile, sender=User)
 ####################################
@@ -46,6 +46,7 @@ post_save.connect(create_user_profile, sender=User)
 ####################################
 
 class Link(models.Model):
+    view_count = models.IntegerField(default=0)
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)
     creation_timestamp = models.DateTimeField(auto_now=True)
     submitted_title = models.CharField(max_length=2100, null=False, blank=False)
@@ -54,21 +55,21 @@ class Link(models.Model):
     vested_by_editor = models.ForeignKey(User, null=True, blank=True, related_name='vested_by_editor')
     vested_timestamp = models.DateTimeField(null=True, blank=True)
 
-    
+
     """def save(self, *args, **kwargs):
         # We compute our hash from our auto
         #
         # TODO: We're getting a link count each time. Find a better hashing mechanism
         # or toss this in memcache or ???
-        
+
         link_count = Link.objects.count()
-        
+
         hashids_lib = hashids(INTERNAL['SALT'])
         computed_hash = hashids_lib.encrypt(link_count)
 
         self.hash_id = computed_hash
         super(Link, self).save(*args, **kwargs)"""
-        
+
     def __unicode__(self):
         return self.submitted_url
 
@@ -107,13 +108,13 @@ def add_groups_and_permissions(sender, **kwargs):
             "name": "registry_member"
         },
     }]
-    
+
     existing_groups = Group.objects.filter()
-    
-    if not existing_groups:    
+
+    if not existing_groups:
         for initial_group in initial_groups:
             group = Group.objects.create(name=initial_group['fields']['name'])
 
-        
+
 # load groups and permissions
 post_syncdb.connect(add_groups_and_permissions)

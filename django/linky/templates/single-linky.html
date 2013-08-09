@@ -25,7 +25,11 @@ function autoResize(id){
 <div class="row-fluid">
 	<div class="span2">
 		<h4 class="indexed">{{linky.submitted_title}}<br><small>indexed on {{linky.creation_timestamp}}{% if linky.vested %} | vested on {{linky.vested_timestamp}}{% endif %}</small></h4>
-	  
+
+        <h4>
+          Views: {{ linky.view_count }}
+        </h4>
+
 	</div>
 	<div class="span8 linky-view">
   		<div class="watermark center">
@@ -33,7 +37,7 @@ function autoResize(id){
 			{% if not linky.vested %}<img class="watermark-image" src="{{ STATIC_PREFIX }}img/watermark.png"/>{% endif %}
 			{% file_exists STATIC_PREFIX linky.id linky.submitted_url %}
 		</div>
-		<p><a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p> 
+		<p><a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
    	</div>
    	<!--{% include "login-form.html" %}-->
    	<div class="span2 center">
@@ -51,10 +55,10 @@ function autoResize(id){
 <div id="myModal" class="modal hide fade center" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-   
+
   </div>
   <div class="modal-body">
-     <h4 class="indexed"><a href="{{linky.submitted_url}}">{{linky.submitted_title}}</a><br><small>Archived on {{linky.creation_timestamp}}<br>Today's live view<br> 
+     <h4 class="indexed"><a href="{{linky.submitted_url}}">{{linky.submitted_title}}</a><br><small>Archived on {{linky.creation_timestamp}}<br>Today's live view<br>
      <div id="iframe-wrap">
 		<iframe id="frame" class="center" src="{{linky.submitted_url}}"></iframe>
 	</div>
