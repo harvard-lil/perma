@@ -50,6 +50,7 @@ function uploadIt(data) {
     var source = $("#list-template").html();
     var template = Handlebars.compile(source);
     $('#stored-ul').prepend(template(newLinky));
+    $('#linky-list').fadeIn();
     drawLinks();
   }
   else {
@@ -85,8 +86,10 @@ function linkIt(){
     var source = $("#list-template").html();
     var template = Handlebars.compile(source);
     $('#stored-ul').prepend(template(newLinky));
+    $('#linky-list').fadeIn();
 
     addToStorage(newLinky);
+    drawLinks();
     $('#linkyUrl a').html(web_base  + '/' + data.linky_id).attr('href', web_base + '/' + data.linky_id);
     //$('#linky_title').text(data.linky_title);
     $('#linky-preview img').attr('src', data.linky_url);
@@ -114,12 +117,11 @@ function linkIt(){
 
   $('#linky-confirm').on('hidden', function () {
     $('#rawUrl').val('').focus();
-    $('#local-list').fadeIn();
 
     $('#linky_generation_message').html('Creating your Linky. Hold tight.');
     $('#linkyUrl a').html('').attr('');
     $('#linky-desc').addClass('unavailable');
-    drawLinks();
+    //drawLinks();
   });
 }
 
@@ -151,7 +153,7 @@ function drawLinks() {
         $(this).next('.copy-confirm').html('copied').fadeIn(100).fadeOut(3000);
       });
     });
-    $('#local-list').fadeIn();
+    $('#local-list, #linky-list').fadeIn();
   }
 }
 
