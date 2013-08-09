@@ -14,12 +14,12 @@ $(document).ready(function() {
 		return false;
 	});
 
-	$('#email_request').keyup(function() {
+	$('#linky-confirm').on('keyup', '#email_request', function() {
     if(!$(this).val()) {
-      $('#saveLinky').text('Save this Linky');
+      $('#saveLinky').text('Save this Perma');
     }
     else {
-      $('#saveLinky').text('Save and send this Linky');
+      $('#saveLinky').text('Save and send this Perma');
     }
   });
 
