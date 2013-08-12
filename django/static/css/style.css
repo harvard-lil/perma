@@ -630,6 +630,14 @@ td.linky-abbr-date-time {
     min-width:auto;
     width:80px;
     vertical-align:top;
+=======
+	min-width:450px;
+}
+
+td.linky-abbr-date-time {
+	min-width:auto;
+	width:130px;
+	vertical-align:top;
 }
 
 td.registrar-name-cell {
