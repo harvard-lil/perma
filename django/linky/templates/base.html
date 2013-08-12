@@ -3,25 +3,21 @@
 
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Perma{% block title %}{% endblock %}</title>
-
-	<meta charset="UTF-8" />
-	<meta name="google" value="notranslate" />
-	<meta http-equiv="Content-Language" content="en" />
-	
-	<link href="{{ STATIC_PREFIX }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
-	
-	<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap.css">
-	<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap-responsive.css">
-	<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
-    {% block styles %}
-    {% endblock %}  
-    <script type="text/javascript" src="//use.typekit.net/pjl6esq.js"></script>
-	<script type="text/javascript">try{Typekit.load();}catch(e){}</script>
-	
-  </head>
-  <body>
+    <head>
+        <title>Perma{% block title %}{% endblock %}</title>
+        <meta charset="utf-8" /> <meta name="google" value="notranslate" /> <meta http-equiv="Content-Language" content="en" />
+        <!-- TODO add default meta description -->
+        <meta name="description" content="{% block meta_description %}{% endblock %}">
+        <link href="{{ STATIC_PREFIX }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
+        <link href='http://fonts.googleapis.com/css?family=Roboto+Slab:400,700' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap.css">
+        <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap-responsive.css">
+        <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
+        {% block styles %}{% endblock %}  
+        <script type="text/javascript" src="//use.typekit.net/pjl6esq.js"></script>
+        <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+    </head>
+    <body>
       <div class="container">
         {% include "navbar.html" %}
       		<div class="row">
