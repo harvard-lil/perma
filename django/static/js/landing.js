@@ -14,37 +14,49 @@ $(document).ready(function() {
 		return false;
 	});
 
-	$('#email_request').keyup(function() {
+	$('#linky-confirm').on('keyup', '#email_request', function() {
     if(!$(this).val()) {
-      $('#saveLinky').text('Save this Linky');
+      $('#saveLinky').text('Save this Perma');
     }
     else {
-      $('#saveLinky').text('Save and send this Linky');
+      $('#saveLinky').text('Save and send this Perma');
     }
   });
 
   drawLinks();
 
   $('#linky_upload_form').submit(function(){
-	  $('#linky-upload').modal('hide');
-	  $('#linky-upload-confirm').modal({show: true});
-	  $(this).ajaxSubmit(function(data){
-		  var linkyUrl = web_base  + '/' + data.linky_hash;
-		  $('#linky_upload_success').text('Your linky has been created at');
-		  $('#uploadedLinkyUrl a').attr('href', linkyUrl).text(linkyUrl);
-		  newLinky.url = linkyUrl;
-      newLinky.original = $('#url').val();
-      newLinky.title = $('#title').val();
-      newLinky.favicon_url = data.favicon_url;
-      addToStorage(newLinky);
-      var source = $("#list-template").html();
-      var template = Handlebars.compile(source);
-      $('#stored-ul').prepend(template(newLinky));
-      drawLinks();
-	  });
-	  return false;
+	  $(this).ajaxSubmit({success: uploadIt, error: uploadNot});
+	    return false;
     });
   });
+
+function uploadNot() {
+  $('#upload-error').text('The upload failed');
+}
+
+function uploadIt(data) {
+  if(data.status == 'success') {
+    $('#linky-upload').modal('hide');
+	  $('#linky-upload-confirm').modal({show: true});
+    var linkyUrl = web_base  + '/' + data.linky_hash;
+		$('#linky_upload_success').text('Your linky has been created at');
+		$('#uploadedLinkyUrl a').attr('href', linkyUrl).text(linkyUrl);
+		newLinky.url = linkyUrl;
+    newLinky.original = $('#url').val();
+    newLinky.title = $('#title').val();
+    newLinky.favicon_url = data.favicon_url;
+    addToStorage(newLinky);
+    var source = $("#list-template").html();
+    var template = Handlebars.compile(source);
+    $('#stored-ul').prepend(template(newLinky));
+    $('#linky-list').fadeIn();
+    drawLinks();
+  }
+  else {
+    return xhr.abort();
+  }
+}
 
 function linkIt(){
   var source = $("#loading-template").html();
@@ -68,13 +80,16 @@ function linkIt(){
     newLinky.url = linkyUrl;
     newLinky.original = rawUrl;
     newLinky.title = data.linky_title;
+    $('#title').val(data.linky_title);
     newLinky.favicon_url = data.favicon_url;
 
     var source = $("#list-template").html();
     var template = Handlebars.compile(source);
     $('#stored-ul').prepend(template(newLinky));
+    $('#linky-list').fadeIn();
 
     addToStorage(newLinky);
+    drawLinks();
     $('#linkyUrl a').html(web_base  + '/' + data.linky_id).attr('href', web_base + '/' + data.linky_id);
     //$('#linky_title').text(data.linky_title);
     $('#linky-preview img').attr('src', data.linky_url);
@@ -102,12 +117,11 @@ function linkIt(){
 
   $('#linky-confirm').on('hidden', function () {
     $('#rawUrl').val('').focus();
-    $('#local-list').fadeIn();
 
     $('#linky_generation_message').html('Creating your Linky. Hold tight.');
     $('#linkyUrl a').html('').attr('');
     $('#linky-desc').addClass('unavailable');
-    drawLinks();
+    //drawLinks();
   });
 }
 
@@ -139,7 +153,7 @@ function drawLinks() {
         $(this).next('.copy-confirm').html('copied').fadeIn(100).fadeOut(3000);
       });
     });
-    $('#local-list').fadeIn();
+    $('#local-list, #linky-list').fadeIn();
   }
 }
 
@@ -187,6 +201,7 @@ Handlebars.registerHelper ('http_it', function (str) {
 
 var upload_form = function(){
     $('#linky-confirm').modal('hide');
+    $('#upload-error').text('');
     $('#linky-upload').modal('show');
     return false;
 };

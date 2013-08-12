@@ -100,6 +100,11 @@ If you need more, that's where to get'em.
   margin-top:25px;
 }
 
+#upload-error {
+  margin-top:10px;
+  height:20px;
+}
+
 .modal-footer {
   min-height:35px;
 }

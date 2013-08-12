@@ -33,6 +33,13 @@ def landing(request):
 
     return render_to_response('landing.html', context)
 
+def about(request):
+    """The about page"""
+
+    context = {'host': request.get_host()}
+
+    return render_to_response('about.html', context)
+
 def single_linky(request, linky_id):
     """Given a Linky ID, serve it up. Vetting also takes place here. """
 

@@ -1,5 +1,5 @@
 {% extends "admin-layout.html" %}
-{% block title %} | Vested Linky links{% endblock %}
+{% block title %} | Vested Perma links{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 {% endblock %}
@@ -8,7 +8,7 @@
 
 {% block content %}
 
-		<h3>Linky links created by you</h3>
+		<h3>Perma links created by you</h3>
 		<p>You've created {{ total_created }} links</p>
 
 		<table class="vested-table">
@@ -16,8 +16,8 @@
       	<tr>
       	<th> </th>
         <th>Link</th>
-			  <th>Created</th>
-			  <th>Vested</th>
+			  <th>Created<a href="?sort=creation_timestamp">^</a><a href="?sort=-creation_timestamp">v</a></th>
+			  <th>Vested<a href="?sort=vested_timestamp">^</a><a href="?sort=-vested_timestamp">v</a></th>
 			  <th>Views</th>
 		  </tr>
 		</thead>
@@ -30,9 +30,18 @@
 			  <td class="linky-abbr-date-time">{{ linky_link.vested_timestamp|date:"m/d/Y" }}</td>
 			  <td class="linky-view-count">{{ linky_link.view_count }}</td>
 		  {% empty %}
-			<tr><td>No linky links found.</td></tr>
+			<tr><td>No Perma links found.</td></tr>
 		  {% endfor %}
 		</tbody>
+        {% if linky_links.has_previous %}<a href="?page={{ linky_links.previous_page_number }}&sort={{ sort }}">&lt;</a>{% endif %}
+        {% for i in linky_links.paginator.page_range %}
+        {% ifequal i linky_links.number %}
+        <a href="">{{ i }}</a>
+        {% else %}
+        <a href="?page={{ i }}">{{ i }}</a>
+        {% endifequal %}
+        {% endfor %}
+        {% if linky_links.has_next  %}<a href="?page={{ linky_links.next_page_number }}&sort={{ sort }}">&gt;</a>{% endif %}
 	  </table>
 
 {% endblock %}
