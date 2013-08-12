@@ -14,10 +14,34 @@
         <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap-responsive.css">
         <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
         {% block styles %}{% endblock %}  
+        <!--
         <script type="text/javascript" src="//use.typekit.net/pjl6esq.js"></script>
         <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+        -->
     </head>
     <body>
+
+        <header>
+            <div class="main-container">
+                <{% if this_page == 'index' %}h1{% else %}div{% endif %} class="logo"><a href="{% url 'landing' %}"><span>Everly</span></a></{% if this_page == 'index' %}h1{% else %}div{% endif %}>
+                <nav>
+                    <ul>
+                        {% if user.is_authenticated %}
+                        <li>Hello, {{ user.username }}</li>
+                        <li><a href="{% url 'auth_logout' %}">{% if this_page == 'logout' %} class="this-page"{% endif %}<span style="color: #aaa;">Log out</span></a></li>
+                        <li><a href="{% comment %}TODO add dashboard url{% url 'dashboard' %}{% endcomment %}" id="nav-button" class="btn btn-large btn-success">Dashboard</a></li>
+                        {% else %}
+                        <li><a href="{% comment %}TODO add tools url{% url 'tools' %}{% endcomment %}"{% if this_page == 'tools' %} class="this-page"{% endif %}>Tools</a></li>
+                        <li><a href="{% url 'about' %}"{% if this_page == 'about' %} class="this-page"{% endif %}>About</a></li>
+                        <li><a href="{% url 'auth_login' %}">Log in</a></li>
+                        <li><a href="{% url 'process_register' %}" id="nav-button" class="btn btn-large btn-success">Sign Up</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div><!--/.main-container-->
+        </header>
+
+{% comment %}
       <div class="container">
         {% include "navbar.html" %}
       		<div class="row">
@@ -29,7 +53,7 @@
       {% block row %}
       	{% endblock %}
       	 </div><!--end container -->
-
+{% endcomment %}
       	
    
     <script src="{{ STATIC_PREFIX }}js/jquery.js"></script>
@@ -40,6 +64,8 @@
     {% block templates %}
     {% endblock %} 
   </body>
+
+{% comment %}
   <footer>
       		<div class="row footer">
       			<div class="span12">
@@ -47,4 +73,6 @@
       			</div>
       		</div>
       	</footer>
+{% endcomment %}
+
 </html>

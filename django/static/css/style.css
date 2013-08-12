@@ -1,23 +1,123 @@
 /* Global */
 
-body, .modal {
-	background-image:url('../img/brickwall.png');
-	background-color:#cccccc;
-	border-radius:3px;
+html {
+    position:relative;
+    min-height:100%;
 }
 
 body {
-	margin: 0 0 100px;
+    background-color: #efefef;
+    color: #333;
+    margin: 0 0 100px;
 }
 
-html {
-	position:relative;
-	min-height:100%;
+.modal {
+    background-image:url('../img/brickwall.png');
+    background-color:#cccccc;
+    border-radius:3px;
 }
 
-.container {
-/*/?background:#D8D8C8;/*/
+div.main-container {
+    overflow: hidden;
+    margin: 0 auto;
+    width: 800px;
 }
+
+h1, h2, h3, h4, h5 { font-weight: normal; }
+
+h1 {
+    margin-top: 40px;
+    margin-bottom: 30px;
+}
+
+h2 {
+    margin-top: 25px;
+    font-size: 26px;
+}
+
+p {
+    margin-bottom: 20px;
+}
+
+/* Header */
+
+header {
+    background-color: #fff;
+    border-bottom: 1px solid #efefef;
+    height: 100px;
+    margin: 0;
+    padding: 0;
+}
+
+    header .logo {
+        background: url('../img/logo.png') left no-repeat;
+        float: left;
+        height: 50px;
+        margin: 0;
+        margin-top: 26px;
+        overflow: hidden;
+        padding: 0;
+        width: 130px;
+    }
+
+        header .logo span { display: none; }
+
+        header .logo a {
+            display: block;
+            height: 50px;
+            text-decoration: none;
+            width: 120px;
+        }
+
+    header nav {
+        float: right;
+        margin-top: 32px;
+        width: 600px;
+    }
+
+        header nav ul {
+            list-style: none;
+            text-align: right;
+        }
+
+            header nav ul li {
+                display: inline;
+                font-size: 17.5px;
+                margin-left: 30px;
+                text-transform: uppercase;
+            }
+
+                header nav ul li a#nav-button { margin-top: -4px; }
+
+                header nav ul li a {
+                    background-color: #fff;
+                    border-radius: 3px;
+                    -moz-border-radius: 3px;
+                    -webkit-border-radius: 3px;
+                    color: #333;
+                    padding: 5px 10px;
+                    line-height: 10px;
+                }
+
+                header nav ul li a:hover {
+                    background-color: #efefef;
+                    color: #333;
+                    text-decoration: none;
+                }
+
+                header nav ul li a.this-page {
+                    background-color: #efefef;
+                    color: #333;
+                    text-decoration: none;
+                }
+
+/* Main */
+section#main {
+    background-color: #fff;
+    padding: 0;
+}
+
+/* iframes */
 
 iframe {
 	border:1px;
