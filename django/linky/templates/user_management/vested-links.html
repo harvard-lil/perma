@@ -12,11 +12,11 @@
 		
 		<table class="vested-table">
     	<thead>
-      		<tr>
+      	<tr>
         	<th>Link</th>
-			<th>Created</th>
-			<th>Vested</th>
-		  </tr>
+          <th>Created<a href="?sort=creation_timestamp"> <i class="icon-chevron-up"></i></a><a href="?sort=-creation_timestamp"> <i class="icon-chevron-down"></i></a></th>
+			    <th>Vested<a href="?sort=vested_timestamp"> <i class="icon-chevron-up"></i></a><a href="?sort=-vested_timestamp"> <i class="icon-chevron-down"></i></a></th>		  
+			  </tr>
 		</thead>
 		<tbody>
 		  {% for linky_link in linky_links %}
@@ -29,6 +29,19 @@
 		  {% endfor %}
 		</tbody>
 	  </table>
+	  <div class="pagination">
+		  <ul>
+        {% if linky_links.has_previous %}<li><a href="?page={{ linky_links.previous_page_number }}&sort={{ sort }}">&lt;</a></li>{% endif %}
+        {% for i in linky_links.paginator.page_range %}
+        {% ifequal i linky_links.number %}
+        <li class="active"><a href="">{{ i }}</a></li>
+        {% else %}
+        <li><a href="?page={{ i }}">{{ i }}</a></li>
+        {% endifequal %}
+        {% endfor %}
+        {% if linky_links.has_next  %}<li><a href="?page={{ linky_links.next_page_number }}&sort={{ sort }}">&gt;</a></li>{% endif %}
+      </ul>
+    </div>
 
 {% endblock %}
 

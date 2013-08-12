@@ -45,7 +45,7 @@ def linky_post(request):
     
     if parsed_html:
         if parsed_html.find(".//title") is not None and parsed_html.find(".//title").text:
-            target_title = parsed_html.find(".//title").text
+            target_title = parsed_html.find(".//title").text.strip()
     
     link = Link(submitted_url=target_url, submitted_title=target_title)
     

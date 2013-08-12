@@ -347,6 +347,10 @@ def created_links(request):
 
     for linky_link in linky_links:
         linky_link.id =  base.convert(linky_link.id, base.BASE10, base.BASE58)
+        if len(linky_link.submitted_title) > 50:
+          linky_link.submitted_title = linky_link.submitted_title[:50] + '...'
+        if len(linky_link.submitted_url) > 79:
+          linky_link.submitted_url = linky_link.submitted_url[:70] + '...'
 
     context = {'user': request.user, 'linky_links': linky_links, 'host': request.get_host(),
                'total_created': len(linky_links), sort : sort}
@@ -359,11 +363,28 @@ def vested_links(request):
 
     if request.user.groups.all()[0].name not in ['journal_member', 'registrar_member', 'registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
+        
+    
+    DEFAULT_SORT = '-creation_timestamp'
 
-    linky_links = list(Link.objects.filter(vested_by_editor=request.user).order_by('-vested_timestamp'))
+    sort = request.GET.get('sort', DEFAULT_SORT)
+    if sort not in valid_sorts:
+        sort = DEFAULT_SORT
+    page = request.GET.get('page', 1)
+    if page < 1:
+        page = 1
+
+    linky_links = Link.objects.filter(created_by=request.user).order_by(sort)
+    
+    paginator = Paginator(linky_links, 10)
+    linky_links = paginator.page(page)
 
     for linky_link in linky_links:
         linky_link.id =  base.convert(linky_link.id, base.BASE10, base.BASE58)
+        if len(linky_link.submitted_title) > 50:
+          linky_link.submitted_title = linky_link.submitted_title[:50] + '...'
+        if len(linky_link.submitted_url) > 79:
+          linky_link.submitted_url = linky_link.submitted_url[:70] + '...'
 
     context = {'user': request.user, 'linky_links': linky_links, 'host': request.get_host(),
                'total_vested': len(linky_links)}
