@@ -40,6 +40,40 @@
                 </nav>
             </div><!--/.main-container-->
         </header>
+        <section id="main">
+            {% if this_page != 'index' %}<div class="main-container" id="main-content">{% endif %}
+            {% block content %}{% endblock content %}
+            {% if this_page != 'index' %}
+            </div><!--/.main-container #main-content"-->
+            {% endif %}
+        </section><!--/#main-->
+        <footer>
+            <div class="main-container">
+                <p id="footer-nav">
+                    <a href="{% url 'landing' %}">Home</a>
+                    &nbsp;&nbsp;&middot;&nbsp;&nbsp;
+                    <a href="{% comment %}TODO add tools url{% url 'tools' %}{% endcomment %}">Tools</a>
+                    &nbsp;&nbsp;&middot;&nbsp;&nbsp;
+                    <a href="{% url 'about' %}">About</a>
+                    &nbsp;&nbsp;&middot;&nbsp;&nbsp;
+                    <a href="{% comment %}TODO add faqs url{% url 'faqs' %}{% endcomment %}">FAQs</a>
+                    &nbsp;&nbsp;&middot;&nbsp;&nbsp;
+                    <a href="{% comment %}TODO add contact url{% url 'contact' %}{% endcomment %}">Contact</a>
+                </p><!--/#footer-nav-->
+                <ul id="social-media">
+                    <li><a href="http://www.facebook.com/XXXXXXXX/"><img src="{{ STATIC_URL }}img/social-media-icons/facebook.png" alt="Facebook" /></a></li>
+                    <li><a href="http://www.twitter.com/XXXXXXXXXX/"><img src="{{ STATIC_URL }}img/social-media-icons/twitter.png" alt="Twitter"></a></li>
+                </ul><!--/#social-media-->
+                <p id="boilerplate">
+                    <!-- TODO add boilerplate text -->
+                    Copyright &copy; Lorem Ipsum
+                    &nbsp;&nbsp;&middot;&nbsp;&nbsp;
+                    <a href="#">Terms of Service</a>
+                    &nbsp;&nbsp;&middot;&nbsp;&nbsp;
+                    <a href="#">Privacy Policy</a>
+                </p>
+            </div><!--/.main-container-->
+        </footer>
 
 {% comment %}
       <div class="container">
