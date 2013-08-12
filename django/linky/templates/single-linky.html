@@ -26,9 +26,7 @@ function autoResize(id){
 	<div class="span2">
 		<h4 class="indexed">{{linky.submitted_title}}<br><small>indexed on {{linky.creation_timestamp}}{% if linky.vested %} | vested on {{linky.vested_timestamp}}{% endif %}</small></h4>
 
-        <h4>
-          Views: {{ linky.view_count }}
-        </h4>
+        <h4><small>Views: {{ linky.view_count }}</small></h4>
 
 	</div>
 	<div class="span8 linky-view">

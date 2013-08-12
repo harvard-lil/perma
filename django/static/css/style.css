@@ -502,12 +502,12 @@ td.linky-abbr-vested {
 }
 
 td.linky-abbr-title {
-	min-width:510px;
+	min-width:450px;
 }
 
 td.linky-abbr-date-time {
 	min-width:auto;
-	width:80px;
+	width:130px;
 	vertical-align:top;
 }
 

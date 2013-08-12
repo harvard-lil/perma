@@ -16,8 +16,8 @@
       	<tr>
       	<th> </th>
         <th>Link</th>
-			  <th>Created<a href="?sort=creation_timestamp">^</a><a href="?sort=-creation_timestamp">v</a></th>
-			  <th>Vested<a href="?sort=vested_timestamp">^</a><a href="?sort=-vested_timestamp">v</a></th>
+			  <th>Created<a href="?sort=creation_timestamp"> <i class="icon-chevron-up"></i></a><a href="?sort=-creation_timestamp"> <i class="icon-chevron-down"></i></a></th>
+			  <th>Vested<a href="?sort=vested_timestamp"> <i class="icon-chevron-up"></i></a><a href="?sort=-vested_timestamp"> <i class="icon-chevron-down"></i></a></th>
 			  <th>Views</th>
 		  </tr>
 		</thead>
@@ -33,16 +33,20 @@
 			<tr><td>No Perma links found.</td></tr>
 		  {% endfor %}
 		</tbody>
-        {% if linky_links.has_previous %}<a href="?page={{ linky_links.previous_page_number }}&sort={{ sort }}">&lt;</a>{% endif %}
+	  </table>
+	  <div class="pagination">
+		  <ul>
+        {% if linky_links.has_previous %}<li><a href="?page={{ linky_links.previous_page_number }}&sort={{ sort }}">&lt;</a></li>{% endif %}
         {% for i in linky_links.paginator.page_range %}
         {% ifequal i linky_links.number %}
-        <a href="">{{ i }}</a>
+        <li class="active"><a href="">{{ i }}</a></li>
         {% else %}
-        <a href="?page={{ i }}">{{ i }}</a>
+        <li><a href="?page={{ i }}">{{ i }}</a></li>
         {% endifequal %}
         {% endfor %}
-        {% if linky_links.has_next  %}<a href="?page={{ linky_links.next_page_number }}&sort={{ sort }}">&gt;</a>{% endif %}
-	  </table>
+        {% if linky_links.has_next  %}<li><a href="?page={{ linky_links.next_page_number }}&sort={{ sort }}">&gt;</a></li>{% endif %}
+      </ul>
+    </div>
 
 {% endblock %}
 
