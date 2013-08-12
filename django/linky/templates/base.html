@@ -3,25 +3,79 @@
 
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Perma{% block title %}{% endblock %}</title>
+    <head>
+        <title>Perma{% block title %}{% endblock %}</title>
+        <meta charset="utf-8" /> <meta name="google" value="notranslate" /> <meta http-equiv="Content-Language" content="en" />
+        <!-- TODO add default meta description -->
+        <meta name="description" content="{% block meta_description %}{% endblock %}">
+        <link href="{{ STATIC_PREFIX }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
+        <link href='http://fonts.googleapis.com/css?family=Roboto+Slab:400,700' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap.css">
+        <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap-responsive.css">
+        <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
+        {% block styles %}{% endblock %}  
+        <!--
+        <script type="text/javascript" src="//use.typekit.net/pjl6esq.js"></script>
+        <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+        -->
+    </head>
+    <body>
 
-	<meta charset="UTF-8" />
-	<meta name="google" value="notranslate" />
-	<meta http-equiv="Content-Language" content="en" />
-	
-	<link href="{{ STATIC_PREFIX }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
-	
-	<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap.css">
-	<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap-responsive.css">
-	<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
-    {% block styles %}
-    {% endblock %}  
-    <script type="text/javascript" src="//use.typekit.net/pjl6esq.js"></script>
-	<script type="text/javascript">try{Typekit.load();}catch(e){}</script>
-	
-  </head>
-  <body>
+        <header>
+            <div class="main-container">
+                <{% if this_page == 'index' %}h1{% else %}div{% endif %} class="logo"><a href="{% url 'landing' %}"><span>Everly</span></a></{% if this_page == 'index' %}h1{% else %}div{% endif %}>
+                <nav>
+                    <ul>
+                        {% if user.is_authenticated %}
+                        <li>Hello, {{ user.username }}</li>
+                        <li><a href="{% url 'auth_logout' %}">{% if this_page == 'logout' %} class="this-page"{% endif %}<span style="color: #aaa;">Log out</span></a></li>
+                        <li><a href="{% comment %}TODO add dashboard url{% url 'dashboard' %}{% endcomment %}" id="nav-button" class="btn btn-large btn-success">Dashboard</a></li>
+                        {% else %}
+                        <li><a href="{% comment %}TODO add tools url{% url 'tools' %}{% endcomment %}"{% if this_page == 'tools' %} class="this-page"{% endif %}>Tools</a></li>
+                        <li><a href="{% url 'about' %}"{% if this_page == 'about' %} class="this-page"{% endif %}>About</a></li>
+                        <li><a href="{% url 'auth_login' %}">Log in</a></li>
+                        <li><a href="{% url 'process_register' %}" id="nav-button" class="btn btn-large btn-success">Sign Up</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div><!--/.main-container-->
+        </header>
+        <section id="main">
+            {% if this_page != 'index' %}<div class="main-container" id="main-content">{% endif %}
+            {% block content %}{% endblock content %}
+            {% if this_page != 'index' %}
+            </div><!--/.main-container #main-content"-->
+            {% endif %}
+        </section><!--/#main-->
+        <footer>
+            <div class="main-container">
+                <p id="footer-nav">
+                    <a href="{% url 'landing' %}">Home</a>
+                    &nbsp;&nbsp;&middot;&nbsp;&nbsp;
+                    <a href="{% comment %}TODO add tools url{% url 'tools' %}{% endcomment %}">Tools</a>
+                    &nbsp;&nbsp;&middot;&nbsp;&nbsp;
+                    <a href="{% url 'about' %}">About</a>
+                    &nbsp;&nbsp;&middot;&nbsp;&nbsp;
+                    <a href="{% comment %}TODO add faqs url{% url 'faqs' %}{% endcomment %}">FAQs</a>
+                    &nbsp;&nbsp;&middot;&nbsp;&nbsp;
+                    <a href="{% comment %}TODO add contact url{% url 'contact' %}{% endcomment %}">Contact</a>
+                </p><!--/#footer-nav-->
+                <ul id="social-media">
+                    <li><a href="http://www.facebook.com/XXXXXXXX/"><img src="{{ STATIC_URL }}img/social-media-icons/facebook.png" alt="Facebook" /></a></li>
+                    <li><a href="http://www.twitter.com/XXXXXXXXXX/"><img src="{{ STATIC_URL }}img/social-media-icons/twitter.png" alt="Twitter"></a></li>
+                </ul><!--/#social-media-->
+                <p id="boilerplate">
+                    <!-- TODO add boilerplate text -->
+                    Copyright &copy; Lorem Ipsum
+                    &nbsp;&nbsp;&middot;&nbsp;&nbsp;
+                    <a href="#">Terms of Service</a>
+                    &nbsp;&nbsp;&middot;&nbsp;&nbsp;
+                    <a href="#">Privacy Policy</a>
+                </p>
+            </div><!--/.main-container-->
+        </footer>
+
+{% comment %}
       <div class="container">
         {% include "navbar.html" %}
       		<div class="row">
@@ -33,7 +87,7 @@
       {% block row %}
       	{% endblock %}
       	 </div><!--end container -->
-
+{% endcomment %}
       	
    
     <script src="{{ STATIC_PREFIX }}js/jquery.js"></script>
@@ -44,6 +98,8 @@
     {% block templates %}
     {% endblock %} 
   </body>
+
+{% comment %}
   <footer>
       		<div class="row footer">
       			<div class="span12">
@@ -51,4 +107,6 @@
       			</div>
       		</div>
       	</footer>
+{% endcomment %}
+
 </html>
