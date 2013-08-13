@@ -23,7 +23,7 @@
 
         <header>
             <div class="main-container">
-                <{% if this_page == 'index' %}h1{% else %}div{% endif %} class="logo"><a href="{% url 'landing' %}"><span>Everly</span></a></{% if this_page == 'index' %}h1{% else %}div{% endif %}>
+                <{% if this_page == 'landing' %}h1{% else %}div{% endif %} class="logo"><a href="{% url 'landing' %}"><span>Everly</span></a></{% if this_page == 'landing' %}h1{% else %}div{% endif %}>
                 <nav>
                     <ul>
                         {% if user.is_authenticated %}
@@ -41,9 +41,9 @@
             </div><!--/.main-container-->
         </header>
         <section id="main">
-            {% if this_page != 'index' %}<div class="main-container" id="main-content">{% endif %}
+            {% if this_page != 'landing' %}<div class="main-container" id="main-content">{% endif %}
             {% block content %}{% endblock content %}
-            {% if this_page != 'index' %}
+            {% if this_page != 'landing' %}
             </div><!--/.main-container #main-content"-->
             {% endif %}
         </section><!--/#main-->
