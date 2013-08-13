@@ -23,7 +23,7 @@
         <p>Perma makes it easy for bloggers, journalists,<br />
         academics, and others to create durable web archives.</p>
         {% if user.is_authenticated %}
-        <p>{% comment %}TODO add dashboard url<a href="{% url 'dashboard' %}{% endcomment %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
+        <p><a href="{% comment %}TODO add dashboard url{% url 'dashboard' %}{% endcomment %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
         <p id="subtext">Currently signed in as <a href="#">{{ user.username }}</a> (<a href="#">log out</a>)</p>
         {% else %}
         <p><a href="#" class="btn btn-large btn-success">Sign Up for a Free Account</a></p>
