@@ -40,6 +40,10 @@ def about(request):
 
     return render_to_response('about.html', context)
 
+def faq(request):
+    """The FAQ page"""
+    return render_to_response('faq.html', {})
+
 def single_linky(request, linky_guid):
     """Given a Linky ID, serve it up. Vetting also takes place here. """
 
