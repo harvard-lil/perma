@@ -31,7 +31,8 @@
                                 {% if user.is_authenticated %}
                                 <li>Hello, {{ user.username }}</li>
                                 <li><a href="{% url 'auth_logout' %}">{% if this_page == 'logout' %} class="this-page"{% endif %}<span style="color: #aaa;">Log out</span></a></li>
-                                <li><a href="{% comment %}TODO add dashboard url{% url 'dashboard' %}{% endcomment %}" id="nav-button" class="btn btn-large btn-success">Dashboard</a></li>
+                                <!-- TODO: canonical dashboard url? -->
+                                <li><a href="{% url 'user_management_created_links' %}" id="nav-button" class="btn btn-large btn-success">Dashboard</a></li>
                                 {% else %}
                                 <li><a href="{% comment %}TODO add tools url{% url 'tools' %}{% endcomment %}"{% if this_page == 'tools' %} class="this-page"{% endif %}>Tools</a></li>
                                 <li><a href="{% url 'about' %}"{% if this_page == 'about' %} class="this-page"{% endif %}>About</a></li>
