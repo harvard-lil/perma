@@ -8,7 +8,7 @@
 {% block content %}
 
 		<h3>Perma links vested by you</h3>
-		<p>You've vested {{ total_vested}} links</p>
+		<p>You've vested {{ total_vested }} link{{ total_vested|pluralize }}.</p>
 		
 		<table class="vested-table">
     	<thead>
@@ -29,8 +29,11 @@
 		  {% endfor %}
 		</tbody>
 	  </table>
-	  <div class="pagination">
-		  <ul>
+
+
+{% if linky_links.paginator.num_pages > 1 %}
+<div class="pagination">
+    <ul>
         {% if linky_links.has_previous %}<li><a href="?page={{ linky_links.previous_page_number }}&sort={{ sort }}">&lt;</a></li>{% endif %}
         {% for i in linky_links.paginator.page_range %}
         {% ifequal i linky_links.number %}
@@ -40,7 +43,8 @@
         {% endifequal %}
         {% endfor %}
         {% if linky_links.has_next  %}<li><a href="?page={{ linky_links.next_page_number }}&sort={{ sort }}">&gt;</a></li>{% endif %}
-      </ul>
-    </div>
+    </ul>
+</div>
+{% endif %}
 
 {% endblock %}

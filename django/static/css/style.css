@@ -43,6 +43,13 @@ p {
     margin-bottom: 20px;
 }
 
+.fancy-infinity {
+    color:#09f;
+    font-weight:bold;
+    font-size:20px;
+    line-height: 17px;
+}
+
 /* Header */
 
 header {
@@ -923,6 +930,7 @@ td, th {
   border: 0px solid #ccc; 
   text-align: left; 
   padding:0px;
+  vertical-align: top;
 }
 
 p a.submitted_url {
@@ -943,8 +951,12 @@ p a.submitted_url {
   margin-top:20px;
 }
 
-.vested-table td {
-  padding-top:15px;
+.vested-table tr {
+    border-bottom: 1px solid #ccc;
+}
+
+.vested-table td, th {
+    padding: 10px;
 }
 
 td.linky-abbr-title, td.linky-abbr-date-time {
@@ -959,29 +971,22 @@ td.linky-abbr-title, td.linky-abbr-date-time {
 }
 
 td.linky-abbr-vested {
-  width:15px;
-  font-weight:bold;
-  font-size:22px;
-  padding-right:5px;
-  color:#09f;
-  vertical-align:top;
 }
 
 td.linky-abbr-title {
-    min-width:510px;
+    min-width:280px;
 }
 
 td.linky-abbr-date-time {
     min-width:auto;
-    width:80px;
+    width:75px;
     vertical-align:top;
-=======
-	min-width:450px;
+    min-width:100px;
 }
 
 td.linky-abbr-date-time {
 	min-width:auto;
-	width:130px;
+	width:100px;
 	vertical-align:top;
 }
 
