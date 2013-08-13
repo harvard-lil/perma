@@ -246,7 +246,10 @@ section#home-description {
 
 /* Add link widget */
 
-button#addlink { text-transform: uppercase; }
+button#addlink {
+    margin-top: 9px;
+    text-transform: uppercase;
+}
 
 /* Form elements */
 
