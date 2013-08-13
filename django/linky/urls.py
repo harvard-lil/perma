@@ -11,7 +11,7 @@ urlpatterns = patterns('linky.views',
     # Common Pages
     url(r'^$', 'common.landing', name='landing'),
     url(r'^editor/?$', 'common.editor_home', name='editor_home'),
-	url(r'^about/?$', 'common.about', name='about'),
+    url(r'^about/?$', 'common.about', name='about'),
     
     #API routes
     url(r'^api/linky/upload?$', 'api.upload_file', name='api_linky_upload'),
@@ -47,12 +47,15 @@ urlpatterns = patterns('linky.views',
     url(r'^manage/vested-links/?$', 'user_management.vested_links', name='user_management_vested_links'),
     url(r'^manage/sponsoring-library/?$', 'user_management.sponsoring_library', name='user_management_sponsoring_library'),
     url(r'^manage/account/?$', 'user_management.manage_account', name='user_management_manage_account'),
+    url(r'^manage/batch-convert/?$', 'user_management.batch_convert', name='user_management_batch_convert'),
+    url(r'^manage/export/?$', 'user_management.export', name='user_management_export'),
+    url(r'^manage/custom-domain/?$', 'user_management.custom_domain', name='user_management_custom_domain'),
 #    url(r'^manage/users/?$', 'manage.users', name='manage_users'),
 #    url(r'^manage/account/?$', 'manage.account', name='manage_account'),
 #    url(r'^manage/activity/?$', 'manage.activity', name='manage_activity'),
     
     # Our Linky ID catchall
-    url(r'^(?P<linky_id>[a-zA-Z0-9]+)/?$', 'common.single_linky', name='single_linky'),    
+    url(r'^(?P<linky_guid>[a-zA-Z0-9]+)/?$', 'common.single_linky', name='single_linky'),    
     
 )
 

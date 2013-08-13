@@ -6,40 +6,41 @@
 {% block content %}
 
 <!-- URL input -->
-<div class="row-fluid">
-	<div class="span12 center">
-		<form class="form-inline" id="linker">
-    		<input type="text" id="rawUrl" class="input-xlarge" placeholder="Enter URL">
-      		<button type="submit" class="btn big">&infin;</button>
-    	</form>
-	</div> <!--span-->
-</div> <!--row-->
+<section id="home-form-container">
+    <div class="main-container">
+        <div class="home-form-frame">
+            <p id="home-blurb">Permanently archive your links.</p>
+            <div class="home-form-elements">
+                {% include 'add_link_form.html' %}
+            </div><!--/.home-form-->
+        </div><!--/.home-form-frame-->
+    </div><!--/.main-container-->
+</section><!--/#home-form-container-->
 
-<!-- Instructions -->
-<div class="row-fluid">
-	<div class="span12 center">
-			<div class="span4">
-				<img src="{{ STATIC_PREFIX }}img/linky-1-export.png" alt="Create" /> <h3>Create a Perma</h3>
-			</div> <!--span-->
-			<div class="span4">
-		 		<img src="{{ STATIC_PREFIX }}img/linky-2-export.png" alt="Save" />
-		 		<h3>We'll hang on to it for a while</h3>
-			</div> <!--span-->
-			<div class="span4">
-		 		<img src="{{ STATIC_PREFIX }}img/linky-3-export.png" alt="Export" />
-		 		<h3>If it's published, we'll keep it forever</h3>
-			</div> <!--span-->
-	</div> <!--row span10-->
-</div>
+<section id="home-description">
+    <div class="main-container">
+        <p>Broken links are everywhere.</p>
+        <p>Perma makes it easy for bloggers, journalists,<br />
+        academics, and others to create durable web archives.</p>
+        {% if user.is_authenticated %}
+        <p><a href="{% comment %}TODO add dashboard url{% url 'dashboard' %}{% endcomment %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
+        <p id="subtext">Currently signed in as <a href="#">{{ user.username }}</a> (<a href="#">log out</a>)</p>
+        {% else %}
+        <p><a href="#" class="btn btn-large btn-success">Sign Up for a Free Account</a></p>
+        <p id="subtext">See <a href="#">how it works</a> or <a href="{% url 'auth_login' %}">log in</a>.</p>
+        {% endif %}
+    </div><!--/.main-container-->
+</section><!--/#home-description-->
 
-<div class="row-fluid" id="landing-container">
+{% comment %}
+<hr />
 
 <!-- List of recently saved links -->
+<div class="main-container">
 <div id="linky-list" class="span12">
 
     {% if user.is_authenticated %}
 
-    <hr />
     <h3 class="text-center linky-ul-header">Recently created</h3>
     <ul id="stored-ul" class="perma-ul">
         {% for linky_link in linky_links %}
@@ -48,16 +49,16 @@
             <div class="span8">
                 <div class="favicon-preview"><img src=""></div>
                 <div class="recent-linky-summary">
-                    <h4><a href="http://{{host}}/{{linky_link.id}}" target="_blank">{{ linky_link.submitted_title }}</a></h4>
+                    <h4><a href="http://{{host}}/{{linky_link.guid}}" target="_blank">{{ linky_link.submitted_title }}</a></h4>
                     <small>{{ linky_link.submitted_url }}</small>
                     <br>
-                    <p><a href="http://{{host}}/{{linky_link.id}}" target="_blank">{{host}}/{{linky_link.id}}</a></p>
+                    <p><a href="http://{{host}}/{{linky_link.guid}}" target="_blank">{{host}}/{{linky_link.guid}}</a></p>
                     <small>Views: {{ linky_link.view_count }}</small>
                 </div><!--/.recent-linky-summary-->
             </div><!--/.span8-->
             <div class="span4">
                 <div class="copy-button-div">
-                    <button class="btn copy-button" data-clipboard-text="{{host}}/{{linky_link.id}}" title="Copy Linky Link">Copy Perma &infin;</button>
+                    <button class="btn copy-button" data-clipboard-text="{{host}}/{{linky_link.guid}}" title="Copy Linky Link">Copy Perma &infin;</button>
                     <p class="copy-confirm text-center" style="display:none"></p>
                 </div>
             </div><!--/.span4-->
@@ -69,19 +70,15 @@
     {% else %}
 
     <div id="local-list">
-        <hr />
         <h3 class="text-center linky-ul-header">Recently created</h3>
         <ul id="local-ul" class="perma-ul"></ul>
-        <div id="register-prompt" class="center">
-            <h3>This list ends at 10</h3>
-            <p><a href="{% url 'process_register' %}" class="btn primary">Create an account</a></p>
-            <p>Save unlimited links and access them from anywhere</p>
-        </div>
     </div><!--/.local-list-->
 
     {% endif %}
 
 </div><!--/.linky-list-->
+</div><!--/.main-container-->
+{% endcomment %}
 
 <!-- Modals -->
 <div class="span12 center" id="modals-container">

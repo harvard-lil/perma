@@ -1,5 +1,113 @@
-{% extends "base.html" %}
+{% extends "layout.html" %}
 {% block row %}
+
+<!-- TODO: dashboard blurb and accompanying JS? -->
+
+<div id="dashboard-container">
+    {% comment %}
+    XXX do we need bootstrap tabs here, or just ordinary <li>s?
+    <ul class="nav nav-pills nav-stacked" id="dashboard-tabs">
+        <li class="active"><a href="#archive" data-toggle="tab" id="dashboard-add">Add a Link</a></li>
+        <li><a href="#library" data-toggle="tab" id="dashboard-library">Library</a></li>
+        <li><a href="#batch-convert" data-toggle="tab" id="dashboard-batch-convert">Batch Convert</a></li>
+        <li><a href="#export" data-toggle="tab" id="dashboard-export">Export</a></li>
+        <li><a href="#custom-domain" data-toggle="tab" id="dashboard-custom-domain">Custom Domain</a></li>
+        <li><a href="#settings" data-toggle="tab" id="dashboard-settings">Settings</a></li>
+    </ul>
+    <div class="tab-content">
+        <div class="tab-pane active" id="archive">
+            <div class="dashboard-add-link">
+                <!-- FIXME add link form -->
+            </div><!--/.dashboard-add-link-->
+        </div><!--/#archive-->
+        <div class="tab-pane" id="library">
+            <!-- FIXME add library listing -->
+        </div><!--/#library-->
+        <div class="tab-pane" id="settings">
+            settings
+            <!-- FIXME add settings -->
+        </div><!--/#settings-->
+        <div class="tab-pane" id="batch-convert">
+            <!-- FIXME add batch convert -->
+        </div><!--/#batch-convert-->
+        <div class="tab-pane" id="export">
+            <!-- FIXME add export -->
+        </div><!--/#export-->
+        <div class="tab-pane" id="custom-domain">
+            <!-- FIXME add domain instructions -->
+        </div><!--/#custom-domain-->
+    </div><!--/.tab-content-->
+    {% endcomment %}
+
+    <!-- Dashboard tabs -->
+    <!-- FIXME set active tab based on current page -->
+    <!-- FIXME add correct urls below -->
+    <!-- FIXME icons for all menu items -->
+    <ul class="nav nav-pills nav-stacked" id="dashboard-tabs">
+
+        <!-- Add link -->
+        <!-- TODO view for adding a link from the dashboard -->
+        <!-- <li><a href="{% url 'landing' %}" id="dashboard-add">Add a Link</a></li> -->
+
+        <!-- Library -->
+        <li{% if this_page == 'created_links' %} class="active"{% endif %}><a href="{% url 'user_management_created_links' %}" id="dashboard-library">Links</a></li>
+
+        <!-- Vested links -->
+        {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'journal_member' %}
+        <li{% if this_page == 'vested_links' %} class="active"{% endif %}><a href="{% url 'user_management_vested_links' %}" class="dashboard-placeholder">Vested Links</a></li>
+        {% endif %}<!-- FIXME change icon -->
+
+        <!-- Batch convert -->
+        <!-- TODO add view and template -->
+        <li{% if this_page == 'batch_convert' %} class="active"{% endif %}><a href="{% url 'user_management_batch_convert' %}" id="dashboard-batch-convert">Batch Convert</a></li>
+
+        <!-- Export -->
+        <!-- TODO add view and template -->
+        <li{% if this_page == 'export' %} class="active"{% endif %}><a href="{% url 'user_management_export' %}" id="dashboard-export">Export</a></li>
+
+        <!-- Custom Domain -->
+        <!-- TODO add view and template -->
+        <li{% if this_page == 'custom_domain' %} class="active"{% endif %}><a href="{% url 'user_management_custom_domain' %}" id="dashboard-custom-domain">Custom Domain</a></li>
+
+        <!-- Settings -->
+        <li{% if this_page == 'settings' %} class="active"{% endif %}><a href="{% url 'user_management_manage_account' %}" id="dashboard-settings">Settings</a></li>
+
+
+        <!-- Manage users -->
+        {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' %}
+        <li{% if this_page == 'users' %} class="active"{% endif %}><a href="javascript:void(0);" class="dashboard-placeholder" id="dashboard-users">Manage Users</a></li>
+        {% endif %}
+
+        <!-- Registrars and registrar users -->
+        {% if user.groups.all.0.name == 'registry_member' %}
+        <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>
+        <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_registrar_member' %}">Registrar Users</a></li>{% endif %}
+
+        <!-- Journal users -->
+        {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' %}
+        <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_journal_member' %}">Journal Users</a></li>
+        {% endif %}
+  
+        <!-- Journal member -->
+        {% if user.groups.all.0.name == 'journal_member' %}
+        <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_sponsoring_library' %}">Sponsoring Library</a></li>
+        {% endif %}
+        
+  
+    </ul><!--/#dashboard-tabs-->
+
+    <!-- Dashboard tab content -->
+    <div class="tab-content">
+        <div class="tab-pane active">
+        {% block content %}{% endblock content %}
+        </div><!--/.tab-pane-->
+    </div><!--/.tab-content-->
+
+</div><!--/#dashboard-container-->
+
+
+{% comment %}
+
 <div class="row-fluid white-box">
 	<div class="span3">
     <ul class="nav nav-list manage-nav">
@@ -37,8 +145,22 @@
 
   </div> <!--span-->
   <div class="span9">
-  {% block content %}
-  {% endblock %}
   </div>
+
+{% endcomment %}
+
 </div> <!--row-->
 {% endblock %}
+
+{% block scripts %}
+<script>
+
+$(document).ready(function(){
+    // Toggle users dropdown
+    $('#dashboard-users').click(function(){
+        $('.users-secondary').toggle();
+    });
+});
+
+</script>
+{% endblock scripts %}
