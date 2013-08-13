@@ -24,7 +24,7 @@ body {
 div.main-container {
     overflow: hidden;
     margin: 0 auto;
-    width: 800px;
+    width: 960px;
 }
 
 h1, h2, h3, h4, h5 { font-weight: normal; }
@@ -76,7 +76,7 @@ header {
     header nav {
         float: right;
         margin-top: 32px;
-        width: 600px;
+        width: 800px;
     }
 
         header nav ul {
@@ -273,7 +273,7 @@ div#dashboard-container {
     div#dashboard-container ul#dashboard-tabs {
         display: block;
         float: left;
-        margin-right: 30px;
+        margin: 0 30px 50px 0;
         width: 250px;
     }
 
@@ -316,13 +316,39 @@ div#dashboard-container {
             a#dashboard-settings:hover { background-position: -356px -264px; }
             a#dashboard-credits { background-position: 19px -314px; }
             a#dashboard-credits:hover { background-position: -356px -314px; }
+            a.dashboard-placeholder { background-position: 19px -364px; }
+            a.dashboard-placeholder:hover { background-position: -356px -364px; }
 
+        div#dashboard-container ul#dashboard-tabs li.divider {
+            border-top: 1px solid #efefef;
+            height: 1px;
+        }
+
+        div#dashboard-container ul#dashboard-tabs li h3 {
+            color: #999;
+            font-size: 16px;
+            margin: 15px 0 0 0;
+            padding: 0;
+        }
+
+        div#dashboard-container ul#dashboard-tabs li.dashboard-secondary {}
+
+            div#dashboard-container ul#dashboard-tabs li.dashboard-secondary a {
+                background: none;
+                font-size: 16px;
+                margin: 0;
+                padding: 10px 0 0 51px;
+            }
+
+            div#dashboard-container ul#dashboard-tabs li.users-secondary {
+                display: none;
+            }
 
     div#dashboard-container div.tab-content {
         float: right;
         overflow: hidden;
         min-height: 300px;
-        width: 500px;
+        width: 675px;
     }
 
 div.dashboard-add-link {
