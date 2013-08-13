@@ -28,7 +28,7 @@ def landing(request):
     else:
       linky_links = list();
 
-    context = {'host': request.get_host(), 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()}
+    context = {'this_page': 'landing', 'host': request.get_host(), 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()}
     context.update(csrf(request))
 
     return render_to_response('landing.html', context)

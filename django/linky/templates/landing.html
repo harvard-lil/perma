@@ -5,6 +5,7 @@
 
 {% block content %}
 
+<!-- URL input -->
 <div class="row-fluid">
 	<div class="span12 center">
 		<form class="form-inline" id="linker">
@@ -13,139 +14,150 @@
     	</form>
 	</div> <!--span-->
 </div> <!--row-->
+
+<!-- Instructions -->
 <div class="row-fluid">
 	<div class="span12 center">
 			<div class="span4">
-				<img src="{{ STATIC_PREFIX }}img/linky-1-export.png">
-		 		<h3>Create a Perma</h3>
+				<img src="{{ STATIC_PREFIX }}img/linky-1-export.png" alt="Create" /> <h3>Create a Perma</h3>
 			</div> <!--span-->
 			<div class="span4">
-		 		<img src="{{ STATIC_PREFIX }}img/linky-2-export.png">
+		 		<img src="{{ STATIC_PREFIX }}img/linky-2-export.png" alt="Save" />
 		 		<h3>We'll hang on to it for a while</h3>
 			</div> <!--span-->
 			<div class="span4">
-		 		<img src="{{ STATIC_PREFIX }}img/linky-3-export.png">
+		 		<img src="{{ STATIC_PREFIX }}img/linky-3-export.png" alt="Export" />
 		 		<h3>If it's published, we'll keep it forever</h3>
 			</div> <!--span-->
 	</div> <!--row span10-->
 </div>
 
-<div class="row-fluid">
-	<div id="linky-list" class="span12">
-  	{% if user.is_authenticated %}
-        <hr>
-        <h3 class="text-center linky-ul-header">Recently created</h3>
-        <ul id="stored-ul" class="perma-ul">
+<div class="row-fluid" id="landing-container">
+
+<!-- List of recently saved links -->
+<div id="linky-list" class="span12">
+
+    {% if user.is_authenticated %}
+
+    <hr />
+    <h3 class="text-center linky-ul-header">Recently created</h3>
+    <ul id="stored-ul" class="perma-ul">
         {% for linky_link in linky_links %}
-          <div class="row-fluid">
-            <li>
-              <div class="span8">
+        <div class="row-fluid">
+        <li>
+            <div class="span8">
                 <div class="favicon-preview"><img src=""></div>
                 <div class="recent-linky-summary">
-                  <h4><a href="http://{{host}}/{{linky_link.id}}" target="_blank">{{ linky_link.submitted_title }}</a></h4>
-                  <small>{{ linky_link.submitted_url }}</small>
-                  <br>
-                  <p><a href="http://{{host}}/{{linky_link.id}}" target="_blank">{{host}}/{{linky_link.id}}</a></p>
-                  <small>Views: {{ linky_link.view_count }}</small>
+                    <h4><a href="http://{{host}}/{{linky_link.id}}" target="_blank">{{ linky_link.submitted_title }}</a></h4>
+                    <small>{{ linky_link.submitted_url }}</small>
+                    <br>
+                    <p><a href="http://{{host}}/{{linky_link.id}}" target="_blank">{{host}}/{{linky_link.id}}</a></p>
+                    <small>Views: {{ linky_link.view_count }}</small>
+                </div><!--/.recent-linky-summary-->
+            </div><!--/.span8-->
+            <div class="span4">
+                <div class="copy-button-div">
+                    <button class="btn copy-button" data-clipboard-text="{{host}}/{{linky_link.id}}" title="Copy Linky Link">Copy Perma &infin;</button>
+                    <p class="copy-confirm text-center" style="display:none"></p>
                 </div>
-              </div>
-              <div class="span4">
-                <div class="copy-button-div"><button class="btn copy-button" data-clipboard-text="{{host}}/{{linky_link.id}}" title="Copy Linky Link">Copy Perma &infin;</button><p class="copy-confirm text-center" style="display:none"></p></div>
-              </div>
-            </li>
-          </div>
+            </div><!--/.span4-->
+        </li>
+        </div><!--/.row-fluid-->
         {% endfor %}
-        </ul>
-		{% else %}
-		  <div id="local-list">
-		    <hr>
+    </ul><!--/#stored-ul-->
+
+    {% else %}
+
+    <div id="local-list">
+        <hr />
         <h3 class="text-center linky-ul-header">Recently created</h3>
-		    <ul id="local-ul" class="perma-ul"></ul>
-		    <div id="register-prompt" class="center">
-		  <h3>This list ends at 10</h3>
-        <p><a href="{% url 'process_register' %}" class="btn primary">Create an account</a></p>
-        <p>Save unlimited links and access them from anywhere</p>
-      </div>
-		  </div>
+        <ul id="local-ul" class="perma-ul"></ul>
+        <div id="register-prompt" class="center">
+            <h3>This list ends at 10</h3>
+            <p><a href="{% url 'process_register' %}" class="btn primary">Create an account</a></p>
+            <p>Save unlimited links and access them from anywhere</p>
+        </div>
+    </div><!--/.local-list-->
 
-		{% endif %}
-	</div>
+    {% endif %}
 
-  <div class="span12 center">
-    <!-- Linky creation modal -->
-    <div id="linky-confirm" class="modal hide fade">
-      <div class="modal-header">
+</div><!--/.linky-list-->
+
+<!-- Modals -->
+<div class="span12 center" id="modals-container">
+
+<!-- Linky creation modal -->
+<div id="linky-confirm" class="modal hide fade">
+    <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h1 class="logo-big">Perma Preview</h1>
-        <img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png"/>
-      </div>
-
-      <div class="modal-body">
+        <img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png" alt="Logo" />
+    </div>
+    <div class="modal-body">
         <div id="linky-preview" class="pull-left">
-          <div class="center"><img class="loading-background" src="{{ STATIC_PREFIX }}img/infinity_500_400.gif"></div>
+            <div class="center"><img class="loading-background" src="{{ STATIC_PREFIX }}img/infinity_500_400.gif"></div>
         </div>
         <div id="linky-desc" class="unavailable">
-          <h4 id="linky_generation_message">Creating your Perma. Hold tight.</h4>
-          <p id="linkyUrl"><a href="" target="_blank"></a><br ><small id="linky_title"></small></p>
-          <h4>Email this Perma</h4>
-          <p><input class="input-xlarge" type="text" placeholder="user@example.com"></p>
-          <p><a href="#" id="saveLinky" class="btn btn-primary btn-large btn-block">Save this Perma</a></p>
+            <h4 id="linky_generation_message">Creating your Perma. Hold tight.</h4>
+            <p id="linkyUrl"><a href="" target="_blank"></a><br ><small id="linky_title"></small></p>
+            <h4>Email this Perma</h4>
+            <p><input class="input-xlarge" type="text" placeholder="user@example.com"></p>
+            <p><a href="#" id="saveLinky" class="btn btn-primary btn-large btn-block">Save this Perma</a></p>
         </div>
-      </div>
-      <div class="modal-footer pull-left">
-        <p id="upload-option">Perma capture not right? <a href="" onclick="return upload_form();">Upload your own</a>.</p>
-      </div>
     </div>
+    <div class="modal-footer pull-left">
+        <p id="upload-option">Perma capture not right? <a href="" onclick="return upload_form();">Upload your own</a>.</p>
+    </div>
+</div><!--/.linky-confirm-->
 
-    <!-- Upload file modal -->
-    <div id="linky-upload" class="modal hide fade center">
-      <div class="modal-header">
+<!-- Upload file modal -->
+<div id="linky-upload" class="modal hide fade center">
+    <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h1 class="logo-big">Perma Upload</h1>
-	      <img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png"/>
-      </div>
-
-      <div class="modal-body">
+        <img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png" alt="Logo" />
+    </div>
+    <div class="modal-body">
         <div class="center">
-	        <form class="form-inline" id="linky_upload_form" action="/api/linky/upload" method="post">
+            <form class="form-inline" id="linky_upload_form" action="/api/linky/upload" method="post">
             <h4>Choose a file</h4>
             <p><input id="file" name="file" class="input-xlarge" type="file" placeholder="example.png"></p>
             <p><input id="title" name="title" class="input-xlarge" type="text" placeholder="Example Page Title"></p>
             <p><input id="url" name="url" class="input-xlarge" type="text" placeholder="www.example.com"></p>
             <button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Upload this Perma</button>
             <p id="upload-error" class="text-error"></p>
-	        </form>
+            </form>
         </div>
-      </div>
-      <div class="modal-footer pull-left">
-      </div>
     </div>
+    <div class="modal-footer pull-left">
+    </div>
+</div><!--/.linky-upload-->
 
-    <!-- Upload complete modal -->
-    <div id="linky-upload-confirm" class="modal hide fade center">
-      <div class="modal-header">
+<!-- Upload complete modal -->
+<div id="linky-upload-confirm" class="modal hide fade center">
+    <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h1 class="logo-big">Perma Upload</h1>
-	      <img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png"/>
-      </div>
-
-      <div class="modal-body">
-        <div class="center">
-          <h4 id="linky_upload_success">Uploading your file...</h4>
-          <p id="uploadedLinkyUrl"><a href="" target="_blank"></a></p>
-        </div>
-      </div>
-      <div class="modal-footer upload-footer">
-        <a href="#" class="btn" data-dismiss="modal" aria-hidden="true">Close</a>
-      </div>
+        <img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png" alt="Logo" />
     </div>
+    <div class="modal-body">
+        <div class="center">
+            <h4 id="linky_upload_success">Uploading your file...</h4>
+            <p id="uploadedLinkyUrl"><a href="" target="_blank"></a></p>
+        </div>
+    </div>
+    <div class="modal-footer upload-footer">
+        <a href="#" class="btn" data-dismiss="modal" aria-hidden="true">Close</a>
+    </div>
+</div>
 
-  </div> <!--span-->
-</div> <!--row-->
+</div><!--/.span12 #modals-container-->
+
+</div><!--/.row-fluid /#landing-container-->
 
 {% endblock %}
+
 {% block scripts %}
-</div> <!--container-->
 <script>
   var web_base = "http://{{host}}";
 </script>

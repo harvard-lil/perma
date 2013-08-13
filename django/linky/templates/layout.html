@@ -1,9 +1,18 @@
 {% extends "base.html" %}
 {% block row %}
+<!--
+XXX responsive grid
   			<div class="row">
 				<div class="offset1 span10">
-    	 			{% block content %}
-      				{% endblock %}
+-->
+
+<div class="row-fluid">
+{% block content %}
+{% endblock %}
+</div><!--/.row-fluid-->
+
+<!--
       			</div>
       		</div>
+-->
 {% endblock %}
