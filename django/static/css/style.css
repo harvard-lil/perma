@@ -8,7 +8,7 @@ html {
 body {
     background-color: #efefef;
     color: #333;
-    margin: 0 0 100px;
+    margin: 0;
 }
 
 .container-fluid {
@@ -162,7 +162,7 @@ footer {
     
     footer p#boilerplate {
         font-size: 12px;
-        margin-top: 20px;
+        margin: 20px 0 0 0;
     }
 
         footer p#boilerplate a,
@@ -219,7 +219,7 @@ div.home-form-elements {
 
 section#home-description {
     background-color: #fff;
-    padding: 50px 0 30px 0;
+    padding: 70px 0 0 0;
     text-align: center;
 }
 
