@@ -48,16 +48,16 @@
             <div class="span8">
                 <div class="favicon-preview"><img src=""></div>
                 <div class="recent-linky-summary">
-                    <h4><a href="http://{{host}}/{{linky_link.id}}" target="_blank">{{ linky_link.submitted_title }}</a></h4>
+                    <h4><a href="http://{{host}}/{{linky_link.guid}}" target="_blank">{{ linky_link.submitted_title }}</a></h4>
                     <small>{{ linky_link.submitted_url }}</small>
                     <br>
-                    <p><a href="http://{{host}}/{{linky_link.id}}" target="_blank">{{host}}/{{linky_link.id}}</a></p>
+                    <p><a href="http://{{host}}/{{linky_link.guid}}" target="_blank">{{host}}/{{linky_link.guid}}</a></p>
                     <small>Views: {{ linky_link.view_count }}</small>
                 </div><!--/.recent-linky-summary-->
             </div><!--/.span8-->
             <div class="span4">
                 <div class="copy-button-div">
-                    <button class="btn copy-button" data-clipboard-text="{{host}}/{{linky_link.id}}" title="Copy Linky Link">Copy Perma &infin;</button>
+                    <button class="btn copy-button" data-clipboard-text="{{host}}/{{linky_link.guid}}" title="Copy Linky Link">Copy Perma &infin;</button>
                     <p class="copy-confirm text-center" style="display:none"></p>
                 </div>
             </div><!--/.span4-->

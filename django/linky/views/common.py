@@ -5,6 +5,7 @@ from django.core.urlresolvers import reverse
 
 from datetime import datetime
 from urlparse import urlparse
+import urllib2
 
 from linky.models import Link
 from linky.utils import base
@@ -16,7 +17,6 @@ def landing(request):
       linky_links = list(Link.objects.filter(created_by=request.user).order_by('-creation_timestamp'))
 
       for linky_link in linky_links:
-        linky_link.id =  base.convert(linky_link.id, base.BASE10, base.BASE58)
         if linky_link.submitted_url.startswith('http://'):
           linky_link.submitted_url = linky_link.submitted_url[7:]
         elif linky_link.submitted_url.startswith('https://'):
@@ -40,29 +40,38 @@ def about(request):
 
     return render_to_response('about.html', context)
 
-def single_linky(request, linky_id):
+def single_linky(request, linky_guid):
     """Given a Linky ID, serve it up. Vetting also takes place here. """
-
-    int_id = base.convert(linky_id, base.BASE58, base.BASE10)
 
     if request.method == 'POST':
         # TODO: We're forced to use update here because we generate our hash on the model save. This whole thing
         # feels wrong. Evaluate.
 
-        Link.objects.filter(id=int_id).update(vested = True, vested_by_editor = request.user, vested_timestamp = datetime.now())
+        Link.objects.filter(guid=linky_guid).update(vested = True, vested_by_editor = request.user, vested_timestamp = datetime.now())
 
-        return HttpResponseRedirect('/%s/' % linky_id)
+        return HttpResponseRedirect('/%s/' % linky_guid)
     else:
 
-        link = get_object_or_404(Link, id=int_id)
+        link = get_object_or_404(Link, guid=linky_guid)
 
         link.view_count += 1
         link.save()
 
+        try:
+            response = urllib2.urlopen(link.submitted_url)
+            if 'X-Frame-Options' in response.headers:
+                # TODO actually check if X-Frame-Options specifically allows requests from us
+                display_iframe = False
+            else:
+                display_iframe = True
+        except urllib2.URLError:
+            # Something is broken with the site, so we might as well display it in an iFrame so the user knows
+            display_iframe = True
+
         created_datestamp = link.creation_timestamp
         pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
 
-        context = {'linky': link, 'pretty_date': pretty_date, 'user': request.user, 'next': request.get_full_path()}
+        context = {'linky': link, 'pretty_date': pretty_date, 'user': request.user, 'next': request.get_full_path(), 'display_iframe': display_iframe}
 
         context.update(csrf(request))
 

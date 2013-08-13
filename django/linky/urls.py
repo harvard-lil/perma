@@ -52,7 +52,7 @@ urlpatterns = patterns('linky.views',
 #    url(r'^manage/activity/?$', 'manage.activity', name='manage_activity'),
     
     # Our Linky ID catchall
-    url(r'^(?P<linky_id>[a-zA-Z0-9]+)/?$', 'common.single_linky', name='single_linky'),    
+    url(r'^(?P<linky_guid>[a-zA-Z0-9]+)/?$', 'common.single_linky', name='single_linky'),    
     
 )
 
