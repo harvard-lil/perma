@@ -2,10 +2,11 @@
 {% get_static_prefix as STATIC_PREFIX %}
 
 <!DOCTYPE html>
-<html>
+<html lang="en-us">
     <head>
         <title>Perma{% block title %}{% endblock %}</title>
-        <meta charset="utf-8" /> <meta name="google" value="notranslate" /> <meta http-equiv="Content-Language" content="en" />
+        <meta charset="utf-8" />
+        <meta name="google" value="notranslate" />
         <!-- TODO add default meta description -->
         <meta name="description" content="{% block meta_description %}{% endblock %}">
         <link href="{{ STATIC_PREFIX }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
