@@ -11,6 +11,10 @@ body {
     margin: 0 0 100px;
 }
 
+.container-fluid {
+    padding: 0;
+}
+
 .modal {
     background-image:url('../img/brickwall.png');
     background-color:#cccccc;
