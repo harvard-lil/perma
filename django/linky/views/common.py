@@ -5,6 +5,7 @@ from django.core.urlresolvers import reverse
 
 from datetime import datetime
 from urlparse import urlparse
+import urllib2
 
 from linky.models import Link
 from linky.utils import base
@@ -56,10 +57,21 @@ def single_linky(request, linky_guid):
         link.view_count += 1
         link.save()
 
+        try:
+            response = urllib2.urlopen(link.submitted_url)
+            if 'X-Frame-Options' in response.headers:
+                # TODO actually check if X-Frame-Options specifically allows requests from us
+                display_iframe = False
+            else:
+                display_iframe = True
+        except urllib2.URLError:
+            # Something is broken with the site, so we might as well display it in an iFrame so the user knows
+            display_iframe = True
+
         created_datestamp = link.creation_timestamp
         pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
 
-        context = {'linky': link, 'pretty_date': pretty_date, 'user': request.user, 'next': request.get_full_path()}
+        context = {'linky': link, 'pretty_date': pretty_date, 'user': request.user, 'next': request.get_full_path(), 'display_iframe': display_iframe}
 
         context.update(csrf(request))
 
