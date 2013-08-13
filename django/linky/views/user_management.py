@@ -410,6 +410,33 @@ def manage_account(request):
     return render_to_response('user_management/manage-account.html', context)
 
 @login_required
+def batch_convert(request):
+    """Detect and archive URLs from user input."""
+    # TODO
+    context = {'host': request.get_host(), 'user': request.user,
+        'this_page': 'batch_convert'}
+    context.update(csrf(request))
+    return render_to_response('user_management/batch_convert.html', context)
+
+@login_required
+def export(request):
+    """Export a CSV of a user's library."""
+    # TODO
+    context = {'host': request.get_host(), 'user': request.user,
+        'this_page': 'export'}
+    context.update(csrf(request))
+    return render_to_response('user_management/export.html', context)
+
+@login_required
+def custom_domain(request):
+    """Instructions for a user to configure a custom domain."""
+    # TODO
+    context = {'host': request.get_host(), 'user': request.user,
+        'this_page': 'custom_domain'}
+    context.update(csrf(request))
+    return render_to_response('user_management/custom_domain.html', context)
+
+@login_required
 def sponsoring_library(request):
     """ Journal members can view their sponsoring library (for contact info) """
 
