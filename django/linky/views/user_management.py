@@ -353,7 +353,7 @@ def created_links(request):
     linky_links = paginator.page(page)
 
     for linky_link in linky_links:
-        linky_link.id =  base.convert(linky_link.id, base.BASE10, base.BASE58)
+        #linky_link.id =  base.convert(linky_link.id, base.BASE10, base.BASE58)
         if len(linky_link.submitted_title) > 50:
           linky_link.submitted_title = linky_link.submitted_title[:50] + '...'
         if len(linky_link.submitted_url) > 79:
@@ -388,7 +388,7 @@ def vested_links(request):
     linky_links = paginator.page(page)
 
     for linky_link in linky_links:
-        linky_link.id =  base.convert(linky_link.id, base.BASE10, base.BASE58)
+        #linky_link.id =  base.convert(linky_link.id, base.BASE10, base.BASE58)
         if len(linky_link.submitted_title) > 50:
           linky_link.submitted_title = linky_link.submitted_title[:50] + '...'
         if len(linky_link.submitted_url) > 79:
