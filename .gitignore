@@ -1,6 +1,6 @@
-django/static/generated/*
-!django/static/generated/README
+linky_web/static/generated/*
+!linky_web/static/generated/README
 *.pyc
-django/lib/phantomjs
-django/linky/settings.py
-django/linky/local_settings.py
+linky_web/lib/phantomjs
+linky_web/linky/settings.py
+linky_web/linky/local_settings.py

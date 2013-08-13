@@ -1,5 +1,5 @@
 import logging, json, subprocess, urllib2, re, os
-from datetime import date
+from datetime import datetime
 from urlparse import urlparse
 
 import lxml.html
@@ -56,7 +56,14 @@ def linky_post(request):
     
     linky_hash = base.convert(link.id, base.BASE10, base.BASE58)
     
-    web_path_to_screen_cap = _get_screen_cap(link.id)
+    from backend.image_text_indexer.tasks import get_screen_cap
+    
+    web_path_to_screen_cap = get_screen_cap(link.id, target_url)
+
+    asset, created = Asset.objects.get_or_create(link=link)
+    asset.image_capture = os.path.sep.join(web_path_to_screen_cap)
+    asset.save()
+
         
     linky_home_disk_path = settings.PROJECT_ROOT + '/static/generated/' + str(link.id)
 
@@ -71,30 +78,6 @@ def linky_post(request):
         manifest['favicon'] = favicon_success
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
-
-
-def _get_screen_cap(link_id):
-    """ Create an image from the url, store it in a dir. use the id as part of the dir path """
-    
-    link = Link.objects.get(id=link_id)
-    
-    asset, created = Asset.objects.get_or_create(link=link)
-
-    linky_home_disk_path = settings.PROJECT_ROOT + '/' + '/static/generated/' + str(link_id) + '/'
-    
-    # This is our set of path elements. select from this list as needed.
-    path_elements = [settings.GENERATED_ASSETS_STORAGE, str(date.today().year), str(date.today().month), str(date.today().day), str(link_id), 'cap.png']
-    
-    if not os.path.exists(os.path.sep.join(path_elements[:4])):
-        os.makedirs(os.path.sep.join(path_elements[:4]))
-    
-    image_generation_command = settings.PROJECT_ROOT + '/lib/phantomjs ' + settings.PROJECT_ROOT + '/lib/rasterize.js "' + link.submitted_url + '" ' + os.path.sep.join(path_elements)
-    subprocess.call(image_generation_command, shell=True)
-    
-    asset.image_capture = os.path.sep.join(path_elements[1:])
-    asset.save()
-    
-    return os.path.sep.join(path_elements[1:])
 
 def __get_favicon(target_url, parsed_html, link_hash_id, disk_path, url_details):
     """ Given a URL and the markup, see if we can find a favicon.
