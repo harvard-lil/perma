@@ -39,7 +39,8 @@ def manage_members(request):
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
 
-    context = {'user': request.user, 'registrar_members': list(registrars)}
+    context = {'user': request.user, 'registrar_members': list(registrars),
+        'this_page': 'users'}
     context.update(csrf(request))
 
     if request.method == 'POST':
@@ -74,7 +75,8 @@ def manage_registrar(request):
     # TODO: support paging at some point
     registrars = Registrar.objects.all()[:500]
 
-    context = {'user': request.user, 'registrars': list(registrars)}
+    context = {'user': request.user, 'registrars': list(registrars),
+        'this_page': 'users'}
     context.update(csrf(request))
 
     if request.method == 'POST':
@@ -104,7 +106,8 @@ def manage_single_registrar(request, registrar_id):
 
     target_registrar = get_object_or_404(Registrar, id=registrar_id)
 
-    context = {'user': request.user, 'target_registrar': target_registrar}
+    context = {'user': request.user, 'target_registrar': target_registrar,
+        'this_page': 'users'}
     context.update(csrf(request))
 
     if request.method == 'POST':
@@ -133,7 +136,8 @@ def manage_registrar_member(request):
 
     registrar_members = User.objects.filter(groups__name='registrar_member', is_active=True)
 
-    context = {'user': request.user, 'registrar_members': list(registrar_members)}
+    context = {'user': request.user, 'registrar_members': list(registrar_members),
+        'this_page': 'users'}
     context.update(csrf(request))
 
     if request.method == 'POST':
@@ -168,7 +172,8 @@ def manage_single_registrar_member(request, user_id):
 
     target_registrar_member = get_object_or_404(User, id=user_id)
 
-    context = {'user': request.user, 'target_registrar_member': target_registrar_member}
+    context = {'user': request.user, 'target_registrar_member': target_registrar_member,
+        'this_page': 'users'}
     context.update(csrf(request))
 
     if request.method == 'POST':
@@ -198,7 +203,8 @@ def manage_single_registrar_member_delete(request, user_id):
 
     target_member = get_object_or_404(User, id=user_id)
 
-    context = {'user': request.user, 'target_member': target_member}
+    context = {'user': request.user, 'target_member': target_member,
+        'this_page': 'users'}
     context.update(csrf(request))
 
     if request.method == 'POST':
@@ -225,7 +231,8 @@ def manage_journal_member(request):
     else:
         journal_members = User.objects.filter(userprofile__registrar=request.user.userprofile.registrar, is_active=True).exclude(id=request.user.id)
 
-    context = {'user': request.user, 'journal_members': list(journal_members)}
+    context = {'user': request.user, 'journal_members': list(journal_members),
+        'this_page': 'users'}
     context.update(csrf(request))
 
     if request.method == 'POST':
@@ -257,7 +264,6 @@ def manage_journal_member(request):
 
     return render_to_response('user_management/manage_journal_members.html', context)
 
-
 @login_required
 def manage_single_journal_member(request, user_id):
     """ Linky admins and registrars can manage journal members. Edit a single journal member here. """
@@ -274,7 +280,8 @@ def manage_single_journal_member(request, user_id):
             return HttpResponseRedirect(reverse('user_management_landing'))
 
 
-    context = {'user': request.user, 'target_member': target_member}
+    context = {'user': request.user, 'target_member': target_member,
+        'this_page': 'users'}
     context.update(csrf(request))
 
     if request.method == 'POST':
@@ -294,7 +301,6 @@ def manage_single_journal_member(request, user_id):
 
     return render_to_response('user_management/manage_single_journal_member.html', context)
 
-
 @login_required
 def manage_single_journal_member_delete(request, user_id):
     """ Linky admins and registrars can manage journal members. Delete a single journal member here. """
@@ -310,7 +316,8 @@ def manage_single_journal_member_delete(request, user_id):
         if request.user.get_profile().registrar != target_member.get_profile().registrar:
             return HttpResponseRedirect(reverse('user_management_landing'))
 
-    context = {'user': request.user, 'target_member': target_member}
+    context = {'user': request.user, 'target_member': target_member,
+        'this_page': 'users'}
     context.update(csrf(request))
 
     if request.method == 'POST':
@@ -323,7 +330,6 @@ def manage_single_journal_member_delete(request, user_id):
         context.update({'form': form,})
 
     return render_to_response('user_management/manage_single_journal_member_delete_confirm.html', context)
-
 
 valid_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp']
 
@@ -354,7 +360,7 @@ def created_links(request):
           linky_link.submitted_url = linky_link.submitted_url[:70] + '...'
 
     context = {'user': request.user, 'linky_links': linky_links, 'host': request.get_host(),
-               'total_created': total_created, sort : sort}
+               'total_created': total_created, sort : sort, 'this_page': 'created_links'}
 
     return render_to_response('user_management/created-links.html', context)
 
@@ -389,7 +395,7 @@ def vested_links(request):
           linky_link.submitted_url = linky_link.submitted_url[:70] + '...'
 
     context = {'user': request.user, 'linky_links': linky_links, 'host': request.get_host(),
-               'total_vested': total_vested}
+               'total_vested': total_vested, 'this_page': 'vested_links'}
 
     return render_to_response('user_management/vested-links.html', context)
 
@@ -397,7 +403,8 @@ def vested_links(request):
 def manage_account(request):
     """ Account mangement stuff. Change password, change email, ... """
 
-    context = {'host': request.get_host(), 'user': request.user, 'next': request.get_full_path()}
+    context = {'host': request.get_host(), 'user': request.user,
+        'next': request.get_full_path(), 'this_page': 'settings'}
     context.update(csrf(request))
 
     return render_to_response('user_management/manage-account.html', context)
@@ -411,7 +418,6 @@ def sponsoring_library(request):
     context = {'user': request.user, 'sponsoring_library_name': profile.registrar.name, 'sponsoring_library_email': profile.registrar.email, 'sponsoring_library_website': profile.registrar.website}
 
     return render_to_response('user_management/sponsoring-library.html', context)
-
 
 def process_register(request):
     """Register a new user"""
