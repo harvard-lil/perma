@@ -1,5 +1,45 @@
 {% extends "layout.html" %}
 {% block row %}
+
+<!-- TODO: dashboard blurb and accompanying JS? -->
+
+<div id="dashboard-container">
+    <ul class="nav nav-pills nav-stacked" id="dashboard-tabs">
+        <li class="active"><a href="#archive" data-toggle="tab" id="dashboard-add">Add a Link</a></li>
+        <li><a href="#library" data-toggle="tab" id="dashboard-library">Library</a></li>
+        <li><a href="#batch-convert" data-toggle="tab" id="dashboard-batch-convert">Batch Convert</a></li>
+        <li><a href="#export" data-toggle="tab" id="dashboard-export">Export</a></li>
+        <li><a href="#custom-domain" data-toggle="tab" id="dashboard-custom-domain">Custom Domain</a></li>
+        <!-- <li><a href="#settings" data-toggle="tab" id="dashboard-settings">Settings</a></li> -->
+    </ul>
+    <div class="tab-content">
+        <div class="tab-pane active" id="archive">
+            <div class="dashboard-add-link">
+                <!-- FIXME add link form -->
+            </div><!--/.dashboard-add-link-->
+        </div><!--/#archive-->
+        <div class="tab-pane" id="library">
+            <!-- FIXME add library listing -->
+        </div><!--/#library-->
+        <div class="tab-pane" id="settings">
+            settings
+            <!-- FIXME add settings -->
+        </div><!--/#settings-->
+        <div class="tab-pane" id="batch-convert">
+            <!-- FIXME add batch convert -->
+        </div><!--/#batch-convert-->
+        <div class="tab-pane" id="export">
+            <!-- FIXME add export -->
+        </div><!--/#export-->
+        <div class="tab-pane" id="custom-domain">
+            <!-- FIXME add domain instructions -->
+        </div><!--/#custom-domain-->
+    </div><!--/.tab-content-->
+</div><!--/#dashboard-container-->
+
+
+{% comment %}
+
 <div class="row-fluid white-box">
 	<div class="span3">
     <ul class="nav nav-list manage-nav">
@@ -40,5 +80,38 @@
   {% block content %}
   {% endblock %}
   </div>
+
+{% endcomment %}
+
 </div> <!--row-->
 {% endblock %}
+
+{% block scripts %}
+<script src="{{ STATIC_URL }}js/bootstrap-tab.js"></script>
+<script>
+
+// Initialize tabs
+$(document).ready(function() {
+    $('#dashboard-tabs').tab();
+    $('#dashboard-close').click(function() {
+        $('.dashboard-blurb').slideUp();
+        $('#dashboard-container').css({'margin-top': '50px'});
+    });
+});
+
+// Open requested tab:
+
+// Javascript to enable link to tab
+var hash = document.location.hash;
+var prefix = "tab_";
+if (hash) {
+    $('#dashboard-tabs a[href='+hash.replace(prefix,"")+']').tab('show');
+} 
+
+// Change hash for page-reload
+$('#dashboard-tabs a').on('shown', function (e) {
+    window.location.hash = e.target.hash.replace("#", "#" + prefix);
+});
+
+</script>
+{% endblock scripts %}
