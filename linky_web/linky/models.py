@@ -76,6 +76,7 @@ class Link(models.Model):
 class Asset(models.Model):
     """ We use this to track our generated assets, per link """
     link = models.ForeignKey(Link, null=False)
+    base_storage_path = models.CharField(max_length=2100, null=True, blank=True) # where we store these assets, relative to some base in our settings
     favicon = models.CharField(max_length=2100, null=True, blank=True) # Retrieved favicon
     image_capture = models.CharField(max_length=2100, null=True, blank=True) # Headless browser image capture
     warc_capture = models.CharField(max_length=2100, null=True, blank=True) # Heretrix capture

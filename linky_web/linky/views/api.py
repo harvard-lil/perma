@@ -9,6 +9,8 @@ from pyPdf import PdfFileReader
 
 from linky.models import Link, Asset
 from linky.utils import base
+from backend.image_text_indexer.tasks import get_screen_cap, get_source
+
 from django.shortcuts import render_to_response, HttpResponse
 from django.http import HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
@@ -56,22 +58,33 @@ def linky_post(request):
     
     linky_hash = base.convert(link.id, base.BASE10, base.BASE58)
     
-    from backend.image_text_indexer.tasks import get_screen_cap
+    # Assets get stored in /storage/path/year/month/day/hour/unique-id/*
+    now = dt = datetime.now()
+    time_tuple = now.timetuple()
     
-    web_path_to_screen_cap = get_screen_cap(link.id, target_url)
+    path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday), str(time_tuple.tm_hour), str(link.id)]
+    
+    # We store our assets on disk. Create a home for them
+    #if not os.path.exists(os.path.sep.join(path_elements)):
+    #    os.makedirs(os.path.sep.join(path_elements))
 
+    # Create a stub for our assets
     asset, created = Asset.objects.get_or_create(link=link)
-    asset.image_capture = os.path.sep.join(web_path_to_screen_cap)
+    asset.base_storage_path = os.path.sep.join(path_elements)
     asset.save()
+    
 
-        
-    linky_home_disk_path = settings.PROJECT_ROOT + '/static/generated/' + str(link.id)
-
+    # Run our synchronus screen cap task (use the headless browser to create a static image) 
+    get_screen_cap(link.id, target_url, os.path.sep.join(path_elements))
+    
+    get_source(link.id, target_url, os.path.sep.join(path_elements))
+    
+    asset= Asset.objects.get(link__id=link.id)
 
     # TODO: roll the favicon function into a pimp python package
     #favicon_success = __get_favicon(target_url, parsed_html, link.id, linky_home_disk_path, url_details)
     
-    response_object = {'linky_id': linky_hash, 'linky_cap': settings.STATIC_URL + web_path_to_screen_cap, 'linky_title': link.submitted_title}
+    response_object = {'linky_id': linky_hash, 'linky_cap': settings.STATIC_URL + asset.base_storage_path + '/' + asset.image_capture, 'linky_title': link.submitted_title}
     
     if False: #favicon_success:
         response_object['favicon_url'] = 'http://' + request.get_host() + '/static/generated/' + str(link.id) + '/' + favicon_success
