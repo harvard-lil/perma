@@ -341,6 +341,7 @@ def created_links(request):
         page = 1
 
     linky_links = Link.objects.filter(created_by=request.user).order_by(sort)
+    total_created = len(linky_links)
 
     paginator = Paginator(linky_links, 10)
     linky_links = paginator.page(page)
@@ -353,7 +354,7 @@ def created_links(request):
           linky_link.submitted_url = linky_link.submitted_url[:70] + '...'
 
     context = {'user': request.user, 'linky_links': linky_links, 'host': request.get_host(),
-               'total_created': len(linky_links), sort : sort}
+               'total_created': total_created, sort : sort}
 
     return render_to_response('user_management/created-links.html', context)
 
@@ -374,7 +375,8 @@ def vested_links(request):
     if page < 1:
         page = 1
 
-    linky_links = Link.objects.filter(created_by=request.user).order_by(sort)
+    linky_links = Link.objects.filter(vested_by_editor=request.user).order_by(sort)
+    total_vested = len(linky_links)
     
     paginator = Paginator(linky_links, 10)
     linky_links = paginator.page(page)
@@ -387,7 +389,7 @@ def vested_links(request):
           linky_link.submitted_url = linky_link.submitted_url[:70] + '...'
 
     context = {'user': request.user, 'linky_links': linky_links, 'host': request.get_host(),
-               'total_vested': len(linky_links)}
+               'total_vested': total_vested}
 
     return render_to_response('user_management/vested-links.html', context)
 
