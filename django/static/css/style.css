@@ -167,6 +167,121 @@ footer {
             text-decoration: underline;
         }
 
+/* Home */
+
+section#home-form-container {
+    box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333; 
+    -moz-box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333; 
+    -webkit-box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333; 
+    background: url('../img/clouds.jpg') center top no-repeat;
+    background-color: #94c4f4;
+    padding: 0;
+    text-align: center;
+}
+
+    section#home-form-container .main-container { overflow: auto; }
+
+p#home-blurb {
+    color: #fff;
+    font-family: 'Roboto Slab', Helvetica, sans-serif;
+    font-size: 36px;
+    margin: 0;
+    padding: 10px 0 5px 0;
+    text-shadow: 2px 2px 0px #16699e;
+    -moz-text-shadow: 2px 2px 0px #16699e;
+}
+
+div.home-form-frame {
+    margin: 0 auto;
+    padding: 60px 0;
+    text-align: center;
+    width: 640px;
+}
+
+div.home-form-elements {
+    margin: 10px auto 0 auto;
+}
+
+    div.home-form-elements input {
+        width: 434px;
+    } 
+
+    div.home-form-elements .add-links-list {
+        width: 582px;
+        box-shadow: 2px 2px 1px #16699e;
+        -moz-box-shadow: 2px 2px 1px #16699e;
+        -webkit-box-shadow: 2px 2px 1px #16699e;
+    }
+
+section#home-description {
+    background-color: #fff;
+    padding: 50px 0;
+    text-align: center;
+}
+
+    section#home-description p {
+        color: #555;
+        font-size: 20px;
+        line-height: 26px;
+        margin-bottom: 30px;
+        padding: 0;
+    }
+
+    section#home-description .btn { text-transform: uppercase; }
+
+    section#home-description p#subtext {
+        font-size: 16px;
+        margin: 0;
+    }
+
+    section#home-description p#home-share-buttons {
+        background-color: #fc6;
+        margin: 20px 0 0 0;
+    }
+
+
+/* Add link widget */
+
+button#addlink { text-transform: uppercase; }
+
+/* Form elements */
+
+input.text-input {
+    border-radius: 2px;
+    color: #999;
+    font-size: 22px;
+    height: 44px;
+    margin-right: 10px;
+    margin-top: 9px;
+    padding: 0 10px;
+    width: 289px; /* to match reCAPTCHA width */
+}
+
+    .text-input-active {
+        color: #555 !important;
+    }
+
+input.url-extension {
+    display: none;
+    font-size: 12px !important;
+    height: 16px !important;
+    margin: 0 0 0 5px !important;
+    padding: 0 2px !important;
+    width: 200px !important;
+}
+
+/* Add link widget */
+
+div.add-links-list {
+    background-color: #fff;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    display: none;
+    margin: 10px auto;
+    padding: 20px;
+}
+
 /* iframes */
 
 iframe {
