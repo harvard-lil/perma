@@ -54,7 +54,7 @@
 
         <!-- Vested links -->
         {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'journal_member' %}
-        <li{% if this_page == 'vested_links' %} class="active"{% endif %}><a href="{% url 'user_management_vested_links' %}" class="dashboard-placeholder">Vested Links</a></li>
+        <li{% if this_page == 'vested_links' %} class="active"{% endif %}><a href="{% url 'user_management_vested_links' %}" id="dashboard-vested">Vested Links</a></li>
         {% endif %}<!-- FIXME change icon -->
 
         <!-- Batch convert -->
@@ -75,7 +75,7 @@
 
         <!-- Manage users -->
         {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' %}
-        <li{% if this_page == 'users' %} class="active"{% endif %}><a href="javascript:void(0);" class="dashboard-placeholder" id="dashboard-users">Manage Users</a></li>
+        <li{% if this_page == 'users' %} class="active"{% endif %}><a href="javascript:void(0);" id="dashboard-users">Manage Users</a></li>
         {% endif %}
 
         <!-- Registrars and registrar users -->

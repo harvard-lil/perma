@@ -325,6 +325,10 @@ div#dashboard-container {
             a#dashboard-credits:hover { background-position: -356px -314px; }
             a.dashboard-placeholder { background-position: 19px -364px; }
             a.dashboard-placeholder:hover { background-position: -356px -364px; }
+            a#dashboard-vested { background-position: 19px -414px; }
+            a#dashboard-vested:hover { background-position: -356px -414px; }
+            a#dashboard-users { background-position: 19px -464px; }
+            a#dashboard-users:hover { background-position: -356px -464px; }
 
         div#dashboard-container ul#dashboard-tabs li.divider {
             border-top: 1px solid #efefef;
