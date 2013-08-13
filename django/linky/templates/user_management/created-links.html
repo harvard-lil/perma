@@ -9,6 +9,11 @@
 {% block content %}
 
 		<h3>Perma links created by you</h3>
+
+{% if total_created == 0 %}
+<p>You haven't saved any links yet.</p>
+{% else %}
+
 		<p>You've archived {{ total_created }} links. Vested links are marked with <span class="fancy-infinity">&infin;</span>.</p>
 
 		<table class="vested-table">
@@ -49,6 +54,8 @@
         {% if linky_links.has_next  %}<li><a href="?page={{ linky_links.next_page_number }}&sort={{ sort }}">&gt;</a></li>{% endif %}
     </ul>
 </div>
+{% endif %}
+
 {% endif %}
 
 {% endblock %}
