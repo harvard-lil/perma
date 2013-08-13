@@ -32,10 +32,11 @@
     </div><!--/.main-container-->
 </section><!--/#home-description-->
 
+{% comment %}
 <hr />
 
-<div class="main-container">
 <!-- List of recently saved links -->
+<div class="main-container">
 <div id="linky-list" class="span12">
 
     {% if user.is_authenticated %}
@@ -77,6 +78,7 @@
 
 </div><!--/.linky-list-->
 </div><!--/.main-container-->
+{% endcomment %}
 
 <!-- Modals -->
 <div class="span12 center" id="modals-container">
