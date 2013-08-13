@@ -56,17 +56,14 @@ def linky_post(request):
     
     # We've created a linky. Let's create its home on disk
 
-    linky_home_disk_path = settings.PROJECT_ROOT +'/'+ '/static/generated/' + str(link.id) + '/'
+    linky_home_disk_path = settings.PROJECT_ROOT +'/'+ '/static/generated/' + link.guid + '/'
     
     if not os.path.exists(linky_home_disk_path):
         os.makedirs(linky_home_disk_path)
         
     manifest = {}
     
-    linky_hash = base.convert(link.id, base.BASE10, base.BASE58)
-    
-    
-    favicon_success = __get_favicon(target_url, parsed_html, link.id, linky_home_disk_path, url_details)
+    favicon_success = __get_favicon(target_url, parsed_html, link.guid, linky_home_disk_path, url_details)
     
     image_generation_command = settings.PROJECT_ROOT + '/lib/phantomjs ' + settings.PROJECT_ROOT + '/lib/rasterize.js "' + target_url + '" ' + linky_home_disk_path + 'cap.png'
     subprocess.call(image_generation_command, shell=True)
@@ -77,10 +74,10 @@ def linky_post(request):
     #f = request.files['the_file']
     #f.save('/var/www/uploads/uploaded_file.txt')
     
-    response_object = {'linky_id': linky_hash, 'linky_url': 'http://' + request.get_host() + '/static/generated/' + str(link.id) + '/cap.png', 'linky_title': link.submitted_title}
+    response_object = {'linky_id': link.guid, 'linky_url': 'http://' + request.get_host() + '/static/generated/' + link.guid + '/cap.png', 'linky_title': link.submitted_title}
     
     if favicon_success:
-        response_object['favicon_url'] = 'http://' + request.get_host() + '/static/generated/' + str(link.id) + '/' + favicon_success
+        response_object['favicon_url'] = 'http://' + request.get_host() + '/static/generated/' + link.guid + '/' + favicon_success
         manifest['favicon'] = favicon_success
 
     with open(linky_home_disk_path + 'manifest.json', 'w') as outfile:
@@ -191,12 +188,11 @@ def upload_file(request):
                 if request.user.is_authenticated():
                   link.created_by = request.user
                 link.save()
-                linky_home_disk_path = settings.PROJECT_ROOT +'/'+ '/static/generated/' + str(link.id) + '/'
+                linky_home_disk_path = settings.PROJECT_ROOT +'/'+ '/static/generated/' + link.guid + '/'
 
                 if not os.path.exists(linky_home_disk_path):
                     os.makedirs(linky_home_disk_path)
         
-                linky_hash = base.convert(link.id, base.BASE10, base.BASE58)
                 file_name = 'cap.' + request.FILES['file'].name.split('.')[-1]
                 request.FILES['file'].file.seek(0)
                 f = open(linky_home_disk_path + file_name, 'w')
@@ -211,7 +207,7 @@ def upload_file(request):
                     #params = ['convert', linky_home_disk_path + file_name, 'out.png']
                     #subprocess.check_call(params)
                     
-                response_object = {'status':'success', 'linky_id':link.id, 'linky_hash':linky_hash}    
+                response_object = {'status':'success', 'linky_id':link.guid, 'linky_hash':link.guid}    
                 url_details = urlparse(form.cleaned_data['url'])
                 
                 try:
@@ -219,9 +215,9 @@ def upload_file(request):
                 	parsed_html = lxml.html.fromstring(r.content)
                 except IOError:
                 	pass
-                favicon_success = __get_favicon(form.cleaned_data['url'], parsed_html, link.id, linky_home_disk_path, url_details)
+                favicon_success = __get_favicon(form.cleaned_data['url'], parsed_html, link.guid, linky_home_disk_path, url_details)
                 if favicon_success:
-                	response_object['favicon_url'] = 'http://' + request.get_host() + '/static/generated/' + str(link.id) + '/' + favicon_success
+                	response_object['favicon_url'] = 'http://' + request.get_host() + '/static/generated/' + link.guid + '/' + favicon_success
 
                 return HttpResponse(json.dumps(response_object), 'application/json')
             else:

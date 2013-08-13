@@ -33,7 +33,7 @@ function autoResize(id){
   		<div class="watermark center">
 
 			{% if not linky.vested %}<img class="watermark-image" src="{{ STATIC_PREFIX }}img/watermark.png"/>{% endif %}
-			{% file_exists STATIC_PREFIX linky.id linky.submitted_url %}
+			{% file_exists STATIC_PREFIX linky.guid linky.submitted_url %}
 		</div>
 		<p><a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
    	</div>
