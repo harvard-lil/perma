@@ -1,5 +1,6 @@
 from datetime import datetime
 import logging
+import random
 
 from django.contrib.auth.models import User, Permission, Group
 from django.db.models.signals import post_syncdb
@@ -11,6 +12,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
+
+from linky.utils import base
 
 logger = logging.getLogger(__name__)
 
@@ -115,6 +118,7 @@ class PermaUser(AbstractBaseUser):
         return self.is_admin
 
 class Link(models.Model):
+    guid = models.CharField(max_length=255, null=False, blank=False, primary_key=True)
     view_count = models.IntegerField(default=0)
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)
     creation_timestamp = models.DateTimeField(auto_now=True)
@@ -124,20 +128,16 @@ class Link(models.Model):
     vested_by_editor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='vested_by_editor')
     vested_timestamp = models.DateTimeField(null=True, blank=True)
 
-
-    """def save(self, *args, **kwargs):
-        # We compute our hash from our auto
-        #
-        # TODO: We're getting a link count each time. Find a better hashing mechanism
-        # or toss this in memcache or ???
-
-        link_count = Link.objects.count()
-
-        hashids_lib = hashids(INTERNAL['SALT'])
-        computed_hash = hashids_lib.encrypt(link_count)
-
-        self.hash_id = computed_hash
-        super(Link, self).save(*args, **kwargs)"""
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            # not self.pk => not created yet
+            guid = '0'
+            while guid.startswith('0'):
+                random_id = random.randint(0, 58**10)
+                guid = base.convert(random_id, base.BASE10, base.BASE58)
+            guid = '0' + guid
+            self.guid = guid
+        super(Link, self).save(*args, **kwargs)
 
     def __unicode__(self):
         return self.submitted_url

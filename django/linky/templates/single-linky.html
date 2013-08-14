@@ -33,7 +33,7 @@ function autoResize(id){
   		<div class="watermark center">
 
 			{% if not linky.vested %}<img class="watermark-image" src="{{ STATIC_PREFIX }}img/watermark.png"/>{% endif %}
-			{% file_exists STATIC_PREFIX linky.id linky.submitted_url %}
+			{% file_exists STATIC_PREFIX linky.guid linky.submitted_url %}
 		</div>
 		<p><a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
    	</div>
@@ -56,10 +56,12 @@ function autoResize(id){
 
   </div>
   <div class="modal-body">
+    {% if display_iframe %}
      <h4 class="indexed"><a href="{{linky.submitted_url}}">{{linky.submitted_title}}</a><br><small>Archived on {{linky.creation_timestamp}}<br>Today's live view<br>
      <div id="iframe-wrap">
-		<iframe id="frame" class="center" src="{{linky.submitted_url}}"></iframe>
+		<iframe id="frame" class="center" sandbox="allow-forms allow-scripts" src="{{linky.submitted_url}}"></iframe>
 	</div>
+     {% endif %}
      <a href="{{linky.submitted_url}}" class="grey">{{linky.submitted_url}}</a></small></h4>
      <a href="{{linky.submitted_url}}"></a>
   </div>

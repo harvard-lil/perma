@@ -8,7 +8,7 @@
 {% block content %}
 
 		<h3>Perma links vested by you</h3>
-		<p>You've vested {{ total_vested}} links</p>
+		<p>You've vested {{ total_vested }} link{{ total_vested|pluralize }}.</p>
 		
 		<table class="vested-table">
     	<thead>
@@ -21,7 +21,7 @@
 		<tbody>
 		  {% for linky_link in linky_links %}
 			<tr>
-			  <td class="linky-abbr-title">{{ linky_link.submitted_title }}<br><a href="{{ linky_link.submitted_url }}" target="_blank">{{ linky_link.submitted_url }}</a><br><a href="http://{{host}}/{{linky_link.id}}" target="_blank">{{host}}/{{linky_link.id}}</a></td>
+			  <td class="linky-abbr-title">{{ linky_link.submitted_title }}<br><a href="{{ linky_link.submitted_url }}" target="_blank">{{ linky_link.submitted_url }}</a><br><a href="http://{{host}}/{{linky_link.guid}}" target="_blank">{{host}}/{{linky_link.guid}}</a></td>
 			  <td class="linky-abbr-date-time">{{ linky_link.creation_timestamp|date:"m/d/Y" }}</td>
 			  <td class="linky-abbr-date-time">{{ linky_link.vested_timestamp|date:"m/d/Y" }}</td>
 		  {% empty %}
@@ -29,8 +29,11 @@
 		  {% endfor %}
 		</tbody>
 	  </table>
-	  <div class="pagination">
-		  <ul>
+
+
+{% if linky_links.paginator.num_pages > 1 %}
+<div class="pagination">
+    <ul>
         {% if linky_links.has_previous %}<li><a href="?page={{ linky_links.previous_page_number }}&sort={{ sort }}">&lt;</a></li>{% endif %}
         {% for i in linky_links.paginator.page_range %}
         {% ifequal i linky_links.number %}
@@ -40,10 +43,8 @@
         {% endifequal %}
         {% endfor %}
         {% if linky_links.has_next  %}<li><a href="?page={{ linky_links.next_page_number }}&sort={{ sort }}">&gt;</a></li>{% endif %}
-      </ul>
-    </div>
+    </ul>
+</div>
+{% endif %}
 
-{% endblock %}
-
-{% block scripts %}
 {% endblock %}
