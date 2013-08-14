@@ -29,7 +29,7 @@
                         <nav>
                             <ul>
                                 {% if user.is_authenticated %}
-                                <li>Hello, {{ user.username }}</li>
+                                <li>Hello, {% if user.first_name %}{{ user.first_name }}{% else %}{{user.email}}{% endif %}</li>
                                 <li><a href="{% url 'auth_logout' %}">{% if this_page == 'logout' %} class="this-page"{% endif %}<span style="color: #aaa;">Log out</span></a></li>
                                 <!-- TODO: canonical dashboard url? -->
                                 <li><a href="{% url 'user_management_created_links' %}" id="nav-button" class="btn btn-large btn-success">Dashboard</a></li>
@@ -75,9 +75,9 @@
                             <!-- TODO add boilerplate text -->
                             Copyright &copy; Lorem Ipsum
                             &nbsp;&nbsp;&middot;&nbsp;&nbsp;
-                            <a href="#">Terms of Service</a>
+                            <a href="{% url 'terms_of_service' %}">Terms of Service</a>
                             &nbsp;&nbsp;&middot;&nbsp;&nbsp;
-                            <a href="#">Privacy Policy</a>
+                            <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
                         </p>
                     </div><!--/.main-container-->
                 </footer>

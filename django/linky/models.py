@@ -81,8 +81,8 @@ class LinkUser(AbstractBaseUser):
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     date_joined = models.DateField(auto_now_add=True)
-    first_name = models.CharField(max_length=45)
-    last_name = models.CharField(max_length=45)
+    first_name = models.CharField(max_length=45, blank=True)
+    last_name = models.CharField(max_length=45, blank=True)
 
     objects = LinkUserManager()
 

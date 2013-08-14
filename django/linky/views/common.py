@@ -48,6 +48,14 @@ def contact(request):
     """The contact page"""
     return render_to_response('contact.html', {})
 
+def terms_of_service(request):
+    """The terms of service page"""
+    return render_to_response('terms_of_service.html', {})
+
+def privacy_policy(request):
+    """The privacy policy page"""
+    return render_to_response('privacy_policy.html', {})
+
 def single_linky(request, linky_guid):
     """Given a Linky ID, serve it up. Vetting also takes place here. """
 

@@ -34,7 +34,7 @@ class regisrtar_member_form(forms.ModelForm):
 
     class Meta:
         model = LinkUser
-        fields = ("email", "password", "registrar")
+        fields = ["first_name", "last_name", "email", "password", "registrar"]
 
     def clean_email(self):
         # Since User.email is unique, this check is redundant,
@@ -83,7 +83,7 @@ class regisrtar_member_form_edit(forms.ModelForm):
 
     class Meta:
         model = LinkUser
-        fields = ("email", "registrar")
+        fields = ["first_name", "last_name", "email", "registrar"]
 
     def save(self, commit=True):
         user = super(regisrtar_member_form_edit, self).save(commit=False)
@@ -103,7 +103,7 @@ class journal_member_form(forms.ModelForm):
     
     class Meta:
         model = LinkUser
-        fields = ("email", "password")
+        fields = ["first_name", "last_name", "email", "password"]
     
     
     error_messages = {
@@ -150,7 +150,7 @@ class journal_member_form_edit(forms.ModelForm):
     """
 
     class Meta:
-        model = User
+        model = LinkUser
         fields = ("first_name", "last_name", "email")
 
 
