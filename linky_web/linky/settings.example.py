@@ -13,6 +13,9 @@ MANAGERS = ADMINS
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__name__))
 
+# The base location, on disk, where want to store our generated assets
+GENERATED_ASSETS_STORAGE = '/tmp/perma/assets'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -78,6 +81,9 @@ STATIC_URL = '/static/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
+    'static',
+    GENERATED_ASSETS_STORAGE
+    
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
@@ -186,3 +192,13 @@ LOGIN_URL = '/login'
 
 # Broker used by celery
 BROKER_URL = 'amqp://guest:guest@localhost:5672/'
+
+# When getting the source with wget, let's set some details
+ARCHIVE_QUOTA = '5m' # Maximum filesize
+ARCHIVE_LIMIT_RATE = '100m' # Download limit rate; TODO reduce for production
+ACCEPT_CONTENT_TYPES = [ # HTTP content-type parameters to accept 
+    'text/html',
+    'text/xml',
+    'application/xhtml+xml',
+    'application/xml'
+]
