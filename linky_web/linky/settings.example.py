@@ -131,6 +131,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'linky',
     'south',
+    'djcelery',
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
@@ -182,3 +183,6 @@ AUTH_PROFILE_MODULE = 'linky.UserProfile'
 
 LOGIN_REDIRECT_URL = '/manage'
 LOGIN_URL = '/login'
+
+# Broker used by celery
+BROKER_URL = 'amqp://guest:guest@localhost:5672/'

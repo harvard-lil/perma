@@ -9,7 +9,7 @@ from pyPdf import PdfFileReader
 
 from linky.models import Link, Asset
 from linky.utils import base
-from backend.image_text_indexer.tasks import get_screen_cap, get_source
+from linky.tasks import get_screen_cap, get_source
 
 from django.shortcuts import render_to_response, HttpResponse
 from django.http import HttpResponseBadRequest
@@ -77,8 +77,13 @@ def linky_post(request):
     # Run our synchronus screen cap task (use the headless browser to create a static image) 
     get_screen_cap(link.id, target_url, os.path.sep.join(path_elements))
     
-    get_source(link.id, target_url, os.path.sep.join(path_elements))
-    
+    try:
+        get_source.delay(link.id, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
+    except Exception, e:
+        # TODO: Log the failed url
+        asset.warc_capture = 'failed'
+        asset.save()
+        
     asset= Asset.objects.get(link__id=link.id)
 
     # TODO: roll the favicon function into a pimp python package

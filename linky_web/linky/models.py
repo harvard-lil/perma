@@ -79,7 +79,7 @@ class Asset(models.Model):
     base_storage_path = models.CharField(max_length=2100, null=True, blank=True) # where we store these assets, relative to some base in our settings
     favicon = models.CharField(max_length=2100, null=True, blank=True) # Retrieved favicon
     image_capture = models.CharField(max_length=2100, null=True, blank=True) # Headless browser image capture
-    warc_capture = models.CharField(max_length=2100, null=True, blank=True) # Heretrix capture
+    warc_capture = models.CharField(max_length=2100, default='pending', null=True, blank=True) # Heretrix capture
 
 
 #######################
