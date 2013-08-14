@@ -6,14 +6,14 @@
 
 {% block content %}
 
-	<h3>Delete {{ target_member.username }}</h3>
+	<h3>Delete {{ target_member.email }}</h3>
 	<br/>
 	<br/>
-	<p>Yahowza! Do you really want to delete {{ target_member.username }} forever?</p>
+	<p>Yahowza! Do you really want to delete {{ target_member.email }} forever?</p>
 	<br/>
 	<form action="{% url 'user_management_manage_single_journal_member_delete' target_member.id %}" method="POST">
 	      {% csrf_token %}
-        <button type="submit" class="btn">Delete {{ target_member.username }} forever</button>
+        <button type="submit" class="btn">Delete {{ target_member.email }} forever</button>
     </form>
 
 {% endblock %}

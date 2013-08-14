@@ -202,7 +202,7 @@ def manage_single_registrar_member_delete(request, user_id):
     if request.user.groups.all()[0].name not in ['registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
 
-    target_member = get_object_or_404(User, id=user_id)
+    target_member = get_object_or_404(LinkUser, id=user_id)
 
     context = {'user': request.user, 'target_member': target_member,
         'this_page': 'users'}
@@ -307,11 +307,11 @@ def manage_single_journal_member_delete(request, user_id):
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
 
-    target_member = get_object_or_404(User, id=user_id)
+    target_member = get_object_or_404(LinkUser, id=user_id)
 
     # Registrar members can only edit their own journal members
     if request.user.groups.all()[0].name not in ['registry_member']:
-        if request.user.get_profile().registrar != target_member.get_profile().registrar:
+        if request.user.registrar != target_member.registrar:
             return HttpResponseRedirect(reverse('user_management_landing'))
 
     context = {'user': request.user, 'target_member': target_member,
