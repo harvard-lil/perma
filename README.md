@@ -66,9 +66,13 @@ You should have the pieces in place. Let's create the tables in your database:
 
     $ python manage.py syncdb
 
+You may need to apply South migrations (e.g., for `djcelery`):
+
+    $ python manage.py migrate
+
 If you want to play with the admin views, load the user, group, and registrar data fixture:
 
-    $ python manage.py loaddata test/fixtures/usersandgroups.json 
+    $ python manage.py loaddata fixtures/usersandgroups.json 
 
 Toss in a wsgi config and wire it to your webserver, or use the built-in Django webserver and you should be ready to roll:
 
