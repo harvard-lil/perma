@@ -178,7 +178,7 @@ LOGGING = {
     }
 }
 
-AUTH_PROFILE_MODULE = 'linky.UserProfile'
+AUTH_USER_MODEL = 'linky.LinkUser'
 
 LOGIN_REDIRECT_URL = '/manage'
 LOGIN_URL = '/login'

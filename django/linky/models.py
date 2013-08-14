@@ -31,7 +31,7 @@ class Registrar(models.Model):
     def __unicode__(self):
         return self.name
 
-class PermaUserManager(BaseUserManager):
+class LinkUserManager(BaseUserManager):
     def create_user(self, email, registrar, date_joined, first_name, last_name, password=None, groups=None):
         """
         Creates and saves a User with the given email, registrar and password.
@@ -69,7 +69,7 @@ class PermaUserManager(BaseUserManager):
         return user
 
 
-class PermaUser(AbstractBaseUser):
+class LinkUser(AbstractBaseUser):
     email = models.EmailField(
         verbose_name='email address',
         max_length=255,
@@ -84,7 +84,7 @@ class PermaUser(AbstractBaseUser):
     first_name = models.CharField(max_length=45)
     last_name = models.CharField(max_length=45)
 
-    objects = PermaUserManager()
+    objects = LinkUserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

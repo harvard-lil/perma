@@ -41,7 +41,7 @@
     },
     {
         "pk": 1,
-        "model": "linky.PermaUser",
+        "model": "linky.LinkUser",
         "fields": {
             "is_active": true,
             "last_login": "2013-07-23T18:55:41Z",
@@ -57,7 +57,7 @@
     },
     {
         "pk": 2,
-        "model": "linky.PermaUser",
+        "model": "linky.LinkUser",
         "fields": {
             "registrar": 1,
             "is_active": true,
@@ -74,7 +74,7 @@
     },
     {
         "pk": 3,
-        "model": "linky.PermaUser",
+        "model": "linky.LinkUser",
         "fields": {
             "registrar": 1,
             "is_active": true,
@@ -91,7 +91,7 @@
     },
     {
         "pk": 4,
-        "model": "linky.PermaUser",
+        "model": "linky.LinkUser",
         "fields": {
             "is_active": true,
             "last_login": "2013-07-23T18:55:25Z",

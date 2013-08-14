@@ -12,7 +12,7 @@ from django.core.context_processors import csrf
 from django.contrib import auth
 from django.contrib.auth.models import User, Permission, Group
 from django.core.paginator import Paginator
-from linky.models import PermaUser
+from linky.models import LinkUser
 
 
 logger = logging.getLogger(__name__)
@@ -135,7 +135,7 @@ def manage_registrar_member(request):
     if request.user.groups.all()[0].name not in ['registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
 
-    registrar_members = PermaUser.objects.filter(groups__name='registrar_member', is_active=True)
+    registrar_members = LinkUser.objects.filter(groups__name='registrar_member', is_active=True)
 
     context = {'user': request.user, 'registrar_members': list(registrar_members),
         'this_page': 'users'}
@@ -171,7 +171,7 @@ def manage_single_registrar_member(request, user_id):
     if request.user.groups.all()[0].name not in ['registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
 
-    target_registrar_member = get_object_or_404(PermaUser, id=user_id)
+    target_registrar_member = get_object_or_404(LinkUser, id=user_id)
 
     context = {'user': request.user, 'target_registrar_member': target_registrar_member,
         'this_page': 'users'}
@@ -228,9 +228,9 @@ def manage_journal_member(request):
 
     # If registry member, return all active journal members. If registrar member, return just those journal members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
-        journal_members = PermaUser.objects.filter(groups__name='journal_member', is_active=True)
+        journal_members = LinkUser.objects.filter(groups__name='journal_member', is_active=True)
     else:
-        journal_members = PermaUser.objects.filter(registrar=request.user.registrar, is_active=True).exclude(id=request.user.id)
+        journal_members = LinkUser.objects.filter(registrar=request.user.registrar, is_active=True).exclude(id=request.user.id)
 
     context = {'user': request.user, 'journal_members': list(journal_members),
         'this_page': 'users'}
@@ -270,7 +270,7 @@ def manage_single_journal_member(request, user_id):
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
 
-    target_member = get_object_or_404(PermaUser, id=user_id)
+    target_member = get_object_or_404(LinkUser, id=user_id)
 
     # Registrar members can only edit their own journal members
     if request.user.groups.all()[0].name not in ['registry_member']:

@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.forms import ModelForm
 
 from linky.models import Registrar
-from linky.models import PermaUser
+from linky.models import LinkUser
 
 
 class registrar_form(ModelForm):
@@ -33,7 +33,7 @@ class regisrtar_member_form(forms.ModelForm):
     registrar = forms.ModelChoiceField(queryset=Registrar.objects.all(), empty_label=None)
 
     class Meta:
-        model = PermaUser
+        model = LinkUser
         fields = ("email", "password", "registrar")
 
     def clean_email(self):
@@ -42,8 +42,8 @@ class regisrtar_member_form(forms.ModelForm):
         
         email = self.cleaned_data["email"]
         try:
-            PermaUser.objects.get(email=email)
-        except PermaUser.DoesNotExist:
+            LinkUser.objects.get(email=email)
+        except LinkUser.DoesNotExist:
             return email
         raise forms.ValidationError(self.error_messages['duplicate_email'])
 
@@ -82,7 +82,7 @@ class regisrtar_member_form_edit(forms.ModelForm):
     registrar = forms.ModelChoiceField(queryset=Registrar.objects.all(), empty_label=None)
 
     class Meta:
-        model = PermaUser
+        model = LinkUser
         fields = ("email", "registrar")
 
     def save(self, commit=True):
@@ -102,7 +102,7 @@ class journal_member_form(forms.ModelForm):
     """
     
     class Meta:
-        model = PermaUser
+        model = LinkUser
         fields = ("email", "password")
     
     
@@ -126,8 +126,8 @@ class journal_member_form(forms.ModelForm):
 
         email = self.cleaned_data["email"]
         try:
-            PermaUser.objects.get(email=email)
-        except PermaUser.DoesNotExist:
+            LinkUser.objects.get(email=email)
+        except LinkUser.DoesNotExist:
             return email
         raise forms.ValidationError(self.error_messages['duplicate_email'])
 
@@ -193,7 +193,7 @@ class user_reg_form(forms.ModelForm):
     password = forms.CharField(label="Password", widget=forms.PasswordInput)
 
     class Meta:
-        model = PermaUser
+        model = LinkUser
         fields = ("email", "password")
     
     def clean_email(self):
@@ -202,8 +202,8 @@ class user_reg_form(forms.ModelForm):
         
         email = self.cleaned_data["email"]
         try:
-            PermaUser.objects.get(email=email)
-        except PermaUser.DoesNotExist:
+            LinkUser.objects.get(email=email)
+        except LinkUser.DoesNotExist:
             return email
         raise forms.ValidationError(self.error_messages['duplicate_email'])
 
