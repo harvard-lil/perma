@@ -41,114 +41,68 @@
     },
     {
         "pk": 1,
-        "model": "auth.user",
+        "model": "linky.PermaUser",
         "fields": {
-            "username": "test_registry_member",
-            "first_name": "",
-            "last_name": "",
             "is_active": true,
-            "is_superuser": false,
-            "is_staff": false,
             "last_login": "2013-07-23T18:55:41Z",
             "groups": [
                 4
             ],
-            "user_permissions": [],
             "password": "pbkdf2_sha256$10000$BK8BC1FXesBM$I+R1mquCsp5PWrHsHfv+6xuUNO560YEPqdbzWZFNzlo=",
             "email": "test_registry_member@example.com",
-            "date_joined": "2013-06-26T22:00:58Z"
+            "date_joined": "2013-06-26",
+            "first_name": "",
+            "last_name": ""
         }
     },
     {
         "pk": 2,
-        "model": "auth.user",
+        "model": "linky.PermaUser",
         "fields": {
-            "username": "test_registrar_member",
-            "first_name": "",
-            "last_name": "",
+            "registrar": 1,
             "is_active": true,
-            "is_superuser": false,
-            "is_staff": false,
             "last_login": "2013-07-23T18:56:14Z",
             "groups": [
                 3
             ],
-            "user_permissions": [],
             "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
             "email": "test_registrar_member@example.com",
-            "date_joined": "2013-06-26T22:03:08Z"
+            "date_joined": "2013-06-26",
+            "first_name": "",
+            "last_name": ""
         }
     },
     {
         "pk": 3,
-        "model": "auth.user",
+        "model": "linky.PermaUser",
         "fields": {
-            "username": "test_journal_member",
-            "first_name": "",
-            "last_name": "",
+            "registrar": 1,
             "is_active": true,
-            "is_superuser": false,
-            "is_staff": false,
             "last_login": "2013-07-23T18:38:27Z",
             "groups": [
                 2
             ],
-            "user_permissions": [],
             "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
             "email": "test_journal_member@example.com",
-            "date_joined": "2013-06-26T22:03:54Z"
+            "date_joined": "2013-06-26",
+            "first_name": "",
+            "last_name": ""
         }
     },
     {
         "pk": 4,
-        "model": "auth.user",
+        "model": "linky.PermaUser",
         "fields": {
-            "username": "test_user",
-            "first_name": "",
-            "last_name": "",
             "is_active": true,
-            "is_superuser": false,
-            "is_staff": false,
             "last_login": "2013-07-23T18:55:25Z",
             "groups": [
                 1
             ],
-            "user_permissions": [],
             "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
             "email": "test_user@example.com",
-            "date_joined": "2013-06-26T22:03:54Z"
-        }
-    },
-    {
-        "pk": 1,
-        "model": "linky.userprofile",
-        "fields": {
-            "registrar": null,
-            "user": 1
-        }
-    },
-    {
-        "pk": 2,
-        "model": "linky.userprofile",
-        "fields": {
-            "registrar": 1,
-            "user": 2
-        }
-    },
-    {
-        "pk": 3,
-        "model": "linky.userprofile",
-        "fields": {
-            "registrar": 1,
-            "user": 3
-        }
-    },
-    {
-        "pk": 4,
-        "model": "linky.userprofile",
-        "fields": {
-            "registrar": null,
-            "user": 4
+            "date_joined": "2013-06-26",
+            "first_name": "",
+            "last_name": ""
         }
     }
 ]

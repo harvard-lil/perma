@@ -12,6 +12,7 @@ from django.core.context_processors import csrf
 from django.contrib import auth
 from django.contrib.auth.models import User, Permission, Group
 from django.core.paginator import Paginator
+from linky.models import PermaUser
 
 
 logger = logging.getLogger(__name__)
@@ -131,7 +132,7 @@ def manage_registrar_member(request):
     if request.user.groups.all()[0].name not in ['registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
 
-    registrar_members = User.objects.filter(groups__name='registrar_member', is_active=True)
+    registrar_members = PermaUser.objects.filter(groups__name='registrar_member', is_active=True)
 
     context = {'user': request.user, 'registrar_members': list(registrar_members)}
     context.update(csrf(request))
@@ -144,9 +145,9 @@ def manage_registrar_member(request):
             new_user = form.save()
 
             new_user.backend='django.contrib.auth.backends.ModelBackend'
-
+            
             group = Group.objects.get(name='registrar_member')
-            group.user_set.add(new_user)
+            new_user.groups.add(group)
 
             return HttpResponseRedirect(reverse('user_management_manage_registrar_member'))
 
@@ -166,7 +167,7 @@ def manage_single_registrar_member(request, user_id):
     if request.user.groups.all()[0].name not in ['registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
 
-    target_registrar_member = get_object_or_404(User, id=user_id)
+    target_registrar_member = get_object_or_404(PermaUser, id=user_id)
 
     context = {'user': request.user, 'target_registrar_member': target_registrar_member}
     context.update(csrf(request))
@@ -221,9 +222,9 @@ def manage_journal_member(request):
 
     # If registry member, return all active journal members. If registrar member, return just those journal members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
-        journal_members = User.objects.filter(groups__name='journal_member', is_active=True)
+        journal_members = PermaUser.objects.filter(groups__name='journal_member', is_active=True)
     else:
-        journal_members = User.objects.filter(userprofile__registrar=request.user.userprofile.registrar, is_active=True).exclude(id=request.user.id)
+        journal_members = PermaUser.objects.filter(registrar=request.user.registrar, is_active=True).exclude(id=request.user.id)
 
     context = {'user': request.user, 'journal_members': list(journal_members)}
     context.update(csrf(request))
@@ -236,16 +237,13 @@ def manage_journal_member(request):
             new_user = form.save()
 
             new_user.backend='django.contrib.auth.backends.ModelBackend'
+            
+            new_user.registrar = request.user.registrar
+            logger.debug('Trying to save with registrar: %s', request.user.registrar)
+            new_user.save()
 
             group = Group.objects.get(name='journal_member')
-            group.user_set.add(new_user)
-
-
-            logged_in_user_profile = request.user.get_profile()
-
-            new_user_profile = new_user.get_profile()
-            new_user_profile.registrar = logged_in_user_profile.registrar
-            new_user_profile.save()
+            new_user.groups.add(group)
 
             return HttpResponseRedirect(reverse('user_management_manage_journal_member'))
 
@@ -266,11 +264,11 @@ def manage_single_journal_member(request, user_id):
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
 
-    target_member = get_object_or_404(User, id=user_id)
+    target_member = get_object_or_404(PermaUser, id=user_id)
 
     # Registrar members can only edit their own journal members
     if request.user.groups.all()[0].name not in ['registry_member']:
-        if request.user.get_profile().registrar != target_member.get_profile().registrar:
+        if request.user.registrar != target_member.registrar:
             return HttpResponseRedirect(reverse('user_management_landing'))
 
 
@@ -404,9 +402,9 @@ def manage_account(request):
 def sponsoring_library(request):
     """ Journal members can view their sponsoring library (for contact info) """
 
-    profile = request.user.get_profile()
+    
 
-    context = {'user': request.user, 'sponsoring_library_name': profile.registrar.name, 'sponsoring_library_email': profile.registrar.email, 'sponsoring_library_website': profile.registrar.website}
+    context = {'user': request.user, 'sponsoring_library_name': request.user.registrar.name, 'sponsoring_library_email': request.user.registrar.email, 'sponsoring_library_website': request.user.registrar.website}
 
     return render_to_response('user_management/sponsoring-library.html', context)
 
