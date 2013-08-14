@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import logging, json, subprocess, urllib2, re, os
 from urlparse import urlparse
 
@@ -225,3 +226,21 @@ def upload_file(request):
         else:
             return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Missing file.'}), 'application/json')
     return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':form.errors}), 'application/json')
+
+def urldump(request, since=None):
+    """
+    Give basic JSON encoding of GUID/URL pairs created since 'since'
+    """
+    ### XXX some day we should probably cache this and/or use some
+    ### sort of sweet checkpointing system, but this is a start
+    if since is None:
+        dt = datetime.now() - timedelta(days=1)
+    else:
+        dt = datetime.strptime(since, "%Y-%m-%d")
+    links = Link.objects.filter(creation_timestamp__gte=dt)
+    data = []
+    for link in links:
+        datum = {'guid': link.guid, 'url': link.submitted_url}
+        data.append(datum)
+    response = json.dumps(data)
+    return HttpResponse(response, 'application/json')
