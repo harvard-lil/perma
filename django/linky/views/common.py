@@ -56,6 +56,10 @@ def privacy_policy(request):
     """The privacy policy page"""
     return render_to_response('privacy_policy.html', {})
 
+def tools(request):
+    """The tools page"""
+    return render_to_response('tools.html', {})
+
 def single_linky(request, linky_guid):
     """Given a Linky ID, serve it up. Vetting also takes place here. """
 

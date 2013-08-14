@@ -34,7 +34,7 @@
                                 <!-- TODO: canonical dashboard url? -->
                                 <li><a href="{% url 'user_management_created_links' %}" id="nav-button" class="btn btn-large btn-success">Dashboard</a></li>
                                 {% else %}
-                                <li><a href="{% comment %}TODO add tools url{% url 'tools' %}{% endcomment %}"{% if this_page == 'tools' %} class="this-page"{% endif %}>Tools</a></li>
+                                <li><a href="{% url 'tools' %}"{% if this_page == 'tools' %} class="this-page"{% endif %}>Tools</a></li>
                                 <li><a href="{% url 'about' %}"{% if this_page == 'about' %} class="this-page"{% endif %}>About</a></li>
                                 <li><a href="{% url 'auth_login' %}">Log in</a></li>
                                 <li><a href="{% url 'process_register' %}" id="nav-button" class="btn btn-large btn-success">Sign Up</a></li>
@@ -59,7 +59,7 @@
                         <p id="footer-nav">
                             <a href="{% url 'landing' %}">Home</a>
                             &nbsp;&nbsp;&middot;&nbsp;&nbsp;
-                            <a href="{% comment %}TODO add tools url{% url 'tools' %}{% endcomment %}">Tools</a>
+                            <a href="{% url 'tools' %}">Tools</a>
                             &nbsp;&nbsp;&middot;&nbsp;&nbsp;
                             <a href="{% url 'about' %}">About</a>
                             &nbsp;&nbsp;&middot;&nbsp;&nbsp;

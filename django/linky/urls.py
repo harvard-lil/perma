@@ -11,6 +11,7 @@ urlpatterns = patterns('linky.views',
     # Common Pages
     url(r'^$', 'common.landing', name='landing'),
     url(r'^editor/?$', 'common.editor_home', name='editor_home'),
+    url(r'^tools/?$', 'common.tools', name='tools'),
     url(r'^about/?$', 'common.about', name='about'),
     url(r'^faq/?$', 'common.faq', name='faq'),
     url(r'^contact/?$', 'common.contact', name='contact'),
