@@ -19,7 +19,7 @@
 		{% else %}
 		<select name="a-registrar" id="id_a-registrar">
 			{% for x,y in form.fields.registrar.choices %}
-			<option value="{{ x }}" {% if x == target_registrar_member.userprofile.registrar.id %} selected {% endif %} >{{ y }}</option>
+			<option value="{{ x }}" {% if x == target_registrar_member.registrar.id %} selected {% endif %} >{{ y }}</option>
 			{% endfor %}
 		</select>
 

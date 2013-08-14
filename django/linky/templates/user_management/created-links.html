@@ -9,7 +9,12 @@
 {% block content %}
 
 		<h3>Perma links created by you</h3>
-		<p>You've created {{ total_created }} links</p>
+
+{% if total_created == 0 %}
+<p>You haven't saved any links yet.</p>
+{% else %}
+
+		<p>You've archived {{ total_created }} links. Vested links are marked with <span class="fancy-infinity">&infin;</span>.</p>
 
 		<table class="vested-table">
     	<thead>
@@ -24,7 +29,7 @@
 		<tbody>
 		  {% for linky_link in linky_links %}
 			<tr>
-			  <td class="linky-abbr-vested">{% if linky_link.vested %}∞{% endif %}</td>
+			  <td class="linky-abbr-vested">{% if linky_link.vested %}<span class="fancy-infinity">&infin;</span>{% endif %}</td>
 			  <td class="linky-abbr-title">{{ linky_link.submitted_title }}<br><a href="{{ linky_link.submitted_url }}" target="_blank">{{ linky_link.submitted_url }}</a><br><a href="http://{{host}}/{{linky_link.guid}}" target="_blank">{{host}}/{{linky_link.guid}}</a></td>
 			  <td class="linky-abbr-date-time">{{ linky_link.creation_timestamp|date:"m/d/Y" }}</td>
 			  <td class="linky-abbr-date-time">{{ linky_link.vested_timestamp|date:"m/d/Y" }}</td>
@@ -34,8 +39,10 @@
 		  {% endfor %}
 		</tbody>
 	  </table>
-	  <div class="pagination">
-		  <ul>
+
+{% if linky_links.paginator.num_pages > 1 %}
+<div class="pagination">
+    <ul>
         {% if linky_links.has_previous %}<li><a href="?page={{ linky_links.previous_page_number }}&sort={{ sort }}">&lt;</a></li>{% endif %}
         {% for i in linky_links.paginator.page_range %}
         {% ifequal i linky_links.number %}
@@ -45,7 +52,10 @@
         {% endifequal %}
         {% endfor %}
         {% if linky_links.has_next  %}<li><a href="?page={{ linky_links.next_page_number }}&sort={{ sort }}">&gt;</a></li>{% endif %}
-      </ul>
-    </div>
+    </ul>
+</div>
+{% endif %}
+
+{% endif %}
 
 {% endblock %}
