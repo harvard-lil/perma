@@ -17,7 +17,6 @@
         <th><input type="checkbox"></th>
         <th>Name</th>
         <th>Email</th>
-        <th>Username</th>
         {% if user.groups.all.0.name == 'registry_member' %}<th>Registrar</th>{% endif %}
         <th>Admin</th>
       </tr>
@@ -28,8 +27,7 @@
           <td><input type="checkbox"></td>
           <td>{{ member.first_name }} {{ member.last_name }}</td>
           <td>{{ member.email }}</td>
-          <td>{{ member.username }}</td>
-		  {% if user.groups.all.0.name == 'registry_member' %}<td>{{member.userprofile.registrar.name}}</td>{% endif %}
+		  {% if user.groups.all.0.name == 'registry_member' %}<td>{{member.registrar.name}}</td>{% endif %}
           <td><a href="{% url 'user_management_manage_single_journal_member' member.id%}">edit/delete</a></td>
       {% empty %}
         <tr>No journal members found.</tr>
