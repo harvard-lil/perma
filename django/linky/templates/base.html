@@ -65,7 +65,7 @@
                             &nbsp;&nbsp;&middot;&nbsp;&nbsp;
                             <a href="{% url 'faq' %}">FAQs</a>
                             &nbsp;&nbsp;&middot;&nbsp;&nbsp;
-                            <a href="{% comment %}TODO add contact url{% url 'contact' %}{% endcomment %}">Contact</a>
+                            <a href="{% url 'contact' %}">Contact</a>
                         </p><!--/#footer-nav-->
                         <ul id="social-media">
                             <li><a href="http://www.facebook.com/XXXXXXXX/"><img src="{{ STATIC_PREFIX }}img/social-media-icons/facebook.png" alt="Facebook" /></a></li>
@@ -84,21 +84,6 @@
             </div><!--/.row-fluid-->
         </div><!--/.container-fluid-->
 
-{% comment %}
-      <div class="container">
-        {% include "navbar.html" %}
-      		<div class="row">
-				<div class="offset1 span10 center">
-        			<a href="{% url 'landing' %}"><h1 class="logo-big">Perma</h1>
-        			<img class="logo-big-img" src="{{ STATIC_PREFIX }}img/infinity.png"/></a>
-        		</div>
-  			</div>
-      {% block row %}
-      	{% endblock %}
-      	 </div><!--end container -->
-{% endcomment %}
-      	
-   
     <script src="{{ STATIC_PREFIX }}js/jquery.js"></script>
     <script src="{{ STATIC_PREFIX }}js/bootstrap.js"></script>
     <script src="{{ STATIC_PREFIX }}js/global.js"></script>
@@ -108,15 +93,4 @@
     {% block templates %}
     {% endblock %} 
   </body>
-
-{% comment %}
-  <footer>
-      		<div class="row footer">
-      			<div class="span12">
-      				<h3><small>Brought to you by JZ, Kendra, Shailin, Leonid & <br/><a href="http://librarylab.law.harvard.edu/"><span class="cyan">Harvard Library Innovation Lab</span></a></small></h3>
-      			</div>
-      		</div>
-      	</footer>
-{% endcomment %}
-
 </html>
