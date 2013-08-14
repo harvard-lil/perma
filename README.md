@@ -13,6 +13,11 @@ The required modules are found in requirements.txt. Install them using pip:
 
     $ pip install -r requirements.txt
 
+If you're running OS X Mountain Lion, you may need to add the MySQL binaries 
+to your PATH:
+
+    $ export PATH=$PATH:/usr/local/mysql/bin
+
 ### MySQL
 
 You'll need a Django friendly database. If you want to use MySQL, something like the following can be used to create a new user and a new database:

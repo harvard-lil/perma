@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% block row %}
-  			<div class="row">
-				<div class="offset1 span10">
-    	 			{% block content %}
-      				{% endblock %}
-      			</div>
-      		</div>
-{% endblock %}
+
+<div class="row-fluid">
+{% block content %}
+{% endblock content %}
+</div><!--/.row-fluid-->
+
+{% endblock row %}
+

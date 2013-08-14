@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.forms import ModelForm
 
 from linky.models import Registrar
+from linky.models import LinkUser
 
 
 class registrar_form(ModelForm):
@@ -16,16 +17,8 @@ class regisrtar_member_form(forms.ModelForm):
     This is mostly a django.contrib.auth.forms.UserCreationForm
     """
     error_messages = {
-        'duplicate_username': "A user with that username already exists.",
         'duplicate_email': "A user with that email address already exists.",
     }
-    username = forms.RegexField(label="Username", max_length=30,
-        regex=r'^[\w.@+-]+$',
-        help_text = "30 characters or fewer. Letters, digits and "
-                      "@/./+/-/_ only.",
-        error_messages = {
-            'invalid': "This value may contain only letters, numbers and "
-                         "@/./+/-/_ characters."})
     
     email = forms.RegexField(label="Email", required=True, max_length=254,
         regex=r'^[\w.@+-]+$',
@@ -40,33 +33,23 @@ class regisrtar_member_form(forms.ModelForm):
     registrar = forms.ModelChoiceField(queryset=Registrar.objects.all(), empty_label=None)
 
     class Meta:
-        model = User
-        fields = ("first_name", "last_name", "username", "email", "password", "registrar")
+        model = LinkUser
+        fields = ["first_name", "last_name", "email", "password", "registrar"]
 
-
-    def clean_username(self):
-        # Since User.username is unique, this check is redundant,
-        # but it sets a nicer error message than the ORM. See #13147.
-        username = self.cleaned_data["username"]
-        try:
-            User.objects.get(username=username)
-        except User.DoesNotExist:
-            return username
-        raise forms.ValidationError(self.error_messages['duplicate_username'])
-    
     def clean_email(self):
         # Since User.email is unique, this check is redundant,
         # but it sets a nicer error message than the ORM.
         
         email = self.cleaned_data["email"]
         try:
-            User.objects.get(email=email)
-        except User.DoesNotExist:
+            LinkUser.objects.get(email=email)
+        except LinkUser.DoesNotExist:
             return email
         raise forms.ValidationError(self.error_messages['duplicate_email'])
 
     def clean_registrar(self):
-        return self.data.get('a-registrar')
+        registrar = self.cleaned_data["registrar"]
+        return registrar
 
     def save(self, commit=True):
         user = super(regisrtar_member_form, self).save(commit=False)
@@ -74,11 +57,7 @@ class regisrtar_member_form(forms.ModelForm):
 
         if commit:
             user.save()
-            
-            profile = user.get_profile()
-            registrar = Registrar.objects.get(id=self.cleaned_data["registrar"])
-            profile.registrar = registrar
-            profile.save()
+
         return user
         
         
@@ -103,12 +82,8 @@ class regisrtar_member_form_edit(forms.ModelForm):
     registrar = forms.ModelChoiceField(queryset=Registrar.objects.all(), empty_label=None)
 
     class Meta:
-        model = User
-        fields = ("first_name", "last_name", "email", "registrar")
-
-
-    def clean_registrar(self):
-        return self.data.get('a-registrar')
+        model = LinkUser
+        fields = ["first_name", "last_name", "email", "registrar"]
 
     def save(self, commit=True):
         user = super(regisrtar_member_form_edit, self).save(commit=False)
@@ -116,10 +91,6 @@ class regisrtar_member_form_edit(forms.ModelForm):
         if commit:
             user.save()
 
-            profile = user.get_profile()
-            registrar = Registrar.objects.get(id=self.cleaned_data["registrar"])
-            profile.registrar = registrar
-            profile.save()
         return user
         
         
@@ -131,21 +102,13 @@ class journal_member_form(forms.ModelForm):
     """
     
     class Meta:
-        model = User
-        fields = ("first_name", "last_name", "username", "email", "password")
+        model = LinkUser
+        fields = ["first_name", "last_name", "email", "password"]
     
     
     error_messages = {
-        'duplicate_username': "A user with that username already exists.",
         'duplicate_email': "A user with that email address already exists.",
     }
-    username = forms.RegexField(label="Username", max_length=30,
-        regex=r'^[\w.@+-]+$',
-        help_text = "30 characters or fewer. Letters, digits and "
-                      "@/./+/-/_ only.",
-        error_messages = {
-            'invalid': "This value may contain only letters, numbers and "
-                         "@/./+/-/_ characters."})
 
     email = forms.RegexField(label="Email", required=True, max_length=254,
         regex=r'^[\w.@+-]+$',
@@ -157,25 +120,14 @@ class journal_member_form(forms.ModelForm):
 
     password = forms.CharField(label="Password", widget=forms.PasswordInput)
 
-
-    def clean_username(self):
-        # Since User.username is unique, this check is redundant,
-        # but it sets a nicer error message than the ORM. See #13147.
-        username = self.cleaned_data["username"]
-        try:
-            User.objects.get(username=username)
-        except User.DoesNotExist:
-            return username
-        raise forms.ValidationError(self.error_messages['duplicate_username'])
-
     def clean_email(self):
         # Since User.email is unique, this check is redundant,
         # but it sets a nicer error message than the ORM.
 
         email = self.cleaned_data["email"]
         try:
-            User.objects.get(email=email)
-        except User.DoesNotExist:
+            LinkUser.objects.get(email=email)
+        except LinkUser.DoesNotExist:
             return email
         raise forms.ValidationError(self.error_messages['duplicate_email'])
 
@@ -198,7 +150,7 @@ class journal_member_form_edit(forms.ModelForm):
     """
 
     class Meta:
-        model = User
+        model = LinkUser
         fields = ("first_name", "last_name", "email")
 
 
@@ -227,16 +179,8 @@ class user_reg_form(forms.ModelForm):
     This is mostly a django.contrib.auth.forms.UserCreationForm
     """
     error_messages = {
-        'duplicate_username': "A user with that username already exists.",
         'duplicate_email': "A user with that email address already exists.",
     }
-    username = forms.RegexField(label="Username", max_length=30,
-        regex=r'^[\w.@+-]+$',
-        help_text = "30 characters or fewer. Letters, digits and "
-                      "@/./+/-/_ only.",
-        error_messages = {
-            'invalid': "This value may contain only letters, numbers and "
-                         "@/./+/-/_ characters."})
     
     email = forms.RegexField(label="Email", required=True, max_length=254,
         regex=r'^[\w.@+-]+$',
@@ -249,18 +193,8 @@ class user_reg_form(forms.ModelForm):
     password = forms.CharField(label="Password", widget=forms.PasswordInput)
 
     class Meta:
-        model = User
-        fields = ("username", "email", "password")
-
-    def clean_username(self):
-        # Since User.username is unique, this check is redundant,
-        # but it sets a nicer error message than the ORM. See #13147.
-        username = self.cleaned_data["username"]
-        try:
-            User.objects.get(username=username)
-        except User.DoesNotExist:
-            return username
-        raise forms.ValidationError(self.error_messages['duplicate_username'])
+        model = LinkUser
+        fields = ("email", "password")
     
     def clean_email(self):
         # Since User.email is unique, this check is redundant,
@@ -268,8 +202,8 @@ class user_reg_form(forms.ModelForm):
         
         email = self.cleaned_data["email"]
         try:
-            User.objects.get(email=email)
-        except User.DoesNotExist:
+            LinkUser.objects.get(email=email)
+        except LinkUser.DoesNotExist:
             return email
         raise forms.ValidationError(self.error_messages['duplicate_email'])
 

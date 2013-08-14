@@ -1,56 +1,62 @@
 var linkyUrl = '';
 var rawUrl = '';
 var newLinky = {};
-var allLinkies = new Array();
+var all_links = new Array();
 
 $(document).ready(function() {
   $('#linky-confirm').modal({show: false});
   $('#linky-upload-confirm').modal({show: false});
   $('#linky-upload').modal({show: false});
   $('#rawUrl').focus();
-  
+
   $('#linker').submit(function() {
 		linkIt();
 		return false;
 	});
-	
-	$('#email_request').keyup(function() {                   
+
+	$('#linky-confirm').on('keyup', '#email_request', function() {
     if(!$(this).val()) {
-      $('#saveLinky').text('Save this Linky');    
+      $('#saveLinky').text('Save this Perma');
     }
     else {
-      $('#saveLinky').text('Save and send this Linky');
+      $('#saveLinky').text('Save and send this Perma');
     }
   });
-  
+
   drawLinks();
 
   $('#linky_upload_form').submit(function(){
-	  $('#linky-upload').modal('hide');
-	  $('#linky-upload-confirm').modal({show: true});
-	  $(this).ajaxSubmit(function(data){
-		  var linkyUrl = web_base  + '/' + data.linky_hash;
-		  $('#linky_upload_success').text('Your linky has been created at');
-		  $('#uploadedLinkyUrl a').attr('href', linkyUrl).text(linkyUrl);
-		  newLinky.url = linkyUrl;
-      newLinky.original = $('#url').val();
-      newLinky.title = $('#title').val();
-      newLinky.favicon_url = '';
-      if(JSON.parse(localStorage.getItem('linky-list'))){
-        allLinkies = JSON.parse(localStorage.getItem('linky-list'));
-        if(allLinkies.length >= 10) {
-          allLinkies.splice(0,1);
-        }
-      }
-      allLinkies.push(newLinky);
-      if(('localStorage' in window) && window['localStorage'] !== null){ 
-        localStorage.setItem( 'linky-list', JSON.stringify(allLinkies));
-      }
-      drawLinks();
-	  });
-	  return false;
+	  $(this).ajaxSubmit({success: uploadIt, error: uploadNot});
+	    return false;
     });
   });
+
+function uploadNot() {
+  $('#upload-error').text('The upload failed');
+}
+
+function uploadIt(data) {
+  if(data.status == 'success') {
+    $('#linky-upload').modal('hide');
+	  $('#linky-upload-confirm').modal({show: true});
+    var linkyUrl = web_base  + '/' + data.linky_hash;
+		$('#linky_upload_success').text('Your linky has been created at');
+		$('#uploadedLinkyUrl a').attr('href', linkyUrl).text(linkyUrl);
+		newLinky.url = linkyUrl;
+    newLinky.original = $('#url').val();
+    newLinky.title = $('#title').val();
+    newLinky.favicon_url = data.favicon_url;
+    addToStorage(newLinky);
+    var source = $("#list-template").html();
+    var template = Handlebars.compile(source);
+    $('#stored-ul').prepend(template(newLinky));
+    $('#linky-list').fadeIn();
+    drawLinks();
+  }
+  else {
+    return xhr.abort();
+  }
+}
 
 function linkIt(){
   var source = $("#loading-template").html();
@@ -59,6 +65,7 @@ function linkIt(){
     $('#upload-option').hide();
 
   rawUrl = $("#rawUrl").val();
+  $('#url').val(rawUrl);
   var request = $.ajax({
     url: web_base + "/api/linky/",
     type: "POST",
@@ -73,20 +80,16 @@ function linkIt(){
     newLinky.url = linkyUrl;
     newLinky.original = rawUrl;
     newLinky.title = data.linky_title;
+    $('#title').val(data.linky_title);
     newLinky.favicon_url = data.favicon_url;
-    if(JSON.parse(localStorage.getItem('linky-list'))){
-      allLinkies = JSON.parse(localStorage.getItem('linky-list'));
-      if(allLinkies.length >= 10) {
-        allLinkies.splice(0,1);
-      }
-    }
+
     var source = $("#list-template").html();
     var template = Handlebars.compile(source);
     $('#stored-ul').prepend(template(newLinky));
-    allLinkies.push(newLinky);
-    if(('localStorage' in window) && window['localStorage'] !== null){ 
-      localStorage.setItem( 'linky-list', JSON.stringify(allLinkies));
-    }
+    $('#linky-list').fadeIn();
+
+    addToStorage(newLinky);
+    drawLinks();
     $('#linkyUrl a').html(web_base  + '/' + data.linky_id).attr('href', web_base + '/' + data.linky_id);
     //$('#linky_title').text(data.linky_title);
     $('#linky-preview img').attr('src', data.linky_cap);
@@ -97,29 +100,28 @@ function linkIt(){
     $('#linky-confirm .modal-body').html(template({url: rawUrl}));
     $('#linky-desc').removeClass('unavailable');
   });
-  
+
   $('#linky-confirm').modal('show');
   $('#saveLinky').on('click', function(event){
-            
+
     var request = $.ajax({
       url: web_base + "/service/email-confirm/",
       type: "POST",
       data: {email_address: $('#email_request').val(), linky_link: $('#linkyUrl a').attr('href')},
       dataType: "json"
     });
-      
+
     event.preventDefault();
     $('#linky-confirm').modal('hide');
   });
-  
+
   $('#linky-confirm').on('hidden', function () {
     $('#rawUrl').val('').focus();
-    $('#local-list').fadeIn();
-  
+
     $('#linky_generation_message').html('Creating your Linky. Hold tight.');
     $('#linkyUrl a').html('').attr('');
     $('#linky-desc').addClass('unavailable');
-    drawLinks();
+    //drawLinks();
   });
 }
 
@@ -142,7 +144,7 @@ function drawLinks() {
       var source = $("#list-template").html();
       var template = Handlebars.compile(source);
       $('#local-ul').append(template(value));
-      
+
       var clip = new ZeroClipboard( document.getElementsByClassName("copy-button"), {
         moviePath: web_base + "/static/js/ZeroClipboard/ZeroClipboard.swf"
       });
@@ -151,41 +153,55 @@ function drawLinks() {
         $(this).next('.copy-confirm').html('copied').fadeIn(100).fadeOut(3000);
       });
     });
-    $('#local-list').fadeIn();
+    $('#local-list, #linky-list').fadeIn();
+  }
+}
+
+function addToStorage(new_link) {
+  if(JSON.parse(localStorage.getItem('linky-list'))){
+    all_links = JSON.parse(localStorage.getItem('linky-list')) || [];
+    if(all_links.length >= 10) {
+      all_links.splice(0,1);
+    }
+  }
+  all_links.push(new_link);
+  if(('localStorage' in window) && window['localStorage'] !== null){
+    localStorage.setItem( 'linky-list', JSON.stringify(all_links));
   }
 }
 
 Handlebars.registerHelper ('truncate', function (str, len) {
         if (str.length > len) {
             var new_str = str.substr (0, len+1);
- 
+
             while (new_str.length) {
                 var ch = new_str.substr ( -1 );
                 new_str = new_str.substr ( 0, -1 );
- 
+
                 if (ch == ' ') {
                     break;
                 }
             }
- 
+
             if ( new_str == '' ) {
                 new_str = str.substr ( 0, len );
             }
- 
-            return new Handlebars.SafeString ( new_str +'...' ); 
+
+            return new Handlebars.SafeString ( new_str +'...' );
         }
         return str;
     });
-    
+
 Handlebars.registerHelper ('http_it', function (str) {
         if (str.substring(0,4) != 'http') {
-            return new Handlebars.SafeString ( 'http://' + str ); 
+            return new Handlebars.SafeString ( 'http://' + str );
         }
         return str;
     });
 
 var upload_form = function(){
     $('#linky-confirm').modal('hide');
+    $('#upload-error').text('');
     $('#linky-upload').modal('show');
-    return false;  
+    return false;
 };

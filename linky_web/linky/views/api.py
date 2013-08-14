@@ -1,8 +1,9 @@
+from datetime import datetime, timedelta
 import logging, json, subprocess, urllib2, re, os
 from datetime import datetime
 from urlparse import urlparse
 
-import lxml.html
+import lxml.html, requests
 #import PythonMagick
 from PIL import Image
 from pyPdf import PdfFileReader
@@ -41,13 +42,14 @@ def linky_post(request):
     target_title = url_details.netloc
         
     try:
-        parsed_html = lxml.html.parse(urllib2.urlopen(target_url))
+        r = requests.get(target_url)
+        parsed_html = lxml.html.fromstring(r.content)
     except IOError:
         pass
     
     if parsed_html:
         if parsed_html.find(".//title") is not None and parsed_html.find(".//title").text:
-            target_title = parsed_html.find(".//title").text
+            target_title = parsed_html.find(".//title").text.strip()
     
     link = Link(submitted_url=target_url, submitted_title=target_title)
     
@@ -56,27 +58,24 @@ def linky_post(request):
 
     link.save()
     
-    linky_hash = base.convert(link.id, base.BASE10, base.BASE58)
-    
     # Assets get stored in /storage/path/year/month/day/hour/unique-id/*
     now = dt = datetime.now()
     time_tuple = now.timetuple()
     
-    path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday), str(time_tuple.tm_hour), str(link.id)]
+    path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday), str(time_tuple.tm_hour), link.guid]
     
-    # We store our assets on disk. Create a home for them
-    #if not os.path.exists(os.path.sep.join(path_elements)):
-    #    os.makedirs(os.path.sep.join(path_elements))
+    # We've created a linky. Let's create its home on disk    
+    if not os.path.exists(linky_home_disk_path):
+        os.makedirs(linky_home_disk_path)
 
     # Create a stub for our assets
     asset, created = Asset.objects.get_or_create(link=link)
     asset.base_storage_path = os.path.sep.join(path_elements)
     asset.save()
     
-
     # Run our synchronus screen cap task (use the headless browser to create a static image) 
+    # TODO: try catch the scren cap. if we fail, alert the user that they should upload their screen cap
     get_screen_cap(link.id, target_url, os.path.sep.join(path_elements))
-    
     try:
         get_source.delay(link.id, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
     except Exception, e:
@@ -88,12 +87,10 @@ def linky_post(request):
 
     # TODO: roll the favicon function into a pimp python package
     #favicon_success = __get_favicon(target_url, parsed_html, link.id, linky_home_disk_path, url_details)
-    
     response_object = {'linky_id': linky_hash, 'linky_cap': settings.STATIC_URL + asset.base_storage_path + '/' + asset.image_capture, 'linky_title': link.submitted_title}
     
-    if False: #favicon_success:
-        response_object['favicon_url'] = 'http://' + request.get_host() + '/static/generated/' + str(link.id) + '/' + favicon_success
-        manifest['favicon'] = favicon_success
+    #if favicon_success:
+        #response_object['favicon_url'] = 'http://' + request.get_host() + '/static/generated/' + link.guid + '/' + favicon_success
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
 
@@ -124,20 +121,18 @@ def __get_favicon(target_url, parsed_html, link_hash_id, disk_path, url_details)
         if re.match(r'^//', favicon):
             favicon = url_details.scheme + ':' + favicon
         elif not re.match(r'^http', favicon):
-            favicon = url_details.scheme + '://' + url_details.netloc + favicon
-                
-        f = urllib2.urlopen(favicon)
-        data = f.read()
+            favicon = url_details.scheme + '://' + url_details.netloc + '/' + favicon
         
+        try:
+          f = urllib2.urlopen(favicon)
+          data = f.read()
         
-        filepath_pieces = os.path.splitext(favicon)
-        file_ext = filepath_pieces[1]
-        
-        with open(disk_path + 'fav' + file_ext, "wb") as asset:
+          with open(disk_path + 'fav.png', "wb") as asset:
             asset.write(data)
 
-        return 'fav' + file_ext
-
+          return 'fav.png'
+        except urllib2.HTTPError:
+          pass
 
     # If we haven't returned True above, we didn't find a favicon in the markup.
     # let's try the favicon convention: http://example.com/favicon.ico
@@ -198,13 +193,14 @@ def upload_file(request):
         if form.is_valid(): 
             if validate_upload_file(request.FILES['file']):
                 link = Link(submitted_url=form.cleaned_data['url'], submitted_title=form.cleaned_data['title'])
+                if request.user.is_authenticated():
+                  link.created_by = request.user
                 link.save()
-                linky_home_disk_path = settings.PROJECT_ROOT +'/'+ '/static/generated/' + str(link.id) + '/'
+                linky_home_disk_path = settings.PROJECT_ROOT +'/'+ '/static/generated/' + link.guid + '/'
 
                 if not os.path.exists(linky_home_disk_path):
                     os.makedirs(linky_home_disk_path)
         
-                linky_hash = base.convert(link.id, base.BASE10, base.BASE58)
                 file_name = 'cap.' + request.FILES['file'].name.split('.')[-1]
                 request.FILES['file'].file.seek(0)
                 f = open(linky_home_disk_path + file_name, 'w')
@@ -218,10 +214,40 @@ def upload_file(request):
                     #png.write("file_out.png")
                     #params = ['convert', linky_home_disk_path + file_name, 'out.png']
                     #subprocess.check_call(params)
+                    
+                response_object = {'status':'success', 'linky_id':link.guid, 'linky_hash':link.guid}    
+                url_details = urlparse(form.cleaned_data['url'])
+                
+                try:
+                	r = requests.get(form.cleaned_data['url'])
+                	parsed_html = lxml.html.fromstring(r.content)
+                except IOError:
+                	pass
+                favicon_success = __get_favicon(form.cleaned_data['url'], parsed_html, link.guid, linky_home_disk_path, url_details)
+                if favicon_success:
+                	response_object['favicon_url'] = 'http://' + request.get_host() + '/static/generated/' + link.guid + '/' + favicon_success
 
-                return HttpResponse(json.dumps({'status':'success', 'linky_id':link.id, 'linky_hash':linky_hash}), 'application/json')
+                return HttpResponse(json.dumps(response_object), 'application/json')
             else:
                 return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Invalid file.'}), 'application/json')
         else:
             return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Missing file.'}), 'application/json')
     return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':form.errors}), 'application/json')
+
+def urldump(request, since=None):
+    """
+    Give basic JSON encoding of GUID/URL pairs created since 'since'
+    """
+    ### XXX some day we should probably cache this and/or use some
+    ### sort of sweet checkpointing system, but this is a start
+    if since is None:
+        dt = datetime.now() - timedelta(days=1)
+    else:
+        dt = datetime.strptime(since, "%Y-%m-%d")
+    links = Link.objects.filter(creation_timestamp__gte=dt)
+    data = []
+    for link in links:
+        datum = {'guid': link.guid, 'url': link.submitted_url}
+        data.append(datum)
+    response = json.dumps(data)
+    return HttpResponse(response, 'application/json')

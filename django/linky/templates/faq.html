@@ -1,0 +1,71 @@
+{% extends "layout.html" %}
+{% load file_exists %}
+{% block title %} | Frequently Asked Questions{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+{% endblock %}
+
+{% block content %}
+
+<div class="row-fluid">
+
+<style type="text/css">
+  div.faq div.question {
+    font-weight: bold;
+    margin-top: 0.25em;
+  }
+  
+  div.faq div.answer {
+    margin: 0.25em 0em 1em 0em;
+    display: none;
+  }
+</style>
+
+<div class="faq">
+  <div class="question"><a id="q1" href="#q1">How can I make a Perma link?</a></div>
+  <div class="answer" id="a1">Perma links can be created on the <a href="{% url 'landing' %}">front page</a>. All it takes is the URL of the page you would like to archive. We'll grab it and give you a Perma link that you can always use.</div>
+
+  <div class="question"><a id="q2" href="#q2">How can I keep track of my Perma links?</a></div>
+  <div class="answer" id="a2">The last few Perma links that you created are shown at the bottom of the <a href="{% url 'landing' %}">front page</a>, as long as you have cookies enabled in your browser. If you <a href="{% url 'process_register' %}">register for an account</a>, you can also see all your links in the management console.</div>
+
+  <div class="question"><a id="q3" href="#q3">Will you preserve my Perma link forever?</a></div>
+  <div class="answer" id="a3">When a link is first created, it is &quot;unvested.&quot; Unvested may be deleted from time to time, and are subject to page views to prevent abuse. A member of any editor may vest that the link is actually being used in a scholarly publication. Once a link is vested, it will never be deleted unless we receive a legitimate legal order to take it down.</div>
+
+  <div class="question"><a id="q4" href="#q4">Can I ever delete or edit a Perma link?</a></div>
+  <div class="answer"id="a4">No. Perma links can never be edited once they are created, even if they are unvested.</div>
+
+  <div class="question"><a id="q5" href="#q5">How are links vested?</a></div>
+  <div class="answer" id="a5">Users with editor accounts can click on the &quot;vest&quot; button in the top-right of any Linky page to vest it.</div>
+
+  <div class="question"><a id="q6" href="#q6">How do I become an editor?</a></div>
+  <div class="answer" id="a6">Editor accounts are managed by scholarly journals that are recognized by libraries. If you are a member of a journal and would like to use Linky, please contact a library to sponsor you. You can see a list of participating libraries on the <a href="{% url 'about' %}">about Perma</a> page.</div>
+
+  <div class="question"><a id="q7" href="#q7">How can I contact Perma?</a></div>
+  <div class="answer" id="a7">The Perma team can be emailed at <a href="mailto:info@perma.cc">info@perma.cc</a>. We're also on Twitter as <tt>@perma.cc</tt>.</div>
+</div>
+
+</div><!--row-->
+
+</div><!--container-->
+{% endblock %}
+{% block scripts %}
+
+<script type="text/javascript">
+  function display_link(question_id) {
+    $("div.faq div.answer").css("display", "none");
+    var answer_id = "a" + question_id;
+    $("div.faq #" + answer_id).css("display", "block");
+  }
+
+  $("div.faq div.question").click(function(event) {
+      display_link(event.target.id.substring(1));
+  });
+  if (window.location.hash) {
+    // there is a hash, so act as if we clicked on that link.
+    var question_id = window.location.hash.substring(2);
+    display_link(question_id);
+  }
+</script>
+
+
+{% endblock %}

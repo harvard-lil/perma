@@ -25,15 +25,17 @@ function autoResize(id){
 <div class="row-fluid">
 	<div class="span2">
 		<h4 class="indexed">{{linky.submitted_title}}<br><small>indexed on {{linky.creation_timestamp}}{% if linky.vested %} | vested on {{linky.vested_timestamp}}{% endif %}</small></h4>
-	  
+
+        <h4><small>Views: {{ linky.view_count }}</small></h4>
+
 	</div>
 	<div class="span8 linky-view">
   		<div class="watermark center">
 
 			{% if not linky.vested %}<img class="watermark-image" src="{{ STATIC_PREFIX }}img/watermark.png"/>{% endif %}
-			{% file_exists STATIC_PREFIX linky.id linky.submitted_url %}
+			{% file_exists STATIC_PREFIX linky.guid linky.submitted_url %}
 		</div>
-		<p><a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p> 
+		<p><a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
    	</div>
    	<!--{% include "login-form.html" %}-->
    	<div class="span2 center">
@@ -51,25 +53,27 @@ function autoResize(id){
 <div id="myModal" class="modal hide fade center" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-   
+
   </div>
   <div class="modal-body">
-     <h4 class="indexed"><a href="{{linky.submitted_url}}">{{linky.submitted_title}}</a><br><small>Archived on {{linky.creation_timestamp}}<br>Today's live view<br> 
+    {% if display_iframe %}
+     <h4 class="indexed"><a href="{{linky.submitted_url}}">{{linky.submitted_title}}</a><br><small>Archived on {{linky.creation_timestamp}}<br>Today's live view<br>
      <div id="iframe-wrap">
-		<iframe id="frame" class="center" src="{{linky.submitted_url}}"></iframe>
+		<iframe id="frame" class="center" sandbox="allow-forms allow-scripts" src="{{linky.submitted_url}}"></iframe>
 	</div>
+     {% endif %}
      <a href="{{linky.submitted_url}}" class="grey">{{linky.submitted_url}}</a></small></h4>
      <a href="{{linky.submitted_url}}"></a>
   </div>
   <div class="modal-footer">
   	<div class="logo-box">
-    	<a href="{% url 'landing' %}"><h1 class="logo-big">Linky</h1>
+    	<a href="{% url 'landing' %}"><h1 class="logo-big">Perma</h1>
     	<img class="logo-big-img" src="{{ STATIC_PREFIX }}img/infinity.png"/></a>
     </div>
   <a href="{{linky.submitted_url}}" class="btn btn-large btn-primary">Go to original page</a></br></br>
-    <button class="btn" data-dismiss="modal" aria-hidden="true">Go to archived Linky</button>
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Go to archived Perma</button>
     
-     <p class="definition"><a href="{% url 'landing' %}">Wait, what's a Linky?</a></p>
+     <p class="definition"><a href="{% url 'landing' %}">Wait, what's a Perma?</a></p>
   </div>
 </div>
 
