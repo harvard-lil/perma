@@ -6,7 +6,7 @@ from linky_web.linky.models import Asset
 from linky_web.linky.exceptions import BrokenURLError
 
 @task
-def get_screen_cap(link_id, target_url, base_storage_path):
+def get_screen_cap(link_guid, target_url, base_storage_path):
     """ Create an image from the url, store it in a dir. use the id as part of the dir path """
 
     path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path, 'cap.png']
@@ -21,14 +21,14 @@ def get_screen_cap(link_id, target_url, base_storage_path):
     if not os.path.exists(os.path.sep.join(path_elements)):
         return False
 
-    asset = Asset.objects.get(link__id=link_id)
+    asset = Asset.objects.get(link__guid=link_guid)
     asset.image_capture = os.path.sep.join(path_elements[2:])
     asset.save()
     
     return True
     
 @task
-def get_source(link_id, target_url, base_storage_path, user_agent=''):
+def get_source(link_guid, target_url, base_storage_path, user_agent=''):
 
     path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path, 'source', 'index.html']
 
@@ -87,6 +87,6 @@ def get_source(link_id, target_url, base_storage_path, user_agent=''):
                 os.system('rm -rf ' + directory)
                 
             
-    asset = Asset.objects.get(link__id=link_id)
+    asset = Asset.objects.get(link__guid=link_guid)
     asset.warc_capture = os.path.sep.join(path_elements[2:])
     asset.save()

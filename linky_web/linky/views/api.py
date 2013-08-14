@@ -64,10 +64,6 @@ def linky_post(request):
     
     path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday), str(time_tuple.tm_hour), link.guid]
     
-    # We've created a linky. Let's create its home on disk    
-    if not os.path.exists(linky_home_disk_path):
-        os.makedirs(linky_home_disk_path)
-
     # Create a stub for our assets
     asset, created = Asset.objects.get_or_create(link=link)
     asset.base_storage_path = os.path.sep.join(path_elements)
@@ -75,26 +71,26 @@ def linky_post(request):
     
     # Run our synchronus screen cap task (use the headless browser to create a static image) 
     # TODO: try catch the scren cap. if we fail, alert the user that they should upload their screen cap
-    get_screen_cap(link.id, target_url, os.path.sep.join(path_elements))
+    get_screen_cap(link.guid, target_url, os.path.sep.join(path_elements))
     try:
-        get_source.delay(link.id, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
+        get_source.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
     except Exception, e:
         # TODO: Log the failed url
         asset.warc_capture = 'failed'
         asset.save()
         
-    asset= Asset.objects.get(link__id=link.id)
+    asset= Asset.objects.get(link__guid=link.guid)
 
     # TODO: roll the favicon function into a pimp python package
     #favicon_success = __get_favicon(target_url, parsed_html, link.id, linky_home_disk_path, url_details)
-    response_object = {'linky_id': linky_hash, 'linky_cap': settings.STATIC_URL + asset.base_storage_path + '/' + asset.image_capture, 'linky_title': link.submitted_title}
+    response_object = {'linky_id': link.guid, 'linky_cap': settings.STATIC_URL + asset.base_storage_path + '/' + asset.image_capture, 'linky_title': link.submitted_title}
     
     #if favicon_success:
         #response_object['favicon_url'] = 'http://' + request.get_host() + '/static/generated/' + link.guid + '/' + favicon_success
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
 
-def __get_favicon(target_url, parsed_html, link_hash_id, disk_path, url_details):
+def __get_favicon(target_url, parsed_html, link_guid, disk_path, url_details):
     """ Given a URL and the markup, see if we can find a favicon.
         TODO: this is a rough draft. cleanup and move to an appropriate place. """
     

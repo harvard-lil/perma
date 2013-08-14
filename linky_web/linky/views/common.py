@@ -7,7 +7,7 @@ from datetime import datetime
 from urlparse import urlparse
 import urllib2
 
-from linky.models import Link
+from linky.models import Link, Asset
 from linky.utils import base
 
 def landing(request):
@@ -64,9 +64,6 @@ def single_linky(request, linky_guid):
     """Given a Linky ID, serve it up. Vetting also takes place here. """
 
     if request.method == 'POST':
-        # TODO: We're forced to use update here because we generate our hash on the model save. This whole thing
-        # feels wrong. Evaluate.
-
         Link.objects.filter(guid=linky_guid).update(vested = True, vested_by_editor = request.user, vested_timestamp = datetime.now())
 
         return HttpResponseRedirect('/%s/' % linky_guid)
@@ -88,10 +85,12 @@ def single_linky(request, linky_guid):
             # Something is broken with the site, so we might as well display it in an iFrame so the user knows
             display_iframe = True
 
+        asset= Asset.objects.get(link__guid=link.guid)
+
         created_datestamp = link.creation_timestamp
         pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
 
-        context = {'linky': link, 'pretty_date': pretty_date, 'user': request.user, 'next': request.get_full_path(), 'display_iframe': display_iframe}
+        context = {'linky': link, 'asset': asset, 'pretty_date': pretty_date, 'user': request.user, 'next': request.get_full_path(), 'display_iframe': display_iframe}
 
         context.update(csrf(request))
 
