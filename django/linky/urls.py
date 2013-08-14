@@ -14,6 +14,8 @@ urlpatterns = patterns('linky.views',
     url(r'^about/?$', 'common.about', name='about'),
     url(r'^faq/?$', 'common.faq', name='faq'),
     url(r'^contact/?$', 'common.contact', name='contact'),
+    url(r'^terms-of-service/?$', 'common.terms_of_service', name='terms_of_service'),
+    url(r'^privacy-policy/?$', 'common.privacy_policy', name='privacy_policy'),
     
     #API routes
     url(r'^api/linky/upload?$', 'api.upload_file', name='api_linky_upload'),
