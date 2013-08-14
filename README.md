@@ -31,7 +31,7 @@ You'll need a Django friendly database. If you want to use MySQL, something like
 Perma uses two settings files. You'll find example files in the codebase. Copy these, removing the '.example' characters and edit.
 
     cp ./settings.example.py ./settings.py
-    cp ./local_settings.py ./local_settings.py
+    cp ./local_settings.example.py ./local_settings.py
 
 ### Celery and RabbitMQ
 
