@@ -98,6 +98,8 @@ header {
                 text-transform: uppercase;
             }
 
+            header nav ul li#header-greeting { margin-left: 0; }
+
                 header nav ul li a#nav-button { margin-top: -4px; }
 
                 header nav ul li a {
