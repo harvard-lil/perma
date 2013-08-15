@@ -286,3 +286,31 @@ class user_reg_form(forms.ModelForm):
         if commit:
             user.save()
         return user
+        
+class user_form_self_edit(forms.ModelForm):
+    """
+    stripped down user reg form
+    This is mostly a django.contrib.auth.forms.UserCreationForm
+    
+    This is stripped down even further to match out editing needs
+    """
+
+    class Meta:
+        model = LinkUser
+        fields = ("first_name", "last_name", "email")
+
+
+    email = forms.RegexField(label="Email", required=True, max_length=254,
+        regex=r'^[\w.@+-]+$',
+        help_text = "Letters, digits and @/./+/-/_ only. 254 characters or fewer.",
+        error_messages = {
+            'invalid': "This value may contain only letters, numbers and "
+                         "@/./+/-/_ characters."})
+
+    def save(self, commit=True):
+        user = super(user_form_self_edit, self).save(commit=False)
+
+        if commit:
+            user.save()
+
+        return user

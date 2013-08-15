@@ -1,6 +1,6 @@
 import logging
 
-from linky.forms import user_reg_form, regisrtar_member_form, registrar_form, journal_manager_form, journal_manager_form_edit, journal_member_form, journal_member_form_edit, regisrtar_member_form_edit
+from linky.forms import user_reg_form, regisrtar_member_form, registrar_form, journal_manager_form, journal_manager_form_edit, journal_member_form, journal_member_form_edit, regisrtar_member_form_edit, user_form_self_edit
 from linky.models import Registrar, Link
 from linky.utils import base
 
@@ -526,6 +526,21 @@ def manage_account(request):
     context = {'host': request.get_host(), 'user': request.user,
         'next': request.get_full_path(), 'this_page': 'settings'}
     context.update(csrf(request))
+    
+    if request.method == 'POST':
+
+        form = user_form_self_edit(request.POST, prefix = "a", instance=request.user)
+
+        if form.is_valid():
+            form.save()
+
+            return HttpResponseRedirect(reverse('user_management_manage_account'))
+
+        else:
+            context.update({'form': form,})
+    else:
+        form = user_form_self_edit(prefix = "a", instance=request.user)
+        context.update({'form': form,})
 
     return render_to_response('user_management/manage-account.html', context)
 
