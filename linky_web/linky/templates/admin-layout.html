@@ -74,7 +74,7 @@
 
 
         <!-- Manage users -->
-        {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' %}
+        {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'journal_manager' %}
         <li{% if this_page == 'users' %} class="active"{% endif %}><a href="javascript:void(0);" id="dashboard-users">Manage Users</a></li>
         {% endif %}
 
@@ -82,9 +82,14 @@
         {% if user.groups.all.0.name == 'registry_member' %}
         <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>
         <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_registrar_member' %}">Registrar Users</a></li>{% endif %}
+        
+        <!-- Journal managers -->
+        {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' %}
+        <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_journal_manager' %}">Journal Managers</a></li>
+        {% endif %}
 
         <!-- Journal users -->
-        {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' %}
+        {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'journal_manager' %}
         <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_journal_member' %}">Journal Users</a></li>
         {% endif %}
   

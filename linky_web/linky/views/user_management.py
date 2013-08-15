@@ -1,6 +1,6 @@
 import logging
 
-from linky.forms import user_reg_form, regisrtar_member_form, registrar_form, journal_member_form, journal_member_form_edit, regisrtar_member_form_edit
+from linky.forms import user_reg_form, regisrtar_member_form, registrar_form, journal_manager_form, journal_manager_form_edit, journal_member_form, journal_member_form_edit, regisrtar_member_form_edit
 from linky.models import Registrar, Link
 from linky.utils import base
 
@@ -220,7 +220,7 @@ def manage_single_registrar_member_delete(request, user_id):
     return render_to_response('user_management/manage_single_registrar_member_delete_confirm.html', context)
 
 @login_required
-def manage_journal_member(request):
+def manage_journal_manager(request):
     """ Linky admins and registrars can manage journal members """
 
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
@@ -228,9 +228,121 @@ def manage_journal_member(request):
 
     # If registry member, return all active journal members. If registrar member, return just those journal members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
-        journal_members = LinkUser.objects.filter(groups__name='journal_member', is_active=True)
+        journal_managers = LinkUser.objects.filter(groups__name='journal_manager', is_active=True)
     else:
-        journal_members = LinkUser.objects.filter(registrar=request.user.registrar, is_active=True).exclude(id=request.user.id)
+        journal_managers = LinkUser.objects.filter(groups__name='journal_manager', registrar=request.user.registrar, is_active=True).exclude(id=request.user.id)
+
+    context = {'user': request.user, 'journal_managers': list(journal_managers),
+        'this_page': 'users'}
+    context.update(csrf(request))
+
+    if request.method == 'POST':
+
+        form = journal_manager_form(request.POST, prefix = "a")
+
+        if form.is_valid():
+            new_user = form.save()
+
+            new_user.backend='django.contrib.auth.backends.ModelBackend'
+            
+            new_user.registrar = request.user.registrar
+            new_user.save()
+
+            group = Group.objects.get(name='journal_manager')
+            new_user.groups.add(group)
+
+            return HttpResponseRedirect(reverse('user_management_manage_journal_manager'))
+
+        else:
+            context.update({'form': form,})
+    else:
+        form = journal_manager_form(prefix = "a")
+        context.update({'form': form,})
+
+    return render_to_response('user_management/manage_journal_managers.html', context)
+
+@login_required
+def manage_single_journal_manager(request, user_id):
+    """ Linky admins and registrars can manage journal members. Edit a single journal member here. """
+
+    # Only registry members and registrar memebers can edit journal members
+    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
+        return HttpResponseRedirect(reverse('user_management_created_links'))
+
+    target_member = get_object_or_404(LinkUser, id=user_id)
+
+    # Registrar members can only edit their own journal members
+    if request.user.groups.all()[0].name not in ['registry_member']:
+        if request.user.registrar != target_member.registrar:
+            return HttpResponseRedirect(reverse('user_management_created_links'))
+
+    context = {'user': request.user, 'target_member': target_member,
+        'this_page': 'users'}
+    context.update(csrf(request))
+
+    if request.method == 'POST':
+
+        form = journal_manager_form_edit(request.POST, prefix = "a", instance=target_member)
+
+        if form.is_valid():
+            form.save()
+
+            return HttpResponseRedirect(reverse('user_management_manage_journal_manager'))
+
+        else:
+            context.update({'form': form,})
+    else:
+        form = journal_manager_form_edit(prefix = "a", instance=target_member)
+        context.update({'form': form,})
+
+    return render_to_response('user_management/manage_single_journal_manager.html', context)
+
+@login_required
+def manage_single_journal_manager_delete(request, user_id):
+    """ Linky admins and registrars can manage journal members. Delete a single journal member here. """
+
+    # Only registry members and registrar memebers can edit journal managers
+    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
+        return HttpResponseRedirect(reverse('user_management_landing'))
+
+    target_member = get_object_or_404(LinkUser, id=user_id)
+
+    # Registrar members can only edit their own journal members
+    if request.user.groups.all()[0].name not in ['registry_member']:
+        if request.user.registrar != target_member.registrar:
+            return HttpResponseRedirect(reverse('user_management_landing'))
+
+    context = {'user': request.user, 'target_member': target_member,
+        'this_page': 'users'}
+    context.update(csrf(request))
+
+    if request.method == 'POST':
+        target_member.is_active = False
+        target_member.save()
+
+        return HttpResponseRedirect(reverse('user_management_manage_journal_manager'))
+    else:
+        form = journal_manager_form_edit(prefix = "a", instance=target_member)
+        context.update({'form': form,})
+
+    return render_to_response('user_management/manage_single_journal_manager_delete_confirm.html', context)
+
+valid_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp']
+
+@login_required
+def manage_journal_member(request):
+    """ Linky admins and registrars can manage journal members """
+
+    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'journal_manager']:
+        return HttpResponseRedirect(reverse('user_management_landing'))
+
+    # If registry member, return all active journal members. If registrar member, return just those journal members that belong to the registrar member's registrar
+    if request.user.groups.all()[0].name == 'registry_member':
+        journal_members = LinkUser.objects.filter(groups__name='journal_member', is_active=True)
+    elif request.user.groups.all()[0].name == 'journal_manager':
+        journal_members = LinkUser.objects.filter(authorized_by=request.user, is_active=True).exclude(id=request.user.id)
+    else:
+        journal_members = LinkUser.objects.filter(groups__name='journal_member', registrar=request.user.registrar, is_active=True).exclude(id=request.user.id)
 
     context = {'user': request.user, 'journal_members': list(journal_members),
         'this_page': 'users'}
@@ -246,7 +358,7 @@ def manage_journal_member(request):
             new_user.backend='django.contrib.auth.backends.ModelBackend'
             
             new_user.registrar = request.user.registrar
-            logger.debug('Trying to save with registrar: %s', request.user.registrar)
+            new_user.authorized_by = request.user
             new_user.save()
 
             group = Group.objects.get(name='journal_member')
@@ -267,15 +379,20 @@ def manage_single_journal_member(request, user_id):
     """ Linky admins and registrars can manage journal members. Edit a single journal member here. """
 
     # Only registry members and registrar memebers can edit journal members
-    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
-        return HttpResponseRedirect(reverse('user_management_landing'))
+    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'journal_manager']:
+        return HttpResponseRedirect(reverse('user_management_created_links'))
 
     target_member = get_object_or_404(LinkUser, id=user_id)
 
     # Registrar members can only edit their own journal members
     if request.user.groups.all()[0].name not in ['registry_member']:
         if request.user.registrar != target_member.registrar:
-            return HttpResponseRedirect(reverse('user_management_landing'))
+            return HttpResponseRedirect(reverse('user_management_created_links'))
+            
+    # Journal managers can only edit their own journal members
+    if request.user.groups.all()[0].name not in ['registry_member', 'registrar_member']:
+        if request.user != target_member.authorized_by:
+            return HttpResponseRedirect(reverse('user_management_created_links'))
 
 
     context = {'user': request.user, 'target_member': target_member,
@@ -304,7 +421,7 @@ def manage_single_journal_member_delete(request, user_id):
     """ Linky admins and registrars can manage journal members. Delete a single journal member here. """
 
     # Only registry members and registrar memebers can edit journal members
-    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
+    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'journal_manager']:
         return HttpResponseRedirect(reverse('user_management_landing'))
 
     target_member = get_object_or_404(LinkUser, id=user_id)
@@ -313,6 +430,11 @@ def manage_single_journal_member_delete(request, user_id):
     if request.user.groups.all()[0].name not in ['registry_member']:
         if request.user.registrar != target_member.registrar:
             return HttpResponseRedirect(reverse('user_management_landing'))
+            
+    # Journal managers can only edit their own journal members
+    if request.user.groups.all()[0].name not in ['registry_member', 'registrar_member']:
+        if request.user != target_member.authorized_by:
+            return HttpResponseRedirect(reverse('user_management_created_links'))
 
     context = {'user': request.user, 'target_member': target_member,
         'this_page': 'users'}
@@ -461,7 +583,7 @@ def process_register(request):
             new_user.backend='django.contrib.auth.backends.ModelBackend'
 
             group = Group.objects.get(name='user')
-            group.user_set.add(new_user)
+            new_user.groups.add(group)
 
             return HttpResponseRedirect(reverse('landing'))
 

@@ -33,7 +33,7 @@ class Registrar(models.Model):
 
 
 class LinkUserManager(BaseUserManager):
-    def create_user(self, email, registrar, date_joined, first_name, last_name, password=None, groups=None):
+    def create_user(self, email, registrar, date_joined, first_name, last_name, authorized_by, password=None, groups=None):
         """
         Creates and saves a User with the given email, registrar and password.
         """
@@ -46,14 +46,15 @@ class LinkUserManager(BaseUserManager):
             groups=groups,
             date_joined = date_joined,
             first_name = first_name,
-            last_name = last_name
+            last_name = last_name,
+            authorized_by = authorized_by
         )
 
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, registrar, password, groups, date_joined, first_name, last_name):
+    def create_superuser(self, email, registrar, password, groups, date_joined, first_name, last_name, authorized_by):
         """
         Creates and saves a superuser with the given email, registrar and password.
         """
@@ -63,7 +64,8 @@ class LinkUserManager(BaseUserManager):
             groups=groups,
             date_joined = date_joined,
             first_name = first_name,
-            last_name = last_name
+            last_name = last_name,
+            authorized_by = authorized_by
         )
         user.is_admin = True
         user.save(using=self._db)
@@ -84,6 +86,7 @@ class LinkUser(AbstractBaseUser):
     date_joined = models.DateField(auto_now_add=True)
     first_name = models.CharField(max_length=45, blank=True)
     last_name = models.CharField(max_length=45, blank=True)
+    authorized_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='authorized_by_manager')
 
     objects = LinkUserManager()
 

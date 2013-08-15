@@ -8,6 +8,14 @@
         }
     },
     {
+        "pk": 5,
+        "model": "auth.group",
+        "fields": {
+            "name": "journal_manager",
+            "permissions": []
+        }
+    },
+    {
         "pk": 3,
         "model": "auth.group",
         "fields": {
@@ -86,7 +94,8 @@
             "email": "test_journal_member@example.com",
             "date_joined": "2013-06-26",
             "first_name": "",
-            "last_name": ""
+            "last_name": "",
+            "authorized_by": 5
         }
     },
     {
@@ -100,6 +109,23 @@
             ],
             "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
             "email": "test_user@example.com",
+            "date_joined": "2013-06-26",
+            "first_name": "",
+            "last_name": ""
+        }
+    },
+        {
+        "pk": 5,
+        "model": "linky.LinkUser",
+        "fields": {
+            "registrar": 1,
+            "is_active": true,
+            "last_login": "2013-07-23T18:38:27Z",
+            "groups": [
+                5
+            ],
+            "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+            "email": "test_journal_manager@example.com",
             "date_joined": "2013-06-26",
             "first_name": "",
             "last_name": ""
