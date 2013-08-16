@@ -60,6 +60,12 @@ We use PhantomJS to generate our images. Download [PhantomJS](http://phantomjs.o
     $ ls lib
     __init__.py phantomjs rasterize.js
 
+### Wget
+
+We use [GNU Wget](http://www.gnu.org/software/wget/) to download the source -- the markup, CSS, JS, images, and other assets. We've tested with version 1.12. If you're on a mac, something like this should get you close:
+
+    # port install wget
+
 ### Create your tables and fire up Django
 
 You should have the pieces in place. Let's create the tables in your database:
