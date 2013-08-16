@@ -29,7 +29,7 @@ except ImportError, e:
 @csrf_exempt
 def linky_post(request):
     """ When we receive a Linky POST """
-    target_url = request.POST.get('url')
+    target_url = request.POST.get('url').strip(' \t\n\r').replace(" ", "")
 
     if not target_url:
         return HttpResponse(status=400)
