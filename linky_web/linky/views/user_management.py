@@ -526,6 +526,8 @@ def manage_account(request):
     context = {'host': request.get_host(), 'user': request.user,
         'next': request.get_full_path(), 'this_page': 'settings'}
     context.update(csrf(request))
+    if request.user.groups.all()[0].name in ['journal_member', 'journal_manager']:
+      context.update({'sponsoring_library_name': request.user.registrar.name, 'sponsoring_library_email': request.user.registrar.email, 'sponsoring_library_website': request.user.registrar.website})
     
     if request.method == 'POST':
 
@@ -570,16 +572,6 @@ def custom_domain(request):
         'this_page': 'custom_domain'}
     context.update(csrf(request))
     return render_to_response('user_management/custom_domain.html', context)
-
-@login_required
-def sponsoring_library(request):
-    """ Journal members can view their sponsoring library (for contact info) """
-
-    
-
-    context = {'user': request.user, 'sponsoring_library_name': request.user.registrar.name, 'sponsoring_library_email': request.user.registrar.email, 'sponsoring_library_website': request.user.registrar.website}
-
-    return render_to_response('user_management/sponsoring-library.html', context)
 
 def process_register(request):
     """Register a new user"""

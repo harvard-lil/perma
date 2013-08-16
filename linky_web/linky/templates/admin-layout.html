@@ -72,7 +72,6 @@
         <!-- Settings -->
         <li{% if this_page == 'settings' %} class="active"{% endif %}><a href="{% url 'user_management_manage_account' %}" id="dashboard-settings">Settings</a></li>
 
-
         <!-- Manage users -->
         {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'journal_manager' %}
         <li{% if this_page == 'users' %} class="active"{% endif %}><a href="javascript:void(0);" id="dashboard-users">Manage Users</a></li>
@@ -91,11 +90,6 @@
         <!-- Journal users -->
         {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'journal_manager' %}
         <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_journal_member' %}">Journal Users</a></li>
-        {% endif %}
-  
-        <!-- Journal member -->
-        {% if user.groups.all.0.name == 'journal_member' %}
-        <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_sponsoring_library' %}">Sponsoring Library</a></li>
         {% endif %}
         
   
