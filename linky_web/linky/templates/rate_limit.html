@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% load file_exists %}
+{% block title %} | Privacy Policy{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+{% endblock %}
+
+{% block content %}
+
+<h1>Error</h1>
+
+<p class="text-error">You have tried to access this page too many times</p>
+
+{% endblock content %}

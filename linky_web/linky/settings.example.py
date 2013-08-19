@@ -113,9 +113,12 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'ratelimit.middleware.RatelimitMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
+
+RATELIMIT_VIEW = 'linky.views.common.rate_limit'
 
 ROOT_URLCONF = 'linky.urls'
 
@@ -138,6 +141,7 @@ INSTALLED_APPS = (
     'linky',
     'south',
     'djcelery',
+    'ratelimit',
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:

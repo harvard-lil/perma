@@ -13,6 +13,7 @@ from django.contrib import auth
 from django.contrib.auth.models import User, Permission, Group
 from django.core.paginator import Paginator
 from linky.models import LinkUser
+from ratelimit.decorators import ratelimit
 
 
 logger = logging.getLogger(__name__)
@@ -573,6 +574,9 @@ def custom_domain(request):
     context.update(csrf(request))
     return render_to_response('user_management/custom_domain.html', context)
 
+@ratelimit(method='POST', rate='1/m', block='True')
+@ratelimit(method='POST', rate='10/h', block='True')
+@ratelimit(method='POST', rate='50/d', block='True')
 def process_register(request):
     """Register a new user"""
     c = {}
