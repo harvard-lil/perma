@@ -1,6 +1,6 @@
 # Django settings for linky project.
 
-import os
+import os, sys
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -12,6 +12,10 @@ ADMINS = (
 MANAGERS = ADMINS
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__name__))
+
+LINKY_HOME = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))# + os.pathsep + 'backend'
+
+sys.path.append(LINKY_HOME)
 
 # The base location, on disk, where want to store our generated assets
 GENERATED_ASSETS_STORAGE = '/tmp/perma/assets'
