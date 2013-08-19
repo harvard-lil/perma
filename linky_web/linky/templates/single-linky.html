@@ -29,7 +29,13 @@ function autoResize(id){
 		<h4 class="indexed">{{linky.submitted_title}}<br><small>indexed on {{linky.creation_timestamp}}{% if linky.vested %} | vested on {{linky.vested_timestamp}}{% endif %}</small></h4>
 
         <h4><small>Views: {{ linky.view_count }}</small></h4>
-        <a href="{{ STATIC_PREFIX }}{{asset.base_storage_path}}/{{asset.warc_capture}}"><h4><small>View scraped format</small></h4></a>
+    	{% if asset.warc_capture == 'pending' %}
+		<h4><small>Archiving source now. Hold tight.</small></h4>
+		{% elif asset.warc_capture == 'failed' %}
+		<small>No archived source avaialble</small></h4>
+		{% else %}
+        <a href="{{ STATIC_PREFIX }}{{asset.base_storage_path}}/{{asset.warc_capture}}"><h4><small>View archived source</small></h4></a>
+		{% endif %}
 
 	</div>
 	<div class="span8 linky-view">
@@ -37,9 +43,6 @@ function autoResize(id){
 
 			{% if not linky.vested %}<img class="watermark-image" src="{{ STATIC_PREFIX }}img/watermark.png"/>{% endif %}
 			<img src="{{ STATIC_PREFIX }}{{asset.base_storage_path}}/{{asset.image_capture}}"/></a>
-			{% comment %}
-			{% file_exists STATIC_PREFIX linky.guid linky.submitted_url %}
-			{% endcomment %}
 			
 		</div>
 		<p><a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>

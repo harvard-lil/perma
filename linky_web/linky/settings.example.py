@@ -206,3 +206,18 @@ ACCEPT_CONTENT_TYPES = [ # HTTP content-type parameters to accept
     'application/xhtml+xml',
     'application/xml'
 ]
+
+# Broker used by celery
+BROKER_URL = 'amqp://guest:guest@localhost:5672/'
+
+# When getting the source with wget, let's set some details
+ARCHIVE_QUOTA = '5m' # Maximum filesize
+ARCHIVE_LIMIT_RATE = '100m' # Download limit rate; TODO reduce for production
+ACCEPT_CONTENT_TYPES = [ # HTTP content-type parameters to accept 
+    'text/html',
+    'text/xml',
+    'application/xhtml+xml',
+    'application/xml'
+]
+NUMBER_RETRIES = 3 # if wget fails to get a resource, try to get again this many times
+WAIT_BETWEEN_TRIES = 4 # wait between .5 and this many seconds between http requests to our source
