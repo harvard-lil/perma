@@ -11,6 +11,8 @@ from django.core.urlresolvers import reverse
 from django.core.context_processors import csrf
 from django.contrib import auth
 from django.contrib.auth.models import User, Permission, Group
+import random, string, smtplib
+from email.mime.text import MIMEText
 from django.core.paginator import Paginator
 from linky.models import LinkUser
 from ratelimit.decorators import ratelimit
@@ -574,7 +576,7 @@ def custom_domain(request):
     context.update(csrf(request))
     return render_to_response('user_management/custom_domain.html', context)
 
-@ratelimit(method='POST', rate='1/m', block='True')
+@ratelimit(method='POST', rate='2/m', block='True')
 @ratelimit(method='POST', rate='10/h', block='True')
 @ratelimit(method='POST', rate='50/d', block='True')
 def process_register(request):
@@ -592,11 +594,37 @@ def process_register(request):
             new_user = editor_reg_form.save()
 
             new_user.backend='django.contrib.auth.backends.ModelBackend'
+            
+            new_user.is_active = False
+            new_user.confirmation_code = \
+                ''.join(random.choice(string.ascii_uppercase + \
+                string.ascii_lowercase + string.digits) for x in range(30))
+            new_user.save()
+            
+            from_address = "lil@law.harvard.edu"
+            to_address = new_user.email
+            content = '''To confirm your account, please click the link below or copy it to your web browser:
+
+http://perma.law.harvard.edu/register/confirm/%s/
+
+''' % new_user.confirmation_code
+        
+            msg = MIMEText(content)
+            msg['Subject'] = "Perma account confirmation"
+            msg['From'] = from_address
+            msg['To'] = to_address
+        
+            # Send the message via our own SMTP server, but don't include the
+            # envelope header.
+            s = smtplib.SMTP('localhost')
+            s.sendmail(from_address, [to_address], msg.as_string())
+            s.quit()
+
 
             group = Group.objects.get(name='user')
             new_user.groups.add(group)
 
-            return HttpResponseRedirect(reverse('landing'))
+            return HttpResponseRedirect(reverse('register_email_instructions'))
 
         else:
             c.update({'editor_reg_form': editor_reg_form,})
@@ -607,3 +635,18 @@ def process_register(request):
 
         c.update({'editor_reg_form': editor_reg_form,})
         return render_to_response("registration/register.html", c)
+        
+def register_email_code_confirmation(request, code):
+    '''Confirm a user's account when the user follows the email confirmation 
+    link.'''
+    user = get_object_or_404(LinkUser, confirmation_code=code)
+    user.is_active = True
+    user.save()
+    redirect_url = reverse('auth_login')
+    extra_params = '?confirmed=true'
+    full_redirect_url = '%s%s' % (redirect_url, extra_params)
+    return HttpResponseRedirect(full_redirect_url)
+    
+def register_email_instructions(request):
+    """After the user has registered, give the instructions for confirming"""
+    return render_to_response('registration/check_email.html', {})
