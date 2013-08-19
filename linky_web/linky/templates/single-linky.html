@@ -1,7 +1,5 @@
 {% extends "layout.html" %}
-{% comment %}
 {% load file_exists %}
-{% endcomment %}
 {% block title %} | {{linky.submitted_title}}{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
@@ -42,8 +40,8 @@ function autoResize(id){
   		<div class="watermark center">
 
 			{% if not linky.vested %}<img class="watermark-image" src="{{ STATIC_PREFIX }}img/watermark.png"/>{% endif %}
-			<img src="{{ STATIC_PREFIX }}{{asset.base_storage_path}}/{{asset.image_capture}}"/></a>
-			
+            {% file_exists asset.base_storage_path linky.guid linky.submitted_url %}
+
 		</div>
 		<p><a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
    	</div>
@@ -82,7 +80,7 @@ function autoResize(id){
     </div>
   <a href="{{linky.submitted_url}}" class="btn btn-large btn-primary">Go to original page</a></br></br>
     <button class="btn" data-dismiss="modal" aria-hidden="true">Go to archived Perma</button>
-    
+
      <p class="definition"><a href="{% url 'landing' %}">Wait, what's a Perma?</a></p>
   </div>
 </div>

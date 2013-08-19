@@ -6,10 +6,13 @@ from django.core.urlresolvers import reverse
 from datetime import datetime
 from urlparse import urlparse
 import urllib2
+import logging
 
 from linky.models import Link, Asset
 from linky.utils import base
 from ratelimit.decorators import ratelimit
+
+logger = logging.getLogger(__name__)
 
 try:
     from linky.local_settings import *
@@ -125,6 +128,6 @@ def editor_home(request):
     context = {'linky_list': linky_list, 'user': request.user, 'host': request.get_host()}
 
     return render_to_response('editor-list-view.html', context)
-    
+
 def rate_limit(request, exception):
   return render_to_response("rate_limit.html")

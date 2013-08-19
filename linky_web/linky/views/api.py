@@ -33,43 +33,43 @@ def linky_post(request):
 
     if not target_url:
         return HttpResponse(status=400)
-        
+
     if target_url[0:4] != 'http':
         target_url = 'http://' + target_url
 
     url_details = urlparse(target_url)
 
     target_title = url_details.netloc
-        
+
     try:
         r = requests.get(target_url)
         parsed_html = lxml.html.fromstring(r.content)
     except IOError:
         pass
-    
+
     if parsed_html:
         if parsed_html.find(".//title") is not None and parsed_html.find(".//title").text:
             target_title = parsed_html.find(".//title").text.strip()
-    
+
     link = Link(submitted_url=target_url, submitted_title=target_title)
-    
+
     if request.user.is_authenticated():
         link.created_by = request.user
 
     link.save()
-    
+
     # Assets get stored in /storage/path/year/month/day/hour/unique-id/*
     now = dt = datetime.now()
     time_tuple = now.timetuple()
-    
+
     path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday), str(time_tuple.tm_hour), link.guid]
-    
+
     # Create a stub for our assets
     asset, created = Asset.objects.get_or_create(link=link)
     asset.base_storage_path = os.path.sep.join(path_elements)
     asset.save()
-    
-    # Run our synchronus screen cap task (use the headless browser to create a static image) 
+
+    # Run our synchronus screen cap task (use the headless browser to create a static image)
     # TODO: try catch the scren cap. if we fail, alert the user that they should upload their screen cap
     get_screen_cap(link.guid, target_url, os.path.sep.join(path_elements))
     try:
@@ -78,13 +78,13 @@ def linky_post(request):
         # TODO: Log the failed url
         asset.warc_capture = 'failed'
         asset.save()
-        
+
     asset= Asset.objects.get(link__guid=link.guid)
 
     # TODO: roll the favicon function into a pimp python package
     #favicon_success = __get_favicon(target_url, parsed_html, link.id, linky_home_disk_path, url_details)
     response_object = {'linky_id': link.guid, 'linky_cap': settings.STATIC_URL + asset.base_storage_path + '/' + asset.image_capture, 'linky_title': link.submitted_title}
-    
+
     #if favicon_success:
         #response_object['favicon_url'] = 'http://' + request.get_host() + '/static/generated/' + link.guid + '/' + favicon_success
 
@@ -93,15 +93,15 @@ def linky_post(request):
 def __get_favicon(target_url, parsed_html, link_guid, disk_path, url_details):
     """ Given a URL and the markup, see if we can find a favicon.
         TODO: this is a rough draft. cleanup and move to an appropriate place. """
-    
+
     # We already have the parsed HTML, let's see if there is a favicon in the META elements
     favicons = parsed_html.xpath('//link[@rel="icon"]/@href')
-    
+
     favicon = False
-    
+
     if len(favicons) > 0:
         favicon = favicons[0]
-        
+
     if not favicon:
         favicons = parsed_html.xpath('//link[@rel="shortcut"]/@href')
         if len(favicons) > 0:
@@ -113,16 +113,16 @@ def __get_favicon(target_url, parsed_html, link_guid, disk_path, url_details):
             favicon = favicons[0]
 
     if favicon:
-            
+
         if re.match(r'^//', favicon):
             favicon = url_details.scheme + ':' + favicon
         elif not re.match(r'^http', favicon):
             favicon = url_details.scheme + '://' + url_details.netloc + '/' + favicon
-        
+
         try:
           f = urllib2.urlopen(favicon)
           data = f.read()
-        
+
           with open(disk_path + 'fav.png', "wb") as asset:
             asset.write(data)
 
@@ -133,7 +133,7 @@ def __get_favicon(target_url, parsed_html, link_guid, disk_path, url_details):
     # If we haven't returned True above, we didn't find a favicon in the markup.
     # let's try the favicon convention: http://example.com/favicon.ico
     target_favicon_url = url_details.scheme + '://' + url_details.netloc + '/favicon.ico'
-    
+
     try:
         f = urllib2.urlopen(target_favicon_url)
         data = f.read()
@@ -143,8 +143,8 @@ def __get_favicon(target_url, parsed_html, link_guid, disk_path, url_details):
         return 'fav' + '.ico'
     except urllib2.HTTPError:
         pass
-        
-        
+
+
     return False
 
 class UploadFileForm(forms.Form):
@@ -186,18 +186,22 @@ def validate_upload_file(upload):
 def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
-        if form.is_valid(): 
+        if form.is_valid():
             if validate_upload_file(request.FILES['file']):
                 link = Link(submitted_url=form.cleaned_data['url'], submitted_title=form.cleaned_data['title'])
                 if request.user.is_authenticated():
                   link.created_by = request.user
                 link.save()
-                linky_home_disk_path = settings.PROJECT_ROOT +'/'+ '/static/generated/' + link.guid + '/'
+                now = dt = datetime.now()
+                time_tuple = now.timetuple()
+                path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday), str(time_tuple.tm_hour), link.guid]
+                #linky_home_disk_path = settings.PROJECT_ROOT +'/'+ '/static/generated/' + link.guid + '/'
+                linky_home_disk_path = settings.GENERATED_ASSETS_STORAGE + '/' + os.path.sep.join(path_elements)
 
                 if not os.path.exists(linky_home_disk_path):
                     os.makedirs(linky_home_disk_path)
-        
-                file_name = 'cap.' + request.FILES['file'].name.split('.')[-1]
+
+                file_name = '/cap.' + request.FILES['file'].name.split('.')[-1]
                 request.FILES['file'].file.seek(0)
                 f = open(linky_home_disk_path + file_name, 'w')
                 f.write(request.FILES['file'].file.read())
@@ -210,10 +214,14 @@ def upload_file(request):
                     #png.write("file_out.png")
                     #params = ['convert', linky_home_disk_path + file_name, 'out.png']
                     #subprocess.check_call(params)
-                    
-                response_object = {'status':'success', 'linky_id':link.guid, 'linky_hash':link.guid}    
+
+                response_object = {'status':'success', 'linky_id':link.guid, 'linky_hash':link.guid}
                 url_details = urlparse(form.cleaned_data['url'])
-                
+
+                asset, created = Asset.objects.get_or_create(link=link)
+                asset.base_storage_path = os.path.sep.join(path_elements)
+                asset.save()
+
                 try:
                 	r = requests.get(form.cleaned_data['url'])
                 	parsed_html = lxml.html.fromstring(r.content)
