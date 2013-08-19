@@ -25,7 +25,6 @@ try:
 except ImportError, e:
     logger.error('Unable to load local_settings.py: %s', e)
 
-
 @login_required
 def landing(request):
     """ The logged-in user's dashboard. """
@@ -576,9 +575,9 @@ def custom_domain(request):
     context.update(csrf(request))
     return render_to_response('user_management/custom_domain.html', context)
 
-@ratelimit(method='POST', rate='2/m', block='True')
-@ratelimit(method='POST', rate='10/h', block='True')
-@ratelimit(method='POST', rate='50/d', block='True')
+@ratelimit(method='POST', rate=INTERNAL['REGISTER_MINUTE_LIMIT'], block='True')
+@ratelimit(method='POST', rate=INTERNAL['REGISTER_HOUR_LIMIT'], block='True')
+@ratelimit(method='POST', rate=INTERNAL['REGISTER_DAY_LIMIT'], block='True')
 def process_register(request):
     """Register a new user"""
     c = {}
