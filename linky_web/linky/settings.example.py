@@ -1,6 +1,6 @@
 # Django settings for linky project.
 
-import os
+import os, sys
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -12,6 +12,10 @@ ADMINS = (
 MANAGERS = ADMINS
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__name__))
+
+LINKY_HOME = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))# + os.pathsep + 'backend'
+
+sys.path.append(LINKY_HOME)
 
 # The base location, on disk, where want to store our generated assets
 GENERATED_ASSETS_STORAGE = '/tmp/perma/assets'
@@ -113,9 +117,12 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'ratelimit.middleware.RatelimitMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
+
+RATELIMIT_VIEW = 'linky.views.common.rate_limit'
 
 ROOT_URLCONF = 'linky.urls'
 
@@ -138,6 +145,7 @@ INSTALLED_APPS = (
     'linky',
     'south',
     'djcelery',
+    'ratelimit',
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:

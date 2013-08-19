@@ -9,7 +9,16 @@ import urllib2
 
 from linky.models import Link, Asset
 from linky.utils import base
+from ratelimit.decorators import ratelimit
 
+try:
+    from linky.local_settings import *
+except ImportError, e:
+    logger.error('Unable to load local_settings.py: %s', e)
+
+@ratelimit(method='GET', rate=INTERNAL['MINUTE_LIMIT'], block='True')
+@ratelimit(method='GET', rate=INTERNAL['HOUR_LIMIT'], block='True')
+@ratelimit(method='GET', rate=INTERNAL['DAY_LIMIT'], block='True')
 def landing(request):
     """The landing page"""
 
@@ -60,6 +69,9 @@ def tools(request):
     """The tools page"""
     return render_to_response('tools.html', {})
 
+@ratelimit(method='GET', rate=INTERNAL['MINUTE_LIMIT'], block='True')
+@ratelimit(method='GET', rate=INTERNAL['HOUR_LIMIT'], block='True')
+@ratelimit(method='GET', rate=INTERNAL['DAY_LIMIT'], block='True')
 def single_linky(request, linky_guid):
     """Given a Linky ID, serve it up. Vetting also takes place here. """
 
@@ -113,3 +125,6 @@ def editor_home(request):
     context = {'linky_list': linky_list, 'user': request.user, 'host': request.get_host()}
 
     return render_to_response('editor-list-view.html', context)
+    
+def rate_limit(request, exception):
+  return render_to_response("rate_limit.html")
