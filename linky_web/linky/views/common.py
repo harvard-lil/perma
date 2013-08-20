@@ -38,7 +38,7 @@ def landing(request):
         if len(linky_link.submitted_url) > 79:
           linky_link.submitted_url = linky_link.submitted_url[:70] + '...'
     else:
-      linky_links = list();
+      linky_links = None;
 
     context = {'this_page': 'landing', 'host': request.get_host(), 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()}
     context.update(csrf(request))

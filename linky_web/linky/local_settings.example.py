@@ -5,4 +5,7 @@ INTERNAL = {
     'REGISTER_MINUTE_LIMIT': '2/m',
     'REGISTER_HOUR_LIMIT': '10/h',
     'REGISTER_DAY_LIMIT': '50/d',
+    'LOGIN_MINUTE_LIMIT': '5/m',
+    'LOGIN_HOUR_LIMIT': '100/h',
+    'LOGIN_DAY_LIMIT': '50/d',
 }

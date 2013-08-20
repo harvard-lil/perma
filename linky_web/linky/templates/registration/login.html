@@ -6,9 +6,9 @@
 	<h2>Login</h2>
 		
 			{% if next %}
-				<form method="post" action="{% url 'auth_login' %}?next={{ next }}">
+				<form method="post" action="{% url 'user_management_limited_login' %}?next={{ next }}">
 			{% else %}
-				<form method="post" action="{% url 'auth_login' %}">
+				<form method="post" action="{% url 'user_management_limited_login' %}">
 			{% endif %}
 				{% csrf_token %}
 				 <fieldset>
