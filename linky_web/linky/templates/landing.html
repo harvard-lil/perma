@@ -27,7 +27,7 @@
         <p id="subtext">Currently signed in as <a href="#">{{ user.username }}</a> (<a href="#">log out</a>)</p>
         {% else %}
         <p><a href="#" class="btn btn-large btn-success">Sign Up for a Free Account</a></p>
-        <p id="subtext">See <a href="#">how it works</a> or <a href="{% url 'auth_login' %}">log in</a>.</p>
+        <p id="subtext">See <a href="#">how it works</a> or <a href="{% url 'user_management_limited_login' %}">log in</a>.</p>
         {% endif %}
     </div><!--/.main-container-->
 </section><!--/#home-description-->
