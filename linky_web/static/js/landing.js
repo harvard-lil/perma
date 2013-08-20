@@ -7,7 +7,7 @@ $(document).ready(function() {
   $('#linky-confirm').modal({show: false});
   $('#linky-upload-confirm').modal({show: false});
   $('#linky-upload').modal({show: false});
-  $('#rawUrl').focus();
+  //$('#rawUrl').focus();
 
   $('#linker').submit(function() {
 		linkIt();
@@ -130,6 +130,7 @@ function drawLinks() {
     storedLinkies = JSON.parse(localStorage.getItem('linky-list'));
   }
   if(storedLinkies) {
+    $('#home-description').hide();
     allLinkies = storedLinkies;
     storedLinkies.reverse();
     $('#local-ul').html('');
@@ -160,7 +161,7 @@ function drawLinks() {
 function addToStorage(new_link) {
   if(JSON.parse(localStorage.getItem('linky-list'))){
     all_links = JSON.parse(localStorage.getItem('linky-list')) || [];
-    if(all_links.length >= 10) {
+    if(all_links.length >= 5) {
       all_links.splice(0,1);
     }
   }

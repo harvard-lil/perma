@@ -657,8 +657,10 @@ If you need more, that's where to get'em.
 
 .perma-ul {
   list-style:none;
-  margin-left:0;
+  margin-left:auto;
+  margin-right:auto;
   margin-top:15px;
+  width:70%;
 }
 
 .perma-ul li {
