@@ -581,9 +581,9 @@ def custom_domain(request):
     context.update(csrf(request))
     return render_to_response('user_management/custom_domain.html', context)
     
-@ratelimit(method='POST', rate=INTERNAL['LOGIN_MINUTE_LIMIT'], block='True')
-@ratelimit(method='POST', rate=INTERNAL['LOGIN_HOUR_LIMIT'], block='True')
-@ratelimit(method='POST', rate=INTERNAL['LOGIN_DAY_LIMIT'], block='True')
+@ratelimit(method='POST', rate=INTERNAL['LOGIN_MINUTE_LIMIT'], block='True', ip=True)
+@ratelimit(method='POST', rate=INTERNAL['LOGIN_HOUR_LIMIT'], block='True', ip=True)
+@ratelimit(method='POST', rate=INTERNAL['LOGIN_DAY_LIMIT'], block='True', ip=True)
 def limited_login(request, template_name='registration/login.html',
           redirect_field_name=REDIRECT_FIELD_NAME,
           authentication_form=AuthenticationForm,
