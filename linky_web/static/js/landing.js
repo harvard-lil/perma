@@ -85,7 +85,7 @@ function linkIt(){
     
     $('#spinner').slideUp();
     $('#link-short-slug').slideDown();
-    var clip = new ZeroClipboard( document.getElementsByClassName("copy-button"), {
+    var clip = new ZeroClipboard( $(".copy-button"), {
       moviePath: web_base + "/static/js/ZeroClipboard/ZeroClipboard.swf"
     });
 
@@ -135,7 +135,7 @@ function drawLinks() {
       var template = Handlebars.compile(source);
       $('#local-ul').append(template(value));
 
-      var clip = new ZeroClipboard( document.getElementsByClassName("copy-button"), {
+      var clip = new ZeroClipboard( $(".copy-button"), {
         moviePath: web_base + "/static/js/ZeroClipboard/ZeroClipboard.swf"
       });
 
