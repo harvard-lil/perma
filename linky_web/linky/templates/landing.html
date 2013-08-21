@@ -176,18 +176,25 @@
 {% endverbatim %}
 
 {% verbatim %}
-<script id="loading-template" type="text/x-handlebars-template">
-	<div id="linky-preview" class="pull-left">
-	  <div class="center"><img class="loading-background" src="{{src}}"></div>
-	</div>
-	<div id="linky-desc" class="unavailable">
-	  <h4 id="linky_generation_message">Creating your Perma. Hold tight.</h4>
-	  <p id="linkyUrl"><a href="" target="_blank"></a><br ><small id="linky_title"></small></p>
-	  <h4>Email this Perma</h4>
-	  <p><input id="email_request" class="input-xlarge" type="text" placeholder="user@example.com"></p>
-	  <p><a href="#" id="saveLinky" class="btn btn-primary btn-large btn-block">Save this Perma</a></p>
-	</div>
+<script id="success-template" type="text/x-handlebars-template">
+  <li id="link-short-slug" class="library-link-item" style="display: none;">
+    <div class="library-thumbnail">
+      <a href="{{linkyUrl}}" target="_blank"><img src="{{preview}}" /></a>
+    </div>
+    <div class="link-results">
+      <a href="{{url}}" class="anchor-short-slug" target="_blank">{{url}}</a>
+      <p class="library-link-title">{{title}}</p>
+      <p class="library-link-url"><a href="{{original}}">{{original}}</a></p>
+      <p class="library-link-meta"><a class="copy-button" data-clipboard-text="{{url}}" title="Copy Linky Link">Copy Perma &infin;</a></p>
+      <form class="form-inline" id="emailPerma">
+        <input id="email_request" type="text" placeholder="user@example.com">
+        <button type="submit" class="btn">Email this Perma</button>
+      </form>
+      <p id="upload-option">Perma capture not right? <a href="" onclick="return upload_form();">Upload your own</a>.</p>
+    </div> 
+  </li>
 </script>
+
 {% endverbatim %}
 
 {% endblock templates %}

@@ -413,8 +413,7 @@ div#dashboard-container div#library {}
                 border: 1px solid #efefef !important;
                 border: #efefef;
                 display: block;
-                margin: 0 auto 20px auto;
-                width: 222px;
+                margin: 0 auto 10px auto;
             }
 
             div.library-thumbnail a:hover {
@@ -424,8 +423,8 @@ div#dashboard-container div#library {}
             div.library-thumbnail img {
                 margin-bottom: 15px;
                 padding: 10px;
-                max-height: 200px;
-                width: 200px;
+                max-height: 275px;
+                width: 275px;
             }
 
         p.library-link-title {
