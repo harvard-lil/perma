@@ -1,11 +1,11 @@
 import os, sys, subprocess, urllib, glob, shutil
-from celery import task
+from djcelery import celery
 from django.conf import settings
 
 from linky_web.linky.models import Asset
 from linky_web.linky.exceptions import BrokenURLError
 
-@task
+@celery.task
 def get_screen_cap(link_guid, target_url, base_storage_path):
     """ Create an image from the url, store it in a dir. use the id as part of the dir path """
 
@@ -27,7 +27,7 @@ def get_screen_cap(link_guid, target_url, base_storage_path):
     
     return True
     
-@task
+@celery.task
 def get_source(link_guid, target_url, base_storage_path, user_agent=''):
 
     path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path, 'source', 'index.html']
