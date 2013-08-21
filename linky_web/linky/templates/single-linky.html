@@ -45,7 +45,6 @@ function autoResize(id){
 		</div>
 		<p><a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
    	</div>
-   	<!--{% include "login-form.html" %}-->
    	<div class="span2 center">
     {% if not linky.vested %}
       {% if user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'journal_member' %}

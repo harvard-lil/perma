@@ -4,7 +4,6 @@ var newLinky = {};
 var all_links = new Array();
 
 $(document).ready(function() {
-  $('#linky-confirm').modal({show: false});
   $('#linky-upload-confirm').modal({show: false});
   $('#linky-upload').modal({show: false});
   //$('#rawUrl').focus();
@@ -13,15 +12,6 @@ $(document).ready(function() {
 		linkIt();
 		return false;
 	});
-
-	$('#linky-confirm').on('keyup', '#email_request', function() {
-    if(!$(this).val()) {
-      $('#saveLinky').text('Save this Perma');
-    }
-    else {
-      $('#saveLinky').text('Save and send this Perma');
-    }
-  });
 
   drawLinks();
 
@@ -60,9 +50,12 @@ function uploadIt(data) {
 
 function linkIt(){
   var source = $("#loading-template").html();
-    var template = Handlebars.compile(source);
-    $('#linky-confirm .modal-body').html(template({'src': web_base + '/static/img/infinity_500_400.gif'}));
-    $('#upload-option').hide();
+  var template = Handlebars.compile(source);
+  $('#linky-confirm .modal-body').html(template({'src': web_base + '/static/img/infinity_500_400.gif'}));
+  $('#upload-option').hide();
+  $('#links').empty();
+  $('.add-links-list').slideDown();
+  $('#spinner').slideDown();
 
   rawUrl = $("#rawUrl").val();
   $('#url').val(rawUrl);
@@ -73,14 +66,11 @@ function linkIt(){
     dataType: "json"
   });
   request.done(function(data) {
-    $('#linky_generation_message').html('Your linky has been created at');
-    $('#linky-desc').removeClass('unavailable');
     $('#upload-option').fadeIn();
     linkyUrl = web_base  + '/' + data.linky_id;
     newLinky.url = linkyUrl;
     newLinky.original = rawUrl;
     newLinky.title = data.linky_title;
-    $('#title').val(data.linky_title);
     newLinky.favicon_url = data.favicon_url;
 
     var source = $("#list-template").html();
@@ -90,39 +80,62 @@ function linkIt(){
 
     addToStorage(newLinky);
     drawLinks();
-    $('#linkyUrl a').html(web_base  + '/' + data.linky_id).attr('href', web_base + '/' + data.linky_id);
-    //$('#linky_title').text(data.linky_title);
-    $('#linky-preview img').attr('src', data.linky_cap);
+      str = '<li id="link-short-slug" class="library-link-item" style="display: none;">'; // TODO move inline styles to style.css
+      str += '<div class="library-thumbnail"><a href="/' + linkyUrl + '" target="_blank"><img src="' + data.linky_cap + '" /></a></div>'
+      str += '<div class="link-results">'; // to keep everything on the same line during jQuery shake
+      str += '<a href="' + linkyUrl + '" class="anchor-short-slug" target="_blank">' + linkyUrl + '</a>';
+      str += '<input type="text" class="url-extension url-extension-form-';
+      str += 'short-slug" value="short-slug" />';
+      str += '<input type="hidden" class="slug-short-slug" value="short-slug" />';
+
+      // BREAK
+      str += '<p class="library-link-title">' + data.linky_title + '</p>'
+      str += '<p class="library-link-url"><a href="' + rawUrl + '">' + rawUrl + '</a></p>'
+      str += '<p class="library-link-meta">';
+      str += '<a class="copy-button" data-clipboard-text="' + linkyUrl + '" title="Copy Linky Link">Copy Perma &infin;</a>';
+      str += '</p>';
+      // END BREAK
+            
+      // TODO update static url
+      str += '<form class="form-inline" id="emailPerma">';
+      str += '<input id="email_request" type="text" placeholder="user@example.com">';
+      str += '<button type="submit" class="btn">Email this Perma</button>';
+      str += '</form>'
+      str += '<p id="upload-option">Perma capture not right? <a href="" onclick="return upload_form();">Upload your own</a>.</p>';
+      str += '</div><!--/.link-results-->'; 
+      str += '</li>';
+      
+      $('#links').prepend(str);
+      $('#spinner').slideUp();
+      $('#link-short-slug').slideDown();
+      var clip = new ZeroClipboard( document.getElementsByClassName("copy-button"), {
+        moviePath: web_base + "/static/js/ZeroClipboard/ZeroClipboard.swf"
+      });
+
+      clip.on( 'complete', function(client, args) {
+        $(this).next('.copy-confirm').html('copied').fadeIn(100).fadeOut(3000);
+      });
+      
+      $('#emailPerma').on('submit', function(event){
+        //var email_address = ;
+        var request = $.ajax({
+          url: web_base + "/service/email-confirm/",
+          type: "POST",
+          data: {email_address: $('#email_request').val(), linky_link: linkyUrl},
+          dataType: "json"
+        });
+    
+        return false;
+      });
   });
   request.fail(function(jqXHR, responseText) {
     var source = $("#error-template").html();
     var template = Handlebars.compile(source);
-    $('#linky-confirm .modal-body').html(template({url: rawUrl}));
-    $('#linky-desc').removeClass('unavailable');
+    $('#links').html(template({url: rawUrl}));
+    $('#spinner').slideUp();
+    $('#link-short-slug').slideDown();
   });
 
-  $('#linky-confirm').modal('show');
-  $('#saveLinky').on('click', function(event){
-
-    var request = $.ajax({
-      url: web_base + "/service/email-confirm/",
-      type: "POST",
-      data: {email_address: $('#email_request').val(), linky_link: $('#linkyUrl a').attr('href')},
-      dataType: "json"
-    });
-
-    event.preventDefault();
-    $('#linky-confirm').modal('hide');
-  });
-
-  $('#linky-confirm').on('hidden', function () {
-    $('#rawUrl').val('').focus();
-
-    $('#linky_generation_message').html('Creating your Linky. Hold tight.');
-    $('#linkyUrl a').html('').attr('');
-    $('#linky-desc').addClass('unavailable');
-    //drawLinks();
-  });
 }
 
 function drawLinks() {

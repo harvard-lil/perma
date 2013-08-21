@@ -89,30 +89,6 @@
 <!-- Modals -->
 <div class="span12 center" id="modals-container">
 
-<!-- Linky creation modal -->
-<div id="linky-confirm" class="modal hide fade">
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h1 class="logo-big">Perma Preview</h1>
-        <img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png" alt="Logo" />
-    </div>
-    <div class="modal-body">
-        <div id="linky-preview" class="pull-left">
-            <div class="center"><img class="loading-background" src="{{ STATIC_PREFIX }}img/infinity_500_400.gif"></div>
-        </div>
-        <div id="linky-desc" class="unavailable">
-            <h4 id="linky_generation_message">Creating your Perma. Hold tight.</h4>
-            <p id="linkyUrl"><a href="" target="_blank"></a><br ><small id="linky_title"></small></p>
-            <h4>Email this Perma</h4>
-            <p><input class="input-xlarge" type="text" placeholder="user@example.com"></p>
-            <p><a href="#" id="saveLinky" class="btn btn-primary btn-large btn-block">Save this Perma</a></p>
-        </div>
-    </div>
-    <div class="modal-footer pull-left">
-        <p id="upload-option">Perma capture not right? <a href="" onclick="return upload_form();">Upload your own</a>.</p>
-    </div>
-</div><!--/.linky-confirm-->
-
 <!-- Upload file modal -->
 <div id="linky-upload" class="modal hide fade center">
     <div class="modal-header">
@@ -176,7 +152,7 @@
 	<div class="row-fluid">
 		<li>
 			<div class="span8">
-				<div class="favicon-preview">{{#if favicon_url}}<img src="http://{{favicon_url}}">{{/if}}</div>
+				<div class="favicon-preview">{{#if favicon_url}}<!--<img src="http://{{favicon_url}}">-->{{/if}}</div>
 				<div class="recent-linky-summary">
 					<h4><a href="{{#http_it url}}{{/http_it}}" target="_blank">{{#truncate title 50}}{{/truncate}}</a></h4>
 					<small>{{#truncate original 70}}{{/truncate}}</small>
@@ -194,11 +170,8 @@
 
 {% verbatim %}
 <script id="error-template" type="text/x-handlebars-template">
-	<div id="linky-error">
-	  <h2 class="text-warning">There was a problem creating your Perma</h4>
-	  <h4>{{url}} is gumming up the works</h4>
-	  <button class="btn" data-dismiss="modal" aria-hidden="true">Thanks for nothing</button>
-	</div>
+	  <h4 class="text-warning">There was a problem creating your Perma</h4>
+	  <p>{{url}} is gumming up the works</p>
 </script>
 {% endverbatim %}
 

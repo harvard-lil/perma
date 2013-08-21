@@ -215,7 +215,7 @@ div.home-form-elements {
     margin: 10px auto 0 auto;
 }
 
-    div.home-form-elements input {
+    div.home-form-elements #linker input {
         width: 434px;
     } 
 
@@ -402,6 +402,7 @@ div#dashboard-container div#library {}
 
         li.library-link-item {
             text-align: center;
+            list-style-type:none;
         }
 
         div.library-thumbnail {
@@ -423,7 +424,7 @@ div#dashboard-container div#library {}
             div.library-thumbnail img {
                 margin-bottom: 15px;
                 padding: 10px;
-                height: 200px;
+                max-height: 200px;
                 width: 200px;
             }
 
@@ -592,6 +593,10 @@ If you need more, that's where to get'em.
   color: #777;
 }
 
+#emailPerma {
+  margin-top:8px;
+}
+
 #uploadLinky {
   margin-top:25px;
 }
@@ -660,7 +665,7 @@ If you need more, that's where to get'em.
   margin-left:auto;
   margin-right:auto;
   margin-top:15px;
-  width:70%;
+  width:75%;
 }
 
 .perma-ul li {
