@@ -47,7 +47,7 @@ function autoResize(id){
    	</div>
    	<div class="span2 center">
     {% if not linky.vested %}
-      {% if user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'journal_member' %}
+      {% if user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'journal_member' or user.groups.all.0.name == 'journal_manager' %}
         <form action="" method="post">
           {% csrf_token %}
           <input type="submit" value="vest" name="vet" class="btn">
