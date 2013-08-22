@@ -13,7 +13,7 @@
 	<table class="table">
     <thead>
       <tr>
-        <th><input type="checkbox"></th>
+        <!--<th><input type="checkbox"></th>-->
         <th>Name</th>
         <th>Email</th>
         <th>Registrar</th>
@@ -23,7 +23,7 @@
     <tbody>
       {% for registrar_member in registrar_members %}
         <tr>
-          <td><input type="checkbox"></td>
+          <!--<td><input type="checkbox"></td>-->
           <td>{{ registrar_member.first_name }} {{ registrar_member.last_name }}</td>
           <td>{{ registrar_member.email }}</td>
           <td>{{ registrar_member.registrar.name }}</td>

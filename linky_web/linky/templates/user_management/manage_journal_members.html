@@ -14,7 +14,7 @@
 	<table class="table">
     <thead>
       <tr>
-        <th><input type="checkbox"></th>
+        <!--<th><input type="checkbox"></th>-->
         <th>Name</th>
         <th>Email</th>
         {% if user.groups.all.0.name == 'registry_member' %}<th>Registrar</th>{% endif %}
@@ -24,7 +24,7 @@
     <tbody>
       {% for member in journal_members %}
         <tr>
-          <td><input type="checkbox"></td>
+          <!--<td><input type="checkbox"></td>-->
           <td>{{ member.first_name }} {{ member.last_name }}</td>
           <td>{{ member.email }}</td>
 		  {% if user.groups.all.0.name == 'registry_member' %}<td>{{member.registrar.name}}</td>{% endif %}
