@@ -688,7 +688,7 @@ def register_email_code_confirmation(request, code):
     user = get_object_or_404(LinkUser, confirmation_code=code)
     user.is_active = True
     user.save()
-    redirect_url = reverse('auth_login')
+    redirect_url = reverse('user_management_limited_login')
     extra_params = '?confirmed=true'
     full_redirect_url = '%s%s' % (redirect_url, extra_params)
     return HttpResponseRedirect(full_redirect_url)
