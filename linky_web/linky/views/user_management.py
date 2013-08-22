@@ -622,9 +622,9 @@ def limited_login(request, template_name='registration/login.html',
     return TemplateResponse(request, template_name, context,
                             current_app=current_app)
 
-@ratelimit(method='POST', rate=INTERNAL['REGISTER_MINUTE_LIMIT'], block='True')
-@ratelimit(method='POST', rate=INTERNAL['REGISTER_HOUR_LIMIT'], block='True')
-@ratelimit(method='POST', rate=INTERNAL['REGISTER_DAY_LIMIT'], block='True')
+@ratelimit(method='POST', rate=INTERNAL['REGISTER_MINUTE_LIMIT'], block='True', ip=True)
+@ratelimit(method='POST', rate=INTERNAL['REGISTER_HOUR_LIMIT'], block='True', ip=True)
+@ratelimit(method='POST', rate=INTERNAL['REGISTER_DAY_LIMIT'], block='True', ip=True)
 def process_register(request):
     """Register a new user"""
     c = {}
