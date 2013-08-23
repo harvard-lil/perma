@@ -195,7 +195,7 @@ def upload_file(request):
                 now = dt = datetime.now()
                 time_tuple = now.timetuple()
                 path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday), str(time_tuple.tm_hour), link.guid]
-                #linky_home_disk_path = settings.PROJECT_ROOT +'/'+ '/static/generated/' + link.guid + '/'
+
                 linky_home_disk_path = settings.GENERATED_ASSETS_STORAGE + '/' + os.path.sep.join(path_elements)
 
                 if not os.path.exists(linky_home_disk_path):
