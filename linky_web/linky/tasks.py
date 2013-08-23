@@ -2,12 +2,17 @@ import os, sys, subprocess, urllib, glob, shutil
 from djcelery import celery
 from django.conf import settings
 
-from linky_web.linky.models import Asset
-from linky_web.linky.exceptions import BrokenURLError
+from linky.models import Asset
+from linky.exceptions import BrokenURLError
 
 @celery.task
 def get_screen_cap(link_guid, target_url, base_storage_path):
-    """ Create an image from the url, store it in a dir. use the id as part of the dir path """
+    """
+    Create an image from the supplied URL, write it to disk and update our asset model with the path. 
+    The heavy lifting is done by PhantomJS, our headless browser.
+    
+    This function is usually executed via a synchronous Celery call
+    """
 
     path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path, 'cap.png']
 
@@ -19,6 +24,7 @@ def get_screen_cap(link_guid, target_url, base_storage_path):
     subprocess.call(image_generation_command, shell=True)
 
     if not os.path.exists(os.path.sep.join(path_elements)):
+        # TODO: This should probably raise an exception. and we let the user know that it failed.
         return False
 
     asset = Asset.objects.get(link__guid=link_guid)
@@ -29,6 +35,14 @@ def get_screen_cap(link_guid, target_url, base_storage_path):
     
 @celery.task
 def get_source(link_guid, target_url, base_storage_path, user_agent=''):
+    """
+    Download the source that is used to generate the page at the supplied URL.
+    Assets are written to disk, in a directory called "source". If things go well, we update our
+    assets model with the path.
+    We use a robust wget command for this. 
+    
+    This function is usually executed via an asynchronous Celery call
+    """
 
     path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path, 'source', 'index.html']
 
@@ -60,7 +74,8 @@ def get_source(link_guid, target_url, base_storage_path, user_agent=''):
     # Add headers (defined earlier in this function)
     for key, value in headers.iteritems():
         command = command + '--header="' + key + ': ' + value+ '" '
-    command = command + target_url # Download the user-specified URL
+
+    command = command + target_url
 
     # Download page data and dependencies
     if not os.path.exists(directory):
