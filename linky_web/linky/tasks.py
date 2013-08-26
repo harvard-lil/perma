@@ -4,19 +4,16 @@ from django.conf import settings
 
 from linky.models import Asset
 from linky.exceptions import BrokenURLError
-<<<<<<< HEAD
 from linky.settings import INSTAPAPER_KEY, INSTAPAPER_SECRET, INSTAPAPER_USER, INSTAPAPER_PASS
 
 import oauth2 as oauth
-=======
->>>>>>> 445de8a3cf6de6d72c2c332cf75091a00d7558b8
 
 @celery.task
 def get_screen_cap(link_guid, target_url, base_storage_path):
     """
-    Create an image from the supplied URL, write it to disk and update our asset model with the path. 
+    Create an image from the supplied URL, write it to disk and update our asset model with the path.
     The heavy lifting is done by PhantomJS, our headless browser.
-    
+
     This function is usually executed via a synchronous Celery call
     """
 
@@ -45,8 +42,8 @@ def get_source(link_guid, target_url, base_storage_path, user_agent=''):
     Download the source that is used to generate the page at the supplied URL.
     Assets are written to disk, in a directory called "source". If things go well, we update our
     assets model with the path.
-    We use a robust wget command for this. 
-    
+    We use a robust wget command for this.
+
     This function is usually executed via an asynchronous Celery call
     """
 
@@ -90,7 +87,7 @@ def get_source(link_guid, target_url, base_storage_path, user_agent=''):
 
     #TODO replace os.popen with subprocess
     output = os.popen(command)
-    
+
     # Verify success
     if '400 Bad Request' in output:
         asset = Asset.objects.get(link__guid=link_guid)
