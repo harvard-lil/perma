@@ -135,9 +135,7 @@ def validate_upload_file(upload):
 def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
-        print 'FOO'
         if form.is_valid():
-            print 'BAR'
             if validate_upload_file(request.FILES['file']):
                 link = Link(submitted_url=form.cleaned_data['url'], submitted_title=form.cleaned_data['title'])
                 if request.user.is_authenticated():
