@@ -1,4 +1,4 @@
-import os, sys, subprocess, urllib, glob, shutil, urlparse, simplejson, datetime
+import os, sys, subprocess, urllib, glob, shutil, urlparse, simplejson, datetime, smhasher
 from djcelery import celery
 from django.conf import settings
 
@@ -154,6 +154,7 @@ def store_text_cap(url, title, link):
     bid, tdata = instapaper_capture(url, title)
 
     link.instapaper_timestamp = datetime.datetime.now()
-    link.instapaper_cap = tdata
+    data = smhasher.murmur3_x86_128(tdata)
+    link.instapaper_cap = data
     link.instapaper_id = bid
     link.save()

@@ -22,10 +22,6 @@ try:
 except ImportError, e:
     logger.error('Unable to load local_settings.py: %s', e)
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 445de8a3cf6de6d72c2c332cf75091a00d7558b8
 class Registrar(models.Model):
     """
     This is generally a library.
@@ -80,7 +76,7 @@ class LinkUserManager(BaseUserManager):
         return user
 
 
-class LinkUser(AbstractBaseUser):    
+class LinkUser(AbstractBaseUser):
     email = models.EmailField(
         verbose_name='email address',
         max_length=255,
@@ -132,7 +128,7 @@ class LinkUser(AbstractBaseUser):
 
 class Link(models.Model):
     """
-    This is the core of the Perma link. 
+    This is the core of the Perma link.
     """
     guid = models.CharField(max_length=255, null=False, blank=False, primary_key=True)
     view_count = models.IntegerField(default=0)
@@ -144,7 +140,7 @@ class Link(models.Model):
     vested_by_editor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='vested_by_editor')
     vested_timestamp = models.DateTimeField(null=True, blank=True)
     instapaper_timestamp = models.DateTimeField(null=True)
-    instapaper_cap = models.TextField(null=True)
+    instapaper_cap = models.CharField(max_length=2100, null=True)
     instapaper_id = models.IntegerField(null=True)
 
     def save(self, *args, **kwargs):
