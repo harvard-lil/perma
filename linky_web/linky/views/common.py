@@ -23,11 +23,17 @@ except ImportError, e:
 @ratelimit(method='GET', rate=INTERNAL['HOUR_LIMIT'], block='True')
 @ratelimit(method='GET', rate=INTERNAL['DAY_LIMIT'], block='True')
 def landing(request):
-    """The landing page"""
+    """
+    The landing page
+    """
 
     if request.user.id >= 0:
       linky_links = list(Link.objects.filter(created_by=request.user).order_by('-creation_timestamp'))
 
+
+      # TODO: we should always store the protocol with the link, https://github.com/harvard-lil/linky/issues/105
+      # this'll save us from having to do this protocol sniffing
+      # TODO: Move the ... management to the view
       for linky_link in linky_links:
         if linky_link.submitted_url.startswith('http://'):
           linky_link.submitted_url = linky_link.submitted_url[7:]
@@ -45,38 +51,64 @@ def landing(request):
 
     return render_to_response('landing.html', context)
 
+
 def about(request):
-    """The about page"""
+    """
+    The about page
+    """
 
     context = {'host': request.get_host()}
 
     return render_to_response('about.html', context)
 
+
 def faq(request):
-    """The FAQ page"""
+    """
+    The FAQ page
+    """
+    
     return render_to_response('faq.html', {})
 
+
 def contact(request):
-    """The contact page"""
+    """
+    The contact page
+    """
+    
     return render_to_response('contact.html', {})
 
+
 def terms_of_service(request):
-    """The terms of service page"""
+    """
+    The terms of service page
+    """
+    
     return render_to_response('terms_of_service.html', {})
 
+
 def privacy_policy(request):
-    """The privacy policy page"""
+    """
+    The privacy policy page
+    """
+    
     return render_to_response('privacy_policy.html', {})
 
+
 def tools(request):
-    """The tools page"""
+    """
+    The tools page
+    """
+    
     return render_to_response('tools.html', {})
+
 
 @ratelimit(method='GET', rate=INTERNAL['MINUTE_LIMIT'], block='True')
 @ratelimit(method='GET', rate=INTERNAL['HOUR_LIMIT'], block='True')
 @ratelimit(method='GET', rate=INTERNAL['DAY_LIMIT'], block='True')
 def single_linky(request, linky_guid):
-    """Given a Linky ID, serve it up. Vetting also takes place here. """
+    """
+    Given a Linky ID, serve it up. Vetting also takes place here.
+    """
 
     if request.method == 'POST':
         Link.objects.filter(guid=linky_guid).update(vested = True, vested_by_editor = request.user, vested_timestamp = datetime.now())
@@ -111,23 +143,10 @@ def single_linky(request, linky_guid):
 
     return render_to_response('single-linky.html', context)
 
-def editor_home(request):
-    """The the editor user's admin home """
-
-    if not request.user.is_authenticated():
-        return HttpResponseRedirect(reverse('auth_login'))
-
-
-    linkys = Link.objects.filter(vested_by_editor=request.user).order_by('-vested_timestamp')
-    linky_list = list(linkys)
-
-    for linky in linky_list:
-        if linky.submitted_url[0:4] != 'http':
-            linky.submitted_url = 'http://' + linky.submitted_url
-
-    context = {'linky_list': linky_list, 'user': request.user, 'host': request.get_host()}
-
-    return render_to_response('editor-list-view.html', context)
 
 def rate_limit(request, exception):
-  return render_to_response("rate_limit.html")
+    """
+    When a user hits a rate limit, send them here.
+    """
+    
+    return render_to_response("rate_limit.html")

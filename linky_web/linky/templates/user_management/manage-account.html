@@ -9,6 +9,17 @@
 {% block content %}
 
 	  <h3>Account settings</h3>
+	  {% if user.groups.all.0.name == 'journal_member' or user.groups.all.0.name == 'journal_manager' %}
+		  <div class="sponsoring-library-info">
+        <h4>Your sponsoring library</h4>
+        {% if sponsoring_library_website %}
+        <p><strong><a href="{{sponsoring_library_website}}" target="_blank">{{sponsoring_library_name}}</a></strong>
+        {% else %}
+        <strong>{{sponsoring_library_name}}</strong>
+        {% endif %}
+        <br>{{sponsoring_library_email}}</p>
+      </div>
+		{% endif %}
 		<form method="post">
 		  <h4>Change account details</h4>
       {% csrf_token %}
@@ -28,16 +39,5 @@
     </form>
     
 		{% include "password_change_embedded_form.html" %}
-		
-		{% if user.groups.all.0.name == 'journal_member' or user.groups.all.0.name == 'journal_manager' %}
-		  <div class="sponsoring-library-info">
-        <h4>Your sponsoring library</h4>
-        <strong>{{sponsoring_library_name}}</strong>
-        {% if sponsoring_library_website %}
-        <p><a href="sponsoring_library_website" target="_blank">{{sponsoring_library_website}}</a></p>
-        {% endif %}
-        <p>{{sponsoring_library_email}}</p>
-      </div>
-		{% endif %}
 
 {% endblock %}

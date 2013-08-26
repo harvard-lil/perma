@@ -14,7 +14,7 @@
 		<table class="table">
     <thead>
       <tr>
-        <th><input type="checkbox"></th>
+        <!--<th><input type="checkbox"></th>-->
         <th>Name</th>
         <th>Email</th>
         <th>Website</th>
@@ -24,7 +24,7 @@
     <tbody>
       {% for registrar in registrars %}
         <tr>
-          <td><input type="checkbox"></td>
+          <!--<td><input type="checkbox"></td>-->
           <td class="registrar-name-cell">{{ registrar.name }}</td>
           <td>{{ registrar.email }}</td>
           <td class="registrar-website-cell"><a href="{{ registrar.website }}" target="_blank">{{ registrar.website }}</a></td>

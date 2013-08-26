@@ -314,3 +314,10 @@ class user_form_self_edit(forms.ModelForm):
             user.save()
 
         return user
+        
+
+
+class UploadFileForm(forms.Form):
+    title = forms.CharField(max_length=50, required=True)
+    url = forms.URLField(required=True)
+    file  = forms.FileField(required=True)

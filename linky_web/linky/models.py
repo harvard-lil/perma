@@ -22,8 +22,14 @@ try:
 except ImportError, e:
     logger.error('Unable to load local_settings.py: %s', e)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 445de8a3cf6de6d72c2c332cf75091a00d7558b8
 class Registrar(models.Model):
-    """ This is generally a library. """
+    """
+    This is generally a library.
+    """
     name = models.CharField(max_length=400)
     email = models.EmailField(max_length=254)
     website = models.URLField(max_length=500)
@@ -74,7 +80,7 @@ class LinkUserManager(BaseUserManager):
         return user
 
 
-class LinkUser(AbstractBaseUser):
+class LinkUser(AbstractBaseUser):    
     email = models.EmailField(
         verbose_name='email address',
         max_length=255,
@@ -125,6 +131,9 @@ class LinkUser(AbstractBaseUser):
         return self.is_admin
 
 class Link(models.Model):
+    """
+    This is the core of the Perma link. 
+    """
     guid = models.CharField(max_length=255, null=False, blank=False, primary_key=True)
     view_count = models.IntegerField(default=0)
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)
@@ -139,6 +148,12 @@ class Link(models.Model):
     instapaper_id = models.IntegerField(null=True)
 
     def save(self, *args, **kwargs):
+        """
+        To generate our globally unique identifiers, we draw a number out of a large number space,
+        58^10. We convert that to base58 (like base64, but without the confusing I,1,O,0 characters.
+        so that our URL is short(ish). And we append a 0. This 0 is
+        a way to namespace identifiers created at this Perma creation source.
+        """
         if not self.pk:
             # not self.pk => not created yet
             guid = '0'
@@ -153,7 +168,10 @@ class Link(models.Model):
         return self.submitted_url
 
 class Asset(models.Model):
-    """ We use this to track our generated assets, per link """
+    """
+    Our archving logic generates a bung of different assets. We store those on disk. We use
+    this class to track those locations.
+    """
     link = models.ForeignKey(Link, null=False)
     base_storage_path = models.CharField(max_length=2100, null=True, blank=True) # where we store these assets, relative to some base in our settings
     favicon = models.CharField(max_length=2100, null=True, blank=True) # Retrieved favicon

@@ -10,7 +10,6 @@ urlpatterns = patterns('linky.views',
 
     # Common Pages
     url(r'^$', 'common.landing', name='landing'),
-    url(r'^editor/?$', 'common.editor_home', name='editor_home'),
     url(r'^tools/?$', 'common.tools', name='tools'),
     url(r'^about/?$', 'common.about', name='about'),
     url(r'^faq/?$', 'common.faq', name='faq'),
@@ -43,7 +42,6 @@ urlpatterns = patterns('linky.views',
     url(r'^password/reset/done/?$', auth_views.password_reset_done, {'template_name': 'registration/password_reset_done.html'}, name='auth_password_reset_done'),
     
     # Manage/Linky Admin routes
-    #url(r'^manage/?$', 'user_management.landing', name='user_management_landing'),
     url(r'^manage/?$', 'user_management.created_links', name='user_management_created_links'),
     url(r'^manage/registrars/?$', 'user_management.manage_registrar', name='user_management_manage_registrar'),
     url(r'^manage/registrars/(?P<registrar_id>[a-zA-Z0-9]+)/?$', 'user_management.manage_single_registrar', name='user_management_manage_single_registrar'),

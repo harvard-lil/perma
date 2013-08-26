@@ -4,13 +4,21 @@ from django.conf import settings
 
 from linky.models import Asset
 from linky.exceptions import BrokenURLError
+<<<<<<< HEAD
 from linky.settings import INSTAPAPER_KEY, INSTAPAPER_SECRET, INSTAPAPER_USER, INSTAPAPER_PASS
 
 import oauth2 as oauth
+=======
+>>>>>>> 445de8a3cf6de6d72c2c332cf75091a00d7558b8
 
 @celery.task
 def get_screen_cap(link_guid, target_url, base_storage_path):
-    """ Create an image from the url, store it in a dir. use the id as part of the dir path """
+    """
+    Create an image from the supplied URL, write it to disk and update our asset model with the path. 
+    The heavy lifting is done by PhantomJS, our headless browser.
+    
+    This function is usually executed via a synchronous Celery call
+    """
 
     path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path, 'cap.png']
 
@@ -22,6 +30,7 @@ def get_screen_cap(link_guid, target_url, base_storage_path):
     subprocess.call(image_generation_command, shell=True)
 
     if not os.path.exists(os.path.sep.join(path_elements)):
+        # TODO: This should probably raise an exception. and we let the user know that it failed.
         return False
 
     asset = Asset.objects.get(link__guid=link_guid)
@@ -32,6 +41,14 @@ def get_screen_cap(link_guid, target_url, base_storage_path):
 
 @celery.task
 def get_source(link_guid, target_url, base_storage_path, user_agent=''):
+    """
+    Download the source that is used to generate the page at the supplied URL.
+    Assets are written to disk, in a directory called "source". If things go well, we update our
+    assets model with the path.
+    We use a robust wget command for this. 
+    
+    This function is usually executed via an asynchronous Celery call
+    """
 
     path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path, 'source', 'index.html']
 
@@ -57,13 +74,15 @@ def get_source(link_guid, target_url, base_storage_path, user_agent=''):
     command = command + '-e robots=off ' # we're not crawling, just viewing the page exactly as you would in a web-browser.
     command = command + '--page-requisites ' # get the things required to render the page later. things like images.
     command = command + '--no-directories ' # when downloading, flatten the source. we don't need a bunch of dirs.
+    command = command + '--no-check-certificate ' # We dont' care too much about busted certs
     command = command + '--user-agent="' + user_agent + '" ' # pass through our user's user agent
     command = command + '--directory-prefix=' + directory + ' ' # store our downloaded source in this directory
 
     # Add headers (defined earlier in this function)
     for key, value in headers.iteritems():
         command = command + '--header="' + key + ': ' + value+ '" '
-    command = command + target_url # Download the user-specified URL
+
+    command = command + target_url
 
     # Download page data and dependencies
     if not os.path.exists(directory):
@@ -71,7 +90,7 @@ def get_source(link_guid, target_url, base_storage_path, user_agent=''):
 
     #TODO replace os.popen with subprocess
     output = os.popen(command)
-
+    
     # Verify success
     if '400 Bad Request' in output:
         asset = Asset.objects.get(link__guid=link_guid)
