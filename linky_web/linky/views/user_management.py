@@ -31,19 +31,12 @@ try:
 except ImportError, e:
     logger.error('Unable to load local_settings.py: %s', e)
 
-@login_required
-def landing(request):
-    """ The logged-in user's dashboard. """
-    # TODO: do we need this? We were using this, but it's need has
-    # vanished since we moved the admin panel to the left column (on all admin pages)
-
-    context = {'user': request.user}
-
-    return render_to_response('user_management/landing.html', context)
 
 @login_required
 def manage_members(request):
-    """ registry and registrar members can manage journal members (the folks that vest links) """
+    """
+    Registry and registrar members can manage journal members (the folks that vest links)
+    """
 
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
@@ -74,9 +67,12 @@ def manage_members(request):
 
     return render_to_response('user_management/manage_registrar_members.html', context)
 
+
 @login_required
 def manage_registrar(request):
-    """ Linky admins can manage registrars (libraries) """
+    """
+    Linky admins can manage registrars (libraries)
+    """
 
     if request.user.groups.all()[0].name not in ['registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
@@ -105,10 +101,11 @@ def manage_registrar(request):
 
     return render_to_response('user_management/manage_registrars.html', context)
 
+
 @login_required
 def manage_single_registrar(request, registrar_id):
     """ Linky admins can manage registrars (libraries)
-        in this view, we allow for edit/delete"""
+        in this view, we allow for edit/delete """
 
     if request.user.groups.all()[0].name not in ['registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
@@ -136,9 +133,12 @@ def manage_single_registrar(request, registrar_id):
 
     return render_to_response('user_management/manage_single_registrar.html', context)
 
+
 @login_required
 def manage_registrar_member(request):
-    """ Linky admins can manage registrar members (librarians) """
+    """
+    Linky admins can manage registrar members (librarians)
+    """
 
     if request.user.groups.all()[0].name not in ['registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
@@ -171,10 +171,13 @@ def manage_registrar_member(request):
 
     return render_to_response('user_management/manage_registrar_members.html', context)
 
+
 @login_required
 def manage_single_registrar_member(request, user_id):
-    """ Linky admins can manage registrar members (librarians)
-        in this view, we allow for edit"""
+    """
+    Linky admins can manage registrar members (librarians)
+    in this view, we allow for edit
+    """
 
     if request.user.groups.all()[0].name not in ['registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
@@ -202,9 +205,12 @@ def manage_single_registrar_member(request, user_id):
 
     return render_to_response('user_management/manage_single_registrar_member.html', context)
 
+
 @login_required
 def manage_single_registrar_member_delete(request, user_id):
-    """ Linky admins can manage registrar members. Delete a single registrar member here. """
+    """
+    Linky admins can manage registrar members. Delete a single registrar member here.
+    """
 
     # Only registry members can delete registrar members
     if request.user.groups.all()[0].name not in ['registry_member']:
@@ -227,9 +233,12 @@ def manage_single_registrar_member_delete(request, user_id):
 
     return render_to_response('user_management/manage_single_registrar_member_delete_confirm.html', context)
 
+
 @login_required
 def manage_journal_manager(request):
-    """ Linky admins and registrars can manage journal members """
+    """
+    Linky admins and registrars can manage journal members
+    """
 
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
@@ -269,9 +278,12 @@ def manage_journal_manager(request):
 
     return render_to_response('user_management/manage_journal_managers.html', context)
 
+
 @login_required
 def manage_single_journal_manager(request, user_id):
-    """ Linky admins and registrars can manage journal members. Edit a single journal member here. """
+    """
+    Linky admins and registrars can manage journal members. Edit a single journal member here.
+    """
 
     # Only registry members and registrar memebers can edit journal members
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
@@ -305,9 +317,12 @@ def manage_single_journal_manager(request, user_id):
 
     return render_to_response('user_management/manage_single_journal_manager.html', context)
 
+
 @login_required
 def manage_single_journal_manager_delete(request, user_id):
-    """ Linky admins and registrars can manage journal members. Delete a single journal member here. """
+    """
+    Linky admins and registrars can manage journal members. Delete a single journal member here.
+    """
 
     # Only registry members and registrar memebers can edit journal managers
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
@@ -337,9 +352,12 @@ def manage_single_journal_manager_delete(request, user_id):
 
 valid_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp']
 
+
 @login_required
 def manage_journal_member(request):
-    """ Linky admins and registrars can manage journal members """
+    """
+    Linky admins and registrars can manage journal members
+    """
 
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'journal_manager']:
         return HttpResponseRedirect(reverse('user_management_landing'))
@@ -382,9 +400,12 @@ def manage_journal_member(request):
 
     return render_to_response('user_management/manage_journal_members.html', context)
 
+
 @login_required
 def manage_single_journal_member(request, user_id):
-    """ Linky admins and registrars can manage journal members. Edit a single journal member here. """
+    """
+    Linky admins and registrars can manage journal members. Edit a single journal member here.
+    """
 
     # Only registry members and registrar memebers can edit journal members
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'journal_manager']:
@@ -424,9 +445,12 @@ def manage_single_journal_member(request, user_id):
 
     return render_to_response('user_management/manage_single_journal_member.html', context)
 
+
 @login_required
 def manage_single_journal_member_delete(request, user_id):
-    """ Linky admins and registrars can manage journal members. Delete a single journal member here. """
+    """
+    Linky admins and registrars can manage journal members. Delete a single journal member here.
+    """
 
     # Only registry members and registrar memebers can edit journal members
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'journal_manager']:
@@ -461,9 +485,12 @@ def manage_single_journal_member_delete(request, user_id):
 
 valid_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp']
 
+
 @login_required
 def created_links(request):
-    """ Anyone with an account can view the linky links they've created """
+    """
+    Anyone with an account can view the linky links they've created
+    """
 
     DEFAULT_SORT = '-creation_timestamp'
 
@@ -492,9 +519,12 @@ def created_links(request):
 
     return render_to_response('user_management/created-links.html', context)
 
+
 @login_required
 def vested_links(request):
-    """ Linky admins and registrar members and journal members can vest link links """
+    """
+    Linky admins and registrar members and journal members can vest link links
+    """
 
     if request.user.groups.all()[0].name not in ['journal_member', 'registrar_member', 'registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
@@ -527,9 +557,12 @@ def vested_links(request):
 
     return render_to_response('user_management/vested-links.html', context)
 
+
 @login_required
 def manage_account(request):
-    """ Account mangement stuff. Change password, change email, ... """
+    """
+    Account mangement stuff. Change password, change email, ...
+    """
 
     context = {'host': request.get_host(), 'user': request.user,
         'next': request.get_full_path(), 'this_page': 'settings'}
@@ -554,33 +587,41 @@ def manage_account(request):
 
     return render_to_response('user_management/manage-account.html', context)
 
+
 @login_required
 def batch_convert(request):
-    """Detect and archive URLs from user input."""
-    # TODO
+    """
+    Detect and archive URLs from user input.
+    """
     context = {'host': request.get_host(), 'user': request.user,
         'this_page': 'batch_convert'}
     context.update(csrf(request))
     return render_to_response('user_management/batch_convert.html', context)
 
+
 @login_required
 def export(request):
-    """Export a CSV of a user's library."""
-    # TODO
+    """
+    Export a CSV of a user's library/
+    """
+    
     context = {'host': request.get_host(), 'user': request.user,
         'this_page': 'export'}
     context.update(csrf(request))
     return render_to_response('user_management/export.html', context)
 
+
 @login_required
 def custom_domain(request):
-    """Instructions for a user to configure a custom domain."""
-    # TODO
+    """
+    Instructions for a user to configure a custom domain.
+    """
     context = {'host': request.get_host(), 'user': request.user,
         'this_page': 'custom_domain'}
     context.update(csrf(request))
     return render_to_response('user_management/custom_domain.html', context)
     
+
 @ratelimit(method='POST', rate=INTERNAL['LOGIN_MINUTE_LIMIT'], block='True', ip=True)
 #@ratelimit(method='POST', rate=INTERNAL['LOGIN_HOUR_LIMIT'], block='True', ip=True)
 #@ratelimit(method='POST', rate=INTERNAL['LOGIN_DAY_LIMIT'], block='True', ip=True)
@@ -622,11 +663,14 @@ def limited_login(request, template_name='registration/login.html',
     return TemplateResponse(request, template_name, context,
                             current_app=current_app)
 
+
 @ratelimit(method='POST', rate=INTERNAL['REGISTER_MINUTE_LIMIT'], block='True', ip=True)
 @ratelimit(method='POST', rate=INTERNAL['REGISTER_HOUR_LIMIT'], block='True', ip=True)
 @ratelimit(method='POST', rate=INTERNAL['REGISTER_DAY_LIMIT'], block='True', ip=True)
 def process_register(request):
-    """Register a new user"""
+    """
+    Register a new user
+    """
     c = {}
     c.update(csrf(request))
 
@@ -681,10 +725,12 @@ http://perma.law.harvard.edu/register/confirm/%s/
 
         c.update({'editor_reg_form': editor_reg_form,})
         return render_to_response("registration/register.html", c)
-        
+
+
 def register_email_code_confirmation(request, code):
-    '''Confirm a user's account when the user follows the email confirmation 
-    link.'''
+    """
+    Confirm a user's account when the user follows the email confirmation link.
+    """
     user = get_object_or_404(LinkUser, confirmation_code=code)
     user.is_active = True
     user.save()
@@ -693,6 +739,9 @@ def register_email_code_confirmation(request, code):
     full_redirect_url = '%s%s' % (redirect_url, extra_params)
     return HttpResponseRedirect(full_redirect_url)
     
+    
 def register_email_instructions(request):
-    """After the user has registered, give the instructions for confirming"""
+    """
+    After the user has registered, give the instructions for confirming
+    """
     return render_to_response('registration/check_email.html', {})
