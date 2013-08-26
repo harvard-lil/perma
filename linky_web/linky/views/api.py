@@ -93,12 +93,12 @@ def linky_post(request):
     # TODO: try catch the scren cap. if we fail, alert the user that they should upload their screen cap
     get_screen_cap(link.guid, target_url, os.path.sep.join(path_elements))
     
-    """try:
+    try:
         get_source.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
     except Exception, e:
         # TODO: Log the failed url
         asset.warc_capture = 'failed'
-        asset.save()"""
+        asset.save()
 
     asset= Asset.objects.get(link__guid=link.guid)
 
