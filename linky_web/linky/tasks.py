@@ -26,15 +26,17 @@ def get_screen_cap(link_guid, target_url, base_storage_path):
 
     subprocess.call(image_generation_command, shell=True)
 
-    if not os.path.exists(os.path.sep.join(path_elements)):
-        # TODO: This should probably raise an exception. and we let the user know that it failed.
-        return False
-
     asset = Asset.objects.get(link__guid=link_guid)
-    asset.image_capture = os.path.sep.join(path_elements[2:])
-    asset.save()
 
-    return True
+    if os.path.exists(os.path.sep.join(path_elements)):
+        asset.image_capture = os.path.sep.join(path_elements[2:])
+        asset.save()
+    else:
+        logger.info("Screen capture failed for %s" % target_url)
+        asset.image_capture = 'failed'
+        asset.save()
+
+        raise BrokenURLError(target_url)
 
 @celery.task
 def get_source(link_guid, target_url, base_storage_path, user_agent=''):
@@ -90,6 +92,7 @@ def get_source(link_guid, target_url, base_storage_path, user_agent=''):
 
     # Verify success
     if '400 Bad Request' in output:
+        logger.info("Source capture failed for %s" % target_url)
         asset = Asset.objects.get(link__guid=link_guid)
         asset.warc_capture = 'failed'
         asset.save()
@@ -115,6 +118,7 @@ def get_source(link_guid, target_url, base_storage_path, user_agent=''):
                 asset.warc_capture = 'failed'
                 asset.save()
 
+                logger.info("Source capture got some content, but couldn't rename to index.html for %s" % target_url)
                 os.system('rm -rf ' + directory)
 
                 # Raise error if no HTML pages were retrieved

@@ -29,7 +29,7 @@ def linky_post(request):
     We've received a request to archive a URL. That process is managed here.
     We create a new entry in our datastore and pass the work off to our indexing
     workers. They do their thing, updating the model as they go. When we get some minimum
-    set of results we can present the uesr (a title and an image capture of the page), we respond
+    set of results we can present the user (a title and an image capture of the page), we respond
     back.
     """
 
@@ -57,10 +57,8 @@ def linky_post(request):
         r = requests.get(target_url)
         parsed_html = lxml.html.fromstring(r.content)
     except IOError:
-        # TODO: log urls the fail
-        return HttpResponse(status=400)
+        logger.debug("Title capture from markup failed for %s, using the hostname" % target_url)
 
-    # TODO: this fails for some sites. fix.
     if len(parsed_html):
         if parsed_html.find(".//title") is not None and parsed_html.find(".//title").text:
             target_title = parsed_html.find(".//title").text.strip()
@@ -85,10 +83,15 @@ def linky_post(request):
     asset.base_storage_path = os.path.sep.join(path_elements)
     asset.save()
 
-    # Run our synchronus screen cap task (use the headless browser to create a static image)
-    # TODO: try catch the scren cap. if we fail, alert the user that they should upload their screen cap
-    get_screen_cap(link.guid, target_url, os.path.sep.join(path_elements))
+    # Run our synchronus screen cap task (use the headless browser to create a static image)    
+    try:
+        get_screen_cap(link.guid, target_url, os.path.sep.join(path_elements))
+    except Exception, e:
+        logger.info("Screen capture failed for %s" % target_url)
+        return HttpResponse(status=400)
+        
     store_text_cap(target_url, target_title, link)
+    
     try:
         get_source.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
     except Exception, e:
