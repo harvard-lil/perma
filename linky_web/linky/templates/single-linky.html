@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% load file_exists %}
+{% load diff %}
 {% block title %} | {{linky.submitted_title}}{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
@@ -77,7 +78,7 @@ function autoResize(id){
     	<a href="{% url 'landing' %}"><h1 class="logo-big">Perma</h1>
     	<img class="logo-big-img" src="{{ STATIC_PREFIX }}img/infinity.png"/></a>
     </div>
-  <a href="{{linky.submitted_url}}" class="btn btn-large btn-primary">Go to original page</a></br></br>
+  <a href="{{linky.submitted_url}}" class="btn btn-large btn-primary">Go to original page{% diff linky %}</a></br></br>
     <button class="btn" data-dismiss="modal" aria-hidden="true">Go to archived Perma</button>
 
      <p class="definition"><a href="{% url 'landing' %}">Wait, what's a Perma?</a></p>
