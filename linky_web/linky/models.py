@@ -21,7 +21,7 @@ try:
     from linky.local_settings import *
 except ImportError, e:
     logger.error('Unable to load local_settings.py: %s', e)
-    
+
 class Registrar(models.Model):
     """ This is generally a library. """
     name = models.CharField(max_length=400)
@@ -134,6 +134,9 @@ class Link(models.Model):
     vested = models.BooleanField(default=False)
     vested_by_editor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='vested_by_editor')
     vested_timestamp = models.DateTimeField(null=True, blank=True)
+    instapaper_timestamp = models.DateTimeField(null=True)
+    instapaper_cap = models.TextField(null=True)
+    instapaper_id = models.IntegerField(null=True)
 
     def save(self, *args, **kwargs):
         if not self.pk:

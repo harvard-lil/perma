@@ -10,7 +10,7 @@ from pyPdf import PdfFileReader
 
 from linky.models import Link, Asset
 from linky.utils import base
-from linky.tasks import get_screen_cap, get_source
+from linky.tasks import get_screen_cap, get_source, store_text_cap
 
 from django.shortcuts import render_to_response, HttpResponse
 from django.http import HttpResponseBadRequest
@@ -72,6 +72,7 @@ def linky_post(request):
     # Run our synchronus screen cap task (use the headless browser to create a static image)
     # TODO: try catch the scren cap. if we fail, alert the user that they should upload their screen cap
     get_screen_cap(link.guid, target_url, os.path.sep.join(path_elements))
+    store_text_cap(target_url, target_title, link)
     try:
         get_source.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
     except Exception, e:
