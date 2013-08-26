@@ -17,10 +17,6 @@ from linky.utils import base
 
 logger = logging.getLogger(__name__)
 
-try:
-    from linky.local_settings import *
-except ImportError, e:
-    logger.error('Unable to load local_settings.py: %s', e)
 
 class Registrar(models.Model):
     """

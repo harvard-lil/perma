@@ -21,10 +21,6 @@ from django.core.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 
-try:
-    from linky.local_settings import *
-except ImportError, e:
-    logger.error('Unable to load local_settings.py: %s', e)
 
 # TODO: If we're going to csrf exempt this, we should keep an eye on things
 @csrf_exempt

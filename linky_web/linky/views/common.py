@@ -2,6 +2,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect
 from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
+from django.conf import settings
 
 from datetime import datetime
 from urlparse import urlparse
@@ -14,14 +15,10 @@ from ratelimit.decorators import ratelimit
 
 logger = logging.getLogger(__name__)
 
-try:
-    from linky.local_settings import *
-except ImportError, e:
-    logger.error('Unable to load local_settings.py: %s', e)
 
-@ratelimit(method='GET', rate=INTERNAL['MINUTE_LIMIT'], block='True')
-@ratelimit(method='GET', rate=INTERNAL['HOUR_LIMIT'], block='True')
-@ratelimit(method='GET', rate=INTERNAL['DAY_LIMIT'], block='True')
+@ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block='True')
+@ratelimit(method='GET', rate=settings.HOUR_LIMIT, block='True')
+@ratelimit(method='GET', rate=settings.DAY_LIMIT, block='True')
 def landing(request):
     """
     The landing page
@@ -102,9 +99,9 @@ def tools(request):
     return render_to_response('tools.html', {})
 
 
-@ratelimit(method='GET', rate=INTERNAL['MINUTE_LIMIT'], block='True')
-@ratelimit(method='GET', rate=INTERNAL['HOUR_LIMIT'], block='True')
-@ratelimit(method='GET', rate=INTERNAL['DAY_LIMIT'], block='True')
+@ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block='True')
+@ratelimit(method='GET', rate=settings.HOUR_LIMIT, block='True')
+@ratelimit(method='GET', rate=settings.DAY_LIMIT, block='True')
 def single_linky(request, linky_guid):
     """
     Given a Linky ID, serve it up. Vetting also takes place here.

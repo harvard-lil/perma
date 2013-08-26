@@ -26,12 +26,6 @@ from ratelimit.decorators import ratelimit
 
 logger = logging.getLogger(__name__)
 
-try:
-    from linky.local_settings import *
-except ImportError, e:
-    logger.error('Unable to load local_settings.py: %s', e)
-
-
 @login_required
 def manage_members(request):
     """
@@ -622,9 +616,9 @@ def custom_domain(request):
     return render_to_response('user_management/custom_domain.html', context)
     
 
-@ratelimit(method='POST', rate=INTERNAL['LOGIN_MINUTE_LIMIT'], block='True', ip=True)
-#@ratelimit(method='POST', rate=INTERNAL['LOGIN_HOUR_LIMIT'], block='True', ip=True)
-#@ratelimit(method='POST', rate=INTERNAL['LOGIN_DAY_LIMIT'], block='True', ip=True)
+@ratelimit(method='POST', rate=settings.LOGIN_MINUTE_LIMIT, block='True', ip=True)
+#@ratelimit(method='POST', rate=settings.LOGIN_HOUR_LIMIT, block='True', ip=True)
+#@ratelimit(method='POST', rate=settings.LOGIN_DAY_LIMIT, block='True', ip=True)
 def limited_login(request, template_name='registration/login.html',
           redirect_field_name=REDIRECT_FIELD_NAME,
           authentication_form=AuthenticationForm,
@@ -664,9 +658,9 @@ def limited_login(request, template_name='registration/login.html',
                             current_app=current_app)
 
 
-@ratelimit(method='POST', rate=INTERNAL['REGISTER_MINUTE_LIMIT'], block='True', ip=True)
-@ratelimit(method='POST', rate=INTERNAL['REGISTER_HOUR_LIMIT'], block='True', ip=True)
-@ratelimit(method='POST', rate=INTERNAL['REGISTER_DAY_LIMIT'], block='True', ip=True)
+@ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block='True', ip=True)
+@ratelimit(method='POST', rate=settings.REGISTER_HOUR_LIMIT, block='True', ip=True)
+@ratelimit(method='POST', rate=settings.REGISTER_DAY_LIMIT, block='True', ip=True)
 def process_register(request):
     """
     Register a new user

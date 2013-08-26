@@ -209,7 +209,19 @@ ACCEPT_CONTENT_TYPES = [ # HTTP content-type parameters to accept
 NUMBER_RETRIES = 3 # if wget fails to get a resource, try to get again this many times
 WAIT_BETWEEN_TRIES = 4 # wait between .5 and this many seconds between http requests to our source
 
+# Instapaper credentials
 INSTAPAPER_KEY = 'key'
 INSTAPAPER_SECRET = 'secret'
 INSTAPAPER_USER = 'user@example.com'
 INSTAPAPER_PASS = 'pass'
+
+# Rate limits
+MINUTE_LIMIT = '60/m'
+HOUR_LIMIT = '1000/h'
+DAY_LIMIT = '5000/d'
+REGISTER_MINUTE_LIMIT = '2/m'
+REGISTER_HOUR_LIMIT = '10/h'
+REGISTER_DAY_LIMIT = '50/d'
+LOGIN_MINUTE_LIMIT = '5/m'
+LOGIN_HOUR_LIMIT = '100/h'
+LOGIN_DAY_LIMIT = '50/d'
