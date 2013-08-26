@@ -68,6 +68,7 @@ def get_source(link_guid, target_url, base_storage_path, user_agent=''):
     command = command + '-e robots=off ' # we're not crawling, just viewing the page exactly as you would in a web-browser.
     command = command + '--page-requisites ' # get the things required to render the page later. things like images.
     command = command + '--no-directories ' # when downloading, flatten the source. we don't need a bunch of dirs.
+    command = command + '--no-check-certificate ' # We dont' care too much about busted certs
     command = command + '--user-agent="' + user_agent + '" ' # pass through our user's user agent
     command = command + '--directory-prefix=' + directory + ' ' # store our downloaded source in this directory
     
@@ -83,7 +84,7 @@ def get_source(link_guid, target_url, base_storage_path, user_agent=''):
     
     #TODO replace os.popen with subprocess
     output = os.popen(command)
-
+    
     # Verify success
     if '400 Bad Request' in output:
         asset = Asset.objects.get(link__guid=link_guid)
