@@ -140,7 +140,8 @@ class Link(models.Model):
     vested_by_editor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='vested_by_editor')
     vested_timestamp = models.DateTimeField(null=True, blank=True)
     instapaper_timestamp = models.DateTimeField(null=True)
-    instapaper_cap = models.CharField(max_length=2100, null=True)
+    instapaper_cap = models.TextField(null=True)
+    instapaper_hash = models.CharField(max_length=2100, null=True)
     instapaper_id = models.IntegerField(null=True)
 
     def save(self, *args, **kwargs):

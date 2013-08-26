@@ -154,7 +154,8 @@ def store_text_cap(url, title, link):
     bid, tdata = instapaper_capture(url, title)
 
     link.instapaper_timestamp = datetime.datetime.now()
-    data = smhasher.murmur3_x86_128(tdata)
-    link.instapaper_cap = data
+    h = smhasher.murmur3_x86_128(tdata)
+    link.instapaper_hash = h
+    link.instapaper_cap = tdata
     link.instapaper_id = bid
     link.save()
