@@ -29,15 +29,11 @@ def get_screen_cap(link_guid, target_url, base_storage_path):
 
 
     asset = Asset.objects.get(link__guid=link_guid)
-    print "getting screen cap"
 
     if os.path.exists(os.path.sep.join(path_elements)):
-        print "path exists"    
         asset.image_capture = os.path.sep.join(path_elements[2:])
-        print os.path.sep.join(path_elements[2:])
         asset.save()
     else:
-        print "screen cap failed"
         logger.info("Screen capture failed for %s" % target_url)
         asset.image_capture = 'failed'
         asset.save()
