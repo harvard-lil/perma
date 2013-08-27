@@ -150,12 +150,11 @@ def instapaper_capture(url, title):
     return bid, tdata
 
 @celery.task
-def store_text_cap(url, title, link):
+def store_text_cap(url, title, asset):
     bid, tdata = instapaper_capture(url, title)
-
-    link.instapaper_timestamp = datetime.datetime.now()
+    asset.instapaper_timestamp = datetime.datetime.now()
     h = smhasher.murmur3_x86_128(tdata)
-    link.instapaper_hash = h
-    link.instapaper_cap = tdata
-    link.instapaper_id = bid
-    link.save()
+    asset.instapaper_hash = h
+    asset.instapaper_cap = tdata
+    asset.instapaper_id = bid
+    asset.save()
