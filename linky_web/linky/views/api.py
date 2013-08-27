@@ -10,7 +10,7 @@ from pyPdf import PdfFileReader
 from linky.models import Link, Asset
 from linky.forms import UploadFileForm
 from linky.utils import base
-from linky.tasks import get_screen_cap, get_source, store_text_cap
+from linky.tasks import get_screen_cap, get_source, store_text_cap, get_pdf
 
 from django.shortcuts import render_to_response, HttpResponse
 from django.http import HttpResponseBadRequest
@@ -83,21 +83,29 @@ def linky_post(request):
     asset.base_storage_path = os.path.sep.join(path_elements)
     asset.save()
 
-    # Run our synchronus screen cap task (use the headless browser to create a static image)    
-    try:
-        get_screen_cap(link.guid, target_url, os.path.sep.join(path_elements))
-    except Exception, e:
-        logger.info("Screen capture failed for %s" % target_url)
-        return HttpResponse(status=400)
+
+    # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
+    if r.headers['content-type'] in ['application/pdf', 'application/x-pdf'] or target_url.split('.')[-1] == 'pdf':
+        get_pdf.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
+        response_object = {'linky_id': link.guid, 'message_pdf': True, 'linky_title': link.submitted_title}
         
-#    store_text_cap(target_url, target_title, link)
+    else: # else, it's not a PDF. Let's try our best to retrieve what we can
+        # Run our synchronus screen cap task (use the headless browser to create a static image)    
+        try:
+            get_screen_cap(link.guid, target_url, os.path.sep.join(path_elements))
+        except Exception, e:
+            logger.info("Screen capture failed for %s" % target_url)
+            return HttpResponse(status=400)
+        
+        #store_text_cap(target_url, target_title, link)
     
-    get_source.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
+        get_source.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
+        
+        response_object = {'linky_id': link.guid, 'linky_cap': settings.STATIC_URL + asset.base_storage_path + '/' + asset.image_capture, 'linky_title': link.submitted_title}
 
 
-    asset= Asset.objects.get(link__guid=link.guid)
+    asset = Asset.objects.get(link__guid=link.guid)
 
-    response_object = {'linky_id': link.guid, 'linky_cap': settings.STATIC_URL + asset.base_storage_path + '/' + asset.image_capture, 'linky_title': link.submitted_title}
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
 
@@ -133,9 +141,11 @@ def upload_file(request):
         if form.is_valid():
             if validate_upload_file(request.FILES['file']):
                 link = Link(submitted_url=form.cleaned_data['url'], submitted_title=form.cleaned_data['title'])
+                
                 if request.user.is_authenticated():
                   link.created_by = request.user
                 link.save()
+                
                 now = dt = datetime.now()
                 time_tuple = now.timetuple()
                 path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday), str(time_tuple.tm_hour), link.guid]
@@ -145,38 +155,39 @@ def upload_file(request):
                 if not os.path.exists(linky_home_disk_path):
                     os.makedirs(linky_home_disk_path)
 
+                asset, created = Asset.objects.get_or_create(link=link)
+                asset.base_storage_path = os.path.sep.join(path_elements)
+                asset.save()
+
                 file_name = '/cap.' + request.FILES['file'].name.split('.')[-1]
-                request.FILES['file'].file.seek(0)
-                f = open(linky_home_disk_path + file_name, 'w')
-                f.write(request.FILES['file'].file.read())
-                os.fsync(f)
-                f.close()
+
                 if request.FILES['file'].name.split('.')[-1] == 'pdf':
-                    pass
+                    asset.pdf_capture = file_name
+                else:
+                    asset.image_capture = file_name
+
                     #print linky_home_disk_path + file_name
                     #png = PythonMagick.Image(linky_home_disk_path + file_name)
                     #png.write("file_out.png")
                     #params = ['convert', linky_home_disk_path + file_name, 'out.png']
                     #subprocess.check_call(params)
 
+                asset.save()
+                request.FILES['file'].file.seek(0)
+                f = open(linky_home_disk_path + file_name, 'w')
+                f.write(request.FILES['file'].file.read())
+                os.fsync(f)
+                f.close()
+
                 response_object = {'status':'success', 'linky_id':link.guid, 'linky_hash':link.guid}
                 url_details = urlparse(form.cleaned_data['url'])
-
-                asset, created = Asset.objects.get_or_create(link=link)
-                asset.base_storage_path = os.path.sep.join(path_elements)
-                asset.save()
-
-                try:
-                	r = requests.get(form.cleaned_data['url'])
-                	parsed_html = lxml.html.fromstring(r.content)
-                except IOError:
-                	pass
 
                 return HttpResponse(json.dumps(response_object), 'application/json')
             else:
                 return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Invalid file.'}), 'application/json')
         else:
             return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Missing file.'}), 'application/json')
+            
     return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':form.errors}), 'application/json')
 
 

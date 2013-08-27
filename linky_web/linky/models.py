@@ -162,14 +162,15 @@ class Link(models.Model):
 
 class Asset(models.Model):
     """
-    Our archving logic generates a bung of different assets. We store those on disk. We use
+    Our archving logic generates a bunch of different assets. We store those on disk. We use
     this class to track those locations.
     """
     link = models.ForeignKey(Link, null=False)
     base_storage_path = models.CharField(max_length=2100, null=True, blank=True) # where we store these assets, relative to some base in our settings
     favicon = models.CharField(max_length=2100, null=True, blank=True) # Retrieved favicon
     image_capture = models.CharField(max_length=2100, null=True, blank=True) # Headless browser image capture
-    warc_capture = models.CharField(max_length=2100, default='pending', null=True, blank=True) # Heretrix capture
+    warc_capture = models.CharField(max_length=2100, null=True, blank=True) # source capture, probably point to an index.html page
+    pdf_capture = models.CharField(max_length=2100, null=True, blank=True) # We capture a PDF version (through a user upload or through our capture)
 
 
 #######################

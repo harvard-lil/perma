@@ -1,5 +1,6 @@
 import os, sys, subprocess, urllib, glob, shutil, urlparse, simplejson, datetime, smhasher
 from djcelery import celery
+import requests
 from django.conf import settings
 
 from linky.models import Asset
@@ -49,6 +50,10 @@ def get_source(link_guid, target_url, base_storage_path, user_agent=''):
     This function is usually executed via an asynchronous Celery call
     """
 
+    asset = Asset.objects.get(link__guid=link_guid)
+    asset.warc_capture = 'pending'
+    asset.save()
+
     path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path, 'source', 'index.html']
 
     directory = os.path.sep.join(path_elements[:3])
@@ -73,13 +78,13 @@ def get_source(link_guid, target_url, base_storage_path, user_agent=''):
     command = command + '-e robots=off ' # we're not crawling, just viewing the page exactly as you would in a web-browser.
     command = command + '--page-requisites ' # get the things required to render the page later. things like images.
     command = command + '--no-directories ' # when downloading, flatten the source. we don't need a bunch of dirs.
-    command = command + '--no-check-certificate ' # We dont' care too much about busted certs
+    command = command + '--no-check-certificate ' # We don't care too much about busted certs
     command = command + '--user-agent="' + user_agent + '" ' # pass through our user's user agent
     command = command + '--directory-prefix=' + directory + ' ' # store our downloaded source in this directory
 
     # Add headers (defined earlier in this function)
     for key, value in headers.iteritems():
-        command = command + '--header="' + key + ': ' + value+ '" '
+        command = command + '--header="' + key + ': ' + value + '" '
 
     command = command + target_url
 
@@ -124,6 +129,48 @@ def get_source(link_guid, target_url, base_storage_path, user_agent=''):
         asset = Asset.objects.get(link__guid=link_guid)
         asset.warc_capture = os.path.sep.join(path_elements[2:])
         asset.save()
+
+
+@celery.task
+def get_pdf(link_guid, target_url, base_storage_path, user_agent):
+    """
+    Dowload a PDF from the network
+
+    This function is usually executed via a synchronous Celery call
+    """
+    asset = Asset.objects.get(link__guid=link_guid)
+    asset.pdf_capture = 'pending'
+    asset.save()
+    
+    path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path, 'cap.pdf']
+
+    if not os.path.exists(os.path.sep.join(path_elements[:2])):
+        os.makedirs(os.path.sep.join(path_elements[:2]))
+
+    # Get the PDF from the network
+    headers = {
+        'User-Agent': user_agent,
+    }
+    r = requests.get(target_url, stream = True, headers=headers)
+    file_path = os.path.sep.join(path_elements)
+
+    with open(file_path, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=1024): 
+            if chunk: # filter out keep-alive new chunks
+                f.write(chunk)
+                f.flush()
+
+    if os.path.exists(os.path.sep.join(path_elements)):
+        # TODO: run some sort of validation check on the PDF
+        asset.pdf_capture = os.path.sep.join(path_elements[2:])
+        asset.save()
+    else:
+        logger.info("PDF capture failed for %s" % target_url)
+        asset.pdf_capture = 'failed'
+        asset.save()
+
+        raise BrokenURLError(target_url)
+
 
 def instapaper_capture(url, title):
     consumer = oauth.Consumer(INSTAPAPER_KEY, INSTAPAPER_SECRET)

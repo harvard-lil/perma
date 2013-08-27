@@ -68,6 +68,7 @@ function linkIt(){
     newLinky.title = data.linky_title;
     newLinky.favicon_url = data.favicon_url;
     newLinky.preview = data.linky_cap;
+    newLinky.message_pdf = data.message_pdf;
     $('#url').val(rawUrl);
     $('#title').val(data.linky_title);
     
