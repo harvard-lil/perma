@@ -27,12 +27,17 @@ def get_screen_cap(link_guid, target_url, base_storage_path):
 
     subprocess.call(image_generation_command, shell=True)
 
+
     asset = Asset.objects.get(link__guid=link_guid)
+    print "getting screen cap"
 
     if os.path.exists(os.path.sep.join(path_elements)):
+        print "path exists"    
         asset.image_capture = os.path.sep.join(path_elements[2:])
+        print os.path.sep.join(path_elements[2:])
         asset.save()
     else:
+        print "screen cap failed"
         logger.info("Screen capture failed for %s" % target_url)
         asset.image_capture = 'failed'
         asset.save()
@@ -197,12 +202,11 @@ def instapaper_capture(url, title):
     return bid, tdata
 
 @celery.task
-def store_text_cap(url, title, link):
+def store_text_cap(url, title, asset):
     bid, tdata = instapaper_capture(url, title)
-
-    link.instapaper_timestamp = datetime.datetime.now()
+    asset.instapaper_timestamp = datetime.datetime.now()
     h = smhasher.murmur3_x86_128(tdata)
-    link.instapaper_hash = h
-    link.instapaper_cap = tdata
-    link.instapaper_id = bid
-    link.save()
+    asset.instapaper_hash = h
+    asset.instapaper_cap = tdata
+    asset.instapaper_id = bid
+    asset.save()

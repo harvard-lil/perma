@@ -83,7 +83,6 @@ def linky_post(request):
     asset.base_storage_path = os.path.sep.join(path_elements)
     asset.save()
 
-
     # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
     if r.headers['content-type'] in ['application/pdf', 'application/x-pdf'] or target_url.split('.')[-1] == 'pdf':
         get_pdf.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
@@ -96,16 +95,12 @@ def linky_post(request):
         except Exception, e:
             logger.info("Screen capture failed for %s" % target_url)
             return HttpResponse(status=400)
-        
-        #store_text_cap(target_url, target_title, link)
-    
+
+        #store_text_cap.delay(target_url, target_title, asset)
         get_source.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
         
+        asset = Asset.objects.get(link__guid=link.guid)        
         response_object = {'linky_id': link.guid, 'linky_cap': settings.STATIC_URL + asset.base_storage_path + '/' + asset.image_capture, 'linky_title': link.submitted_title}
-
-
-    asset = Asset.objects.get(link__guid=link.guid)
-
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
 
@@ -180,7 +175,14 @@ def upload_file(request):
                 f.close()
 
                 response_object = {'status':'success', 'linky_id':link.guid, 'linky_hash':link.guid}
-                url_details = urlparse(form.cleaned_data['url'])
+
+                try:
+                    get_source.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
+                    store_text_cap.delay(target_url, target_title, asset)
+                except Exception, e:
+                    # TODO: Log the failed url
+                    asset.warc_capture = 'failed'
+                    asset.save()
 
                 return HttpResponse(json.dumps(response_object), 'application/json')
             else:
