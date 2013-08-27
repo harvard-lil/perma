@@ -90,14 +90,10 @@ def linky_post(request):
         logger.info("Screen capture failed for %s" % target_url)
         return HttpResponse(status=400)
         
-    store_text_cap(target_url, target_title, link)
+#    store_text_cap(target_url, target_title, link)
     
-    try:
-        get_source.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
-    except Exception, e:
-        # TODO: Log the failed url
-        asset.warc_capture = 'failed'
-        asset.save()
+    get_source.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
+
 
     asset= Asset.objects.get(link__guid=link.guid)
 

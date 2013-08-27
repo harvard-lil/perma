@@ -96,7 +96,6 @@ def get_source(link_guid, target_url, base_storage_path, user_agent=''):
         asset = Asset.objects.get(link__guid=link_guid)
         asset.warc_capture = 'failed'
         asset.save()
-        raise BrokenURLError(target_url)
 
     filename = urllib.unquote(target_url.split('/')[-1]).decode('utf8')
     if filename != '' and 'index.html' not in os.listdir(directory):
@@ -120,9 +119,6 @@ def get_source(link_guid, target_url, base_storage_path, user_agent=''):
 
                 logger.info("Source capture got some content, but couldn't rename to index.html for %s" % target_url)
                 os.system('rm -rf ' + directory)
-
-                # Raise error if no HTML pages were retrieved
-                raise BrokenURLError(target_url)
 
     if os.path.exists(os.path.sep.join(path_elements)):
         asset = Asset.objects.get(link__guid=link_guid)

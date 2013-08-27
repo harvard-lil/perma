@@ -26,20 +26,6 @@ def landing(request):
 
     if request.user.id >= 0:
       linky_links = list(Link.objects.filter(created_by=request.user).order_by('-creation_timestamp'))
-
-
-      # TODO: we should always store the protocol with the link, https://github.com/harvard-lil/linky/issues/105
-      # this'll save us from having to do this protocol sniffing
-      # TODO: Move the ... management to the view
-      for linky_link in linky_links:
-        if linky_link.submitted_url.startswith('http://'):
-          linky_link.submitted_url = linky_link.submitted_url[7:]
-        elif linky_link.submitted_url.startswith('https://'):
-          linky_link.submitted_url = linky_link.submitted_url[8:]
-        if len(linky_link.submitted_title) > 50:
-          linky_link.submitted_title = linky_link.submitted_title[:50] + '...'
-        if len(linky_link.submitted_url) > 79:
-          linky_link.submitted_url = linky_link.submitted_url[:70] + '...'
     else:
       linky_links = None;
 
@@ -107,7 +93,7 @@ def single_linky(request, linky_guid):
     Given a Linky ID, serve it up. Vetting also takes place here.
     """
 
-    if request.method == 'POST':
+    if request.method == 'POST' and request.user.is_authenticated():
         Link.objects.filter(guid=linky_guid).update(vested = True, vested_by_editor = request.user, vested_timestamp = datetime.now())
 
         return HttpResponseRedirect('/%s/' % linky_guid)
