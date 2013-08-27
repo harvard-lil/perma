@@ -83,17 +83,15 @@ def linky_post(request):
     asset.base_storage_path = os.path.sep.join(path_elements)
     asset.save()
 
-    # Run our synchronus screen cap task (use the headless browser to create a static image)    
+    # Run our synchronus screen cap task (use the headless browser to create a static image)
     try:
         get_screen_cap(link.guid, target_url, os.path.sep.join(path_elements))
+        store_text_cap.delay(target_url, target_title, asset)
     except Exception, e:
         logger.info("Screen capture failed for %s" % target_url)
         return HttpResponse(status=400)
-        
-#    store_text_cap(target_url, target_title, link)
-    
-    get_source.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
 
+    get_source.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
 
     asset= Asset.objects.get(link__guid=link.guid)
 
@@ -151,13 +149,6 @@ def upload_file(request):
                 f.write(request.FILES['file'].file.read())
                 os.fsync(f)
                 f.close()
-                if request.FILES['file'].name.split('.')[-1] == 'pdf':
-                    pass
-                    #print linky_home_disk_path + file_name
-                    #png = PythonMagick.Image(linky_home_disk_path + file_name)
-                    #png.write("file_out.png")
-                    #params = ['convert', linky_home_disk_path + file_name, 'out.png']
-                    #subprocess.check_call(params)
 
                 response_object = {'status':'success', 'linky_id':link.guid, 'linky_hash':link.guid}
                 url_details = urlparse(form.cleaned_data['url'])
@@ -165,6 +156,14 @@ def upload_file(request):
                 asset, created = Asset.objects.get_or_create(link=link)
                 asset.base_storage_path = os.path.sep.join(path_elements)
                 asset.save()
+
+                try:
+                    get_source.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
+                    store_text_cap.delay(target_url, target_title, asset)
+                except Exception, e:
+                    # TODO: Log the failed url
+                    asset.warc_capture = 'failed'
+                    asset.save()
 
                 try:
                 	r = requests.get(form.cleaned_data['url'])
