@@ -56,7 +56,8 @@
         {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'journal_member' %}
         <li{% if this_page == 'vested_links' %} class="active"{% endif %}><a href="{% url 'user_management_vested_links' %}" id="dashboard-vested">Vested Links</a></li>
         {% endif %}<!-- FIXME change icon -->
-
+		
+		{% comment %}
         <!-- Batch convert -->
         <!-- TODO add view and template -->
         <li{% if this_page == 'batch_convert' %} class="active"{% endif %}><a href="{% url 'user_management_batch_convert' %}" id="dashboard-batch-convert">Batch Convert</a></li>
@@ -68,6 +69,7 @@
         <!-- Custom Domain -->
         <!-- TODO add view and template -->
         <li{% if this_page == 'custom_domain' %} class="active"{% endif %}><a href="{% url 'user_management_custom_domain' %}" id="dashboard-custom-domain">Custom Domain</a></li>
+		{% endcomment %}
 
         <!-- Settings -->
         <li{% if this_page == 'settings' %} class="active"{% endif %}><a href="{% url 'user_management_manage_account' %}" id="dashboard-settings">Settings</a></li>

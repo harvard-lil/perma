@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+{% endblock %}
+
+{% block content %}
+
+<!-- List of recently saved links -->
+<div class="main-container">
+<div id="linky-list" class="span12">
+
+<h2>HTTP 404. Sorry. The thing you're looking for doesn't exist at this address. If that seems wrong to you, please <a href="{% url 'contact' %}">contact us</a>and tell us what you expected.</h2>
+
+</div><!--/.linky-list-->
+</div><!--/.main-container-->
+
+
+</div><!--/.row-fluid /#landing-container-->
+
+{% endblock %}
+
+{% block scripts %}
+{% endblock templates %}
