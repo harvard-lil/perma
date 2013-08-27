@@ -104,23 +104,45 @@ def single_linky(request, linky_guid):
         link.view_count += 1
         link.save()
 
-        try:
-            response = urllib2.urlopen(link.submitted_url)
-            if 'X-Frame-Options' in response.headers:
-                # TODO actually check if X-Frame-Options specifically allows requests from us
-                display_iframe = False
-            else:
+        asset = Asset.objects.get(link=link)
+
+
+        # User requested archive type
+        serve_type = 'live'
+
+        if 'type' in request.REQUEST:
+            requested_type = request.REQUEST['type']
+        
+            if requested_type == 'image' and asset.image_capture and asset.image_capture != 'pending':
+                serve_type = 'image'
+            elif requested_type == 'pdf' and asset.pdf_capture and asset.pdf_capture != 'pending':
+                serve_type = 'pdf'
+            elif requested_type == 'text' and asset.instapaper_cap and asset.instapaper_cap != 'pending':
+                serve_type = 'text'
+            elif requested_type == 'source' and asset.warc_capture and asset.warc_capture != 'pending':
+                serve_type = 'source'
+            
+            
+        # If we are going to serve up the live version of the site, let's make sure it's iframe-able
+        if serve_type == 'live':
+            try:
+                response = urllib2.urlopen(link.submitted_url)
+                if 'X-Frame-Options' in response.headers:
+                    # TODO actually check if X-Frame-Options specifically allows requests from us
+                    display_iframe = False
+                else:
+                    display_iframe = True
+            except urllib2.URLError:
+                # Something is broken with the site, so we might as well display it in an iFrame so the user knows
                 display_iframe = True
-        except urllib2.URLError:
-            # Something is broken with the site, so we might as well display it in an iFrame so the user knows
-            display_iframe = True
 
         asset= Asset.objects.get(link__guid=link.guid)
 
         created_datestamp = link.creation_timestamp
         pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
 
-        context = {'linky': link, 'asset': asset, 'pretty_date': pretty_date, 'user': request.user, 'next': request.get_full_path(), 'display_iframe': display_iframe}
+        context = {'linky': link, 'asset': asset, 'pretty_date': pretty_date, 'user': request.user, 'next': request.get_full_path(),
+                   'display_iframe': display_iframe, 'serve_type': serve_type}
 
         context.update(csrf(request))
 
