@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "layout-archive.html" %}
 {% load file_exists %}
 {% load diff %}
 {% block title %} | {{linky.submitted_title}}{% endblock %}
@@ -6,95 +6,108 @@
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 {% endblock %}
 
+{% block header %}
+<header>
+	<div class="row-fluid">
+		<div class="span12">
+			
+			<div class="span4">
+			    {% if not linky.vested %}
+			      {% if user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'journal_member' or user.groups.all.0.name == 'journal_manager' %}
+			        <form action="" method="post">
+			          {% csrf_token %}
+			          <input type="submit" value="vest" name="vet" class="btn">
+			        </form>
+			    	{% endif %}
+			    {% endif %}
+			</div><!--end span 4 -->
+			
+			<div class="span4">
+				<p><a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
+			</div><!--end span 4 -->
+			
+			<div class="span4">
+		                <p style="margin: 0"><a href="{% url 'single_linky' linky.guid %}?type=live">Live View</a></p>
+
+						{% if asset.image_capture %}
+							<p style="margin: 0"><a href="{% url 'single_linky' linky.guid %}?type=image">Image View</a>
+							{% if asset.image_capture == 'pending' %}
+							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+							{% endif%}
+							</p>
+						{% endif %}
+		                
+						{% if asset.warc_capture %}
+							<p style="margin: 0"><a href="{% url 'single_linky' linky.guid %}?type=source">Source View</a>
+							{% if asset.warc_capture == 'pending' %}
+							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+							{% endif%}
+							</p>
+						{% endif %}
+						
+						{% if asset.pdf_capture %}
+							<p style="margin: 0"><a href="{% url 'single_linky' linky.guid %}?type=pdf">PDF View</a>
+							{% if asset.pdf_capture == 'pending' %}
+							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+							{% endif%}
+							</p>
+						{% endif %}
+						
+						{% if asset.instapaper_cap %}
+							<p style="margin: 0"><a href="{% url 'single_linky' linky.guid %}?type=text">Text View</a>
+							{% if asset.instapaper_cap == 'pending' %}
+							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+							{% endif%}
+							</p>
+						{% endif %}
+			</div> <!-- end span 4-->
+			
+		</div> <!-- end span 12-->
+	</div><!-- end row -->
+</header>
+{% endblock header %}
+
+
 {% block content %}
-<script language="JavaScript">
-
-function autoResize(id){
-    var newheight;
-    var newwidth;
-
-    if(document.getElementById){
-        newheight=document.getElementById(id).contentWindow.document .body.scrollHeight;
-        newwidth=document.getElementById(id).contentWindow.document .body.scrollWidth;
-    }
-
-    document.getElementById(id).height= (newheight) + "px";
-    document.getElementById(id).width= (newwidth) + "px";
-}
-</script>
-
 <div class="row-fluid">
-	<div class="span2">
-		<h4 class="indexed">{{linky.submitted_title}}<br><small>indexed on {{linky.creation_timestamp}}{% if linky.vested %} | vested on {{linky.vested_timestamp}}{% endif %}</small></h4>
-
-        <h4><small>Views: {{ linky.view_count }}</small></h4>
-    	{% if asset.warc_capture == 'pending' %}
-		<h4><small>Archiving source now. Hold tight.</small></h4>
-		{% elif asset.warc_capture == 'failed' %}
-		<small>No archived source avaialble</small></h4>
-		{% else %}
-        <a href="{{ STATIC_PREFIX }}{{asset.base_storage_path}}/{{asset.warc_capture}}"><h4><small>View archived source</small></h4></a>
-		{% endif %}
-
-	</div>
-	<div class="span8 linky-view">
+	<div class="span18 linky-view">
   		<div class="watermark center">
 
 			{% if not linky.vested %}<img class="watermark-image" src="{{ STATIC_PREFIX }}img/watermark.png"/>{% endif %}
-            {% file_exists asset.base_storage_path linky.guid linky.submitted_url %}
+			
+			{% if serve_type == 'live' %}
+				{% if display_iframe %}
+				<iframe src="{{linky.submitted_url}}" width="1024px" height="800px">
+				  <p>Unable to create a live view of the {{linky.submitted_url}}</p>
+				</iframe>
+				{% else %}
+				<h2>Preview of {{linky.submitted_url}} is not available</h2>
+				{% endif %}
+			{% endif %}
+			
+			{% if serve_type == 'image' %}
+			<img src="{{ STATIC_PREFIX }}{{asset.base_storage_path}}/{{asset.image_capture}}"/>
+			{% endif %}
+			
+			{% if serve_type == 'pdf' %}
+			<iframe src="{{ STATIC_PREFIX }}{{asset.base_storage_path}}/{{asset.pdf_capture}}" width="1024px" height="800px" >
+			{% endif %}
+			
+			{% if serve_type == 'source' %}
+			<iframe src="{{ STATIC_PREFIX }}{{asset.base_storage_path}}/{{asset.warc_capture}}" width="1024px" height="800px" >
+			{% endif %}
+			
+			{% if serve_type == 'text' %}
+			<div>text capture here.</div>
+			{% endif %}
 
 		</div>
-		<p><a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
    	</div>
-   	<div class="span2 center">
-    {% if not linky.vested %}
-      {% if user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'journal_member' or user.groups.all.0.name == 'journal_manager' %}
-        <form action="" method="post">
-          {% csrf_token %}
-          <input type="submit" value="vest" name="vet" class="btn">
-        </form>
-    	{% endif %}
-    {% endif %}
+
 </div><!--row-->
 
-<!-- Modal -->
-<div id="myModal" class="modal hide fade center" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-
-  </div>
-  <div class="modal-body">
-    {% if display_iframe %}
-     <h4 class="indexed"><a href="{{linky.submitted_url}}">{{linky.submitted_title}}</a><br><small>Archived on {{linky.creation_timestamp}}<br>Today's live view<br>
-     <div id="iframe-wrap">
-		<iframe id="frame" class="center" sandbox="allow-forms allow-scripts" src="{{linky.submitted_url}}"></iframe>
-	</div>
-     {% endif %}
-     <a href="{{linky.submitted_url}}" class="grey">{{linky.submitted_url}}</a></small></h4>
-     <a href="{{linky.submitted_url}}"></a>
-  </div>
-  <div class="modal-footer">
-  	<div class="logo-box">
-    	<a href="{% url 'landing' %}"><h1 class="logo-big">Perma</h1>
-    	<img class="logo-big-img" src="{{ STATIC_PREFIX }}img/infinity.png"/></a>
-    </div>
-  <a href="{{linky.submitted_url}}" class="btn btn-large btn-primary">Go to original page{% diff asset linky %}</a></br></br>
-    <button class="btn" data-dismiss="modal" aria-hidden="true">Go to archived Perma</button>
-
-     <p class="definition"><a href="{% url 'landing' %}">Wait, what's a Perma?</a></p>
-  </div>
-</div>
 
 </div><!--container-->
 {% endblock %}
 {% block scripts %}
-
-{% if user.groups.all.0.name != 'registry_member' and user.groups.all.0.name != 'registrar_member' and user.groups.all.0.name != 'journal_member' %}
-<script>
-	window.onload = function(){
-    $('#myModal').modal('show');
-  }
-</script>
-{% endif %}
-
 {% endblock %}

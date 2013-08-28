@@ -117,13 +117,14 @@ def single_linky(request, linky_guid):
                 serve_type = 'image'
             elif requested_type == 'pdf' and asset.pdf_capture and asset.pdf_capture != 'pending':
                 serve_type = 'pdf'
-            elif requested_type == 'text' and asset.instapaper_cap and asset.instapaper_cap != 'pending':
-                serve_type = 'text'
             elif requested_type == 'source' and asset.warc_capture and asset.warc_capture != 'pending':
                 serve_type = 'source'
-            
+            elif requested_type == 'text' and asset.instapaper_cap and asset.instapaper_cap != 'pending':
+                serve_type = 'text'
+
             
         # If we are going to serve up the live version of the site, let's make sure it's iframe-able
+        display_iframe = False
         if serve_type == 'live':
             try:
                 response = urllib2.urlopen(link.submitted_url)
