@@ -167,7 +167,6 @@ class Asset(models.Model):
     image_capture = models.CharField(max_length=2100, null=True, blank=True) # Headless browser image capture
     warc_capture = models.CharField(max_length=2100, default='pending', null=True, blank=True) # Heretrix capture
     instapaper_timestamp = models.DateTimeField(null=True)
-    instapaper_cap = models.TextField(null=True)
     instapaper_hash = models.CharField(max_length=2100, null=True)
     instapaper_id = models.IntegerField(null=True)
 
