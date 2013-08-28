@@ -138,6 +138,10 @@ footer {
     text-align: center;
     padding: 30px 0;
 }
+
+.footer-archive {
+    padding: 10px 0;
+}
     
     footer a, footer a:active, footer a:visited {
         color: #777;

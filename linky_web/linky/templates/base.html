@@ -27,7 +27,7 @@
                 <header>
                     <div class="main-container">
                         <{% if this_page == 'landing' %}h1{% else %}div{% endif %} class="logo"><a href="{% url 'landing' %}"><span>Everly</span></a></{% if this_page == 'landing' %}h1{% else %}div{% endif %}>
-                        <nav>
+                               <nav>
                             <ul>
                                 {% if user.is_authenticated %}
                                 <li id="header-greeting">Hello, {{ user.email|truncatechars:35 }}</li>
@@ -35,7 +35,7 @@
                                 <!-- TODO: canonical dashboard url? -->
                                 <li><a href="{% url 'user_management_created_links' %}" id="nav-button" class="btn btn-large btn-success">Dashboard</a></li>
                                 {% else %}
-                                <li><a href="{% url 'tools' %}"{% if this_page == 'tools' %} class="this-page"{% endif %}>Tools</a></li>
+                                <!-- TO COME <li><a href="{% url 'tools' %}"{% if this_page == 'tools' %} class="this-page"{% endif %}>Tools</a></li>-->
                                 <li><a href="{% url 'about' %}"{% if this_page == 'about' %} class="this-page"{% endif %}>About</a></li>
                                 <li><a href="{% url 'user_management_limited_login' %}">Log in</a></li>
                                 <li><a href="{% url 'process_register' %}" id="nav-button" class="btn btn-large btn-success">Sign Up</a></li>
@@ -55,12 +55,11 @@
                     </div><!--/.main-container #main-content"-->
                     {% endif %}
                 </section><!--/#main-->
-                <footer>
+		        <footer>
                     <div class="main-container">
+                    	<p>BUILT & RUN BY LIBRARIES</p>
                         <p id="footer-nav">
                             <a href="{% url 'landing' %}">Home</a>
-                            &nbsp;&nbsp;&middot;&nbsp;&nbsp;
-                            <a href="{% url 'tools' %}">Tools</a>
                             &nbsp;&nbsp;&middot;&nbsp;&nbsp;
                             <a href="{% url 'about' %}">About</a>
                             &nbsp;&nbsp;&middot;&nbsp;&nbsp;
@@ -68,13 +67,14 @@
                             &nbsp;&nbsp;&middot;&nbsp;&nbsp;
                             <a href="{% url 'contact' %}">Contact</a>
                         </p><!--/#footer-nav-->
+
                         <ul id="social-media">
                             <li><a href="http://www.facebook.com/XXXXXXXX/"><img src="{{ STATIC_PREFIX }}img/social-media-icons/Facebook.png" alt="Facebook" /></a></li>
                             <li><a href="http://www.twitter.com/XXXXXXXXXX/"><img src="{{ STATIC_PREFIX }}img/social-media-icons/Twitter.png" alt="Twitter"></a></li>
                         </ul><!--/#social-media-->
                         <p id="boilerplate">
                             <!-- TODO add boilerplate text -->
-                            Copyright &copy; Lorem Ipsum
+                            &copy; The Presidents and Fellows of Harvard College
                             &nbsp;&nbsp;&middot;&nbsp;&nbsp;
                             <a href="{% url 'terms_of_service' %}">Terms of Service</a>
                             &nbsp;&nbsp;&middot;&nbsp;&nbsp;
