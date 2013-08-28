@@ -4,7 +4,7 @@ from django.conf import settings
 
 from linky.models import Asset
 from linky.exceptions import BrokenURLError
-from linky.settings import INSTAPAPER_KEY, INSTAPAPER_SECRET, INSTAPAPER_USER, INSTAPAPER_PASS
+from linky.settings import INSTAPAPER_KEY, INSTAPAPER_SECRET, INSTAPAPER_USER, INSTAPAPER_PASS, GENERATED_ASSETS_STORAGE
 
 import oauth2 as oauth
 
@@ -155,6 +155,15 @@ def store_text_cap(url, title, asset):
     asset.instapaper_timestamp = datetime.datetime.now()
     h = smhasher.murmur3_x86_128(tdata)
     asset.instapaper_hash = h
-    asset.instapaper_cap = tdata
+    file_path = GENERATED_ASSETS_STORAGE + '/' + asset.base_storage_path
+    if not os.path.exists(file_path):
+        os.makedirs(file_path)
+
+
+    f = open(file_path + '/instapaper_cap.html', 'w')
+    f.write(tdata)
+    os.fsync(f)
+    f.close
+
     asset.instapaper_id = bid
     asset.save()
