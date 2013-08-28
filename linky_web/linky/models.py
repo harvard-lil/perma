@@ -167,6 +167,7 @@ class Asset(models.Model):
     image_capture = models.CharField(max_length=2100, null=True, blank=True) # Headless browser image capture
     warc_capture = models.CharField(max_length=2100, null=True, blank=True) # source capture, probably point to an index.html page
     pdf_capture = models.CharField(max_length=2100, null=True, blank=True) # We capture a PDF version (through a user upload or through our capture)
+    text_capture = models.CharField(max_length=2100, null=True, blank=True) # We capture a text dump of the resource
     instapaper_timestamp = models.DateTimeField(null=True)
     instapaper_hash = models.CharField(max_length=2100, null=True)
     instapaper_id = models.IntegerField(null=True)

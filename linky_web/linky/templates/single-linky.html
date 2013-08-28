@@ -24,7 +24,10 @@
 			<div class="span4">
 				<p><a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a></p>
 				<h4><small>Views: {{ linky.view_count }}</small></h4>
-		        
+				{% comment %}
+		        {% diff asset linky %} <!-- has the instapaper cap changed recently? -->
+				{% endcomment %}
+		
 			</div><!--end span 4 -->
 			
 			<div class="span4">
@@ -54,9 +57,9 @@
 							</p>
 						{% endif %}
 						
-						{% if asset.instapaper_cap %}
+						{% if asset.text_capture %}
 							<p style="margin: 0"><a href="{% url 'single_linky' linky.guid %}?type=text">Text View</a>
-							{% if asset.instapaper_cap == 'pending' %}
+							{% if asset.text_capture == 'pending' %}
 							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% endif%}
 							</p>
@@ -103,7 +106,7 @@
 			{% endif %}
 			
 			{% if serve_type == 'text' %}
-			<div>text capture here. when it's ready.</div>
+			<div>{{ text_capture }}</div>
 			{% endif %}
 
 		</div>
