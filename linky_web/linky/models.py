@@ -168,7 +168,6 @@ class Asset(models.Model):
     warc_capture = models.CharField(max_length=2100, null=True, blank=True) # source capture, probably point to an index.html page
     pdf_capture = models.CharField(max_length=2100, null=True, blank=True) # We capture a PDF version (through a user upload or through our capture)
     instapaper_timestamp = models.DateTimeField(null=True)
-    instapaper_cap = models.TextField(null=True)
     instapaper_hash = models.CharField(max_length=2100, null=True)
     instapaper_id = models.IntegerField(null=True)
 
