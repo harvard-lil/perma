@@ -127,7 +127,7 @@ class Link(models.Model):
     This is the core of the Perma link.
     """
     guid = models.CharField(max_length=255, null=False, blank=False, primary_key=True)
-    view_count = models.IntegerField(default=0)
+    view_count = models.IntegerField(default=1)
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)
     creation_timestamp = models.DateTimeField(auto_now=True)
     submitted_title = models.CharField(max_length=2100, null=False, blank=False)

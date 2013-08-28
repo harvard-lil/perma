@@ -3,11 +3,14 @@ from django.http import HttpResponseRedirect
 from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.contrib.sites.models import Site
+
 
 from datetime import datetime
 from urlparse import urlparse
 import urllib2
 import logging
+from urlparse import urlparse
 
 from linky.models import Link, Asset
 from linky.utils import base
@@ -101,8 +104,13 @@ def single_linky(request, linky_guid):
 
         link = get_object_or_404(Link, guid=linky_guid)
 
-        link.view_count += 1
-        link.save()
+        # Increment the view count if not we're not hte refer
+        parsed_url = urlparse(request.META.get('HTTP_REFERER', ''))
+        current_site = Site.objects.get_current()
+        
+        if not current_site.domain in parsed_url.netloc:
+            link.view_count += 1
+            link.save()
 
         asset = Asset.objects.get(link=link)
 
