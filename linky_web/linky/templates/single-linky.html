@@ -1,5 +1,6 @@
 {% extends "layout-archive.html" %}
 {% load file_exists %}
+{% load truncatesmart %}
 {% load diff %}
 {% block title %} | {{linky.submitted_title}}{% endblock %}
 {% block styles %}
@@ -9,8 +10,9 @@
 {% block header %}
 <header>
 	<div class="row-fluid">
-		<div class="span12">
+		<div class="span12" style="margin-top:10px;">
 			<div class="span4">
+				<a href="{% url 'landing' %}"><div class="logo" style="margin:0 auto;float:none;"></div></a>
 			    {% if not linky.vested %}
 			      {% if user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'journal_member' or user.groups.all.0.name == 'journal_manager' %}
 			        <form action="" method="post">
@@ -22,19 +24,19 @@
 			</div><!--end span 4 -->
 			
 			<div class="span4">
-				<p><a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a></p>
+				<p><a class="submitted_url" href="{{linky.submitted_url}}">{{ linky.submitted_title|truncatesmart:70 }}</a></p>
 				<h4><small>Views: {{ linky.view_count }}</small></h4>
-				{% comment %}
+				{% comment %}<!-- let's make this async. The page load is too slow if we have to wait for an answer from instapaper -->
 		        {% diff asset linky %} <!-- has the instapaper cap changed recently? -->
 				{% endcomment %}
 		
 			</div><!--end span 4 -->
 			
 			<div class="span4">
-		                <p style="margin: 0"><a href="{% url 'single_linky' linky.guid %}?type=live">Live View</a></p>
+		                <p style="margin: 0;"><a {% if serve_type == 'live' %}style="color:#da4f49"{% endif %} href="{% url 'single_linky' linky.guid %}?type=live">Live View</a></p>
 
 						{% if asset.image_capture %}
-							<p style="margin: 0"><a href="{% url 'single_linky' linky.guid %}?type=image">Image View</a>
+							<p style="margin: 0;"><a {% if serve_type == 'image' %}style="color:#da4f49"{% endif %} href="{% url 'single_linky' linky.guid %}?type=image">Image View</a>
 							{% if asset.image_capture == 'pending' %}
 							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% endif%}
@@ -42,7 +44,7 @@
 						{% endif %}
 		                
 						{% if asset.warc_capture %}
-							<p style="margin: 0"><a href="{% url 'single_linky' linky.guid %}?type=source">Source View</a>
+							<p style="margin: 0;"><a {% if serve_type == 'source' %}style="color:#da4f49"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Source View</a>
 							{% if asset.warc_capture == 'pending' %}
 							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% endif%}
@@ -50,7 +52,7 @@
 						{% endif %}
 						
 						{% if asset.pdf_capture %}
-							<p style="margin: 0"><a href="{% url 'single_linky' linky.guid %}?type=pdf">PDF View</a>
+							<p style="margin: 0;"><a {% if serve_type == 'pdf' %}style="color:#da4f49"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF View</a>
 							{% if asset.pdf_capture == 'pending' %}
 							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% endif%}
@@ -58,7 +60,7 @@
 						{% endif %}
 						
 						{% if asset.text_capture %}
-							<p style="margin: 0"><a href="{% url 'single_linky' linky.guid %}?type=text">Text View</a>
+							<p style="margin: 0;"><a {% if serve_type == 'text' %}style="color:#da4f49"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Text View</a>
 							{% if asset.text_capture == 'pending' %}
 							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% endif%}
