@@ -79,7 +79,7 @@
 	<div class="span12 linky-view">
   		<div class="watermark center">
 
-			{% if not linky.vested %}<img class="watermark-image" src="{{ STATIC_PREFIX }}img/watermark.png"/>{% endif %}
+			{% if not linky.vested and serve_type != 'live' %}<img class="watermark-image" src="{{ STATIC_PREFIX }}img/watermark.png"/>{% endif %}
 			
 			{% if serve_type == 'live' %}
 				{% if display_iframe %}
@@ -108,7 +108,7 @@
 			{% endif %}
 			
 			{% if serve_type == 'text' %}
-			<div>{{ text_capture }}</div>
+			<div>{% autoescape off %}{{ text_capture }}{% endautoescape %}</div>
 			{% endif %}
 
 		</div>
