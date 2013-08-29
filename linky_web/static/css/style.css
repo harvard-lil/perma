@@ -24,7 +24,7 @@ body {
 div.main-container {
     overflow: hidden;
     margin: 0 auto;
-    width: 960px;
+    width: 1012px;
 }
 
 h1, h2, h3, h4, h5 { font-weight: normal; }
@@ -50,6 +50,12 @@ p {
     line-height: 17px;
 }
 
+.infinity {
+	font-size:40px;
+	margin-top:-8px;
+	line-height:30px;
+}
+
 /* Header */
 
 header {
@@ -60,7 +66,7 @@ header {
     padding: 0;
 }
 
-    header .logo {
+    /*/header .logo {
         background: url('../img/logo.png') left no-repeat;
         float: left;
         height: 50px;
@@ -69,20 +75,20 @@ header {
         overflow: hidden;
         padding: 0;
         width: 130px;
-    }
+    }/*/
 
         header .logo span { display: none; }
 
         header .logo a {
-            display: block;
             height: 50px;
             text-decoration: none;
-            width: 120px;
+          font-family: 'Roboto Slab', sans-serif;
+          font-size:36px;
         }
 
     header nav {
         float: right;
-        margin-top: 32px;
+        margin-top: -32px;
         width: 800px;
     }
 
@@ -123,6 +129,10 @@ header {
                     color: #333;
                     text-decoration: none;
                 }
+                
+.top-bar {
+	margin-top:34px;
+}
 
 /* Main */
 
@@ -532,9 +542,12 @@ div.add-links-list {
 /* iframes */
 
 iframe {
-    border:1px;
+    border:0px solid red;
     height: 400px; 
     text-align:auto;
+    opacity:.9;
+    width:1000px;
+    height:800px;
     
 }
 
@@ -545,7 +558,15 @@ iframe {
     margin:10px auto 0;
     
 }
+img.image-view {
+	position:relative;
+	z-index:1;
+	opacity:.9;
+}
 
+.negative-margin {
+	margin-top:-20px;
+}
 #myModal {
     background:#eee;
 }
@@ -709,7 +730,7 @@ If you need more, that's where to get'em.
 }
 
 .logo {
-    color:#035;
+    color:#035;	
 }
 
 .logo-big {
@@ -774,21 +795,20 @@ img.linky-image-preview {
 }
 
 #linky-pdf {
-  min-height: 450px;
-  display:block;
+	min-height: 450px;
+	display:block;
 }
 
 img.watermark-image {
-position:relative;
-margin:auto;
-border:none;
-    margin-bottom:-450px;
-    border-radius:3px;
-    -moz-box-shadow: none;
--webkit-box-shadow: none;
-box-shadow: none;
-background:repeat;
-opacity:.4;
+	position:relative;
+	margin:auto;
+	border:none;
+	margin-bottom:-450px;
+	border-radius:3px;
+	-moz-box-shadow: none;
+	-webkit-box-shadow: none;
+	box-shadow: none;
+	z-index:0;
 }
 
 p.definition {

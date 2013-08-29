@@ -26,23 +26,25 @@
             <div class="row-fluid">
                 <header>
                     <div class="main-container">
-                        <{% if this_page == 'landing' %}h1{% else %}div{% endif %} class="logo"><a href="{% url 'landing' %}"><span>Everly</span></a></{% if this_page == 'landing' %}h1{% else %}div{% endif %}>
-                               <nav>
-                            <ul>
-                                {% if user.is_authenticated %}
-                                <li id="header-greeting">Hello, {{ user.email|truncatechars:35 }}</li>
-                                <li><a href="{% url 'auth_logout' %}">{% if this_page == 'logout' %} class="this-page"{% endif %}<span style="color: #aaa;">Log out</span></a></li>
-                                <!-- TODO: canonical dashboard url? -->
-                                <li><a href="{% url 'user_management_created_links' %}" id="nav-button" class="btn btn-large btn-success">Dashboard</a></li>
-                                {% else %}
-                                <!-- TO COME <li><a href="{% url 'tools' %}"{% if this_page == 'tools' %} class="this-page"{% endif %}>Tools</a></li>-->
-                                <li><a href="{% url 'about' %}"{% if this_page == 'about' %} class="this-page"{% endif %}>About</a></li>
-                                <li><a href="{% url 'user_management_limited_login' %}">Log in</a></li>
-                                <li><a href="{% url 'process_register' %}" id="nav-button" class="btn btn-large btn-success">Sign Up</a></li>
-                                {% endif %}
-                            </ul>
-                        </nav>
-                    </div><!--/.main-container-->
+                    	<div class="top-bar">	
+                    		<div class="logo"><a href="{% url 'landing' %}">Perma</a></div>
+                            <nav>
+								<ul>
+									{% if user.is_authenticated %}
+									<li id="header-greeting">Hello, {{ user.email|truncatechars:35 }}</li>
+									<li><a href="{% url 'auth_logout' %}">{% if this_page == 'logout' %} class="this-page"{% endif %}<span style="color: #aaa;">Log out</span></a></li>
+									<!-- TODO: canonical dashboard url? -->
+									<li><a href="{% url 'user_management_created_links' %}" id="nav-button" class="btn btn-large btn-success">Dashboard</a></li>
+									{% else %}
+									<!-- TO COME <li><a href="{% url 'tools' %}"{% if this_page == 'tools' %} class="this-page"{% endif %}>Tools</a></li>-->
+									<li><a href="{% url 'about' %}"{% if this_page == 'about' %} class="this-page"{% endif %}>About</a></li>
+									<li><a href="{% url 'user_management_limited_login' %}">Log in</a></li>
+									<li><a href="{% url 'process_register' %}" id="nav-button" class="btn btn-large btn-success">Sign Up</a></li>
+									{% endif %}
+								</ul>
+                        	</nav>
+                        </div><!--top-bar-->
+                    </div><!--main-container-->
                 </header>
                 <section id="main">
                     {% if this_page != 'landing' %}
