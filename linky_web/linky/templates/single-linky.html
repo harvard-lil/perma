@@ -7,84 +7,94 @@
 {% endblock %}
 
 {% block header %}
+<script type="text/javascript">
+
+$(document).ready(function() {
+    $('li a').click(function(e) {
+        e.preventDefault();
+        $('a').removeClass('active');
+        $(this).addClass('active');
+    });
+});
+</script>
 
 <header>
 	<div class="main-container">
 		<div class="top-bar">
-		<div class="span12">
-			<div class="span3">
-				<div class="logo"><a href="{% url 'landing' %}">Perma</a></div>
-			</div><!--end span 3 -->
-			
-			<div class="span5  negative-margin">
-				<p><a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a></p>
-				<h4><small>Views: {{ linky.view_count }}</small></h4>  
-			</div><!--end span 3 -->
-			
-			<div class="span2">
-			 {% if not linky.vested %}
-			      {% if user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'journal_member' or user.groups.all.0.name == 'journal_manager' %}
-			        <form action="" method="post">
-			          {% csrf_token %}
-			          <input type="submit" value="vest" name="vet" class="btn">
-			        </form>
-			    	{% endif %}
-			    {% endif %}
-			</div><!--end span 3 -->
-			<div class="span2  negative-margin">
-		                <p style="margin: 0"><a href="{% url 'single_linky' linky.guid %}?type=live">Live View</a></p>
-
-						{% if asset.image_capture %}
-							<p style="margin: 0"><a href="{% url 'single_linky' linky.guid %}?type=image">Image View</a>
-							{% if asset.image_capture == 'pending' %}
-							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
-							{% endif%}
-							</p>
+			<div class="span12">
+				<div class="span3">
+					<div class="logo"><a href="{% url 'landing' %}">Perma</a></div>
+				</div><!--end span 3 -->
+				
+				<div class="span5  negative-margin">
+					<p><a class="submitted_url grey" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a></br><a class="submitted_url grey" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></br>
+					<span class="light-grey">Views: {{linky.view_count }}</a>  
+					</p>
+				</div><!--end span 5 -->
+				
+				<div class="span2">
+				 {% if not linky.vested %}
+					  {% if user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'journal_member' or user.groups.all.0.name == 'journal_manager' %}
+						<form action="" method="post">
+						  {% csrf_token %}
+						  <input type="submit" value="vest" name="vet" class="btn">
+						</form>
 						{% endif %}
-		                
-						{% if asset.warc_capture %}
-							<p style="margin: 0"><a href="{% url 'single_linky' linky.guid %}?type=source">Source View</a>
-							{% if asset.warc_capture == 'pending' %}
-							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
-							{% endif%}
-							</p>
-						{% endif %}
-						
-						{% if asset.pdf_capture %}
-							<p style="margin: 0"><a href="{% url 'single_linky' linky.guid %}?type=pdf">PDF View</a>
-							{% if asset.pdf_capture == 'pending' %}
-							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
-							{% endif%}
-							</p>
-						{% endif %}
-						
-						{% if asset.instapaper_cap %}
-							<p style="margin: 0"><a href="{% url 'single_linky' linky.guid %}?type=text">Text View</a>
-							{% if asset.instapaper_cap == 'pending' %}
-							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
-							{% endif%}
-							</p>
-						{% endif %}
-			</div> <!-- end span 4-->
-			
-		</div> <!-- end span 12-->
-	</div><!-- end row -->
-	</div><!-- end row -->
-	</div><!-- end row -->
+					{% endif %}
+				</div><!--end span 2 -->
+				<div class="span2 negative-margin">
+				<ul>
+					<li><a href="{% url 'single_linky' linky.guid %}?type=live" class="view-type">Live View</a>{{linky.creation_timestamp}}</li>
+	
+					{% if asset.image_capture %}
+						<li><a href="{% url 'single_linky' linky.guid %}?type=image" class="view-type negative-margin">Image View</a>
+						{% if asset.image_capture == 'pending' %}
+						<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+						{% endif%}
+						</li>
+					{% endif %}
+					
+					{% if asset.warc_capture %}
+						<li><a href="{% url 'single_linky' linky.guid %}?type=source" class="view-type">Source View</a>
+						{% if asset.warc_capture == 'pending' %}
+						<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+						{% endif%}
+						</li>
+					{% endif %}
+					
+					{% if asset.pdf_capture %}
+						<li><a href="{% url 'single_linky' linky.guid %}?type=pdf" class="view-type">PDF View</a>
+						{% if asset.pdf_capture == 'pending' %}
+						<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+						{% endif%}
+						</li>
+					{% endif %}
+					
+					{% if asset.instapaper_cap %}
+						<li><a href="{% url 'single_linky' linky.guid %}?type=text" class="view-type">Text View</a>
+						{% if asset.instapaper_cap == 'pending' %}
+						<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+						{% endif%}
+						</li>
+					{% endif %}
+					</ul>
+				</div> <!-- end span 2-->
+			</div> <!-- end span 12-->
+		</div><!-- end top-bar -->
+	</div><!-- end main-container -->
 </header>
 {% endblock header %}
 
 
 {% block content %}
 <div class="row-fluid">
-	<div class="span12 linky-view">
+	<div class="linky-view">
   		<div class="watermark center">
-
 			{% if not linky.vested and serve_type != "live" %}<img class="watermark-image" src="{{ STATIC_PREFIX }}img/watermark.png"/>{% endif %}
 			
 			{% if serve_type == 'live' %}
 				{% if display_iframe %}
-				<iframe src="{{linky.submitted_url}}">
+				<iframe src="{{linky.submitted_url}}" class="iframe-wrap">
 				  <p>Unable to create a live view of the {{linky.submitted_url}}</p>
 				</iframe>
 				{% else %}
@@ -97,28 +107,24 @@
 			{% endif %}
 			
 			{% if serve_type == 'pdf' %}
-			<iframe src="{{ STATIC_PREFIX }}{{asset.base_storage_path}}/{{asset.pdf_capture}}" width="1024px" height="800px"  style="height:800px; border:solid 1px #666;">
-			  <p>Unable to create a live view of the {{linky.submitted_url}}</p>
+			<iframe src="{{ STATIC_PREFIX }}{{asset.base_storage_path}}/{{asset.pdf_capture}}">
+			  <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
 			</iframe>
 			{% endif %}
 			
 			{% if serve_type == 'source' %}
-			<iframe src="{{ STATIC_PREFIX }}{{asset.base_storage_path}}/{{asset.warc_capture}}" width="1024px" height="800px"  style="height:800px; border:solid 1px #666;">
-			  <p>Unable to create a live view of the {{linky.submitted_url}}</p>
+			<iframe src="{{ STATIC_PREFIX }}{{asset.base_storage_path}}/{{asset.warc_capture}}">
+			  <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
 			</iframe>
 			{% endif %}
 			
 			{% if serve_type == 'text' %}
 			<div>text capture here. when it's ready.</div>
 			{% endif %}
-
-		</div>
-   	</div>
-
+		</div><!--end watermark-->
+   	</div><!--end linky-view-->
 </div><!--row-->
 
-
-</div><!--container-->
 {% endblock %}
 {% block scripts %}
 {% endblock %}

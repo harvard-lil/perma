@@ -138,7 +138,7 @@ header {
 
 section#main {
     background-color: #fff;
-    padding: 0 0 50px 0;
+    padding: 0 0 0px 0;
 }
 
 /* Footer */
@@ -419,7 +419,9 @@ div#dashboard-container div#library {}
             list-style-type:none;
         }
 
-        div.library-thumbnail {
+       .thumbnail-frame {
+       		width:400px;
+       		height:275px;
         }
 
             div.library-thumbnail a {
@@ -434,11 +436,11 @@ div#dashboard-container div#library {}
                 border: 1px solid #ccc !important;
             }
 
+	.thumb
             div.library-thumbnail img {
                 margin-bottom: 15px;
                 padding: 10px;
-                max-height: 275px;
-                width: 275px;
+                width: 100%;
             }
 
         p.library-link-title {
@@ -542,28 +544,28 @@ div.add-links-list {
 /* iframes */
 
 iframe {
-    border:0px solid red;
-    height: 400px; 
+    border:1px solid #ccc;	
     text-align:auto;
-    opacity:.9;
     width:1000px;
-    height:800px;
-    
+    height:660px;
+    background:#fff;
+    margin-bottom:30px;
 }
 
-#iframe-wrap { 
-    width: 100%; 
-    padding: 0; 
-    overflow: hidden; 
-    margin:10px auto 0;
+.iframe-wrap { 
     
 }
 img.image-view {
 	position:relative;
+	border:1px solid red;
 	z-index:1;
-	opacity:.9;
+	margin-top:-20px;
+	width:1000px;
 }
 
+ul {
+	list-style-type:none;
+}
 .negative-margin {
 	margin-top:-20px;
 }
@@ -594,6 +596,13 @@ img.image-view {
     left:20px;
 }
 
+.clouds {
+	 box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333; 
+    -moz-box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333; 
+    -webkit-box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333; 
+    background: url('../img/clouds.jpg') center top repeat;
+    height:662px;
+}
 /*/ 
 Background by Benjamin Ward.
 This pattern is downloaded from www.subtlepatterns.com 
@@ -803,7 +812,7 @@ img.watermark-image {
 	position:relative;
 	margin:auto;
 	border:none;
-	margin-bottom:-450px;
+	margin-bottom:-250px;
 	border-radius:3px;
 	-moz-box-shadow: none;
 	-webkit-box-shadow: none;
@@ -945,6 +954,9 @@ input[type="text"] {
     background:rgba(255,255,255,.6);
 }
 */
+hr {
+	border:0px;
+}
 
 table { 
   border-collapse: collapse; 

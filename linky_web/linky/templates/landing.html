@@ -40,7 +40,7 @@
 
 <!-- List of recently saved links -->
 <div class="main-container">
-<div id="linky-list" class="span12">
+<div id="linky-list">
 
     {% if user.is_authenticated %}
       {% if linky_links %}
@@ -89,54 +89,6 @@
 </div><!--/.main-container-->
 
 
-<!-- Modals -->
-<div class="span12 center" id="modals-container">
-
-<!-- Upload file modal -->
-<div id="linky-upload" class="modal hide fade center">
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h1 class="logo-big">Perma Upload</h1>
-        <img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png" alt="Logo" />
-    </div>
-    <div class="modal-body">
-        <div class="center">
-            <form class="form-inline" id="linky_upload_form" action="/api/linky/upload" method="post">
-            <h4>Choose a file</h4>
-            <p><input id="file" name="file" class="input-xlarge" type="file" placeholder="example.png"></p>
-            <p><input id="title" name="title" class="input-xlarge" type="text" placeholder="Example Page Title"></p>
-            <p><input id="url" name="url" class="input-xlarge" type="text" placeholder="www.example.com"></p>
-            <button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Upload this Perma</button>
-            <p id="upload-error" class="text-error"></p>
-            </form>
-        </div>
-    </div>
-    <div class="modal-footer pull-left">
-    </div>
-</div><!--/.linky-upload-->
-
-<!-- Upload complete modal -->
-<div id="linky-upload-confirm" class="modal hide fade center">
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h1 class="logo-big">Perma Upload</h1>
-        <img class="logo-big-img-preview" src="{{ STATIC_PREFIX }}img/infinity.png" alt="Logo" />
-    </div>
-    <div class="modal-body">
-        <div class="center">
-            <h4 id="linky_upload_success">Uploading your file...</h4>
-            <p id="uploadedLinkyUrl"><a href="" target="_blank"></a></p>
-        </div>
-    </div>
-    <div class="modal-footer upload-footer">
-        <a href="#" class="btn" data-dismiss="modal" aria-hidden="true">Close</a>
-    </div>
-</div>
-
-</div><!--/.span12 #modals-container-->
-
-</div><!--/.row-fluid /#landing-container-->
-
 {% endblock %}
 
 {% block scripts %}
@@ -182,8 +134,10 @@
 <script id="success-template" type="text/x-handlebars-template">
   <li id="link-short-slug" class="library-link-item" style="display: none;">
 	  {{#if preview}}
-      <div class="library-thumbnail">
-      <a href="{{linkyUrl}}" target="_blank"><img src="{{preview}}" /></a>
+	  <div class="thumbnail-frame">
+      	<div class="library-thumbnail">
+      		<a href="{{linkyUrl}}" target="_blank"><img src="{{preview}}" /></a>
+      	</div>
       </div>
  	  {{/if}}
 	  {{#if message_pdf }}
@@ -191,15 +145,15 @@
  	  {{/if}}
 
     <div class="link-results">
-      <a href="{{url}}" class="anchor-short-slug" target="_blank">{{url}}</a>
+      
       <p class="library-link-title">{{title}}</p>
       <p class="library-link-url"><a href="{{original}}">{{original}}</a></p>
-      <p class="library-link-meta"><a class="copy-button" data-clipboard-text="{{url}}" title="Copy Linky Link">Copy Perma &infin;</a></p>
+      <a href="{{url}}" class="anchor-short-slug" target="_blank">{{url}}</a> | <a class="copy-button library-link-meta" data-clipboard-text="{{url}}" title="Copy Linky Link">Copy Perma &infin;</a>
       <form class="form-inline" id="emailPerma">
         <input id="email_request" type="text" placeholder="user@example.com">
         <button type="submit" class="btn">Email this Perma</button>
       </form>
-      <p id="upload-option">Perma capture not right? <a href="" onclick="return upload_form();">Upload your own</a>.</p>
+      <p class="btn" id="upload-option">Perma capture not right? <a href="" onclick="return upload_form();">Upload your own</a></p>
     </div> 
   </li>
 </script>

@@ -25,7 +25,7 @@
         <div class="container-fluid">
             <div class="row-fluid">
 				{% block header %}{% endblock header %}
-                <section id="main">
+                <section id="main" class="clouds">
                     <div class="main-container" id="main-content">
                         <div class="row-fluid">
                     {% block row %}{% endblock row %}
@@ -37,7 +37,7 @@
                     	<p>BUILT & RUN BY LIBRARIES</p>
                         <p id="boilerplate">
                             <!-- TODO add boilerplate text -->
-                            &copy; The Presidents and Fellows of Harvard College
+                            &copy; perma.cc
                             &nbsp;&nbsp;&middot;&nbsp;&nbsp;
                             <a href="{% url 'terms_of_service' %}">Terms of Service</a>
                             &nbsp;&nbsp;&middot;&nbsp;&nbsp;
