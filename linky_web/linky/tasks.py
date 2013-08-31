@@ -27,14 +27,15 @@ def get_screen_cap(link_guid, target_url, base_storage_path):
 
     subprocess.call(image_generation_command, shell=True)
 
-
-    asset = Asset.objects.get(link__guid=link_guid)
+    print "created image cap with a path of %s" % os.path.sep.join(path_elements)
 
     if os.path.exists(os.path.sep.join(path_elements)):
+        asset = Asset.objects.get(link__guid=link_guid)
         asset.image_capture = os.path.sep.join(path_elements[2:])
         asset.save()
     else:
         logger.info("Screen capture failed for %s" % target_url)
+        asset = Asset.objects.get(link__guid=link_guid)
         asset.image_capture = 'failed'
         asset.save()
 
@@ -50,10 +51,6 @@ def get_source(link_guid, target_url, base_storage_path, user_agent=''):
 
     This function is usually executed via an asynchronous Celery call
     """
-
-    asset = Asset.objects.get(link__guid=link_guid)
-    asset.warc_capture = 'pending'
-    asset.save()
 
     path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path, 'source', 'index.html']
 
@@ -130,6 +127,11 @@ def get_source(link_guid, target_url, base_storage_path, user_agent=''):
         asset = Asset.objects.get(link__guid=link_guid)
         asset.warc_capture = os.path.sep.join(path_elements[2:])
         asset.save()
+    else:
+        logger.info("Source capture failed for %s" % target_url)
+        asset = Asset.objects.get(link__guid=link_guid)
+        asset.warc_capture = 'failed'
+        asset.save()
 
 
 @celery.task
@@ -170,8 +172,6 @@ def get_pdf(link_guid, target_url, base_storage_path, user_agent):
         asset.pdf_capture = 'failed'
         asset.save()
 
-        raise BrokenURLError(target_url)
-
 
 def instapaper_capture(url, title):
     consumer = oauth.Consumer(INSTAPAPER_KEY, INSTAPAPER_SECRET)
@@ -198,11 +198,16 @@ def instapaper_capture(url, title):
     return bid, tdata
 
 @celery.task
-def store_text_cap(url, title, asset):
+def store_text_cap(url, title, link_guid):
+    
+    asset = Asset.objects.get(link__guid=link_guid)    
     bid, tdata = instapaper_capture(url, title)
     asset.instapaper_timestamp = datetime.datetime.now()
     h = smhasher.murmur3_x86_128(tdata)
     asset.instapaper_hash = h
+    asset.instapaper_id = bid
+    asset.save()
+    
     file_path = GENERATED_ASSETS_STORAGE + '/' + asset.base_storage_path
     if not os.path.exists(file_path):
         os.makedirs(file_path)
@@ -213,5 +218,10 @@ def store_text_cap(url, title, asset):
     os.fsync(f)
     f.close
 
-    asset.instapaper_id = bid
-    asset.save()
+    if os.path.exists(file_path + '/instapaper_cap.html'):
+        asset.text_capture = 'instapaper_cap.html'
+        asset.save()
+    else:
+        logger.info("Text (instapaper) capture failed for %s" % target_url)
+        asset.text_capture = 'failed'
+        asset.save()

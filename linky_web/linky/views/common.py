@@ -3,11 +3,13 @@ from django.http import HttpResponseRedirect
 from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.contrib.sites.models import Site
+
 
 from datetime import datetime
 from urlparse import urlparse
-import urllib2
-import logging
+import urllib2, os, logging
+from urlparse import urlparse
 
 from linky.models import Link, Asset
 from linky.utils import base
@@ -101,11 +103,18 @@ def single_linky(request, linky_guid):
 
         link = get_object_or_404(Link, guid=linky_guid)
 
-        link.view_count += 1
-        link.save()
+        # Increment the view count if not we're not hte refer
+        parsed_url = urlparse(request.META.get('HTTP_REFERER', ''))
+        current_site = Site.objects.get_current()
+        
+        if not current_site.domain in parsed_url.netloc:
+            link.view_count += 1
+            link.save()
 
         asset = Asset.objects.get(link=link)
 
+
+        text_capture = False
 
         # User requested archive type
         serve_type = 'live'
@@ -119,9 +128,15 @@ def single_linky(request, linky_guid):
                 serve_type = 'pdf'
             elif requested_type == 'source' and asset.warc_capture and asset.warc_capture != 'pending':
                 serve_type = 'source'
-            elif requested_type == 'text' and asset.instapaper_cap and asset.instapaper_cap != 'pending':
+            elif requested_type == 'text' and asset.text_capture and asset.text_capture != 'pending':
                 serve_type = 'text'
-
+                
+                path_elements = [settings.GENERATED_ASSETS_STORAGE, asset.base_storage_path, asset.text_capture]
+                file_path = os.path.sep.join(path_elements)
+                
+                with open(file_path, 'r') as f:
+                    text_capture = f.read()
+                f.closed
             
         # If we are going to serve up the live version of the site, let's make sure it's iframe-able
         display_iframe = False
@@ -143,7 +158,7 @@ def single_linky(request, linky_guid):
         pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
 
         context = {'linky': link, 'asset': asset, 'pretty_date': pretty_date, 'user': request.user, 'next': request.get_full_path(),
-                   'display_iframe': display_iframe, 'serve_type': serve_type}
+                   'display_iframe': display_iframe, 'serve_type': serve_type, 'text_capture': text_capture}
 
         context.update(csrf(request))
 

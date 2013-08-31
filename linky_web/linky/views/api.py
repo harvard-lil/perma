@@ -52,7 +52,7 @@ def linky_post(request):
     url_details = urlparse(target_url)
     target_title = url_details.netloc
 
-    # Get the markup
+    # Get the markup. We get the mime-type and the title from this.
     try:
         r = requests.get(target_url)
         parsed_html = lxml.html.fromstring(r.content)
@@ -89,17 +89,28 @@ def linky_post(request):
         response_object = {'linky_id': link.guid, 'message_pdf': True, 'linky_title': link.submitted_title}
         
     else: # else, it's not a PDF. Let's try our best to retrieve what we can
-        # Run our synchronus screen cap task (use the headless browser to create a static image)    
+    
+        # We pass the guid to our tasks
+        guid = link.guid
+        
+        asset.text_capture = 'pending'
+        asset.warc_capture = 'pending'
+        asset.save()
+        
+        # Run our synchronus screen cap task (use the headless browser to create a static image)
         try:
-            get_screen_cap(link.guid, target_url, os.path.sep.join(path_elements))
+            get_screen_cap(guid, target_url, os.path.sep.join(path_elements))
         except Exception, e:
             logger.info("Screen capture failed for %s" % target_url)
             return HttpResponse(status=400)
 
-        #store_text_cap.delay(target_url, target_title, asset)
-        get_source.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
+        # Get the text capture of the page (through a service that follows pagination)
+        store_text_cap.delay(target_url, target_title, guid)
         
-        asset = Asset.objects.get(link__guid=link.guid)        
+        # Try to crawl the page (but don't follow any links)
+        get_source.delay(guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
+        
+        asset = Asset.objects.get(link__guid=guid)        
         response_object = {'linky_id': link.guid, 'linky_cap': settings.STATIC_URL + asset.base_storage_path + '/' + asset.image_capture, 'linky_title': link.submitted_title}
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
@@ -176,13 +187,13 @@ def upload_file(request):
 
                 response_object = {'status':'success', 'linky_id':link.guid, 'linky_hash':link.guid}
 
-                try:
+                """try:
                     get_source.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
                     store_text_cap.delay(target_url, target_title, asset)
                 except Exception, e:
                     # TODO: Log the failed url
-                    asset.warc_capture = 'failed'
-                    asset.save()
+                    asset.pdf_capture = 'failed'
+                    asset.save()"""
 
                 return HttpResponse(json.dumps(response_object), 'application/json')
             else:

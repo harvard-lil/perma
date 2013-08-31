@@ -127,7 +127,7 @@ class Link(models.Model):
     This is the core of the Perma link.
     """
     guid = models.CharField(max_length=255, null=False, blank=False, primary_key=True)
-    view_count = models.IntegerField(default=0)
+    view_count = models.IntegerField(default=1)
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)
     creation_timestamp = models.DateTimeField(auto_now=True)
     submitted_title = models.CharField(max_length=2100, null=False, blank=False)
@@ -167,6 +167,7 @@ class Asset(models.Model):
     image_capture = models.CharField(max_length=2100, null=True, blank=True) # Headless browser image capture
     warc_capture = models.CharField(max_length=2100, null=True, blank=True) # source capture, probably point to an index.html page
     pdf_capture = models.CharField(max_length=2100, null=True, blank=True) # We capture a PDF version (through a user upload or through our capture)
+    text_capture = models.CharField(max_length=2100, null=True, blank=True) # We capture a text dump of the resource
     instapaper_timestamp = models.DateTimeField(null=True)
     instapaper_hash = models.CharField(max_length=2100, null=True)
     instapaper_id = models.IntegerField(null=True)
