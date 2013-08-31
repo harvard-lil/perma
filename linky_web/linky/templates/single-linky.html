@@ -23,16 +23,16 @@ $(document).ready(function() {
 		<div class="top-bar">
 			<div class="span12">
 				<div class="span3">
-					<div class="logo"><a href="{% url 'landing' %}">Perma</a></div>
+					<div class="logo"><a href="{% url 'landing' %}">perma.cc</a></div>
 				</div><!--end span 3 -->
 				
-				<div class="span5  negative-margin">
-					<p><a class="submitted_url grey" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a></br><a class="submitted_url grey" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></br>
-					<span class="light-grey">Views: {{linky.view_count }}</a>  
-					</p>
+				<div class="span6 meta-data negative-margin">
+					<p><a class="submitted_url grey" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a></br>
+					<a class="submitted_url grey" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></br>
+					created {{linky.creation_timestamp}} | {{linky.view_count }} views</span> 
 				</div><!--end span 5 -->
 				
-				<div class="span2">
+				<div class="span1">
 				 {% if not linky.vested %}
 					  {% if user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'journal_member' or user.groups.all.0.name == 'journal_manager' %}
 						<form action="" method="post">
@@ -44,7 +44,7 @@ $(document).ready(function() {
 				</div><!--end span 2 -->
 				<div class="span2 negative-margin">
 				<ul>
-					<li><a href="{% url 'single_linky' linky.guid %}?type=live" class="view-type">Live View</a>{{linky.creation_timestamp}}</li>
+					<li><a href="{% url 'single_linky' linky.guid %}?type=live" class="view-type">Live View</a></li>
 	
 					{% if asset.image_capture %}
 						<li><a href="{% url 'single_linky' linky.guid %}?type=image" class="view-type negative-margin">Image View</a>
@@ -94,7 +94,7 @@ $(document).ready(function() {
 			
 			{% if serve_type == 'live' %}
 				{% if display_iframe %}
-				<iframe src="{{linky.submitted_url}}" class="iframe-wrap">
+				<iframe src="{{linky.submitted_url}}">
 				  <p>Unable to create a live view of the {{linky.submitted_url}}</p>
 				</iframe>
 				{% else %}

@@ -24,7 +24,7 @@ body {
 div.main-container {
     overflow: hidden;
     margin: 0 auto;
-    width: 1012px;
+    width: 1026px;
 }
 
 h1, h2, h3, h4, h5 { font-weight: normal; }
@@ -225,6 +225,9 @@ div.home-form-frame {
     width: 640px;
 }
 
+ul#links {
+	margin:0 auto;
+}
 div.home-form-elements {
     margin: 10px auto 0 auto;
 }
@@ -234,10 +237,11 @@ div.home-form-elements {
     } 
 
     div.home-form-elements .add-links-list {
-        width: 582px;
-        box-shadow: 2px 2px 1px #16699e;
-        -moz-box-shadow: 2px 2px 1px #16699e;
-        -webkit-box-shadow: 2px 2px 1px #16699e;
+        width: 498px;
+       /*/ box-shadow: 2px 2px 3px #16699e;
+        -moz-box-shadow: 2px 2px 3px #16699e;
+        -webkit-box-shadow: 2px 2px 3px #16699e;/*/
+        border:1px solid #ccc;
     }
 
 section#home-description {
@@ -420,33 +424,44 @@ div#dashboard-container div#library {}
         }
 
        .thumbnail-frame {
-       		width:400px;
-       		height:275px;
+       		
         }
+		
+		.library-thumbnail {
+			 width:496px;
+       		 height:275px;
+       		 overflow:hidden;
+       		 margin:0 auto;
+       		 border:1px solid #ccc;
+       		         border-radius: 4px;
+        -moz-border-radius: 4px;
+        -webkit-border-radius: 4px;
+       		 
+		}
 
             div.library-thumbnail a {
                 background-color: #fff;
-                border: 1px solid #efefef !important;
                 border: #efefef;
                 display: block;
                 margin: 0 auto 10px auto;
+      
+                
             }
 
             div.library-thumbnail a:hover {
-                border: 1px solid #ccc !important;
             }
 
-	.thumb
+	
             div.library-thumbnail img {
                 margin-bottom: 15px;
-                padding: 10px;
-                width: 100%;
+                padding: 0px;
+                width:100%;
+               
             }
 
         p.library-link-title {
             color: #777;
             font-size: 14px;
-            font-weight: bold;
             margin: 10px 0 0 0;
         }
 
@@ -506,7 +521,7 @@ button#addlink {
 /* Form elements */
 
 input.text-input {
-    border-radius: 2px;
+    border-radius: 4px;
     color: #999;
     font-size: 22px;
     height: 44px;
@@ -544,23 +559,34 @@ div.add-links-list {
 /* iframes */
 
 iframe {
-    border:1px solid #ccc;	
+    border-width: 0px 1px;
+	border-style: solid;
+	border-color: #999;	
     text-align:auto;
-    width:1000px;
+    width:1024px;
     height:660px;
     background:#fff;
-    margin-bottom:30px;
+    margin-bottom:0px;
+    
+}
+
+.meta-data {
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .iframe-wrap { 
+	margin-bottom:-20px
     
 }
 img.image-view {
 	position:relative;
-	border:1px solid red;
+	border-width: 0px 1px;
+	border-style: solid;
+	border-color: #999;	
 	z-index:1;
-	margin-top:-20px;
-	width:1000px;
+	margin-top:0px;
+	width:1023px;
 }
 
 ul {
@@ -601,7 +627,7 @@ ul {
     -moz-box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333; 
     -webkit-box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333; 
     background: url('../img/clouds.jpg') center top repeat;
-    height:662px;
+    min-height:662px;
 }
 /*/ 
 Background by Benjamin Ward.
@@ -621,7 +647,7 @@ If you need more, that's where to get'em.
 }
 
 #upload-option {
-  margin: 10px 0 0 15px;
+  margin: 0;
   font-size:13px;
   color: #777;
 }
@@ -738,8 +764,8 @@ If you need more, that's where to get'em.
     height:2px;
 }
 
-.logo {
-    color:#035;	
+.logo a{
+    color:#ee5f5b;	
 }
 
 .logo-big {
@@ -809,16 +835,20 @@ img.linky-image-preview {
 }
 
 img.watermark-image {
-	position:relative;
-	margin:auto;
+	position:absolute;
+	margin:0 auto;
 	border:none;
-	margin-bottom:-250px;
 	border-radius:3px;
 	-moz-box-shadow: none;
 	-webkit-box-shadow: none;
 	box-shadow: none;
 	z-index:0;
+	margin-bottom:20px;
 }
+watermark {
+
+}
+
 
 p.definition {
     color:#09f;
@@ -827,7 +857,10 @@ p.definition {
     bottom:10px;
 }
 a.grey {
-    color:#999;
+    color:#333;
+}
+.light-grey {
+	color:#888;
 }
 .indexed {
     margin-bottom:15px;

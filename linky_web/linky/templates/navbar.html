@@ -2,7 +2,7 @@
   {% if user.is_authenticated %}
   <span class="greeting tk-adelle ">Hello, {% if user.first_name %}{{ user.first_name }}{% else %}{{user.email}}{% endif %}</span> <a href="#" class="dropdown-toggle btn" data-toggle="dropdown">Account&nbsp;<b class="caret"></b></a>
   <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-    <li><a href="{% url 'user_management_created_links' %}">Perma admin</a></li>
+    <li><a href="{% url 'user_management_created_links' %}">perma.cc admin</a></li>
     <li><a href="{% url 'user_management_manage_account' %}">Account settings</a></li>
     <li class="divider"></li>
     <li><a href="{% url 'auth_logout' %}">Sign out</a></li>

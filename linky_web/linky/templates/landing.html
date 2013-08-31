@@ -23,7 +23,7 @@
 <section id="home-description">
     <div class="main-container">
         <p>Broken links are everywhere.</p>
-        <p>Perma helps authors and journals create<br />
+        <p>Perma.cc helps authors and journals create<br />
         permanent links for citations in their published work.</p>
         {% if user.is_authenticated %}
         <p><a href="{% comment %}TODO add dashboard url{% url 'dashboard' %}{% endcomment %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
@@ -134,11 +134,10 @@
 <script id="success-template" type="text/x-handlebars-template">
   <li id="link-short-slug" class="library-link-item" style="display: none;">
 	  {{#if preview}}
-	  <div class="thumbnail-frame">
-      	<div class="library-thumbnail">
-      		<a href="{{linkyUrl}}" target="_blank"><img src="{{preview}}" /></a>
-      	</div>
-      </div>
+	<div class="library-thumbnail">
+		<a href="{{linkyUrl}}" target="_blank"><img src="{{preview}}" /></a>
+	</div>
+      
  	  {{/if}}
 	  {{#if message_pdf }}
       <p>Archiving PDF now. PDF previews not available. Keep an eye on the <a href="{{url}}" target="_blank">Perma URL</a> for archiving updates</p>
