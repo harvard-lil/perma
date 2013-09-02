@@ -33,10 +33,10 @@
 			</div><!--end span 4 -->
 			
 			<div class="span4">
-		                <p style="margin: 0;"><a {% if serve_type == 'live' %}style="color:#da4f49"{% endif %} href="{% url 'single_linky' linky.guid %}?type=live">Live View</a></p>
+		                <p style="margin: 0;"><a class="{% if serve_type == 'live' %}selected-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=live">Live View</a></p>
 
 						{% if asset.image_capture %}
-							<p style="margin: 0;"><a {% if serve_type == 'image' %}style="color:#da4f49"{% endif %} href="{% url 'single_linky' linky.guid %}?type=image">Image View</a>
+							<p style="margin: 0;"><a class="{% if serve_type == 'image' %}selected-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=image">Image View</a>
 							{% if asset.image_capture == 'pending' %}
 							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% endif%}
@@ -44,7 +44,7 @@
 						{% endif %}
 		                
 						{% if asset.warc_capture %}
-							<p style="margin: 0;"><a {% if serve_type == 'source' %}style="color:#da4f49"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Source View</a>
+							<p style="margin: 0;"><a class="{% if serve_type == 'source' %}selected-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source">Source View</a>
 							{% if asset.warc_capture == 'pending' %}
 							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% endif%}
@@ -52,7 +52,7 @@
 						{% endif %}
 						
 						{% if asset.pdf_capture %}
-							<p style="margin: 0;"><a {% if serve_type == 'pdf' %}style="color:#da4f49"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF View</a>
+							<p style="margin: 0;"><a class="{% if serve_type == 'pdf' %}selected-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=pdf">PDF View</a>
 							{% if asset.pdf_capture == 'pending' %}
 							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% endif%}
@@ -60,7 +60,7 @@
 						{% endif %}
 						
 						{% if asset.text_capture %}
-							<p style="margin: 0;"><a {% if serve_type == 'text' %}style="color:#da4f49"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Text View</a>
+							<p style="margin: 0;"><a class="{% if serve_type == 'text' %}selected-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=text">Text View</a>
 							{% if asset.text_capture == 'pending' %}
 							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% endif%}

@@ -1050,3 +1050,7 @@ border-radius: 50%;
     font-size:16px;
     color:#09f;
 }
+
+.selected-view {
+    color:#da4f49;
+}
