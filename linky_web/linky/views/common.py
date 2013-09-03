@@ -122,13 +122,13 @@ def single_linky(request, linky_guid):
         if 'type' in request.REQUEST:
             requested_type = request.REQUEST['type']
         
-            if requested_type == 'image' and asset.image_capture and asset.image_capture != 'pending':
+            if requested_type == 'image':
                 serve_type = 'image'
-            elif requested_type == 'pdf' and asset.pdf_capture and asset.pdf_capture != 'pending':
+            elif requested_type == 'pdf':
                 serve_type = 'pdf'
-            elif requested_type == 'source' and asset.warc_capture and asset.warc_capture != 'pending':
+            elif requested_type == 'source':
                 serve_type = 'source'
-            elif requested_type == 'text' and asset.text_capture and asset.text_capture != 'pending':
+            elif requested_type == 'text':
                 serve_type = 'text'
                 
                 path_elements = [settings.GENERATED_ASSETS_STORAGE, asset.base_storage_path, asset.text_capture]

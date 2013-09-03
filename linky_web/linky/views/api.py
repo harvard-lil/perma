@@ -89,17 +89,14 @@ def linky_post(request):
     
         # We pass the guid to our tasks
         guid = link.guid
-        
+
+        asset.image_capture = 'pending'        
         asset.text_capture = 'pending'
         asset.warc_capture = 'pending'
         asset.save()
         
         # Run our synchronus screen cap task (use the headless browser to create a static image)
-        try:
-            get_screen_cap(guid, target_url, os.path.sep.join(path_elements))
-        except Exception, e:
-            logger.info("Screen capture failed for %s" % target_url)
-            return HttpResponse(status=400)
+        get_screen_cap(guid, target_url, os.path.sep.join(path_elements))
 
         # Get the text capture of the page (through a service that follows pagination)
         store_text_cap.delay(target_url, target_title, guid)
@@ -107,8 +104,13 @@ def linky_post(request):
         # Try to crawl the page (but don't follow any links)
         get_source.delay(guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
         
-        asset = Asset.objects.get(link__guid=guid)        
-        response_object = {'linky_id': link.guid, 'linky_cap': settings.STATIC_URL + asset.base_storage_path + '/' + asset.image_capture, 'linky_title': link.submitted_title}
+        asset = Asset.objects.get(link__guid=guid)
+        
+        response_object = {'linky_id': link.guid, 'linky_title': link.submitted_title}
+        
+        # Sometimes our phantomjs capture fails. if it doesn't add it to our response object
+        if asset.image_capture != 'pending' and asset.image_capture != 'failed':
+            response_object['linky_cap'] = settings.STATIC_URL + asset.base_storage_path + '/' + asset.image_capture
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
 

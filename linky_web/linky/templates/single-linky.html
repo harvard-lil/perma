@@ -24,8 +24,9 @@
 					<p><a class="submitted_url grey" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a></br>
 					<a class="submitted_url grey" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></br>
 					created {{linky.creation_timestamp}} | {{linky.view_count }} views</span> 
-					<!-- {% diff asset linky %} has the instapaper cap changed recently? -->
-		
+					{% comment %}
+					{% diff asset linky %} <!-- has the instapaper cap changed recently? -->
+					{% endcomment %}
 
 				</div><!--end span 5 -->
 				
@@ -42,41 +43,42 @@
 			    	<ul class="view-type">
 		                <li><a {% if serve_type == 'live' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=live">Live View</a></li>
 
-						{% if asset.image_capture %}
-							<li><a {% if serve_type == 'image' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=image">Image View</a>
-
+						{% if asset.image_capture and asset.image_capture != 'failed' %}
+							<li>
 							{% if asset.image_capture == 'pending' %}
-							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+								Image View <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+							{% else %}
+								<a {% if serve_type == 'image' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=image">Image View</a>
 							{% endif%}
 							</li>
 						{% endif %}
 		                
-						{% if asset.warc_capture %}
-
-							<li><a {% if serve_type == 'source' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Source View</a>
-
+						{% if asset.warc_capture and asset.warc_capture != 'failed' %}
+							<li>
 							{% if asset.warc_capture == 'pending' %}
-							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+								Source View <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+							{% else %}
+								<a {% if serve_type == 'source' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Source View</a>
 							{% endif%}
 							</li>
 						{% endif %}
 						
-						{% if asset.pdf_capture %}
-
-							<li><a {% if serve_type == 'pdf' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF View</a>
-
-
+						{% if asset.pdf_capture and asset.pdf_capture != 'failed' %}
+							<li>
 							{% if asset.pdf_capture == 'pending' %}
-							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+								PDF View <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+							{% else %}
+								<a {% if serve_type == 'pdf' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF View </a>
 							{% endif%}
 							</li>
 						{% endif %}
 						
-						{% if asset.text_capture %}
-
-							<li><a {% if serve_type == 'text' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Text View</a>
+						{% if asset.text_capture and asset.text_capture != 'failed' %}
+							<li>
 							{% if asset.text_capture == 'pending' %}
-							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+								Text View <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+							{% else %}
+								<a {% if serve_type == 'text' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Text View</a>
 							{% endif%}
 							</li>
 						{% endif %}
@@ -99,7 +101,7 @@
 
 			{% if serve_type == 'live' %}
 				{% if display_iframe %}
-				<iframe src="{{linky.submitted_url}}">
+				<iframe src="{{linky.submitted_url}}" sandbox="allow-forms allow-scripts">
 				  <p>Unable to create a live view of the {{linky.submitted_url}}</p>
 				</iframe>
 				{% else %}
@@ -119,7 +121,7 @@
 			{% endif %}
 			
 			{% if serve_type == 'source' %}
-			<iframe src="{{ STATIC_PREFIX }}{{asset.base_storage_path}}/{{asset.warc_capture}}">
+			<iframe src="{{ STATIC_PREFIX }}{{asset.base_storage_path}}/{{asset.warc_capture}}" sandbox="allow-forms allow-scripts">
 			  <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
 			</iframe>
 			{% endif %}

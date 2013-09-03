@@ -1,4 +1,4 @@
-import os, sys, subprocess, urllib, glob, shutil, urlparse, simplejson, datetime, smhasher
+import os, sys, subprocess, urllib, glob, shutil, urlparse, simplejson, datetime, smhasher, logging
 from djcelery import celery
 import requests
 from django.conf import settings
@@ -8,6 +8,8 @@ from linky.exceptions import BrokenURLError
 from linky.settings import INSTAPAPER_KEY, INSTAPAPER_SECRET, INSTAPAPER_USER, INSTAPAPER_PASS, GENERATED_ASSETS_STORAGE
 
 import oauth2 as oauth
+
+logger = logging.getLogger(__name__)
 
 @celery.task
 def get_screen_cap(link_guid, target_url, base_storage_path):
@@ -27,7 +29,6 @@ def get_screen_cap(link_guid, target_url, base_storage_path):
 
     subprocess.call(image_generation_command, shell=True)
 
-    print "created image cap with a path of %s" % os.path.sep.join(path_elements)
 
     if os.path.exists(os.path.sep.join(path_elements)):
         asset = Asset.objects.get(link__guid=link_guid)
@@ -38,8 +39,7 @@ def get_screen_cap(link_guid, target_url, base_storage_path):
         asset = Asset.objects.get(link__guid=link_guid)
         asset.image_capture = 'failed'
         asset.save()
-
-        raise BrokenURLError(target_url)
+        logger.info("Screen capture failed for %s" % target_url)
 
 @celery.task
 def get_source(link_guid, target_url, base_storage_path, user_agent=''):
