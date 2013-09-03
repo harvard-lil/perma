@@ -15,15 +15,15 @@
 		<div class="top-bar">
 			<div class="span12">
 				<div class="span3">
-					<div class="logo"><a href="{% url 'landing' %}">perma.cc</a></div>
+					<div class="logo"><a href="{% url 'landing' %}">perma.cc<div class="infinity-logo"></div></a></div>
 				</div><!--end span 3 -->
 				
 				<div class="span6 meta-data negative-margin">
 					<p><a class="submitted_url grey" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a></br>
 					<a class="submitted_url grey" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></br>
 					created {{linky.creation_timestamp}} | {{linky.view_count }} views</span> 
-					{% diff asset linky %} <!-- has the instapaper cap changed recently? -->
-					{% endcomment %}
+					<!-- {% diff asset linky %} has the instapaper cap changed recently? -->
+		
 				</div><!--end span 5 -->
 				
 				<div class="span1">
@@ -33,13 +33,14 @@
 						  {% csrf_token %}
 						  <input type="submit" value="vest" name="vet" class="btn">
 						</form>
-
+				{% endif %}
+				</div>
 			    <div class="span2 negative-margin">
-			    	<ul>
-		                <li><a {% if serve_type == 'live' %}style="color:#da4f49"{% endif %} href="{% url 'single_linky' linky.guid %}?type=live">Live View</a></li>
+			    	<ul class="view-type">
+		                <li><a {% if serve_type == 'live' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=live">Live View</a></li>
 
 						{% if asset.image_capture %}
-							<li><a {% if serve_type == 'image' %}style="color:#da4f49"{% endif %} href="{% url 'single_linky' linky.guid %}?type=image">Image View</a>
+							<li><a {% if serve_type == 'image' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=image">Image View</a>
 							{% if asset.image_capture == 'pending' %}
 							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% endif%}
@@ -47,7 +48,7 @@
 						{% endif %}
 		                
 						{% if asset.warc_capture %}
-							<li"><a {% if serve_type == 'source' %}style="color:#da4f49"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Source View</a>
+							<li><a {% if serve_type == 'source' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Source View</a>
 							{% if asset.warc_capture == 'pending' %}
 							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% endif%}
@@ -55,7 +56,7 @@
 						{% endif %}
 						
 						{% if asset.pdf_capture %}
-							<li><a {% if serve_type == 'pdf' %}style="color:#da4f49"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF View</a>
+							<li><a {% if serve_type == 'pdf' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF View</a>
 							{% if asset.pdf_capture == 'pending' %}
 							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% endif%}
@@ -63,7 +64,7 @@
 						{% endif %}
 						
 						{% if asset.text_capture %}
-							<li><a {% if serve_type == 'text' %}style="color:#da4f49"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Text View</a>
+							<li><a {% if serve_type == 'text' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Text View</a>
 							{% if asset.text_capture == 'pending' %}
 							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% endif%}
@@ -76,15 +77,15 @@
 		</div><!-- end top-bar -->
 	</div><!-- end main-container -->
 </header>
-{% endblock header %}
 
+{% endblock %}
 
 {% block content %}
 <div class="row-fluid">
-	<div class="linky-view">
+	<div class="linky-view center">
   		<div class="watermark center">
 
-			{% if not linky.vested and serve_type != 'live' %}<img class="watermark-image" src="{{ STATIC_PREFIX }}img/watermark.png"/>{% endif %}
+			{% if not linky.vested and serve_type != 'live' %}<div class="negative-margin"><img class="watermark-image" src="{{ STATIC_PREFIX }}img/watermark.png"/></div>{% endif %}
 
 			{% if serve_type == 'live' %}
 				{% if display_iframe %}
@@ -92,7 +93,8 @@
 				  <p>Unable to create a live view of the {{linky.submitted_url}}</p>
 				</iframe>
 				{% else %}
-				<h2>Preview of {{linky.submitted_url}} is not available</h2>
+				<h1>sorry</h1>
+				<h2>live preview of <a href="{{linky.submitted_url}}">{{linky.submitted_url}}</a> is not available</h2>
 				{% endif %}
 			{% endif %}
 			

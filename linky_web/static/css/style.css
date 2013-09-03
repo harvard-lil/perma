@@ -80,12 +80,21 @@ header {
         header .logo span { display: none; }
 
         header .logo a {
-            height: 50px;
-            text-decoration: none;
+        height: 50px;
+        text-decoration: none;
           font-family: 'Roboto Slab', sans-serif;
           font-size:36px;
+          color:#ee5f5b;
         }
 
+	.infinity-logo {
+		background: url('../img/infinity-logo.png') center top no-repeat;
+		width:51px;
+		height:28px;
+		position:relative;
+		top:-30px;
+		left:155px;
+	}
     header nav {
         float: right;
         margin-top: -32px;
@@ -570,9 +579,13 @@ iframe {
     
 }
 
-.meta-data {
+.meta-data, .meta-data a {
   white-space: nowrap;
-  overflow: hidden;
+  overflow: hidden;	
+}
+
+.meta-data a {
+	text-decoration:underline;	
 }
 
 .iframe-wrap { 
@@ -586,7 +599,8 @@ img.image-view {
 	border-color: #999;	
 	z-index:1;
 	margin-top:0px;
-	width:1023px;
+	width:1024px;
+	opacity:.8;
 }
 
 ul {
@@ -764,10 +778,6 @@ If you need more, that's where to get'em.
     height:2px;
 }
 
-.logo a{
-    color:#ee5f5b;	
-}
-
 .logo-big {
     color:#035;
     font-size:48px;
@@ -834,21 +844,46 @@ img.linky-image-preview {
 	display:block;
 }
 
-img.watermark-image {
-	position:absolute;
+.watermark {
 	margin:0 auto;
+	position:relative;
+	padding:0px;
+	
+}
+
+img.watermark-image {
+
 	border:none;
 	border-radius:3px;
 	-moz-box-shadow: none;
 	-webkit-box-shadow: none;
 	box-shadow: none;
 	z-index:0;
-	margin-bottom:20px;
+	margin:0 auto -400px;
 }
-watermark {
-
+.watermark h2, .watermark h1{
+        text-decoration: none;
+          font-family: 'Roboto Slab', sans-serif;
+          font-size:36px;
+          color:#ee5f5b;	
+          text-shadow: -1px 1px #fff;
 }
 
+.watermark h2 a {
+	color: #005580;
+}
+.watermark h1 {
+	margin-top:60px;
+	font-size:48px;
+}
+
+.view-type li a{
+	
+}
+
+.active {
+	font-weight:bold;
+}
 
 p.definition {
     color:#09f;
