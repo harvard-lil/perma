@@ -91,9 +91,8 @@ header {
 		background: url('../img/infinity-logo.png') center top no-repeat;
 		width:51px;
 		height:28px;
-		position:relative;
-		top:-30px;
-		left:155px;
+		position:absolute;
+		margin:-29px 0 0 155px;
 	}
     header nav {
         float: right;
@@ -141,6 +140,20 @@ header {
                 
 .top-bar {
 	margin-top:34px;
+}
+
+ul.partners {
+	text-align:center;
+}
+.partners li {
+	display:inline;
+	list-style-type:none;
+}
+
+li.participating-institutions img{
+	height: 30px;
+	opacity:.6;
+	margin-right:20px;
 }
 
 /* Main */
