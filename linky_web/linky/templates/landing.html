@@ -181,12 +181,15 @@
 {% verbatim %}
 <script id="success-template" type="text/x-handlebars-template">
   <li id="link-short-slug" class="library-link-item" style="display: none;">
-	  {{#if preview}}
 	<div class="library-thumbnail">
+	  {{#if preview}}
 		<a href="{{linkyUrl}}" target="_blank"><img src="{{preview}}" /></a>
+	  {{ else }}
+	    <p>Archiving process started. Sorry, no preview available.</p>
+ 	  {{/if}}
 	</div>
       
- 	  {{/if}}
+
 	  {{#if message_pdf }}
       <p>Archiving PDF now. PDF previews not available. Keep an eye on the <a href="{{url}}" target="_blank">Perma URL</a> for archiving updates</p>
  	  {{/if}}
