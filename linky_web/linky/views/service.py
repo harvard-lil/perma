@@ -2,14 +2,11 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
-from django.views.decorators.csrf import csrf_exempt
 
 import smtplib, json
 from email.mime.text import MIMEText
 
 
-# TODO: If we're going to csrf exempt this, we should keep an eye on things
-@csrf_exempt
 def email_confirm(request):
     """A service that sends a linky message. This is temporary."""
     
@@ -19,15 +16,12 @@ def email_confirm(request):
     if not email_address and not linky_link:
         return HttpResponse(status=400)
     
-    # TODO: we should obviously only send messages that we send.
-    # lock this down.
-    
-    from_address = "lil@law.harvard.edu"
+    from_address = "info@perma.cc"
     to_address = email_address
-    content = "%s \n\nThis linky is 4-eva" % linky_link
+    content = "%s \n\n(This linky is the Perma link)" % linky_link
 
     msg = MIMEText(content)
-    msg['Subject'] = "The Linky link you requested"
+    msg['Subject'] = "The Perma link you requested"
     msg['From'] = from_address
     msg['To'] = to_address
 

@@ -14,7 +14,6 @@ from linky.tasks import get_screen_cap, get_source, store_text_cap, get_pdf
 
 from django.shortcuts import render_to_response, HttpResponse
 from django.http import HttpResponseBadRequest
-from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
@@ -22,8 +21,6 @@ from django.core.exceptions import ValidationError
 logger = logging.getLogger(__name__)
 
 
-# TODO: If we're going to csrf exempt this, we should keep an eye on things
-@csrf_exempt
 def linky_post(request):
     """
     We've received a request to archive a URL. That process is managed here.
@@ -140,7 +137,6 @@ def validate_upload_file(upload):
     return False
 
 
-@csrf_exempt
 def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)

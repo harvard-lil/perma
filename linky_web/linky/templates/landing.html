@@ -107,6 +107,7 @@
             <p><input id="title" name="title" class="input-xlarge" type="text" placeholder="Example Page Title"></p>
             <p><input id="url" name="url" class="input-xlarge" type="text" placeholder="www.example.com"></p>
             <button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Upload this Perma</button>
+			{% csrf_token %}
             <p id="upload-error" class="text-error"></p>
             </form>
         </div>
@@ -142,6 +143,7 @@
 {% block scripts %}
 <script>
   var web_base = "http://{{host}}";
+  var csrf_token = "{{csrf_token}}";
 </script>
 <script src="{{ STATIC_PREFIX }}js/ZeroClipboard/ZeroClipboard.min.js"></script>
 <script src="{{ STATIC_PREFIX }}js/handlebars.js"></script>
