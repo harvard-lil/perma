@@ -57,7 +57,7 @@ function linkIt(){
   var request = $.ajax({
     url: web_base + "/api/linky/",
     type: "POST",
-    data: {url: rawUrl},
+    data: {url: rawUrl, 'csrfmiddlewaretoken': csrf_token},
     dataType: "json"
   });
   request.done(function(data) {
@@ -98,7 +98,7 @@ function linkIt(){
       var request = $.ajax({
         url: web_base + "/service/email-confirm/",
         type: "POST",
-        data: {email_address: $('#email_request').val(), linky_link: linkyUrl},
+        data: {email_address: $('#email_request').val(), linky_link: linkyUrl, 'csrfmiddlewaretoken': csrf_token},
         dataType: "json"
       });
     

@@ -3,6 +3,7 @@
 html {
     position:relative;
     min-height:100%;
+    margin:0px;
 }
 
 body {
@@ -24,7 +25,7 @@ body {
 div.main-container {
     overflow: hidden;
     margin: 0 auto;
-    width: 1026px;
+    width: 1035px;
 }
 
 h1, h2, h3, h4, h5 { font-weight: normal; }
@@ -38,6 +39,7 @@ h2 {
     margin-top: 25px;
     font-size: 26px;
 }
+
 
 p {
     margin-bottom: 20px;
@@ -88,11 +90,7 @@ header {
         }
 
 	.infinity-logo {
-		background: url('../img/infinity-logo.png') center top no-repeat;
-		width:51px;
-		height:28px;
-		position:absolute;
-		margin:-29px 0 0 155px;
+		margin:-2px 0 0 -4px;
 	}
     header nav {
         float: right;
@@ -153,6 +151,12 @@ ul.partners {
 li.participating-institutions img{
 	height: 30px;
 	opacity:.6;
+	padding:5px;
+	background:#fff;
+	border:1px solid #ccc;
+	border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
 	margin-right:20px;
 }
 
@@ -585,7 +589,7 @@ iframe {
 	border-style: solid;
 	border-color: #999;	
     text-align:auto;
-    width:1024px;
+    width:1033px;
     height:660px;
     background:#fff;
     margin-bottom:0px;
@@ -612,7 +616,7 @@ img.image-view {
 	border-color: #999;	
 	z-index:1;
 	margin-top:0px;
-	width:1024px;
+	width:1033px;
 	opacity:.8;
 }
 
@@ -874,12 +878,20 @@ img.watermark-image {
 	z-index:0;
 	margin:0 auto -400px;
 }
-.watermark h2, .watermark h1{
+.watermark h2, .watermark h1 {
+
+}
+
+.built-by {
         text-decoration: none;
           font-family: 'Roboto Slab', sans-serif;
-          font-size:36px;
+          font-size:25px;
           color:#ee5f5b;	
           text-shadow: -1px 1px #fff;
+}
+
+.lower {
+	margin: 5px 0 -5px 0;
 }
 
 .watermark h2 a {
@@ -930,6 +942,9 @@ a.grey {
     margin-top:-9px;
 }
 
+.recent-linky-summary small {
+	font-style:italic;
+}
 .copy-confirm {
   margin-top:5px;
   color:#006dcc;
@@ -946,6 +961,10 @@ ul#linky-ul li {
 }
 
 .sponsoring-library-info {
+  margin-bottom: 35px;
+}
+
+#add-member {
   margin-bottom: 35px;
 }
 
@@ -1015,11 +1034,19 @@ fieldset {
   margin-top:15px;
 }
 
-h3 small, small {
+h3 small {
     text-shadow:none;
-    font-size:17px;
+    font-size:13px;
+    position:relative;
+    padding:3px 8px;
+    top:-5px;
+    cursor:pointer;
 }
-
+#linky-list h3 {
+	font-family: 'Roboto Slab', sans-serif;
+    font-size:25px;
+	
+}
 .white-box {
     background:rgba(255,255,255,.5);
     border-radius:3px;
@@ -1162,4 +1189,8 @@ border-radius: 50%;
     padding-top:25px;
     font-size:16px;
     color:#09f;
+}
+
+.selected-view {
+    color:#da4f49;
 }

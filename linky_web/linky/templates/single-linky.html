@@ -15,7 +15,9 @@
 		<div class="top-bar">
 			<div class="span12">
 				<div class="span3">
-					<div class="logo"><a href="{% url 'landing' %}">perma.cc<div class="infinity-logo"></div></a></div>
+					<div class="logo">
+						<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo.png"></a>
+					</div><!--end logo -->
 				</div><!--end span 3 -->
 				
 				<div class="span6 meta-data negative-margin">
@@ -24,6 +26,7 @@
 					created {{linky.creation_timestamp}} | {{linky.view_count }} views</span> 
 					<!-- {% diff asset linky %} has the instapaper cap changed recently? -->
 		
+
 				</div><!--end span 5 -->
 				
 				<div class="span1">
@@ -41,6 +44,7 @@
 
 						{% if asset.image_capture %}
 							<li><a {% if serve_type == 'image' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=image">Image View</a>
+
 							{% if asset.image_capture == 'pending' %}
 							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% endif%}
@@ -48,7 +52,9 @@
 						{% endif %}
 		                
 						{% if asset.warc_capture %}
+
 							<li><a {% if serve_type == 'source' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Source View</a>
+
 							{% if asset.warc_capture == 'pending' %}
 							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% endif%}
@@ -56,7 +62,10 @@
 						{% endif %}
 						
 						{% if asset.pdf_capture %}
+
 							<li><a {% if serve_type == 'pdf' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF View</a>
+
+
 							{% if asset.pdf_capture == 'pending' %}
 							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% endif%}
@@ -64,6 +73,7 @@
 						{% endif %}
 						
 						{% if asset.text_capture %}
+
 							<li><a {% if serve_type == 'text' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Text View</a>
 							{% if asset.text_capture == 'pending' %}
 							<img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">

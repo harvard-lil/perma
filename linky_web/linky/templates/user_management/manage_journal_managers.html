@@ -9,7 +9,27 @@
 {% block content %}
 
 
-	<h3>Existing journal managers</h3>
+	<h3>Existing journal managers <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
+	
+	<div id="add-member" class="collapse">
+	  <form method="post">
+      {% csrf_token %}
+		  <h4>Add a new journal manager</h4>
+		  <fieldset>
+		  <span class="text-error">{{ form.non_field_errors }}</span>
+        {% for field in form %}
+          <label for="id_{{ field.name }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+          {%elif field.help_text %}
+            <span class="help-inline">{{ field.help_text }}</span>
+          {% endif %}
+        {% endfor %}  
+      </fieldset>
+      <button type="submit" class="btn">Add journal manager</button>
+    </form>
+  </div>
 
 	<table class="table">
     <thead>
@@ -34,24 +54,6 @@
       {% endfor %}
     </tbody>
   </table>
-
-    <form class="embedded-form" method="post">
-      {% csrf_token %}
-		  <h4>Add a new journal manager</h4>
-		  <fieldset>
-		  <span class="text-error">{{ form.non_field_errors }}</span>
-        {% for field in form %}
-          <label for="id_{{ field.name }}">{{ field.label }}</label>
-          {{ field }}
-          {% if field.errors %}
-            {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
-          {%elif field.help_text %}
-            <span class="help-inline">{{ field.help_text }}</span>
-          {% endif %}
-        {% endfor %}  
-      </fieldset>
-      <button type="submit" class="btn">Add journal manager</button>
-    </form>
 
 
 {% endblock %}
