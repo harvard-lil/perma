@@ -839,6 +839,10 @@ ul#linky-ul li {
   margin-bottom: 35px;
 }
 
+#add-member {
+  margin-bottom: 35px;
+}
+
 .embedded-form {
   margin-top:65px;
 }
@@ -907,7 +911,11 @@ fieldset {
 
 h3 small, small {
     text-shadow:none;
-    font-size:17px;
+    font-size:13px;
+    position:relative;
+    padding:3px 8px;
+    top:-5px;
+    cursor:pointer;
 }
 
 .white-box {
