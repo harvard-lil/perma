@@ -101,7 +101,7 @@
 
 			{% if serve_type == 'live' %}
 				{% if display_iframe %}
-				<iframe src="{{linky.submitted_url}}" sandbox="allow-forms allow-scripts">
+				<iframe src="{{linky.submitted_url}}"{% if not asset.pdf_capture %} sandbox="allow-forms allow-scripts" {% endif %}>
 				  <p>Unable to create a live view of the {{linky.submitted_url}}</p>
 				</iframe>
 				{% else %}

@@ -114,7 +114,7 @@ def single_linky(request, linky_guid):
         asset = Asset.objects.get(link=link)
 
 
-        text_capture = False
+        text_capture = None
 
         # User requested archive type
         serve_type = 'live'
@@ -130,13 +130,14 @@ def single_linky(request, linky_guid):
                 serve_type = 'source'
             elif requested_type == 'text':
                 serve_type = 'text'
+                            
+                if asset.text_capture and asset.text_capture != 'pending':
+                    path_elements = [settings.GENERATED_ASSETS_STORAGE, asset.base_storage_path, asset.text_capture]
+                    file_path = os.path.sep.join(path_elements)
                 
-                path_elements = [settings.GENERATED_ASSETS_STORAGE, asset.base_storage_path, asset.text_capture]
-                file_path = os.path.sep.join(path_elements)
-                
-                with open(file_path, 'r') as f:
-                    text_capture = f.read()
-                f.closed
+                    with open(file_path, 'r') as f:
+                        text_capture = f.read()
+                    f.closed
             
         # If we are going to serve up the live version of the site, let's make sure it's iframe-able
         display_iframe = False

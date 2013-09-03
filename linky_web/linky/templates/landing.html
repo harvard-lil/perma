@@ -185,15 +185,14 @@
 	  {{#if preview}}
 		<a href="{{linkyUrl}}" target="_blank"><img src="{{preview}}" /></a>
 	  {{ else }}
-	    <p>Archiving process started. Sorry, no preview available.</p>
+   	    {{#if message_pdf }}
+          <p>Archiving PDF now. PDF previews not available. Keep an eye on the <a href="{{url}}" target="_blank">Perma URL</a> for archiving updates</p>
+		{{ else }}
+	      <p>Archiving process started. Sorry, no preview available.</p>
+ 	    {{/if}}
  	  {{/if}}
 	</div>
-      
-
-	  {{#if message_pdf }}
-      <p>Archiving PDF now. PDF previews not available. Keep an eye on the <a href="{{url}}" target="_blank">Perma URL</a> for archiving updates</p>
- 	  {{/if}}
-
+	
     <div class="link-results">
       
       <p class="library-link-title">{{title}}</p>
