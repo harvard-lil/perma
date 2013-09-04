@@ -157,11 +157,21 @@ def get_pdf(link_guid, target_url, base_storage_path, user_agent):
     r = requests.get(target_url, stream = True, headers=headers)
     file_path = os.path.sep.join(path_elements)
 
-    with open(file_path, 'wb') as f:
-        for chunk in r.iter_content(chunk_size=1024): 
-            if chunk: # filter out keep-alive new chunks
-                f.write(chunk)
-                f.flush()
+    try:
+        with open(file_path, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=1024):
+            
+                # Limit our filesize
+                if f.tell() > settings.MAX_ARCHIVE_FILE_SIZE:
+                    raise
+                
+                if chunk: # filter out keep-alive new chunks
+                    f.write(chunk)
+                    f.flush()
+                    
+    except Exception, e:
+        logger.info("PDF capture too big, %s" % target_url)
+        os.remove(file_path)
 
     if os.path.exists(os.path.sep.join(path_elements)):
         # TODO: run some sort of validation check on the PDF

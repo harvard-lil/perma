@@ -143,7 +143,7 @@ def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            if validate_upload_file(request.FILES['file']):
+            if validate_upload_file(request.FILES['file']) and request.FILES['file'].size <= settings.MAX_ARCHIVE_FILE_SIZE:
                 link = Link(submitted_url=form.cleaned_data['url'], submitted_title=form.cleaned_data['title'])
                 
                 if request.user.is_authenticated():
@@ -177,6 +177,7 @@ def upload_file(request):
                     #subprocess.check_call(params)
 
                 asset.save()
+                
                 request.FILES['file'].file.seek(0)
                 f = open(linky_home_disk_path + file_name, 'w')
                 f.write(request.FILES['file'].file.read())
