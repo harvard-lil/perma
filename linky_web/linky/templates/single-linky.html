@@ -41,14 +41,14 @@
 				</div>
 			    <div class="span2 negative-margin">
 			    	<ul class="view-type">
-		                <li><a {% if serve_type == 'live' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=live">Live View</a></li>
+		                <li><a {% if serve_type == 'live' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=live">Live View</a></li>
 
 						{% if asset.image_capture and asset.image_capture != 'failed' %}
 							<li>
 							{% if asset.image_capture == 'pending' %}
 								Image View <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% else %}
-								<a {% if serve_type == 'image' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=image">Image View</a>
+								<a {% if serve_type == 'image' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=image">Image View</a>
 							{% endif%}
 							</li>
 						{% endif %}
@@ -58,7 +58,7 @@
 							{% if asset.warc_capture == 'pending' %}
 								Source View <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% else %}
-								<a {% if serve_type == 'source' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Source View</a>
+								<a {% if serve_type == 'source' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Source View</a>
 							{% endif%}
 							</li>
 						{% endif %}
@@ -68,7 +68,7 @@
 							{% if asset.pdf_capture == 'pending' %}
 								PDF View <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% else %}
-								<a {% if serve_type == 'pdf' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF View </a>
+								<a {% if serve_type == 'pdf' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF View </a>
 							{% endif%}
 							</li>
 						{% endif %}
@@ -78,7 +78,7 @@
 							{% if asset.text_capture == 'pending' %}
 								Text View <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% else %}
-								<a {% if serve_type == 'text' %}class="active"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Text View</a>
+								<a {% if serve_type == 'text' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Text View</a>
 							{% endif%}
 							</li>
 						{% endif %}

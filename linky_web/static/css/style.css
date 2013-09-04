@@ -906,7 +906,7 @@ img.watermark-image {
 	
 }
 
-.active {
+.active-view {
 	font-weight:bold;
 }
 
@@ -1156,6 +1156,10 @@ td.registrar-name-cell {
 
 td.registrar-website-cell {
   min-width:250px;
+}
+
+.delete-confirm {
+  margin-left:85px;
 }
 
 .nav {
