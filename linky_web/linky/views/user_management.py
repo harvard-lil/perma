@@ -616,7 +616,7 @@ def custom_domain(request):
     return render_to_response('user_management/custom_domain.html', context)
     
 
-@ratelimit(method='POST', rate=settings.LOGIN_MINUTE_LIMIT, block='True', ip=True)
+@ratelimit(field='email', method='POST', rate=settings.LOGIN_MINUTE_LIMIT, block='True', ip=True)
 #@ratelimit(method='POST', rate=settings.LOGIN_HOUR_LIMIT, block='True', ip=True)
 #@ratelimit(method='POST', rate=settings.LOGIN_DAY_LIMIT, block='True', ip=True)
 def limited_login(request, template_name='registration/login.html',
@@ -659,8 +659,8 @@ def limited_login(request, template_name='registration/login.html',
 
 
 @ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block='True', ip=True)
-@ratelimit(method='POST', rate=settings.REGISTER_HOUR_LIMIT, block='True', ip=True)
-@ratelimit(method='POST', rate=settings.REGISTER_DAY_LIMIT, block='True', ip=True)
+#@ratelimit(method='POST', rate=settings.REGISTER_HOUR_LIMIT, block='True', ip=True)
+#@ratelimit(method='POST', rate=settings.REGISTER_DAY_LIMIT, block='True', ip=True)
 def process_register(request):
     """
     Register a new user
