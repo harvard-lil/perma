@@ -198,7 +198,7 @@ LOGIN_URL = '/login'
 BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 
 # When getting the source with wget, let's set some details
-ARCHIVE_QUOTA = '5m' # Maximum filesize
+ARCHIVE_QUOTA = '20m' # Maximum filesize
 ARCHIVE_LIMIT_RATE = '100m' # Download limit rate; TODO reduce for production
 ACCEPT_CONTENT_TYPES = [ # HTTP content-type parameters to accept
     'text/html',
@@ -208,6 +208,9 @@ ACCEPT_CONTENT_TYPES = [ # HTTP content-type parameters to accept
 ]
 NUMBER_RETRIES = 3 # if wget fails to get a resource, try to get again this many times
 WAIT_BETWEEN_TRIES = 4 # wait between .5 and this many seconds between http requests to our source
+
+# Max file size (for our downloads)
+MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 20 # 20 MB
 
 # Instapaper credentials
 INSTAPAPER_KEY = 'key'
