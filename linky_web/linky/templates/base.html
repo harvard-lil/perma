@@ -35,7 +35,6 @@
 									{% if user.is_authenticated %}
 									<li id="header-greeting">Hello, {{ user.email|truncatechars:35 }}</li>
 									<li><a href="{% url 'auth_logout' %}">{% if this_page == 'logout' %} class="this-page"{% endif %}<span style="color: #aaa;">Log out</span></a></li>
-									<!-- TODO: canonical dashboard url? -->
 									<li><a href="{% url 'user_management_created_links' %}" id="nav-button" class="btn btn-large btn-success">Dashboard</a></li>
 									{% else %}
 									<!-- TO COME <li><a href="{% url 'tools' %}"{% if this_page == 'tools' %} class="this-page"{% endif %}>Tools</a></li>-->

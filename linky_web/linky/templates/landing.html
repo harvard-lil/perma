@@ -26,8 +26,7 @@
         <p>Perma.cc helps authors and journals create<br />
         permanent links for citations in their published work.</p>
         {% if user.is_authenticated %}
-        <p><a href="{% comment %}TODO add dashboard url{% url 'dashboard' %}{% endcomment %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
-        <p id="subtext">Currently signed in as <a href="#">{{ user.username }}</a> (<a href="#">log out</a>)</p>
+        <p><a href="{% url 'user_management_created_links' %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
         {% else %}
         <p><a href="#" class="btn btn-large btn-success">Sign Up for a Free Account</a></p>
         <p id="subtext">See <a href="#">how it works</a> or <a href="{% url 'user_management_limited_login' %}">log in</a>.</p>
