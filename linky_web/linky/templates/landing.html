@@ -181,17 +181,19 @@
 {% verbatim %}
 <script id="success-template" type="text/x-handlebars-template">
   <li id="link-short-slug" class="library-link-item" style="display: none;">
-	<div class="library-thumbnail">
+
 	  {{#if preview}}
-		<a href="{{linkyUrl}}" target="_blank"><img src="{{preview}}" /></a>
+		<div class="library-thumbnail">
+			<a href="{{linkyUrl}}" target="_blank"><img src="{{preview}}" /></a>
+		</div>
 	  {{ else }}
    	    {{#if message_pdf }}
-          <p>Archiving PDF now. PDF previews not available. Keep an eye on the <a href="{{url}}" target="_blank">Perma URL</a> for archiving updates</p>
+          <p>Archiving PDF now.</p><p>PDF previews not available. Keep an eye on the <a href="{{url}}" target="_blank">Perma URL</a> for archiving updates</p>
 		{{ else }}
 	      <p>Archiving process started. Sorry, no preview available.</p>
  	    {{/if}}
  	  {{/if}}
-	</div>
+
 	
     <div class="link-results">
       

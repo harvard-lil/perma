@@ -23,7 +23,7 @@
 				<div class="span6 meta-data negative-margin">
 					<p><a class="submitted_url grey" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a></br>
 					<a class="submitted_url grey" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></br>
-					created {{linky.creation_timestamp}} | {{linky.view_count }} views</span> 
+					created {{linky.creation_timestamp}} | {{ linky.view_count }} view{% if linky.view_count > 1 %}s{% endif %}</span> 
 					{% comment %}
 					{% diff asset linky %} <!-- has the instapaper cap changed recently? -->
 					{% endcomment %}
