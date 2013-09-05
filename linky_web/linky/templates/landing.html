@@ -104,10 +104,10 @@
         <div class="center">
             <form class="form-inline" id="linky_upload_form" action="/api/linky/upload" method="post">
             <h4>Choose a file</h4>
-            <input id="file" name="file" class="input-xlarge button" type="file" placeholder="example.png"></p>
+            <p><input id="file" name="file" class="input-xlarge" type="file" placeholder="example.png"></p>
             <p><input id="title" name="title" class="input-xlarge" type="text" placeholder="Example Page Title"></p>
-            <input id="url" name="url" class="input-xlarge" type="text" placeholder="www.example.com">
-            <button type="submit" id="uploadLinky" class="btn">Upload this Perma</button>
+            <p><input id="url" name="url" class="input-xlarge" type="text" placeholder="www.example.com"></p>
+            <button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Upload this Perma</button>
 			{% csrf_token %}
             <p id="upload-error" class="text-error"></p>
             </form>

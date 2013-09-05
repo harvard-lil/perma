@@ -98,7 +98,6 @@ header {
           font-family: 'Roboto Slab', sans-serif;
           font-size:36px;
           color:#ee5f5b;
-          margin-top:20px;
 	}
 
 
@@ -170,7 +169,8 @@ li.participating-institutions img{
 	border-radius: 3px;
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
-	margin-right:20px;
+	margin-right:10px;
+	margin-bottom:10px;
 }
 
 /* Main */
