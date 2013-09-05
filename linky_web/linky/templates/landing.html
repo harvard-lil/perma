@@ -26,8 +26,7 @@
         <p>Perma.cc helps authors and journals create<br />
         permanent links for citations in their published work.</p>
         {% if user.is_authenticated %}
-        <p><a href="{% comment %}TODO add dashboard url{% url 'dashboard' %}{% endcomment %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
-        <p id="subtext">Currently signed in as <a href="#">{{ user.username }}</a> (<a href="#">log out</a>)</p>
+        <p><a href="{% url 'user_management_created_links' %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
         {% else %}
         <p><a href="#" class="btn btn-large btn-success">Sign Up for a Free Account</a></p>
         <p id="subtext">See <a href="#">how it works</a> or <a href="{% url 'user_management_limited_login' %}">log in</a>.</p>
@@ -181,17 +180,19 @@
 {% verbatim %}
 <script id="success-template" type="text/x-handlebars-template">
   <li id="link-short-slug" class="library-link-item" style="display: none;">
-	<div class="library-thumbnail">
+
 	  {{#if preview}}
-		<a href="{{linkyUrl}}" target="_blank"><img src="{{preview}}" /></a>
+		<div class="library-thumbnail">
+			<a href="{{linkyUrl}}" target="_blank"><img src="{{preview}}" /></a>
+		</div>
 	  {{ else }}
    	    {{#if message_pdf }}
-          <p>Archiving PDF now. PDF previews not available. Keep an eye on the <a href="{{url}}" target="_blank">Perma URL</a> for archiving updates</p>
+          <p>Archiving PDF now.</p><p>PDF previews not available. Keep an eye on the <a href="{{url}}" target="_blank">Perma URL</a> for archiving updates</p>
 		{{ else }}
 	      <p>Archiving process started. Sorry, no preview available.</p>
  	    {{/if}}
  	  {{/if}}
-	</div>
+
 	
     <div class="link-results">
       

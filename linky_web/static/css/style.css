@@ -942,7 +942,7 @@ a.grey {
     margin-top:-9px;
 }
 
-.recent-linky-summary small {
+.recent-linky-summary small, .linky-abbr-title small {
 	font-style:italic;
 }
 .copy-confirm {
