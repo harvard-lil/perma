@@ -21,9 +21,9 @@
 				</div><!--end span 3 -->
 				
 				<div class="span6 meta-data negative-margin">
-					<p><a class="submitted_url grey" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a></br>
-					<a class="submitted_url grey" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></br>
-					created {{linky.creation_timestamp}} | {{ linky.view_count }} view{% if linky.view_count > 1 %}s{% endif %}</span> 
+					<p>{{linky.submitted_title}}</br>
+					<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></br>
+					<span class="light-grey">created {{linky.creation_timestamp}} | {{ linky.view_count }} view{% if linky.view_count > 1 %}s{% endif %}</span></p>
 					{% comment %}
 					{% diff asset linky %} <!-- has the instapaper cap changed recently? -->
 					{% endcomment %}
@@ -41,14 +41,14 @@
 				</div>
 			    <div class="span2 negative-margin">
 			    	<ul class="view-type">
-		                <li><a {% if serve_type == 'live' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=live">Live View</a></li>
+		                <li><a {% if serve_type == 'live' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=live">Live site view</a></li>
 
 						{% if asset.image_capture and asset.image_capture != 'failed' %}
 							<li>
 							{% if asset.image_capture == 'pending' %}
 								Image View <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% else %}
-								<a {% if serve_type == 'image' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=image">Image View</a>
+								<a {% if serve_type == 'image' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=image">Screen capture</a>
 							{% endif%}
 							</li>
 						{% endif %}
@@ -56,9 +56,9 @@
 						{% if asset.warc_capture and asset.warc_capture != 'failed' %}
 							<li>
 							{% if asset.warc_capture == 'pending' %}
-								Source View <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+								Archived site <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% else %}
-								<a {% if serve_type == 'source' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Source View</a>
+								<a {% if serve_type == 'source' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Archived Site</a>
 							{% endif%}
 							</li>
 						{% endif %}
@@ -66,9 +66,9 @@
 						{% if asset.pdf_capture and asset.pdf_capture != 'failed' %}
 							<li>
 							{% if asset.pdf_capture == 'pending' %}
-								PDF View <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+								PDF <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% else %}
-								<a {% if serve_type == 'pdf' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF View </a>
+								<a {% if serve_type == 'pdf' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF</a>
 							{% endif%}
 							</li>
 						{% endif %}
@@ -76,9 +76,9 @@
 						{% if asset.text_capture and asset.text_capture != 'failed' %}
 							<li>
 							{% if asset.text_capture == 'pending' %}
-								Text View <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+								Extracted text <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% else %}
-								<a {% if serve_type == 'text' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Text View</a>
+								<a {% if serve_type == 'text' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Extracted text</a>
 							{% endif%}
 							</li>
 						{% endif %}
