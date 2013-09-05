@@ -91,8 +91,13 @@ function linkIt(){
     });
 
     clip.on( 'complete', function(client, args) {
-      $(this).next('.copy-confirm').fadeIn(100).fadeOut(3000);
+      $(this).prev('.copy-confirm').fadeIn(100).fadeOut(3000);
     });
+    
+      
+  if(!swfobject.hasFlashPlayerVersion("1")) {
+      $('.copy-button').hide();
+  }
       
     $('#emailPerma').on('submit', function(event){
       var request = $.ajax({
@@ -141,7 +146,7 @@ function drawLinks() {
       });
 
       clip.on( 'complete', function(client, args) {
-        $(this).next('.copy-confirm').fadeIn(100).fadeOut(3000);
+        $(this).prev('.copy-confirm').fadeIn(100).fadeOut(3000);
       });
     });
     $('#local-list, #linky-list').fadeIn();

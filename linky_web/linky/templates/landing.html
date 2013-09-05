@@ -62,7 +62,7 @@
 				</div><!--/.span8-->
 				<div class="span4">
 					<div class="copy-button-div">
-						<button class="btn copy-button" data-clipboard-text="{{host}}/{{linky_link.guid}}" title="Copy Perma Link">Copy Perma &infin;</button><span class="copy-confirm" style="display:none"><i class="icon-check"></i></span>
+						<span class="copy-confirm" style="display:none"><i class="icon-check text-success"></i></span><button class="btn copy-button" data-clipboard-text="{{host}}/{{linky_link.guid}}" title="Copy Perma Link">Copy Perma &infin;</button>
 					</div>
 				</div><!--/.span4-->
 			</li>
@@ -145,6 +145,7 @@
 <script src="{{ STATIC_PREFIX }}js/handlebars.js"></script>
 <script src="http://malsup.github.com/jquery.form.js"></script>
 <script src="{{ STATIC_PREFIX }}js/landing.js"></script>
+<script src="{{ STATIC_PREFIX }}js/swfobject.js"></script>
 {% endblock %}
 {% block templates %}
 
@@ -162,7 +163,7 @@
 				</div>
 			</div>
 			<div class="span4">
-				<div class="copy-button-div"><button class="btn copy-button" data-clipboard-text="{{url}}" title="Copy Perma Link">Copy Perma &infin;</button><p class="copy-confirm text-center" style="display:none"></p></div>
+				<div class="copy-button-div"><span class="copy-confirm" style="display:none"><i class="icon-check text-success"></i></span><button class="btn copy-button" data-clipboard-text="{{url}}" title="Copy Perma Link">Copy Perma &infin;</button></div>
 			</div>
 		</li>
 	</div>
@@ -197,7 +198,7 @@
       
       <p class="library-link-title">{{title}}</p>
       <p class="library-link-url"><a href="{{original}}">{{original}}</a></p>
-      <a href="{{url}}" class="anchor-short-slug" target="_blank">{{url}}</a> | <a class="copy-button library-link-meta" data-clipboard-text="{{url}}" title="Copy Linky Link">Copy Perma &infin;</a>
+      <a href="{{url}}" class="anchor-short-slug" target="_blank">{{url}}</a> | <span class="copy-confirm" style="display:none"><i class="icon-check text-success"></i></span><a class="copy-button library-link-meta" data-clipboard-text="{{url}}" title="Copy Perma Link">Copy Perma &infin;</a>
       <form class="form-inline" id="emailPerma">
         <input id="email_request" type="text" placeholder="user@example.com">
         <button type="submit" class="btn">Email this Perma</button>
