@@ -76,7 +76,7 @@
 						{% if asset.text_capture and asset.text_capture != 'failed' %}
 							<li>
 							{% if asset.text_capture == 'pending' %}
-								Extracted text <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+								Archived text <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% else %}
 								<a {% if serve_type == 'text' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Extracted text</a>
 							{% endif%}
