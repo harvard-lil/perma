@@ -146,6 +146,11 @@ function drawLinks() {
     });
     $('#local-list, #linky-list').fadeIn();
   }
+  
+  if(!swfobject.hasFlashPlayerVersion("1")) {
+      $('.copy-button').hide();
+  }
+  
 }
 
 function addToStorage(new_link) {
