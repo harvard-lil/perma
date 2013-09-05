@@ -1,7 +1,7 @@
 from django import template
 import os, smhasher
-from linky.settings import STATIC_URL, PROJECT_ROOT, GENERATED_ASSETS_STORAGE
-from linky.tasks import instapaper_capture
+from perma.settings import STATIC_URL, PROJECT_ROOT, GENERATED_ASSETS_STORAGE
+from perma.tasks import instapaper_capture
 register = template.Library()
 
 

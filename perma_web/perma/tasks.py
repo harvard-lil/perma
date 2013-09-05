@@ -3,9 +3,9 @@ from djcelery import celery
 import requests
 from django.conf import settings
 
-from linky.models import Asset
-from linky.exceptions import BrokenURLError
-from linky.settings import INSTAPAPER_KEY, INSTAPAPER_SECRET, INSTAPAPER_USER, INSTAPAPER_PASS, GENERATED_ASSETS_STORAGE
+from perma.models import Asset
+from perma.exceptions import BrokenURLError
+from perma.settings import INSTAPAPER_KEY, INSTAPAPER_SECRET, INSTAPAPER_USER, INSTAPAPER_PASS, GENERATED_ASSETS_STORAGE
 
 import oauth2 as oauth
 

@@ -13,7 +13,7 @@ from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
 
-from linky.utils import base
+from perma.utils import base
 
 logger = logging.getLogger(__name__)
 

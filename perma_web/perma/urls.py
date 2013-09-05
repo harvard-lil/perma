@@ -6,7 +6,7 @@ from django.contrib.auth import views as auth_views
 
 admin.autodiscover()
 
-urlpatterns = patterns('linky.views',
+urlpatterns = patterns('perma.views',
 
     # Common Pages
     url(r'^$', 'common.landing', name='landing'),
@@ -64,7 +64,7 @@ urlpatterns = patterns('linky.views',
 #    url(r'^manage/account/?$', 'manage.account', name='manage_account'),
 #    url(r'^manage/activity/?$', 'manage.activity', name='manage_activity'),
     
-    # Our Linky ID catchall
+    # Our Perma ID catchall
     url(r'^(?P<linky_guid>[a-zA-Z0-9]+)/?$', 'common.single_linky', name='single_linky'),    
     
 )

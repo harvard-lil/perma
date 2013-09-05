@@ -2,8 +2,8 @@ from django import forms
 from django.contrib.auth.models import User
 from django.forms import ModelForm
 
-from linky.models import Registrar
-from linky.models import LinkUser
+from perma.models import Registrar
+from perma.models import LinkUser
 
 
 class registrar_form(ModelForm):

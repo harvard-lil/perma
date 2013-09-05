@@ -7,10 +7,10 @@ import lxml.html, requests
 from PIL import Image
 from pyPdf import PdfFileReader
 
-from linky.models import Link, Asset
-from linky.forms import UploadFileForm
-from linky.utils import base
-from linky.tasks import get_screen_cap, get_source, store_text_cap, get_pdf
+from perma.models import Link, Asset
+from perma.forms import UploadFileForm
+from perma.utils import base
+from perma.tasks import get_screen_cap, get_source, store_text_cap, get_pdf
 
 from django.shortcuts import render_to_response, HttpResponse
 from django.http import HttpResponseBadRequest
@@ -73,7 +73,7 @@ def linky_post(request):
     now = dt = datetime.now()
     time_tuple = now.timetuple()
 
-    path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday), str(time_tuple.tm_hour), link.guid]
+    path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday), str(time_tuple.tm_hour), str(time_tuple.tm_min), link.guid]
 
     # Create a stub for our assets
     asset, created = Asset.objects.get_or_create(link=link)
@@ -152,7 +152,7 @@ def upload_file(request):
                 
                 now = dt = datetime.now()
                 time_tuple = now.timetuple()
-                path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday), str(time_tuple.tm_hour), link.guid]
+                path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday), str(time_tuple.tm_hour), str(time_tuple.tm_min), link.guid]
 
                 linky_home_disk_path = settings.GENERATED_ASSETS_STORAGE + '/' + os.path.sep.join(path_elements)
 

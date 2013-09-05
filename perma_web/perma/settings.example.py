@@ -1,4 +1,4 @@
-# Django settings for linky project.
+# Django settings for Perma project.
 
 import os, sys
 
@@ -118,12 +118,12 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-RATELIMIT_VIEW = 'linky.views.common.rate_limit'
+RATELIMIT_VIEW = 'perma.views.common.rate_limit'
 
-ROOT_URLCONF = 'linky.urls'
+ROOT_URLCONF = 'perma.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'linky.wsgi.application'
+WSGI_APPLICATION = 'perma.wsgi.application'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -138,7 +138,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'linky',
+    'perma',
     'south',
     'djcelery',
     'ratelimit',
@@ -165,7 +165,7 @@ LOGGING = {
         'default': {
             'level':'INFO',
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': '/tmp/linky.log',
+            'filename': '/tmp/perma.log',
             'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 5,
             'formatter':'standard',
@@ -189,7 +189,7 @@ LOGGING = {
     }
 }
 
-AUTH_USER_MODEL = 'linky.LinkUser'
+AUTH_USER_MODEL = 'perma.LinkUser'
 
 LOGIN_REDIRECT_URL = '/manage'
 LOGIN_URL = '/login'

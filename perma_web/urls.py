@@ -7,5 +7,5 @@ admin.autodiscover()
 urlpatterns = patterns('',
     
     # Common Pages
-    url(r'^', include('linky.linky.urls')),
+    url(r'^', include('perma.urls')),
 )

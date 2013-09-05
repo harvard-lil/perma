@@ -18,7 +18,7 @@ def email_confirm(request):
     
     from_address = "info@perma.cc"
     to_address = email_address
-    content = "%s \n\n(This linky is the Perma link)" % linky_link
+    content = "%s \n\n(This link is the Perma link)" % linky_link
 
     msg = MIMEText(content)
     msg['Subject'] = "The Perma link you requested"

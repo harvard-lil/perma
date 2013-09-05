@@ -1,6 +1,6 @@
 from django import template
 import os
-from linky.settings import STATIC_URL, PROJECT_ROOT, GENERATED_ASSETS_STORAGE
+from perma.settings import STATIC_URL, PROJECT_ROOT, GENERATED_ASSETS_STORAGE
 STATIC_PREFIX = STATIC_URL
 register = template.Library()
 

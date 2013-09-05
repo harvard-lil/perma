@@ -11,8 +11,8 @@ from urlparse import urlparse
 import urllib2, os, logging
 from urlparse import urlparse
 
-from linky.models import Link, Asset
-from linky.utils import base
+from perma.models import Link, Asset
+from perma.utils import base
 from ratelimit.decorators import ratelimit
 
 logger = logging.getLogger(__name__)
@@ -92,7 +92,7 @@ def tools(request):
 @ratelimit(method='GET', rate=settings.DAY_LIMIT, block='True')
 def single_linky(request, linky_guid):
     """
-    Given a Linky ID, serve it up. Vetting also takes place here.
+    Given a Perma ID, serve it up. Vesting also takes place here.
     """
 
     if request.method == 'POST' and request.user.is_authenticated():
@@ -163,7 +163,7 @@ def single_linky(request, linky_guid):
 
         context.update(csrf(request))
 
-    return render_to_response('single-linky.html', context)
+    return render_to_response('single-link.html', context)
 
 
 def rate_limit(request, exception):

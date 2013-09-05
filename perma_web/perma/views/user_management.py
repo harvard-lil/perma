@@ -1,8 +1,8 @@
 import logging
 
-from linky.forms import user_reg_form, regisrtar_member_form, registrar_form, journal_manager_form, journal_manager_form_edit, journal_member_form, journal_member_form_edit, regisrtar_member_form_edit, user_form_self_edit
-from linky.models import Registrar, Link
-from linky.utils import base
+from perma.forms import user_reg_form, regisrtar_member_form, registrar_form, journal_manager_form, journal_manager_form_edit, journal_member_form, journal_member_form_edit, regisrtar_member_form_edit, user_form_self_edit
+from perma.models import Registrar, Link
+from perma.utils import base
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -20,7 +20,7 @@ from django.contrib.auth.models import User, Permission, Group
 import random, string, smtplib
 from email.mime.text import MIMEText
 from django.core.paginator import Paginator
-from linky.models import LinkUser
+from perma.models import LinkUser
 from ratelimit.decorators import ratelimit
 
 

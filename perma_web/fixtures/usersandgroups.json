@@ -41,7 +41,7 @@
     },
     {
         "pk": 1,
-        "model": "linky.registrar",
+        "model": "perma.registrar",
         "fields": {
             "name": "Test Library",
             "email": "library@university.edu",
@@ -50,7 +50,7 @@
     },
     {
         "pk": 1,
-        "model": "linky.LinkUser",
+        "model": "perma.LinkUser",
         "fields": {
             "is_active": true,
             "last_login": "2013-07-23T18:55:41Z",
@@ -66,7 +66,7 @@
     },
     {
         "pk": 2,
-        "model": "linky.LinkUser",
+        "model": "perma.LinkUser",
         "fields": {
             "registrar": 1,
             "is_active": true,
@@ -83,7 +83,7 @@
     },
     {
         "pk": 3,
-        "model": "linky.LinkUser",
+        "model": "perma.LinkUser",
         "fields": {
             "registrar": 1,
             "is_active": true,
@@ -101,7 +101,7 @@
     },
     {
         "pk": 4,
-        "model": "linky.LinkUser",
+        "model": "perma.LinkUser",
         "fields": {
             "is_active": true,
             "last_login": "2013-07-23T18:55:25Z",
@@ -117,7 +117,7 @@
     },
         {
         "pk": 5,
-        "model": "linky.LinkUser",
+        "model": "perma.LinkUser",
         "fields": {
             "registrar": 1,
             "is_active": true,
