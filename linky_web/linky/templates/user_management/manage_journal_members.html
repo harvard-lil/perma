@@ -1,20 +1,20 @@
 {% extends "admin-layout.html" %}
-{% block title %} | Journal members{% endblock %}
+{% block title %} | Vesting members{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 {% endblock %}
 
-{% block manage-nav-journal %}<li class="active"><a href="{% url 'user_management_manage_journal_member' %}">Journal users</a></li>{% endblock %}
+{% block manage-nav-journal %}<li class="active"><a href="{% url 'user_management_manage_journal_member' %}">Vesting users</a></li>{% endblock %}
 
 {% block content %}
 
 
-	<h3>Existing journal members <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
+	<h3>Existing vesting members <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
 	
 	<div id="add-member" class="collapse">
 	  <form method="post">
       {% csrf_token %}
-		  <h4>Add a new journal member</h4>
+		  <h4>Add a new vesting member</h4>
 		  <fieldset>
 		  <span class="text-error">{{ form.non_field_errors }}</span>
         {% for field in form %}
@@ -27,7 +27,7 @@
           {% endif %}
         {% endfor %}  
       </fieldset>
-      <button type="submit" class="btn">Add journal member</button>
+      <button type="submit" class="btn">Add vesting member</button>
     </form>
   </div>
 
@@ -50,7 +50,7 @@
 		  {% if user.groups.all.0.name == 'registry_member' %}<td>{{member.registrar.name}}</td>{% endif %}
           <td><a href="{% url 'user_management_manage_single_journal_member' member.id%}">edit/delete</a></td>
       {% empty %}
-        <tr>No journal members found.</tr>
+        <tr>No vesting members found.</tr>
       {% endfor %}
     </tbody>
   </table>

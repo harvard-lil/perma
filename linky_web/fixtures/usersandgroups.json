@@ -3,7 +3,7 @@
         "pk": 2,
         "model": "auth.group",
         "fields": {
-            "name": "journal_member",
+            "name": "vesting_member",
             "permissions": []
         }
     },
@@ -11,7 +11,7 @@
         "pk": 5,
         "model": "auth.group",
         "fields": {
-            "name": "journal_manager",
+            "name": "vesting_manager",
             "permissions": []
         }
     },
@@ -92,9 +92,9 @@
                 2
             ],
             "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
-            "email": "test_journal_member@example.com",
+            "email": "test_vesting_member@example.com",
             "date_joined": "2013-06-26",
-            "first_name": "Journal",
+            "first_name": "Vesting",
             "last_name": "Member",
             "authorized_by": 5
         }
@@ -126,9 +126,9 @@
                 5
             ],
             "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
-            "email": "test_journal_manager@example.com",
+            "email": "test_vesting_manager@example.com",
             "date_joined": "2013-06-26",
-            "first_name": "Journal",
+            "first_name": "Vesting",
             "last_name": "Manager"
         }
     }

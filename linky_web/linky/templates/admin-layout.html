@@ -84,14 +84,14 @@
         <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>
         <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_registrar_member' %}">Registrar Users</a></li>{% endif %}
         
-        <!-- Journal managers -->
+        <!-- Vesting managers aka journal managers -->
         {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' %}
-        <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_journal_manager' %}">Journal Managers</a></li>
+        <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_journal_manager' %}">Vesting Managers</a></li>
         {% endif %}
 
-        <!-- Journal users -->
+        <!-- Vesting users -->
         {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'journal_manager' %}
-        <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_journal_member' %}">Journal Users</a></li>
+        <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_journal_member' %}">Vesting Users</a></li>
         {% endif %}
         
   
@@ -127,7 +127,7 @@
       {% endif %}
       
       {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' %}
-      {% block manage-nav-journal %}<li><a href="{% url 'user_management_manage_journal_member' %}">Journal users</a></li>{% endblock %}
+      {% block manage-nav-journal %}<li><a href="{% url 'user_management_manage_journal_member' %}">Vesting users</a></li>{% endblock %}
       {% endif %}
           
       {% if user.groups.all.0.name == 'journal_member' %}

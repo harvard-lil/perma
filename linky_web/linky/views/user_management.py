@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 @login_required
 def manage_members(request):
     """
-    Registry and registrar members can manage journal members (the folks that vest links)
+    Registry and registrar members can manage vesting members (the folks that vest links)
     """
 
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
@@ -231,13 +231,13 @@ def manage_single_registrar_member_delete(request, user_id):
 @login_required
 def manage_journal_manager(request):
     """
-    Linky admins and registrars can manage journal members
+    Linky admins and registrars can manage vesting members
     """
 
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
 
-    # If registry member, return all active journal members. If registrar member, return just those journal members that belong to the registrar member's registrar
+    # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
         journal_managers = LinkUser.objects.filter(groups__name='journal_manager', is_active=True)
     else:
@@ -276,16 +276,16 @@ def manage_journal_manager(request):
 @login_required
 def manage_single_journal_manager(request, user_id):
     """
-    Linky admins and registrars can manage journal members. Edit a single journal member here.
+    Linky admins and registrars can manage vesting members. Edit a single vesting member here.
     """
 
-    # Only registry members and registrar memebers can edit journal members
+    # Only registry members and registrar memebers can edit vesting members
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
         return HttpResponseRedirect(reverse('user_management_created_links'))
 
     target_member = get_object_or_404(LinkUser, id=user_id)
 
-    # Registrar members can only edit their own journal members
+    # Registrar members can only edit their own vesting members
     if request.user.groups.all()[0].name not in ['registry_member']:
         if request.user.registrar != target_member.registrar:
             return HttpResponseRedirect(reverse('user_management_created_links'))
@@ -315,16 +315,16 @@ def manage_single_journal_manager(request, user_id):
 @login_required
 def manage_single_journal_manager_delete(request, user_id):
     """
-    Linky admins and registrars can manage journal members. Delete a single journal member here.
+    Linky admins and registrars can manage vesting members. Delete a single vesting member here.
     """
 
-    # Only registry members and registrar memebers can edit journal managers
+    # Only registry members and registrar memebers can edit vesting managers
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
         return HttpResponseRedirect(reverse('user_management_landing'))
 
     target_member = get_object_or_404(LinkUser, id=user_id)
 
-    # Registrar members can only edit their own journal members
+    # Registrar members can only edit their own vesting members
     if request.user.groups.all()[0].name not in ['registry_member']:
         if request.user.registrar != target_member.registrar:
             return HttpResponseRedirect(reverse('user_management_landing'))
@@ -350,13 +350,13 @@ valid_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', 
 @login_required
 def manage_journal_member(request):
     """
-    Linky admins and registrars can manage journal members
+    Linky admins and registrars can manage vesting members
     """
 
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'journal_manager']:
         return HttpResponseRedirect(reverse('user_management_landing'))
 
-    # If registry member, return all active journal members. If registrar member, return just those journal members that belong to the registrar member's registrar
+    # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
         journal_members = LinkUser.objects.filter(groups__name='journal_member', is_active=True)
     elif request.user.groups.all()[0].name == 'journal_manager':
@@ -398,21 +398,21 @@ def manage_journal_member(request):
 @login_required
 def manage_single_journal_member(request, user_id):
     """
-    Linky admins and registrars can manage journal members. Edit a single journal member here.
+    Linky admins and registrars can manage vesting members. Edit a single vesting member here.
     """
 
-    # Only registry members and registrar memebers can edit journal members
+    # Only registry members and registrar memebers can edit vesting members
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'journal_manager']:
         return HttpResponseRedirect(reverse('user_management_created_links'))
 
     target_member = get_object_or_404(LinkUser, id=user_id)
 
-    # Registrar members can only edit their own journal members
+    # Registrar members can only edit their own vesting members
     if request.user.groups.all()[0].name not in ['registry_member']:
         if request.user.registrar != target_member.registrar:
             return HttpResponseRedirect(reverse('user_management_created_links'))
             
-    # Journal managers can only edit their own journal members
+    # Vesting managers can only edit their own vesting members
     if request.user.groups.all()[0].name not in ['registry_member', 'registrar_member']:
         if request.user != target_member.authorized_by:
             return HttpResponseRedirect(reverse('user_management_created_links'))
@@ -443,21 +443,21 @@ def manage_single_journal_member(request, user_id):
 @login_required
 def manage_single_journal_member_delete(request, user_id):
     """
-    Linky admins and registrars can manage journal members. Delete a single journal member here.
+    Linky admins and registrars can manage vesting members. Delete a single vesting member here.
     """
 
-    # Only registry members and registrar memebers can edit journal members
+    # Only registry members and registrar memebers can edit vesting members
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'journal_manager']:
         return HttpResponseRedirect(reverse('user_management_landing'))
 
     target_member = get_object_or_404(LinkUser, id=user_id)
 
-    # Registrar members can only edit their own journal members
+    # Registrar members can only edit their own vesting members
     if request.user.groups.all()[0].name not in ['registry_member']:
         if request.user.registrar != target_member.registrar:
             return HttpResponseRedirect(reverse('user_management_landing'))
             
-    # Journal managers can only edit their own journal members
+    # Vesting managers can only edit their own vesting members
     if request.user.groups.all()[0].name not in ['registry_member', 'registrar_member']:
         if request.user != target_member.authorized_by:
             return HttpResponseRedirect(reverse('user_management_created_links'))
@@ -517,7 +517,7 @@ def created_links(request):
 @login_required
 def vested_links(request):
     """
-    Linky admins and registrar members and journal members can vest link links
+    Linky admins and registrar members and vesting members can vest link links
     """
 
     if request.user.groups.all()[0].name not in ['journal_member', 'registrar_member', 'registry_member']:

@@ -1,12 +1,12 @@
 {% extends "admin-layout.html" %}
-{% block title %} | Journal members{% endblock %}
+{% block title %} | Vesting members{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 {% endblock %}
 
 {% block content %}
 
-	<h3>Edit journal member</h3>
+	<h3>Edit vesting member</h3>
 
     <form method="post">
       {% csrf_token %}
