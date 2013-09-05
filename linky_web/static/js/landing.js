@@ -91,7 +91,7 @@ function linkIt(){
     });
 
     clip.on( 'complete', function(client, args) {
-      $(this).next('.copy-confirm').html('copied').fadeIn(100).fadeOut(3000);
+      $(this).next('.copy-confirm').fadeIn(100).fadeOut(3000);
     });
       
     $('#emailPerma').on('submit', function(event){
@@ -141,7 +141,7 @@ function drawLinks() {
       });
 
       clip.on( 'complete', function(client, args) {
-        $(this).next('.copy-confirm').html('copied').fadeIn(100).fadeOut(3000);
+        $(this).next('.copy-confirm').fadeIn(100).fadeOut(3000);
       });
     });
     $('#local-list, #linky-list').fadeIn();
