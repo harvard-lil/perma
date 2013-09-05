@@ -1,6 +1,6 @@
-linky_web/static/generated/*
-!linky_web/static/generated/README
+perma_web/static/generated/*
+!perma_web/static/generated/README
 *.pyc
-linky_web/lib/phantomjs
-linky_web/linky/settings.py
-linky_web/linky/local_settings.py
+perma_web/lib/phantomjs
+perma_web/perma/settings.py
+perma_web/perma/local_settings.py

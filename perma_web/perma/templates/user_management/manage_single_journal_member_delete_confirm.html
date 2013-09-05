@@ -1,0 +1,19 @@
+{% extends "admin-layout.html" %}
+{% block title %} | Vesting members{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+{% endblock %}
+
+{% block content %}
+
+	<h3>Delete {{ target_member.email }}</h3>
+	<br/>
+	<br/>
+	<p>Yahowza! Do you really want to delete {{ target_member.email }} forever?</p>
+	<br/>
+	<form action="{% url 'user_management_manage_single_journal_member_delete' target_member.id %}" method="POST">
+	      {% csrf_token %}
+        <a href="../">Cancel</a> <button type="submit" class="btn delete-confirm">Delete {{ target_member.email }} forever</button>
+    </form>
+
+{% endblock %}

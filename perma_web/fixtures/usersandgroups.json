@@ -1,0 +1,135 @@
+[
+    {
+        "pk": 2,
+        "model": "auth.group",
+        "fields": {
+            "name": "vesting_member",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 5,
+        "model": "auth.group",
+        "fields": {
+            "name": "vesting_manager",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 3,
+        "model": "auth.group",
+        "fields": {
+            "name": "registrar_member",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 4,
+        "model": "auth.group",
+        "fields": {
+            "name": "registry_member",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 1,
+        "model": "auth.group",
+        "fields": {
+            "name": "user",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 1,
+        "model": "perma.registrar",
+        "fields": {
+            "name": "Test Library",
+            "email": "library@university.edu",
+            "website": "http://university.edu/library"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "perma.LinkUser",
+        "fields": {
+            "is_active": true,
+            "last_login": "2013-07-23T18:55:41Z",
+            "groups": [
+                4
+            ],
+            "password": "pbkdf2_sha256$10000$BK8BC1FXesBM$I+R1mquCsp5PWrHsHfv+6xuUNO560YEPqdbzWZFNzlo=",
+            "email": "test_registry_member@example.com",
+            "date_joined": "2013-06-26",
+            "first_name": "Registry",
+            "last_name": "Member"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "perma.LinkUser",
+        "fields": {
+            "registrar": 1,
+            "is_active": true,
+            "last_login": "2013-07-23T18:56:14Z",
+            "groups": [
+                3
+            ],
+            "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
+            "email": "test_registrar_member@example.com",
+            "date_joined": "2013-06-26",
+            "first_name": "Registrar",
+            "last_name": "Member"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "perma.LinkUser",
+        "fields": {
+            "registrar": 1,
+            "is_active": true,
+            "last_login": "2013-07-23T18:38:27Z",
+            "groups": [
+                2
+            ],
+            "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+            "email": "test_vesting_member@example.com",
+            "date_joined": "2013-06-26",
+            "first_name": "Vesting",
+            "last_name": "Member",
+            "authorized_by": 5
+        }
+    },
+    {
+        "pk": 4,
+        "model": "perma.LinkUser",
+        "fields": {
+            "is_active": true,
+            "last_login": "2013-07-23T18:55:25Z",
+            "groups": [
+                1
+            ],
+            "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+            "email": "test_user@example.com",
+            "date_joined": "2013-06-26",
+            "first_name": "Regular",
+            "last_name": "User"
+        }
+    },
+        {
+        "pk": 5,
+        "model": "perma.LinkUser",
+        "fields": {
+            "registrar": 1,
+            "is_active": true,
+            "last_login": "2013-07-23T18:38:27Z",
+            "groups": [
+                5
+            ],
+            "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+            "email": "test_vesting_manager@example.com",
+            "date_joined": "2013-06-26",
+            "first_name": "Vesting",
+            "last_name": "Manager"
+        }
+    }
+]
