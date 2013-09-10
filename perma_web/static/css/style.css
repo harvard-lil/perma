@@ -37,11 +37,13 @@ h1, h2, h3, h4, h5 { font-weight: normal; }
 h1 {
     margin-top: 40px;
     margin-bottom: 30px;
+    color:#ee5f5b;
 }
 
 h2 {
     margin-top: 25px;
     font-size: 26px;
+    color:#ee5f5b;
 }
 
 
@@ -180,6 +182,14 @@ section#main {
     padding: 0 0 0px 0;
 }
 
+.column {
+  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+   -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+    box-sizing: border-box;
+    padding:0 20px;
+}
+
+
 /* Footer */
 
 footer {
@@ -285,7 +295,7 @@ div.home-form-elements {
 
 section#home-description {
     background-color: #fff;
-    padding: 70px 0 0 0;
+    padding: 35px 0 0 0;
     text-align: center;
 }
 
@@ -632,6 +642,21 @@ img.image-view {
 	margin-top:0px;
 	width:1033px;
 	opacity:.8;
+}
+
+
+.translucent-background {
+	background: rgba(255,255,255,.9);
+	min-height:200px;
+	border:1px solid #ccc;
+	margin-top:10px;
+    padding-bottom:10px;
+    border-radius:3px;
+
+}
+
+.translucent-background h1 {
+	color:#ee5f5b;
 }
 
 ul {

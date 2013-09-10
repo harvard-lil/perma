@@ -200,7 +200,7 @@ def upload_file(request):
         else:
             return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Missing file.'}), 'application/json')
             
-    return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':form.errors}), 'application/json')
+    #return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':form.errors}), 'application/json')
 
 
 def urldump(request, since=None):
