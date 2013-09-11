@@ -25,6 +25,7 @@ urlpatterns = patterns('perma.views',
     
     #Services
     url(r'^service/email-confirm/?$', 'service.email_confirm', name='service_email_confirm'),
+    url(r'^service/link/status/(?P<guid>[a-zA-Z0-9]+)/?$', 'service.link_status', name='service_link_status'),
     
     # Session/account management
     url(r'^password/change/$', auth_views.password_change, {'template_name': 'registration/password_change_form.html'}, name='auth_password_change'),

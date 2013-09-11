@@ -9,7 +9,7 @@
 {% block content %}
 
 	  <h3>Account settings</h3>
-	  {% if user.groups.all.0.name == 'journal_member' or user.groups.all.0.name == 'journal_manager' %}
+	  {% if user.groups.all.0.name == 'vesting_member' or user.groups.all.0.name == 'vesting_manager' %}
 		  <div class="sponsoring-library-info">
         <h4>Your sponsoring library</h4>
         {% if sponsoring_library_website %}
