@@ -32,11 +32,12 @@
 				
 				<div class="span1">
 				 {% if not linky.vested %}
-					  {% if user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'journal_member' or user.groups.all.0.name == 'journal_manager' %}
+					  {% if user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'vesting_member' or user.groups.all.0.name == 'vesting_manager' %}
 						<form action="" method="post">
 						  {% csrf_token %}
 						  <input type="submit" value="vest" name="vet" class="btn">
 						</form>
+					  {% endif %}
 				{% endif %}
 				</div>
 			    <div class="span2 negative-margin">
@@ -59,7 +60,7 @@
 								Archived site <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% else %}
 								<a {% if serve_type == 'source' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Archived Site</a>
-							{% endif%}
+							{% endif %}
 							</li>
 						{% endif %}
 						
@@ -69,7 +70,7 @@
 								PDF <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
 							{% else %}
 								<a {% if serve_type == 'pdf' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF</a>
-							{% endif%}
+							{% endif %}
 							</li>
 						{% endif %}
 						
@@ -82,7 +83,7 @@
 							{% endif%}
 							</li>
 						{% endif %}
-					{% endif %}
+						
 					</ul>
 				</div><!--end span 2 -->
 			</div> <!-- end span 12-->
