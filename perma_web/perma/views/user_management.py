@@ -689,10 +689,10 @@ def process_register(request):
             to_address = new_user.email
             content = '''To confirm your account, please click the link below or copy it to your web browser:
 
-http://perma.law.harvard.edu/register/confirm/%s/
+http://%s/register/confirm/%s/
 
-''' % new_user.confirmation_code
-        
+''' % (request.get_host(), new_user.confirmation_code)
+            logger.debug(content)
             msg = MIMEText(content)
             msg['Subject'] = "Perma account confirmation"
             msg['From'] = from_address
