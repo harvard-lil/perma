@@ -627,6 +627,7 @@ def limited_login(request, template_name='registration/login.html',
     Displays the login form and handles the login action.
     """
     redirect_to = request.REQUEST.get(redirect_field_name, '')
+    is_confirm = request.REQUEST.get('confirmed')
     request.session.set_test_cookie()
 
     if request.method == "POST":
@@ -651,6 +652,7 @@ def limited_login(request, template_name='registration/login.html',
         redirect_field_name: redirect_to,
         'site': current_site,
         'site_name': current_site.name,
+        'is_confirm': is_confirm,
     }
     if extra_context is not None:
         context.update(extra_context)
@@ -692,7 +694,7 @@ def process_register(request):
 http://%s/register/confirm/%s/
 
 ''' % (request.get_host(), new_user.confirmation_code)
-            logger.debug(content)
+
             msg = MIMEText(content)
             msg['Subject'] = "Perma account confirmation"
             msg['From'] = from_address

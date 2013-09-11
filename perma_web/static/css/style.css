@@ -1010,6 +1010,10 @@ ul#linky-ul li {
   margin-bottom: 35px;
 }
 
+.account-confirmed-message {
+  width:300px;
+}
+
 .embedded-form {
   margin-top:65px;
 }

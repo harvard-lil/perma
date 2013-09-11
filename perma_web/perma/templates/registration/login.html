@@ -2,6 +2,9 @@
 
 {% block content %}
 
+{% if is_confirm %}
+  <p class="alert alert-success account-confirmed-message">Your account is confirmed.  Log in below.</p>
+{% endif %}
 <div class="row-fluid">
 	<h2>Login</h2>
 		
