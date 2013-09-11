@@ -46,30 +46,30 @@
 
 						{% if asset.image_capture and asset.image_capture != 'failed' %}
 							<li>
-							{% if asset.image_capture == 'pending' %}
-								Image View <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
-							{% else %}
 								<a {% if serve_type == 'image' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=image">Screen capture</a>
-							{% endif%}
 							</li>
 						{% endif %}
 		                
 						{% if asset.warc_capture and asset.warc_capture != 'failed' %}
 							<li>
 							{% if asset.warc_capture == 'pending' %}
-								Archived site <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+							<span id="warc_cap_container_loading">Archived site <img style="width:30px;" src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving..."></span>
+							<span id="warc_cap_container_complete" class="hide"><a {% if serve_type == 'source' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Archived Site</a></span>
 							{% else %}
-								<a {% if serve_type == 'source' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Archived Site</a>
+							<span id="warc_cap_container_loading" class="hide">Archived site <img style="width:30px;" src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving..."></span>
+							<span id="warc_cap_container_complete"><a {% if serve_type == 'source' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Archived Site</a></span>
 							{% endif %}
 							</li>
 						{% endif %}
 						
 						{% if asset.pdf_capture and asset.pdf_capture != 'failed' %}
-							<li>
+							<li class="pdf_cap_container">
 							{% if asset.pdf_capture == 'pending' %}
-								PDF <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+								<span id="pdf_cap_container_loading">PDF <img style="width:30px;" src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving..."></span>
+								<span id="pdf_cap_container_complete" class="hide"><a {% if serve_type == 'pdf' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF</a></span>
 							{% else %}
-								<a {% if serve_type == 'pdf' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF</a>
+								<span id="pdf_cap_container_loading" class="hide">PDF <img style="width:30px;" src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving..."></span>
+								<span id="pdf_cap_container_complete"><a {% if serve_type == 'pdf' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF</a></span>
 							{% endif %}
 							</li>
 						{% endif %}
@@ -77,9 +77,11 @@
 						{% if asset.text_capture and asset.text_capture != 'failed' %}
 							<li>
 							{% if asset.text_capture == 'pending' %}
-								Archived text <img style="width:30px;" src="/static/img/dots.gif" alt="Archiving...">
+								<span id="text_cap_container_loading">Archived text <img style="width:30px;" src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving..."></span>
+								<span id="text_cap_container_complete" class="hide"><a {% if serve_type == 'text' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Extracted text</a></span>
 							{% else %}
-								<a {% if serve_type == 'text' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Extracted text</a>
+							<span id="text_cap_container_loading" class="hide">Archived text <img style="width:30px;" src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving..."></span>
+							<span id="text_cap_container_complete"><a {% if serve_type == 'text' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Extracted text</a></span>
 							{% endif%}
 							</li>
 						{% endif %}
@@ -102,7 +104,7 @@
 
 			{% if serve_type == 'live' %}
 				{% if display_iframe %}
-				<iframe src="{{linky.submitted_url}}"{% if not asset.pdf_capture %} sandbox="allow-forms allow-scripts" {% endif %}>
+				<iframe src="{{linky.submitted_url}}"{% if not asset.pdf_capture %} sandbox="allow-forms" {% endif %}>
 				  <p>Unable to create a live view of the {{linky.submitted_url}}</p>
 				</iframe>
 				{% else %}
@@ -135,5 +137,49 @@
 </div><!--row-->
 
 {% endblock %}
+
 {% block scripts %}
+{% if asset.warc_capture == 'pending' or asset.pdf_capture == 'pending' or asset.text_capture == 'pending' %}
+<script type="text/javascript" language="javascript">
+
+	var refreshIntervalId = 0;
+
+	var check_status = function() {
+		
+	// Check our status service to see if we have archivng jobs pending
+		var request = $.ajax({
+			url: "{% url 'service_link_status' linky.guid %}",
+			type: "GET",
+			dataType: "json"
+		});
+
+		request.done(function(data) {
+			if ($('#warc_cap_container_loading').is(":visible") && data.source_capture != 'pending') {
+				$('#warc_cap_container_loading').hide();
+				$('#warc_cap_container_complete').show();
+			}
+			
+			if ($('#pdf_cap_container_loading').is(":visible") && data.pdf_capture != 'pending') {
+				$('#pdf_cap_container_loading').hide();
+				$('#pdf_cap_container_complete').show();
+			}
+			
+			if ($('#text_cap_container_loading').is(":visible") && data.text_capture != 'pending') {
+				$('#text_cap_container_loading').hide();
+				$('#text_cap_container_complete').show();
+			}
+			
+			// if no status is pending
+			if (data.source_capture != 'pending' && data.pdf_capture != 'pending' && data.text_capture != 'pending') {
+				clearInterval(refreshIntervalId);
+			}	
+		});
+	}
+
+	$(document).ready(function() {
+		refreshIntervalId = setInterval(check_status, 1000); //TODO: set to 5000
+	});
+</script>
+{% endif %}
+
 {% endblock %}

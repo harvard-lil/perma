@@ -4,13 +4,16 @@ from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
 
 import smtplib, json, logging
+from perma.models import Link, Asset
 from email.mime.text import MIMEText
 
 logger = logging.getLogger(__name__)
 
 
 def email_confirm(request):
-    """A service that sends a linky message. This is temporary."""
+    """
+    A service that sends a linky message.
+    """
     
     email_address = request.POST.get('email_address')
     linky_link = request.POST.get('linky_link')
@@ -36,6 +39,7 @@ def email_confirm(request):
     response_object = {"sent": True}
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=200)
+
 
 def receive_feedback(request):
     """
@@ -71,3 +75,19 @@ def receive_feedback(request):
     response_object = {'submitted': 'true', 'content': content}
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
+
+
+def link_status(request, guid):
+    """
+    A service that provides the state of a perma.
+    TODO: this should obviously become part of an API, we probably also want to evaluate some long polling
+    apporach?
+    """
+
+    target_link = get_object_or_404(Link, guid=guid)
+    target_asset = get_object_or_404(Asset, link__guid=guid)
+    
+    response_object = {"text_capture": target_asset.text_capture, "source_capture": target_asset.warc_capture,
+        "image_capture": target_asset.image_capture, "pdf_capture": target_asset.pdf_capture}
+
+    return HttpResponse(json.dumps(response_object), content_type="application/json", status=200)

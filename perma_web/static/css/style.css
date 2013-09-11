@@ -1263,3 +1263,7 @@ border-radius: 50%;
 .selected-view {
     color:#da4f49;
 }
+
+.hide {
+    display: none;
+}
