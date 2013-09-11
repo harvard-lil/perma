@@ -26,6 +26,24 @@ body {
     height:315px;
 }
 
+#feedback-form {
+  width:320px;
+  margin-left:-157px;
+}
+
+#submit-feedback {
+  margin-right:25px;
+  width:100px;
+}
+
+#cancel-feedback {
+  margin-right:15px;
+  padding-top:5px;
+}
+
+#feedbackify .rating-intro {display: none;}
+#feedbackify .score-tbl {display: none;}
+
 div.main-container {
     overflow: hidden;
     margin: 0 auto;
