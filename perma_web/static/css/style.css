@@ -1241,15 +1241,15 @@ td.registrar-website-cell {
 }
 
 .alpha {
-border-radius: 50%;
+    border-radius: 50%;
     width: 110px;
     height: 110px; 
-       line-height: 100px;
+    line-height: 100px;
     text-align: center;
     background:yellow;
     transform:rotate(-12deg);
--ms-transform:rotate(-12deg); /* IE 9 */
--webkit-transform:rotate(-12deg); /* Safari and Chrome */
+    -ms-transform:rotate(-12deg); /* IE 9 */
+    -webkit-transform:rotate(-12deg); /* Safari and Chrome */
     margin-bottom:-100px;
     opacity:.6;
 }
@@ -1262,6 +1262,19 @@ border-radius: 50%;
 
 .selected-view {
     color:#da4f49;
+}
+
+div.faq div.question {
+    font-size: 16px;
+    margin-top: 0.6em;
+    cursor: pointer;
+}
+
+div.faq div.answer {
+    display: none;
+    margin: .4em 0 1.4em 0;
+    color: #666;
+    line-height: 1.6;
 }
 
 .hide {
