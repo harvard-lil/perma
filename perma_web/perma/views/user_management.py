@@ -33,7 +33,7 @@ def manage_members(request):
     """
 
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
-        return HttpResponseRedirect(reverse('user_management_landing'))
+        return HttpResponseRedirect(reverse('user_management_created_links'))
 
     context = {'user': request.user, 'registrar_members': list(registrars),
         'this_page': 'users'}
@@ -69,7 +69,7 @@ def manage_registrar(request):
     """
 
     if request.user.groups.all()[0].name not in ['registry_member']:
-        return HttpResponseRedirect(reverse('user_management_landing'))
+        return HttpResponseRedirect(reverse('user_management_created_links'))
 
     # TODO: support paging at some point
     registrars = Registrar.objects.all()[:500]
@@ -102,7 +102,7 @@ def manage_single_registrar(request, registrar_id):
         in this view, we allow for edit/delete """
 
     if request.user.groups.all()[0].name not in ['registry_member']:
-        return HttpResponseRedirect(reverse('user_management_landing'))
+        return HttpResponseRedirect(reverse('user_management_created_links'))
 
     target_registrar = get_object_or_404(Registrar, id=registrar_id)
 
@@ -135,7 +135,7 @@ def manage_registrar_member(request):
     """
 
     if request.user.groups.all()[0].name not in ['registry_member']:
-        return HttpResponseRedirect(reverse('user_management_landing'))
+        return HttpResponseRedirect(reverse('user_management_created_links'))
 
     registrar_members = LinkUser.objects.filter(groups__name='registrar_member', is_active=True)
 
@@ -174,7 +174,7 @@ def manage_single_registrar_member(request, user_id):
     """
 
     if request.user.groups.all()[0].name not in ['registry_member']:
-        return HttpResponseRedirect(reverse('user_management_landing'))
+        return HttpResponseRedirect(reverse('user_management_created_links'))
 
     target_registrar_member = get_object_or_404(LinkUser, id=user_id)
 
@@ -208,7 +208,7 @@ def manage_single_registrar_member_delete(request, user_id):
 
     # Only registry members can delete registrar members
     if request.user.groups.all()[0].name not in ['registry_member']:
-        return HttpResponseRedirect(reverse('user_management_landing'))
+        return HttpResponseRedirect(reverse('user_management_created_links'))
 
     target_member = get_object_or_404(LinkUser, id=user_id)
 
@@ -235,13 +235,13 @@ def manage_journal_manager(request):
     """
 
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
-        return HttpResponseRedirect(reverse('user_management_landing'))
+        return HttpResponseRedirect(reverse('user_management_created_links'))
 
     # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
-        journal_managers = LinkUser.objects.filter(groups__name='journal_manager', is_active=True)
+        journal_managers = LinkUser.objects.filter(groups__name='vesting_manager', is_active=True)
     else:
-        journal_managers = LinkUser.objects.filter(groups__name='journal_manager', registrar=request.user.registrar, is_active=True).exclude(id=request.user.id)
+        journal_managers = LinkUser.objects.filter(groups__name='vesting_manager', registrar=request.user.registrar, is_active=True).exclude(id=request.user.id)
 
     context = {'user': request.user, 'journal_managers': list(journal_managers),
         'this_page': 'users'}
@@ -259,7 +259,7 @@ def manage_journal_manager(request):
             new_user.registrar = request.user.registrar
             new_user.save()
 
-            group = Group.objects.get(name='journal_manager')
+            group = Group.objects.get(name='vesting_manager')
             new_user.groups.add(group)
 
             return HttpResponseRedirect(reverse('user_management_manage_journal_manager'))
@@ -320,14 +320,14 @@ def manage_single_journal_manager_delete(request, user_id):
 
     # Only registry members and registrar memebers can edit vesting managers
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
-        return HttpResponseRedirect(reverse('user_management_landing'))
+        return HttpResponseRedirect(reverse('user_management_created_links'))
 
     target_member = get_object_or_404(LinkUser, id=user_id)
 
     # Registrar members can only edit their own vesting members
     if request.user.groups.all()[0].name not in ['registry_member']:
         if request.user.registrar != target_member.registrar:
-            return HttpResponseRedirect(reverse('user_management_landing'))
+            return HttpResponseRedirect(reverse('user_management_created_links'))
 
     context = {'user': request.user, 'target_member': target_member,
         'this_page': 'users'}
@@ -353,16 +353,16 @@ def manage_journal_member(request):
     Linky admins and registrars can manage vesting members
     """
 
-    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'journal_manager']:
-        return HttpResponseRedirect(reverse('user_management_landing'))
+    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'vesting_manager']:
+        return HttpResponseRedirect(reverse('user_management_created_links'))
 
     # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
-        journal_members = LinkUser.objects.filter(groups__name='journal_member', is_active=True)
-    elif request.user.groups.all()[0].name == 'journal_manager':
+        journal_members = LinkUser.objects.filter(groups__name='vesting_member', is_active=True)
+    elif request.user.groups.all()[0].name == 'vesting_manager':
         journal_members = LinkUser.objects.filter(authorized_by=request.user, is_active=True).exclude(id=request.user.id)
     else:
-        journal_members = LinkUser.objects.filter(groups__name='journal_member', registrar=request.user.registrar, is_active=True).exclude(id=request.user.id)
+        journal_members = LinkUser.objects.filter(groups__name='vesting_member', registrar=request.user.registrar, is_active=True).exclude(id=request.user.id)
 
     context = {'user': request.user, 'journal_members': list(journal_members),
         'this_page': 'users'}
@@ -381,7 +381,7 @@ def manage_journal_member(request):
             new_user.authorized_by = request.user
             new_user.save()
 
-            group = Group.objects.get(name='journal_member')
+            group = Group.objects.get(name='vesting_member')
             new_user.groups.add(group)
 
             return HttpResponseRedirect(reverse('user_management_manage_journal_member'))
@@ -402,7 +402,7 @@ def manage_single_journal_member(request, user_id):
     """
 
     # Only registry members and registrar memebers can edit vesting members
-    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'journal_manager']:
+    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'vesting_manager']:
         return HttpResponseRedirect(reverse('user_management_created_links'))
 
     target_member = get_object_or_404(LinkUser, id=user_id)
@@ -447,15 +447,15 @@ def manage_single_journal_member_delete(request, user_id):
     """
 
     # Only registry members and registrar memebers can edit vesting members
-    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'journal_manager']:
-        return HttpResponseRedirect(reverse('user_management_landing'))
+    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'vesting_manager']:
+        return HttpResponseRedirect(reverse('user_management_created_links'))
 
     target_member = get_object_or_404(LinkUser, id=user_id)
 
     # Registrar members can only edit their own vesting members
     if request.user.groups.all()[0].name not in ['registry_member']:
         if request.user.registrar != target_member.registrar:
-            return HttpResponseRedirect(reverse('user_management_landing'))
+            return HttpResponseRedirect(reverse('user_management_created_links'))
             
     # Vesting managers can only edit their own vesting members
     if request.user.groups.all()[0].name not in ['registry_member', 'registrar_member']:
@@ -520,8 +520,8 @@ def vested_links(request):
     Linky admins and registrar members and vesting members can vest link links
     """
 
-    if request.user.groups.all()[0].name not in ['journal_member', 'registrar_member', 'registry_member']:
-        return HttpResponseRedirect(reverse('user_management_landing'))
+    if request.user.groups.all()[0].name not in ['vesting_member', 'vesting_manager', 'registrar_member', 'registry_member']:
+        return HttpResponseRedirect(reverse('user_management_created_links'))
         
     
     DEFAULT_SORT = '-creation_timestamp'
@@ -561,7 +561,7 @@ def manage_account(request):
     context = {'host': request.get_host(), 'user': request.user,
         'next': request.get_full_path(), 'this_page': 'settings'}
     context.update(csrf(request))
-    if request.user.groups.all()[0].name in ['journal_member', 'journal_manager']:
+    if request.user.groups.all()[0].name in ['vesting_member', 'vesting_manager']:
       context.update({'sponsoring_library_name': request.user.registrar.name, 'sponsoring_library_email': request.user.registrar.email, 'sponsoring_library_website': request.user.registrar.website})
     
     if request.method == 'POST':

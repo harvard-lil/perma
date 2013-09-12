@@ -53,7 +53,7 @@
         <li{% if this_page == 'created_links' %} class="active"{% endif %}><a href="{% url 'user_management_created_links' %}" id="dashboard-library">Links</a></li>
 
         <!-- Vested links -->
-        {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'vesting_member' %}
+        {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'vesting_member' or user.groups.all.0.name == 'vesting_manager' %}
         <li{% if this_page == 'vested_links' %} class="active"{% endif %}><a href="{% url 'user_management_vested_links' %}" id="dashboard-vested">Vested Links</a></li>
         {% endif %}<!-- FIXME change icon -->
 		
