@@ -154,6 +154,8 @@ def manage_registrar_member(request):
             
             group = Group.objects.get(name='registrar_member')
             new_user.groups.add(group)
+            
+            email_new_user(request, new_user.email)
 
             return HttpResponseRedirect(reverse('user_management_manage_registrar_member'))
 
@@ -268,6 +270,8 @@ def manage_journal_manager(request):
 
             group = Group.objects.get(name='vesting_manager')
             new_user.groups.add(group)
+            
+            email_new_user(request, new_user.email)
 
             return HttpResponseRedirect(reverse('user_management_manage_journal_manager'))
 
@@ -401,6 +405,8 @@ def manage_journal_member(request):
 
             group = Group.objects.get(name='vesting_member')
             new_user.groups.add(group)
+            
+            email_new_user(request, new_user.email)
 
             return HttpResponseRedirect(reverse('user_management_manage_journal_member'))
 
@@ -762,3 +768,28 @@ def register_email_instructions(request):
     After the user has registered, give the instructions for confirming
     """
     return render_to_response('registration/check_email.html', {})
+    
+def email_new_user(request, email):
+    """
+    Send email to newly created accounts
+    """
+    from_address = "lil@law.harvard.edu"
+    to_address = email
+    content = '''To log into your account, please click the link below or copy it to your web browser:
+
+http://%s/login
+
+''' % (request.get_host())
+
+    logger.debug(content)
+
+    msg = MIMEText(content)
+    msg['Subject'] = "A perma account has been created for you"
+    msg['From'] = from_address
+    msg['To'] = to_address
+        
+    # Send the message via our own SMTP server, but don't include the
+    # envelope header.
+    s = smtplib.SMTP('localhost')
+    s.sendmail(from_address, [to_address], msg.as_string())
+    s.quit()
