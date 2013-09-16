@@ -589,7 +589,10 @@ def manage_account(request):
         'next': request.get_full_path(), 'this_page': 'settings'}
     context.update(csrf(request))
     if request.user.groups.all()[0].name in ['vesting_member', 'vesting_manager']:
-      context.update({'sponsoring_library_name': request.user.registrar.name, 'sponsoring_library_email': request.user.registrar.email, 'sponsoring_library_website': request.user.registrar.website})
+      if request.user.registrar:
+        context.update({'sponsoring_library_name': request.user.registrar.name, 'sponsoring_library_email': request.user.registrar.email, 'sponsoring_library_website': request.user.registrar.website})
+      else:
+        context.update({'no_registrar': True})
     
     if request.method == 'POST':
 

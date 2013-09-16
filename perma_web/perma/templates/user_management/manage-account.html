@@ -12,6 +12,9 @@
 	  {% if user.groups.all.0.name == 'vesting_member' or user.groups.all.0.name == 'vesting_manager' %}
 		  <div class="sponsoring-library-info">
         <h4>Your sponsoring library</h4>
+        {% if no_registrar %}
+          <p>Seems to be missing</p>
+        {% endif %}
         {% if sponsoring_library_website %}
         <p><strong><a href="{{sponsoring_library_website}}" target="_blank">{{sponsoring_library_name}}</a></strong>
         {% else %}
