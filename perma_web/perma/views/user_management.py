@@ -1,6 +1,6 @@
 import logging
 
-from perma.forms import user_reg_form, regisrtar_member_form, registrar_form, journal_manager_form, journal_manager_form_edit, journal_member_form, journal_member_form_edit, regisrtar_member_form_edit, user_form_self_edit
+from perma.forms import user_reg_form, regisrtar_member_form, registrar_form, journal_manager_form, journal_manager_w_registrar_form, journal_manager_form_edit, journal_member_form, journal_member_w_registrar_form, journal_member_form_edit, regisrtar_member_form_edit, user_form_self_edit
 from perma.models import Registrar, Link
 from perma.utils import base
 
@@ -236,10 +236,13 @@ def manage_journal_manager(request):
 
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
         return HttpResponseRedirect(reverse('user_management_created_links'))
+        
+    is_registry = False;
 
     # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
         journal_managers = LinkUser.objects.filter(groups__name='vesting_manager', is_active=True)
+        is_registry = True;
     else:
         journal_managers = LinkUser.objects.filter(groups__name='vesting_manager', registrar=request.user.registrar, is_active=True).exclude(id=request.user.id)
 
@@ -249,14 +252,18 @@ def manage_journal_manager(request):
 
     if request.method == 'POST':
 
-        form = journal_manager_form(request.POST, prefix = "a")
+        if is_registry:
+          form = journal_manager_w_registrar_form(request.POST, prefix="a")
+        else:
+          form = journal_manager_form(request.POST, prefix = "a")
 
         if form.is_valid():
             new_user = form.save()
 
             new_user.backend='django.contrib.auth.backends.ModelBackend'
             
-            new_user.registrar = request.user.registrar
+            if not is_registry:
+              new_user.registrar = request.user.registrar
             new_user.save()
 
             group = Group.objects.get(name='vesting_manager')
@@ -267,8 +274,12 @@ def manage_journal_manager(request):
         else:
             context.update({'form': form,})
     else:
+      if is_registry:
+        form = journal_manager_w_registrar_form(prefix="a")
+      else:
         form = journal_manager_form(prefix = "a")
-        context.update({'form': form,})
+        
+      context.update({'form': form,})
 
     return render_to_response('user_management/manage_journal_managers.html', context)
 
@@ -355,10 +366,13 @@ def manage_journal_member(request):
 
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'vesting_manager']:
         return HttpResponseRedirect(reverse('user_management_created_links'))
+        
+    is_registry = False;
 
     # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
         journal_members = LinkUser.objects.filter(groups__name='vesting_member', is_active=True)
+        is_registry = True;
     elif request.user.groups.all()[0].name == 'vesting_manager':
         journal_members = LinkUser.objects.filter(authorized_by=request.user, is_active=True).exclude(id=request.user.id)
     else:
@@ -370,14 +384,18 @@ def manage_journal_member(request):
 
     if request.method == 'POST':
 
-        form = journal_member_form(request.POST, prefix = "a")
+        if is_registry:
+          form = journal_member_w_registrar_form(request.POST, prefix="a")
+        else:
+          form = journal_member_form(request.POST, prefix = "a")
 
         if form.is_valid():
             new_user = form.save()
 
             new_user.backend='django.contrib.auth.backends.ModelBackend'
             
-            new_user.registrar = request.user.registrar
+            if not is_registry:
+              new_user.registrar = request.user.registrar
             new_user.authorized_by = request.user
             new_user.save()
 
@@ -389,8 +407,11 @@ def manage_journal_member(request):
         else:
             context.update({'form': form,})
     else:
-        form = journal_member_form(prefix = "a")
-        context.update({'form': form,})
+      if is_registry:
+        form = journal_member_w_registrar_form(prefix = "a")
+      else:
+        form = journal_member_form(prefix="a")
+      context.update({'form': form,})
 
     return render_to_response('user_management/manage_journal_members.html', context)
 
