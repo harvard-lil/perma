@@ -1,6 +1,6 @@
 import logging
 
-from perma.forms import user_reg_form, regisrtar_member_form, registrar_form, journal_manager_form, journal_manager_form_edit, journal_member_form, journal_member_form_edit, regisrtar_member_form_edit, user_form_self_edit
+from perma.forms import user_reg_form, regisrtar_member_form, registrar_form, journal_manager_form, journal_manager_w_registrar_form, journal_manager_form_edit, journal_member_form, journal_member_w_registrar_form, journal_member_form_edit, regisrtar_member_form_edit, user_form_self_edit
 from perma.models import Registrar, Link
 from perma.utils import base
 
@@ -154,6 +154,8 @@ def manage_registrar_member(request):
             
             group = Group.objects.get(name='registrar_member')
             new_user.groups.add(group)
+            
+            email_new_user(request, new_user.email)
 
             return HttpResponseRedirect(reverse('user_management_manage_registrar_member'))
 
@@ -236,10 +238,13 @@ def manage_journal_manager(request):
 
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
         return HttpResponseRedirect(reverse('user_management_created_links'))
+        
+    is_registry = False;
 
     # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
         journal_managers = LinkUser.objects.filter(groups__name='vesting_manager', is_active=True)
+        is_registry = True;
     else:
         journal_managers = LinkUser.objects.filter(groups__name='vesting_manager', registrar=request.user.registrar, is_active=True).exclude(id=request.user.id)
 
@@ -249,26 +254,36 @@ def manage_journal_manager(request):
 
     if request.method == 'POST':
 
-        form = journal_manager_form(request.POST, prefix = "a")
+        if is_registry:
+          form = journal_manager_w_registrar_form(request.POST, prefix="a")
+        else:
+          form = journal_manager_form(request.POST, prefix = "a")
 
         if form.is_valid():
             new_user = form.save()
 
             new_user.backend='django.contrib.auth.backends.ModelBackend'
             
-            new_user.registrar = request.user.registrar
+            if not is_registry:
+              new_user.registrar = request.user.registrar
             new_user.save()
 
             group = Group.objects.get(name='vesting_manager')
             new_user.groups.add(group)
+            
+            email_new_user(request, new_user.email)
 
             return HttpResponseRedirect(reverse('user_management_manage_journal_manager'))
 
         else:
             context.update({'form': form,})
     else:
+      if is_registry:
+        form = journal_manager_w_registrar_form(prefix="a")
+      else:
         form = journal_manager_form(prefix = "a")
-        context.update({'form': form,})
+        
+      context.update({'form': form,})
 
     return render_to_response('user_management/manage_journal_managers.html', context)
 
@@ -355,10 +370,13 @@ def manage_journal_member(request):
 
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'vesting_manager']:
         return HttpResponseRedirect(reverse('user_management_created_links'))
+        
+    is_registry = False;
 
     # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
         journal_members = LinkUser.objects.filter(groups__name='vesting_member', is_active=True)
+        is_registry = True;
     elif request.user.groups.all()[0].name == 'vesting_manager':
         journal_members = LinkUser.objects.filter(authorized_by=request.user, is_active=True).exclude(id=request.user.id)
     else:
@@ -370,27 +388,36 @@ def manage_journal_member(request):
 
     if request.method == 'POST':
 
-        form = journal_member_form(request.POST, prefix = "a")
+        if is_registry:
+          form = journal_member_w_registrar_form(request.POST, prefix="a")
+        else:
+          form = journal_member_form(request.POST, prefix = "a")
 
         if form.is_valid():
             new_user = form.save()
 
             new_user.backend='django.contrib.auth.backends.ModelBackend'
             
-            new_user.registrar = request.user.registrar
+            if not is_registry:
+              new_user.registrar = request.user.registrar
             new_user.authorized_by = request.user
             new_user.save()
 
             group = Group.objects.get(name='vesting_member')
             new_user.groups.add(group)
+            
+            email_new_user(request, new_user.email)
 
             return HttpResponseRedirect(reverse('user_management_manage_journal_member'))
 
         else:
             context.update({'form': form,})
     else:
-        form = journal_member_form(prefix = "a")
-        context.update({'form': form,})
+      if is_registry:
+        form = journal_member_w_registrar_form(prefix = "a")
+      else:
+        form = journal_member_form(prefix="a")
+      context.update({'form': form,})
 
     return render_to_response('user_management/manage_journal_members.html', context)
 
@@ -562,7 +589,10 @@ def manage_account(request):
         'next': request.get_full_path(), 'this_page': 'settings'}
     context.update(csrf(request))
     if request.user.groups.all()[0].name in ['vesting_member', 'vesting_manager']:
-      context.update({'sponsoring_library_name': request.user.registrar.name, 'sponsoring_library_email': request.user.registrar.email, 'sponsoring_library_website': request.user.registrar.website})
+      if request.user.registrar:
+        context.update({'sponsoring_library_name': request.user.registrar.name, 'sponsoring_library_email': request.user.registrar.email, 'sponsoring_library_website': request.user.registrar.website})
+      else:
+        context.update({'no_registrar': True})
     
     if request.method == 'POST':
 
@@ -741,3 +771,28 @@ def register_email_instructions(request):
     After the user has registered, give the instructions for confirming
     """
     return render_to_response('registration/check_email.html', {})
+    
+def email_new_user(request, email):
+    """
+    Send email to newly created accounts
+    """
+    from_address = "lil@law.harvard.edu"
+    to_address = email
+    content = '''To log into your account, please click the link below or copy it to your web browser:
+
+http://%s/login
+
+''' % (request.get_host())
+
+    logger.debug(content)
+
+    msg = MIMEText(content)
+    msg['Subject'] = "A perma account has been created for you"
+    msg['From'] = from_address
+    msg['To'] = to_address
+        
+    # Send the message via our own SMTP server, but don't include the
+    # envelope header.
+    s = smtplib.SMTP('localhost')
+    s.sendmail(from_address, [to_address], msg.as_string())
+    s.quit()
