@@ -42,7 +42,7 @@ def about(request):
     The about page
     """
 
-    context = {'host': request.get_host()}
+    context = {'host': request.get_host(), 'user': request.user,}
 
     return render_to_response('about.html', context)
 
@@ -51,24 +51,30 @@ def faq(request):
     """
     The FAQ page
     """
-    
-    return render_to_response('faq.html', {})
+
+    context = {'user': request.user,}
+        
+    return render_to_response('faq.html', context)
 
 
 def contact(request):
     """
     The contact page
     """
+
+    context = {'user': request.user,}
     
-    return render_to_response('contact.html', {})
+    return render_to_response('contact.html', context)
 
 
 def terms_of_service(request):
     """
     The terms of service page
     """
+
+    context = {'user': request.user,}
     
-    return render_to_response('terms_of_service.html', {})
+    return render_to_response('terms_of_service.html', context)
 
 
 def privacy_policy(request):
@@ -76,7 +82,9 @@ def privacy_policy(request):
     The privacy policy page
     """
     
-    return render_to_response('privacy_policy.html', {})
+    context = {'user': request.user,}
+    
+    return render_to_response('privacy_policy.html', context)
 
 
 def tools(request):
