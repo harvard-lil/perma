@@ -27,6 +27,22 @@ from ratelimit.decorators import ratelimit
 logger = logging.getLogger(__name__)
 
 @login_required
+def manage(request):
+    """
+    The landing page for users who are signed in
+    """
+
+    if request.user.id >= 0:
+      linky_links = list(Link.objects.filter(created_by=request.user).order_by('-creation_timestamp'))
+    else:
+      linky_links = None;
+
+    context = {'this_page': 'manage', 'host': request.get_host(), 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()}
+    context.update(csrf(request))
+
+    return render_to_response('user_management/manage.html', context)
+
+@login_required
 def manage_members(request):
     """
     Registry and registrar members can manage vesting members (the folks that vest links)
