@@ -4,6 +4,7 @@ from perma.forms import user_reg_form, regisrtar_member_form, registrar_form, jo
 from perma.models import Registrar, Link
 from perma.utils import base
 
+from django.template import Template, context, RequestContext
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login
@@ -37,8 +38,7 @@ def manage(request):
     else:
       linky_links = None;
 
-    context = {'this_page': 'manage', 'host': request.get_host(), 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()}
-    context.update(csrf(request))
+    context = RequestContext(request, {'this_page': 'manage', 'host': request.get_host(), 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()})
 
     return render_to_response('user_management/manage.html', context)
 
@@ -53,7 +53,6 @@ def manage_members(request):
 
     context = {'user': request.user, 'registrar_members': list(registrars),
         'this_page': 'users'}
-    context.update(csrf(request))
 
     if request.method == 'POST':
 
@@ -74,6 +73,7 @@ def manage_members(request):
     else:
         form = regisrtar_member_form(prefix = "a")
         context.update({'regisrtar_register_form': form,})
+    context = RequestContext(request, context)
 
     return render_to_response('user_management/manage_registrar_members.html', context)
 
@@ -108,6 +108,8 @@ def manage_registrar(request):
     else:
         form = registrar_form(prefix = "a")
         context.update({'form': form,})
+    
+    context = RequestContext(request, context)
 
     return render_to_response('user_management/manage_registrars.html', context)
 
@@ -140,6 +142,8 @@ def manage_single_registrar(request, registrar_id):
     else:
         form = registrar_form(prefix = "a", instance=target_registrar)
         context.update({'form': form,})
+    
+    context = RequestContext(request, context)
 
     return render_to_response('user_management/manage_single_registrar.html', context)
 
@@ -181,6 +185,8 @@ def manage_registrar_member(request):
         form = regisrtar_member_form(prefix = "a")
         context.update({'form': form,})
 
+    context = RequestContext(request, context)
+    
     return render_to_response('user_management/manage_registrar_members.html', context)
 
 
@@ -215,6 +221,8 @@ def manage_single_registrar_member(request, user_id):
         form = regisrtar_member_form_edit(prefix = "a", instance=target_registrar_member)
         context.update({'form': form,})
 
+    context = RequestContext(request, context)
+    
     return render_to_response('user_management/manage_single_registrar_member.html', context)
 
 
@@ -243,6 +251,8 @@ def manage_single_registrar_member_delete(request, user_id):
         form = journal_member_form_edit(prefix = "a", instance=target_member)
         context.update({'form': form,})
 
+    context = RequestContext(request, context)
+    
     return render_to_response('user_management/manage_single_registrar_member_delete_confirm.html', context)
 
 
@@ -266,7 +276,6 @@ def manage_journal_manager(request):
 
     context = {'user': request.user, 'journal_managers': list(journal_managers),
         'this_page': 'users'}
-    context.update(csrf(request))
 
     if request.method == 'POST':
 
@@ -301,6 +310,8 @@ def manage_journal_manager(request):
         
       context.update({'form': form,})
 
+    context = RequestContext(request, context)
+    
     return render_to_response('user_management/manage_journal_managers.html', context)
 
 
@@ -323,7 +334,6 @@ def manage_single_journal_manager(request, user_id):
 
     context = {'user': request.user, 'target_member': target_member,
         'this_page': 'users'}
-    context.update(csrf(request))
 
     if request.method == 'POST':
 
@@ -340,6 +350,8 @@ def manage_single_journal_manager(request, user_id):
         form = journal_manager_form_edit(prefix = "a", instance=target_member)
         context.update({'form': form,})
 
+    context = RequestContext(request, context)
+    
     return render_to_response('user_management/manage_single_journal_manager.html', context)
 
 
@@ -362,7 +374,6 @@ def manage_single_journal_manager_delete(request, user_id):
 
     context = {'user': request.user, 'target_member': target_member,
         'this_page': 'users'}
-    context.update(csrf(request))
 
     if request.method == 'POST':
         target_member.is_active = False
@@ -373,6 +384,8 @@ def manage_single_journal_manager_delete(request, user_id):
         form = journal_manager_form_edit(prefix = "a", instance=target_member)
         context.update({'form': form,})
 
+    context = RequestContext(request, context)
+    
     return render_to_response('user_management/manage_single_journal_manager_delete_confirm.html', context)
 
 valid_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp']
@@ -400,7 +413,6 @@ def manage_journal_member(request):
 
     context = {'user': request.user, 'journal_members': list(journal_members),
         'this_page': 'users'}
-    context.update(csrf(request))
 
     if request.method == 'POST':
 
@@ -435,6 +447,8 @@ def manage_journal_member(request):
         form = journal_member_form(prefix="a")
       context.update({'form': form,})
 
+    context = RequestContext(request, context)
+    
     return render_to_response('user_management/manage_journal_members.html', context)
 
 
@@ -463,7 +477,6 @@ def manage_single_journal_member(request, user_id):
 
     context = {'user': request.user, 'target_member': target_member,
         'this_page': 'users'}
-    context.update(csrf(request))
 
     if request.method == 'POST':
 
@@ -480,6 +493,8 @@ def manage_single_journal_member(request, user_id):
         form = journal_member_form_edit(prefix = "a", instance=target_member)
         context.update({'form': form,})
 
+    context = RequestContext(request, context)
+    
     return render_to_response('user_management/manage_single_journal_member.html', context)
 
 
@@ -507,7 +522,6 @@ def manage_single_journal_member_delete(request, user_id):
 
     context = {'user': request.user, 'target_member': target_member,
         'this_page': 'users'}
-    context.update(csrf(request))
 
     if request.method == 'POST':
         target_member.is_active = False
@@ -518,6 +532,8 @@ def manage_single_journal_member_delete(request, user_id):
         form = journal_member_form_edit(prefix = "a", instance=target_member)
         context.update({'form': form,})
 
+    context = RequestContext(request, context)
+    
     return render_to_response('user_management/manage_single_journal_member_delete_confirm.html', context)
 
 valid_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp']
@@ -554,6 +570,8 @@ def created_links(request):
     context = {'user': request.user, 'linky_links': linky_links, 'host': request.get_host(),
                'total_created': total_created, sort : sort, 'this_page': 'created_links'}
 
+    context = RequestContext(request, context)
+    
     return render_to_response('user_management/created-links.html', context)
 
 
@@ -592,6 +610,8 @@ def vested_links(request):
     context = {'user': request.user, 'linky_links': linky_links, 'host': request.get_host(),
                'total_vested': total_vested, 'this_page': 'vested_links'}
 
+    context = RequestContext(request, context)
+    
     return render_to_response('user_management/vested-links.html', context)
 
 
@@ -625,6 +645,8 @@ def manage_account(request):
         form = user_form_self_edit(prefix = "a", instance=request.user)
         context.update({'form': form,})
 
+    context = RequestContext(request, context)
+    
     return render_to_response('user_management/manage-account.html', context)
 
 
@@ -714,7 +736,6 @@ def process_register(request):
     Register a new user
     """
     c = {}
-    c.update(csrf(request))
 
     if request.method == 'POST':
 
@@ -760,12 +781,15 @@ http://%s/register/confirm/%s/
 
         else:
             c.update({'editor_reg_form': editor_reg_form,})
+            
+            c = RequestContext(request, c)
 
             return render_to_response('registration/register.html', c)
     else:
         editor_reg_form = user_reg_form (prefix = "a")
 
         c.update({'editor_reg_form': editor_reg_form,})
+        c = RequestContext(request, c)
         return render_to_response("registration/register.html", c)
 
 
