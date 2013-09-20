@@ -24,10 +24,8 @@ body {
 
 /* Carousel base class */
 .carousel {
-  margin-bottom: 60px;
+  margin-bottom: 20px;
 
-  /* Negative margin to pull up carousel. 90px is roughly margins and height of navbar. */
-  margin-top: -90px;
 }
 /* Since positioning the image, we need to help out the caption */
 .carousel-caption {
@@ -36,8 +34,8 @@ body {
 
 /* Declare heights because of positioning of img element */
 .carousel .item {
-  height: 315px;
-  background-color: #09f;
+  height: 215px;
+  background-color: #eee;
 }
 .carousel-inner > .item > img {
   position: absolute;

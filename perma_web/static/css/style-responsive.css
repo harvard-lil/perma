@@ -87,7 +87,7 @@ p {
 header {
     background-color: #fff;
     border-bottom: 1px solid #efefef;
-    height: 100px;
+
     margin: 0;
     padding: 0;
 }
@@ -106,7 +106,7 @@ header {
         header .logo span { display: none; }
 
         header .logo a {
-        height: 50px;
+        
         text-decoration: none;
           font-family: 'Roboto Slab', sans-serif;
           font-size:36px;
@@ -124,28 +124,24 @@ header {
 	.infinity-logo {
 		margin:-2px 0 0 -4px;
 	}
-    header nav {
-        float: right;
-        margin-top: -32px;
-        width: 800px;
-    }
 
-        header nav ul {
+        header navbar-header ul {
             list-style: none;
             text-align: right;
         }
 
-            header nav ul li {
+            header navbar-header ul li {
                 display: inline;
                 font-size: 17.5px;
                 margin-left: 30px;
+                text-transform: uppercase;
             }
 
-            header nav ul li#header-greeting { margin-left: 0; }
+            header navbar-header ul li#header-greeting { margin-left: 0; }
 
-                header nav ul li a#nav-button { margin-top: -4px; }
+                header navbar-header ul li a#nav-button { margin-top: -4px; }
 
-                header nav ul li a {
+                ul .nav.navbar-nav.navbar-right li a {
                     background-color: #fff;
                     border-radius: 3px;
                     -moz-border-radius: 3px;
@@ -155,13 +151,13 @@ header {
                     line-height: 10px;
                 }
 
-                header nav ul li a:hover {
+               header navbar-header ul li a:hover {
                     background-color: #efefef;
                     color: #333;
                     text-decoration: none;
                 }
 
-                header nav ul li a.this-page {
+                header navbar-header ul li a.this-page {
                     background-color: #efefef;
                     color: #333;
                     text-decoration: none;
@@ -173,6 +169,7 @@ header {
 
 ul.partners {
 	text-align:center;
+	margin-top:50px;
 }
 .partners li {
 	display:inline;
@@ -180,7 +177,21 @@ ul.partners {
 }
 
 li.participating-institutions img{
-	height: 20px;
+	height: 40px;
+	opacity:.6;
+	padding:5px;
+	background:#fff;
+	border:1px solid #ccc;
+	border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+	margin-right:10px;
+	margin-bottom:10px;
+}
+
+
+li.participating-institutions-carousel img{
+	height: 40px;
 	opacity:.6;
 	padding:5px;
 	background:#fff;

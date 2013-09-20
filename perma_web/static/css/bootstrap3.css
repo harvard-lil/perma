@@ -4014,9 +4014,6 @@ textarea.input-group-sm > .input-group-btn > .btn {
 .navbar {
   position: relative;
   z-index: 1000;
-  min-height: 50px;
-  margin-bottom: 20px;
-  border: 1px solid transparent;
 }
 
 .navbar:before,
@@ -4392,7 +4389,8 @@ textarea.input-group-sm > .input-group-btn > .btn {
 }
 
 .navbar-default .navbar-nav > li > a {
-  color: #777777;
+  color: #09f;
+  font-size:20px;
 }
 
 .navbar-default .navbar-nav > li > a:hover,
@@ -6067,6 +6065,12 @@ body.modal-open,
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
   opacity: 0.5;
   filter: alpha(opacity=50);
+  -webkit-touch-callout: none;
+-webkit-user-select: none;
+-khtml-user-select: none;
+-moz-user-select: none;
+-ms-user-select: none;
+user-select: none;
 }
 
 .carousel-control.left {
@@ -6076,6 +6080,14 @@ body.modal-open,
   background-image: linear-gradient(to right, rgba(0, 0, 0, 0.5) 0, rgba(0, 0, 0, 0.0001) 100%);
   background-repeat: repeat-x;
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#80000000', endColorstr='#00000000', GradientType=1);/*/
+}
+
+img {
+-webkit-user-select: none;
+-khtml-user-select: none;
+-moz-user-select: none;
+-o-user-select: none;
+user-select: none;
 }
 
 .carousel-control.right {
@@ -6135,6 +6147,7 @@ body.modal-open,
   margin-left: -30%;
   text-align: center;
   list-style: none;
+  border:1px solid red;
 }
 
 .carousel-indicators li {
