@@ -1,3 +1,4 @@
+from django.template import Template, context, RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect
 from django.core.context_processors import csrf
@@ -31,8 +32,8 @@ def landing(request):
     else:
       linky_links = None;
 
-    context = {'this_page': 'landing', 'host': request.get_host(), 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()}
-    context.update(csrf(request))
+    context = RequestContext(request, {'this_page': 'landing', 'host': request.get_host(), 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()})
+    #context.update(csrf(request))
 
     return render_to_response('landing.html', context)
 
@@ -44,7 +45,7 @@ def about(request):
 
     context = {'host': request.get_host(), 'user': request.user,}
 
-    return render_to_response('about.html', context)
+    return render_to_response('about.html', context_instance=RequestContext(context))
 
 
 def faq(request):
@@ -54,7 +55,7 @@ def faq(request):
 
     context = {'user': request.user,}
         
-    return render_to_response('faq.html', context)
+    return render_to_response('faq.html', context_instance=RequestContext(context))
 
 
 def contact(request):
@@ -64,7 +65,7 @@ def contact(request):
 
     context = {'user': request.user,}
     
-    return render_to_response('contact.html', context)
+    return render_to_response('contact.html', context_instance=RequestContext(context))
 
 
 def terms_of_service(request):
@@ -74,7 +75,7 @@ def terms_of_service(request):
 
     context = {'user': request.user,}
     
-    return render_to_response('terms_of_service.html', context)
+    return render_to_response('terms_of_service.html', context_instance=RequestContext(context))
 
 
 def privacy_policy(request):
@@ -84,7 +85,7 @@ def privacy_policy(request):
     
     context = {'user': request.user,}
     
-    return render_to_response('privacy_policy.html', context)
+    return render_to_response('privacy_policy.html', context_instance=RequestContext(context))
 
 
 def tools(request):
@@ -166,10 +167,10 @@ def single_linky(request, linky_guid):
         created_datestamp = link.creation_timestamp
         pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
 
-        context = {'linky': link, 'asset': asset, 'pretty_date': pretty_date, 'user': request.user, 'next': request.get_full_path(),
-                   'display_iframe': display_iframe, 'serve_type': serve_type, 'text_capture': text_capture}
+        context = RequestContext(request, {'linky': link, 'asset': asset, 'pretty_date': pretty_date, 'user': request.user, 'next': request.get_full_path(),
+                   'display_iframe': display_iframe, 'serve_type': serve_type, 'text_capture': text_capture})
 
-        context.update(csrf(request))
+        #context.update(csrf(request))
 
     return render_to_response('single-link.html', context)
 

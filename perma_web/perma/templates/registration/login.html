@@ -30,6 +30,8 @@
 			</form>
 			<br />
 			<p>Forgot your password? No problem, we can help you <a href="{% url 'auth_password_reset' %}">create a new one.</a></p>
+			{% comment %}
 			<p><a href="{% url 'process_register' %}">Create an account</a></p>
+			{% endcomment %}
 	</div><!-- end content -->
 {% endblock content %}

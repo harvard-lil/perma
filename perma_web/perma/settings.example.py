@@ -191,7 +191,7 @@ LOGGING = {
 
 AUTH_USER_MODEL = 'perma.LinkUser'
 
-LOGIN_REDIRECT_URL = '/manage'
+LOGIN_REDIRECT_URL = '/manage/create/'
 LOGIN_URL = '/login'
 
 # Broker used by celery
@@ -228,3 +228,6 @@ REGISTER_DAY_LIMIT = '5000/d'
 LOGIN_MINUTE_LIMIT = '5000/m'
 LOGIN_HOUR_LIMIT = '10000/h'
 LOGIN_DAY_LIMIT = '50000/d'
+
+GOOGLE_ANALYTICS_KEY = 'UA-XXXXX-X'
+GOOGLE_ANALYTICS_DOMAIN = 'example.com'

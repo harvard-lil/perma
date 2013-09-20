@@ -50,6 +50,8 @@
         <!-- <li><a href="{% url 'landing' %}" id="dashboard-add">Add a Link</a></li> -->
 
         <!-- Library -->
+        <li{% if this_page == 'create_link' %} class="active"{% endif %}><a href="{% url 'user_management_create_link' %}" id="dashboard-add">Create</a></li>
+        
         <li{% if this_page == 'created_links' %} class="active"{% endif %}><a href="{% url 'user_management_created_links' %}" id="dashboard-library">Links</a></li>
 
         <!-- Vested links -->

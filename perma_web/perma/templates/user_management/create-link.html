@@ -1,0 +1,141 @@
+{% extends "admin-layout.html" %}
+{% load truncatesmart %}
+{% block title %} | Create a Perma link{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+{% endblock %}
+
+{% block manage-created-links %}<li class="active"><a href="{% url 'user_management_created_links' %}">Created links</a></li>{% endblock %}
+
+{% block content %}
+
+<h3>Create a Perma link</h3>
+
+<div class="home-form-elements dashboard-create">
+  {% include 'add_link_form.html' %}
+</div><!--/.home-form-->
+            
+<!-- Modals -->
+
+<!-- Upload file modal -->
+<div id="linky-upload" class="modal hide fade center">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <div class="logo-condensed-header">
+			<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo.png"></a>
+		</div>
+    </div>
+    <div class="modal-body">
+        <div class="center">
+            <form class="form-inline" id="linky_upload_form" action="/api/linky/upload" method="post">
+            <h4>Choose a file</h4>
+            <p><input id="file" name="file" class="input-xlarge" type="file" placeholder="example.png"></p>
+            <p><input id="title" name="title" class="input-xlarge" type="text" placeholder="Example Page Title"></p>
+            <p><input id="url" name="url" class="input-xlarge" type="text" placeholder="www.example.com"></p>
+            <button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Upload this Perma</button>
+			{% csrf_token %}
+            <p id="upload-error" class="text-error"></p>
+            </form>
+        </div>
+    </div>
+    <div class="modal-footer pull-left">
+    </div>
+</div><!--/.linky-upload-->
+
+<!-- Upload complete modal -->
+<div id="linky-upload-confirm" class="modal hide fade center">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+         <div class="logo-condensed-header">
+			<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo.png"></a>
+		</div>
+    </div>
+    <div class="modal-body">
+        <div class="center">
+            <h4 id="linky_upload_success">Uploading your file...</h4>
+            <p id="uploadedLinkyUrl"><a href="" target="_blank"></a></p>
+        </div>
+    </div>
+    <div class="modal-footer upload-footer">
+        <a href="#" class="btn" data-dismiss="modal" aria-hidden="true">Close</a>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var web_base = "http://{{host}}";
+  var csrf_token = "{{csrf_token}}";
+</script>
+<script src="{{ STATIC_PREFIX }}js/ZeroClipboard/ZeroClipboard.min.js"></script>
+<script src="{{ STATIC_PREFIX }}js/handlebars.js"></script>
+<script src="http://malsup.github.com/jquery.form.js"></script>
+<script src="{{ STATIC_PREFIX }}js/create.js"></script>
+<script src="{{ STATIC_PREFIX }}js/swfobject.js"></script>
+{% endblock %}
+{% block templates %}
+
+{% verbatim %}
+<script id="list-template" type="text/x-handlebars-template">
+	<div class="row">
+		<li>
+			<div class="span8">
+				<div class="favicon-preview">{{#if favicon_url}}<!--<img src="http://{{favicon_url}}">-->{{/if}}</div>
+				<div class="recent-linky-summary">
+					<h4><a href="http://{{url}}" target="_blank">{{#truncate title 50}}{{/truncate}}</a></h4>
+					<small>{{#truncate original 70}}{{/truncate}}</small>
+					<br>
+					<p><a href="http://{{url}}" target="_blank">{{url}}</a></p>
+				</div>
+			</div>
+			<div class="span4">
+				<div class="copy-button-div"><span class="copy-confirm" style="display:none"><i class="icon-check text-success"></i></span><button class="btn copy-button" data-clipboard-text="{{url}}" title="Copy Perma Link">Copy Perma &infin;</button></div>
+			</div>
+		</li>
+	</div>
+</script>
+{% endverbatim %}
+
+{% verbatim %}
+<script id="error-template" type="text/x-handlebars-template">
+	  <h4 class="text-warning">There was a problem creating your Perma</h4>
+	  <p>{{url}} is gumming up the works</p>
+	  <p><a href="#" onclick="fby.push(['showForm', '5593']);return false;">Report this</a></p>
+</script>
+{% endverbatim %}
+
+{% verbatim %}
+<script id="success-template" type="text/x-handlebars-template">
+  <li id="link-short-slug" class="library-link-item" style="display: none;">
+
+	  {{#if preview}}
+		<div class="library-thumbnail">
+			<a href="{{url}}" target="_blank"><img src="{{preview}}" /></a>
+		</div>
+	  {{ else }}
+   	    {{#if message_pdf }}
+          <p>Archiving PDF now.</p><p>Sorry, PDF screenshots are not available. Keep an eye on the <a href="{{url}}" target="_blank">Perma URL</a> for archiving updates</p>
+		{{ else }}
+	      <p>Archiving process started. Sorry, no screenshot available.</p>
+ 	    {{/if}}
+ 	  {{/if}}
+
+	
+    <div class="link-results">
+      
+      <p class="library-link-title">{{title}}</p>
+      <p class="library-link-url"><a href="{{original}}">{{original}}</a></p>
+      <a href="{{url}}" class="anchor-short-slug" target="_blank">{{url}}</a> | <span class="copy-confirm" style="display:none"><i class="icon-check text-success"></i></span><a class="copy-button library-link-meta" data-clipboard-text="{{url}}" title="Copy Perma Link">Copy Perma &infin;</a>
+      <form class="form-inline" id="emailPerma">
+        <input id="email_request" type="text" placeholder="user@example.com">
+        <button type="submit" class="btn">Email this Perma</button>
+      </form>
+      <p id="upload-option"><a href="" onclick="return upload_form();">Perma capture not right? Upload your own</a></p>
+    </div> 
+  </li>
+</script>
+
+{% endverbatim %}
+
+{% endblock templates %}
