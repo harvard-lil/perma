@@ -7,7 +7,8 @@ html {
 }
 
 body {
-    background-color: #efefef;
+  background-color: #f8f8f8;
+  border-color: #e7e7e7;
     color: #333;
     margin: 0;
     font-family: 'Roboto Slab', sans-serif;
@@ -16,6 +17,8 @@ body {
 .container-fluid {
     padding: 0;
 }
+
+
 
 .modal {
     background-color:#fff;
@@ -50,7 +53,7 @@ div.main-container {
     width: 1035px;
 }
 
-h1, h2, h3, h4, h5 { font-weight: normal; }
+h1, h2, h3, h4, h5 { font-weight: normal; font-family: 'Roboto Slab', sans-serif;}
 
 h1 {
     margin-top: 40px;
@@ -122,7 +125,7 @@ header {
 
 
 	.infinity-logo {
-		margin:-2px 0 0 -4px;
+		margin:-2px 0 0 2px;
 	}
 
         header navbar-header ul {
@@ -169,29 +172,15 @@ header {
 
 ul.partners {
 	text-align:center;
-	margin-top:50px;
+	margin-top:00px;
 }
 .partners li {
 	display:inline;
 	list-style-type:none;
 }
 
-li.participating-institutions img{
-	height: 40px;
-	opacity:.6;
-	padding:5px;
-	background:#fff;
-	border:1px solid #ccc;
-	border-radius: 3px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-	margin-right:10px;
-	margin-bottom:10px;
-}
-
-
 li.participating-institutions-carousel img{
-	height: 40px;
+	height: 37px;
 	opacity:.6;
 	padding:5px;
 	background:#fff;
@@ -217,6 +206,14 @@ section#main {
     padding:0 40px;
 }
 
+.subscribe {
+text-align:center;
+margin:0 auto;
+color:#555;
+font-size:20px;
+margin-bottom:10px;
+}
+
 
 /* Footer */
 
@@ -224,6 +221,7 @@ footer {
     color: #777;
     text-align: center;
     padding: 30px 0;
+    border-top:1px solid #e7e7e7;
 }
 
 .footer-archive {
@@ -323,14 +321,14 @@ div.home-form-elements {
 
 section#home-description {
     background-color: #fff;
-    padding: 35px 0 0 0;
+    padding: 35px 0 20px;
     text-align: center;
 }
 
     section#home-description p {
         color: #555;
         font-size: 20px;
-        line-height: 26px;
+        line-height: 34px;
         margin-bottom: 30px;
         padding: 0;
     }
@@ -1289,4 +1287,9 @@ div.faq div.answer {
 
 .hide {
     display: none;
+}
+
+section#home-description p.mega {
+	font-size:40px;
+	color:#444;
 }

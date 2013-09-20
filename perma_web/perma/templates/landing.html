@@ -14,71 +14,58 @@
     <div class="container">
     	<div class="row">
         	<div class="col-sm-12">
-				<p>Broken links are everywhere.</p>
+				<p class="mega">Broken links are everywhere.</p>
 				<p>Perma.cc helps authors and journals create<br />
 				permanent links for citations in their published work.</p>
 				{% if user.is_authenticated %}
 				<p><a href="{% url 'user_management_created_links' %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
-				{% else %}
-				<p><a href="#" class="btn btn-large btn-success">Sign Up for a Free Account</a></p>
+			</div>	
+		</div>	<!--row-->
+		{% else %}
+		<div class="row">
+        	<div class="col-sm-offset-3 col-sm-6">		
+				<!-- Begin MailChimp Signup Form -->
+				<link href="//cdn-images.mailchimp.com/embedcode/classic-081711.css" rel="stylesheet" type="text/css">
+				<style type="text/css">
+					#mc_embed_signup{background:#fff; clear:left; font:14px; color:#666;}
+					.mc-field-group .input-group {text-align:center;}
+					#mc_embed_signup input {border:1px solid #4cae4c;   border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;}
+					#mc-embedded-subscribe {margin:10px auto;}
+					#mc_embed_signup .mc-field-group.input-group label { font-weight:normal; text-align:center;}
+					/* Add your own MailChimp form style overrides in your site stylesheet or in this style block.
+					   We recommend moving this block and the preceding CSS link to the HEAD of your HTML file. */
+				</style>
+				<div id="mc_embed_signup">
+				<form action="http://harvard.us7.list-manage.com/subscribe/post?u=d69d9fa13a9f7b51b8f939df4&amp;id=a262e9b81b" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+					<div class="subscribe">Subscribe to our mailing list</div>
+			
+				<div class="mc-field-group">
+					
+				
+					<input type="email" placeholder="you@email.com" value="" name="EMAIL" class="required email" id="mce-EMAIL">
+				</div>
+				<div class="mc-field-group input-group center">
+					Do you represent a journal or a blog? 
+					<ul><li><input type="checkbox" value="1" name="group[4441][1]" id="mce-group[4441]-4441-0"><label for="mce-group[4441]-4441-0">&nbsp;Yes. Tell me more about how to use Perma.cc when I publish in my journal and on my blog.</label></li>
+				</ul>
+				</div>
+					<div id="mce-responses" class="clear">
+						<div class="response" id="mce-error-response" style="display:none"></div>
+						<div class="response" id="mce-success-response" style="display:none"></div>
+					</div>	<div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="btn btn-large btn-success center"></div>
+				</form>
+				</div>
+			<!--End mc_embed_signup-->
 				{% endif %}
 			</div><!--/col-->
 		</div><!--/row-->
     </div><!--/container-->
     
      
+</section>
 
-
-<section id="home-form-container">
-	    <div class="container marketing">
-
-      <!-- START THE FEATURETTES -->
-
-      <hr class="featurette-divider">
-
-      <div class="row featurette">
-        <div class="col-sm-7">
-          <h2 class="featurette-heading">First featurette heading. <span class="text-muted">It'll blow your mind.</span></h2>
-          <p class="lead">Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Praesent commodo cursus magna, vel scelerisque nisl consectetur. Fusce dapibus, tellus ac cursus commodo.</p>
-        </div>
-        <div class="col-sm-5">
-          <img class="featurette-image img-responsive" src="data:image/png;base64," data-src="holder.js/500x500/auto" alt="Generic placeholder image">
-        </div>
-      </div>
-
-      <hr class="featurette-divider">
-
-      <div class="row featurette">
-        <div class="col-sm-5">
-          <img class="featurette-image img-responsive" src="data:image/png;base64," data-src="holder.js/500x500/auto" alt="Generic placeholder image">
-        </div>
-        <div class="col-sm-7">
-          <h2 class="featurette-heading">Oh yeah, it's that good. <span class="text-muted">See for yourself.</span></h2>
-          <p class="lead">Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Praesent commodo cursus magna, vel scelerisque nisl consectetur. Fusce dapibus, tellus ac cursus commodo.</p>
-        </div>
-      </div>
-
-      <hr class="featurette-divider">
-
-      <div class="row featurette">
-        <div class="col-sm-7">
-          <h2 class="featurette-heading">And lastly, this one. <span class="text-muted">Duckmate.</span></h2>
-          <p class="lead">Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Praesent commodo cursus magna, vel scelerisque nisl consectetur. Fusce dapibus, tellus ac cursus commodo.</p>
-        </div>
-        <div class="col-sm-5">
-          <img class="featurette-image img-responsive" src="data:image/png;base64," data-src="holder.js/500x500/auto" alt="Generic placeholder image">
-        </div>
-      </div>
-
-      <hr class="featurette-divider">
-
-      <!-- /END THE FEATURETTES -->
-
-
-      
-    </div><!-- /.container -->
-
-</section><!--/#home-form-container-->
 
 
 {% endblock %}

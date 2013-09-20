@@ -2,11 +2,6 @@
 -------------------------------------------------- */
 /* Padding below the footer and lighter body text */
 
-body {
-  padding-bottom: 40px;
-  color: #5a5a5a;
-}
-
 
 
 /* CUSTOMIZE THE NAVBAR
@@ -24,7 +19,7 @@ body {
 
 /* Carousel base class */
 .carousel {
-  margin-bottom: 20px;
+  margin-bottom: -20px;
 
 }
 /* Since positioning the image, we need to help out the caption */
@@ -34,8 +29,7 @@ body {
 
 /* Declare heights because of positioning of img element */
 .carousel .item {
-  height: 215px;
-  background-color: #eee;
+  min-height: 150px;
 }
 .carousel-inner > .item > img {
   position: absolute;

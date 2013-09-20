@@ -44,6 +44,7 @@ html {
   font-family: sans-serif;
   -webkit-text-size-adjust: 100%;
       -ms-text-size-adjust: 100%;
+	margin:0px;
 }
 
 body {
@@ -2205,6 +2206,7 @@ fieldset[disabled] .btn-danger.active {
   color: #ffffff;
   background-color: #5cb85c;
   border-color: #4cae4c;
+  font-size:20px;
 }
 
 .btn-success:hover,
@@ -6056,7 +6058,7 @@ body.modal-open,
 .carousel-control {
   position: absolute;
   top: 0;
-  bottom: 0;
+  bottom: 40px;
   left: 0;
   width: 15%;
   font-size: 20px;
@@ -6139,7 +6141,8 @@ user-select: none;
 
 .carousel-indicators {
   position: absolute;
-  bottom: 10px;
+  top: 115px;
+  bottom: 0px;
   left: 50%;
   z-index: 15;
   width: 60%;
@@ -6147,7 +6150,6 @@ user-select: none;
   margin-left: -30%;
   text-align: center;
   list-style: none;
-  border:1px solid red;
 }
 
 .carousel-indicators li {
@@ -6157,7 +6159,7 @@ user-select: none;
   margin: 1px;
   text-indent: -999px;
   cursor: pointer;
-  border: 1px solid #ffffff;
+  border: 1px solid #cfcfcf;
   border-radius: 10px;
 }
 
@@ -6480,6 +6482,9 @@ td.visible-lg {
   td.visible-lg.visible-xs {
     display: table-cell !important;
   }
+  .carousel-indicators {
+	visibility: hidden;
+   }
 }
 
 @media (min-width: 768px) and (max-width: 991px) {
@@ -6493,6 +6498,9 @@ td.visible-lg {
   td.visible-lg.visible-sm {
     display: table-cell !important;
   }
+  .carousel-indicators {
+	visibility: hidden;
+   }
 }
 
 @media (min-width: 992px) and (max-width: 1199px) {
