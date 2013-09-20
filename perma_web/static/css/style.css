@@ -623,6 +623,14 @@ div.add-links-list {
     padding: 20px;
 }
 
+.dashboard-create div.add-links-list {
+    margin: 10px 0px;
+}
+
+#spinner {
+  text-align:center;
+}
+
 /* iframes */
 
 iframe {

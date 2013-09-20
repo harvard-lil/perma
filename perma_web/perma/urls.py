@@ -44,8 +44,8 @@ urlpatterns = patterns('perma.views',
     url(r'^password/reset/done/?$', auth_views.password_reset_done, {'template_name': 'registration/password_reset_done.html'}, name='auth_password_reset_done'),
     
     # Manage/Linky Admin routes
-    url(r'^manage/?$', 'user_management.manage', name='user_management_manage'),
-    url(r'^manage/create?$', 'user_management.create_link', name='user_management_create_link'),
+    url(r'^manage/?$', 'user_management.create_link', name='user_management_create_link'),
+    url(r'^manage/create/?$', 'user_management.create_link', name='user_management_create_link'),
     url(r'^manage/registrars/?$', 'user_management.manage_registrar', name='user_management_manage_registrar'),
     url(r'^manage/registrars/(?P<registrar_id>[a-zA-Z0-9]+)/?$', 'user_management.manage_single_registrar', name='user_management_manage_single_registrar'),
     url(r'^manage/registrar-members/?$', 'user_management.manage_registrar_member', name='user_management_manage_registrar_member'),

@@ -191,7 +191,7 @@ LOGGING = {
 
 AUTH_USER_MODEL = 'perma.LinkUser'
 
-LOGIN_REDIRECT_URL = '/manage'
+LOGIN_REDIRECT_URL = '/manage/create/'
 LOGIN_URL = '/login'
 
 # Broker used by celery

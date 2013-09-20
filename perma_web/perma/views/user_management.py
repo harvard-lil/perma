@@ -53,9 +53,9 @@ def create_link(request):
     else:
       linky_links = None;
 
-    context = RequestContext(request, {'this_page': 'manage', 'host': request.get_host(), 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()})
+    context = RequestContext(request, {'this_page': 'create_link', 'host': request.get_host(), 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()})
 
-    return render_to_response('user_management/manage.html', context)
+    return render_to_response('user_management/create-link.html', context)
 
 @login_required
 def manage_members(request):
