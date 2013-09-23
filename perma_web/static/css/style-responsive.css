@@ -7,13 +7,16 @@ html {
 }
 
 body {
-  background-color: #f8f8f8;
-  border-color: #e7e7e7;
+  background-color: #eee;
     color: #333;
     margin: 0;
     font-family: 'Roboto Slab', sans-serif;
 }
 
+.navbar-default {
+	background:#eee;
+	border-bottom:1px solid #ddd;
+}
 .container-fluid {
     padding: 0;
 }
@@ -87,13 +90,6 @@ p {
 
 /* Header */
 
-header {
-    background-color: #fff;
-    border-bottom: 1px solid #efefef;
-
-    margin: 0;
-    padding: 0;
-}
 
     /*/header .logo {
         background: url('../img/logo.png') left no-repeat;
@@ -130,6 +126,7 @@ header {
 	
 	.landing-logo {
 		width:300px;
+		margin-bottom:20px;
 	}
         header navbar-header ul {
             list-style: none;
@@ -229,7 +226,7 @@ footer {
     color: #777;
     text-align: center;
     padding: 10px 0;
-    border-top:1px solid #e7e7e7;
+    border-top:1px solid #ddd;
 }
 
 .footer-archive {
@@ -1311,7 +1308,7 @@ div.faq div.answer {
 
 section#home-description p.mega {
 	font-size:36px;
-	color:#444;
+	color:#777;
 	line-height:48px;
 	margin-top:20px;
 }

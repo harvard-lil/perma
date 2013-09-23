@@ -14,12 +14,13 @@
     <div class="container">
     	<div class="row">
         	<div class="col-sm-12">
+        	<p class="mega">Websites change,<br/> go away, and are taken down</p>
         				<div class="logo">
 							<img class="landing-logo" src="{{ STATIC_PREFIX }}img/perma-infinity-landing.png"/>
 						</div>
-				<p class="mega">Websites change,<br/> go down and are taken down.</p>
+				
 				<p><span class="orange">perma.cc</span>  helps authors and journals create<br />
-				permanent archived citations in their published work.</p>
+				permanent archived citations in their published work</p>
 				{% if user.is_authenticated %}
 				<p><a href="{% url 'user_management_created_links' %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
 			</div>	
@@ -30,19 +31,48 @@
 				<!-- Begin MailChimp Signup Form -->
 				<link href="//cdn-images.mailchimp.com/embedcode/classic-081711.css" rel="stylesheet" type="text/css">
 				<style type="text/css">
-					#mc_embed_signup{background:#fff; clear:left; font:14px; color:#666;}
-					.mc-field-group .input-group {text-align:center;}
-					#mc_embed_signup input {border:1px solid #4cae4c;   border-radius: 3px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;}
-					#mc-embedded-subscribe {margin:10px auto;}
-					#mc_embed_signup .mc-field-group.input-group label { font-weight:normal; text-align:center;}
+					#mc_embed_signup{
+						background:#fff; 
+						clear:left; 
+						font:14px; 
+						color:#666;
+					}
+					#mc_embed_signup .mc-field-group {
+						padding:0px;
+						width:100%;
+					}
+					
+					#mc_embed_signup input {
+						border:1px solid #4cae4c;   
+						border-radius: 3px;
+    				   -moz-border-radius: 3px;
+   					   -webkit-border-radius: 3px; 
+   					}
+   					
+   					#mc_embed_signup .mc-field-group input {
+   				 		width:400px; 
+   				 		margin:auto;
+   					}
+					
+					#mc-embedded-subscribe {
+						margin:10px auto;
+					}
+					
+					#mc_embed_signup .mc-field-group.input-group label { 
+						font-weight:normal; text-align:center;	
+					}
+					#mc_embed_signup .mc-field-group.input-group ul {
+						padding:3px 0 0;
+					}
+					#mc_embed_signup .mc-field-group {
+						min-height:40px;
+					}
 					/* Add your own MailChimp form style overrides in your site stylesheet or in this style block.
 					   We recommend moving this block and the preceding CSS link to the HEAD of your HTML file. */
 				</style>
 				<div id="mc_embed_signup">
 				<form action="http://harvard.us7.list-manage.com/subscribe/post?u=d69d9fa13a9f7b51b8f939df4&amp;id=a262e9b81b" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
-					<div class="subscribe"><span class="orange">perma.cc</span> will be free and open to all soon.</div>
+					<div class="subscribe"><span class="orange">perma.cc</span> will be free and open to all soon</div>
 			
 				<div class="mc-field-group">
 					
@@ -51,7 +81,7 @@
 				</div>
 				<div class="mc-field-group input-group center">
 			
-					<ul><li><input type="checkbox" value="1" name="group[4441][1]" id="mce-group[4441]-4441-0"><label for="mce-group[4441]-4441-0">&nbsp;I'm a journal author or editor</label></li>
+					<ul><li><input type="checkbox" value="1" name="group[4441][1]" id="mce-group[4441]-4441-0"><label for="mce-group[4441]-4441-0">&nbsp;I'm a journal or library</label></li>
 				</ul>
 				</div>
 					<div id="mce-responses" class="clear">
