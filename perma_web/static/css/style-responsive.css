@@ -192,11 +192,16 @@ li.participating-institutions-carousel img{
 	margin-bottom:10px;
 }
 
+.login {
+	border: 1px solid #4cae4c;
+border-radius: 3px;
+
+}
 /* Main */
 
 section#main {
     background-color: #fff;
-    padding: 0 0 0px 0;
+    padding: 0 0 20px 0;
 }
 
 .column {
@@ -220,7 +225,7 @@ margin-bottom:10px;
 footer {
     color: #777;
     text-align: center;
-    padding: 30px 0;
+    padding: 10px 0;
     border-top:1px solid #e7e7e7;
 }
 
@@ -241,6 +246,7 @@ footer {
     footer p#footer-nav {
         font-size: 14px;
         text-transform: uppercase;
+        margin-top:-11px;
     }
 
     footer ul#social-media {
@@ -1281,8 +1287,17 @@ div.faq div.question {
 div.faq div.answer {
     display: none;
     margin: .4em 0 1.4em 0;
-    color: #666;
+    color: #333;
     line-height: 1.6;
+    border:1px solid #efefef;
+    background-color: #f8f8f8;
+    padding:10px;
+     -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+   -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+    box-sizing: border-box;
+    border-radius: 3px;
+    text-shadow: 0px -1px 0px #fff;
+    
 }
 
 .hide {
@@ -1292,4 +1307,14 @@ div.faq div.answer {
 section#home-description p.mega {
 	font-size:40px;
 	color:#444;
+}
+
+.temp-form-css input {
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	padding: 6px 12px;
+}
+
+.row-form {
+	margin-left:0px;
 }
