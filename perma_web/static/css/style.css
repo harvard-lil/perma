@@ -122,8 +122,9 @@ header {
 
 
 	.infinity-logo {
-		margin:-2px 0 0 2px;
+		margin:0px;
 	}
+	
     header nav {
         float: right;
         margin-top: -32px;
