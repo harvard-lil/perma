@@ -67,6 +67,14 @@
 <script>
   var web_base = "http://{{host}}";
   var csrf_token = "{{csrf_token}}";
+
+$(document).ready(function(){
+    // Toggle users dropdown
+    $('#dashboard-users').click(function(){
+        $('.users-secondary').toggle();
+    });
+});
+
 </script>
 <script src="{{ STATIC_PREFIX }}js/ZeroClipboard/ZeroClipboard.min.js"></script>
 <script src="{{ STATIC_PREFIX }}js/handlebars.js"></script>
