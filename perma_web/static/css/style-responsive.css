@@ -106,9 +106,9 @@ header {
         width: 130px;
     }/*/
 
-        header .logo span { display: none; }
+        .logo span { display: none; }
 
-        header .logo a {
+        .logo a {
         
         text-decoration: none;
           font-family: 'Roboto Slab', sans-serif;
@@ -127,7 +127,10 @@ header {
 	.infinity-logo {
 		margin:-2px 0 0 2px;
 	}
-
+	
+	.landing-logo {
+		width:300px;
+	}
         header navbar-header ul {
             list-style: none;
             text-align: right;
@@ -905,7 +908,9 @@ h3 {
 
 .red {
     background: red;
+    border:1px solid red;
 }
+
 img.linky-image, img.linky-image-preview {
     border:1px solid #ccc;
     margin-top:-40px;
@@ -1305,8 +1310,10 @@ div.faq div.answer {
 }
 
 section#home-description p.mega {
-	font-size:40px;
+	font-size:36px;
 	color:#444;
+	line-height:48px;
+	margin-top:20px;
 }
 
 .temp-form-css input {
@@ -1315,6 +1322,6 @@ section#home-description p.mega {
 	padding: 6px 12px;
 }
 
-.row-form {
-	margin-left:0px;
+.orange {
+	color: #ee5f5b;
 }

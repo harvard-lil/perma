@@ -14,9 +14,12 @@
     <div class="container">
     	<div class="row">
         	<div class="col-sm-12">
-				<p class="mega">Broken links are everywhere.</p>
-				<p>Perma.cc helps authors and journals create<br />
-				permanent links for citations in their published work.</p>
+        				<div class="logo">
+							<img class="landing-logo" src="{{ STATIC_PREFIX }}img/perma-infinity-landing.png"/>
+						</div>
+				<p class="mega">Websites change,<br/> go down and are taken down.</p>
+				<p><span class="orange">perma.cc</span>  helps authors and journals create<br />
+				permanent archived citations in their published work.</p>
 				{% if user.is_authenticated %}
 				<p><a href="{% url 'user_management_created_links' %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
 			</div>	
@@ -39,7 +42,7 @@
 				</style>
 				<div id="mc_embed_signup">
 				<form action="http://harvard.us7.list-manage.com/subscribe/post?u=d69d9fa13a9f7b51b8f939df4&amp;id=a262e9b81b" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
-					<div class="subscribe">Subscribe to our mailing list</div>
+					<div class="subscribe"><span class="orange">perma.cc</span> will be free and open to all soon.</div>
 			
 				<div class="mc-field-group">
 					
@@ -47,14 +50,14 @@
 					<input type="email" placeholder="you@email.com" value="" name="EMAIL" class="required email" id="mce-EMAIL">
 				</div>
 				<div class="mc-field-group input-group center">
-					Do you represent a journal or a blog? 
-					<ul><li><input type="checkbox" value="1" name="group[4441][1]" id="mce-group[4441]-4441-0"><label for="mce-group[4441]-4441-0">&nbsp;Yes. Tell me more about how to use Perma.cc when I publish in my journal and on my blog.</label></li>
+			
+					<ul><li><input type="checkbox" value="1" name="group[4441][1]" id="mce-group[4441]-4441-0"><label for="mce-group[4441]-4441-0">&nbsp;I'm a journal author or editor</label></li>
 				</ul>
 				</div>
 					<div id="mce-responses" class="clear">
 						<div class="response" id="mce-error-response" style="display:none"></div>
 						<div class="response" id="mce-success-response" style="display:none"></div>
-					</div>	<div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="btn btn-large btn-success center"></div>
+					</div>	<div class="clear"><input type="submit" value="Request Beta Access" name="subscribe" id="mc-embedded-subscribe" class="btn btn-large btn-success center"></div>
 				</form>
 				</div>
 			<!--End mc_embed_signup-->
