@@ -16,13 +16,18 @@
 
 		{% if field.name != 'registrar' %}
 		{{ field }}
-		{% else %}
+		{% elif field.name == 'registrar' %}
 		<select name="a-registrar" id="id_a-registrar">
 			{% for x,y in form.fields.registrar.choices %}
 			<option value="{{ x }}" {% if x == target_registrar_member.registrar.id %} selected {% endif %} >{{ y }}</option>
 			{% endfor %}
 		</select>
-
+    {% else %}
+    <select name="a-group" id="id_a-group">
+			{% for x,y in form.fields.group.choices %}
+			<option value="{{ x }}" {% if x == target_registrar_member.groups.all.0.id %} selected {% endif %} >{{ y }}</option>
+			{% endfor %}
+		</select>
 		{% endif %}
 		{% if field.errors %}
 		{% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}

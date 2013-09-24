@@ -1,0 +1,73 @@
+{% extends "admin-layout.html" %}
+{% block title %} | Users{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+{% endblock %}
+
+{% block manage-nav-registry %}<li class="active"><a href="{% url 'user_management_manage_registrar_member' %}">Registrar users</a></li>{% endblock %}
+
+{% block content %}
+
+	<h3>Existing users <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
+	
+	{% ifequal user.groups.all.0.name 'registry_member' %}
+	<div id="add-member" class="collapse">
+    <form method="post">
+      {% csrf_token %}
+		  <h4>Add a new user</h4>
+		  <fieldset>
+		  <span class="text-error">{{ form.non_field_errors }}</span>
+        {% for field in form %}
+          <label for="id_{{ field.name }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+          {%elif field.help_text %}
+            <span class="help-inline">{{ field.help_text }}</span>
+          {% endif %}
+        {% endfor %}  
+      </fieldset>
+      <button type="submit" class="btn">Add user</button>
+    </form>
+  </div>
+	{% endifequal %}
+		
+	<table class="table">
+    <thead>
+      <tr>
+        <!--<th><input type="checkbox"></th>-->
+        <th>Name</th>
+        <th>Email</th>
+        <th>Admin</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users_list %}
+        <tr>
+          <!--<td><input type="checkbox"></td>-->
+          <td>{{ user.first_name }} {{ user.last_name }}</td>
+          <td>{{ user.email }}</td>
+          <td><a href="{% url 'user_management_manage_single_user' user.id %}">edit/delete</a></td>
+      {% empty %}
+        <tr>No users found.</tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  
+{% if users.paginator.num_pages > 1 %}
+<div class="pagination">
+    <ul>
+        {% if users.has_previous %}<li><a href="?page={{ users.previous_page_number }}&sort={{ sort }}">&lt;</a></li>{% endif %}
+        {% for i in users.paginator.page_range %}
+        {% ifequal i users.number %}
+        <li class="active"><a href="">{{ i }}</a></li>
+        {% else %}
+        <li><a href="?page={{ i }}">{{ i }}</a></li>
+        {% endifequal %}
+        {% endfor %}
+        {% if users.has_next  %}<li><a href="?page={{ users.next_page_number }}&sort={{ sort }}">&gt;</a></li>{% endif %}
+    </ul>
+</div>
+{% endif %}
+
+{% endblock %}

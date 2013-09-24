@@ -1,6 +1,6 @@
 import logging
 
-from perma.forms import user_reg_form, regisrtar_member_form, registrar_form, journal_manager_form, journal_manager_w_registrar_form, journal_manager_form_edit, journal_member_form, journal_member_w_registrar_form, journal_member_form_edit, regisrtar_member_form_edit, user_form_self_edit
+from perma.forms import user_reg_form, regisrtar_member_form, registrar_form, journal_manager_form, journal_manager_w_registrar_form, journal_manager_form_edit, journal_manager_w_group_form_edit, journal_member_form, journal_member_w_registrar_form, journal_member_form_edit, journal_member_w_group_form_edit, regisrtar_member_form_edit, user_form_self_edit, manage_user_form, user_form_edit
 from perma.models import Registrar, Link
 from perma.utils import base
 
@@ -219,7 +219,6 @@ def manage_single_registrar_member(request, user_id):
 
     context = {'user': request.user, 'target_registrar_member': target_registrar_member,
         'this_page': 'users'}
-    context.update(csrf(request))
 
     if request.method == 'POST':
 
@@ -269,6 +268,122 @@ def manage_single_registrar_member_delete(request, user_id):
     context = RequestContext(request, context)
     
     return render_to_response('user_management/manage_single_registrar_member_delete_confirm.html', context)
+
+@login_required
+def manage_user(request):
+    """
+    Linky admins can manage regular users
+    """
+
+    if request.user.groups.all()[0].name not in ['registry_member']:
+        return HttpResponseRedirect(reverse('user_management_created_links'))
+        
+    DEFAULT_SORT = 'email'
+
+    sort = request.GET.get('sort', DEFAULT_SORT)
+    if sort not in valid_sorts:
+        sort = DEFAULT_SORT
+    page = request.GET.get('page', 1)
+    if page < 1:
+        page = 1
+
+    users = LinkUser.objects.filter(groups__name='user', is_active=True).order_by(sort)
+    
+    paginator = Paginator(users, 15)
+    users = paginator.page(page)
+
+    context = {'user': request.user, 'users_list': list(users),
+        'this_page': 'users', 'users': users}
+
+    if request.method == 'POST':
+
+        form = manage_user_form(request.POST, prefix = "a")
+
+        if form.is_valid():
+            new_user = form.save()
+
+            new_user.backend='django.contrib.auth.backends.ModelBackend'
+            
+            group = Group.objects.get(name='user')
+            new_user.groups.add(group)
+            
+            email_new_user(request, new_user.email)
+
+            return HttpResponseRedirect(reverse('user_management_manage_user'))
+
+        else:
+            context.update({'form': form,})
+    else:
+        form = manage_user_form(prefix = "a")
+        context.update({'form': form,})
+
+    context = RequestContext(request, context)
+    
+    return render_to_response('user_management/manage_users.html', context)
+
+
+@login_required
+def manage_single_user(request, user_id):
+    """
+    Linky admins can manage regular users
+    in this view, we allow for edit
+    """
+
+    if request.user.groups.all()[0].name not in ['registry_member']:
+        return HttpResponseRedirect(reverse('user_management_created_links'))
+
+    target_user = get_object_or_404(LinkUser, id=user_id)
+
+    context = {'user': request.user, 'target_user': target_user,
+        'this_page': 'users'}
+
+    if request.method == 'POST':
+
+        form = user_form_edit(request.POST, prefix = "a", instance=target_user)
+
+        if form.is_valid():
+            new_user = form.save()
+
+            return HttpResponseRedirect(reverse('user_management_manage_user'))
+
+        else:
+            context.update({'form': form,})
+    else:
+        form = user_form_edit(prefix = "a", instance=target_user)
+        context.update({'form': form,})
+
+    context = RequestContext(request, context)
+    
+    return render_to_response('user_management/manage_single_user.html', context)
+
+
+@login_required
+def manage_single_user_delete(request, user_id):
+    """
+    Linky admins can manage regular users. Delete a single user here.
+    """
+
+    # Only registry members can delete registrar members
+    if request.user.groups.all()[0].name not in ['registry_member']:
+        return HttpResponseRedirect(reverse('user_management_created_links'))
+
+    target_member = get_object_or_404(LinkUser, id=user_id)
+
+    context = {'user': request.user, 'target_member': target_member,
+        'this_page': 'users'}
+
+    if request.method == 'POST':
+        target_member.is_active = False
+        target_member.save()
+
+        return HttpResponseRedirect(reverse('user_management_manage_user'))
+    else:
+        form = user_form_edit(prefix = "a", instance=target_member)
+        context.update({'form': form,})
+
+    context = RequestContext(request, context)
+    
+    return render_to_response('user_management/manage_single_user_delete_confirm.html', context)
 
 
 @login_required
@@ -339,6 +454,10 @@ def manage_single_journal_manager(request, user_id):
     # Only registry members and registrar memebers can edit vesting members
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
         return HttpResponseRedirect(reverse('user_management_created_links'))
+        
+    is_registry = False;
+    if request.user.groups.all()[0].name == 'registry_member':
+      is_registry = True;
 
     target_member = get_object_or_404(LinkUser, id=user_id)
 
@@ -352,7 +471,10 @@ def manage_single_journal_manager(request, user_id):
 
     if request.method == 'POST':
 
-        form = journal_manager_form_edit(request.POST, prefix = "a", instance=target_member)
+        if is_registry:
+          form = journal_manager_w_group_form_edit(request.POST, prefix = "a", instance=target_member)
+        else:
+          form = journal_manager_form_edit(request.POST, prefix = "a", instance=target_member)
 
         if form.is_valid():
             form.save()
@@ -362,7 +484,10 @@ def manage_single_journal_manager(request, user_id):
         else:
             context.update({'form': form,})
     else:
-        form = journal_manager_form_edit(prefix = "a", instance=target_member)
+        if is_registry:
+          form = journal_manager_w_group_form_edit(prefix = "a", instance=target_member)
+        else: 
+          form = journal_manager_form_edit(prefix = "a", instance=target_member)
         context.update({'form': form,})
 
     context = RequestContext(request, context)

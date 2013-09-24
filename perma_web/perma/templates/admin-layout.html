@@ -96,6 +96,10 @@
         <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_journal_member' %}">Vesting Users</a></li>
         {% endif %}
         
+        <!-- Regular users -->
+        {% if user.groups.all.0.name == 'registry_member' %}
+        <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_user' %}">Users</a></li>{% endif %}
+        
   
     </ul><!--/#dashboard-tabs-->
 
