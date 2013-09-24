@@ -667,8 +667,9 @@ img.image-view {
 	border-color: #999;	
 	z-index:1;
 	margin-top:0px;
-	width:1033px;
+	max-width:1033px;
 	opacity:.8;
+	background:white;
 }
 
 
