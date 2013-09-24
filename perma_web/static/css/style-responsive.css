@@ -188,8 +188,10 @@ li.participating-institutions-carousel img{
 	border-radius: 3px;
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
+    -ms-border-radius: 3px;
 	margin-right:10px;
 	margin-bottom:10px;
+	filter: alpha(opacity=60);
 }
 
 .login {
@@ -895,7 +897,7 @@ If you need more, that's where to get'em.
 }
 
 h3 {
-    color:#999;
+    color:#09f;
     line-height: 30px;
 }
 
@@ -1321,4 +1323,11 @@ section#home-description p.mega {
 
 .orange {
 	color: #ee5f5b;
+}
+
+ul {
+	margin-left:-39px;
+}
+li {
+	margin-bottom:5px;
 }
