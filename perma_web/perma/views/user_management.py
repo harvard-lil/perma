@@ -1,6 +1,6 @@
 import logging
 
-from perma.forms import user_reg_form, regisrtar_member_form, registrar_form, journal_manager_form, journal_manager_w_registrar_form, journal_manager_form_edit, journal_manager_w_group_form_edit, journal_member_form, journal_member_w_registrar_form, journal_member_form_edit, journal_member_w_group_form_edit, regisrtar_member_form_edit, user_form_self_edit, manage_user_form, user_form_edit
+from perma.forms import user_reg_form, regisrtar_member_form, registrar_form, journal_manager_form, journal_manager_w_registrar_form, journal_manager_form_edit, journal_manager_w_group_form_edit, journal_member_form, journal_member_w_registrar_form, journal_member_form_edit, journal_member_w_group_form_edit, regisrtar_member_form_edit, user_form_self_edit, manage_user_form, user_form_edit, set_password_form
 from perma.models import Registrar, Link
 from perma.utils import base
 
@@ -56,42 +56,7 @@ def create_link(request):
     context = RequestContext(request, {'this_page': 'create_link', 'host': request.get_host(), 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()})
 
     return render_to_response('user_management/create-link.html', context)
-
-@login_required
-def manage_members(request):
-    """
-    Registry and registrar members can manage vesting members (the folks that vest links)
-    """
-
-    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
-
-    context = {'user': request.user, 'registrar_members': list(registrars),
-        'this_page': 'users'}
-
-    if request.method == 'POST':
-
-        form = regisrtar_member_form(request.POST, prefix = "a")
-
-        if form.is_valid():
-            new_user = form.save()
-
-            new_user.backend='django.contrib.auth.backends.ModelBackend'
-
-            group = Group.objects.get(name='registrar_member')
-            group.user_set.add(new_user)
-
-            return HttpResponseRedirect(reverse('user_management_manage_registrar_member'))
-
-        else:
-            context.update({'regisrtar_register_form': form,})
-    else:
-        form = regisrtar_member_form(prefix = "a")
-        context.update({'regisrtar_register_form': form,})
-    context = RequestContext(request, context)
-
-    return render_to_response('user_management/manage_registrar_members.html', context)
-
+    
 
 @login_required
 def manage_registrar(request):
@@ -187,10 +152,13 @@ def manage_registrar_member(request):
 
             new_user.backend='django.contrib.auth.backends.ModelBackend'
             
+            new_user.is_active = False
+            new_user.save()
+            
             group = Group.objects.get(name='registrar_member')
             new_user.groups.add(group)
             
-            email_new_user(request, new_user.email)
+            email_new_user(request, new_user)
 
             return HttpResponseRedirect(reverse('user_management_manage_registrar_member'))
 
@@ -304,10 +272,13 @@ def manage_user(request):
 
             new_user.backend='django.contrib.auth.backends.ModelBackend'
             
+            new_user.is_active = False
+            new_user.save()
+            
             group = Group.objects.get(name='user')
             new_user.groups.add(group)
             
-            email_new_user(request, new_user.email)
+            email_new_user(request, new_user)
 
             return HttpResponseRedirect(reverse('user_management_manage_user'))
 
@@ -419,6 +390,9 @@ def manage_journal_manager(request):
 
             new_user.backend='django.contrib.auth.backends.ModelBackend'
             
+            new_user.is_active = False
+            new_user.save()
+            
             if not is_registry:
               new_user.registrar = request.user.registrar
             new_user.save()
@@ -426,7 +400,7 @@ def manage_journal_manager(request):
             group = Group.objects.get(name='vesting_manager')
             new_user.groups.add(group)
             
-            email_new_user(request, new_user.email)
+            email_new_user(request, new_user)
 
             return HttpResponseRedirect(reverse('user_management_manage_journal_manager'))
 
@@ -566,6 +540,9 @@ def manage_journal_member(request):
 
             new_user.backend='django.contrib.auth.backends.ModelBackend'
             
+            new_user.is_active = False
+            new_user.save()
+            
             if not is_registry:
               new_user.registrar = request.user.registrar
             new_user.authorized_by = request.user
@@ -574,7 +551,7 @@ def manage_journal_member(request):
             group = Group.objects.get(name='vesting_member')
             new_user.groups.add(group)
             
-            email_new_user(request, new_user.email)
+            email_new_user(request, new_user)
 
             return HttpResponseRedirect(reverse('user_management_manage_journal_member'))
 
@@ -945,6 +922,33 @@ def register_email_code_confirmation(request, code):
     full_redirect_url = '%s%s' % (redirect_url, extra_params)
     return HttpResponseRedirect(full_redirect_url)
     
+
+def register_email_code_password(request, code):
+    """
+    Allow system created accounts to create a password.
+    """
+    user = get_object_or_404(LinkUser, confirmation_code=code)
+    if request.method == "POST":
+      form = set_password_form(user=user, data=request.POST)
+      if form.is_valid():
+        form.save()
+        user.is_active = True
+        user.save()
+        redirect_url = reverse('user_management_limited_login')
+        extra_params = '?confirmed=true'
+        full_redirect_url = '%s%s' % (redirect_url, extra_params)
+        return HttpResponseRedirect(full_redirect_url)
+      else:
+        context = {'form': form}
+        context = RequestContext(request, context)
+        return render_to_response('registration/set_password.html', context)
+    else:
+      form = set_password_form(user=user)
+    
+      context = {'form': form}
+      context = RequestContext(request, context)
+      return render_to_response('registration/set_password.html', context)
+    
     
 def register_email_instructions(request):
     """
@@ -952,17 +956,21 @@ def register_email_instructions(request):
     """
     return render_to_response('registration/check_email.html', {})
     
-def email_new_user(request, email):
+def email_new_user(request, user):
     """
     Send email to newly created accounts
     """
+    user.confirmation_code = \
+      ''.join(random.choice(string.ascii_uppercase + \
+      string.ascii_lowercase + string.digits) for x in range(30))
+    user.save()
     from_address = "lil@law.harvard.edu"
-    to_address = email
-    content = '''To log into your account, please click the link below or copy it to your web browser:
+    to_address = user.email
+    content = '''To log into your account, please click the link below or copy it to your web browser.  You will need to create a new password.
 
-http://%s/login
+http://%s/register/password/%s/
 
-''' % (request.get_host())
+''' % (request.get_host(), user.confirmation_code)
 
     logger.debug(content)
 
