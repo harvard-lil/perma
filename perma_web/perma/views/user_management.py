@@ -72,7 +72,6 @@ def manage_registrar(request):
 
     context = {'user': request.user, 'registrars': list(registrars),
         'this_page': 'users'}
-    context.update(csrf(request))
 
     if request.method == 'POST':
 
