@@ -235,3 +235,6 @@ LOGIN_DAY_LIMIT = '50000/d'
 
 GOOGLE_ANALYTICS_KEY = 'UA-XXXXX-X'
 GOOGLE_ANALYTICS_DOMAIN = 'example.com'
+
+# To populate the from field of emails sent from Perma
+EMAIL_FROM = 'email@example.com'

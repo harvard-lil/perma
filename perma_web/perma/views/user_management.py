@@ -870,7 +870,7 @@ def process_register(request):
                 string.ascii_lowercase + string.digits) for x in range(30))
             new_user.save()
             
-            from_address = "lil@law.harvard.edu"
+            from_address = "linfo@perma.cc"
             to_address = new_user.email
             content = '''To confirm your account, please click the link below or copy it to your web browser:
 
@@ -963,7 +963,7 @@ def email_new_user(request, user):
       ''.join(random.choice(string.ascii_uppercase + \
       string.ascii_lowercase + string.digits) for x in range(30))
     user.save()
-    from_address = "lil@law.harvard.edu"
+    from_address = settings.EMAIL_FROM
     to_address = user.email
     content = '''To log into your account, please click the link below or copy it to your web browser.  You will need to create a new password.
 
@@ -971,7 +971,7 @@ http://%s/register/password/%s/
 
 ''' % (request.get_host(), user.confirmation_code)
 
-    logger.debug(content)
+    logger.debug(from_address)
 
     msg = MIMEText(content)
     msg['Subject'] = "A perma account has been created for you"
