@@ -54,16 +54,20 @@
       {% endfor %}
     </tbody>
   </table>
-		
-		<!--<form action="" method="post" class="embedded-form form-inline">
-		<span class="text-error">{{ form.non_field_errors }}</span>
-		  {% csrf_token %}
-      {{ form.non_field_errors }}
-      <h4>Add a new registrar</h4>
-        {{ form.name.errors }}
-        <label for="id_a-name">Name</label>
-        {{ form.name }}
-      <button type="submit" class="btn">Create new registrar</button>
-    </form>-->
+      {% if registrars.paginator.num_pages > 1 %}
+<div class="pagination">
+    <ul>
+        {% if registrars.has_previous %}<li><a href="?page={{ registrars.previous_page_number }}&sort={{ sort }}">&lt;</a></li>{% endif %}
+        {% for i in registrars.paginator.page_range %}
+        {% ifequal i registrars.number %}
+        <li class="active"><a href="">{{ i }}</a></li>
+        {% else %}
+        <li><a href="?page={{ i }}">{{ i }}</a></li>
+        {% endifequal %}
+        {% endfor %}
+        {% if registrars.has_next  %}<li><a href="?page={{ registrars.next_page_number }}&sort={{ sort }}">&gt;</a></li>{% endif %}
+    </ul>
+</div>
+{% endif %}
 
 {% endblock %}

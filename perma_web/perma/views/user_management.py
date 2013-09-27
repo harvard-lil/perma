@@ -67,10 +67,20 @@ def manage_registrar(request):
     if request.user.groups.all()[0].name not in ['registry_member']:
         return HttpResponseRedirect(reverse('user_management_created_links'))
 
-    # TODO: support paging at some point
-    registrars = Registrar.objects.all()[:500]
+    DEFAULT_SORT = 'name'
 
-    context = {'user': request.user, 'registrars': list(registrars),
+    sort = request.GET.get('sort', DEFAULT_SORT)
+    if sort not in valid_sorts:
+        sort = DEFAULT_SORT
+    page = request.GET.get('page', 1)
+    if page < 1:
+        page = 1
+    registrars = Registrar.objects.all().order_by(sort)
+    
+    paginator = Paginator(registrars, settings.MAX_USER_LIST_SIZE)
+    registrars = paginator.page(page)
+
+    context = {'user': request.user, 'registrars_list': list(registrars), 'registrars': registrars,
         'this_page': 'users'}
 
     if request.method == 'POST':
@@ -135,12 +145,23 @@ def manage_registrar_member(request):
 
     if request.user.groups.all()[0].name not in ['registry_member']:
         return HttpResponseRedirect(reverse('user_management_created_links'))
+    
+    DEFAULT_SORT = 'email'
 
-    registrar_members = LinkUser.objects.filter(groups__name='registrar_member', is_active=True)
+    sort = request.GET.get('sort', DEFAULT_SORT)
+    if sort not in valid_sorts:
+        sort = DEFAULT_SORT
+    page = request.GET.get('page', 1)
+    if page < 1:
+        page = 1
 
-    context = {'user': request.user, 'registrar_members': list(registrar_members),
+    registrar_members = LinkUser.objects.filter(groups__name='registrar_member', is_active=True).order_by(sort)
+    
+    paginator = Paginator(registrar_members, settings.MAX_USER_LIST_SIZE)
+    registrar_members = paginator.page(page)
+
+    context = {'user': request.user, 'registrar_members_list': list(registrar_members), 'registrar_members': registrar_members,
         'this_page': 'users'}
-    context.update(csrf(request))
 
     if request.method == 'POST':
 
@@ -256,7 +277,7 @@ def manage_user(request):
 
     users = LinkUser.objects.filter(groups__name='user', is_active=True).order_by(sort)
     
-    paginator = Paginator(users, 15)
+    paginator = Paginator(users, settings.MAX_USER_LIST_SIZE)
     users = paginator.page(page)
 
     context = {'user': request.user, 'users_list': list(users),
@@ -366,15 +387,27 @@ def manage_journal_manager(request):
         return HttpResponseRedirect(reverse('user_management_created_links'))
         
     is_registry = False;
+    
+    DEFAULT_SORT = 'email'
+
+    sort = request.GET.get('sort', DEFAULT_SORT)
+    if sort not in valid_sorts:
+        sort = DEFAULT_SORT
+    page = request.GET.get('page', 1)
+    if page < 1:
+        page = 1
 
     # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
-        journal_managers = LinkUser.objects.filter(groups__name='vesting_manager', is_active=True)
+        journal_managers = LinkUser.objects.filter(groups__name='vesting_manager', is_active=True).order_by(sort)
         is_registry = True;
     else:
-        journal_managers = LinkUser.objects.filter(groups__name='vesting_manager', registrar=request.user.registrar, is_active=True).exclude(id=request.user.id)
+        journal_managers = LinkUser.objects.filter(groups__name='vesting_manager', registrar=request.user.registrar, is_active=True).exclude(id=request.user.id).order_by(sort)
+    
+    paginator = Paginator(journal_managers, settings.MAX_USER_LIST_SIZE)
+    journal_managers = paginator.page(page)
 
-    context = {'user': request.user, 'journal_managers': list(journal_managers),
+    context = {'user': request.user, 'journal_managers_list': list(journal_managers), 'journal_managers': journal_managers,
         'this_page': 'users'}
 
     if request.method == 'POST':
@@ -514,17 +547,28 @@ def manage_journal_member(request):
         return HttpResponseRedirect(reverse('user_management_created_links'))
         
     is_registry = False;
+    
+    DEFAULT_SORT = 'email'
+
+    sort = request.GET.get('sort', DEFAULT_SORT)
+    if sort not in valid_sorts:
+        sort = DEFAULT_SORT
+    page = request.GET.get('page', 1)
+    if page < 1:
+        page = 1
 
     # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
-        journal_members = LinkUser.objects.filter(groups__name='vesting_member', is_active=True)
+        journal_members = LinkUser.objects.filter(groups__name='vesting_member', is_active=True).order_by(sort)
         is_registry = True;
     elif request.user.groups.all()[0].name == 'vesting_manager':
-        journal_members = LinkUser.objects.filter(authorized_by=request.user, is_active=True).exclude(id=request.user.id)
+        journal_members = LinkUser.objects.filter(authorized_by=request.user, is_active=True).exclude(id=request.user.id).order_by(sort)
     else:
-        journal_members = LinkUser.objects.filter(groups__name='vesting_member', registrar=request.user.registrar, is_active=True).exclude(id=request.user.id)
-
-    context = {'user': request.user, 'journal_members': list(journal_members),
+    	journal_members = LinkUser.objects.filter(groups__name='vesting_member', registrar=request.user.registrar, is_active=True).exclude(id=request.user.id).order_by(sort)
+    	
+    paginator = Paginator(journal_members, settings.MAX_USER_LIST_SIZE)
+    journal_members = paginator.page(page)
+    context = {'user': request.user, 'journal_members_list': list(journal_members), 'journal_members': journal_members,
         'this_page': 'users'}
 
     if request.method == 'POST':

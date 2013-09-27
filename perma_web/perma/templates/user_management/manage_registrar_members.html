@@ -43,7 +43,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for registrar_member in registrar_members %}
+      {% for registrar_member in registrar_members_list %}
         <tr>
           <!--<td><input type="checkbox"></td>-->
           <td>{{ registrar_member.first_name }} {{ registrar_member.last_name }}</td>
@@ -55,5 +55,21 @@
       {% endfor %}
     </tbody>
   </table>
+  
+  {% if registrar_members.paginator.num_pages > 1 %}
+<div class="pagination">
+    <ul>
+        {% if registrar_members.has_previous %}<li><a href="?page={{ registrar_members.previous_page_number }}&sort={{ sort }}">&lt;</a></li>{% endif %}
+        {% for i in registrar_members.paginator.page_range %}
+        {% ifequal i registrar_members.number %}
+        <li class="active"><a href="">{{ i }}</a></li>
+        {% else %}
+        <li><a href="?page={{ i }}">{{ i }}</a></li>
+        {% endifequal %}
+        {% endfor %}
+        {% if registrar_members.has_next  %}<li><a href="?page={{ registrar_members.next_page_number }}&sort={{ sort }}">&gt;</a></li>{% endif %}
+    </ul>
+</div>
+{% endif %}
 
 {% endblock %}

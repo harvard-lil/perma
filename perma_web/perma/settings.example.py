@@ -233,6 +233,10 @@ LOGIN_MINUTE_LIMIT = '5000/m'
 LOGIN_HOUR_LIMIT = '10000/h'
 LOGIN_DAY_LIMIT = '50000/d'
 
+# Dashboard user lists
+MAX_USER_LIST_SIZE = '15'
+
+# Google Analytics 
 GOOGLE_ANALYTICS_KEY = 'UA-XXXXX-X'
 GOOGLE_ANALYTICS_DOMAIN = 'example.com'
 
