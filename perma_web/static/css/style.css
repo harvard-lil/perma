@@ -1290,3 +1290,10 @@ div.faq div.answer {
 .hide {
     display: none;
 }
+
+li.alpha-list {
+	clear:both;
+	margin-left:50px;
+	color:red;
+	border:1px solid red;
+}

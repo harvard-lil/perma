@@ -14,6 +14,7 @@ urlpatterns = patterns('perma.views',
     url(r'^about/?$', 'common.about', name='about'),
     url(r'^faq/?$', 'common.faq', name='faq'),
     url(r'^contact/?$', 'common.contact', name='contact'),
+    url(r'^copyright-policy/?$', 'common.copyright_policy', name='copyright_policy'),
     url(r'^terms-of-service/?$', 'common.terms_of_service', name='terms_of_service'),
     url(r'^privacy-policy/?$', 'common.privacy_policy', name='privacy_policy'),
     

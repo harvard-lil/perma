@@ -1331,3 +1331,25 @@ ul {
 li {
 	margin-bottom:5px;
 }
+
+.alpha-list {
+	width:20px;
+	color:black;
+	margin:0 0 -19px -45px;
+}
+
+ul.tos {
+	margin-left:25px;
+}
+
+ol li {
+	margin:10px 0 20px;
+}
+
+.bold {
+	font-weight:bold;
+}
+
+.italic {
+	font-style:italic;
+}

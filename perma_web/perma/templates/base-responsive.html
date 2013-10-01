@@ -220,11 +220,11 @@
 						<p id="boilerplate">			
 							&copy; perma.cc
 							&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-							<a href="{{ STATIC_PREFIX }}doc/Perma.cc_TOS.pdf">Terms of Service</a>
+							<a href="{% url 'terms_of_service' %}">Terms of Service</a>
 							&nbsp;&nbsp;&middot;&nbsp;&nbsp;
 							<a href="{% url 'privacy_policy' %}">Privacy Policy</a>
 							&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-							<a href="{{ STATIC_PREFIX }}doc/Perma.cc_CopyrightPolicy.pdf">Copyright Policy</a>
+						   <a href="{% url 'copyright_policy' %}">Copyright Policy</a>
 						</p>
 					</div><!--/col-->
 				</div><!--/row-->

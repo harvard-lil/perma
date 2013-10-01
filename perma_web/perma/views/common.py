@@ -88,6 +88,17 @@ def privacy_policy(request):
     return render_to_response('privacy_policy.html', context_instance=RequestContext(context))
 
 
+def copyright_policy(request):
+    """
+    The copyright policy page
+    """
+    
+    context = {'user': request.user,}
+    
+    return render_to_response('copyright_policy.html', context_instance=RequestContext(context))
+
+
+
 def tools(request):
     """
     The tools page
