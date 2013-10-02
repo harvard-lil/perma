@@ -96,7 +96,7 @@ def linky_post(request):
         asset.save()
         
         # Run our synchronus screen cap task (use the headless browser to create a static image)
-        get_screen_cap(guid, target_url, os.path.sep.join(path_elements))
+        get_screen_cap(guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
 
         # Get the text capture of the page (through a service that follows pagination)
         store_text_cap.delay(target_url, target_title, guid)

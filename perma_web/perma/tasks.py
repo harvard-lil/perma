@@ -12,7 +12,7 @@ import oauth2 as oauth
 logger = logging.getLogger(__name__)
 
 @celery.task
-def get_screen_cap(link_guid, target_url, base_storage_path):
+def get_screen_cap(link_guid, target_url, base_storage_path, user_agent=''):
     """
     Create an image from the supplied URL, write it to disk and update our asset model with the path.
     The heavy lifting is done by PhantomJS, our headless browser.
@@ -25,7 +25,7 @@ def get_screen_cap(link_guid, target_url, base_storage_path):
     if not os.path.exists(os.path.sep.join(path_elements[:2])):
         os.makedirs(os.path.sep.join(path_elements[:2]))
 
-    image_generation_command = settings.PROJECT_ROOT + '/lib/phantomjs ' + settings.PROJECT_ROOT + '/lib/rasterize.js "' + target_url + '" ' + os.path.sep.join(path_elements)
+    image_generation_command = settings.PROJECT_ROOT + '/lib/phantomjs ' + settings.PROJECT_ROOT + '/lib/rasterize.js "' + target_url + '" ' + os.path.sep.join(path_elements) + ' "' + user_agent + '"'
 
     subprocess.call(image_generation_command, shell=True)
 
