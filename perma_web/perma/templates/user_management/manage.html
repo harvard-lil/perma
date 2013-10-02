@@ -43,7 +43,7 @@
 	<div id="linky-list">
 		{% if user.is_authenticated %}
 		  {% if linky_links %}
-			<h3 class="text-center linky-ul-header">Recently created</h3>
+			<h3 class="text-center linky-ul-header">Links you've recently created</h3>
 		  {% endif %}
 		<ul id="stored-ul" class="perma-ul">
 			{% for linky_link in linky_links %}
@@ -72,7 +72,7 @@
 		{% else %}
 	
 		<div id="local-list">
-			<h3 class="text-center linky-ul-header">Recently created</h3>
+			<h3 class="text-center linky-ul-header">Links you've recently created</h3>
 			<ul id="local-ul" class="perma-ul"></ul>
 			<div id="register-prompt" class="center">
 				  <h3>This list ends at 5</h3>
