@@ -559,12 +559,12 @@ def manage_journal_member(request):
 
     # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
-        journal_members = LinkUser.objects.filter(groups__name='vesting_member', is_active=True).order_by(sort)
+        journal_members = LinkUser.objects.filter(groups__name='vesting_member').order_by(sort)
         is_registry = True;
     elif request.user.groups.all()[0].name == 'vesting_manager':
-        journal_members = LinkUser.objects.filter(authorized_by=request.user, is_active=True).exclude(id=request.user.id).order_by(sort)
+        journal_members = LinkUser.objects.filter(authorized_by=request.user).exclude(id=request.user.id).order_by(sort)
     else:
-    	journal_members = LinkUser.objects.filter(groups__name='vesting_member', registrar=request.user.registrar, is_active=True).exclude(id=request.user.id).order_by(sort)
+    	journal_members = LinkUser.objects.filter(groups__name='vesting_member', registrar=request.user.registrar).exclude(id=request.user.id).order_by(sort)
     	
     paginator = Paginator(journal_members, settings.MAX_USER_LIST_SIZE)
     journal_members = paginator.page(page)
@@ -645,7 +645,7 @@ def manage_single_journal_member(request, user_id):
         if form.is_valid():
             form.save()
 
-            return HttpResponseRedirect(reverse('user_management_manage_journal_member'))
+            return HttpResponseRedirect(reverse('user_management_created_links'))
 
         else:
             context.update({'form': form,})
