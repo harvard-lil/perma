@@ -43,9 +43,9 @@ def about(request):
     The about page
     """
 
-    context = {'host': request.get_host(), 'user': request.user,}
+    context = RequestContext(request, {'user': request.user, 'host': request.get_host(),})
 
-    return render_to_response('about.html', context_instance=RequestContext(context))
+    return render_to_response('about.html', context)
 
 
 def faq(request):
@@ -53,9 +53,9 @@ def faq(request):
     The FAQ page
     """
 
-    context = {'user': request.user,}
+    context = RequestContext(request, {'user': request.user})
         
-    return render_to_response('faq.html', context_instance=RequestContext(context))
+    return render_to_response('faq.html', context)
 
 
 def contact(request):
@@ -63,9 +63,9 @@ def contact(request):
     The contact page
     """
 
-    context = {'user': request.user,}
+    context = RequestContext(request, {'user': request.user})
     
-    return render_to_response('contact.html', context_instance=RequestContext(context))
+    return render_to_response('contact.html', context)
 
 
 def terms_of_service(request):
@@ -73,9 +73,9 @@ def terms_of_service(request):
     The terms of service page
     """
 
-    context = {'user': request.user,}
+    context = RequestContext(request, {'user': request.user})
     
-    return render_to_response('terms_of_service.html', context_instance=RequestContext(context))
+    return render_to_response('terms_of_service.html', context)
 
 
 def privacy_policy(request):
@@ -83,9 +83,9 @@ def privacy_policy(request):
     The privacy policy page
     """
     
-    context = {'user': request.user,}
+    context = RequestContext(request, {'user': request.user})
     
-    return render_to_response('privacy_policy.html', context_instance=RequestContext(context))
+    return render_to_response('privacy_policy.html', context)
 
 
 def copyright_policy(request):
@@ -93,9 +93,9 @@ def copyright_policy(request):
     The copyright policy page
     """
     
-    context = {'user': request.user,}
+    context = RequestContext(request, {'user': request.user})
     
-    return render_to_response('copyright_policy.html', context_instance=RequestContext(context))
+    return render_to_response('copyright_policy.html', context)
 
 
 
