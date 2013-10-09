@@ -622,6 +622,11 @@ def manage_single_journal_member(request, user_id):
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'vesting_manager']:
         return HttpResponseRedirect(reverse('user_management_created_links'))
 
+    is_registry = False;
+    
+    if request.user.groups.all()[0].name == 'registry_member':
+      is_registry = True;
+    
     target_member = get_object_or_404(LinkUser, id=user_id)
 
     # Registrar members can only edit their own vesting members
@@ -639,8 +644,10 @@ def manage_single_journal_member(request, user_id):
         'this_page': 'users'}
 
     if request.method == 'POST':
-
-        form = journal_member_form_edit(request.POST, prefix = "a", instance=target_member)
+        if is_registry:
+          form = journal_member_w_group_form_edit(request.POST, prefix = "a", instance=target_member)
+        else:
+          form = journal_member_form_edit(request.POST, prefix = "a", instance=target_member)
 
         if form.is_valid():
             form.save()
@@ -650,7 +657,10 @@ def manage_single_journal_member(request, user_id):
         else:
             context.update({'form': form,})
     else:
-        form = journal_member_form_edit(prefix = "a", instance=target_member)
+        if is_registry:
+          form = journal_member_w_group_form_edit(prefix = "a", instance=target_member)
+        else: 
+          form = journal_member_form_edit(prefix = "a", instance=target_member)
         context.update({'form': form,})
 
     context = RequestContext(request, context)
