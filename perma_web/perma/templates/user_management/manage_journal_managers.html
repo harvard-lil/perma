@@ -11,6 +11,10 @@
 
 	<h3>Existing vesting managers <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
 	
+	{% if added_user %}
+    <div class="alert alert-success alert-block"><h4>Account created!</h4> <strong>{{ added_user }}</strong> will receive an email with instructions on how to activate the account and create a password.</div>
+  {% endif %}
+	
 	<div id="add-member" class="collapse">
 	  <form method="post">
       {% csrf_token %}

@@ -123,7 +123,7 @@ def manage_single_registrar(request, registrar_id):
 
         if form.is_valid():
             new_user = form.save()
-
+            
             return HttpResponseRedirect(reverse('user_management_manage_registrar'))
 
         else:
@@ -146,6 +146,8 @@ def manage_registrar_member(request):
     if request.user.groups.all()[0].name not in ['registry_member']:
         return HttpResponseRedirect(reverse('user_management_created_links'))
     
+    added_user = request.REQUEST.get('added_user')
+    
     DEFAULT_SORT = 'email'
 
     sort = request.GET.get('sort', DEFAULT_SORT)
@@ -161,7 +163,7 @@ def manage_registrar_member(request):
     registrar_members = paginator.page(page)
 
     context = {'user': request.user, 'registrar_members_list': list(registrar_members), 'registrar_members': registrar_members,
-        'this_page': 'users'}
+        'this_page': 'users', 'added_user': added_user}
 
     if request.method == 'POST':
 
@@ -180,7 +182,10 @@ def manage_registrar_member(request):
             
             email_new_user(request, new_user)
 
-            return HttpResponseRedirect(reverse('user_management_manage_registrar_member'))
+            redirect_url = reverse('user_management_manage_registrar_member')
+            extra_params = '?added_user=%s' % new_user.email
+            full_redirect_url = '%s%s' % (redirect_url, extra_params)
+            return HttpResponseRedirect(full_redirect_url)
 
         else:
             context.update({'form': form,})
@@ -266,6 +271,8 @@ def manage_user(request):
     if request.user.groups.all()[0].name not in ['registry_member']:
         return HttpResponseRedirect(reverse('user_management_created_links'))
         
+    added_user = request.REQUEST.get('added_user')
+    
     DEFAULT_SORT = 'email'
 
     sort = request.GET.get('sort', DEFAULT_SORT)
@@ -281,7 +288,7 @@ def manage_user(request):
     users = paginator.page(page)
 
     context = {'user': request.user, 'users_list': list(users),
-        'this_page': 'users', 'users': users}
+        'this_page': 'users', 'users': users, 'added_user': added_user}
 
     if request.method == 'POST':
 
@@ -300,7 +307,10 @@ def manage_user(request):
             
             email_new_user(request, new_user)
 
-            return HttpResponseRedirect(reverse('user_management_manage_user'))
+            redirect_url = reverse('user_management_manage_user')
+            extra_params = '?added_user=%s' % new_user.email
+            full_redirect_url = '%s%s' % (redirect_url, extra_params)
+            return HttpResponseRedirect(full_redirect_url)
 
         else:
             context.update({'form': form,})
@@ -387,6 +397,7 @@ def manage_journal_manager(request):
         return HttpResponseRedirect(reverse('user_management_created_links'))
         
     is_registry = False;
+    added_user = request.REQUEST.get('added_user')
     
     DEFAULT_SORT = 'email'
 
@@ -408,7 +419,7 @@ def manage_journal_manager(request):
     journal_managers = paginator.page(page)
 
     context = {'user': request.user, 'journal_managers_list': list(journal_managers), 'journal_managers': journal_managers,
-        'this_page': 'users'}
+        'this_page': 'users', 'added_user': added_user}
 
     if request.method == 'POST':
 
@@ -434,7 +445,10 @@ def manage_journal_manager(request):
             
             email_new_user(request, new_user)
 
-            return HttpResponseRedirect(reverse('user_management_manage_journal_manager'))
+            redirect_url = reverse('user_management_manage_journal_manager')
+            extra_params = '?added_user=%s' % new_user.email
+            full_redirect_url = '%s%s' % (redirect_url, extra_params)
+            return HttpResponseRedirect(full_redirect_url)
 
         else:
             context.update({'form': form,})
@@ -547,6 +561,7 @@ def manage_journal_member(request):
         return HttpResponseRedirect(reverse('user_management_created_links'))
         
     is_registry = False;
+    added_user = request.REQUEST.get('added_user')
     
     DEFAULT_SORT = 'email'
 
@@ -569,7 +584,7 @@ def manage_journal_member(request):
     paginator = Paginator(journal_members, settings.MAX_USER_LIST_SIZE)
     journal_members = paginator.page(page)
     context = {'user': request.user, 'journal_members_list': list(journal_members), 'journal_members': journal_members,
-        'this_page': 'users'}
+        'this_page': 'users', 'added_user': added_user}
 
     if request.method == 'POST':
 
@@ -596,7 +611,10 @@ def manage_journal_member(request):
             
             email_new_user(request, new_user)
 
-            return HttpResponseRedirect(reverse('user_management_manage_journal_member'))
+            redirect_url = reverse('user_management_manage_journal_member')
+            extra_params = '?added_user=%s' % new_user.email
+            full_redirect_url = '%s%s' % (redirect_url, extra_params)
+            return HttpResponseRedirect(full_redirect_url)
 
         else:
             context.update({'form': form,})
