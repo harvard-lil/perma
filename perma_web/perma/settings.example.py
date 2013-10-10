@@ -241,4 +241,4 @@ GOOGLE_ANALYTICS_KEY = 'UA-XXXXX-X'
 GOOGLE_ANALYTICS_DOMAIN = 'example.com'
 
 # To populate the from field of emails sent from Perma
-EMAIL_FROM = 'email@example.com'
+DEFAULT_FROM_EMAIL = 'email@example.com'

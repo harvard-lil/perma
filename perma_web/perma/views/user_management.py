@@ -1035,7 +1035,7 @@ def email_new_user(request, user):
       ''.join(random.choice(string.ascii_uppercase + \
       string.ascii_lowercase + string.digits) for x in range(30))
     user.save()
-    from_address = settings.EMAIL_FROM
+    from_address = settings.DEFAULT_FROM_EMAIL
     to_address = user.email
     content = '''To log into your account, please click the link below or copy it to your web browser.  You will need to create a new password.
 
