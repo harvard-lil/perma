@@ -261,6 +261,34 @@ def manage_single_registrar_member_delete(request, user_id):
     context = RequestContext(request, context)
     
     return render_to_response('user_management/manage_single_registrar_member_delete_confirm.html', context)
+    
+@login_required
+def manage_single_registrar_member_reactivate(request, user_id):
+    """
+    Perma admins can manage registrar members. Reactivate a single registrar member here.
+    """
+
+    # Only registry members can delete registrar members
+    if request.user.groups.all()[0].name not in ['registry_member']:
+        return HttpResponseRedirect(reverse('user_management_created_links'))
+
+    target_member = get_object_or_404(LinkUser, id=user_id)
+
+    context = {'user': request.user, 'target_member': target_member,
+        'this_page': 'users'}
+
+    if request.method == 'POST':
+        target_member.is_active = True
+        target_member.save()
+
+        return HttpResponseRedirect(reverse('user_management_manage_registrar_member'))
+    else:
+        form = journal_member_form_edit(prefix = "a", instance=target_member)
+        context.update({'form': form,})
+
+    context = RequestContext(request, context)
+    
+    return render_to_response('user_management/manage_single_registrar_member_reactivate_confirm.html', context)
 
 @login_required
 def manage_user(request):
@@ -385,6 +413,34 @@ def manage_single_user_delete(request, user_id):
     context = RequestContext(request, context)
     
     return render_to_response('user_management/manage_single_user_delete_confirm.html', context)
+    
+@login_required
+def manage_single_user_reactivate(request, user_id):
+    """
+    Linky admins can manage regular users. Delete a single user here.
+    """
+
+    # Only registry members can delete registrar members
+    if request.user.groups.all()[0].name not in ['registry_member']:
+        return HttpResponseRedirect(reverse('user_management_created_links'))
+
+    target_member = get_object_or_404(LinkUser, id=user_id)
+
+    context = {'user': request.user, 'target_member': target_member,
+        'this_page': 'users'}
+
+    if request.method == 'POST':
+        target_member.is_active = True
+        target_member.save()
+
+        return HttpResponseRedirect(reverse('user_management_manage_user'))
+    else:
+        form = user_form_edit(prefix = "a", instance=target_member)
+        context.update({'form': form,})
+
+    context = RequestContext(request, context)
+    
+    return render_to_response('user_management/manage_single_user_reactivate_confirm.html', context)
 
 
 @login_required
@@ -547,6 +603,39 @@ def manage_single_journal_manager_delete(request, user_id):
     context = RequestContext(request, context)
     
     return render_to_response('user_management/manage_single_journal_manager_delete_confirm.html', context)
+    
+@login_required
+def manage_single_journal_manager_reactivate(request, user_id):
+    """
+    Perma admins and registrars can manage vesting managers. Reactivate a single vesting manager here.
+    """
+
+    # Only registry members and registrar memebers can edit vesting managers
+    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
+        return HttpResponseRedirect(reverse('user_management_created_links'))
+
+    target_member = get_object_or_404(LinkUser, id=user_id)
+
+    # Registrar members can only edit their own vesting members
+    if request.user.groups.all()[0].name not in ['registry_member']:
+        if request.user.registrar != target_member.registrar:
+            return HttpResponseRedirect(reverse('user_management_created_links'))
+
+    context = {'user': request.user, 'target_member': target_member,
+        'this_page': 'users'}
+
+    if request.method == 'POST':
+        target_member.is_active = True
+        target_member.save()
+
+        return HttpResponseRedirect(reverse('user_management_manage_journal_manager'))
+    else:
+        form = journal_manager_form_edit(prefix = "a", instance=target_member)
+        context.update({'form': form,})
+
+    context = RequestContext(request, context)
+    
+    return render_to_response('user_management/manage_single_journal_manager_reactivate_confirm.html', context)
 
 valid_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp']
 
@@ -723,6 +812,44 @@ def manage_single_journal_member_delete(request, user_id):
     context = RequestContext(request, context)
     
     return render_to_response('user_management/manage_single_journal_member_delete_confirm.html', context)
+    
+@login_required
+def manage_single_journal_member_reactivate(request, user_id):
+    """
+    Perma admins and registrars can manage vesting members. Reactivate a single vesting member here.
+    """
+
+    # Only registry members and registrar memebers can edit vesting members
+    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'vesting_manager']:
+        return HttpResponseRedirect(reverse('user_management_created_links'))
+
+    target_member = get_object_or_404(LinkUser, id=user_id)
+
+    # Registrar members can only edit their own vesting members
+    if request.user.groups.all()[0].name not in ['registry_member']:
+        if request.user.registrar != target_member.registrar:
+            return HttpResponseRedirect(reverse('user_management_created_links'))
+            
+    # Vesting managers can only edit their own vesting members
+    if request.user.groups.all()[0].name not in ['registry_member', 'registrar_member']:
+        if request.user != target_member.authorized_by:
+            return HttpResponseRedirect(reverse('user_management_created_links'))
+
+    context = {'user': request.user, 'target_member': target_member,
+        'this_page': 'users'}
+
+    if request.method == 'POST':
+        target_member.is_active = True
+        target_member.save()
+
+        return HttpResponseRedirect(reverse('user_management_manage_journal_member'))
+    else:
+        form = journal_member_form_edit(prefix = "a", instance=target_member)
+        context.update({'form': form,})
+
+    context = RequestContext(request, context)
+    
+    return render_to_response('user_management/manage_single_journal_member_reactivate_confirm.html', context)
 
 valid_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp']
 

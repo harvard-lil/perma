@@ -59,7 +59,7 @@
         {% if user.is_active %}
           <a href="{% url 'user_management_manage_single_user' user.id %}">edit/delete</a>
         {% elif user.password %}
-			    <span class="text-warning">deactivated account</span> <a href="#">reactivate</a>
+			    <span class="text-warning">deactivated account</span> <a href="{% url 'user_management_manage_single_user_reactivate' user.id %}">reactivate</a>
 			  {% else %}
 			    <span class="text-warning">user must activate account</span>
 			  {% endif %}
