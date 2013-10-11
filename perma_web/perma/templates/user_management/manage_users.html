@@ -47,11 +47,23 @@
     </thead>
     <tbody>
       {% for user in users_list %}
+      {% if not user.is_active %}
+        <tr class="muted">
+      {% else %}
         <tr>
+      {% endif %}
           <!--<td><input type="checkbox"></td>-->
           <td>{{ user.first_name }} {{ user.last_name }}</td>
           <td>{{ user.email }}</td>
-          <td><a href="{% url 'user_management_manage_single_user' user.id %}">edit/delete</a></td>
+          <td>
+        {% if user.is_active %}
+          <a href="{% url 'user_management_manage_single_user' user.id %}">edit/delete</a>
+        {% elif user.password %}
+			    <span class="text-warning">deactivated account</span> <a href="#">reactivate</a>
+			  {% else %}
+			    <span class="text-warning">user must activate account</span>
+			  {% endif %}
+			  </td>
       {% empty %}
         <tr>No users found.</tr>
       {% endfor %}

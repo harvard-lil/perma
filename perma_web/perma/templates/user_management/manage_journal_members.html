@@ -47,7 +47,11 @@
     </thead>
     <tbody>
       {% for member in journal_members_list %}
+      {% if not member.is_active %}
+        <tr class="muted">
+      {% else %}
         <tr>
+      {% endif %}
           <!--<td><input type="checkbox"></td>-->
           <td>{{ member.first_name }} {{ member.last_name }}</td>
           <td>{{ member.email }}</td>
@@ -55,8 +59,10 @@
           <td>
 			{% if member.is_active %}
 			<a href="{% url 'user_management_manage_single_journal_member' member.id%}">edit/delete</a>
+			{% elif member.password %}
+			<span class="text-warning">deactivated account</span> <a href="#">reactivate</a>
 			{% else %}
-			pending or inactive
+			<span class="text-warning">user must activate account</span>
 			{% endif %}
 			
 		  </td>

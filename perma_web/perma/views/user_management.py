@@ -157,7 +157,7 @@ def manage_registrar_member(request):
     if page < 1:
         page = 1
 
-    registrar_members = LinkUser.objects.filter(groups__name='registrar_member', is_active=True).order_by(sort)
+    registrar_members = LinkUser.objects.filter(groups__name='registrar_member').order_by(sort)
     
     paginator = Paginator(registrar_members, settings.MAX_USER_LIST_SIZE)
     registrar_members = paginator.page(page)
@@ -282,7 +282,7 @@ def manage_user(request):
     if page < 1:
         page = 1
 
-    users = LinkUser.objects.filter(groups__name='user', is_active=True).order_by(sort)
+    users = LinkUser.objects.filter(groups__name='user').order_by(sort)
     
     paginator = Paginator(users, settings.MAX_USER_LIST_SIZE)
     users = paginator.page(page)
@@ -410,10 +410,10 @@ def manage_journal_manager(request):
 
     # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
-        journal_managers = LinkUser.objects.filter(groups__name='vesting_manager', is_active=True).order_by(sort)
+        journal_managers = LinkUser.objects.filter(groups__name='vesting_manager').order_by(sort)
         is_registry = True;
     else:
-        journal_managers = LinkUser.objects.filter(groups__name='vesting_manager', registrar=request.user.registrar, is_active=True).exclude(id=request.user.id).order_by(sort)
+        journal_managers = LinkUser.objects.filter(groups__name='vesting_manager', registrar=request.user.registrar).exclude(id=request.user.id).order_by(sort)
     
     paginator = Paginator(journal_managers, settings.MAX_USER_LIST_SIZE)
     journal_managers = paginator.page(page)

@@ -48,12 +48,24 @@
     </thead>
     <tbody>
       {% for registrar_member in registrar_members_list %}
+      {% if not registrar_member.is_active %}
+        <tr class="muted">
+      {% else %}
         <tr>
+      {% endif %}
           <!--<td><input type="checkbox"></td>-->
           <td>{{ registrar_member.first_name }} {{ registrar_member.last_name }}</td>
           <td>{{ registrar_member.email }}</td>
           <td>{{ registrar_member.registrar.name }}</td>
-          <td><a href="{% url 'user_management_manage_single_registrar_member' registrar_member.id %}">edit/delete</a></td>
+          <td>
+          {% if registrar_member.is_active %}
+            <a href="{% url 'user_management_manage_single_registrar_member' registrar_member.id %}">edit/delete</a>
+          {% elif registrar_member.password %}
+			      <span class="text-warning">deactivated account</span> <a href="#">reactivate</a>
+			    {% else %}
+			      <span class="text-warning">user must activate account</span>
+			    {% endif %}
+			    </td>
       {% empty %}
         <tr>No registrar members found.</tr>
       {% endfor %}
