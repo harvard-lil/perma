@@ -93,7 +93,7 @@ def manage_registrar(request):
             return HttpResponseRedirect(reverse('user_management_manage_registrar'))
 
         else:
-            context.update({'form': form,})
+            context.update({'form': form, 'add_error': True})
     else:
         form = registrar_form(prefix = "a")
         context.update({'form': form,})
@@ -188,7 +188,7 @@ def manage_registrar_member(request):
             return HttpResponseRedirect(full_redirect_url)
 
         else:
-            context.update({'form': form,})
+            context.update({'form': form, 'add_error': True})
     else:
         form = regisrtar_member_form(prefix = "a")
         context.update({'form': form,})
@@ -341,7 +341,7 @@ def manage_user(request):
             return HttpResponseRedirect(full_redirect_url)
 
         else:
-            context.update({'form': form,})
+            context.update({'form': form, 'add_error': True})
     else:
         form = manage_user_form(prefix = "a")
         context.update({'form': form,})
@@ -507,7 +507,7 @@ def manage_journal_manager(request):
             return HttpResponseRedirect(full_redirect_url)
 
         else:
-            context.update({'form': form,})
+            context.update({'form': form, 'add_error': True})
     else:
       if is_registry:
         form = journal_manager_w_registrar_form(prefix="a")
@@ -706,7 +706,7 @@ def manage_journal_member(request):
             return HttpResponseRedirect(full_redirect_url)
 
         else:
-            context.update({'form': form,})
+            context.update({'form': form, 'add_error': True})
     else:
       if is_registry:
         form = journal_member_w_registrar_form(prefix = "a")
