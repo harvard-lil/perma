@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% load startswith %}
 {% block row %}
 
 <!-- TODO: dashboard blurb and accompanying JS? -->
@@ -78,27 +79,27 @@
 
         <!-- Manage users -->
         {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'vesting_manager' %}
-        <li{% if this_page == 'users' %} class="active"{% endif %}><a href="javascript:void(0);" id="dashboard-users">Manage Users</a></li>
+        <li{% if this_page|startswith:"users" %} class="active"{% endif %}><a href="javascript:void(0);" id="dashboard-users">Manage Users</a></li>
         {% endif %}
 
         <!-- Registrars and registrar users -->
         {% if user.groups.all.0.name == 'registry_member' %}
-        <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>
-        <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_registrar_member' %}">Registrar Users</a></li>{% endif %}
+        <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_registrars" %}class="active"{% endif %}href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>
+        <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_registrar_members" %}class="active"{% endif %}href="{% url 'user_management_manage_registrar_member' %}">Registrar Users</a></li>{% endif %}
         
         <!-- Vesting managers aka journal managers -->
         {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' %}
-        <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_journal_manager' %}">Vesting Managers</a></li>
+        <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_vesting_managers" %}class="active"{% endif %}href="{% url 'user_management_manage_journal_manager' %}">Vesting Managers</a></li>
         {% endif %}
 
         <!-- Vesting users -->
         {% if user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'vesting_manager' %}
-        <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_journal_member' %}">Vesting Users</a></li>
+        <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_vesting_users" %}class="active"{% endif %}href="{% url 'user_management_manage_journal_member' %}">Vesting Users</a></li>
         {% endif %}
         
         <!-- Regular users -->
         {% if user.groups.all.0.name == 'registry_member' %}
-        <li class="dashboard-secondary users-secondary"{% if this_page == 'users' %} style="display: list-item;"{% endif %}><a href="{% url 'user_management_manage_user' %}">Users</a></li>{% endif %}
+        <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_users" %}class="active"{% endif %}href="{% url 'user_management_manage_user' %}">Users</a></li>{% endif %}
         
   
     </ul><!--/#dashboard-tabs-->

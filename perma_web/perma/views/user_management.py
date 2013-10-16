@@ -81,7 +81,7 @@ def manage_registrar(request):
     registrars = paginator.page(page)
 
     context = {'user': request.user, 'registrars_list': list(registrars), 'registrars': registrars,
-        'this_page': 'users'}
+        'this_page': 'users_registrars'}
 
     if request.method == 'POST':
 
@@ -114,8 +114,7 @@ def manage_single_registrar(request, registrar_id):
     target_registrar = get_object_or_404(Registrar, id=registrar_id)
 
     context = {'user': request.user, 'target_registrar': target_registrar,
-        'this_page': 'users'}
-    context.update(csrf(request))
+        'this_page': 'users_registrars'}
 
     if request.method == 'POST':
 
@@ -163,7 +162,7 @@ def manage_registrar_member(request):
     registrar_members = paginator.page(page)
 
     context = {'user': request.user, 'registrar_members_list': list(registrar_members), 'registrar_members': registrar_members,
-        'this_page': 'users', 'added_user': added_user}
+        'this_page': 'users_registrar_members', 'added_user': added_user}
 
     if request.method == 'POST':
 
@@ -211,7 +210,7 @@ def manage_single_registrar_member(request, user_id):
     target_registrar_member = get_object_or_404(LinkUser, id=user_id)
 
     context = {'user': request.user, 'target_registrar_member': target_registrar_member,
-        'this_page': 'users'}
+        'this_page': 'users_registrar_members'}
 
     if request.method == 'POST':
 
@@ -246,8 +245,7 @@ def manage_single_registrar_member_delete(request, user_id):
     target_member = get_object_or_404(LinkUser, id=user_id)
 
     context = {'user': request.user, 'target_member': target_member,
-        'this_page': 'users'}
-    context.update(csrf(request))
+        'this_page': 'users_registrar_members'}
 
     if request.method == 'POST':
         target_member.is_active = False
@@ -275,7 +273,7 @@ def manage_single_registrar_member_reactivate(request, user_id):
     target_member = get_object_or_404(LinkUser, id=user_id)
 
     context = {'user': request.user, 'target_member': target_member,
-        'this_page': 'users'}
+        'this_page': 'users_registrar_members'}
 
     if request.method == 'POST':
         target_member.is_active = True
@@ -316,7 +314,7 @@ def manage_user(request):
     users = paginator.page(page)
 
     context = {'user': request.user, 'users_list': list(users),
-        'this_page': 'users', 'users': users, 'added_user': added_user}
+        'this_page': 'users_users', 'users': users, 'added_user': added_user}
 
     if request.method == 'POST':
 
@@ -364,7 +362,7 @@ def manage_single_user(request, user_id):
     target_user = get_object_or_404(LinkUser, id=user_id)
 
     context = {'user': request.user, 'target_user': target_user,
-        'this_page': 'users'}
+        'this_page': 'users_users'}
 
     if request.method == 'POST':
 
@@ -399,7 +397,7 @@ def manage_single_user_delete(request, user_id):
     target_member = get_object_or_404(LinkUser, id=user_id)
 
     context = {'user': request.user, 'target_member': target_member,
-        'this_page': 'users'}
+        'this_page': 'users_users'}
 
     if request.method == 'POST':
         target_member.is_active = False
@@ -427,7 +425,7 @@ def manage_single_user_reactivate(request, user_id):
     target_member = get_object_or_404(LinkUser, id=user_id)
 
     context = {'user': request.user, 'target_member': target_member,
-        'this_page': 'users'}
+        'this_page': 'users_users'}
 
     if request.method == 'POST':
         target_member.is_active = True
@@ -475,7 +473,7 @@ def manage_journal_manager(request):
     journal_managers = paginator.page(page)
 
     context = {'user': request.user, 'journal_managers_list': list(journal_managers), 'journal_managers': journal_managers,
-        'this_page': 'users', 'added_user': added_user}
+        'this_page': 'users_vesting_managers', 'added_user': added_user}
 
     if request.method == 'POST':
 
@@ -543,7 +541,7 @@ def manage_single_journal_manager(request, user_id):
             return HttpResponseRedirect(reverse('user_management_created_links'))
 
     context = {'user': request.user, 'target_member': target_member,
-        'this_page': 'users'}
+        'this_page': 'users_vesting_managers'}
 
     if request.method == 'POST':
 
@@ -589,7 +587,7 @@ def manage_single_journal_manager_delete(request, user_id):
             return HttpResponseRedirect(reverse('user_management_created_links'))
 
     context = {'user': request.user, 'target_member': target_member,
-        'this_page': 'users'}
+        'this_page': 'users_vesting_managers'}
 
     if request.method == 'POST':
         target_member.is_active = False
@@ -622,7 +620,7 @@ def manage_single_journal_manager_reactivate(request, user_id):
             return HttpResponseRedirect(reverse('user_management_created_links'))
 
     context = {'user': request.user, 'target_member': target_member,
-        'this_page': 'users'}
+        'this_page': 'users_vesting_managers'}
 
     if request.method == 'POST':
         target_member.is_active = True
@@ -673,7 +671,7 @@ def manage_journal_member(request):
     paginator = Paginator(journal_members, settings.MAX_USER_LIST_SIZE)
     journal_members = paginator.page(page)
     context = {'user': request.user, 'journal_members_list': list(journal_members), 'journal_members': journal_members,
-        'this_page': 'users', 'added_user': added_user}
+        'this_page': 'users_vesting_users', 'added_user': added_user}
 
     if request.method == 'POST':
 
@@ -748,7 +746,7 @@ def manage_single_journal_member(request, user_id):
 
 
     context = {'user': request.user, 'target_member': target_member,
-        'this_page': 'users'}
+        'this_page': 'users_vesting_users'}
 
     if request.method == 'POST':
         if is_registry:
@@ -798,7 +796,7 @@ def manage_single_journal_member_delete(request, user_id):
             return HttpResponseRedirect(reverse('user_management_created_links'))
 
     context = {'user': request.user, 'target_member': target_member,
-        'this_page': 'users'}
+        'this_page': 'users_vesting_users'}
 
     if request.method == 'POST':
         target_member.is_active = False
@@ -836,7 +834,7 @@ def manage_single_journal_member_reactivate(request, user_id):
             return HttpResponseRedirect(reverse('user_management_created_links'))
 
     context = {'user': request.user, 'target_member': target_member,
-        'this_page': 'users'}
+        'this_page': 'users_vesting_users'}
 
     if request.method == 'POST':
         target_member.is_active = True

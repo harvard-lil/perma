@@ -438,6 +438,10 @@ div#dashboard-container {
                 margin: 0;
                 padding: 10px 0 0 51px;
             }
+            
+            div#dashboard-container ul#dashboard-tabs li.dashboard-secondary a.active {
+                color: #333;
+            }
 
             div#dashboard-container ul#dashboard-tabs li.users-secondary {
                 display: none;
