@@ -6,6 +6,9 @@
 {% if is_confirm %}
   <p class="alert alert-success account-confirmed-message">Your account is confirmed.  Log in below.</p>
 {% endif %}
+{% if is_resent %}
+  <p class="alert alert-success account-confirmed-message">Check your email for activation instructions.</p>
+{% endif %}
 <div class="row">
 	<div class="col-sm-12">		
 		<h2>Login</h2>
@@ -35,10 +38,9 @@
 				<p>Forgot your password?<br /> No problem, we can help you <a href="{% url 'auth_password_reset' %}">create a new one.</a></p>
 			{% comment %}
 			<p><a href="{% url 'process_register' %}">Create an account</a></p>
+			{% endcomment %}
 			</form>
 
-			
-			{% endcomment %}
 						<br />
 			<br />
 			<br />

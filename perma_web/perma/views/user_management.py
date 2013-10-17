@@ -996,6 +996,24 @@ def custom_domain(request):
     context.update(csrf(request))
     return render_to_response('user_management/custom_domain.html', context)
     
+def not_active(request):
+    """
+    Informing a user that their account is not active.
+    """
+    email = request.REQUEST.get('email')
+    if request.method == 'POST':
+        target_user = get_object_or_404(LinkUser, email=email)
+        email_new_user(request, target_user)
+
+        redirect_url = reverse('user_management_limited_login')
+        extra_params = '?resent=true'
+        full_redirect_url = '%s%s' % (redirect_url, extra_params)
+        return HttpResponseRedirect(full_redirect_url)
+    else:
+        context = {}
+        context.update(csrf(request))
+        return render_to_response('registration/not_active.html', context)
+    
 
 @ratelimit(field='email', method='POST', rate=settings.LOGIN_MINUTE_LIMIT, block='True', ip=True)
 #@ratelimit(method='POST', rate=settings.LOGIN_HOUR_LIMIT, block='True', ip=True)
@@ -1009,10 +1027,19 @@ def limited_login(request, template_name='registration/login.html',
     """
     redirect_to = request.REQUEST.get(redirect_field_name, '')
     is_confirm = request.REQUEST.get('confirmed')
+    is_resent = request.REQUEST.get('resent')
     request.session.set_test_cookie()
 
     if request.method == "POST":
         form = authentication_form(request, data=request.POST)
+        username = request.POST.get('username')
+        target_user = get_object_or_404(LinkUser, email=username)
+        if not target_user.is_active:
+          #return HttpResponseRedirect(reverse('user_management_not_active'), request, {'id': target_user.id,})
+          redirect_url = reverse('user_management_not_active')
+          extra_params = '?email=%s' % target_user.email
+          full_redirect_url = '%s%s' % (redirect_url, extra_params)
+          return HttpResponseRedirect(full_redirect_url)
         if form.is_valid():
 
             # Ensure the user-originating redirection url is safe.
@@ -1034,6 +1061,7 @@ def limited_login(request, template_name='registration/login.html',
         'site': current_site,
         'site_name': current_site.name,
         'is_confirm': is_confirm,
+        'is_resent': is_resent,
     }
     if extra_context is not None:
         context.update(extra_context)
@@ -1067,7 +1095,7 @@ def process_register(request):
                 string.ascii_lowercase + string.digits) for x in range(30))
             new_user.save()
             
-            from_address = "linfo@perma.cc"
+            from_address = "info@perma.cc"
             to_address = new_user.email
             content = '''To confirm your account, please click the link below or copy it to your web browser:
 
@@ -1168,7 +1196,7 @@ http://%s/register/password/%s/
 
 ''' % (request.get_host(), user.confirmation_code)
 
-    logger.debug(from_address)
+    logger.debug(to_address)
 
     msg = MIMEText(content)
     msg['Subject'] = "A perma account has been created for you"
