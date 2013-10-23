@@ -1033,8 +1033,11 @@ def limited_login(request, template_name='registration/login.html',
     if request.method == "POST":
         form = authentication_form(request, data=request.POST)
         username = request.POST.get('username')
-        target_user = get_object_or_404(LinkUser, email=username)
-        if not target_user.is_active:
+        try:
+          target_user = LinkUser.objects.get(email=username)
+        except LinkUser.DoesNotExist:
+          target_user = None
+        if target_user and not target_user.is_active:
           #return HttpResponseRedirect(reverse('user_management_not_active'), request, {'id': target_user.id,})
           redirect_url = reverse('user_management_not_active')
           extra_params = '?email=%s' % target_user.email
@@ -1151,27 +1154,36 @@ def register_email_code_password(request, code):
     """
     Allow system created accounts to create a password.
     """
-    user = get_object_or_404(LinkUser, confirmation_code=code)
-    if request.method == "POST":
-      form = set_password_form(user=user, data=request.POST)
-      if form.is_valid():
-        form.save()
-        user.is_active = True
-        user.save()
-        redirect_url = reverse('user_management_limited_login')
-        extra_params = '?confirmed=true'
-        full_redirect_url = '%s%s' % (redirect_url, extra_params)
-        return HttpResponseRedirect(full_redirect_url)
+    #user = get_or_none(LinkUser, confirmation_code=code)
+    try:
+      user = LinkUser.objects.get(confirmation_code=code)
+    except LinkUser.DoesNotExist:
+      user = None
+    if not user:
+      context = {'no_code': True}
+      context = RequestContext(request, context)
+      return render_to_response('registration/set_password.html', context)
+    else:
+      if request.method == "POST":
+        form = set_password_form(user=user, data=request.POST)
+        if form.is_valid():
+          form.save()
+          user.is_active = True
+          user.save()
+          redirect_url = reverse('user_management_limited_login')
+          extra_params = '?confirmed=true'
+          full_redirect_url = '%s%s' % (redirect_url, extra_params)
+          return HttpResponseRedirect(full_redirect_url)
+        else:
+          context = {'form': form}
+          context = RequestContext(request, context)
+          return render_to_response('registration/set_password.html', context)
       else:
+        form = set_password_form(user=user)
+      
         context = {'form': form}
         context = RequestContext(request, context)
         return render_to_response('registration/set_password.html', context)
-    else:
-      form = set_password_form(user=user)
-    
-      context = {'form': form}
-      context = RequestContext(request, context)
-      return render_to_response('registration/set_password.html', context)
     
     
 def register_email_instructions(request):
