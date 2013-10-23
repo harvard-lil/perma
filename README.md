@@ -77,7 +77,7 @@ You may need to apply South migrations (e.g., for `djcelery`):
 
 If you want to play with the admin views, load the user, group, and registrar data fixture:
 
-    $ python manage.py loaddata fixtures/usersandgroups.json 
+    $ python manage.py loaddata fixtures/users.json fixtures/groups.json
 
 Toss in a wsgi config and wire it to your webserver, or use the built-in Django webserver and you should be ready to roll:
 
