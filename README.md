@@ -67,17 +67,18 @@ We use [GNU Wget](http://www.gnu.org/software/wget/) to download the source -- t
 
 ### Create your tables and fire up Django
 
-You should have the pieces in place. Let's create the tables in your database using the syncdb command. When asked to create a superuser, decline:
+You should have the pieces in place. Let's create the tables in your database using the syncdb command.:
 
-    $ python manage.py syncdb
+    $ python manage.py syncdb --noinput
 
 You may need to apply South migrations (e.g., for `djcelery`):
 
     $ python manage.py migrate
 
-If you want to play with the admin views, load the user, group, and registrar data fixture:
+If you want to play with the admin views, it'll be helpful to have some dummy data to get started. Load the groups and users fixtures. Find the test account user names in the users fixture. The password is "pass" for the test accounts:
 
-    $ python manage.py loaddata fixtures/usersandgroups.json 
+    $ python manage.py loaddata fixtures/groups.json
+    $ python manage.py loaddata fixtures/users.json
 
 Toss in a wsgi config and wire it to your webserver, or use the built-in Django webserver and you should be ready to roll:
 
