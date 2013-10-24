@@ -26,6 +26,8 @@ from ratelimit.decorators import ratelimit
 
 
 logger = logging.getLogger(__name__)
+valid_member_sorts = ['-email', 'email', 'last_name', '-last_name', 'admin', '-admin', 'registrar__name', '-registrar__name']
+valid_registrar_sorts = ['-email', 'email', 'name', '-name', 'website', '-website']
 
 @login_required
 def manage(request):
@@ -70,8 +72,9 @@ def manage_registrar(request):
     DEFAULT_SORT = 'name'
 
     sort = request.GET.get('sort', DEFAULT_SORT)
-    if sort not in valid_sorts:
-        sort = DEFAULT_SORT
+    if sort not in valid_registrar_sorts:
+      sort = DEFAULT_SORT
+      
     page = request.GET.get('page', 1)
     if page < 1:
         page = 1
@@ -147,16 +150,26 @@ def manage_registrar_member(request):
     
     added_user = request.REQUEST.get('added_user')
     
-    DEFAULT_SORT = 'email'
+    def sorts():
+      DEFAULT_SORT = ['email']
+      sorts = DEFAULT_SORT
 
-    sort = request.GET.get('sort', DEFAULT_SORT)
-    if sort not in valid_sorts:
-        sort = DEFAULT_SORT
+      sort = request.GET.get('sort', DEFAULT_SORT)
+      if sort not in valid_member_sorts:
+        sorts = DEFAULT_SORT
+      elif sort == 'admin':
+        sorts = ['is_active', 'password']
+      elif sort == '-admin':
+        sorts = ['-is_active', '-password']
+      else:
+        sorts[0] = sort
+      return sorts
+    
     page = request.GET.get('page', 1)
     if page < 1:
         page = 1
 
-    registrar_members = LinkUser.objects.filter(groups__name='registrar_member').order_by(sort)
+    registrar_members = LinkUser.objects.filter(groups__name='registrar_member').order_by(*sorts())
     
     paginator = Paginator(registrar_members, settings.MAX_USER_LIST_SIZE)
     registrar_members = paginator.page(page)
@@ -299,16 +312,26 @@ def manage_user(request):
         
     added_user = request.REQUEST.get('added_user')
     
-    DEFAULT_SORT = 'email'
+    def sorts():
+      DEFAULT_SORT = ['email']
+      sorts = DEFAULT_SORT
 
-    sort = request.GET.get('sort', DEFAULT_SORT)
-    if sort not in valid_sorts:
-        sort = DEFAULT_SORT
+      sort = request.GET.get('sort', DEFAULT_SORT)
+      if sort not in valid_member_sorts:
+        sorts = DEFAULT_SORT
+      elif sort == 'admin':
+        sorts = ['is_active', 'password']
+      elif sort == '-admin':
+        sorts = ['-is_active', '-password']
+      else:
+        sorts[0] = sort
+      return sorts
+    
     page = request.GET.get('page', 1)
     if page < 1:
         page = 1
 
-    users = LinkUser.objects.filter(groups__name='user').order_by(sort)
+    users = LinkUser.objects.filter(groups__name='user').order_by(*sorts())
     
     paginator = Paginator(users, settings.MAX_USER_LIST_SIZE)
     users = paginator.page(page)
@@ -453,21 +476,31 @@ def manage_journal_manager(request):
     is_registry = False;
     added_user = request.REQUEST.get('added_user')
     
-    DEFAULT_SORT = 'email'
+    def sorts():
+      DEFAULT_SORT = ['email']
+      sorts = DEFAULT_SORT
 
-    sort = request.GET.get('sort', DEFAULT_SORT)
-    if sort not in valid_sorts:
-        sort = DEFAULT_SORT
+      sort = request.GET.get('sort', DEFAULT_SORT)
+      if sort not in valid_member_sorts:
+        sorts = DEFAULT_SORT
+      elif sort == 'admin':
+        sorts = ['is_active', 'password']
+      elif sort == '-admin':
+        sorts = ['-is_active', '-password']
+      else:
+        sorts[0] = sort
+      return sorts
+    
     page = request.GET.get('page', 1)
     if page < 1:
         page = 1
 
     # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
-        journal_managers = LinkUser.objects.filter(groups__name='vesting_manager').order_by(sort)
-        is_registry = True;
+        journal_managers = LinkUser.objects.filter(groups__name='vesting_manager').order_by(*sorts())
+        is_registry = True
     else:
-        journal_managers = LinkUser.objects.filter(groups__name='vesting_manager', registrar=request.user.registrar).exclude(id=request.user.id).order_by(sort)
+        journal_managers = LinkUser.objects.filter(groups__name='vesting_manager', registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts())
     
     paginator = Paginator(journal_managers, settings.MAX_USER_LIST_SIZE)
     journal_managers = paginator.page(page)
@@ -650,23 +683,32 @@ def manage_journal_member(request):
     is_registry = False;
     added_user = request.REQUEST.get('added_user')
     
-    DEFAULT_SORT = 'email'
+    def sorts():
+      DEFAULT_SORT = ['email']
+      sorts = DEFAULT_SORT
 
-    sort = request.GET.get('sort', DEFAULT_SORT)
-    if sort not in valid_sorts:
-        sort = DEFAULT_SORT
+      sort = request.GET.get('sort', DEFAULT_SORT)
+      if sort not in valid_member_sorts:
+        sorts = DEFAULT_SORT
+      elif sort == 'admin':
+        sorts = ['is_active', 'password']
+      elif sort == '-admin':
+        sorts = ['-is_active', '-password']
+      else:
+        sorts[0] = sort
+      return sorts
     page = request.GET.get('page', 1)
     if page < 1:
         page = 1
 
     # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
-        journal_members = LinkUser.objects.filter(groups__name='vesting_member').order_by(sort)
+        journal_members = LinkUser.objects.filter(groups__name='vesting_member').order_by(*sorts())
         is_registry = True;
     elif request.user.groups.all()[0].name == 'vesting_manager':
-        journal_members = LinkUser.objects.filter(authorized_by=request.user).exclude(id=request.user.id).order_by(sort)
+        journal_members = LinkUser.objects.filter(authorized_by=request.user).exclude(id=request.user.id).order_by(*sorts())
     else:
-    	journal_members = LinkUser.objects.filter(groups__name='vesting_member', registrar=request.user.registrar).exclude(id=request.user.id).order_by(sort)
+    	journal_members = LinkUser.objects.filter(groups__name='vesting_member', registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts())
     	
     paginator = Paginator(journal_members, settings.MAX_USER_LIST_SIZE)
     journal_members = paginator.page(page)
