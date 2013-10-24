@@ -67,7 +67,7 @@ We use [GNU Wget](http://www.gnu.org/software/wget/) to download the source -- t
 
 ### Create your tables and fire up Django
 
-You should have the pieces in place. Let's create the tables in your database:
+You should have the pieces in place. Let's create the tables in your database using the syncdb command. When asked to create a superuser, decline:
 
     $ python manage.py syncdb
 
