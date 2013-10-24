@@ -197,7 +197,7 @@ def instapaper_capture(url, title):
     token = oauth.Token(token['oauth_token'], token['oauth_token_secret'])
     http = oauth.Client(consumer, token)
 
-    response, data = http.request('https://www.instapaper.com/api/1/bookmarks/add', method='POST', body=urllib.urlencode({'url':url, 'title': title}))
+    response, data = http.request('https://www.instapaper.com/api/1/bookmarks/add', method='POST', body=urllib.urlencode({'url':url, 'title': unicode(title).encode('utf-8')}))
 
     res = simplejson.loads(data)
 
@@ -205,33 +205,46 @@ def instapaper_capture(url, title):
 
     tresponse, tdata = http.request('https://www.instapaper.com/api/1/bookmarks/get_text', method='POST', body=urllib.urlencode({'bookmark_id':bid}))
 
-    return bid, tdata
+    # If didn't get a response or we got something other than an HTTP 200, count it as a failure
+    success = True
+    if not tresponse or tresponse.status != 200:
+        success = False
+    
+    return bid, tdata, success
+
 
 @celery.task
 def store_text_cap(url, title, link_guid):
     
-    asset = Asset.objects.get(link__guid=link_guid)    
-    bid, tdata = instapaper_capture(url, title)
-    asset.instapaper_timestamp = datetime.datetime.now()
-    h = smhasher.murmur3_x86_128(tdata)
-    asset.instapaper_hash = h
-    asset.instapaper_id = bid
-    asset.save()
+    bid, tdata, success = instapaper_capture(url, title)
     
-    file_path = GENERATED_ASSETS_STORAGE + '/' + asset.base_storage_path
-    if not os.path.exists(file_path):
-        os.makedirs(file_path)
-
-
-    f = open(file_path + '/instapaper_cap.html', 'w')
-    f.write(tdata)
-    os.fsync(f)
-    f.close
-
-    if os.path.exists(file_path + '/instapaper_cap.html'):
-        asset.text_capture = 'instapaper_cap.html'
+    if success:
+        asset = Asset.objects.get(link__guid=link_guid)
+        asset.instapaper_timestamp = datetime.datetime.now()
+        h = smhasher.murmur3_x86_128(tdata)
+        asset.instapaper_hash = h
+        asset.instapaper_id = bid
         asset.save()
+    
+        file_path = GENERATED_ASSETS_STORAGE + '/' + asset.base_storage_path
+        if not os.path.exists(file_path):
+            os.makedirs(file_path)
+
+        f = open(file_path + '/instapaper_cap.html', 'w')
+        f.write(tdata)
+        os.fsync(f)
+        f.close
+
+        if os.path.exists(file_path + '/instapaper_cap.html'):
+            asset.text_capture = 'instapaper_cap.html'
+            asset.save()
+        else:
+            logger.info("Text (instapaper) capture failed for %s" % target_url)
+            asset.text_capture = 'failed'
+            asset.save()
     else:
+        # Must have received something other than an HTTP 200 from Instapaper, or no response object at all
         logger.info("Text (instapaper) capture failed for %s" % target_url)
+        asset = Asset.objects.get(link__guid=link_guid)
         asset.text_capture = 'failed'
         asset.save()
