@@ -75,10 +75,11 @@ You may need to apply South migrations (e.g., for `djcelery`):
 
     $ python manage.py migrate
 
-If you want to play with the admin views, it'll be helpful to have some dummy data to get started. Load the groups and users fixtures. Find the test account user names in the users fixture. The password is "pass" for the test accounts:
+If you want to play with the admin views, load the user and group data fixtures:
 
-    $ python manage.py loaddata fixtures/groups.json
-    $ python manage.py loaddata fixtures/users.json
+    $ python manage.py loaddata fixtures/users.json fixtures/groups.json
+
+The password for all test users is "pass".
 
 Toss in a wsgi config and wire it to your webserver, or use the built-in Django webserver and you should be ready to roll:
 
