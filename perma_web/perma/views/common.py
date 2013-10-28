@@ -98,6 +98,13 @@ def copyright_policy(request):
     return render_to_response('copyright_policy.html', context)
 
 
+def stats(request):
+    """
+    The global stats
+    """
+
+    return render_to_response('stats.html', {})
+
 
 def tools(request):
     """
