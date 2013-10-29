@@ -26,7 +26,10 @@
 		</div>	<!--row-->
 		{% else %}
 		<div class="row">
-        	<div class="col-sm-offset-3 col-sm-6">		
+        <div class="col-sm-offset-3 col-sm-6">	
+        	<p><a href="{% url 'process_register' %}" class="btn btn-large btn-success">Create an account</a></p>
+        	
+        {% comment %}
 				<!-- Begin MailChimp Signup Form -->
 				<link href="//cdn-images.mailchimp.com/embedcode/classic-081711.css" rel="stylesheet" type="text/css">
 				<style type="text/css">
@@ -96,6 +99,7 @@
 				</form>
 				</div>
 			<!--End mc_embed_signup-->
+			{% endcomment %}
 				{% endif %}
 			</div><!--/col-->
 		</div><!--/row-->
