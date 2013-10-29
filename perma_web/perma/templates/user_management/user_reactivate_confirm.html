@@ -1,5 +1,5 @@
 {% extends "admin-layout.html" %}
-{% block title %} | Vesting members{% endblock %}
+{% block title %} | Reactivate user{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 {% endblock %}
@@ -11,7 +11,7 @@
 	<br/>
 	<p>Do you really want to reactivate {{ target_member.email }}?</p>
 	<br/>
-	<form action="{% url 'user_management_manage_single_registrar_member_reactivate' target_member.id %}" method="POST">
+	<form action="" method="POST">
 	      {% csrf_token %}
         <a href="../">Cancel</a> <button type="submit" class="btn delete-confirm">Reactivate {{ target_member.email }}</button>
     </form>

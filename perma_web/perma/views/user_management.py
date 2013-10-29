@@ -265,13 +265,10 @@ def manage_single_registrar_member_delete(request, user_id):
         target_member.save()
 
         return HttpResponseRedirect(reverse('user_management_manage_registrar_member'))
-    else:
-        form = journal_member_form_edit(prefix = "a", instance=target_member)
-        context.update({'form': form,})
 
     context = RequestContext(request, context)
     
-    return render_to_response('user_management/manage_single_registrar_member_delete_confirm.html', context)
+    return render_to_response('user_management/user_delete_confirm.html', context)
     
 @login_required
 def manage_single_registrar_member_reactivate(request, user_id):
@@ -293,13 +290,10 @@ def manage_single_registrar_member_reactivate(request, user_id):
         target_member.save()
 
         return HttpResponseRedirect(reverse('user_management_manage_registrar_member'))
-    else:
-        form = journal_member_form_edit(prefix = "a", instance=target_member)
-        context.update({'form': form,})
 
     context = RequestContext(request, context)
     
-    return render_to_response('user_management/manage_single_registrar_member_reactivate_confirm.html', context)
+    return render_to_response('user_management/user_reactivate_confirm.html', context)
 
 @login_required
 def manage_user(request):
@@ -427,13 +421,10 @@ def manage_single_user_delete(request, user_id):
         target_member.save()
 
         return HttpResponseRedirect(reverse('user_management_manage_user'))
-    else:
-        form = user_form_edit(prefix = "a", instance=target_member)
-        context.update({'form': form,})
 
     context = RequestContext(request, context)
     
-    return render_to_response('user_management/manage_single_user_delete_confirm.html', context)
+    return render_to_response('user_management/user_delete_confirm.html', context)
     
 @login_required
 def manage_single_user_reactivate(request, user_id):
@@ -455,13 +446,10 @@ def manage_single_user_reactivate(request, user_id):
         target_member.save()
 
         return HttpResponseRedirect(reverse('user_management_manage_user'))
-    else:
-        form = user_form_edit(prefix = "a", instance=target_member)
-        context.update({'form': form,})
 
     context = RequestContext(request, context)
     
-    return render_to_response('user_management/manage_single_user_reactivate_confirm.html', context)
+    return render_to_response('user_management/user_reactivate_confirm.html', context)
 
 
 @login_required
@@ -627,13 +615,10 @@ def manage_single_journal_manager_delete(request, user_id):
         target_member.save()
 
         return HttpResponseRedirect(reverse('user_management_manage_journal_manager'))
-    else:
-        form = journal_manager_form_edit(prefix = "a", instance=target_member)
-        context.update({'form': form,})
 
     context = RequestContext(request, context)
     
-    return render_to_response('user_management/manage_single_journal_manager_delete_confirm.html', context)
+    return render_to_response('user_management/user_delete_confirm.html', context)
     
 @login_required
 def manage_single_journal_manager_reactivate(request, user_id):
@@ -660,13 +645,10 @@ def manage_single_journal_manager_reactivate(request, user_id):
         target_member.save()
 
         return HttpResponseRedirect(reverse('user_management_manage_journal_manager'))
-    else:
-        form = journal_manager_form_edit(prefix = "a", instance=target_member)
-        context.update({'form': form,})
 
     context = RequestContext(request, context)
     
-    return render_to_response('user_management/manage_single_journal_manager_reactivate_confirm.html', context)
+    return render_to_response('user_management/user_reactivate_confirm.html', context)
 
 valid_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp']
 
@@ -845,13 +827,10 @@ def manage_single_journal_member_delete(request, user_id):
         target_member.save()
 
         return HttpResponseRedirect(reverse('user_management_manage_journal_member'))
-    else:
-        form = journal_member_form_edit(prefix = "a", instance=target_member)
-        context.update({'form': form,})
 
     context = RequestContext(request, context)
     
-    return render_to_response('user_management/manage_single_journal_member_delete_confirm.html', context)
+    return render_to_response('user_management/user_delete_confirm.html', context)
     
 @login_required
 def manage_single_journal_member_reactivate(request, user_id):
@@ -883,13 +862,10 @@ def manage_single_journal_member_reactivate(request, user_id):
         target_member.save()
 
         return HttpResponseRedirect(reverse('user_management_manage_journal_member'))
-    else:
-        form = journal_member_form_edit(prefix = "a", instance=target_member)
-        context.update({'form': form,})
 
     context = RequestContext(request, context)
     
-    return render_to_response('user_management/manage_single_journal_member_reactivate_confirm.html', context)
+    return render_to_response('user_management/user_reactivate_confirm.html', context)
 
 valid_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp']
 
