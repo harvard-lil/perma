@@ -1238,10 +1238,11 @@ def email_new_user(request, user):
     """
     Send email to newly created accounts
     """
-    user.confirmation_code = \
-      ''.join(random.choice(string.ascii_uppercase + \
-      string.ascii_lowercase + string.digits) for x in range(30))
-    user.save()
+    if not user.confirmation_code:
+      user.confirmation_code = \
+        ''.join(random.choice(string.ascii_uppercase + \
+        string.ascii_lowercase + string.digits) for x in range(30))
+      user.save()
     from_address = settings.DEFAULT_FROM_EMAIL
     to_address = user.email
     content = '''To log into your account, please click the link below or copy it to your web browser.  You will need to create a new password.
@@ -1250,7 +1251,7 @@ http://%s/register/password/%s/
 
 ''' % (request.get_host(), user.confirmation_code)
 
-    logger.debug(to_address)
+    logger.debug(content)
 
     msg = MIMEText(content)
     msg['Subject'] = "A perma account has been created for you"
