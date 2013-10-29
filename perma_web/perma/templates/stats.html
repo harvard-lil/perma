@@ -1,64 +1,60 @@
 {% extends "layout-responsive.html" %}
 {% load file_exists %}
 {% block title %} | The numbers{% endblock %}
+{% block meta %}<META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">{% endblock %}
 {% block styles %}
-<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
-
-<style>
-
-body {
-  font: 10px sans-serif;
-}
-
-.axis path,
-.axis line {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
-}
-
-.svg text {
-  text-anchor: end;
-}
-
-.line {
-  fill: none;
-  stroke: steelblue;
-  stroke-width: 1.5px;
-}
-
-.bar.positive {
-  fill: steelblue;
-}
-
-.bar.negative {
-  fill: brown;
-}
-
-.axis text {
-  font: 10px sans-serif;
-}
-
-</style>
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
 {% endblock %}
 
 {% block content %}
 
-<div class="container">
+<div class="container stats">
 	<div class="row">	
-		<div class="col-sm-9">	
+		<div class="col-sm-9">
 			<h1>Perma, the numbers</h1>
 			<h2>The folks</h2>
 			<div id="folks-vis"></div>
+			<p class="vis-desc">All users across all roles. 1,339 in total.</p>
 			<h2>The hits</h2>
 			<div id="hits-vis"></div>
+			<p class="vis-desc">Weekly unique hits to all of Perma.cc</p>
 			<h2>The links</h2>
 			<div id="links-vis"></div>
+			<p class="vis-desc">All links. 1,876 in total.</p>
 			<h2>The storage</h2>
 			<div id="storage-vis"></div>
-			<h2>The cool kids</h2>
-			<div id="top-vis">Simple top ten list here</div>
-			<script src="http://d3js.org/d3.v3.js"></script>
+			<p class="vis-desc">Total space used for all archives, 5.7 GB</p>
+			<h2>The cool links</h2>
+			<div id="cool-links">
+				<p>The top ten most popular links, as measured by view count. Vested links are marked with <span class="fancy-infinity">&infin;</span>.</p>
+			
+				<table class="vested-table">
+		    	<thead>
+		      	<tr>
+		      	<th> </th>
+		        <th>Link</th>
+					  <th>Created</th>
+					  <th>Vested</th>
+					  <th>Views</th>
+				  </tr>
+				</thead>
+				<tbody>
+				{% for link in top_links_all_time %}
+				<tr>
+				  <td class="linky-abbr-vested">{% if link.vested %}<span class="fancy-infinity">&infin;</span>{% endif %}</td>
+				  <td class="linky-abbr-title"><a href="http://{{host}}/{{link.guid}}" target="_blank">{{ link.submitted_title }}</a><br><a href="{{ link.submitted_url }}" target="_blank"><small>{{ link.submitted_url }}</small></a><br></td>
+				  <td class="linky-abbr-date-time">{{ link.creation_timestamp|date:"m/d/Y" }}</td>
+				  <td class="linky-abbr-date-time">{{ link.vested_timestamp|date:"m/d/Y" }}</td>
+				  <td class="linky-view-count">{{ link.view_count }}</td>
+			  {% empty %}
+				<tr><td>No Perma links found.</td></tr>
+			  {% endfor %}
+			  </tbody>
+			  </table>	
+			</div><!-- end cool links-->
+			
+			
+			<script src="{{ STATIC_PREFIX }}js/d3.v3.js"></script>
 			<script>
 
 			var margin = {top: 20, right: 20, bottom: 30, left: 50},
@@ -93,7 +89,7 @@ body {
 				var xAxis = d3.svg.axis()
 				    .scale(x)
 				    .orient("bottom")
-				    .ticks(d3.time.days);
+				    .ticks(d3.time.weeks);
 
 				var yAxis = d3.svg.axis()
 				    .scale(y)
@@ -120,7 +116,7 @@ body {
 				  .append("g")
 				    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-				d3.csv("/static/stats/folks-data.tsv", function(data) {
+				d3.csv("{{ STATIC_PREFIX }}stats/folks-data.tsv", function(data) {
 				  data.forEach(function(d) {
 				    d.date = format.parse(d.date);
 					d.name= 'some name here';
@@ -144,10 +140,10 @@ body {
                     .data(layers)
                     .enter()
                     .append("text")
-			      .datum(function(d) { console.log(d);return {name: d.key, value: d.values[d.values.length - 1]}; })
-					.attr("y", function(d) { console.log("translate(" + y(d.value.y0 + d.value.y / 2) + ")");return y(d.value.y0 + d.value.y / 2); })
+			      .datum(function(d) { return {name: d.key, value: d.values[d.values.length - 1]}; })
+					.attr("y", function(d) {if (d.name=="Registrar member") {return y(d.value.y0 + d.value.y / 2) -9;/*this -9 kludge should be removed*/} else {return y(d.value.y0 + d.value.y / 2);}; })
 					.attr("x", 885)
-					.attr("font-size", "15px")
+					.attr("font-size", "11px")
 					.attr("style", "text-anchor: end")
 					.text( function (d) { return d.name + ", " + d.value.y; });
 
@@ -159,7 +155,13 @@ body {
 
 				  svg.append("g")
 				      .attr("class", "y axis")
-				      .call(yAxis);
+				      .call(yAxis)
+				    .append("text")
+				      .attr("transform", "rotate(-90)")
+				      .attr("y", 6)
+				      .attr("dy", ".71em")
+				      .style("text-anchor", "end")
+				      .text("Users");
 				
 				});
 			}
@@ -180,7 +182,8 @@ body {
 
 				var xAxis = d3.svg.axis()
 				    .scale(x)
-				    .orient("bottom");
+				    .orient("bottom")
+				    .ticks(d3.time.weeks);
 
 				var yAxis = d3.svg.axis()
 				    .scale(y)
@@ -196,7 +199,7 @@ body {
 				  .append("g")
 				    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-				d3.tsv("/static/stats/hits-data.tsv", function(error, data) {
+				d3.tsv("{{ STATIC_PREFIX }}stats/hits-data.tsv", function(error, data) {
 				  data.forEach(function(d) {
 				    d.date = parseDate(d.date);
 				    d.close = +d.close;
@@ -218,7 +221,7 @@ body {
 				      .attr("y", 6)
 				      .attr("dy", ".71em")
 				      .style("text-anchor", "end")
-				      .text("Price ($)");
+				      .text("Hits");
 
 				  svg.append("path")
 				      .datum(data)
@@ -232,24 +235,43 @@ body {
 
 			var draw_links_vis = function(){
 
-				var color = d3.scale.category20();
+				var format = d3.time.format("%d-%b-%y");
+
+				var margin = {top: 20, right: 30, bottom: 30, left: 40},
+				    width = 960 - margin.left - margin.right,
+				    height = 500 - margin.top - margin.bottom;
+
+				var x = d3.time.scale()
+				    .range([0, width]);
+
+				var y = d3.scale.linear()
+				    .range([height, 0]);
+
+				var z = d3.scale.category20();
 
 				var xAxis = d3.svg.axis()
 				    .scale(x)
-				    .orient("bottom");
+				    .orient("bottom")
+				    .ticks(d3.time.weeks);
 
 				var yAxis = d3.svg.axis()
 				    .scale(y)
-				    .orient("left")
-				    .tickFormat(formatPercent);
+				    .orient("left");
+
+				var stack = d3.layout.stack()
+				    .offset("zero")
+				    .values(function(d) { return d.values; })
+				    .x(function(d) { return d.date; })
+				    .y(function(d) { return d.value; });
+
+				var nest = d3.nest()
+				    .key(function(d) { return d.key; });
 
 				var area = d3.svg.area()
+				    .interpolate("cardinal")
 				    .x(function(d) { return x(d.date); })
 				    .y0(function(d) { return y(d.y0); })
 				    .y1(function(d) { return y(d.y0 + d.y); });
-
-				var stack = d3.layout.stack()
-				    .values(function(d) { return d.values; });
 
 				var svg = d3.select("#links-vis").append("svg")
 				    .attr("width", width + margin.left + margin.right)
@@ -257,40 +279,37 @@ body {
 				  .append("g")
 				    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-				d3.tsv("/static/stats/links-data.tsv", function(error, data) {
-				  color.domain(d3.keys(data[0]).filter(function(key) { return key !== "date"; }));
-
+				d3.csv("{{ STATIC_PREFIX }}stats/links-data.tsv", function(data) {
 				  data.forEach(function(d) {
-				    d.date = parseDate(d.date);
+				    d.date = format.parse(d.date);
+					d.name= 'some name here';
+				    d.value = +d.value;
 				  });
 
-				  var browsers = stack(color.domain().map(function(name) {
-				    return {
-				      name: name,
-				      values: data.map(function(d) {
-				        return {date: d.date, y: d[name] / 100};
-				      })
-				    };
-				  }));
+				  var layers = stack(nest.entries(data));
 
 				  x.domain(d3.extent(data, function(d) { return d.date; }));
+				  y.domain([0, d3.max(data, function(d) { return d.y0 + d.y; })]);
 
-				  var browser = svg.selectAll(".browser")
-				      .data(browsers)
-				    .enter().append("g")
-				      .attr("class", "browser");
-
-				  browser.append("path")
-				      .attr("class", "area")
+				  svg.selectAll(".layer")
+				      .data(layers)
+				    .enter().append("path")
+				      .attr("class", "layer")
 				      .attr("d", function(d) { return area(d.values); })
-				      .style("fill", function(d) { return color(d.name); });
+				      .style("fill", function(d, i) { return z(i); });
+				
+				
+				svg.selectAll("text")
+                    .data(layers)
+                    .enter()
+                    .append("text")
+			      .datum(function(d) { return {name: d.key, value: d.values[d.values.length - 1]}; })
+					.attr("y", function(d) { return y(d.value.y0 + d.value.y / 2); })
+					.attr("x", 885)
+					.attr("font-size", "13px")
+					.attr("style", "text-anchor: end")
+					.text( function (d) { return d.name + ", " + d.value.y; });
 
-				  browser.append("text")
-				      .datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
-				      .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.y0 + d.value.y / 2) + ")"; })
-				      .attr("x", -6)
-				      .attr("dy", ".35em")
-				      .text(function(d) { return d.name; });
 
 				  svg.append("g")
 				      .attr("class", "x axis")
@@ -299,7 +318,14 @@ body {
 
 				  svg.append("g")
 				      .attr("class", "y axis")
-				      .call(yAxis);
+				      .call(yAxis)
+				    .append("text")
+				      .attr("transform", "rotate(-90)")
+				      .attr("y", 6)
+				      .attr("dy", ".71em")
+				      .style("text-anchor", "end")
+				      .text("Links");
+				
 				});
 			}
 			
@@ -336,7 +362,7 @@ body {
 				  .append("g")
 				    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-				d3.tsv("/static/stats/hits-data.tsv", function(error, data) {
+				d3.tsv("{{ STATIC_PREFIX }}stats/storage-data.tsv", function(error, data) {
 				  data.forEach(function(d) {
 				    d.date = parseDate(d.date);
 				    d.close = +d.close;
@@ -358,7 +384,7 @@ body {
 				      .attr("y", 6)
 				      .attr("dy", ".71em")
 				      .style("text-anchor", "end")
-				      .text("Price ($)");
+				      .text("GB of storage");
 
 				  svg.append("path")
 				      .datum(data)
@@ -367,14 +393,11 @@ body {
 				});
 			}
 
-
-
 			draw_folks_vis();
 			draw_hits_vis();
 			draw_links_vis();
 			draw_storage_vis();
-
-
+			
 			</script>
 
 		</div><!--span-->

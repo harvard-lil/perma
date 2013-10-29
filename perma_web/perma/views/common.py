@@ -6,8 +6,7 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.sites.models import Site
 
-
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from urlparse import urlparse
 import urllib2, os, logging
 from urlparse import urlparse
@@ -102,8 +101,13 @@ def stats(request):
     """
     The global stats
     """
+    
+    # TODO: generate these nightly. we shouldn't be doing this for every request
+    top_links_all_time = list(Link.objects.all().order_by('-view_count')[:10])
 
-    return render_to_response('stats.html', {})
+    context = RequestContext(request, {'user': request.user, 'host': request.get_host(), 'top_links_all_time': top_links_all_time})
+
+    return render_to_response('stats.html', context)
 
 
 def tools(request):
