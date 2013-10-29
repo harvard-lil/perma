@@ -17,6 +17,7 @@ urlpatterns = patterns('perma.views',
     url(r'^copyright-policy/?$', 'common.copyright_policy', name='copyright_policy'),
     url(r'^terms-of-service/?$', 'common.terms_of_service', name='terms_of_service'),
     url(r'^privacy-policy/?$', 'common.privacy_policy', name='privacy_policy'),
+    url(r'^stats/?$', 'common.stats', name='global_stats'),
     
     #API routes
     url(r'^api/linky/upload?$', 'api.upload_file', name='api_linky_upload'),
