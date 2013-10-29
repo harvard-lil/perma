@@ -1,6 +1,6 @@
 import logging
 
-from perma.forms import user_reg_form, regisrtar_member_form, registrar_form, journal_manager_form, journal_manager_w_registrar_form, journal_manager_form_edit, journal_manager_w_group_form_edit, journal_member_form, journal_member_w_registrar_form, journal_member_form_edit, journal_member_w_group_form_edit, regisrtar_member_form_edit, user_form_self_edit, manage_user_form, user_form_edit, set_password_form
+from perma.forms import user_reg_form, registrar_form, journal_manager_form_edit, journal_manager_w_group_form_edit, journal_member_form_edit, journal_member_w_group_form_edit, regisrtar_member_form_edit, user_form_self_edit, user_form_edit, set_password_form, create_user_form, create_user_form_w_registrar
 from perma.models import Registrar, Link
 from perma.utils import base
 
@@ -179,7 +179,7 @@ def manage_registrar_member(request):
 
     if request.method == 'POST':
 
-        form = regisrtar_member_form(request.POST, prefix = "a")
+        form = create_user_form_w_registrar(request.POST, prefix = "a")
 
         if form.is_valid():
             new_user = form.save()
@@ -202,7 +202,7 @@ def manage_registrar_member(request):
         else:
             context.update({'form': form, 'add_error': True})
     else:
-        form = regisrtar_member_form(prefix = "a")
+        form = create_user_form_w_registrar(prefix = "a")
         context.update({'form': form,})
 
     context = RequestContext(request, context)
@@ -341,7 +341,7 @@ def manage_user(request):
 
     if request.method == 'POST':
 
-        form = manage_user_form(request.POST, prefix = "a")
+        form = create_user_form(request.POST, prefix = "a")
 
         if form.is_valid():
             new_user = form.save()
@@ -364,7 +364,7 @@ def manage_user(request):
         else:
             context.update({'form': form, 'add_error': True})
     else:
-        form = manage_user_form(prefix = "a")
+        form = create_user_form(prefix = "a")
         context.update({'form': form,})
 
     context = RequestContext(request, context)
@@ -511,9 +511,9 @@ def manage_journal_manager(request):
     if request.method == 'POST':
 
         if is_registry:
-          form = journal_manager_w_registrar_form(request.POST, prefix="a")
+          form = create_user_form_w_registrar(request.POST, prefix="a")
         else:
-          form = journal_manager_form(request.POST, prefix = "a")
+          form = create_user_form(request.POST, prefix = "a")
 
         if form.is_valid():
             new_user = form.save()
@@ -541,9 +541,9 @@ def manage_journal_manager(request):
             context.update({'form': form, 'add_error': True})
     else:
       if is_registry:
-        form = journal_manager_w_registrar_form(prefix="a")
+        form = create_user_form_w_registrar(prefix="a")
       else:
-        form = journal_manager_form(prefix = "a")
+        form = create_user_form(prefix = "a")
         
       context.update({'form': form,})
 
@@ -718,9 +718,9 @@ def manage_journal_member(request):
     if request.method == 'POST':
 
         if is_registry:
-          form = journal_member_w_registrar_form(request.POST, prefix="a")
+          form = create_user_form_w_registrar(request.POST, prefix="a")
         else:
-          form = journal_member_form(request.POST, prefix = "a")
+          form = create_user_form(request.POST, prefix = "a")
 
         if form.is_valid():
             new_user = form.save()
@@ -749,9 +749,9 @@ def manage_journal_member(request):
             context.update({'form': form, 'add_error': True})
     else:
       if is_registry:
-        form = journal_member_w_registrar_form(prefix = "a")
+        form = create_user_form_w_registrar(prefix = "a")
       else:
-        form = journal_member_form(prefix="a")
+        form = create_user_form(prefix="a")
       context.update({'form': form,})
 
     context = RequestContext(request, context)
