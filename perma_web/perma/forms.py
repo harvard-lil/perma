@@ -495,11 +495,11 @@ class user_reg_form(forms.ModelForm):
             'invalid': "This value may contain only letters, numbers and "
                          "@/./+/-/_ characters."})
 
-    password = forms.CharField(label="Password", widget=forms.PasswordInput)
+    #password = forms.CharField(label="Password", widget=forms.PasswordInput)
 
     class Meta:
         model = LinkUser
-        fields = ("email", "password")
+        fields = ("email", "first_name", "last_name")
 
     def clean_email(self):
         # Since User.email is unique, this check is redundant,
@@ -514,7 +514,7 @@ class user_reg_form(forms.ModelForm):
 
     def save(self, commit=True):
         user = super(user_reg_form, self).save(commit=False)
-        user.set_password(self.cleaned_data["password"])
+        #user.set_password(self.cleaned_data["password"])
         if commit:
             user.save()
         return user

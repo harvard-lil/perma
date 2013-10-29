@@ -1135,33 +1135,13 @@ def process_register(request):
             new_user.backend='django.contrib.auth.backends.ModelBackend'
             
             new_user.is_active = False
-            new_user.confirmation_code = \
-                ''.join(random.choice(string.ascii_uppercase + \
-                string.ascii_lowercase + string.digits) for x in range(30))
-            new_user.save()
             
-            from_address = "info@perma.cc"
-            to_address = new_user.email
-            content = '''To confirm your account, please click the link below or copy it to your web browser:
-
-http://%s/register/confirm/%s/
-
-''' % (request.get_host(), new_user.confirmation_code)
-
-            msg = MIMEText(content)
-            msg['Subject'] = "Perma account confirmation"
-            msg['From'] = from_address
-            msg['To'] = to_address
-        
-            # Send the message via our own SMTP server, but don't include the
-            # envelope header.
-            s = smtplib.SMTP('localhost')
-            s.sendmail(from_address, [to_address], msg.as_string())
-            s.quit()
-
+            new_user.save()
 
             group = Group.objects.get(name='user')
             new_user.groups.add(group)
+            
+            email_new_user(request, new_user)
 
             return HttpResponseRedirect(reverse('register_email_instructions'))
 
@@ -1245,7 +1225,7 @@ def email_new_user(request, user):
       user.save()
     from_address = settings.DEFAULT_FROM_EMAIL
     to_address = user.email
-    content = '''To log into your account, please click the link below or copy it to your web browser.  You will need to create a new password.
+    content = '''To activate your account, please click the link below or copy it to your web browser.  You will need to create a new password.
 
 http://%s/register/password/%s/
 
