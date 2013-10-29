@@ -23,7 +23,7 @@ to your PATH:
 You'll need a Django friendly database. If you want to use MySQL, something like the following can be used to create a new user and a new database:
 
 	mysql -u root -psomepasshere
-	mysql> create database perma character set utf8; grant all on perma.* to perma@'%' identified by 'perma';
+	mysql> create database perma character set utf8; grant all on perma.* to perma@'localhost' identified by 'perma';
 	mysql -u perma -pperma perma
 
 ### Settings
