@@ -1,19 +1,10 @@
 # Django settings for Perma project.
 
-import os, sys
-
-DEBUG = True
-TEMPLATE_DEBUG = DEBUG
-
-ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
-)
-
-MANAGERS = ADMINS
+import os
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__name__))
 
-# The base location, on disk, where want to store our generated assets
+# The base location, on disk, where we want to store our generated assets
 GENERATED_ASSETS_STORAGE = '/tmp/perma/assets'
 
 DATABASES = {
@@ -40,8 +31,6 @@ ALLOWED_HOSTS = []
 # although not all choices may be available on all operating systems.
 # In a Windows environment this must be set to your system time zone.
 TIME_ZONE = 'America/New_York'
-
-USE_TZ = False
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -96,9 +85,6 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
-
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = ''
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -216,12 +202,6 @@ WAIT_BETWEEN_TRIES = 4 # wait between .5 and this many seconds between http requ
 # Max file size (for our downloads)
 MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 20 # 20 MB
 
-# Instapaper credentials
-INSTAPAPER_KEY = 'key'
-INSTAPAPER_SECRET = 'secret'
-INSTAPAPER_USER = 'user@example.com'
-INSTAPAPER_PASS = 'pass'
-
 # Rate limits
 MINUTE_LIMIT = '6000/m'
 HOUR_LIMIT = '100000/h'
@@ -235,10 +215,3 @@ LOGIN_DAY_LIMIT = '50000/d'
 
 # Dashboard user lists
 MAX_USER_LIST_SIZE = '15'
-
-# Google Analytics 
-GOOGLE_ANALYTICS_KEY = 'UA-XXXXX-X'
-GOOGLE_ANALYTICS_DOMAIN = 'example.com'
-
-# To populate the from field of emails sent from Perma
-DEFAULT_FROM_EMAIL = 'email@example.com'
