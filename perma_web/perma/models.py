@@ -171,3 +171,42 @@ class Asset(models.Model):
     instapaper_timestamp = models.DateTimeField(null=True)
     instapaper_hash = models.CharField(max_length=2100, null=True)
     instapaper_id = models.IntegerField(null=True)
+    
+    
+#########################
+# Stats related models
+#########################
+
+class Stat(models.Model):
+    """
+    We have a stats page. A sort of dashboard that displays aggregate counts on users
+    and storage space and whatever the heck else might be fun to look at.
+
+    We compute an aggregate count nightly (or whenever we set our celery periodic task to run)
+    """
+
+    # The time of this stats entry
+    creation_timestamp = models.DateTimeField(auto_now_add=True)
+
+    # Our user counts
+    regular_user_count = models.IntegerField(default=1)
+    vesting_member_count = models.IntegerField(default=1)
+    vesting_manager_count = models.IntegerField(default=1)
+    registrar_member_count = models.IntegerField(default=1)
+    registry_member_count = models.IntegerField(default=1)
+
+    # Our registrar count
+    registrar_count = models.IntegerField(default=1)
+
+    # Our link counts
+    unvested_count = models.IntegerField(default=1)
+    vested_count = models.IntegerField(default=1)
+
+    # Our google analytics counts
+    global_uniques = models.IntegerField(default=1)
+
+    # Our size count
+    disk_usage = models.FloatField(default=0.0)
+
+    # TODO, we also display the top 10 perma links in the stats view
+    # we should probably generate these here or put them in memcache or something

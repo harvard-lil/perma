@@ -4,9 +4,6 @@ import os
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__name__))
 
-# The base location, on disk, where we want to store our generated assets
-GENERATED_ASSETS_STORAGE = '/tmp/perma/assets'
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -67,16 +64,6 @@ STATIC_ROOT = ''
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
 STATIC_URL = '/static/'
-
-# Additional locations of static files
-STATICFILES_DIRS = (
-    'static',
-    GENERATED_ASSETS_STORAGE
-
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
 
 # List of finder classes that know how to find static files in
 # various locations.
