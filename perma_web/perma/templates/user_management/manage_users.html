@@ -1,4 +1,5 @@
 {% extends "admin-layout.html" %}
+{% load has_group %}
 {% block title %} | Users{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
@@ -14,7 +15,7 @@
     <div class="alert alert-success alert-block"><h4>Account created!</h4> <strong>{{ added_user }}</strong> will receive an email with instructions on how to activate the account and create a password.</div>
   {% endif %}
 	
-	{% ifequal user.groups.all.0.name 'registry_member' %}
+	{% if user|has_group:'registry_member' %}
 	<div id="add-member" class="collapse {% if add_error %}in{% endif %}">
     <form method="post">
       {% csrf_token %}
@@ -34,7 +35,7 @@
       <button type="submit" class="btn">Add user</button>
     </form>
   </div>
-	{% endifequal %}
+	{% endif %}
 		
 	<table class="table">
     <thead>

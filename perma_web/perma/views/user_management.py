@@ -1,33 +1,31 @@
-import logging
+import random, string, smtplib, logging
+from email.mime.text import MIMEText
 
-from perma.forms import user_reg_form, registrar_form, journal_manager_form_edit, journal_manager_w_group_form_edit, journal_member_form_edit, journal_member_w_group_form_edit, regisrtar_member_form_edit, user_form_self_edit, user_form_edit, set_password_form, create_user_form, create_user_form_w_registrar
-from perma.models import Registrar, Link
-from perma.utils import base
-
-from django.template import Template, context, RequestContext
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.sites.models import get_current_site
 from django.utils.http import is_safe_url
 from django.http import  HttpResponseRedirect
+from django.template import RequestContext
 from django.template.response import TemplateResponse
 from django.shortcuts import render_to_response, get_object_or_404, resolve_url
 from django.core.urlresolvers import reverse
 from django.core.context_processors import csrf
-from django.contrib import auth
-from django.contrib.auth.models import User, Permission, Group
-import random, string, smtplib
-from email.mime.text import MIMEText
 from django.core.paginator import Paginator
-from perma.models import LinkUser
+from django.contrib.auth.models import Group
 from ratelimit.decorators import ratelimit
 
+from perma.forms import user_reg_form, registrar_form, journal_manager_form_edit, journal_manager_w_group_form_edit, journal_member_form_edit, journal_member_w_group_form_edit, regisrtar_member_form_edit, user_form_self_edit, user_form_edit, set_password_form, create_user_form, create_user_form_w_registrar
+from perma.models import Registrar, Link, LinkUser
+from perma.utils import require_group
 
 logger = logging.getLogger(__name__)
 valid_member_sorts = ['-email', 'email', 'last_name', '-last_name', 'admin', '-admin', 'registrar__name', '-registrar__name']
 valid_registrar_sorts = ['-email', 'email', 'name', '-name', 'website', '-website']
+
+
 
 @login_required
 def manage(request):
@@ -38,7 +36,7 @@ def manage(request):
     if request.user.id >= 0:
       linky_links = list(Link.objects.filter(created_by=request.user).order_by('-creation_timestamp'))
     else:
-      linky_links = None;
+      linky_links = None
 
     context = RequestContext(request, {'this_page': 'manage', 'host': request.get_host(), 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()})
 
@@ -53,21 +51,18 @@ def create_link(request):
     if request.user.id >= 0:
       linky_links = list(Link.objects.filter(created_by=request.user).order_by('-creation_timestamp'))
     else:
-      linky_links = None;
+      linky_links = None
 
     context = RequestContext(request, {'this_page': 'create_link', 'host': request.get_host(), 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()})
 
     return render_to_response('user_management/create-link.html', context)
     
 
-@login_required
+@require_group('registry_member')
 def manage_registrar(request):
     """
     Linky admins can manage registrars (libraries)
     """
-
-    if request.user.groups.all()[0].name not in ['registry_member']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
 
     DEFAULT_SORT = 'name'
 
@@ -106,13 +101,10 @@ def manage_registrar(request):
     return render_to_response('user_management/manage_registrars.html', context)
 
 
-@login_required
+@require_group('registry_member')
 def manage_single_registrar(request, registrar_id):
     """ Linky admins can manage registrars (libraries)
         in this view, we allow for edit/delete """
-
-    if request.user.groups.all()[0].name not in ['registry_member']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
 
     target_registrar = get_object_or_404(Registrar, id=registrar_id)
 
@@ -139,31 +131,28 @@ def manage_single_registrar(request, registrar_id):
     return render_to_response('user_management/manage_single_registrar.html', context)
 
 
-@login_required
+@require_group('registry_member')
 def manage_registrar_member(request):
     """
     Linky admins can manage registrar members (librarians)
     """
-
-    if request.user.groups.all()[0].name not in ['registry_member']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
     
     added_user = request.REQUEST.get('added_user')
     
     def sorts():
-      DEFAULT_SORT = ['email']
-      sorts = DEFAULT_SORT
-
-      sort = request.GET.get('sort', DEFAULT_SORT)
-      if sort not in valid_member_sorts:
+        DEFAULT_SORT = ['email']
         sorts = DEFAULT_SORT
-      elif sort == 'admin':
-        sorts = ['is_active', 'password']
-      elif sort == '-admin':
-        sorts = ['-is_active', '-password']
-      else:
-        sorts[0] = sort
-      return sorts
+
+        sort = request.GET.get('sort', DEFAULT_SORT)
+        if sort not in valid_member_sorts:
+            sorts = DEFAULT_SORT
+        elif sort == 'admin':
+            sorts = ['is_active', 'password']
+        elif sort == '-admin':
+            sorts = ['-is_active', '-password']
+        else:
+            sorts[0] = sort
+        return sorts
     
     page = request.GET.get('page', 1)
     if page < 1:
@@ -210,15 +199,12 @@ def manage_registrar_member(request):
     return render_to_response('user_management/manage_registrar_members.html', context)
 
 
-@login_required
+@require_group('registry_member')
 def manage_single_registrar_member(request, user_id):
     """
     Linky admins can manage registrar members (librarians)
     in this view, we allow for edit
     """
-
-    if request.user.groups.all()[0].name not in ['registry_member']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
 
     target_registrar_member = get_object_or_404(LinkUser, id=user_id)
 
@@ -245,15 +231,11 @@ def manage_single_registrar_member(request, user_id):
     return render_to_response('user_management/manage_single_registrar_member.html', context)
 
 
-@login_required
+@require_group('registry_member')
 def manage_single_registrar_member_delete(request, user_id):
     """
     Linky admins can manage registrar members. Delete a single registrar member here.
     """
-
-    # Only registry members can delete registrar members
-    if request.user.groups.all()[0].name not in ['registry_member']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
 
     target_member = get_object_or_404(LinkUser, id=user_id)
 
@@ -270,15 +252,11 @@ def manage_single_registrar_member_delete(request, user_id):
     
     return render_to_response('user_management/user_delete_confirm.html', context)
     
-@login_required
+@require_group('registry_member')
 def manage_single_registrar_member_reactivate(request, user_id):
     """
     Perma admins can manage registrar members. Reactivate a single registrar member here.
     """
-
-    # Only registry members can delete registrar members
-    if request.user.groups.all()[0].name not in ['registry_member']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
 
     target_member = get_object_or_404(LinkUser, id=user_id)
 
@@ -295,31 +273,28 @@ def manage_single_registrar_member_reactivate(request, user_id):
     
     return render_to_response('user_management/user_reactivate_confirm.html', context)
 
-@login_required
+@require_group('registry_member')
 def manage_user(request):
     """
     Linky admins can manage regular users
     """
-
-    if request.user.groups.all()[0].name not in ['registry_member']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
         
     added_user = request.REQUEST.get('added_user')
     
     def sorts():
-      DEFAULT_SORT = ['email']
-      sorts = DEFAULT_SORT
-
-      sort = request.GET.get('sort', DEFAULT_SORT)
-      if sort not in valid_member_sorts:
+        DEFAULT_SORT = ['email']
         sorts = DEFAULT_SORT
-      elif sort == 'admin':
-        sorts = ['is_active', 'password']
-      elif sort == '-admin':
-        sorts = ['-is_active', '-password']
-      else:
-        sorts[0] = sort
-      return sorts
+
+        sort = request.GET.get('sort', DEFAULT_SORT)
+        if sort not in valid_member_sorts:
+            sorts = DEFAULT_SORT
+        elif sort == 'admin':
+            sorts = ['is_active', 'password']
+        elif sort == '-admin':
+            sorts = ['-is_active', '-password']
+        else:
+            sorts[0] = sort
+        return sorts
     
     page = request.GET.get('page', 1)
     if page < 1:
@@ -366,15 +341,12 @@ def manage_user(request):
     return render_to_response('user_management/manage_users.html', context)
 
 
-@login_required
+@require_group('registry_member')
 def manage_single_user(request, user_id):
     """
     Linky admins can manage regular users
     in this view, we allow for edit
     """
-
-    if request.user.groups.all()[0].name not in ['registry_member']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
 
     target_user = get_object_or_404(LinkUser, id=user_id)
 
@@ -401,15 +373,11 @@ def manage_single_user(request, user_id):
     return render_to_response('user_management/manage_single_user.html', context)
 
 
-@login_required
+@require_group('registry_member')
 def manage_single_user_delete(request, user_id):
     """
     Linky admins can manage regular users. Delete a single user here.
     """
-
-    # Only registry members can delete registrar members
-    if request.user.groups.all()[0].name not in ['registry_member']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
 
     target_member = get_object_or_404(LinkUser, id=user_id)
 
@@ -426,15 +394,11 @@ def manage_single_user_delete(request, user_id):
     
     return render_to_response('user_management/user_delete_confirm.html', context)
     
-@login_required
+@require_group('registry_member')
 def manage_single_user_reactivate(request, user_id):
     """
     Linky admins can manage regular users. Delete a single user here.
     """
-
-    # Only registry members can delete registrar members
-    if request.user.groups.all()[0].name not in ['registry_member']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
 
     target_member = get_object_or_404(LinkUser, id=user_id)
 
@@ -452,14 +416,11 @@ def manage_single_user_reactivate(request, user_id):
     return render_to_response('user_management/user_reactivate_confirm.html', context)
 
 
-@login_required
+@require_group(['registrar_member', 'registry_member'])
 def manage_journal_manager(request):
     """
     Linky admins and registrars can manage vesting members
     """
-
-    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
         
     is_registry = False;
     added_user = request.REQUEST.get('added_user')
@@ -484,7 +445,7 @@ def manage_journal_manager(request):
         page = 1
 
     # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
-    if request.user.groups.all()[0].name == 'registry_member':
+    if request.user.has_group('registry_member'):
         journal_managers = LinkUser.objects.filter(groups__name='vesting_manager').order_by(*sorts())
         is_registry = True
     else:
@@ -540,24 +501,20 @@ def manage_journal_manager(request):
     return render_to_response('user_management/manage_journal_managers.html', context)
 
 
-@login_required
+@require_group(['registrar_member', 'registry_member'])
 def manage_single_journal_manager(request, user_id):
     """
     Linky admins and registrars can manage vesting members. Edit a single vesting member here.
     """
-
-    # Only registry members and registrar memebers can edit vesting members
-    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
         
     is_registry = False;
-    if request.user.groups.all()[0].name == 'registry_member':
+    if request.user.has_group('registry_member'):
       is_registry = True;
 
     target_member = get_object_or_404(LinkUser, id=user_id)
 
     # Registrar members can only edit their own vesting members
-    if request.user.groups.all()[0].name not in ['registry_member']:
+    if not request.user.has_group('registry_member'):
         if request.user.registrar != target_member.registrar:
             return HttpResponseRedirect(reverse('user_management_created_links'))
 
@@ -567,9 +524,9 @@ def manage_single_journal_manager(request, user_id):
     if request.method == 'POST':
 
         if is_registry:
-          form = journal_manager_w_group_form_edit(request.POST, prefix = "a", instance=target_member)
+            form = journal_manager_w_group_form_edit(request.POST, prefix = "a", instance=target_member)
         else:
-          form = journal_manager_form_edit(request.POST, prefix = "a", instance=target_member)
+            form = journal_manager_form_edit(request.POST, prefix = "a", instance=target_member)
 
         if form.is_valid():
             form.save()
@@ -590,20 +547,16 @@ def manage_single_journal_manager(request, user_id):
     return render_to_response('user_management/manage_single_journal_manager.html', context)
 
 
-@login_required
+@require_group(['registrar_member', 'registry_member'])
 def manage_single_journal_manager_delete(request, user_id):
     """
     Linky admins and registrars can manage vesting members. Delete a single vesting member here.
     """
 
-    # Only registry members and registrar memebers can edit vesting managers
-    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
-
     target_member = get_object_or_404(LinkUser, id=user_id)
 
     # Registrar members can only edit their own vesting members
-    if request.user.groups.all()[0].name not in ['registry_member']:
+    if not request.user.has_group('registry_member'):
         if request.user.registrar != target_member.registrar:
             return HttpResponseRedirect(reverse('user_management_created_links'))
 
@@ -620,20 +573,16 @@ def manage_single_journal_manager_delete(request, user_id):
     
     return render_to_response('user_management/user_delete_confirm.html', context)
     
-@login_required
+@require_group(['registrar_member', 'registry_member'])
 def manage_single_journal_manager_reactivate(request, user_id):
     """
     Perma admins and registrars can manage vesting managers. Reactivate a single vesting manager here.
     """
 
-    # Only registry members and registrar memebers can edit vesting managers
-    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
-
     target_member = get_object_or_404(LinkUser, id=user_id)
 
     # Registrar members can only edit their own vesting members
-    if request.user.groups.all()[0].name not in ['registry_member']:
+    if not request.user.has_group('registry_member'):
         if request.user.registrar != target_member.registrar:
             return HttpResponseRedirect(reverse('user_management_created_links'))
 
@@ -653,14 +602,11 @@ def manage_single_journal_manager_reactivate(request, user_id):
 valid_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp']
 
 
-@login_required
+@require_group(['registrar_member', 'registry_member', 'vesting_manager'])
 def manage_journal_member(request):
     """
     Linky admins and registrars can manage vesting members
     """
-
-    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'vesting_manager']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
         
     is_registry = False;
     added_user = request.REQUEST.get('added_user')
@@ -684,13 +630,13 @@ def manage_journal_member(request):
         page = 1
 
     # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
-    if request.user.groups.all()[0].name == 'registry_member':
+    if request.user.has_group('registry_member'):
         journal_members = LinkUser.objects.filter(groups__name='vesting_member').order_by(*sorts())
-        is_registry = True;
-    elif request.user.groups.all()[0].name == 'vesting_manager':
+        is_registry = True
+    elif request.user.has_group('vesting_manager'):
         journal_members = LinkUser.objects.filter(authorized_by=request.user).exclude(id=request.user.id).order_by(*sorts())
     else:
-    	journal_members = LinkUser.objects.filter(groups__name='vesting_member', registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts())
+        journal_members = LinkUser.objects.filter(groups__name='vesting_member', registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts())
     	
     paginator = Paginator(journal_members, settings.MAX_USER_LIST_SIZE)
     journal_members = paginator.page(page)
@@ -713,7 +659,7 @@ def manage_journal_member(request):
             new_user.save()
             
             if not is_registry:
-              new_user.registrar = request.user.registrar
+                new_user.registrar = request.user.registrar
             new_user.authorized_by = request.user
             new_user.save()
 
@@ -730,41 +676,34 @@ def manage_journal_member(request):
         else:
             context.update({'form': form, 'add_error': True})
     else:
-      if is_registry:
-        form = create_user_form_w_registrar(prefix = "a")
-      else:
-        form = create_user_form(prefix="a")
-      context.update({'form': form,})
+        if is_registry:
+            form = create_user_form_w_registrar(prefix = "a")
+        else:
+            form = create_user_form(prefix="a")
+        context.update({'form': form,})
 
     context = RequestContext(request, context)
     
     return render_to_response('user_management/manage_journal_members.html', context)
 
 
-@login_required
+@require_group(['registrar_member', 'registry_member', 'vesting_manager'])
 def manage_single_journal_member(request, user_id):
     """
     Linky admins and registrars can manage vesting members. Edit a single vesting member here.
     """
 
-    # Only registry members and registrar memebers can edit vesting members
-    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'vesting_manager']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
-
-    is_registry = False;
-    
-    if request.user.groups.all()[0].name == 'registry_member':
-      is_registry = True;
+    is_registry = request.user.has_group('registry_member')
     
     target_member = get_object_or_404(LinkUser, id=user_id)
 
     # Registrar members can only edit their own vesting members
-    if request.user.groups.all()[0].name not in ['registry_member']:
+    if not is_registry:
         if request.user.registrar != target_member.registrar:
             return HttpResponseRedirect(reverse('user_management_created_links'))
             
     # Vesting managers can only edit their own vesting members
-    if request.user.groups.all()[0].name not in ['registry_member', 'registrar_member']:
+    if not request.user.has_group(['registry_member', 'registrar_member']):
         if request.user != target_member.authorized_by:
             return HttpResponseRedirect(reverse('user_management_created_links'))
 
@@ -774,9 +713,9 @@ def manage_single_journal_member(request, user_id):
 
     if request.method == 'POST':
         if is_registry:
-          form = journal_member_w_group_form_edit(request.POST, prefix = "a", instance=target_member)
+            form = journal_member_w_group_form_edit(request.POST, prefix = "a", instance=target_member)
         else:
-          form = journal_member_form_edit(request.POST, prefix = "a", instance=target_member)
+            form = journal_member_form_edit(request.POST, prefix = "a", instance=target_member)
 
         if form.is_valid():
             form.save()
@@ -797,25 +736,21 @@ def manage_single_journal_member(request, user_id):
     return render_to_response('user_management/manage_single_journal_member.html', context)
 
 
-@login_required
+@require_group(['registrar_member', 'registry_member', 'vesting_manager'])
 def manage_single_journal_member_delete(request, user_id):
     """
     Linky admins and registrars can manage vesting members. Delete a single vesting member here.
     """
 
-    # Only registry members and registrar memebers can edit vesting members
-    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'vesting_manager']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
-
     target_member = get_object_or_404(LinkUser, id=user_id)
 
     # Registrar members can only edit their own vesting members
-    if request.user.groups.all()[0].name not in ['registry_member']:
+    if not request.user.has_group('registry_member'):
         if request.user.registrar != target_member.registrar:
             return HttpResponseRedirect(reverse('user_management_created_links'))
             
     # Vesting managers can only edit their own vesting members
-    if request.user.groups.all()[0].name not in ['registry_member', 'registrar_member']:
+    if not request.user.has_group(['registry_member', 'registrar_member']):
         if request.user != target_member.authorized_by:
             return HttpResponseRedirect(reverse('user_management_created_links'))
 
@@ -832,25 +767,21 @@ def manage_single_journal_member_delete(request, user_id):
     
     return render_to_response('user_management/user_delete_confirm.html', context)
     
-@login_required
+@require_group(['registrar_member', 'registry_member', 'vesting_manager'])
 def manage_single_journal_member_reactivate(request, user_id):
     """
     Perma admins and registrars can manage vesting members. Reactivate a single vesting member here.
     """
 
-    # Only registry members and registrar memebers can edit vesting members
-    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member', 'vesting_manager']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
-
     target_member = get_object_or_404(LinkUser, id=user_id)
 
     # Registrar members can only edit their own vesting members
-    if request.user.groups.all()[0].name not in ['registry_member']:
+    if not request.user.has_group('registry_member'):
         if request.user.registrar != target_member.registrar:
             return HttpResponseRedirect(reverse('user_management_created_links'))
             
     # Vesting managers can only edit their own vesting members
-    if request.user.groups.all()[0].name not in ['registry_member', 'registrar_member']:
+    if not request.user.has_group(['registry_member', 'registrar_member']):
         if request.user != target_member.authorized_by:
             return HttpResponseRedirect(reverse('user_management_created_links'))
 
@@ -906,15 +837,11 @@ def created_links(request):
     return render_to_response('user_management/created-links.html', context)
 
 
-@login_required
+@require_group(['registrar_member', 'registry_member', 'vesting_manager', 'vesting_member'])
 def vested_links(request):
     """
     Linky admins and registrar members and vesting members can vest link links
     """
-
-    if request.user.groups.all()[0].name not in ['vesting_member', 'vesting_manager', 'registrar_member', 'registry_member']:
-        return HttpResponseRedirect(reverse('user_management_created_links'))
-        
     
     DEFAULT_SORT = '-creation_timestamp'
 
@@ -955,11 +882,11 @@ def manage_account(request):
     context = {'host': request.get_host(), 'user': request.user,
         'next': request.get_full_path(), 'this_page': 'settings'}
     context.update(csrf(request))
-    if request.user.groups.all()[0].name in ['vesting_member', 'vesting_manager']:
-      if request.user.registrar:
-        context.update({'sponsoring_library_name': request.user.registrar.name, 'sponsoring_library_email': request.user.registrar.email, 'sponsoring_library_website': request.user.registrar.website})
-      else:
-        context.update({'no_registrar': True})
+    if request.user.has_group(['vesting_member', 'vesting_manager']):
+        if request.user.registrar:
+            context.update({'sponsoring_library_name': request.user.registrar.name, 'sponsoring_library_email': request.user.registrar.email, 'sponsoring_library_website': request.user.registrar.website})
+        else:
+            context.update({'no_registrar': True})
     
     if request.method == 'POST':
 
