@@ -5,6 +5,9 @@
 {% block title %} | {{linky.submitted_title}}{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+	{% if serve_type == 'text' %}
+	<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/text-capture.css">
+	{% endif %}
 {% endblock %}
 
 {% block header %}
@@ -130,7 +133,9 @@
 			{% endif %}
 			
 			{% if serve_type == 'text' %}
-			<div class="translucent-background"><div>{% autoescape off %}{{ text_capture }}{% endautoescape %}</div></div>
+			<div class="translucent-background">
+				<div id="text-capture">{% autoescape off %}{{ text_capture }}{% endautoescape %}</div>
+			</div>
 			{% endif %}
 		</div><!--end watermark-->
    	</div><!--end linky-view-->
