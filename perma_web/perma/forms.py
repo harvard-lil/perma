@@ -4,8 +4,7 @@ from django import forms
 from django.contrib.auth.models import User, Group
 from django.forms import ModelForm
 
-from perma.models import Registrar
-from perma.models import LinkUser
+from perma.models import Registrar, VestingOrg, LinkUser
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +13,20 @@ class registrar_form(ModelForm):
     class Meta:
         model = Registrar
         fields = ['name', 'email', 'website']
+        
+class vesting_org_w_registrar_form(ModelForm):
+
+    registrar = forms.ModelChoiceField(queryset=Registrar.objects.all(), empty_label=None)
+    
+    class Meta:
+        model = VestingOrg
+        fields = ['name', 'registrar']
+        
+class vesting_org_form(ModelForm):
+    
+    class Meta:
+        model = VestingOrg
+        fields = ['name']
         
 class create_user_form(forms.ModelForm):
 
@@ -96,6 +109,59 @@ class create_user_form_w_registrar(forms.ModelForm):
 
     def save(self, commit=True):
         user = super(create_user_form_w_registrar, self).save(commit=False)
+
+        if commit:
+            user.save()
+
+        return user
+
+class create_user_form_w_vesting_org(forms.ModelForm):
+    """
+    stripped down user reg form
+    This is mostly a django.contrib.auth.forms.UserCreationForm
+    """
+    def __init__(self, *args, **kwargs):
+      registrar_id = False
+      if 'registrar_id' in kwargs:
+        registrar_id = kwargs.pop('registrar_id')
+      super(create_user_form_w_vesting_org, self).__init__(*args, **kwargs)
+      if registrar_id:
+        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id)
+    
+    class Meta:
+        model = LinkUser
+        fields = ["first_name", "last_name", "email", "vesting_org"]
+        
+    error_messages = {
+        'duplicate_email': "A user with that email address already exists.",
+    }
+
+    email = forms.RegexField(label="Email", required=True, max_length=254,
+        regex=r'^[\w.@+-]+$',
+        help_text = "Letters, digits and @/./+/-/_ only. 254 characters or fewer.",
+        error_messages = {
+            'invalid': "This value may contain only letters, numbers and "
+                         "@/./+/-/_ characters."})
+
+    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all(), empty_label=None, label="Vesting organization")
+
+    def clean_email(self):
+        # Since User.email is unique, this check is redundant,
+        # but it sets a nicer error message than the ORM.
+
+        email = self.cleaned_data["email"]
+        try:
+            LinkUser.objects.get(email=email)
+        except LinkUser.DoesNotExist:
+            return email
+        raise forms.ValidationError(self.error_messages['duplicate_email'])
+
+    def clean_vesting_org(self):
+        vesting_org = self.cleaned_data["vesting_org"]
+        return vesting_org
+
+    def save(self, commit=True):
+        user = super(create_user_form_w_vesting_org, self).save(commit=False)
 
         if commit:
             user.save()

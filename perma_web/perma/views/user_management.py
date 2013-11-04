@@ -1,7 +1,7 @@
 import logging
 
-from perma.forms import user_reg_form, registrar_form, journal_manager_form_edit, journal_manager_w_group_form_edit, journal_member_form_edit, journal_member_w_group_form_edit, regisrtar_member_form_edit, user_form_self_edit, user_form_edit, set_password_form, create_user_form, create_user_form_w_registrar
-from perma.models import Registrar, Link
+from perma.forms import user_reg_form, registrar_form, vesting_org_w_registrar_form, vesting_org_form, journal_manager_form_edit, journal_manager_w_group_form_edit, journal_member_form_edit, journal_member_w_group_form_edit, regisrtar_member_form_edit, user_form_self_edit, user_form_edit, set_password_form, create_user_form, create_user_form_w_registrar, create_user_form_w_vesting_org
+from perma.models import Registrar, VestingOrg, LinkUser, Link
 from perma.utils import base
 
 from django.template import Template, context, RequestContext
@@ -21,12 +21,11 @@ from django.contrib.auth.models import User, Permission, Group
 import random, string, smtplib
 from email.mime.text import MIMEText
 from django.core.paginator import Paginator
-from perma.models import LinkUser
 from ratelimit.decorators import ratelimit
 
 
 logger = logging.getLogger(__name__)
-valid_member_sorts = ['-email', 'email', 'last_name', '-last_name', 'admin', '-admin', 'registrar__name', '-registrar__name']
+valid_member_sorts = ['-email', 'email', 'last_name', '-last_name', 'admin', '-admin', 'registrar__name', '-registrar__name', 'vesting_org__name', '-vesting_org__name']
 valid_registrar_sorts = ['-email', 'email', 'name', '-name', 'website', '-website']
 
 @login_required
@@ -137,6 +136,100 @@ def manage_single_registrar(request, registrar_id):
     context = RequestContext(request, context)
 
     return render_to_response('user_management/manage_single_registrar.html', context)
+    
+@login_required
+def manage_vesting_org(request):
+    """
+    Registry and registrar members can manage vesting organizations (journals)
+    """
+
+    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
+        return HttpResponseRedirect(reverse('user_management_created_links'))
+
+    DEFAULT_SORT = 'name'
+    is_registry = False
+
+    sort = request.GET.get('sort', DEFAULT_SORT)
+    if sort not in valid_registrar_sorts:
+      sort = DEFAULT_SORT
+      
+    page = request.GET.get('page', 1)
+    if page < 1:
+        page = 1
+        
+    # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
+    if request.user.groups.all()[0].name == 'registry_member':
+        vesting_orgs = VestingOrg.objects.all().order_by(sort)
+        is_registry = True;
+    else:
+      vesting_orgs = VestingOrg.objects.filter(registrar_id=request.user.registrar_id).order_by(sort)
+    
+    paginator = Paginator(vesting_orgs, settings.MAX_USER_LIST_SIZE)
+    vesting_orgs = paginator.page(page)
+
+    context = {'user': request.user, 'vesting_orgs_list': list(vesting_orgs), 'vesting_orgs': vesting_orgs,
+        'this_page': 'users_vesting_orgs'}
+
+    if request.method == 'POST':
+
+        if is_registry:
+          form = vesting_org_w_registrar_form(request.POST, prefix = "a")
+        else:
+          form = vesting_org_form(request.POST, prefix = "a")
+
+        if form.is_valid():
+            new_user = form.save()
+            if not is_registry:
+              new_user.registrar_id = request.user.registrar_id
+              new_user.save()
+
+            return HttpResponseRedirect(reverse('user_management_manage_vesting_org'))
+
+        else:
+            context.update({'form': form, 'add_error': True})
+    else:
+        if is_registry:
+          form = vesting_org_w_registrar_form(prefix = "a")
+        else:
+          form = vesting_org_form(prefix = "a")
+        context.update({'form': form,})
+    
+    context = RequestContext(request, context)
+
+    return render_to_response('user_management/manage_vesting_orgs.html', context)
+
+
+@login_required
+def manage_single_vesting_org(request, vesting_org_id):
+    """ Registry and registrar members can manage vesting organizations (journals)
+        in this view, we allow for edit/delete """
+
+    if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
+        return HttpResponseRedirect(reverse('user_management_created_links'))
+
+    target_vesting_org = get_object_or_404(VestingOrg, id=vesting_org_id)
+
+    context = {'user': request.user, 'target_vesting_org': target_vesting_org,
+        'this_page': 'users_vesting_orgs'}
+
+    if request.method == 'POST':
+
+        form = vesting_org_form(request.POST, prefix = "a", instance=target_vesting_org)
+
+        if form.is_valid():
+            new_user = form.save()
+            
+            return HttpResponseRedirect(reverse('user_management_manage_vesting_org'))
+
+        else:
+            context.update({'form': form,})
+    else:
+        form = vesting_org_form(prefix = "a", instance=target_vesting_org)
+        context.update({'form': form,})
+    
+    context = RequestContext(request, context)
+
+    return render_to_response('user_management/manage_single_vesting_org.html', context)
 
 
 @login_required
@@ -461,8 +554,8 @@ def manage_journal_manager(request):
     if request.user.groups.all()[0].name not in ['registrar_member', 'registry_member']:
         return HttpResponseRedirect(reverse('user_management_created_links'))
         
-    is_registry = False;
     added_user = request.REQUEST.get('added_user')
+    is_registry = False;
     
     def sorts():
       DEFAULT_SORT = ['email']
@@ -486,7 +579,7 @@ def manage_journal_manager(request):
     # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
         journal_managers = LinkUser.objects.filter(groups__name='vesting_manager').order_by(*sorts())
-        is_registry = True
+        is_registry = True;
     else:
         journal_managers = LinkUser.objects.filter(groups__name='vesting_manager', registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts())
     
@@ -498,10 +591,7 @@ def manage_journal_manager(request):
 
     if request.method == 'POST':
 
-        if is_registry:
-          form = create_user_form_w_registrar(request.POST, prefix="a")
-        else:
-          form = create_user_form(request.POST, prefix = "a")
+        form = create_user_form_w_vesting_org(request.POST, prefix="a")
 
         if form.is_valid():
             new_user = form.save()
@@ -509,10 +599,8 @@ def manage_journal_manager(request):
             new_user.backend='django.contrib.auth.backends.ModelBackend'
             
             new_user.is_active = False
-            new_user.save()
-            
-            if not is_registry:
-              new_user.registrar = request.user.registrar
+            vesting_org = VestingOrg.objects.get(id=new_user.vesting_org_id)
+            new_user.registrar_id = vesting_org.registrar.id
             new_user.save()
 
             group = Group.objects.get(name='vesting_manager')
@@ -528,10 +616,7 @@ def manage_journal_manager(request):
         else:
             context.update({'form': form, 'add_error': True})
     else:
-      if is_registry:
-        form = create_user_form_w_registrar(prefix="a")
-      else:
-        form = create_user_form(prefix = "a")
+      form = create_user_form_w_vesting_org(prefix="a", registrar_id = request.user.registrar_id)
         
       context.update({'form': form,})
 
@@ -663,6 +748,7 @@ def manage_journal_member(request):
         return HttpResponseRedirect(reverse('user_management_created_links'))
         
     is_registry = False;
+    is_registrar = False;
     added_user = request.REQUEST.get('added_user')
     
     def sorts():
@@ -688,9 +774,10 @@ def manage_journal_member(request):
         journal_members = LinkUser.objects.filter(groups__name='vesting_member').order_by(*sorts())
         is_registry = True;
     elif request.user.groups.all()[0].name == 'vesting_manager':
-        journal_members = LinkUser.objects.filter(authorized_by=request.user).exclude(id=request.user.id).order_by(*sorts())
+        journal_members = LinkUser.objects.filter(vesting_org=request.user.vesting_org).exclude(id=request.user.id).order_by(*sorts())
     else:
-    	journal_members = LinkUser.objects.filter(groups__name='vesting_member', registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts())
+      journal_members = LinkUser.objects.filter(groups__name='vesting_member', registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts())
+      is_registrar = True;
     	
     paginator = Paginator(journal_members, settings.MAX_USER_LIST_SIZE)
     journal_members = paginator.page(page)
@@ -700,7 +787,9 @@ def manage_journal_member(request):
     if request.method == 'POST':
 
         if is_registry:
-          form = create_user_form_w_registrar(request.POST, prefix="a")
+          form = create_user_form_w_vesting_org(request.POST, prefix="a")
+        elif is_registrar:
+          form = create_user_form_w_vesting_org(request.POST, prefix="a", registrar_id=request.user.registrar_id)
         else:
           form = create_user_form(request.POST, prefix = "a")
 
@@ -710,11 +799,13 @@ def manage_journal_member(request):
             new_user.backend='django.contrib.auth.backends.ModelBackend'
             
             new_user.is_active = False
-            new_user.save()
-            
-            if not is_registry:
-              new_user.registrar = request.user.registrar
             new_user.authorized_by = request.user
+            if is_registry or is_registrar:
+              vesting_org = VestingOrg.objects.get(id=new_user.vesting_org_id)
+              new_user.registrar_id = vesting_org.registrar.id
+            else:
+              new_user.vesting_org_id = request.user.vesting_org_id
+              new_user.registrar_id = request.user.registrar_id
             new_user.save()
 
             group = Group.objects.get(name='vesting_member')
@@ -731,7 +822,9 @@ def manage_journal_member(request):
             context.update({'form': form, 'add_error': True})
     else:
       if is_registry:
-        form = create_user_form_w_registrar(prefix = "a")
+        form = create_user_form_w_vesting_org(prefix = "a")
+      elif is_registrar:
+        form = create_user_form_w_vesting_org(prefix = "a", registrar_id = request.user.registrar_id)
       else:
         form = create_user_form(prefix="a")
       context.update({'form': form,})

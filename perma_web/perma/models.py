@@ -28,10 +28,20 @@ class Registrar(models.Model):
 
     def __unicode__(self):
         return self.name
+        
+class VestingOrg(models.Model):
+    """
+    This is generally a journal.
+    """
+    name = models.CharField(max_length=400)
+    registrar = models.ForeignKey(Registrar, null=True)
+
+    def __unicode__(self):
+        return self.name
 
 
 class LinkUserManager(BaseUserManager):
-    def create_user(self, email, registrar, date_joined, first_name, last_name, authorized_by, confirmation_code, password=None, groups=None):
+    def create_user(self, email, registrar, vesting_org, date_joined, first_name, last_name, authorized_by, confirmation_code, password=None, groups=None):
         """
         Creates and saves a User with the given email, registrar and password.
         """
@@ -41,6 +51,7 @@ class LinkUserManager(BaseUserManager):
         user = self.model(
             email=self.normalize_email(email),
             registrar=registrar,
+            vesting_org=vesting_org,
             groups=groups,
             date_joined = date_joined,
             first_name = first_name,
@@ -60,6 +71,7 @@ class LinkUserManager(BaseUserManager):
         user = self.create_user(email,
             password=password,
             registrar=registrar,
+            vesting_org=vesting_org,
             groups=groups,
             date_joined = date_joined,
             first_name = first_name,
@@ -80,6 +92,7 @@ class LinkUser(AbstractBaseUser):
         db_index=True,
     )
     registrar = models.ForeignKey(Registrar, null=True)
+    vesting_org = models.ForeignKey(VestingOrg, null=True)
     groups = models.ManyToManyField(Group, null=True)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)

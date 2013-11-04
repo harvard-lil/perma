@@ -10,6 +10,14 @@
     },
     {
         "pk": 1,
+        "model": "perma.VestingOrg",
+        "fields": {
+            "name": "Test Journal",
+            "registrar": 1
+        }
+    },
+    {
+        "pk": 1,
         "model": "perma.LinkUser",
         "fields": {
             "is_active": true,
@@ -46,6 +54,7 @@
         "model": "perma.LinkUser",
         "fields": {
             "registrar": 1,
+            "vesting_org": 1,
             "is_active": true,
             "last_login": "2013-07-23T18:38:27Z",
             "groups": [
@@ -80,6 +89,7 @@
         "model": "perma.LinkUser",
         "fields": {
             "registrar": 1,
+            "vesting_org": 1,
             "is_active": true,
             "last_login": "2013-07-23T18:38:27Z",
             "groups": [
