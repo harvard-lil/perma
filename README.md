@@ -28,9 +28,9 @@ You'll need a Django friendly database. If you want to use MySQL, something like
 
 ### Settings
 
-Perma settings are held in the settings.py file. Copy the example and fill in as you see fit.
+Perma settings are held in the settings module file. Copy the example and fill in as you see fit.
 
-    cp ./settings.example.py ./settings.py
+    cd settings; cp ./settings.example.py ./settings.py
 
 ### Celery and RabbitMQ
 

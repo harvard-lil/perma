@@ -3,8 +3,8 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
 
-import smtplib, json, logging
-from perma.models import Link, Asset
+import smtplib, json, logging, csv
+from perma.models import Link, Asset, Stat
 from email.mime.text import MIMEText
 
 logger = logging.getLogger(__name__)
@@ -91,3 +91,33 @@ def link_status(request, guid):
         "image_capture": target_asset.image_capture, "pdf_capture": target_asset.pdf_capture}
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=200)
+
+
+
+def stats_users(request):
+    """
+    Get nightly stats from the DB, dump them out here so that our D3 vis can render them, real-purty-like
+    
+    #TODO: rework this and its partnering D3 code. Writing CSV is gross. Serialize to JSON and update our D3 method in stats.html
+    """
+    
+    # Get the 1000 most recent.
+    # TODO: if we make it more than a 1000 days, implement some better interface.
+    stats = Stat.objects.order_by('-id')[:1000]
+    
+    response = HttpResponse()
+    response['Content-Disposition'] = 'attachment; filename="users.csv"'
+    
+    headers = ['key', 'value', 'date']
+
+    writer = csv.writer(response)
+    writer.writerow(headers)
+    
+    for stat in stats:
+        writer.writerow(['regular_user_count', stat.regular_user_count, stat.creation_timestamp])
+        writer.writerow(['vesting_member_count', stat.vesting_member_count, stat.creation_timestamp])
+        writer.writerow(['vesting_manager_count', stat.vesting_manager_count, stat.creation_timestamp])
+        writer.writerow(['registrar_member_count', stat.registrar_member_count, stat.creation_timestamp])
+        writer.writerow(['registry_member_count', stat.registry_member_count, stat.creation_timestamp])
+    
+    return response

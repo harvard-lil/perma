@@ -72,7 +72,7 @@
 
 			var draw_folks_vis = function(){
 
-				var format = d3.time.format("%d-%b-%y");
+				var format = d3.time.format.iso //d3.time.format("%d-%b-%y");
 
 				var margin = {top: 20, right: 30, bottom: 30, left: 40},
 				    width = 960 - margin.left - margin.right,
@@ -116,7 +116,7 @@
 				  .append("g")
 				    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-				d3.csv("{{ STATIC_PREFIX }}stats/folks-data.tsv", function(data) {
+				d3.csv("http://localhost:8000/service/stats/users", function(data) {
 				  data.forEach(function(d) {
 				    d.date = format.parse(d.date);
 					d.name= 'some name here';

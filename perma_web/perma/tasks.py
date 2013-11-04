@@ -3,7 +3,7 @@ from djcelery import celery
 import requests
 from django.conf import settings
 
-from perma.models import Asset
+from perma.models import Asset, Stat, Registrar, LinkUser, Link
 from perma.exceptions import BrokenURLError
 from perma.settings import INSTAPAPER_KEY, INSTAPAPER_SECRET, INSTAPAPER_USER, INSTAPAPER_PASS, GENERATED_ASSETS_STORAGE
 
@@ -248,3 +248,53 @@ def store_text_cap(url, title, link_guid):
         asset = Asset.objects.get(link__guid=link_guid)
         asset.text_capture = 'failed'
         asset.save()
+    
+    
+@celery.task
+def get_nigthly_stats():
+    """
+    A periodic task (probably running nightly) to get counts of user types
+    and jam them into a DB for our stats view
+    """
+    
+    # Five types user accounts
+    total_count_regular_users = LinkUser.objects.filter(groups__name='user').count()
+    total_count_vesting_members = LinkUser.objects.filter(groups__name='vesting_member').count()
+    total_count_vesting_managers = LinkUser.objects.filter(groups__name='vesting_manager').count()
+    total_count_registrar_members = LinkUser.objects.filter(groups__name='registrar_member').count()
+    total_count_registry_members = LinkUser.objects.filter(groups__name='registry_member').count()
+    
+    # Registrar count
+    total_count_registrars = Registrar.objects.all().count()
+    
+    # Journal account
+    # TODO: add this in when Annie merges in the journal account logic
+    
+    # Two types of links
+    total_count_unvested_links = Link.objects.filter(vested=False).count()
+    total_count_vested_links = Link.objects.filter(vested=True).count()
+    
+    # Size count
+    # TODO: we probably shouldn't be doing this every night. since we split our dirs based on
+    # dates, we can obviously traverse just the day's dir and add it to the previous number
+    f = settings.GENERATED_ASSETS_STORAGE
+    
+    total_disk_usage = 0
+    for root, dirs, files in os.walk(GENERATED_ASSETS_STORAGE):
+        total_disk_usage = total_disk_usage + sum(os.path.getsize(os.path.join(root, name)) for name in files)
+    
+    # We've now gathered all of our data. Let's write it to the model.
+    stat = Stat(
+        regular_user_count=total_count_regular_users,
+        vesting_member_count=total_count_vesting_members,
+        vesting_manager_count=total_count_vesting_managers,
+        registrar_member_count=total_count_registrar_members,
+        registry_member_count=total_count_registry_members,
+        registrar_count=total_count_registrars,
+        #todo: put journal count here
+        unvested_count=total_count_unvested_links,
+        vested_count=total_count_vested_links,
+        disk_usage = total_disk_usage,
+        )
+
+    stat.save()
