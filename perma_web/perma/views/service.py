@@ -96,17 +96,22 @@ def link_status(request, guid):
 
 def stats_users(request):
     """
-    Get nightly stats from the DB, dump them out here so that our D3 vis can render them, real-purty-like
+    Retrieve nightly stats for users in the DB, dump them out here so that our D3 vis can render them, real-purty-like
     
     #TODO: rework this and its partnering D3 code. Writing CSV is gross. Serialize to JSON and update our D3 method in stats.html
     """
     
     # Get the 1000 most recent.
     # TODO: if we make it more than a 1000 days, implement some better interface.
-    stats = Stat.objects.order_by('-id')[:1000]
+    stats = Stat.objects.order_by('-id').only(
+        'regular_user_count',
+        'vesting_member_count',
+        'vesting_manager_count',
+        'registrar_member_count',
+        'registry_member_count')[:1000]
     
     response = HttpResponse()
-    response['Content-Disposition'] = 'attachment; filename="users.csv"'
+    response['Content-Disposition'] = 'attachment; filename="data.csv"'
     
     headers = ['key', 'value', 'date']
 
@@ -114,10 +119,63 @@ def stats_users(request):
     writer.writerow(headers)
     
     for stat in stats:
-        writer.writerow(['regular_user_count', stat.regular_user_count, stat.creation_timestamp])
-        writer.writerow(['vesting_member_count', stat.vesting_member_count, stat.creation_timestamp])
-        writer.writerow(['vesting_manager_count', stat.vesting_manager_count, stat.creation_timestamp])
-        writer.writerow(['registrar_member_count', stat.registrar_member_count, stat.creation_timestamp])
-        writer.writerow(['registry_member_count', stat.registry_member_count, stat.creation_timestamp])
+        writer.writerow(['Regular user', stat.regular_user_count, stat.creation_timestamp])
+        writer.writerow(['Vesting member', stat.vesting_member_count, stat.creation_timestamp])
+        writer.writerow(['Vesting manager', stat.vesting_manager_count, stat.creation_timestamp])
+        writer.writerow(['Registrar member', stat.registrar_member_count, stat.creation_timestamp])
+        writer.writerow(['Registry member', stat.registry_member_count, stat.creation_timestamp])
     
+    return response
+    
+def stats_links(request):
+    """
+    Retrieve nightly stats for links in the DB, dump them out here so that our D3 vis can render them, real-purty-like
+
+    #TODO: rework this and its partnering D3 code. Writing CSV is gross. Serialize to JSON and update our D3 method in stats.html
+    """
+    
+    # Get the 1000 most recent.
+    # TODO: if we make it more than a 1000 days, implement some better interface.
+    stats = Stat.objects.order_by('-id').only('vested_count', 'unvested_count')[:1000]
+
+    response = HttpResponse()
+    response['Content-Disposition'] = 'attachment; filename="data.csv"'
+
+    headers = ['key', 'value', 'date']
+
+    writer = csv.writer(response)
+    writer.writerow(headers)
+
+    for stat in stats:
+        writer.writerow(['Vested', stat.vested_count, stat.creation_timestamp])
+        writer.writerow(['Unvested', stat.unvested_count, stat.creation_timestamp])
+
+
+    return response
+    
+    
+def stats_storage(request):
+    """
+    Retrieve nightly stats for storage totals in the DB, dump them out here so that our D3 vis can render them, real-purty-like
+
+    #TODO: rework this and its partnering D3 code. Writing CSV is gross. Serialize to JSON and update our D3 method in stats.html
+    """
+
+    # Get the 1000 most recent.
+    # TODO: if we make it more than a 1000 days, implement some better interface.
+    stats = Stat.objects.order_by('-id').only('disk_usage')[:1000]
+
+    response = HttpResponse()
+    #response['Content-Disposition'] = 'attachment; filename="data.csv"'
+
+    headers = ['date', 'close']
+
+    writer = csv.writer(response)
+    writer.writerow(headers)
+
+    for stat in stats:
+        in_gb = stat.disk_usage / 1024 / 1024 / 1024
+        writer.writerow([stat.creation_timestamp, in_gb])
+
+
     return response

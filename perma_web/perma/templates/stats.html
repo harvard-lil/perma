@@ -14,16 +14,16 @@
 			<h1>Perma, the numbers</h1>
 			<h2>The folks</h2>
 			<div id="folks-vis"></div>
-			<p class="vis-desc">All users across all roles. 1,339 in total.</p>
+			<p class="vis-desc">All users across all roles. <span id="user_count"></span> in total.</p>
 			<h2>The hits</h2>
 			<div id="hits-vis"></div>
 			<p class="vis-desc">Weekly unique hits to all of Perma.cc</p>
 			<h2>The links</h2>
 			<div id="links-vis"></div>
-			<p class="vis-desc">All links. 1,876 in total.</p>
+			<p class="vis-desc">All links. <span id="link_count"></span> in total.</p>
 			<h2>The storage</h2>
 			<div id="storage-vis"></div>
-			<p class="vis-desc">Total space used for all archives, 5.7 GB</p>
+			<p class="vis-desc">Total space used for all archives, <span id="total_size"></span> GB</p>
 			<h2>The cool links</h2>
 			<div id="cool-links">
 				<p>The top ten most popular links as measured by view count.</p>
@@ -72,7 +72,7 @@
 
 			var draw_folks_vis = function(){
 
-				var format = d3.time.format.iso //d3.time.format("%d-%b-%y");
+				var format = d3.time.format.iso; //d3.time.format("%d-%b-%y");
 
 				var margin = {top: 20, right: 30, bottom: 30, left: 40},
 				    width = 960 - margin.left - margin.right,
@@ -135,6 +135,7 @@
 				      .attr("d", function(d) { return area(d.values); })
 				      .style("fill", function(d, i) { return z(i); });
 				
+				var total_users = 0;
 				
 				svg.selectAll("text")
                     .data(layers)
@@ -145,9 +146,11 @@
 					.attr("x", 885)
 					.attr("font-size", "11px")
 					.attr("style", "text-anchor: end")
-					.text( function (d) { return d.name + ", " + d.value.y; });
+					.text( function (d) { total_users = total_users+ d.value.y; return d.name + ", " + d.value.y; });
 
-
+				  // Set the total link count in our text description of hte vis
+				  d3.select('#user_count').text(total_users);
+				
 				  svg.append("g")
 				      .attr("class", "x axis")
 				      .attr("transform", "translate(0," + height + ")")
@@ -168,6 +171,7 @@
 			
 			
 			var draw_hits_vis = function(){
+				
 				var margin = {top: 20, right: 20, bottom: 30, left: 50},
 				    width = 960 - margin.left - margin.right,
 				    height = 500 - margin.top - margin.bottom;
@@ -232,10 +236,9 @@
 
 
 
-
 			var draw_links_vis = function(){
 
-				var format = d3.time.format("%d-%b-%y");
+				var format = d3.time.format.iso; // d3.time.format("%d-%b-%y");
 
 				var margin = {top: 20, right: 30, bottom: 30, left: 40},
 				    width = 960 - margin.left - margin.right,
@@ -279,7 +282,7 @@
 				  .append("g")
 				    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-				d3.csv("{{ STATIC_PREFIX }}stats/links-data.tsv", function(data) {
+				d3.csv("{% url 'service_stats_links' %}", function(data) {
 				  data.forEach(function(d) {
 				    d.date = format.parse(d.date);
 					d.name= 'some name here';
@@ -298,6 +301,7 @@
 				      .attr("d", function(d) { return area(d.values); })
 				      .style("fill", function(d, i) { return z(i); });
 				
+				var total_links = 0;
 				
 				svg.selectAll("text")
                     .data(layers)
@@ -308,9 +312,11 @@
 					.attr("x", 885)
 					.attr("font-size", "13px")
 					.attr("style", "text-anchor: end")
-					.text( function (d) { return d.name + ", " + d.value.y; });
+					.text( function (d) { total_links = total_links + d.value.y;  return d.name + ", " + d.value.y; });
 
-
+				  // Set the total link count in our text description of hte vis
+				  d3.select('#link_count').text(total_links);
+					
 				  svg.append("g")
 				      .attr("class", "x axis")
 				      .attr("transform", "translate(0," + height + ")")
@@ -330,13 +336,12 @@
 			}
 			
 			
-			
 			var draw_storage_vis = function(){
 				var margin = {top: 20, right: 20, bottom: 30, left: 50},
 				    width = 960 - margin.left - margin.right,
 				    height = 500 - margin.top - margin.bottom;
 
-				var parseDate = d3.time.format("%d-%b-%y").parse;
+				var format = d3.time.format.iso; //d3.time.format("%d-%b-%y").parse;
 				
 				var x = d3.time.scale()
 				    .range([0, width]);
@@ -362,14 +367,20 @@
 				  .append("g")
 				    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-				d3.tsv("{{ STATIC_PREFIX }}stats/storage-data.tsv", function(error, data) {
+				d3.csv("{% url 'service_stats_storage' %}", function(error, data) {
 				  data.forEach(function(d) {
-				    d.date = parseDate(d.date);
+				    d.date = format.parse(d.date);
 				    d.close = +d.close;
 				  });
 
+
+				  // Super kludgy way to get latest size. TODO: improve.
+				  var latest_size = 0;
 				  x.domain(d3.extent(data, function(d) { return d.date; }));
-				  y.domain(d3.extent(data, function(d) { return d.close; }));
+				  y.domain(d3.extent(data, function(d) { latest_size = d.close; return d.close; }));
+
+				  // Set the total size of store in our text description of the vis
+				  d3.select('#total_size').text(latest_size);
 
 				  svg.append("g")
 				      .attr("class", "x axis")
