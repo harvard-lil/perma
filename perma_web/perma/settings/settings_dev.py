@@ -15,3 +15,6 @@ STATICFILES_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
 )
+
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 1025
