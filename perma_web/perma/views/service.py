@@ -103,7 +103,8 @@ def stats_users(request):
     
     # Get the 1000 most recent.
     # TODO: if we make it more than a 1000 days, implement some better interface.
-    stats = Stat.objects.order_by('-id').only(
+    stats = Stat.objects.only(
+        'creation_timestamp',
         'regular_user_count',
         'vesting_member_count',
         'vesting_manager_count',
@@ -136,7 +137,7 @@ def stats_links(request):
     
     # Get the 1000 most recent.
     # TODO: if we make it more than a 1000 days, implement some better interface.
-    stats = Stat.objects.order_by('-id').only('vested_count', 'unvested_count')[:1000]
+    stats = Stat.objects.only('creation_timestamp', 'vested_count', 'unvested_count')[:1000]
 
     response = HttpResponse()
     response['Content-Disposition'] = 'attachment; filename="data.csv"'

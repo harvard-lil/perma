@@ -142,7 +142,7 @@
                     .enter()
                     .append("text")
 			      .datum(function(d) { return {name: d.key, value: d.values[d.values.length - 1]}; })
-					.attr("y", function(d) {if (d.name=="Registrar member") {return y(d.value.y0 + d.value.y / 2) -9;/*this -9 kludge should be removed*/} else {return y(d.value.y0 + d.value.y / 2);}; })
+					.attr("y", function(d) {return y(d.value.y0 + d.value.y / 2); })
 					.attr("x", 885)
 					.attr("font-size", "11px")
 					.attr("style", "text-anchor: end")
