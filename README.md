@@ -9,7 +9,7 @@ If you're installing Perma.cc, see [the installation doc](https://github.com/har
 
 ## Developing in Perma.cc
 
-If you're wrenchin' on Perma.cc, see [the installation doc](https://github.com/harvard-lil/perma/blob/develop/install.md) and [the developer doc](https://github.com/harvard-lil/perma/blob/develop/devloper.md)
+If you're wrenchin' on Perma.cc, see [the installation doc](https://github.com/harvard-lil/perma/blob/develop/install.md) and [the developer doc](https://github.com/harvard-lil/perma/blob/develop/developer.md).
 
 ## License
 

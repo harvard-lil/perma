@@ -88,4 +88,4 @@ Toss in a wsgi config and wire it to your webserver, or use the built-in Django 
 
 ### Developer notes
 
-The developer notes doc has lots of tips and tricks. Be sure to give it a look-see.
+[The developer doc](https://github.com/harvard-lil/perma/blob/develop/developer.md) has lots of tips and tricks. Be sure to give it a look-see.
