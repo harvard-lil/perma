@@ -3,3 +3,4 @@ perma_web/static/generated/*
 *.pyc
 perma_web/lib/phantomjs
 perma_web/perma/settings/settings.py
+perma_web/celerybeat-schedule.db
