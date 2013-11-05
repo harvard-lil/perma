@@ -1,8 +1,6 @@
 Perma - developer notes
 =====
 
-## Notes on dancing
-
 This document does not cover installing Perma.cc. You should use the install doc for that.
 
 There are a bunch of moving pieces in Perma.cc. This document provides some notes on common dances you might have to perform.
@@ -553,6 +551,10 @@ Now you can start and stop RabbitMQ as a service. Something like,
     $ sudo service rabbitmq-server stop; sudo service rabbitmq-server start;
 
 
-### Other?
+### Other bits
 
-Use [Handlebars](http://handlebarsjs.com/) when injecting markup using JavaScript
+Use [Handlebars](http://handlebarsjs.com/) when injecting markup using JavaScript.
+
+Track issues using [GitHub Issues](https://github.com/harvard-lil/perma/issues?milestone=15&state=open).
+
+Issue pull requests when you've got a commit ready.
