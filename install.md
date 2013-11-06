@@ -71,9 +71,15 @@ You should have the pieces in place. Let's create the tables in your database us
 
     $ python manage.py syncdb --noinput
 
-You may need to apply South migrations (e.g., for `djcelery`):
+You'll need to convert your local Perma app to use South,
 
-    $ python manage.py migrate
+    $ python manage.py convert_to_south myapp
+
+See where you are with your migrations,
+    $ python manage.py migrate --list
+
+If you haven't migrated to the latest version, apply migrate
+    $ python manage.py migrate perma
 
 If you want to play with the admin views, load the user and group data fixtures:
 

@@ -45,7 +45,7 @@ Now, your database, your model, and your migration should all be at the same poi
 Data migrations follow the same flow, but add a step in the middle. See the [South docs](http://south.readthedocs.org/en/latest/tutorial/part3.html) for details on how to perform a data migration.
 
 
-#### Track migrations in Git and fake it to get started
+#### Track migrations in Git and get started
 
 You should commit your migrations to your repository and push to GitHub.
 
@@ -53,8 +53,12 @@ You should commit your migrations to your repository and push to GitHub.
     $ git commit -m "Added migration"
 
 
-If you've just installed Perma.cc, you'll want to make sure to perform the first migration as a "fake" migration,
+If you've just installed Perma.cc, you'll want to make sure to convert your app to a south-based app
 
+	$ ./manage.py convert_to_south perma
+	
+If you've been developing Perma without using South, you might need to apply the first migration as a "fake" migration
+	
     $ ./manage.py migrate perma 0001 --fake
 
 
