@@ -116,7 +116,7 @@
 				  .append("g")
 				    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-				d3.csv("http://localhost:8000/service/stats/users", function(data) {
+				d3.csv("{% url 'service_stats_users' %}", function(data) {
 				  data.forEach(function(d) {
 				    d.date = format.parse(d.date);
 					d.name= 'some name here';
