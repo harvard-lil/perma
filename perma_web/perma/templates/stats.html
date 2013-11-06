@@ -15,6 +15,12 @@
 			<h2>The folks</h2>
 			<div id="folks-vis"></div>
 			<p class="vis-desc">All users across all roles. <span id="user_count"></span> in total.</p>
+			<h2>The vesting organizations</h2>
+			<div id="vestings-org-vis"></div>
+			<p class="vis-desc">All vesting organizations (think journals and blogs)</p>
+			<h2>The libraries</h2>
+			<div id="registrars-vis"></div>
+			<p class="vis-desc">All libraries</p>
 			<h2>The hits</h2>
 			<div id="hits-vis"></div>
 			<p class="vis-desc">Weekly unique hits to all of Perma.cc</p>
@@ -166,6 +172,134 @@
 				      .style("text-anchor", "end")
 				      .text("Users");
 				
+				});
+			}
+			
+			var draw_vesting_orgs_vis = function(){
+				
+				var margin = {top: 20, right: 20, bottom: 30, left: 50},
+				    width = 960 - margin.left - margin.right,
+				    height = 500 - margin.top - margin.bottom;
+
+				var format = d3.time.format.iso;
+				
+				var x = d3.time.scale()
+				    .range([0, width]);
+
+				var y = d3.scale.linear()
+				    .range([height, 0]);
+
+				var xAxis = d3.svg.axis()
+				    .scale(x)
+				    .orient("bottom")
+				    .ticks(d3.time.weeks);
+
+				var yAxis = d3.svg.axis()
+				    .scale(y)
+				    .orient("left");
+
+				var line = d3.svg.line()
+				    .x(function(d) { return x(d.date); })
+				    .y(function(d) { return y(d.close); });
+
+				var svg = d3.select("#vestings-org-vis").append("svg")
+				    .attr("width", width + margin.left + margin.right)
+				    .attr("height", height + margin.top + margin.bottom)
+				  .append("g")
+				    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+				d3.csv("{% url 'service_stats_vesting_org' %}", function(error, data) {
+				  data.forEach(function(d) {
+				    d.date = format.parse(d.date);
+				    d.close = +d.close;
+				  });
+
+				  x.domain(d3.extent(data, function(d) { return d.date; }));
+				  y.domain(d3.extent(data, function(d) { return d.close; }));
+
+				  svg.append("g")
+				      .attr("class", "x axis")
+				      .attr("transform", "translate(0," + height + ")")
+				      .call(xAxis);
+
+				  svg.append("g")
+				      .attr("class", "y axis")
+				      .call(yAxis)
+				    .append("text")
+				      .attr("transform", "rotate(-90)")
+				      .attr("y", 6)
+				      .attr("dy", ".71em")
+				      .style("text-anchor", "end")
+				      .text("Vesting Orgs");
+
+				  svg.append("path")
+				      .datum(data)
+				      .attr("class", "line")
+				      .attr("d", line);
+				});
+			}
+			
+			var draw_registrar_vis = function(){
+				
+				var margin = {top: 20, right: 20, bottom: 30, left: 50},
+				    width = 960 - margin.left - margin.right,
+				    height = 500 - margin.top - margin.bottom;
+
+				var format = d3.time.format.iso;
+				
+				var x = d3.time.scale()
+				    .range([0, width]);
+
+				var y = d3.scale.linear()
+				    .range([height, 0]);
+
+				var xAxis = d3.svg.axis()
+				    .scale(x)
+				    .orient("bottom")
+				    .ticks(d3.time.weeks);
+
+				var yAxis = d3.svg.axis()
+				    .scale(y)
+				    .orient("left");
+
+				var line = d3.svg.line()
+				    .x(function(d) { return x(d.date); })
+				    .y(function(d) { return y(d.close); });
+
+				var svg = d3.select("#registrars-vis").append("svg")
+				    .attr("width", width + margin.left + margin.right)
+				    .attr("height", height + margin.top + margin.bottom)
+				  .append("g")
+				    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+				d3.csv("{% url 'service_stats_registrar' %}", function(error, data) {
+				  data.forEach(function(d) {
+				    d.date = format.parse(d.date);
+				    d.close = +d.close;
+				  });
+
+				  x.domain(d3.extent(data, function(d) { return d.date; }));
+				  y.domain(d3.extent(data, function(d) { return d.close; }));
+
+				  svg.append("g")
+				      .attr("class", "x axis")
+				      .attr("transform", "translate(0," + height + ")")
+				      .call(xAxis);
+
+				  svg.append("g")
+				      .attr("class", "y axis")
+				      .call(yAxis)
+				    .append("text")
+				      .attr("transform", "rotate(-90)")
+				      .attr("y", 6)
+				      .attr("dy", ".71em")
+				      .style("text-anchor", "end")
+				      .text("Libraries");
+
+				  svg.append("path")
+				      .datum(data)
+				      .attr("class", "line")
+				      .attr("d", line);
 				});
 			}
 			
@@ -405,6 +539,8 @@
 			}
 
 			draw_folks_vis();
+			draw_vesting_orgs_vis();
+			draw_registrar_vis();
 			draw_hits_vis();
 			draw_links_vis();
 			draw_storage_vis();

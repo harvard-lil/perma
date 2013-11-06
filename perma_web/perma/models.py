@@ -208,6 +208,9 @@ class Stat(models.Model):
     registrar_member_count = models.IntegerField(default=1)
     registry_member_count = models.IntegerField(default=1)
 
+    # Our vesting org count
+    vesting_org_count = models.IntegerField(default=1)
+
     # Our registrar count
     registrar_count = models.IntegerField(default=1)
 

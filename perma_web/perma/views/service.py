@@ -167,7 +167,7 @@ def stats_storage(request):
     stats = Stat.objects.order_by('-id').only('disk_usage')[:1000]
 
     response = HttpResponse()
-    #response['Content-Disposition'] = 'attachment; filename="data.csv"'
+    response['Content-Disposition'] = 'attachment; filename="data.csv"'
 
     headers = ['date', 'close']
 
@@ -177,6 +177,56 @@ def stats_storage(request):
     for stat in stats:
         in_gb = stat.disk_usage / 1024 / 1024 / 1024
         writer.writerow([stat.creation_timestamp, in_gb])
+
+
+    return response
+    
+def stats_vesting_org(request):
+    """
+    Retrieve nightly stats for total number of vesting orgs, dump them out here so that our D3 vis can render them, real-purty-like
+
+    #TODO: rework this and its partnering D3 code. Writing CSV is gross. Serialize to JSON and update our D3 method in stats.html
+    """
+
+    # Get the 1000 most recent.
+    # TODO: if we make it more than a 1000 days, implement some better interface.
+    stats = Stat.objects.order_by('-id').only('vesting_org_count')[:1000]
+
+    response = HttpResponse()
+    response['Content-Disposition'] = 'attachment; filename="data.csv"'
+
+    headers = ['date', 'close']
+
+    writer = csv.writer(response)
+    writer.writerow(headers)
+
+    for stat in stats:
+        writer.writerow([stat.creation_timestamp, stat.vesting_org_count])
+
+
+    return response
+    
+def stats_registrar(request):
+    """
+    Retrieve nightly stats for total number of registrars (libraries), dump them out here so that our D3 vis can render them, real-purty-like
+
+    #TODO: rework this and its partnering D3 code. Writing CSV is gross. Serialize to JSON and update our D3 method in stats.html
+    """
+
+    # Get the 1000 most recent.
+    # TODO: if we make it more than a 1000 days, implement some better interface.
+    stats = Stat.objects.order_by('-id').only('registrar_count')[:1000]
+
+    response = HttpResponse()
+    #response['Content-Disposition'] = 'attachment; filename="data.csv"'
+
+    headers = ['date', 'close']
+
+    writer = csv.writer(response)
+    writer.writerow(headers)
+
+    for stat in stats:
+        writer.writerow([stat.creation_timestamp, stat.registrar_count])
 
 
     return response

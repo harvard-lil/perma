@@ -32,6 +32,8 @@ urlpatterns = patterns('perma.views',
     url(r'^service/stats/users/?$', 'service.stats_users', name='service_stats_users'),
     url(r'^service/stats/links/?$', 'service.stats_links', name='service_stats_links'),
     url(r'^service/stats/storage/?$', 'service.stats_storage', name='service_stats_storage'),
+    url(r'^service/stats/vesting-org/?$', 'service.stats_vesting_org', name='service_stats_vesting_org'),
+    url(r'^service/stats/registrar/?$', 'service.stats_registrar', name='service_stats_registrar'),
     
     # Session/account management
     url(r'^password/change/$', auth_views.password_change, {'template_name': 'registration/password_change_form.html'}, name='auth_password_change'),
