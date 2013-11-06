@@ -1,6 +1,6 @@
 import logging
 
-from perma.forms import user_reg_form, registrar_form, vesting_org_w_registrar_form, vesting_org_form, journal_manager_form_edit, journal_manager_w_group_form_edit, journal_member_form_edit, journal_member_w_group_form_edit, regisrtar_member_form_edit, user_form_self_edit, user_form_edit, set_password_form, create_user_form, create_user_form_w_registrar, create_user_form_w_vesting_org
+from perma.forms import user_reg_form, registrar_form, vesting_org_w_registrar_form, vesting_org_form, journal_manager_form_edit, journal_manager_w_group_form_edit, journal_member_form_edit, journal_member_w_group_form_edit, regisrtar_member_form_edit, user_form_self_edit, user_form_edit, set_password_form, create_user_form, create_user_form_w_registrar, create_user_form_w_vesting_org, journal_member_w_vesting_org_form_edit
 from perma.models import Registrar, VestingOrg, LinkUser, Link
 from perma.utils import base
 
@@ -652,9 +652,9 @@ def manage_single_journal_manager(request, user_id):
     if request.method == 'POST':
 
         if is_registry:
-          form = journal_manager_w_group_form_edit(request.POST, prefix = "a", instance=target_member)
+          form = journal_manager_w_group_form_edit(request.POST, prefix = "a", instance=target_member, registrar_id=target_member.registrar_id)
         else:
-          form = journal_manager_form_edit(request.POST, prefix = "a", instance=target_member)
+          form = journal_manager_form_edit(request.POST, prefix = "a", instance=target_member, registrar_id=request.user.registrar_id)
 
         if form.is_valid():
             form.save()
@@ -665,9 +665,9 @@ def manage_single_journal_manager(request, user_id):
             context.update({'form': form,})
     else:
         if is_registry:
-          form = journal_manager_w_group_form_edit(prefix = "a", instance=target_member)
+          form = journal_manager_w_group_form_edit(prefix = "a", instance=target_member, registrar_id=target_member.registrar_id)
         else: 
-          form = journal_manager_form_edit(prefix = "a", instance=target_member)
+          form = journal_manager_form_edit(prefix = "a", instance=target_member, registrar_id=request.user.registrar_id)
         context.update({'form': form,})
 
     context = RequestContext(request, context)
@@ -845,9 +845,12 @@ def manage_single_journal_member(request, user_id):
         return HttpResponseRedirect(reverse('user_management_created_links'))
 
     is_registry = False;
+    is_registrar = False;
     
     if request.user.groups.all()[0].name == 'registry_member':
       is_registry = True;
+    elif request.user.groups.all()[0].name == 'registrar_member':
+      is_registrar = True;
     
     target_member = get_object_or_404(LinkUser, id=user_id)
 
@@ -858,7 +861,7 @@ def manage_single_journal_member(request, user_id):
             
     # Vesting managers can only edit their own vesting members
     if request.user.groups.all()[0].name not in ['registry_member', 'registrar_member']:
-        if request.user != target_member.authorized_by:
+        if request.user.vesting_org != target_member.vesting_org:
             return HttpResponseRedirect(reverse('user_management_created_links'))
 
 
@@ -867,20 +870,24 @@ def manage_single_journal_member(request, user_id):
 
     if request.method == 'POST':
         if is_registry:
-          form = journal_member_w_group_form_edit(request.POST, prefix = "a", instance=target_member)
+          form = journal_member_w_group_form_edit(request.POST, prefix = "a", instance=target_member, registrar_id=target_member.registrar_id)
+        elif is_registrar:
+          form = journal_member_w_vesting_org_form_edit(request.POST, prefix="a", instance=target_member, registrar_id=request.user.registrar_id)
         else:
           form = journal_member_form_edit(request.POST, prefix = "a", instance=target_member)
 
         if form.is_valid():
             form.save()
 
-            return HttpResponseRedirect(reverse('user_management_created_links'))
+            return HttpResponseRedirect(reverse('user_management_manage_journal_member'))
 
         else:
             context.update({'form': form,})
     else:
         if is_registry:
-          form = journal_member_w_group_form_edit(prefix = "a", instance=target_member)
+          form = journal_member_w_group_form_edit(prefix = "a", instance=target_member, registrar_id=target_member.registrar_id)
+        elif is_registrar:
+          form = journal_member_w_vesting_org_form_edit(prefix = "a", instance=target_member, registrar_id=target_member.registrar_id)
         else: 
           form = journal_member_form_edit(prefix = "a", instance=target_member)
         context.update({'form': form,})
