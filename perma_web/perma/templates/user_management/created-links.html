@@ -30,7 +30,7 @@
 		  {% for linky_link in linky_links %}
 			<tr>
 			  <td class="linky-abbr-vested">{% if linky_link.vested %}<span class="fancy-infinity">&infin;</span>{% endif %}</td>
-			  <td class="linky-abbr-title">{{ linky_link.submitted_title }}<br><a href="{{ linky_link.submitted_url }}" target="_blank"><small>{{ linky_link.submitted_url }}</small></a><br><a href="http://{{host}}/{{linky_link.guid}}" target="_blank">{{host}}/{{linky_link.guid}}</a></td>
+			  <td class="linky-abbr-title">{{ linky_link.submitted_title }}<br><a href="{{ linky_link.submitted_url }}" target="_blank"><small>{{ linky_link.submitted_url }}</small></a><br><a href="http://{{determined_host}}/{{linky_link.guid}}" target="_blank">http://{{determined_host}}/{{linky_link.guid}}</a></td>
 			  <td class="linky-abbr-date-time">{{ linky_link.creation_timestamp|date:"m/d/Y" }}</td>
 			  <td class="linky-abbr-date-time">{{ linky_link.vested_timestamp|date:"m/d/Y" }}</td>
 			  <td class="linky-view-count">{{ linky_link.view_count }}</td>

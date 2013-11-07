@@ -39,7 +39,7 @@ def manage(request):
     else:
       linky_links = None;
 
-    context = RequestContext(request, {'this_page': 'manage', 'host': request.get_host(), 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()})
+    context = RequestContext(request, {'this_page': 'manage', 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()})
 
     return render_to_response('user_management/manage.html', context)
     
@@ -54,7 +54,7 @@ def create_link(request):
     else:
       linky_links = None;
 
-    context = RequestContext(request, {'this_page': 'create_link', 'host': request.get_host(), 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()})
+    context = RequestContext(request, {'this_page': 'create_link', 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()})
 
     return render_to_response('user_management/create-link.html', context)
     
@@ -998,7 +998,7 @@ def created_links(request):
         if len(linky_link.submitted_url) > 79:
           linky_link.submitted_url = linky_link.submitted_url[:70] + '...'
 
-    context = {'user': request.user, 'linky_links': linky_links, 'host': request.get_host(),
+    context = {'user': request.user, 'linky_links': linky_links, 
                'total_created': total_created, sort : sort, 'this_page': 'created_links'}
 
     context = RequestContext(request, context)
@@ -1038,7 +1038,7 @@ def vested_links(request):
         if len(linky_link.submitted_url) > 79:
           linky_link.submitted_url = linky_link.submitted_url[:70] + '...'
 
-    context = {'user': request.user, 'linky_links': linky_links, 'host': request.get_host(),
+    context = {'user': request.user, 'linky_links': linky_links, 
                'total_vested': total_vested, 'this_page': 'vested_links'}
 
     context = RequestContext(request, context)
@@ -1052,7 +1052,7 @@ def manage_account(request):
     Account mangement stuff. Change password, change email, ...
     """
 
-    context = {'host': request.get_host(), 'user': request.user,
+    context = {'user': request.user,
         'next': request.get_full_path(), 'this_page': 'settings'}
     context.update(csrf(request))
     if request.user.groups.all()[0].name in ['vesting_member', 'vesting_manager']:
@@ -1086,7 +1086,7 @@ def batch_convert(request):
     """
     Detect and archive URLs from user input.
     """
-    context = {'host': request.get_host(), 'user': request.user,
+    context = {'user': request.user,
         'this_page': 'batch_convert'}
     context.update(csrf(request))
     return render_to_response('user_management/batch_convert.html', context)
@@ -1098,7 +1098,7 @@ def export(request):
     Export a CSV of a user's library/
     """
     
-    context = {'host': request.get_host(), 'user': request.user,
+    context = {'user': request.user,
         'this_page': 'export'}
     context.update(csrf(request))
     return render_to_response('user_management/export.html', context)
@@ -1109,7 +1109,7 @@ def custom_domain(request):
     """
     Instructions for a user to configure a custom domain.
     """
-    context = {'host': request.get_host(), 'user': request.user,
+    context = {'user': request.user,
         'this_page': 'custom_domain'}
     context.update(csrf(request))
     return render_to_response('user_management/custom_domain.html', context)
@@ -1162,9 +1162,14 @@ def limited_login(request, template_name='registration/login.html',
           full_redirect_url = '%s%s' % (redirect_url, extra_params)
           return HttpResponseRedirect(full_redirect_url)
         if form.is_valid():
+            
+            host = request.get_host()
+
+            if settings.DEBUG == False:
+                host = settings.HOST
 
             # Ensure the user-originating redirection url is safe.
-            if not is_safe_url(url=redirect_to, host=request.get_host()):
+            if not is_safe_url(url=redirect_to, host=host):
                 redirect_to = resolve_url(settings.LOGIN_REDIRECT_URL)
 
             # Okay, security check complete. Log the user in.
@@ -1299,13 +1304,19 @@ def email_new_user(request, user):
         ''.join(random.choice(string.ascii_uppercase + \
         string.ascii_lowercase + string.digits) for x in range(30))
       user.save()
+      
+    host = request.get_host()
+
+    if settings.DEBUG == False:
+      host = settings.HOST
+      
     from_address = settings.DEFAULT_FROM_EMAIL
     to_address = user.email
     content = '''To activate your account, please click the link below or copy it to your web browser.  You will need to create a new password.
 
 http://%s/register/password/%s/
 
-''' % (request.get_host(), user.confirmation_code)
+''' % (host, user.confirmation_code)
 
     logger.debug(content)
 

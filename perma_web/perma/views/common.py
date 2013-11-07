@@ -31,7 +31,7 @@ def landing(request):
     else:
       linky_links = None;
 
-    context = RequestContext(request, {'this_page': 'landing', 'host': request.get_host(), 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()})
+    context = RequestContext(request, {'this_page': 'landing', 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()})
     #context.update(csrf(request))
 
     return render_to_response('landing.html', context)
@@ -42,7 +42,7 @@ def about(request):
     The about page
     """
 
-    context = RequestContext(request, {'user': request.user, 'host': request.get_host(),})
+    context = RequestContext(request, {'user': request.user,})
 
     return render_to_response('about.html', context)
 
@@ -105,7 +105,7 @@ def stats(request):
     # TODO: generate these nightly. we shouldn't be doing this for every request
     top_links_all_time = list(Link.objects.all().order_by('-view_count')[:10])
 
-    context = RequestContext(request, {'user': request.user, 'host': request.get_host(), 'top_links_all_time': top_links_all_time})
+    context = RequestContext(request, {'user': request.user, 'top_links_all_time': top_links_all_time})
 
     return render_to_response('stats.html', context)
 

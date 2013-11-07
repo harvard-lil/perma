@@ -52,16 +52,16 @@
 				<div class="span8">
 					<div class="favicon-preview"><img src=""></div>
 					<div class="recent-linky-summary">
-						<h4><a href="http://{{host}}/{{linky_link.guid}}" target="_blank">{{ linky_link.submitted_title|truncatesmart:50 }}</a></h4>
+						<h4><a href="{% url 'single_linky' linky_link.guid %}" target="_blank">{{ linky_link.submitted_title|truncatesmart:50 }}</a></h4>
 						<small>{{ linky_link.submitted_url|truncatesmart:70 }}</small>
 						<br/>
-						<a href="http://{{host}}/{{linky_link.guid}}" target="_blank">{{host}}/{{linky_link.guid}}</a></p>
+						<a href=""{% url 'single_linky' linky_link.guid %}" target="_blank">"{% url 'single_linky' linky_link.guid %}</a></p>
 						<small>Views: {{ linky_link.view_count }}</small>
 					</div><!--/.recent-linky-summary-->
 				</div><!--/.span8-->
 				<div class="span4">
 					<div class="copy-button-div">
-						<span class="copy-confirm" style="display:none"><i class="icon-check text-success"></i></span><button class="btn copy-button" data-clipboard-text="{{host}}/{{linky_link.guid}}" title="Copy Perma Link">Copy Perma &infin;</button>
+						<span class="copy-confirm" style="display:none"><i class="icon-check text-success"></i></span><button class="btn copy-button" data-clipboard-text=""{% url 'single_linky' linky_link.guid %}" title="Copy Perma Link">Copy Perma &infin;</button>
 					</div>
 				</div><!--/.span4-->
 			</li>
@@ -139,7 +139,7 @@
 
 {% block scripts %}
 <script>
-  var web_base = "http://{{host}}";
+  var web_base = "http://{{determined_host}}";
   var csrf_token = "{{csrf_token}}";
 </script>
 <script src="{{ STATIC_PREFIX }}js/ZeroClipboard/ZeroClipboard.min.js"></script>

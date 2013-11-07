@@ -4,6 +4,8 @@ from celery.schedules import crontab
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
+HOST = 'perma.cc'
+
 # The base location, on disk, where we want to store our generated assets
 GENERATED_ASSETS_STORAGE = '/perma/assets/generated'
 

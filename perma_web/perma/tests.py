@@ -18,7 +18,7 @@ class ViewsTestCase(TestCase):
 
         # we're going to test each of these views. Format is [ url, expected template, expected context values ]
         views = [
-            [reverse('landing'), 'landing.html', {'this_page': 'landing','host': 'testserver'}],
+            [reverse('landing'), 'landing.html', {'this_page': 'landing',}],
             [reverse('about'), 'about.html', {}],
             [reverse('faq'), 'faq.html', {}],
             [reverse('contact'), 'contact.html', {}],

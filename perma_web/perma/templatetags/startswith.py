@@ -4,5 +4,5 @@ register = template.Library()
 
 @register.filter(name="startswith")
 def startswith(value, arg):
-    """Usage, {% if value|starts_with:"arg" %}"""
+    """Usage, {{ startswith }}"""
     return value.startswith(arg)

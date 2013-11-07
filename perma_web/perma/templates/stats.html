@@ -48,7 +48,7 @@
 				{% for link in top_links_all_time %}
 				<tr>
 				  <td class="linky-abbr-vested">{% if link.vested %}<span class="fancy-infinity">&infin;</span>{% endif %}</td>
-				  <td class="linky-abbr-title"><a href="http://{{host}}/{{link.guid}}" target="_blank">{{ link.submitted_title }}</a><br><a href="{{ link.submitted_url }}" target="_blank"><small>{{ link.submitted_url }}</small></a><br></td>
+				  <td class="linky-abbr-title"><a href="{% url 'single_linky' link.guid %}" target="_blank">{{ link.submitted_title }}</a><br><a href="{{ link.submitted_url }}" target="_blank"><small>{{ link.submitted_url }}</small></a><br></td>
 				  <td class="linky-abbr-date-time">{{ link.creation_timestamp|date:"m/d/Y" }}</td>
 				  <td class="linky-abbr-date-time">{{ link.vested_timestamp|date:"m/d/Y" }}</td>
 				  <td class="linky-view-count">{{ link.view_count }}</td>
