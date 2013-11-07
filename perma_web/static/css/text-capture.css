@@ -1,0 +1,106 @@
+/* =============================================================
+ * Page cleanup
+ * ============================================================= */
+.clouds {
+	background: transparent;
+}
+.translucent-background {
+	border: 0;
+}
+#main-content {
+	box-shadow: 0 0 1.5em #ebebeb;
+	font-size: 16px;
+	font-size: 1rem;
+	width: 100%;
+	max-width: 50em;
+}
+#text-capture {
+	font: normal normal 16px/1.5 Georgia, Times, "Times New Roman", serif;
+	font-size: 1rem;
+	padding: 2em;
+	text-align: left;
+}
+
+
+/* =============================================================
+ * Styles
+ * ============================================================= */
+#text-capture h1,
+#text-capture h2,
+#text-capture h3,
+#text-capture h4,
+#text-capture h5,
+#text-capture h6 {
+	margin-top: .5em;
+	margin-bottom: 1.5em;
+}
+#text-capture p,
+#text-capture ul,
+#text-capture ol {
+	margin-top: 0;
+	margin-bottom: 1.5em;
+}
+#text-capture h1 + p,
+#text-capture h2 + p,
+#text-capture h3 + p,
+#text-capture h4 + p,
+#text-capture h5 + p,
+#text-capture h6 + p,
+#text-capture h1 + ul,
+#text-capture h2 + ul,
+#text-capture h3 + ul,
+#text-capture h4 + ul,
+#text-capture h5 + ul,
+#text-capture h6 + ul,
+#text-capture h1 + ol,
+#text-capture h2 + ol,
+#text-capture h3 + ol,
+#text-capture h4 + ol,
+#text-capture h5 + ol,
+#text-capture h6 + ol {
+	margin-top: -.5em;
+}
+#text-capture ul,
+#text-capture ol {
+	margin-left: 0;
+	padding-left: 1.5em;
+}
+#text-capture ul {
+	list-style-type: disc;
+}
+#text-capture ul ul {
+	list-style-type: circle;
+}
+#text-capture li {
+	margin: 0;
+	padding: 0;
+}
+#text-capture figure,
+#text-capture figcaption,
+#text-capture .image_frame {
+	text-align: center;
+	margin: 0 auto 1.5em;
+}
+#text-capture figure + figcaption,
+#text-capture .image_frame + figcaption {
+	margin-top: -.5em;
+}
+#text-capture figcaption {
+	font-style: italic;
+}
+
+
+/* =============================================================
+ * Dealing with Text Extraction oddities
+ * ============================================================= */
+
+/* Caption is used to duplicate alt text */
+#text-capture .caption {
+	display: none;
+}
+/* Strong & Emphasis are sometimes unwrapped */
+#text-capture > div > div > strong,
+#text-capture > div > div > em {
+	display: block;
+	margin-bottom: 1.5em;
+}
