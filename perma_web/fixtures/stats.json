@@ -20,7 +20,7 @@
     "pk": 2, 
     "model": "perma.stat", 
     "fields": {
-        "disk_usage": 1.1, 
+        "disk_usage": 1181116006, 
         "global_uniques": 0, 
         "creation_timestamp": "2013-10-03T10:28:44Z", 
         "vesting_manager_count": 43, 
@@ -37,7 +37,7 @@
     "pk": 3, 
     "model": "perma.stat", 
     "fields": {
-        "disk_usage": 1.1, 
+        "disk_usage": 1181116006, 
         "global_uniques": 0, 
         "creation_timestamp": "2013-10-10T10:28:44Z", 
         "vesting_manager_count": 49, 
@@ -54,7 +54,7 @@
     "pk": 4, 
     "model": "perma.stat", 
     "fields": {
-        "disk_usage": 5.7, 
+        "disk_usage": 6120328396, 
         "global_uniques": 0, 
         "creation_timestamp": "2013-10-28T10:28:44Z", 
         "vesting_manager_count": 63, 

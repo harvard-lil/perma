@@ -3,7 +3,7 @@ from djcelery import celery
 import requests
 from django.conf import settings
 
-from perma.models import Asset, Stat, Registrar, LinkUser, Link
+from perma.models import Asset, Stat, Registrar, LinkUser, Link, VestingOrg
 from perma.exceptions import BrokenURLError
 from perma.settings import INSTAPAPER_KEY, INSTAPAPER_SECRET, INSTAPAPER_USER, INSTAPAPER_PASS, GENERATED_ASSETS_STORAGE
 
@@ -268,7 +268,7 @@ def get_nigthly_stats():
     total_count_registrars = Registrar.objects.all().count()
     
     # Journal account
-    # TODO: add this in when Annie merges in the journal account logic
+    total_vesting_orgs = VestingOrg.objects.all().count()
     
     # Two types of links
     total_count_unvested_links = Link.objects.filter(vested=False).count()
@@ -291,7 +291,7 @@ def get_nigthly_stats():
         registrar_member_count=total_count_registrar_members,
         registry_member_count=total_count_registry_members,
         registrar_count=total_count_registrars,
-        #todo: put journal count here
+        vesting_org_count=total_vesting_orgs,
         unvested_count=total_count_unvested_links,
         vested_count=total_count_vested_links,
         disk_usage = total_disk_usage,

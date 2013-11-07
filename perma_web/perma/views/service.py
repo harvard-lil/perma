@@ -164,7 +164,7 @@ def stats_storage(request):
 
     # Get the 1000 most recent.
     # TODO: if we make it more than a 1000 days, implement some better interface.
-    stats = Stat.objects.order_by('-id').only('disk_usage')[:1000]
+    stats = Stat.objects.only('disk_usage')[:1000]
 
     response = HttpResponse()
     response['Content-Disposition'] = 'attachment; filename="data.csv"'
@@ -190,7 +190,7 @@ def stats_vesting_org(request):
 
     # Get the 1000 most recent.
     # TODO: if we make it more than a 1000 days, implement some better interface.
-    stats = Stat.objects.order_by('-id').only('vesting_org_count')[:1000]
+    stats = Stat.objects.only('vesting_org_count')[:1000]
 
     response = HttpResponse()
     response['Content-Disposition'] = 'attachment; filename="data.csv"'
@@ -215,7 +215,7 @@ def stats_registrar(request):
 
     # Get the 1000 most recent.
     # TODO: if we make it more than a 1000 days, implement some better interface.
-    stats = Stat.objects.order_by('-id').only('registrar_count')[:1000]
+    stats = Stat.objects.only('registrar_count')[:1000]
 
     response = HttpResponse()
     #response['Content-Disposition'] = 'attachment; filename="data.csv"'
