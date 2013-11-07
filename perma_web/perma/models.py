@@ -179,11 +179,7 @@ class Link(models.Model):
         Given a GUID, return the canonical version (with appropriate hyphens and capitalization).
         So "a2b3c4d5" becomes "A2B3-C4D5" and "a2b3c4d5c6" becomes "a2-b3c4-d5c6".
         """
-        canonical_guid = guid.replace('-', '')
-
-        # we uppercase short GUIDs
-        if len(canonical_guid) == 8:
-            canonical_guid = canonical_guid.upper()
+        canonical_guid = guid.replace('-', '').upper()
 
         # split guid into 4-char chunks, starting from the end
         guid_parts = [canonical_guid[max(i - 4, 0):i] for i in
