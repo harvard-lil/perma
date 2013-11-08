@@ -1,4 +1,5 @@
 {% extends "admin-layout.html" %}
+{% load has_group %}
 {% block title %} | Admin{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
@@ -7,7 +8,7 @@
 {% block content %}
 
     <h3>Admin</h3>
-    {% if user.groups.all.0.name == 'registry_member' %}
+    {% if user|has_group:'registry_member' %}
     <!--<h3>You are a registry member at {{user.get_profile.registrar.name}} </h3>-->
     {% endif %}
 

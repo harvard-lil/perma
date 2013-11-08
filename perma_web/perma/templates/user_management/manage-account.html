@@ -1,4 +1,5 @@
 {% extends "admin-layout.html" %}
+{% load has_group %}
 {% block title %} | Settings{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
@@ -9,7 +10,7 @@
 {% block content %}
 
 	  <h3>Account settings</h3>
-	  {% if user.groups.all.0.name == 'vesting_member' or user.groups.all.0.name == 'vesting_manager' %}
+	  {% if user|has_group:'vesting_member,vesting_manager' %}
 		  <div class="sponsoring-library-info">
         <h4>Your sponsoring library</h4>
         {% if no_registrar %}

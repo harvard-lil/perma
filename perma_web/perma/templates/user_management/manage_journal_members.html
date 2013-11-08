@@ -1,4 +1,5 @@
 {% extends "admin-layout.html" %}
+{% load has_group %}
 {% block title %} | Vesting members{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
@@ -41,7 +42,7 @@
         <!--<th><input type="checkbox"></th>-->
         <th>Name<a href="?sort=last_name"> <i class="icon-chevron-up"></i></a><a href="?sort=-last_name"> <i class="icon-chevron-down"></i></a></th>
         <th>Email<a href="?sort=email"> <i class="icon-chevron-up"></i></a><a href="?sort=-email"> <i class="icon-chevron-down"></i></a></th>
-        {% if user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'registrar_member' %}<th>Vesting Organization<a href="?sort=vesting_org__name"> <i class="icon-chevron-up"></i></a><a href="?sort=-vesting_org__name"> <i class="icon-chevron-down"></i></a></th>{% endif %}
+        {% if user|has_group:'registry_member,registrar_member' %}<th>Vesting Organization<a href="?sort=vesting_org__name"> <i class="icon-chevron-up"></i></a><a href="?sort=-vesting_org__name"> <i class="icon-chevron-down"></i></a></th>{% endif %}
         <th>Admin<a href="?sort=admin"> <i class="icon-chevron-up"></i></a><a href="?sort=-admin"> <i class="icon-chevron-down"></i></a></th>
       </tr>
     </thead>
@@ -55,7 +56,7 @@
           <!--<td><input type="checkbox"></td>-->
           <td>{{ member.first_name }} {{ member.last_name }}</td>
           <td>{{ member.email }}</td>
-		  {% if user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'registrar_member' %}<td>{{member.vesting_org.name}}</td>{% endif %}
+		  {% if user|has_group:'registry_member,registrar_member' %}<td>{{member.vesting_org.name}}</td>{% endif %}
           <td>
 			{% if member.is_active %}
 			<a href="{% url 'user_management_manage_single_journal_member' member.id%}">edit/delete</a>

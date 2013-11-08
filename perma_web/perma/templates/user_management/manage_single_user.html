@@ -1,4 +1,5 @@
 {% extends "admin-layout.html" %}
+{% load has_group %}
 {% block title %} | User{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
@@ -19,7 +20,7 @@
     {% else %}
       <select name="a-group" id="id_a-group">
       {% for x,y in form.fields.group.choices %}
-      <option value="{{ x }}" {% if x == target_user.groups.all.0.id %} selected {% endif %} >{{ y }}</option>
+      <option value="{{ x }}" {% if target_user|has_group_by_id:x %} selected {% endif %} >{{ y }}</option>
       {% endfor %}
       </select>
     {% endif %}

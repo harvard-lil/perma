@@ -202,3 +202,6 @@ LOGIN_DAY_LIMIT = '50000/d'
 
 # Dashboard user lists
 MAX_USER_LIST_SIZE = '15'
+
+# The host we want to display (used when DEBUG=False)
+HOST = 'perma.cc'

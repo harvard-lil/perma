@@ -135,6 +135,16 @@ class LinkUser(AbstractBaseUser):
         # Simplest possible answer: All admins are staff
         return self.is_admin
 
+    def has_group(self, group):
+        """
+            Return true if user is in the named group.
+            If group is a list, user must be in one of the groups in the list.
+        """
+        if hasattr(group, '__iter__'):
+            return self.groups.filter(name__in=group).exists()
+        else:
+            return self.groups.filter(name=group).exists()
+
 class Link(models.Model):
     """
     This is the core of the Perma link.

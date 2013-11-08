@@ -1,7 +1,5 @@
 {% extends "layout-archive.html" %}
-{% load file_exists %}
-{% load truncatesmart %}
-{% load diff %}
+{% load file_exists  truncatesmart diff has_group %}
 {% block title %} | {{linky.submitted_title}}{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
@@ -35,7 +33,7 @@
 				
 				<div class="span1">
 				 {% if not linky.vested %}
-					  {% if user.groups.all.0.name == 'registry_member' or user.groups.all.0.name == 'registrar_member' or user.groups.all.0.name == 'vesting_member' or user.groups.all.0.name == 'vesting_manager' %}
+					  {% if user|has_group:'registry_member,registrar_member,vesting_member,vesting_manager' %}
 						<form action="" method="post">
 						  {% csrf_token %}
 						  <input type="submit" value="vest" name="vet" class="btn">
