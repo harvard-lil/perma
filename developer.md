@@ -64,15 +64,7 @@ If you've been developing Perma without using South, you might need to apply the
 
 ### Debugging email-related issues
 
-If you're working on an email related task, launch your own dumb SMTP server to capture and dump the content.
-
-Start the dumb SMTP server like this,
-
-    $ python -m smtpd -n -c DebuggingServer localhost:1025
-
-And update the EMAIL_HOST and EMAIL_PORT variables in your config (if you're using the settings_dev.py, you should already see these set)
-	
-Now, when you send an email through Django, you'll see the contents dumped to the standard out.
+If you're working on an email related task, the contents of emails should be dumped to the standard out courtesy of EMAIL_BACKEND in settings_dev.py.
 
 
 ### Working with Celery
