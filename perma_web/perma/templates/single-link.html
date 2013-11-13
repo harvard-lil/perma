@@ -32,7 +32,7 @@
 				</div><!--end span 5 -->
 				
 				<div class="span1">
-				 {% if not linky.vested %}
+				 {% if user.is_authenticated and not linky.vested %}
 					  {% if user|has_group:'registry_member,registrar_member,vesting_member,vesting_manager' %}
 						<form action="" method="post">
 						  {% csrf_token %}
