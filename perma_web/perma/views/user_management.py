@@ -17,7 +17,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth.models import Group
 from ratelimit.decorators import ratelimit
 
-from perma.forms import user_reg_form, registrar_form, journal_manager_form_edit, journal_manager_w_group_form_edit, journal_member_form_edit, journal_member_w_group_form_edit, regisrtar_member_form_edit, user_form_self_edit, user_form_edit, set_password_form, create_user_form, create_user_form_w_registrar, vesting_org_w_registrar_form, create_user_form_w_vesting_org, journal_member_w_vesting_org_form_edit
+from perma.forms import user_reg_form, registrar_form, journal_manager_form_edit, journal_manager_w_group_form_edit, journal_member_form_edit, journal_member_w_group_form_edit, regisrtar_member_form_edit, user_form_self_edit, user_form_edit, set_password_form, create_user_form, create_user_form_w_registrar, vesting_org_w_registrar_form, create_user_form_w_vesting_org, journal_member_w_vesting_org_form_edit, vesting_org_form
 from perma.models import Registrar, Link, LinkUser, VestingOrg
 from perma.utils import require_group
 
@@ -130,7 +130,7 @@ def manage_single_registrar(request, registrar_id):
 
     return render_to_response('user_management/manage_single_registrar.html', context)
     
-@require_group('registry_member', 'registrar_member')
+@require_group(['registry_member', 'registrar_member'])
 def manage_vesting_org(request):
     """
     Registry and registrar members can manage vesting organizations (journals)
@@ -189,7 +189,7 @@ def manage_vesting_org(request):
     return render_to_response('user_management/manage_vesting_orgs.html', context)
 
 
-@require_group('registrar_member', 'registry_member')
+@require_group(['registrar_member', 'registry_member'])
 def manage_single_vesting_org(request, vesting_org_id):
     """ Registry and registrar members can manage vesting organizations (journals)
         in this view, we allow for edit/delete """

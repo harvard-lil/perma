@@ -90,6 +90,7 @@
         <!-- Vesting managers aka journal managers -->
         {% if user|has_group:'registrar_member,registry_member' %}
         <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_vesting_orgs" %}class="active"{% endif %}href="{% url 'user_management_manage_vesting_org' %}">Vesting Organizations</a></li>
+        <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_journal_managers" %}class="active"{% endif %}href="{% url 'user_management_manage_journal_manager' %}">Vesting Managers</a></li>
         {% endif %}
 
         <!-- Vesting users -->
