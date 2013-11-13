@@ -143,7 +143,7 @@ function drawLinks() {
       $('#local-ul').append(template(value));
 
       var clip = new ZeroClipboard( $(".copy-button"), {
-        moviePath: web_base + "/static/js/ZeroClipboard/ZeroClipboard.swf"
+        moviePath: requested_host + "/static/js/ZeroClipboard/ZeroClipboard.swf"
       });
 
       clip.on( 'complete', function(client, args) {
