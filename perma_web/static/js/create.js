@@ -88,7 +88,7 @@ function linkIt(){
     $('#spinner').slideUp();
     $('#link-short-slug').slideDown();
     var clip = new ZeroClipboard( $(".copy-button"), {
-      moviePath: web_base + "/static/js/ZeroClipboard/ZeroClipboard.swf"
+      moviePath: requested_host + "/static/js/ZeroClipboard/ZeroClipboard.swf"
     });
 
     clip.on( 'complete', function(client, args) {
