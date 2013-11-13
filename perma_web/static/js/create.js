@@ -54,8 +54,9 @@ function linkIt(){
   $('#spinner').slideDown();
 
   rawUrl = $("#rawUrl").val();
+  
   var request = $.ajax({
-    url: web_base + "/api/linky/",
+    url: requested_host + "/api/linky/",
     type: "POST",
     data: {url: rawUrl, 'csrfmiddlewaretoken': csrf_token},
     dataType: "json"

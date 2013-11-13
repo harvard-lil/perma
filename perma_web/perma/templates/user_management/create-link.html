@@ -27,7 +27,7 @@
     </div>
     <div class="modal-body">
         <div class="center">
-            <form class="form-inline" id="linky_upload_form" action="/api/linky/upload" method="post">
+            <form class="form-inline" id="linky_upload_form" action="{{requested_host}}/api/linky/upload" method="post">
             <h4>Choose a file</h4>
             <p><input id="file" name="file" class="input-xlarge" type="file" placeholder="example.png"></p>
             <p><input id="title" name="title" class="input-xlarge" type="text" placeholder="Example Page Title"></p>
@@ -65,6 +65,7 @@
 
 {% block scripts %}
 <script>
+  var requested_host = "http://{{requested_host}}";
   var web_base = "http://{{determined_host}}";
   var csrf_token = "{{csrf_token}}";
 
