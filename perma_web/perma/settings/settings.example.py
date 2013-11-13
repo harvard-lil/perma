@@ -32,5 +32,8 @@ GOOGLE_ANALYTICS_DOMAIN = 'example.com'
 # To populate the from field of emails sent from Perma
 DEFAULT_FROM_EMAIL = 'email@example.com'
 
+# The host we want to display (used when DEBUG=False)
+HOST = 'perma.cc'
+
 # possibly useful to override:
 # GENERATED_ASSETS_STORAGE = '/tmp/perma/assets'

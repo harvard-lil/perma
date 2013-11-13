@@ -134,9 +134,15 @@ LOGGING = {
             'format': '%(asctime)s [%(levelname)s] %(filename)s %(lineno)d: %(message)s'
         },
     },
+    'filters': {
+         'require_debug_false': {
+             '()': 'django.utils.log.RequireDebugFalse'
+         }
+     },
     'handlers': {
         'default': {
             'level':'INFO',
+            'filters': ['require_debug_false'],
             'class':'logging.handlers.RotatingFileHandler',
             'filename': '/tmp/perma.log',
             'maxBytes': 1024*1024*5, # 5 MB
@@ -145,6 +151,7 @@ LOGGING = {
         },
         'mail_admins': {
             'level': 'ERROR',
+            'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
         }
     },
@@ -198,6 +205,3 @@ LOGIN_DAY_LIMIT = '50000/d'
 
 # Dashboard user lists
 MAX_USER_LIST_SIZE = '15'
-
-# The host we want to display (used when DEBUG=False)
-HOST = 'perma.cc'
