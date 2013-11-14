@@ -398,7 +398,7 @@ def list_users_in_group(request, group_name):
 
     context = RequestContext(request, context)
 
-    return render_to_response('user_management/manage_user.html', context)
+    return render_to_response('user_management/manage_users.html', context)
 
 
 def edit_user_in_group(request, user_id, group_name):
