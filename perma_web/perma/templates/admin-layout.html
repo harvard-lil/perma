@@ -84,23 +84,23 @@
 
         <!-- Registrars and registrar users -->
         {% if user|has_group:'registry_member' %}
-        <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_registrars" %}class="active"{% endif %}href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>
-        <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_registrar_members" %}class="active"{% endif %}href="{% url 'user_management_manage_registrar_member' %}">Registrar Users</a></li>{% endif %}
+        <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_registrars" %}class="active" {% endif %}href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>
+        <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_registrar_members" %}class="active" {% endif %}href="{% url 'user_management_manage_registrar_member' %}">Registrar Users</a></li>{% endif %}
         
         <!-- Vesting managers aka journal managers -->
         {% if user|has_group:'registrar_member,registry_member' %}
-        <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_vesting_orgs" %}class="active"{% endif %}href="{% url 'user_management_manage_vesting_org' %}">Vesting Organizations</a></li>
-        <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_journal_managers" %}class="active"{% endif %}href="{% url 'user_management_manage_journal_manager' %}">Vesting Managers</a></li>
+        <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_vesting_orgs" %}class="active" {% endif %}href="{% url 'user_management_manage_vesting_org' %}">Vesting Organizations</a></li>
+        <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_vesting_managers" %}class="active" {% endif %}href="{% url 'user_management_manage_vesting_manager' %}">Vesting Managers</a></li>
         {% endif %}
 
         <!-- Vesting users -->
         {% if user|has_group:'registrar_member,registry_member,vesting_manager' %}
-        <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_vesting_users" %}class="active"{% endif %}href="{% url 'user_management_manage_journal_member' %}">Vesting Users</a></li>
+        <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_vesting_members" %}class="active" {% endif %}href="{% url 'user_management_manage_vesting_member' %}">Vesting Users</a></li>
         {% endif %}
         
         <!-- Regular users -->
         {% if user|has_group:'registry_member' %}
-        <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_users" %}class="active"{% endif %}href="{% url 'user_management_manage_user' %}">Users</a></li>{% endif %}
+        <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_users" %}class="active" {% endif %}href="{% url 'user_management_manage_user' %}">Users</a></li>{% endif %}
         
   
     </ul><!--/#dashboard-tabs-->
@@ -135,7 +135,7 @@
       {% endif %}
       
       {% if user|has_group:'registrar_member,registry_member' %}
-      {% block manage-nav-journal %}<li><a href="{% url 'user_management_manage_journal_member' %}">Vesting users</a></li>{% endblock %}
+      {% block manage-nav-journal %}<li><a href="{% url 'user_management_manage_vesting_member' %}">Vesting users</a></li>{% endblock %}
       {% endif %}
           
       {% if user|has_group:'vesting_member' %}

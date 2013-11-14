@@ -168,7 +168,7 @@ class create_user_form_w_vesting_org(forms.ModelForm):
 
         return user
 
-class regisrtar_member_form_edit(forms.ModelForm):
+class registrar_member_form_edit(forms.ModelForm):
     """
     stripped down user reg form
     This is mostly a django.contrib.auth.forms.UserCreationForm
@@ -195,7 +195,7 @@ class regisrtar_member_form_edit(forms.ModelForm):
         fields = ["first_name", "last_name", "email", "registrar"]
 
     def save(self, commit=True):
-        user = super(regisrtar_member_form_edit, self).save(commit=False)
+        user = super(registrar_member_form_edit, self).save(commit=False)
         group = self.cleaned_data['group']
         all_groups = Group.objects.all()
         for ag in all_groups:
@@ -244,7 +244,7 @@ class user_form_edit(forms.ModelForm):
 
         return user
 
-class journal_manager_form_edit(forms.ModelForm):
+class vesting_manager_form_edit(forms.ModelForm):
     """
     stripped down user reg form
     This is mostly a django.contrib.auth.forms.UserCreationForm
@@ -256,7 +256,7 @@ class journal_manager_form_edit(forms.ModelForm):
       registrar_id = False
       if 'registrar_id' in kwargs:
         registrar_id = kwargs.pop('registrar_id')
-      super(journal_manager_form_edit, self).__init__(*args, **kwargs)
+      super(vesting_manager_form_edit, self).__init__(*args, **kwargs)
       if registrar_id:
         self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id)
 
@@ -275,14 +275,14 @@ class journal_manager_form_edit(forms.ModelForm):
     vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all(), empty_label=None, label="Vesting organization")
     
     def save(self, commit=True):
-        user = super(journal_manager_form_edit, self).save(commit=False)
+        user = super(vesting_manager_form_edit, self).save(commit=False)
 
         if commit:
             user.save()
 
         return user
         
-class journal_manager_w_group_form_edit(forms.ModelForm):
+class vesting_manager_w_group_form_edit(forms.ModelForm):
     """
     stripped down user reg form
     This is mostly a django.contrib.auth.forms.UserCreationForm
@@ -294,7 +294,7 @@ class journal_manager_w_group_form_edit(forms.ModelForm):
       registrar_id = False
       if 'registrar_id' in kwargs:
         registrar_id = kwargs.pop('registrar_id')
-      super(journal_manager_w_group_form_edit, self).__init__(*args, **kwargs)
+      super(vesting_manager_w_group_form_edit, self).__init__(*args, **kwargs)
       if registrar_id:
         self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id)
 
@@ -314,7 +314,7 @@ class journal_manager_w_group_form_edit(forms.ModelForm):
     vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all(), empty_label=None, label="Vesting organization")
 
     def save(self, commit=True):
-        user = super(journal_manager_w_group_form_edit, self).save(commit=False)
+        user = super(vesting_manager_w_group_form_edit, self).save(commit=False)
         group = self.cleaned_data['group']
         all_groups = Group.objects.all()
         for ag in all_groups:
@@ -326,7 +326,7 @@ class journal_manager_w_group_form_edit(forms.ModelForm):
 
         return user
 
-class journal_member_form_edit(forms.ModelForm):
+class vesting_member_form_edit(forms.ModelForm):
     """
     stripped down user reg form
     This is mostly a django.contrib.auth.forms.UserCreationForm
@@ -347,14 +347,14 @@ class journal_member_form_edit(forms.ModelForm):
                          "@/./+/-/_ characters."})
 
     def save(self, commit=True):
-        user = super(journal_member_form_edit, self).save(commit=False)
+        user = super(vesting_member_form_edit, self).save(commit=False)
 
         if commit:
             user.save()
 
         return user
         
-class journal_member_w_group_form_edit(forms.ModelForm):
+class vesting_member_w_group_form_edit(forms.ModelForm):
     """
     stripped down user reg form
     This is mostly a django.contrib.auth.forms.UserCreationForm
@@ -366,7 +366,7 @@ class journal_member_w_group_form_edit(forms.ModelForm):
       registrar_id = False
       if 'registrar_id' in kwargs:
         registrar_id = kwargs.pop('registrar_id')
-      super(journal_member_w_group_form_edit, self).__init__(*args, **kwargs)
+      super(vesting_member_w_group_form_edit, self).__init__(*args, **kwargs)
       if registrar_id:
         self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id)
 
@@ -386,7 +386,7 @@ class journal_member_w_group_form_edit(forms.ModelForm):
     vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all(), empty_label=None, label="Vesting organization")
 
     def save(self, commit=True):
-        user = super(journal_member_w_group_form_edit, self).save(commit=False)
+        user = super(vesting_member_w_group_form_edit, self).save(commit=False)
         group = self.cleaned_data['group']
         all_groups = Group.objects.all()
         for ag in all_groups:
@@ -398,7 +398,7 @@ class journal_member_w_group_form_edit(forms.ModelForm):
 
         return user
         
-class journal_member_w_vesting_org_form_edit(forms.ModelForm):
+class vesting_member_w_vesting_org_form_edit(forms.ModelForm):
     """
     stripped down user reg form
     This is mostly a django.contrib.auth.forms.UserCreationForm
@@ -410,7 +410,7 @@ class journal_member_w_vesting_org_form_edit(forms.ModelForm):
       registrar_id = False
       if 'registrar_id' in kwargs:
         registrar_id = kwargs.pop('registrar_id')
-      super(journal_member_w_vesting_org_form_edit, self).__init__(*args, **kwargs)
+      super(vesting_member_w_vesting_org_form_edit, self).__init__(*args, **kwargs)
       if registrar_id:
         self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id)
 
@@ -429,7 +429,7 @@ class journal_member_w_vesting_org_form_edit(forms.ModelForm):
     vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all(), empty_label=None, label="Vesting organization")
     
     def save(self, commit=True):
-        user = super(journal_member_w_vesting_org_form_edit, self).save(commit=False)
+        user = super(vesting_member_w_vesting_org_form_edit, self).save(commit=False)
 
         if commit:
             user.save()

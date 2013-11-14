@@ -79,10 +79,10 @@ class ViewsTestCase(TestCase):
             },
             {
                 'urls': (
-                    reverse('user_management_manage_journal_manager'),
-                    reverse('user_management_manage_single_journal_manager', kwargs={'user_id': 5}),
-                    reverse('user_management_manage_single_journal_manager_delete', kwargs={'user_id': 5}),
-                    reverse('user_management_manage_single_journal_manager_reactivate', kwargs={'user_id': 5}),
+                    reverse('user_management_manage_vesting_manager'),
+                    reverse('user_management_manage_single_vesting_manager', kwargs={'user_id': 5}),
+                    reverse('user_management_manage_single_vesting_manager_delete', kwargs={'user_id': 5}),
+                    reverse('user_management_manage_single_vesting_manager_reactivate', kwargs={'user_id': 5}),
                 ),
                 'allowed': ('test_registry_member@example.com', 'test_registrar_member@example.com',),
                 'denied': (
@@ -90,10 +90,10 @@ class ViewsTestCase(TestCase):
             },
             {
                 'urls': (
-                    reverse('user_management_manage_journal_member'),
-                    reverse('user_management_manage_single_journal_member', kwargs={'user_id': 3}),
-                    reverse('user_management_manage_single_journal_member_delete', kwargs={'user_id': 3}),
-                    reverse('user_management_manage_single_journal_member_reactivate', kwargs={'user_id': 3}),
+                    reverse('user_management_manage_vesting_member'),
+                    reverse('user_management_manage_single_vesting_member', kwargs={'user_id': 3}),
+                    reverse('user_management_manage_single_vesting_member_delete', kwargs={'user_id': 3}),
+                    reverse('user_management_manage_single_vesting_member_reactivate', kwargs={'user_id': 3}),
                 ),
                 'allowed': ('test_registry_member@example.com', 'test_registrar_member@example.com',
                             'test_vesting_manager@example.com'
