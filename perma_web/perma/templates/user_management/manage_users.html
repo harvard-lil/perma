@@ -1,25 +1,22 @@
 {% extends "admin-layout.html" %}
 {% load has_group %}
-{% block title %} | Users{% endblock %}
+{% block title %} | {{ pretty_group_name_plural }} NEW{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 {% endblock %}
 
-{% block manage-nav-registry %}<li class="active"><a href="{% url 'user_management_manage_registrar_member' %}">Registrar users</a></li>{% endblock %}
-
 {% block content %}
 
-	<h3>Existing users <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
+	<h3>Existing {{ pretty_group_name_plural|lower }} <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
 	
 	{% if added_user %}
     <div class="alert alert-success alert-block"><h4>Account created!</h4> <strong>{{ added_user }}</strong> will receive an email with instructions on how to activate the account and create a password.</div>
   {% endif %}
-	
-	{% if user|has_group:'registry_member' %}
+
 	<div id="add-member" class="collapse {% if add_error %}in{% endif %}">
     <form method="post">
       {% csrf_token %}
-		  <h4>Add a new user</h4>
+		  <h4>Add a new {{ pretty_group_name|lower }}</h4>
 		  <fieldset>
 		  <span class="text-error">{{ form.non_field_errors }}</span>
         {% for field in form %}
@@ -32,10 +29,9 @@
           {% endif %}
         {% endfor %}  
       </fieldset>
-      <button type="submit" class="btn">Add user</button>
+      <button type="submit" class="btn">Add {{ pretty_group_name|lower }}</button>
     </form>
   </div>
-	{% endif %}
 		
 	<table class="table">
     <thead>
@@ -43,30 +39,34 @@
         <!--<th><input type="checkbox"></th>-->
         <th>Name<a href="?sort=last_name"> <i class="icon-chevron-up"></i></a><a href="?sort=-last_name"> <i class="icon-chevron-down"></i></a></th>
         <th>Email<a href="?sort=email"> <i class="icon-chevron-up"></i></a><a href="?sort=-email"> <i class="icon-chevron-down"></i></a></th>
+        {% if user|has_group:'registry_member,registrar_member' %}{% if group_name == 'vesting_manager' or group_name == 'vesting_member' %}<th>Vesting Organization<a href="?sort=vesting_org__name"> <i class="icon-chevron-up"></i></a><a href="?sort=-vesting_org__name"> <i class="icon-chevron-down"></i></a></th>{% endif %}{% endif %}
+        {% if group_name == 'registrar_member' %}<th>Registrar<a href="?sort=registrar__name"> <i class="icon-chevron-up"></i></a><a href="?sort=-registrar__name"> <i class="icon-chevron-down"></i></a></th>{% endif %}
         <th>Admin<a href="?sort=admin"> <i class="icon-chevron-up"></i></a><a href="?sort=-admin"> <i class="icon-chevron-down"></i></a></th>
       </tr>
     </thead>
     <tbody>
-      {% for user in users_list %}
-      {% if not user.is_active %}
+      {% for listed_user in users_list %}
+      {% if not listed_user.is_active %}
         <tr class="muted">
       {% else %}
         <tr>
       {% endif %}
           <!--<td><input type="checkbox"></td>-->
-          <td>{{ user.first_name }} {{ user.last_name }}</td>
-          <td>{{ user.email }}</td>
+          <td>{{ listed_user.first_name }} {{ listed_user.last_name }}</td>
+          <td>{{ listed_user.email }}</td>
+        {% if user|has_group:'registry_member,registrar_member' %}{% if group_name == 'vesting_manager' or group_name == 'vesting_member' %}<td>{{listed_user.vesting_org.name}}</td>{% endif %}{% endif %}
+        {% if group_name == 'registrar_member' %}<td>{{ listed_user.registrar.name }}</td>{% endif %}
           <td>
-        {% if user.is_active %}
-          <a href="{% url 'user_management_manage_single_user' user.id %}">edit/delete</a>
-        {% elif user.password %}
-			    <span class="text-warning">deactivated account</span> <a href="{% url 'user_management_manage_single_user_reactivate' user.id %}">reactivate</a>
+        {% if listed_user.is_active %}
+          <a href="{% url single_user_url listed_user.id %}">edit/delete</a>
+        {% elif listed_user.password %}
+			    <span class="text-warning">deactivated account</span> <a href="{% url reactivate_user_url listed_user.id %}">reactivate</a>
 			  {% else %}
 			    <span class="text-warning">user must activate account</span>
 			  {% endif %}
 			  </td>
       {% empty %}
-        <tr>No users found.</tr>
+        <tr>No {{ pretty_group_name_plural|lower }} found.</tr>
       {% endfor %}
     </tbody>
   </table>
