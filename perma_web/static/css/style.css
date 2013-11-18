@@ -641,12 +641,12 @@ div.add-links-list {
 iframe {
     border-width: 0px 1px;
 	border-style: solid;
-	border-color: #999;	
+	border-color: #eee;	
     text-align:auto;
     width:1033px;
     height:660px;
     background:#fff;
-    margin-bottom:0px;
+    margin-bottom:-3px;
     
 }
 
@@ -724,11 +724,8 @@ ul {
     left:20px;
 }
 
-.clouds {
-	 box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333; 
-    -moz-box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333; 
-    -webkit-box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333; 
-    background: url('../img/clouds.jpg') center top repeat;
+#main.clouds {
+    background-color: #fff;
     min-height:662px;
 }
 /*/ 
