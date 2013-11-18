@@ -1353,3 +1353,11 @@ ol li {
 .italic {
 	font-style:italic;
 }
+
+.stats-graph {	
+	width:100%;
+}
+
+.right {
+	text-align:right;
+}
