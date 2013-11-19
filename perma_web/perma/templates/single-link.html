@@ -32,15 +32,20 @@
 				</div><!--end span 5 -->
 				
 				<div class="span1">
-				 {% if user.is_authenticated and not linky.vested %}
+				 {% if user.is_authenticated and not linky.vested and not linky.dark_archived %}
 					  {% if user|has_group:'registry_member,registrar_member,vesting_member,vesting_manager' %}
 						<form action="" method="post">
 						  {% csrf_token %}
 						  <input type="submit" value="vest" name="vet" class="btn">
 						</form>
 					  {% endif %}
+					  {% if user|has_group:'registry_member' %}
+					    <a class="btn" href="{% url 'dark_archive_link' linky.guid %}">archive</a>
+					  {% endif %}
 				{% endif %}
 				</div>
+				
+				{% if not linky.dark_archived or user|has_group:'registry_member,registrar_member' %}
 			    <div class="span2 negative-margin">
 			    	<ul class="view-type">
 		                <li><a {% if serve_type == 'live' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=live">Live site view</a></li>
@@ -89,6 +94,7 @@
 						
 					</ul>
 				</div><!--end span 2 -->
+				{% endif %}
 			</div> <!-- end span 12-->
 		</div><!-- end top-bar -->
 	</div><!-- end main-container -->
@@ -98,6 +104,10 @@
 
 {% block content %}
 <div class="row-fluid">
+    {% if linky.dark_archived and user|has_group:'registry_member,registrar_member' %}
+		<h2>THIS LINK IS DARK ARCHIVED</h2>
+	{% endif %}
+    {% if not linky.dark_archived or user|has_group:'registry_member,registrar_member' %}
 	<div class="linky-view center">
   		<div class="watermark center">
 
@@ -137,6 +147,9 @@
 			{% endif %}
 		</div><!--end watermark-->
    	</div><!--end linky-view-->
+   	{% else %}
+   	    <p>This link has been dark archived.  Contact a librarian to get a copy.</p>
+   	{% endif %}
 </div><!--row-->
 
 {% endblock %}

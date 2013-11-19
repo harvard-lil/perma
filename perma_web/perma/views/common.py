@@ -12,7 +12,7 @@ import urllib2, os, logging
 from urlparse import urlparse
 
 from perma.models import Link, Asset
-from perma.utils import base
+from perma.utils import base, require_group
 from ratelimit.decorators import ratelimit
 
 logger = logging.getLogger(__name__)
@@ -195,6 +195,30 @@ def single_linky(request, linky_guid):
         #context.update(csrf(request))
 
     return render_to_response('single-link.html', context)
+    
+
+@require_group('registry_member')
+def dark_archive_link(request, linky_guid):
+    """
+    Given a Perma ID, serve it up. Vesting also takes place here.
+    """
+
+    if request.method == 'POST':
+        Link.objects.filter(guid=linky_guid).update(dark_archived = True)
+
+        return HttpResponseRedirect('/%s/' % linky_guid)
+    else:
+
+        link = get_object_or_404(Link, guid=linky_guid)
+
+        asset= Asset.objects.get(link__guid=link.guid)
+
+        created_datestamp = link.creation_timestamp
+        pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
+
+        context = RequestContext(request, {'linky': link, 'asset': asset, 'pretty_date': pretty_date, 'user': request.user, 'next': request.get_full_path()})
+
+    return render_to_response('dark-archive-link.html', context)
 
 
 def rate_limit(request, exception):

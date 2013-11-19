@@ -1,0 +1,56 @@
+{% extends "layout-archive.html" %}
+{% load file_exists  truncatesmart diff has_group %}
+{% block title %} | {{linky.submitted_title}}{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+{% endblock %}
+
+{% block header %}
+
+
+<header>
+	<div class="main-container">
+		<div class="top-bar">
+			<div class="span12">
+				<div class="span3">
+					<div class="logo">
+						<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo.png"></a>
+					</div><!--end logo -->
+				</div><!--end span 3 -->
+				
+				<div class="span6 meta-data negative-margin">
+					<p>{{linky.submitted_title}}</br>
+					<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></br>
+
+				</div><!--end span 5 -->
+			</div>
+			<div class="span12">
+				<div class="span10">
+				 {% if user.is_authenticated and not linky.dark_archived %}
+					  {% if user|has_group:'registry_member' %}
+					    <p>Yahowza! Do you really want to dark archive this link forever?</p>
+						<form action="" method="post">
+						  {% csrf_token %}
+						  <a href="/{{ linky.guid }}">Cancel</a> <button type="submit" class="btn delete-confirm">Dark archive this link forever</button>
+						</form>
+					  {% endif %}
+				{% endif %}
+				</div>
+			</div> <!-- end span 12-->
+		</div><!-- end top-bar -->
+	</div><!-- end main-container -->
+</header>
+
+{% endblock %}
+
+{% block content %}
+<div class="row-fluid">
+	
+</div><!--row-->
+
+{% endblock %}
+
+{% block scripts %}
+
+
+{% endblock %}
