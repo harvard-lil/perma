@@ -163,22 +163,46 @@ class Link(models.Model):
     def save(self, *args, **kwargs):
         """
         To generate our globally unique identifiers, we draw a number out of a large number space,
-        58^10. We convert that to base58 (like base64, but without the confusing I,1,O,0 characters.
-        so that our URL is short(ish). And we append a 0. This 0 is
-        a way to namespace identifiers created at this Perma creation source.
+        32**8, and convert that to base32 (like base64, but with all caps and without the confusing I,1,O,0 characters)
+        so that our URL is short(ish).
         """
         if not self.pk:
             # not self.pk => not created yet
-            guid = '0'
-            while guid.startswith('0'):
-                random_id = random.randint(0, 58**10)
-                guid = base.convert(random_id, base.BASE10, base.BASE58)
-            guid = '0' + guid
-            self.guid = guid
+            # only try 100 attempts at finding an unused GUID
+            # (100 attempts should never be necessary, since we'll expand the keyspace long before
+            # there are frequent collisions)
+            for i in range(100):
+                random_id = random.randint(0, 32**8)
+                guid = base.convert(random_id, base.BASE10, base.BASE32)
+                if not Link.objects.filter(guid=guid).exists():
+                    break
+            else:
+                raise Exception("No valid GUID found in 100 attempts.")
+            self.guid = Link.get_canonical_guid(guid)
         super(Link, self).save(*args, **kwargs)
 
     def __unicode__(self):
         return self.submitted_url
+
+    @classmethod
+    def get_canonical_guid(self, guid):
+        """
+        Given a GUID, return the canonical version, with hyphens every 4 chars and all caps.
+        So "a2b3c4d5" becomes "A2B3-C4D5".
+        """
+
+        canonical_guid = guid.replace('-', '')
+
+        # handle legacy 11-char GUIDs
+        if len(guid) == 11:
+            return guid
+
+        # split guid into 4-char chunks, starting from the end
+        guid_parts = [canonical_guid[max(i - 4, 0):i] for i in
+                      range(len(canonical_guid), 0, -4)]
+
+        # stick together parts with '-'
+        return "-".join(reversed(guid_parts)).upper()
 
 class Asset(models.Model):
     """
