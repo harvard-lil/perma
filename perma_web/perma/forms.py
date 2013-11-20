@@ -86,7 +86,7 @@ class create_user_form_w_registrar(forms.ModelForm):
             'invalid': "This value may contain only letters, numbers and "
                          "@/./+/-/_ characters."})
 
-    registrar = forms.ModelChoiceField(queryset=Registrar.objects.all(), empty_label=None)
+    registrar = forms.ModelChoiceField(queryset=Registrar.objects.all().order_by('name'), empty_label=None)
 
     class Meta:
         model = LinkUser
@@ -126,7 +126,7 @@ class create_user_form_w_vesting_org(forms.ModelForm):
         registrar_id = kwargs.pop('registrar_id')
       super(create_user_form_w_vesting_org, self).__init__(*args, **kwargs)
       if registrar_id:
-        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id)
+        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id).order_by('name')
     
     class Meta:
         model = LinkUser
@@ -143,7 +143,7 @@ class create_user_form_w_vesting_org(forms.ModelForm):
             'invalid': "This value may contain only letters, numbers and "
                          "@/./+/-/_ characters."})
 
-    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all(), empty_label=None, label="Vesting organization")
+    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
 
     def clean_email(self):
         # Since User.email is unique, this check is redundant,
@@ -186,7 +186,7 @@ class registrar_member_form_edit(forms.ModelForm):
             'invalid': "This value may contain only letters, numbers and "
                          "@/./+/-/_ characters."})
 
-    registrar = forms.ModelChoiceField(queryset=Registrar.objects.all(), empty_label=None)
+    registrar = forms.ModelChoiceField(queryset=Registrar.objects.all().order_by('name'), empty_label=None)
     
     group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None)
 
@@ -258,7 +258,7 @@ class vesting_manager_form_edit(forms.ModelForm):
         registrar_id = kwargs.pop('registrar_id')
       super(vesting_manager_form_edit, self).__init__(*args, **kwargs)
       if registrar_id:
-        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id)
+        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id).order_by('name')
 
     class Meta:
         model = LinkUser
@@ -272,7 +272,7 @@ class vesting_manager_form_edit(forms.ModelForm):
             'invalid': "This value may contain only letters, numbers and "
                          "@/./+/-/_ characters."})                 
 
-    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all(), empty_label=None, label="Vesting organization")
+    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
     
     def save(self, commit=True):
         user = super(vesting_manager_form_edit, self).save(commit=False)
@@ -296,7 +296,7 @@ class vesting_manager_w_group_form_edit(forms.ModelForm):
         registrar_id = kwargs.pop('registrar_id')
       super(vesting_manager_w_group_form_edit, self).__init__(*args, **kwargs)
       if registrar_id:
-        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id)
+        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id).order_by('name')
 
     class Meta:
         model = LinkUser
@@ -311,7 +311,7 @@ class vesting_manager_w_group_form_edit(forms.ModelForm):
                          "@/./+/-/_ characters."})
                          
     group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None)
-    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all(), empty_label=None, label="Vesting organization")
+    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
 
     def save(self, commit=True):
         user = super(vesting_manager_w_group_form_edit, self).save(commit=False)
@@ -368,7 +368,7 @@ class vesting_member_w_group_form_edit(forms.ModelForm):
         registrar_id = kwargs.pop('registrar_id')
       super(vesting_member_w_group_form_edit, self).__init__(*args, **kwargs)
       if registrar_id:
-        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id)
+        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id).order_by('name')
 
     class Meta:
         model = LinkUser
@@ -383,7 +383,7 @@ class vesting_member_w_group_form_edit(forms.ModelForm):
                          "@/./+/-/_ characters."})
                          
     group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None)
-    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all(), empty_label=None, label="Vesting organization")
+    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
 
     def save(self, commit=True):
         user = super(vesting_member_w_group_form_edit, self).save(commit=False)
@@ -412,7 +412,7 @@ class vesting_member_w_vesting_org_form_edit(forms.ModelForm):
         registrar_id = kwargs.pop('registrar_id')
       super(vesting_member_w_vesting_org_form_edit, self).__init__(*args, **kwargs)
       if registrar_id:
-        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id)
+        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id).order_by('name')
 
     class Meta:
         model = LinkUser
@@ -426,7 +426,7 @@ class vesting_member_w_vesting_org_form_edit(forms.ModelForm):
             'invalid': "This value may contain only letters, numbers and "
                          "@/./+/-/_ characters."})
 
-    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all(), empty_label=None, label="Vesting organization")
+    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
     
     def save(self, commit=True):
         user = super(vesting_member_w_vesting_org_form_edit, self).save(commit=False)
