@@ -1,6 +1,6 @@
 from django.template import Template, context, RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect
 from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
 from django.conf import settings
@@ -129,12 +129,16 @@ def single_linky(request, linky_guid):
     if request.method == 'POST' and request.user.is_authenticated():
         Link.objects.filter(guid=linky_guid).update(vested = True, vested_by_editor = request.user, vested_timestamp = datetime.now())
 
-        return HttpResponseRedirect('/%s/' % linky_guid)
+        return HttpResponseRedirect(reverse('single_linky', args=[linky_guid]))
     else:
+        canonical_guid = Link.get_canonical_guid(linky_guid)
+
+        if canonical_guid != linky_guid:
+            return HttpResponsePermanentRedirect(reverse('single_linky', args=[canonical_guid]))
 
         link = get_object_or_404(Link, guid=linky_guid)
 
-        # Increment the view count if not we're not hte refer
+        # Increment the view count if we're not the referrer
         parsed_url = urlparse(request.META.get('HTTP_REFERER', ''))
         current_site = Site.objects.get_current()
         
@@ -168,7 +172,6 @@ def single_linky(request, linky_guid):
                 
                     with open(file_path, 'r') as f:
                         text_capture = f.read()
-                    f.closed
             
         # If we are going to serve up the live version of the site, let's make sure it's iframe-able
         display_iframe = False
