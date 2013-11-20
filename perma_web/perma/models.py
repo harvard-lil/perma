@@ -1,6 +1,7 @@
 from datetime import datetime
 import logging
 import random
+import re
 
 from django.contrib.auth.models import User, Permission, Group
 from django.db.models.signals import post_syncdb
@@ -165,6 +166,9 @@ class Link(models.Model):
         To generate our globally unique identifiers, we draw a number out of a large number space,
         32**8, and convert that to base32 (like base64, but with all caps and without the confusing I,1,O,0 characters)
         so that our URL is short(ish).
+        
+        One exceptionm - we want to use up our [non-four alphabet chars-anything] ids first. So, avoid things like XFFC-9VS7
+        
         """
         if not self.pk:
             # not self.pk => not created yet
@@ -174,7 +178,11 @@ class Link(models.Model):
             for i in range(100):
                 random_id = random.randint(0, 32**8)
                 guid = base.convert(random_id, base.BASE10, base.BASE32)
-                if not Link.objects.filter(guid=guid).exists():
+                
+                # Avoid things like XFFC-9VS7
+                match = re.search(r'^[A-Z]{4}', guid)
+                
+                if not match and not Link.objects.filter(guid=guid).exists():
                     break
             else:
                 raise Exception("No valid GUID found in 100 attempts.")
