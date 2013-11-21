@@ -1350,3 +1350,66 @@ li.alpha-list {
 }
 
 /* Stats page end */
+
+.btn.vest, input.btn.vest {
+	margin-top:-23px;
+	font-size:13px;
+	padding:2px 0px;
+	font-family: 'Roboto Slab',sans-serif;
+	width:100px;
+}
+
+a.cancel-button {
+	color:#f60;	
+	padding:5px 15px;
+	border:1px solid #ddd;
+	background: #efefef;
+	border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;	
+    cursor:pointer;
+}
+a.cancel-button:hover {
+	border:1px solid #ccc;
+	background: #ddd;
+}
+.dark {
+	color:#444;
+}
+
+.dark-bulb {
+	width:140px;
+	opacity:.8;
+}
+
+.dark-bulb-small {
+	width:70px;
+	margin:15px auto -10px;
+	text-align:center;
+	opacity:.7;
+}
+
+.yahowza {
+	padding:30px;
+	text-align:center;
+	background:#efefef;
+	border-radius: 6px;
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;	
+    margin:40px auto 20px;
+}
+
+.yahowza-small {
+	padding:15px;
+	text-align:center;
+	background:#efefef;
+	border-radius: 6px;
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;	
+    margin:20px auto 10px;
+}
+
+.centered-box {
+	margin:30px;
+	text-align:center;
+}

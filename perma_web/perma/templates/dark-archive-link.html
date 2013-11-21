@@ -10,7 +10,9 @@
 
 <header>
 	<div class="main-container">
+		 <div class="row-fluid">
 		<div class="top-bar">
+		
 			<div class="span12">
 				<div class="span3">
 					<div class="logo">
@@ -24,20 +26,24 @@
 
 				</div><!--end span 5 -->
 			</div>
-			<div class="span12">
-				<div class="span10">
+		</div><!-- end top-bar -->
+		</div>
+				<div class="yahowza red">
 				 {% if user.is_authenticated and not linky.dark_archived %}
 					  {% if user|has_group:'registry_member' %}
-					    <p>Yahowza! Do you really want to dark archive this link forever?</p>
-						<form action="" method="post">
-						  {% csrf_token %}
-						  <a href="/{{ linky.guid }}">Cancel</a> <button type="submit" class="btn delete-confirm">Dark archive this link forever</button>
-						</form>
+					    <h1 class="cyan">Yahowza!</h1><h2>Do you really want to <span class="dark">dark archive</span> this link forever?</h2>
+						
+							<div class="centered-box">
+								<form action="" method="post">
+								  {% csrf_token %}
+								  <a href="/{{ linky.guid }}" class="cancel-button">Cancel</a> <button type="submit" class="btn delete-confirm btn-info">Dark archive this link forever</button>
+								</form>
+							</div>
+						
 					  {% endif %}
 				{% endif %}
 				</div>
 			</div> <!-- end span 12-->
-		</div><!-- end top-bar -->
 	</div><!-- end main-container -->
 </header>
 
