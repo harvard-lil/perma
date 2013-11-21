@@ -33,16 +33,6 @@
 				  <div class="question">How are links vested?</div>
 				  <div class="answer">Users with vesting accounts can click on the &quot;vest&quot; button in the top-right of any Perma.cc page to vest it.</div>
 				
-				  <div class="question">I want to be a Managed Partner. What do I do?</div>
-				  <div class="answer">
-					  <p>You'll need to work with the person that manages your DNS to create an A record and point it to the Perma.cc IP address, 140.247.209.68 . Your A record might look like this,</p>
-					  <p class="code">perma.law.your-university.edu in A 140.247.209.68.</p>
-					  <p>You can reference the Harvard Law School name as an example. Just do a <a href="http://en.wikipedia.org/wiki/Dig_(command)">dig</a> on perma.law.harvard.edu</p>
-					  <p class="code">$ dig perma.law.harvard.edu</p>
-					
-					  <p>After you've added your A record, drop an email to <a href="mailto:info@perma.cc">info@perma.cc</a> with your name and we'll whitelist you.</p>
-				  </div>
-				
 				  <div class="question">How do I acquire vesting privileges?</div>
 				  <div class="answer">Vesting accounts are managed by scholarly journals and similar entities that are recognized by libraries. If you are a member of a journal and would like to use Perma.cc, please contact a library to sponsor you. You can see a list of participating libraries on the <a href="{% url 'about' %}">about Perma.cc</a> page.</div>
 				
@@ -85,6 +75,29 @@
 				
 					<div class="question">How can I create accounts for my vesting members?</div>
 					<div class="answer">To create accounts for your staff members, go to the “Manage Users” tab of the dashboard, and click on “Journal Users.”  Provide the requested information under “Add a new vesting member,” and click “Add vesting member.”  Whether you make individual accounts for each staff member or communal accounts for those checking citations is up to your journal.</div>
+
+				  <h2>Technical FAQs</h2>
+
+					<div class="question">I want to be a Managed Partner. How do I configure my DNS?</div>
+					<div class="answer">
+						 <p>You'll need to work with the person that manages your DNS to create an A record and point it to the Perma.cc IP address, 140.247.209.68 . Your A record might look like this,</p>
+						 <p class="code">perma.law.your-university.edu in A 140.247.209.68.</p>
+						 <p>You can reference the Harvard Law School name as an example. Just do a <a href="http://en.wikipedia.org/wiki/Dig_(command)">dig</a> on perma.law.harvard.edu</p>
+						 <p class="code">$ dig perma.law.harvard.edu</p>
+						 <p>After you've added your A record, drop an email to <a href="mailto:info@perma.cc">info@perma.cc</a> with your name and we'll whitelist you.</p>
+					</div>
+					
+					<div class="question">I don't want Perma.cc to archive my site.</div>
+					<div class="answer">
+						 <p>It's important to note that Perma.cc does not crawl your site like a search engine might. Perma.cc is only interested retrieving items that it needs to construct the single page it is indexing. When Perma.cc archives a page from your site, it should be no more stressful for your webserver than a single user viewing a single page in a single browser.</p>
+						 <p>If you don't want Perma.cc to display items from your site, add a rule for the PermaBot to your robots.txt</p>
+						 <p class="code">
+						 	User-agent: PermaBot
+							Disallow: /private-stuff/
+						 </p>
+						<p>With that rule in place, Perma.cc will still archive the requested page from your site, but will not display it at Perma.cc.</p>
+					</div>
+					
 				</div>
 			</div><!--row-->
 
