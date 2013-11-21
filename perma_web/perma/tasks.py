@@ -1,4 +1,4 @@
-import os, sys, subprocess, urllib, glob, shutil, urlparse, simplejson, datetime, smhasher, logging
+import os, sys, subprocess, urllib, glob, shutil, urlparse, simplejson, datetime, smhasher, logging, robotparser
 from djcelery import celery
 import requests
 from django.conf import settings
@@ -248,7 +248,32 @@ def store_text_cap(url, title, link_guid):
         asset = Asset.objects.get(link__guid=link_guid)
         asset.text_capture = 'failed'
         asset.save()
+
+
+@celery.task
+def get_robots_txt(url, link_guid):
+    """
+    A task (hopefully called asynchronously) to get the robots.txt rule for PermaBot.
+    We will still grab the content (we're not a crawler), but we'll "darchive it."
+    """
     
+    # Parse the URL so and build the robots.txt location
+    parsed_url = urlparse.urlparse(url)
+    robots_text_location = parsed_url.scheme + '://' + parsed_url.netloc + '/robots.txt'
+    
+    # Get the robots.txt rule
+    rp = robotparser.RobotFileParser()
+    rp.set_url(robots_text_location)
+    rp.read()
+    perma_bot_allowed = rp.can_fetch('PermaBot', url)
+
+    # If we're not allowed, set a flag in the model
+    if not perma_bot_allowed:
+        link = Link.objects.get(guid=link_guid)
+        link.dark_archived_robots_txt_blocked = True
+        link.save()
+
+
     
 @celery.task
 def get_nigthly_stats():

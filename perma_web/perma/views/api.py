@@ -10,7 +10,7 @@ from pyPdf import PdfFileReader
 from perma.models import Link, Asset
 from perma.forms import UploadFileForm
 from perma.utils import base
-from perma.tasks import get_screen_cap, get_source, store_text_cap, get_pdf
+from perma.tasks import get_screen_cap, get_source, store_text_cap, get_pdf, get_robots_txt
 
 from django.shortcuts import render_to_response, HttpResponse
 from django.http import HttpResponseBadRequest
@@ -67,13 +67,16 @@ def linky_post(request):
         link.created_by = request.user
 
     link.save()
+    
+    # We pass the guid to our tasks
+    guid = link.guid
 
     # Assets get stored in /storage/path/year/month/day/hour/unique-id/*
     # Get that path that we'll pass off to our workers to do the indexing. They'll store their results here
     now = dt = datetime.now()
     time_tuple = now.timetuple()
 
-    path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday), str(time_tuple.tm_hour), str(time_tuple.tm_min), link.guid]
+    path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday), str(time_tuple.tm_hour), str(time_tuple.tm_min), guid]
 
     # Create a stub for our assets
     asset, created = Asset.objects.get_or_create(link=link)
@@ -82,13 +85,10 @@ def linky_post(request):
 
     # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
     if r.headers['content-type'] in ['application/pdf', 'application/x-pdf'] or target_url.split('.')[-1] == 'pdf':
-        get_pdf.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
-        response_object = {'linky_id': link.guid, 'message_pdf': True, 'linky_title': link.submitted_title}
+        get_pdf.delay(guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
+        response_object = {'linky_id': guid, 'message_pdf': True, 'linky_title': link.submitted_title}
         
     else: # else, it's not a PDF. Let's try our best to retrieve what we can
-    
-        # We pass the guid to our tasks
-        guid = link.guid
 
         asset.image_capture = 'pending'        
         asset.text_capture = 'pending'
@@ -106,11 +106,16 @@ def linky_post(request):
         
         asset = Asset.objects.get(link__guid=guid)
         
-        response_object = {'linky_id': link.guid, 'linky_title': link.submitted_title}
+        response_object = {'linky_id': guid, 'linky_title': link.submitted_title}
         
         # Sometimes our phantomjs capture fails. if it doesn't add it to our response object
         if asset.image_capture != 'pending' and asset.image_capture != 'failed':
             response_object['linky_cap'] = settings.STATIC_URL + asset.base_storage_path + '/' + asset.image_capture
+
+
+    # We should note robots.txt requirements. Here we'll decide if flag the archive should be flagged for the "darchive"
+    get_robots_txt.delay(target_url, guid)
+
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
 
