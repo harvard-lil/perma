@@ -32,8 +32,8 @@
 				</div><!--end span 5 -->
 				
 				<div class="span1">
-				 {% if user.is_authenticated and not linky.vested and not linky|is_darchive %}
-					  {% if user|has_group:'registry_member,registrar_member,vesting_member,vesting_manager' %}
+				 {% if user.is_authenticated and not linky|is_darchive %}
+					  {% if user|has_group:'registry_member,registrar_member,vesting_member,vesting_manager' and not linky.vested %}
 						<form action="" method="post">
 						  {% csrf_token %}
 						  <input type="submit" value="vest" name="vet" class="btn vest">
