@@ -603,14 +603,11 @@ def link_browser(request, path, link_filter, this_page, verb):
                     out = {'error':"Folders can only be deleted if they are empty."}
                 return HttpResponse(json.dumps(out), content_type="application/json")
 
-        # new folders
+        # new folder
         elif request.POST.get('new_folder_submit', None):
             new_folder_name = request.POST.get('new_folder_name', None)
             if new_folder_name:
                 Folder(name=new_folder_name, created_by=request.user, parent=current_folder).save()
-
-
-
 
     DEFAULT_SORT = '-creation_timestamp'
 
@@ -621,7 +618,12 @@ def link_browser(request, path, link_filter, this_page, verb):
     if page < 1:
         page = 1
 
-    linky_links = Link.objects.filter(folders=current_folder, **link_filter).order_by(sort)
+    if current_folder:
+        linky_links = Link.objects.filter(folders=current_folder, **link_filter)
+    else:
+        linky_links = Link.objects.filter(**link_filter).exclude(folders__created_by=request.user)
+    linky_links = linky_links.order_by(sort)
+
     paginator = Paginator(linky_links, 10)
     linky_links = paginator.page(page)
 
@@ -642,7 +644,7 @@ def link_browser(request, path, link_filter, this_page, verb):
 @login_required
 def manage_account(request):
     """
-    Account mangement stuff. Change password, change email, ...
+    Account management stuff. Change password, change email, ...
     """
 
     context = {'user': request.user,

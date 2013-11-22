@@ -19,65 +19,6 @@
                 return $.post(url, JSON.stringify(data), callback, 'json');
             }
 
-            // folder hover tools
-            $('.vested-table tr').on('mouseenter', function () {
-                if(!$(this).find('.rename-folder-form').length){
-                    $(this).find('.tool-block').show();
-                }
-            }).on('mouseleave', function () {
-                $(this).find('.tool-block').hide();
-            });
-
-            table.on('click', '.folder-row input[name="delete"]', function(){
-                // folder delete
-                var td = $(this).closest('td'),
-                    aTag = td.find('a');
-                if(confirm("Really delete folder?")){
-                    postJSON(
-                        aTag.attr('href'), // subfolder url
-                        {action:'delete_folder'},
-                        function(data){
-                            if(data.success){
-                                td.closest('tr').remove();
-                            }else{
-                                alert(data.error);
-                            }
-                        }
-                    );
-                }
-
-            }).on('click', '.folder-row input[name="rename"]', function(){
-                // folder rename - show form
-                $(this).closest('.tool-block').hide();
-                var aTag = $(this).closest('td').find('a');
-                aTag.hide().after($('#form_templates .rename-folder-form').clone().hide()).next().show();
-                $(this).closest('td').find('input[name="folder_name"]').val(aTag.text());
-
-            }).on('click', '.folder-row input[name="rename_folder_cancel"]', function(){
-                // folder rename - cancel
-                var td = $(this).closest('td'),
-                    aTag = td.find('a');
-                aTag.show();
-                aTag.parent().find('.rename-folder-form').remove();
-
-            }).on('click', '.folder-row input[name="rename_folder_save"]', function(){
-                // folder rename - submit
-                var td = $(this).closest('td'),
-                    aTag = td.find('a'),
-                    newName = td.find('input[name=folder_name]').val();
-                if(!newName)
-                    return;
-                postJSON(
-                    aTag.attr('href'), // subfolder url
-                    {action:'rename_folder',name:newName},
-                    function(data){
-                        aTag.text(newName).show();
-                        td.find('.rename-folder-form').remove();
-                    }
-                );
-
-            });
-
             // new folder form
             $('#new_folder_show, #new_folder_cancel').on('click', function(){
                 $('#new_folder_container, #new_folder_name_container').toggle("fast");
@@ -89,32 +30,99 @@
                     $("#new_folder_submit").attr("disabled", true);
             });
 
-            // draggable
-            table.find('tbody tr').draggable({
-                helper: "clone",
-                start: function(event, ui ){
-                    ui.helper.find('.tool-block').hide();
-                }
-            });
-            table.find('.folder-row').droppable({
-                hoverClass: "ui-selected",
-                drop: function(event, ui) {
-                    var items = []; // use an array so we can handle multiselect at some point
-                    if(ui.draggable.hasClass('folder-row')){
-                        items[0] = {type:'folder',id:ui.draggable.attr('folder_id')};
-                    }else{
-                        items[0] = {type:'link',id:ui.draggable.attr('link_id')};
+            function initializeFolders(){
+                // only need to do stuff if there are folders
+
+                // folder hover tools
+                $('.vested-table tr').on('mouseenter', function () {
+                    if(!$(this).find('.rename-folder-form').length){
+                        $(this).find('.tool-block').show();
                     }
-                    $.post(
-                        $(this).find('a').attr('href'), // subfolder url files were dropped on
-                        JSON.stringify({action:'move_items',items:items}),
+                }).on('mouseleave', function () {
+                    $(this).find('.tool-block').hide();
+                });
+
+                table.on('click', '.folder-row input[name="delete"]', function(){
+                    // folder delete
+                    var td = $(this).closest('td'),
+                        aTag = td.find('a');
+                    if(confirm("Really delete folder?")){
+                        postJSON(
+                            aTag.attr('href'), // subfolder url
+                            {action:'delete_folder'},
+                            function(data){
+                                if(data.success){
+                                    td.closest('tr').remove();
+                                }else{
+                                    alert(data.error);
+                                }
+                            }
+                        );
+                    }
+
+                }).on('click', '.folder-row input[name="rename"]', function(){
+                    // folder rename - show form
+                    $(this).closest('.tool-block').hide();
+                    var aTag = $(this).closest('td').find('a');
+                    aTag.hide().after($('#form_templates .rename-folder-form').clone().hide()).next().show();
+                    $(this).closest('td').find('input[name="folder_name"]').val(aTag.text());
+
+                }).on('click', '.folder-row input[name="rename_folder_cancel"]', function(){
+                    // folder rename - cancel
+                    var td = $(this).closest('td'),
+                        aTag = td.find('a');
+                    aTag.show();
+                    aTag.parent().find('.rename-folder-form').remove();
+
+                }).on('click', '.folder-row input[name="rename_folder_save"]', function(){
+                    // folder rename - submit
+                    var td = $(this).closest('td'),
+                        aTag = td.find('a'),
+                        newName = td.find('input[name=folder_name]').val();
+                    if(!newName)
+                        return;
+                    postJSON(
+                        aTag.attr('href'), // subfolder url
+                        {action:'rename_folder',name:newName},
                         function(data){
-                            ui.draggable.remove();
-                        },
-                        'json'
+                            aTag.text(newName).show();
+                            td.find('.rename-folder-form').remove();
+                        }
                     );
-                }
-            });
+
+                });
+
+                // draggable
+                table.find('tbody tr').draggable({
+                    helper: "clone",
+                    start: function(event, ui ){
+                        ui.helper.find('.tool-block').hide();
+                    }
+                });
+                table.find('.folder-row').droppable({
+                    hoverClass: "ui-selected",
+                    drop: function(event, ui) {
+                        var items = []; // use an array so we can handle multiselect at some point
+                        if(ui.draggable.hasClass('folder-row')){
+                            items[0] = {type:'folder',id:ui.draggable.attr('folder_id')};
+                        }else{
+                            items[0] = {type:'link',id:ui.draggable.attr('link_id')};
+                        }
+                        $.post(
+                            $(this).find('a').attr('href'), // subfolder url files were dropped on
+                            JSON.stringify({action:'move_items',items:items}),
+                            function(data){
+                                ui.draggable.remove();
+                            },
+                            'json'
+                        );
+                    }
+                });
+            }
+
+            if($('.folder-row').length){
+                initializeFolders();
+            }
 
         });
     </script>
@@ -175,11 +183,11 @@
     <table class="vested-table">
     	<thead>
       	    <tr>
-                <th> </th>
-                <th>Link</th>
-                <th>Created<a href="?sort=creation_timestamp"> <i class="icon-chevron-up"></i></a><a href="?sort=-creation_timestamp"> <i class="icon-chevron-down"></i></a></th>
-                <th>Vested<a href="?sort=vested_timestamp"> <i class="icon-chevron-up"></i></a><a href="?sort=-vested_timestamp"> <i class="icon-chevron-down"></i></a></th>
-                <th>Views</th>
+                <th class="linky-abbr-vested"> </th>
+                <th class="linky-abbr-title">Link</th>
+                <th class="linky-abbr-date-time">Created<a href="?sort=creation_timestamp"> <i class="icon-chevron-up"></i></a><a href="?sort=-creation_timestamp"> <i class="icon-chevron-down"></i></a></th>
+                <th class="linky-abbr-date-time">Vested<a href="?sort=vested_timestamp"> <i class="icon-chevron-up"></i></a><a href="?sort=-vested_timestamp"> <i class="icon-chevron-down"></i></a></th>
+                <th class="linky-view-count">Views</th>
 		    </tr>
 		</thead>
 		<tbody>
@@ -192,7 +200,7 @@
             {% endif %}
             {% for folder in subfolders %}
                 <tr class="folder-row" folder_id="{{ folder.pk }}">
-                    <td><span class="icon-folder-close-alt" style="font-size: large;"></span></td>
+                    <td class="linky-abbr-vested"><span class="icon-folder-close-alt" style="font-size: large;"></span></td>
                     <td><a href="{{ base_url }}{{ path }}{{ folder.slug }}">{{ folder.name }}</a>
                         <form method="POST" class="tool-block">
                             {% csrf_token %}
@@ -201,8 +209,9 @@
                             <input type="button" name="delete" value="delete" class="btn btn-mini"/>
                         </form>
                     </td>
-                    <td>{{ folder.creation_timestamp|date:"m/d/y" }}</td>
-                    <td colspan="2"></td>
+                    <td class="linky-abbr-date-time">{{ folder.creation_timestamp|date:"m/d/y" }}</td>
+                    <td class="linky-abbr-date-time"></td>
+                    <td class="linky-view-count"></td>
                 </tr>
             {% endfor %}
             {% for linky_link in linky_links %}

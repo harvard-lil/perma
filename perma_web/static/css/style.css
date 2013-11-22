@@ -1215,6 +1215,7 @@ p a.submitted_url {
 
 .vested-table td, .vested-table th {
     padding: 10px 5px;
+	vertical-align:top;
 }
 .vested-table td:last-child, .vested-table th:last-child {
     padding-right:0;
@@ -1234,15 +1235,17 @@ td.linky-abbr-title, td.linky-abbr-date-time {
     word-wrap: break-word; /* Internet Explorer 5.5+ */
 }
 
-td.linky-abbr-vested {
+th.linky-abbr-vested {
+    width: 1.5em;
 }
-
-td.linky-abbr-title {
+th.linky-abbr-title {
     min-width:280px;
 }
-
-td.linky-abbr-date-time {
-	vertical-align:top;
+th.linky-abbr-date-time {
+    width: 7em;
+}
+th.linky-view-count{
+    width:3em;
 }
 
 td.registrar-name-cell {
