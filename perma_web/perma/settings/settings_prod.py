@@ -44,7 +44,7 @@ LOGGING = {
             'level':'WARN',
             'filters': ['require_debug_false'],
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': 'var/log/web.log', #write web-based issues here
+            'filename': '/var/log/web.log', #write web-based issues here
             'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 5,
             'formatter':'standard',
