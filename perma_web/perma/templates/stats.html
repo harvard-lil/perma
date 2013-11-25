@@ -26,7 +26,10 @@
 			<p class="vis-desc">Weekly unique hits to all of Perma.cc</p>
 			<h2>The links</h2>
 			<div id="links-vis"></div>
-			<p class="vis-desc">All links. <span id="link_count"></span> in total.</p>
+			<p class="vis-desc">All links (vested, unvested, dark and non-dark archive). <span id="link_count"></span> in total.</p>
+			<h2>The darchive</h2>
+			<div id="darchive-vis"></div>
+			<p class="vis-desc">All links in the darchive. <span id="darchive_count"></span> in total.</p>
 			<h2>The storage</h2>
 			<div id="storage-vis"></div>
 			<p class="vis-desc">Space used for all archives. <span id="total_size"></span> GB in total.</p>
@@ -481,6 +484,106 @@
 				});
 			}
 			
+			var draw_darchive_vis = function(){
+
+				var format = d3.time.format.iso; // d3.time.format("%d-%b-%y");
+
+				var margin = {top: 20, right: 30, bottom: 30, left: 40},
+				    width = 960 - margin.left - margin.right,
+				    height = 500 - margin.top - margin.bottom;
+
+				var x = d3.time.scale()
+				    .range([0, width]);
+
+				var y = d3.scale.linear()
+				    .range([height, 0]);
+
+				var z = d3.scale.category20();
+
+				var xAxis = d3.svg.axis()
+				    .scale(x)
+				    .orient("bottom")
+				    .ticks(d3.time.weeks);
+
+				var yAxis = d3.svg.axis()
+				    .scale(y)
+				    .orient("left");
+
+				var stack = d3.layout.stack()
+				    .offset("zero")
+				    .values(function(d) { return d.values; })
+				    .x(function(d) { return d.date; })
+				    .y(function(d) { return d.value; });
+
+				var nest = d3.nest()
+				    .key(function(d) { return d.key; });
+
+				var area = d3.svg.area()
+				    .interpolate("cardinal")
+				    .x(function(d) { return x(d.date); })
+				    .y0(function(d) { return y(d.y0); })
+				    .y1(function(d) { return y(d.y0 + d.y); });
+
+				var svg = d3.select("#darchive-vis").append("svg")
+				    .attr("width", width + margin.left + margin.right)
+				    .attr("height", height + margin.top + margin.bottom)
+				  .append("g")
+				    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+				d3.csv("{% url 'service_stats_darchive_links' %}", function(data) {
+				  data.forEach(function(d) {
+				    d.date = format.parse(d.date);
+					d.name= 'some name here';
+				    d.value = +d.value;
+				  });
+
+				  var layers = stack(nest.entries(data));
+
+				  x.domain(d3.extent(data, function(d) { return d.date; }));
+				  y.domain([0, d3.max(data, function(d) { if (d.y0 + d.y <=10){ return 10;} else {return d.y0 + d.y; }})]);
+
+				  svg.selectAll(".layer")
+				      .data(layers)
+				    .enter().append("path")
+				      .attr("class", "layer")
+				      .attr("d", function(d) { return area(d.values); })
+				      .style("fill", function(d, i) { return z(i); });
+				
+				var total_links = 0;
+				
+				svg.selectAll("text")
+                    .data(layers)
+                    .enter()
+                    .append("text")
+			      .datum(function(d) { return {name: d.key, value: d.values[d.values.length - 1]}; })
+					.attr("y", function(d) { return y(d.value.y0 + d.value.y / 2); })
+					.attr("x", 885)
+					.attr("font-size", "13px")
+					.attr("style", "text-anchor: end")
+					.text( function (d) { total_links = total_links + d.value.y;  return d.name + ", " + d.value.y; });
+
+				  // Set the total link count in our text description of hte vis
+				  d3.select('#darchive_count').text(total_links);
+					
+				  svg.append("g")
+				      .attr("class", "x axis")
+				      .attr("transform", "translate(0," + height + ")")
+				      .call(xAxis);
+
+				  svg.append("g")
+				      .attr("class", "y axis")
+				      .call(yAxis)
+				    .append("text")
+				      .attr("transform", "rotate(-90)")
+				      .attr("y", 6)
+				      .attr("dy", ".71em")
+				      .style("text-anchor", "end")
+				      .text("Links");
+				
+				});
+			}
+			
+			
 			
 			var draw_storage_vis = function(){
 				var margin = {top: 20, right: 20, bottom: 30, left: 50},
@@ -555,6 +658,7 @@
 			draw_registrar_vis();
 			draw_hits_vis();
 			draw_links_vis();
+			draw_darchive_vis();
 			draw_storage_vis();
 			
 			</script>

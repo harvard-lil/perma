@@ -154,6 +154,32 @@ def stats_links(request):
 
     return response
     
+def stats_darchive_links(request):
+    """
+    Retrieve nightly stats for darchived links, dump them out here so that our D3 vis can render them, real-purty-like
+
+    #TODO: rework this and its partnering D3 code. Writing CSV is gross. Serialize to JSON and update our D3 method in stats.html
+    """
+
+    # Get the 1000 most recent.
+    # TODO: if we make it more than a 1000 days, implement some better interface.
+    stats = Stat.objects.only('creation_timestamp', 'darchive_takedown_count', 'darchive_robots_count')[:1000]
+
+    response = HttpResponse()
+    response['Content-Disposition'] = 'attachment; filename="data.csv"'
+
+    headers = ['key', 'value', 'date']
+
+    writer = csv.writer(response)
+    writer.writerow(headers)
+
+    for stat in stats:
+        writer.writerow(['Darchive due to takedown', stat.darchive_takedown_count, stat.creation_timestamp])
+        writer.writerow(['Darchive due to robots.txt', stat.darchive_robots_count, stat.creation_timestamp])
+
+
+    return response
+    
     
 def stats_storage(request):
     """
