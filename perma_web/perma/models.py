@@ -1,18 +1,12 @@
-from datetime import datetime
 import logging
 import random
 import re
 
-from django.contrib.auth.models import User, Permission, Group
-from django.db.models.signals import post_syncdb
-from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import Group, BaseUserManager, AbstractBaseUser
 from django.conf import settings
 from django.db import models
-from django.db.models.signals import post_save
-from django.contrib.auth.models import User
-from django.contrib.auth.models import (
-    BaseUserManager, AbstractBaseUser
-)
+from django.utils.text import slugify
+from mptt.models import MPTTModel, TreeForeignKey
 
 from perma.utils import base
 
@@ -146,6 +140,32 @@ class LinkUser(AbstractBaseUser):
         else:
             return self.groups.filter(name=group).exists()
 
+class Folder(MPTTModel):
+    name = models.CharField(max_length=255, null=False, blank=False)
+    slug = models.CharField(max_length=255, null=False, blank=False)
+    parent = TreeForeignKey('self', null=True, blank=True, related_name='children')
+    creation_timestamp = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='folders_created',)
+
+    def save(self, *args, **kwargs):
+        """ Make sure slug is set. """
+        if self.name and not self.slug:
+            self.slug = slugify(self.name)
+            # append number if slug already exists
+            if Folder.objects.filter(created_by=self.created_by, slug=self.slug).exists():
+                i = 1
+                while Folder.objects.filter(created_by=self.created_by, slug=self.slug+"-%s" % i).exists():
+                    i += 1
+                self.slug += "-%s" % i
+
+        return super(Folder, self).save(*args, **kwargs)
+
+    class Meta:
+        ordering = ['name']
+
+    def is_empty(self):
+        return not self.children.exists() and not self.links.exists()
+
 class Link(models.Model):
     """
     This is the core of the Perma link.
@@ -161,6 +181,7 @@ class Link(models.Model):
     vested = models.BooleanField(default=False)
     vested_by_editor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='vested_by_editor')
     vested_timestamp = models.DateTimeField(null=True, blank=True)
+    folders = models.ManyToManyField(Folder, related_name='links', blank=True, null=True)
 
     def save(self, *args, **kwargs):
         """
@@ -168,7 +189,7 @@ class Link(models.Model):
         32**8, and convert that to base32 (like base64, but with all caps and without the confusing I,1,O,0 characters)
         so that our URL is short(ish).
         
-        One exceptionm - we want to use up our [non-four alphabet chars-anything] ids first. So, avoid things like XFFC-9VS7
+        One exception - we want to use up our [non-four alphabet chars-anything] ids first. So, avoid things like XFFC-9VS7
         
         """
         if not self.pk:
@@ -212,6 +233,18 @@ class Link(models.Model):
 
         # stick together parts with '-'
         return "-".join(reversed(guid_parts)).upper()
+
+    def move_to_folder_for_user(self, folder, user):
+        """
+            Move this link to the given folder for the given user.
+            If folder is None, link is moved to root (no folder).
+        """
+        # remove this link from any folders it's in for this user
+        self.folders.remove(*self.folders.filter(created_by=user))
+        # add it back to the given folder
+        if folder:
+            self.folders.add(folder)
+
 
 class Asset(models.Model):
     """

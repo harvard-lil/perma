@@ -1,3 +1,4 @@
+import json
 import random, string, smtplib, logging
 from email.mime.text import MIMEText
 
@@ -7,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.sites.models import get_current_site
 from django.utils.http import is_safe_url
-from django.http import  HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.template import RequestContext
 from django.template.response import TemplateResponse
 from django.shortcuts import render_to_response, get_object_or_404, resolve_url
@@ -18,7 +19,7 @@ from django.contrib.auth.models import Group
 from ratelimit.decorators import ratelimit
 
 from perma.forms import user_reg_form, registrar_form, vesting_manager_form_edit, vesting_manager_w_group_form_edit, vesting_member_form_edit, vesting_member_w_group_form_edit, registrar_member_form_edit, user_form_self_edit, user_form_edit, set_password_form, create_user_form, create_user_form_w_registrar, vesting_org_w_registrar_form, create_user_form_w_vesting_org, vesting_member_w_vesting_org_form_edit, vesting_org_form
-from perma.models import Registrar, Link, LinkUser, VestingOrg
+from perma.models import Registrar, Link, LinkUser, VestingOrg, Folder
 from perma.utils import require_group
 
 logger = logging.getLogger(__name__)
@@ -526,10 +527,87 @@ def reactive_user_in_group(request, user_id, group_name):
 
 
 @login_required
-def created_links(request):
+def created_links(request, path):
     """
     Anyone with an account can view the linky links they've created
     """
+    return link_browser(request, path,
+                        link_filter={'created_by':request.user},
+                        this_page='created_links',
+                        verb='created')
+
+
+@require_group(['registrar_member', 'registry_member', 'vesting_manager', 'vesting_member'])
+def vested_links(request, path):
+    """
+    Linky admins and registrar members and vesting members can vest links
+    """
+    return link_browser(request, path,
+                        link_filter={'vested_by_editor': request.user},
+                        this_page='vested_links',
+                        verb='vested')
+
+
+def link_browser(request, path, link_filter, this_page, verb):
+    """ Display a set of links with the given filter (created by or vested by user). """
+
+    # find current folder based on path
+    current_folder = None
+    folder_breadcrumbs = []
+    if path:
+        path = path.strip("/")
+        if path:
+            # get current folder
+            folder_slugs = path.split("/")
+            current_folder = get_object_or_404(Folder,slug=folder_slugs[-1],created_by=request.user)
+
+            # check ancestor slugs and generate breadcrumbs
+            ancestors = current_folder.get_ancestors()
+            for i, ancestor in enumerate(ancestors):
+                if folder_slugs[i] != ancestor.slug:
+                    raise Http404
+                folder_breadcrumbs.append([ancestor, u"/".join(folder_slugs[:i+1])])
+
+    # make sure path has leading and trailing slashes, or is just one slash if empty
+    path = u"/%s/" % path if path else "/"
+
+    # handle forms
+    if request.POST:
+        if request.is_ajax():
+            posted_data = json.loads(request.body)
+
+            # move link
+            if posted_data['action'] == 'move_items':
+                for item in posted_data['items']:
+                    if item['type'] == 'link':
+                        link = get_object_or_404(Link, pk=item['id'], **link_filter)
+                        link.move_to_folder_for_user(current_folder, request.user)
+                    elif item['type'] == 'folder':
+                        folder = get_object_or_404(Folder, pk=item['id'], created_by=request.user)
+                        folder.move_to(current_folder)
+                        folder.save()
+                return HttpResponse(json.dumps({'success': 1}), content_type="application/json")
+
+            # rename folder
+            elif posted_data['action'] == 'rename_folder':
+                current_folder.name = posted_data['name']
+                current_folder.save()
+                return HttpResponse(json.dumps({'success': 1}), content_type="application/json")
+
+            # delete folder
+            elif posted_data['action'] == 'delete_folder':
+                if current_folder.is_empty():
+                    current_folder.delete()
+                    out = {'success':1}
+                else:
+                    out = {'error':"Folders can only be deleted if they are empty."}
+                return HttpResponse(json.dumps(out), content_type="application/json")
+
+        # new folder
+        elif request.POST.get('new_folder_submit', None):
+            new_folder_name = request.POST.get('new_folder_name', None)
+            if new_folder_name:
+                Folder(name=new_folder_name, created_by=request.user, parent=current_folder).save()
 
     DEFAULT_SORT = '-creation_timestamp'
 
@@ -540,67 +618,33 @@ def created_links(request):
     if page < 1:
         page = 1
 
-    linky_links = Link.objects.filter(created_by=request.user).order_by(sort)
-    total_created = len(linky_links)
+    if current_folder:
+        linky_links = Link.objects.filter(folders=current_folder, **link_filter)
+    else:
+        linky_links = Link.objects.filter(**link_filter).exclude(folders__created_by=request.user)
+    linky_links = linky_links.order_by(sort)
 
     paginator = Paginator(linky_links, 10)
     linky_links = paginator.page(page)
 
-    for linky_link in linky_links:
-        #linky_link.id =  base.convert(linky_link.id, base.BASE10, base.BASE58)
-        if len(linky_link.submitted_title) > 50:
-          linky_link.submitted_title = linky_link.submitted_title[:50] + '...'
-        if len(linky_link.submitted_url) > 79:
-          linky_link.submitted_url = linky_link.submitted_url[:70] + '...'
+    subfolders = Folder.objects.filter(created_by=request.user, parent=current_folder)
+    base_url = reverse('user_management_'+this_page)
 
-    context = {'user': request.user, 'linky_links': linky_links, 
-               'total_created': total_created, sort : sort, 'this_page': 'created_links'}
+    context = {'user': request.user, 'linky_links': linky_links,
+               'sort': sort, 'this_page': this_page, 'verb': verb,
+               'subfolders':subfolders, 'path':path, 'folder_breadcrumbs':folder_breadcrumbs,
+               'current_folder':current_folder,
+               'base_url':base_url}
 
     context = RequestContext(request, context)
     
     return render_to_response('user_management/created-links.html', context)
 
 
-@require_group(['registrar_member', 'registry_member', 'vesting_manager', 'vesting_member'])
-def vested_links(request):
-    """
-    Linky admins and registrar members and vesting members can vest link links
-    """
-    
-    DEFAULT_SORT = '-creation_timestamp'
-
-    sort = request.GET.get('sort', DEFAULT_SORT)
-    if sort not in valid_link_sorts:
-        sort = DEFAULT_SORT
-    page = request.GET.get('page', 1)
-    if page < 1:
-        page = 1
-
-    linky_links = Link.objects.filter(vested_by_editor=request.user).order_by(sort)
-    total_vested = len(linky_links)
-    
-    paginator = Paginator(linky_links, 10)
-    linky_links = paginator.page(page)
-
-    for linky_link in linky_links:
-        #linky_link.id =  base.convert(linky_link.id, base.BASE10, base.BASE58)
-        if len(linky_link.submitted_title) > 50:
-          linky_link.submitted_title = linky_link.submitted_title[:50] + '...'
-        if len(linky_link.submitted_url) > 79:
-          linky_link.submitted_url = linky_link.submitted_url[:70] + '...'
-
-    context = {'user': request.user, 'linky_links': linky_links, 
-               'total_vested': total_vested, 'this_page': 'vested_links'}
-
-    context = RequestContext(request, context)
-    
-    return render_to_response('user_management/vested-links.html', context)
-
-
 @login_required
 def manage_account(request):
     """
-    Account mangement stuff. Change password, change email, ...
+    Account management stuff. Change password, change email, ...
     """
 
     context = {'user': request.user,
