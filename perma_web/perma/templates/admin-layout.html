@@ -2,55 +2,12 @@
 {% load startswith has_group %}
 {% block row %}
 
-<!-- TODO: dashboard blurb and accompanying JS? -->
-
 <div id="dashboard-container">
-    {% comment %}
-    XXX do we need bootstrap tabs here, or just ordinary <li>s?
-    <ul class="nav nav-pills nav-stacked" id="dashboard-tabs">
-        <li class="active"><a href="#archive" data-toggle="tab" id="dashboard-add">Add a Link</a></li>
-        <li><a href="#library" data-toggle="tab" id="dashboard-library">Library</a></li>
-        <li><a href="#batch-convert" data-toggle="tab" id="dashboard-batch-convert">Batch Convert</a></li>
-        <li><a href="#export" data-toggle="tab" id="dashboard-export">Export</a></li>
-        <li><a href="#custom-domain" data-toggle="tab" id="dashboard-custom-domain">Custom Domain</a></li>
-        <li><a href="#settings" data-toggle="tab" id="dashboard-settings">Settings</a></li>
-    </ul>
-    <div class="tab-content">
-        <div class="tab-pane active" id="archive">
-            <div class="dashboard-add-link">
-                <!-- FIXME add link form -->
-            </div><!--/.dashboard-add-link-->
-        </div><!--/#archive-->
-        <div class="tab-pane" id="library">
-            <!-- FIXME add library listing -->
-        </div><!--/#library-->
-        <div class="tab-pane" id="settings">
-            settings
-            <!-- FIXME add settings -->
-        </div><!--/#settings-->
-        <div class="tab-pane" id="batch-convert">
-            <!-- FIXME add batch convert -->
-        </div><!--/#batch-convert-->
-        <div class="tab-pane" id="export">
-            <!-- FIXME add export -->
-        </div><!--/#export-->
-        <div class="tab-pane" id="custom-domain">
-            <!-- FIXME add domain instructions -->
-        </div><!--/#custom-domain-->
-    </div><!--/.tab-content-->
-    {% endcomment %}
+
 
     <!-- Dashboard tabs -->
-    <!-- FIXME set active tab based on current page -->
-    <!-- FIXME add correct urls below -->
-    <!-- FIXME icons for all menu items -->
     <ul class="nav nav-pills nav-stacked" id="dashboard-tabs">
 
-        <!-- Add link -->
-        <!-- TODO view for adding a link from the dashboard -->
-        <!-- <li><a href="{% url 'landing' %}" id="dashboard-add">Add a Link</a></li> -->
-
-        <!-- Library -->
         <li{% if this_page == 'create_link' %} class="active"{% endif %}><a href="{% url 'user_management_create_link' %}" id="dashboard-add">Create</a></li>
         
         <li{% if this_page == 'created_links' %} class="active"{% endif %}><a href="{% url 'user_management_created_links' %}" id="dashboard-library">Links</a></li>
@@ -113,50 +70,6 @@
     </div><!--/.tab-content-->
 
 </div><!--/#dashboard-container-->
-
-
-{% comment %}
-
-<div class="row-fluid white-box">
-	<div class="span3">
-    <ul class="nav nav-list manage-nav">
-      {% if user.is_authenticated %}
-      {% block manage-created-links %}<li><a href="{% url 'user_management_created_links' %}">Created links</a></li>{% endblock %}
-      {% endif %}
-      {% if user|has_group:'registrar_member,registry_member,vesting_member' %}
-      {% block manage-nav-links %}<li><a href="{% url 'user_management_vested_links' %}">Vested links</a></li>{% endblock %}
-      {% endif %}
-      {% if user|has_group:'registrar_member,registry_member' %}
-      <li><h3><small>Manage users</small><h3></li>
-      {% endif %}
-      {% if user|has_group:'registry_member' %}
-      {% block manage-nav-registrar %}<li><a href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>{% endblock %}
-      {% block manage-nav-registry %}<li><a href="{% url 'user_management_manage_registrar_member' %}">Registrar users</a></li>{% endblock %}
-      {% endif %}
-      
-      {% if user|has_group:'registrar_member,registry_member' %}
-      {% block manage-nav-journal %}<li><a href="{% url 'user_management_manage_vesting_member' %}">Vesting users</a></li>{% endblock %}
-      {% endif %}
-          
-      {% if user|has_group:'vesting_member' %}
-      {% block manage-nav-sponsor %}<li><a href="{% url 'user_management_sponsoring_library' %}">Sponsoring library</a></li>{% endblock %}
-      {% endif %}
-          
-      {% if user|has_group:'vesting_member,registrar_member,registry_member' %}
-      <!--<li class="divider"></li>-->
-      {% endif %}
-          
-      {% if user.is_authenticated %}
-      <li class="divider"></li>
-      {% block manage-nav-settings %}<li><a href="{% url 'user_management_manage_account' %}">Account settings</a></li>{% endblock %}
-      {% endif %}
-    </ul>
-
-  </div> <!--span-->
-  <div class="span9">
-  </div>
-
-{% endcomment %}
 
 </div> <!--row-->
 {% endblock %}

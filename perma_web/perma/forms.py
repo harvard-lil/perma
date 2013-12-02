@@ -435,6 +435,48 @@ class vesting_member_w_vesting_org_form_edit(forms.ModelForm):
             user.save()
 
         return user
+        
+class user_add_registrar_form(forms.ModelForm):
+    """
+    stripped down user reg form
+    This is mostly a django.contrib.auth.forms.UserCreationForm
+
+    This is stripped down even further to match out editing needs
+    """
+
+    class Meta:
+        model = LinkUser
+        fields = ("registrar",)         
+
+    registrar = forms.ModelChoiceField(queryset=Registrar.objects.all().order_by('name'), empty_label=None)
+    
+    def save(self, commit=True):
+        user = super(user_add_registrar_form, self).save(commit=False)
+
+        if commit:
+            user.save()
+
+        return user
+        
+        
+class user_add_vesting_org_form(forms.ModelForm):
+    """
+    add a vesting org when a regular user is promoted to a vesting user or vesting manager
+    """
+
+    class Meta:
+        model = LinkUser
+        fields = ("vesting_org",)         
+
+    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
+    
+    def save(self, commit=True):
+        user = super(user_add_vesting_org_form, self).save(commit=False)
+
+        if commit:
+            user.save()
+
+        return user
 
 
 class user_reg_form(forms.ModelForm):

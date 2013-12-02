@@ -17,7 +17,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth.models import Group
 from ratelimit.decorators import ratelimit
 
-from perma.forms import user_reg_form, registrar_form, vesting_manager_form_edit, vesting_manager_w_group_form_edit, vesting_member_form_edit, vesting_member_w_group_form_edit, registrar_member_form_edit, user_form_self_edit, user_form_edit, set_password_form, create_user_form, create_user_form_w_registrar, vesting_org_w_registrar_form, create_user_form_w_vesting_org, vesting_member_w_vesting_org_form_edit, vesting_org_form
+from perma.forms import user_reg_form, registrar_form, vesting_manager_form_edit, vesting_manager_w_group_form_edit, vesting_member_form_edit, vesting_member_w_group_form_edit, registrar_member_form_edit, user_form_self_edit, user_form_edit, set_password_form, create_user_form, create_user_form_w_registrar, vesting_org_w_registrar_form, create_user_form_w_vesting_org, vesting_member_w_vesting_org_form_edit, vesting_org_form, user_add_registrar_form, user_add_vesting_org_form
 from perma.models import Registrar, Link, LinkUser, VestingOrg
 from perma.utils import require_group
 
@@ -449,7 +449,13 @@ def edit_user_in_group(request, user_id, group_name):
     if request.method == 'POST':
 
         if form.is_valid():
-            form.save()
+            form.save()    
+            
+            if group_name == 'user' and group_name != form.cleaned_data['group'].name:
+                if form.cleaned_data['group'].name == 'registrar_member':
+                    return HttpResponseRedirect(reverse('user_management_user_add_registrar', kwargs={'user_id' : user_id}))
+                elif form.cleaned_data['group'].name in ('vesting_member', 'vesting_manager'):
+                    return HttpResponseRedirect(reverse('user_management_user_add_vesting_org', kwargs={'user_id' : user_id}))
 
             return HttpResponseRedirect(reverse(context['user_list_url']))
 
@@ -458,8 +464,7 @@ def edit_user_in_group(request, user_id, group_name):
     context = RequestContext(request, context)
 
     return render_to_response('user_management/manage_single_user.html', context)
-
-
+    
 
 def delete_user_in_group(request, user_id, group_name):
     """
@@ -523,6 +528,58 @@ def reactive_user_in_group(request, user_id, group_name):
 
     return render_to_response('user_management/user_reactivate_confirm.html', context)
 
+
+@require_group(['registry_member'])
+def user_add_registrar(request, user_id):
+    target_user = get_object_or_404(LinkUser, id=user_id)
+    group_name = target_user.groups.all()[0].name
+    
+    context = {'user': request.user, 'this_page': 'users_{group_name}s'.format(group_name=group_name)}
+    
+    if request.method == 'POST':
+        form = user_add_registrar_form(request.POST, prefix = "a")
+
+        if form.is_valid():
+            target_user.registrar = form.cleaned_data['registrar']
+            target_user.save()
+
+            return HttpResponseRedirect(reverse('user_management_manage_{group_name}'.format(group_name=group_name)))
+
+    else:
+        form = user_add_registrar_form(prefix = "a")
+        context.update({'form': form,})
+    
+    context = RequestContext(request, context)
+
+    return render_to_response('user_management/user_add_registrar.html', context)
+    
+    
+@require_group(['registry_member'])
+def user_add_vesting_org(request, user_id):
+    target_user = get_object_or_404(LinkUser, id=user_id)
+    group_name = target_user.groups.all()[0].name
+    
+    context = {'user': request.user, 'this_page': 'users_{group_name}s'.format(group_name=group_name)}
+    
+    if request.method == 'POST':
+        form = user_add_vesting_org_form(request.POST, prefix = "a")
+
+        if form.is_valid():
+            target_user.vesting_org = form.cleaned_data['vesting_org']
+            target_vesting_org = VestingOrg.objects.get(name=target_user.vesting_org)
+            target_user.registrar = target_vesting_org.registrar
+            target_user.save()
+
+            return HttpResponseRedirect(reverse('user_management_manage_{group_name}'.format(group_name=group_name)))
+
+    else:
+        form = user_add_vesting_org_form(prefix = "a")
+        context.update({'form': form,})
+    
+    context = RequestContext(request, context)
+
+    return render_to_response('user_management/user_add_vesting_org.html', context)
+    
 
 
 @login_required
