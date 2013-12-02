@@ -261,6 +261,8 @@ class Stat(models.Model):
     # Our link counts
     unvested_count = models.IntegerField(default=1)
     vested_count = models.IntegerField(default=1)
+    darchive_takedown_count = models.IntegerField(default=0)
+    darchive_robots_count = models.IntegerField(default=0)    
 
     # Our google analytics counts
     global_uniques = models.IntegerField(default=1)

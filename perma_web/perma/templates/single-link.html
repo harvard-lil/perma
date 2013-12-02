@@ -1,5 +1,5 @@
 {% extends "layout-archive.html" %}
-{% load file_exists  truncatesmart diff has_group %}
+{% load file_exists  truncatesmart diff has_group is_darchive %}
 {% block title %} | {{linky.submitted_title}}{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
@@ -32,20 +32,20 @@
 				</div><!--end span 5 -->
 				
 				<div class="span1">
-				 {% if user.is_authenticated and not linky.vested and not linky.dark_archived %}
-					  {% if user|has_group:'registry_member,registrar_member,vesting_member,vesting_manager' %}
+				 {% if user.is_authenticated and not linky|is_darchive %}
+					  {% if user|has_group:'registry_member,registrar_member,vesting_member,vesting_manager' and not linky.vested %}
 						<form action="" method="post">
 						  {% csrf_token %}
-						  <input type="submit" value="vest" name="vet" class="btn">
+						  <input type="submit" value="vest" name="vet" class="btn vest">
 						</form>
 					  {% endif %}
 					  {% if user|has_group:'registry_member' %}
-					    <a class="btn" href="{% url 'dark_archive_link' linky.guid %}">archive</a>
+					    <a class="btn vest" href="{% url 'dark_archive_link' linky.guid %}">dark archive</a>
 					  {% endif %}
 				{% endif %}
 				</div>
 				
-				{% if not linky.dark_archived or user|has_group:'registry_member,registrar_member' %}
+				{% if not linky|is_darchive or user|has_group:'registry_member,registrar_member' %}
 			    <div class="span2 negative-margin">
 			    	<ul class="view-type">
 		                <li><a {% if serve_type == 'live' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=live">Live site view</a></li>
@@ -105,9 +105,17 @@
 {% block content %}
 <div class="row-fluid">
     {% if linky.dark_archived and user|has_group:'registry_member,registrar_member' %}
-		<h2>THIS LINK IS DARK ARCHIVED</h2>
+    	<div class="span6 offset3 yahowza-small">
+    		<img class="dark-bulb-small" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
+			<h2>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with a takedown notice.</h2>
+		</div>
+	{% elif linky.dark_archived_robots_txt_blocked and user|has_group:'registry_member,registrar_member' %}
+    	<div class="span6 offset3 yahowza-small">
+    		<img class="dark-bulb-small" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
+			<h2>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with the site's robots.txt.</h2>
+		</div>
 	{% endif %}
-    {% if not linky.dark_archived or user|has_group:'registry_member,registrar_member' %}
+    {% if not linky|is_darchive or user|has_group:'registry_member,registrar_member' %}
 	<div class="linky-view center">
   		<div class="watermark center">
 
@@ -148,7 +156,18 @@
 		</div><!--end watermark-->
    	</div><!--end linky-view-->
    	{% else %}
-   	    <p>This link has been dark archived.  Contact a librarian to get a copy.</p>
+   		<div class="row-fluid">
+   			<div class="span6 offset3 yahowza">
+				<img class="dark-bulb" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
+				 <h1 class="cyan">Apologies.</h1><h2>This link has been <span class="dark">dark archived</span>.<br/>Contact a librarian to get a copy.</h2>
+				<br/>
+				{% if linky.dark_archived %}
+					<p>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with a takedown notice.</p>
+				{% elif linky.dark_archived_robots_txt_blocked %}
+					<p>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with the site's robots.txt.</p>
+				{% endif %}
+   	    	</div>
+   	    </div>
    	{% endif %}
 </div><!--row-->
 

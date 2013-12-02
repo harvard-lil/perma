@@ -278,8 +278,8 @@ def get_robots_txt(url, link_guid):
 @celery.task
 def get_nigthly_stats():
     """
-    A periodic task (probably running nightly) to get counts of user types
-    and jam them into a DB for our stats view
+    A periodic task (probably running nightly) to get counts of user types, disk usage.
+    Write them into a DB for our stats view
     """
     
     # Five types user accounts
@@ -299,16 +299,30 @@ def get_nigthly_stats():
     total_count_unvested_links = Link.objects.filter(vested=False).count()
     total_count_vested_links = Link.objects.filter(vested=True).count()
     
-    # Size count
-    # TODO: we probably shouldn't be doing this every night. since we split our dirs based on
-    # dates, we can obviously traverse just the day's dir and add it to the previous number
-    f = settings.GENERATED_ASSETS_STORAGE
+    # Get things in the darchive
+    total_count_darchive_takedown_links = Link.objects.filter(dark_archived=True).count()
+    total_count_darchive_robots_links = Link.objects.filter(dark_archived_robots_txt_blocked=True).count()
     
-    total_disk_usage = 0
-    for root, dirs, files in os.walk(GENERATED_ASSETS_STORAGE):
-        total_disk_usage = total_disk_usage + sum(os.path.getsize(os.path.join(root, name)) for name in files)
+    # Get the path of yesterday's file storage tree
+    now = datetime.datetime.now() - datetime.timedelta(days=1)
+    time_tuple = now.timetuple()
+    path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday)]
+    disk_path = settings.GENERATED_ASSETS_STORAGE + '/' + os.path.sep.join(path_elements)
     
-    # We've now gathered all of our data. Let's write it to the model.
+    # Get disk usage total
+    # If we start deleting unvested archives, we'll have to do some periodic corrrections here (this is only additive)
+    # Get the sum of the diskspace of all files in yesterday's tree
+    latest_day_usage = 0
+    for root, dirs, files in os.walk(disk_path):
+        latest_day_usage = latest_day_usage + sum(os.path.getsize(os.path.join(root, name)) for name in files)
+        
+    # Get the total disk usage (that we calculated yesterday)
+    stat = Stat.objects.all().order_by('-creation_timestamp')[:1]
+    
+    # Sum total usage with yesterday's usage
+    new_total_disk_usage = stat[0].disk_usage + latest_day_usage
+    
+    # We've now gathered all of our data. Let's write it to the model
     stat = Stat(
         regular_user_count=total_count_regular_users,
         vesting_member_count=total_count_vesting_members,
@@ -318,8 +332,10 @@ def get_nigthly_stats():
         registrar_count=total_count_registrars,
         vesting_org_count=total_vesting_orgs,
         unvested_count=total_count_unvested_links,
+        darchive_takedown_count = total_count_darchive_takedown_links,
+        darchive_robots_count = total_count_darchive_robots_links,
         vested_count=total_count_vested_links,
-        disk_usage = total_disk_usage,
+        disk_usage = new_total_disk_usage,
         )
 
     stat.save()
