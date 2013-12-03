@@ -7,6 +7,16 @@
 
 {% block content %}
 
+    {% comment %}
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% endcomment %}
+
 	<h3>Existing {{ pretty_group_name_plural|lower }} <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
 	
 	{% if added_user %}

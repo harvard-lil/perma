@@ -15,6 +15,7 @@ from django.core.urlresolvers import reverse
 from django.core.context_processors import csrf
 from django.core.paginator import Paginator
 from django.contrib.auth.models import Group
+from django.contrib import messages
 from ratelimit.decorators import ratelimit
 
 from perma.forms import user_reg_form, registrar_form, vesting_manager_form_edit, vesting_manager_w_group_form_edit, vesting_member_form_edit, vesting_member_w_group_form_edit, registrar_member_form_edit, user_form_self_edit, user_form_edit, set_password_form, create_user_form, create_user_form_w_registrar, vesting_org_w_registrar_form, create_user_form_w_vesting_org, vesting_member_w_vesting_org_form_edit, vesting_org_form, user_add_registrar_form, user_add_vesting_org_form
@@ -569,6 +570,7 @@ def user_add_vesting_org(request, user_id):
             target_vesting_org = VestingOrg.objects.get(name=target_user.vesting_org)
             target_user.registrar = target_vesting_org.registrar
             target_user.save()
+            messages.add_message(request, messages.INFO, 'Vesting org added')
 
             return HttpResponseRedirect(reverse('user_management_manage_{group_name}'.format(group_name=group_name)))
 

@@ -102,6 +102,7 @@ TEMPLATE_DIRS = (
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     "perma.analytics.analytics",
+    'django.contrib.messages.context_processors.messages',
 )
 
 INSTALLED_APPS = (
@@ -128,6 +129,8 @@ LOGIN_URL = '/login'
 
 # Broker used by celery
 BROKER_URL = 'amqp://guest:guest@localhost:5672/'
+
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 # When getting the source with wget, let's set some details
 ARCHIVE_QUOTA = '20m' # Maximum filesize
