@@ -1,4 +1,4 @@
-import os, sys, subprocess, urllib, glob, shutil, urlparse, simplejson, datetime, smhasher, logging, robotparser
+import os, sys, subprocess, urllib, glob, shutil, urlparse, simplejson, datetime, smhasher, logging, robotparser, re
 from djcelery import celery
 import requests
 from django.conf import settings
@@ -261,17 +261,23 @@ def get_robots_txt(url, link_guid):
     parsed_url = urlparse.urlparse(url)
     robots_text_location = parsed_url.scheme + '://' + parsed_url.netloc + '/robots.txt'
     
-    # Get the robots.txt rule
-    rp = robotparser.RobotFileParser()
-    rp.set_url(robots_text_location)
-    rp.read()
-    perma_bot_allowed = rp.can_fetch('PermaBot', url)
+    # We only want to respect robots.txt if PermaBot is specifically asked not crawl (we're not a crawler)
+    response = requests.get(robots_text_location)
+    
+    # We found PermaBot specifically mentioned
+    if re.search('PermaBot', response.text) is not None:
+        # Get the robots.txt ruleset
+        # TODO: use reppy or something else here. it's dumb that we're
+        # getting robots.txt twice
+        rp = robotparser.RobotFileParser()
+        rp.set_url(robots_text_location)
+        rp.read()
 
-    # If we're not allowed, set a flag in the model
-    if not perma_bot_allowed:
-        link = Link.objects.get(guid=link_guid)
-        link.dark_archived_robots_txt_blocked = True
-        link.save()
+        # If we're not allowed, set a flag in the model
+        if not rp.can_fetch('PermaBot', url):
+            link = Link.objects.get(guid=link_guid)
+            link.dark_archived_robots_txt_blocked = True
+            link.save()
 
 
     
