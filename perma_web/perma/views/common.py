@@ -45,6 +45,16 @@ def about(request):
     context = RequestContext(request, {'user': request.user,})
 
     return render_to_response('about.html', context)
+    
+    
+def additional_resources(request):
+    """
+    The additional resources page
+    """
+
+    context = RequestContext(request, {'user': request.user,})
+
+    return render_to_response('additional-resources.html', context)
 
 
 def faq(request):
