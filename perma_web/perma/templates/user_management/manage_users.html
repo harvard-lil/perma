@@ -7,17 +7,13 @@
 
 {% block content %}
 
-    {% comment %}
-    {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-    {% endcomment %}
-
 	<h3>Existing {{ pretty_group_name_plural|lower }} <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
+	
+	{% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success alert-block">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
+        {% endfor %}
+    {% endif %}
 	
 	{% if added_user %}
     <div class="alert alert-success alert-block"><h4>Account created!</h4> <strong>{{ added_user }}</strong> will receive an email with instructions on how to activate the account and create a password.</div>

@@ -453,6 +453,7 @@ def edit_user_in_group(request, user_id, group_name):
             form.save()    
             
             if group_name == 'user' and group_name != form.cleaned_data['group'].name:
+                request.session['old_group'] = group_name
                 if form.cleaned_data['group'].name == 'registrar_member':
                     return HttpResponseRedirect(reverse('user_management_user_add_registrar', kwargs={'user_id' : user_id}))
                 elif form.cleaned_data['group'].name in ('vesting_member', 'vesting_manager'):
@@ -534,8 +535,9 @@ def reactive_user_in_group(request, user_id, group_name):
 def user_add_registrar(request, user_id):
     target_user = get_object_or_404(LinkUser, id=user_id)
     group_name = target_user.groups.all()[0].name
+    old_group = request.session.get('old_group','')
     
-    context = {'user': request.user, 'this_page': 'users_{group_name}s'.format(group_name=group_name)}
+    context = {'user': request.user, 'this_page': 'users_{old_group}s'.format(old_group=old_group)}
     
     if request.method == 'POST':
         form = user_add_registrar_form(request.POST, prefix = "a")
@@ -543,8 +545,9 @@ def user_add_registrar(request, user_id):
         if form.is_valid():
             target_user.registrar = form.cleaned_data['registrar']
             target_user.save()
+            messages.add_message(request, messages.INFO, '<strong>%s</strong> is now a <strong>%s</strong>' % (target_user.email, group_name.replace('_', ' ').capitalize()), extra_tags='safe')
 
-            return HttpResponseRedirect(reverse('user_management_manage_{group_name}'.format(group_name=group_name)))
+            return HttpResponseRedirect(reverse('user_management_manage_{old_group}'.format(old_group=old_group)))
 
     else:
         form = user_add_registrar_form(prefix = "a")
@@ -559,8 +562,9 @@ def user_add_registrar(request, user_id):
 def user_add_vesting_org(request, user_id):
     target_user = get_object_or_404(LinkUser, id=user_id)
     group_name = target_user.groups.all()[0].name
+    old_group = request.session.get('old_group','')
     
-    context = {'user': request.user, 'this_page': 'users_{group_name}s'.format(group_name=group_name)}
+    context = {'user': request.user, 'this_page': 'users_{old_group}s'.format(old_group=old_group)}
     
     if request.method == 'POST':
         form = user_add_vesting_org_form(request.POST, prefix = "a")
@@ -570,9 +574,9 @@ def user_add_vesting_org(request, user_id):
             target_vesting_org = VestingOrg.objects.get(name=target_user.vesting_org)
             target_user.registrar = target_vesting_org.registrar
             target_user.save()
-            messages.add_message(request, messages.INFO, 'Vesting org added')
+            messages.add_message(request, messages.INFO, '<strong>%s</strong> is now a <strong>%s</strong>' % (target_user.email, group_name.replace('_', ' ').capitalize()), extra_tags='safe')
 
-            return HttpResponseRedirect(reverse('user_management_manage_{group_name}'.format(group_name=group_name)))
+            return HttpResponseRedirect(reverse('user_management_manage_{old_group}'.format(old_group=old_group)))
 
     else:
         form = user_add_vesting_org_form(prefix = "a")

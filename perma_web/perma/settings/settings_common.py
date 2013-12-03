@@ -130,7 +130,7 @@ LOGIN_URL = '/login'
 # Broker used by celery
 BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 
-MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
 
 # When getting the source with wget, let's set some details
 ARCHIVE_QUOTA = '20m' # Maximum filesize
