@@ -3,12 +3,12 @@
 {% block content %}
 
 <div class="container">
-{% if is_confirm %}
-  <p class="alert alert-success account-confirmed-message">Your account is activated.  Log in below.</p>
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-success account-confirmed-messag">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
+    {% endfor %}
 {% endif %}
-{% if is_resent %}
-  <p class="alert alert-success account-confirmed-message">Check your email for activation instructions.</p>
-{% endif %}
+
 <div class="row">
 	<div class="col-sm-12">		
 		<h2>Login</h2>

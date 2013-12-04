@@ -387,10 +387,8 @@ def list_users_in_group(request, group_name):
 
             email_new_user(request, new_user)
 
-            redirect_url = reverse(context['user_list_url'])
-            extra_params = '?added_user=%s' % new_user.email
-            full_redirect_url = '%s%s' % (redirect_url, extra_params)
-            return HttpResponseRedirect(full_redirect_url)
+            messages.add_message(request, messages.INFO, '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % new_user.email, extra_tags='safe')
+            return HttpResponseRedirect(reverse(context['user_list_url']))
 
         else:
             context['add_error'] = True
@@ -732,15 +730,13 @@ def not_active(request):
     """
     Informing a user that their account is not active.
     """
-    email = request.REQUEST.get('email')
+    email = request.session.get('email','')
     if request.method == 'POST':
         target_user = get_object_or_404(LinkUser, email=email)
         email_new_user(request, target_user)
 
-        redirect_url = reverse('user_management_limited_login')
-        extra_params = '?resent=true'
-        full_redirect_url = '%s%s' % (redirect_url, extra_params)
-        return HttpResponseRedirect(full_redirect_url)
+        messages.add_message(request, messages.INFO, 'Check your email for activation instructions.')
+        return HttpResponseRedirect(reverse('user_management_limited_login'))
     else:
         context = {}
         context.update(csrf(request))
@@ -758,8 +754,6 @@ def limited_login(request, template_name='registration/login.html',
     Displays the login form and handles the login action.
     """
     redirect_to = request.REQUEST.get(redirect_field_name, '')
-    is_confirm = request.REQUEST.get('confirmed')
-    is_resent = request.REQUEST.get('resent')
     request.session.set_test_cookie()
 
     if request.method == "POST":
@@ -770,11 +764,9 @@ def limited_login(request, template_name='registration/login.html',
         except LinkUser.DoesNotExist:
           target_user = None
         if target_user and not target_user.is_active:
-          #return HttpResponseRedirect(reverse('user_management_not_active'), request, {'id': target_user.id,})
-          redirect_url = reverse('user_management_not_active')
-          extra_params = '?email=%s' % target_user.email
-          full_redirect_url = '%s%s' % (redirect_url, extra_params)
-          return HttpResponseRedirect(full_redirect_url)
+          request.session['email'] = target_user.email
+          return HttpResponseRedirect(reverse('user_management_not_active'))
+          
         if form.is_valid():
             
             host = request.get_host()
@@ -800,8 +792,6 @@ def limited_login(request, template_name='registration/login.html',
         redirect_field_name: redirect_to,
         'site': current_site,
         'site_name': current_site.name,
-        'is_confirm': is_confirm,
-        'is_resent': is_resent,
     }
     if extra_context is not None:
         context.update(extra_context)
@@ -861,17 +851,18 @@ def register_email_code_confirmation(request, code):
     user = get_object_or_404(LinkUser, confirmation_code=code)
     user.is_active = True
     user.save()
-    redirect_url = reverse('user_management_limited_login')
-    extra_params = '?confirmed=true'
-    full_redirect_url = '%s%s' % (redirect_url, extra_params)
-    return HttpResponseRedirect(full_redirect_url)
+    messages.add_message(request, messages.INFO, 'Your account is activated.  Log in below.')
+    #redirect_url = reverse('user_management_limited_login')
+    #extra_params = '?confirmed=true'
+    #full_redirect_url = '%s%s' % (redirect_url, extra_params)
+    return HttpResponseRedirect(reverse('user_management_limited_login'))
     
 
 def register_email_code_password(request, code):
     """
     Allow system created accounts to create a password.
     """
-    #user = get_or_none(LinkUser, confirmation_code=code)
+    
     try:
       user = LinkUser.objects.get(confirmation_code=code)
     except LinkUser.DoesNotExist:
@@ -884,13 +875,11 @@ def register_email_code_password(request, code):
       if request.method == "POST":
         form = set_password_form(user=user, data=request.POST)
         if form.is_valid():
-          form.save()
-          user.is_active = True
-          user.save()
-          redirect_url = reverse('user_management_limited_login')
-          extra_params = '?confirmed=true'
-          full_redirect_url = '%s%s' % (redirect_url, extra_params)
-          return HttpResponseRedirect(full_redirect_url)
+            form.save()
+            user.is_active = True
+            user.save()
+            messages.add_message(request, messages.INFO, 'Your account is activated.  Log in below.')
+            return HttpResponseRedirect(reverse('user_management_limited_login'))
         else:
           context = {'form': form}
           context = RequestContext(request, context)
