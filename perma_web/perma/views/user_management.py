@@ -16,6 +16,7 @@ from django.core.context_processors import csrf
 from django.core.paginator import Paginator
 from django.contrib.auth.models import Group
 from django.contrib import messages
+from mptt.exceptions import InvalidMove
 from ratelimit.decorators import ratelimit
 
 from perma.forms import user_reg_form, registrar_form, vesting_manager_form_edit, vesting_manager_w_group_form_edit, vesting_member_form_edit, vesting_member_w_group_form_edit, registrar_member_form_edit, user_form_self_edit, user_form_edit, set_password_form, create_user_form, create_user_form_w_registrar, vesting_org_w_registrar_form, create_user_form_w_vesting_org, vesting_member_w_vesting_org_form_edit, vesting_org_form, user_add_registrar_form, user_add_vesting_org_form
@@ -634,23 +635,37 @@ def link_browser(request, path, link_filter, this_page, verb):
 
     # handle forms
     if request.POST:
-        if request.is_ajax():
-            posted_data = json.loads(request.body)
 
-            # move link
-            if posted_data['action'] == 'move_items':
-                for item in posted_data['items']:
-                    if item['type'] == 'link':
-                        link = get_object_or_404(Link, pk=item['id'], **link_filter)
-                        link.move_to_folder_for_user(current_folder, request.user)
-                    elif item['type'] == 'folder':
-                        folder = get_object_or_404(Folder, pk=item['id'], created_by=request.user)
-                        folder.move_to(current_folder)
-                        folder.save()
+        # new folder
+        if 'new_folder_submit' in request.POST:
+            if 'new_folder_name' in request.POST:
+                Folder(name=request.POST['new_folder_name'], created_by=request.user, parent=current_folder).save()
+
+        # move link
+        elif 'move_selected_items_to' in request.POST:
+            if request.POST['move_selected_items_to'] == 'ROOT':
+                target_folder=None
+            else:
+                target_folder = get_object_or_404(Folder, created_by=request.user, pk=request.POST['move_selected_items_to'])
+            for link_id in request.POST.getlist('links'):
+                link = get_object_or_404(Link, pk=link_id, **link_filter)
+                link.move_to_folder_for_user(target_folder, request.user)
+            for folder_id in request.POST.getlist('folders'):
+                folder = get_object_or_404(Folder, pk=folder_id, created_by=request.user)
+                folder.parent=target_folder
+                try:
+                    folder.save()
+                except InvalidMove:
+                    # can't move a folder under itself
+                    continue
+            if request.is_ajax():
                 return HttpResponse(json.dumps({'success': 1}), content_type="application/json")
 
+        elif request.is_ajax():
+            posted_data = json.loads(request.body)
+
             # rename folder
-            elif posted_data['action'] == 'rename_folder':
+            if posted_data['action'] == 'rename_folder':
                 current_folder.name = posted_data['name']
                 current_folder.save()
                 return HttpResponse(json.dumps({'success': 1}), content_type="application/json")
@@ -664,11 +679,6 @@ def link_browser(request, path, link_filter, this_page, verb):
                     out = {'error':"Folders can only be deleted if they are empty."}
                 return HttpResponse(json.dumps(out), content_type="application/json")
 
-        # new folder
-        elif request.POST.get('new_folder_submit', None):
-            new_folder_name = request.POST.get('new_folder_name', None)
-            if new_folder_name:
-                Folder(name=new_folder_name, created_by=request.user, parent=current_folder).save()
 
     DEFAULT_SORT = '-creation_timestamp'
 
@@ -688,13 +698,16 @@ def link_browser(request, path, link_filter, this_page, verb):
     paginator = Paginator(linky_links, 10)
     linky_links = paginator.page(page)
 
-    subfolders = Folder.objects.filter(created_by=request.user, parent=current_folder)
+    subfolders = list(Folder.objects.filter(created_by=request.user, parent=current_folder))
+    all_folders = Folder.objects.filter(created_by=request.user)
     base_url = reverse('user_management_'+this_page)
+    link_count = Link.objects.filter(**link_filter).count()
 
-    context = {'user': request.user, 'linky_links': linky_links,
+    context = {'user': request.user, 'linky_links': linky_links, 'link_count':link_count,
                'sort': sort, 'this_page': this_page, 'verb': verb,
                'subfolders':subfolders, 'path':path, 'folder_breadcrumbs':folder_breadcrumbs,
                'current_folder':current_folder,
+               'all_folders':all_folders,
                'base_url':base_url}
 
     context = RequestContext(request, context)

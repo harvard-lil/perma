@@ -1,4 +1,5 @@
 {% extends "admin-layout.html" %}
+{% load mptt_tags repeat %}
 
 {% block title %} | {{ verb|capfirst }} Perma links{% endblock %}
 
@@ -36,10 +37,10 @@
                 // folder hover tools
                 $('.vested-table tr').on('mouseenter', function () {
                     if(!$(this).find('.rename-folder-form').length){
-                        $(this).find('.tool-block').show();
+                        //$(this).find('.tool-block').show();
                     }
                 }).on('mouseleave', function () {
-                    $(this).find('.tool-block').hide();
+                    //$(this).find('.tool-block').hide();
                 });
 
                 table.on('click', '.folder-row input[name="delete"]', function(){
@@ -73,6 +74,7 @@
                         aTag = td.find('a');
                     aTag.show();
                     aTag.parent().find('.rename-folder-form').remove();
+                    $('.tool-block').prop('style')['display']=''; // let :hover css rule work again
 
                 }).on('click', '.folder-row input[name="rename_folder_save"]', function(){
                     // folder rename - submit
@@ -92,30 +94,41 @@
 
                 });
 
+
+                // move items button
+                function handleCheckboxClick(){
+                    $('#new_folder_container .dropdown-toggle').prop('disabled', table.find('input.checkbox:checked').length==0);
+                }
+                table.on('click', 'input.checkbox', handleCheckboxClick);
+                handleCheckboxClick();
+
                 // draggable
                 table.find('tbody tr').draggable({
                     helper: "clone",
                     start: function(event, ui ){
                         ui.helper.find('.tool-block').hide();
-                    }
+                    },
+                    handle: ''
                 });
                 table.find('.folder-row').droppable({
                     hoverClass: "ui-selected",
                     drop: function(event, ui) {
-                        var items = []; // use an array so we can handle multiselect at some point
+                        var links = [],
+                            folders = []; // use an array so we can handle multiselect at some point
                         if(ui.draggable.hasClass('folder-row')){
-                            items[0] = {type:'folder',id:ui.draggable.attr('folder_id')};
+                            folders.push(ui.draggable.attr('folder_id'));
                         }else{
-                            items[0] = {type:'link',id:ui.draggable.attr('link_id')};
+                            links.push(ui.draggable.attr('link_id'));
                         }
-                        $.post(
-                            $(this).find('a').attr('href'), // subfolder url files were dropped on
-                            JSON.stringify({action:'move_items',items:items}),
-                            function(data){
+                        $.ajax({
+                            type: "POST",
+                            url: '#',
+                            data: {move_selected_items_to:$(this).attr('folder_id'),links:links,folders:folders},
+                            success: function(data){
                                 ui.draggable.remove();
                             },
-                            'json'
-                        );
+                            traditional: true // Django-style array serialization
+                        });
                     }
                 });
             }
@@ -126,39 +139,171 @@
 
         });
     </script>
+    <style>
+        input.checkbox{
+            display:none;
+        }
+        label.icon-check-empty{
+            color:#999;
+        }
+        input.checkbox:checked+label.icon-check-empty:before {
+            content: "\f046"; /* Font Awesome checkbox */
+            color:black;
+        }
+
+        #new_folder_container .dropdown-menu button{
+            width: 100%;
+            background: none;
+            border: none;
+            text-align: left;
+        }
+        #new_folder_container .dropdown-menu button:hover{
+            background-color:#EDEDFD;
+        }
+
+        .folder-row .tool-block{
+            display: none;
+        }
+        .folder-row:hover .tool-block{
+            display: block;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
 
 	<h3>Perma links {{ verb }} by you</h3>
 
-    {% if path == "/" %}
-        <p>
-            {% if linky_links %}
-                    You've {{ verb }} {{ linky_links|length }} links.
-                    {% if verb == 'created' %}
-                        Vested links are marked with <span class="fancy-infinity">&infin;</span>.
-                    {% endif %}
-            {% else %}
-                You haven't saved any links yet.
-            {% endif %}
-        </p>
-    {% endif %}
-
-    {### create new folder ###}
     <form method="POST">
+
+        {% if path == "/" %}
+            <p>
+                {% if linky_links %}
+                        You've {{ verb }} {{ link_count }} link{{ link_count|pluralize }}.
+                        {% if verb == 'created' %}
+                            Vested links are marked with <span class="fancy-infinity">&infin;</span>.
+                        {% endif %}
+                {% else %}
+                    You haven't saved any links yet.
+                {% endif %}
+            </p>
+        {% endif %}
+
+        {### create new folder ###}
         {% csrf_token %}
         <div id="new_folder_container">
-            <input type="button" id="new_folder_show" value="New Folder" class="btn btn-default"/>
+            <button type="button" id="new_folder_show" class="btn btn-default"><span class="icon-folder-close-alt" style="font-size: large;"></span> New Folder</button>
+            {% if all_folders %}
+                <div class="btn-group">
+                    <button class="btn dropdown-toggle" data-toggle="dropdown">
+                        Move selected items
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><button type="submit" name="move_selected_items_to" value="ROOT">home</button></li>
+                        {% recursetree all_folders %}
+                            <li><button type="submit" name="move_selected_items_to" value="{{ node.pk }}">-{{ "-"|repeat:node.get_level }} {{ node.name }}</button></li>
+                            {% if not node.is_leaf_node %}
+                                {{ children }}
+                            {% endif %}
+                        {% endrecursetree %}
+                    </ul>
+                </div>
+            {% endif %}
         </div>
         <div id="new_folder_name_container" style="display:none">
             <input type="text" name="new_folder_name" id="new_folder_name" placeholder="New folder name" style="margin-bottom: 0;"/>
             <input type="submit" name="new_folder_submit" id="new_folder_submit" value="Create" class="btn btn-default" disabled/>
             <input type="button" id="new_folder_cancel" value="Cancel" class="btn btn-default"/>
         </div>
+
+        {### folder path breadcrumbs ###}
+        {% if current_folder %}
+            <p>
+                <a href="{{ base_url }}">home</a> &gt;
+                {% if folder_breadcrumbs %}
+                    {% for folder, breadcrumb_path in folder_breadcrumbs %}
+                        <a href="{{ base_url }}/{{ breadcrumb_path }}">{{ folder.name }}</a> &gt;
+                    {% endfor %}
+                {% endif %}
+                {{ current_folder.name }} &gt;
+            </p>
+        {% endif %}
+
+        <table class="vested-table">
+            <thead>
+                <tr>
+                    {% if all_folders %}
+                        <th></th>
+                    {% endif %}
+                    <th class="linky-abbr-vested"> </th>
+                    <th class="linky-abbr-title">Link</th>
+                    <th class="linky-abbr-date-time">Created<a href="?sort=creation_timestamp"> <i class="icon-chevron-up"></i></a><a href="?sort=-creation_timestamp"> <i class="icon-chevron-down"></i></a></th>
+                    <th class="linky-abbr-date-time">Vested<a href="?sort=vested_timestamp"> <i class="icon-chevron-up"></i></a><a href="?sort=-vested_timestamp"> <i class="icon-chevron-down"></i></a></th>
+                    <th class="linky-view-count">Views</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if path != "/" %}
+                    <tr class="folder-row" folder_id="ROOT">
+                        <td></td>
+                        <td><span class="icon-folder-close-alt" style="font-size: large;"></span></td>
+                        <td>[ <a href="{{ base_url }}{{ path }}..">parent folder</a> ]</td>
+                        <td colspan="3"></td>
+                    </tr>
+                {% endif %}
+                {% for folder in subfolders %}
+                    <tr class="folder-row" folder_id="{{ folder.pk }}">
+                        <td><input type="checkbox" name="folders" value="{{ folder.pk }}" class="checkbox" id="checkbox-{{ folder.pk }}"/><label for="checkbox-{{ folder.pk }}" class="icon-check-empty"></label></td>
+                        <td class="linky-abbr-vested"><span class="icon-folder-close-alt" style="font-size: large;"></span></td>
+                        <td><a href="{{ base_url }}{{ path }}{{ folder.slug }}">{{ folder.name }}</a>
+                            <div class="tool-block">
+                                <input type="button" name="rename" value="rename" class="btn btn-mini"/>
+                                <input type="button" name="delete" value="delete" class="btn btn-mini"/>
+                            </div>
+                        </td>
+                        <td class="linky-abbr-date-time">{{ folder.creation_timestamp|date:"m/d/y" }}</td>
+                        <td class="linky-abbr-date-time"></td>
+                        <td class="linky-view-count"></td>
+                    </tr>
+                {% endfor %}
+                {% for linky_link in linky_links %}
+                    <tr class="link-row" link_id="{{ linky_link.pk }}">
+                        {% if all_folders %}
+                            <td><input type="checkbox" name="links" value="{{ linky_link.pk }}" class="checkbox" id="checkbox-{{ linky_link.pk }}"/><label for="checkbox-{{ linky_link.pk }}" class="icon-check-empty"></label></td>
+                        {% endif %}
+                        <td class="linky-abbr-vested">{% if linky_link.vested and verb == 'created' %}<span class="fancy-infinity">&infin;</span>{% endif %}</td>
+                        <td class="linky-abbr-title">{{ linky_link.submitted_title|truncatechars:50 }}<br><a href="{{ linky_link.submitted_url|truncatechars:70 }}" target="_blank"><small>{{ linky_link.submitted_url }}</small></a><br><a href="http://{{determined_host}}/{{linky_link.guid}}" target="_blank">http://{{determined_host}}/{{linky_link.guid}}</a></td>
+                        <td class="linky-abbr-date-time">{{ linky_link.creation_timestamp|date:"m/d/y" }}</td>
+                        <td class="linky-abbr-date-time">{{ linky_link.vested_timestamp|date:"m/d/y" }}</td>
+                        <td class="linky-view-count">{{ linky_link.view_count }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td></td><td colspan="4">No Perma links found.</td></tr>
+                {% endfor %}
+            </tbody>
+	    </table>
+
+        {% if linky_links.paginator.num_pages > 1 %}
+            <div class="pagination">
+                <ul>
+                    {% if linky_links.has_previous %}<li><a href="?page={{ linky_links.previous_page_number }}&sort={{ sort }}">&lt;</a></li>{% endif %}
+                    {% for i in linky_links.paginator.page_range %}
+                    {% ifequal i linky_links.number %}
+                    <li class="active"><a href="">{{ i }}</a></li>
+                    {% else %}
+                    <li><a href="?page={{ i }}">{{ i }}</a></li>
+                    {% endifequal %}
+                    {% endfor %}
+                    {% if linky_links.has_next  %}<li><a href="?page={{ linky_links.next_page_number }}&sort={{ sort }}">&gt;</a></li>{% endif %}
+                </ul>
+            </div>
+        {% endif %}
     </form>
 
 
+
+    {# used by javascript #}
     <div id="form_templates" style="display:none">
         <div class="rename-folder-form">
             <input type="text" name="folder_name"/>
@@ -166,82 +311,5 @@
             <input type="button" name="rename_folder_cancel" value="cancel" class="btn btn-mini"/>
         </div>
     </div>
-
-    {### folder path breadcrumbs ###}
-    {% if current_folder %}
-        <p>
-            <a href="{{ base_url }}">home</a> &gt;
-            {% if folder_breadcrumbs %}
-                {% for folder, breadcrumb_path in folder_breadcrumbs %}
-                    <a href="{{ base_url }}/{{ breadcrumb_path }}">{{ folder.name }}</a> &gt;
-                {% endfor %}
-            {% endif %}
-            {{ current_folder.name }} &gt;
-        </p>
-    {% endif %}
-
-    <table class="vested-table">
-    	<thead>
-      	    <tr>
-                <th class="linky-abbr-vested"> </th>
-                <th class="linky-abbr-title">Link</th>
-                <th class="linky-abbr-date-time">Created<a href="?sort=creation_timestamp"> <i class="icon-chevron-up"></i></a><a href="?sort=-creation_timestamp"> <i class="icon-chevron-down"></i></a></th>
-                <th class="linky-abbr-date-time">Vested<a href="?sort=vested_timestamp"> <i class="icon-chevron-up"></i></a><a href="?sort=-vested_timestamp"> <i class="icon-chevron-down"></i></a></th>
-                <th class="linky-view-count">Views</th>
-		    </tr>
-		</thead>
-		<tbody>
-            {% if path != "/" %}
-                <tr class="folder-row">
-                    <td><span class="icon-folder-close-alt" style="font-size: large;"></span></td>
-                    <td>[ <a href="{{ base_url }}{{ path }}..">parent folder</a> ]</td>
-                    <td colspan="3"></td>
-                </tr>
-            {% endif %}
-            {% for folder in subfolders %}
-                <tr class="folder-row" folder_id="{{ folder.pk }}">
-                    <td class="linky-abbr-vested"><span class="icon-folder-close-alt" style="font-size: large;"></span></td>
-                    <td><a href="{{ base_url }}{{ path }}{{ folder.slug }}">{{ folder.name }}</a>
-                        <form method="POST" class="tool-block">
-                            {% csrf_token %}
-                            <input type="hidden" name="folder_id" value="{{ folder.id }}"/>
-                            <input type="button" name="rename" value="rename" class="btn btn-mini"/>
-                            <input type="button" name="delete" value="delete" class="btn btn-mini"/>
-                        </form>
-                    </td>
-                    <td class="linky-abbr-date-time">{{ folder.creation_timestamp|date:"m/d/y" }}</td>
-                    <td class="linky-abbr-date-time"></td>
-                    <td class="linky-view-count"></td>
-                </tr>
-            {% endfor %}
-            {% for linky_link in linky_links %}
-                <tr class="link-row" link_id="{{ linky_link.pk }}">
-                    <td class="linky-abbr-vested">{% if linky_link.vested and verb == 'created' %}<span class="fancy-infinity">&infin;</span>{% endif %}</td>
-                    <td class="linky-abbr-title">{{ linky_link.submitted_title|truncatechars:50 }}<br><a href="{{ linky_link.submitted_url|truncatechars:70 }}" target="_blank"><small>{{ linky_link.submitted_url }}</small></a><br><a href="http://{{determined_host}}/{{linky_link.guid}}" target="_blank">http://{{determined_host}}/{{linky_link.guid}}</a></td>
-                    <td class="linky-abbr-date-time">{{ linky_link.creation_timestamp|date:"m/d/y" }}</td>
-                    <td class="linky-abbr-date-time">{{ linky_link.vested_timestamp|date:"m/d/y" }}</td>
-                    <td class="linky-view-count">{{ linky_link.view_count }}</td>
-                </tr>
-            {% empty %}
-                <tr><td></td><td colspan="4">No Perma links found.</td></tr>
-            {% endfor %}
-		</tbody>
-	  </table>
-
-{% if linky_links.paginator.num_pages > 1 %}
-<div class="pagination">
-    <ul>
-        {% if linky_links.has_previous %}<li><a href="?page={{ linky_links.previous_page_number }}&sort={{ sort }}">&lt;</a></li>{% endif %}
-        {% for i in linky_links.paginator.page_range %}
-        {% ifequal i linky_links.number %}
-        <li class="active"><a href="">{{ i }}</a></li>
-        {% else %}
-        <li><a href="?page={{ i }}">{{ i }}</a></li>
-        {% endifequal %}
-        {% endfor %}
-        {% if linky_links.has_next  %}<li><a href="?page={{ linky_links.next_page_number }}&sort={{ sort }}">&gt;</a></li>{% endif %}
-    </ul>
-</div>
-{% endif %}
 
 {% endblock %}

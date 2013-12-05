@@ -160,11 +160,14 @@ class Folder(MPTTModel):
 
         return super(Folder, self).save(*args, **kwargs)
 
-    class Meta:
-        ordering = ['name']
+    class MPTTMeta:
+        order_insertion_by = ['name']
 
     def is_empty(self):
         return not self.children.exists() and not self.links.exists()
+
+    def __unicode__(self):
+        return self.name
 
 class Link(models.Model):
     """
