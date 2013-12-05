@@ -636,7 +636,6 @@ def link_browser(request, path, link_filter, this_page, verb):
     # handle forms
     if request.POST:
 
-        #import ipdb; ipdb.set_trace()
         # new folder
         if 'new_folder_submit' in request.POST:
             if 'new_folder_name' in request.POST:
