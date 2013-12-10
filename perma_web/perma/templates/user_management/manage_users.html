@@ -43,11 +43,11 @@
     <thead>
       <tr>
         <!--<th><input type="checkbox"></th>-->
-        <th>Name<a href="?sort=last_name"> <i class="icon-chevron-up"></i></a><a href="?sort=-last_name"> <i class="icon-chevron-down"></i></a></th>
-        <th>Email<a href="?sort=email"> <i class="icon-chevron-up"></i></a><a href="?sort=-email"> <i class="icon-chevron-down"></i></a></th>
-        {% if user|has_group:'registry_member,registrar_member' %}{% if group_name == 'vesting_manager' or group_name == 'vesting_member' %}<th>Vesting Organization<a href="?sort=vesting_org__name"> <i class="icon-chevron-up"></i></a><a href="?sort=-vesting_org__name"> <i class="icon-chevron-down"></i></a></th>{% endif %}{% endif %}
-        {% if group_name == 'registrar_member' %}<th>Registrar<a href="?sort=registrar__name"> <i class="icon-chevron-up"></i></a><a href="?sort=-registrar__name"> <i class="icon-chevron-down"></i></a></th>{% endif %}
-        <th>Admin<a href="?sort=admin"> <i class="icon-chevron-up"></i></a><a href="?sort=-admin"> <i class="icon-chevron-down"></i></a></th>
+        <th>Name<a href="?sort=last_name&page={{ users.number }}"> <i class="icon-chevron-up"></i></a><a href="?sort=-last_name&page={{ users.number }}"> <i class="icon-chevron-down"></i></a></th>
+        <th>Email<a href="?sort=email&page={{ users.number }}"> <i class="icon-chevron-up"></i></a><a href="?sort=-email&page={{ users.number }}"> <i class="icon-chevron-down"></i></a></th>
+        {% if user|has_group:'registry_member,registrar_member' %}{% if group_name == 'vesting_manager' or group_name == 'vesting_member' %}<th>Vesting Organization<a href="?sort=vesting_org__name&page={{ users.number }}"> <i class="icon-chevron-up"></i></a><a href="?sort=-vesting_org__name&page={{ users.number }}"> <i class="icon-chevron-down"></i></a></th>{% endif %}{% endif %}
+        {% if group_name == 'registrar_member' %}<th>Registrar<a href="?sort=registrar__name&page={{ users.number }}"> <i class="icon-chevron-up"></i></a><a href="?sort=-registrar__name&page={{ users.number }}"> <i class="icon-chevron-down"></i></a></th>{% endif %}
+        <th>Admin<a href="?sort=admin&page={{ users.number }}"> <i class="icon-chevron-up"></i></a><a href="?sort=-admin&page={{ users.number }}"> <i class="icon-chevron-down"></i></a></th>
       </tr>
     </thead>
     <tbody>
@@ -85,7 +85,7 @@
         {% ifequal i users.number %}
         <li class="active"><a href="">{{ i }}</a></li>
         {% else %}
-        <li><a href="?page={{ i }}">{{ i }}</a></li>
+        <li><a href="?page={{ i }}&sort={{ sort }}">{{ i }}</a></li>
         {% endifequal %}
         {% endfor %}
         {% if users.has_next  %}<li><a href="?page={{ users.next_page_number }}&sort={{ sort }}">&gt;</a></li>{% endif %}

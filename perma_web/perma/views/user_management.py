@@ -346,6 +346,7 @@ def list_users_in_group(request, group_name):
         'user_list_url':'user_management_manage_{group_name}'.format(group_name=group_name),
         'reactivate_user_url':'user_management_manage_single_{group_name}_reactivate'.format(group_name=group_name),
         'single_user_url':'user_management_manage_single_{group_name}'.format(group_name=group_name),
+        'sort': sorts()[0],
     }
     context['pretty_group_name_plural'] = context['pretty_group_name'] + "s"
 
