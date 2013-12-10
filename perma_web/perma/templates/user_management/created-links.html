@@ -105,6 +105,7 @@
                 // draggable
                 table.find('tbody tr').draggable({
                     helper: "clone",
+                    cursor: "move",
                     start: function(event, ui ){
                         ui.helper.find('.tool-block').hide();
                     },

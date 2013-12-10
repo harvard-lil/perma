@@ -1192,6 +1192,10 @@ p a.submitted_url {
     white-space: normal;
 }
 
+.link-row:hover {
+    cursor:move;
+}
+
 .rename-folder-form input{
     margin-bottom:0;
 }
