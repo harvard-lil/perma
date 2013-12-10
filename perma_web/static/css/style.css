@@ -1183,17 +1183,12 @@ p a.submitted_url {
 }
 */
 
-.tool-block{
-    position:absolute;
-    margin:10px;
-    right:0;
-    top:0;
-    display:none;
-    white-space: normal;
-}
-
 .link-row:hover {
     cursor:move;
+}
+
+.folder-row {
+    margin-top:10px;
 }
 
 .rename-folder-form input{
@@ -1225,7 +1220,14 @@ input.checkbox:checked+label.icon-check-empty:before {
 }
 
 #new_folder_container .dropdown-menu button:hover{
-    background-color:#EDEDFD;
+    background-color:#ccc;
+}
+
+.tool-block{
+    position:relative;
+    margin-left:10px;
+    display:none;
+    white-space: normal;
 }
 
 .folder-row .tool-block{
@@ -1233,7 +1235,7 @@ input.checkbox:checked+label.icon-check-empty:before {
 }
 
 .folder-row:hover .tool-block{
-    display: block;
+    display: inline;
 }
 
 .ui-selected{
@@ -1244,8 +1246,17 @@ input.checkbox:checked+label.icon-check-empty:before {
     transition:background-color .2s, transform .2s;
 }
 
+.folder-list {
+    margin-bottom:25px;
+}
+
+.folder-breadcrumbs {
+    margin-top:5px;
+    margin-bottom:0px;
+}
+
 .vested-table {
-    margin-top:20px;
+    margin-top:5px;
     width: 100%;
 }
 
