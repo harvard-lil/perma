@@ -1012,7 +1012,7 @@ a.grey {
     margin-bottom:-13px;
 }
 
-.recent-linky-summary small a, .linky-abbr-title small {
+.recent-linky-summary small a {
 	font-style:italic;
 	color:#aaa;
 }
@@ -1260,8 +1260,8 @@ input.checkbox:checked+label.icon-check-empty:before {
     width: 100%;
 }
 
-.vested-table tr {
-    border-bottom: 1px solid #ccc;
+.vested-table tbody .link-row {
+    border-top: 1px solid #ccc;
 }
 
 .vested-table td, .vested-table th {
@@ -1275,29 +1275,42 @@ input.checkbox:checked+label.icon-check-empty:before {
     padding-right:0;
 }
 
-td.linky-abbr-title, td.linky-abbr-date-time {
-    text-wrap:unrestricted;
-    word-break:break-all;
-    word-wrap: break-word;      /* IE 5.5-7 */
-      white-space: pre-wrap; /* css-3 */
-    white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
-    white-space: -pre-wrap; /* Opera 4-6 */
-    white-space: -o-pre-wrap; /* Opera 7 */
-    word-wrap: break-word; /* Internet Explorer 5.5+ */
-}
-
 th.linky-abbr-vested {
     width: 1.5em;
 }
+th.linky-link {
+    min-width:250px;
+}
 th.linky-abbr-title {
-    min-width:280px;
+    min-width:180px;
 }
 th.linky-abbr-date-time {
     width: 7em;
 }
-th.linky-view-count{
-    width:3em;
+
+td.linky-link .original-link{
+    max-width: 250px;
+    overflow: hidden;
+    display: block;
+    text-overflow: ellipsis;
+    font-style:italic;
+	color:#aaa;
 }
+
+td.linky-abbr-title div{
+    height: 3em;
+    overflow: hidden;
+}
+
+.link-details{
+    display: none;
+}
+
+.link-details textarea{
+    height:3em;
+    width:75%;
+}
+
 
 td.registrar-name-cell {
   min-width:100px;

@@ -185,6 +185,7 @@ class Link(models.Model):
     vested_by_editor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='vested_by_editor')
     vested_timestamp = models.DateTimeField(null=True, blank=True)
     folders = models.ManyToManyField(Folder, related_name='links', blank=True, null=True)
+    notes = models.TextField(blank=True)
 
     def save(self, *args, **kwargs):
         """
