@@ -23,6 +23,16 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal(u'perma', ['Folder'])
 
+        # Adding field 'Stat.darchive_takedown_count'
+        db.add_column(u'perma_stat', 'darchive_takedown_count',
+                      self.gf('django.db.models.fields.IntegerField')(default=0),
+                      keep_default=False)
+
+        # Adding field 'Stat.darchive_robots_count'
+        db.add_column(u'perma_stat', 'darchive_robots_count',
+                      self.gf('django.db.models.fields.IntegerField')(default=0),
+                      keep_default=False)
+
         # Adding M2M table for field folders on 'Link'
         db.create_table(u'perma_link_folders', (
             ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
@@ -35,6 +45,12 @@ class Migration(SchemaMigration):
     def backwards(self, orm):
         # Deleting model 'Folder'
         db.delete_table(u'perma_folder')
+
+        # Deleting field 'Stat.darchive_takedown_count'
+        db.delete_column(u'perma_stat', 'darchive_takedown_count')
+
+        # Deleting field 'Stat.darchive_robots_count'
+        db.delete_column(u'perma_stat', 'darchive_robots_count')
 
         # Removing M2M table for field folders on 'Link'
         db.delete_table('perma_link_folders')
@@ -76,7 +92,7 @@ class Migration(SchemaMigration):
             'warc_capture': ('django.db.models.fields.CharField', [], {'max_length': '2100', 'null': 'True', 'blank': 'True'})
         },
         u'perma.folder': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Folder'},
+            'Meta': {'object_name': 'Folder'},
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'folders_created'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
             'creation_timestamp': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -130,6 +146,8 @@ class Migration(SchemaMigration):
         u'perma.stat': {
             'Meta': {'object_name': 'Stat'},
             'creation_timestamp': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'darchive_robots_count': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
+            'darchive_takedown_count': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'disk_usage': ('django.db.models.fields.FloatField', [], {'default': '0.0'}),
             'global_uniques': ('django.db.models.fields.IntegerField', [], {'default': '1'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),

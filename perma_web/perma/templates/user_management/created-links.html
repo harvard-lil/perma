@@ -10,6 +10,7 @@
 {% block scripts %}
     {{ block.super }}
     <script src="{{ STATIC_PREFIX }}js/jquery-ui-1.10.3.custom.min.js"></script>
+    <script src="{{ STATIC_PREFIX }}js/jquery.dotdotdot-1.5.9.min.js"></script>
     <script src="{{ STATIC_PREFIX }}js/jquery.django-csrf.js"></script>
     <script src="{{ STATIC_PREFIX }}js/links-list.js"></script>
 {% endblock %}
@@ -18,20 +19,24 @@
 
 	<h3>Perma links {{ verb }} by you</h3>
 
-    <form method="POST">
+    {% if path == "/" %}
+        <p>
+            {% if linky_links %}
+                    You've {{ verb }} {{ link_count }} link{{ link_count|pluralize }}.
+                    {% if verb == 'created' %}
+                        Vested links are marked with <span class="fancy-infinity">&infin;</span>.
+                    {% endif %}
+            {% else %}
+                You haven't saved any links yet.
+            {% endif %}
+        </p>
+    {% endif %}
 
-        {% if path == "/" %}
-            <p>
-                {% if linky_links %}
-                        You've {{ verb }} {{ link_count }} link{{ link_count|pluralize }}.
-                        {% if verb == 'created' %}
-                            Vested links are marked with <span class="fancy-infinity">&infin;</span>.
-                        {% endif %}
-                {% else %}
-                    You haven't saved any links yet.
-                {% endif %}
-            </p>
-        {% endif %}
+    <form class="pull-right">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search {% if current_folder %}'{{ current_folder }}'{% else %}links{% endif %}" class="search-query"/>
+    </form>
+
+    <form method="POST">
 
         {### create new folder ###}
         {% csrf_token %}
@@ -60,25 +65,25 @@
             <input type="submit" name="new_folder_submit" id="new_folder_submit" value="Create" class="btn btn-default" disabled/>
             <input type="button" id="new_folder_cancel" value="Cancel" class="btn btn-default"/>
         </div>
-        
+
         <div class="folder-list">
-        {% if path != "/" %}
-            <div class="folder-row" folder_id="ROOT">
-                <span class="icon-folder-close-alt" style="font-size: large;"></span>
-                [ <a href="{{ base_url }}{{ path }}..">parent folder</a> ]
-            </div>
-        {% endif %}
-        {% for folder in subfolders %}
-            <div class="folder-row" folder_id="{{ folder.pk }}">
-                <input type="checkbox" name="folders" value="{{ folder.pk }}" class="checkbox" id="checkbox-{{ folder.pk }}"/><label for="checkbox-{{ folder.pk }}" class="icon-check-empty"></label>
-                <span class="icon-folder-close-alt" style="font-size: large;"></span>
-                <a href="{{ base_url }}{{ path }}{{ folder.slug }}">{{ folder.name }}</a>
-                <span class="tool-block">
-                    <input type="button" name="rename" value="rename" class="btn btn-mini"/>
-                    <input type="button" name="delete" value="delete" class="btn btn-mini"/>
-                </span>
-            </div>
-        {% endfor %}
+            {% if path != "/" %}
+                <div class="folder-row" folder_id="ROOT">
+                    <span class="icon-folder-close-alt" style="font-size: large;"></span>
+                    [ <a href="{{ base_url }}{{ path }}..">parent folder</a> ]
+                </div>
+            {% endif %}
+            {% for folder in subfolders %}
+                <div class="folder-row" folder_id="{{ folder.pk }}">
+                    <input type="checkbox" name="folders" value="{{ folder.pk }}" class="checkbox" id="checkbox-{{ folder.pk }}"/><label for="checkbox-{{ folder.pk }}" class="icon-check-empty"></label>
+                    <span class="icon-folder-close-alt" style="font-size: large;"></span>
+                    <a href="{{ base_url }}{{ path }}{{ folder.slug }}">{{ folder.name }}</a>
+                    <span class="tool-block">
+                        <input type="button" name="rename" value="rename" class="btn btn-mini"/>
+                        <input type="button" name="delete" value="delete" class="btn btn-mini"/>
+                    </span>
+                </div>
+            {% endfor %}
         </div>
         
         {### folder path breadcrumbs ###}
@@ -94,30 +99,55 @@
             </p>
         {% endif %}
 
+        {% if search_query %}
+            <p>
+                <em>
+                    Search results {% if current_folder %}in {{ current_folder }} folder{% endif %} for "{{ search_query }}".
+                    <a href="?q=">Clear search.</a>
+                </em>
+            </p>
+        {% endif %}
+
         <table class="vested-table">
             <thead>
                 <tr>
-                    {% if all_folders %}
-                        <th></th>
-                    {% endif %}
+                    <th></th>
                     <th class="linky-abbr-vested"> </th>
-                    <th class="linky-abbr-title">Link</th>
-                    <th class="linky-abbr-date-time">Created<a href="?sort=creation_timestamp"> <i class="icon-chevron-up"></i></a><a href="?sort=-creation_timestamp"> <i class="icon-chevron-down"></i></a></th>
-                    <th class="linky-abbr-date-time">Vested<a href="?sort=vested_timestamp"> <i class="icon-chevron-up"></i></a><a href="?sort=-vested_timestamp"> <i class="icon-chevron-down"></i></a></th>
-                    <th class="linky-view-count">Views</th>
+                    <th class="linky-link">Link</th>
+                    <th class="linky-abbr-title"><a href="?sort={% if sort == 'submitted_title' %}-{% endif %}submitted_title{% if search_query %}&q={{ search_query }}{% endif %}">Title</a></th>
+                    <th class="linky-abbr-date-time"><a href="?sort={% if sort == 'creation_timestamp' %}-{% endif %}creation_timestamp{% if search_query %}&q={{ search_query }}{% endif %}">Created</a></th>
+                    <th class="linky-abbr-date-time"><a href="?sort={% if sort == 'vested_timestamp' %}-{% endif %}vested_timestamp{% if search_query %}&q={{ search_query }}{% endif %}">Vested</a></th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
-                {% for linky_link in linky_links %}
-                    <tr class="link-row" link_id="{{ linky_link.pk }}">
-                        {% if all_folders %}
-                            <td><input type="checkbox" name="links" value="{{ linky_link.pk }}" class="checkbox" id="checkbox-{{ linky_link.pk }}"/><label for="checkbox-{{ linky_link.pk }}" class="icon-check-empty"></label></td>
-                        {% endif %}
-                        <td class="linky-abbr-vested">{% if linky_link.vested and verb == 'created' %}<span class="fancy-infinity">&infin;</span>{% endif %}</td>
-                        <td class="linky-abbr-title">{{ linky_link.submitted_title|truncatechars:50 }}<br><a href="{{ linky_link.submitted_url|truncatechars:70 }}" target="_blank"><small>{{ linky_link.submitted_url }}</small></a><br><a href="http://{{determined_host}}/{{linky_link.guid}}" target="_blank">http://{{determined_host}}/{{linky_link.guid}}</a></td>
-                        <td class="linky-abbr-date-time">{{ linky_link.creation_timestamp|date:"m/d/y" }}</td>
-                        <td class="linky-abbr-date-time">{{ linky_link.vested_timestamp|date:"m/d/y" }}</td>
-                        <td class="linky-view-count">{{ linky_link.view_count }}</td>
+                {% for link in linky_links %}
+                    <tr class="link-row" link_id="{{ link.pk }}">
+                        <td>{% if all_folders %}
+                            <input type="checkbox" name="links" value="{{ link.pk }}" class="checkbox" id="checkbox-{{ link.pk }}"/><label for="checkbox-{{ link.pk }}" class="icon-check-empty"></label>
+                        {% endif %}</td>
+                        <td class="linky-abbr-vested">{% if link.vested and verb == 'created' %}<span class="fancy-infinity">&infin;</span>{% endif %}</td>
+                        <td class="linky-link">
+                            <a href="http://{{determined_host}}/{{link.guid}}" target="_blank">http://{{determined_host}}/{{link.guid}}</a><br/>
+                            <a href="{{ link.submitted_url|truncatechars:70 }}" target="_blank" class="original-link">{{ link.submitted_url }}</a>
+                        </td>
+                        <td class="linky-abbr-title">
+                            <div title="{{ link.submitted_title }}">{{ link.submitted_title }}</div>
+                        </td>
+                        <td class="linky-abbr-date-time">{{ link.creation_timestamp|date:"m/d/y" }}</td>
+                        <td class="linky-abbr-date-time">{{ link.vested_timestamp|date:"m/d/y" }}</td>
+                        <td class="linky-details-link"><a href="#">details</a></td>
+                    </tr>
+                    <tr class="link-details" {% if search_query in link.notes %}style="display:table-row"{% endif %}>
+                        <td colspan="2"></td>
+                        <td colspan="5">
+                            <div class="pull-right"><strong>Views:</strong> {{ link.view_count }}</div>
+                            <div>
+                                <strong>Notes:</strong> <span class="muted notes-save-status"></span><br/>
+                                <textarea>{{ link.notes }}</textarea><br/>
+                                <span class="muted">Notes are visible to users who create or vest a link, but not to visitors.</span>
+                            </div>
+                        </td>
                     </tr>
                 {% empty %}
                     <tr><td></td><td colspan="4">No Perma links found.</td></tr>
@@ -125,21 +155,23 @@
             </tbody>
 	    </table>
 
-        {% if linky_links.paginator.num_pages > 1 %}
-            <div class="pagination">
-                <ul>
-                    {% if linky_links.has_previous %}<li><a href="?page={{ linky_links.previous_page_number }}&sort={{ sort }}">&lt;</a></li>{% endif %}
-                    {% for i in linky_links.paginator.page_range %}
-                    {% ifequal i linky_links.number %}
-                    <li class="active"><a href="">{{ i }}</a></li>
-                    {% else %}
-                    <li><a href="?page={{ i }}">{{ i }}</a></li>
-                    {% endifequal %}
-                    {% endfor %}
-                    {% if linky_links.has_next  %}<li><a href="?page={{ linky_links.next_page_number }}&sort={{ sort }}">&gt;</a></li>{% endif %}
-                </ul>
-            </div>
-        {% endif %}
+        {% comment %}
+            {% if linky_links.paginator.num_pages > 1 %}
+                <div class="pagination">
+                    <ul>
+                        {% if linky_links.has_previous %}<li><a href="?page={{ linky_links.previous_page_number }}&sort={{ sort }}">&lt;</a></li>{% endif %}
+                        {% for i in linky_links.paginator.page_range %}
+                        {% ifequal i linky_links.number %}
+                        <li class="active"><a href="">{{ i }}</a></li>
+                        {% else %}
+                        <li><a href="?page={{ i }}">{{ i }}</a></li>
+                        {% endifequal %}
+                        {% endfor %}
+                        {% if linky_links.has_next  %}<li><a href="?page={{ linky_links.next_page_number }}&sort={{ sort }}">&gt;</a></li>{% endif %}
+                    </ul>
+                </div>
+            {% endif %}
+        {% endcomment %}
     </form>
 
 

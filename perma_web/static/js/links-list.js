@@ -17,17 +17,43 @@ $(function(){
             $("#new_folder_submit").attr("disabled", true);
     });
 
+    // link details
+    var notesSaveNeeded = false,
+        lastNotesSaveTime = 0,
+        saveBufferSeconds = 3;
+    $('.tab-pane').on('click', '.linky-details-link a', function(){
+        // handle details link to hide/show link details
+        $(this).closest('tr').next('.link-details').toggle();
+        return false;
+
+    }).on('input propertychange', '.link-details textarea', function(){
+        // save changes to link notes
+        var textarea = $(this),
+            linkID = textarea.closest('tr').prev('.link-row').attr('link_id'),
+            statusArea = textarea.prevAll('.notes-save-status');
+        statusArea.html('saving ...');
+        notesSaveNeeded = true;
+
+        // use a setTimeout so notes are only saved once every few seconds
+        setTimeout(function(){
+            if(notesSaveNeeded){
+                postJSON(
+                    '#',
+                    {action:'save_notes',link_id:linkID,notes:textarea.val()},
+                    function(data){
+                        statusArea.html('saved.')
+                    }
+                );
+            }
+            lastNotesSaveTime = new Date().getTime();
+        }, Math.max(saveBufferSeconds*1000 - (new Date().getTime() - lastNotesSaveTime), 0));
+    });
+
+    // add ellipses
+    $('td.linky-abbr-title div').dotdotdot();
+
     function initializeFolders(){
     // only need to do stuff if there are folders
-
-        // folder hover tools
-        $('.vested-table tr').on('mouseenter', function () {
-            if(!$(this).find('.rename-folder-form').length){
-                //$(this).find('.tool-block').show();
-            }
-            }).on('mouseleave', function () {
-                //$(this).find('.tool-block').hide();
-        });
 
         $('.tab-pane').on('click', '.folder-row input[name="delete"]', function(){
             // folder delete

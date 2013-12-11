@@ -8,23 +8,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Stat.darchive_takedown_count'
-        db.add_column(u'perma_stat', 'darchive_takedown_count',
-                      self.gf('django.db.models.fields.IntegerField')(default=0),
-                      keep_default=False)
-
-        # Adding field 'Stat.darchive_robots_count'
-        db.add_column(u'perma_stat', 'darchive_robots_count',
-                      self.gf('django.db.models.fields.IntegerField')(default=0),
+        # Adding field 'Link.notes'
+        db.add_column(u'perma_link', 'notes',
+                      self.gf('django.db.models.fields.TextField')(default='', blank=True),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting field 'Stat.darchive_takedown_count'
-        db.delete_column(u'perma_stat', 'darchive_takedown_count')
-
-        # Deleting field 'Stat.darchive_robots_count'
-        db.delete_column(u'perma_stat', 'darchive_robots_count')
+        # Deleting field 'Link.notes'
+        db.delete_column(u'perma_link', 'notes')
 
 
     models = {
@@ -62,13 +54,28 @@ class Migration(SchemaMigration):
             'text_capture': ('django.db.models.fields.CharField', [], {'max_length': '2100', 'null': 'True', 'blank': 'True'}),
             'warc_capture': ('django.db.models.fields.CharField', [], {'max_length': '2100', 'null': 'True', 'blank': 'True'})
         },
+        u'perma.folder': {
+            'Meta': {'object_name': 'Folder'},
+            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'folders_created'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
+            'creation_timestamp': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            u'level': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
+            u'lft': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'parent': ('mptt.fields.TreeForeignKey', [], {'blank': 'True', 'related_name': "'children'", 'null': 'True', 'to': u"orm['perma.Folder']"}),
+            u'rght': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
+            'slug': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            u'tree_id': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'})
+        },
         u'perma.link': {
             'Meta': {'object_name': 'Link'},
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'created_by'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
             'creation_timestamp': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'dark_archived': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'dark_archived_robots_txt_blocked': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'folders': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "'links'", 'null': 'True', 'symmetrical': 'False', 'to': u"orm['perma.Folder']"}),
             'guid': ('django.db.models.fields.CharField', [], {'max_length': '255', 'primary_key': 'True'}),
+            'notes': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'submitted_title': ('django.db.models.fields.CharField', [], {'max_length': '2100'}),
             'submitted_url': ('django.db.models.fields.URLField', [], {'max_length': '2100'}),
             'vested': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),

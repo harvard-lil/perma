@@ -6,6 +6,7 @@ from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.sites.models import get_current_site
+from django.db.models import Q
 from django.utils.http import is_safe_url
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.template import RequestContext
@@ -24,9 +25,9 @@ from perma.models import Registrar, Link, LinkUser, VestingOrg, Folder
 from perma.utils import require_group
 
 logger = logging.getLogger(__name__)
-valid_member_sorts = ['-email', 'email', 'last_name', '-last_name', 'admin', '-admin', 'registrar__name', '-registrar__name', 'vesting_org__name', '-vesting_org__name']
-valid_registrar_sorts = ['-email', 'email', 'name', '-name', 'website', '-website']
-valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp']
+valid_member_sorts = {'-email', 'email', 'last_name', '-last_name', 'admin', '-admin', 'registrar__name', '-registrar__name', 'vesting_org__name', '-vesting_org__name'}
+valid_registrar_sorts = {'-email', 'email', 'name', '-name', 'website', '-website'}
+valid_link_sorts = {'-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp', 'submitted_title', '-submitted_title'}
 
 
 @login_required
@@ -662,40 +663,65 @@ def link_browser(request, path, link_filter, this_page, verb):
 
         elif request.is_ajax():
             posted_data = json.loads(request.body)
+            out = {'success': 1}
 
             # rename folder
             if posted_data['action'] == 'rename_folder':
                 current_folder.name = posted_data['name']
                 current_folder.save()
-                return HttpResponse(json.dumps({'success': 1}), content_type="application/json")
 
             # delete folder
             elif posted_data['action'] == 'delete_folder':
                 if current_folder.is_empty():
                     current_folder.delete()
-                    out = {'success':1}
                 else:
                     out = {'error':"Folders can only be deleted if they are empty."}
-                return HttpResponse(json.dumps(out), content_type="application/json")
 
+            # save notes
+            elif posted_data['action'] == 'save_notes':
+                link = get_object_or_404(Link, pk=posted_data['link_id'], **link_filter)
+                link.notes = posted_data['notes']
+                link.save()
 
+            return HttpResponse(json.dumps(out), content_type="application/json")
+
+    # start with all links belonging to user
+    linky_links = Link.objects.filter(**link_filter)
+
+    # handle search
+    search_query = request.GET.get('q', None)
+    if search_query:
+        linky_links = linky_links.filter(
+            Q(guid__icontains=search_query) |
+            Q(submitted_url__icontains=search_query) |
+            Q(submitted_title__icontains=search_query) |
+            Q(notes__icontains=search_query)
+        )
+        if current_folder:
+            # limit search to current folder
+            linky_links = linky_links.filter(folders__in=current_folder.get_descendants(include_self=True))
+
+    elif current_folder:
+        # limit links to current folder
+        linky_links = linky_links.filter(folders=current_folder)
+
+    else:
+        # top level -- find links with no related folder for this user
+        linky_links = linky_links.exclude(folders__created_by=request.user)
+
+    # handle sorting
     DEFAULT_SORT = '-creation_timestamp'
-
     sort = request.GET.get('sort', DEFAULT_SORT)
     if sort not in valid_link_sorts:
         sort = DEFAULT_SORT
-    page = request.GET.get('page', 1)
-    if page < 1:
-        page = 1
-
-    if current_folder:
-        linky_links = Link.objects.filter(folders=current_folder, **link_filter)
-    else:
-        linky_links = Link.objects.filter(**link_filter).exclude(folders__created_by=request.user)
     linky_links = linky_links.order_by(sort)
 
-    paginator = Paginator(linky_links, 10)
-    linky_links = paginator.page(page)
+    # handle pagination
+    # page = request.GET.get('page', 1)
+    # if page < 1:
+    #     page = 1
+    # paginator = Paginator(linky_links, 10)
+    # linky_links = paginator.page(page)
 
     subfolders = list(Folder.objects.filter(created_by=request.user, parent=current_folder))
     all_folders = Folder.objects.filter(created_by=request.user)
@@ -703,7 +729,7 @@ def link_browser(request, path, link_filter, this_page, verb):
     link_count = Link.objects.filter(**link_filter).count()
 
     context = {'user': request.user, 'linky_links': linky_links, 'link_count':link_count,
-               'sort': sort, 'this_page': this_page, 'verb': verb,
+               'sort': sort, 'search_query':search_query, 'this_page': this_page, 'verb': verb,
                'subfolders':subfolders, 'path':path, 'folder_breadcrumbs':folder_breadcrumbs,
                'current_folder':current_folder,
                'all_folders':all_folders,
