@@ -25,9 +25,9 @@ from perma.models import Registrar, Link, LinkUser, VestingOrg, Folder
 from perma.utils import require_group
 
 logger = logging.getLogger(__name__)
-valid_member_sorts = {'-email', 'email', 'last_name', '-last_name', 'admin', '-admin', 'registrar__name', '-registrar__name', 'vesting_org__name', '-vesting_org__name'}
-valid_registrar_sorts = {'-email', 'email', 'name', '-name', 'website', '-website'}
-valid_link_sorts = {'-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp', 'submitted_title', '-submitted_title'}
+valid_member_sorts = ['-email', 'email', 'last_name', '-last_name', 'admin', '-admin', 'registrar__name', '-registrar__name', 'vesting_org__name', '-vesting_org__name']
+valid_registrar_sorts = ['-email', 'email', 'name', '-name', 'website', '-website']
+valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp', 'submitted_title', '-submitted_title']
 
 
 @login_required
