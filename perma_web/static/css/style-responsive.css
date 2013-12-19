@@ -678,14 +678,8 @@ iframe {
     
 }
 img.image-view {
-	position:relative;
-	border-width: 0px 1px;
-	border-style: solid;
-	border-color: #999;	
-	z-index:1;
 	margin-top:0px;
-	width:1033px;
-	opacity:.8;
+	width:100%;
 }
 
 
@@ -942,14 +936,16 @@ img.linky-image-preview {
 }
 
 img.watermark-image {
-
+	position:relative;
 	border:none;
 	border-radius:3px;
 	-moz-box-shadow: none;
 	-webkit-box-shadow: none;
 	box-shadow: none;
-	z-index:0;
-	margin:0 auto -400px;
+	z-index:2;
+	margin:0 auto -60%;
+	opacity:.6;
+	width:90%;
 }
 .watermark h2, .watermark h1 {
 
