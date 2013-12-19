@@ -13,7 +13,6 @@
         <link href="{{ STATIC_PREFIX }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
         <link href='http://fonts.googleapis.com/css?family=Roboto+Slab:400,700' rel='stylesheet' type='text/css'>
         <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap3.css">
-        <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap3-responsive.css">
         
         <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style-responsive.css">
         {% block styles %}{% endblock %}  
@@ -24,16 +23,15 @@
     </head>
     <body>
         <div class="container-fluid">
-            <div class="row">
+            <div class="row-fluid">
 				{% block header %}{% endblock header %}
-                <section id="main-iframe">
-                    <div class="iframe-container" id="main-content">
-                        <div class="row">
+                <section id="main-archive">
+                    <div class="main-container" id="main-content">
+                        <div class="row-fluid">
                     {% block row %}{% endblock row %}
                         </div><!--/.row-fluid-->
                     </div><!--/.main-container #main-content"-->
                 </section><!--/#main-->
-				
 	          </div><!--/.row-fluid-->
         </div><!--/.container-fluid-->
 

@@ -103,7 +103,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="row-fluid">
     {% if linky.dark_archived and user|has_group:'registry_member,registrar_member' %}
     	<div class="col-sm-6 offset3 yahowza-small">
     		<img class="dark-bulb-small" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
@@ -156,7 +156,7 @@
 		</div><!--end watermark-->
    	</div><!--end linky-view-->
    	{% else %}
-   		<div class="row">
+   		<div class="row-fluid">
    			<div class="col-sm-6 col-sm-offset-3 yahowza">
 				<img class="dark-bulb" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
 				 <h1 class="cyan">Apologies.</h1><h2>This link has been <span class="dark">dark archived</span>.<br/>Contact a librarian to get a copy.</h2>

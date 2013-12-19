@@ -50,13 +50,11 @@ body {
 #feedbackify .rating-intro {display: none;}
 #feedbackify .score-tbl {display: none;}
 
-
-.iframe-container {
-  overflow: hidden;
+div.main-container {
+    overflow: hidden;
     margin: 0 auto;
     width: 100%;
 }
-
 
 h1, h2, h3, h4, h5 { font-weight: normal; font-family: 'Roboto Slab', sans-serif;}
 
@@ -87,7 +85,7 @@ p {
 .infinity {
 	font-size:40px;
 	margin-top:-8px;
-	line-height:30px;
+	line-height:38px;
 }
 
 /* Header */
@@ -203,14 +201,16 @@ border-radius: 3px;
 }
 /* Main */
 
-section#main, section#main-iframe {
+section#main {
     background-color: #fff;
     padding: 0 0 20px 0;
 }
 
-.section#main-iframe {
-	padding:0;
+section#main-archive {
+    background-color: #fff;
+    padding: 0px;
 }
+
 
 .column {
   -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
@@ -315,7 +315,7 @@ div.home-form-frame {
 }
 
 ul#links {
-	margin:0 auto;
+	margin-left:-1em;
 }
 div.home-form-elements {
     margin: 10px auto 0 auto;
@@ -386,11 +386,12 @@ div#dashboard-container {
     position: relative;
 }
 
+
     div#dashboard-container ul#dashboard-tabs {
-        display: block;
-        float: left;
-        margin: 0 30px 50px 0;
-        width: 250px;
+       
+    
+        margin: 0 10px 50px 0;
+       
     }
 
         div#dashboard-container ul#dashboard-tabs li {}
@@ -398,9 +399,10 @@ div#dashboard-container {
             div#dashboard-container ul#dashboard-tabs li a {
                 background-image: url('../img/dashboard-icons.png');
                 background-repeat: no-repeat;
+                
                 font-size: 22px;
                 margin-bottom: 10px;
-                padding: 20px 20px 20px 50px;
+                padding: 10px 10px 10px 50px;
             }
 
             div#dashboard-container ul#dashboard-tabs li a:hover {
@@ -465,10 +467,10 @@ div#dashboard-container {
             }
 
     div#dashboard-container div.tab-content {
-        float: right;
+     
         overflow: hidden;
         min-height: 300px;
-        width: 675px;
+     
     }
 
 div.dashboard-add-link {
@@ -510,6 +512,7 @@ div#dashboard-container div#library {}
         li.library-link-item {
             text-align: center;
             list-style-type:none;
+            margin-left:
         }
 
        .thumbnail-frame {
@@ -517,32 +520,28 @@ div#dashboard-container div#library {}
         }
 		
 		.library-thumbnail {
-			 width:496px;
+			 width:390px;
        		 height:275px;
        		 overflow:hidden;
        		 margin:0 auto;
-       		 border:1px solid #ccc;
+       		 
+                margin: 0px auto 15px -15px;
+       		 border:1px solid #eee;
        		         border-radius: 4px;
-        -moz-border-radius: 4px;
+       		 -moz-border-radius: 4px;
         -webkit-border-radius: 4px;
+        	
        		 
 		}
-
-            div.library-thumbnail a {
-                background-color: #fff;
-                border: #efefef;
-                display: block;
-                margin: 0 auto 10px auto;
       
                 
-            }
+        
 
             div.library-thumbnail a:hover {
             }
 
 	
             div.library-thumbnail img {
-                margin-bottom: 15px;
                 padding: 0px;
                 width:100%;
                
@@ -641,13 +640,16 @@ div.add-links-list {
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
     display: none;
-    margin: 10px auto;
+    margin: 10px 0;
     padding: 20px;
 }
 
 /* iframes */
 
 iframe {
+    border-width: 0px 1px;
+	border-style: solid;
+	border-color: #999;	
     text-align:auto;
     background:#fff;
     margin:0px auto;
@@ -657,7 +659,8 @@ iframe {
     overflow-x:hidden;
     overflow-y:hidden;
     height:100%;
-    width:80%;
+    width:100%;
+
 }
 
 .meta-data, .meta-data a {
@@ -733,19 +736,6 @@ ul {
     left:20px;
 }
 
-.clouds {
-	 box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333; 
-    -moz-box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333; 
-    -webkit-box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333; 
-    background: url('../img/clouds.jpg') center top repeat;
-    min-height:662px;
-}
-/*/ 
-Background by Benjamin Ward.
-This pattern is downloaded from www.subtlepatterns.com 
-If you need more, that's where to get'em.
-/*/
- 
 #linky-confirm {
     width: 900px; /* SET THE WIDTH OF THE MODAL */
     margin-left: -450px; /* CHANGE MARGINS TO ACCOMODATE THE NEW WIDTH (original = margin: -250px 0 0 -280px;) */
@@ -910,6 +900,7 @@ h3 {
 
 .center {
     text-align:center;
+    margin:auto;
 }
 
 .red {
@@ -1198,7 +1189,8 @@ p a.submitted_url {
 */
 
 .vested-table {
-  margin-top:20px;
+  margin-top:10px;
+  width:100%;
 }
 
 .vested-table tr {
@@ -1206,8 +1198,13 @@ p a.submitted_url {
 }
 
 .vested-table td, th {
-    padding: 10px;
+    padding: 2px 2px;
 }
+
+td {
+	margin:0;
+}
+
 
 td.linky-abbr-title, td.linky-abbr-date-time {
     text-wrap:unrestricted;
@@ -1224,28 +1221,28 @@ td.linky-abbr-vested {
 }
 
 td.linky-abbr-title {
-    min-width:280px;
-}
-
-td.linky-abbr-date-time {
-    min-width:auto;
-    width:75px;
-    vertical-align:top;
-    min-width:100px;
+    width:60%;
+    margin-top:0;
+    padding-top:0;
+    clear:both;
 }
 
 td.linky-abbr-date-time {
 	min-width:auto;
-	width:100px;
+	width:9%;
 	vertical-align:top;
 }
 
 td.registrar-name-cell {
-  min-width:100px;
+  min-width:15%;
 }
 
 td.registrar-website-cell {
-  min-width:250px;
+  min-width:30%;
+}
+
+th.linky-link {
+	width:20%;
 }
 
 .delete-confirm {
@@ -1379,4 +1376,10 @@ ol li {
     box-sizing: border-box;
     border-radius: 3px;
 	font-family: 'Inconsolata', monospace;
+}
+
+.metadata {
+	float:right;
+	margin-top:10px;
+	text-align:right;0
 }
