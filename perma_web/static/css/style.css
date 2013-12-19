@@ -265,11 +265,7 @@ footer {
 /* Home */
 
 section#home-form-container {
-    box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333; 
-    -moz-box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333; 
-    -webkit-box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333; 
-    background: url('../img/clouds.jpg') center top no-repeat;
-    background-color: #94c4f4;
+
     padding: 0;
     text-align: center;
 }

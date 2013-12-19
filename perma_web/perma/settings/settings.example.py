@@ -35,5 +35,15 @@ DEFAULT_FROM_EMAIL = 'email@example.com'
 # The host we want to display (used when DEBUG=False)
 HOST = 'perma.cc'
 
-# possibly useful to override:
-# GENERATED_ASSETS_STORAGE = '/tmp/perma/assets'
+# Where we store our generated assets (phantomjs images)
+GENERATED_ASSETS_STORAGE = '/tmp/perma/assets'
+
+# Additional locations of static files
+STATICFILES_DIRS = (
+    'static',
+    GENERATED_ASSETS_STORAGE
+
+    # Put strings here, like "/home/html/static" or "C:/www/django/static".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+)

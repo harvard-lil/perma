@@ -1,4 +1,4 @@
-{% extends "layout-archive.html" %}
+{% extends "layout-archive-responsive.html" %}
 {% load file_exists  truncatesmart diff has_group is_darchive %}
 {% block title %} | {{linky.submitted_title}}{% endblock %}
 {% block styles %}
@@ -14,14 +14,14 @@
 <header>
 	<div class="main-container">
 		<div class="top-bar">
-			<div class="span12">
-				<div class="span3">
+			<div class="col-sm-12">
+				<div class="col-sm-3">
 					<div class="logo">
-						<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo.png"></a>
+						<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo2.png"></a>
 					</div><!--end logo -->
 				</div><!--end span 3 -->
 				
-				<div class="span6 meta-data negative-margin">
+				<div class="col-sm-6 meta-data negative-margin">
 					<p>{{linky.submitted_title}}</br>
 					<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></br>
 					<span class="light-grey">created {{linky.creation_timestamp}} | {{ linky.view_count }} view{% if linky.view_count > 1 %}s{% endif %}</span></p>
@@ -31,7 +31,7 @@
 
 				</div><!--end span 5 -->
 				
-				<div class="span1">
+				<div class="col-sm-1">
 				 {% if user.is_authenticated and not linky|is_darchive %}
 					  {% if user|has_group:'registry_member,registrar_member,vesting_member,vesting_manager' and not linky.vested %}
 						<form action="" method="post">
@@ -46,7 +46,7 @@
 				</div>
 				
 				{% if not linky|is_darchive or user|has_group:'registry_member,registrar_member' %}
-			    <div class="span2 negative-margin">
+			    <div class="col-sm-2 negative-margin">
 			    	<ul class="view-type">
 		                <li><a {% if serve_type == 'live' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=live">Live site view</a></li>
 
@@ -103,14 +103,14 @@
 {% endblock %}
 
 {% block content %}
-<div class="row-fluid">
+<div class="row">
     {% if linky.dark_archived and user|has_group:'registry_member,registrar_member' %}
-    	<div class="span6 offset3 yahowza-small">
+    	<div class="col-sm-6 offset3 yahowza-small">
     		<img class="dark-bulb-small" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
 			<h2>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with a takedown notice.</h2>
 		</div>
 	{% elif linky.dark_archived_robots_txt_blocked and user|has_group:'registry_member,registrar_member' %}
-    	<div class="span6 offset3 yahowza-small">
+    	<div class="col-sm-6 offset3 yahowza-small">
     		<img class="dark-bulb-small" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
 			<h2>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with the site's robots.txt.</h2>
 		</div>
@@ -156,8 +156,8 @@
 		</div><!--end watermark-->
    	</div><!--end linky-view-->
    	{% else %}
-   		<div class="row-fluid">
-   			<div class="span6 offset3 yahowza">
+   		<div class="row">
+   			<div class="col-sm-6 col-sm-offset-3 yahowza">
 				<img class="dark-bulb" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
 				 <h1 class="cyan">Apologies.</h1><h2>This link has been <span class="dark">dark archived</span>.<br/>Contact a librarian to get a copy.</h2>
 				<br/>
@@ -212,7 +212,12 @@
 	}
 
 	$(document).ready(function() {
+		$(document).ready(function() {
 		refreshIntervalId = setInterval(check_status, 4000);
+		var headerHeight = $('header').height(),
+		windowHeight = $(window).height();
+		$('iframe').height(windowHeight - headerHeight - 0);
+	});
 	});
 </script>
 {% endif %}
