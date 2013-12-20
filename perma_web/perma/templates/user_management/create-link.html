@@ -1,4 +1,4 @@
-{% extends "admin-layout-responsive.html" %}
+{% extends "admin-layout.html" %}
 {% load truncatesmart %}
 {% block title %} | Create a Perma link{% endblock %}
 {% block styles %}
@@ -89,7 +89,7 @@ $(document).ready(function(){
 <script id="list-template" type="text/x-handlebars-template">
 	<div class="row">
 		<li>
-			<div class="col-sm-8">
+			<div class="span8">
 				<div class="favicon-preview">{{#if favicon_url}}<!--<img src="http://{{favicon_url}}">-->{{/if}}</div>
 				<div class="recent-linky-summary">
 					<h4><a href="http://{{url}}" target="_blank">{{#truncate title 50}}{{/truncate}}</a></h4>
@@ -98,7 +98,7 @@ $(document).ready(function(){
 					<p><a href="http://{{url}}" target="_blank">{{url}}</a></p>
 				</div>
 			</div>
-			<div class="col-sm-4">
+			<div class="span4">
 				<div class="copy-button-div"><span class="copy-confirm" style="display:none"><i class="icon-check text-success"></i></span><button class="btn copy-button" data-clipboard-text="{{url}}" title="Copy Perma Link">Copy Perma &infin;</button></div>
 			</div>
 		</li>
