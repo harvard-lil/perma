@@ -668,6 +668,7 @@ iframe {
   white-space: nowrap;
   overflow: hidden;	
   font-family: 'Roboto Slab', sans-serif;
+  text-align:center;
 }
 
 .meta-data a {
@@ -1379,4 +1380,37 @@ ol li {
 	float:right;
 	margin-top:10px;
 	text-align:right;0
+}
+
+li.tabbed, li.tabbed a {
+font-size:10px;
+}
+
+.navbar-default .navbar-nav > li > a{
+	
+}
+
+.navbar-default .navbar-nav.tabbed > li > a{
+	font-size:16px;
+	margin-top:1px;
+	padding:0px
+}
+
+.navbar-default .navbar-nav.tabbed > li {
+	font-size:16px;
+	padding:0px
+	line-height:20px;
+	border:none;
+	color:#09f;
+}
+
+.navbar-default .navbar-nav.tabbed > li.tab-styling {
+	color:red;
+	padding:10px;
+	border:1px solid red
+}
+
+.navbar-default .navbar-nav.tabbed > li.tab-styling > a {
+	color:red;
+	padding:0px;
 }
