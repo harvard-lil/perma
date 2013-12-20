@@ -100,6 +100,80 @@
 	</div><!-- end main-container -->
 </header>
 
+
+
+<header>
+    	    <div class="navbar navbar-default navbar-static-top">
+				<div class="container">
+					<div class="navbar-header">
+					  <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					  </button>
+					  
+					  <div class="logo navbar-brand">
+							<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo2.png"></a>
+						</div>
+					</div>
+					<div class="navbar-collapse collapse">
+					  <ul class="nav navbar-nav">
+						
+					  </ul>
+					  
+					  	{% if not linky|is_darchive or user|has_group:'registry_member,registrar_member' %}
+			    
+			    	<ul class="nav navbar-nav navbar-right">
+		                <li><a {% if serve_type == 'live' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=live">Live site view</a></li>
+
+						{% if asset.image_capture and asset.image_capture != 'failed' %}
+							<li>
+								<a {% if serve_type == 'image' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=image">Screen capture</a>
+							</li>
+						{% endif %}
+		                
+						{% if asset.warc_capture and asset.warc_capture != 'failed' %}
+							<li>
+							{% if asset.warc_capture == 'pending' %}
+							<span id="warc_cap_container_loading">Archived site <img style="width:30px;" src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving..."></span>
+							<span id="warc_cap_container_complete" class="hide"><a {% if serve_type == 'source' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Archived Site</a></span>
+							{% else %}
+							<span id="warc_cap_container_loading" class="hide">Archived site <img style="width:30px;" src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving..."></span>
+							<span id="warc_cap_container_complete"><a {% if serve_type == 'source' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Archived Site</a></span>
+							{% endif %}
+							</li>
+						{% endif %}
+						
+						{% if asset.pdf_capture and asset.pdf_capture != 'failed' %}
+							<li class="pdf_cap_container">
+							{% if asset.pdf_capture == 'pending' %}
+								<span id="pdf_cap_container_loading">PDF <img style="width:30px;" src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving..."></span>
+								<span id="pdf_cap_container_complete" class="hide"><a {% if serve_type == 'pdf' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF</a></span>
+							{% else %}
+								<span id="pdf_cap_container_loading" class="hide">PDF <img style="width:30px;" src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving..."></span>
+								<span id="pdf_cap_container_complete"><a {% if serve_type == 'pdf' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF</a></span>
+							{% endif %}
+							</li>
+						{% endif %}
+						
+						{% if asset.text_capture and asset.text_capture != 'failed' %}
+							<li>
+							{% if asset.text_capture == 'pending' %}
+								<span id="text_cap_container_loading">Archived text <img style="width:30px;" src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving..."></span>
+								<span id="text_cap_container_complete" class="hide"><a {% if serve_type == 'text' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Extracted text</a></span>
+							{% else %}
+							<span id="text_cap_container_loading" class="hide">Archived text <img style="width:30px;" src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving..."></span>
+							<span id="text_cap_container_complete"><a {% if serve_type == 'text' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Extracted text</a></span>
+							{% endif%}
+							</li>
+						{% endif %}
+						
+					</ul>
+				{% endif %}
+					</div><!--/.nav-collapse -->
+				</div><!--/container -->
+			</div><!--/navbar -->
+		</header>
 {% endblock %}
 
 {% block content %}
