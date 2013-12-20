@@ -104,8 +104,8 @@ p {
 
         .logo span { display: none; }
 
-        .logo a {
-        
+        .logo a, .logo {
+        	min-width:235px;
         text-decoration: none;
           font-family: 'Roboto Slab', sans-serif;
           font-size:36px;
@@ -669,6 +669,7 @@ iframe {
   overflow: hidden;	
   font-family: 'Roboto Slab', sans-serif;
   text-align:center;
+  margin-top:8px;	
 }
 
 .meta-data a {
@@ -1376,12 +1377,6 @@ ol li {
 	font-family: 'Inconsolata', monospace;
 }
 
-.metadata {
-	float:right;
-	margin-top:10px;
-	text-align:right;0
-}
-
 li.tabbed, li.tabbed a {
 font-size:10px;
 }
@@ -1406,8 +1401,8 @@ font-size:10px;
 
 .navbar-default .navbar-nav.tabbed > li.tab-styling {
 	color:red;
-	padding:10px;
-	border:1px solid red
+	padding:10px 10px 0 10px;
+	border-right:1px solid red;
 }
 
 .navbar-default .navbar-nav.tabbed > li.tab-styling > a {
