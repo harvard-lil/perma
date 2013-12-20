@@ -399,7 +399,8 @@ div#dashboard-container {
             div#dashboard-container ul#dashboard-tabs li a {
                 background-image: url('../img/dashboard-icons.png');
                 background-repeat: no-repeat;
-                
+
+
                 font-size: 22px;
                 margin-bottom: 10px;
                 padding: 10px 10px 10px 50px;
