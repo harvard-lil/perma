@@ -648,7 +648,7 @@ div.add-links-list {
 /* iframes */
 
 iframe {
-    border-width: 0px 1px;
+    border-width: 0px 0px;
 	border-style: solid;
 	border-color: #999;	
     text-align:auto;
@@ -1402,7 +1402,9 @@ font-size:10px;
 .navbar-default .navbar-nav.tabbed > li.tab-styling {
 	color:red;
 	padding:10px 10px 0 10px;
-	border-right:1px solid red;
+	border-right:0px solid red;
+	background:#0099ff;
+	margin:0 2px;
 }
 
 .navbar-default .navbar-nav.tabbed > li.tab-styling > a {
