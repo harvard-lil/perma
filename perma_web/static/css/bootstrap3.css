@@ -315,6 +315,9 @@ textarea {
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
+  border:1px solid #ccc;
+  padding:6px 12px;
+  border-radius: 4px;
 }
 
 button,
@@ -2246,7 +2249,7 @@ fieldset[disabled] .btn-success.active {
 
 .btn-info {
   color: #ffffff;
-  background-color: #5bc0de;
+  background-color: #0099ff;
   border-color: #46b8da;
 }
 
@@ -2256,7 +2259,7 @@ fieldset[disabled] .btn-success.active {
 .btn-info.active,
 .open .dropdown-toggle.btn-info {
   color: #ffffff;
-  background-color: #39b3d7;
+  background-color: #007acc;
   border-color: #269abc;
 }
 
