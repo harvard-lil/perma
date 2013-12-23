@@ -471,7 +471,7 @@ div#dashboard-container {
     div#dashboard-container div.tab-content {
      
         overflow: hidden;
-        min-height: 300px;
+        min-height: 170px;
      
     }
 
@@ -960,8 +960,7 @@ img.watermark-image {
         text-decoration: none;
           font-family: 'Roboto Slab', sans-serif;
           font-size:25px;
-          color:#ee5f5b;	
-          text-shadow: -1px 1px #fff;
+          color:#ee5f5b;
 }
 
 .lower {
@@ -978,10 +977,6 @@ img.watermark-image {
 
 .view-type li a{
 	
-}
-
-.active-view {
-	font-weight:bold;
 }
 
 p.definition {
@@ -1398,8 +1393,8 @@ li.tabbed, li.tabbed a {
 font-size:10px;
 }
 
-.navbar-default .navbar-nav > li > a{
-	
+.navbar-collapse {
+	margin-right:-20px;
 }
 
 .navbar-default .navbar-nav.tabbed > li > a{
@@ -1414,18 +1409,21 @@ font-size:10px;
 	line-height:20px;
 	border:none;
 	color:#09f;
+	height:30px;
 }
 
 .navbar-default .navbar-nav.tabbed > li.tab-styling {
-	color:red;
-	padding:10px 10px 0 10px;
+	color:#fff;
+	padding:5px 10px 0px 10px;
 	border-right:0px solid red;
-	background:#0099ff;
+	background:#ccc;
 	margin:0 2px;
+	border-top-right-radius: 3px;
+	border-top-left-radius: 3px;
 }
 
 .navbar-default .navbar-nav.tabbed > li.tab-styling > a {
-	color:red;
+	color:#fff;
 	padding:0px;
 }
 
@@ -1441,3 +1439,22 @@ a.details:hover {
 	color:#333;
 	background:#ddd;
 }
+
+a.active-view {
+	font-weight:bold;
+	color:#777;
+}
+
+button.navbar-toggle {
+	margin-top:-90px;
+}
+
+ul.nav.navbar-nav.tabbed {
+	margin:0 auto 0 auto;
+}
+
+
+
+.navbar-collapse.collapse {
+    margin-bottom:0px;
+  }
