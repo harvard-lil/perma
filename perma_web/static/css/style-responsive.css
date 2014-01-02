@@ -1447,7 +1447,11 @@ a.active-view {
 }
 
 button.navbar-toggle {
-	margin-top:-90px;
+	margin-top:10px;
+}
+
+button.navbar-toggle.menu-adjust {
+	margin-top:-89px;
 }
 
 ul.nav.navbar-nav.tabbed {
