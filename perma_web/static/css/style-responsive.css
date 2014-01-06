@@ -1150,7 +1150,6 @@ table {
     box-sizing: border-box;
     max-width: inherit; 
   border-collapse: collapse; 
-
 }
 
 /* Zebra striping */
@@ -1167,7 +1166,7 @@ td, th {
   border: 0px solid #ccc; 
   text-align: left; 
   padding:0px;
-  vertical-align: top;
+  vertical-align: middle;
 }
 
 p a.submitted_url {
@@ -1201,7 +1200,7 @@ td {
 
 td.linky-abbr-title, td.linky-abbr-date-time {
     text-wrap:unrestricted;
-    word-break:break-all;
+    word-break:none;
     word-wrap: break-word;      /* IE 5.5-7 */
       white-space: pre-wrap; /* css-3 */
     white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
@@ -1240,7 +1239,7 @@ td.linky-abbr-title {
 td.linky-abbr-date-time {
 	min-width:auto;
 	width:70px;
-	vertical-align:top;
+	vertical-align:middle;
 }
 
 td.registrar-name-cell {
@@ -1253,7 +1252,6 @@ td.registrar-website-cell {
 
 tr td.linky-link {
 	width:30%;
-	color:red; 
 }
 
 .delete-confirm {
@@ -1340,9 +1338,18 @@ section#home-description p.mega {
 	color: #ee5f5b;
 }
 
+.orange:hover, .orange:active {
+	color: #e9322d;
+}
+
+.muted {
+	color:#888;
+}
+
 ul {
 	margin-left:-39px;
 }
+
 li {
 	margin-bottom:5px;
 }
@@ -1397,6 +1404,10 @@ font-size:10px;
 	margin-right:-20px;
 }
 
+.navbar-default .navbar-nav > li > a {
+	
+}
+
 .navbar-default .navbar-nav.tabbed > li > a{
 	font-size:16px;
 	margin-top:1px;
@@ -1424,6 +1435,11 @@ font-size:10px;
 
 .navbar-default .navbar-nav.tabbed > li.tab-styling:hover, .navbar-default .navbar-nav.tabbed > li.tab-styling a:hover {
 	background:#09f;
+	color:#333;
+}
+
+.navbar-default .navbar-nav.tabbed > li.tab-styling a.active-view:hover {
+	
 }
 
 a.details {
@@ -1456,8 +1472,11 @@ ul.nav.navbar-nav.tabbed {
 	margin:0 auto 0 auto;
 }
 
-
-
 .navbar-collapse.collapse {
     margin-bottom:0px;
-  }
+}
+
+tr.link-details {
+	padding-left:20px;
+	background:#eee;
+}
