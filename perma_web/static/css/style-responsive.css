@@ -1415,7 +1415,6 @@ font-size:10px;
 .navbar-default .navbar-nav.tabbed > li.tab-styling {
 	color:#fff;
 	padding:5px 10px 0px 10px;
-	border-right:0px solid red;
 	background:#ccc;
 	margin:0 2px;
 	border-top-right-radius: 3px;
@@ -1423,9 +1422,8 @@ font-size:10px;
 }
 
 
-.navbar-default .navbar-nav.tabbed > li.tab-styling > a {
-	color:#fff;
-	padding:0px;
+.navbar-default .navbar-nav.tabbed > li.tab-styling:hover, .navbar-default .navbar-nav.tabbed > li.tab-styling a:hover {
+	background:#09f;
 }
 
 a.details {
