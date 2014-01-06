@@ -2,7 +2,7 @@
 {% block title %} | Account not active{% endblock %}
 
 {% block content %}
-
+<div class="row">
 <h2>Login</h2>
 
   <h4>Your account has not been activated</h4>
@@ -11,6 +11,9 @@
     {% csrf_token %}
     <input type="submit" value="Resend activation email" name="resend" class="btn btn-success">
   </form>
-  
-
+  <br/>
+  <br/>
+  <br/>
+  <br/>
+</div>
 {% endblock content %}

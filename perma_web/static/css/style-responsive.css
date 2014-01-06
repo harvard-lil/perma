@@ -70,6 +70,9 @@ h2 {
     color:#ee5f5b;
 }
 
+h4 {
+	color: #ee5f5b;
+}
 
 p {
     margin-bottom: 20px;
@@ -612,7 +615,7 @@ button#addlink {
 
 input.text-input {
     border-radius: 4px;
-    color: #999;
+    color: #f00;
     font-size: 22px;
     height: 44px;
     margin-right: 10px;
@@ -1044,9 +1047,11 @@ ul#linky-ul li {
   width:300px;
 }
 
+/*
 .embedded-form {
   margin-top:65px;
 }
+*/
 
 .embedded-form fieldset {
   margin-top:25px;
@@ -1059,7 +1064,9 @@ fieldset {
 
 .errorlist {
   list-style-type:none;
-  margin:0 0 10px 0;
+  margin:0 0 26px 0;
+  font-style: italic;
+  color: #888;
 }
 
 /*
@@ -1480,3 +1487,13 @@ tr.link-details {
 	padding-left:20px;
 	background:#eee;
 }
+
+.br-correction {
+	margin-top:-18px;
+}
+
+.icon-plus-sign, .icon-chevron-down, .icon-chevron-up {
+	color: #ee5f5b;
+}
+
+.

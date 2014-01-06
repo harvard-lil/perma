@@ -1,24 +1,32 @@
-{% extends "layout.html" %}
+{% extends "layout-responsive.html" %}
 
 {% block content %}
-<div class="row-fluid">	
-<h2>Register</h2>
-	<form method="post" action="">
+<div class="container">
+	<div class="row">
+		<div class="col-sm-12">	
+			<h2>Register</h2>
+			<form method="post" action="">
 				{% csrf_token %}
 				 <fieldset>
-				 <span class="text-error">{{ editor_reg_form.non_field_errors }}</span>
-        {% for field in editor_reg_form %}
-          <label for="id_{{ field.name }}">{{ field.label }}</label>
-          {{ field }}
-          {% if field.errors %}
-            {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
-          {%elif field.help_text %}
-            <span class="help-inline">{{ field.help_text }}</span>
-          {% endif %}
-        {% endfor %}  
-      </fieldset>
+				<span class="text-error">{{ editor_reg_form.non_field_errors }}</span>
+				{% for field in editor_reg_form %}
+				  <label for="id_{{ field.name }}">{{ field.label }}</label><br/>
+				  {{ field }}
+				  {% if field.errors %}
+					{% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+				  {%elif field.help_text %}
+					<span class="help-inline">{{ field.help_text }}</span>
+				  {% endif %}<br/>
+				{% endfor %}  
+			  </fieldset>
 				<p><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
-				<button type="submit" class="btn">Create account</button>
+				<button type="submit" class="btn-success">Create account</button>
 			</form>
+		</div>
+	</div>
 </div>
+<br/>
+<br/>
+<br/>
+<br/>
 {% endblock content %}

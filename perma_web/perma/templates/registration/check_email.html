@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "layout-responsive.html" %}
 {% load file_exists %}
 {% block title %} | Thank you{% endblock %}
 {% block styles %}
@@ -6,9 +6,18 @@
 {% endblock %}
 
 {% block content %}
-
-<h1>Thank you for registering</h1>
-
-<p>Look for an email from Perma and click on the link in the email to activate your account.</p>
-
+<div class="container">
+	<div class="row">
+		<div class="col-sm-12">	
+			<h1>Thanks for registering</h1>
+			
+			<p>Look for an email from Perma and click on the link to activate your account.</p>
+			<p>See you soon!</p>
+		</div>
+	</div>
+</div>
+<br />
+<br />
+<br />
+<br />
 {% endblock content %}
