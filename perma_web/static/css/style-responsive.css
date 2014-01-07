@@ -1496,4 +1496,19 @@ tr.link-details {
 	color: #ee5f5b;
 }
 
-.
+.icon-plus-sign:hover , .icon-chevron-down:hover, .icon-chevron-up:hover {
+ 	color: #e8231d;
+}
+
+.text-warning {
+	color:#987438;
+}
+
+small a, small a:hover, a i.icon-chevron-down, a i.icon-chevron-down:hover, a i.icon-chevron-up, a i.icon-chevron-up:hover, th a, th a:hover {
+	text-decoration:none;
+	  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+       -o-user-select: none;
+          user-select: none;
+}
