@@ -49,13 +49,13 @@
 					
 					<div class="center">
 						<ul class="nav navbar-nav tabbed">
-							<li class="tab-styling">
-								<a {% if serve_type == 'live' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=live">Live site view</a>
+							<li>
+								<a  class="tab-styling" {% if serve_type == 'live' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=live">Live site view</a>
 							</li>
 	
 							{% if asset.image_capture and asset.image_capture != 'failed' %}
-								<li class="tab-styling">
-									<a {% if serve_type == 'image' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=image">Screen capture</a>
+								<li>
+									<a class="tab-styling" {% if serve_type == 'image' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=image">Screen capture</a>
 								</li>
 							{% endif %}
 							
@@ -67,7 +67,7 @@
 								</span>
 							
 								<span id="warc_cap_container_complete" class="hide">
-									<a {% if serve_type == 'source' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Archived Site</a>
+									<a class="tab-styling" {% if serve_type == 'source' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Archived Site</a>
 								</span>
 							
 							{% else %}
@@ -82,7 +82,7 @@
 							{% endif %}
 							
 							{% if asset.pdf_capture and asset.pdf_capture != 'failed' %}
-							<li class="pdf_cap_container tab-styling"">
+							<li class="pdf_cap_container">
 							{% if asset.pdf_capture == 'pending' %}
 								<span id="pdf_cap_container_loading">
 									PDF <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->

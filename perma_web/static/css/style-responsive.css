@@ -21,8 +21,6 @@ body {
     padding: 0;
 }
 
-
-
 .modal {
     background-color:#fff;
     border:1px solid #ccc;
@@ -1415,13 +1413,7 @@ font-size:10px;
 	
 }
 
-.navbar-default .navbar-nav.tabbed > li > a{
-	font-size:16px;
-	margin-top:1px;
-	padding:0px
-}
-
-.navbar-default .navbar-nav.tabbed > li {
+.navbar-default .navbar-nav.tabbed > li, .navbar-default .navbar-nav.tabbed > li a {
 	font-size:16px;
 	padding:0px
 	line-height:20px;
@@ -1430,7 +1422,7 @@ font-size:10px;
 	height:30px;
 }
 
-.navbar-default .navbar-nav.tabbed > li.tab-styling {
+.navbar-nav.tabbed > li a.tab-styling, .navbar-nav.tabbed > li.tab-styling {
 	color:#fff;
 	padding:5px 10px 0px 10px;
 	background:#ccc;
@@ -1440,7 +1432,7 @@ font-size:10px;
 }
 
 
-.navbar-default .navbar-nav.tabbed > li.tab-styling:hover, .navbar-default .navbar-nav.tabbed > li.tab-styling a:hover {
+.navbar-default .navbar-nav.tabbed > li a.tab-styling:hover, .navbar-default .navbar-nav.tabbed > li.tab-styling a:hover {
 	background:#09f;
 	color:#333;
 }
