@@ -40,14 +40,14 @@
 						
 						<div class="navbar-collapse collapse">
 						  
-						  
+						<div class="centering-tabs">  
 						  <ul class="nav navbar-nav">	
 						  </ul>
 						  
 							{% if not linky|is_darchive or user|has_group:'registry_member,registrar_member' %}
 					
 					
-					<div class="center">
+					
 						<ul class="nav navbar-nav tabbed">
 							<li>
 								<a  class="tab-styling" {% if serve_type == 'live' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=live">Live site view</a>
@@ -133,7 +133,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="row-fluid">
+   		
+			<div class="row">
     {% if linky.dark_archived and user|has_group:'registry_member,registrar_member' %}
     	<div class="col-sm-6 offset3 yahowza-small">
     		<img class="dark-bulb-small" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
@@ -185,18 +186,21 @@
 			{% endif %}
 		</div><!--end watermark-->
    	</div><!--end linky-view-->
+   	
    	{% else %}
-   		<div class="row-fluid">
-   			<div class="col-sm-6 col-sm-offset-3 yahowza">
-				<img class="dark-bulb" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
-				 <h1 class="cyan">Apologies.</h1><h2>This link has been <span class="dark">dark archived</span>.<br/>Contact a librarian to get a copy.</h2>
-				<br/>
-				{% if linky.dark_archived %}
-					<p>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with a takedown notice.</p>
-				{% elif linky.dark_archived_robots_txt_blocked %}
-					<p>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with the site's robots.txt.</p>
-				{% endif %}
-   	    	</div>
+   		<div class="container">
+			<div class="row">
+				<div class="col-sm-6 col-sm-offset-3 yahowza">
+					<img class="dark-bulb" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
+					 <h1 class="cyan">Apologies.</h1><h2>This link has been <span class="dark">dark archived</span>.<br/>Contact a librarian to get a copy.</h2>
+					<br/>
+					{% if linky.dark_archived %}
+						<p>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with a takedown notice.</p>
+					{% elif linky.dark_archived_robots_txt_blocked %}
+						<p>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with the site's robots.txt.</p>
+					{% endif %}
+				</div>
+			</div>
    	    </div>
    	{% endif %}
 </div><!--row-->

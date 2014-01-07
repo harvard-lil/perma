@@ -15,7 +15,7 @@ body {
 
 .navbar-default {
 	background:#eee;
-	border-bottom:1px solid #ddd;
+	border-bottom:2px solid #09f;
 }
 .container-fluid {
     padding: 0;
@@ -668,7 +668,7 @@ iframe {
 }
 
 .meta-data, .meta-data a {
-  white-space: nowrap;
+  
   overflow: hidden;	
   font-family: 'Roboto Slab', sans-serif;
   text-align:center;
@@ -899,6 +899,7 @@ h3 {
 }
 
 .center {
+	position:relative
     text-align:center;
     margin:auto;
 }
@@ -1401,10 +1402,6 @@ ol li {
 	font-family: 'Inconsolata', monospace;
 }
 
-li.tabbed, li.tabbed a {
-font-size:10px;
-}
-
 .navbar-collapse {
 	margin-right:-20px;
 }
@@ -1425,7 +1422,7 @@ font-size:10px;
 .navbar-nav.tabbed > li a.tab-styling, .navbar-nav.tabbed > li.tab-styling {
 	color:#fff;
 	padding:5px 10px 0px 10px;
-	background:#ccc;
+	background:#77c9ff;
 	margin:0 2px;
 	border-top-right-radius: 3px;
 	border-top-left-radius: 3px;
@@ -1434,11 +1431,11 @@ font-size:10px;
 
 .navbar-default .navbar-nav.tabbed > li a.tab-styling:hover, .navbar-default .navbar-nav.tabbed > li.tab-styling a:hover {
 	background:#09f;
-	color:#333;
+	color:#fff;
 }
 
-.navbar-default .navbar-nav.tabbed > li.tab-styling a.active-view:hover {
-	
+li.tab-styling a.active-view:hover, a.tab-styling.active-view {
+	background:black;
 }
 
 a.details {
@@ -1464,7 +1461,14 @@ button.navbar-toggle {
 }
 
 button.navbar-toggle.menu-adjust {
-	margin-top:-89px;
+	position:fixed;
+	right:20px;
+	top:0px;
+	  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+       -o-user-select: none;
+          user-select: none;
 }
 
 ul.nav.navbar-nav.tabbed {
@@ -1472,7 +1476,7 @@ ul.nav.navbar-nav.tabbed {
 }
 
 .navbar-collapse.collapse {
-    margin-bottom:0px;
+    margin-bottom:-5px; 
 }
 
 tr.link-details {
@@ -1496,6 +1500,11 @@ tr.link-details {
 	color:#987438;
 }
 
+ul.nav.navbar-nav.tabbed.tab-styling.active-view, ul.nav.navbar-nav.tabbed a.tab-styling.active-view{
+	background:red;
+}
+
+
 small a, small a:hover, a i.icon-chevron-down, a i.icon-chevron-down:hover, a i.icon-chevron-up, a i.icon-chevron-up:hover, th a, th a:hover {
 	text-decoration:none;
 	  -webkit-user-select: none;
@@ -1503,4 +1512,18 @@ small a, small a:hover, a i.icon-chevron-down, a i.icon-chevron-down:hover, a i.
       -ms-user-select: none;
        -o-user-select: none;
           user-select: none;
+}
+
+@media (min-width: 768px) {
+	ul.nav.navbar-nav.tabbed {
+		text-align:center;
+		left:8%;
+	}
+}
+
+@media (min-width:  992px) {
+	ul.nav.navbar-nav.tabbed {
+		text-align:center;
+		left:14%;
+	}
 }
