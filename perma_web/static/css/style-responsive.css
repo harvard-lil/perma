@@ -1514,6 +1514,14 @@ small a, small a:hover, a i.icon-chevron-down, a i.icon-chevron-down:hover, a i.
           user-select: none;
 }
 
+.row {
+	margin:0px;
+}
+
+ul.nav.navbar-nav.tabbed.tab-styling.active-view, ul.nav.navbar-nav.tabbed a.tab-styling.active-view{
+	background:#09f;
+}
+
 @media (min-width: 768px) {
 	ul.nav.navbar-nav.tabbed {
 		text-align:center;
@@ -1525,5 +1533,19 @@ small a, small a:hover, a i.icon-chevron-down, a i.icon-chevron-down:hover, a i.
 	ul.nav.navbar-nav.tabbed {
 		text-align:center;
 		left:14%;
+	}
+}
+
+@media (max-width: 768px) {
+	.navbar-default .navbar-nav.tabbed > li, .navbar-default .navbar-nav.tabbed > li a {
+		font-size:16px;
+		padding:0px
+		line-height:20px;
+		border:none;
+		margin:2px 0;
+		height:30px;
+		border-radius: 0px;
+        -moz-border-radius: 0px;
+        -webkit-border-radius: 0px;
 	}
 }

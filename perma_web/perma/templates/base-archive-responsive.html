@@ -22,18 +22,15 @@
         -->
     </head>
     <body>
-        <div class="container-fluid">
-            <div class="row-fluid">
-				{% block header %}{% endblock header %}
-                <section id="main-archive">
-                    <div class="main-container" id="main-content">
-                        <div class="row-fluid">
-                    {% block row %}{% endblock row %}
-                        </div><!--/.row-fluid-->
-                    </div><!--/.main-container #main-content"-->
-                </section><!--/#main-->
-	          </div><!--/.row-fluid-->
-        </div><!--/.container-fluid-->
+		{% block header %}{% endblock header %}
+		<section id="main-archive">
+			<div id="main-content">
+				<div class="row">
+			{% block row %}{% endblock row %}
+				</div><!--/.row-fluid-->
+			</div><!--/.main-container #main-content"-->
+		</section><!--/#main-->
+
 
     <script src="{{ STATIC_PREFIX }}js/jquery.js"></script>
     <script src="{{ STATIC_PREFIX }}js/bootstrap3.js"></script>
