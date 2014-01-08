@@ -15,7 +15,7 @@ body {
 
 .navbar-default {
 	background:#eee;
-	border-bottom:2px solid #09f;
+	border-bottom:1px solid #ccc;
 }
 .container-fluid {
     padding: 0;
