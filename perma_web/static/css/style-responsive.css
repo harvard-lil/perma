@@ -17,6 +17,11 @@ body {
 	background:#eee;
 	border-bottom:1px solid #ccc;
 }
+
+.tab-border	{
+	border-bottom:3px solid #09f;
+}
+
 .container-fluid {
     padding: 0;
 }
@@ -389,10 +394,7 @@ div#dashboard-container {
 
 
     div#dashboard-container ul#dashboard-tabs {
-       
-    
         margin: 0 10px 50px 0;
-       
     }
 
         div#dashboard-container ul#dashboard-tabs li img{
@@ -470,10 +472,8 @@ div#dashboard-container {
             }
 
     div#dashboard-container div.tab-content {
-     
         overflow: hidden;
         min-height: 170px;
-     
     }
 
 div.dashboard-add-link {
@@ -1419,11 +1419,10 @@ ol li {
 
 .navbar-default .navbar-nav.tabbed > li a.tab-styling:hover, .navbar-default .navbar-nav.tabbed > li.tab-styling a:hover {
 	background:#09f;
-	color:#fff;
 }
 
-li.tab-styling a.active-view:hover, a.tab-styling.active-view {
-	background:black;
+.navbar-default .navbar-nav.tabbed > li a.tab-styling:active, .navbar-default .navbar-nav.tabbed > li.tab-styling a:active {
+	background:#007acc;
 }
 
 a.details {
@@ -1507,6 +1506,10 @@ ul.nav.navbar-nav.tabbed.tab-styling.active-view, ul.nav.navbar-nav.tabbed a.tab
 
 .button-img {
 	width:40px;
+}
+
+#vestings-org-vis {
+	width:100%;
 }
 
 @media (min-width: 768px) {
