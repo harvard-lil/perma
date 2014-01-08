@@ -2266,6 +2266,7 @@ fieldset[disabled] .btn-success.active {
 .btn-info.active,
 .open .dropdown-toggle.btn-info {
   background-image: none;
+  background-color: #005c99;
 }
 
 .btn-info.disabled,

@@ -59,17 +59,17 @@ h1, h2, h3, h4, h5 { font-weight: normal; font-family: 'Roboto Slab', sans-serif
 h1 {
     margin-top: 40px;
     margin-bottom: 30px;
-    color:#ee5f5b;
+    color:#ff4100;
 }
 
 h2 {
     margin-top: 25px;
     font-size: 26px;
-    color:#ee5f5b;
+    color:#ff4100;
 }
 
 h4 {
-	color: #ee5f5b;
+	color: #ff4100;
 }
 
 p {
@@ -110,14 +110,14 @@ p {
         text-decoration: none;
           font-family: 'Roboto Slab', sans-serif;
           font-size:36px;
-          color:#ee5f5b;
+          color:#ff4100;
         }
 
 	.logo-condensed-header a {
 	text-decoration: none;
           font-family: 'Roboto Slab', sans-serif;
           font-size:36px;
-          color:#ee5f5b;
+          color:#ff4100;
 	}
 
 
@@ -601,15 +601,14 @@ div#dashboard-container div#batch-convert {
 /* Add link widget */
 
 button#addlink {
-    margin-top: 0px;
-    text-transform: uppercase;
+	margin-top:-8px;
 }
 
 /* Form elements */
 
 input.text-input {
     border-radius: 4px;
-    color: #f00;
+    color: #ff4100;
     font-size: 22px;
     height: 44px;
     margin-right: 10px;
@@ -695,7 +694,7 @@ img.image-view {
 }
 
 .translucent-background h1 {
-	color:#ee5f5b;
+	color:#ff4100;
 }
 
 ul {
@@ -928,6 +927,7 @@ img.linky-image-preview {
 	margin:0 auto;
 	position:relative;
 	padding:0px;
+	text-align:center;
 	
 }
 
@@ -951,7 +951,7 @@ img.watermark-image {
         text-decoration: none;
           font-family: 'Roboto Slab', sans-serif;
           font-size:25px;
-          color:#ee5f5b;
+          color:#ff4100;
 }
 
 .lower {
@@ -1014,7 +1014,7 @@ a.grey {
 }
 
 .add-link-form {
-	text-align:center;
+	text-align:none;
 }
 
 ul#linky-ul li {
@@ -1328,7 +1328,7 @@ section#home-description p.mega {
 }
 
 .orange {
-	color: #ee5f5b;
+	color: #ff4100;
 }
 
 .orange:hover, .orange:active {
@@ -1404,6 +1404,7 @@ ol li {
 	border:none;
 	color:#09f;
 	height:30px;
+	margin-bottom:0px;
 }
 
 .navbar-nav.tabbed > li a.tab-styling, .navbar-nav.tabbed > li.tab-styling {
@@ -1458,7 +1459,7 @@ ul.nav.navbar-nav.tabbed {
 }
 
 .navbar-collapse.collapse {
-    margin-bottom:-5px; 
+     
 }
 
 tr.link-details {
@@ -1471,7 +1472,7 @@ tr.link-details {
 }
 
 .icon-plus-sign, .icon-chevron-down, .icon-chevron-up {
-	color: #ee5f5b;
+	color: #ff4100;
 }
 
 .icon-plus-sign:hover , .icon-chevron-down:hover, .icon-chevron-up:hover {
@@ -1504,6 +1505,10 @@ ul.nav.navbar-nav.tabbed.tab-styling.active-view, ul.nav.navbar-nav.tabbed a.tab
 	background:#09f;
 }
 
+.button-img {
+	width:40px;
+}
+
 @media (min-width: 768px) {
 	ul.nav.navbar-nav.tabbed {
 		text-align:center;
@@ -1528,6 +1533,11 @@ ul.nav.navbar-nav.tabbed.tab-styling.active-view, ul.nav.navbar-nav.tabbed a.tab
         -moz-border-radius: 0px;
         -webkit-border-radius: 0px;
 	}
-
-	
+	.add-link-form {
+		text-align: center;
+	}
+	.navbar-collapse {
+		width:100%;
+		margin:0 0 10px;
+	}
 }
