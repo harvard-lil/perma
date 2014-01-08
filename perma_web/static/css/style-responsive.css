@@ -327,11 +327,11 @@ div.home-form-elements {
     } 
 
     div.home-form-elements .add-links-list {
-        width: 498px;
+      
        /*/ box-shadow: 2px 2px 3px #16699e;
         -moz-box-shadow: 2px 2px 3px #16699e;
         -webkit-box-shadow: 2px 2px 3px #16699e;/*/
-        border:1px solid #ccc;
+      
     }
 
 section#home-description {
@@ -527,14 +527,10 @@ div#dashboard-container div#library {}
        		 height:275px;
        		 overflow:hidden;
        		 margin:0 auto;
-       		 
-                margin: 0px auto 15px -15px;
        		 border:1px solid #eee;
-       		         border-radius: 4px;
+       		 border-radius: 4px;
        		 -moz-border-radius: 4px;
-        -webkit-border-radius: 4px;
-        	
-       		 
+        	-webkit-border-radius: 4px;	 
 		}
       
                 
@@ -550,14 +546,14 @@ div#dashboard-container div#library {}
                
             }
 
-        p.library-link-title {
-            color: #777;
+        p.library-link-title, #upload-option {
+            color: #333;
             font-size: 14px;
-            margin: 10px 0 0 0;
+            margin: 20px 0 0 0;
         }
 
         p.library-link-url {
-            color: #777;
+            color: #333;
             font-size: 12px;
             font-style: italic;
             margin: 0;
@@ -659,9 +655,8 @@ iframe {
     margin:0px auto;
     padding:auto;
     display:block;
-    overflow:hidden;
-    overflow-x:hidden;
-    overflow-y:hidden;
+    overflow-x:scroll;
+    overflow-y: scroll;
     height:100%;
     width:100%;
 
@@ -745,12 +740,6 @@ ul {
   float:left;
   margin-left:15px;
   width:320px;
-}
-
-#upload-option {
-  margin: 0;
-  font-size:13px;
-  color: #777;
 }
 
 #emailPerma {
@@ -1024,9 +1013,8 @@ a.grey {
   color:#006dcc;
 }
 
-.span4 img {
-    width:50%;
-    opacity:.9;
+.add-link-form {
+	text-align:center;
 }
 
 ul#linky-ul li {
@@ -1079,9 +1067,8 @@ fieldset {
 }
 */
 
-.copy-button-div {
-    float:right;
-    font-family: 'Roboto Slab', sans-serif;
+a.copy-button.library-link-meta:hover {
+    color:#06a;
 }
 #wrap {
     min-height: 100%;
@@ -1451,11 +1438,6 @@ a.details:hover {
 	background:#ddd;
 }
 
-a.active-view {
-	font-weight:bold;
-	color:#777;
-}
-
 button.navbar-toggle {
 	margin-top:10px;
 }
@@ -1538,9 +1520,7 @@ ul.nav.navbar-nav.tabbed.tab-styling.active-view, ul.nav.navbar-nav.tabbed a.tab
 
 @media (max-width: 768px) {
 	.navbar-default .navbar-nav.tabbed > li, .navbar-default .navbar-nav.tabbed > li a {
-		font-size:16px;
-		padding:0px
-		line-height:20px;
+		font-size:13px;
 		border:none;
 		margin:2px 0;
 		height:30px;
@@ -1548,4 +1528,6 @@ ul.nav.navbar-nav.tabbed.tab-styling.active-view, ul.nav.navbar-nav.tabbed a.tab
         -moz-border-radius: 0px;
         -webkit-border-radius: 0px;
 	}
+
+	
 }

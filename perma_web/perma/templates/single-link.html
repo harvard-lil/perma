@@ -38,37 +38,46 @@
 						  </button>  
 						</div>
 						
-<div class="navbar-collapse collapse">	  
-						
-						{% if not linky|is_darchive or user|has_group:'registry_member,registrar_member' %}
+						<div class="navbar-collapse collapse" id="collapse-refresh">
+						  
+						<div class="centering-tabs">  
+						  <ul class="nav navbar-nav">	
+						  </ul>
+						  
+							{% if not linky|is_darchive or user|has_group:'registry_member,registrar_member' %}
+					
+					
 					
 						<ul class="nav navbar-nav tabbed">
 							<li>
-								<a  class="tab-styling{% if serve_type == 'live' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=live">Live site view</a>
+								<a  class="tab-styling" {% if serve_type == 'live' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=live">Live site view</a>
 							</li>
+	
 							{% if asset.image_capture and asset.image_capture != 'failed' %}
-							<li>
-								<a class="tab-styling{% if serve_type == 'image' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=image">Screen capture</a>
-							</li>
+								<li>
+									<a class="tab-styling" {% if serve_type == 'image' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=image">Screen capture</a>
+								</li>
 							{% endif %}
 							
 							{% if asset.warc_capture and asset.warc_capture != 'failed' %}
 							<li class="tab-styling">
-							{% if asset.warc_capture == 'pending' %}	
+							{% if asset.warc_capture == 'pending' %}
 								<span id="warc_cap_container_loading">
 									Archived site <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
 								</span>
+							
 								<span id="warc_cap_container_complete" class="hide">
 									<a class="tab-styling" {% if serve_type == 'source' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Archived Site</a>
 								</span>
+							
 							{% else %}
-								<span id="warc_cap_container_loading" class="hide">
-									Archived site <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
-								</span>
-								<span id="warc_cap_container_complete">
-									<a class="tab-styling{% if serve_type == 'source' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source">Archived Site</a>
-								</span>
-								{% endif %}
+							<span id="warc_cap_container_loading" class="hide">
+								Archived site <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+							</span>
+							<span id="warc_cap_container_complete">
+								<a {% if serve_type == 'source' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Archived Site</a>
+							</span>
+							{% endif %}
 							</li>
 							{% endif %}
 							
@@ -86,7 +95,7 @@
 									PDF <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
 								</span>
 								<span id="pdf_cap_container_complete">
-									<a class="tab-styling{% if serve_type == 'pdf' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=pdf">PDF</a>
+									<a {% if serve_type == 'pdf' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF</a>
 								</span>
 							{% endif %}
 							</li>
@@ -99,22 +108,23 @@
 									Archived text <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
 								</span>
 								<span id="text_cap_container_complete" class="hide">
-									<a class="tab-styling{% if serve_type == 'text' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=text">Extracted text</a>
+									<a {% if serve_type == 'text' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Extracted text</a>
 								</span>
 							{% else %}
 								<span id="text_cap_container_loading" class="hide">
 									Archived text <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
 								</span>
 								<span id="text_cap_container_complete">
-									<a class="tab-styling{% if serve_type == 'text' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=text">Extracted text</a>
+									<a {% if serve_type == 'text' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Extracted text</a>
 								</span>
 							{% endif%}
 							</li>
 							{% endif %}
 							
 						</ul>
+					</div><!--/.center-->
 					{% endif %}
-					</div><!--/.nav-collapse -->
+						</div><!--/.nav-collapse -->
 					
 					</div><!--/.row -->
 				</div><!--/container -->
@@ -236,12 +246,19 @@
 	}
 
 	$(document).ready(function() {
-		$(document).ready(function() {
 		refreshIntervalId = setInterval(check_status, 4000);
-		var headerHeight = $('header').height(),
-		windowHeight = $(window).height();
-		$('iframe').height(windowHeight - headerHeight - 0);
-	});
+		adjustHeight();
+		$('#collapse-refresh').on('shown.bs.collapse', function () {
+			adjustHeight();
+		});
+		$('#collapse-refresh').on('hidden.bs.collapse', function () {
+			adjustHeight();
+		});
+		function adjustHeight() {
+			var headerHeight = $('header').height(),
+			windowHeight = $(window).height();
+			$('iframe').height(windowHeight - headerHeight - 0);
+		}
 	});
 </script>
 {% endif %}
