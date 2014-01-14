@@ -29,7 +29,6 @@
 				 </div><!--end row -->
 				 <div class="row">
 				 	<div class="col-sm-10 col-sm-offset-1">	
-						
 						<div class="navbar-header">
 						  <button type="button" class="navbar-toggle menu-adjust" data-toggle="collapse" data-target=".navbar-collapse">
 							<span class="icon-bar"></span>
@@ -55,20 +54,25 @@
 								{% if asset.warc_capture and asset.warc_capture != 'failed' %}
 								<li>
 								{% if asset.warc_capture == 'pending' %}	
+								<div class="adjust-tab">	
 									<span id="warc_cap_container_loading">
-										Archived site<!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+										<span class="tab-styling">Archived site</span>
+										<!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
 									</span>
 									<span id="warc_cap_container_complete" class="hide">
 										<a class="tab-styling{% if serve_type == 'source' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source">Archived site</a>
 									</span>
 								{% else %}
+									
 									<span id="warc_cap_container_loading" class="hide">
-										Archived site <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+										<span class="tab-styling">Archived site</span> 
+										<!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
 									</span>
 									<span id="warc_cap_container_complete">
 										<a class="tab-styling{% if serve_type == 'source' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source">Archived site</a>
 									</span>
 									{% endif %}
+									</div>
 								</li>
 								{% endif %}
 								
@@ -76,14 +80,14 @@
 								<li class="pdf_cap_container">
 								{% if asset.pdf_capture == 'pending' %}
 									<span id="pdf_cap_container_loading">
-										PDF <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+										<span class="tab-styling">PDF</span> <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
 									</span>
 									<span id="pdf_cap_container_complete" class="hide">
 										<a {% if serve_type == 'pdf' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF</a>
 									</span>
 								{% else %}
 									<span id="pdf_cap_container_loading" class="hide">
-										PDF <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+										<span class="tab-styling">PDF</span><!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
 									</span>
 									<span id="pdf_cap_container_complete">
 										<a class="tab-styling{% if serve_type == 'pdf' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=pdf">PDF</a>
@@ -96,14 +100,14 @@
 								<li>
 								{% if asset.text_capture == 'pending' %}
 									<span id="text_cap_container_loading">
-										Archived text <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+										<span class="tab-styling">Archived text</span> <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
 									</span>
 									<span id="text_cap_container_complete" class="hide">
-										<a class="tab-styling{% if serve_type == 'text' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=text">Archived text</a>
+										<a class="tab-styling{% if serve_type == 'text' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=text">Archived text</span></a>
 									</span>
 								{% else %}
 									<span id="text_cap_container_loading" class="hide">
-										Archived text <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+										<span class="tab-styling">Archived text</span> <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
 									</span>
 									<span id="text_cap_container_complete">
 										<a class="tab-styling{% if serve_type == 'text' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=text">Archived text</a>

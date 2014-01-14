@@ -1398,13 +1398,10 @@ ol li {
 	
 }
 
-.navbar-default .navbar-nav.tabbed > li, .navbar-default .navbar-nav.tabbed > li a {
+ul.navbar-nav.tabbed > li, ul.navbar-nav.tabbed > li a {
 	font-size:16px;
 	padding:0px
-	line-height:20px;
-	border:none;
-	color:#09f;
-	height:30px;
+	line-height:0px;
 	margin-bottom:0px;
 }
 
@@ -1415,6 +1412,8 @@ ol li {
 	margin:0 2px;
 	border-top-right-radius: 3px;
 	border-top-left-radius: 3px;
+	height:30px;
+	font-size:16px;
 }
 
 .tab-styling {
@@ -1516,10 +1515,26 @@ ul.nav.navbar-nav.tabbed.tab-styling.active-view, ul.nav.navbar-nav.tabbed a.tab
 	width:100%;
 }
 
-ul li span#warc_cap_container_loading, span#warc_cap_container_complete, span#text_cap_container_loading, span#text_cap_container_complete {
-	margin-top:40px;
-	border:1px solid red;
+ul li span#warc_cap_container_loading .tab-styling, span#warc_cap_container_complete .tab-styling, span#text_cap_container_loading .tab-styling, span#text_cap_container_complete .tab-styling {
+	position:static
+	}
+
+span#text_cap_container_complete a.tab-styling {
+
+}
+
+a.tab-styling, .tab-styling {
 	
+	
+}
+
+.adjust-tab {
+	margin-top:5px;
+}
+
+span.tab-styling {
+	height:40px;
+	margin-bottom:0px;
 }
 
 @media (min-width: 768px) {
