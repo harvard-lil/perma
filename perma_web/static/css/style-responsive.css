@@ -679,7 +679,7 @@ iframe {
 }
 img.image-view {
 	margin-top:0px;
-	width:100%;
+	max-width:100%;
 }
 
 
@@ -941,7 +941,8 @@ img.watermark-image {
 	z-index:2;
 	margin:0 auto -60%;
 	opacity:.6;
-	width:90%;
+	width:70%;
+	
 }
 .watermark h2, .watermark h1 {
 
@@ -1417,14 +1418,17 @@ ol li {
 }
 
 
-.navbar-default .navbar-nav.tabbed > li a.tab-styling:hover, .navbar-default .navbar-nav.tabbed > li.tab-styling a:hover {
+.navbar-default .navbar-nav.tabbed > li a.tab-styling:hover, .navbar-default .navbar-nav.tabbed > li.tab-styling:hover {
 	background:#09f;
 }
 
-.navbar-default .navbar-nav.tabbed > li a.tab-styling:active, .navbar-default .navbar-nav.tabbed > li.tab-styling a:active {
+.navbar-default .navbar-nav.tabbed > li a.tab-styling:active, .navbar-default .navbar-nav.tabbed > li.tab-styling:active {
 	background:#007acc;
 }
 
+.navbar-default .navbar-nav.tabbed > li.tab-styling a.tab-styling:hover, .navbar-default .navbar-nav.tabbed > li.tab-styling:hover {
+	background:#09f;
+}
 a.details {
 	padding:2px 6px;
 	background:#eee;
@@ -1482,10 +1486,6 @@ tr.link-details {
 	color:#987438;
 }
 
-ul.nav.navbar-nav.tabbed.tab-styling.active-view, ul.nav.navbar-nav.tabbed a.tab-styling.active-view{
-	background:red;
-}
-
 
 small a, small a:hover, a i.icon-chevron-down, a i.icon-chevron-down:hover, a i.icon-chevron-up, a i.icon-chevron-up:hover, th a, th a:hover {
 	text-decoration:none;
@@ -1510,6 +1510,11 @@ ul.nav.navbar-nav.tabbed.tab-styling.active-view, ul.nav.navbar-nav.tabbed a.tab
 
 #vestings-org-vis {
 	width:100%;
+}
+
+span#warc_cap_container_complete {
+	margin-bottom:50px;
+	
 }
 
 @media (min-width: 768px) {

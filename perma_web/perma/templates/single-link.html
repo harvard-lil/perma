@@ -53,13 +53,13 @@
 								{% endif %}
 								
 								{% if asset.warc_capture and asset.warc_capture != 'failed' %}
-								<li class="tab-styling">
+								<li>
 								{% if asset.warc_capture == 'pending' %}	
 									<span id="warc_cap_container_loading">
-										Archived site <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+										<span class="tab-styling">Archived site</span> <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
 									</span>
 									<span id="warc_cap_container_complete" class="hide">
-										<a class="tab-styling" {% if serve_type == 'source' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Archived Site</a>
+										<a class="tab-styling{% if serve_type == 'source' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source">Archived Site</a>
 									</span>
 								{% else %}
 									<span id="warc_cap_container_loading" class="hide">
