@@ -58,16 +58,10 @@ class create_user_form(forms.ModelForm):
         raise forms.ValidationError(self.error_messages['duplicate_email'])
 
         
-class create_user_form_w_registrar(forms.ModelForm):
+class create_user_form_w_registrar(create_user_form):
     """
-    stripped down user reg form
-    This is mostly a django.contrib.auth.forms.UserCreationForm
+    add registrar to the create user form
     """
-    error_messages = {
-        'duplicate_email': "A user with that email address already exists.",
-    }
-
-    email = forms.EmailField()
 
     registrar = forms.ModelChoiceField(queryset=Registrar.objects.all().order_by('name'), empty_label=None)
 
@@ -75,23 +69,12 @@ class create_user_form_w_registrar(forms.ModelForm):
         model = LinkUser
         fields = ["first_name", "last_name", "email", "registrar"]
 
-    def clean_email(self):
-        # Since User.email is unique, this check is redundant,
-        # but it sets a nicer error message than the ORM.
-
-        email = self.cleaned_data["email"]
-        try:
-            LinkUser.objects.get(email=email)
-        except LinkUser.DoesNotExist:
-            return email
-        raise forms.ValidationError(self.error_messages['duplicate_email'])
-
     def clean_registrar(self):
         registrar = self.cleaned_data["registrar"]
         return registrar
 
 
-class create_user_form_w_vesting_org(forms.ModelForm):
+class create_user_form_w_vesting_org(create_user_form):
     """
     stripped down user reg form
     This is mostly a django.contrib.auth.forms.UserCreationForm
@@ -107,64 +90,13 @@ class create_user_form_w_vesting_org(forms.ModelForm):
     class Meta:
         model = LinkUser
         fields = ["first_name", "last_name", "email", "vesting_org"]
-        
-    error_messages = {
-        'duplicate_email': "A user with that email address already exists.",
-    }
-
-    email = forms.EmailField()
 
     vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
-
-    def clean_email(self):
-        # Since User.email is unique, this check is redundant,
-        # but it sets a nicer error message than the ORM.
-
-        email = self.cleaned_data["email"]
-        try:
-            LinkUser.objects.get(email=email)
-        except LinkUser.DoesNotExist:
-            return email
-        raise forms.ValidationError(self.error_messages['duplicate_email'])
 
     def clean_vesting_org(self):
         vesting_org = self.cleaned_data["vesting_org"]
         return vesting_org
 
-
-class registrar_member_form_edit(forms.ModelForm):
-    """
-    stripped down user reg form
-    This is mostly a django.contrib.auth.forms.UserCreationForm
-
-    This is the edit form, so we strip it down even more
-    """
-    error_messages = {
-
-    }
-
-    email = forms.EmailField()
-
-    registrar = forms.ModelChoiceField(queryset=Registrar.objects.all().order_by('name'), empty_label=None)
-    
-    group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None)
-
-    class Meta:
-        model = LinkUser
-        fields = ["first_name", "last_name", "email", "registrar"]
-
-    def save(self, commit=True):
-        user = super(registrar_member_form_edit, self).save(commit=False)
-        group = self.cleaned_data['group']
-        all_groups = Group.objects.all()
-        for ag in all_groups:
-          user.groups.remove(ag)
-        user.groups.add(group)
-
-        if commit:
-            user.save()
-
-        return user
 
 class user_form_edit(forms.ModelForm):
     """
@@ -197,6 +129,24 @@ class user_form_edit(forms.ModelForm):
             user.save()
 
         return user
+        
+
+class registrar_member_form_edit(user_form_edit):
+    """
+    stripped down user reg form
+    This is mostly a django.contrib.auth.forms.UserCreationForm
+
+    This is the edit form, so we strip it down even more
+    """
+
+    registrar = forms.ModelChoiceField(queryset=Registrar.objects.all().order_by('name'), empty_label=None)
+    
+    group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None)
+
+    class Meta:
+        model = LinkUser
+        fields = ["first_name", "last_name", "email", "registrar"]
+
 
 class vesting_manager_form_edit(forms.ModelForm):
     """
@@ -223,31 +173,19 @@ class vesting_manager_form_edit(forms.ModelForm):
     vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
     
         
-class vesting_manager_w_group_form_edit(forms.ModelForm):
+class vesting_manager_w_group_form_edit(vesting_manager_form_edit):
     """
     stripped down user reg form
     This is mostly a django.contrib.auth.forms.UserCreationForm
 
     This is stripped down even further to match out editing needs
     """
-    
-    def __init__(self, *args, **kwargs):
-      registrar_id = False
-      if 'registrar_id' in kwargs:
-        registrar_id = kwargs.pop('registrar_id')
-      super(vesting_manager_w_group_form_edit, self).__init__(*args, **kwargs)
-      if registrar_id:
-        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id).order_by('name')
 
     class Meta:
         model = LinkUser
         fields = ("first_name", "last_name", "email", "vesting_org")
-
-
-    email = forms.EmailField()
                          
     group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None)
-    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
 
     def save(self, commit=True):
         user = super(vesting_manager_w_group_form_edit, self).save(commit=False)
@@ -261,7 +199,8 @@ class vesting_manager_w_group_form_edit(forms.ModelForm):
             user.save()
 
         return user
-
+        
+        
 class vesting_member_form_edit(forms.ModelForm):
     """
     stripped down user reg form
@@ -276,46 +215,7 @@ class vesting_member_form_edit(forms.ModelForm):
 
     email = forms.EmailField()
 
-        
-class vesting_member_w_group_form_edit(forms.ModelForm):
-    """
-    stripped down user reg form
-    This is mostly a django.contrib.auth.forms.UserCreationForm
 
-    This is stripped down even further to match out editing needs
-    """
-    
-    def __init__(self, *args, **kwargs):
-      registrar_id = False
-      if 'registrar_id' in kwargs:
-        registrar_id = kwargs.pop('registrar_id')
-      super(vesting_member_w_group_form_edit, self).__init__(*args, **kwargs)
-      if registrar_id:
-        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id).order_by('name')
-
-    class Meta:
-        model = LinkUser
-        fields = ("first_name", "last_name", "email", "vesting_org")
-
-
-    email = forms.EmailField()
-                         
-    group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None)
-    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
-
-    def save(self, commit=True):
-        user = super(vesting_member_w_group_form_edit, self).save(commit=False)
-        group = self.cleaned_data['group']
-        all_groups = Group.objects.all()
-        for ag in all_groups:
-          user.groups.remove(ag)
-        user.groups.add(group)
-
-        if commit:
-            user.save()
-
-        return user
-        
 class vesting_member_w_vesting_org_form_edit(forms.ModelForm):
     """
     stripped down user reg form
@@ -340,6 +240,30 @@ class vesting_member_w_vesting_org_form_edit(forms.ModelForm):
     email = forms.EmailField()
 
     vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
+    
+        
+class vesting_member_w_group_form_edit(vesting_member_w_vesting_org_form_edit):
+    """
+    stripped down user reg form
+    This is mostly a django.contrib.auth.forms.UserCreationForm
+
+    This is stripped down even further to match out editing needs
+    """
+                         
+    group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None)
+
+    def save(self, commit=True):
+        user = super(vesting_member_w_group_form_edit, self).save(commit=False)
+        group = self.cleaned_data['group']
+        all_groups = Group.objects.all()
+        for ag in all_groups:
+          user.groups.remove(ag)
+        user.groups.add(group)
+
+        if commit:
+            user.save()
+
+        return user
 
         
 class user_add_registrar_form(forms.ModelForm):
