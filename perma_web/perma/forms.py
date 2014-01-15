@@ -218,18 +218,10 @@ class vesting_manager_form_edit(forms.ModelForm):
         model = LinkUser
         fields = ("first_name", "last_name", "email", "vesting_org")
 
-
     email = forms.EmailField()              
 
     vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
     
-    def save(self, commit=True):
-        user = super(vesting_manager_form_edit, self).save(commit=False)
-
-        if commit:
-            user.save()
-
-        return user
         
 class vesting_manager_w_group_form_edit(forms.ModelForm):
     """
@@ -282,16 +274,8 @@ class vesting_member_form_edit(forms.ModelForm):
         model = LinkUser
         fields = ("first_name", "last_name", "email")
 
-
     email = forms.EmailField()
 
-    def save(self, commit=True):
-        user = super(vesting_member_form_edit, self).save(commit=False)
-
-        if commit:
-            user.save()
-
-        return user
         
 class vesting_member_w_group_form_edit(forms.ModelForm):
     """
@@ -356,14 +340,7 @@ class vesting_member_w_vesting_org_form_edit(forms.ModelForm):
     email = forms.EmailField()
 
     vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
-    
-    def save(self, commit=True):
-        user = super(vesting_member_w_vesting_org_form_edit, self).save(commit=False)
 
-        if commit:
-            user.save()
-
-        return user
         
 class user_add_registrar_form(forms.ModelForm):
     """
@@ -378,14 +355,6 @@ class user_add_registrar_form(forms.ModelForm):
         fields = ("registrar",)         
 
     registrar = forms.ModelChoiceField(queryset=Registrar.objects.all().order_by('name'), empty_label=None)
-    
-    def save(self, commit=True):
-        user = super(user_add_registrar_form, self).save(commit=False)
-
-        if commit:
-            user.save()
-
-        return user
         
         
 class user_add_vesting_org_form(forms.ModelForm):
@@ -448,7 +417,6 @@ class user_form_self_edit(forms.ModelForm):
     class Meta:
         model = LinkUser
         fields = ("first_name", "last_name", "email")
-
 
     email = forms.EmailField()
 
