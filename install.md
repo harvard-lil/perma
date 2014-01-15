@@ -18,6 +18,9 @@ to your PATH:
 
     $ export PATH=$PATH:/usr/local/mysql/bin
 
+If you're running Ubuntu or Linux distro you might need to install mysql_config using:
+    $ apt-get install libmysqlclient-dev
+
 ### MySQL
 
 You'll need a Django friendly database. If you want to use MySQL, something like the following can be used to create a new user and a new database:
@@ -36,7 +39,12 @@ Perma settings are held in the settings module file. Copy the example and fill i
 
 Perma manages the indexing workload by passing off the indexing tasks to workers. Celery manages the messages and RabbitMQ acts as the broker.
 
+RabbitMQ can be installed on Ubuntu with:
+    $ sudo apt-get install rabbitmq-server`
+
 You should have already installed the Celery requirements (they were in the requirements.txt). You'll need to install [RabbitMQ](http://www.rabbitmq.com/).
+
+
 
 Once you've installed RabbitMQ, start it:
 
