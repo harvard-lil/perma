@@ -1,0 +1,53 @@
+{% load static %}
+{% get_static_prefix as STATIC_PREFIX %}
+
+<!DOCTYPE html>
+<html lang="en-us">
+    <head>
+        <title>Perma{% block title %}{% endblock %}</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="x-ua-compatible" content="IE=8">
+        <meta name="google" value="notranslate" />
+        <!-- TODO add default meta description -->
+        <meta name="description" content="{% block meta_description %} Broken links are everywhere. Perma helps authors and journals create permanent links for citations in their published work.{% endblock %}">
+        <link href="{{ STATIC_PREFIX }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
+        <link href='http://fonts.googleapis.com/css?family=Roboto+Slab:400,700' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap3.css">
+        
+        <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style-responsive.css">
+        {% block styles %}{% endblock %}  
+        <!--
+        <script type="text/javascript" src="//use.typekit.net/pjl6esq.js"></script>
+        <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+        -->
+    </head>
+    <body>
+		{% block header %}{% endblock header %}
+		<section id="main-archive">
+			<div id="main-content">
+				<div class="row">
+			{% block row %}{% endblock row %}
+				</div><!--/.row-fluid-->
+			</div><!--/.main-container #main-content"-->
+		</section><!--/#main-->
+
+
+    <script src="{{ STATIC_PREFIX }}js/jquery.js"></script>
+    <script src="{{ STATIC_PREFIX }}js/bootstrap3.js"></script>
+    <script src="{{ STATIC_PREFIX }}js/global.js"></script>
+    {% block scripts %}
+    {% endblock %}   
+    
+    {% block templates %}
+    {% endblock %}
+    <script type="text/javascript">
+      var fby = fby || [];
+      (function () {
+          var f = document.createElement('script'); f.type = 'text/javascript'; f.async = true;
+          f.src = '//cdn.feedbackify.com/f.js';
+          var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(f, s);
+      })();
+    </script>
+    {{ analytics_code }}
+  </body>
+</html>

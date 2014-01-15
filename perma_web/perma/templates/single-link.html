@@ -1,4 +1,4 @@
-{% extends "layout-archive.html" %}
+{% extends "layout-archive-responsive.html" %}
 {% load file_exists  truncatesmart diff has_group is_darchive %}
 {% block title %} | {{linky.submitted_title}}{% endblock %}
 {% block styles %}
@@ -10,107 +10,129 @@
 
 {% block header %}
 
-
 <header>
-	<div class="main-container">
-		<div class="top-bar">
-			<div class="span12">
-				<div class="span3">
-					<div class="logo">
-						<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo.png"></a>
-					</div><!--end logo -->
-				</div><!--end span 3 -->
-				
-				<div class="span6 meta-data negative-margin">
-					<p>{{linky.submitted_title}}</br>
-					<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></br>
-					<span class="light-grey">created {{linky.creation_timestamp}} | {{ linky.view_count }} view{% if linky.view_count > 1 %}s{% endif %}</span></p>
-					{% comment %}
-					{% diff asset linky %} <!-- has the instapaper cap changed recently? -->
-					{% endcomment %}
-
-				</div><!--end span 5 -->
-				
-				<div class="span1">
-				 {% if user.is_authenticated and not linky|is_darchive %}
-					  {% if user|has_group:'registry_member,registrar_member,vesting_member,vesting_manager' and not linky.vested %}
-						<form action="" method="post">
-						  {% csrf_token %}
-						  <input type="submit" value="vest" name="vet" class="btn vest">
-						</form>
-					  {% endif %}
-					  {% if user|has_group:'registry_member' %}
-					    <a class="btn vest" href="{% url 'dark_archive_link' linky.guid %}">dark archive</a>
-					  {% endif %}
-				{% endif %}
-				</div>
-				
-				{% if not linky|is_darchive or user|has_group:'registry_member,registrar_member' %}
-			    <div class="span2 negative-margin">
-			    	<ul class="view-type">
-		                <li><a {% if serve_type == 'live' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=live">Live site view</a></li>
-
-						{% if asset.image_capture and asset.image_capture != 'failed' %}
-							<li>
-								<a {% if serve_type == 'image' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=image">Screen capture</a>
-							</li>
-						{% endif %}
-		                
-						{% if asset.warc_capture and asset.warc_capture != 'failed' %}
-							<li>
-							{% if asset.warc_capture == 'pending' %}
-							<span id="warc_cap_container_loading">Archived site <img style="width:30px;" src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving..."></span>
-							<span id="warc_cap_container_complete" class="hide"><a {% if serve_type == 'source' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Archived Site</a></span>
-							{% else %}
-							<span id="warc_cap_container_loading" class="hide">Archived site <img style="width:30px;" src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving..."></span>
-							<span id="warc_cap_container_complete"><a {% if serve_type == 'source' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Archived Site</a></span>
-							{% endif %}
-							</li>
-						{% endif %}
+    	    <div class="navbar navbar-default navbar-static-top tab-border">
+				<div class="container">
+				 <div class="row">
+				 	<div class="col-sm-3 logo">
+				 		<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo2.png"></a>
+				 	</div><!--end span 3 -->
+				 	<div class="col-sm-6 meta-data">
+						<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a><br/>
 						
-						{% if asset.pdf_capture and asset.pdf_capture != 'failed' %}
-							<li class="pdf_cap_container">
-							{% if asset.pdf_capture == 'pending' %}
-								<span id="pdf_cap_container_loading">PDF <img style="width:30px;" src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving..."></span>
-								<span id="pdf_cap_container_complete" class="hide"><a {% if serve_type == 'pdf' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF</a></span>
-							{% else %}
-								<span id="pdf_cap_container_loading" class="hide">PDF <img style="width:30px;" src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving..."></span>
-								<span id="pdf_cap_container_complete"><a {% if serve_type == 'pdf' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF</a></span>
-							{% endif %}
-							</li>
-						{% endif %}
+						<!--<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a>-->
+						<span class="light-grey">created {{linky.creation_timestamp}} | {{ linky.view_count }} view{% if linky.view_count > 1 %}s{% endif %}</span>
+						{% comment %}
+						{% diff asset linky %} <!-- has the instapaper cap changed recently? -->
+						{% endcomment %}
+					</div><!--end span 6 -->
+				 </div><!--end row -->
+				 <div class="row">
+				 	<div class="col-sm-10 col-sm-offset-1">	
 						
-						{% if asset.text_capture and asset.text_capture != 'failed' %}
-							<li>
-							{% if asset.text_capture == 'pending' %}
-								<span id="text_cap_container_loading">Archived text <img style="width:30px;" src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving..."></span>
-								<span id="text_cap_container_complete" class="hide"><a {% if serve_type == 'text' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Extracted text</a></span>
-							{% else %}
-							<span id="text_cap_container_loading" class="hide">Archived text <img style="width:30px;" src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving..."></span>
-							<span id="text_cap_container_complete"><a {% if serve_type == 'text' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=text">Extracted text</a></span>
-							{% endif%}
-							</li>
-						{% endif %}
+						<div class="navbar-header">
+						  <button type="button" class="navbar-toggle menu-adjust" data-toggle="collapse" data-target=".navbar-collapse">
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+						  </button>  
+						</div>
 						
-					</ul>
-				</div><!--end span 2 -->
-				{% endif %}
-			</div> <!-- end span 12-->
-		</div><!-- end top-bar -->
-	</div><!-- end main-container -->
-</header>
+						<div class="navbar-collapse collapse" id="collapse-refresh">
+						  						  
+							{% if not linky|is_darchive or user|has_group:'registry_member,registrar_member' %}
 
+							<ul class="nav navbar-nav tabbed">
+								<li>
+									<a  class="tab-styling{% if serve_type == 'live' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=live">Live site view</a>
+								</li>
+								{% if asset.image_capture and asset.image_capture != 'failed' %}
+								<li>
+									<a class="tab-styling{% if serve_type == 'image' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=image">Screen capture</a>
+								</li>
+								{% endif %}
+								
+								{% if asset.warc_capture and asset.warc_capture != 'failed' %}
+								<li class="tab-styling">
+								{% if asset.warc_capture == 'pending' %}	
+									<span id="warc_cap_container_loading">
+										Archived site <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+									</span>
+									<span id="warc_cap_container_complete" class="hide">
+										<a class="tab-styling" {% if serve_type == 'source' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=source">Archived Site</a>
+									</span>
+								{% else %}
+									<span id="warc_cap_container_loading" class="hide">
+										Archived site <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+									</span>
+									<span id="warc_cap_container_complete">
+										<a class="tab-styling{% if serve_type == 'source' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source">Archived Site</a>
+									</span>
+									{% endif %}
+								</li>
+								{% endif %}
+								
+								{% if asset.pdf_capture and asset.pdf_capture != 'failed' %}
+								<li class="pdf_cap_container">
+								{% if asset.pdf_capture == 'pending' %}
+									<span id="pdf_cap_container_loading">
+										PDF <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+									</span>
+									<span id="pdf_cap_container_complete" class="hide">
+										<a {% if serve_type == 'pdf' %}class="active-view"{% endif %} href="{% url 'single_linky' linky.guid %}?type=pdf">PDF</a>
+									</span>
+								{% else %}
+									<span id="pdf_cap_container_loading" class="hide">
+										PDF <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+									</span>
+									<span id="pdf_cap_container_complete">
+										<a class="tab-styling{% if serve_type == 'pdf' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=pdf">PDF</a>
+									</span>
+								{% endif %}
+								</li>
+								{% endif %}
+								
+								{% if asset.text_capture and asset.text_capture != 'failed' %}
+								<li class="tab-styling">
+								{% if asset.text_capture == 'pending' %}
+									<span id="text_cap_container_loading">
+										Archived text <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+									</span>
+									<span id="text_cap_container_complete" class="hide">
+										<a class="tab-styling{% if serve_type == 'text' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=text">Extracted text</a>
+									</span>
+								{% else %}
+									<span id="text_cap_container_loading" class="hide">
+										Archived text <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+									</span>
+									<span id="text_cap_container_complete">
+										<a class="tab-styling{% if serve_type == 'text' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=text">Extracted text</a>
+									</span>
+								{% endif%}
+								</li>
+								{% endif %}
+								
+							</ul>
+					
+						{% endif %}
+						</div><!--/.nav-collapse -->
+					
+					</div><!--/.row -->
+				</div><!--/container -->
+			</div><!--/navbar -->
+		</header>
 {% endblock %}
 
 {% block content %}
-<div class="row-fluid">
+   		
+			<div class="row">
     {% if linky.dark_archived and user|has_group:'registry_member,registrar_member' %}
-    	<div class="span6 offset3 yahowza-small">
+    	<div class="col-sm-6 offset3 yahowza-small">
     		<img class="dark-bulb-small" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
 			<h2>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with a takedown notice.</h2>
 		</div>
 	{% elif linky.dark_archived_robots_txt_blocked and user|has_group:'registry_member,registrar_member' %}
-    	<div class="span6 offset3 yahowza-small">
+    	<div class="col-sm-6 offset3 yahowza-small">
     		<img class="dark-bulb-small" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
 			<h2>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with the site's robots.txt.</h2>
 		</div>
@@ -155,18 +177,21 @@
 			{% endif %}
 		</div><!--end watermark-->
    	</div><!--end linky-view-->
+   	
    	{% else %}
-   		<div class="row-fluid">
-   			<div class="span6 offset3 yahowza">
-				<img class="dark-bulb" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
-				 <h1 class="cyan">Apologies.</h1><h2>This link has been <span class="dark">dark archived</span>.<br/>Contact a librarian to get a copy.</h2>
-				<br/>
-				{% if linky.dark_archived %}
-					<p>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with a takedown notice.</p>
-				{% elif linky.dark_archived_robots_txt_blocked %}
-					<p>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with the site's robots.txt.</p>
-				{% endif %}
-   	    	</div>
+   		<div class="container">
+			<div class="row">
+				<div class="col-sm-6 col-sm-offset-3 yahowza">
+					<img class="dark-bulb" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
+					 <h1 class="cyan">Apologies.</h1><h2>This link has been <span class="dark">dark archived</span>.<br/>Contact a librarian to get a copy.</h2>
+					<br/>
+					{% if linky.dark_archived %}
+						<p>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with a takedown notice.</p>
+					{% elif linky.dark_archived_robots_txt_blocked %}
+						<p>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with the site's robots.txt.</p>
+					{% endif %}
+				</div>
+			</div>
    	    </div>
    	{% endif %}
 </div><!--row-->
@@ -213,6 +238,18 @@
 
 	$(document).ready(function() {
 		refreshIntervalId = setInterval(check_status, 4000);
+		adjustHeight();
+		$('#collapse-refresh').on('shown.bs.collapse', function () {
+			adjustHeight();
+		});
+		$('#collapse-refresh').on('hidden.bs.collapse', function () {
+			adjustHeight();
+		});
+		function adjustHeight() {
+			var headerHeight = $('header').height(),
+			windowHeight = $(window).height();
+			$('iframe').height(windowHeight - headerHeight - 0);
+		}
 	});
 </script>
 {% endif %}

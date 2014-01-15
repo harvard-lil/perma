@@ -1,9 +1,16 @@
-{% extends "layout.html" %}
+{% extends "layout-responsive.html" %}
 
 {% block content %}
-	<div class="row-fluid">
+<div class="container">
+	<div class="row">
+		<div class="col-sm-12">	
 			<h2>You have been logged out.</h2>
 		
 			<p>Logged out a bit too soon? No worries, <a href="{% url 'user_management_limited_login' %}">sign back in</a></p>
-	</div><!-- end content -->
+		</div>
+	</div>
+</div>
+<br />
+<br />
+<br />
 {% endblock content %}

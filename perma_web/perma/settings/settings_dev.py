@@ -6,6 +6,9 @@ TEMPLATE_DEBUG = DEBUG
 # The base location, on disk, where we want to store our generated assets
 GENERATED_ASSETS_STORAGE = '/tmp/perma/assets'
 
+# print email to console
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 # Additional locations of static files
 STATICFILES_DIRS = (
     'static',
@@ -15,9 +18,6 @@ STATICFILES_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
 )
-
-# print email to console
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
