@@ -44,12 +44,7 @@ class create_user_form(forms.ModelForm):
         'duplicate_email': "A user with that email address already exists.",
     }
 
-    email = forms.RegexField(label="Email", required=True, max_length=254,
-        regex=r'^[\w.@+-]+$',
-        help_text = "Letters, digits and @/./+/-/_ only. 254 characters or fewer.",
-        error_messages = {
-            'invalid': "This value may contain only letters, numbers and "
-                         "@/./+/-/_ characters."})
+    email = forms.EmailField()
 
     def clean_email(self):
         # Since User.email is unique, this check is redundant,
@@ -62,13 +57,6 @@ class create_user_form(forms.ModelForm):
             return email
         raise forms.ValidationError(self.error_messages['duplicate_email'])
 
-    def save(self, commit=True):
-        user = super(create_user_form, self).save(commit=False)
-
-        if commit:
-            user.save()
-
-        return user
         
 class create_user_form_w_registrar(forms.ModelForm):
     """
@@ -79,12 +67,7 @@ class create_user_form_w_registrar(forms.ModelForm):
         'duplicate_email': "A user with that email address already exists.",
     }
 
-    email = forms.RegexField(label="Email", required=True, max_length=254,
-        regex=r'^[\w.@+-]+$',
-        help_text = "Letters, digits and @/./+/-/_ only. 254 characters or fewer.",
-        error_messages = {
-            'invalid': "This value may contain only letters, numbers and "
-                         "@/./+/-/_ characters."})
+    email = forms.EmailField()
 
     registrar = forms.ModelChoiceField(queryset=Registrar.objects.all().order_by('name'), empty_label=None)
 
@@ -107,13 +90,6 @@ class create_user_form_w_registrar(forms.ModelForm):
         registrar = self.cleaned_data["registrar"]
         return registrar
 
-    def save(self, commit=True):
-        user = super(create_user_form_w_registrar, self).save(commit=False)
-
-        if commit:
-            user.save()
-
-        return user
 
 class create_user_form_w_vesting_org(forms.ModelForm):
     """
@@ -136,12 +112,7 @@ class create_user_form_w_vesting_org(forms.ModelForm):
         'duplicate_email': "A user with that email address already exists.",
     }
 
-    email = forms.RegexField(label="Email", required=True, max_length=254,
-        regex=r'^[\w.@+-]+$',
-        help_text = "Letters, digits and @/./+/-/_ only. 254 characters or fewer.",
-        error_messages = {
-            'invalid': "This value may contain only letters, numbers and "
-                         "@/./+/-/_ characters."})
+    email = forms.EmailField()
 
     vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
 
@@ -160,13 +131,6 @@ class create_user_form_w_vesting_org(forms.ModelForm):
         vesting_org = self.cleaned_data["vesting_org"]
         return vesting_org
 
-    def save(self, commit=True):
-        user = super(create_user_form_w_vesting_org, self).save(commit=False)
-
-        if commit:
-            user.save()
-
-        return user
 
 class registrar_member_form_edit(forms.ModelForm):
     """
@@ -179,12 +143,7 @@ class registrar_member_form_edit(forms.ModelForm):
 
     }
 
-    email = forms.RegexField(label="Email", required=True, max_length=254,
-        regex=r'^[\w.@+-]+$',
-        help_text = "Letters, digits and @/./+/-/_ only. 254 characters or fewer.",
-        error_messages = {
-            'invalid': "This value may contain only letters, numbers and "
-                         "@/./+/-/_ characters."})
+    email = forms.EmailField()
 
     registrar = forms.ModelChoiceField(queryset=Registrar.objects.all().order_by('name'), empty_label=None)
     
@@ -218,12 +177,7 @@ class user_form_edit(forms.ModelForm):
 
     }
 
-    email = forms.RegexField(label="Email", required=True, max_length=254,
-        regex=r'^[\w.@+-]+$',
-        help_text = "Letters, digits and @/./+/-/_ only. 254 characters or fewer.",
-        error_messages = {
-            'invalid': "This value may contain only letters, numbers and "
-                         "@/./+/-/_ characters."})
+    email = forms.EmailField()
                          
     group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None)
 
@@ -265,12 +219,7 @@ class vesting_manager_form_edit(forms.ModelForm):
         fields = ("first_name", "last_name", "email", "vesting_org")
 
 
-    email = forms.RegexField(label="Email", required=True, max_length=254,
-        regex=r'^[\w.@+-]+$',
-        help_text = "Letters, digits and @/./+/-/_ only. 254 characters or fewer.",
-        error_messages = {
-            'invalid': "This value may contain only letters, numbers and "
-                         "@/./+/-/_ characters."})                 
+    email = forms.EmailField()              
 
     vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
     
@@ -303,12 +252,7 @@ class vesting_manager_w_group_form_edit(forms.ModelForm):
         fields = ("first_name", "last_name", "email", "vesting_org")
 
 
-    email = forms.RegexField(label="Email", required=True, max_length=254,
-        regex=r'^[\w.@+-]+$',
-        help_text = "Letters, digits and @/./+/-/_ only. 254 characters or fewer.",
-        error_messages = {
-            'invalid': "This value may contain only letters, numbers and "
-                         "@/./+/-/_ characters."})
+    email = forms.EmailField()
                          
     group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None)
     vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
@@ -339,12 +283,7 @@ class vesting_member_form_edit(forms.ModelForm):
         fields = ("first_name", "last_name", "email")
 
 
-    email = forms.RegexField(label="Email", required=True, max_length=254,
-        regex=r'^[\w.@+-]+$',
-        help_text = "Letters, digits and @/./+/-/_ only. 254 characters or fewer.",
-        error_messages = {
-            'invalid': "This value may contain only letters, numbers and "
-                         "@/./+/-/_ characters."})
+    email = forms.EmailField()
 
     def save(self, commit=True):
         user = super(vesting_member_form_edit, self).save(commit=False)
@@ -375,12 +314,7 @@ class vesting_member_w_group_form_edit(forms.ModelForm):
         fields = ("first_name", "last_name", "email", "vesting_org")
 
 
-    email = forms.RegexField(label="Email", required=True, max_length=254,
-        regex=r'^[\w.@+-]+$',
-        help_text = "Letters, digits and @/./+/-/_ only. 254 characters or fewer.",
-        error_messages = {
-            'invalid': "This value may contain only letters, numbers and "
-                         "@/./+/-/_ characters."})
+    email = forms.EmailField()
                          
     group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None)
     vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
@@ -419,12 +353,7 @@ class vesting_member_w_vesting_org_form_edit(forms.ModelForm):
         fields = ("first_name", "last_name", "email", "vesting_org")
 
 
-    email = forms.RegexField(label="Email", required=True, max_length=254,
-        regex=r'^[\w.@+-]+$',
-        help_text = "Letters, digits and @/./+/-/_ only. 254 characters or fewer.",
-        error_messages = {
-            'invalid': "This value may contain only letters, numbers and "
-                         "@/./+/-/_ characters."})
+    email = forms.EmailField()
 
     vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
     
@@ -488,12 +417,7 @@ class user_reg_form(forms.ModelForm):
         'duplicate_email': "A user with that email address already exists.",
     }
 
-    email = forms.RegexField(label="Email", required=True, max_length=254,
-        regex=r'^[\w.@+-]+$',
-        help_text = "Letters, digits and @/./+/-/_ only. 254 characters or fewer.",
-        error_messages = {
-            'invalid': "This value may contain only letters, numbers and "
-                         "@/./+/-/_ characters."})
+    email = forms.EmailField()
 
     #password = forms.CharField(label="Password", widget=forms.PasswordInput)
 
@@ -512,12 +436,6 @@ class user_reg_form(forms.ModelForm):
             return email
         raise forms.ValidationError(self.error_messages['duplicate_email'])
 
-    def save(self, commit=True):
-        user = super(user_reg_form, self).save(commit=False)
-        #user.set_password(self.cleaned_data["password"])
-        if commit:
-            user.save()
-        return user
 
 class user_form_self_edit(forms.ModelForm):
     """
@@ -532,20 +450,8 @@ class user_form_self_edit(forms.ModelForm):
         fields = ("first_name", "last_name", "email")
 
 
-    email = forms.RegexField(label="Email", required=True, max_length=254,
-        regex=r'^[\w.@+-]+$',
-        help_text = "Letters, digits and @/./+/-/_ only. 254 characters or fewer.",
-        error_messages = {
-            'invalid': "This value may contain only letters, numbers and "
-                         "@/./+/-/_ characters."})
+    email = forms.EmailField()
 
-    def save(self, commit=True):
-        user = super(user_form_self_edit, self).save(commit=False)
-
-        if commit:
-            user.save()
-
-        return user
 
 class set_password_form(forms.Form):
     """
