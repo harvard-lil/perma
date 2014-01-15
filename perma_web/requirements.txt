@@ -12,6 +12,6 @@ wsgiref==0.1.2
 django-ratelimit==0.3.0
 simplejson==3.3.0
 oauth2==1.5.211
-smhasher==0.136.2
+smhasher==0.150.1
 pytz==2013b
 django-mptt==0.6.0
