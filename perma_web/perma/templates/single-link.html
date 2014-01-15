@@ -92,7 +92,7 @@
 									<a id="text_cap_container_complete" class="tab-styling{% if serve_type == 'text' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=text" style="display:none;">Archived text</a>
 
 								{% else %}
-									<span id="text_cap_container_loading" class="tab-styling" style="display:none;">Archived text</span> <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+									<span id="text_cap_container_loading" class="tab-styling" style="display:none;">Archived text</span> 
 									<a id="text_cap_container_complete" class="tab-styling{% if serve_type == 'text' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=text">Archived text</a>
 								{% endif%}
 								</li>
