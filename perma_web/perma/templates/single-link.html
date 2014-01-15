@@ -54,25 +54,14 @@
 								{% if asset.warc_capture and asset.warc_capture != 'failed' %}
 								<li>
 								{% if asset.warc_capture == 'pending' %}	
-								<div class="adjust-tab">	
-									<span id="warc_cap_container_loading">
-										<span class="tab-styling">Archived site</span>
-										<!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
-									</span>
-									<span id="warc_cap_container_complete" class="hide">
-										<a class="tab-styling{% if serve_type == 'source' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source">Archived site</a>
-									</span>
+									<span id="warc_cap_container_loading" class="tab-styling">Archived site</span>
+									<!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+									<a id="warc_cap_container_complete" class="tab-styling{% if serve_type == 'source' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source" style="display:none;">Archived site</a>
 								{% else %}
-									
-									<span id="warc_cap_container_loading" class="hide">
-										<span class="tab-styling">Archived site</span> 
-										<!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
-									</span>
-									<span id="warc_cap_container_complete">
-										<a class="tab-styling{% if serve_type == 'source' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source">Archived site</a>
-									</span>
-									{% endif %}
-									</div>
+									<span id="warc_cap_container_loading" class="tab-styling" style="display:none;">Archived site</span> 
+									<!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+									<a id="warc_cap_container_complete" class="tab-styling{% if serve_type == 'source' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source">Archived site</a>
+								{% endif %}
 								</li>
 								{% endif %}
 								
@@ -99,19 +88,12 @@
 								{% if asset.text_capture and asset.text_capture != 'failed' %}
 								<li>
 								{% if asset.text_capture == 'pending' %}
-									<span id="text_cap_container_loading">
-										<span class="tab-styling">Archived text</span> <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
-									</span>
-									<span id="text_cap_container_complete" class="hide">
-										<a class="tab-styling{% if serve_type == 'text' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=text">Archived text</span></a>
-									</span>
+									<span id="text_cap_container_loading" class="tab-styling">Archived text</span> <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+									<a id="text_cap_container_complete" class="tab-styling{% if serve_type == 'text' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=text" style="display:none;">Archived text</a>
+
 								{% else %}
-									<span id="text_cap_container_loading" class="hide">
-										<span class="tab-styling">Archived text</span> <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
-									</span>
-									<span id="text_cap_container_complete">
-										<a class="tab-styling{% if serve_type == 'text' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=text">Archived text</a>
-									</span>
+									<span id="text_cap_container_loading" class="tab-styling" style="display:none;">Archived text</span> <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+									<a id="text_cap_container_complete" class="tab-styling{% if serve_type == 'text' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=text">Archived text</a>
 								{% endif%}
 								</li>
 								{% endif %}
