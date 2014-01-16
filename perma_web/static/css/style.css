@@ -1382,57 +1382,6 @@ li.alpha-list {
 }
 
 
-/* Stats page start */
-.container.stats {
-    font-size:13px;
-}
-
-.container.stats h1 {
-    margin-bottom:50px;
-}
-
-
-.container.stats .axis path,
-.axis line {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
-}
-
-.container.stats .svg text {
-  text-anchor: end;
-}
-
-.container.stats .line {
-  fill: none;
-  stroke: steelblue;
-  stroke-width: 1.5px;
-}
-
-.container.stats .bar.positive {
-  fill: steelblue;
-}
-
-.container.stats .bar.negative {
-  fill: brown;
-}
-
-.container.stats .axis text {
-  font: 10px sans-serif;
-}
-
-.container.stats .vis-desc {
-    margin-bottom: 80px;
-    margin-left: 30px;
-    font-size: 14px;
-}
-
-.container.stats #cool-links {
-    margin-bottom: 40px;
-}
-
-/* Stats page end */
-
 .btn.vest, input.btn.vest {
 	margin-top:-23px;
 	font-size:13px;

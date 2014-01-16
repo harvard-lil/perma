@@ -1433,7 +1433,7 @@ ul.navbar-nav.tabbed > li, ul.navbar-nav.tabbed > li a {
 	display:block;
 }
 
-.tab-styling {
+span.tab-styling {
 	background:#f00
 	margin-top:10px;
 }
@@ -1568,18 +1568,80 @@ a.tab-styling, .tab-styling {
 	left:-16px;
 	top:10px;
 }
-.loading {
 
+
+
+
+
+/* Stats page start */
+.container.stats {
+    font-size:13px;
 }
+
+.container.stats h1 {
+    margin-bottom:50px;
+}
+
+#folks-vis {
+	
+}
+
+.container.stats .axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.container.stats .svg text {
+  text-anchor: end;
+}
+
+.container.stats .line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width:0px;
+}
+
+.container.stats .bar.positive {
+  fill: steelblue;
+}
+
+.container.stats .bar.negative {
+  fill: brown;
+}
+
+.container.stats .axis text {
+  font-size: 14px;
+}
+
+text {
+	font-size:14px
+}
+.container.stats .vis-desc {
+    margin-bottom: 80px;
+    margin-left: 30px;
+    font-size: 14px;
+}
+
+.container.stats #cool-links {
+    margin-bottom: 40px;
+}
+
+/* Stats page end */
+
+
 @media (min-width: 768px) {
 	ul.nav.navbar-nav.tabbed {
 		text-align:center;
 		left:8%;
 	}
 	.navbar-collapse {
-	margin-left:-30px;
-	padding-left:0px;
+		margin-left:-30px;
+		padding-left:0px;
 }
+
+
 }
 
 @media (min-width:  992px) {

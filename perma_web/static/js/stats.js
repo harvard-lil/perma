@@ -82,7 +82,7 @@ var draw_folks_vis = function(){
       .datum(function(d) { return {name: d.key, value: d.values[d.values.length - 1]}; })
 		.attr("y", function(d) {return y(d.value.y0 + d.value.y / 2); })
 		.attr("x", 885)
-		.attr("font-size", "11px")
+		.attr("font-size", "14px")
 		.attr("style", "text-anchor: end")
 		.text( function (d) { total_users = total_users+ d.value.y; return d.name + ", " + d.value.y; });
 
