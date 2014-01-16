@@ -27,29 +27,29 @@
 						{% diff asset linky %} <!-- has the instapaper cap changed recently? -->
 						{% endcomment %}
 					</div><!--end span 6 -->
-					<div class="col-sm-2">
-					{% if user.is_authenticated and not linky|is_darchive %}
-                        {% if user|has_group:'registry_member,registrar_member,vesting_member,vesting_manager' and not linky.vested %}
+					<div class="col-sm-offset-1 col-sm-1 button-set">
+						{% if user.is_authenticated and not linky|is_darchive %}
+                        {% if 		user|has_group:'registry_member,registrar_member,vesting_member,vesting_manager' and not linky.vested %}
                             <form action="" method="post">
-                                    {% csrf_token %}
-                                                  <input type="submit" value="vest" name="vet" class="btn vest">
-                                                </form>
-                                          {% endif %}
-                                          {% if user|has_group:'registry_member' %}
-                                            <a class="btn vest" href="{% url 'dark_archive_link' linky.guid %}">dark archive</a>
-                                          {% endif %}
+                                {% csrf_token %}
+                                	<input type="submit" value="Vest site" name="vet" class="btn vest">
+                                	</form>
                                 {% endif %}
+                                {% if user|has_group:'registry_member' %}
+                                    <a class="btn vest" href="{% url 'dark_archive_link' linky.guid %}">Dark archive</a>
+                                {% endif %}
+                        {% endif %}
 
-
-
-{% if user.is_authenticated %}
-                                                <li><a href="{% url 'user_management_create_link' %}" id="nav-button">Dashboard</a></li>
-                                                {% else %}
-{% comment %}
-                                                <li><a href="{% url 'user_management_limited_login' %}">Log in</a></li>
-                                            
-                                                {% endcomment %}
-                                                {% endif %}
+						{% if user.is_authenticated %}
+                            <li><a class="btn dashboard" href="{% url 'user_management_create_link' %}" id="nav-button">Dashboard</a></li>
+                        {% else %}
+							
+							<!--Do we ever want a Log in Button?-->
+							{% comment %}
+                            <li><a class="btn vest" href="{% url 'user_management_limited_login' %}">Log in</a></li>
+                            {% endcomment %}
+                        
+                        {% endif %}
 					</div><!--end span 3-->
 				 </div><!--end row -->
 				 <div class="row">
@@ -137,12 +137,14 @@
    		
 			<div class="row">
     {% if linky.dark_archived and user|has_group:'registry_member,registrar_member' %}
-    	<div class="col-sm-6 offset3 yahowza-small">
-    		<img class="dark-bulb-small" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
-			<h2>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with a takedown notice.</h2>
+    	<div class="col-sm-6 col-sm-offset-3 yahowza-small">
+			<div class="darchive">	
+				<img class="dark-bulb-small" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
+				<h2 class="orange">This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with a takedown notice.</h2>
+			</div>
 		</div>
 	{% elif linky.dark_archived_robots_txt_blocked and user|has_group:'registry_member,registrar_member' %}
-    	<div class="col-sm-6 offset3 yahowza-small">
+    	<div class="col-sm-6 col-sm-offset-3 yahowza-small">
     		<img class="dark-bulb-small" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
 			<h2>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with the site's robots.txt.</h2>
 		</div>

@@ -1480,7 +1480,7 @@ button.navbar-toggle.menu-adjust {
           user-select: none;
 }
 
-button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active, button.navbar-toggle.menu-adjust:visited   {
+button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active, button.navbar-toggle.menu-adjust:focus, button.navbar-toggle.menu-adjust:visited   {
 	background:#06a;
 }
 
@@ -1570,8 +1570,101 @@ a.tab-styling, .tab-styling {
 }
 
 
+input.btn.vest, a.btn.vest, a.btn.dashboard {
+	width:100px;
+	padding:2px 0px;
+	color:#666;
+	font-size:14px;
+	margin-top:4px;
+	border:1px solid #666;
+	border-radius: 3px;
+}
+
+input.btn.vest:hover, input.btn.vest:focus, a.btn.vest:hover, a.btn.vest:focus {
+	color:#222;
+	border:1px solid #22;
+}
+
+a.btn.dashboard {
+	border:1px solid #09f;	
+  	color:#09f;
+}
+
+a.btn.dashboard:hover, a.btn.dashboard:focus {
+	border:1px solid #06a;	
+  	color:#06a;
+}
+
+.darchive {
+	text-align:center;
+	background:rgba(255,255,255, .5);
+	position:absolute;
+	z-index:100;
+	margin-top:20px;
+	border-radius: 4px;
+		opacity:.8;
+	  /* IE 8 */
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+  /* IE 5-7 */
+  filter: alpha(opacity=80);
+}
+
+img.dark-bulb-small {
+	opacity:.8;
+	  /* IE 8 */
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+  /* IE 5-7 */
+  filter: alpha(opacity=80);
+}
 
 
+
+.centered {
+	text-align:center;
+	margin-bottom:40px;
+}
+
+.cancel-button {
+	  color: #ffffff;
+  background-color: #aaa;
+  border-color: #4cae4c;
+  font-size:20px;
+    display: inline-block;
+  padding: 6px 12px;
+  margin-bottom: 0;
+ 
+  font-weight: normal;
+  line-height: 1.428571429;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+       -o-user-select: none;
+          user-select: none;
+}
+
+.cancel-button:hover,
+.cancel-button:focus {
+	  color: #ffffff;
+  background-color: #888;
+  
+}
+
+.border-bottom{
+	border-bottom:1px solid #ccc;
+}
+.button-set {
+	margin-bottom:-30px;
+}
+
+li {
+	list-style-type: none;
+}
 
 /* Stats page start */
 .container.stats {
