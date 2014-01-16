@@ -4131,6 +4131,9 @@ textarea.input-group-sm > .input-group-btn > .btn {
   .navbar-collapse .navbar-text:last-child {
     margin-right: 0;
   }
+  
+  
+  
 }
 
 .container > .navbar-header,
@@ -4211,6 +4214,14 @@ textarea.input-group-sm > .input-group-btn > .btn {
   border: 1px solid transparent;
   border-radius: 4px;
 }
+
+.navbar-toggle:hover, .navbar-toggle:focus {
+
+  background: #06a;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
 
 .navbar-toggle .icon-bar {
   display: block;

@@ -28,12 +28,14 @@
 						{% endcomment %}
 					</div><!--end span 6 -->
 					<div class="col-sm-offset-1 col-sm-1 button-set">
+					<ul class="vesting">
 						{% if user.is_authenticated and not linky|is_darchive %}
                         {% if 		user|has_group:'registry_member,registrar_member,vesting_member,vesting_manager' and not linky.vested %}
-                            <form action="" method="post">
+                            <li><form action="" method="post">
                                 {% csrf_token %}
                                 	<input type="submit" value="Vest site" name="vet" class="btn vest">
-                                	</form>
+                                </form>
+                            </li>	
                                 {% endif %}
                                 {% if user|has_group:'registry_member' %}
                                     <a class="btn vest" href="{% url 'dark_archive_link' linky.guid %}">Dark archive</a>
@@ -50,6 +52,7 @@
                             {% endcomment %}
                         
                         {% endif %}
+                        </ul>
 					</div><!--end span 3-->
 				 </div><!--end row -->
 				 <div class="row">

@@ -1570,7 +1570,7 @@ a.tab-styling, .tab-styling {
 }
 
 
-input.btn.vest, a.btn.vest, a.btn.dashboard {
+a.btn.vest, a.btn.dashboard {
 	width:100px;
 	padding:2px 0px;
 	color:#666;
@@ -1578,6 +1578,20 @@ input.btn.vest, a.btn.vest, a.btn.dashboard {
 	margin-top:4px;
 	border:1px solid #666;
 	border-radius: 3px;
+	background:transparent;
+	margin-left:10px;
+}
+input.btn.vest {
+	width:100px;
+	padding:2px 0px;
+	color:#666;
+	font-size:14px;
+	margin-top:4px;
+	margin-bottom:-5px;
+	border:1px solid #666;
+	border-radius: 3px;
+	background:transparent;
+	margin-left:10px;
 }
 
 input.btn.vest:hover, input.btn.vest:focus, a.btn.vest:hover, a.btn.vest:focus {
@@ -1660,7 +1674,11 @@ img.dark-bulb-small {
 }
 .button-set {
 	margin-bottom:-30px;
+	
+
 }
+
+
 
 li {
 	list-style-type: none;
@@ -1774,6 +1792,22 @@ text {
 		margin:0 0 10px;
 	}
 	
+	.navbar-nav {
+		margin: 7.5px 0px;
+	}
+	
+	a.btn.vest, a.btn.dashboard, input.btn.vest {
+		margin-left:0px;
+	}
+ul.vesting {
+	margin:0 auto;
+	width:375px;
+}
+ul.vesting li {
+	display:inline;
+	float:left;
+	margin:0 2px 5px 2px;
+}
 	div.add-links-list {
 		background-color: #fff;
 		border-radius: 5px;
