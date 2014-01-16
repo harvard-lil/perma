@@ -364,9 +364,6 @@ section#home-description {
         margin: 20px 0 0 0;
     }
 
-input[type="checkbox"] {
-
-}
 
 /* Dashboard */
 
@@ -1193,7 +1190,6 @@ p a.submitted_url {
 */
 
 
-
 .vested-table tr {
     border-bottom: 1px solid #ccc;
 }
@@ -1202,47 +1198,69 @@ p a.submitted_url {
     padding: 2px 2px;
 }
 
+.ui-selected{
+    background-color:#ccc;
+     -moz-transition:background-color .2s, -moz-transform .2s;
+    -webkit-transition:background-color .2s, -webkit-transform .2s;
+    -o-transition: background-color .2s, -o-transform .2s;
+    transition:background-color .2s, transform .2s;
+}
+
 td {
 	margin:0;
 }
 
-
-td.linky-abbr-title, td.linky-abbr-date-time {
-    text-wrap:unrestricted;
-    word-break:none;
-    word-wrap: break-word;      /* IE 5.5-7 */
-      white-space: pre-wrap; /* css-3 */
-    white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
-    white-space: -pre-wrap; /* Opera 4-6 */
-    white-space: -o-pre-wrap; /* Opera 7 */
-    word-wrap: break-word; /* Internet Explorer 5.5+ */
+.vested-table{
+    width:100%;
 }
 
+.vested-table .folder-name{
+    width:100%;
+    height:3em;
+}
+
+.vested-table input[type=checkbox]{
+    position: relative;
+    top: -4px;
+}
+
+#new_folder_container .dropdown-menu button{
+    width: 100%;
+    background: none;
+    border: none;
+    text-align: left;
+    line-height: .5em;
+}
+
+#new_folder_container .dropdown-menu ul{
+    margin:0;
+    padding-left: 1em;
+}
+
+#new_folder_container .dropdown-menu button:hover{
+    background-color:#ccc;
+}
+
+.folder-breadcrumbs, #new_folder_container, .vested-table{
+    margin-bottom:1em;
+}
+
+.link-row:hover, .folder-row:hover {
+    cursor:move;
+}
 
 td.linky-abbr-title {
 	width:40%;
-}
-
-
-.linky-link a {
- text-wrap:unrestricted;
-    word-break:break-all;
-    word-wrap: break-word;      /* IE 5.5-7 */
-      white-space: pre-wrap; /* css-3 */
-    white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
-    white-space: -pre-wrap; /* Opera 4-6 */
-    white-space: -o-pre-wrap; /* Opera 7 */
-    word-wrap: break-word; /* Internet Explorer 5.5+ */
 }
 
 td.linky-abbr-vested {
 }
 
 td.linky-abbr-title {
-   
+
     margin-top:0;
     padding-top:0;
- 
+
 }
 
 td.linky-abbr-date-time {
@@ -1262,6 +1280,15 @@ td.registrar-website-cell {
 tr td.linky-link {
 	width:30%;
 }
+
+
+
+
+
+
+
+
+
 
 .delete-confirm {
   margin-left:85px;
