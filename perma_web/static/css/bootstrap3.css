@@ -4207,7 +4207,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
   margin-top: 8px;
   margin-right: 15px;
   margin-bottom: 8px;
-  background-color: transparent;
+  background-color: #09f;
   border: 1px solid transparent;
   border-radius: 4px;
 }
@@ -4223,6 +4223,10 @@ textarea.input-group-sm > .input-group-btn > .btn {
   margin-top: 4px;
 }
 
+tr.link-details
+{
+	display:none;
+}
 @media (min-width: 768px) {
   .navbar-toggle {
     display: none;

@@ -364,6 +364,9 @@ section#home-description {
         margin: 20px 0 0 0;
     }
 
+input[type="checkbox"] {
+
+}
 
 /* Dashboard */
 
@@ -737,6 +740,14 @@ ul {
 #linky-confirm {
     width: 900px; /* SET THE WIDTH OF THE MODAL */
     margin-left: -450px; /* CHANGE MARGINS TO ACCOMODATE THE NEW WIDTH (original = margin: -250px 0 0 -280px;) */
+}
+
+.original-link {
+	color:#aaa;
+}
+
+.original-link:hover {
+	color:#888;
 }
 
 #linky-desc {
@@ -1396,6 +1407,7 @@ ol li {
 
 .navbar-collapse {
 	margin-right:-20px;
+	padding-left:0px;
 }
 
 .navbar-default .navbar-nav > li > a {
@@ -1439,15 +1451,17 @@ ul.navbar-nav.tabbed > li, ul.navbar-nav.tabbed > li a {
 }
 a.details {
 	padding:2px 6px;
-	background:#eee;
+	background-color: #5cb85c;
 	text-decoration:none;
+	border:1px solid #4cae4c;
 	border-radius:3px;
-	color:#666;
+	color:#fff;
 }
 
 a.details:hover {
-	color:#333;
-	background:#ddd;
+	background-color: #47a447;
+  border-color: #398439;
+  color:#fff;
 }
 
 button.navbar-toggle {
@@ -1457,12 +1471,21 @@ button.navbar-toggle {
 button.navbar-toggle.menu-adjust {
 	position:fixed;
 	right:20px;
+	background:#09f;	
 	top:0px;
 	  -webkit-user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
        -o-user-select: none;
           user-select: none;
+}
+
+button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active, button.navbar-toggle.menu-adjust:visited   {
+	background:#06a;
+}
+
+.navbar-default .navbar-toggle .icon-bar {
+	background:#fff;
 }
 
 ul.nav.navbar-nav.tabbed {
@@ -1534,21 +1557,29 @@ a.tab-styling, .tab-styling {
 }
 
 #warc_cap_container_loading, #pdf_cap_container_loading, #text_cap_container_loading {
-	background-image:url('../img/3.gif');
+	
 	background-repeat:no-repeat;
 	background-color:#09f;
 	padding-left: 33px;
 	float:right;
 }
 
+.spinner {
+	left:-16px;
+	top:10px;
+}
 .loading {
-	margin-top:-40px;
+
 }
 @media (min-width: 768px) {
 	ul.nav.navbar-nav.tabbed {
 		text-align:center;
 		left:8%;
 	}
+	.navbar-collapse {
+	margin-left:-30px;
+	padding-left:0px;
+}
 }
 
 @media (min-width:  992px) {
@@ -1570,7 +1601,6 @@ a.tab-styling, .tab-styling {
 	}
 	
 	#warc_cap_container_loading, #pdf_cap_container_loading, #text_cap_container_loading {
-		background-image:url('../img/3.gif');
 		background-repeat:no-repeat;
 		background-color:#09f;
 		padding-left: 33px;
@@ -1600,3 +1630,4 @@ a.tab-styling, .tab-styling {
 		float: none;
 	}
 }
+

@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 	{% if serve_type == 'text' %}
 	<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/text-capture.css">
+	
 	{% endif %}
 {% endblock %}
 
@@ -54,11 +55,10 @@
 								{% if asset.warc_capture and asset.warc_capture != 'failed' %}
 								<li>
 								{% if asset.warc_capture == 'pending' %}	
-									<span id="warc_cap_container_loading" class="tab-styling">Archived site</span>
-									<!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+									<span id="warc_cap_container_loading" class="tab-styling">Archiving site</span>
 									<a id="warc_cap_container_complete" class="tab-styling{% if serve_type == 'source' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source" style="display:none;">Archived site</a>
 								{% else %}
-									<span id="warc_cap_container_loading" class="tab-styling" style="display:none;">Archived site</span> 
+									<span id="warc_cap_container_loading" class="tab-styling" style="display:none;">Archiving site</span> 
 									<!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
 									<a id="warc_cap_container_complete" class="tab-styling{% if serve_type == 'source' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source">Archived site</a>
 								{% endif %}
@@ -88,11 +88,11 @@
 								{% if asset.text_capture and asset.text_capture != 'failed' %}
 								<li>
 								{% if asset.text_capture == 'pending' %}
-									<span id="text_cap_container_loading" class="tab-styling">Archived text</span> <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+									<span id="text_cap_container_loading" class="tab-styling">Archiving text</span> <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
 									<a id="text_cap_container_complete" class="tab-styling{% if serve_type == 'text' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=text" style="display:none;">Archived text</a>
 
 								{% else %}
-									<span id="text_cap_container_loading" class="tab-styling" style="display:none;">Archived text</span> 
+									<span id="text_cap_container_loading" class="tab-styling" style="display:none;">Archiving text</span> 
 									<a id="text_cap_container_complete" class="tab-styling{% if serve_type == 'text' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=text">Archived text</a>
 								{% endif%}
 								</li>
@@ -186,7 +186,37 @@
 
 {% block scripts %}
 {% if asset.warc_capture == 'pending' or asset.pdf_capture == 'pending' or asset.text_capture == 'pending' %}
+<script src="{{ STATIC_PREFIX }}js/spin.js"></script>
 <script type="text/javascript" language="javascript">
+
+
+
+var opts = {
+  lines: 10, // The number of lines to draw
+  length: 4, // The length of each line
+  width: 3, // The line thickness
+  radius: 3, // The radius of the inner circle
+  corners: 1, // Corner roundness (0..1)
+  rotate: 0, // The rotation offset
+  direction: 1, // 1: clockwise, -1: counterclockwise
+  color: '#fff', // #rgb or #rrggbb or array of colors
+  speed: 0.7, // Rounds per second
+  trail: 60, // Afterglow percentage
+  shadow: false, // Whether to render a shadow
+  hwaccel: false, // Whether to use hardware acceleration
+  className: 'spinner', // The CSS class to assign to the spinner
+  zIndex: 2e9, // The z-index (defaults to 2000000000)
+  top: 'auto', // Top position relative to parent in px
+  left: 'auto' // Left position relative to parent in px
+};
+
+var target = document.getElementById('text_cap_container_loading');
+var spinner = new Spinner(opts).spin(target);
+
+var target = document.getElementById('warc_cap_container_loading');
+var spinner = new Spinner(opts).spin(target);
+
+
 
 	var refreshIntervalId = 0;
 
@@ -223,7 +253,7 @@
 	}
 
 	$(document).ready(function() {
-		refreshIntervalId = setInterval(check_status, 4000);
+		refreshIntervalId = setInterval(check_status, 2000);
 		adjustHeight();
 		$('#collapse-refresh').on('shown.bs.collapse', function () {
 			adjustHeight();
