@@ -1444,3 +1444,7 @@ a.cancel-button:hover {
 	margin:30px;
 	text-align:center;
 }
+
+.vis-container svg {
+    max-height: 500px;
+}
