@@ -33,7 +33,7 @@
     {% endif %}
 
     <form class="pull-right">
-        <input type="text" name="q" value="{{ search_query }}" placeholder="Search {% if current_folder %}'{{ current_folder }}'{% else %}links{% endif %}" class="search-query"/>
+        <input type="text" name="q" value="{{ search_query|default:"" }}" placeholder="Search {% if current_folder %}'{{ current_folder }}'{% else %}links{% endif %}" class="search-query"/>
     </form>
 
     <form method="POST">
@@ -51,9 +51,12 @@
                     <ul class="dropdown-menu">
                         <li><button type="submit" name="move_selected_items_to" value="ROOT">home</button></li>
                         {% recursetree all_folders %}
-                            <li><button type="submit" name="move_selected_items_to" value="{{ node.pk }}">-{{ "-"|repeat:node.get_level }} {{ node.name }}</button></li>
+
+                            <li><button type="submit" name="move_selected_items_to" value="{{ node.pk }}">&#9495; {{ node.name }}</button></li>
                             {% if not node.is_leaf_node %}
+                                <ul>
                                 {{ children }}
+                                </ul>
                             {% endif %}
                         {% endrecursetree %}
                     </ul>
@@ -66,29 +69,11 @@
             <input type="button" id="new_folder_cancel" value="Cancel" class="btn btn-default"/>
         </div>
 
-        <div class="folder-list">
-            {% if path != "/" %}
-                <div class="folder-row" folder_id="ROOT">
-                    <span class="icon-folder-close-alt" style="font-size: large;"></span>
-                    [ <a href="{{ base_url }}{{ path }}..">parent folder</a> ]
-                </div>
-            {% endif %}
-            {% for folder in subfolders %}
-                <div class="folder-row" folder_id="{{ folder.pk }}">
-                    <input type="checkbox" name="folders" value="{{ folder.pk }}" class="checkbox" id="checkbox-{{ folder.pk }}"/><label for="checkbox-{{ folder.pk }}" class="icon-check-empty"></label>
-                    <span class="icon-folder-close-alt" style="font-size: large;"></span>
-                    <a href="{{ base_url }}{{ path }}{{ folder.slug }}">{{ folder.name }}</a>
-                    <span class="tool-block">
-                        <input type="button" name="rename" value="rename" class="btn btn-mini"/>
-                        <input type="button" name="delete" value="delete" class="btn btn-mini"/>
-                    </span>
-                </div>
-            {% endfor %}
-        </div>
-        
+
         {### folder path breadcrumbs ###}
         {% if current_folder %}
-            <p class="folder-breadcrumbs">
+            <div class="folder-breadcrumbs">
+                <b>Current folder:</b>
                 <a href="{{ base_url }}">home</a> &gt;
                 {% if folder_breadcrumbs %}
                     {% for folder, breadcrumb_path in folder_breadcrumbs %}
@@ -96,7 +81,7 @@
                     {% endfor %}
                 {% endif %}
                 {{ current_folder.name }}
-            </p>
+            </div>
         {% endif %}
 
         {% if search_query %}
@@ -111,9 +96,55 @@
         <table class="vested-table">
             <thead>
                 <tr>
+                    <th colspan="3">{% if current_folder %}Subfolders{% else %}Folders{% endif %}</th>
                     <th></th>
-                    <th class="linky-abbr-vested"> </th>
-                    <th class="linky-link">Link</th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if path != "/" %}
+                    <tr class="folder-row" folder_id="{{ current_folder.parent_id|default:"ROOT" }}">
+                        <td>
+                        </td>
+                        <td>
+                            <span class="icon-folder-close-alt" style="font-size: large;"></span>
+                        </td>
+                        <td class="folder-name">
+                            [ <a href="{{ base_url }}{{ path }}..">parent folder</a> ]
+                        </td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                {% endif %}
+                {% for folder in subfolders %}
+                    <tr class="folder-row" folder_id="{{ folder.pk }}">
+                        <td>
+                            <input type="checkbox" name="folders" value="{{ folder.pk }}" class="checkbox" id="checkbox-{{ folder.pk }}"/>
+                        </td>
+                        <td>
+                            <span class="icon-folder-close-alt" style="font-size: large;"></span>
+                        </td>
+                        <td class="folder-name">
+                            <a href="{{ base_url }}{{ path }}{{ folder.slug }}">{{ folder.name }}</a>
+                        </td>
+                        <td>
+                            <a href="#" class="rename">rename</a>
+                        </td>
+                        <td>
+                            <a href="#" class="delete">delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+
+        <table class="vested-table">
+            <thead>
+                <tr>
+                    <th colspan="3">Links</th>
                     <th class="linky-abbr-title"><a href="?sort={% if sort == 'submitted_title' %}-{% endif %}submitted_title{% if search_query %}&q={{ search_query }}{% endif %}">Title</a></th>
                     <th class="linky-abbr-date-time"><a href="?sort={% if sort == 'creation_timestamp' %}-{% endif %}creation_timestamp{% if search_query %}&q={{ search_query }}{% endif %}">Created</a></th>
                     <th class="linky-abbr-date-time"><a href="?sort={% if sort == 'vested_timestamp' %}-{% endif %}vested_timestamp{% if search_query %}&q={{ search_query }}{% endif %}">Vested</a></th>
@@ -124,7 +155,7 @@
                 {% for link in linky_links %}
                     <tr class="link-row" link_id="{{ link.pk }}">
                         <td>{% if all_folders %}
-                            <input type="checkbox" name="links" value="{{ link.pk }}" class="checkbox" id="checkbox-{{ link.pk }}"/><label for="checkbox-{{ link.pk }}" class="icon-check-empty"></label>
+                            <input type="checkbox" name="links" value="{{ link.pk }}" class="checkbox" id="checkbox-{{ link.pk }}"/>
                         {% endif %}</td>
                         <td class="linky-abbr-vested">{% if link.vested and verb == 'created' %}<span class="fancy-infinity">&infin;</span>{% endif %}</td>
                         <td class="linky-link">
