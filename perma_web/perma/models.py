@@ -205,7 +205,7 @@ class Link(models.Model):
                 random_id = random.randint(0, 32**8)
                 guid = base.convert(random_id, base.BASE10, base.BASE32)
                 
-                # Avoid things like XFFC-9VS7
+                # Avoid GUIDs starting with four letters (in case we need those later)
                 match = re.search(r'^[A-Z]{4}', guid)
                 
                 if not match and not Link.objects.filter(guid=guid).exists():
@@ -224,12 +224,12 @@ class Link(models.Model):
         Given a GUID, return the canonical version, with hyphens every 4 chars and all caps.
         So "a2b3c4d5" becomes "A2B3-C4D5".
         """
+        # handle legacy 10/11-char GUIDs
+        if '-' not in guid and (len(guid) == 10 or len(guid) == 11):
+            return guid
 
         canonical_guid = guid.replace('-', '')
 
-        # handle legacy 11-char GUIDs
-        if len(guid) == 11:
-            return guid
 
         # split guid into 4-char chunks, starting from the end
         guid_parts = [canonical_guid[max(i - 4, 0):i] for i in

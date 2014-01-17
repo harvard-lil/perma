@@ -55,7 +55,7 @@ $(function(){
     function initializeFolders(){
     // only need to do stuff if there are folders
 
-        $('.tab-pane').on('click', '.folder-row input[name="delete"]', function(){
+        $('.tab-pane').on('click', '.folder-row a.delete', function(){
             // folder delete
             var td = $(this).parent().parent(),
             aTag = td.find('a');
@@ -72,13 +72,15 @@ $(function(){
                     }
                 );
             }
+            return false;
 
-        }).on('click', '.folder-row input[name="rename"]', function(){
+        }).on('click', '.folder-row a.rename', function(){
             // folder rename - show form
             $(this).closest('.tool-block').hide();
-            var aTag = $(this).parent().parent().find('a');
+            var aTag = $(this).parent().parent().find('.folder-name a');
             aTag.hide().after($('#form_templates .rename-folder-form').clone().hide()).next().show();
             $(this).parent().parent().find('input[name="folder_name"]').val(aTag.text());
+            return false;
 
         }).on('click', '.folder-row input[name="rename_folder_cancel"]', function(){
             // folder rename - cancel
