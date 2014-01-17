@@ -1701,11 +1701,17 @@ img.dark-bulb-small {
 }
 .button-set {
 	margin-bottom:-30px;
-	
-
 }
 
+.text-error {
+	color:#ff4100;
+	font-style: italic;
+	font-size: 85%;
+}
 
+.grey {
+	color:#666;
+}
 
 li {
 	list-style-type: none;

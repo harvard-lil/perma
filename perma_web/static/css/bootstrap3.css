@@ -1645,7 +1645,8 @@ legend {
 
 label {
   display: inline-block;
-  margin-bottom: 5px;
+  margin-bottom: 2px;
+  margin-top:7px;
   font-weight: bold;
 }
 

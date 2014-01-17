@@ -3,19 +3,19 @@
 {% block content %}
 <div class="container">
 	<div class="row">
-		<div class="col-sm-12">	
+		<div class="col-sm-4">	
 			<h2>Register</h2>
 			<form method="post" action="">
 				{% csrf_token %}
 				 <fieldset>
-				<span class="text-error">{{ editor_reg_form.non_field_errors }}</span>
+				<span class="text-error"><br/>{{ editor_reg_form.non_field_errors }}</span>
 				{% for field in editor_reg_form %}
 				  <label for="id_{{ field.name }}">{{ field.label }}</label><br/>
 				  {{ field }}
 				  {% if field.errors %}
-					{% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+					{% for error in field.errors %}<span class="text-error"><br/>{{ error }}</span>{% endfor %}
 				  {%elif field.help_text %}
-					<span class="help-inline">{{ field.help_text }}</span>
+					<span class="help-inline"><br/>{{ field.help_text }}</span>
 				  {% endif %}<br/>
 				{% endfor %}  
 			  </fieldset>
@@ -23,6 +23,14 @@
 				<button type="submit" class="btn-success">Create account</button>
 			</form>
 		</div>
+		<div class="col-sm-8">
+		<h2>&nbsp;</h2>
+			<h3 class="grey"><span class="orange">NOTE:</span> Anyone can create an account.</h3> 
+			
+			<h3 class="grey">However, for your links to be saved in the permanent archive they will have to be approved by someone with a <a href="{% url 'faq' %}">vesting account</a>.</h3>
+			
+		</div>
+		
 	</div>
 </div>
 <br/>
