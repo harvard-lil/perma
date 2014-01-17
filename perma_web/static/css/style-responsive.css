@@ -557,15 +557,22 @@ div#dashboard-container div#library {}
             font-size: 12px;
             font-style: italic;
             margin: 0;
+           	width:369px
         }
 
-            p.library-link-url a {
-                color: #777;
-                text-decoration: none;
-                width:369px;
-                text-wrap:unrestricted;
-    word-wrap: break-word;      /* IE 5.5-7 */
-            }
+		p.library-link-url a {
+			color: #777;
+			text-decoration: none;
+			width:369px;
+			white-space: pre;           /* CSS 2.0 */
+			white-space: pre-wrap;      /* CSS 2.1 */
+			white-space: pre-line;      /* CSS 3.0 */
+			white-space: -pre-wrap;     /* Opera 4-6 */
+			white-space: -o-pre-wrap;   /* Opera 7 */
+			white-space: -moz-pre-wrap; /* Mozilla */
+			white-space: -hp-pre-wrap;  /* HP Printers */
+			word-wrap: break-word;      /* IE 5+ */
+		}
 
         p.library-link-meta {
             color: #777;
