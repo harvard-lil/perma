@@ -739,6 +739,10 @@ ul {
     margin-left: -450px; /* CHANGE MARGINS TO ACCOMODATE THE NEW WIDTH (original = margin: -250px 0 0 -280px;) */
 }
 
+.linky-view {
+	min-height:330px;
+}
+
 .original-link {
 	color:#aaa;
 }
@@ -1435,6 +1439,7 @@ ol li {
 .navbar-collapse {
 	margin-right:-20px;
 	padding-left:0px;
+	
 }
 
 .navbar-default .navbar-nav > li > a {
@@ -1458,6 +1463,7 @@ ul.navbar-nav.tabbed > li, ul.navbar-nav.tabbed > li a {
 	height:30px;
 	font-size:16px;
 	display:block;
+	
 }
 
 span.tab-styling {
@@ -1517,6 +1523,8 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
 
 ul.nav.navbar-nav.tabbed {
 	margin:0 auto 0 auto;
+	position:relative;
+	z-index:0;
 }
 
 .navbar-collapse.collapse {
@@ -1541,7 +1549,7 @@ tr.link-details {
 }
 
 .text-warning {
-	color:#987438;
+	color:#ff4100;
 }
 
 
@@ -1572,6 +1580,7 @@ ul.nav.navbar-nav.tabbed.tab-styling.active-view, ul.nav.navbar-nav.tabbed a.tab
 
 ul li span#warc_cap_container_loading .tab-styling, span#warc_cap_container_complete .tab-styling, span#text_cap_container_loading .tab-styling, span#text_cap_container_complete .tab-styling {
 	/*position:static*/
+	cursor:default;
 	}
 
 span#text_cap_container_complete a.tab-styling {
@@ -1589,13 +1598,20 @@ a.tab-styling, .tab-styling {
 	background-color:#09f;
 	padding-left: 33px;
 	float:right;
+	cursor:default;
+	-webkit-touch-callout: none;
+-webkit-user-select: none;
+-khtml-user-select: none;
+-moz-user-select: none;
+-ms-user-select: none;
+user-select: none;
 }
 
 .spinner {
 	left:-16px;
 	top:10px;
+	cursor:auto;
 }
-
 
 a.btn.vest, a.btn.dashboard {
 	width:100px;
@@ -1605,7 +1621,7 @@ a.btn.vest, a.btn.dashboard {
 	margin-top:4px;
 	border:1px solid #666;
 	border-radius: 3px;
-	background:transparent;
+	background:#fff;
 	margin-left:10px;
 }
 input.btn.vest {
@@ -1617,7 +1633,7 @@ input.btn.vest {
 	margin-bottom:-5px;
 	border:1px solid #666;
 	border-radius: 3px;
-	background:transparent;
+	background:#fff;
 	margin-left:10px;
 }
 
@@ -1701,6 +1717,8 @@ img.dark-bulb-small {
 }
 .button-set {
 	margin-bottom:-30px;
+	position:relative;
+	z-index:1000;
 }
 
 .text-error {

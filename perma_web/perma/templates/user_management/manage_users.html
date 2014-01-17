@@ -79,7 +79,7 @@
   
 {% if users.paginator.num_pages > 1 %}
 <div class="pagination">
-    <ul>
+    <ul class="pagination">
         {% if users.has_previous %}<li><a href="?page={{ users.previous_page_number }}&sort={{ sort }}">&lt;</a></li>{% endif %}
         {% for i in users.paginator.page_range %}
         {% ifequal i users.number %}

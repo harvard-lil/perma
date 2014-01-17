@@ -189,7 +189,7 @@
         {% comment %}
             {% if linky_links.paginator.num_pages > 1 %}
                 <div class="pagination">
-                    <ul>
+                    <ul class="pagination">
                         {% if linky_links.has_previous %}<li><a href="?page={{ linky_links.previous_page_number }}&sort={{ sort }}">&lt;</a></li>{% endif %}
                         {% for i in linky_links.paginator.page_range %}
                         {% ifequal i linky_links.number %}

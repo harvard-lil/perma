@@ -4653,6 +4653,7 @@ tr.link-details
   padding-left: 0;
   margin: 20px 0;
   border-radius: 4px;
+  font-weight:bold;
 }
 
 .pagination > li {
@@ -4663,7 +4664,7 @@ tr.link-details
 .pagination > li > span {
   position: relative;
   float: left;
-  padding: 6px 12px;
+  padding: 4px 10px;
   margin-left: -1px;
   line-height: 1.428571429;
   text-decoration: none;
@@ -4700,8 +4701,8 @@ tr.link-details
   z-index: 2;
   color: #ffffff;
   cursor: default;
-  background-color: #428bca;
-  border-color: #428bca;
+  background-color: #ff4100;
+  border-color: #ff4100;
 }
 
 .pagination > .disabled > span,

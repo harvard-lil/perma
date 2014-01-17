@@ -52,7 +52,7 @@
   </table>
       {% if vesting_orgs.paginator.num_pages > 1 %}
 <div class="pagination">
-    <ul>
+    <ul class="pagination">
         {% if vesting_orgs.has_previous %}<li><a href="?page={{ vesting_orgs.previous_page_number }}&sort={{ sort }}">&lt;</a></li>{% endif %}
         {% for i in vesting_orgs.paginator.page_range %}
         {% ifequal i vesting_orgs.number %}
