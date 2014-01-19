@@ -13,7 +13,7 @@ import perma.settings
 # include guid in CDX requests
 class MatchRegex(archivalrouter.MatchRegex):
     def _addFilters(self, wbrequest, matcher):
-        wbrequest.customParams = {'guid':matcher.group(2)}
+        wbrequest.customParams['guid'] = matcher.group(2)
 
 # prevent bare URLs getting forwarded to timestamp version
 class RewritingReplayHandler(replay.RewritingReplayHandler):
