@@ -1,6 +1,6 @@
 from django.template import Template, context, RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect
+from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, Http404, HttpResponse
 from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
 from django.conf import settings
@@ -11,6 +11,8 @@ from datetime import datetime, date, timedelta
 from urlparse import urlparse
 import urllib2, os, logging
 from urlparse import urlparse
+from django.views.decorators.csrf import csrf_exempt
+import surt, cdx_writer
 
 from perma.models import Link, Asset
 from perma.utils import base, require_group
@@ -43,6 +45,58 @@ def stats(request):
     context = RequestContext(request, {'top_links_all_time': top_links_all_time})
 
     return render_to_response('stats.html', context)
+
+
+def tools(request):
+    """
+    The tools page
+    """
+    
+    return render_to_response('tools.html', {})
+
+
+@csrf_exempt
+def cdx(request):
+    """
+        This function handles WARC lookups by our warc server (running in warc_server).
+        It accepts a standard CDX request, except with a GUID instead of date, and returns a standard CDX 11 response.
+        If there's no warc for the requested GUID, or the requested URL isn't stored in that WARC, it returns a 404.
+    """
+    # find requested link and url
+    try:
+        link = Link.objects.select_related().get(pk=request.POST.get('guid'))
+    except Link.DoesNotExist:
+        # print "COULDN'T FIND LINK"
+        raise Http404
+    url = request.POST.get('url', link.submitted_url)
+
+    # get warc file
+    for asset in link.assets.all():
+        if '.warc' in asset.warc_capture:
+            warc_path = os.path.join(settings.GENERATED_ASSETS_STORAGE, asset.base_storage_path, asset.warc_capture)
+            break
+    else:
+        # print "COULDN'T FIND WARC"
+        raise Http404 # no .warc file -- do something to handle this
+
+    # get cdx file
+    cdx_path = warc_path.replace('.gz', '').replace('.warc', '.cdx')
+    try:
+        cdx_file = open(cdx_path, 'rb')
+    except IOError:
+        # if we can't find the CDX file associated with this WARC, create it
+        writer = cdx_writer.CDX_Writer(warc_path, cdx_path)
+        writer.make_cdx()
+        cdx_file = open(cdx_path, 'rb')
+
+    # find cdx line for url
+    sorted_url = surt.surt(url)
+    for line in cdx_file:
+        if line.startswith(sorted_url+" "):
+            return HttpResponse(line, content_type="text/plain")
+
+    # print "COULDN'T FIND URL"
+    raise Http404 # didn't find requested url in .cdx file
 
 
 @ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block='True')
