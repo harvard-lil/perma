@@ -252,10 +252,10 @@ class Link(models.Model):
 
 class Asset(models.Model):
     """
-    Our archving logic generates a bunch of different assets. We store those on disk. We use
+    Our archiving logic generates a bunch of different assets. We store those on disk. We use
     this class to track those locations.
     """
-    link = models.ForeignKey(Link, null=False)
+    link = models.ForeignKey(Link, null=False, related_name='assets')
     base_storage_path = models.CharField(max_length=2100, null=True, blank=True) # where we store these assets, relative to some base in our settings
     favicon = models.CharField(max_length=2100, null=True, blank=True) # Retrieved favicon
     image_capture = models.CharField(max_length=2100, null=True, blank=True) # Headless browser image capture
@@ -265,6 +265,23 @@ class Asset(models.Model):
     instapaper_timestamp = models.DateTimeField(null=True)
     instapaper_hash = models.CharField(max_length=2100, null=True)
     instapaper_id = models.IntegerField(null=True)
+
+    def base_url(self, extra=u""):
+        return settings.STATIC_URL+self.base_storage_path+extra
+
+    def image_url(self):
+        return self.base_url(self.image_capture)
+
+    def warc_url(self):
+        if self.warc_capture and '.warc' in self.warc_capture:
+            return u"/warc/%s/%s" % (self.link.guid, self.link.submitted_url)
+        return self.base_url(self.warc_capture)
+
+    def pdf_url(self):
+        return self.base_url(self.pdf_capture)
+
+    def text_url(self):
+        return self.base_url(self.text_capture)
     
     
 #########################
