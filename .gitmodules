@@ -13,3 +13,4 @@
 [submodule "perma_web/lib/warcprox"]
 	path = perma_web/lib/warcprox
 	url = https://github.com/jcushman/warcprox.git
+	ignore = dirty
