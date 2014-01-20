@@ -7,6 +7,7 @@ class Route(archivalrouter.Route):
     def _addFilters(self, wbrequest, matcher):
         wbrequest.customParams['guid'] = matcher.group(1)
 
+
 # prevent bare URLs getting forwarded to timestamp version
 class RewritingReplayHandler(replay.RewritingReplayHandler):
     def _checkRedir(self, wbrequest, cdx):
