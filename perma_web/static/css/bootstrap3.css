@@ -5619,12 +5619,12 @@ body.modal-open,
 }
 
 .modal {
-  position: fixed;
-  top: 0;
+  position: absolute;
+  top:0px;
   right: 0;
   bottom: 0;
-  left: 0;
-  z-index: 1040;
+  left:0px;
+  z-index: 104000;
   display: none;
   overflow: auto;
   overflow-y: scroll;
@@ -5688,8 +5688,7 @@ body.modal-open,
 
 .modal-header {
   min-height: 16.428571429px;
-  padding: 15px;
-  border-bottom: 1px solid #e5e5e5;
+  padding: 3px 0;
 }
 
 .modal-header .close {

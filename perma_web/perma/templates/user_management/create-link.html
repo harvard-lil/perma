@@ -17,29 +17,33 @@
             
 <!-- Modals -->
 
+
 <!-- Upload file modal -->
-<div id="linky-upload" class="modal hide fade center">
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <div class="logo-condensed-header">
-			<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo.png"></a>
+<div  class="modal" id="linky-upload" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+    		<div class="modal-header">
+        		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<div class="logo-condensed-header">
+					<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo.png"></a>
+				</div>
+    		</div>
+    
+			<div class="center">
+				<form class="form-inline" id="linky_upload_form" action="/api/linky/upload" method="post">
+				<h4>Choose a file</h4>
+				<p><input id="file" name="file" class="input-xlarge" type="file" placeholder="example.png"></p>
+				<p><input id="title" name="title" class="input-xlarge" type="text" placeholder="Example Page Title"></p>
+				<p><input id="url" name="url" class="input-xlarge" type="text" placeholder="www.example.com"></p>
+				<button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Upload this Perma</button>
+				{% csrf_token %}
+				<p id="upload-error" class="text-error"></p>
+				</form>
+			</div>
+			</div>
+			<div class="modal-footer pull-left">
 		</div>
-    </div>
-    <div class="modal-body">
-        <div class="center">
-            <form class="form-inline" id="linky_upload_form" action="/api/linky/upload" method="post">
-            <h4>Choose a file</h4>
-            <p><input id="file" name="file" class="input-xlarge" type="file" placeholder="example.png"></p>
-            <p><input id="title" name="title" class="input-xlarge" type="text" placeholder="Example Page Title"></p>
-            <p><input id="url" name="url" class="input-xlarge" type="text" placeholder="www.example.com"></p>
-            <button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Upload this Perma</button>
-			{% csrf_token %}
-            <p id="upload-error" class="text-error"></p>
-            </form>
-        </div>
-    </div>
-    <div class="modal-footer pull-left">
-    </div>
+	</div>
 </div><!--/.linky-upload-->
 
 <!-- Upload complete modal -->
@@ -47,7 +51,7 @@
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
          <div class="logo-condensed-header">
-			<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo.png"></a>
+			<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo2.png"></a>
 		</div>
     </div>
     <div class="modal-body">
