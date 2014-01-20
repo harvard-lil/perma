@@ -1,24 +1,30 @@
-# monkeypatch to stop stuff getting added to our urls
-# this will be unnecessary if pywb adds a way to specify a custom ArchivalUrl class
-from pywb import wbarchivalurl
-_real_archivalurl_to_str = wbarchivalurl.ArchivalUrl.to_str
-def archivalurl_to_str(atype, mod, timestamp, url):
-    return _real_archivalurl_to_str(atype, '', '', url)
-wbarchivalurl.ArchivalUrl.to_str = staticmethod(archivalurl_to_str)
-
-# imports
-from pywb import replay, archiveloader, indexreader, query, archivalrouter
+from pywb import replay, archiveloader, indexreader, query, archivalrouter, wbarchivalurl
 import perma.settings
 
+
 # include guid in CDX requests
-class MatchRegex(archivalrouter.MatchRegex):
+class Route(archivalrouter.Route):
     def _addFilters(self, wbrequest, matcher):
-        wbrequest.customParams['guid'] = matcher.group(2)
+        wbrequest.customParams['guid'] = matcher.group(1)
+
 
 # prevent bare URLs getting forwarded to timestamp version
 class RewritingReplayHandler(replay.RewritingReplayHandler):
     def _checkRedir(self, wbrequest, cdx):
         return None
+
+
+# prevent timestamp and mod getting added to rewritten urls
+class ArchivalUrl(wbarchivalurl.ArchivalUrl):
+    def to_str(self, **overrides):
+        overrides['mod'] = ''
+        overrides['timestamp'] = ''
+        return wbarchivalurl.ArchivalUrl.to_str(self, **overrides)
+
+    def _init_replay(self, url):
+        self.url = url
+        self.type = self.LATEST_REPLAY
+        return True
 
 
 def createDefaultWB(headinsert):
@@ -32,10 +38,9 @@ def createDefaultWB(headinsert):
 
     replay_handler = RewritingReplayHandler(
         resolvers = resolvers,
-        archiveloader = archiveloader.ArchiveLoader(),
-        headInsert = ""
+        archiveloader = archiveloader.ArchiveLoader()
     )
 
     return archivalrouter.ArchivalRequestRouter({
-            MatchRegex(r'(warc)/([a-zA-Z0-9\-]+)', replay.WBHandler(query_handler, replay_handler))
-        })
+        Route(r'([a-zA-Z0-9\-]+)', replay.WBHandler(query_handler, replay_handler))
+    }, archivalurl_class=ArchivalUrl)
