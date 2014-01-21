@@ -1217,7 +1217,7 @@ a.orange {
 */
 
 
-.vested-table tr {
+.vested-table tr, .links-tablev {
     border-bottom: 1px solid #ccc;
 }
 
@@ -1850,6 +1850,15 @@ text {
 		left:14%;
 	}
 }
+
+
+@media (max-width:  992px) {
+	td.linky-link {
+		background:red;
+		width:100px;
+	}
+}
+
 
 @media (max-width: 768px) {
 	.navbar-default .navbar-nav.tabbed > li, .navbar-default .navbar-nav.tabbed > li a {
