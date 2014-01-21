@@ -111,12 +111,22 @@ $(document).ready(function(){
 {% endverbatim %}
 
 {% verbatim %}
+<script id="upload-confirm-template" type="text/x-handlebars-template">
+	  <h4 class="text-warning">Upload successful.</h4>
+	  <p><a href="{{url}}">{{url}}</a></p>
+</script>
+{% endverbatim %}
+
+{% verbatim %}
 <script id="error-template" type="text/x-handlebars-template">
 	  <h4 class="text-warning">There was a problem creating your Perma</h4>
 	  <p>{{url}} is gumming up the works</p>
-	  <p><a href="#" onclick="fby.push(['showForm', '5593']);return false;">Report this</a></p>
+      <p id="upload-option">Perma is unable to capture some pages. You can <a href="" onclick="return upload_form();">upload your own image of the page.</a></p>
+	  <br/>
+	  <p>If uploading your own capture is not desirable, please <a href="#" onclick="fby.push(['showForm', '5593']);return false;">report the error</a></p>
 </script>
 {% endverbatim %}
+
 
 {% verbatim %}
 <script id="success-template" type="text/x-handlebars-template">

@@ -27,11 +27,22 @@ function uploadNot() {
 function uploadIt(data) {
   if(data.status == 'success') {
     $('#linky-upload').modal('hide');
-	  $('#linky-upload-confirm').modal({show: true});
+
     var linkyUrl = web_base  + '/' + data.linky_hash;
-		$('#linky_upload_success').text('Your linky has been created at');
-		$('#uploadedLinkyUrl a').attr('href', linkyUrl).text(linkyUrl);
-		newLinky.url = linkyUrl;
+    var source = $("#upload-confirm-template").html();
+    var template = Handlebars.compile(source);
+    $('#links').html(template({url: linkyUrl}));
+    $('#spinner').slideUp();
+    $('#link-short-slug').slideDown();
+
+
+    //$('#linky-upload-confirm').modal({show: true});
+    //var linkyUrl = web_base  + '/' + data.linky_hash;
+    //$('#linky_upload_success').text('Your linky has been created at');
+    //$('#uploadedLinkyUrl a').attr('href', linkyUrl).text(linkyUrl);
+
+
+	newLinky.url = linkyUrl;
     newLinky.original = $('#url').val();
     newLinky.title = $('#title').val();
     newLinky.favicon_url = data.favicon_url;
