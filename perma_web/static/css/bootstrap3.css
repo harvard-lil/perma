@@ -3212,7 +3212,7 @@ input[type="button"].btn-block {
   height: 0;
   margin-left: 2px;
   vertical-align: middle;
-  border-top: 4px solid #000000;
+  border-top: 4px solid #fff;
   border-right: 4px solid transparent;
   border-bottom: 0 dotted;
   border-left: 4px solid transparent;
@@ -3387,6 +3387,9 @@ input[type="button"].btn-block {
 .btn-group-vertical > .btn {
   position: relative;
   float: left;
+  background:#09f;
+  color:#fff;
+  
 }
 
 .btn-group > .btn:hover,
