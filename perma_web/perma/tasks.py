@@ -1,4 +1,17 @@
-import os, sys, subprocess, urllib, glob, shutil, urlparse, simplejson, datetime, smhasher, logging, robotparser, re
+import os
+import sys
+import subprocess
+import urllib
+import glob
+import shutil
+import urlparse
+import simplejson
+import datetime
+import smhasher
+import logging
+import robotparser
+import re
+
 from djcelery import celery
 import lxml.html, requests
 from django.conf import settings
@@ -12,7 +25,26 @@ import oauth2 as oauth
 logger = logging.getLogger(__name__)
 
 @celery.task
-def get_screen_cap(link_guid, target_url, base_storage_path, user_agent=''):
+def get_warc(link_guid, target_url, base_storage_path, user_agent=''):
+    warcprox_proc = subprocess.Popen(["/home/mmckay/workspaces/ENV2/bin/python",
+                                          "-m",
+                                          "warcprox.warcprox",
+                                          "--prefix=out.warc" % (link_guid) , 
+                                          "--cacert=ca.pem"%,
+                                          "--gzip", #make gzip
+                                          "--dir=%s" % (base_storage_path), #place warc in current dir
+                                          "--port=8000",
+                                          #"--address=127.0.0.1",
+                                          #"> log.txt" #store log file
+                                          ],
+                                            stdin=subprocess.PIPE,
+                                            #stdout=subprocess.PIPE
+                                          )
+            time.sleep(0.1)
+    
+
+#@celery.task
+#def get_screen_cap(link_guid, target_url, base_storage_path, user_agent=''):
     """
     Create an image from the supplied URL, write it to disk and update our asset model with the path.
     The heavy lifting is done by PhantomJS, our headless browser.
