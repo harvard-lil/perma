@@ -30,7 +30,6 @@ from perma.settings import INSTAPAPER_KEY, INSTAPAPER_SECRET, INSTAPAPER_USER, I
 
 logger = logging.getLogger(__name__)
 
-
 @celery.task
 def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,user_agent=''):
     """
@@ -41,7 +40,7 @@ def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,
     The heavy lifting is done by PhantomJS, our headless browser.
 
     This function is usually executed via a synchronous Celery call
-    """
+"""
 
     # set up storage paths
     image_name = 'cap.png'
