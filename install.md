@@ -13,6 +13,10 @@ The required modules are found in requirements.txt. Install them using pip:
 
     $ pip install -r requirements.txt
 
+Perma requires are at least one module that cannot be installed with pip. 
+    
+    warcprox -  https://github.com/internetarchive/warcprox
+
 If you're running OS X Mountain Lion, you may need to add the MySQL binaries 
 to your PATH:
 
