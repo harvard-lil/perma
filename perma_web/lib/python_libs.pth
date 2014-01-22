@@ -1,0 +1,5 @@
+# Tell Python to include the following relative paths.
+# Since we're checking out entire git repos, we have to include each one so the modules inside will be found.
+cdx_writer/
+pywb/
+warc-tools/hanzo/

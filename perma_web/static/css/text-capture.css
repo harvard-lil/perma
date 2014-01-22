@@ -1,22 +1,19 @@
 /* =============================================================
  * Page cleanup
  * ============================================================= */
-.clouds {
-	background: transparent;
-}
 .translucent-background {
 	border: 0;
 }
 #main-content {
-	box-shadow: 0 0 1.5em #ebebeb;
 	font-size: 16px;
 	font-size: 1rem;
 	width: 100%;
 	max-width: 50em;
+	margin:0 auto;
 }
 #text-capture {
 	font: normal normal 16px/1.5 Georgia, Times, "Times New Roman", serif;
-	font-size: 1rem;
+	font-size: 1.5rem;
 	padding: 2em;
 	text-align: left;
 }
