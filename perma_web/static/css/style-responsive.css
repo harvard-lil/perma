@@ -7,15 +7,15 @@ html {
 }
 
 body {
-  background-color: #eee;
+  background-color: #efefef;
     color: #333;
     margin: 0;
     font-family: 'Roboto Slab', sans-serif;
 }
 
 .navbar-default {
-	background:#eee;
-	border-bottom:1px solid #ccc;
+	background:#f7f7f7;
+	border-bottom:1px solid #eee;
 }
 
 .tab-border	{
@@ -242,7 +242,8 @@ footer {
     color: #777;
     text-align: center;
     padding: 10px 0;
-    border-top:1px solid #ddd;
+    background:#f7f7f7;
+	border-top:1px solid #eee;
 }
 
 .footer-archive {
