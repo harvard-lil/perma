@@ -12,5 +12,5 @@
 	ignore = dirty
 [submodule "perma_web/lib/warcprox"]
 	path = perma_web/lib/warcprox
-	url = https://github.com/mckaymatt/warcprox
+	url = https://github.com/mckaymatt/warcprox.git
 	ignore = dirty
