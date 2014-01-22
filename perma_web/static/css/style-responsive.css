@@ -516,7 +516,7 @@ div#dashboard-container div#library {}
         li.library-link-item {
             text-align: center;
             list-style-type:none;
-            margin-left:
+             width:368px;
         }
 
        .thumbnail-frame {
@@ -1305,7 +1305,7 @@ td.registrar-website-cell {
 }
 
 tr td.linky-link, a.original-link {
-	width:30%;
+	width: 64%;
 	white-space: pre;           /* CSS 2.0 */
 	white-space: pre-wrap;      /* CSS 2.1 */
 	white-space: pre-line;      /* CSS 3.0 */
@@ -1315,6 +1315,7 @@ tr td.linky-link, a.original-link {
 	white-space: -hp-pre-wrap;  /* HP Printers */
 	word-wrap: break-word;      /* IE 5+ */
 	overflow:hidden;
+	word-break:break-all;
 }
 
 
@@ -1323,8 +1324,13 @@ tr td.linky-link, a.original-link {
 
 
 
+input#file {
+	border:0px;
+}
 
-
+.add-links-list h4 {
+	text-align:center;
+}
 
 .delete-confirm {
   margin-left:85px;
@@ -1332,7 +1338,7 @@ tr td.linky-link, a.original-link {
 
 .nav {
     position:relative;
-    z-index:9999;
+    z-index:999;
 }
 
 .carat {
@@ -1854,8 +1860,10 @@ text {
 
 @media (max-width:  992px) {
 	td.linky-link {
-		background:red;
-		width:100px;
+		width:200px;
+	}
+	tbody {
+		font-size:12px;
 	}
 }
 

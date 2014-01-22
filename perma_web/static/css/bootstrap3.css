@@ -5627,7 +5627,7 @@ body.modal-open,
   z-index: 104000;
   display: none;
   overflow: auto;
-  overflow-y: scroll;
+  overflow-y: hidden;
 }
 
 .modal.fade .modal-dialog {
