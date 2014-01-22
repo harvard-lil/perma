@@ -11,10 +11,10 @@ import logging
 import robotparser
 import re
 import time
-from random import choice
 import oauth2 as oauth
 import warcprox.warcprox as warcprox
 import thread
+
 from djcelery import celery
 import lxml.html
 import requests
