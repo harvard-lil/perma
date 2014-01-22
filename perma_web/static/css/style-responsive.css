@@ -1218,8 +1218,12 @@ a.orange {
 */
 
 
-.vested-table tr, .links-tablev {
+.vested-table tr, .links-tablev, .cool-links-table tr {
     border-bottom: 1px solid #ccc;
+}
+
+.cool-links-table{
+    font-size: 16px;
 }
 
 .vested-table td, th {
@@ -1793,6 +1797,10 @@ li {
 	
 }
 
+.vis-container svg {
+    max-height: 500px;
+}
+
 .container.stats .axis path,
 .axis line {
   fill: none;
@@ -1807,7 +1815,7 @@ li {
 .container.stats .line {
   fill: none;
   stroke: steelblue;
-  stroke-width:0px;
+  stroke-width:2px;
 }
 
 .container.stats .bar.positive {

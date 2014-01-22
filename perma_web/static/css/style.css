@@ -86,7 +86,7 @@ p {
 
 header {
     background-color: #fff;
-    border-bottom: 1px solid #efefef;
+    /* border-bottom: 1px solid #efefef; */
     height: 100px;
     margin: 0;
     padding: 0;
