@@ -15,6 +15,7 @@ import oauth2 as oauth
 import warcprox.warcprox as warcprox
 import thread
 
+
 from djcelery import celery
 import lxml.html
 import requests
@@ -28,7 +29,46 @@ from perma.exceptions import BrokenURLError
 from perma.settings import INSTAPAPER_KEY, INSTAPAPER_SECRET, INSTAPAPER_USER, INSTAPAPER_PASS, GENERATED_ASSETS_STORAGE
 
 
+from warcprox import warcprox
+
 logger = logging.getLogger(__name__)
+
+
+
+@celery.task
+def start_proxy_record(link_guid, base_storage_path,):
+
+    path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path]
+
+    warcprox_args =  " ".join[
+                    "--prefix=permaWarcFile",
+                    "--gzip", #make gzip
+                    "--dir=%s" % (os.path.sep.join(path_elements),
+                    "--certs-dir=%s" % ("/dev/null") ,
+                    "--port=8080",
+                    "--dedup-db-file= ",# disables deduplication
+                    "--address=127.0.0.1"
+                    ]
+
+    warc_path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path]
+
+    run_warcprox = warcprox.main(warcprox_args)
+
+    if os.path.exists(os.path.join(path_elements)):
+        created_warc_name = filter(lambda x: "permaWarcFile" in x , os.path.join(path_elements))[0]
+        standardized_warc_name = os.path.join(path_elements,"link_archive.warc.gz")
+        os.rename(os.path.join(path_elements, created_warc_name), standardized_warc_name)
+        
+        asset = Asset.objects.get(link__guid=link_guid)
+        asset.warc_capture = os.path.sep.join(standardized_warc_name[2:])
+        asset.save()
+    else:
+        logger.info("Web Archive File creation failed for %s" % target_url)
+        asset = Asset.objects.get(link__guid=link_guid)
+        asset.warc_capture = 'failed'
+        asset.save()
+        logger.info("Web Archive File creation failed for %s" % target_url)
+
 
 @celery.task
 def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,user_agent=''):
