@@ -12,6 +12,7 @@ import logging
 import robotparser
 import re
 
+
 from djcelery import celery
 import requests
 from django.conf import settings
@@ -22,7 +23,46 @@ from perma.settings import INSTAPAPER_KEY, INSTAPAPER_SECRET, INSTAPAPER_USER, I
 
 import oauth2 as oauth
 
+from warcprox import warcprox
+
 logger = logging.getLogger(__name__)
+
+
+
+@celery.task
+def start_proxy_record(link_guid, base_storage_path,):
+
+    path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path]
+
+    warcprox_args =  " ".join[
+                    "--prefix=permaWarcFile",
+                    "--gzip", #make gzip
+                    "--dir=%s" % (os.path.sep.join(path_elements),
+                    "--certs-dir=%s" % ("/dev/null") ,
+                    "--port=8080",
+                    "--dedup-db-file= ",# disables deduplication
+                    "--address=127.0.0.1"
+                    ]
+
+    warc_path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path]
+
+    run_warcprox = warcprox.main(warcprox_args)
+
+    if os.path.exists(os.path.join(path_elements)):
+        created_warc_name = filter(lambda x: "permaWarcFile" in x , os.path.join(path_elements))[0]
+        standardized_warc_name = os.path.join(path_elements,"link_archive.warc.gz")
+        os.rename(os.path.join(path_elements, created_warc_name), standardized_warc_name)
+        
+        asset = Asset.objects.get(link__guid=link_guid)
+        asset.warc_capture = os.path.sep.join(standardized_warc_name[2:])
+        asset.save()
+    else:
+        logger.info("Web Archive File creation failed for %s" % target_url)
+        asset = Asset.objects.get(link__guid=link_guid)
+        asset.warc_capture = 'failed'
+        asset.save()
+        logger.info("Web Archive File creation failed for %s" % target_url)
+
 
 @celery.task
 def get_screen_cap(link_guid, target_url, base_storage_path, user_agent=''):
@@ -38,8 +78,15 @@ This function is usually executed via a synchronous Celery call
     if not os.path.exists(os.path.sep.join(path_elements[:2])):
         os.makedirs(os.path.sep.join(path_elements[:2]))
 
-    image_generation_command = settings.PROJECT_ROOT + '/lib/phantomjs ' + settings.PROJECT_ROOT + '/lib/rasterize.js "' + target_url + '" ' + os.path.sep.join(path_elements) + ' "' + user_agent + '"'
-
+    image_generation_command = " ".join[
+                                settings.PROJECT_ROOT + '/lib/phantomjs',
+                                "--proxy=127.0.0.1:8080",
+                                settings.PROJECT_ROOT + '/lib/rasterize.js',
+                                '"%s"' % (target_url),
+                                os.path.sep.join(path_elements),
+                                '"%s"' % (user_agent)
+                                ]
+    time.sleep(0.3)
     subprocess.call(image_generation_command, shell=True)
 
 
