@@ -90,6 +90,7 @@ class LinkUser(AbstractBaseUser):
     vesting_org = models.ForeignKey(VestingOrg, null=True)
     groups = models.ManyToManyField(Group, null=True)
     is_active = models.BooleanField(default=True)
+    is_confirmed = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     date_joined = models.DateField(auto_now_add=True)
     first_name = models.CharField(max_length=45, blank=True)

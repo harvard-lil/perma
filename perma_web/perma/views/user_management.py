@@ -348,6 +348,7 @@ def list_users_in_group(request, group_name):
         'user_list_url':'user_management_manage_{group_name}'.format(group_name=group_name),
         'reactivate_user_url':'user_management_manage_single_{group_name}_reactivate'.format(group_name=group_name),
         'single_user_url':'user_management_manage_single_{group_name}'.format(group_name=group_name),
+        'delete_user_url':'user_management_manage_single_{group_name}_delete'.format(group_name=group_name),
         'sort': sorts()[0],
     }
     context['pretty_group_name_plural'] = context['pretty_group_name'] + "s"
@@ -490,8 +491,11 @@ def delete_user_in_group(request, user_id, group_name):
                'this_page': 'users_{group_name}s'.format(group_name=group_name)}
 
     if request.method == 'POST':
-        target_member.is_active = False
-        target_member.save()
+        if target_member.is_confirmed:
+            target_member.is_active = False
+            target_member.save()
+        else:
+            target_member.delete()
 
         return HttpResponseRedirect(reverse('user_management_manage_{group_name}'.format(group_name=group_name)))
 
@@ -824,6 +828,13 @@ def not_active(request):
         context = {}
         context.update(csrf(request))
         return render_to_response('registration/not_active.html', context)
+        
+        
+def account_is_deactivated(request):
+    """
+    Informing a user that their account has been deactivated.
+    """
+    return render_to_response('user_management/deactivated.html')
     
 
 @ratelimit(field='email', method='POST', rate=settings.LOGIN_MINUTE_LIMIT, block='True', ip=True)
@@ -846,9 +857,12 @@ def limited_login(request, template_name='registration/login.html',
           target_user = LinkUser.objects.get(email=username)
         except LinkUser.DoesNotExist:
           target_user = None
-        if target_user and not target_user.is_active:
+        if target_user and not target_user.is_confirmed:
           request.session['email'] = target_user.email
           return HttpResponseRedirect(reverse('user_management_not_active'))
+        elif target_user and not target_user.is_active:
+            return HttpResponseRedirect(reverse('user_management_account_is_deactivated'))
+            
           
         if form.is_valid():
             
@@ -933,6 +947,7 @@ def register_email_code_confirmation(request, code):
     """
     user = get_object_or_404(LinkUser, confirmation_code=code)
     user.is_active = True
+    user.is_confirmed = True
     user.save()
     messages.add_message(request, messages.INFO, 'Your account is activated.  Log in below.')
     #redirect_url = reverse('user_management_limited_login')
@@ -960,6 +975,7 @@ def register_email_code_password(request, code):
         if form.is_valid():
             form.save()
             user.is_active = True
+            user.is_confirmed = True
             user.save()
             messages.add_message(request, messages.INFO, 'Your account is activated.  Log in below.')
             return HttpResponseRedirect(reverse('user_management_limited_login'))
