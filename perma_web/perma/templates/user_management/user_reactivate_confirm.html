@@ -13,7 +13,7 @@
 	<br/>
 	<form action="" method="POST">
 	      {% csrf_token %}
-        <a href="../">Cancel</a> <button type="submit" class="btn delete-confirm">Reactivate {{ target_member.email }}</button>
+        <a href="../">Cancel</a> <button type="submit" class="btn-success delete-confirm">Reactivate {{ target_member.email }}</button>
     </form>
 
 {% endblock %}
