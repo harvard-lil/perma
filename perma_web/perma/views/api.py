@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import logging, json, subprocess, urllib2, re, os
 from datetime import datetime
 from urlparse import urlparse
+from mimetypes import MimeTypes
 
 import lxml.html, requests
 from PIL import Image
@@ -120,26 +121,33 @@ def linky_post(request):
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
 
 
-def validate_upload_file(upload):
+def validate_upload_file(upload, mime_type):
     # Make sure files are not corrupted.
-    extention = upload.name[-4:]
-    if extention in ['.jpg', 'jpeg']:
+    
+    if mime_type == 'image/jpeg':
         try:
             i = Image.open(upload)
             if i.format == 'JPEG':
                 return True
         except IOError:
             return False
-    elif extention == '.png':
+    elif mime_type == 'image/png':
         try:
             i = Image.open(upload)
             if i.format =='PNG':
                 return True
         except IOError:
             return False
-    elif extention == '.pdf':
+    elif mime_type == 'image/gif':
+        try:
+            i = Image.open(upload)
+            if i.format =='GIF':
+                return True
+        except IOError:
+            return False
+    elif mime_type == 'application/pdf':
         doc = PdfFileReader(upload)
-        if all([doc.documentInfo, doc.numPages]):
+        if doc.numPages >= 0:
             return True
     return False
 
@@ -148,11 +156,22 @@ def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            if validate_upload_file(request.FILES['file']) and request.FILES['file'].size <= settings.MAX_ARCHIVE_FILE_SIZE:
+            
+            mime = MimeTypes()
+            mime_type = mime.guess_type(request.FILES['file'].name)
+            
+            # Get mime type string from tuple
+            if mime_type[0]:
+                mime_type = mime_type[0]
+            else:
+                return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Invalid file.'}), 'application/json')
+            
+
+            if validate_upload_file(request.FILES['file'], mime_type) and request.FILES['file'].size <= settings.MAX_ARCHIVE_FILE_SIZE:
                 link = Link(submitted_url=form.cleaned_data['url'], submitted_title=form.cleaned_data['title'])
                 
                 if request.user.is_authenticated():
-                  link.created_by = request.user
+                    link.created_by = request.user
                 link.save()
                 
                 now = dt = datetime.now()
@@ -168,9 +187,9 @@ def upload_file(request):
                 asset.base_storage_path = os.path.sep.join(path_elements)
                 asset.save()
 
-                file_name = '/cap.' + request.FILES['file'].name.split('.')[-1]
+                file_name = '/cap' + mime.guess_extension(mime_type)
 
-                if request.FILES['file'].name.split('.')[-1] == 'pdf':
+                if mime_type == 'application/pdf':
                     asset.pdf_capture = file_name
                 else:
                     asset.image_capture = file_name
