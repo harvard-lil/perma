@@ -21,7 +21,7 @@ $(document).ready(function() {
   });
 
 function uploadNot() {
-  $('#upload-error').text('The upload failed');
+  $('#upload-error').text('The upload failed. Only gif, jpg, and pdf files supported. Max of 50 MB.');
 }
 
 function uploadIt(data) {
