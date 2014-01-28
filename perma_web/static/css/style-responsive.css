@@ -1536,8 +1536,8 @@ a.details {
 
 a.details:hover {
 	background-color: #47a447;
-  border-color: #398439;
-  color:#fff;
+  	border-color: #398439;
+  	color:#fff;
 }
 
 button.navbar-toggle {
