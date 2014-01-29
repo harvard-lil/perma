@@ -112,19 +112,19 @@ def stats_users(request):
         'registry_member_count')[:1000]
     
     response = HttpResponse()
-    response['Content-Disposition'] = 'attachment; filename="data.csv"'
+    response['Content-Disposition'] = 'attachment; filename="data.tsv"'
     
     headers = ['key', 'value', 'date']
 
-    writer = csv.writer(response)
+    writer = csv.writer(response, delimiter='\t')
     writer.writerow(headers)
     
     for stat in stats:
-        writer.writerow(['Regular user', stat.regular_user_count, stat.creation_timestamp])
-        writer.writerow(['Vesting member', stat.vesting_member_count, stat.creation_timestamp])
-        writer.writerow(['Vesting manager', stat.vesting_manager_count, stat.creation_timestamp])
-        writer.writerow(['Registrar member', stat.registrar_member_count, stat.creation_timestamp])
-        writer.writerow(['Registry member', stat.registry_member_count, stat.creation_timestamp])
+        writer.writerow(['Regular user', stat.regular_user_count, stat.creation_timestamp.strftime('%d-%b-%y')])
+        writer.writerow(['Vesting member', stat.vesting_member_count, stat.creation_timestamp.strftime('%d-%b-%y')])
+        writer.writerow(['Vesting manager', stat.vesting_manager_count, stat.creation_timestamp.strftime('%d-%b-%y')])
+        writer.writerow(['Registrar member', stat.registrar_member_count, stat.creation_timestamp.strftime('%d-%b-%y')])
+        writer.writerow(['Registry member', stat.registry_member_count, stat.creation_timestamp.strftime('%d-%b-%y')])
     
     return response
     
@@ -140,16 +140,16 @@ def stats_links(request):
     stats = Stat.objects.only('creation_timestamp', 'vested_count', 'unvested_count')[:1000]
 
     response = HttpResponse()
-    response['Content-Disposition'] = 'attachment; filename="data.csv"'
+    response['Content-Disposition'] = 'attachment; filename="data.tsv"'
 
     headers = ['key', 'value', 'date']
 
-    writer = csv.writer(response)
+    writer = csv.writer(response, delimiter='\t')
     writer.writerow(headers)
 
     for stat in stats:
-        writer.writerow(['Vested', stat.vested_count, stat.creation_timestamp])
-        writer.writerow(['Unvested', stat.unvested_count, stat.creation_timestamp])
+        writer.writerow(['Vested', stat.vested_count, stat.creation_timestamp.strftime('%d-%b-%y')])
+        writer.writerow(['Unvested', stat.unvested_count, stat.creation_timestamp.strftime('%d-%b-%y')])
 
 
     return response
@@ -166,16 +166,16 @@ def stats_darchive_links(request):
     stats = Stat.objects.only('creation_timestamp', 'darchive_takedown_count', 'darchive_robots_count')[:1000]
 
     response = HttpResponse()
-    response['Content-Disposition'] = 'attachment; filename="data.csv"'
+    response['Content-Disposition'] = 'attachment; filename="data.tsv"'
 
     headers = ['key', 'value', 'date']
 
-    writer = csv.writer(response)
+    writer = csv.writer(response, delimiter='\t')
     writer.writerow(headers)
 
     for stat in stats:
-        writer.writerow(['Darchive due to takedown', stat.darchive_takedown_count, stat.creation_timestamp])
-        writer.writerow(['Darchive due to robots.txt', stat.darchive_robots_count, stat.creation_timestamp])
+        writer.writerow(['Darchive due to takedown', stat.darchive_takedown_count, stat.creation_timestamp.strftime('%d-%b-%y')])
+        writer.writerow(['Darchive due to robots.txt', stat.darchive_robots_count, stat.creation_timestamp.strftime('%d-%b-%y')])
 
 
     return response
@@ -193,16 +193,16 @@ def stats_storage(request):
     stats = Stat.objects.only('disk_usage')[:1000]
 
     response = HttpResponse()
-    response['Content-Disposition'] = 'attachment; filename="data.csv"'
+    response['Content-Disposition'] = 'attachment; filename="data.tsv"'
 
     headers = ['date', 'close']
 
-    writer = csv.writer(response)
+    writer = csv.writer(response, delimiter='\t')
     writer.writerow(headers)
 
     for stat in stats:
         in_gb = stat.disk_usage / 1024 / 1024 / 1024
-        writer.writerow([stat.creation_timestamp, in_gb])
+        writer.writerow([stat.creation_timestamp.strftime('%d-%b-%y'), in_gb])
 
 
     return response
@@ -219,16 +219,15 @@ def stats_vesting_org(request):
     stats = Stat.objects.only('vesting_org_count')[:1000]
 
     response = HttpResponse()
-    response['Content-Disposition'] = 'attachment; filename="data.csv"'
+    response['Content-Disposition'] = 'attachment; filename="data.tsv"'
 
     headers = ['date', 'close']
 
-    writer = csv.writer(response)
+    writer = csv.writer(response, delimiter='\t')
     writer.writerow(headers)
 
     for stat in stats:
-        writer.writerow([stat.creation_timestamp, stat.vesting_org_count])
-
+        writer.writerow([stat.creation_timestamp.strftime('%d-%b-%y'), stat.vesting_org_count])
 
     return response
     
@@ -244,15 +243,15 @@ def stats_registrar(request):
     stats = Stat.objects.only('registrar_count')[:1000]
 
     response = HttpResponse()
-    #response['Content-Disposition'] = 'attachment; filename="data.csv"'
+    response['Content-Disposition'] = 'attachment; filename="data.tsv"'
 
     headers = ['date', 'close']
 
-    writer = csv.writer(response)
+    writer = csv.writer(response, delimiter='\t')
     writer.writerow(headers)
 
     for stat in stats:
-        writer.writerow([stat.creation_timestamp, stat.registrar_count])
+        writer.writerow([stat.creation_timestamp.strftime('%d-%b-%y'), stat.registrar_count])
 
 
     return response

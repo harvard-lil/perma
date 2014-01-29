@@ -13,7 +13,7 @@ var y = d3.scale.linear()
 
 var draw_folks_vis = function(){
 
-	var format = d3.time.format.iso; //d3.time.format("%d-%b-%y");
+	var parseDate = d3.time.format("%d-%b-%y").parse;
 
 	var x = d3.time.scale()
 	    .range([0, width]);
@@ -54,9 +54,9 @@ var draw_folks_vis = function(){
         .append("g")
 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-	d3.csv(stats_users_url, function(data) {
+	d3.tsv(stats_users_url, function(data) {
 	  data.forEach(function(d) {
-	    d.date = format.parse(d.date);
+	    d.date = parseDate(d.date);
 		d.name= 'some name here';
 	    d.value = +d.value;
 	  });
@@ -109,7 +109,7 @@ var draw_folks_vis = function(){
 
 var draw_vesting_orgs_vis = function(){
 	
-	var format = d3.time.format.iso;
+	var parseDate = d3.time.format("%d-%b-%y").parse;
 	
 	var x = d3.time.scale()
 	    .range([0, width]);
@@ -137,9 +137,9 @@ var draw_vesting_orgs_vis = function(){
         .append("g")
 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-	d3.csv(stats_vesting_orgs_url, function(error, data) {
+	d3.tsv(stats_vesting_orgs_url, function(error, data) {
 	  data.forEach(function(d) {
-	    d.date = format.parse(d.date);
+	    d.date = parseDate(d.date);
 	    d.close = +d.close;
 	  });
 
@@ -176,7 +176,7 @@ var draw_vesting_orgs_vis = function(){
 
 var draw_registrar_vis = function(){
 	
-	var format = d3.time.format.iso;
+	var parseDate = d3.time.format("%d-%b-%y").parse;
 	
 	var x = d3.time.scale()
 	    .range([0, width]);
@@ -204,9 +204,9 @@ var draw_registrar_vis = function(){
         .append("g")
 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-	d3.csv(stats_registrars_url, function(error, data) {
+	d3.tsv(stats_registrars_url, function(error, data) {
 	  data.forEach(function(d) {
-	    d.date = format.parse(d.date);
+	    d.date = parseDate(d.date);
 	    d.close = +d.close;
 	  });
 
@@ -307,7 +307,7 @@ var draw_hits_vis = function(){
 
 var draw_links_vis = function(){
 
-	var format = d3.time.format.iso; // d3.time.format("%d-%b-%y");
+	var parseDate = d3.time.format("%d-%b-%y").parse;
 
 	var x = d3.time.scale()
 	    .range([0, width]);
@@ -348,9 +348,9 @@ var draw_links_vis = function(){
         .append("g")
 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-	d3.csv(stats_links_url, function(data) {
+	d3.tsv(stats_links_url, function(data) {
 	  data.forEach(function(d) {
-	    d.date = format.parse(d.date);
+	    d.date = parseDate(d.date);
 		d.name= 'some name here';
 	    d.value = +d.value;
 	  });
@@ -403,7 +403,7 @@ var draw_links_vis = function(){
 
 var draw_darchive_vis = function(){
 
-	var format = d3.time.format.iso; // d3.time.format("%d-%b-%y");
+	var parseDate = d3.time.format("%d-%b-%y").parse;
 	
 	var x = d3.time.scale()
 	    .range([0, width]);
@@ -444,9 +444,9 @@ var draw_darchive_vis = function(){
         .append("g")
 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-	d3.csv(stats_darchived_links_url, function(data) {
+	d3.tsv(stats_darchived_links_url, function(data) {
 	  data.forEach(function(d) {
-	    d.date = format.parse(d.date);
+	    d.date = parseDate(d.date);
 		d.name= 'some name here';
 	    d.value = +d.value;
 	  });
@@ -501,7 +501,7 @@ var draw_darchive_vis = function(){
 
 var draw_storage_vis = function(){
     
-	var format = d3.time.format.iso; //d3.time.format("%d-%b-%y").parse;
+	var parseDate = d3.time.format("%d-%b-%y").parse;
 	
 	var x = d3.time.scale()
 	    .range([0, width]);
@@ -528,9 +528,9 @@ var draw_storage_vis = function(){
         .append("g")
 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-	d3.csv(stats_storage_url, function(error, data) {
+	d3.tsv(stats_storage_url, function(error, data) {
 	  data.forEach(function(d) {
-	    d.date = format.parse(d.date);
+	    d.date = parseDate(d.date);
 	    d.close = +d.close;
 	  });
 
