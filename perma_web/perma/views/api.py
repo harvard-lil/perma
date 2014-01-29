@@ -12,7 +12,11 @@ from pyPdf import PdfFileReader
 from perma.models import Link, Asset
 from perma.forms import UploadFileForm
 from perma.utils import base
+<<<<<<< HEAD
 from perma.tasks import start_proxy_record_get_screen_cap, get_source, store_text_cap, get_pdf, get_robots_txt
+=======
+from perma.tasks import start_proxy_record,  get_screen_cap, get_source, store_text_cap, get_pdf, get_robots_txt
+>>>>>>> warcprox + phantom intigration are buggy but working. I have not really looked at playback yet, but it needs some work.  TODO's 1. cert handling  2. proxy socket error handling 3. more robust proxy teardown 4. Task managment needs a lot of work.
 
 from django.shortcuts import render_to_response, HttpResponse
 from django.http import HttpResponseBadRequest

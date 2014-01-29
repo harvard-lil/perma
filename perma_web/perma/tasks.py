@@ -33,41 +33,59 @@ from warcprox import warcprox
 
 logger = logging.getLogger(__name__)
 
-
-
 @celery.task
-def start_proxy_record(link_guid, base_storage_path,):
+def start_proxy_record(link_guid, target_url, base_storage_path):
 
+    port_list = range(27500, 27900)
     path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path]
+    print os.path.sep.join(path_elements)
 
-    warcprox_args =  " ".join[
-                    "--prefix=permaWarcFile",
-                    "--gzip", #make gzip
-                    "--dir=%s" % (os.path.sep.join(path_elements),
-                    "--certs-dir=%s" % ("/dev/null") ,
-                    "--port=8080",
-                    "--dedup-db-file= ",# disables deduplication
-                    "--address=127.0.0.1"
-                    ]
+    if not os.path.exists(os.path.sep.join(path_elements)):
+        os.makedirs(os.path.sep.join(path_elements))
 
-    warc_path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path]
+    #### TODO if warcprox is called using the same port as an existing warcprox process, a socket.error with be thrown. 
+    ## we need a way to handle this. 
 
-    run_warcprox = warcprox.main(warcprox_args)
+    try: #if warcprox is called using the same port as an existing warcprox process, a socket.error with be thrown.
+        prox_port = str(choice(port_list)) #select a random port
+        warcprox_server = subprocess.Popen([  "python",
+                                              "-m",
+                                              "warcprox.warcprox",
+                                              "--prefix=%s" % ("permaWarcFile"),
+                                              "--gzip", 
+                                              "--dir=%s" % (os.path.sep.join(path_elements)), 
+                                              "--certs-dir=%s" % (os.path.sep.join(path_elements)), 
+                                              "--port=%s" % (prox_port), 
+                                              "--dedup-db-file=/dev/null", 
+                                              "--address=%s" % ("127.0.0.1"),
+                                              "--rollover-idle-time=15",
+                                              "--quiet"],
+                                              cwd=os.path.sep.join(path_elements),
+                                              stdin=subprocess.PIPE,
+                                              stdout=subprocess.PIPE,
+                                              )
 
-    if os.path.exists(os.path.join(path_elements)):
-        created_warc_name = filter(lambda x: "permaWarcFile" in x , os.path.join(path_elements))[0]
-        standardized_warc_name = os.path.join(path_elements,"link_archive.warc.gz")
-        os.rename(os.path.join(path_elements, created_warc_name), standardized_warc_name)
-        
-        asset = Asset.objects.get(link__guid=link_guid)
-        asset.warc_capture = os.path.sep.join(standardized_warc_name[2:])
-        asset.save()
-    else:
-        logger.info("Web Archive File creation failed for %s" % target_url)
-        asset = Asset.objects.get(link__guid=link_guid)
-        asset.warc_capture = 'failed'
-        asset.save()
-        logger.info("Web Archive File creation failed for %s" % target_url)
+    except socket.error: 
+        prox_port = str(choice(port_list)) # reroll port selection
+        warcprox_server = subprocess.Popen([  "python",
+                                              "-m",
+                                              "warcprox.warcprox",
+                                              "--prefix=%s" % ("permaWarcFile"),
+                                              "--gzip", 
+                                              "--dir=%s" % (os.path.sep.join(path_elements)), 
+                                              "--certs-dir=%s" % (os.path.sep.join(path_elements)), 
+                                              "--port=%s" % (prox_port), 
+                                              "--dedup-db-file=/dev/null",  
+                                              "--rollover-idle-time=15",
+                                              "--quiet"],
+                                              cwd=os.path.sep.join(path_elements),
+                                              stdin=subprocess.PIPE,
+                                              stdout=subprocess.PIPE,
+                                              )
+
+    time.sleep(0.2) # warcprox needs time to setup 
+
+    return (warcprox_server, prox_port) # return the process while it is running. The process is passed to get_screen_cap so that it can be terminated after phantomjs finishes.
 
 
 @celery.task
@@ -80,7 +98,7 @@ def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,
     The heavy lifting is done by PhantomJS, our headless browser.
 
     This function is usually executed via a synchronous Celery call
-"""
+    """
 
     # set up storage paths
     image_name = 'cap.png'
@@ -160,6 +178,24 @@ def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,
         logger.info("Screen capture failed for %s" % target_url)
     asset.save()
 
+
+    ### Handles the warc created by warcprox
+    warc_path_elements = os.path.sep.join(path_elements[0:2])
+    if os.path.exists(warc_path_elements):
+        created_warc_name = filter(lambda x: "permaWarcFile" in x , os.listdir(warc_path_elements)) #list all files in the base storage path and return the name of the file warcprox generated.
+        print "-----------", created_warc_name
+        standardized_warc_name = os.path.join(warc_path_elements,"archive.warc.gz")
+        os.rename(os.path.join(warc_path_elements, created_warc_name[0]), standardized_warc_name)
+        #warc_path_elements = (os.path.join(path_elements[0:2])).append("archive.warc.gz")
+        asset = Asset.objects.get(link__guid=link_guid)
+        asset.warc_capture = "archive.warc.gz"
+        asset.save()
+    else:
+        logger.info("Web Archive File creation failed for %s" % target_url)
+        asset = Asset.objects.get(link__guid=link_guid)
+        asset.warc_capture = 'failed'
+        asset.save()
+        logger.info("Web Archive File creation failed for %s" % target_url)
 
 @celery.task
 def get_source(link_guid, target_url, base_storage_path, user_agent=''):
