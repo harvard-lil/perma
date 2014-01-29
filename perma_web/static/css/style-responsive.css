@@ -33,8 +33,10 @@ body {
 }
 
 .modal-content {
-	width:500px;
-	padding:10px 30px;
+	width:95%;
+	padding:5px 30px;
+	margin-top:68px;
+	margin-left:15px;
 }
 
 #feedback-form {
@@ -207,6 +209,11 @@ li.participating-institutions-carousel img{
 border-radius: 3px;
 
 }
+
+.bold {
+	font-weight:bold;
+}
+
 /* Main */
 
 section#main {
@@ -324,6 +331,8 @@ div.home-form-frame {
 }
 
 ul#links {
+	width:408px;
+	text-align:center;
 }
 div.home-form-elements {
     margin: 10px auto 0 auto;
@@ -526,7 +535,7 @@ div#dashboard-container div#library {}
 		
 		.library-thumbnail {
 			 width:368px;
-       		 height:275px;
+       		 height:273px;
        		 overflow:hidden;
        		 margin:0 auto;
        		 border:1px solid #eee;
@@ -563,7 +572,7 @@ div#dashboard-container div#library {}
            	width:369px
         }
 
-		p.library-link-url a {
+		p.library-link-url a, a.anchor-short-slug {
 			color: #777;
 			text-decoration: none;
 			width:369px;
@@ -576,7 +585,14 @@ div#dashboard-container div#library {}
 			white-space: -hp-pre-wrap;  /* HP Printers */
 			word-wrap: break-word;      /* IE 5+ */
 		}
+		
+		a.anchor-short-slug {
+			color: #ff4100;
+			font-size:18px;
+			margin:4px 0;
 
+		}
+		
         p.library-link-meta {
             color: #777;
             font-size: 12px;
@@ -772,13 +788,9 @@ ul {
   margin-top:8px;
 }
 
-#uploadLinky {
-  margin-top:25px;
-}
-
 #upload-error {
   margin-top:10px;
-  height:20px;
+  height:10px;
 }
 
 .modal-footer {
@@ -981,6 +993,13 @@ img.watermark-image {
           font-size:25px;
           color:#ff4100;
 }
+
+
+#feedbackify .score-tbl {
+	visibility:hidden;
+	margin-bottom:-10px;
+}
+
 
 .lower {
 	margin: 5px 0 -5px 0;
@@ -1217,6 +1236,21 @@ a.orange {
 }
 */
 
+/*
+Input Focus
+*/
+
+input[type="text"], textarea, button[type="submit"], button#addlink {
+  -webkit-transition: all 0.20s ease-in-out;
+  -moz-transition: all 0.20s ease-in-out;
+  -ms-transition: all 0.20s ease-in-out;
+  -o-transition: all 0.20s ease-in-out;
+  outline: none;
+}
+
+input[type="text"]:focus, textarea:focus, button[type="submit"]:focus, button#addlink:focus {
+  box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+}
 
 .vested-table tr, .links-tablev, .cool-links-table tr {
     border-bottom: 1px solid #ccc;
@@ -1334,7 +1368,7 @@ input#file {
 }
 
 .add-links-list h4 {
-	text-align:center;
+
 }
 
 .delete-confirm {
@@ -1933,5 +1967,13 @@ ul.vesting li {
 		padding: 20px 0;
 		float: none;
 	}
+	.meta-data, .meta-data a {
+	overflow: hidden;
+	font-family: 'Roboto Slab', sans-serif;
+	text-align: center;
+	margin-top: 8px;
+	position:relative;
+	}
+
 }
 

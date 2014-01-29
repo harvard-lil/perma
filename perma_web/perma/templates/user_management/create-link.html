@@ -20,7 +20,7 @@
 
 <!-- Upload file modal -->
 <div  class="modal" id="linky-upload" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-	<div class="modal-dialog">
+	
 		<div class="modal-content">
     		<div class="modal-header">
         		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -39,7 +39,6 @@
 				{% csrf_token %}
 				<p id="upload-error" class="text-error"></p>
 				</form>
-			</div>
 			</div>
 			
 	</div>
@@ -71,6 +70,7 @@
   var requested_host = "http://{{requested_host}}";
   var web_base = "http://{{determined_host}}";
   var csrf_token = "{{csrf_token}}";
+  var static_prefix = "{{STATIC_PREFIX}}";
 
 $(document).ready(function(){
     // Toggle users dropdown
@@ -118,11 +118,16 @@ $(document).ready(function(){
 
 {% verbatim %}
 <script id="error-template" type="text/x-handlebars-template">
+	  <div class="library-thumbnail">
+			<img src="{{static_prefix}}img/sorry-preview.jpg" />
+	  </div>
 	  <h4 class="text-warning">There was a problem creating your Perma</h4>
-	  <p>{{url}} is gumming up the works</p>
-      <p id="upload-option">Perma is unable to capture some pages. You can <a href="" onclick="return upload_form();">upload your own image of the page.</a></p>
 	  <br/>
+	  <p><span class="bold">{{url}}</span> is gumming up the works<br/>
+      <a href="" onclick="return upload_form();">upload your own image</a></p>
+	  
 	  <p>If uploading your own capture is not desirable, please <a href="#" onclick="fby.push(['showForm', '5593']);return false;">report the error</a></p>
+	  <br/><br/><br/><br/><br/>
 </script>
 {% endverbatim %}
 
@@ -137,7 +142,10 @@ $(document).ready(function(){
 		</div>
 	  {{ else }}
    	    {{#if message_pdf }}
-          <p>Archiving PDF now.</p><p>Sorry, PDF screenshots are not available. Keep an eye on the <a href="{{url}}" target="_blank">Perma URL</a> for archiving updates</p>
+          <div class="library-thumbnail">
+			<img src="{{static_prefix}}img/pdf-preview.jpg" />
+		  </div>
+	  		
 		{{ else }}
 	      <p>Archiving process started. Sorry, no screenshot available.</p>
  	    {{/if}}

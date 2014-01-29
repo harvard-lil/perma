@@ -81,6 +81,7 @@ function linkIt(){
     newLinky.favicon_url = data.favicon_url;
     newLinky.preview = data.linky_cap;
     newLinky.message_pdf = data.message_pdf;
+    newLinky.static_prefix = static_prefix;
     $('#url').val(rawUrl);
     $('#title').val(data.linky_title);
     
@@ -125,7 +126,7 @@ function linkIt(){
   request.fail(function(jqXHR, responseText) {
     var source = $("#error-template").html();
     var template = Handlebars.compile(source);
-    $('#links').html(template({url: rawUrl}));
+    $('#links').html(template({url: rawUrl, static_prefix: static_prefix}));
     $('#spinner').slideUp();
     $('#link-short-slug').slideDown();
   });
