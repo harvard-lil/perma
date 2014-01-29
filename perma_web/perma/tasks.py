@@ -52,7 +52,7 @@ def start_proxy_record(link_guid, target_url, base_storage_path):
                                               "-m",
                                               "warcprox.warcprox",
                                               "--prefix=%s" % ("permaWarcFile"),
-                                              "--gzip", 
+                                              #"--gzip", 
                                               "--dir=%s" % (os.path.sep.join(path_elements)), 
                                               "--certs-dir=%s" % (os.path.sep.join(path_elements)), 
                                               "--port=%s" % (prox_port), 
@@ -71,7 +71,7 @@ def start_proxy_record(link_guid, target_url, base_storage_path):
                                               "-m",
                                               "warcprox.warcprox",
                                               "--prefix=%s" % ("permaWarcFile"),
-                                              "--gzip", 
+                                              #"--gzip", 
                                               "--dir=%s" % (os.path.sep.join(path_elements)), 
                                               "--certs-dir=%s" % (os.path.sep.join(path_elements)), 
                                               "--port=%s" % (prox_port), 
@@ -172,7 +172,6 @@ def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,
     asset = Asset.objects.get(link__guid=link_guid)
     if os.path.exists(image_path):
         asset.image_capture = "/"+image_name
-        asset.save()
     else:
         asset.image_capture = 'failed'
         logger.info("Screen capture failed for %s" % target_url)
@@ -184,11 +183,11 @@ def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,
     if os.path.exists(warc_path_elements):
         created_warc_name = filter(lambda x: "permaWarcFile" in x , os.listdir(warc_path_elements)) #list all files in the base storage path and return the name of the file warcprox generated.
         print "-----------", created_warc_name
-        standardized_warc_name = os.path.join(warc_path_elements,"archive.warc.gz")
+        standardized_warc_name = os.path.join(warc_path_elements,"archive.warc")
         os.rename(os.path.join(warc_path_elements, created_warc_name[0]), standardized_warc_name)
         #warc_path_elements = (os.path.join(path_elements[0:2])).append("archive.warc.gz")
         asset = Asset.objects.get(link__guid=link_guid)
-        asset.warc_capture = "archive.warc.gz"
+        asset.warc_capture = "archive.warc"
         asset.save()
     else:
         logger.info("Web Archive File creation failed for %s" % target_url)
