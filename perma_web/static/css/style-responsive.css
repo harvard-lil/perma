@@ -1260,8 +1260,10 @@ input[type="text"]:focus, textarea:focus, button[type="submit"]:focus, button#ad
     font-size: 16px;
 }
 
-.vested-table td, th {
-    padding: 2px 2px;
+table.vested-table tr td, table.vested-table tr th {
+    padding: 10px 2px;
+    white-space:normal;
+    vertical-align: top;
 }
 
 .ui-selected{
@@ -1311,8 +1313,31 @@ td {
     margin-bottom:1em;
 }
 
-.link-row:hover, .folder-row:hover {
-    cursor:move;
+.link-row.ui-draggable, .folder-row.ui-draggable {
+    cursor:move; /* fallback for IE */
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+    cursor:grab;
+}
+
+.link-draggable-helper {
+    border:1px black solid;
+    background-color: white;
+    width:50%;
+    z-index:100;
+}
+body.dragging, .dragging .link-row.ui-draggable, .dragging .folder-row.ui-draggable {
+    cursor:move; /* fallback for IE */
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+    cursor:grabbing;
+}
+.link-draggable-helper .linky-abbr-date-time,
+.link-draggable-helper .linky-details-link,
+.link-draggable-helper .checkbox,
+.link-draggable-helper .rename,
+.link-draggable-helper .delete{
+    display:none;
 }
 
 td.linky-abbr-title {
