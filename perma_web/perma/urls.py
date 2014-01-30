@@ -2,6 +2,9 @@ from django.contrib import admin
 from django.conf.urls import patterns, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.contrib.auth import views as auth_views
+from django.views.generic import TemplateView
+
+from .views.common import DirectTemplateView
 
 
 admin.autodiscover()
@@ -9,17 +12,18 @@ admin.autodiscover()
 urlpatterns = patterns('perma.views',
 
     # Common Pages
-    url(r'^$', 'common.landing', name='landing'),
-    url(r'^tools/?$', 'common.tools', name='tools'),
-    url(r'^about/?$', 'common.about', name='about'),
-    url(r'^additional-resources/?$', 'common.additional_resources', name='additional_resources'),
-    url(r'^faq/?$', 'common.faq', name='faq'),
-    url(r'^contact/?$', 'common.contact', name='contact'),
-    url(r'^copyright-policy/?$', 'common.copyright_policy', name='copyright_policy'),
-    url(r'^terms-of-service/?$', 'common.terms_of_service', name='terms_of_service'),
-    url(r'^privacy-policy/?$', 'common.privacy_policy', name='privacy_policy'),
+    url(r'^$', DirectTemplateView.as_view(template_name='landing.html', extra_context={'this_page':'landing'}), name='landing'),
+    url(r'^tools/?$', DirectTemplateView.as_view(template_name='tools.html'), name='tools'),
+    url(r'^about/?$', DirectTemplateView.as_view(template_name='about.html'), name='about'),
+    url(r'^additional-resources/?$', DirectTemplateView.as_view(template_name='additional-resources.html'), name='additional_resources'),
+    url(r'^faq/?$', DirectTemplateView.as_view(template_name='faq.html'), name='faq'),
+    url(r'^contact/?$', DirectTemplateView.as_view(template_name='contact.html'), name='contact'),
+    url(r'^copyright-policy/?$', DirectTemplateView.as_view(template_name='copyright_policy.html'), name='copyright_policy'),
+    url(r'^terms-of-service/?$', DirectTemplateView.as_view(template_name='terms_of_service.html'), name='terms_of_service'),
+    url(r'^privacy-policy/?$', DirectTemplateView.as_view(template_name='privacy_policy.html'), name='privacy_policy'),
     url(r'^stats/?$', 'common.stats', name='global_stats'),
-    
+    url(r'^contingency-plan/?$', TemplateView.as_view(template_name='contingency_plan.html'), name='contingency_plan'),
+
     #API routes
     url(r'^api/linky/upload?$', 'api.upload_file', name='api_linky_upload'),
     url(r'^api/linky/?$', 'api.linky_post', name='api_linky_post'),

@@ -13,7 +13,7 @@
 		{% block meta %}{% endblock %}
         <link href="{{ STATIC_PREFIX }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
         <link href='http://fonts.googleapis.com/css?family=Roboto+Slab:400,700' rel='stylesheet' type='text/css'>
-        
+
         <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap.css">
         <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/bootstrap-responsive.css">
         <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style.css">
@@ -29,14 +29,14 @@
             <div class="row-fluid">
                 <header>
                     <div class="main-container">
-                    	<div class="top-bar">	
+                    	<div class="top-bar">
                     		<div class="logo">
                     			<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo2.png"></a>
                     		</div>
                             <nav>
 								<ul>
-									{% if user.is_authenticated %}
-									<li id="header-greeting">Hello, {{ user.email|truncatechars:35 }}</li>
+									{% if request.user.is_authenticated %}
+									<li id="header-greeting">Hello, {{ request.user.email|truncatechars:35 }}</li>
 									<li><a href="{% url 'auth_logout' %}">{% if this_page == 'logout' %} class="this-page"{% endif %}<span style="color: #aaa;">Log out</span></a></li>
 									<li><a href="{% url 'user_management_created_links' %}" id="nav-button" class="btn btn-large btn-success">Dashboard</a></li>
 									{% else %}
@@ -50,9 +50,9 @@
 								</ul>
                         	</nav>
                         </div><!--top-bar-->
-                    </div><!--main-container-->  
+                    </div><!--main-container-->
                 </header>
-                
+
                 <section id="main">
                     {% if this_page != 'landing' and this_page != 'manage' %}
                     <div class="main-container" id="main-content">
@@ -210,8 +210,8 @@
 									<a href="http://library.law.yale.edu/"><img src="/static/img/participating-institutions/YLS-bw.png" alt="Yale Law Library"></a>
 								</li>
 							</ul>
-						</div>		
-						<p id="boilerplate">			
+						</div>
+						<p id="boilerplate">
 							&copy; perma.cc
 							&nbsp;&nbsp;&middot;&nbsp;&nbsp;
 							<a href="{% url 'terms_of_service' %}">Terms of Service</a>
@@ -229,10 +229,10 @@
     <script src="{{ STATIC_PREFIX }}js/bootstrap.js"></script>
     <script src="{{ STATIC_PREFIX }}js/global.js"></script>
     {% block scripts %}
-    {% endblock %}   
-    
+    {% endblock %}
+
     {% block templates %}
-    {% endblock %} 
+    {% endblock %}
     <div id="feedback-form" class="modal hide fade in center" style="display: none;">
       <div class="modal-header">
           <a class="close" data-dismiss="modal">×</a>
@@ -254,11 +254,11 @@
            <a href="#" data-dismiss="modal" id="cancel-feedback" class="pull-right">cancel</a>
       </div>
     </div>
-    
+
     <script type="text/javascript">
       feedback_url = "{% url 'service_receive_feedback' %}";
     </script>
-    
+
     <script type="text/javascript">
       var fby = fby || [];
       (function () {

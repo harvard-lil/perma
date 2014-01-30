@@ -50,18 +50,18 @@
 					</div>
 					<div class="navbar-collapse collapse">
 					  <ul class="nav navbar-nav navbar-right">
-					  	{% if user.is_authenticated %}
-					  	{% comment %}
-					  	<li id="header-greeting">Hello, {{ user.email|truncatechars:35 }}</li>
-					  	{% endcomment %}
-					  	<li><a href="{% url 'auth_logout' %}">{% if this_page == 'logout' %} class="this-page"{% endif %}<span style="color: #aaa;">Log out</span></a></li>
-						<li><a href="{% url 'user_management_create_link' %}" id="nav-button">Dashboard</a></li>
+					  	{% if request.user.is_authenticated %}
+                            {% comment %}
+                            <li id="header-greeting">Hello, {{ user.email|truncatechars:35 }}</li>
+                            {% endcomment %}
+                            <li><a href="{% url 'auth_logout' %}">{% if this_page == 'logout' %} class="this-page"{% endif %}<span style="color: #aaa;">Log out</span></a></li>
+                            <li><a href="{% url 'user_management_create_link' %}" id="nav-button">Dashboard</a></li>
 						{% else %}
-						<li><a href="{% url 'about' %}"{% if this_page == 'about' %} class="this-page"{% endif %}>About</a></li>
-						<li><a href="{% url 'user_management_limited_login' %}">Log in</a></li>
-						{% comment %}
-						<li><a href="{% url 'process_register' %}" id="nav-button" class="btn btn-large btn-success">Sign Up</a></li>
-						{% endcomment %}
+                            <li><a href="{% url 'about' %}"{% if this_page == 'about' %} class="this-page"{% endif %}>About</a></li>
+                            <li><a href="{% url 'user_management_limited_login' %}">Log in</a></li>
+                            {% comment %}
+                            <li><a href="{% url 'process_register' %}" id="nav-button" class="btn btn-large btn-success">Sign Up</a></li>
+                            {% endcomment %}
 						{% endif %}
 					  </ul>
 					</div><!--/.nav-collapse -->

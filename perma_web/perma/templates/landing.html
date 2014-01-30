@@ -19,8 +19,8 @@
 						</div>
 				<p><span class="orange">perma.cc</span>  helps authors and journals create<br />
 				permanent archived citations in their published work</p>
-				{% if user.is_authenticated %}
-				<p><a href="{% url 'user_management_created_links' %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
+				{% if request.user.is_authenticated %}
+				    <p><a href="{% url 'user_management_created_links' %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
 			</div>	
 		</div>	<!--row-->
 		{% else %}

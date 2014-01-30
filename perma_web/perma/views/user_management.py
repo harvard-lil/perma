@@ -41,7 +41,7 @@ def manage(request):
     else:
       linky_links = None
 
-    context = RequestContext(request, {'this_page': 'manage', 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()})
+    context = RequestContext(request, {'this_page': 'manage', 'linky_links': linky_links, 'next': request.get_full_path()})
 
     return render_to_response('user_management/manage.html', context)
     
@@ -56,7 +56,7 @@ def create_link(request):
     else:
       linky_links = None
 
-    context = RequestContext(request, {'this_page': 'create_link', 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()})
+    context = RequestContext(request, {'this_page': 'create_link', 'linky_links': linky_links, 'next': request.get_full_path()})
 
     return render_to_response('user_management/create-link.html', context)
     
@@ -81,7 +81,7 @@ def manage_registrar(request):
     paginator = Paginator(registrars, settings.MAX_USER_LIST_SIZE)
     registrars = paginator.page(page)
 
-    context = {'user': request.user, 'registrars_list': list(registrars), 'registrars': registrars,
+    context = {'registrars_list': list(registrars), 'registrars': registrars,
         'this_page': 'users_registrars'}
 
     if request.method == 'POST':
@@ -111,7 +111,7 @@ def manage_single_registrar(request, registrar_id):
 
     target_registrar = get_object_or_404(Registrar, id=registrar_id)
 
-    context = {'user': request.user, 'target_registrar': target_registrar,
+    context = {'target_registrar': target_registrar,
         'this_page': 'users_registrars'}
 
     if request.method == 'POST':
@@ -160,7 +160,7 @@ def manage_vesting_org(request):
     paginator = Paginator(vesting_orgs, settings.MAX_USER_LIST_SIZE)
     vesting_orgs = paginator.page(page)
 
-    context = {'user': request.user, 'vesting_orgs_list': list(vesting_orgs), 'vesting_orgs': vesting_orgs,
+    context = {'vesting_orgs_list': list(vesting_orgs), 'vesting_orgs': vesting_orgs,
         'this_page': 'users_vesting_orgs'}
 
     if request.method == 'POST':
@@ -199,7 +199,7 @@ def manage_single_vesting_org(request, vesting_org_id):
 
     target_vesting_org = get_object_or_404(VestingOrg, id=vesting_org_id)
 
-    context = {'user': request.user, 'target_vesting_org': target_vesting_org,
+    context = {'target_vesting_org': target_vesting_org,
         'this_page': 'users_vesting_orgs'}
 
     if request.method == 'POST':
@@ -338,7 +338,6 @@ def list_users_in_group(request, group_name):
     users = paginator.page(page)
 
     context = {
-        'user': request.user,
         'users_list': list(users),
         'this_page': 'users_{group_name}s'.format(group_name=group_name),
         'users': users,
@@ -426,7 +425,6 @@ def edit_user_in_group(request, user_id, group_name):
             return HttpResponseRedirect(reverse('user_management_created_links'))
 
     context = {
-        'user': request.user,
         'target_user': target_user,
         'this_page': 'users_{group_name}s'.format(group_name=group_name),
         'pretty_group_name':group_name.replace('_', ' ').capitalize(),
@@ -487,7 +485,7 @@ def delete_user_in_group(request, user_id, group_name):
         if request.user != target_member.authorized_by:
             return HttpResponseRedirect(reverse('user_management_created_links'))
 
-    context = {'user': request.user, 'target_member': target_member,
+    context = {'target_member': target_member,
                'this_page': 'users_{group_name}s'.format(group_name=group_name)}
 
     if request.method == 'POST':
@@ -522,7 +520,7 @@ def reactive_user_in_group(request, user_id, group_name):
         if request.user != target_member.authorized_by:
             return HttpResponseRedirect(reverse('user_management_created_links'))
 
-    context = {'user': request.user, 'target_member': target_member,
+    context = {'target_member': target_member,
                'this_page': 'users_{group_name}s'.format(group_name=group_name)}
 
     if request.method == 'POST':
@@ -542,7 +540,7 @@ def user_add_registrar(request, user_id):
     group_name = target_user.groups.all()[0].name
     old_group = request.session.get('old_group','')
     
-    context = {'user': request.user, 'this_page': 'users_{old_group}s'.format(old_group=old_group)}
+    context = {'this_page': 'users_{old_group}s'.format(old_group=old_group)}
     
     if request.method == 'POST':
         form = user_add_registrar_form(request.POST, prefix = "a")
@@ -569,7 +567,7 @@ def user_add_vesting_org(request, user_id):
     group_name = target_user.groups.all()[0].name
     old_group = request.session.get('old_group','')
     
-    context = {'user': request.user, 'this_page': 'users_{old_group}s'.format(old_group=old_group)}
+    context = {'this_page': 'users_{old_group}s'.format(old_group=old_group)}
     
     if request.method == 'POST':
         form = user_add_vesting_org_form(request.POST, prefix = "a")
@@ -733,7 +731,7 @@ def link_browser(request, path, link_filter, this_page, verb):
     base_url = reverse('user_management_'+this_page)
     link_count = Link.objects.filter(**link_filter).count()
 
-    context = {'user': request.user, 'linky_links': linky_links, 'link_count':link_count,
+    context = {'linky_links': linky_links, 'link_count':link_count,
                'sort': sort, 'search_query':search_query, 'this_page': this_page, 'verb': verb,
                'subfolders':subfolders, 'path':path, 'folder_breadcrumbs':folder_breadcrumbs,
                'current_folder':current_folder,
@@ -751,8 +749,7 @@ def manage_account(request):
     Account management stuff. Change password, change email, ...
     """
 
-    context = {'user': request.user,
-        'next': request.get_full_path(), 'this_page': 'settings'}
+    context = {'next': request.get_full_path(), 'this_page': 'settings'}
     context.update(csrf(request))
     if request.user.has_group(['vesting_member', 'vesting_manager']):
         if request.user.registrar:
@@ -785,10 +782,9 @@ def batch_convert(request):
     """
     Detect and archive URLs from user input.
     """
-    context = {'user': request.user,
-        'this_page': 'batch_convert'}
+    context = {'this_page': 'batch_convert'}
     context.update(csrf(request))
-    return render_to_response('user_management/batch_convert.html', context)
+    return render_to_response('user_management/batch_convert.html', context, RequestContext(request))
 
 
 @login_required
@@ -797,10 +793,9 @@ def export(request):
     Export a CSV of a user's library/
     """
     
-    context = {'user': request.user,
-        'this_page': 'export'}
+    context = {'this_page': 'export'}
     context.update(csrf(request))
-    return render_to_response('user_management/export.html', context)
+    return render_to_response('user_management/export.html', context, RequestContext(request))
 
 
 @login_required
@@ -808,10 +803,9 @@ def custom_domain(request):
     """
     Instructions for a user to configure a custom domain.
     """
-    context = {'user': request.user,
-        'this_page': 'custom_domain'}
+    context = {'this_page': 'custom_domain'}
     context.update(csrf(request))
-    return render_to_response('user_management/custom_domain.html', context)
+    return render_to_response('user_management/custom_domain.html', context, RequestContext(request))
     
 def not_active(request):
     """
@@ -827,7 +821,7 @@ def not_active(request):
     else:
         context = {}
         context.update(csrf(request))
-        return render_to_response('registration/not_active.html', context)
+        return render_to_response('registration/not_active.html', context, RequestContext(request))
         
         
 def account_is_deactivated(request):

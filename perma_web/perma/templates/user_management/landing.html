@@ -7,8 +7,8 @@
 {% block content %}
 
     <h3>Admin</h3>
-    {% if user|has_group:'registry_member' %}
-    <!--<h3>You are a registry member at {{user.get_profile.registrar.name}} </h3>-->
+    {% if request.user|has_group:'registry_member' %}
+    <!--<h3>You are a registry member at {{request.user.get_profile.registrar.name}} </h3>-->
     {% endif %}
 
 {% endblock %}
