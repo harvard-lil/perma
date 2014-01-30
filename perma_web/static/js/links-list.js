@@ -118,12 +118,14 @@ $(function(){
 
         // draggable
         table.find('tbody tr').draggable({
-            helper: function() {
-                return $("<div></div>").append($(this).find('.linky-abbr-title').clone());
-            },
-            cursor: "move",
+            helper: "clone",
+            cursorAt: { top: 10, left: 10 },
             start: function(event, ui ){
-                ui.helper.find('.tool-block').hide();
+                ui.helper.addClass("link-draggable-helper").find('.tool-block').hide();
+                $('body').addClass("dragging");
+            },
+            stop: function(event, ui ){
+                $('body').removeClass("dragging");
             },
             handle: ''
         });
