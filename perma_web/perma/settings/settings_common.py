@@ -103,6 +103,7 @@ TEMPLATE_DIRS = (
 TEMPLATE_CONTEXT_PROCESSORS = (
     "perma.analytics.analytics",
     'django.contrib.messages.context_processors.messages',
+    'django.core.context_processors.request',
 )
 
 INSTALLED_APPS = (

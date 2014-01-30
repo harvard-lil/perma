@@ -25,7 +25,7 @@
         <p>Broken links are everywhere.</p>
         <p>Perma.cc helps authors and journals create<br />
         permanent links for citations in their published work.</p>
-        {% if user.is_authenticated %}
+        {% if request.user.is_authenticated %}
         <p><a href="{% url 'user_management_created_links' %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
         {% else %}
         <p><a href="#" class="btn btn-large btn-success">Sign Up for a Free Account</a></p>
@@ -41,7 +41,7 @@
 <div class="main-container">
 	
 	<div id="linky-list">
-		{% if user.is_authenticated %}
+		{% if request.user.is_authenticated %}
 		  {% if linky_links %}
 			<h3 class="text-center linky-ul-header">Links you've recently created</h3>
 		  {% endif %}
@@ -55,7 +55,7 @@
 						<h4><a href="{% url 'single_linky' linky_link.guid %}" target="_blank">{{ linky_link.submitted_title|truncatesmart:50 }}</a></h4>
 						<small>{{ linky_link.submitted_url|truncatesmart:70 }}</small>
 						<br/>
-						<a href=""{% url 'single_linky' linky_link.guid %}" target="_blank">"{% url 'single_linky' linky_link.guid %}</a></p>
+						<a href="{% url 'single_linky' linky_link.guid %}" target="_blank">{% url 'single_linky' linky_link.guid %}</a></p>
 						<small>Views: {{ linky_link.view_count }}</small>
 					</div><!--/.recent-linky-summary-->
 				</div><!--/.span8-->

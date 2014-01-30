@@ -5,6 +5,7 @@ from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.views.generic import TemplateView
 
 from datetime import datetime, date, timedelta
 from urlparse import urlparse
@@ -18,93 +19,17 @@ from ratelimit.decorators import ratelimit
 logger = logging.getLogger(__name__)
 
 
-@ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block='True')
-@ratelimit(method='GET', rate=settings.HOUR_LIMIT, block='True')
-@ratelimit(method='GET', rate=settings.DAY_LIMIT, block='True')
-def landing(request):
-    """
-    The landing page
-    """
-
-    if request.user.id >= 0:
-      linky_links = list(Link.objects.filter(created_by=request.user).order_by('-creation_timestamp'))
-    else:
-      linky_links = None;
-
-    context = RequestContext(request, {'this_page': 'landing', 'user': request.user, 'linky_links': linky_links, 'next': request.get_full_path()})
-    #context.update(csrf(request))
-
-    return render_to_response('landing.html', context)
-
-
-def about(request):
-    """
-    The about page
-    """
-
-    context = RequestContext(request, {'user': request.user,})
-
-    return render_to_response('about.html', context)
-    
-    
-def additional_resources(request):
-    """
-    The additional resources page
-    """
-
-    context = RequestContext(request, {'user': request.user,})
-
-    return render_to_response('additional-resources.html', context)
-
-
-def faq(request):
-    """
-    The FAQ page
-    """
-
-    context = RequestContext(request, {'user': request.user})
-        
-    return render_to_response('faq.html', context)
-
-
-def contact(request):
-    """
-    The contact page
-    """
-
-    context = RequestContext(request, {'user': request.user})
-    
-    return render_to_response('contact.html', context)
-
-
-def terms_of_service(request):
-    """
-    The terms of service page
-    """
-
-    context = RequestContext(request, {'user': request.user})
-    
-    return render_to_response('terms_of_service.html', context)
-
-
-def privacy_policy(request):
-    """
-    The privacy policy page
-    """
-    
-    context = RequestContext(request, {'user': request.user})
-    
-    return render_to_response('privacy_policy.html', context)
-
-
-def copyright_policy(request):
-    """
-    The copyright policy page
-    """
-    
-    context = RequestContext(request, {'user': request.user})
-    
-    return render_to_response('copyright_policy.html', context)
+class DirectTemplateView(TemplateView):
+    extra_context = None
+    def get_context_data(self, **kwargs):
+        context = super(self.__class__, self).get_context_data(**kwargs)
+        if self.extra_context is not None:
+            for key, value in self.extra_context.items():
+                if callable(value):
+                    context[key] = value()
+                else:
+                    context[key] = value
+        return context
 
 
 def stats(request):
@@ -115,17 +40,9 @@ def stats(request):
     # TODO: generate these nightly. we shouldn't be doing this for every request
     top_links_all_time = list(Link.objects.all().order_by('-view_count')[:10])
 
-    context = RequestContext(request, {'user': request.user, 'top_links_all_time': top_links_all_time})
+    context = RequestContext(request, {'top_links_all_time': top_links_all_time})
 
     return render_to_response('stats.html', context)
-
-
-def tools(request):
-    """
-    The tools page
-    """
-    
-    return render_to_response('tools.html', {})
 
 
 @ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block='True')
@@ -202,7 +119,7 @@ def single_linky(request, linky_guid):
         created_datestamp = link.creation_timestamp
         pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
 
-        context = RequestContext(request, {'linky': link, 'asset': asset, 'pretty_date': pretty_date, 'user': request.user, 'next': request.get_full_path(),
+        context = RequestContext(request, {'linky': link, 'asset': asset, 'pretty_date': pretty_date, 'next': request.get_full_path(),
                    'display_iframe': display_iframe, 'serve_type': serve_type, 'text_capture': text_capture})
 
         #context.update(csrf(request))
@@ -229,7 +146,7 @@ def dark_archive_link(request, linky_guid):
         created_datestamp = link.creation_timestamp
         pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
 
-        context = RequestContext(request, {'linky': link, 'asset': asset, 'pretty_date': pretty_date, 'user': request.user, 'next': request.get_full_path()})
+        context = RequestContext(request, {'linky': link, 'asset': asset, 'pretty_date': pretty_date, 'next': request.get_full_path()})
 
     return render_to_response('dark-archive-link.html', context)
 
