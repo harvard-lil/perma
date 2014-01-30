@@ -12,7 +12,7 @@ from pyPdf import PdfFileReader
 from perma.models import Link, Asset
 from perma.forms import UploadFileForm
 from perma.utils import base
-from perma.tasks import start_proxy_record,  get_screen_cap, get_source, store_text_cap, get_pdf, get_robots_txt
+from perma.tasks import start_proxy_record_get_screen_cap, get_source, store_text_cap, get_pdf, get_robots_txt
 
 from django.shortcuts import render_to_response, HttpResponse
 from django.http import HttpResponseBadRequest
@@ -107,11 +107,8 @@ def linky_post(request):
         asset.save()
         
         # start warcprox server to intercept and save traffic between the internet and the headless browser in get_screen_cap
-        # returns a tuple with the containing the warcprox process and the port warcprox is listening on
-        prox_tup = start_proxy_record(guid, target_url, os.path.sep.join(path_elements))
-
         # Creates screencap with headless browser
-        get_screen_cap(guid, target_url, os.path.sep.join(path_elements), prox_tup, user_agent=request.META['HTTP_USER_AGENT'])
+        start_proxy_record_get_screen_cap.delay(guid, target_url, os.path.sep.join(path_elements), user_agent=request.META['HTTP_USER_AGENT'])
 
         # Get the text capture of the page (through a service that follows pagination)
         store_text_cap.delay(target_url, target_title, guid)

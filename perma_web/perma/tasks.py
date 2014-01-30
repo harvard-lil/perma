@@ -29,20 +29,25 @@ import oauth2 as oauth
 logger = logging.getLogger(__name__)
 
 @celery.task
-def start_proxy_record(link_guid, target_url, base_storage_path):
+def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,user_agent=''):
     """
     start warcprox process. Warcprox is a MITM proxy server and needs to be running 
     before, during and after phantomjs gets a screenshot.
+
+    Create an image from the supplied URL, write it to disk and update our asset model with the path.
+    The heavy lifting is done by PhantomJS, our headless browser.
+
+    This function is usually executed via a synchronous Celery call
     """
-    port_list = range(27500, 27900)
+    
     path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path]
     print os.path.sep.join(path_elements)
 
     if not os.path.exists(os.path.sep.join(path_elements)):
         os.makedirs(os.path.sep.join(path_elements))
 
-    #### TODO if warcprox is called using the same port as an existing warcprox process, a socket.error with be thrown in the subprocess. For prototyping, it's okay to have a port choosen at random out of a range of 400.
-
+    #### TODO if warcprox is called using the same port as an existing warcprox process, a socket.error with be thrown in the subprocess. For prototyping, it's okay to have a port choosen at random out of a range of 400. 
+    port_list = range(27500, 27900)
 
     prox_port = str(choice(port_list)) #select a random port
     warcprox_server = subprocess.Popen([  "python",
@@ -63,23 +68,7 @@ def start_proxy_record(link_guid, target_url, base_storage_path):
                                           )
     time.sleep(0.3) # warcprox needs time to setup
 
-    return (warcprox_server, prox_port) # return the process while it is running. The process is passed to get_screen_cap so that it can be terminated after phantomjs finishes. 
-
-@celery.task
-def get_screen_cap(link_guid, target_url, base_storage_path, warcprox_comm ,user_agent=''):
-    """
-    Create an image from the supplied URL, write it to disk and update our asset model with the path.
-    The heavy lifting is done by PhantomJS, our headless browser.
-
-    This task also handles the teardown for start_proxy_record by terminating warcprox and 
-
-
-    This function is usually executed via a synchronous Celery call
-    """
-
-    warcprox_subprocess = warcprox_comm[0] # the warcprox process subprocess from start_proxy_record
-    warcprox_port = warcprox_comm[1] # the port warcprox is listening on from start_proxy_record
-
+    ### prepare phantomjs call
     path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path, 'cap.png']
     
     if not os.path.exists(os.path.sep.join(path_elements[:2])):
@@ -89,12 +78,12 @@ def get_screen_cap(link_guid, target_url, base_storage_path, warcprox_comm ,user
     cert_path = "--ssl-certificates-path="+os.path.sep.join(path_elements[:2])+"/"+filter(lambda x : "warcprox-ca.pem" in x ,os.listdir(os.path.sep.join(path_elements[:2])))[0]
     
     try:
-        image_generation_command = settings.PROJECT_ROOT + '/lib/phantomjs ' +"--proxy=127.0.0.1:"+warcprox_port +" "+cert_path+" "+"--ignore-ssl-errors=true " + settings.PROJECT_ROOT+'/lib/rasterize.js "' +target_url+'" ' + os.path.sep.join(path_elements) +' "' + user_agent + '"'
+        image_generation_command = settings.PROJECT_ROOT + '/lib/phantomjs ' +"--proxy=127.0.0.1:"+prox_port +" "+cert_path+" "+"--ignore-ssl-errors=true " + settings.PROJECT_ROOT+'/lib/rasterize.js "' +target_url+'" ' + os.path.sep.join(path_elements) +' "' + user_agent + '"'
 
         phantomcall = subprocess.call(image_generation_command, shell=True)
         time.sleep(0.3)
     finally: # shutdown warcprox process
-        warcprox_subprocess.terminate() # send term signal to warcprox 
+        warcprox_server.terminate() # send term signal to warcprox 
         time.sleep(0.2) # warcprox needs time to properly shut down
 
 
@@ -121,10 +110,9 @@ def get_screen_cap(link_guid, target_url, base_storage_path, warcprox_comm ,user
                 continue
             else:
                 break
-        print "-----------", created_warc_name
+
         standardized_warc_name = os.path.join(warc_path_elements,"archive.warc")
         os.rename(os.path.join(warc_path_elements, created_warc_name[0]), standardized_warc_name)
-        #warc_path_elements = (os.path.join(path_elements[0:2])).append("archive.warc.gz")
         asset = Asset.objects.get(link__guid=link_guid)
         asset.warc_capture = "archive.warc"
         asset.save()
