@@ -29,13 +29,15 @@ from perma.exceptions import BrokenURLError
 from perma.settings import INSTAPAPER_KEY, INSTAPAPER_SECRET, INSTAPAPER_USER, INSTAPAPER_PASS, GENERATED_ASSETS_STORAGE
 
 
-from warcprox import warcprox
 
 logger = logging.getLogger(__name__)
 
 @celery.task
 def start_proxy_record(link_guid, target_url, base_storage_path):
-
+    """
+    start warcprox process. Warcprox is a MITM proxy server and needs to be running 
+    before, during and after phantomjs gets a screenshot.
+    """
     port_list = range(27500, 27900)
     path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path]
     print os.path.sep.join(path_elements)
@@ -43,47 +45,27 @@ def start_proxy_record(link_guid, target_url, base_storage_path):
     if not os.path.exists(os.path.sep.join(path_elements)):
         os.makedirs(os.path.sep.join(path_elements))
 
-    #### TODO if warcprox is called using the same port as an existing warcprox process, a socket.error with be thrown. 
-    ## we need a way to handle this. 
+    #### TODO if warcprox is called using the same port as an existing warcprox process, a socket.error with be thrown in the subprocess. For prototyping, it's okay to have a port choosen at random out of a range of 400.
 
-    try: #if warcprox is called using the same port as an existing warcprox process, a socket.error with be thrown.
-        prox_port = str(choice(port_list)) #select a random port
-        warcprox_server = subprocess.Popen([  "python",
-                                              "-m",
-                                              "warcprox.warcprox",
-                                              "--prefix=%s" % ("permaWarcFile"),
-                                              #"--gzip", 
-                                              "--dir=%s" % (os.path.sep.join(path_elements)), 
-                                              "--certs-dir=%s" % (os.path.sep.join(path_elements)), 
-                                              "--port=%s" % (prox_port), 
-                                              "--dedup-db-file=/dev/null", 
-                                              "--address=%s" % ("127.0.0.1"),
-                                              "--rollover-idle-time=15",
-                                              "--quiet"],
-                                              cwd=os.path.sep.join(path_elements),
-                                              stdin=subprocess.PIPE,
-                                              stdout=subprocess.PIPE,
-                                              )
 
-    except socket.error: 
-        prox_port = str(choice(port_list)) # reroll port selection
-        warcprox_server = subprocess.Popen([  "python",
-                                              "-m",
-                                              "warcprox.warcprox",
-                                              "--prefix=%s" % ("permaWarcFile"),
-                                              #"--gzip", 
-                                              "--dir=%s" % (os.path.sep.join(path_elements)), 
-                                              "--certs-dir=%s" % (os.path.sep.join(path_elements)), 
-                                              "--port=%s" % (prox_port), 
-                                              "--dedup-db-file=/dev/null",  
-                                              "--rollover-idle-time=15",
-                                              "--quiet"],
-                                              cwd=os.path.sep.join(path_elements),
-                                              stdin=subprocess.PIPE,
-                                              stdout=subprocess.PIPE,
-                                              )
-
-    time.sleep(0.2) # warcprox needs time to setup 
+    prox_port = str(choice(port_list)) #select a random port
+    warcprox_server = subprocess.Popen([  "python",
+                                          "-m",
+                                          "warcprox.warcprox",
+                                          "--prefix=%s" % ("permaWarcFile"),
+                                          #"--gzip", 
+                                          "--dir=%s" % (os.path.sep.join(path_elements)), 
+                                          "--certs-dir=%s" % (os.path.sep.join(path_elements)), 
+                                          "--port=%s" % (prox_port), 
+                                          "--dedup-db-file=/dev/null", 
+                                          "--address=%s" % ("127.0.0.1"),
+                                          "--rollover-idle-time=15",
+                                          "--quiet"],
+                                          cwd=os.path.sep.join(path_elements),
+                                          stdin=subprocess.PIPE,
+                                          stdout=subprocess.PIPE,
+                                          )
+    time.sleep(0.3) # warcprox needs time to setup
 
     return (warcprox_server, prox_port) # return the process while it is running. The process is passed to get_screen_cap so that it can be terminated after phantomjs finishes.
 
@@ -180,8 +162,16 @@ def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,
 
     ### Handles the warc created by warcprox
     warc_path_elements = os.path.sep.join(path_elements[0:2])
+
     if os.path.exists(warc_path_elements):
-        created_warc_name = filter(lambda x: "permaWarcFile" in x , os.listdir(warc_path_elements)) #list all files in the base storage path and return the name of the file warcprox generated.
+        test_for_closed_warc = lambda x: "permaWarcFile" in x and ".open" not in x
+        for retrys in range(0, 10):
+            created_warc_name = filter(test_for_closed_warc ,os.listdir(warc_path_elements)) #list all files in the base storage path and return the name of the file warcprox generated. Do not return if the file is still open.
+            if len(created_warc_name) == 0:
+                time.sleep(0.5) 
+                continue
+            else:
+                break
         print "-----------", created_warc_name
         standardized_warc_name = os.path.join(warc_path_elements,"archive.warc")
         os.rename(os.path.join(warc_path_elements, created_warc_name[0]), standardized_warc_name)
