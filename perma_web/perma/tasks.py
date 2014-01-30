@@ -33,20 +33,25 @@ from perma.settings import INSTAPAPER_KEY, INSTAPAPER_SECRET, INSTAPAPER_USER, I
 logger = logging.getLogger(__name__)
 
 @celery.task
-def start_proxy_record(link_guid, target_url, base_storage_path):
+def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,user_agent=''):
     """
     start warcprox process. Warcprox is a MITM proxy server and needs to be running 
     before, during and after phantomjs gets a screenshot.
+
+    Create an image from the supplied URL, write it to disk and update our asset model with the path.
+    The heavy lifting is done by PhantomJS, our headless browser.
+
+    This function is usually executed via a synchronous Celery call
     """
-    port_list = range(27500, 27900)
+    
     path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path]
     print os.path.sep.join(path_elements)
 
     if not os.path.exists(os.path.sep.join(path_elements)):
         os.makedirs(os.path.sep.join(path_elements))
 
-    #### TODO if warcprox is called using the same port as an existing warcprox process, a socket.error with be thrown in the subprocess. For prototyping, it's okay to have a port choosen at random out of a range of 400.
-
+    #### TODO if warcprox is called using the same port as an existing warcprox process, a socket.error with be thrown in the subprocess. For prototyping, it's okay to have a port choosen at random out of a range of 400. 
+    port_list = range(27500, 27900)
 
     prox_port = str(choice(port_list)) #select a random port
     warcprox_server = subprocess.Popen([  "python",
@@ -172,10 +177,9 @@ def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,
                 continue
             else:
                 break
-        print "-----------", created_warc_name
+
         standardized_warc_name = os.path.join(warc_path_elements,"archive.warc")
         os.rename(os.path.join(warc_path_elements, created_warc_name[0]), standardized_warc_name)
-        #warc_path_elements = (os.path.join(path_elements[0:2])).append("archive.warc.gz")
         asset = Asset.objects.get(link__guid=link_guid)
         asset.warc_capture = "archive.warc"
         asset.save()

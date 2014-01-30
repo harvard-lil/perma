@@ -81,7 +81,6 @@ We use PhantomJS to generate our images. Download [PhantomJS](http://phantomjs.o
 
 We use warcprox to make WARC (Web ARChive) files. We have tested with version 1.1.
 
-    $ pip install warcprox
 
 
 ### Create your tables and fire up Django
