@@ -13,6 +13,10 @@ The required modules are found in requirements.txt. Install them using pip:
 
     $ pip install -r requirements.txt
 
+Perma requires are at least one module that cannot be installed with pip. 
+    
+    warcprox -  https://github.com/internetarchive/warcprox
+
 If you're running OS X Mountain Lion, you may need to add the MySQL binaries 
 to your PATH:
 
@@ -67,11 +71,12 @@ We use PhantomJS to generate our images. Download [PhantomJS](http://phantomjs.o
     $ ls lib
     __init__.py phantomjs rasterize.js
 
-### Wget
+### warcprox
 
-We use [GNU Wget](http://www.gnu.org/software/wget/) to download the source -- the markup, CSS, JS, images, and other assets. We've tested with version 1.12. If you're on a mac, something like this should get you close:
+We use warcprox to make WARC (Web ARChive) files. We have tested with version 1.1.
 
-    # port install wget
+    $ pip install warcprox
+
 
 ### Create your tables and fire up Django
 

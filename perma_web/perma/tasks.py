@@ -1,4 +1,20 @@
-import os, sys, subprocess, urllib, glob, shutil, urlparse, simplejson, datetime, smhasher, logging, robotparser, re
+import os
+import sys
+import subprocess
+import urllib
+import glob
+import shutil
+import urlparse
+import simplejson
+import datetime
+import smhasher
+import logging
+import robotparser
+import re
+import time
+from random import choice
+
+
 from djcelery import celery
 import requests
 from django.conf import settings
@@ -9,30 +25,71 @@ from perma.settings import INSTAPAPER_KEY, INSTAPAPER_SECRET, INSTAPAPER_USER, I
 
 import oauth2 as oauth
 
+
 logger = logging.getLogger(__name__)
 
 @celery.task
-def get_screen_cap(link_guid, target_url, base_storage_path, user_agent=''):
+def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,user_agent=''):
     """
+    start warcprox process. Warcprox is a MITM proxy server and needs to be running 
+    before, during and after phantomjs gets a screenshot.
+
     Create an image from the supplied URL, write it to disk and update our asset model with the path.
     The heavy lifting is done by PhantomJS, our headless browser.
 
     This function is usually executed via a synchronous Celery call
     """
+    
+    path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path]
+    print os.path.sep.join(path_elements)
 
+    if not os.path.exists(os.path.sep.join(path_elements)):
+        os.makedirs(os.path.sep.join(path_elements))
+
+    #### TODO if warcprox is called using the same port as an existing warcprox process, a socket.error with be thrown in the subprocess. For prototyping, it's okay to have a port choosen at random out of a range of 400. 
+    port_list = range(27500, 27900)
+
+    prox_port = str(choice(port_list)) #select a random port
+    warcprox_server = subprocess.Popen([  "python",
+                                          "-m",
+                                          "warcprox.warcprox",
+                                          "--prefix=%s" % ("permaWarcFile"),
+                                          #"--gzip", 
+                                          "--dir=%s" % (os.path.sep.join(path_elements)), 
+                                          "--certs-dir=%s" % (os.path.sep.join(path_elements)), 
+                                          "--port=%s" % (prox_port), 
+                                          "--dedup-db-file=/dev/null", 
+                                          "--address=%s" % ("127.0.0.1"),
+                                          "--rollover-idle-time=15",
+                                          "--quiet"],
+                                          cwd=os.path.sep.join(path_elements),
+                                          stdin=subprocess.PIPE,
+                                          stdout=subprocess.PIPE,
+                                          )
+    time.sleep(0.3) # warcprox needs time to setup
+
+    ### prepare phantomjs call
     path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path, 'cap.png']
-
+    
     if not os.path.exists(os.path.sep.join(path_elements[:2])):
         os.makedirs(os.path.sep.join(path_elements[:2]))
 
-    image_generation_command = settings.PROJECT_ROOT + '/lib/phantomjs ' + settings.PROJECT_ROOT + '/lib/rasterize.js "' + target_url + '" ' + os.path.sep.join(path_elements) + ' "' + user_agent + '"'
+    ### warcprox generates an encryption certificate which can be passed to phantomjs. The nameing convention is <system name>-warcprox-ca.pem. 
+    cert_path = "--ssl-certificates-path="+os.path.sep.join(path_elements[:2])+"/"+filter(lambda x : "warcprox-ca.pem" in x ,os.listdir(os.path.sep.join(path_elements[:2])))[0]
+    
+    try:
+        image_generation_command = settings.PROJECT_ROOT + '/lib/phantomjs ' +"--proxy=127.0.0.1:"+prox_port +" "+cert_path+" "+"--ignore-ssl-errors=true " + settings.PROJECT_ROOT+'/lib/rasterize.js "' +target_url+'" ' + os.path.sep.join(path_elements) +' "' + user_agent + '"'
 
-    subprocess.call(image_generation_command, shell=True)
+        phantomcall = subprocess.call(image_generation_command, shell=True)
+        time.sleep(0.3)
+    finally: # shutdown warcprox process
+        warcprox_server.terminate() # send term signal to warcprox 
+        time.sleep(0.2) # warcprox needs time to properly shut down
 
 
     if os.path.exists(os.path.sep.join(path_elements)):
         asset = Asset.objects.get(link__guid=link_guid)
-        asset.image_capture = os.path.sep.join(path_elements[2:])
+        asset.image_capture = "/"+os.path.sep.join(path_elements[2:])
         asset.save()
     else:
         logger.info("Screen capture failed for %s" % target_url)
@@ -40,6 +97,31 @@ def get_screen_cap(link_guid, target_url, base_storage_path, user_agent=''):
         asset.image_capture = 'failed'
         asset.save()
         logger.info("Screen capture failed for %s" % target_url)
+
+    ### Handles the warc created by warcprox
+    warc_path_elements = os.path.sep.join(path_elements[0:2])
+
+    if os.path.exists(warc_path_elements):
+        test_for_closed_warc = lambda x: "permaWarcFile" in x and ".open" not in x
+        for retrys in range(0, 10):
+            created_warc_name = filter(test_for_closed_warc ,os.listdir(warc_path_elements)) #list all files in the base storage path and return the name of the file warcprox generated. Do not return if the file is still open.
+            if len(created_warc_name) == 0:
+                time.sleep(0.5) 
+                continue
+            else:
+                break
+
+        standardized_warc_name = os.path.join(warc_path_elements,"archive.warc")
+        os.rename(os.path.join(warc_path_elements, created_warc_name[0]), standardized_warc_name)
+        asset = Asset.objects.get(link__guid=link_guid)
+        asset.warc_capture = "archive.warc"
+        asset.save()
+    else:
+        logger.info("Web Archive File creation failed for %s" % target_url)
+        asset = Asset.objects.get(link__guid=link_guid)
+        asset.warc_capture = 'failed'
+        asset.save()
+        logger.info("Web Archive File creation failed for %s" % target_url)
 
 @celery.task
 def get_source(link_guid, target_url, base_storage_path, user_agent=''):
