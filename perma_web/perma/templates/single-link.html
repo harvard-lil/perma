@@ -29,6 +29,7 @@
 					</div><!--end span 6 -->
 					<div class="col-sm-offset-1 col-sm-1 button-set">
 					<ul class="vesting">
+						<li><a class="btn vest none" href="">hidden button</a></li><!-- to keep vertical spacing and layout simpler across states when there are and aren't buttons -->
 						{% if user.is_authenticated and not linky|is_darchive %}
                         {% if 		user|has_group:'registry_member,registrar_member,vesting_member,vesting_manager' and not linky.vested %}
                             <li><form action="" method="post">

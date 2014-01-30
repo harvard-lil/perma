@@ -1818,6 +1818,11 @@ li {
 	list-style-type: none;
 }
 
+
+.none {
+	display:none;
+}
+
 /* Stats page start */
 .container.stats {
     font-size:13px;
@@ -1867,6 +1872,7 @@ li {
 text {
 	font-size:14px
 }
+
 .container.stats .vis-desc {
     margin-bottom: 80px;
     margin-left: 30px;
