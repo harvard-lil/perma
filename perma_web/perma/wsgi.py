@@ -7,13 +7,8 @@ named ``application``. Django's ``runserver`` and ``runfcgi`` commands discover
 this application via the ``WSGI_APPLICATION`` setting.
 
 """
-import os, sys, site
+import os
 from werkzeug.wsgi import DispatcherMiddleware
-
-PROJECT_ROOT = os.path.abspath(os.path.dirname(__name__))
-
-# include our third-party libs
-site.addsitedir(os.path.join(PROJECT_ROOT, 'lib'))
 
 # We defer to a DJANGO_SETTINGS_MODULE already in the environment. This breaks
 # if running multiple sites in the same mod_wsgi process. To fix this, use

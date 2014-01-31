@@ -1,8 +1,11 @@
 # Django settings for Perma project.
 
-import os
+import os, site
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__name__))
+
+# include our third-party libs
+site.addsitedir(os.path.join(PROJECT_ROOT, 'lib'))
 
 DATABASES = {
     'default': {
@@ -162,3 +165,5 @@ LOGIN_DAY_LIMIT = '50000/d'
 
 # Dashboard user lists
 MAX_USER_LIST_SIZE = '15'
+
+PHANTOMJS_BINARY = os.path.join(PROJECT_ROOT, 'lib/phantomjs')
