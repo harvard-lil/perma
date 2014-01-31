@@ -167,3 +167,6 @@ LOGIN_DAY_LIMIT = '50000/d'
 MAX_USER_LIST_SIZE = '15'
 
 PHANTOMJS_BINARY = os.path.join(PROJECT_ROOT, 'lib/phantomjs')
+
+# warc_server uses this to make requests -- it should point back to Django's /cdx view
+CDX_SERVER_URL = 'http://127.0.0.1/cdx'
