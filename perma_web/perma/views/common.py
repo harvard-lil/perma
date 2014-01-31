@@ -66,7 +66,7 @@ def cdx(request):
     try:
         link = Link.objects.select_related().get(pk=request.POST.get('guid'))
     except Link.DoesNotExist:
-        # print "COULDN'T FIND LINK"
+        print "COULDN'T FIND LINK"
         raise Http404
     url = request.POST.get('url', link.submitted_url)
 
@@ -76,7 +76,7 @@ def cdx(request):
             warc_path = os.path.join(settings.GENERATED_ASSETS_STORAGE, asset.base_storage_path, asset.warc_capture)
             break
     else:
-        # print "COULDN'T FIND WARC"
+        print "COULDN'T FIND WARC"
         raise Http404 # no .warc file -- do something to handle this
 
     # get cdx file
@@ -85,8 +85,10 @@ def cdx(request):
         cdx_file = open(cdx_path, 'rb')
     except IOError:
         # if we can't find the CDX file associated with this WARC, create it
-        writer = cdx_writer.CDX_Writer(warc_path, cdx_path)
+        cdx_file = open(cdx_path, 'wb')
+        writer = cdx_writer.CDX_Writer(warc_path, cdx_file)
         writer.make_cdx()
+        cdx_file.close()
         cdx_file = open(cdx_path, 'rb')
 
     # find cdx line for url
@@ -95,7 +97,7 @@ def cdx(request):
         if line.startswith(sorted_url+" "):
             return HttpResponse(line, content_type="text/plain")
 
-    # print "COULDN'T FIND URL"
+    print "COULDN'T FIND URL"
     raise Http404 # didn't find requested url in .cdx file
 
 

@@ -1,5 +1,4 @@
 import os
-import sys
 import subprocess
 import urllib
 import glob
@@ -13,20 +12,24 @@ import robotparser
 import re
 import time
 from random import choice
-
-
+import oauth2 as oauth
+import warcprox.warcprox as warcprox
+import thread
 from djcelery import celery
-import lxml.html, requests
+import lxml.html
+import requests
+import errno
+from socket import error as socket_error
+
 from django.conf import settings
 
 from perma.models import Asset, Stat, Registrar, LinkUser, Link, VestingOrg
 from perma.exceptions import BrokenURLError
 from perma.settings import INSTAPAPER_KEY, INSTAPAPER_SECRET, INSTAPAPER_USER, INSTAPAPER_PASS, GENERATED_ASSETS_STORAGE
 
-import oauth2 as oauth
-
 
 logger = logging.getLogger(__name__)
+
 
 @celery.task
 def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,user_agent=''):
@@ -39,89 +42,84 @@ def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,
 
     This function is usually executed via a synchronous Celery call
     """
-    
-    path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path]
-    print os.path.sep.join(path_elements)
 
-    if not os.path.exists(os.path.sep.join(path_elements)):
-        os.makedirs(os.path.sep.join(path_elements))
+    # set up storage paths
+    image_name = 'cap.png'
+    warc_name = 'archive.warc.gz'
+    storage_path = os.path.join(settings.GENERATED_ASSETS_STORAGE, base_storage_path)
+    image_path = os.path.join(storage_path, image_name)
+    cert_path = os.path.join(storage_path, 'cert.pem')
 
-    #### TODO if warcprox is called using the same port as an existing warcprox process, a socket.error with be thrown in the subprocess. For prototyping, it's okay to have a port choosen at random out of a range of 400. 
-    port_list = range(27500, 27900)
+    if not os.path.exists(storage_path):
+        os.makedirs(storage_path)
 
-    prox_port = str(choice(port_list)) #select a random port
-    warcprox_server = subprocess.Popen([  "python",
-                                          "-m",
-                                          "warcprox.warcprox",
-                                          "--prefix=%s" % ("permaWarcFile"),
-                                          #"--gzip", 
-                                          "--dir=%s" % (os.path.sep.join(path_elements)), 
-                                          "--certs-dir=%s" % (os.path.sep.join(path_elements)), 
-                                          "--port=%s" % (prox_port), 
-                                          "--dedup-db-file=/dev/null", 
-                                          "--address=%s" % ("127.0.0.1"),
-                                          "--rollover-idle-time=15",
-                                          "--quiet"],
-                                          cwd=os.path.sep.join(path_elements),
-                                          stdin=subprocess.PIPE,
-                                          stdout=subprocess.PIPE,
-                                          )
-    time.sleep(0.3) # warcprox needs time to setup
+    # connect warcprox to an open port
+    prox_port = 27500
+    recorded_url_q = warcprox.queue.Queue()
+    for i in xrange(500):
+        try:
+            proxy = warcprox.WarcProxy(
+                server_address=("127.0.0.1", prox_port),
+                ca=warcprox.CertificateAuthority(cert_path, storage_path),
+                recorded_url_q=recorded_url_q
+            )
+            break
+        except socket_error as e:
+            if e.errno != errno.EADDRINUSE:
+                raise
+        prox_port += 1
+    else:
+        raise Exception("WarcProx couldn't find an open port.")
 
-    ### prepare phantomjs call
-    path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path, 'cap.png']
-    
-    if not os.path.exists(os.path.sep.join(path_elements[:2])):
-        os.makedirs(os.path.sep.join(path_elements[:2]))
+    # create a WarcWriterThread subclass that knows how to rename resulting warc and save to DB when closing warc file
+    class WarcWriter(warcprox.WarcWriterThread):
+        def _close_writer(self):
+            if self._fpath:
+                super(WarcWriter, self)._close_writer()
+                asset = Asset.objects.get(link__guid=link_guid)
+                standardized_warc_name = os.path.join(storage_path, warc_name)
+                try:
+                    os.rename(os.path.join(storage_path, self._f_finalname), standardized_warc_name)
+                    asset.warc_capture = warc_name
+                except OSError:
+                    logger.info("Web Archive File creation failed for %s" % target_url)
+                    asset.warc_capture = 'failed'
+                asset.save()
 
-    ### warcprox generates an encryption certificate which can be passed to phantomjs. The nameing convention is <system name>-warcprox-ca.pem. 
-    cert_path = "--ssl-certificates-path="+os.path.sep.join(path_elements[:2])+"/"+filter(lambda x : "warcprox-ca.pem" in x ,os.listdir(os.path.sep.join(path_elements[:2])))[0]
-    
+    # start warcprox listener
+    warc_writer = WarcWriter(recorded_url_q=recorded_url_q,
+                                   directory=storage_path, gzip=True,
+                                   port=prox_port,
+                                   rollover_idle_time=15)
+    warcprox_controller = warcprox.WarcproxController(proxy, warc_writer)
+    thread.start_new_thread(warcprox_controller.run_until_shutdown, ())
+
+    # run phantomjs
     try:
-        image_generation_command = settings.PROJECT_ROOT + '/lib/phantomjs ' +"--proxy=127.0.0.1:"+prox_port +" "+cert_path+" "+"--ignore-ssl-errors=true " + settings.PROJECT_ROOT+'/lib/rasterize.js "' +target_url+'" ' + os.path.sep.join(path_elements) +' "' + user_agent + '"'
+        subprocess.call([
+            settings.PHANTOMJS_BINARY,
+            "--proxy=127.0.0.1:%s" % prox_port,
+            "--ssl-certificates-path=%s" % cert_path,
+            "--ignore-ssl-errors=true",
+            os.path.join(settings.PROJECT_ROOT, 'lib/rasterize.js'),
+            target_url,
+            image_path,
+            user_agent
+        ])
+    finally:
+        # shutdown warcprox process
+        warcprox_controller.stop.set()
 
-        phantomcall = subprocess.call(image_generation_command, shell=True)
-        time.sleep(0.3)
-    finally: # shutdown warcprox process
-        warcprox_server.terminate() # send term signal to warcprox 
-        time.sleep(0.2) # warcprox needs time to properly shut down
-
-
-    if os.path.exists(os.path.sep.join(path_elements)):
-        asset = Asset.objects.get(link__guid=link_guid)
-        asset.image_capture = "/"+os.path.sep.join(path_elements[2:])
+    # save screenshot asset
+    asset = Asset.objects.get(link__guid=link_guid)
+    if os.path.exists(image_path):
+        asset.image_capture = "/"+image_name
         asset.save()
     else:
-        logger.info("Screen capture failed for %s" % target_url)
-        asset = Asset.objects.get(link__guid=link_guid)
         asset.image_capture = 'failed'
-        asset.save()
         logger.info("Screen capture failed for %s" % target_url)
+    asset.save()
 
-    ### Handles the warc created by warcprox
-    warc_path_elements = os.path.sep.join(path_elements[0:2])
-
-    if os.path.exists(warc_path_elements):
-        test_for_closed_warc = lambda x: "permaWarcFile" in x and ".open" not in x
-        for retrys in range(0, 10):
-            created_warc_name = filter(test_for_closed_warc ,os.listdir(warc_path_elements)) #list all files in the base storage path and return the name of the file warcprox generated. Do not return if the file is still open.
-            if len(created_warc_name) == 0:
-                time.sleep(0.5) 
-                continue
-            else:
-                break
-
-        standardized_warc_name = os.path.join(warc_path_elements,"archive.warc")
-        os.rename(os.path.join(warc_path_elements, created_warc_name[0]), standardized_warc_name)
-        asset = Asset.objects.get(link__guid=link_guid)
-        asset.warc_capture = "archive.warc"
-        asset.save()
-    else:
-        logger.info("Web Archive File creation failed for %s" % target_url)
-        asset = Asset.objects.get(link__guid=link_guid)
-        asset.warc_capture = 'failed'
-        asset.save()
-        logger.info("Web Archive File creation failed for %s" % target_url)
 
 @celery.task
 def get_source(link_guid, target_url, base_storage_path, user_agent=''):
@@ -276,7 +274,10 @@ def instapaper_capture(url, title):
                 }))
 
     token = dict(urlparse.parse_qsl(content))
-    token = oauth.Token(token['oauth_token'], token['oauth_token_secret'])
+    try:
+        token = oauth.Token(token['oauth_token'], token['oauth_token_secret'])
+    except KeyError:
+        return None, None, False # login failed -- maybe no instapaper config in settings
     http = oauth.Client(consumer, token)
 
     response, data = http.request('https://www.instapaper.com/api/1/bookmarks/add', method='POST', body=urllib.urlencode({'url':url, 'title': unicode(title).encode('utf-8')}))
@@ -321,12 +322,12 @@ def store_text_cap(url, title, link_guid):
             asset.text_capture = 'instapaper_cap.html'
             asset.save()
         else:
-            logger.info("Text (instapaper) capture failed for %s" % target_url)
+            logger.info("Text (instapaper) capture failed for %s" % url)
             asset.text_capture = 'failed'
             asset.save()
     else:
         # Must have received something other than an HTTP 200 from Instapaper, or no response object at all
-        logger.info("Text (instapaper) capture failed for %s" % target_url)
+        logger.info("Text (instapaper) capture failed for %s" % url)
         asset = Asset.objects.get(link__guid=link_guid)
         asset.text_capture = 'failed'
         asset.save()
