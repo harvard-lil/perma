@@ -105,6 +105,7 @@ def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,
             image_path,
             user_agent
         ])
+        time.sleep(.5) # give warcprox a chance to save everything
     finally:
         # shutdown warcprox process
         warcprox_controller.stop.set()
