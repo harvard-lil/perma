@@ -10,3 +10,6 @@
 	path = perma_web/lib/warc-tools
 	url = https://github.com/jcushman/warc-tools.git
 	ignore = dirty
+[submodule "perma_web/lib/warcprox"]
+	path = perma_web/lib/warcprox
+	url = https://github.com/jcushman/warcprox.git
