@@ -12,7 +12,7 @@ from pyPdf import PdfFileReader
 from perma.models import Link, Asset
 from perma.forms import UploadFileForm
 from perma.utils import base
-from perma.tasks import start_proxy_record_get_screen_cap, get_source, store_text_cap, get_pdf, get_robots_txt
+from perma.tasks import start_proxy_record_get_screen_cap, store_text_cap, get_pdf, get_robots_txt
 
 from django.shortcuts import render_to_response, HttpResponse
 from django.http import HttpResponseBadRequest
@@ -103,12 +103,7 @@ def linky_post(request):
 
         # Get the text capture of the page (through a service that follows pagination)
         store_text_cap.delay(target_url, target_title, guid)
-        
-        """
-        # Try to crawl the page (but don't follow any links)
-        
-        get_source.delay(guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
-        """
+
         asset = Asset.objects.get(link__guid=guid)
         
         response_object = {'linky_id': guid, 'linky_title': link.submitted_title}
@@ -213,14 +208,6 @@ def upload_file(request):
                 f.close()
 
                 response_object = {'status':'success', 'linky_id':link.guid, 'linky_hash':link.guid}
-
-                """try:
-                    get_source.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
-                    store_text_cap.delay(target_url, target_title, asset)
-                except Exception, e:
-                    # TODO: Log the failed url
-                    asset.pdf_capture = 'failed'
-                    asset.save()"""
 
                 return HttpResponse(json.dumps(response_object), 'application/json')
             else:
