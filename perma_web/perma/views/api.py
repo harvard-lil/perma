@@ -52,8 +52,8 @@ def linky_post(request):
     target_title = url_details.netloc
 
     # Get the markup. We get the mime-type and the title from this.
+    r = requests.get(target_url)
     try:
-        r = requests.get(target_url)
         parsed_html = lxml.html.fromstring(r.content)
     except IOError:
         logger.debug("Title capture from markup failed for %s, using the hostname" % target_url)
@@ -82,12 +82,14 @@ def linky_post(request):
 
     # Create a stub for our assets
     asset, created = Asset.objects.get_or_create(link=link)
-    asset.base_storage_path = os.path.sep.join(path_elements)
-    asset.save()
+    asset.base_storage_path = os.path.join(*path_elements)
 
     # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
     if r.headers['content-type'] in ['application/pdf', 'application/x-pdf'] or target_url.split('.')[-1] == 'pdf':
-        get_pdf.delay(guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
+        asset.pdf_capture = 'pending'
+        asset.save()
+
+        get_pdf.delay(guid, target_url, asset.base_storage_path, request.META['HTTP_USER_AGENT'])
         response_object = {'linky_id': guid, 'message_pdf': True, 'linky_title': link.submitted_title}
         
     else: # else, it's not a PDF. Let's try our best to retrieve what we can
@@ -99,10 +101,10 @@ def linky_post(request):
         
         # start warcprox server to intercept and save traffic between the internet and the headless browser in get_screen_cap
         # Creates screencap with headless browser
-        start_proxy_record_get_screen_cap.delay(guid, target_url, os.path.sep.join(path_elements), user_agent=request.META['HTTP_USER_AGENT'])
+        start_proxy_record_get_screen_cap.delay(guid, target_url, asset.base_storage_path, user_agent=request.META['HTTP_USER_AGENT'])
 
         # Get the text capture of the page (through a service that follows pagination)
-        store_text_cap.delay(target_url, target_title, guid)
+        store_text_cap.delay(guid, target_url, asset.base_storage_path, target_title)
 
         asset = Asset.objects.get(link__guid=guid)
         

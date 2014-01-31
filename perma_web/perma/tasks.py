@@ -30,6 +30,19 @@ from perma.settings import INSTAPAPER_KEY, INSTAPAPER_SECRET, INSTAPAPER_USER, I
 logger = logging.getLogger(__name__)
 
 
+# helpers
+def get_asset_query(link_guid):
+    # we use Asset.objects.filter().update() style updates to avoid race conditions or blocking caused by loading and saving same asset in different threads
+    return Asset.objects.filter(link__guid=link_guid)
+
+def get_storage_path(base_storage_path):
+    return os.path.join(settings.GENERATED_ASSETS_STORAGE, base_storage_path)
+
+def create_storage_dir(storage_path):
+    if not os.path.exists(storage_path):
+        os.makedirs(storage_path)
+
+
 @celery.task
 def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,user_agent=''):
     """
@@ -41,16 +54,16 @@ def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,
 
     This function is usually executed via a synchronous Celery call
     """
+    # basic setup
+    asset_query = get_asset_query(link_guid)
+    storage_path = get_storage_path(base_storage_path)
+    create_storage_dir(storage_path)
 
     # set up storage paths
     image_name = 'cap.png'
     warc_name = 'archive.warc.gz'
-    storage_path = os.path.join(settings.GENERATED_ASSETS_STORAGE, base_storage_path)
     image_path = os.path.join(storage_path, image_name)
     cert_path = os.path.join(storage_path, 'cert.pem')
-
-    if not os.path.exists(storage_path):
-        os.makedirs(storage_path)
 
     # connect warcprox to an open port
     prox_port = 27500
@@ -75,15 +88,13 @@ def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,
         def _close_writer(self):
             if self._fpath:
                 super(WarcWriter, self)._close_writer()
-                asset = Asset.objects.get(link__guid=link_guid)
                 standardized_warc_name = os.path.join(storage_path, warc_name)
                 try:
                     os.rename(os.path.join(storage_path, self._f_finalname), standardized_warc_name)
-                    asset.warc_capture = warc_name
+                    asset_query.update(warc_capture=warc_name)
                 except OSError:
                     logger.info("Web Archive File creation failed for %s" % target_url)
-                    asset.warc_capture = 'failed'
-                asset.save()
+                    asset_query.update(warc_capture='failed')
 
     # start warcprox listener
     warc_writer = WarcWriter(recorded_url_q=recorded_url_q,
@@ -111,41 +122,33 @@ def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,
         warcprox_controller.stop.set()
 
     # save screenshot asset
-    asset = Asset.objects.get(link__guid=link_guid)
     if os.path.exists(image_path):
-        asset.image_capture = "/"+image_name
-        asset.save()
+        asset_query.update(image_capture="/"+image_name)
     else:
-        asset.image_capture = 'failed'
+        asset_query.update(image_capture='failed')
         logger.info("Screen capture failed for %s" % target_url)
-    asset.save()
 
 
 @celery.task
 def get_pdf(link_guid, target_url, base_storage_path, user_agent):
     """
-    Dowload a PDF from the network
+    Download a PDF from the network
 
     This function is usually executed via a synchronous Celery call
     """
-    asset = Asset.objects.get(link__guid=link_guid)
-    asset.pdf_capture = 'pending'
-    asset.save()
-    
-    path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path, 'cap.pdf']
+    # basic setup
+    asset_query = get_asset_query(link_guid)
+    storage_path = get_storage_path(base_storage_path)
+    create_storage_dir(storage_path)
 
-    if not os.path.exists(os.path.sep.join(path_elements[:2])):
-        os.makedirs(os.path.sep.join(path_elements[:2]))
+    pdf_name = 'cap.pdf'
+    pdf_path = os.path.join(storage_path, pdf_name)
 
     # Get the PDF from the network
-    headers = {
-        'User-Agent': user_agent,
-    }
-    r = requests.get(target_url, stream = True, headers=headers)
-    file_path = os.path.sep.join(path_elements)
+    r = requests.get(target_url, stream = True, headers={'User-Agent': user_agent})
 
     try:
-        with open(file_path, 'wb') as f:
+        with open(pdf_path, 'wb') as f:
             for chunk in r.iter_content(chunk_size=1024):
             
                 # Limit our filesize
@@ -158,16 +161,14 @@ def get_pdf(link_guid, target_url, base_storage_path, user_agent):
                     
     except Exception, e:
         logger.info("PDF capture too big, %s" % target_url)
-        os.remove(file_path)
+        os.remove(pdf_path)
 
-    if os.path.exists(os.path.sep.join(path_elements)):
+    if os.path.exists(pdf_path):
         # TODO: run some sort of validation check on the PDF
-        asset.pdf_capture = os.path.sep.join(path_elements[2:])
-        asset.save()
+        asset_query.update(pdf_capture=pdf_name)
     else:
         logger.info("PDF capture failed for %s" % target_url)
-        asset.pdf_capture = 'failed'
-        asset.save()
+        asset_query.update(pdf_capture='failed')
 
 
 def instapaper_capture(url, title):
@@ -204,40 +205,34 @@ def instapaper_capture(url, title):
 
 
 @celery.task
-def store_text_cap(url, title, link_guid):
-    
-    bid, tdata, success = instapaper_capture(url, title)
+def store_text_cap(link_guid, target_url, base_storage_path, title):
+    # basic setup
+    asset_query = get_asset_query(link_guid)
+    storage_path = get_storage_path(base_storage_path)
+    create_storage_dir(storage_path)
+
+    bid, tdata, success = instapaper_capture(target_url, title)
     
     if success:
-        asset = Asset.objects.get(link__guid=link_guid)
-        asset.instapaper_timestamp = datetime.datetime.now()
-        h = smhasher.murmur3_x86_128(tdata)
-        asset.instapaper_hash = h
-        asset.instapaper_id = bid
-        asset.save()
-    
-        file_path = GENERATED_ASSETS_STORAGE + '/' + asset.base_storage_path
-        if not os.path.exists(file_path):
-            os.makedirs(file_path)
+        with open(storage_path + '/instapaper_cap.html', 'wb') as f:
+            f.write(tdata)
 
-        f = open(file_path + '/instapaper_cap.html', 'w')
-        f.write(tdata)
-        os.fsync(f)
-        f.close
-
-        if os.path.exists(file_path + '/instapaper_cap.html'):
-            asset.text_capture = 'instapaper_cap.html'
-            asset.save()
+        if os.path.exists(storage_path + '/instapaper_cap.html'):
+            text_capture = 'instapaper_cap.html'
         else:
-            logger.info("Text (instapaper) capture failed for %s" % url)
-            asset.text_capture = 'failed'
-            asset.save()
+            logger.info("Text (instapaper) capture failed for %s" % target_url)
+            text_capture = 'failed'
+
+        asset_query.update(
+            text_capture=text_capture,
+            instapaper_timestamp=datetime.datetime.now(),
+            instapaper_hash=smhasher.murmur3_x86_128(tdata),
+            instapaper_id=bid
+        )
     else:
         # Must have received something other than an HTTP 200 from Instapaper, or no response object at all
-        logger.info("Text (instapaper) capture failed for %s" % url)
-        asset = Asset.objects.get(link__guid=link_guid)
-        asset.text_capture = 'failed'
-        asset.save()
+        logger.info("Text (instapaper) capture failed for %s" % target_url)
+        asset_query.update(text_capture='failed')
 
 
 @celery.task
