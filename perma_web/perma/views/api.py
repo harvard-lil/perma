@@ -52,14 +52,20 @@ def linky_post(request):
 
     # Get the markup. We get the mime-type and the title from this.
     try:
-        r = requests.get(target_url)
-        parsed_html = lxml.html.fromstring(r.content)
+        r = requests.get(target_url, stream=True)
+        
+        # Only get the content if we get a content-length header and if
+        # it's less than one MB.
+        if 'content-length' in r.headers and int(r.headers['content-length']) < 1024 * 1024:
+            content = r.content
+            parsed_html = lxml.html.fromstring(r.content)
+            if len(parsed_html):
+                if parsed_html.find(".//title") is not None and parsed_html.find(".//title").text:
+                    target_title = parsed_html.find(".//title").text.strip()
+        else:
+            raise IOError
     except IOError:
         logger.debug("Title capture from markup failed for %s, using the hostname" % target_url)
-
-    if len(parsed_html):
-        if parsed_html.find(".//title") is not None and parsed_html.find(".//title").text:
-            target_title = parsed_html.find(".//title").text.strip()
 
     # We have some markup and a title. Let's create a linky from it
     link = Link(submitted_url=target_url, submitted_title=target_title)
@@ -85,7 +91,7 @@ def linky_post(request):
     asset.save()
 
     # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
-    if r.headers['content-type'] in ['application/pdf', 'application/x-pdf'] or target_url.split('.')[-1] == 'pdf':
+    if 'content-type' in r.headers and r.headers['content-type'] in ['application/pdf', 'application/x-pdf'] or target_url.split('.')[-1] == 'pdf':
         get_pdf.delay(guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
         response_object = {'linky_id': guid, 'message_pdf': True, 'linky_title': link.submitted_title}
         
