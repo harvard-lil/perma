@@ -26,6 +26,6 @@ from warc_server.app import application as warc_application
 application = DispatcherMiddleware(
     get_wsgi_application(), # Django
     {
-        '/warc': warc_application
+        '/warc': warc_application,
     }
 )
