@@ -32,9 +32,7 @@
         </p>
     {% endif %}
 
-    <form class="pull-right">
-        <input type="text" name="q" value="{{ search_query|default:"" }}" placeholder="Search {% if current_folder %}'{{ current_folder }}'{% else %}links{% endif %}" class="search-query"/>
-    </form>
+    {% include "user_management/search_form.html" %}
 
     <form method="POST">
 
