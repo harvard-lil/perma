@@ -83,11 +83,19 @@ def cdx(request):
         cdx_file.close()
         cdx_file = open(cdx_path, 'rb')
 
-    # find cdx line for url
+    # find cdx lines for url
     sorted_url = surt.surt(url)
+    out = ""
     for line in cdx_file:
         if line.startswith(sorted_url+" "):
-            return HttpResponse(line, content_type="text/plain")
+            out += line
+        elif out:
+            # file may contain multiple matching lines in a row; we want to return all of them
+            # if we've already found one or more matching lines, and now they're no longer matching, we're done
+            break
+
+    if out:
+        return HttpResponse(out, content_type="text/plain")
 
     print "COULDN'T FIND URL"
     raise Http404 # didn't find requested url in .cdx file
