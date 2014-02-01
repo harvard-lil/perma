@@ -1,11 +1,11 @@
-import random, string, smtplib, logging, json
-from email.mime.text import MIMEText
+import random, string, logging, json
 
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.sites.models import get_current_site
+from django.core.mail import send_mail
 from django.db.models import Q
 from django.utils.http import is_safe_url
 from django.http import HttpResponseRedirect, HttpResponse, Http404
@@ -1005,9 +1005,7 @@ def email_new_user(request, user):
 
     if settings.DEBUG == False:
       host = settings.HOST
-      
-    from_address = settings.DEFAULT_FROM_EMAIL
-    to_address = user.email
+
     content = '''To activate your account, please click the link below or copy it to your web browser.  You will need to create a new password.
 
 http://%s/register/password/%s/
@@ -1016,13 +1014,9 @@ http://%s/register/password/%s/
 
     logger.debug(content)
 
-    msg = MIMEText(content)
-    msg['Subject'] = "A perma account has been created for you"
-    msg['From'] = from_address
-    msg['To'] = to_address
-        
-    # Send the message via our own SMTP server, but don't include the
-    # envelope header.
-    s = smtplib.SMTP('localhost')
-    s.sendmail(from_address, [to_address], msg.as_string())
-    s.quit()
+    send_mail(
+        "A perma account has been created for you",
+        content,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email], fail_silently=False
+    )

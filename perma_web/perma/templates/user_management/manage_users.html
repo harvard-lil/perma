@@ -45,7 +45,7 @@
         <!--<th><input type="checkbox"></th>-->
         <th>Name<a href="?sort=last_name&page={{ users.number }}"> <i class="icon-chevron-up"></i></a><a href="?sort=-last_name&page={{ users.number }}"> <i class="icon-chevron-down"></i></a></th>
         <th>Email<a href="?sort=email&page={{ users.number }}"> <i class="icon-chevron-up"></i></a><a href="?sort=-email&page={{ users.number }}"> <i class="icon-chevron-down"></i></a></th>
-        {% if user|has_group:'registry_member,registrar_member' %}{% if group_name == 'vesting_manager' or group_name == 'vesting_member' %}<th>Vesting Organization<a href="?sort=vesting_org__name&page={{ users.number }}"> <i class="icon-chevron-up"></i></a><a href="?sort=-vesting_org__name&page={{ users.number }}"> <i class="icon-chevron-down"></i></a></th>{% endif %}{% endif %}
+        {% if request.user|has_group:'registry_member,registrar_member' %}{% if group_name == 'vesting_manager' or group_name == 'vesting_member' %}<th>Vesting Organization<a href="?sort=vesting_org__name&page={{ users.number }}"> <i class="icon-chevron-up"></i></a><a href="?sort=-vesting_org__name&page={{ users.number }}"> <i class="icon-chevron-down"></i></a></th>{% endif %}{% endif %}
         {% if group_name == 'registrar_member' %}<th>Registrar<a href="?sort=registrar__name&page={{ users.number }}"> <i class="icon-chevron-up"></i></a><a href="?sort=-registrar__name&page={{ users.number }}"> <i class="icon-chevron-down"></i></a></th>{% endif %}
         <th>Admin<a href="?sort=admin&page={{ users.number }}"> <i class="icon-chevron-up"></i></a><a href="?sort=-admin&page={{ users.number }}"> <i class="icon-chevron-down"></i></a></th>
       </tr>
@@ -60,7 +60,7 @@
           <!--<td><input type="checkbox"></td>-->
           <td>{{ listed_user.first_name }} {{ listed_user.last_name }}</td>
           <td>{{ listed_user.email }}</td>
-        {% if user|has_group:'registry_member,registrar_member' %}{% if group_name == 'vesting_manager' or group_name == 'vesting_member' %}<td>{{listed_user.vesting_org.name}}</td>{% endif %}{% endif %}
+        {% if request.user|has_group:'registry_member,registrar_member' %}{% if group_name == 'vesting_manager' or group_name == 'vesting_member' %}<td>{{listed_user.vesting_org.name}}</td>{% endif %}{% endif %}
         {% if group_name == 'registrar_member' %}<td>{{ listed_user.registrar.name }}</td>{% endif %}
           <td>
         {% if listed_user.is_active %}

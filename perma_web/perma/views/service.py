@@ -1,11 +1,10 @@
-from django.shortcuts import render_to_response, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponse
-from django.core.context_processors import csrf
-from django.core.urlresolvers import reverse
+from django.conf import settings
+from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
 
-import smtplib, json, logging, csv
+import json, logging, csv
 from perma.models import Link, Asset, Stat
-from email.mime.text import MIMEText
 
 logger = logging.getLogger(__name__)
 
@@ -20,21 +19,13 @@ def email_confirm(request):
     
     if not email_address and not linky_link:
         return HttpResponse(status=400)
-    
-    from_address = "info@perma.cc"
-    to_address = email_address
-    content = "%s \n\n(This link is the Perma link)" % linky_link
 
-    msg = MIMEText(content)
-    msg['Subject'] = "The Perma link you requested"
-    msg['From'] = from_address
-    msg['To'] = to_address
-
-    # Send the message via our own SMTP server, but don't include the
-    # envelope header.
-    s = smtplib.SMTP('localhost')
-    s.sendmail(from_address, [to_address], msg.as_string())
-    s.quit()
+    send_mail(
+        "The Perma link you requested",
+        "%s \n\n(This link is the Perma link)" % linky_link,
+        settings.DEFAULT_FROM_EMAIL,
+        [email_address]
+    )
 
     response_object = {"sent": True}
 
@@ -61,16 +52,16 @@ def receive_feedback(request):
 ''' % (visited_page, feedback_text)
     logger.debug(content)
 
-    msg = MIMEText(content)
-    msg['Subject'] = "New Perma feedback"
-    msg['From'] = from_address
-    msg['To'] = to_address
+    #msg = MIMEText(content)
+    #msg['Subject'] = "New Perma feedback"
+    #msg['From'] = from_address
+    #msg['To'] = to_address
         
     # Send the message via our own SMTP server, but don't include the
     # envelope header.
-    s = smtplib.SMTP('localhost')
+    # s = smtplib.SMTP('localhost')
     #s.sendmail(from_address, [to_address], msg.as_string())
-    s.quit()
+    #s.quit()
         
     response_object = {'submitted': 'true', 'content': content}
 
