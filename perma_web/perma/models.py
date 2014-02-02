@@ -268,7 +268,7 @@ class Asset(models.Model):
     instapaper_id = models.IntegerField(null=True)
 
     def base_url(self, extra=u""):
-        return settings.STATIC_URL+self.base_storage_path+extra
+        return settings.STATIC_URL+self.base_storage_path+"/"+extra
 
     def image_url(self):
         return self.base_url(self.image_capture)
