@@ -1686,10 +1686,10 @@ ul.nav.navbar-nav.tabbed.tab-styling.active-view, ul.nav.navbar-nav.tabbed a.tab
 	width:100%;
 }
 
-ul li span#warc_cap_container_loading .tab-styling, span#warc_cap_container_complete .tab-styling, span#text_cap_container_loading .tab-styling, span#text_cap_container_complete .tab-styling {
+ul li span#warc_cap_container_loading .tab-styling, span#warc_cap_container_complete .tab-styling, span#pdf_cap_container_loading .tab-styling, span#pdf_cap_container_complete .tab-styling, span#text_cap_container_loading .tab-styling, span#text_cap_container_complete .tab-styling {
 	/*position:static*/
 	cursor:default;
-	}
+}
 
 span#text_cap_container_complete a.tab-styling {
 
@@ -1701,18 +1701,17 @@ a.tab-styling, .tab-styling {
 }
 
 #warc_cap_container_loading, #pdf_cap_container_loading, #text_cap_container_loading {
-	
-	background-repeat:no-repeat;
-	background-color:#09f;
-	padding-left: 33px;
-	float:right;
-	cursor:default;
-	-webkit-touch-callout: none;
--webkit-user-select: none;
--khtml-user-select: none;
--moz-user-select: none;
--ms-user-select: none;
-user-select: none;
+    background-repeat:no-repeat;
+    background-color:#09f;
+    padding-left: 33px;
+    float:right;
+    cursor:default;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .spinner {

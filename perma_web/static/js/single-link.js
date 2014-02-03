@@ -376,6 +376,9 @@ var spinner = new Spinner(opts).spin(target);
 var target = document.getElementById('warc_cap_container_loading');
 var spinner = new Spinner(opts).spin(target);
 
+var target = document.getElementById('pdf_cap_container_loading');
+var spinner = new Spinner(opts).spin(target);
+
 
 
 	var refreshIntervalId = 0;
@@ -414,7 +417,8 @@ var spinner = new Spinner(opts).spin(target);
 
 	$(document).ready(function() {
 		
-		if ($('#warc_cap_container_loading').is(":visible") || $('#text_cap_container_loading').is(":visible")){		
+		if ($('#warc_cap_container_loading').is(":visible") || $('#text_cap_container_loading').is(":visible") 
+		    || $('#pdf_cap_container_loading').is(":visible")){		
     		refreshIntervalId = setInterval(check_status, 2000);
     	}
     	
