@@ -6,10 +6,11 @@
 
 {% block content %}
 
+    {% include "user_management/includes/search_form.html" %}
 
-		<h3>Existing vesting organizations <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
+	<h3>Existing vesting organizations <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
 		
-		<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
+	<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
       <form method="post">
         {% csrf_token %}
         <h4>Add a new vesting organization</h4>
@@ -28,42 +29,35 @@
         <button type="submit" class="btn-success">Create new vesting organization</button>
       </form>
     </div>
-		
-		<table class="table">
-    <thead>
-      <tr>
-        <!--<th><input type="checkbox"></th>-->
-        <th>Name<a href="?sort=name"> <i class="icon-chevron-up"></i></a><a href="?sort=-name"> <i class="icon-chevron-down"></i></a></th>
-        <th>Registrar<a href="?sort=registrar__name"> <i class="icon-chevron-up"></i></a><a href="?sort=-registrar__name"> <i class="icon-chevron-down"></i></a></th>
-        <th>Admin</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for vesting_org in vesting_orgs %}
-        <tr>
-          <!--<td><input type="checkbox"></td>-->
-          <td class="registrar-name-cell">{{ vesting_org.name }}</td>
-          <td>{{ vesting_org.registrar.name }}</td>
-          <td><a href="{% url 'user_management_manage_single_vesting_org' vesting_org.id %}">edit</a></td>
-      {% empty %}
-        <tr>No vesting organizations found.</tr>
-      {% endfor %}
-    </tbody>
-  </table>
-      {% if vesting_orgs.paginator.num_pages > 1 %}
-<div class="pagination">
-    <ul class="pagination">
-        {% if vesting_orgs.has_previous %}<li><a href="?page={{ vesting_orgs.previous_page_number }}&sort={{ sort }}">&lt;</a></li>{% endif %}
-        {% for i in vesting_orgs.paginator.page_range %}
-        {% ifequal i vesting_orgs.number %}
-        <li class="active"><a href="">{{ i }}</a></li>
-        {% else %}
-        <li><a href="?page={{ i }}">{{ i }}</a></li>
-        {% endifequal %}
-        {% endfor %}
-        {% if vesting_orgs.has_next  %}<li><a href="?page={{ vesting_orgs.next_page_number }}&sort={{ sort }}">&gt;</a></li>{% endif %}
-    </ul>
-</div>
-{% endif %}
+
+    {% if search_query %}
+        <p><em>Search results for "{{ search_query }}". <a href="?q=">Clear search.</a></em></p>
+    {% endif %}
+
+    {% if vesting_orgs %}
+        <table class="table">
+        <thead>
+          <tr>
+            <!--<th><input type="checkbox"></th>-->
+            <th>Name<a href="?sort=name{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-name{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>
+            <th>Registrar<a href="?sort=registrar__name{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-registrar__name{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>
+            <th>Admin</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for vesting_org in vesting_orgs %}
+            <tr>
+              <!--<td><input type="checkbox"></td>-->
+              <td class="registrar-name-cell">{{ vesting_org.name }}</td>
+              <td>{{ vesting_org.registrar.name }}</td>
+              <td><a href="{% url 'user_management_manage_single_vesting_org' vesting_org.id %}">edit</a></td>
+          {% endfor %}
+        </tbody>
+        </table>
+    {% else %}
+        <p>No vesting organizations found.</p>
+    {% endif %}
+
+    {% include "user_management/includes/paginator.html" with page=vesting_orgs %}
 
 {% endblock %}

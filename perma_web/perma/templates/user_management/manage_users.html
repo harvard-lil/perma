@@ -7,8 +7,10 @@
 
 {% block content %}
 
-	<h3>Existing {{ pretty_group_name_plural|lower }} <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
-	
+    {% include "user_management/includes/search_form.html" %}
+
+    <h3>Existing {{ pretty_group_name_plural|lower }} <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
+
 	{% if messages %}
         {% for message in messages %}
             <div class="alert alert-success alert-block">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
@@ -16,81 +18,73 @@
     {% endif %}
 	
 	{% if added_user %}
-    <div class="alert alert-success alert-block"><h4>Account created!</h4> <strong>{{ added_user }}</strong> will receive an email with instructions on how to activate the account and create a password.</div>
-  {% endif %}
+        <div class="alert alert-success alert-block"><h4>Account created!</h4> <strong>{{ added_user }}</strong> will receive an email with instructions on how to activate the account and create a password.</div>
+    {% endif %}
+
+    {% if search_query %}
+        <p><em>Search results for "{{ search_query }}". <a href="?q=">Clear search.</a></em></p>
+    {% endif %}
 
 	<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
-    <form method="post">
-      {% csrf_token %}
-		  <h4>Add a new {{ pretty_group_name|lower }}</h4>
-		  <fieldset>
-		  <span class="text-error">{{ form.non_field_errors }}</span>
-        {% for field in form %}
-          <label for="id_{{ field.name }}">{{ field.label }}</label><br/>
-          {{ field }}
-          {% if field.errors %}<br/>
-            {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
-          {%elif field.help_text %}
-            <span class="help-inline">{{ field.help_text }}</span>
-          {% endif %}<br/>
-        {% endfor %}  
-      </fieldset>
-      <button type="submit" class="btn-success">Add {{ pretty_group_name|lower }}</button>
-    </form>
-  </div>
-		
-	<table class="table">
-    <thead>
-      <tr>
-        <!--<th><input type="checkbox"></th>-->
-        <th>Name<a href="?sort=last_name&page={{ users.number }}"> <i class="icon-chevron-up"></i></a><a href="?sort=-last_name&page={{ users.number }}"> <i class="icon-chevron-down"></i></a></th>
-        <th>Email<a href="?sort=email&page={{ users.number }}"> <i class="icon-chevron-up"></i></a><a href="?sort=-email&page={{ users.number }}"> <i class="icon-chevron-down"></i></a></th>
-        {% if request.user|has_group:'registry_member,registrar_member' %}{% if group_name == 'vesting_manager' or group_name == 'vesting_member' %}<th>Vesting Organization<a href="?sort=vesting_org__name&page={{ users.number }}"> <i class="icon-chevron-up"></i></a><a href="?sort=-vesting_org__name&page={{ users.number }}"> <i class="icon-chevron-down"></i></a></th>{% endif %}{% endif %}
-        {% if group_name == 'registrar_member' %}<th>Registrar<a href="?sort=registrar__name&page={{ users.number }}"> <i class="icon-chevron-up"></i></a><a href="?sort=-registrar__name&page={{ users.number }}"> <i class="icon-chevron-down"></i></a></th>{% endif %}
-        <th>Admin<a href="?sort=admin&page={{ users.number }}"> <i class="icon-chevron-up"></i></a><a href="?sort=-admin&page={{ users.number }}"> <i class="icon-chevron-down"></i></a></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for listed_user in users_list %}
-      {% if not listed_user.is_active %}
-        <tr class="muted">
-      {% else %}
-        <tr>
-      {% endif %}
-          <!--<td><input type="checkbox"></td>-->
-          <td>{{ listed_user.first_name }} {{ listed_user.last_name }}</td>
-          <td>{{ listed_user.email }}</td>
-        {% if request.user|has_group:'registry_member,registrar_member' %}{% if group_name == 'vesting_manager' or group_name == 'vesting_member' %}<td>{{listed_user.vesting_org.name}}</td>{% endif %}{% endif %}
-        {% if group_name == 'registrar_member' %}<td>{{ listed_user.registrar.name }}</td>{% endif %}
-          <td>
-        {% if listed_user.is_active %}
-          <a href="{% url single_user_url listed_user.id %}">edit/delete</a>
-        {% elif listed_user.is_confirmed %}
-			    <span class="text-warning">deactivated account</span> <a href="{% url reactivate_user_url listed_user.id %}">reactivate</a>
-			  {% else %}
-			    <span class="text-warning">user must activate account</span> (<a href="{% url delete_user_url listed_user.id %}">delete</a>)
-			  {% endif %}
-			  </td>
-      {% empty %}
-        <tr>No {{ pretty_group_name_plural|lower }} found.</tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  
-{% if users.paginator.num_pages > 1 %}
-<div class="pagination">
-    <ul class="pagination">
-        {% if users.has_previous %}<li><a href="?page={{ users.previous_page_number }}&sort={{ sort }}">&lt;</a></li>{% endif %}
-        {% for i in users.paginator.page_range %}
-        {% ifequal i users.number %}
-        <li class="active"><a href="">{{ i }}</a></li>
-        {% else %}
-        <li><a href="?page={{ i }}&sort={{ sort }}">{{ i }}</a></li>
-        {% endifequal %}
-        {% endfor %}
-        {% if users.has_next  %}<li><a href="?page={{ users.next_page_number }}&sort={{ sort }}">&gt;</a></li>{% endif %}
-    </ul>
-</div>
-{% endif %}
+        <form method="post">
+          {% csrf_token %}
+              <h4>Add a new {{ pretty_group_name|lower }}</h4>
+              <fieldset>
+              <span class="text-error">{{ form.non_field_errors }}</span>
+            {% for field in form %}
+              <label for="id_{{ field.name }}">{{ field.label }}</label><br/>
+              {{ field }}
+              {% if field.errors %}<br/>
+                {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+              {%elif field.help_text %}
+                <span class="help-inline">{{ field.help_text }}</span>
+              {% endif %}<br/>
+            {% endfor %}
+          </fieldset>
+          <button type="submit" class="btn-success">Add {{ pretty_group_name|lower }}</button>
+        </form>
+    </div>
+
+    {% if users_list %}
+        <table class="table">
+        <thead>
+          <tr>
+            <!--<th><input type="checkbox"></th>-->
+            <th>Name<a href="?sort=last_name&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-last_name&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>
+            <th>Email<a href="?sort=email&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-email&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>
+            {% if request.user|has_group:'registry_member,registrar_member' %}{% if group_name == 'vesting_manager' or group_name == 'vesting_member' %}<th>Vesting Organization<a href="?sort=vesting_org__name&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-vesting_org__name&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>{% endif %}{% endif %}
+            {% if group_name == 'registrar_member' %}<th>Registrar<a href="?sort=registrar__name&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-registrar__name&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>{% endif %}
+            <th>Admin<a href="?sort=admin&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-admin&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for listed_user in users_list %}
+          {% if not listed_user.is_active %}
+            <tr class="muted">
+          {% else %}
+            <tr>
+          {% endif %}
+              <!--<td><input type="checkbox"></td>-->
+              <td>{{ listed_user.first_name }} {{ listed_user.last_name }}</td>
+              <td>{{ listed_user.email }}</td>
+            {% if request.user|has_group:'registry_member,registrar_member' %}{% if group_name == 'vesting_manager' or group_name == 'vesting_member' %}<td>{{listed_user.vesting_org.name}}</td>{% endif %}{% endif %}
+            {% if group_name == 'registrar_member' %}<td>{{ listed_user.registrar.name }}</td>{% endif %}
+              <td>
+            {% if listed_user.is_active %}
+              <a href="{% url single_user_url listed_user.id %}">edit/delete</a>
+            {% elif listed_user.is_confirmed %}
+                    <span class="text-warning">deactivated account</span> <a href="{% url reactivate_user_url listed_user.id %}">reactivate</a>
+                  {% else %}
+                    <span class="text-warning">user must activate account</span> (<a href="{% url delete_user_url listed_user.id %}">delete</a>)
+                  {% endif %}
+                  </td>
+          {% endfor %}
+        </tbody>
+        </table>
+    {% else %}
+        <p>No {{ pretty_group_name_plural|lower }} found.</p>
+    {% endif %}
+
+    {% include "user_management/includes/paginator.html" with page=users %}
 
 {% endblock %}

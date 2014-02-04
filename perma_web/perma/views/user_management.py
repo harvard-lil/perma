@@ -95,12 +95,22 @@ def manage_registrar(request):
     if page < 1:
         page = 1
     registrars = Registrar.objects.all().order_by(sort)
-    
+
+    # handle search
+    search_query = request.GET.get('q', None)
+    if search_query:
+        registrars = registrars.filter(
+            Q(name__icontains=search_query),
+            Q(email__icontains=search_query),
+            Q(website__icontains=search_query),
+        )
+
     paginator = Paginator(registrars, settings.MAX_USER_LIST_SIZE)
     registrars = paginator.page(page)
 
     context = {'registrars_list': list(registrars), 'registrars': registrars,
-        'this_page': 'users_registrars'}
+        'this_page': 'users_registrars',
+        'search_query':search_query}
 
     if request.method == 'POST':
 
@@ -174,12 +184,20 @@ def manage_vesting_org(request):
         is_registry = True;
     else:
       vesting_orgs = VestingOrg.objects.filter(registrar_id=request.user.registrar_id).order_by(sort)
-    
+
+    # handle search
+    search_query = request.GET.get('q', None)
+    if search_query:
+        vesting_orgs = vesting_orgs.filter(
+            Q(name__icontains=search_query)
+        )
+
     paginator = Paginator(vesting_orgs, settings.MAX_USER_LIST_SIZE)
     vesting_orgs = paginator.page(page)
 
     context = {'vesting_orgs_list': list(vesting_orgs), 'vesting_orgs': vesting_orgs,
-        'this_page': 'users_vesting_orgs'}
+        'this_page': 'users_vesting_orgs',
+        'search_query':search_query}
 
     if request.method == 'POST':
 
@@ -351,6 +369,15 @@ def list_users_in_group(request, group_name):
     elif request.user.has_group('vesting_manager'):
         users = LinkUser.objects.filter(vesting_org=request.user.vesting_org).exclude(id=request.user.id).order_by(*sorts())
 
+    # handle search
+    search_query = request.GET.get('q', None)
+    if search_query:
+        users = users.filter(
+            Q(email__icontains=search_query) |
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query)
+        )
+
     paginator = Paginator(users, settings.MAX_USER_LIST_SIZE)
     users = paginator.page(page)
 
@@ -366,6 +393,7 @@ def list_users_in_group(request, group_name):
         'single_user_url':'user_management_manage_single_{group_name}'.format(group_name=group_name),
         'delete_user_url':'user_management_manage_single_{group_name}_delete'.format(group_name=group_name),
         'sort': sorts()[0],
+        'search_query': search_query,
     }
     context['pretty_group_name_plural'] = context['pretty_group_name'] + "s"
 
@@ -746,7 +774,10 @@ def link_browser(request, path, link_filter, this_page, verb):
     link_count = Link.objects.filter(**link_filter).count()
 
     context = {'linky_links': linky_links, 'link_count':link_count,
-               'sort': sort, 'search_query':search_query, 'this_page': this_page, 'verb': verb,
+               'sort': sort,
+               'search_query':search_query,
+               'search_placeholder':"Search %s" % (current_folder if current_folder else "links"),
+               'this_page': this_page, 'verb': verb,
                'subfolders':subfolders, 'path':path, 'folder_breadcrumbs':folder_breadcrumbs,
                'current_folder':current_folder,
                'all_folders':all_folders,
