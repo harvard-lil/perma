@@ -112,7 +112,7 @@ def manage_registrar(request):
             return HttpResponseRedirect(reverse('user_management_manage_registrar'))
 
         else:
-            context.update({'form': form, 'add_error': True})
+            context.update({'form': form})
     else:
         form = registrar_form(prefix = "a")
         context.update({'form': form,})
@@ -197,7 +197,7 @@ def manage_vesting_org(request):
             return HttpResponseRedirect(reverse('user_management_manage_vesting_org'))
 
         else:
-            context.update({'form': form, 'add_error': True})
+            context.update({'form': form})
     else:
         if is_registry:
             form = vesting_org_w_registrar_form(prefix = "a")
@@ -411,9 +411,6 @@ def list_users_in_group(request, group_name):
 
             messages.add_message(request, messages.INFO, '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % new_user.email, extra_tags='safe')
             return HttpResponseRedirect(reverse(context['user_list_url']))
-
-        else:
-            context['add_error'] = True
 
     context['form'] = form
 

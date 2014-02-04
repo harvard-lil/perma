@@ -11,7 +11,7 @@
 
 		<h3>Existing registrars <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
 		
-		<div id="add-member" class="collapse {% if add_error %}in{% endif %}">
+		<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
       <form method="post">
         {% csrf_token %}
         <h4>Add a new registrar</h4>
