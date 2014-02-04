@@ -981,7 +981,7 @@ img.watermark-image {
 	margin:0 auto -60%;
 	opacity:.6;
 	width:70%;
-	
+	pointer-events:none;
 }
 .watermark h2, .watermark h1 {
 
