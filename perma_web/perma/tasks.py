@@ -1,6 +1,6 @@
 import os, sys, subprocess, urllib, glob, shutil, urlparse, simplejson, datetime, smhasher, logging, robotparser, re
 from djcelery import celery
-import requests
+import lxml.html, requests
 from django.conf import settings
 
 from perma.models import Asset, Stat, Registrar, LinkUser, Link, VestingOrg
@@ -251,7 +251,7 @@ def store_text_cap(url, title, link_guid):
 
 
 @celery.task
-def get_robots_txt(url, link_guid, parsed_html=None):
+def get_robots_txt(url, link_guid, content):
     """
     A task (hopefully called asynchronously) to get the meta element for a
     noarchive value andto get the robots.txt rule for PermaBot.
@@ -266,7 +266,8 @@ def get_robots_txt(url, link_guid, parsed_html=None):
     """
     
     # Sometimes we don't get markup. Only look for meta values if we get markup
-    if len(parsed_html):
+    if content:
+        parsed_html = lxml.html.fromstring(content)
         metas = parsed_html.xpath('//meta')
         
         # Look at all meta elements and grab any that have a name of 'robots' or
