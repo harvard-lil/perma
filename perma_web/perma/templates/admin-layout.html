@@ -1,6 +1,10 @@
 {% extends "layout-responsive.html" %}
 {% load startswith has_group %}
 
+{% block styles %}
+    {# put in styles because this has to be available during page load #}
+    <script src="{{ STATIC_PREFIX }}js/local-datetime.js"></script>
+{% endblock %}
 
 {% block row %}
 
