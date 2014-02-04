@@ -93,6 +93,8 @@ def linky_post(request):
 
     # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
     if 'content-type' in r.headers and r.headers['content-type'] in ['application/pdf', 'application/x-pdf'] or target_url.split('.')[-1] == 'pdf':
+        asset.pdf_capture = 'pending'
+        asset.save()
         get_pdf.delay(guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
         response_object = {'linky_id': guid, 'message_pdf': True, 'linky_title': link.submitted_title}
         
