@@ -20,7 +20,25 @@ from django.contrib import messages
 from mptt.exceptions import InvalidMove
 from ratelimit.decorators import ratelimit
 
-from perma.forms import user_reg_form, registrar_form, vesting_manager_form_edit, vesting_manager_w_group_form_edit, vesting_member_form_edit, vesting_member_w_group_form_edit, registrar_member_form_edit, user_form_self_edit, user_form_edit, set_password_form, create_user_form, create_user_form_w_registrar, vesting_org_w_registrar_form, create_user_form_w_vesting_org, vesting_member_w_vesting_org_form_edit, vesting_org_form, user_add_registrar_form, user_add_vesting_org_form
+from perma.forms import (
+    user_reg_form, 
+    registrar_form, 
+    vesting_manager_form_edit, 
+    vesting_manager_w_group_form_edit, 
+    vesting_member_form_edit, 
+    vesting_member_w_group_form_edit, 
+    registrar_member_form_edit, 
+    user_form_self_edit, 
+    user_form_edit, 
+    set_password_form, 
+    create_user_form, 
+    create_user_form_w_registrar, 
+    vesting_org_w_registrar_form, 
+    create_user_form_w_vesting_org, 
+    vesting_member_w_vesting_org_form_edit, 
+    vesting_org_form, user_add_registrar_form, 
+    user_add_vesting_org_form
+)
 from perma.models import Registrar, Link, LinkUser, VestingOrg, Folder
 from perma.utils import require_group
 
@@ -94,7 +112,7 @@ def manage_registrar(request):
             return HttpResponseRedirect(reverse('user_management_manage_registrar'))
 
         else:
-            context.update({'form': form, 'add_error': True})
+            context.update({'form': form})
     else:
         form = registrar_form(prefix = "a")
         context.update({'form': form,})
@@ -179,7 +197,7 @@ def manage_vesting_org(request):
             return HttpResponseRedirect(reverse('user_management_manage_vesting_org'))
 
         else:
-            context.update({'form': form, 'add_error': True})
+            context.update({'form': form})
     else:
         if is_registry:
             form = vesting_org_w_registrar_form(prefix = "a")
@@ -392,9 +410,6 @@ def list_users_in_group(request, group_name):
 
             messages.add_message(request, messages.INFO, '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % new_user.email, extra_tags='safe')
             return HttpResponseRedirect(reverse(context['user_list_url']))
-
-        else:
-            context['add_error'] = True
 
     context['form'] = form
 
