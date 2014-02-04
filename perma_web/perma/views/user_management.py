@@ -387,8 +387,6 @@ def list_users_in_group(request, group_name):
         if form.is_valid():
             new_user = form.save()
 
-            new_user.backend='django.contrib.auth.backends.ModelBackend'
-
             new_user.is_active = False
 
             if group_name == 'vesting_member':
