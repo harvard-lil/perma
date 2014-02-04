@@ -49,7 +49,8 @@ def linky_post(request):
     # Somtimes we can't get a title from the markup. If not, use the domain
     url_details = urlparse(target_url)
     target_title = url_details.netloc
-
+    parsed_html = None
+    
     # Get the markup. We get the mime-type and the title from this.
     try:
         r = requests.get(target_url, stream=True)
@@ -121,7 +122,7 @@ def linky_post(request):
 
 
     # We should note robots.txt requirements. Here we'll decide if flag the archive should be flagged for the "darchive"
-    get_robots_txt.delay(target_url, guid)
+    get_robots_txt.delay(target_url, guid, parsed_html)
 
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)

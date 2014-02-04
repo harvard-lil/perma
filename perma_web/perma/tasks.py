@@ -251,11 +251,44 @@ def store_text_cap(url, title, link_guid):
 
 
 @celery.task
-def get_robots_txt(url, link_guid):
+def get_robots_txt(url, link_guid, parsed_html=None):
     """
-    A task (hopefully called asynchronously) to get the robots.txt rule for PermaBot.
-    We will still grab the content (we're not a crawler), but we'll "darchive it."
+    A task (hopefully called asynchronously) to get the meta element for a
+    noarchive value andto get the robots.txt rule for PermaBot.
+    We will still grab the content (we're not a crawler), but we'll "darchive
+    it."
+    
+    If we see a "noarchive" value for a meta element with the name 'robots' or
+    'permabot' we'll send the arvhive to the darachive.
+    
+    If we don't see noarchive rule in a meta element, check the robots.txt to 
+    see if permabot is specifically denied.
     """
+    
+    # Sometimes we don't get markup. Only look for meta values if we get markup
+    if len(parsed_html):
+        metas = parsed_html.xpath('//meta')
+        
+        # Look at all meta elements and grab any that have a name of 'robots' or
+        # 'permabot'. If we see any, send to the darchive if the have a value
+        # of 'noarchive' in the 'content atrribute'
+        # So, something like this will be sent to the darchive:
+        # <meta name="ROBOTS" content="NOARCHIVE" />
+        for meta in metas:
+            meta_name = meta.get('name')
+            if meta_name and meta_name.lower() in ['robots', 'permabot']:
+                meta_content = meta.get('content')
+                if meta_content:
+                    bot_values = meta_content.split(',')
+                    bot_values = [item.lower() for item in bot_values]
+                    if 'noarchive' in bot_values:
+                        link = Link.objects.get(guid=link_guid)
+                        link.dark_archived_robots_txt_blocked = True
+                        link.save()
+
+                        return
+    
+    # Didn't see a noarchive value in a meta element. let's look at robots.txt
     
     # Parse the URL so and build the robots.txt location
     parsed_url = urlparse.urlparse(url)
