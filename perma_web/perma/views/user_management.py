@@ -309,7 +309,6 @@ def list_users_in_group(request, group_name):
         sorts = DEFAULT_SORT
 
         sort = request.GET.get('sort', DEFAULT_SORT)
-        print sort
         if sort not in valid_member_sorts:
             sorts = DEFAULT_SORT
         elif sort == 'admin':

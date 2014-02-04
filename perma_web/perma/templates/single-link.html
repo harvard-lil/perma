@@ -1,6 +1,9 @@
 {% extends "layout-archive-responsive.html" %}
 {% load file_exists  truncatesmart diff has_group is_darchive %}
 {% block title %} | {{linky.submitted_title}}{% endblock %}
+{% block meta-head %}
+<meta name="robots" content="none, noodp, noimageindex">
+{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 	{% if serve_type == 'text' %}
