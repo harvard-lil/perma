@@ -19,7 +19,7 @@ from perma.utils import base, require_group
 from ratelimit.decorators import ratelimit
 
 logger = logging.getLogger(__name__)
-
+valid_serve_types = ['image','pdf','source','text']
 
 class DirectTemplateView(TemplateView):
     extra_context = None
@@ -68,8 +68,11 @@ def cdx(request):
             warc_path = os.path.join(settings.GENERATED_ASSETS_STORAGE, asset.base_storage_path, asset.warc_capture)
             break
     else:
-        print "COULDN'T FIND WARC"
-        raise Http404 # no .warc file -- do something to handle this
+        if settings.USE_WARC_ARCHIVE:
+            print "COULDN'T FIND WARC"
+            raise Http404 # no .warc file -- do something to handle this
+        else:
+            warc_path = os.path.join(settings.GENERATED_ASSETS_STORAGE, asset.base_storage_path, "archive.warc.gz")
 
     # get cdx file
     cdx_path = warc_path.replace('.gz', '').replace('.warc', '.cdx')
@@ -132,29 +135,24 @@ def single_linky(request, linky_guid):
         asset = Asset.objects.get(link=link)
 
 
-        text_capture = None
 
         # User requested archive type
-        serve_type = 'live'
+        if not settings.USE_WARC_ARCHIVE:
+            valid_serve_types = ['image','pdf','source','text', 'warc']
+        else:
+            global valid_serve_types
+        serve_type = request.GET.get('type','live')
+        if not serve_type in valid_serve_types:
+            serve_type = 'live'
 
-        if 'type' in request.REQUEST:
-            requested_type = request.REQUEST['type']
-        
-            if requested_type == 'image':
-                serve_type = 'image'
-            elif requested_type == 'pdf':
-                serve_type = 'pdf'
-            elif requested_type == 'source':
-                serve_type = 'source'
-            elif requested_type == 'text':
-                serve_type = 'text'
-                            
-                if asset.text_capture and asset.text_capture != 'pending':
-                    path_elements = [settings.GENERATED_ASSETS_STORAGE, asset.base_storage_path, asset.text_capture]
-                    file_path = os.path.sep.join(path_elements)
-                
-                    with open(file_path, 'r') as f:
-                        text_capture = f.read()
+        text_capture = None
+        if serve_type == 'text':
+            if asset.text_capture and asset.text_capture != 'pending':
+                path_elements = [settings.GENERATED_ASSETS_STORAGE, asset.base_storage_path, asset.text_capture]
+                file_path = os.path.sep.join(path_elements)
+
+                with open(file_path, 'r') as f:
+                    text_capture = f.read()
             
         # If we are going to serve up the live version of the site, let's make sure it's iframe-able
         display_iframe = False

@@ -167,3 +167,6 @@ LOGIN_DAY_LIMIT = '50000/d'
 MAX_USER_LIST_SIZE = 100
 
 PHANTOMJS_BINARY = os.path.join(PROJECT_ROOT, 'lib/phantomjs')
+
+# temporary setting to keep warcs out of production during testing
+USE_WARC_ARCHIVE = False

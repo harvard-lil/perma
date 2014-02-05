@@ -23,8 +23,6 @@ from socket import error as socket_error
 from django.conf import settings
 
 from perma.models import Asset, Stat, Registrar, LinkUser, Link, VestingOrg
-from perma.exceptions import BrokenURLError
-from perma.settings import INSTAPAPER_KEY, INSTAPAPER_SECRET, INSTAPAPER_USER, INSTAPAPER_PASS, GENERATED_ASSETS_STORAGE
 
 
 logger = logging.getLogger(__name__)
@@ -96,10 +94,12 @@ def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,
                 standardized_warc_name = os.path.join(storage_path, warc_name)
                 try:
                     os.rename(os.path.join(storage_path, self._f_finalname), standardized_warc_name)
-                    asset_query.update(warc_capture=warc_name)
+                    if settings.USE_WARC_ARCHIVE:
+                        asset_query.update(warc_capture=warc_name)
                 except OSError:
-                    logger.info("Web Archive File creation failed for %s" % target_url)
-                    asset_query.update(warc_capture='failed')
+                    if settings.USE_WARC_ARCHIVE:
+                        logger.info("Web Archive File creation failed for %s" % target_url)
+                        asset_query.update(warc_capture='failed')
 
     # start warcprox listener
     warc_writer = WarcWriter(recorded_url_q=recorded_url_q,
@@ -128,10 +128,96 @@ def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,
 
     # save screenshot asset
     if os.path.exists(image_path):
-        asset_query.update(image_capture="/"+image_name)
+        asset_query.update(image_capture=image_name)
     else:
         asset_query.update(image_capture='failed')
         logger.info("Screen capture failed for %s" % target_url)
+
+
+@celery.task
+def get_source(link_guid, target_url, base_storage_path, user_agent=''):
+    """
+Download the source that is used to generate the page at the supplied URL.
+Assets are written to disk, in a directory called "source". If things go well, we update our
+assets model with the path.
+We use a robust wget command for this.
+
+This function is usually executed via an asynchronous Celery call
+"""
+    asset_query = get_asset_query(link_guid)
+
+    path_elements = [settings.GENERATED_ASSETS_STORAGE, base_storage_path, 'source', 'index.html']
+
+    directory = os.path.sep.join(path_elements[:3])
+
+    headers = {
+        #'Accept': ','.join(settings.ACCEPT_CONTENT_TYPES),
+        #'User-Agent': user_agent,
+    }
+
+    """ Get the markup and assets, update our db, and write them to disk """
+    # Construct wget command
+    command = 'wget '
+    command = command + '--quiet ' # turn off wget's output
+    command = command + '--tries=' + str(settings.NUMBER_RETRIES) + ' ' # number of retries (assuming no 404 or the like)
+    command = command + '--wait=' + str(settings.WAIT_BETWEEN_TRIES) + ' ' # number of seconds between requests (lighten the load on a page that has a lot of assets)
+    command = command + '--quota=' + settings.ARCHIVE_QUOTA + ' ' # only store this amount
+    command = command + '--random-wait ' # random wait between .5 seconds and --wait=
+    command = command + '--limit-rate=' + settings.ARCHIVE_LIMIT_RATE + ' ' # we'll be performing multiple archives at once. let's not download too much in one stream
+    command = command + '--adjust-extension ' # if a page is served up at .asp, adjust to .html. (this is the new --html-extension flag)
+    command = command + '--span-hosts ' # sometimes things like images are hosted at a CDN. let's span-hosts to get those
+    command = command + '--convert-links ' # rewrite links in downloaded source so they can be viewed in our local version
+    command = command + '-e robots=off ' # we're not crawling, just viewing the page exactly as you would in a web-browser.
+    command = command + '--page-requisites ' # get the things required to render the page later. things like images.
+    command = command + '--no-directories ' # when downloading, flatten the source. we don't need a bunch of dirs.
+    command = command + '--no-check-certificate ' # We don't care too much about busted certs
+    command = command + '--user-agent="' + user_agent + '" ' # pass through our user's user agent
+    command = command + '--directory-prefix=' + directory + ' ' # store our downloaded source in this directory
+
+    # Add headers (defined earlier in this function)
+    for key, value in headers.iteritems():
+        command = command + '--header="' + key + ': ' + value + '" '
+
+    command = command + target_url
+
+    # Download page data and dependencies
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    #TODO replace os.popen with subprocess
+    output = os.popen(command)
+
+    # Verify success
+    if '400 Bad Request' in output:
+        logger.info("Source capture failed for %s" % target_url)
+        asset_query.update(warc_capture='failed')
+
+    filename = urllib.unquote(target_url.split('/')[-1]).decode('utf8')
+    if filename != '' and 'index.html' not in os.listdir(directory):
+        try:
+            src = os.path.join(directory, filename)
+            des = os.path.sep.join(path_elements)
+            shutil.move(src, des)
+        except:
+            # Rename the file as index.html if it contains '<html'
+            counter = 0
+            for filename in glob.glob(directory + '/*'):
+                with open(filename) as f:
+                    if '<html' in f.read():
+                        shutil.move(os.path.join(directory, filename), os.path.sep.join(path_elements))
+                        counter = counter + 1
+            if counter == 0:
+                # If we still don't have an index.html file, raise an exception and record it to the DB
+                asset_query.update(warc_capture='failed')
+
+                logger.info("Source capture got some content, but couldn't rename to index.html for %s" % target_url)
+                os.system('rm -rf ' + directory)
+
+    if os.path.exists(os.path.sep.join(path_elements)):
+        asset_query.update(warc_capture=os.path.sep.join(path_elements[2:]))
+    else:
+        logger.info("Source capture failed for %s" % target_url)
+        asset_query.update(warc_capture='failed')
 
 
 @celery.task
@@ -177,13 +263,13 @@ def get_pdf(link_guid, target_url, base_storage_path, user_agent):
 
 
 def instapaper_capture(url, title):
-    consumer = oauth.Consumer(INSTAPAPER_KEY, INSTAPAPER_SECRET)
+    consumer = oauth.Consumer(settings.INSTAPAPER_KEY, settings.INSTAPAPER_SECRET)
     client = oauth.Client(consumer)
 
     resp, content = client.request('https://www.instapaper.com/api/1/oauth/access_token', "POST", urllib.urlencode({
                 'x_auth_mode': 'client_auth',
-                'x_auth_username': INSTAPAPER_USER,
-                'x_auth_password': INSTAPAPER_PASS,
+                'x_auth_username': settings.INSTAPAPER_USER,
+                'x_auth_password': settings.INSTAPAPER_PASS,
                 }))
 
     token = dict(urlparse.parse_qsl(content))

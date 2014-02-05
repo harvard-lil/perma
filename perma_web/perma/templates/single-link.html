@@ -123,7 +123,7 @@
 								{% endif%}
 								</li>
 								{% endif %}
-								
+
 							</ul>
 					
 						{% endif %}
@@ -188,6 +188,13 @@
 			<div class="translucent-background">
 				<div id="text-capture">{% autoescape off %}{{ text_capture }}{% endautoescape %}</div>
 			</div>
+			{% endif %}
+
+            {# TEMPORARY SERVE TYPE UNTIL WE COMPLETELY SWITCH TO WARC #}
+        	{% if serve_type == 'warc' %}
+                <iframe src="/warc/{{ linky.pk }}/{{linky.submitted_url}}" sandbox="allow-forms allow-scripts">
+                  <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
+                </iframe>
 			{% endif %}
 		</div><!--end watermark-->
    	</div><!--end linky-view-->
