@@ -20,7 +20,8 @@ class Url(wburl.WbUrl):
         return True
 
 class Handler(handlers.WBHandler):
-    def get_wburl_type(self):
+    @staticmethod
+    def get_wburl_type():
         return Url
 
 def pywb_config():
@@ -30,16 +31,16 @@ def pywb_config():
     index_server = indexreader.RemoteCDXServer(perma.settings.CDX_SERVER_URL)
 
     # Loads warcs specified in cdx from these locations
-    resolvers = [replay_resolvers.PrefixResolver('file://')]
+    resolvers = [replay_resolvers.PrefixResolver('file://', '')]
 
     # Create rewriting replay handler to rewrite records
     replayer = replay_views.RewritingReplayView(resolvers=resolvers,
-                                                archiveloader=archiveloader.ArchiveLoader(),
+                                                loader=archiveloader.ArchiveLoader(),
                                                 buffer_response=True,
                                                 redir_to_exact=False)
 
     # Finally, create wb router
-    return archivalrouter.ArchivalRequestRouter(
+    return archivalrouter.ArchivalRouter(
         {
             Route(r'([a-zA-Z0-9\-]+)', Handler(index_server, replayer)),
         },
