@@ -50,9 +50,9 @@ def stats(request):
 @csrf_exempt
 def cdx(request):
     """
-    This function handles WARC lookups by our warc server (running in warc_server).
-    It accepts a standard CDX request, except with a GUID instead of date, and returns a standard CDX 11 response.
-    If there's no warc for the requested GUID, or the requested URL isn't stored in that WARC, it returns a 404.
+        This function handles WARC lookups by our warc server (running in warc_server).
+        It accepts a standard CDX request, except with a GUID instead of date, and returns a standard CDX 11 response.
+        If there's no warc for the requested GUID, or the requested URL isn't stored in that WARC, it returns a 404.
     """
     # find requested link and url
     try:

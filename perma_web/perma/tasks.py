@@ -11,6 +11,10 @@ import logging
 import robotparser
 import re
 import time
+<<<<<<< HEAD
+=======
+from random import choice
+>>>>>>> 69254cf152008d733ed48d4c883facda0b9bc06c
 import oauth2 as oauth
 import warcprox.warcprox as warcprox
 import thread
