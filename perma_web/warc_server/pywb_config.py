@@ -19,6 +19,9 @@ class Url(wburl.WbUrl):
         self.type = self.LATEST_REPLAY
         return True
 
+class Handler(handlers.WBHandler):
+    def get_wburl_type(self):
+        return Url
 
 def pywb_config():
     """
@@ -38,11 +41,10 @@ def pywb_config():
     # Finally, create wb router
     return archivalrouter.ArchivalRequestRouter(
         {
-            Route(r'([a-zA-Z0-9\-]+)', handlers.WBHandler(index_server, replayer)),
+            Route(r'([a-zA-Z0-9\-]+)', Handler(index_server, replayer)),
         },
         # Specify hostnames that pywb will be running on
         # This will help catch occasionally missed rewrites that fall-through to the host
         # (See archivalrouter.ReferRedirect)
-        hostpaths=['http://localhost:8000/'],
-        archivalurl_class=Url
+        hostpaths=['http://localhost:8000/']
     )
