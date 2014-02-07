@@ -23,8 +23,6 @@ from ratelimit.decorators import ratelimit
 from perma.forms import (
     user_reg_form, 
     registrar_form, 
-    vesting_manager_form_edit, 
-    vesting_manager_w_group_form_edit, 
     vesting_member_form_edit, 
     vesting_member_w_group_form_edit, 
     registrar_member_form_edit, 
@@ -478,8 +476,7 @@ def edit_user_in_group(request, user_id, group_name):
         form = registrar_member_form_edit(form_data, prefix="a", instance=target_user)
     elif group_name in ('vesting_member', 'vesting_manager'):
         if is_registry:
-            form = vesting_member_w_group_form_edit(form_data, prefix="a", instance=target_user,
-                                                    registrar_id=target_user.registrar_id)
+            form = vesting_member_w_group_form_edit(form_data, prefix="a", instance=target_user)
         elif is_registrar:
             form = vesting_member_w_vesting_org_form_edit(form_data, prefix="a", instance=target_user,
                                                           registrar_id=request.user.registrar_id)

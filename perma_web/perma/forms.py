@@ -147,59 +147,6 @@ class registrar_member_form_edit(user_form_edit):
         model = LinkUser
         fields = ["first_name", "last_name", "email", "registrar"]
 
-
-class vesting_manager_form_edit(forms.ModelForm):
-    """
-    stripped down user reg form
-    This is mostly a django.contrib.auth.forms.UserCreationForm
-
-    This is stripped down even further to match out editing needs
-    """
-    
-    def __init__(self, *args, **kwargs):
-      registrar_id = False
-      if 'registrar_id' in kwargs:
-        registrar_id = kwargs.pop('registrar_id')
-      super(vesting_manager_form_edit, self).__init__(*args, **kwargs)
-      if registrar_id:
-        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id).order_by('name')
-
-    class Meta:
-        model = LinkUser
-        fields = ("first_name", "last_name", "email", "vesting_org")
-
-    email = forms.EmailField()              
-
-    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
-    
-        
-class vesting_manager_w_group_form_edit(vesting_manager_form_edit):
-    """
-    stripped down user reg form
-    This is mostly a django.contrib.auth.forms.UserCreationForm
-
-    This is stripped down even further to match out editing needs
-    """
-
-    class Meta:
-        model = LinkUser
-        fields = ("first_name", "last_name", "email", "vesting_org")
-                         
-    group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None)
-
-    def save(self, commit=True):
-        user = super(vesting_manager_w_group_form_edit, self).save(commit=False)
-        group = self.cleaned_data['group']
-        all_groups = Group.objects.all()
-        for ag in all_groups:
-          user.groups.remove(ag)
-        user.groups.add(group)
-
-        if commit:
-            user.save()
-
-        return user
-        
         
 class vesting_member_form_edit(forms.ModelForm):
     """
