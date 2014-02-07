@@ -1,16 +1,20 @@
 {% extends "layout-archive-responsive.html" %}
-{% load file_exists  truncatesmart diff has_group is_darchive %}
+{% load file_exists  truncatesmart diff has_group is_darchive local_datetime %}
 {% block title %} | {{linky.submitted_title}}{% endblock %}
+{% block meta-head %}
+<meta name="robots" content="noindex, noarchive, noodp, noimageindex">
+{% endblock %}
 {% block styles %}
-<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+    <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 	{% if serve_type == 'text' %}
-	<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/text-capture.css">
-	
+	    <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/text-capture.css">
 	{% endif %}
+
+    {# put in styles because this has to be available during page load #}
+    <script src="{{ STATIC_PREFIX }}js/local-datetime.js"></script>
 {% endblock %}
 
 {% block header %}
-
 <header>
     	    <div class="navbar navbar-default navbar-static-top tab-border">
 				<div class="container">
@@ -22,7 +26,7 @@
 						<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a><br/>
 						
 						<!--<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a>-->
-						<span class="light-grey">created {{linky.creation_timestamp}} | {{ linky.view_count }} view{% if linky.view_count > 1 %}s{% endif %}</span>
+						<span class="light-grey">created {{linky.creation_timestamp|local_datetime}} | {{ linky.view_count }} view{% if linky.view_count > 1 %}s{% endif %}</span>
 						{% comment %}
 						{% diff asset linky %} <!-- has the instapaper cap changed recently? -->
 						{% endcomment %}
@@ -211,5 +215,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ STATIC_PREFIX }}js/single-link.js"></script>
+    <script src="{{ STATIC_PREFIX }}js/single-link.js"></script>
 {% endblock %}

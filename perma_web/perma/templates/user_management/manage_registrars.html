@@ -8,9 +8,9 @@
 
 {% block content %}
 
+    {% include "user_management/includes/search_form.html" %}
 
-		<h3>Existing registrars <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
-		
+	<h3>Existing registrars <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
 		<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
       <form method="post">
         {% csrf_token %}
@@ -30,44 +30,37 @@
         <button type="submit" class="btn-success">Create new registrar</button>
       </form>
     </div>
-		
-		<table class="table">
-    <thead>
-      <tr>
-        <!--<th><input type="checkbox"></th>-->
-        <th>Name<a href="?sort=name"> <i class="icon-chevron-up"></i></a><a href="?sort=-name"> <i class="icon-chevron-down"></i></a></th>
-        <th>Email<a href="?sort=email"> <i class="icon-chevron-up"></i></a><a href="?sort=-email"> <i class="icon-chevron-down"></i></a></th>
-        <th>Website<a href="?sort=website"> <i class="icon-chevron-up"></i></a><a href="?sort=-website"> <i class="icon-chevron-down"></i></a></th>
-        <th>Admin</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for registrar in registrars %}
-        <tr>
-          <!--<td><input type="checkbox"></td>-->
-          <td class="registrar-name-cell">{{ registrar.name }}</td>
-          <td>{{ registrar.email }}</td>
-          <td class="registrar-website-cell"><a href="{{ registrar.website }}" target="_blank">{{ registrar.website }}</a></td>
-          <td><a href="{% url 'user_management_manage_single_registrar' registrar.id %}">edit</a></td>
-      {% empty %}
-        <tr>No registrars found.</tr>
-      {% endfor %}
-    </tbody>
-  </table>
-      {% if registrars.paginator.num_pages > 1 %}
-<div class="pagination">
-    <ul class="pagination">
-        {% if registrars.has_previous %}<li><a href="?page={{ registrars.previous_page_number }}&sort={{ sort }}">&lt;</a></li>{% endif %}
-        {% for i in registrars.paginator.page_range %}
-        {% ifequal i registrars.number %}
-        <li class="active"><a href="">{{ i }}</a></li>
-        {% else %}
-        <li><a href="?page={{ i }}">{{ i }}</a></li>
-        {% endifequal %}
-        {% endfor %}
-        {% if registrars.has_next  %}<li><a href="?page={{ registrars.next_page_number }}&sort={{ sort }}">&gt;</a></li>{% endif %}
-    </ul>
-</div>
-{% endif %}
+
+    {% if search_query %}
+        <p><em>Search results for "{{ search_query }}". <a href="?q=">Clear search.</a></em></p>
+    {% endif %}
+
+    {% if registrars %}
+        <table class="table">
+        <thead>
+          <tr>
+            <!--<th><input type="checkbox"></th>-->
+            <th>Name<a href="?sort=name{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-name{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>
+            <th>Email<a href="?sort=email{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-email{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>
+            <th>Website<a href="?sort=website{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-website{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>
+            <th>Admin</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for registrar in registrars %}
+            <tr>
+              <!--<td><input type="checkbox"></td>-->
+              <td class="registrar-name-cell">{{ registrar.name }}</td>
+              <td>{{ registrar.email }}</td>
+              <td class="registrar-website-cell"><a href="{{ registrar.website }}" target="_blank">{{ registrar.website }}</a></td>
+              <td><a href="{% url 'user_management_manage_single_registrar' registrar.id %}">edit</a></td>
+          {% endfor %}
+        </tbody>
+        </table>
+    {% else %}
+        <p>No registrars found.</p>
+    {% endif %}
+
+    {% include "user_management/includes/paginator.html" with page=registrars %}
 
 {% endblock %}

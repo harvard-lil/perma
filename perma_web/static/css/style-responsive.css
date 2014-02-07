@@ -981,7 +981,7 @@ img.watermark-image {
 	margin:0 auto -60%;
 	opacity:.6;
 	width:70%;
-	
+	pointer-events:none;
 }
 .watermark h2, .watermark h1 {
 
@@ -1203,19 +1203,10 @@ th {
 
 }
 td, th , a.orange{ 
-  border: 0px solid #ccc; 
-  text-align: left; 
-  padding:0px;
-  vertical-align: middle;
-  white-space: pre;           /* CSS 2.0 */
-	white-space: pre-wrap;      /* CSS 2.1 */
-	white-space: pre-line;      /* CSS 3.0 */
-	white-space: -pre-wrap;     /* Opera 4-6 */
-	white-space: -o-pre-wrap;   /* Opera 7 */
-	white-space: -moz-pre-wrap; /* Mozilla */
-	white-space: -hp-pre-wrap;  /* HP Printers */
-	word-wrap: break-word;      /* IE 5+ */
-	
+    border: 0px solid #ccc;
+    text-align: left;
+    padding:0px;
+    vertical-align: middle;
 	width:20px;
 }
 
@@ -1262,7 +1253,6 @@ input[type="text"]:focus, textarea:focus, button[type="submit"]:focus, button#ad
 
 table.vested-table tr td, table.vested-table tr th {
     padding: 10px 2px;
-    white-space:normal;
     vertical-align: top;
 }
 
@@ -1376,14 +1366,6 @@ td.registrar-website-cell {
 
 tr td.linky-link, a.original-link {
 	width: 64%;
-	white-space: pre;           /* CSS 2.0 */
-	white-space: pre-wrap;      /* CSS 2.1 */
-	white-space: pre-line;      /* CSS 3.0 */
-	white-space: -pre-wrap;     /* Opera 4-6 */
-	white-space: -o-pre-wrap;   /* Opera 7 */
-	white-space: -moz-pre-wrap; /* Mozilla */
-	white-space: -hp-pre-wrap;  /* HP Printers */
-	word-wrap: break-word;      /* IE 5+ */
 	overflow:hidden;
 	word-break:break-all;
 }

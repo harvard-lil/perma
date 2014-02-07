@@ -94,12 +94,17 @@
 					<div class="question">I don't want Perma.cc to archive a page from my site.</div>
 					<div class="answer">
 						 <p>It's important to note that Perma.cc does not crawl your site like a search engine might. When Perma.cc is crawling your site, it is only interested in retrieving items that are needed to construct the single page it is archiving. This should be no more stressful for your webserver than a single user viewing a single page in a single browser.</p>
-						 <p>If you don't want Perma.cc to display items from your site, add a rule for the PermaBot to your robots.txt</p>
+						 <p>If you don't want Perma.cc to display items from your site, we're happy to respect your wishes. You can either add a rule for the PermaBot to your robots.txt or to a meta tag in your HTML.</p>
+						<p>If you want to block PermaBot in your robots.txt use a configuration like the one below.</p>
 						 <p class="code">
 						 	User-agent: PermaBot<br/>
 							Disallow: /private-stuff/
 						 </p>
-						<p>With that rule in place, Perma.cc will still archive the requested page from your site, but will not display it at Perma.cc.</p>
+						<p>If you want to block PermaBot in using a meta tag, include the following in your HTML document</p>
+						 <p class="code">
+							&lt;meta name="PermaBot" content="noarchive" /&gt;
+						 </p>
+						<p>With either, or both of these rules in place, Perma.cc will still archive the requested page from your site, but will not display it at Perma.cc.</p>
 					</div>
 					
 				</div>

@@ -35,6 +35,12 @@ Perma settings are held in the settings module file. Copy the example and fill i
 
     cd settings; cp ./settings.example.py ./settings.py
 
+A lot of the settings you need won't change much, so we keep them in a module and load them in. You'll probably want settings_dev, so uncomment that line:
+
+    # Choose one of these:
+    from settings_dev import *
+    # from settings_prod import *
+
 ### Celery and RabbitMQ
 
 Perma manages the indexing workload by passing off the indexing tasks to workers. Celery manages the messages and RabbitMQ acts as the broker.

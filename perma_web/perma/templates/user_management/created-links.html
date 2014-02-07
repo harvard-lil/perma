@@ -1,9 +1,10 @@
 {% extends "admin-layout.html" %}
-{% load mptt_tags repeat %}
+{% load mptt_tags repeat local_datetime %}
 
 {% block title %} | {{ verb|capfirst }} Perma links{% endblock %}
 
 {% block styles %}
+    {{ block.super }}
     <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 {% endblock %}
 
@@ -32,9 +33,7 @@
         </p>
     {% endif %}
 
-    <form class="pull-right">
-        <input type="text" name="q" value="{{ search_query|default:"" }}" placeholder="Search {% if current_folder %}'{{ current_folder }}'{% else %}links{% endif %}" class="search-query"/>
-    </form>
+    {% include "user_management/includes/search_form.html" %}
 
     <form method="POST">
 
@@ -166,9 +165,9 @@
                             <div title="{{ link.submitted_title }}">{{ link.submitted_title }}</div>
                         </td>
                         
-                        <td class="linky-abbr-date-time">{{ link.creation_timestamp|date:"m/d/y" }}
+                        <td class="linky-abbr-date-time">{{ link.creation_timestamp|local_datetime:"m/d/y" }}
                         </td>
-                        <td class="linky-abbr-date-time">{{ link.vested_timestamp|date:"m/d/y" }}
+                        <td class="linky-abbr-date-time">{{ link.vested_timestamp|local_datetime:"m/d/y" }}
                         </td>
                         <td class="linky-details-link"><a href="#" class="details">details</a></td>
                     </tr>

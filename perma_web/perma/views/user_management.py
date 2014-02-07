@@ -1,11 +1,11 @@
-import random, string, smtplib, logging, json
-from email.mime.text import MIMEText
+import random, string, logging, json
 
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.sites.models import get_current_site
+from django.core.mail import send_mail
 from django.db.models import Q
 from django.utils.http import is_safe_url
 from django.http import HttpResponseRedirect, HttpResponse, Http404
@@ -95,12 +95,22 @@ def manage_registrar(request):
     if page < 1:
         page = 1
     registrars = Registrar.objects.all().order_by(sort)
-    
+
+    # handle search
+    search_query = request.GET.get('q', None)
+    if search_query:
+        registrars = registrars.filter(
+            Q(name__icontains=search_query),
+            Q(email__icontains=search_query),
+            Q(website__icontains=search_query),
+        )
+
     paginator = Paginator(registrars, settings.MAX_USER_LIST_SIZE)
     registrars = paginator.page(page)
 
     context = {'registrars_list': list(registrars), 'registrars': registrars,
-        'this_page': 'users_registrars'}
+        'this_page': 'users_registrars',
+        'search_query':search_query}
 
     if request.method == 'POST':
 
@@ -174,12 +184,20 @@ def manage_vesting_org(request):
         is_registry = True;
     else:
       vesting_orgs = VestingOrg.objects.filter(registrar_id=request.user.registrar_id).order_by(sort)
-    
+
+    # handle search
+    search_query = request.GET.get('q', None)
+    if search_query:
+        vesting_orgs = vesting_orgs.filter(
+            Q(name__icontains=search_query)
+        )
+
     paginator = Paginator(vesting_orgs, settings.MAX_USER_LIST_SIZE)
     vesting_orgs = paginator.page(page)
 
     context = {'vesting_orgs_list': list(vesting_orgs), 'vesting_orgs': vesting_orgs,
-        'this_page': 'users_vesting_orgs'}
+        'this_page': 'users_vesting_orgs',
+        'search_query':search_query}
 
     if request.method == 'POST':
 
@@ -327,7 +345,6 @@ def list_users_in_group(request, group_name):
         sorts = DEFAULT_SORT
 
         sort = request.GET.get('sort', DEFAULT_SORT)
-        print sort
         if sort not in valid_member_sorts:
             sorts = DEFAULT_SORT
         elif sort == 'admin':
@@ -352,6 +369,15 @@ def list_users_in_group(request, group_name):
     elif request.user.has_group('vesting_manager'):
         users = LinkUser.objects.filter(vesting_org=request.user.vesting_org).exclude(id=request.user.id).order_by(*sorts())
 
+    # handle search
+    search_query = request.GET.get('q', None)
+    if search_query:
+        users = users.filter(
+            Q(email__icontains=search_query) |
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query)
+        )
+
     paginator = Paginator(users, settings.MAX_USER_LIST_SIZE)
     users = paginator.page(page)
 
@@ -367,6 +393,7 @@ def list_users_in_group(request, group_name):
         'single_user_url':'user_management_manage_single_{group_name}'.format(group_name=group_name),
         'delete_user_url':'user_management_manage_single_{group_name}_delete'.format(group_name=group_name),
         'sort': sorts()[0],
+        'search_query': search_query,
     }
     context['pretty_group_name_plural'] = context['pretty_group_name'] + "s"
 
@@ -745,7 +772,10 @@ def link_browser(request, path, link_filter, this_page, verb):
     link_count = Link.objects.filter(**link_filter).count()
 
     context = {'linky_links': linky_links, 'link_count':link_count,
-               'sort': sort, 'search_query':search_query, 'this_page': this_page, 'verb': verb,
+               'sort': sort,
+               'search_query':search_query,
+               'search_placeholder':"Search %s" % (current_folder if current_folder else "links"),
+               'this_page': this_page, 'verb': verb,
                'subfolders':subfolders, 'path':path, 'folder_breadcrumbs':folder_breadcrumbs,
                'current_folder':current_folder,
                'all_folders':all_folders,
@@ -1018,9 +1048,7 @@ def email_new_user(request, user):
 
     if settings.DEBUG == False:
       host = settings.HOST
-      
-    from_address = settings.DEFAULT_FROM_EMAIL
-    to_address = user.email
+
     content = '''To activate your account, please click the link below or copy it to your web browser.  You will need to create a new password.
 
 http://%s/register/password/%s/
@@ -1029,13 +1057,9 @@ http://%s/register/password/%s/
 
     logger.debug(content)
 
-    msg = MIMEText(content)
-    msg['Subject'] = "A perma account has been created for you"
-    msg['From'] = from_address
-    msg['To'] = to_address
-        
-    # Send the message via our own SMTP server, but don't include the
-    # envelope header.
-    s = smtplib.SMTP('localhost')
-    s.sendmail(from_address, [to_address], msg.as_string())
-    s.quit()
+    send_mail(
+        "A perma account has been created for you",
+        content,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email], fail_silently=False
+    )

@@ -147,7 +147,7 @@ NUMBER_RETRIES = 3 # if wget fails to get a resource, try to get again this many
 WAIT_BETWEEN_TRIES = .5 # wait between .5 and this many seconds between http requests to our source
 
 # Max file size (for our downloads)
-MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 50 # 50 MB
+MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 100 # 100 MB
 
 # Rate limits
 MINUTE_LIMIT = '6000/m'
@@ -161,4 +161,4 @@ LOGIN_HOUR_LIMIT = '10000/h'
 LOGIN_DAY_LIMIT = '50000/d'
 
 # Dashboard user lists
-MAX_USER_LIST_SIZE = '15'
+MAX_USER_LIST_SIZE = 100

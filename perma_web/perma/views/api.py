@@ -49,7 +49,8 @@ def linky_post(request):
     # Somtimes we can't get a title from the markup. If not, use the domain
     url_details = urlparse(target_url)
     target_title = url_details.netloc
-
+    content = None
+    
     # Get the markup. We get the mime-type and the title from this.
     try:
         r = requests.get(target_url, stream=True)
@@ -92,6 +93,8 @@ def linky_post(request):
 
     # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
     if 'content-type' in r.headers and r.headers['content-type'] in ['application/pdf', 'application/x-pdf'] or target_url.split('.')[-1] == 'pdf':
+        asset.pdf_capture = 'pending'
+        asset.save()
         get_pdf.delay(guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
         response_object = {'linky_id': guid, 'message_pdf': True, 'linky_title': link.submitted_title}
         
@@ -121,7 +124,7 @@ def linky_post(request):
 
 
     # We should note robots.txt requirements. Here we'll decide if flag the archive should be flagged for the "darchive"
-    get_robots_txt.delay(target_url, guid)
+    get_robots_txt.delay(target_url, guid, content)
 
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
