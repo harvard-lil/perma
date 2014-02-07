@@ -21,21 +21,22 @@ from mptt.exceptions import InvalidMove
 from ratelimit.decorators import ratelimit
 
 from perma.forms import (
-    user_reg_form, 
-    registrar_form, 
-    vesting_member_form_edit, 
-    vesting_member_w_group_form_edit, 
-    registrar_member_form_edit, 
-    user_form_self_edit, 
-    user_form_edit, 
-    set_password_form, 
-    create_user_form, 
-    create_user_form_w_registrar, 
-    vesting_org_w_registrar_form, 
-    create_user_form_w_vesting_org, 
-    vesting_member_w_vesting_org_form_edit, 
-    vesting_org_form, user_add_registrar_form, 
-    user_add_vesting_org_form
+    RegistrarForm, 
+    VestingOrgWithRegistrarForm, 
+    VestingOrgForm,
+    CreateUserForm,
+    CreateUserFormWithRegistrar,
+    CreateUserFormWithVestingOrg,
+    UserFormEdit,
+    RegistrarMemberFormEdit,
+    VestingMemberFormEdit, 
+    VestingMemberWithVestingOrgFormEdit,
+    VestingMemberWithGroupFormEdit, 
+    UserAddRegistrarForm,
+    UserAddVestingOrgForm,
+    UserRegForm,
+    UserFormSelfEdit, 
+    SetPasswordForm, 
 )
 from perma.models import Registrar, Link, LinkUser, VestingOrg, Folder
 from perma.utils import require_group
@@ -112,7 +113,7 @@ def manage_registrar(request):
 
     if request.method == 'POST':
 
-        form = registrar_form(request.POST, prefix = "a")
+        form = RegistrarForm(request.POST, prefix = "a")
 
         if form.is_valid():
             new_user = form.save()
@@ -122,7 +123,7 @@ def manage_registrar(request):
         else:
             context.update({'form': form})
     else:
-        form = registrar_form(prefix = "a")
+        form = RegistrarForm(prefix = "a")
         context.update({'form': form,})
     
     context = RequestContext(request, context)
@@ -142,7 +143,7 @@ def manage_single_registrar(request, registrar_id):
 
     if request.method == 'POST':
 
-        form = registrar_form(request.POST, prefix = "a", instance=target_registrar)
+        form = RegistrarForm(request.POST, prefix = "a", instance=target_registrar)
 
         if form.is_valid():
             new_user = form.save()
@@ -152,7 +153,7 @@ def manage_single_registrar(request, registrar_id):
         else:
             context.update({'form': form,})
     else:
-        form = registrar_form(prefix = "a", instance=target_registrar)
+        form = RegistrarForm(prefix = "a", instance=target_registrar)
         context.update({'form': form,})
     
     context = RequestContext(request, context)
@@ -200,9 +201,9 @@ def manage_vesting_org(request):
     if request.method == 'POST':
 
         if is_registry:
-          form = vesting_org_w_registrar_form(request.POST, prefix = "a")
+          form = VestingOrgWithRegistrarForm(request.POST, prefix = "a")
         else:
-          form = vesting_org_form(request.POST, prefix = "a")
+          form = VestingOrgForm(request.POST, prefix = "a")
 
         if form.is_valid():
             new_user = form.save()
@@ -216,9 +217,9 @@ def manage_vesting_org(request):
             context.update({'form': form})
     else:
         if is_registry:
-            form = vesting_org_w_registrar_form(prefix = "a")
+            form = VestingOrgWithRegistrarForm(prefix = "a")
         else:
-            form = vesting_org_form(prefix = "a")
+            form = VestingOrgForm(prefix = "a")
         context.update({'form': form,})
     
     context = RequestContext(request, context)
@@ -238,7 +239,7 @@ def manage_single_vesting_org(request, vesting_org_id):
 
     if request.method == 'POST':
 
-        form = vesting_org_form(request.POST, prefix = "a", instance=target_vesting_org)
+        form = VestingOrgForm(request.POST, prefix = "a", instance=target_vesting_org)
 
         if form.is_valid():
             new_user = form.save()
@@ -248,7 +249,7 @@ def manage_single_vesting_org(request, vesting_org_id):
         else:
             context.update({'form': form,})
     else:
-        form = vesting_org_form(prefix = "a", instance=target_vesting_org)
+        form = VestingOrgForm(prefix = "a", instance=target_vesting_org)
         context.update({'form': form,})
     
     context = RequestContext(request, context)
@@ -398,14 +399,14 @@ def list_users_in_group(request, group_name):
     form = None
     form_data = request.POST or None
     if group_name == 'registrar_member':
-        form = create_user_form_w_registrar(form_data, prefix="a")
+        form = CreateUserFormWithRegistrar(form_data, prefix="a")
     elif group_name in ('vesting_member','vesting_manager'):
         if is_registry:
-            form = create_user_form_w_vesting_org(form_data, prefix="a")
+            form = CreateUserFormWithVestingOrg(form_data, prefix="a")
         elif is_registrar:
-            form = create_user_form_w_vesting_org(form_data, prefix="a", registrar_id=request.user.registrar_id)
+            form = CreateUserFormWithVestingOrg(form_data, prefix="a", registrar_id=request.user.registrar_id)
     if not form:
-        form = create_user_form(form_data, prefix = "a")
+        form = CreateUserForm(form_data, prefix = "a")
 
     if request.method == 'POST':
 
@@ -473,17 +474,17 @@ def edit_user_in_group(request, user_id, group_name):
     form = None
     form_data = request.POST or None
     if group_name == 'registrar_member':
-        form = registrar_member_form_edit(form_data, prefix="a", instance=target_user)
+        form = RegistrarMemberFormEdit(form_data, prefix="a", instance=target_user)
     elif group_name in ('vesting_member', 'vesting_manager'):
         if is_registry:
-            form = vesting_member_w_group_form_edit(form_data, prefix="a", instance=target_user)
+            form = VestingMemberWithGroupFormEdit(form_data, prefix="a", instance=target_user)
         elif is_registrar:
-            form = vesting_member_w_vesting_org_form_edit(form_data, prefix="a", instance=target_user,
+            form = VestingMemberWithVestingOrgFormEdit(form_data, prefix="a", instance=target_user,
                                                           registrar_id=request.user.registrar_id)
         else:
-            form = vesting_member_form_edit(form_data, prefix="a", instance=target_user)
+            form = VestingMemberFormEdit(form_data, prefix="a", instance=target_user)
     else:
-        form = user_form_edit(form_data, prefix="a", instance=target_user)
+        form = UserFormEdit(form_data, prefix="a", instance=target_user)
 
     if request.method == 'POST':
 
@@ -580,7 +581,7 @@ def user_add_registrar(request, user_id):
     context = {'this_page': 'users_{old_group}s'.format(old_group=old_group)}
     
     if request.method == 'POST':
-        form = user_add_registrar_form(request.POST, prefix = "a")
+        form = UserAddRegistrarForm(request.POST, prefix = "a")
 
         if form.is_valid():
             target_user.registrar = form.cleaned_data['registrar']
@@ -590,7 +591,7 @@ def user_add_registrar(request, user_id):
             return HttpResponseRedirect(reverse('user_management_manage_{old_group}'.format(old_group=old_group)))
 
     else:
-        form = user_add_registrar_form(prefix = "a")
+        form = UserAddRegistrarForm(prefix = "a")
         context.update({'form': form,})
     
     context = RequestContext(request, context)
@@ -607,7 +608,7 @@ def user_add_vesting_org(request, user_id):
     context = {'this_page': 'users_{old_group}s'.format(old_group=old_group)}
     
     if request.method == 'POST':
-        form = user_add_vesting_org_form(request.POST, prefix = "a")
+        form = UserAddVestingOrgForm(request.POST, prefix = "a")
 
         if form.is_valid():
             target_user.vesting_org = form.cleaned_data['vesting_org']
@@ -619,7 +620,7 @@ def user_add_vesting_org(request, user_id):
             return HttpResponseRedirect(reverse('user_management_manage_{old_group}'.format(old_group=old_group)))
 
     else:
-        form = user_add_vesting_org_form(prefix = "a")
+        form = UserAddVestingOrgForm(prefix = "a")
         context.update({'form': form,})
     
     context = RequestContext(request, context)
@@ -799,7 +800,7 @@ def manage_account(request):
     
     if request.method == 'POST':
 
-        form = user_form_self_edit(request.POST, prefix = "a", instance=request.user)
+        form = UserFormSelfEdit(request.POST, prefix = "a", instance=request.user)
 
         if form.is_valid():
             form.save()
@@ -809,7 +810,7 @@ def manage_account(request):
         else:
             context.update({'form': form,})
     else:
-        form = user_form_self_edit(prefix = "a", instance=request.user)
+        form = UserFormSelfEdit(prefix = "a", instance=request.user)
         context.update({'form': form,})
 
     context = RequestContext(request, context)
@@ -943,7 +944,7 @@ def process_register(request):
 
         reg_key = request.POST.get('reg_key', '')
 
-        editor_reg_form = user_reg_form(request.POST, prefix = "a")
+        editor_reg_form = UserRegForm(request.POST, prefix = "a")
 
         if editor_reg_form.is_valid():
             new_user = editor_reg_form.save()
@@ -968,7 +969,7 @@ def process_register(request):
 
             return render_to_response('registration/register.html', c)
     else:
-        editor_reg_form = user_reg_form (prefix = "a")
+        editor_reg_form = UserRegForm(prefix = "a")
 
         c.update({'editor_reg_form': editor_reg_form,})
         c = RequestContext(request, c)
@@ -1005,7 +1006,7 @@ def register_email_code_password(request, code):
       return render_to_response('registration/set_password.html', context)
     else:
       if request.method == "POST":
-        form = set_password_form(user=user, data=request.POST)
+        form = SetPasswordForm(user=user, data=request.POST)
         if form.is_valid():
             form.save()
             user.is_active = True
@@ -1018,7 +1019,7 @@ def register_email_code_password(request, code):
           context = RequestContext(request, context)
           return render_to_response('registration/set_password.html', context)
       else:
-        form = set_password_form(user=user)
+        form = SetPasswordForm(user=user)
       
         context = {'form': form}
         context = RequestContext(request, context)
