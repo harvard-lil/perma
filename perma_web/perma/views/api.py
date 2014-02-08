@@ -1,23 +1,25 @@
-from datetime import datetime, timedelta
-import logging, json, subprocess, urllib2, re, os
+from datetime import timedelta
+import logging, json, os
 from datetime import datetime
 from urlparse import urlparse
 from mimetypes import MimeTypes
-
 import lxml.html, requests
 from PIL import Image
 from pyPdf import PdfFileReader
 
-from perma.models import Link, Asset
-from perma.forms import UploadFileForm
-from perma.utils import base
-from perma.tasks import get_screen_cap, get_source, store_text_cap, get_pdf, get_robots_txt
 
-from django.shortcuts import render_to_response, HttpResponse
+from django.shortcuts import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.conf import settings
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
+
+from perma.models import Link, Asset
+from perma.forms import UploadFileForm
+from perma.tasks import start_proxy_record_get_screen_cap, store_text_cap, get_pdf, get_robots_txt
+if not settings.USE_WARC_ARCHIVE:
+    from perma.tasks import get_source
+
 
 logger = logging.getLogger(__name__)
 
@@ -88,14 +90,13 @@ def linky_post(request):
 
     # Create a stub for our assets
     asset, created = Asset.objects.get_or_create(link=link)
-    asset.base_storage_path = os.path.sep.join(path_elements)
-    asset.save()
+    asset.base_storage_path = os.path.join(*path_elements)
 
     # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
     if 'content-type' in r.headers and r.headers['content-type'] in ['application/pdf', 'application/x-pdf'] or target_url.split('.')[-1] == 'pdf':
         asset.pdf_capture = 'pending'
         asset.save()
-        get_pdf.delay(guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
+        get_pdf.delay(guid, target_url, asset.base_storage_path, request.META['HTTP_USER_AGENT'])
         response_object = {'linky_id': guid, 'message_pdf': True, 'linky_title': link.submitted_title}
         
     else: # else, it's not a PDF. Let's try our best to retrieve what we can
@@ -105,15 +106,17 @@ def linky_post(request):
         asset.warc_capture = 'pending'
         asset.save()
         
-        # Run our synchronus screen cap task (use the headless browser to create a static image)
-        get_screen_cap(guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
+        # start warcprox server to intercept and save traffic between the internet and the headless browser in get_screen_cap
+        # Creates screencap with headless browser
+        start_proxy_record_get_screen_cap.delay(guid, target_url, asset.base_storage_path, user_agent=request.META['HTTP_USER_AGENT'])
 
         # Get the text capture of the page (through a service that follows pagination)
-        store_text_cap.delay(target_url, target_title, guid)
-        
-        # Try to crawl the page (but don't follow any links)
-        get_source.delay(guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
-        
+        store_text_cap.delay(guid, target_url, asset.base_storage_path, target_title)
+
+        if not settings.USE_WARC_ARCHIVE:
+            # Try to crawl the page (but don't follow any links)
+            get_source.delay(guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
+
         asset = Asset.objects.get(link__guid=guid)
         
         response_object = {'linky_id': guid, 'linky_title': link.submitted_title}
@@ -218,14 +221,6 @@ def upload_file(request):
                 f.close()
 
                 response_object = {'status':'success', 'linky_id':link.guid, 'linky_hash':link.guid}
-
-                """try:
-                    get_source.delay(link.guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
-                    store_text_cap.delay(target_url, target_title, asset)
-                except Exception, e:
-                    # TODO: Log the failed url
-                    asset.pdf_capture = 'failed'
-                    asset.save()"""
 
                 return HttpResponse(json.dumps(response_object), 'application/json')
             else:

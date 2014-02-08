@@ -93,8 +93,9 @@ urlpatterns = patterns('perma.views',
 #    url(r'^manage/users/?$', 'manage.users', name='manage_users'),
 #    url(r'^manage/account/?$', 'manage.account', name='manage_account'),
 #    url(r'^manage/activity/?$', 'manage.activity', name='manage_activity'),
-    
-    url(r'^dark-archive/(?P<linky_guid>[a-zA-Z0-9\-]+)/?$', 'common.dark_archive_link', name='dark_archive_link'), 
+
+    url(r'^dark-archive/(?P<linky_guid>[a-zA-Z0-9\-]+)/?$', 'common.dark_archive_link', name='dark_archive_link'),
+    url(r'^cdx$', 'common.cdx', name='cdx'),
     
     # Our Perma ID catchall
     url(r'^(?P<linky_guid>[a-zA-Z0-9\-]+)/?$', 'common.single_linky', name='single_linky'),

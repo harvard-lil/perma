@@ -13,6 +13,10 @@ The required modules are found in requirements.txt. Install them using pip:
 
     $ pip install -r requirements.txt
 
+Some packages are installed via git submodules instead of pip:
+
+    $ git submodule init && git submodule update
+
 If you're running OS X Mountain Lion, you may need to add the MySQL binaries 
 to your PATH:
 
@@ -51,7 +55,6 @@ RabbitMQ can be installed on Ubuntu with:
 You should have already installed the Celery requirements (they were in the requirements.txt). You'll need to install [RabbitMQ](http://www.rabbitmq.com/).
 
 
-
 Once you've installed RabbitMQ, start it:
 
     $ cd rabbitmq_server-3.1.3/sbin; ./rabbitmq-server start
@@ -73,11 +76,6 @@ We use PhantomJS to generate our images. Download [PhantomJS](http://phantomjs.o
     $ ls lib
     __init__.py phantomjs rasterize.js
 
-### Wget
-
-We use [GNU Wget](http://www.gnu.org/software/wget/) to download the source -- the markup, CSS, JS, images, and other assets. We've tested with version 1.12. If you're on a mac, something like this should get you close:
-
-    # port install wget
 
 ### Create your tables and fire up Django
 

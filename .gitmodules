@@ -1,0 +1,12 @@
+[submodule "perma_web/lib/cdx_writer"]
+	path = perma_web/lib/cdx_writer
+	url = https://github.com/jcushman/CDX-Writer.git
+	ignore = dirty
+[submodule "perma_web/lib/pywb"]
+	path = perma_web/lib/pywb
+	url = https://github.com/jcushman/pywb.git
+	ignore = dirty
+[submodule "perma_web/lib/warc-tools"]
+	path = perma_web/lib/warc-tools
+	url = https://github.com/jcushman/warc-tools.git
+	ignore = dirty

@@ -79,7 +79,7 @@ The -B option also starts the Beat server. The Beat server is the thing that run
 
 If you make changes to a Perma.cc Celery task, you'll need to stop and start the Celery server.
 
-If you don't want to run Celery as a daemon (like you might in prod), create a something like /etc/init.d/celery and place this in it,
+If you want to run Celery as a daemon (like you might in prod), create a something like /etc/init.d/celery and place this in it,
 
 	#!/bin/sh -e
 	# ============================================
