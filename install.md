@@ -23,10 +23,13 @@ to your PATH:
     $ export PATH=$PATH:/usr/local/mysql/bin
 
 If you're running Ubuntu or Linux distro you might need to install mysql_config using:
+
     $ apt-get install libmysqlclient-dev
 
 Sometimes LXML can be a little difficult to install. Using static dependencies can help (especially if you're using OS X).
+
     $ STATIC_DEPS=true pip install lxml
+
 
 ### MySQL
 
