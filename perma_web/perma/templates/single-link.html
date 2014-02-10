@@ -123,7 +123,7 @@
 								{% endif%}
 								</li>
 								{% endif %}
-								
+
 							</ul>
 					
 						{% endif %}
@@ -169,17 +169,17 @@
 			{% endif %}
 			
 			{% if serve_type == 'image' %}
-			<img class="image-view" src="{{ STATIC_PREFIX }}{{asset.base_storage_path}}/{{asset.image_capture}}"/>
+			<img class="image-view" src="{{ asset.image_url }}"/>
 			{% endif %}
 			
 			{% if serve_type == 'pdf' %}
-			<iframe src="{{ STATIC_PREFIX }}{{asset.base_storage_path}}/{{asset.pdf_capture}}">
+			<iframe src="{{ asset.pdf_url }}">
 			  <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
 			</iframe>
 			{% endif %}
 			
 			{% if serve_type == 'source' %}
-			<iframe src="{{ STATIC_PREFIX }}{{asset.base_storage_path}}/{{asset.warc_capture}}" sandbox="allow-forms allow-scripts">
+			<iframe src="{{ asset.warc_url }}" sandbox="allow-forms allow-scripts">
 			  <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
 			</iframe>
 			{% endif %}
@@ -188,6 +188,13 @@
 			<div class="translucent-background">
 				<div id="text-capture">{% autoescape off %}{{ text_capture }}{% endautoescape %}</div>
 			</div>
+			{% endif %}
+
+            {# TEMPORARY SERVE TYPE UNTIL WE COMPLETELY SWITCH TO WARC #}
+        	{% if serve_type == 'warc' %}
+                <iframe src="/warc/{{ linky.pk }}/{{linky.submitted_url}}" sandbox="allow-forms allow-scripts">
+                  <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
+                </iframe>
 			{% endif %}
 		</div><!--end watermark-->
    	</div><!--end linky-view-->

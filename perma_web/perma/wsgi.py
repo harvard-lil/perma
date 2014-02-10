@@ -6,14 +6,9 @@ and any production WSGI deployments. It should expose a module-level variable
 named ``application``. Django's ``runserver`` and ``runfcgi`` commands discover
 this application via the ``WSGI_APPLICATION`` setting.
 
-Usually you will have the standard Django WSGI application here, but it also
-might make sense to replace the whole Django WSGI application with a custom one
-that later delegates to the Django one. For example, you could introduce WSGI
-middleware here, or combine a Django application with an application of another
-framework.
-
 """
 import os
+from werkzeug.wsgi import DispatcherMiddleware
 
 # We defer to a DJANGO_SETTINGS_MODULE already in the environment. This breaks
 # if running multiple sites in the same mod_wsgi process. To fix this, use
@@ -25,8 +20,12 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "perma.settings")
 # file. This includes Django's development server, if the WSGI_APPLICATION
 # setting points here.
 from django.core.wsgi import get_wsgi_application
-application = get_wsgi_application()
 
-# Apply WSGI middleware here.
-# from helloworld.wsgi import HelloWorldApplication
-# application = HelloWorldApplication(application)
+from warc_server.app import application as warc_application
+
+application = DispatcherMiddleware(
+    get_wsgi_application(), # Django
+    {
+        '/warc': warc_application,
+    }
+)

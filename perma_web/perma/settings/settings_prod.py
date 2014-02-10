@@ -14,3 +14,6 @@ CELERYBEAT_SCHEDULE = {
         'schedule': crontab(minute='05', hour='02', day_of_week='*'),
     },
 }
+
+# warc_server uses this to make requests -- it should point back to Django's /cdx view
+CDX_SERVER_URL = 'http://127.0.0.1/cdx'
