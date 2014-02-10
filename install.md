@@ -25,6 +25,9 @@ to your PATH:
 If you're running Ubuntu or Linux distro you might need to install mysql_config using:
     $ apt-get install libmysqlclient-dev
 
+Sometimes LXML can be a little difficult to install. Using static dependencies can help (especially if you're using OS X).
+    $ STATIC_DEPS=true pip install lxml
+
 ### MySQL
 
 You'll need a Django friendly database. If you want to use MySQL, something like the following can be used to create a new user and a new database:
