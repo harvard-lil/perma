@@ -160,7 +160,7 @@
 			{% if serve_type == 'live' %}
 				{% if display_iframe %}
 				<iframe src="{{linky.submitted_url}}"{% if not asset.pdf_capture %} sandbox="allow-forms allow-scripts" {% endif %}>
-					<p>You can access the archives of using the tabs above or open <a href="{{linky.submitted_url}}" target="_blank">{{linky.submitted_url}}</a> in a new browser window.</p>
+					<p>You can access the archives using the tabs above or you open <a href="{{linky.submitted_url}}" target="_blank">{{linky.submitted_url}}</a> in a new browser window.</p>
 				</iframe>
 				{% else %}
 				<div class="translucent-background no-live-preview"><h2>Live site view unavailable. Sorry.</h2>
