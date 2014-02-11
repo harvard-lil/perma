@@ -1,21 +1,20 @@
-from django.template import Template, context, RequestContext
+from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, Http404, HttpResponse
-from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.views.generic import TemplateView
 
-from datetime import datetime, date, timedelta
-from urlparse import urlparse
+from datetime import datetime
 import urllib2, os, logging
 from urlparse import urlparse
 from django.views.decorators.csrf import csrf_exempt
 import surt, cdx_writer
+import cStringIO as StringIO
 
 from perma.models import Link, Asset
-from perma.utils import base, require_group
+from perma.utils import require_group
 from ratelimit.decorators import ratelimit
 
 logger = logging.getLogger(__name__)
@@ -80,10 +79,11 @@ def cdx(request):
         cdx_file = open(cdx_path, 'rb')
     except IOError:
         # if we can't find the CDX file associated with this WARC, create it
-        cdx_file = open(cdx_path, 'wb')
-        writer = cdx_writer.CDX_Writer(warc_path, cdx_file)
-        writer.make_cdx()
-        cdx_file.close()
+        cdx_lines = StringIO.StringIO()
+        cdx_writer.CDX_Writer(warc_path, cdx_lines).make_cdx()
+        cdx_lines = cdx_lines.getvalue().split("\n")
+        with open(cdx_path, 'wb') as cdx_file:
+            cdx_file.write("\n".join(sorted(cdx_lines)))
         cdx_file = open(cdx_path, 'rb')
 
     # find cdx lines for url
