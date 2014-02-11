@@ -716,15 +716,18 @@ img.image-view {
 .translucent-background {
 	background: rgba(255,255,255,.9);
 	min-height:200px;
-	border:1px solid #ccc;
 	margin-top:10px;
     padding-bottom:10px;
     border-radius:3px;
-
 }
 
 .translucent-background h1 {
 	color:#ff4100;
+}
+
+.no-live-preview {
+    height: 100%;
+    margin-top: 60px;
 }
 
 ul {

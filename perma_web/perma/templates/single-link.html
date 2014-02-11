@@ -163,8 +163,9 @@
 				  <p>Unable to create a live view of the {{linky.submitted_url}}</p>
 				</iframe>
 				{% else %}
-				<div class="translucent-background"><h1>sorry</h1>
-				<h2>live preview of <a href="{{linky.submitted_url}}">{{linky.submitted_url}}</a> is not available</h2></div>
+				<div class="translucent-background no-live-preview"><h2>Live site view unavailable. Sorry.</h2>
+					<p>You can access the archives of using the tabs above or open <a href="{{linky.submitted_url}}" target="_blank">{{linky.submitted_url}}</a> in a new browser window.</p>
+				</div>
 				{% endif %}
 			{% endif %}
 			
