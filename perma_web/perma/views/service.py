@@ -78,8 +78,9 @@ def link_status(request, guid):
     target_link = get_object_or_404(Link, guid=guid)
     target_asset = get_object_or_404(Asset, link__guid=guid)
     
-    response_object = {"text_capture": target_asset.text_capture, "source_capture": target_asset.warc_capture,
-        "image_capture": target_asset.image_capture, "pdf_capture": target_asset.pdf_capture}
+    response_object = {"path": target_asset.base_storage_path, "text_capture": target_asset.text_capture,
+            "source_capture": target_asset.warc_capture, "image_capture": target_asset.image_capture,
+            "pdf_capture": target_asset.pdf_capture}
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=200)
 

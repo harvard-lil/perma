@@ -544,18 +544,20 @@ div#dashboard-container div#library {}
         	-webkit-border-radius: 4px;	 
 		}
       
-                
+        div.library-thumbnail a:hover {
+        }
+
+
+        div.library-thumbnail img {
+            padding: 0px;
+            width:100%;
+        }
         
-
-            div.library-thumbnail a:hover {
-            }
-
-	
-            div.library-thumbnail img {
-                padding: 0px;
-                width:100%;
-               
-            }
+        div.thumbnail-placeholder {
+            padding: 0px;
+            width:100%;
+            min-height:25px;
+        }
 
         p.library-link-title, #upload-option {
             color: #333;

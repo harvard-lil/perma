@@ -10,7 +10,6 @@
 {% block content %}
 
 <h3>Create a Perma link</h3>
-
 <div class="home-form-elements dashboard-create">
   {% include 'add_link_form.html' %}
 </div><!--/.home-form-->
@@ -71,6 +70,7 @@
   var web_base = "http://{{determined_host}}";
   var csrf_token = "{{csrf_token}}";
   var static_prefix = "{{STATIC_PREFIX}}";
+  var status_url = "{% url 'service_link_status' '' %}";
 
 $(document).ready(function(){
     // Toggle users dropdown
@@ -131,27 +131,18 @@ $(document).ready(function(){
 </script>
 {% endverbatim %}
 
-
 {% verbatim %}
 <script id="success-template" type="text/x-handlebars-template">
   <li id="link-short-slug" class="library-link-item" style="display: none;">
 
-	  {{#if preview}}
+	{{#if message_pdf }}
 		<div class="library-thumbnail">
-			<a href="{{url}}" target="_blank"><img src="{{preview}}" /></a>
-		</div>
-	  {{ else }}
-   	    {{#if message_pdf }}
-          <div class="library-thumbnail">
 			<img src="{{static_prefix}}img/pdf-preview.jpg" />
-		  </div>
-	  		
-		{{ else }}
-	      <p>Archiving process started. Sorry, no screenshot available.</p>
- 	    {{/if}}
- 	  {{/if}}
+		</div>
+	{{else}}
+		<div class="thumbnail-placeholder"></div>
+	{{/if}}
 
-	
     <div class="link-results">
       
       <p class="library-link-title">{{title}}</p>

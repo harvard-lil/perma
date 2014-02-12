@@ -33,7 +33,7 @@ urlpatterns = patterns('perma.views',
     #Services
     url(r'^service/email-confirm/?$', 'service.email_confirm', name='service_email_confirm'),
     url(r'^service/receive-feedback/?$', 'service.receive_feedback', name='service_receive_feedback'),
-    url(r'^service/link/status/(?P<guid>[a-zA-Z0-9\-]+)/?$', 'service.link_status', name='service_link_status'),
+    url(r'^service/link/status/(?P<guid>[a-zA-Z0-9\-]*)/?$', 'service.link_status', name='service_link_status'),
     url(r'^service/stats/users/?$', 'service.stats_users', name='service_stats_users'),
     url(r'^service/stats/links/?$', 'service.stats_links', name='service_stats_links'),
     url(r'^service/stats/darchive-links/?$', 'service.stats_darchive_links', name='service_stats_darchive_links'),

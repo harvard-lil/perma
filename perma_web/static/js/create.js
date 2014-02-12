@@ -3,6 +3,32 @@ var rawUrl = '';
 var newLinky = {};
 var all_links = new Array();
 
+
+/* Our polling function for the thumbnail completion - start */
+var refreshIntervalId = 0;
+
+var check_status = function() {
+	
+// Check our status service to see if we have archivng jobs pending
+	var request = $.ajax({
+		url: status_url + newLinky.linky_id,
+		type: "GET",
+		dataType: "json"
+	});
+
+	request.done(function(data) {	
+		// if no status is pending
+		if (data.image_capture != 'pending') {
+	        $('#spinner').slideUp();
+	        $('.thumbnail-placeholder').append('<div class="library-thumbnail"><img src="' + 
+	            newLinky.static_prefix + data.path + '/' + data.image_capture + '"></div>');
+			clearInterval(refreshIntervalId);
+		}	
+	});
+}
+/* Our polling function for the thumbnail completion - end */
+
+
 $(document).ready(function() {
   $('#linky-upload-confirm').modal({show: false});
   $('#linky-upload').modal({show: false});
@@ -72,10 +98,12 @@ function linkIt(){
     data: {url: rawUrl, 'csrfmiddlewaretoken': csrf_token},
     dataType: "json"
   });
+  
   request.done(function(data) {
     $('#upload-option').fadeIn();
     linkyUrl = web_base  + '/' + data.linky_id;
     newLinky.url = linkyUrl;
+    newLinky.linky_id = data.linky_id;
     newLinky.original = rawUrl;
     newLinky.title = data.linky_title;
     newLinky.favicon_url = data.favicon_url;
@@ -96,8 +124,12 @@ function linkIt(){
 
     addToStorage(newLinky);
     drawLinks();
-    
-    $('#spinner').slideUp();
+
+    if (newLinky.message_pdf = data.message_pdf) {
+        $('#spinner').slideUp();
+    } else {
+		refreshIntervalId = setInterval(check_status, 2000);
+    }
     $('#link-short-slug').slideDown();
     var clip = new ZeroClipboard( $(".copy-button"), {
       moviePath: requested_host + "/static/js/ZeroClipboard/ZeroClipboard.swf"
