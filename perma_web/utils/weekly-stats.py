@@ -66,7 +66,7 @@ print "## The Links"
 print_stats_line(current_stats, previous_stats, 'unvested links', 'unvested_count')
 print_stats_line(current_stats, previous_stats, 'vested links', 'vested_count')
 print_stats_line(current_stats, previous_stats, 'takedown related, darchived links', 'darchive_takedown_count')
-print_stats_line(current_stats, previous_stats, 'robots.txt related, darchived links', 'darchive_robots_count')
+print_stats_line(current_stats, previous_stats, 'robots.txt or meta noarchive related, darchived links', 'darchive_robots_count')
 print
 
 # Storage
