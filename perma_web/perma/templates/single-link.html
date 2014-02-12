@@ -80,12 +80,19 @@
 								<li>
 									<a  class="tab-styling{% if serve_type == 'live' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=live">Live site view</a>
 								</li>
+
 								{% if asset.image_capture and asset.image_capture != 'failed' %}
 								<li>
-									<a class="tab-styling{% if serve_type == 'image' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=image">Screen capture</a>
+								{% if asset.image_capture == 'pending' %}	
+									<span id="image_cap_container_loading" class="tab-styling">Screen capture</span>
+									<a id="image_cap_container_complete" class="tab-styling{% if serve_type == 'image' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=image" style="display:none;">Screen capture</a>
+								{% else %}
+									<span id="image_cap_container_loading" class="tab-styling" style="display:none;">Screen capture</span> 
+									<a id="image_cap_container_complete" class="tab-styling{% if serve_type == 'image' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=image">Screen capture</a>
+								{% endif %}
 								</li>
 								{% endif %}
-								
+
 								{% if asset.warc_capture and asset.warc_capture != 'failed' %}
 								<li>
 								{% if asset.warc_capture == 'pending' %}	

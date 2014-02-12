@@ -370,6 +370,9 @@ var opts = {
   left: 'auto' // Left position relative to parent in px
 };
 
+var target = document.getElementById('image_cap_container_loading');
+var spinner = new Spinner(opts).spin(target);
+
 var target = document.getElementById('text_cap_container_loading');
 var spinner = new Spinner(opts).spin(target);
 
@@ -393,6 +396,12 @@ var spinner = new Spinner(opts).spin(target);
 		});
 
 		request.done(function(data) {
+
+			if ($('#image_cap_container_loading').is(":visible") && data.image_capture != 'pending') {
+				$('#image_cap_container_loading').hide();
+				$('#image_cap_container_complete').show();
+			}
+			
 			if ($('#warc_cap_container_loading').is(":visible") && data.source_capture != 'pending') {
 				$('#warc_cap_container_loading').hide();
 				$('#warc_cap_container_complete').show();
@@ -409,7 +418,7 @@ var spinner = new Spinner(opts).spin(target);
 			}
 			
 			// if no status is pending
-			if (data.source_capture != 'pending' && data.pdf_capture != 'pending' && data.text_capture != 'pending') {
+			if (data.image_capture != 'pending' && data.source_capture != 'pending' && data.pdf_capture != 'pending' && data.text_capture != 'pending') {
 				clearInterval(refreshIntervalId);
 			}	
 		});
@@ -417,8 +426,10 @@ var spinner = new Spinner(opts).spin(target);
 
 	$(document).ready(function() {
 		
-		if ($('#warc_cap_container_loading').is(":visible") || $('#text_cap_container_loading').is(":visible") 
-		    || $('#pdf_cap_container_loading').is(":visible")){		
+		if ($('#image_cap_container_loading').is(":visible") || 
+		    $('#warc_cap_container_loading').is(":visible") ||
+		    $('#text_cap_container_loading').is(":visible") ||
+		    $('#pdf_cap_container_loading').is(":visible")) {
     		refreshIntervalId = setInterval(check_status, 2000);
     	}
     	
