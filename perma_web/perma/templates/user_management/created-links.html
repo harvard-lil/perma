@@ -162,7 +162,8 @@
                             <a href="{{ link.submitted_url|truncatechars:70 }}" target="_blank" class="original-link">{{ link.submitted_url }}</a>
                         </td>
                         <td class="linky-abbr-title">
-                            <div title="{{ link.submitted_title }}">{{ link.submitted_title }}</div>
+								<input type="text" name="input" value="{{ link.submitted_title }}"><br/>
+                                <span class="muted title-save-status"></span><br/>
                         </td>
                         
                         <td class="linky-abbr-date-time">{{ link.creation_timestamp|local_datetime:"m/d/y" }}

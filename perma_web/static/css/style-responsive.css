@@ -1349,10 +1349,8 @@ td.linky-abbr-vested {
 }
 
 td.linky-abbr-title {
-
     margin-top:0;
     padding-top:0;
-
 }
 
 td.linky-abbr-date-time {
@@ -1374,12 +1372,6 @@ tr td.linky-link, a.original-link {
 	overflow:hidden;
 	word-break:break-all;
 }
-
-
-
-
-
-
 
 input#file {
 	border:0px;

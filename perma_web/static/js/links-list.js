@@ -49,8 +49,36 @@ $(function(){
         }, Math.max(saveBufferSeconds*1000 - (new Date().getTime() - lastNotesSaveTime), 0));
     });
 
+
+    // manage title save
+    var titleSaveNeeded = false,
+        lastTitleSaveTime = 0;
+
+    $('.linky-abbr-title input').on('input propertychange', function(){
+        // save changes to title fields
+        var textarea = $(this),
+            linkID = textarea.closest('tr').attr('link_id'),
+            statusArea = textarea.nextAll('.title-save-status');
+        statusArea.html('saving ...');
+        titleSaveNeeded = true;
+
+        // use a setTimeout so titles are only saved once every few seconds
+        setTimeout(function(){
+            if(titleSaveNeeded){
+                postJSON(
+                    '#',
+                    {action: 'save_title', link_id: linkID, title: textarea.val()},
+                    function(data){
+                        statusArea.html('saved.')
+                    }
+                );
+            }
+            lastTitleSaveTime = new Date().getTime();
+        }, Math.max(saveBufferSeconds*1000 - (new Date().getTime() - lastTitleSaveTime), 0));
+    });
+
     // add ellipses
-    $('td.linky-abbr-title div').dotdotdot();
+    //$('td.linky-abbr-title div').dotdotdot();
 
     function initializeFolders(){
     // only need to do stuff if there are folders

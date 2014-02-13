@@ -724,6 +724,12 @@ def link_browser(request, path, link_filter, this_page, verb):
                 link.notes = posted_data['notes']
                 link.save()
 
+            # save title change
+            elif posted_data['action'] == 'save_title':
+                link = get_object_or_404(Link, pk=posted_data['link_id'], **link_filter)
+                link.submitted_title = posted_data['title']
+                link.save()
+
             return HttpResponse(json.dumps(out), content_type="application/json")
 
     # start with all links belonging to user
