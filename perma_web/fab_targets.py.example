@@ -1,0 +1,15 @@
+from fabric.api import env
+
+# This file contains deployment targets.
+# Each target is a fab task that sets env.hosts and REMOTE_DIR.
+# Fab can then be run with a command like `fab [target] deploy`.
+
+def prod():
+    global REMOTE_DIR
+    env.hosts = ['user@perma.cc',]
+    REMOTE_DIR = '/home/user/foo/perma/perma_web'
+
+def stage():
+    global REMOTE_DIR
+    env.hosts = ['user@perma.testserver.com',]
+    REMOTE_DIR = '/home/user/foo/perma/perma_web'
