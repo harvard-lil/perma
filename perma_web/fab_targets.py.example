@@ -6,12 +6,10 @@ from fabric.api import env
 # Fab can then be run with a command like `fab prod deploy`.
 
 def prod():
-    global REMOTE_DIR
     env.hosts = ['user@perma.cc',]
-    REMOTE_DIR = '/home/user/foo/perma/perma_web'
+    env.REMOTE_DIR = '/home/user/foo/perma/perma_web'
 
 def stage():
-    global REMOTE_DIR, VIRTUALENV_NAME
     env.hosts = ['user@perma.testserver.com',]
-    REMOTE_DIR = '/home/user/foo/perma/perma_web'
-    VIRTUALENV_NAME = 'perma_stage'
+    env.REMOTE_DIR = '/home/user/foo/perma/perma_web'
+    env.VIRTUALENV_NAME = 'perma_stage'

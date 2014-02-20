@@ -7,8 +7,8 @@ from django.conf import settings
 
 ### SETUP STUFF ###
 
-REMOTE_DIR = None
-VIRTUALENV_NAME = 'perma'
+env.REMOTE_DIR = None
+env.VIRTUALENV_NAME = 'perma'
 WSGI_FILE = 'perma/wsgi.py'
 LOCAL_DB_SETTINGS = settings.DATABASES['default']
 DATABASE_BACKUP_DIR = 'database_backups' # If relative path, dir is relative to REMOTE_DIR. If None, no backup will be done.
@@ -30,7 +30,7 @@ def setup_remote(f):
         global _already_setup
         if not _already_setup:
             _already_setup = True
-            with cd(REMOTE_DIR), prefix("workon "+VIRTUALENV_NAME):
+            with cd(env.REMOTE_DIR), prefix("workon "+env.VIRTUALENV_NAME):
                 return f(*args, **kwargs)
         return f(*args, **kwargs)
     return wrapper
@@ -110,4 +110,4 @@ def shell():
     """
     from fabric.context_managers import char_buffered
     with char_buffered(sys.stdin):
-        open_shell("cd %s && workon %s" % (REMOTE_DIR, VIRTUALENV_NAME))
+        open_shell("cd %s && workon %s" % (env.REMOTE_DIR, env.VIRTUALENV_NAME))
