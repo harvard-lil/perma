@@ -42,8 +42,6 @@ urlpatterns = patterns('perma.views',
     url(r'^service/stats/registrar/?$', 'service.stats_registrar', name='service_stats_registrar'),
     
     # Session/account management
-    url(r'^password/change/$', auth_views.password_change, {'template_name': 'registration/password_change_form.html'}, name='auth_password_change'),
-    #url(r'^login/?$', auth_views.login, {'template_name': 'registration/login.html'}, name='auth_login'),
     url(r'^login/?$', 'user_management.limited_login', {'template_name': 'registration/login.html'}, name='user_management_limited_login'),
     url(r'^login/not-active/?$', 'user_management.not_active', name='user_management_not_active'),
     url(r'^login/account-is-deactivated/?$', 'user_management.account_is_deactivated', name='user_management_account_is_deactivated'),
