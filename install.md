@@ -53,6 +53,29 @@ A lot of the settings you need won't change much, so we keep them in a module an
     from settings_dev import *
     # from settings_prod import *
 
+### Create your tables and fire up Django
+
+You should have the pieces in place. Let's create the tables in your database using the syncdb command.:
+
+    $ python manage.py syncdb --noinput
+
+You'll need to convert your local Perma app to use South,
+
+    $ python manage.py convert_to_south myapp
+
+See where you are with your migrations,
+    $ python manage.py migrate --list
+
+If you haven't migrated to the latest version, apply migrate
+    $ python manage.py migrate perma
+
+If you want to play with the admin views, load the user and group data fixtures:
+
+    $ python manage.py loaddata fixtures/users.json fixtures/groups.json
+
+The password for all test users is "pass".
+
+
 ### Celery and RabbitMQ
 
 Perma manages the indexing workload by passing off the indexing tasks to workers. Celery manages the messages and RabbitMQ acts as the broker.
@@ -85,27 +108,7 @@ We use PhantomJS to generate our images. Download [PhantomJS](http://phantomjs.o
     __init__.py phantomjs rasterize.js
 
 
-### Create your tables and fire up Django
-
-You should have the pieces in place. Let's create the tables in your database using the syncdb command.:
-
-    $ python manage.py syncdb --noinput
-
-You'll need to convert your local Perma app to use South,
-
-    $ python manage.py convert_to_south myapp
-
-See where you are with your migrations,
-    $ python manage.py migrate --list
-
-If you haven't migrated to the latest version, apply migrate
-    $ python manage.py migrate perma
-
-If you want to play with the admin views, load the user and group data fixtures:
-
-    $ python manage.py loaddata fixtures/users.json fixtures/groups.json
-
-The password for all test users is "pass".
+### Run the server
 
 Toss in a wsgi config and wire it to your webserver, or use the built-in Django webserver and you should be ready to roll:
 
