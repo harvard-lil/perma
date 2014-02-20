@@ -1,8 +1,9 @@
 from fabric.api import env
 
-# This file contains deployment targets.
+# This file contains deployment targets. You can ignore this if you aren't deploying Perma to remote servers.
+
 # Each target is a fab task that sets env.hosts and REMOTE_DIR.
-# Fab can then be run with a command like `fab [target] deploy`.
+# Fab can then be run with a command like `fab prod deploy`.
 
 def prod():
     global REMOTE_DIR
