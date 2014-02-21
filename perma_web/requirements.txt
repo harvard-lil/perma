@@ -1,5 +1,5 @@
 Django==1.5
-MySQL-python==1.2.4
+MySQL-python==1.2.4c1
 PIL==1.1.7
 South==0.7.6
 lxml==3.2.1
