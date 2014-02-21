@@ -2,6 +2,8 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
+from django.core.urlresolvers import reverse
+from django.shortcuts import redirect
 
 import json, logging, csv
 from perma.models import Link, Asset, Stat
@@ -247,3 +249,23 @@ def stats_registrar(request):
 
 
     return response
+
+def bookmarklet_create(request):
+    '''Handle incoming requests from the bookmarklet.
+
+    Currently, the bookmarklet takes two parameters:
+    - v (version)
+    - url
+
+    This function accepts URLs like this:
+
+    /service/bookmarklet-create/?v=[...]&url=[...]
+
+    ...and passes the query string values to /manage/create/
+    '''
+    path = request.get_full_path()
+    # Strip '/service/bookmarklet-create/
+    querystring = path[28:]
+    add_url = reverse('user_management_create_link')
+    add_url = add_url + querystring
+    return redirect(add_url)

@@ -13,6 +13,14 @@
 <div class="home-form-elements dashboard-create">
   {% include 'add_link_form.html' %}
 </div><!--/.home-form-->
+
+<div class="bookmarklet-button-blurb">
+    <br /><br />
+    <p>You can also create Perma links using the bookmarklet. Drag this button 
+    to your bookmarks bar:</p>
+    <p><a class="btn bookmarklet-button" style="background-color: #efefef;" href="javascript:window.open('http://www.perma.cc/service/bookmarklet-create/?v=1&url='+encodeURIComponent(location.href));window.focus();">Create Perma link</a> </p>
+    <p>Then, click the button while you're viewing the page you want to save.</p>
+</div><!--/.bookmarklet-button-blurb-->
             
 <!-- Modals -->
 
@@ -161,5 +169,30 @@ $(document).ready(function(){
 </script>
 
 {% endverbatim %}
+
+<!-- Bookmarklet -->
+
+<script>
+
+// Get parameter by name
+// from https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+// Populate the URL field and submit the "create link" form
+$(document).ready(function() {
+    var bookmarklet_url = getParameterByName('url');
+    if (bookmarklet_url) {
+        $('.bookmarklet-button').hide();
+        $('#rawUrl').val(bookmarklet_url);
+        $('#linker').submit();
+    }
+});
+
+</script>
 
 {% endblock templates %}
