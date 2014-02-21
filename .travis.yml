@@ -1,9 +1,7 @@
 language: python
 python:
   - "2.7"
-env: DJANGO_SETTINGS_MODULE=perma.settings.settings_test
-# disable compiler optimizations for faster pip install
-env: CFLAGS="-O0"
+env: DJANGO_SETTINGS_MODULE=perma.settings.settings_test CFLAGS="-O0"
 
 before_install: cd perma_web
 install: pip install -r requirements.txt
