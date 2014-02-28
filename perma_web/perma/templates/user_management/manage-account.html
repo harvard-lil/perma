@@ -8,6 +8,14 @@
 {% block manage-nav-settings %}<li class="active"><a href="{% url 'user_management_manage_account' %}">Account settings</a></li>{% endblock %}
 
 {% block content %}
+	  <h3>Tools</h3>
+	  <h4>Bookmarklet</h4>
+		<div class="bookmarklet-button-blurb">
+			<p>You can create Perma links using the bookmarklet. Drag the following button to your bookmarks bar.</p>
+			<p><a class="btn bookmarklet-button" style="background-color: #efefef;" href="javascript:window.open('http://www.perma.cc/service/bookmarklet-create/?v=1&url='+encodeURIComponent(location.href));window.focus();">Create Perma link</a> </p>
+			<p>Then, click the button while you're viewing the page you want to save.</p>
+		</div><!--/.bookmarklet-button-blurb-->
+		<br />
 
 	  <h3>Account settings</h3>
 	  {% if request.user|has_group:'vesting_member,vesting_manager' %}

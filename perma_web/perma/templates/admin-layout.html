@@ -39,7 +39,7 @@
 		{% endcomment %}
 
         <!-- Settings -->
-        <li{% if this_page == 'settings' %} class="active"{% endif %}><a href="{% url 'user_management_manage_account' %}" id="dashboard-settings">Settings</a></li>
+        <li{% if this_page == 'settings' %} class="active"{% endif %}><a href="{% url 'user_management_manage_account' %}" id="dashboard-settings">Tools &amp; Settings</a></li>
 
         <!-- Manage users -->
         {% if request.user|has_group:'registrar_member,registry_member,vesting_manager' %}
@@ -65,8 +65,6 @@
         <!-- Regular users -->
         {% if request.user|has_group:'registry_member' %}
         <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_users" %}class="active" {% endif %}href="{% url 'user_management_manage_user' %}">Users</a></li>{% endif %}
-        
-  
     </ul><!--/#dashboard-tabs-->
 </div><!--/col-sm-3-->
    
