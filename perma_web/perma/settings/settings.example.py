@@ -1,6 +1,8 @@
 # Choose one of these:
 # from settings_dev import *
 # from settings_prod import *
+import os, site
+
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -18,6 +20,14 @@ SECRET_KEY = ''
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []
+
+# Path to project root likely something like /home/you/your_dev_area/perma/perma_web
+PROJECT_ROOT = '/path/to/the/perma/django/project'
+
+# include our third-party libs
+site.addsitedir(os.path.join(PROJECT_ROOT, 'lib'))
+
+PHANTOMJS_BINARY = os.path.join(PROJECT_ROOT, 'lib/phantomjs')
 
 # Instapaper credentials
 INSTAPAPER_KEY = 'key'

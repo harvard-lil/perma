@@ -1,12 +1,5 @@
 # Django settings for Perma project.
 
-import os, site
-
-PROJECT_ROOT = os.path.abspath(os.path.dirname(__name__))
-
-# include our third-party libs
-site.addsitedir(os.path.join(PROJECT_ROOT, 'lib'))
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -165,8 +158,6 @@ LOGIN_DAY_LIMIT = '50000/d'
 
 # Dashboard user lists
 MAX_USER_LIST_SIZE = 100
-
-PHANTOMJS_BINARY = os.path.join(PROJECT_ROOT, 'lib/phantomjs')
 
 # temporary setting to keep warcs out of production during testing
 USE_WARC_ARCHIVE = False
