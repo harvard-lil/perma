@@ -1,0 +1,1 @@
+This is where Django will collect static assets when manage.py collectstatic is called.

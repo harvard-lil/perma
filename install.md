@@ -1,9 +1,61 @@
 Installing Perma
 =====
 
-## Install
+## Quick Start
 
 Perma is a Python application built on the [Django](https://www.djangoproject.com/) web framework.
+
+If you are running Perma locally for development, we recommend using our pre-built
+[Vagrant](http://docs.vagrantup.com/v2/getting-started/) virtual machine. This will take more disk space (~700MB),
+but will let you jump into coding instead of trying to get all the services running on your machine.
+
+First you'll need some dependencies:
+
+* [Git](http://git-scm.com/downloads)
+* [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
+* [Vagrant](http://www.vagrantup.com/downloads.html)
+
+Then check out the code:
+
+    $ git clone https://github.com/harvard-lil/perma.git
+    $ cd perma
+    $ git submodule init && git submodule update
+
+Start up the vagrant virtual machine in the background:
+
+    $ vagrant up
+
+The first time this runs it will have to download the ~700MB disk image.
+
+Connect to the virtual machine:
+
+    $ vagrant ssh
+    Welcome to Ubuntu 12.04 LTS (GNU/Linux 3.2.0-23-generic x86_64)
+    ...
+    (perma)vagrant@perma_0.1:/vagrant/perma_web$
+
+You are now logged into the VM. The prompt you see means you have the `(perma)` virtualenv activated,
+you are logged in as the user `vagrant`, you are using the `perma_0.1` VM, and you are in the `/vagrant/perma_web` folder.
+
+`/vagrant` is a shared folder in the guest machine that maps to the `perma` repo you just checked out on your host machine,
+so any changes you make on your local computer will appear inside `/vagrant` and vice versa.
+
+Now you're in the Django project folder and can develop like normal. First let's initialize the database
+(this will call `syncdb`, apply South migrations, and load fixtures):
+
+    (perma)vagrant@perma_0.1:/vagrant/perma_web$ fab init_test_db
+
+Then you can run the test server:
+
+    (perma)vagrant@perma_0.1:/vagrant/perma_web$ python manage.py runserver 0.0.0.0:8000
+
+That's it! You should now be able to load Perma in your browser at `http://127.0.0.1:8000/`.
+(Note that you have to provide the full IP and port to `runserver`, so the test server will be available
+from your host machine).
+
+## Install
+
+If you want to set up a server from scratch instead of using our VM, here's how to do it.
 
 ### Python, Django, and modules
 
@@ -57,21 +109,13 @@ A lot of the settings you need won't change much, so we keep them in a module an
 
 ### Create your tables and fire up Django
 
-You should have the pieces in place. Let's create the tables in your database using the syncdb command.:
+You should have the pieces in place. Let's create the tables in your database using the syncdb command:
 
     $ python manage.py syncdb --noinput
 
-You'll need to convert your local Perma app to use South,
+Then apply South migrations:
 
-    $ python manage.py convert_to_south myapp
-
-See where you are with your migrations,
-
-    $ python manage.py migrate --list
-
-If you haven't migrated to the latest version, apply migrate
-
-    $ python manage.py migrate perma
+    $ python manage.py migrate
 
 If you want to play with the admin views, load the user and group data fixtures:
 
