@@ -1,5 +1,8 @@
+import os
 from pywb import replay_views, replay_resolvers, archiveloader, indexreader, archivalrouter, wburl, handlers
-import perma.settings
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "perma.settings")
+from django.conf import settings
 
 
 # include guid in CDX requests
@@ -28,7 +31,7 @@ def pywb_config():
     """
         Configure server.
     """
-    index_server = indexreader.RemoteCDXServer(perma.settings.CDX_SERVER_URL)
+    index_server = indexreader.RemoteCDXServer(settings.CDX_SERVER_URL)
 
     # Loads warcs specified in cdx from these locations
     resolvers = [replay_resolvers.PrefixResolver('file://', '')]
