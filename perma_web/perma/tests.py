@@ -1,6 +1,7 @@
 from django.core.urlresolvers import reverse
 from django.test import TestCase
-from models import *
+from .models import *
+from .urls import urlpatterns
 
 # to run tests:
 # python manage.py test perma
@@ -19,41 +20,12 @@ class ViewsTestCase(TestCase):
         # TODO: check resp to see if login worked
 
     def test_public_views(self):
-        """Test all public, static views, both logged in and logged out."""
-
-        # we're going to test each of these views. Format is [ url, expected template, expected context values ]
-        views = [
-            [reverse('landing'), 'landing.html', {'this_page': 'landing',}],
-            [reverse('about'), 'about.html', {}],
-            [reverse('faq'), 'faq.html', {}],
-            [reverse('contact'), 'contact.html', {}],
-            [reverse('copyright_policy'), 'copyright_policy.html', {}],
-            [reverse('terms_of_service'), 'terms_of_service.html', {}],
-            [reverse('privacy_policy'), 'privacy_policy.html', {}],
-        ]
-
-        # try each view while logged in as each of these users
-        user_logins = [None, 'test_registry_member@example.com']
-
-        for user_login in user_logins:
-
-            # user login
-            if user_login:
-                self.log_in_user(user_login)
-            else:
-                user_obj = None
-
-            # try each view
-            for url, template, context in views:
+        # test static template views
+        for urlpattern in urlpatterns:
+            if urlpattern.callback.func_name == 'DirectTemplateView':
+                url = reverse(urlpattern.name)
                 resp = self.client.get(url)
-                self.assertEqual(resp.status_code, 200) # check response status code
-                self.assertTemplateUsed(template)       # check response template
-                for key, val in context.items():        # check response context
-                    self.assertEqual(resp.context[-1].get(key, None), val)
-                if user_obj:                            # check that proper user object is included in context
-                    self.assertEqual(resp.context[-1]['user'], user_obj)
-
-            self.client.logout()
+                self.assertEqual(resp.status_code, 200)
 
     def test_permissions(self):
         """Test who can log into restricted pages."""
@@ -122,7 +94,6 @@ class ViewsTestCase(TestCase):
                 for user in view['allowed']:
                     self.log_in_user(user)
                     resp = self.client.get(url)
-                    #import pdb; pdb.set_trace()
                     self.assertEqual(resp.status_code, 200)
 
                 # try with invalid users
