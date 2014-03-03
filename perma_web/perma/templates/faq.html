@@ -83,18 +83,35 @@
 				  <h2>Technical FAQs</h2>					
 					<div class="question">I don't want Perma.cc to archive a page from my site.</div>
 					<div class="answer">
-						 <p>It's important to note that Perma.cc does not crawl your site like a search engine might. When Perma.cc is crawling your site, it is only interested in retrieving items that are needed to construct the single page it is archiving. This should be no more stressful for your webserver than a single user viewing a single page in a single browser.</p>
-						 <p>If you don't want Perma.cc to display items from your site, we're happy to respect your wishes. You can either add a rule for the PermaBot to your robots.txt or to a meta tag in your HTML.</p>
-						<p>If you want to block PermaBot in your robots.txt use a configuration like the one below.</p>
+						 <p>
+                             It's important to note that Perma.cc does not crawl your site like a search engine might,
+                             and it does not make its archives available in search engines.
+                             It simply saves a copy of a single page at the request of a user,
+                             as though the user visited your page and used the "Save as ..." function of their browser.
+                         </p>
+						 <p>
+                             If you don't want Perma.cc to make archives of your site available online to future readers of scholarly work,
+                             we're happy to respect your wishes.
+                         </p>
+						 <p>
+                             To prevent online archives for entire sections of your site,
+                             use a configuration in your robots.txt file like the one below:
+                         </p>
 						 <p class="code">
-						 	User-agent: PermaBot<br/>
-							Disallow: /private-stuff/
+						 	 User-agent: PermaBot<br/>
+							 Disallow: /private-stuff/
 						 </p>
-						<p>If you want to block PermaBot in using a meta tag, include the following in your HTML document</p>
+						 <p>
+                             To prevent online archives for a single page, use one of the following meta tags:
+                         </p>
 						 <p class="code">
-							&lt;meta name="PermaBot" content="noarchive" /&gt;
+							 &lt;meta name="PermaBot" content="noarchive" /&gt;
+							 &lt;meta name="robots" content="noarchive" /&gt;
 						 </p>
-						<p>With either, or both of these rules in place, Perma.cc will still archive the requested page from your site, but will not display it at Perma.cc.</p>
+						 <p>
+                             With either or both of these rules in place, Perma.cc will still allow the user to store
+                             the requested page in library archives, but will not display it at the perma.cc website.
+                         </p>
 					</div>
 					
 				</div>
