@@ -1,8 +1,6 @@
 # Choose one of these:
 # from settings_dev import *
 # from settings_prod import *
-import os, site
-
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -21,13 +19,14 @@ SECRET_KEY = ''
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []
 
-# Path to project root likely something like /home/you/your_dev_area/perma/perma_web
-PROJECT_ROOT = '/path/to/the/perma/django/project'
 
-# include our third-party libs
-site.addsitedir(os.path.join(PROJECT_ROOT, 'lib'))
+# PhantomJS Binary. If you've placed your PhantomJS local to Perma, you might
+# want to set that here
+# PHANTOMJS_BINARY = os.path.join(PROJECT_ROOT, 'lib/phantomjs')
 
-PHANTOMJS_BINARY = os.path.join(PROJECT_ROOT, 'lib/phantomjs')
+# This is where we dump the generated WARCs, PNGs, and so on. If you're running
+# in prod, you'll likely want to set this
+#GENERATED_ASSETS_STORAGE = '/tmp/perma/assets'
 
 # Instapaper credentials
 INSTAPAPER_KEY = 'key'
@@ -45,8 +44,6 @@ DEFAULT_FROM_EMAIL = 'email@example.com'
 # The host we want to display (used when DEBUG=False)
 HOST = 'perma.cc'
 
-# Where we store our generated assets (phantomjs images)
-GENERATED_ASSETS_STORAGE = '/tmp/perma/assets'
 
 # Additional locations of static files
 STATICFILES_DIRS = (

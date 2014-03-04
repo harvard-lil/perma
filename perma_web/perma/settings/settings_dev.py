@@ -1,5 +1,7 @@
 from settings_common import *
 
+import os
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -7,6 +9,7 @@ SERVICES_DIR = os.path.abspath(os.path.join(PROJECT_ROOT, '../services'))
 
 # The base location, on disk, where we want to store our generated assets
 GENERATED_ASSETS_STORAGE = os.path.join(SERVICES_DIR, 'django/generated_assets')
+
 # Additional locations of static files
 STATICFILES_DIRS = (
     'static',

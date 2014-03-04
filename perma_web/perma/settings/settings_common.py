@@ -1,3 +1,13 @@
+from ..pathtool import module_path
+import site, os
+
+PROJECT_ROOT = os.path.dirname(module_path())
+
+# include our third-party libs
+site.addsitedir(os.path.join(PROJECT_ROOT, 'lib'))
+
+PHANTOMJS_BINARY = os.path.join(PROJECT_ROOT, 'lib/phantomjs')
+
 # Django settings for Perma project.
 
 DATABASES = {
