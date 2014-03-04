@@ -1,12 +1,13 @@
 Django==1.5
-MySQL-python==1.2.4
-PIL==1.1.7
+MySQL-python==1.2.5
 South==0.7.6
 lxml==3.2.1
+--allow-unverified pyPdf
+--allow-external pyPdf
 pyPdf==1.13
 http://effbot.org/downloads/Imaging-1.1.7.tar.gz
-celery==3.0.21
-django-celery==3.0.21
+celery==3.1.9
+django-celery==3.1.9
 requests==1.2.3
 wsgiref==0.1.2
 django-ratelimit==0.3.0
@@ -16,6 +17,8 @@ smhasher==0.150.1
 pytz==2013b
 django-mptt==0.6.0
 Werkzeug==0.9.4
+Fabric==1.8.2
+pexpect==3.1
 
 # requirements of non-PyPI package cdx_writer
 surt==0.2

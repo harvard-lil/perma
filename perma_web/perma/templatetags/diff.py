@@ -1,6 +1,5 @@
 from django import template
-import os, smhasher
-from perma.settings import STATIC_URL, PROJECT_ROOT, GENERATED_ASSETS_STORAGE
+import smhasher
 from perma.tasks import instapaper_capture
 register = template.Library()
 

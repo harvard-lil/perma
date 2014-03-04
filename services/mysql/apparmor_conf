@@ -1,0 +1,4 @@
+/mysql_data/ rw,
+/mysql_data/** rwk,
+/mysql_logs/** rw,
+/vagrant/services/mysql/* r,

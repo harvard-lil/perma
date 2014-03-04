@@ -1,7 +1,7 @@
 from django import template
 import os
-from perma.settings import STATIC_URL, PROJECT_ROOT, GENERATED_ASSETS_STORAGE
-STATIC_PREFIX = STATIC_URL
+from django.conf import settings
+
 register = template.Library()
 
 @register.tag
@@ -19,9 +19,9 @@ class File_exists_node(template.Node):
         id = str(self.id.resolve(context))
         url = self.url.resolve(context)
         path = self.path.resolve(context)
-        if os.path.exists(GENERATED_ASSETS_STORAGE + '/' + path + '/cap.pdf'):
+        if os.path.exists(settings.GENERATED_ASSETS_STORAGE + '/' + path + '/cap.pdf'):
             return ''.join(['<a id="linky-pdf" href="', self.pdf_path(id, path), '">View this PDF</a>'])
-        elif os.path.exists(GENERATED_ASSETS_STORAGE + '/' + path + '/cap.jpg'):
+        elif os.path.exists(settings.GENERATED_ASSETS_STORAGE + '/' + path + '/cap.jpg'):
             return ''.join(['<a href="', url,
                             '"><img class="linky-image" src="',
                             self.jpg_path(id, path),
@@ -33,12 +33,12 @@ class File_exists_node(template.Node):
                             '"></a>'])
 
     def pdf_path(self, id, path):
-        return STATIC_URL + path + '/cap.pdf'
+        return settings.STATIC_URL + path + '/cap.pdf'
 
     def png_path(self, id, path):
-        return STATIC_URL + path + '/cap.png'
+        return settings.STATIC_URL + path + '/cap.png'
 
     def jpg_path(self, id, path):
-        return STATIC_URL + path + '/cap.jpg'
+        return settings.STATIC_URL + path + '/cap.jpg'
 
 

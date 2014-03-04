@@ -1,0 +1,1 @@
+This is where mysql will store its data so it's available in the VM but doesn't get wiped when the VM is reset.
