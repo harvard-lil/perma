@@ -8,6 +8,6 @@ install:
   - pip install -r requirements.txt
   - pip install coverage coveralls
 script:
-  coverage run --source='.' --omit='lib/*' --omit='perma/migrations/*' python manage.py test perma
+  coverage run --source='.' --omit='lib/*' --omit='perma/migrations/*' manage.py test perma
 after_success:
   coveralls
