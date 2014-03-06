@@ -4,6 +4,10 @@ python:
 env: DJANGO_SETTINGS_MODULE=perma.settings.settings_test CFLAGS="-O0"
 
 before_install: cd perma_web
-install: pip install -r requirements.txt
-
-script: python manage.py test perma
+install:
+  - pip install -r requirements.txt
+  - pip install coverage coveralls
+script:
+  coverage run --source='.' --omit='lib/*' --omit='perma/migrations/*' python manage.py test perma
+after_success:
+  coveralls
