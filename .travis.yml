@@ -10,4 +10,4 @@ install:
 script:
   coverage run --source='.' --omit='lib/*' --omit='perma/migrations/*' manage.py test perma
 after_success:
-  coveralls
+  coveralls debug
