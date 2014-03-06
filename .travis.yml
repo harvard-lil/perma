@@ -6,9 +6,9 @@ env: DJANGO_SETTINGS_MODULE=perma.settings.settings_test CFLAGS="-O0"
 before_install: cd perma_web
 install:
   - pip install -r requirements.txt
-  - pip install coverage coveralls
+  - pip install coveralls
 script:
-  coverage run --source='.' --omit='lib/*' --omit='perma/migrations/*' manage.py test perma
+  coverage run --source='.' --omit='lib/*,perma/migrations/*' manage.py test perma
 after_success:
   - coveralls debug
   - coveralls
