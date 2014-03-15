@@ -1,14 +1,13 @@
 from functools import wraps
-import sys
+import sys, os
 from datetime import date
 from fabric.api import *
-from fabric.contrib import django
 
-django.project('perma')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'perma.settings')
 from django.conf import settings
 
 
-### SETUP STUFF ###
+### SETUP ###
 
 env.REMOTE_DIR = None
 env.VIRTUALENV_NAME = 'perma'
