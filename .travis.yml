@@ -7,6 +7,8 @@ before_install: cd perma_web
 install:
   - pip install -r requirements.txt
   - pip install coveralls
+before_script:
+  - mysql -e 'create database perma;'
 script:
   fab test
 after_success:
