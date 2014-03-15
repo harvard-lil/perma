@@ -52,30 +52,19 @@ def manage(request):
     """
     The landing page for users who are signed in
     """
-
-    if request.user.id >= 0:
-      linky_links = list(Link.objects.filter(created_by=request.user).order_by('-creation_timestamp'))
-    else:
-      linky_links = None
-
-    context = RequestContext(request, {'this_page': 'manage', 'linky_links': linky_links, 'next': request.get_full_path()})
-
-    return render_to_response('user_management/manage.html', context)
+    recent_links = list(Link.objects.filter(created_by=request.user).order_by('-creation_timestamp'))
+    return render_to_response('user_management/manage.html',
+                              {'this_page': 'manage', 'recent_links': recent_links},
+                              RequestContext(request))
     
 @login_required
 def create_link(request):
     """
     Create new links
     """
-
-    if request.user.id >= 0:
-      linky_links = list(Link.objects.filter(created_by=request.user).order_by('-creation_timestamp'))
-    else:
-      linky_links = None
-
-    context = RequestContext(request, {'this_page': 'create_link', 'linky_links': linky_links, 'next': request.get_full_path()})
-
-    return render_to_response('user_management/create-link.html', context)
+    return render_to_response('user_management/create-link.html',
+                              {'this_page': 'create_link'},
+                              RequestContext(request))
     
 
 @require_group('registry_member')
@@ -180,7 +169,7 @@ def manage_vesting_org(request):
     # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_member':
         vesting_orgs = VestingOrg.objects.all().order_by(sort)
-        is_registry = True;
+        is_registry = True
     else:
       vesting_orgs = VestingOrg.objects.filter(registrar_id=request.user.registrar_id).order_by(sort)
 
@@ -824,35 +813,35 @@ def manage_account(request):
     return render_to_response('user_management/manage-account.html', context)
 
 
-@login_required
-def batch_convert(request):
-    """
-    Detect and archive URLs from user input.
-    """
-    context = {'this_page': 'batch_convert'}
-    context.update(csrf(request))
-    return render_to_response('user_management/batch_convert.html', context, RequestContext(request))
+# @login_required
+# def batch_convert(request):
+#     """
+#     Detect and archive URLs from user input.
+#     """
+#     context = {'this_page': 'batch_convert'}
+#     context.update(csrf(request))
+#     return render_to_response('user_management/batch_convert.html', context, RequestContext(request))
 
 
-@login_required
-def export(request):
-    """
-    Export a CSV of a user's library/
-    """
-    
-    context = {'this_page': 'export'}
-    context.update(csrf(request))
-    return render_to_response('user_management/export.html', context, RequestContext(request))
+# @login_required
+# def export(request):
+#     """
+#     Export a CSV of a user's library/
+#     """
+#
+#     context = {'this_page': 'export'}
+#     context.update(csrf(request))
+#     return render_to_response('user_management/export.html', context, RequestContext(request))
 
 
-@login_required
-def custom_domain(request):
-    """
-    Instructions for a user to configure a custom domain.
-    """
-    context = {'this_page': 'custom_domain'}
-    context.update(csrf(request))
-    return render_to_response('user_management/custom_domain.html', context, RequestContext(request))
+# @login_required
+# def custom_domain(request):
+#     """
+#     Instructions for a user to configure a custom domain.
+#     """
+#     context = {'this_page': 'custom_domain'}
+#     context.update(csrf(request))
+#     return render_to_response('user_management/custom_domain.html', context, RequestContext(request))
     
 def not_active(request):
     """

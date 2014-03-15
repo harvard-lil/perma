@@ -1,14 +1,13 @@
 from functools import wraps
-import sys
+import sys, os
 from datetime import date
 from fabric.api import *
-from fabric.contrib import django
 
-django.project('perma')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'perma.settings')
 from django.conf import settings
 
 
-### SETUP STUFF ###
+### SETUP ###
 
 env.REMOTE_DIR = None
 env.VIRTUALENV_NAME = 'perma'
@@ -121,3 +120,15 @@ def init_test_db():
     local("python manage.py syncdb --noinput")
     local("python manage.py migrate")
     local("python manage.py loaddata fixtures/users.json fixtures/groups.json")
+
+def test():
+    """
+        Run perma tests. (For coverage, run `coverage report` after tests pass.)
+    """
+    local("coverage run --source='.' --omit='lib/*,perma/migrations/*,*/tests/*' manage.py test perma")
+
+def run(port="0.0.0.0:8000"):
+    """
+        Run django test server on open port, so it's accessible outside Vagrant.
+    """
+    local("python manage.py runserver %s" % port)

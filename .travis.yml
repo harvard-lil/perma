@@ -1,9 +1,16 @@
 language: python
 python:
   - "2.7"
-env: DJANGO_SETTINGS_MODULE=perma.settings.settings_test CFLAGS="-O0"
+env: DJANGO_SETTINGS_MODULE=perma.settings.settings_travis CFLAGS="-O0"
 
 before_install: cd perma_web
-install: pip install -r requirements.txt
-
-script: python manage.py test perma
+install:
+  - pip install -r requirements.txt
+  - pip install coveralls
+before_script:
+  - mysql -e 'create database perma;'
+script:
+  fab test
+after_success:
+  - coveralls debug
+  - coveralls

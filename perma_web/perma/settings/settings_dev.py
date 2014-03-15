@@ -46,3 +46,6 @@ INSTAPAPER_PASS = 'pass'
 # Google Analytics
 GOOGLE_ANALYTICS_KEY = 'UA-XXXXX-X'
 GOOGLE_ANALYTICS_DOMAIN = 'example.com'
+
+# The host we want to display (used when DEBUG=False)
+HOST = 'perma.cc'

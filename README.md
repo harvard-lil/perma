@@ -4,7 +4,7 @@ Perma - indelible links
 Perma.cc helps authors and journals create permanent archived citations in their published work.
 
 
-[![Build Status](https://travis-ci.org/harvard-lil/perma.png?branch=develop)](https://travis-ci.org/harvard-lil/perma)
+[![Build Status](https://travis-ci.org/harvard-lil/perma.png?branch=develop)](https://travis-ci.org/harvard-lil/perma) [![Coverage Status](https://coveralls.io/repos/harvard-lil/perma/badge.png?branch=develop)](https://coveralls.io/r/harvard-lil/perma?branch=develop)
 
 
 ## Installation

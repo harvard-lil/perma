@@ -5,8 +5,9 @@ from settings_dev import *
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
-DATABASES['default']['NAME'] = ''
-DATABASES['default']['USER'] = ''
+DATABASES['default']['HOST'] = '127.0.0.1'
+DATABASES['default']['NAME'] = 'perma'
+DATABASES['default']['USER'] = 'root'
 DATABASES['default']['PASSWORD'] = ''
 
 # To populate the from field of emails sent from Perma
