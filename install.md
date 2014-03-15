@@ -47,11 +47,14 @@ Now you're in the Django project folder and can develop like normal. First let's
 
 Then you can run the test server:
 
-    (perma)vagrant@perma_0.1:/vagrant/perma_web$ python manage.py runserver 0.0.0.0:8000
+    (perma)vagrant@perma_0.1:/vagrant/perma_web$ fab run
+    ...
+    local: python manage.py runserver 0.0.0.0:8000
+    ...
+    Starting development server at http://0.0.0.0:8000/
+    Quit the server with CONTROL-C.
 
 That's it! You should now be able to load Perma in your browser at `http://127.0.0.1:8000/`.
-(Note that you have to provide the full IP and port to `runserver`, so the test server will be available
-from your host machine).
 
 ## Install
 
