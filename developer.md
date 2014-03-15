@@ -30,7 +30,7 @@ The most straight forward data migration might be the addition of a new model or
 
     $ ./manage.py schemamigration perma --auto
 
-This will create a migration file for you on disk, something like,
+(Or use our shortcut, `fab south_out` ) This will create a migration file for you on disk, something like,
 
     $ cat perma_web/perma/migrations/0003_auto__add_vestingorg__add_field_linkuser_vesting_org.py
 
@@ -38,7 +38,7 @@ Even though you've changed your models file and created a migration (just a pyth
 
     $ ./manage.py migrate perma
 
-Now, your database, your model, and your migration should all be at the same point. You can list your migrations using the list command,
+(Or use our shortcut, `fab south_in` ) Now, your database, your model, and your migration should all be at the same point. You can list your migrations using the list command,
 
     $ ./manage.py migrate --list
 
@@ -61,6 +61,16 @@ If you've been developing Perma without using South, you might need to apply the
 	
     $ ./manage.py migrate perma 0001 --fake
 
+
+### Testing and Test Coverage
+
+If you add or change a feature, be sure to add a test for it in perma/tests/. Tests are run like this:
+
+    $ fab test
+
+You should always run the tests before committing code.
+
+The `fab test` command also generates handy coverage information. You can access it with the `coverage` command.
 
 ### Debugging email-related issues
 
