@@ -7,7 +7,17 @@ import os, site
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__name__))
 site.addsitedir(os.path.join(PROJECT_ROOT, 'lib'))
 
-# tell pywb where to find our config
-os.environ['PYWB_CONFIG_MODULE'] = 'warc_server.pywb_config'
 
-from pywb.wbapp import application
+#=================================================================
+# init cdx server app
+#=================================================================
+
+from pywb.framework.wsgi_wrappers import init_app
+
+from pywb_config import create_perma_pywb_app
+
+# cdx-server only config
+#DEFAULT_CONFIG = 'config.yaml'
+
+application = init_app(create_perma_pywb_app,
+                       load_yaml=False)
