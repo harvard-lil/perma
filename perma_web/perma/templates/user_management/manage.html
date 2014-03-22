@@ -26,7 +26,7 @@
         <p>Perma.cc helps authors and journals create<br />
         permanent links for citations in their published work.</p>
         {% if request.user.is_authenticated %}
-        <p><a href="{% url 'user_management_created_links' %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
+        <p><a href="{% url 'created_links' %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
         {% else %}
         <p><a href="#" class="btn btn-large btn-success">Sign Up for a Free Account</a></p>
         {% endif %}
@@ -85,7 +85,7 @@
     </div>
     <div class="modal-body">
         <div class="center">
-            <form class="form-inline" id="linky_upload_form" action="/api/linky/upload" method="post">
+            <form class="form-inline" id="linky_upload_form" action="{% url 'upload_link' %}" method="post">
             <h4>Choose a file</h4>
             <p><input id="file" name="file" class="input-xlarge" type="file" placeholder="example.png"></p>
             <p><input id="title" name="title" class="input-xlarge" type="text" placeholder="Example Page Title"></p>
@@ -124,7 +124,7 @@
 
 {% block scripts %}
 <script>
-  var web_base = "http://{{determined_host}}";
+  var mirror_server_host = "http://{{request.mirror_server_host}}";
   var csrf_token = "{{csrf_token}}";
 </script>
 <script src="{{ STATIC_PREFIX }}js/ZeroClipboard/ZeroClipboard.min.js"></script>

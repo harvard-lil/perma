@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 {% endblock %}
 
-{% block manage-created-links %}<li class="active"><a href="{% url 'user_management_created_links' %}">Created links</a></li>{% endblock %}
+{% block manage-created-links %}<li class="active"><a href="{% url 'created_links' %}">Created links</a></li>{% endblock %}
 
 {% block content %}
 
@@ -27,7 +27,7 @@
     		</div>
     
 			<div class="center">
-				<form class="form-inline" id="linky_upload_form" action="/api/linky/upload" method="post">
+				<form class="form-inline" id="linky_upload_form" action="{% url 'upload_link' %}" method="post">
 				<h4>Choose a file</h4>
 				<p><input id="file" name="file" class="input-xlarge" type="file" placeholder="example.png"></p>
 				<p><input id="title" name="title" class="input-xlarge" type="text" placeholder="Example Page Title"></p>
@@ -64,8 +64,8 @@
 
 {% block scripts %}
 <script>
-  var requested_host = "http://{{requested_host}}";
-  var web_base = "http://{{determined_host}}";
+  var main_server_host = "http://{{request.main_server_host}}";
+  var mirror_server_host = "http://{{request.mirror_server_host}}";
   var csrf_token = "{{csrf_token}}";
   var static_prefix = "{{STATIC_PREFIX}}";
   var status_url = "{% url 'service_link_status' '' %}";

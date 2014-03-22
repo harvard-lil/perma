@@ -76,6 +76,46 @@ The `fab test` command also generates handy coverage information. You can access
 
 If you're working on an email related task, the contents of emails should be dumped to the standard out courtesy of EMAIL_BACKEND in settings_dev.py.
 
+### Mirroring
+
+Perma uses a mirroring system in which one server handles logged-in users and content creation, and a set of mirrors help to serve archived content.
+A load balancer routes traffic between them. The net effect is that http://users.perma.cc is served by one server,
+while http://perma.cc may be served by any randomly selected mirror.
+
+For development, we simulate Perma's network by running a simple load balancer on the local machine at \*.perma.dev:8000.
+The load balancer routes requests to users.perma.dev:8000 to the main Django dev server running on port :8001,
+and requests to perma.dev:8000 to a mirror Django dev server running on port :8002.
+
+To set that up, first edit your hosts file (/etc/hosts or \system32\drivers\etc\hosts) to add the following line:
+
+    127.0.0.1    *.perma.dev
+
+(If you're using Vagrant, this should happen on your host machine. The rest happens in the guest machine.)
+
+Edit your settings.py:
+
+    MIRRORING_ENABLED = True
+    HOST = 'perma.dev'
+
+Install Twisted:
+
+    pip install twisted
+
+Create the mirror database (the default root password if you're using the Vagrant image is 'root'):
+
+    mysql -u root -p
+	mysql> create database perma_mirror character set utf8; grant all on perma_mirror.* to perma@'localhost' identified by 'perma';
+
+Perma syncs the main server and the mirrors on a schedule. You can simulate the sync at any time by running this command:
+
+    mysqldump -uperma -p --ignore-table=perma.perma_linkuser perma | mysql -uperma -p perma_mirror
+
+Once everything's set up, you can launch the simple load balancer and two Django dev servers:
+
+    python manage.py runmirror
+
+You can edit the codebase normally and each server will incorporate your changes. Remember that if you want the mirror
+server to see database updates, you'll have to re-run the mysqldump command each time.
 
 ### Working with Celery
 
