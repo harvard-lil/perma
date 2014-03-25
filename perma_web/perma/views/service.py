@@ -39,20 +39,45 @@ def receive_feedback(request):
     Take feedback data and send it off in an email
     """
     
+    user_agent = ''
+    if 'HTTP_USER_AGENT' in request.META:
+        user_agent = request.META.get('HTTP_USER_AGENT')
+    
     submitted_url = request.POST.get('submitted_url')
     visited_page = request.POST.get('visited_page')
     feedback_text = request.POST.get('feedback_text')
-    
-    from_address = "lil@law.harvard.edu"
-    to_address = request.POST.get('user_email')
-    content = '''Visited page: %s
-    Feedback text
-    _______________________________________
+    broken_link = request.POST.get('broken_link')
+    broken_text = ""
+    if(broken_link):
+        broken_text = '''There was a problem creating the following Perma
     %s
-    _______________________________________
+        
+    ''' %(broken_link)
+    
+    from_address = request.POST.get('user_email')
+    content = '''
+    Visited page: %s
+    
+    COMMENTS
+    --------
+    %s
+    
+    
+    %s
+    
+    USER INFO
+    ---------
+    %s
 
-''' % (visited_page, feedback_text)
+''' % (visited_page, feedback_text, broken_text, user_agent)
     logger.debug(content)
+    
+    send_mail(
+        "New Perma feedback",
+        content,
+        from_address,
+        [settings.DEFAULT_FROM_EMAIL], fail_silently=False
+    )
 
     #msg = MIMEText(content)
     #msg['Subject'] = "New Perma feedback"

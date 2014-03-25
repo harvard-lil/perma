@@ -7,17 +7,31 @@ $(document).ready(function() {
     // Select the input text when the user clicks the element
     $('.select-on-click').click(function() { $(this).select(); });
     
+    $('.add-link-container').on('click', '#report-error', function() {
+        var brokenLink = $('#broken-link').text(); console.log(brokenLink);
+        $('#broken-link-report').html('<strong>' + brokenLink + '</strong> is causing an error.');
+    });
+    
+    $('#feedbackModal').on('hidden.bs.modal', function (e) {
+        $('#broken-link-report').html('');
+        $('form.feedback').find("input[type=email], textarea").val("");
+    })
+
+    
     $("input#submit-feedback").click(function(){
       var data = $('form.feedback').serializeArray();
       var csrftoken = getCookie('csrftoken');
       data.push({name: 'csrfmiddlewaretoken', value: csrftoken});
       data.push({name: 'visited_page', value: $(location).attr('href')});
+      var brokenLink = $('#broken-link').text();
+      if(brokenLink)
+        data.push({name: 'broken_link', value: brokenLink});
         $.ajax({
             type: "POST",
             url: feedback_url, //process to mail
             data: data,
             success: function(msg){
-                $("#feedback-form").modal('hide'); //hide popup 
+                $("#feedbackModal").modal('hide'); //hide popup 
             },
             error: function(){
                 alert("failure");

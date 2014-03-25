@@ -5622,7 +5622,7 @@ body.modal-open,
 }
 
 .modal {
-  position: absolute;
+  position: fixed;
   top:0px;
   right: 0;
   bottom: 0;
