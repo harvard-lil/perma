@@ -158,8 +158,8 @@
                         {% endif %}</td>
                         <td class="linky-abbr-vested">{% if link.vested and verb == 'created' %}<span class="fancy-infinity">&infin;</span>{% endif %}</td>
                         <td class="linky-link">
-                            <a class="orange" href="http://{{determined_host}}/{{link.guid}}" target="_blank">http://{{determined_host}}/{{link.guid}}</a><br/>
-                            <a href="{{ link.submitted_url|truncatechars:70 }}" target="_blank" class="original-link">{{ link.submitted_url }}</a>
+                            <a class="orange" href="http://{{request.mirror_server_host}}/{{link.guid}}" target="_blank">http://{{request.mirror_server_host}}/{{link.guid}}</a><br/>
+                            <a href="{{ link.submitted_url }}" target="_blank" class="original-link">{{ link.submitted_url|truncatechars:200 }}</a>
                         </td>
                         <td class="linky-abbr-title">
 								<input type="text" name="input" value="{{ link.submitted_title }}"><br/>

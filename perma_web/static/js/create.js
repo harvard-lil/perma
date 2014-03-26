@@ -54,7 +54,7 @@ function uploadIt(data) {
   if(data.status == 'success') {
     $('#linky-upload').modal('hide');
 
-    var linkyUrl = web_base  + '/' + data.linky_hash;
+    var linkyUrl = mirror_server_host  + '/' + data.linky_hash;
     var source = $("#upload-confirm-template").html();
     var template = Handlebars.compile(source);
     $('#links').html(template({url: linkyUrl}));
@@ -63,7 +63,7 @@ function uploadIt(data) {
 
 
     //$('#linky-upload-confirm').modal({show: true});
-    //var linkyUrl = web_base  + '/' + data.linky_hash;
+    //var linkyUrl = mirror_server_host  + '/' + data.linky_hash;
     //$('#linky_upload_success').text('Your linky has been created at');
     //$('#uploadedLinkyUrl a').attr('href', linkyUrl).text(linkyUrl);
 
@@ -93,7 +93,7 @@ function linkIt(){
   rawUrl = $("#rawUrl").val();
   
   var request = $.ajax({
-    url: requested_host + "/api/linky/",
+    url: main_server_host + "/manage/create/",
     type: "POST",
     data: {url: rawUrl, 'csrfmiddlewaretoken': csrf_token},
     dataType: "json"
@@ -101,7 +101,7 @@ function linkIt(){
   
   request.done(function(data) {
     $('#upload-option').fadeIn();
-    linkyUrl = web_base  + '/' + data.linky_id;
+    linkyUrl = mirror_server_host  + '/' + data.linky_id;
     newLinky.url = linkyUrl;
     newLinky.linky_id = data.linky_id;
     newLinky.original = rawUrl;
@@ -132,7 +132,7 @@ function linkIt(){
     }
     $('#link-short-slug').slideDown();
     var clip = new ZeroClipboard( $(".copy-button"), {
-      moviePath: requested_host + "/static/js/ZeroClipboard/ZeroClipboard.swf"
+      moviePath: mirror_server_host + "/static/js/ZeroClipboard/ZeroClipboard.swf"
     });
 
     clip.on( 'complete', function(client, args) {
@@ -146,7 +146,7 @@ function linkIt(){
       
     $('#emailPerma').on('submit', function(event){
       var request = $.ajax({
-        url: web_base + "/service/email-confirm/",
+        url: mirror_server_host + "/service/email-confirm/",
         type: "POST",
         data: {email_address: $('#email_request').val(), linky_link: linkyUrl, 'csrfmiddlewaretoken': csrf_token},
         dataType: "json"
@@ -187,7 +187,7 @@ function drawLinks() {
       $('#local-ul').append(template(value));
 
       var clip = new ZeroClipboard( $(".copy-button"), {
-        moviePath: requested_host + "/static/js/ZeroClipboard/ZeroClipboard.swf"
+        moviePath: mirror_server_host + "/static/js/ZeroClipboard/ZeroClipboard.swf"
       });
 
       clip.on( 'complete', function(client, args) {

@@ -1,3 +1,6 @@
+from django.utils.decorators import available_attrs
+
+
 class base:
     """
     Member methods perform base conversion for us.
@@ -144,3 +147,17 @@ def require_group(group, redirect_url=settings.LOGIN_REDIRECT_URL):
             return wrapped_func(request, *args, **kwargs)
         return wrapper
     return require_group_decorator
+
+
+### can_be_mirrored decorator ###
+
+def can_be_mirrored(view_func):
+    """
+    Marks a view function as capable of being served by a mirror.
+    Modeled on csrf_exempt.
+    """
+    def wrapped_view(*args, **kwargs):
+        return view_func(*args, **kwargs)
+
+    wrapped_view.can_be_mirrored = True
+    return wraps(view_func, assigned=available_attrs(view_func))(wrapped_view)

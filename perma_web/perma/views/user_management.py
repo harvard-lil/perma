@@ -1,13 +1,18 @@
-import random, string, logging, json
+import random, string, logging, json, time
+from datetime import datetime
+
+from mptt.exceptions import InvalidMove
+from ratelimit.decorators import ratelimit
 
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import views as auth_views
 from django.contrib.sites.models import get_current_site
 from django.core.mail import send_mail
 from django.db.models import Q
-from django.utils.http import is_safe_url
+from django.utils.http import is_safe_url, cookie_date
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.template import RequestContext
 from django.template.response import TemplateResponse
@@ -17,8 +22,6 @@ from django.core.context_processors import csrf
 from django.core.paginator import Paginator
 from django.contrib.auth.models import Group
 from django.contrib import messages
-from mptt.exceptions import InvalidMove
-from ratelimit.decorators import ratelimit
 
 from perma.forms import (
     RegistrarForm, 
@@ -44,28 +47,18 @@ from perma.utils import require_group
 logger = logging.getLogger(__name__)
 valid_member_sorts = ['-email', 'email', 'last_name', '-last_name', 'admin', '-admin', 'registrar__name', '-registrar__name', 'vesting_org__name', '-vesting_org__name']
 valid_registrar_sorts = ['-email', 'email', 'name', '-name', 'website', '-website']
-valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp', 'submitted_title', '-submitted_title']
 
 
-@login_required
-def manage(request):
-    """
-    The landing page for users who are signed in
-    """
-    recent_links = list(Link.objects.filter(created_by=request.user).order_by('-creation_timestamp'))
-    return render_to_response('user_management/manage.html',
-                              {'this_page': 'manage', 'recent_links': recent_links},
-                              RequestContext(request))
-    
-@login_required
-def create_link(request):
-    """
-    Create new links
-    """
-    return render_to_response('user_management/create-link.html',
-                              {'this_page': 'create_link'},
-                              RequestContext(request))
-    
+# @login_required
+# def manage(request):
+#     """
+#     The landing page for users who are signed in
+#     """
+#     recent_links = list(Link.objects.filter(created_by=request.user).order_by('-creation_timestamp'))
+#     return render_to_response('user_management/manage.html',
+#                               {'this_page': 'manage', 'recent_links': recent_links},
+#                               RequestContext(request))
+
 
 @require_group('registry_member')
 def manage_registrar(request):
@@ -445,12 +438,12 @@ def edit_user_in_group(request, user_id, group_name):
     # Registrar members can only edit their own vesting members
     if not is_registry:
         if request.user.registrar != target_user.registrar:
-            return HttpResponseRedirect(reverse('user_management_created_links'))
+            return HttpResponseRedirect(reverse('created_links'))
 
     # Vesting managers can only edit their own vesting members
     if not is_registry and not is_registrar:
         if request.user.vesting_org != target_user.vesting_org:
-            return HttpResponseRedirect(reverse('user_management_created_links'))
+            return HttpResponseRedirect(reverse('created_links'))
 
     context = {
         'target_user': target_user,
@@ -505,12 +498,12 @@ def delete_user_in_group(request, user_id, group_name):
     # Registrar members can only edit their own vesting members
     if not request.user.has_group('registry_member'):
         if request.user.registrar != target_member.registrar:
-            return HttpResponseRedirect(reverse('user_management_created_links'))
+            return HttpResponseRedirect(reverse('created_links'))
 
     # Vesting managers can only edit their own vesting members
     if not request.user.has_group(['registry_member', 'registrar_member']):
         if request.user != target_member.authorized_by:
-            return HttpResponseRedirect(reverse('user_management_created_links'))
+            return HttpResponseRedirect(reverse('created_links'))
 
     context = {'target_member': target_member,
                'this_page': 'users_{group_name}s'.format(group_name=group_name)}
@@ -540,12 +533,12 @@ def reactive_user_in_group(request, user_id, group_name):
     # Registrar members can only edit their own vesting members
     if not request.user.has_group('registry_member'):
         if request.user.registrar != target_member.registrar:
-            return HttpResponseRedirect(reverse('user_management_created_links'))
+            return HttpResponseRedirect(reverse('created_links'))
 
     # Vesting managers can only edit their own vesting members
     if not request.user.has_group(['registry_member', 'registrar_member']):
         if request.user != target_member.authorized_by:
-            return HttpResponseRedirect(reverse('user_management_created_links'))
+            return HttpResponseRedirect(reverse('created_links'))
 
     context = {'target_member': target_member,
                'this_page': 'users_{group_name}s'.format(group_name=group_name)}
@@ -615,168 +608,6 @@ def user_add_vesting_org(request, user_id):
     context = RequestContext(request, context)
 
     return render_to_response('user_management/user_add_vesting_org.html', context)
-    
-
-
-@login_required
-def created_links(request, path):
-    """
-    Anyone with an account can view the linky links they've created
-    """
-    return link_browser(request, path,
-                        link_filter={'created_by':request.user},
-                        this_page='created_links',
-                        verb='created')
-
-
-@require_group(['registrar_member', 'registry_member', 'vesting_manager', 'vesting_member'])
-def vested_links(request, path):
-    """
-    Linky admins and registrar members and vesting members can vest links
-    """
-    return link_browser(request, path,
-                        link_filter={'vested_by_editor': request.user},
-                        this_page='vested_links',
-                        verb='vested')
-
-
-def link_browser(request, path, link_filter, this_page, verb):
-    """ Display a set of links with the given filter (created by or vested by user). """
-
-    # find current folder based on path
-    current_folder = None
-    folder_breadcrumbs = []
-    if path:
-        path = path.strip("/")
-        if path:
-            # get current folder
-            folder_slugs = path.split("/")
-            current_folder = get_object_or_404(Folder,slug=folder_slugs[-1],created_by=request.user)
-
-            # check ancestor slugs and generate breadcrumbs
-            ancestors = current_folder.get_ancestors()
-            for i, ancestor in enumerate(ancestors):
-                if folder_slugs[i] != ancestor.slug:
-                    raise Http404
-                folder_breadcrumbs.append([ancestor, u"/".join(folder_slugs[:i+1])])
-
-    # make sure path has leading and trailing slashes, or is just one slash if empty
-    path = u"/%s/" % path if path else "/"
-
-    # handle forms
-    if request.POST:
-
-        # new folder
-        if 'new_folder_submit' in request.POST:
-            if 'new_folder_name' in request.POST:
-                Folder(name=request.POST['new_folder_name'], created_by=request.user, parent=current_folder).save()
-
-        # move link
-        elif 'move_selected_items_to' in request.POST:
-            if request.POST['move_selected_items_to'] == 'ROOT':
-                target_folder=None
-            else:
-                target_folder = get_object_or_404(Folder, created_by=request.user, pk=request.POST['move_selected_items_to'])
-            for link_id in request.POST.getlist('links'):
-                link = get_object_or_404(Link, pk=link_id, **link_filter)
-                link.move_to_folder_for_user(target_folder, request.user)
-            for folder_id in request.POST.getlist('folders'):
-                folder = get_object_or_404(Folder, pk=folder_id, created_by=request.user)
-                folder.parent=target_folder
-                try:
-                    folder.save()
-                except InvalidMove:
-                    # can't move a folder under itself
-                    continue
-            if request.is_ajax():
-                return HttpResponse(json.dumps({'success': 1}), content_type="application/json")
-
-        elif request.is_ajax():
-            posted_data = json.loads(request.body)
-            out = {'success': 1}
-
-            # rename folder
-            if posted_data['action'] == 'rename_folder':
-                current_folder.name = posted_data['name']
-                current_folder.save()
-
-            # delete folder
-            elif posted_data['action'] == 'delete_folder':
-                if current_folder.is_empty():
-                    current_folder.delete()
-                else:
-                    out = {'error':"Folders can only be deleted if they are empty."}
-
-            # save notes
-            elif posted_data['action'] == 'save_notes':
-                link = get_object_or_404(Link, pk=posted_data['link_id'], **link_filter)
-                link.notes = posted_data['notes']
-                link.save()
-
-            # save title change
-            elif posted_data['action'] == 'save_title':
-                link = get_object_or_404(Link, pk=posted_data['link_id'], **link_filter)
-                link.submitted_title = posted_data['title']
-                link.save()
-
-            return HttpResponse(json.dumps(out), content_type="application/json")
-
-    # start with all links belonging to user
-    linky_links = Link.objects.filter(**link_filter)
-
-    # handle search
-    search_query = request.GET.get('q', None)
-    if search_query:
-        linky_links = linky_links.filter(
-            Q(guid__icontains=search_query) |
-            Q(submitted_url__icontains=search_query) |
-            Q(submitted_title__icontains=search_query) |
-            Q(notes__icontains=search_query)
-        )
-        if current_folder:
-            # limit search to current folder
-            linky_links = linky_links.filter(folders__in=current_folder.get_descendants(include_self=True))
-
-    elif current_folder:
-        # limit links to current folder
-        linky_links = linky_links.filter(folders=current_folder)
-
-    else:
-        # top level -- find links with no related folder for this user
-        linky_links = linky_links.exclude(folders__created_by=request.user)
-
-    # handle sorting
-    DEFAULT_SORT = '-creation_timestamp'
-    sort = request.GET.get('sort', DEFAULT_SORT)
-    if sort not in valid_link_sorts:
-        sort = DEFAULT_SORT
-    linky_links = linky_links.order_by(sort)
-
-    # handle pagination
-    # page = request.GET.get('page', 1)
-    # if page < 1:
-    #     page = 1
-    # paginator = Paginator(linky_links, 10)
-    # linky_links = paginator.page(page)
-
-    subfolders = list(Folder.objects.filter(created_by=request.user, parent=current_folder))
-    all_folders = Folder.objects.filter(created_by=request.user)
-    base_url = reverse('user_management_'+this_page)
-    link_count = Link.objects.filter(**link_filter).count()
-
-    context = {'linky_links': linky_links, 'link_count':link_count,
-               'sort': sort,
-               'search_query':search_query,
-               'search_placeholder':"Search %s" % (current_folder if current_folder else "links"),
-               'this_page': this_page, 'verb': verb,
-               'subfolders':subfolders, 'path':path, 'folder_breadcrumbs':folder_breadcrumbs,
-               'current_folder':current_folder,
-               'all_folders':all_folders,
-               'base_url':base_url}
-
-    context = RequestContext(request, context)
-    
-    return render_to_response('user_management/created-links.html', context)
 
 
 @login_required
@@ -842,7 +673,7 @@ def manage_account(request):
 #     context = {'this_page': 'custom_domain'}
 #     context.update(csrf(request))
 #     return render_to_response('user_management/custom_domain.html', context, RequestContext(request))
-    
+
 def not_active(request):
     """
     Informing a user that their account is not active.
@@ -865,7 +696,26 @@ def account_is_deactivated(request):
     Informing a user that their account has been deactivated.
     """
     return render_to_response('user_management/deactivated.html')
-    
+
+
+def get_mirror_cookie_domain(request):
+    host = request.get_host().split(':')[0] # remove port
+    if host.startswith(settings.MIRROR_USERS_SUBDOMAIN+'.'):
+        host = host[len(settings.MIRROR_USERS_SUBDOMAIN+'.'):]
+    return '.'+host
+
+
+def logout(request):
+    response = auth_views.logout(request, template_name='registration/logout.html')
+    # on logout, delete the mirror cookie
+    print "DELETING", (settings.MIRROR_COOKIE_NAME,
+                       get_mirror_cookie_domain(request),
+                              settings.SESSION_COOKIE_PATH)
+
+    response.delete_cookie(settings.MIRROR_COOKIE_NAME,
+                           domain=get_mirror_cookie_domain(request),
+                           path=settings.SESSION_COOKIE_PATH)
+    return response
 
 @ratelimit(field='email', method='POST', rate=settings.LOGIN_MINUTE_LIMIT, block='True', ip=True)
 #@ratelimit(method='POST', rate=settings.LOGIN_HOUR_LIMIT, block='True', ip=True)
@@ -884,12 +734,12 @@ def limited_login(request, template_name='registration/login.html',
         form = authentication_form(request, data=request.POST)
         username = request.POST.get('username')
         try:
-          target_user = LinkUser.objects.get(email=username)
+            target_user = LinkUser.objects.get(email=username)
         except LinkUser.DoesNotExist:
-          target_user = None
+            target_user = None
         if target_user and not target_user.is_confirmed:
-          request.session['email'] = target_user.email
-          return HttpResponseRedirect(reverse('user_management_not_active'))
+            request.session['email'] = target_user.email
+            return HttpResponseRedirect(reverse('user_management_not_active'))
         elif target_user and not target_user.is_active:
             return HttpResponseRedirect(reverse('user_management_account_is_deactivated'))
             
@@ -908,7 +758,32 @@ def limited_login(request, template_name='registration/login.html',
             # Okay, security check complete. Log the user in.
             auth_login(request, form.get_user())
 
-            return HttpResponseRedirect(redirect_to)
+            response = HttpResponseRedirect(redirect_to)
+
+            # Set the user-info cookie for mirror servers.
+            # This will be set by the main server, e.g. //direct.perma.cc,
+            # but will be readable by any mirror serving //perma.cc.
+            user_info = {
+                'groups':[group.pk for group in request.user.groups.all()],
+            }
+            # The cookie should last as long as the login cookie, so cookie logic is copied from SessionMiddleware.
+            if request.session.get_expire_at_browser_close():
+                max_age = None
+                expires = None
+            else:
+                max_age = request.session.get_expiry_age()
+                expires_time = time.time() + max_age
+                expires = cookie_date(expires_time)
+            response.set_cookie(settings.MIRROR_COOKIE_NAME,
+                                json.dumps(user_info),
+                                max_age=max_age,
+                                expires=expires,
+                                domain=get_mirror_cookie_domain(request),
+                                path=settings.SESSION_COOKIE_PATH,
+                                secure=settings.SESSION_COOKIE_SECURE or None,
+                                httponly=settings.SESSION_COOKIE_HTTPONLY or None)
+
+            return response
     else:
         form = authentication_form(request)
 
