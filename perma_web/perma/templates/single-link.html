@@ -155,7 +155,7 @@
 	{% elif linky.dark_archived_robots_txt_blocked and request.user|has_group:'registry_member,registrar_member' %}
     	<div class="col-sm-6 col-sm-offset-3 yahowza-small">
     		<img class="dark-bulb-small" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
-			<h2>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with the site's robots.txt.</h2>
+			<h2>This link is in the <span class="dark">dark archive</span> because Perma.cc has <a href="http://localhost:8000/faq#robots-text">respected the content creator's request to not share this archive publicly</a.>.</h2>
 		</div>
 	{% endif %}
     {% if not linky|is_darchive or request.user|has_group:'registry_member,registrar_member' %}
@@ -217,7 +217,7 @@
 					{% if linky.dark_archived %}
 						<p>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with a takedown notice.</p>
 					{% elif linky.dark_archived_robots_txt_blocked %}
-						<p>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with the site's robots.txt.</p>
+						<p>This link is in the <span class="dark">dark archive</span> because Perma.cc has <a href="http://localhost:8000/faq#robots-text">respected the content creator's request to not share this archive publicly</a>.</p>
 					{% endif %}
 				</div>
 			</div>
