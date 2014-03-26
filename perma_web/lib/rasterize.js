@@ -31,6 +31,7 @@ if (system.args.length < 3 || system.args.length > 5) {
         } else {
             window.setTimeout(function () {
                 page.render(output);
+                console.log(page.content);
                 phantom.exit();
             }, 800);
         }

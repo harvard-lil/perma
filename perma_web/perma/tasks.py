@@ -111,7 +111,7 @@ def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,
 
     # run phantomjs
     try:
-        subprocess.call([
+        content_from_phantom = subprocess.check_output([
             settings.PHANTOMJS_BINARY,
             "--proxy=127.0.0.1:%s" % prox_port,
             "--ssl-certificates-path=%s" % cert_path,
@@ -121,6 +121,10 @@ def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,
             image_path,
             user_agent
         ])
+
+        #Here we'll decide if flag the archive should be flagged for the "darchive"
+        _get_robots_txt(target_url, link_guid, content_from_phantom)
+            
         time.sleep(.5) # give warcprox a chance to save everything
     finally:
         # shutdown warcprox process
@@ -327,10 +331,9 @@ def store_text_cap(link_guid, target_url, base_storage_path, title):
         asset_query.update(text_capture='failed')
 
 
-@celery.task
-def get_robots_txt(url, link_guid, content):
+def _get_robots_txt(url, link_guid, content):
     """
-    A task (hopefully called asynchronously) to get the meta element for a
+    A helper function to get the meta element for a
     noarchive value andto get the robots.txt rule for Perma (the Perma bot if 
     we were a bot). We will still grab the content (we're not a crawler), but
     we'll "darchive it."

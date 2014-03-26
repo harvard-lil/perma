@@ -19,7 +19,7 @@ from django.template import RequestContext
 
 from perma.forms import UploadFileForm
 from perma.models import Link, Asset, Folder
-from perma.tasks import start_proxy_record_get_screen_cap, store_text_cap, get_pdf, get_robots_txt
+from perma.tasks import start_proxy_record_get_screen_cap, store_text_cap, get_pdf
 from perma.utils import require_group
 if not settings.USE_WARC_ARCHIVE:
     from perma.tasks import get_source
@@ -134,10 +134,7 @@ def create_link(request):
             # Sometimes our phantomjs capture fails. if it doesn't add it to our response object
             if asset.image_capture != 'pending' and asset.image_capture != 'failed':
                 response_object['linky_cap'] = settings.STATIC_URL + asset.base_storage_path + '/' + asset.image_capture
-
-
-        # We should note robots.txt requirements. Here we'll decide if flag the archive should be flagged for the "darchive"
-        get_robots_txt.delay(target_url, guid, content)
+                
 
         return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
 
