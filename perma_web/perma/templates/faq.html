@@ -13,75 +13,75 @@
         	<div class="col-sm-6">
 				  <h2>General/User FAQs</h2>
 				
-				  <div class="question">What is Perma.cc?</div>
+				  <div class="question" data-href="what-is">What is Perma.cc?</div>
 				  <div class="answer">
 					<p>Perma.cc is a service that allows users to create citation links that will never break.</p>
 					<p>When a user creates a Perma.cc link, Perma.cc archives a copy of the referenced content, and generates a link to an unalterable hosted instance of the site. Regardless of what may happen to the original source, if the link is later published in a journal using the Perma.cc service, the archived version will always be available through the Perma.cc link.</p>
 				  </div>
 				
-				  <div class="question">How can I make a Perma.cc link?</div>
+				  <div class="question" data-href="make-link">How can I make a Perma.cc link?</div>
 				  <div class="answer">Perma.cc links can be created on the <a href="{% url 'landing' %}">front page</a>. All it takes is the URL of the page you would like to archive. Once you enter your URL, we'll archive the content for you and give you a Perma.cc link that points to the archived content. If you've used a URL shortener (think <a href="http://bitly.com">bitly</a> and the like) you'll recognize the "exchange my original URL for a new URL" pattern, just add "and archive the content at the URL" and you've fully grasped what Perma.cc does.</div>
 				
-				  <div class="question">How can I keep track of my Perma.cc links?</div>
+				  <div class="question" data-href="track-links">How can I keep track of my Perma.cc links?</div>
 				  <div class="answer">The last few Perma.cc links that you created are shown at the bottom of the <a href="{% url 'landing' %}">front page</a>, as long as you are using a modern browser. If you have created an account and are logged in, you can see all your links in the management console.</div>
 				
-				  <div class="question">Will you preserve my Perma.cc link forever?</div>
+				  <div class="question" data-href="forever">Will you preserve my Perma.cc link forever?</div>
 				  <div class="answer">
                       <p>When a link is first created, it is &quot;unvested.&quot; Unvested Perma.cc links may be deleted from time to time, and are subject to page views to prevent abuse. A member of any vesting partner may verify that the link is actually being used in a scholarly publication. Once a link is vested, it will never be deleted unless we receive a legitimate legal order to take it down.</p>
                       <p>While we cannot guarantee that links will be preserved forever, we are hosted by university libraries that have endured for centuries, and we are planning to be around for the long term. If we ever <i>do</i> need to shut down, we have laid out a detailed <a href="{% url 'contingency_plan' %}">contingency plan</a> for preserving existing data.</p>
                   </div>
 				
-				  <div class="question">Can I ever delete a vested Perma.cc link?</div>
+				  <div class="question" data-href="delete-links">Can I ever delete a vested Perma.cc link?</div>
 				  <div class="answer">No. Vested Perma.cc links can never be deleted once they are created.</div>
 				
-				  <div class="question">How are links vested?</div>
+				  <div class="question" data-href="how-links-vested">How are links vested?</div>
 				  <div class="answer">Users with vesting accounts can click on the &quot;vest&quot; button in the top-right of any Perma.cc page to vest it.</div>
 				
-				  <div class="question">How do I acquire vesting privileges?</div>
+				  <div class="question" data-href="get-vesting-privileges">How do I acquire vesting privileges?</div>
 				  <div class="answer">Vesting accounts are managed by scholarly journals and similar entities that are recognized by libraries. If you are a member of a journal and would like to use Perma.cc, please contact a library to sponsor you. You can see a list of participating libraries on the <a href="{% url 'about' %}">about Perma.cc</a> page.</div>
 				
-				  <div class="question">How can I contact Perma.cc?</div>
+				  <div class="question" data-href="contact-us">How can I contact Perma.cc?</div>
 				  <div class="answer">Our <a href="#" onclick="fby.push(['showForm', '5593']);return false;">feedback tool</a> is the best way to contact us. If you'd prefer email, reach us at <a href="mailto:info@perma.cc">info@perma.cc</a></div>
 				  
 				  <h2>Librarian FAQs</h2>
-					<div class="question">How can my library become a partnering library?</div>
+					<div class="question" data-href="become-partner">How can my library become a partnering library?</div>
 					<div class="answer">If your library would like to become a Perma.cc library partner, email <a href="mailto:info@perma.cc">info@perma.cc</a>, and you will be provided with a library “Registrar” account.  This account will enable your library to create “Vesting Manager” accounts for the journals your library chooses to sponsor (traditionally the journals at your institution).</div>
 				
-					<div class="question">What does it mean to “sponsor” a journal?</div>
+					<div class="question" data-href="sponsor-journal">What does it mean to “sponsor” a journal?</div>
 					<div class="answer">Sponsoring a journal simply means that your library, as an institution, is certifying that a particular publication is a scholarly journal of the sort that a library would subscribe to and archive.</div>
 				
-					<div class="question">What are my responsibilities as a Perma.cc registrar?</div>
+					<div class="question" data-href="registrar-responsibilities">What are my responsibilities as a Perma.cc registrar?</div>
 					<div class="answer">As your library’s Perma.cc registrar, your primary responsibility is provisioning administrative accounts to journals (“Vesting Manager” accounts).  Journals will be able to use those accounts to give access to their staff, so you won’t have to handle account management for all the students that work on a given journal.  Depending on whether your library is also hosting Perma.cc content as an archive mirror, questions regarding your institution's notice and takedown policy may also be directed to you.</div>
 					
-					<div class="question">How do I make administrative accounts for journals at my school?</div>
+					<div class="question" data-href="create-journal-accounts">How do I make administrative accounts for journals at my school?</div>
 					<div class="answer">The process for making a Vesting Manager account is quick and simple.  Once you have the email address that the journal would like associated with the account, go to the “Manage Users” section of your dashboard, click “Vesting Managers,” and provide the information requested under “Add a new vesting manager.” </div>
 					<br/><br/>
 				</div>
 				
 				<div class="col-sm-6">
 				  <h2>Vesting Member FAQs</h2>
-					<div class="question">How do I vest a Perma.cc link?</div>
+					<div class="question" data-href="how-to-vest">How do I vest a Perma.cc link?</div>
 					<div class="answer">To vest a Perma.cc link, simply follow the Perma.cc URL and click the “vest” button in the upper right-hand corner.</div>
 					
-					<div class="question">What if an author submits an article without Perma.cc links?</div>
+					<div class="question" data-href="article-without-links">What if an author submits an article without Perma.cc links?</div>
 					<div class="answer">All vesting members (i.e. editors) will have the capability to both create and vest Perma.cc links.  Thus, vesting members can create Perma.cc links for cited URLs as part of the subciting process.</div>
 				
-					<div class="question">How should I include the Perma.cc link in a citation?</div>
+					<div class="question" data-href="citation">How should I include the Perma.cc link in a citation?</div>
 					<div class="answer">Each journal has the ability to formulate its own standard.  However, the recommended standard is to incorporate the Perma.cc link URL in brackets after the original URL.</div>
 				
 				  <h2>Vesting Manager FAQs</h2>
 				
-					<div class="question">How can I sign my journal up to use Perma.cc?</div>
+					<div class="question" data-href="journal-sign-up">How can I sign my journal up to use Perma.cc?</div>
 					<div class="answer">If your journal would like to become a Perma.cc journal partner, simply email <a href="mailto:info@perma.cc">info@perma.cc</a>, and we will connect you with a sponsoring library (traditionally the library associated with your institution).  The sponsoring library will create a journal manager account for your journal, which will enable you to create the accounts your staff will need to vest Perma.cc links.</div>
 				
-					<div class="question">What are my responsibilities as a vesting manager?</div>
+					<div class="question" data-href="vesting-manager-responsibilities">What are my responsibilities as a vesting manager?</div>
 					<div class="answer">The main responsibilities of a vesting manager are to serve as a liaison between the journal and its sponsoring library and to provide staff with “Vesting Member” accounts, which will allow them to vest Perma.cc links.</div>
 				
-					<div class="question">How can I create accounts for my vesting members?</div>
+					<div class="question" data-href="create-vesting-accounts">How can I create accounts for my vesting members?</div>
 					<div class="answer">To create accounts for your staff members, go to the “Manage Users” tab of the dashboard, and click on “Journal Users.”  Provide the requested information under “Add a new vesting member,” and click “Add vesting member.”  Whether you make individual accounts for each staff member or communal accounts for those checking citations is up to your journal.</div>
 
 				  <h2>Technical FAQs</h2>					
-					<div class="question">I don't want Perma.cc to archive a page from my site.</div>
+					<div class="question" data-href="robots-text">I don't want Perma.cc to archive a page from my site.</div>
 					<div class="answer">
 						 <p>
                              It's important to note that Perma.cc does not crawl your site like a search engine might,
@@ -132,8 +132,13 @@
 
 <script type="text/javascript">
   $("div.faq div.question").click(function(event) {
+    var href = $(this).data('href');
+    window.location.hash = href;
 	$(this).next('div .answer').slideToggle();
   });
+  
+  var hashVal = window.location.hash.split("#")[1];
+    $("*[data-href='" + hashVal +"']").next('div .answer').slideToggle();
 </script>
 
 
