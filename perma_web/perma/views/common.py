@@ -1,9 +1,11 @@
+from django.core import serializers
 from django.template import RequestContext
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, Http404, HttpResponse
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
 from datetime import datetime
@@ -12,17 +14,23 @@ from urlparse import urlparse
 from django.views.decorators.csrf import csrf_exempt
 import surt, cdx_writer
 import cStringIO as StringIO
-
-from perma.models import Link, Asset
-from perma.utils import require_group
+import json
 from ratelimit.decorators import ratelimit
 
+from perma.middleware import get_url_for_host, get_main_server_host
+from perma.models import Link, Asset
+from perma.utils import can_be_mirrored
+
+
 logger = logging.getLogger(__name__)
-valid_serve_types = ['image','pdf','source','text']
+valid_serve_types = ['live', 'image','pdf','source','text']
+
 
 class DirectTemplateView(TemplateView):
     extra_context = None
+
     def get_context_data(self, **kwargs):
+        """ Override Django's TemplateView to allow passing in extra_context. """
         context = super(self.__class__, self).get_context_data(**kwargs)
         if self.extra_context is not None:
             for key, value in self.extra_context.items():
@@ -32,6 +40,10 @@ class DirectTemplateView(TemplateView):
                     context[key] = value
         return context
 
+    @method_decorator(can_be_mirrored)
+    def dispatch(self, request, *args, **kwargs):
+        """ Add can_be_mirrored decorator. """
+        return super(DirectTemplateView, self).dispatch(request, *args, **kwargs)
 
 def stats(request):
     """
@@ -44,7 +56,6 @@ def stats(request):
     context = RequestContext(request, {'top_links_all_time': top_links_all_time})
 
     return render_to_response('stats.html', context)
-
 
 @csrf_exempt
 def cdx(request):
@@ -103,27 +114,59 @@ def cdx(request):
     print "COULDN'T FIND URL"
     raise Http404 # didn't find requested url in .cdx file
 
+def single_link_main_server(request, guid):
+    return single_linky(request, guid)
 
+@can_be_mirrored
 @ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block='True')
 @ratelimit(method='GET', rate=settings.HOUR_LIMIT, block='True')
 @ratelimit(method='GET', rate=settings.DAY_LIMIT, block='True')
-def single_linky(request, linky_guid):
+def single_linky(request, guid):
     """
     Given a Perma ID, serve it up. Vesting also takes place here.
     """
 
     if request.method == 'POST' and request.user.is_authenticated():
-        Link.objects.filter(guid=linky_guid).update(vested = True, vested_by_editor = request.user, vested_timestamp = datetime.now())
+        Link.objects.filter(guid=guid).update(vested = True, vested_by_editor = request.user, vested_timestamp = datetime.now())
 
-        return HttpResponseRedirect(reverse('single_linky', args=[linky_guid]))
+        return HttpResponseRedirect(reverse('single_linky', args=[guid]))
+
+    canonical_guid = Link.get_canonical_guid(guid)
+    if canonical_guid != guid:
+        return HttpResponsePermanentRedirect(reverse('single_linky', args=[canonical_guid]))
+
+    context = None
+
+    # User requested archive type
+    if not settings.USE_WARC_ARCHIVE:
+        valid_serve_types = ['image','pdf','source','text', 'warc']
     else:
-        canonical_guid = Link.get_canonical_guid(linky_guid)
+        global valid_serve_types
+    serve_type = request.GET.get('type','live')
+    if not serve_type in valid_serve_types:
+        serve_type = 'live'
 
-        if canonical_guid != linky_guid:
-            return HttpResponsePermanentRedirect(reverse('single_linky', args=[canonical_guid]))
+    try:
+        link = Link.objects.get(guid=guid)
+    except Link.DoesNotExist:
+        if settings.MIRROR_SERVER:
+            # if we can't find the Link, and we're a mirror server, try fetching it from main server
+            try:
+                req = urllib2.Request(get_url_for_host(request,
+                                                       request.main_server_host,
+                                                       reverse('single_link_main_server', args=[guid])+"?type="+serve_type),
+                                      headers={'Content-Type': 'application/json'})
+                link_json = urllib2.urlopen(req)
+            except urllib2.HTTPError:
+                raise Http404
+            context = json.loads(link_json.read())
+            context['linky'] = serializers.deserialize("json", context['linky']).next().object
+            context['asset'] = serializers.deserialize("json", context['asset']).next().object
+            context['asset'].link = context['linky']
+        else:
+            raise Http404
 
-        link = get_object_or_404(Link, guid=linky_guid)
-
+    if not context:
         # Increment the view count if we're not the referrer
         parsed_url = urlparse(request.META.get('HTTP_REFERER', ''))
         current_site = Site.objects.get_current()
@@ -134,23 +177,11 @@ def single_linky(request, linky_guid):
 
         asset = Asset.objects.get(link=link)
 
-
-
-        # User requested archive type
-        if not settings.USE_WARC_ARCHIVE:
-            valid_serve_types = ['image','pdf','source','text', 'warc']
-        else:
-            global valid_serve_types
-        serve_type = request.GET.get('type','live')
-        if not serve_type in valid_serve_types:
-            serve_type = 'live'
-
         text_capture = None
         if serve_type == 'text':
             if asset.text_capture and asset.text_capture != 'pending':
                 path_elements = [settings.GENERATED_ASSETS_STORAGE, asset.base_storage_path, asset.text_capture]
                 file_path = os.path.sep.join(path_elements)
-
                 with open(file_path, 'r') as f:
                     text_capture = f.read()
             
@@ -168,41 +199,23 @@ def single_linky(request, linky_guid):
                 # Something is broken with the site, so we might as well display it in an iFrame so the user knows
                 display_iframe = True
 
-        asset= Asset.objects.get(link__guid=link.guid)
+        asset = Asset.objects.get(link__guid=link.guid)
 
         created_datestamp = link.creation_timestamp
         pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
 
-        context = RequestContext(request, {'linky': link, 'asset': asset, 'pretty_date': pretty_date, 'next': request.get_full_path(),
-                   'display_iframe': display_iframe, 'serve_type': serve_type, 'text_capture': text_capture})
+        context = {'linky': link, 'asset': asset, 'pretty_date': pretty_date, 'next': request.get_full_path(),
+                   'display_iframe': display_iframe, 'serve_type': serve_type, 'text_capture': text_capture,
+                   'asset_host':''}
 
-        #context.update(csrf(request))
+    if request.META.get('CONTENT_TYPE') == 'application/json':
+        # if we were called as JSON (by a mirror), serialize and send back as JSON
+        context['asset_host'] = "http%s://%s" % ('s' if request.is_secure() else '', request.main_server_host)
+        context['asset'] = serializers.serialize("json", [context['asset']], fields=['text_capture','image_capture','pdf_capture','warc_capture','base_storage_path'])
+        context['linky'] = serializers.serialize("json", [context['linky']], fields=['dark_archived','guid','vested','view_count','creation_timestamp','submitted_url','submitted_title'])
+        return HttpResponse(json.dumps(context), content_type="application/json")
 
-    return render_to_response('single-link.html', context)
-    
-
-@require_group('registry_member')
-def dark_archive_link(request, linky_guid):
-    """
-    Given a Perma ID, serve it up. Vesting also takes place here.
-    """
-
-    if request.method == 'POST':
-        Link.objects.filter(guid=linky_guid).update(dark_archived = True)
-
-        return HttpResponseRedirect('/%s/' % linky_guid)
-    else:
-
-        link = get_object_or_404(Link, guid=linky_guid)
-
-        asset= Asset.objects.get(link__guid=link.guid)
-
-        created_datestamp = link.creation_timestamp
-        pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
-
-        context = RequestContext(request, {'linky': link, 'asset': asset, 'pretty_date': pretty_date, 'next': request.get_full_path()})
-
-    return render_to_response('dark-archive-link.html', context)
+    return render_to_response('single-link.html', context, RequestContext(request))
 
 
 def rate_limit(request, exception):

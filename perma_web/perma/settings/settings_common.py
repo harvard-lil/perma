@@ -85,8 +85,9 @@ TEMPLATE_LOADERS = (
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'perma.middleware.MirrorCsrfViewMiddleware',
+    'perma.middleware.MirrorAuthenticationMiddleware',
+    'perma.middleware.MirrorForwardingMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
     # Uncomment the next line for simple clickjacking protection:
@@ -220,5 +221,12 @@ LOGGING = {
     }
 }
 
+# find celery tasks
 import djcelery
 djcelery.setup_loader()
+
+# mirror stuff
+MIRRORING_ENABLED = os.environ.get('PERMA_MIRRORING_ENABLED', False)    # whether to use mirroring features
+MIRROR_SERVER = False                                                   # whether we are a mirror
+MIRROR_COOKIE_NAME = 'user_info'
+MIRROR_USERS_SUBDOMAIN = 'users'

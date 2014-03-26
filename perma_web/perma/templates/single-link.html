@@ -1,5 +1,5 @@
 {% extends "layout-archive-responsive.html" %}
-{% load file_exists  truncatesmart diff has_group is_darchive local_datetime %}
+{% load file_exists  truncatesmart diff has_group is_darchive local_datetime mirror_tags %}
 {% block title %} | {{linky.submitted_title}}{% endblock %}
 {% block meta-head %}
 <meta name="robots" content="noindex, noarchive, noodp, noimageindex">
@@ -37,9 +37,9 @@
 						{% if request.user.is_authenticated and not linky|is_darchive %}
                         {% if request.user|has_group:'registry_member,registrar_member,vesting_member,vesting_manager' and not linky.vested %}
 
-                            <li><form action="" method="post">
+                            <li><form action="{% main_url 'vest_link' linky.guid %}" method="post">
                                 {% csrf_token %}
-                                	<input type="submit" value="Vest site" name="vet" class="btn vest">
+                                	<input type="submit" value="Vest site" name="vest" class="btn vest">
                                 </form>
                             </li>	
                                 {% endif %}
@@ -49,7 +49,7 @@
                         {% endif %}
 
 						{% if request.user.is_authenticated %}
-                            <li><a class="btn dashboard" href="{% url 'user_management_create_link' %}" id="nav-button">Dashboard</a></li>
+                            <li><a class="btn dashboard" href="{% url 'create_link' %}" id="nav-button">Dashboard</a></li>
                         {% else %}
 							
 							<!--Do we ever want a Log in Button?-->
@@ -177,17 +177,17 @@
 			{% endif %}
 			
 			{% if serve_type == 'image' %}
-			<img class="image-view" src="{{ asset.image_url }}"/>
+			<img class="image-view" src="{{ asset_host }}{{ asset.image_url }}"/>
 			{% endif %}
 			
 			{% if serve_type == 'pdf' %}
-			<iframe src="{{ asset.pdf_url }}">
+			<iframe src="{{ asset_host }}{{ asset.pdf_url }}">
 			  <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
 			</iframe>
 			{% endif %}
 			
 			{% if serve_type == 'source' %}
-			<iframe src="{{ asset.warc_url }}" sandbox="allow-forms allow-scripts">
+			<iframe src="{{ asset_host }}{{ asset.warc_url }}" sandbox="allow-forms allow-scripts">
 			  <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
 			</iframe>
 			{% endif %}
@@ -200,7 +200,7 @@
 
             {# TEMPORARY SERVE TYPE UNTIL WE COMPLETELY SWITCH TO WARC #}
         	{% if serve_type == 'warc' %}
-                <iframe src="/warc/{{ linky.pk }}/{{linky.submitted_url}}" sandbox="allow-forms allow-scripts">
+                <iframe src="{{ asset_host }}/warc/{{ linky.pk }}/{{linky.submitted_url}}" sandbox="allow-forms allow-scripts">
                   <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
                 </iframe>
 			{% endif %}
@@ -225,7 +225,7 @@
    	{% endif %}
 </div><!--row-->
 <script>
-	var status_url = "{% url 'service_link_status' linky.guid %}";
+	var status_url = "{% main_url 'service_link_status' linky.guid %}";
 </script>
 {% endblock %}
 
