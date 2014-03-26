@@ -330,15 +330,15 @@ def store_text_cap(link_guid, target_url, base_storage_path, title):
 def get_robots_txt(url, link_guid, content):
     """
     A task (hopefully called asynchronously) to get the meta element for a
-    noarchive value andto get the robots.txt rule for PermaBot.
-    We will still grab the content (we're not a crawler), but we'll "darchive
-    it."
+    noarchive value andto get the robots.txt rule for Perma (the Perma bot if 
+    we were a bot). We will still grab the content (we're not a crawler), but
+    we'll "darchive it."
     
     If we see a "noarchive" value for a meta element with the name 'robots' or
-    'permabot' we'll send the arvhive to the darachive.
+    'perma' we'll send the arvhive to the darachive.
     
     If we don't see noarchive rule in a meta element, check the robots.txt to 
-    see if permabot is specifically denied.
+    see if perma is specifically denied.
     """
     
     # Sometimes we don't get markup. Only look for meta values if we get markup
@@ -347,13 +347,13 @@ def get_robots_txt(url, link_guid, content):
         metas = parsed_html.xpath('//meta')
         
         # Look at all meta elements and grab any that have a name of 'robots' or
-        # 'permabot'. If we see any, send to the darchive if the have a value
+        # 'perma'. If we see any, send to the darchive if the have a value
         # of 'noarchive' in the 'content atrribute'
         # So, something like this will be sent to the darchive:
         # <meta name="ROBOTS" content="NOARCHIVE" />
         for meta in metas:
             meta_name = meta.get('name')
-            if meta_name and meta_name.lower() in ['robots', 'permabot']:
+            if meta_name and meta_name.lower() in ['robots', 'perma']:
                 meta_content = meta.get('content')
                 if meta_content:
                     bot_values = meta_content.split(',')
@@ -371,11 +371,11 @@ def get_robots_txt(url, link_guid, content):
     parsed_url = urlparse.urlparse(url)
     robots_text_location = parsed_url.scheme + '://' + parsed_url.netloc + '/robots.txt'
     
-    # We only want to respect robots.txt if PermaBot is specifically asked not crawl (we're not a crawler)
+    # We only want to respect robots.txt if Perma is specifically asked not crawl (we're not a crawler)
     response = requests.get(robots_text_location)
     
-    # We found PermaBot specifically mentioned
-    if re.search('PermaBot', response.text) is not None:
+    # We found Perma specifically mentioned
+    if re.search('Perma', response.text) is not None:
         # Get the robots.txt ruleset
         # TODO: use reppy or something else here. it's dumb that we're
         # getting robots.txt twice
@@ -384,7 +384,7 @@ def get_robots_txt(url, link_guid, content):
         rp.read()
 
         # If we're not allowed, set a flag in the model
-        if not rp.can_fetch('PermaBot', url):
+        if not rp.can_fetch('Perma', url):
             link = Link.objects.get(guid=link_guid)
             link.dark_archived_robots_txt_blocked = True
             link.save()
