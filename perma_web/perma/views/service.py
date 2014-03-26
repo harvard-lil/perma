@@ -102,14 +102,17 @@ def link_status(request, guid):
     apporach?
     """
 
-    target_link = get_object_or_404(Link, guid=guid)
     target_asset = get_object_or_404(Asset, link__guid=guid)
     
     response_object = {"path": target_asset.base_storage_path, "text_capture": target_asset.text_capture,
             "source_capture": target_asset.warc_capture, "image_capture": target_asset.image_capture,
             "pdf_capture": target_asset.pdf_capture}
 
-    return HttpResponse(json.dumps(response_object), content_type="application/json", status=200)
+    data = json.dumps(response_object)
+    if 'callback' in request.REQUEST:
+        # jsonp response
+        data = '%s(%s);' % (request.REQUEST['callback'], data)
+    return HttpResponse(data, content_type="application/json", status=200)
 
 
 
@@ -291,6 +294,6 @@ def bookmarklet_create(request):
     path = request.get_full_path()
     # Strip '/service/bookmarklet-create/
     querystring = path[28:]
-    add_url = reverse('user_management_create_link')
+    add_url = reverse('create_link')
     add_url = add_url + querystring
     return redirect(add_url)

@@ -38,7 +38,7 @@
 									{% if request.user.is_authenticated %}
 									<li id="header-greeting">Hello, {{ request.user.email|truncatechars:35 }}</li>
 									<li><a href="{% url 'auth_logout' %}">{% if this_page == 'logout' %} class="this-page"{% endif %}<span style="color: #aaa;">Log out</span></a></li>
-									<li><a href="{% url 'user_management_created_links' %}" id="nav-button" class="btn btn-large btn-success">Dashboard</a></li>
+									<li><a href="{% url 'created_links' %}" id="nav-button" class="btn btn-large btn-success">Dashboard</a></li>
 									{% else %}
 									<!-- TO COME <li><a href="{% url 'tools' %}"{% if this_page == 'tools' %} class="this-page"{% endif %}>Tools</a></li>-->
 									<li><a href="{% url 'about' %}"{% if this_page == 'about' %} class="this-page"{% endif %}>About</a></li>

@@ -388,11 +388,11 @@ var spinner = new Spinner(opts).spin(target);
 
 	var check_status = function() {
 		
-	// Check our status service to see if we have archivng jobs pending
+	// Check our status service to see if we have archiving jobs pending
 		var request = $.ajax({
 			url: status_url,
 			type: "GET",
-			dataType: "json"
+			dataType: "jsonp"
 		});
 
 		request.done(function(data) {
