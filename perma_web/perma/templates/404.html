@@ -1,19 +1,30 @@
-{% extends "layout.html" %}
+{% extends "layout-responsive.html" %}
 {% block title %} | 404{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
 {% endblock %}
 
 {% block content %}
-<!-- List of recently saved links -->
-<div class="main-container">
-<div id="linky-list" class="span12">
-
-<h2>HTTP 404. Sorry. The thing you're looking for doesn't exist at this address. If that seems wrong to you, please <a href="{% url 'contact' %}">contact us</a> and tell us what you expected.</h2>
-
-</div><!--/.linky-list-->
-</div><!--/.main-container-->
-
-
-</div><!--/.row-fluid /#landing-container-->
+<div class="container">
+	<div class="row">
+    	<div class="col-sm-12">
+			<h2>HTTP 404. Sorry. The thing you're looking for doesn't exist at this address. If that seems wrong to you, please drop us a note using our <a href="#" data-toggle="modal" data-target="#feedbackModal">feedback tool</a>.</h2>
+		</div>
+		</div> <!--/.row -->
+</div><!--/.container-->
 {% endblock %}
+
+
+{% block scripts %}
+<script>
+  var mirror_server_host = "http://{{request.mirror_server_host}}";
+  var csrf_token = "{{csrf_token}}";
+</script>
+<script src="{{ STATIC_PREFIX }}js/ZeroClipboard/ZeroClipboard.min.js"></script>
+<script src="http://malsup.github.com/jquery.form.js"></script>
+<script src="{{ STATIC_PREFIX }}js/swfobject.js"></script>
+<script src="{{ STATIC_PREFIX }}js/holder.js"></script>
+{% endblock %}
+{% block templates %}
+
+{% endblock templates %}
