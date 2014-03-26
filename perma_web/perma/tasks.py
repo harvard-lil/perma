@@ -236,7 +236,8 @@ def get_pdf(link_guid, target_url, base_storage_path, user_agent):
     pdf_path = os.path.join(storage_path, pdf_name)
 
     # Get the PDF from the network
-    r = requests.get(target_url, stream = True, headers={'User-Agent': user_agent})
+    r = requests.get(target_url, stream = True, verify=False,
+        headers={'User-Agent': user_agent})
 
     try:
         with open(pdf_path, 'wb') as f:
@@ -372,7 +373,7 @@ def get_robots_txt(url, link_guid, content):
     robots_text_location = parsed_url.scheme + '://' + parsed_url.netloc + '/robots.txt'
     
     # We only want to respect robots.txt if Perma is specifically asked not crawl (we're not a crawler)
-    response = requests.get(robots_text_location)
+    response = requests.get(robots_text_location, verify=False)
     
     # We found Perma specifically mentioned
     if re.search('Perma', response.text) is not None:

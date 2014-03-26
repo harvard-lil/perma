@@ -65,7 +65,8 @@ def create_link(request):
 
         # Get the markup. We get the mime-type and the title from this.
         try:
-            r = requests.get(target_url, stream=True, headers={'User-Agent': request.META['HTTP_USER_AGENT']})
+            r = requests.get(target_url, stream=True, verify=False,
+                headers={'User-Agent': request.META['HTTP_USER_AGENT']})
 
             # Only get the content if we get a content-length header and if
             # it's less than one MB.
