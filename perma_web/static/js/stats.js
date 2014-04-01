@@ -26,7 +26,7 @@ var draw_folks_vis = function(){
 	var xAxis = d3.svg.axis()
 	    .scale(x)
 	    .orient("bottom")
-	    .ticks(d3.time.weeks);
+	    .ticks(d3.time.months);
 
 	var yAxis = d3.svg.axis()
 	    .scale(y)
@@ -120,7 +120,7 @@ var draw_vesting_orgs_vis = function(){
 	var xAxis = d3.svg.axis()
 	    .scale(x)
 	    .orient("bottom")
-	    .ticks(d3.time.weeks);
+	    .ticks(d3.time.months);
 
 	var yAxis = d3.svg.axis()
 	    .scale(y)
@@ -187,7 +187,7 @@ var draw_registrar_vis = function(){
 	var xAxis = d3.svg.axis()
 	    .scale(x)
 	    .orient("bottom")
-	    .ticks(d3.time.weeks);
+	    .ticks(d3.time.months);
 
 	var yAxis = d3.svg.axis()
 	    .scale(y)
@@ -255,7 +255,7 @@ var draw_hits_vis = function(){
 	var xAxis = d3.svg.axis()
 	    .scale(x)
 	    .orient("bottom")
-	    .ticks(d3.time.weeks);
+	    .ticks(d3.time.months);
 
 	var yAxis = d3.svg.axis()
 	    .scale(y)
@@ -320,7 +320,7 @@ var draw_links_vis = function(){
 	var xAxis = d3.svg.axis()
 	    .scale(x)
 	    .orient("bottom")
-	    .ticks(d3.time.weeks);
+	    .ticks(d3.time.months);
 
 	var yAxis = d3.svg.axis()
 	    .scale(y)
@@ -416,7 +416,7 @@ var draw_darchive_vis = function(){
 	var xAxis = d3.svg.axis()
 	    .scale(x)
 	    .orient("bottom")
-	    .ticks(d3.time.weeks);
+	    .ticks(d3.time.months);
 
 	var yAxis = d3.svg.axis()
 	    .scale(y)
@@ -511,7 +511,8 @@ var draw_storage_vis = function(){
 
 	var xAxis = d3.svg.axis()
 	    .scale(x)
-	    .orient("bottom");
+	    .orient("bottom")
+	    .ticks(d3.time.months);
 
 	var yAxis = d3.svg.axis()
 	    .scale(y)
