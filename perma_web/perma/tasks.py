@@ -1,9 +1,15 @@
 import os
 import subprocess
+import threading
 import urllib
 import glob
 import shutil
 import urlparse
+from django.core.files.storage import default_storage
+from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.common.proxy import ProxyType
 import simplejson
 import datetime
 import smhasher
@@ -28,10 +34,15 @@ from perma.models import Asset, Stat, Registrar, LinkUser, Link, VestingOrg
 logger = logging.getLogger(__name__)
 
 
-# helpers
+### HELPERS ###
+
 def get_asset_query(link_guid):
     # we use Asset.objects.filter().update() style updates to avoid race conditions or blocking caused by loading and saving same asset in different threads
     return Asset.objects.filter(link__guid=link_guid)
+
+def get_link_query(link_guid):
+    # we use Link.objects.filter().update() style updates to avoid race conditions or blocking caused by loading and saving same asset in different threads
+    return Link.objects.filter(pk=link_guid)
 
 def get_storage_path(base_storage_path):
     return os.path.join(settings.GENERATED_ASSETS_STORAGE, base_storage_path)
@@ -45,97 +56,142 @@ def create_storage_dir(storage_path):
             if e.errno != 17:
                 raise
 
+def save_screenshot(driver, image_path):
+    """ Given selenium webdriver and path, save screenshot using Django's default_storage. """
+    png_data = driver.get_screenshot_as_png()
+    with default_storage.open(image_path, 'wb') as image_file:
+        image_file.write(png_data)
 
-@celery.task
-def start_proxy_record_get_screen_cap(link_guid, target_url, base_storage_path ,user_agent=''):
+def get_browser(user_agent, proxy_address, cert_path):
+    """ Set up a Selenium browser with given user agent, proxy and SSL cert. """
+    desired_capabilities = dict(DesiredCapabilities.PHANTOMJS)
+    desired_capabilities["phantomjs.page.settings.userAgent"] = user_agent
+    desired_capabilities["proxy"] = {"proxyType":ProxyType.MANUAL,"sslProxy":proxy_address,"httpProxy":proxy_address}
+    browser = webdriver.PhantomJS(
+        executable_path=getattr(settings, 'PHANTOMJS_BINARY', 'phantomjs'),
+        desired_capabilities=desired_capabilities,
+        service_args=[
+            "--proxy=%s" % proxy_address,
+            "--ssl-certificates-path=%s" % cert_path,
+            "--ignore-ssl-errors=true",],
+        service_log_path=settings.PHANTOMJS_LOG)
+    browser.implicitly_wait(30)
+    browser.set_page_load_timeout(30)
+    return browser
+
+### TASKS ##
+
+@celery.task(bind=True)
+def proxy_capture(self, link_guid, target_url, base_storage_path ,user_agent=''):
     """
     start warcprox process. Warcprox is a MITM proxy server and needs to be running 
     before, during and after phantomjs gets a screenshot.
 
     Create an image from the supplied URL, write it to disk and update our asset model with the path.
     The heavy lifting is done by PhantomJS, our headless browser.
-
-    This function is usually executed via a synchronous Celery call
     """
     # basic setup
     asset_query = get_asset_query(link_guid)
+    link_query = get_link_query(link_guid)
     storage_path = get_storage_path(base_storage_path)
     create_storage_dir(storage_path)
-
-    # set up storage paths
     image_name = 'cap.png'
     warc_name = 'archive.warc.gz'
     image_path = os.path.join(storage_path, image_name)
     cert_path = os.path.join(storage_path, 'cert.pem')
 
     # connect warcprox to an open port
-    prox_port = 27500
-    recorded_url_q = warcprox.queue.Queue()
+    warcprox_port = 27500
+    recorded_url_queue = warcprox.queue.Queue()
     for i in xrange(500):
         try:
             proxy = warcprox.WarcProxy(
-                server_address=("127.0.0.1", prox_port),
+                server_address=("127.0.0.1", warcprox_port),
                 ca=warcprox.CertificateAuthority(cert_path, storage_path),
-                recorded_url_q=recorded_url_q
+                recorded_url_q=recorded_url_queue
             )
             break
         except socket_error as e:
             if e.errno != errno.EADDRINUSE:
                 raise
-        prox_port += 1
+        warcprox_port += 1
     else:
-        raise Exception("WarcProx couldn't find an open port.")
-
-    # create a WarcWriterThread subclass that knows how to rename resulting warc and save to DB when closing warc file
-    class WarcWriter(warcprox.WarcWriterThread):
-        def _close_writer(self):
-            if self._fpath:
-                super(WarcWriter, self)._close_writer()
-                standardized_warc_name = os.path.join(storage_path, warc_name)
-                try:
-                    os.rename(os.path.join(storage_path, self._f_finalname), standardized_warc_name)
-                    if settings.USE_WARC_ARCHIVE:
-                        asset_query.update(warc_capture=warc_name)
-                except OSError:
-                    if settings.USE_WARC_ARCHIVE:
-                        logger.info("Web Archive File creation failed for %s" % target_url)
-                        asset_query.update(warc_capture='failed')
+        raise self.retry(exc=Exception("WarcProx couldn't find an open port."))
+    proxy_address = "127.0.0.1:%s" % warcprox_port
 
     # start warcprox listener
-    warc_writer = WarcWriter(recorded_url_q=recorded_url_q,
+    warc_writer = warcprox.WarcWriterThread(recorded_url_q=recorded_url_queue,
                                    directory=storage_path, gzip=True,
-                                   port=prox_port,
+                                   port=warcprox_port,
                                    rollover_idle_time=15)
     warcprox_controller = warcprox.WarcproxController(proxy, warc_writer)
-    thread.start_new_thread(warcprox_controller.run_until_shutdown, ())
+    warcprox_thread = threading.Thread(target=warcprox_controller.run_until_shutdown, name="warcprox", args=())
+    warcprox_thread.start()
 
-    # run phantomjs
+    # fetch robots.txt in background
+    def robots_txt_thread():
+        parsed_url = urlparse.urlparse(target_url)
+        robots_txt_location = parsed_url.scheme + '://' + parsed_url.netloc + '/robots.txt'
+        robots_txt_browser = get_browser(user_agent, proxy_address, cert_path)
+        robots_txt_browser.get(robots_txt_location)
+        # We only want to respect robots.txt if Perma is specifically asked not crawl (we're not a crawler)
+        if 'Perma' in robots_txt_browser.page_source:
+            # We found Perma specifically mentioned
+            rp = robotparser.RobotFileParser()
+            rp.parse([line.strip() for line in robots_txt_browser.page_source])
+            if not rp.can_fetch('Perma', target_url):
+                link_query.update(dark_archived_robots_txt_blocked=True)
+        robots_txt_browser.quit()
+    robots_txt_thread = threading.Thread(target=robots_txt_thread, name="robots")
+    robots_txt_thread.start()
+
+    # fetch page
+    browser = get_browser(user_agent, proxy_address, cert_path)
+    browser.set_window_size(1024, 800)
+    browser.get(target_url)  # returns after onload
+
+    # get page title
+    if browser.title:
+        link_query.update(submitted_title=browser.title)
+
+    # save screenshot immediately, and an updated version after 5 seconds
+    # (we want to return results quickly, but also give javascript time to render final results)
+    save_screenshot(browser, image_path)
+    asset_query.update(image_capture=image_name)
+    time.sleep(5)
+    save_screenshot(browser, image_path)
+
+    # check meta tags
+    meta_tag = None
     try:
-        content_from_phantom = subprocess.check_output([
-            settings.PHANTOMJS_BINARY,
-            "--proxy=127.0.0.1:%s" % prox_port,
-            "--ssl-certificates-path=%s" % cert_path,
-            "--ignore-ssl-errors=true",
-            os.path.join(settings.PROJECT_ROOT, 'lib/rasterize.js'),
-            target_url,
-            image_path,
-            user_agent
-        ])
+        # first look for <meta name='perma'>
+        meta_tag = browser.find_element_by_xpath("//meta[@name='perma']")
+    except NoSuchElementException:
+        try:
+            # else look for <meta name='robots'>
+            browser.find_element_by_xpath("//meta[@name='robots']")
+        except NoSuchElementException:
+            pass
+    if meta_tag and 'noarchive' in meta_tag.get_attribute("content"):
+        link_query.update(dark_archived_robots_txt_blocked=True)
 
-        #Here we'll decide if flag the archive should be flagged for the "darchive"
-        _get_robots_txt(target_url, link_guid, content_from_phantom)
-            
-        time.sleep(.5) # give warcprox a chance to save everything
-    finally:
-        # shutdown warcprox process
-        warcprox_controller.stop.set()
+    # teardown:
+    browser.quit()  # shut down phantomjs
+    robots_txt_thread.join()  # wait until robots thread is done
+    warcprox_controller.stop.set()  # send signal to shut down warc thread
+    warcprox_thread.join()  # wait until warcprox thread is done writing out warc
 
-    # save screenshot asset
-    if os.path.exists(image_path):
-        asset_query.update(image_capture=image_name)
-    else:
-        asset_query.update(image_capture='failed')
-        logger.info("Screen capture failed for %s" % target_url)
+    # save generated warc file
+    temp_warc_path = os.path.join(storage_path, warc_writer._f_finalname)
+    final_warc_path = os.path.join(storage_path, warc_name)
+    try:
+        os.rename(temp_warc_path, final_warc_path)
+        if settings.USE_WARC_ARCHIVE:
+            asset_query.update(warc_capture=warc_name)
+    except OSError as e:
+        logger.info("Web Archive File creation failed for %s: %s" % (target_url, e))
+        if settings.USE_WARC_ARCHIVE:
+            asset_query.update(warc_capture='failed')
 
 
 @celery.task
@@ -329,70 +385,6 @@ def store_text_cap(link_guid, target_url, base_storage_path, title):
         # Must have received something other than an HTTP 200 from Instapaper, or no response object at all
         logger.info("Text (instapaper) capture failed for %s" % target_url)
         asset_query.update(text_capture='failed')
-
-
-def _get_robots_txt(url, link_guid, content):
-    """
-    A helper function to get the meta element for a
-    noarchive value andto get the robots.txt rule for Perma (the Perma bot if 
-    we were a bot). We will still grab the content (we're not a crawler), but
-    we'll "darchive it."
-    
-    If we see a "noarchive" value for a meta element with the name 'robots' or
-    'perma' we'll send the arvhive to the darachive.
-    
-    If we don't see noarchive rule in a meta element, check the robots.txt to 
-    see if perma is specifically denied.
-    """
-    
-    # Sometimes we don't get markup. Only look for meta values if we get markup
-    if content:
-        parsed_html = lxml.html.fromstring(content)
-        metas = parsed_html.xpath('//meta')
-        
-        # Look at all meta elements and grab any that have a name of 'robots' or
-        # 'perma'. If we see any, send to the darchive if the have a value
-        # of 'noarchive' in the 'content atrribute'
-        # So, something like this will be sent to the darchive:
-        # <meta name="ROBOTS" content="NOARCHIVE" />
-        for meta in metas:
-            meta_name = meta.get('name')
-            if meta_name and meta_name.lower() in ['robots', 'perma']:
-                meta_content = meta.get('content')
-                if meta_content:
-                    bot_values = meta_content.split(',')
-                    bot_values = [item.lower() for item in bot_values]
-                    if 'noarchive' in bot_values:
-                        link = Link.objects.get(guid=link_guid)
-                        link.dark_archived_robots_txt_blocked = True
-                        link.save()
-
-                        return
-    
-    # Didn't see a noarchive value in a meta element. let's look at robots.txt
-    
-    # Parse the URL so and build the robots.txt location
-    parsed_url = urlparse.urlparse(url)
-    robots_text_location = parsed_url.scheme + '://' + parsed_url.netloc + '/robots.txt'
-    
-    # We only want to respect robots.txt if Perma is specifically asked not crawl (we're not a crawler)
-    response = requests.get(robots_text_location, verify=False)
-    
-    # We found Perma specifically mentioned
-    if re.search('Perma', response.text) is not None:
-        # Get the robots.txt ruleset
-        # TODO: use reppy or something else here. it's dumb that we're
-        # getting robots.txt twice
-        rp = robotparser.RobotFileParser()
-        rp.set_url(robots_text_location)
-        rp.read()
-
-        # If we're not allowed, set a flag in the model
-        if not rp.can_fetch('Perma', url):
-            link = Link.objects.get(guid=link_guid)
-            link.dark_archived_robots_txt_blocked = True
-            link.save()
-
 
     
 @celery.task

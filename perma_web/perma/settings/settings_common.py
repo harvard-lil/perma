@@ -6,8 +6,6 @@ PROJECT_ROOT = os.path.dirname(module_path())
 # include our third-party libs
 site.addsitedir(os.path.join(PROJECT_ROOT, 'lib'))
 
-PHANTOMJS_BINARY = os.path.join(PROJECT_ROOT, 'lib/phantomjs')
-
 # Django settings for Perma project.
 
 DATABASES = {
@@ -120,7 +118,9 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'perma',
+
     'south',
     'djcelery',
     'ratelimit',
