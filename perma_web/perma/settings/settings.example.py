@@ -19,9 +19,7 @@ SECRET_KEY = ''
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []
 
-
-# PhantomJS Binary. If you've placed your PhantomJS local to Perma, you might
-# want to set that here
+# If the phantomjs binary isn't in your path, you can set the location here
 # PHANTOMJS_BINARY = os.path.join(PROJECT_ROOT, 'lib/phantomjs')
 
 # This is where we dump the generated WARCs, PNGs, and so on. If you're running

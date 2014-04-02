@@ -32,8 +32,6 @@ CDX_SERVER_URL = 'http://127.0.0.1:8000/cdx'
 
 STATIC_ROOT = os.path.join(SERVICES_DIR, 'django/static_assets')
 
-PHANTOMJS_BINARY = "/usr/bin/phantomjs"
-
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'secret'
 

@@ -67,13 +67,14 @@ def get_browser(user_agent, proxy_address, cert_path):
     desired_capabilities = dict(DesiredCapabilities.PHANTOMJS)
     desired_capabilities["phantomjs.page.settings.userAgent"] = user_agent
     desired_capabilities["proxy"] = {"proxyType":ProxyType.MANUAL,"sslProxy":proxy_address,"httpProxy":proxy_address}
-    browser = webdriver.PhantomJS(desired_capabilities=desired_capabilities,
-                                  service_args=[
-                                      "--proxy=%s" % proxy_address,
-                                      "--ssl-certificates-path=%s" % cert_path,
-                                      "--ignore-ssl-errors=true",
-                                  ],
-                                  service_log_path=settings.PHANTOMJS_LOG)
+    browser = webdriver.PhantomJS(
+        executable_path=getattr(settings, 'PHANTOMJS_BINARY', 'phantomjs'),
+        desired_capabilities=desired_capabilities,
+        service_args=[
+            "--proxy=%s" % proxy_address,
+            "--ssl-certificates-path=%s" % cert_path,
+            "--ignore-ssl-errors=true",],
+        service_log_path=settings.PHANTOMJS_LOG)
     browser.implicitly_wait(30)
     browser.set_page_load_timeout(30)
     return browser
