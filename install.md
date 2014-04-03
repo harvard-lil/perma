@@ -45,6 +45,10 @@ Now you're in the Django project folder and can develop like normal. First let's
 
     (perma)vagrant@perma_0.1:/vagrant/perma_web$ fab init_test_db
 
+Update the Python packages (you'll have to do this every time requirements.txt changes):
+
+    (perma)vagrant@perma_0.1:/vagrant/perma_web$ pip install -r requirements.txt
+
 Then you can run the test server:
 
     (perma)vagrant@perma_0.1:/vagrant/perma_web$ fab run
