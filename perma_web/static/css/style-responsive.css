@@ -80,8 +80,19 @@ h4 {
 	color: #ff4100;
 }
 
+.docs h4 {
+	color:#09f;
+}
+
 p {
     margin-bottom: 20px;
+    font-family: 'Roboto Slab', sans-serif;
+}
+
+.docs p {
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+   	font-weight: 300;
+   	font-size: 16px;
 }
 
 .fancy-infinity {
@@ -935,7 +946,6 @@ h3 {
 }
 
 .red {
-    background: red;
     border:1px solid red;
 }
 
@@ -951,9 +961,7 @@ img.linky-image, img.linky-image-preview {
 }
 
 img.linky-image {
-    
     margin-top:0px;
-
 }
 
 img.linky-image-preview {
@@ -1387,6 +1395,41 @@ input#file {
     position:relative;
     z-index:999;
 }
+
+.docs .nav {
+	margin:0px;
+}
+
+a.underline {
+	text-decoration:underline;
+}
+
+.nav-pills {
+	margin-top:40px;
+}
+
+
+.nav-pills > li > a{
+	border:1px solid #e6e6e6;
+	margin:0px;
+	border-radius: 3px;
+	font-size:18px;
+}
+
+.nav-pills > li:hover > a{
+	background:#f7f7f7;
+}
+
+.nav-pills > li.active > a{
+	color:#ff4100;
+	background:#f7f7f7;
+}
+
+.nav-pills > li.active > a:hover{
+	color:#ff4100;
+	background:#f7f7f7;
+}
+
 
 .carat {
     margin-top:4px;

@@ -26,6 +26,24 @@ urlpatterns = patterns('perma.views',
     url(r'^privacy-policy/?$', DirectTemplateView.as_view(template_name='privacy_policy.html'), name='privacy_policy'),
     url(r'^stats/?$', 'common.stats', name='global_stats'),
     url(r'^contingency-plan/?$', DirectTemplateView.as_view(template_name='contingency_plan.html'), name='contingency_plan'),
+    
+    #Docs 
+    url(r'^docs/?$', DirectTemplateView.as_view(template_name='docs.html'), name='docs'),
+    url(r'^docs/perma-link-creation', DirectTemplateView.as_view(template_name='docs/perma-link-creation.html'), name='docs_perma_link_creation'),
+    url(r'^docs/perma-link-vesting', DirectTemplateView.as_view(template_name='docs/perma-link-vesting.html'), name='docs_perma_link_vesting'),
+    
+    url(r'^docs/perma-archive', DirectTemplateView.as_view(template_name='docs/perma-archive.html'), name='docs_perma_archive'),
+     
+    url(r'^docs/perma-dark-archive', DirectTemplateView.as_view(template_name='docs/perma-dark-archive.html'), name='docs_perma_dark_archive'),
+    
+    url(r'^docs/copyright', DirectTemplateView.as_view(template_name='docs/copyright.html'), name='docs_copyright'),
+
+    url(r'^docs/mirrors', DirectTemplateView.as_view(template_name='docs/mirrors.html'), name='docs_mirrors'),    
+    
+    url(r'^docs/robustness', DirectTemplateView.as_view(template_name='docs/robustness.html'), name='docs_robustness'),    
+    
+    url(r'^docs/perma_user_roles', DirectTemplateView.as_view(template_name='docs/perma-user-roles.html'), name='docs_perma_user_roles'),   
+    
 
     #API routes
     url(r'^api/linky/urldump/?$', 'api.urldump', name='urldump'),
