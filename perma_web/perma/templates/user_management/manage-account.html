@@ -19,18 +19,24 @@
 
 	  <h3>Account settings</h3>
 	  {% if request.user|has_group:'vesting_member,vesting_manager' %}
-		  <div class="sponsoring-library-info">
-        <h4>Your sponsoring library</h4>
-        {% if no_registrar %}
-          <p>Seems to be missing</p>
-        {% endif %}
-        {% if sponsoring_library_website %}
-        <p><strong><a href="{{sponsoring_library_website}}" target="_blank">{{sponsoring_library_name}}</a></strong>
-        {% else %}
-        <strong>{{sponsoring_library_name}}</strong>
-        {% endif %}
-        <br>{{sponsoring_library_email}}</p>
-      </div>
+	    <div class="sponsoring-library-info">
+            <h4>Your sponsoring library</h4>
+            {% if no_registrar %}
+              <p>Seems to be missing</p>
+            {% endif %}
+            {% if sponsoring_library_website %}
+            <p><strong><a href="{{sponsoring_library_website}}" target="_blank">{{sponsoring_library_name}}</a></strong>
+            {% else %}
+            <strong>{{sponsoring_library_name}}</strong>
+            {% endif %}
+            <br>{{sponsoring_library_email}}</p>
+            <h4>Your vesting organization</h4>
+            {% if no_vesting_org %}
+                <p>Seems to be missing</p>
+            {% else %}
+                <p><strong>{{ vesting_org_name }}</strong></p>
+            {% endif %}
+        </div>
 		{% endif %}
 		<form method="post">
 		  <h4>Change account details</h4>
