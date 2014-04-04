@@ -66,11 +66,11 @@ def cdx(request):
     """
     # find requested link and url
     try:
-        link = Link.objects.select_related().get(pk=request.POST.get('guid'))
+        link = Link.objects.select_related().get(pk=request.GET.get('guid'))
     except Link.DoesNotExist:
         print "COULDN'T FIND LINK"
         raise Http404
-    url = request.POST.get('url', link.submitted_url)
+    url = request.GET.get('url', link.submitted_url)
 
     # get warc file
     for asset in link.assets.all():
