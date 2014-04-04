@@ -25,5 +25,6 @@ coverage==3.7.1
 surt==0.2
 
 #git+git://github.com/ikreymer/pywb.git@d347b4952b124e3b830668a501c967a2d96d395f
-git+git://github.com/ikreymer/pywb.git@lxml
+#git+git://github.com/ikreymer/pywb.git@lxml
+git+git://github.com/ikreymer/pywb.git@develop
 git+git://github.com/internetarchive/warcprox.git@5d09aea67d8f46221e5ee866ea1d1909ccb0715e
