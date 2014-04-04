@@ -33,7 +33,6 @@ from perma.forms import (
     UserFormEdit,
     RegistrarMemberFormEdit,
     VestingMemberFormEdit, 
-    VestingMemberWithVestingOrgFormEdit,
     VestingMemberWithGroupFormEdit, 
     UserAddRegistrarForm,
     UserAddVestingOrgForm,
@@ -461,7 +460,7 @@ def edit_user_in_group(request, user_id, group_name):
         if is_registry:
             form = VestingMemberWithGroupFormEdit(form_data, prefix="a", instance=target_user)
         elif is_registrar:
-            form = VestingMemberWithVestingOrgFormEdit(form_data, prefix="a", instance=target_user,
+            form = VestingMemberWithGroupFormEdit(form_data, prefix="a", instance=target_user,
                                                           registrar_id=request.user.registrar_id)
         else:
             form = VestingMemberFormEdit(form_data, prefix="a", instance=target_user)

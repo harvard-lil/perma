@@ -164,35 +164,9 @@ class VestingMemberFormEdit(forms.ModelForm):
         fields = ("first_name", "last_name", "email")
 
     email = forms.EmailField()
-
-
-class VestingMemberWithVestingOrgFormEdit(forms.ModelForm):
-    """
-    stripped down user reg form
-    This is mostly a django.contrib.auth.forms.UserCreationForm
-
-    This is stripped down even further to match out editing needs
-    """
-    
-    def __init__(self, *args, **kwargs):
-      registrar_id = False
-      if 'registrar_id' in kwargs:
-        registrar_id = kwargs.pop('registrar_id')
-      super(VestingMemberWithVestingOrgFormEdit, self).__init__(*args, **kwargs)
-      if registrar_id:
-        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id).order_by('name')
-
-    class Meta:
-        model = LinkUser
-        fields = ("first_name", "last_name", "email", "vesting_org")
-
-
-    email = forms.EmailField()
-
-    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
     
         
-class VestingMemberWithGroupFormEdit(VestingMemberWithVestingOrgFormEdit):
+class VestingMemberWithGroupFormEdit(VestingMemberFormEdit):
     """
     stripped down user reg form
     This is mostly a django.contrib.auth.forms.UserCreationForm
@@ -200,7 +174,21 @@ class VestingMemberWithGroupFormEdit(VestingMemberWithVestingOrgFormEdit):
     This is stripped down even further to match out editing needs
     """
                          
-    group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None)
+    def __init__(self, *args, **kwargs):
+      registrar_id = False
+      if 'registrar_id' in kwargs:
+        registrar_id = kwargs.pop('registrar_id')
+      super(VestingMemberWithGroupFormEdit, self).__init__(*args, **kwargs)
+      if registrar_id:
+        self.fields['group'].queryset = Group.objects.filter(name__startswith='vesting')
+        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id).order_by('name')
+        
+    class Meta:
+        model = LinkUser
+        fields = ("first_name", "last_name", "email", "vesting_org", "group")
+    
+    group = forms.ModelChoiceField(queryset=Group.objects.all(), empty_label=None, label="Role")
+    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
 
     def save(self, commit=True):
         user = super(VestingMemberWithGroupFormEdit, self).save(commit=False)

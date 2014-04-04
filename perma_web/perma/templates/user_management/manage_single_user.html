@@ -23,6 +23,13 @@
 								<option value="{{ x }}" {% if x == target_user.registrar.id %} selected {% endif %} >{{ y }}</option>
 							{% endfor %}
 						</select>
+					{% elif field.name == 'vesting_org' %}
+						<select name="a-vesting_org" id="id_a-vesting_org">
+							{% for x,y in form.fields.vesting_org.choices %}
+								<option value="{{ x }}" {% if x == target_user.vesting_org.id %} selected {% endif %} >{{ y }}</option>
+							{% endfor %}
+						</select>
+						<br/>
 					{% elif field.name == 'group' %}
 						<select name="a-group" id="id_a-group">
 						{% for x,y in form.fields.group.choices %}
