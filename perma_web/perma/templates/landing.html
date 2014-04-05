@@ -3,7 +3,7 @@
 {% load truncatesmart %}
 
 {% block styles %}
-<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/carousel.css">
+<link rel="stylesheet" href="{{ STATIC_URL }}css/carousel.css">
 {% endblock %}
 
 {% block content %}
@@ -15,7 +15,7 @@
         	<div class="col-sm-12">
         	<p class="mega">Websites change,<br/> go away, and are taken down</p>
         				<div class="logo">
-							<img class="landing-logo" src="{{ STATIC_PREFIX }}img/perma-infinity-landing.png"/>
+							<img class="landing-logo" src="{{ STATIC_URL }}img/perma-infinity-landing.png"/>
 						</div>
 				<p><span class="orange">perma.cc</span>  helps authors and journals create<br />
 				permanent archived citations in their published work</p>
@@ -116,10 +116,10 @@
   var mirror_server_host = "http://{{request.mirror_server_host}}";
   var csrf_token = "{{csrf_token}}";
 </script>
-<script src="{{ STATIC_PREFIX }}js/ZeroClipboard/ZeroClipboard.min.js"></script>
-<script src="http://malsup.github.com/jquery.form.js"></script>
-<script src="{{ STATIC_PREFIX }}js/swfobject.js"></script>
-<script src="{{ STATIC_PREFIX }}js/holder.js"></script>
+<script src="{{ STATIC_URL }}js/ZeroClipboard/ZeroClipboard.min.js"></script>
+<script src="{{ STATIC_URL }}js/jquery.form.min.js"></script>
+<script src="{{ STATIC_URL }}js/swfobject.js"></script>
+<script src="{{ STATIC_URL }}js/holder.js"></script>
 {% endblock %}
 {% block templates %}
 

@@ -19,7 +19,7 @@ from django.template import RequestContext
 
 from perma.forms import UploadFileForm
 from perma.models import Link, Asset, Folder
-from perma.tasks import start_proxy_record_get_screen_cap, store_text_cap, get_pdf
+from perma.tasks import store_text_cap, get_pdf, get_storage_path, proxy_capture
 from perma.utils import require_group
 if not settings.USE_WARC_ARCHIVE:
     from perma.tasks import get_source
@@ -71,7 +71,6 @@ def create_link(request):
             # Only get the content if we get a content-length header and if
             # it's less than one MB.
             if 'content-length' in r.headers and int(r.headers['content-length']) < 1024 * 1024:
-                content = r.content
                 parsed_html = lxml.html.fromstring(r.content)
                 if len(parsed_html):
                     if parsed_html.find(".//title") is not None and parsed_html.find(".//title").text:
@@ -115,10 +114,8 @@ def create_link(request):
             asset.warc_capture = 'pending'
             asset.save()
 
-            # start warcprox server to intercept and save traffic between the internet and the headless browser in get_screen_cap
-            # Creates screencap with headless browser
-            start_proxy_record_get_screen_cap.delay(guid, target_url, asset.base_storage_path,
-                                                    user_agent=request.META['HTTP_USER_AGENT'])
+            # get image, warc, meta tags, robots.txt, updated title
+            proxy_capture.delay(guid, target_url, asset.base_storage_path, request.META['HTTP_USER_AGENT'])
 
             # Get the text capture of the page (through a service that follows pagination)
             store_text_cap.delay(guid, target_url, asset.base_storage_path, target_title)
@@ -133,7 +130,7 @@ def create_link(request):
 
             # Sometimes our phantomjs capture fails. if it doesn't add it to our response object
             if asset.image_capture != 'pending' and asset.image_capture != 'failed':
-                response_object['linky_cap'] = settings.STATIC_URL + asset.base_storage_path + '/' + asset.image_capture
+                response_object['linky_cap'] = settings.MEDIA_URL + asset.base_storage_path + '/' + asset.image_capture
                 
 
         return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
@@ -197,7 +194,7 @@ def upload_file(request):
                 time_tuple = now.timetuple()
                 path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday), str(time_tuple.tm_hour), str(time_tuple.tm_min), link.guid]
 
-                linky_home_disk_path = settings.GENERATED_ASSETS_STORAGE + '/' + os.path.sep.join(path_elements)
+                linky_home_disk_path = settings.MEDIA_ROOT + '/' + os.path.sep.join(path_elements)
 
                 if not os.path.exists(linky_home_disk_path):
                     os.makedirs(linky_home_disk_path)

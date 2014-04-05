@@ -1,4 +1,5 @@
 from django.core import serializers
+from django.core.files.storage import default_storage
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, Http404, HttpResponse
@@ -23,7 +24,7 @@ from perma.utils import can_be_mirrored
 
 
 logger = logging.getLogger(__name__)
-valid_serve_types = ['live', 'image','pdf','source','text']
+valid_serve_types = ['live', 'image','pdf','source','text','warc','warc_download']
 
 
 class DirectTemplateView(TemplateView):
@@ -66,41 +67,43 @@ def cdx(request):
     """
     # find requested link and url
     try:
-        link = Link.objects.select_related().get(pk=request.POST.get('guid'))
+        link = Link.objects.select_related().get(pk=request.GET.get('guid'))
     except Link.DoesNotExist:
         print "COULDN'T FIND LINK"
         raise Http404
-    url = request.POST.get('url', link.submitted_url)
+    url = request.GET.get('url', link.submitted_url)
 
     # get warc file
     for asset in link.assets.all():
         if '.warc' in asset.warc_capture:
-            warc_path = os.path.join(settings.GENERATED_ASSETS_STORAGE, asset.base_storage_path, asset.warc_capture)
+            warc_path = os.path.join(asset.base_storage_path, asset.warc_capture)
             break
     else:
         if settings.USE_WARC_ARCHIVE:
             print "COULDN'T FIND WARC"
             raise Http404 # no .warc file -- do something to handle this
         else:
-            warc_path = os.path.join(settings.GENERATED_ASSETS_STORAGE, asset.base_storage_path, "archive.warc.gz")
+            warc_path = os.path.join(asset.base_storage_path, "archive.warc.gz")
 
     # get cdx file
     cdx_path = warc_path.replace('.gz', '').replace('.warc', '.cdx')
     try:
-        cdx_file = open(cdx_path, 'rb')
+        cdx_lines = default_storage.open(cdx_path, 'rb')
     except IOError:
         # if we can't find the CDX file associated with this WARC, create it
         cdx_lines = StringIO.StringIO()
-        cdx_writer.CDX_Writer(warc_path, cdx_lines).make_cdx()
-        cdx_lines = cdx_lines.getvalue().split("\n")
-        with open(cdx_path, 'wb') as cdx_file:
-            cdx_file.write("\n".join(sorted(cdx_lines)))
-        cdx_file = open(cdx_path, 'rb')
+        writer = cdx_writer.CDX_Writer(os.path.join(settings.MEDIA_ROOT, warc_path), cdx_lines)
+        writer.warc_path = warc_path
+        writer.make_cdx()
+        cdx_lines = sorted(cdx_lines.getvalue().split("\n"))
+        with default_storage.open(cdx_path, 'wb') as cdx_file:
+            cdx_file.write("\n".join(cdx_lines))
+        cdx_lines = [x+"\n" for x in cdx_lines] # put "\n" back on so we can treat this like a file
 
     # find cdx lines for url
     sorted_url = surt.surt(url)
     out = ""
-    for line in cdx_file:
+    for line in cdx_lines:
         if line.startswith(sorted_url+" "):
             out += line
         elif out:
@@ -138,10 +141,6 @@ def single_linky(request, guid):
     context = None
 
     # User requested archive type
-    if not settings.USE_WARC_ARCHIVE:
-        valid_serve_types = ['image','pdf','source','text', 'warc']
-    else:
-        global valid_serve_types
     serve_type = request.GET.get('type','live')
     if not serve_type in valid_serve_types:
         serve_type = 'live'
@@ -180,7 +179,7 @@ def single_linky(request, guid):
         text_capture = None
         if serve_type == 'text':
             if asset.text_capture and asset.text_capture != 'pending':
-                path_elements = [settings.GENERATED_ASSETS_STORAGE, asset.base_storage_path, asset.text_capture]
+                path_elements = [settings.MEDIA_ROOT, asset.base_storage_path, asset.text_capture]
                 file_path = os.path.sep.join(path_elements)
                 with open(file_path, 'r') as f:
                     text_capture = f.read()
@@ -206,15 +205,21 @@ def single_linky(request, guid):
 
         context = {'linky': link, 'asset': asset, 'pretty_date': pretty_date, 'next': request.get_full_path(),
                    'display_iframe': display_iframe, 'serve_type': serve_type, 'text_capture': text_capture,
-                   'asset_host':''}
+                   'warc_url':'/warc/'}
 
     if request.META.get('CONTENT_TYPE') == 'application/json':
         # if we were called as JSON (by a mirror), serialize and send back as JSON
-        context['asset_host'] = "http%s://%s" % ('s' if request.is_secure() else '', request.main_server_host)
+        context['MEDIA_URL'] = request.build_absolute_uri(settings.MEDIA_URL)
+        context['warc_url'] = request.build_absolute_uri(context['warc_url'])
         context['asset'] = serializers.serialize("json", [context['asset']], fields=['text_capture','image_capture','pdf_capture','warc_capture','base_storage_path'])
         context['linky'] = serializers.serialize("json", [context['linky']], fields=['dark_archived','guid','vested','view_count','creation_timestamp','submitted_url','submitted_title'])
         return HttpResponse(json.dumps(context), content_type="application/json")
 
+    if serve_type == 'warc_download':
+        if context['asset'].warc_download_url():
+            return HttpResponseRedirect(context.get('MEDIA_URL', settings.MEDIA_URL)+context['asset'].warc_download_url())
+
+    context['USE_WARC_ARCHIVE'] = settings.USE_WARC_ARCHIVE
     return render_to_response('single-link.html', context, RequestContext(request))
 
 

@@ -2,6 +2,9 @@
 # from settings_dev import *
 # from settings_prod import *
 
+# NOTE: If you are running a local test environment, settings_dev will already have sensible defaults for many of these.
+# Only override the ones you need to, so you're less likely to have to make manual settings updates after pulling in changes.
+
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
@@ -19,14 +22,12 @@ SECRET_KEY = ''
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []
 
-
-# PhantomJS Binary. If you've placed your PhantomJS local to Perma, you might
-# want to set that here
+# If the phantomjs binary isn't in your path, you can set the location here
 # PHANTOMJS_BINARY = os.path.join(PROJECT_ROOT, 'lib/phantomjs')
 
 # This is where we dump the generated WARCs, PNGs, and so on. If you're running
 # in prod, you'll likely want to set this
-#GENERATED_ASSETS_STORAGE = '/tmp/perma/assets'
+#MEDIA_ROOT = '/tmp/perma/assets'
 
 # Instapaper credentials
 INSTAPAPER_KEY = 'key'
@@ -43,14 +44,3 @@ DEFAULT_FROM_EMAIL = 'email@example.com'
 
 # The host we want to display (used when DEBUG=False)
 HOST = 'perma.cc'
-
-
-# Additional locations of static files
-STATICFILES_DIRS = (
-    'static',
-    GENERATED_ASSETS_STORAGE
-
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)

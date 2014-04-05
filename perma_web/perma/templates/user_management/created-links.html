@@ -3,17 +3,12 @@
 
 {% block title %} | {{ verb|capfirst }} Perma links{% endblock %}
 
-{% block styles %}
-    {{ block.super }}
-    <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
-{% endblock %}
-
 {% block scripts %}
     {{ block.super }}
-    <script src="{{ STATIC_PREFIX }}js/jquery-ui-1.10.3.custom.min.js"></script>
-    <script src="{{ STATIC_PREFIX }}js/jquery.dotdotdot-1.5.9.min.js"></script>
-    <script src="{{ STATIC_PREFIX }}js/jquery.django-csrf.js"></script>
-    <script src="{{ STATIC_PREFIX }}js/links-list.js"></script>
+    <script src="{{ STATIC_URL }}js/jquery-ui-1.10.3.custom.min.js"></script>
+    <script src="{{ STATIC_URL }}js/jquery.dotdotdot-1.5.9.min.js"></script>
+    <script src="{{ STATIC_URL }}js/jquery.django-csrf.js"></script>
+    <script src="{{ STATIC_URL }}js/links-list.js"></script>
 {% endblock %}
 
 {% block content %}

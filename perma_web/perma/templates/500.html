@@ -1,7 +1,7 @@
 {% extends "layout-responsive.html" %}
 {% block title %} | 404{% endblock %}
 {% block styles %}
-<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+<link rel="stylesheet" href="{{ STATIC_URL }}css/font-awesome.min.css">
 {% endblock %}
 
 {% block content %}
@@ -20,10 +20,10 @@
   var mirror_server_host = "http://{{request.mirror_server_host}}";
   var csrf_token = "{{csrf_token}}";
 </script>
-<script src="{{ STATIC_PREFIX }}js/ZeroClipboard/ZeroClipboard.min.js"></script>
-<script src="http://malsup.github.com/jquery.form.js"></script>
-<script src="{{ STATIC_PREFIX }}js/swfobject.js"></script>
-<script src="{{ STATIC_PREFIX }}js/holder.js"></script>
+<script src="{{ STATIC_URL }}js/ZeroClipboard/ZeroClipboard.min.js"></script>
+<script src="{{ STATIC_URL }}js/jquery.form.min.js"></script>
+<script src="{{ STATIC_URL }}js/swfobject.js"></script>
+<script src="{{ STATIC_URL }}js/holder.js"></script>
 {% endblock %}
 {% block templates %}
 

@@ -20,10 +20,18 @@ Werkzeug==0.9.4
 Fabric==1.8.2
 pexpect==3.1
 coverage==3.7.1
+selenium==2.41.0
 
 # requirements of non-PyPI package cdx_writer
 surt==0.2
 
-#git+git://github.com/ikreymer/pywb.git@d347b4952b124e3b830668a501c967a2d96d395f
-git+git://github.com/ikreymer/pywb.git@lxml
+pywb==0.2.2
 git+git://github.com/internetarchive/warcprox.git@5d09aea67d8f46221e5ee866ea1d1909ccb0715e
+
+# heroku requirements
+dj_database_url==0.3.0
+dj-static==0.0.5
+gunicorn==18.0
+gevent==1.0
+django-storages==1.1.8
+boto==2.27.0

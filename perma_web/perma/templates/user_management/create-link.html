@@ -1,9 +1,6 @@
 {% extends "admin-layout.html" %}
 {% load truncatesmart %}
 {% block title %} | Create a Perma link{% endblock %}
-{% block styles %}
-<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
-{% endblock %}
 
 {% block manage-created-links %}<li class="active"><a href="{% url 'created_links' %}">Created links</a></li>{% endblock %}
 
@@ -22,7 +19,7 @@
     		<div class="modal-header">
         		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
 				<div class="logo-condensed-header">
-					<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo.png"></a>
+					<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo.png"></a>
 				</div>
     		</div>
     
@@ -46,7 +43,7 @@
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
          <div class="logo-condensed-header">
-			<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo2.png"></a>
+			<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo2.png"></a>
 		</div>
     </div>
     <div class="modal-body">
@@ -63,26 +60,26 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-  var main_server_host = "http://{{request.main_server_host}}";
-  var mirror_server_host = "http://{{request.mirror_server_host}}";
-  var csrf_token = "{{csrf_token}}";
-  var static_prefix = "{{STATIC_PREFIX}}";
-  var status_url = "{% url 'service_link_status' '' %}";
+    <script>
+        var main_server_host = "http://{{request.main_server_host}}",
+            mirror_server_host = "http://{{request.mirror_server_host}}",
+            csrf_token = "{{csrf_token}}",
+            static_prefix = "{{STATIC_URL}}",
+            MEDIA_URL = "{{ MEDIA_URL }}",
+            status_url = "{% url 'service_link_status' '' %}";
 
-$(document).ready(function(){
-    // Toggle users dropdown
-    $('#dashboard-users').click(function(){
-        $('.users-secondary').toggle();
-    });
-});
-
-</script>
-<script src="{{ STATIC_PREFIX }}js/ZeroClipboard/ZeroClipboard.min.js"></script>
-<script src="{{ STATIC_PREFIX }}js/handlebars.js"></script>
-<script src="http://malsup.github.com/jquery.form.js"></script>
-<script src="{{ STATIC_PREFIX }}js/create.js"></script>
-<script src="{{ STATIC_PREFIX }}js/swfobject.js"></script>
+        $(function(){
+            // Toggle users dropdown
+            $('#dashboard-users').click(function(){
+                $('.users-secondary').toggle();
+            });
+        });
+    </script>
+    <script src="{{ STATIC_URL }}js/ZeroClipboard/ZeroClipboard.min.js"></script>
+    <script src="{{ STATIC_URL }}js/handlebars.js"></script>
+    <script src="{{ STATIC_URL }}js/jquery.form.min.js"></script>
+    <script src="{{ STATIC_URL }}js/create.js"></script>
+    <script src="{{ STATIC_URL }}js/swfobject.js"></script>
 {% endblock %}
 {% block templates %}
 

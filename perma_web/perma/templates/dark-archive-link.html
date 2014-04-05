@@ -2,7 +2,7 @@
 {% load file_exists  truncatesmart diff has_group %}
 {% block title %} | {{linky.submitted_title}}{% endblock %}
 {% block styles %}
-<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+<link rel="stylesheet" href="{{ STATIC_URL }}css/font-awesome.min.css">
 {% endblock %}
 
 {% block header %}
@@ -16,7 +16,7 @@
 			<div class="col-sm-12">
 				<div class="col-sm-3">
 					<div class="logo">
-						<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo2.png"></a>
+						<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo2.png"></a>
 					</div><!--end logo -->
 				</div><!--end span 3 -->
 				

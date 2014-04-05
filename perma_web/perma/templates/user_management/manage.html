@@ -2,10 +2,6 @@
 
 {% load truncatesmart %}
 
-{% block styles %}
-<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
-{% endblock %}
-
 {% block content %}
 
 <!-- URL input -->
@@ -80,7 +76,7 @@
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <div class="logo-condensed-header">
-			<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo.png"></a>
+			<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo.png"></a>
 		</div>
     </div>
     <div class="modal-body">
@@ -105,7 +101,7 @@
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
          <div class="logo-condensed-header">
-			<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo.png"></a>
+			<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo.png"></a>
 		</div>
     </div>
     <div class="modal-body">
@@ -127,11 +123,11 @@
   var mirror_server_host = "http://{{request.mirror_server_host}}";
   var csrf_token = "{{csrf_token}}";
 </script>
-<script src="{{ STATIC_PREFIX }}js/ZeroClipboard/ZeroClipboard.min.js"></script>
-<script src="{{ STATIC_PREFIX }}js/handlebars.js"></script>
-<script src="http://malsup.github.com/jquery.form.js"></script>
-<script src="{{ STATIC_PREFIX }}js/create.js"></script>
-<script src="{{ STATIC_PREFIX }}js/swfobject.js"></script>
+<script src="{{ STATIC_URL }}js/ZeroClipboard/ZeroClipboard.min.js"></script>
+<script src="{{ STATIC_URL }}js/handlebars.js"></script>
+<script src="{{ STATIC_URL }}js/jquery.form.min.js"></script>
+<script src="{{ STATIC_URL }}js/create.js"></script>
+<script src="{{ STATIC_URL }}js/swfobject.js"></script>
 {% endblock %}
 {% block templates %}
 

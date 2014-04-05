@@ -268,22 +268,30 @@ class Asset(models.Model):
     instapaper_id = models.IntegerField(null=True)
 
     def base_url(self, extra=u""):
-        return settings.STATIC_URL+self.base_storage_path+"/"+extra
+        return self.base_storage_path+"/"+extra
 
     def image_url(self):
         return self.base_url(self.image_capture)
 
     def warc_url(self):
         if self.warc_capture and '.warc' in self.warc_capture:
-            return u"/warc/%s/%s" % (self.link.guid, self.link.submitted_url)
+            return u"%s/%s" % (self.link.guid, self.link.submitted_url)
         return self.base_url(self.warc_capture)
+
+    def warc_download_url(self):
+        if settings.USE_WARC_ARCHIVE:
+            if '.warc' in self.warc_capture:
+                return self.base_url(self.warc_capture)
+            return None
+        else:
+            return self.base_url('archive.warc.gz')
 
     def pdf_url(self):
         return self.base_url(self.pdf_capture)
 
     def text_url(self):
         return self.base_url(self.text_capture)
-    
+
     
 #########################
 # Stats related models
