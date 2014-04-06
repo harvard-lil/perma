@@ -5,13 +5,13 @@
 <meta name="robots" content="noindex, noarchive, noodp, noimageindex">
 {% endblock %}
 {% block styles %}
-    <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/font-awesome.min.css">
 	{% if serve_type == 'text' %}
-	    <link rel="stylesheet" href="{{ STATIC_PREFIX }}css/text-capture.css">
+	    <link rel="stylesheet" href="{{ STATIC_URL }}css/text-capture.css">
 	{% endif %}
 
     {# put in styles because this has to be available during page load #}
-    <script src="{{ STATIC_PREFIX }}js/local-datetime.js"></script>
+    <script src="{{ STATIC_URL }}js/local-datetime.js"></script>
 {% endblock %}
 
 {% block header %}
@@ -20,7 +20,7 @@
 				<div class="container">
 				 <div class="row">
 				 	<div class="col-sm-3 logo">
-				 		<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_PREFIX }}img/infinity-logo2.png"></a>
+				 		<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo2.png"></a>
 				 	</div><!--end span 3 -->
 				 	<div class="col-sm-6 meta-data">
 						<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a><br/>
@@ -100,7 +100,7 @@
 									<a id="warc_cap_container_complete" class="tab-styling{% if serve_type == 'source' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source" style="display:none;">Archived site</a>
 								{% else %}
 									<span id="warc_cap_container_loading" class="tab-styling" style="display:none;">Archiving site</span> 
-									<!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+									<!--<img src="{{ STATIC_URL }}img/dots.gif" alt="Archiving...">-->
 									<a id="warc_cap_container_complete" class="tab-styling{% if serve_type == 'source' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source">Archived site</a>
 								{% endif %}
 								</li>
@@ -121,7 +121,7 @@
 								{% if asset.text_capture and asset.text_capture != 'failed' %}
 								<li>
 								{% if asset.text_capture == 'pending' %}
-									<span id="text_cap_container_loading" class="tab-styling">Archiving text</span> <!--<img src="{{ STATIC_PREFIX }}img/dots.gif" alt="Archiving...">-->
+									<span id="text_cap_container_loading" class="tab-styling">Archiving text</span> <!--<img src="{{ STATIC_URL }}img/dots.gif" alt="Archiving...">-->
 									<a id="text_cap_container_complete" class="tab-styling{% if serve_type == 'text' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=text" style="display:none;">Archived text</a>
 
 								{% else %}
@@ -148,13 +148,13 @@
     {% if linky.dark_archived and request.user|has_group:'registry_member,registrar_member' %}
     	<div class="col-sm-6 col-sm-offset-3 yahowza-small">
 			<div class="darchive">	
-				<img class="dark-bulb-small" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
+				<img class="dark-bulb-small" src="{{ STATIC_URL }}img/dark-bulb.png">
 				<h2 class="orange">This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with a takedown notice.</h2>
 			</div>
 		</div>
 	{% elif linky.dark_archived_robots_txt_blocked and request.user|has_group:'registry_member,registrar_member' %}
     	<div class="col-sm-6 col-sm-offset-3 yahowza-small">
-    		<img class="dark-bulb-small" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
+    		<img class="dark-bulb-small" src="{{ STATIC_URL }}img/dark-bulb.png">
 			<h2>This link is in the <span class="dark">dark archive</span> because Perma.cc has <a href="http://localhost:8000/faq#robots-text">respected the content creator's request to not share this archive publicly</a.>.</h2>
 		</div>
 	{% endif %}
@@ -162,7 +162,7 @@
 	<div class="linky-view center">
   		<div class="watermark center">
 
-			{% if not linky.vested and serve_type != 'live' %}<div class="negative-margin"><img class="watermark-image" src="{{ STATIC_PREFIX }}img/perma-infinity-landing.png"/></div>{% endif %}
+			{% if not linky.vested and serve_type != 'live' %}<div class="negative-margin"><img class="watermark-image" src="{{ STATIC_URL }}img/perma-infinity-landing.png"/></div>{% endif %}
 
 			{% if serve_type == 'live' %}
 				{% if display_iframe %}
@@ -177,17 +177,17 @@
 			{% endif %}
 			
 			{% if serve_type == 'image' %}
-			<img class="image-view" src="{{ asset_host }}{{ asset.image_url }}"/>
+			<img class="image-view" src="{{ MEDIA_URL }}{{ asset.image_url }}"/>
 			{% endif %}
 			
 			{% if serve_type == 'pdf' %}
-			<iframe src="{{ asset_host }}{{ asset.pdf_url }}">
+			<iframe src="{{ MEDIA_URL }}{{ asset.pdf_url }}">
 			  <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
 			</iframe>
 			{% endif %}
-			
+
 			{% if serve_type == 'source' %}
-			<iframe src="{{ asset_host }}{{ asset.warc_url }}" sandbox="allow-forms allow-scripts">
+			<iframe src="{% if USE_WARC_ARCHIVE %}{{ warc_url }}{% else %}{{ MEDIA_URL }}{% endif %}{{ asset.warc_url }}" sandbox="allow-forms allow-scripts">
 			  <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
 			</iframe>
 			{% endif %}
@@ -200,7 +200,7 @@
 
             {# TEMPORARY SERVE TYPE UNTIL WE COMPLETELY SWITCH TO WARC #}
         	{% if serve_type == 'warc' %}
-                <iframe src="{{ asset_host }}/warc/{{ linky.pk }}/{{linky.submitted_url}}" sandbox="allow-forms allow-scripts">
+                <iframe src="{{ warc_url }}{{ linky.pk }}/{{linky.submitted_url}}" sandbox="allow-forms allow-scripts">
                   <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
                 </iframe>
 			{% endif %}
@@ -211,7 +211,7 @@
    		<div class="container">
 			<div class="row">
 				<div class="col-sm-6 col-sm-offset-3 yahowza">
-					<img class="dark-bulb" src="{{ STATIC_PREFIX }}img/dark-bulb.png">
+					<img class="dark-bulb" src="{{ STATIC_URL }}img/dark-bulb.png">
 					 <h1 class="cyan">Apologies.</h1><h2>This link has been <span class="dark">dark archived</span>.<br/>Contact a librarian to get a copy.</h2>
 					<br/>
 					{% if linky.dark_archived %}
@@ -230,5 +230,5 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="{{ STATIC_PREFIX }}js/single-link.js"></script>
+    <script src="{{ STATIC_URL }}js/single-link.js"></script>
 {% endblock %}

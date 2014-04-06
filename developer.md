@@ -15,6 +15,48 @@ The Master branch always contains production code (probably the thing currently 
 Leverage [feature branches](http://nvie.com/posts/a-successful-git-branching-model/) in your local development flow. Merge your code back into the develop branch and push to GitHub often. Small, quick commits avoid nightmare merge problems.
 
 
+### Logs
+
+If you are using Vagrant, all of your logs will end up in /vagrant/services/logs. As a convenience, you can tail -f all of them with `fab logs`.
+
+
+### Managing static files and user-generated files
+
+We use Django's built-in functions to manage static assets (Javascript/CSS/etc.) and user-generated media (our link archives).
+
+To make sure everything works smoothly in various environments (local dev, Linux servers, and cloud services),
+be sure to use the following settings when referring to disk locations and URLs in your code and templates:
+
+* STATIC_ROOT: Absolute path to static assets (e.g. '/tmp/perma/static/')
+* STATIC_URL: URL to retrieve static assets (e.g. '/static/')
+* MEDIA_ROOT: Absolute path to user-generated assets (e.g. '/tmp/perma/generated/')
+* MEDIA_URL: URL to retrieve user-generated assets (e.g. '/media/')
+
+The \_ROOT settings may have different meanings depending on the storage backend. For example,
+if DEFAULT_FILE_STORAGE is set to use the Amazon S3 storage backend,
+then MEDIA_ROOT would just be '/generated/' and would be relative to the root of the S3 bucket.
+
+In templates, use STATIC_URL and MEDIA_URL:
+
+    <img src="{{ STATIC_URL }}img/header_image.jpg">
+
+    <img src="{{ MEDIA_URL }}{{ asset.image_capture }}">
+
+In code, use Django's default_storage to read and write user-generated files rather than accessing the filesystem directly:
+
+    from django.core.files.storage import default_storage
+
+    with default_storage.open('some/path', 'rb') as image_file:
+        do_stuff_with_image_file(image_file)
+
+Paths for default_storage are relative to MEDIA_ROOT.
+
+Further reading:
+
+* [Django docs for default_storage](https://docs.djangoproject.com/en/dev/topics/files/)
+* [Django docs for serving static files](https://docs.djangoproject.com/en/dev/howto/static-files/)
+
+
 ###  Schema and data migrations using South
 
 *** Before changing the schema or the data of your database, make a backup! ***

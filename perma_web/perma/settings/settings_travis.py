@@ -17,14 +17,4 @@ DEFAULT_FROM_EMAIL = 'email@example.com'
 HOST = 'perma.cc'
 
 # Where we store our generated assets (phantomjs images)
-GENERATED_ASSETS_STORAGE = '/tmp/perma/assets'
-
-# Additional locations of static files
-STATICFILES_DIRS = (
-    'static',
-    GENERATED_ASSETS_STORAGE
-
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
+MEDIA_ROOT = '/tmp/perma/assets'

@@ -43,7 +43,7 @@ so any changes you make on your local computer will appear inside `/vagrant` and
 Now you're in the Django project folder and can develop like normal. First let's initialize the database
 (this will call `syncdb`, apply South migrations, and load fixtures):
 
-    (perma)vagrant@perma_0.1:/vagrant/perma_web$ fab init_test_db
+    (perma)vagrant@perma_0.1:/vagrant/perma_web$ fab init_dev_db
 
 Update the Python packages (you'll have to do this every time requirements.txt changes):
 
@@ -153,10 +153,12 @@ If you're setting up a production machine, be sure to [start Celery as a daemon]
 
 ### PhantomJS
 
-We use PhantomJS to generate our images. Download [PhantomJS](http://phantomjs.org/) and place the binary in your lib directory. Your lib directory might look something like this:
+We use PhantomJS to generate our archives. [Install PhantomJS](http://phantomjs.org/download.html), and then make sure it's in your path:
 
-    $ ls lib
-    __init__.py phantomjs rasterize.js
+    $ phantomjs
+    phantomjs>
+
+(If you don't want to put PhantomJS in your path, you can put it in perma_web/lib/ and set PHANTOMJS_BINARY as demonstrated in settings.py.example.)
 
 ### Run the server
 

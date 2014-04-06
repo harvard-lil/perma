@@ -6,8 +6,6 @@ PROJECT_ROOT = os.path.dirname(module_path())
 # include our third-party libs
 site.addsitedir(os.path.join(PROJECT_ROOT, 'lib'))
 
-PHANTOMJS_BINARY = os.path.join(PROJECT_ROOT, 'lib/phantomjs')
-
 # Django settings for Perma project.
 
 DATABASES = {
@@ -48,28 +46,15 @@ USE_L10N = True
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
 
-# Absolute filesystem path to the directory that will hold user-uploaded files.
-# Example: "/var/www/example.com/media/"
+# user-generated files
 MEDIA_ROOT = ''
+MEDIA_URL = '/media/'
 
-# URL that handles the media served from MEDIA_ROOT. Make sure to use a
-# trailing slash.
-# Examples: "http://example.com/media/", "http://media.example.com/"
-MEDIA_URL = ''
-
-# Absolute path to the directory static files should be collected to.
-# Don't put anything in this directory yourself; store your static files
-# in apps' "static/" subdirectories and in STATICFILES_DIRS.
-# Example: "/var/www/example.com/static/"
-STATIC_ROOT = ''
-
-# URL prefix for static files.
-# Example: "http://example.com/static/", "http://static.example.com/"
-STATIC_URL = '/static/'
-
-# List of finder classes that know how to find static files in
-# various locations.
-STATICFILES_FINDERS = (
+# static files
+STATIC_ROOT = ''                # where to store collected static files
+STATIC_URL = '/static/'         # URL to serve static files
+STATICFILES_DIRS = ('static',)  # where to look for static files (in addition to app/static/)
+STATICFILES_FINDERS = (         # how to look for static files
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
@@ -101,16 +86,12 @@ ROOT_URLCONF = 'perma.urls'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'perma.wsgi.application'
 
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
-
 TEMPLATE_CONTEXT_PROCESSORS = (
     "perma.analytics.analytics",
     'django.contrib.messages.context_processors.messages',
-    'django.core.context_processors.request',
+    'django.core.context_processors.request',   # include `request` in templates
+    'django.core.context_processors.static',    # include `STATIC_URL` in templates
+    'django.core.context_processors.media',     # include `MEDIA_URL` in templates
 )
 
 INSTALLED_APPS = (
@@ -120,7 +101,9 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'perma',
+
     'south',
     'djcelery',
     'ratelimit',

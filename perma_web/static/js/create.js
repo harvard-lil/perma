@@ -21,7 +21,7 @@ var check_status = function() {
 		if (data.image_capture !== 'pending') {
 	        $('#spinner').slideUp();
 	        $('.thumbnail-placeholder').append('<div class="library-thumbnail"><img src="' + 
-	            newLinky.static_prefix + data.path + '/' + data.image_capture + '"></div>');
+	            MEDIA_URL + data.path + '/' + data.image_capture + '"></div>');
 			clearInterval(refreshIntervalId);
 		}	
 	});

@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.conf.urls import patterns, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
@@ -105,4 +107,6 @@ urlpatterns = patterns('perma.views',
     
 )
 
-urlpatterns += staticfiles_urlpatterns()
+# debug-only serving of static assets
+urlpatterns += staticfiles_urlpatterns() + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

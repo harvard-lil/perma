@@ -3,13 +3,13 @@
 {% block title %} | The numbers{% endblock %}
 {% block meta %}<META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">{% endblock %}
 {% block styles %}
-<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/style-responsive.css">
+<link rel="stylesheet" href="{{ STATIC_URL }}css/style-responsive.css">
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ STATIC_PREFIX }}js/d3.v3.js"></script>
+<script src="{{ STATIC_URL }}js/d3.v3.js"></script>
 <script>
-	var static_prefix = "{{ STATIC_PREFIX }}";
+	var static_prefix = "{{ STATIC_URL }}";
 	var stats_users_url = "{% url 'service_stats_users' %}";
 	var stats_vesting_orgs_url = "{% url 'service_stats_vesting_org' %}";
 	var stats_registrars_url = "{% url 'service_stats_registrar' %}";
@@ -17,7 +17,7 @@
 	var stats_darchived_links_url = "{% url 'service_stats_darchive_links' %}";
 	var stats_storage_url = "{% url 'service_stats_storage' %}";
 </script>
-<script src="{{ STATIC_PREFIX }}js/stats.js"></script>
+<script src="{{ STATIC_URL }}js/stats.js"></script>
 {% endblock %}
 
 {% block content %}

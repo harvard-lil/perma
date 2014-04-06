@@ -1,9 +1,6 @@
 {% extends "layout-responsive.html" %}
 {% load file_exists %}
 {% block title %} | About{% endblock %}
-{% block styles %}
-<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
-{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -198,7 +195,7 @@
 <div class="row">
 	<div class="col-sm-offset-3 col-sm-6 column">
 	<h3>Explore our Stats</h3>
-		<a href="{% url 'global_stats' %}"><img class="stats-graph" src="{{ STATIC_PREFIX }}img/graph-illus.png"/></a><p class="right">We've put together a <a href="{% url 'global_stats' %}">Stats page</a> to begin to visualize activity.</p>
+		<a href="{% url 'global_stats' %}"><img class="stats-graph" src="{{ STATIC_URL }}img/graph-illus.png"/></a><p class="right">We've put together a <a href="{% url 'global_stats' %}">Stats page</a> to begin to visualize activity.</p>
 	</div>
 </div>
 
