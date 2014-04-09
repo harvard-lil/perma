@@ -57,6 +57,7 @@ STATICFILES_DIRS = ('static',)  # where to look for static files (in addition to
 STATICFILES_FINDERS = (         # how to look for static files
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'pipeline.finders.PipelineFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
