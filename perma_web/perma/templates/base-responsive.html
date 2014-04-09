@@ -51,7 +51,7 @@
                             {% comment %}
                             <li id="header-greeting">Hello, {{ user.email|truncatechars:35 }}</li>
                             {% endcomment %}
-                            <li><a href="{% url 'auth_logout' %}">{% if this_page == 'logout' %} class="this-page"{% endif %}<span style="color: #aaa;">Log out</span></a></li>
+                            <li><a href="{% url 'logout' %}">{% if this_page == 'logout' %} class="this-page"{% endif %}<span style="color: #aaa;">Log out</span></a></li>
                             <li><a href="{% url 'create_link' %}" id="nav-button">Dashboard</a></li>
 						{% else %}
                             <li><a href="{% url 'about' %}"{% if this_page == 'about' %} class="this-page"{% endif %}>About</a></li>

@@ -5,12 +5,12 @@
     <li><a href="{% url 'created_links' %}">perma.cc admin</a></li>
     <li><a href="{% url 'user_management_manage_account' %}">Account settings</a></li>
     <li class="divider"></li>
-    <li><a href="{% url 'auth_logout' %}">Sign out</a></li>
+    <li><a href="{% url 'logout' %}">Sign out</a></li>
   </ul>
   {% else %}
   <a href="#" class="dropdown-toggle btn" data-toggle="dropdown">Login&nbsp;<b class="caret"></b></a>
   <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-    <!--<li><a href="{% url 'auth_login' %}">Login</a></li>-->
+    <!--<li><a href="{% url 'login' %}">Login</a></li>-->
     <li>
     {% include "login-form.html" %}
     </li>
