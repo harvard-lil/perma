@@ -1,5 +1,5 @@
 {% extends "admin-layout.html" %}
-{% load truncatesmart %}
+{% load truncatesmart compressed %}
 {% block title %} | Create a Perma link{% endblock %}
 
 {% block manage-created-links %}<li class="active"><a href="{% url 'created_links' %}">Created links</a></li>{% endblock %}
@@ -75,11 +75,7 @@
             });
         });
     </script>
-    <script src="{{ STATIC_URL }}js/ZeroClipboard/ZeroClipboard.min.js"></script>
-    <script src="{{ STATIC_URL }}js/handlebars.js"></script>
-    <script src="{{ STATIC_URL }}js/jquery.form.min.js"></script>
-    <script src="{{ STATIC_URL }}js/create.js"></script>
-    <script src="{{ STATIC_URL }}js/swfobject.js"></script>
+	{% compressed_js 'create' %}
 {% endblock %}
 {% block templates %}
 

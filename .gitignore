@@ -16,3 +16,4 @@ services/logs/*
 !services/logs/README
 services/mysql/data/*
 !services/mysql/data/README
+perma_web/static-collected

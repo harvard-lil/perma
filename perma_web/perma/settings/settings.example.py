@@ -25,9 +25,12 @@ ALLOWED_HOSTS = []
 # If the phantomjs binary isn't in your path, you can set the location here
 # PHANTOMJS_BINARY = os.path.join(PROJECT_ROOT, 'lib/phantomjs')
 
+# Dump our django-pipelined collected assets here
+# STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static-collected')
+
 # This is where we dump the generated WARCs, PNGs, and so on. If you're running
 # in prod, you'll likely want to set this
-#MEDIA_ROOT = '/tmp/perma/assets'
+# MEDIA_ROOT = '/perma/assets/generated'
 
 # Instapaper credentials
 INSTAPAPER_KEY = 'key'

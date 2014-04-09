@@ -60,6 +60,24 @@ STATICFILES_FINDERS = (         # how to look for static files
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
+# Django Pipline config
+STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
+
+PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.jsmin.JSMinCompressor'
+
+PIPELINE_JS = {
+    'create': {
+        'source_filenames': (
+          'js/ZeroClipboard/ZeroClipboard.min.js',
+          'js/handlebars.js',
+          'js/jquery.form.min.js',
+          'js/create.js',
+          'js/swfobject.js',
+        ),
+        'output_filename': 'js/create-bundle.js',
+    }
+}
+
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
@@ -101,13 +119,12 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'perma',
-
     'south',
     'djcelery',
     'ratelimit',
     'mptt',
+    'pipeline',
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
