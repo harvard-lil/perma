@@ -13,7 +13,8 @@ var check_status = function() {
 	var request = $.ajax({
 		url: status_url + newLinky.linky_id,
 		type: "GET",
-		dataType: "json"
+		dataType: "json",
+		cache: false
 	});
 
 	request.done(function(data) {	
