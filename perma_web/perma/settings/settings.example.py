@@ -1,9 +1,10 @@
+# NOTE: If you are running a local test environment, settings_dev will already have sensible defaults for many of these.
+# Only override the ones you need to, so you're less likely to have to make manual settings updates after pulling in changes.
+
 # Choose one of these:
 # from settings_dev import *
 # from settings_prod import *
 
-# NOTE: If you are running a local test environment, settings_dev will already have sensible defaults for many of these.
-# Only override the ones you need to, so you're less likely to have to make manual settings updates after pulling in changes.
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -14,6 +15,11 @@ MANAGERS = ADMINS
 DATABASES['default']['NAME'] = 'perma'
 DATABASES['default']['USER'] = 'perma'
 DATABASES['default']['PASSWORD'] = 'perma'
+
+# This is handy for debugging problems that *only* happen when Debug = False,
+# because exceptions are printed directly to the log/console when they happen.
+# Just don't leave it on!
+# DEBUG_PROPAGATE_EXCEPTIONS = True
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ''

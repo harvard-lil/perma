@@ -4,6 +4,11 @@ from celery.schedules import crontab
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
+# This is handy for debugging problems that *only* happen when Debug = False,
+# because exceptions are printed directly to the log/console when they happen.
+# Just don't leave it on!
+# DEBUG_PROPAGATE_EXCEPTIONS = True
+
 # The base location, on disk, where we want to store our generated assets
 MEDIA_ROOT = '/perma/assets/generated'
 
