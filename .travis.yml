@@ -9,6 +9,7 @@ install:
   - pip install coveralls
 before_script:
   - mysql -e 'create database perma;'
+  - python manage.py collectstatic --noinput
 script:
   fab test
 after_success:
