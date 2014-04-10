@@ -18,6 +18,3 @@ HOST = 'perma.cc'
 
 # Where we store our generated assets (phantomjs images)
 MEDIA_ROOT = '/tmp/perma/assets'
-
-# We don't need to use pipeline during our testing
-PIPELINE_ENABLED = False
