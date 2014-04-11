@@ -11,17 +11,13 @@ from django.conf import settings
 
 
 ### SETUP ###
-
 env.REMOTE_DIR = None
-env.VIRTUALENV_NAME = 'perma'
+env.VIRTUALENV_NAME = None
+env.SETUP_PREFIXES = None # list of prefixes to run in setup_remote, e.g. [prefix('do stuff')]
+env.PYTHON_BIN = 'python'
 WSGI_FILE = 'perma/wsgi.py'
 LOCAL_DB_SETTINGS = settings.DATABASES['default']
-DATABASE_BACKUP_DIR = 'database_backups' # If relative path, dir is relative to REMOTE_DIR. If None, no backup will be done.
-
-try:
-    from fab_targets import *
-except ImportError:
-    print "Warning: no fab_targets file found."
+env.DATABASE_BACKUP_DIR = None # If relative path, dir is relative to REMOTE_DIR. If None, no backup will be done.
 
 _already_setup = False
 def setup_remote(f):
@@ -34,8 +30,17 @@ def setup_remote(f):
         global _already_setup
         if not _already_setup:
             _already_setup = True
-            with cd(env.REMOTE_DIR), prefix("workon "+env.VIRTUALENV_NAME):
-                return f(*args, **kwargs)
+            def apply_withs(withs, target_func):
+                if withs:
+                    with withs[0]:
+                        return apply_withs(withs[1:], target_func)
+                return target_func()
+            prefixes = [cd(env.REMOTE_DIR)]
+            if env.VIRTUALENV_NAME:
+                prefixes.append(prefix("workon "+env.VIRTUALENV_NAME))
+            if env.SETUP_PREFIXES:
+                prefixes += env.SETUP_PREFIXES
+            return apply_withs(prefixes, lambda: f(*args, **kwargs))
         return f(*args, **kwargs)
     return wrapper
 
@@ -82,44 +87,67 @@ def south_in(*args):
 ### DEPLOYMENT ###
 
 @setup_remote
-def deploy():
+def deploy(branch='master'):
     """
         Full deployment: back up database, pull code, install requirements, sync db, run south migrations, collect static files, restart server.
     """
     backup_database()
-    deploy_code(restart=False)
-    run("pip install -r requirements.txt")
-    run("python manage.py syncdb")
+    deploy_code(restart=False, branch=branch)
+    pip_install()
+    run("%s manage.py syncdb" % env.PYTHON_BIN)
     run("fab south_in")
-    run("python manage.py collectstatic --noinput --clear")
-    run("touch "+WSGI_FILE) # restart server
+    run("%s manage.py collectstatic --noinput --clear" % env.PYTHON_BIN)
+    
 
 @setup_remote
-def deploy_code(restart=True):
+def deploy_code(restart=True, branch='master'):
     """
         Deploy code only. This is faster than the full deploy.
     """
-    run("git pull origin master")
+    run("git pull origin %s" % branch)
+    with cd('..'):
+        run("git submodule update")
     if restart:
           restart_server()
+          
+def pip_install():
+      run("pip install -r requirements.txt")
 
 @setup_remote
 def restart_server():
     """
         Touch the wsgi file to restart the remote server (hopefully).
     """
-    run("touch " + WSGI_FILE)
-    # TODO: not sure if one or both of these is useful
-    # sudo('service livesite restart')
-    # sudo('service nginx restart')
+    run("cd /srv/www/perma/perma_web && set -m ; (service gunicorn stop; sleep 1; service gunicorn start)&")
+    run("sudo service celery stop; sudo service celery start;")
+    run("sudo service celerybeat stop; sudo service celerybeat start;")
 
+
+@setup_remote
+def stop_server():
+    """
+        Stop the services
+    """
+    run("sudo service gunicorn stop")
+    run("sudo service celery stop")
+    run("sudo service celerybeat stop")
+    
+    
+@setup_remote
+def start_server():
+    """
+        Start the services
+    """
+    run("sudo service gunicorn start")
+    run("sudo service celery start")
+    run("sudo service celerybeat start")
 
 ### DATABASE STUFF ###
 
 @setup_remote
 def backup_database():
-    if DATABASE_BACKUP_DIR:
-        run("fab local_backup_database:%s" % DATABASE_BACKUP_DIR)
+    if env.DATABASE_BACKUP_DIR:
+        run("fab local_backup_database:%s" % env.DATABASE_BACKUP_DIR)
 
 def local_backup_database(backup_dir):
     # WARNING: this is totally untested
@@ -164,7 +192,6 @@ def heroku_push(project_dir=os.path.join(settings.PROJECT_ROOT, '..')):
 
     # copy perma_web to a temp dir for deployment
     dest_dir = tempfile.mkdtemp()
-    print "Creating Heroku build at %s" % dest_dir
     local("cp -r %s/* %s" % (os.path.join(project_dir, "perma_web"), dest_dir))
 
     with lcd(dest_dir):
@@ -192,3 +219,12 @@ def heroku_push(project_dir=os.path.join(settings.PROJECT_ROOT, '..')):
 
     # delete temp dir
     shutil.rmtree(dest_dir)
+
+    
+try:
+    from fab_targets import *
+except ImportError, e:
+    if e.message=='No module named fab_targets':
+        print "Warning: no fab_targets file found."
+    else:
+        raise

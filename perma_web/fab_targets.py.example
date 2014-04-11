@@ -1,5 +1,6 @@
 from fabric.api import env
 
+
 # This file contains deployment targets. You can ignore this if you aren't deploying Perma to remote servers.
 
 # Each target is a fab task that sets env.hosts and REMOTE_DIR.
@@ -13,3 +14,4 @@ def stage():
     env.hosts = ['user@perma.testserver.com',]
     env.REMOTE_DIR = '/home/user/foo/perma/perma_web'
     env.VIRTUALENV_NAME = 'perma_stage'
+	env.DATABASE_BACKUP_DIR = 'database_backups'
