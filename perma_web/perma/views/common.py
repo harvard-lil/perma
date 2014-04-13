@@ -220,3 +220,11 @@ def rate_limit(request, exception):
     """
     
     return render_to_response("rate_limit.html")
+
+## We need custom views for server errors because otherwise Django
+## doesn't send a RequestContext (meaning we don't get STATIC_ROOT).
+def server_error_404(request):
+    return render_to_response('404.html', RequestContext(request))
+
+def server_error_500(request):
+    return render_to_response('500.html', RequestContext(request))
