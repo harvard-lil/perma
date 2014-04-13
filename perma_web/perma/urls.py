@@ -64,7 +64,7 @@ urlpatterns = patterns('perma.views',
     # Link management
     url(r'^manage/?$', RedirectView.as_view(url='/manage/create/', permanent=False)),
     url(r'^manage/create/?$', 'link_management.create_link', name='create_link'),
-    url(r'^manage/create/upload?$', 'link_management.upload_file', name='upload_link'),
+    url(r'^manage/create/upload/?$', 'link_management.upload_file', name='upload_link'),
     url(r'^manage/dark-archive/%s/?$' % guid_pattern, 'link_management.dark_archive_link', name='dark_archive_link'),
     url(r'^manage/vest/%s/?$' % guid_pattern, 'link_management.vest_link', name='vest_link'),
     url(r'^manage/created-links(?P<path>/.*)?$', 'link_management.created_links', name='created_links'),
