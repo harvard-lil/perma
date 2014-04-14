@@ -18,3 +18,6 @@ class UrlsTestCase(TestCase):
             if '?P<' not in urlpattern.regex.pattern and urlpattern.name:
                 response = self.client.get(reverse(urlpattern.name))
                 self.assertNotEqual(response.status_code, 500)
+                
+                response = self.client.post(reverse(urlpattern.name))
+                self.assertNotEqual(response.status_code, 500)
