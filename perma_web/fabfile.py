@@ -105,8 +105,6 @@ def deploy_code(restart=True, branch='master'):
         Deploy code only. This is faster than the full deploy.
     """
     run("git pull origin %s" % branch)
-    with cd('..'):
-        run("git submodule update")
     if restart:
           restart_server()
           
@@ -203,14 +201,8 @@ def heroku_push(project_dir=os.path.join(settings.PROJECT_ROOT, '..')):
         local("cp %s perma/settings/__init__.py" % os.path.join(heroku_files_dir, "settings.py"))
 
         # set up git
-        for git_file in ('.gitmodules', '.gitignore'):
-            local(r'sed "s/perma_web\///g" %s/%s > %s' % (project_dir, git_file, git_file))
+        local(r'sed "s/perma_web\///g" %s/%s > %s' % (project_dir, '.gitignore', '.gitignore'))
         local("git init")
-        local("rm -r lib/cdx_writer")
-        local("rm -r lib/warc-tools")
-        local("git init")
-        local("git submodule add https://github.com/jcushman/CDX-Writer.git lib/cdx_writer")
-        local("git submodule add https://github.com/jcushman/warc-tools.git lib/warc-tools")
         local("git commit -a -m 'heroku push `date`'")
         local("heroku git:remote -a perma")
 

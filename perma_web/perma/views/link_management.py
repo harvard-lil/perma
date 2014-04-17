@@ -1,11 +1,12 @@
+import imghdr
 import logging, json, os
 from datetime import datetime
 from urlparse import urlparse
 from mimetypes import MimeTypes
+from django.core.files.storage import default_storage
 import lxml.html, requests
-from PIL import Image
 from mptt.exceptions import InvalidMove
-from pyPdf import PdfFileReader
+from PyPDF2 import PdfFileReader
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -19,8 +20,9 @@ from django.template import RequestContext
 
 from perma.forms import UploadFileForm
 from perma.models import Link, Asset, Folder
-from perma.tasks import store_text_cap, get_pdf, get_storage_path, proxy_capture
-from perma.utils import require_group
+from perma.tasks import store_text_cap, get_pdf, proxy_capture
+from perma.utils import require_group, store_file
+
 if not settings.USE_WARC_ARCHIVE:
     from perma.tasks import get_source
 
@@ -61,12 +63,11 @@ def create_link(request):
         # Sometimes we can't get a title from the markup. If not, use the domain
         url_details = urlparse(target_url)
         target_title = url_details.netloc
-        content = None
 
         # Get the markup. We get the mime-type and the title from this.
         try:
             r = requests.get(target_url, stream=True, verify=False,
-                headers={'User-Agent': request.META['HTTP_USER_AGENT']})
+                             headers={'User-Agent': request.META['HTTP_USER_AGENT']})
 
             # Only get the content if we get a content-length header and if
             # it's less than one MB.
@@ -87,17 +88,8 @@ def create_link(request):
         # We pass the guid to our tasks
         guid = link.guid
 
-        # Assets get stored in /storage/path/year/month/day/hour/unique-id/*
-        # Get that path that we'll pass off to our workers to do the indexing. They'll store their results here
-        now = datetime.now()
-        time_tuple = now.timetuple()
-
-        path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday),
-                         str(time_tuple.tm_hour), str(time_tuple.tm_min), guid]
-
         # Create a stub for our assets
-        asset, created = Asset.objects.get_or_create(link=link)
-        asset.base_storage_path = os.path.join(*path_elements)
+        asset = Asset(link=link)
 
         # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
         if 'content-type' in r.headers and r.headers['content-type'] in ['application/pdf', 'application/x-pdf'] or \
@@ -122,16 +114,10 @@ def create_link(request):
 
             if not settings.USE_WARC_ARCHIVE:
                 # Try to crawl the page (but don't follow any links)
-                get_source.delay(guid, target_url, os.path.sep.join(path_elements), request.META['HTTP_USER_AGENT'])
-
-            asset = Asset.objects.get(link__guid=guid)
+                get_source.delay(guid, target_url, asset.base_storage_path, request.META['HTTP_USER_AGENT'])
 
             response_object = {'linky_id': guid, 'linky_title': link.submitted_title}
 
-            # Sometimes our phantomjs capture fails. if it doesn't add it to our response object
-            if asset.image_capture != 'pending' and asset.image_capture != 'failed':
-                response_object['linky_cap'] = settings.MEDIA_URL + asset.base_storage_path + '/' + asset.image_capture
-                
 
         return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
 
@@ -144,26 +130,11 @@ def validate_upload_file(upload, mime_type):
     # Make sure files are not corrupted.
 
     if mime_type == 'image/jpeg':
-        try:
-            i = Image.open(upload)
-            if i.format == 'JPEG':
-                return True
-        except IOError:
-            return False
+        return imghdr.what(upload) == 'jpeg'
     elif mime_type == 'image/png':
-        try:
-            i = Image.open(upload)
-            if i.format =='PNG':
-                return True
-        except IOError:
-            return False
+        return imghdr.what(upload) == 'png'
     elif mime_type == 'image/gif':
-        try:
-            i = Image.open(upload)
-            if i.format =='GIF':
-                return True
-        except IOError:
-            return False
+        return imghdr.what(upload) == 'gif'
     elif mime_type == 'application/pdf':
         doc = PdfFileReader(upload)
         if doc.numPages >= 0:
@@ -177,7 +148,8 @@ def upload_file(request):
         if form.is_valid():
 
             mime = MimeTypes()
-            mime_type = mime.guess_type(request.FILES['file'].name)
+            uploaded_file = request.FILES['file']
+            mime_type = mime.guess_type(uploaded_file.name)
 
             # Get mime type string from tuple
             if mime_type[0]:
@@ -185,38 +157,22 @@ def upload_file(request):
             else:
                 return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Invalid file.'}), 'application/json')
 
-
-            if validate_upload_file(request.FILES['file'], mime_type) and request.FILES['file'].size <= settings.MAX_ARCHIVE_FILE_SIZE:
+            if validate_upload_file(uploaded_file, mime_type) and uploaded_file.size <= settings.MAX_ARCHIVE_FILE_SIZE:
                 link = Link(submitted_url=form.cleaned_data['url'], submitted_title=form.cleaned_data['title'], created_by = request.user)
                 link.save()
 
-                now = datetime.now()
-                time_tuple = now.timetuple()
-                path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday), str(time_tuple.tm_hour), str(time_tuple.tm_min), link.guid]
+                asset = Asset(link=link)
+                file_name = 'cap' + mime.guess_extension(mime_type)
+                file_path = os.path.join(asset.base_storage_path, file_name)
 
-                linky_home_disk_path = settings.MEDIA_ROOT + '/' + os.path.sep.join(path_elements)
-
-                if not os.path.exists(linky_home_disk_path):
-                    os.makedirs(linky_home_disk_path)
-
-                asset, created = Asset.objects.get_or_create(link=link)
-                asset.base_storage_path = os.path.sep.join(path_elements)
-                asset.save()
-
-                file_name = '/cap' + mime.guess_extension(mime_type)
+                uploaded_file.file.seek(0)
+                file_name = store_file(uploaded_file, file_path)
 
                 if mime_type == 'application/pdf':
                     asset.pdf_capture = file_name
                 else:
                     asset.image_capture = file_name
-
                 asset.save()
-
-                request.FILES['file'].file.seek(0)
-                f = open(linky_home_disk_path + file_name, 'w')
-                f.write(request.FILES['file'].file.read())
-                os.fsync(f)
-                f.close()
 
                 response_object = {'status':'success', 'linky_id':link.guid, 'linky_hash':link.guid}
 
