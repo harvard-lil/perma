@@ -8,6 +8,10 @@ import shutil
 import urlparse
 from celery.contrib import rdb
 from django.core.files.storage import default_storage
+from django.core.mail import send_mail
+from django.template.loader import get_template
+from django.template import Context
+from django.forms.models import model_to_dict
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -514,3 +518,80 @@ def get_nigthly_stats():
         )
 
     stat.save()
+
+@celery.task
+def email_weekly_stats():
+    """
+    We bundle up our stats weekly and email them to a developer and then
+    onto our interested mailing lists
+    """
+
+    previous_stats_query_set = Stat.objects.order_by('-creation_timestamp')[:8][7]
+    current_stats_query_set = Stat.objects.filter().latest('creation_timestamp')
+
+    format = '%b %d, %Y, %H:%M %p'
+
+    context = {
+        'start_time': previous_stats_query_set.creation_timestamp.strftime(format),
+        'end_time': current_stats_query_set.creation_timestamp.strftime(format),
+    }
+
+    # Convert querysets to dicts so that we can access them easily in our print_stats_line util
+    previous_stats = model_to_dict(previous_stats_query_set)
+    current_stats = model_to_dict(current_stats_query_set)
+
+    context.update({
+        'num_regular_users_added': current_stats['regular_user_count'] - previous_stats['regular_user_count'],
+        'prev_regular_users_count': previous_stats['regular_user_count'],
+        'current_regular_users_count': current_stats['regular_user_count'],
+
+        'num_vesting_members_added': current_stats['vesting_member_count'] - previous_stats['vesting_member_count'],
+        'prev_vesting_members_count': previous_stats['vesting_member_count'],
+        'current_vesting_members_count': current_stats['vesting_member_count'],
+
+        'num_registar_members_added': current_stats['registrar_member_count'] - previous_stats['registrar_member_count'],
+        'prev_registrar_members_count': previous_stats['registrar_member_count'],
+        'current_registrar_members_count': current_stats['registrar_member_count'],
+
+        'num_registry_members_added': current_stats['registry_member_count'] - previous_stats['registry_member_count'],
+        'prev_registry_members_count': previous_stats['registry_member_count'],
+        'current_registry_members_count': current_stats['registry_member_count'],
+
+        'num_vesting_orgs_added': current_stats['vesting_org_count'] - previous_stats['vesting_org_count'],
+        'prev_vesting_orgs_count': previous_stats['vesting_org_count'],
+        'current_vesting_orgs_count': current_stats['vesting_org_count'],
+
+        'num_registrars_added': current_stats['registrar_count'] - previous_stats['registrar_count'],
+        'prev_registrars_count': previous_stats['registrar_count'],
+        'current_registrars_count': current_stats['registrar_count'],
+
+        'num_unvested_links_added': current_stats['unvested_count'] - previous_stats['unvested_count'],
+        'prev_unvested_links_count': previous_stats['unvested_count'],
+        'current_unvested_links_count': current_stats['unvested_count'],
+
+        'num_vested_links_added': current_stats['vested_count'] - previous_stats['vested_count'],
+        'prev_vested_links_count': previous_stats['vested_count'],
+        'current_vested_links_count': current_stats['vested_count'],
+
+        'num_darchive_takedown_added': current_stats['darchive_takedown_count'] - previous_stats['darchive_takedown_count'],
+        'prev_darchive_takedown_count': previous_stats['darchive_takedown_count'],
+        'current_darchive_takedown_count': current_stats['darchive_takedown_count'],
+
+        'num_darchive_robots_added': current_stats['darchive_robots_count'] - previous_stats['darchive_robots_count'],
+        'prev_darchive_robots_count': previous_stats['darchive_robots_count'],
+        'current_darchive_robots_count': current_stats['darchive_robots_count'],
+
+        'disk_added': float(current_stats['disk_usage'] - previous_stats['disk_usage'])/1024/1024/1024,
+        'prev_disk': float(previous_stats['disk_usage'])/1024/1024/1024,
+        'current_disk': float(current_stats['disk_usage'])/1024/1024/1024,
+    })
+
+    send_mail(
+        'This week in Perma.cc -- the numbers',
+        get_template('email/stats.html').render(
+            Context(context)
+        ),
+        settings.DEFAULT_FROM_EMAIL,
+        [settings.DEVELOPER_EMAIL],
+        fail_silently = False
+    )
