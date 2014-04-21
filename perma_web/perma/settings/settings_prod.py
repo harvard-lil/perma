@@ -18,6 +18,10 @@ CELERYBEAT_SCHEDULE = {
         'task': 'perma.tasks.get_nigthly_stats',
         'schedule': crontab(minute='05', hour='02', day_of_week='*'),
     },
+    'email-weekly-stats': {
+        'task': 'perma.tasks.email_weekly_stats',
+        'schedule': crontab(minute='05', hour='06', day_of_week='tuesday'),
+    },
 }
 
 # If a task is running longer than five minutes, kill it
