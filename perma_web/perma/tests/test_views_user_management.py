@@ -59,7 +59,6 @@ class UserManagementViewsTestCase(PermaTestCase):
         for view_name, form_extras in [
             ['registrar_member', {'a-registrar': 1}],
             ['user', {}],
-            ['vesting_manager', {'a-vesting_org': 1}],
             ['vesting_member', {'a-vesting_org': 1}],
         ]:
             # create user
