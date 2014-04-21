@@ -13,12 +13,12 @@ from datetime import datetime
 import urllib2, os, logging
 from urlparse import urlparse
 from django.views.decorators.csrf import csrf_exempt
-import surt, cdx_writer
-import cStringIO as StringIO
+from pywb.warc.archiveindexer import ArchiveIndexer
+import surt
 import json
 from ratelimit.decorators import ratelimit
 
-from perma.middleware import get_url_for_host, get_main_server_host
+from perma.middleware import get_url_for_host
 from perma.models import Link, Asset
 from perma.utils import can_be_mirrored
 
@@ -87,18 +87,11 @@ def cdx(request):
 
     # get cdx file
     cdx_path = warc_path.replace('.gz', '').replace('.warc', '.cdx')
-    try:
-        cdx_lines = default_storage.open(cdx_path, 'rb')
-    except IOError:
+    if not default_storage.exists(cdx_path):
         # if we can't find the CDX file associated with this WARC, create it
-        cdx_lines = StringIO.StringIO()
-        writer = cdx_writer.CDX_Writer(os.path.join(settings.MEDIA_ROOT, warc_path), cdx_lines)
-        writer.warc_path = warc_path
-        writer.make_cdx()
-        cdx_lines = sorted(cdx_lines.getvalue().split("\n"))
-        with default_storage.open(cdx_path, 'wb') as cdx_file:
-            cdx_file.write("\n".join(cdx_lines))
-        cdx_lines = [x+"\n" for x in cdx_lines] # put "\n" back on so we can treat this like a file
+        with default_storage.open(warc_path, 'rb') as warc_file, default_storage.open(cdx_path, 'wb') as cdx_file:
+            ArchiveIndexer(warc_file, warc_path, cdx_file, sort=True).make_index()
+    cdx_lines = default_storage.open(cdx_path, 'rb')
 
     # find cdx lines for url
     sorted_url = surt.surt(url)
@@ -179,9 +172,7 @@ def single_linky(request, guid):
         text_capture = None
         if serve_type == 'text':
             if asset.text_capture and asset.text_capture != 'pending':
-                path_elements = [settings.MEDIA_ROOT, asset.base_storage_path, asset.text_capture]
-                file_path = os.path.sep.join(path_elements)
-                with open(file_path, 'r') as f:
+                with default_storage.open(os.path.join(asset.base_storage_path, asset.text_capture), 'r') as f:
                     text_capture = f.read()
             
         # If we are going to serve up the live version of the site, let's make sure it's iframe-able

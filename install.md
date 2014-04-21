@@ -19,7 +19,6 @@ Then check out the code:
 
     $ git clone https://github.com/harvard-lil/perma.git
     $ cd perma
-    $ git submodule init && git submodule update
 
 Start up the vagrant virtual machine in the background:
 
@@ -71,10 +70,6 @@ To develop Perma, install Python and the Python package manager, `pip`.
 The required modules are found in `requirements.txt. Install them using `pip`:
 
     $ pip install -r requirements.txt
-
-Some packages are installed via `git` submodules instead of `pip`:
-
-    $ git submodule init && git submodule update
 
 If you're running OS X Mountain Lion, you may need to add the MySQL binaries 
 to your PATH:

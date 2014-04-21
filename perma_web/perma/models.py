@@ -1,4 +1,5 @@
 import logging
+import os
 import random
 import re
 
@@ -250,6 +251,15 @@ class Link(models.Model):
         if folder:
             self.folders.add(folder)
 
+    def generate_storage_path(self):
+        """
+            Generate the path where assets for this link should be stored.
+        """
+        if not self.guid:
+            raise Exception("Can only generate storage path after link is saved.")
+        creation_date = self.creation_timestamp
+        return "/".join(str(x) for x in [creation_date.year, creation_date.month, creation_date.day, creation_date.hour, creation_date.minute, self.guid])
+
 
 class Asset(models.Model):
     """
@@ -266,6 +276,11 @@ class Asset(models.Model):
     instapaper_timestamp = models.DateTimeField(null=True)
     instapaper_hash = models.CharField(max_length=2100, null=True)
     instapaper_id = models.IntegerField(null=True)
+
+    def __init__(self, *args, **kwargs):
+        super(Asset, self).__init__(*args, **kwargs)
+        if self.link:
+            self.base_storage_path = self.link.generate_storage_path()
 
     def base_url(self, extra=u""):
         return self.base_storage_path+"/"+extra
