@@ -15,7 +15,7 @@
 		<br />
 
 	  <h3>Account settings</h3>
-	  {% if request.user|has_group:'vesting_member,vesting_manager' %}
+	  {% if request.user|has_group:'vesting_member' %}
 	    <div class="sponsoring-library-info">
             <h4>Your sponsoring library</h4>
             {% if no_registrar %}

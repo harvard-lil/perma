@@ -14,8 +14,7 @@ class PermissionsTestCase(PermaTestCase):
             'test_registry_member@example.com',
             'test_registrar_member@example.com',
             'test_vesting_member@example.com',
-            'test_user@example.com',
-            'test_vesting_manager@example.com'
+            'test_user@example.com'
         }
         views = [
             {
@@ -38,12 +37,7 @@ class PermissionsTestCase(PermaTestCase):
             },
             {
                 'urls': [
-                    ['user_management_manage_vesting_manager'],
                     ['user_management_manage_vesting_org'],
-                    ['user_management_manage_single_vesting_org', {'kwargs':{'vesting_org_id':1}}],
-                    ['user_management_manage_single_vesting_manager', {'kwargs':{'user_id': 5}}],
-                    ['user_management_manage_single_vesting_manager_delete', {'kwargs':{'user_id': 5}}],
-                    ['user_management_manage_single_vesting_manager_reactivate', {'kwargs':{'user_id': 5}}],
                 ],
                 'allowed': {'test_registry_member@example.com', 'test_registrar_member@example.com'},
             },
@@ -55,7 +49,7 @@ class PermissionsTestCase(PermaTestCase):
                     ['user_management_manage_single_vesting_member_reactivate', {'kwargs':{'user_id': 3}}],
                 ],
                 'allowed': {'test_registry_member@example.com', 'test_registrar_member@example.com',
-                            'test_vesting_manager@example.com'}
+                            'test_vesting_member@example.com'}
             },
             {
                 'urls': [
@@ -63,7 +57,7 @@ class PermissionsTestCase(PermaTestCase):
                     ['vest_link', {'kwargs':{'guid':'1234'},'success_status':404}],
                 ],
                 'allowed': {'test_registry_member@example.com', 'test_registrar_member@example.com',
-                            'test_vesting_manager@example.com', 'test_vesting_member@example.com'}
+                            'test_vesting_member@example.com'}
             },
             {
                 'urls': [
