@@ -1,5 +1,6 @@
 import json
 import os
+import tempfile
 import threading
 import urllib
 import glob
@@ -32,6 +33,7 @@ from socket import error as socket_error
 from django.conf import settings
 
 from perma.models import Asset, Stat, Registrar, LinkUser, Link, VestingOrg
+from perma.utils import store_file, store_data_to_file
 
 
 logger = logging.getLogger(__name__)
@@ -68,8 +70,7 @@ def create_storage_dir(storage_path):
 def save_screenshot(driver, image_path):
     """ Given selenium webdriver and path, save screenshot using Django's default_storage. """
     png_data = driver.get_screenshot_as_png()
-    with default_storage.open(image_path, 'wb') as image_file:
-        image_file.write(png_data)
+    return store_data_to_file(png_data, image_path, overwrite=True)
 
 def get_browser(user_agent, proxy_address, cert_path):
     """ Set up a Selenium browser with given user agent, proxy and SSL cert. """
@@ -103,14 +104,14 @@ def proxy_capture(self, link_guid, target_url, base_storage_path ,user_agent='')
     # basic setup
     asset_query = get_asset_query(link_guid)
     link_query = get_link_query(link_guid)
-    storage_path = get_storage_path(base_storage_path)
-    create_storage_dir(storage_path)
+    temp_storage_path = tempfile.mkdtemp()
     image_name = 'cap.png'
     warc_name = 'archive.warc.gz'
-    image_path = os.path.join(storage_path, image_name)
-    cert_path = os.path.join(storage_path, 'cert.pem')
+    image_path = os.path.join(base_storage_path, image_name)
+    warc_path = os.path.join(base_storage_path, warc_name)
+    cert_path = os.path.join(temp_storage_path, 'cert.pem')
 
-    print "%s: Fetching %s, saving to %s" % (link_guid, target_url, storage_path)
+    print "%s: Fetching %s, saving to %s" % (link_guid, target_url, temp_storage_path)
 
     # create a request handler class that counts unique requests and responses
     #global unique_requests, unique_responses
@@ -133,7 +134,7 @@ def proxy_capture(self, link_guid, target_url, base_storage_path ,user_agent='')
         try:
             proxy = warcprox.WarcProxy(
                 server_address=("127.0.0.1", warcprox_port),
-                ca=warcprox.CertificateAuthority(cert_path, storage_path),
+                ca=warcprox.CertificateAuthority(cert_path, temp_storage_path),
                 recorded_url_q=recorded_url_queue,
                 req_handler_class=CountingRequestHandler
             )
@@ -147,7 +148,7 @@ def proxy_capture(self, link_guid, target_url, base_storage_path ,user_agent='')
     proxy_address = "127.0.0.1:%s" % warcprox_port
 
     # start warcprox in the background
-    warc_writer = warcprox.WarcWriterThread(recorded_url_q=recorded_url_queue, directory=storage_path, gzip=True, port=warcprox_port)
+    warc_writer = warcprox.WarcWriterThread(recorded_url_q=recorded_url_queue, directory=temp_storage_path, gzip=True, port=warcprox_port)
     warcprox_controller = warcprox.WarcproxController(proxy, warc_writer)
     warcprox_thread = threading.Thread(target=warcprox_controller.run_until_shutdown, name="warcprox", args=())
     warcprox_thread.start()
@@ -252,13 +253,13 @@ def proxy_capture(self, link_guid, target_url, base_storage_path ,user_agent='')
 
     print "Saving WARC."
     # save generated warc file
-    temp_warc_path = os.path.join(storage_path, warc_writer._f_finalname)
-    final_warc_path = os.path.join(storage_path, warc_name)
+    temp_warc_path = os.path.join(temp_storage_path, warc_writer._f_finalname)
     try:
-        os.rename(temp_warc_path, final_warc_path)
-        if settings.USE_WARC_ARCHIVE:
-            asset_query.update(warc_capture=warc_name)
-    except OSError as e:
+        with open(temp_warc_path, 'rb') as warc_file:
+            warc_name = store_file(warc_file, warc_path)
+            if settings.USE_WARC_ARCHIVE:
+                asset_query.update(warc_capture=warc_name)
+    except Exception as e:
         logger.info("Web Archive File creation failed for %s: %s" % (target_url, e))
         if settings.USE_WARC_ARCHIVE:
             asset_query.update(warc_capture='failed')
@@ -356,42 +357,37 @@ def get_pdf(link_guid, target_url, base_storage_path, user_agent):
     """
     Download a PDF from the network
 
-    This function is usually executed via a synchronous Celery call
+    This function is executed via an asynchronous Celery call
     """
     # basic setup
     asset_query = get_asset_query(link_guid)
-    storage_path = get_storage_path(base_storage_path)
-    create_storage_dir(storage_path)
-
     pdf_name = 'cap.pdf'
-    pdf_path = os.path.join(storage_path, pdf_name)
+    pdf_path = os.path.join(base_storage_path, pdf_name)
 
     # Get the PDF from the network
-    r = requests.get(target_url, stream = True, verify=False,
+    pdf_request = requests.get(target_url, stream = True, verify=False,
         headers={'User-Agent': user_agent})
 
+    # write PDF out to a temp file
+    temp = tempfile.TemporaryFile()
     try:
-        with open(pdf_path, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=1024):
-            
-                # Limit our filesize
-                if f.tell() > settings.MAX_ARCHIVE_FILE_SIZE:
-                    raise
-                
-                if chunk: # filter out keep-alive new chunks
-                    f.write(chunk)
-                    f.flush()
-                    
+        for chunk in pdf_request.iter_content(chunk_size=1024):
+
+            # Limit our filesize
+            if temp.file.tell() > settings.MAX_ARCHIVE_FILE_SIZE:
+                raise
+
+            if chunk: # filter out keep-alive new chunks
+                temp.file.write(chunk)
+                temp.file.flush()
     except Exception, e:
         logger.info("PDF capture too big, %s" % target_url)
-        os.remove(pdf_path)
-
-    if os.path.exists(pdf_path):
-        # TODO: run some sort of validation check on the PDF
-        asset_query.update(pdf_capture=pdf_name)
-    else:
-        logger.info("PDF capture failed for %s" % target_url)
         asset_query.update(pdf_capture='failed')
+
+    # store temp file
+    temp.file.seek(0)
+    pdf_name = store_file(temp.file, pdf_path)
+    asset_query.update(pdf_capture=pdf_name)
 
 
 def instapaper_capture(url, title):
