@@ -699,7 +699,7 @@ def account_is_deactivated(request):
     """
     Informing a user that their account has been deactivated.
     """
-    return render_to_response('user_management/deactivated.html')
+    return render_to_response('user_management/deactivated.html', RequestContext(request))
 
 
 def get_mirror_cookie_domain(request):
@@ -904,7 +904,8 @@ def register_email_instructions(request):
     """
     After the user has registered, give the instructions for confirming
     """
-    return render_to_response('registration/check_email.html', {})
+    return render_to_response('registration/check_email.html', RequestContext(request))
+    
     
 def email_new_user(request, user):
     """
