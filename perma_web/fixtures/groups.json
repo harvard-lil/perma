@@ -16,14 +16,6 @@
         }
     },
     {
-        "pk": 5,
-        "model": "auth.group",
-        "fields": {
-            "name": "vesting_manager",
-            "permissions": []
-        }
-    },
-    {
         "pk": 3,
         "model": "auth.group",
         "fields": {
