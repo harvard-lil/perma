@@ -39,14 +39,26 @@ you are logged in as the user `vagrant`, you are using the `perma_0.1` VM, and y
 `/vagrant` is a shared folder in the guest machine that maps to the `perma` repo you just checked out on your host machine,
 so any changes you make on your local computer will appear inside `/vagrant` and vice versa.
 
-Now you're in the Django project folder and can develop like normal. First let's initialize the database
-(this will call `syncdb`, apply South migrations, and load fixtures):
-
-    (perma)vagrant@perma_0.1:/vagrant/perma_web$ fab init_dev_db
-
-Update the Python packages (you'll have to do this every time requirements.txt changes):
+Now you're in the Django project folder and can develop like normal. First let's install the Python
+pacakges we depend on (you'll have to do this every time requirements.txt changes):
 
     (perma)vagrant@perma_0.1:/vagrant/perma_web$ pip install -r requirements.txt
+
+You'll need to do just a little bit of configuration before:
+
+    cd settings; cp ./settings.example.py ./settings.py
+
+Set a `SECRET_KEY` in `settings.py`.
+
+A lot of the settings you need won't change much, so we keep them in a module and load them in. You'll probably want settings_dev, so uncomment that line in `settings.py`:
+
+    # Choose one of these:
+    from settings_dev import *
+    # from settings_prod import *
+
+Initialize the database (this will call `syncdb`, apply South migrations, and load fixtures):
+
+    (perma)vagrant@perma_0.1:/vagrant/perma_web$ fab init_dev_db
 
 Then you can run the test server:
 

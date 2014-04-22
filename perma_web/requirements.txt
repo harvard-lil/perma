@@ -23,7 +23,8 @@ django-pipeline==1.3.23
 
 surt==0.2                   # used in our simple CDX server to canonicalize URL
 pywb==0.2.2
-git+git://github.com/internetarchive/warcprox.git@5d09aea67d8f46221e5ee866ea1d1909ccb0715e # release 1.1 is missing a patch we need; next release we can switch to PyPI
+# release 1.1 is missing a patch we need; next release we can switch to PyPI
+git+git://github.com/internetarchive/warcprox.git@5d09aea67d8f46221e5ee866ea1d1909ccb0715e
 
 # heroku requirements
 dj_database_url==0.3.0
