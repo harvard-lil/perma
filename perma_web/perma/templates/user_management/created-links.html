@@ -1,5 +1,5 @@
 {% extends "admin-layout.html" %}
-{% load mptt_tags repeat local_datetime %}
+{% load mptt_tags repeat tz %}
 
 {% block title %} | {{ verb|capfirst }} Perma links{% endblock %}
 
@@ -161,9 +161,9 @@
                                 <span class="muted title-save-status"></span><br/>
                         </td>
                         
-                        <td class="linky-abbr-date-time">{{ link.creation_timestamp|local_datetime:"m/d/y" }}
+                        <td class="linky-abbr-date-time">{{ link.creation_timestamp | localtime | date:"M d, Y"}}
                         </td>
-                        <td class="linky-abbr-date-time">{{ link.vested_timestamp|local_datetime:"m/d/y" }}
+                        <td class="linky-abbr-date-time">{{ link.vested_timestamp| localtime | date:"M d, Y" }}
                         </td>
                         <td class="linky-details-link"><a href="#" class="details">details</a></td>
                     </tr>
