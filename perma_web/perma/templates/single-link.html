@@ -1,5 +1,5 @@
 {% extends "layout-archive-responsive.html" %}
-{% load file_exists  truncatesmart diff has_group is_darchive local_datetime mirror_tags %}
+{% load file_exists  truncatesmart diff has_group is_darchive mirror_tags tz %}
 {% block title %} | {{linky.submitted_title}}{% endblock %}
 {% block meta-head %}
 <meta name="robots" content="noindex, noarchive, noodp, noimageindex">
@@ -26,7 +26,7 @@
 						<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a><br/>
 						
 						<!--<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a>-->
-						<span class="light-grey">created {{linky.creation_timestamp|local_datetime}} | {{ linky.view_count }} view{% if linky.view_count > 1 %}s{% endif %}</span>
+						<span class="light-grey">created {% localtime on %}{{linky.creation_timestamp}}{% endlocaltime %} | {{ linky.view_count }} view{% if linky.view_count > 1 %}s{% endif %}</span>
 						{% comment %}
 						{% diff asset linky %} <!-- has the instapaper cap changed recently? -->
 						{% endcomment %}
