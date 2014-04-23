@@ -44,18 +44,6 @@ pacakges we depend on (you'll have to do this every time requirements.txt change
 
     (perma)vagrant@perma_0.1:/vagrant/perma_web$ pip install -r requirements.txt
 
-You'll need to do just a little bit of configuration before:
-
-    cd settings; cp ./settings.example.py ./settings.py
-
-Set a `SECRET_KEY` in `settings.py`.
-
-A lot of the settings you need won't change much, so we keep them in a module and load them in. You'll probably want settings_dev, so uncomment that line in `settings.py`:
-
-    # Choose one of these:
-    from settings_dev import *
-    # from settings_prod import *
-
 Initialize the database (this will call `syncdb`, apply South migrations, and load fixtures):
 
     (perma)vagrant@perma_0.1:/vagrant/perma_web$ fab init_dev_db
