@@ -38,6 +38,48 @@ body {
 	margin-left:15px;
 }
 
+.subheading {
+	color:#ff1400;
+	margin-left:15px;
+}
+pre {
+	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+	font-weight: 300;
+	font-size: 18px;
+	background:#ddf1ff;
+	border:1px solid #bbe4ff;
+	margin:30px 0px 30px 30px;
+	
+}
+
+ 
+
+kbd {
+    margin: 0;
+    font-family: 'Roboto Slab', sans-serif;
+  	color: #ffffff;
+  	background-color: #5cb85c;
+  	border-color: #4cae4c;
+  	font-size:14px;
+  	padding:3px 6px;
+  	border-radius: 2px;
+}
+
+.screen-shot {
+	margin:0 0 20px 0;
+	border-radius: 2px;
+}
+
+
+
+span.highlighted-definition {
+	color:#666;
+}
+
+.definition {
+	margin-left:20px
+}
+
 #feedback-form {
   width:320px;
   margin-left:-157px;
@@ -84,16 +126,24 @@ h4 {
 	color:#09f;
 }
 
+h5 a {
+	color:#333;
+	margin-left:15px;
+	line-height:1.4;
+}
+
 p {
     margin-bottom: 20px;
     font-family: 'Roboto Slab', sans-serif;
 }
 
-.docs p {
+.docs p, .docs li {
     font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
    	font-weight: 300;
    	font-size: 16px;
 }
+
+
 
 .fancy-infinity {
     color:#09f;
@@ -413,7 +463,6 @@ div#dashboard-container {
     position: relative;
 }
 
-
     div#dashboard-container ul#dashboard-tabs {
         margin: 0 10px 50px 0;
     }
@@ -425,9 +474,9 @@ div#dashboard-container {
             div#dashboard-container ul#dashboard-tabs li a {
                 background-image: url('../img/dashboard-icons.png');
                 background-repeat: no-repeat;
-                font-size: 22px;
+                font-size: 18px;
                 margin-bottom: 10px;
-                padding: 10px 10px 10px 50px;
+                padding: 15px 10px 10px 50px;
             }
 
 			
@@ -1125,8 +1174,9 @@ fieldset {
 }
 */
 
-a.copy-button.library-link-meta:hover {
-    color:#06a;
+.btn-padding {
+    margin:10px 0;
+    font-size:16px;
 }
 #wrap {
     min-height: 100%;
@@ -1939,7 +1989,7 @@ text {
 		left:8%;
 	}
 	.navbar-collapse {
-		margin-left:-30px;
+		margin-left:60px;
 		padding-left:0px;
 }
 

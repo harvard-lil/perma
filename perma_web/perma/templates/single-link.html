@@ -74,7 +74,7 @@
 
 							<ul class="nav navbar-nav tabbed">
 								<li>
-									<a  class="tab-styling{% if serve_type == 'live' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=live">Live site view</a>
+									<a  class="tab-styling{% if serve_type == 'live' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=live">Live page view</a>
 								</li>
 
 								{% if asset.image_capture and asset.image_capture != 'failed' %}
@@ -92,12 +92,12 @@
 								{% if asset.warc_capture and asset.warc_capture != 'failed' %}
 								<li>
 								{% if asset.warc_capture == 'pending' %}	
-									<span id="warc_cap_container_loading" class="tab-styling">Archiving site</span>
-									<a id="warc_cap_container_complete" class="tab-styling{% if serve_type == 'source' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source" style="display:none;">Archived site</a>
+									<span id="warc_cap_container_loading" class="tab-styling">Archiving page</span>
+									<a id="warc_cap_container_complete" class="tab-styling{% if serve_type == 'source' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source" style="display:none;">Archived page</a>
 								{% else %}
-									<span id="warc_cap_container_loading" class="tab-styling" style="display:none;">Archiving site</span> 
+									<span id="warc_cap_container_loading" class="tab-styling" style="display:none;">Archiving page</span> 
 									<!--<img src="{{ STATIC_URL }}img/dots.gif" alt="Archiving...">-->
-									<a id="warc_cap_container_complete" class="tab-styling{% if serve_type == 'source' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source">Archived site</a>
+									<a id="warc_cap_container_complete" class="tab-styling{% if serve_type == 'source' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source">Archived page</a>
 								{% endif %}
 								</li>
 								{% endif %}
@@ -114,7 +114,6 @@
 								</li>
 								{% endif %}
 							</ul>
-					
 						{% endif %}
 						</div><!--/.nav-collapse -->
 					

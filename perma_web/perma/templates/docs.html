@@ -183,29 +183,20 @@
 
 		<h3>Explore our Stats</h3>
 		<a href="{% url 'global_stats' %}"><img class="stats-graph" src="{{ STATIC_PREFIX }}img/graph-illus.png"/></a><p class="right">We've put together a <a href="{% url 'global_stats' %}">Stats page</a> to begin to visualize activity.</p>
+		
+		<h3>Contact</h3>
+		<p>For more information, please contact email us at <a href="mailto:info@perma.cc">info@perma.cc</a></p>
 	</div>
 	<div class="col-sm-3 col-sm-offset-1">
 		<ul class="nav nav-pills nav-stacked">
-		  <li class="active"><a href="{% url 'docs' %}">Overview</a></li>
 		  <li><a href="{% url 'docs_perma_link_creation' %}">Perma Link Creation</a></li>
+		  <li><a href="{% url 'docs_libraries' %}">Libraries</a></li>
 		  <li><a href="{% url 'docs_perma_link_vesting' %}">Perma Link Vesting</a></li>
 		  <li><a href="{% url 'docs_perma_archive' %}">Perma Archive</a></li>
-		  <li><a href="{% url 'docs_perma_dark_archive' %}">Dark Archive</a></li>
-		  <li><a href="{% url 'docs_copyright' %}">Copyright</a></li>
-		  <li><a href="{% url 'docs_mirrors' %}">Mirrors</a></li>
-		  <li><a href="{% url 'docs_robustness' %}">Robustness</a></li>
 		  <li><a href="{% url 'docs_perma_user_roles' %}">Perma User Roles</a></li>
+		  <li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>
 		</ul>
 	</div>
 </div>
-
-<div class="row">
-	<div class="col-sm-12 column">
-		<h3>Contact</h3>
-		
-		<p>For more information, please contact email us at <a href="mailto:info@perma.cc">info@perma.cc</a></p>
-		<br/>
-		<br/>
-	</div>
-</div>	
+	
 {% endblock %}

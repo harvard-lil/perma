@@ -22,23 +22,17 @@
 		<br/>
 		<h4><a href="#">II. Contingency plan</a></h4>
 		<p>Readers who click on a Perma.cc link are taken to a page that lets them choose to go to the original site (which may have changed since the link was created) or see the archived copy of the site in its original state.</p>
-	
-</div>
-<div class="col-sm-3 col-sm-offset-1">
-<ul class="nav nav-pills nav-stacked">
-  <li><a href="{% url 'docs' %}">Overview</a></li>
-  <li><a href="{% url 'docs_perma_link_creation' %}">Perma Link Creation</a></li>
-  <li><a href="{% url 'docs_perma_link_vesting' %}">Perma Link Vesting</a></li>
-  <li><a href="{% url 'docs_perma_archive' %}">Perma Archive</a></li>
-  <li><a href="{% url 'docs_perma_dark_archive' %}">Dark Archive</a></li>
-  <li><a href="{% url 'docs_copyright' %}">Copyright</a></li>
-  <li><a href="{% url 'docs_mirrors' %}">Mirrors</a></li>
-  <li class="active"><a href="{% url 'docs_robustness' %}">Robustness</a></li>
-  <li><a href="{% url 'docs_perma_user_roles' %}">Perma User Roles</a></li>
-</ul>
-
-</div>
-
+	</div>
+	<div class="col-sm-3 col-sm-offset-1">
+		<ul class="nav nav-pills nav-stacked">
+			<li><a href="{% url 'docs_perma_link_creation' %}">Perma Link Creation</a></li>
+			<li><a href="{% url 'docs_libraries' %}">Libraries</a></li>
+			<li><a href="{% url 'docs_perma_link_vesting' %}">Perma Link Vesting</a></li>
+			<li><a href="{% url 'docs_perma_archive' %}">Perma Archive</a></li>
+			<li><a href="{% url 'docs_perma_user_roles' %}">Perma User Roles</a></li>
+			<li class="active"><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>
+		</ul>
+	</div>
 </div>	
 
 {% endblock %}

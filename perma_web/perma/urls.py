@@ -34,6 +34,9 @@ urlpatterns = patterns('perma.views',
     
     url(r'^docs/perma-archive', DirectTemplateView.as_view(template_name='docs/perma-archive.html'), name='docs_perma_archive'),
      
+     
+     url(r'^docs/libraries', DirectTemplateView.as_view(template_name='docs/libraries.html'), name='docs_libraries'),
+     
     url(r'^docs/perma-dark-archive', DirectTemplateView.as_view(template_name='docs/perma-dark-archive.html'), name='docs_perma_dark_archive'),
     
     url(r'^docs/copyright', DirectTemplateView.as_view(template_name='docs/copyright.html'), name='docs_copyright'),

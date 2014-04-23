@@ -8,39 +8,85 @@
 {% block content %}
 <div class="container">
 	<div class="col-sm-8 docs">
-		<h2>Perma Archive</h2>
-		<h4><a href="#">I. Perma Collection</a></h4>
-		<h4><a href="#">II. Library Collections</a></h4>
-		<h4><a href="#">III. User Collections</a></h4>
-		
+		<h2>Perma Archives</h2>
+		<h4><a href="#public">I. Public Archive</a></h4>
+		<div class="subheading"> Archive Formats<br/>
+								 Uploading Content</div>
+		<h4><a href="#dark">II. Dark Archive</a></h4>
+		<h4><a href="#mirror">III. Archive Mirroring</a></h4>
 		
 		<br/>
+		
+		
+		<h4><div id="public">I. Public Archive</div></h4>
+		<div class="subheading"> Archive Formats</div>
+		<p>Perma offers not only a simple link, but a whole suite of archived content. The Perma content suite includes:</p>
+		
+		
+		<pre>Live Page View<br/><span class="highlighted-definition">The cited webpage, viewed through Perma.cc, as it currently exists.</span></pre>
+		
+		<h5><a href="#">Live Page View</a></h5>
+		<p>In the Live Site tab, you are viewing the website as it currently lives on the web. The site in live site view may include some usability, but if you wish to interact with the site in live view, you should visit the original URL directly. The information contained in this tab is not archived, and will change as the original site changes. </p>
+		
+		<img src="{{ STATIC_URL }}img/docs/live-page.gif" class="img-responsive screen-shot" alt="Responsive image"/>
+		
+		<p>Not seeing what you intended in Live Site View?  Maybe there’s a 404 error, the original site has changed, or Live Site View is unavailable.  Perma.cc is here to help!  Browse through the alternative views in the archive.</p>
+		
+		
+		<pre>Screen Cap·ture View<br/><span class="highlighted-definition">An image of the cited webpage as it existed when the Perma Link was created.</span></pre>
+		
+		<h5><a href="#">Screen Capture View</a></h5>
+				
+		<p>In the Screen Capture tab, you will see a snapshot of the content on the original website, at the date and time of its Perma Link creation. The Screen Capture does not lead any deeper into the original site, and displays only an image of the initial landing page of the link. You will see a transparent blue Perma icon overlay on this page and the other two archived pages, indicating that this content is fixed, unalterable and preserved. </p>
+		
+		<img src="{{ STATIC_URL }}img/docs/screen-capture.gif" class="img-responsive screen-shot" alt="Responsive image"/>
+		
+		<pre>Ar·chived Page View<br/><span class="highlighted-definition">The webpage, rendered in html & css, with accompanying images, that best recreates the view and functionality as it existed when the Perma Link was created.</span></pre>
+		
+		<h5><a href="#">Archived Page View</a></h5>
+		
+		<p>In the Archived Page tab, you can explore the site as it existed at the time of Perma Link creation. As with the Live Site view, you can follow links throughout the site, but this time, the available content will be pulled from the archive and will reflect a more complete experience of the site as it existed when the Perma Link was created. This tab essentially provides a dynamic snapshot of the website, as it functioned when archived. Again, you will see the blue Perma icon overlaid on each page of the site, indicating that the content is fixed, unalterable and preserved.</p>
+		
+		<img src="{{ STATIC_URL }}img/docs/archived-page.gif" class="img-responsive screen-shot" alt="Responsive image"/>
+		
+	
+		<div class="subheading"> Uploading Content</div>
+		<p>If your website is not correctly rendering using Perma’s standard toolkit, use the upload button to upload screenshots (.png, .jpg) or PDF documents. The upload option appears at the bottom of the website thumbnail, immediately following creation of the Perma Link.</p>
+		
+<img src="{{ STATIC_URL }}img/docs/upload.gif" class="img-responsive screen-shot" alt="Responsive image"/>
+
 		<br/>
-		<h4><a href="#">I. Perma Collection</a></h4>
+		<h4><div id="dark">II. Dark Archive</div></h4>
+		
+		<pre>Dark Ar·chive<br/><span class="highlighted-definition">A repository for content stored with Perma that is not publicly viewable.</span></pre>
+		
+		<p>The Dark Archive is for content stored with Perma that is not publically viewable through the website.  Often links are placed in the Dark Archive because the copyright holder has requested their content not be accessible to the general public through Perma.  This, however, does not mean the content unavailable.  Readers that wish to obtain a copy of a resource from the Dark Archive may request one from a participating library.  Please note, however, that processing of requests for Dark Archive content may take up to two weeks..</p>
+		
+
+		<p>There are several ways an item may be placed into the Dark Archive.  At the time a PermaLink is created, Perma recognizes the metatag “noarchive” as well as robots.txt instructions specific to Perma in the site source code, and PermaLinks to sites with that metatag or robots.txt instruction will direct to the Dark Archive.  In addition, after a PermaLink has been created, the content will be moved to the Dark Archive upon receipt of a DMCA takedown order or at the direction of creator/vester/registrar.</p>
+		
+		<img src="{{ STATIC_URL }}img/placeholder.jpg" class="img-responsive screen-shot" alt="Responsive image"/>
+		
+		<p>Readers that wish to obtain a copy of a resource from the Dark Archive may request one from a participating library.  Please note, however, that processing of requests for Dark Archive content is subject to your own library access privileges.</p>
+		
+		<pre>Par·tic·i·pat·ing Li·brar·y<br/><span class="highlighted-definition">Any member of the Perma.cc library consortium. <a href="#">Find the complete list here</a>.</span></pre>
+		
+		<pre>Mir·rors<br/><span class="highlighted-definition">Our network of servers that each hold the complete perma.cc archives, duplicated to ensure fault-tolerance. </span></pre>
+		
+		<h4><div id="mirror">III. Archive Mirroring</div></h4>
 		<p>Perma.cc is a service, currently in beta, that allows users to create citation links that will never break.</p>
 		
 		<p>When a user creates a Perma.cc link, Perma.cc archives a copy of the referenced content, and generates a link to an unalterable hosted instance of the site.  Regardless of what may happen to the original source, if the link is later published by a journal using the Perma.cc service, the archived version will always be available through the Perma.cc link.</p>
-
-		<br/>
-		<h4><a href="#">II. Library Collections</a></h4>
-		<p>Readers who click on a Perma.cc link are taken to a page that lets them choose to go to the original site (which may have changed since the link was created) or see the archived copy of the site in its original state.</p>
-		
-		<br/>
-		<h4><a href="#">III. User Collections</a></h4>
-		<p>Perma.cc is an online preservation service developed by the Harvard Law School Library in conjunction with university law libraries across the country and other organizations in the “forever” business.</p>
 	
 </div>
 <div class="col-sm-3 col-sm-offset-1">
 <ul class="nav nav-pills nav-stacked">
-  <li><a href="{% url 'docs' %}">Overview</a></li>
-  <li><a href="{% url 'docs_perma_link_creation' %}">Perma Link Creation</a></li>
-  <li><a href="{% url 'docs_perma_link_vesting' %}">Perma Link Vesting</a></li>
-  <li class="active"><a href="{% url 'docs_perma_archive' %}">Perma Archive</a></li>
-  <li><a href="{% url 'docs_perma_dark_archive' %}">Dark Archive</a></li>
-  <li><a href="{% url 'docs_copyright' %}">Copyright</a></li>
-  <li><a href="{% url 'docs_mirrors' %}">Mirrors</a></li>
-  <li><a href="{% url 'docs_robustness' %}">Robustness</a></li>
-  <li><a href="{% url 'docs_perma_user_roles' %}">Perma User Roles</a></li>
+  	<li><a href="{% url 'docs_perma_link_creation' %}">Perma Link Creation</a></li>
+    <li><a href="{% url 'docs_libraries' %}">Libraries</a></li>
+  	<li><a href="{% url 'docs_perma_link_vesting' %}">Perma Link Vesting</a></li>
+  	<li class="active"><a href="{% url 'docs_perma_archive' %}">Perma Archives</a></li>
+  	<li><a href="{% url 'docs_perma_user_roles' %}">Perma User Roles</a></li>
+    <li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>
 </ul>
 
 </div>

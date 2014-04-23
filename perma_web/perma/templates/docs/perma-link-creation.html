@@ -9,43 +9,77 @@
 <div class="container">
 	<div class="col-sm-8 docs">
 		<h2>Perma Link Creation</h2>
-		<h4><a href="#">I. Setting Up an Account</a></h4>
-		<h4><a href="#">II. Creating a permalink</a></h4>
-		<h4><a href="#">III. Archive formats</a></h4>
-		<h4><a href="#">IV. Uploading content</a></h4>
+		<h4><a href="#create-account">I. Creating an Account</a></h4>
+		<h4><a href="#log-in">II. Logging into Perma</a></h4>
+		<h4><a href="#create-link">III. Creating a Perma Link</a></h4>
+		<h4><a href="#organize-links">IV. Organizing Links</a></h4>
 		
 		<br/>
 		<br/>
-		<h4><a href="#">I. Setting Up an Account</a></h4>
-		<p>Perma.cc is a service, currently in beta, that allows users to create citation links that will never break.</p>
+		<h4><div id="create-account">I. Creating an Account</div></h4>
+		<p>To make PermaLinks, you will need an account. If you are a general user creating links for your own use, remember, your links will not be saved permanently until they are “vested” by a vesting user.  Unvested links will be available for a period of two years.  </p>
 		
-		<p>When a user creates a Perma.cc link, Perma.cc archives a copy of the referenced content, and generates a link to an unalterable hosted instance of the site.  Regardless of what may happen to the original source, if the link is later published by a journal using the Perma.cc service, the archived version will always be available through the Perma.cc link.</p>
+		<p>If you are affiliated with a law library, academic law journal, or court system <a href="#">click here to see if your institution</a> is a perma.cc partner and contact your institution directly for vesting privileges. </p>
+		
+		<p>To create your account, <a href="#">click here</a> or find <kbd>Create An Account</kbd> on the home page</p>
+		
+		<img src="{{ STATIC_URL }}img/docs/create-account.gif" class="img-responsive screen-shot" alt="Responsive image"/>
+
+		<p>Registering is easy. All we need is your email, first and last name. Be sure to read the terms of service!</p>
+		
+		<img src="{{ STATIC_URL }}img/docs/register.gif" class="img-responsive screen-shot" alt="Responsive image"/>
+		
+		<p>If your chosen account information is available (not already taken by another user), you will see a confirmation page and receive an email at the account you specified. Please follow the instructions in the email to activate your account. If the system indicates that your email address has already been assigned to another user, it is possible that someone in your institution has already added you as a user.  You can use the password reset option and your email address to claim your account.</p>
+		
+		<img src="{{ STATIC_URL }}img/placeholder.jpg" class="img-responsive screen-shot" alt="Responsive image"/>
+		
+		<p>If you are affiliated with a law library, academic law journal, or court system, you may receive an email that an account has been created for you.  Follow the instructions in that email to activate your account, which will be affiliated with your particular institution including the power to vest links if assigned to you.</p>
 
 		<br/>
-		<h4><a href="#">II. Creating a permalink</a></h4>
-		<p>Readers who click on a Perma.cc link are taken to a page that lets them choose to go to the original site (which may have changed since the link was created) or see the archived copy of the site in its original state.</p>
+		<h4><div id="log-in">II. Logging into Perma</div></h4>
+		<p>When you log in to Perma, you are taken to your Perma “Dashboard” -- a central page where you can create new PermaLinks, navigate to your existing PermaLinks, and navigate to Tools & Settings. Look for the blue Dashboard link, in the top right corner of other pages, to return here.</p>
+		
+		<img src="{{ STATIC_URL }}img/docs/creating-perma1.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 		
 		<br/>
-		<h4><a href="#">III. Archive formats</a></h4>
-		<p>Perma.cc is an online preservation service developed by the Harvard Law School Library in conjunction with university law libraries across the country and other organizations in the “forever” business.</p>
+		<h4><div id="create-link">III. Creating a Perma Link</div></h4>
+		<p>A Perma Link gives you access to an archived version of the content at a URL, frozen at a moment in time.  You will also have an option to view the live site and compare the content. To create a Perma Link, simply input a URL into the entry box, as shown below, and press    or click on the blue infinity button! The entry box is flexible and will accept multiple formats, including www and https://.</p>
+		
+		<img src="{{ STATIC_URL }}img/docs/creating-perma2.gif" class="img-responsive screen-shot" alt="Responsive image"/>
+		
+		<p>After the link is processed, a thumbnail of the original webpage will appear, now linked to a Perma Link address. The option allows you to easily copy the Perma Link for inclusion in a document, or testing on another page.</p> 
+		
+		<img src="{{ STATIC_URL }}img/docs/thumbnail.gif" class="img-responsive screen-shot" alt="Responsive image"/>
+
+		<p>If Perma did not archive the site as you expected, you can upload your own screenshot or PDF of the desired site by clicking on the blue link at the bottom of the new link entry.</p> 
+
+		<p>To see all URL’s that you have converted to Perma Links, click on Links in the navigation menu on the left.</p>
+		
+		<img src="{{ STATIC_URL }}img/docs/list-of-links.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 	
 		<br/>
-		<h4><a href="#">IV. Uploading content</a></h4>
+		<h4><div id="organize-links">IV. Organizing Links</a></h4>
 		
-		<p><a href="http://papers.ssrn.com/sol3/papers.cfm?abstract_id=2329161">In a sample of several legal journals</a>, approximately 70% of all links in citations published between 1999 and 2011 no longer point to the same material.  Broken links in journal articles undermine the citation-based system of legal scholarship by obscuring the evidence underlying authors’ ideas.</p>
+		<p>Perma includes many useful tools for organization of links.  You can file links in folders.  Change the titles of your links.  Even add notes that can be viewed by users who create or vest links.</p>
+		
+		<img src="{{ STATIC_URL }}img/docs/notes1.gif" class="img-responsive screen-shot" alt="Responsive image"/>
+		
+		<img src="{{ STATIC_URL }}img/docs/notes2.gif" class="img-responsive screen-shot" alt="Responsive image"/>
+		
+		<p>You can search or sort your links using the search bar above the link list or clicking the column headings.</p>
+		
+		<img src="{{ STATIC_URL }}img/docs/search.gif" class="img-responsive screen-shot" alt="Responsive image"/>
+		
 	
 </div>
-<div class="col-sm-3 col-sm-offset-1">
+<div class="col-sm-3 col-sm-offset-1 docs-nav">
 <ul class="nav nav-pills nav-stacked">
-  <li><a href="{% url 'docs' %}">Overview</a></li>
-  <li class="active"><a href="{% url 'docs_perma_link_creation' %}">Perma Link Creation</a></li>
-  <li><a href="{% url 'docs_perma_link_vesting' %}">Perma Link Vesting</a></li>
-  <li><a href="{% url 'docs_perma_archive' %}">Perma Archive</a></li>
-  <li><a href="{% url 'docs_perma_dark_archive' %}">Dark Archive</a></li>
-  <li><a href="{% url 'docs_copyright' %}">Copyright</a></li>
-  <li><a href="{% url 'docs_mirrors' %}">Mirrors</a></li>
-  <li><a href="{% url 'docs_robustness' %}">Robustness</a></li>
-  <li><a href="{% url 'docs_perma_user_roles' %}">Perma User Roles</a></li>
+  	<li class="active"><a href="{% url 'docs_perma_link_creation' %}">Perma Link Creation</a></li>
+  	<li><a href="{% url 'docs_libraries' %}">Libraries</a></li>
+  	<li><a href="{% url 'docs_perma_link_vesting' %}">Perma Link Vesting</a></li>
+  	<li><a href="{% url 'docs_perma_archive' %}">Perma Archive</a></li>
+  	<li><a href="{% url 'docs_perma_user_roles' %}">Perma User Roles</a></li>
+  	<li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>
 </ul>
 
 </div>

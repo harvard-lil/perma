@@ -1,0 +1,44 @@
+{% extends "layout-responsive.html" %}
+{% load file_exists %}
+{% block title %} | Docs{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+	<div class="col-sm-8 docs">
+		<h2>Libraries</h2>
+		<h4><a href="#collaboration">I. Collaboration</a></h4>
+		<h4><a href="#preservation">II. Preservation</a></h4>
+		<h4><a href="#stewardship">II. Stewardship</a></h4>
+		<h4><a href="#dissemination">II. Dissemination</a></h4>
+		<br/>
+		
+		<h4><div id="collaboration">I. Collaboration</div></h4>
+		<p>Perma is made up of a consortium of library partners.  By their very nature, libraries engage in a process of collaboration -- relying on one another to maintain a network of access to information.  Academic libraries are invested in maintaining the integrity of citations and enhancing scholarly works.  Court libraries are invested in maintaining justice and constructing our system of common law.  Archives are invested in ensuring perpetual access to information, a foundation of democracy.  By partnering together, bringing our common goals to the table, Perma Partners can work to preserve the foundation of legal scholarship for years to come.</p><br/>
+		
+		<h4><div id="preservation">II. Preservation</div></h4>
+		<p>The internet, by its very nature, is constantly evolving.  Website content and structure can change at the stroke of a key.  As more and more of the information referenced in scholarship, judicial opinions, and legal pedagogy is presented online, we are confronted with the need to preserve online content and make it available for future readers and scholars.  Libraries, the home of preservation, are the natural habitat for curating the system to make links that will not break.</p><br/>
+		
+		<img src="{{ STATIC_URL }}img/docs/shelf.gif" class="img-responsive screen-shot" alt="Responsive image"/>
+		
+		<h4><div id="stewardship">III. Stewardship</div></h4>
+		<p>Stewardship In the same way that libraries collect books, they also now collect links.  Perma allows libraries to serve as custodians for online information, leading the effort to preserve online sources for legal scholarship, judicial opinions, and legal pedagogy.  We call these libraries Registrars because they are responsible for registering the users affiliated with their institutions, which includes those users who have the power to vest links.  Librarians can serve, not only as defenders of these online sources, but also curators, using the metadata collected by Perma to understand how materials are used and how these new collections of links can most effectively serve the community. </p><br/>
+		
+		<h4><div id="dissemination">IV. Dissemination</div></h4>
+		<p>Libraries also serve as the source for the dissemination of information archived by Perma.  Registrar libraries allow for users to vest links, making them truly permanent, and also making them a part of the library collection.  If the owner of the information contained in vested links requests that the information be removed from Perma, the information is placed in a Dark Archive, and users wishing to view the information will need to visit a library to access an archived version of the link.  Library access policies differ across institutions, but librarians will be able to use their own network of resources to obtain access to a link that has been Dark Archived on behalf of a library patron.</p><br/>
+	</div>
+	<div class="col-sm-3 col-sm-offset-1">
+		<ul class="nav nav-pills nav-stacked">
+			<li><a href="{% url 'docs_perma_link_creation' %}">Perma Link Creation</a></li>
+			<li class="active"><a href="{% url 'docs_libraries' %}">Libraries</a></li>
+			<li><a href="{% url 'docs_perma_link_vesting' %}">Perma Link Vesting</a></li>
+			<li><a href="{% url 'docs_perma_archive' %}">Perma Archive</a></li>
+			<li><a href="{% url 'docs_perma_user_roles' %}">Perma User Roles</a></li>
+			<li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>
+		</ul>
+	</div>
+</div>	
+
+{% endblock %}
