@@ -196,7 +196,7 @@ def single_linky(request, guid):
 
         context = {'linky': link, 'asset': asset, 'pretty_date': pretty_date, 'next': request.get_full_path(),
                    'display_iframe': display_iframe, 'serve_type': serve_type, 'text_capture': text_capture,
-                   'warc_url':'/warc/'}
+                   'warc_url':asset.warc_url()}
 
     if request.META.get('CONTENT_TYPE') == 'application/json':
         # if we were called as JSON (by a mirror), serialize and send back as JSON
