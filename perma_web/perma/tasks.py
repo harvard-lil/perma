@@ -708,10 +708,15 @@ def update_perma(link_guid):
         ## We now have everything we need to initialize the Link object.
         link = Link(guid=link_guid)
         link.submitted_url = link_metadata["submitted_url"]
-        link.creation_timestamp = unserialize_datetime(link_metadata["creation_timestamp"])
         link.submitted_title = link_metadata["submitted_title"]
         link.created_by = None # XXX maybe we should do something with FakeUser here
-        link.save() # We need to save this so that we can create an Asset object
+        link.save(pregenerated_guid=True) # We need to save this so that we can create an Asset object
+
+        # This is a stupid hack to overcome the fact that the Link has
+        # auto_now_add=True, so it's always going to be saved to the
+        # current time on first creation.
+        link.creation_timestamp = unserialize_datetime(link_metadata["creation_timestamp"])
+        link.save()
 
         ## Lastly, let's create an Asset object for this Link.
         asset = Asset(link=link)
