@@ -1,11 +1,14 @@
 import json
 import os
+import os.path
 import tempfile
 import threading
 import urllib
 import glob
 import shutil
 import urlparse
+import zipfile
+from celery import chord
 from celery.contrib import rdb
 from django.core.files.storage import default_storage
 from django.core.mail import send_mail
@@ -31,6 +34,7 @@ import errno
 from socket import error as socket_error
 
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 
 from perma.models import Asset, Stat, Registrar, LinkUser, Link, VestingOrg
 from perma.utils import store_file, store_data_to_file
@@ -595,3 +599,41 @@ def email_weekly_stats():
         [settings.DEVELOPER_EMAIL],
         fail_silently = False
     )
+
+
+@celery.task
+def compress_link_assets(*args, **kwargs):
+    """
+    This task creates a zipfile containing the assets of a given Perma
+    link. The zip file does *not* contain metadata, only immutable
+    asset data.  This is a Celery task so that it can be run after the
+    tasks that generate the assets are finished, which we arrange for
+    by means of a chord. Thus, the first positional arguments of this
+    function will be return value of those tasks. We thus don't rely
+    on positional arguments and retrieve all of our arguments via
+    kwargs.
+    """
+    try:
+        guid = kwargs['guid']
+    except KeyError:
+        raise TypeError("compress_link_assets() requires a guid keyword argument")
+    target_link = get_object_or_404(Link, guid=guid)
+    metadata = {
+        "guid": guid,
+        "submitted_url": target_link.submitted_url,
+        "creation_timestamp": target_link.creation_timestamp.strftime("%Y-%m-%m %H:%M:%S"),
+        "submitted_title": target_link.submitted_title,
+    }
+    target_asset = get_object_or_404(Asset, link=target_link)
+    asset_directory = os.path.join(settings.MEDIA_ROOT, target_asset.base_storage_path)
+    zip_name = os.path.join(os.path.dirname(asset_directory), guid + ".zip")
+    os.chdir(os.path.dirname(asset_directory))
+    with zipfile.ZipFile(zip_name, "w") as zipfh:
+        for root, dirs, files in os.walk(os.path.basename(asset_directory)):
+            for file in files:
+                zipfh.write(os.path.join(root, file))
+        zipfh.writestr(os.path.join(guid, "metadata.json"),
+                       json.dumps(metadata))
+
+def run_chord(header, body):
+    chord(header)(body)

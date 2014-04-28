@@ -20,9 +20,8 @@ from django.template import RequestContext
 
 from perma.forms import UploadFileForm
 from perma.models import Link, Asset, Folder
-from perma.tasks import store_text_cap, get_pdf, proxy_capture
+from perma.tasks import store_text_cap, get_pdf, proxy_capture, compress_link_assets, run_chord
 from perma.utils import require_group, store_file
-
 if not settings.USE_WARC_ARCHIVE:
     from perma.tasks import get_source
 
@@ -96,7 +95,8 @@ def create_link(request):
                         target_url.split('.')[-1] == 'pdf':
             asset.pdf_capture = 'pending'
             asset.save()
-            get_pdf.delay(guid, target_url, asset.base_storage_path, request.META['HTTP_USER_AGENT'])
+            run_chord([get_pdf.s(guid, target_url, asset.base_storage_path, request.META['HTTP_USER_AGENT'])],
+                      compress_link_assets.s(guid=guid))
             response_object = {'linky_id': guid, 'message_pdf': True, 'linky_title': link.submitted_title}
 
         else:  # else, it's not a PDF. Let's try our best to retrieve what we can
@@ -106,15 +106,19 @@ def create_link(request):
             asset.warc_capture = 'pending'
             asset.save()
 
-            # get image, warc, meta tags, robots.txt, updated title
-            proxy_capture.delay(guid, target_url, asset.base_storage_path, request.META['HTTP_USER_AGENT'])
-
-            # Get the text capture of the page (through a service that follows pagination)
-            store_text_cap.delay(guid, target_url, asset.base_storage_path, target_title)
+            tasks = [
+                # get image, warc, meta tags, robots.txt, updated title
+                proxy_capture.s(guid, target_url, asset.base_storage_path, request.META['HTTP_USER_AGENT']),
+                # Get the text capture of the page (through a service that follows pagination)
+                store_text_cap.s(guid, target_url, asset.base_storage_path, target_title)
+            ]
 
             if not settings.USE_WARC_ARCHIVE:
                 # Try to crawl the page (but don't follow any links)
-                get_source.delay(guid, target_url, asset.base_storage_path, request.META['HTTP_USER_AGENT'])
+                tasks.append(get_source.s(guid, target_url, asset.base_storage_path, request.META['HTTP_USER_AGENT']))
+
+            run_chord(tasks, compress_link_assets.s(guid=guid))
+            asset = Asset.objects.get(link__guid=guid)
 
             response_object = {'linky_id': guid, 'linky_title': link.submitted_title}
 
