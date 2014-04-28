@@ -1,11 +1,11 @@
 from django.conf import settings
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 
-import json, logging, csv
+import json, logging, csv, os.path
 from perma.models import Link, Asset, Stat
 
 logger = logging.getLogger(__name__)
@@ -115,6 +115,26 @@ def link_status(request, guid):
         data = '%s(%s);' % (request.REQUEST['callback'], data)
     return HttpResponse(data, content_type="application/json", status=200)
 
+
+def link_assets(request, guid):
+    """A service that returns a downloadable archive of the assets of a
+    given perma link
+
+    """
+    target_asset = get_object_or_404(Asset, link__guid=guid)
+    # TODO: this should probably be a field on the Asset object
+    archive_path = os.path.join(settings.MEDIA_ROOT, target_asset.base_storage_path + ".zip")
+    try:
+        # This would look a little prettier with the
+        #   with open(archive_path, "r") as fh
+        # syntax, but that won't work here because the file will be closed by the time
+        # Django tries to do stuff with it.
+        fh = open(archive_path, "r")
+        response = HttpResponse(fh, content_type="application/force-download")
+        response["Content-Disposition"] = 'attachment; filename="%s"' % ("assets_%s.zip" % guid,)
+        return response
+    except IOError:
+        raise Http404
 
 
 def stats_users(request):
