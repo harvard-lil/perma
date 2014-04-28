@@ -7,6 +7,7 @@ from django.shortcuts import redirect
 
 import json, logging, csv, os.path
 from perma.models import Link, Asset, Stat
+from perma.tasks import update_perma
 
 logger = logging.getLogger(__name__)
 
@@ -135,6 +136,11 @@ def link_assets(request, guid):
         return response
     except IOError:
         raise Http404
+
+
+def do_update_perma(request, guid):
+    update_perma.delay(link_guid=guid)
+    return HttpResponse("OK")
 
 
 def stats_users(request):
