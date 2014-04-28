@@ -666,7 +666,7 @@ def update_perma(link_guid):
     except urllib2.HTTPError as e:
         sys.stderr.write("Got a HTTPError for %s. This probably means there's a problem with the link guid or URL pattern.\n" % (metadata_url,))
         raise e
-    metadata = json.loads(metadata_json)
+    metadata = json.load(metadata_json)
 
     ## Next, let's see if we need to get the assets. If we have the
     ## Link object for this GUID, we're going to assume we already
@@ -682,7 +682,11 @@ def update_perma(link_guid):
         assets_server = settings.ROOT_ASSETS_SERVER
         assets_url = assets_server + reverse("service_link_assets", args=(link_guid,))
         try:
-            assets_archive = urllib2.urlopen(assets_url)
+            # We need to use urllib.urlretrieve here and not
+            # urllib2.urlopen because we need a seek()able file object
+            # to pass to zipfile. A possibly cleaner alternative would
+            # be to use StringIO but this is a little simpler.
+            assets_archive = urllib.urlretrieve(assets_url)[0]
         except urllib2.URLError as e:
             sys.stderr.write("Got a URLError for %s. This probably means there's a problem with the assets server name.\n" % (metadata_url,))
             raise e
