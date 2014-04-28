@@ -37,7 +37,7 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 
 from perma.models import Asset, Stat, Registrar, LinkUser, Link, VestingOrg
-from perma.utils import store_file, store_data_to_file
+from perma.utils import store_file, store_data_to_file, serialize_datetime, unserialize_datetime
 
 
 logger = logging.getLogger(__name__)
@@ -621,7 +621,7 @@ def compress_link_assets(*args, **kwargs):
     metadata = {
         "guid": guid,
         "submitted_url": target_link.submitted_url,
-        "creation_timestamp": target_link.creation_timestamp.strftime("%Y-%m-%m %H:%M:%S"),
+        "creation_timestamp": serialize_datetime(target_link.creation_timestamp),
         "submitted_title": target_link.submitted_title,
     }
     target_asset = get_object_or_404(Asset, link=target_link)
