@@ -192,7 +192,7 @@ def store_data_to_file(data, file_path, overwrite=False, storage=default_storage
     return store_file(file_object, file_path, overwrite, storage)
 
 def serialize_datetime(dt):
-    return dt.strftime("%Y-%m-%m %H:%M:%S")
+    return dt.strftime("%Y-%m-%d %H:%M:%S")
 
 def unserialize_datetime(dt_string):
     return pytz.UTC.localize(datetime.datetime.strptime(dt_string, "%Y-%m-%d %H:%M:%S"))
