@@ -101,12 +101,13 @@ def link_status(request, guid):
     TODO: this should obviously become part of an API, we probably also want to evaluate some long polling
     apporach?
     """
-
-    target_asset = get_object_or_404(Asset, link__guid=guid)
+    target_link = get_object_or_404(Link, guid=guid)
+    target_asset = get_object_or_404(Asset, link=target_link)
     
     response_object = {"path": target_asset.base_storage_path, "text_capture": target_asset.text_capture,
             "source_capture": target_asset.warc_capture, "image_capture": target_asset.image_capture,
-            "pdf_capture": target_asset.pdf_capture}
+            "pdf_capture": target_asset.pdf_capture,
+            "vested": target_link.vested, "dark_archived": target_link.dark_archived}
 
     data = json.dumps(response_object)
     if 'callback' in request.REQUEST:
