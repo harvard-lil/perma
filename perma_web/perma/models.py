@@ -290,8 +290,9 @@ class Asset(models.Model):
 
     def warc_url(self):
         if self.warc_capture and '.warc' in self.warc_capture:
-            return u"%s/%s" % (self.link.guid, self.link.submitted_url)
-        return self.base_url(self.warc_capture)
+            return u"/warc/%s/%s" % (self.link.guid, self.link.submitted_url)
+        else:
+            return settings.MEDIA_URL+self.base_url(self.warc_capture)
 
     def warc_download_url(self):
         if settings.USE_WARC_ARCHIVE:
