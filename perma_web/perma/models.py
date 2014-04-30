@@ -198,7 +198,7 @@ class Link(models.Model):
         One exception - we want to use up our [non-four alphabet chars-anything] ids first. So, avoid things like XFFC-9VS7
         
         """
-        if not self.pk and kwargs.get("pregenerated_guid", False):
+        if not self.pk and not kwargs.get("pregenerated_guid", False):
             # not self.pk => not created yet
             # only try 100 attempts at finding an unused GUID
             # (100 attempts should never be necessary, since we'll expand the keyspace long before
