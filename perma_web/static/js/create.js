@@ -7,7 +7,7 @@ var all_links = new Array();
 /* Our polling function for the thumbnail completion - start */
 var refreshIntervalId = 0;
 
-var check_status = function() {
+function check_status() {
 	
 // Check our status service to see if we have archivng jobs pending
 	var request = $.ajax({
@@ -201,7 +201,6 @@ function drawLinks() {
   if(!swfobject.hasFlashPlayerVersion("1")) {
       $('.copy-button').hide();
   }
-  
 }
 
 function addToStorage(new_link) {
@@ -239,9 +238,9 @@ Handlebars.registerHelper ('truncate', function (str, len) {
         return str;
     });
 
-var upload_form = function(){
+function upload_form() {
     $('#linky-confirm').modal('hide');
     $('#upload-error').text('');
     $('#linky-upload').modal('show');
     return false;
-};
+}

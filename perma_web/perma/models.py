@@ -283,7 +283,7 @@ class Asset(models.Model):
             self.base_storage_path = self.link.generate_storage_path()
 
     def base_url(self, extra=u""):
-        return self.base_storage_path+"/"+extra
+        return "%s/%s" % (self.base_storage_path, extra)
 
     def image_url(self):
         return self.base_url(self.image_capture)
