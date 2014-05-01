@@ -9,13 +9,14 @@
 <div class="container">
 	<div class="col-sm-8 docs">
 		<h2>Perma User Roles</h2>
-		<h4><a href="#registrar">I. Registrar User</a></h4>
+		<!--<h4><a href="#registrar">I. Registrar User</a></h4>
 		<h4><a href="#vesting-org">II. Vesting Organization</a></h4>
 		<h4><a href="#vesting-user">III. Vesting User</a></h4>
 		<h4><a href="#general-user">IV. General User</a></h4>
 	
 		<br/>
-		<br/>
+		<br/>-->
+		<hr>
 		
 		<table class="table table-striped table-bordered">
 		<tbody>
@@ -51,19 +52,15 @@
 		</tr>
 		</tbody>
 	</table>
-		<h4><div id="registrar">I. Registrar User</div></h4>
+		<h4><div id="registrar">Registrar User</div></h4>
 		<p>A Registrar User represents a Registrar institution (in most cases a law library or court library).  The Registrar User is responsible for ensuring that all Vesting Organizations are correctly affiliated with the Registrar institution.</p>
 
 		<br/>
-		<h4><div id="vesting-org">II. Vesting Organization</div></h4>
-		<p>Vesting Organizations are most commonly law journals and courts.  All users affiliated with a particular vesting organization can view links created by users in that organization (in progress).</p>
-		
-		<br/>
-		<h4><div id="vesting-user">III. Vesting User</div></h4>
+		<h4><div id="vesting-user">Vesting User</div></h4>
 		<p>Vesting Users are users that are affiliated with a particular Vesting Organization.  They have all of the same authority as general users, but they can also vest individual links.  If you are a general user and would like to request vesting privileges, contact your affiliated Vesting Organization or Registrar.  You can also email <a href="mailto:info@perma.cc">info@perma.cc</a> for more information.</p>
 	
 		<br/>
-		<h4><div id="general-user">IV. General User</div></h4>
+		<h4><div id="general-user">General User</div></h4>
 		
 		<p>General users can create and manage their own links, but unless those links are vested by a user with vesting privileges, they will expire a set period.  All links created by general users are maintained for a two-year period, at the end of which, the user has the option of renewing for another two-year period.</p>
 		
@@ -73,8 +70,9 @@
 	<div class="col-sm-3 col-sm-offset-1">
 		<ul class="nav nav-pills nav-stacked">
 			<li><a href="{% url 'docs' %}">Help</a></li>
-			<li><a href="{% url 'docs_perma_link_creation' %}">Link Creation</a></li>  
-			<li><a href="{% url 'docs_perma_link_vesting' %}">Link Vesting</a></li>
+			<li><a href="{% url 'docs_getting-started' %}">Getting Started</a></li>
+			<li><a href="{% url 'docs_perma_link_creation' %}">Creating, Organizing, Annotating</a></li>  
+			<li><a href="{% url 'docs_perma_link_vesting' %}">Vesting</a></li>
 			<li><a href="{% url 'docs_perma_archive' %}">Archiving & Storage</a></li>
 			<li class="active"><a href="{% url 'docs_perma_user_roles' %}">User Roles</a></li>
 			<!--<li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>-->

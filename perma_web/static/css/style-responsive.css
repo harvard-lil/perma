@@ -7,7 +7,7 @@ html {
 }
 
 body {
-  background-color: #efefef;
+  	background:#f7f7f7;
     color: #333;
     margin: 0;
     font-family: 'Roboto Slab', sans-serif;
@@ -49,9 +49,6 @@ pre {
 	background:#ddf1ff;
 	border:1px solid #bbe4ff;
 	margin:30px 0px 30px 30px;
-		-moz-box-shadow:    0 0 2px 2px #eee;
-  -webkit-box-shadow: 0 0 2px 2px #eee;
-  box-shadow:         0 0 2px 2px #eee;
 }
 
  
@@ -272,6 +269,8 @@ li.participating-institutions-carousel img{
 	margin-right:10px;
 	margin-bottom:10px;
 	filter: alpha(opacity=60);
+	display:inline;
+	list-style-type: none;
 }
 
 .login {
@@ -1275,9 +1274,6 @@ input[type="text"] {
     background:rgba(255,255,255,.6);
 }
 */
-hr {
-	border:0px;
-}
 
 table { 
   border-collapse: collapse; 
