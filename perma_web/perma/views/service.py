@@ -124,7 +124,7 @@ def link_assets(request, guid):
     """
     target_asset = get_object_or_404(Asset, link__guid=guid)
     # TODO: this should probably be a field on the Asset object
-    archive_path = os.path.join(settings.MEDIA_ROOT, target_asset.base_storage_path + ".zip")
+    archive_path = os.path.join(settings.MEDIA_ARCHIVES_ROOT, target_asset.base_storage_path + ".zip")
     try:
         # This would look a little prettier with the
         #   with open(archive_path, "r") as fh
