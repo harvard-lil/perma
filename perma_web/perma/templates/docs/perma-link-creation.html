@@ -31,7 +31,7 @@
 		
 		<p>If your chosen account information is available (not already taken by another user), you will see a confirmation page and receive an email at the account you specified. Please follow the instructions in the email to activate your account. If the system indicates that your email address has already been assigned to another user, it is possible that someone in your institution has already added you as a user.  You can use the password reset option and your email address to claim your account.</p>
 		
-		<img src="{{ STATIC_URL }}img/placeholder.jpg" class="img-responsive screen-shot" alt="Responsive image"/>
+		<img src="{{ STATIC_URL }}img/email-account.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 		
 		<p>If you are affiliated with a law library, academic law journal, or court system, you may receive an email that an account has been created for you.  Follow the instructions in that email to activate your account, which will be affiliated with your particular institution including the power to vest links if assigned to you.</p>
 
@@ -70,20 +70,18 @@
 		
 		<img src="{{ STATIC_URL }}img/docs/search.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 		
-	
-</div>
-<div class="col-sm-3 col-sm-offset-1 docs-nav">
-<ul class="nav nav-pills nav-stacked">
-  	<li class="active"><a href="{% url 'docs_perma_link_creation' %}">Perma Link Creation</a></li>
-  	<li><a href="{% url 'docs_libraries' %}">Libraries</a></li>
-  	<li><a href="{% url 'docs_perma_link_vesting' %}">Perma Link Vesting</a></li>
-  	<li><a href="{% url 'docs_perma_archive' %}">Perma Archive</a></li>
-  	<li><a href="{% url 'docs_perma_user_roles' %}">Perma User Roles</a></li>
-  	<li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>
-</ul>
-
-</div>
-
+	</div>
+	<div class="col-sm-3 col-sm-offset-1 docs-nav">
+		<ul class="nav nav-pills nav-stacked">
+			<li><a href="{% url 'docs' %}">Help</a></li>
+			<li class="active"><a href="{% url 'docs_perma_link_creation' %}">Link Creation</a></li>
+			<li><a href="{% url 'docs_perma_link_vesting' %}">Link Vesting</a></li>
+			<li><a href="{% url 'docs_perma_archive' %}">Archiving & Storage</a></li>
+			<li><a href="{% url 'docs_perma_user_roles' %}">User Roles</a></li>
+			<!--<li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>-->
+			<li><a href="{% url 'docs_libraries' %}">Libraries</a></li>
+		</ul>	
+	</div>
 </div>	
 
 {% endblock %}

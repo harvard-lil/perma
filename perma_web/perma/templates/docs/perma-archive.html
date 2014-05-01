@@ -65,7 +65,7 @@
 
 		<p>There are several ways an item may be placed into the Dark Archive.  At the time a PermaLink is created, Perma recognizes the metatag “noarchive” as well as robots.txt instructions specific to Perma in the site source code, and PermaLinks to sites with that metatag or robots.txt instruction will direct to the Dark Archive.  In addition, after a PermaLink has been created, the content will be moved to the Dark Archive upon receipt of a DMCA takedown order or at the direction of creator/vester/registrar.</p>
 		
-		<img src="{{ STATIC_URL }}img/placeholder.jpg" class="img-responsive screen-shot" alt="Responsive image"/>
+		<img src="{{ STATIC_URL }}img/docs/darchive.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 		
 		<p>Readers that wish to obtain a copy of a resource from the Dark Archive may request one from a participating library.  Please note, however, that processing of requests for Dark Archive content is subject to your own library access privileges.</p>
 		
@@ -78,19 +78,18 @@
 		
 		<p>When a user creates a Perma.cc link, Perma.cc archives a copy of the referenced content, and generates a link to an unalterable hosted instance of the site.  Regardless of what may happen to the original source, if the link is later published by a journal using the Perma.cc service, the archived version will always be available through the Perma.cc link.</p>
 	
-</div>
-<div class="col-sm-3 col-sm-offset-1">
-<ul class="nav nav-pills nav-stacked">
-  	<li><a href="{% url 'docs_perma_link_creation' %}">Perma Link Creation</a></li>
-    <li><a href="{% url 'docs_libraries' %}">Libraries</a></li>
-  	<li><a href="{% url 'docs_perma_link_vesting' %}">Perma Link Vesting</a></li>
-  	<li class="active"><a href="{% url 'docs_perma_archive' %}">Perma Archives</a></li>
-  	<li><a href="{% url 'docs_perma_user_roles' %}">Perma User Roles</a></li>
-    <li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>
-</ul>
-
-</div>
-
+	</div>
+	<div class="col-sm-3 col-sm-offset-1">
+		<ul class="nav nav-pills nav-stacked">
+			<li><a href="{% url 'docs' %}">Help</a></li>
+			<li><a href="{% url 'docs_perma_link_creation' %}">Link Creation</a></li>
+			<li><a href="{% url 'docs_perma_link_vesting' %}">Link Vesting</a></li>
+			<li class="active"><a href="{% url 'docs_perma_archive' %}">Archiving & Storage</a></li>
+			<li><a href="{% url 'docs_perma_user_roles' %}">User Roles</a></li>
+			<!--<li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>-->
+			<li><a href="{% url 'docs_libraries' %}">Libraries</a></li>
+		</ul>
+	</div>
 </div>	
 	
 {% endblock %}

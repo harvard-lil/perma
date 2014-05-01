@@ -21,7 +21,7 @@
 		
 		<p>While logged into a vesting account, a user simply follows the PermaLink and selects “vest” in the upper righthand corner.</p>
 		
-		<img src="{{ STATIC_URL }}img/placeholder.jpg" class="img-responsive screen-shot" alt="Responsive image"/>
+		<img src="{{ STATIC_URL }}img/docs/vest.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 		
 		<p>The goal of Perma.cc is to provide lasting links to material cited in legal scholarship, judicial opinions, and legal pedagogy.  Vesting a link is a confirmation that the link supports these goals and will be available for readers in perpetuity.  In order to further the idea of perpetual access, you may not reverse the vesting process.  If you believe a link has been vested in error, or you wish to have the link removed from public access, you can place the link in the Dark Archive.</p>
 
@@ -40,19 +40,18 @@
 		
 		<p>If you are affiliated with a law library, academic law journal, or court system <a href="#">click here to see if your institution is a perma.cc partner</a> and contact your institution directly for vesting privileges</a>
 	
-</div>
-<div class="col-sm-3 col-sm-offset-1">
-<ul class="nav nav-pills nav-stacked">
-  	<li><a href="{% url 'docs_perma_link_creation' %}">Perma Link Creation</a></li>
-  	<li><a href="{% url 'docs_libraries' %}">Libraries</a></li>
-  	<li class="active"><a href="{% url 'docs_perma_link_vesting' %}">Perma Link Vesting</a></li>
-  	<li><a href="{% url 'docs_perma_archive' %}">Perma Archive</a></li>
-  	<li><a href="{% url 'docs_perma_user_roles' %}">Perma User Roles</a></li>
-	<li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>
-</ul>
-
-</div>
-
+	</div>
+	<div class="col-sm-3 col-sm-offset-1">
+		<ul class="nav nav-pills nav-stacked">
+			<li><a href="{% url 'docs' %}">Help</a></li> 
+			<li><a href="{% url 'docs_perma_link_creation' %}">Link Creation</a></li>
+			<li class="active"><a href="{% url 'docs_perma_link_vesting' %}">Link Vesting</a></li>
+			<li><a href="{% url 'docs_perma_archive' %}">Archiving & Storage</a></li>
+			<li><a href="{% url 'docs_perma_user_roles' %}">User Roles</a></li>
+			<!--<li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>-->
+			<li><a href="{% url 'docs_libraries' %}">Libraries</a></li>
+		</ul>
+	</div>
 </div>	
 
 {% endblock %}

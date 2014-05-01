@@ -28,14 +28,15 @@ urlpatterns = patterns('perma.views',
     url(r'^contingency-plan/?$', DirectTemplateView.as_view(template_name='contingency_plan.html'), name='contingency_plan'),
     
     #Docs 
-    url(r'^docs/?$', DirectTemplateView.as_view(template_name='docs.html'), name='docs'),
+    url(r'^docs/index', DirectTemplateView.as_view(template_name='docs/index.html'), name='docs'),
+    
     url(r'^docs/perma-link-creation', DirectTemplateView.as_view(template_name='docs/perma-link-creation.html'), name='docs_perma_link_creation'),
+    
     url(r'^docs/perma-link-vesting', DirectTemplateView.as_view(template_name='docs/perma-link-vesting.html'), name='docs_perma_link_vesting'),
     
-    url(r'^docs/perma-archive', DirectTemplateView.as_view(template_name='docs/perma-archive.html'), name='docs_perma_archive'),
+    url(r'^docs/perma-archive', DirectTemplateView.as_view(template_name='docs/perma-archive.html'), name='docs_perma_archive'), 
      
-     
-     url(r'^docs/libraries', DirectTemplateView.as_view(template_name='docs/libraries.html'), name='docs_libraries'),
+    url(r'^docs/libraries', DirectTemplateView.as_view(template_name='docs/libraries.html'), name='docs_libraries'),
      
     url(r'^docs/perma-dark-archive', DirectTemplateView.as_view(template_name='docs/perma-dark-archive.html'), name='docs_perma_dark_archive'),
     

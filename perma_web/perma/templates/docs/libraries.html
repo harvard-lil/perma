@@ -21,7 +21,7 @@
 		<h4><div id="preservation">II. Preservation</div></h4>
 		<p>The internet, by its very nature, is constantly evolving.  Website content and structure can change at the stroke of a key.  As more and more of the information referenced in scholarship, judicial opinions, and legal pedagogy is presented online, we are confronted with the need to preserve online content and make it available for future readers and scholars.  Libraries, the home of preservation, are the natural habitat for curating the system to make links that will not break.</p><br/>
 		
-		<img src="{{ STATIC_URL }}img/docs/shelf.gif" class="img-responsive screen-shot" alt="Responsive image"/>
+		<img src="{{ STATIC_URL }}img/docs/shelf.gif" class="img-responsive" alt="Responsive image"/>
 		
 		<h4><div id="stewardship">III. Stewardship</div></h4>
 		<p>Stewardship In the same way that libraries collect books, they also now collect links.  Perma allows libraries to serve as custodians for online information, leading the effort to preserve online sources for legal scholarship, judicial opinions, and legal pedagogy.  We call these libraries Registrars because they are responsible for registering the users affiliated with their institutions, which includes those users who have the power to vest links.  Librarians can serve, not only as defenders of these online sources, but also curators, using the metadata collected by Perma to understand how materials are used and how these new collections of links can most effectively serve the community. </p><br/>
@@ -31,12 +31,13 @@
 	</div>
 	<div class="col-sm-3 col-sm-offset-1">
 		<ul class="nav nav-pills nav-stacked">
-			<li><a href="{% url 'docs_perma_link_creation' %}">Perma Link Creation</a></li>
+			<li><a href="{% url 'docs' %}">Help</a></li>
+			<li><a href="{% url 'docs_perma_link_creation' %}">Link Creation</a></li>
+			<li><a href="{% url 'docs_perma_link_vesting' %}">Link Vesting</a></li>
+			<li><a href="{% url 'docs_perma_archive' %}">Archiving & Storage</a></li>
+			<li><a href="{% url 'docs_perma_user_roles' %}">User Roles</a></li>
+			<!--<li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>-->
 			<li class="active"><a href="{% url 'docs_libraries' %}">Libraries</a></li>
-			<li><a href="{% url 'docs_perma_link_vesting' %}">Perma Link Vesting</a></li>
-			<li><a href="{% url 'docs_perma_archive' %}">Perma Archive</a></li>
-			<li><a href="{% url 'docs_perma_user_roles' %}">Perma User Roles</a></li>
-			<li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>
 		</ul>
 	</div>
 </div>	

@@ -139,7 +139,7 @@
             <thead>
                 <tr>
                     <th colspan="3">Links</th>
-                    <th class="linky-abbr-title"><a href="?sort={% if sort == 'submitted_title' %}-{% endif %}submitted_title{% if search_query %}&q={{ search_query }}{% endif %}">Title</a></th>
+             
                     <th class="linky-abbr-date-time"><a href="?sort={% if sort == 'creation_timestamp' %}-{% endif %}creation_timestamp{% if search_query %}&q={{ search_query }}{% endif %}">Created</a></th>
                     <th class="linky-abbr-date-time"><a href="?sort={% if sort == 'vested_timestamp' %}-{% endif %}vested_timestamp{% if search_query %}&q={{ search_query }}{% endif %}">Vested</a></th>
                     <th></th>
@@ -153,13 +153,14 @@
                         {% endif %}</td>
                         <td class="linky-abbr-vested">{% if link.vested and verb == 'created' %}<span class="fancy-infinity">&infin;</span>{% endif %}</td>
                         <td class="linky-link">
+                        
+                        	<input type="text" name="input" value="{{ link.submitted_title }}"><br/>
+                                <span class="muted title-save-status"></span>
+                                
                             <a class="orange" href="http://{{request.mirror_server_host}}/{{link.guid}}" target="_blank">http://{{request.mirror_server_host}}/{{link.guid}}</a><br/>
                             <a href="{{ link.submitted_url }}" target="_blank" class="original-link">{{ link.submitted_url|truncatechars:200 }}</a>
                         </td>
-                        <td class="linky-abbr-title">
-								<input type="text" name="input" value="{{ link.submitted_title }}"><br/>
-                                <span class="muted title-save-status"></span><br/>
-                        </td>
+                      
                         
                         <td class="linky-abbr-date-time">{{ link.creation_timestamp|local_datetime:"MMM DD, YYYY" }}</td>
                         <td class="linky-abbr-date-time">{{ link.vested_timestamp|local_datetime:"MMM DD, YYYY" }}</td>
