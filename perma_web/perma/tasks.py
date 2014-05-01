@@ -1,14 +1,20 @@
 import json
 import os
+import os.path
 import tempfile
 import threading
 import urllib
+import urllib2
 import glob
 import shutil
 import urlparse
+import zipfile
+import sys
+from celery import chord
 from celery.contrib import rdb
 from django.core.files.storage import default_storage
 from django.core.mail import send_mail
+from django.core.urlresolvers import reverse
 from django.template.loader import get_template
 from django.template import Context
 from django.forms.models import model_to_dict
@@ -31,9 +37,10 @@ import errno
 from socket import error as socket_error
 
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 
 from perma.models import Asset, Stat, Registrar, LinkUser, Link, VestingOrg
-from perma.utils import store_file, store_data_to_file
+from perma.utils import store_file, store_data_to_file, serialize_datetime, unserialize_datetime
 
 
 logger = logging.getLogger(__name__)
@@ -595,3 +602,143 @@ def email_weekly_stats():
         [settings.DEVELOPER_EMAIL],
         fail_silently = False
     )
+
+
+@celery.task
+def compress_link_assets(*args, **kwargs):
+    """
+    This task creates a zipfile containing the assets of a given Perma
+    link. The zip file does *not* contain mutable status data about
+    the link (e.g. whether it's vested or not), only immutable asset
+    metadata.  This is a Celery task so that it can be run after the
+    tasks that generate the assets are finished, which we arrange for
+    by means of a chord. Thus, the first positional arguments of this
+    function will be return value of those tasks. We thus don't rely
+    on positional arguments and retrieve all of our arguments via
+    kwargs.
+    """
+    try:
+        guid = kwargs['guid']
+    except KeyError:
+        raise TypeError("compress_link_assets() requires a guid keyword argument")
+    target_link = get_object_or_404(Link, guid=guid)
+    metadata = {
+        "guid": guid,
+        "submitted_url": target_link.submitted_url,
+        "creation_timestamp": serialize_datetime(target_link.creation_timestamp),
+        "submitted_title": target_link.submitted_title,
+    }
+    target_asset = get_object_or_404(Asset, link=target_link)
+    asset_directory = os.path.join(settings.MEDIA_ARCHIVES_ROOT, target_asset.base_storage_path)
+    try:
+        os.makedirs(os.path.dirname(asset_directory))
+    except OSError as e:
+        if e.errno == errno.EEXIST:
+            pass
+        else:
+            raise e
+    zip_name = os.path.join(os.path.dirname(asset_directory), guid + ".zip")
+    os.chdir(os.path.dirname(asset_directory))
+    with zipfile.ZipFile(zip_name, "w") as zipfh:
+        for root, dirs, files in os.walk(os.path.basename(asset_directory)):
+            for file in files:
+                zipfh.write(os.path.join(root, file))
+        zipfh.writestr(os.path.join(guid, "metadata.json"),
+                       json.dumps(metadata))
+
+@celery.task
+def update_perma(link_guid):
+    """
+    Update the vested/darchived status of a perma link, and download the
+    assets if necessary
+    """
+    # N.B. This function has two instances of downloading stuff from
+    # the root server using a scheme that looks something like
+    #    settings.SERVER + reverse("url_pattern")
+    # This is nice because it means we don't have to repeat our URL
+    # patterns from urls.py, but it hardcodes the fact that the root
+    # server is another Perma instance. It's unclear to me which is a
+    # better fact to abstract, but this is easier for now.
+
+    ## First, let's get the metadata for this link. The metadata
+    ## contains information about where we should place the assets (if
+    ## we decide that we need them). This is also a fast check to make
+    ## sure the link GUID is actually real.
+    metadata_server = settings.ROOT_METADATA_SERVER
+    metadata_url = metadata_server + reverse("service_link_status", args=(link_guid,))
+    try:
+        metadata_json = urllib2.urlopen(metadata_url)
+    except urllib2.URLError as e:
+        sys.stderr.write("Got a URLError for %s. This probably means there's a problem with the metadata server name.\n" % (metadata_url,))
+        raise e
+    except urllib2.HTTPError as e:
+        sys.stderr.write("Got a HTTPError for %s. This probably means there's a problem with the link guid or URL pattern.\n" % (metadata_url,))
+        raise e
+    metadata = json.load(metadata_json)
+
+    ## Next, let's see if we need to get the assets. If we have the
+    ## Link object for this GUID, we're going to assume we already
+    ## have what we need. It would make a little more sense to use the
+    ## Asset object here instead, but we're definitely going to need
+    ## to do stuff to the Link object so we might as well get that
+    ## instead. In practice they should be ~one to one.
+    try:
+        link = Link.objects.get(guid=link_guid)
+    except Link.DoesNotExist:
+        ## We need to download the assets. We can download an archive
+        ## from the assets server.
+        assets_server = settings.ROOT_ASSETS_SERVER
+        assets_url = assets_server + reverse("service_link_assets", args=(link_guid,))
+        try:
+            # We need to use urllib.urlretrieve here and not
+            # urllib2.urlopen because we need a seek()able file object
+            # to pass to zipfile. A possibly cleaner alternative would
+            # be to use StringIO but this is a little simpler.
+            assets_archive = urllib.urlretrieve(assets_url)[0]
+        except urllib2.URLError as e:
+            sys.stderr.write("Got a URLError for %s. This probably means there's a problem with the assets server name.\n" % (metadata_url,))
+            raise e
+        except urllib2.HTTPError as e:
+            sys.stderr.write("Got a HTTPError for %s. This probably means there's a problem with the link guid or URL pattern.\n" % (metadata_url,))
+            raise e
+
+        ## We can now extract the archive. The metadata contains the
+        ## path that we should extract it to.
+        with zipfile.ZipFile(assets_archive, "r") as zipfh:
+            assets_path = os.path.dirname(os.path.join(settings.MEDIA_ROOT, metadata["path"]))
+            zipfh.extractall(assets_path)
+
+        ## We can now get some additional metadata that we'll need to
+        ## create the Link object.
+        with open(os.path.join(assets_path, link_guid, "metadata.json"), "r") as fh:
+            link_metadata = json.load(fh)
+
+        ## We now have everything we need to initialize the Link object.
+        link = Link(guid=link_guid)
+        link.submitted_url = link_metadata["submitted_url"]
+        link.submitted_title = link_metadata["submitted_title"]
+        link.created_by = None # XXX maybe we should do something with FakeUser here
+        link.save(pregenerated_guid=True) # We need to save this so that we can create an Asset object
+
+        # This is a stupid hack to overcome the fact that the Link has
+        # auto_now_add=True, so it's always going to be saved to the
+        # current time on first creation.
+        link.creation_timestamp = unserialize_datetime(link_metadata["creation_timestamp"])
+        link.save()
+
+        ## Lastly, let's create an Asset object for this Link.
+        asset = Asset(link=link)
+        asset.base_storage_path = metadata["path"]
+        asset.image_capture = metadata["image_capture"]
+        asset.warc_capture = metadata["source_capture"]
+        asset.pdf_capture = metadata["pdf_capture"]
+        asset.text_capture = metadata["text_capture"]
+        asset.save()
+
+    ## We can now add some of the data we got from the metadata to the Link object
+    link.dark_archived = metadata["dark_archived"]
+    link.vested = metadata["vested"]
+    link.save()
+
+def run_chord(header, body):
+    chord(header)(body)

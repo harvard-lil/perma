@@ -1,3 +1,5 @@
+import datetime
+import pytz
 import StringIO
 from django.core.files import File
 from django.core.files.storage import default_storage
@@ -188,3 +190,9 @@ def store_data_to_file(data, file_path, overwrite=False, storage=default_storage
     file_object.write(data)
     file_object.seek(0)
     return store_file(file_object, file_path, overwrite, storage)
+
+def serialize_datetime(dt):
+    return dt.strftime("%Y-%m-%d %H:%M:%S")
+
+def unserialize_datetime(dt_string):
+    return pytz.UTC.localize(datetime.datetime.strptime(dt_string, "%Y-%m-%d %H:%M:%S"))

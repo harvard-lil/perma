@@ -11,6 +11,7 @@ TEMPLATE_DEBUG = DEBUG
 
 # The base location, on disk, where we want to store our generated assets
 MEDIA_ROOT = '/perma/assets/generated'
+MEDIA_ARCHIVES_ROOT = '/perma/assets/generated-archives/'
 
 # Schedule our nightly stats generation
 CELERYBEAT_SCHEDULE = {

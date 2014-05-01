@@ -198,7 +198,7 @@ class Link(models.Model):
         One exception - we want to use up our [non-four alphabet chars-anything] ids first. So, avoid things like XFFC-9VS7
         
         """
-        if not self.pk:
+        if not self.pk and not kwargs.get("pregenerated_guid", False):
             # not self.pk => not created yet
             # only try 100 attempts at finding an unused GUID
             # (100 attempts should never be necessary, since we'll expand the keyspace long before
@@ -215,6 +215,8 @@ class Link(models.Model):
             else:
                 raise Exception("No valid GUID found in 100 attempts.")
             self.guid = Link.get_canonical_guid(guid)
+        if "pregenerated_guid" in kwargs:
+            del kwargs["pregenerated_guid"]
         super(Link, self).save(*args, **kwargs)
 
     def __unicode__(self):

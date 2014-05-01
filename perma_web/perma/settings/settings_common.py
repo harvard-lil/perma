@@ -45,6 +45,7 @@ USE_TZ = True
 
 # user-generated files
 MEDIA_ROOT = ''
+MEDIA_ARCHIVES_ROOT = ''
 MEDIA_URL = '/media/'
 
 # static files
@@ -228,3 +229,7 @@ MIRRORING_ENABLED = os.environ.get('PERMA_MIRRORING_ENABLED', False)    # whethe
 MIRROR_SERVER = False                                                   # whether we are a mirror
 MIRROR_COOKIE_NAME = 'user_info'
 MIRROR_USERS_SUBDOMAIN = 'users'
+
+# mirror v1 stuff
+ROOT_METADATA_SERVER = 'perma.cc'
+ROOT_ASSETS_SERVER = 'perma.cc'
