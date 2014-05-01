@@ -629,7 +629,14 @@ def compress_link_assets(*args, **kwargs):
         "submitted_title": target_link.submitted_title,
     }
     target_asset = get_object_or_404(Asset, link=target_link)
-    asset_directory = os.path.join(settings.MEDIA_ROOT, target_asset.base_storage_path)
+    asset_directory = os.path.join(settings.MEDIA_ARCHIVES_ROOT, target_asset.base_storage_path)
+    try:
+        os.makedirs(os.path.dirname(asset_directory))
+    except OSError as e:
+        if e.errno == errno.EEXIST:
+            pass
+        else:
+            raise e
     zip_name = os.path.join(os.path.dirname(asset_directory), guid + ".zip")
     os.chdir(os.path.dirname(asset_directory))
     with zipfile.ZipFile(zip_name, "w") as zipfh:
