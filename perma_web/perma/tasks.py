@@ -4,9 +4,9 @@ import os.path
 import tempfile
 import threading
 import urllib
-import urllib2
 import glob
 import shutil
+from StringIO import StringIO
 import urlparse
 import zipfile
 import sys
@@ -561,15 +561,7 @@ def update_perma(link_guid):
     ## sure the link GUID is actually real.
     metadata_server = settings.ROOT_METADATA_SERVER
     metadata_url = metadata_server + reverse("service_link_status", args=(link_guid,))
-    try:
-        metadata_json = urllib2.urlopen(metadata_url)
-    except urllib2.URLError as e:
-        sys.stderr.write("Got a URLError for %s. This probably means there's a problem with the metadata server name.\n" % (metadata_url,))
-        raise e
-    except urllib2.HTTPError as e:
-        sys.stderr.write("Got a HTTPError for %s. This probably means there's a problem with the link guid or URL pattern.\n" % (metadata_url,))
-        raise e
-    metadata = json.load(metadata_json)
+    metadata = requests.get(metadata_url).json()
 
     ## Next, let's see if we need to get the assets. If we have the
     ## Link object for this GUID, we're going to assume we already
@@ -584,18 +576,7 @@ def update_perma(link_guid):
         ## from the assets server.
         assets_server = settings.ROOT_ASSETS_SERVER
         assets_url = assets_server + reverse("service_link_assets", args=(link_guid,))
-        try:
-            # We need to use urllib.urlretrieve here and not
-            # urllib2.urlopen because we need a seek()able file object
-            # to pass to zipfile. A possibly cleaner alternative would
-            # be to use StringIO but this is a little simpler.
-            assets_archive = urllib.urlretrieve(assets_url)[0]
-        except urllib2.URLError as e:
-            sys.stderr.write("Got a URLError for %s. This probably means there's a problem with the assets server name.\n" % (metadata_url,))
-            raise e
-        except urllib2.HTTPError as e:
-            sys.stderr.write("Got a HTTPError for %s. This probably means there's a problem with the link guid or URL pattern.\n" % (metadata_url,))
-            raise e
+        assets_archive = StringIO(requests.get(assets_url).content)
 
         ## We can now extract the archive. The metadata contains the
         ## path that we should extract it to.
@@ -638,7 +619,7 @@ def update_perma(link_guid):
 @celery.task
 def poke_mirrors(link_guid):
     for mirror in settings.MIRRORS:
-        urllib2.urlopen(mirror + reverse("service_update_link", args=(link_guid,)))
+        request.get(mirror + reverse("service_update_link", args=(link_guid,)))
 
 def run_chord(header, body):
     chord(header)(body)
