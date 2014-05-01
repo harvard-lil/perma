@@ -5,7 +5,20 @@ var all_links = new Array();
 
 
 /* Our polling function for the thumbnail completion - start */
-var refreshIntervalId = 0;
+
+// The plan is to set a timer to periodically check if the thumbnail
+// exists. Once it does, we append it to the page and clear the
+// thumbnail. The reason we're keeping a list of interval IDs rather
+// than just one is as a hacky solution to the problem of a user
+// creating a Perma link for some URL and then immediately clicking
+// the button again for the same URL. Since all these requests are
+// done with AJAX, that results in two different interval IDs getting
+// created. Both requests will end up completing but the old interval
+// ID will be overwritten and never cleared, causing a bunch of copies
+// of the screenshot to get appended to the page. We thus just append
+// them to the list and then clear the whole list once the request
+// succeeds.
+var refreshIntervalIds = [];
 
 function check_status() {
 	
@@ -23,7 +36,9 @@ function check_status() {
 	        $('#spinner').slideUp();
 	        $('.thumbnail-placeholder').append('<div class="library-thumbnail"><img src="' + 
 	            MEDIA_URL + data.path + '/' + data.image_capture + '"></div>');
-			clearInterval(refreshIntervalId);
+		        $.each(refreshIntervalIds, function(ndx, id) {
+			    clearInterval(id);
+			});
 		}	
 	});
 }
@@ -129,7 +144,7 @@ function linkIt(){
     if (newLinky.message_pdf = data.message_pdf) {
         $('#spinner').slideUp();
     } else {
-		refreshIntervalId = setInterval(check_status, 2000);
+		refreshIntervalIds.push(setInterval(check_status, 2000));
     }
     $('#link-short-slug').slideDown();
     var clip = new ZeroClipboard( $(".copy-button"), {
