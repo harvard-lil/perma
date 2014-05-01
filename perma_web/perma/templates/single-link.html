@@ -6,9 +6,6 @@
 {% endblock %}
 {% block styles %}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/font-awesome.min.css">
-	{% if serve_type == 'text' %}
-	    <link rel="stylesheet" href="{{ STATIC_URL }}css/text-capture.css">
-	{% endif %}
 
     {# put in styles because this has to be available during page load #}
     <script src="{{ STATIC_URL }}js/moment-with-langs.min.js "></script>
@@ -116,20 +113,6 @@
 								{% endif %}
 								</li>
 								{% endif %}
-								
-								{% if asset.text_capture and asset.text_capture != 'failed' %}
-								<li>
-								{% if asset.text_capture == 'pending' %}
-									<span id="text_cap_container_loading" class="tab-styling">Archiving text</span> <!--<img src="{{ STATIC_URL }}img/dots.gif" alt="Archiving...">-->
-									<a id="text_cap_container_complete" class="tab-styling{% if serve_type == 'text' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=text" style="display:none;">Archived text</a>
-
-								{% else %}
-									<span id="text_cap_container_loading" class="tab-styling" style="display:none;">Archiving text</span> 
-									<a id="text_cap_container_complete" class="tab-styling{% if serve_type == 'text' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=text">Archived text</a>
-								{% endif%}
-								</li>
-								{% endif %}
-
 							</ul>
 					
 						{% endif %}
@@ -189,12 +172,6 @@
 			<iframe src="{{ warc_url }}" sandbox="allow-forms allow-scripts">
 			  <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
 			</iframe>
-			{% endif %}
-			
-			{% if serve_type == 'text' %}
-			<div class="translucent-background">
-				<div id="text-capture">{% autoescape off %}{{ text_capture }}{% endautoescape %}</div>
-			</div>
 			{% endif %}
 
             {# TEMPORARY SERVE TYPE UNTIL WE COMPLETELY SWITCH TO WARC #}
