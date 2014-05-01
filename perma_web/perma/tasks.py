@@ -538,6 +538,7 @@ def compress_link_assets(*args, **kwargs):
                 zipfh.write(os.path.join(root, file))
         zipfh.writestr(os.path.join(guid, "metadata.json"),
                        json.dumps(metadata))
+    poke_mirrors.delay(link_guid=guid)
 
 @celery.task
 def update_perma(link_guid):
@@ -632,6 +633,11 @@ def update_perma(link_guid):
     link.dark_archived = metadata["dark_archived"]
     link.vested = metadata["vested"]
     link.save()
+
+@celery.task
+def poke_mirrors(link_guid):
+    for mirror in settings.MIRRORS:
+        urllib2.urlopen(mirror + reverse("service_update_link", args=(link_guid,)))
 
 def run_chord(header, body):
     chord(header)(body)

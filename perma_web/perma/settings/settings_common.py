@@ -231,5 +231,6 @@ MIRROR_COOKIE_NAME = 'user_info'
 MIRROR_USERS_SUBDOMAIN = 'users'
 
 # mirror v1 stuff
-ROOT_METADATA_SERVER = 'perma.cc'
-ROOT_ASSETS_SERVER = 'perma.cc'
+ROOT_METADATA_SERVER = 'http://perma.cc'
+ROOT_ASSETS_SERVER = 'http://perma.cc'
+MIRRORS = []

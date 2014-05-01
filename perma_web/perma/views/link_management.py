@@ -355,6 +355,7 @@ def vest_link(request, guid):
             link.vested_by_editor=request.user
             link.vested_timestamp=datetime.now()
             link.save()
+            poke_mirrors.delay(link_guid=guid)
     return HttpResponseRedirect(reverse('single_linky', args=[guid]))
 
 
@@ -365,5 +366,6 @@ def dark_archive_link(request, guid):
         if not link.dark_archived:
             link.dark_archived=True
             link.save()
+            poke_mirrors.delay(link_guid=guid)
         return HttpResponseRedirect(reverse('single_linky', args=[guid]))
     return render_to_response('dark-archive-link.html', {'linky': link}, RequestContext(request))
