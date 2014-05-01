@@ -608,8 +608,9 @@ def email_weekly_stats():
 def compress_link_assets(*args, **kwargs):
     """
     This task creates a zipfile containing the assets of a given Perma
-    link. The zip file does *not* contain metadata, only immutable
-    asset data.  This is a Celery task so that it can be run after the
+    link. The zip file does *not* contain mutable status data about
+    the link (e.g. whether it's vested or not), only immutable asset
+    metadata.  This is a Celery task so that it can be run after the
     tasks that generate the assets are finished, which we arrange for
     by means of a chord. Thus, the first positional arguments of this
     function will be return value of those tasks. We thus don't rely
