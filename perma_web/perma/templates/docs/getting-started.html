@@ -1,0 +1,62 @@
+{% extends "layout-responsive.html" %}
+{% load file_exists %}
+{% block title %} | Docs{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ STATIC_PREFIX }}css/font-awesome.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+	<div class="col-sm-8 docs">
+		<h2>Getting Started</h2>
+		<!--<h4><a href="#create-account">Creating an Account</a></h4>
+		<h4><a href="#log-in">Logging into Perma</a></h4>
+		<h4><a href="#create-link">Creating a Perma Link</a></h4>
+		<h4><a href="#organize-links">Organizing Links</a></h4>
+		
+		<br/>
+		<br/>-->
+		<hr>
+		<h4><div id="create-account">Creating an Account</div></h4>
+		<!--<p>To make PermaLinks, you will need an account. If you are a general user creating links for your own use, remember, your links will not be saved permanently until they are “vested” by a vesting user.  Unvested links will be available for a period of two years.  </p>
+		
+		<p>If you are affiliated with a law library, academic law journal, or court system <a href="#">click here to see if your institution</a> is a perma.cc partner and contact your institution directly for vesting privileges. </p>-->
+		
+		<p>To create your account, <a href="#">click here</a> or find <kbd>Create An Account</kbd> on the home page</p>
+		
+		<img src="{{ STATIC_URL }}img/docs/create-account.gif" class="img-responsive screen-shot" alt="Responsive image"/>
+
+		<p>Registering is easy. All we need is your email, first and last name. Be sure to read the terms of service!</p>
+		
+		<img src="{{ STATIC_URL }}img/docs/register.gif" class="img-responsive screen-shot" alt="Responsive image"/>
+		
+		<p>If your chosen account information is available (not already taken by another user), you will see a confirmation page and receive an email at the account you specified. Please follow the instructions in the email to activate your account. If the system indicates that your email address has already been assigned to another user, it is possible that someone in your institution has already added you as a user.  You can use the password reset option and your email address to claim your account.</p>
+		
+		<img src="{{ STATIC_URL }}img/email-account.gif" class="img-responsive screen-shot" alt="Responsive image"/>
+		
+		<p>If you are affiliated with a law library, academic law journal, or court system, you may receive an email that an account has been created for you.  Follow the instructions in that email to activate your account, which will be affiliated with your particular institution including the power to vest links if assigned to you.</p>
+
+		<br/>
+		<h4><div id="log-in">Logging into Perma</div></h4>
+		<p>When you log in to Perma, you are taken to your Perma “Dashboard” -- a central page where you can create new PermaLinks, navigate to your existing PermaLinks, and navigate to Tools & Settings. Look for the blue Dashboard link, in the top right corner of other pages, to return here.</p>
+		
+		<img src="{{ STATIC_URL }}img/docs/creating-perma1.gif" class="img-responsive screen-shot" alt="Responsive image"/>
+		
+		<br/>
+		
+	</div>
+	<div class="col-sm-3 col-sm-offset-1 docs-nav">
+		<ul class="nav nav-pills nav-stacked">
+			<li><a href="{% url 'docs' %}">Help</a></li>
+			<li class="active"><a href="{% url 'docs_getting-started' %}">Getting Started</a></li>
+			<li><a href="{% url 'docs_perma_link_creation' %}">Creating, Organizing, Annotating</a></li>
+			<li><a href="{% url 'docs_perma_link_vesting' %}">Vesting</a></li>
+			<li><a href="{% url 'docs_perma_archive' %}">Archiving & Storage</a></li>
+			<li><a href="{% url 'docs_perma_user_roles' %}">User Roles</a></li>
+			<!--<li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>-->
+			<li><a href="{% url 'docs_libraries' %}">Libraries</a></li>
+		</ul>	
+	</div>
+</div>	
+
+{% endblock %}
