@@ -45,13 +45,25 @@ body {
 pre {
 	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
 	font-weight: 300;
-	font-size: 18px;
+	font-size: 16px;
 	background:#ddf1ff;
 	border:1px solid #bbe4ff;
-	margin:30px 0px 30px 30px;
+	color:#ff4100;
+	margin:15px 0px 15px 30px;
 }
 
- 
+.inset1 {
+	margin-left:70px;
+}
+
+.inset2 {
+	margin-left:50px;
+}
+
+.highlighted-definition {
+	color:#666;
+}
+
 
 kbd {
     margin: 0;
@@ -77,13 +89,7 @@ kbd {
 }
 
 
-span.highlighted-definition {
-	color:#666;
-}
 
-.definition {
-	margin-left:20px
-}
 
 #feedback-form {
   width:320px;
@@ -129,6 +135,7 @@ h4 {
 
 .docs h4 {
 	color:#09f;
+	font-size: 22px;
 }
 
 h5 a {
@@ -148,9 +155,6 @@ p {
    	font-size: 16px;
 }
 
-.docs img {
-;
-}
 
 .fancy-infinity {
     color:#09f;

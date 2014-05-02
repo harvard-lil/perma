@@ -26,19 +26,19 @@
 		
 		<img src="{{ STATIC_URL }}img/docs/create-account.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 
-		<p>Registering is easy. All we need is your email, first and last name. Be sure to read the terms of service!</p>
+		<p>Registering is easy. All we need is your email, first and last name. Be sure to read the <a href="{% url 'terms_of_service' %}">terms of service</a>!</p>
 		
 		<img src="{{ STATIC_URL }}img/docs/register.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 		
-		<p>If your chosen account information is available (not already taken by another user), you will see a confirmation page and receive an email at the account you specified. Please follow the instructions in the email to activate your account. If the system indicates that your email address has already been assigned to another user, it is possible that someone in your institution has already added you as a user.  You can use the password reset option and your email address to claim your account.</p>
+		<!--<p>If your chosen account information is available (not already taken by another user), you will see a confirmation page and receive an email at the account you specified. Please follow the instructions in the email to activate your account. If the system indicates that your email address has already been assigned to another user, it is possible that someone in your institution has already added you as a user.  You can use the password reset option and your email address to claim your account.</p>
 		
 		<img src="{{ STATIC_URL }}img/email-account.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 		
-		<p>If you are affiliated with a law library, academic law journal, or court system, you may receive an email that an account has been created for you.  Follow the instructions in that email to activate your account, which will be affiliated with your particular institution including the power to vest links if assigned to you.</p>
+		<p>If you are affiliated with a law library, academic law journal, or court system, you may receive an email that an account has been created for you.  Follow the instructions in that email to activate your account, which will be affiliated with your particular institution including the power to vest links if assigned to you.</p>-->
 
 		<br/>
 		<h4><div id="log-in">Logging into Perma</div></h4>
-		<p>When you log in to Perma, you are taken to your Perma “Dashboard” -- a central page where you can create new PermaLinks, navigate to your existing PermaLinks, and navigate to Tools & Settings. Look for the blue Dashboard link, in the top right corner of other pages, to return here.</p>
+		<p>When you log in to Perma, you are taken to your Perma “Dashboard” -- a central page where you can create new Perma Links, navigate to your existing Perma Links, and navigate to Tools & Settings. Look for the blue Dashboard link, in the top right corner of other pages, to return here.</p>
 		
 		<img src="{{ STATIC_URL }}img/docs/creating-perma1.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 		
@@ -47,7 +47,7 @@
 	</div>
 	<div class="col-sm-3 col-sm-offset-1 docs-nav">
 		<ul class="nav nav-pills nav-stacked">
-			<li><a href="{% url 'docs' %}">Help</a></li>
+			<li><a href="{% url 'docs' %}">Overview</a></li>
 			<li class="active"><a href="{% url 'docs_getting-started' %}">Getting Started</a></li>
 			<li><a href="{% url 'docs_perma_link_creation' %}">Creating, Organizing, Annotating</a></li>
 			<li><a href="{% url 'docs_perma_link_vesting' %}">Vesting</a></li>

@@ -18,7 +18,15 @@
 		<br/>-->
 		<hr>
 		<h4><div id="create-link">Creating a Perma Link</div></h4>
-		<p>A Perma Link gives you access to an archived version of the content at a URL, frozen at a moment in time.  You will also have an option to view the live site and compare the content. To create a Perma Link, simply input a URL into the entry box, as shown below, and press    or click on the blue infinity button! The entry box is flexible and will accept multiple formats, including www and https://.</p>
+		<p>A Perma Link gives you access to an archived version of the content at a URL, frozen at a moment in time.  To create a Perma Link, simply input a URL into the entry box, as shown below, and click on the blue infinity button!</p>
+			
+		<button class="center btn btn-info">
+			<div class="infinity">
+				<img class="button-img" src="/static/img/infinity-white.png" alt="Loading..." />
+			</div>
+		</button><br/><br/>
+		
+		<p>The entry box is flexible and will accept multiple formats, including www and https://.</p>
 		
 		<img src="{{ STATIC_URL }}img/docs/creating-perma2.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 		
@@ -55,7 +63,7 @@
 	</div>
 	<div class="col-sm-3 col-sm-offset-1 docs-nav">
 		<ul class="nav nav-pills nav-stacked">
-			<li><a href="{% url 'docs' %}">Help</a></li>
+			<li><a href="{% url 'docs' %}">Overview</a></li>
 			<li><a href="{% url 'docs_getting-started' %}">Getting Started</a></li>
 			<li class="active"><a href="{% url 'docs_perma_link_creation' %}">Creating, Organizing, Annotating</a></li>
 			<li><a href="{% url 'docs_perma_link_vesting' %}">Vesting</a></li>
