@@ -281,7 +281,7 @@ class Asset(models.Model):
 
     def __init__(self, *args, **kwargs):
         super(Asset, self).__init__(*args, **kwargs)
-        if self.link:
+        if self.link and not self.base_storage_path:
             self.base_storage_path = self.link.generate_storage_path()
 
     def base_url(self, extra=u""):
