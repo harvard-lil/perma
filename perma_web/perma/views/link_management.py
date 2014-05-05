@@ -20,7 +20,7 @@ from django.template import RequestContext
 
 from perma.forms import UploadFileForm
 from perma.models import Link, Asset, Folder
-from perma.tasks import get_pdf, proxy_capture, compress_link_assets, run_chord
+from perma.tasks import get_pdf, proxy_capture, compress_link_assets, poke_mirrors, run_chord
 from perma.utils import require_group, store_file
 
 
