@@ -67,6 +67,9 @@ STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
 
 PIPELINE_JS_COMPRESSOR = None
 
+# We likely want to remove this disable in the future
+PIPELINE_DISABLE_WRAPPER = True
+
 PIPELINE_JS = {
     'create': {
         'source_filenames': (
