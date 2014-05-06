@@ -67,11 +67,7 @@ PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.jsmin.JSMinCompressor'
 PIPELINE_JS = {
     'create': {
         'source_filenames': (
-          'js/ZeroClipboard/ZeroClipboard.min.js',
-          'js/handlebars.js',
-          'js/jquery.form.min.js',
           'js/create.js',
-          'js/swfobject.js',
         ),
         'output_filename': 'js/create-bundle.js',
     }
