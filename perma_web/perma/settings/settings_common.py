@@ -62,7 +62,10 @@ STATICFILES_FINDERS = (         # how to look for static files
 # Django Pipline config
 STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
 
-PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.jsmin.JSMinCompressor'
+# We likely want to do something like this:
+# PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.jsmin.JSMinCompressor'
+
+PIPELINE_JS_COMPRESSOR = None
 
 PIPELINE_JS = {
     'create': {
