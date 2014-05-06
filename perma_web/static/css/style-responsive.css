@@ -85,10 +85,9 @@ kbd {
   box-shadow:         0 0 2px 2px #eee;
   	border:1px solid #ccc;
 	border-radius:3px;
-	margin:10px 20px 20px 10px
+	margin:10px 20px 20px 10px;
+	width:75%;
 }
-
-
 
 
 #feedback-form {
@@ -132,6 +131,8 @@ h2 {
 h4 {
 	color: #ff4100;
 }
+
+
 
 .docs h4 {
 	color:#09f;
@@ -207,8 +208,12 @@ p {
 	
 	.landing-logo {
 		width:300px;
-		margin-bottom:20px;
+		margin-bottom:25px;
+		margin-top:-20px;
 	}
+	
+	
+	
         header navbar-header ul {
             list-style: none;
             text-align: right;
@@ -2018,6 +2023,13 @@ text {
     margin-bottom: 40px;
 }
 
+
+p.orange {
+	font-family:"Helvetica Neue";
+	font-weight:bold;
+	color:red;
+	font-size:20px;
+}
 /* Stats page end */
 
 
@@ -2073,7 +2085,19 @@ text {
         -moz-border-radius: 0px;
         -webkit-border-radius: 0px;
         margin-right:0px;
-}
+	}
+	.screen-shot {
+		margin:0 0 20px 0;
+		border-radius: 2px;  
+		border:1px solid #09f;
+		-moz-box-shadow:    0 0 2px 2px #eee;
+	  -webkit-box-shadow: 0 0 2px 2px #eee;
+	  box-shadow:         0 0 2px 2px #eee;
+		border:1px solid #ccc;
+		border-radius:3px;
+		margin:10px 20px 20px 10px;
+		width:100%
+	}
 	.add-link-form {
 		text-align: center;
 	}

@@ -9,34 +9,38 @@
 <div class="container">
 	<div class="col-sm-8 docs">
 		<h2>Perma Link Vesting</h2>
-		<!--<h4><a href="#vesting">I. Vesting &amp; Vesting Privileges</a></h4>
-		<h4><a href="#vesting-priviledges">II. Vesting Organizations &amp; Vesting Users</a></h4>
-		<br/>-->
+		<h4><a href="#vesting">Vesting &amp; Vesting Privileges</a></h4>
+		<h4><a href="#vesting-priviledges">Registrars, Vesting Organizations &amp; Vesting Users</a></h4>
+		<br/>
 		<hr>
 			
 		<h4><div id="vesting">Vesting &amp; Vesting Privileges</div></h4>
 		
-		<pre>Vest·ing<div class="highlighted-definition">Confirming an existing Perma Link's status as part of the permanent archive</div></pre>
+		<pre>Vest·ing<div class="highlighted-definition">Confirming that an archived web page and its Perma Link should become part of the permanent collection of participating libraries</div></pre>
 		
-		<p>Once a Perma Link is created, it will be automatically stored for for two years.  At the end of that period, the Perma Link creator will have the option to renew the link for another two year period. If, at any time, you wish to preserve access to the archived content indefinitely, your link must be approved by an account affiliated with a Perma Registrar for permanent status. We call this approval process “vesting.” Once vested, a link will be forever preserved.</p>
+		<p>All web pages you archive through Perma will begin as unvested, temporary archives. Perma will maintain these archives and their associated Perma Links for at least two years following creation. At the end of that temporary period, Perma will give you the option to renew the archived web page for another temporary period, after which the Perma Link may expire.</p>
 		
-		<p>While logged into a vesting account, a user simply follows the PermaLink and selects “vest” in the upper righthand corner.</p>
+		<p>To become permanent, however, a Perma Link must be vested by someone with vesting authority. Perma’s focus at this stage is to provide lasting links to online materials cited in academic scholarship, judicial opinions and educational materials. Vesting signifies that an individual affiliated with a journal, court or library has confirmed that the archived materials support these goals and should be preserved as a part of the permanent collection of participating libraries.</p>
+		
+		<p>To vest a Perma Link, a user with vesting privileges (a “Vesting User”) simply needs to visit the Perma Link URL, review the archived material and click the “Vest” button in the upper right corner of the screen.</p>
 		
 		<img src="{{ STATIC_URL }}img/docs/vest.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 		
-		<p>The goal of Perma.cc is to provide lasting links to material cited in legal scholarship, judicial opinions, and legal pedagogy.  Vesting a link is a confirmation that the link supports these goals and will be available for readers in perpetuity.  In order to further the idea of perpetual access, you may not reverse the vesting process.  If you believe a link has been vested in error, or you wish to have the link removed from public access, you can place the link in the Dark Archive.</p><br/>
+		<p>Once vested, a Perma Link cannot be deleted.</p><br/>
 
-		<h4><div id="vesting-priviledges">Vesting Organizations &amp; Vesting Users</div></h4>
+		<h4><div id="vesting-priviledges">Registrars, Vesting Organizations &amp; Vesting Users</div></h4>
 
-		<pre>Vest·ing Us·er<div class="highlighted-definition">A user affiliated with a vesting organization with the power to vest links.</div></pre>
+		<pre>Reg·is·trar<div class="highlighted-definition">An institution (such as a library) that is responsible for the Vesting Organizations it creates.</div></pre>
 		
-		<pre class="inset2">Vest·ing Or·gan·i·za·tion<div class="highlighted-definition">An entity such as a law journal court or academic publisher that connects Vesting Users, allowing them to view & organize a collection of links.</div></pre>
+		<pre class="inset2">Vest·ing Or·gan·i·za·tion<div class="highlighted-definition">An entity (such as a law journal or court) that is responsible for the Vesting Users it creates and the Perma Links that are vested by those Vesting Users. </div></pre>
 		
-		<pre class="inset1">Reg·is·trar<div class="highlighted-definition">An institution that partners with Perma as a custodian of the permanent archive and oversees Vesting Organiztions.</div></pre>
+		<pre class="inset1">Vest·ing Us·er<div class="highlighted-definition">A Perma user who is affiliated with one or more Vesting Organizations and has the authority to vest Perma Links on behalf of those organizations.</div></pre>
 		
-		<p>Only certain Perma accounts have vesting privileges.  Vesting organizations, such as law journals, courts, and academic legal publishers are each affiliated with a Registrar institution that has partnered with Perma to preserve links created specifically to support judicial opinions, legal scholarship, and legal pedagogy.  These Registrars can vouch for the authenticity of affiliated vesting organizations and help prevent abuse of the PermaLink functionality.</p>
+		<p>To ensure that vesting occurs only when warranted, Perma restricts vesting privileges to certain users - called “Vesting Users.” Each Vesting User is affiliated with a Vesting Organization, each of which is affiliated, in turn, with a Registrar. Whenever a Perma Link is vested, it is associated not only with the user who created it, but also with the Vesting User,  the Vesting Organization and the Registrar responsible for making it part of the permanent collection of participating libraries.</p>
 		
-		<p>If you are affiliated with a law library, academic law journal, or court system <a href="#">click here to see if your institution is a perma.cc partner</a> and contact your institution directly for vesting privileges</a>
+		<p>We leave it to Registrars and Vesting Organization to manage permissions for their organizations and to adopt policies for adding new Vesting Organizations and authorizing new Vesting Users.</p>
+		
+		<p>If you are affiliated with a law library, law journal, or court system <a href="{% url 'about' %}">click here</a> to see if your institution is a perma.cc partner. If so, you can contact your institution directly for information about vesting privileges. If you do not see your institution listed, then please contact us at <a href="mailto:info@perma.cc">info@perma.cc</a> and we’ll see if we can help.</a>
 	
 	</div>
 	<div class="col-sm-3 col-sm-offset-1">

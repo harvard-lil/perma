@@ -9,16 +9,14 @@
 <div class="container">
 	<div class="col-sm-8 docs">
 		<h2>Perma Link Creation</h2>
-		<!--<h4><a href="#create-account">Creating an Account</a></h4>
-		<h4><a href="#log-in">Logging into Perma</a></h4>
 		<h4><a href="#create-link">Creating a Perma Link</a></h4>
 		<h4><a href="#organize-links">Organizing Links</a></h4>
-		
 		<br/>
-		<br/>-->
 		<hr>
 		<h4><div id="create-link">Creating a Perma Link</div></h4>
-		<p>A Perma Link gives you access to an archived version of the content at a URL, frozen at a moment in time.  To create a Perma Link, simply input a URL into the entry box, as shown below, and click on the blue infinity button!</p>
+		<p>A Perma Link allows you to direct your readers to an archived version of the contents of a web page specified by you.</p>
+		
+		<p>To create a Perma Link, enter the URL of the web page into the entry box, as shown below, and click on the blue infinity button to direct Perma to create an archive of the contents of that page.</p>
 			
 		<button class="center btn btn-info">
 			<div class="infinity">
@@ -26,37 +24,40 @@
 			</div>
 		</button><br/><br/>
 		
-		<p>The entry box is flexible and will accept multiple formats, including www and https://.</p>
+		<p>The entry box will accept multiple formats, including www and https://.</p>
 		
 		<img src="{{ STATIC_URL }}img/docs/creating-perma2.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 		
-		<p>After the link is processed, a thumbnail of the original webpage will appear, now linked to a Perma Link address. The option allows you to easily copy the Perma Link for inclusion in a document, or testing on another page.</p> 
+		<p>At your direction, Perma will archive the web page found at your specified URL. Once processing is complete, Perma will display a thumbnail image of the archived web page and a new Perma Link (such as perma.cc/ABCD-1234) for that archive. </p> 
 		
 		<img src="{{ STATIC_URL }}img/docs/thumbnail.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 
-		<p>At this point, you have created an unvested, <span class="orange">NON-PERMANENT</span> link.</p>
 		
-		<p>If your website is not correctly rendering using Perma’s standard toolkit, use the upload button to upload screenshots (.png, .jpg) or PDF documents. The upload option appears at the bottom of the website thumbnail, immediately following creation of the Perma Link.</p>
-		
-		
+		<p>You should review the thumbnail image and click on the new Perma Link to confirm that the archive page rendered correctly. If it did not, you can use the upload option, just beneath the thumbnail image, to upload your own screenshots (.png, .jpg) or PDF documents.</p>
 		
 		<img src="{{ STATIC_URL }}img/docs/upload.gif" class="img-responsive screen-shot" alt="Responsive image"/>
+		
+		<br/>
+		<p class="orange">Important Note: At this point, you’ve created a temporary archive. To become permanent, your archived and the accompanying Perma Link must be vested. Click here to learn more about vesting.</p>
+		
+		
 
-
+		<br/>
+		<h4><div id="organize-links">Organizing Links</a></h4>
+		
+		<p>Perma provides many useful ways to view, organize and annotate the Perma Links and archives you’ve created. </p>
+		
 		<p>To see all URL’s that you have converted to Perma Links, click on Links in the navigation menu on the left.</p>
 		
 		<img src="{{ STATIC_URL }}img/docs/list-of-links.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 	
-		<br/>
-		<h4><div id="organize-links">Organizing Links</a></h4>
-		
-		<p>Perma includes many useful tools for organization of links.  You can file links in folders.  Change the titles of your links.  Even add notes that can be viewed by users who create or vest links.</p>
-		
+		<p>You can organize links in folders, change the titles of your links, and add notes to each link. The notes are visible to you and to anyone with vesting authority with whom you share the Perma Link. .</p>
+	
 		<img src="{{ STATIC_URL }}img/docs/notes1.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 		
 		<img src="{{ STATIC_URL }}img/docs/notes2.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 		
-		<p>You can search or sort your links using the search bar above the link list or clicking the column headings.</p>
+		<p>You also can search or sort your links using the search bar above the link list or by clicking the column headings.</p>
 		
 		<img src="{{ STATIC_URL }}img/docs/search.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 		

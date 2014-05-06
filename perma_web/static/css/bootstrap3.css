@@ -6835,6 +6835,10 @@ td.visible-print {
   .visible-print {
     display: block !important;
   }
+  a[href]:after {
+    content: none;
+  }
+  
   tr.visible-print {
     display: table-row !important;
   }
