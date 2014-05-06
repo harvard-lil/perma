@@ -17,12 +17,12 @@ class RegistrarForm(ModelForm):
         
 class VestingOrgWithRegistrarForm(ModelForm):
 
-    registrar = forms.ModelChoiceField(queryset=Registrar.objects.all(), empty_label=None)
+    registrar = forms.ModelChoiceField(queryset=Registrar.objects.all().order_by('name'), empty_label=None)
     
     class Meta:
         model = VestingOrg
         fields = ['name', 'registrar']
-        
+
         
 class VestingOrgForm(ModelForm):
     
