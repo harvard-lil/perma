@@ -279,7 +279,7 @@ p {
 
 ul.partners {
 	text-align:center;
-	margin-top:00px;
+	margin:10px 0;
 }
 .partners li {
 	display:inline;
@@ -1604,8 +1604,18 @@ section#home-description p.mega {
 	font-size:36px;
 	color:#777;
 	line-height:48px;
-	margin-top:20px;
+	margin-top:0px;
 }
+
+.welcome {
+	text-align:left;
+}
+
+.carousel-band {
+  background: #f7f7f7;
+  border:1px solid #eee;
+}
+
 
 .temp-form-css input {
 	border: 1px solid #ccc;

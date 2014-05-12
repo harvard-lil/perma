@@ -11,24 +11,261 @@
 <!-- URL input -->
 <section id="home-description">
     <div class="container">
-    	<div class="row">
-        	<div class="col-sm-12">
-        	<p class="mega">Websites change,<br/> go away, and are taken down</p>
-        				<div class="logo">
-							<img class="landing-logo" src="{{ STATIC_URL }}img/cake.png"/>
-						</div>
+    	<div class="row welcome">
+        	<div class="col-sm-6">
+        		<p class="mega">Websites change,<br/> go away, and are taken down</p>
+				
+				
 				<p><span class="orange">perma.cc</span>  helps authors and journals create<br />
 				permanent archived citations in their published work</p>
+				
+				<p><a href="{% url 'process_register' %}" class="btn btn-large btn-success">Create an account</a></p>
 				{% if request.user.is_authenticated %}
-				    <p><a href="{% url 'created_links' %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
+					
+				<p><a href="{% url 'created_links' %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
+				{% else %}
 			</div>	
+			<div class="col-sm-6">
+				<img class="img-responsive" src="{{ STATIC_URL }}/img/shelf.gif"/>
+				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
+			</div>	
+	
 		</div>	<!--row-->
-		{% else %}
+	</div>	<!--container-->	
+		
+	<div id="carousel-example-generic" class="carousel slide carousel-band" data-ride="carousel">
+        <!-- Indicators -->
+        <ol class="carousel-indicators">
+          <li data-target="#carousel-example-generic" data-slide-to="0" class="active"></li>
+          <li data-target="#carousel-example-generic" data-slide-to="1"></li>
+          <li data-target="#carousel-example-generic" data-slide-to="2"></li>
+          <li data-target="#carousel-example-generic" data-slide-to="3"></li>
+          <li data-target="#carousel-example-generic" data-slide-to="4"></li>
+        </ol>
+
+        <!-- Wrapper for slides -->
+        <div class="carousel-inner">
+          <div class="item active">
+          	<ul class="partners">
+            	<li class="participating-institutions-carousel">
+						<a href="http://www.wcl.american.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/AU-WCL-bw.png" alt="American University Washington University Law Library"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.bc.edu/schools/law/library.html"><img src="{{ STATIC_URL }}img/participating-institutions/BC-bw.png" alt="Law Library At Boston College"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.bu.edu/lawlibrary/"><img src="{{ STATIC_URL }}img/participating-institutions/BU-bw.png" alt="Boston University Law School"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="https://www.law.upenn.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/Biddle-bw.jpg" alt="Biddle Law Library, University of Pennsylvania"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.charlestonlaw.edu/Library.aspx"><img src="{{ STATIC_URL }}img/participating-institutions/Charleston-bw.png" alt="Charleston School of Law"></a>
+					
+					
+					</ul>
+			</div>
+			<div class="item">
+          		<ul class="partners">
+          		<br/>
+          		<br/>
+          		</li>
+						<li class="participating-institutions-carousel">
+						<a href="https://www.cloudflare.com/"><img src="{{ STATIC_URL }}img/participating-institutions/CloudFlare-bw.png" alt="CloudFlare, Inc."></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://lawlibrary.colorado.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/Colorado-bw.png" alt="Colorado Law"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://web.law.columbia.edu/library"><img src="{{ STATIC_URL }}img/participating-institutions/Columbia-bw.png" alt="Columbia Law School"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.lawschool.cornell.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/Cornell-bw.png" alt="Cornell University Law School"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://dp.la/"><img src="{{ STATIC_URL }}img/participating-institutions/DPLA-bw.png" alt="Digital Public Library of America"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://law.duke.edu/lib/"><img src="{{ STATIC_URL }}img/participating-institutions/Duke-bw.png" alt="Duke Law School"></a>
+					</li>
+						</ul>
+			</div>	
+          	<div class="item">
+          		<ul class="partners">
+					<li class="participating-institutions-carousel">
+						<a href="http://www.law.ufl.edu/library"><img src="{{ STATIC_URL }}img/participating-institutions/Florida-bw.png" alt="University of Florida Levin College of Law"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.law.fsu.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/FSU-bw.png" alt="Florida State Law Research Center"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://lawlib1.lawnet.fordham.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/Fordham-bw.png" alt="Fordham law school"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.law.georgetown.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/Georgetown-bw.png" alt="Georgetown law library"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://archive.org/index.php"><img src="{{ STATIC_URL }}img/participating-institutions/IA-bw.png" alt="Internet Archive"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.law.harvard.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/HLS-bw.png" alt="Harvard Law School Library"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://mckinneylaw.iu.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/Indiana-bw.png" alt="Robert H. McKinney School of Law, Indiana University"></a>
+					</li>
+				</ul>
+          </div>
+          <div class="item">
+        		<ul class="partners">
+					
+					<li class="participating-institutions-carousel">
+						<a href="http://library.jmls.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/Jmls-bw.png" alt="John Marshall Law School"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://lawlibrary.laverne.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/LaVerne-bw.png" alt="College of Law Library, University of La Verne"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://lawlib.lclark.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/LC-bw.png" alt="Paul L. Boley Law Library, Lewis &amp; Clark Law School"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www1.law.lsu.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/LSU-bw.jpg" alt="Lousiana State University Law School Library"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.luc.edu/law/library/"><img src="{{ STATIC_URL }}img/participating-institutions/Loyola-bw.png" alt="Loyola University School of Law"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.law.umaryland.edu/marshall/"><img src="{{ STATIC_URL }}img/participating-institutions/Maryland-bw.png" alt="University of Maryland Francis King Carey School of Law"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.law.unimelb.edu.au/lawlib"><img src="{{ STATIC_URL }}img/participating-institutions/Melbourne-bw.png" alt="Melbourne Law School"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.law.miami.edu/library"><img src="{{ STATIC_URL }}img/participating-institutions/Miami-bw.png" alt="University of Miami School of Law"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://law.unl.edu/library"><img src="{{ STATIC_URL }}img/participating-institutions/Nebraska-bw.png" alt="University of Nebraska College of Law"></a>
+					</li>
+        		</ul>
+          	</div>
+          	<div class="item">
+        		<ul class="partners">
+        			<li class="participating-institutions-carousel">
+						<a href="http://www.law.northwestern.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/northwestern-bw.png" alt="Northwestern Law"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://moritzlaw.osu.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/Ohio-State-bw.png" alt="Ohio State University"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.bodleian.ox.ac.uk/law"><img src="{{ STATIC_URL }}img/participating-institutions/Oxford-bw.png" alt="University of Oxford"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://law.pepperdine.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/Pepperdine-bw.png" alt="Pepperdine University Law School"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://law.pepperdine.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/Pepperdine-bw.png" alt="Pepperdine University Law School"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://law.richmond.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/richmond-bw.png" alt="Richmond School of Law"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.law.stanford.edu/organizations/offices/robert-crown-law-library"><img src="{{ STATIC_URL }}img/participating-institutions/Stanford-bw.jpg" alt="Stanford Law Library"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.law.ucla.edu/library/Pages/default.aspx"><img src="{{ STATIC_URL }}img/participating-institutions/UCLA-bw.jpg" alt="UCLA Law Library"></a>
+					</li>
+        		</ul>
+        	</div>
+          	<div class="item">
+        		<ul class="partners">
+        			<li class="participating-institutions-carousel">
+						<a href="http://library.law.olemiss.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/UMiss-bw.png" alt="University of Mississippi School of Law"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.law.unlv.edu/law-library/home.html"><img src="{{ STATIC_URL }}img/participating-institutions/UNLV-bw.png" alt="University of Nevada, Las Vegas, School of Law"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.sandiego.edu/law/library/"><img src="{{ STATIC_URL }}img/participating-institutions/SanDiego-bw.png" alt="Pardee Legal Research Center, University of San Diego "></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://tarlton.law.utexas.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/UT-Austin-bw.png" alt="University of Texas, Austin, Law School"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.law.utah.edu/library//"><img src="{{ STATIC_URL }}img/participating-institutions/U-Utah-bw.png" alt="S.J. Quinney Law Library, University of Utah"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.library.vanderbilt.edu/law/"><img src="{{ STATIC_URL }}img/participating-institutions/Vanderbilt-bw.png" alt="Vanderbilt Law School"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.law.virginia.edu/html/librarysite/library.htm"><img src="{{ STATIC_URL }}img/participating-institutions/uvalaw-bw.png" alt="University of Virginia School of Law"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://www.law.washington.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/U-Washington-bw.png" alt="University of Washington School of Law"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://law.wustl.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/WashU-bw.png" alt="Washington University Law"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://law.wm.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/William-Mary-bw.png" alt="William & Mary Law School"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://library.law.wisc.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/UWisc-bw.png" alt="University of Wisconsin Law Library"></a>
+					</li>
+					<li class="participating-institutions-carousel">
+						<a href="http://library.law.yale.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/YLS-bw.png" alt="Yale Law Library"></a>
+					</li>
+        		</ul>
+        	</div>	
+        </div>
+
+        <!-- Controls -->
+        <a class="left carousel-control" href="#carousel-example-generic" data-slide="prev">
+          <span class="glyphicon glyphicon-chevron-left"></span>
+        </a>
+        <a class="right carousel-control" href="#carousel-example-generic" data-slide="next">
+          <span class="glyphicon glyphicon-chevron-right"></span>
+        </a>
+      </div>
+
+
+
+            
+
+	
+		
+		
+		<hr>
+		
+		
+		
+       <div class="container">  
+        <div class="row">
+			<div class="col-xs-4">
+				<h3><a href="#create" class="orange">Create</a></h3>			
+			</div>
+			<div class="col-xs-4">
+				<h3><a href="#vest" class="orange">Vest</h3>			
+			</div>
+			<div class="col-xs-4">
+				<h3><a href="#archive" class="orange">Archive</h3>			
+			</div>
+		</div>
+		
 		<div class="row">
-        <div class="col-sm-offset-3 col-sm-6">	
-        	<p><a href="{% url 'process_register' %}" class="btn btn-large btn-success">Create an account</a></p>
+			<div class="col-xs-12">
+				<img class="img-responsive" src="{{ STATIC_URL }}img/tracks.png"/>			
+			</div>
+		</div>
         
-        	
+        <div class="row">
+			<div class="col-sm-6">
+				<h3 class="orange"><div id="create">Create</div></h4>	
+				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
+				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
+				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
+			</div>
+		</div>
+        
+        
         {% comment %}
 				<!-- Begin MailChimp Signup Form -->
 				<link href="//cdn-images.mailchimp.com/embedcode/classic-081711.css" rel="stylesheet" type="text/css">
