@@ -21,10 +21,10 @@ class PermissionsTestCase(PermaTestCase):
                 'urls': [
                     ['user_management_manage_registrar'],
                     ['user_management_manage_single_registrar', {'kwargs':{'registrar_id': 1}}],
-                    ['user_management_manage_registrar_member'],
-                    ['user_management_manage_single_registrar_member', {'kwargs':{'user_id': 2}}],
-                    ['user_management_manage_single_registrar_member_delete', {'kwargs':{'user_id': 2}}],
-                    ['user_management_manage_single_registrar_member_reactivate', {'kwargs':{'user_id': 2}}],
+                    ['user_management_manage_registrar_user'],
+                    ['user_management_manage_single_registrar_user', {'kwargs':{'user_id': 2}}],
+                    ['user_management_manage_single_registrar_user_delete', {'kwargs':{'user_id': 2}}],
+                    ['user_management_manage_single_registrar_user_reactivate', {'kwargs':{'user_id': 2}}],
                     ['user_management_manage_user'],
                     ['user_management_user_add_registrar', {'kwargs': {'user_id': 4}}],
                     ['user_management_user_add_vesting_org', {'kwargs': {'user_id': 4}}],
@@ -43,10 +43,10 @@ class PermissionsTestCase(PermaTestCase):
             },
             {
                 'urls': [
-                    ['user_management_manage_vesting_member'],
-                    ['user_management_manage_single_vesting_member', {'kwargs':{'user_id': 3}}],
-                    ['user_management_manage_single_vesting_member_delete', {'kwargs':{'user_id': 3}}],
-                    ['user_management_manage_single_vesting_member_reactivate', {'kwargs':{'user_id': 3}}],
+                    ['user_management_manage_vesting_user'],
+                    ['user_management_manage_single_vesting_user', {'kwargs':{'user_id': 3}}],
+                    ['user_management_manage_single_vesting_user_delete', {'kwargs':{'user_id': 3}}],
+                    ['user_management_manage_single_vesting_user_reactivate', {'kwargs':{'user_id': 3}}],
                 ],
                 'allowed': {'test_registry_member@example.com', 'test_registrar_member@example.com',
                             'test_vesting_member@example.com'}
