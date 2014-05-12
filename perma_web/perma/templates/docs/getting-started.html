@@ -15,7 +15,7 @@
 		
 		<p>If you are affiliated with a law library, academic law journal, or court system <a href="#">click here to see if your institution</a> is a perma.cc partner and contact your institution directly for vesting privileges. </p>-->
 		
-		<p>To use Perma to archive web pages, you need a Perma account. To create an account, <a href="#">click here</a> or find <kbd>Create An Account</kbd> on the home page</p>
+		<p>To use Perma to archive web pages, you need a Perma account. To create an account, <a href="{% url 'process_register' %}">click here</a> or find <kbd><a href="{% url 'process_register' %}">Create An Account</a></kbd> on the home page</p>
 		
 		<img src="{{ STATIC_URL }}img/docs/create-account.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 
@@ -44,7 +44,7 @@
 		<ul class="nav nav-pills nav-stacked">
 			<li><a href="{% url 'docs' %}">Overview</a></li>
 			<li class="active"><a href="{% url 'docs_getting-started' %}">Getting Started</a></li>
-			<li><a href="{% url 'docs_perma_link_creation' %}">Creating, Organizing, Annotating</a></li>
+			<li><a href="{% url 'docs_perma_link_creation' %}">Creating, Organizing & Annotating</a></li>
 			<li><a href="{% url 'docs_perma_link_vesting' %}">Vesting</a></li>
 			<li><a href="{% url 'docs_perma_archive' %}">Archiving & Storage</a></li>
 			<li><a href="{% url 'docs_perma_user_roles' %}">User Roles</a></li>

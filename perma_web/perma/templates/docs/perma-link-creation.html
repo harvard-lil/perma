@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container">
 	<div class="col-sm-8 docs">
-		<h2>Perma Link Creation</h2>
+		<h2>Creating, Organizing & Annotating</h2>
 		<h4><a href="#create-link">Creating a Perma Link</a></h4>
 		<h4><a href="#organize-links">Organizing Links</a></h4>
 		<br/>
@@ -30,12 +30,12 @@
 		<img src="{{ STATIC_URL }}img/docs/thumbnail.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 
 		
-		<p>You should review the thumbnail image and click on the new Perma Link to confirm that the archive page rendered correctly. If it did not, you can use the upload option, just beneath the thumbnail image, to upload your own screenshots (.png, .jpg) or PDF documents.</p>
+		<p>You should review the thumbnail image and click on the new Perma Link to confirm that the archived page rendered correctly. If it did not, you can use the upload option, just beneath the thumbnail image, to upload your own screenshots (.png, .jpg) or PDF documents.</p>
 		
 		<img src="{{ STATIC_URL }}img/docs/upload.gif" class="img-responsive screen-shot" alt="Responsive image"/>
 		
 		<br/>
-		<p class="orange">Important Note: At this point, you’ve created a temporary archive. To become permanent, your archived and the accompanying Perma Link must be vested. Click here to learn more about vesting.</p>
+		<p class="orange">Important Note: At this point, you’ve created a temporary archive. To become permanent, your archive and the accompanying Perma Link must be vested. Click here to learn more about vesting.</p>
 		
 		
 
@@ -63,7 +63,7 @@
 		<ul class="nav nav-pills nav-stacked">
 			<li><a href="{% url 'docs' %}">Overview</a></li>
 			<li><a href="{% url 'docs_getting-started' %}">Getting Started</a></li>
-			<li class="active"><a href="{% url 'docs_perma_link_creation' %}">Creating, Organizing, Annotating</a></li>
+			<li class="active"><a href="{% url 'docs_perma_link_creation' %}">Creating, Organizing & Annotating</a></li>
 			<li><a href="{% url 'docs_perma_link_vesting' %}">Vesting</a></li>
 			<li><a href="{% url 'docs_perma_archive' %}">Archiving & Storage</a></li>
 			<li><a href="{% url 'docs_perma_user_roles' %}">User Roles</a></li>

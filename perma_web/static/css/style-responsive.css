@@ -50,6 +50,8 @@ pre {
 	border:1px solid #bbe4ff;
 	color:#ff4100;
 	margin:15px 0px 15px 30px;
+	word-break: normal;
+	word-wrap: normal;
 }
 
 .inset1 {
@@ -66,7 +68,7 @@ pre {
 
 
 kbd {
-    margin: 0;
+    margin: 0 2px;
     font-family: 'Roboto Slab', sans-serif;
   	color: #ffffff;
   	background-color: #5cb85c;
@@ -74,6 +76,16 @@ kbd {
   	font-size:14px;
   	padding:3px 6px;
   	border-radius: 2px;
+}
+
+.docs kbd a {
+	color:#fff;
+}
+
+kbd a:hover, kbd:hover, kbd:active {
+	color:#fff;
+	background-color: #47a447;
+  	border-color: #398439;
 }
 
 .screen-shot {
@@ -143,6 +155,15 @@ h5 a {
 	color:#333;
 	margin-left:15px;
 	line-height:1.4;
+}
+
+hr {
+  margin-top: 0px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #ddd;
+    -moz-box-sizing: content-box;
+       box-sizing: content-box;
 }
 
 p {

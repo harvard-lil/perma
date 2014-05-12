@@ -3,7 +3,7 @@
 {% block title %} | Docs{% endblock %}
 
 {% block content %}
-
+<div class="container">
 	<div class="col-sm-8 docs">
 		<h2>Overview</h2>
 		<hr>
@@ -25,7 +25,7 @@
 		  	<li class="active"><a href="{% url 'docs' %}">Overview</a></li>
 		  	
 			<li><a href="{% url 'docs_getting-started' %}">Getting Started</a></li>
-			<li><a href="{% url 'docs_perma_link_creation' %}">Creating, Organizing, Annotating</a></li></a></li>
+			<li><a href="{% url 'docs_perma_link_creation' %}">Creating, Organizing & Annotating</a></li></a></li>
 			<li><a href="{% url 'docs_perma_link_vesting' %}">Link Vesting</a></li>
 			<li><a href="{% url 'docs_perma_archive' %}">Archiving & Storage</a></li>
 			<li><a href="{% url 'docs_perma_user_roles' %}">User Roles</a></li>
@@ -34,5 +34,4 @@
 		</ul>
 	</div>
 </div>
-	
 {% endblock %}
