@@ -23,6 +23,10 @@ CELERYBEAT_SCHEDULE = {
         'task': 'perma.tasks.email_weekly_stats',
         'schedule': crontab(minute='05', hour='06', day_of_week='tuesday'),
     },
+    'cleanup-screencap-monitoring': {
+        'task': 'monitor.tasks.delete_old_test_screencaps',
+        'schedule': crontab(hour='*/2'), # every other hour
+    },
 }
 
 # If a task is running longer than five minutes, kill it
