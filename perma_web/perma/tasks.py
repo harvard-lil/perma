@@ -15,7 +15,6 @@ from celery.contrib import rdb
 from django.core.files.storage import default_storage
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
-from django.core.files.temp import NamedTemporaryFile
 from django.template.loader import get_template
 from django.template import Context
 from django.forms.models import model_to_dict

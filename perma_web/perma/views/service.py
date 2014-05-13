@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.core.mail import send_mail
-from django.core.servers.basehttp import FileWrapper
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, Http404
 from django.core.urlresolvers import reverse
