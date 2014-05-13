@@ -168,8 +168,6 @@ def can_be_mirrored(view_func):
     return wraps(view_func, assigned=available_attrs(view_func))(wrapped_view)
 
 
-
-
 def store_file(file_object, file_path, overwrite=False, storage=default_storage):
     """
         Given an open file_object ready for reading,

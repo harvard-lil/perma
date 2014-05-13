@@ -100,7 +100,7 @@ MIDDLEWARE_CLASSES = (
 
 RATELIMIT_VIEW = 'perma.views.common.rate_limit'
 
-ROOT_URLCONF = 'perma.urls'
+ROOT_URLCONF = 'urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'perma.wsgi.application'
@@ -121,6 +121,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'perma',
+    'monitor',
     'south',
     'djcelery',
     'ratelimit',
