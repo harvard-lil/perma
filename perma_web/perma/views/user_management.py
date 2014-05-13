@@ -330,7 +330,7 @@ def list_users_in_group(request, group_name):
         users = LinkUser.objects.filter(groups__name=group_name, registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts())
         is_registrar = True
     elif request.user.has_group('vesting_user'):
-        users = LinkUser.objects.filter(vesting_org=request.user.vesting_org).exclude(id=request.user.id).order_by(*sorts())
+        users = LinkUser.objects.filter(groups__name=group_name, vesting_org=request.user.vesting_org).exclude(id=request.user.id).order_by(*sorts())
 
     # handle search
     search_query = request.GET.get('q', None)
@@ -470,6 +470,7 @@ def edit_user_in_group(request, user_id, group_name):
 
     return render_to_response('user_management/manage_single_user.html', context)
 
+
 def delete_user_in_group(request, user_id, group_name):
     """
         Delete particular user with given group name.
@@ -503,6 +504,34 @@ def delete_user_in_group(request, user_id, group_name):
 
     return render_to_response('user_management/user_delete_confirm.html', context)
 
+@require_group('vesting_user')
+def manage_single_vesting_user_remove(request, user_id):
+    """
+        Basically demote a vesting user to a regular user.
+    """
+
+    target_member = get_object_or_404(LinkUser, id=user_id)
+
+    # Vesting managers can only edit their own vesting members
+    if not request.user.has_group(['vesting_user']):
+        if request.user.vesting_org != target_member.vesting_org:
+            return HttpResponseRedirect(reverse('created_links'))
+
+    context = {'target_member': target_member,
+               'this_page': 'users_vesting_user'}
+
+    if request.method == 'POST':
+        all_groups = Group.objects.all()
+        for ag in all_groups:
+          target_member.groups.remove(ag)
+        group = Group.objects.get(name='user')
+        target_member.groups.add(group)
+
+        return HttpResponseRedirect(reverse('user_management_manage_vesting_user'))
+
+    context = RequestContext(request, context)
+
+    return render_to_response('user_management/user_remove_confirm.html', context)
 
 
 def reactive_user_in_group(request, user_id, group_name):

@@ -2042,6 +2042,11 @@ img.dark-bulb {
 	font-size: 85%;
 }
 
+.text-remove {
+	font-style: italic;
+	font-size: 85%;
+}
+
 .grey {
 	color:#666;
 }
