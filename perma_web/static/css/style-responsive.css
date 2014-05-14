@@ -1607,15 +1607,27 @@ section#home-description p.mega {
 	margin-top:0px;
 }
 
-.welcome {
+.welcome, .welcome2 {
 	text-align:left;
 }
+
+.welcome2 {
+	background:#f7f7f7;
+	border:1px solid #e6e6e6;
+	  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+   -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+    box-sizing: border-box;
+    padding:10px;
+    border-radius: 3px;
+    
+}
+
 
 .carousel-band {
   background: #f7f7f7;
   border:1px solid #eee;
+  padding:5px 0;
 }
-
 
 .temp-form-css input {
 	border: 1px solid #ccc;
