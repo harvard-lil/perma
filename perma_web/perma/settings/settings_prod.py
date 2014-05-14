@@ -24,7 +24,7 @@ CELERYBEAT_SCHEDULE = {
         'schedule': crontab(minute='05', hour='06', day_of_week='tuesday'),
     },
     'cleanup-screencap-monitoring': {
-        'task': 'monitor.tasks.delete_old_test_screencaps',
+        'task': 'monitor.tasks.delete_screencaps',
         'schedule': crontab(hour='*/2'), # every other hour
     },
 }
