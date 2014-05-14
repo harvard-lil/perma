@@ -1,13 +1,17 @@
 from selenium import webdriver
-import logging, time, os
+import logging
+from datetime import datetime
+from io import BytesIO
 from djcelery import celery
+from django.core.files import File
+from django.core.files.storage import FileSystemStorage
 from django.conf import settings
-from perma.tasks import save_screenshot
+
 
 logger = logging.getLogger(__name__)
 
 @celery.task
-def delete_old_test_screencaps():
+def delete_screencaps():
     """
     This func cleans up any screencaps that are 3 hours or older. It cleans
     up the mess that monitor.tasks.test_screencap creates
@@ -15,27 +19,18 @@ def delete_old_test_screencaps():
     This is a scheduled task. Let's have celerybeat run it.
     """
 
-    from django.core.files.storage import FileSystemStorage
-    import os
-    from django.conf import settings
+    upload_storage = FileSystemStorage(location=getattr(settings, 'MONITOR_ROOT'))
+    files = upload_storage.listdir(getattr(settings, 'MONITOR_ROOT'))[1]
 
-    dir_path = os.path.join(*[getattr(settings, 'MEDIA_ROOT'), 'monitor'])
-    files = os.listdir(dir_path)
-
-    # If the file is over three hours old and is for sure in our 'monitor'
-    # path, delete it.
+    # If the file is over three hours old, delete it.
     for f in files:
-        file_path = os.path.join(dir_path, f)
-        if time.time() - os.path.getmtime(file_path) > 10800:
-            if 'monitor' in file_path:
-                try:
-                    os.remove(file_path)
-                except OSError:
-                    pass
+        age_of_file = datetime.now() - upload_storage.created_time(f)
+        if  age_of_file.seconds > 10800:
+            upload_storage.delete(f)
 
 
 @celery.task
-def test_screencap(url, disk_path):
+def get_screencap(url, file_name):
     """
     This func helps monitor our Celery/Selenium/PhantomJS image
     creation process. We'll use this to coarsely keep tabs on the availability
@@ -50,10 +45,15 @@ def test_screencap(url, disk_path):
     this out.
     """
 
+    # We don't want to mix this monitoring stuff with our user generated media (archives)
+    monitor_storage = FileSystemStorage(location=getattr(settings, 'MONITOR_ROOT'))
+
     driver = webdriver.PhantomJS(executable_path=getattr(settings, 'PHANTOMJS_BINARY', 'phantomjs'),)
     driver.get(url)
-    save_screenshot(driver, disk_path)
+
+    file_object = BytesIO(driver.get_screenshot_as_png())
+    file = File(file_object)
 
     driver.quit
 
-    return disk_path
+    monitor_storage.save(file_name, file)

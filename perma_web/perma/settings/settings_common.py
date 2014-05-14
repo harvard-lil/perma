@@ -48,6 +48,10 @@ MEDIA_ROOT = ''
 MEDIA_ARCHIVES_ROOT = ''
 MEDIA_URL = '/media/'
 
+# Monitor app generated files
+MONITOR_ROOT = '/tmp/perma/monitor'
+MONITOR_URL = '/monitor/media/'
+
 # static files
 STATIC_ROOT = ''                # where to store collected static files
 STATIC_URL = '/static/'         # URL to serve static files

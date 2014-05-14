@@ -1,6 +1,6 @@
-import os, uuid, json
+import uuid, json
 from django.conf import settings
-from perma.tasks import test_screencap
+from monitor.tasks import get_screencap
 from django.http import HttpResponse
 
 # Create your views here.
@@ -16,14 +16,11 @@ def monitor_archive(request):
     more. Do it.
     """
 
-    relative_file_path = ['monitor', "%s.png" % uuid.uuid4()]
+    file_name = "%s.png" % uuid.uuid4()
 
-    path_elements = [getattr(settings, 'MEDIA_ROOT')] + relative_file_path
-    disk_path = os.path.join(*path_elements)
-
-    test_screencap.delay(request.GET['url'], disk_path)
+    get_screencap.delay(request.GET['url'], file_name)
 
     # Hopefully we have a sreencap task running. Let's send the path to the user
-    url_to_image = getattr(settings, 'MEDIA_URL') + '/'.join(relative_file_path)
+    url_to_image = getattr(settings, 'MONITOR_URL') + file_name
 
     return HttpResponse(json.dumps({'url_to_image': url_to_image}), content_type="application/json")

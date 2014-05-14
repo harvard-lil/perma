@@ -616,31 +616,6 @@ def update_perma(link_guid):
     link.vested = metadata["vested"]
     link.save()
 
-
-@celery.task
-def test_screencap(url, disk_path):
-    """
-    This func helps monitor our Celery/Selenium/PhantomJS image
-    creation process. We'll use this to coarsely keep tabs on the availability
-    of our "create new archive" service.
-
-    Returns the image (png) capture
-
-    NOTE: This func does not permanently store anything. It should only be used
-    for monitoring purposes.
-
-    TODO: this should replicate everything that happens in proxy_capture, flesh
-    this out.
-    """
-
-    driver = webdriver.PhantomJS(executable_path=getattr(settings, 'PHANTOMJS_BINARY', 'phantomjs'),)
-    driver.get(url)
-    save_screenshot(driver, disk_path)
-
-    driver.quit
-
-    return disk_path
-
 @celery.task
 def poke_mirrors(link_guid):
     for mirror in settings.MIRRORS:
