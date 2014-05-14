@@ -6027,8 +6027,8 @@ body.modal-open,
 .carousel-inner > .item {
   position: relative;
   display: none;
-  -webkit-transition: 0.6s ease-in-out left;
-          transition: 0.6s ease-in-out left;
+  -webkit-transition: 1s ease-in-out left;
+          transition: 1s ease-in-out left;
 }
 
 .carousel-inner > .item > img,
