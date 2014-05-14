@@ -619,7 +619,13 @@ def update_perma(link_guid):
 @celery.task
 def poke_mirrors(link_guid):
     for mirror in settings.MIRRORS:
-        request.get(mirror + reverse("service_update_link", args=(link_guid,)))
+        requests.get(mirror + reverse("service_update_link", args=(link_guid,)))
+
+
+@celery.task
+def poke_mirrors(link_guid):
+    for mirror in settings.MIRRORS:
+        requests.get(mirror + reverse("service_update_link", args=(link_guid,)))
 
 def run_chord(header, body):
     chord(header)(body)

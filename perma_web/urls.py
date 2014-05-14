@@ -5,7 +5,6 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    
-    # Common Pages
-    url(r'^', include('perma.urls')),
+    url(r'^monitor/', include('monitor.urls')), # Our app that monitors Perma
+    url(r'^', include('perma.urls')), # The Perma app
 )

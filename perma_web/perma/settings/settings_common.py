@@ -48,6 +48,10 @@ MEDIA_ROOT = ''
 MEDIA_ARCHIVES_ROOT = ''
 MEDIA_URL = '/media/'
 
+# Monitor app generated files
+MONITOR_ROOT = '/tmp/perma/monitor'
+MONITOR_URL = '/monitor/media/'
+
 # static files
 STATIC_ROOT = ''                # where to store collected static files
 STATIC_URL = '/static/'         # URL to serve static files
@@ -100,7 +104,7 @@ MIDDLEWARE_CLASSES = (
 
 RATELIMIT_VIEW = 'perma.views.common.rate_limit'
 
-ROOT_URLCONF = 'perma.urls'
+ROOT_URLCONF = 'urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'perma.wsgi.application'
@@ -121,6 +125,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'perma',
+    'monitor',
     'south',
     'djcelery',
     'ratelimit',
