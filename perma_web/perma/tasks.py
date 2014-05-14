@@ -616,11 +616,6 @@ def update_perma(link_guid):
     link.vested = metadata["vested"]
     link.save()
 
-@celery.task
-def poke_mirrors(link_guid):
-    for mirror in settings.MIRRORS:
-        requests.get(mirror + reverse("service_update_link", args=(link_guid,)))
-
 
 @celery.task
 def poke_mirrors(link_guid):
