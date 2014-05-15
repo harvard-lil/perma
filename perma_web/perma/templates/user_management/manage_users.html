@@ -6,7 +6,7 @@
 
     {% include "user_management/includes/search_form.html" %}
 
-    <h3>Existing {{ pretty_group_name_plural|lower }} <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
+    <h3>Existing {{ pretty_group_name_plural|lower }} <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add user</a></small></h3>
 
 	{% if messages %}
         {% for message in messages %}
@@ -23,9 +23,18 @@
     {% endif %}
 
 	<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
+	    {% if request.user|has_group:'registrar_user,vesting_user' %}{% if group_name == 'vesting_user' %}
+	    <form method="get" action="{% url 'user_management_vesting_user_add_user' %}" class="form-inline" role="form">
+	        <div class="form-group">
+                <input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
+            </div>
+            <button type="submit" class="btn btn-default">Add</button>
+        </form>
+        {% endif %}
+        {% else %}
         <form method="post">
           {% csrf_token %}
-              <h4>Add a new {{ pretty_group_name|lower }}</h4>
+              <h4>Add a {{ pretty_group_name|lower }}</h4>
               <fieldset>
               <span class="text-error">{{ form.non_field_errors }}</span>
             {% for field in form %}
@@ -40,6 +49,7 @@
           </fieldset>
           <button type="submit" class="btn-success">Add {{ pretty_group_name|lower }}</button>
         </form>
+        {% endif %}
     </div>
 
     {% if users_list %}

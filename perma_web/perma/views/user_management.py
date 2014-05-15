@@ -355,6 +355,7 @@ def list_users_in_group(request, group_name):
         'reactivate_user_url':'user_management_manage_single_{group_name}_reactivate'.format(group_name=group_name),
         'single_user_url':'user_management_manage_single_{group_name}'.format(group_name=group_name),
         'delete_user_url':'user_management_manage_single_{group_name}_delete'.format(group_name=group_name),
+        
         'sort': sorts()[0],
         'search_query': search_query,
     }
@@ -439,7 +440,7 @@ def edit_user_in_group(request, user_id, group_name):
     form_data = request.POST or None
     if group_name == 'registrar_user':
         form = RegistrarMemberFormEdit(form_data, prefix="a", instance=target_user)
-    elif group_name in ('vesting_user'):
+    elif group_name == 'vesting_user':
         if is_registry:
             form = VestingMemberWithGroupFormEdit(form_data, prefix="a", instance=target_user)
         elif is_registrar:
@@ -469,6 +470,74 @@ def edit_user_in_group(request, user_id, group_name):
     context = RequestContext(request, context)
 
     return render_to_response('user_management/manage_single_user.html', context)
+
+
+def vesting_user_add_user(request):
+    """
+        Delete particular user with given group name.
+    """
+    
+    user_email = request.GET.get('email', None)
+    try:
+        target_user = LinkUser.objects.get(email=user_email)
+    except LinkUser.DoesNotExist:
+        target_user = None
+        
+    cannot_add = True
+    is_new_user = False
+    
+    form = None
+    form_data = request.POST or None
+    if target_user == None:
+        cannot_add = False
+        if request.user.has_group('registrar_user'):
+            form = CreateUserFormWithVestingOrg(form_data, prefix = "a", initial={'email': user_email}, registrar_id=request.user.registrar_id)
+        else:
+            form = CreateUserForm(form_data, prefix = "a", initial={'email': user_email})
+    else:
+        if target_user.has_group('user'):
+            cannot_add = False
+        if request.user.has_group('registrar_user'):
+            form = UserAddVestingOrgForm(form_data, prefix = "a", registrar_id=request.user.registrar_id)
+        else:
+            form = None
+            
+    context = {'this_page': 'users_vesting_users', 'user_email': user_email, 'form': form, 'target_user': target_user, 'cannot_add': cannot_add}
+
+    if request.method == 'POST': 
+        if ((form and form.is_valid()) or form == None) and not cannot_add:
+            if target_user == None:
+                target_user = form.save()
+                is_new_user = True
+    
+            if request.user.has_group('registrar_user'):
+                vesting_org = form.cleaned_data['vesting_org']
+                target_user.vesting_org_id = vesting_org
+                target_user.registrar_id = vesting_org.registrar.id
+            else:
+                target_user.vesting_org_id = request.user.vesting_org_id
+                target_user.registrar_id = request.user.registrar_id
+    
+            group = Group.objects.get(name='vesting_user')
+            all_groups = Group.objects.all()
+            for ag in all_groups:
+              target_user.groups.remove(ag)
+            target_user.groups.add(group)
+    
+            if is_new_user:
+                target_user.is_active = False
+                email_new_user(request, target_user)
+                messages.add_message(request, messages.INFO, '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % target_user.email, extra_tags='safe')
+            else:
+                messages.add_message(request, messages.INFO, '<h4>Success!</h4> <strong>%s</strong> is now a vesting user.' % target_user.email, extra_tags='safe')
+            
+            target_user.save()
+
+            return HttpResponseRedirect(reverse('user_management_manage_vesting_user'))
+
+    context = RequestContext(request, context)
+
+    return render_to_response('user_management/user_add_confirm.html', context)
 
 
 def delete_user_in_group(request, user_id, group_name):

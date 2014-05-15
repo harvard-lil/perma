@@ -250,6 +250,14 @@ class UserAddVestingOrgForm(forms.ModelForm):
     add a vesting org when a regular user is promoted to a vesting user or vesting manager
     """
 
+    def __init__(self, *args, **kwargs):
+      registrar_id = False
+      if 'registrar_id' in kwargs:
+        registrar_id = kwargs.pop('registrar_id')
+      super(UserAddVestingOrgForm, self).__init__(*args, **kwargs)
+      if registrar_id:
+        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id).order_by('name')
+    
     class Meta:
         model = LinkUser
         fields = ("vesting_org",)         
