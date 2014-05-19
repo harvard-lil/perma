@@ -538,6 +538,30 @@ def vesting_user_add_user(request):
     context = RequestContext(request, context)
 
     return render_to_response('user_management/user_add_confirm.html', context)
+    
+
+def vesting_user_leave_vesting_org(request):
+
+    if not request.user.has_group('vesting_user'):
+        return HttpResponseRedirect(reverse('user_management_manage_account'))
+
+    context = {'this_page': 'settings', 'user': request.user}
+
+    if request.method == 'POST':
+        request.user.vesting_org = None
+        request.user.save()
+        
+        group = Group.objects.get(name='user')
+        all_groups = Group.objects.all()
+        for ag in all_groups:
+            request.user.groups.remove(ag)
+        request.user.groups.add(group)
+
+        return HttpResponseRedirect(reverse('user_management_manage_account'))
+
+    context = RequestContext(request, context)
+
+    return render_to_response('user_management/user_leave_confirm.html', context) 
 
 
 def delete_user_in_group(request, user_id, group_name):

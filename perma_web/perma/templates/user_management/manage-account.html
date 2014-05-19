@@ -31,7 +31,7 @@
             {% if no_vesting_org %}
                 <p>Seems to be missing</p>
             {% else %}
-                <p><strong>{{ vesting_org_name }}</strong></p>
+                <p><strong>{{ vesting_org_name }}</strong> (<a href="{% url 'user_management_vesting_user_leave_vesting_org' %}">Leave</a>)</p>
             {% endif %}
         </div>
 		{% endif %}
