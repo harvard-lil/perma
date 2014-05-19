@@ -18,19 +18,24 @@
 				
 				<p><span class="orange">perma.cc</span>  helps authors and journals create<br />
 				permanent archived citations in their published work</p>
-				
+				<br/>
 				<p><a href="{% url 'process_register' %}" class="btn btn-large btn-success">Create an account</a></p>
+
 				{% if request.user.is_authenticated %}
 					
 				<p><a href="{% url 'created_links' %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
 				{% else %}
+			
 			</div>	
+			
+			
 			<div class="col-sm-6">
-				<img class="img-responsive" src="{{ STATIC_URL }}/img/shelf2.png"/>
-				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
+				<img class="img-responsive" src="{{ STATIC_URL }}/img/citation-centered-thick.png"/>
 			</div>	
 		</div>	<!--row-->
 	</div>	<!--container-->	
+		
+		
 		
 <!--	<div id="carousel-example-generic" class="carousel slide carousel-band" data-ride="carousel">
    
@@ -265,76 +270,90 @@
       </div>-->
 
 
-            
+     <br/><br/>	       
 	<div class="container">
     	<div class="row welcome2">
-        	<div class="col-sm-6">
-        		<p class="mega">Powered by Libraries</p>
-			</div>
+        	
 			<div class="col-sm-6">
         		<img class="img-responsive" src="{{ STATIC_URL }}img/map.png"/>
 			</div>
-		</div>
-	</div>
-	
-		
-		
-	
-		
-		
-		
-       <div class="container">
-        <div class="row">
-			<div class="col-xs-4">
-				<h3><a href="#create" class="orange">Create</a></h3>			
-			</div>
-			<div class="col-xs-4">
-				<h3><a href="#vest" class="orange">Vest</h3>			
-			</div>
-			<div class="col-xs-4">
-				<h3><a href="#archive" class="orange">Archive</h3>			
+			<div class="col-sm-6">
+        		<p class="mega"><span class="orange">Powered by Libraries</span></p>
+        		<p>Perma is Built & Run by libraries because we're in the forever business.  We're already looking after printed matter, it's time we did the same for links.</p>
 			</div>
 		</div>
+
+       
 	
 		<div class="row">
+		<br/><br/>		
 			<div class="col-xs-12">
 				<img class="img-responsive" src="{{ STATIC_URL }}img/tracks.png"/>			
 			</div>
 		</div>
-        
+         <div class="row">
+			<div class="col-xs-4">
+				<h3><a href="#create" class="mega orange">Create</a></h3>			
+			</div>
+			<div class="col-xs-4">
+				<h3><a href="#vest" class="mega orange">Vest</a></h3>			
+			</div>
+			<div class="col-xs-4">
+				<h3><a href="#archive" class="mega orange">Archive</a></h3>			
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-12">
+				<h3 class="mega orange"><div id="create">Create</div></h3>
+			</div>
+		</div>
         <div class="row">
 			<div class="col-sm-6">
-				<h3 class="orange"><div id="create">Create</div></h4>	
+				<hr/>
 				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
 				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
 				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
 			</div>
 			<div class="col-sm-6">	
-				<img class="img-responsive" src="{{ STATIC_URL }}/img/shelf.gif"/> 
+				<img class="img-responsive" src="{{ STATIC_URL }}img/create-links.png"/>		
 			</div>
 		</div>
-        
         <div class="row">
-        <div class="col-sm-6">	
-				<img src="{{ STATIC_URL }}img/docs/creating-perma2.gif" class="img-responsive screen-shot" alt="Responsive image"/>	 
+        	<div class="col-sm-6">
+				<h3 class="mega orange"></h3>
 			</div>
 			<div class="col-sm-6">
-				<h3 class="orange"><div id="vest">Vest</div></h4>	
+				<h3 class="mega orange"><div id="vest">Vest</div></h3>
+			</div>
+		</div>
+        <div class="row">
+        <div class="col-sm-6">	
+        	<img src="{{ STATIC_URL }}img/signal.png" class="img-responsive" alt="Responsive image"/>	 
+			</div>
+			<div class="col-sm-6">
+				<hr/>
 				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
 				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
 				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
 			</div>
 			
 		</div>
+		
+		<div class="row">
+			<div class="col-sm-12">
+				<h3 class="mega orange"><div id="archive">Archive</div></h3>
+			</div>
+		</div>
+		
 		<div class="row">
 			<div class="col-sm-6">
-				<h3 class="orange"><div id="archive">Archive</div></h4>	
+				<hr/>
 				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
 				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
 				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
 			</div>
 			<div class="col-sm-6">	
-				<img class="img-responsive" src="{{ STATIC_URL }}img/cake.png"/>	 
+				<img class="img-responsive" src="{{ STATIC_URL }}/img/shelf2.png"/> 
 			</div>
 		</div>
         

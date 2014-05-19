@@ -1600,11 +1600,19 @@ div.faq div.answer {
     display: none;
 }
 
-section#home-description p.mega {
+#home-description p.mega, h3 .mega, .mega {
 	font-size:36px;
 	color:#777;
 	line-height:48px;
 	margin-top:0px;
+}
+ 
+a.orange, .orange {
+	color: #ff4100;
+}
+
+a.orange:hover, .orange:active {
+	color: #e9322d;
 }
 
 .welcome, .welcome2 {
@@ -1633,14 +1641,6 @@ section#home-description p.mega {
 	border: 1px solid #ccc;
 	border-radius: 3px;
 	padding: 6px 12px;
-}
-
-.orange {
-	color: #ff4100;
-}
-
-.orange:hover, .orange:active {
-	color: #e9322d;
 }
 
 .muted {
