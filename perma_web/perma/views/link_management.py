@@ -194,7 +194,7 @@ def created_links(request, path):
                         verb='created')
 
 
-@require_group(['registrar_member', 'registry_member', 'vesting_manager', 'vesting_member'])
+@require_group(['registrar_user', 'registry_user', 'vesting_user'])
 def vested_links(request, path):
     """
     Linky admins and registrar members and vesting members can vest links
@@ -346,20 +346,21 @@ def link_browser(request, path, link_filter, this_page, verb):
 
 ###### LINK EDITING ######
 
-@require_group(['registrar_member', 'registry_member', 'vesting_manager', 'vesting_member'])
+@require_group(['registrar_user', 'registry_user', 'vesting_user'])
 def vest_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
     if request.method == 'POST':
         if not link.vested:
             link.vested=True
             link.vested_by_editor=request.user
+            link.vesting_org = request.user.vesting_org
             link.vested_timestamp=datetime.now()
             link.save()
             poke_mirrors.delay(link_guid=guid)
     return HttpResponseRedirect(reverse('single_linky', args=[guid]))
 
 
-@require_group('registry_member')
+@require_group('registry_user')
 def dark_archive_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
     if request.method == 'POST':

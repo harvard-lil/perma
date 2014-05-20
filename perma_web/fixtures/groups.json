@@ -11,15 +11,7 @@
         "pk": 2,
         "model": "auth.group",
         "fields": {
-            "name": "vesting_member",
-            "permissions": []
-        }
-    },
-    {
-        "pk": 5,
-        "model": "auth.group",
-        "fields": {
-            "name": "vesting_manager",
+            "name": "vesting_user",
             "permissions": []
         }
     },
@@ -27,7 +19,7 @@
         "pk": 3,
         "model": "auth.group",
         "fields": {
-            "name": "registrar_member",
+            "name": "registrar_user",
             "permissions": []
         }
     },
@@ -35,7 +27,7 @@
         "pk": 4,
         "model": "auth.group",
         "fields": {
-            "name": "registry_member",
+            "name": "registry_user",
             "permissions": []
         }
     }

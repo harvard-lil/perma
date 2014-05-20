@@ -32,14 +32,14 @@
 					<ul class="vesting">
 						<li><a class="btn vest none" href="">hidden button</a></li><!-- to keep vertical spacing and layout simpler across states when there are and aren't buttons -->
 						{% if request.user.is_authenticated %}
-                        	{% if request.user|has_group:'registry_member,registrar_member,vesting_member,vesting_manager' and not linky.vested %}
+                        	{% if request.user|has_group:'registry_user,registrar_user,vesting_user' and not linky.vested %}
                             	<li><form action="{% main_url 'vest_link' linky.guid %}" method="post">
                                 	{% csrf_token %}
                                 		<input type="submit" value="Vest site" name="vest" class="btn vest">
                                 	</form>
                             	</li>	
 							{% endif %}
-							{% if request.user|has_group:'registry_member' %}
+							{% if request.user|has_group:'registry_user' %}
 								<a class="btn vest" href="{% url 'dark_archive_link' linky.guid %}">Dark archive</a>
 							{% endif %}
                         {% endif %}
@@ -70,7 +70,7 @@
 						
 						<div class="navbar-collapse collapse" id="collapse-refresh">
 						  						  
-							{% if not linky|is_darchive or request.user|has_group:'registry_member,registrar_member,vesting_manager,vesting_member' %}
+							{% if not linky|is_darchive or request.user|has_group:'registry_user,registrar_user,vesting_user' %}
 
 							<ul class="nav navbar-nav tabbed">
 								<li>
@@ -126,20 +126,20 @@
 {% block content %}
    		
 			<div class="row">
-    {% if linky.dark_archived and request.user|has_group:'registry_member,registrar_member,vesting_manager,vesting_member' %}
+    {% if linky.dark_archived and request.user|has_group:'registry_user,registrar_user,vesting_user' %}
     	<div class="col-sm-6 col-sm-offset-3 yahowza-small">
 			<div class="darchive">	
 				<img class="dark-bulb-small" src="{{ STATIC_URL }}img/dark-bulb.png">
 				<h2 class="orange">This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with a takedown notice.</h2>
 			</div>
 		</div>
-	{% elif linky.dark_archived_robots_txt_blocked and request.user|has_group:'registry_member,registrar_member,vesting_manager,vesting_member' %}
+	{% elif linky.dark_archived_robots_txt_blocked and request.user|has_group:'registry_user,registrar_user,vesting_user' %}
     	<div class="col-sm-6 col-sm-offset-3 yahowza-small">
     		<img class="dark-bulb-small" src="{{ STATIC_URL }}img/dark-bulb.png">
 			<h2>This link is in the <span class="dark">dark archive</span> because Perma.cc has <a href="{% url 'faq' %}#robots-text">respected the content creator's request to not share this archive publicly</a.>.</h2>
 		</div>
 	{% endif %}
-    {% if not linky|is_darchive or request.user|has_group:'registry_member,registrar_member,vesting_manager,vesting_member' %}
+    {% if not linky|is_darchive or request.user|has_group:'registry_user,registrar_user,vesting_user' %}
 	<div class="linky-view center">
   		<div class="watermark center">
 

@@ -363,10 +363,9 @@ def get_nigthly_stats():
     
     # Five types user accounts
     total_count_regular_users = LinkUser.objects.filter(groups__name='user').count()
-    total_count_vesting_members = LinkUser.objects.filter(groups__name='vesting_member').count()
-    total_count_vesting_managers = LinkUser.objects.filter(groups__name='vesting_manager').count()
-    total_count_registrar_members = LinkUser.objects.filter(groups__name='registrar_member').count()
-    total_count_registry_members = LinkUser.objects.filter(groups__name='registry_member').count()
+    total_count_vesting_members = LinkUser.objects.filter(groups__name='vesting_user').count()
+    total_count_registrar_members = LinkUser.objects.filter(groups__name='registrar_user').count()
+    total_count_registry_members = LinkUser.objects.filter(groups__name='registry_user').count()
     
     # Registrar count
     total_count_registrars = Registrar.objects.all().count()
@@ -405,7 +404,6 @@ def get_nigthly_stats():
     stat = Stat(
         regular_user_count=total_count_regular_users,
         vesting_member_count=total_count_vesting_members,
-        vesting_manager_count=total_count_vesting_managers,
         registrar_member_count=total_count_registrar_members,
         registry_member_count=total_count_registry_members,
         registrar_count=total_count_registrars,

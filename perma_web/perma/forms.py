@@ -165,6 +165,32 @@ class VestingMemberFormEdit(forms.ModelForm):
 
     email = forms.EmailField()
     
+
+class VestingMemberWithVestingOrgFormEdit(forms.ModelForm):
+    """
+    stripped down user reg form
+    This is mostly a django.contrib.auth.forms.UserCreationForm
+
+    This is stripped down even further to match out editing needs
+    """
+    
+    def __init__(self, *args, **kwargs):
+      registrar_id = False
+      if 'registrar_id' in kwargs:
+        registrar_id = kwargs.pop('registrar_id')
+      super(VestingMemberWithVestingOrgFormEdit, self).__init__(*args, **kwargs)
+      if registrar_id:
+        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id).order_by('name')
+
+    class Meta:
+        model = LinkUser
+        fields = ("first_name", "last_name", "email", "vesting_org")
+
+
+    email = forms.EmailField()
+
+    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
+    
         
 class VestingMemberWithGroupFormEdit(VestingMemberFormEdit):
     """
@@ -224,6 +250,14 @@ class UserAddVestingOrgForm(forms.ModelForm):
     add a vesting org when a regular user is promoted to a vesting user or vesting manager
     """
 
+    def __init__(self, *args, **kwargs):
+      registrar_id = False
+      if 'registrar_id' in kwargs:
+        registrar_id = kwargs.pop('registrar_id')
+      super(UserAddVestingOrgForm, self).__init__(*args, **kwargs)
+      if registrar_id:
+        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id).order_by('name')
+    
     class Meta:
         model = LinkUser
         fields = ("vesting_org",)         
