@@ -54,6 +54,19 @@ class PermissionsTestCase(PermaTestCase):
             },
             {
                 'urls': [
+                    ['user_management_vesting_user_add_user', {'kwargs':{'user_id': 3}}],
+                ],
+                'allowed': {'test_vesting_member@example.com', 
+                'test_registrar_member@example.com'}
+            },
+            {
+                'urls': [
+                    ['user_management_manage_single_vesting_user_remove', {'kwargs':{'user_id': 3}}],
+                ],
+                'allowed': {'test_vesting_member@example.com'}
+            },
+            {
+                'urls': [
                     ['vested_links'],
                     ['vest_link', {'kwargs':{'guid':'1234'},'success_status':404}],
                 ],
