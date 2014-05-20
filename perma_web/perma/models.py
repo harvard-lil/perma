@@ -186,6 +186,7 @@ class Link(models.Model):
     vested = models.BooleanField(default=False)
     vested_by_editor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='vested_by_editor')
     vested_timestamp = models.DateTimeField(null=True, blank=True)
+    vesting_org = models.ForeignKey(VestingOrg, null=True)
     folders = models.ManyToManyField(Folder, related_name='links', blank=True, null=True)
     notes = models.TextField(blank=True)
 

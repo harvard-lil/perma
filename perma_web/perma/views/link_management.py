@@ -353,6 +353,7 @@ def vest_link(request, guid):
         if not link.vested:
             link.vested=True
             link.vested_by_editor=request.user
+            link.vesting_org = request.user.vesting_org
             link.vested_timestamp=datetime.now()
             link.save()
             poke_mirrors.delay(link_guid=guid)
