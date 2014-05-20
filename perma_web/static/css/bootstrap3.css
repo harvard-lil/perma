@@ -2213,6 +2213,14 @@ fieldset[disabled] .btn-danger.active {
   font-size:20px;
 }
 
+.btn-more {
+  color: #ffffff;
+  background-color: #ccc;
+  border-color: #bbb;
+  font-size:20px;
+}
+
+
 .btn-success:hover,
 .btn-success:focus,
 .btn-success:active,

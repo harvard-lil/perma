@@ -126,7 +126,7 @@ div.main-container {
     width: 100%;
 }
 
-h1, h2, h3, h4, h5 { font-weight: normal; font-family: 'Roboto Slab', sans-serif;}
+h1, h2, h3, h4, h5 { font-weight: normal; font-family: 'Roboto Slab', sans-serif; font-weight:400}
 
 h1 {
     margin-top: 40px;
@@ -140,9 +140,16 @@ h2 {
     color:#ff4100;
 }
 
+
+h3 {
+	font-size: 28px;
+}
+
+
 h4 {
 	color: #ff4100;
 }
+
 
 
 
@@ -166,13 +173,20 @@ hr {
        box-sizing: content-box;
 }
 
+a {
+	font-weight:400;
+}
+
 p {
     margin-bottom: 20px;
     font-family: 'Roboto Slab', sans-serif;
+    font-weight:300;
+    color: #000;
 }
 
 .docs p, .docs li {
-    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+    font-family: 'Roboto Slab', sans-serif; 
+    font-weight:300; 
    	font-weight: 300;
    	font-size: 16px;
 }
@@ -452,13 +466,12 @@ div.home-form-elements {
 section#home-description {
     background-color: #fff;
     padding: 35px 0 20px;
-    text-align: center;
+    text-align: left;
 }
 
     section#home-description p {
-        color: #555;
         font-size: 20px;
-        line-height: 34px;
+        line-height: 28px;
         margin-bottom: 30px;
         padding: 0;
     }
@@ -1521,7 +1534,7 @@ a.underline {
 
 
 .nav-pills > li > a{
-	border:1px solid #e6e6e6;
+	border: 1px solid #ddd;
 	margin:0px;
 	border-radius: 3px;
 	font-size:18px;
@@ -1602,11 +1615,25 @@ div.faq div.answer {
 
 #home-description p.mega, h3 .mega, .mega {
 	font-size:36px;
-	color:#777;
+	color:#09f;
 	line-height:48px;
 	margin-top:0px;
+	
+		font-family: 'Roboto Slab', sans-serif;
+		font-weight:400;
+	
 }
- 
+
+.title {
+	text-align:center;
+}
+a.mega {
+	text-align:center;
+}
+
+a.mega:hover, a.mega:active {
+	color:#06a;
+}
 a.orange, .orange {
 	color: #ff4100;
 }
@@ -1620,7 +1647,7 @@ a.orange:hover, .orange:active {
 }
 
 .welcome2 {
-	background:#f7f7f7;
+	background:#eee;
 	border:1px solid #e6e6e6;
 	  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
@@ -1916,6 +1943,25 @@ a.btn.dashboard {
 a.btn.dashboard:hover, a.btn.dashboard:focus {
 	border:1px solid #06a;	
   	color:#06a;
+}
+
+
+
+.btn-more {
+border: 1px solid #ddd;
+margin: 0px;
+border-radius: 3px;
+font-size: 18px;
+background:#fff;
+color:#09f;
+}
+
+
+.btn-more:hover,
+.btn-more:focus,
+.btn-more:active {
+  color: #ff4100;
+  background:#f7f7f7;
 }
 
 .darchive {
