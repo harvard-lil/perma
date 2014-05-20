@@ -1636,6 +1636,7 @@ a.mega:hover, a.mega:active {
 }
 a.orange, .orange {
 	color: #ff4100;
+	font-weight:400;
 }
 
 a.orange:hover, .orange:active {
@@ -1652,8 +1653,9 @@ a.orange:hover, .orange:active {
 	  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
     box-sizing: border-box;
-    padding:10px;
+    padding:15px;
     border-radius: 3px;
+    margin-top:20px;
     
 }
 
@@ -1662,6 +1664,11 @@ a.orange:hover, .orange:active {
   background: #f7f7f7;
   border:1px solid #eee;
   padding:5px 0;
+}
+
+.carousel-band2 {
+
+  padding:0px 0;
 }
 
 .temp-form-css input {
@@ -1960,7 +1967,7 @@ color:#09f;
 .btn-more:hover,
 .btn-more:focus,
 .btn-more:active {
-  color: #ff4100;
+  color: #06a;
   background:#f7f7f7;
 }
 

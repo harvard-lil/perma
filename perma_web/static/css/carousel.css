@@ -19,9 +19,15 @@
 
 /* Carousel base class */
 .carousel {
-  margin-bottom: -20px;
+  margin-top: -50px;
 
 }
+
+.carousel2 {
+  margin-top: -20px;
+
+}
+
 /* Since positioning the image, we need to help out the caption */
 .carousel-caption {
   z-index: 10;
@@ -29,7 +35,7 @@
 
 /* Declare heights because of positioning of img element */
 .carousel .item {
-  min-height: 150px;
+  min-height: 130px;
 }
 .carousel-inner > .item > img {
   position: absolute;
