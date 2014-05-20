@@ -529,6 +529,7 @@ def vesting_user_add_user(request):
                 email_new_user(request, target_user)
                 messages.add_message(request, messages.INFO, '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % target_user.email, extra_tags='safe')
             else:
+                email_new_vesting_user(request, target_user)
                 messages.add_message(request, messages.INFO, '<h4>Success!</h4> <strong>%s</strong> is now a vesting user.' % target_user.email, extra_tags='safe')
             
             target_user.save()
@@ -1036,7 +1037,31 @@ http://%s/register/password/%s/
     logger.debug(content)
 
     send_mail(
-        "A perma account has been created for you",
+        "A Perma.cc account has been created for you",
+        content,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email], fail_silently=False
+    )
+    
+
+def email_new_vesting_user(request, user):
+    """
+    Send email to newly created vesting accounts
+    """
+      
+    host = request.get_host()
+
+    if settings.DEBUG == False:
+      host = settings.HOST
+
+    content = '''Your Perma.cc account has been associated with %s.  You now have vesting privileges.  If this is a mistake, visit your account settings page to leave %s.
+
+http://%s/manage/account
+
+''' % (user.vesting_org.name, user.vesting_org.name, host)
+
+    send_mail(
+        "Your Perma.cc account is now associated with {vesting_org}".format(vesting_org=user.vesting_org.name),
         content,
         settings.DEFAULT_FROM_EMAIL,
         [user.email], fail_silently=False
