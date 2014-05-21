@@ -365,7 +365,7 @@ def list_users_in_group(request, group_name):
     form_data = request.POST or None
     if group_name == 'registrar_user':
         form = CreateUserFormWithRegistrar(form_data, prefix="a")
-    elif group_name in ('vesting_user'):
+    elif group_name == 'vesting_user':
         if is_registry:
             form = CreateUserFormWithVestingOrg(form_data, prefix="a")
         elif is_registrar:
@@ -383,13 +383,13 @@ def list_users_in_group(request, group_name):
             if group_name == 'vesting_user':
                 new_user.authorized_by = request.user
 
-            if group_name in ('vesting_user'):
+            if group_name == 'vesting_user':
                 if is_registry or is_registrar:
-                    vesting_org = VestingOrg.objects.get(id=new_user.vesting_org_id)
-                    new_user.registrar_id = vesting_org.registrar.id
+                    vesting_org = new_user.vesting_org
+                    new_user.registrar = vesting_org.registrar
                 else:
-                    new_user.vesting_org_id = request.user.vesting_org_id
-                    new_user.registrar_id = request.user.registrar_id
+                    new_user.vesting_org = request.user.vesting_org
+                    new_user.registrar = request.user.registrar
 
             new_user.save()
 
@@ -472,6 +472,7 @@ def edit_user_in_group(request, user_id, group_name):
     return render_to_response('user_management/manage_single_user.html', context)
 
 
+@require_group(['registrar_user', 'vesting_user'])
 def vesting_user_add_user(request):
     """
         Delete particular user with given group name.
@@ -541,10 +542,8 @@ def vesting_user_add_user(request):
     return render_to_response('user_management/user_add_confirm.html', context)
     
 
+@require_group(['vesting_user'])
 def vesting_user_leave_vesting_org(request):
-
-    if not request.user.has_group('vesting_user'):
-        return HttpResponseRedirect(reverse('user_management_manage_account'))
 
     context = {'this_page': 'settings', 'user': request.user}
 
