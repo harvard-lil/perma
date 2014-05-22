@@ -62,6 +62,7 @@ class PermissionsTestCase(PermaTestCase):
             {
                 'urls': [
                     ['user_management_manage_single_vesting_user_remove', {'kwargs':{'user_id': 3}}],
+                    ['user_management_vesting_user_leave_vesting_org'],
                 ],
                 'allowed': {'test_vesting_member@example.com'}
             },
