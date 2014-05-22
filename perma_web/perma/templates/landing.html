@@ -9,6 +9,8 @@
 <script src='{{ STATIC_URL }}js/raphael.scale.js'></script>
 <script src='{{ STATIC_URL }}js/g.raphael.js'></script>
 <script src='{{ STATIC_URL }}js/usmap.js'></script>
+<script src='{{ STATIC_URL }}js/rwdImageMaps.js'></script>
+
 {% endblock %}
 
 {% block content %}
@@ -18,11 +20,13 @@
     <div class="container">
     	<div class="row welcome">
         	<div class="col-sm-6">
-        		<p class="mega">Websites change,<br/> go away, and are taken down</p>
+        		<p class="mega">Websites Change, Go Away, and Get Taken Down</p>
 				
 				
-				<p><span class="orange">Perma.cc</span> helps scholars, journals and courts create permanent links to the online sources cited in their work.</p>
+				<p><a href="{% url 'landing' %}"><span class="orange">Perma.cc</span></a> helps scholars, journals and courts create permanent links to the online sources cited in their work. <a href="http://perma.cc/4RH7-999Q" target="_blank">Here's an example.</a></p>
+
 				<br/>
+				
 				<p><a href="{% url 'process_register' %}" class="btn btn-large btn-success">Create an account</a></p>
 
 				{% if request.user.is_authenticated %}
@@ -35,9 +39,14 @@
 			
 			<div class="col-sm-6">
 
-				<img class="img-responsive" src="{{ STATIC_URL }}/img/citation.png"/>
-
-		
+				<a href="http://perma.cc/FC7M-CRS9" target="_blank"><img class="img-responsive" src="{{ STATIC_URL }}/img/citation.png"/></a>
+				<!--<div class="">
+				<img  name="citation" src="{{ STATIC_URL }}/img/citation.png" width="1168" height="952" border="0" id="citation" usemap="#m_citation" alt="" />
+				<map name="m_citation" id="m_citation">
+					<area shape="rect" coords="135,714,555,770" href="http://perma.cc/HX7J-JMHE" target="_blank" alt="" />
+					<area shape="rect" coords="99,506,644,565" href="http://perma.cc/FC7M-CRS9" target="_blank" alt="" />
+				</map>
+				</div>-->
 			</div>	
 		</div>	<!--row-->
 	</div>	<!--container-->	
@@ -54,7 +63,7 @@
 			</div>
 			<div class="col-sm-6">
         		<p class="mega"><span class="orange">Powered by Libraries</span></p>
-        		<p><span class="orange">Perma.cc</span> is powered by libraries because we're in the forever business. We're already looking after printed materials, it's time we did the same for links.</p>
+        		<p>Perma.cc is powered by libraries because we're in the forever business. We're already looking after printed materials, it's time we did the same for links.</p>
 			</div>
 		</div>
 		<div class="row">
@@ -390,10 +399,10 @@
 			</div>
 		</div>
 		<br/>
-	
+<br/>
 		<div class="row">
 			<div class="col-sm-6">
-				<h3 class="orange"><div id="create">Create</div></h3>
+				<h3 class="mega orange"><div id="create">Create</div></h3>
 			</div>
 			<div class="col-sm-6">
 				
@@ -402,22 +411,21 @@
         <div class="row">
 			<div class="col-sm-6">
 				<hr/>
-				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
-				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
-				<p><a href="{% url 'docs_perma_link_creation' %}" class="btn btn-large btn-more">More...</a></p>
+				<p>With a Perma.cc account,  you can create links to archived versions of web pages cited in your work. All you have to do is specify the URL of the page you want to preserve. Perma.cc will store the page and give you a unique Perma Link - like <a href="http://perma.cc/FC7M-CRS9" target="_blank">perma.cc/FC7M-CRS9</a> - that you can use to direct readers to the preserved page.</p>
+				<p><a href="{% url 'docs_perma_link_creation' %}" class="btn btn-large btn-more">MORE</a></p>
 			</div>
 			<div class="col-sm-6">	
 
 				<img class="img-responsive" src="{{ STATIC_URL }}img/create-links.png"/>		
 			</div>
 		</div>
+				<br/>
         <div class="row">
         	<div class="col-sm-6">
 				<h3 class="mega orange"></h3>
 			</div>
 			<div class="col-sm-6">
 				<h3 class="mega orange"><div id="vest">Vest</div></h3>
-
 			</div>
 		</div>
         <div class="row">
@@ -426,13 +434,12 @@
 			</div>
 			<div class="col-sm-6">
 				<hr/>
-				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
-				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
-				<p><a href="{% url 'docs_perma_link_vesting' %}" class="btn btn-large btn-more">More...</a></p>
+				<p>Links become permanent when they are “vested” by someone affiliated with a vesting organization, such as a journal or court. Perma.cc limits vesting privileges to help prevent abuse and to focus on solving the problem of link rot in academic and legal writing. </p>
+				<p><a href="{% url 'docs_perma_link_vesting' %}" class="btn btn-large btn-more">MORE</a></p>
 			</div>
 			
 		</div>
-		
+				<br/>
 		<div class="row">
 			<div class="col-sm-6">
 				<h3 class="mega orange"><div id="archive">Archive</div></h3>
@@ -444,9 +451,8 @@
 		<div class="row">
 			<div class="col-sm-6">
 				<hr/>
-				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
-				<p>Perma is Built & Run by libraries, because we already look after books, it's time we did the same for links.</p>
-				<p><a href="{% url 'docs_perma_archive' %}" class="btn btn-large btn-more">More...</a></p>
+				<p>Perma.cc provides multiple archive formats for each archived page and gives account holders a dashboard to organize all the links they’ve created. Once links are vested, they become part of the permanent archive that ultimately will be maintained by a network of participating libraries. </p>
+				<p><a href="{% url 'docs_perma_archive' %}" class="btn btn-large btn-more">MORE</a></p>
 			</div>
 			<div class="col-sm-6">	
 				<img class="img-responsive" src="{{ STATIC_URL }}/img/shelf2.png"/> 
@@ -569,7 +575,17 @@
 				</div><!--/row-->
 			</div><!--/container-->
 		</footer>
-
-
 {% endblock %}
 
+{% block scripts %}
+<script>
+$(document).ready(function(e) {
+	$('img[usemap]').rwdImageMaps();
+	
+	$('area').on('click', function() {
+		
+	});
+});
+</script>
+
+{% endblock %}
