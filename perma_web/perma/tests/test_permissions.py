@@ -54,7 +54,7 @@ class PermissionsTestCase(PermaTestCase):
             },
             {
                 'urls': [
-                    ['user_management_vesting_user_add_user', {'kwargs':{'email': 'test_vesting_member88@example.com'}}],
+                    ['user_management_vesting_user_add_user'],
                 ],
                 'allowed': {'test_vesting_member@example.com', 
                 'test_registrar_member@example.com'}
@@ -62,6 +62,7 @@ class PermissionsTestCase(PermaTestCase):
             {
                 'urls': [
                     ['user_management_manage_single_vesting_user_remove', {'kwargs':{'user_id': 3}}],
+                    ['user_management_vesting_user_leave_vesting_org'],
                 ],
                 'allowed': {'test_vesting_member@example.com'}
             },
