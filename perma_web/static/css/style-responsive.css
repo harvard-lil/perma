@@ -293,7 +293,7 @@ p {
 
 ul.partners {
 	text-align:center;
-	margin:10px 0;
+	margin-top:0px;
 }
 .partners li {
 	display:inline;
@@ -1665,17 +1665,6 @@ img[usemap] {
 		max-width: 100%;
 		width: auto;
 	}
-
-.carousel-band {
-  background: #f7f7f7;
-  border:1px solid #eee;
-  padding:5px 0;
-}
-
-.carousel-band2 {
-
-  padding:0px 0;
-}
 
 .temp-form-css input {
 	border: 1px solid #ccc;
