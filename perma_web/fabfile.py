@@ -203,7 +203,8 @@ def heroku_push(project_dir=os.path.join(settings.PROJECT_ROOT, '..')):
         # set up git
         local(r'sed "s/perma_web\///g" %s/%s > %s' % (project_dir, '.gitignore', '.gitignore'))
         local("git init")
-        local("git commit -a -m 'heroku push `date`'")
+        local("git add -A")
+        local("git commit -m 'heroku push `date`'")
         local("heroku git:remote -a perma")
 
         # push to heroku
