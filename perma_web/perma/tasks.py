@@ -275,8 +275,8 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
 
         print "%s capture done." % link_guid
 
-    except:
-        logger.execption("An error occured while during archive")
+    except Exception as e:
+        logger.exception("An error occurred while archiving: %s" % e)
 
 @celery.task
 def get_pdf(link_guid, target_url, base_storage_path, user_agent):
@@ -299,27 +299,25 @@ def get_pdf(link_guid, target_url, base_storage_path, user_agent):
 
         # write PDF out to a temp file
         temp = tempfile.TemporaryFile()
-        try:
-            for chunk in pdf_request.iter_content(chunk_size=1024):
+        for chunk in pdf_request.iter_content(chunk_size=1024):
 
-                # Limit our filesize
-                if temp.file.tell() > settings.MAX_ARCHIVE_FILE_SIZE:
-                    raise
+            if chunk: # filter out keep-alive new chunks
+                temp.write(chunk)
+                temp.flush()
 
-                if chunk: # filter out keep-alive new chunks
-                    temp.file.write(chunk)
-                    temp.file.flush()
-        except Exception, e:
-            logger.info("PDF capture too big, %s" % target_url)
-            asset_query.update(pdf_capture='failed')
+            # Limit our filesize
+            if temp.tell() > settings.MAX_ARCHIVE_FILE_SIZE:
+                logger.info("PDF capture too big, %s" % target_url)
+                asset_query.update(pdf_capture='failed')
+                return
 
         # store temp file
-        temp.file.seek(0)
-        pdf_name = store_file(temp.file, pdf_path)
+        temp.seek(0)
+        pdf_name = store_file(temp, pdf_path)
         asset_query.update(pdf_capture=pdf_name)
 
-    except:
-        logger.execption("An error occured while during archive")
+    except Exception as e:
+        logger.exception("An error occurred while archiving: %s" % e)
 
 
 def instapaper_capture(url, title):
@@ -528,7 +526,7 @@ def compress_link_assets(*args, **kwargs):
         if e.errno == errno.EEXIST:
             pass
         else:
-            raise e
+            raise
     zip_name = os.path.join(os.path.dirname(zipfile_directory), guid + ".zip")
     os.chdir(os.path.dirname(asset_directory))
     with zipfile.ZipFile(zip_name, "w") as zipfh:
