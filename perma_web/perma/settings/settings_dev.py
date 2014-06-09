@@ -18,6 +18,9 @@ MEDIA_ROOT = os.path.join(SERVICES_DIR, 'django/generated_assets/')
 # static files
 STATIC_ROOT = os.path.join(SERVICES_DIR, 'django/static_assets/')
 
+# zip files
+MEDIA_ARCHIVES_ROOT = os.path.join(SERVICES_DIR, 'django/generated_archives/')
+
 # print email to console
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 

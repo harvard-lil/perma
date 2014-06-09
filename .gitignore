@@ -12,6 +12,8 @@ services/django/generated_assets/*
 !services/django/generated_assets/README
 services/django/static_assets/*
 !services/django/static_assets/README
+services/django/generated_archives/*
+!services/django/generated_archives/README
 services/logs/*
 !services/logs/README
 services/mysql/data/*
