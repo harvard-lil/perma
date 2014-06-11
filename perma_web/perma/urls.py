@@ -11,7 +11,7 @@ from .views.common import DirectTemplateView
 
 admin.autodiscover()
 
-guid_pattern = r'(?P<guid>[a-zA-Z0-9\-]+)'
+guid_pattern = r'(?P<guid>.+)'
 
 urlpatterns = patterns('perma.views',
 
