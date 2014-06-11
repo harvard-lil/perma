@@ -17,7 +17,7 @@ class CommonViewsTestCase(PermaTestCase):
 
         response = self.client.get(reverse('single_linky', kwargs={'guid': 'JJ99--JJJJ'}))
         self.assertRedirects(response,
-            reverse('single_linky', kwargs={'guid': 'JJJJ-JJJJ'}), status_code=301,
+            reverse('single_linky', kwargs={'guid': 'JJ99-JJJJ'}), status_code=301,
             target_status_code=404)
 
         # Insane IDs should redirect if they have non-hyphens
