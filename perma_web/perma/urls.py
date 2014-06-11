@@ -11,7 +11,7 @@ from .views.common import DirectTemplateView
 
 admin.autodiscover()
 
-guid_pattern = r'(?P<guid>.+)'
+guid_pattern = r'(?P<guid>[a-zA-Z0-9\-]+)'
 
 urlpatterns = patterns('perma.views',
 
@@ -117,7 +117,7 @@ urlpatterns = patterns('perma.views',
     url(r'^cdx$', 'common.cdx', name='cdx'),
 
     # Our Perma ID catchall
-    url(r'^%s/?$' % guid_pattern, 'common.single_linky', name='single_linky'),
+    url(r'^%s/?$' % r'(?P<guid>.+)', 'common.single_linky', name='single_linky'),
     
 )
 
