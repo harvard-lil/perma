@@ -11,7 +11,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
 from datetime import datetime
-import urllib2, os, logging
+import urllib2, os, logging, re
 from urlparse import urlparse
 from django.views.decorators.csrf import csrf_exempt
 from pywb.warc.archiveindexer import ArchiveIndexer
@@ -124,9 +124,16 @@ def single_linky(request, guid):
     """
 
     if request.method == 'POST' and request.user.is_authenticated():
-        Link.objects.filter(guid=guid).update(vested = True, vested_by_editor = request.user, vested_timestamp = datetime.now())
+        Link.objects.filter(guid=guid).update(vested = True,
+            vested_by_editor = request.user, vested_timestamp = datetime.now())
 
         return HttpResponseRedirect(reverse('single_linky', args=[guid]))
+
+    # Replace all non-[a-zA-Z0-9] chars with a single hyphen
+    # We want to translate em-dashes, double hyphens and the like and redirect
+    if guid != re.sub('[^0-9a-zA-Z]+', '-', guid):
+        return HttpResponsePermanentRedirect(reverse('single_linky',
+            args=[re.sub('[^0-9a-zA-Z]+', '-', guid)]))
 
     canonical_guid = Link.get_canonical_guid(guid)
     if canonical_guid != guid:
