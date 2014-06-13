@@ -117,7 +117,7 @@ urlpatterns = patterns('perma.views',
     url(r'^cdx$', 'common.cdx', name='cdx'),
 
     # Our Perma ID catchall
-    url(r'^%s/?$' % r'(?P<guid>.+)', 'common.single_linky', name='single_linky'),
+    url(r'^%s/?$' % r'(?P<guid>[^\./]+)', 'common.single_linky', name='single_linky'),
     
 )
 
