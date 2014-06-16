@@ -19,7 +19,7 @@ def email_confirm(request):
     
     email_address = request.POST.get('email_address')
     link_url = request.POST.get('link_url')
-    
+
     if not email_address or not link_url:
         return HttpResponse(status=400)
 
