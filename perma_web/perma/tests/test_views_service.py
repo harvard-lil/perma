@@ -20,10 +20,10 @@ class ServiceViewsTestCase(PermaTestCase):
         self.assertEqual(response.status_code, 200)
 
         # The service needs an email address and a link. If we don't send both we should fail
-        response = self.client.post(reverse('service_email_confirm'), data={'email_address': '0J6pkzDeQwT'})
+        response = self.client.post(reverse('service_email_confirm'), data={'email_address': 'test@example.com'})
         self.assertEqual(response.status_code, 400)
 
-    def test_email_confirm(self):
+    def test_receive_feedback(self):
         """
         A user can email a link through the web front end. The variables
         are link and email address.

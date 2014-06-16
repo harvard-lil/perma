@@ -88,7 +88,7 @@ def link_status(request, guid):
     """
     A service that provides the state of a perma.
     TODO: this should obviously become part of an API, we probably also want to evaluate some long polling
-    apporach?
+    approach?
     """
     target_link = get_object_or_404(Link, guid=guid)
     target_asset = get_object_or_404(Asset, link=target_link)
