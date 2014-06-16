@@ -164,7 +164,7 @@ function linkIt(){
       var request = $.ajax({
         url: mirror_server_host + "/service/email-confirm/",
         type: "POST",
-        data: {email_address: $('#email_request').val(), linky_link: linkyUrl, 'csrfmiddlewaretoken': csrf_token},
+        data: {email_address: $('#email_request').val(), link_url: linkyUrl, 'csrfmiddlewaretoken': csrf_token},
         dataType: "json"
       });
     

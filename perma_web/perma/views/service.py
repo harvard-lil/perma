@@ -14,18 +14,18 @@ logger = logging.getLogger(__name__)
 
 def email_confirm(request):
     """
-    A service that sends a linky message.
+    A service that sends a message to a user about a perma link.
     """
     
     email_address = request.POST.get('email_address')
-    linky_link = request.POST.get('linky_link')
+    link_url = request.POST.get('link_url')
     
-    if not email_address and not linky_link:
+    if not email_address or not link_url:
         return HttpResponse(status=400)
 
     send_mail(
         "The Perma link you requested",
-        "%s \n\n(This link is the Perma link)" % linky_link,
+        "%s \n\n(This link is the Perma link)" % link_url,
         settings.DEFAULT_FROM_EMAIL,
         [email_address]
     )
@@ -43,8 +43,7 @@ def receive_feedback(request):
     user_agent = ''
     if 'HTTP_USER_AGENT' in request.META:
         user_agent = request.META.get('HTTP_USER_AGENT')
-    
-    submitted_url = request.POST.get('submitted_url')
+
     visited_page = request.POST.get('visited_page')
     feedback_text = request.POST.get('feedback_text')
     broken_link = request.POST.get('broken_link')
@@ -79,17 +78,6 @@ def receive_feedback(request):
         from_address,
         [settings.DEFAULT_FROM_EMAIL], fail_silently=False
     )
-
-    #msg = MIMEText(content)
-    #msg['Subject'] = "New Perma feedback"
-    #msg['From'] = from_address
-    #msg['To'] = to_address
-        
-    # Send the message via our own SMTP server, but don't include the
-    # envelope header.
-    # s = smtplib.SMTP('localhost')
-    #s.sendmail(from_address, [to_address], msg.as_string())
-    #s.quit()
         
     response_object = {'submitted': 'true', 'content': content}
 
