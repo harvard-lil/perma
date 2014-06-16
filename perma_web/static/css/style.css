@@ -93,26 +93,15 @@ header {
     padding: 0;
 }
 
-    /*/header .logo {
-        background: url('../img/logo.png') left no-repeat;
-        float: left;
-        height: 50px;
-        margin: 0;
-        margin-top: 26px;
-        overflow: hidden;
-        padding: 0;
-        width: 130px;
-    }/*/
+    header .logo span { display: none; }
 
-        header .logo span { display: none; }
-
-        header .logo a {
-        height: 50px;
-        text-decoration: none;
-          font-family: 'Roboto Slab', sans-serif;
-          font-size:36px;
-          color:#ee5f5b;
-        }
+    header .logo a {
+    height: 50px;
+    text-decoration: none;
+      font-family: 'Roboto Slab', sans-serif;
+      font-size:36px;
+      color:#ee5f5b;
+    }
 
 	.logo-condensed-header a {
 	text-decoration: none;
