@@ -233,15 +233,15 @@ class Link(models.Model):
         if '-' not in guid and (len(guid) == 10 or len(guid) == 11):
             return guid
 
-        canonical_guid = guid.replace('-', '')
-
+        # uppercase and remove non-alphanumerics
+        canonical_guid = re.sub('[^0-9A-Z]+', '', guid.upper())
 
         # split guid into 4-char chunks, starting from the end
         guid_parts = [canonical_guid[max(i - 4, 0):i] for i in
                       range(len(canonical_guid), 0, -4)]
 
         # stick together parts with '-'
-        return "-".join(reversed(guid_parts)).upper()
+        return "-".join(reversed(guid_parts))
 
     def move_to_folder_for_user(self, folder, user):
         """

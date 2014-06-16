@@ -129,12 +129,8 @@ def single_linky(request, guid):
 
         return HttpResponseRedirect(reverse('single_linky', args=[guid]))
 
-    # Replace all non-[a-zA-Z0-9] chars with a single hyphen
-    # We want to translate em-dashes, double hyphens and the like and redirect
-    if guid != re.sub('[^0-9a-zA-Z]+', '-', guid):
-        return HttpResponsePermanentRedirect(reverse('single_linky',
-            args=[re.sub('[^0-9a-zA-Z]+', '-', guid)]))
-
+    # Create a canonical version of guid (non-alphanumerics removed, hyphens every 4 characters, uppercase),
+    # and forward to that if it's different from current guid.
     canonical_guid = Link.get_canonical_guid(guid)
     if canonical_guid != guid:
         return HttpResponsePermanentRedirect(reverse('single_linky', args=[canonical_guid]))
