@@ -320,38 +320,6 @@ def get_pdf(link_guid, target_url, base_storage_path, user_agent):
         logger.exception("An error occurred while archiving: %s" % e)
 
 
-def instapaper_capture(url, title):
-    consumer = oauth.Consumer(settings.INSTAPAPER_KEY, settings.INSTAPAPER_SECRET)
-    client = oauth.Client(consumer)
-
-    resp, content = client.request('https://www.instapaper.com/api/1/oauth/access_token', "POST", urllib.urlencode({
-                'x_auth_mode': 'client_auth',
-                'x_auth_username': settings.INSTAPAPER_USER,
-                'x_auth_password': settings.INSTAPAPER_PASS,
-                }))
-
-    token = dict(urlparse.parse_qsl(content))
-    try:
-        token = oauth.Token(token['oauth_token'], token['oauth_token_secret'])
-    except KeyError:
-        return None, None, False # login failed -- maybe no instapaper config in settings
-    http = oauth.Client(consumer, token)
-
-    response, data = http.request('https://www.instapaper.com/api/1/bookmarks/add', method='POST', body=urllib.urlencode({'url':url, 'title': unicode(title).encode('utf-8')}))
-
-    res = simplejson.loads(data)
-
-    bid = res[0]['bookmark_id']
-
-    tresponse, tdata = http.request('https://www.instapaper.com/api/1/bookmarks/get_text', method='POST', body=urllib.urlencode({'bookmark_id':bid}))
-
-    # If didn't get a response or we got something other than an HTTP 200, count it as a failure
-    success = True
-    if not tresponse or tresponse.status != 200:
-        success = False
-    
-    return bid, tdata, success
-
 @celery.task
 def get_nigthly_stats():
     """
