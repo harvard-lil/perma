@@ -5,7 +5,8 @@ from perma.models import Registrar, VestingOrg
 
 
 class PermaTestCase(TestCase):
-    fixtures = ['fixtures/groups.json','fixtures/users.json', 'fixtures/archive.json']
+    fixtures = ['fixtures/groups.json','fixtures/users.json',
+                'fixtures/archive.json']
 
     def setUp(self):
         registrar = Registrar(name='Test Registrar', email='registrar@test.com', website='http://testregistrar.com')

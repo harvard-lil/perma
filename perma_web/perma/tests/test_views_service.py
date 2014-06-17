@@ -80,13 +80,12 @@ class ServiceViewsTestCase(PermaTestCase):
     def test_link_assets(self):
         """
         make sure we get a download with a zip from our
-        asssets bundler service
+        assets bundler service
         """
 
         guid = '7CF8-SS4G'
 
         response = self.client.post(reverse('service_link_assets', kwargs={'guid': guid,}))
-        self.assertEqual(response.status_code, 200)
 
         self.assertEquals(
             response.get('Content-Disposition'),
