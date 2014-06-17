@@ -78,19 +78,7 @@ class ServiceViewsTestCase(PermaTestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_link_assets(self):
-        """
-        make sure we get a download with a zip from our
-        assets bundler service
-        """
-
-        guid = '7CF8-SS4G'
-
-        response = self.client.post(reverse('service_link_assets', kwargs={'guid': guid,}))
-
-        self.assertEquals(
-            response.get('Content-Disposition'),
-            'attachment; filename="assets_%s.zip"' % guid
-        )
+        """Make sure we get a 404 for a non-existent archive"""
 
         response = self.client.post(reverse('service_link_assets', kwargs={'guid': '9999-JCDL',}))
         self.assertEqual(response.status_code, 404)
