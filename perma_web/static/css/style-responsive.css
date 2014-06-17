@@ -117,9 +117,6 @@ kbd a:hover, kbd:hover, kbd:active {
   padding-top:5px;
 }
 
-#feedbackify .rating-intro {display: none;}
-#feedbackify .score-tbl {display: none;}
-
 div.main-container {
     overflow: hidden;
     margin: 0 auto;
@@ -1119,13 +1116,6 @@ img.watermark-image {
           font-size:25px;
           color:#ff4100;
 }
-
-
-#feedbackify .score-tbl {
-	visibility:hidden;
-	margin-bottom:-10px;
-}
-
 
 .lower {
 	margin: 5px 0 -5px 0;

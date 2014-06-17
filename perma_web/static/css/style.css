@@ -42,9 +42,6 @@ body {
   padding-top:5px;
 }
 
-#feedbackify .rating-intro {display: none;}
-#feedbackify .score-tbl {display: none;}
-
 div.main-container {
     overflow: hidden;
     margin: 0 auto;
