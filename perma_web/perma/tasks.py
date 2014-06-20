@@ -184,10 +184,7 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
         print "Waited 60 seconds for onLoad event -- giving up."
         if not unique_responses:
             # if nothing at all has loaded yet, give up on the capture
-            if settings.USE_WARC_ARCHIVE:
-                asset_query.update(warc_capture='failed', image_capture='failed')
-            else:
-                asset_query.update(image_capture='failed')
+            asset_query.update(warc_capture='failed', image_capture='failed')
             browser.quit()  # shut down phantomjs
             robots_txt_thread.join()  # wait until robots thread is done
             warcprox_controller.stop.set()  # send signal to shut down warc thread
@@ -255,12 +252,10 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
     try:
         with open(temp_warc_path, 'rb') as warc_file:
             warc_name = default_storage.store_file(warc_file, warc_path)
-            if settings.USE_WARC_ARCHIVE:
-                asset_query.update(warc_capture=warc_name)
+            asset_query.update(warc_capture=warc_name)
     except Exception as e:
         logger.info("Web Archive File creation failed for %s: %s" % (target_url, e))
-        if settings.USE_WARC_ARCHIVE:
-            asset_query.update(warc_capture='failed')
+        asset_query.update(warc_capture='failed')
 
     print "%s capture done." % link_guid
 

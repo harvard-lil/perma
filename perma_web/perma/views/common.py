@@ -83,11 +83,8 @@ def cdx(request):
             warc_path = os.path.join(asset.base_storage_path, asset.warc_capture)
             break
     else:
-        if settings.USE_WARC_ARCHIVE:
-            print "COULDN'T FIND WARC"
-            raise Http404 # no .warc file -- do something to handle this
-        else:
-            warc_path = os.path.join(asset.base_storage_path, "archive.warc.gz")
+        print "COULDN'T FIND WARC"
+        raise Http404 # no .warc file -- do something to handle this?
 
     # get cdx file
     cdx_path = warc_path.replace('.gz', '').replace('.warc', '.cdx')
@@ -219,7 +216,6 @@ def single_linky(request, guid):
         if context['asset'].warc_download_url():
             return HttpResponseRedirect(context.get('MEDIA_URL', settings.MEDIA_URL)+context['asset'].warc_download_url())
 
-    context['USE_WARC_ARCHIVE'] = settings.USE_WARC_ARCHIVE
     return render_to_response('single-link.html', context, RequestContext(request))
 
 

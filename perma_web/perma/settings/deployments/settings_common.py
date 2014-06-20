@@ -187,9 +187,6 @@ LOGIN_DAY_LIMIT = '50000/d'
 # Dashboard user lists
 MAX_USER_LIST_SIZE = 100
 
-# temporary setting to keep warcs out of production during testing
-USE_WARC_ARCHIVE = False
-
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error.
