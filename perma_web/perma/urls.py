@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib import admin
 from django.conf.urls import patterns, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.contrib.auth import views as auth_views
@@ -8,8 +7,6 @@ from django.views.generic import RedirectView
 
 from .views.common import DirectTemplateView
 
-
-admin.autodiscover()
 
 guid_pattern = r'(?P<guid>[a-zA-Z0-9\-]+)'
 
@@ -43,14 +40,11 @@ urlpatterns = patterns('perma.views',
     #API routes
     url(r'^api/linky/urldump/?$', 'api.urldump', name='urldump'),
     url(r'^api/linky/urldump/(?P<since>\d{4}-\d{2}-\d{2})/?', 'api.urldump', name='urldump_with_since'),
-    url(r'^api/render/%s/?$' % guid_pattern, 'common.single_link_main_server', name='single_link_main_server'),
     
     #Services
     url(r'^service/email-confirm/?$', 'service.email_confirm', name='service_email_confirm'),
     url(r'^service/receive-feedback/?$', 'service.receive_feedback', name='service_receive_feedback'),
     url(r'^service/link/status/%s?/?$' % guid_pattern, 'service.link_status', name='service_link_status'),
-    url(r'^service/link/assets/%s?/?$' % guid_pattern, 'service.link_assets', name='service_link_assets'),
-    url(r'^service/link/update/%s?/?$' % guid_pattern, 'service.do_update_perma', name='service_update_link'),
     url(r'^service/stats/users/?$', 'service.stats_users', name='service_stats_users'),
     url(r'^service/stats/links/?$', 'service.stats_links', name='service_stats_links'),
     url(r'^service/stats/darchive-links/?$', 'service.stats_darchive_links', name='service_stats_darchive_links'),

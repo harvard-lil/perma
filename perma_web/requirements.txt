@@ -1,8 +1,10 @@
+# Package:                  # Used for:
+
 Django==1.6
 MySQL-python==1.2.5
 South==0.7.6
 lxml==3.2.1
-PyPDF2==1.20                # used to check integrity of uploaded PDFs
+PyPDF2==1.20                # check integrity of uploaded PDFs
 celery==3.1.9
 django-celery==3.1.9
 requests==1.2.3
@@ -20,16 +22,10 @@ coverage==3.7.1
 selenium==2.41.0
 jsmin==2.0.9
 django-pipeline==1.3.23
+tempdir==0.6                # create temp dirs to be deleted at end of function -- handy for archive creation
 
-surt==0.2                   # used in our simple CDX server to canonicalize URL
+surt==0.2                   # our simple CDX server to canonicalize URL
 pywb==0.2.2
 # release 1.1 is missing a patch we need; next release we can switch to PyPI
 git+git://github.com/internetarchive/warcprox.git@5d09aea67d8f46221e5ee866ea1d1909ccb0715e
 
-# heroku requirements
-dj_database_url==0.3.0
-dj-static==0.0.5
-gunicorn==18.0
-gevent==1.0
-django-storages==1.1.8
-boto==2.27.0

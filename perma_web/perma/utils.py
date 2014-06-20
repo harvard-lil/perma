@@ -1,8 +1,5 @@
 import datetime
 import pytz
-import StringIO
-from django.core.files import File
-from django.core.files.storage import default_storage
 from django.utils.decorators import available_attrs
 
 
@@ -154,43 +151,13 @@ def require_group(group, redirect_url=settings.LOGIN_REDIRECT_URL):
     return require_group_decorator
 
 
-### can_be_mirrored decorator ###
+### celery helpers ###
 
-def can_be_mirrored(view_func):
+def run_task(task, *args, **kwargs):
     """
-    Marks a view function as capable of being served by a mirror.
-    Modeled on csrf_exempt.
+        Run a celery task either async or directly, depending on settings.RUN_TASKS_ASYNC.
     """
-    def wrapped_view(*args, **kwargs):
-        return view_func(*args, **kwargs)
-
-    wrapped_view.can_be_mirrored = True
-    return wraps(view_func, assigned=available_attrs(view_func))(wrapped_view)
-
-
-def store_file(file_object, file_path, overwrite=False, storage=default_storage):
-    """
-        Given an open file_object ready for reading,
-        and the file_path to store it to,
-        save the file and return the new file name.
-
-        File name will only change if file_path conflicts with an existing file.
-        If overwrite=True, existing file will instead be deleted and overwritten.
-    """
-    if overwrite:
-        if storage.exists(file_path):
-            storage.delete(file_path)
-    new_file_path = storage.save(file_path, File(file_object))
-    return new_file_path.split('/')[-1]
-
-def store_data_to_file(data, file_path, overwrite=False, storage=default_storage):
-    file_object = StringIO.StringIO()
-    file_object.write(data)
-    file_object.seek(0)
-    return store_file(file_object, file_path, overwrite, storage)
-
-def serialize_datetime(dt):
-    return dt.strftime("%Y-%m-%d %H:%M:%S")
-
-def unserialize_datetime(dt_string):
-    return pytz.UTC.localize(datetime.datetime.strptime(dt_string, "%Y-%m-%d %H:%M:%S"))
+    if settings.RUN_TASKS_ASYNC:
+        return task.delay(*args, **kwargs)
+    else:
+        return task(*args, **kwargs)

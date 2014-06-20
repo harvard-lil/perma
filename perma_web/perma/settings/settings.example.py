@@ -2,8 +2,8 @@
 # Only override the ones you need to, so you're less likely to have to make manual settings updates after pulling in changes.
 
 # Choose one of these:
-# from settings_dev import *
-# from settings_prod import *
+# from .deployments.settings_dev import *
+# from .deployments.settings_prod import *
 
 
 ADMINS = (

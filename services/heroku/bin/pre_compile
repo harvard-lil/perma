@@ -1,9 +1,103 @@
-#!/usr/bin/env bash
-# via https://github.com/kennethjiang/heroku-buildpack-python-libffi/blob/master/bin/steps/libffi
+#!/usr/bin/env python
 
+import os
+from subprocess import call
+
+# config
+binary_packages = {
+    # phantomjs install
+    # based on https://github.com/stomita/heroku-buildpack-phantomjs/blob/master/bin/compile
+    'phantomjs':{
+        'download_url':'https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-1.9.7-linux-x86_64.tar.bz2',
+        'expanded_file':'phantomjs-1.9.7-linux-x86_64',
+        'profile_vars':{
+            'PATH':'bin',
+        }
+    },
+
+    # libffi install
+    # based on https://github.com/kennethjiang/heroku-buildpack-python-libffi/blob/master/bin/steps/libffi
+    'libffi':{
+        'download_url':'https://s3.amazonaws.com/rt-uploads/libffi-3.0.tgz',
+        'expanded_file':'libffi',
+        'expand_target_subdir':'libffi',
+        'profile_vars':{
+            'PKG_CONFIG_PATH':'lib/pkgconfig',
+            'LD_LIBRARY_PATH':'lib',
+        }
+    }
+}
+
+# install binary packages
+for binary_name, binary_info in binary_packages.items():
+
+    # download file to cache dir
+    download_file = os.path.join(os.environ['CACHE_DIR'], binary_info['download_url'].rsplit('/', 1)[1])
+    if not os.path.exists(download_file):
+        print "%s: Downloading from %s" % (binary_name, binary_info['download_url'])
+        call(['curl', binary_info['download_url'], '-s', '-L', '-o', download_file])
+    else:
+        print "%s: Using cached download file at %s" % (binary_name, download_file)
+
+    # expand file to vendor dir
+    vendor_dir = os.path.join(os.environ['BUILD_DIR'], 'vendor')
+    binary_dir = os.path.join(vendor_dir, binary_name)
+    expanded_file = os.path.join(os.environ['CACHE_DIR'], binary_info['expanded_file'])
+    expand_target_subdir = os.path.join(os.environ['CACHE_DIR'], binary_info.get('expand_target_subdir', ''))
+    print "%s: Expanding %s to %s" % (binary_name, download_file, binary_dir)
+    call(['mkdir', '-p', vendor_dir])
+    call(['mkdir', '-p', expand_target_subdir])
+    call(['tar', 'xf', download_file, '-C', expand_target_subdir])
+    call(['mv', expanded_file, binary_dir])
+
+    # add to .profile.d
+    profile_dir = os.path.join(os.environ['BUILD_DIR'], '.profile.d')
+    profile_script = os.path.join(profile_dir, binary_name+'.sh')
+    print "%s: Writing profile to %s" % (binary_name, profile_script)
+    call(['mkdir', '-p', profile_dir])
+    with open(profile_script, 'w') as profile:
+        for shell_var, value in binary_info['profile_vars'].items():
+            profile.write("export %s=$%s:%s/%s\n" % (shell_var, shell_var, binary_dir, value))
+
+
+"""
 set -eo pipefail
 
-# This script is invoked by [`bin/compile`](/).
+### INSTALL phantomjs
+
+# via https://github.com/stomita/heroku-buildpack-phantomjs/blob/master/bin/compile
+
+# config
+PHANTOMJS_VERSION="1.9.7"
+
+# Buildpack URL
+ARCHIVE_NAME=phantomjs-${PHANTOMJS_VERSION}-linux-x86_64
+FILE_NAME=${ARCHIVE_NAME}.tar.bz2
+BUILDPACK_PHANTOMJS_PACKAGE=https://bitbucket.org/ariya/phantomjs/downloads/${FILE_NAME}
+
+mkdir -p $CACHE_DIR
+if ! [ -e $CACHE_DIR/$FILE_NAME ]; then
+  echo "-----> Fetching PhantomJS ${PHANTOMJS_VERSION} binaries at ${BUILDPACK_PHANTOMJS_PACKAGE}"
+  curl $BUILDPACK_PHANTOMJS_PACKAGE -L -s -o $CACHE_DIR/$FILE_NAME
+fi
+
+echo "-----> Extracting PhantomJS ${PHANTOMJS_VERSION} binaries to ${BUILD_DIR}/vendor/phantomjs"
+mkdir -p $CACHE_DIR/$ARCHIVE_NAME
+mkdir -p $BUILD_DIR/vendor
+tar jxf $CACHE_DIR/$FILE_NAME -C $CACHE_DIR
+mv $CACHE_DIR/$ARCHIVE_NAME $BUILD_DIR/vendor/phantomjs
+
+echo "-----> exporting PATH and LIBRARY_PATH"
+PROFILE_PATH="$BUILD_DIR/.profile.d/phantomjs.sh"
+mkdir -p $(dirname $PROFILE_PATH)
+echo 'export PATH="$PATH:vendor/phantomjs/bin"' >> $PROFILE_PATH
+echo 'export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:vendor/phantomjs/lib"' >> $PROFILE_PATH
+
+
+
+### INSTALL libffi
+
+# via https://github.com/kennethjiang/heroku-buildpack-python-libffi/blob/master/bin/steps/libffi
 
 # The location of the pre-compiled libffi binary.
 VENDORED_LIBFFI="https://s3.amazonaws.com/rt-uploads/libffi-3.0.tgz"
@@ -34,3 +128,4 @@ echo "libffi.pc is in-place at $(pwd)/lib/pkgconfig/libffi.pc, libffi-based buil
 fi
 
 cd "$PREV_DIR"
+"""

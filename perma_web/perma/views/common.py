@@ -9,19 +9,21 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
+from django.views.decorators.csrf import csrf_exempt
 
 from datetime import datetime
-import urllib2, os, logging, re
+import urllib2, os, logging
 from urlparse import urlparse
-from django.views.decorators.csrf import csrf_exempt
 from pywb.warc.archiveindexer import ArchiveIndexer
+import requests
 import surt
 import json
 from ratelimit.decorators import ratelimit
 
-from perma.middleware import get_url_for_host
-from perma.models import Link, Asset
-from perma.utils import can_be_mirrored
+from mirroring.middleware import get_url_for_host
+from mirroring.utils import can_be_mirrored
+
+from ..models import Link, Asset
 
 
 logger = logging.getLogger(__name__)
@@ -60,6 +62,7 @@ def stats(request):
     return render_to_response('stats.html', context)
 
 @csrf_exempt
+@can_be_mirrored
 def cdx(request):
     """
         This function handles WARC lookups by our warc server (running in warc_server).
@@ -111,9 +114,6 @@ def cdx(request):
     print "COULDN'T FIND URL"
     raise Http404 # didn't find requested url in .cdx file
 
-def single_link_main_server(request, guid):
-    return single_linky(request, guid)
-
 @can_be_mirrored
 @ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block='True')
 @ratelimit(method='GET', rate=settings.HOUR_LIMIT, block='True')
@@ -148,14 +148,19 @@ def single_linky(request, guid):
         if settings.MIRROR_SERVER:
             # if we can't find the Link, and we're a mirror server, try fetching it from main server
             try:
-                req = urllib2.Request(get_url_for_host(request,
-                                                       request.main_server_host,
-                                                       reverse('single_link_main_server', args=[guid])+"?type="+serve_type),
-                                      headers={'Content-Type': 'application/json'})
-                link_json = urllib2.urlopen(req)
-            except urllib2.HTTPError:
+                json_url = get_url_for_host(request,
+                                            request.main_server_host,
+                                            reverse('mirroring:single_link_json', args=[guid])+"?type="+serve_type)
+                json_response = requests.get(json_url, headers={'Content-Type': 'application/json'})
+            except requests.ConnectionError:
                 raise Http404
-            context = json.loads(link_json.read())
+
+            # check response
+            if not json_response.ok:
+                raise Http404
+
+            # load context from JSON
+            context = json.loads(json_response.content)
             context['linky'] = serializers.deserialize("json", context['linky']).next().object
             context['asset'] = serializers.deserialize("json", context['asset']).next().object
             context['asset'].link = context['linky']

@@ -1,9 +1,14 @@
-from ..pathtool import module_path
-import site, os
+# Core settings used by all deployments.
 
-PROJECT_ROOT = os.path.dirname(module_path())
+import os, sys
 
-# Django settings for Perma project.
+# PROJECT_ROOT is the absolute path to the perma_web folder
+# We determine this robustly thanks to http://stackoverflow.com/a/2632297
+this_module = unicode(
+    sys.executable if hasattr(sys, "frozen") else __file__,
+    sys.getfilesystemencoding())
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(this_module))))
+
 
 DATABASES = {
     'default': {
@@ -45,7 +50,6 @@ USE_TZ = True
 
 # user-generated files
 MEDIA_ROOT = ''
-MEDIA_ARCHIVES_ROOT = ''
 MEDIA_URL = '/media/'
 
 # Monitor app generated files
@@ -65,6 +69,9 @@ STATICFILES_FINDERS = (         # how to look for static files
 
 # Django Pipline config
 STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
+
+# media storage -- default_storage config
+DEFAULT_FILE_STORAGE = 'perma.storage_backends.FileSystemStorage'
 
 # We likely want to do something like this:
 # PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.jsmin.JSMinCompressor'
@@ -93,10 +100,10 @@ TEMPLATE_LOADERS = (
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'perma.middleware.MirrorCsrfViewMiddleware',
-    'perma.middleware.MirrorAuthenticationMiddleware',
-    'perma.middleware.MirrorForwardingMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'mirroring.middleware.MirrorCsrfViewMiddleware',
+    'mirroring.middleware.MirrorAuthenticationMiddleware',
+    'mirroring.middleware.MirrorForwardingMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -118,23 +125,24 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 INSTALLED_APPS = (
+    # built in apps
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # our apps
     'perma',
     'monitor',
+    'mirroring',
+
+    # third party apps
     'south',
-    'djcelery',
     'ratelimit',
     'mptt',
     'pipeline',
-    # Uncomment the next line to enable the admin:
-    # 'django.contrib.admin',
-    # Uncomment the next line to enable admin documentation:
-    # 'django.contrib.admindocs',
 )
 
 AUTH_USER_MODEL = 'perma.LinkUser'
@@ -142,8 +150,11 @@ AUTH_USER_MODEL = 'perma.LinkUser'
 LOGIN_REDIRECT_URL = '/manage/create/'
 LOGIN_URL = '/login'
 
-# Broker used by celery
+# Celery settings
 BROKER_URL = 'amqp://guest:guest@localhost:5672/'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
 
@@ -227,13 +238,10 @@ LOGGING = {
     }
 }
 
-# find celery tasks
-import djcelery
-djcelery.setup_loader()
+### mirror stuff
 
-# mirror stuff
-MIRRORING_ENABLED = os.environ.get('PERMA_MIRRORING_ENABLED', False)    # whether to use mirroring features
-MIRROR_SERVER = False                                                   # whether we are a mirror
+MIRRORING_ENABLED = False           # whether to use mirroring features
+MIRROR_SERVER = False               # whether we are a mirror
 MIRROR_COOKIE_NAME = 'user_info'
 MIRROR_USERS_SUBDOMAIN = 'users'
 
@@ -241,3 +249,12 @@ MIRROR_USERS_SUBDOMAIN = 'users'
 ROOT_METADATA_SERVER = 'http://perma.cc'
 ROOT_ASSETS_SERVER = 'http://perma.cc'
 MIRRORS = []
+
+# Control whether Celery tasks should be run in the background or during a request.
+# This should normally be True, but it might be handy to not use async tasks
+# if you're running a mirror on Heroku or something like that.
+RUN_TASKS_ASYNC = True
+
+# where we will store zip archives created for transferring to mirrors
+# this is relative to MEDIA_ROOT
+MEDIA_ARCHIVES_ROOT = 'zip_archives/'
