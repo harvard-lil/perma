@@ -826,9 +826,8 @@ def logout(request):
                            path=settings.SESSION_COOKIE_PATH)
     return response
 
-@ratelimit(field='email', method='POST', rate=settings.LOGIN_MINUTE_LIMIT, block='True', ip=True)
-#@ratelimit(method='POST', rate=settings.LOGIN_HOUR_LIMIT, block='True', ip=True)
-#@ratelimit(method='POST', rate=settings.LOGIN_DAY_LIMIT, block='True', ip=True)
+@ratelimit(field='email', method='POST', rate=settings.LOGIN_MINUTE_LIMIT, block=True, ip=False,
+           keys=lambda req: req.META.get('HTTP_X_REAL_IP', req.META['REMOTE_ADDR']))
 def limited_login(request, template_name='registration/login.html',
           redirect_field_name=REDIRECT_FIELD_NAME,
           authentication_form=AuthenticationForm,
@@ -910,9 +909,8 @@ def limited_login(request, template_name='registration/login.html',
                             current_app=current_app)
 
 
-@ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block='True', ip=True)
-#@ratelimit(method='POST', rate=settings.REGISTER_HOUR_LIMIT, block='True', ip=True)
-#@ratelimit(method='POST', rate=settings.REGISTER_DAY_LIMIT, block='True', ip=True)
+@ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block=True, ip=False,
+           keys=lambda req: req.META.get('HTTP_X_REAL_IP', req.META['REMOTE_ADDR']))
 def process_register(request):
     """
     Register a new user
