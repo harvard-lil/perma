@@ -2,7 +2,8 @@ from selenium import webdriver
 import logging
 from datetime import datetime
 from io import BytesIO
-from djcelery import celery
+from celery import shared_task
+
 from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
@@ -10,7 +11,7 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-@celery.task
+@shared_task
 def delete_screencaps():
     """
     This func cleans up any screencaps that are 3 hours or older. It cleans
@@ -29,7 +30,7 @@ def delete_screencaps():
             upload_storage.delete(f)
 
 
-@celery.task
+@shared_task
 def get_screencap(url, file_name):
     """
     This func helps monitor our Celery/Selenium/PhantomJS image

@@ -5,6 +5,4 @@ dj_database_url==0.3.0
 dj-static==0.0.5
 gunicorn==18.0
 gevent==1.0
-django-storages==1.1.8
-boto==2.27.0
 redis==2.9.0
