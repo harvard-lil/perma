@@ -15,5 +15,4 @@ before_script:
 script:
   fab test
 after_success:
-  - coveralls debug
   - coveralls
