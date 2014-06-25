@@ -53,23 +53,20 @@ def compress_link_assets(*args, **kwargs):
     # Next we will use default_storage to copy each file in target_asset.base_storage_path
     # (which may come from the local disk or a remote location like S3)
     # to the temp dir, and then from there into the open zip file.
+    # This double copy is necessary because zipfile.write expects a file path,
+    # not a file handle.
     temp_file = tempfile.TemporaryFile()
+    base_storage_path_without_guid = os.path.dirname(target_asset.base_storage_path)
     with zipfile.ZipFile(temp_file, "w") as zipfh:
         for root, dirs, files in default_storage.walk(target_asset.base_storage_path):
-            # root will be relative to MEDIA_ROOT
-            create_storage_dir(root)
             for file in files:
-                file_path = os.path.join(root, file)
+                source_file_path = os.path.join(root, file) # e.g. 2014/6/10/18/37/1234-ABCD/cap.png
+                dest_file_path = source_file_path.replace(base_storage_path_without_guid+"/", '', 1) # e.g. 1234-ABCD/cap.png
+                with default_storage.open(source_file_path, 'rb') as source_file:
+                    zipfh.writestr(dest_file_path, source_file.read())
 
-                # copy from default_storage to local temp dir
-                with default_storage.open(file_path, 'rb') as source:
-                    with open(file_path, 'wb') as dest:
-                        dest.write(source.read())
-
-                # write to zip
-                zipfh.write(file_path)
-        zipfh.writestr(os.path.join(guid, "metadata.json"),
-                       json.dumps(metadata))
+        # write metadata to 1234-ABCD/metadata.json
+        zipfh.writestr(os.path.join(guid, "metadata.json"), json.dumps(metadata))
 
     # now our zip file has been written, we can store it to default_storage
     temp_file.seek(0)
@@ -116,7 +113,6 @@ def update_perma(link_guid):
 
         # Temp paths can be relative because we're in run_in_tempdir()
         temp_zip_path = 'temp.zip'
-        temp_unzipped_files_path = 'files/'
 
         # Save remote zip file to disk, using streaming to avoid keeping large files in RAM.
         request = requests.get(assets_url, stream=True)
@@ -127,20 +123,20 @@ def update_perma(link_guid):
         ## Extract the archive and change into the extracted folder.
         with zipfile.ZipFile(temp_zip_path, "r") as zipfh:
             #assets_path = os.path.dirname(os.path.join(settings.MEDIA_ROOT, metadata["path"]))
-            zipfh.extractall(temp_unzipped_files_path)
-        os.chdir(temp_unzipped_files_path)
+            zipfh.extractall() # creates folder named [guid] in current temp dir
+        temp_extracted_path = os.path.basename(metadata['path']) # e.g. "1234-ABCD"
 
         # Save all extracted files to default_storage, using the path in metadata.
-        for root, dirs, files in os.walk('.'):
+        for root, dirs, files in os.walk(temp_extracted_path):
             for file in files:
-                source_file_path = os.path.join(root, file)
-                dest_file_path = source_file_path
+                source_file_path = os.path.join(root, file) # e.g. "1234-ABCD/cap.png"
+                dest_file_path = os.path.join(os.path.dirname(metadata['path']), source_file_path) # e.g. 2014/6/10/18/37/1234-ABCD/cap.png
                 with open(source_file_path, 'rb') as source_file:
                     default_storage.store_file(source_file, dest_file_path)
 
         ## We can now get some additional metadata that we'll need to
         ## create the Link object.
-        with open(os.path.join(link_guid, "metadata.json"), "r") as fh:
+        with open(os.path.join(temp_extracted_path, "metadata.json"), "r") as fh:
             link_metadata = json.load(fh)
 
         ## We now have everything we need to initialize the Link object.
