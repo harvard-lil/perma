@@ -18,6 +18,16 @@ def can_be_mirrored(view_func):
     wrapped_view.can_be_mirrored = True
     return wraps(view_func, assigned=available_attrs(view_func))(wrapped_view)
 
+def no_mirror_forwarding(view_func):
+    """
+    Marks a view function so it won't be forwarded from main server to mirror server or vice versa.
+    """
+    def wrapped_view(*args, **kwargs):
+        return view_func(*args, **kwargs)
+
+    wrapped_view.no_mirror_forwarding = True
+    return wraps(view_func, assigned=available_attrs(view_func))(wrapped_view)
+
 
 ### datetime helpers ###
 # TODO: should we use built-in Django serializer instead?

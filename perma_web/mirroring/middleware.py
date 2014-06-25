@@ -15,19 +15,23 @@ def get_main_server_host(request):
     """
         Given request, return the host domain with the MIRROR_USERS_SUBDOMAIN included.
     """
-    host = request.get_host()
-    if not host.startswith(settings.MIRROR_USERS_SUBDOMAIN + '.'):
-        host = settings.MIRROR_USERS_SUBDOMAIN + '.' + host
-    return host
+    if not hasattr(request, 'main_server_host'):
+        host = request.get_host()
+        if not host.startswith(settings.MIRROR_USERS_SUBDOMAIN + '.'):
+            host = settings.MIRROR_USERS_SUBDOMAIN + '.' + host
+        request.main_server_host = host
+    return request.main_server_host
 
 def get_mirror_server_host(request):
     """
         Given request, return the host domain with the MIRROR_USERS_SUBDOMAIN excluded.
     """
-    host = request.get_host()
-    if host.startswith(settings.MIRROR_USERS_SUBDOMAIN + '.'):
-        host = host[len(settings.MIRROR_USERS_SUBDOMAIN + '.'):]
-    return host
+    if not hasattr(request, 'mirror_server_host'):
+        host = request.get_host()
+        if host.startswith(settings.MIRROR_USERS_SUBDOMAIN + '.'):
+            host = host[len(settings.MIRROR_USERS_SUBDOMAIN + '.'):]
+        request.mirror_server_host = host
+    return request.mirror_server_host
 
 def get_url_for_host(request, host, url=None):
     """
@@ -104,6 +108,9 @@ class MirrorForwardingMiddleware(object):
             or the generic domain depending on whether the view they requested @can_be_mirrored.
         """
         if settings.MIRRORING_ENABLED:
+            if getattr(view_func, 'no_mirror_forwarding', False):
+                return
+
             host = request.get_host()
             can_be_mirrored = getattr(view_func, 'can_be_mirrored', False)
 
@@ -122,5 +129,5 @@ class MirrorCsrfViewMiddleware(CsrfViewMiddleware):
             Since the same server might serve under multiple domains, we calculate this per-request.
         """
         if settings.MIRRORING_ENABLED:
-            settings.CSRF_COOKIE_DOMAIN = '.'+request.mirror_server_host.split(':')[0]
+            settings.CSRF_COOKIE_DOMAIN = '.'+get_mirror_server_host(request).split(':')[0]
         return super(MirrorCsrfViewMiddleware, self).process_response(request, response)
