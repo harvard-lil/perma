@@ -53,11 +53,11 @@ def run(port="0.0.0.0:8000"):
     """
     local("python manage.py runserver %s" % port)
 
-def test():
+def test(apps="perma mirroring"):
     """
         Run perma tests. (For coverage, run `coverage report` after tests pass.)
     """
-    local("coverage run --source='.' --omit='lib/*,perma/migrations/*,*/tests/*' manage.py test perma")
+    local("coverage run --source='.' --omit='lib/*,perma/migrations/*,*/tests/*' manage.py test %s" % apps)
 
 def logs(log_dir=os.path.join(settings.PROJECT_ROOT, '../services/logs/')):
     """ Tail all logs. """
