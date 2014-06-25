@@ -31,9 +31,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   else
     puts("using prebuilt perma virtual machine ...")
-    config.vm.box = "perma_0.1"
-    # TODO: Perma VM is stored on @jcushman's Dropbox. This should be stored somewhere more official.
-    config.vm.box_url = "https://dl.dropboxusercontent.com/s/qdvc9hs3lbzaqys/perma_0.1.box"
+    config.vm.box = "perma/perma-dev"
     config.vm.provision "shell", path: "services/vagrant/provision_mysql.sh"
   end
 
