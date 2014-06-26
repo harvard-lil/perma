@@ -115,9 +115,12 @@ def single_link_main_server(request, guid):
     return single_linky(request, guid)
 
 @can_be_mirrored
-@ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block='True')
-@ratelimit(method='GET', rate=settings.HOUR_LIMIT, block='True')
-@ratelimit(method='GET', rate=settings.DAY_LIMIT, block='True')
+@ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block=True, ip=False,
+           keys=lambda req: req.META.get('HTTP_X_REAL_IP', req.META['REMOTE_ADDR']))
+@ratelimit(method='GET', rate=settings.HOUR_LIMIT, block=True, ip=False,
+           keys=lambda req: req.META.get('HTTP_X_REAL_IP', req.META['REMOTE_ADDR']))
+@ratelimit(method='GET', rate=settings.DAY_LIMIT, block=True, ip=False,
+           keys=lambda req: req.META.get('HTTP_X_REAL_IP', req.META['REMOTE_ADDR']))
 def single_linky(request, guid):
     """
     Given a Perma ID, serve it up. Vesting also takes place here.
