@@ -827,7 +827,7 @@ def logout(request):
     return response
 
 @ratelimit(field='email', method='POST', rate=settings.LOGIN_MINUTE_LIMIT, block=True, ip=False,
-           keys=lambda req: req.META.get('HTTP_X_REAL_IP', req.META['REMOTE_ADDR']))
+           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
 def limited_login(request, template_name='registration/login.html',
           redirect_field_name=REDIRECT_FIELD_NAME,
           authentication_form=AuthenticationForm,
@@ -910,7 +910,7 @@ def limited_login(request, template_name='registration/login.html',
 
 
 @ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block=True, ip=False,
-           keys=lambda req: req.META.get('HTTP_X_REAL_IP', req.META['REMOTE_ADDR']))
+           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
 def process_register(request):
     """
     Register a new user
