@@ -514,7 +514,7 @@ div#dashboard-container {
                 background-repeat: no-repeat;
                 font-size: 18px;
                 margin-bottom: 10px;
-                padding: 15px 10px 10px 50px;
+                padding: 12px 10px 12px 50px;
             }
 
 			
@@ -533,26 +533,26 @@ div#dashboard-container {
             div#dashboard-container ul#dashboard-tabs li.credits-very-low a { background-color: #c33; }
             div#dashboard-container ul#dashboard-tabs li.credits-empty a { background-color: #f00; }
 
-            a#dashboard-add { background-position: 19px -14px; }
-            a#dashboard-add:hover { background-position: -779px -14px; }
-            a#dashboard-library { background-position: 19px -66px; }
-            a#dashboard-library:hover { background-position: -779px -66px; }
-            a#dashboard-batch-convert { background-position: 19px -114px; }
-            a#dashboard-batch-convert:hover { background-position: -779px -114px; }
+            a#dashboard-add { background-position: 19px -16px; }
+            a#dashboard-add:hover { background-position: -779px -16px; }
+            a#dashboard-library { background-position: 19px -68px; }
+            a#dashboard-library:hover { background-position: -779px -68px; }
+            a#dashboard-batch-convert { background-position: 19px -115px; }
+            a#dashboard-batch-convert:hover { background-position: -779px -115px; }
             a#dashboard-export { background-position: 19px -164px; }
             a#dashboard-export:hover { background-position: -779px -164px; }
             a#dashboard-custom-domain { background-position: 19px -214px; }
             a#dashboard-custom-domain:hover { background-position: -779px -214px; }
-            a#dashboard-settings { background-position: 19px -264px; }
-            a#dashboard-settings:hover { background-position: -779px -264px; }
+            a#dashboard-settings { background-position: 19px -266px; }
+            a#dashboard-settings:hover { background-position: -779px -266px; }
             a#dashboard-credits { background-position: 19px -314px; }
             a#dashboard-credits:hover { background-position: -779px -314px; }
             a.dashboard-placeholder { background-position: 19px -364px; }
             a.dashboard-placeholder:hover { background-position: -779px -364px; }
             a#dashboard-vested { background-position: 19px -414px; }
             a#dashboard-vested:hover { background-position: -779px -414px; }
-            a#dashboard-users { background-position: 19px -494px; }
-            a#dashboard-users:hover { background-position: -779px -494px; }
+            a#dashboard-users { background-position: 19px -497px; }
+            a#dashboard-users:hover { background-position: -779px -497px; }
 
         div#dashboard-container ul#dashboard-tabs li.divider {
             border-top: 1px solid #efefef;
@@ -572,7 +572,7 @@ div#dashboard-container {
                 background: none;
                 font-size: 16px;
                 margin: 0;
-                padding: 10px 0 0 51px;
+                padding: 5px 0 5px 51px;
             }
 
             div#dashboard-container ul#dashboard-tabs li.users-secondary {
