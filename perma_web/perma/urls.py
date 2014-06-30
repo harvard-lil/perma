@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib import admin
 from django.conf.urls import patterns, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.contrib.auth import views as auth_views
@@ -8,8 +7,6 @@ from django.views.generic import RedirectView
 
 from .views.common import DirectTemplateView
 
-
-admin.autodiscover()
 
 guid_pattern = r'(?P<guid>[a-zA-Z0-9\-]+)'
 
@@ -43,14 +40,11 @@ urlpatterns = patterns('perma.views',
     #API routes
     url(r'^api/linky/urldump/?$', 'api.urldump', name='urldump'),
     url(r'^api/linky/urldump/(?P<since>\d{4}-\d{2}-\d{2})/?', 'api.urldump', name='urldump_with_since'),
-    url(r'^api/render/%s/?$' % guid_pattern, 'common.single_link_main_server', name='single_link_main_server'),
     
     #Services
     url(r'^service/email-confirm/?$', 'service.email_confirm', name='service_email_confirm'),
     url(r'^service/receive-feedback/?$', 'service.receive_feedback', name='service_receive_feedback'),
     url(r'^service/link/status/%s?/?$' % guid_pattern, 'service.link_status', name='service_link_status'),
-    url(r'^service/link/assets/%s?/?$' % guid_pattern, 'service.link_assets', name='service_link_assets'),
-    url(r'^service/link/update/%s?/?$' % guid_pattern, 'service.do_update_perma', name='service_update_link'),
     url(r'^service/stats/users/?$', 'service.stats_users', name='service_stats_users'),
     url(r'^service/stats/links/?$', 'service.stats_links', name='service_stats_links'),
     url(r'^service/stats/darchive-links/?$', 'service.stats_darchive_links', name='service_stats_darchive_links'),
@@ -121,8 +115,13 @@ urlpatterns = patterns('perma.views',
     
 )
 
-# debug-only serving of static assets
-urlpatterns += staticfiles_urlpatterns() + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# debug-only serving of static and media assets
+if settings.DEBUG:
+    from django.contrib.staticfiles.views import serve as static_view
+    from django.views.static import serve as media_view
+    from mirroring.utils import no_mirror_forwarding
+    urlpatterns += static(settings.STATIC_URL, no_mirror_forwarding(static_view)) + \
+                   static(settings.MEDIA_URL, no_mirror_forwarding(media_view), document_root=settings.MEDIA_ROOT)
 
 handler404 = 'perma.views.common.server_error_404'
 handler500 = 'perma.views.common.server_error_500'

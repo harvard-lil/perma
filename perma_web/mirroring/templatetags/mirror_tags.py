@@ -6,7 +6,7 @@ register = template.Library()
 from django.conf import settings
 from django.template.defaulttags import url as url_filter, URLNode
 
-from perma.middleware import get_main_server_host, get_url_for_host
+from ..middleware import get_main_server_host, get_url_for_host
 
 class MainURLNode(URLNode):
     def render(self, context):

@@ -1,5 +1,5 @@
 {% extends "layout-archive-responsive.html" %}
-{% load file_exists  truncatesmart diff has_group %}
+{% load file_exists  truncatesmart has_group %}
 {% block title %} | {{linky.submitted_title}}{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_URL }}css/font-awesome.min.css">
@@ -26,9 +26,6 @@
 						
 						<!--<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a>-->
 						<span class="light-grey">created {{linky.creation_timestamp}} | {{ linky.view_count }} view{% if linky.view_count > 1 %}s{% endif %}</span>
-						{% comment %}
-						{% diff asset linky %} <!-- has the instapaper cap changed recently? -->
-						{% endcomment %}
 				</div><!--end span 5 -->
 				
 			</div>

@@ -24,9 +24,6 @@
 						
 						<!--<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a>-->
 						<span class="light-grey">created {{ linky.creation_timestamp|local_datetime }} | {{ linky.view_count }} view{% if linky.view_count > 1 %}s{% endif %}</span>
-						{% comment %}
-						{% diff asset linky %} <!-- has the instapaper cap changed recently? -->
-						{% endcomment %}
 					</div><!--end span 6 -->
 					<div class="col-sm-offset-1 col-sm-1 button-set">
 					<ul class="vesting">

@@ -1,6 +1,7 @@
-# settings used for continuous integration test server
+# Travis is our continuous integration test server.
+# This file gets copied by .travis.yml to perma_web/perma/settings/
 
-from settings_dev import *
+from .deployments.settings_dev import *
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG

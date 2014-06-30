@@ -2,12 +2,16 @@ import logging
 import os
 import random
 import re
+import tempfile
+import zipfile
 
 from django.contrib.auth.models import Group, BaseUserManager, AbstractBaseUser
 from django.conf import settings
+from django.core.files.storage import default_storage
 from django.db import models
 from django.utils.text import slugify
 from mptt.models import MPTTModel, TreeForeignKey
+import tempdir
 
 from perma.utils import base
 
@@ -282,7 +286,7 @@ class Asset(models.Model):
 
     def __init__(self, *args, **kwargs):
         super(Asset, self).__init__(*args, **kwargs)
-        if self.link and not self.base_storage_path:
+        if self.link_id and not self.base_storage_path:
             self.base_storage_path = self.link.generate_storage_path()
 
     def base_url(self, extra=u""):
@@ -298,12 +302,9 @@ class Asset(models.Model):
             return settings.MEDIA_URL+self.base_url(self.warc_capture)
 
     def warc_download_url(self):
-        if settings.USE_WARC_ARCHIVE:
-            if '.warc' in self.warc_capture:
-                return self.base_url(self.warc_capture)
-            return None
-        else:
-            return self.base_url('archive.warc.gz')
+        if '.warc' in self.warc_capture:
+            return self.base_url(self.warc_capture)
+        return None
 
     def pdf_url(self):
         return self.base_url(self.pdf_capture)

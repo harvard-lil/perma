@@ -18,9 +18,6 @@ MEDIA_ROOT = os.path.join(SERVICES_DIR, 'django/generated_assets/')
 # static files
 STATIC_ROOT = os.path.join(SERVICES_DIR, 'django/static_assets/')
 
-# zip files
-MEDIA_ARCHIVES_ROOT = os.path.join(SERVICES_DIR, 'django/generated_archives/')
-
 # print email to console
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
@@ -46,3 +43,5 @@ GOOGLE_ANALYTICS_DOMAIN = 'example.com'
 
 # The host we want to display (used when DEBUG=False)
 HOST = 'perma.cc'
+
+CELERY_RESULT_BACKEND = 'amqp'

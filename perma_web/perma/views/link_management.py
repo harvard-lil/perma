@@ -3,13 +3,14 @@ import logging, json, os
 from datetime import datetime
 from urlparse import urlparse
 from mimetypes import MimeTypes
-from django.core.files.storage import default_storage
+from celery import chain
 import lxml.html, requests
 from mptt.exceptions import InvalidMove
 from PyPDF2 import PdfFileReader
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.core.files.storage import default_storage
 from django.core.urlresolvers import reverse
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
@@ -18,10 +19,12 @@ from django.http import HttpResponseBadRequest, Http404, HttpResponseRedirect
 from django.shortcuts import HttpResponse, render_to_response, get_object_or_404
 from django.template import RequestContext
 
-from perma.forms import UploadFileForm
-from perma.models import Link, Asset, Folder
-from perma.tasks import get_pdf, proxy_capture, compress_link_assets, poke_mirrors, run_chord
-from perma.utils import require_group, store_file
+from mirroring.tasks import compress_link_assets, poke_mirrors
+
+from ..forms import UploadFileForm
+from ..models import Link, Asset, Folder
+from ..tasks import get_pdf, proxy_capture
+from ..utils import require_group, run_task
 
 
 logger = logging.getLogger(__name__)
@@ -88,13 +91,26 @@ def create_link(request):
         # Create a stub for our assets
         asset = Asset(link=link)
 
+        # celery tasks to run after scraping is complete
+        postprocessing_tasks = []
+        if settings.MIRRORING_ENABLED:
+            postprocessing_tasks += [
+                compress_link_assets.s(guid=guid),
+                poke_mirrors.s(link_guid=guid),
+            ]
+
         # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
         if 'content-type' in r.headers and r.headers['content-type'] in ['application/pdf', 'application/x-pdf'] or \
                         target_url.split('.')[-1] == 'pdf':
             asset.pdf_capture = 'pending'
             asset.save()
-            run_chord([get_pdf.s(guid, target_url, asset.base_storage_path, request.META['HTTP_USER_AGENT'])],
-                      compress_link_assets.s(guid=guid))
+
+            # run background celery tasks as a chain (each finishes before calling the next)
+            run_task(chain(
+                get_pdf.s(guid, target_url, asset.base_storage_path, request.META['HTTP_USER_AGENT']),
+                *postprocessing_tasks
+            ))
+
             response_object = {'linky_id': guid, 'message_pdf': True, 'linky_title': link.submitted_title}
 
         else:  # else, it's not a PDF. Let's try our best to retrieve what we can
@@ -104,13 +120,11 @@ def create_link(request):
             asset.warc_capture = 'pending'
             asset.save()
 
-            tasks = [
-                # get image, warc, meta tags, robots.txt, updated title
+            # run background celery tasks as a chain (each finishes before calling the next)
+            run_task(chain(
                 proxy_capture.s(guid, target_url, asset.base_storage_path, request.META['HTTP_USER_AGENT']),
-            ]
-
-            run_chord(tasks, compress_link_assets.s(guid=guid))
-            asset = Asset.objects.get(link__guid=guid)
+                *postprocessing_tasks
+            ))
 
             response_object = {'linky_id': guid, 'linky_title': link.submitted_title}
 
@@ -162,7 +176,7 @@ def upload_file(request):
                 file_path = os.path.join(asset.base_storage_path, file_name)
 
                 uploaded_file.file.seek(0)
-                file_name = store_file(uploaded_file, file_path)
+                file_name = default_storage.store_file(uploaded_file, file_path)
 
                 if mime_type == 'application/pdf':
                     asset.pdf_capture = file_name
