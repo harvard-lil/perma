@@ -188,13 +188,10 @@ def single_linky(request, guid):
         display_iframe = False
         if serve_type == 'live':
             try:
-                response = urllib2.urlopen(link.submitted_url)
-                if 'X-Frame-Options' in response.headers:
-                    # TODO actually check if X-Frame-Options specifically allows requests from us
-                    display_iframe = False
-                else:
-                    display_iframe = True
-            except urllib2.URLError:
+                response = requests.head(link.submitted_url)
+                display_iframe = 'X-Frame-Options' not in response.headers
+                # TODO actually check if X-Frame-Options specifically allows requests from us
+            except:
                 # Something is broken with the site, so we might as well display it in an iFrame so the user knows
                 display_iframe = True
 
