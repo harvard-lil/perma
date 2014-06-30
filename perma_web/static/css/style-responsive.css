@@ -286,7 +286,19 @@ ul.partners {
 	list-style-type:none;
 }
 
-li.participating-institutions-carousel img{
+.login {
+	border: 1px solid #4cae4c;
+border-radius: 3px;
+
+}
+
+.bold {
+	font-weight:bold;
+}
+
+/* Carousel Customization */
+
+.carousel-inner > .item > a > img{
 	height: 37px;
 	opacity:.6;
 	padding:5px;
@@ -296,21 +308,38 @@ li.participating-institutions-carousel img{
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
     -ms-border-radius: 3px;
-	margin-right:10px;
-	margin-bottom:10px;
+    margin-bottom: 10px;
 	filter: alpha(opacity=60);
 	display:inline;
 	list-style-type: none;
 }
 
-.login {
-	border: 1px solid #4cae4c;
-border-radius: 3px;
 
+.carousel .item a.square img{
+    margin-top: 10px;
+    height:74px;
 }
 
-.bold {
-	font-weight:bold;
+.carousel{
+    text-align: center;
+    margin-top: 1em;
+}
+
+.carousel-indicators{
+    position: static;
+    width:100%;
+    margin-left: 0;
+}
+
+.carousel .item{
+    text-align: center;
+    padding:0 166px;
+}
+
+.carousel-control{
+    background-color: #f7f7f7;
+    opacity: .9;
+    bottom: 0px;
 }
 
 /* Main */
@@ -474,6 +503,30 @@ section#home-description {
         margin: 20px 0 0 0;
     }
 
+#supporting-partners{
+    border-top: 1px solid #ccc;
+    margin-top: 2em;
+}
+    #supporting-partners .col-sm-12{
+        text-align: center;
+    }
+    #supporting-partners h3{
+        margin-top: 40px;
+        margin-bottom: 20px;
+    }
+    #supporting-partners a img{
+        height: 60px;
+        padding: 5px;
+        margin-right: 25px;
+        margin-bottom: 10px;
+        opacity: .7;
+    }
+    #supporting-partners a img:hover{
+        opacity: 1;
+    }
+    #supporting-partners a img.square{
+        height:100px;
+    }
 
 /* Dashboard */
 
@@ -1596,11 +1649,13 @@ div.faq div.answer {
 	font-size:36px;
 	color:#09f;
 	line-height:48px;
-	margin-top:0px;
-	
-		font-family: 'Roboto Slab', sans-serif;
-		font-weight:400;
-	
+	font-family: 'Roboto Slab', sans-serif;
+	font-weight:400;
+    margin-top: 0px;
+}
+
+#home-description .welcome2 p.mega{
+    margin-top: 10px;
 }
 
 .title {
@@ -1627,7 +1682,7 @@ a.orange:hover, .orange:active {
 }
 
 .welcome2 {
-	background:#eee;
+	background:#f7f7f7;
 	border:1px solid #e6e6e6;
 	  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
