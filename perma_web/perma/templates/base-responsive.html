@@ -92,18 +92,17 @@
 						&nbsp;&nbsp;&middot;&nbsp;&nbsp;
 						<a href="{% url 'docs' %}">User Guide</a>
 						&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-						<a href="#" data-toggle="modal" data-target="#feedbackModal">Feedback</a>
-						<!--<a href="#" onclick="fby.push(['showForm', '5593']);return false;">Feedback</a>-->
+						<a href="{% url 'contact' %}">Contact</a>
 						</p><!--/#footer-nav-->
 
 						{% include "includes/participating_institutions.html" %}
 
 						<p id="boilerplate">
-							<a href="{% url 'terms_of_service' %}">Terms of Service</a>
+							<a href="{% url 'terms_of_service' %}">terms of service</a>
 							&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-							<a href="{% url 'privacy_policy' %}">Privacy Policy</a>
+							<a href="{% url 'privacy_policy' %}">privacy policy</a>
 							&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-						   <a href="{% url 'copyright_policy' %}">Copyright Policy</a>
+						   <a href="{% url 'copyright_policy' %}">copyright policy</a>
 						</p>
 					</div><!--/col-->
 				</div><!--/row-->

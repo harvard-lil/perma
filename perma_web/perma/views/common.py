@@ -10,6 +10,7 @@ from django.contrib.sites.models import Site
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import send_mail
 
 from datetime import datetime
 import urllib2, os, logging
@@ -24,6 +25,7 @@ from mirroring.middleware import get_url_for_host
 from mirroring.utils import can_be_mirrored
 
 from ..models import Link, Asset
+from perma.forms import ContactForm
 
 
 logger = logging.getLogger(__name__)
@@ -233,3 +235,59 @@ def server_error_404(request):
 
 def server_error_500(request):
     return HttpResponseServerError(render_to_string('500.html', context_instance=RequestContext(request)))
+
+@csrf_exempt
+@ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block=True, ip=False,
+           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
+def contact(request):
+    """
+    Our contact form page
+    """
+
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            # If our form is valid, let's generate and email to our contact folks
+
+            user_agent = 'Unknown'
+            if 'HTTP_USER_AGENT' in request.META:
+                user_agent = request.META.get('HTTP_USER_AGENT')
+
+            from_address = 'Not supplied'
+
+            if form.cleaned_data['email']:
+                from_address = form.cleaned_data['email']
+
+            content = '''
+            This is a message from the Perma.cc contact form, http://perma.cc/contact
+
+
+
+            Message from user
+            --------
+            %s
+
+
+            User email: %s
+            User agent: %s
+
+            ''' % (form.cleaned_data['message'], from_address, user_agent)
+
+            send_mail(
+                "New message from Perma contact form",
+                content,
+                settings.DEFAULT_FROM_EMAIL,
+                [settings.DEFAULT_FROM_EMAIL], fail_silently=False
+            )
+
+            # redirect to a new URL:
+            return HttpResponseRedirect(reverse('contact_thanks'))
+        else:
+            context = RequestContext(request, {'form': form})
+            return render_to_response('contact.html', context)
+
+    else:
+        form = ContactForm()
+
+        context = RequestContext(request, {'form': form})
+        return render_to_response('contact.html', context)

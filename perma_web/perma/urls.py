@@ -23,6 +23,8 @@ urlpatterns = patterns('perma.views',
     url(r'^privacy-policy/?$', DirectTemplateView.as_view(template_name='privacy_policy.html'), name='privacy_policy'),
     url(r'^stats/?$', 'common.stats', name='global_stats'),
     url(r'^contingency-plan/?$', DirectTemplateView.as_view(template_name='contingency_plan.html'), name='contingency_plan'),
+    url(r'^contact/?$', 'common.contact', name='contact'),
+    url(r'^contact/thanks/?$', DirectTemplateView.as_view(template_name='contact-thanks.html'), name='contact_thanks'),
     
     #Docs 
     url(r'^docs/?$', DirectTemplateView.as_view(template_name='docs/index.html'), name='docs'),

@@ -33,3 +33,26 @@ class CommonViewsTestCase(PermaTestCase):
         # Test the original ID style. We shouldn't get a rediect.
         response = self.client.get(reverse('single_linky', kwargs={'guid': '0J6pkzDeQwT'}))
         self.assertEqual(response.status_code, 404)
+
+
+    def test_contact(self):
+        # Does our contact form behave reasonably?
+
+        # The form shouldn't be fine will all fields
+        self.post_form('contact', data={
+                            'email': 'example@example.com',
+                            'message': 'Just some messager here'},
+                       success_url=reverse('contact_thanks'))
+
+        # We shouldn't care if we don't supply an email
+        self.post_form('contact', data={
+                            'email': '',
+                            'message': 'Just some messager here'},
+                       success_url=reverse('contact_thanks'))
+
+        # We need at least a message. We should get the contact page back
+        # instead of the thanks page.
+        response = self.client.post(reverse('contact'), data={
+                            'email': '',
+                            'message': ''})
+        self.assertEqual(response.request['PATH_INFO'], reverse('contact'))
