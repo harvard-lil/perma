@@ -27,7 +27,7 @@ GOOGLE_ANALYTICS_DOMAIN = 'example.com'
 # tasks
 CELERYBEAT_SCHEDULE = {
     'check-for-missing-links': {
-        'task': 'mirroring.tasks.update_manifest',
+        'task': 'mirroring.tasks.sync_mirror',
         'schedule': crontab(minute='05', hour='03', day_of_week='*'),
     },
 }

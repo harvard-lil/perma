@@ -5,12 +5,12 @@ from django.core.files.storage import default_storage
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, StreamingHttpResponse
 
-from perma.models import Asset
+from perma.models import Asset, Link
 from perma.utils import run_task
 from perma.views.common import single_linky
 
 from .tasks import update_perma, compress_link_assets
-from .utils import can_be_mirrored
+from .utils import must_be_mirrored, may_be_mirrored
 
 
 def link_assets(request, guid):
@@ -39,7 +39,7 @@ def link_assets(request, guid):
     return response
 
 
-@can_be_mirrored
+@must_be_mirrored
 def do_update_perma(request, guid):
     run_task(update_perma, link_guid=guid)
     return HttpResponse("OK")
@@ -52,3 +52,15 @@ def single_link_json(request, guid):
         the data necessary for the mirror to render the page.
     """
     return single_linky(request, guid)
+
+@may_be_mirrored
+def manifest(request):
+    """
+        List all Perma Links known to this server in a text file, one per line.
+    """
+    # Get queryset that returns each link as a simple list containing guid.
+    known_links = Link.objects.values_list('guid')
+    # Create generator to spit out each result on its own line.
+    output_generator = (link[0]+"\n" for link in known_links)
+    # Stream results.
+    return StreamingHttpResponse(output_generator, content_type="text/tab-separated-values")

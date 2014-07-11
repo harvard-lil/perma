@@ -21,7 +21,7 @@ import json
 from ratelimit.decorators import ratelimit
 
 from mirroring.middleware import get_url_for_host
-from mirroring.utils import can_be_mirrored
+from mirroring.utils import must_be_mirrored
 
 from ..models import Link, Asset
 
@@ -44,9 +44,9 @@ class DirectTemplateView(TemplateView):
                     context[key] = value
         return context
 
-    @method_decorator(can_be_mirrored)
+    @method_decorator(must_be_mirrored)
     def dispatch(self, request, *args, **kwargs):
-        """ Add can_be_mirrored decorator. """
+        """ Add must_be_mirrored decorator. """
         return super(DirectTemplateView, self).dispatch(request, *args, **kwargs)
 
 def stats(request):
@@ -62,7 +62,7 @@ def stats(request):
     return render_to_response('stats.html', context)
 
 @csrf_exempt
-@can_be_mirrored
+@must_be_mirrored
 def cdx(request):
     """
         This function handles WARC lookups by our warc server (running in warc_server).
@@ -111,7 +111,7 @@ def cdx(request):
     print "COULDN'T FIND URL"
     raise Http404 # didn't find requested url in .cdx file
 
-@can_be_mirrored
+@must_be_mirrored
 @ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block=True, ip=False,
            keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
 @ratelimit(method='GET', rate=settings.HOUR_LIMIT, block=True, ip=False,

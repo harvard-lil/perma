@@ -5,27 +5,34 @@ import pytz
 from django.utils.decorators import available_attrs
 
 
-### can_be_mirrored decorator ###
+### must_be_mirrored decorator ###
 
-def can_be_mirrored(view_func):
+def must_be_mirrored(view_func):
     """
-    Marks a view function as capable of being served by a mirror.
-    Modeled on csrf_exempt.
+        If mirroring is enabled, then a view func marked with this decorator must be served at mirror domain instead of main domain
+        (e.g. perma.cc instead of dashboard.perma.cc).
+
+        Conversely, a view func without this decorator must be served at main domain instead
+        of mirror domain, unless @may_be_mirrored is applied instead.
     """
     def wrapped_view(*args, **kwargs):
         return view_func(*args, **kwargs)
 
-    wrapped_view.can_be_mirrored = True
+    wrapped_view.must_be_mirrored = True
     return wraps(view_func, assigned=available_attrs(view_func))(wrapped_view)
 
-def no_mirror_forwarding(view_func):
+def may_be_mirrored(view_func):
     """
-    Marks a view function so it won't be forwarded from main server to mirror server or vice versa.
+        If mirroring is enabled, a view func with this decorator can be served at either main domain or mirror domain
+        (dashboard.perma.cc or perma.cc).
+
+        Otherwise, the view can only be served at one or the other, depending whether @must_be_mirrored is applied.
+        If viewed at the wrong domain, it will be forwarded.
     """
     def wrapped_view(*args, **kwargs):
         return view_func(*args, **kwargs)
 
-    wrapped_view.no_mirror_forwarding = True
+    wrapped_view.may_be_mirrored = True
     return wraps(view_func, assigned=available_attrs(view_func))(wrapped_view)
 
 
