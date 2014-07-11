@@ -31,3 +31,12 @@ CELERYBEAT_SCHEDULE = {
         'schedule': crontab(minute='05', hour='03', day_of_week='*'),
     },
 }
+
+# mirroring
+MIRRORING_ENABLED = True
+MIRROR_SERVER = True
+MIRROR_USERS_SUBDOMAIN = 'dashboard'
+
+# mirror v1 stuff
+ROOT_METADATA_SERVER = 'http://dashboard.everlib.org/'
+ROOT_ASSETS_SERVER = 'http://dashboard.everlib.org/'

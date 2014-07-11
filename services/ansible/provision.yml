@@ -73,9 +73,15 @@
         - gunicorn
         - nginx
         - rabbitmq-server
+        - check-network
 
     # Other file templates.
     - name: Nginx config file.
       template: src=templates/perma_nginx_config.j2 dest=/etc/nginx/sites-available/perma
     - name: Create symlink in sites-enabled
       file: src=/etc/nginx/sites-available/perma dest=/etc/nginx/sites-enabled/perma state=link
+
+    # Check-network script.
+    - name: Create check_network script.
+      template: src=templates/check_network.sh.j2 dest=/sbin/check_network.sh mode=0700
+    - service: name=check-network state=started
