@@ -185,5 +185,6 @@ def sync_mirror():
     metadata = requests.get(manifest_url, stream=True)
     for line in metadata.iter_lines():
         guid = line.strip()
-        run_task(update_perma, link_guid=guid)
+        if not Link.objects.filter(guid==guid).exists():
+            run_task(update_perma, link_guid=guid)
 
