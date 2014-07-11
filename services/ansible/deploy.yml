@@ -6,12 +6,12 @@
   tasks:
     # Stop services. Killing celery_user_queue will kill other services that watch it,
     # ultimately killing nginx on port 80.
-    - service: name=celery_user_queue state=stopped
+    - service: name=celery-user-queue state=stopped
       sudo: yes
     - wait_for: port=80 state=stopped
 
     # update django app
-    - git: repo=https://github.com/harvard-lil/perma.git dest={{ git_dir }}
+    - git: repo={{ git_repo }} version={{ git_version }} dest={{ git_dir }}
     - pip: requirements={{ git_dir }}/perma_web/requirements.txt virtualenv={{ git_dir }}/venv
     - name: Create settings file.
       template: src=templates/django_settings.py.j2 dest={{ git_dir }}/perma_web/perma/settings/settings.py
@@ -25,5 +25,5 @@
       shell: chmod a+x {{assets_dir}} {{ assets_dir }}/static
 
     # Restart services.
-    - service: name=celery_user_queue state=restarted
+    - service: name=celery-user-queue state=restarted
       sudo: yes

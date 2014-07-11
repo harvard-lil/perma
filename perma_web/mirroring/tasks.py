@@ -175,7 +175,11 @@ def poke_mirrors(*args, **kwargs):
     except KeyError:
         raise TypeError("poke_mirrors() requires a link_guid keyword argument")
     for mirror in settings.MIRRORS:
-        requests.get(mirror + reverse("mirroring:update_link", args=(link_guid,)))
+        headers = {}
+        if 'host' in mirror:
+            headers['Host'] = mirror['host']
+        requests.get(mirror['address'] + reverse("mirroring:update_link", args=(link_guid,)),
+                     headers=headers)
 
 
 @shared_task
