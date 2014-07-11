@@ -1,0 +1,29 @@
+# ansible-playbook deploy.yml -i hosts -K  -e @private.yml --vault-password-file ~/.ansible_vault_pass
+
+- hosts: all
+#  sudo: yes
+
+  tasks:
+    # Stop services. Killing celery_user_queue will kill other services that watch it,
+    # ultimately killing nginx on port 80.
+    - service: name=celery_user_queue state=stopped
+      sudo: yes
+    - wait_for: port=80 state=stopped
+
+    # update django app
+    - git: repo=https://github.com/harvard-lil/perma.git dest={{ git_dir }}
+    - pip: requirements={{ git_dir }}/perma_web/requirements.txt virtualenv={{ git_dir }}/venv
+    - name: Create settings file.
+      template: src=templates/django_settings.py.j2 dest={{ git_dir }}/perma_web/perma/settings/settings.py
+    - django_manage: command={{ item }} app_path={{ git_dir }}/perma_web virtualenv={{ git_dir }}/venv
+      with_items:
+        - syncdb
+        - migrate
+        - collectstatic
+    - name: Fix permissions on static assets dir.
+      shell: chmod -R a+r {{ assets_dir }}/static
+      shell: chmod a+x {{assets_dir}} {{ assets_dir }}/static
+
+    # Restart services.
+    - service: name=celery_user_queue state=restarted
+      sudo: yes
