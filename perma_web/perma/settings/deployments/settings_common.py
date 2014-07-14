@@ -150,11 +150,6 @@ AUTH_USER_MODEL = 'perma.LinkUser'
 LOGIN_REDIRECT_URL = '/manage/create/'
 LOGIN_URL = '/login'
 
-# Celery settings
-BROKER_URL = 'amqp://guest:guest@localhost:5672/'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
 
@@ -235,6 +230,19 @@ LOGGING = {
     }
 }
 
+
+# Celery settings
+BROKER_URL = 'amqp://guest:guest@localhost:5672/'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+# Control whether Celery tasks should be run in the background or during a request.
+# This should normally be True, but it might be handy to not use async tasks
+# if you're running a mirror on Heroku or something like that.
+RUN_TASKS_ASYNC = True
+
+
 ### mirror stuff
 
 MIRRORING_ENABLED = False           # whether to use mirroring features
@@ -245,12 +253,8 @@ MIRROR_USERS_SUBDOMAIN = 'users'
 # mirror v1 stuff
 ROOT_METADATA_SERVER = 'http://perma.cc'
 ROOT_ASSETS_SERVER = 'http://perma.cc'
-MIRRORS = []
-
-# Control whether Celery tasks should be run in the background or during a request.
-# This should normally be True, but it might be handy to not use async tasks
-# if you're running a mirror on Heroku or something like that.
-RUN_TASKS_ASYNC = True
+MIRRORS = [] # List of mirrors to push updates to.
+             # Each mirror is a dict with 'address':'http://example.com', and optional 'host':'example.com' in case 'address' is an IP.
 
 # where we will store zip archives created for transferring to mirrors
 # this is relative to MEDIA_ROOT

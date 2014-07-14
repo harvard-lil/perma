@@ -1,0 +1,18 @@
+# Upstart replacement for default rabbitmq-server init.d script
+
+description "RabbitMQ Server"
+# via http://bradleyayers.blogspot.com/2011/10/using-upstart-with-rabbitmq-on-ubuntu.html?showComment=1364275373454#c1488828456464727091
+
+start on runlevel [2345]
+stop on runlevel [016]
+kill timeout 60
+respawn
+respawn limit 10 5
+console log
+setuid rabbitmq
+setgid rabbitmq
+env HOME=/var/lib/rabbitmq
+
+exec /usr/lib/rabbitmq/bin/rabbitmq-server
+post-start exec /usr/sbin/rabbitmqctl wait
+pre-stop exec /usr/sbin/rabbitmqctl stop

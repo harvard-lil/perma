@@ -43,12 +43,6 @@ PHANTOMJS_LOG = 'phantomjs.log' # this will just get thrown away
 
 ### OVERRIDE THESE WITH ENV VARS ###
 
-# Instapaper credentials
-INSTAPAPER_KEY = 'key'
-INSTAPAPER_SECRET = 'secret'
-INSTAPAPER_USER = 'user@example.com'
-INSTAPAPER_PASS = 'pass'
-
 # Google Analytics
 GOOGLE_ANALYTICS_KEY = 'UA-XXXXX-X'
 GOOGLE_ANALYTICS_DOMAIN = 'example.com'

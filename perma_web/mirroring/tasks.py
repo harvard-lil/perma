@@ -14,6 +14,7 @@ from django.shortcuts import get_object_or_404
 
 from perma.models import Asset, Link
 from perma.tasks import create_storage_dir
+from perma.utils import run_task
 
 from .utils import serialize_datetime, unserialize_datetime
 
@@ -174,5 +175,20 @@ def poke_mirrors(*args, **kwargs):
     except KeyError:
         raise TypeError("poke_mirrors() requires a link_guid keyword argument")
     for mirror in settings.MIRRORS:
-        requests.get(mirror + reverse("mirroring:update_link", args=(link_guid,)))
+        headers = {}
+        if 'host' in mirror:
+            headers['Host'] = mirror['host']
+        requests.get(mirror['address'] + reverse("mirroring:update_link", args=(link_guid,)),
+                     headers=headers)
+
+
+@shared_task
+def sync_mirror():
+    metadata_server = settings.ROOT_METADATA_SERVER
+    manifest_url = metadata_server + reverse("mirroring:manifest")
+    metadata = requests.get(manifest_url, stream=True)
+    for line in metadata.iter_lines():
+        guid = line.strip()
+        if not Link.objects.filter(guid==guid).exists():
+            run_task(update_perma, link_guid=guid)
 

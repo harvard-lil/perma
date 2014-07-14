@@ -1,0 +1,23 @@
+---
+
+mysql_port: 3306
+mysql_bind_address: "0.0.0.0"
+mysql_root_db_pass: foobar
+
+mysql_db: 
+     - name: foo
+       replicate: yes
+     - name: bar
+       replicate: no
+
+mysql_users:
+     - name: benz
+       pass: foobar
+       priv: "*.*:ALL"
+
+mysql_repl_user:
+  - name: repl
+    pass: foobar
+
+mysql_repl_role: master
+mysql_db_id: 7

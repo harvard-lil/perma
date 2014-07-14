@@ -1,0 +1,13 @@
+---
+
+dependencies: []
+
+galaxy_info:
+  author: klen
+  company: Stouts
+  description: Manage iptables rules
+  license: MIT
+  categories:
+  - system
+  - networking
+

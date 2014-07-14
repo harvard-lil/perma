@@ -1,0 +1,28 @@
+---
+nginx_user: "{% if ansible_os_family == 'RedHat' %}nginx{% elif ansible_os_family == 'Debian' %}www-data{% endif %}"
+nginx_group: "{{nginx_user}}"
+
+nginx_worker_processes: "{{ ansible_processor_vcpus }}"
+nginx_max_clients: 512
+nginx_worker_rlimit_nofile: 1024
+nginx_log_dir: "/var/log/nginx"
+
+nginx_http_params:
+  - sendfile "on"
+  - tcp_nopush "on"
+  - tcp_nodelay "on"
+  - keepalive_timeout "65"
+  - access_log "{{nginx_log_dir}}/access.log"
+  - error_log "{{nginx_log_dir}}/error.log"
+  - server_tokens off
+
+nginx_sites:
+  default:
+     - listen 80
+     - server_name _
+     - root "/usr/share/nginx/html"
+     - index index.html
+
+nginx_configs: {}
+
+nginx_auth_basic_files: {}

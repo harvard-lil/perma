@@ -1,0 +1,4 @@
+---
+
+- name: iptables load
+  shell: "{{iptables_rule_path}}"

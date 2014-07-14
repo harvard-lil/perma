@@ -84,12 +84,20 @@ class Command(BaseCommand):
                 "-u"+settings.DATABASES['default']['USER'],
                 "-p" + settings.DATABASES['default']['PASSWORD'],
             ]
+            empty_tables = ['perma_linkuser','perma_link','perma_asset']
+            mysqldump_command = "mysqldump %(user)s %(password)s %%(options)s %(main_database)s %%(tables)s | mysql %(user)s %(password)s %(mirror_database)s" % {
+                'user':mysql_credentials[0], 'password':mysql_credentials[1], 'main_database':main_database, 'mirror_database':mirror_database,
+            }
             subprocess.call(["mysql"]+mysql_credentials+[main_database, "-e", "DROP DATABASE IF EXISTS %s;" % mirror_database])
             subprocess.call(["mysql"]+mysql_credentials+[main_database, "-e", "CREATE DATABASE %s CHARACTER SET utf8;" % mirror_database])
-            subprocess.call(" ".join(["mysqldump"]+mysql_credentials+["--ignore-table=%s.auth_user" % main_database, main_database,
-                                     "|",
-                                     "mysql"]+mysql_credentials+[mirror_database]),
-                            shell=True)
+            subprocess.call(mysqldump_command % {
+                'options':" ".join(["--ignore-table=%s.%s" % (main_database, table) for table in empty_tables]),
+                'tables':''
+            }, shell=True)
+            subprocess.call(mysqldump_command % {
+                'options': '-d',
+                'tables': " ".join(empty_tables),
+            }, shell=True)
 
             print "Launching main server ..."
             main_server_env = dict(
@@ -111,7 +119,7 @@ class Command(BaseCommand):
                 DJANGO__MIRROR_SERVER='True',
                 DJANGO__ROOT_ASSETS_SERVER=main_server_address,
                 DJANGO__ROOT_METADATA_SERVER=main_server_address,
-                DJANGO__RUN_TASKS_ASYNC='False',
+                #DJANGO__RUN_TASKS_ASYNC='False',
                 DJANGO__MEDIA_ROOT=temp_dir.name,
                 DJANGO__CDX_SERVER_URL=mirror_server_address+'/cdx',
             )
@@ -120,6 +128,10 @@ class Command(BaseCommand):
             running_processes.append(subprocess.Popen(
                 ['celery', '-A', 'perma', 'worker', '--loglevel=info', '-Q', 'runmirror_mirror_queue', '--hostname=runmirror_mirror_queue'],
                 env=dict(os.environ, **mirror_server_env)))
+
+            print "Syncing contents ..."
+            running_processes.append(subprocess.Popen(['python', 'manage.py', 'shell'],
+                            env=dict(os.environ, **mirror_server_env)))
 
             print "Launching reverse proxy ..."
             root = vhost.NameVirtualHost()

@@ -1,0 +1,90 @@
+---
+- name: Add the OS specific variables
+  include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Install the mysql packages in Redhat derivatives
+  yum: name={{ item }} state=installed
+  with_items: mysql_pkgs
+  when: ansible_os_family == 'RedHat'
+
+- name: Install the mysql packages in Debian derivatives
+  apt: name={{ item }} state=installed update_cache=yes
+  with_items: mysql_pkgs
+  environment: env
+  when: ansible_os_family == 'Debian'
+
+- name: Copy the my.cnf file 
+  template: src=my.cnf.{{ ansible_os_family }}.j2 dest={{ mysql_conf_dir }}/my.cnf
+  notify: 
+   - restart mysql
+
+- name: Start the mysql services Redhat
+  service: name={{ mysql_service }} state=started enabled=yes
+
+- name: update mysql root password for all root accounts
+  mysql_user: name=root host={{ item }} password={{ mysql_root_db_pass }}
+  with_items:
+   - "{{ ansible_hostname }}"
+   - 127.0.0.1
+   - ::1
+   - localhost
+  when: ansible_hostname != 'localhost' 
+
+- name: update mysql root password for all root accounts
+  mysql_user: name=root host={{ item }} password={{ mysql_root_db_pass }}
+  with_items:
+   - 127.0.0.1
+   - ::1
+   - localhost
+  when: ansible_hostname == 'localhost' 
+
+- name: copy .my.cnf file with root password credentials
+  template: src=.my.cnf.j2 dest=~/.my.cnf mode=0600
+
+- name: ensure anonymous users are not in the database
+  mysql_user: name='' host={{ item }} state=absent
+  with_items:
+   - localhost
+   - "{{ ansible_hostname }}"
+
+- name: remove the test database
+  mysql_db: name=test state=absent
+
+- name: Create the database's
+  mysql_db: name={{ item.name }} state=present
+  with_items: mysql_db
+  when: mysql_db|lower() != 'none'
+
+- name: Create the database users
+  mysql_user: name={{ item.name }}  password={{ item.pass|default("foobar") }}  
+                priv={{ item.priv|default("*.*:ALL") }} state=present host={{ item.host | default("localhost") }}
+  with_items: mysql_users
+  when: mysql_users|lower() != 'none'
+
+- name: Create the replication users
+  mysql_user: name={{ item.name }}  host="%" password={{ item.pass|default("foobar") }}  
+                priv=*.*:"REPLICATION SLAVE" state=present
+  with_items: mysql_repl_user
+  when: mysql_repl_role == 'master'
+
+- name: Check if slave is already configured for replication
+  mysql_replication: mode=getslave
+  ignore_errors: true
+  register: slave
+  when: mysql_repl_role == 'slave'
+
+- name: Ensure the hostname entry for master is available for the client.
+  lineinfile: dest=/etc/hosts regexp="{{ mysql_repl_master }}" line="{{ mysql_repl_master + "   " +  hostvars[mysql_repl_master].ansible_default_ipv4.address }}" state=present
+  when: slave|failed and mysql_repl_role == 'slave' and mysql_repl_master is defined
+
+- name: Get the current master servers replication status
+  mysql_replication: mode=getmaster
+  delegate_to: "{{ mysql_repl_master }}"
+  register: repl_stat
+  when: slave|failed and mysql_repl_role == 'slave' and mysql_repl_master is defined
+
+- name: Change the master in slave to start the replication
+  mysql_replication: mode=changemaster master_host={{ mysql_repl_master }} master_log_file={{ repl_stat.File }} master_log_pos={{ repl_stat.Position }} master_user={{ mysql_repl_user[0].name }} master_password={{ mysql_repl_user[0].pass }}
+  when: slave|failed and mysql_repl_role == 'slave' and mysql_repl_master is defined
+
+

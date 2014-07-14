@@ -105,19 +105,19 @@ class MirrorForwardingMiddleware(object):
     def process_view(self, request, view_func, view_args, view_kwargs):
         """
             If we're doing mirroring, make sure that the user is directed to the main domain
-            or the generic domain depending on whether the view they requested @can_be_mirrored.
+            or the generic domain depending on whether the view they requested @must_be_mirrored.
         """
         if settings.MIRRORING_ENABLED:
-            if getattr(view_func, 'no_mirror_forwarding', False):
+            if getattr(view_func, 'may_be_mirrored', False):
                 return
 
             host = request.get_host()
-            can_be_mirrored = getattr(view_func, 'can_be_mirrored', False)
+            must_be_mirrored = getattr(view_func, 'must_be_mirrored', False)
 
-            if can_be_mirrored and host == request.main_server_host:
+            if must_be_mirrored and host == request.main_server_host:
                 return HttpResponsePermanentRedirect(get_url_for_host(request, request.mirror_server_host))
 
-            elif not can_be_mirrored and (settings.MIRROR_SERVER or host != request.main_server_host):
+            elif not must_be_mirrored and (settings.MIRROR_SERVER or host != request.main_server_host):
                 return HttpResponsePermanentRedirect(get_url_for_host(request, request.main_server_host))
 
 ### CSRF ###

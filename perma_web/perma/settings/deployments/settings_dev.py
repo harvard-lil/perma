@@ -31,12 +31,6 @@ SECRET_KEY = 'secret'
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []
 
-# Instapaper credentials
-INSTAPAPER_KEY = 'key'
-INSTAPAPER_SECRET = 'secret'
-INSTAPAPER_USER = 'user@example.com'
-INSTAPAPER_PASS = 'pass'
-
 # Google Analytics
 GOOGLE_ANALYTICS_KEY = 'UA-XXXXX-X'
 GOOGLE_ANALYTICS_DOMAIN = 'example.com'

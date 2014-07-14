@@ -1,0 +1,33 @@
+[mysqld]
+datadir=/var/lib/mysql
+socket=/var/lib/mysql/mysql.sock
+user=mysql
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links=0
+port={{ mysql_port }}
+bind-address={{ mysql_bind_address }}
+server-id               = {{ mysql_db_id }}
+
+{% if mysql_repl_role == 'master' %}
+log_bin                 = mysql-bin
+expire_logs_days        = 10
+max_binlog_size         = 100M
+
+{% for i in mysql_db %}
+{% if i.replicate|default(1) %}
+binlog_do_db            = {{ i.name }}
+{% endif %}
+{% endfor %}
+
+{% for i in mysql_db %}
+{% if not i.replicate|default(1) %}
+binlog_ignore_db        = {{ i.name }}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+[mysqld_safe]
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+
+

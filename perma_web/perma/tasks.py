@@ -298,7 +298,7 @@ def get_pdf(link_guid, target_url, base_storage_path, user_agent):
 
 
 @shared_task
-def get_nigthly_stats():
+def get_nightly_stats():
     """
     A periodic task (probably running nightly) to get counts of user types, disk usage.
     Write them into a DB for our stats view

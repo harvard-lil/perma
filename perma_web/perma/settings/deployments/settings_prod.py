@@ -15,7 +15,7 @@ MEDIA_ROOT = '/perma/assets/generated'
 # Schedule our nightly stats generation
 CELERYBEAT_SCHEDULE = {
     'get-nightly-stats': {
-        'task': 'perma.tasks.get_nigthly_stats',
+        'task': 'perma.tasks.get_nightly_stats',
         'schedule': crontab(minute='05', hour='02', day_of_week='*'),
     },
     'email-weekly-stats': {

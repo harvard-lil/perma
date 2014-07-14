@@ -1,0 +1,10 @@
+[permabox]
+140.247.225.70
+
+[permabox:vars]
+git_dir=/perma
+assets_dir=/perma_assets
+logs_dir=/perma_logs
+
+git_repo=https://github.com/harvard-lil/perma.git
+git_version=master

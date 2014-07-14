@@ -121,9 +121,9 @@ urlpatterns = patterns('perma.views',
 if settings.DEBUG:
     from django.contrib.staticfiles.views import serve as static_view
     from django.views.static import serve as media_view
-    from mirroring.utils import no_mirror_forwarding
-    urlpatterns += static(settings.STATIC_URL, no_mirror_forwarding(static_view)) + \
-                   static(settings.MEDIA_URL, no_mirror_forwarding(media_view), document_root=settings.MEDIA_ROOT)
+    from mirroring.utils import may_be_mirrored
+    urlpatterns += static(settings.STATIC_URL, may_be_mirrored(static_view)) + \
+                   static(settings.MEDIA_URL, may_be_mirrored(media_view), document_root=settings.MEDIA_ROOT)
 
 handler404 = 'perma.views.common.server_error_404'
 handler500 = 'perma.views.common.server_error_500'

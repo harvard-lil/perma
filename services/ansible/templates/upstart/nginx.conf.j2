@@ -1,0 +1,23 @@
+# Upstart replacement for default nginx init.d script
+# Depends on our gunicorn task.
+
+description "nginx"
+
+start on started gunicorn
+stop on stopped gunicorn
+
+env DAEMON=/usr/sbin/nginx
+env PID=/var/run/nginx.pid
+
+expect fork
+respawn
+respawn limit 10 5
+
+pre-start script
+    $DAEMON -t
+    if [ $? -ne 0 ]
+        then exit $?
+    fi
+end script
+
+exec $DAEMON

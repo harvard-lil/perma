@@ -29,6 +29,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.box_url = "http://files.vagrantup.com/precise64.box"
     config.vm.provision "shell", path: "services/vagrant/provision.sh"
 
+  elsif ENV['ANSIBLE']
+    config.vm.box = "ubuntu/trusty64" # use Ubuntu 14.04 LTS (Trusty Tahr) long-term support version
+    config.vm.provision "ansible" do |ansible|
+      ansible.playbook = "services/ansible/playbook.yml"
+    end
+
   else
     puts("using prebuilt perma virtual machine ...")
     config.vm.box = "perma/perma-dev"

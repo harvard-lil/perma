@@ -170,6 +170,16 @@ def shell():
         open_shell("cd %s && workon %s" % (env.REMOTE_DIR, env.VIRTUALENV_NAME))
 
 
+### MIRRORING ###
+
+def sync_mirror():
+    """
+        Fetch all archived links from upstream.
+    """
+    from mirroring.tasks import sync_mirror
+    sync_mirror()
+
+
 ### HEROKU ###
 
 def heroku_create_app(app_name, s3_storage_bucket=None):
