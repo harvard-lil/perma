@@ -253,8 +253,12 @@ MIRROR_USERS_SUBDOMAIN = 'users'
 # mirror v1 stuff
 ROOT_METADATA_SERVER = 'http://perma.cc'
 ROOT_ASSETS_SERVER = 'http://perma.cc'
-MIRRORS = [] # List of mirrors to push updates to.
-             # Each mirror is a dict with 'address':'http://example.com', and optional 'host':'example.com' in case 'address' is an IP.
+
+# List of mirrors to push updates to.
+# Each entry is a dict with the 'address' to send an HTTP poke to, and optional 'headers'.
+# Example:
+# MIRRORS = [{'address':'mirrordomain.com'},{'address':'12.34.56.78',{'headers':{'Host':'mirrordomain2.com'}}}]
+MIRRORS = []
 
 # where we will store zip archives created for transferring to mirrors
 # this is relative to MEDIA_ROOT
