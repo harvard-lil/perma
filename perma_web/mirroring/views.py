@@ -13,10 +13,11 @@ from .tasks import update_perma, compress_link_assets
 from .utils import must_be_mirrored, may_be_mirrored
 
 
+@may_be_mirrored
 def link_assets(request, guid):
-    """A service that returns a downloadable archive of the assets of a
-    given perma link
-
+    """
+        A service that returns a downloadable archive of the assets of a
+        given perma link.
     """
     target_asset = get_object_or_404(Asset, link__guid=guid)
     # TODO: this should probably be a field on the Asset object

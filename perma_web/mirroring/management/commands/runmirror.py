@@ -101,7 +101,7 @@ class Command(BaseCommand):
 
             print "Launching main server ..."
             main_server_env = dict(
-                DJANGO__MIRRORS__0=mirror_server_address,
+                DJANGO__MIRRORS__0__address=mirror_server_address,
                 DJANGO__MIRRORING_ENABLED='True',
                 DJANGO__CELERY_DEFAULT_QUEUE='runmirror_main_queue',
             )
@@ -117,8 +117,7 @@ class Command(BaseCommand):
                 DJANGO__MIRRORING_ENABLED='True',
                 DJANGO__DATABASES__default__NAME=mirror_database,
                 DJANGO__MIRROR_SERVER='True',
-                DJANGO__ROOT_ASSETS_SERVER=main_server_address,
-                DJANGO__ROOT_METADATA_SERVER=main_server_address,
+                DJANGO__UPSTREAM_SERVER__address=main_server_address,
                 #DJANGO__RUN_TASKS_ASYNC='False',
                 DJANGO__MEDIA_ROOT=temp_dir.name,
                 DJANGO__CDX_SERVER_URL=mirror_server_address+'/cdx',

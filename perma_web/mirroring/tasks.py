@@ -94,9 +94,12 @@ def update_perma(link_guid):
     ## contains information about where we should place the assets (if
     ## we decide that we need them). This is also a fast check to make
     ## sure the link GUID is actually real.
-    metadata_server = settings.ROOT_METADATA_SERVER
+    metadata_server = settings.UPSTREAM_SERVER['address']
     metadata_url = metadata_server + reverse("service_link_status", args=(link_guid,))
-    metadata = requests.get(metadata_url).json()
+    metadata = requests.get(
+        metadata_url,
+        headers=settings.UPSTREAM_SERVER.get('headers', {})
+    ).json()
 
     ## Next, let's see if we need to get the assets. If we have the
     ## Link object for this GUID, we're going to assume we already
@@ -109,14 +112,17 @@ def update_perma(link_guid):
     except Link.DoesNotExist:
         ## We need to download the assets. We can download an archive
         ## from the assets server.
-        assets_server = settings.ROOT_ASSETS_SERVER
+        assets_server = settings.UPSTREAM_SERVER['address']
         assets_url = assets_server + reverse("mirroring:link_assets", args=(link_guid,))
 
         # Temp paths can be relative because we're in run_in_tempdir()
         temp_zip_path = 'temp.zip'
 
         # Save remote zip file to disk, using streaming to avoid keeping large files in RAM.
-        request = requests.get(assets_url, stream=True)
+        request = requests.get(
+            assets_url,
+            headers=settings.UPSTREAM_SERVER.get('headers', {}),
+            stream=True)
         with open(temp_zip_path, 'wb') as f:
             for chunk in request.iter_content(1024):
                 f.write(chunk)
@@ -167,6 +173,10 @@ def update_perma(link_guid):
     link.vested = metadata["vested"]
     link.save()
 
+    # If we have sub-mirrors, poke them to get a copy from us.
+    if settings.MIRRORS:
+        run_task(poke_mirrors, link_guid=link_guid)
+
 
 @shared_task
 def poke_mirrors(*args, **kwargs):
@@ -181,9 +191,12 @@ def poke_mirrors(*args, **kwargs):
 
 @shared_task
 def sync_mirror():
-    metadata_server = settings.ROOT_METADATA_SERVER
+    metadata_server = settings.UPSTREAM_SERVER['address']
     manifest_url = metadata_server + reverse("mirroring:manifest")
-    metadata = requests.get(manifest_url, stream=True)
+    metadata = requests.get(
+        manifest_url,
+        headers=settings.UPSTREAM_SERVER.get('headers', {}),
+        stream=True)
     for line in metadata.iter_lines():
         guid = line.strip()
         if not Link.objects.filter(guid==guid).exists():
