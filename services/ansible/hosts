@@ -1,10 +1,9 @@
-[permabox]
-140.247.225.70
+[perma-mirror]
+perma-mirror
 
-[permabox:vars]
-git_dir=/perma
-assets_dir=/perma_assets
-logs_dir=/perma_logs
+[permaboxes]
+permabox
 
-git_repo=https://github.com/harvard-lil/perma.git
-git_version=master
+[tinc:children]
+perma-mirror
+permaboxes

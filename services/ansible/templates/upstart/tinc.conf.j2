@@ -1,0 +1,17 @@
+# based on https://github.com/Youscribe/tinc-cookbook/blob/master/files/default/upstart-tinc-all.conf
+description "Tinc vpn"
+
+stop on runlevel [!2345]
+
+respawn
+respawn limit 5 30
+
+oom never
+
+pre-start script
+    test -x /usr/sbin/tincd || { stop; exit 0; }
+end script
+
+instance $NETWORK
+
+exec /usr/sbin/tincd -n "$NETWORK" -D -d2 --mlock --logfile={{ logs_dir }}/tinc.log >> {{ logs_dir }}/tinc.log 2>&1
