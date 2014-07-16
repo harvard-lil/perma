@@ -1,35 +1,39 @@
-# ansible-playbook provision.yml -i hosts -K -e @private.yml --vault-password-file ~/.ansible_vault_pass
+# ansible-playbook provision.yml -i hosts --vault-password-file ~/.ansible_vault_pass
 
 - hosts: all
   sudo: yes
 
   roles:
     # mysql -- bennojoy.mysql -- https://galaxy.ansible.com/list#/roles/1
-    - {role: bennojoy.mysql, mysql_db: [{name: perma}],
-      mysql_users: [{name: perma, pass: "{{ DATABASE_PASSWORD }}", priv: "*.*:ALL"}]}
+    - role: bennojoy.mysql
+      mysql_db:
+        - name: perma
+      mysql_users:
+        - name: perma
+          pass: "{{ database_password }}"
+          priv: "*.*:ALL"
 
 #    # rabbitmq -- https://galaxy.ansible.com/list#/roles/277
 #    - {role: Mayeu.RabbitMQ, rabbitmq_ssl: false}
 
     # nginx -- https://galaxy.ansible.com/list#/roles/466
-    - {role: jdauphant.nginx}
+    - role: jdauphant.nginx
 
     # phantomjs -- https://galaxy.ansible.com/list#/roles/117
-    - {role: nicolai86.phantomjs,
-       phantomjs_version: "1.9.7",
-       phantomjs_url: "https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-1.9.7-linux-x86_64.tar.bz2"}
+    - role: nicolai86.phantomjs
+      phantomjs_version: "1.9.7"
+      phantomjs_url: "https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-1.9.7-linux-x86_64.tar.bz2"
 
     # iptables -- https://galaxy.ansible.com/list#/roles/920
     # for tinc, see http://www.gentoo-wiki.info/HOWTO_Setup_a_VPN_with_tinc
-    - {role: Stouts.iptables,
-       iptables_allowed_tcp_ports: [
-         22,      # ssh
-         80, 443, # http
-         655      # tinc
-       ],
-       iptables_allowed_udp_ports: [
-         655      # tinc
-       ]}
+    - role: Stouts.iptables
+      iptables_allowed_tcp_ports:
+        - 22      # ssh
+          80      # http
+          443     # https
+          655     # tinc
+      iptables_allowed_udp_ports:
+        - 655      # tinc
 
   tasks:
     - name: Install system packages.
@@ -84,4 +88,4 @@
     # Check-network script.
     - name: Create check_network script.
       template: src=templates/check_network.sh.j2 dest=/sbin/check_network.sh mode=0700
-    - service: name=check-network state=started
+    - service: name=check-network state=restarted

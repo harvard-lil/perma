@@ -1,7 +1,9 @@
-# ansible-playbook deploy.yml -i hosts -K  -e @private.yml --vault-password-file ~/.ansible_vault_pass
+# ansible-playbook deploy.yml -i hosts --vault-password-file ~/.ansible_vault_pass
 
 - hosts: all
-#  sudo: yes
+  vars:
+    git_repo: https://github.com/harvard-lil/perma.git
+    git_version: master
 
   tasks:
     # Stop services. Killing celery_user_queue will kill other services that watch it,
@@ -11,6 +13,7 @@
     - wait_for: port=80 state=stopped
 
     # update django app
+    - command: chdir={{ git_dir }} git remote set-url origin {{ git_repo }}
     - git: repo={{ git_repo }} version={{ git_version }} dest={{ git_dir }}
     - pip: requirements={{ git_dir }}/perma_web/requirements.txt virtualenv={{ git_dir }}/venv
     - name: Create settings file.

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Check every ten seconds if we can reach google.com, and if not, restart network-manager.
 while true; do
-    if [ ! "$(ping -c1 -W1 google.com | grep '1 received')" ]; then
+    if [ ! "$(timeout 3 ping -c1 -W1 google.com | grep '1 received')" ]; then
         echo "Lost network connection; restarting."
         restart network-manager
     fi

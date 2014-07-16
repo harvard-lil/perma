@@ -10,13 +10,14 @@ PHANTOMJS_LOG = '{{ logs_dir }}/phantom.log'
 LOGGING['handlers']['default']['filename'] = '{{ logs_dir }}/django.log'
 
 # passwords
-SECRET_KEY = '{{ SECRET_KEY }}'
-DATABASES['default']['PASSWORD'] = '{{ DATABASE_PASSWORD }}'
+SECRET_KEY = '{{ django_secret_key }}'
+DATABASES['default']['PASSWORD'] = '{{ database_password }}'
 
 # hosts
 ALLOWED_HOSTS = [
     'perma.cc',
     'permabox.perma.cc',
+    'everlib.org',
 ]
 HOST = 'perma.cc'
 
@@ -38,5 +39,7 @@ MIRROR_SERVER = True
 MIRROR_USERS_SUBDOMAIN = 'dashboard'
 
 # mirror v1 stuff
-ROOT_METADATA_SERVER = 'http://dashboard.everlib.org/'
-ROOT_ASSETS_SERVER = 'http://dashboard.everlib.org/'
+UPSTREAM_SERVER = {
+    'address':'http://10.0.0.1/', # perma-mirror
+    'headers':{'Host':'everlib.org'}
+}
