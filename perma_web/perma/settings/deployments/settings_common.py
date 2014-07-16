@@ -250,7 +250,7 @@ MIRROR_SERVER = False               # whether we are a mirror
 MIRROR_COOKIE_NAME = 'user_info'
 MIRROR_USERS_SUBDOMAIN = 'users'
 
-# Where to fetch new archives from, if we are a mirror
+# Where to fetch new archives from, if we are a mirror.
 UPSTREAM_SERVER = {
     'address':'http://perma.cc',
     'headers':{},
@@ -259,7 +259,7 @@ UPSTREAM_SERVER = {
 # Where to push updates to.
 # Each entry in this list is a dict in the same format as UPSTREAM_SERVER, above.
 # Note that we can have both an upstream and downstream servers if this and UPSTREAM_SERVER are set.
-MIRRORS = []
+DOWNSTREAM_SERVERS = []
 
 # where we will store zip archives created for transferring to mirrors
 # this is relative to MEDIA_ROOT

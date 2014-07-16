@@ -174,7 +174,7 @@ def update_perma(link_guid):
     link.save()
 
     # If we have sub-mirrors, poke them to get a copy from us.
-    if settings.MIRRORS:
+    if settings.DOWNSTREAM_SERVERS:
         run_task(poke_mirrors, link_guid=link_guid)
 
 
@@ -184,7 +184,7 @@ def poke_mirrors(*args, **kwargs):
         link_guid = kwargs['link_guid']
     except KeyError:
         raise TypeError("poke_mirrors() requires a link_guid keyword argument")
-    for mirror in settings.MIRRORS:
+    for mirror in settings.DOWNSTREAM_SERVERS:
         requests.get(mirror['address'] + reverse("mirroring:update_link", args=(link_guid,)),
                      headers=mirror.get('headers', {}))
 
