@@ -24,7 +24,7 @@ django-pipeline==1.3.23
 tempdir==0.6                # create temp dirs to be deleted at end of function -- handy for archive creation
 
 # deployment
-gunicorn==19.0
+gunicorn==18.0
 gevent==1.0.1
 
 # PyWB-related stuff
