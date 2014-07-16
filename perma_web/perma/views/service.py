@@ -7,6 +7,7 @@ from django.shortcuts import redirect
 
 import json, logging, csv
 from perma.models import Link, Asset, Stat
+from mirroring.utils import may_be_mirrored
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +84,7 @@ def receive_feedback(request):
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
 
 
+@may_be_mirrored
 def link_status(request, guid):
     """
     A service that provides the state of a perma.
