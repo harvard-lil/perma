@@ -1,6 +1,6 @@
 ---
 
-- hosts: all
+- hosts: tinc
   sudo: yes
 
   # Config vars.

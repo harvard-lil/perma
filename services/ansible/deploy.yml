@@ -1,9 +1,6 @@
 # ansible-playbook deploy.yml -i hosts --vault-password-file ~/.ansible_vault_pass
 
-- hosts: all
-  vars:
-    git_repo: https://github.com/harvard-lil/perma.git
-    git_version: master
+- hosts: permaboxes
 
   tasks:
     # Stop services. Killing celery_user_queue will kill other services that watch it,
@@ -13,8 +10,12 @@
     - wait_for: port=80 state=stopped
 
     # update django app
-    - command: chdir={{ git_dir }} git remote set-url origin {{ git_repo }}
-    - git: repo={{ git_repo }} version={{ git_version }} dest={{ git_dir }}
+
+    - name: Update git remote based on git_repo variable.
+      command: chdir={{ git_dir }} git remote set-url origin {{ git_repo }}
+      ignore_errors: yes # this will fail if we've never checked out the git code before
+    - name: Update code.
+      git: repo={{ git_repo }} version={{ git_version }} dest={{ git_dir }}
     - pip: requirements={{ git_dir }}/perma_web/requirements.txt virtualenv={{ git_dir }}/venv
     - name: Create settings file.
       template: src=templates/django_settings.py.j2 dest={{ git_dir }}/perma_web/perma/settings/settings.py
@@ -23,10 +24,31 @@
         - syncdb
         - migrate
         - collectstatic
-    - name: Fix permissions on static assets dir.
-      shell: chmod -R a+r {{ assets_dir }}/static
-      shell: chmod a+x {{assets_dir}} {{ assets_dir }}/static
+
+
+    # permissions
+
+    - name: Check log dir permissions.
+      file: path="{{ item }}" owner=perma group=perma mode=0660
+      sudo: yes
+      ignore_errors: yes
+      with_items:
+        - "{{ logs_dir }}/django.log"
+        - "{{ logs_dir }}/celery_user_queue.log"
+        - "{{ logs_dir }}/celery_background_queue.log"
+        - "{{ logs_dir }}/phantomjs.log"
+        - "{{ logs_dir }}/gunicorn.log"
+    - name: Check assets dir permissions (owned by perma, rw by perma, r-only by others).
+      shell: chown -R perma.perma {{ assets_dir }} && chmod -R ug=rw-x+X,o=r-wx+X {{ assets_dir }}
+      sudo: yes
+    - name: Check git dir permissions (owned by perma, rw by perma, no access by others).
+      shell: chown -R perma.perma {{ git_dir }} && chmod -R ug=rw-x+X,o=-rwx {{ git_dir }}
+      sudo: yes
+    - name: Check venv permissions.
+      shell: chmod ug+x {{ git_dir }}/venv/bin/*
 
     # Restart services.
     - service: name=celery-user-queue state=restarted
+      sudo: yes
+    - service: name=rabbitmq-server state=started
       sudo: yes
