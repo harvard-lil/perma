@@ -1,0 +1,7 @@
+description "New archive beep"
+
+start on started celery-user-queue
+stop on stopping celery-user-queue
+respawn
+
+exec {{ bin_dir }}/new_archive_beep.py

@@ -6,8 +6,8 @@ stop on stopping celery-user-queue
 
 respawn
 console log
-setuid jc
-setgid jc
+setuid perma
+setgid perma
 
 exec {{ git_dir }}/venv/bin/celery -A perma worker --loglevel=info -Q background --logfile={{ logs_dir }}/celery_background_queue.log --workdir={{ git_dir }}/perma_web/
 

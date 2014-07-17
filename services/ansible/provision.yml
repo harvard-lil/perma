@@ -1,7 +1,45 @@
 # ansible-playbook provision.yml -i hosts --vault-password-file ~/.ansible_vault_pass
 
-- hosts: all
+- hosts: permaboxes
   sudo: yes
+
+  pre_tasks:
+    # perma group and users
+    - group: name=perma state=present
+    - user: name={{ item }} group=perma system=yes
+      with_items:
+        - ansible
+        - mysql
+        - rabbitmq
+        - perma
+
+    - name: Install system packages.
+      apt: pkg={{ item }} # update-cache=yes
+      with_items:
+        - git
+        - python-pip
+        - python-dev      # for pip packages that compile from source
+        - libffi-dev      # for cryptography python package
+        - libxml2-dev     # for lxml python package
+        - libxslt1-dev    # for lxml python package
+        - libmysqlclient-dev  # for mysql-python package
+        - rabbitmq-server
+
+    - name: Install python packages.
+      pip: name={{ item }} state=latest
+      with_items:
+        - virtualenv
+        - distribute
+
+    - name: Create perma directories.
+      file: path={{ item }} owner=ansible group=perma mode=0775 state=directory
+      with_items:
+        - "{{ git_dir }}"
+        - "{{ assets_dir }}"
+        - "{{ assets_dir }}/static"
+        - "{{ logs_dir }}"
+        - "{{ bin_dir }}"
+
 
   roles:
     # mysql -- bennojoy.mysql -- https://galaxy.ansible.com/list#/roles/1
@@ -29,39 +67,14 @@
     - role: Stouts.iptables
       iptables_allowed_tcp_ports:
         - 22      # ssh
-          80      # http
-          443     # https
-          655     # tinc
+        - 80      # http
+        - 443     # https
+        - 655     # tinc
       iptables_allowed_udp_ports:
         - 655      # tinc
 
+
   tasks:
-    - name: Install system packages.
-      apt: pkg={{ item }} # update-cache=yes
-      with_items:
-        - git
-        - python-pip
-        - python-dev      # for pip packages that compile from source
-        - libffi-dev      # for cryptography python package
-        - libxml2-dev     # for lxml python package
-        - libxslt1-dev    # for lxml python package
-        - libmysqlclient-dev  # for mysql-python package
-        - rabbitmq-server
-
-    - name: Install python packages.
-      pip: name={{ item }} state=latest
-      with_items:
-        - virtualenv
-        - distribute
-
-    - name: Create perma directories.
-      file: path={{ item }} owner=jc group=jc mode=0755 state=directory
-      with_items:
-        - "{{ git_dir }}"
-        - "{{ assets_dir }}"
-        - "{{ assets_dir }}/static"
-        - "{{ logs_dir }}"
-
     # Remove these services so we can replace them with our own Upstart scripts.
     - service: name=nginx state=stopped
     - service: name=rabbitmq-server state=stopped
@@ -87,5 +100,5 @@
 
     # Check-network script.
     - name: Create check_network script.
-      template: src=templates/check_network.sh.j2 dest=/sbin/check_network.sh mode=0700
+      template: src=templates/bin/check_network.sh.j2 dest={{ bin_dir }}/check_network.sh mode=0700
     - service: name=check-network state=restarted

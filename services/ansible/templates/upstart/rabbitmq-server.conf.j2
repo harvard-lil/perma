@@ -10,8 +10,9 @@ respawn
 respawn limit 10 5
 console log
 setuid rabbitmq
-setgid rabbitmq
+setgid perma
 env HOME=/var/lib/rabbitmq
+env RABBITMQ_LOG_BASE={{ logs_dir }}
 
 exec /usr/lib/rabbitmq/bin/rabbitmq-server
 post-start exec /usr/sbin/rabbitmqctl wait
