@@ -58,7 +58,7 @@ def create_link(request):
         try:
             validate(target_url)
         except ValidationError:
-            return HttpResponse("Not a valid URL.", status=400)
+            return HttpResponseBadRequest("Not a valid URL.")
 
         # By default, use the domain as title
         url_details = urlparse(target_url)
@@ -68,10 +68,10 @@ def create_link(request):
         try:
             target_ip = socket.gethostbyname(url_details.netloc.split(':')[0])
         except socket.gaierror:
-            return HttpResponse("Couldn't resolve domain.", status=400)
+            return HttpResponseBadRequest("Couldn't resolve domain.")
         for banned_ip_range in settings.BANNED_IP_RANGES:
             if IPAddress(target_ip) in IPNetwork(banned_ip_range):
-                return HttpResponse("Not a valid IP.", status=400)
+                return HttpResponseBadRequest("Not a valid IP.")
 
         # Get target url headers. We get the mime-type and content length from this.
         try:
@@ -85,7 +85,7 @@ def create_link(request):
             return HttpResponse("Couldn't load URL.", status=400)
         try:
             if int(target_url_headers.get('content-length', 0)) > 1024 * 1024:
-                return HttpResponse("Target page is too large (max size 1MB).", status=400)
+                return HttpResponseBadRequest("Target page is too large (max size 1MB).")
         except ValueError:
             # Weird -- content-length header wasn't an integer. Carry on.
             pass
@@ -189,7 +189,7 @@ def upload_file(request):
 
                 response_object = {'status':'success', 'linky_id':link.guid, 'linky_hash':link.guid}
 
-                return HttpResponse(json.dumps(response_object), 'application/json')
+                return HttpResponse(json.dumps(response_object), 'application/json', 201)  # '201 Created' status
             else:
                 return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Invalid file.'}), 'application/json')
         else:
