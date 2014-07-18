@@ -5,6 +5,8 @@ import subprocess
 from time import sleep
 import tempdir
 
+from django.core.files.storage import default_storage
+from django.test.utils import override_settings
 from django.core.urlresolvers import reverse
 from django.conf import settings
 
@@ -18,6 +20,7 @@ from .utils import PermaTestCase
 TEST_ASSETS_DIR = os.path.join(settings.PROJECT_ROOT, "perma/tests/assets")
 
 
+@override_settings(MIRRORING_ENABLED=True)
 class TasksTestCase(PermaTestCase):
 
     def test_create_link(self):
@@ -44,8 +47,11 @@ class TasksTestCase(PermaTestCase):
                 Make sure capture of given type was created on disk and stored with this asset.
             """
             self.assertTrue(
-                os.path.exists(os.path.join(settings.MEDIA_ROOT, asset.base_storage_path, getattr(asset, capture_type))),
+                default_storage.exists(os.path.join(asset.base_storage_path, getattr(asset, capture_type))),
                 "Failed to create %s for %s." % (capture_type, asset.link.submitted_url))
+
+        # Make sure requests go to dashboard server.
+        self.use_main_server()
 
         # Log in so we can create archives.
         self.log_in_user('test_vesting_member@example.com')
@@ -81,7 +87,14 @@ class TasksTestCase(PermaTestCase):
                 self.assertEqual(response.status_code, 201, "Unexpected response %s: %s" % (response.status_code ,response.content))
                 assert_asset_has(asset, "image_capture")
                 assert_asset_has(asset, "warc_capture")
+                self.assertTrue(
+                    default_storage.exists(os.path.join(settings.MEDIA_ARCHIVES_ROOT, asset.base_storage_path+".zip")),
+                    "Zip archive not created.")
                 # TODO: check that warc capture works (maybe in test of landing page)
+
+                import ipdb;
+
+                ipdb.set_trace()
 
                 # PDF capture.
                 response, asset = create_link(test_server_url + "/test.pdf")
