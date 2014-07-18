@@ -57,7 +57,13 @@ def test(apps="perma mirroring"):
     """
         Run perma tests. (For coverage, run `coverage report` after tests pass.)
     """
-    local("coverage run --source='.' --omit='lib/*,perma/migrations/*,*/tests/*' manage.py test %s" % apps)
+    excluded_files = [
+        "perma/migrations/*",
+        "*/tests/*",
+        "fabfile.py",
+        "mirroring/management/commands/runmirror.py"
+    ]
+    local("coverage run --source='.' --omit='%s' manage.py test %s" % (",".join(excluded_files), apps))
 
 def logs(log_dir=os.path.join(settings.PROJECT_ROOT, '../services/logs/')):
     """ Tail all logs. """
