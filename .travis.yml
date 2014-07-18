@@ -3,6 +3,11 @@ python:
   - "2.7"
 env: CFLAGS="-O0"
 
+# make sure perma.dev resolves to localhost so our tests work
+addons:
+  hosts:
+    - perma.dev
+
 before_install:
   - cp services/travis/settings.py perma_web/perma/settings/
   - cd perma_web

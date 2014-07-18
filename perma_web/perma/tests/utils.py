@@ -1,9 +1,11 @@
 from django.test import TestCase
 from django.core.urlresolvers import reverse
+from django.test.utils import override_settings
 
 from perma.models import Registrar, VestingOrg
 
 
+@override_settings(RUN_TASKS_ASYNC=False)
 class PermaTestCase(TestCase):
     fixtures = ['fixtures/groups.json','fixtures/users.json',
                 'fixtures/archive.json']

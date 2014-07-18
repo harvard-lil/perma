@@ -22,7 +22,7 @@ var refreshIntervalIds = [];
 
 function check_status() {
 	
-// Check our status service to see if we have archivng jobs pending
+// Check our status service to see if we have archiving jobs pending
 	var request = $.ajax({
 		url: status_url + newLinky.linky_id,
 		type: "GET",
@@ -36,9 +36,10 @@ function check_status() {
 	        $('#spinner').slideUp();
 	        $('.thumbnail-placeholder').append('<div class="library-thumbnail"><img src="' + 
 	            MEDIA_URL + data.path + '/' + data.image_capture + '"></div>');
-		        $.each(refreshIntervalIds, function(ndx, id) {
+            $.each(refreshIntervalIds, function(ndx, id) {
 			    clearInterval(id);
 			});
+            $('.library-link-title').text(data.submitted_title);
 		}	
 	});
 }
@@ -156,9 +157,9 @@ function linkIt(){
     });
     
       
-  if(!swfobject.hasFlashPlayerVersion("1")) {
+    if(!swfobject.hasFlashPlayerVersion("1")) {
       $('.copy-button').hide();
-  }
+    }
       
     $('#emailPerma').on('submit', function(event){
       var request = $.ajax({
@@ -171,10 +172,15 @@ function linkIt(){
       return false;
     });
   });
-  request.fail(function(jqXHR, responseText) {
+  request.fail(function(jqXHR) {
     var source = $("#error-template").html();
     var template = Handlebars.compile(source);
-    $('#links').html(template({url: rawUrl, static_prefix: static_prefix}));
+    var message = jqXHR.status==400 && jqXHR.responseText ? jqXHR.responseText : "Error "+jqXHR.status;
+    $('#links').html(template({
+      url: rawUrl,
+      static_prefix: static_prefix,
+      message: message
+    }));
     $('#spinner').slideUp();
     $('#link-short-slug').slideDown();
   });

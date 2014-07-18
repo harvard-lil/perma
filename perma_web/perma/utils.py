@@ -160,4 +160,4 @@ def run_task(task, *args, **kwargs):
     if settings.RUN_TASKS_ASYNC:
         return task.delay(*args, **kwargs)
     else:
-        return task(*args, **kwargs)
+        return task.apply(args, kwargs)

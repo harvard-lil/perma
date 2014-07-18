@@ -97,7 +97,9 @@ def link_status(request, guid):
     response_object = {"path": target_asset.base_storage_path, "text_capture": target_asset.text_capture,
             "source_capture": target_asset.warc_capture, "image_capture": target_asset.image_capture,
             "pdf_capture": target_asset.pdf_capture,
-            "vested": target_link.vested, "dark_archived": target_link.dark_archived}
+            "vested": target_link.vested,
+            "dark_archived": target_link.dark_archived,
+            "submitted_title":target_link.submitted_title}
 
     data = json.dumps(response_object)
     if 'callback' in request.REQUEST:
