@@ -18,9 +18,6 @@ class PermaTestCase(TestCase):
         registrar.save()
         VestingOrg(name='Test Vesting Org', registrar=registrar).save()
 
-        # set default request domain -- needed for mirroring
-        self.client.defaults['SERVER_NAME'] = 'perma.dev'
-
     def log_in_user(self, username, password='pass'):
         # TODO: check resp to see if login actually worked
         self.client.logout()
@@ -79,17 +76,5 @@ class PermaTestCase(TestCase):
 
         if success_query:
             self.assertEqual(success_query.count(), 1)
-
-    def use_main_server(self):
-        """
-            For mirroring, send requests through main server (e.g. dashboard.perma.dev)
-        """
-        self.client.defaults['SERVER_NAME'] = settings.MIRROR_USERS_SUBDOMAIN+'.perma.dev'
-
-    def use_mirror_server(self):
-        """
-            For mirroring, send requests through mirror server (e.g. perma.dev)
-        """
-        self.client.defaults['SERVER_NAME'] = 'perma.dev'
 
 

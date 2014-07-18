@@ -51,7 +51,7 @@ class TasksTestCase(PermaTestCase):
                 "Failed to create %s for %s." % (capture_type, asset.link.submitted_url))
 
         # Make sure requests go to dashboard server.
-        self.use_main_server()
+        self.client.defaults['SERVER_NAME'] = settings.MIRROR_USERS_SUBDOMAIN + '.perma.dev'
 
         # Log in so we can create archives.
         self.log_in_user('test_vesting_member@example.com')
@@ -91,10 +91,6 @@ class TasksTestCase(PermaTestCase):
                     default_storage.exists(os.path.join(settings.MEDIA_ARCHIVES_ROOT, asset.base_storage_path+".zip")),
                     "Zip archive not created.")
                 # TODO: check that warc capture works (maybe in test of landing page)
-
-                import ipdb;
-
-                ipdb.set_trace()
 
                 # PDF capture.
                 response, asset = create_link(test_server_url + "/test.pdf")
