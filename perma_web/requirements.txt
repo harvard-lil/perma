@@ -22,7 +22,7 @@ selenium==2.41.0
 jsmin==2.0.9
 django-pipeline==1.3.23
 tempdir==0.6                # create temp dirs to be deleted at end of function -- handy for archive creation
-netaddr-0.7.12              # to check archive IPs against banned ranges
+netaddr==0.7.12              # to check archive IPs against banned ranges
 
 # deployment
 gunicorn==18.0
