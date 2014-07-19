@@ -1,3 +1,4 @@
+import json
 from django.conf import settings
 from django.test import TestCase
 from django.core.urlresolvers import reverse
@@ -50,8 +51,18 @@ class PermaTestCase(TestCase):
         """
             Convenience method to call do_request with method='post'
         """
-        kwargs['request_kwargs'] = {'data':data}
+        kwargs['request_kwargs'] = {'data': data}
         return self.do_request(view_name, 'post', *args, **kwargs)
+
+    def post_json(self, view_name, data={}, *args, **kwargs):
+        """
+            Convenience method to call do_request with necessary headers for JSON requests.
+        """
+        kwargs['request_kwargs'] = {'data': json.dumps(data),
+                                    'content_type': 'application/x-www-form-urlencoded',
+                                    'HTTP_X_REQUESTED_WITH':'XMLHttpRequest'}
+        return self.do_request(view_name, 'post', *args, **kwargs)
+
 
     def submit_form(self, view_name, data={}, *args, **kwargs):
         """

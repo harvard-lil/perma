@@ -10,7 +10,7 @@ from django.test.utils import override_settings
 from django.core.urlresolvers import reverse
 from django.conf import settings
 
-from perma.models import Asset
+from perma.models import Asset, Folder, Link
 from perma.views import link_management
 import perma.tasks
 
@@ -62,7 +62,7 @@ class TasksTestCase(PermaTestCase):
 
     ### Tests ###
 
-    def test_create_link(self):
+    def test_link_create_and_edit(self):
         """
             Test various archive creation scenarios.
             Note that these will return immediately instead of kicking off celery tasks,
@@ -103,6 +103,7 @@ class TasksTestCase(PermaTestCase):
                 self.assertTrue(
                     default_storage.exists(os.path.join(settings.MEDIA_ARCHIVES_ROOT, asset.base_storage_path+".zip")),
                     "Zip archive not created.")
+                test_link = asset.link # use this later
                 # TODO: check that warc capture works (maybe in test of landing page)
 
                 # PDF capture.
@@ -114,13 +115,18 @@ class TasksTestCase(PermaTestCase):
                 response, asset = create_link("not_a_real_url")
                 self.assertEqual(response.status_code, 400)
 
+                # Non-resolving URL.
+                response, asset = create_link("slkdfuiosdfnsdjn.com")
+                self.assertEqual(response.status_code, 400)
+
                 # Non-working URL.
-                link_management.HEADER_CHECK_TIMEOUT = 1 # only wait a second before giving up
+                link_management.HEADER_CHECK_TIMEOUT = 1 # only wait 1 second before giving up
                 response, asset = create_link("http://192.0.2.1/")
                 self.assertEqual(response.status_code, 400)
 
         finally:
             server.terminate()
+
 
     def test_upload_file(self):
         """
@@ -139,6 +145,81 @@ class TasksTestCase(PermaTestCase):
                          "Unexpected response %s: %s" % (response.status_code, response.content))
         self.assert_asset_has(asset, "pdf_capture")
 
+        # Test image upload.
+        response, asset = upload_file('test.jpg')
+        self.assertEqual(response.status_code, 201,
+                         "Unexpected response %s: %s" % (response.status_code, response.content))
+        self.assert_asset_has(asset, "image_capture")
+
         # Test bad file upload.
         response, asset = upload_file('test.html')
         self.assertEqual(response.status_code, 400)
+
+
+    def test_link_browsing(self):
+        test_link = Link.objects.get(guid='7CF8-SS4G')
+
+        # helpers
+        def get_folder_by_slug(folder_slug):
+            return Folder.objects.get(created_by__email='test_vesting_member@example.com', slug=folder_slug)
+
+        # Create some folders.
+        self.submit_form('created_links', {'new_folder_submit': '1', 'new_folder_name': 'test'})
+        folder1 = get_folder_by_slug('test')
+        self.submit_form('created_links', {'new_folder_submit': '1', 'new_folder_name': 'test2'})
+        folder2 = get_folder_by_slug('test2')
+
+        # Move stuff to folder1.
+        self.submit_form('created_links',
+                         {'move_selected_items_to': folder1.pk, 'links': [test_link.pk], 'folders': [folder2.pk]})
+
+        # List folder1
+        response = self.get('created_links', reverse_kwargs={'kwargs': {'path': '/' + folder1.slug}})
+        self.assertTrue(test_link in response.context['linky_links'])
+        self.assertTrue(folder2 in response.context['subfolders'])
+        self.assertEqual(folder1, response.context['current_folder'])
+
+        # Search folder1 for link guid -- should work
+        response = self.client.get(
+            reverse('created_links', kwargs={'path': '/' + folder1.slug}) + "?q=" + test_link.guid)
+        self.assertTrue(test_link in response.context['linky_links'])
+
+        # Search folder1 for non-matching string
+        response = self.client.get(reverse('created_links', kwargs={'path': '/' + folder1.slug}) + "?q=does_not_exist")
+        self.assertTrue(len(response.context['linky_links']) == 0)
+
+        # Try to delete folder1 -- shouldn't work because there's stuff in it
+        response = self.post_json('created_links', reverse_kwargs={'kwargs': {'path': '/' + folder1.slug}},
+                                  data={'action': 'delete_folder'})
+        self.assertTrue('error' in response.content)
+
+        # Move stuff back out.
+        self.submit_form('created_links',
+                         {'move_selected_items_to': 'ROOT', 'links': [test_link.pk], 'folders': [folder2.pk]})
+
+        # Now delete it.
+        response = self.post_json('created_links', reverse_kwargs={'kwargs': {'path': '/' + folder1.slug}},
+                                  data={'action': 'delete_folder'})
+        self.assertFalse(Folder.objects.filter(pk=folder1.pk).exists())
+
+        # Rename folder2
+        self.post_json('created_links', reverse_kwargs={'kwargs': {'path': '/' + folder2.slug}},
+                       data={'action': 'rename_folder', 'name': 'test'})
+        self.assertTrue(get_folder_by_slug('test2').name == 'test')
+
+        # Edit link notes.
+        self.post_json('created_links', {'action': 'save_notes', 'link_id': test_link.pk, 'notes': 'test'})
+        self.assertTrue(Link.objects.get(pk=test_link.pk).notes == 'test')
+
+        # Edit link title.
+        self.post_json('created_links', {'action': 'save_title', 'link_id': test_link.pk, 'title': 'test edit'})
+        self.assertTrue(Link.objects.get(pk=test_link.pk).submitted_title == 'test edit')
+
+
+    def test_vest_link(self):
+        test_link = Link.objects.get(guid='7CF8-SS4G')
+        self.post('vest_link', reverse_kwargs={'args': [test_link.guid]}, require_status_code=302)
+
+    def test_dark_archive_link(self):
+        test_link = Link.objects.get(guid='7CF8-SS4G')
+        self.post('dark_archive_link', reverse_kwargs={'args': [test_link.guid]}, require_status_code=302)
