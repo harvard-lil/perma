@@ -22,7 +22,7 @@
                 {% if request.user.is_authenticated %}
                     <p><a href="{% url 'created_links' %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
                 {% else %}
-				    <p><a href="{% url 'process_register' %}" class="btn btn-large btn-success">Create an account</a></p>
+				    <p><a href="{% url 'register' %}" class="btn btn-large btn-success">Create an account</a></p>
                 {% endif %}
 			
 			</div>	

@@ -911,25 +911,16 @@ def limited_login(request, template_name='registration/login.html',
 
 @ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block=True, ip=False,
            keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
-def process_register(request):
+def register(request):
     """
     Register a new user
     """
-    c = {}
-
     if request.method == 'POST':
-
-        reg_key = request.POST.get('reg_key', '')
-
-        editor_reg_form = UserRegForm(request.POST, prefix = "a")
-
-        if editor_reg_form.is_valid():
-            new_user = editor_reg_form.save()
-
+        form = UserRegForm(request.POST)
+        if form.is_valid():
+            new_user = form.save(commit=False)
             new_user.backend='django.contrib.auth.backends.ModelBackend'
-            
             new_user.is_active = False
-            
             new_user.save()
 
             group = Group.objects.get(name='user')
@@ -938,69 +929,53 @@ def process_register(request):
             email_new_user(request, new_user)
 
             return HttpResponseRedirect(reverse('register_email_instructions'))
-
-        else:
-            c.update({'editor_reg_form': editor_reg_form,})
-            
-            c = RequestContext(request, c)
-
-            return render_to_response('registration/register.html', c)
     else:
-        editor_reg_form = UserRegForm(prefix = "a")
+        form = UserRegForm()
 
-        c.update({'editor_reg_form': editor_reg_form,})
-        c = RequestContext(request, c)
-        return render_to_response("registration/register.html", c)
+    return render_to_response("registration/register.html",
+        {'form':form},
+        RequestContext(request))
 
 
-def register_email_code_confirmation(request, code):
-    """
-    Confirm a user's account when the user follows the email confirmation link.
-    """
-    user = get_object_or_404(LinkUser, confirmation_code=code)
-    user.is_active = True
-    user.is_confirmed = True
-    user.save()
-    messages.add_message(request, messages.INFO, 'Your account is activated.  Log in below.')
-    #redirect_url = reverse('user_management_limited_login')
-    #extra_params = '?confirmed=true'
-    #full_redirect_url = '%s%s' % (redirect_url, extra_params)
-    return HttpResponseRedirect(reverse('user_management_limited_login'))
+# def register_email_code_confirmation(request, code):
+#     """
+#     Confirm a user's account when the user follows the email confirmation link.
+#     """
+#     user = get_object_or_404(LinkUser, confirmation_code=code)
+#     user.is_active = True
+#     user.is_confirmed = True
+#     user.save()
+#     messages.add_message(request, messages.INFO, 'Your account is activated.  Log in below.')
+#     #redirect_url = reverse('user_management_limited_login')
+#     #extra_params = '?confirmed=true'
+#     #full_redirect_url = '%s%s' % (redirect_url, extra_params)
+#     return HttpResponseRedirect(reverse('user_management_limited_login'))
     
 
 def register_email_code_password(request, code):
     """
     Allow system created accounts to create a password.
     """
-    
+    # find user based on confirmation code
     try:
-      user = LinkUser.objects.get(confirmation_code=code)
+        user = LinkUser.objects.get(confirmation_code=code)
     except LinkUser.DoesNotExist:
-      user = None
-    if not user:
-      context = {'no_code': True}
-      context = RequestContext(request, context)
-      return render_to_response('registration/set_password.html', context)
-    else:
-      if request.method == "POST":
+        return render_to_response('registration/set_password.html', {'no_code': True}, RequestContext(request))
+
+    # save password
+    if request.method == "POST":
         form = SetPasswordForm(user=user, data=request.POST)
         if form.is_valid():
-            form.save()
+            form.save(commit=False)
             user.is_active = True
             user.is_confirmed = True
             user.save()
             messages.add_message(request, messages.INFO, 'Your account is activated.  Log in below.')
             return HttpResponseRedirect(reverse('user_management_limited_login'))
-        else:
-          context = {'form': form}
-          context = RequestContext(request, context)
-          return render_to_response('registration/set_password.html', context)
-      else:
+    else:
         form = SetPasswordForm(user=user)
-      
-        context = {'form': form}
-        context = RequestContext(request, context)
-        return render_to_response('registration/set_password.html', context)
+
+    return render_to_response('registration/set_password.html', {'form': form}, RequestContext(request))
     
     
 def register_email_instructions(request):
@@ -1015,21 +990,17 @@ def email_new_user(request, user):
     Send email to newly created accounts
     """
     if not user.confirmation_code:
-      user.confirmation_code = \
-        ''.join(random.choice(string.ascii_uppercase + \
-        string.ascii_lowercase + string.digits) for x in range(30))
-      user.save()
+        user.confirmation_code = ''.join(
+            random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(30))
+        user.save()
       
-    host = request.get_host()
-
-    if settings.DEBUG == False:
-      host = settings.HOST
+    host = request.get_host() if settings.DEBUG else settings.HOST
 
     content = '''To activate your account, please click the link below or copy it to your web browser.  You will need to create a new password.
 
-http://%s/register/password/%s/
+http://%s%s
 
-''' % (host, user.confirmation_code)
+''' % (host, reverse('register_password', args=[user.confirmation_code]))
 
     logger.debug(content)
 
@@ -1045,17 +1016,14 @@ def email_new_vesting_user(request, user):
     """
     Send email to newly created vesting accounts
     """
-      
-    host = request.get_host()
 
-    if settings.DEBUG == False:
-      host = settings.HOST
+    host = request.get_host() if settings.DEBUG else settings.HOST
 
     content = '''Your Perma.cc account has been associated with %s.  You now have vesting privileges.  If this is a mistake, visit your account settings page to leave %s.
 
-http://%s/manage/account
+http://%s%s
 
-''' % (user.vesting_org.name, user.vesting_org.name, host)
+''' % (user.vesting_org.name, user.vesting_org.name, host, reverse('user_management_manage_account'))
 
     send_mail(
         "Your Perma.cc account is now associated with {vesting_org}".format(vesting_org=user.vesting_org.name),

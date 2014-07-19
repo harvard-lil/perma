@@ -53,7 +53,7 @@ class PermaTestCase(TestCase):
         kwargs['request_kwargs'] = {'data':data}
         return self.do_request(view_name, 'post', *args, **kwargs)
 
-    def post_form(self, view_name, data={}, *args, **kwargs):
+    def submit_form(self, view_name, data={}, *args, **kwargs):
         """
             Post to a view.
             success_url = url form should forward to after success
@@ -61,20 +61,29 @@ class PermaTestCase(TestCase):
         """
         success_url = kwargs.pop('success_url', None)
         success_query = kwargs.pop('success_query', None)
+        form_key = kwargs.pop('form_key', 'form')           # name of form object in RequestContext returned with response
+        error_keys = set(kwargs.pop('error_keys', []))      # keys that must appear in form error list
+
         kwargs['require_status_code'] = None
         resp = self.post(view_name, data, *args, **kwargs)
 
+        def form_errors():
+            try:
+                return resp.context[form_key]._errors
+            except:
+                return {}
+
         if success_url:
-            def form_errors(resp):
-                try:
-                    return resp.context[1]['form']._errors
-                except:
-                    return '?'
             self.assertEqual(resp.status_code, 302,
-                             "Form failed to forward to success url. Form errors: %s" % form_errors(resp))
-            self.assertEqual(resp['Location'], "http://testserver"+success_url)
+                             "Form failed to forward to success url. Status: %s. Content: %s. Errors: %s." % (resp.status_code, resp.content, form_errors()))
+            self.assertTrue(resp['Location'].endswith(success_url), "Form failed to forward to %s. Instead forwarded to: %s." % (success_url, resp['Location']))
 
         if success_query:
             self.assertEqual(success_query.count(), 1)
+
+        if error_keys:
+            self.assertTrue(error_keys <= set(form_errors().keys()), "Couldn't find expected error keys. Expected: %s. Found: %s" % (error_keys, form_errors()))
+
+        return resp
 
 
