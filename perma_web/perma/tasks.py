@@ -226,11 +226,11 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
     # make sure all requests are finished
     print "Waiting for post-load requests."
     start_time = time.time()
-    time.sleep(5)
+    time.sleep(min(AFTER_LOAD_TIMEOUT, 5))
     while len(unique_responses) < len(unique_requests):
         print "%s/%s finished" % (len(unique_responses), len(unique_requests))
         if time.time() - start_time > AFTER_LOAD_TIMEOUT:
-            print "Waited 60 seconds to finish post-load requests -- giving up."
+            print "Waited %s seconds to finish post-load requests -- giving up." % AFTER_LOAD_TIMEOUT
             break
         time.sleep(.5)
 
@@ -238,8 +238,8 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
     print "Taking second screenshot."
     save_screenshot(browser, image_path)
 
-    print "Shutting down browser and proxies."
     # teardown:
+    print "Shutting down browser and proxies."
     browser.quit()  # shut down phantomjs
     robots_txt_thread.join()  # wait until robots thread is done
     meta_thread.join()  # wait until meta thread is done
@@ -247,9 +247,10 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
     warcprox_thread.join()  # wait until warcprox thread is done writing out warc
 
     print "Saving WARC."
+
     # save generated warc file
-    temp_warc_path = os.path.join(warc_writer.directory, warc_writer._f_finalname)
     try:
+        temp_warc_path = os.path.join(warc_writer.directory, warc_writer._f_finalname)
         with open(temp_warc_path, 'rb') as warc_file:
             warc_name = default_storage.store_file(warc_file, warc_path)
             asset_query.update(warc_capture=warc_name)

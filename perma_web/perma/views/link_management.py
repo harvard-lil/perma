@@ -1,10 +1,12 @@
 import imghdr
 import logging, json, os
 from datetime import datetime
+import socket
 from urlparse import urlparse
 from mimetypes import MimeTypes
 from celery import chain
-import lxml.html, requests
+from netaddr import IPAddress, IPNetwork
+import requests
 from mptt.exceptions import InvalidMove
 from PyPDF2 import PdfFileReader
 
@@ -30,6 +32,7 @@ from ..utils import require_group, run_task
 logger = logging.getLogger(__name__)
 valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp', 'submitted_title', '-submitted_title']
 
+HEADER_CHECK_TIMEOUT = 10 # seconds to wait before giving up when checking headers for requested link
 
 ###### LINK CREATION ######
 
@@ -42,54 +45,58 @@ def create_link(request):
         # We've received a request to archive a URL. That process is managed here.
         # We create a new entry in our datastore and pass the work off to our indexing
         # workers. They do their thing, updating the model as they go. When we get some minimum
-        # set of results we can present the user (a title and an image capture of the page), we respond
-        # back.
+        # set of results we can present the user (a guid for the link), we respond back.
 
-        # Sometimes a tab or a space gets placed in the form field (by the
-        # user copying and pasting?). Trim it here.
-        target_url = request.POST.get('url').strip(' \t\n\r').replace(" ", "")
+        target_url = request.POST.get('url').strip()
 
         # If we don't get a protocol, assume http
-        if target_url[0:4] != 'http':
+        if target_url[:4] != 'http':
             target_url = 'http://' + target_url
 
         # Does this thing look like a valid URL?
         validate = URLValidator()
         try:
             validate(target_url)
-        except ValidationError, e:
-            return HttpResponse(status=400)
+        except ValidationError:
+            return HttpResponseBadRequest("Not a valid URL.")
 
-        # Sometimes we can't get a title from the markup. If not, use the domain
+        # By default, use the domain as title
         url_details = urlparse(target_url)
         target_title = url_details.netloc
 
-        # Get the markup. We get the mime-type and the title from this.
+        # Check for banned IP.
         try:
-            r = requests.get(target_url, stream=True, verify=False,
-                             headers={'User-Agent': request.META['HTTP_USER_AGENT']})
+            target_ip = socket.gethostbyname(url_details.netloc.split(':')[0])
+        except socket.gaierror:
+            return HttpResponseBadRequest("Couldn't resolve domain.")
+        for banned_ip_range in settings.BANNED_IP_RANGES:
+            if IPAddress(target_ip) in IPNetwork(banned_ip_range):
+                return HttpResponseBadRequest("Not a valid IP.")
 
-            # Only get the content if we get a content-length header and if
-            # it's less than one MB.
-            if 'content-length' in r.headers and int(r.headers['content-length']) < 1024 * 1024:
-                parsed_html = lxml.html.fromstring(r.content)
-                if len(parsed_html):
-                    if parsed_html.find(".//title") is not None and parsed_html.find(".//title").text:
-                        target_title = parsed_html.find(".//title").text.strip()
-            else:
-                raise IOError
-        except IOError:
-            logger.debug("Title capture from markup failed for %s, using the hostname" % target_url)
+        # Get target url headers. We get the mime-type and content length from this.
+        try:
+            target_url_headers = requests.head(
+                target_url,
+                verify=False, # don't check SSL cert?
+                headers={'User-Agent': request.META['HTTP_USER_AGENT']},
+                timeout=HEADER_CHECK_TIMEOUT
+            ).headers
+        except (requests.ConnectionError, requests.Timeout):
+            return HttpResponse("Couldn't load URL.", status=400)
+        try:
+            if int(target_url_headers.get('content-length', 0)) > 1024 * 1024:
+                return HttpResponseBadRequest("Target page is too large (max size 1MB).")
+        except ValueError:
+            # Weird -- content-length header wasn't an integer. Carry on.
+            pass
 
-        # We have some markup and a title. Let's create a linky from it
-        link = Link(submitted_url=target_url, submitted_title=target_title, created_by=request.user)
+        # Create link.
+        link = Link(submitted_url=target_url, created_by=request.user, submitted_title=target_title)
         link.save()
 
-        # We pass the guid to our tasks
         guid = link.guid
-
-        # Create a stub for our assets
         asset = Asset(link=link)
+        response_object = {'linky_id': guid, 'linky_title':''}
 
         # celery tasks to run after scraping is complete
         postprocessing_tasks = []
@@ -100,8 +107,7 @@ def create_link(request):
             ]
 
         # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
-        if 'content-type' in r.headers and r.headers['content-type'] in ['application/pdf', 'application/x-pdf'] or \
-                        target_url.split('.')[-1] == 'pdf':
+        if target_url_headers.get('content-type',None) in ['application/pdf', 'application/x-pdf'] or target_url.endswith('.pdf'):
             asset.pdf_capture = 'pending'
             asset.save()
 
@@ -111,7 +117,7 @@ def create_link(request):
                 *postprocessing_tasks
             ))
 
-            response_object = {'linky_id': guid, 'message_pdf': True, 'linky_title': link.submitted_title}
+            response_object['message_pdf'] = True
 
         else:  # else, it's not a PDF. Let's try our best to retrieve what we can
 
@@ -126,10 +132,7 @@ def create_link(request):
                 *postprocessing_tasks
             ))
 
-            response_object = {'linky_id': guid, 'linky_title': link.submitted_title}
-
-
-        return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
+        return HttpResponse(json.dumps(response_object), content_type="application/json", status=201) # '201 Created' status
 
     return render_to_response('user_management/create-link.html',
                               {'this_page': 'create_link'},
@@ -186,7 +189,7 @@ def upload_file(request):
 
                 response_object = {'status':'success', 'linky_id':link.guid, 'linky_hash':link.guid}
 
-                return HttpResponse(json.dumps(response_object), 'application/json')
+                return HttpResponse(json.dumps(response_object), 'application/json', 201)  # '201 Created' status
             else:
                 return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Invalid file.'}), 'application/json')
         else:
@@ -370,7 +373,7 @@ def vest_link(request, guid):
             link.vesting_org = request.user.vesting_org
             link.vested_timestamp=datetime.now()
             link.save()
-            poke_mirrors.delay(link_guid=guid)
+            run_task(poke_mirrors, link_guid=guid)
     return HttpResponseRedirect(reverse('single_linky', args=[guid]))
 
 
@@ -381,6 +384,6 @@ def dark_archive_link(request, guid):
         if not link.dark_archived:
             link.dark_archived=True
             link.save()
-            poke_mirrors.delay(link_guid=guid)
+            run_task(poke_mirrors, link_guid=guid)
         return HttpResponseRedirect(reverse('single_linky', args=[guid]))
     return render_to_response('dark-archive-link.html', {'linky': link}, RequestContext(request))

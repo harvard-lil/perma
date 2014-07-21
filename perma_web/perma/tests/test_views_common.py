@@ -39,13 +39,13 @@ class CommonViewsTestCase(PermaTestCase):
         # Does our contact form behave reasonably?
 
         # The form shouldn't be fine will all fields
-        self.post_form('contact', data={
+        self.submit_form('contact', data={
                             'email': 'example@example.com',
                             'message': 'Just some messager here'},
                        success_url=reverse('contact_thanks'))
 
         # We shouldn't care if we don't supply an email
-        self.post_form('contact', data={
+        self.submit_form('contact', data={
                             'email': '',
                             'message': 'Just some messager here'},
                        success_url=reverse('contact_thanks'))

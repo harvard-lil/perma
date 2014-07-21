@@ -8,8 +8,8 @@
 			<form method="post" action="">
 				{% csrf_token %}
 				 <fieldset>
-				<span class="text-error"><br/>{{ editor_reg_form.non_field_errors }}</span>
-				{% for field in editor_reg_form %}
+				<span class="text-error"><br/>{{ form.non_field_errors }}</span>
+				{% for field in form %}
 				  <label for="id_{{ field.name }}">{{ field.label }}</label><br/>
 				  {{ field }}
 				  {% if field.errors %}
