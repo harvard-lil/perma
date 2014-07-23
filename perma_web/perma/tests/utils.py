@@ -1,6 +1,5 @@
 import json
-from django.conf import settings
-from django.test import TestCase
+from django.test import TransactionTestCase
 from django.core.urlresolvers import reverse
 from django.test.utils import override_settings
 
@@ -8,7 +7,7 @@ from perma.models import Registrar, VestingOrg
 
 
 @override_settings(RUN_TASKS_ASYNC=False)
-class PermaTestCase(TestCase):
+class PermaTestCase(TransactionTestCase):
     fixtures = ['fixtures/groups.json','fixtures/users.json',
                 'fixtures/archive.json']
 
