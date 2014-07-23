@@ -1,8 +1,12 @@
+from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+from SimpleHTTPServer import SimpleHTTPRequestHandler
+from contextlib import contextmanager
 import json
+from multiprocessing import Process
+import multiprocessing
 import os
 import socket
-import subprocess
-from time import sleep
+import shutil
 import tempdir
 
 from django.core.files.storage import default_storage
@@ -19,6 +23,36 @@ from .utils import PermaTestCase
 
 TEST_ASSETS_DIR = os.path.join(settings.PROJECT_ROOT, "perma/tests/assets")
 
+# helpers
+@contextmanager
+def run_server_in_temp_folder(files=[], port=8999):
+    """
+        Set up a server with some known files to run captures against. Example:
+
+            with run_server_in_temp_folder(['test/assets/test.html','test/assets/test.pdf']):
+                assert(requests.get("http://localhost/test.html") == contents_of_file("test.html"))
+    """
+    # Run in temp dir.
+    # We have to (implicitly) cwd to this so SimpleHTTPRequestHandler serves the files for us.
+    old_cwd = os.getcwd()
+    with tempdir.in_tempdir():
+
+        # Copy over files to current temp dir, stripping paths.
+        for file in files:
+            shutil.copyfile(os.path.join(old_cwd, file), os.path.basename(file))
+
+        # start server
+        httpd = HTTPServer(('', port), SimpleHTTPRequestHandler)
+        httpd._BaseServer__is_shut_down = multiprocessing.Event()
+        server_thread = Process(target=httpd.serve_forever)
+        server_thread.start()
+
+        try:
+            # run body of `with` block
+            yield
+        finally:
+            # shut down server
+            server_thread.terminate()
 
 
 @override_settings(MIRRORING_ENABLED=True)
@@ -73,21 +107,20 @@ class TasksTestCase(PermaTestCase):
         def create_link(url):
             return self.get_response_and_asset(reverse('create_link'), {'url': url}, HTTP_USER_AGENT='user_agent')
 
-        # Start the server we'll try to archive.
-        server = subprocess.Popen(['python', '-m', 'SimpleHTTPServer', '8999'], cwd=TEST_ASSETS_DIR)
-        sleep(.5) # wait for server to start
+        # Make sure perma.dev resolves to localhost
         try:
+            assert socket.gethostbyname('perma.dev')=='127.0.0.1'
+        except (socket.gaierror, AssertionError):
+            self.fail("Please add `127.0.0.1 perma.dev` to your hosts file before running this test.")
 
-            # We have to use perma.dev rather than localhost for our test server, because
-            # PhantomJS won't proxy requests to localhost.
-            # See https://github.com/ariya/phantomjs/issues/11342
-            test_server_url = "http://perma.dev:8999"
+        # We have to use perma.dev rather than localhost for our test server, because
+        # PhantomJS won't proxy requests to localhost.
+        # See https://github.com/ariya/phantomjs/issues/11342
+        test_server_url = "http://perma.dev:8999"
 
-            # Make sure perma.dev resolves to localhost
-            try:
-                assert socket.gethostbyname('perma.dev')=='127.0.0.1'
-            except (socket.gaierror, AssertionError):
-                self.fail("Please add `127.0.0.1 perma.dev` to your hosts file before running this test.")
+        # Start test server to run captures against.
+        with run_server_in_temp_folder([TEST_ASSETS_DIR+'/test.html',
+                                        TEST_ASSETS_DIR+'/test.pdf']):
 
             # Confirm that local IP captures are banned by default, then unban for testing.
             response, asset = create_link(test_server_url)
@@ -103,8 +136,9 @@ class TasksTestCase(PermaTestCase):
                 self.assertTrue(
                     default_storage.exists(os.path.join(settings.MEDIA_ARCHIVES_ROOT, asset.base_storage_path+".zip")),
                     "Zip archive not created.")
-                test_link = asset.link # use this later
-                # TODO: check that warc capture works (maybe in test of landing page)
+                self.assertFalse(asset.link.dark_archived_robots_txt_blocked)
+                self.assertEqual(asset.link.submitted_title, "Test title.")
+                # TODO: check that warc capture works
 
                 # PDF capture.
                 response, asset = create_link(test_server_url + "/test.pdf")
@@ -124,8 +158,21 @@ class TasksTestCase(PermaTestCase):
                 response, asset = create_link("http://192.0.2.1/")
                 self.assertEqual(response.status_code, 400)
 
-        finally:
-            server.terminate()
+                ## dark_archive scenarios:
+
+                # noarchive
+                with open(os.path.join("noarchive.html"), 'w') as file:
+                    file.write('<html><head><meta name="rOboTs" content="foo nOaRcHiVe bar"></head></html>')
+                response, asset = create_link(test_server_url + "/noarchive.html")
+                self.assertTrue(asset.link.dark_archived_robots_txt_blocked)
+
+                # robots.txt
+                with open(os.path.join("robots.txt"), 'w') as file:
+                    file.write('User-agent: Perma\nDisallow: /')
+                response, asset = create_link(test_server_url + "/test.html")
+                self.assertTrue(asset.link.dark_archived_robots_txt_blocked)
+                os.remove("robots.txt")
+                # TODO: check that robots.txt appears in warc capture
 
 
     def test_upload_file(self):

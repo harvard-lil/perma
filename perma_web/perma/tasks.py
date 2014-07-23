@@ -158,16 +158,24 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
         print "Fetching robots.txt ..."
         parsed_url = urlparse.urlparse(target_url)
         robots_txt_location = parsed_url.scheme + '://' + parsed_url.netloc + '/robots.txt'
-        robots_txt_browser = get_browser(user_agent, proxy_address, fake_cert_authority.ca_file)
-        robots_txt_browser.get(robots_txt_location)
-        # We only want to respect robots.txt if Perma is specifically asked not crawl (we're not a crawler)
-        if 'Perma' in robots_txt_browser.page_source:
+        try:
+            robots_txt_response = requests.get(robots_txt_location,
+                                               headers={'User-Agent': user_agent},
+                                               proxies={parsed_url.scheme:'http://'+proxy_address},
+                                               cert=fake_cert_authority.ca_file)
+        except (requests.ConnectionError, requests.Timeout):
+            print "Couldn't reach robots.txt"
+            return
+        if not robots_txt_response.ok:
+            print "No robots.txt found"
+
+        # We only want to respect robots.txt if Perma is specifically asked not to archive (we're not a crawler)
+        if 'Perma' in robots_txt_response.content:
             # We found Perma specifically mentioned
             rp = robotparser.RobotFileParser()
-            rp.parse([line.strip() for line in robots_txt_browser.page_source])
+            rp.parse([line.strip() for line in robots_txt_response.content.split('\n')])
             if not rp.can_fetch('Perma', target_url):
                 link_query.update(dark_archived_robots_txt_blocked=True)
-        robots_txt_browser.quit()
         print "Robots.txt fetched."
     robots_txt_thread = threading.Thread(target=robots_txt_thread, name="robots")
     robots_txt_thread.start()
@@ -201,18 +209,19 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
     # (run this in a thread and give it long enough to find the tags, but then let other stuff proceed)
     print "Checking meta tags."
     def meta_thread():
-        meta_tag = None
-        try:
-            # first look for <meta name='perma'>
-            meta_tag = browser.find_element_by_xpath("//meta[@name='perma']")
-        except NoSuchElementException:
-            try:
-                # else look for <meta name='robots'>
-                meta_tag = browser.find_element_by_xpath("//meta[@name='robots']")
-            except NoSuchElementException:
-                pass
-        if meta_tag and 'noarchive' in meta_tag.get_attribute("content"):
+        # get all meta tags
+        meta_tags = browser.find_elements_by_tag_name('meta')
+        # first look for <meta name='perma'>
+        meta_tag = next((tag for tag in meta_tags if tag.get_attribute('name').lower()=='perma'), None)
+        # else look for <meta name='robots'>
+        if not meta_tag:
+            meta_tag = next((tag for tag in meta_tags if tag.get_attribute('name').lower() == 'robots'), None)
+        # if we found a relevant meta tag, check for noarchive
+        if meta_tag and 'noarchive' in meta_tag.get_attribute("content").lower():
             link_query.update(dark_archived_robots_txt_blocked=True)
+            print "Meta found, darchiving"
+        else:
+            print "Meta not found."
     meta_thread = threading.Thread(target=meta_thread)
     meta_thread.start()
     meta_thread.join(ELEMENT_DISCOVERY_TIMEOUT*2)
