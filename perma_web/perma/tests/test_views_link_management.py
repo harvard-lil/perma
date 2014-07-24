@@ -119,8 +119,8 @@ class TasksTestCase(PermaTestCase):
         test_server_url = "http://perma.dev:8999"
 
         # Start test server to run captures against.
-        with run_server_in_temp_folder([TEST_ASSETS_DIR+'/test.html',
-                                        TEST_ASSETS_DIR+'/test.pdf']):
+        with run_server_in_temp_folder([TEST_ASSETS_DIR+'target_capture_files/test.html',
+                                        TEST_ASSETS_DIR+'target_capture_files/test.pdf']):
 
             # Confirm that local IP captures are banned by default, then unban for testing.
             response, asset = create_link(test_server_url)
@@ -181,7 +181,7 @@ class TasksTestCase(PermaTestCase):
         """
         # helpers
         def upload_file(file_name):
-            with open(os.path.join(TEST_ASSETS_DIR, file_name)) as file:
+            with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', file_name)) as file:
                  return self.get_response_and_asset(
                     reverse('upload_link'),
                     {'title':'test','url':'http://test.com','file':file})
