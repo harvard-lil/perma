@@ -84,7 +84,7 @@ def create_link(request):
         except (requests.ConnectionError, requests.Timeout):
             return HttpResponse("Couldn't load URL.", status=400)
         try:
-            if int(target_url_headers.get('content-length', 0)) > 1024 * 1024:
+            if int(target_url_headers.get('content-length', 0)) > 1024 * 1024 * 100:
                 return HttpResponseBadRequest("Target page is too large (max size 1MB).")
         except ValueError:
             # Weird -- content-length header wasn't an integer. Carry on.
