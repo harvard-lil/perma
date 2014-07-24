@@ -30,8 +30,7 @@ gevent==1.0.1
 
 # PyWB-related stuff
 surt==0.2                   # our simple CDX server to canonicalize URL
-#pywb==0.5.0
-git+git://github.com/ikreymer/pywb.git@develop
+pywb==0.5.1
 # release 1.1 is missing a patch we need; next release we can switch to PyPI
 git+git://github.com/internetarchive/warcprox.git@5d09aea67d8f46221e5ee866ea1d1909ccb0715e
 
