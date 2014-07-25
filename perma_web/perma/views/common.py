@@ -15,7 +15,7 @@ from django.core.mail import send_mail
 from datetime import datetime
 import urllib2, os, logging
 from urlparse import urlparse
-from pywb.warc.archiveindexer import ArchiveIndexer
+from pywb.warc.cdxindexer import write_cdx_index
 import requests
 import surt
 import json
@@ -93,7 +93,8 @@ def cdx(request):
     if not default_storage.exists(cdx_path):
         # if we can't find the CDX file associated with this WARC, create it
         with default_storage.open(warc_path, 'rb') as warc_file, default_storage.open(cdx_path, 'wb') as cdx_file:
-            ArchiveIndexer(warc_file, warc_path, cdx_file, sort=True).make_index()
+            write_cdx_index(cdx_file, warc_file, warc_path, sort=True)
+
     cdx_lines = default_storage.open(cdx_path, 'rb')
 
     # find cdx lines for url
