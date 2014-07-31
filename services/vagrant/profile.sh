@@ -16,3 +16,7 @@ sudo start celery >> ~/.service_log 2>&1 &
 # prepare for Django work
 workon perma
 cd /vagrant/perma_web
+
+# fix locale so shell scripts can print UTF-8
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
