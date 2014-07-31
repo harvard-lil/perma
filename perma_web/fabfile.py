@@ -65,6 +65,16 @@ def test(apps="perma mirroring"):
     ]
     local("coverage run --source='.' --omit='%s' manage.py test %s" % (",".join(excluded_files), apps))
 
+def test_sauce(target_host="perma-stage.law.harvard.edu"):
+    os.environ.setdefault('SAUCE_USERNAME', getattr(settings, 'SAUCE_USERNAME', ''))
+    os.environ.setdefault('SAUCE_ACCESS_KEY', getattr(settings, 'SAUCE_ACCESS_KEY', ''))
+
+    local("HOST="+target_host+" " +
+          "py.test " +
+          "-n3 " +  # run 3 in parallel - max for free account
+          "--boxed " +  # don't let crashes in single test kill whole process
+          os.path.join(settings.PROJECT_ROOT, "../services/sauce/run_tests.py"))
+
 def logs(log_dir=os.path.join(settings.PROJECT_ROOT, '../services/logs/')):
     """ Tail all logs. """
     local("tail -f %s/*" % log_dir)

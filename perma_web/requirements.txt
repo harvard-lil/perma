@@ -37,3 +37,7 @@ git+git://github.com/internetarchive/warcprox.git@5d09aea67d8f46221e5ee866ea1d19
 # alternate storages
 django-storages==1.1.8
 boto==2.29.1
+
+# sauce integration testing
+sauceclient==0.1.0
+pytest-xdist==1.10
