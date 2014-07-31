@@ -119,8 +119,8 @@ class TasksTestCase(PermaTestCase):
         test_server_url = "http://perma.dev:8999"
 
         # Start test server to run captures against.
-        with run_server_in_temp_folder([TEST_ASSETS_DIR+'target_capture_files/test.html',
-                                        TEST_ASSETS_DIR+'target_capture_files/test.pdf']):
+        with run_server_in_temp_folder([os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.html'),
+                                        os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.pdf')]):
 
             # Confirm that local IP captures are banned by default, then unban for testing.
             response, asset = create_link(test_server_url)
