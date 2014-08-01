@@ -363,5 +363,5 @@ class ContactForm(forms.Form):
     and a message
     """
 
-    email = forms.EmailField(required=False)
+    email = forms.EmailField()
     message = forms.CharField(widget=forms.Textarea)
