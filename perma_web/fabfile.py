@@ -5,6 +5,7 @@ from datetime import date
 import tempfile
 from django.utils.crypto import get_random_string
 from fabric.api import *
+import subprocess
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'perma.settings')
 from django.conf import settings
@@ -65,15 +66,27 @@ def test(apps="perma mirroring"):
     ]
     local("coverage run --source='.' --omit='%s' manage.py test %s" % (",".join(excluded_files), apps))
 
-def test_sauce(target_host="perma-stage.law.harvard.edu"):
-    os.environ.setdefault('SAUCE_USERNAME', getattr(settings, 'SAUCE_USERNAME', ''))
-    os.environ.setdefault('SAUCE_ACCESS_KEY', getattr(settings, 'SAUCE_ACCESS_KEY', ''))
+def test_sauce(target_host="127.0.0.1:8000"):
+    """
+        Run Sauce browser tests. If target_host is localhost, first run sauce_tunnel.
+    """
+    os.environ.setdefault('SAUCE_USERNAME', settings.SAUCE_USERNAME)
+    os.environ.setdefault('SAUCE_ACCESS_KEY', settings.SAUCE_ACCESS_KEY)
 
     local("HOST="+target_host+" " +
           "py.test " +
           "-n3 " +  # run 3 in parallel - max for free account
           "--boxed " +  # don't let crashes in single test kill whole process
           os.path.join(settings.PROJECT_ROOT, "../services/sauce/run_tests.py"))
+
+def sauce_tunnel():
+    """
+        Set up Sauce tunnel before running test_sauce targeted at localhost.
+    """
+    if subprocess.call(['which','sc']) == 1: # error return code -- program not found
+        sys.exit("Please check that the `sc` program is installed and in your path. To install: https://docs.saucelabs.com/reference/sauce-connect/")
+    local("sc -u %s -k %s" % (settings.SAUCE_USERNAME, settings.SAUCE_ACCESS_KEY))
+
 
 def logs(log_dir=os.path.join(settings.PROJECT_ROOT, '../services/logs/')):
     """ Tail all logs. """
