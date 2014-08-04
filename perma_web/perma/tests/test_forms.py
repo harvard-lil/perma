@@ -8,6 +8,6 @@ class FormsTestCase(TestCase):
         Cruedely test that we're requiring a message in our
         contact form.
         """
-        form_data = {'email': '', 'message': 'some message'}
+        form_data = {'email': 'test@example.com', 'message': 'some message'}
         form = ContactForm(data=form_data)
         self.assertEqual(form.is_valid(), True)
