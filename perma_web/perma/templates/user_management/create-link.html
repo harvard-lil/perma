@@ -5,12 +5,20 @@
 {% block manage-created-links %}<li class="active"><a href="{% url 'created_links' %}">Created links</a></li>{% endblock %}
 
 {% block content %}
+<div class="col-sm-6">
+    <h3>Create a Perma link</h3>
+    <div class="home-form-elements dashboard-create">
+      {% include 'add_link_form.html' %}
+    </div><!--/.home-form-->
+</div>
 
-<h3>Create a Perma link</h3>
-<div class="home-form-elements dashboard-create">
-  {% include 'add_link_form.html' %}
-</div><!--/.home-form-->
-           
+<div class="col-sm-6">
+    <h2>Archive created</h2>
+    <p>some details here</p>
+    <h2>Archive vested</h2>
+    <p>some details here</p>
+</div>
+
 <!-- Modals -->
 <!-- Upload file modal -->
 <div  class="modal" id="linky-upload" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -19,7 +27,7 @@
     		<div class="modal-header">
         		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
 				<div class="logo-condensed-header">
-					<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo.png"></a>
+					<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo2.png"></a>
 				</div>
     		</div>
     
@@ -37,6 +45,7 @@
 		</div>	
 	</div>
 </div><!--/.linky-upload-->
+
 
 <!-- Upload complete modal -->
 <div id="linky-upload-confirm" class="modal hide fade center">
@@ -85,27 +94,6 @@
 {% block templates %}
 
 {% verbatim %}
-<script id="list-template" type="text/x-handlebars-template">
-	<div class="row">
-		<li>
-			<div class="span8">
-				<div class="favicon-preview">{{#if favicon_url}}<!--<img src="http://{{favicon_url}}">-->{{/if}}</div>
-				<div class="recent-linky-summary">
-					<h4><a href="http://{{url}}" target="_blank">{{#truncate title 50}}{{/truncate}}</a></h4>
-					<small>{{#truncate original 70}}{{/truncate}}</small>
-					<br>
-					<p><a href="http://{{url}}" target="_blank">{{url}}</a></p>
-				</div>
-			</div>
-			<div class="span4">
-				<div class="copy-button-div"><span class="copy-confirm" style="display:none"><i class="icon-check text-success"></i></span><button class="btn copy-button" data-clipboard-text="{{url}}" title="Copy Perma Link">Copy Perma Link &infin;</button></div>
-			</div>
-		</li>
-	</div>
-</script>
-{% endverbatim %}
-
-{% verbatim %}
 <script id="upload-confirm-template" type="text/x-handlebars-template">
 	  <h4 class="text-warning">Upload successful!</h4>
 	  <p><a href="{{url}}">{{url}}</a></p>
@@ -129,28 +117,17 @@
 {% verbatim %}
 <script id="success-template" type="text/x-handlebars-template">
   <li id="link-short-slug" class="library-link-item" style="display: none;">
-
+    <p id="upload-option">Perma capture not right?<br/> <a href="" onclick="return upload_form();">Upload your own</a></p>
 	{{#if message_pdf }}
 		<div class="library-thumbnail">
-			<img src="{{static_prefix}}img/pdf-preview.jpg" />
+            <a href="{{url}}" target="_blank"><img src="{{static_prefix}}img/pdf-preview.jpg" /></a>
 		</div>
 	{{else}}
 		<div class="thumbnail-placeholder"></div>
 	{{/if}}
 
     <div class="link-results">
-      
-      <p class="library-link-title">{{title}}</p>
-      <p class="library-link-url"><a href="{{original}}">{{original}}</a></p>
-      <a href="{{url}}" class="btn-padding btn btn-success" target="_blank">{{url}}</a><br/>
       <span class="copy-confirm" style="display:none"><i class="icon-check text-success"></i></span><a class="copy-button" data-clipboard-text="{{url}}" title="Copy Perma Link">Copy Perma Link&infin;</a>
-      <!--
-      <form class="form-inline" id="emailPerma">
-        <input id="email_request" type="text" placeholder="user@example.com">
-        <button type="submit" class="btn">Email this Perma</button>
-      </form>
-      -->
-      <p id="upload-option">Perma capture not right?<br/> <a href="" onclick="return upload_form();">Upload your own</a></p>
     </div> 
   </li>
 </script>
@@ -160,6 +137,8 @@
 <!-- Bookmarklet -->
 
 <script>
+
+// Catches the incoming bookmarklet archive request
 
 // Get parameter by name
 // from https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript

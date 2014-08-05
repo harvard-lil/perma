@@ -55,8 +55,6 @@ $(document).ready(function() {
 		return false;
 	});
 
-  drawLinks();
-
   $('#linky_upload_form').submit(function(){
 	  $(this).ajaxSubmit({success: uploadIt, error: uploadNot});
 	    return false;
@@ -83,18 +81,6 @@ function uploadIt(data) {
     //var linkyUrl = mirror_server_host  + '/' + data.linky_hash;
     //$('#linky_upload_success').text('Your linky has been created at');
     //$('#uploadedLinkyUrl a').attr('href', linkyUrl).text(linkyUrl);
-
-
-	newLinky.url = linkyUrl;
-    newLinky.original = $('#url').val();
-    newLinky.title = $('#title').val();
-    newLinky.favicon_url = data.favicon_url;
-    addToStorage(newLinky);
-    var source = $("#list-template").html();
-    var template = Handlebars.compile(source);
-    $('#stored-ul').prepend(template(newLinky));
-    $('#linky-list').fadeIn();
-    drawLinks();
   }
   else {
     return xhr.abort();
@@ -134,13 +120,7 @@ function linkIt(){
     var template = Handlebars.compile(source);
     $('#links').html(template(newLinky));
 
-    var source = $("#list-template").html();
-    var template = Handlebars.compile(source);
-    $('#stored-ul').prepend(template(newLinky));
-    $('#linky-list').fadeIn();
 
-    addToStorage(newLinky);
-    drawLinks();
 
     if (newLinky.message_pdf = data.message_pdf) {
         $('#spinner').slideUp();
@@ -160,17 +140,6 @@ function linkIt(){
     if(!swfobject.hasFlashPlayerVersion("1")) {
       $('.copy-button').hide();
     }
-      
-    $('#emailPerma').on('submit', function(event){
-      var request = $.ajax({
-        url: mirror_server_host + "/service/email-confirm/",
-        type: "POST",
-        data: {email_address: $('#email_request').val(), link_url: linkyUrl, 'csrfmiddlewaretoken': csrf_token},
-        dataType: "json"
-      });
-    
-      return false;
-    });
   });
   request.fail(function(jqXHR) {
     var source = $("#error-template").html();
@@ -184,80 +153,7 @@ function linkIt(){
     $('#spinner').slideUp();
     $('#link-short-slug').slideDown();
   });
-
 }
-
-function drawLinks() {
-  if(('localStorage' in window) && window['localStorage'] !== null){
-    storedLinkies = JSON.parse(localStorage.getItem('linky-list'));
-  }
-  if(storedLinkies) {
-    $('#home-description').hide();
-    allLinkies = storedLinkies;
-    storedLinkies.reverse();
-    $('#local-ul').html('');
-    $.each( storedLinkies, function( key, value ) {
-    	//workaround, why isn't Handlebars Helper working?
-    	value.url = value.url.replace(/.*?:\/\//g, "");
-    	value.original = value.original.replace(/.*?:\/\//g, "");
-    	if (value.favicon_url) {
-        	value.favicon_url = value.favicon_url.replace(/.*?:\/\//g, "");
-    	}
-    	//
-      var source = $("#list-template").html();
-      var template = Handlebars.compile(source);
-      $('#local-ul').append(template(value));
-
-      var clip = new ZeroClipboard( $(".copy-button"), {
-        moviePath: mirror_server_host + "/static/js/ZeroClipboard/ZeroClipboard.swf"
-      });
-
-      clip.on( 'complete', function(client, args) {
-        $(this).prev('.copy-confirm').fadeIn(100).fadeOut(3000);
-      });
-    });
-    $('#local-list, #linky-list').fadeIn();
-  }
-  
-  if(!swfobject.hasFlashPlayerVersion("1")) {
-      $('.copy-button').hide();
-  }
-}
-
-function addToStorage(new_link) {
-  if(JSON.parse(localStorage.getItem('linky-list'))){
-    all_links = JSON.parse(localStorage.getItem('linky-list')) || [];
-    if(all_links.length >= 5) {
-      all_links.splice(0,1);
-    }
-  }
-  all_links.push(new_link);
-  if(('localStorage' in window) && window['localStorage'] !== null){
-    localStorage.setItem( 'linky-list', JSON.stringify(all_links));
-  }
-}
-
-Handlebars.registerHelper ('truncate', function (str, len) {
-        if (str.length > len) {
-            var new_str = str.substr (0, len+1);
-
-            while (new_str.length) {
-                var ch = new_str.substr ( -1 );
-                new_str = new_str.substr ( 0, -1 );
-
-                if (ch == ' ') {
-                    break;
-                }
-            }
-
-            if ( new_str == '' ) {
-                new_str = str.substr ( 0, len );
-            }
-
-            return new Handlebars.SafeString ( new_str +'...' );
-        }
-        return str;
-    });
 
 function upload_form() {
     $('#linky-confirm').modal('hide');
