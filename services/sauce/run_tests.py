@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+import StringIO
+import imghdr
 import new
 import os
 import unittest
@@ -7,15 +9,13 @@ import requests
 from sauceclient import SauceClient
 import sys
 from selenium import webdriver
+from selenium.common.exceptions import ElementNotVisibleException
+import time
 
 
 # get settings
-import time
-from selenium.common.exceptions import ElementNotVisibleException
-
-
-SCRIPT_DIR = os.path.dirname(__file__)
-HOST = os.environ.get('HOST', 'http://perma-stage.law.harvard.edu')
+SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
+HOST = os.environ.get('HOST', 'http://127.0.0.1:8000')
 USERNAME = os.environ.get('SAUCE_USERNAME')
 ACCESS_KEY = os.environ.get('SAUCE_ACCESS_KEY')
 assert USERNAME and ACCESS_KEY, "Please make sure that SAUCE_USERNAME and SAUCE_ACCESS_KEY are set."
@@ -37,12 +37,12 @@ browsers = [
     "version": "11"},
 
     {"platform": "Windows 7",
-     "browserName": "firefox",
-     "version": "30"},
+    "browserName": "firefox",
+    "version": "30"},
 
     {"platform": "Windows XP",
-     "browserName": "internet explorer",
-     "version": "8"},
+    "browserName": "internet explorer",
+    "version": "8"},
 
     {"platform": "OS X 10.9",
     "browserName": "iPhone",
@@ -97,6 +97,9 @@ class PermaTest(unittest.TestCase):
         def get_id(id):
             return self.driver.find_element_by_id(id)
 
+        def get_element_with_text(text, element_type='*'):
+            return get_xpath("//%s[contains(text(),'%s')]" % (element_type, text))
+
         def info(*args):
             print("%s %s %s:" % (
                 self.desired_capabilities['platform'],
@@ -121,7 +124,7 @@ class PermaTest(unittest.TestCase):
 
         info("Loading docs.")
         get_xpath("//a[@href='/docs']").click()
-        assert "Overview" in get_xpath('//body').text
+        assert get_element_with_text('Overview', 'h2').is_displayed() # wait for load
 
         info("Logging in.")
         click_link("Log in")
@@ -129,8 +132,7 @@ class PermaTest(unittest.TestCase):
         get_id('id_username').send_keys('test_registrar_member@example.com')
         get_id('id_password').send_keys('pass')
         get_xpath("//button[@class='btn-success login']").click()
-        body_text = repeat_while_exception(lambda: get_xpath('//body').text)
-        assert "Create a Perma link" in body_text
+        assert get_element_with_text('Create a Perma link', 'h3').is_displayed() # wait for page load
 
         info("Creating archive.")
         url_input = get_id('rawUrl') # type url
@@ -139,19 +141,20 @@ class PermaTest(unittest.TestCase):
         get_id('addlink').click() # submit
         thumbnail = get_xpath("//div[@class='library-thumbnail']/img")
         thumbnail_data = requests.get(thumbnail.get_attribute('src'))
-        with open('assets/example.com_thumbnail.png') as compare_file:
-            compare_data = compare_file.read()
-            assert thumbnail_data.content == compare_data
+        thumbnail_fh = StringIO.StringIO(thumbnail_data.content)
+        assert imghdr.what(thumbnail_fh) == 'png'
+        # TODO: We could check the size of the generated png or the contents,
+        # but note that the contents change between PhantomJS versions and OSes, so we'd need a fuzzy match
 
         info("Viewing playback.")
         archive_url = get_xpath("//a[@class='btn-padding btn btn-success']").get_attribute('href') # get url from green button
         self.driver.get(archive_url)
-        assert "Live page view" in get_xpath('//body').text
+        assert get_element_with_text('Live page view', 'a').is_displayed()
         archive_view_link = get_id('warc_cap_container_complete')
-        repeat_while_exception(lambda: archive_view_link.click(), ElementNotVisibleException)
+        repeat_while_exception(lambda: archive_view_link.click(), ElementNotVisibleException) # wait for archiving to finish
         warc_url = self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src')
         self.driver.get(warc_url)
-        assert "This domain is established to be used for illustrative examples" in get_xpath('//body').text
+        assert get_element_with_text('This domain is established to be used for illustrative examples', 'p').is_displayed()
 
     def tearDown(self):
         print("Link to your job: https://saucelabs.com/jobs/%s" % self.driver.session_id)

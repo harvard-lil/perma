@@ -67,7 +67,7 @@ STATICFILES_FINDERS = (         # how to look for static files
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
-# Django Pipline config
+# Django Pipeline config
 STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
 
 # media storage -- default_storage config
@@ -89,6 +89,16 @@ PIPELINE_JS = {
         'output_filename': 'js/create-bundle.js',
     }
 }
+
+# override to change .js mimetype from application/javascript for ie8 and below
+# see http://django-pipeline.readthedocs.org/en/latest/configuration.html#pipeline-mimetypes
+PIPELINE_MIMETYPES = (
+  (b'text/coffeescript', '.coffee'),
+  (b'text/less', '.less'),
+  (b'text/javascript', '.js'),
+  (b'text/x-sass', '.sass'),
+  (b'text/x-scss', '.scss')
+)
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
