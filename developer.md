@@ -114,6 +114,24 @@ You should always run the tests before committing code.
 
 The `fab test` command also generates handy coverage information. You can access it with the `coverage` command.
 
+#### Sauce Browser Tests
+
+We also use Sauce Labs to do functional testing of the site in common browsers before deploying. If you have a Sauce account,
+you can set SAUCE_USERNAME and SAUCE_ACCESS_KEY in settings.py, and then run our Sauce tests with
+ 
+    $ fab test_sauce
+    
+By default `fab test_sauce` is pointed at 127.0.0.1:8000, which Sauce can't reach from outside, so you'll have to set
+up a tunnel first by running
+
+    $ fab sauce_tunnel
+    
+in the background or in another terminal window.
+
+The Sauce tests live in services/sauce/run_tests.py. If you are developing new tests in that file, it may be more
+convenient to change to that directory and run `python run_tests.py`, rather than the full-blown parallel testing
+kicked off by `fab test_sauce`.
+
 ### Debugging email-related issues
 
 If you're working on an email related task, the contents of emails should be dumped to the standard out courtesy of EMAIL_BACKEND in settings_dev.py.
