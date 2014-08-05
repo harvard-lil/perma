@@ -5,7 +5,12 @@
             <button class="btn btn-large btn-info" id="addlink" type="submit"><div class="infinity"><img class="button-img" src="{{ STATIC_URL }}img/infinity-white.png" alt="Loading..." /></div></button>
         </div><!--/.add-link-form-->
         <div class="add-links-list">
-            <div id="spinner" class="spin-loader" style="display: none;"></div>
+            <div id="not-right-container"></div>
+
+            <div id="preview-container" class="hide">
+                <div id="spinner" class="spin-loader"></div>
+                <p class="archive-status">Generating archive</p>
+            </div>
             <ul id="links"></ul>
         </div><!--/.add-links-list-->
     </form><!--/#linker-->

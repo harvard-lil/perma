@@ -33,13 +33,17 @@ function check_status() {
 	request.done(function(data) {	
 		// if no status is pending
 		if (data.image_capture !== 'pending') {
-	        $('#spinner').slideUp();
+	        $('#preview-container').slideUp();
 	        $('.thumbnail-placeholder').append('<div class="library-thumbnail"><img src="' + 
 	            MEDIA_URL + data.path + '/' + data.image_capture + '"></div>');
             $.each(refreshIntervalIds, function(ndx, id) {
 			    clearInterval(id);
 			});
-            $('.library-link-title').text(data.submitted_title);
+
+			var source = $("#not-right-template").html();
+            var template = Handlebars.compile(source);
+            $('#not-right-container').html(template({}));
+
 		}	
 	});
 }
@@ -91,7 +95,7 @@ function linkIt(){
   $('#upload-option').hide();
   $('#links').empty();
   $('.add-links-list').slideDown();
-  $('#spinner').slideDown();
+  $('#preview-container').removeClass('hide').hide().slideDown();
 
   rawUrl = $("#rawUrl").val();
   
@@ -120,7 +124,11 @@ function linkIt(){
     var template = Handlebars.compile(source);
     $('#links').html(template(newLinky));
 
-
+    var source = $("#success-steps-template").html();
+    var template = Handlebars.compile(source);
+    $('#steps-container').html(template({url: newLinky.url, userguide_url: userguide_url,
+        vesting_privs: vesting_privs}));
+    $('#steps-container').removeClass('hide').hide().fadeIn(200);
 
     if (newLinky.message_pdf = data.message_pdf) {
         $('#spinner').slideUp();
