@@ -467,7 +467,8 @@ div.home-form-elements {
 }
 
     div.home-form-elements #linker input {
-        max-width: 434px;
+        /*max-width: 434px;*/
+        width:90%;
     } 
 
     div.home-form-elements .add-links-list {
@@ -684,10 +685,7 @@ div#dashboard-container div#library {}
         }
 		
 		.library-thumbnail {
-			 width:368px;
-       		 height:273px;
-       		 overflow:hidden;
-       		 margin:0 auto;
+		
        		 border:1px solid #eee;
        		 border-radius: 4px;
        		 -moz-border-radius: 4px;
@@ -712,8 +710,7 @@ div#dashboard-container div#library {}
         p.library-link-title, #upload-option {
             color: #333;
             font-size: 14px;
-            margin: 20px 0 0 0;
-            width:369px;
+            margin: 0 0 10px 0;
         }
 
         p.library-link-url {
@@ -779,6 +776,49 @@ div#dashboard-container div#batch-convert {
 
     div#dashboard-container div#batch-convert #batch-confirm-count { font-weight: bold; }
 
+
+
+/* Dashboard - create */
+
+.create-container{
+    margin-bottom: 50px;
+}
+
+
+#preview-container {
+    min-height: 350px;
+    width: 100%;
+    border: 1px #bbb solid;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+}
+
+#steps-container {
+    min-height: 400px;
+}
+
+#steps-container .message-large {
+    font-size: 40px;
+    color: #ff4100;
+    font-weight: 400;
+    margin-bottom: 0;
+}
+
+#steps-container p {
+    font-size: 16px;
+}
+
+#steps-container a.perma-url {
+    font-size: 26px;
+}
+
+#steps-container .message-url {
+    margin: 0 0 80px 0;
+}
+
+/* / Dashboard - create */
+
 /* Add link widget */
 
 button#addlink {
@@ -819,10 +859,6 @@ div.add-links-list {
     border-radius: 5px;
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
-    display: none;
-    margin: 10px 0;
-    padding: 20px 0;
-    float:left;
 }
 
 /* iframes */
@@ -1931,15 +1967,14 @@ a.tab-styling, .tab-styling {
 }
 
 .spinner {
-	left:-16px;
-	top:60px;
-	cursor:auto;
+    width: 50%;
+    margin: 160px auto;
 }
-
-.spin-loader {
-	position:absolute;
-	top:140px;
-	left:200px;
+.spinner-message {
+    text-align: center;
+    margin-top: 205px;
+    font-size: 14px;
+    color: #ff4100;
 }
 
 a.btn.vest, a.btn.dashboard {

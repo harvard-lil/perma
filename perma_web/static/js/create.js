@@ -33,16 +33,21 @@ function check_status() {
 	request.done(function(data) {	
 		// if no status is pending
 		if (data.image_capture !== 'pending') {
-	        $('#preview-container').slideUp();
+
+		    // Hide the loading spinner and replace it with the thumbnail
+	        $('#preview-container').hide();
 	        $('.thumbnail-placeholder').append('<div class="library-thumbnail"><img src="' + 
-	            MEDIA_URL + data.path + '/' + data.image_capture + '"></div>');
+	            MEDIA_URL + data.path + '/' + data.image_capture + '" class="img-responsive"></div>');
+	                var source = $("#not-right-template").html();
+
+            // Display our "roll your own message"
+            var template = Handlebars.compile(source);
+            $('#not-right-container').html(template({}));
+
+            // Clear out our pending jobs
             $.each(refreshIntervalIds, function(ndx, id) {
 			    clearInterval(id);
 			});
-
-			var source = $("#not-right-template").html();
-            var template = Handlebars.compile(source);
-            $('#not-right-container').html(template({}));
 
 		}	
 	});
@@ -80,7 +85,6 @@ function uploadIt(data) {
     $('#spinner').slideUp();
     $('#link-short-slug').slideDown();
 
-
     //$('#linky-upload-confirm').modal({show: true});
     //var linkyUrl = mirror_server_host  + '/' + data.linky_hash;
     //$('#linky_upload_success').text('Your linky has been created at');
@@ -94,8 +98,6 @@ function uploadIt(data) {
 function linkIt(){
   $('#upload-option').hide();
   $('#links').empty();
-  $('.add-links-list').slideDown();
-  $('#preview-container').removeClass('hide').hide().slideDown();
 
   rawUrl = $("#rawUrl").val();
   
@@ -120,6 +122,7 @@ function linkIt(){
     $('#url').val(rawUrl);
     $('#title').val(data.linky_title);
     
+
     var source = $("#success-template").html();
     var template = Handlebars.compile(source);
     $('#links').html(template(newLinky));
@@ -128,7 +131,8 @@ function linkIt(){
     var template = Handlebars.compile(source);
     $('#steps-container').html(template({url: newLinky.url, userguide_url: userguide_url,
         vesting_privs: vesting_privs}));
-    $('#steps-container').removeClass('hide').hide().fadeIn(200);
+
+    $('.preview-row').removeClass('hide').hide().slideDown();
 
     if (newLinky.message_pdf = data.message_pdf) {
         $('#spinner').slideUp();
