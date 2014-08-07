@@ -1531,6 +1531,7 @@ td.registrar-name-cell {
 
 td.registrar-website-cell {
   min-width:60%;
+  word-break:break-all;
 }
 
 tr td.linky-link, a.original-link {

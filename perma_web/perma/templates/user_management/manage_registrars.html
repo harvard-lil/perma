@@ -38,8 +38,7 @@
           <tr>
             <!--<th><input type="checkbox"></th>-->
             <th>Name<a href="?sort=name{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-name{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>
-            <th>Email<a href="?sort=email{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-email{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>
-            <th>Website<a href="?sort=website{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-website{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>
+            <th>Contact<a href="?sort=email{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-email{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>
             <th>Admin</th>
           </tr>
         </thead>
@@ -48,8 +47,7 @@
             <tr>
               <!--<td><input type="checkbox"></td>-->
               <td class="registrar-name-cell">{{ registrar.name }}</td>
-              <td>{{ registrar.email }}</td>
-              <td class="registrar-website-cell"><a href="{{ registrar.website }}" target="_blank">{{ registrar.website }}</a></td>
+              <td class="registrar-website-cell">{{ registrar.email }}<br><a href="{{ registrar.website }}" target="_blank">{{ registrar.website }}</a></td>
               <td><a href="{% url 'user_management_manage_single_registrar' registrar.id %}">edit</a></td>
           {% endfor %}
         </tbody>
