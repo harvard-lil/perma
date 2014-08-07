@@ -462,21 +462,20 @@ ul#links {
 	width:408px;
 	text-align:center;
 }
-div.home-form-elements {
+
+/*div.home-form-elements {
     margin: 10px auto 0 auto;
+}*/
+
+div #linker input {
+    /*max-width: 434px;*/
+    width:80%;
 }
 
-    div.home-form-elements #linker input {
-        max-width: 434px;
-    } 
-
-    div.home-form-elements .add-links-list {
-      
-       /*/ box-shadow: 2px 2px 3px #16699e;
-        -moz-box-shadow: 2px 2px 3px #16699e;
-        -webkit-box-shadow: 2px 2px 3px #16699e;/*/
-      
-    }
+div #linker button {
+    width:10%;
+    min-width: 70px;
+}
 
 section#home-description {
     background-color: #fff;
@@ -652,12 +651,6 @@ div.dashboard-add-link {
         width: 310px;
     }
 
-    div.dashboard-add-link div.add-links-list {
-        padding: 0px;
-    }
-
-        div.dashboard-add-link div.add-links-list .url-extension { width: 100px !important; }
-
 div#dashboard-container div#library {}
 
     div#dashboard-container div#library input#library-search {
@@ -684,10 +677,7 @@ div#dashboard-container div#library {}
         }
 		
 		.library-thumbnail {
-			 width:368px;
-       		 height:273px;
-       		 overflow:hidden;
-       		 margin:0 auto;
+
        		 border:1px solid #eee;
        		 border-radius: 4px;
        		 -moz-border-radius: 4px;
@@ -702,22 +692,15 @@ div#dashboard-container div#library {}
             padding: 0px;
             width:100%;
         }
-        
+
         div.user-delete-thumbnail {
             margin-bottom:15px;
-        }
-        
-        div.thumbnail-placeholder {
-            padding: 0px;
-            width:100%;
-            min-height:25px;
         }
 
         p.library-link-title, #upload-option {
             color: #333;
             font-size: 14px;
-            margin: 20px 0 0 0;
-            width:369px;
+            margin: 0 0 10px 0;
         }
 
         p.library-link-url {
@@ -783,6 +766,53 @@ div#dashboard-container div#batch-convert {
 
     div#dashboard-container div#batch-convert #batch-confirm-count { font-weight: bold; }
 
+
+
+/* Dashboard - create */
+
+.create-container{
+    margin-bottom: 50px;
+}
+
+
+.thumbnail-placeholder {
+    min-height: 350px;
+    width: 100%;
+    border: 1px #bbb solid;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+}
+
+#steps-container {
+    min-height: 400px;
+}
+
+#steps-container .message-large {
+    font-size: 40px;
+    color: #ff4100;
+    font-weight: 400;
+    margin-bottom: 0;
+}
+
+#steps-container p {
+    font-size: 16px;
+}
+
+#steps-container a.perma-url {
+    font-size: 26px;
+}
+
+#steps-container .message-url {
+    margin: 0 0 49px 0;
+}
+
+#steps-container .text-warning {
+    margin: 40px 0;
+}
+
+/* / Dashboard - create */
+
 /* Add link widget */
 
 button#addlink {
@@ -817,17 +847,6 @@ input.url-extension {
 }
 
 /* Add link widget */
-
-div.add-links-list {
-    background-color: #fff;
-    border-radius: 5px;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    display: none;
-    margin: 10px 0;
-    padding: 20px 0;
-    float:left;
-}
 
 /* iframes */
 
@@ -1233,10 +1252,6 @@ a.grey {
   color:#006dcc;
 }
 
-.add-link-form {
-	text-align:none;
-}
-
 ul#linky-ul li {
     margin-left:5px;
     margin-right:5px;
@@ -1542,10 +1557,6 @@ tr td.linky-link, a.original-link {
 
 input#file {
 	border:0px;
-}
-
-.add-links-list h4 {
-
 }
 
 .delete-confirm {
@@ -1936,15 +1947,14 @@ a.tab-styling, .tab-styling {
 }
 
 .spinner {
-	left:-16px;
-	top:10px;
-	cursor:auto;
+    width: 50%;
+    margin: 160px auto;
 }
-
-.spin-loader {
-	position:absolute;
-	top:140px;
-	left:200px;
+.spinner-message {
+    text-align: center;
+    margin-top: 205px;
+    font-size: 14px;
+    color: #ff4100;
 }
 
 a.btn.vest, a.btn.dashboard, a.btn.user-delete {
@@ -2241,9 +2251,6 @@ p.orange {
 		margin:10px 20px 20px 10px;
 		width:100%
 	}
-	.add-link-form {
-		text-align: center;
-	}
 	.navbar-collapse {
 		width:100%;
 		margin:0 0 10px;
@@ -2265,16 +2272,7 @@ ul.vesting li {
 	float:left;
 	margin:0 2px 5px 2px;
 }
-	div.add-links-list {
-		background-color: #fff;
-		border-radius: 5px;
-		-moz-border-radius: 5px;
-		-webkit-border-radius: 5px;
-		display: none;
-		margin: 10px 0;
-		padding: 20px 0;
-		float: none;
-	}
+
 	.meta-data, .meta-data a {
 	overflow: hidden;
 	font-family: 'Roboto Slab', sans-serif;
