@@ -254,10 +254,7 @@ def contact(request):
             if 'HTTP_USER_AGENT' in request.META:
                 user_agent = request.META.get('HTTP_USER_AGENT')
 
-            from_address = 'Not supplied'
-
-            if form.cleaned_data['email']:
-                from_address = form.cleaned_data['email']
+            from_address = form.cleaned_data['email']
 
             content = '''
             This is a message from the Perma.cc contact form, http://perma.cc/contact
@@ -277,7 +274,7 @@ def contact(request):
             send_mail(
                 "New message from Perma contact form",
                 content,
-                settings.DEFAULT_FROM_EMAIL,
+                from_address,
                 [settings.DEFAULT_FROM_EMAIL], fail_silently=False
             )
 

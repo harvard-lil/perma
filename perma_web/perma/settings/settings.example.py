@@ -51,3 +51,8 @@ DEVELOPER_EMAIL = DEFAULT_FROM_EMAIL
 
 # The host we want to display (used when DEBUG=False)
 HOST = 'perma.cc'
+
+
+# Sauce Labs credentials
+SAUCE_USERNAME = ''
+SAUCE_ACCESS_KEY = ''

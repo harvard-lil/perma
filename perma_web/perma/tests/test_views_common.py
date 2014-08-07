@@ -38,17 +38,17 @@ class CommonViewsTestCase(PermaTestCase):
     def test_contact(self):
         # Does our contact form behave reasonably?
 
-        # The form shouldn't be fine will all fields
+        # The form should be fine will all fields
         self.submit_form('contact', data={
                             'email': 'example@example.com',
-                            'message': 'Just some messager here'},
+                            'message': 'Just some message here'},
                        success_url=reverse('contact_thanks'))
 
-        # We shouldn't care if we don't supply an email
-        self.submit_form('contact', data={
+        # We should fail if we don't get an email
+        response = self.client.post(reverse('contact'), data={
                             'email': '',
-                            'message': 'Just some messager here'},
-                       success_url=reverse('contact_thanks'))
+                            'message': 'some message here'})
+        self.assertEqual(response.request['PATH_INFO'], reverse('contact'))
 
         # We need at least a message. We should get the contact page back
         # instead of the thanks page.
