@@ -7,37 +7,20 @@
 {% block content %}
 <div class="row">
     <div class="col-sm-12 create-container">
-        <h3>Create a Perma link</h3>
-        <div class="home-form-elements dashboard-create">
-
-            <div class="add-link-container">
-                <div class="add-link-form">
-                    <form class="form-inline" id="linker">
-                        <input id="rawUrl" class="text-input select-on-click" type="text" value="http://" data-placement="bottom" data-content="To save a link, enter its URL and click the <strong>Archive</strong> button. To see the links you've saved, click <strong>Library</strong> in the menu to the left." data-original-title="Start building your library" data-html="true" data-trigger="manual" />
-                        <button class="btn btn-large btn-info" id="addlink" type="submit"><div class="infinity"><img class="button-img" src="{{ STATIC_URL }}img/infinity-white.png" alt="Loading..." /></div></button>
-                    </div><!--/.add-link-form-->
-                </form><!--/#linker-->
-            </div><!--/.add-link-container-->
-
-
-          {% include 'add_link_form.html' %}
+        <h3>Create a Perma archive</h3>
+        <div class="home-form-elements">
+            <form class="form-inline" id="linker">
+                <input id="rawUrl" class="text-input select-on-click" type="text" value="http://" data-placement="bottom" data-content="To save a link, enter its URL and click the <strong>Archive</strong> button. To see the links you've saved, click <strong>Library</strong> in the menu to the left." data-original-title="Start building your library" data-html="true" data-trigger="manual" />
+                <button class="btn btn-large btn-info" id="addlink" type="submit"><div class="infinity"><img class="button-img" src="{{ STATIC_URL }}img/infinity-white.png" alt="Loading..." /></div></button>
+            </form><!--/#linker-->
         </div><!--/.home-form-->
     </div>
 </div>
 
-
 <div class="row preview-row hide">
     <div class="add-links-list col-sm-6">
-        <div id="not-right-container"></div>
-        <div id="preview-container">
-            <div id="spinner"></div>
-            <p class="spinner-message">Generating preview</p>
-        </div>
-        <ul id="links"></ul>
+        <div id="preview-container"></div>
     </div><!--/.add-links-list-->
-
-
-
     <div id="steps-container" class="col-sm-6"></div>
 </div>
 
@@ -114,35 +97,8 @@
     </script>
 
     <script src="{{ STATIC_URL }}js/spin.js"></script>
-    <script type="text/javascript" language="javascript">
-        var opts = {
-            lines: 9, // The number of lines to draw
-            length: 9, // The length of each line
-            width: 5, // The line thickness
-            radius: 10, // The radius of the inner circle
-            corners: 1, // Corner roundness (0..1)
-            rotate: 0, // The rotation offset
-            direction: 1, // 1: clockwise, -1: counterclockwise
-            color: '#ff4100', // #rgb or #rrggbb or array of colors
-            speed: 1, // Rounds per second
-            trail: 60, // Afterglow percentage
-            shadow: false, // Whether to render a shadow
-            hwaccel: false, // Whether to use hardware acceleration
-            className: 'spinner', // The CSS class to assign to the spinner
-            zIndex: 2e9, // The z-index (defaults to 2000000000)
-            top: 'auto', // Top position relative to parent in px
-            left: 'auto' // Left position relative to parent in px
-        };
-
-        var target = document.getElementById('spinner');
-        var spinner = new Spinner(opts).spin(target);
-    </script>
-
-
-    <script src="{{ STATIC_URL }}js/ZeroClipboard/ZeroClipboard.min.js"></script>
     <script src="{{ STATIC_URL }}js/handlebars.js"></script>
     <script src="{{ STATIC_URL }}js/jquery.form.min.js"></script>
-    <script src="{{ STATIC_URL }}js/swfobject.js"></script>
 	{% compressed_js 'create' %}
 
 {% endblock %}
@@ -171,21 +127,25 @@
 
 {% verbatim %}
 <script id="success-template" type="text/x-handlebars-template">
-  <li id="link-short-slug" class="library-link-item" style="display: none;">
 	{{#if message_pdf }}
 		<div class="library-thumbnail">
             <a href="{{url}}" target="_blank"><img src="{{static_prefix}}img/pdf-preview.jpg" /></a>
 		</div>
 	{{else}}
-		<div class="thumbnail-placeholder"></div>
+		<div class="thumbnail-placeholder">
+            <div id="spinner"></div>
+            <p class="spinner-message">Generating preview</p>
+		</div>
 	{{/if}}
-  </li>
 </script>
 {% endverbatim %}
 
 {% verbatim %}
-<script id="not-right-template" type="text/x-handlebars-template">
+<script id="preview-available-template" type="text/x-handlebars-template">
     <p id="upload-option">Archive not as expected? <a href="" onclick="return upload_form();">Upload your own</a></p>
+    <div class="library-thumbnail">
+        <img src="{{url}}" class="img-responsive">
+    </div>
 </script>
 {% endverbatim %}
 

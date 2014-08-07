@@ -4,6 +4,117 @@ var newLinky = {};
 var all_links = new Array();
 
 
+$(document).ready(function() {
+    $('#linky-upload-confirm').modal({show: false});
+    $('#linky-upload').modal({show: false});
+
+    // When a new url is entered into our form
+    $('#linker').submit(function() {
+        linkIt();
+        return false;
+    });
+
+    // When a user uploads their own capture
+    $('#linky_upload_form').submit(function() {
+        $(this).ajaxSubmit({success: uploadIt, error: uploadNot});
+        return false;
+    });
+});
+
+function uploadNot() {
+    $('#upload-error').text('The upload failed. Only gif, jpg, and pdf files supported. Max of 50 MB.');
+}
+
+function uploadIt(data) {
+    // If a user wants to upload thie own screen capture, we display
+    // a modal and the form in that modal is handled here
+    if(data.status == 'success') {
+        $('#linky-upload').modal('hide');
+
+        var linkyUrl = mirror_server_host  + '/' + data.linky_hash;
+        var source = $("#upload-confirm-template").html();
+        var template = Handlebars.compile(source);
+        $('#preview-container').html(template({url: linkyUrl}));
+        $('#spinner').slideUp();
+        $('#link-short-slug').slideDown();
+    }
+    else {
+        return xhr.abort();
+    }
+}
+
+function linkIt(){
+    // This does the "get url and exchange it for an archive" through
+    // an AJAX post work.
+
+    $('#upload-option').hide();
+
+    rawUrl = $("#rawUrl").val();
+
+    var request = $.ajax({
+        url: main_server_host + "/manage/create/",
+        type: "POST",
+        data: {url: rawUrl, 'csrfmiddlewaretoken': csrf_token},
+        dataType: "json"
+    });
+
+    request.done(function(data) {
+        $('#upload-option').fadeIn();
+        linkyUrl = mirror_server_host  + '/' + data.linky_id;
+        newLinky.url = linkyUrl;
+        newLinky.linky_id = data.linky_id;
+        newLinky.original = rawUrl;
+        newLinky.title = data.linky_title;
+        newLinky.favicon_url = data.favicon_url;
+        newLinky.preview = data.linky_cap;
+        newLinky.message_pdf = data.message_pdf;
+        newLinky.static_prefix = static_prefix;
+        $('#url').val(rawUrl);
+        $('#title').val(data.linky_title);
+
+        var source = $("#success-template").html();
+        var template = Handlebars.compile(source);
+        $('#preview-container').html(template(newLinky));
+
+        // Get our spinner going now that we're drawing it
+        var target = document.getElementById('spinner');
+        var spinner = new Spinner(opts).spin(target);
+
+        var source = $("#success-steps-template").html();
+        var template = Handlebars.compile(source);
+        $('#steps-container').html(template({url: newLinky.url, userguide_url: userguide_url,
+            vesting_privs: vesting_privs}));
+
+        $('.preview-row').removeClass('hide').hide().slideDown();
+
+        if (newLinky.message_pdf = data.message_pdf) {
+            $('#spinner').slideUp();
+        } else {
+            refreshIntervalIds.push(setInterval(check_status, 2000));
+        }
+        $('#link-short-slug').slideDown();
+    });
+    request.fail(function(jqXHR) {
+        var source = $("#error-template").html();
+        var template = Handlebars.compile(source);
+        var message = jqXHR.status==400 && jqXHR.responseText ? jqXHR.responseText : "Error "+jqXHR.status;
+        $('#preview-container').html(template({
+            url: rawUrl,
+            static_prefix: static_prefix,
+            message: message
+        }));
+    });
+}
+
+function upload_form() {
+    $('#linky-confirm').modal('hide');
+    $('#upload-error').text('');
+    $('#linky-upload').modal('show');
+    return false;
+}
+
+
+
 /* Our polling function for the thumbnail completion - start */
 
 // The plan is to set a timer to periodically check if the thumbnail
@@ -21,8 +132,8 @@ var all_links = new Array();
 var refreshIntervalIds = [];
 
 function check_status() {
-	
-// Check our status service to see if we have archiving jobs pending
+
+    // Check our status service to see if we have archiving jobs pending
 	var request = $.ajax({
 		url: status_url + newLinky.linky_id,
 		type: "GET",
@@ -30,146 +141,46 @@ function check_status() {
 		cache: false
 	});
 
-	request.done(function(data) {	
+	request.done(function(data) {
 		// if no status is pending
 		if (data.image_capture !== 'pending') {
 
-		    // Hide the loading spinner and replace it with the thumbnail
-	        $('#preview-container').hide();
-	        $('.thumbnail-placeholder').append('<div class="library-thumbnail"><img src="' + 
-	            MEDIA_URL + data.path + '/' + data.image_capture + '" class="img-responsive"></div>');
-	                var source = $("#not-right-template").html();
-
-            // Display our "roll your own message"
+            // Replace our Archive Pending spinner and message
+            // with our new thumbnail
+            var url = MEDIA_URL + data.path + '/' + data.image_capture;
+            var source = $("#preview-available-template").html();
             var template = Handlebars.compile(source);
-            $('#not-right-container').html(template({}));
+            $('#preview-container').html(template({url: url}));
 
             // Clear out our pending jobs
             $.each(refreshIntervalIds, function(ndx, id) {
 			    clearInterval(id);
 			});
 
-		}	
+		}
 	});
 }
 /* Our polling function for the thumbnail completion - end */
 
 
-$(document).ready(function() {
-  $('#linky-upload-confirm').modal({show: false});
-  $('#linky-upload').modal({show: false});
 
-  $('#linker').submit(function() {
-		linkIt();
-		return false;
-	});
-
-  $('#linky_upload_form').submit(function(){
-	  $(this).ajaxSubmit({success: uploadIt, error: uploadNot});
-	    return false;
-    });
-  });
-
-function uploadNot() {
-  $('#upload-error').text('The upload failed. Only gif, jpg, and pdf files supported. Max of 50 MB.');
-}
-
-function uploadIt(data) {
-  if(data.status == 'success') {
-    $('#linky-upload').modal('hide');
-
-    var linkyUrl = mirror_server_host  + '/' + data.linky_hash;
-    var source = $("#upload-confirm-template").html();
-    var template = Handlebars.compile(source);
-    $('#links').html(template({url: linkyUrl}));
-    $('#spinner').slideUp();
-    $('#link-short-slug').slideDown();
-
-    //$('#linky-upload-confirm').modal({show: true});
-    //var linkyUrl = mirror_server_host  + '/' + data.linky_hash;
-    //$('#linky_upload_success').text('Your linky has been created at');
-    //$('#uploadedLinkyUrl a').attr('href', linkyUrl).text(linkyUrl);
-  }
-  else {
-    return xhr.abort();
-  }
-}
-
-function linkIt(){
-  $('#upload-option').hide();
-  $('#links').empty();
-
-  rawUrl = $("#rawUrl").val();
-  
-  var request = $.ajax({
-    url: main_server_host + "/manage/create/",
-    type: "POST",
-    data: {url: rawUrl, 'csrfmiddlewaretoken': csrf_token},
-    dataType: "json"
-  });
-  
-  request.done(function(data) {
-    $('#upload-option').fadeIn();
-    linkyUrl = mirror_server_host  + '/' + data.linky_id;
-    newLinky.url = linkyUrl;
-    newLinky.linky_id = data.linky_id;
-    newLinky.original = rawUrl;
-    newLinky.title = data.linky_title;
-    newLinky.favicon_url = data.favicon_url;
-    newLinky.preview = data.linky_cap;
-    newLinky.message_pdf = data.message_pdf;
-    newLinky.static_prefix = static_prefix;
-    $('#url').val(rawUrl);
-    $('#title').val(data.linky_title);
-    
-
-    var source = $("#success-template").html();
-    var template = Handlebars.compile(source);
-    $('#links').html(template(newLinky));
-
-    var source = $("#success-steps-template").html();
-    var template = Handlebars.compile(source);
-    $('#steps-container').html(template({url: newLinky.url, userguide_url: userguide_url,
-        vesting_privs: vesting_privs}));
-
-    $('.preview-row').removeClass('hide').hide().slideDown();
-
-    if (newLinky.message_pdf = data.message_pdf) {
-        $('#spinner').slideUp();
-    } else {
-		refreshIntervalIds.push(setInterval(check_status, 2000));
-    }
-    $('#link-short-slug').slideDown();
-    var clip = new ZeroClipboard( $(".copy-button"), {
-      moviePath: mirror_server_host + "/static/js/ZeroClipboard/ZeroClipboard.swf"
-    });
-
-    clip.on( 'complete', function(client, args) {
-      $(this).prev('.copy-confirm').fadeIn(100).fadeOut(3000);
-    });
-    
-      
-    if(!swfobject.hasFlashPlayerVersion("1")) {
-      $('.copy-button').hide();
-    }
-  });
-  request.fail(function(jqXHR) {
-    var source = $("#error-template").html();
-    var template = Handlebars.compile(source);
-    var message = jqXHR.status==400 && jqXHR.responseText ? jqXHR.responseText : "Error "+jqXHR.status;
-    $('#links').html(template({
-      url: rawUrl,
-      static_prefix: static_prefix,
-      message: message
-    }));
-    $('#spinner').slideUp();
-    $('#link-short-slug').slideDown();
-  });
-}
-
-function upload_form() {
-    $('#linky-confirm').modal('hide');
-    $('#upload-error').text('');
-    $('#linky-upload').modal('show');
-    return false;
-}
+/* Our spinner controller - start */
+var opts = {
+    lines: 9, // The number of lines to draw
+    length: 9, // The length of each line
+    width: 5, // The line thickness
+    radius: 10, // The radius of the inner circle
+    corners: 1, // Corner roundness (0..1)
+    rotate: 0, // The rotation offset
+    direction: 1, // 1: clockwise, -1: counterclockwise
+    color: '#ff4100', // #rgb or #rrggbb or array of colors
+    speed: 1, // Rounds per second
+    trail: 60, // Afterglow percentage
+    shadow: false, // Whether to render a shadow
+    hwaccel: false, // Whether to use hardware acceleration
+    className: 'spinner', // The CSS class to assign to the spinner
+    zIndex: 2e9, // The z-index (defaults to 2000000000)
+    top: 'auto', // Top position relative to parent in px
+    left: 'auto' // Left position relative to parent in px
+};
+/* Our spinner controller - end */

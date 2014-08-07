@@ -466,18 +466,10 @@ div.home-form-elements {
     margin: 10px auto 0 auto;
 }
 
-    div.home-form-elements #linker input {
-        /*max-width: 434px;*/
-        width:90%;
-    } 
-
-    div.home-form-elements .add-links-list {
-      
-       /*/ box-shadow: 2px 2px 3px #16699e;
-        -moz-box-shadow: 2px 2px 3px #16699e;
-        -webkit-box-shadow: 2px 2px 3px #16699e;/*/
-      
-    }
+div.home-form-elements #linker input {
+    /*max-width: 434px;*/
+    width:90%;
+}
 
 section#home-description {
     background-color: #fff;
@@ -653,11 +645,8 @@ div.dashboard-add-link {
         width: 310px;
     }
 
-    div.dashboard-add-link div.add-links-list {
-        padding: 0px;
-    }
 
-        div.dashboard-add-link div.add-links-list .url-extension { width: 100px !important; }
+    div.dashboard-add-link div.add-links-list .url-extension { width: 100px !important; }
 
 div#dashboard-container div#library {}
 
@@ -685,7 +674,7 @@ div#dashboard-container div#library {}
         }
 		
 		.library-thumbnail {
-		
+
        		 border:1px solid #eee;
        		 border-radius: 4px;
        		 -moz-border-radius: 4px;
@@ -699,12 +688,6 @@ div#dashboard-container div#library {}
         div.library-thumbnail img {
             padding: 0px;
             width:100%;
-        }
-        
-        div.thumbnail-placeholder {
-            padding: 0px;
-            width:100%;
-            min-height:25px;
         }
 
         p.library-link-title, #upload-option {
@@ -785,7 +768,7 @@ div#dashboard-container div#batch-convert {
 }
 
 
-#preview-container {
+.thumbnail-placeholder {
     min-height: 350px;
     width: 100%;
     border: 1px #bbb solid;
@@ -853,13 +836,6 @@ input.url-extension {
 }
 
 /* Add link widget */
-
-div.add-links-list {
-    background-color: #fff;
-    border-radius: 5px;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-}
 
 /* iframes */
 
@@ -1265,10 +1241,6 @@ a.grey {
   color:#006dcc;
 }
 
-.add-link-form {
-	text-align:none;
-}
-
 ul#linky-ul li {
     margin-left:5px;
     margin-right:5px;
@@ -1573,10 +1545,6 @@ tr td.linky-link, a.original-link {
 
 input#file {
 	border:0px;
-}
-
-.add-links-list h4 {
-
 }
 
 .delete-confirm {
@@ -2263,9 +2231,6 @@ p.orange {
 		margin:10px 20px 20px 10px;
 		width:100%
 	}
-	.add-link-form {
-		text-align: center;
-	}
 	.navbar-collapse {
 		width:100%;
 		margin:0 0 10px;
@@ -2287,16 +2252,7 @@ ul.vesting li {
 	float:left;
 	margin:0 2px 5px 2px;
 }
-	div.add-links-list {
-		background-color: #fff;
-		border-radius: 5px;
-		-moz-border-radius: 5px;
-		-webkit-border-radius: 5px;
-		display: none;
-		margin: 10px 0;
-		padding: 20px 0;
-		float: none;
-	}
+
 	.meta-data, .meta-data a {
 	overflow: hidden;
 	font-family: 'Roboto Slab', sans-serif;
