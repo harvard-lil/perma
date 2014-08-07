@@ -462,13 +462,19 @@ ul#links {
 	width:408px;
 	text-align:center;
 }
-div.home-form-elements {
+
+/*div.home-form-elements {
     margin: 10px auto 0 auto;
+}*/
+
+div #linker input {
+    /*max-width: 434px;*/
+    width:80%;
 }
 
-div.home-form-elements #linker input {
-    /*max-width: 434px;*/
-    width:90%;
+div #linker button {
+    width:10%;
+    min-width: 70px;
 }
 
 section#home-description {
@@ -644,9 +650,6 @@ div.dashboard-add-link {
         -webkit-box-shadow: none;
         width: 310px;
     }
-
-
-    div.dashboard-add-link div.add-links-list .url-extension { width: 100px !important; }
 
 div#dashboard-container div#library {}
 

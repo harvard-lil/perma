@@ -1,8 +1,15 @@
+/* Our globals. Look out interwebs - start */
+
 var linkyUrl = '';
 var rawUrl = '';
 var newLinky = {};
 var all_links = new Array();
 
+/* Our globals. Look out interwebs - end */
+
+
+
+/* Everything that needs to happen at page load - start */
 
 $(document).ready(function() {
     $('#linky-upload-confirm').modal({show: false});
@@ -25,6 +32,12 @@ $(document).ready(function() {
         $('.users-secondary').toggle();
     });
 });
+
+/* Everything that needs to happen at page load - end */
+
+
+
+/* Handle the the main action (enter url, hit the button) button - start */
 
 function linkIt(){
     // This does the "get url and exchange it for an archive" through
@@ -95,6 +108,28 @@ function linkIt(){
     });
 }
 
+/* Handle the the main action (enter url, hit the button) button - start */
+
+
+
+/* Handle the vesting button - start */
+
+function vestIt() {
+    var request = $.ajax({
+        url: newLinky.url ,
+        type: "POST",
+        data: {'csrfmiddlewaretoken': csrf_token}
+        //dataType: "json"
+    });
+
+    request.done(function(data) {
+        $('#vest-button').text('Vested').prop('disabled', true);
+        return false;
+    });
+}
+
+/* Handle the vesting button - end */
+
 
 
 /* Handle an upload - start */
@@ -113,8 +148,7 @@ function uploadIt(data) {
         $('#linky-upload').modal('hide');
 
         var upload_image_url = static_prefix + '/img/upload-preview.jpg';
-
-        console.log(upload_image_url);
+        linkyUrl = mirror_server_host  + '/' + data.linky_id;
 
         var source = $("#preview-available-no-upload-option-template").html();
         var template = Handlebars.compile(source);
@@ -126,7 +160,7 @@ function uploadIt(data) {
 
         var source = $("#success-steps-template").html();
         var template = Handlebars.compile(source);
-        $('#steps-container').html(template({url: data.url,
+        $('#steps-container').html(template({url: linkyUrl,
             userguide_url: userguide_url, vesting_privs: vesting_privs}));
     }
     else {
@@ -182,6 +216,15 @@ function check_status() {
             var template = Handlebars.compile(source);
             $('#preview-container').html(template({url: url}));
 
+
+            // If we have a vesting member, let's fade in their controls
+            // now that they can see the preview
+            if (vesting_privs) {
+                var source = $("#admin-controls-template").html();
+                var template = Handlebars.compile(source);
+                $('#admin-controls-container').html(template({})).fadeIn();
+            }
+
             // Clear out our pending jobs
             $.each(refreshIntervalIds, function(ndx, id) {
 			    clearInterval(id);
@@ -190,11 +233,13 @@ function check_status() {
 		}
 	});
 }
+
 /* Our polling function for the thumbnail completion - end */
 
 
 
 /* Our spinner controller - start */
+
 var opts = {
     lines: 9, // The number of lines to draw
     length: 9, // The length of each line
@@ -213,4 +258,5 @@ var opts = {
     top: 'auto', // Top position relative to parent in px
     left: 'auto' // Left position relative to parent in px
 };
+
 /* Our spinner controller - end */
