@@ -74,32 +74,25 @@
 {% endblock %}
 
 {% block scripts %}
-    <script>
-        var main_server_host = "http://{{request.main_server_host}}",
-            mirror_server_host = "http://{{request.mirror_server_host}}",
-            csrf_token = "{{csrf_token}}",
-            static_prefix = "{{STATIC_URL}}",
-            MEDIA_URL = "{{ MEDIA_URL }}",
-            status_url = "{% url 'service_link_status' '' %}",
-            userguide_url = "{% url 'docs_perma_link_vesting' %}";
+<script>
+    var main_server_host = "http://{{request.main_server_host}}",
+        mirror_server_host = "http://{{request.mirror_server_host}}",
+        csrf_token = "{{csrf_token}}",
+        static_prefix = "{{STATIC_URL}}",
+        MEDIA_URL = "{{ MEDIA_URL }}",
+        status_url = "{% url 'service_link_status' '' %}",
+        userguide_url = "{% url 'docs_perma_link_vesting' %}";
 
-            vesting_privs = false;
-            {% if request.user|has_group:'registry_user,registrar_user,vesting_user' and not linky.vested %}
-                vesting_privs = true;
-            {% endif %}
+        vesting_privs = false;
+        {% if request.user|has_group:'registry_user,registrar_user,vesting_user' and not linky.vested %}
+            vesting_privs = true;
+        {% endif %}
+</script>
 
-        $(function(){
-            // Toggle users dropdown
-            $('#dashboard-users').click(function(){
-                $('.users-secondary').toggle();
-            });
-        });
-    </script>
-
-    <script src="{{ STATIC_URL }}js/spin.js"></script>
-    <script src="{{ STATIC_URL }}js/handlebars.js"></script>
-    <script src="{{ STATIC_URL }}js/jquery.form.min.js"></script>
-	{% compressed_js 'create' %}
+<script src="{{ STATIC_URL }}js/spin.js"></script>
+<script src="{{ STATIC_URL }}js/handlebars.js"></script>
+<script src="{{ STATIC_URL }}js/jquery.form.min.js"></script>
+{% compressed_js 'create' %}
 
 {% endblock %}
 {% block templates %}
@@ -113,15 +106,10 @@
 
 {% verbatim %}
 <script id="error-template" type="text/x-handlebars-template">
-	  <div class="library-thumbnail">
-			<img src="{{static_prefix}}img/sorry-preview.jpg" />
-	  </div>
-	  <h4 class="text-warning">There was a problem creating your Perma Link:</h4>
-	  <p>{{ message }}<br/>
-      <a href="" onclick="return upload_form();">upload your own image</a></p>
-	  
-	  <p>If uploading your own capture is not desirable, please <a href="#" data-toggle="modal" data-target="#feedbackModal" id="report-error">report the error</a></p>
-	  <br/><br/><br/><br/><br/>
+    <p class="message-large">Failure</p>
+    <p>Unable to create the archive.</p>
+    <h4 class="text-warning">{{ message }}<h4/>
+    <p>You can <a href="" onclick="return upload_form();">upload your own archive</a>. If that's not desirable, please <a href="#" data-toggle="modal" data-target="#feedbackModal" id="report-error">let us know what's happening.</a></p>
 </script>
 {% endverbatim %}
 
@@ -143,6 +131,14 @@
 {% verbatim %}
 <script id="preview-available-template" type="text/x-handlebars-template">
     <p id="upload-option">Archive not as expected? <a href="" onclick="return upload_form();">Upload your own</a></p>
+    <div class="library-thumbnail">
+        <img src="{{url}}" class="img-responsive">
+    </div>
+</script>
+{% endverbatim %}
+
+{% verbatim %}
+<script id="preview-available-no-upload-option-template" type="text/x-handlebars-template">
     <div class="library-thumbnail">
         <img src="{{url}}" class="img-responsive">
     </div>

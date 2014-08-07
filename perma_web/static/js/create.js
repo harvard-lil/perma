@@ -19,29 +19,12 @@ $(document).ready(function() {
         $(this).ajaxSubmit({success: uploadIt, error: uploadNot});
         return false;
     });
+
+    // Toggle users dropdown
+    $('#dashboard-users').click(function(){
+        $('.users-secondary').toggle();
+    });
 });
-
-function uploadNot() {
-    $('#upload-error').text('The upload failed. Only gif, jpg, and pdf files supported. Max of 50 MB.');
-}
-
-function uploadIt(data) {
-    // If a user wants to upload thie own screen capture, we display
-    // a modal and the form in that modal is handled here
-    if(data.status == 'success') {
-        $('#linky-upload').modal('hide');
-
-        var linkyUrl = mirror_server_host  + '/' + data.linky_hash;
-        var source = $("#upload-confirm-template").html();
-        var template = Handlebars.compile(source);
-        $('#preview-container').html(template({url: linkyUrl}));
-        $('#spinner').slideUp();
-        $('#link-short-slug').slideDown();
-    }
-    else {
-        return xhr.abort();
-    }
-}
 
 function linkIt(){
     // This does the "get url and exchange it for an archive" through
@@ -95,15 +78,60 @@ function linkIt(){
         $('#link-short-slug').slideDown();
     });
     request.fail(function(jqXHR) {
+        var source = $("#preview-available-template").html();
+        var template = Handlebars.compile(source);
+        var fail_image_url = static_prefix + '/img/sorry-preview.jpg';
+        $('#preview-container').html(template({url: fail_image_url}));
+
         var source = $("#error-template").html();
         var template = Handlebars.compile(source);
         var message = jqXHR.status==400 && jqXHR.responseText ? jqXHR.responseText : "Error "+jqXHR.status;
-        $('#preview-container').html(template({
+        $('#steps-container').html(template({
             url: rawUrl,
-            static_prefix: static_prefix,
             message: message
         }));
+
+        $('.preview-row').removeClass('hide').hide().slideDown();
     });
+}
+
+
+
+/* Handle an upload - start */
+
+function uploadNot() {
+    // Display an error message in our upload modal
+
+    $('#upload-error').text('The upload failed. Only gif, jpg, and pdf files supported. Max of 50 MB.');
+}
+
+function uploadIt(data) {
+    // If a user wants to upload their own screen capture, we display
+    // a modal and the form in that modal is handled here
+
+    if(data.status == 'success') {
+        $('#linky-upload').modal('hide');
+
+        var upload_image_url = static_prefix + '/img/upload-preview.jpg';
+
+        console.log(upload_image_url);
+
+        var source = $("#preview-available-no-upload-option-template").html();
+        var template = Handlebars.compile(source);
+        $('#preview-container').html(template({url: upload_image_url}));
+
+        // Get our spinner going now that we're drawing it
+        var target = document.getElementById('spinner');
+        var spinner = new Spinner(opts).spin(target);
+
+        var source = $("#success-steps-template").html();
+        var template = Handlebars.compile(source);
+        $('#steps-container').html(template({url: data.url,
+            userguide_url: userguide_url, vesting_privs: vesting_privs}));
+    }
+    else {
+        return xhr.abort();
+    }
 }
 
 function upload_form() {
@@ -112,6 +140,8 @@ function upload_form() {
     $('#linky-upload').modal('show');
     return false;
 }
+
+/* Handle an upload - end */
 
 
 
