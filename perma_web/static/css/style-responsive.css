@@ -703,6 +703,10 @@ div#dashboard-container div#library {}
             width:100%;
         }
         
+        div.user-delete-thumbnail {
+            margin-bottom:15px;
+        }
+        
         div.thumbnail-placeholder {
             padding: 0px;
             width:100%;
@@ -1942,7 +1946,7 @@ a.tab-styling, .tab-styling {
 	left:200px;
 }
 
-a.btn.vest, a.btn.dashboard {
+a.btn.vest, a.btn.dashboard, a.btn.user-delete {
 	width:100px;
 	padding:2px 0px;
 	color:#666;
@@ -1981,7 +1985,15 @@ a.btn.dashboard:hover, a.btn.dashboard:focus {
   	color:#06a;
 }
 
+a.btn.user-delete {
+	border:1px solid #ff4100;	
+  	color:#ff4100;
+}
 
+a.btn.user-delete:hover, a.btn.user-delete:focus {
+	border:1px solid #dd3800;	
+  	color:#dd3800;
+}
 
 .btn-more {
 border: 1px solid #ddd;

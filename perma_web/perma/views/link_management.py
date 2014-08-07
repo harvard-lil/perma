@@ -206,7 +206,7 @@ def created_links(request, path):
     Anyone with an account can view the linky links they've created
     """
     return link_browser(request, path,
-                        link_filter={'created_by':request.user},
+                        link_filter={'created_by':request.user, 'user_deleted':False},
                         this_page='created_links',
                         verb='created')
 
@@ -217,7 +217,7 @@ def vested_links(request, path):
     Linky admins and registrar members and vesting members can vest links
     """
     return link_browser(request, path,
-                        link_filter={'vested_by_editor': request.user},
+                        link_filter={'vested_by_editor': request.user, 'user_deleted':False},
                         this_page='vested_links',
                         verb='vested')
 
@@ -375,6 +375,19 @@ def vest_link(request, guid):
             link.save()
             run_task(poke_mirrors, link_guid=guid)
     return HttpResponseRedirect(reverse('single_linky', args=[guid]))
+    
+    
+def user_delete_link(request, guid):
+    link = get_object_or_404(Link, guid=guid)
+    asset = Asset.objects.get(link=link)
+    if request.method == 'POST':
+        if not link.user_deleted and not link.vested:
+            link.user_deleted=True
+            link.user_deleted_timestamp=datetime.now()
+            link.save()
+
+        return HttpResponseRedirect(reverse('created_links'))
+    return render_to_response('link-delete-confirm.html', {'linky': link, 'asset': asset}, RequestContext(request))
 
 
 @require_group('registry_user')
