@@ -23,7 +23,7 @@ $(document).ready(function() {
     });
 
     // When a user uploads their own capture
-    $('#linky_upload_form').submit(function() {
+    $('#archive_upload_form').submit(function() {
         $(this).ajaxSubmit({success: uploadIt, error: uploadNot});
         return false;
     });
@@ -186,7 +186,7 @@ function upload_form() {
 // succeeds.
 
 function check_status() {
-   console.log('getting status');
+
     // Check our status service to see if we have archiving jobs pending
 	var request = $.ajax({
 		url: status_url + new_archive.linky_id,
