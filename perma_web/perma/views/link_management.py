@@ -377,6 +377,7 @@ def vest_link(request, guid):
     return HttpResponseRedirect(reverse('single_linky', args=[guid]))
     
     
+@login_required    
 def user_delete_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
     asset = Asset.objects.get(link=link)
