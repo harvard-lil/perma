@@ -1,9 +1,10 @@
 /* Our globals. Look out interwebs - start */
 
-var linkyUrl = '';
-var rawUrl = '';
-var newLinky = {};
-var all_links = new Array();
+// Where we store our successfully created new archive data
+var new_archive = {};
+
+// Where we queue up our archive guids for polling
+var refreshIntervalIds = [];
 
 /* Our globals. Look out interwebs - end */
 
@@ -12,8 +13,8 @@ var all_links = new Array();
 /* Everything that needs to happen at page load - start */
 
 $(document).ready(function() {
-    $('#linky-upload-confirm').modal({show: false});
-    $('#linky-upload').modal({show: false});
+    $('#archive-upload-confirm').modal({show: false});
+    $('#archive-upload').modal({show: false});
 
     // When a new url is entered into our form
     $('#linker').submit(function() {
@@ -43,9 +44,7 @@ function linkIt(){
     // This does the "get url and exchange it for an archive" through
     // an AJAX post work.
 
-    $('#upload-option').hide();
-
-    rawUrl = $("#rawUrl").val();
+    var rawUrl = $("#rawUrl").val();
 
     var request = $.ajax({
         url: main_server_host + "/manage/create/",
@@ -55,22 +54,18 @@ function linkIt(){
     });
 
     request.done(function(data) {
-        $('#upload-option').fadeIn();
-        linkyUrl = mirror_server_host  + '/' + data.linky_id;
-        newLinky.url = linkyUrl;
-        newLinky.linky_id = data.linky_id;
-        newLinky.original = rawUrl;
-        newLinky.title = data.linky_title;
-        newLinky.favicon_url = data.favicon_url;
-        newLinky.preview = data.linky_cap;
-        newLinky.message_pdf = data.message_pdf;
-        newLinky.static_prefix = static_prefix;
-        $('#url').val(rawUrl);
-        $('#title').val(data.linky_title);
+        new_archive.url = mirror_server_host  + '/' + data.linky_id;
+        new_archive.linky_id = data.linky_id;
+        new_archive.original = rawUrl;
+        new_archive.title = data.linky_title;
+        new_archive.favicon_url = data.favicon_url;
+        new_archive.preview = data.linky_cap;
+        new_archive.message_pdf = data.message_pdf;
+        new_archive.static_prefix = static_prefix;
 
         var source = $("#success-template").html();
         var template = Handlebars.compile(source);
-        $('#preview-container').html(template(newLinky));
+        $('#preview-container').html(template(new_archive));
 
         // Get our spinner going now that we're drawing it
         var target = document.getElementById('spinner');
@@ -78,23 +73,19 @@ function linkIt(){
 
         var source = $("#success-steps-template").html();
         var template = Handlebars.compile(source);
-        $('#steps-container').html(template({url: newLinky.url, userguide_url: userguide_url,
+        $('#steps-container').html(template({url: new_archive.url, userguide_url: userguide_url,
             vesting_privs: vesting_privs}));
 
         $('.preview-row').removeClass('hide').hide().slideDown();
 
-        if (newLinky.message_pdf = data.message_pdf) {
-            $('#spinner').slideUp();
-        } else {
+        if (!new_archive.message_pdf) {
             refreshIntervalIds.push(setInterval(check_status, 2000));
         }
-        $('#link-short-slug').slideDown();
     });
     request.fail(function(jqXHR) {
-        var source = $("#preview-available-template").html();
+        var source = $("#preview-failure-template").html();
         var template = Handlebars.compile(source);
-        var fail_image_url = static_prefix + '/img/sorry-preview.jpg';
-        $('#preview-container').html(template({url: fail_image_url}));
+        $('#preview-container').html(template({static_prefix:static_prefix}));
 
         var source = $("#error-template").html();
         var template = Handlebars.compile(source);
@@ -116,7 +107,7 @@ function linkIt(){
 
 function vestIt() {
     var request = $.ajax({
-        url: newLinky.url ,
+        url: new_archive.url ,
         type: "POST",
         data: {'csrfmiddlewaretoken': csrf_token}
         //dataType: "json"
@@ -145,14 +136,14 @@ function uploadIt(data) {
     // a modal and the form in that modal is handled here
 
     if(data.status == 'success') {
-        $('#linky-upload').modal('hide');
+        $('#archive-upload').modal('hide');
 
         var upload_image_url = static_prefix + '/img/upload-preview.jpg';
-        linkyUrl = mirror_server_host  + '/' + data.linky_id;
+        new_archive.url = mirror_server_host  + '/' + data.linky_id;
 
         var source = $("#preview-available-no-upload-option-template").html();
         var template = Handlebars.compile(source);
-        $('#preview-container').html(template({url: upload_image_url}));
+        $('#preview-container').html(template({image_url: upload_image_url, archive_url: new_archive.url}));
 
         // Get our spinner going now that we're drawing it
         var target = document.getElementById('spinner');
@@ -160,7 +151,7 @@ function uploadIt(data) {
 
         var source = $("#success-steps-template").html();
         var template = Handlebars.compile(source);
-        $('#steps-container').html(template({url: linkyUrl,
+        $('#steps-container').html(template({url: new_archive.url,
             userguide_url: userguide_url, vesting_privs: vesting_privs}));
     }
     else {
@@ -171,7 +162,7 @@ function uploadIt(data) {
 function upload_form() {
     $('#linky-confirm').modal('hide');
     $('#upload-error').text('');
-    $('#linky-upload').modal('show');
+    $('#archive-upload').modal('show');
     return false;
 }
 
@@ -193,29 +184,30 @@ function upload_form() {
 // of the screenshot to get appended to the page. We thus just append
 // them to the list and then clear the whole list once the request
 // succeeds.
-var refreshIntervalIds = [];
 
 function check_status() {
-
+   console.log('getting status');
     // Check our status service to see if we have archiving jobs pending
 	var request = $.ajax({
-		url: status_url + newLinky.linky_id,
+		url: status_url + new_archive.linky_id,
 		type: "GET",
 		dataType: "json",
 		cache: false
 	});
 
 	request.done(function(data) {
+
 		// if no status is pending
 		if (data.image_capture !== 'pending') {
 
             // Replace our Archive Pending spinner and message
             // with our new thumbnail
-            var url = MEDIA_URL + data.path + '/' + data.image_capture;
+            var image_url = MEDIA_URL + data.path + '/' + data.image_capture;
+
             var source = $("#preview-available-template").html();
             var template = Handlebars.compile(source);
-            $('#preview-container').html(template({url: url}));
-
+            $('#preview-container').html(template({image_url: image_url,
+                archive_url: new_archive.url}));
 
             // If we have a vesting member, let's fade in their controls
             // now that they can see the preview
