@@ -37,7 +37,7 @@ urlpatterns = patterns('perma.views',
     url(r'^docs/getting-started/?$', DirectTemplateView.as_view(template_name='docs/getting-started.html'), name='docs_getting-started'),
     url(r'^docs/mirrors/?$', DirectTemplateView.as_view(template_name='docs/mirrors.html'), name='docs_mirrors'),
     url(r'^docs/robustness/?$', DirectTemplateView.as_view(template_name='docs/robustness.html'), name='docs_robustness'),
-    url(r'^docs/perma_user_roles/?$', DirectTemplateView.as_view(template_name='docs/perma-user-roles.html'), name='docs_perma_user_roles'),
+    url(r'^docs/perma-user-roles/?$', DirectTemplateView.as_view(template_name='docs/perma-user-roles.html'), name='docs_perma_user_roles'),
 
     #API routes
     url(r'^api/linky/urldump/?$', 'api.urldump', name='urldump'),
