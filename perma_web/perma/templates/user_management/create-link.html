@@ -194,6 +194,8 @@ function getParameterByName(name) {
     return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
+var user_email = '{{user.email}}';
+
 // Populate the URL field and submit the "create link" form
 $(document).ready(function() {
     var bookmarklet_url = getParameterByName('url');
@@ -201,6 +203,9 @@ $(document).ready(function() {
         $('.bookmarklet-button').hide();
         $('#rawUrl').val(bookmarklet_url);
     }
+    
+    // Populate email field in feedback form
+    $('#user_email').val(user_email);
 });
 
 </script>

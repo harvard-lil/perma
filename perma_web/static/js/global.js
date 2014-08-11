@@ -7,14 +7,17 @@ $(document).ready(function() {
     // Select the input text when the user clicks the element
     $('.select-on-click').click(function() { $(this).select(); });
     
-    $('.add-link-container').on('click', '#report-error', function() {
-        var brokenLink = $('#broken-link').text(); console.log(brokenLink);
-        $('#broken-link-report').html('<strong>' + brokenLink + '</strong> is causing an error.');
+    $('.preview-row').on('click', '#report-error', function() {
+        var brokenLink = $('#rawUrl').val();
+        $('#broken-link-report').html('<strong id="broken-link">' + brokenLink + '</strong> is causing an error.');
     });
     
     $('#feedbackModal').on('hidden.bs.modal', function (e) {
+        $('.feedback-form-inputs').show();
+        $('.feedback-form-submitted').hide();
         $('#broken-link-report').html('');
         $('form.feedback').find("input[type=email], textarea").val("");
+        $('#user_email').val(user_email);
     })
 
     
@@ -31,7 +34,9 @@ $(document).ready(function() {
             url: feedback_url, //process to mail
             data: data,
             success: function(msg){
-                $("#feedbackModal").modal('hide'); //hide popup 
+                //$("#feedbackModal").modal('hide'); //hide popup 
+                $('.feedback-form-inputs').slideUp();
+                $('.feedback-form-submitted').fadeIn();
             },
             error: function(){
                 alert("failure");

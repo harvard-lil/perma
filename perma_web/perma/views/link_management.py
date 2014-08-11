@@ -135,7 +135,7 @@ def create_link(request):
         return HttpResponse(json.dumps(response_object), content_type="application/json", status=201) # '201 Created' status
 
     return render_to_response('user_management/create-link.html',
-                              {'this_page': 'create_link'},
+                              {'this_page': 'create_link', 'user': request.user},
                               RequestContext(request))
 
 

@@ -107,6 +107,10 @@ kbd a:hover, kbd:hover, kbd:active {
   margin-left:-157px;
 }
 
+.feedback-form-submitted {
+    display:none;
+}
+
 #submit-feedback {
   margin-right:25px;
   width:100px;
