@@ -132,14 +132,14 @@ class PermaTest(unittest.TestCase):
         get_id('id_username').send_keys('test_registrar_member@example.com')
         get_id('id_password').send_keys('pass')
         get_xpath("//button[@class='btn-success login']").click()
-        assert get_element_with_text('Create a Perma link', 'h3').is_displayed() # wait for page load
+        assert get_element_with_text('Create a Perma archive', 'h3').is_displayed() # wait for page load
 
         info("Creating archive.")
         url_input = get_id('rawUrl') # type url
         url_input.click()
         url_input.send_keys("example.com")
         get_id('addlink').click() # submit
-        thumbnail = get_xpath("//div[@class='library-thumbnail']/img")
+        thumbnail = get_xpath("//div[@id='preview-container']/div[@class='library-thumbnail']/a/img")
         thumbnail_data = requests.get(thumbnail.get_attribute('src'))
         thumbnail_fh = StringIO.StringIO(thumbnail_data.content)
         assert imghdr.what(thumbnail_fh) == 'png'
@@ -147,7 +147,7 @@ class PermaTest(unittest.TestCase):
         # but note that the contents change between PhantomJS versions and OSes, so we'd need a fuzzy match
 
         info("Viewing playback.")
-        archive_url = get_xpath("//a[@class='btn-padding btn btn-success']").get_attribute('href') # get url from green button
+        archive_url = get_xpath("//a[@class='perma-url']").get_attribute('href') # get url from green button
         self.driver.get(archive_url)
         assert get_element_with_text('Live page view', 'a').is_displayed()
         archive_view_link = get_id('warc_cap_container_complete')
