@@ -22,7 +22,7 @@ class Command(BaseCommand):
                     metavar="HOST",
         ),
         make_option('-s', '--start',
-                    dest='start',
+                    dest='start_guid',
                     help='Start checking immediately *after* this GUID (checking is alphabetical)',
                     metavar="GUID",
                     default=None,
@@ -31,6 +31,12 @@ class Command(BaseCommand):
                     dest='file',
                     help='File path to save update SQL to (default %default).',
                     default='check_dark_archive.sql',
+        ),
+        make_option('-d', '--date',
+                    dest='start_date',
+                    help='Check links created on or after DATE (YYYY-MM-DD)',
+                    metavar="DATE",
+                    default=None,
         ),
     )
 
@@ -45,6 +51,7 @@ class Command(BaseCommand):
         host = options['host']
         out_file_path = options['file']
         out_file_mode = 'w'
+        start_date = options['start_date']
 
         # open file to save updating SQL to
         print "Saving SQL to %s" % out_file_path
@@ -63,8 +70,10 @@ class Command(BaseCommand):
 
         # find links to check
         query = Asset.objects.filter(warc_capture__in=('archive.warc.gz','source/index.html')).order_by('link').select_related('link')
-        if options['start']:
-            query = query.filter(link_id__gt=options['start'])
+        if options['start_guid']:
+            query = query.filter(link_id__gt=options['start_guid'])
+        if options['start_date']:
+            query = query.filter(link__creation_timestamp__gte=options['start_date'])
 
         # check each link by loading it from server
         for asset in query:
