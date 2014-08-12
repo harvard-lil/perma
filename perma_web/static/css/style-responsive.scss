@@ -1,3 +1,7 @@
+//* This .scss file will automatically be compiled by django-pipeline into a .css file */
+
+@import "compass/css3/opacity"
+
 /* Global */
 
 html {
@@ -304,7 +308,7 @@ border-radius: 3px;
 
 .carousel-inner > .item > a > img{
 	height: 37px;
-	opacity:.6;
+	@include opacity(.6);
 	padding:5px;
 	background:#fff;
 	border:1px solid #ccc;
@@ -313,7 +317,6 @@ border-radius: 3px;
     -webkit-border-radius: 3px;
     -ms-border-radius: 3px;
     margin-bottom: 10px;
-	filter: alpha(opacity=60);
 	display:inline;
 	list-style-type: none;
 }
@@ -342,7 +345,7 @@ border-radius: 3px;
 
 .carousel-control{
     background-color: #f7f7f7;
-    opacity: .9;
+    @include opacity(.9);
     bottom: 0px;
 }
 
@@ -416,8 +419,7 @@ footer {
 	}
 
 	footer ul#social-media li img:hover {
-		filter: alpha(opacity=90);
-		opacity: 0.9; 
+		@include opacity(0.9);
 	}
     
     footer p#boilerplate {
@@ -506,8 +508,71 @@ section#home-description {
         margin: 20px 0 0 0;
     }
 
+#examples{
+    padding-top: 2em;
+
+    /* stop :before element from resizing page */
+    position: relative;
+    overflow: hidden;
+
+    &:before {
+        /* shadow inside top and bottom of div -- stretch left and right to hide side shadows */
+        content: ' ';
+        position:absolute;
+        left:-20px;
+        top:0;
+        right: -20px;
+        bottom:0;
+        box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.4) inset;
+    }
+    .thumbnail > img {
+        width: 23%;
+        margin: 1em;
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .caption{
+        width: 70%;
+        display: inline-block;
+        vertical-align: middle;
+
+        p:last-child{
+            margin-bottom: 0;
+        }
+    }
+}
+
+#examples-items{
+    padding-bottom:2em;
+}
+
+#example{
+    div{
+        text-align: center;
+    }
+    img{
+        width: 100%;
+    }
+}
+
+#example-title{
+    margin-bottom: 2em;
+}
+
+#example-image-wrapper{
+    position: relative;
+    display: inline-block;
+    width: 80%;
+}
+.example-link{
+    position: absolute;
+    background-color: #ffff00;
+    @include opacity(.3);
+}
+
 #supporting-partners{
-    border-top: 1px solid #ccc;
+    /*border-top: 1px solid #ccc;*/
+    box-shadow: 0px 20px 20px -20px rgba(0, 0, 0, 0.4) inset;
     margin-top: 2em;
 }
     #supporting-partners .col-sm-12{
@@ -522,10 +587,10 @@ section#home-description {
         padding: 5px;
         margin-right: 25px;
         margin-bottom: 10px;
-        opacity: .7;
+        @include opacity(.7);
     }
     #supporting-partners a img:hover{
-        opacity: 1;
+        @include opacity(1);
     }
     #supporting-partners a img.square{
         height:100px;
@@ -1004,7 +1069,7 @@ ul {
 }
 
 .unavailable {
-    opacity: .6;
+    @include opacity(.6);
 }
 
 #linky-error h4, #linky-error button {
@@ -1182,7 +1247,7 @@ img.watermark-image {
 	box-shadow: none;
 	z-index:2;
 	margin:0 auto -60%;
-	opacity:.6;
+	@include opacity(.6);
 	width:70%;
 	pointer-events:none;
 }
@@ -1626,7 +1691,7 @@ a.underline {
     -ms-transform:rotate(-12deg); /* IE 9 */
     -webkit-transform:rotate(-12deg); /* Safari and Chrome */
     margin-bottom:-100px;
-    opacity:.6;
+    @include opacity(.6);
 }
 
 .alpha h4 {
@@ -2034,22 +2099,14 @@ color:#09f;
 	z-index:100;
 	margin-top:20px;
 	border-radius: 4px;
-		opacity:.8;
-	  /* IE 8 */
-  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
-  /* IE 5-7 */
-  filter: alpha(opacity=80);
+	@include opacity(.8);
 }
 
 img.dark-bulb {
-	opacity:.8;
-	  /* IE 8 */
-  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
-  /* IE 5-7 */
-  filter: alpha(opacity=80);
-  margin:auto;
-  text-align:center;
-  width:160px;
+	@include opacity(.8);
+    margin:auto;
+    text-align:center;
+    width:160px;
 }
 
 

@@ -1,6 +1,6 @@
 {% extends "layout-responsive.html" %}
 
-{% load truncatesmart %}
+{% load truncatesmart compressed %}
 
 {% block styles %}
 {% endblock %}
@@ -139,7 +139,138 @@
 			</div>
 		</div>
 
-    </div><!--/container-->
+
+    <div id="examples">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-12">
+                    <h3 class="text-center mega">Perma In Action</h3>
+                </div>
+            </div><!--row-->
+
+            <div id="examples-items" class="row">
+                <div class="col-sm-6">
+                    <div class="thumbnail">
+                        <img src="{{ STATIC_URL }}img/examples/michigan-supreme-court-seal.jpg">
+                        <div class="caption">
+                            <h4>Michigan Supreme Court</h4>
+                            <p>The Michigan Supreme Court uses Perma to preserve citations in its published decisions.</p>
+                            <p>
+                                <a href="#" class="btn btn-primary" role="button" data-img="MSC_1">Example 1</a>
+                                <a href="#" class="btn btn-default" role="button" data-img="MSC_2">2</a>
+                                <a href="#" class="btn btn-default" role="button" data-img="MSC_3">3</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="thumbnail">
+                        <img src="{{ STATIC_URL }}img/examples/harvard-law-review.gif">
+                        <div class="caption">
+                            <h4>Harvard Law Review</h4>
+                            <p>The Harvard Law Review uses Perma to preserve citations in law review articles.</p>
+                            <p>
+                                <a href="#" class="btn btn-primary" role="button" data-img="HLR_1">Example 1</a>
+                                <a href="#" class="btn btn-default" role="button" data-img="HLR_2">2</a>
+                                <a href="#" class="btn btn-default" role="button" data-img="HLR_3">3</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="example" class="row" style="display: none">
+                <div class="col-sm-12">
+                    {# content will be put here by landing.js when buttons above are clicked #}
+                    <div id="example-image-wrapper"><img src=""></div>
+                    <div id="example-title">View Original: <span></span>.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="how-it-works">
+        <div class="container">
+            <br/><br/>
+            <div class="row">
+                <div class="col-xs-12">
+                    <img class="img-responsive" src="{{ STATIC_URL }}img/tracks.png"/>
+                </div>
+            </div><!--row-->
+            <div class="row">
+                <div class="col-xs-4 title">
+                    <h3><a href="#create" class="mega">Create</a></h3>
+                </div>
+                <div class="col-xs-4 title">
+                    <h3><a href="#vest" class="mega">Vest</a></h3>
+                </div>
+                <div class="col-xs-4 title">
+                    <h3><a href="#archive" class="mega">Archive</a></h3>
+                </div>
+            </div><!--row-->
+
+            <br/><br/>
+
+            <div class="row">
+                <div class="col-sm-6">
+                    <h3 class="mega orange"><div id="create">Create</div></h3>
+                </div>
+                <div class="col-sm-6"></div>
+            </div><!--row-->
+            <div class="row">
+                <div class="col-sm-6">
+                    <hr/>
+                    <p>With a Perma.cc account,  you can create links to archived versions of web pages cited in your work. All you have to do is specify the URL of the page you want to preserve. Perma.cc will store the page and give you a unique Perma Link - like <a href="http://perma.cc/FC7M-CRS9" target="_blank">perma.cc/FC7M-CRS9</a> - that you can use to direct readers to the preserved page.</p>
+                    <p><a href="{% url 'docs_perma_link_creation' %}" class="btn btn-large btn-more">MORE</a></p>
+                </div><!--col-sm-6-->
+                <div class="col-sm-6">
+                    <img class="img-responsive" src="{{ STATIC_URL }}img/create-links.png"/>
+                </div>
+            </div><!--row-->
+
+            <br/>
+
+            <div class="row">
+                <div class="col-sm-6">
+                    <h3 class="mega orange"></h3>
+                </div>
+                <div class="col-sm-6">
+                    <h3 class="mega orange"><div id="vest">Vest</div></h3>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <img src="{{ STATIC_URL }}img/signal.png" class="img-responsive" alt="Responsive image"/>
+                </div>
+                <div class="col-sm-6">
+                    <hr/>
+                    <p>Links become permanent when they are “vested” by someone affiliated with a vesting organization, such as a journal or court. Perma.cc limits vesting privileges to help prevent abuse and to focus on solving the problem of link rot in academic and legal writing. </p>
+                    <p><a href="{% url 'docs_perma_link_vesting' %}" class="btn btn-large btn-more">MORE</a></p>
+                </div>
+            </div>
+
+            <br/>
+
+            <div class="row">
+                <div class="col-sm-6">
+                    <h3 class="mega orange"><div id="archive">Archive</div></h3>
+                </div>
+                <div class="col-sm-6">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <hr/>
+                    <p>Perma.cc provides multiple archive formats for each archived page and gives account holders a dashboard to organize all the links they’ve created. Once links are vested, they become part of the permanent archive that ultimately will be maintained by a network of participating libraries. </p>
+                    <p><a href="{% url 'docs_perma_archive' %}" class="btn btn-large btn-more">MORE</a></p>
+                </div>
+                <div class="col-sm-6">
+                    <img class="img-responsive" src="{{ STATIC_URL }}img/shelf2.png"/>
+                </div>
+            </div>
+
+        </div><!--/container-->
+    </div>
 
     <div id="supporting-partners">
         <div class="container">
@@ -201,89 +332,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src='{{ STATIC_URL }}js/raphael.js'></script>
-<script src='{{ STATIC_URL }}js/raphael.scale.js'></script>
-<script src='{{ STATIC_URL }}js/g.raphael.js'></script>
-<script src='{{ STATIC_URL }}js/usmap.js'></script>
-<script src='{{ STATIC_URL }}js/rwdImageMaps.js'></script>
-<script type="text/javascript" charset="utf-8">
-    // BIG
-
-    //var map, paper, pageWidth=3800;
-    var map, paper;
-    var pageWidth = $('#plot-map-container').parent().width();
-
-    var drawIt = function() {
-      paper = new ScaleRaphael('plot-map-container', 950, 590);
-      map = paper.USMap();
-      paper.scaleAll(pageWidth/map.width);
-      function resizePaper(){
-        var newWidth = $("#plot-map-container").parent().width();
-        paper.scaleAll(newWidth/map.width);
-     }
-     $(window).resize(resizePaper);
-
-      var points = [
-    [38.944794, -77.095004, "Pence Law Library, Washington College of Law, American University"],
-    [42.341822, -71.195736, "Law Library at Boston College, Boston College of Law"],
-    [38.944794, -77.095004, "Pence Law Library, Washington College of Law, American University"],
-    [42.350527, -71.109665, "Pappas Law Library, Boston University School of Law"],
-    [39.953772, -75.193314, "Biddle Law Library, University of Pennsylvania Law School"],
-    [32.790682, -79.938873, "Charleston School of Law Library"],
-    [40.000906, -105.262076, "William A. Wise Law Library, Colorado Law"],
-    [40.806948, -73.960331, "Arthur W. Diamond Law Library, Columbia Law School"],
-    [42.443868, -76.485849, "Cornell University Law School"],
-    [42.349480, -71.077708, "Digital Public Library of America"],
-    [35.999711, -78.944995, "J. Michael Goodson Law Library, Duke University School of Law"],
-    [30.439591, -84.286414, "Florida State Law Research Center, Florida State University College of Law"],
-    [29.650052, -82.359510, "University of Florida Levin College of Law"],
-    [40.771128, -73.984648, "The Leo T. Kissam Memorial Library, Fordham University School of Law"],
-    [38.898086, -77.012985, "Georgetown Law Library, Georgetown Law"],
-    [42.379400, -71.119587, "Harvard Law School Library"],
-    [39.772174, -86.167720, "Ruth Lilly Law Library, Robert H. McKinney School of Law, Indiana University"],
-    [41.877710, -87.628618, "Louis L. Biro Law Library, The John Marshall Law School"],
-    [41.699725, -86.238208, "Kresge Law Library, University of Notre Dame The Law School"],
-    [34.066263, -117.647682, "College of Law Library, University of La Verne"],
-    [45.452229, -122.677615, "Paul L. Boley Law Library, Lewis & Clark Law School"],
-    [30.414529, -91.175239, "Louisiana State University Law Library, LSU Law Center"],
-    [41.897352, -87.627156, "Loyola University Chicago School of Law"],
-    [39.289763, -76.622936, "Thurgood Marshall Law Library, Francis King Carey School of Law, University of Maryland"],
-    [-37.802327, 144.960055, "Melbourne Law School Library, The University of Melbourne"],
-    [40.818056, -96.699848, "University of Nebraska College of Law"],
-    [41.896683, -87.619690, "Pritzker Legal Research Center, Northwestern Law"],
-    [39.996168, -83.008418, "Michael E. Moritz Law Library, Ohio State University"],
-    [51.757111, -1.247840, "Bodleian Law Library, Bodleian Libraries, University of Oxford"],
-    [34.037931, -118.707359, "Harnish Law Library, Pepperdine University School of Law"],
-    [37.574272, -77.541348, "William Taylor Muse Law Library, University of Richmond School of Law"],
-    [29.752922, -95.365044, "The Fred Parks Law Library, South Texas College of Law"],
-    [37.423975, -122.167550, "Robert Crown Law Library, Stanford Law School"],
-    [34.072966, -118.438463, "Hugh & Hazel Darling Law Library, UCLA School of Law"],
-    [25.720798, -80.279734, "University of Miami School of Law"],
-    [34.363963, -89.541439, "Grisham Law Library, University of Mississippi School of Law"],
-    [36.107131, -115.142426, "Wiener-Rogers Law Library, UNLV William S. Boyd School of Law"],
-    [32.771408, -117.188822, "Pardee Legal Research Center, University of San Diego"],
-    [30.289088, -97.731251, "Tarlton Law Library, Jamail Center of Legal Research, The University of Texas School of Law"],
-    [40.762004, -111.851903, "S.J. Quinney Law Library, University of Utah"],
-    [36.145869, -86.799537, "Vanderbilt Law School"],
-    [38.051897, -78.510371, "Arthur J. Morris Law Library, University of Virginia School of Law"],
-    [47.655295, -122.303745, "University of Washington School of Law"],
-    [38.649789, -90.312022, "Washington University Law"],
-    [37.264720, -76.705315, "William & Mary Law School"],
-    [43.074277, -89.401986, "University of Wisconsin Law Library"],
-    [41.311960, -72.927899, "Lillian Goldman Law Library, Yale Law School"],
-    [40.736568, -74.1665841, "Peter W. Rodino, Jr. Law Library, Seton Hall Law"],
-    [35.904912, -79.046913, "Kathrine R. Everett Law Library, University of North Carolina"],
-    [39.817224, -75.546148, "Widener University School of Law"],
-    [32.846348, -96.786086, "SMU Dedman School of Law"],
-    [33.578997, -101.886574, "Texas Tech University School of Law"],
-    [41.657435, -91.542964, "University of Iowa School of Law"]
-      ]
-      for(var i = 0; i < points.length; i++){
-        //map.plot(points[i][0], points[i][1], points[i][2]);
-        map.plot(points[i][0], points[i][1]);
-      }
-    };
-
-    document.onload = drawIt();
-</script><!--/raphael.js map points-->
+    {% compressed_js 'landing' %}
 {% endblock %}

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+{% load compressed %}<!DOCTYPE html>
 <html lang="en-us">
     <head>
         <title>perma.cc{% block title %}{% endblock %}</title>
@@ -13,10 +13,15 @@
 
         <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
         <link href='http://fonts.googleapis.com/css?family=Roboto+Slab:400,300' rel='stylesheet' type='text/css'>
-        <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap3.css">
-        <link rel="stylesheet" href="{{ STATIC_URL }}css/style-responsive.css">
-        <link rel="stylesheet" href="{{ STATIC_URL }}css/font-awesome.min.css">
+        {% compressed_css 'base' %}
 
+        <script>
+            {# template variables for use in Javascript files #}
+            var settings = {
+                STATIC_URL: "{{ STATIC_URL }}",
+                MEDIA_URL: "{{ MEDIA_URL }}"
+            }
+        </script>
         <script src="{{ STATIC_URL }}js/modernizr.js"></script>
 		<script src="{{ STATIC_URL }}js/holder.js"></script>
         {% block styles %}{% endblock %}

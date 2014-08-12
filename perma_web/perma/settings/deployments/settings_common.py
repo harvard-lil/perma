@@ -75,8 +75,12 @@ DEFAULT_FILE_STORAGE = 'perma.storage_backends.FileSystemStorage'
 
 # We likely want to do something like this:
 # PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.jsmin.JSMinCompressor'
-
 PIPELINE_JS_COMPRESSOR = None
+PIPELINE_CSS_COMPRESSOR = None
+
+PIPELINE_COMPILERS = (
+    'pipeline_compass.compiler.CompassCompiler',
+)
 
 # We likely want to remove this disable in the future
 PIPELINE_DISABLE_WRAPPER = True
@@ -87,7 +91,29 @@ PIPELINE_JS = {
           'js/create.js',
         ),
         'output_filename': 'js/create-bundle.js',
-    }
+    },
+    'landing': {
+        'source_filenames': (
+            'js/raphael.js',
+            'js/raphael.scale.js',
+            'js/g.raphael.js',
+            'js/usmap.js',
+            'js/rwdImageMaps.js',
+            'js/landing.js',
+        ),
+        'output_filename': 'js/landing-bundle.js',
+    },
+}
+
+PIPELINE_CSS = {
+    'base': {
+        'source_filenames': (
+            'css/bootstrap3.css',
+            'css/style-responsive.scss',
+            'css/font-awesome.min.css',
+        ),
+        'output_filename': 'css/base-bundle.css',
+    },
 }
 
 # override to change .js mimetype from application/javascript for ie8 and below
@@ -278,6 +304,7 @@ BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+CELERY_SEND_TASK_ERROR_EMAILS = True
 
 # Control whether Celery tasks should be run in the background or during a request.
 # This should normally be True, but it might be handy to not use async tasks

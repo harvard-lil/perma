@@ -9,7 +9,7 @@ import requests
 from sauceclient import SauceClient
 import sys
 from selenium import webdriver
-from selenium.common.exceptions import ElementNotVisibleException
+from selenium.common.exceptions import ElementNotVisibleException, NoSuchElementException
 import time
 
 
@@ -100,6 +100,18 @@ class PermaTest(unittest.TestCase):
         def get_element_with_text(text, element_type='*'):
             return get_xpath("//%s[contains(text(),'%s')]" % (element_type, text))
 
+        def is_displayed(element, repeat=True):
+            """ Check if element is displayed, by default retrying for 10 seconds if false. """
+            if repeat:
+                def repeater():
+                    assert element.is_displayed()
+                    return True
+                try:
+                    repeat_while_exception(repeater, AssertionError)
+                except AssertionError:
+                    return False
+            return element.is_displayed()
+
         def info(*args):
             print("%s %s %s:" % (
                 self.desired_capabilities['platform'],
@@ -120,11 +132,16 @@ class PermaTest(unittest.TestCase):
 
         info("Loading homepage from %s." % host)
         self.driver.get(host)
-        assert "Websites Change, Go Away, and Get Taken Down" in get_xpath('//body').text
+        assert is_displayed(get_element_with_text("Websites Change"))
+
+        info("Checking Perma In Action section.")
+        get_xpath("//a[@data-img='MSC_1']").click()
+        assert is_displayed(get_id('example-title'))
+        get_xpath("//div[@id='example-image-wrapper']/img").click() # click on random element to trigger Sauce screenshot
 
         info("Loading docs.")
         get_xpath("//a[@href='/docs']").click()
-        assert get_element_with_text('Overview', 'h2').is_displayed() # wait for load
+        assert is_displayed(get_element_with_text('Overview', 'h2')) # wait for load
 
         info("Logging in.")
         click_link("Log in")
@@ -132,14 +149,14 @@ class PermaTest(unittest.TestCase):
         get_id('id_username').send_keys('test_registrar_member@example.com')
         get_id('id_password').send_keys('pass')
         get_xpath("//button[@class='btn-success login']").click()
-        assert get_element_with_text('Create a Perma archive', 'h3').is_displayed() # wait for page load
+        assert is_displayed(get_element_with_text('Create a Perma archive', 'h3')) # wait for load
 
         info("Creating archive.")
         url_input = get_id('rawUrl') # type url
         url_input.click()
         url_input.send_keys("example.com")
         get_id('addlink').click() # submit
-        thumbnail = get_xpath("//div[@id='preview-container']/div[@class='library-thumbnail']/a/img")
+        thumbnail = repeat_while_exception(lambda: get_xpath("//div[@class='library-thumbnail']//img"), NoSuchElementException)
         thumbnail_data = requests.get(thumbnail.get_attribute('src'))
         thumbnail_fh = StringIO.StringIO(thumbnail_data.content)
         assert imghdr.what(thumbnail_fh) == 'png'
@@ -149,12 +166,12 @@ class PermaTest(unittest.TestCase):
         info("Viewing playback.")
         archive_url = get_xpath("//a[@class='perma-url']").get_attribute('href') # get url from green button
         self.driver.get(archive_url)
-        assert get_element_with_text('Live page view', 'a').is_displayed()
+        assert is_displayed(get_element_with_text('Live page view', 'a'))
         archive_view_link = get_id('warc_cap_container_complete')
         repeat_while_exception(lambda: archive_view_link.click(), ElementNotVisibleException) # wait for archiving to finish
         warc_url = self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src')
         self.driver.get(warc_url)
-        assert get_element_with_text('This domain is established to be used for illustrative examples', 'p').is_displayed()
+        assert is_displayed(get_element_with_text('This domain is established to be used for illustrative examples', 'p'))
 
     def tearDown(self):
         print("Link to your job: https://saucelabs.com/jobs/%s" % self.driver.session_id)
