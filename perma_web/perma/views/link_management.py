@@ -25,7 +25,7 @@ from mirroring.tasks import compress_link_assets, poke_mirrors
 
 from ..forms import UploadFileForm
 from ..models import Link, Asset, Folder
-from ..tasks import get_pdf, proxy_capture
+from ..tasks import get_pdf, proxy_capture, upload_to_internet_archive
 from ..utils import require_group, run_task
 
 
@@ -374,6 +374,8 @@ def vest_link(request, guid):
             link.vested_timestamp=datetime.now()
             link.save()
             run_task(poke_mirrors, link_guid=guid)
+            if settings.UPLOAD_TO_INTERNET_ARCHIVE:
+                run_task(upload_to_internet_archive, link_guid=guid)
     return HttpResponseRedirect(reverse('single_linky', args=[guid]))
     
     

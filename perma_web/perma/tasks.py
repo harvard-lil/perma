@@ -7,7 +7,6 @@ import threading
 import urlparse
 from celery import shared_task
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.proxy import ProxyType
 import datetime
@@ -19,6 +18,7 @@ import requests
 import errno
 import tempdir
 from socket import error as socket_error
+import internetarchive
 
 from django.core.files.storage import default_storage
 from django.core.mail import send_mail
@@ -369,6 +369,44 @@ def get_nightly_stats():
         )
 
     stat.save()
+
+@shared_task(
+    bind=True,
+    default_retry_delay=10*60) # 10 minute delay between retries
+def upload_to_internet_archive(self, link_guid):
+    # setup
+    asset = Asset.objects.get(link_id=link_guid)
+    link = asset.link
+    identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX+link_guid
+    warc_path = os.path.join(asset.base_storage_path, asset.warc_capture)
+
+    # create IA item for this capture
+    item = internetarchive.get_item(identifier)
+    metadata = {
+        'collection':settings.INTERNET_ARCHIVE_COLLECTION,
+        'mediatype':'web',
+        'date':link.creation_timestamp,
+        'title':'Perma Capture %s' % link_guid,
+        'creator':'Perma.cc',
+
+        # custom metadata
+        'submitted_url':link.submitted_url,
+        'perma_url':"http://%s/%s" % (settings.HOST, link_guid)
+    }
+
+    # upload
+    with default_storage.open(warc_path, 'rb') as warc_file:
+        success = item.upload(warc_file,
+                              metadata=metadata,
+                              access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                              secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+                              verbose=True,
+                              debug=True)
+    if success:
+        print "Succeeded."
+    else:
+        print "Failed."
+        self.retry(exc=Exception("Internet Archive reported upload failure."))
 
 @shared_task
 def email_weekly_stats():

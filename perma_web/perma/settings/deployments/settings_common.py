@@ -333,3 +333,12 @@ DOWNSTREAM_SERVERS = []
 # where we will store zip archives created for transferring to mirrors
 # this is relative to MEDIA_ROOT
 MEDIA_ARCHIVES_ROOT = 'zip_archives/'
+
+
+# internet archive stuff
+UPLOAD_TO_INTERNET_ARCHIVE = False
+INTERNET_ARCHIVE_COLLECTION = 'perma_cc'
+INTERNET_ARCHIVE_IDENTIFIER_PREFIX = 'perma_cc_'
+# Find these at https://archive.org/account/s3.php :
+INTERNET_ARCHIVE_ACCESS_KEY = ''
+INTERNET_ARCHIVE_SECRET_KEY = ''
