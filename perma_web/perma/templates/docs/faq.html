@@ -1,6 +1,6 @@
 {% extends "layout-responsive.html" %}
 {% load file_exists %}
-{% block title %} | Frequently Asked Questions{% endblock %}
+{% block title %} | Docs{% endblock %}
 
 {% block content %}
 
@@ -50,23 +50,42 @@
 				  
 				  <h2>Librarian FAQs</h2>
 					<div class="question" data-href="become-partner">How can my library become a partnering library?</div>
-					<div class="answer">If your library would like to become a Perma.cc library partner, email <a href="mailto:info@perma.cc">info@perma.cc</a>, and you will be provided with a library “Registrar” account.  This account will allow your library to create “Vesting Organization" accounts for the journals your library chooses to sponsor (traditionally the journals at your institution).</div>
+					<div class="answer">
+						<p>If your library would like to become a Perma.cc library partner, email <a href="mailto:info@perma.cc">info@perma.cc</a>, and you will be provided with a library “Registrar” account.  This account will allow your library to create “Vesting Organization" accounts for the journals your library chooses to sponsor (traditionally the journals at your institution).</p>
+						<p>For more information on the role of libraries in Perma.cc, visit: <a href="http://perma.cc/docs/libraries">http://perma.cc/docs/libraries</a></p>
+					</div>
 				
 					<div class="question" data-href="sponsor-journal">What does it mean to “sponsor” a journal?</div>
-					<div class="answer">Sponsoring a journal simply means that your library, as an institution, is certifying that a particular publication is a scholarly journal of the sort that a library would subscribe to and archive.</div>
+					<div class="answer">
+						<p>Sponsoring a journal simply means that your library, as an institution, is certifying that a particular publication is a scholarly journal of the sort that a library would subscribe to and archive.</p>
+						<p>For more information about the Perma.cc user roles, visit: <a href="http://perma.cc/docs/perma_user_roles">http://perma.cc/docs/perma_user_roles</a></p>
+					</div>
 				
 					<div class="question" data-href="registrar-responsibilities">What are my responsibilities as a Perma.cc registrar?</div>
-					<div class="answer">As your library’s Perma.cc registrar, your primary responsibility is provisioning administrative accounts to journals (“Vesting Manager” accounts).  Journals will be able to use those accounts to give access to their staff, so you won’t have to handle account management for all the students that work on a given journal.  Depending on whether your library is also hosting Perma.cc content as an archive mirror, questions regarding your institution's notice and takedown policy may also be directed to you.</div>
+					<div class="answer">
+						<p>A registrar's primary responsibility is creating Vesting Organizations within Perma.cc (typically journals associated with your institution) and setting up at lease one Vesting User account for each Vesting Organization. Journals will be able to use those accounts to give access to their staff, so you won’t have to handle account management for all the students that work on a given journal.</p>
+					</div>
 					
 					<div class="question" data-href="create-journal-accounts">How do I make administrative accounts for journals at my school?</div>
-					<div class="answer">The process for making a Vesting Manager account is quick and simple.  Once you have the email address that the journal would like associated with the account, go to the “Manage Users” section of your dashboard, click “Vesting Managers,” and provide the information requested under “Add a new vesting manager.” </div>
+					<div class="answer">
+						<p>The process for making a Vesting Organization in Perma.cc is quick and simple. Go to the &quot;Manage Users&quot; section of your dashboard, click &quot;Vesting Organizatios,&quot; and click &quot;add new&quot; next to the &quot;Existing Vesting Organizations&quot; heading.</p>
+						<p>Once you have added a Vesting Organization, you can add Vesting Users by clicking the &quot;Vesting Users&quot; heading under &quot;Manage Users&quot; and clicking &quot;add new&quot; next to the &quot;Existing Vesting Users&quot; heading. Make sure to assign new Vesting Users to the appropriate Vesting Organization.<p/>
+						<p>For more information about user roles within Perma.cc, visit: <a href="http://perma.cc/docs/perma_user_roles">http://perma.cc/docs/perma_user_roles</a>.</p>
+					</div>
 					<br/><br/>
 				</div>
 				
 				<div class="col-sm-6">
 				  <h2>Vesting User FAQs</h2>
+					<div class="question" data-href="journal-sign-up">How can I sign my journal up to use Perma.cc?</div>
+					<div class="answer">If your journal would like to become a Vesting Organization, simply email <a href="mailto:info@perma.cc">info@perma.cc</a>, and we will connect you with a Registrar library (traditionally the library associated with your institution). The Registrar library will add your journal as a Vesting Organization and create at least one Vesting User account, which will enable you to create the accounts your staff will need to vest Perma.cc Links.</div>
+
 					<div class="question" data-href="how-to-vest">How do I vest a Perma.cc link?</div>
-					<div class="answer">To vest a Perma.cc link, simply follow the Perma.cc URL and click the “vest” button in the upper right-hand corner.</div>
+					<div class="answer">
+						<p>To vest a Perma.cc link, a user with vesting privileges (a &quot;Vesting User&quot;) simply needs to the visit the Perma Link URL, review the archived material and click the &quot;Vest&quot; button in the upper right corner of the screen.</p>
+						<p>For more information, visit: <a hrer="http://perma.cc/docs/perma-link-vesting">http://perma.cc/docs/perma-link-vesting</a>.</p>
+
+					</div>
 					
 					<div class="question" data-href="article-without-links">What if an author submits an article without Perma.cc links?</div>
 					<div class="answer">All vesting members (i.e. editors) will have the capability to both create and vest Perma.cc links.  Thus, vesting members can create Perma.cc links for cited URLs as part of the subciting process.</div>
@@ -76,8 +95,7 @@
 				
 				  <h2>Vesting Manager FAQs</h2>
 				
-					<div class="question" data-href="journal-sign-up">How can I sign my journal up to use Perma.cc?</div>
-					<div class="answer">If your journal would like to become a Perma.cc journal partner, simply email <a href="mailto:info@perma.cc">info@perma.cc</a>, and we will connect you with a sponsoring library (traditionally the library associated with your institution).  The sponsoring library will create a journal manager account for your journal, which will enable you to create the accounts your staff will need to vest Perma.cc links.</div>
+					
 				
 					<div class="question" data-href="vesting-manager-responsibilities">What are my responsibilities as a vesting manager?</div>
 					<div class="answer">The main responsibilities of a vesting manager are to serve as a liaison between the journal and its sponsoring library and to provide staff with “Vesting Member” accounts, which will allow them to vest Perma.cc links.</div>
