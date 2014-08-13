@@ -143,17 +143,23 @@ $(function(){
             }, 1000);
 
         }else{
+            // they clicked the same button again; hide the $example panel
             $this.removeClass('selected');
             $examples.animate({
                 height: $example.offset().top - $examples.offset().top
-            }, 500);
+            }, 500, function(){
+                $example.hide();
+                $examples.css("height", ""); // once height animation is done, go back to auto height
+            });
         }
         return false;
     });
     $example.find('img').on('load', function(){
         $examples.animate({
             height: $example.offset().top + $example.height() - $examples.offset().top
-        }, 500);
+        }, 500, function(){
+            $examples.css("height", ""); // once height animation is done, go back to auto height
+        });
     });
 
 

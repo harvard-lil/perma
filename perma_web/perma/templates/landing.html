@@ -59,85 +59,6 @@
 			</div><!--row-->	
 		</div><!--container-->
 	</div><!--/welcome2-->
-			
- 	<div class="container">
- 		<br/><br/>		
-		<div class="row">
-			<div class="col-xs-12">
-				<img class="img-responsive" src="{{ STATIC_URL }}img/tracks.png" alt="The Perma.cc workflow in the form of railroad tracks. Create. Vest. Archive." />
-			</div>
-		</div><!--row-->	
-        <div class="row">
-			<div class="col-xs-4 title">
-				<h3><a href="#create" class="mega">Create</a></h3>			
-			</div>
-			<div class="col-xs-4 title">
-				<h3><a href="#vest" class="mega">Vest</a></h3>			
-			</div>
-			<div class="col-xs-4 title">
-				<h3><a href="#archive" class="mega">Archive</a></h3>			
-			</div>
-		</div><!--row-->	
-		
-		<br/><br/>
-		
-		<div class="row">
-			<div class="col-sm-6">
-				<h3 class="mega orange"><div id="create">Create</div></h3>
-			</div>
-			<div class="col-sm-6"></div>
-		</div><!--row-->
-        <div class="row">
-			<div class="col-sm-6">
-				<hr/>
-				<p>With a Perma.cc account,  you can create links to archived versions of web pages cited in your work. All you have to do is specify the URL of the page you want to preserve. Perma.cc will store the page and give you a unique Perma Link - like <a href="http://perma.cc/FC7M-CRS9" target="_blank">perma.cc/FC7M-CRS9</a> - that you can use to direct readers to the preserved page.</p>
-				<p><a href="{% url 'docs_perma_link_creation' %}" class="btn btn-large btn-more">MORE</a></p>
-			</div><!--col-sm-6-->
-			<div class="col-sm-6">	
-				<img class="img-responsive" src="{{ STATIC_URL }}img/create-links.png" alt="An illustration of Perma.cc links being placed in a documents citations."/>
-			</div>
-		</div><!--row-->			
-		
-		<br/>
-        
-        <div class="row">
-        	<div class="col-sm-6">
-				<h3 class="mega orange"></h3>
-			</div>
-			<div class="col-sm-6">
-				<h3 class="mega orange"><div id="vest">Vest</div></h3>
-			</div>
-		</div>
-        <div class="row">
-        	<div class="col-sm-6">	
-        		<img src="{{ STATIC_URL }}img/signal.png" class="img-responsive" alt="Responsive image" alt="A railroad light with green and red colors. Perma.cc archive need to be vested before they receive the permanent archive greenlight./>
-			</div>
-			<div class="col-sm-6">
-				<hr/>
-				<p>Links become permanent when they are “vested” by someone affiliated with a vesting organization, such as a journal or court. Perma.cc limits vesting privileges to help prevent abuse and to focus on solving the problem of link rot in academic and legal writing. </p>
-				<p><a href="{% url 'docs_perma_link_vesting' %}" class="btn btn-large btn-more">MORE</a></p>
-			</div>
-		</div>
-		
-		<br/>
-		
-		<div class="row">
-			<div class="col-sm-6">
-				<h3 class="mega orange"><div id="archive">Archive</div></h3>
-			</div>
-			<div class="col-sm-6">
-			</div>
-		</div>
-		<div class="row">
-			<div class="col-sm-6">
-				<hr/>
-				<p>Perma.cc provides multiple archive formats for each archived page and gives account holders a dashboard to organize all the links they’ve created. Once links are vested, they become part of the permanent archive that ultimately will be maintained by a network of participating libraries. </p>
-				<p><a href="{% url 'docs_perma_archive' %}" class="btn btn-large btn-more">MORE</a></p>
-			</div>
-			<div class="col-sm-6">	
-				<img class="img-responsive" src="{{ STATIC_URL }}img/shelf2.png" alt="An illustration of Perma.cc archives sitting next to books. Physical and digital archives are important to libraries."/>
-			</div>
-		</div>
 
 
     <div id="examples">
@@ -189,12 +110,13 @@
         </div>
     </div>
 
+
     <div id="how-it-works">
         <div class="container">
             <br/><br/>
             <div class="row">
                 <div class="col-xs-12">
-                    <img class="img-responsive" src="{{ STATIC_URL }}img/tracks.png"/>
+                    <img class="img-responsive" src="{{ STATIC_URL }}img/tracks.png" alt="The Perma.cc workflow in the form of railroad tracks. Create. Vest. Archive." />
                 </div>
             </div><!--row-->
             <div class="row">
@@ -224,7 +146,7 @@
                     <p><a href="{% url 'docs_perma_link_creation' %}" class="btn btn-large btn-more">MORE</a></p>
                 </div><!--col-sm-6-->
                 <div class="col-sm-6">
-                    <img class="img-responsive" src="{{ STATIC_URL }}img/create-links.png"/>
+                    <img class="img-responsive" src="{{ STATIC_URL }}img/create-links.png" alt="An illustration of Perma.cc links being placed in a documents citations."/>
                 </div>
             </div><!--row-->
 
@@ -240,7 +162,7 @@
             </div>
             <div class="row">
                 <div class="col-sm-6">
-                    <img src="{{ STATIC_URL }}img/signal.png" class="img-responsive" alt="Responsive image"/>
+                    <img src="{{ STATIC_URL }}img/signal.png" class="img-responsive" alt="Responsive image" alt="A railroad light with green and red colors. Perma.cc archive need to be vested before they receive the permanent archive greenlight./>
                 </div>
                 <div class="col-sm-6">
                     <hr/>
@@ -265,7 +187,7 @@
                     <p><a href="{% url 'docs_perma_archive' %}" class="btn btn-large btn-more">MORE</a></p>
                 </div>
                 <div class="col-sm-6">
-                    <img class="img-responsive" src="{{ STATIC_URL }}img/shelf2.png"/>
+                    <img class="img-responsive" src="{{ STATIC_URL }}img/shelf2.png" alt="An illustration of Perma.cc archives sitting next to books. Physical and digital archives are important to libraries."/>
                 </div>
             </div>
 
