@@ -3,19 +3,25 @@
 {% block title %} | Docs{% endblock %}
 
 {% block content %}
-
 <div class="container">
-    	<div class="row faq">
-        	<div class="col-sm-6">
-				  <h2>General/User FAQs</h2>
-				
+	<div class="row faq">
+	    <div class="col-sm-8 docs">
+	    	<h2>Frequently Asked Questions</h2>
+	    	<h4><a href="#generaluser">General</a></h4>
+	    	<h4><a href="#librarian">Librarians</a></h4>
+	    	<h4><a href="#vestinguser">Vesting Users</a></h4>
+	    	<h4><a href="#technical">Technical</a></h4>
+	    	<br>
+	    	<hr>
+
+			  <h4><div id="generaluser">General</div></h4>
 				  <div class="question" data-href="what-is">What is Perma.cc?</div>
 				  <div class="answer">
 					<p>Perma.cc is a service, currently in beta, that helps authors, editors and publishers protect their work - and their readers - from the ill effects of link rot.</p>
-					<p>By using Perma, you can archive web pages cited in your work. Each time you archive a web page, Perma generates a unique URL - a “Perma Link” - that will allow you to direct readers to the cited reference even if the original source goes away.</p>
+					<p>By using Perma, you can archive web pages cited in your work. Each time you archive a web page, Perma generates a unique URL - a &quot;Perma Link&quot; - that will allow you to direct readers to the cited reference even if the original source goes away.</p>
 					<p>For more information, visit: <a href="http://perma.cc/docs">http://perma.cc/docs</a>.</p>
 				  </div>
-				
+		
 				  <div class="question" data-href="make-link">How do I create a Perma Link?</div>
 				  <div class="answer">
 				  	<p>To create a Perma Link, enter the URL of the web page into the entry box, as shown below, and click on the blue infinity button to direct Perma to create an archive of the contents of that page.  At your direction, Perma will archive the web page found at your specified URL. Once processing is complete, Perma will display a thumbnail image of the archived web page and a new Perma Link (such as perma.cc/ABCD-1234) for that archive.</p>
@@ -30,116 +36,121 @@
 				
 				  <div class="question" data-href="forever">Will you preserve my Perma.cc link forever?</div>
 				  <div class="answer">
-                    <p>All web pages you archive through Perma will begin as unvested, temporary archives. Perma will maintain these archives and their associated Perma Links for at least two years following creation. At the end of that temporary period, Perma will give you the option to renew the archived web page for another temporary period, after which the Perma Link may expire.</p>
-                    <p>To become permanent, however, a Perma Link must be vested by someone with vesting authority. Perma’s focus at this stage is to provide lasting links to online materials cited in academic scholarship, judicial opinions and educational materials. Vesting signifies that an individual affiliated with a journal, court or library has confirmed that the archived materials support these goals and should be preserved as a part of the permanent collection of participating libraries.<p>
-                    <p>While we cannot guarantee that links will be preserved forever, we are hosted by university libraries that have endured for centuries, and we are planning to be around for the long term. If we ever <i>do</i> need to shut down, we have laid out a detailed <a href="{% url 'contingency_plan' %}">contingency plan</a> for preserving existing data.</p>
-                    <p>For more information, visit: <a href="http://perma.cc/docs/perma-link-vesting">http://perma.cc/docs/perma-link-vesting</a>.</p>
-                  </div>
+	                <p>All web pages you archive through Perma will begin as unvested, temporary archives. Perma will maintain these archives and their associated Perma Links for at least two years following creation. At the end of that temporary period, Perma will give you the option to renew the archived web page for another temporary period, after which the Perma Link may expire.</p>
+	                <p>To become permanent, however, a Perma Link must be vested by someone with vesting authority. Perma’s focus at this stage is to provide lasting links to online materials cited in academic scholarship, judicial opinions and educational materials. Vesting signifies that an individual affiliated with a journal, court or library has confirmed that the archived materials support these goals and should be preserved as a part of the permanent collection of participating libraries.<p>
+	                <p>While we cannot guarantee that links will be preserved forever, we are hosted by university libraries that have endured for centuries, and we are planning to be around for the long term. If we ever <i>do</i> need to shut down, we have laid out a detailed <a href="{% url 'contingency_plan' %}">contingency plan</a> for preserving existing data.</p>
+	                <p>For more information, visit: <a href="http://perma.cc/docs/perma-link-vesting">http://perma.cc/docs/perma-link-vesting</a>.</p>
+	              </div>
 				
 				  <div class="question" data-href="delete-links">Can I ever delete a vested Perma.cc link?</div>
-				  <div class="answer">No. Vested Perma.cc links can never be deleted once they are created.</div>
+				  <div class="answer">
+				  	<p>No. Vested Perma.cc links can never be deleted once they are created.</p>
+				  </div>
 				
 				  <div class="question" data-href="how-links-vested">How are links vested?</div>
-				  <div class="answer">To vest a Perma Link, a user with vesting privileges (a &quot;Vesting User&quot;) simply needs to visit the Perma Link URL, review the archived material and click the &quot;Vest&quot; button in the upper right corner of the screen.</div>
+				  <div class="answer">
+				  	<p>To vest a Perma Link, a user with vesting privileges (a &quot;Vesting User&quot;) simply needs to visit the Perma Link URL, review the archived material and click the &quot;Vest&quot; button in the upper right corner of the screen.</p>
+				  </div>
 				
 				  <div class="question" data-href="get-vesting-privileges">How do I acquire vesting privileges?</div>
-				  <div class="answer">If you are affiliated with a law library, law journal or court system, <a href="{% url 'about' %}">click here</a> to see if your institution is a perma.cc partner. If so, you can contact your institution directly for information about vesting privileges. If you do not see your institution listed, then please contact us at <a href="mailto:info@perma.cc">info@perma.cc</a>, and we'll see if we can help.</div>
+				  <div class="answer">
+				  	<p>If you are affiliated with a law library, law journal or court system, <a href="{% url 'about' %}">click here</a> to see if your institution is a perma.cc partner. If so, you can contact your institution directly for information about vesting privileges. If you do not see your institution listed, then please contact us at <a href="mailto:info@perma.cc">info@perma.cc</a>, and we'll see if we can help.</p>
+				  </div>
 				
 				  <div class="question" data-href="contact-us">How can I contact Perma.cc?</div>
-				  <div class="answer">Click the <a href="#" onclick="fby.push(['showForm', '5593']);return false;">Feedback</a> link at the bottom of the page or email us at <a href="mailto:info@perma.cc">info@perma.cc</a></div>
-				  
-				  <h2>Librarian FAQs</h2>
-					<div class="question" data-href="become-partner">How can my library become a partnering library?</div>
-					<div class="answer">
-						<p>If your library would like to become a Perma.cc library partner, email <a href="mailto:info@perma.cc">info@perma.cc</a>, and you will be provided with a library “Registrar” account.  This account will allow your library to create “Vesting Organization" accounts for the journals your library chooses to sponsor (traditionally the journals at your institution).</p>
-						<p>For more information on the role of libraries in Perma.cc, visit: <a href="http://perma.cc/docs/libraries">http://perma.cc/docs/libraries</a></p>
-					</div>
-				
-					<div class="question" data-href="sponsor-journal">What does it mean to “sponsor” a journal?</div>
-					<div class="answer">
-						<p>Sponsoring a journal simply means that your library, as an institution, is certifying that a particular publication is a scholarly journal of the sort that a library would subscribe to and archive.</p>
-						<p>For more information about the Perma.cc user roles, visit: <a href="http://perma.cc/docs/perma_user_roles">http://perma.cc/docs/perma_user_roles</a></p>
-					</div>
-				
-					<div class="question" data-href="registrar-responsibilities">What are my responsibilities as a Perma.cc registrar?</div>
-					<div class="answer">
-						<p>A registrar's primary responsibility is creating Vesting Organizations within Perma.cc (typically journals associated with your institution) and setting up at lease one Vesting User account for each Vesting Organization. Journals will be able to use those accounts to give access to their staff, so you won’t have to handle account management for all the students that work on a given journal.</p>
-					</div>
-					
-					<div class="question" data-href="create-journal-accounts">How do I make administrative accounts for journals at my school?</div>
-					<div class="answer">
-						<p>The process for making a Vesting Organization in Perma.cc is quick and simple. Go to the &quot;Manage Users&quot; section of your dashboard, click &quot;Vesting Organizatios,&quot; and click &quot;add new&quot; next to the &quot;Existing Vesting Organizations&quot; heading.</p>
-						<p>Once you have added a Vesting Organization, you can add Vesting Users by clicking the &quot;Vesting Users&quot; heading under &quot;Manage Users&quot; and clicking &quot;add new&quot; next to the &quot;Existing Vesting Users&quot; heading. Make sure to assign new Vesting Users to the appropriate Vesting Organization.<p/>
-						<p>For more information about user roles within Perma.cc, visit: <a href="http://perma.cc/docs/perma_user_roles">http://perma.cc/docs/perma_user_roles</a>.</p>
-					</div>
-					<br/><br/>
+				  <div class="answer">
+				  	<p>Click the <a href="#" onclick="fby.push(['showForm', '5593']);return false;">Feedback</a> link at the bottom of the page or email us at <a href="mailto:info@perma.cc">info@perma.cc</a>.</p>
+				  </div>
+				  <br/><br/>
+			  
+			  <h4><div id="librarian">Librarians</div></h4>
+				<div class="question" data-href="become-partner">How can my library become a partnering library?</div>
+				<div class="answer">
+					<p>If your library would like to become a Perma.cc library partner, email <a href="mailto:info@perma.cc">info@perma.cc</a>, and you will be provided with a library “Registrar” account.  This account will allow your library to create “Vesting Organization" accounts for the journals your library chooses to sponsor (traditionally the journals at your institution).</p>
+					<p>For more information on the role of libraries in Perma.cc, visit: <a href="http://perma.cc/docs/libraries">http://perma.cc/docs/libraries</a></p>
+				</div>
+			
+				<div class="question" data-href="sponsor-journal">What does it mean to “sponsor” a journal?</div>
+				<div class="answer">
+					<p>Sponsoring a journal simply means that your library, as an institution, is certifying that a particular publication is a scholarly journal of the sort that a library would subscribe to and archive.</p>
+					<p>For more information about the Perma.cc user roles, visit: <a href="http://perma.cc/docs/perma_user_roles">http://perma.cc/docs/perma_user_roles</a></p>
+				</div>
+			
+				<div class="question" data-href="registrar-responsibilities">What are my responsibilities as a Perma.cc registrar?</div>
+				<div class="answer">
+					<p>A registrar's primary responsibility is creating Vesting Organizations within Perma.cc (typically journals associated with your institution) and setting up at lease one Vesting User account for each Vesting Organization. Journals will be able to use those accounts to give access to their staff, so you won’t have to handle account management for all the students that work on a given journal.</p>
 				</div>
 				
-				<div class="col-sm-6">
-				  <h2>Vesting User FAQs</h2>
-					<div class="question" data-href="journal-sign-up">How can I sign my journal up to use Perma.cc?</div>
-					<div class="answer">If your journal would like to become a Vesting Organization, simply email <a href="mailto:info@perma.cc">info@perma.cc</a>, and we will connect you with a Registrar library (traditionally the library associated with your institution). The Registrar library will add your journal as a Vesting Organization and create at least one Vesting User account, which will enable you to create the accounts your staff will need to vest Perma.cc Links.</div>
-
-					<div class="question" data-href="how-to-vest">How do I vest a Perma.cc link?</div>
-					<div class="answer">
-						<p>To vest a Perma.cc link, a user with vesting privileges (a &quot;Vesting User&quot;) simply needs to the visit the Perma Link URL, review the archived material and click the &quot;Vest&quot; button in the upper right corner of the screen.</p>
-						<p>For more information, visit: <a hrer="http://perma.cc/docs/perma-link-vesting">http://perma.cc/docs/perma-link-vesting</a>.</p>
-
-					</div>
-					
-					<div class="question" data-href="article-without-links">What if an author submits an article without Perma.cc links?</div>
-					<div class="answer">All vesting members (i.e. editors) will have the capability to both create and vest Perma.cc links.  Thus, vesting members can create Perma.cc links for cited URLs as part of the subciting process.</div>
-				
-					<div class="question" data-href="citation">How should I include the Perma.cc link in a citation?</div>
-					<div class="answer">Each journal has the ability to formulate its own standard.  However, the recommended standard is to incorporate the Perma.cc link URL in brackets after the original URL.</div>
-				
-				  <h2>Vesting Manager FAQs</h2>
-				
-					
-				
-					<div class="question" data-href="vesting-manager-responsibilities">What are my responsibilities as a vesting manager?</div>
-					<div class="answer">The main responsibilities of a vesting manager are to serve as a liaison between the journal and its sponsoring library and to provide staff with “Vesting Member” accounts, which will allow them to vest Perma.cc links.</div>
-				
-					<div class="question" data-href="create-vesting-accounts">How can I create accounts for my vesting members?</div>
-					<div class="answer">To create accounts for your staff members, go to the “Manage Users” tab of the dashboard, and click on “Journal Users.”  Provide the requested information under “Add a new vesting member,” and click “Add vesting member.”  Whether you make individual accounts for each staff member or communal accounts for those checking citations is up to your journal.</div>
-
-				  <h2>Technical FAQs</h2>					
-					<div class="question" data-href="robots-text">I don't want Perma.cc to archive a page from my site.</div>
-					<div class="answer">
-						 <p>
-                             It's important to note that Perma.cc does not crawl your site like a search engine might,
-                             and it does not make its archives available in search engines.
-                             It simply saves a copy of a single page at the request of a user,
-                             as though the user visited your page and used the "Save as ..." function of their browser.
-                         </p>
-						 <p>
-                             If you don't want Perma.cc to make archives of your site available online to future readers of scholarly work,
-                             we're happy to respect your wishes.
-                         </p>
-						 <p>
-                             To prevent online archives for entire sections of your site,
-                             use a configuration in your robots.txt file like the one below:
-                         </p>
-						 <p class="code">
-						 	 User-agent: Perma<br/>
-							 Disallow: /private-stuff/
-						 </p>
-						 <p>
-                             To prevent online archives for a single page, use one of the following meta tags:
-                         </p>
-						 <p class="code">
-							 &lt;meta name="Perma" content="noarchive" /&gt;
-							 &lt;meta name="robots" content="noarchive" /&gt;
-						 </p>
-						 <p>
-                             With either or both of these rules in place, Perma.cc will still allow the user to store
-                             the requested page in library archives, but will not display it at the perma.cc website.
-                         </p>
-					</div>
-					
+				<div class="question" data-href="create-journal-accounts">How do I make administrative accounts for journals at my school?</div>
+				<div class="answer">
+					<p>The process for making a Vesting Organization in Perma.cc is quick and simple. Go to the &quot;Manage Users&quot; section of your dashboard, click &quot;Vesting Organizatios,&quot; and click &quot;add new&quot; next to the &quot;Existing Vesting Organizations&quot; heading.</p>
+					<p>Once you have added a Vesting Organization, you can add Vesting Users by clicking the &quot;Vesting Users&quot; heading under &quot;Manage Users&quot; and clicking &quot;add new&quot; next to the &quot;Existing Vesting Users&quot; heading. Make sure to assign new Vesting Users to the appropriate Vesting Organization.<p/>
+					<p>For more information about user roles within Perma.cc, visit: <a href="http://perma.cc/docs/perma_user_roles">http://perma.cc/docs/perma_user_roles</a>.</p>
 				</div>
-			</div><!--row-->
-    {% comment %}
+				<br/><br/>
+			
+			  <h4><div id="vestinguser">Vesting Users</div></h4>
+				<div class="question" data-href="journal-sign-up">How can I sign my journal up to use Perma.cc?</div>
+				<div class="answer">
+					<p>If your journal would like to become a Vesting Organization, simply email <a href="mailto:info@perma.cc">info@perma.cc</a>, and we will connect you with a Registrar library (traditionally the library associated with your institution). The Registrar library will add your journal as a Vesting Organization and create at least one Vesting User account, which will enable you to create the accounts your staff will need to vest Perma.cc Links.</p>
+				</div>
+
+				<div class="question" data-href="how-to-vest">How do I vest a Perma.cc link?</div>
+				<div class="answer">
+					<p>To vest a Perma.cc link, a user with vesting privileges (a &quot;Vesting User&quot;) simply needs to the visit the Perma Link URL, review the archived material and click the &quot;Vest&quot; button in the upper right corner of the screen.</p>
+					<p>For more information, visit: <a hrer="http://perma.cc/docs/perma-link-vesting">http://perma.cc/docs/perma-link-vesting</a>.</p>
+
+				</div>
+				
+				<div class="question" data-href="article-without-links">What if an author submits an article without Perma.cc links?</div>
+				<div class="answer">
+					<p>All Vesting Users will have the capability to both create and vest Perma.cc links. Thus, Vesting Users can create Perma.cc Links for cited URLs as part of the subciting process.</p>
+				</div>
+			
+				<div class="question" data-href="citation">How should I include the Perma.cc link in a citation?</div>
+				<div class="answer">
+					<p>Each journal has the ability to formulate its own standard. However, we recommend using a citation format that incorporates the Perma.cc Link URL in brackets after the original URL.</p>
+					<p>For example: "Title of Online Source, Author, http://www.example.com/the-original-source-URL.html[http://perma.cc/ABCD-1234]."</p>
+				</div>
+				<br/><br/>
+			
+			  <h4><div id="technical">Technical</div></h4>					
+				<div class="question" data-href="robots-text">I don't want Perma.cc to archive a page from my site.</div>
+				<div class="answer">
+					 <p>
+	                     It's important to note that Perma.cc does not crawl your site like a search engine might,
+	                     and it does not make its archives available in search engines.
+	                     It simply saves a copy of a single page at the request of a user,
+	                     as though the user visited your page and used the "Save as ..." function of their browser.
+	                 </p>
+					 <p>
+	                     If you don't want Perma.cc to make archives of your site available online to future readers of scholarly work,
+	                     we're happy to respect your wishes.
+	                 </p>
+					 <p>
+	                     To prevent online archives for entire sections of your site,
+	                     use a configuration in your robots.txt file like the one below:
+	                 </p>
+					 <p class="code">
+					 	 User-agent: Perma<br/>
+						 Disallow: /private-stuff/
+					 </p>
+					 <p>
+	                     To prevent online archives for a single page, use one of the following meta tags:
+	                 </p>
+					 <p class="code">
+						 &lt;meta name="Perma" content="noarchive" /&gt;
+						 &lt;meta name="robots" content="noarchive" /&gt;
+					 </p>
+					 <p>
+	                     With either or both of these rules in place, Perma.cc will still allow the user to store
+	                     the requested page in library archives, but will not display it at the perma.cc website.
+	                 </p>
+				</div>
+		</div>
+ 
+
+	<!--{% comment %}
 			<div class="row">
 				<h2>How Does Perma Work?</h2>
 				<div class="col-sm-12 column right">	
@@ -147,8 +158,22 @@
 					<p><a href="{{ STATIC_URL }}img/perma-flow.pdf">Download perma-flow.pdf</a></p>
 				</div>
 			</div>
-	{% endcomment %}
+	{% endcomment %}-->
 
+		<div class="col-sm-3 col-sm-offset-1">
+			<ul class="nav nav-pills nav-stacked">
+				<li><a href="{% url 'docs' %}">Overview</a></li>
+				<li><a href="{% url 'docs_getting-started' %}">Getting Started</a></li>
+				<li><a href="{% url 'docs_perma_link_creation' %}">Creating, Organizing & Annotating</a></li>
+				<li><a href="{% url 'docs_perma_link_vesting' %}">Vesting</a></li>
+				<li><a href="{% url 'docs_perma_archive' %}">Archiving & Storage</a></li>
+				<li><a href="{% url 'docs_perma_user_roles' %}">User Roles</a></li>
+				<!--<li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>-->
+				<li><a href="{% url 'docs_libraries' %}">Libraries</a></li>
+				<li class="active"><a href="{% url 'docs_faq' %}">FAQs</a></li>
+			</ul>
+		</div>
+	</div>
 </div><!--container-->
 {% endblock %}
 {% block scripts %}
@@ -157,11 +182,11 @@
   $("div.faq div.question").click(function(event) {
     var href = $(this).data('href');
     window.location.hash = href;
-	$(this).next('div .answer').slideToggle();
+	$(this).next('div.answer').slideToggle();
   });
   
   var hashVal = window.location.hash.split("#")[1];
-    $("*[data-href='" + hashVal +"']").next('div .answer').slideToggle();
+    $("*[data-href='" + hashVal +"']").next('div.answer').slideToggle();
 </script>
 
 
