@@ -173,7 +173,7 @@ $(function(){
         var newWidth = $("#plot-map-container").parent().width();
         paper.scaleAll(newWidth/map.width);
     }
-    $(window).resize(resizePaper());
+    $(window).resize(resizePaper);
     resizePaper();
 
     // plot points

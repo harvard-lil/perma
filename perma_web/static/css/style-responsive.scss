@@ -525,6 +525,10 @@ section#home-description {
         bottom:0;
         box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.4) inset;
     }
+    .thumbnail{
+        vertical-align: top;
+        margin: 1em;
+    }
     .thumbnail > img {
         width: 23%;
         margin: 1em;
@@ -532,7 +536,6 @@ section#home-description {
         vertical-align: middle;
     }
     .caption{
-        width: 70%;
         display: inline-block;
         vertical-align: middle;
 
@@ -540,6 +543,27 @@ section#home-description {
             margin-bottom: 0;
         }
     }
+}
+
+@media(min-width:768px){
+    #examples {
+        .thumbnail {
+            display: table-cell;
+            float: none;
+        }
+        .container {
+            border-collapse: separate;
+        }
+    }
+
+    #examples-items {
+        border-spacing: 5px;
+    }
+}
+@media(min-width:992px){
+  #examples .caption{
+      width: 70%;
+  }
 }
 
 #examples-items{
