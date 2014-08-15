@@ -11,37 +11,46 @@
 				
 				  <div class="question" data-href="what-is">What is Perma.cc?</div>
 				  <div class="answer">
-					<p>Perma.cc is a service that allows users to create citation links that will never break.</p>
-					<p>When a user creates a Perma.cc link, Perma.cc archives a copy of the referenced content, and generates a link to an unalterable hosted instance of the site. Regardless of what may happen to the original source, if the link is later published in a journal using the Perma.cc service, the archived version will always be available through the Perma.cc link.</p>
+					<p>Perma.cc is a service, currently in beta, that helps authors, editors and publishers protect their work - and their readers - from the ill effects of link rot.</p>
+					<p>By using Perma, you can archive web pages cited in your work. Each time you archive a web page, Perma generates a unique URL - a “Perma Link” - that will allow you to direct readers to the cited reference even if the original source goes away.</p>
+					<p>For more information, visit: <a href="http://perma.cc/docs">http://perma.cc/docs</a>.</p>
 				  </div>
 				
-				  <div class="question" data-href="make-link">How can I make a Perma.cc link?</div>
-				  <div class="answer">Perma.cc links can be created on the <a href="{% url 'landing' %}">front page</a>. All it takes is the URL of the page you would like to archive. Once you enter your URL, we'll archive the content for you and give you a Perma.cc link that points to the archived content. If you've used a URL shortener (think <a href="http://bitly.com">bitly</a> and the like) you'll recognize the "exchange my original URL for a new URL" pattern, just add "and archive the content at the URL" and you've fully grasped what Perma.cc does.</div>
+				  <div class="question" data-href="make-link">How do I create a Perma Link?</div>
+				  <div class="answer">
+				  	<p>To create a Perma Link, enter the URL of the web page into the entry box, as shown below, and click on the blue infinity button to direct Perma to create an archive of the contents of that page.  At your direction, Perma will archive the web page found at your specified URL. Once processing is complete, Perma will display a thumbnail image of the archived web page and a new Perma Link (such as perma.cc/ABCD-1234) for that archive.</p>
+				  	<p>For more information, visit: <a href="http://perma.cc/docs/perma-link-creation">http://perma.cc/docs/perma-link-creation</a>.</p>
+				  </div>
 				
-				  <div class="question" data-href="track-links">How can I keep track of my Perma.cc links?</div>
-				  <div class="answer">The last few Perma.cc links that you created are shown at the bottom of the <a href="{% url 'landing' %}">front page</a>, as long as you are using a modern browser. If you have created an account and are logged in, you can see all your links in the management console.</div>
+				  <div class="question" data-href="track-links">How can I keep track of my Perma Links?</div>
+				  <div class="answer">
+				  	<p>To see all URL’s that you have converted to Perma Links, click on Links in the navigation menu on the left of your dashboard. You can organize links in folders, change the titles of your links, and add notes to each link. The notes are visible to you and to anyone with vesting authority with whom you share the Perma Link. You also can search or sort your links using the search bar above the link list or by clicking the column headings.</p>
+				  	<p>For more information, visit: <a href="http://perma.cc/docs/perma-link-creation#organize-links">http://perma.cc/docs/perma-link-creation#organize-links</a>.</p>
+				  </div>
 				
 				  <div class="question" data-href="forever">Will you preserve my Perma.cc link forever?</div>
 				  <div class="answer">
-                      <p>When a link is first created, it is &quot;unvested.&quot; Unvested Perma.cc links may be deleted from time to time, and are subject to page views to prevent abuse. A member of any vesting partner may verify that the link is actually being used in a scholarly publication. Once a link is vested, it will never be deleted unless we receive a legitimate legal order to take it down.</p>
-                      <p>While we cannot guarantee that links will be preserved forever, we are hosted by university libraries that have endured for centuries, and we are planning to be around for the long term. If we ever <i>do</i> need to shut down, we have laid out a detailed <a href="{% url 'contingency_plan' %}">contingency plan</a> for preserving existing data.</p>
+                    <p>All web pages you archive through Perma will begin as unvested, temporary archives. Perma will maintain these archives and their associated Perma Links for at least two years following creation. At the end of that temporary period, Perma will give you the option to renew the archived web page for another temporary period, after which the Perma Link may expire.</p>
+                    <p>To become permanent, however, a Perma Link must be vested by someone with vesting authority. Perma’s focus at this stage is to provide lasting links to online materials cited in academic scholarship, judicial opinions and educational materials. Vesting signifies that an individual affiliated with a journal, court or library has confirmed that the archived materials support these goals and should be preserved as a part of the permanent collection of participating libraries.<p>
+                    <p>While we cannot guarantee that links will be preserved forever, we are hosted by university libraries that have endured for centuries, and we are planning to be around for the long term. If we ever <i>do</i> need to shut down, we have laid out a detailed <a href="{% url 'contingency_plan' %}">contingency plan</a> for preserving existing data.</p>
+                    <p>For more information, visit: <a href="http://perma.cc/docs/perma-link-vesting">http://perma.cc/docs/perma-link-vesting</a>.</p>
                   </div>
 				
 				  <div class="question" data-href="delete-links">Can I ever delete a vested Perma.cc link?</div>
 				  <div class="answer">No. Vested Perma.cc links can never be deleted once they are created.</div>
 				
 				  <div class="question" data-href="how-links-vested">How are links vested?</div>
-				  <div class="answer">Users with vesting accounts can click on the &quot;vest&quot; button in the top-right of any Perma.cc page to vest it.</div>
+				  <div class="answer">To vest a Perma Link, a user with vesting privileges (a &quot;Vesting User&quot;) simply needs to visit the Perma Link URL, review the archived material and click the &quot;Vest&quot; button in the upper right corner of the screen.</div>
 				
 				  <div class="question" data-href="get-vesting-privileges">How do I acquire vesting privileges?</div>
-				  <div class="answer">Vesting accounts are managed by scholarly journals and similar entities that are recognized by libraries. If you are a member of a journal and would like to use Perma.cc, please contact a library to sponsor you. You can see a list of participating libraries on the <a href="{% url 'about' %}">about Perma.cc</a> page.</div>
+				  <div class="answer">If you are affiliated with a law library, law journal or court system, <a href="{% url 'about' %}">click here</a> to see if your institution is a perma.cc partner. If so, you can contact your institution directly for information about vesting privileges. If you do not see your institution listed, then please contact us at <a href="mailto:info@perma.cc">info@perma.cc</a>, and we'll see if we can help.</div>
 				
 				  <div class="question" data-href="contact-us">How can I contact Perma.cc?</div>
-				  <div class="answer">Our <a href="#" onclick="fby.push(['showForm', '5593']);return false;">feedback tool</a> is the best way to contact us. If you'd prefer email, reach us at <a href="mailto:info@perma.cc">info@perma.cc</a></div>
+				  <div class="answer">Click the <a href="#" onclick="fby.push(['showForm', '5593']);return false;">Feedback</a> link at the bottom of the page or email us at <a href="mailto:info@perma.cc">info@perma.cc</a></div>
 				  
 				  <h2>Librarian FAQs</h2>
 					<div class="question" data-href="become-partner">How can my library become a partnering library?</div>
-					<div class="answer">If your library would like to become a Perma.cc library partner, email <a href="mailto:info@perma.cc">info@perma.cc</a>, and you will be provided with a library “Registrar” account.  This account will enable your library to create “Vesting Manager” accounts for the journals your library chooses to sponsor (traditionally the journals at your institution).</div>
+					<div class="answer">If your library would like to become a Perma.cc library partner, email <a href="mailto:info@perma.cc">info@perma.cc</a>, and you will be provided with a library “Registrar” account.  This account will allow your library to create “Vesting Organization" accounts for the journals your library chooses to sponsor (traditionally the journals at your institution).</div>
 				
 					<div class="question" data-href="sponsor-journal">What does it mean to “sponsor” a journal?</div>
 					<div class="answer">Sponsoring a journal simply means that your library, as an institution, is certifying that a particular publication is a scholarly journal of the sort that a library would subscribe to and archive.</div>

@@ -1,2 +1,0 @@
-# make sure libffi is in path
-set-env LD_LIBRARY_PATH "\$LD_LIBRARY_PATH:/app/vendor/libffi-3.0/lib"

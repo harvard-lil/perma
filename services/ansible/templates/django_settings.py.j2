@@ -1,0 +1,45 @@
+from .deployments.settings_prod import *
+
+# File locations
+MEDIA_ROOT = '{{ assets_dir }}/generated'
+STATIC_ROOT = '{{ assets_dir }}/static'
+MONITOR_ROOT = '{{ assets_dir }}/monitor'
+
+# Logging locations
+PHANTOMJS_LOG = '{{ logs_dir }}/phantomjs.log'
+LOGGING['handlers']['default']['filename'] = '{{ logs_dir }}/django.log'
+
+# passwords
+SECRET_KEY = '{{ django_secret_key }}'
+DATABASES['default']['PASSWORD'] = '{{ database_password }}'
+
+# hosts
+ALLOWED_HOSTS = [
+    'perma.cc',
+    'permabox.perma.cc',
+    'everlib.org',
+]
+HOST = 'perma.cc'
+
+# Google Analytics
+GOOGLE_ANALYTICS_KEY = 'UA-XXXXX-X'
+GOOGLE_ANALYTICS_DOMAIN = 'example.com'
+
+# tasks
+CELERYBEAT_SCHEDULE = {
+    'check-for-missing-links': {
+        'task': 'mirroring.tasks.sync_mirror',
+        'schedule': crontab(minute='05', hour='03', day_of_week='*'),
+    },
+}
+
+# mirroring
+MIRRORING_ENABLED = True
+MIRROR_SERVER = True
+MIRROR_USERS_SUBDOMAIN = 'dashboard'
+
+# mirror v1 stuff
+UPSTREAM_SERVER = {
+    'address':'http://10.0.0.1/', # perma-mirror
+    'headers':{'Host':'everlib.org'}
+}

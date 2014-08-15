@@ -1,0 +1,18 @@
+---
+- action: phantomjs_facts
+
+- get_url:
+    url: "{{ phantomjs_url }}"
+    dest: "/tmp/phantomjs.tar.bz2"
+    force: true
+  when: "not phantomjs.installed or phantomjs.version != '{{ phantomjs_version }}'"
+
+# extract and copy in one step --strip-components=2 takes care that we don't copy the entire path just the bin file
+- shell: "cd /tmp && tar xvjf /tmp/phantomjs.tar.bz2 -C /usr/local/bin/ --overwrite --wildcards '**/bin/phantomjs' --strip-components=2"
+  sudo: true
+  when: "not phantomjs.installed or phantomjs.version != '{{ phantomjs_version }}'"
+
+- file:
+    path: /usr/local/bin/phantomjs
+    state: file
+    mode: 0755

@@ -1,0 +1,30 @@
+#!/usr/bin/python
+import subprocess
+
+# config stuff
+celery_log = "{{ logs_dir }}/celery_user_queue.log"
+note_length = 50 # milliseconds
+
+# music theory stuff
+half_step = 2**(1.0/12)
+root_note = 440
+def shift_note(note, half_steps):
+    return note*(half_step**half_steps)
+notes = {
+    "A4":root_note,
+    "D5":shift_note(root_note, 5),
+    "E5":shift_note(root_note, 7),
+}
+
+# function to play a system beep
+def beep(frequency, length):
+    subprocess.call(["beep", "-f", str(frequency), "-l", str(length)])
+
+# tail celery log and beep whenever we create a new archive
+p = subprocess.Popen(["tail", "-f", celery_log], stdout=subprocess.PIPE)
+while 1:
+    line = p.stdout.readline()
+    if "mirroring.tasks.update_perma" in line and "succeeded" in line:
+        beep(notes["A4"], 50)
+        beep(notes["D5"], 50)
+        beep(notes["E5"], 50)

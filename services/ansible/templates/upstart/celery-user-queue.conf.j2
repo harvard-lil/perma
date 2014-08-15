@@ -1,0 +1,15 @@
+# This process handles celery tasks where a user is waiting on the results, such as creating a Perma Link.
+# TODO: Currently all tasks go into this queue.
+
+description "celery-user-queue"
+
+start on (started rabbitmq-server) and (started mysql)
+stop on (stopping rabbitmq-server) or (stopping mysql)
+
+respawn
+console log
+setuid perma
+setgid perma
+
+exec {{ git_dir }}/venv/bin/celery -A perma worker --loglevel=info -Q celery --logfile={{ logs_dir }}/celery_user_queue.log --workdir={{ git_dir }}/perma_web/ -B
+

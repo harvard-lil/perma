@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ### set up vagrant user ###
 echo '. "/vagrant/services/vagrant/profile.sh"' >> /home/vagrant/.profile

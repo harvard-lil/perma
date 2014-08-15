@@ -114,6 +114,24 @@ You should always run the tests before committing code.
 
 The `fab test` command also generates handy coverage information. You can access it with the `coverage` command.
 
+#### Sauce Browser Tests
+
+We also use Sauce Labs to do functional testing of the site in common browsers before deploying. If you have a Sauce account,
+you can set SAUCE_USERNAME and SAUCE_ACCESS_KEY in settings.py, and then run our Sauce tests with
+ 
+    $ fab test_sauce
+    
+By default `fab test_sauce` is pointed at 127.0.0.1:8000, which Sauce can't reach from outside, so you'll have to set
+up a tunnel first by running
+
+    $ fab sauce_tunnel
+    
+in the background or in another terminal window.
+
+The Sauce tests live in services/sauce/run_tests.py. If you are developing new tests in that file, it may be more
+convenient to change to that directory and run `python run_tests.py`, rather than the full-blown parallel testing
+kicked off by `fab test_sauce`.
+
 ### Debugging email-related issues
 
 If you're working on an email related task, the contents of emails should be dumped to the standard out courtesy of EMAIL_BACKEND in settings_dev.py.
@@ -134,312 +152,36 @@ To set that up, first edit your hosts file (/etc/hosts or \system32\drivers\etc\
 
 (If you're using Vagrant, this should happen on your host machine. The rest happens in the guest machine.)
 
-Edit your settings.py:
-
-    MIRRORING_ENABLED = True
-    HOST = 'perma.dev'
-
 Install Twisted:
 
     pip install twisted
-
-Create the mirror database (the default root password if you're using the Vagrant image is 'root'):
-
-    mysql -u root -p
-	mysql> create database perma_mirror character set utf8; grant all on perma_mirror.* to perma@'localhost' identified by 'perma';
-
-Perma syncs the main server and the mirrors on a schedule. You can simulate the sync at any time by running this command:
-
-    mysqldump -uperma -p --ignore-table=perma.perma_linkuser perma | mysql -uperma -p perma_mirror
-
-Once everything's set up, you can launch the simple load balancer and two Django dev servers:
+    
+Launch the simple load balancer and two Django dev servers:
 
     python manage.py runmirror
 
-You can edit the codebase normally and each server will incorporate your changes. Remember that if you want the mirror
-server to see database updates, you'll have to re-run the mysqldump command each time.
+You can edit the codebase normally and each server will incorporate your changes.
+
+To see how the mirror emulation works, check out perma_web/mirroring/management/commands/runmirror.py
 
 ### Working with Celery
 
 Celery does two things in Perma.cc. It runs the indexing tasks (the things that accept a url and generate an archive) and it runs the scheduled jobs (to gather things nightly like statistics. just like cron might).
 
-In your development environment, you probably want to start a dev version of Celery using manage.py,
+In your development environment (if you are not using Vagrant, where the celery service should be running by default), you probably want to start a dev version of Celery like this:
 
-    $ python manage.py celery worker --loglevel=info -B
+    $ celery -A perma worker --loglevel=info -B
 
-The -B option also starts the Beat server. The Beat server is the thing that runs the scheudled jobs. You don't need the -B if you don't want to run the nightly scheduled jobs.
+The -B option also starts the Beat server. The Beat server is the thing that runs the scheduled jobs. You don't need the -B if you don't want to run the nightly scheduled jobs.
 
 If you make changes to a Perma.cc Celery task, you'll need to stop and start the Celery server.
 
-If you want to run Celery as a daemon (like you might in prod), create a something like /etc/init.d/celery and place this in it,
+If you want to run Celery as a daemon (like you might in prod), there is an example upstart script in services/celery/celery.conf.
+This is the script that is used to run the daemon for Vagrant.
 
-	#!/bin/sh -e
-	# ============================================
-	#  celeryd - Starts the Celery worker daemon.
-	# ============================================
-	#
-	# :Usage: /etc/init.d/celeryd {start|stop|force-reload|restart|try-restart|status}
-	# :Configuration file: /etc/default/celeryd
-	#
-	# See http://docs.celeryproject.org/en/latest/tutorials/daemonizing.html#generic-init-scripts
+Once installed in /etc/init/, you can start and stop Celery as a service. Something like,
 
-
-	### BEGIN INIT INFO
-	# Provides:          celeryd
-	# Required-Start:    $network $local_fs $remote_fs
-	# Required-Stop:     $network $local_fs $remote_fs
-	# Default-Start:     2 3 4 5
-	# Default-Stop:      0 1 6
-	# Short-Description: celery task worker daemon
-	### END INIT INFO
-
-	# some commands work asyncronously, so we'll wait this many seconds
-	SLEEP_SECONDS=5
-
-	DEFAULT_PID_FILE="/var/run/celery/%n.pid"
-	DEFAULT_LOG_FILE="/var/log/celery/%n.log"
-	DEFAULT_LOG_LEVEL="INFO"
-	DEFAULT_NODES="celery"
-	DEFAULT_CELERYD="-m celery.bin.celeryd_detach"
-
-	CELERY_DEFAULTS=${CELERY_DEFAULTS:-"/etc/default/celery"}
-
-	test -f "$CELERY_DEFAULTS" && . "$CELERY_DEFAULTS"
-
-	# Set CELERY_CREATE_DIRS to always create log/pid dirs.
-	CELERY_CREATE_DIRS=${CELERY_CREATE_DIRS:-0}
-	CELERY_CREATE_RUNDIR=$CELERY_CREATE_DIRS
-	CELERY_CREATE_LOGDIR=$CELERY_CREATE_DIRS
-	if [ -z "$CELERYD_PID_FILE" ]; then
-	    CELERYD_PID_FILE="$DEFAULT_PID_FILE"
-	    CELERY_CREATE_RUNDIR=1
-	fi
-	if [ -z "$CELERYD_LOG_FILE" ]; then
-	    CELERYD_LOG_FILE="$DEFAULT_LOG_FILE"
-	    CELERY_CREATE_LOGDIR=1
-	fi
-
-	CELERYD_LOG_LEVEL=${CELERYD_LOG_LEVEL:-${CELERYD_LOGLEVEL:-$DEFAULT_LOG_LEVEL}}
-	CELERYD_MULTI=${CELERYD_MULTI:-"celeryd-multi"}
-	CELERYD=${CELERYD:-$DEFAULT_CELERYD}
-	CELERYD_NODES=${CELERYD_NODES:-$DEFAULT_NODES}
-
-	export CELERY_LOADER
-
-	if [ -n "$2" ]; then
-	    CELERYD_OPTS="$CELERYD_OPTS $2"
-	fi
-
-	CELERYD_LOG_DIR=`dirname $CELERYD_LOG_FILE`
-	CELERYD_PID_DIR=`dirname $CELERYD_PID_FILE`
-
-	# Extra start-stop-daemon options, like user/group.
-	if [ -n "$CELERYD_USER" ]; then
-	    DAEMON_OPTS="$DAEMON_OPTS --uid=$CELERYD_USER"
-	fi
-	if [ -n "$CELERYD_GROUP" ]; then
-	    DAEMON_OPTS="$DAEMON_OPTS --gid=$CELERYD_GROUP"
-	fi
-
-	if [ -n "$CELERYD_CHDIR" ]; then
-	    DAEMON_OPTS="$DAEMON_OPTS --workdir=$CELERYD_CHDIR"
-	fi
-
-
-	check_dev_null() {
-	    if [ ! -c /dev/null ]; then
-	        echo "/dev/null is not a character device!"
-	        exit 75  # EX_TEMPFAIL
-	    fi
-	}
-
-
-	maybe_die() {
-	    if [ $? -ne 0 ]; then
-	        echo "Exiting: $* (errno $?)"
-	        exit 77  # EX_NOPERM
-	    fi
-	}
-
-	create_default_dir() {
-	    if [ ! -d "$1" ]; then
-	        echo "- Creating default directory: '$1'"
-	        mkdir -p "$1"
-	        maybe_die "Couldn't create directory $1"
-	        echo "- Changing permissions of '$1' to 02755"
-	        chmod 02755 "$1"
-	        maybe_die "Couldn't change permissions for $1"
-	        if [ -n "$CELERYD_USER" ]; then
-	            echo "- Changing owner of '$1' to '$CELERYD_USER'"
-	            chown "$CELERYD_USER" "$1"
-	            maybe_die "Couldn't change owner of $1"
-	        fi
-	        if [ -n "$CELERYD_GROUP" ]; then
-	            echo "- Changing group of '$1' to '$CELERYD_GROUP'"
-	            chgrp "$CELERYD_GROUP" "$1"
-	            maybe_die "Couldn't change group of $1"
-	        fi
-	    fi
-	}
-
-
-	check_paths() {
-	    if [ $CELERY_CREATE_LOGDIR -eq 1 ]; then
-	        create_default_dir "$CELERYD_LOG_DIR"
-	    fi
-	    if [ $CELERY_CREATE_RUNDIR -eq 1 ]; then
-	        create_default_dir "$CELERYD_PID_DIR"
-	    fi
-	}
-
-	create_paths() {
-	    create_default_dir "$CELERYD_LOG_DIR"
-	    create_default_dir "$CELERYD_PID_DIR"
-	}
-
-	export PATH="${PATH:+$PATH:}/usr/sbin:/sbin"
-
-
-	_get_pid_files() {
-	    [ ! -d "$CELERYD_PID_DIR" ] && return
-	    echo `ls -1 "$CELERYD_PID_DIR"/*.pid 2> /dev/null`
-	}
-
-	stop_workers () {
-	    $CELERYD_MULTI stopwait $CELERYD_NODES --pidfile="$CELERYD_PID_FILE"
-	    sleep $SLEEP_SECONDS
-	}
-
-
-	start_workers () {
-	    $CELERYD_MULTI start $CELERYD_NODES $DAEMON_OPTS        \
-	                         --pidfile="$CELERYD_PID_FILE"      \
-	                         --logfile="$CELERYD_LOG_FILE"      \
-	                         --loglevel="$CELERYD_LOG_LEVEL"    \
-	                         --cmd="$CELERYD"                   \
-	                         $CELERYD_OPTS
-	    sleep $SLEEP_SECONDS
-	}
-
-
-	restart_workers () {
-	    $CELERYD_MULTI restart $CELERYD_NODES $DAEMON_OPTS      \
-	                           --pidfile="$CELERYD_PID_FILE"    \
-	                           --logfile="$CELERYD_LOG_FILE"    \
-	                           --loglevel="$CELERYD_LOG_LEVEL"  \
-	                           --cmd="$CELERYD"                 \
-	                           $CELERYD_OPTS
-	    sleep $SLEEP_SECONDS
-	}
-
-	check_status () {
-	    local pid_files=
-	    pid_files=`_get_pid_files`
-	    [ -z "$pid_files" ] && echo "celery not running (no pidfile)" && exit 1
-
-	    local one_failed=
-	    for pid_file in $pid_files; do
-	        local node=`basename "$pid_file" .pid`
-	        local pid=`cat "$pid_file"`
-	        local cleaned_pid=`echo "$pid" | sed -e 's/[^0-9]//g'`
-	        if [ -z "$pid" ] || [ "$cleaned_pid" != "$pid" ]; then
-	            echo "bad pid file ($pid_file)"
-	        else
-	            local failed=
-	            kill -0 $pid 2> /dev/null || failed=true
-	            if [ "$failed" ]; then
-	                echo "celery (node $node) (pid $pid) is stopped, but pid file exists!"
-	                one_failed=true
-	            else
-	                echo "celery (node $node) (pid $pid) is running..."
-	            fi
-	        fi
-	    done
-
-	    [ "$one_failed" ] && exit 1 || exit 0
-	}
-
-
-	case "$1" in
-	    start)
-	        check_dev_null
-	        check_paths
-	        start_workers
-	    ;;
-
-	    stop)
-	        check_dev_null
-	        check_paths
-	        stop_workers
-	    ;;
-
-	    reload|force-reload)
-	        echo "Use restart"
-	    ;;
-
-	    status)
-	        check_status
-	    ;;
-
-	    restart)
-	        check_dev_null
-	        check_paths
-	        restart_workers
-	    ;;
-	    try-restart)
-	        check_dev_null
-	        check_paths
-	        restart_workers
-	    ;;
-	    create-paths)
-	        check_dev_null
-	        create_paths
-	    ;;
-	    check-paths)
-	        check_dev_null
-	        check_paths
-	    ;;
-	    *)
-	        echo "Usage: /etc/init.d/celery {start|stop|restart|kill|create-paths}"
-	        exit 64  # EX_USAGE
-	    ;;
-	esac
-
-	exit 0
-
-
-This Celery service will look for a config file at /etc/default/celery and that file might look like,
-
-	# Name of nodes to start
-	CELERYD_NODES="w1"
-
-	# Where to chdir at start.
-	CELERYD_CHDIR="/your perma home/"
-
-	# How to call "manage.py celeryd_multi"
-	CELERYD_MULTI="$CELERYD_CHDIR/manage.py celeryd_multi"
-
-	# How to call "manage.py celeryctl"
-	CELERYCTL="$CELERYD_CHDIR/manage.py celeryctl"
-
-	# Extra arguments to celeryd
-	CELERYD_OPTS="--loglevel=info --time-limit=7200"
-
-	# %n will be replaced with the nodename.
-	CELERYD_LOG_FILE="/var/log/celery/%n.log"
-	CELERYD_PID_FILE="/var/run/celery/%n.pid"
-
-	# Workers should run as an unprivileged user.
-	CELERYD_USER="celery"
-	CELERYD_GROUP="dev-group"
-
-	# Name of the projects settings module.
-	export DJANGO_SETTINGS_MODULE="perma.settings"
-
-
-Now you can start and stop Celery as a service. Something like,
-
-    $ sudo service celery stop; sudo service celery start; 
+    $ sudo stop celery; sudo start celery 
 
 Find more about daemonizing Celery in the [in the Celery docs](http://docs.celeryproject.org/en/latest/tutorials/daemonizing.html#daemonizing).
 

@@ -1,5 +1,9 @@
 {% extends "layout-responsive.html" %}
 
+{% block meta_description %}
+Register for a Perma.cc account. Welcome aboard.
+{% endblock %}
+
 {% block content %}
 <div class="container">
 	<div class="row">
@@ -8,8 +12,8 @@
 			<form method="post" action="">
 				{% csrf_token %}
 				 <fieldset>
-				<span class="text-error"><br/>{{ editor_reg_form.non_field_errors }}</span>
-				{% for field in editor_reg_form %}
+				<span class="text-error"><br/>{{ form.non_field_errors }}</span>
+				{% for field in form %}
 				  <label for="id_{{ field.name }}">{{ field.label }}</label><br/>
 				  {{ field }}
 				  {% if field.errors %}

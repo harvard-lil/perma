@@ -1,0 +1,6 @@
+Subnet = {{ hostvars[item].tinc.vpn_ip }}/32
+{% if hostvars[item].tinc.public_ip -%}
+    Address = {{ hostvars[item].tinc.public_ip }}
+{% endif %}
+
+{{ hostvars[item].tinc.public_key }}

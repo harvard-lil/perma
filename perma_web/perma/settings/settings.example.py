@@ -2,8 +2,8 @@
 # Only override the ones you need to, so you're less likely to have to make manual settings updates after pulling in changes.
 
 # Choose one of these:
-# from settings_dev import *
-# from settings_prod import *
+# from .deployments.settings_dev import *
+# from .deployments.settings_prod import *
 
 
 ADMINS = (
@@ -38,12 +38,6 @@ ALLOWED_HOSTS = []
 # in prod, you'll likely want to set this
 # MEDIA_ROOT = '/perma/assets/generated'
 
-# Instapaper credentials
-INSTAPAPER_KEY = 'key'
-INSTAPAPER_SECRET = 'secret'
-INSTAPAPER_USER = 'user@example.com'
-INSTAPAPER_PASS = 'pass'
-
 # Google Analytics
 GOOGLE_ANALYTICS_KEY = 'UA-XXXXX-X'
 GOOGLE_ANALYTICS_DOMAIN = 'example.com'
@@ -57,3 +51,8 @@ DEVELOPER_EMAIL = DEFAULT_FROM_EMAIL
 
 # The host we want to display (used when DEBUG=False)
 HOST = 'perma.cc'
+
+
+# Sauce Labs credentials
+SAUCE_USERNAME = ''
+SAUCE_ACCESS_KEY = ''

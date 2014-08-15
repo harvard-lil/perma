@@ -9,19 +9,23 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
+from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import send_mail
 
 from datetime import datetime
-import urllib2, os, logging, re
+import urllib2, os, logging
 from urlparse import urlparse
-from django.views.decorators.csrf import csrf_exempt
-from pywb.warc.archiveindexer import ArchiveIndexer
+from pywb.warc.cdxindexer import write_cdx_index
+import requests
 import surt
 import json
 from ratelimit.decorators import ratelimit
 
-from perma.middleware import get_url_for_host
-from perma.models import Link, Asset
-from perma.utils import can_be_mirrored
+from mirroring.middleware import get_url_for_host
+from mirroring.utils import must_be_mirrored
+
+from ..models import Link, Asset
+from perma.forms import ContactForm
 
 
 logger = logging.getLogger(__name__)
@@ -42,9 +46,9 @@ class DirectTemplateView(TemplateView):
                     context[key] = value
         return context
 
-    @method_decorator(can_be_mirrored)
+    @method_decorator(must_be_mirrored)
     def dispatch(self, request, *args, **kwargs):
-        """ Add can_be_mirrored decorator. """
+        """ Add must_be_mirrored decorator. """
         return super(DirectTemplateView, self).dispatch(request, *args, **kwargs)
 
 def stats(request):
@@ -60,6 +64,7 @@ def stats(request):
     return render_to_response('stats.html', context)
 
 @csrf_exempt
+@must_be_mirrored
 def cdx(request):
     """
         This function handles WARC lookups by our warc server (running in warc_server).
@@ -80,18 +85,16 @@ def cdx(request):
             warc_path = os.path.join(asset.base_storage_path, asset.warc_capture)
             break
     else:
-        if settings.USE_WARC_ARCHIVE:
-            print "COULDN'T FIND WARC"
-            raise Http404 # no .warc file -- do something to handle this
-        else:
-            warc_path = os.path.join(asset.base_storage_path, "archive.warc.gz")
+        print "COULDN'T FIND WARC"
+        raise Http404 # no .warc file -- do something to handle this?
 
     # get cdx file
     cdx_path = warc_path.replace('.gz', '').replace('.warc', '.cdx')
     if not default_storage.exists(cdx_path):
         # if we can't find the CDX file associated with this WARC, create it
         with default_storage.open(warc_path, 'rb') as warc_file, default_storage.open(cdx_path, 'wb') as cdx_file:
-            ArchiveIndexer(warc_file, warc_path, cdx_file, sort=True).make_index()
+            write_cdx_index(cdx_file, warc_file, warc_path, sort=True)
+
     cdx_lines = default_storage.open(cdx_path, 'rb')
 
     # find cdx lines for url
@@ -111,13 +114,13 @@ def cdx(request):
     print "COULDN'T FIND URL"
     raise Http404 # didn't find requested url in .cdx file
 
-def single_link_main_server(request, guid):
-    return single_linky(request, guid)
-
-@can_be_mirrored
-@ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block='True')
-@ratelimit(method='GET', rate=settings.HOUR_LIMIT, block='True')
-@ratelimit(method='GET', rate=settings.DAY_LIMIT, block='True')
+@must_be_mirrored
+@ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block=True, ip=False,
+           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
+@ratelimit(method='GET', rate=settings.HOUR_LIMIT, block=True, ip=False,
+           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
+@ratelimit(method='GET', rate=settings.DAY_LIMIT, block=True, ip=False,
+           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
 def single_linky(request, guid):
     """
     Given a Perma ID, serve it up. Vesting also takes place here.
@@ -148,14 +151,19 @@ def single_linky(request, guid):
         if settings.MIRROR_SERVER:
             # if we can't find the Link, and we're a mirror server, try fetching it from main server
             try:
-                req = urllib2.Request(get_url_for_host(request,
-                                                       request.main_server_host,
-                                                       reverse('single_link_main_server', args=[guid])+"?type="+serve_type),
-                                      headers={'Content-Type': 'application/json'})
-                link_json = urllib2.urlopen(req)
-            except urllib2.HTTPError:
+                json_url = get_url_for_host(request,
+                                            request.main_server_host,
+                                            reverse('mirroring:single_link_json', args=[guid])+"?type="+serve_type)
+                json_response = requests.get(json_url, headers={'Content-Type': 'application/json'})
+            except requests.ConnectionError:
                 raise Http404
-            context = json.loads(link_json.read())
+
+            # check response
+            if not json_response.ok:
+                raise Http404
+
+            # load context from JSON
+            context = json.loads(json_response.content)
             context['linky'] = serializers.deserialize("json", context['linky']).next().object
             context['asset'] = serializers.deserialize("json", context['asset']).next().object
             context['asset'].link = context['linky']
@@ -183,13 +191,10 @@ def single_linky(request, guid):
         display_iframe = False
         if serve_type == 'live':
             try:
-                response = urllib2.urlopen(link.submitted_url)
-                if 'X-Frame-Options' in response.headers:
-                    # TODO actually check if X-Frame-Options specifically allows requests from us
-                    display_iframe = False
-                else:
-                    display_iframe = True
-            except urllib2.URLError:
+                response = requests.head(link.submitted_url)
+                display_iframe = 'X-Frame-Options' not in response.headers
+                # TODO actually check if X-Frame-Options specifically allows requests from us
+            except:
                 # Something is broken with the site, so we might as well display it in an iFrame so the user knows
                 display_iframe = True
 
@@ -214,7 +219,6 @@ def single_linky(request, guid):
         if context['asset'].warc_download_url():
             return HttpResponseRedirect(context.get('MEDIA_URL', settings.MEDIA_URL)+context['asset'].warc_download_url())
 
-    context['USE_WARC_ARCHIVE'] = settings.USE_WARC_ARCHIVE
     return render_to_response('single-link.html', context, RequestContext(request))
 
 
@@ -232,3 +236,56 @@ def server_error_404(request):
 
 def server_error_500(request):
     return HttpResponseServerError(render_to_string('500.html', context_instance=RequestContext(request)))
+
+@csrf_exempt
+@ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block=True, ip=False,
+           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
+def contact(request):
+    """
+    Our contact form page
+    """
+
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            # If our form is valid, let's generate and email to our contact folks
+
+            user_agent = 'Unknown'
+            if 'HTTP_USER_AGENT' in request.META:
+                user_agent = request.META.get('HTTP_USER_AGENT')
+
+            from_address = form.cleaned_data['email']
+
+            content = '''
+            This is a message from the Perma.cc contact form, http://perma.cc/contact
+
+
+
+            Message from user
+            --------
+            %s
+
+
+            User email: %s
+            User agent: %s
+
+            ''' % (form.cleaned_data['message'], from_address, user_agent)
+
+            send_mail(
+                "New message from Perma contact form",
+                content,
+                from_address,
+                [settings.DEFAULT_FROM_EMAIL], fail_silently=False
+            )
+
+            # redirect to a new URL:
+            return HttpResponseRedirect(reverse('contact_thanks'))
+        else:
+            context = RequestContext(request, {'form': form})
+            return render_to_response('contact.html', context)
+
+    else:
+        form = ContactForm()
+
+        context = RequestContext(request, {'form': form})
+        return render_to_response('contact.html', context)

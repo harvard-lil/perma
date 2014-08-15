@@ -1,9 +1,16 @@
 language: python
 python:
   - "2.7"
-env: DJANGO_SETTINGS_MODULE=perma.settings.settings_travis CFLAGS="-O0"
+env: CFLAGS="-O0"
 
-before_install: cd perma_web
+# make sure perma.dev resolves to localhost so our tests work
+addons:
+  hosts:
+    - perma.dev
+
+before_install:
+  - cp services/travis/settings.py perma_web/perma/settings/
+  - cd perma_web
 install:
   - pip install -r requirements.txt
   - pip install coveralls
@@ -13,5 +20,4 @@ before_script:
 script:
   fab test
 after_success:
-  - coveralls debug
   - coveralls

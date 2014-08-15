@@ -7,14 +7,17 @@ $(document).ready(function() {
     // Select the input text when the user clicks the element
     $('.select-on-click').click(function() { $(this).select(); });
     
-    $('.add-link-container').on('click', '#report-error', function() {
-        var brokenLink = $('#broken-link').text(); console.log(brokenLink);
-        $('#broken-link-report').html('<strong>' + brokenLink + '</strong> is causing an error.');
+    $('.preview-row').on('click', '#report-error', function() {
+        var brokenLink = $('#rawUrl').val();
+        $('#broken-link-report').html('<strong id="broken-link">' + brokenLink + '</strong> is causing an error.');
     });
     
     $('#feedbackModal').on('hidden.bs.modal', function (e) {
+        $('.feedback-form-inputs').show();
+        $('.feedback-form-submitted').hide();
         $('#broken-link-report').html('');
         $('form.feedback').find("input[type=email], textarea").val("");
+        $('#user_email').val(user_email);
     })
 
     
@@ -31,7 +34,9 @@ $(document).ready(function() {
             url: feedback_url, //process to mail
             data: data,
             success: function(msg){
-                $("#feedbackModal").modal('hide'); //hide popup 
+                //$("#feedbackModal").modal('hide'); //hide popup 
+                $('.feedback-form-inputs').slideUp();
+                $('.feedback-form-submitted').fadeIn();
             },
             error: function(){
                 alert("failure");
@@ -61,4 +66,14 @@ function getCookie(name) {
         }
     }
     return cookieValue;
+}
+
+// check if this is a retina-style display
+// via http://stackoverflow.com/a/20413768
+function isHighDensity(){
+    return (
+        (window.matchMedia &&
+            (window.matchMedia('only screen and (min-resolution: 124dpi), only screen and (min-resolution: 1.3dppx), only screen and (min-resolution: 48.8dpcm)').matches ||
+             window.matchMedia('only screen and (-webkit-min-device-pixel-ratio: 1.3), only screen and (-o-min-device-pixel-ratio: 2.6/2), only screen and (min--moz-device-pixel-ratio: 1.3), only screen and (min-device-pixel-ratio: 1.3)').matches
+        )) || (window.devicePixelRatio && window.devicePixelRatio > 1.3));
 }

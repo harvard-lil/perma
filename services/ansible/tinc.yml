@@ -1,0 +1,51 @@
+---
+
+- hosts: tinc
+  sudo: yes
+
+  # Config vars.
+  vars:
+    vpn_dir: /etc/tinc/permavpn
+
+  tasks:
+    - name: Install tinc (debian)
+      apt: pkg=tinc
+      when: ansible_os_family == 'Debian'
+
+    # sudo rpm -Uvh http://pkgs.repoforge.org/rpmforge-release/rpmforge-release-0.5.3-1.el6.rf.x86_64.rpm
+    - name: Install tinc (redhat)
+      yum: pkg=tinc
+      when: ansible_os_family == 'RedHat'
+
+    - name: Create tinc directories.
+      file: path={{ vpn_dir }}/hosts mode=0700 state=directory
+
+    - name: Install templates.
+      template: src=templates/tinc/{{ item }}.j2 dest={{ vpn_dir }}/{{ item }} mode=0700
+      with_items:
+        - tinc.conf
+        - tinc-up
+        - tinc-down
+
+    - name: Install private key.
+      copy: content="{{ tinc.private_key }}" dest={{ vpn_dir }}/rsa_key.priv mode=0600
+
+    - name: Install public keys for all nodes.
+      template: src=templates/tinc/hosts_file.j2 dest={{ vpn_dir }}/hosts/{{ hostvars[item].tinc.name }}
+      with_items: groups['tinc']
+
+    - name: Make sure permavpn is started on boot.
+      file: path={{ vpn_dir }}/../nets.boot state=touch
+    - lineinfile: dest={{ vpn_dir }}/../nets.boot line=permavpn
+
+    # init scripts
+    - service: name=tinc state=stopped
+      register: command_result
+      failed_when: "command_result|failed and 'cannot find' not in command_result.msg"
+    - file: name=/etc/init.d/tinc state=absent
+    - name: Upstart services.
+      template: src=templates/upstart/{{ item }}.conf.j2 dest=/etc/init/{{ item }}.conf
+      with_items:
+        - tinc-all
+        - tinc
+    - service: name=tinc-all state=started

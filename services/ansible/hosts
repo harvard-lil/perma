@@ -1,0 +1,9 @@
+[perma-mirror]
+perma-mirror
+
+[permaboxes]
+permabox
+
+[tinc:children]
+perma-mirror
+permaboxes

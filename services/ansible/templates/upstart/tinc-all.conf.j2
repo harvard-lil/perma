@@ -1,0 +1,28 @@
+# based on https://github.com/Youscribe/tinc-cookbook/blob/master/files/default/upstart-tinc-all.conf
+description "Tinc VPN (start all networks)"
+
+start on filesystem
+
+pre-start script
+    test -r /etc/tinc/nets.boot || { stop; exit 0; }
+end script
+
+script
+    egrep '^[ ]*[a-zA-Z0-9_-]+' /etc/tinc/nets.boot | while read net args; do
+        if ! initctl list | grep -q "tinc ($net) start"; then
+            start tinc NETWORK="$net"
+        fi
+    done
+
+    # just stay open until killed
+    while sleep 1800 ; do :; done
+end script
+
+pre-stop script
+    # we're being killed -- shut down all tinc instances
+    egrep '^[ ]*[a-zA-Z0-9_-]+' /etc/tinc/nets.boot | while read net args; do
+        if initctl list | grep -q "tinc ($net) start"; then
+            stop tinc NETWORK="$net"
+        fi
+    done
+end script

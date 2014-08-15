@@ -29,11 +29,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.box_url = "http://files.vagrantup.com/precise64.box"
     config.vm.provision "shell", path: "services/vagrant/provision.sh"
 
+  elsif ENV['ANSIBLE']
+    config.vm.box = "ubuntu/trusty64" # use Ubuntu 14.04 LTS (Trusty Tahr) long-term support version
+    config.vm.provision "ansible" do |ansible|
+      ansible.playbook = "services/ansible/playbook.yml"
+    end
+
   else
     puts("using prebuilt perma virtual machine ...")
-    config.vm.box = "perma_0.1"
-    # TODO: Perma VM is stored on @jcushman's Dropbox. This should be stored somewhere more official.
-    config.vm.box_url = "https://dl.dropboxusercontent.com/s/qdvc9hs3lbzaqys/perma_0.1.box"
+    config.vm.box = "perma/perma-dev"
     config.vm.provision "shell", path: "services/vagrant/provision_mysql.sh"
   end
 

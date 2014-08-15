@@ -5,6 +5,7 @@ from datetime import date
 import tempfile
 from django.utils.crypto import get_random_string
 from fabric.api import *
+import subprocess
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'perma.settings')
 from django.conf import settings
@@ -53,11 +54,39 @@ def run(port="0.0.0.0:8000"):
     """
     local("python manage.py runserver %s" % port)
 
-def test():
+def test(apps="perma mirroring"):
     """
         Run perma tests. (For coverage, run `coverage report` after tests pass.)
     """
-    local("coverage run --source='.' --omit='lib/*,perma/migrations/*,*/tests/*' manage.py test perma")
+    excluded_files = [
+        "perma/migrations/*",
+        "*/tests/*",
+        "fabfile.py",
+        "mirroring/management/commands/runmirror.py"
+    ]
+    local("coverage run --source='.' --omit='%s' manage.py test %s" % (",".join(excluded_files), apps))
+
+def test_sauce(target_host="127.0.0.1:8000"):
+    """
+        Run Sauce browser tests. If target_host is localhost, first run sauce_tunnel.
+    """
+    os.environ.setdefault('SAUCE_USERNAME', settings.SAUCE_USERNAME)
+    os.environ.setdefault('SAUCE_ACCESS_KEY', settings.SAUCE_ACCESS_KEY)
+
+    local("HOST="+target_host+" " +
+          "py.test " +
+          "-n3 " +  # run 3 in parallel - max for free account
+          "--boxed " +  # don't let crashes in single test kill whole process
+          os.path.join(settings.PROJECT_ROOT, "../services/sauce/run_tests.py"))
+
+def sauce_tunnel():
+    """
+        Set up Sauce tunnel before running test_sauce targeted at localhost.
+    """
+    if subprocess.call(['which','sc']) == 1: # error return code -- program not found
+        sys.exit("Please check that the `sc` program is installed and in your path. To install: https://docs.saucelabs.com/reference/sauce-connect/")
+    local("sc -u %s -k %s" % (settings.SAUCE_USERNAME, settings.SAUCE_ACCESS_KEY))
+
 
 def logs(log_dir=os.path.join(settings.PROJECT_ROOT, '../services/logs/')):
     """ Tail all logs. """
@@ -170,18 +199,52 @@ def shell():
         open_shell("cd %s && workon %s" % (env.REMOTE_DIR, env.VIRTUALENV_NAME))
 
 
+### MIRRORING ###
+
+def sync_mirror():
+    """
+        Fetch all archived links from upstream.
+    """
+    from mirroring.tasks import sync_mirror
+    sync_mirror()
+
+
 ### HEROKU ###
 
-def heroku_create_app(app_name):
+def heroku_create_app(app_name, s3_storage_bucket=None):
     """
         Set up a new Heroku Perma app.
     """
-    local("heroku apps:create %s" % app_name)
-    local("heroku config:set SECRET_KEY=%s" % get_random_string(50, 'abcdefghijklmnopqrstuvwxyz0123456789'))
-    local("heroku config:add BUILDPACK_URL=git://github.com/jcushman/heroku-buildpack-python.git")
-    local("heroku addons:add cleardb:ignite")
+    def heroku(cmd):
+        local("heroku %s --app %s" % (cmd, app_name))
 
-def heroku_push(project_dir=os.path.join(settings.PROJECT_ROOT, '..')):
+    #heroku("apps:create %s" % app_name)
+    heroku("config:add BUILDPACK_URL=git://github.com/jcushman/heroku-buildpack-python.git")
+    heroku("addons:add cleardb:ignite")
+    heroku("addons:add cloudamqp")
+    heroku("addons:add redistogo")
+
+    # Django config
+    if not s3_storage_bucket:
+        s3_storage_bucket = app_name
+    s3_url = 'http://%s.s3.amazonaws.com/' % s3_storage_bucket
+    django_config_vars = {
+        'SECRET_KEY':get_random_string(50, 'abcdefghijklmnopqrstuvwxyz0123456789'),
+        'ARCHIVE_URL':s3_url+'generated/',
+        'AWS_STORAGE_BUCKET_NAME':s3_storage_bucket,
+        'CDX_SERVER_URL':'http://%s.herokuapp.com/cdx' % app_name,
+        'HOST':'%s.herokuapp.com' % app_name,
+        'PYWB_ARCHIVE_LOCATION':s3_url+'generated/',
+        'STATIC_URL':s3_url+'static/',
+        'MEDIA_URL':s3_url+'media/',
+    }
+    for key, val in django_config_vars.items():
+        heroku("config:set DJANGO__%s=%s" % (key, val))
+
+    print "Heroku app setup completed. Remember to set DJANGO__HOST to the correct domain," +\
+          "and DJANGO__AWS_ACCESS_KEY_ID and DJANGO__AWS_SECRET_ACCESS_KEY to your credentials."
+
+def heroku_push(app_name='perma', project_dir=os.path.join(settings.PROJECT_ROOT, '..')):
     """
         Push code to Heroku.
     """
@@ -198,14 +261,15 @@ def heroku_push(project_dir=os.path.join(settings.PROJECT_ROOT, '..')):
         local("cp -r %s ." % os.path.join(heroku_files_dir, "bin"))
         local("cp %s ." % os.path.join(heroku_files_dir, "Procfile"))
         local("cp %s perma/" % os.path.join(heroku_files_dir, "wsgi_heroku.py"))
-        local("cp %s perma/settings/__init__.py" % os.path.join(heroku_files_dir, "settings.py"))
+        local("cp %s perma/settings/" % os.path.join(heroku_files_dir, "settings.py"))
+        local("cat %s >> requirements.txt" % os.path.join(heroku_files_dir, "extra_requirements.txt"))
 
         # set up git
-        local(r'sed "s/perma_web\///g" %s/%s > %s' % (project_dir, '.gitignore', '.gitignore'))
+        local(r'sed "s/perma_web\/perma\/settings\/settings.py|perma_web\///g" %s/%s > %s' % (project_dir, '.gitignore', '.gitignore'))
         local("git init")
         local("git add -A")
         local("git commit -m 'heroku push `date`'")
-        local("heroku git:remote -a perma")
+        local("heroku git:remote -a %s" % app_name)
 
         # push to heroku
         local("git push --force heroku master")

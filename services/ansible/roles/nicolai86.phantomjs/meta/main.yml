@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: "Raphael Randschau"
+  license: MIT
+  min_ansible_version: 1.4
+  version: 0.1
+  platforms:
+   - name: Ubuntu
+     versions:
+      - precise
+      - quantal
+      - raring
+      - saucy
+  categories:
+   - web
+   - system
+dependencies: []

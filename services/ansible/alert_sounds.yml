@@ -1,0 +1,27 @@
+---
+# Playbook to make target machine play audible beeps when receiving new archives from upstream.
+# This is probably not a good idea.
+
+# ansible-playbook alert_sounds.yml -i hosts --vault-password-file ~/.ansible_vault_pass
+
+- hosts: permaboxes
+  sudo: yes
+
+  tasks:
+    - name: Comment out blacklist so pcspkr will load on restart.
+      lineinfile: dest=/etc/modprobe.d/blacklist.conf backrefs=true state=present regexp='^(blacklist pcspkr.*)$' line="#\\1"
+
+    - name: Make sure pcspkr is loaded (avoids restarting now).
+      command: modprobe pcspkr
+
+    - name: Install system packages.
+      apt: pkg=beep
+
+    - name: Install script.
+      template: src=templates/bin/new_archive_beep.py.j2 dest={{ bin_dir }}/new_archive_beep.py mode=0700
+
+    - name: Install Upstart service.
+      template: src=templates/upstart/new-archive-beep.conf.j2 dest=/etc/init/new-archive-beep.conf
+
+    - name: Restart service.
+      service: name=new-archive-beep state=restarted

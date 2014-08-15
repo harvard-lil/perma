@@ -1,0 +1,9 @@
+description "check-network"
+
+respawn
+console log
+
+start on (net-device-up IFACE!=lo)
+stop on runlevel [016]
+
+exec {{ bin_dir }}/check_network.sh

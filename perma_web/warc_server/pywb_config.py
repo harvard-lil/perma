@@ -4,7 +4,6 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "perma.settings")
 from django.conf import settings
 from django.core.files.storage import default_storage
 
-from pywb.rewrite.rewriterules import use_lxml_parser
 from pywb.rewrite.wburl import WbUrl
 
 from pywb.framework import archivalrouter
@@ -16,7 +15,7 @@ from pywb.webapp.pywb_init import create_wb_handler
 
 # include guid in CDX requests
 class Route(archivalrouter.Route):
-    def _apply_filters(self, wbrequest, matcher):
+    def apply_filters(self, wbrequest, matcher):
         wbrequest.custom_params['guid'] = matcher.group(1)
 
 # prevent mod getting added to rewritten urls
@@ -33,22 +32,21 @@ class Handler(WBHandler):
 
 
 #=================================================================
-def create_perma_pywb_app():
+def create_perma_pywb_app(config):
     """
         Configure server.
     """
     query_handler = QueryHandler.init_from_config(settings.CDX_SERVER_URL)
 
-    # enable lxml parsing if available
-    #use_lxml_parser()
-
-    # get root storage location for warcs
+    # Get root storage location for warcs.
+    # archive_path should be the location pywb can find warcs, like 'file://generated/' or 'http://perma.s3.amazonaws.com/generated/'
+    # We can get it by requesting the location of a blank file from default_storage.
+    # default_storage may use disk or network storage depending on config, so we look for either a path() or url()
     try:
-        # access via local disk if we can
         archive_path = 'file://' + default_storage.path('') + '/'
     except NotImplementedError:
-        # else access via url
-        archive_path = default_storage.url('') + '/'
+        archive_path = default_storage.url('/')
+        archive_path = archive_path.split('?', 1)[0]  # remove query params
 
     # use util func to create the handler
     wb_handler = create_wb_handler(query_handler,

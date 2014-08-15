@@ -1,0 +1,9 @@
+---
+
+git_dir: /perma/code
+assets_dir: /perma/assets
+logs_dir: /perma/logs
+bin_dir: /perma/bin
+
+git_repo: https://github.com/harvard-lil/perma.git
+git_version: develop

@@ -355,3 +355,13 @@ class UploadFileForm(forms.Form):
     title = forms.CharField(required=True)
     url = forms.URLField(required=True)
     file  = forms.FileField(required=True)
+
+
+class ContactForm(forms.Form):
+    """
+    The form we use on the contact page. Just an email (optional)
+    and a message
+    """
+
+    email = forms.EmailField()
+    message = forms.CharField(widget=forms.Textarea)

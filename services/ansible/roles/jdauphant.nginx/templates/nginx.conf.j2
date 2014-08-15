@@ -1,0 +1,23 @@
+#{{ ansible_managed }}
+user              {{ nginx_user }};
+
+worker_processes  {{ nginx_worker_processes }};
+pid        /var/run/nginx.pid;
+worker_rlimit_nofile {{ nginx_worker_rlimit_nofile }};
+
+events {
+    worker_connections  {{ nginx_max_clients }};
+}
+
+
+http {
+
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+{% for v in nginx_http_params %}
+        {{ v }};
+{% endfor %}
+
+        include /etc/nginx/conf.d/*.conf;
+        include /etc/nginx/sites-enabled/*;
+}

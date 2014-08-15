@@ -1,52 +1,51 @@
 {% extends "layout-responsive.html" %}
 
+{% block meta_description %}
+Log in to your Perma.cc account. Welcome back.
+{% endblock %}
+
 {% block content %}
 
 <div class="container">
-{% if messages %}
-    {% for message in messages %}
-        <div class="alert alert-success account-confirmed-messag">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
-    {% endfor %}
-{% endif %}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success account-confirmed-message">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
+        {% endfor %}
+    {% endif %}
 
-<div class="row">
-	<div class="col-sm-12">		
-		<h2>Login</h2>
-		
-			{% if next %}
-				<form method="post" action="{% url 'user_management_limited_login' %}?next={{ next }}" class="temp-form-css">
-			{% else %}
-				<form method="post" action="{% url 'user_management_limited_login' %}" class="temp-form-css">
-			{% endif %}
-				{% csrf_token %}
-				 <fieldset>
-	 
-				 <span class="text-error">{{ form.non_field_errors }}</span>
-        {% for field in form %}
-          <br /><label for="id_{{ field.name }}">{{ field.label }}</label>
-          <br />
-          {{ field }}
-          {% if field.errors %}
-            {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
-          {%elif field.help_text %}
-            <span class="help-inline">{{ field.help_text }}</span>
-          {% endif %}
-        {% endfor %}  
-      </fieldset>
-				<button type="submit" class="btn-success login">Login</button>
-				<br /><br />
-				<p>Forgot your password?<br /> No problem, we can help you <a href="{% url 'password_reset' %}">create a new one.</a></p>
-			{% comment %}
-			<p><a href="{% url 'process_register' %}">Create an account</a></p>
-			{% endcomment %}
-			</form>
+    <div class="row">
+        <div class="col-sm-12">
+            <h2>Login</h2>
 
-			<br />
-			<br />
-			<br />
-			<br />
-			<br />
-		</div><!-- end span -->
-	</div><!-- end row -->
+                <form method="post" action="{% url 'user_management_limited_login' %}{% if next %}?next={{ next }}{% endif %}" class="temp-form-css">
+                {% csrf_token %}
+
+                     <fieldset>
+
+                         <span class="text-error">{{ form.non_field_errors }}</span>
+                        {% for field in form %}
+                          <br /><label for="id_{{ field.name }}">{{ field.label }}</label>
+                          <br />
+                          {{ field }}
+                          {% if field.errors %}
+                            {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+                          {%elif field.help_text %}
+                            <span class="help-inline">{{ field.help_text }}</span>
+                          {% endif %}
+                        {% endfor %}
+                    </fieldset>
+                    <button type="submit" class="btn-success login">Login</button>
+                    <br /><br />
+                    <p>Forgot your password?<br /> No problem, we can help you <a href="{% url 'password_reset' %}">create a new one.</a></p>
+                    <p><a href="{% url 'register' %}">Create an account</a></p>
+                </form>
+
+                <br />
+                <br />
+                <br />
+                <br />
+                <br />
+            </div><!-- end span -->
+        </div><!-- end row -->
 </div><!-- end container -->
 {% endblock content %}

@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib import admin
 from django.conf.urls import patterns, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.contrib.auth import views as auth_views
@@ -8,8 +7,6 @@ from django.views.generic import RedirectView
 
 from .views.common import DirectTemplateView
 
-
-admin.autodiscover()
 
 guid_pattern = r'(?P<guid>[a-zA-Z0-9\-]+)'
 
@@ -26,6 +23,8 @@ urlpatterns = patterns('perma.views',
     url(r'^privacy-policy/?$', DirectTemplateView.as_view(template_name='privacy_policy.html'), name='privacy_policy'),
     url(r'^stats/?$', 'common.stats', name='global_stats'),
     url(r'^contingency-plan/?$', DirectTemplateView.as_view(template_name='contingency_plan.html'), name='contingency_plan'),
+    url(r'^contact/?$', 'common.contact', name='contact'),
+    url(r'^contact/thanks/?$', DirectTemplateView.as_view(template_name='contact-thanks.html'), name='contact_thanks'),
     
     #Docs 
     url(r'^docs/?$', DirectTemplateView.as_view(template_name='docs/index.html'), name='docs'),
@@ -38,19 +37,17 @@ urlpatterns = patterns('perma.views',
     url(r'^docs/getting-started/?$', DirectTemplateView.as_view(template_name='docs/getting-started.html'), name='docs_getting-started'),
     url(r'^docs/mirrors/?$', DirectTemplateView.as_view(template_name='docs/mirrors.html'), name='docs_mirrors'),
     url(r'^docs/robustness/?$', DirectTemplateView.as_view(template_name='docs/robustness.html'), name='docs_robustness'),
-    url(r'^docs/perma_user_roles/?$', DirectTemplateView.as_view(template_name='docs/perma-user-roles.html'), name='docs_perma_user_roles'),
+    url(r'^docs/perma-user-roles/?$', DirectTemplateView.as_view(template_name='docs/perma-user-roles.html'), name='docs_perma_user_roles'),
+    url(r'^docs/faq/?$', DirectTemplateView.as_view(template_name='docs/faq.html'), name='docs_faq'),
 
     #API routes
     url(r'^api/linky/urldump/?$', 'api.urldump', name='urldump'),
     url(r'^api/linky/urldump/(?P<since>\d{4}-\d{2}-\d{2})/?', 'api.urldump', name='urldump_with_since'),
-    url(r'^api/render/%s/?$' % guid_pattern, 'common.single_link_main_server', name='single_link_main_server'),
     
     #Services
     url(r'^service/email-confirm/?$', 'service.email_confirm', name='service_email_confirm'),
     url(r'^service/receive-feedback/?$', 'service.receive_feedback', name='service_receive_feedback'),
     url(r'^service/link/status/%s?/?$' % guid_pattern, 'service.link_status', name='service_link_status'),
-    url(r'^service/link/assets/%s?/?$' % guid_pattern, 'service.link_assets', name='service_link_assets'),
-    url(r'^service/link/update/%s?/?$' % guid_pattern, 'service.do_update_perma', name='service_update_link'),
     url(r'^service/stats/users/?$', 'service.stats_users', name='service_stats_users'),
     url(r'^service/stats/links/?$', 'service.stats_links', name='service_stats_links'),
     url(r'^service/stats/darchive-links/?$', 'service.stats_darchive_links', name='service_stats_darchive_links'),
@@ -64,8 +61,8 @@ urlpatterns = patterns('perma.views',
     url(r'^login/not-active/?$', 'user_management.not_active', name='user_management_not_active'),
     url(r'^login/account-is-deactivated/?$', 'user_management.account_is_deactivated', name='user_management_account_is_deactivated'),
     url(r'^logout/?$', 'user_management.logout', name='logout'),
-    url(r'^register/?$', 'user_management.process_register', name='process_register'),
-    url(r'^register/confirm/(?P<code>\w+)/$', 'user_management.register_email_code_confirmation', name='confirm_register'),
+    url(r'^register/?$', 'user_management.register', name='register'),
+    #url(r'^register/confirm/(?P<code>\w+)/$', 'user_management.register_email_code_confirmation', name='confirm_register'),
     url(r'^register/password/(?P<code>\w+)/$', 'user_management.register_email_code_password', name='register_password'),
     url(r'^register/email/?$', 'user_management.register_email_instructions', name='register_email_instructions'),
     url(r'^password/change/?$', auth_views.password_change, {'template_name': 'registration/password_change_form.html'}, name='password_change'),
@@ -82,6 +79,7 @@ urlpatterns = patterns('perma.views',
     url(r'^manage/create/upload/?$', 'link_management.upload_file', name='upload_link'),
     url(r'^manage/dark-archive/%s/?$' % guid_pattern, 'link_management.dark_archive_link', name='dark_archive_link'),
     url(r'^manage/vest/%s/?$' % guid_pattern, 'link_management.vest_link', name='vest_link'),
+    url(r'^manage/delete-link/%s/?$' % guid_pattern, 'link_management.user_delete_link', name='user_delete_link'),
     url(r'^manage/created-links(?P<path>/.*)?$', 'link_management.created_links', name='created_links'),
     url(r'^manage/vested-links(?P<path>/.*)?$', 'link_management.vested_links', name='vested_links'),
 
@@ -121,8 +119,13 @@ urlpatterns = patterns('perma.views',
     
 )
 
-# debug-only serving of static assets
-urlpatterns += staticfiles_urlpatterns() + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# debug-only serving of static and media assets
+if settings.DEBUG:
+    from django.contrib.staticfiles.views import serve as static_view
+    from django.views.static import serve as media_view
+    from mirroring.utils import may_be_mirrored
+    urlpatterns += static(settings.STATIC_URL, may_be_mirrored(static_view)) + \
+                   static(settings.MEDIA_URL, may_be_mirrored(media_view), document_root=settings.MEDIA_ROOT)
 
 handler404 = 'perma.views.common.server_error_404'
 handler500 = 'perma.views.common.server_error_500'

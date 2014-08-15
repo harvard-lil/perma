@@ -1,13 +1,13 @@
 from django.conf import settings
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 
-import json, logging, csv, os.path
+import json, logging, csv
 from perma.models import Link, Asset, Stat
-from perma.tasks import update_perma
+from mirroring.utils import may_be_mirrored
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +84,7 @@ def receive_feedback(request):
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
 
 
+@may_be_mirrored
 def link_status(request, guid):
     """
     A service that provides the state of a perma.
@@ -96,39 +97,15 @@ def link_status(request, guid):
     response_object = {"path": target_asset.base_storage_path, "text_capture": target_asset.text_capture,
             "source_capture": target_asset.warc_capture, "image_capture": target_asset.image_capture,
             "pdf_capture": target_asset.pdf_capture,
-            "vested": target_link.vested, "dark_archived": target_link.dark_archived}
+            "vested": target_link.vested,
+            "dark_archived": target_link.dark_archived,
+            "submitted_title":target_link.submitted_title}
 
     data = json.dumps(response_object)
     if 'callback' in request.REQUEST:
         # jsonp response
         data = '%s(%s);' % (request.REQUEST['callback'], data)
     return HttpResponse(data, content_type="application/json", status=200)
-
-
-def link_assets(request, guid):
-    """A service that returns a downloadable archive of the assets of a
-    given perma link
-
-    """
-    target_asset = get_object_or_404(Asset, link__guid=guid)
-    # TODO: this should probably be a field on the Asset object
-    archive_path = os.path.join(settings.MEDIA_ARCHIVES_ROOT, target_asset.base_storage_path + ".zip")
-    try:
-        # This would look a little prettier with the
-        #   with open(archive_path, "r") as fh
-        # syntax, but that won't work here because the file will be closed by the time
-        # Django tries to do stuff with it.
-        fh = open(archive_path, "r")
-        response = HttpResponse(fh, content_type="application/force-download")
-        response["Content-Disposition"] = 'attachment; filename="%s"' % ("assets_%s.zip" % guid,)
-        return response
-    except IOError:
-        raise Http404
-
-
-def do_update_perma(request, guid):
-    update_perma.delay(link_guid=guid)
-    return HttpResponse("OK")
 
 
 def stats_users(request):

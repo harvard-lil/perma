@@ -1,0 +1,104 @@
+# ansible-playbook provision.yml -i hosts --vault-password-file ~/.ansible_vault_pass
+
+- hosts: permaboxes
+  sudo: yes
+
+  pre_tasks:
+    # perma group and users
+    - group: name=perma state=present
+    - user: name={{ item }} group=perma system=yes
+      with_items:
+        - ansible
+        - mysql
+        - rabbitmq
+        - perma
+
+    - name: Install system packages.
+      apt: pkg={{ item }} # update-cache=yes
+      with_items:
+        - git
+        - python-pip
+        - python-dev      # for pip packages that compile from source
+        - libffi-dev      # for cryptography python package
+        - libxml2-dev     # for lxml python package
+        - libxslt1-dev    # for lxml python package
+        - libmysqlclient-dev  # for mysql-python package
+        - rabbitmq-server
+
+    - name: Install python packages.
+      pip: name={{ item }} state=latest
+      with_items:
+        - virtualenv
+        - distribute
+
+    - name: Create perma directories.
+      file: path={{ item }} owner=ansible group=perma mode=0775 state=directory
+      with_items:
+        - "{{ git_dir }}"
+        - "{{ assets_dir }}"
+        - "{{ assets_dir }}/static"
+        - "{{ logs_dir }}"
+        - "{{ bin_dir }}"
+
+
+  roles:
+    # mysql -- bennojoy.mysql -- https://galaxy.ansible.com/list#/roles/1
+    - role: bennojoy.mysql
+      mysql_db:
+        - name: perma
+      mysql_users:
+        - name: perma
+          pass: "{{ database_password }}"
+          priv: "*.*:ALL"
+
+#    # rabbitmq -- https://galaxy.ansible.com/list#/roles/277
+#    - {role: Mayeu.RabbitMQ, rabbitmq_ssl: false}
+
+    # nginx -- https://galaxy.ansible.com/list#/roles/466
+    - role: jdauphant.nginx
+
+    # phantomjs -- https://galaxy.ansible.com/list#/roles/117
+    - role: nicolai86.phantomjs
+      phantomjs_version: "1.9.7"
+      phantomjs_url: "https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-1.9.7-linux-x86_64.tar.bz2"
+
+    # iptables -- https://galaxy.ansible.com/list#/roles/920
+    # for tinc, see http://www.gentoo-wiki.info/HOWTO_Setup_a_VPN_with_tinc
+    - role: Stouts.iptables
+      iptables_allowed_tcp_ports:
+        - 22      # ssh
+        - 80      # http
+        - 443     # https
+        - 655     # tinc
+      iptables_allowed_udp_ports:
+        - 655      # tinc
+
+
+  tasks:
+    # Remove these services so we can replace them with our own Upstart scripts.
+    - service: name=nginx state=stopped
+    - service: name=rabbitmq-server state=stopped
+    - file: name=/etc/init.d/nginx state=absent
+    - file: name=/etc/init.d/rabbitmq-server state=absent
+
+    # Create upstart services.
+    - name: Upstart services.
+      template: src=templates/upstart/{{ item }}.conf.j2 dest=/etc/init/{{ item }}.conf
+      with_items:
+        - celery-background-queue
+        - celery-user-queue
+        - gunicorn
+        - nginx
+        - rabbitmq-server
+        - check-network
+
+    # Other file templates.
+    - name: Nginx config file.
+      template: src=templates/perma_nginx_config.j2 dest=/etc/nginx/sites-available/perma
+    - name: Create symlink in sites-enabled
+      file: src=/etc/nginx/sites-available/perma dest=/etc/nginx/sites-enabled/perma state=link
+
+    # Check-network script.
+    - name: Create check_network script.
+      template: src=templates/bin/check_network.sh.j2 dest={{ bin_dir }}/check_network.sh mode=0700
+    - service: name=check-network state=restarted

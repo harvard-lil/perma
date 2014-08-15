@@ -76,9 +76,3 @@ class ServiceViewsTestCase(PermaTestCase):
 
         response = self.client.post(reverse('service_link_status', kwargs={'guid': '7CF8-JJJJ',}))
         self.assertEqual(response.status_code, 404)
-
-    def test_link_assets(self):
-        """Make sure we get a 404 for a non-existent archive"""
-
-        response = self.client.post(reverse('service_link_assets', kwargs={'guid': '9999-JCDL',}))
-        self.assertEqual(response.status_code, 404)

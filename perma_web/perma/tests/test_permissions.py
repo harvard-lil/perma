@@ -80,6 +80,7 @@ class PermissionsTestCase(PermaTestCase):
                     ['create_link'],
                     ['upload_link', {'success_status':400}],
                     ['created_links'],
+                    ['user_delete_link', {'kwargs':{'guid':'1234'},'success_status':404}],
                 ],
                 'allowed': {'test_user@example.com'},
                 'disallowed': set(),

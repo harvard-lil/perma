@@ -1,0 +1,95 @@
+upstream app_server_djangoapp {
+    server 127.0.0.1:9000 fail_timeout=0;
+}
+
+server {
+    server_name  www.perma.cc;
+    rewrite ^(.*) http://perma.cc$1 permanent;
+}
+
+
+# Cloudflare
+set_real_ip_from   199.27.128.0/21;
+set_real_ip_from   173.245.48.0/20;
+set_real_ip_from   103.21.244.0/22;
+set_real_ip_from   103.22.200.0/22;
+set_real_ip_from   103.31.4.0/22;
+set_real_ip_from   141.101.64.0/18;
+set_real_ip_from   108.162.192.0/18;
+set_real_ip_from   190.93.240.0/20;
+set_real_ip_from   188.114.96.0/20;
+set_real_ip_from   197.234.240.0/22;
+set_real_ip_from   198.41.128.0/17;
+set_real_ip_from   162.158.0.0/15;
+set_real_ip_from   104.16.0.0/12;
+real_ip_header     CF-Connecting-IP;
+
+
+server {
+        listen 80;
+        server_name  everlib.org permabox.perma.cc perma.cc permacc.org perma-cc.org perma.unl.edu perma.brooklaw.edu perma.law.stanford.edu perma.law.virginia.edu perma.law.duke.edu perma.law.lsu.edu perma.law.harvard.edu;
+
+        access_log  {{ logs_dir }}/nginx_access.log;
+        error_log  {{ logs_dir }}/nginx_error.log info;
+
+
+        # During maintenance periods, uncomment
+        #error_page 503 @maintenance;
+        #return 503;
+
+
+        client_body_in_file_only clean;
+        client_body_buffer_size 5M;
+        client_max_body_size 50M;
+        sendfile on;
+        send_timeout 300s;
+
+        keepalive_timeout 5;
+
+
+    location /aboutus {
+        rewrite ^/aboutus(.*)   http://perma.cc/about$1 permanent;
+    }
+
+
+    # path for generated assets
+    location /media/ {
+                alias {{ assets_dir }}/generated/$1;
+    }
+
+
+    # path for generated assets created by the Perma monitoring app
+    location /monitor/media/ {
+                alias {{ assets_dir }}/monitor/$1;
+    }
+
+    # path for static folder
+    location /static/ {
+                alias {{ assets_dir }}/static/$1;
+    }
+
+    location / {
+                client_body_in_file_only clean;
+                client_body_buffer_size 32K;
+                client_max_body_size 50M;
+                sendfile on;
+                send_timeout 300s;
+
+                #proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header Host $http_host;
+                proxy_redirect off;
+
+                #proxy_set_header CDN-Connecting-IP $CF-Connecting-IP;
+
+                if (!-f $request_filename) {
+                        proxy_pass http://app_server_djangoapp;
+                        break;
+                }
+        }
+
+
+    location @maintenance {
+        root {{ git_dir }}/perma_web/static/maintenance;
+        rewrite ^(.*)$ /maintenance.html break;
+    }
+}
