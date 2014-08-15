@@ -121,7 +121,8 @@ $(function(){
 
             // fill in content
             var imgURL = settings.STATIC_URL+'img/examples/'+key+(isHighDensity()?'@2x':'')+'.gif';
-            $example.find('img').attr('src', imgURL);
+            $example.find('img').attr('src','')         // remove URL so image load event will fire even if they click the same button twice
+                                .attr('src', imgURL);   // then insert new URL
             $example.find('#example-title > span').html("<a href='"+data.url+"'>"+data.cite+"</a>");
             $example.find('#example-image-wrapper .example-link').remove();
             for(var i=0, len=data.links.length; i<len; i++){
