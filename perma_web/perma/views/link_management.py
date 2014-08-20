@@ -361,7 +361,7 @@ def link_browser(request, path, link_filter, this_page, verb):
     return render_to_response('user_management/created-links.html', context)
 
 
-###### LINK EDITING ######
+###### link editing ######
 
 @require_group(['registrar_user', 'registry_user', 'vesting_user'])
 def vest_link(request, guid):
@@ -374,9 +374,10 @@ def vest_link(request, guid):
             link.vested_timestamp=datetime.now()
             link.save()
             run_task(poke_mirrors, link_guid=guid)
+
             if settings.UPLOAD_TO_INTERNET_ARCHIVE:
                 run_task(upload_to_internet_archive, link_guid=guid)
-    return HttpResponseRedirect(reverse('single_linky', args=[guid]))
+    return HttpResponseRedirect(reverse('single_link_header', args=[guid]))
     
     
 @login_required    
@@ -401,5 +402,5 @@ def dark_archive_link(request, guid):
             link.dark_archived=True
             link.save()
             run_task(poke_mirrors, link_guid=guid)
-        return HttpResponseRedirect(reverse('single_linky', args=[guid]))
+        return HttpResponseRedirect(reverse('single_link_header', args=[guid]))
     return render_to_response('dark-archive-link.html', {'linky': link}, RequestContext(request))
