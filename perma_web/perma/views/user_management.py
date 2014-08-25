@@ -215,13 +215,19 @@ def manage_single_vesting_org(request, vesting_org_id):
         in this view, we allow for edit/delete """
 
     target_vesting_org = get_object_or_404(VestingOrg, id=vesting_org_id)
+    is_registry = False
+    if request.user.groups.all()[0].name == 'registry_user':
+        is_registry = True
 
     context = {'target_vesting_org': target_vesting_org,
         'this_page': 'users_vesting_orgs'}
 
     if request.method == 'POST':
 
-        form = VestingOrgForm(request.POST, prefix = "a", instance=target_vesting_org)
+        if is_registry:
+          form = VestingOrgWithRegistrarForm(request.POST, prefix = "a", instance=target_vesting_org)
+        else:
+          form = VestingOrgForm(request.POST, prefix = "a", instance=target_vesting_org)
 
         if form.is_valid():
             new_user = form.save()
@@ -231,7 +237,10 @@ def manage_single_vesting_org(request, vesting_org_id):
         else:
             context.update({'form': form,})
     else:
-        form = VestingOrgForm(prefix = "a", instance=target_vesting_org)
+        if is_registry:
+            form = VestingOrgWithRegistrarForm(prefix = "a", instance=target_vesting_org)
+        else:
+            form = VestingOrgForm(prefix = "a", instance=target_vesting_org)
         context.update({'form': form,})
     
     context = RequestContext(request, context)
