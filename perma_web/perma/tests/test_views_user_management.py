@@ -53,7 +53,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.submit_form('user_management_manage_single_vesting_org', reverse_kwargs={'args':[1]},
                        data={
                            'a-name': 'test_views_vesting_org3',
-                           'a-registrar': 1}},
+                           'a-registrar': 1},
                        success_url=reverse('user_management_manage_vesting_org'),
                        success_query=VestingOrg.objects.filter(name='test_views_vesting_org3'))
 
