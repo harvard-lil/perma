@@ -26,7 +26,7 @@ from mirroring.tasks import compress_link_assets, poke_mirrors
 from ..forms import UploadFileForm
 from ..models import Link, Asset, Folder
 from ..tasks import get_pdf, proxy_capture, upload_to_internet_archive
-from ..utils import require_group, run_task
+from ..utils import require_group, run_task, get_search_query
 
 
 logger = logging.getLogger(__name__)
@@ -307,14 +307,9 @@ def link_browser(request, path, link_filter, this_page, verb):
     linky_links = Link.objects.filter(**link_filter)
 
     # handle search
-    search_query = request.GET.get('q', None)
+    search_query = request.GET.get('q', '')
     if search_query:
-        linky_links = linky_links.filter(
-            Q(guid__icontains=search_query) |
-            Q(submitted_url__icontains=search_query) |
-            Q(submitted_title__icontains=search_query) |
-            Q(notes__icontains=search_query)
-        )
+        linky_links = get_search_query(linky_links, search_query, ['guid', 'submitted_url', 'submitted_title', 'notes'])
         if current_folder:
             # limit search to current folder
             linky_links = linky_links.filter(folders__in=current_folder.get_descendants(include_self=True))

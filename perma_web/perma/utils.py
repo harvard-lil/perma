@@ -1,6 +1,5 @@
-import datetime
-import pytz
-from django.utils.decorators import available_attrs
+from django.db.models import Q
+import operator
 
 
 class base:
@@ -161,3 +160,28 @@ def run_task(task, *args, **kwargs):
         return task.delay(*args, **kwargs)
     else:
         return task.apply(args, kwargs)
+
+### simple search ###
+
+def get_search_query(target, search_string, fields):
+    """
+        For the given `target` (either a Model or QuerySet),
+        apply consecutive .filter()s such that each word
+        in `search_string` appears in one of the `fields`.
+    """
+    # get words in search_string
+    required_words = search_string.strip().split()
+    if not required_words:
+        return target
+
+    # if we got a Model, turn into a QuerySet
+    if hasattr(target, 'objects'):
+        target = target.objects
+
+    for required_word in required_words:
+        # apply the equivalent of target = target.filter(Q(field1__icontains=required_word) | Q(field2__icontains=required_word) | ...)
+        query_parts = [Q(**{field+"__icontains":required_word}) for field in fields]
+        query_parts_joined = reduce(operator.or_, query_parts, Q())
+        target = target.filter(query_parts_joined)
+
+    return target
