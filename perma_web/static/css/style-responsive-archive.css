@@ -85,24 +85,33 @@ header #compact-header .infinity-logo   {
 /* Full header start */
 
 header #full-header .controls {
-    margin-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+.url-row {
+    padding: 10px 10px;
+    background-color: #fff;
+    -moz-box-shadow:    2px 0px 4px 0px #c6ccd1;
+    -webkit-box-shadow: 2px 0px 4px 0px #c6ccd1;
+    box-shadow:         0px 0px 4px 0px #c6ccd1;
 }
 
 header #full-header p.helper-info  {
-    color: #666;
+    color: #444;
     font-family: helvetica;
 }
 
 header #full-header p.big-link  {
-word-wrap: break-word;
-    font-size: 32px;
-    margin-bottom: 20px;
+    word-wrap: break-word;
+    font-size: 28px;
 }
 
 header #full-header p.creation-details  {
-    margin: 0;
-    color: #666;
+    margin: 25px 0 0 0;
+    color: #444;
+
     font-family: helvetica;
+
 }
 
 header #full-header .spacer {
@@ -111,28 +120,28 @@ header #full-header .spacer {
 }
 
 header #full-header p.archive-note {
-    margin-top: 25px;
-    margin-bottom: 5px;
-    color: #666;
+    margin-top: 40px;
+    margin-bottom: 7px;
+    color: #555;
     font-family: helvetica;
+    font-size: 17px;
 }
 
 header #full-header .archive-container {
     padding: 10px 15px;
     background-color: #fff;
-    margin-bottom: 20px;
-
+    margin-bottom: 25px;
     border-top: solid 5px #bbb;
-
     -moz-box-shadow:    2px 2px 4px 0px #c6ccd1;
     -webkit-box-shadow: 2px 2px 4px 0px #c6ccd1;
     box-shadow:         0px 2px 4px 0px #c6ccd1;
 }
 
 header #full-header .archive-container p.archive-heading {
-    font-size: 23px;
-    margin-bottom: 5px;
+    font-size: 25px;
+    margin-bottom: 3px;
     color:#09f;
+    font-family: 'Roboto Slab', sans-serif;
 }
 
 header #full-header a {
@@ -145,7 +154,9 @@ header #full-header .selected-archive-container {
 
 header #full-header .archive-container p {
     margin-bottom: 3px;
-    color: #666;
+    color: #555;
+    font-size: 15px;
+    font-family: helvetica;
 }
 
 .overlay {
@@ -236,7 +247,7 @@ img.watermark-image {
 /* Buttons start */
 
 .button-container p {
-    margin: 4px 0;
+    margin: 4px 4px;
 }
 
 a.btn.vest, a.btn.dashboard, a.btn.user-delete {
