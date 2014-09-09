@@ -18,7 +18,7 @@ from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.http import HttpResponseBadRequest, Http404, HttpResponseRedirect
-from django.shortcuts import HttpResponse, render_to_response, get_object_or_404
+from django.shortcuts import HttpResponse, render_to_response, get_object_or_404, render
 from django.template import RequestContext
 
 from mirroring.tasks import compress_link_assets, poke_mirrors
@@ -228,12 +228,14 @@ def link_browser(request, path, link_filter, this_page, verb):
     # find current folder based on path
     current_folder = None
     folder_breadcrumbs = []
+    show_shared_folder_warning = request.user.vesting_org is not None
     if path:
         path = path.strip("/")
         if path:
             # get current folder
             folder_slugs = path.split("/")
             current_folder = get_object_or_404(Folder,slug=folder_slugs[-1],created_by=request.user)
+            show_shared_folder_warning = show_shared_folder_warning and folder_slugs[0]!="my-links"
 
             # check ancestor slugs and generate breadcrumbs
             ancestors = current_folder.get_ancestors()
@@ -241,6 +243,7 @@ def link_browser(request, path, link_filter, this_page, verb):
                 if folder_slugs[i] != ancestor.slug:
                     raise Http404
                 folder_breadcrumbs.append([ancestor, u"/".join(folder_slugs[:i+1])])
+
 
     # make sure path has leading and trailing slashes, or is just one slash if empty
     path = u"/%s/" % path if path else "/"
@@ -259,6 +262,20 @@ def link_browser(request, path, link_filter, this_page, verb):
                 target_folder=None
             else:
                 target_folder = get_object_or_404(Folder, created_by=request.user, pk=request.POST['move_selected_items_to'])
+
+            # prevent vested links being moved into My Links
+            if show_shared_folder_warning:
+                if target_folder and target_folder.get_ancestors(include_self=True).filter(name="My Links").exists():
+                    move_ok = not Link.objects.filter(pk__in=request.POST.getlist('links'), vested=True).exists()
+                    if move_ok:
+                        for folder_id in request.POST.getlist('folders'):
+                            folder = get_object_or_404(Folder, pk=folder_id, created_by=request.user)
+                            if folder.get_descendants(include_self=True).filter(links__vested=True).exists():
+                                move_ok = False
+                                break
+                    if not move_ok:
+                        return HttpResponseBadRequest("Sorry, vested links can't be moved into 'My Links'. They belong to your vesting organization.")
+
             for link_id in request.POST.getlist('links'):
                 link = get_object_or_404(Link, pk=link_id, **link_filter)
                 link.move_to_folder_for_user(target_folder, request.user)
@@ -349,6 +366,7 @@ def link_browser(request, path, link_filter, this_page, verb):
                'subfolders':subfolders, 'path':path, 'folder_breadcrumbs':folder_breadcrumbs,
                'current_folder':current_folder,
                'all_folders':all_folders,
+               'show_shared_folder_warning':show_shared_folder_warning,
                'base_url':base_url}
 
     context = RequestContext(request, context)
@@ -357,21 +375,45 @@ def link_browser(request, path, link_filter, this_page, verb):
 
 
 ###### link editing ######
-
 @require_group(['registrar_user', 'registry_user', 'vesting_user'])
 def vest_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
-    if request.method == 'POST':
-        if not link.vested:
-            link.vested=True
-            link.vested_by_editor=request.user
-            link.vesting_org = request.user.vesting_org
-            link.vested_timestamp=datetime.now()
-            link.save()
-            run_task(poke_mirrors, link_guid=guid)
+    if request.method == 'POST' and not link.vested and request.user.vesting_org:
 
-            if settings.UPLOAD_TO_INTERNET_ARCHIVE:
-                run_task(upload_to_internet_archive, link_guid=guid)
+        # make sure this link is outside My Links, or user has told us to save it there
+        target_folder = None
+        move_to_target_folder = False
+        if request.POST.get('folder'):
+            if request.POST['folder'] == 'ROOT':
+                target_folder = None
+            else:
+                target_folder = get_object_or_404(Folder, pk=request.POST['folder'], created_by=request.user)
+            move_to_target_folder = True
+        else:
+            try:
+                target_folder = Folder.objects.get(created_by=request.user, links=link)
+            except Folder.DoesNotExist:
+                pass
+        if target_folder and target_folder.get_ancestors(include_self=True).filter(name="My Links").exists():
+            return render(request, 'link-vest-confirm.html', {
+                'folder_tree': Folder.objects.filter(created_by=request.user),
+                'link': link,
+            })
+        if move_to_target_folder:
+            link.move_to_folder_for_user(target_folder, request.user)
+
+        # vest
+        link.vested = True
+        link.vested_by_editor = request.user
+        link.vesting_org = request.user.vesting_org
+        link.vested_timestamp = datetime.now()
+        link.save()
+
+        run_task(poke_mirrors, link_guid=guid)
+
+        if settings.UPLOAD_TO_INTERNET_ARCHIVE:
+            run_task(upload_to_internet_archive, link_guid=guid)
+
     return HttpResponseRedirect(reverse('single_link_header', args=[guid]))
     
     

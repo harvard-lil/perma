@@ -2,8 +2,12 @@ $(function(){
     var table = $('.vested-table');
 
     // helpers
-    function postJSON(url, data, callback){
-        return $.post(url, JSON.stringify(data), callback, 'json');
+    function postJSON(url, data, callback, failureCallback){
+        return $.post(url, JSON.stringify(data), callback, 'json').fail(
+            failureCallback || function(jqXHR) {
+                informUser(jqXHR.status == 400 && jqXHR.responseText ? jqXHR.responseText : "Error " + jqXHR.status, 'danger');
+            }
+        );
     }
 
     // new folder form
@@ -145,7 +149,7 @@ $(function(){
         handleCheckboxClick();
 
         // draggable
-        table.find('tbody tr').draggable({
+        table.find('tbody tr').not('tr:has(.folder-name:contains("My Links"))').draggable({
             helper: "clone",
             cursorAt: { top: 10, left: 10 },
             start: function(event, ui ){
@@ -177,7 +181,11 @@ $(function(){
                         ui.draggable.remove();
                     },
                     traditional: true // Django-style array serialization
-                });
+                }).fail(
+                    function(jqXHR) {
+                        informUser(jqXHR.status == 400 && jqXHR.responseText ? jqXHR.responseText : "Error " + jqXHR.status, 'danger');
+                    }
+                );
             }
         });
     }

@@ -6,6 +6,7 @@ import tempfile
 from django.utils.crypto import get_random_string
 from fabric.api import *
 import subprocess
+from perma.models import LinkUser, Folder
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'perma.settings')
 from django.conf import settings
@@ -277,7 +278,14 @@ def heroku_push(app_name='perma', project_dir=os.path.join(settings.PROJECT_ROOT
     # delete temp dir
     shutil.rmtree(dest_dir)
 
-    
+
+def create_my_links_folders():
+    """ One-time function to create My Links folders for migration. """
+    for user in LinkUser.objects.exclude(vesting_org=None):
+        if not Folder.objects.filter(created_by=user, name=u"My Links", parent=None).exists():
+            Folder(created_by=user, name=u"My Links").save()
+
+
 try:
     from fab_targets import *
 except ImportError, e:
