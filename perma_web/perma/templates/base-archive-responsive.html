@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+{% load compressed %}<!DOCTYPE html>
 <html lang="en-us">
     <head>
         <title>Perma{% block title %}{% endblock %}</title>
@@ -10,9 +10,8 @@
         {% block meta-head %}{% endblock %}
         <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
         <link href='http://fonts.googleapis.com/css?family=Roboto+Slab:400,700' rel='stylesheet' type='text/css'>
-        <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap3.css">
         
-        <link rel="stylesheet" href="{{ STATIC_URL }}css/style-responsive-archive.css">
+        {% compressed_css 'base-archive' %}
         {% block styles %}{% endblock %}
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
 		<!--[if lt IE 9]>

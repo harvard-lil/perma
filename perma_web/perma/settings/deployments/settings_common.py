@@ -114,6 +114,14 @@ PIPELINE_CSS = {
         ),
         'output_filename': 'css/base-bundle.css',
     },
+    'base-archive': {
+        'source_filenames': (
+            'css/bootstrap3.css',
+            'css/style-responsive-archive.scss',
+            'css/font-awesome.min.css',
+        ),
+        'output_filename': 'css/base-archive-bundle.css',
+    },
 }
 
 # override to change .js mimetype from application/javascript for ie8 and below

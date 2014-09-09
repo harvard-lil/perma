@@ -1,6 +1,6 @@
 /* This .scss file will automatically be compiled by django-pipeline into a .css file */
 
-@import "compass/css3/opacity"
+@import "compass/css3/opacity";
 
 /* Global */
 
@@ -1221,7 +1221,7 @@ h3 {
 }
 
 .center {
-	position:relative
+	position:relative;
     text-align:center;
     margin:auto;
 }
@@ -1881,7 +1881,7 @@ ol li {
 
 ul.navbar-nav.tabbed > li, ul.navbar-nav.tabbed > li a {
 	font-size:16px;
-	padding:0px
+	padding:0px;
 	line-height:0px;
 	margin-bottom:0px;
 }
@@ -1900,7 +1900,7 @@ ul.navbar-nav.tabbed > li, ul.navbar-nav.tabbed > li a {
 }
 
 span.tab-styling {
-	background:#f00
+	background:#f00;
 	margin-top:10px;
 }
 
