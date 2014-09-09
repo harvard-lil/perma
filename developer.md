@@ -59,7 +59,7 @@ Further reading:
 ### Using Sass to manage CSS
 
 We use Compass to translate Sass to CSS. A command like the following is likely helpful when you're developing
-
+    cd perma_web
     compass watch --sass-dir static/css/ --css-dir static/css
 
 ###  Schema and data migrations using South
