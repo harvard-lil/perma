@@ -184,7 +184,7 @@
                         <td class="linky-abbr-date-time">{{ link.vested_timestamp|local_datetime:"MMM DD, YYYY" }}</td>
                         <td class="linky-details-link"><a href="#" class="details">details</a></td>
                     </tr>
-                    <tr class="link-details" {% if search_query in link.notes %}style="display:table-row"{% endif %}>
+                    <tr class="link-details" {% if search_query and search_query in link.notes %}style="display:table-row"{% endif %}>
                         <td colspan="2"></td>
                         <td colspan="5">
                             <div class="pull-right"><strong>Views:</strong> {{ link.view_count }}</div>
