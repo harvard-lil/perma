@@ -103,25 +103,6 @@ function linkIt(){
 
 
 
-/* Handle the vesting button - start */
-
-function vestIt() {
-    var request = $.ajax({
-        url: new_archive.url ,
-        type: "POST",
-        data: {'csrfmiddlewaretoken': csrf_token}
-        //dataType: "json"
-    });
-
-    request.done(function(data) {
-        $('#vest-button').text('Vested').prop('disabled', true);
-        return false;
-    });
-}
-
-/* Handle the vesting button - end */
-
-
 
 /* Handle an upload - start */
 
@@ -208,14 +189,6 @@ function check_status() {
             var template = Handlebars.compile(source);
             $('#preview-container').html(template({image_url: image_url,
                 archive_url: new_archive.url}));
-
-            // If we have a vesting member, let's fade in their controls
-            // now that they can see the preview
-            if (vesting_privs) {
-                var source = $("#admin-controls-template").html();
-                var template = Handlebars.compile(source);
-                $('#admin-controls-container').html(template({})).fadeIn();
-            }
 
             // Clear out our pending jobs
             $.each(refreshIntervalIds, function(ndx, id) {
