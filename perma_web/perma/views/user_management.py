@@ -512,11 +512,11 @@ def vesting_user_add_user(request):
     
             if request.user.has_group('registrar_user'):
                 vesting_org = form.cleaned_data['vesting_org']
-                target_user.vesting_org_id = vesting_org
-                target_user.registrar_id = vesting_org.registrar.id
+                target_user.vesting_org = vesting_org
+                target_user.registrar = vesting_org.registrar
             else:
-                target_user.vesting_org_id = request.user.vesting_org_id
-                target_user.registrar_id = request.user.registrar_id
+                target_user.vesting_org = request.user.vesting_org
+                target_user.registrar = request.user.registrar
     
             group = Group.objects.get(name='vesting_user')
             all_groups = Group.objects.all()
