@@ -28,12 +28,17 @@
         </p>
     {% endif %}
 
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.level >= 30 %}danger{% else %}success{% endif %}" style="clear:both; margin:1em">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
+        {% endfor %}
+    {% endif %}
+
     {% include "user_management/includes/search_form.html" %}
 
     <form method="POST">
 
         {### create new folder ###}
-        {% csrf_token %}
         <div id="new_folder_container">
             <button type="button" id="new_folder_show" class="btn btn-default"><span class="icon-folder-close-alt" style="font-size: large;"></span> New Folder</button>
             {% if all_folders %}
@@ -90,6 +95,7 @@
                 Links in this folder will remain private after October 1.
             </div>
         {% endif %}
+
 
         {% if search_query %}
             <p>

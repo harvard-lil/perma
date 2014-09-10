@@ -5,6 +5,7 @@ import socket
 from urlparse import urlparse
 from mimetypes import MimeTypes
 from celery import chain
+from django.contrib import messages
 from netaddr import IPAddress, IPNetwork
 import requests
 from mptt.exceptions import InvalidMove
@@ -274,7 +275,10 @@ def link_browser(request, path, link_filter, this_page, verb):
                                 move_ok = False
                                 break
                     if not move_ok:
-                        return HttpResponseBadRequest("Sorry, vested links can't be moved into 'My Links'. They belong to your vesting organization.")
+                        if request.is_ajax():
+                            return HttpResponseBadRequest("Sorry, vested links can't be moved into 'My Links'. They belong to your vesting organization.")
+                        else:
+                            messages.add_message(request, messages.ERROR, "Sorry, vested links can't be moved into 'My Links'. They belong to your vesting organization.")
 
             for link_id in request.POST.getlist('links'):
                 link = get_object_or_404(Link, pk=link_id, **link_filter)
