@@ -146,6 +146,12 @@ class LinkUser(AbstractBaseUser):
         else:
             return self.groups.filter(name=group).exists()
 
+    # TEMP
+    def create_my_links_folder(self):
+        if not Folder.objects.filter(created_by=self, name=u"My Links", parent=None).exists():
+            Folder(created_by=self, name=u"My Links").save()
+
+
 class Folder(MPTTModel):
     name = models.CharField(max_length=255, null=False, blank=False)
     slug = models.CharField(max_length=255, null=False, blank=False)

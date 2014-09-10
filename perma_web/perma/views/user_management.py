@@ -390,6 +390,9 @@ def list_users_in_group(request, group_name):
                     new_user.vesting_org = request.user.vesting_org
                     new_user.registrar = request.user.registrar
 
+                    # TEMP
+                    new_user.create_my_links_folder()
+
             new_user.save()
 
             group = Group.objects.get(name=group_name)
@@ -517,6 +520,9 @@ def vesting_user_add_user(request):
             else:
                 target_user.vesting_org = request.user.vesting_org
                 target_user.registrar = request.user.registrar
+
+            # TEMP
+            target_user.create_my_links_folder()
     
             group = Group.objects.get(name='vesting_user')
             all_groups = Group.objects.all()
@@ -701,6 +707,9 @@ def user_add_vesting_org(request, user_id):
             target_user.registrar = target_vesting_org.registrar
             target_user.save()
             messages.add_message(request, messages.INFO, '<strong>%s</strong> is now a <strong>%s</strong>' % (target_user.email, group_name.replace('_', ' ').capitalize()), extra_tags='safe')
+
+            # TEMP
+            target_user.create_my_links_folder()
 
             return HttpResponseRedirect(reverse('user_management_manage_{old_group}'.format(old_group=old_group)))
 

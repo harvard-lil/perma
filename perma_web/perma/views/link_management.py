@@ -228,14 +228,14 @@ def link_browser(request, path, link_filter, this_page, verb):
     # find current folder based on path
     current_folder = None
     folder_breadcrumbs = []
-    show_shared_folder_warning = request.user.vesting_org is not None
+    show_shared_folder_warning = request.user.vesting_org is not None  # TEMP
     if path:
         path = path.strip("/")
         if path:
             # get current folder
             folder_slugs = path.split("/")
             current_folder = get_object_or_404(Folder,slug=folder_slugs[-1],created_by=request.user)
-            show_shared_folder_warning = show_shared_folder_warning and folder_slugs[0]!="my-links"
+            show_shared_folder_warning = show_shared_folder_warning and folder_slugs[0]!="my-links"  # TEMP
 
             # check ancestor slugs and generate breadcrumbs
             ancestors = current_folder.get_ancestors()
@@ -243,7 +243,6 @@ def link_browser(request, path, link_filter, this_page, verb):
                 if folder_slugs[i] != ancestor.slug:
                     raise Http404
                 folder_breadcrumbs.append([ancestor, u"/".join(folder_slugs[:i+1])])
-
 
     # make sure path has leading and trailing slashes, or is just one slash if empty
     path = u"/%s/" % path if path else "/"
@@ -263,6 +262,7 @@ def link_browser(request, path, link_filter, this_page, verb):
             else:
                 target_folder = get_object_or_404(Folder, created_by=request.user, pk=request.POST['move_selected_items_to'])
 
+            # TEMP
             # prevent vested links being moved into My Links
             if show_shared_folder_warning:
                 if target_folder and target_folder.get_ancestors(include_self=True).filter(name="My Links").exists():
@@ -366,7 +366,7 @@ def link_browser(request, path, link_filter, this_page, verb):
                'subfolders':subfolders, 'path':path, 'folder_breadcrumbs':folder_breadcrumbs,
                'current_folder':current_folder,
                'all_folders':all_folders,
-               'show_shared_folder_warning':show_shared_folder_warning,
+               'show_shared_folder_warning':show_shared_folder_warning,  # TEMP
                'base_url':base_url}
 
     context = RequestContext(request, context)
@@ -380,6 +380,7 @@ def vest_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
     if request.method == 'POST' and not link.vested and request.user.vesting_org:
 
+        # TEMP
         # make sure this link is outside My Links, or user has told us to save it there
         target_folder = None
         move_to_target_folder = False

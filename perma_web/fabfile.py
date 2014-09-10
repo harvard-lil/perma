@@ -279,11 +279,11 @@ def heroku_push(app_name='perma', project_dir=os.path.join(settings.PROJECT_ROOT
     shutil.rmtree(dest_dir)
 
 
+# TEMP
 def create_my_links_folders():
     """ One-time function to create My Links folders for migration. """
     for user in LinkUser.objects.exclude(vesting_org=None):
-        if not Folder.objects.filter(created_by=user, name=u"My Links", parent=None).exists():
-            Folder(created_by=user, name=u"My Links").save()
+        user.create_my_links_folder()
 
 
 try:

@@ -78,6 +78,7 @@
             </div>
         {% endif %}
 
+        {# TEMP #}
         {% if show_shared_folder_warning %}
             <div class="alert alert-info">
                 <b>Important:</b> On October 1, everything {% if current_folder %}in this folder{% else %}here, except the My Links folder,{% endif %}
@@ -127,7 +128,7 @@
                 {% for folder in subfolders %}
                     <tr class="folder-row" folder_id="{{ folder.pk }}">
                         <td>
-                            {% if folder.name != "My Links" %}
+                            {% if folder.name != "My Links" %} {# TEMP #}
                                 <input type="checkbox" name="folders" value="{{ folder.pk }}" class="checkbox" id="checkbox-{{ folder.pk }}"/>
                             {% endif %}
                         </td>
@@ -138,12 +139,12 @@
                             <a href="{{ base_url }}{{ path }}{{ folder.slug }}">{{ folder.name }}</a>
                         </td>
                         <td>
-                            {% if folder.name != "My Links" %}
+                            {% if folder.name != "My Links" %} {# TEMP #}
                                 <a href="#" class="rename">rename</a>
                             {% endif %}
                         </td>
                         <td>
-                            {% if folder.name != "My Links" %}
+                            {% if folder.name != "My Links" %} {# TEMP #}
                                 <a href="#" class="delete">delete</a>
                             {% endif %}
                         </td>

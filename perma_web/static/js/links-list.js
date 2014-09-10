@@ -149,7 +149,9 @@ $(function(){
         handleCheckboxClick();
 
         // draggable
-        table.find('tbody tr').not('tr:has(.folder-name:contains("My Links"))').draggable({
+        table.find('tbody tr')
+            .not('tr:has(.folder-name:contains("My Links"))')  // TEMP
+            .draggable({
             helper: "clone",
             cursorAt: { top: 10, left: 10 },
             start: function(event, ui ){
