@@ -78,6 +78,19 @@
             </div>
         {% endif %}
 
+        {# TEMP #}
+        {% if show_shared_folder_warning %}
+            <div class="alert alert-info">
+                <b>Important:</b> On October 1, everything {% if current_folder %}in this folder{% else %}here, except the My Links folder,{% endif %}
+                will be shared with your vesting organization ({{ request.user.vesting_org }}). If you don't want links to be shared,
+                please move them into the <a href="{{ base_url }}/my-links">My Links</a> folder.
+            </div>
+        {% elif request.user.vesting_org %}
+            <div class="alert alert-success">
+                Links in this folder will remain private after October 1.
+            </div>
+        {% endif %}
+
         {% if search_query %}
             <p>
                 <em>
@@ -115,7 +128,9 @@
                 {% for folder in subfolders %}
                     <tr class="folder-row" folder_id="{{ folder.pk }}">
                         <td>
-                            <input type="checkbox" name="folders" value="{{ folder.pk }}" class="checkbox" id="checkbox-{{ folder.pk }}"/>
+                            {% if folder.name != "My Links" %} {# TEMP #}
+                                <input type="checkbox" name="folders" value="{{ folder.pk }}" class="checkbox" id="checkbox-{{ folder.pk }}"/>
+                            {% endif %}
                         </td>
                         <td>
                             <span class="icon-folder-close-alt" style="font-size: large;"></span>
@@ -124,10 +139,14 @@
                             <a href="{{ base_url }}{{ path }}{{ folder.slug }}">{{ folder.name }}</a>
                         </td>
                         <td>
-                            <a href="#" class="rename">rename</a>
+                            {% if folder.name != "My Links" %} {# TEMP #}
+                                <a href="#" class="rename">rename</a>
+                            {% endif %}
                         </td>
                         <td>
-                            <a href="#" class="delete">delete</a>
+                            {% if folder.name != "My Links" %} {# TEMP #}
+                                <a href="#" class="delete">delete</a>
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}

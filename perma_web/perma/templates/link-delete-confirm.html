@@ -1,73 +1,20 @@
-{% extends "layout-archive-responsive.html" %}
-{% load file_exists  truncatesmart has_group %}
-{% block title %} | {{linky.submitted_title}}{% endblock %}
-{% block styles %}
-<link rel="stylesheet" href="{{ STATIC_URL }}css/font-awesome.min.css">
-{% endblock %}
+{% extends "base-archive-confirm.html" %}
 
-{% block header %}
+{% block confirm %}
+    <h1 class="cyan">Yahowza!</h1>
+    <h2>Do you really want to <span class="dark">delete</span> this link forever?</h2>
 
-
-<header  class="border-bottom">
-	<div class="container">
-		 <div class="row">
-		
-		
-			<div class="col-sm-12">
-				<div class="col-sm-3">
-					<div class="logo">
-						<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo2.png"></a>
-					</div><!--end logo -->
-				</div><!--end span 3 -->
-				
-				<div class="col-sm-6 meta-data ">
-					<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a><br/>
-					
-						
-						<!--<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a>-->
-						<span class="light-grey">created {{linky.creation_timestamp}} | {{ linky.view_count }} view{% if linky.view_count > 1 %}s{% endif %}</span>
-				</div><!--end span 5 -->
-				
-			</div>
-	
-		</div>
-				
-			</div> <!-- end span 12-->
-	</div><!-- end main-container -->
-</header>
-
-{% endblock %}
-
-{% block content %}
-<div class="row">
-	<div class="col-sm-6 col-sm-offset-3 centered">
-		<div class="yahowza">
-			 {% if request.user.is_authenticated and not linky.vested %}
-				  {% if request.user == linky.created_by %}
-					<h1 class="cyan">Yahowza!</h1><h2>Do you really want to <span class="dark">delete</span> this link forever?</h2>
-					    <div class="library-thumbnail user-delete-thumbnail">
-					        {% if asset.image_capture and asset.image_capture != 'failed' %}
-								{% if asset.image_capture != 'pending' %}	
-									<img src="{{ MEDIA_URL }}{{ asset.image_url }}"/>
-								{% endif %}
-								{% endif %}
-					    </div>
-						<div class="centered-box">
-							<form action="" method="post">
-							  {% csrf_token %}
-							  <a href="/{{ linky.guid }}" class="cancel-button">Cancel</a> <button type="submit" class="btn delete-confirm btn-success">Delete this link forever</button>
-							</form>
-						</div>
-					
-				  {% endif %}
-			{% endif %}
-		</div>
-	</div>
-</div><!--row-->
-
-{% endblock %}
-
-{% block scripts %}
-
-
+    <div class="library-thumbnail user-delete-thumbnail">
+        {% if asset.image_capture and asset.image_capture != 'failed' %}
+            {% if asset.image_capture != 'pending' %}
+                <img src="{{ MEDIA_URL }}{{ asset.image_url }}"/>
+            {% endif %}
+            {% endif %}
+    </div>
+    <div class="centered-box">
+        <form action="" method="post">
+          {% csrf_token %}
+          <a href="/{{ link.guid }}" class="cancel-button">Cancel</a> <button type="submit" class="btn delete-confirm btn-success">Delete this link forever</button>
+        </form>
+    </div>
 {% endblock %}
