@@ -380,7 +380,7 @@ def contact(request):
             return render_to_response('contact.html', context)
 
     else:
-        form = ContactForm()
+        form = ContactForm(initial={'message': request.GET.get('message', '')})
 
         context = RequestContext(request, {'form': form})
         return render_to_response('contact.html', context)

@@ -27,7 +27,7 @@
                 <div class="form-group">
                     <label for="id_message">Message</label><br>
                     {{ form.message.errors }}
-                    <textarea id="id_message" name="message" class="form-control" rows="5"></textarea>
+                    <textarea id="id_message" name="message" class="form-control" rows="5">{{ form.message.value}}</textarea>
                 </div>
                 <button type="submit" class="btn btn-success">Send</button>
             </form>
