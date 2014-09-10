@@ -37,6 +37,7 @@
     {% include "user_management/includes/search_form.html" %}
 
     <form method="POST">
+        {% csrf_token %}
 
         {### create new folder ###}
         <div id="new_folder_container">
