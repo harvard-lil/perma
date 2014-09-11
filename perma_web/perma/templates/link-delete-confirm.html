@@ -3,18 +3,17 @@
 {% block confirm %}
     <h1 class="cyan">Yahowza!</h1>
     <h2>Do you really want to <span class="dark">delete</span> this link forever?</h2>
-
+    <div class="centered-box">
+        <form action="" method="post">
+          {% csrf_token %}
+          <a href="/{{ link.guid }}" class="cancel-button">Cancel</a> <button type="submit" class="btn delete-confirm btn-success">Delete this link forever</button>
+        </form>
+    </div>
     <div class="library-thumbnail user-delete-thumbnail">
         {% if asset.image_capture and asset.image_capture != 'failed' %}
             {% if asset.image_capture != 'pending' %}
                 <img src="{{ MEDIA_URL }}{{ asset.image_url }}"/>
             {% endif %}
             {% endif %}
-    </div>
-    <div class="centered-box">
-        <form action="" method="post">
-          {% csrf_token %}
-          <a href="/{{ link.guid }}" class="cancel-button">Cancel</a> <button type="submit" class="btn delete-confirm btn-success">Delete this link forever</button>
-        </form>
     </div>
 {% endblock %}
