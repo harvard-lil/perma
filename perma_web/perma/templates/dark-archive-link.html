@@ -10,4 +10,11 @@
           <a href="/{{ link.guid }}" class="cancel-button">Cancel</a> <button type="submit" class="btn delete-confirm btn-success">Dark archive this link forever</button>
         </form>
     </div>
+    <div class="library-thumbnail user-delete-thumbnail">
+        {% if asset.image_capture and asset.image_capture != 'failed' %}
+            {% if asset.image_capture != 'pending' %}
+                <img src="{{ MEDIA_URL }}{{ asset.image_url }}"/>
+            {% endif %}
+            {% endif %}
+    </div>
 {% endblock %}

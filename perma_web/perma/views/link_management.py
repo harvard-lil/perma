@@ -429,16 +429,17 @@ def user_delete_link(request, guid):
             link.save()
 
         return HttpResponseRedirect(reverse('created_links'))
-    return render_to_response('link-delete-confirm.html', {'linky': link, 'asset': asset}, RequestContext(request))
+    return render_to_response('link-delete-confirm.html', {'link': link, 'asset': asset}, RequestContext(request))
 
 
 @require_group('registry_user')
 def dark_archive_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
+    asset = Asset.objects.get(link=link)
     if request.method == 'POST':
         if not link.dark_archived:
             link.dark_archived=True
             link.save()
             run_task(poke_mirrors, link_guid=guid)
         return HttpResponseRedirect(reverse('single_link_header', args=[guid]))
-    return render_to_response('dark-archive-link.html', {'linky': link}, RequestContext(request))
+    return render_to_response('dark-archive-link.html', {'link': link, 'asset': asset}, RequestContext(request))
