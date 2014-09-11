@@ -187,7 +187,7 @@
 	<div class="archive-view center">
   		<div class="watermark center">
 
-			{% if not archive.vested %}<div class="negative-margin"><img class="watermark-image" src="{{ STATIC_URL }}img/perma-infinity-landing.png"/></div>{% endif %}
+			{% if not archive.vested %}<div class="negative-margin"><img class="watermark-image" src="{{ STATIC_URL }}img/watermark-text.png"/></div>{% endif %}
 
 			{% if serve_type == 'image'%}
             <iframe src="{% url 'service_image_wrapper' archive.guid %}" sandbox="allow-forms allow-scripts allow-same-origin" id="image_iframe">
