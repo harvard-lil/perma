@@ -1,14 +1,11 @@
 {% extends "admin-layout.html" %}
-{% load mptt_tags repeat local_datetime %}
+{% load mptt_tags repeat local_datetime compressed %}
 
 {% block title %} | {{ verb|capfirst }} Perma links{% endblock %}
 
 {% block scripts %}
     {{ block.super }}
-    <script src="{{ STATIC_URL }}js/jquery-ui-1.10.3.custom.min.js"></script>
-    <script src="{{ STATIC_URL }}js/jquery.dotdotdot-1.5.9.min.js"></script>
-    <script src="{{ STATIC_URL }}js/jquery.django-csrf.js"></script>
-    <script src="{{ STATIC_URL }}js/links-list.js"></script>
+    {% compressed_js 'links_list' %}
 {% endblock %}
 
 {% block content %}
