@@ -423,7 +423,7 @@ def vest_link(request, guid):
                 vesting_orgs = list(vesting_orgs)
                 if not vesting_orgs:
                     messages.add_message(request, messages.ERROR, "Please create a vesting organization before vesting links.")
-                    return HttpResponseRedirect(reverse('single_link_header', args=[guid]))
+                    return HttpResponseRedirect(reverse('single_linky', args=[guid]))
                 elif len(vesting_orgs)==1:
                     vesting_org = vesting_orgs[0]
                 else:
@@ -443,7 +443,7 @@ def vest_link(request, guid):
         if settings.UPLOAD_TO_INTERNET_ARCHIVE:
             run_task(upload_to_internet_archive, link_guid=guid)
 
-    return HttpResponseRedirect(reverse('single_link_header', args=[guid]))
+    return HttpResponseRedirect(reverse('single_linky', args=[guid]))
     
     
 @login_required    
@@ -469,5 +469,5 @@ def dark_archive_link(request, guid):
             link.dark_archived=True
             link.save()
             run_task(poke_mirrors, link_guid=guid)
-        return HttpResponseRedirect(reverse('single_link_header', args=[guid]))
+        return HttpResponseRedirect(reverse('single_linky', args=[guid]))
     return render_to_response('dark-archive-link.html', {'link': link, 'asset': asset}, RequestContext(request))

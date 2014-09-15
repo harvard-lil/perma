@@ -1,5 +1,6 @@
 {% load compressed %}<!DOCTYPE html>
 <html lang="en-us">
+<html lang="en-us">
     <head>
         <title>Perma{% block title %}{% endblock %}</title>
         <meta charset="utf-8" />
@@ -11,7 +12,7 @@
         <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
         <link href='http://fonts.googleapis.com/css?family=Roboto+Slab:400,700' rel='stylesheet' type='text/css'>
         
-        {% compressed_css 'base-archive' %}
+        {% compressed_css 'base' %}
         {% block styles %}{% endblock %}
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
 		<!--[if lt IE 9]>
