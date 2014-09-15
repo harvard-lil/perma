@@ -1,14 +1,11 @@
 {% extends "admin-layout.html" %}
-{% load mptt_tags repeat local_datetime %}
+{% load mptt_tags repeat local_datetime compressed %}
 
 {% block title %} | {{ verb|capfirst }} Perma links{% endblock %}
 
 {% block scripts %}
     {{ block.super }}
-    <script src="{{ STATIC_URL }}js/jquery-ui-1.10.3.custom.min.js"></script>
-    <script src="{{ STATIC_URL }}js/jquery.dotdotdot-1.5.9.min.js"></script>
-    <script src="{{ STATIC_URL }}js/jquery.django-csrf.js"></script>
-    <script src="{{ STATIC_URL }}js/links-list.js"></script>
+    {% compressed_js 'links_list' %}
 {% endblock %}
 
 {% block content %}
@@ -28,12 +25,18 @@
         </p>
     {% endif %}
 
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.level >= 30 %}danger{% else %}success{% endif %}" style="clear:both; margin:1em">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
+        {% endfor %}
+    {% endif %}
+
     {% include "user_management/includes/search_form.html" %}
 
     <form method="POST">
+        {% csrf_token %}
 
         {### create new folder ###}
-        {% csrf_token %}
         <div id="new_folder_container">
             <button type="button" id="new_folder_show" class="btn btn-default"><span class="icon-folder-close-alt" style="font-size: large;"></span> New Folder</button>
             {% if all_folders %}
@@ -90,6 +93,7 @@
                 Links in this folder will remain private after October 1.
             </div>
         {% endif %}
+
 
         {% if search_query %}
             <p>
@@ -184,7 +188,7 @@
                         <td class="linky-abbr-date-time">{{ link.vested_timestamp|local_datetime:"MMM DD, YYYY" }}</td>
                         <td class="linky-details-link"><a href="#" class="details">details</a></td>
                     </tr>
-                    <tr class="link-details" {% if search_query in link.notes %}style="display:table-row"{% endif %}>
+                    <tr class="link-details" {% if search_query and search_query in link.notes %}style="display:table-row"{% endif %}>
                         <td colspan="2"></td>
                         <td colspan="5">
                             <div class="pull-right"><strong>Views:</strong> {{ link.view_count }}</div>

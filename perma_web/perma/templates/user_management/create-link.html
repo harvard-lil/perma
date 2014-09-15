@@ -74,26 +74,23 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-    var main_server_host = "http://{{request.main_server_host}}",
-    mirror_server_host = "http://{{request.mirror_server_host}}",
-    csrf_token = "{{csrf_token}}",
-    static_prefix = "{{STATIC_URL}}",
-    MEDIA_URL = "{{ MEDIA_URL }}",
-    status_url = "{% url 'service_link_status' '' %}",
-    userguide_url = "{% url 'docs_perma_link_vesting' %}";
-    vest_link_url = "{% url 'vest_link' 'GUID' %}";
+    <script>
+        var main_server_host = "http://{{request.main_server_host}}",
+        mirror_server_host = "http://{{request.mirror_server_host}}",
+        csrf_token = "{{csrf_token}}",
+        static_prefix = "{{STATIC_URL}}",
+        MEDIA_URL = "{{ MEDIA_URL }}",
+        status_url = "{% url 'service_link_status' '' %}",
+        userguide_url = "{% url 'docs_perma_link_vesting' %}";
+        vest_link_url = "{% url 'vest_link' 'GUID' %}";
 
-    vesting_privs = false;
-    {% if request.user|has_group:'registry_user,registrar_user,vesting_user' and not linky.vested %}
-        vesting_privs = true;
-    {% endif %}
-</script>
+        vesting_privs = false;
+        {% if request.user|has_group:'registry_user,registrar_user,vesting_user' and not linky.vested %}
+            vesting_privs = true;
+        {% endif %}
+    </script>
 
-<script src="{{ STATIC_URL }}js/spin.js"></script>
-<script src="{{ STATIC_URL }}js/handlebars.js"></script>
-<script src="{{ STATIC_URL }}js/jquery.form.min.js"></script>
-{% compressed_js 'create' %}
+    {% compressed_js 'create' %}
 
 {% endblock %}
 {% block templates %}
