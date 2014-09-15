@@ -118,6 +118,7 @@ urlpatterns = patterns('perma.views',
     # Our Perma ID catchall
     # url(r'^%s/?$' % r'(?P<guid>[^\./]+)', 'common.single_link_header', name='single_link_header'), # our pending, new, single link view
     url(r'^%s/?$' % r'(?P<guid>[^\./]+)', 'common.single_linky', name='single_linky'),
+
 )
 
 # debug-only serving of static and media assets
