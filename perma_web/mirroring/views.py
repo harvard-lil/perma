@@ -7,7 +7,7 @@ from django.http import HttpResponse, StreamingHttpResponse
 
 from perma.models import Asset, Link
 from perma.utils import run_task
-from perma.views.common import single_link_header
+from perma.views.common import single_link_header, single_linky
 
 from .tasks import update_perma, compress_link_assets
 from .utils import must_be_mirrored, may_be_mirrored
@@ -52,7 +52,7 @@ def single_link_json(request, guid):
         It gets called as JSON (by the regular single link page on a mirror) and returns
         the data necessary for the mirror to render the page.
     """
-    return single_link_header(request, guid)
+    return single_linky(request, guid)
 
 @may_be_mirrored
 def manifest(request):
