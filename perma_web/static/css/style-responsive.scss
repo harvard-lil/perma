@@ -2376,3 +2376,18 @@ ul.vesting li {
 
 }
 
+
+
+
+.popup-alert{
+  /* via http://stackoverflow.com/a/22073084/307769 */
+    position: fixed;   /* Take it out of the flow of the document */
+    left: 0;           /* Left edge at left for now */
+    right: 0;          /* Right edge at right for now, so full width */
+    top: 30px;         /* Move it down from top of window */
+    width: 700px;      /* Give it the desired width */
+    margin: auto;      /* Center it */
+    max-width: 90%;   /* Make it fit window if under 500px */
+    z-index: 10000;    /* Whatever needed to force to front (1 might do) */
+}
+
