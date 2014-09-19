@@ -11,7 +11,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import views as auth_views
 from django.contrib.sites.models import get_current_site
 from django.core.mail import send_mail
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils.http import is_safe_url, cookie_date
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.template import RequestContext
@@ -45,7 +45,7 @@ from perma.models import Registrar, Link, LinkUser, VestingOrg, Folder
 from perma.utils import require_group, get_search_query
 
 logger = logging.getLogger(__name__)
-valid_member_sorts = ['-email', 'email', 'last_name', '-last_name', 'admin', '-admin', 'registrar__name', '-registrar__name', 'vesting_org__name', '-vesting_org__name']
+valid_member_sorts = ['-email', 'email', 'last_name', '-last_name', 'admin', '-admin', 'registrar__name', '-registrar__name', 'vesting_org__name', '-vesting_org__name', 'date_joined', '-date_joined', 'last_login', '-last_login']
 valid_registrar_sorts = ['-email', 'email', 'name', '-name', 'website', '-website']
 
 
@@ -307,7 +307,7 @@ def list_users_in_group(request, group_name):
     added_user = request.REQUEST.get('added_user')
 
     def sorts():
-        DEFAULT_SORT = ['email']
+        DEFAULT_SORT = ['last_name']
         sorts = DEFAULT_SORT
 
         sort = request.GET.get('sort', DEFAULT_SORT)
@@ -326,19 +326,54 @@ def list_users_in_group(request, group_name):
         page = 1
 
     users = None
+    registrars = None
+    vesting_orgs = None
     if request.user.has_group('registry_user'):
-        users = LinkUser.objects.filter(groups__name=group_name).order_by(*sorts())
+        users = LinkUser.objects.filter(groups__name=group_name).order_by(*sorts()).annotate(vested_links=Count('vested_by_editor'))
+        vesting_orgs = VestingOrg.objects.all().order_by('name')
+        registrars = Registrar.objects.all().order_by('name')
         is_registry = True
     elif request.user.has_group('registrar_user'):
-        users = LinkUser.objects.filter(groups__name=group_name, registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts())
+        users = LinkUser.objects.filter(groups__name=group_name, vesting_org__registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts())
+        vesting_orgs = VestingOrg.objects.filter(registrar_id=request.user.registrar_id).order_by('name')
         is_registrar = True
     elif request.user.has_group('vesting_user'):
         users = LinkUser.objects.filter(groups__name=group_name, vesting_org=request.user.vesting_org).exclude(id=request.user.id).order_by(*sorts())
 
+    active_users = users.filter(is_active=True, is_confirmed=True).count()
+    deactivated_users = users.filter(is_confirmed=True, is_active=False).count()
+    unactivated_users = users.filter(is_confirmed=False, is_active=False).count()
+    
+    sort_url = ''
+    
     # handle search
     search_query = request.GET.get('q', '')
     if search_query:
         users = get_search_query(users, search_query, ['email', 'first_name', 'last_name', 'vesting_org__name'])
+        sort_url = '&q={search_query}'.format(search_query=search_query)
+        
+    # handle status filter
+    status = request.GET.get('status', '')
+    if status:
+        sort_url = '{sort_url}&status={status}'.format(sort_url=sort_url, status=status)
+        if status == 'active':
+            users = users.filter(is_confirmed=True, is_active=True)
+        elif status == 'deactivated':
+            users = users.filter(is_confirmed=True, is_active=False)
+        elif status == 'unactivated':
+            users = users.filter(is_confirmed=False, is_active=False)
+        
+    # handle vesting org filter
+    vesting_org_filter = request.GET.get('vesting_org', '')
+    if vesting_org_filter:
+        users = users.filter(vesting_org__name=vesting_org_filter)
+        sort_url = '{sort_url}&vesting_org={vesting_org_filter}'.format(sort_url=sort_url, vesting_org_filter=vesting_org_filter)
+        
+    # handle registrar filter
+    registrar_filter = request.GET.get('registrar', '')
+    if registrar_filter:
+        users = users.filter(vesting_org__registrar__name=registrar_filter)
+        sort_url = '{sort_url}&registrar={registrar_filter}'.format(sort_url=sort_url, registrar_filter=registrar_filter)
 
     paginator = Paginator(users, settings.MAX_USER_LIST_SIZE)
     users = paginator.page(page)
@@ -347,6 +382,11 @@ def list_users_in_group(request, group_name):
         'users_list': list(users),
         'this_page': 'users_{group_name}s'.format(group_name=group_name),
         'users': users,
+        'active_users': active_users,
+        'deactivated_users': deactivated_users,
+        'unactivated_users': unactivated_users,
+        'vesting_orgs': vesting_orgs,
+        'registrars': registrars,
         'added_user': added_user,
         'group_name':group_name,
         'pretty_group_name':group_name.replace('_', ' ').capitalize(),
@@ -357,6 +397,10 @@ def list_users_in_group(request, group_name):
         
         'sort': sorts()[0],
         'search_query': search_query,
+        'registrar_filter': registrar_filter,
+        'vesting_org_filter': vesting_org_filter,
+        'status': status,
+        'sort_url': sort_url
     }
     context['pretty_group_name_plural'] = context['pretty_group_name'] + "s"
 

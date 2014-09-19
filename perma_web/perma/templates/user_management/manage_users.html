@@ -1,10 +1,8 @@
 {% extends "admin-layout.html" %}
-{% load has_group %}
+{% load has_group local_datetime %}
 {% block title %} | {{ pretty_group_name_plural }}{% endblock %}
 
 {% block content %}
-
-    {% include "user_management/includes/search_form.html" %}
 
     <h3>Existing {{ pretty_group_name_plural|lower }} <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add user</a></small></h3>
 
@@ -16,10 +14,6 @@
 	
 	{% if added_user %}
         <div class="alert alert-success alert-block"><h4>Account created!</h4> <strong>{{ added_user }}</strong> will receive an email with instructions on how to activate the account and create a password.</div>
-    {% endif %}
-
-    {% if search_query %}
-        <p><em>Search results for "{{ search_query }}". <a href="?q=">Clear search.</a></em></p>
     {% endif %}
 
 	<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
@@ -53,17 +47,114 @@
     </div>
 
     {% if users_list %}
+        <div class="row">
+            <div class="col-sm-3">
+                <p class="count-label">Active Users</p>
+                <p class="count-number">{{ active_users }}</p>
+            </div>
+            <div class="col-sm-3">
+                <p class="count-label">Deactivated Users</p>
+                <p class="count-number">{{ deactivated_users }}</p>
+            </div>
+            <div class="col-sm-3">
+                <p class="count-label">Unactivated Users</p>
+                <p class="count-number">{{ unactivated_users }}</p>
+            </div>
+        </div>
+        {% if registrar_filter or vesting_org_filter or status or search_query %}
+        <div class="row">
+            <div class="col-sm-12">
+                <a class="remove-search-filters" href="?sort=last_name"><i class="icon-remove-sign"></i> Clear current search, filters and sort</a>
+            </div>
+        </div>
+        {% endif %}
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="sort-filter-bar">
+                {% include "user_management/includes/search_form.html" %}
+                <div class="dropdown">
+                  <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
+                    Sort <span class="caret"></span>
+                  </a>
+                
+                
+                  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                    <li>
+                        <a {% if sort == 'last_name' %}class="selected" {% endif %}href="?sort=last_name&page={{ users.number }}{% if sort_url %}{{ sort_url }}{% endif %}"><i class="icon-ok"></i> Last name A - Z</a>
+                        <a {% if sort == '-last_name' %}class="selected" {% endif %} href="?sort=-last_name&page={{ users.number }}{% if sort_url %}{{ sort_url }}{% endif %}"><i class="icon-ok"></i> Last name Z - A</a>
+                        <a {% if sort == '-date_joined' %}class="selected" {% endif %} href="?sort=-date_joined&page={{ users.number }}{% if sort_url %}{{ sort_url }}{% endif %}"><i class="icon-ok"></i> Newest</a>
+                        <a {% if sort == 'date_joined' %}class="selected" {% endif %} href="?sort=date_joined&page={{ users.number }}{% if sort_url %}{{ sort_url }}{% endif %}"><i class="icon-ok"></i> Oldest</a>
+                        <a {% if sort == '-last_login' %}class="selected" {% endif %} href="?sort=-last_login&page={{ users.number }}{% if sort_url %}{{ sort_url }}{% endif %}"><i class="icon-ok"></i> Recently active</a>
+                        <a {% if sort == 'last_login' %}class="selected" {% endif %} href="?sort=last_login&page={{ users.number }}{% if sort_url %}{{ sort_url }}{% endif %}"><i class="icon-ok"></i> Least recently active</a>
+                    </li>
+                  </ul>
+                </div>
+            <div class="dropdown">
+                  <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
+                    Status <span class="caret"></span>
+                  </a>
+                
+                
+                  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                    <li>
+                        <a {% if status == 'active' %}class="selected" {% endif %}href="?status=active&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if vesting_org_filter %}&vesting_org={{ vesting_org_filter }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}"><i class="icon-ok"></i> Active</a>
+                        <a {% if status == 'deactivated' %}class="selected" {% endif %}href="?status=deactivated&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if vesting_org_filter %}&vesting_org={{ vesting_org_filter }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}"><i class="icon-ok"></i> Deactivated</a>
+                        <a {% if status == 'unactivated' %}class="selected" {% endif %}href="?status=unactivated&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if vesting_org_filter %}&vesting_org={{ vesting_org_filter }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}"><i class="icon-ok"></i> Unactivated</a>
+                    </li>
+                  </ul>
+                </div>
+            {% if request.user|has_group:'registrar_user,registry_user' %}
+            <div class="dropdown">
+                  <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
+                    Vesting organization <span class="caret"></span>
+                  </a>
+                
+                
+                  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                    <li>
+                        {% if vesting_orgs %}
+                            {% for vesting_org in vesting_orgs %}
+                            {% if vesting_org_filter == vesting_org.name|lower %}
+                                <a class="selected" href="?page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}"><i class="icon-ok"></i> {{vesting_org.name}}</a>
+                            {% else %}
+                                <a href="?vesting_org={{vesting_org.name.split|join:'+'|lower}}&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}"><i class="icon-ok"></i> {{vesting_org.name}}</a>
+                            {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <a href="">None</a>
+                        {% endif %}
+                    </li>
+                  </ul>
+                </div>
+            {% endif %}
+            {% if request.user|has_group:'registry_user' %}
+            <div class="dropdown">
+                  <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
+                    Registrar <span class="caret"></span>
+                  </a>
+                
+                
+                  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                    <li>
+                        {% if registrars %}
+                            {% for registrar in registrars %}
+                            {% if registrar_filter == registrar.name|lower %}
+                                <a class="selected" href="?page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if vesting_org_filter %}&vesting_org={{ vesting_org_filter }}{% endif %}"><i class="icon-ok"></i> {{registrar.name}}</a>
+                            {% else %}
+                                <a href="?registrar={{registrar.name.split|join:'+'|lower}}&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if vesting_org_filter %}&vesting_org={{ vesting_org_filter }}{% endif %}"><i class="icon-ok"></i> {{registrar.name}}</a>
+                            {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <a href="">None</a>
+                        {% endif %}
+                    </li>
+                  </ul>
+                </div>
+            {% endif %}
+            </div>
+            </div>
+        </div>
         <table class="table">
-        <thead>
-          <tr>
-            <!--<th><input type="checkbox"></th>-->
-            <th>Name<a href="?sort=last_name&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-last_name&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>
-            <th>Email<a href="?sort=email&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-email&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>
-            {% if request.user|has_group:'registry_user,registrar_user' %}{% if group_name == 'vesting_user' %}<th>Vesting Organization<a href="?sort=vesting_org__name&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-vesting_org__name&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>{% endif %}{% endif %}
-            {% if group_name == 'registrar_user' %}<th>Registrar<a href="?sort=registrar__name&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-registrar__name&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>{% endif %}
-            <th>Admin<a href="?sort=admin&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-admin&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>
-          </tr>
-        </thead>
         <tbody>
           {% for listed_user in users_list %}
           {% if not listed_user.is_active %}
@@ -72,7 +163,15 @@
             <tr>
           {% endif %}
               <!--<td><input type="checkbox"></td>-->
-              <td>{{ listed_user.first_name }} {{ listed_user.last_name }}</td>
+              <td>{{ listed_user.first_name }} {{ listed_user.last_name }} 
+              {% comment %}
+              {{ listed_user.vested_links }} <br>created {{ listed_user.date_joined|local_datetime:"MMM DD, YYYY" }}
+              {% if listed_user.is_confirmed %}
+              <br>
+              last active {{ listed_user.last_login|local_datetime:"MMM DD, YYYY" }}
+              {% endif %}
+              {% endcomment %}
+              </td>
               <td>{{ listed_user.email }}</td>
             {% if request.user|has_group:'registry_user,registrar_user' %}{% if group_name == 'vesting_user' %}<td>{{listed_user.vesting_org.name}}</td>{% endif %}{% endif %}
             {% if group_name == 'registrar_user' %}<td>{{ listed_user.registrar.name }}</td>{% endif %}
