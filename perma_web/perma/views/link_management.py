@@ -229,7 +229,13 @@ def link_browser(request, path, link_filter, this_page, verb):
     # find current folder based on path
     current_folder = None
     folder_breadcrumbs = []
-    show_shared_folder_warning = request.user.vesting_org is not None  # TEMP
+
+    # TEMP
+    show_shared_folder_warning = request.user.has_group(['registry_user', 'registrar_user', 'vesting_user'])
+    if show_shared_folder_warning:
+        # to keep things simple, just attempt to create My Links folder on every load
+        request.user.create_my_links_folder()
+
     if path:
         path = path.strip("/")
         if path:

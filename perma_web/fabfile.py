@@ -279,13 +279,6 @@ def heroku_push(app_name='perma', project_dir=os.path.join(settings.PROJECT_ROOT
     shutil.rmtree(dest_dir)
 
 
-# TEMP
-def create_my_links_folders():
-    """ One-time function to create My Links folders for migration. """
-    for user in LinkUser.objects.exclude(vesting_org=None):
-        user.create_my_links_folder()
-
-
 try:
     from fab_targets import *
 except ImportError, e:
