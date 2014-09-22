@@ -1,5 +1,5 @@
 {% extends "admin-layout.html" %}
-{% load mptt_tags repeat local_datetime compressed %}
+{% load mptt_tags repeat local_datetime compressed has_group %}
 
 {% block title %} | {{ verb|capfirst }} Perma links{% endblock %}
 
@@ -84,13 +84,13 @@
         {# TEMP #}
         {% if show_shared_folder_warning %}
             <div class="alert alert-info">
-                <b>Important:</b> On October 1, everything {% if current_folder %}in this folder{% else %}here, except the My Links folder,{% endif %}
-                will be shared with your vesting organization ({{ request.user.vesting_org }}). If you don't want links to be shared,
-                please move them into the <a href="{{ base_url }}/my-links">My Links</a> folder.
+                <b>Important:</b> On October 8, everything {% if current_folder %}in this folder{% else %}here, except the My Links folder,{% endif %}
+                will be shared with {% if request.user.vesting_org %}your vesting organization ({{ request.user.vesting_org }}){% else %}your default vesting organization{% endif %}.
+                If you don't want links to be shared, please move them into the <a href="{{ base_url }}/my-links">My Links</a> folder.
             </div>
-        {% elif request.user.vesting_org %}
+        {% elif request.user|has_group:'registry_user,registrar_user,vesting_user' %}
             <div class="alert alert-success">
-                Links in this folder will remain private after October 1.
+                Links in this folder will remain private after October 8.
             </div>
         {% endif %}
 
