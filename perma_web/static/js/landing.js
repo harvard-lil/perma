@@ -231,7 +231,8 @@ $(function(){
         [39.817224, -75.546148, "Widener University School of Law"],
         [32.846348, -96.786086, "SMU Dedman School of Law"],
         [33.578997, -101.886574, "Texas Tech University School of Law"],
-        [41.657435, -91.542964, "University of Iowa School of Law"]
+        [41.657435, -91.542964, "University of Iowa School of Law"],
+        [43.036906, -87.926988, "Ray & Kay Eckstein Law Library, Marquette University"]
     ];
     for(var i = 0; i < points.length; i++){
         //map.plot(points[i][0], points[i][1], points[i][2]);
