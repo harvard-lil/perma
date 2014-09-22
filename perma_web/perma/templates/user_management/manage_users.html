@@ -46,7 +46,6 @@
         {% endif %}
     </div>
 
-    {% if users_list %}
         <div class="row">
             <div class="col-sm-3">
                 <p class="count-label">Active Users</p>
@@ -86,6 +85,10 @@
                         <a {% if sort == 'date_joined' %}class="selected" {% endif %} href="?sort=date_joined&page={{ users.number }}{% if sort_url %}{{ sort_url }}{% endif %}"><i class="icon-ok"></i> Oldest</a>
                         <a {% if sort == '-last_login' %}class="selected" {% endif %} href="?sort=-last_login&page={{ users.number }}{% if sort_url %}{{ sort_url }}{% endif %}"><i class="icon-ok"></i> Recently active</a>
                         <a {% if sort == 'last_login' %}class="selected" {% endif %} href="?sort=last_login&page={{ users.number }}{% if sort_url %}{{ sort_url }}{% endif %}"><i class="icon-ok"></i> Least recently active</a>
+                        {% if group_name == 'vesting_user' %}
+                        <a {% if sort == '-vested_links' %}class="selected" {% endif %} href="?sort=-vested_links&page={{ users.number }}{% if sort_url %}{{ sort_url }}{% endif %}"><i class="icon-ok"></i> Most vested links</a>
+                        <a {% if sort == 'vested_links' %}class="selected" {% endif %} href="?sort=vested_links&page={{ users.number }}{% if sort_url %}{{ sort_url }}{% endif %}"><i class="icon-ok"></i> Least vested links</a>
+                        {% endif %}
                     </li>
                   </ul>
                 </div>
@@ -104,6 +107,7 @@
                   </ul>
                 </div>
             {% if request.user|has_group:'registrar_user,registry_user' %}
+            {% if group_name == 'vesting_user' %}
             <div class="dropdown">
                   <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
                     Vesting organization <span class="caret"></span>
@@ -127,7 +131,9 @@
                   </ul>
                 </div>
             {% endif %}
+            {% endif %}
             {% if request.user|has_group:'registry_user' %}
+            {% if not group_name == 'user' %}
             <div class="dropdown">
                   <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
                     Registrar <span class="caret"></span>
@@ -151,44 +157,61 @@
                   </ul>
                 </div>
             {% endif %}
+            {% endif %}
             </div>
             </div>
         </div>
-        <table class="table">
-        <tbody>
+        {% if users_list %}
           {% for listed_user in users_list %}
-          {% if not listed_user.is_active %}
-            <tr class="muted">
-          {% else %}
-            <tr>
-          {% endif %}
-              <!--<td><input type="checkbox"></td>-->
-              <td>{{ listed_user.first_name }} {{ listed_user.last_name }} 
-              {% comment %}
-              {{ listed_user.vested_links }} <br>created {{ listed_user.date_joined|local_datetime:"MMM DD, YYYY" }}
+              {% if not listed_user.is_active %}
+                <div class="row muted list-user">
+              {% else %}
+                <div class="row list-user">
+              {% endif %}
+              <div class="col-sm-6">
+                <p class="list-name">{{ listed_user.first_name }} {{ listed_user.last_name }}</p>
+              <p class="list-email">{{ listed_user.email }}</p>
+              {% if request.user|has_group:'registry_user,registrar_user' %}{% if group_name == 'vesting_user' %}<p class="list-vesting-org">{{listed_user.vesting_org.name}}</p>{% endif %}{% endif %}
+            {% if group_name == 'registrar_user' %}<p class="list-registrar">{{ listed_user.registrar.name }}</p>{% endif %}
+              </div>
+              <div class="col-sm-3">
+                {% if group_name == 'vesting_user' %}
+                <div class="list-count-group">
+                <p class="list-count-number{% if request.user|has_group:'vesting_user'%} vesting_user-list{% endif %}">{{ listed_user.vested_links }}</p>
+                <p class="list-count-label">vested links</p>
+                </div>
+                {% endif %}
+                {% if group_name == 'vesting_user' or group_name == 'user' %}
+                    {% if request.user|has_group:'registry_user' %}
+                    <div class="list-count-group">
+                    <p class="list-count-number{% if group_name == 'user'%} vesting_user-list{% endif %}">{{ listed_user.created_links }}</p>
+                    <p class="list-count-label">created links</p>
+                    </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div class="col-sm-3">
+                <p class="list-status">
+                {% if listed_user.is_active %}
+                  <a href="{% url single_user_url listed_user.id %}">edit/delete</a>
+                {% elif listed_user.is_confirmed %}
+                    <span class="text-warning">deactivated account</span> <a href="{% url reactivate_user_url listed_user.id %}">reactivate</a>
+                {% else %}
+                    <span class="text-warning">user must activate account</span> <a href="{% url delete_user_url listed_user.id %}">delete</a>
+                {% endif %}
+                </p>
+                <p class="list-date{% if request.user|has_group:'vesting_user' or group_name == 'user' %} vesting_user-list{% endif %}">
+              created {{ listed_user.date_joined|local_datetime:"MMM DD, YYYY" }}
               {% if listed_user.is_confirmed %}
               <br>
               last active {{ listed_user.last_login|local_datetime:"MMM DD, YYYY" }}
               {% endif %}
-              {% endcomment %}
-              </td>
-              <td>{{ listed_user.email }}</td>
-            {% if request.user|has_group:'registry_user,registrar_user' %}{% if group_name == 'vesting_user' %}<td>{{listed_user.vesting_org.name}}</td>{% endif %}{% endif %}
-            {% if group_name == 'registrar_user' %}<td>{{ listed_user.registrar.name }}</td>{% endif %}
-              <td>
-            {% if listed_user.is_active %}
-              <a href="{% url single_user_url listed_user.id %}">edit/delete</a>
-            {% elif listed_user.is_confirmed %}
-                    <span class="text-warning">deactivated account</span> <a href="{% url reactivate_user_url listed_user.id %}">reactivate</a>
-                  {% else %}
-                    <span class="text-warning">user must activate account</span> (<a href="{% url delete_user_url listed_user.id %}">delete</a>)
-                  {% endif %}
-                  </td>
+              </p>
+            </div>
+            </div>
           {% endfor %}
-        </tbody>
-        </table>
     {% else %}
-        <p>No {{ pretty_group_name_plural|lower }} found.</p>
+        <p class="no-users-found">No {{ pretty_group_name_plural|lower }} found.</p>
     {% endif %}
 
     {% include "user_management/includes/paginator.html" with page=users %}

@@ -2,6 +2,8 @@
 
 @import "compass/css3/opacity";
 
+$sans-font:  "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+
 /* Global */
 
 html {
@@ -725,7 +727,7 @@ div#dashboard-container {
             }
 
     div#dashboard-container div.tab-content {
-        overflow: hidden;
+        /*overflow: hidden;*/
         min-height: 170px;
     }
 
@@ -1678,18 +1680,83 @@ tr td.linky-link, a.original-link {
 
 .remove-search-filters {
     color:#888;
-    font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    font-family: $sans-font;
+}
+
+.list-user {
+    padding:8px 0px 0px 0px;
+    margin-top:15px;
+    margin-bottom:0px;
+    border-top: 1px solid #dddddd;
+}
+
+.list-name {
+    font-size:24px;
+    font-weight:500;
+    margin-bottom:0px;
+}
+
+.list-email {
+    margin-bottom:0px;
+}
+
+.list-vesting-org, .list-registrar {
+    margin-top:20px;
+    margin-bottom:0px;
+    font-weight:500;
+}
+
+.list-date {
+    font-size:12px;
+    margin-bottom:0px;
+    margin-top:35px;
+    text-align:right;
+}
+
+.list-date.vesting_user-list {
+    margin-top:18px;
+}
+ 
+.list-status {
+    text-align:right;
+    margin-top:5px;
+    font-size:12px;
+    margin-bottom:0px;
+}
+
+.list-count-group {
+    float:left;
+    margin-right:12px;
+}
+
+.list-count-label {
+    font-family: $sans-font;
+    font-size:12px;
+    margin-bottom:0px;
+    margin-top:0px;
+}
+
+.list-count-number {
+    font-family: $sans-font;
+    font-size:38px;
+    line-height:1.1em;
+    margin-bottom:0px;
+    margin-top:25px;
+}
+
+.list-count-number.vesting_user-list {
+    margin-top:0px;
 }
 
 .count-label {
-    font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    font-family: $sans-font;
     font-size:12px;
     margin-bottom:0px;
-    margin-top:8px;
+    margin-top:0px;
 }
 
 .count-number {
-    font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    font-family: $sans-font;
     font-size:48px;
     font-weight:500;
     line-height:1.1em;
@@ -1866,7 +1933,7 @@ img[usemap] {
 	padding: 6px 12px;
 }
 
-.muted {
+.muted, .muted p {
 	color:#888;
 }
 

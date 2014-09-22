@@ -45,7 +45,7 @@ from perma.models import Registrar, Link, LinkUser, VestingOrg, Folder
 from perma.utils import require_group, get_search_query
 
 logger = logging.getLogger(__name__)
-valid_member_sorts = ['-email', 'email', 'last_name', '-last_name', 'admin', '-admin', 'registrar__name', '-registrar__name', 'vesting_org__name', '-vesting_org__name', 'date_joined', '-date_joined', 'last_login', '-last_login']
+valid_member_sorts = ['-email', 'email', 'last_name', '-last_name', 'admin', '-admin', 'registrar__name', '-registrar__name', 'vesting_org__name', '-vesting_org__name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'vested_links', '-vested_links']
 valid_registrar_sorts = ['-email', 'email', 'name', '-name', 'website', '-website']
 
 
@@ -329,16 +329,16 @@ def list_users_in_group(request, group_name):
     registrars = None
     vesting_orgs = None
     if request.user.has_group('registry_user'):
-        users = LinkUser.objects.filter(groups__name=group_name).order_by(*sorts()).annotate(vested_links=Count('vested_by_editor'))
+        users = LinkUser.objects.filter(groups__name=group_name).order_by(*sorts()).annotate(vested_links=Count('vested_by_editor')).annotate(created_links=Count('created_by'))
         vesting_orgs = VestingOrg.objects.all().order_by('name')
         registrars = Registrar.objects.all().order_by('name')
         is_registry = True
     elif request.user.has_group('registrar_user'):
-        users = LinkUser.objects.filter(groups__name=group_name, vesting_org__registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts())
+        users = LinkUser.objects.filter(groups__name=group_name, vesting_org__registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links=Count('vested_by_editor'))
         vesting_orgs = VestingOrg.objects.filter(registrar_id=request.user.registrar_id).order_by('name')
         is_registrar = True
     elif request.user.has_group('vesting_user'):
-        users = LinkUser.objects.filter(groups__name=group_name, vesting_org=request.user.vesting_org).exclude(id=request.user.id).order_by(*sorts())
+        users = LinkUser.objects.filter(groups__name=group_name, vesting_org=request.user.vesting_org).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links=Count('vested_by_editor'))
 
     active_users = users.filter(is_active=True, is_confirmed=True).count()
     deactivated_users = users.filter(is_confirmed=True, is_active=False).count()
@@ -372,7 +372,10 @@ def list_users_in_group(request, group_name):
     # handle registrar filter
     registrar_filter = request.GET.get('registrar', '')
     if registrar_filter:
-        users = users.filter(vesting_org__registrar__name=registrar_filter)
+        if group_name == 'vesting_user':
+            users = users.filter(vesting_org__registrar__name=registrar_filter)
+        elif group_name == 'registrar_user':
+            users = users.filter(registrar__name=registrar_filter)
         sort_url = '{sort_url}&registrar={registrar_filter}'.format(sort_url=sort_url, registrar_filter=registrar_filter)
 
     paginator = Paginator(users, settings.MAX_USER_LIST_SIZE)
