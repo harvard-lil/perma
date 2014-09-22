@@ -265,6 +265,7 @@ def link_browser(request, path, link_filter, this_page, verb):
 
             # TEMP
             # prevent vested links being moved into My Links
+            move_ok = True
             if show_shared_folder_warning:
                 if target_folder and target_folder.get_ancestors(include_self=True).filter(name="My Links").exists():
                     move_ok = not Link.objects.filter(pk__in=request.POST.getlist('links'), vested=True).exists()
@@ -280,19 +281,20 @@ def link_browser(request, path, link_filter, this_page, verb):
                         else:
                             messages.add_message(request, messages.ERROR, "Sorry, vested links can't be moved into 'My Links'. They belong to your vesting organization.")
 
-            for link_id in request.POST.getlist('links'):
-                link = get_object_or_404(Link, pk=link_id, **link_filter)
-                link.move_to_folder_for_user(target_folder, request.user)
-            for folder_id in request.POST.getlist('folders'):
-                folder = get_object_or_404(Folder, pk=folder_id, created_by=request.user)
-                folder.parent=target_folder
-                try:
-                    folder.save()
-                except InvalidMove:
-                    # can't move a folder under itself
-                    continue
-            if request.is_ajax():
-                return HttpResponse(json.dumps({'success': 1}), content_type="application/json")
+            if move_ok:
+                for link_id in request.POST.getlist('links'):
+                    link = get_object_or_404(Link, pk=link_id, **link_filter)
+                    link.move_to_folder_for_user(target_folder, request.user)
+                for folder_id in request.POST.getlist('folders'):
+                    folder = get_object_or_404(Folder, pk=folder_id, created_by=request.user)
+                    folder.parent=target_folder
+                    try:
+                        folder.save()
+                    except InvalidMove:
+                        # can't move a folder under itself
+                        continue
+                if request.is_ajax():
+                    return HttpResponse(json.dumps({'success': 1}), content_type="application/json")
 
         elif request.is_ajax():
             posted_data = json.loads(request.body)
