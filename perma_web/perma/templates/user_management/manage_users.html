@@ -69,13 +69,13 @@
         {% endif %}
         <div class="row">
             <div class="col-sm-12">
+                <p class="sort-filter-count">{{users_count}} user{% if not users_count == 1 %}s{% endif %}</p>
                 <div class="sort-filter-bar">
                 {% include "user_management/includes/search_form.html" %}
                 <div class="dropdown">
                   <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
                     Sort <span class="caret"></span>
                   </a>
-                
                 
                   <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                     <li>

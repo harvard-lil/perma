@@ -1662,6 +1662,13 @@ tr td.linky-link, a.original-link {
     float:right;
 }
 
+.sort-filter-count {
+    float:left;
+    font-weight:500;
+    margin-top:22px;
+    font-family:$sans-font;
+}
+
 .sort-filter-bar .dropdown-menu {
     max-width:450px;
     white-space: nowrap;
@@ -1683,11 +1690,24 @@ tr td.linky-link, a.original-link {
     font-family: $sans-font;
 }
 
+.no-users-found {
+    text-align:center;
+    font-weight:500;
+    font-size:24px;
+    margin-top:35px;
+}
+
 .list-user {
     padding:8px 0px 0px 0px;
     margin-top:15px;
     margin-bottom:0px;
     border-top: 1px solid #dddddd;
+    font-family: $sans-font;
+}
+
+.list-user p {
+    font-family: $sans-font;
+    color:#333;
 }
 
 .list-name {
@@ -1934,7 +1954,7 @@ img[usemap] {
 }
 
 .muted, .muted p {
-	color:#888;
+	color:#9c9c9c;
 }
 
 ul {
@@ -2400,9 +2420,7 @@ p.orange {
 	.navbar-collapse {
 		margin-left:60px;
 		padding-left:0px;
-}
-
-
+    }
 }
 
 @media (min-width:  992px) {
@@ -2420,6 +2438,20 @@ p.orange {
 	tbody {
 		font-size:12px;
 	}
+	.list-count-number {
+        margin-top:10px;
+        font-size:28px;
+    }
+    .sort-filter-bar {
+        margin-bottom:15px;
+    }
+    .sort-filter-bar, .sort-filter-bar .dropdown, .sort-filter-bar form {
+        float:none !important;
+    }
+    .sort-filter-count {
+        position:absolute;
+        bottom: -35px;
+    }
 }
 
 
@@ -2486,6 +2518,24 @@ ul.vesting li {
 	margin-top: 8px;
 	position:relative;
 	}
-
+	.count-number {
+	    font-size:32px;
+	    margin-bottom:10px;
+	}
+    .list-status, .list-date {
+        text-align:left;
+    }
+    .list-status {
+        position:absolute;
+        bottom:-20px;
+    }
+    .list-date {
+        margin-bottom:20px;
+        margin-top:15px;
+        clear:both;
+    }
+    .list-count-group {
+        margin-bottom:8px;
+    }
 }
 

@@ -378,6 +378,7 @@ def list_users_in_group(request, group_name):
             users = users.filter(registrar__name=registrar_filter)
         sort_url = '{sort_url}&registrar={registrar_filter}'.format(sort_url=sort_url, registrar_filter=registrar_filter)
 
+    users_count = users.count()
     paginator = Paginator(users, settings.MAX_USER_LIST_SIZE)
     users = paginator.page(page)
 
@@ -385,6 +386,7 @@ def list_users_in_group(request, group_name):
         'users_list': list(users),
         'this_page': 'users_{group_name}s'.format(group_name=group_name),
         'users': users,
+        'users_count': users_count,
         'active_users': active_users,
         'deactivated_users': deactivated_users,
         'unactivated_users': unactivated_users,
