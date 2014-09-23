@@ -59,3 +59,12 @@
     {% include "user_management/includes/paginator.html" with page=registrars %}
 
 {% endblock %}
+{% block scripts %}
+<script>
+$(document).ready(function(){
+    $('#add-member').on('shown.bs.collapse', function () {
+        $('#add-member input[type=text]:first').focus();
+    });
+});
+</script>
+{% endblock scripts %}
