@@ -85,7 +85,7 @@
         {% if show_shared_folder_warning %}
             <div class="alert alert-info">
                 <b>Important:</b> On October 8, everything {% if current_folder %}in this folder{% else %}here, except the My Links folder,{% endif %}
-                will be shared with {% if request.user.vesting_org %}your vesting organization ({{ request.user.vesting_org }}){% else %}your default vesting organization{% endif %}.
+                will be shared with {% if request.user.vesting_org %}your vesting organization ({{ request.user.get_default_vesting_org }}){% else %}your default vesting organization ({{ request.user.get_default_vesting_org }}){% endif %}.
                 If you don't want links to be shared, please move them into the <a href="{{ base_url }}/my-links">My Links</a> folder.
             </div>
         {% elif request.user|has_group:'registry_user,registrar_user,vesting_user' %}
