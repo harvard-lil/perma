@@ -76,6 +76,8 @@ def manage_registrar(request):
     if page < 1:
         page = 1
     registrars = Registrar.objects.all().order_by(sort)
+    registrar_count = registrars.count()
+    vesting_org_count = VestingOrg.objects.all().count()
 
     # handle search
     search_query = request.GET.get('q', '')
@@ -85,7 +87,7 @@ def manage_registrar(request):
     paginator = Paginator(registrars, settings.MAX_USER_LIST_SIZE)
     registrars = paginator.page(page)
 
-    context = {'registrars_list': list(registrars), 'registrars': registrars,
+    context = {'registrars_list': list(registrars), 'registrars': registrars, 'registrar_count': registrar_count, 'vesting_org_count':vesting_org_count,
         'this_page': 'users_registrars',
         'search_query':search_query}
 

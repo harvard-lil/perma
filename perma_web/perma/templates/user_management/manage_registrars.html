@@ -31,6 +31,17 @@
     {% if search_query %}
         <p><em>Search results for "{{ search_query }}". <a href="?q=">Clear search.</a></em></p>
     {% endif %}
+    
+    <div class="row">
+            <div class="col-sm-3">
+                <p class="count-label">Vesting Organizations</p>
+                <p class="count-number">{{ vesting_org_count }}</p>
+            </div>
+            <div class="col-sm-3">
+                <p class="count-label">Registrars</p>
+                <p class="count-number">{{ registrar_count }}</p>
+            </div>
+        </div>
 
     {% if registrars %}
         <table class="table">
