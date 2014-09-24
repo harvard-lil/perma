@@ -721,6 +721,11 @@ div#dashboard-container {
                 margin: 0;
                 padding: 5px 0 5px 51px;
             }
+            
+            div#dashboard-container ul#dashboard-tabs li.dashboard-secondary a.active {
+                    color:#333;
+                    background-color:#efefef;
+                }
 
             div#dashboard-container ul#dashboard-tabs li.users-secondary {
                 display: none;
@@ -1667,6 +1672,7 @@ tr td.linky-link, a.original-link {
     font-weight:500;
     margin-top:22px;
     font-family:$sans-font;
+    color:#333;
 }
 
 .sort-filter-bar .dropdown-menu {
@@ -1698,11 +1704,11 @@ tr td.linky-link, a.original-link {
 }
 
 .list-user {
-    padding:8px 0px 0px 0px;
-    margin-top:15px;
+    padding:15px 0px 8px 0px;
     margin-bottom:0px;
     border-top: 1px solid #dddddd;
     font-family: $sans-font;
+    background-color:#f8f8f8;
 }
 
 .list-user p {
@@ -1749,14 +1755,15 @@ tr td.linky-link, a.original-link {
     margin-right:12px;
 }
 
-.list-count-label {
+p.list-count-label {
     font-family: $sans-font;
     font-size:12px;
     margin-bottom:0px;
     margin-top:0px;
+    color:#888;
 }
 
-.list-count-number {
+p.list-count-number {
     font-family: $sans-font;
     font-size:38px;
     line-height:1.1em;
@@ -1773,6 +1780,8 @@ tr td.linky-link, a.original-link {
     font-size:12px;
     margin-bottom:0px;
     margin-top:0px;
+    color:#888;
+    font-weight:400;
 }
 
 .count-number {
@@ -1780,6 +1789,7 @@ tr td.linky-link, a.original-link {
     font-size:48px;
     font-weight:500;
     line-height:1.1em;
+    color: #333;
 }
 
 .dropdown a .caret {

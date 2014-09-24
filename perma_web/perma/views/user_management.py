@@ -381,7 +381,7 @@ def list_users_in_group(request, group_name):
     users_count = users.count()
     paginator = Paginator(users, settings.MAX_USER_LIST_SIZE)
     users = paginator.page(page)
-
+    logger.debug('users_{group_name}s'.format(group_name=group_name))
     context = {
         'users_list': list(users),
         'this_page': 'users_{group_name}s'.format(group_name=group_name),
