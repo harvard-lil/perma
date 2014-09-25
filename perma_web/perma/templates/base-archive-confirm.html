@@ -9,6 +9,13 @@
 {% endblock %}
 
 {% block header %}
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.level >= 30 %}danger{% else %}success{% endif %} popup-alert">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
+        {% endfor %}
+    {% endif %}
+
     <header  class="border-bottom">
         <div class="container">
              <div class="row">

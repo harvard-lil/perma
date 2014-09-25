@@ -12,127 +12,128 @@
 {% endblock %}
 
 {% block header %}
-    <!-- Served up by Perma mirror, {{ request.META.HTTP_HOST }} -->
-    <header>
-        <div class="navbar navbar-default navbar-static-top tab-border">
-            <div class="container">
-             <div class="row">
-                <div class="col-sm-3 logo">
-                    <a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo2.png"></a>
-                </div><!--end span 3 -->
-                {% if linky.user_deleted %}
-                </div>
-                {% else %}
-                <div class="col-sm-6 meta-data">
-                    <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a><br/>
-
-                    <!--<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a>-->
-                    <span class="light-grey">created {{ linky.creation_timestamp|local_datetime }} | {{ linky.view_count }} view{% if linky.view_count > 1 %}s{% endif %} </span>
-                </div><!--end span 6 -->
-                <div class="col-sm-offset-1 col-sm-1 button-set">
-                <ul class="vesting">
-                    {% if request.user.is_authenticated %}
-                        {% if request.user|has_group:'registry_user,registrar_user,vesting_user' and not linky.vested %}
-                            <li><form action="{% main_url 'vest_link' linky.guid %}" method="post">
-                                {% csrf_token %}
-                                    <input type="submit" value="Vest site" name="vest" class="btn vest">
-                                </form>
-                            </li>
+        <!-- Served up by Perma mirror, {{ request.META.HTTP_HOST }} -->
+<header>
+    	    <div class="navbar navbar-default navbar-static-top tab-border">
+				<div class="container">
+				 <div class="row">
+				 	<div class="col-sm-3 logo">
+				 		<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo2.png"></a>
+				 	</div><!--end span 3 -->
+				 	{% if linky.user_deleted %}
+				 	</div>
+				 	{% else %}
+				 	<div class="col-sm-6 meta-data">
+						<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a><br/>
+						
+						<!--<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a>-->
+						<span class="light-grey">created {{ linky.creation_timestamp|local_datetime }} | {{ linky.view_count }} view{% if linky.view_count > 1 %}s{% endif %} </span>
+					</div><!--end span 6 -->
+					<div class="col-sm-offset-1 col-sm-1 button-set">
+					<ul class="vesting">
+						<li><a class="btn vest none" href="">hidden button</a></li><!-- to keep vertical spacing and layout simpler across states when there are and aren't buttons -->
+						{% if request.user.is_authenticated %}
+                        	{% if request.user|has_group:'registry_user,registrar_user,vesting_user' and not linky.vested %}
+                            	<li><form action="{% main_url 'vest_link' linky.guid %}" method="post">
+                                	{% csrf_token %}
+                                		<input type="submit" value="Vest site" name="vest" class="btn vest">
+                                	</form>
+                            	</li>	
+							{% endif %}
+							{% if request.user|has_group:'registry_user' %}
+								<a class="btn vest" href="{% url 'dark_archive_link' linky.guid %}">Dark archive</a>
+							{% endif %}
+							{% if request.user == linky.created_by and not linky.vested and not linky.dark_archive %}
+                        	 <a class="btn user-delete" href="{% url 'user_delete_link' linky.guid %}"><i class="icon-trash"></i> Delete</a>
+                        	{% endif %}
                         {% endif %}
-                        {% if request.user|has_group:'registry_user' %}
-                            <a class="btn vest" href="{% url 'dark_archive_link' linky.guid %}">Dark archive</a>
+
+						{% if request.user.is_authenticated %}
+                            <li><a class="btn dashboard" href="{% url 'create_link' %}" id="nav-button">Dashboard</a></li>
+                        {% else %}
+							
+							<!--Do we ever want a Log in Button?-->
+							{% comment %}
+                            <li><a class="btn vest" href="{% url 'user_management_limited_login' %}">Log in</a></li>
+                            {% endcomment %}
+                        
                         {% endif %}
-                        {% if request.user == linky.created_by and not linky.vested and not linky.dark_archive %}
-                         <a class="btn user-delete" href="{% url 'user_delete_link' linky.guid %}"><i class="icon-trash"></i> Delete</a>
-                        {% endif %}
-                    {% endif %}
-
-                    {% if request.user.is_authenticated %}
-                        <li><a class="btn dashboard" href="{% url 'create_link' %}" id="nav-button">Dashboard</a></li>
-                    {% else %}
-
-                        <!--Do we ever want a Log in Button?-->
-                        {% comment %}
-                        <li><a class="btn vest" href="{% url 'user_management_limited_login' %}">Log in</a></li>
-                        {% endcomment %}
-
-                    {% endif %}
-                    </ul>
-                </div><!--end span 3-->
-             </div><!--end row -->
-             <div class="row">
-
-                <div class="col-sm-10 col-sm-offset-1">
-                    <div class="navbar-header">
-                      <button type="button" class="navbar-toggle menu-adjust" data-toggle="collapse" data-target=".navbar-collapse">
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                      </button>
-                    </div>
-
-                    <div class="navbar-collapse collapse" id="collapse-refresh">
-
-                        {% if not linky|is_darchive or request.user|has_group:'registry_user,registrar_user,vesting_user' %}
-
-                        <ul class="nav navbar-nav tabbed">
-                            <li>
-                                <a  class="tab-styling{% if serve_type == 'live' %} active-view{% endif %}" href="{% url 'single_link_header' linky.guid %}?type=live">Live page view</a>
-                            </li>
-
-                            {% if asset.image_capture and asset.image_capture != 'failed' %}
-                            <li>
-                            {% if asset.image_capture == 'pending' %}
-                                <span id="image_cap_container_loading" class="tab-styling">Screen capture</span>
-                                <a id="image_cap_container_complete" class="tab-styling{% if serve_type == 'image' %}active-view{% endif %}" href="{% url 'single_link_header' linky.guid %}?type=image" style="display:none;">Screen capture</a>
-                            {% else %}
-                                <span id="image_cap_container_loading" class="tab-styling" style="display:none;">Screen capture</span>
-                                <a id="image_cap_container_complete" class="tab-styling{% if serve_type == 'image' %} active-view{% endif %}" href="{% url 'single_link_header' linky.guid %}?type=image">Screen capture</a>
-                            {% endif %}
-                            </li>
-                            {% endif %}
-
-                            {% if asset.warc_capture and asset.warc_capture != 'failed' %}
-                            <li>
-                            {% if asset.warc_capture == 'pending' %}
-                                <span id="warc_cap_container_loading" class="tab-styling">Archiving page</span>
-                                <a id="warc_cap_container_complete" class="tab-styling{% if serve_type == 'source' %}active-view{% endif %}" href="{% url 'single_link_header' linky.guid %}?type=source" style="display:none;">Archived page</a>
-                            {% else %}
-                                <span id="warc_cap_container_loading" class="tab-styling" style="display:none;">Archiving page</span>
-                                <!--<img src="{{ STATIC_URL }}img/dots.gif" alt="Archiving...">-->
-                                <a id="warc_cap_container_complete" class="tab-styling{% if serve_type == 'source' %} active-view{% endif %}" href="{% url 'single_link_header' linky.guid %}?type=source">Archived page</a>
-                            {% endif %}
-                            </li>
-                            {% endif %}
-
-                            {% if asset.pdf_capture and asset.pdf_capture != 'failed' %}
-                            <li>
-                            {% if asset.pdf_capture == 'pending' %}
-                                <span id="pdf_cap_container_loading" class="tab-styling">Archiving PDF</span>
-                                <a id="pdf_cap_container_complete" class="tab-styling{% if serve_type == 'pdf' %}active-view{% endif %}" href="{% url 'single_link_header' linky.guid %}?type=pdf" style="display:none;">PDF</a>
-                            {% else %}
-                                <span id="pdf_cap_container_loading" class="tab-styling" style="display:none;">Archiving PDF</span>
-                                <a id="pdf_cap_container_complete" class="tab-styling{% if serve_type == 'pdf' %} active-view{% endif %}" href="{% url 'single_link_header' linky.guid %}?type=pdf">PDF</a>
-                            {% endif %}
-                            </li>
-                            {% endif %}
                         </ul>
-                    {% endif %}
-                    </div><!--/.nav-collapse -->
+					</div><!--end span 3-->
+				 </div><!--end row -->
+				 <div class="row">
+				 
+				 	<div class="col-sm-10 col-sm-offset-1">	
+						<div class="navbar-header">
+						  <button type="button" class="navbar-toggle menu-adjust" data-toggle="collapse" data-target=".navbar-collapse">
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+						  </button>  
+						</div>
+						
+						<div class="navbar-collapse collapse" id="collapse-refresh">
+						  						  
+							{% if not linky|is_darchive or request.user|has_group:'registry_user,registrar_user,vesting_user' %}
 
-                </div><!--/.row -->
-                {% endif %}
-            </div><!--/container -->
-        </div><!--/navbar -->
-    </header>
+							<ul class="nav navbar-nav tabbed">
+								<li>
+									<a  class="tab-styling{% if serve_type == 'live' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=live">Live page view</a>
+								</li>
+
+								{% if asset.image_capture and asset.image_capture != 'failed' %}
+								<li>
+								{% if asset.image_capture == 'pending' %}
+									<span id="image_cap_container_loading" class="tab-styling">Screen capture</span>
+									<a id="image_cap_container_complete" class="tab-styling{% if serve_type == 'image' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=image" style="display:none;">Screen capture</a>
+								{% else %}
+									<span id="image_cap_container_loading" class="tab-styling" style="display:none;">Screen capture</span>
+									<a id="image_cap_container_complete" class="tab-styling{% if serve_type == 'image' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=image">Screen capture</a>
+								{% endif %}
+								</li>
+								{% endif %}
+
+								{% if asset.warc_capture and asset.warc_capture != 'failed' %}
+								<li>
+								{% if asset.warc_capture == 'pending' %}	
+									<span id="warc_cap_container_loading" class="tab-styling">Archiving page</span>
+									<a id="warc_cap_container_complete" class="tab-styling{% if serve_type == 'source' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source" style="display:none;">Archived page</a>
+								{% else %}
+									<span id="warc_cap_container_loading" class="tab-styling" style="display:none;">Archiving page</span> 
+									<!--<img src="{{ STATIC_URL }}img/dots.gif" alt="Archiving...">-->
+									<a id="warc_cap_container_complete" class="tab-styling{% if serve_type == 'source' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source">Archived page</a>
+								{% endif %}
+								</li>
+								{% endif %}
+								
+								{% if asset.pdf_capture and asset.pdf_capture != 'failed' %}
+								<li>
+								{% if asset.pdf_capture == 'pending' %}	
+									<span id="pdf_cap_container_loading" class="tab-styling">Archiving PDF</span>
+									<a id="pdf_cap_container_complete" class="tab-styling{% if serve_type == 'pdf' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=pdf" style="display:none;">PDF</a>
+								{% else %}
+									<span id="pdf_cap_container_loading" class="tab-styling" style="display:none;">Archiving PDF</span> 
+									<a id="pdf_cap_container_complete" class="tab-styling{% if serve_type == 'pdf' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=pdf">PDF</a>
+								{% endif %}
+								</li>
+								{% endif %}
+							</ul>
+						{% endif %}
+						</div><!--/.nav-collapse -->
+					
+					</div><!--/.row -->
+					{% endif %}
+				</div><!--/container -->
+			</div><!--/navbar -->
+		</header>
 {% endblock %}
 
 {% block content %}
-
-<div class="row">
+   		
+			<div class="row">
     {% if linky.dark_archived and request.user|has_group:'registry_user,registrar_user,vesting_user' %}
     	<div class="col-sm-6 col-sm-offset-3 yahowza-small">
-			<div class="darchive">
+			<div class="darchive">	
 				<img class="dark-bulb-small" src="{{ STATIC_URL }}img/dark-bulb.png">
 				<h2 class="orange">This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with a takedown notice.</h2>
 			</div>
@@ -161,11 +162,11 @@
 				</div>
 				{% endif %}
 			{% endif %}
-
+			
 			{% if serve_type == 'image' %}
 			<img class="image-view" src="{{ MEDIA_URL }}{{ asset.image_url }}"/>
 			{% endif %}
-
+			
 			{% if serve_type == 'pdf' %}
 			<iframe src="{{ MEDIA_URL }}{{ asset.pdf_url }}">
 			  <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
@@ -179,7 +180,7 @@
 			{% endif %}
 		</div><!--end watermark-->
    	</div><!--end linky-view-->
-
+   	
    	{% elif linky|is_darchive %}
    		<div class="container">
 			<div class="row">
@@ -213,6 +214,4 @@
 
 {% block scripts %}
     <script src="{{ STATIC_URL }}js/single-link.js"></script>
-
-
 {% endblock %}

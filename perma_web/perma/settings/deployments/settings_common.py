@@ -88,9 +88,21 @@ PIPELINE_DISABLE_WRAPPER = True
 PIPELINE_JS = {
     'create': {
         'source_filenames': (
-          'js/create.js',
+            'js/spin.js',
+            'js/handlebars.js',
+            'js/jquery.form.min.js',
+            'js/create.js',
         ),
         'output_filename': 'js/create-bundle.js',
+    },
+    'links_list': {
+        'source_filenames': (
+            'js/jquery-ui-1.10.3.custom.min.js',
+            'js/jquery.dotdotdot-1.5.9.min.js',
+            'js/jquery.django-csrf.js',
+            'js/links-list.js',
+        ),
+        'output_filename': 'js/links-list-bundle.js',
     },
     'landing': {
         'source_filenames': (
