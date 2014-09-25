@@ -68,6 +68,7 @@
 
 
         {### folder path breadcrumbs ###}
+        {% comment %}
         {% if current_folder %}
             <div class="folder-breadcrumbs">
                 <b>Current folder:</b>
@@ -80,12 +81,13 @@
                 {{ current_folder.name }}
             </div>
         {% endif %}
+        {% endcomment %}
 
         {# TEMP #}
         {% if show_shared_folder_warning %}
             <div class="alert alert-info">
                 <b>Important:</b> On October 8, everything {% if current_folder %}in this folder{% else %}here, except the My Links folder,{% endif %}
-                will be shared with {% if request.user.vesting_org %}your vesting organization ({{ request.user.vesting_org }}){% else %}your default vesting organization{% endif %}.
+                will be shared with {% if request.user.vesting_org %}your vesting organization ({{ request.user.get_default_vesting_org }}){% else %}your default vesting organization ({{ request.user.get_default_vesting_org }}){% endif %}.
                 If you don't want links to be shared, please move them into the <a href="{{ base_url }}/my-links">My Links</a> folder.
             </div>
         {% elif request.user|has_group:'registry_user,registrar_user,vesting_user' %}
@@ -104,58 +106,72 @@
             </p>
         {% endif %}
 
-        <table class="vested-table">
-            <thead>
-                <tr>
-                    <th colspan="3">{% if current_folder %}Subfolders{% else %}Folders{% endif %}</th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if path != "/" %}
-                    <tr class="folder-row" folder_id="{{ current_folder.parent_id|default:"ROOT" }}">
+        {% if path != "/" or subfolders %}
+            <table class="vested-table">
+                <thead>
+                    <tr>
+                        <th colspan="3">Folders</th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if path != "/" %}
+                        <tr class="folder-row" folder_id="{{ current_folder.parent_id|default:"ROOT" }}">
+                            <td>
+                            </td>
+                            <td>
+                                <span class="icon-folder-close-alt" style="font-size: large;"></span>
+                            </td>
+                            <td class="folder-name">
+                                [ <a href="{{ base_url }}{{ path }}..">Parent folder: {{ current_folder.parent|default:"Home" }}</a> ]
+                            </td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    {% endif %}
+                    <tr>
                         <td>
                         </td>
                         <td>
                             <span class="icon-folder-close-alt" style="font-size: large;"></span>
                         </td>
                         <td class="folder-name">
-                            [ <a href="{{ base_url }}{{ path }}..">parent folder</a> ]
+                            [ <b>Current folder: {{ current_folder|default:"Home" }}</b> ]
                         </td>
                         <td></td>
                         <td></td>
                     </tr>
-                {% endif %}
-                {% for folder in subfolders %}
-                    <tr class="folder-row" folder_id="{{ folder.pk }}">
-                        <td>
-                            {% if folder.name != "My Links" %} {# TEMP #}
-                                <input type="checkbox" name="folders" value="{{ folder.pk }}" class="checkbox" id="checkbox-{{ folder.pk }}"/>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <span class="icon-folder-close-alt" style="font-size: large;"></span>
-                        </td>
-                        <td class="folder-name">
-                            <a href="{{ base_url }}{{ path }}{{ folder.slug }}">{{ folder.name }}</a>
-                        </td>
-                        <td>
-                            {% if folder.name != "My Links" %} {# TEMP #}
-                                <a href="#" class="rename">rename</a>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if folder.name != "My Links" %} {# TEMP #}
-                                <a href="#" class="delete">delete</a>
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    {% for folder in subfolders %}
+                        <tr class="folder-row" folder_id="{{ folder.pk }}">
+                            <td>
+                                {% if folder.name != "My Links" %} {# TEMP #}
+                                    <input type="checkbox" name="folders" value="{{ folder.pk }}" class="checkbox" id="checkbox-{{ folder.pk }}"/>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="icon-folder-close-alt" style="font-size: large;"></span>
+                            </td>
+                            <td class="folder-name">
+                                <a href="{{ base_url }}{{ path }}{{ folder.slug }}">- {{ folder.name }}</a>
+                            </td>
+                            <td>
+                                {% if folder.name != "My Links" %} {# TEMP #}
+                                    <a href="#" class="rename">rename</a>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if folder.name != "My Links" %} {# TEMP #}
+                                    <a href="#" class="delete">delete</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
 
 
         <table class="vested-table">

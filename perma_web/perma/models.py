@@ -25,16 +25,47 @@ class Registrar(models.Model):
     name = models.CharField(max_length=400)
     email = models.EmailField(max_length=254)
     website = models.URLField(max_length=500)
+    default_vesting_org = models.OneToOneField('VestingOrg', blank=True, null=True, related_name='default_for_registrars')
+
+    def save(self, *args, **kwargs):
+        super(Registrar, self).save(*args, **kwargs)
+        self.create_default_vesting_org()
 
     def __unicode__(self):
         return self.name
+
+    def create_default_vesting_org(self):
+        """
+            Create a default vesting org for this registrar, if there isn't one.
+            Before creating a new one, we check if registrar has only a single vesting org,
+            or else one called "Default Vesting Organization",
+            and if so use that one.
+
+            NOTE: In theory registrars created from now on shouldn't need these checks, and they could be deleted.
+        """
+        if self.default_vesting_org:
+            return
+        vesting_orgs = list(self.vesting_orgs.all())
+        if len(vesting_orgs) == 1:
+            vesting_org = vesting_orgs[0]
+        else:
+            for candidate_vesting_org in vesting_orgs:
+                if candidate_vesting_org.name == "Default Vesting Organization":
+                    vesting_org = candidate_vesting_org
+                    break
+            else:
+                vesting_org = VestingOrg(registrar=self, name="Default Vesting Organization")
+                vesting_org.save()
+        self.default_vesting_org = vesting_org
+        self.save()
+
         
 class VestingOrg(models.Model):
     """
     This is generally a journal.
     """
     name = models.CharField(max_length=400)
-    registrar = models.ForeignKey(Registrar, null=True)
+    registrar = models.ForeignKey(Registrar, null=True, related_name="vesting_orgs")
 
     def __unicode__(self):
         return self.name
@@ -150,6 +181,18 @@ class LinkUser(AbstractBaseUser):
     def create_my_links_folder(self):
         if not Folder.objects.filter(created_by=self, name=u"My Links", parent=None).exists():
             Folder(created_by=self, name=u"My Links").save()
+
+    def get_default_vesting_org(self):
+        if self.vesting_org:
+            return self.vesting_org
+        if self.registrar:
+            return self.registrar.default_vesting_org
+        if self.has_group('registry_user'):
+            try:
+                return VestingOrg.objects.get(pk=settings.FALLBACK_VESTING_ORG_ID)
+            except VestingOrg.DoesNotExist:
+                raise Exception("Default vesting org not found -- check FALLBACK_VESTING_ORG_ID setting.")
+        return None  # if you're not in one of those groups you shouldn't ever need to call this function
 
 
 class Folder(MPTTModel):

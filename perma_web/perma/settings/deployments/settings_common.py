@@ -362,3 +362,6 @@ INTERNET_ARCHIVE_IDENTIFIER_PREFIX = 'perma_cc_'
 # Find these at https://archive.org/account/s3.php :
 INTERNET_ARCHIVE_ACCESS_KEY = ''
 INTERNET_ARCHIVE_SECRET_KEY = ''
+
+# default vesting org for links vested by registry users
+FALLBACK_VESTING_ORG_ID = 1
