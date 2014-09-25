@@ -7,7 +7,7 @@ from django.http import HttpResponse, StreamingHttpResponse
 
 from perma.models import Asset, Link
 from perma.utils import run_task
-from perma.views.common import single_linky
+from perma.views.common import single_link_header, single_linky
 
 from .tasks import update_perma, compress_link_assets
 from .utils import must_be_mirrored, may_be_mirrored

@@ -1,6 +1,6 @@
 /* This .scss file will automatically be compiled by django-pipeline into a .css file */
 
-@import "compass/css3/opacity"
+@import "compass/css3/opacity";
 
 /* Global */
 
@@ -1221,7 +1221,7 @@ h3 {
 }
 
 .center {
-	position:relative
+	position:relative;
     text-align:center;
     margin:auto;
 }
@@ -1881,26 +1881,25 @@ ol li {
 
 ul.navbar-nav.tabbed > li, ul.navbar-nav.tabbed > li a {
 	font-size:16px;
-	padding:0px
+	padding:0px;
 	line-height:0px;
 	margin-bottom:0px;
 }
 
 .navbar-nav.tabbed > li a.tab-styling, .navbar-nav.tabbed > li.tab-styling, span.tab-styling {
 	color:#fff;
-	padding:5px 10px 0px 10px;
+	padding:15px 10px 0px 10px;
 	background:#09f;
 	margin:0 2px;
 	border-top-right-radius: 3px;
 	border-top-left-radius: 3px;
 	height:30px;
 	font-size:16px;
-	display:block;
-
+	display:block
 }
 
-span.tab-styling {
-	background:#f00
+.tab-styling {
+	background:#f00;
 	margin-top:10px;
 }
 
@@ -2021,8 +2020,6 @@ span#text_cap_container_complete a.tab-styling {
 }
 
 a.tab-styling, .tab-styling {
-
-
 }
 
 #image_cap_container_loading, #warc_cap_container_loading, #pdf_cap_container_loading, #text_cap_container_loading {
@@ -2039,10 +2036,16 @@ a.tab-styling, .tab-styling {
     user-select: none;
 }
 
-.spinner {
+.nav .spinner {
     width: 50%;
-    margin: 160px auto;
+    margin: 0 0 0 -12px;
 }
+
+#spinner {
+    width: 50%;
+    margin: 160px 0 0 185px;
+}
+
 .spinner-message {
     text-align: center;
     margin-top: 205px;
@@ -2284,6 +2287,11 @@ p.orange {
 
 }
 
+
+#collapse-refresh .navbar-nav li{
+
+}
+
 @media (min-width:  992px) {
 	ul.nav.navbar-nav.tabbed {
 		text-align:center;
@@ -2366,5 +2374,20 @@ ul.vesting li {
 	position:relative;
 	}
 
+}
+
+
+
+
+.popup-alert{
+  /* via http://stackoverflow.com/a/22073084/307769 */
+    position: fixed;   /* Take it out of the flow of the document */
+    left: 0;           /* Left edge at left for now */
+    right: 0;          /* Right edge at right for now, so full width */
+    top: 30px;         /* Move it down from top of window */
+    width: 700px;      /* Give it the desired width */
+    margin: auto;      /* Center it */
+    max-width: 90%;   /* Make it fit window if under 500px */
+    z-index: 10000;    /* Whatever needed to force to front (1 might do) */
 }
 

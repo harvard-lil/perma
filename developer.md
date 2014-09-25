@@ -56,6 +56,12 @@ Further reading:
 * [Django docs for default_storage](https://docs.djangoproject.com/en/dev/topics/files/)
 * [Django docs for serving static files](https://docs.djangoproject.com/en/dev/howto/static-files/)
 
+### Using Sass to manage CSS
+
+We use Compass to translate Sass to CSS. A command like the following is likely helpful when you're developing
+    
+    $ cd perma_web
+    $ compass watch --sass-dir static/css/ --css-dir static/css
 
 ###  Schema and data migrations using South
 

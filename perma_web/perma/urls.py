@@ -38,6 +38,7 @@ urlpatterns = patterns('perma.views',
     url(r'^docs/mirrors/?$', DirectTemplateView.as_view(template_name='docs/mirrors.html'), name='docs_mirrors'),
     url(r'^docs/robustness/?$', DirectTemplateView.as_view(template_name='docs/robustness.html'), name='docs_robustness'),
     url(r'^docs/perma-user-roles/?$', DirectTemplateView.as_view(template_name='docs/perma-user-roles.html'), name='docs_perma_user_roles'),
+    url(r'^docs/faq/?$', DirectTemplateView.as_view(template_name='docs/faq.html'), name='docs_faq'),
 
     #API routes
     url(r'^api/linky/urldump/?$', 'api.urldump', name='urldump'),
@@ -54,7 +55,8 @@ urlpatterns = patterns('perma.views',
     url(r'^service/stats/vesting-org/?$', 'service.stats_vesting_org', name='service_stats_vesting_org'),
     url(r'^service/stats/registrar/?$', 'service.stats_registrar', name='service_stats_registrar'),
     url(r'^service/bookmarklet-create/$', 'service.bookmarklet_create', name='service.bookmarklet_create'),
-    
+    url(r'^service/image-wrapper/%s?/?$' % guid_pattern, 'service.image_wrapper', name='service_image_wrapper'),
+
     # Session/account management
     url(r'^login/?$', 'user_management.limited_login', {'template_name': 'registration/login.html'}, name='user_management_limited_login'),
     url(r'^login/not-active/?$', 'user_management.not_active', name='user_management_not_active'),
@@ -114,8 +116,9 @@ urlpatterns = patterns('perma.views',
     url(r'^cdx$', 'common.cdx', name='cdx'),
 
     # Our Perma ID catchall
+    # url(r'^%s/?$' % r'(?P<guid>[^\./]+)', 'common.single_link_header', name='single_link_header'), # our pending, new, single link view
     url(r'^%s/?$' % r'(?P<guid>[^\./]+)', 'common.single_linky', name='single_linky'),
-    
+
 )
 
 # debug-only serving of static and media assets

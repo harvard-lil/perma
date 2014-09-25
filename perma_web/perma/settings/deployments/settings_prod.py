@@ -35,3 +35,6 @@ CELERYD_TASK_TIME_LIMIT = 300
 CDX_SERVER_URL = 'http://127.0.0.1/cdx'
 
 PHANTOMJS_LOG = '/var/log/perma/phantom.log'
+
+# default vesting org for links vested by registry users
+FALLBACK_VESTING_ORG_ID = 15  # HLS Default Vesting Org

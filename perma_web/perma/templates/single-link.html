@@ -83,11 +83,11 @@
 
 								{% if asset.image_capture and asset.image_capture != 'failed' %}
 								<li>
-								{% if asset.image_capture == 'pending' %}	
+								{% if asset.image_capture == 'pending' %}
 									<span id="image_cap_container_loading" class="tab-styling">Screen capture</span>
 									<a id="image_cap_container_complete" class="tab-styling{% if serve_type == 'image' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=image" style="display:none;">Screen capture</a>
 								{% else %}
-									<span id="image_cap_container_loading" class="tab-styling" style="display:none;">Screen capture</span> 
+									<span id="image_cap_container_loading" class="tab-styling" style="display:none;">Screen capture</span>
 									<a id="image_cap_container_complete" class="tab-styling{% if serve_type == 'image' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=image">Screen capture</a>
 								{% endif %}
 								</li>
@@ -214,6 +214,4 @@
 
 {% block scripts %}
     <script src="{{ STATIC_URL }}js/single-link.js"></script>
-
-
 {% endblock %}

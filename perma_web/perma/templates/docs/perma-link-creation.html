@@ -39,7 +39,7 @@ This section of the user guide covers how to create new archives and organize yo
 		<img src="{{ STATIC_URL }}img/docs/upload.gif" class="img-responsive screen-shot" alt="A screenshot of the upload your own window."/>
 		
 		<br/>
-		<p class="orange">Important Note: At this point, you’ve created a temporary archive. To become permanent, your archive and the accompanying Perma Link must be vested. Click here to learn more about vesting.</p>
+		<p class="orange">Important Note: At this point, you’ve created a temporary archive. To become permanent, your archive and the accompanying Perma Link must be vested. <a href="{% url 'docs_perma_link_vesting' %}">Click here to learn more about vesting.</a></p>
 		
 		
 
@@ -73,6 +73,7 @@ This section of the user guide covers how to create new archives and organize yo
 			<li><a href="{% url 'docs_perma_user_roles' %}">User Roles</a></li>
 			<!--<li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>-->
 			<li><a href="{% url 'docs_libraries' %}">Libraries</a></li>
+			<li><a href="{% url 'docs_faq' %}">FAQs</a></li>
 		</ul>	
 	</div>
 </div>	

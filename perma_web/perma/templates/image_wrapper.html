@@ -1,0 +1,18 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+    </head>
+
+    <body>
+        <div style="width: 100%; text-align: center;">
+        {% if asset.image_capture == 'pending' %}
+            <img src="{{ STATIC_URL }}img/dots.gif" alt="archive image capture pending" style="display: inline-block;">
+        {% else %}
+            <img src="{{ MEDIA_URL }}{{ asset.image_url }}" alt="archive image capture" style="display: inline-block;">
+        {% endif %}
+        </div>
+    </body>
+</html>

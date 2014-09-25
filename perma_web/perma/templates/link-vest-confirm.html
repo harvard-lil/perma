@@ -1,0 +1,29 @@
+{% extends "base-archive-confirm.html" %}
+
+{% block confirm %}
+    <h1 class="cyan">Vesting Link</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        {% if vesting_orgs %}
+            <h2>On behalf of which organization are you vesting this link?</h2>
+            <div class="centered-box" style="margin-bottom: 1em">
+                <select name="vesting_org">
+                    {% for vesting_org in vesting_orgs %}
+                        <option value="{{ vesting_org.pk }}">{{ vesting_org }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% else %}
+            <h2>Where do you want to put this link once vested?</h2>
+            <p>Vested links must be stored outside the 'My Links' folder.</p>
+            <p>
+                Choose a folder:
+                {% include "includes/folder_select.html" %}
+            </p>
+        {% endif %}
+        <div class="centered-box">
+            <a href="/{{ link.guid }}" class="cancel-button">Cancel</a> <button type="submit" class="btn btn-success">Vest</button>
+        </div>
+    </form>
+{% endblock %}

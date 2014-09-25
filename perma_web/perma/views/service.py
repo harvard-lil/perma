@@ -1,13 +1,15 @@
 from django.conf import settings
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
+from django.http import Http404
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render_to_response
+from django.template import RequestContext
 
 import json, logging, csv
 from perma.models import Link, Asset, Stat
-from mirroring.utils import may_be_mirrored
+from mirroring.utils import may_be_mirrored, must_be_mirrored
 
 logger = logging.getLogger(__name__)
 
@@ -289,3 +291,22 @@ def bookmarklet_create(request):
     add_url = reverse('create_link')
     add_url = add_url + querystring
     return redirect(add_url)
+
+@must_be_mirrored
+def image_wrapper(request, guid):
+    """
+    When we display an image, our display logic is greatly simplified if we
+    display our archived image in an iframe. That's all we do here, take
+    and archived image and wrap it in a page that we server through an iframe
+    """
+
+    asset = Asset.objects.get(link__guid=guid)
+
+    # find requested link and url
+    try:
+        asset = Asset.objects.get(link__guid=guid)
+    except Link.DoesNotExist:
+        print "COULDN'T FIND LINK"
+        raise Http404
+
+    return render_to_response('image_wrapper.html', {'asset': asset}, RequestContext(request))

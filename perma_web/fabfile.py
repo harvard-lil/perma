@@ -6,6 +6,7 @@ import tempfile
 from django.utils.crypto import get_random_string
 from fabric.api import *
 import subprocess
+from perma.models import LinkUser, Folder
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'perma.settings')
 from django.conf import settings
@@ -277,7 +278,7 @@ def heroku_push(app_name='perma', project_dir=os.path.join(settings.PROJECT_ROOT
     # delete temp dir
     shutil.rmtree(dest_dir)
 
-    
+
 try:
     from fab_targets import *
 except ImportError, e:
