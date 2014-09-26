@@ -79,7 +79,7 @@ def create_link(request):
             target_url_headers = requests.head(
                 target_url,
                 verify=False, # don't check SSL cert?
-                headers={'User-Agent': request.META['HTTP_USER_AGENT']},
+                headers={'User-Agent': request.META['HTTP_USER_AGENT'], 'Accept-Encoding':'*'},
                 timeout=HEADER_CHECK_TIMEOUT
             ).headers
         except (requests.ConnectionError, requests.Timeout):
