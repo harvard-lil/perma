@@ -191,7 +191,9 @@ def single_linky(request, guid):
         display_iframe = False
         if serve_type == 'live':
             try:
-                response = requests.head(link.submitted_url)
+                response = requests.head(link.submitted_url,
+                                         headers={'User-Agent': request.META['HTTP_USER_AGENT'], 'Accept-Encoding': '*'},
+                                         timeout=5)
                 display_iframe = 'X-Frame-Options' not in response.headers
                 # TODO actually check if X-Frame-Options specifically allows requests from us
             except:
