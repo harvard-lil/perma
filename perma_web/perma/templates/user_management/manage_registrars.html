@@ -1,11 +1,10 @@
 {% extends "admin-layout.html" %}
+{% load local_datetime %}
 {% block title %} | Registrars{% endblock %}
 
 {% block manage-nav-registrar %}<li class="active"><a href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>{% endblock %}
 
 {% block content %}
-
-    {% include "user_management/includes/search_form.html" %}
 
 	<h3>Existing registrars <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
 		<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
@@ -27,45 +26,99 @@
         <button type="submit" class="btn-success">Create new registrar</button>
       </form>
     </div>
-
-    {% if search_query %}
-        <p><em>Search results for "{{ search_query }}". <a href="?q=">Clear search.</a></em></p>
-    {% endif %}
     
     <div class="row">
-            <div class="col-sm-3">
-                <p class="count-label">Vesting Organizations</p>
-                <p class="count-number">{{ vesting_org_count }}</p>
-            </div>
-            <div class="col-sm-3">
-                <p class="count-label">Registrars</p>
-                <p class="count-number">{{ registrar_count }}</p>
+        <div class="col-sm-3">
+            <p class="count-label">Vesting Organizations</p>
+            <p class="count-number">{{ vesting_org_count.count }}</p>
+        </div>
+        <div class="col-sm-3">
+            <p class="count-label">Registrars</p>
+            <p class="count-number">{{ registrar_count }}</p>
+        </div>
+    </div>
+
+     {% if search_query %}
+        <div class="row">
+            <div class="col-sm-12">
+                <a class="remove-search-filters" href="?sort=name"><i class="icon-remove-sign"></i> Clear search for <strong>{{search_query}}</strong> and sort</a>
             </div>
         </div>
-
-    {% if registrars %}
-        <table class="table">
-        <thead>
-          <tr>
-            <!--<th><input type="checkbox"></th>-->
-            <th>Name<a href="?sort=name{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-name{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>
-            <th>Contact<a href="?sort=email{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-up"></i></a><a href="?sort=-email{% if search_query %}&q={{ search_query }}{% endif %}"> <i class="icon-chevron-down"></i></a></th>
-            <th>Admin</th>
-          </tr>
-        </thead>
-        <tbody>
+        {% endif %}
+        <div class="row">
+            <div class="col-sm-12">
+                <p class="sort-filter-count">{{registrar_results}} registrar{% if not registrar_results == 1 %}s{% endif %}</p>
+                <div class="sort-filter-bar">
+                {% include "user_management/includes/search_form.html" %}
+                <div class="dropdown">
+                  <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
+                    Sort <span class="caret"></span>
+                  </a>
+                
+                  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                    <li>
+                        <a {% if sort == 'name' %}class="selected" {% endif %}href="?sort=name&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}"><i class="icon-ok"></i> Name A - Z</a>
+                        <a {% if sort == '-name' %}class="selected" {% endif %} href="?sort=-name&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}"><i class="icon-ok"></i> Name Z - A</a>
+                        <a {% if sort == '-date_created' %}class="selected" {% endif %} href="?sort=-date_created&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}"><i class="icon-ok"></i> Newest</a>
+                        <a {% if sort == 'date_created' %}class="selected" {% endif %} href="?sort=date_created&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}"><i class="icon-ok"></i> Oldest</a>
+                        <a {% if sort == '-last_active' %}class="selected" {% endif %} href="?sort=-last_active&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}"><i class="icon-ok"></i> Recently active</a>
+                        <a {% if sort == 'last_active' %}class="selected" {% endif %} href="?sort=last_active&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}"><i class="icon-ok"></i> Least recently active</a>
+                        <a {% if sort == '-vested_links' %}class="selected" {% endif %} href="?sort=-vested_links&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}"><i class="icon-ok"></i> Most vested links</a>
+                        <a {% if sort == 'vested_links' %}class="selected" {% endif %} href="?sort=vested_links&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}"><i class="icon-ok"></i> Least vested links</a>
+                    </li>
+                  </ul>
+                </div>
+            </div>
+            </div>
+        </div>
+        {% if registrars %}
           {% for registrar in registrars %}
-            <tr>
-              <!--<td><input type="checkbox"></td>-->
-              <td class="registrar-name-cell">{{ registrar.name }}</td>
-              <td class="registrar-website-cell">{{ registrar.email }}<br><a href="{{ registrar.website }}" target="_blank">{{ registrar.website }}</a></td>
-              <td><a href="{% url 'user_management_manage_single_registrar' registrar.id %}">edit</a></td>
+            <div class="row list-user list-user-registrar">
+            <div class="col-sm-12">
+            <a class="pull-right" href="{% url 'user_management_manage_single_registrar' registrar.id %}">edit</a>
+            <p class="list-name">{{ registrar.name }}</p>
+            </div>
+              <div class="col-sm-5">
+              <div class="list-count-group">
+                <p class="list-count-number">{{ registrar.vested_links }}</p>
+                <p class="list-count-label">vested links</p>
+                </div>
+                    <div class="list-count-group">
+                    <p class="list-count-number{% if group_name == 'user'%} vesting_user-list{% endif %}">{{ registrar.created_links }}</p>
+                    <p class="list-count-label">created links</p>
+                    </div>
+              </div>
+              <div class="col-sm-7">
+                <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_org' %}?registrar={{registrar.name.split|join:'+'|lower}}">
+                <p class="list-count-number">{{ registrar.vesting_orgs }}</p>
+                <p class="list-count-label">vesting orgs</p></a>
+                </div>
+                <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_user' %}?registrar={{registrar.name.split|join:'+'|lower}}">
+                <p class="list-count-number">{{ registrar.vesting_users }}</p>
+                <p class="list-count-label">vesting users</p></a>
+                </div>
+                <div class="list-count-group"><a href="{% url 'user_management_manage_registrar_user' %}?registrar={{registrar.name.split|join:'+'|lower}}">
+                <p class="list-count-number">{{ registrar.registrar_users }}</p>
+                <p class="list-count-label">registrar users</p></a>
+                </div>
+            </div>
+            <div class="col-sm-7">
+            <p class="list-email">{{ registrar.email }}</p>
+            <p class="list-website"><a href="{{ registrar.website }}">{{registrar.website}}</a></p>
+            </div>
+            <div class="col-sm-5">
+                <p class="list-date">
+              created {{ registrar.date_created|local_datetime:"MMM DD, YYYY" }}
+              <br>
+              last active {{ registrar.last_active|local_datetime:"MMM DD, YYYY" }}
+              </p>
+            </div>
+            </div>
           {% endfor %}
-        </tbody>
-        </table>
     {% else %}
-        <p>No registrars found.</p>
+        <p class="no-users-found">No registrars found.</p>
     {% endif %}
+
 
     {% include "user_management/includes/paginator.html" with page=registrars %}
 

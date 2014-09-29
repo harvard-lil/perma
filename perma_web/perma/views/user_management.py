@@ -11,7 +11,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import views as auth_views
 from django.contrib.sites.models import get_current_site
 from django.core.mail import send_mail
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Max, Min, Sum
 from django.utils.http import is_safe_url, cookie_date
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.template import RequestContext
@@ -46,7 +46,7 @@ from perma.utils import require_group, get_search_query
 
 logger = logging.getLogger(__name__)
 valid_member_sorts = ['-email', 'email', 'last_name', '-last_name', 'admin', '-admin', 'registrar__name', '-registrar__name', 'vesting_org__name', '-vesting_org__name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'vested_links', '-vested_links']
-valid_registrar_sorts = ['-email', 'email', 'name', '-name', 'website', '-website']
+valid_registrar_sorts = ['name', '-name', 'vested_links', '-vested_links', '-date_created', 'date_created', 'last_active', '-last_active']
 
 
 # @login_required
@@ -75,20 +75,32 @@ def manage_registrar(request):
     page = request.GET.get('page', 1)
     if page < 1:
         page = 1
-    registrars = Registrar.objects.all().order_by(sort)
-    registrar_count = registrars.count()
-    vesting_org_count = VestingOrg.objects.all().count()
+    extra_active_users = """
+  SELECT COUNT(*)
+  FROM perma_linkuser
+    INNER JOIN perma_vestingorg on perma_vestingorg.id = perma_linkuser.vesting_org_id
+    INNER JOIN perma_registrar on perma_registrar.id = perma_vestingorg.registrar_id
+  WHERE perma_linkuser.is_confirmed = 1 and perma_linkuser.is_active = 1
+  AND perma_registrar.id = %s
+  """
+    registrars = Registrar.objects.all()
 
     # handle search
     search_query = request.GET.get('q', '')
     if search_query:
         registrars = get_search_query(registrars, search_query, ['name', 'email', 'website'])
+        
+    registrars = registrars.annotate(vested_links=Count('vestingorg__link',distinct=True), created_links=Count('vestingorg__linkuser__created_by',distinct=True), vesting_orgs=Count('vestingorg',distinct=True), last_active=Max('vestingorg__linkuser__last_login', distinct=True),date_created=Min('linkuser__date_joined', distinct=True), vesting_users=Count('vestingorg__linkuser', distinct=True), registrar_users=Count('linkuser', distinct=True)).order_by(sort)
 
+    registrar_count = registrars.count()
+    vesting_org_count = registrars.aggregate(count=Sum('vesting_orgs'))
+    registrar_results = registrars.count()
+    
     paginator = Paginator(registrars, settings.MAX_USER_LIST_SIZE)
     registrars = paginator.page(page)
 
     context = {'registrars_list': list(registrars), 'registrars': registrars, 'registrar_count': registrar_count, 'vesting_org_count':vesting_org_count,
-        'this_page': 'users_registrars',
+        'this_page': 'users_registrars', 'registrar_results': registrar_results,
         'search_query':search_query}
 
     if request.method == 'POST':
@@ -148,6 +160,7 @@ def manage_vesting_org(request):
 
     DEFAULT_SORT = 'name'
     is_registry = False
+    registrars = None
 
     sort = request.GET.get('sort', DEFAULT_SORT)
     if sort not in valid_registrar_sorts:
@@ -159,22 +172,80 @@ def manage_vesting_org(request):
         
     # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_user':
-        vesting_orgs = VestingOrg.objects.all().order_by(sort)
+        vesting_orgs = VestingOrg.objects.all().annotate(vesting_users=Count('linkuser', distinct=True), created_links=Count('linkuser__created_by',distinct=True), vested_links=Count('link', distinct=True), last_active=Max('linkuser__last_login', distinct=True),date_created=Min('linkuser__date_joined', distinct=True)).extra(select = {
+      "unactivated_count" : """
+      SELECT COUNT(*)
+      FROM perma_linkuser
+    WHERE perma_vestingorg.id = perma_linkuser.vesting_org_id
+    AND perma_linkuser.is_confirmed = 0 and perma_linkuser.is_active = 0
+GROUP BY perma_vestingorg.name """,
+    }).extra(select = {
+      "deactivated_count" : """
+      SELECT COUNT(*)
+      FROM perma_linkuser
+    WHERE perma_vestingorg.id = perma_linkuser.vesting_org_id
+    AND perma_linkuser.is_confirmed = 1 and perma_linkuser.is_active = 0
+GROUP BY perma_vestingorg.name """,
+    }).extra(select = {
+      "active_count" : """
+      SELECT COUNT(*)
+      FROM perma_linkuser
+    WHERE perma_vestingorg.id = perma_linkuser.vesting_org_id
+    AND perma_linkuser.is_confirmed = 1 and perma_linkuser.is_active = 1
+GROUP BY perma_vestingorg.name """,
+    }).order_by(sort)
         is_registry = True
     else:
-      vesting_orgs = VestingOrg.objects.filter(registrar_id=request.user.registrar_id).order_by(sort)
+        vesting_orgs = VestingOrg.objects.filter(registrar=request.user.registrar).annotate(vesting_users=Count('linkuser', distinct=True), created_links=Count('linkuser__created_by',distinct=True), vested_links=Count('link__vesting_org', distinct=True), last_active=Max('linkuser__last_login', distinct=True),date_created=Min('linkuser__date_joined', distinct=True)).extra(select = {
+      "unactivated_count" : """
+      SELECT COUNT(*)
+      FROM perma_linkuser
+    WHERE perma_vestingorg.id = perma_linkuser.vesting_org_id
+    AND perma_linkuser.is_confirmed = 0 and perma_linkuser.is_active = 0
+GROUP BY perma_vestingorg.name """,
+    }).extra(select = {
+      "deactivated_count" : """
+      SELECT COUNT(*)
+      FROM perma_linkuser
+    WHERE perma_vestingorg.id = perma_linkuser.vesting_org_id
+    AND perma_linkuser.is_confirmed = 1 and perma_linkuser.is_active = 0
+GROUP BY perma_vestingorg.name """,
+    }).extra(select = {
+      "active_count" : """
+      SELECT COUNT(*)
+      FROM perma_linkuser
+    WHERE perma_vestingorg.id = perma_linkuser.vesting_org_id
+    AND perma_linkuser.is_confirmed = 1 and perma_linkuser.is_active = 1
+GROUP BY perma_vestingorg.name """,
+    }).order_by(sort)
 
     # handle search
     search_query = request.GET.get('q', '')
     if search_query:
         vesting_orgs = get_search_query(vesting_orgs, search_query, ['name', 'registrar__name'])
+        
+    # handle registrar filter
+    registrar_filter = request.GET.get('registrar', '')
+    if registrar_filter:
+        vesting_orgs = vesting_orgs.filter(registrar__name=registrar_filter)
 
+    if is_registry:
+        active_users = LinkUser.objects.all().filter(is_active=True, is_confirmed=True, groups__name='vesting_user', vesting_org__in=vesting_orgs).count()
+        deactivated_users = LinkUser.objects.all().filter(is_confirmed=True, is_active=False, groups__name='vesting_user', vesting_org__in=vesting_orgs).count()
+        unactivated_users = LinkUser.objects.all().filter(is_confirmed=False, is_active=False, groups__name='vesting_user', vesting_org__in=vesting_orgs).count()
+        registrars = Registrar.objects.all().order_by('name')
+    else:
+        active_users = LinkUser.objects.all().filter(is_active=True, is_confirmed=True, groups__name='vesting_user', vesting_org__registrar=request.user.registrar, vesting_org__in=vesting_orgs).count()
+        deactivated_users = LinkUser.objects.all().filter(is_confirmed=True, is_active=False, groups__name='vesting_user', vesting_org__registrar=request.user.registrar, vesting_org__in=vesting_orgs).count()
+        unactivated_users = LinkUser.objects.all().filter(is_confirmed=False, is_active=False, groups__name='vesting_user', vesting_org__registrar=request.user.registrar, vesting_org__in=vesting_orgs).count()
+    
+    vesting_orgs_count = vesting_orgs.count()
     paginator = Paginator(vesting_orgs, settings.MAX_USER_LIST_SIZE)
     vesting_orgs = paginator.page(page)
 
-    context = {'vesting_orgs_list': list(vesting_orgs), 'vesting_orgs': vesting_orgs,
+    context = {'vesting_orgs': vesting_orgs,
         'this_page': 'users_vesting_orgs',
-        'search_query':search_query}
+        'search_query':search_query, 'vesting_orgs_count': vesting_orgs_count, 'active_users': active_users, 'deactivated_users': deactivated_users, 'unactivated_users': unactivated_users, 'registrars': registrars, 'registrar_filter': registrar_filter, 'sort': sort}
 
     if request.method == 'POST':
 
@@ -331,20 +402,16 @@ def list_users_in_group(request, group_name):
     registrars = None
     vesting_orgs = None
     if request.user.has_group('registry_user'):
-        users = LinkUser.objects.filter(groups__name=group_name).order_by(*sorts()).annotate(vested_links=Count('vested_by_editor')).annotate(created_links=Count('created_by'))
+        users = LinkUser.objects.filter(groups__name=group_name).order_by(*sorts()).annotate(vested_links=Count('vested_by_editor', distinct=True)).annotate(created_links=Count('created_by', distinct=True))
         vesting_orgs = VestingOrg.objects.all().order_by('name')
         registrars = Registrar.objects.all().order_by('name')
         is_registry = True
     elif request.user.has_group('registrar_user'):
-        users = LinkUser.objects.filter(groups__name=group_name, vesting_org__registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links=Count('vested_by_editor'))
+        users = LinkUser.objects.filter(groups__name=group_name, vesting_org__registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links=Count('vested_by_editor', distinct=True))
         vesting_orgs = VestingOrg.objects.filter(registrar_id=request.user.registrar_id).order_by('name')
         is_registrar = True
     elif request.user.has_group('vesting_user'):
-        users = LinkUser.objects.filter(groups__name=group_name, vesting_org=request.user.vesting_org).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links=Count('vested_by_editor'))
-
-    active_users = users.filter(is_active=True, is_confirmed=True).count()
-    deactivated_users = users.filter(is_confirmed=True, is_active=False).count()
-    unactivated_users = users.filter(is_confirmed=False, is_active=False).count()
+        users = LinkUser.objects.filter(groups__name=group_name, vesting_org=request.user.vesting_org).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links=Count('vested_by_editor', distinct=True))
     
     sort_url = ''
     
@@ -381,6 +448,9 @@ def list_users_in_group(request, group_name):
         sort_url = '{sort_url}&registrar={registrar_filter}'.format(sort_url=sort_url, registrar_filter=registrar_filter)
 
     users_count = users.count()
+    active_users = users.filter(is_active=True, is_confirmed=True).count()
+    deactivated_users = users.filter(is_confirmed=True, is_active=False).count()
+    unactivated_users = users.filter(is_confirmed=False, is_active=False).count()
     paginator = Paginator(users, settings.MAX_USER_LIST_SIZE)
     users = paginator.page(page)
     logger.debug('users_{group_name}s'.format(group_name=group_name))

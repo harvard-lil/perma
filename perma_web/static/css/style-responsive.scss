@@ -1696,6 +1696,10 @@ tr td.linky-link, a.original-link {
     font-family: $sans-font;
 }
 
+.remove-search-filters strong {
+    padding:0px 3px;
+}
+
 .no-users-found {
     text-align:center;
     font-weight:500;
@@ -1722,8 +1726,20 @@ tr td.linky-link, a.original-link {
     margin-bottom:0px;
 }
 
+.list-name a {
+    color:#333;
+}
+
 .list-email {
     margin-bottom:0px;
+}
+
+.list-user-registrar .list-email {
+    margin-top:20px;
+}
+
+.list-website {
+    margin-bottom:5px;
 }
 
 .list-vesting-org, .list-registrar {
@@ -1737,6 +1753,10 @@ tr td.linky-link, a.original-link {
     margin-bottom:0px;
     margin-top:35px;
     text-align:right;
+}
+
+.list-user-registrar .list-date {
+    margin-top:20px;
 }
 
 .list-date.vesting_user-list {
@@ -1769,6 +1789,14 @@ p.list-count-number {
     line-height:1.1em;
     margin-bottom:0px;
     margin-top:25px;
+}
+
+.list-user-registrar p.list-count-number {
+    margin-top:5px;
+}
+
+.list-user-registrar .center-list-count p.list-count-number {
+    text-align:center;
 }
 
 .list-count-number.vesting_user-list {

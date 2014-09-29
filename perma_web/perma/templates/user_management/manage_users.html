@@ -63,7 +63,7 @@
         {% if registrar_filter or vesting_org_filter or status or search_query %}
         <div class="row">
             <div class="col-sm-12">
-                <a class="remove-search-filters" href="?sort=last_name"><i class="icon-remove-sign"></i> Clear current search, filters and sort</a>
+                <a class="remove-search-filters" href="?sort=last_name"><i class="icon-remove-sign"></i> Clear{% if registrar_filter %} registrar:<strong>{{registrar_filter}}</strong>{% endif %}{% if vesting_org_filter %} vesting organization:<strong>{{vesting_org_filter}}</strong>{% endif %}{% if status %} status:<strong>{{status}}</strong>{% endif %}{% if search_query %} search:<strong>{{search_query}}</strong>{% endif %}</a>
             </div>
         </div>
         {% endif %}
@@ -119,9 +119,9 @@
                         {% if vesting_orgs %}
                             {% for vesting_org in vesting_orgs %}
                             {% if vesting_org_filter == vesting_org.name|lower %}
-                                <a class="selected" href="?page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}"><i class="icon-ok"></i> {{vesting_org.name}}</a>
+                                <a class="selected" href="?page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}{% if status %}&status={{ status }}{% endif %}"><i class="icon-ok"></i> {{vesting_org.name}}</a>
                             {% else %}
-                                <a href="?vesting_org={{vesting_org.name.split|join:'+'|lower}}&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}"><i class="icon-ok"></i> {{vesting_org.name}}</a>
+                                <a href="?vesting_org={{vesting_org.name.split|join:'+'|lower}}&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}{% if status %}&status={{ status }}{% endif %}"><i class="icon-ok"></i> {{vesting_org.name}}</a>
                             {% endif %}
                             {% endfor %}
                         {% else %}
