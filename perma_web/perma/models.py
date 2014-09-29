@@ -100,7 +100,6 @@ class LinkUser(AbstractBaseUser):
     date_joined = models.DateField(auto_now_add=True)
     first_name = models.CharField(max_length=45, blank=True)
     last_name = models.CharField(max_length=45, blank=True)
-    authorized_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='authorized_by_manager')
     confirmation_code = models.CharField(max_length=45, blank=True)
 
     objects = LinkUserManager()

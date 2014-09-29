@@ -67,8 +67,7 @@
             "email": "test_vesting_member@example.com",
             "date_joined": "2013-06-26",
             "first_name": "Vesting",
-            "last_name": "Member",
-            "authorized_by": 5
+            "last_name": "Member"
         }
     },
     {

@@ -51,10 +51,12 @@
                 <p class="count-label">Active Users</p>
                 <p class="count-number">{{ active_users }}</p>
             </div>
+            {% if request.user|has_group:'registrar_user,registry_user' %}
             <div class="col-sm-3">
                 <p class="count-label">Deactivated Users</p>
                 <p class="count-number">{{ deactivated_users }}</p>
             </div>
+            {% endif %}
             <div class="col-sm-3">
                 <p class="count-label">Unactivated Users</p>
                 <p class="count-number">{{ unactivated_users }}</p>
