@@ -173,7 +173,6 @@ ROOT_URLCONF = 'urls'
 WSGI_APPLICATION = 'perma.wsgi.application'
 
 TEMPLATE_CONTEXT_PROCESSORS = (
-    "perma.analytics.analytics",
     'django.contrib.messages.context_processors.messages',
     'django.core.context_processors.request',   # include `request` in templates
     'django.core.context_processors.static',    # include `STATIC_URL` in templates

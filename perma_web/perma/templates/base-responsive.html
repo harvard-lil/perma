@@ -24,10 +24,6 @@
         <script src="{{ STATIC_URL }}js/modernizr.js"></script>
 		<script src="{{ STATIC_URL }}js/holder.js"></script>
         {% block styles %}{% endblock %}
-        <!--
-        <script type="text/javascript" src="//use.typekit.net/pjl6esq.js"></script>
-        <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
-        -->
         
         <!--[if lt IE 9]>
 			<script src="{{ STATIC_URL }}js/html5shiv.js"></script>
@@ -162,15 +158,12 @@
     {% endblock %}   
     
     {% block templates %}
-    {% endblock %} 
+    {% endblock %}
 
 
     
     <script type="text/javascript">
       feedback_url = "{% url 'service_receive_feedback' %}";
     </script>
-
-
-    {{ analytics_code }}
   </body>
 </html>
