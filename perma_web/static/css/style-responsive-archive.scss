@@ -7,6 +7,23 @@ $secondary-font: 'Helvetica', 'sans-serif';
 
 /* Global start */
 
+/* Start - our locally hosted Google Fonts */
+@font-face {
+    font-family: "Roboto Slab";
+    font-style: normal;
+    font-weight: 300;
+    src: url(RobotoSlab-Light.eot);
+    src: local("Roboto Slab Light"), local("RobotoSlab-Light"), url(RobotoSlab-Light.eot?#iefix) format("embedded-opentype"), url(RobotoSlab-Light.woff) format("woff"), url(RobotoSlab-Light.ttf) format("truetype")
+    }
+@font-face {
+    font-family: "Roboto Slab";
+    font-style: normal;
+    font-weight: 400;
+    src: url(RobotoSlab-Regular.eot);
+    src: local("Roboto Slab Regular"), local("RobotoSlab-Regular"), url(RobotoSlab-Regular.eot?#iefix) format("embedded-opentype"), url(RobotoSlab-Regular.woff) format("woff"), url(RobotoSlab-Regular.ttf) format("truetype")
+    }
+/* End - our locally hosted Google Fonts */
+
 html {
     position:relative;
     min-height:100%;
