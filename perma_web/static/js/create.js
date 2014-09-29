@@ -47,7 +47,7 @@ function linkIt(){
     var rawUrl = $("#rawUrl").val();
 
     var request = $.ajax({
-        url: main_server_host + "/manage/create/",
+        url: "/manage/create/",
         type: "POST",
         data: {url: rawUrl, 'csrfmiddlewaretoken': csrf_token},
         dataType: "json"
