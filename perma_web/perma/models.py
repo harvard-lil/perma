@@ -83,7 +83,6 @@ class VestingOrg(models.Model):
     def create_shared_folder(self):
         if self.shared_folder:
             return
-        print self.name
         shared_folder = Folder(name=self.name, vesting_org=self, is_shared_folder=True)
         shared_folder.save()
         self.shared_folder = shared_folder
@@ -217,9 +216,10 @@ class LinkUser(AbstractBaseUser):
         try:
             # this branch only used during transition to root folders -- should be removed eventually
             root_folder = Folder.objects.filter(created_by=self, name=u"My Links", parent=None)[0]
+            root_folder.is_root_folder = True
         except IndexError:
             root_folder = Folder(name=u'My Links', created_by=self, is_root_folder=True)
-            root_folder.save()
+        root_folder.save()
         self.root_folder = root_folder
         self.save()
 
@@ -436,7 +436,7 @@ class Link(models.Model):
         One exception - we want to use up our [non-four alphabet chars-anything] ids first. So, avoid things like XFFC-9VS7
         
         """
-        initial_folder = kwargs.pop('initial_folder', self.created_by.root_folder)
+        initial_folder = kwargs.pop('initial_folder', None)
 
         if not self.pk and not kwargs.get("pregenerated_guid", False):
             # not self.pk => not created yet
@@ -461,7 +461,11 @@ class Link(models.Model):
         super(Link, self).save(*args, **kwargs)
 
         if not self.folders.count():
-            self.folders.add(initial_folder)
+            if not initial_folder:
+                if self.created_by and self.created_by.root_folder:
+                    initial_folder = self.created_by.root_folder
+            if initial_folder:
+                self.folders.add(initial_folder)
 
     def __unicode__(self):
         return self.submitted_url
