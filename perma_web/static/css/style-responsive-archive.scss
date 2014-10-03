@@ -1,3 +1,9 @@
+/* This .scss file will automatically be compiled by django-pipeline into a .css file */
+
+/* Import some mixins from Compass */
+@import "compass/css3/opacity";
+
+
 /* Our Sass vars start */
 
 $secondary-font: 'Helvetica', 'sans-serif';
@@ -257,7 +263,7 @@ img.watermark-image {
 	box-shadow: none;
 	z-index:2;
     margin:0 auto -20%;
-	opacity:.85;
+	@include opacity(.85);
 	width:70%;
 	pointer-events:none;
 }
@@ -319,22 +325,14 @@ a.btn.user-delete:hover, a.btn.user-delete:focus {
 	z-index:100;
 	margin-top:20px;
 	border-radius: 4px;
-		opacity:.8;
-	  /* IE 8 */
-  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
-  /* IE 5-7 */
-  filter: alpha(opacity=80);
+	@include opacity(.8);
 }
 
 img.dark-bulb {
-	opacity:.8;
-	  /* IE 8 */
-  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
-  /* IE 5-7 */
-  filter: alpha(opacity=80);
-  margin:auto;
-  text-align:center;
-  width:160px;
+	@include opacity(.8);
+  	margin:auto;
+  	text-align:center;
+  	width:160px;
 }
 
 /* Dark archive end */
