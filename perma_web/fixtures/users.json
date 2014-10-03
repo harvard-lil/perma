@@ -13,9 +13,126 @@
         "model": "perma.VestingOrg",
         "fields": {
             "name": "Test Journal",
-            "registrar": 1
+            "registrar": 1,
+            "shared_folder": 27
         }
     },
+
+    {
+        "pk": 22,
+        "model": "perma.folder",
+        "fields": {
+            "rght": 2,
+            "name": "My Links",
+            "parent": null,
+            "level": 0,
+            "created_by": 1,
+            "lft": 1,
+            "is_root_folder": true,
+            "tree_id": 1,
+            "owned_by": 1,
+            "is_shared_folder": false,
+            "creation_timestamp": "2014-09-02T16:57:03Z",
+            "slug": "My Links",
+            "vesting_org": null
+        }
+    },
+    {
+        "pk": 23,
+        "model": "perma.folder",
+        "fields": {
+            "rght": 4,
+            "name": "My Links",
+            "parent": null,
+            "level": 0,
+            "created_by": 2,
+            "lft": 1,
+            "is_root_folder": true,
+            "tree_id": 2,
+            "owned_by": 2,
+            "is_shared_folder": false,
+            "creation_timestamp": "2014-09-02T16:57:03Z",
+            "slug": "My Links",
+            "vesting_org": null
+        }
+    },
+    {
+        "pk": 24,
+        "model": "perma.folder",
+        "fields": {
+            "rght": 2,
+            "name": "My Links",
+            "parent": null,
+            "level": 0,
+            "created_by": 3,
+            "lft": 1,
+            "is_root_folder": true,
+            "tree_id": 3,
+            "owned_by": 3,
+            "is_shared_folder": false,
+            "creation_timestamp": "2014-09-02T16:57:03Z",
+            "slug": "My Links",
+            "vesting_org": null
+        }
+    },
+    {
+        "pk": 25,
+        "model": "perma.folder",
+        "fields": {
+            "rght": 2,
+            "name": "My Links",
+            "parent": null,
+            "level": 0,
+            "created_by": 4,
+            "lft": 1,
+            "is_root_folder": true,
+            "tree_id": 4,
+            "owned_by": 4,
+            "is_shared_folder": false,
+            "creation_timestamp": "2014-09-02T16:57:03Z",
+            "slug": "My Links",
+            "vesting_org": null
+        }
+    },
+    {
+        "pk": 26,
+        "model": "perma.folder",
+        "fields": {
+            "rght": 2,
+            "name": "My Links",
+            "parent": null,
+            "level": 0,
+            "created_by": 5,
+            "lft": 1,
+            "is_root_folder": true,
+            "tree_id": 5,
+            "owned_by": 5,
+            "is_shared_folder": false,
+            "creation_timestamp": "2014-09-02T16:57:03Z",
+            "slug": "My Links",
+            "vesting_org": null
+        }
+    },
+    {
+        "pk": 27,
+        "model": "perma.folder",
+        "fields": {
+            "rght": 2,
+            "name": "Test Journal",
+            "parent": null,
+            "level": 0,
+            "created_by": null,
+            "lft": 1,
+            "is_root_folder": false,
+            "tree_id": 6,
+            "owned_by": null,
+            "is_shared_folder": true,
+            "creation_timestamp": "2014-09-02T16:58:10Z",
+            "slug": "test-journal",
+            "vesting_org": 1
+        }
+    },
+
     {
         "pk": 1,
         "model": "perma.LinkUser",
@@ -30,7 +147,8 @@
             "email": "test_registry_member@example.com",
             "date_joined": "2013-06-26",
             "first_name": "Registry",
-            "last_name": "Member"
+            "last_name": "Member",
+            "root_folder": 22
         }
     },
     {
@@ -48,7 +166,8 @@
             "email": "test_registrar_member@example.com",
             "date_joined": "2013-06-26",
             "first_name": "Registrar",
-            "last_name": "Member"
+            "last_name": "Member",
+            "root_folder": 23
         }
     },
     {
@@ -68,7 +187,8 @@
             "date_joined": "2013-06-26",
             "first_name": "Vesting",
             "last_name": "Member",
-            "authorized_by": 5
+            "authorized_by": 5,
+            "root_folder": 24
         }
     },
     {
@@ -85,10 +205,11 @@
             "email": "test_user@example.com",
             "date_joined": "2013-06-26",
             "first_name": "Regular",
-            "last_name": "User"
+            "last_name": "User",
+            "root_folder": 25
         }
     },
-        {
+    {
         "pk": 5,
         "model": "perma.LinkUser",
         "fields": {
@@ -104,7 +225,8 @@
             "email": "test_vesting_manager@example.com",
             "date_joined": "2013-06-26",
             "first_name": "Vesting",
-            "last_name": "Manager"
+            "last_name": "Manager",
+            "root_folder": 26
         }
     }
 ]

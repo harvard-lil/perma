@@ -6,7 +6,7 @@ import tempfile
 from django.utils.crypto import get_random_string
 from fabric.api import *
 import subprocess
-from perma.models import LinkUser, Folder
+from perma.models import Registrar, Link
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'perma.settings')
 from django.conf import settings
@@ -53,7 +53,12 @@ def run(port="0.0.0.0:8000"):
     """
         Run django test server on open port, so it's accessible outside Vagrant.
     """
-    local("python manage.py runserver %s" % port)
+    try:
+        # use runserver_plus if installed
+        import django_extensions
+        local("python manage.py runserver_plus %s" % port)
+    except ImportError:
+        local("python manage.py runserver %s" % port)
 
 def test(apps="perma mirroring"):
     """
@@ -277,6 +282,74 @@ def heroku_push(app_name='perma', project_dir=os.path.join(settings.PROJECT_ROOT
 
     # delete temp dir
     shutil.rmtree(dest_dir)
+
+
+
+def set_up_folders():
+    """ One-time function for use during transition to shared folders. """
+    from perma.models import VestingOrg, LinkUser, Folder, Link
+    from django.db.models import F
+
+    print "Making sure each registrar has a default vesting org"
+    for registrar in Registrar.objects.filter(default_vesting_org=None):
+        registrar.create_default_vesting_org()
+
+    print "Making sure each link has a vesting org"
+    for link in Link.objects.filter(vested=True, vesting_org=None).select_related():
+        editor = link.vested_by_editor
+        if editor.vesting_org:
+            link.vesting_org = editor.vesting_org
+        elif editor.registrar:
+            link.vesting_org = editor.registrar.default_vesting_org
+        else:
+            link.vesting_org_id = settings.FALLBACK_VESTING_ORG_ID
+        link.save()
+
+    print "Making sure each user has a root dir (this will use My Links if it exists)"
+    for user in LinkUser.objects.filter(root_folder=None):
+        user.create_root_folder()
+
+    print "Making sure each vesting org has a shared folder"
+    for vesting_org in VestingOrg.objects.filter(shared_folder=None):
+        vesting_org.create_shared_folder()
+
+    # helpers for next section
+    target_folder_cache = {}
+
+    def get_vesting_org_subfolder(vesting_org, user):
+        folder, created = Folder.objects.get_or_create(name=user.get_full_name(), parent=vesting_org.shared_folder)
+        return folder
+
+    def get_target_folder(user):
+        if user in target_folder_cache:
+            return target_folder_cache[user]
+        default_vesting_org = user.get_default_vesting_org()
+        if default_vesting_org:
+            target_folder = get_vesting_org_subfolder(default_vesting_org, user)
+        else:
+            target_folder = user.root_folder
+        target_folder_cache[user] = target_folder
+        return target_folder
+
+    print "Moving top-level folders to parent dirs"
+    Folder.objects.all().update(owned_by=F('created_by'))
+    for folder in Folder.objects.filter(parent=None, is_root_folder=False, is_shared_folder=False):
+        folder.move_to_folder(get_target_folder(folder.created_by))
+
+    print "Moving top-level links to parent dirs"
+    for link in Link.objects.all():
+        # make sure link creator has link in a folder
+        if link.created_by and not link.folders.accessible_to(link.created_by).exists():
+            link.folders.add(get_target_folder(link.created_by))
+
+        # make sure link vester has link in a folder
+        if link.vested and not link.folders.accessible_to(link.vested_by_editor).exists():
+            target_folder = get_target_folder(link.vested_by_editor)
+            if target_folder.vesting_org == link.vesting_org:
+                link.folders.add(target_folder)
+            else:
+                link.folders.add(get_vesting_org_subfolder(link.vesting_org, link.vested_by_editor))
+
 
 
 try:

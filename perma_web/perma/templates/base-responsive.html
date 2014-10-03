@@ -50,7 +50,7 @@
 					<div class="navbar-collapse collapse">
 					  <ul class="nav navbar-nav navbar-right">
 					  	{% if request.user.is_authenticated %}
-                            <li><a href="{% url 'logout' %}">{% if this_page == 'logout' %} class="this-page"{% endif %}<span style="color: #aaa;">Log out</span></a></li>
+                            <li><a href="{% url 'logout' %}" style="color: #aaa;">Log out</a></li>
                             <li><a href="{% url 'create_link' %}" id="nav-button">Dashboard</a></li>
 						{% else %}
                             <li><a href="{% url 'about' %}"{% if this_page == 'about' %} class="this-page"{% endif %}>About</a></li>

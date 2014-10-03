@@ -44,6 +44,11 @@ $(document).ready(function() {
         });
       return false;
     });
+
+    // clear popup alerts with a click
+    $(document).on('click', '.popup-alert', function(){
+        $(this).remove();
+    });
 });
 
 // Clear fields on focus

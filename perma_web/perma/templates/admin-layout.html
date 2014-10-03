@@ -3,26 +3,21 @@
 
 {% block styles %}
     {# put in styles because this has to be available during page load #}
-    <script src="{{ STATIC_URL }}js/moment-with-langs.min.js "></script>
+    <script src="{{ STATIC_URL }}js/local-datetime.js "></script>
 {% endblock %}
 
 {% block row %}
 
 <div id="dashboard-container">
 
-    <div class="col-sm-3">
+    <div class="col-sm-2">
 
         <!-- Dashboard tabs -->
         <ul class="nav nav-pills nav-stacked" id="dashboard-tabs">
 
             <li{% if this_page == 'create_link' %} class="active"{% endif %}><a href="{% url 'create_link' %}" id="dashboard-add">Create</a></li>
 
-            <li{% if this_page == 'created_links' %} class="active"{% endif %}><a href="{% url 'created_links' %}" id="dashboard-library">Links</a></li>
-
-            <!-- Vested links -->
-            {% if request.user|has_group:'registrar_user,registry_user,vesting_user,vesting_user' %}
-                <li{% if this_page == 'vested_links' %} class="active"{% endif %}><a href="{% url 'vested_links' %}" id="dashboard-vested">Vested Links</a></li>
-            {% endif %}<!-- FIXME change icon -->
+            <li{% if this_page == 'link_browser' %} class="active"{% endif %}><a href="{% url 'link_browser' %}" id="dashboard-library">Links</a></li>
 
             {% comment %}
             <!-- Batch convert -->
@@ -68,7 +63,7 @@
     </div><!--/col-sm-3-->
 
    <!-- Dashboard tab content -->
-    <div class="tab-content col-sm-9">
+    <div class="tab-content col-sm-10">
         <div class="tab-pane active">
         {% block content %}{% endblock content %}
         </div><!--/.tab-pane-->

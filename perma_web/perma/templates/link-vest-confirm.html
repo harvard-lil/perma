@@ -15,10 +15,11 @@
                 </select>
             </div>
         {% else %}
+            <input type="hidden" name="vesting_org" value="{{ vesting_org.pk }}">
             <h2>Where do you want to put this link once vested?</h2>
-            <p>Vested links must be stored outside the 'My Links' folder.</p>
+            <p>Links vested for {{ vesting_org }} must be stored in the {{ vesting_org }} shared folder.</p>
             <p>
-                Choose a folder:
+                Choose folder:
                 {% include "includes/folder_select.html" %}
             </p>
         {% endif %}
