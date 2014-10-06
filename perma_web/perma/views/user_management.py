@@ -75,14 +75,7 @@ def manage_registrar(request):
     page = request.GET.get('page', 1)
     if page < 1:
         page = 1
-    extra_active_users = """
-  SELECT COUNT(*)
-  FROM perma_linkuser
-    INNER JOIN perma_vestingorg on perma_vestingorg.id = perma_linkuser.vesting_org_id
-    INNER JOIN perma_registrar on perma_registrar.id = perma_vestingorg.registrar_id
-  WHERE perma_linkuser.is_confirmed = 1 and perma_linkuser.is_active = 1
-  AND perma_registrar.id = %s
-  """
+
     registrars = Registrar.objects.all()
 
     # handle search
@@ -90,7 +83,7 @@ def manage_registrar(request):
     if search_query:
         registrars = get_search_query(registrars, search_query, ['name', 'email', 'website'])
         
-    registrars = registrars.annotate(vested_links=Count('vestingorg__link',distinct=True), created_links=Count('vestingorg__linkuser__created_by',distinct=True), vesting_orgs=Count('vestingorg',distinct=True), last_active=Max('vestingorg__linkuser__last_login', distinct=True),date_created=Min('linkuser__date_joined', distinct=True), vesting_users=Count('vestingorg__linkuser', distinct=True), registrar_users=Count('linkuser', distinct=True)).order_by(sort)
+    registrars = registrars.annotate(vested_links=Count('vestingorg__link',distinct=True), created_links=Count('vestingorg__linkuser__created_by',distinct=True), vesting_orgs=Count('vestingorg',distinct=True), last_active=Max('vestingorg__linkuser__last_login', distinct=True),date_made=Min('linkuser__date_joined', distinct=True), vesting_users=Count('vestingorg__linkuser', distinct=True), registrar_users=Count('linkuser', distinct=True)).order_by(sort)
 
     registrar_count = registrars.count()
     vesting_org_count = registrars.aggregate(count=Sum('vesting_orgs'))
@@ -172,7 +165,7 @@ def manage_vesting_org(request):
         
     # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
     if request.user.groups.all()[0].name == 'registry_user':
-        vesting_orgs = VestingOrg.objects.all().annotate(vesting_users=Count('linkuser', distinct=True), created_links=Count('linkuser__created_by',distinct=True), vested_links=Count('link', distinct=True), last_active=Max('linkuser__last_login', distinct=True),date_created=Min('linkuser__date_joined', distinct=True)).extra(select = {
+        vesting_orgs = VestingOrg.objects.all().annotate(vesting_users=Count('linkuser', distinct=True), created_links=Count('linkuser__created_by',distinct=True), vested_links=Count('link', distinct=True), last_active=Max('linkuser__last_login', distinct=True),created_date=Min('linkuser__date_joined', distinct=True)).extra(select = {
       "unactivated_count" : """
       SELECT COUNT(*)
       FROM perma_linkuser
@@ -196,7 +189,7 @@ GROUP BY perma_vestingorg.name """,
     }).order_by(sort)
         is_registry = True
     else:
-        vesting_orgs = VestingOrg.objects.filter(registrar=request.user.registrar).annotate(vesting_users=Count('linkuser', distinct=True), created_links=Count('linkuser__created_by',distinct=True), vested_links=Count('link__vesting_org', distinct=True), last_active=Max('linkuser__last_login', distinct=True),date_created=Min('linkuser__date_joined', distinct=True)).extra(select = {
+        vesting_orgs = VestingOrg.objects.filter(registrar=request.user.registrar).annotate(vesting_users=Count('linkuser', distinct=True), created_links=Count('linkuser__created_by',distinct=True), vested_links=Count('link__vesting_org', distinct=True), last_active=Max('linkuser__last_login', distinct=True),created_date=Min('linkuser__date_joined', distinct=True)).extra(select = {
       "unactivated_count" : """
       SELECT COUNT(*)
       FROM perma_linkuser
@@ -287,7 +280,7 @@ def manage_single_vesting_org(request, vesting_org_id):
         is_registry = True
 
     context = {'target_vesting_org': target_vesting_org,
-        'this_page': 'users_vesting_orgs'}
+        'this_page': 'users_vesting_orgs', 'created_date': created_date}
 
     if request.method == 'POST':
 

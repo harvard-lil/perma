@@ -25,6 +25,7 @@ class Registrar(models.Model):
     name = models.CharField(max_length=400)
     email = models.EmailField(max_length=254)
     website = models.URLField(max_length=500)
+    date_created = models.DateField(auto_now_add=True, null=True)
 
     def __unicode__(self):
         return self.name
@@ -35,6 +36,7 @@ class VestingOrg(models.Model):
     """
     name = models.CharField(max_length=400)
     registrar = models.ForeignKey(Registrar, null=True)
+    date_created = models.DateField(auto_now_add=True, null=True)
 
     def __unicode__(self):
         return self.name
