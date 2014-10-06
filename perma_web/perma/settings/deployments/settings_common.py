@@ -88,9 +88,21 @@ PIPELINE_DISABLE_WRAPPER = True
 PIPELINE_JS = {
     'create': {
         'source_filenames': (
-          'js/create.js',
+            'js/spin.js',
+            'js/handlebars.js',
+            'js/jquery.form.min.js',
+            'js/create.js',
         ),
         'output_filename': 'js/create-bundle.js',
+    },
+    'links_list': {
+        'source_filenames': (
+            'js/jquery-ui-1.10.3.custom.min.js',
+            'js/jquery.dotdotdot-1.5.9.min.js',
+            'js/jquery.django-csrf.js',
+            'js/links-list.js',
+        ),
+        'output_filename': 'js/links-list-bundle.js',
     },
     'landing': {
         'source_filenames': (
@@ -113,6 +125,14 @@ PIPELINE_CSS = {
             'css/font-awesome.min.css',
         ),
         'output_filename': 'css/base-bundle.css',
+    },
+    'base-archive': {
+        'source_filenames': (
+            'css/bootstrap3.css',
+            'css/style-responsive-archive.scss',
+            'css/font-awesome.min.css',
+        ),
+        'output_filename': 'css/base-archive-bundle.css',
     },
 }
 
@@ -153,7 +173,6 @@ ROOT_URLCONF = 'urls'
 WSGI_APPLICATION = 'perma.wsgi.application'
 
 TEMPLATE_CONTEXT_PROCESSORS = (
-    "perma.analytics.analytics",
     'django.contrib.messages.context_processors.messages',
     'django.core.context_processors.request',   # include `request` in templates
     'django.core.context_processors.static',    # include `STATIC_URL` in templates
@@ -342,3 +361,6 @@ INTERNET_ARCHIVE_IDENTIFIER_PREFIX = 'perma_cc_'
 # Find these at https://archive.org/account/s3.php :
 INTERNET_ARCHIVE_ACCESS_KEY = ''
 INTERNET_ARCHIVE_SECRET_KEY = ''
+
+# default vesting org for links vested by registry users
+FALLBACK_VESTING_ORG_ID = 1

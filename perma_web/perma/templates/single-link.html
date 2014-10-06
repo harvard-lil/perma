@@ -83,11 +83,11 @@
 
 								{% if asset.image_capture and asset.image_capture != 'failed' %}
 								<li>
-								{% if asset.image_capture == 'pending' %}	
+								{% if asset.image_capture == 'pending' %}
 									<span id="image_cap_container_loading" class="tab-styling">Screen capture</span>
 									<a id="image_cap_container_complete" class="tab-styling{% if serve_type == 'image' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=image" style="display:none;">Screen capture</a>
 								{% else %}
-									<span id="image_cap_container_loading" class="tab-styling" style="display:none;">Screen capture</span> 
+									<span id="image_cap_container_loading" class="tab-styling" style="display:none;">Screen capture</span>
 									<a id="image_cap_container_complete" class="tab-styling{% if serve_type == 'image' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=image">Screen capture</a>
 								{% endif %}
 								</li>
@@ -158,7 +158,7 @@
 				</iframe>
 				{% else %}
 				<div class="translucent-background no-live-preview"><h2>Live site view unavailable. Sorry.</h2>
-					<p>You can access the archives of using the tabs above or open <a href="{{linky.submitted_url}}" target="_blank">{{linky.submitted_url}}</a> in a new browser window.</p>
+					<p>You can access the archives by using the tabs above or open <a href="{{linky.submitted_url}}" target="_blank">{{linky.submitted_url}}</a> in a new browser window.</p>
 				</div>
 				{% endif %}
 			{% endif %}
@@ -214,6 +214,4 @@
 
 {% block scripts %}
     <script src="{{ STATIC_URL }}js/single-link.js"></script>
-
-
 {% endblock %}

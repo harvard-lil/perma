@@ -142,7 +142,7 @@ Once you've installed RabbitMQ, start it:
 
 You'll need to start Celery. If you're working a development env, do something like:
 
-    $ python manage.py celery worker --loglevel=info
+    $ celery -A perma worker --loglevel=info
 
 If you're setting up a production machine, be sure to [start Celery as a daemon](http://docs.celeryproject.org/en/latest/tutorials/daemonizing.html#daemonizing).
 

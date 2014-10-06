@@ -42,7 +42,7 @@ from perma.forms import (
     SetPasswordForm, 
 )
 from perma.models import Registrar, Link, LinkUser, VestingOrg, Folder
-from perma.utils import require_group
+from perma.utils import require_group, get_search_query
 
 logger = logging.getLogger(__name__)
 valid_member_sorts = ['-email', 'email', 'last_name', '-last_name', 'admin', '-admin', 'registrar__name', '-registrar__name', 'vesting_org__name', '-vesting_org__name']
@@ -78,13 +78,9 @@ def manage_registrar(request):
     registrars = Registrar.objects.all().order_by(sort)
 
     # handle search
-    search_query = request.GET.get('q', None)
+    search_query = request.GET.get('q', '')
     if search_query:
-        registrars = registrars.filter(
-            Q(name__icontains=search_query),
-            Q(email__icontains=search_query),
-            Q(website__icontains=search_query),
-        )
+        registrars = get_search_query(registrars, search_query, ['name', 'email', 'website'])
 
     paginator = Paginator(registrars, settings.MAX_USER_LIST_SIZE)
     registrars = paginator.page(page)
@@ -167,11 +163,9 @@ def manage_vesting_org(request):
       vesting_orgs = VestingOrg.objects.filter(registrar_id=request.user.registrar_id).order_by(sort)
 
     # handle search
-    search_query = request.GET.get('q', None)
+    search_query = request.GET.get('q', '')
     if search_query:
-        vesting_orgs = vesting_orgs.filter(
-            Q(name__icontains=search_query)
-        )
+        vesting_orgs = get_search_query(vesting_orgs, search_query, ['name', 'registrar__name'])
 
     paginator = Paginator(vesting_orgs, settings.MAX_USER_LIST_SIZE)
     vesting_orgs = paginator.page(page)
@@ -215,13 +209,19 @@ def manage_single_vesting_org(request, vesting_org_id):
         in this view, we allow for edit/delete """
 
     target_vesting_org = get_object_or_404(VestingOrg, id=vesting_org_id)
+    is_registry = False
+    if request.user.groups.all()[0].name == 'registry_user':
+        is_registry = True
 
     context = {'target_vesting_org': target_vesting_org,
         'this_page': 'users_vesting_orgs'}
 
     if request.method == 'POST':
 
-        form = VestingOrgForm(request.POST, prefix = "a", instance=target_vesting_org)
+        if is_registry:
+          form = VestingOrgWithRegistrarForm(request.POST, prefix = "a", instance=target_vesting_org)
+        else:
+          form = VestingOrgForm(request.POST, prefix = "a", instance=target_vesting_org)
 
         if form.is_valid():
             new_user = form.save()
@@ -231,7 +231,10 @@ def manage_single_vesting_org(request, vesting_org_id):
         else:
             context.update({'form': form,})
     else:
-        form = VestingOrgForm(prefix = "a", instance=target_vesting_org)
+        if is_registry:
+            form = VestingOrgWithRegistrarForm(prefix = "a", instance=target_vesting_org)
+        else:
+            form = VestingOrgForm(prefix = "a", instance=target_vesting_org)
         context.update({'form': form,})
     
     context = RequestContext(request, context)
@@ -333,13 +336,9 @@ def list_users_in_group(request, group_name):
         users = LinkUser.objects.filter(groups__name=group_name, vesting_org=request.user.vesting_org).exclude(id=request.user.id).order_by(*sorts())
 
     # handle search
-    search_query = request.GET.get('q', None)
+    search_query = request.GET.get('q', '')
     if search_query:
-        users = users.filter(
-            Q(email__icontains=search_query) |
-            Q(first_name__icontains=search_query) |
-            Q(last_name__icontains=search_query)
-        )
+        users = get_search_query(users, search_query, ['email', 'first_name', 'last_name', 'vesting_org__name'])
 
     paginator = Paginator(users, settings.MAX_USER_LIST_SIZE)
     users = paginator.page(page)
@@ -383,7 +382,6 @@ def list_users_in_group(request, group_name):
             if group_name == 'vesting_user':
                 new_user.authorized_by = request.user
 
-            if group_name == 'vesting_user':
                 if is_registry or is_registrar:
                     vesting_org = new_user.vesting_org
                     new_user.registrar = vesting_org.registrar
@@ -513,11 +511,11 @@ def vesting_user_add_user(request):
     
             if request.user.has_group('registrar_user'):
                 vesting_org = form.cleaned_data['vesting_org']
-                target_user.vesting_org_id = vesting_org
-                target_user.registrar_id = vesting_org.registrar.id
+                target_user.vesting_org = vesting_org
+                target_user.registrar = vesting_org.registrar
             else:
-                target_user.vesting_org_id = request.user.vesting_org_id
-                target_user.registrar_id = request.user.registrar_id
+                target_user.vesting_org = request.user.vesting_org
+                target_user.registrar = request.user.registrar
     
             group = Group.objects.get(name='vesting_user')
             all_groups = Group.objects.all()
