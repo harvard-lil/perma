@@ -10,11 +10,9 @@ $(function() {
                           data: data,
                           success: callback,
                           traditional: true // use Django-style array serialization
-                      }).fail(
-                failureCallback || function (jqXHR) {
-                informUser(jqXHR.status == 400 && jqXHR.responseText ? jqXHR.responseText : "Error " + jqXHR.status, 'danger');
-            }
-        );
+        }).fail(failureCallback || function (jqXHR) {
+            informUser(jqXHR.status == 400 && jqXHR.responseText ? jqXHR.responseText : "Error " + jqXHR.status, 'danger');
+        });
     }
 
     function getLinkIDForFormElement(element){
@@ -34,7 +32,7 @@ $(function() {
             if (saveNeeded) {
                 saveNeeded = false;
                 lastSaveTime = new Date().getTime();
-                request = postJSON('#',
+                request = postJSON(document.location,
                                    {
                                        action: 'save_link_attribute',
                                        link_id: getLinkIDForFormElement(inputElement),
@@ -64,8 +62,10 @@ $(function() {
             // based on the current folderTree structure
 
             // first clear the select ...
-            var moveSelect = details.find('.move-to-folder');
+            var currentFolderID = getSelectedFolderID(),
+                moveSelect = details.find('.move-to-folder');
             moveSelect.find('option').remove();
+
 
             // recursively populate select ...
             function addChildren(node, depth){
@@ -75,10 +75,15 @@ $(function() {
                     // For each node, we create an <option> using text() for the folder name,
                     // and then prepend some &nbsp; to show the tree structure using html().
                     // Using html for the whole thing would be an XSS risk.
-                    moveSelect.append($("<option/>", {
-                        value: childNode.data.folder_id,
-                        text: childNode.text.trim()
-                    }).prepend(new Array(depth).join('&nbsp;&nbsp;')+'- '));
+                    moveSelect.append(
+                        $("<option/>", {
+                            value: childNode.data.folder_id,
+                            text: childNode.text.trim(),
+                            selected: childNode.data.folder_id == currentFolderID
+                        }).prepend(
+                            new Array(depth).join('&nbsp;&nbsp;')+'- '
+                        )
+                    );
 
                     // recurse
                     if(childNode.children && childNode.children.length)
@@ -108,7 +113,7 @@ $(function() {
     }).on('change', '.move-to-folder', function () {
         moveSelect = $(this);
         moveItems(
-            moveSelect.find("option:selected").val(), // selected folder_id to move link to
+            moveSelect.val(), // selected folder_id to move link to
             [getLinkIDForFormElement(moveSelect)], // link id to move
             []
         ).done(function () {

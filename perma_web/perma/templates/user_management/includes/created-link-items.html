@@ -1,18 +1,24 @@
-{% load local_datetime %}
+{% load local_datetime has_group %}
 
 {% if search_query %}
     <div class="row shared-folder-label alert-success">
-        Search results {% if not current_folder.is_root_folder %}in {{ current_folder }} folder{% endif %} for "{{ search_query }}".
+        Search results for "{{ search_query }}".
         <a href="#" class="clear-search">Clear search.</a>
     </div>
-{% elif current_folder.vesting_org %}
-    <div class="row shared-folder-label alert-info">
-        {% if shared_with_count %}
-            This folder is shared with {{ shared_with_count }} other member{{ shared_with_count|pluralize }} of {{ current_folder.vesting_org }}.
-        {% else %}
-            This folder will be shared with members of {{ current_folder.vesting_org }}.
-        {% endif %}
-    </div>
+{% else %}
+    {% if current_folder.vesting_org %}
+        <div class="row shared-folder-label alert-info">
+            {% if shared_with_count %}
+                This folder is shared with {{ shared_with_count }} other member{{ shared_with_count|pluralize }} of {{ current_folder.vesting_org }}.
+            {% else %}
+                This folder will be shared with members of {{ current_folder.vesting_org }}.
+            {% endif %}
+        </div>
+    {% elif request.user|has_group:'registry_user,registrar_user,vesting_user' %}
+        <div class="row shared-folder-label alert-info" style="background-color: #F5F5F5">
+            This folder is not shared.
+        </div>
+    {% endif %}
 {% endif %}
 
 {% for link in links %}
@@ -23,11 +29,11 @@
                 <a href="http://{{request.mirror_server_host}}/{{link.guid}}" target="_blank">http://{{request.mirror_server_host}}/{{link.guid}}</a><br/>
                 <a href="{{ link.submitted_url }}" target="_blank" class="original-link">{{ link.submitted_url|truncatechars:200 }}</a><br/>
                 {% if link.vested %}
-                    <span class="original-link">Vested on {{ link.vested_timestamp|local_datetime:"M. j, Y" }}</span>
+                    <span class="vested-date">Vested on {{ link.vested_timestamp|local_datetime:"M. j, Y" }}</span>
                 {% else %}
                     <span class="alert-danger">
                         Expires on {{ link.get_expiration_date|local_datetime:"M. j, Y" }} unless
-                        <a href="{% url 'docs_perma_link_vesting' %}">vested</a>
+                        <a href="{% if request.user|has_group:'registry_user,registrar_user,vesting_user' %}http://{{request.mirror_server_host}}/{{link.guid}}{% else %}{% url 'docs_perma_link_vesting' %}{% endif %}">vested</a>
                     </span>
                 {% endif %}
             </div>
@@ -59,7 +65,6 @@
                     <label for="move-to-folder-{{ link.pk }}">Move to folder:</label>
                     <select id="move-to-folder-{{ link.pk }}" class="move-to-folder form-control"></select>
                 </div>
-                <span class="muted">Links can also be moved by dragging.</span>
 
             </div>
             <div class="col-sm-6">
@@ -67,7 +72,6 @@
                 <div><strong>Created by:</strong> {{ link.created_by.get_full_name }}</div>
                 {% if link.vested %}
                     <div><strong>Vested by:</strong> {{ link.vested_by_editor.get_full_name }}</div>
-                    <div><strong>Vested on:</strong> {{ link.vested_timestamp|local_datetime:"M. j, Y" }}</div>
                 {% endif %}
             </div>
         </div>

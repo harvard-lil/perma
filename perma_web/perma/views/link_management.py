@@ -211,7 +211,7 @@ def link_browser(request, path):
         out = {'success': 1}
         action = request.POST.get('action')
 
-        # save notes
+        # save notes/title
         if action == 'save_link_attribute':
             if request.POST.get('name') not in ['notes', 'submitted_title']:
                 return HttpResponseBadRequest("Attribute not recognized.")
@@ -370,7 +370,8 @@ def vest_link(request, guid):
                     vesting_org = vesting_orgs[0]
                 else:
                     return render(request, 'link-vest-confirm.html', {
-                        'vesting_orgs':vesting_orgs
+                        'vesting_orgs':vesting_orgs,
+                        'link': link,
                     })
 
         # make sure this link is either already in the vesting org's shared folder, or user has told us to save to one
