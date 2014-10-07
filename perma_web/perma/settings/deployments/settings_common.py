@@ -101,6 +101,7 @@ PIPELINE_JS = {
             'js/jquery.dotdotdot-1.5.9.min.js',
             'js/jquery.django-csrf.js',
             'js/lib/jstree.min.js',
+            'js/lib/jquery.splendid.textchange.js',
             'js/links-list.js',
         ),
         'output_filename': 'js/links-list-bundle.js',

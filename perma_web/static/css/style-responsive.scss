@@ -1606,6 +1606,10 @@ td {
             background-color: desaturate(lighten($perma-blue, 45%), 40%);
         }
     }
+
+    li{
+        margin-left: 1em;
+    }
 }
 
 .links-box {

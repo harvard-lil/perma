@@ -342,7 +342,8 @@ def folder_contents(request, folder_id):
         'links': links,
         'current_folder': current_folder,
         'search_query': search_query,
-        'shared_with_count': shared_with_count
+        'shared_with_count': shared_with_count,
+        'in_iframe': request.GET.get('iframe'),
     })
 
 ###### link editing ######
