@@ -38,14 +38,14 @@
                 <ul>
                     {% for tree in request.user.all_folder_trees %}
                         {% recursetree tree %}
-                            <li data-folder_id="{{ node.pk }}" data-jstree='{ {% if node.is_root_folder %}"selected":true{% elif node.is_shared_folder %}"type":"shared_folder"{% endif %} }'>{{ node.name }}
+                            <li data-folder_id="{{ node.pk }}" data-jstree='{ {% if node.is_root_folder %}"selected":true{% elif node.is_shared_folder %}"type":"shared_folder"{% endif %} }'>
+                                <a href="{% url "folder_contents" folder_id=node.pk %}?iframe=1" target="folder-contents">{{ node.name }}</a>
                                 {% if not node.is_leaf_node %}
                                     <ul>
                                         {{ children }}
-                                    </ul></li>
-                                {% else %}
-                                    </li>
+                                    </ul>
                                 {% endif %}
+                            </li>
                         {% endrecursetree %}
                     {% endfor %}
                 </ul>
@@ -75,6 +75,9 @@
                 {% endcomment %}
             </div>
             <div class="container link-rows">
+                <noscript>
+                    <iframe src="{% url "folder_contents" folder_id=request.user.root_folder_id %}?iframe=1" name="folder-contents"></iframe>
+                </noscript>
             </div>
         </div>
     </div>
