@@ -56,7 +56,7 @@ def run(port="0.0.0.0:8000"):
     try:
         # use runserver_plus if installed
         import django_extensions
-        local("python manage.py runserver_plus %s" % port)
+        local("python manage.py runserver_plus %s --threaded" % port)
     except ImportError:
         local("python manage.py runserver %s" % port)
 
