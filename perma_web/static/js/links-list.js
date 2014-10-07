@@ -24,6 +24,9 @@ $(function() {
         lastSaveTime = 0,
         saveBufferSeconds = 3;
     function saveInput(inputElement, statusElement, name, callback) {
+        if(inputElement.val()==inputElement.attr('last_value_saved'))
+            return;
+
         statusElement.html('saving ...');
         saveNeeded = true;
 
@@ -32,15 +35,17 @@ $(function() {
             if (saveNeeded) {
                 saveNeeded = false;
                 lastSaveTime = new Date().getTime();
+                var saveValue = inputElement.val();
                 request = postJSON(document.location,
                                    {
                                        action: 'save_link_attribute',
                                        link_id: getLinkIDForFormElement(inputElement),
                                        name: name,
-                                       value: inputElement.val()
+                                       value: saveValue
                                    },
                                    function (data) {
-                                       statusElement.html('saved.')
+                                       statusElement.html('saved.');
+                                       inputElement.attr('last_value_saved', saveValue);
                                    }
                 );
                 if (callback)
@@ -97,12 +102,12 @@ $(function() {
         }
 
     // save changes to notes field
-    }).on('input propertychange', '.link-notes', function () {
+    }).on('input propertychange change', '.link-notes', function () {
         var textarea = $(this);
         saveInput(textarea, textarea.prevAll('.notes-save-status'), 'notes');
 
     // save changes to title field
-    }).on('input propertychange', '.link-title', function () {
+    }).on('textchange', '.link-title', function () {
         var textarea = $(this);
         saveInput(textarea, textarea.prevAll('.title-save-status'), 'submitted_title', function () {
             // update display title when saved
@@ -304,7 +309,7 @@ $(function() {
                 }
             },
             types: {
-                default: {
+                "default": { // requires quotes because reserved word in IE8
                     icon: "icon-folder-close-alt"
                 },
                 shared_folder: {
