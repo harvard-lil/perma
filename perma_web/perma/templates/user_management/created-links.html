@@ -1,29 +1,24 @@
 {% extends "admin-layout.html" %}
 {% load mptt_tags repeat local_datetime compressed has_group %}
 
-{% block title %} | {{ verb|capfirst }} Perma links{% endblock %}
+{% block title %} | Perma links{% endblock %}
 
 {% block scripts %}
     {{ block.super }}
+    <script>
+        folderContentsURL = '{% url "folder_contents" folder_id='FOLDER_ID' %}';
+    </script>
     {% compressed_js 'links_list' %}
+{% endblock %}
+
+{% block styles %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/jstree-theme/style.min.css" />
 {% endblock %}
 
 {% block content %}
 
-	<h3>Perma links {{ verb }} by you</h3>
-
-    {% if path == "/" %}
-        <p>
-            {% if linky_links %}
-                    You've {{ verb }} {{ link_count }} link{{ link_count|pluralize }}.
-                    {% if verb == 'created' %}
-                        Vested links are marked with <span class="fancy-infinity">&infin;</span>.
-                    {% endif %}
-            {% else %}
-                You haven't saved any links yet.
-            {% endif %}
-        </p>
-    {% endif %}
+	<h3>Your Perma Links</h3>
 
     {% if messages %}
         {% for message in messages %}
@@ -31,223 +26,56 @@
         {% endfor %}
     {% endif %}
 
-    {% include "user_management/includes/search_form.html" %}
-
-    <form method="POST">
-        {% csrf_token %}
-
-        {### create new folder ###}
-        <div id="new_folder_container">
-            <button type="button" id="new_folder_show" class="btn btn-default"><span class="icon-folder-close-alt" style="font-size: large;"></span> New Folder</button>
-            {% if all_folders %}
-                <div class="btn-group">
-                    <button class="btn dropdown-toggle" data-toggle="dropdown">
-                        Move selected items
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><button type="submit" name="move_selected_items_to" value="ROOT">home</button></li>
-                        {% recursetree all_folders %}
-
-                            <li><button type="submit" name="move_selected_items_to" value="{{ node.pk }}">&#9495; {{ node.name }}</button></li>
-                            {% if not node.is_leaf_node %}
-                                <ul>
-                                {{ children }}
-                                </ul>
-                            {% endif %}
+    <div class="row panel panel-default">
+        <div class="col-sm-3 folders-box">
+            <div class="panel-heading">
+                Folders
+                <a href="#" class="pull-right delete-folder icon-trash" title="Delete Selected Folder"></a>
+                <a href="#" class="pull-right edit-folder icon-edit" title="Rename Selected Folder"></a>
+                <a href="#" class="pull-right new-folder icon-plus" title="New Folder"></a>
+            </div>
+            <div id="folder-tree">
+                <ul>
+                    {% for tree in request.user.all_folder_trees %}
+                        {% recursetree tree %}
+                            <li data-folder_id="{{ node.pk }}" data-jstree='{ {% if node.is_root_folder %}"selected":true{% elif node.is_shared_folder %}"type":"shared_folder"{% endif %} }'>{{ node.name }}
+                                {% if not node.is_leaf_node %}
+                                    <ul>
+                                        {{ children }}
+                                    </ul></li>
+                                {% else %}
+                                    </li>
+                                {% endif %}
                         {% endrecursetree %}
-                    </ul>
-                </div>
-            {% endif %}
-        </div>
-        <div id="new_folder_name_container" style="display:none">
-            <input type="text" name="new_folder_name" id="new_folder_name" placeholder="New folder name" style="margin-bottom: 0;"/>
-            <input type="submit" name="new_folder_submit" id="new_folder_submit" value="Create" class="btn btn-default" disabled/>
-            <input type="button" id="new_folder_cancel" value="Cancel" class="btn btn-default"/>
-        </div>
-
-
-        {### folder path breadcrumbs ###}
-        {% comment %}
-        {% if current_folder %}
-            <div class="folder-breadcrumbs">
-                <b>Current folder:</b>
-                <a href="{{ base_url }}">home</a> &gt;
-                {% if folder_breadcrumbs %}
-                    {% for folder, breadcrumb_path in folder_breadcrumbs %}
-                        <a href="{{ base_url }}/{{ breadcrumb_path }}">{{ folder.name }}</a> &gt;
                     {% endfor %}
-                {% endif %}
-                {{ current_folder.name }}
+                </ul>
             </div>
-        {% endif %}
-        {% endcomment %}
 
-        {# TEMP #}
-        {% if show_shared_folder_warning %}
-            <div class="alert alert-info">
-                <b>Important:</b> On October 8, everything {% if current_folder %}in this folder{% else %}here, except the My Links folder,{% endif %}
-                will be shared with {% if request.user.vesting_org %}your vesting organization ({{ request.user.get_default_vesting_org }}){% else %}your default vesting organization ({{ request.user.get_default_vesting_org }}){% endif %}.
-                If you don't want links to be shared, please move them into the <a href="{{ base_url }}/my-links">My Links</a> folder.
+        </div>
+        <div class="col-sm-9 links-box">
+            <div class="panel-heading">
+                {% include "user_management/includes/search_form.html" with search_placeholder="Search Links" %}
             </div>
-        {% elif request.user|has_group:'registry_user,registrar_user,vesting_user' %}
-            <div class="alert alert-success">
-                Links in this folder will remain private after October 8.
-            </div>
-        {% endif %}
-
-
-        {% if search_query %}
-            <p>
-                <em>
-                    Search results {% if current_folder %}in {{ current_folder }} folder{% endif %} for "{{ search_query }}".
-                    <a href="?q=">Clear search.</a>
-                </em>
-            </p>
-        {% endif %}
-
-        {% if path != "/" or subfolders %}
-            <table class="vested-table">
-                <thead>
-                    <tr>
-                        <th colspan="3">Folders</th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if path != "/" %}
-                        <tr class="folder-row" folder_id="{{ current_folder.parent_id|default:"ROOT" }}">
-                            <td>
-                            </td>
-                            <td>
-                                <span class="icon-folder-close-alt" style="font-size: large;"></span>
-                            </td>
-                            <td class="folder-name">
-                                [ <a href="{{ base_url }}{{ path }}..">Parent folder: {{ current_folder.parent|default:"Home" }}</a> ]
-                            </td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                    {% endif %}
-                    <tr>
-                        <td>
-                        </td>
-                        <td>
-                            <span class="icon-folder-close-alt" style="font-size: large;"></span>
-                        </td>
-                        <td class="folder-name">
-                            [ <b>Current folder: {{ current_folder|default:"Home" }}</b> ]
-                        </td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    {% for folder in subfolders %}
-                        <tr class="folder-row" folder_id="{{ folder.pk }}">
-                            <td>
-                                {% if folder.name != "My Links" %} {# TEMP #}
-                                    <input type="checkbox" name="folders" value="{{ folder.pk }}" class="checkbox" id="checkbox-{{ folder.pk }}"/>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <span class="icon-folder-close-alt" style="font-size: large;"></span>
-                            </td>
-                            <td class="folder-name">
-                                <a href="{{ base_url }}{{ path }}{{ folder.slug }}">- {{ folder.name }}</a>
-                            </td>
-                            <td>
-                                {% if folder.name != "My Links" %} {# TEMP #}
-                                    <a href="#" class="rename">rename</a>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if folder.name != "My Links" %} {# TEMP #}
-                                    <a href="#" class="delete">delete</a>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% endif %}
-
-
-        <table class="vested-table">
-            <thead>
-                <tr>
-                    <th colspan="3">Links</th>
-                    <th class="linky-abbr-title"><a href="?sort={% if sort == 'submitted_title' %}-{% endif %}submitted_title{% if search_query %}&q={{ search_query }}{% endif %}">Title</a></th>
-                    <th class="linky-abbr-date-time"><a href="?sort={% if sort == 'creation_timestamp' %}-{% endif %}creation_timestamp{% if search_query %}&q={{ search_query }}{% endif %}">Created</a></th>
-                    <th class="linky-abbr-date-time"><a href="?sort={% if sort == 'vested_timestamp' %}-{% endif %}vested_timestamp{% if search_query %}&q={{ search_query }}{% endif %}">Vested</a></th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for link in linky_links %}
-                    <tr class="link-row" link_id="{{ link.pk }}">
-                        <td>{% if all_folders %}
-                            <input type="checkbox" name="links" value="{{ link.pk }}" class="checkbox" id="checkbox-{{ link.pk }}"/>
-                        {% endif %}</td>
-                        <td class="linky-abbr-vested">{% if link.vested and verb == 'created' %}<span class="fancy-infinity">&infin;</span>{% endif %}</td>
-                        <td class="linky-link">
-                            <a class="orange" href="http://{{request.mirror_server_host}}/{{link.guid}}" target="_blank">http://{{request.mirror_server_host}}/{{link.guid}}</a><br/>
-                            <a href="{{ link.submitted_url }}" target="_blank" class="original-link">{{ link.submitted_url|truncatechars:200 }}</a>
-                        </td>
-                        <td class="linky-abbr-title">
-								<input type="text" name="input" value="{{ link.submitted_title }}"><br/>
-                                <span class="muted title-save-status"></span><br/>
-                        </td>
-                        
-                        <td class="linky-abbr-date-time">{{ link.creation_timestamp|local_datetime:"MMM DD, YYYY" }}</td>
-                        <td class="linky-abbr-date-time">{{ link.vested_timestamp|local_datetime:"MMM DD, YYYY" }}</td>
-                        <td class="linky-details-link"><a href="#" class="details">details</a></td>
-                    </tr>
-                    <tr class="link-details" {% if search_query and search_query in link.notes %}style="display:table-row"{% endif %}>
-                        <td colspan="2"></td>
-                        <td colspan="5">
-                            <div class="pull-right"><strong>Views:</strong> {{ link.view_count }}</div>
-                            <div>
-                                <strong>Notes:</strong> <span class="muted notes-save-status"></span><br/>
-                                <textarea>{{ link.notes }}</textarea><br/>
-                                <span class="muted">Notes are visible to users who create or vest a link, but not to visitors.</span>
-                            </div>
-                        </td>
-                    </tr>
-                {% empty %}
-                    <tr><td></td><td colspan="4">No Perma links found.</td></tr>
-                {% endfor %}
-            </tbody>
-	    </table>
-
-        {% comment %}
-            {% if linky_links.paginator.num_pages > 1 %}
-                <div class="pagination">
-                    <ul class="pagination">
-                        {% if linky_links.has_previous %}<li><a href="?page={{ linky_links.previous_page_number }}&sort={{ sort }}">&lt;</a></li>{% endif %}
-                        {% for i in linky_links.paginator.page_range %}
-                        {% ifequal i linky_links.number %}
-                        <li class="active"><a href="">{{ i }}</a></li>
-                        {% else %}
-                        <li><a href="?page={{ i }}">{{ i }}</a></li>
-                        {% endifequal %}
-                        {% endfor %}
-                        {% if linky_links.has_next  %}<li><a href="?page={{ linky_links.next_page_number }}&sort={{ sort }}">&gt;</a></li>{% endif %}
-                    </ul>
+            <div class="container link-headers">
+                <div class="row">
+                    <div class="col-sm-6">
+                        Link
+                    </div>
+                    <div class="col-sm-4">
+                        Title
+                    </div>
+                    <div class="col-sm-2">
+                        Created
+                    </div>
                 </div>
-            {% endif %}
-        {% endcomment %}
-    </form>
-
-
-
-    {# used by javascript #}
-    <div id="form_templates" style="display:none">
-        <div class="rename-folder-form">
-            <input type="text" name="folder_name"/>
-            <input type="button" name="rename_folder_save" value="save" class="btn btn-mini"/>
-            <input type="button" name="rename_folder_cancel" value="cancel" class="btn btn-mini"/>
+                {% comment %}
+                <th class="linky-abbr-title"><a href="?sort={% if sort == 'submitted_title' %}-{% endif %}submitted_title{% if search_query %}&q={{ search_query }}{% endif %}">Title</a></th>
+                <th class="linky-abbr-date-time"><a href="?sort={% if sort == 'creation_timestamp' %}-{% endif %}creation_timestamp{% if search_query %}&q={{ search_query }}{% endif %}">Created</a></th>
+                <th class="linky-abbr-date-time"><a href="?sort={% if sort == 'vested_timestamp' %}-{% endif %}vested_timestamp{% if search_query %}&q={{ search_query }}{% endif %}">Vested</a></th>
+                {% endcomment %}
+            </div>
+            <div class="container link-rows">
+            </div>
         </div>
     </div>
 

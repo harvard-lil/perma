@@ -1,0 +1,85 @@
+{% load local_datetime has_group %}
+
+{% if search_query %}
+    <div class="row shared-folder-label alert-success">
+        Search results for "{{ search_query }}".
+        <a href="#" class="clear-search">Clear search.</a>
+    </div>
+{% else %}
+    {% if current_folder.vesting_org %}
+        <div class="row shared-folder-label alert-info">
+            {% if shared_with_count %}
+                This folder is shared with {{ shared_with_count }} other member{{ shared_with_count|pluralize }} of {{ current_folder.vesting_org }}.
+            {% else %}
+                This folder will be shared with members of {{ current_folder.vesting_org }}.
+            {% endif %}
+        </div>
+    {% elif request.user|has_group:'registry_user,registrar_user,vesting_user' %}
+        <div class="row shared-folder-label alert-info" style="background-color: #F5F5F5">
+            This folder is not shared.
+        </div>
+    {% endif %}
+{% endif %}
+
+{% for link in links %}
+    <div class="link-container">
+
+        <div class="row link-row" link_id="{{ link.pk }}">
+            <div class="col-sm-6">
+                <a href="http://{{request.mirror_server_host}}/{{link.guid}}" target="_blank">http://{{request.mirror_server_host}}/{{link.guid}}</a><br/>
+                <a href="{{ link.submitted_url }}" target="_blank" class="original-link">{{ link.submitted_url|truncatechars:200 }}</a><br/>
+                {% if link.vested %}
+                    <span class="vested-date">Vested on {{ link.vested_timestamp|local_datetime:"M. j, Y" }}</span>
+                {% else %}
+                    <span class="alert-danger">
+                        Expires on {{ link.get_expiration_date|local_datetime:"M. j, Y" }} unless
+                        <a href="{% if request.user|has_group:'registry_user,registrar_user,vesting_user' %}http://{{request.mirror_server_host}}/{{link.guid}}{% else %}{% url 'docs_perma_link_vesting' %}{% endif %}">vested</a>
+                    </span>
+                {% endif %}
+            </div>
+            <div class="col-sm-4">
+                <span class="link-title-display">{{ link.submitted_title }}</span>
+            </div>
+            <div class="col-sm-2">
+                {{ link.creation_timestamp|local_datetime:"M. j, Y" }}
+            </div>
+        </div>
+
+        <div class="row link-details" {% if search_query in link.notes %}style="display:block"{% endif %}>
+            <div class="col-sm-6">
+
+                <div class="form-group">
+                    <label for="link-title-{{ link.pk }}">Display title:</label>
+                    <span class="muted title-save-status"></span>
+                    <input type="text" class="form-control link-title" name="input" id="link-title-{{ link.pk }}" value="{{ link.submitted_title }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="link-notes-{{ link.pk }}">Notes:</label>
+                    <span class="muted notes-save-status"></span>
+                    <textarea id="link-notes-{{ link.pk }}" class="form-control link-notes">{{ link.notes }}</textarea>
+                </div>
+                <span class="muted">Notes are visible to users who create or vest a link, but not to visitors.</span>
+
+                <div class="form-group">
+                    <label for="move-to-folder-{{ link.pk }}">Move to folder:</label>
+                    <select id="move-to-folder-{{ link.pk }}" class="move-to-folder form-control"></select>
+                </div>
+
+            </div>
+            <div class="col-sm-6">
+                <div><strong>Views:</strong> {{ link.view_count }}</div>
+                <div><strong>Created by:</strong> {{ link.created_by.get_full_name }}</div>
+                {% if link.vested %}
+                    <div><strong>Vested by:</strong> {{ link.vested_by_editor.get_full_name }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <a href="#" class="link-expand">More</a>
+    </div>
+{% empty %}
+    <div class="link-container" style="padding-left: 1.5em">
+        <em>{% if search_query %}No results.{% else %}Empty folder.{% endif %}</em>
+    </div>
+{% endfor %}

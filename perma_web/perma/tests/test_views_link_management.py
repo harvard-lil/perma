@@ -208,58 +208,59 @@ class TasksTestCase(PermaTestCase):
 
         # helpers
         def get_folder_by_slug(folder_slug):
-            return Folder.objects.get(created_by__email='test_vesting_member@example.com', slug=folder_slug)
+            return Folder.objects.get(owned_by__email='test_vesting_member@example.com', slug=folder_slug)
 
         # Create some folders.
-        self.submit_form('created_links', {'new_folder_submit': '1', 'new_folder_name': 'test'})
+        self.submit_form('link_browser', {'action': 'new_folder', 'new_folder_name': 'test'})
         folder1 = get_folder_by_slug('test')
-        self.submit_form('created_links', {'new_folder_submit': '1', 'new_folder_name': 'test2'})
+        self.submit_form('link_browser', {'action': 'new_folder', 'new_folder_name': 'test2'})
         folder2 = get_folder_by_slug('test2')
 
         # Move stuff to folder1.
-        self.submit_form('created_links',
+        self.submit_form('link_browser',
                          {'move_selected_items_to': folder1.pk, 'links': [test_link.pk], 'folders': [folder2.pk]})
 
         # List folder1
-        response = self.get('created_links', reverse_kwargs={'kwargs': {'path': '/' + folder1.slug}})
-        self.assertTrue(test_link in response.context['linky_links'])
-        self.assertTrue(folder2 in response.context['subfolders'])
+        response = self.get('link_browser', reverse_kwargs={'kwargs': {'path': '/' + folder1.slug}})
+        self.assertTrue(test_link in response.context['links'])
+        self.assertTrue(folder2 in set(response.context['current_folder'].get_children()))
         self.assertEqual(folder1, response.context['current_folder'])
+        root_folder = response.context['root_folder']
 
         # Search folder1 for link guid -- should work
         response = self.client.get(
-            reverse('created_links', kwargs={'path': '/' + folder1.slug}) + "?q=" + test_link.guid)
-        self.assertTrue(test_link in response.context['linky_links'])
+            reverse('link_browser', kwargs={'path': '/' + folder1.slug}) + "?q=" + test_link.guid)
+        self.assertTrue(test_link in response.context['links'])
 
         # Search folder1 for non-matching string
-        response = self.client.get(reverse('created_links', kwargs={'path': '/' + folder1.slug}) + "?q=does_not_exist")
-        self.assertTrue(len(response.context['linky_links']) == 0)
+        response = self.client.get(reverse('link_browser', kwargs={'path': '/' + folder1.slug}) + "?q=does_not_exist")
+        self.assertTrue(len(response.context['links']) == 0)
 
         # Try to delete folder1 -- shouldn't work because there's stuff in it
-        response = self.post_json('created_links', reverse_kwargs={'kwargs': {'path': '/' + folder1.slug}},
+        response = self.submit_form('link_browser', reverse_kwargs={'kwargs': {'path': '/' + folder1.slug}},
                                   data={'action': 'delete_folder'})
-        self.assertTrue('error' in response.content)
+        self.assertTrue(response.status_code == 400 and 'empty' in response.content)
 
         # Move stuff back out.
-        self.submit_form('created_links',
-                         {'move_selected_items_to': 'ROOT', 'links': [test_link.pk], 'folders': [folder2.pk]})
+        self.submit_form('link_browser',
+                         {'move_selected_items_to': root_folder.pk, 'links': [test_link.pk], 'folders': [folder2.pk]})
 
         # Now delete it.
-        response = self.post_json('created_links', reverse_kwargs={'kwargs': {'path': '/' + folder1.slug}},
+        response = self.submit_form('link_browser', reverse_kwargs={'kwargs': {'path': '/' + folder1.slug}},
                                   data={'action': 'delete_folder'})
         self.assertFalse(Folder.objects.filter(pk=folder1.pk).exists())
 
         # Rename folder2
-        self.post_json('created_links', reverse_kwargs={'kwargs': {'path': '/' + folder2.slug}},
+        self.submit_form('link_browser', reverse_kwargs={'kwargs': {'path': '/' + folder2.slug}},
                        data={'action': 'rename_folder', 'name': 'test'})
-        self.assertTrue(get_folder_by_slug('test2').name == 'test')
+        self.assertTrue(Folder.objects.get(pk=folder2.pk).name == 'test')
 
         # Edit link notes.
-        self.post_json('created_links', {'action': 'save_notes', 'link_id': test_link.pk, 'notes': 'test'})
+        self.submit_form('link_browser', {'action': 'save_notes', 'link_id': test_link.pk, 'notes': 'test'})
         self.assertTrue(Link.objects.get(pk=test_link.pk).notes == 'test')
 
         # Edit link title.
-        self.post_json('created_links', {'action': 'save_title', 'link_id': test_link.pk, 'title': 'test edit'})
+        self.submit_form('link_browser', {'action': 'save_title', 'link_id': test_link.pk, 'title': 'test edit'})
         self.assertTrue(Link.objects.get(pk=test_link.pk).submitted_title == 'test edit')
 
 

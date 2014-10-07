@@ -25,6 +25,7 @@ django-pipeline-compass==0.1.5  # lets us compile .scss to .css
 tempdir==0.6                # create temp dirs to be deleted at end of function -- handy for archive creation
 netaddr==0.7.12              # to check archive IPs against banned ranges
 internetarchive==0.7.0      # upload warcs to internet archive
+python-dateutil==2.2         # calculate link expiration date
 
 # deployment
 gunicorn==18.0

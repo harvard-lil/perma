@@ -1,19 +1,19 @@
 {% extends "admin-layout.html" %}
-{% load truncatesmart compressed has_group%}
+{% load truncatesmart compressed has_group %}
 {% block title %} | Create a Perma link{% endblock %}
 
-{% block manage-created-links %}<li class="active"><a href="{% url 'created_links' %}">Created links</a></li>{% endblock %}
-
 {% block content %}
-<div class="row">
-    <div class="col-sm-12 create-container">
-        <h3>Create a Perma archive</h3>
-        <form class="form-inline" id="linker">
-            <input id="rawUrl" class="text-input select-on-click" type="text" value="http://" data-placement="bottom" data-content="To save a link, enter its URL and click the <strong>Archive</strong> button. To see the links you've saved, click <strong>Library</strong> in the menu to the left." data-original-title="Start building your library" data-html="true" data-trigger="manual" />
-            <button class="btn btn-large btn-info" id="addlink" type="submit"><div class="infinity"><img class="button-img" src="{{ STATIC_URL }}img/infinity-white.png" alt="Loading..." /></div></button>
-        </form><!--/#linker-->
-    </div>
-</div>
+    <h3>Create a Perma archive</h3>
+    <form class="form-inline" id="linker">
+        <input id="rawUrl" class="text-input select-on-click" type="text" value="http://" data-placement="bottom" data-content="To save a link, enter its URL and click the <strong>Archive</strong> button. To see the links you've saved, click <strong>Library</strong> in the menu to the left." data-original-title="Start building your library" data-html="true" data-trigger="manual" />
+        <button class="btn btn-large btn-info" id="addlink" type="submit"><div class="infinity"><img class="button-img" src="{{ STATIC_URL }}img/infinity-white.png" alt="Loading..." /></div></button>
+        {% if all_folder_trees %}
+            <div class='folders'>
+                Folder:
+                {% include "includes/folder_select.html" with all_folder_trees=all_folder_trees %}
+            </div>
+        {% endif %}
+    </form><!--/#linker-->
 
 
 <div class="row preview-row hide">
@@ -181,7 +181,7 @@ function getParameterByName(name) {
     return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
-var user_email = '{{user.email}}';
+var user_email = '{{request.user.email}}';
 
 // Populate the URL field and submit the "create link" form
 $(document).ready(function() {

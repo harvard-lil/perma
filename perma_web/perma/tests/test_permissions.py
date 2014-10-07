@@ -68,7 +68,6 @@ class PermissionsTestCase(PermaTestCase):
             },
             {
                 'urls': [
-                    ['vested_links'],
                     ['vest_link', {'kwargs':{'guid':'1234'},'success_status':404}],
                 ],
                 'allowed': {'test_registry_member@example.com', 'test_registrar_member@example.com',
@@ -79,7 +78,7 @@ class PermissionsTestCase(PermaTestCase):
                     ['user_management_manage_account'],
                     ['create_link'],
                     ['upload_link', {'success_status':400}],
-                    ['created_links'],
+                    ['link_browser'],
                     ['user_delete_link', {'kwargs':{'guid':'1234'},'success_status':404}],
                 ],
                 'allowed': {'test_user@example.com'},

@@ -9,7 +9,10 @@ from django.contrib.auth.models import Group, BaseUserManager, AbstractBaseUser
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import models
+from django.db.models import Q
+from django.db.models.query import QuerySet
 from django.utils.text import slugify
+from mptt.exceptions import InvalidMove
 from mptt.models import MPTTModel, TreeForeignKey
 import tempdir
 
@@ -66,9 +69,24 @@ class VestingOrg(models.Model):
     """
     name = models.CharField(max_length=400)
     registrar = models.ForeignKey(Registrar, null=True, related_name="vesting_orgs")
+    shared_folder = models.OneToOneField('Folder', blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        """ Make sure shared folder is created for each vesting org. """
+        super(VestingOrg, self).save(*args, **kwargs)
+        if not self.shared_folder:
+            self.create_shared_folder()
 
     def __unicode__(self):
         return self.name
+
+    def create_shared_folder(self):
+        if self.shared_folder:
+            return
+        shared_folder = Folder(name=self.name, vesting_org=self, is_shared_folder=True)
+        shared_folder.save()
+        self.shared_folder = shared_folder
+        self.save()
 
 
 class LinkUserManager(BaseUserManager):
@@ -92,26 +110,10 @@ class LinkUserManager(BaseUserManager):
         )
 
         user.set_password(password)
-        user.save(using=self._db)
-        return user
+        user.save()
 
-    def create_superuser(self, email, registrar, password, groups, date_joined, first_name, last_name, authorized_by, confirmation_code):
-        """
-        Creates and saves a superuser with the given email, registrar and password.
-        """
-        user = self.create_user(email,
-            password=password,
-            registrar=registrar,
-            vesting_org=vesting_org,
-            groups=groups,
-            date_joined = date_joined,
-            first_name = first_name,
-            last_name = last_name,
-            authorized_by = authorized_by,
-            confirmation_code = confirmation_code
-        )
-        user.is_admin = True
-        user.save(using=self._db)
+        user.create_root_folder()
+
         return user
 
 
@@ -123,7 +125,7 @@ class LinkUser(AbstractBaseUser):
         db_index=True,
     )
     registrar = models.ForeignKey(Registrar, null=True)
-    vesting_org = models.ForeignKey(VestingOrg, null=True)
+    vesting_org = models.ForeignKey(VestingOrg, null=True, related_name='users')
     groups = models.ManyToManyField(Group, null=True)
     is_active = models.BooleanField(default=True)
     is_confirmed = models.BooleanField(default=False)
@@ -133,19 +135,27 @@ class LinkUser(AbstractBaseUser):
     last_name = models.CharField(max_length=45, blank=True)
     authorized_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='authorized_by_manager')
     confirmation_code = models.CharField(max_length=45, blank=True)
+    root_folder = models.OneToOneField('Folder', blank=True, null=True)
 
     objects = LinkUserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
+    def save(self, *args, **kwargs):
+        """ Make sure root folder is created for each user. """
+        super(LinkUser, self).save(*args, **kwargs)
+        if not self.root_folder:
+            self.create_root_folder()
+
     def get_full_name(self):
-        # The user is identified by their email address
-        return self.email
+        """ Use either First Last or first half of email address as user's name. """
+        return "%s %s" % (self.first_name, self.last_name) if self.first_name or self.last_name else \
+            self.email.split('@')[0]
 
     def get_short_name(self):
-        # The user is identified by their email address
-        return self.email
+        """ Use either First or Last or first half of email address as user's short name. """
+        return self.first_name or self.last_name or self.email.split('@')[0]
 
     # On Python 3: def __str__(self):
     def __unicode__(self):
@@ -177,10 +187,16 @@ class LinkUser(AbstractBaseUser):
         else:
             return self.groups.filter(name=group).exists()
 
-    # TEMP
-    def create_my_links_folder(self):
-        if not Folder.objects.filter(created_by=self, name=u"My Links", parent=None).exists():
-            Folder(created_by=self, name=u"My Links").save()
+    def all_folder_trees(self):
+        """
+            Get all folders for this user, including shared folders
+        """
+        if self.has_group('registrar_user'):
+            vesting_orgs = self.registrar.vesting_orgs.all()
+        else:
+            vesting_orgs = [self.get_default_vesting_org()]
+        return [self.root_folder.get_descendants(include_self=True)] + \
+            ([vesting_org.shared_folder.get_descendants(include_self=True) for vesting_org in vesting_orgs if vesting_org])
 
     def get_default_vesting_org(self):
         if self.vesting_org:
@@ -192,7 +208,54 @@ class LinkUser(AbstractBaseUser):
                 return VestingOrg.objects.get(pk=settings.FALLBACK_VESTING_ORG_ID)
             except VestingOrg.DoesNotExist:
                 raise Exception("Default vesting org not found -- check FALLBACK_VESTING_ORG_ID setting.")
-        return None  # if you're not in one of those groups you shouldn't ever need to call this function
+        return None
+
+    def create_root_folder(self):
+        if self.root_folder:
+            return
+        try:
+            # this branch only used during transition to root folders -- should be removed eventually
+            root_folder = Folder.objects.filter(created_by=self, name=u"My Links", parent=None)[0]
+            root_folder.is_root_folder = True
+        except IndexError:
+            root_folder = Folder(name=u'My Links', created_by=self, is_root_folder=True)
+        root_folder.save()
+        self.root_folder = root_folder
+        self.save()
+
+
+class FolderException(Exception):
+    pass
+
+
+class FolderQuerySet(QuerySet):
+    def accessible_to(self, user):
+        return self.filter(Folder.objects.user_access_filter(user))
+
+
+class FolderManager(models.Manager):
+    """
+        Folder manager that can enforce user access perms.
+    """
+    def get_queryset(self):
+        return FolderQuerySet(self.model, using=self._db)
+
+    def user_access_filter(self, user):
+        # personal folders
+        filter = Q(owned_by=user)
+
+        # vesting org folders
+        if user.has_group('registrar_user'):
+            filter |= Q(vesting_org__registrar=user.registrar)
+        else:
+            default_vesting_org = user.get_default_vesting_org()
+            if default_vesting_org:
+                filter |= Q(vesting_org=default_vesting_org)
+
+        return filter
+
+    def accessible_to(self, user):
+        return self.get_queryset().accessible_to(user)
 
 
 class Folder(MPTTModel):
@@ -202,18 +265,35 @@ class Folder(MPTTModel):
     creation_timestamp = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='folders_created',)
 
-    def save(self, *args, **kwargs):
-        """ Make sure slug is set. """
-        if self.name and not self.slug:
-            self.slug = slugify(self.name)
-            # append number if slug already exists
-            if Folder.objects.filter(created_by=self.created_by, slug=self.slug).exists():
-                i = 1
-                while Folder.objects.filter(created_by=self.created_by, slug=self.slug+"-%s" % i).exists():
-                    i += 1
-                self.slug += "-%s" % i
+    # this may be null if this is the shared folder for a vesting org
+    owned_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='folders',)
 
-        return super(Folder, self).save(*args, **kwargs)
+    # this will be set if this is inside a shared folder
+    vesting_org = models.ForeignKey(VestingOrg, null=True, blank=True, related_name='folders')
+
+    # true if this is the apex shared folder (not subfolder) for a vesting org
+    is_shared_folder = models.BooleanField(default=False)
+
+    # true if this is the apex folder for a user
+    is_root_folder = models.BooleanField(default=False)
+
+    objects = FolderManager()
+
+    def __init__(self, *args, **kwargs):
+        super(Folder, self).__init__(*args, **kwargs)
+
+        # set defaults
+        if not self.pk:
+            # set ownership same as parent
+            if self.parent:
+                if self.parent.vesting_org:
+                    self.vesting_org = self.parent.vesting_org
+                else:
+                    self.owned_by = self.parent.owned_by
+            if self.created_by and not self.owned_by and not self.vesting_org:
+                self.owned_by = self.created_by
+            if not self.slug:
+                self.set_slug()
 
     class MPTTMeta:
         order_insertion_by = ['name']
@@ -224,6 +304,106 @@ class Folder(MPTTModel):
     def __unicode__(self):
         return self.name
 
+    def contained_links(self):
+        return Link.objects.filter(folders__in=self.get_descendants(include_self=True))
+
+    def move_to_folder(self, destination_folder):
+        if self.is_shared_folder:
+            raise FolderException("Can't move vesting organization's shared folder.")
+
+        if self.is_root_folder:
+            raise FolderException("Can't move main folder.")
+
+        if self.vesting_org and self.vesting_org != destination_folder.vesting_org and self.contained_links().filter(vested=True).exists():
+            raise FolderException("Can't move folder with vested links out of organization's shared folder.")
+
+        self.parent = destination_folder
+        self.set_slug()
+        try:
+            self.save()
+        except InvalidMove:
+            raise FolderException("Can't move a folder inside itself.")
+
+        # make sure that child folders share vesting_org and owned_by with new parent folder
+        # (one or the other should be set, but not both)
+        if destination_folder.vesting_org:
+            if self.vesting_org != destination_folder.vesting_org:
+                self.get_descendants(include_self=True).update(vesting_org=destination_folder.vesting_org, owned_by=None)
+        else:
+            if self.owned_by != destination_folder.owned_by:
+                self.get_descendants(include_self=True).update(owned_by=destination_folder.owned_by, vesting_org=None)
+
+    def set_slug(self):
+        """ Find a slug that doesn't collide with another folder in parent folder. """
+        self.slug = slugify(self.name)
+
+        # root folder can't conflict
+        if self.is_root_folder:
+            return
+
+        if self.is_shared_folder:
+            # don't let shared folders collide with any other shared folder
+            collision_query = Folder.objects.exclude(pk=self.pk).filter(is_shared_folder=True)
+        else:
+            # normal folders just can't collide with fellow children of parent
+            collision_query = self.parent.get_children().exclude(pk=self.pk)
+
+        i = 1
+        while collision_query.filter(slug=self.slug).exists():
+            self.slug = "%s-%s" % (slugify(self.name), i)
+            i += 1
+
+    def all_children(self):
+        """ Return queryset of child folders *including* shared folders if any. """
+        filter = Q(parent=self)
+        # we show shared folders if user belongs to a vesting org and is viewing their root folder
+        if self.is_root_folder and self.owned_by.vesting_org and settings.SHARED_FOLDERS_ENABLED:
+            filter |= Q(pk=self.owned_by.vesting_org.shared_folder_id)
+        return Folder.objects.filter(filter)
+
+    def display_level(self):
+        """
+            Get hierarchical level for this folder. If this is a shared folder, level should be one higher
+            because it is displayed below user's root folder.
+        """
+        return self.level + (1 if self.vesting_org_id else 0)
+
+
+class LinkQuerySet(QuerySet):
+    def accessible_to(self, user):
+        return self.filter(Link.objects.user_access_filter(user))
+
+
+class LinkManager(models.Manager):
+    """
+        Link manager that can enforce user access perms.
+    """
+    def get_queryset(self):
+        return LinkQuerySet(self.model, using=self._db)
+
+    def user_access_filter(self, user):
+        """
+            User can see/modify a link if they created it or it is in a vesting org folder they belong to, AND it is not deleted
+        """
+        # personal links
+        filter = Q(folders__owned_by=user)
+
+        # links in vesting org folders
+        if user.has_group('registrar_user'):
+            filter |= Q(folders__vesting_org__registrar=user.registrar)
+        else:
+            default_vesting_org = user.get_default_vesting_org()
+            if default_vesting_org:
+                filter |= Q(folders__vesting_org=default_vesting_org)
+
+        # make sure link not deleted
+        filter &= Q(user_deleted=False)
+
+        return filter
+
+    def accessible_to(self, user):
+        return self.get_queryset().accessible_to(user)
+
 class Link(models.Model):
     """
     This is the core of the Perma link.
@@ -233,17 +413,19 @@ class Link(models.Model):
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)
     creation_timestamp = models.DateTimeField(auto_now_add=True)
     submitted_title = models.CharField(max_length=2100, null=False, blank=False)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='created_by',)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='created_links',)
     dark_archived = models.BooleanField(default=False)
     dark_archived_robots_txt_blocked = models.BooleanField(default=False)
     user_deleted = models.BooleanField(default=False)
     user_deleted_timestamp = models.DateTimeField(null=True, blank=True)
     vested = models.BooleanField(default=False)
-    vested_by_editor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='vested_by_editor')
+    vested_by_editor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='vested_links')
     vested_timestamp = models.DateTimeField(null=True, blank=True)
     vesting_org = models.ForeignKey(VestingOrg, null=True)
     folders = models.ManyToManyField(Folder, related_name='links', blank=True, null=True)
     notes = models.TextField(blank=True)
+
+    objects = LinkManager()
 
     def save(self, *args, **kwargs):
         """
@@ -254,6 +436,8 @@ class Link(models.Model):
         One exception - we want to use up our [non-four alphabet chars-anything] ids first. So, avoid things like XFFC-9VS7
         
         """
+        initial_folder = kwargs.pop('initial_folder', None)
+
         if not self.pk and not kwargs.get("pregenerated_guid", False):
             # not self.pk => not created yet
             # only try 100 attempts at finding an unused GUID
@@ -273,7 +457,15 @@ class Link(models.Model):
             self.guid = Link.get_canonical_guid(guid)
         if "pregenerated_guid" in kwargs:
             del kwargs["pregenerated_guid"]
+
         super(Link, self).save(*args, **kwargs)
+
+        if not self.folders.count():
+            if not initial_folder:
+                if self.created_by and self.created_by.root_folder:
+                    initial_folder = self.created_by.root_folder
+            if initial_folder:
+                self.folders.add(initial_folder)
 
     def __unicode__(self):
         return self.submitted_url
@@ -304,7 +496,7 @@ class Link(models.Model):
             If folder is None, link is moved to root (no folder).
         """
         # remove this link from any folders it's in for this user
-        self.folders.remove(*self.folders.filter(created_by=user))
+        self.folders.remove(*self.folders.accessible_to(user))
         # add it back to the given folder
         if folder:
             self.folders.add(folder)
@@ -317,6 +509,10 @@ class Link(models.Model):
             raise Exception("Can only generate storage path after link is saved.")
         creation_date = self.creation_timestamp
         return "/".join(str(x) for x in [creation_date.year, creation_date.month, creation_date.day, creation_date.hour, creation_date.minute, self.guid])
+
+    def get_expiration_date(self):
+        """ Return date when this link will theoretically be deleted. """
+        return self.creation_timestamp + settings.LINK_EXPIRATION_TIME
 
 
 class Asset(models.Model):

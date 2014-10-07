@@ -100,6 +100,7 @@ PIPELINE_JS = {
             'js/jquery-ui-1.10.3.custom.min.js',
             'js/jquery.dotdotdot-1.5.9.min.js',
             'js/jquery.django-csrf.js',
+            'js/lib/jstree.min.js',
             'js/links-list.js',
         ),
         'output_filename': 'js/links-list-bundle.js',
@@ -363,4 +364,7 @@ INTERNET_ARCHIVE_ACCESS_KEY = ''
 INTERNET_ARCHIVE_SECRET_KEY = ''
 
 # default vesting org for links vested by registry users
-FALLBACK_VESTING_ORG_ID = 1
+FALLBACK_VESTING_ORG_ID = 15
+
+from dateutil.relativedelta import relativedelta
+LINK_EXPIRATION_TIME = relativedelta(years=2)
