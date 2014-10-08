@@ -1,19 +1,63 @@
 # -*- coding: utf-8 -*-
 import datetime
 from south.db import db
-from south.v2 import DataMigration
+from south.v2 import SchemaMigration
 from django.db import models
 
-class Migration(DataMigration):
+
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        from perma.models import Registrar
-        for registrar in Registrar.objects.all():
-            registrar.create_default_vesting_org()
+        # Adding field 'LinkUser.root_folder'
+        db.add_column(u'perma_linkuser', 'root_folder',
+                      self.gf('django.db.models.fields.related.OneToOneField')(to=orm['perma.Folder'], unique=True, null=True, blank=True),
+                      keep_default=False)
+
+        # Adding field 'VestingOrg.shared_folder'
+        db.add_column(u'perma_vestingorg', 'shared_folder',
+                      self.gf('django.db.models.fields.related.OneToOneField')(to=orm['perma.Folder'], unique=True, null=True, blank=True),
+                      keep_default=False)
+
+        # Adding field 'Folder.owned_by'
+        db.add_column(u'perma_folder', 'owned_by',
+                      self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='folders', null=True, to=orm['perma.LinkUser']),
+                      keep_default=False)
+
+        # Adding field 'Folder.vesting_org'
+        db.add_column(u'perma_folder', 'vesting_org',
+                      self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='folders', null=True, to=orm['perma.VestingOrg']),
+                      keep_default=False)
+
+        # Adding field 'Folder.is_shared_folder'
+        db.add_column(u'perma_folder', 'is_shared_folder',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
+        # Adding field 'Folder.is_root_folder'
+        db.add_column(u'perma_folder', 'is_root_folder',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
 
 
     def backwards(self, orm):
-        "Write your backwards methods here."
+        # Deleting field 'LinkUser.root_folder'
+        db.delete_column(u'perma_linkuser', 'root_folder_id')
+
+        # Deleting field 'VestingOrg.shared_folder'
+        db.delete_column(u'perma_vestingorg', 'shared_folder_id')
+
+        # Deleting field 'Folder.owned_by'
+        db.delete_column(u'perma_folder', 'owned_by_id')
+
+        # Deleting field 'Folder.vesting_org'
+        db.delete_column(u'perma_folder', 'vesting_org_id')
+
+        # Deleting field 'Folder.is_shared_folder'
+        db.delete_column(u'perma_folder', 'is_shared_folder')
+
+        # Deleting field 'Folder.is_root_folder'
+        db.delete_column(u'perma_folder', 'is_root_folder')
+
 
     models = {
         u'auth.group': {
@@ -55,17 +99,21 @@ class Migration(DataMigration):
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'folders_created'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
             'creation_timestamp': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_root_folder': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'is_shared_folder': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             u'level': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             u'lft': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'owned_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'folders'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
             'parent': ('mptt.fields.TreeForeignKey', [], {'blank': 'True', 'related_name': "'children'", 'null': 'True', 'to': u"orm['perma.Folder']"}),
             u'rght': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'slug': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            u'tree_id': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'})
+            u'tree_id': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
+            'vesting_org': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'folders'", 'null': 'True', 'to': u"orm['perma.VestingOrg']"})
         },
         u'perma.link': {
             'Meta': {'object_name': 'Link'},
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'created_by'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
+            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'created_links'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
             'creation_timestamp': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'dark_archived': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'dark_archived_robots_txt_blocked': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
@@ -77,7 +125,7 @@ class Migration(DataMigration):
             'user_deleted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'user_deleted_timestamp': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'vested': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'vested_by_editor': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'vested_by_editor'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
+            'vested_by_editor': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'vested_links'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
             'vested_timestamp': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'vesting_org': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['perma.VestingOrg']", 'null': 'True'}),
             'view_count': ('django.db.models.fields.IntegerField', [], {'default': '1'})
@@ -98,7 +146,8 @@ class Migration(DataMigration):
             'last_name': ('django.db.models.fields.CharField', [], {'max_length': '45', 'blank': 'True'}),
             'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
             'registrar': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['perma.Registrar']", 'null': 'True'}),
-            'vesting_org': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['perma.VestingOrg']", 'null': 'True'})
+            'root_folder': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['perma.Folder']", 'unique': 'True', 'null': 'True', 'blank': 'True'}),
+            'vesting_org': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'users'", 'null': 'True', 'to': u"orm['perma.VestingOrg']"})
         },
         u'perma.registrar': {
             'Meta': {'object_name': 'Registrar'},
@@ -130,9 +179,9 @@ class Migration(DataMigration):
             'Meta': {'object_name': 'VestingOrg'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '400'}),
-            'registrar': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['perma.Registrar']", 'null': 'True'})
+            'registrar': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'vesting_orgs'", 'null': 'True', 'to': u"orm['perma.Registrar']"}),
+            'shared_folder': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['perma.Folder']", 'unique': 'True', 'null': 'True', 'blank': 'True'})
         }
     }
 
     complete_apps = ['perma']
-    symmetrical = True

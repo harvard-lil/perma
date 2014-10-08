@@ -419,12 +419,12 @@ def edit_user_in_group(request, user_id, group_name):
     # Registrar members can only edit their own vesting members
     if not is_registry:
         if request.user.registrar != target_user.registrar:
-            return HttpResponseRedirect(reverse('created_links'))
+            return HttpResponseRedirect(reverse('link_browser'))
 
     # Vesting managers can only edit their own vesting members
     if not is_registry and not is_registrar:
         if request.user.vesting_org != target_user.vesting_org:
-            return HttpResponseRedirect(reverse('created_links'))
+            return HttpResponseRedirect(reverse('link_browser'))
 
     context = {
         'target_user': target_user,
@@ -572,12 +572,12 @@ def delete_user_in_group(request, user_id, group_name):
     # Registrar members can only edit their own vesting members
     if not request.user.has_group('registry_user'):
         if request.user.registrar != target_member.registrar:
-            return HttpResponseRedirect(reverse('created_links'))
+            return HttpResponseRedirect(reverse('link_browser'))
 
     # Vesting managers can only edit their own vesting members
     if not request.user.has_group(['registry_user', 'registrar_user', 'vesting_user']):
         if request.user.vesting_org != target_member.vesting_org:
-            return HttpResponseRedirect(reverse('created_links'))
+            return HttpResponseRedirect(reverse('link_browser'))
 
     context = {'target_member': target_member,
                'this_page': 'users_{group_name}s'.format(group_name=group_name)}
@@ -606,7 +606,7 @@ def manage_single_vesting_user_remove(request, user_id):
     # Vesting managers can only edit their own vesting members
     if not request.user.has_group(['vesting_user']):
         if request.user.vesting_org != target_member.vesting_org:
-            return HttpResponseRedirect(reverse('created_links'))
+            return HttpResponseRedirect(reverse('link_browser'))
 
     context = {'target_member': target_member,
                'this_page': 'users_vesting_user'}
@@ -635,12 +635,12 @@ def reactive_user_in_group(request, user_id, group_name):
     # Registrar members can only edit their own vesting members
     if not request.user.has_group('registry_user'):
         if request.user.registrar != target_member.registrar:
-            return HttpResponseRedirect(reverse('created_links'))
+            return HttpResponseRedirect(reverse('link_browser'))
 
     # Vesting managers can only edit their own vesting members
     if not request.user.has_group(['registry_user', 'registrar_user', 'vesting_user']):
         if request.user.vesting_org != target_member.vesting_org:
-            return HttpResponseRedirect(reverse('created_links'))
+            return HttpResponseRedirect(reverse('link_browser'))
 
     context = {'target_member': target_member,
                'this_page': 'users_{group_name}s'.format(group_name=group_name)}

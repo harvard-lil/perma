@@ -1,3 +1,13 @@
+// polyfill for IE8
+// via https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/Trim
+if (!String.prototype.trim) {
+  String.prototype.trim = function () {
+    // Make sure we trim BOM and NBSP
+    rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
+    return this.replace(rtrim, "");
+  }
+}
+
 // Initializations
 $(document).ready(function() {
     // Add class to active text inputs
@@ -43,6 +53,11 @@ $(document).ready(function() {
             }
         });
       return false;
+    });
+
+    // clear popup alerts with a click
+    $(document).on('click', '.popup-alert', function(){
+        $(this).remove();
     });
 });
 

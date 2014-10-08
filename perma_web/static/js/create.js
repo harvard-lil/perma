@@ -49,7 +49,11 @@ function linkIt(){
     var request = $.ajax({
         url: "/manage/create/",
         type: "POST",
-        data: {url: rawUrl, 'csrfmiddlewaretoken': csrf_token},
+        data: {
+            url: rawUrl,
+            folder: $('#linker select').val(),
+            'csrfmiddlewaretoken': csrf_token
+        },
         dataType: "json"
     });
 
