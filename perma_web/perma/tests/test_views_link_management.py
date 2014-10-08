@@ -210,63 +210,68 @@ class TasksTestCase(PermaTestCase):
         def get_folder_by_slug(folder_slug):
             return Folder.objects.get(owned_by__email='test_vesting_member@example.com', slug=folder_slug)
 
+        def submit_to_folder(folder, *args, **kwargs):
+            kwargs['reverse_kwargs'] = {'args':[folder.pk]}
+            return self.submit_form('folder_contents', *args, **kwargs)
+
         # Create some folders.
-        self.submit_form('link_browser', {'action': 'new_folder', 'new_folder_name': 'test'})
+        submit_to_folder(self.logged_in_user.root_folder, {'action': 'new_folder', 'name': 'test'})
         folder1 = get_folder_by_slug('test')
-        self.submit_form('link_browser', {'action': 'new_folder', 'new_folder_name': 'test2'})
+        submit_to_folder(self.logged_in_user.root_folder, {'action': 'new_folder', 'name': 'test2'})
         folder2 = get_folder_by_slug('test2')
 
         # Move stuff to folder1.
-        self.submit_form('link_browser',
-                         {'move_selected_items_to': folder1.pk, 'links': [test_link.pk], 'folders': [folder2.pk]})
+        submit_to_folder(folder1, {'action': 'move_items', 'links': [test_link.pk], 'folders': [folder2.pk]})
 
         # List folder1
-        response = self.get('link_browser', reverse_kwargs={'kwargs': {'path': '/' + folder1.slug}})
+        response = submit_to_folder(folder1)
         self.assertTrue(test_link in response.context['links'])
-        self.assertTrue(folder2 in set(response.context['current_folder'].get_children()))
-        self.assertEqual(folder1, response.context['current_folder'])
-        root_folder = response.context['root_folder']
+        self.assertTrue(folder2 in set(folder1.children.all()))
 
-        # Search folder1 for link guid -- should work
-        response = self.client.get(
-            reverse('link_browser', kwargs={'path': '/' + folder1.slug}) + "?q=" + test_link.guid)
+        # Search for link guid -- should work
+        response = self.client.get(reverse('folder_contents', args=[folder1.pk]) + "?q=" + test_link.guid)
         self.assertTrue(test_link in response.context['links'])
 
         # Search folder1 for non-matching string
-        response = self.client.get(reverse('link_browser', kwargs={'path': '/' + folder1.slug}) + "?q=does_not_exist")
+        response = self.client.get(reverse('folder_contents', args=[folder1.pk]) + "?q=does_not_exist")
         self.assertTrue(len(response.context['links']) == 0)
 
         # Try to delete folder1 -- shouldn't work because there's stuff in it
-        response = self.submit_form('link_browser', reverse_kwargs={'kwargs': {'path': '/' + folder1.slug}},
-                                  data={'action': 'delete_folder'})
+        response = submit_to_folder(folder1, {'action': 'delete_folder'})
         self.assertTrue(response.status_code == 400 and 'empty' in response.content)
 
         # Move stuff back out.
-        self.submit_form('link_browser',
-                         {'move_selected_items_to': root_folder.pk, 'links': [test_link.pk], 'folders': [folder2.pk]})
+        response = submit_to_folder(self.logged_in_user.root_folder, {'action': 'move_items', 'links': [test_link.pk], 'folders': [folder2.pk]})
 
         # Now delete it.
-        response = self.submit_form('link_browser', reverse_kwargs={'kwargs': {'path': '/' + folder1.slug}},
-                                  data={'action': 'delete_folder'})
+        response = submit_to_folder(folder1, {'action': 'delete_folder'})
         self.assertFalse(Folder.objects.filter(pk=folder1.pk).exists())
 
         # Rename folder2
-        self.submit_form('link_browser', reverse_kwargs={'kwargs': {'path': '/' + folder2.slug}},
-                       data={'action': 'rename_folder', 'name': 'test'})
+        response = submit_to_folder(folder2, {'action': 'rename_folder', 'name':'test'})
         self.assertTrue(Folder.objects.get(pk=folder2.pk).name == 'test')
 
         # Edit link notes.
-        self.submit_form('link_browser', {'action': 'save_notes', 'link_id': test_link.pk, 'notes': 'test'})
+        self.submit_form('link_browser', {'action': 'save_link_attribute', 'link_id': test_link.pk, 'name': 'notes', 'value': 'test'})
         self.assertTrue(Link.objects.get(pk=test_link.pk).notes == 'test')
 
         # Edit link title.
-        self.submit_form('link_browser', {'action': 'save_title', 'link_id': test_link.pk, 'title': 'test edit'})
+        self.submit_form('link_browser', {'action': 'save_link_attribute', 'link_id': test_link.pk, 'name': 'submitted_title', 'value': 'test edit'})
         self.assertTrue(Link.objects.get(pk=test_link.pk).submitted_title == 'test edit')
 
 
     def test_vest_link(self):
+        # setup -- log in as registrar to trigger vesting org selection code path
+        self.log_in_user('test_registrar_member@example.com')
         test_link = Link.objects.get(guid='7CF8-SS4G')
-        self.post('vest_link', reverse_kwargs={'args': [test_link.guid]}, require_status_code=302)
+
+        # first submit should show us a dropdown of folders to save vested link to
+        response = self.post('vest_link', reverse_kwargs={'args': [test_link.guid]})
+        folder_id = response.context['folder_tree'][0].pk
+
+        # second submit uses folder_id to actually vest, and should forward
+        self.post('vest_link', {'folder':folder_id}, reverse_kwargs={'args': [test_link.guid]}, require_status_code=302)
+
 
     def test_dark_archive_link(self):
         test_link = Link.objects.get(guid='7CF8-SS4G')
