@@ -3,10 +3,18 @@ from django.test import TransactionTestCase
 from django.core.urlresolvers import reverse
 from django.test.utils import override_settings
 
-from perma.models import Registrar, VestingOrg
+from perma.models import Registrar, VestingOrg, LinkUser
 
 
-@override_settings(RUN_TASKS_ASYNC=False)
+@override_settings(
+    RUN_TASKS_ASYNC=False,  # avoid sending celery tasks to queue -- just run inline
+
+    # django-pipeline causes problems if enabled for tests, so disable it.
+    # That's not great because it's a less accurate test -- when we upgrade to Django 1.7, consider using
+    # StaticLiveServerCase instead. http://stackoverflow.com/a/22058962/307769
+    STATICFILES_STORAGE='pipeline.storage.NonPackagingPipelineStorage',
+    PIPELINE_ENABLED=False
+)
 class PermaTestCase(TransactionTestCase):
     fixtures = ['fixtures/groups.json','fixtures/users.json',
                 'fixtures/archive.json']
@@ -21,7 +29,8 @@ class PermaTestCase(TransactionTestCase):
     def log_in_user(self, username, password='pass'):
         # TODO: check resp to see if login actually worked
         self.client.logout()
-        return self.client.post(reverse('user_management_limited_login'), {'username': username, 'password': password})
+        self.client.post(reverse('user_management_limited_login'), {'username': username, 'password': password})
+        self.logged_in_user = LinkUser.objects.get(email=username)
 
     def do_request(self,
                    view_name,

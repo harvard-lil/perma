@@ -1707,6 +1707,11 @@ td {
     background-image: none !important;
 }
 
+/* hide black right arrow showing drop target in tree */
+#jstree-marker{
+    display:none !important;
+}
+
 body.dragging, .dragging .link-row {
     cursor:move; /* fallback for IE */
     cursor: -moz-grabbing;

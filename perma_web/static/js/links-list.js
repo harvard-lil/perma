@@ -259,25 +259,31 @@ $(function() {
                         return true;
                     }
 
+                    function getDropTarget(){
+                        return folderTree.get_node($('.jstree-hovered').parent());
+                    }
+
                     if (more && more.is_foreign) {
                         // link dragged onto folder
                         if (operation == 'copy_node') {
-                            moveItems(node_parent.data.folder_id, [node.id], []).done(function () {
+                            var targetNode = getDropTarget();
+                            moveItems(targetNode.data.folder_id, [node.id], []).done(function () {
                                 showFolderContents(getSelectedFolderID());
                             });
                         }
                     } else {
                         // internal folder action
                         if (operation == 'rename_node') {
-                            newName = node_position;
+                            var newName = node_position;
                             renameFolder(node.data.folder_id, newName).done(function () {
                                 allowedEventsCount++;
                                 folderTree.rename_node(node, newName);
                             });
                         } else if (operation == 'move_node') {
-                            moveItems(node_parent.data.folder_id, [], [node.data.folder_id]).done(function () {
+                            var targetNode = getDropTarget();
+                            moveItems(targetNode.data.folder_id, [], [node.data.folder_id]).done(function () {
                                 allowedEventsCount++;
-                                folderTree.move_node(node, node_parent);
+                                folderTree.move_node(node, targetNode);
                             });
                         } else if (operation == 'delete_node') {
                             deleteFolder(node.data.folder_id).done(function () {
@@ -286,7 +292,7 @@ $(function() {
                                 folderTree.select_node();
                             });
                         } else if (operation == 'create_node') {
-                            newName = node.text;
+                            var newName = node.text;
                             createFolder(node_parent.data.folder_id, newName).done(function (server_response) {
                                 allowedEventsCount++;
                                 folderTree.create_node(node_parent, node, "last", function (new_folder_node) {

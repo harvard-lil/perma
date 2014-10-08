@@ -71,11 +71,19 @@ class VestingOrg(models.Model):
     registrar = models.ForeignKey(Registrar, null=True, related_name="vesting_orgs")
     shared_folder = models.OneToOneField('Folder', blank=True, null=True)
 
+    def __init__(self, *args, **kwargs):
+        """ Capture original values so we can deal with changes during save. """
+        super(VestingOrg, self).__init__(*args, **kwargs)
+        self.original_values = {'name':self.name}
+
     def save(self, *args, **kwargs):
-        """ Make sure shared folder is created for each vesting org. """
         super(VestingOrg, self).save(*args, **kwargs)
         if not self.shared_folder:
+            # Make sure shared folder is created for each vesting org.
             self.create_shared_folder()
+        elif self.name != self.original_values['name']:
+            # Rename shared folder if vesting org name changes.
+            self.shared_folder.rename(self.name)
 
     def __unicode__(self):
         return self.name
@@ -335,7 +343,7 @@ class Folder(MPTTModel):
 
     def set_slug(self):
         """ Find a slug that doesn't collide with another folder in parent folder. """
-        self.slug = slugify(self.name)
+        self.slug = slugify(unicode(self.name))
 
         # root folder can't conflict
         if self.is_root_folder:
@@ -350,7 +358,7 @@ class Folder(MPTTModel):
 
         i = 1
         while collision_query.filter(slug=self.slug).exists():
-            self.slug = "%s-%s" % (slugify(self.name), i)
+            self.slug = "%s-%s" % (slugify(unicode(self.name)), i)
             i += 1
 
     def all_children(self):
@@ -367,6 +375,11 @@ class Folder(MPTTModel):
             because it is displayed below user's root folder.
         """
         return self.level + (1 if self.vesting_org_id else 0)
+
+    def rename(self, new_name):
+        self.name = new_name
+        self.set_slug()
+        self.save()
 
 
 class LinkQuerySet(QuerySet):

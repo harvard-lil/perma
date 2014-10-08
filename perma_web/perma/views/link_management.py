@@ -276,10 +276,7 @@ def folder_contents(request, folder_id):
                 elif action == 'rename_folder':
                     if current_folder.is_shared_folder or current_folder.is_root_folder:
                         raise BadRequest("Not a valid action for this folder.")
-
-                    current_folder.name = request.POST['name']
-                    current_folder.set_slug()
-                    current_folder.save()
+                    current_folder.rename(request.POST['name'])
 
                 # delete folder
                 elif action == 'delete_folder':
@@ -353,7 +350,7 @@ def vest_link(request, guid):
     user = request.user
     if request.method == 'POST' and not link.vested:
 
-        # if user isn't associated with a vesting org, make them pick one
+        # if user isn't associated with a particular vesting org (registrar), make them pick one
         vesting_org = user.vesting_org
         if not vesting_org:
             if request.POST.get('vesting_org'):
