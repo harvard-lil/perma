@@ -185,15 +185,19 @@ class LinkUser(AbstractBaseUser):
         # Simplest possible answer: All admins are staff
         return self.is_admin
 
+    _group_names_cache = None
     def has_group(self, group):
         """
             Return true if user is in the named group.
             If group is a list, user must be in one of the groups in the list.
         """
+        if not self._group_names_cache:
+            self._group_names_cache = set(group.name for group in self.groups.all())
+
         if hasattr(group, '__iter__'):
-            return self.groups.filter(name__in=group).exists()
+            return set(group) & self._group_names_cache  # set intersection
         else:
-            return self.groups.filter(name=group).exists()
+            return group in self._group_names_cache
 
     def all_folder_trees(self):
         """

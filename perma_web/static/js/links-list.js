@@ -178,12 +178,22 @@ $(function() {
 
     // *** actions ***
 
+    var showLoadingMessage = false;
     function showFolderContents(folderID) {
+        // if fetching folder contents takes more than 500ms, show a loading message
+        showLoadingMessage = true;
+        setTimeout(function(){
+            if(showLoadingMessage)
+                linkTable.html("Loading folder contents ...");
+        }, 500);
+
+        // fetch contents
         $.get(getFolderURL(folderID))
             .always(function (data) {
-                        // same thing runs on success or error
-                        linkTable.html(data.responseText || data);
-                    });
+                // same thing runs on success or error, since we get back success or error-displaying HTML
+                showLoadingMessage = false;
+                linkTable.html(data.responseText || data);
+            });
     }
 
     function createFolder(parentFolderID, newName) {
