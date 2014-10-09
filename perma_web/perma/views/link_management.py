@@ -308,7 +308,7 @@ def folder_contents(request, folder_id):
             return HttpResponse(json.dumps(out), content_type="application/json")
 
     # start with all links belonging to user
-    links = Link.objects.accessible_to(user)
+    links = Link.objects.accessible_to(user).select_related('vested_by_editor', 'created_by')
 
     # handle search
     search_query = request.GET.get('q', None)
