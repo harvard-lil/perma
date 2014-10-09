@@ -48,6 +48,7 @@ class PermissionsTestCase(PermaTestCase):
                     ['user_management_manage_single_vesting_user', {'kwargs':{'user_id': 3}}],
                     ['user_management_manage_single_vesting_user_delete', {'kwargs':{'user_id': 3}}],
                     ['user_management_manage_single_vesting_user_reactivate', {'kwargs':{'user_id': 3}}],
+                    ['vest_link', {'kwargs': {'guid': '1234'}, 'success_status': 404}],
                 ],
                 'allowed': {'test_registry_member@example.com', 'test_registrar_member@example.com',
                             'test_vesting_member@example.com'}
@@ -56,7 +57,7 @@ class PermissionsTestCase(PermaTestCase):
                 'urls': [
                     ['user_management_vesting_user_add_user'],
                 ],
-                'allowed': {'test_vesting_member@example.com', 
+                'allowed': {'test_vesting_member@example.com',
                 'test_registrar_member@example.com'}
             },
             {
@@ -68,18 +69,11 @@ class PermissionsTestCase(PermaTestCase):
             },
             {
                 'urls': [
-                    ['vested_links'],
-                    ['vest_link', {'kwargs':{'guid':'1234'},'success_status':404}],
-                ],
-                'allowed': {'test_registry_member@example.com', 'test_registrar_member@example.com',
-                            'test_vesting_member@example.com'}
-            },
-            {
-                'urls': [
                     ['user_management_manage_account'],
                     ['create_link'],
                     ['upload_link', {'success_status':400}],
-                    ['created_links'],
+                    ['link_browser'],
+                    ['folder_contents', {'kwargs': {'folder_id': '12345'}, 'success_status': 404}],
                     ['user_delete_link', {'kwargs':{'guid':'1234'},'success_status':404}],
                 ],
                 'allowed': {'test_user@example.com'},
@@ -116,7 +110,8 @@ class PermissionsTestCase(PermaTestCase):
                 for user in view.get('disallowed', all_users - view['allowed']):
                     self.log_in_user(user)
                     resp = self.client.get(url)
-                    self.assertRedirects(resp, settings.LOGIN_REDIRECT_URL)
+                    self.assertRedirects(resp, settings.LOGIN_REDIRECT_URL,
+                                         msg_prefix="Error while confirming that %s can't view %s: " % (user, view_name))
 
         # make sure that all ^manage/ views were tested
         for urlpattern in urlpatterns:

@@ -1,3 +1,9 @@
+/* This .scss file will automatically be compiled by django-pipeline into a .css file */
+
+/* Import some mixins from Compass */
+@import "compass/css3/opacity";
+
+
 /* Our Sass vars start */
 
 $secondary-font: 'Helvetica', 'sans-serif';
@@ -6,6 +12,25 @@ $secondary-font: 'Helvetica', 'sans-serif';
 
 
 /* Global start */
+
+/* Start - our locally hosted Google Fonts */
+@font-face {
+    font-family: "Roboto Slab";
+    font-style: normal;
+    font-weight: 300;
+    src: url('../fonts/RobotoSlab-Light.eot');
+    src: local("Roboto Slab Light"), local("RobotoSlab-Light"), url('../fonts/RobotoSlab-Light.eot?#iefix') format("embedded-opentype"), url('../fonts/RobotoSlab-Light.woff') format("woff"), url('../fonts/RobotoSlab-Light.ttf') format("truetype")
+    }
+
+@font-face {
+    font-family: "Roboto Slab";
+    font-style: normal;
+    font-weight: 400;
+    src: url('../fonts/RobotoSlab-Regular.eot');
+    src: local("Roboto Slab Regular"), local("RobotoSlab-Regular"), url('../fonts/RobotoSlab-Regular.eot?#iefix') format("embedded-opentype"), url('../fonts/RobotoSlab-Regular.woff') format("woff"), url('../fonts/RobotoSlab-Regular.ttf') format("truetype")
+    }
+/* End - our locally hosted Google Fonts */
+
 
 html {
     position:relative;
@@ -238,7 +263,7 @@ img.watermark-image {
 	box-shadow: none;
 	z-index:2;
     margin:0 auto -20%;
-	opacity:.85;
+	@include opacity(.85);
 	width:70%;
 	pointer-events:none;
 }
@@ -300,22 +325,14 @@ a.btn.user-delete:hover, a.btn.user-delete:focus {
 	z-index:100;
 	margin-top:20px;
 	border-radius: 4px;
-		opacity:.8;
-	  /* IE 8 */
-  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
-  /* IE 5-7 */
-  filter: alpha(opacity=80);
+	@include opacity(.8);
 }
 
 img.dark-bulb {
-	opacity:.8;
-	  /* IE 8 */
-  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
-  /* IE 5-7 */
-  filter: alpha(opacity=80);
-  margin:auto;
-  text-align:center;
-  width:160px;
+	@include opacity(.8);
+  	margin:auto;
+  	text-align:center;
+  	width:160px;
 }
 
 /* Dark archive end */

@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{{ STATIC_URL }}css/font-awesome.min.css">
 
     {# put in styles because this has to be available during page load #}
-    <script src="{{ STATIC_URL }}js/moment-with-langs.min.js "></script>
+    <script src="{{ STATIC_URL }}js/local-datetime.js "></script>
 {% endblock %}
 
 {% block header %}
@@ -158,7 +158,7 @@
 				</iframe>
 				{% else %}
 				<div class="translucent-background no-live-preview"><h2>Live site view unavailable. Sorry.</h2>
-					<p>You can access the archives of using the tabs above or open <a href="{{linky.submitted_url}}" target="_blank">{{linky.submitted_url}}</a> in a new browser window.</p>
+					<p>You can access the archives by using the tabs above or open <a href="{{linky.submitted_url}}" target="_blank">{{linky.submitted_url}}</a> in a new browser window.</p>
 				</div>
 				{% endif %}
 			{% endif %}

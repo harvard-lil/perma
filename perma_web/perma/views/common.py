@@ -191,7 +191,9 @@ def single_linky(request, guid):
         display_iframe = False
         if serve_type == 'live':
             try:
-                response = requests.head(link.submitted_url)
+                response = requests.head(link.submitted_url,
+                                         headers={'User-Agent': request.META['HTTP_USER_AGENT'], 'Accept-Encoding': '*'},
+                                         timeout=5)
                 display_iframe = 'X-Frame-Options' not in response.headers
                 # TODO actually check if X-Frame-Options specifically allows requests from us
             except:
@@ -233,12 +235,6 @@ def single_link_header(request, guid):
     """
     Given a Perma ID, serve it up. Vesting also takes place here.
     """
-
-    if request.method == 'POST' and request.user.is_authenticated():
-        Link.objects.filter(guid=guid).update(vested = True,
-            vested_by_editor = request.user, vested_timestamp = datetime.now())
-
-        return HttpResponseRedirect(reverse('single_link_header', args=[guid]))
 
     # Create a canonical version of guid (non-alphanumerics removed, hyphens every 4 characters, uppercase),
     # and forward to that if it's different from current guid.

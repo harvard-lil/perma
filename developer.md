@@ -63,6 +63,10 @@ We use Compass to translate Sass to CSS. A command like the following is likely 
     $ cd perma_web
     $ compass watch --sass-dir static/css/ --css-dir static/css
 
+### Hosting fonts locally
+
+We like to host our fonts locally. If you're liking a font from Google fonts and the licesning allows, check out[fontdump](https://pypi.python.org/pypi/fontdump/1.2.0)
+
 ###  Schema and data migrations using South
 
 *** Before changing the schema or the data of your database, make a backup! ***

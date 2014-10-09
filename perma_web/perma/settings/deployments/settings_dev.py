@@ -39,3 +39,6 @@ GOOGLE_ANALYTICS_DOMAIN = 'example.com'
 HOST = 'perma.cc'
 
 CELERY_RESULT_BACKEND = 'amqp'
+
+# Folder migration default
+FALLBACK_VESTING_ORG_ID = 1
