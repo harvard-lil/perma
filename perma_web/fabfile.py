@@ -143,6 +143,15 @@ def deploy_code(restart=True, branch='master'):
     if restart:
           restart_server()
           
+def tag_new_release(tag):
+    """
+        Roll develop into master and tag it
+    """
+    local("git checkout master")
+    local("git merge develop")
+    local("git tag -a %s -m '%s'" % (tag, tag))
+    local("git push --tags")
+          
 def pip_install():
       run("pip install -r requirements.txt")
 
