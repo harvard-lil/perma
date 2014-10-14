@@ -39,6 +39,8 @@ class PermissionsTestCase(PermaTestCase):
                 'urls': [
                     ['user_management_manage_vesting_org'],
                     ['user_management_manage_single_vesting_org', {'kwargs':{'vesting_org_id':1}}],
+                    ['user_management_manage_single_vesting_user_delete', {'kwargs':{'user_id': 3}}],
+                    ['user_management_manage_single_vesting_user_reactivate', {'kwargs':{'user_id': 3}}],
                 ],
                 'allowed': {'test_registry_member@example.com', 'test_registrar_member@example.com'},
             },

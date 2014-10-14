@@ -53,7 +53,7 @@
 
             <!-- Vesting users -->
             {% if request.user|has_group:'registrar_user,registry_user,vesting_user' %}
-            <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_vesting_user" %}class="active" {% endif %}href="{% url 'user_management_manage_vesting_user' %}">Vesting Users</a></li>
+            <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_vesting_users" %}class="active" {% endif %}href="{% url 'user_management_manage_vesting_user' %}">Vesting Users</a></li>
             {% endif %}
 
             <!-- Regular users -->

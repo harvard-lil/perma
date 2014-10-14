@@ -28,6 +28,7 @@ class Registrar(models.Model):
     name = models.CharField(max_length=400)
     email = models.EmailField(max_length=254)
     website = models.URLField(max_length=500)
+    date_created = models.DateField(auto_now_add=True, null=True)
     default_vesting_org = models.OneToOneField('VestingOrg', blank=True, null=True, related_name='default_for_registrars')
 
     def save(self, *args, **kwargs):
@@ -70,6 +71,7 @@ class VestingOrg(models.Model):
     name = models.CharField(max_length=400)
     registrar = models.ForeignKey(Registrar, null=True, related_name="vesting_orgs")
     shared_folder = models.OneToOneField('Folder', blank=True, null=True)
+    date_created = models.DateField(auto_now_add=True, null=True)
 
     def __init__(self, *args, **kwargs):
         """ Capture original values so we can deal with changes during save. """
@@ -141,7 +143,6 @@ class LinkUser(AbstractBaseUser):
     date_joined = models.DateField(auto_now_add=True)
     first_name = models.CharField(max_length=45, blank=True)
     last_name = models.CharField(max_length=45, blank=True)
-    authorized_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='authorized_by_manager')
     confirmation_code = models.CharField(max_length=45, blank=True)
     root_folder = models.OneToOneField('Folder', blank=True, null=True)
 

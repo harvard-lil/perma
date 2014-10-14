@@ -237,7 +237,7 @@ LOGIN_HOUR_LIMIT = '10000/h'
 LOGIN_DAY_LIMIT = '50000/d'
 
 # Dashboard user lists
-MAX_USER_LIST_SIZE = 100
+MAX_USER_LIST_SIZE = 50
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
