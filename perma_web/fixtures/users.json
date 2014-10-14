@@ -5,7 +5,8 @@
         "fields": {
             "name": "Test Library",
             "email": "library@university.edu",
-            "website": "http://university.edu/library"
+            "website": "http://university.edu/library",
+            "default_vesting_org": 1
         }
     },
     {
