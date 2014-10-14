@@ -211,9 +211,9 @@ class LinkUser(AbstractBaseUser):
             ([vesting_org.shared_folder.get_descendants(include_self=True) for vesting_org in vesting_orgs if vesting_org])
 
     def get_default_vesting_org(self):
-        if self.vesting_org:
+        if self.has_group('vesting_user') and self.vesting_org:
             return self.vesting_org
-        if self.registrar:
+        if self.has_group('registrar_user') and self.registrar:
             return self.registrar.default_vesting_org
         if self.has_group('registry_user'):
             try:
