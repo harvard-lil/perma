@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-import datetime
+from datetime import datetime, date
 from south.db import db
 from south.v2 import DataMigration
 from django.db import models
+from django.db.models import Min
 
 class Migration(DataMigration):
 
@@ -10,13 +11,18 @@ class Migration(DataMigration):
         "Write your forwards methods here."
         # Note: Remember to use orm['appname.ModelName'] rather than "from appname.models..."
         
-        for user in orm.LinkUser.objects.exclude(groups=3):
-            user.registrar = None
-            user.save()
+        for registrar in orm.Registrar.objects.all():
+            created_date =  orm.LinkUser.objects.all().filter(vesting_org__registrar=registrar).aggregate(Min('date_joined'))
+            if created_date['date_joined__min'] == None:
+                registrar.date_created = date.today()
+            else:
+                registrar.date_created = created_date['date_joined__min']
+            registrar.save()
 
     def backwards(self, orm):
         "Write your backwards methods here."
         raise RuntimeError("Cannot reverse this migration.")
+
 
     models = {
         u'auth.group': {
@@ -58,17 +64,21 @@ class Migration(DataMigration):
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'folders_created'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
             'creation_timestamp': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_root_folder': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'is_shared_folder': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             u'level': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             u'lft': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'owned_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'folders'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
             'parent': ('mptt.fields.TreeForeignKey', [], {'blank': 'True', 'related_name': "'children'", 'null': 'True', 'to': u"orm['perma.Folder']"}),
             u'rght': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'slug': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            u'tree_id': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'})
+            u'tree_id': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
+            'vesting_org': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'folders'", 'null': 'True', 'to': u"orm['perma.VestingOrg']"})
         },
         u'perma.link': {
             'Meta': {'object_name': 'Link'},
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'created_by'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
+            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'created_links'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
             'creation_timestamp': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'dark_archived': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'dark_archived_robots_txt_blocked': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
@@ -80,7 +90,7 @@ class Migration(DataMigration):
             'user_deleted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'user_deleted_timestamp': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'vested': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'vested_by_editor': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'vested_by_editor'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
+            'vested_by_editor': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'vested_links'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
             'vested_timestamp': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'vesting_org': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['perma.VestingOrg']", 'null': 'True'}),
             'view_count': ('django.db.models.fields.IntegerField', [], {'default': '1'})
@@ -100,11 +110,13 @@ class Migration(DataMigration):
             'last_name': ('django.db.models.fields.CharField', [], {'max_length': '45', 'blank': 'True'}),
             'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
             'registrar': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['perma.Registrar']", 'null': 'True'}),
-            'vesting_org': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['perma.VestingOrg']", 'null': 'True'})
+            'root_folder': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['perma.Folder']", 'unique': 'True', 'null': 'True', 'blank': 'True'}),
+            'vesting_org': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'users'", 'null': 'True', 'to': u"orm['perma.VestingOrg']"})
         },
         u'perma.registrar': {
             'Meta': {'object_name': 'Registrar'},
             'date_created': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
+            'default_vesting_org': ('django.db.models.fields.related.OneToOneField', [], {'blank': 'True', 'related_name': "'default_for_registrars'", 'unique': 'True', 'null': 'True', 'to': u"orm['perma.VestingOrg']"}),
             'email': ('django.db.models.fields.EmailField', [], {'max_length': '254'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '400'}),
@@ -133,7 +145,8 @@ class Migration(DataMigration):
             'date_created': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '400'}),
-            'registrar': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['perma.Registrar']", 'null': 'True'})
+            'registrar': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'vesting_orgs'", 'null': 'True', 'to': u"orm['perma.Registrar']"}),
+            'shared_folder': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['perma.Folder']", 'unique': 'True', 'null': 'True', 'blank': 'True'})
         }
     }
 

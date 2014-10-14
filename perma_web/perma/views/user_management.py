@@ -189,7 +189,7 @@ GROUP BY perma_vestingorg.name """,
     }).order_by(sort)
         is_registry = True
     else:
-        vesting_orgs = VestingOrg.objects.filter(registrar=request.user.registrar).annotate(vesting_users=Count('linkuser', distinct=True), created_links=Count('linkuser__created_by',distinct=True), vested_links=Count('link__vesting_org', distinct=True), last_active=Max('linkuser__last_login', distinct=True),created_date=Min('linkuser__date_joined', distinct=True)).extra(select = {
+        vesting_orgs = VestingOrg.objects.filter(registrar=request.user.registrar).annotate(vesting_users=Count('users', distinct=True), created_links=Count('link__created_by',distinct=True), vested_links=Count('link__vesting_org', distinct=True), last_active=Max('users__last_login', distinct=True),created_date=Min('users__date_joined', distinct=True)).extra(select = {
       "unactivated_count" : """
       SELECT COUNT(*)
       FROM perma_linkuser
@@ -400,7 +400,7 @@ def list_users_in_group(request, group_name):
         registrars = Registrar.objects.all().order_by('name')
         is_registry = True
     elif request.user.has_group('registrar_user'):
-        users = LinkUser.objects.filter(groups__name=group_name, vesting_org__registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links=Count('vested_by_editor', distinct=True))
+        users = LinkUser.objects.filter(groups__name=group_name, vesting_org__registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts())
         vesting_orgs = VestingOrg.objects.filter(registrar_id=request.user.registrar_id).order_by('name')
         is_registrar = True
     elif request.user.has_group('vesting_user'):

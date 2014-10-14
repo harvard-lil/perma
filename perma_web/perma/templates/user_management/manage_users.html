@@ -203,10 +203,10 @@
                 {% endif %}
                 </p>
                 <p class="list-date{% if request.user|has_group:'vesting_user' or group_name == 'user' %} vesting_user-list{% endif %}">
-              created {{ listed_user.date_joined|local_datetime:"MMM DD, YYYY" }}
+              created {{ listed_user.date_joined }}
               {% if listed_user.is_confirmed %}
               <br>
-              last active {{ listed_user.last_login|local_datetime:"MMM DD, YYYY" }}
+              last active {{ listed_user.last_login }}
               {% endif %}
               </p>
             </div>

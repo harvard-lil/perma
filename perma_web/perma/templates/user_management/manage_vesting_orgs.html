@@ -140,10 +140,10 @@
             </div>
             <div class="col-sm-5">
                 <p class="list-date">
-              created {{ vesting_org.date_created|local_datetime:"MMM DD, YYYY" }}
+              created {{ vesting_org.date_created }}
             <br>
               {% if vesting_org.vesting_users %}
-              last active {{ vesting_org.last_active|local_datetime:"MMM DD, YYYY" }}
+              last active {{ vesting_org.last_active}}
               {% else %}
               <span class="text-warning">no existing users</span>
               {% endif %}
