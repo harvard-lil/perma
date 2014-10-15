@@ -135,7 +135,7 @@
             </div>
             <div class="col-sm-7">
             {% if request.user|has_group:'registry_user' %}
-            <p class="list-registrar">{{ vesting_org.registrar }}</p>
+            <p class="list-registrar"><a href="{% url 'user_management_manage_registrar' %}?q={{vesting_org.registrar.name.split|join:'+'|lower}}">{{ vesting_org.registrar }}</a></p>
             {% endif %}
             </div>
             <div class="col-sm-5">

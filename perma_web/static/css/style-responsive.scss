@@ -1861,6 +1861,10 @@ td.registrar-website-cell {
     font-weight:500;
 }
 
+.list-vesting-org a, .list-registrar a {
+    color:#333;
+}
+
 .list-date {
     font-size:12px;
     margin-bottom:0px;
@@ -2313,7 +2317,7 @@ a.tab-styling, .tab-styling {
 
 #spinner {
     width: 50%;
-    margin: 160px 0 0 230px;
+    margin: 160px 0 0 185px;
 }
 
 .spinner-message {
