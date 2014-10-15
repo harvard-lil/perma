@@ -56,7 +56,7 @@
             <div class="col-sm-12">
                 <p class="sort-filter-count">{{vesting_orgs_count}} vesting organization{% if not vesting_orgs_count == 1 %}s{% endif %}</p>
                 <div class="sort-filter-bar">
-                {% include "user_management/includes/search_form.html" %}
+                {% include "user_management/includes/search_form_simple.html" %}
                 <div class="dropdown">
                   <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
                     Sort <span class="caret"></span>
@@ -115,7 +115,7 @@
                 <p class="list-count-label">vested links</p>
                 </div>
                     <div class="list-count-group">
-                    <p class="list-count-number{% if group_name == 'user'%} vesting_user-list{% endif %}">{{ vesting_org.created_links }}</p>
+                    <p class="list-count-number{% if group_name == 'user'%} vesting_user-list{% endif %}">{{ vesting_org.created_links_count }}</p>
                     <p class="list-count-label">created links</p>
                     </div>
               </div>
@@ -140,10 +140,10 @@
             </div>
             <div class="col-sm-5">
                 <p class="list-date">
-              created {{ vesting_org.date_created }}
+              created {{ vesting_org.date_created|date:'N j, Y' }}
             <br>
               {% if vesting_org.vesting_users %}
-              last active {{ vesting_org.last_active}}
+              last active {{ vesting_org.last_active|date:'N j, Y'}}
               {% else %}
               <span class="text-warning">no existing users</span>
               {% endif %}

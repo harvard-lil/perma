@@ -5,13 +5,13 @@
 {% endif %}
 
 {% if search_query %}
-    <div class="row shared-folder-label alert-success">
+    <div class="shared-folder-label alert-success">
         Search results for "{{ search_query }}".
         <a href="#" class="clear-search">Clear search.</a>
     </div>
 {% else %}
     {% if current_folder.vesting_org %}
-        <div class="row shared-folder-label alert-info">
+        <div class="shared-folder-label alert-info">
             {% if shared_with_count %}
                 This folder is shared with {{ shared_with_count }} other member{{ shared_with_count|pluralize }} of {{ current_folder.vesting_org }}.
             {% else %}
@@ -19,7 +19,7 @@
             {% endif %}
         </div>
     {% elif request.user|has_group:'registry_user,registrar_user,vesting_user' %}
-        <div class="row shared-folder-label alert-info" style="background-color: #F5F5F5">
+        <div class="shared-folder-label alert-info" style="background-color: #F5F5F5">
             This folder is not shared.
         </div>
     {% endif %}

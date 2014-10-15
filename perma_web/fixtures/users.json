@@ -6,7 +6,8 @@
             "name": "Test Library",
             "email": "library@university.edu",
             "website": "http://university.edu/library",
-            "default_vesting_org": 1
+            "default_vesting_org": 1,
+            "date_created": "2013-06-26"
         }
     },
     {
@@ -15,7 +16,8 @@
         "fields": {
             "name": "Test Journal",
             "registrar": 1,
-            "shared_folder": 27
+            "shared_folder": 27,
+            "date_created": "2013-06-26"
         }
     },
 
@@ -175,7 +177,6 @@
         "pk": 3,
         "model": "perma.LinkUser",
         "fields": {
-            "registrar": 1,
             "vesting_org": 1,
             "is_active": true,
             "is_confirmed": true,
@@ -188,7 +189,6 @@
             "date_joined": "2013-06-26",
             "first_name": "Vesting",
             "last_name": "Member",
-            "authorized_by": 5,
             "root_folder": 24
         }
     },
@@ -214,7 +214,6 @@
         "pk": 5,
         "model": "perma.LinkUser",
         "fields": {
-            "registrar": 1,
             "vesting_org": 1,
             "is_active": true,
             "is_confirmed": true,

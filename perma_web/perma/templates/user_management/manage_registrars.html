@@ -30,7 +30,7 @@
     <div class="row">
         <div class="col-sm-3">
             <p class="count-label">Vesting Organizations</p>
-            <p class="count-number">{{ vesting_org_count.count }}</p>
+            <p class="count-number">{{ vesting_org_count }}</p>
         </div>
         <div class="col-sm-3">
             <p class="count-label">Registrars</p>
@@ -49,7 +49,7 @@
             <div class="col-sm-12">
                 <p class="sort-filter-count">{{registrar_results}} registrar{% if not registrar_results == 1 %}s{% endif %}</p>
                 <div class="sort-filter-bar">
-                {% include "user_management/includes/search_form.html" %}
+                {% include "user_management/includes/search_form_simple.html" %}
                 <div class="dropdown">
                   <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
                     Sort <span class="caret"></span>
@@ -90,7 +90,7 @@
               </div>
               <div class="col-sm-7">
                 <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_org' %}?registrar={{registrar.name.split|join:'+'|lower}}">
-                <p class="list-count-number">{{ registrar.vesting_orgs }}</p>
+                <p class="list-count-number">{{ registrar.vesting_orgs_count }}</p>
                 <p class="list-count-label">vesting orgs</p></a>
                 </div>
                 <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_user' %}?registrar={{registrar.name.split|join:'+'|lower}}">
@@ -108,9 +108,9 @@
             </div>
             <div class="col-sm-5">
                 <p class="list-date">
-              created {{ registrar.date_created|local_datetime:"MMM DD, YYYY" }}
+              created {{ registrar.date_created|date:'N j, Y'}}
               <br>
-              last active {{ registrar.last_active|local_datetime:"MMM DD, YYYY" }}
+              last active {{ registrar.last_active|date:'N j, Y'}}
               </p>
             </div>
             </div>

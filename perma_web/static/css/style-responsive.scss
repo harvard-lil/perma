@@ -677,11 +677,11 @@ div.dashboard-blurb {
     position: relative;
 
     > div {
-        padding: 0;
+        /*padding: 0;*/
     }
 
     #dashboard-tabs {
-        margin: 0 2em 50px 0;
+        margin: 0 0 50px 0;
         @media (max-width: 767px) {
             margin-bottom: 0;
         }
@@ -749,7 +749,7 @@ div.dashboard-blurb {
     }
 
     div.tab-content {
-        overflow: hidden;
+        /*overflow: hidden;*/
         min-height: 170px;
     }
 }
@@ -780,7 +780,7 @@ div.dashboard-blurb {
 
         div#dashboard-container ul#dashboard-tabs li h3 {
             color: #999;
-            font-size: 16px;
+            font-size: 14px;
             margin: 15px 0 0 0;
             padding: 0;
         }
@@ -789,7 +789,7 @@ div.dashboard-blurb {
 
             div#dashboard-container ul#dashboard-tabs li.dashboard-secondary a {
                 background: none;
-                font-size: 16px;
+                font-size: 14px;
                 margin: 0;
                 padding: 5px 0 5px 51px;
             }

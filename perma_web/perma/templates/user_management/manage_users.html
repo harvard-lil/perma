@@ -73,7 +73,7 @@
             <div class="col-sm-12">
                 <p class="sort-filter-count">{{users_count}} user{% if not users_count == 1 %}s{% endif %}</p>
                 <div class="sort-filter-bar">
-                {% include "user_management/includes/search_form.html" %}
+                {% include "user_management/includes/search_form_simple.html" %}
                 <div class="dropdown">
                   <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
                     Sort <span class="caret"></span>
@@ -179,14 +179,14 @@
               <div class="col-sm-3">
                 {% if group_name == 'vesting_user' %}
                 <div class="list-count-group">
-                <p class="list-count-number{% if request.user|has_group:'vesting_user'%} vesting_user-list{% endif %}">{{ listed_user.vested_links }}</p>
+                <p class="list-count-number{% if request.user|has_group:'vesting_user'%} vesting_user-list{% endif %}">{{ listed_user.vested_links_count }}</p>
                 <p class="list-count-label">vested links</p>
                 </div>
                 {% endif %}
                 {% if group_name == 'vesting_user' or group_name == 'user' %}
                     {% if request.user|has_group:'registry_user' %}
                     <div class="list-count-group">
-                    <p class="list-count-number{% if group_name == 'user'%} vesting_user-list{% endif %}">{{ listed_user.created_links }}</p>
+                    <p class="list-count-number{% if group_name == 'user'%} vesting_user-list{% endif %}">{{ listed_user.created_links_count }}</p>
                     <p class="list-count-label">created links</p>
                     </div>
                     {% endif %}
@@ -203,10 +203,10 @@
                 {% endif %}
                 </p>
                 <p class="list-date{% if request.user|has_group:'vesting_user' or group_name == 'user' %} vesting_user-list{% endif %}">
-              created {{ listed_user.date_joined }}
+              created {{ listed_user.date_joined|date:'N j, Y' }}
               {% if listed_user.is_confirmed %}
               <br>
-              last active {{ listed_user.last_login }}
+              last active {{ listed_user.last_login|date:'N j, Y' }}
               {% endif %}
               </p>
             </div>
