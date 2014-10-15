@@ -2,6 +2,7 @@
 
 @import "compass/css3";
 
+$non-sans-font:  "Roboto Slab";
 $sans-font:  "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
 
 /* Global */
@@ -872,7 +873,8 @@ div#dashboard-container div#library {}
         p.library-link-title, #upload-option {
             color: #333;
             font-size: 14px;
-            margin: 0 0 10px 0;
+            margin: 0 0 12px 2px;
+			font-family: $sans-font;
         }
 
         p.library-link-url {
@@ -963,21 +965,25 @@ div#dashboard-container div#batch-convert {
 
 #steps-container .message-large {
     font-size: 40px;
+	font-family: $non-sans-font;
     color: #ff4100;
     font-weight: 400;
     margin-bottom: 0;
 }
 
 #steps-container p {
-    font-size: 16px;
+    font-size: 17px;
+	font-family: $sans-font;
+	color: #555;
 }
 
 #steps-container a.perma-url {
+	font-family: $non-sans-font;
     font-size: 26px;
 }
 
 #steps-container .message-url {
-    margin: 0 0 49px 0;
+    margin: 20px 0;
 }
 
 #steps-container .text-warning {
