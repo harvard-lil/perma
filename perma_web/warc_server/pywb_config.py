@@ -2,12 +2,13 @@ import os
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "perma.settings")
 from django.conf import settings
+from django.template import Context
+from django.template.loader import get_template
 from django.core.files.storage import default_storage
 
 from pywb.rewrite.wburl import WbUrl
-
 from pywb.framework import archivalrouter
-
+from pywb.framework.wbrequestresponse import WbResponse
 from pywb.webapp.handlers import WBHandler
 from pywb.webapp.query_handler import QueryHandler
 from pywb.webapp.pywb_init import create_wb_handler
@@ -30,13 +31,31 @@ class Handler(WBHandler):
     def get_wburl_type(self):
         return Url
 
+class ErrorTemplateView(object):
+    """ View for pywb errors -- basically just hands off to the archive-error.html Django template. """
+    def __init__(self):
+        self.template = get_template('archive-error.html')
+
+    def render_to_string(self, **kwargs):
+        return unicode(self.template.render(Context(kwargs)))
+
+    def render_response(self, **kwargs):
+        template_result = self.render_to_string(**dict(kwargs,
+                                                     STATIC_URL=settings.STATIC_URL,
+                                                     DEBUG=settings.DEBUG))
+        status = kwargs.get('status', '200 OK')
+        content_type = kwargs.get('content_type', 'text/html; charset=utf-8')
+        return WbResponse.text_response(template_result.encode('utf-8'), status=status, content_type=content_type)
+
 
 #=================================================================
 def create_perma_pywb_app(config):
     """
         Configure server.
     """
-    query_handler = QueryHandler.init_from_config(settings.CDX_SERVER_URL)
+    # paths
+    script_path = os.path.dirname(__file__)
+    template_path = os.path.join(script_path, 'templates')
 
     # Get root storage location for warcs.
     # archive_path should be the location pywb can find warcs, like 'file://generated/' or 'http://perma.s3.amazonaws.com/generated/'
@@ -47,6 +66,8 @@ def create_perma_pywb_app(config):
     except NotImplementedError:
         archive_path = default_storage.url('/')
         archive_path = archive_path.split('?', 1)[0]  # remove query params
+
+    query_handler = QueryHandler.init_from_config(settings.CDX_SERVER_URL)
 
     # use util func to create the handler
     wb_handler = create_wb_handler(query_handler,
@@ -68,5 +89,6 @@ def create_perma_pywb_app(config):
         # This will help catch occasionally missed rewrites that fall-through to the host
         # (See archivalrouter.ReferRedirect)
         hostpaths=['http://localhost:8000/'],
-        port=8000
+        port=8000,
+        error_view=ErrorTemplateView()
     )

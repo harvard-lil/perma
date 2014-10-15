@@ -29,14 +29,13 @@
 			</div><!--/.main-container #main-content"-->
 		</section><!--/#main-->
 
+        <script src="{{ STATIC_URL }}js/jquery.js"></script>
+        <script src="{{ STATIC_URL }}js/bootstrap3.js"></script>
+        <script src="{{ STATIC_URL }}js/global.js"></script>
+        {% block scripts %}
+        {% endblock %}
 
-    <script src="{{ STATIC_URL }}js/jquery.js"></script>
-    <script src="{{ STATIC_URL }}js/bootstrap3.js"></script>
-    <script src="{{ STATIC_URL }}js/global.js"></script>
-    {% block scripts %}
-    {% endblock %}   
-    
-    {% block templates %}
-    {% endblock %}
-  </body>
+        {% block templates %}
+        {% endblock %}
+    </body>
 </html>
