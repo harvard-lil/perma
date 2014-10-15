@@ -81,7 +81,7 @@
 									<a  class="tab-styling{% if serve_type == 'live' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=live">Live page view</a>
 								</li>
 
-								{% if asset.image_capture and asset.image_capture != 'failed' %}
+								{% if asset.image_capture and asset.image_capture != 'failed' and not asset.pdf_capture%}
 								<li>
 								{% if asset.image_capture == 'pending' %}
 									<span id="image_cap_container_loading" class="tab-styling">Screen capture</span>

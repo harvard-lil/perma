@@ -111,6 +111,7 @@ def create_link(request):
         # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
         if target_url_headers.get('content-type',None) in ['application/pdf', 'application/x-pdf'] or target_url.endswith('.pdf'):
             asset.pdf_capture = 'pending'
+            asset.image_capture = 'pending'
             asset.save()
 
             # run background celery tasks as a chain (each finishes before calling the next)

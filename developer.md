@@ -63,9 +63,11 @@ We use Compass to translate Sass to CSS. A command like the following is likely 
     $ cd perma_web
     $ compass watch --sass-dir static/css/ --css-dir static/css
 
+
 ### Hosting fonts locally
 
 We like to host our fonts locally. If you're liking a font from Google fonts and the licesning allows, check out[fontdump](https://pypi.python.org/pypi/fontdump/1.2.0)
+
 
 ###  Schema and data migrations using South
 
@@ -124,6 +126,7 @@ You should always run the tests before committing code.
 
 The `fab test` command also generates handy coverage information. You can access it with the `coverage` command.
 
+
 #### Sauce Browser Tests
 
 We also use Sauce Labs to do functional testing of the site in common browsers before deploying. If you have a Sauce account,
@@ -142,9 +145,11 @@ The Sauce tests live in services/sauce/run_tests.py. If you are developing new t
 convenient to change to that directory and run `python run_tests.py`, rather than the full-blown parallel testing
 kicked off by `fab test_sauce`.
 
+
 ### Debugging email-related issues
 
 If you're working on an email related task, the contents of emails should be dumped to the standard out courtesy of EMAIL_BACKEND in settings_dev.py.
+
 
 ### Mirroring
 
@@ -173,6 +178,7 @@ Launch the simple load balancer and two Django dev servers:
 You can edit the codebase normally and each server will incorporate your changes.
 
 To see how the mirror emulation works, check out perma_web/mirroring/management/commands/runmirror.py
+
 
 ### Working with Celery
 
@@ -390,6 +396,12 @@ Now you can start and stop RabbitMQ as a service. Something like,
 
     $ sudo service rabbitmq-server stop; sudo service rabbitmq-server start;
 
+
+### ImageMagick and Wand
+
+If you're on OS X you should might need to do adjust and [environment variable](http://docs.wand-py.org/en/0.3.8/guide/install.html#install-imagemagick-on-mac)
+
+	export MAGICK_HOME=/opt/local
 
 ### Other bits
 

@@ -59,5 +59,8 @@ tar xjf phantomjs-1.9.7-linux-x86_64.tar.bz2
 ln -s /usr/local/share/phantomjs-1.9.7-linux-x86_64/bin/phantomjs /usr/bin/
 rm phantomjs-1.9.7-linux-x86_64.tar.bz2
 
+### install ImageMagick ###
+apt-get install libmagickwand-dev
+
 ### clean up permissions ###
 chown -R vagrant /home/vagrant/.virtualenvs
