@@ -2,16 +2,15 @@
 {% extends "layout-archive-responsive.html" %}
 
 {% block content %}
-    <div class="row">
+    <div class="row archive-error">
         <div class="col-sm-6 col-sm-offset-3 centered">
             <div class="yahowza">
                 {% if status == '404 Not Found' %}
-                    <h2>Leaving Perma.cc</h2>
+                    <h2>Link not archived</h2>
 
                     <div class="centered-box">
-                        Perma.cc does not store pages linked from the original archived page.<br>
-                        <a href="{{ err_url }}">Click here to visit the live version of the requested page</a><br>
-                        ({{ err_url }}).
+                        <p>Perma.cc does not archive pages linked from the original archived page.</p>
+                        <input type="text" name="input" value="{{ err_url }}">
                     </div>
                 {% else %}
                     <h2>Archive playback issue</h2>
