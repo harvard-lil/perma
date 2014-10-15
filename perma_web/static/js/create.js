@@ -82,9 +82,8 @@ function linkIt(){
 
         $('.preview-row').removeClass('hide').hide().slideDown();
 
-        if (!new_archive.message_pdf) {
-            refreshIntervalIds.push(setInterval(check_status, 2000));
-        }
+        refreshIntervalIds.push(setInterval(check_status, 2000));
+
     });
     request.fail(function(jqXHR) {
         var source = $("#preview-failure-template").html();
