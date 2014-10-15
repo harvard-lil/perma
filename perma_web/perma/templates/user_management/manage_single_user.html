@@ -46,8 +46,10 @@
 				<button type="submit" class="btn-success">Save changes</button>
 			</form>
 			
-			{% if request.user|has_group:'vesting_user' %}
+			{% if request.user|has_group:'registrar_user,vesting_user' and group_name == 'vesting_user' %}
 			<a href="{% url 'user_management_manage_single_vesting_user_remove' target_user.id %}"><span class="text-remove"><i class="glyphicon glyphicon-remove-circle"></i> Remove this user from {{target_user.vesting_org.name}} <!--{{target_registrar_member.username}}--></span></a>
+			{% elif request.user|has_group:'registrar_user' and group_name == 'registrar_user' %}
+			<a href="{% url 'user_management_manage_single_registrar_user_remove' target_user.id %}"><span class="text-remove"><i class="glyphicon glyphicon-remove-circle"></i> Remove this user from {{target_user.registrar.name}} <!--{{target_registrar_member.username}}--></span></a>
 			{% else %}
 			<a href="{% url delete_user_url target_user.id %}"><span class="text-error"><i class="icon-trash"></i> Delete this user</span> <!--{{target_registrar_member.username}}--></a>
 			{% endif %}

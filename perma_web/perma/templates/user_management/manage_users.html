@@ -17,14 +17,20 @@
     {% endif %}
 
 	<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
-	    {% if request.user|has_group:'registrar_user,vesting_user' %}{% if group_name == 'vesting_user' %}
+	    {% if request.user|has_group:'registrar_user,vesting_user' and group_name == 'vesting_user' %}
 	    <form method="get" action="{% url 'user_management_vesting_user_add_user' %}" class="form-inline" role="form">
 	        <div class="form-group">
                 <input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
             </div>
             <button type="submit" class="btn btn-default">Add</button>
         </form>
-        {% endif %}
+        {% elif request.user|has_group:'registrar_user' and group_name == 'registrar_user' %}
+        <form method="get" action="{% url 'user_management_registrar_user_add_user' %}" class="form-inline" role="form">
+	        <div class="form-group">
+                <input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
+            </div>
+            <button type="submit" class="btn btn-default">Add</button>
+        </form>
         {% else %}
         <form method="post">
           {% csrf_token %}
@@ -174,7 +180,7 @@
                 <p class="list-name">{{ listed_user.first_name }} {{ listed_user.last_name }}</p>
               <p class="list-email">{{ listed_user.email }}</p>
               {% if request.user|has_group:'registry_user,registrar_user' %}{% if group_name == 'vesting_user' %}<p class="list-vesting-org">{{listed_user.vesting_org.name}}</p>{% endif %}{% endif %}
-            {% if group_name == 'registrar_user' %}<p class="list-registrar">{{ listed_user.registrar.name }}</p>{% endif %}
+            {% if group_name == 'registrar_user' and request.user|has_group:'registry_user' %}<p class="list-registrar">{{ listed_user.registrar.name }}</p>{% endif %}
               </div>
               <div class="col-sm-3">
                 {% if group_name == 'vesting_user' %}

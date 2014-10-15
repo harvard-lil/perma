@@ -309,11 +309,11 @@ def manage_single_vesting_org(request, vesting_org_id):
 
 
 
-@require_group('registry_user')
+@require_group(['registrar_user', 'registry_user'])
 def manage_registrar_user(request):
     return list_users_in_group(request, 'registrar_user')
 
-@require_group('registry_user')
+@require_group(['registrar_user', 'registry_user'])
 def manage_single_registrar_user(request, user_id):
     return edit_user_in_group(request, user_id, 'registrar_user')
 
@@ -400,8 +400,11 @@ def list_users_in_group(request, group_name):
         registrars = Registrar.objects.all().order_by('name')
         is_registry = True
     elif request.user.has_group('registrar_user'):
-        users = LinkUser.objects.filter(groups__name=group_name, vesting_org__registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links=Count('vested_by_editor', distinct=True))
-        vesting_orgs = VestingOrg.objects.filter(registrar_id=request.user.registrar_id).order_by('name')
+    	if group_name == 'vesting_user':
+        	users = LinkUser.objects.filter(groups__name=group_name, vesting_org__registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links=Count('vested_by_editor', distinct=True))
+        	vesting_orgs = VestingOrg.objects.filter(registrar_id=request.user.registrar_id).order_by('name')
+        else:
+        	users = LinkUser.objects.filter(groups__name=group_name, registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links=Count('vested_by_editor', distinct=True))
         is_registrar = True
     elif request.user.has_group('vesting_user'):
         users = LinkUser.objects.filter(groups__name=group_name, vesting_org=request.user.vesting_org).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links=Count('vested_by_editor', distinct=True))
@@ -528,7 +531,9 @@ def edit_user_in_group(request, user_id, group_name):
 
     # Registrar members can only edit their own vesting members
     if not is_registry and is_registrar:
-        if request.user.registrar != target_user.vesting_org.registrar:
+    	if group_name == 'vesting_user' and request.user.registrar != target_user.vesting_org.registrar:
+            return HttpResponseRedirect(reverse('created_links'))
+        if group_name == 'registrar_user' and request.user.registrar != target_user.registrar:
             return HttpResponseRedirect(reverse('created_links'))
 
     # Vesting managers can only edit their own vesting members
@@ -537,7 +542,7 @@ def edit_user_in_group(request, user_id, group_name):
             return HttpResponseRedirect(reverse('created_links'))
 
     context = {
-        'target_user': target_user,
+        'target_user': target_user, 'group_name':group_name,
         'this_page': 'users_{group_name}s'.format(group_name=group_name),
         'pretty_group_name':group_name.replace('_', ' ').capitalize(),
         'user_list_url':'user_management_manage_{group_name}'.format(group_name=group_name),
@@ -546,8 +551,10 @@ def edit_user_in_group(request, user_id, group_name):
 
     form = None
     form_data = request.POST or None
-    if group_name == 'registrar_user':
+    if group_name == 'registrar_user' and is_registry:
         form = RegistrarMemberFormEdit(form_data, prefix="a", instance=target_user)
+    if group_name == 'registrar_user' and is_registrar:
+        form = VestingMemberFormEdit(form_data, prefix="a", instance=target_user) 
     elif group_name == 'vesting_user':
         if is_registry:
             form = VestingMemberWithGroupFormEdit(form_data, prefix="a", instance=target_user)
@@ -648,7 +655,66 @@ def vesting_user_add_user(request):
 
     context = RequestContext(request, context)
 
-    return render_to_response('user_management/user_add_confirm.html', context)
+    return render_to_response('user_management/user_add_to_vesting_confirm.html', context)
+    
+
+@require_group('registrar_user')
+def registrar_user_add_user(request):
+    """
+        Registrar users can add other registrar users
+    """
+    
+    user_email = request.GET.get('email', None)
+    try:
+        target_user = LinkUser.objects.get(email=user_email)
+    except LinkUser.DoesNotExist:
+        target_user = None
+        
+    cannot_add = True
+    is_new_user = False
+    
+    form = None
+    form_data = request.POST or None
+    if target_user == None:
+        cannot_add = False
+        form = CreateUserForm(form_data, prefix = "a", initial={'email': user_email})
+    else:
+        if target_user.has_group('user'):
+            cannot_add = False
+        form = None
+            
+    context = {'this_page': 'users_registrar_users', 'user_email': user_email, 'form': form, 'target_user': target_user, 'cannot_add': cannot_add}
+
+    if request.method == 'POST': 
+        if ((form and form.is_valid()) or form == None) and not cannot_add:
+            if target_user == None:
+                target_user = form.save()
+                is_new_user = True
+    
+            target_user.registrar = request.user.registrar
+            logger.debug(target_user.registrar)
+    
+            group = Group.objects.get(name='registrar_user')
+            all_groups = Group.objects.all()
+            for ag in all_groups:
+              target_user.groups.remove(ag)
+            target_user.groups.add(group)
+    
+            if is_new_user:
+                target_user.is_active = False
+                email_new_user(request, target_user)
+                messages.add_message(request, messages.INFO, '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % target_user.email, extra_tags='safe')
+            else:
+                email_new_registrar_user(request, target_user)
+                messages.add_message(request, messages.INFO, '<h4>Success!</h4> <strong>%s</strong> is now a registrar user.' % target_user.email, extra_tags='safe')
+            
+            target_user.save()
+
+            return HttpResponseRedirect(reverse('user_management_manage_registrar_user'))
+
+    context = RequestContext(request, context)
+
+    return render_to_response('user_management/user_add_to_registrar_confirm.html', context)
     
 
 @require_group(['vesting_user'])
@@ -734,7 +800,39 @@ def manage_single_vesting_user_remove(request, user_id):
 
     context = RequestContext(request, context)
 
-    return render_to_response('user_management/user_remove_confirm.html', context)
+    return render_to_response('user_management/user_remove_vesting_confirm.html', context)
+    
+    
+@require_group('registrar_user')
+def manage_single_registrar_user_remove(request, user_id):
+    """
+        Basically demote a vesting user to a regular user.
+    """
+
+    target_member = get_object_or_404(LinkUser, id=user_id)
+
+    # Registrar users can only edit their own registrar members
+    if not request.user.has_group(['registrar_user']):
+        if request.user.registrar != target_member.registrar:
+            return HttpResponseRedirect(reverse('created_links'))
+
+    context = {'target_member': target_member,
+               'this_page': 'users_vesting_user'}
+
+    if request.method == 'POST':
+        target_member.registrar = None
+        target_member.save()
+        all_groups = Group.objects.all()
+        for ag in all_groups:
+          target_member.groups.remove(ag)
+        group = Group.objects.get(name='user')
+        target_member.groups.add(group)
+
+        return HttpResponseRedirect(reverse('user_management_manage_registrar_user'))
+
+    context = RequestContext(request, context)
+
+    return render_to_response('user_management/user_remove_registrar_confirm.html', context)
 
 
 @require_group(['registry_user', 'registrar_user'])
@@ -1138,6 +1236,27 @@ http://%s%s
 
     send_mail(
         "Your Perma.cc account is now associated with {vesting_org}".format(vesting_org=user.vesting_org.name),
+        content,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email], fail_silently=False
+    )
+
+
+def email_new_registrar_user(request, user):
+    """
+    Send email to newly created registrar accounts
+    """
+
+    host = request.get_host() if settings.DEBUG else settings.HOST
+
+    content = '''Your Perma.cc account has been associated with %s.  If this is a mistake, visit your account settings page to leave %s.
+
+http://%s%s
+
+''' % (user.registrar.name, user.registrar.name, host, reverse('user_management_manage_account'))
+
+    send_mail(
+        "Your Perma.cc account is now associated with {registrar}".format(registrar=user.registrar.name),
         content,
         settings.DEFAULT_FROM_EMAIL,
         [user.email], fail_silently=False
