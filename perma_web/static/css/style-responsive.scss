@@ -949,7 +949,8 @@ div#dashboard-container div#batch-convert {
 
 .thumbnail-placeholder {
     min-height: 350px;
-    width: 100%;
+	width: 100%;
+	text-align: center;
     border: 1px #bbb solid;
     border-radius: 5px;
     -moz-border-radius: 5px;
@@ -2316,14 +2317,14 @@ a.tab-styling, .tab-styling {
 }
 
 #spinner {
-    width: 50%;
-    margin: 160px 0 0 185px;
+	display: inline-block;
+	margin-top: 155px;
 }
 
 .spinner-message {
     text-align: center;
-    margin-top: 205px;
     font-size: 14px;
+	margin-top:	24px;
     color: #ff4100;
 }
 
