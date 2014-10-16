@@ -61,6 +61,10 @@
                 <p class="count-label">Unactivated Users</p>
                 <p class="count-number">{{ unactivated_users }}</p>
             </div>
+            <div class="col-sm-3">
+                <p class="count-label">Vested Links</p>
+                <p class="count-number">{{ total_vested_links_count.count }}</p>
+            </div>
         </div>
         {% if registrar_filter or vesting_org_filter or status or search_query %}
         <div class="row">

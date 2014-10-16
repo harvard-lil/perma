@@ -451,6 +451,7 @@ def list_users_in_group(request, group_name):
     active_users = users.filter(is_active=True, is_confirmed=True).count()
     deactivated_users = users.filter(is_confirmed=True, is_active=False).count()
     unactivated_users = users.filter(is_confirmed=False, is_active=False).count()
+    total_vested_links_count = users.aggregate(count=Sum('vested_links_count'))
     paginator = Paginator(users, settings.MAX_USER_LIST_SIZE)
     users = paginator.page(page)
     logger.debug('users_{group_name}s'.format(group_name=group_name))
@@ -463,6 +464,7 @@ def list_users_in_group(request, group_name):
         'deactivated_users': deactivated_users,
         'unactivated_users': unactivated_users,
         'vesting_orgs': vesting_orgs,
+        'total_vested_links_count': total_vested_links_count,
         'registrars': registrars,
         'added_user': added_user,
         'group_name':group_name,
