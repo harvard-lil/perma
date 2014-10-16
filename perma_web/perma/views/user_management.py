@@ -572,8 +572,12 @@ def edit_user_in_group(request, user_id, group_name):
 
         if form.is_valid():
             new_user = form.save()
-            new_user.vesting_org = None
-            new_user.registrar = None
+            
+            if form.cleaned_data['group'].name != 'vesting_user':
+                new_user.vesting_org = None
+            if form.cleaned_data['group'].name != 'registrar_user':
+                new_user.registrar = None
+                
             new_user.save()
             
             if group_name == 'user' and group_name != form.cleaned_data['group'].name:
