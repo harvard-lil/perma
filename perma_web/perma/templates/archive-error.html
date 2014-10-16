@@ -9,8 +9,11 @@
                     <h2>Link not archived</h2>
 
                     <div class="centered-box">
-                        <p>Perma.cc does not archive pages linked from the original archived page.</p>
-                        <input type="text" name="input" value="{{ err_url }}">
+                        <p>You are probably seeing this page because you clicked a link in one of our archives. We do not archive secondary links.</p>
+                        <p>
+                            <a href="{{ err_url }}" target="_top">Click here to visit the live version of the requested link</a><br>
+                            ({{ err_url }}).
+                        </p>
                     </div>
                 {% else %}
                     <h2>Archive playback issue</h2>
