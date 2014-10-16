@@ -1,0 +1,42 @@
+{# called from pywb when a requested asset doesn't exist in the warc #}
+{% extends "layout-archive-responsive.html" %}
+
+{% block content %}
+    <div class="row archive-error">
+        <div class="col-sm-6 col-sm-offset-3 centered">
+            <div class="yahowza">
+                {% if status == '404 Not Found' %}
+                    <h2>Link not archived</h2>
+
+                    <div class="centered-box">
+                        <p>Perma.cc does not archive pages linked from the original archived page.</p>
+                        <input type="text" name="input" value="{{ err_url }}">
+                    </div>
+                {% else %}
+                    <h2>Archive playback issue</h2>
+
+                    <div class="centered-box">
+                        <p>
+                            We're having trouble playing back the web view of this archive. If this problem persists, please let us know.<br>
+                            In the meantime, you can view the image version above.
+                        </p>
+                        <p>
+                            {% if DEBUG %}
+                                Error details (you are seeing this because DEBUG mode is on):<br><br>
+
+                                exc_type: {{ exc_type }}<br/>
+                                err_msg: {{ err_msg }}<br/>
+                                err_details: {{ err_details }}<br/>
+                                status: {{ status }}<br/>
+                                env: {{ env }}<br/>
+                                err_url: {{ err_url }}<br/>
+                            {% else %}
+                                Error message: {{ err_msg }}
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div><!--row-->
+{% endblock %}

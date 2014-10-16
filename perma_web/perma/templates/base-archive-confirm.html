@@ -1,11 +1,10 @@
 {% extends "layout-archive-responsive.html" %}
-{% load compressed %}
 
 {% block title %} | {{link.submitted_title}}{% endblock %}
 
 {% block styles %}
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/font-awesome.min.css">
-    {% compressed_css 'base' %}
+    {# put in styles because this has to be available during page load #}
+    <script src="{{ STATIC_URL }}js/local-datetime.js "></script>
 {% endblock %}
 
 {% block header %}
@@ -20,7 +19,6 @@
         <div class="container">
              <div class="row">
 
-
                 <div class="col-sm-12">
                     <div class="col-sm-3">
                         <div class="logo">
@@ -30,17 +28,13 @@
 
                     <div class="col-sm-6 meta-data ">
                         <a class="submitted_url" href="{{link.submitted_url}}">{{link.submitted_title}}</a><br/>
-
-
-                            <!--<a class="submitted_url" href="{{link.submitted_url}}">{{link.submitted_url}}</a>-->
-                            <span class="light-grey">created {{link.creation_timestamp}} | {{ link.view_count }} view{% if link.view_count > 1 %}s{% endif %}</span>
+                        <!--<a class="submitted_url" href="{{link.submitted_url}}">{{link.submitted_url}}</a>-->
+                        <span class="light-grey">created {{link.creation_timestamp}} | {{ link.view_count }} view{% if link.view_count > 1 %}s{% endif %}</span>
                     </div><!--end span 5 -->
 
                 </div>
 
             </div>
-
-                </div> <!-- end span 12-->
         </div><!-- end main-container -->
     </header>
 {% endblock %}

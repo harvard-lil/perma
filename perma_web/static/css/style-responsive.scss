@@ -2,6 +2,7 @@
 
 @import "compass/css3";
 
+$non-sans-font:  "Roboto Slab";
 $sans-font:  "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
 
 /* Global */
@@ -872,7 +873,8 @@ div#dashboard-container div#library {}
         p.library-link-title, #upload-option {
             color: #333;
             font-size: 14px;
-            margin: 0 0 10px 0;
+            margin: 0 0 12px 2px;
+			font-family: $sans-font;
         }
 
         p.library-link-url {
@@ -949,7 +951,8 @@ div#dashboard-container div#batch-convert {
 
 .thumbnail-placeholder {
     min-height: 350px;
-    width: 100%;
+	width: 100%;
+	text-align: center;
     border: 1px #bbb solid;
     border-radius: 5px;
     -moz-border-radius: 5px;
@@ -962,21 +965,25 @@ div#dashboard-container div#batch-convert {
 
 #steps-container .message-large {
     font-size: 40px;
+	font-family: $non-sans-font;
     color: #ff4100;
     font-weight: 400;
     margin-bottom: 0;
 }
 
 #steps-container p {
-    font-size: 16px;
+    font-size: 17px;
+	font-family: $sans-font;
+	color: #555;
 }
 
 #steps-container a.perma-url {
+	font-family: $non-sans-font;
     font-size: 26px;
 }
 
 #steps-container .message-url {
-    margin: 0 0 49px 0;
+    margin: 20px 0;
 }
 
 #steps-container .text-warning {
@@ -2316,14 +2323,14 @@ a.tab-styling, .tab-styling {
 }
 
 #spinner {
-    width: 50%;
-    margin: 160px 0 0 185px;
+	display: inline-block;
+	margin-top: 155px;
 }
 
 .spinner-message {
     text-align: center;
-    margin-top: 205px;
     font-size: 14px;
+	margin-top:	24px;
     color: #ff4100;
 }
 
@@ -2694,4 +2701,17 @@ p.orange {
     max-width: 90%;   /* Make it fit window if under 500px */
     z-index: 10000;    /* Whatever needed to force to front (1 might do) */
 }
+
+
+
+/* Archive error page start */
+
+.archive-error input {
+    width: 75%;
+    padding: 8px;
+    text-align: center;
+}
+
+/* Archive error page end */
+
 
