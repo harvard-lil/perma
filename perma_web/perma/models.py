@@ -40,10 +40,9 @@ class Registrar(models.Model):
         
     def create_default_vesting_org(self):
         """
-            Create a default vesting org for this registrar, if there isn't one.
-            Before creating a new one, we check if registrar has only a single vesting org,
-            or else one called "Default Vesting Organization",
-            and if so use that one.
+            Create a default vesting org for this registrar, if there isn't
+            one. (When registrar member vests, we associate that archive
+            with this vesting org by default.)
         """
         
         if self.default_vesting_org:
