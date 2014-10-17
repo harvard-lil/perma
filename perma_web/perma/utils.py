@@ -185,3 +185,14 @@ def get_search_query(target, search_string, fields):
         target = target.filter(query_parts_joined)
 
     return target
+
+### user content url ###
+
+def absolute_url(request, url):
+    """
+        Get absolute URL for relative URL based on request.
+        We wrap Django's version to also check for '//' absolute links.
+    """
+    if url.startswith('//'):
+        return url
+    return request.build_absolute_uri(url)

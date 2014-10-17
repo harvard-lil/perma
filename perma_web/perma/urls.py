@@ -127,7 +127,7 @@ if settings.DEBUG:
     from django.views.static import serve as media_view
     from mirroring.utils import may_be_mirrored
     urlpatterns += static(settings.STATIC_URL, may_be_mirrored(static_view)) + \
-                   static(settings.MEDIA_URL, may_be_mirrored(media_view), document_root=settings.MEDIA_ROOT)
+                   static(getattr(settings, 'DEBUG_MEDIA_URL', settings.MEDIA_URL), may_be_mirrored(media_view), document_root=settings.MEDIA_ROOT)
 
 handler404 = 'perma.views.common.server_error_404'
 handler500 = 'perma.views.common.server_error_500'

@@ -1,4 +1,6 @@
 import os
+from django.core.exceptions import DisallowedHost
+from django.core.handlers.wsgi import WSGIRequest
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "perma.settings")
 from django.conf import settings
@@ -19,6 +21,7 @@ class Route(archivalrouter.Route):
     def apply_filters(self, wbrequest, matcher):
         wbrequest.custom_params['guid'] = matcher.group(1)
 
+
 # prevent mod getting added to rewritten urls
 # timestamp already disabled via 'redir_to_exact' flag
 class Url(WbUrl):
@@ -27,9 +30,11 @@ class Url(WbUrl):
         overrides['timestamp'] = ''
         return WbUrl.to_str(self, **overrides)
 
+
 class Handler(WBHandler):
     def get_wburl_type(self):
         return Url
+
 
 class ErrorTemplateView(object):
     """ View for pywb errors -- basically just hands off to the archive-error.html Django template. """
@@ -46,6 +51,16 @@ class ErrorTemplateView(object):
         status = kwargs.get('status', '200 OK')
         content_type = kwargs.get('content_type', 'text/html; charset=utf-8')
         return WbResponse.text_response(template_result.encode('utf-8'), status=status, content_type=content_type)
+
+
+class Router(archivalrouter.ArchivalRouter):
+    def __call__(self, env):
+        """
+            Before routing requests, make sure that host is equal to WARC_HOST if set.
+        """
+        if settings.WARC_HOST and env.get('HTTP_HOST') != settings.WARC_HOST:
+            raise DisallowedHost("Playback request used invalid domain.")
+        return super(Router, self).__call__(env)
 
 
 #=================================================================
@@ -81,7 +96,7 @@ def create_perma_pywb_app(config):
                                         redir_to_exact=False))
 
     # Finally, create wb router
-    return archivalrouter.ArchivalRouter(
+    return Router(
         {
             Route(r'([a-zA-Z0-9\-]+)', wb_handler)
         },
@@ -92,3 +107,4 @@ def create_perma_pywb_app(config):
         port=8000,
         error_view=ErrorTemplateView()
     )
+
