@@ -38,6 +38,22 @@ class Registrar(models.Model):
     def __unicode__(self):
         return self.name
         
+    def create_default_vesting_org(self):
+        """
+            Create a default vesting org for this registrar, if there isn't one.
+            Before creating a new one, we check if registrar has only a single vesting org,
+            or else one called "Default Vesting Organization",
+            and if so use that one.
+        """
+        
+        if self.default_vesting_org:
+            return
+        else:
+            vesting_org = VestingOrg(registrar=self, name="Default Vesting Organization")
+            vesting_org.save()
+            self.default_vesting_org = vesting_org
+            self.save()
+        
 class VestingOrg(models.Model):
     """
     This is generally a journal.
