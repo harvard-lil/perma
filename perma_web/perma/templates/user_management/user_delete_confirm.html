@@ -6,11 +6,14 @@
 	<h3>Delete {{ target_member.email }}</h3>
 	<br/>
 	<br/>
-	<p>Yahowza! Do you really want to delete {{ target_member.email }} forever?</p>
+	<p>Yahowza! Do you really want to {% if target_member.is_confirmed %}deactivate {{ target_member.email }}{% else %}delete {{ target_member.email }} forever{% endif %}?</p>
 	<br/>
 	<form action="" method="POST">
-	      {% csrf_token %}
-        <a href="../">Cancel</a> <button type="submit" class="btn-success delete-confirm">Delete {{ target_member.email }} forever</button>
+	    {% csrf_token %}
+        <a href="../">Cancel</a>
+        <button type="submit" class="btn-success delete-confirm">
+            {% if target_member.is_confirmed %}Deactivate{% else %}Delete {{ target_member.email }} forever{% endif %}
+        </button>
     </form>
 
 {% endblock %}

@@ -199,9 +199,12 @@
             <div class="col-sm-3">
                 <p class="list-status">
                 {% if listed_user.is_active %}
-                  <a href="{% url single_user_url listed_user.id %}">edit/delete</a>
+                    <a href="{% url single_user_url listed_user.id %}">edit/{% if request.user|has_group:'registrar_user,registry_user' %}delete{% else %}remove{% endif %}</a>
                 {% elif listed_user.is_confirmed %}
-                    <span class="text-warning">deactivated account</span> <a href="{% url reactivate_user_url listed_user.id %}">reactivate</a>
+                    <span class="text-warning">deactivated account</span>
+                    {% if request.user|has_group:'registrar_user,registry_user' %}
+                        <a href="{% url reactivate_user_url listed_user.id %}">reactivate</a>
+                    {% endif %}
                 {% else %}
                     <span class="text-warning">user must activate account</span> <a href="{% url delete_user_url listed_user.id %}">delete</a>
                 {% endif %}
