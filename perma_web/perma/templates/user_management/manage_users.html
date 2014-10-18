@@ -223,7 +223,10 @@
                         <a href="{% url single_user_url listed_user.id %}">edit/remove</a>
                     {% endif %}
                 {% elif listed_user.is_confirmed %}
-                    <span class="text-warning">deactivated account</span> <a href="{% url reactivate_user_url listed_user.id %}">reactivate</a>
+                    <span class="text-warning">deactivated account</span>
+                    {% if request.user|has_group:'registry_user' %}
+                        <a href="{% url reactivate_user_url listed_user.id %}">reactivate</a>
+                    {% endif %}
                 {% else %}
                     <span class="text-warning">user must activate account</span> 
                     {% if request.user|has_group:'registry_user' %}
