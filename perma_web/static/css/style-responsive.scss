@@ -1,61 +1,10 @@
-/* This .scss file will automatically be compiled by django-pipeline into a .css file */
+/* Styles used other than on the single-link page. */
+
+/* Import our style variables from variables.scss */
+@import "variables";
 
 @import "compass/css3";
 
-/* Start - our locally hosted Google Fonts */
-@font-face {
-    font-family: "Roboto Slab";
-    font-style: normal;
-    font-weight: 300;
-    src: url('../fonts/RobotoSlab-Light.eot');
-    src: local("Roboto Slab Light"), local("RobotoSlab-Light"), url('../fonts/RobotoSlab-Light.eot?#iefix') format("embedded-opentype"), url('../fonts/RobotoSlab-Light.woff') format("woff"), url('../fonts/RobotoSlab-Light.ttf') format("truetype")
-    }
-@font-face {
-    font-family: "Roboto Slab";
-    font-style: normal;
-    font-weight: 400;
-    src: url('../fonts/RobotoSlab-Regular.eot');
-    src: local("Roboto Slab Regular"), local("RobotoSlab-Regular"), url('../fonts/RobotoSlab-Regular.eot?#iefix') format("embedded-opentype"), url('../fonts/RobotoSlab-Regular.woff') format("woff"), url('../fonts/RobotoSlab-Regular.ttf') format("truetype")
-    }
-/* End - our locally hosted Google Fonts */
-
-
-/* Global start */
-
-$perma-blue: #0099FF;
-$perma-orange: #ff4100;
-
-$spicy-font: 'Roboto Slab', sans-serif;
-$sans-font:  "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-
-/* Global end */
-
-
-html {
-    position:relative;
-    min-height:100%;
-    margin:0px;
-}
-
-body {
-  	background:#f7f7f7;
-    color: #333;
-    margin: 0;
-    font-family: 'Roboto Slab', sans-serif;
-}
-
-.navbar-default {
-	background:#f7f7f7;
-	border-bottom:1px solid #eee;
-}
-
-.tab-border	{
-	border-bottom:3px solid #ff4100;
-}
-
-.container-fluid {
-    padding: 0;
-}
 
 .modal {
     border-radius:3px;
@@ -205,17 +154,6 @@ hr {
        box-sizing: content-box;
 }
 
-a {
-	font-weight:400;
-}
-
-p {
-    margin-bottom: 20px;
-    font-family: 'Roboto Slab', sans-serif;
-    font-weight:300;
-    color: #000;
-}
-
 .docs p, .docs li {
     font-family: 'Roboto Slab', sans-serif;
     font-weight:300;
@@ -238,17 +176,6 @@ p {
 }
 
 /* Header */
-
-
-    .logo span { display: none; }
-
-    .logo a, .logo {
-        min-width:235px;
-    text-decoration: none;
-      font-family: 'Roboto Slab', sans-serif;
-      font-size:36px;
-      color:#ff4100;
-    }
 
 	.logo-condensed-header a {
 	text-decoration: none;
@@ -1114,12 +1041,6 @@ td.linky-link input {
     margin-top: 60px;
 }
 
-ul {
-	list-style-type:none;
-}
-.negative-margin {
-	margin-top:-20px;
-}
 #linky-upload {
     outline: none;
 }
@@ -2340,34 +2261,6 @@ a.tab-styling, .tab-styling {
     color: #ff4100;
 }
 
-a.btn.vest, a.btn.dashboard, a.btn.user-delete {
-	width:100px;
-	padding:2px 0px;
-	color:#666;
-	font-size:14px;
-	margin-top:4px;
-	border:1px solid #666;
-	border-radius: 3px;
-	background:#fff;
-	margin-left:10px;
-}
-input.btn.vest {
-	width:100px;
-	padding:2px 0px;
-	color:#666;
-	font-size:14px;
-	margin-top:4px;
-	margin-bottom:-5px;
-	border:1px solid #666;
-	border-radius: 3px;
-	background:#fff;
-	margin-left:10px;
-}
-
-input.btn.vest:hover, input.btn.vest:focus, a.btn.vest:hover, a.btn.vest:focus {
-	color:#222;
-	border:1px solid #222;
-}
 
 a.btn.dashboard {
 	border:1px solid $perma-blue;
