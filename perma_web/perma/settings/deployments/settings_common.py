@@ -122,17 +122,19 @@ PIPELINE_JS = {
 PIPELINE_CSS = {
     'base': {
         'source_filenames': (
-            'css/bootstrap3.css',
+            'css/lib/bootstrap3.css',
+            'css/global.scss',
             'css/style-responsive.scss',
-            'css/font-awesome.min.css',
+            'css/lib/font-awesome.min.css',
         ),
         'output_filename': 'css/base-bundle.css',
     },
     'base-archive': {
         'source_filenames': (
-            'css/bootstrap3.css',
+            'css/lib/bootstrap3.css',
+            'css/global.scss',
             'css/style-responsive-archive.scss',
-            'css/font-awesome.min.css',
+            'css/lib/font-awesome.min.css',
         ),
         'output_filename': 'css/base-archive-bundle.css',
     },
