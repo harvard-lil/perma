@@ -847,17 +847,7 @@ def manage_account(request):
 
     context = {'next': request.get_full_path(), 'this_page': 'settings'}
     context.update(csrf(request))
-    if request.user.has_group(['vesting_user']):
-        if request.user.registrar:
-            context.update({'sponsoring_library_name': request.user.registrar.name, 'sponsoring_library_email': request.user.registrar.email, 'sponsoring_library_website': request.user.registrar.website})
-        else:
-            context.update({'no_registrar': True})
-        
-        if request.user.vesting_org:
-            context.update({'vesting_org_name': request.user.vesting_org.name})
-        else:
-            context.update({'no_vesting_org': True})
-    
+
     if request.method == 'POST':
 
         form = UserFormSelfEdit(request.POST, prefix = "a", instance=request.user)
