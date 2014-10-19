@@ -185,3 +185,10 @@ def get_search_query(target, search_string, fields):
         target = target.filter(query_parts_joined)
 
     return target
+
+
+### debug toolbar ###
+
+def show_debug_toolbar(request):
+    """ Used by django-debug-toolbar in settings_dev.py to decide whether to show debug toolbar. """
+    return settings.DEBUG

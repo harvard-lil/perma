@@ -15,6 +15,19 @@ The Master branch always contains production code (probably the thing currently 
 Leverage [feature branches](http://nvie.com/posts/a-successful-git-branching-model/) in your local development flow. Merge your code back into the develop branch and push to GitHub often. Small, quick commits avoid nightmare merge problems.
 
 
+### Optional developer packages ###
+
+You can install some handy developer packages with `pip install -r dev_requirements.txt`:
+
+* `ipdb` is a nice drop-in replacement for `pdb`.
+* `django-extensions` adds [a bunch of useful manage.py commands](http://django-extensions.readthedocs.org/en/latest/command_extensions.html). 
+  Particularly useful are `runserver_plus` and `shell_plus`. If installed, this will be automatically enabled by `settings_dev.py`,
+  and`fab run` will use `runserver_plus` instead of `runserver`.
+* `django-debug-toolbar` includes a handy debug toolbar in frontend pages. If installed, this will be automatically enabled by `settings_dev.py`.
+
+`django-extensions` and `django-debug-toolbar` can both cause confusing errors occasionally, so try disabling them
+if you run into something odd.
+
 ### Logs
 
 If you are using Vagrant, all of your logs will end up in /vagrant/services/logs. As a convenience, you can tail -f all of them with `fab logs`.
