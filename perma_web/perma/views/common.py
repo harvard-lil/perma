@@ -2,7 +2,7 @@ from django.core import serializers
 from django.core.files.storage import default_storage
 from django.template import RequestContext
 from django.template.loader import render_to_string
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, render
 from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, Http404, HttpResponse, HttpResponseNotFound, HttpResponseServerError
 from django.core.urlresolvers import reverse
 from django.conf import settings
@@ -26,6 +26,7 @@ from mirroring.utils import must_be_mirrored
 
 from ..models import Link, Asset
 from perma.forms import ContactForm
+from perma.utils import absolute_url
 
 
 logger = logging.getLogger(__name__)
@@ -203,114 +204,30 @@ def single_linky(request, guid):
         asset = Asset.objects.get(link__guid=link.guid)
 
         created_datestamp = link.creation_timestamp
-        pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
 
-        context = {'linky': link, 'asset': asset, 'pretty_date': pretty_date, 'next': request.get_full_path(),
-                   'display_iframe': display_iframe, 'serve_type': serve_type, 'text_capture': text_capture,
-                   'warc_url':asset.warc_url()}
+        context = {
+            'linky': link,
+            'asset': asset,
+            'next': request.get_full_path(),
+            'display_iframe': display_iframe,
+            'serve_type': serve_type,
+            'text_capture': text_capture,
+            'warc_url': asset.warc_url()
+        }
 
     if request.META.get('CONTENT_TYPE') == 'application/json':
         # if we were called as JSON (by a mirror), serialize and send back as JSON
-        context['MEDIA_URL'] = request.build_absolute_uri(settings.MEDIA_URL)
-        context['warc_url'] = request.build_absolute_uri(context['warc_url'])
+        context['warc_url'] = absolute_url(request, context['warc_url'])
+        context['MEDIA_URL'] = absolute_url(request, settings.MEDIA_URL)
         context['asset'] = serializers.serialize("json", [context['asset']], fields=['text_capture','image_capture','pdf_capture','warc_capture','base_storage_path'])
         context['linky'] = serializers.serialize("json", [context['linky']], fields=['dark_archived','guid','vested','view_count','creation_timestamp','submitted_url','submitted_title'])
         return HttpResponse(json.dumps(context), content_type="application/json")
 
-    if serve_type == 'warc_download':
+    elif serve_type == 'warc_download':
         if context['asset'].warc_download_url():
             return HttpResponseRedirect(context.get('MEDIA_URL', settings.MEDIA_URL)+context['asset'].warc_download_url())
 
-    return render_to_response('single-link.html', context, RequestContext(request))
-
-
-@must_be_mirrored
-@ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block=True, ip=False,
-           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
-@ratelimit(method='GET', rate=settings.HOUR_LIMIT, block=True, ip=False,
-           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
-@ratelimit(method='GET', rate=settings.DAY_LIMIT, block=True, ip=False,
-           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
-def single_link_header(request, guid):
-    """
-    Given a Perma ID, serve it up. Vesting also takes place here.
-    """
-
-    # Create a canonical version of guid (non-alphanumerics removed, hyphens every 4 characters, uppercase),
-    # and forward to that if it's different from current guid.
-    canonical_guid = Link.get_canonical_guid(guid)
-    if canonical_guid != guid:
-        return HttpResponsePermanentRedirect(reverse('single_link_header', args=[canonical_guid]))
-
-    context = None
-
-    # User requested archive type
-    serve_type = request.GET.get('type','image')
-    if not serve_type in valid_serve_types:
-        serve_type = 'image'
-
-    try:
-        link = Link.objects.get(guid=guid)
-    except Link.DoesNotExist:
-        if settings.MIRROR_SERVER:
-            # if we can't find the Link, and we're a mirror server, try fetching it from main server
-            try:
-                json_url = get_url_for_host(request,
-                                            request.main_server_host,
-                                            reverse('mirroring:single_link_json', args=[guid])+"?type="+serve_type)
-                json_response = requests.get(json_url, headers={'Content-Type': 'application/json'})
-            except requests.ConnectionError:
-                raise Http404
-
-            # check response
-            if not json_response.ok:
-                raise Http404
-
-            # load context from JSON
-            context = json.loads(json_response.content)
-            context['linky'] = serializers.deserialize("json", context['linky']).next().object
-            context['asset'] = serializers.deserialize("json", context['asset']).next().object
-            context['asset'].link = context['linky']
-        else:
-            raise Http404
-
-    if not context:
-        # Increment the view count if we're not the referrer
-        parsed_url = urlparse(request.META.get('HTTP_REFERER', ''))
-        current_site = Site.objects.get_current()
-
-        if not current_site.domain in parsed_url.netloc:
-            link.view_count += 1
-            link.save()
-
-        asset = Asset.objects.get(link=link)
-
-
-        # If we have a PDF, we want to serve it up by default instead
-        # of an image
-        if asset.pdf_capture and asset.pdf_capture != 'failed':
-            serve_type = 'pdf'
-
-        created_datestamp = link.creation_timestamp
-        pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
-
-        context = {'archive': link, 'asset': asset, 'pretty_date': pretty_date, 'next': request.get_full_path(),
-                    'serve_type': serve_type,
-                    'warc_url':asset.warc_url()}
-
-    if request.META.get('CONTENT_TYPE') == 'application/json':
-        # if we were called as JSON (by a mirror), serialize and send back as JSON
-        context['MEDIA_URL'] = request.build_absolute_uri(settings.MEDIA_URL)
-        context['warc_url'] = request.build_absolute_uri(context['warc_url'])
-        context['asset'] = serializers.serialize("json", [context['asset']], fields=['text_capture','image_capture','pdf_capture','warc_capture','base_storage_path'])
-        context['linky'] = serializers.serialize("json", [context['linky']], fields=['dark_archived','guid','vested','view_count','creation_timestamp','submitted_url','submitted_title'])
-        return HttpResponse(json.dumps(context), content_type="application/json")
-
-    if serve_type == 'warc_download':
-        if context['asset'].warc_download_url():
-            return HttpResponseRedirect(context.get('MEDIA_URL', settings.MEDIA_URL)+context['asset'].warc_download_url())
-
-    return render_to_response('single-link-header.html', context, RequestContext(request))
+    return render(request, 'single-link.html', context)
 
 
 def rate_limit(request, exception):
