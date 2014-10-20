@@ -45,7 +45,7 @@ from perma.models import Registrar, Link, LinkUser, VestingOrg, Folder
 from perma.utils import require_group, get_search_query
 
 logger = logging.getLogger(__name__)
-valid_member_sorts = ['-email', 'email', 'last_name', '-last_name', 'admin', '-admin', 'registrar__name', '-registrar__name', 'vesting_org__name', '-vesting_org__name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'vested_links', '-vested_links']
+valid_member_sorts = ['-email', 'email', 'last_name', '-last_name', 'admin', '-admin', 'registrar__name', '-registrar__name', 'vesting_org__name', '-vesting_org__name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'vested_links_count', '-vested_links_count']
 valid_registrar_sorts = ['name', '-name', 'vested_links', '-vested_links', '-date_created', 'date_created', 'last_active', '-last_active']
 
 

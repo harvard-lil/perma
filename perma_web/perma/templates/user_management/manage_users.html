@@ -92,8 +92,8 @@
                         <a {% if sort == '-last_login' %}class="selected" {% endif %} href="?sort=-last_login&page={{ users.number }}{% if sort_url %}{{ sort_url }}{% endif %}"><i class="icon-ok"></i> Recently active</a>
                         <a {% if sort == 'last_login' %}class="selected" {% endif %} href="?sort=last_login&page={{ users.number }}{% if sort_url %}{{ sort_url }}{% endif %}"><i class="icon-ok"></i> Least recently active</a>
                         {% if group_name == 'vesting_user' %}
-                        <a {% if sort == '-vested_links' %}class="selected" {% endif %} href="?sort=-vested_links&page={{ users.number }}{% if sort_url %}{{ sort_url }}{% endif %}"><i class="icon-ok"></i> Most vested links</a>
-                        <a {% if sort == 'vested_links' %}class="selected" {% endif %} href="?sort=vested_links&page={{ users.number }}{% if sort_url %}{{ sort_url }}{% endif %}"><i class="icon-ok"></i> Least vested links</a>
+                        <a {% if sort == '-vested_links_count' %}class="selected" {% endif %} href="?sort=-vested_links_count&page={{ users.number }}{% if sort_url %}{{ sort_url }}{% endif %}"><i class="icon-ok"></i> Most vested links</a>
+                        <a {% if sort == 'vested_links_count' %}class="selected" {% endif %} href="?sort=vested_links_count&page={{ users.number }}{% if sort_url %}{{ sort_url }}{% endif %}"><i class="icon-ok"></i> Least vested links</a>
                         {% endif %}
                     </li>
                   </ul>
