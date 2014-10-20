@@ -167,8 +167,8 @@
             </div>
             </div>
         </div>
-        {% if users_list %}
-          {% for listed_user in users_list %}
+        {% if users %}
+          {% for listed_user in users %}
               {% if not listed_user.is_active %}
                 <div class="row muted list-user">
               {% else %}

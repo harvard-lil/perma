@@ -28,9 +28,10 @@
 
     <div class="row">
         <div class="col-sm-3">
-                <p class="count-label">Active Users</p>
-                <p class="count-number">{{ active_users }}</p>
+                <p class="count-label">Users</p>
+                <p class="count-number">{{ users_count.count }}</p>
             </div>
+            {% comment %}
             <div class="col-sm-3">
                 <p class="count-label">Deactivated Users</p>
                 <p class="count-number">{{ deactivated_users }}</p>
@@ -39,6 +40,7 @@
                 <p class="count-label">Unactivated Users</p>
                 <p class="count-number">{{ unactivated_users }}</p>
             </div>
+            {% endcomment %}
         <div class="col-sm-3">
             <p class="count-label">Vesting Organizations</p>
             <p class="count-number">{{ vesting_orgs_count }}</p>
@@ -114,16 +116,19 @@
                 <p class="list-count-number">{{ vesting_org.vested_links }}</p>
                 <p class="list-count-label">vested links</p>
                 </div>
+                {% comment %}
                     <div class="list-count-group">
                     <p class="list-count-number{% if group_name == 'user'%} vesting_user-list{% endif %}">{{ vesting_org.created_links_count }}</p>
                     <p class="list-count-label">created links</p>
                     </div>
+                    {% endcomment %}
               </div>
               <div class="col-sm-7 center-list-count">
                 <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_user' %}?vesting_org={{vesting_org.name.split|join:'+'|lower}}&status=active">
-                <p class="list-count-number">{{ vesting_org.active_count|default_if_none:"0" }}</p>
-                <p class="list-count-label">active users</p></a>
+                <p class="list-count-number">{{ vesting_org.vesting_users|default_if_none:"0" }}</p>
+                <p class="list-count-label">users</p></a>
                 </div>
+                {% comment %}
                 <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_user' %}?vesting_org={{vesting_org.name.split|join:'+'|lower}}&status=deactivated">
                 <p class="list-count-number">{{ vesting_org.deactivated_count|default_if_none:"0" }}</p>
                 <p class="list-count-label">deactivated users</p></a>
@@ -132,6 +137,7 @@
                 <p class="list-count-number">{{ vesting_org.unactivated_count|default_if_none:"0" }}</p>
                 <p class="list-count-label">unactivated users</p></a>
                 </div>
+                {% endcomment %}
             </div>
             <div class="col-sm-7">
             {% if request.user|has_group:'registry_user' %}
