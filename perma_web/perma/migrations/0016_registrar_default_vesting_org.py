@@ -7,10 +7,7 @@ from django.db import models
 class Migration(DataMigration):
 
     def forwards(self, orm):
-        "Write your forwards methods here."
-        from perma.models import Registrar
-        for registrar in Registrar.objects.all():
-            registrar.create_default_vesting_org()
+        pass
 
     def backwards(self, orm):
         "Write your backwards methods here."

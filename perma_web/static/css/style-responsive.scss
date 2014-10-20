@@ -2,13 +2,6 @@
 
 @import "compass/css3";
 
-$non-sans-font:  "Roboto Slab";
-$sans-font:  "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-
-/* Global */
-
-$perma-blue: #0099FF;
-
 /* Start - our locally hosted Google Fonts */
 @font-face {
     font-family: "Roboto Slab";
@@ -25,6 +18,18 @@ $perma-blue: #0099FF;
     src: local("Roboto Slab Regular"), local("RobotoSlab-Regular"), url('../fonts/RobotoSlab-Regular.eot?#iefix') format("embedded-opentype"), url('../fonts/RobotoSlab-Regular.woff') format("woff"), url('../fonts/RobotoSlab-Regular.ttf') format("truetype")
     }
 /* End - our locally hosted Google Fonts */
+
+
+/* Global start */
+
+$perma-blue: #0099FF;
+$perma-orange: #ff4100;
+
+$spicy-font: 'Roboto Slab', sans-serif;
+$sans-font:  "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+
+/* Global end */
+
 
 html {
     position:relative;
@@ -965,7 +970,7 @@ div#dashboard-container div#batch-convert {
 
 #steps-container .message-large {
     font-size: 40px;
-	font-family: $non-sans-font;
+	font-family: $spicy-font;
     color: #ff4100;
     font-weight: 400;
     margin-bottom: 0;
@@ -978,7 +983,7 @@ div#dashboard-container div#batch-convert {
 }
 
 #steps-container a.perma-url {
-	font-family: $non-sans-font;
+	font-family: $spicy-font;
     font-size: 26px;
 }
 
@@ -2361,7 +2366,7 @@ input.btn.vest {
 
 input.btn.vest:hover, input.btn.vest:focus, a.btn.vest:hover, a.btn.vest:focus {
 	color:#222;
-	border:1px solid #22;
+	border:1px solid #222;
 }
 
 a.btn.dashboard {
@@ -2707,11 +2712,20 @@ p.orange {
 
 /* Archive error page start */
 
-.archive-error input {
-    width: 75%;
-    padding: 8px;
-    text-align: center;
+.archive-error .centered-box p {
+	font-size: 19px;
+	line-height: 28px;
+	padding: 0;
 }
+
+.archive-error .mega {
+	color: $perma-orange;
+	font-family: $spicy-font;
+	margin-top: 40px;
+	margin-bottom: 30px;
+	font-size: 44px;
+}
+
 
 /* Archive error page end */
 

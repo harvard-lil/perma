@@ -37,32 +37,21 @@ class Registrar(models.Model):
 
     def __unicode__(self):
         return self.name
-
+        
     def create_default_vesting_org(self):
         """
-            Create a default vesting org for this registrar, if there isn't one.
-            Before creating a new one, we check if registrar has only a single vesting org,
-            or else one called "Default Vesting Organization",
-            and if so use that one.
-
-            NOTE: In theory registrars created from now on shouldn't need these checks, and they could be deleted.
+            Create a default vesting org for this registrar, if there isn't
+            one. (When registrar member vests, we associate that archive
+            with this vesting org by default.)
         """
+        
         if self.default_vesting_org:
             return
-        vesting_orgs = list(self.vesting_orgs.all())
-        if len(vesting_orgs) == 1:
-            vesting_org = vesting_orgs[0]
         else:
-            for candidate_vesting_org in vesting_orgs:
-                if candidate_vesting_org.name == "Default Vesting Organization":
-                    vesting_org = candidate_vesting_org
-                    break
-            else:
-                vesting_org = VestingOrg(registrar=self, name="Default Vesting Organization")
-                vesting_org.save()
-        self.default_vesting_org = vesting_org
-        self.save()
-
+            vesting_org = VestingOrg(registrar=self, name="Default Vesting Organization")
+            vesting_org.save()
+            self.default_vesting_org = vesting_org
+            self.save()
         
 class VestingOrg(models.Model):
     """

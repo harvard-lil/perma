@@ -175,7 +175,7 @@
 			{% endif %}
 
 			{% if serve_type == 'source' %}
-			<iframe src="{{ warc_url }}" sandbox="allow-forms allow-scripts">
+			<iframe src="{{ warc_url }}" sandbox="allow-forms allow-scripts allow-top-navigation">
 			  <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
 			</iframe>
 			{% endif %}
