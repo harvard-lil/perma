@@ -358,7 +358,7 @@ def list_users_in_group(request, group_name):
     if request.user.has_group('registry_user'):
         users = LinkUser.objects.select_related('vesting_org').filter(groups__name=group_name).order_by(*sorts()).annotate(vested_links_count=Count('vested_links', distinct=True))
         if registrar_filter:
-            vesting_orgs = VestingOrg.objects.filter(registrar__name=registrar_filter).order_by('name')
+            vesting_orgs = VestingOrg.objects.filter(registrar__id=registrar_filter).order_by('name')
         else:
             vesting_orgs = VestingOrg.objects.all().order_by('name')
         registrars = Registrar.objects.all().order_by('name')
@@ -395,16 +395,18 @@ def list_users_in_group(request, group_name):
     # handle vesting org filter
     vesting_org_filter = request.GET.get('vesting_org', '')
     if vesting_org_filter:
-        users = users.filter(vesting_org__name=vesting_org_filter)
+        users = users.filter(vesting_org__id=vesting_org_filter)
         sort_url = '{sort_url}&vesting_org={vesting_org_filter}'.format(sort_url=sort_url, vesting_org_filter=vesting_org_filter)
+        vesting_org_filter = VestingOrg.objects.get(pk=vesting_org_filter)
         
     # handle registrar filter
     if registrar_filter:
         if group_name == 'vesting_user':
-            users = users.filter(vesting_org__registrar__name=registrar_filter)
+            users = users.filter(vesting_org__registrar__id=registrar_filter)
         elif group_name == 'registrar_user':
-            users = users.filter(registrar__name=registrar_filter)
+            users = users.filter(registrar__id=registrar_filter)
         sort_url = '{sort_url}&registrar={registrar_filter}'.format(sort_url=sort_url, registrar_filter=registrar_filter)
+        registrar_filter = Registrar.objects.get(pk=registrar_filter)
 
     users = users.select_related('vesting_org')
     active_users = users.filter(is_active=True, is_confirmed=True).count()
