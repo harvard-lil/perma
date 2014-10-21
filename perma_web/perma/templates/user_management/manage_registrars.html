@@ -1,5 +1,5 @@
 {% extends "admin-layout.html" %}
-{% load local_datetime %}
+{% load local_datetime humanize %}
 {% block title %} | Registrars{% endblock %}
 
 {% block manage-nav-registrar %}<li class="active"><a href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>{% endblock %}
@@ -80,24 +80,28 @@
             </div>
               <div class="col-sm-5">
               <div class="list-count-group">
-                <p class="list-count-number">{{ registrar.vested_links }}</p>
+                <p class="list-count-number">{{ registrar.vested_links|intcomma }}</p>
                 <p class="list-count-label">vested links</p>
                 </div>
+                {% comment %}
                     <div class="list-count-group">
                     <p class="list-count-number{% if group_name == 'user'%} vesting_user-list{% endif %}">{{ registrar.created_links }}</p>
                     <p class="list-count-label">created links</p>
                     </div>
+                {% endcomment %}
               </div>
               <div class="col-sm-7">
-                <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_org' %}?registrar={{registrar.name.split|join:'+'|lower}}">
+                <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_org' %}?registrar={{registrar.id}}">
                 <p class="list-count-number">{{ registrar.vesting_orgs_count }}</p>
                 <p class="list-count-label">vesting orgs</p></a>
                 </div>
-                <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_user' %}?registrar={{registrar.name.split|join:'+'|lower}}">
+                {% comment %}
+                <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_user' %}?registrar={{registrar.id}}">
                 <p class="list-count-number">{{ registrar.vesting_users }}</p>
                 <p class="list-count-label">vesting users</p></a>
                 </div>
-                <div class="list-count-group"><a href="{% url 'user_management_manage_registrar_user' %}?registrar={{registrar.name.split|join:'+'|lower}}">
+                {% endcomment %}
+                <div class="list-count-group"><a href="{% url 'user_management_manage_registrar_user' %}?registrar={{registrar.id}}">
                 <p class="list-count-number">{{ registrar.registrar_users }}</p>
                 <p class="list-count-label">registrar users</p></a>
                 </div>

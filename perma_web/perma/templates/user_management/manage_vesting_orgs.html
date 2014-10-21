@@ -1,5 +1,5 @@
 {% extends "admin-layout.html" %}
-{% load local_datetime has_group %}
+{% load local_datetime has_group humanize %}
 {% block title %} | Vesting organizations{% endblock %}
 
 {% block content %}
@@ -28,9 +28,10 @@
 
     <div class="row">
         <div class="col-sm-3">
-                <p class="count-label">Active Users</p>
-                <p class="count-number">{{ active_users }}</p>
+                <p class="count-label">Users</p>
+                <p class="count-number">{{ users_count.count }}</p>
             </div>
+            {% comment %}
             <div class="col-sm-3">
                 <p class="count-label">Deactivated Users</p>
                 <p class="count-number">{{ deactivated_users }}</p>
@@ -39,6 +40,7 @@
                 <p class="count-label">Unactivated Users</p>
                 <p class="count-number">{{ unactivated_users }}</p>
             </div>
+            {% endcomment %}
         <div class="col-sm-3">
             <p class="count-label">Vesting Organizations</p>
             <p class="count-number">{{ vesting_orgs_count }}</p>
@@ -48,7 +50,7 @@
      {% if search_query or registrar_filter %}
         <div class="row">
             <div class="col-sm-12">
-                <a class="remove-search-filters" href="?sort=name"><i class="icon-remove-sign"></i> Clear{% if registrar_filter %} registrar:<strong>{{registrar_filter}}</strong>{% endif %}{% if search_query %} search:<strong>{{search_query}}</strong>{% endif %}</a>
+                <a class="remove-search-filters" href="?sort=name"><i class="icon-remove-sign"></i> Clear{% if registrar_filter %} registrar:<strong>{{registrar_filter.name}}</strong>{% endif %}{% if search_query %} search:<strong>{{search_query}}</strong>{% endif %}</a>
             </div>
         </div>
         {% endif %}
@@ -64,14 +66,14 @@
                 
                   <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                     <li>
-                        <a {% if sort == 'name' %}class="selected" {% endif %}href="?sort=name&page={{ vesting_orgs.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}"><i class="icon-ok"></i> Name A - Z</a>
-                        <a {% if sort == '-name' %}class="selected" {% endif %} href="?sort=-name&page={{ vesting_orgs.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}"><i class="icon-ok"></i> Name Z - A</a>
-                        <a {% if sort == '-date_created' %}class="selected" {% endif %} href="?sort=-date_created&page={{ vesting_orgs.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}"><i class="icon-ok"></i> Newest</a>
-                        <a {% if sort == 'date_created' %}class="selected" {% endif %} href="?sort=date_created&page={{ vesting_orgs.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}"><i class="icon-ok"></i> Oldest</a>
-                        <a {% if sort == '-last_active' %}class="selected" {% endif %} href="?sort=-last_active&page={{ vesting_orgs.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}"><i class="icon-ok"></i> Recently active</a>
-                        <a {% if sort == 'last_active' %}class="selected" {% endif %} href="?sort=last_active&page={{ vesting_orgs.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}"><i class="icon-ok"></i> Least recently active</a>
-                        <a {% if sort == '-vested_links' %}class="selected" {% endif %} href="?sort=-vested_links&page={{ vesting_orgs.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}"><i class="icon-ok"></i> Most vested links</a>
-                        <a {% if sort == 'vested_links' %}class="selected" {% endif %} href="?sort=vested_links&page={{ vesting_orgs.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}"><i class="icon-ok"></i> Least vested links</a>
+                        <a {% if sort == 'name' %}class="selected" {% endif %}href="?sort=name&page={{ vesting_orgs.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Name A - Z</a>
+                        <a {% if sort == '-name' %}class="selected" {% endif %} href="?sort=-name&page={{ vesting_orgs.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Name Z - A</a>
+                        <a {% if sort == '-date_created' %}class="selected" {% endif %} href="?sort=-date_created&page={{ vesting_orgs.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Newest</a>
+                        <a {% if sort == 'date_created' %}class="selected" {% endif %} href="?sort=date_created&page={{ vesting_orgs.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Oldest</a>
+                        <a {% if sort == '-last_active' %}class="selected" {% endif %} href="?sort=-last_active&page={{ vesting_orgs.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Recently active</a>
+                        <a {% if sort == 'last_active' %}class="selected" {% endif %} href="?sort=last_active&page={{ vesting_orgs.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Least recently active</a>
+                        <a {% if sort == '-vested_links' %}class="selected" {% endif %} href="?sort=-vested_links&page={{ vesting_orgs.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Most vested links</a>
+                        <a {% if sort == 'vested_links' %}class="selected" {% endif %} href="?sort=vested_links&page={{ vesting_orgs.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Least vested links</a>
                     </li>
                   </ul>
                 </div>
@@ -86,10 +88,10 @@
                     <li>
                         {% if registrars %}
                             {% for registrar in registrars %}
-                            {% if registrar_filter == registrar.name|lower %}
+                            {% if registrar_filter == registrar %}
                                 <a class="selected" href="?page={{ vesting_orgs.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}"><i class="icon-ok"></i> {{registrar.name}}</a>
                             {% else %}
-                                <a href="?registrar={{registrar.name.split|join:'+'|lower}}&page={{ vesting_orgs.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}"><i class="icon-ok"></i> {{registrar.name}}</a>
+                                <a href="?registrar={{registrar.id}}&page={{ vesting_orgs.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}"><i class="icon-ok"></i> {{registrar.name}}</a>
                             {% endif %}
                             {% endfor %}
                         {% else %}
@@ -111,19 +113,22 @@
             </div>
               <div class="col-sm-5">
               <div class="list-count-group">
-                <p class="list-count-number">{{ vesting_org.vested_links }}</p>
+                <p class="list-count-number">{{ vesting_org.vested_links|intcomma }}</p>
                 <p class="list-count-label">vested links</p>
                 </div>
+                {% comment %}
                     <div class="list-count-group">
                     <p class="list-count-number{% if group_name == 'user'%} vesting_user-list{% endif %}">{{ vesting_org.created_links_count }}</p>
                     <p class="list-count-label">created links</p>
                     </div>
+                    {% endcomment %}
               </div>
               <div class="col-sm-7 center-list-count">
-                <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_user' %}?vesting_org={{vesting_org.name.split|join:'+'|lower}}&status=active">
-                <p class="list-count-number">{{ vesting_org.active_count|default_if_none:"0" }}</p>
-                <p class="list-count-label">active users</p></a>
+                <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_user' %}?vesting_org={{vesting_org.id}}">
+                <p class="list-count-number">{{ vesting_org.vesting_users|default_if_none:"0" }}</p>
+                <p class="list-count-label">users</p></a>
                 </div>
+                {% comment %}
                 <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_user' %}?vesting_org={{vesting_org.name.split|join:'+'|lower}}&status=deactivated">
                 <p class="list-count-number">{{ vesting_org.deactivated_count|default_if_none:"0" }}</p>
                 <p class="list-count-label">deactivated users</p></a>
@@ -132,6 +137,7 @@
                 <p class="list-count-number">{{ vesting_org.unactivated_count|default_if_none:"0" }}</p>
                 <p class="list-count-label">unactivated users</p></a>
                 </div>
+                {% endcomment %}
             </div>
             <div class="col-sm-7">
             {% if request.user|has_group:'registry_user' %}
