@@ -72,7 +72,7 @@ def test(apps="perma mirroring"):
     ]
     local("coverage run --source='.' --omit='%s' manage.py test %s" % (",".join(excluded_files), apps))
 
-def test_sauce(target_host="perma-test.law.harvard.edu"):
+def test_sauce(target_host="127.0.0.1:8000"):
     """
         Run Sauce browser tests. If target_host is localhost, first run sauce_tunnel.
     """
