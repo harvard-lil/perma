@@ -156,7 +156,7 @@ class PermaTest(unittest.TestCase):
         url_input.click()
         url_input.send_keys("example.com")
         get_id('addlink').click() # submit
-        thumbnail = repeat_while_exception(lambda: get_xpath("//div[@class='library-thumbnail']//img"), NoSuchElementException)
+        thumbnail = repeat_while_exception(lambda: get_xpath("//div[@class='thumbnail-placeholder']//img"), NoSuchElementException)
         thumbnail_data = requests.get(thumbnail.get_attribute('src'))
         thumbnail_fh = StringIO.StringIO(thumbnail_data.content)
         assert imghdr.what(thumbnail_fh) == 'png'
