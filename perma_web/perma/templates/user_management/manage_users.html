@@ -1,5 +1,5 @@
 {% extends "admin-layout.html" %}
-{% load has_group local_datetime %}
+{% load has_group local_datetime humanize %}
 {% block title %} | {{ pretty_group_name_plural }}{% endblock %}
 
 {% block content %}
@@ -48,9 +48,10 @@
 
         <div class="row">
             <div class="col-sm-3">
-                <p class="count-label">Active Users</p>
-                <p class="count-number">{{ active_users }}</p>
+                <p class="count-label">Users</p>
+                <p class="count-number">{{ users_count|intcomma }}</p>
             </div>
+            
             {% if request.user|has_group:'registrar_user,registry_user' %}
             <div class="col-sm-3">
                 <p class="count-label">Deactivated Users</p>
@@ -61,9 +62,10 @@
                 <p class="count-label">Unactivated Users</p>
                 <p class="count-number">{{ unactivated_users }}</p>
             </div>
+            
             <div class="col-sm-3">
                 <p class="count-label">Vested Links</p>
-                <p class="count-number">{{ total_vested_links_count.count }}</p>
+                <p class="count-number">{{ total_vested_links_count.count|intcomma }}</p>
             </div>
         </div>
         {% if registrar_filter or vesting_org_filter or status or search_query %}
@@ -193,6 +195,7 @@
                 <p class="list-count-label">vested links</p>
                 </div>
                 {% endif %}
+                {% comment %}
                 {% if group_name == 'vesting_user' or group_name == 'user' %}
                     {% if request.user|has_group:'registry_user' %}
                     <div class="list-count-group">
@@ -201,6 +204,7 @@
                     </div>
                     {% endif %}
                 {% endif %}
+                {% endcomment %}
             </div>
             <div class="col-sm-3">
                 <p class="list-status">
