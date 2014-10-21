@@ -91,17 +91,17 @@
                 {% endcomment %}
               </div>
               <div class="col-sm-7">
-                <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_org' %}?registrar={{registrar.name.split|join:'+'|lower}}">
+                <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_org' %}?registrar={{registrar.id}}">
                 <p class="list-count-number">{{ registrar.vesting_orgs_count }}</p>
                 <p class="list-count-label">vesting orgs</p></a>
                 </div>
                 {% comment %}
-                <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_user' %}?registrar={{registrar.name.split|join:'+'|lower}}">
+                <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_user' %}?registrar={{registrar.id}}">
                 <p class="list-count-number">{{ registrar.vesting_users }}</p>
                 <p class="list-count-label">vesting users</p></a>
                 </div>
                 {% endcomment %}
-                <div class="list-count-group"><a href="{% url 'user_management_manage_registrar_user' %}?registrar={{registrar.name.split|join:'+'|lower}}">
+                <div class="list-count-group"><a href="{% url 'user_management_manage_registrar_user' %}?registrar={{registrar.id}}">
                 <p class="list-count-number">{{ registrar.registrar_users }}</p>
                 <p class="list-count-label">registrar users</p></a>
                 </div>

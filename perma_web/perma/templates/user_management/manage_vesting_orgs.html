@@ -124,7 +124,7 @@
                     {% endcomment %}
               </div>
               <div class="col-sm-7 center-list-count">
-                <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_user' %}?vesting_org={{vesting_org.name.split|join:'+'|lower}}">
+                <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_user' %}?vesting_org={{vesting_org.id}}">
                 <p class="list-count-number">{{ vesting_org.vesting_users|default_if_none:"0" }}</p>
                 <p class="list-count-label">users</p></a>
                 </div>
