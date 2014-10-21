@@ -179,7 +179,8 @@ def manage_vesting_org(request):
     # handle registrar filter
     registrar_filter = request.GET.get('registrar', '')
     if registrar_filter:
-        vesting_orgs = vesting_orgs.filter(registrar__name=registrar_filter)
+        vesting_orgs = vesting_orgs.filter(registrar__id=registrar_filter)
+        registrar_filter = Registrar.objects.get(pk=registrar_filter)
 
     if is_registry:
         registrars = Registrar.objects.all().order_by('name')
