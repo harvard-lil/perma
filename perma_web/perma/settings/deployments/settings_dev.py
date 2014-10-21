@@ -42,3 +42,31 @@ CELERY_RESULT_BACKEND = 'amqp'
 
 # Folder migration default
 FALLBACK_VESTING_ORG_ID = 1
+
+
+### optional dev packages ###
+
+# django-debug-toolbar
+try:
+    import debug_toolbar
+    INSTALLED_APPS += (
+        # Switch to this when we upgrade to Django 1.7.x:
+        #'debug_toolbar.apps.DebugToolbarConfig',
+        'debug_toolbar',
+    )
+    DEBUG_TOOLBAR_CONFIG = {
+        'SHOW_TOOLBAR_CALLBACK': 'perma.utils.show_debug_toolbar'  # we have to override this check because the default depends on IP address, which doesn't work inside Vagrant
+    }
+except ImportError:
+    pass
+
+# django_extensions
+try:
+    import django_extensions
+    INSTALLED_APPS += (
+        # Switch to this when we upgrade to Django 1.7.x:
+        #'debug_toolbar.apps.DebugToolbarConfig',
+        'django_extensions',
+    )
+except ImportError:
+    pass

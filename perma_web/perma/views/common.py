@@ -2,7 +2,7 @@ from django.core import serializers
 from django.core.files.storage import default_storage
 from django.template import RequestContext
 from django.template.loader import render_to_string
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, render
 from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, Http404, HttpResponse, HttpResponseNotFound, HttpResponseServerError
 from django.core.urlresolvers import reverse
 from django.conf import settings
@@ -26,6 +26,7 @@ from mirroring.utils import must_be_mirrored
 
 from ..models import Link, Asset
 from perma.forms import ContactForm
+from perma.utils import absolute_url
 
 
 logger = logging.getLogger(__name__)
@@ -203,25 +204,30 @@ def single_linky(request, guid):
         asset = Asset.objects.get(link__guid=link.guid)
 
         created_datestamp = link.creation_timestamp
-        pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
 
-        context = {'linky': link, 'asset': asset, 'pretty_date': pretty_date, 'next': request.get_full_path(),
-                   'display_iframe': display_iframe, 'serve_type': serve_type, 'text_capture': text_capture,
-                   'warc_url':asset.warc_url()}
+        context = {
+            'linky': link,
+            'asset': asset,
+            'next': request.get_full_path(),
+            'display_iframe': display_iframe,
+            'serve_type': serve_type,
+            'text_capture': text_capture,
+            'warc_url': asset.warc_url()
+        }
 
     if request.META.get('CONTENT_TYPE') == 'application/json':
         # if we were called as JSON (by a mirror), serialize and send back as JSON
-        context['MEDIA_URL'] = request.build_absolute_uri(settings.MEDIA_URL)
-        context['warc_url'] = request.build_absolute_uri(context['warc_url'])
+        context['warc_url'] = absolute_url(request, context['warc_url'])
+        context['MEDIA_URL'] = absolute_url(request, settings.MEDIA_URL)
         context['asset'] = serializers.serialize("json", [context['asset']], fields=['text_capture','image_capture','pdf_capture','warc_capture','base_storage_path'])
         context['linky'] = serializers.serialize("json", [context['linky']], fields=['dark_archived','guid','vested','view_count','creation_timestamp','submitted_url','submitted_title'])
         return HttpResponse(json.dumps(context), content_type="application/json")
 
-    if serve_type == 'warc_download':
+    elif serve_type == 'warc_download':
         if context['asset'].warc_download_url():
             return HttpResponseRedirect(context.get('MEDIA_URL', settings.MEDIA_URL)+context['asset'].warc_download_url())
 
-    return render_to_response('single-link.html', context, RequestContext(request))
+    return render(request, 'single-link.html', context)
 
 
 @must_be_mirrored
@@ -234,6 +240,9 @@ def single_linky(request, guid):
 def single_link_header(request, guid):
     """
     Given a Perma ID, serve it up. Vesting also takes place here.
+    
+    This function is temporary and should be removed or merged with 
+    single_linky (above) once we nail down the UX for the single archive page
     """
 
     # Create a canonical version of guid (non-alphanumerics removed, hyphens every 4 characters, uppercase),
@@ -311,6 +320,8 @@ def single_link_header(request, guid):
             return HttpResponseRedirect(context.get('MEDIA_URL', settings.MEDIA_URL)+context['asset'].warc_download_url())
 
     return render_to_response('single-link-header.html', context, RequestContext(request))
+
+
 
 
 def rate_limit(request, exception):

@@ -370,3 +370,8 @@ FALLBACK_VESTING_ORG_ID = 15
 
 from dateutil.relativedelta import relativedelta
 LINK_EXPIRATION_TIME = relativedelta(years=2)
+
+
+# If set, warc content must be served from this host.
+# On production, this is highly recommended to be different from hosts in ALLOWED_HOSTS.
+WARC_HOST = None

@@ -154,30 +154,27 @@
 
 			{% if serve_type == 'live' %}
 				{% if display_iframe %}
-				<iframe src="{{linky.submitted_url}}"{% if not asset.pdf_capture %} sandbox="allow-forms allow-scripts" {% endif %}>
-					<p>You can access the archives using the tabs above or you open <a href="{{linky.submitted_url}}" target="_blank">{{linky.submitted_url}}</a> in a new browser window.</p>
-				</iframe>
+                    <iframe src="{{linky.submitted_url}}"{% if not asset.pdf_capture %} sandbox="allow-forms allow-scripts" {% endif %}>
+                        <p>You can access the archives using the tabs above or you open <a href="{{linky.submitted_url}}" target="_blank">{{linky.submitted_url}}</a> in a new browser window.</p>
+                    </iframe>
 				{% else %}
-				<div class="translucent-background no-live-preview"><h2>Live site view unavailable. Sorry.</h2>
-					<p>You can access the archives by using the tabs above or open <a href="{{linky.submitted_url}}" target="_blank">{{linky.submitted_url}}</a> in a new browser window.</p>
-				</div>
+                    <div class="translucent-background no-live-preview"><h2>Live site view unavailable. Sorry.</h2>
+                        <p>You can access the archives by using the tabs above or open <a href="{{linky.submitted_url}}" target="_blank">{{linky.submitted_url}}</a> in a new browser window.</p>
+                    </div>
 				{% endif %}
-			{% endif %}
-			
-			{% if serve_type == 'image' %}
-			<img class="image-view" src="{{ MEDIA_URL }}{{ asset.image_url }}"/>
-			{% endif %}
-			
-			{% if serve_type == 'pdf' %}
-			<iframe src="{{ MEDIA_URL }}{{ asset.pdf_url }}">
-			  <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
-			</iframe>
-			{% endif %}
 
-			{% if serve_type == 'source' %}
-			<iframe src="{{ warc_url }}" sandbox="allow-forms allow-scripts allow-top-navigation">
-			  <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
-			</iframe>
+			{% elif serve_type == 'image' %}
+			    <img class="image-view" src="{{ MEDIA_URL }}{{ asset.image_url }}"/>
+
+			{% elif serve_type == 'pdf' %}
+                <iframe src="{{ MEDIA_URL }}{{ asset.pdf_url }}">
+                    <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
+                </iframe>
+
+			{% elif serve_type == 'source' %}
+                <iframe src="{{ warc_url }}" sandbox="allow-forms allow-scripts allow-top-navigation">
+                    <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
+                </iframe>
 			{% endif %}
 		</div><!--end watermark-->
    	</div><!--end linky-view-->
