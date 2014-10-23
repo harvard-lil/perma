@@ -10,7 +10,7 @@ from django.utils.safestring import mark_safe
 from django.template.defaultfilters import date as date_filter
 
 @register.filter
-def local_datetime(datetime, format_string="F j, Y g:m a"):
+def local_datetime(datetime, format_string="F j, Y g:i a"):
     """
         Given a date, print Javascript to print local date/time if available.
     """
