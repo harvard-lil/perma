@@ -186,7 +186,7 @@ function check_status() {
 
             // Replace our Archive Pending spinner and message
             // with our new thumbnail
-            var image_url = MEDIA_URL + data.path + '/' + data.image_capture;
+            var image_url = data.thumbnail;
 
             var source = $("#preview-available-template").html();
             var template = Handlebars.compile(source);

@@ -1,5 +1,5 @@
 {% extends "layout-archive-responsive.html" %}
-{% load file_exists  truncatesmart has_group is_darchive local_datetime mirror_tags %}
+{% load file_exists  truncatesmart has_group is_darchive local_datetime mirror_tags thumbnail%}
 
 {% block title %} | {{linky.submitted_title}}{% endblock %}
 
@@ -164,7 +164,10 @@
 				{% endif %}
 
 			{% elif serve_type == 'image' %}
-			    <img class="image-view" src="{{ MEDIA_URL }}{{ asset.image_url }}"/>
+
+				{% thumbnail asset.image_url "100x100" crop="center" as im %}
+				    <img src="{{ im.url }}" class="image-view">
+				{% endthumbnail %}
 
 			{% elif serve_type == 'pdf' %}
                 <iframe src="{{ MEDIA_URL }}{{ asset.pdf_url }}">
