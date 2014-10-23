@@ -110,7 +110,7 @@ def link_status(request, guid):
             capture_name = target_asset.pdf_capture
             
         image_path = os.path.join(settings.MEDIA_ROOT, target_asset.base_storage_path, capture_name)
-        thumbnail = get_thumbnail(image_path, '456',  quality=80)
+        thumbnail = get_thumbnail(image_path, '456')
         thumbnail_url = thumbnail.url
     
     response_object = {"path": target_asset.base_storage_path, "text_capture": target_asset.text_capture,

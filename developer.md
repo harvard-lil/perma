@@ -215,6 +215,10 @@ Once installed in /etc/init/, you can start and stop Celery as a service. Someth
 Find more about daemonizing Celery in the [in the Celery docs](http://docs.celeryproject.org/en/latest/tutorials/daemonizing.html#daemonizing).
 
 
+### Working with Redis
+
+In our production environment we use Redis as a cache for our thumbnail data. If you're working on Perma you likely won't need it, but if you do want to simulate the production environment, reference Redis and Sorl settings the prod settings file.
+
 ### Working with RabbitMQ
 
 RabbitMQ is the message broker. In Perma.cc's case, it accepts message from Celery, tosses them in a queue, and dolls them out to Celery worker tasks as needed.
