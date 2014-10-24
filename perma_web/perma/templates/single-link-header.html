@@ -5,8 +5,7 @@
 <meta name="robots" content="noindex, noarchive, noodp, noimageindex">
 {% endblock %}
 {% block styles %}
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/font-awesome.min.css">
-
+    {{ block.super }}
     {# put in styles because this has to be available during page load #}
     <script src="{{ STATIC_URL }}js/local-datetime.js "></script>
 {% endblock %}
