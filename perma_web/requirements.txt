@@ -47,6 +47,3 @@ boto==2.29.1
 # sauce integration testing
 sauceclient==0.1.0
 pytest-xdist==1.10
-
-# SSL
-django-sslify>=0.2

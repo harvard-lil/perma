@@ -48,6 +48,3 @@ WARC_HOST = 'user-content.perma.cc'
 THUMBNAIL_KVSTORE = 'sorl.thumbnail.kvstores.redis_kvstore.KVStore'
 THUMBNAIL_REDIS_HOST = 'localhost'
 THUMBNAIL_REDIS_PORT = '6379'
-
-# force SSL on heroku deployments
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
