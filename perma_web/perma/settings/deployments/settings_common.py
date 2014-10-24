@@ -196,6 +196,7 @@ INSTALLED_APPS = (
 
     # our apps
     'perma',
+    'api',
     'monitor',
     'mirroring',
 
@@ -210,6 +211,7 @@ INSTALLED_APPS = (
 
     # django admin -- has to come after our apps for our admin template overrides to work
     'django.contrib.admin',
+    'tastypie'
 )
 
 AUTH_USER_MODEL = 'perma.LinkUser'

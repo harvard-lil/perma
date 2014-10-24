@@ -1,10 +1,10 @@
-# Package:                  	# Used for:
+# Package:                      # Used for:
 
 Django==1.6.8
 MySQL-python==1.2.5
 South==0.7.6
 lxml==3.2.1
-PyPDF2==1.20					# check integrity of uploaded PDFs
+PyPDF2==1.20                    # check integrity of uploaded PDFs
 celery==3.1.12
 requests==1.2.3
 wsgiref==0.1.2
@@ -22,14 +22,15 @@ selenium==2.41.0
 jsmin==2.0.9
 django-pipeline==1.3.23         # manages our css and js assets
 django-pipeline-compass==0.1.5  # lets us compile .scss to .css
-tempdir==0.6					# create temp dirs to be deleted at end of function -- handy for archive creation
-netaddr==0.7.12					# to check archive IPs against banned ranges
-internetarchive==0.7.0  	    # upload warcs to internet archive
-python-dateutil==2.2			# calculate link expiration date
-Wand==0.3.8						# ImageMagick bindings to help with thumbnail creation and PDF -> PNG conversions
-sorl-thumbnail==11.12			# Used to create our thumbnails
-Pillow==2.6.1					# Used to generate thumbnails with sorl. We can likely remove this dependency when Sorl 12.x is released (and we use Wand as our sorl engine)
-redis==2.10.1					# Needed to bind with Redis. Supports our sorl thumbnails in production
+tempdir==0.6                    # create temp dirs to be deleted at end of function -- handy for archive creation
+netaddr==0.7.12                 # to check archive IPs against banned ranges
+internetarchive==0.7.0          # upload warcs to internet archive
+python-dateutil==2.2            # calculate link expiration date
+Wand==0.3.8					            # ImageMagick bindings to help with thumbnail creation and PDF -> PNG conversions
+django-tastypie==0.12.1         # API framework
+sorl-thumbnail==11.12			      # Used to create our thumbnails
+Pillow==2.6.1					          # Used to generate thumbnails with sorl. We can likely remove this dependency when Sorl 12.x is released (and we use Wand as our sorl engine)
+redis==2.10.1					          # Needed to bind with Redis. Supports our sorl thumbnails in production
 django-redis==3.7.2             # use redis as django's cache backend
 python-gnupg==0.3.6             # Sign messages between main server and mirrors.
 django-forms-bootstrap==3.0.1   # produce Bootstrap compatable forms
@@ -41,7 +42,7 @@ gunicorn==18.0
 gevent==1.0.1
 
 # PyWB-related stuff
-surt==0.2						# our simple CDX server to canonicalize URL
+surt==0.2                       # our simple CDX server to canonicalize URL
 pywb==0.6.3
 warcprox==1.2
 
