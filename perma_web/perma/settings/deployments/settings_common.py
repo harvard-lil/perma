@@ -163,6 +163,7 @@ MIDDLEWARE_CLASSES = (
     'mirroring.middleware.MirrorAuthenticationMiddleware',
     'mirroring.middleware.MirrorForwardingMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
+    'sslify.middleware.SSLifyMiddleware',   #Add SSL
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
