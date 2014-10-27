@@ -1342,14 +1342,23 @@ img.linky-image-preview {
 }
 
 .watermark {
-	margin:0 auto;
-	position:relative;
-	padding:0px;
-	text-align:center;
-
+	margin: 0 auto;
+	position: relative;
+	padding: 0px;
+	text-align: center;
 }
 
-img.watermark-image {
+.watermark-container {
+	position: absolute;
+	z-index: 2;
+	width: 90%;
+	margin-left: 5%;
+	margin-top: 100px;
+	height: 200px;
+	background-color: rgba($perma-blue, 0.5);
+}
+
+.watermark-image {
 	position:relative;
 	border:none;
 	border-radius:3px;
