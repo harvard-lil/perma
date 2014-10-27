@@ -1,0 +1,41 @@
+{% extends "admin-layout.html" %}
+{% load has_group %}
+{% block title %} | Add user{% endblock %}
+
+{% block content %}
+
+	{% if cannot_add %}
+	<div class="alert alert-danger alert-block"><strong>Error!</strong> <p>{{ user_email }} is already affiliated and cannot be added to your registrar.</p></div>
+	<br>
+	<p><a href="{% url 'user_management_manage_vesting_user' %}">Go back</a></p>
+	{% else %}
+	<h3>Add {{ user_email }} as a registrar user</h3>
+	{% if target_user = None %}
+	<form method="post">
+          {% csrf_token %}
+              <fieldset>
+              <span class="text-error">{{ form.non_field_errors }}</span>
+            {% for field in form %}
+              <label for="id_{{ field.name }}">{{ field.label }}</label><br/>
+              {{ field }}
+              {% if field.errors %}<br/>
+                {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+              {%elif field.help_text %}
+                <span class="help-inline">{{ field.help_text }}</span>
+              {% endif %}<br/>
+            {% endfor %}
+          </fieldset>
+          <button type="submit" class="btn-success">Add registrar user</button>
+          <a href="{% url 'user_management_manage_registrar_user' %}">Cancel</a>
+    </form>
+    {% else %}
+        <p>{{ user_email }} already has an account.  Would you like to add this user to {{ request.user.registrar.name }}?</p>
+        <form method="post">
+        {% csrf_token %}
+    <button type="submit" class="btn-success">Add as a registrar user</button>
+          <a href="{% url 'user_management_manage_registrar_user' %}">Cancel</a>
+          </form>
+    {% endif %}
+    {% endif %}
+
+{% endblock %}
