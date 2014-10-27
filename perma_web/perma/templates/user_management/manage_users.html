@@ -17,14 +17,20 @@
     {% endif %}
 
 	<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
-	    {% if request.user|has_group:'registrar_user,vesting_user' %}{% if group_name == 'vesting_user' %}
+	    {% if request.user|has_group:'registrar_user,vesting_user' and group_name == 'vesting_user' %}
 	    <form method="get" action="{% url 'user_management_vesting_user_add_user' %}" class="form-inline" role="form">
 	        <div class="form-group">
                 <input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
             </div>
             <button type="submit" class="btn btn-default">Add</button>
         </form>
-        {% endif %}
+        {% elif request.user|has_group:'registrar_user' and group_name == 'registrar_user' %}
+        <form method="get" action="{% url 'user_management_registrar_user_add_user' %}" class="form-inline" role="form">
+	        <div class="form-group">
+                <input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
+            </div>
+            <button type="submit" class="btn btn-default">Add</button>
+        </form>
         {% else %}
         <form method="post">
           {% csrf_token %}
@@ -52,7 +58,7 @@
                 <p class="count-number">{{ users_count|intcomma }}</p>
             </div>
             
-            {% if request.user|has_group:'registrar_user,registry_user' %}
+            {% if request.user|has_group:'registry_user' and group_name == 'user' %}
             <div class="col-sm-3">
                 <p class="count-label">Deactivated Users</p>
                 <p class="count-number">{{ deactivated_users }}</p>
@@ -109,7 +115,9 @@
                   <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                     <li>
                         <a {% if status == 'active' %}class="selected" {% endif %}href="?status=active&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if vesting_org_filter %}&vesting_org={{ vesting_org_filter }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}"><i class="icon-ok"></i> Active</a>
+                        {% if request.user|has_group:'registry_user' and group_name == 'user' %}
                         <a {% if status == 'deactivated' %}class="selected" {% endif %}href="?status=deactivated&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if vesting_org_filter %}&vesting_org={{ vesting_org_filter }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}"><i class="icon-ok"></i> Deactivated</a>
+                        {% endif %}
                         <a {% if status == 'unactivated' %}class="selected" {% endif %}href="?status=unactivated&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if vesting_org_filter %}&vesting_org={{ vesting_org_filter }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter }}{% endif %}"><i class="icon-ok"></i> Unactivated</a>
                     </li>
                   </ul>
@@ -186,7 +194,7 @@
                 </p>
               <p class="list-email">{{ listed_user.email }}</p>
               {% if request.user|has_group:'registry_user,registrar_user' %}{% if group_name == 'vesting_user' %}<p class="list-vesting-org"><a href="{% url 'user_management_manage_vesting_org' %}?q={{listed_user.vesting_org.name.split|join:'+'|lower}}">{{listed_user.vesting_org.name}}</a></p>{% endif %}{% endif %}
-            {% if group_name == 'registrar_user' %}<p class="list-registrar"><a href="{% url 'user_management_manage_registrar' %}?q={{listed_user.registrar.name.split|join:'+'|lower}}">{{ listed_user.registrar.name }}</a></p>{% endif %}
+            {% if group_name == 'registrar_user' and request.user|has_group:'registry_user' %}<p class="list-registrar"><a href="{% url 'user_management_manage_registrar' %}?q={{listed_user.registrar.name.split|join:'+'|lower}}">{{ listed_user.registrar.name }}</a></p>{% endif %}
               </div>
               <div class="col-sm-3">
                 {% if group_name == 'vesting_user' %}
@@ -209,11 +217,24 @@
             <div class="col-sm-3">
                 <p class="list-status">
                 {% if listed_user.is_active %}
-                  <a href="{% url single_user_url listed_user.id %}">edit/delete</a>
+                    {% if request.user|has_group:'registry_user' %}
+                        <a href="{% url single_user_url listed_user.id %}">edit/delete</a>
+                    {% else %}
+                        <a href="{% url single_user_url listed_user.id %}">edit/remove</a>
+                    {% endif %}
                 {% elif listed_user.is_confirmed %}
                     <span class="text-warning">deactivated account</span> <a href="{% url reactivate_user_url listed_user.id %}">reactivate</a>
                 {% else %}
-                    <span class="text-warning">user must activate account</span> <a href="{% url delete_user_url listed_user.id %}">delete</a>
+                    <span class="text-warning">user must activate account</span> 
+                    {% if request.user|has_group:'registry_user' %}
+                        <a href="{% url delete_user_url listed_user.id %}">delete</a>
+                    {% else %}
+                        {% if group_name == 'vesting_user' %}
+                            <a href="{% url 'user_management_manage_single_vesting_user_remove' listed_user.id %}">remove</a>
+                        {% elif group_name == 'registrar_user' %}
+                            <a href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove</a>
+                        {% endif %}
+                    {% endif %}
                 {% endif %}
                 </p>
                 <p class="list-date{% if request.user|has_group:'vesting_user' or group_name == 'user' %} vesting_user-list{% endif %}">
