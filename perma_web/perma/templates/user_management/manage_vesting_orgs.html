@@ -109,7 +109,7 @@
             <div class="row list-user list-user-registrar">
             <div class="col-sm-12">
             <a class="pull-right" href="{% url 'user_management_manage_single_vesting_org' vesting_org.id %}">edit</a>
-            <p class="list-name"><a href="{% url 'user_management_manage_vesting_user' %}?vesting_org={{vesting_org.name.split|join:'+'|lower}}">{{ vesting_org.name }}</a></p>
+            <p class="list-name"><a href="{% url 'user_management_manage_vesting_user' %}?vesting_org={{vesting_org.id}}">{{ vesting_org.name }}</a></p>
             </div>
               <div class="col-sm-5">
               <div class="list-count-group">
