@@ -189,6 +189,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
 
     # our apps
     'perma',
@@ -237,7 +238,7 @@ LOGIN_HOUR_LIMIT = '10000/h'
 LOGIN_DAY_LIMIT = '50000/d'
 
 # Dashboard user lists
-MAX_USER_LIST_SIZE = 100
+MAX_USER_LIST_SIZE = 50
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -369,3 +370,8 @@ FALLBACK_VESTING_ORG_ID = 15
 
 from dateutil.relativedelta import relativedelta
 LINK_EXPIRATION_TIME = relativedelta(years=2)
+
+
+# If set, warc content must be served from this host.
+# On production, this is highly recommended to be different from hosts in ALLOWED_HOSTS.
+WARC_HOST = None

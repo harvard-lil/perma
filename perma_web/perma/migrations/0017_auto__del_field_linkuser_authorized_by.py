@@ -1,16 +1,22 @@
 # -*- coding: utf-8 -*-
 import datetime
 from south.db import db
-from south.v2 import DataMigration
+from south.v2 import SchemaMigration
 from django.db import models
 
-class Migration(DataMigration):
+
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        pass
+        # Deleting field 'LinkUser.authorized_by'
+        db.delete_column(u'perma_linkuser', 'authorized_by_id')
+
 
     def backwards(self, orm):
-        "Write your backwards methods here."
+        # Adding field 'LinkUser.authorized_by'
+        db.add_column(u'perma_linkuser', 'authorized_by',
+                      self.gf('django.db.models.fields.related.ForeignKey')(related_name='authorized_by_manager', null=True, to=orm['perma.LinkUser'], blank=True),
+                      keep_default=False)
 
     models = {
         u'auth.group': {
@@ -85,7 +91,6 @@ class Migration(DataMigration):
         },
         u'perma.linkuser': {
             'Meta': {'object_name': 'LinkUser'},
-            'authorized_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'authorized_by_manager'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
             'confirmation_code': ('django.db.models.fields.CharField', [], {'max_length': '45', 'blank': 'True'}),
             'date_joined': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'email': ('django.db.models.fields.EmailField', [], {'unique': 'True', 'max_length': '255', 'db_index': 'True'}),

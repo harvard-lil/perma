@@ -26,6 +26,7 @@ tempdir==0.6                # create temp dirs to be deleted at end of function 
 netaddr==0.7.12              # to check archive IPs against banned ranges
 internetarchive==0.7.0      # upload warcs to internet archive
 python-dateutil==2.2         # calculate link expiration date
+Wand==0.3.8					# ImageMagick bindings to help with thumbnail creation and PDF -> PNG conversions
 
 # deployment
 gunicorn==18.0
@@ -33,7 +34,7 @@ gevent==1.0.1
 
 # PyWB-related stuff
 surt==0.2                   # our simple CDX server to canonicalize URL
-pywb==0.5.1
+pywb==0.6.0
 warcprox==1.2
 
 # alternate storages

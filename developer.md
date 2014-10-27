@@ -15,6 +15,19 @@ The Master branch always contains production code (probably the thing currently 
 Leverage [feature branches](http://nvie.com/posts/a-successful-git-branching-model/) in your local development flow. Merge your code back into the develop branch and push to GitHub often. Small, quick commits avoid nightmare merge problems.
 
 
+### Optional developer packages ###
+
+You can install some handy developer packages with `pip install -r dev_requirements.txt`:
+
+* `ipdb` is a nice drop-in replacement for `pdb`.
+* `django-extensions` adds [a bunch of useful manage.py commands](http://django-extensions.readthedocs.org/en/latest/command_extensions.html). 
+  Particularly useful are `runserver_plus` and `shell_plus`. If installed, this will be automatically enabled by `settings_dev.py`,
+  and`fab run` will use `runserver_plus` instead of `runserver`.
+* `django-debug-toolbar` includes a handy debug toolbar in frontend pages. If installed, this will be automatically enabled by `settings_dev.py`.
+
+`django-extensions` and `django-debug-toolbar` can both cause confusing errors occasionally, so try disabling them
+if you run into something odd.
+
 ### Logs
 
 If you are using Vagrant, all of your logs will end up in /vagrant/services/logs. As a convenience, you can tail -f all of them with `fab logs`.
@@ -63,9 +76,11 @@ We use Compass to translate Sass to CSS. A command like the following is likely 
     $ cd perma_web
     $ compass watch --sass-dir static/css/ --css-dir static/css
 
+
 ### Hosting fonts locally
 
 We like to host our fonts locally. If you're liking a font from Google fonts and the licesning allows, check out[fontdump](https://pypi.python.org/pypi/fontdump/1.2.0)
+
 
 ###  Schema and data migrations using South
 
@@ -124,6 +139,7 @@ You should always run the tests before committing code.
 
 The `fab test` command also generates handy coverage information. You can access it with the `coverage` command.
 
+
 #### Sauce Browser Tests
 
 We also use Sauce Labs to do functional testing of the site in common browsers before deploying. If you have a Sauce account,
@@ -142,9 +158,11 @@ The Sauce tests live in services/sauce/run_tests.py. If you are developing new t
 convenient to change to that directory and run `python run_tests.py`, rather than the full-blown parallel testing
 kicked off by `fab test_sauce`.
 
+
 ### Debugging email-related issues
 
 If you're working on an email related task, the contents of emails should be dumped to the standard out courtesy of EMAIL_BACKEND in settings_dev.py.
+
 
 ### Mirroring
 
@@ -173,6 +191,7 @@ Launch the simple load balancer and two Django dev servers:
 You can edit the codebase normally and each server will incorporate your changes.
 
 To see how the mirror emulation works, check out perma_web/mirroring/management/commands/runmirror.py
+
 
 ### Working with Celery
 
@@ -390,6 +409,12 @@ Now you can start and stop RabbitMQ as a service. Something like,
 
     $ sudo service rabbitmq-server stop; sudo service rabbitmq-server start;
 
+
+### ImageMagick and Wand
+
+If you're on OS X you should might need to do adjust and [environment variable](http://docs.wand-py.org/en/0.3.8/guide/install.html#install-imagemagick-on-mac)
+
+	export MAGICK_HOME=/opt/local
 
 ### Other bits
 

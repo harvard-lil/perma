@@ -94,6 +94,9 @@ class PermaTest(unittest.TestCase):
         def get_xpath(xpath):
             return self.driver.find_element_by_xpath(xpath)
 
+        def get_css_selector(selector):
+            return self.driver.find_element_by_css_selector(selector)
+
         def get_id(id):
             return self.driver.find_element_by_id(id)
 
@@ -156,7 +159,7 @@ class PermaTest(unittest.TestCase):
         url_input.click()
         url_input.send_keys("example.com")
         get_id('addlink').click() # submit
-        thumbnail = repeat_while_exception(lambda: get_xpath("//div[@class='library-thumbnail']//img"), NoSuchElementException)
+        thumbnail = repeat_while_exception(lambda: get_css_selector(".library-thumbnail img"), NoSuchElementException)
         thumbnail_data = requests.get(thumbnail.get_attribute('src'))
         thumbnail_fh = StringIO.StringIO(thumbnail_data.content)
         assert imghdr.what(thumbnail_fh) == 'png'

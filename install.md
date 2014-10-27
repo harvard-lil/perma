@@ -155,6 +155,18 @@ We use PhantomJS to generate our archives. [Install PhantomJS](http://phantomjs.
 
 (If you don't want to put PhantomJS in your path, you can put it in perma_web/lib/ and set PHANTOMJS_BINARY as demonstrated in settings.py.example.)
 
+
+### ImageMagick and Wand
+
+We use ImageMagick (through [Wand](http://docs.wand-py.org/)) to create thumbnails from our PDFs and other images. Something like this should get you started on Redhat
+
+    yum install ImageMagick-devel
+
+If you're on OS X you should might need to do adjust and [environment variable](http://docs.wand-py.org/en/0.3.8/guide/install.html#install-imagemagick-on-mac)
+
+	export MAGICK_HOME=/opt/local
+
+
 ### Run the server
 
 Toss in a WSGI config and wire it to your webserver, or use the built-in Django webserver and you should be ready to roll:

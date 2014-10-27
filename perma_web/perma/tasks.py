@@ -19,6 +19,7 @@ import errno
 import tempdir
 from socket import error as socket_error
 import internetarchive
+from wand.image import Image
 
 from django.core.files.storage import default_storage
 from django.core.mail import send_mail
@@ -288,7 +289,7 @@ def get_pdf(link_guid, target_url, base_storage_path, user_agent):
         headers={'User-Agent': user_agent})
 
     # write PDF out to a temp file
-    temp = tempfile.TemporaryFile()
+    temp = tempfile.NamedTemporaryFile()
     for chunk in pdf_request.iter_content(chunk_size=1024):
 
         if chunk: # filter out keep-alive new chunks
@@ -305,7 +306,14 @@ def get_pdf(link_guid, target_url, base_storage_path, user_agent):
     temp.seek(0)
     pdf_name = default_storage.store_file(temp, pdf_path)
     asset_query.update(pdf_capture=pdf_name)
-
+    
+    # Get first page of the PDF and created an image from it
+    # Save it to disk as our image capture (likely a temporary measure)
+    with Image(filename=temp.name) as img:
+        image_name = 'cap.png'
+        image_path = os.path.join(base_storage_path, image_name)
+        default_storage.store_data_to_file(img.make_blob('png'), image_path, overwrite=True)
+        asset_query.update(image_capture=image_name)
 
 @shared_task
 def get_nightly_stats():

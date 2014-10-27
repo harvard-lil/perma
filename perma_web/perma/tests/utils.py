@@ -13,7 +13,6 @@ from perma.models import Registrar, VestingOrg, LinkUser
     # That's not great because it's a less accurate test -- when we upgrade to Django 1.7, consider using
     # StaticLiveServerCase instead. http://stackoverflow.com/a/22058962/307769
     STATICFILES_STORAGE='pipeline.storage.NonPackagingPipelineStorage',
-    PIPELINE_ENABLED=False
 )
 class PermaTestCase(TransactionTestCase):
     fixtures = ['fixtures/groups.json','fixtures/users.json',

@@ -1,16 +1,31 @@
 # -*- coding: utf-8 -*-
 import datetime
 from south.db import db
-from south.v2 import DataMigration
+from south.v2 import SchemaMigration
 from django.db import models
 
-class Migration(DataMigration):
+
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        pass
+        # Adding field 'Registrar.date_created'
+        db.add_column(u'perma_registrar', 'date_created',
+                      self.gf('django.db.models.fields.DateField')(auto_now_add=True, null=True, blank=True),
+                      keep_default=False)
+
+        # Adding field 'VestingOrg.date_created'
+        db.add_column(u'perma_vestingorg', 'date_created',
+                      self.gf('django.db.models.fields.DateField')(auto_now_add=True, null=True, blank=True),
+                      keep_default=False)
+
 
     def backwards(self, orm):
-        "Write your backwards methods here."
+        # Deleting field 'Registrar.date_created'
+        db.delete_column(u'perma_registrar', 'date_created')
+
+        # Deleting field 'VestingOrg.date_created'
+        db.delete_column(u'perma_vestingorg', 'date_created')
+
 
     models = {
         u'auth.group': {
@@ -85,7 +100,6 @@ class Migration(DataMigration):
         },
         u'perma.linkuser': {
             'Meta': {'object_name': 'LinkUser'},
-            'authorized_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'authorized_by_manager'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
             'confirmation_code': ('django.db.models.fields.CharField', [], {'max_length': '45', 'blank': 'True'}),
             'date_joined': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'email': ('django.db.models.fields.EmailField', [], {'unique': 'True', 'max_length': '255', 'db_index': 'True'}),
@@ -104,6 +118,7 @@ class Migration(DataMigration):
         },
         u'perma.registrar': {
             'Meta': {'object_name': 'Registrar'},
+            'date_created': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
             'default_vesting_org': ('django.db.models.fields.related.OneToOneField', [], {'blank': 'True', 'related_name': "'default_for_registrars'", 'unique': 'True', 'null': 'True', 'to': u"orm['perma.VestingOrg']"}),
             'email': ('django.db.models.fields.EmailField', [], {'max_length': '254'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -130,6 +145,7 @@ class Migration(DataMigration):
         },
         u'perma.vestingorg': {
             'Meta': {'object_name': 'VestingOrg'},
+            'date_created': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '400'}),
             'registrar': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'vesting_orgs'", 'null': 'True', 'to': u"orm['perma.Registrar']"}),

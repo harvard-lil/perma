@@ -113,16 +113,12 @@
 
 {% verbatim %}
 <script id="success-template" type="text/x-handlebars-template">
-	{{#if message_pdf }}
-		<div class="library-thumbnail">
-            <a href="{{url}}" target="_blank"><img src="{{static_prefix}}img/pdf-preview.jpg" /></a>
-		</div>
-	{{else}}
+
 		<div class="thumbnail-placeholder">
             <div id="spinner"></div>
             <p class="spinner-message">Generating preview</p>
 		</div>
-	{{/if}}
+
 </script>
 {% endverbatim %}
 
@@ -158,10 +154,9 @@
     <p class="message-url"> <a href="{{url}}" target="_blank" class="perma-url">{{url}}</a></p>
 
     {{#if vesting_privs }}
-        <p>You need to take one more step to make this archive permanent -- it needs to be vested.</p>
-        <p><a href="{{url}}" target="_blank" class="btn btn-success">View and Vest</a></p>
+        <p>You need to take one more step to make this archive permanent - it needs to be vested.</p>
     {{ else }}
-        <p>You need to take one more step to make this archive permanent -- it needs to be vested by a partner organization. <a href="{{userguide_url}}">Learn more about vesting.</a></p>
+        <p>You need to take one more step to make this archive permanent - it needs to be vested by a partner organization. <a href="{{userguide_url}}">Learn more about vesting.</a></p>
     {{/if}}
 </script>
 {% endverbatim %}

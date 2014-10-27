@@ -14,7 +14,7 @@ Register for a Perma.cc account. Welcome aboard.
 				 <fieldset>
 				<span class="text-error"><br/>{{ form.non_field_errors }}</span>
 				{% for field in form %}
-				  <label for="id_{{ field.name }}">{{ field.label }}</label><br/>
+				  <br /><label for="id_{{ field.name }}">{{ field.label }}</label><br/>
 				  {{ field }}
 				  {% if field.errors %}
 					{% for error in field.errors %}<span class="text-error"><br/>{{ error }}</span>{% endfor %}
@@ -42,3 +42,10 @@ Register for a Perma.cc account. Welcome aboard.
 <br/>
 <br/>
 {% endblock content %}
+{% block scripts %}
+<script>
+$(document).ready(function(){
+    $('input[type=email]:first').focus();
+});
+</script>
+{% endblock scripts %}

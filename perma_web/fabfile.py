@@ -148,9 +148,12 @@ def tag_new_release(tag):
         Roll develop into master and tag it
     """
     local("git checkout master")
-    local("git merge develop")
+    local("git merge develop -m 'Tagging %s. Merging develop into master'" % tag)
     local("git tag -a %s -m '%s'" % (tag, tag))
     local("git push --tags")
+    local("git push")
+    local("git checkout develop")
+    
           
 def pip_install():
       run("pip install -r requirements.txt")
@@ -160,9 +163,8 @@ def restart_server():
     """
         Touch the wsgi file to restart the remote server (hopefully).
     """
-    run("cd /srv/www/perma/perma_web && set -m ; (service gunicorn stop; sleep 1; service gunicorn start)&")
-    run("sudo service celery stop; sudo service celery start;")
-    run("sudo service celerybeat stop; sudo service celerybeat start;")
+    run("sudo stop celery; sudo start celery;")
+    run("sudo stop celerybeat; sudo start celerybeat;")
 
 
 @setup_remote

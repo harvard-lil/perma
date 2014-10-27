@@ -28,6 +28,7 @@ class Registrar(models.Model):
     name = models.CharField(max_length=400)
     email = models.EmailField(max_length=254)
     website = models.URLField(max_length=500)
+    date_created = models.DateField(auto_now_add=True, null=True)
     default_vesting_org = models.OneToOneField('VestingOrg', blank=True, null=True, related_name='default_for_registrars')
 
     def save(self, *args, **kwargs):
@@ -36,32 +37,21 @@ class Registrar(models.Model):
 
     def __unicode__(self):
         return self.name
-
+        
     def create_default_vesting_org(self):
         """
-            Create a default vesting org for this registrar, if there isn't one.
-            Before creating a new one, we check if registrar has only a single vesting org,
-            or else one called "Default Vesting Organization",
-            and if so use that one.
-
-            NOTE: In theory registrars created from now on shouldn't need these checks, and they could be deleted.
+            Create a default vesting org for this registrar, if there isn't
+            one. (When registrar member vests, we associate that archive
+            with this vesting org by default.)
         """
+        
         if self.default_vesting_org:
             return
-        vesting_orgs = list(self.vesting_orgs.all())
-        if len(vesting_orgs) == 1:
-            vesting_org = vesting_orgs[0]
         else:
-            for candidate_vesting_org in vesting_orgs:
-                if candidate_vesting_org.name == "Default Vesting Organization":
-                    vesting_org = candidate_vesting_org
-                    break
-            else:
-                vesting_org = VestingOrg(registrar=self, name="Default Vesting Organization")
-                vesting_org.save()
-        self.default_vesting_org = vesting_org
-        self.save()
-
+            vesting_org = VestingOrg(registrar=self, name="Default Vesting Organization")
+            vesting_org.save()
+            self.default_vesting_org = vesting_org
+            self.save()
         
 class VestingOrg(models.Model):
     """
@@ -70,6 +60,7 @@ class VestingOrg(models.Model):
     name = models.CharField(max_length=400)
     registrar = models.ForeignKey(Registrar, null=True, related_name="vesting_orgs")
     shared_folder = models.OneToOneField('Folder', blank=True, null=True)
+    date_created = models.DateField(auto_now_add=True, null=True)
 
     def __init__(self, *args, **kwargs):
         """ Capture original values so we can deal with changes during save. """
@@ -141,7 +132,6 @@ class LinkUser(AbstractBaseUser):
     date_joined = models.DateField(auto_now_add=True)
     first_name = models.CharField(max_length=45, blank=True)
     last_name = models.CharField(max_length=45, blank=True)
-    authorized_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='authorized_by_manager')
     confirmation_code = models.CharField(max_length=45, blank=True)
     root_folder = models.OneToOneField('Folder', blank=True, null=True)
 
@@ -561,7 +551,8 @@ class Asset(models.Model):
 
     def warc_url(self):
         if self.warc_capture and '.warc' in self.warc_capture:
-            return u"/warc/%s/%s" % (self.link.guid, self.link.submitted_url)
+            return ("//"+settings.WARC_HOST if settings.WARC_HOST else '') + \
+                   u"/warc/%s/%s" % (self.link.guid, self.link.submitted_url)
         else:
             return settings.MEDIA_URL+self.base_url(self.warc_capture)
 

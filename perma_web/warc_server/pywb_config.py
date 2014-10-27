@@ -1,13 +1,16 @@
 import os
+from django.core.exceptions import DisallowedHost
+from django.core.handlers.wsgi import WSGIRequest
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "perma.settings")
 from django.conf import settings
+from django.template import Context
+from django.template.loader import get_template
 from django.core.files.storage import default_storage
 
 from pywb.rewrite.wburl import WbUrl
-
 from pywb.framework import archivalrouter
-
+from pywb.framework.wbrequestresponse import WbResponse
 from pywb.webapp.handlers import WBHandler
 from pywb.webapp.query_handler import QueryHandler
 from pywb.webapp.pywb_init import create_wb_handler
@@ -18,6 +21,7 @@ class Route(archivalrouter.Route):
     def apply_filters(self, wbrequest, matcher):
         wbrequest.custom_params['guid'] = matcher.group(1)
 
+
 # prevent mod getting added to rewritten urls
 # timestamp already disabled via 'redir_to_exact' flag
 class Url(WbUrl):
@@ -26,9 +30,37 @@ class Url(WbUrl):
         overrides['timestamp'] = ''
         return WbUrl.to_str(self, **overrides)
 
+
 class Handler(WBHandler):
     def get_wburl_type(self):
         return Url
+
+
+class ErrorTemplateView(object):
+    """ View for pywb errors -- basically just hands off to the archive-error.html Django template. """
+    def __init__(self):
+        self.template = get_template('archive-error.html')
+
+    def render_to_string(self, **kwargs):
+        return unicode(self.template.render(Context(kwargs)))
+
+    def render_response(self, **kwargs):
+        template_result = self.render_to_string(**dict(kwargs,
+                                                     STATIC_URL=settings.STATIC_URL,
+                                                     DEBUG=settings.DEBUG))
+        status = kwargs.get('status', '200 OK')
+        content_type = kwargs.get('content_type', 'text/html; charset=utf-8')
+        return WbResponse.text_response(template_result.encode('utf-8'), status=status, content_type=content_type)
+
+
+class Router(archivalrouter.ArchivalRouter):
+    def __call__(self, env):
+        """
+            Before routing requests, make sure that host is equal to WARC_HOST if set.
+        """
+        if settings.WARC_HOST and env.get('HTTP_HOST') != settings.WARC_HOST:
+            raise DisallowedHost("Playback request used invalid domain.")
+        return super(Router, self).__call__(env)
 
 
 #=================================================================
@@ -36,7 +68,9 @@ def create_perma_pywb_app(config):
     """
         Configure server.
     """
-    query_handler = QueryHandler.init_from_config(settings.CDX_SERVER_URL)
+    # paths
+    script_path = os.path.dirname(__file__)
+    template_path = os.path.join(script_path, 'templates')
 
     # Get root storage location for warcs.
     # archive_path should be the location pywb can find warcs, like 'file://generated/' or 'http://perma.s3.amazonaws.com/generated/'
@@ -47,6 +81,8 @@ def create_perma_pywb_app(config):
     except NotImplementedError:
         archive_path = default_storage.url('/')
         archive_path = archive_path.split('?', 1)[0]  # remove query params
+
+    query_handler = QueryHandler.init_from_config(settings.CDX_SERVER_URL)
 
     # use util func to create the handler
     wb_handler = create_wb_handler(query_handler,
@@ -60,7 +96,7 @@ def create_perma_pywb_app(config):
                                         redir_to_exact=False))
 
     # Finally, create wb router
-    return archivalrouter.ArchivalRouter(
+    return Router(
         {
             Route(r'([a-zA-Z0-9\-]+)', wb_handler)
         },
@@ -68,5 +104,7 @@ def create_perma_pywb_app(config):
         # This will help catch occasionally missed rewrites that fall-through to the host
         # (See archivalrouter.ReferRedirect)
         hostpaths=['http://localhost:8000/'],
-        port=8000
+        port=8000,
+        error_view=ErrorTemplateView()
     )
+
