@@ -824,7 +824,7 @@ def reactive_user_in_group(request, user_id, group_name):
     # Registrar members can only edit their own vesting members
     if not request.user.has_group('registry_user'):
         if request.user.registrar != target_member.vesting_org.registrar:
-            return HttpResponseRedirect(reverse('created_links'))
+            return HttpResponseRedirect(reverse('link_browser'))
 
     # Vesting managers can only edit their own vesting members
     if not request.user.has_group(['registry_user', 'registrar_user', 'vesting_user']):
