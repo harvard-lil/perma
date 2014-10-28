@@ -713,12 +713,8 @@ def delete_user_in_group(request, user_id, group_name):
             target_member.is_active = False
             target_member.vesting_org = None
             target_member.registrar = None
-            group = Group.objects.get(name='user')
-            all_groups = Group.objects.all()
-            for ag in all_groups:
-                target_member.groups.remove(ag)
-            target_member.groups.add(group)
             target_member.save()
+            target_member.groups = [Group.objects.get(name='user')]
         else:
             target_member.delete()
 
