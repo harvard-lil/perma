@@ -1351,11 +1351,42 @@ img.linky-image-preview {
 .watermark-container {
 	position: absolute;
 	z-index: 2;
-	width: 90%;
-	margin-left: 5%;
+	width: 60%;
+	margin-left: 20%;
 	margin-top: 100px;
-	height: 200px;
-	background-color: rgba($perma-blue, 0.5);
+	background-color: rgba($perma-blue, 0.8);
+	filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr='#4cffffff', endColorstr='#4cffffff'); /* IE 8 alpha hack*/
+	padding-top: 10px;
+	padding-bottom: 10px;
+	pointer-events:none;
+}
+
+.watermark-container h2 {
+	color: #fff;
+	font-size: 55px;
+	
+	@media (max-width: 500px) {
+		font-size: 30px;
+    }
+    
+}
+
+.watermark-container p {
+	color: #fff;
+	font-size: 20px;
+
+	margin-top: 30px;
+}
+
+.watermark-container a {
+	color: #fff;
+	text-decoration: underline;
+	font-weight: 300;
+	pointer-events: auto;
+}
+
+.watermark-container .highlight {
+	font-weight: 400;
 }
 
 .watermark-image {
@@ -1371,15 +1402,12 @@ img.linky-image-preview {
 	width:70%;
 	pointer-events:none;
 }
-.watermark h2, .watermark h1 {
-
-}
 
 .built-by {
-        text-decoration: none;
-          font-family: 'Roboto Slab', sans-serif;
-          font-size:25px;
-          color:#ff4100;
+	text-decoration: none;
+	font-family: 'Roboto Slab', sans-serif;
+	font-size:25px;
+	color:#ff4100;
 }
 
 .lower {

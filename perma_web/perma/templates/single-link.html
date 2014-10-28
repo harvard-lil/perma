@@ -1,5 +1,5 @@
 {% extends "layout-archive-responsive.html" %}
-{% load file_exists  truncatesmart has_group is_darchive local_datetime mirror_tags %}
+{% load file_exists  truncatesmart has_group is_darchive local_datetime mirror_tags local_datetime %}
 
 {% block title %} | {{linky.submitted_title}}{% endblock %}
 
@@ -149,8 +149,20 @@
         {% if not linky.user_deleted %}
 	<div class="linky-view center">
   		<div class="watermark center">
-
-			{% if not linky.vested and serve_type != 'live' %}<div class="watermark-container"><img src="{{ STATIC_URL }}img/282-42.png"></div>{% endif %}
+			{% if not linky.vested and serve_type != 'live' %}
+				<div class="watermark-container">
+					<class ="row">
+						<div class="col-sm-4 col-sm-offset-1 col-xs-12">
+							<img src="{{ STATIC_URL }}img/stopwatch.png" class="img-responsive">
+						</div>
+						<div class="col-sm-6 col-xs-12">
+							<h2>Temporary Archive</h2>
+							<p>This archive is temporary and will expire on <span class="highlight">{{ linky.get_expiration_date|local_datetime:"M. j, Y" }}</span> unless <a href="{% url 'docs_perma_link_vesting' %}" target="_blank">vested</a>.</p>
+						</div>
+					</div>
+						
+				</div>
+			{% endif %}
 
 			{% if serve_type == 'live' %}
 				{% if display_iframe %}
