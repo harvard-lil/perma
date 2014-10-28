@@ -1179,11 +1179,12 @@ def email_new_registrar_user(request, user):
 
     host = request.get_host() if settings.DEBUG else settings.HOST
 
-    content = '''Your Perma.cc account has been associated with %s. If this is a mistake, visit your account settings page to leave %s.
+    content = '''Your Perma.cc account has been associated with %s.  If this is a mistake, visit your account settings page to leave %s.
 
 http://%s%s
 
 ''' % (user.registrar.name, user.registrar.name, host, reverse('user_management_manage_account'))
+
     send_mail(
         "Your Perma.cc account is now associated with {registrar}".format(registrar=user.registrar.name),
         content,
