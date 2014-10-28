@@ -1,4 +1,4 @@
-{% extends "layout-archive-responsive.html" %}
+{% extends "base-archive-responsive.html" %}
 
 {% block title %} | {{link.submitted_title}}{% endblock %}
 
@@ -40,11 +40,9 @@
 {% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-sm-6 col-sm-offset-3 centered">
-            <div class="yahowza">
-                 {% block confirm %}{% endblock %}
-            </div>
+    <div class="col-sm-6 col-sm-offset-3 centered">
+        <div class="yahowza">
+             {% block confirm %}{% endblock %}
         </div>
-    </div><!--row-->
+    </div>
 {% endblock %}

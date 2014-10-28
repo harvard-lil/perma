@@ -55,6 +55,10 @@ body {
 
 .container-fluid {
     padding: 0;
+
+    .row > div{
+        padding:0;
+    }
 }
 
 .modal {
