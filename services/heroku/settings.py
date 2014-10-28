@@ -32,7 +32,7 @@ CELERY_RESULT_BACKEND = os.environ.get('REDISTOGO_URL')
 
 
 # these are relative to the S3 bucket
-MEDIA_ROOT = '/media/'
+MEDIA_ROOT = '/generated/'
 STATIC_ROOT = '/static/'
 
 # AWS storage settings
