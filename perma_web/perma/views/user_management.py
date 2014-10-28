@@ -488,14 +488,14 @@ def edit_user_in_group(request, user_id, group_name):
     # Registrar members can only edit their own vesting members
     if not is_registry and is_registrar:
     	if group_name == 'vesting_user' and request.user.registrar != target_user.vesting_org.registrar:
-            return HttpResponseRedirect(reverse('link_browser'))
+            raise Http404
         if group_name == 'registrar_user' and request.user.registrar != target_user.registrar:
-            return HttpResponseRedirect(reverse('link_browser'))
+            raise Http404
 
     # Vesting members can only edit other vesting members of same org
     if not is_registry and not is_registrar:
         if request.user.vesting_org != target_user.vesting_org:
-            return HttpResponseRedirect(reverse('link_browser'))
+            raise Http404
 
     context = {
         'target_user': target_user, 'group_name':group_name,
@@ -737,10 +737,10 @@ def manage_single_vesting_user_remove(request, user_id):
     # Vesting managers can only edit their own vesting members
     if is_registrar:
         if request.user.registrar != target_member.vesting_org.registrar:
-            return HttpResponseRedirect(reverse('link_browser'))
+            raise Http404
     else:
         if request.user.vesting_org != target_member.vesting_org:
-            return HttpResponseRedirect(reverse('link_browser'))
+            raise Http404
 
     context = {'target_member': target_member,
                'this_page': 'users_vesting_user'}
@@ -768,7 +768,7 @@ def manage_single_registrar_user_remove(request, user_id):
     # Registrar users can only edit their own registrar members
     if not request.user.has_group(['registrar_user']):
         if request.user.registrar != target_member.registrar:
-            return HttpResponseRedirect(reverse('created_links'))
+            raise Http404
 
     context = {'target_member': target_member,
                'this_page': 'users_vesting_user'}
