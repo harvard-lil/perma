@@ -1,7 +1,7 @@
 /*
 Copyright(c) 2013-2014 Ilya Kreymer. Released under the GNU General Public License.
 
-This file is part of pywb.
+This file is part of pywb, https://github.com/ikreymer/pywb
 
     pywb is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -280,7 +280,6 @@ WB_wombat_init = (function() {
         var href = extract_orig(this._orig_href);
         parser.href = href;
         
-        //console.log(this._orig_href + " -> " + tmp_href);
         this._autooverride = false;
         
         var _set_hash = function(hash) {
@@ -495,7 +494,7 @@ WB_wombat_init = (function() {
     }
 
     //============================================
-    function rewrite_attr(elem, name) {
+    function rewrite_attr(elem, name, func) {
         if (!elem || !elem.getAttribute) {
             return;
         }
@@ -510,17 +509,31 @@ WB_wombat_init = (function() {
             return;
         }
 
-        //var orig_value = value;        
-        value = rewrite_url(value);
+        value = func(value);
 
         elem.setAttribute(name, value);
     }
-    
+
+    //============================================
+    function rewrite_style(value)
+    {
+        //console.log("style rewrite: " + value);
+
+        STYLE_REGEX = /(url\s*\(\s*[\\"']*)([^)'"]+)([\\"']*\s*\))/g;
+
+        function style_replacer(match, n1, n2, n3, offset, string) {
+            return n1 + rewrite_url(n2) + n3;
+        }
+
+        return value.replace(STYLE_REGEX, style_replacer);
+    }
+
     //============================================
     function rewrite_elem(elem)
     {
-        rewrite_attr(elem, "src");
-        rewrite_attr(elem, "href");
+        rewrite_attr(elem, "src", rewrite_url);
+        rewrite_attr(elem, "href", rewrite_url);
+        rewrite_attr(elem, "style", rewrite_style);
         
         if (elem && elem.getAttribute && elem.getAttribute("crossorigin")) {
             elem.removeAttribute("crossorigin");
@@ -699,7 +712,7 @@ WB_wombat_init = (function() {
         wb_replay_prefix = replay_prefix;
         
         if (wb_replay_prefix) {
-            wb_replay_date_prefix = replay_prefix + capture_date + "em_/";
+            wb_replay_date_prefix = replay_prefix + capture_date + "/";
             
             if (capture_date.length > 0) {
                 wb_capture_date_part = "/" + capture_date + "/";

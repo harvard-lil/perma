@@ -1,0 +1,34 @@
+{# copied/modified from pywb/ui/head_insert.html #}
+<!-- WB Insert -->
+{% if rule.js_rewrite_location and include_wombat %}
+<script src='{{ static_path }}js/wombat.js'> </script>
+<script>
+  {% set urlsplit = cdx.original | urlsplit %}
+  WB_wombat_init("{{ wbrequest.wb_prefix}}",
+                 "{{ cdx['timestamp'] if include_ts else ''}}",
+                 "{{ urlsplit.scheme }}",
+                 "{{ urlsplit.netloc }}",
+                 "{{ cdx.timestamp | format_ts('%s') }}");
+</script>
+{% endif %}
+<script>
+  wbinfo = {}
+  wbinfo.url = "{{ cdx.original }}";
+  wbinfo.timestamp = "{{ cdx.timestamp }}";
+  wbinfo.prefix = "{{ wbrequest.wb_prefix }}";
+  wbinfo.mod = "{{ wbrequest.wb_url.mod }}";
+  wbinfo.top_url = "{{ top_url }}";
+  wbinfo.is_live = {{ "true" if cdx.is_live else "false" }};
+  wbinfo.coll = "{{ wbrequest.coll }}";
+  wbinfo.proxy_magic = "{{ wbrequest.env.pywb_proxy_magic }}";
+</script>
+{#
+<script src='{{ static_path }}js/wb.js'> </script>
+
+{% include banner_html ignore missing %}
+
+<!-- load banner -->
+<script> if (_wb_js) { _wb_js.load(); }</script>
+ #}
+<!-- End WB Insert -->
+

@@ -3,4 +3,3 @@
 
 dj_database_url==0.3.0
 dj-static==0.0.5
-redis==2.9.0
