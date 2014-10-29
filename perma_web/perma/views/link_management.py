@@ -412,7 +412,7 @@ def user_delete_link(request, guid):
             link.user_deleted_timestamp=datetime.now()
             link.save()
 
-        return HttpResponseRedirect(reverse('created_links'))
+        return HttpResponseRedirect(reverse('link_browser'))
     return render_to_response('link-delete-confirm.html', {'link': link, 'asset': asset}, RequestContext(request))
 
 
