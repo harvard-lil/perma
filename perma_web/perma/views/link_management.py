@@ -396,7 +396,7 @@ def vest_link(request, guid):
 
         run_task(poke_mirrors, link_guid=guid)
 
-        if settings.UPLOAD_TO_INTERNET_ARCHIVE:
+        if settings.UPLOAD_TO_INTERNET_ARCHIVE and link.can_upload_to_internet_archive():
             run_task(upload_to_internet_archive, link_guid=guid)
 
     return HttpResponseRedirect(reverse('single_linky', args=[guid]))

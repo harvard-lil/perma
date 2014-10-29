@@ -251,7 +251,6 @@ def heroku_create_app(app_name, s3_storage_bucket=None):
         'AWS_STORAGE_BUCKET_NAME':s3_storage_bucket,
         'CDX_SERVER_URL':'http://%s.herokuapp.com/cdx' % app_name,
         'HOST':'%s.herokuapp.com' % app_name,
-        'PYWB_ARCHIVE_LOCATION':s3_url+'generated/',
         'STATIC_URL':s3_url+'static/',
         'MEDIA_URL':s3_url+'media/',
     }

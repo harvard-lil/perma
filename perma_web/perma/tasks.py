@@ -6,6 +6,7 @@ import tempfile
 import threading
 import urlparse
 from celery import shared_task
+from django.template.defaultfilters import truncatechars
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.proxy import ProxyType
@@ -385,6 +386,12 @@ def upload_to_internet_archive(self, link_guid):
     # setup
     asset = Asset.objects.get(link_id=link_guid)
     link = asset.link
+
+    # make sure link should be uploaded
+    if not link.can_upload_to_internet_archive():
+        print "Not eligible for upload."
+        return
+
     identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX+link_guid
     warc_path = os.path.join(asset.base_storage_path, asset.warc_capture)
 
@@ -394,12 +401,15 @@ def upload_to_internet_archive(self, link_guid):
         'collection':settings.INTERNET_ARCHIVE_COLLECTION,
         'mediatype':'web',
         'date':link.creation_timestamp,
-        'title':'Perma Capture %s' % link_guid,
-        'creator':'Perma.cc',
+        'title':'%s: %s' % (link_guid, truncatechars(link.submitted_title, 50)),
+        'description': 'Perma.cc archive of %s created on %s and vested on %s by %s.' % (link.submitted_url, link.creation_timestamp, link.vested_timestamp, link.vesting_org),
+        'contributor':'Perma.cc',
+        'sponsor':"%s - %s" % (link.vesting_org, link.vesting_org.registrar),
 
         # custom metadata
         'submitted_url':link.submitted_url,
-        'perma_url':"http://%s/%s" % (settings.HOST, link_guid)
+        'perma_url':"http://%s/%s" % (settings.HOST, link_guid),
+        'external-identifier':'urn:X-perma:%s' % link_guid,
     }
 
     # upload
@@ -410,11 +420,9 @@ def upload_to_internet_archive(self, link_guid):
                               secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
                               verbose=True,
                               debug=True)
-    if success:
-        print "Succeeded."
-    else:
-        print "Failed."
+    if not success:
         self.retry(exc=Exception("Internet Archive reported upload failure."))
+        print "Failed."
 
 @shared_task
 def email_weekly_stats():
