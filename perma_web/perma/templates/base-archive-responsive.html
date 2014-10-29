@@ -22,9 +22,10 @@
     <body>
 		{% block header %}{% endblock header %}
 		<section id="main-archive">
-			<div id="main-content">
+			<div id="main-content" class="container-fluid">
 				<div class="row">
-			{% block row %}{% endblock row %}
+                    {% block content %}
+                    {% endblock content %}
 				</div><!--/.row-fluid-->
 			</div><!--/.main-container #main-content"-->
 		</section><!--/#main-->
