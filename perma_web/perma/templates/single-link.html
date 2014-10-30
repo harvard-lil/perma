@@ -154,15 +154,18 @@
                 {% if not linky.vested and serve_type != 'live' %}
                     {% if not linky|is_darchive or request.user|has_group:'registry_user,registrar_user,vesting_user' %}
 						<div class="watermark-container">
+							<span class="pull-right">
+								<span class="glyphicon glyphicon-remove"></span>
+							</span>	
 							<class ="row">
 								<div class="col-sm-4 col-sm-offset-1 col-xs-12">
 									<img src="{{ STATIC_URL }}img/stopwatch.png" class="img-responsive stopwatch">
 								</div>
 								<div class="col-sm-4 col-xs-12">
-									<div class="pull-left">
+									<span class="pull-left">
 										<h2>Temporary Archive</h2>
 										<p>This archive is temporary and will expire on <span class="highlight">{{ linky.get_expiration_date|local_datetime:"M. j, Y" }}</span> unless <a href="{% url 'docs_perma_link_vesting' %}" target="_blank">vested</a>.</p>
-									</div>
+									</span>
 								</div>
 							</div> <!-- nested row -->
 						</div> <!-- watermark-container -->

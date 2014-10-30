@@ -1392,6 +1392,14 @@ img.linky-image-preview {
 	font-weight: 400;
 }
 
+.watermark-container .glyphicon-remove {
+	color: #fff;
+	padding-right: 10px;
+	font-size: 20px;
+	pointer-events: auto;
+	cursor: pointer;
+}
+
 .stopwatch  {
 	/* center the stopwatch when on bootstrap's xs small size */
 	@media (max-width: 766px) {
