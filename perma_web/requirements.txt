@@ -36,6 +36,7 @@ python-gnupg==0.3.6             # Sign messages between main server and mirrors.
 django-forms-bootstrap==3.0.1   # produce Bootstrap compatable forms
 django-secure==1.0.1            # Force SSL -- this can be removed in Django 1.8
 django-sslserver==0.14          # For testing SSL locally.
+django-subdomains==2.0.4        # enables subdomain based url routing
 
 # deployment
 gunicorn==18.0

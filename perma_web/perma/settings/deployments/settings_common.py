@@ -157,6 +157,7 @@ TEMPLATE_LOADERS = (
 
 MIDDLEWARE_CLASSES = (
     'perma.middleware.SecurityMiddleware',
+    'subdomains.middleware.SubdomainURLRoutingMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -170,8 +171,6 @@ MIDDLEWARE_CLASSES = (
 )
 
 RATELIMIT_VIEW = 'perma.views.common.rate_limit'
-
-ROOT_URLCONF = 'urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'perma.wsgi.application'
@@ -394,13 +393,28 @@ LINK_EXPIRATION_TIME = relativedelta(years=2)
 WARC_HOST = None
 DIRECT_WARC_HOST = None     # host to load warc from this server in particular -- primarily useful for main server
 
-
 # Sorl settings. This releates to our thumbnail creation
 # the prod and dev configs are considerably different. See those configs for
 # details
-THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.pil_engine.Engine' # Change this to Wand when sorl 12.x is released (since we use Wand for PDF thumbnail creation)
-THUMBNAIL_FORMAT = 'PNG' #
+THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.pil_engine.Engine'  # Change this to Wand when sorl 12.x is released (since we use Wand for PDF thumbnail creation)
+THUMBNAIL_FORMAT = 'PNG'  #
 
+# for django-subdomains
+# This is the urlconf that will be used for any subdomain that is not
+# listed in ``SUBDOMAIN_URLCONFS``, or if the HTTP ``Host`` header does not
+# contain the correct domain.
+# If you're planning on using wildcard subdomains, this should correspond
+# to the urlconf that will be used for the wildcard subdomain. For example,
+# 'accountname.mysite.com' will load the ROOT_URLCONF, since it is not
+# defined in ``SUBDOMAIN_URLCONFS``.
+ROOT_URLCONF = 'urls'
+
+# A dictionary of urlconf module paths, keyed by their subdomain.
+SUBDOMAIN_URLCONFS = {
+    None: 'urls',  # no subdomain, e.g. ``example.com``
+    'www': 'urls',
+    'api': 'api.urls',
+}
 
 # feature flags
 SINGLE_LINK_HEADER_TEST = False
