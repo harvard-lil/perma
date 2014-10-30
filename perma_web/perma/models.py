@@ -282,7 +282,7 @@ class Folder(MPTTModel):
         super(Folder, self).__init__(*args, **kwargs)
 
         # set defaults
-        if not self.pk:
+        if args and not self.pk:
             # set ownership same as parent
             if self.parent:
                 if self.parent.vesting_org:
