@@ -108,10 +108,14 @@ def link_status(request, guid):
             capture_name = target_asset.image_capture
         else:
             capture_name = target_asset.pdf_capture
-            
-        image_path = os.path.join(settings.MEDIA_ROOT, target_asset.base_storage_path, capture_name)
-        thumbnail = get_thumbnail(image_path, '456')
-        thumbnail_url = thumbnail.url
+
+        try:
+            image_path = os.path.join(settings.MEDIA_ROOT, target_asset.base_storage_path, capture_name)
+            thumbnail = get_thumbnail(image_path, '456')
+            thumbnail_url = thumbnail.url
+        except IOError:
+            logger.info("Thumnail creation failed. Unable to find capture image")
+
     
     response_object = {"path": target_asset.base_storage_path, "text_capture": target_asset.text_capture,
             "source_capture": target_asset.warc_capture, "image_capture": target_asset.image_capture,
