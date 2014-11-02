@@ -2,7 +2,7 @@
 
 Django==1.6.8
 MySQL-python==1.2.5
-South==0.7.6
+South==1.0.1
 lxml==3.2.1
 PyPDF2==1.20                    # check integrity of uploaded PDFs
 celery==3.1.12
