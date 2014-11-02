@@ -1,4 +1,4 @@
-from tastypie.authentication import BasicAuthentication, ApiKeyAuthentication, MultiAuthentication, SessionAuthentication
+from tastypie.authentication import ApiKeyAuthentication
 from tastypie.authorization import Authorization
 from tastypie import fields
 from tastypie.resources import ModelResource
@@ -14,7 +14,7 @@ class CurrentUserResource(ModelResource):
     class Meta:
         resource_name = 'user'
         queryset = LinkUser.objects.all()
-        authentication = MultiAuthentication(SessionAuthentication(), BasicAuthentication())
+        authentication = ApiKeyAuthentication()
         authorization = Authorization()
         list_allowed_methods = []
         detail_allowed_methods = ['get']
