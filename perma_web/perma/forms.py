@@ -291,7 +291,7 @@ class UserFormSelfEdit(forms.ModelForm):
     stripped down user reg form
     This is mostly a django.contrib.auth.forms.UserCreationForm
 
-    This is stripped down even further to match out editing needs
+    This is stripped down even further to match our editing needs
     """
 
     class Meta:

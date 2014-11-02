@@ -21,6 +21,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth.models import Group
 from django.contrib import messages
 from mirroring.utils import sign_message
+from tastypie.models import ApiKey
 
 from perma.forms import (
     RegistrarForm, 
@@ -919,6 +920,20 @@ def settings_tools(request):
     
     return render_to_response('user_management/settings-tools.html', context)
 
+
+@login_required
+def api_key_create(request):
+    """
+    Generate or regenerate an API key for the user
+    """
+    if request.method == "POST":
+        try:
+            # Clear key so a new one is generated on save()
+            request.user.api_key.key = None
+            request.user.api_key.save()
+        except ApiKey.DoesNotExist:
+            ApiKey.objects.create(user=request.user)
+        return HttpResponseRedirect(reverse('user_management_manage_account'))
 
 # @login_required
 # def batch_convert(request):

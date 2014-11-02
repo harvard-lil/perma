@@ -1,0 +1,67 @@
+{% extends "admin-layout.html" %}
+{% load has_group %}
+{% block title %} | Settings{% endblock %}
+
+{% block manage-nav-settings %}<li class="active"><a href="{% url 'user_management_manage_account' %}">Account settings</a></li>{% endblock %}
+
+{% block content %}
+	  <h3>Tools</h3>
+	  <h4>Bookmarklet</h4>
+		<div class="bookmarklet-button-blurb">
+			<p>You can create Perma links using the bookmarklet. Drag the following button to your bookmarks bar.</p>
+			<p><a class="btn bookmarklet-button" style="background-color: #efefef;" href="javascript:window.open('http://www.perma.cc/service/bookmarklet-create/?v=1&url='+encodeURIComponent(location.href));window.focus();">Create Perma link</a> </p>
+			<p>Then, click the button while you're viewing the page you want to save.</p>
+		</div><!--/.bookmarklet-button-blurb-->
+		<br />
+
+	  <h3>Account settings</h3>
+	  {% if request.user|has_group:'vesting_user' %}
+	    <div class="sponsoring-library-info">
+            {% with request.user.vesting_org as vesting_org %}
+                <h4>Your sponsoring library</h4>
+                {% if vesting_org and vesting_org.registrar %}
+                    {% with vesting_org.registrar as registrar %}
+                        <p>
+                            {% if registrar.website %}
+                                <strong><a href="{{registrar.website}}" target="_blank">{{registrar}}</a></strong>
+                            {% else %}
+                                <strong>{{registrar}}</strong>
+                            {% endif %}
+                            <br>{{registrar.email}}
+                        </p>
+                    {% endwith %}
+                {% else %}
+                    <p>Seems to be missing</p>
+                {% endif %}
+                <h4>Your vesting organization</h4>
+                {% if vesting_org %}
+                    <p><strong>{{ vesting_org }}</strong> (<a href="{% url 'user_management_vesting_user_leave_vesting_org' %}">Leave</a>)</p>
+                {% else %}
+                    <p>Seems to be missing</p>
+                {% endif %}
+            {% endwith %}
+        </div>
+		{% endif %}
+		<form method="post">
+		  <h4>Change account details</h4>
+      {% csrf_token %}
+		  <fieldset>
+		  <span class="text-error">{{ form.non_field_errors }}</span>
+        {% for field in form %}
+          <label for="id_{{ field.name }}">{{ field.label }}</label><br/>
+          {{ field }}
+          {% if field.errors %}
+            {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+          {%elif field.help_text %}
+            <span class="help-inline">{{ field.help_text }}</span>
+          {% endif %}
+          <br/><br/>
+        {% endfor %}  
+      </fieldset>
+      <button type="submit" class="btn-success br-correction">Save changes</button>
+    </form>
+    <br/><br/>
+		{% include "password_change_embedded_form.html" %}
+    <br/><br/>
+    {% include "api_key_embedded_form.html" %}
+{% endblock %}
