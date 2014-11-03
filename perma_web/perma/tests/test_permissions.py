@@ -31,7 +31,6 @@ class PermissionsTestCase(PermaTestCase):
                     ['user_management_manage_single_vesting_user_delete', {'kwargs':{'user_id': 3}}],
                     ['user_management_manage_single_vesting_user_reactivate', {'kwargs':{'user_id': 3}}],
                     ['user_management_manage_single_user_reactivate', {'kwargs':{'user_id': 4}}],
-                    ['dark_archive_link', {'kwargs': {'guid': '1234'}, 'success_status': 404}],
                 ],
                 'allowed': {'test_registry_member@example.com'},
             },
@@ -49,6 +48,7 @@ class PermissionsTestCase(PermaTestCase):
                     ['user_management_manage_vesting_user'],
                     ['user_management_manage_single_vesting_user', {'kwargs':{'user_id': 3}}],
                     ['vest_link', {'kwargs': {'guid': '1234'}, 'success_status': 404}],
+                    ['dark_archive_link', {'kwargs': {'guid': '1234'}, 'success_status': 404}],
                 ],
                 'allowed': {'test_registry_member@example.com', 'test_registrar_member@example.com',
                             'test_vesting_member@example.com'}
