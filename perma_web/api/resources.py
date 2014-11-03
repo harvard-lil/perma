@@ -1,3 +1,4 @@
+from tastypie.validation import Validation
 from tastypie.authentication import ApiKeyAuthentication
 from tastypie.authorization import Authorization
 from tastypie import fields
@@ -11,8 +12,11 @@ from django.core.validators import URLValidator
 from netaddr import IPAddress, IPNetwork
 import requests
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 HEADER_CHECK_TIMEOUT = 10
+# This the is the PhantomJS default agent
+USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X) AppleWebKit/534.34 (KHTML, like Gecko) PhantomJS/1.9.0 (development) Safari/534.34"
 
 USER_FIELDS = [
     'id',
@@ -61,6 +65,132 @@ class VestingOrgResource(ModelResource):
             'name'
         ]
 
+
+class Page(object):
+    def __init__(self,
+                 url=None,
+                 title=None,
+                 ip=None,
+                 headers=None,
+                 details=None):
+        self._url = None
+        self._title = None
+        self._ip = None
+        self._headers = None
+        self._details = None
+
+        self.url = url
+        self.title = title
+
+    @property
+    def url(self):
+        return self._url
+
+    @url.setter
+    def url(self, value):
+        if value:
+            value = value.strip()
+            if value[:4] != 'http':
+                value = 'http://' + value
+            validate = URLValidator()
+            validate(value) # throw an exception if the it's not a valid url
+        if value != self._url:
+            # Reset derived values if the url changes
+            self._url = value
+            self._title = None
+            self._details = None
+            self._ip = None
+            self._headers = None
+
+    @property
+    def title(self):
+        # By default, use the domain as title
+        return self._title or self.details.netloc
+
+    @title.setter
+    def title(self, value):
+        self._title = value
+
+    @property
+    def details(self):
+        if not self._details:
+            self._details = urlparse(self.url)
+
+        return self._details
+
+    @property
+    def ip(self):
+        if self._ip is None:
+            try:
+                self._ip = socket.gethostbyname(self.details.netloc.split(':')[0])
+            except socket.gaierror:
+                self._ip = False
+
+        return self._ip
+
+    @property
+    def headers(self):
+        if self._headers is None:
+            try:
+                self._headers = requests.head(
+                    self.url,
+                    verify=False, # don't check SSL cert?
+                    headers={'User-Agent': USER_AGENT, 'Accept-Encoding':'*'},
+                    timeout=HEADER_CHECK_TIMEOUT
+                ).headers
+            except (requests.ConnectionError, requests.Timeout):
+                self._headers = False
+
+        return self._headers
+
+class LinkValidation(Validation):
+    def is_valid_ip(self, ip):
+        for banned_ip_range in settings.BANNED_IP_RANGES:
+            if IPAddress(ip) in IPNetwork(banned_ip_range):
+                return False
+        return True
+
+    def is_valid_size(self, headers):
+        try:
+            if int(headers.get('content-length', 0)) > 1024 * 1024 * 100:
+                return False
+        except ValueError:
+            # Weird -- content-length header wasn't an integer. Carry on.
+            pass
+        return True
+
+    def is_valid(self, bundle, request=None):
+        # We've received a request to archive a URL. That process is managed here.
+        # We create a new entry in our datastore and pass the work off to our indexing
+        # workers. They do their thing, updating the model as they go. When we get some minimum
+        # set of results we can present the user (a guid for the link), we respond back.
+
+        if not bundle.data:
+            return {'__all__': 'No data provided.'}
+        errors = {}
+
+        if bundle.data.get('url', '') == '':
+            errors['url'] = "URL cannot be empty."
+        else:
+            try:
+                page = Page(url=bundle.data["url"])
+                if not page.ip:
+                    errors['url'] = "Couldn't resolve domain."
+                elif not self.is_valid_ip(page.ip):
+                    errors['url'] = "Not a valid IP."
+                elif not page.headers:
+                    errors['url'] = "Couldn't load URL."
+                elif not self.is_valid_size(page.headers):
+                    errors['url'] = "Target page is too large (max size 1MB)."
+                else:
+                    # Assign the vals to the bundle
+                    bundle.obj.submitted_url = page.url
+                    bundle.obj.submitted_title = page.title
+            except ValidationError:
+                errors['url'] = "Not a valid URL."
+
+        return errors
+
 class LinkResource(ModelResource):
     created_by = fields.ForeignKey(LinkUserResource, 'created_by', full=True, null=True, blank=True)
     vested_by_editor = fields.ForeignKey(LinkUserResource, 'vested_by_editor', full=True, null=True, blank=True)
@@ -70,6 +200,7 @@ class LinkResource(ModelResource):
         authentication = ApiKeyAuthentication()
         authorization = Authorization()
         resource_name = 'archives'
+        validation = LinkValidation()
         queryset = Link.objects.all()
         fields = [
             'guid',
@@ -87,55 +218,7 @@ class LinkResource(ModelResource):
         ]
 
     def obj_create(self, bundle, **kwargs):
-        # We've received a request to archive a URL. That process is managed here.
-        # We create a new entry in our datastore and pass the work off to our indexing
-        # workers. They do their thing, updating the model as they go. When we get some minimum
-        # set of results we can present the user (a guid for the link), we respond back.
-
-        target_url = bundle.data["url"].strip()
-
-        # If we don't get a protocol, assume http
-        if target_url[:4] != 'http':
-            target_url = 'http://' + target_url
-
-        # Does this thing look like a valid URL?
-        validate = URLValidator()
-        try:
-            validate(target_url)
-        except ValidationError:
-            return HttpResponseBadRequest("Not a valid URL.")
-
-        # By default, use the domain as title
-        url_details = urlparse(target_url)
-        target_title = url_details.netloc
-
-        # Check for banned IP.
-        try:
-            target_ip = socket.gethostbyname(url_details.netloc.split(':')[0])
-        except socket.gaierror:
-            return HttpResponseBadRequest("Couldn't resolve domain.")
-        for banned_ip_range in settings.BANNED_IP_RANGES:
-            if IPAddress(target_ip) in IPNetwork(banned_ip_range):
-                return HttpResponseBadRequest("Not a valid IP.")
-
-        # Get target url headers. We get the mime-type and content length from this.
-        try:
-            target_url_headers = requests.head(
-                target_url,
-                verify=False, # don't check SSL cert?
-                headers={'User-Agent': bundle.request.META['HTTP_USER_AGENT'], 'Accept-Encoding':'*'},
-                timeout=HEADER_CHECK_TIMEOUT
-            ).headers
-        except (requests.ConnectionError, requests.Timeout):
-            return HttpResponseBadRequest("Couldn't load URL.")
-        try:
-            if int(target_url_headers.get('content-length', 0)) > 1024 * 1024 * 100:
-                return HttpResponseBadRequest("Target page is too large (max size 1MB).")
-        except ValueError:
-            # Weird -- content-length header wasn't an integer. Carry on.
-            pass
-
-        return super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user, submitted_url=target_url, submitted_title=target_title)
+        return super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user)
 
 class FolderResource(ModelResource):
     class Meta:
