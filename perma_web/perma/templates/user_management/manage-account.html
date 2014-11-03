@@ -17,22 +17,29 @@
 	  <h3>Account settings</h3>
 	  {% if request.user|has_group:'vesting_user' %}
 	    <div class="sponsoring-library-info">
-            <h4>Your sponsoring library</h4>
-            {% if no_registrar %}
-              <p>Seems to be missing</p>
-            {% endif %}
-            {% if sponsoring_library_website %}
-            <p><strong><a href="{{sponsoring_library_website}}" target="_blank">{{sponsoring_library_name}}</a></strong>
-            {% else %}
-            <strong>{{sponsoring_library_name}}</strong>
-            {% endif %}
-            <br>{{sponsoring_library_email}}</p>
-            <h4>Your vesting organization</h4>
-            {% if no_vesting_org %}
-                <p>Seems to be missing</p>
-            {% else %}
-                <p><strong>{{ vesting_org_name }}</strong> (<a href="{% url 'user_management_vesting_user_leave_vesting_org' %}">Leave</a>)</p>
-            {% endif %}
+            {% with request.user.vesting_org as vesting_org %}
+                <h4>Your sponsoring library</h4>
+                {% if vesting_org and vesting_org.registrar %}
+                    {% with vesting_org.registrar as registrar %}
+                        <p>
+                            {% if registrar.website %}
+                                <strong><a href="{{registrar.website}}" target="_blank">{{registrar}}</a></strong>
+                            {% else %}
+                                <strong>{{registrar}}</strong>
+                            {% endif %}
+                            <br>{{registrar.email}}
+                        </p>
+                    {% endwith %}
+                {% else %}
+                    <p>Seems to be missing</p>
+                {% endif %}
+                <h4>Your vesting organization</h4>
+                {% if vesting_org %}
+                    <p><strong>{{ vesting_org }}</strong> (<a href="{% url 'user_management_vesting_user_leave_vesting_org' %}">Leave</a>)</p>
+                {% else %}
+                    <p>Seems to be missing</p>
+                {% endif %}
+            {% endwith %}
         </div>
 		{% endif %}
 		<form method="post">

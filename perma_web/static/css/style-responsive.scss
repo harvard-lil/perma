@@ -55,6 +55,10 @@ body {
 
 .container-fluid {
     padding: 0;
+
+    .row > div{
+        padding:0;
+    }
 }
 
 .modal {
@@ -1342,14 +1346,73 @@ img.linky-image-preview {
 }
 
 .watermark {
-	margin:0 auto;
-	position:relative;
-	padding:0px;
-	text-align:center;
-
+	margin: 0 auto;
+	position: relative;
+	padding: 0px;
+	text-align: center;
 }
 
-img.watermark-image {
+.watermark-container {
+	position: absolute;
+	z-index: 2;
+	width: 100%;
+	margin-top: 100px;
+	background-color: rgba($perma-orange, 0.8);
+	filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr='#4cffffff', endColorstr='#4cffffff'); /* IE 8 alpha hack*/
+	padding-top: 10px;
+	padding-bottom: 10px;
+	pointer-events:none;
+}
+
+.watermark-container h2 {
+	color: #fff;
+	font-size: 55px;
+	
+	@media (max-width: 500px) {
+		font-size: 30px;
+    }
+    
+}
+
+.watermark-container p {
+	color: #fff;
+	font-size: 20px;
+
+	margin-top: 30px;
+}
+
+.watermark-container a {
+	color: #fff;
+	text-decoration: underline;
+	font-weight: 300;
+	pointer-events: auto;
+}
+
+.watermark-container .highlight {
+	font-weight: 400;
+}
+
+.watermark-container .glyphicon-remove {
+	color: #fff;
+	padding-right: 10px;
+	font-size: 20px;
+	pointer-events: auto;
+	cursor: pointer;
+}
+
+.stopwatch  {
+	/* center the stopwatch when on bootstrap's xs small size */
+	@media (max-width: 766px) {
+	float: none;
+	    margin: 0 auto;
+	}
+	
+	@media (min-width: 767px) {
+		float: right !important;
+	}
+}
+
+.watermark-image {
 	position:relative;
 	border:none;
 	border-radius:3px;
@@ -1362,15 +1425,12 @@ img.watermark-image {
 	width:70%;
 	pointer-events:none;
 }
-.watermark h2, .watermark h1 {
-
-}
 
 .built-by {
-        text-decoration: none;
-          font-family: 'Roboto Slab', sans-serif;
-          font-size:25px;
-          color:#ff4100;
+	text-decoration: none;
+	font-family: 'Roboto Slab', sans-serif;
+	font-size:25px;
+	color:#ff4100;
 }
 
 .lower {

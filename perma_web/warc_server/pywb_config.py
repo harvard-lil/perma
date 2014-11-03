@@ -1,12 +1,11 @@
 import os
-from django.core.exceptions import DisallowedHost
-from django.core.handlers.wsgi import WSGIRequest
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "perma.settings")
 from django.conf import settings
 from django.template import Context
 from django.template.loader import get_template
 from django.core.files.storage import default_storage
+from django.core.exceptions import DisallowedHost
 
 from pywb.rewrite.wburl import WbUrl
 from pywb.framework import archivalrouter
@@ -14,6 +13,7 @@ from pywb.framework.wbrequestresponse import WbResponse
 from pywb.webapp.handlers import WBHandler
 from pywb.webapp.query_handler import QueryHandler
 from pywb.webapp.pywb_init import create_wb_handler
+from pywb.webapp.views import add_env_globals
 
 
 # include guid in CDX requests
@@ -67,10 +67,11 @@ class Router(archivalrouter.ArchivalRouter):
 def create_perma_pywb_app(config):
     """
         Configure server.
+
+        This should do basically the same stuff as pywb.webapp.pywb_init.create_wb_router()
     """
     # paths
     script_path = os.path.dirname(__file__)
-    template_path = os.path.join(script_path, 'templates')
 
     # Get root storage location for warcs.
     # archive_path should be the location pywb can find warcs, like 'file://generated/' or 'http://perma.s3.amazonaws.com/generated/'
@@ -84,16 +85,19 @@ def create_perma_pywb_app(config):
 
     query_handler = QueryHandler.init_from_config(settings.CDX_SERVER_URL)
 
+    # pywb template vars (used in templates called by pywb, such as head_insert.html, but not our ErrorTemplateView)
+    add_env_globals({'static_path': settings.STATIC_URL})
+
     # use util func to create the handler
     wb_handler = create_wb_handler(query_handler,
                                    dict(archive_paths=[archive_path],
                                         wb_handler_class=Handler,
                                         buffer_response=True,
 
-                                        head_insert_html='ui/head_insert.html',
-                                        template_globals={'static_path': 'static/js'},
+                                        head_insert_html=os.path.join(script_path, 'head_insert.html'),
 
                                         redir_to_exact=False))
+
 
     # Finally, create wb router
     return Router(

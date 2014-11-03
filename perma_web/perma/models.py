@@ -521,6 +521,12 @@ class Link(models.Model):
         """ Return date when this link will theoretically be deleted. """
         return self.creation_timestamp + settings.LINK_EXPIRATION_TIME
 
+    def can_upload_to_internet_archive(self):
+        """ Return True if this link is appropriate for upload to IA. """
+        return self.vested \
+               and not self.dark_archived and not self.dark_archived_robots_txt_blocked \
+               and self.assets.filter(warc_capture__contains='.warc').exists()
+
 
 class Asset(models.Model):
     """

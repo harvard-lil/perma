@@ -445,4 +445,10 @@ var spinner = new Spinner(opts).spin(target);
 			windowHeight = $(window).height();
 			$('iframe').height(windowHeight - headerHeight - 0);
 		}
+		
+		/* Hide our "needs to be vested" notice if the user clicks the "x" link */
+		$(".glyphicon-remove").click(function() {
+            $( ".watermark-container" ).fadeOut(250, function() {
+            });
+        });		
 	});
