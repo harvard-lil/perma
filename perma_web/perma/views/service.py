@@ -7,8 +7,9 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import redirect, render_to_response
 from django.template import RequestContext
 
-import json, logging, csv
+import json, os, logging, csv
 from perma.models import Link, Asset, Stat
+from sorl.thumbnail import get_thumbnail
 from mirroring.utils import may_be_mirrored, must_be_mirrored
 
 logger = logging.getLogger(__name__)
@@ -95,9 +96,30 @@ def link_status(request, guid):
     """
     target_link = get_object_or_404(Link, guid=guid)
     target_asset = get_object_or_404(Asset, link=target_link)
+
+
+    # Create a thumbnail for new archives.
+    # this logic should be temporary. When we refactor the asset/link model
+    # relationship we should wrap this thumbnailing work into a func in utils
+    # or maybe even a standaole service
+    thumbnail_url = ''
+    if target_asset.image_capture != 'pending' and target_asset.pdf_capture != 'pending':
+        if target_asset.image_capture:
+            capture_name = target_asset.image_capture
+        else:
+            capture_name = target_asset.pdf_capture
+
+        try:
+            image_path = os.path.join(settings.MEDIA_ROOT, target_asset.base_storage_path, capture_name)
+            thumbnail = get_thumbnail(image_path, '456')
+            thumbnail_url = thumbnail.url
+        except IOError:
+            logger.info("Thumnail creation failed. Unable to find capture image")
+
     
     response_object = {"path": target_asset.base_storage_path, "text_capture": target_asset.text_capture,
             "source_capture": target_asset.warc_capture, "image_capture": target_asset.image_capture,
+            "thumbnail": thumbnail_url,
             "pdf_capture": target_asset.pdf_capture,
             "vested": target_link.vested,
             "dark_archived": target_link.dark_archived,

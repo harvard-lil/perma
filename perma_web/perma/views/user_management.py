@@ -1,7 +1,4 @@
 import random, string, logging, json, time
-from datetime import datetime
-
-from mptt.exceptions import InvalidMove
 from ratelimit.decorators import ratelimit
 
 from django.conf import settings
@@ -11,9 +8,9 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import views as auth_views
 from django.contrib.sites.models import get_current_site
 from django.core.mail import send_mail
-from django.db.models import Q, Count, Max, Min, Sum
+from django.db.models import Count, Max, Min, Sum
 from django.utils.http import is_safe_url, cookie_date
-from django.http import HttpResponseRedirect, HttpResponse, Http404
+from django.http import HttpResponseRedirect, Http404
 from django.template import RequestContext
 from django.template.response import TemplateResponse
 from django.shortcuts import render_to_response, get_object_or_404, resolve_url
@@ -47,17 +44,6 @@ from perma.utils import require_group, get_search_query
 logger = logging.getLogger(__name__)
 valid_member_sorts = ['-email', 'email', 'last_name', '-last_name', 'admin', '-admin', 'registrar__name', '-registrar__name', 'vesting_org__name', '-vesting_org__name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'vested_links_count', '-vested_links_count']
 valid_registrar_sorts = ['name', '-name', 'vested_links', '-vested_links', '-date_created', 'date_created', 'last_active', '-last_active']
-
-
-# @login_required
-# def manage(request):
-#     """
-#     The landing page for users who are signed in
-#     """
-#     recent_links = list(Link.objects.filter(created_by=request.user).order_by('-creation_timestamp'))
-#     return render_to_response('user_management/manage.html',
-#                               {'this_page': 'manage', 'recent_links': recent_links},
-#                               RequestContext(request))
 
 
 @require_group('registry_user')
@@ -211,8 +197,8 @@ def manage_vesting_org(request):
         if form.is_valid():
             new_user = form.save()
             if not is_registry:
-              new_user.registrar_id = request.user.registrar_id
-              new_user.save()
+                new_user.registrar_id = request.user.registrar_id
+                new_user.save()
 
             return HttpResponseRedirect(reverse('user_management_manage_vesting_org'))
 
@@ -270,11 +256,11 @@ def manage_single_vesting_org(request, vesting_org_id):
 
 
 
-@require_group('registry_user')
+@require_group(['registrar_user', 'registry_user'])
 def manage_registrar_user(request):
     return list_users_in_group(request, 'registrar_user')
 
-@require_group('registry_user')
+@require_group(['registrar_user', 'registry_user'])
 def manage_single_registrar_user(request, user_id):
     return edit_user_in_group(request, user_id, 'registrar_user')
 
@@ -314,11 +300,11 @@ def manage_vesting_user(request):
 def manage_single_vesting_user(request, user_id):
     return edit_user_in_group(request, user_id, 'vesting_user')
 
-@require_group(['registrar_user', 'registry_user', 'vesting_user'])
+@require_group('registry_user')
 def manage_single_vesting_user_delete(request, user_id):
     return delete_user_in_group(request, user_id, 'vesting_user')
 
-@require_group(['registrar_user', 'registry_user', 'vesting_user'])
+@require_group('registry_user')
 def manage_single_vesting_user_reactivate(request, user_id):
     return reactive_user_in_group(request, user_id, 'vesting_user')
 
@@ -365,11 +351,11 @@ def list_users_in_group(request, group_name):
         registrars = Registrar.objects.all().order_by('name')
         is_registry = True
     elif request.user.has_group('registrar_user'):
-    	if group_name == 'vesting_user':
-        	users = LinkUser.objects.filter(groups__name=group_name, vesting_org__registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links_count=Count('vested_links', distinct=True))
-        	vesting_orgs = VestingOrg.objects.filter(registrar_id=request.user.registrar_id).order_by('name')
+        if group_name == 'vesting_user':
+            users = LinkUser.objects.filter(groups__name=group_name, vesting_org__registrar=request.user.registrar).order_by(*sorts()).annotate(vested_links_count=Count('vested_links', distinct=True))
+            vesting_orgs = VestingOrg.objects.filter(registrar_id=request.user.registrar_id).order_by('name')
         else:
-        	users = LinkUser.objects.filter(groups__name=group_name, registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links_count=Count('vested_links', distinct=True))
+            users = LinkUser.objects.filter(groups__name=group_name, registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links_count=Count('vested_links', distinct=True))
         is_registrar = True
     elif request.user.has_group('vesting_user'):
         users = LinkUser.objects.filter(groups__name=group_name, vesting_org=request.user.vesting_org).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links_count=Count('vested_links', distinct=True))
@@ -411,7 +397,9 @@ def list_users_in_group(request, group_name):
 
     users = users.select_related('vesting_org')
     active_users = users.filter(is_active=True, is_confirmed=True).count()
-    deactivated_users = users.filter(is_confirmed=True, is_active=False).count()
+    deactivated_users = None
+    if is_registry:
+        deactivated_users = users.filter(is_confirmed=True, is_active=False).count()
     unactivated_users = users.filter(is_confirmed=False, is_active=False).count()
     users_count = users.count()
     total_vested_links_count = users.aggregate(count=Sum('vested_links_count'))
@@ -499,26 +487,29 @@ def edit_user_in_group(request, user_id, group_name):
 
     # Registrar members can only edit their own vesting members
     if not is_registry and is_registrar:
-        if request.user.registrar != target_user.vesting_org.registrar:
-            return HttpResponseRedirect(reverse('link_browser'))
+    	if group_name == 'vesting_user' and request.user.registrar != target_user.vesting_org.registrar:
+            raise Http404
+        if group_name == 'registrar_user' and request.user.registrar != target_user.registrar:
+            raise Http404
 
-    # Vesting managers can only edit their own vesting members
+    # Vesting members can only edit other vesting members of same org
     if not is_registry and not is_registrar:
         if request.user.vesting_org != target_user.vesting_org:
-            return HttpResponseRedirect(reverse('link_browser'))
+            raise Http404
 
     context = {
-        'target_user': target_user,
+        'target_user': target_user, 'group_name':group_name,
         'this_page': 'users_{group_name}s'.format(group_name=group_name),
         'pretty_group_name':group_name.replace('_', ' ').capitalize(),
         'user_list_url':'user_management_manage_{group_name}'.format(group_name=group_name),
         'delete_user_url':'user_management_manage_single_{group_name}_delete'.format(group_name=group_name),
     }
 
-    form = None
     form_data = request.POST or None
-    if group_name == 'registrar_user':
+    if group_name == 'registrar_user' and is_registry:
         form = RegistrarMemberFormEdit(form_data, prefix="a", instance=target_user)
+    elif group_name == 'registrar_user' and is_registrar:
+        form = VestingMemberFormEdit(form_data, prefix="a", instance=target_user) 
     elif group_name == 'vesting_user':
         if is_registry:
             form = VestingMemberWithGroupFormEdit(form_data, prefix="a", instance=target_user)
@@ -535,12 +526,12 @@ def edit_user_in_group(request, user_id, group_name):
         if form.is_valid():
             new_user = form.save()
             
-            if form.cleaned_data['group'].name != 'vesting_user':
-                new_user.vesting_org = None
-            if form.cleaned_data['group'].name != 'registrar_user':
-                new_user.registrar = None
-                
-            new_user.save()
+            if is_registry:
+                if form.cleaned_data['group'].name != 'vesting_user':
+                    new_user.vesting_org = None
+                if form.cleaned_data['group'].name != 'registrar_user':
+                    new_user.registrar = None
+                new_user.save()
             
             if group_name == 'user' and group_name != form.cleaned_data['group'].name:
                 request.session['old_group'] = group_name
@@ -623,7 +614,65 @@ def vesting_user_add_user(request):
 
     context = RequestContext(request, context)
 
-    return render_to_response('user_management/user_add_confirm.html', context)
+    return render_to_response('user_management/user_add_to_vesting_confirm.html', context)
+    
+
+@require_group('registrar_user')
+def registrar_user_add_user(request):
+    """
+        Registrar users can add other registrar users
+    """
+    
+    user_email = request.GET.get('email', None)
+    try:
+        target_user = LinkUser.objects.get(email=user_email)
+    except LinkUser.DoesNotExist:
+        target_user = None
+        
+    cannot_add = True
+    is_new_user = False
+    
+    form = None
+    form_data = request.POST or None
+    if target_user == None:
+        cannot_add = False
+        form = CreateUserForm(form_data, prefix = "a", initial={'email': user_email})
+    else:
+        if target_user.has_group('user'):
+            cannot_add = False
+        form = None
+            
+    context = {'this_page': 'users_registrar_users', 'user_email': user_email, 'form': form, 'target_user': target_user, 'cannot_add': cannot_add}
+
+    if request.method == 'POST': 
+        if ((form and form.is_valid()) or form == None) and not cannot_add:
+            if target_user == None:
+                target_user = form.save()
+                is_new_user = True
+    
+            target_user.registrar = request.user.registrar
+    
+            group = Group.objects.get(name='registrar_user')
+            all_groups = Group.objects.all()
+            for ag in all_groups:
+              target_user.groups.remove(ag)
+            target_user.groups.add(group)
+    
+            if is_new_user:
+                target_user.is_active = False
+                email_new_user(request, target_user)
+                messages.add_message(request, messages.INFO, '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % target_user.email, extra_tags='safe')
+            else:
+                email_new_registrar_user(request, target_user)
+                messages.add_message(request, messages.INFO, '<h4>Success!</h4> <strong>%s</strong> is now a registrar user.' % target_user.email, extra_tags='safe')
+            
+            target_user.save()
+
+            return HttpResponseRedirect(reverse('user_management_manage_registrar_user'))
+
+    context = RequestContext(request, context)
+
+    return render_to_response('user_management/user_add_to_registrar_confirm.html', context)
     
 
 @require_group(['vesting_user'])
@@ -645,25 +694,16 @@ def vesting_user_leave_vesting_org(request):
 
     context = RequestContext(request, context)
 
-    return render_to_response('user_management/user_leave_confirm.html', context) 
+    return render_to_response('user_management/user_leave_confirm.html', context)
 
-@require_group(['registry_user', 'registrar_user'])
+
+@require_group('registry_user')
 def delete_user_in_group(request, user_id, group_name):
     """
         Delete particular user with given group name.
     """
 
     target_member = get_object_or_404(LinkUser, id=user_id)
-
-    # Registrar members can only edit their own vesting members
-    if group_name == 'registrar_user':
-        if request.user.registrar != target_member.registrar:
-            return HttpResponseRedirect(reverse('link_browser'))
-            
-    # Vesting managers can only edit their own vesting members
-    if group_name == 'vesting_user':
-        if request.user.registrar != target_member.vesting_org.registrar:
-            return HttpResponseRedirect(reverse('link_browser'))
         
     context = {'target_member': target_member,
                'this_page': 'users_{group_name}s'.format(group_name=group_name)}
@@ -671,7 +711,10 @@ def delete_user_in_group(request, user_id, group_name):
     if request.method == 'POST':
         if target_member.is_confirmed:
             target_member.is_active = False
+            target_member.vesting_org = None
+            target_member.registrar = None
             target_member.save()
+            target_member.groups = [Group.objects.get(name='user')]
         else:
             target_member.delete()
 
@@ -681,18 +724,23 @@ def delete_user_in_group(request, user_id, group_name):
 
     return render_to_response('user_management/user_delete_confirm.html', context)
 
-@require_group('vesting_user')
+
+@require_group(['vesting_user', 'registrar_user'])
 def manage_single_vesting_user_remove(request, user_id):
     """
         Basically demote a vesting user to a regular user.
     """
 
     target_member = get_object_or_404(LinkUser, id=user_id)
+    is_registrar = request.user.has_group('registrar_user')
 
     # Vesting managers can only edit their own vesting members
-    if not request.user.has_group(['vesting_user']):
+    if is_registrar:
+        if request.user.registrar != target_member.vesting_org.registrar:
+            raise Http404
+    else:
         if request.user.vesting_org != target_member.vesting_org:
-            return HttpResponseRedirect(reverse('link_browser'))
+            raise Http404
 
     context = {'target_member': target_member,
                'this_page': 'users_vesting_user'}
@@ -700,20 +748,44 @@ def manage_single_vesting_user_remove(request, user_id):
     if request.method == 'POST':
         target_member.vesting_org = None
         target_member.save()
-        all_groups = Group.objects.all()
-        for ag in all_groups:
-          target_member.groups.remove(ag)
-        group = Group.objects.get(name='user')
-        target_member.groups.add(group)
+        target_member.groups = [Group.objects.get(name='user')]
 
         return HttpResponseRedirect(reverse('user_management_manage_vesting_user'))
 
     context = RequestContext(request, context)
 
-    return render_to_response('user_management/user_remove_confirm.html', context)
+    return render_to_response('user_management/user_remove_vesting_confirm.html', context)
+    
+    
+@require_group('registrar_user')
+def manage_single_registrar_user_remove(request, user_id):
+    """
+        Basically demote a vesting user to a regular user.
+    """
+
+    target_member = get_object_or_404(LinkUser, id=user_id)
+
+    # Registrar users can only edit their own registrar members
+    if not request.user.has_group(['registrar_user']):
+        if request.user.registrar != target_member.registrar:
+            raise Http404
+
+    context = {'target_member': target_member,
+               'this_page': 'users_vesting_user'}
+
+    if request.method == 'POST':
+        target_member.registrar = None
+        target_member.save()
+        target_member.groups = [Group.objects.get(name='user')]
+
+        return HttpResponseRedirect(reverse('user_management_manage_registrar_user'))
+
+    context = RequestContext(request, context)
+
+    return render_to_response('user_management/user_remove_registrar_confirm.html', context)
 
 
-@require_group(['registry_user', 'registrar_user'])
+@require_group('registry_user')
 def reactive_user_in_group(request, user_id, group_name):
     """
         Reactivate particular user with given group name.
@@ -724,7 +796,7 @@ def reactive_user_in_group(request, user_id, group_name):
     # Registrar members can only edit their own vesting members
     if not request.user.has_group('registry_user'):
         if request.user.registrar != target_member.vesting_org.registrar:
-            return HttpResponseRedirect(reverse('created_links'))
+            return HttpResponseRedirect(reverse('link_browser'))
 
     # Vesting managers can only edit their own vesting members
     if not request.user.has_group(['registry_user', 'registrar_user', 'vesting_user']):
@@ -809,17 +881,7 @@ def manage_account(request):
 
     context = {'next': request.get_full_path(), 'this_page': 'settings'}
     context.update(csrf(request))
-    if request.user.has_group(['vesting_user']):
-        if request.user.registrar:
-            context.update({'sponsoring_library_name': request.user.registrar.name, 'sponsoring_library_email': request.user.registrar.email, 'sponsoring_library_website': request.user.registrar.website})
-        else:
-            context.update({'no_registrar': True})
-        
-        if request.user.vesting_org:
-            context.update({'vesting_org_name': request.user.vesting_org.name})
-        else:
-            context.update({'no_vesting_org': True})
-    
+
     if request.method == 'POST':
 
         form = UserFormSelfEdit(request.POST, prefix = "a", instance=request.user)
@@ -1114,6 +1176,27 @@ http://%s%s
 
     send_mail(
         "Your Perma.cc account is now associated with {vesting_org}".format(vesting_org=user.vesting_org.name),
+        content,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email], fail_silently=False
+    )
+
+
+def email_new_registrar_user(request, user):
+    """
+    Send email to newly created registrar accounts
+    """
+
+    host = request.get_host() if settings.DEBUG else settings.HOST
+
+    content = '''Your Perma.cc account has been associated with %s.  If this is a mistake, visit your account settings page to leave %s.
+
+http://%s%s
+
+''' % (user.registrar.name, user.registrar.name, host, reverse('user_management_manage_account'))
+
+    send_mail(
+        "Your Perma.cc account is now associated with {registrar}".format(registrar=user.registrar.name),
         content,
         settings.DEFAULT_FROM_EMAIL,
         [user.email], fail_silently=False

@@ -44,10 +44,11 @@
             <!-- Registrars and registrar users -->
             {% if request.user|has_group:'registry_user' %}
             <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_registrars" %}class="active" {% endif %}href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>
-            <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_registrar_users" %}class="active" {% endif %}href="{% url 'user_management_manage_registrar_user' %}">Registrar Users</a></li>{% endif %}
+            {% endif %}
 
             <!-- Vesting managers aka journal managers -->
             {% if request.user|has_group:'registrar_user,registry_user' %}
+            <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_registrar_users" %}class="active" {% endif %}href="{% url 'user_management_manage_registrar_user' %}">Registrar Users</a></li>
             <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_vesting_orgs" %}class="active" {% endif %}href="{% url 'user_management_manage_vesting_org' %}">Vesting Organizations</a></li>
             {% endif %}
 

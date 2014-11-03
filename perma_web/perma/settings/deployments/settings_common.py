@@ -201,6 +201,7 @@ INSTALLED_APPS = (
     'ratelimit',
     'mptt',
     'pipeline',
+    'sorl.thumbnail',
 )
 
 AUTH_USER_MODEL = 'perma.LinkUser'
@@ -375,3 +376,10 @@ LINK_EXPIRATION_TIME = relativedelta(years=2)
 # If set, warc content must be served from this host.
 # On production, this is highly recommended to be different from hosts in ALLOWED_HOSTS.
 WARC_HOST = None
+
+
+# Sorl settings. This releates to our thumbnail creation
+# the prod and dev configs are considerably different. See those configs for
+# details
+THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.pil_engine.Engine' # Change this to Wand when sorl 12.x is released (since we use Wand for PDF thumbnail creation)
+THUMBNAIL_FORMAT = 'PNG' # 

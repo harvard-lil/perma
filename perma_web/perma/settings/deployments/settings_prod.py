@@ -42,3 +42,9 @@ FALLBACK_VESTING_ORG_ID = 15  # HLS Default Vesting Org
 # use separate subdomain for user content
 MEDIA_URL = '//user-content.perma.cc/media/'
 WARC_HOST = 'user-content.perma.cc'
+
+# Our sorl thumbnail settings
+# We only use this redis config in prod. dev envs use the local db.
+THUMBNAIL_KVSTORE = 'sorl.thumbnail.kvstores.redis_kvstore.KVStore'
+THUMBNAIL_REDIS_HOST = 'localhost'
+THUMBNAIL_REDIS_PORT = '6379'

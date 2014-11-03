@@ -114,7 +114,11 @@
                 <p class="list-date">
               created {{ registrar.date_created|date:'N j, Y'}}
               <br>
-              last active {{ registrar.last_active|date:'N j, Y'}}
+              {% if registrar.last_active %}
+                last active {{ registrar.last_active|date:'N j, Y'}}
+              {% else %}
+                no activity
+              {% endif %}
               </p>
             </div>
             </div>

@@ -1,4 +1,4 @@
-{% extends "layout-archive-responsive.html" %}
+{% extends "base-archive-responsive.html" %}
 {% load has_group is_darchive local_datetime mirror_tags count_archives %}
 {% block title %} | {{archive.submitted_title}}{% endblock %}
 {% block meta-head %}
@@ -164,9 +164,6 @@
 {% endblock %}
 
 {% block content %}
-
-
-<div class="row">
     <div class="overlay" onClick="style.pointerEvents='none'"></div>
 
     {% if archive.dark_archived and request.user|has_group:'registry_user,registrar_user,vesting_user' %}
@@ -234,7 +231,6 @@
    	    </div>
    	{% endif %}
    	{% endif %}
-</div><!--row-->
 <script>
 	var status_url = "{% main_url 'service_link_status' archive.guid %}";
 </script>
