@@ -423,6 +423,7 @@ class Link(models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='created_links',)
     dark_archived = models.BooleanField(default=False)
     dark_archived_robots_txt_blocked = models.BooleanField(default=False)
+    dark_archived_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='darchived_links')
     user_deleted = models.BooleanField(default=False)
     user_deleted_timestamp = models.DateTimeField(null=True, blank=True)
     vested = models.BooleanField(default=False)
