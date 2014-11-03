@@ -1,27 +1,15 @@
 {% extends "layout-responsive.html" %}
+{% load file_exists %}
 {% block title %} | 404{% endblock %}
 
 {% block content %}
 <div class="container">
-	<div class="row">
-    	<div class="col-sm-12">
-			<h2>HTTP 404. Sorry. The thing you're looking for doesn't exist at this address. If that seems wrong to you, please drop us a note using our <a href="#" data-toggle="modal" data-target="#feedbackModal">feedback tool</a>.</h2>
+<div class="row">
+	<div class="col-sm-12 column">
+		<div class="center-block">
+			<h2>Page not found. HTTP 404. Sorry.</h2>
+			<p>The thing you're looking for doesn't exist at this address. If that seems wrong to you, <a href="{% url 'contact' %}" >please drop us a note</a>.</p>
 		</div>
-		</div> <!--/.row -->
-</div><!--/.container-->
+	</div>
+</div>	
 {% endblock %}
-
-
-{% block scripts %}
-<script>
-  var mirror_server_host = "http://{{request.mirror_server_host}}";
-  var csrf_token = "{{csrf_token}}";
-</script>
-<script src="{{ STATIC_URL }}js/ZeroClipboard/ZeroClipboard.min.js"></script>
-<script src="{{ STATIC_URL }}js/jquery.form.min.js"></script>
-<script src="{{ STATIC_URL }}js/swfobject.js"></script>
-<script src="{{ STATIC_URL }}js/holder.js"></script>
-{% endblock %}
-{% block templates %}
-
-{% endblock templates %}
