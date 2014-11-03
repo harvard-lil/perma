@@ -3,20 +3,17 @@ from tastypie.authentication import ApiKeyAuthentication
 from tastypie.authorization import Authorization
 from tastypie import fields
 from tastypie.resources import ModelResource
-from perma.models import LinkUser, Link, Folder, VestingOrg
+from perma.models import LinkUser, Link, Asset, Folder, VestingOrg
 
 # LinkResource
-import socket
-from urlparse import urlparse
+from celery import chain
 from django.core.validators import URLValidator
 from netaddr import IPAddress, IPNetwork
-import requests
 from django.conf import settings
 from django.core.exceptions import ValidationError
-
-HEADER_CHECK_TIMEOUT = 10
-# This the is the PhantomJS default agent
-USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X) AppleWebKit/534.34 (KHTML, like Gecko) PhantomJS/1.9.0 (development) Safari/534.34"
+from perma.utils import run_task
+from perma.tasks import get_pdf, proxy_capture
+from mirroring.tasks import compress_link_assets, poke_mirrors
 
 USER_FIELDS = [
     'id',
@@ -66,83 +63,6 @@ class VestingOrgResource(ModelResource):
         ]
 
 
-class Page(object):
-    def __init__(self,
-                 url=None,
-                 title=None,
-                 ip=None,
-                 headers=None,
-                 details=None):
-        self._url = None
-        self._title = None
-        self._ip = None
-        self._headers = None
-        self._details = None
-
-        self.url = url
-        self.title = title
-
-    @property
-    def url(self):
-        return self._url
-
-    @url.setter
-    def url(self, value):
-        if value:
-            value = value.strip()
-            if value[:4] != 'http':
-                value = 'http://' + value
-            validate = URLValidator()
-            validate(value) # throw an exception if the it's not a valid url
-        if value != self._url:
-            # Reset derived values if the url changes
-            self._url = value
-            self._title = None
-            self._details = None
-            self._ip = None
-            self._headers = None
-
-    @property
-    def title(self):
-        # By default, use the domain as title
-        return self._title or self.details.netloc
-
-    @title.setter
-    def title(self, value):
-        self._title = value
-
-    @property
-    def details(self):
-        if not self._details:
-            self._details = urlparse(self.url)
-
-        return self._details
-
-    @property
-    def ip(self):
-        if self._ip is None:
-            try:
-                self._ip = socket.gethostbyname(self.details.netloc.split(':')[0])
-            except socket.gaierror:
-                self._ip = False
-
-        return self._ip
-
-    @property
-    def headers(self):
-        if self._headers is None:
-            try:
-                self._headers = requests.head(
-                    self.url,
-                    verify=False, # don't check SSL cert?
-                    headers={'User-Agent': USER_AGENT, 'Accept-Encoding':'*'},
-                    timeout=HEADER_CHECK_TIMEOUT
-                ).headers
-            except (requests.ConnectionError, requests.Timeout):
-                self._headers = False
-
-        return self._headers
-
 class LinkValidation(Validation):
     def is_valid_ip(self, ip):
         for banned_ip_range in settings.BANNED_IP_RANGES:
@@ -173,19 +93,17 @@ class LinkValidation(Validation):
             errors['url'] = "URL cannot be empty."
         else:
             try:
-                page = Page(url=bundle.data["url"])
-                if not page.ip:
+                validate = URLValidator()
+                validate(bundle.obj.submitted_url)
+
+                if not bundle.obj.ip:
                     errors['url'] = "Couldn't resolve domain."
-                elif not self.is_valid_ip(page.ip):
+                elif not self.is_valid_ip(bundle.obj.ip):
                     errors['url'] = "Not a valid IP."
-                elif not page.headers:
+                elif not bundle.obj.headers:
                     errors['url'] = "Couldn't load URL."
-                elif not self.is_valid_size(page.headers):
+                elif not self.is_valid_size(bundle.obj.headers):
                     errors['url'] = "Target page is too large (max size 1MB)."
-                else:
-                    # Assign the vals to the bundle
-                    bundle.obj.submitted_url = page.url
-                    bundle.obj.submitted_title = page.title
             except ValidationError:
                 errors['url'] = "Not a valid URL."
 
@@ -218,7 +136,50 @@ class LinkResource(ModelResource):
         ]
 
     def obj_create(self, bundle, **kwargs):
-        return super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user)
+        url = bundle.data.get('url','').strip()
+        if url[:4] != 'http':
+            url = 'http://' + url
+
+        # Runs validation (exception thrown if invalid), sets properties and saves the object
+        bundle = super(LinkResource, self).obj_create(bundle,
+                                                      created_by=bundle.request.user,
+                                                      submitted_url=url)
+
+        guid = bundle.obj.guid
+        asset = Asset(link=bundle.obj)
+
+        # celery tasks to run after scraping is complete
+        postprocessing_tasks = []
+        if settings.MIRRORING_ENABLED:
+            postprocessing_tasks += [
+                compress_link_assets.s(guid=guid),
+                poke_mirrors.s(link_guid=guid),
+            ]
+
+        # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
+        if bundle.obj.media_type == 'pdf':
+            asset.pdf_capture = 'pending'
+            asset.image_capture = 'pending'
+            asset.save()
+
+            # run background celery tasks as a chain (each finishes before calling the next)
+            run_task(chain(
+                get_pdf.s(guid, bundle.obj.submitted_url, asset.base_storage_path, bundle.request.META['HTTP_USER_AGENT']),
+                *postprocessing_tasks
+            ))
+        else:  # else, it's not a PDF. Let's try our best to retrieve what we can
+            asset.image_capture = 'pending'
+            asset.text_capture = 'pending'
+            asset.warc_capture = 'pending'
+            asset.save()
+
+            # run background celery tasks as a chain (each finishes before calling the next)
+            run_task(chain(
+                proxy_capture.s(guid, bundle.obj.submitted_url, asset.base_storage_path, bundle.request.META['HTTP_USER_AGENT']),
+                *postprocessing_tasks
+            ))
+
+        return bundle
 
 class FolderResource(ModelResource):
     class Meta:

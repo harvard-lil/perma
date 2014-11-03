@@ -12,6 +12,11 @@ from django.utils.text import slugify
 from mptt.exceptions import InvalidMove
 from mptt.models import MPTTModel, TreeForeignKey
 
+# For Link
+import socket
+from urlparse import urlparse
+import requests
+
 logger = logging.getLogger(__name__)
 
 
@@ -398,6 +403,10 @@ class LinkManager(models.Manager):
     def accessible_to(self, user):
         return self.get_queryset().accessible_to(user)
 
+HEADER_CHECK_TIMEOUT = 10
+# This the is the PhantomJS default agent
+USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X) AppleWebKit/534.34 (KHTML, like Gecko) PhantomJS/1.9.0 (development) Safari/534.34"
+
 class Link(models.Model):
     """
     This is the core of the Perma link.
@@ -427,7 +436,59 @@ class Link(models.Model):
 
     objects = LinkManager()
 
+    _ip = None
+    _headers = None
+    _url_details = None
+    _media_type = None
+
+    @property
+    def url_details(self):
+        if not self._url_details:
+            self._url_details = urlparse(self.submitted_url)
+
+        return self._url_details
+
+    @property
+    def ip(self):
+        if self._ip is None:
+            try:
+                self._ip = socket.gethostbyname(self.url_details.netloc.split(':')[0])
+            except socket.gaierror:
+                self._ip = False
+
+        return self._ip
+
+    @property
+    def headers(self):
+        if self._headers is None:
+            try:
+                self._headers = requests.head(
+                    self.submitted_url,
+                    verify=False, # don't check SSL cert?
+                    headers={'User-Agent': USER_AGENT, 'Accept-Encoding':'*'},
+                    timeout=HEADER_CHECK_TIMEOUT
+                ).headers
+            except (requests.ConnectionError, requests.Timeout):
+                self._headers = False
+
+        return self._headers
+
+    # media_type is a file extension-ish normalized mimemedia_type
+    @property
+    def media_type(self):
+        if self._media_type is None:
+            if self.headers['content-type'] in ['application/pdf', 'application/x-pdf'] or self.submitted_url.endswith('.pdf'):
+                self._media_type = 'pdf'
+            else:
+                self._media_type = False
+
+        return self._media_type
+
     def save(self, *args, **kwargs):
+        # Set a default title if one is missing
+        if not self.submitted_title:
+            self.submitted_title = self.url_details.netloc
+
         initial_folder = kwargs.pop('initial_folder', None)
 
         if not self.pk and not kwargs.get("pregenerated_guid", False):
