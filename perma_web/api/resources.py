@@ -4,6 +4,8 @@ from tastypie.authorization import Authorization
 from tastypie import fields
 from tastypie.resources import ModelResource
 from perma.models import LinkUser, Link, Asset, Folder, VestingOrg
+from django.core.exceptions import ObjectDoesNotExist
+from tastypie.exceptions import NotFound
 
 # LinkResource
 from celery import chain
