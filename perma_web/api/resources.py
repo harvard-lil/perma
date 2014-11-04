@@ -18,6 +18,7 @@ from mimetypes import MimeTypes
 import imghdr
 import os
 from django.core.files.storage import default_storage
+from datetime import datetime
 
 USER_FIELDS = [
     'id',
@@ -245,6 +246,20 @@ class LinkResource(MultipartResource, ModelResource):
                 ))
 
         return bundle
+
+    # https://github.com/toastdriven/django-tastypie/blob/ec16d5fc7592efb5ea86321862ec0b5962efba1b/tastypie/resources.py#L2194
+    def obj_delete(self, bundle, **kwargs):
+        if not hasattr(bundle.obj, 'delete'):
+            try:
+                bundle.obj = self.obj_get(bundle=bundle, **kwargs)
+            except ObjectDoesNotExist:
+                raise NotFound("A model instance matching the provided arguments could not be found.")
+
+        self.authorized_delete_detail(self.get_object_list(bundle.request), bundle)
+        if not bundle.obj.user_deleted and not bundle.obj.vested:
+            bundle.obj.user_deleted=True
+            bundle.obj.user_deleted_timestamp=datetime.now()
+            bundle.obj.save()
 
 
 class FolderResource(ModelResource):
