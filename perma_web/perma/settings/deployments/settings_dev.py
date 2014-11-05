@@ -21,9 +21,6 @@ STATIC_ROOT = os.path.join(SERVICES_DIR, 'django/static_assets/')
 # print email to console
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# warc_server uses this to make requests -- it should point back to Django's /cdx view
-CDX_SERVER_URL = 'http://127.0.0.1:8000/cdx'
-
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'secret'
 

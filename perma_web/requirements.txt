@@ -30,6 +30,7 @@ Wand==0.3.8						# ImageMagick bindings to help with thumbnail creation and PDF 
 sorl-thumbnail==11.12			# Used to create our thumbnails
 Pillow==2.6.1					# Used to generate thumbnails with sorl. We can likely remove this dependency when Sorl 12.x is released (and we use Wand as our sorl engine)
 redis==2.10.1					# Needed to bind with Redis. Supports our sorl thumbnails in production
+django-redis==3.7.2             # use redis as django's cache backend
 
 # deployment
 gunicorn==18.0

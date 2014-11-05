@@ -13,11 +13,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
 
 from datetime import datetime
-import urllib2, os, logging
+import os, logging
 from urlparse import urlparse
-from pywb.warc.cdxindexer import write_cdx_index
 import requests
-import surt
 import json
 from ratelimit.decorators import ratelimit
 
@@ -64,56 +62,6 @@ def stats(request):
 
     return render_to_response('stats.html', context)
 
-@csrf_exempt
-@must_be_mirrored
-def cdx(request):
-    """
-        This function handles WARC lookups by our warc server (running in warc_server).
-        It accepts a standard CDX request, except with a GUID instead of date, and returns a standard CDX 11 response.
-        If there's no warc for the requested GUID, or the requested URL isn't stored in that WARC, it returns a 404.
-    """
-    # find requested link and url
-    try:
-        link = Link.objects.select_related().get(pk=request.GET.get('guid'))
-    except Link.DoesNotExist:
-        print "COULDN'T FIND LINK"
-        raise Http404
-    url = request.GET.get('url', link.submitted_url)
-
-    # get warc file
-    for asset in link.assets.all():
-        if '.warc' in asset.warc_capture:
-            warc_path = os.path.join(asset.base_storage_path, asset.warc_capture)
-            break
-    else:
-        print "COULDN'T FIND WARC"
-        raise Http404 # no .warc file -- do something to handle this?
-
-    # get cdx file
-    cdx_path = warc_path.replace('.gz', '').replace('.warc', '.cdx')
-    if not default_storage.exists(cdx_path):
-        # if we can't find the CDX file associated with this WARC, create it
-        with default_storage.open(warc_path, 'rb') as warc_file, default_storage.open(cdx_path, 'wb') as cdx_file:
-            write_cdx_index(cdx_file, warc_file, warc_path, sort=True)
-
-    cdx_lines = default_storage.open(cdx_path, 'rb')
-
-    # find cdx lines for url
-    sorted_url = surt.surt(url)
-    out = ""
-    for line in cdx_lines:
-        if line.startswith(sorted_url+" "):
-            out += line
-        elif out:
-            # file may contain multiple matching lines in a row; we want to return all of them
-            # if we've already found one or more matching lines, and now they're no longer matching, we're done
-            break
-
-    if out:
-        return HttpResponse(out, content_type="text/plain")
-
-    print "COULDN'T FIND URL"
-    raise Http404 # didn't find requested url in .cdx file
 
 @must_be_mirrored
 @ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block=True, ip=False,

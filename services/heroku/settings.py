@@ -28,7 +28,7 @@ STATICFILES_STORAGE = 'perma.storage_backends.StaticRootS3BotoStorage'
 # message passing
 BROKER_POOL_LIMIT=1
 BROKER_URL = os.environ.get('CLOUDAMQP_URL')
-CELERY_RESULT_BACKEND = os.environ.get('REDISTOGO_URL')
+CELERY_RESULT_BACKEND = os.environ.get('REDISCLOUD_URL')
 
 
 # these are relative to the S3 bucket
@@ -40,6 +40,22 @@ AWS_QUERYSTRING_AUTH = False
 
 # archive creation
 PHANTOMJS_LOG = 'phantomjs.log' # this will just get thrown away
+
+# parse redis url
+import redis.connection
+_parsed_redis_url = redis.connection.ConnectionPool.from_url(os.environ.get('REDISCLOUD_URL')).connection_kwargs
+
+# caching
+#KEY_VALUE_STORE = simplekv.memory.redisstore.RedisStore(redis.StrictRedis.from_url(os.environ.get('REDISCLOUD_URL')))
+CACHES['default']['LOCATION'] = "%s:%s:%s" % (_parsed_redis_url['host'], _parsed_redis_url['port'], _parsed_redis_url['db'])
+CACHES['default']['OPTIONS']['PASSWORD'] = _parsed_redis_url['password']
+
+# thumbnail redis server
+THUMBNAIL_REDIS_DB = _parsed_redis_url['db']
+THUMBNAIL_REDIS_PASSWORD = _parsed_redis_url['password']
+THUMBNAIL_REDIS_HOST = _parsed_redis_url['host']
+THUMBNAIL_REDIS_PORT = _parsed_redis_url['port']
+
 
 ### OVERRIDE THESE WITH ENV VARS ###
 
