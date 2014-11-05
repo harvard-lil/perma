@@ -1,22 +1,15 @@
 import logging
-import os
 import random
 import re
-import tempfile
-import zipfile
 
 from django.contrib.auth.models import Group, BaseUserManager, AbstractBaseUser
 from django.conf import settings
-from django.core.files.storage import default_storage
 from django.db import models
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.utils.text import slugify
 from mptt.exceptions import InvalidMove
 from mptt.models import MPTTModel, TreeForeignKey
-import tempdir
-
-from perma.utils import base
 
 logger = logging.getLogger(__name__)
 
@@ -436,14 +429,6 @@ class Link(models.Model):
     objects = LinkManager()
 
     def save(self, *args, **kwargs):
-        """
-        To generate our globally unique identifiers, we draw a number out of a large number space,
-        32**8, and convert that to base32 (like base64, but with all caps and without the confusing I,1,O,0 characters)
-        so that our URL is short(ish).
-        
-        One exception - we want to use up our [non-four alphabet chars-anything] ids first. So, avoid things like XFFC-9VS7
-        
-        """
         initial_folder = kwargs.pop('initial_folder', None)
 
         if not self.pk and not kwargs.get("pregenerated_guid", False):
@@ -451,9 +436,13 @@ class Link(models.Model):
             # only try 100 attempts at finding an unused GUID
             # (100 attempts should never be necessary, since we'll expand the keyspace long before
             # there are frequent collisions)
+            guid_character_set = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
             for i in range(100):
-                random_id = random.randint(0, 32**8)
-                guid = base.convert(random_id, base.BASE10, base.BASE32)
+                # Generate an 8-character random string like "1A2B3C4D"
+                guid = ''.join(random.choice(guid_character_set) for _ in range(8))
+
+                # apply standard formatting (hyphens)
+                guid = Link.get_canonical_guid(guid)
                 
                 # Avoid GUIDs starting with four letters (in case we need those later)
                 match = re.search(r'^[A-Z]{4}', guid)
@@ -462,7 +451,7 @@ class Link(models.Model):
                     break
             else:
                 raise Exception("No valid GUID found in 100 attempts.")
-            self.guid = Link.get_canonical_guid(guid)
+            self.guid = guid
         if "pregenerated_guid" in kwargs:
             del kwargs["pregenerated_guid"]
 
