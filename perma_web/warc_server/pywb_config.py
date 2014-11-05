@@ -89,7 +89,6 @@ class PermaCDXSource(CDXSource):
         surt_lookup = django_cache.get(cache_key)
         url = url or django_cache.get(url_key)
         if surt_lookup and url:
-            print "USING CACHE"
             surt_lookup = json.loads(surt_lookup)
 
         else:
@@ -97,7 +96,6 @@ class PermaCDXSource(CDXSource):
             try:
                 link = Link.objects.select_related().get(pk=guid)
             except Link.DoesNotExist:
-                print "COULDN'T FIND LINK"
                 return []
 
             # cache url, which may be blank if this is the first request
@@ -111,7 +109,6 @@ class PermaCDXSource(CDXSource):
                     warc_path = os.path.join(asset.base_storage_path, asset.warc_capture)
                     break
             else:
-                print "COULDN'T FIND WARC"
                 return []  # no .warc file -- do something to handle this?
 
             # now we have to get an index of all the URLs in this .warc file
@@ -120,12 +117,10 @@ class PermaCDXSource(CDXSource):
 
             if not default_storage.exists(cdx_path):
                 # there isn't a .cdx file on disk either -- let's create it
-                print "REGENERATING CDX"
                 with default_storage.open(warc_path, 'rb') as warc_file, default_storage.open(cdx_path, 'wb') as cdx_file:
                     write_cdx_index(cdx_file, warc_file, warc_path, sort=True)
 
             # now load the URL index from disk and stick it in the cache
-            print "LOADING FROM DISK"
             cdx_lines = (line.strip() for line in default_storage.open(cdx_path, 'rb'))
             surt_lookup = dict((key, list(val)) for key, val in groupby(cdx_lines, key=lambda line: line.split(' ', 1)[0]))
             django_cache.set(cache_key, json.dumps(surt_lookup), timeout=60*60)
@@ -136,7 +131,6 @@ class PermaCDXSource(CDXSource):
             return (str(i) for i in surt_lookup[sorted_url])
 
         # didn't find requested url in this archive
-        print "COULDN'T FIND URL"
         return []
 
 
@@ -148,19 +142,15 @@ class CachedLoader(BlockLoader):
         # first try to fetch url contents from cache
         cache_key = 'warc-'+re.sub('[^\w-]', '', url)
         file_contents = django_cache.get(cache_key)
-        if file_contents:
-            print "USING CACHED WARC"
-
-        else:
+        if not file_contents:
             # url wasn't in cache -- fetch entire contents of url from super() and put in cache
             file_contents = super(CachedLoader, self).load(url).read()
             django_cache.set(cache_key, file_contents, timeout=60)  # use a short timeout so large warcs don't evict everything else in the cache
-            print "LOADED AND CACHED WARC"
 
         # turn string contents of url into file-like object
         afile = StringIO.StringIO(file_contents)
 
-        # proceed as in the normal BlockLoader
+        # --- from here down is taken from super() ---
         if offset > 0:
             afile.seek(offset)
 
