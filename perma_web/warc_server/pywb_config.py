@@ -103,7 +103,7 @@ class PermaCDXSource(CDXSource):
             # cache url, which may be blank if this is the first request
             if not url:
                 url = link.submitted_url
-            django_cache.set(url_key, url)
+            django_cache.set(url_key, url, timeout=60*60)
 
             # get warc file
             for asset in link.assets.all():
@@ -128,7 +128,7 @@ class PermaCDXSource(CDXSource):
             print "LOADING FROM DISK"
             cdx_lines = (line.strip() for line in default_storage.open(cdx_path, 'rb'))
             surt_lookup = dict((key, list(val)) for key, val in groupby(cdx_lines, key=lambda line: line.split(' ', 1)[0]))
-            django_cache.set(cache_key, json.dumps(surt_lookup))
+            django_cache.set(cache_key, json.dumps(surt_lookup), timeout=60*60)
 
         # find cdx lines for url
         sorted_url = surt(url)
@@ -154,7 +154,7 @@ class CachedLoader(BlockLoader):
         else:
             # url wasn't in cache -- fetch entire contents of url from super() and put in cache
             file_contents = super(CachedLoader, self).load(url).read()
-            django_cache.set(cache_key, file_contents)
+            django_cache.set(cache_key, file_contents, timeout=60)  # use a short timeout so large warcs don't evict everything else in the cache
             print "LOADED AND CACHED WARC"
 
         # turn string contents of url into file-like object
