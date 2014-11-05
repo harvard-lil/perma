@@ -4,7 +4,7 @@
 echo '. "/vagrant/services/vagrant/profile.sh"' >> /home/vagrant/.profile
 
 ### hosts ###
-printf "\n\n127.0.0.1 perma.dev\n127.0.0.1 users.perma.dev" >> /etc/hosts
+ln -sf /vagrant/services/vagrant/guest_hosts /etc/hosts
 
 ### basic packages ###
 apt-get -y update

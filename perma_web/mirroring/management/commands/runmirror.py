@@ -54,13 +54,13 @@ class Command(BaseCommand):
 
         First we'll launch two Django servers:
 
-            Main server: http://users.perma.dev:8001/
+            Main server: http://dashboard.perma.dev:8001/
             Mirror server: http://perma.dev:8002/
 
         Then we'll launch a celery worker for each server, using the queues 'runmirror_main_queue' and 'runmirror_mirror_queue'.
 
         Finally we'll launch a Twisted frontend server listening at port :8000. This simulates a DNS round-robin like Dyn,
-        proxying http://users.perma.dev:8000/ to be handled by the main server, and http://perma.dev:8000/
+        proxying http://dashboard.perma.dev:8000/ to be handled by the main server, and http://perma.dev:8000/
         to be handled by the mirror server.
     """
     args = ''
@@ -69,11 +69,17 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         # setup
+        router_port = 8000
         running_processes = []
+
         main_server_port = 8001
+        main_server_address = '%s.perma.dev' % settings.MIRROR_USERS_SUBDOMAIN
+        main_server_media = 'user-content.'+main_server_address
+
         mirror_server_port = 8002
-        main_server_address = 'http://users.perma.dev:%s' % main_server_port
-        mirror_server_address = 'http://perma.dev:%s' % mirror_server_port
+        mirror_server_address = 'perma.dev'
+        mirror_server_media = 'user-content.'+mirror_server_address
+
         temp_dir = tempdir.TempDir()
 
         try:
@@ -101,9 +107,11 @@ class Command(BaseCommand):
 
             print "Launching main server ..."
             main_server_env = dict(
-                DJANGO__MIRRORS__0__address=mirror_server_address,
+                DJANGO__DOWNSTREAM_SERVERS__0__address='http://%s:%s' % (mirror_server_address, mirror_server_port),
                 DJANGO__MIRRORING_ENABLED='True',
                 DJANGO__CELERY_DEFAULT_QUEUE='runmirror_main_queue',
+                DJANGO__DIRECT_MEDIA_URL='http://%s:%s/media/' % (main_server_media, router_port),
+                DJANGO__DIRECT_WARC_HOST='%s:%s' % (main_server_media, router_port),
             )
             running_processes.append(subprocess.Popen(['python', 'manage.py', 'runserver', str(main_server_port)],
                                              env=dict(os.environ, **main_server_env)))
@@ -117,10 +125,10 @@ class Command(BaseCommand):
                 DJANGO__MIRRORING_ENABLED='True',
                 DJANGO__DATABASES__default__NAME=mirror_database,
                 DJANGO__MIRROR_SERVER='True',
-                DJANGO__UPSTREAM_SERVER__address=main_server_address,
+                DJANGO__UPSTREAM_SERVER__address='http://%s:%s' % (main_server_address, main_server_port),
                 #DJANGO__RUN_TASKS_ASYNC='False',
                 DJANGO__MEDIA_ROOT=temp_dir.name,
-                DJANGO__CDX_SERVER_URL=mirror_server_address+'/cdx',
+                DJANGO__WARC_HOST='%s:%s' % (mirror_server_media, router_port),
             )
             running_processes.append(subprocess.Popen(['python', 'manage.py', 'runserver', str(mirror_server_port)],
                                              env=dict(os.environ, **mirror_server_env)))
@@ -128,16 +136,22 @@ class Command(BaseCommand):
                 ['celery', '-A', 'perma', 'worker', '--loglevel=info', '-Q', 'runmirror_mirror_queue', '--hostname=runmirror_mirror_queue'],
                 env=dict(os.environ, **mirror_server_env)))
 
-            print "Syncing contents ..."
-            running_processes.append(subprocess.Popen(['python', 'manage.py', 'shell'],
-                            env=dict(os.environ, **mirror_server_env)))
+            print "Syncing contents from %s to %s ..." % (settings.MEDIA_ROOT, temp_dir.name)
+            subprocess.call("cp -r %s* '%s'" % (settings.MEDIA_ROOT, temp_dir.name), shell=True)
 
             print "Launching reverse proxy ..."
             root = vhost.NameVirtualHost()
-            root.addHost('users.perma.dev', ForwardedReverseProxyResource('127.0.0.1', main_server_port, ''))
-            root.addHost('perma.dev', ForwardedReverseProxyResource('127.0.0.1', mirror_server_port, ''))
+
+            main_host = ForwardedReverseProxyResource('127.0.0.1', main_server_port, '')
+            root.addHost(main_server_address, main_host)
+            root.addHost(main_server_media, main_host)
+
+            mirror_host = ForwardedReverseProxyResource('127.0.0.1', mirror_server_port, '')
+            root.addHost(mirror_server_address, mirror_host)
+            root.addHost(mirror_server_media, mirror_host)
+
             site = server.Site(root)
-            reactor.listenTCP(8000, site)
+            reactor.listenTCP(router_port, site)
             reactor.run()
 
         finally:

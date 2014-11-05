@@ -11,37 +11,40 @@ import os
 def import_environmental_settings(settings):
     for key, value in os.environ.iteritems():
         if key.startswith("DJANGO__"):
-            path = key.split('__')[1:]
-
-            if path[0] == 'INT':
-                # convert to int if second piece of path is 'INT'
-                value = int(value)
-                path = path[1:]
-            elif value=='True':
-                # convert to boolean
-                value=True
-            elif value=='False':
-                value=False
-
-            # starting with global settings, walk down the tree to find the intended value
-            target = settings
-            while len(path) > 1:
-                try:
-                    # if it's an int, treat it as an array index
-                    path[0] = int(path[0])
-                    while len(target)<=path[0]:
-                        target += [None]
-                except ValueError:
-                    # otherwise it's a dict key
-                    if not path[0] in target:
-                        target[path[0]] = {}
-                target = target[path.pop(0)]
-
-            # set value
             try:
-                path[0] = int(path[0])
-                while len(target) <= path[0]:
-                    target += [None]
-            except ValueError:
-                pass
-            target[path[0]] = value
+                path = key.split('__')[1:]
+
+                if path[0] == 'INT':
+                    # convert to int if second piece of path is 'INT'
+                    value = int(value)
+                    path = path[1:]
+                elif value=='True':
+                    # convert to boolean
+                    value=True
+                elif value=='False':
+                    value=False
+
+                # starting with global settings, walk down the tree to find the intended value
+                target = settings
+                while len(path) > 1:
+                    try:
+                        # if it's an int, treat it as an array index
+                        path[0] = int(path[0])
+                        while len(target)<=path[0]:
+                            target += [{}]
+                    except ValueError:
+                        # otherwise it's a dict key
+                        if not path[0] in target:
+                            target[path[0]] = {}
+                    target = target[path.pop(0)]
+
+                # set value
+                try:
+                    path[0] = int(path[0])
+                    while len(target) <= path[0]:
+                        target += [{}]
+                except ValueError:
+                    pass
+                target[path[0]] = value
+            except Exception as e:
+                print "WARNING: Can't import environmental setting %s: %s" % (key, e)

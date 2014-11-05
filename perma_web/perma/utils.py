@@ -186,7 +186,7 @@ def get_search_query(target, search_string, fields):
 
     return target
     
-### user content url ###
+### url manipulation ###
 
 def absolute_url(request, url):
     """
@@ -196,6 +196,14 @@ def absolute_url(request, url):
     if url.startswith('//'):
         return url
     return request.build_absolute_uri(url)
+
+def direct_media_url(url):
+    """
+        Given a URL that includes MEDIA_URL, convert it to include DIRECT_MEDIA_URL instead if that is set.
+    """
+    if not settings.DIRECT_MEDIA_URL:
+        return url
+    return url.replace(settings.MEDIA_URL, settings.DIRECT_MEDIA_URL, 1)
 
 ### debug toolbar ###
 

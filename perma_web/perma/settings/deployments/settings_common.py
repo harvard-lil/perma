@@ -340,12 +340,15 @@ RUN_TASKS_ASYNC = True
 MIRRORING_ENABLED = False           # whether to use mirroring features
 MIRROR_SERVER = False               # whether we are a mirror
 MIRROR_COOKIE_NAME = 'user_info'
-MIRROR_USERS_SUBDOMAIN = 'users'
+MIRROR_USERS_SUBDOMAIN = 'dashboard'
+DIRECT_MEDIA_URL = MEDIA_URL        # URL to load media from this server in particular -- primarily useful for main server
 
 # Where to fetch new archives from, if we are a mirror.
 UPSTREAM_SERVER = {
     'address':'http://perma.cc',
-    'headers':{},
+    'headers':{
+        #'Host':'perma.cc',  # example -- handy if fetching updates over a VPN, where 'address' might be a local IP address instead of domain name
+    },
 }
 
 # Where to push updates to.
@@ -376,6 +379,7 @@ LINK_EXPIRATION_TIME = relativedelta(years=2)
 # If set, warc content must be served from this host.
 # On production, this is highly recommended to be different from hosts in ALLOWED_HOSTS.
 WARC_HOST = None
+DIRECT_WARC_HOST = None     # host to load warc from this server in particular -- primarily useful for main server
 
 
 # Sorl settings. This releates to our thumbnail creation
