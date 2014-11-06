@@ -38,11 +38,6 @@ class LinkValidation(Validation):
         return False
 
     def is_valid(self, bundle, request=None):
-        # We've received a request to archive a URL. That process is managed here.
-        # We create a new entry in our datastore and pass the work off to our indexing
-        # workers. They do their thing, updating the model as they go. When we get some minimum
-        # set of results we can present the user (a guid for the link), we respond back.
-
         if not bundle.data:
             return {'__all__': 'No data provided.'}
         errors = {}

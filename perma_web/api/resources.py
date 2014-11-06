@@ -14,7 +14,6 @@ from perma.utils import run_task
 from perma.tasks import get_pdf, proxy_capture
 from mirroring.tasks import compress_link_assets, poke_mirrors
 from mimetypes import MimeTypes
-import imghdr
 import os
 from django.core.files.storage import default_storage
 from datetime import datetime
@@ -107,6 +106,11 @@ class LinkResource(MultipartResource, ModelResource):
         ]
 
     def obj_create(self, bundle, **kwargs):
+        # We've received a request to archive a URL. That process is managed here.
+        # We create a new entry in our datastore and pass the work off to our indexing
+        # workers. They do their thing, updating the model as they go. When we get some minimum
+        # set of results we can present the user (a guid for the link), we respond back.
+
         url = bundle.data.get('url','').strip()
         if url[:4] != 'http':
             url = 'http://' + url
