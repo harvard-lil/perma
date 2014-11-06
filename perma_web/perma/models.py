@@ -556,9 +556,9 @@ class Asset(models.Model):
     def image_url(self):
         return self.base_url(self.image_capture)
 
-    def warc_url(self):
+    def warc_url(self, host=settings.WARC_HOST):
         if self.warc_capture and '.warc' in self.warc_capture:
-            return ("//"+settings.WARC_HOST if settings.WARC_HOST else '') + \
+            return ("//"+host if host else '') + \
                    u"/warc/%s/%s" % (self.link.guid, self.link.submitted_url)
         else:
             return settings.MEDIA_URL+self.base_url(self.warc_capture)

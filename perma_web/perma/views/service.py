@@ -11,6 +11,7 @@ import json, os, logging, csv
 from perma.models import Link, Asset, Stat
 from sorl.thumbnail import get_thumbnail
 from mirroring.utils import may_be_mirrored, must_be_mirrored
+from perma.utils import direct_media_url
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +113,7 @@ def link_status(request, guid):
         try:
             image_path = os.path.join(settings.MEDIA_ROOT, target_asset.base_storage_path, capture_name)
             thumbnail = get_thumbnail(image_path, '456')
-            thumbnail_url = thumbnail.url
+            thumbnail_url = direct_media_url(thumbnail.url)
         except IOError:
             logger.info("Thumnail creation failed. Unable to find capture image")
 

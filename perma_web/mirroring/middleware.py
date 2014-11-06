@@ -66,6 +66,7 @@ def get_user(request):
     """
         When request.user is viewed on mirror server, try to build it from cookie. """
     if not hasattr(request, '_cached_user'):
+        request._cached_user = None
         user_info = request.COOKIES.get(settings.MIRROR_COOKIE_NAME)
         if user_info:
             try:

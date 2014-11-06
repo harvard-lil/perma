@@ -167,11 +167,11 @@ If you're working on an email related task, the contents of emails should be dum
 ### Mirroring
 
 Perma uses a mirroring system in which one server handles logged-in users and content creation, and a set of mirrors help to serve archived content.
-A load balancer routes traffic between them. The net effect is that http://users.perma.cc is served by one server,
+A load balancer routes traffic between them. The net effect is that http://dashboard.perma.cc is served by one server,
 while http://perma.cc may be served by any randomly selected mirror.
 
 For development, we simulate Perma's network by running a simple load balancer on the local machine at \*.perma.dev:8000.
-The load balancer routes requests to users.perma.dev:8000 to the main Django dev server running on port :8001,
+The load balancer routes requests to dashboard.perma.dev:8000 to the main Django dev server running on port :8001,
 and requests to perma.dev:8000 to a mirror Django dev server running on port :8002.
 
 To set that up, first edit your hosts file (/etc/hosts or \system32\drivers\etc\hosts) to add the following line:

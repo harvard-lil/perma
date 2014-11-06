@@ -94,11 +94,18 @@ def single_linky(request, guid):
     if not serve_type in valid_serve_types:
         serve_type = 'live'
 
-    try:
-        link = Link.objects.get(guid=guid)
-    except Link.DoesNotExist:
+    # fetch link from DB -- unless we're logged in on a mirror server,
+    # in which case always fetch status from upstream so we show the right edit buttons
+    link = None
+    if not (settings.MIRROR_SERVER and request.user.groups.all()):
+        try:
+            link = Link.objects.get(guid=guid)
+        except Link.DoesNotExist:
+            pass
+
+    # if we can't find the Link locally, and we're a mirror server, fetch from upstream -- otherwise 404
+    if not link:
         if settings.MIRROR_SERVER:
-            # if we can't find the Link, and we're a mirror server, try fetching it from main server
             try:
                 json_url = get_url_for_host(request,
                                             request.main_server_host,
@@ -151,8 +158,6 @@ def single_linky(request, guid):
 
         asset = Asset.objects.get(link__guid=link.guid)
 
-        created_datestamp = link.creation_timestamp
-
         context = {
             'linky': link,
             'asset': asset,
@@ -165,8 +170,8 @@ def single_linky(request, guid):
 
     if request.META.get('CONTENT_TYPE') == 'application/json':
         # if we were called as JSON (by a mirror), serialize and send back as JSON
-        context['warc_url'] = absolute_url(request, context['warc_url'])
-        context['MEDIA_URL'] = absolute_url(request, settings.MEDIA_URL)
+        context['warc_url'] = absolute_url(request, context['asset'].warc_url(settings.DIRECT_WARC_HOST))
+        context['MEDIA_URL'] = absolute_url(request, settings.DIRECT_MEDIA_URL)
         context['asset'] = serializers.serialize("json", [context['asset']], fields=['text_capture','image_capture','pdf_capture','warc_capture','base_storage_path'])
         context['linky'] = serializers.serialize("json", [context['linky']], fields=['dark_archived','guid','vested','view_count','creation_timestamp','submitted_url','submitted_title'])
         return HttpResponse(json.dumps(context), content_type="application/json")
