@@ -386,4 +386,8 @@ DIRECT_WARC_HOST = None     # host to load warc from this server in particular -
 # the prod and dev configs are considerably different. See those configs for
 # details
 THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.pil_engine.Engine' # Change this to Wand when sorl 12.x is released (since we use Wand for PDF thumbnail creation)
-THUMBNAIL_FORMAT = 'PNG' # 
+THUMBNAIL_FORMAT = 'PNG' #
+
+
+# feature flags
+SINGLE_LINK_HEADER_TEST = False
