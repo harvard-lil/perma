@@ -84,8 +84,6 @@ def get_user(request):
 
 class MirrorAuthenticationMiddleware(AuthenticationMiddleware):
     def process_request(self, request):
-        if not settings.MIRROR_SERVER:
-            return super(MirrorAuthenticationMiddleware, self).process_request(request)
         request.user = SimpleLazyObject(lambda: get_user(request))
 
 
