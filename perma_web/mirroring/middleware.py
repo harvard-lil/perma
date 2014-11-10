@@ -122,15 +122,3 @@ class MirrorForwardingMiddleware(object):
 
             elif not must_be_mirrored and (settings.MIRROR_SERVER or host != request.main_server_host):
                 return HttpResponsePermanentRedirect(get_url_for_host(request, request.main_server_host))
-
-### CSRF ###
-
-class MirrorCsrfViewMiddleware(CsrfViewMiddleware):
-    def process_response(self, request, response):
-        """
-            We need the CSRF cookie to work at both foo.cc and users.foo.cc, so the domain should be .foo.cc
-            Since the same server might serve under multiple domains, we calculate this per-request.
-        """
-        if settings.MIRRORING_ENABLED:
-            settings.CSRF_COOKIE_DOMAIN = '.'+get_mirror_server_host(request).split(':')[0]
-        return super(MirrorCsrfViewMiddleware, self).process_response(request, response)

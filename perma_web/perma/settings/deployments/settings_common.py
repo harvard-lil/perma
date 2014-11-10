@@ -159,7 +159,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'mirroring.middleware.MirrorCsrfViewMiddleware',
     'mirroring.middleware.MirrorAuthenticationMiddleware',
     'mirroring.middleware.MirrorForwardingMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
