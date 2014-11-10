@@ -173,7 +173,7 @@ def single_linky(request, guid):
         context['warc_url'] = absolute_url(request, context['asset'].warc_url(settings.DIRECT_WARC_HOST))
         context['MEDIA_URL'] = absolute_url(request, settings.DIRECT_MEDIA_URL)
         context['asset'] = serializers.serialize("json", [context['asset']], fields=['text_capture','image_capture','pdf_capture','warc_capture','base_storage_path'])
-        context['linky'] = serializers.serialize("json", [context['linky']], fields=['dark_archived','guid','vested','view_count','creation_timestamp','submitted_url','submitted_title'])
+        context['linky'] = serializers.serialize("json", [context['linky']], fields=['dark_archived','guid','vested','vesting_org','view_count','creation_timestamp','submitted_url','submitted_title'])
         return HttpResponse(json.dumps(context), content_type="application/json")
 
     elif serve_type == 'warc_download':

@@ -126,6 +126,7 @@ class Command(BaseCommand):
                 DJANGO__DATABASES__default__NAME=mirror_database,
                 DJANGO__MIRROR_SERVER='True',
                 DJANGO__UPSTREAM_SERVER__address='http://%s:%s' % (main_server_address, main_server_port),
+                DJANGO__UPSTREAM_SERVER__public_key=settings.GPG_PUBLIC_KEY,
                 #DJANGO__RUN_TASKS_ASYNC='False',
                 DJANGO__MEDIA_ROOT=temp_dir.name,
                 DJANGO__WARC_HOST='%s:%s' % (mirror_server_media, router_port),
@@ -146,7 +147,7 @@ class Command(BaseCommand):
             root.addHost(main_server_address, main_host)
             root.addHost(main_server_media, main_host)
 
-            mirror_host = ForwardedReverseProxyResource('127.0.0.1', main_server_port, '')# mirror_server_port, '')
+            mirror_host = ForwardedReverseProxyResource('127.0.0.1', mirror_server_port, '')
             root.addHost(mirror_server_address, mirror_host)
             root.addHost(mirror_server_media, mirror_host)
 

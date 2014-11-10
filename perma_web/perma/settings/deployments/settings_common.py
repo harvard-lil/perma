@@ -344,17 +344,26 @@ MIRROR_USERS_SUBDOMAIN = 'dashboard'
 DIRECT_MEDIA_URL = MEDIA_URL        # URL to load media from this server in particular -- primarily useful for main server
 
 # Where to fetch new archives from, if we are a mirror.
-UPSTREAM_SERVER = {
-    'address':'http://perma.cc',
-    'headers':{
-        #'Host':'perma.cc',  # example -- handy if fetching updates over a VPN, where 'address' might be a local IP address instead of domain name
-    },
-}
+UPSTREAM_SERVER = {}
+## Example:
+# UPSTREAM_SERVER = {
+#     'address':'http://perma.cc',
+#     'headers':{
+#         #'Host':'perma.cc',  # example -- handy if fetching updates over a VPN, where 'address' might be a local IP address instead of domain name
+#     },
+#     'public_key':None,
+# }
 
 # Where to push updates to.
 # Each entry in this list is a dict in the same format as UPSTREAM_SERVER, above.
 # Note that we can have both an upstream and downstream servers if this and UPSTREAM_SERVER are set.
 DOWNSTREAM_SERVERS = []
+
+# signing/encryption
+GPG_DIRECTORY = None  # use default
+GPG_PUBLIC_KEY = None
+GPG_PRIVATE_KEY = None
+
 
 # where we will store zip archives created for transferring to mirrors
 # this is relative to MEDIA_ROOT

@@ -225,6 +225,23 @@ def sync_mirror():
     from mirroring.tasks import sync_mirror
     sync_mirror()
 
+def generate_keys():
+    """
+        Generate a keypair suitable for settings.py on the main server.
+    """
+    if '/vagrant/' in __file__:
+        print "WARNING: This command does not run well under Vagrant, as it requires random entropy."
+    import gnupg
+    gpg = gnupg.GPG(gnupghome=settings.GPG_DIRECTORY)
+    gpg_input = gpg.gen_key_input()  # use sensible defaults
+    print "Generating keypair with this input: %s" % gpg_input
+    key = gpg.gen_key(gpg_input)
+    print "Copy these keys into settings.py on the main server, and into UPSTREAM_SERVER['public_key'] on the mirror servers:"
+    print "\nGPG_PUBLIC_KEY = %s\nGPG_PRIVATE_KEY = %s" % (
+        repr(gpg.export_keys(key.fingerprint)),  # public key
+        repr(gpg.export_keys(key.fingerprint, True))  # private key
+    )
+
 
 ### HEROKU ###
 

@@ -1,14 +1,12 @@
-import json
-
 from django.contrib.auth import get_user as django_get_user
 from django.contrib.auth.models import AnonymousUser, Group
 from django.contrib.auth.middleware import AuthenticationMiddleware
 from django.conf import settings
 from django.http import HttpResponsePermanentRedirect
-from django.middleware.csrf import CsrfViewMiddleware
 from django.utils.functional import SimpleLazyObject
 
-from perma.models import LinkUser
+from .models import FakeLinkUser
+from .utils import read_signed_message
 
 ### helpers ###
 
@@ -43,25 +41,7 @@ def get_url_for_host(request, host, url=None):
     return request.build_absolute_uri(location=url).replace(request.get_host(), host, 1)
 
 
-### create fake request.user model from cookie on mirror servers ###
-
-class FakeLinkUser(LinkUser):
-    is_authenticated = lambda self: True
-    groups = None
-
-    def __init__(self, *args, **kwargs):
-        self.groups = Group.objects.filter(pk__in=kwargs.pop('groups'))
-        super(FakeLinkUser, self).__init__(*args, **kwargs)
-
-    class Meta:
-        proxy = True
-
-    def save(self, *args, **kwargs):
-        raise NotImplementedError("FakeLinkUser should never be saved.")
-
-    def delete(self, *args, **kwargs):
-        raise NotImplementedError("FakeLinkUser should never be deleted.")
-
+### fake user auth ###
 
 def get_user(request):
     """ When request.user is viewed on mirror server, try to build it from a fake-user cookie we may have set on the dashboard. """
@@ -74,8 +54,8 @@ def get_user(request):
             user_info = request.COOKIES.get(settings.MIRROR_COOKIE_NAME)
             if user_info:
                 try:
-                    user_info = json.loads(user_info)
-                    user = FakeLinkUser(**user_info)
+                    user_info = read_signed_message(user_info)
+                    user = FakeLinkUser.init_from_serialized_user(user_info)
                 except Exception, e:
                     print "Error loading mirror user:", e
 

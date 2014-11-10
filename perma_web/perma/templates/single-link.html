@@ -35,7 +35,7 @@
                             {% if request.user.is_authenticated %}
                                 {% if not linky.user_deleted %}
                                     {% if request.user|has_group:'registry_user,registrar_user,vesting_user' and not linky.vested %}
-                                        <a class="btn vest" href="{% url 'vest_link' linky.guid %}">Vest site</a>
+                                        <a class="btn vest" href="{% main_url 'vest_link' linky.guid %}">Vest site</a>
                                     {% endif %}
 
                                     {% if request.user|has_group:'registry_user' and not linky|is_darchive %}
