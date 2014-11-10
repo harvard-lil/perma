@@ -146,7 +146,7 @@ class Command(BaseCommand):
             root.addHost(main_server_address, main_host)
             root.addHost(main_server_media, main_host)
 
-            mirror_host = ForwardedReverseProxyResource('127.0.0.1', mirror_server_port, '')
+            mirror_host = ForwardedReverseProxyResource('127.0.0.1', main_server_port, '')# mirror_server_port, '')
             root.addHost(mirror_server_address, mirror_host)
             root.addHost(mirror_server_media, mirror_host)
 

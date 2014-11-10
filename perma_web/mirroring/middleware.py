@@ -1,5 +1,6 @@
 import json
 
+from django.contrib.auth import get_user as django_get_user
 from django.contrib.auth.models import AnonymousUser, Group
 from django.contrib.auth.middleware import AuthenticationMiddleware
 from django.conf import settings
@@ -63,19 +64,22 @@ class FakeLinkUser(LinkUser):
 
 
 def get_user(request):
-    """
-        When request.user is viewed on mirror server, try to build it from cookie. """
+    """ When request.user is viewed on mirror server, try to build it from a fake-user cookie we may have set on the dashboard. """
     if not hasattr(request, '_cached_user'):
-        request._cached_user = None
-        user_info = request.COOKIES.get(settings.MIRROR_COOKIE_NAME)
-        if user_info:
-            try:
-                user_info = json.loads(user_info)
-                request._cached_user = FakeLinkUser(**user_info)
-            except Exception, e:
-                print "Error loading mirror user:", e
-        if not request._cached_user:
-            request._cached_user = AnonymousUser()
+        # first try for actual user login cookie
+        user = django_get_user(request)
+
+        # else see if we have a fake-user cookie
+        if type(user) == AnonymousUser and request.get_host() == get_mirror_server_host(request):
+            user_info = request.COOKIES.get(settings.MIRROR_COOKIE_NAME)
+            if user_info:
+                try:
+                    user_info = json.loads(user_info)
+                    user = FakeLinkUser(**user_info)
+                except Exception, e:
+                    print "Error loading mirror user:", e
+
+        request._cached_user = user
     return request._cached_user
 
 class MirrorAuthenticationMiddleware(AuthenticationMiddleware):
