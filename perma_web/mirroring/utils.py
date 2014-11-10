@@ -72,7 +72,7 @@ def sign_message(message, key=settings.GPG_PRIVATE_KEY):
     fingerprint = get_fingerprint(key)
     return gpg.sign(message, keyid=fingerprint)
 
-def read_signed_message(message, key=settings.UPSTREAM_SERVER.get('public_key')):
+def read_signed_message(message, key=settings.UPSTREAM_SERVER.get('public_key') if settings.MIRROR_SERVER else settings.GPG_PUBLIC_KEY):
     if not key:
         return message
 
