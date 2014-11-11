@@ -378,7 +378,14 @@ class LinkManager(models.Manager):
         Link manager that can enforce user access perms.
     """
     def get_queryset(self):
-        return LinkQuerySet(self.model, using=self._db)
+        # exclude deleted entries by default
+        return LinkQuerySet(self.model, using=self._db).filter(user_deleted=False)
+
+    def all_with_deleted(self):
+        return super(LinkManager, self).get_query_set()
+
+    def deleted_set(self):
+        return super(LinkManager, self).get_query_set().filter(user_deleted=True)
 
     def user_access_filter(self, user):
         """
