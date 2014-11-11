@@ -1,10 +1,11 @@
-from tastypie.authentication import ApiKeyAuthentication
+
 from tastypie import fields
 from tastypie.resources import ModelResource
 from perma.models import LinkUser, Link, Asset, Folder, VestingOrg
 from django.core.exceptions import ObjectDoesNotExist
 from tastypie.exceptions import NotFound
 from validations import LinkValidation
+from authentication import DefaultAuthentication
 from authorizations import DefaultAuthorization
 
 # LinkResource
@@ -42,7 +43,7 @@ class CurrentUserResource(ModelResource):
     class Meta:
         resource_name = 'user'
         queryset = LinkUser.objects.all()
-        authentication = ApiKeyAuthentication()
+        authentication = DefaultAuthentication()
         authorization = DefaultAuthorization()
         list_allowed_methods = []
         detail_allowed_methods = ['get']
@@ -85,7 +86,7 @@ class LinkResource(MultipartResource, ModelResource):
     vesting_org = fields.ForeignKey(VestingOrgResource, 'vesting_org', full=True, null=True)
 
     class Meta:
-        authentication = ApiKeyAuthentication()
+        authentication = DefaultAuthentication()
         authorization = DefaultAuthorization()
         resource_name = 'archives'
         validation = LinkValidation()
@@ -104,6 +105,12 @@ class LinkResource(MultipartResource, ModelResource):
             'dark_archived',
             'dark_archived_robots_txt_blocked'
         ]
+
+    # def cached_obj_get(self, bundle, **kwargs):
+    #     bundle = super(LinkResource, self).cached_obj_get(bundle, **kwargs)
+    #     if bundle.obj.user_deleted:
+    #         raise ObjectDoesNotExist
+    #     return bundle
 
     def obj_create(self, bundle, **kwargs):
         # We've received a request to archive a URL. That process is managed here.
