@@ -348,14 +348,6 @@ class Folder(MPTTModel):
             self.slug = "%s-%s" % (slugify(unicode(self.name)), i)
             i += 1
 
-    def all_children(self):
-        """ Return queryset of child folders *including* shared folders if any. """
-        filter = Q(parent=self)
-        # we show shared folders if user belongs to a vesting org and is viewing their root folder
-        if self.is_root_folder and self.owned_by.vesting_org and settings.SHARED_FOLDERS_ENABLED:
-            filter |= Q(pk=self.owned_by.vesting_org.shared_folder_id)
-        return Folder.objects.filter(filter)
-
     def display_level(self):
         """
             Get hierarchical level for this folder. If this is a shared folder, level should be one higher
