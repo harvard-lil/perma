@@ -154,34 +154,33 @@ class LinkResource(MultipartResource, ModelResource):
                     poke_mirrors.s(link_guid=asset.link.guid),
                 ]
 
+
+            asset.image_capture = 'pending'
+            task_args = [asset.link.guid,
+                         asset.link.submitted_url,
+                         asset.base_storage_path,
+                         bundle.request.META.get('HTTP_USER_AGENT', '')]
+
             # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
             if asset.link.media_type == 'pdf':
                 asset.pdf_capture = 'pending'
-                asset.image_capture = 'pending'
-                asset.save()
 
                 # run background celery tasks as a chain (each finishes before calling the next)
                 run_task(chain(
-                    get_pdf.s(asset.link.guid,
-                              asset.link.submitted_url,
-                              asset.base_storage_path,
-                              bundle.request.META['HTTP_USER_AGENT']),
+                    get_pdf.s(*task_args),
                     *postprocessing_tasks
                 ))
             else:  # else, it's not a PDF. Let's try our best to retrieve what we can
-                asset.image_capture = 'pending'
                 asset.text_capture = 'pending'
                 asset.warc_capture = 'pending'
-                asset.save()
 
                 # run background celery tasks as a chain (each finishes before calling the next)
                 run_task(chain(
-                    proxy_capture.s(asset.link.guid,
-                                    asset.link.submitted_url,
-                                    asset.base_storage_path,
-                                    bundle.request.META['HTTP_USER_AGENT']),
+                    proxy_capture.s(*task_args),
                     *postprocessing_tasks
                 ))
+
+            asset.save()
 
         return bundle
 
