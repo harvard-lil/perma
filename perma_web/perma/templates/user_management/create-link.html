@@ -116,7 +116,7 @@
 
 		<div class="thumbnail-placeholder">
             <div id="spinner"></div>
-            <p class="spinner-message">Generating preview</p>
+            <p class="spinner-message">Creating archive</p>
 		</div>
 
 </script>
@@ -150,14 +150,13 @@
 {% verbatim %}
 <script id="success-steps-template" type="text/x-handlebars-template">
     <p class="message-large">Success!</p>
-    <p>You're half way to a permanent archive.</p>
-    <p class="message-url"> <a href="{{url}}" target="_blank" class="perma-url">{{url}}</a></p>
-
     {{#if vesting_privs }}
-        <p>You need to take one more step to make this archive permanent - it needs to be vested.</p>
+            <p>You're half way there. To make this archive permanent, review and vest it.</p>
     {{ else }}
-        <p>You need to take one more step to make this archive permanent - it needs to be vested by a partner organization. <a href="{{userguide_url}}">Learn more about vesting.</a></p>
+            <p>You're half way there. To make this archive permanent, it needs to be vested by a partner organization. <a href="{{userguide_url}}">Learn more about vesting.</a></p>
     {{/if}}
+
+    <p class="message-url"> <a href="{{url}}" target="_blank" class="perma-url">{{url}}</a></p>
 </script>
 {% endverbatim %}
 
