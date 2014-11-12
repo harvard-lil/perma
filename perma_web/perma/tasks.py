@@ -303,8 +303,26 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
 
     print "%s capture done." % link_guid
 
+class GetPDFTask(Task):
+    """
+        After each call to get_pdf, we check if it has failed more than max_retries times,
+        and if so mark pending captures as failed permanently.
+    """
+    abstract = True
+    def after_return(self, status, retval, task_id, args, kwargs, einfo):
+        if self.request.retries >= self.max_retries:
+            asset = Asset.objects.get(link_id=args[0] if args else kwargs['link_guid'])
+            if asset.image_capture == "pending":
+                asset.image_capture = "failed"
+            if asset.pdf_capture == "pending":
+                asset.pdf_capture = "failed"
+            asset.save()
 
-@shared_task
+@shared_task(bind=True,
+             default_retry_delay=30,  # seconds
+             max_retries=3,
+             base=GetPDFTask)
+@retry_on_error
 def get_pdf(link_guid, target_url, base_storage_path, user_agent):
     """
     Download a PDF from the network
@@ -332,7 +350,7 @@ def get_pdf(link_guid, target_url, base_storage_path, user_agent):
         # Limit our filesize
         if temp.tell() > settings.MAX_ARCHIVE_FILE_SIZE:
             logger.info("PDF capture too big, %s" % target_url)
-            asset_query.update(pdf_capture='failed')
+            asset_query.update(pdf_capture='failed', image_capture='failed')
             return
 
     # store temp file
