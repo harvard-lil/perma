@@ -75,12 +75,6 @@ def single_linky(request, guid):
     Given a Perma ID, serve it up. Vesting also takes place here.
     """
 
-    if request.method == 'POST' and request.user.is_authenticated():
-        Link.objects.filter(guid=guid).update(vested = True,
-            vested_by_editor = request.user, vested_timestamp = datetime.now())
-
-        return HttpResponseRedirect(reverse('single_linky', args=[guid]))
-
     # Create a canonical version of guid (non-alphanumerics removed, hyphens every 4 characters, uppercase),
     # and forward to that if it's different from current guid.
     canonical_guid = Link.get_canonical_guid(guid)
