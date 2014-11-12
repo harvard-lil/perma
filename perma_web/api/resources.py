@@ -106,12 +106,6 @@ class LinkResource(MultipartResource, ModelResource):
             'dark_archived_robots_txt_blocked'
         ]
 
-    # def cached_obj_get(self, bundle, **kwargs):
-    #     bundle = super(LinkResource, self).cached_obj_get(bundle, **kwargs)
-    #     if bundle.obj.user_deleted:
-    #         raise ObjectDoesNotExist
-    #     return bundle
-
     def obj_create(self, bundle, **kwargs):
         # We've received a request to archive a URL. That process is managed here.
         # We create a new entry in our datastore and pass the work off to our indexing
