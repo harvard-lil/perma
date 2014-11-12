@@ -419,14 +419,18 @@ def user_delete_link(request, guid):
     return render_to_response('link-delete-confirm.html', {'link': link, 'asset': asset}, RequestContext(request))
 
 
-@require_group(['registry_user', 'registrar_user', 'vesting_user'])
+@login_required
 def dark_archive_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
     asset = Asset.objects.get(link=link)
     if request.method == 'POST':
-        if request.user.has_group('registrar_user') and not link.vesting_org.registrar == request.user.registrar:
-            return HttpResponseRedirect(reverse('single_linky', args=[guid]))
-        if request.user.has_group('vesting_user') and not link.vesting_org == request.user.vesting_org:
+        if request.user.has_group('registrar_user'):
+            if not link.vesting_org.registrar == request.user.registrar and not request.user == link.created_by:
+                return HttpResponseRedirect(reverse('single_linky', args=[guid]))
+        elif request.user.has_group('vesting_user'): 
+            if not link.vesting_org == request.user.vesting_org and not request.user == link.created_by:
+                return HttpResponseRedirect(reverse('single_linky', args=[guid]))
+        elif not request.user == link.created_by:
             return HttpResponseRedirect(reverse('single_linky', args=[guid]))
             
         if not link.dark_archived:
