@@ -323,7 +323,7 @@ class GetPDFTask(Task):
              max_retries=3,
              base=GetPDFTask)
 @retry_on_error
-def get_pdf(link_guid, target_url, base_storage_path, user_agent):
+def get_pdf(self, link_guid, target_url, base_storage_path, user_agent):
     """
     Download a PDF from the network
 
