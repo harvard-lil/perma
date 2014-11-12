@@ -1,12 +1,12 @@
 from __future__ import absolute_import # to avoid importing local .celery instead of celery package
 
+from functools import wraps
 import os
 import os.path
 import tempfile
 import threading
 import urlparse
-from celery import shared_task
-from django.template.defaultfilters import truncatechars
+from celery import shared_task, Task
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.proxy import ProxyType
@@ -26,6 +26,7 @@ from django.core.files.storage import default_storage
 from django.core.mail import send_mail
 from django.template.loader import get_template
 from django.template import Context
+from django.template.defaultfilters import truncatechars
 from django.forms.models import model_to_dict
 from django.conf import settings
 
@@ -85,10 +86,43 @@ def get_browser(user_agent, proxy_address, cert_path):
     browser.set_page_load_timeout(ROBOTS_TXT_TIMEOUT)
     return browser
 
+def retry_on_error(func):
+    """
+        Decorator to catch any exceptions thrown by the given task and call retry().
+    """
+    @wraps(func)
+    def with_retry(task, *args, **kwargs):
+        try:
+            return func(task, *args, **kwargs)
+        except Exception as e:
+            logger.error("Task failed, calling retry.\nArgs: %s\nKwargs: %s\nError: %s" % (args, kwargs, e))
+            task.retry(exc=e)
+    return with_retry
+
 
 ### TASKS ##
 
-@shared_task(bind=True)
+class ProxyCaptureTask(Task):
+    """
+        After each call to proxy_capture, we check if it has failed more than max_retries times,
+        and if so mark pending captures as failed permanently.
+    """
+    abstract = True
+    def after_return(self, status, retval, task_id, args, kwargs, einfo):
+        if self.request.retries >= self.max_retries:
+            asset = Asset.objects.get(link_id=args[0] if args else kwargs['link_guid'])
+            if asset.image_capture == "pending":
+                asset.image_capture = "failed"
+            if asset.warc_capture == "pending":
+                asset.warc_capture = "failed"
+            asset.save()
+
+
+@shared_task(bind=True,
+             default_retry_delay=30,  # seconds
+             max_retries=3,
+             base=ProxyCaptureTask)
+@retry_on_error
 @tempdir.run_in_tempdir()
 def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent=''):
     """
@@ -113,13 +147,11 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
     print "%s: Fetching %s" % (link_guid, target_url)
 
     # create a request handler class that counts unique requests and responses
-    #global unique_requests, unique_responses
     unique_requests = set()
     unique_responses = set()
     count_lock = threading.Lock()
     class CountingRequestHandler(warcprox.WarcProxyHandler):
         def _proxy_request(self):
-            #global unique_requests, unique_responses
             with count_lock:
                 unique_requests.add(self.url)
             warcprox.WarcProxyHandler._proxy_request(self)
