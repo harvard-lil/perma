@@ -35,10 +35,8 @@ class LinkResourceTestCase(ApiResourceTestCase):
         }
         
         self.post_data = {
-            'user': '{0}user/{1}/'.format(self.list_url, self.user.pk),
-            'title': 'Second Post!',
-            'slug': 'second-post',
-            'created': '2012-05-01T22:05:12'
+            'url': 'http://example.com',
+            'title': 'This is a test page'
         }
 
     def get_credentials(self):
@@ -62,10 +60,10 @@ class LinkResourceTestCase(ApiResourceTestCase):
 
     def test_post_list(self):
         # Check how many are there first.
-        self.assertEqual(Link.objects.count(), 5)
+        self.assertEqual(Link.objects.count(), 2)
         self.assertHttpCreated(self.api_client.post(self.list_url, format='json', data=self.post_data, authentication=self.get_credentials()))
         # Verify a new one has been added.
-        self.assertEqual(Link.objects.count(), 6)
+        self.assertEqual(Link.objects.count(), 3)
 
     def test_put_detail_unauthenticated(self):
         self.assertHttpUnauthorized(self.api_client.put(self.detail_url, format='json', data={}))
@@ -76,13 +74,13 @@ class LinkResourceTestCase(ApiResourceTestCase):
         self.assertValidJSONResponse(resp)
         original_data = self.deserialize(resp)
         new_data = original_data.copy()
-        new_data['title'] = 'Updated: First Post'
-        new_data['created'] = '2012-05-01T20:06:12'
+        new_data['url'] = 'Updated: First Post'
+        new_data['title'] = '2012-05-01T20:06:12'
 
-        self.assertEqual(Link.objects.count(), 5)
+        self.assertEqual(Link.objects.count(), 2)
         self.assertHttpAccepted(self.api_client.put(self.detail_url, format='json', data=new_data, authentication=self.get_credentials()))
         # Make sure the count hasn't changed & we did an update.
-        self.assertEqual(Link.objects.count(), 5)
+        self.assertEqual(Link.objects.count(), 2)
         # Check for updated data.
         self.assertEqual(Link.objects.get(pk=25).title, 'Updated: First Post')
         self.assertEqual(Link.objects.get(pk=25).slug, 'first-post')
