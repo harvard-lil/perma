@@ -35,21 +35,19 @@
                             {% if request.user.is_authenticated %}
                                 {% if not linky.user_deleted %}
                                     {% if request.user|has_group:'registry_user,registrar_user,vesting_user' and not linky.vested %}
-                                        <li><form action="{% main_url 'vest_link' linky.guid %}" method="post">
-                                            {% csrf_token %}
-                                                <input type="submit" value="Vest site" name="vest" class="btn vest">
-                                            </form>
-                                        </li>
+                                        <a class="btn vest" href="{% main_url 'vest_link' linky.guid %}">Vest site</a>
                                     {% endif %}
+
                                     {% if request.user|has_group:'registry_user' and not linky|is_darchive %}
-                                        <a class="btn vest" href="{% url 'dark_archive_link' linky.guid %}">Dark archive</a>
+                                        <a class="btn vest" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
                                     {% elif request.user|has_group:'registrar_user' and not linky|is_darchive and linky.vesting_org.registrar == request.user.registrar %}
-                                        <a class="btn vest" href="{% url 'dark_archive_link' linky.guid %}">Dark archive</a>
+                                        <a class="btn vest" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
                                     {% elif request.user|has_group:'vesting_user' and request.user.vesting_org == linky.vesting_org %}
-                                        <a class="btn vest" href="{% url 'dark_archive_link' linky.guid %}">Dark archive</a>
+                                        <a class="btn vest" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
                                     {% endif %}
+
                                     {% if request.user == linky.created_by and not linky.vested %}
-                                        <a class="btn user-delete" href="{% url 'user_delete_link' linky.guid %}"><i class="icon-trash"></i> Delete</a>
+                                        <a class="btn user-delete" href="{% main_url 'user_delete_link' linky.guid %}"><i class="icon-trash"></i> Delete</a>
                                     {% endif %}
                                 {% endif %}
 
