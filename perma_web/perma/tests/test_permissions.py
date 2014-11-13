@@ -48,7 +48,6 @@ class PermissionsTestCase(PermaTestCase):
                 'urls': [
                     ['user_management_manage_vesting_user'],
                     ['vest_link', {'kwargs': {'guid': '1234'}, 'success_status': 404}],
-                    ['dark_archive_link', {'kwargs': {'guid': '1234'}, 'success_status': 404}],
                 ],
                 'allowed': {'test_registry_member@example.com', 'test_registrar_member@example.com',
                             'test_vesting_member@example.com'}
@@ -82,6 +81,7 @@ class PermissionsTestCase(PermaTestCase):
                     ['link_browser'],
                     ['folder_contents', {'kwargs': {'folder_id': '12345'}, 'success_status': 404}],
                     ['user_delete_link', {'kwargs':{'guid':'1234'},'success_status':404}],
+                    ['dark_archive_link', {'kwargs': {'guid': '1234'}, 'success_status': 404}],
                 ],
                 'allowed': {'test_user@example.com'},
                 'disallowed': set(),

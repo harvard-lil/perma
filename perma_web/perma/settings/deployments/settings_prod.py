@@ -31,6 +31,8 @@ CELERYBEAT_SCHEDULE = {
 # If a task is running longer than five minutes, kill it
 CELERYD_TASK_TIME_LIMIT = 300
 
+# logging
+LOGGING['handlers']['default']['filename'] = '/var/log/perma/perma.log'
 PHANTOMJS_LOG = '/var/log/perma/phantom.log'
 
 # default vesting org for links vested by registry users
