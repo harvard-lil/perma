@@ -123,9 +123,7 @@ def create_link(request):
             response_object['message_pdf'] = True
 
         else:  # else, it's not a PDF. Let's try our best to retrieve what we can
-
             asset.image_capture = 'pending'
-            asset.text_capture = 'pending'
             asset.warc_capture = 'pending'
             asset.save()
 

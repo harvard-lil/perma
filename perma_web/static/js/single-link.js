@@ -399,22 +399,26 @@ var spinner = new Spinner(opts).spin(target);
 
 			if ($('#image_cap_container_loading').is(":visible") && data.image_capture != 'pending') {
 				$('#image_cap_container_loading').hide();
-				$('#image_cap_container_complete').show();
+                if(data.image_capture != 'failed')
+    				$('#image_cap_container_complete').show();
 			}
 			
 			if ($('#warc_cap_container_loading').is(":visible") && data.source_capture != 'pending') {
 				$('#warc_cap_container_loading').hide();
-				$('#warc_cap_container_complete').show();
+				if(data.source_capture != 'failed')
+    				$('#warc_cap_container_complete').show();
 			}
 			
 			if ($('#pdf_cap_container_loading').is(":visible") && data.pdf_capture != 'pending') {
 				$('#pdf_cap_container_loading').hide();
-				$('#pdf_cap_container_complete').show();
+				if(data.pdf_capture != 'failed')
+    				$('#pdf_cap_container_complete').show();
 			}
 			
 			if ($('#text_cap_container_loading').is(":visible") && data.text_capture != 'pending') {
 				$('#text_cap_container_loading').hide();
-				$('#text_cap_container_complete').show();
+				if(data.text_capture != 'failed')
+    				$('#text_cap_container_complete').show();
 			}
 			
 			// if no status is pending
