@@ -45,7 +45,7 @@
                                         <a class="btn vest" href="{% url 'dark_archive_link' linky.guid %}">Dark archive</a>
                                     {% elif request.user|has_group:'registrar_user' and not linky|is_darchive and linky.vesting_org.registrar == request.user.registrar %}
                                         <a class="btn vest" href="{% url 'dark_archive_link' linky.guid %}">Dark archive</a>
-                                    {% elif request.user|has_group:'vesting_user' and request.user.vesting_org == linky.vesting_org %}
+                                    {% elif request.user|has_group:'vesting_user' and request.user.vesting_org == linky.vesting_org and not linky|is_darchive %}
                                         <a class="btn vest" href="{% url 'dark_archive_link' linky.guid %}">Dark archive</a>
                                     {% elif request.user == linky.created_by and not linky|is_darchive %}
                                         <a class="btn vest" href="{% url 'dark_archive_link' linky.guid %}">Dark archive</a>
@@ -140,7 +140,8 @@
     {% else %}
 
         {# message for a darchived link that user has permission to access #}
-        {% if linky|is_darchive and request.user|has_group:'registry_user,registrar_user,vesting_user' or request.user == linky.created_by %}
+        {% if request.user|has_group:'registry_user,registrar_user,vesting_user' or request.user == linky.created_by %}
+            {% if linky|is_darchive %}
             <div class="col-sm-6 col-sm-offset-3 yahowza text-center">
                 <img class="dark-bulb center" src="{{ STATIC_URL }}img/dark-bulb.png">
                 {% if linky.dark_archived %}
@@ -151,6 +152,7 @@
                 <p>You can see the contents only because you are logged into a vesting account.</p>
             </div>
             </div><div class="row"> {# go to next row #}
+            {% endif %}
         {% endif %}
 
         {# link contents #}
