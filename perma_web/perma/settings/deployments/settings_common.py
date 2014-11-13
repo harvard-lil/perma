@@ -159,7 +159,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'mirroring.middleware.MirrorCsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'mirroring.middleware.MirrorAuthenticationMiddleware',
     'mirroring.middleware.MirrorForwardingMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
@@ -344,17 +344,26 @@ MIRROR_USERS_SUBDOMAIN = 'dashboard'
 DIRECT_MEDIA_URL = MEDIA_URL        # URL to load media from this server in particular -- primarily useful for main server
 
 # Where to fetch new archives from, if we are a mirror.
-UPSTREAM_SERVER = {
-    'address':'http://perma.cc',
-    'headers':{
-        #'Host':'perma.cc',  # example -- handy if fetching updates over a VPN, where 'address' might be a local IP address instead of domain name
-    },
-}
+UPSTREAM_SERVER = {}
+## Example:
+# UPSTREAM_SERVER = {
+#     'address':'http://perma.cc',
+#     'headers':{
+#         #'Host':'perma.cc',  # example -- handy if fetching updates over a VPN, where 'address' might be a local IP address instead of domain name
+#     },
+#     'public_key':None,
+# }
 
 # Where to push updates to.
 # Each entry in this list is a dict in the same format as UPSTREAM_SERVER, above.
 # Note that we can have both an upstream and downstream servers if this and UPSTREAM_SERVER are set.
 DOWNSTREAM_SERVERS = []
+
+# signing/encryption
+GPG_DIRECTORY = None  # use default
+GPG_PUBLIC_KEY = None
+GPG_PRIVATE_KEY = None
+
 
 # where we will store zip archives created for transferring to mirrors
 # this is relative to MEDIA_ROOT
@@ -386,4 +395,8 @@ DIRECT_WARC_HOST = None     # host to load warc from this server in particular -
 # the prod and dev configs are considerably different. See those configs for
 # details
 THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.pil_engine.Engine' # Change this to Wand when sorl 12.x is released (since we use Wand for PDF thumbnail creation)
-THUMBNAIL_FORMAT = 'PNG' # 
+THUMBNAIL_FORMAT = 'PNG' #
+
+
+# feature flags
+SINGLE_LINK_HEADER_TEST = False
