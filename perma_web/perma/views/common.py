@@ -84,9 +84,9 @@ def single_linky(request, guid):
     context = None
 
     # User requested archive type
-    serve_type = request.GET.get('type','live')
+    serve_type = request.GET.get('type','image' if settings.SINGLE_LINK_HEADER_TEST else 'live')
     if not serve_type in valid_serve_types:
-        serve_type = 'live'
+        serve_type = 'image' if settings.SINGLE_LINK_HEADER_TEST else 'live'
 
     # fetch link from DB -- unless we're logged in on a mirror server,
     # in which case always fetch status from upstream so we show the right edit buttons
@@ -131,144 +131,60 @@ def single_linky(request, guid):
 
         asset = Asset.objects.get(link=link)
 
-        text_capture = None
-        if serve_type == 'text':
-            if asset.text_capture and asset.text_capture != 'pending':
-                with default_storage.open(os.path.join(asset.base_storage_path, asset.text_capture), 'r') as f:
-                    text_capture = f.read()
-            
-        # If we are going to serve up the live version of the site, let's make sure it's iframe-able
-        display_iframe = False
-        if serve_type == 'live':
-            try:
-                response = requests.head(link.submitted_url,
-                                         headers={'User-Agent': request.META['HTTP_USER_AGENT'], 'Accept-Encoding': '*'},
-                                         timeout=5)
-                display_iframe = 'X-Frame-Options' not in response.headers
-                # TODO actually check if X-Frame-Options specifically allows requests from us
-            except:
-                # Something is broken with the site, so we might as well display it in an iFrame so the user knows
-                display_iframe = True
+        if settings.SINGLE_LINK_HEADER_TEST:
+            # If we have a PDF, we want to serve it up by default instead of an image
+            if asset.pdf_capture and asset.pdf_capture != 'failed':
+                serve_type = 'pdf'
 
-        asset = Asset.objects.get(link__guid=link.guid)
+            created_datestamp = link.creation_timestamp
+            pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
+            context = {'archive': link, 'asset': asset, 'pretty_date': pretty_date, 'next': request.get_full_path(),
+                       'serve_type': serve_type,
+                       'warc_url': asset.warc_url()}
 
-        context = {
-            'linky': link,
-            'asset': asset,
-            'next': request.get_full_path(),
-            'display_iframe': display_iframe,
-            'serve_type': serve_type,
-            'text_capture': text_capture,
-            'warc_url': asset.warc_url()
-        }
+        else:
+            text_capture = None
+            if serve_type == 'text':
+                if asset.text_capture and asset.text_capture != 'pending':
+                    with default_storage.open(os.path.join(asset.base_storage_path, asset.text_capture), 'r') as f:
+                        text_capture = f.read()
+
+            # If we are going to serve up the live version of the site, let's make sure it's iframe-able
+            display_iframe = False
+            if serve_type == 'live':
+                try:
+                    response = requests.head(link.submitted_url,
+                                             headers={'User-Agent': request.META['HTTP_USER_AGENT'], 'Accept-Encoding': '*'},
+                                             timeout=5)
+                    display_iframe = 'X-Frame-Options' not in response.headers
+                    # TODO actually check if X-Frame-Options specifically allows requests from us
+                except:
+                    # Something is broken with the site, so we might as well display it in an iFrame so the user knows
+                    display_iframe = True
+
+            context = {
+                'linky': link,
+                'asset': asset,
+                'next': request.get_full_path(),
+                'display_iframe': display_iframe,
+                'serve_type': serve_type,
+                'text_capture': text_capture,
+                'warc_url': asset.warc_url()
+            }
 
     if request.META.get('CONTENT_TYPE') == 'application/json':
         # if we were called as JSON (by a mirror), serialize and send back as JSON
         context['warc_url'] = absolute_url(request, context['asset'].warc_url(settings.DIRECT_WARC_HOST))
         context['MEDIA_URL'] = absolute_url(request, settings.DIRECT_MEDIA_URL)
         context['asset'] = serializers.serialize("json", [context['asset']], fields=['text_capture','image_capture','pdf_capture','warc_capture','base_storage_path'])
-        context['linky'] = serializers.serialize("json", [context['linky']], fields=['dark_archived','guid','vested','view_count','creation_timestamp','submitted_url','submitted_title'])
+        context['linky'] = serializers.serialize("json", [context['linky']], fields=['dark_archived','guid','vested','vesting_org','view_count','creation_timestamp','submitted_url','submitted_title'])
         return HttpResponse(json.dumps(context), content_type="application/json")
 
     elif serve_type == 'warc_download':
         if context['asset'].warc_download_url():
             return HttpResponseRedirect(context.get('MEDIA_URL', settings.MEDIA_URL)+context['asset'].warc_download_url())
 
-    return render(request, 'single-link.html', context)
-
-
-@must_be_mirrored
-@ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block=True, ip=False,
-           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
-@ratelimit(method='GET', rate=settings.HOUR_LIMIT, block=True, ip=False,
-           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
-@ratelimit(method='GET', rate=settings.DAY_LIMIT, block=True, ip=False,
-           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
-def single_link_header(request, guid):
-    """
-    Given a Perma ID, serve it up. Vesting also takes place here.
-    
-    This function is temporary and should be removed or merged with 
-    single_linky (above) once we nail down the UX for the single archive page
-    """
-
-    # Create a canonical version of guid (non-alphanumerics removed, hyphens every 4 characters, uppercase),
-    # and forward to that if it's different from current guid.
-    canonical_guid = Link.get_canonical_guid(guid)
-    if canonical_guid != guid:
-        return HttpResponsePermanentRedirect(reverse('single_link_header', args=[canonical_guid]))
-
-    context = None
-
-    # User requested archive type
-    serve_type = request.GET.get('type','image')
-    if not serve_type in valid_serve_types:
-        serve_type = 'image'
-
-    try:
-        link = Link.objects.get(guid=guid)
-    except Link.DoesNotExist:
-        if settings.MIRROR_SERVER:
-            # if we can't find the Link, and we're a mirror server, try fetching it from main server
-            try:
-                json_url = get_url_for_host(request,
-                                            request.main_server_host,
-                                            reverse('mirroring:single_link_json', args=[guid])+"?type="+serve_type)
-                json_response = requests.get(json_url, headers={'Content-Type': 'application/json'})
-            except requests.ConnectionError:
-                raise Http404
-
-            # check response
-            if not json_response.ok:
-                raise Http404
-
-            # load context from JSON
-            context = json.loads(json_response.content)
-            context['linky'] = serializers.deserialize("json", context['linky']).next().object
-            context['asset'] = serializers.deserialize("json", context['asset']).next().object
-            context['asset'].link = context['linky']
-        else:
-            raise Http404
-
-    if not context:
-        # Increment the view count if we're not the referrer
-        parsed_url = urlparse(request.META.get('HTTP_REFERER', ''))
-        current_site = Site.objects.get_current()
-
-        if not current_site.domain in parsed_url.netloc:
-            link.view_count += 1
-            link.save()
-
-        asset = Asset.objects.get(link=link)
-
-
-        # If we have a PDF, we want to serve it up by default instead
-        # of an image
-        if asset.pdf_capture and asset.pdf_capture != 'failed':
-            serve_type = 'pdf'
-
-        created_datestamp = link.creation_timestamp
-        pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
-
-        context = {'archive': link, 'asset': asset, 'pretty_date': pretty_date, 'next': request.get_full_path(),
-                    'serve_type': serve_type,
-                    'warc_url':asset.warc_url()}
-
-    if request.META.get('CONTENT_TYPE') == 'application/json':
-        # if we were called as JSON (by a mirror), serialize and send back as JSON
-        context['MEDIA_URL'] = request.build_absolute_uri(settings.MEDIA_URL)
-        context['warc_url'] = request.build_absolute_uri(context['warc_url'])
-        context['asset'] = serializers.serialize("json", [context['asset']], fields=['text_capture','image_capture','pdf_capture','warc_capture','base_storage_path'])
-        context['linky'] = serializers.serialize("json", [context['linky']], fields=['dark_archived','guid','vested','view_count','creation_timestamp','submitted_url','submitted_title'])
-        return HttpResponse(json.dumps(context), content_type="application/json")
-
-    if serve_type == 'warc_download':
-        if context['asset'].warc_download_url():
-            return HttpResponseRedirect(context.get('MEDIA_URL', settings.MEDIA_URL)+context['asset'].warc_download_url())
-
-    return render_to_response('single-link-header.html', context, RequestContext(request))
-
-
+    return render(request, 'single-link-header.html' if settings.SINGLE_LINK_HEADER_TEST else 'single-link.html', context)
 
 
 def rate_limit(request, exception):
