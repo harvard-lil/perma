@@ -2427,19 +2427,20 @@ a.btn.vest, a.btn.dashboard, a.btn.user-delete {
 input.btn.vest {
 	width:100px;
 	padding:2px 0px;
-	color:#12bd37;
+	color:#fff;
 	font-size:14px;
 	margin-top:4px;
 	margin-bottom:-5px;
-	border:1px solid #666;
+	border:1px solid #5cb85c;
 	border-radius: 3px;
-	background:#fff;
+	background:#5cb85c;
 	margin-left:10px;
 }
 
 input.btn.vest:hover, input.btn.vest:focus, a.btn.vest:hover, a.btn.vest:focus {
-	color:#11ad32;
-	border:1px solid #222;
+	color: #fff;
+	background: #11ad32;
+	border: 1px solid #222;
 }
 
 a.btn.dashboard:hover, a.btn.dashboard:focus {
