@@ -1,4 +1,9 @@
+import StringIO
+from itertools import groupby
+import json
 import os
+import re
+from surt import surt
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "perma.settings")
 from django.conf import settings
@@ -6,14 +11,20 @@ from django.template import Context
 from django.template.loader import get_template
 from django.core.files.storage import default_storage
 from django.core.exceptions import DisallowedHost
+from django.core.cache import cache as django_cache
 
-from pywb.rewrite.wburl import WbUrl
+from pywb.cdx.cdxsource import CDXSource
 from pywb.framework import archivalrouter
 from pywb.framework.wbrequestresponse import WbResponse
+from pywb.rewrite.wburl import WbUrl
+from pywb.utils.loaders import BlockLoader, LimitReader
+from pywb.warc.cdxindexer import write_cdx_index
 from pywb.webapp.handlers import WBHandler
 from pywb.webapp.query_handler import QueryHandler
 from pywb.webapp.pywb_init import create_wb_handler
 from pywb.webapp.views import add_env_globals
+
+from perma.models import Link
 
 
 # include guid in CDX requests
@@ -56,11 +67,98 @@ class ErrorTemplateView(object):
 class Router(archivalrouter.ArchivalRouter):
     def __call__(self, env):
         """
-            Before routing requests, make sure that host is equal to WARC_HOST if set.
+            Before routing requests, make sure that host is equal to WARC_HOST or DIRECT_WARC_HOST if set.
         """
-        if settings.WARC_HOST and env.get('HTTP_HOST') != settings.WARC_HOST:
+        if settings.WARC_HOST and env.get('HTTP_HOST') != settings.WARC_HOST and not \
+                (settings.DIRECT_WARC_HOST and env.get('HTTP_HOST') == settings.DIRECT_WARC_HOST):
             raise DisallowedHost("Playback request used invalid domain.")
         return super(Router, self).__call__(env)
+
+
+class PermaCDXSource(CDXSource):
+    def load_cdx(self, query):
+        """
+            This function accepts a standard CDX request, except with a GUID instead of date, and returns a standard CDX 11 response.
+        """
+        guid = query.params['guid']
+        url = query.url
+
+        # We'll first check the key-value store to see if we cached the lookup for this guid on a previous request.
+        # This will be common, since each playback triggers lots of requests for the same .warc file.
+        cache_key = guid + '-surts'
+        url_key = guid+'-url'
+        surt_lookup = django_cache.get(cache_key)
+        url = url or django_cache.get(url_key)
+        if surt_lookup and url:
+            surt_lookup = json.loads(surt_lookup)
+
+        else:
+            # nothing in cache; find requested link in database
+            try:
+                link = Link.objects.select_related().get(pk=guid)
+            except Link.DoesNotExist:
+                return []
+
+            # cache url, which may be blank if this is the first request
+            if not url:
+                url = link.submitted_url
+            django_cache.set(url_key, url, timeout=60*60)
+
+            # get warc file
+            for asset in link.assets.all():
+                if '.warc' in asset.warc_capture:
+                    warc_path = os.path.join(asset.base_storage_path, asset.warc_capture)
+                    break
+            else:
+                return []  # no .warc file -- do something to handle this?
+
+            # now we have to get an index of all the URLs in this .warc file
+            # first try fetching it from a .cdx file on disk
+            cdx_path = warc_path.replace('.gz', '').replace('.warc', '.cdx')
+
+            if not default_storage.exists(cdx_path):
+                # there isn't a .cdx file on disk either -- let's create it
+                with default_storage.open(warc_path, 'rb') as warc_file, default_storage.open(cdx_path, 'wb') as cdx_file:
+                    write_cdx_index(cdx_file, warc_file, warc_path, sort=True)
+
+            # now load the URL index from disk and stick it in the cache
+            cdx_lines = (line.strip() for line in default_storage.open(cdx_path, 'rb'))
+            surt_lookup = dict((key, list(val)) for key, val in groupby(cdx_lines, key=lambda line: line.split(' ', 1)[0]))
+            django_cache.set(cache_key, json.dumps(surt_lookup), timeout=60*60)
+
+        # find cdx lines for url
+        sorted_url = surt(url)
+        if sorted_url in surt_lookup:
+            return (str(i) for i in surt_lookup[sorted_url])
+
+        # didn't find requested url in this archive
+        return []
+
+
+class CachedLoader(BlockLoader):
+    """
+        File loader that stores requested file in key-value cache for quick retrieval.
+    """
+    def load(self, url, offset=0, length=-1):
+        # first try to fetch url contents from cache
+        cache_key = 'warc-'+re.sub('[^\w-]', '', url)
+        file_contents = django_cache.get(cache_key)
+        if not file_contents:
+            # url wasn't in cache -- fetch entire contents of url from super() and put in cache
+            file_contents = super(CachedLoader, self).load(url).read()
+            django_cache.set(cache_key, file_contents, timeout=60)  # use a short timeout so large warcs don't evict everything else in the cache
+
+        # turn string contents of url into file-like object
+        afile = StringIO.StringIO(file_contents)
+
+        # --- from here down is taken from super() ---
+        if offset > 0:
+            afile.seek(offset)
+
+        if length >= 0:
+            return LimitReader(afile, length)
+        else:
+            return afile
 
 
 #=================================================================
@@ -83,7 +181,7 @@ def create_perma_pywb_app(config):
         archive_path = default_storage.url('/')
         archive_path = archive_path.split('?', 1)[0]  # remove query params
 
-    query_handler = QueryHandler.init_from_config(settings.CDX_SERVER_URL)
+    query_handler = QueryHandler.init_from_config(PermaCDXSource())
 
     # pywb template vars (used in templates called by pywb, such as head_insert.html, but not our ErrorTemplateView)
     add_env_globals({'static_path': settings.STATIC_URL})
@@ -98,6 +196,7 @@ def create_perma_pywb_app(config):
 
                                         redir_to_exact=False))
 
+    wb_handler.replay.content_loader.record_loader.loader = CachedLoader()
 
     # Finally, create wb router
     return Router(

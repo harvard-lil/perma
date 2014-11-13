@@ -31,9 +31,6 @@ CELERYBEAT_SCHEDULE = {
 # If a task is running longer than five minutes, kill it
 CELERYD_TASK_TIME_LIMIT = 300
 
-# warc_server uses this to make requests -- it should point back to Django's /cdx view
-CDX_SERVER_URL = 'http://127.0.0.1/cdx'
-
 PHANTOMJS_LOG = '/var/log/perma/phantom.log'
 
 # default vesting org for links vested by registry users
@@ -48,3 +45,17 @@ WARC_HOST = 'user-content.perma.cc'
 THUMBNAIL_KVSTORE = 'sorl.thumbnail.kvstores.redis_kvstore.KVStore'
 THUMBNAIL_REDIS_HOST = 'localhost'
 THUMBNAIL_REDIS_PORT = '6379'
+
+# caching
+# in dev, Django will use the default in-memory cache
+CACHES = {
+    'default': {
+        'BACKEND': 'redis_cache.cache.RedisCache',
+        'LOCATION': '127.0.0.1:6379:0',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'redis_cache.client.DefaultClient',
+            #'PASSWORD': 'secretpassword',  # Optional
+            'IGNORE_EXCEPTIONS': True,  # since this is just a cache, we don't want to show errors if redis is offline for some reason
+        }
+    }
+}

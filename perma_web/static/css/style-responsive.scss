@@ -1524,6 +1524,14 @@ fieldset {
   margin-bottom:15px;
 }
 
+#id_a-email:disabled {
+    background:none;
+    border:none;
+    padding:0px;
+    width:100%;
+    color:#333;
+}
+
 .errorlist {
   list-style-type:none;
   margin:0 0 26px 0;

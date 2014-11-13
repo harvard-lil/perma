@@ -149,21 +149,6 @@ class RegistrarMemberFormEdit(UserFormEdit):
     class Meta:
         model = LinkUser
         fields = ["first_name", "last_name", "email", "registrar"]
-
-        
-class VestingMemberFormEdit(forms.ModelForm):
-    """
-    stripped down user reg form
-    This is mostly a django.contrib.auth.forms.UserCreationForm
-
-    This is stripped down even further to match out editing needs
-    """
-
-    class Meta:
-        model = LinkUser
-        fields = ("first_name", "last_name", "email")
-
-    email = forms.EmailField()
     
 
 class VestingMemberWithVestingOrgFormEdit(forms.ModelForm):
@@ -184,15 +169,14 @@ class VestingMemberWithVestingOrgFormEdit(forms.ModelForm):
 
     class Meta:
         model = LinkUser
-        fields = ("first_name", "last_name", "email", "vesting_org")
-
-
-    email = forms.EmailField()
+        fields = ["email", "vesting_org"]
+        
+    email = forms.EmailField(widget=forms.TextInput(attrs={'disabled':'disabled'}))
 
     vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
     
         
-class VestingMemberWithGroupFormEdit(VestingMemberFormEdit):
+class VestingMemberWithGroupFormEdit(UserFormEdit):
     """
     stripped down user reg form
     This is mostly a django.contrib.auth.forms.UserCreationForm

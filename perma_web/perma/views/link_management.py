@@ -407,6 +407,9 @@ def user_delete_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
     asset = Asset.objects.get(link=link)
     if request.method == 'POST':
+        if not request.user == link.created_by:
+            return HttpResponseRedirect(reverse('single_linky', args=[guid]))
+            
         if not link.user_deleted and not link.vested:
             link.user_deleted=True
             link.user_deleted_timestamp=datetime.now()
@@ -416,13 +419,19 @@ def user_delete_link(request, guid):
     return render_to_response('link-delete-confirm.html', {'link': link, 'asset': asset}, RequestContext(request))
 
 
-@require_group('registry_user')
+@require_group(['registry_user', 'registrar_user', 'vesting_user'])
 def dark_archive_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
     asset = Asset.objects.get(link=link)
     if request.method == 'POST':
+        if request.user.has_group('registrar_user') and not link.vesting_org.registrar == request.user.registrar:
+            return HttpResponseRedirect(reverse('single_linky', args=[guid]))
+        if request.user.has_group('vesting_user') and not link.vesting_org == request.user.vesting_org:
+            return HttpResponseRedirect(reverse('single_linky', args=[guid]))
+            
         if not link.dark_archived:
             link.dark_archived=True
+            link.dark_archived_by = request.user
             link.save()
             run_task(poke_mirrors, link_guid=guid)
         return HttpResponseRedirect(reverse('single_linky', args=[guid]))

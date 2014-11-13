@@ -29,7 +29,6 @@ from perma.forms import (
     CreateUserFormWithVestingOrg,
     UserFormEdit,
     RegistrarMemberFormEdit,
-    VestingMemberFormEdit, 
     VestingMemberWithVestingOrgFormEdit,
     VestingMemberWithGroupFormEdit, 
     UserAddRegistrarForm,
@@ -260,7 +259,7 @@ def manage_single_vesting_org(request, vesting_org_id):
 def manage_registrar_user(request):
     return list_users_in_group(request, 'registrar_user')
 
-@require_group(['registrar_user', 'registry_user'])
+@require_group('registry_user')
 def manage_single_registrar_user(request, user_id):
     return edit_user_in_group(request, user_id, 'registrar_user')
 
@@ -296,7 +295,7 @@ def manage_single_user_reactivate(request, user_id):
 def manage_vesting_user(request):
     return list_users_in_group(request, 'vesting_user')
 
-@require_group(['registrar_user', 'registry_user', 'vesting_user'])
+@require_group(['registrar_user', 'registry_user'])
 def manage_single_vesting_user(request, user_id):
     return edit_user_in_group(request, user_id, 'vesting_user')
 
@@ -486,15 +485,10 @@ def edit_user_in_group(request, user_id, group_name):
     target_user = get_object_or_404(LinkUser, id=user_id)
 
     # Registrar members can only edit their own vesting members
-    if not is_registry and is_registrar:
+    if not is_registry:
     	if group_name == 'vesting_user' and request.user.registrar != target_user.vesting_org.registrar:
             raise Http404
-        if group_name == 'registrar_user' and request.user.registrar != target_user.registrar:
-            raise Http404
-
-    # Vesting members can only edit other vesting members of same org
-    if not is_registry and not is_registrar:
-        if request.user.vesting_org != target_user.vesting_org:
+        if group_name == 'registrar_user' or group_name == 'user' or group_name == 'registry_user':
             raise Http404
 
     context = {
@@ -513,11 +507,8 @@ def edit_user_in_group(request, user_id, group_name):
     elif group_name == 'vesting_user':
         if is_registry:
             form = VestingMemberWithGroupFormEdit(form_data, prefix="a", instance=target_user)
-        elif is_registrar:
-            form = VestingMemberWithVestingOrgFormEdit(form_data, prefix="a", instance=target_user,
-                                                          registrar_id=request.user.registrar_id)
         else:
-            form = VestingMemberFormEdit(form_data, prefix="a", instance=target_user)
+            form = VestingMemberWithVestingOrgFormEdit(form_data, prefix="a", instance=target_user, registrar_id=request.user.registrar_id)
     else:
         form = UserFormEdit(form_data, prefix="a", instance=target_user)
 
