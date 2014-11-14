@@ -53,8 +53,9 @@ def unserialize_datetime(dt_string):
 
 ### gpg ###
 
-gpg = gnupg.GPG(gnupghome=settings.GPG_DIRECTORY)
-_fingerprint_cache = {}
+if settings.MIRRORING_ENABLED:
+    gpg = gnupg.GPG(gnupghome=settings.GPG_DIRECTORY)
+    _fingerprint_cache = {}
 
 def get_fingerprint(key):
     """
