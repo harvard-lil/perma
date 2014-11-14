@@ -126,6 +126,12 @@ class LinkAdmin(admin.ModelAdmin):
     ]
 
 
+class FolderAdmin(MPTTModelAdmin):
+    list_display = ['name', 'owned_by', 'vesting_org']
+    list_filter = ['owned_by', 'vesting_org']
+
+
+
 # change Django defaults, because 'extra' isn't helpful anymore now you can add more with javascript
 admin.TabularInline.extra = 0
 admin.StackedInline.extra = 0
@@ -139,4 +145,4 @@ admin.site.register(Link, LinkAdmin)
 admin.site.register(LinkUser, LinkUserAdmin)
 admin.site.register(VestingOrg, VestingOrgAdmin)
 admin.site.register(Registrar, RegistrarAdmin)
-admin.site.register(Folder, MPTTModelAdmin)
+admin.site.register(Folder, FolderAdmin)
