@@ -156,6 +156,7 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'perma.middleware.ForceSSLMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -397,6 +398,8 @@ DIRECT_WARC_HOST = None     # host to load warc from this server in particular -
 THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.pil_engine.Engine' # Change this to Wand when sorl 12.x is released (since we use Wand for PDF thumbnail creation)
 THUMBNAIL_FORMAT = 'PNG' #
 
+# SSL
+SSL_AVAILABLE = False
 
 # feature flags
 SINGLE_LINK_HEADER_TEST = False
