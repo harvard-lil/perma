@@ -161,6 +161,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'mirroring.middleware.MirrorAuthenticationMiddleware',
+    'perma.middleware.AdminAuthMiddleware',
     'mirroring.middleware.MirrorForwardingMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
     # Uncomment the next line for simple clickjacking protection:
@@ -179,6 +180,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.request',   # include `request` in templates
     'django.core.context_processors.static',    # include `STATIC_URL` in templates
     'django.core.context_processors.media',     # include `MEDIA_URL` in templates
+    'django.contrib.auth.context_processors.auth',  # for Django admin
 )
 
 INSTALLED_APPS = (
@@ -202,6 +204,9 @@ INSTALLED_APPS = (
     'mptt',
     'pipeline',
     'sorl.thumbnail',
+
+    # django admin -- has to come after our apps for our admin template overrides to work
+    'django.contrib.admin',
 )
 
 AUTH_USER_MODEL = 'perma.LinkUser'

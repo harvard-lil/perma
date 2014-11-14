@@ -13,7 +13,6 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 
 from perma.models import Asset, Link
-from perma.tasks import create_storage_dir
 from perma.utils import run_task
 
 from .utils import serialize_datetime, unserialize_datetime
@@ -59,7 +58,7 @@ def compress_link_assets(*args, **kwargs):
     temp_file = tempfile.TemporaryFile()
     base_storage_path_without_guid = os.path.dirname(target_asset.base_storage_path)
     with zipfile.ZipFile(temp_file, "w") as zipfh:
-        for root, dirs, files in default_storage.walk(target_asset.base_storage_path):
+        for root, dirs, files in target_asset.walk_files():
             for file in files:
                 source_file_path = os.path.join(root, file) # e.g. 2014/6/10/18/37/1234-ABCD/cap.png
                 dest_file_path = source_file_path.replace(base_storage_path_without_guid+"/", '', 1) # e.g. 1234-ABCD/cap.png

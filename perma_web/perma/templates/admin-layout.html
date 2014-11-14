@@ -57,7 +57,12 @@
 
             <!-- Regular users -->
             {% if request.user|has_group:'registry_user' %}
-            <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_users" %}class="active" {% endif %}href="{% url 'user_management_manage_user' %}">Users</a></li>{% endif %}
+                <li class="dashboard-secondary users-secondary"{% if this_page|startswith:"users" %} style="display: list-item;"{% endif %}><a {% if this_page == "users_users" %}class="active" {% endif %}href="{% url 'user_management_manage_user' %}">Users</a></li>
+            {% endif %}
+
+            {% if request.user.is_staff %}
+                <li><a href="{% url 'admin:index' %}" id="dashboard-admin"><span class="icon-bolt"></span>Admin Console</a></li>
+            {% endif %}
         </ul><!--/#dashboard-tabs-->
     </div><!--/col-sm-3-->
 
