@@ -39,13 +39,13 @@
                                     {% endif %}
 
                                     {% if request.user|has_group:'registry_user' and not linky|is_darchive %}
-                                        <a class="btn vest" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
+                                        <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
                                     {% elif request.user|has_group:'registrar_user' and not linky|is_darchive and linky.vesting_org.registrar == request.user.registrar %}
-                                        <a class="btn vest" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
+                                        <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
                                     {% elif request.user|has_group:'vesting_user' and request.user.vesting_org == linky.vesting_org and not linky|is_darchive %}
-                                        <a class="btn vest" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
+                                        <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
                                     {% elif request.user == linky.created_by and not linky|is_darchive %}
-                                        <a class="btn vest" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
+                                        <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
                                     {% endif %}
 
                                     {% if request.user == linky.created_by and not linky.vested %}
