@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from netaddr import IPAddress, IPNetwork
 from mimetypes import MimeTypes
+from PyPDF2 import PdfFileReader
 import imghdr
 
 from django.conf import settings
