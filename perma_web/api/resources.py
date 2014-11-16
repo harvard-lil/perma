@@ -81,9 +81,19 @@ class VestingOrgResource(ModelResource):
         ]
 
 class LinkResource(MultipartResource, ModelResource):
-    created_by = fields.ForeignKey(LinkUserResource, 'created_by', full=True, null=True, blank=True)
-    vested_by_editor = fields.ForeignKey(LinkUserResource, 'vested_by_editor', full=True, null=True, blank=True)
-    vesting_org = fields.ForeignKey(VestingOrgResource, 'vesting_org', full=True, null=True)
+    guid = fields.CharField(attribute='guid', readonly=True)
+    creation_timestamp = fields.DateTimeField(attribute='creation_timestamp', readonly=True)
+    url = fields.CharField(attribute='submitted_url')
+    title = fields.CharField(attribute='submitted_title', blank=True)
+    notes = fields.CharField(attribute='notes', blank=True)
+    vested = fields.BooleanField(attribute='vested', blank=True, default=False)
+    vested_timestamp = fields.DateTimeField(attribute='vested_timestamp', readonly=True, null=True)
+    dark_archived = fields.BooleanField(attribute='dark_archived', blank=True, default=False)
+    dark_archived_robots_txt_blocked = fields.BooleanField(attribute='dark_archived_robots_txt_blocked', blank=True, default=False)
+    # Relationships
+    created_by = fields.ForeignKey(LinkUserResource, 'created_by', full=True, null=True, blank=True, readonly=True)
+    vested_by_editor = fields.ForeignKey(LinkUserResource, 'vested_by_editor', full=True, null=True, blank=True, readonly=True)
+    vesting_org = fields.ForeignKey(VestingOrgResource, 'vesting_org', full=True, null=True, readonly=True)
 
     class Meta:
         authentication = DefaultAuthentication()
@@ -91,37 +101,25 @@ class LinkResource(MultipartResource, ModelResource):
         resource_name = 'archives'
         validation = LinkValidation()
         queryset = Link.objects.all()
-        fields = [
-            'guid',
-            'created_by',
-            'creation_timestamp',
-            'submitted_title',
-            'submitted_url',
-            'notes',
-            'vested',
-            'vesting_org',
-            'vested_timestamp',
-            'vested_timestamp',
-            'dark_archived',
-            'dark_archived_robots_txt_blocked'
-        ]
+        fields = [None] # prevents ModelResource from auto-including additional fields
+        
+    def hydrate_url(self, bundle):
+        if bundle.data.get('url', None):
+            url = bundle.data.get('url','').strip()
+            if url[:4] != 'http':
+                url = 'http://' + url
 
+            bundle.data['url'] = url
+        return bundle
+            
     def obj_create(self, bundle, **kwargs):
         # We've received a request to archive a URL. That process is managed here.
         # We create a new entry in our datastore and pass the work off to our indexing
         # workers. They do their thing, updating the model as they go. When we get some minimum
         # set of results we can present the user (a guid for the link), we respond back.
 
-        url = bundle.data.get('url','').strip()
-        if url[:4] != 'http':
-            url = 'http://' + url
-
         # Runs validation (exception thrown if invalid), sets properties and saves the object
-        bundle = super(LinkResource, self).obj_create(bundle,
-                                                      created_by=bundle.request.user,
-                                                      submitted_url=url,
-                                                      submitted_title=bundle.data.get('title'))
-
+        bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user)
         asset = Asset(link=bundle.obj)
 
         uploaded_file = bundle.data.get('file')
@@ -147,7 +145,6 @@ class LinkResource(MultipartResource, ModelResource):
                     compress_link_assets.s(guid=asset.link.guid),
                     poke_mirrors.s(link_guid=asset.link.guid),
                 ]
-
 
             asset.image_capture = 'pending'
             task_args = [asset.link.guid,

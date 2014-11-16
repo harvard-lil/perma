@@ -22,9 +22,9 @@ class LinkResourceTestCase(ApiResourceTestCase):
             'vested': False,
             'vested_timestamp': None,
             'notes': '',
-            'submitted_title': 'arxiv.org',
+            'title': 'arxiv.org',
             'created_by': {'first_name': 'Vesting', 'last_name': 'Member', 'id': 3, 'resource_uri': ''},
-            'submitted_url': 'http://arxiv.org/pdf/1406.3611.pdf',
+            'url': 'http://arxiv.org/pdf/1406.3611.pdf',
             'dark_archived_robots_txt_blocked': False,
             'dark_archived': False,
             'vested_by_editor': None,
@@ -68,23 +68,23 @@ class LinkResourceTestCase(ApiResourceTestCase):
     def test_put_detail_unauthenticated(self):
         self.assertHttpUnauthorized(self.api_client.put(self.detail_url, format='json', data={}))
 
-    def test_put_detail(self):
+    def test_patch_detail(self):
         # Grab the current data & modify it slightly.
         resp = self.api_client.get(self.detail_url, format='json')
         self.assertValidJSONResponse(resp)
         original_data = self.deserialize(resp)
         new_data = original_data.copy()
-        new_data['url'] = 'Updated: First Post'
-        new_data['title'] = '2012-05-01T20:06:12'
+        new_data['vested'] = True
+        new_data['notes'] = 'These are test notes'
 
-        self.assertEqual(Link.objects.count(), 2)
-        self.assertHttpAccepted(self.api_client.put(self.detail_url, format='json', data=new_data, authentication=self.get_credentials()))
+        count = Link.objects.count()
+        self.assertHttpAccepted(self.api_client.patch(self.detail_url, format='json', data=new_data, authentication=self.get_credentials()))
         # Make sure the count hasn't changed & we did an update.
-        self.assertEqual(Link.objects.count(), 2)
+        self.assertEqual(Link.objects.count(), count)
         # Check for updated data.
-        self.assertEqual(Link.objects.get(pk=25).title, 'Updated: First Post')
-        self.assertEqual(Link.objects.get(pk=25).slug, 'first-post')
-        self.assertEqual(Link.objects.get(pk=25).created, datetime.datetime(2012, 3, 1, 13, 6, 12))
+        link = Link.objects.get(pk=self.link_1.pk)
+        self.assertEqual(link.vested, new_data['vested'])
+        self.assertEqual(link.notes, new_data['notes'])
 
     def test_delete_detail_unauthenticated(self):
         self.assertHttpUnauthorized(self.api_client.delete(self.detail_url, format='json'))

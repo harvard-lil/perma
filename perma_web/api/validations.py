@@ -43,11 +43,12 @@ class LinkValidation(Validation):
         errors = {}
 
         if bundle.data.get('url', '') == '':
-            errors['url'] = "URL cannot be empty."
+            if not bundle.obj.pk: # if it's a new entry
+                errors['url'] = "URL cannot be empty."
         else:
             try:
                 validate = URLValidator()
-                validate(bundle.obj.submitted_url)
+                validate(bundle.data.get('url'))
 
                 # Don't force URL resolution validation if a file is provided
                 if not bundle.data.get('file'):
