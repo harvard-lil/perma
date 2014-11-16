@@ -16,7 +16,7 @@ class LinkValidation(Validation):
 
     def is_valid_size(self, headers):
         try:
-            if int(headers.get('content-length', 0)) > 1024 * 1024 * 100:
+            if int(headers.get('content-length', 0)) > 1024 * 1024:
                 return False
         except ValueError:
             # Weird -- content-length header wasn't an integer. Carry on.

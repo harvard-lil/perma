@@ -104,6 +104,7 @@ class LinkResource(MultipartResource, ModelResource):
         fields = [None] # prevents ModelResource from auto-including additional fields
         
     def hydrate_url(self, bundle):
+        # Clean up the user submitted url
         if bundle.data.get('url', None):
             url = bundle.data.get('url','').strip()
             if url[:4] != 'http':
