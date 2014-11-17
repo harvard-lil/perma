@@ -133,9 +133,6 @@ class TasksTestCase(PermaTestCase):
                 self.assertEqual(response.status_code, 201, "Unexpected response %s: %s" % (response.status_code ,response.content))
                 self.assert_asset_has(asset, "image_capture")
                 self.assert_asset_has(asset, "warc_capture")
-                self.assertTrue(
-                    default_storage.exists(os.path.join(settings.MEDIA_ARCHIVES_ROOT, asset.base_storage_path+".zip")),
-                    "Zip archive not created.")
                 self.assertFalse(asset.link.dark_archived_robots_txt_blocked)
                 self.assertEqual(asset.link.submitted_title, "Test title.")
                 # TODO: check that warc capture works

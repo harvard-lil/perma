@@ -93,10 +93,11 @@ def run_task(task, *args, **kwargs):
     """
         Run a celery task either async or directly, depending on settings.RUN_TASKS_ASYNC.
     """
+    options = kwargs.pop('options', {})
     if settings.RUN_TASKS_ASYNC:
-        return task.delay(*args, **kwargs)
+        return task.apply_async(args, kwargs, **options)
     else:
-        return task.apply(args, kwargs)
+        return task.apply(args, kwargs, **options)
 
 ### simple search ###
 

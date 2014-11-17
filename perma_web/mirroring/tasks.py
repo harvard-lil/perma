@@ -1,204 +1,151 @@
 import json
+from multiprocessing.pool import ThreadPool
 import os
 import os.path
-import tempfile
-import zipfile
+from urlparse import urljoin
 from celery import shared_task
+from celery.contrib import rdb
 import requests
-import tempdir
 
+from django.conf import settings
 from django.core.files.storage import default_storage
 from django.core.urlresolvers import reverse
-from django.conf import settings
-from django.shortcuts import get_object_or_404
+from django.core import serializers
+from django.db import transaction
 
-from perma.models import Asset, Link
-from perma.tasks import create_storage_dir
-from perma.utils import run_task
+from .models import UpdateQueue
 
-from .utils import serialize_datetime, unserialize_datetime
+### helpers ###
 
+def upstream_request(relative_url, **request_kwargs):
+    """ Make a request to the upstream server. """
+    request_kwargs.setdefault('headers', settings.UPSTREAM_SERVER.get('headers', {}))
+    method = request_kwargs.pop('method', 'GET')
+    return requests.request(method, urljoin(settings.UPSTREAM_SERVER['address'], relative_url), **request_kwargs)
 
-@shared_task
-@tempdir.run_in_tempdir()
-def compress_link_assets(*args, **kwargs):
+def downstream_request(downstream_server, relative_url, **request_kwargs):
+    """ Make a request to the downstream server. """
+    request_kwargs.setdefault('headers', downstream_server.get('headers', {}))
+    method = request_kwargs.pop('method', 'GET')
+    return requests.request(method, urljoin(downstream_server['address'], relative_url), **request_kwargs)
+
+def parallel_downstream_request(relative_url, **request_kwargs):
+    """ Make a request to all downstream requests in parallel threads, returning when all are finished. """
+    pool = ThreadPool(processes=min(len(settings.DOWNSTREAM_SERVERS), 10))
+
+    def call_downstream_request(mirror):
+        print "MAIN: Sending update to", mirror
+        downstream_request(mirror, relative_url, **request_kwargs)
+
+    return pool.map(call_downstream_request, settings.DOWNSTREAM_SERVERS)
+
+def get_update_queue_lock():
     """
-    This task creates a zipfile containing the assets of a given Perma
-    link. The zip file does *not* contain mutable status data about
-    the link (e.g. whether it's vested or not), only immutable asset
-    metadata.  This is a Celery task so that it can be run after the
-    tasks that generate the assets are finished, which we arrange for
-    by means of a chord. Thus, the first positional arguments of this
-    function will be return value of those tasks. We thus don't rely
-    on positional arguments and retrieve all of our arguments via
-    kwargs.
+        Get a lock on the UpdateQueue database, using the select_for_update function.
+        Successive calls to this function will block until the previous return value is destroyed.
     """
-    # fetch link and asset
+    _get_lock = lambda: UpdateQueue.objects.select_for_update().get(pk=1)
     try:
-        guid = kwargs['guid']
-    except KeyError:
-        raise TypeError("compress_link_assets() requires a guid keyword argument")
-    target_link = get_object_or_404(Link, guid=guid)
-    target_asset = get_object_or_404(Asset, link=target_link)
+        return _get_lock()
+    except UpdateQueue.DoesNotExist:
+        UpdateQueue(json='dummy', pk=1).save()
+        return _get_lock()
 
-    # build metadata
-    metadata = {
-        "guid": guid,
-        "submitted_url": target_link.submitted_url,
-        "creation_timestamp": serialize_datetime(target_link.creation_timestamp),
-        "submitted_title": target_link.submitted_title,
-    }
 
-    # Here we are going to open a temporary file to store our zip data to.
-    # Because of @run_in_tempdir we have already chdir'd to a temp dir.
-    # Next we will use default_storage to copy each file in target_asset.base_storage_path
-    # (which may come from the local disk or a remote location like S3)
-    # to the temp dir, and then from there into the open zip file.
-    # This double copy is necessary because zipfile.write expects a file path,
-    # not a file handle.
-    temp_file = tempfile.TemporaryFile()
-    base_storage_path_without_guid = os.path.dirname(target_asset.base_storage_path)
-    with zipfile.ZipFile(temp_file, "w") as zipfh:
-        for root, dirs, files in default_storage.walk(target_asset.base_storage_path):
-            for file in files:
-                source_file_path = os.path.join(root, file) # e.g. 2014/6/10/18/37/1234-ABCD/cap.png
-                dest_file_path = source_file_path.replace(base_storage_path_without_guid+"/", '', 1) # e.g. 1234-ABCD/cap.png
-                with default_storage.open(source_file_path, 'rb') as source_file:
-                    zipfh.writestr(dest_file_path, source_file.read())
+### tasks ###
 
-        # write metadata to 1234-ABCD/metadata.json
-        zipfh.writestr(os.path.join(guid, "metadata.json"), json.dumps(metadata))
-
-    # now our zip file has been written, we can store it to default_storage
-    temp_file.seek(0)
-    zipfile_storage_path = os.path.join(settings.MEDIA_ARCHIVES_ROOT, target_asset.base_storage_path+".zip")
-    default_storage.store_file(temp_file, zipfile_storage_path, overwrite=True)
+@shared_task
+@transaction.atomic
+def send_updates():
+    updates = UpdateQueue.objects.select_for_update().filter(sent=False).values('pk', 'action', 'json')
+    if updates:
+        print "MAIN: Sending updates %s" % ", ".join(str(update['pk']) for update in updates)
+        UpdateQueue.objects.filter(pk__in=[update['pk'] for update in updates]).update(sent=True)
+        parallel_downstream_request(reverse("mirroring:import_updates"), method="POST", data={'updates': json.dumps(list(updates))})
+    else:
+        print "MAIN: Nothing to send."
 
 
 @shared_task
-@tempdir.run_in_tempdir()
-def update_perma(link_guid):
+@transaction.atomic
+def get_updates():
     """
-    Update the vested/darchived status of a perma link, and download the
-    assets if necessary
+        Fetch any database updates from upstream.
     """
-    # N.B. This function has two instances of downloading stuff from
-    # the root server using a scheme that looks something like
-    #    settings.SERVER + reverse("url_pattern")
-    # This is nice because it means we don't have to repeat our URL
-    # patterns from urls.py, but it hardcodes the fact that the root
-    # server is another Perma instance. It's unclear to me which is a
-    # better fact to abstract, but this is easier for now.
+    lock = get_update_queue_lock()
 
-    ## First, let's get the metadata for this link. The metadata
-    ## contains information about where we should place the assets (if
-    ## we decide that we need them). This is also a fast check to make
-    ## sure the link GUID is actually real.
-    metadata_server = settings.UPSTREAM_SERVER['address']
-    metadata_url = metadata_server + reverse("service_link_status", args=(link_guid,))
-    metadata = requests.get(
-        metadata_url,
-        headers=settings.UPSTREAM_SERVER.get('headers', {})
-    ).json()
-
-    ## Next, let's see if we need to get the assets. If we have the
-    ## Link object for this GUID, we're going to assume we already
-    ## have what we need. It would make a little more sense to use the
-    ## Asset object here instead, but we're definitely going to need
-    ## to do stuff to the Link object so we might as well get that
-    ## instead. In practice they should be ~one to one.
+    # fetch updates
+    print "MIRROR: Fetching updates"
     try:
-        link = Link.objects.get(guid=link_guid)
-    except Link.DoesNotExist:
-        ## We need to download the assets. We can download an archive
-        ## from the assets server.
-        assets_server = settings.UPSTREAM_SERVER['address']
-        assets_url = assets_server + reverse("mirroring:link_assets", args=(link_guid,))
+        last_known_update_id = UpdateQueue.objects.filter(pk__gt=1).order_by('-pk')[0].pk
+    except IndexError:
+        # we have no existing deltas; fetch the whole database
+        print "MIRROR: No known updates, fetching whole database."
+        lock = None
+        return get_full_database.apply()
 
-        # Temp paths can be relative because we're in run_in_tempdir()
-        temp_zip_path = 'temp.zip'
+    try:
+        result = upstream_request(reverse('mirroring:export_updates'), params={'last_known_update':last_known_update_id}).json()
+    except Exception as e:  # TODO: narrow this down
+        # upstream server doesn't have the updates we need; fetch whole database
+        print "MIRROR: Error fetching updates: %s. Fetching whole database." % e
+        lock = None
+        return get_full_database.apply()
 
-        # Save remote zip file to disk, using streaming to avoid keeping large files in RAM.
-        request = requests.get(
-            assets_url,
-            headers=settings.UPSTREAM_SERVER.get('headers', {}),
-            stream=True)
-        with open(temp_zip_path, 'wb') as f:
-            for chunk in request.iter_content(1024):
-                f.write(chunk)
-
-        ## Extract the archive and change into the extracted folder.
-        with zipfile.ZipFile(temp_zip_path, "r") as zipfh:
-            #assets_path = os.path.dirname(os.path.join(settings.MEDIA_ROOT, metadata["path"]))
-            zipfh.extractall() # creates folder named [guid] in current temp dir
-        temp_extracted_path = os.path.basename(metadata['path']) # e.g. "1234-ABCD"
-
-        # Save all extracted files to default_storage, using the path in metadata.
-        for root, dirs, files in os.walk(temp_extracted_path):
-            for file in files:
-                source_file_path = os.path.join(root, file) # e.g. "1234-ABCD/cap.png"
-                dest_file_path = os.path.join(os.path.dirname(metadata['path']), source_file_path) # e.g. 2014/6/10/18/37/1234-ABCD/cap.png
-                with open(source_file_path, 'rb') as source_file:
-                    default_storage.store_file(source_file, dest_file_path)
-
-        ## We can now get some additional metadata that we'll need to
-        ## create the Link object.
-        with open(os.path.join(temp_extracted_path, "metadata.json"), "r") as fh:
-            link_metadata = json.load(fh)
-
-        ## We now have everything we need to initialize the Link object.
-        link = Link(guid=link_guid)
-        link.submitted_url = link_metadata["submitted_url"]
-        link.submitted_title = link_metadata["submitted_title"]
-        link.created_by = None # XXX maybe we should do something with FakeUser here
-        link.save(pregenerated_guid=True) # We need to save this so that we can create an Asset object
-
-        # This is a stupid hack to overcome the fact that the Link has
-        # auto_now_add=True, so it's always going to be saved to the
-        # current time on first creation.
-        link.creation_timestamp = unserialize_datetime(link_metadata["creation_timestamp"])
-        link.save()
-
-        ## Lastly, let's create an Asset object for this Link.
-        asset = Asset(link=link)
-        asset.base_storage_path = metadata["path"]
-        asset.image_capture = metadata["image_capture"]
-        asset.warc_capture = metadata["source_capture"]
-        asset.pdf_capture = metadata["pdf_capture"]
-        asset.text_capture = metadata["text_capture"]
-        asset.save()
-
-    ## We can now add some of the data we got from the metadata to the Link object
-    link.dark_archived = metadata["dark_archived"]
-    link.vested = metadata["vested"]
-    link.save()
-
-    # If we have sub-mirrors, poke them to get a copy from us.
-    if settings.DOWNSTREAM_SERVERS:
-        run_task(poke_mirrors, link_guid=link_guid)
+    # import updates
+    if result:
+        print "MIRROR: Got %s updates. Updating." % len(result)
+        UpdateQueue.import_updates(result)
+    else:
+        print "MIRROR: No results received from upstream."
 
 
 @shared_task
-def poke_mirrors(*args, **kwargs):
+@transaction.atomic
+def get_full_database():
+    """
+        Fetch full database from upstream.
+    """
+    lock = get_update_queue_lock()
+
     try:
-        link_guid = kwargs['link_guid']
-    except KeyError:
-        raise TypeError("poke_mirrors() requires a link_guid keyword argument")
-    for mirror in settings.DOWNSTREAM_SERVERS:
-        requests.get(mirror['address'] + reverse("mirroring:update_link", args=(link_guid,)),
-                     headers=mirror.get('headers', {}))
+        print "MIRROR: Importing full database."
+        result = upstream_request(reverse('mirroring:export_database')).json()
+        for model_class, serialized_models in result['database']:
+            for obj in serializers.deserialize("json", serialized_models):
+                obj.object.save()
+        if result['update_index'] != '0':
+            UpdateQueue(pk=int(result['update_index']), json='dummy').save()
+    except Exception as e:
+        print e
+        rdb.set_trace()
 
 
 @shared_task
-def sync_mirror():
-    metadata_server = settings.UPSTREAM_SERVER['address']
-    manifest_url = metadata_server + reverse("mirroring:manifest")
-    metadata = requests.get(
-        manifest_url,
-        headers=settings.UPSTREAM_SERVER.get('headers', {}),
-        stream=True)
-    for line in metadata.iter_lines():
-        guid = line.strip()
-        if not Link.objects.filter(guid==guid).exists():
-            run_task(update_perma, link_guid=guid)
+def trigger_media_sync(*args, **kwargs):
+    # replace paths that end with '/' with a list of all files inside
+    print "Trigger called with", args, kwargs
+    expanded_paths = []
+    for path in kwargs['paths']:
+        if path.endswith('/'):
+            for root, dirs, files in default_storage.walk(path):
+                for file in files:
+                    expanded_paths.append(os.path.join(root, file))
+        else:
+            expanded_paths.append(path)
 
+    parallel_downstream_request(reverse("mirroring:media_sync"), method="POST", data={
+        'paths': json.dumps(expanded_paths),
+        'media_url': settings.DIRECT_MEDIA_URL,
+    })
+
+
+@shared_task
+def background_media_sync(*args, **kwargs):
+    paths = kwargs['paths']
+    upstream_media_url = kwargs['media_url']
+    for path in paths:
+        request_url = urljoin(upstream_media_url, path)
+        print "Storing ", request_url
+        request = requests.get(request_url, stream=True)
+        default_storage.store_file(request.raw, path)

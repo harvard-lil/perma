@@ -9,7 +9,6 @@ from django.db import transaction
 from django.contrib import messages
 from netaddr import IPAddress, IPNetwork
 import requests
-from mptt.exceptions import InvalidMove
 from PyPDF2 import PdfFileReader
 
 from django.conf import settings
@@ -19,16 +18,16 @@ from django.core.urlresolvers import reverse
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.http import HttpResponseBadRequest, Http404, HttpResponseRedirect
+from django.http import HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import HttpResponse, render_to_response, get_object_or_404, render
 from django.template import RequestContext
 
-from mirroring.tasks import compress_link_assets, poke_mirrors
+from mirroring.tasks import trigger_media_sync
 
 from ..forms import UploadFileForm
 from ..models import Link, Asset, Folder, VestingOrg, FolderException
 from ..tasks import get_pdf, proxy_capture, upload_to_internet_archive
-from ..utils import require_group, run_task, get_search_query
+from ..utils import require_group, run_task
 
 
 logger = logging.getLogger(__name__)
@@ -104,8 +103,7 @@ def create_link(request):
         postprocessing_tasks = []
         if settings.MIRRORING_ENABLED:
             postprocessing_tasks += [
-                compress_link_assets.s(guid=guid),
-                poke_mirrors.s(link_guid=guid),
+                trigger_media_sync.s(paths=[asset.base_storage_path+'/'])  # add a slash so the path will be expanded during export
             ]
 
         # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
@@ -397,8 +395,6 @@ def vest_link(request, guid):
 
         link.move_to_folder_for_user(target_folder, request.user)
 
-        run_task(poke_mirrors, link_guid=guid)
-
         if settings.UPLOAD_TO_INTERNET_ARCHIVE and link.can_upload_to_internet_archive():
             run_task(upload_to_internet_archive, link_guid=guid)
 
@@ -441,6 +437,5 @@ def dark_archive_link(request, guid):
             link.dark_archived=True
             link.dark_archived_by = request.user
             link.save()
-            run_task(poke_mirrors, link_guid=guid)
         return HttpResponseRedirect(reverse('single_linky', args=[guid]))
     return render_to_response('dark-archive-link.html', {'link': link, 'asset': asset}, RequestContext(request))
