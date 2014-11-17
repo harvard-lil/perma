@@ -1,4 +1,3 @@
-
 from tastypie import fields
 from tastypie.resources import ModelResource
 from perma.models import LinkUser, Link, Asset, Folder, VestingOrg

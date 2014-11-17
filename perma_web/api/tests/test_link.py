@@ -1,8 +1,13 @@
 import datetime
+import os
 from django.test.utils import override_settings
 from .utils import ApiResourceTestCase
 from api.resources import LinkResource
 from perma.models import Link, LinkUser
+
+from django.conf import settings
+
+TEST_ASSETS_DIR = os.path.join(settings.PROJECT_ROOT, "perma/tests/assets")
 
 class LinkResourceTestCase(ApiResourceTestCase):
     fixtures = ['fixtures/users.json',
@@ -58,13 +63,22 @@ class LinkResourceTestCase(ApiResourceTestCase):
     def test_post_list_unauthenticated(self):
         self.assertHttpUnauthorized(self.api_client.post(self.list_url, format='json', data=self.post_data))
 
-    def test_post_list(self):
+    def test_should_create_archive_from_url(self):
         # Check how many are there first.
         count = Link.objects.count()
         self.assertHttpCreated(self.api_client.post(self.list_url, format='json', data=self.post_data, authentication=self.get_credentials()))
         # Verify a new one has been added.
         self.assertEqual(Link.objects.count(), count+1)
 
+    def test_should_create_archive_from_pdf_file(self):
+        # Check how many are there first.
+        count = Link.objects.count()
+        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf')) as file:
+            data = self.post_data.copy()
+            data['file'] = file
+            self.assertHttpCreated(self.api_client.post(self.list_url, format='multipart', data=data, authentication=self.get_credentials()))
+            self.assertEqual(Link.objects.count(), count+1)
+        
     def test_should_add_http_to_url(self):
         count = Link.objects.count()
         self.assertHttpCreated(self.api_client.post(self.list_url, format='json', data={'url': 'example.com'}, authentication=self.get_credentials()))
@@ -90,8 +104,8 @@ class LinkResourceTestCase(ApiResourceTestCase):
         self.assertHttpBadRequest(self.api_client.post(self.list_url, format='json', data={'url': 'http://upload.wikimedia.org/wikipedia/commons/9/9e/Balaton_Hungary_Landscape.jpg'}, authentication=self.get_credentials()))
         self.assertEqual(Link.objects.count(), count)
         
-    def test_put_detail_unauthenticated(self):
-        self.assertHttpUnauthorized(self.api_client.put(self.detail_url, format='json', data={}))
+    def test_patch_detail_unauthenticated(self):
+        self.assertHttpUnauthorized(self.api_client.patch(self.detail_url, format='json', data={}))
 
     def test_patch_detail(self):
         # Grab the current data & modify it slightly.
