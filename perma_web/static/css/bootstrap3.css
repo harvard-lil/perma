@@ -3822,14 +3822,14 @@ textarea.input-group-sm > .input-group-btn > .btn {
   display: block;
 }
 
-.nav > li > a {
+.nav > li > a.navbar-link {
   position: relative;
   display: block;
   padding: 10px 15px;
 }
 
-.nav > li > a:hover,
-.nav > li > a:focus {
+.nav > li > a.navbar-link:hover,
+.nav > li > a.navbar-link:focus {
   text-decoration: none;
   background-color: #eeeeee;
 }
@@ -4261,7 +4261,7 @@ tr.link-details
   margin: 7.5px -15px;
 }
 
-.navbar-nav > li > a {
+.navbar-nav > li > a.navbar-link {
   padding-top: 10px;
   padding-bottom: 10px;
   line-height: 20px;
@@ -4297,7 +4297,7 @@ tr.link-details
   .navbar-nav > li {
     float: left;
   }
-  .navbar-nav > li > a {
+  .navbar-nav > li > a.navbar-link {
     padding-top: 15px;
     padding-bottom: 15px;
   }
@@ -4420,13 +4420,13 @@ tr.link-details
   color: #777777;
 }
 
-.navbar-default .navbar-nav > li > a {
+.navbar-default .navbar-nav > li > a.navbar-link {
   color: #09f;
   font-size:20px;
 }
 
-.navbar-default .navbar-nav > li > a:hover,
-.navbar-default .navbar-nav > li > a:focus {
+.navbar-default .navbar-nav > li > a.navbar-link:hover,
+.navbar-default .navbar-nav > li > a.navbar-link:focus {
   color: #333333;
   background-color: transparent;
 }

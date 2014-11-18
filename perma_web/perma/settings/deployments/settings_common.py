@@ -202,6 +202,7 @@ INSTALLED_APPS = (
     'mptt',
     'pipeline',
     'sorl.thumbnail',
+    'django_forms_bootstrap',
 )
 
 AUTH_USER_MODEL = 'perma.LinkUser'

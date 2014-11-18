@@ -31,10 +31,11 @@
             <!-- Custom Domain -->
             <!-- TODO add view and template -->
             <li{% if this_page == 'custom_domain' %} class="active"{% endif %}><a href="{% url 'user_management_custom_domain' %}" id="dashboard-custom-domain">Custom Domain</a></li>
-            {% endcomment %}
 
             <!-- Settings -->
             <li{% if this_page == 'settings' %} class="active"{% endif %}><a href="{% url 'user_management_manage_account' %}" id="dashboard-settings">Tools &amp; Settings</a></li>
+            
+            {% endcomment %}
 
             <!-- Manage users -->
             {% if request.user|has_group:'registrar_user,registry_user,vesting_user' %}

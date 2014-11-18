@@ -1,4 +1,4 @@
-{% load compressed %}<!DOCTYPE html>
+{% load compressed truncatesmart has_group %}<!DOCTYPE html>
 <html lang="en-us">
     <head>
         <title>perma.cc{% block title %}{% endblock %}</title>
@@ -50,11 +50,45 @@
 					<div class="navbar-collapse collapse">
 					  <ul class="nav navbar-nav navbar-right">
 					  	{% if request.user.is_authenticated %}
-                            <li><a href="{% url 'logout' %}" style="color: #aaa;">Log out</a></li>
-                            <li><a href="{% url 'create_link' %}" id="nav-button">Dashboard</a></li>
+                            {% comment %}<li><a href="{% url 'logout' %}" style="color: #aaa;">Log out</a></li>{% endcomment %}
+                            <li class="dropdown">
+                              <a href="#" class="dropdown-toggle navbar-link" data-toggle="dropdown" role="button" aria-expanded="false">{% if request.user.first_name %}{{ request.user.first_name }}{% else %}{{ request.user.email|truncateatsymbol }}{% endif %} <span class="caret"></span></a>
+                              <ul class="dropdown-menu" role="menu">
+                                <li><a href="{% url 'link_browser' %}">My links</a></li>
+                                
+                                {% if request.user|has_group:'registrar_user,registry_user,vesting_user' %}
+                                <li class="divider"></li>
+                                <li role="presentation" class="dropdown-header">Manage users</li>
+                                {% if request.user|has_group:'registry_user' %}
+                                <li><a href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>
+                                {% endif %}
+                    
+                                {% if request.user|has_group:'registrar_user,registry_user' %}
+                                <li><a href="{% url 'user_management_manage_registrar_user' %}">Registrar Users</a></li>
+                                <li><a href="{% url 'user_management_manage_vesting_org' %}">Vesting Organizations</a></li>
+                                {% endif %}
+                    
+                                <!-- Vesting users -->
+                                {% if request.user|has_group:'registrar_user,registry_user,vesting_user' %}
+                                <li><a href="{% url 'user_management_manage_vesting_user' %}">Vesting Users</a></li>
+                                {% endif %}
+                    
+                                <!-- Regular users -->
+                                {% if request.user|has_group:'registry_user' %}
+                                <li><a href="{% url 'user_management_manage_user' %}">Users</a></li>{% endif %}
+                                <li class="divider"></li>
+                                {% endif %}
+                                
+                                <li><a href="{% url 'user_management_settings_tools' %}">Tools</a></li>
+                                <li><a href="{% url 'user_management_settings_profile' %}">Settings</a></li>
+                                <li class="divider"></li>
+                                <li><a href="{% url 'logout' %}">Log out</a></li>
+                              </ul>
+                            </li>
+                            <li><a href="{% url 'create_link' %}" role="button" class="btn btn-large btn-info infinity-navbar navbar-btn" data-toggle="tooltip" title="Create new Perma link"><img src="{{ STATIC_URL }}img/infinity-white.png" alt="Loading..." /></a></li>
 						{% else %}
-                            <li><a href="{% url 'about' %}"{% if this_page == 'about' %} class="this-page"{% endif %}>About</a></li>
-                            <li><a href="{% url 'user_management_limited_login' %}">Log in</a></li>
+                            <li><a href="{% url 'about' %}" class="navbar-link{% if this_page == 'about' %} this-page{% endif %}">About</a></li>
+                            <li><a href="{% url 'user_management_limited_login' %}" class="navbar-link">Log in</a></li>
                             {% comment %}
                             <li><a href="{% url 'register' %}" id="nav-button" class="btn btn-large btn-success">Sign Up</a></li>
                             {% endcomment %}
@@ -164,6 +198,9 @@
     
     <script type="text/javascript">
       feedback_url = "{% url 'service_receive_feedback' %}";
+      $(document).ready(function(){
+        $('.infinity-navbar').tooltip({'trigger': 'hover', 'placement': 'bottom', 'container':'body', 'delay': 400});
+      });
     </script>
   </body>
 </html>

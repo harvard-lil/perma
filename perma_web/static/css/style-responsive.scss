@@ -241,6 +241,51 @@ p {
 	line-height:38px;
 }
 
+.navbar-nav > li > a.navbar-link.dropdown-toggle {
+    padding-bottom:5px;
+    color:#666;
+}
+
+.settings-dropdown {
+    font-size:24px;
+    margin-top:-2px;
+}
+
+.infinity-navbar {
+	font-size:16px;
+	margin-left:10px;
+}
+
+.infinity-navbar img {
+    width:32px;
+    margin-top:-2px;
+}
+
+div.tooltip-inner {
+    max-width: 350px;
+    font-family:$sans-font;
+    background-color:#666;
+}
+
+.tooltip.bottom > .tooltip-arrow {border-bottom-color: #666;}
+
+.dropdown-menu > li > a:hover, .dropdown-menu > li > a:focus {
+    background-color:#09f;
+    color:#fff;
+}
+
+.navbar-default .navbar-nav > li > a.navbar-link:hover,
+.navbar-default .navbar-nav > li > a.navbar-link:focus {
+      color: #007acc;
+  border-color: #269abc;
+  }
+  
+.navbar-default .navbar-nav > .dropdown > a:hover .caret,
+.navbar-default .navbar-nav > .dropdown > a:focus .caret {
+  border-top-color: #007acc;
+  border-bottom-color: #007acc;
+}
+
 /* Header */
 
 
@@ -700,6 +745,9 @@ div.dashboard-blurb {
         @media (max-width: 767px) {
             margin-bottom: 0;
         }
+        &.settings-tabs a {
+            padding-left:12px;
+        }
 
         li {
             @media (max-width: 767px) {
@@ -715,11 +763,12 @@ div.dashboard-blurb {
                 padding: 0;
             }
             a {
-                background-image: url('../img/dashboard-icons.png');
                 background-repeat: no-repeat;
                 font-size: 16px;
                 margin-bottom: 10px;
                 padding: 12px 10px 12px 50px;
+                position:relative;
+                display:block;
 
                 &:hover {
                     background-color: #efefef;
@@ -769,10 +818,10 @@ div.dashboard-blurb {
     }
 }
 
-            a#dashboard-add { background-position: 19px -16px; }
-            a#dashboard-add:hover { background-position: -779px -16px; }
-            a#dashboard-library { background-position: 19px -68px; }
-            a#dashboard-library:hover { background-position: -779px -68px; }
+            a#dashboard-add { background-image: url('../img/dashboard-icons.png'); background-position: 19px -16px; }
+            a#dashboard-add:hover { background-image: url('../img/dashboard-icons.png'); background-position: -779px -16px; }
+            a#dashboard-library { background-image: url('../img/dashboard-icons.png'); background-position: 19px -68px; }
+            a#dashboard-library:hover { background-image: url('../img/dashboard-icons.png'); background-position: -779px -68px; }
             a#dashboard-batch-convert { background-position: 19px -115px; }
             a#dashboard-batch-convert:hover { background-position: -779px -115px; }
             a#dashboard-export { background-position: 19px -164px; }
@@ -785,8 +834,8 @@ div.dashboard-blurb {
             a.dashboard-placeholder:hover { background-position: -779px -364px; }
             a#dashboard-vested { background-position: 19px -414px; }
             a#dashboard-vested:hover { background-position: -779px -414px; }
-            a#dashboard-users { background-position: 19px -497px; }
-            a#dashboard-users:hover { background-position: -779px -497px; }
+            a#dashboard-users { background-image: url('../img/dashboard-icons.png'); background-position: 19px -497px; }
+            a#dashboard-users:hover { background-image: url('../img/dashboard-icons.png'); background-position: -779px -497px; }
 
         div#dashboard-container ul#dashboard-tabs li.divider {
             border-top: 1px solid #efefef;
@@ -1666,7 +1715,7 @@ a.orange {
 Input Focus
 */
 
-input[type="text"], textarea, button[type="submit"], button#addlink {
+input[type="text"], textarea, button[type="submit"], button#addlink, .infinity-navbar {
   -webkit-transition: all 0.20s ease-in-out;
   -moz-transition: all 0.20s ease-in-out;
   -ms-transition: all 0.20s ease-in-out;

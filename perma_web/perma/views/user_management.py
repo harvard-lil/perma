@@ -864,15 +864,15 @@ def user_add_vesting_org(request, user_id):
     context = RequestContext(request, context)
 
     return render_to_response('user_management/user_add_vesting_org.html', context)
-
+    
 
 @login_required
-def manage_account(request):
+def settings_profile(request):
     """
-    Account management stuff. Change password, change email, ...
+    Settings profile, change name, change email, ...
     """
 
-    context = {'next': request.get_full_path(), 'this_page': 'settings'}
+    context = {'next': request.get_full_path(), 'this_page': 'settings_profile'}
     context.update(csrf(request))
 
     if request.method == 'POST':
@@ -882,7 +882,7 @@ def manage_account(request):
         if form.is_valid():
             form.save()
 
-            return HttpResponseRedirect(reverse('user_management_manage_account'))
+            return HttpResponseRedirect(reverse('user_management_settings_profile'))
 
         else:
             context.update({'form': form,})
@@ -892,7 +892,46 @@ def manage_account(request):
 
     context = RequestContext(request, context)
     
-    return render_to_response('user_management/manage-account.html', context)
+    return render_to_response('user_management/settings-profile.html', context)
+    
+
+@login_required
+def settings_password(request):
+    """
+    Settings change password ...
+    """
+
+    context = {'next': request.get_full_path(), 'this_page': 'settings_password'}
+
+    context = RequestContext(request, context)
+    
+    return render_to_response('user_management/settings-password.html', context)
+    
+
+@login_required
+def settings_organizations(request):
+    """
+    Settings view organizations, leave organizations ...
+    """
+
+    context = {'next': request.get_full_path(), 'this_page': 'settings_organizations'}
+
+    context = RequestContext(request, context)
+    
+    return render_to_response('user_management/settings-organizations.html', context)
+    
+    
+@login_required
+def settings_tools(request):
+    """
+    Settings tools ...
+    """
+
+    context = {'next': request.get_full_path(), 'this_page': 'settings_tools'}
+
+    context = RequestContext(request, context)
+    
+    return render_to_response('user_management/settings-tools.html', context)
 
 
 # @login_required
