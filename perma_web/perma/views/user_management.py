@@ -1020,14 +1020,27 @@ def limited_login(request, template_name='registration/login.html',
                 max_age = request.session.get_expiry_age()
                 expires_time = time.time() + max_age
                 expires = cookie_date(expires_time)
-            response.set_cookie(settings.MIRROR_COOKIE_NAME,
-                                sign_message(user_info),
-                                max_age=max_age,
-                                expires=expires,
-                                domain=get_mirror_cookie_domain(request),
-                                path=settings.SESSION_COOKIE_PATH,
-                                secure=settings.SESSION_COOKIE_SECURE or None,
-                                httponly=settings.SESSION_COOKIE_HTTPONLY or None)
+                
+            
+            if settings.MIRRORING_ENABLED:
+                response.set_cookie(settings.MIRROR_COOKIE_NAME,
+                                    sign_message(user_info),
+                                    max_age=max_age,
+                                    expires=expires,
+                                    domain=get_mirror_cookie_domain(request),
+                                    path=settings.SESSION_COOKIE_PATH,
+                                    secure=settings.SESSION_COOKIE_SECURE or None,
+                                    httponly=settings.SESSION_COOKIE_HTTPONLY or None)
+            else:
+                response.set_cookie(settings.MIRROR_COOKIE_NAME,
+                                    json.dumps(user_info),
+                                    max_age=max_age,
+                                    expires=expires,
+                                    domain=get_mirror_cookie_domain(request),
+                                    path=settings.SESSION_COOKIE_PATH,
+                                    secure=settings.SESSION_COOKIE_SECURE or None,
+                                    httponly=settings.SESSION_COOKIE_HTTPONLY or None)
+                                    
 
             return response
     else:
