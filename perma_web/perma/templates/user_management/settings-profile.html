@@ -7,6 +7,11 @@
 {% block content %}
 	  <h3>Profile</h3>
 	  <p>Change your name and email</p>
+	  {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success alert-block">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
+        {% endfor %}
+    {% endif %}
 		<form method="post">
       {% csrf_token %}
 	{{ form|as_bootstrap }}

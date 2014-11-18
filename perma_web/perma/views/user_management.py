@@ -881,6 +881,8 @@ def settings_profile(request):
 
         if form.is_valid():
             form.save()
+            
+            messages.add_message(request, messages.INFO, 'Profile saved!', extra_tags='safe')
 
             return HttpResponseRedirect(reverse('user_management_settings_profile'))
 
