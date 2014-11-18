@@ -7,5 +7,14 @@
             "key": "1d136212a7d2018d53a4e53a16dc7c1e5e1d33f4",
             "created": "2014-11-01"
         }
+    },
+    {
+        "pk": 2,
+        "model": "tastypie.ApiKey",
+        "fields": {
+            "user": 2,
+            "key": "fdjaskljklfasdjkalfjdklsajkfldjskalfjdks",
+            "created": "2014-10-01"
+        }
     }
 ]

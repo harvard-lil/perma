@@ -44,8 +44,9 @@ class LinkResourceTestCase(ApiResourceTestCase):
             'title': 'This is a test page'
         }
 
-    def get_credentials(self):
-        return self.create_apikey(username=self.user.email, api_key=self.user.api_key.key)
+    def get_credentials(self, user=None):
+        user = user or self.user
+        return self.create_apikey(username=user.email, api_key=user.api_key.key)
 
     def test_get_list_json(self):
         resp = self.api_client.get(self.list_url, format='json')
@@ -64,20 +65,30 @@ class LinkResourceTestCase(ApiResourceTestCase):
         self.assertHttpUnauthorized(self.api_client.post(self.list_url, format='json', data=self.post_data))
 
     def test_should_create_archive_from_url(self):
-        # Check how many are there first.
         count = Link.objects.count()
         self.assertHttpCreated(self.api_client.post(self.list_url, format='json', data=self.post_data, authentication=self.get_credentials()))
-        # Verify a new one has been added.
         self.assertEqual(Link.objects.count(), count+1)
 
     def test_should_create_archive_from_pdf_file(self):
-        # Check how many are there first.
         count = Link.objects.count()
-        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf')) as file:
-            data = self.post_data.copy()
-            data['file'] = file
+        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf')) as test_file:
+            data = dict(self.post_data.copy(), file=test_file)
             self.assertHttpCreated(self.api_client.post(self.list_url, format='multipart', data=data, authentication=self.get_credentials()))
             self.assertEqual(Link.objects.count(), count+1)
+
+    def test_should_create_archive_from_jpg_file(self):
+        count = Link.objects.count()
+        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.jpg')) as test_file:
+            data = dict(self.post_data.copy(), file=test_file)
+            self.assertHttpCreated(self.api_client.post(self.list_url, format='multipart', data=data, authentication=self.get_credentials()))
+            self.assertEqual(Link.objects.count(), count+1)
+
+    def test_should_reject_invalid_file(self):
+        count = Link.objects.count()
+        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.html')) as test_file:
+            data = dict(self.post_data.copy(), file=test_file)
+            self.assertHttpBadRequest(self.api_client.post(self.list_url, format='multipart', data=data, authentication=self.get_credentials()))
+            self.assertEqual(Link.objects.count(), count)
         
     def test_should_add_http_to_url(self):
         count = Link.objects.count()
@@ -111,17 +122,24 @@ class LinkResourceTestCase(ApiResourceTestCase):
         # Grab the current data & modify it slightly.
         resp = self.api_client.get(self.detail_url, format='json')
         self.assertValidJSONResponse(resp)
-        original_data = self.deserialize(resp)
-        new_data = original_data.copy()
-        new_data['vested'] = True
-        new_data['notes'] = 'These are test notes'
+        old_data = self.deserialize(resp)
+        new_data = dict(old_data,
+                        vested=True,
+                        notes='These are test notes',
+                        dark_archived=True)
 
         count = Link.objects.count()
         self.assertHttpAccepted(self.api_client.patch(self.detail_url, format='json', data=new_data, authentication=self.get_credentials()))
         # Make sure the count hasn't changed & we did an update.
         self.assertEqual(Link.objects.count(), count)
-        # Check for updated data.
+
         link = Link.objects.get(pk=self.link_1.pk)
+        # confirm data has changed
+        self.assertNotEqual(link.dark_archived, old_data['dark_archived'])
+        self.assertNotEqual(link.vested, old_data['vested'])
+        self.assertNotEqual(link.notes, old_data['notes'])
+        # confirm data changed to proper values
+        self.assertEqual(link.dark_archived, new_data['dark_archived'])
         self.assertEqual(link.vested, new_data['vested'])
         self.assertEqual(link.notes, new_data['notes'])
 
@@ -132,3 +150,9 @@ class LinkResourceTestCase(ApiResourceTestCase):
         self.assertHttpOK(self.api_client.get(self.detail_url, format='json'))
         self.assertHttpAccepted(self.api_client.delete(self.detail_url, format='json', authentication=self.get_credentials()))
         self.assertHttpNotFound(self.api_client.get(self.detail_url, format='json'))
+
+    def test_should_limit_delete_to_link_owner(self):
+        self.assertHttpOK(self.api_client.get(self.detail_url, format='json'))
+        self.assertHttpUnauthorized(self.api_client.delete(self.detail_url, format='json', authentication=self.get_credentials(LinkUser.objects.get(email='test_registrar_member@example.com'))))
+        # confirm that the link wasn't deleted
+        self.assertHttpOK(self.api_client.get(self.detail_url, format='json'))

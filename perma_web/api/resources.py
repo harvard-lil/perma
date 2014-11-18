@@ -20,6 +20,7 @@ from datetime import datetime
 
 
 # via: http://stackoverflow.com/a/14134853/313561
+# also: https://github.com/toastdriven/django-tastypie/issues/42#issuecomment-5485666
 class MultipartResource(object):
     def deserialize(self, request, data, format=None):
         if not format:

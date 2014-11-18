@@ -14,4 +14,3 @@ class ApiResourceTestCase(ResourceTestCase):
         super(ApiResourceTestCase, self).setUp()
         self.api_client = TestApiClient(serializer=MultipartSerializer())
         self.url_base = "/v1"
-        
