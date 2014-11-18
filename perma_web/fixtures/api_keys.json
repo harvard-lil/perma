@@ -16,5 +16,14 @@
             "key": "fdjaskljklfasdjkalfjdklsajkfldjskalfjdks",
             "created": "2014-10-01"
         }
+    },
+    {
+        "pk": 3,
+        "model": "tastypie.ApiKey",
+        "fields": {
+            "user": 3,
+            "key": "aajklajfdkslajafksdjweeeifjdaizledajk243",
+            "created": "2014-09-01"
+        }
     }
 ]

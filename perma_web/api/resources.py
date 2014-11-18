@@ -7,7 +7,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from tastypie.exceptions import NotFound
 from validations import LinkValidation
 from authentication import DefaultAuthentication
-from authorizations import DefaultAuthorization
+
+from tastypie.authorization import ReadOnlyAuthorization
+from authorizations import LinkAuthorization
 
 # LinkResource
 from celery import chain
@@ -46,7 +48,7 @@ class CurrentUserResource(ModelResource):
         resource_name = 'user'
         queryset = LinkUser.objects.all()
         authentication = DefaultAuthentication()
-        authorization = DefaultAuthorization()
+        authorization = ReadOnlyAuthorization()
         list_allowed_methods = []
         detail_allowed_methods = ['get']
         fields = USER_FIELDS
@@ -108,11 +110,11 @@ class LinkResource(MultipartResource, ModelResource):
     created_by = fields.ForeignKey(LinkUserResource, 'created_by', full=True, null=True, blank=True, readonly=True)
     vested_by_editor = fields.ForeignKey(LinkUserResource, 'vested_by_editor', full=True, null=True, blank=True, readonly=True)
     vesting_org = fields.ForeignKey(VestingOrgResource, 'vesting_org', full=True, null=True, readonly=True)
-    assets = fields.ToManyField(AssetResource, 'assets', full=True, readonly=True)
+    # assets = fields.ToManyField(AssetResource, 'assets', full=True, readonly=True)
 
     class Meta:
         authentication = DefaultAuthentication()
-        authorization = DefaultAuthorization()
+        authorization = LinkAuthorization()
         resource_name = 'archives'
         validation = LinkValidation()
         queryset = Link.objects.all()

@@ -18,7 +18,8 @@ class LinkResourceTestCase(ApiResourceTestCase):
     def setUp(self):
         super(LinkResourceTestCase, self).setUp()
 
-        self.user = LinkUser.objects.get(email='test_registry_member@example.com')
+        self.user = LinkUser.objects.get(email='test_vesting_member@example.com')
+        self.user_2 = LinkUser.objects.get(email='test_registrar_member@example.com')
         self.link_1 = Link.objects.get(pk='7CF8-SS4G')
 
         self.list_url = "{0}/{1}/".format(self.url_base, LinkResource.Meta.resource_name)
@@ -139,7 +140,19 @@ class LinkResourceTestCase(ApiResourceTestCase):
         for attr in ['dark_archived', 'vested', 'notes']:
             self.assertNotEqual(getattr(link, attr), old_data[attr])
             self.assertEqual(getattr(link, attr), new_data[attr])
-
+            
+    def test_should_limit_patch_to_link_owner(self):
+        resp = self.api_client.get(self.detail_url, format='json')
+        self.assertValidJSONResponse(resp)
+        old_data = self.deserialize(resp)
+        new_data = dict(old_data,
+                        vested=True,
+                        notes='These are test notes',
+                        dark_archived=True)
+        
+        self.assertHttpUnauthorized(self.api_client.patch(self.detail_url, format='json', data=new_data, authentication=self.get_credentials(self.user_2)))
+        self.assertEqual(self.deserialize(self.api_client.get(self.detail_url, format='json')), old_data)
+        
     def test_delete_detail_unauthenticated(self):
         self.assertHttpUnauthorized(self.api_client.delete(self.detail_url, format='json'))
 
@@ -148,9 +161,8 @@ class LinkResourceTestCase(ApiResourceTestCase):
         self.assertHttpAccepted(self.api_client.delete(self.detail_url, format='json', authentication=self.get_credentials()))
         self.assertHttpNotFound(self.api_client.get(self.detail_url, format='json'))
 
-    @unittest.expectedFailure
     def test_should_limit_delete_to_link_owner(self):
         self.assertHttpOK(self.api_client.get(self.detail_url, format='json'))
-        self.assertHttpUnauthorized(self.api_client.delete(self.detail_url, format='json', authentication=self.get_credentials(LinkUser.objects.get(email='test_registrar_member@example.com'))))
+        self.assertHttpUnauthorized(self.api_client.delete(self.detail_url, format='json', authentication=self.get_credentials(self.user_2)))
         # confirm that the link wasn't deleted
         self.assertHttpOK(self.api_client.get(self.detail_url, format='json'))

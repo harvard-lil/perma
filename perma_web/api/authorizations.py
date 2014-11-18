@@ -1,20 +1,19 @@
-from tastypie.authorization import DjangoAuthorization
+from tastypie.authorization import ReadOnlyAuthorization
+from tastypie.exceptions import Unauthorized
 
-class DefaultAuthorization(DjangoAuthorization):
-    def create_list(self, object_list, bundle):
-        raise Unauthorized("Sorry, no mass creates.")
+class LinkAuthorization(ReadOnlyAuthorization):
 
-    # def create_detail(self, object_list, bundle):
-        # return bundle.obj.user == bundle.request.user
+    def create_detail(self, object_list, bundle):
+        if bundle.request.user:
+            return True
+        else:
+           raise Unauthorized("You must be a registered user to create an archive.")
 
-    def update_list(self, object_list, bundle):
-        raise Unauthorized("Sorry, no mass updates.")
+    def update_detail(self, object_list, bundle):
+        if bundle.obj.created_by == bundle.request.user:
+            return True
+        else:
+            raise Unauthorized("Sorry, you're not the owner of that archive.")
 
-    # def update_detail(self, object_list, bundle):
-        # return bundle.obj.user == bundle.request.user
-
-    def delete_list(self, object_list, bundle):
-        raise Unauthorized("Sorry, no mass deletes.")
-
-    # def delete_detail(self, object_list, bundle):
-        # return bundle.obj.user == bundle.request.user
+    def delete_detail(self, object_list, bundle):
+        return self.update_detail(object_list, bundle)
