@@ -369,12 +369,6 @@ GPG_DIRECTORY = None  # use default
 GPG_PUBLIC_KEY = None
 GPG_PRIVATE_KEY = None
 
-
-# where we will store zip archives created for transferring to mirrors
-# this is relative to MEDIA_ROOT
-MEDIA_ARCHIVES_ROOT = 'zip_archives/'
-
-
 # internet archive stuff
 UPLOAD_TO_INTERNET_ARCHIVE = False
 INTERNET_ARCHIVE_COLLECTION = 'perma_cc'

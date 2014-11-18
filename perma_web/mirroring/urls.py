@@ -2,8 +2,9 @@ from django.conf.urls import patterns, url
 from perma.urls import guid_pattern
 
 urlpatterns = patterns('mirroring.views',
-    url(r'^assets/%s?/?$' % guid_pattern, 'link_assets', name='link_assets'),
-    url(r'^update/%s?/?$' % guid_pattern, 'do_update_perma', name='update_link'),
     url(r'^render/%s/?$' % guid_pattern, 'single_link_json', name='single_link_json'),
-    url(r'^manifest/?$', 'manifest', name='manifest'),
+    url(r'^export/updates/?$', 'export_updates', name='export_updates'),
+    url(r'^export/full/?$', 'export_database', name='export_database'),
+    url(r'^import/updates/?$', 'import_updates', name='import_updates'),
+    url(r'^import/media/?$', 'media_sync', name='media_sync'),
 )

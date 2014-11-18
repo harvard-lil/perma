@@ -90,7 +90,7 @@ class Command(BaseCommand):
                 "-u"+settings.DATABASES['default']['USER'],
                 "-p" + settings.DATABASES['default']['PASSWORD'],
             ]
-            empty_tables = ['perma_linkuser','perma_link','perma_asset']
+            empty_tables = ['perma_linkuser','perma_link','perma_asset', 'mirroring_updatequeue']
             mysqldump_command = "mysqldump %(user)s %(password)s %%(options)s %(main_database)s %%(tables)s | mysql %(user)s %(password)s %(mirror_database)s" % {
                 'user':mysql_credentials[0], 'password':mysql_credentials[1], 'main_database':main_database, 'mirror_database':mirror_database,
             }
@@ -116,7 +116,7 @@ class Command(BaseCommand):
             running_processes.append(subprocess.Popen(['python', 'manage.py', 'runserver', str(main_server_port)],
                                              env=dict(os.environ, **main_server_env)))
             running_processes.append(subprocess.Popen(
-                ['celery', '-A', 'perma', 'worker', '--loglevel=info', '-Q', 'runmirror_main_queue', '--hostname=runmirror_main_queue'],
+                ['celery', '-A', 'perma', 'worker', '--loglevel=info', '--queues=runmirror_main_queue', '--hostname=runmirror_main_queue', '--beat', '--concurrency=1'],
                 env=dict(os.environ, **main_server_env)))
 
             print "Launching mirror server ..."
@@ -134,7 +134,7 @@ class Command(BaseCommand):
             running_processes.append(subprocess.Popen(['python', 'manage.py', 'runserver', str(mirror_server_port)],
                                              env=dict(os.environ, **mirror_server_env)))
             running_processes.append(subprocess.Popen(
-                ['celery', '-A', 'perma', 'worker', '--loglevel=info', '-Q', 'runmirror_mirror_queue', '--hostname=runmirror_mirror_queue'],
+                ['celery', '-A', 'perma', 'worker', '--loglevel=info', '--queues=runmirror_mirror_queue', '--hostname=runmirror_mirror_queue', '--beat', '--concurrency=1'],
                 env=dict(os.environ, **mirror_server_env)))
 
             print "Syncing contents from %s to %s ..." % (settings.MEDIA_ROOT, temp_dir.name)
@@ -153,6 +153,9 @@ class Command(BaseCommand):
 
             site = server.Site(root)
             reactor.listenTCP(router_port, site)
+
+            print "------------- Ready for requests -----------------"
+
             reactor.run()
 
         finally:

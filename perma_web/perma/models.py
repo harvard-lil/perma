@@ -25,6 +25,9 @@ class Registrar(models.Model):
     date_created = models.DateField(auto_now_add=True, null=True)
     default_vesting_org = models.OneToOneField('VestingOrg', blank=True, null=True, related_name='default_for_registrars')
 
+    # what info to send downstream
+    mirror_fields = ('name', 'email', 'website')
+
     def save(self, *args, **kwargs):
         super(Registrar, self).save(*args, **kwargs)
         self.create_default_vesting_org()
@@ -55,6 +58,9 @@ class VestingOrg(models.Model):
     registrar = models.ForeignKey(Registrar, null=True, related_name="vesting_orgs")
     shared_folder = models.OneToOneField('Folder', blank=True, null=True)
     date_created = models.DateField(auto_now_add=True, null=True)
+
+    # what info to send downstream
+    mirror_fields = ('name', 'registrar')
 
     def __init__(self, *args, **kwargs):
         """ Capture original values so we can deal with changes during save. """
@@ -414,6 +420,11 @@ class Link(models.Model):
     folders = models.ManyToManyField(Folder, related_name='links', blank=True, null=True)
     notes = models.TextField(blank=True)
 
+    # what info to send downstream
+    mirror_fields = ('guid', 'submitted_url', 'creation_timestamp', 'submitted_title', 'dark_archived',
+                     'dark_archived_robots_txt_blocked', 'user_deleted', 'user_deleted_timestamp',
+                     'vested', 'vested_timestamp', 'vesting_org')
+
     objects = LinkManager()
 
     def save(self, *args, **kwargs):
@@ -521,6 +532,9 @@ class Asset(models.Model):
     instapaper_timestamp = models.DateTimeField(null=True)
     instapaper_hash = models.CharField(max_length=2100, null=True)
     instapaper_id = models.IntegerField(null=True)
+
+    # what info to send downstream
+    mirror_fields = ('link', 'base_storage_path', 'image_capture', 'warc_capture', 'pdf_capture', 'text_capture')
 
     def __init__(self, *args, **kwargs):
         super(Asset, self).__init__(*args, **kwargs)
