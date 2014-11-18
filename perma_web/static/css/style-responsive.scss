@@ -788,6 +788,16 @@ div.dashboard-blurb {
             a#dashboard-users { background-position: 19px -497px; }
             a#dashboard-users:hover { background-position: -779px -497px; }
 
+            #dashboard-admin {
+                background-image: none !important;
+                span{
+                    position: absolute;
+                    left: 1em;
+                    top: 1.5em;
+                    color: black;
+                }
+            }
+
         div#dashboard-container ul#dashboard-tabs li.divider {
             border-top: 1px solid #efefef;
             height: 1px;
