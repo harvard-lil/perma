@@ -9,7 +9,8 @@
 {% block row %}
 
 <div id="dashboard-container">
-
+    
+    {% if request.user|has_group:'registrar_user,registry_user' %}
     <div class="col-sm-3">
 
         <!-- Dashboard tabs -->
@@ -39,9 +40,10 @@
             <li {% if this_page == "users_users" %}class="active" {% endif %}><a href="{% url 'user_management_manage_user' %}">Users</a></li>{% endif %}
         </ul><!--/#dashboard-tabs-->
     </div><!--/col-sm-3-->
+    {% endif %}
 
    <!-- Dashboard tab content -->
-    <div class="tab-content col-sm-9">
+    <div class="tab-content {% if request.user|has_group:'vesting_user' %}col-sm-12{% else %}col-sm-9{% endif %}">
         <div class="tab-pane active">
         {% block content %}{% endblock content %}
         </div><!--/.tab-pane-->
