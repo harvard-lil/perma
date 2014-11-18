@@ -1,14 +1,14 @@
 from django.conf import settings
 from django.core import serializers
+from django.core.files.storage import default_storage
 from django.db import models
 from django.db.models.signals import post_save, post_delete, m2m_changed
 from django.db import transaction
 from django.dispatch import receiver
 
-from perma.models import LinkUser, Registrar, VestingOrg, Link, Asset, Folder
+from perma.models import LinkUser
+from perma.storage_backends import file_saved
 from perma.utils import run_task
-
-SYNCED_MODELS = [Registrar, VestingOrg, LinkUser, Folder, Link, Asset]
 
 
 class FakeLinkUser(LinkUser):
@@ -42,7 +42,7 @@ class UpdateQueue(models.Model):
 
     @classmethod
     def init_from_instance(self, instance, **kwargs):
-        return UpdateQueue(json=serializers.serialize("json", [instance]), **kwargs)
+        return UpdateQueue(json=serializers.serialize("json", [instance], fields=instance.mirror_fields), **kwargs)
 
     class Meta:
         ordering = ['pk']
@@ -86,8 +86,9 @@ class UpdateQueue(models.Model):
 
 if settings.DOWNSTREAM_SERVERS:
     def queue_update(instance, action='update'):
-        # skip trivial updates
-        if hasattr(instance, '_no_downstream_update') and instance._no_downstream_update:
+        # Only send model classes with a mirror_fields setting.
+        # Set _no_downstream_update on individual instances to disable sending of trivial updates.
+        if not hasattr(instance, 'mirror_fields') or getattr(instance, '_no_downstream_update', False):
             return
 
         from .tasks import send_updates
@@ -99,17 +100,21 @@ if settings.DOWNSTREAM_SERVERS:
     # add all useful database updates to UpdateQueue
     @receiver(post_save)
     def model_update(sender, instance, **kwargs):
-        if sender in SYNCED_MODELS:
-            queue_update(instance)
+        queue_update(instance)
 
     @receiver(post_delete)
     def model_delete(sender, instance, **kwargs):
-        if sender in SYNCED_MODELS:
-            queue_update(instance)
+        queue_update(instance)
 
     @receiver(m2m_changed)
     def model_m2m_changed(sender, instance, **kwargs):
-        if kwargs['action'].startswith('post_') and type(instance) in SYNCED_MODELS:
-            queue_update(instance)
+        queue_update(instance)
 
+    @receiver(file_saved)
+    def broadcast_file_update(sender, **kwargs):
+        print "Got save message", sender, kwargs
+        if kwargs['instance'] == default_storage._wrapped:
+            from .tasks import trigger_media_sync
 
+            print "Saving."
+            run_task(trigger_media_sync, paths=[kwargs['path']])

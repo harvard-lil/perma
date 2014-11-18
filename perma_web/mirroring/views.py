@@ -6,10 +6,19 @@ from django.views.decorators.csrf import csrf_exempt
 
 from perma.utils import run_task
 from perma.views.common import single_linky
+import perma.models
 
-from .models import UpdateQueue, SYNCED_MODELS
+from .models import UpdateQueue
 from .tasks import get_updates, background_media_sync
 from .utils import may_be_mirrored
+
+
+# cache models to sync downstream, based on whether they have a 'mirror_fields' attribute
+SYNCED_MODELS = []
+for attr in dir(perma.models):
+    item = getattr(perma.models, attr)
+    if hasattr(item, 'mirror_fields'):
+        SYNCED_MODELS.append(item)
 
 
 def single_link_json(request, guid):
@@ -48,7 +57,7 @@ def export_database(request):
         update_index = 0
     out = {
         'update_index': update_index,
-        'database': [(Model.__name__, serializers.serialize("json", Model.objects.all())) for Model in SYNCED_MODELS]
+        'database': [(Model.__name__, serializers.serialize("json", Model.objects.all(), fields=Model.mirror_fields)) for Model in SYNCED_MODELS]
     }
     return HttpResponse(json.dumps(out), content_type="application/json")
 

@@ -99,24 +99,13 @@ def create_link(request):
         asset = Asset(link=link)
         response_object = {'linky_id': guid, 'linky_title':''}
 
-        # celery tasks to run after scraping is complete
-        postprocessing_tasks = []
-        if settings.MIRRORING_ENABLED:
-            postprocessing_tasks += [
-                trigger_media_sync.s(paths=[asset.base_storage_path+'/'])  # add a slash so the path will be expanded during export
-            ]
-
         # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
         if target_url_headers.get('content-type',None) in ['application/pdf', 'application/x-pdf'] or target_url.endswith('.pdf'):
             asset.pdf_capture = 'pending'
             asset.image_capture = 'pending'
             asset.save()
 
-            # run background celery tasks as a chain (each finishes before calling the next)
-            run_task(chain(
-                get_pdf.s(guid, target_url, asset.base_storage_path, request.META['HTTP_USER_AGENT']),
-                *postprocessing_tasks
-            ))
+            run_task(get_pdf.s(guid, target_url, asset.base_storage_path, request.META['HTTP_USER_AGENT']))
 
             response_object['message_pdf'] = True
 
@@ -125,11 +114,7 @@ def create_link(request):
             asset.warc_capture = 'pending'
             asset.save()
 
-            # run background celery tasks as a chain (each finishes before calling the next)
-            run_task(chain(
-                proxy_capture.s(guid, target_url, asset.base_storage_path, request.META['HTTP_USER_AGENT']),
-                *postprocessing_tasks
-            ))
+            run_task(proxy_capture.s(guid, target_url, asset.base_storage_path, request.META['HTTP_USER_AGENT']))
 
         return HttpResponse(json.dumps(response_object), content_type="application/json", status=201) # '201 Created' status
 
