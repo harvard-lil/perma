@@ -57,20 +57,18 @@
                                 <li><a href="{% url 'link_browser' %}">My links</a></li>
                                 
                                 {% if request.user|has_group:'registrar_user,registry_user,vesting_user' %}
+                                {% if request.user|has_group:'registrar_user,registry_user' %}
                                 <li class="divider"></li>
                                 <li role="presentation" class="dropdown-header">Manage users</li>
+                                {% endif %}
                                 {% if request.user|has_group:'registry_user' %}
                                 <li><a href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>
                                 {% endif %}
                     
                                 {% if request.user|has_group:'registrar_user,registry_user' %}
-                                <li><a href="{% url 'user_management_manage_registrar_user' %}">Registrar Users</a></li>
-                                <li><a href="{% url 'user_management_manage_vesting_org' %}">Vesting Organizations</a></li>
-                                {% endif %}
-                    
-                                <!-- Vesting users -->
-                                {% if request.user|has_group:'registrar_user,registry_user,vesting_user' %}
-                                <li><a href="{% url 'user_management_manage_vesting_user' %}">Vesting Users</a></li>
+                                <li><a href="{% url 'user_management_manage_registrar_user' %}">Registrar users</a></li>
+                                <li><a href="{% url 'user_management_manage_vesting_org' %}">Vesting organizations</a></li>
+                                <li><a href="{% url 'user_management_manage_vesting_user' %}">Vesting users</a></li>
                                 {% endif %}
                     
                                 <!-- Regular users -->
@@ -79,13 +77,17 @@
                                 <li class="divider"></li>
                                 {% endif %}
                                 
+                                <!-- Vesting users -->
+                                {% if request.user|has_group:'vesting_user' %}
+                                <li><a href="{% url 'user_management_manage_vesting_user' %}">Manage users</a></li>
+                                {% endif %}
                                 <li><a href="{% url 'user_management_settings_tools' %}">Tools</a></li>
                                 <li><a href="{% url 'user_management_settings_profile' %}">Settings</a></li>
                                 <li class="divider"></li>
                                 <li><a href="{% url 'logout' %}">Log out</a></li>
                               </ul>
                             </li>
-                            <li><a href="{% url 'create_link' %}" role="button" class="btn btn-large btn-info infinity-navbar navbar-btn" data-toggle="tooltip" title="Create new Perma link"><img src="{{ STATIC_URL }}img/infinity-white.png" alt="Loading..." /></a></li>
+                            <li><a href="{% url 'create_link' %}" role="button" class="btn btn-large btn-info infinity-navbar navbar-btn" data-toggle="tooltip" title="Create Perma archive"><img src="{{ STATIC_URL }}img/infinity-white.png" alt="Loading..." /></a></li>
 						{% else %}
                             <li><a href="{% url 'about' %}" class="navbar-link{% if this_page == 'about' %} this-page{% endif %}">About</a></li>
                             <li><a href="{% url 'user_management_limited_login' %}" class="navbar-link">Log in</a></li>
@@ -199,7 +201,7 @@
     <script type="text/javascript">
       feedback_url = "{% url 'service_receive_feedback' %}";
       $(document).ready(function(){
-        $('.infinity-navbar').tooltip({'trigger': 'hover', 'placement': 'bottom', 'container':'body', 'delay': 400});
+        $('.infinity-navbar').tooltip({'trigger': 'hover', 'placement': 'bottom', 'container':'body', 'delay': 350});
       });
     </script>
   </body>

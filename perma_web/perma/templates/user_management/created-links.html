@@ -17,14 +17,17 @@
 {% endblock %}
 
 {% block content %}
-
-	<h3>Your Perma Links</h3>
+    <div class="row">
+        <div class="col-sm-12">
+	<h3>Your Perma links</h3>
 
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{% if message.level >= 30 %}danger{% else %}success{% endif %}" style="clear:both; margin:1em">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
         {% endfor %}
     {% endif %}
+    </div>
+    </div>
 
     <div class="row panel panel-default">
         <div class="col-sm-3 folders-box">

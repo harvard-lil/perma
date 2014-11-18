@@ -269,6 +269,10 @@ div.tooltip-inner {
 
 .tooltip.bottom > .tooltip-arrow {border-bottom-color: #666;}
 
+.dropdown-header {
+    text-transform: uppercase;
+}
+
 .dropdown-menu > li > a:hover, .dropdown-menu > li > a:focus {
     background-color:#09f;
     color:#fff;
@@ -733,7 +737,7 @@ div.dashboard-blurb {
 
 #dashboard-container {
     /*overflow: hidden;*/
-    margin-top: 20px;
+    margin-top: 35px;
     position: relative;
 
     > div {
@@ -747,6 +751,10 @@ div.dashboard-blurb {
         }
         &.settings-tabs a {
             padding-left:12px;
+            
+            @media (max-width: 991px) {
+                    font-size:16px;
+                }
         }
 
         li {
