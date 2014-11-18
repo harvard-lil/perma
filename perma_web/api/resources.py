@@ -1,6 +1,8 @@
 from tastypie import fields
 from tastypie.resources import ModelResource
 from perma.models import LinkUser, Link, Asset, Folder, VestingOrg
+from django.conf.urls import url
+from tastypie.utils import trailing_slash
 from django.core.exceptions import ObjectDoesNotExist
 from tastypie.exceptions import NotFound
 from validations import LinkValidation
@@ -80,6 +82,18 @@ class VestingOrgResource(ModelResource):
             'name'
         ]
 
+class AssetResource(ModelResource):
+    # archive = fields.ForeignKey(LinkResource, 'link', full=False, null=False, readonly=True)
+    archive = fields.CharField(attribute='link_id')
+
+    class Meta:
+        resource_name = 'assets'
+        queryset = Asset.objects.all()
+        filtering = { 'archive': ['exact'] }
+
+    def dehydrate_archive(self, bundle):
+        return {'guid': bundle.data['archive']}
+
 class LinkResource(MultipartResource, ModelResource):
     guid = fields.CharField(attribute='guid', readonly=True)
     creation_timestamp = fields.DateTimeField(attribute='creation_timestamp', readonly=True)
@@ -94,6 +108,7 @@ class LinkResource(MultipartResource, ModelResource):
     created_by = fields.ForeignKey(LinkUserResource, 'created_by', full=True, null=True, blank=True, readonly=True)
     vested_by_editor = fields.ForeignKey(LinkUserResource, 'vested_by_editor', full=True, null=True, blank=True, readonly=True)
     vesting_org = fields.ForeignKey(VestingOrgResource, 'vesting_org', full=True, null=True, readonly=True)
+    assets = fields.ToManyField(AssetResource, 'assets', full=True, readonly=True)
 
     class Meta:
         authentication = DefaultAuthentication()
@@ -102,6 +117,24 @@ class LinkResource(MultipartResource, ModelResource):
         validation = LinkValidation()
         queryset = Link.objects.all()
         fields = [None] # prevents ModelResource from auto-including additional fields
+
+    # via: http://django-tastypie.readthedocs.org/en/latest/cookbook.html#nested-resources
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/assets%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_assets_list'), name="api_get_assets_list"),
+        ]
+
+    def get_assets_list(self, request, **kwargs):
+        try:
+            bundle = self.build_bundle(data={'pk': kwargs['pk']}, request=request)
+            obj = self.cached_obj_get(bundle=bundle, **self.remove_api_resource_names(kwargs))
+        except ObjectDoesNotExist:
+            return HttpGone()
+        except MultipleObjectsReturned:
+            return HttpMultipleChoices("More than one resource is found at this URI.")
+
+        asset_resource = AssetResource()
+        return asset_resource.get_list(request, archive=obj.pk)
         
     def hydrate_url(self, bundle):
         # Clean up the user submitted url
@@ -189,7 +222,6 @@ class LinkResource(MultipartResource, ModelResource):
             bundle.obj.user_deleted=True
             bundle.obj.user_deleted_timestamp=datetime.now()
             bundle.obj.save()
-
 
 class FolderResource(ModelResource):
     class Meta:
