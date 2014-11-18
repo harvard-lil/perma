@@ -121,13 +121,13 @@ class UserManagementViewsTestCase(PermaTestCase):
                        success_url=reverse('user_management_manage_user'))
 
         # manage_account
-        self.submit_form('user_management_manage_account',
+        self.submit_form('user_management_settings_profile',
                        data={
                            'a-first_name': 'First',
                            'a-last_name': 'Last',
                            'a-email': 'test_registry_member@example.com'
                        },
-                       success_url=reverse('user_management_manage_account'))
+                       success_url=reverse('user_management_settings_profile'))
 
     def test_account_creation_views(self):
         # user registration

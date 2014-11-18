@@ -908,7 +908,7 @@ def settings_password(request):
     return render_to_response('user_management/settings-password.html', context)
     
 
-@login_required
+@require_group(['registrar_user', 'vesting_user'])
 def settings_organizations(request):
     """
     Settings view organizations, leave organizations ...
