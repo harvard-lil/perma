@@ -1,49 +1,24 @@
-import os
+import json
 
-from django.conf import settings
-from django.core.files.storage import default_storage
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponse, StreamingHttpResponse
+from django.core import serializers
+from django.http import HttpResponse, HttpResponseBadRequest
+from django.views.decorators.csrf import csrf_exempt
 
-from perma.models import Asset, Link
 from perma.utils import run_task
 from perma.views.common import single_linky
+import perma.models
 
-from .tasks import update_perma, compress_link_assets
-from .utils import must_be_mirrored, may_be_mirrored
-
-
-@may_be_mirrored
-def link_assets(request, guid):
-    """
-        A service that returns a downloadable archive of the assets of a
-        given perma link.
-    """
-    target_asset = get_object_or_404(Asset, link__guid=guid)
-    # TODO: this should probably be a field on the Asset object
-    archive_path = os.path.join(settings.MEDIA_ARCHIVES_ROOT, target_asset.base_storage_path + ".zip")
-    try:
-        zip_file = default_storage.open(archive_path, "r")
-    except IOError:
-        # We already found the Asset in the database, but the zip file doesn't exist for some reason.
-        # Let's re-create it.
-        compress_link_assets(guid=guid)
-        try:
-            zip_file = default_storage.open(archive_path, "r")
-        except IOError:
-            # Weird, it still doesn't exist. Throw an error.
-            raise
-
-    # Now we've managed to open the zip file, pass the open filehandle back to Django.
-    response = StreamingHttpResponse(zip_file, content_type="application/force-download")
-    response["Content-Disposition"] = 'attachment; filename="%s"' % ("assets_%s.zip" % guid,)
-    return response
+from .models import UpdateQueue
+from .tasks import get_updates, background_media_sync
+from .utils import may_be_mirrored
 
 
-@must_be_mirrored
-def do_update_perma(request, guid):
-    run_task(update_perma, link_guid=guid)
-    return HttpResponse("OK")
+# cache models to sync downstream, based on whether they have a 'mirror_fields' attribute
+SYNCED_MODELS = []
+for attr in dir(perma.models):
+    item = getattr(perma.models, attr)
+    if hasattr(item, 'mirror_fields'):
+        SYNCED_MODELS.append(item)
 
 
 def single_link_json(request, guid):
@@ -56,13 +31,71 @@ def single_link_json(request, guid):
 
 
 @may_be_mirrored
-def manifest(request):
+def export_updates(request):
     """
-        List all Perma Links known to this server in a text file, one per line.
+        Return updates to database since last_known_update, if we still have that update stored,
+        or else return 400 Bad Request.
     """
-    # Get queryset that returns each link as a simple list containing guid.
-    known_links = Link.objects.values_list('guid')
-    # Create generator to spit out each result on its own line.
-    output_generator = (link[0]+"\n" for link in known_links)
-    # Stream results.
-    return StreamingHttpResponse(output_generator, content_type="text/tab-separated-values")
+    try:
+        last_known_update_id = int(request.GET['last_known_update'])
+    except (KeyError, ValueError):
+        return HttpResponseBadRequest('Invalid value for last_known_update.')
+    updates = UpdateQueue.objects.filter(pk__gte=last_known_update_id).values('pk', 'action', 'json')
+    if not updates or updates[0]['pk'] != last_known_update_id:
+        return HttpResponseBadRequest('Delta from id %s not available.' % last_known_update_id)
+    return HttpResponse(json.dumps(list(updates[1:])), content_type="application/json")
+
+
+@may_be_mirrored
+def export_database(request):
+    """
+        Get JSON dump of entire DB.
+    """
+    try:
+        update_index = UpdateQueue.objects.order_by('-pk')[0].pk
+    except IndexError:
+        update_index = 0
+    out = {
+        'update_index': update_index,
+        'database': [(Model.__name__, serializers.serialize("json", Model.objects.all(), fields=Model.mirror_fields)) for Model in SYNCED_MODELS]
+    }
+    return HttpResponse(json.dumps(out), content_type="application/json")
+
+
+
+# TODO: PGP sign all messages.
+
+
+@may_be_mirrored
+@csrf_exempt
+def import_updates(request):
+    """
+        Receive a set of updates and apply them.
+    """
+    print "MIRROR: Receiving updates:"
+    updates = json.loads(request.POST['updates'])
+    print "%s updates." % len(updates)
+    start_id = updates[0]['pk']
+    existing_delta_count = UpdateQueue.objects.filter(pk__gte=start_id-1).count()
+    if not existing_delta_count:
+        print "MIRROR: Previous update not found; queuing delta fetch."
+        run_task(get_updates)
+        return HttpResponse("OK")
+    if existing_delta_count > 1:
+        print "MIRROR: Stripping %s deltas already received." % (existing_delta_count-1)
+        updates = updates[existing_delta_count-1:]
+    if updates:
+        print "MIRROR: Importing %s updates." % (len(updates))
+        UpdateQueue.import_updates(updates)
+    return HttpResponse("OK")
+
+
+@may_be_mirrored
+@csrf_exempt
+def media_sync(request):
+    """
+        Receive a set of updates and apply them. We run this in a celery task so we can return immediately.
+    """
+    print "MIRROR: Receiving media sync"
+    run_task(background_media_sync, media_url=request.POST['media_url'], paths=json.loads(request.POST['paths']))
+    return HttpResponse("OK")

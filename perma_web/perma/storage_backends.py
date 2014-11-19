@@ -1,13 +1,17 @@
 # alternate storage backends
 import cStringIO as StringIO
 import os
+
 from django.contrib.staticfiles.storage import CachedFilesMixin
 from django.core.files.storage import FileSystemStorage as DjangoFileSystemStorage
 from django.core.files import File
+from django.conf import settings
+import django.dispatch
+
 from pipeline.storage import PipelineMixin
 from storages.backends.s3boto import S3BotoStorage
-from django.conf import settings
 
+file_saved = django.dispatch.Signal(providing_args=["instance", "path", "overwrite"])
 
 class StorageHelpersMixin(object):
     """
@@ -27,6 +31,7 @@ class StorageHelpersMixin(object):
             if self.exists(file_path):
                 self.delete(file_path)
         new_file_path = self.save(file_path, File(file_object))
+        file_saved.send(sender=self.__class__, instance=self, path=new_file_path, overwrite=overwrite)
         return new_file_path.split('/')[-1]
 
     def store_data_to_file(self, data, file_path, overwrite=False):

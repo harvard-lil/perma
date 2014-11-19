@@ -99,6 +99,15 @@ def retry_on_error(func):
             task.retry(exc=e)
     return with_retry
 
+def save_fields(instance, **kwargs):
+    """
+        Update and save the given fields for a model instance.
+        Use update_fields so we won't step on changes to other fields made in another thread.
+    """
+    for key, val in kwargs.items():
+        setattr(instance, key, val)
+    instance.save(update_fields=kwargs.keys())
+
 
 ### TASKS ##
 
@@ -134,11 +143,13 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
 
     This whole function runs with the local dir set to a temp dir by run_in_tempdir().
     So we can use local paths for temp files, and they'll just disappear when the function exits.
+
+    TODO: This function is probably inefficient in saving to the database after each change to asset/link.
     """
     # basic setup
 
-    asset_query = get_asset_query(link_guid)
-    link_query = get_link_query(link_guid)
+    asset = Asset.objects.get(link_id=link_guid)
+    link = asset.link
     image_name = 'cap.png'
     warc_name = 'archive.warc.gz'
     image_path = os.path.join(base_storage_path, image_name)
@@ -209,7 +220,7 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
             rp = robotparser.RobotFileParser()
             rp.parse([line.strip() for line in robots_txt_response.content.split('\n')])
             if not rp.can_fetch('Perma', target_url):
-                link_query.update(dark_archived_robots_txt_blocked=True)
+                save_fields(link, dark_archived_robots_txt_blocked=True)
         print "Robots.txt fetched."
     robots_txt_thread = threading.Thread(target=robots_txt_thread, name="robots")
     robots_txt_thread.start()
@@ -226,7 +237,7 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
         print "Waited 60 seconds for onLoad event -- giving up."
         if not unique_responses:
             # if nothing at all has loaded yet, give up on the capture
-            asset_query.update(warc_capture='failed', image_capture='failed')
+            save_fields(asset, warc_capture='failed', image_capture='failed')
             browser.quit()  # shut down phantomjs
             robots_txt_thread.join()  # wait until robots thread is done
             warcprox_controller.stop.set()  # send signal to shut down warc thread
@@ -237,7 +248,7 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
     # get page title
     print "Getting title."
     if browser.title:
-        link_query.update(submitted_title=browser.title)
+        save_fields(link, submitted_title=browser.title)
 
     # check meta tags
     # (run this in a thread and give it long enough to find the tags, but then let other stuff proceed)
@@ -252,7 +263,7 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
             meta_tag = next((tag for tag in meta_tags if tag.get_attribute('name').lower() == 'robots'), None)
         # if we found a relevant meta tag, check for noarchive
         if meta_tag and 'noarchive' in meta_tag.get_attribute("content").lower():
-            link_query.update(dark_archived_robots_txt_blocked=True)
+            save_fields(link, dark_archived_robots_txt_blocked=True)
             print "Meta found, darchiving"
         else:
             print "Meta not found."
@@ -264,7 +275,7 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
     # (we want to return results quickly, but also give javascript time to render final results)
     print "Saving first screenshot."
     save_screenshot(browser, image_path)
-    asset_query.update(image_capture=image_name)
+    save_fields(asset, image_capture=image_name)
 
     # make sure all requests are finished
     print "Waiting for post-load requests."
@@ -296,10 +307,10 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
         temp_warc_path = os.path.join(warc_writer.directory, warc_writer._f_finalname)
         with open(temp_warc_path, 'rb') as warc_file:
             warc_name = default_storage.store_file(warc_file, warc_path)
-            asset_query.update(warc_capture=warc_name)
+            save_fields(asset, warc_capture=warc_name)
     except Exception as e:
         logger.info("Web Archive File creation failed for %s: %s" % (target_url, e))
-        asset_query.update(warc_capture='failed')
+        save_fields(asset, warc_capture='failed')
 
     print "%s capture done." % link_guid
 
@@ -331,7 +342,7 @@ def get_pdf(self, link_guid, target_url, base_storage_path, user_agent):
     """
 
     # basic setup
-    asset_query = get_asset_query(link_guid)
+    asset = Asset.objects.get(link_id=link_guid)
     pdf_name = 'cap.pdf'
     pdf_path = os.path.join(base_storage_path, pdf_name)
 
@@ -350,13 +361,13 @@ def get_pdf(self, link_guid, target_url, base_storage_path, user_agent):
         # Limit our filesize
         if temp.tell() > settings.MAX_ARCHIVE_FILE_SIZE:
             logger.info("PDF capture too big, %s" % target_url)
-            asset_query.update(pdf_capture='failed', image_capture='failed')
+            save_fields(asset, pdf_capture='failed', image_capture='failed')
             return
 
     # store temp file
     temp.seek(0)
     pdf_name = default_storage.store_file(temp, pdf_path)
-    asset_query.update(pdf_capture=pdf_name)
+    save_fields(asset, pdf_capture=pdf_name)
     
     # Get first page of the PDF and created an image from it
     # Save it to disk as our image capture (likely a temporary measure)
@@ -364,7 +375,7 @@ def get_pdf(self, link_guid, target_url, base_storage_path, user_agent):
         image_name = 'cap.png'
         image_path = os.path.join(base_storage_path, image_name)
         default_storage.store_data_to_file(img.make_blob('png'), image_path, overwrite=True)
-        asset_query.update(image_capture=image_name)
+        save_fields(asset, image_capture=image_name)
 
 @shared_task
 def get_nightly_stats():

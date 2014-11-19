@@ -81,6 +81,9 @@
                                 {% if request.user|has_group:'vesting_user' %}
                                 <li><a href="{% url 'user_management_manage_vesting_user' %}">Manage users</a></li>
                                 {% endif %}
+                                {% if request.user.is_staff %}
+                                <li><a href="{% url 'admin:index' %}">Admin console</a></li>
+                            {% endif %}
                                 <li><a href="{% url 'user_management_settings_tools' %}">Tools</a></li>
                                 <li><a href="{% url 'user_management_settings_profile' %}">Settings</a></li>
                                 <li class="divider"></li>

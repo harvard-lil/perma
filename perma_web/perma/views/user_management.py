@@ -460,9 +460,7 @@ def list_users_in_group(request, group_name):
                     new_user.vesting_org = request.user.vesting_org
 
             new_user.save()
-
-            group = Group.objects.get(name=group_name)
-            new_user.groups.add(group)
+            new_user.groups = [Group.objects.get(name=group_name)]
 
             email_new_user(request, new_user)
 
@@ -488,7 +486,7 @@ def edit_user_in_group(request, user_id, group_name):
 
     # Registrar members can only edit their own vesting members
     if not is_registry:
-    	if group_name == 'vesting_user' and request.user.registrar != target_user.vesting_org.registrar:
+        if group_name == 'vesting_user' and request.user.registrar != target_user.vesting_org.registrar:
             raise Http404
         if group_name == 'registrar_user' or group_name == 'user' or group_name == 'registry_user':
             raise Http404
@@ -586,12 +584,8 @@ def vesting_user_add_user(request):
                 target_user.vesting_org = vesting_org
             else:
                 target_user.vesting_org = request.user.vesting_org
-    
-            group = Group.objects.get(name='vesting_user')
-            all_groups = Group.objects.all()
-            for ag in all_groups:
-              target_user.groups.remove(ag)
-            target_user.groups.add(group)
+
+            target_user.groups = [Group.objects.get(name='vesting_user')]
     
             if is_new_user:
                 target_user.is_active = False
@@ -644,12 +638,7 @@ def registrar_user_add_user(request):
                 is_new_user = True
     
             target_user.registrar = request.user.registrar
-    
-            group = Group.objects.get(name='registrar_user')
-            all_groups = Group.objects.all()
-            for ag in all_groups:
-              target_user.groups.remove(ag)
-            target_user.groups.add(group)
+            target_user.groups = [Group.objects.get(name='registrar_user')]
     
             if is_new_user:
                 target_user.is_active = False
@@ -676,12 +665,7 @@ def vesting_user_leave_vesting_org(request):
     if request.method == 'POST':
         request.user.vesting_org = None
         request.user.save()
-        
-        group = Group.objects.get(name='user')
-        all_groups = Group.objects.all()
-        for ag in all_groups:
-            request.user.groups.remove(ag)
-        request.user.groups.add(group)
+        request.user.groups = [Group.objects.get(name='user')]
 
         return HttpResponseRedirect(reverse('user_management_manage_account'))
 
@@ -1061,14 +1045,27 @@ def limited_login(request, template_name='registration/login.html',
                 max_age = request.session.get_expiry_age()
                 expires_time = time.time() + max_age
                 expires = cookie_date(expires_time)
-            response.set_cookie(settings.MIRROR_COOKIE_NAME,
-                                sign_message(user_info),
-                                max_age=max_age,
-                                expires=expires,
-                                domain=get_mirror_cookie_domain(request),
-                                path=settings.SESSION_COOKIE_PATH,
-                                secure=settings.SESSION_COOKIE_SECURE or None,
-                                httponly=settings.SESSION_COOKIE_HTTPONLY or None)
+                
+            
+            if settings.MIRRORING_ENABLED:
+                response.set_cookie(settings.MIRROR_COOKIE_NAME,
+                                    sign_message(user_info),
+                                    max_age=max_age,
+                                    expires=expires,
+                                    domain=get_mirror_cookie_domain(request),
+                                    path=settings.SESSION_COOKIE_PATH,
+                                    secure=settings.SESSION_COOKIE_SECURE or None,
+                                    httponly=settings.SESSION_COOKIE_HTTPONLY or None)
+            else:
+                response.set_cookie(settings.MIRROR_COOKIE_NAME,
+                                    json.dumps(user_info),
+                                    max_age=max_age,
+                                    expires=expires,
+                                    domain=get_mirror_cookie_domain(request),
+                                    path=settings.SESSION_COOKIE_PATH,
+                                    secure=settings.SESSION_COOKIE_SECURE or None,
+                                    httponly=settings.SESSION_COOKIE_HTTPONLY or None)
+                                    
 
             return response
     else:
@@ -1102,8 +1099,7 @@ def register(request):
             new_user.is_active = False
             new_user.save()
 
-            group = Group.objects.get(name='user')
-            new_user.groups.add(group)
+            new_user.groups = [Group.objects.get(name='user')]
             
             email_new_user(request, new_user)
 

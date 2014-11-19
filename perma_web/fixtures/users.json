@@ -141,6 +141,7 @@
         "model": "perma.LinkUser",
         "fields": {
             "is_active": true,
+            "is_staff": true,
             "is_confirmed": true,
             "last_login": "2013-07-23T18:55:41Z",
             "groups": [
