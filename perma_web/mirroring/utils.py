@@ -1,9 +1,11 @@
 import datetime
 from functools import wraps
 import hashlib
+import json
+from django.views.decorators.csrf import csrf_exempt
 import gnupg
 import pytz
-import re
+import time
 
 from django.conf import settings
 from django.utils.decorators import available_attrs
@@ -68,21 +70,55 @@ def sign_message(message, key=settings.GPG_PRIVATE_KEY):
     fingerprint = get_fingerprint(key)
     return get_gpg().sign(message, keyid=fingerprint)
 
-def read_signed_message(message, key=settings.UPSTREAM_SERVER.get('public_key') if settings.MIRROR_SERVER else settings.GPG_PUBLIC_KEY):
-    if not key:
-        return message
+def read_signed_message(message, valid_keys, max_age=None, cache=False):
+    """
+        Read a PGP-signed message and return its data, if the signing key matches `key`.
+        If max_age is not None, we will raise an exception if the message was signed more than max_age seconds ago.
+    """
+    verified_message = None
+    cache_key = None
 
-    # We cache decoded cookies because this will have to be done on each request.
-    cache_key = 'gpg-' + hashlib.sha256(message).hexdigest()
-    verified_message = django_cache.get(cache_key)
+    # deal with single key passed as valid_keys
+    if isinstance(valid_keys, basestring):
+        valid_keys = [valid_keys]
+
+    if cache:
+        # Try to fetch from cache.
+        cache_key = 'gpg-' + hashlib.sha256(message).hexdigest()
+        verified_message = django_cache.get(cache_key)
 
     if not verified_message:
         # Not in cache, run decode.
-        fingerprint = get_fingerprint(key)
+        valid_fingerprints = set(get_fingerprint(key) for key in valid_keys)
         verified_message = get_gpg().decrypt(message)  # decrypt instead of verify, even if message isn't encrypted, so we get the message content in verified_message.data
-        if verified_message.fingerprint != fingerprint:
-            raise Exception("Signature verification failed: fingerprint does not match %s for message %s." % (fingerprint, message))
+        if verified_message.fingerprint not in valid_fingerprints:
+            raise Exception("Signature verification failed: fingerprint does not match %s for message %s." % (valid_fingerprints, message))
+        if max_age is not None and time.time() - int(verified_message.timestamp) > max_age:
+            raise Exception("Message is too old.")
         verified_message = verified_message.data[:-1]  # strip extra \n that gpg adds
-        django_cache.set(cache_key, verified_message)
+
+        if cache:
+            django_cache.set(cache_key, verified_message)
 
     return verified_message
+
+
+### auth ###
+
+def sign_post_data(json_data):
+    return {'signed_data':sign_message(json.dumps(json_data))}
+
+def read_request_decorator(func, valid_keys):
+    @csrf_exempt  # don't want/need CSRF because we're making sure these requests are signed
+    @wraps(func)
+    def decode(request):
+        message = read_signed_message(request.POST['signed_data'], valid_keys, max_age=60*5)
+        kwargs = json.loads(message)
+        return func(request, **kwargs)
+    return decode
+
+def read_upstream_request(func):
+    return read_request_decorator(func, [settings.UPSTREAM_SERVER.get('public_key')])
+
+def read_downstream_request(func):
+    return read_request_decorator(func, [server['public_key'] for server in settings.DOWNSTREAM_SERVERS])

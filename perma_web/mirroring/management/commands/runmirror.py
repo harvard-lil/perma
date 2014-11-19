@@ -84,6 +84,7 @@ class Command(BaseCommand):
 
         try:
             print "Creating mirror database ..."
+            print "(If you get stuck on this step after a previous run, try `sudo service mysql restart`)"
             main_database = settings.DATABASES['default']['NAME']
             mirror_database = main_database+"_mirror"
             mysql_credentials = [
@@ -108,6 +109,7 @@ class Command(BaseCommand):
             print "Launching main server ..."
             main_server_env = dict(
                 DJANGO__DOWNSTREAM_SERVERS__0__address='http://%s:%s' % (mirror_server_address, mirror_server_port),
+                DJANGO__DOWNSTREAM_SERVERS__0__public_key=settings.GPG_PUBLIC_KEY,
                 DJANGO__MIRRORING_ENABLED='True',
                 DJANGO__CELERY_DEFAULT_QUEUE='runmirror_main_queue',
                 DJANGO__DIRECT_MEDIA_URL='http://%s:%s/media/' % (main_server_media, router_port),
@@ -127,7 +129,6 @@ class Command(BaseCommand):
                 DJANGO__MIRROR_SERVER='True',
                 DJANGO__UPSTREAM_SERVER__address='http://%s:%s' % (main_server_address, main_server_port),
                 DJANGO__UPSTREAM_SERVER__public_key=settings.GPG_PUBLIC_KEY,
-                #DJANGO__RUN_TASKS_ASYNC='False',
                 DJANGO__MEDIA_ROOT=temp_dir.name,
                 DJANGO__WARC_HOST='%s:%s' % (mirror_server_media, router_port),
             )
