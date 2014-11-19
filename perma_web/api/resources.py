@@ -11,7 +11,7 @@ from tastypie.authentication import ApiKeyAuthentication
 from authentication import DefaultAuthentication
 
 from tastypie.authorization import ReadOnlyAuthorization
-from authorizations import LinkAuthorization
+from authorizations import DefaultAuthorization
 
 # LinkResource
 from celery import chain
@@ -123,7 +123,7 @@ class LinkResource(MultipartResource, ModelResource):
         queryset = Link.objects.all()
         fields = [None] # prevents ModelResource from auto-including additional fields
         authentication = DefaultAuthentication()
-        authorization = LinkAuthorization()
+        authorization = DefaultAuthorization(user_field='created_by')
         validation = LinkValidation()
         always_return_data = True
 
@@ -250,4 +250,3 @@ class FolderResource(ModelResource):
             'slug',
             'tree_id'
         ]
-        
