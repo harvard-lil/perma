@@ -991,22 +991,21 @@ def limited_login(request, template_name='registration/login.html',
 
             response = HttpResponseRedirect(redirect_to)
 
-            # Set the user-info cookie for mirror servers.
-            # This will be set by the main server, e.g. //dashboard.perma.cc,
-            # but will be readable by any mirror serving //perma.cc.
-            user_info = serializers.serialize("json", [request.user], fields=['groups','registrar','vesting_org'])
-
-            # The cookie should last as long as the login cookie, so cookie logic is copied from SessionMiddleware.
-            if request.session.get_expire_at_browser_close():
-                max_age = None
-                expires = None
-            else:
-                max_age = request.session.get_expiry_age()
-                expires_time = time.time() + max_age
-                expires = cookie_date(expires_time)
-                
-            
             if settings.MIRRORING_ENABLED:
+                # Set the user-info cookie for mirror servers.
+                # This will be set by the main server, e.g. //dashboard.perma.cc,
+                # but will be readable by any mirror serving //perma.cc.
+                user_info = serializers.serialize("json", [request.user], fields=['groups','registrar','vesting_org'])
+
+                # The cookie should last as long as the login cookie, so cookie logic is copied from SessionMiddleware.
+                if request.session.get_expire_at_browser_close():
+                    max_age = None
+                    expires = None
+                else:
+                    max_age = request.session.get_expiry_age()
+                    expires_time = time.time() + max_age
+                    expires = cookie_date(expires_time)
+
                 response.set_cookie(settings.MIRROR_COOKIE_NAME,
                                     sign_message(user_info),
                                     max_age=max_age,
@@ -1015,16 +1014,6 @@ def limited_login(request, template_name='registration/login.html',
                                     path=settings.SESSION_COOKIE_PATH,
                                     secure=settings.SESSION_COOKIE_SECURE or None,
                                     httponly=settings.SESSION_COOKIE_HTTPONLY or None)
-            else:
-                response.set_cookie(settings.MIRROR_COOKIE_NAME,
-                                    json.dumps(user_info),
-                                    max_age=max_age,
-                                    expires=expires,
-                                    domain=get_mirror_cookie_domain(request),
-                                    path=settings.SESSION_COOKIE_PATH,
-                                    secure=settings.SESSION_COOKIE_SECURE or None,
-                                    httponly=settings.SESSION_COOKIE_HTTPONLY or None)
-                                    
 
             return response
     else:
