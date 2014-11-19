@@ -18,3 +18,7 @@ class ApiResourceTestCase(ResourceTestCase):
         super(ApiResourceTestCase, self).setUp()
         self.api_client = TestApiClient(serializer=MultipartSerializer())
         self.url_base = "/v1"
+
+    def get_credentials(self, user=None):
+        user = user or self.user
+        return self.create_apikey(username=user.email, api_key=user.api_key.key)

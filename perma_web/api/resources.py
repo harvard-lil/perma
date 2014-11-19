@@ -6,6 +6,8 @@ from tastypie.utils import trailing_slash
 from django.core.exceptions import ObjectDoesNotExist
 from tastypie.exceptions import NotFound
 from validations import LinkValidation
+
+from tastypie.authentication import ApiKeyAuthentication
 from authentication import DefaultAuthentication
 
 from tastypie.authorization import ReadOnlyAuthorization
@@ -47,7 +49,7 @@ class CurrentUserResource(ModelResource):
     class Meta:
         resource_name = 'user'
         queryset = LinkUser.objects.all()
-        authentication = DefaultAuthentication()
+        authentication = ApiKeyAuthentication()
         authorization = ReadOnlyAuthorization()
         list_allowed_methods = []
         detail_allowed_methods = ['get']
@@ -113,12 +115,12 @@ class LinkResource(MultipartResource, ModelResource):
     # assets = fields.ToManyField(AssetResource, 'assets', full=True, readonly=True)
 
     class Meta:
-        authentication = DefaultAuthentication()
-        authorization = LinkAuthorization()
         resource_name = 'archives'
-        validation = LinkValidation()
         queryset = Link.objects.all()
         fields = [None] # prevents ModelResource from auto-including additional fields
+        authentication = DefaultAuthentication()
+        authorization = LinkAuthorization()
+        validation = LinkValidation()
 
     # via: http://django-tastypie.readthedocs.org/en/latest/cookbook.html#nested-resources
     def prepend_urls(self):
