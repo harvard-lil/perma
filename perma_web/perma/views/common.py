@@ -50,6 +50,22 @@ class DirectTemplateView(TemplateView):
         """ Add must_be_mirrored decorator. """
         return super(DirectTemplateView, self).dispatch(request, *args, **kwargs)
 
+
+def landing(request):
+    """
+    The landing page
+    """
+    site_name = str(Site.objects.get_current())
+    
+    if request.user.is_authenticated() and ('HTTP_REFERER' not in request.META or request.META['HTTP_REFERER'].find(site_name) == -1):
+        return HttpResponseRedirect(reverse('create_link'))
+        
+    else:
+        context = RequestContext(request, {'this_page': 'landing'})
+    
+        return render_to_response('landing.html', context)
+    
+
 def stats(request):
     """
     The global stats

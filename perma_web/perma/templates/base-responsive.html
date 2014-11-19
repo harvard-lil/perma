@@ -83,7 +83,7 @@
                                 {% endif %}
                                 {% if request.user.is_staff %}
                                 <li><a href="{% url 'admin:index' %}">Admin console</a></li>
-                            {% endif %}
+                                {% endif %}
                                 <li><a href="{% url 'user_management_settings_tools' %}">Tools</a></li>
                                 <li><a href="{% url 'user_management_settings_profile' %}">Settings</a></li>
                                 <li class="divider"></li>

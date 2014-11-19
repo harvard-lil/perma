@@ -13,7 +13,7 @@ guid_pattern = r'(?P<guid>[a-zA-Z0-9\-]+)'
 urlpatterns = patterns('perma.views',
 
     # Common Pages
-    url(r'^$', DirectTemplateView.as_view(template_name='landing.html', extra_context={'this_page':'landing'}), name='landing'),
+    url(r'^$', 'common.landing', name='landing'),
     url(r'^tools/?$', DirectTemplateView.as_view(template_name='tools.html'), name='tools'),
     url(r'^about/?$', DirectTemplateView.as_view(template_name='about.html'), name='about'),
     url(r'^additional-resources/?$', DirectTemplateView.as_view(template_name='additional-resources.html'), name='additional_resources'),
