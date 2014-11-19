@@ -45,33 +45,6 @@ USER_FIELDS = [
     'last_name'
 ]
 
-class CurrentUserResource(ModelResource):
-    class Meta:
-        resource_name = 'user'
-        queryset = LinkUser.objects.all()
-        always_return_data = True
-        authentication = ApiKeyAuthentication()
-        authorization = ReadOnlyAuthorization()
-        list_allowed_methods = []
-        detail_allowed_methods = ['get']
-        fields = USER_FIELDS
-
-    def dispatch_list(self, request, **kwargs):
-        return self.dispatch_detail(request, **kwargs)
-
-    def obj_get(self, bundle, **kwargs):
-        '''
-        Always returns the logged in user.
-        '''
-        return bundle.request.user
-
-    def get_resource_uri(self, bundle_or_obj=None, url_name='api_dispatch_list'):
-        bundle_or_obj = None
-        try:
-            return self._build_reverse_url(url_name, kwargs=self.resource_uri_kwargs(bundle_or_obj))
-        except NoReverseMatch:
-            return ''
-
 class LinkUserResource(ModelResource):
     class Meta:
         resource_name = 'users'
@@ -250,3 +223,68 @@ class FolderResource(ModelResource):
             'slug',
             'tree_id'
         ]
+
+class CurrentUserResource(ModelResource):
+    class Meta:
+        resource_name = 'user'
+        queryset = LinkUser.objects.all()
+        always_return_data = True
+        authentication = ApiKeyAuthentication()
+        authorization = ReadOnlyAuthorization()
+        list_allowed_methods = []
+        detail_allowed_methods = ['get']
+        fields = USER_FIELDS
+
+    # Limit the url to only the first route (/resource) to allow nested resources
+    def base_urls(self):
+        return [super(CurrentUserResource, self).base_urls()[0]]
+
+    # Map the detail view to the list view so that detail shows at the resource root
+    def dispatch_list(self, request, **kwargs):
+        return self.dispatch_detail(request, **kwargs)
+
+    def obj_get(self, bundle, **kwargs):
+        '''
+        Always returns the logged in user.
+        '''
+        return bundle.request.user
+
+    # Build the URI (included in the JSON response) to match our remapped dispatch_list
+    def get_resource_uri(self, bundle_or_obj=None, url_name='api_dispatch_list'):
+        bundle_or_obj = None
+        try:
+            return self._build_reverse_url(url_name, kwargs=self.resource_uri_kwargs(bundle_or_obj))
+        except NoReverseMatch:
+            return ''
+
+class CurrentUserLinkResource(LinkResource):
+    class Meta(LinkResource.Meta):
+        resource_name = 'user/' + LinkResource.Meta.resource_name
+
+    def obj_create(self, bundle, **kwargs):
+        """
+        Assign created folders to the current user
+        """
+        return super(CurrentUserFolderResource, self).obj_create(bundle, created_by=bundle.request.user)
+
+    def apply_authorization_limits(self, request, object_list):
+        """
+        Return the user's folders
+        """
+        return object_list.filter(created_by=request.user)
+
+class CurrentUserFolderResource(FolderResource):
+    class Meta(FolderResource.Meta):
+        resource_name = 'user/' + FolderResource.Meta.resource_name
+
+    def obj_create(self, bundle, **kwargs):
+        """
+        Assign created folders to the current user
+        """
+        return super(CurrentUserFolderResource, self).obj_create(bundle, user=bundle.request.user)
+
+    def apply_authorization_limits(self, request, object_list):
+        """
+        Return the user's folders
+        """
+        return object_list.filter(user=request.user)

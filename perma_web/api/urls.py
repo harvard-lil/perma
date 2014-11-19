@@ -1,16 +1,21 @@
 from django.conf.urls import *
 from tastypie.api import Api
-from api.resources import (CurrentUserResource,
-                           VestingOrgResource,
+from api.resources import (VestingOrgResource,
                            LinkResource,
                            FolderResource,
-                           AssetResource)
+                           AssetResource,
+                           CurrentUserResource,
+                           CurrentUserLinkResource,
+                           CurrentUserFolderResource)
 
 v1_api = Api(api_name='v1')
-v1_api.register(CurrentUserResource())
 v1_api.register(VestingOrgResource())
 v1_api.register(LinkResource())
 v1_api.register(FolderResource())
 v1_api.register(AssetResource())
+# /user and /user/sub_resource urls
+v1_api.register(CurrentUserResource())
+v1_api.register(CurrentUserLinkResource())
+v1_api.register(CurrentUserFolderResource())
 
 urlpatterns = v1_api.urls
