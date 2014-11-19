@@ -24,6 +24,13 @@ import os
 from django.core.files.storage import default_storage
 from datetime import datetime
 
+class DefaultResource(ModelResource):
+
+    def __init__(self, api_name=None):
+        super(DefaultResource, self).__init__(api_name=api_name)
+        
+        if not getattr(self._meta, 'user_field', None):
+            self._meta.user_field = 'user'
 
 # via: http://stackoverflow.com/a/14134853/313561
 # also: https://github.com/toastdriven/django-tastypie/issues/42#issuecomment-5485666
@@ -75,7 +82,7 @@ class AssetResource(ModelResource):
     def dehydrate_archive(self, bundle):
         return {'guid': bundle.data['archive']}
 
-class LinkResource(MultipartResource, ModelResource):
+class LinkResource(MultipartResource, DefaultResource):
     guid = fields.CharField(attribute='guid', readonly=True)
     creation_timestamp = fields.DateTimeField(attribute='creation_timestamp', readonly=True)
     url = fields.CharField(attribute='submitted_url')
@@ -95,8 +102,9 @@ class LinkResource(MultipartResource, ModelResource):
         resource_name = 'archives'
         queryset = Link.objects.all()
         fields = [None] # prevents ModelResource from auto-including additional fields
+        user_field = 'created_by'
         authentication = DefaultAuthentication()
-        authorization = DefaultAuthorization(user_field='created_by')
+        authorization = DefaultAuthorization()
         validation = LinkValidation()
         always_return_data = True
 
