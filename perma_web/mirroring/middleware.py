@@ -64,7 +64,10 @@ def get_user(request):
 
 class MirrorAuthenticationMiddleware(AuthenticationMiddleware):
     def process_request(self, request):
-        request.user = SimpleLazyObject(lambda: get_user(request))
+        if settings.MIRRORING_ENABLED:
+            request.user = SimpleLazyObject(lambda: get_user(request))
+        else:
+            super(MirrorAuthenticationMiddleware, self).process_request(request)
 
 
 ### forwarding ###
