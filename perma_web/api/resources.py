@@ -49,6 +49,7 @@ class CurrentUserResource(ModelResource):
     class Meta:
         resource_name = 'user'
         queryset = LinkUser.objects.all()
+        always_return_data = True
         authentication = ApiKeyAuthentication()
         authorization = ReadOnlyAuthorization()
         list_allowed_methods = []
@@ -75,12 +76,14 @@ class LinkUserResource(ModelResource):
     class Meta:
         resource_name = 'users'
         queryset = LinkUser.objects.all()
+        always_return_data = True
         fields = USER_FIELDS
 
 class VestingOrgResource(ModelResource):
     class Meta:
         resource_name = 'vesting_orgs'
         queryset = VestingOrg.objects.all()
+        always_return_data = True
         fields = [
             'id',
             'name'
@@ -94,6 +97,7 @@ class AssetResource(ModelResource):
         resource_name = 'assets'
         queryset = Asset.objects.all()
         filtering = { 'archive': ['exact'] }
+        always_return_data = True
 
     def dehydrate_archive(self, bundle):
         return {'guid': bundle.data['archive']}
@@ -121,6 +125,7 @@ class LinkResource(MultipartResource, ModelResource):
         authentication = DefaultAuthentication()
         authorization = LinkAuthorization()
         validation = LinkValidation()
+        always_return_data = True
 
     # via: http://django-tastypie.readthedocs.org/en/latest/cookbook.html#nested-resources
     def prepend_urls(self):
@@ -231,6 +236,7 @@ class FolderResource(ModelResource):
     class Meta:
         resource_name = 'folders'
         queryset = Folder.objects.all()
+        always_return_data = True
         fields = [
             'creation_timestamp',
             'id',
@@ -244,3 +250,4 @@ class FolderResource(ModelResource):
             'slug',
             'tree_id'
         ]
+        

@@ -19,6 +19,7 @@ class CurrentUserResourceTestCase(ApiResourceTestCase):
         obj = self.deserialize(resp)
         keys = ['id','first_name','last_name']
         self.assertKeys(obj, keys+['resource_uri'])
+        # Make sure the JSON contains the same values as the authenticated user
         for key in keys:
             self.assertEqual(obj[key], getattr(self.user, key))
 
