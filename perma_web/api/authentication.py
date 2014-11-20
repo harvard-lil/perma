@@ -4,8 +4,6 @@ class DefaultAuthentication(ApiKeyAuthentication):
     """
     Allow all GET requests through
     """
-
     def is_authenticated(self, request, **kwargs):
-        if request.method == 'GET':
-            return True
-        return super(DefaultAuthentication, self).is_authenticated(request, **kwargs)
+        result = super(DefaultAuthentication, self).is_authenticated(request, **kwargs)
+        return request.method == 'GET' or result

@@ -11,7 +11,7 @@ from tastypie.authentication import ApiKeyAuthentication
 from authentication import DefaultAuthentication
 
 from tastypie.authorization import ReadOnlyAuthorization
-from authorizations import DefaultAuthorization
+from authorizations import DefaultAuthorization, CurrentUserAuthorization
 
 # LinkResource
 from celery import chain
@@ -26,6 +26,11 @@ from datetime import datetime
 
 class DefaultResource(ModelResource):
 
+    class Meta:
+        authentication = DefaultAuthentication()
+        authorization = DefaultAuthorization()
+        always_return_data = True
+    
     def __init__(self, api_name=None):
         super(DefaultResource, self).__init__(api_name=api_name)
         
@@ -52,32 +57,29 @@ USER_FIELDS = [
     'last_name'
 ]
 
-class LinkUserResource(ModelResource):
-    class Meta:
+class LinkUserResource(DefaultResource):
+    class Meta(DefaultResource.Meta):
         resource_name = 'users'
         queryset = LinkUser.objects.all()
-        always_return_data = True
         fields = USER_FIELDS
 
-class VestingOrgResource(ModelResource):
-    class Meta:
+class VestingOrgResource(DefaultResource):
+    class Meta(DefaultResource.Meta):
         resource_name = 'vesting_orgs'
         queryset = VestingOrg.objects.all()
-        always_return_data = True
         fields = [
             'id',
             'name'
         ]
 
-class AssetResource(ModelResource):
+class AssetResource(DefaultResource):
     # archive = fields.ForeignKey(LinkResource, 'link', full=False, null=False, readonly=True)
     archive = fields.CharField(attribute='link_id')
 
-    class Meta:
+    class Meta(DefaultResource.Meta):
         resource_name = 'assets'
         queryset = Asset.objects.all()
         filtering = { 'archive': ['exact'] }
-        always_return_data = True
 
     def dehydrate_archive(self, bundle):
         return {'guid': bundle.data['archive']}
@@ -98,15 +100,12 @@ class LinkResource(MultipartResource, DefaultResource):
     vesting_org = fields.ForeignKey(VestingOrgResource, 'vesting_org', full=True, null=True, readonly=True)
     # assets = fields.ToManyField(AssetResource, 'assets', full=True, readonly=True)
 
-    class Meta:
+    class Meta(DefaultResource.Meta):
         resource_name = 'archives'
         queryset = Link.objects.all()
         fields = [None] # prevents ModelResource from auto-including additional fields
         user_field = 'created_by'
-        authentication = DefaultAuthentication()
-        authorization = DefaultAuthorization()
         validation = LinkValidation()
-        always_return_data = True
 
     # via: http://django-tastypie.readthedocs.org/en/latest/cookbook.html#nested-resources
     def prepend_urls(self):
@@ -213,11 +212,11 @@ class LinkResource(MultipartResource, DefaultResource):
             bundle.obj.user_deleted_timestamp=datetime.now()
             bundle.obj.save()
 
-class FolderResource(ModelResource):
-    class Meta:
+class FolderResource(DefaultResource):
+    class Meta(DefaultResource.Meta):
         resource_name = 'folders'
         queryset = Folder.objects.all()
-        always_return_data = True
+        user_field = 'created_by'
         fields = [
             'creation_timestamp',
             'id',
@@ -232,13 +231,12 @@ class FolderResource(ModelResource):
             'tree_id'
         ]
 
-class CurrentUserResource(ModelResource):
-    class Meta:
+class CurrentUserResource(DefaultResource):
+    class Meta(DefaultResource.Meta):
         resource_name = 'user'
         queryset = LinkUser.objects.all()
-        always_return_data = True
         authentication = ApiKeyAuthentication()
-        authorization = ReadOnlyAuthorization()
+        authorization = CurrentUserAuthorization()
         list_allowed_methods = []
         detail_allowed_methods = ['get']
         fields = USER_FIELDS
@@ -265,34 +263,22 @@ class CurrentUserResource(ModelResource):
         except NoReverseMatch:
             return ''
 
-class CurrentUserLinkResource(LinkResource):
-    class Meta(LinkResource.Meta):
+class CurrentUserNestedResource(object):
+    class Meta:
+        authentication = ApiKeyAuthentication()
+        authorization = CurrentUserAuthorization()
+
+    def obj_create(self, bundle, **kwargs):
+        """
+        Assign created objects to the current user
+        """
+        params = {self._meta.user_field: bundle.request.user}
+        return super(CurrentUserFolderResource, self).obj_create(bundle, **params)
+
+class CurrentUserLinkResource(CurrentUserNestedResource, LinkResource):
+    class Meta(CurrentUserNestedResource.Meta, LinkResource.Meta):
         resource_name = 'user/' + LinkResource.Meta.resource_name
 
-    def obj_create(self, bundle, **kwargs):
-        """
-        Assign created folders to the current user
-        """
-        return super(CurrentUserFolderResource, self).obj_create(bundle, created_by=bundle.request.user)
-
-    def apply_authorization_limits(self, request, object_list):
-        """
-        Return the user's folders
-        """
-        return object_list.filter(created_by=request.user)
-
-class CurrentUserFolderResource(FolderResource):
-    class Meta(FolderResource.Meta):
+class CurrentUserFolderResource(CurrentUserNestedResource, FolderResource):
+    class Meta(CurrentUserNestedResource.Meta, FolderResource.Meta):
         resource_name = 'user/' + FolderResource.Meta.resource_name
-
-    def obj_create(self, bundle, **kwargs):
-        """
-        Assign created folders to the current user
-        """
-        return super(CurrentUserFolderResource, self).obj_create(bundle, user=bundle.request.user)
-
-    def apply_authorization_limits(self, request, object_list):
-        """
-        Return the user's folders
-        """
-        return object_list.filter(user=request.user)
