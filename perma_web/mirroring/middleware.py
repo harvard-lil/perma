@@ -54,7 +54,7 @@ def get_user(request):
             user_info = request.COOKIES.get(settings.MIRROR_COOKIE_NAME)
             if user_info:
                 try:
-                    user_info = read_signed_message(user_info)
+                    user_info = read_signed_message(user_info, settings.UPSTREAM_SERVER['public_key'], max_age=request.session.get_expiry_age())
                     user = FakeLinkUser.init_from_serialized_user(user_info)
                 except Exception, e:
                     print "Error loading mirror user:", e
@@ -64,7 +64,10 @@ def get_user(request):
 
 class MirrorAuthenticationMiddleware(AuthenticationMiddleware):
     def process_request(self, request):
-        request.user = SimpleLazyObject(lambda: get_user(request))
+        if settings.MIRRORING_ENABLED:
+            request.user = SimpleLazyObject(lambda: get_user(request))
+        else:
+            super(MirrorAuthenticationMiddleware, self).process_request(request)
 
 
 ### forwarding ###

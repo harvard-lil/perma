@@ -57,6 +57,7 @@ class UpdateQueue(models.Model):
         # first save updates to our downstream copy of the UpdateQueue
         model_updates = []
         for update in updates:
+            print "IMPORTING", update['json']
             UpdateQueue(**update).save()
             decoded_instance = serializers.deserialize("json", update['json']).next().object
 
@@ -65,7 +66,7 @@ class UpdateQueue(models.Model):
             # (which happens frequently with common database access patterns).
             last_instance = model_updates[-1] if model_updates else None
             this_instance = {'action':update['action'], 'instance':decoded_instance}
-            if last_instance and type(last_instance['instance']) == type(decoded_instance['instance']) and last_instance['instance'].pk == decoded_instance['instance'].pk:
+            if last_instance and type(last_instance['instance']) == type(decoded_instance) and last_instance['instance'].pk == decoded_instance.pk:
                 # this instance is the same as the last one -- overwrite the last one
                 model_updates[-1] = this_instance
             else:

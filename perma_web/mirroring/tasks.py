@@ -13,30 +13,35 @@ from django.core.urlresolvers import reverse
 from django.core import serializers
 from django.db import transaction
 
+from .utils import sign_post_data
 from .models import UpdateQueue
 
 ### helpers ###
 
-def upstream_request(relative_url, **request_kwargs):
+def upstream_request(relative_url, json_data={}, **request_kwargs):
     """ Make a request to the upstream server. """
     request_kwargs.setdefault('headers', settings.UPSTREAM_SERVER.get('headers', {}))
-    method = request_kwargs.pop('method', 'GET')
-    return requests.request(method, urljoin(settings.UPSTREAM_SERVER['address'], relative_url), **request_kwargs)
+    if 'data' not in request_kwargs:
+        request_kwargs['data'] = sign_post_data(json_data)
+    return requests.request('POST', urljoin(settings.UPSTREAM_SERVER['address'], relative_url), **request_kwargs)
 
-def downstream_request(downstream_server, relative_url, **request_kwargs):
+def downstream_request(downstream_server, relative_url, json_data={}, **request_kwargs):
     """ Make a request to the downstream server. """
     request_kwargs.setdefault('headers', downstream_server.get('headers', {}))
-    method = request_kwargs.pop('method', 'GET')
-    return requests.request(method, urljoin(downstream_server['address'], relative_url), **request_kwargs)
+    if 'data' not in request_kwargs:
+        request_kwargs['data'] = sign_post_data(json_data)
+    return requests.request('POST', urljoin(downstream_server['address'], relative_url), **request_kwargs)
 
-def parallel_downstream_request(relative_url, **request_kwargs):
+def parallel_downstream_request(relative_url, json_data={}, **request_kwargs):
     """ Make a request to all downstream requests in parallel threads, returning when all are finished. """
-    pool = ThreadPool(processes=min(len(settings.DOWNSTREAM_SERVERS), 10))
+    if 'data' not in request_kwargs:
+        request_kwargs['data'] = sign_post_data(json_data)
 
     def call_downstream_request(mirror):
-        print "MAIN: Sending update to", mirror
+        print "MAIN: Sending update to", mirror['address']
         downstream_request(mirror, relative_url, **request_kwargs)
 
+    pool = ThreadPool(processes=min(len(settings.DOWNSTREAM_SERVERS), 10))
     return pool.map(call_downstream_request, settings.DOWNSTREAM_SERVERS)
 
 def get_update_queue_lock():
@@ -61,7 +66,7 @@ def send_updates():
     if updates:
         print "MAIN: Sending updates %s" % ", ".join(str(update['pk']) for update in updates)
         UpdateQueue.objects.filter(pk__in=[update['pk'] for update in updates]).update(sent=True)
-        parallel_downstream_request(reverse("mirroring:import_updates"), method="POST", data={'updates': json.dumps(list(updates))})
+        parallel_downstream_request(reverse("mirroring:import_updates"), json_data={'updates': list(updates)})
     else:
         print "MAIN: Nothing to send."
 
@@ -84,7 +89,7 @@ def get_updates():
         return get_full_database.apply()
 
     try:
-        result = upstream_request(reverse('mirroring:export_updates'), params={'last_known_update':last_known_update_id}).json()
+        result = upstream_request(reverse('mirroring:export_updates'), json_data={'last_known_update':last_known_update_id}).json()
     except Exception as e:  # TODO: narrow this down
         # upstream server doesn't have the updates we need; fetch whole database
         print "MIRROR: Error fetching updates: %s. Fetching whole database." % e
@@ -133,8 +138,8 @@ def trigger_media_sync(*args, **kwargs):
         else:
             expanded_paths.append(path)
 
-    parallel_downstream_request(reverse("mirroring:media_sync"), method="POST", data={
-        'paths': json.dumps(expanded_paths),
+    parallel_downstream_request(reverse("mirroring:media_sync"), json_data={
+        'paths': expanded_paths,
         'media_url': settings.DIRECT_MEDIA_URL,
     })
 
