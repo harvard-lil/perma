@@ -429,10 +429,10 @@ def dark_archive_link(request, guid):
     asset = Asset.objects.get(link=link)
     if request.method == 'POST':
         if request.user.has_group('registrar_user'):
-            if not link.vesting_org.registrar == request.user.registrar and not request.user == link.created_by:
+            if (link.vested and not link.vesting_org.registrar == request.user.registrar) and (not request.user == link.created_by):
                 return HttpResponseRedirect(reverse('single_linky', args=[guid]))
         elif request.user.has_group('vesting_user'): 
-            if not link.vesting_org == request.user.vesting_org and not request.user == link.created_by:
+            if (link.vested and not link.vesting_org == request.user.vesting_org) and not request.user == link.created_by:
                 return HttpResponseRedirect(reverse('single_linky', args=[guid]))
         elif not request.user == link.created_by:
             return HttpResponseRedirect(reverse('single_linky', args=[guid]))
