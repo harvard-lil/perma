@@ -1,4 +1,5 @@
 import random, string, logging, json, time
+from django.core import serializers
 from ratelimit.decorators import ratelimit
 
 from django.conf import settings
@@ -19,6 +20,7 @@ from django.core.context_processors import csrf
 from django.core.paginator import Paginator
 from django.contrib.auth.models import Group
 from django.contrib import messages
+from mirroring.utils import sign_message
 
 from perma.forms import (
     RegistrarForm, 
@@ -957,14 +959,11 @@ def get_mirror_cookie_domain(request):
 def logout(request):
     response = auth_views.logout(request, template_name='registration/logout.html')
     # on logout, delete the mirror cookie
-    print "DELETING", (settings.MIRROR_COOKIE_NAME,
-                       get_mirror_cookie_domain(request),
-                              settings.SESSION_COOKIE_PATH)
-
     response.delete_cookie(settings.MIRROR_COOKIE_NAME,
                            domain=get_mirror_cookie_domain(request),
                            path=settings.SESSION_COOKIE_PATH)
     return response
+
 
 @ratelimit(field='email', method='POST', rate=settings.LOGIN_MINUTE_LIMIT, block=True, ip=False,
            keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
@@ -1009,11 +1008,10 @@ def limited_login(request, template_name='registration/login.html',
             response = HttpResponseRedirect(redirect_to)
 
             # Set the user-info cookie for mirror servers.
-            # This will be set by the main server, e.g. //direct.perma.cc,
+            # This will be set by the main server, e.g. //dashboard.perma.cc,
             # but will be readable by any mirror serving //perma.cc.
-            user_info = {
-                'groups':[group.pk for group in request.user.groups.all()],
-            }
+            user_info = serializers.serialize("json", [request.user], fields=['groups','registrar','vesting_org'])
+
             # The cookie should last as long as the login cookie, so cookie logic is copied from SessionMiddleware.
             if request.session.get_expire_at_browser_close():
                 max_age = None
@@ -1023,7 +1021,7 @@ def limited_login(request, template_name='registration/login.html',
                 expires_time = time.time() + max_age
                 expires = cookie_date(expires_time)
             response.set_cookie(settings.MIRROR_COOKIE_NAME,
-                                json.dumps(user_info),
+                                sign_message(user_info),
                                 max_age=max_age,
                                 expires=expires,
                                 domain=get_mirror_cookie_domain(request),

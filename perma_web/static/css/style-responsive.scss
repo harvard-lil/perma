@@ -514,6 +514,7 @@ ul#links {
     input {
         /*max-width: 434px;*/
         width:80%;
+		color: #444;
     }
 
     button {
@@ -977,7 +978,7 @@ div#dashboard-container div#batch-convert {
 }
 
 #steps-container .message-large {
-    font-size: 40px;
+    font-size: 33px;
 	font-family: $spicy-font;
     color: #ff4100;
     font-weight: 400;
@@ -1307,7 +1308,7 @@ ul {
 }
 
 h3 {
-    color:$perma-blue;
+    color:$perma-orange;
     line-height: 30px;
 }
 
@@ -2423,51 +2424,41 @@ a.btn.vest, a.btn.dashboard, a.btn.user-delete {
 	background:#fff;
 	margin-left:10px;
 }
-input.btn.vest {
+
+a.btn.vest {
 	width:100px;
 	padding:2px 0px;
-	color:#666;
+	color:#fff;
 	font-size:14px;
 	margin-top:4px;
-	margin-bottom:-5px;
-	border:1px solid #666;
+	border:1px solid #4cae4c;
 	border-radius: 3px;
-	background:#fff;
+	background:#5cb85c;
 	margin-left:10px;
 }
 
 input.btn.vest:hover, input.btn.vest:focus, a.btn.vest:hover, a.btn.vest:focus {
-	color:#222;
-	border:1px solid #222;
-}
-
-a.btn.dashboard {
-	border:1px solid $perma-blue;
-  	color:$perma-blue;
+	color: #fff;
+	background: #11ad32;
+	border: 1px solid #4cae4c;
 }
 
 a.btn.dashboard:hover, a.btn.dashboard:focus {
-	border:1px solid #06a;
-  	color:#06a;
+	border:1px solid #222;
+  	color:#222;
 }
-
-a.btn.user-delete {
-	border:1px solid #ff4100;
-  	color:#ff4100;
-}
-
 a.btn.user-delete:hover, a.btn.user-delete:focus {
-	border:1px solid #dd3800;
-  	color:#dd3800;
+	border:1px solid #222;
+  	color:#222;
 }
 
 .btn-more {
-border: 1px solid #ddd;
-margin: 0px;
-border-radius: 3px;
-font-size: 18px;
-background:#fff;
-color:$perma-blue;
+	border: 1px solid #ddd;
+	margin: 0px;
+	border-radius: 3px;
+	font-size: 18px;
+	background:#fff;
+	color:$perma-blue;
 }
 
 

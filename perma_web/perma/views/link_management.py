@@ -123,9 +123,7 @@ def create_link(request):
             response_object['message_pdf'] = True
 
         else:  # else, it's not a PDF. Let's try our best to retrieve what we can
-
             asset.image_capture = 'pending'
-            asset.text_capture = 'pending'
             asset.warc_capture = 'pending'
             asset.save()
 
@@ -348,51 +346,56 @@ def folder_contents(request, folder_id):
 @require_group(['registrar_user', 'registry_user', 'vesting_user'])
 def vest_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
+    if link.vested:
+        return HttpResponseRedirect(reverse('single_linky', args=[guid]))
+
     user = request.user
-    if request.method == 'POST' and not link.vested:
+    vesting_org = user.vesting_org
 
-        # if user isn't associated with a particular vesting org (registrar), make them pick one
-        vesting_org = user.vesting_org
-        if not vesting_org:
-            if request.POST.get('vesting_org'):
-                vesting_org = get_object_or_404(VestingOrg, pk=request.POST['vesting_org'], **({'registrar':user.registrar} if user.registrar else {}))
+    # make user pick a vesting org, if they have more than one
+    if not vesting_org:
+        if request.POST.get('vesting_org'):
+            vesting_org = get_object_or_404(VestingOrg, pk=request.POST['vesting_org'], **({'registrar':user.registrar} if user.registrar else {}))
+        else:
+            if user.registrar:
+                vesting_orgs = VestingOrg.objects.filter(registrar=user.registrar)
             else:
-                if user.registrar:
-                    vesting_orgs = VestingOrg.objects.filter(registrar=user.registrar)
-                else:
-                    vesting_orgs = VestingOrg.objects.all()
-                vesting_orgs = list(vesting_orgs)
-                if not vesting_orgs:
-                    messages.add_message(request, messages.ERROR, "Please create a vesting organization before vesting links.")
-                    return HttpResponseRedirect(reverse('single_linky', args=[guid]))
-                elif len(vesting_orgs)==1:
-                    vesting_org = vesting_orgs[0]
-                else:
-                    return render(request, 'link-vest-confirm.html', {
-                        'vesting_orgs':vesting_orgs,
-                        'link': link,
-                    })
+                vesting_orgs = VestingOrg.objects.all()
+            vesting_orgs = list(vesting_orgs)
+            if not vesting_orgs:
+                messages.add_message(request, messages.ERROR, "Please create a vesting organization before vesting links.")
+                return HttpResponseRedirect(reverse('single_linky', args=[guid]))
+            elif len(vesting_orgs)==1:
+                vesting_org = vesting_orgs[0]
+            else:
+                return render(request, 'link-vest-confirm.html', {
+                    'vesting_orgs':vesting_orgs,
+                    'link': link,
+                })
 
-        # make sure this link is either already in the vesting org's shared folder, or user has told us to save to one
-        target_folder = None
-        if request.POST.get('folder'):
-            target_folder = get_object_or_404(Folder, pk=request.POST['folder'], vesting_org=vesting_org)
-        elif not link.folders.filter(vesting_org=vesting_org).exists():
-            return render(request, 'link-vest-confirm.html', {
-                'folder_tree': vesting_org.shared_folder.get_descendants(include_self=True),
-                'link': link,
-                'vesting_org': vesting_org
-            })
+    # make user pick a folder in the vesting org's shared folder
+    if not request.POST.get('folder'):
+        try:
+            selected_folder = link.folders.get(vesting_org=vesting_org)
+        except Folder.DoesNotExist:
+            selected_folder = None
+        return render(request, 'link-vest-confirm.html', {
+            'folder_tree': vesting_org.shared_folder.get_descendants(include_self=True),
+            'link': link,
+            'vesting_org': vesting_org,
+            'selected_folder': selected_folder,
+        })
 
-        # vest
+    # vest
+    if request.POST.get('vest'):
+        target_folder = get_object_or_404(Folder, pk=request.POST['folder'], vesting_org=vesting_org)
         link.vested = True
         link.vested_by_editor = user
         link.vesting_org = vesting_org
         link.vested_timestamp = datetime.now()
         link.save()
 
-        if target_folder:
-            link.move_to_folder_for_user(target_folder, request.user)
+        link.move_to_folder_for_user(target_folder, request.user)
 
         run_task(poke_mirrors, link_guid=guid)
 
@@ -400,6 +403,7 @@ def vest_link(request, guid):
             run_task(upload_to_internet_archive, link_guid=guid)
 
     return HttpResponseRedirect(reverse('single_linky', args=[guid]))
+
     
     
 @login_required    
@@ -419,14 +423,18 @@ def user_delete_link(request, guid):
     return render_to_response('link-delete-confirm.html', {'link': link, 'asset': asset}, RequestContext(request))
 
 
-@require_group(['registry_user', 'registrar_user', 'vesting_user'])
+@login_required
 def dark_archive_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
     asset = Asset.objects.get(link=link)
     if request.method == 'POST':
-        if request.user.has_group('registrar_user') and not link.vesting_org.registrar == request.user.registrar:
-            return HttpResponseRedirect(reverse('single_linky', args=[guid]))
-        if request.user.has_group('vesting_user') and not link.vesting_org == request.user.vesting_org:
+        if request.user.has_group('registrar_user'):
+            if (link.vested and not link.vesting_org.registrar == request.user.registrar) and (not request.user == link.created_by):
+                return HttpResponseRedirect(reverse('single_linky', args=[guid]))
+        elif request.user.has_group('vesting_user'): 
+            if (link.vested and not link.vesting_org == request.user.vesting_org) and not request.user == link.created_by:
+                return HttpResponseRedirect(reverse('single_linky', args=[guid]))
+        elif not request.user == link.created_by:
             return HttpResponseRedirect(reverse('single_linky', args=[guid]))
             
         if not link.dark_archived:

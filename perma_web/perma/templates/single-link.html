@@ -35,21 +35,21 @@
                             {% if request.user.is_authenticated %}
                                 {% if not linky.user_deleted %}
                                     {% if request.user|has_group:'registry_user,registrar_user,vesting_user' and not linky.vested %}
-                                        <li><form action="{% main_url 'vest_link' linky.guid %}" method="post">
-                                            {% csrf_token %}
-                                                <input type="submit" value="Vest site" name="vest" class="btn vest">
-                                            </form>
-                                        </li>
+                                        <a class="btn vest" href="{% main_url 'vest_link' linky.guid %}">Vest site</a>
                                     {% endif %}
+
                                     {% if request.user|has_group:'registry_user' and not linky|is_darchive %}
-                                        <a class="btn vest" href="{% url 'dark_archive_link' linky.guid %}">Dark archive</a>
+                                        <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
                                     {% elif request.user|has_group:'registrar_user' and not linky|is_darchive and linky.vesting_org.registrar == request.user.registrar %}
-                                        <a class="btn vest" href="{% url 'dark_archive_link' linky.guid %}">Dark archive</a>
-                                    {% elif request.user|has_group:'vesting_user' and request.user.vesting_org == linky.vesting_org %}
-                                        <a class="btn vest" href="{% url 'dark_archive_link' linky.guid %}">Dark archive</a>
+                                        <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
+                                    {% elif request.user|has_group:'vesting_user' and request.user.vesting_org == linky.vesting_org and not linky|is_darchive %}
+                                        <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
+                                    {% elif request.user == linky.created_by and not linky|is_darchive %}
+                                        <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
                                     {% endif %}
+
                                     {% if request.user == linky.created_by and not linky.vested %}
-                                        <a class="btn user-delete" href="{% url 'user_delete_link' linky.guid %}"><i class="icon-trash"></i> Delete</a>
+                                        <a class="btn user-delete" href="{% main_url 'user_delete_link' linky.guid %}"><i class="icon-trash"></i> Delete</a>
                                     {% endif %}
                                 {% endif %}
 
@@ -138,7 +138,8 @@
     {% else %}
 
         {# message for a darchived link that user has permission to access #}
-        {% if linky|is_darchive and request.user|has_group:'registry_user,registrar_user,vesting_user' %}
+        {% if request.user|has_group:'registry_user,registrar_user,vesting_user' or request.user == linky.created_by %}
+            {% if linky|is_darchive %}
             <div class="col-sm-6 col-sm-offset-3 yahowza text-center">
                 <img class="dark-bulb center" src="{{ STATIC_URL }}img/dark-bulb.png">
                 {% if linky.dark_archived %}
@@ -149,6 +150,7 @@
                 <p>You can see the contents only because you are logged into a vesting account.</p>
             </div>
             </div><div class="row"> {# go to next row #}
+            {% endif %}
         {% endif %}
 
         {# link contents #}
@@ -156,7 +158,7 @@
             <div class="watermark center">
 
                 {% if not linky.vested and serve_type != 'live' %}
-                    {% if not linky|is_darchive or request.user|has_group:'registry_user,registrar_user,vesting_user' %}
+                    {% if not linky|is_darchive or request.user|has_group:'registry_user,registrar_user,vesting_user' or request.user == linky.created_by %}
 						<div class="watermark-container">
 							<span class="pull-right">
 								<span class="glyphicon glyphicon-remove"></span>
@@ -187,7 +189,7 @@
                         </div>
                     {% endif %}
 
-                {% elif linky|is_darchive and not request.user|has_group:'registry_user,registrar_user,vesting_user' %}
+                {% elif linky|is_darchive and not request.user|has_group:'registry_user,registrar_user,vesting_user' and not request.user == linky.created_by %}
                     <img class="dark-bulb center" src="{{ STATIC_URL }}img/dark-bulb.png">
                     <h1 class="cyan">Apologies.</h1>
                     <h2>

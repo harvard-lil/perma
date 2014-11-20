@@ -37,7 +37,7 @@
                                 <a href="{{archive.submitted_url}}" target="_blank">{{ archive.submitted_url|truncatechars:130 }}</a>
                             </p>
                             <p class="creation-details">
-                                created {{ archive.creation_timestamp|local_datetime }} <span class="spacer">·</span>  <a href="{% url 'docs_perma_link_vesting'%}#vesting" target="_blank">not vested</a> <span class="spacer">·</span> viewed {{ archive.view_count }} time{% if archive.view_count > 1 %}s{% endif %} <span class="spacer">·</span> <a href="{% url 'contact' %}?message=Please have a look at perma.cc{% url 'single_link_header' archive.guid %} " target="_blank">report abuse</a>
+                                created {{ archive.creation_timestamp|local_datetime }} <span class="spacer">·</span>  <a href="{% url 'docs_perma_link_vesting'%}#vesting" target="_blank">not vested</a> <span class="spacer">·</span> viewed {{ archive.view_count }} time{% if archive.view_count > 1 %}s{% endif %} <span class="spacer">·</span> <a href="{% url 'contact' %}?message=Please have a look at perma.cc{% url 'single_linky' archive.guid %} " target="_blank">report abuse</a>
                             </p>
                         </div><!--end 9 -->
                         <div class="col-xs-12 col-sm-3">
@@ -76,7 +76,7 @@
 
                     {% if asset.image_capture and asset.image_capture != 'failed' %}
                     <div class="col-sm-6 image-container">
-                        {% if serve_type != 'image' %}<a href="{% url 'single_link_header' archive.guid %}">{% endif %}
+                        {% if serve_type != 'image' %}<a href="{% url 'single_linky' archive.guid %}">{% endif %}
                         <div class="{% if serve_type == 'image' %}selected-archive-container{% endif %} archive-container" style="overflow: hidden; ">
                             <div style="float: left; min-width: 55px;">
                                 <img src="{{ STATIC_URL }}img/static_capture_icon.png" class="" style="margin-top: 2px;" height=76px width=53px>
@@ -97,7 +97,7 @@
 
                     {% if asset.warc_capture and asset.warc_capture != 'failed' %}
                     <div class="col-sm-6 source-container">
-                        {% if serve_type != 'source' %}<a href="{% url 'single_link_header' archive.guid %}?type=source">{% endif %}
+                        {% if serve_type != 'source' %}<a href="{% url 'single_linky' archive.guid %}?type=source">{% endif %}
                             <div class="{% if serve_type == 'source' %}selected-archive-container{% endif %} archive-container" style="overflow: hidden; ">
                                 <div style="float: left; min-width: 55px;">
                                         <img src="{{ STATIC_URL }}img/lsource_capture_icon.png" style="margin-top: 2px;" height=76px width=53px>
@@ -118,7 +118,7 @@
 
                     {% if asset.pdf_capture and asset.pdf_capture != 'failed' %}
                     <div class="col-sm-6 pdf-container">
-                        {% if serve_type != 'pdf' %}<a href="{% url 'single_link_header' archive.guid %}?type=pdf_capture">{% endif %}
+                        {% if serve_type != 'pdf' %}<a href="{% url 'single_linky' archive.guid %}?type=pdf_capture">{% endif %}
                             <div class="{% if serve_type == 'pdf' %}selected-archive-container{% endif %} archive-container" style="overflow: hidden; ">
                                 <div style="float: left; min-width: 55px;">
                                         <img src="{{ STATIC_URL }}img/pdf_capture_icon.png" style="margin-top: 2px;" height=76px width=53px>

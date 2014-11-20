@@ -75,11 +75,7 @@ function linkIt(){
         var target = document.getElementById('spinner');
         var spinner = new Spinner(opts).spin(target);
 
-        var source = $("#success-steps-template").html();
-        var template = Handlebars.compile(source);
-        $('#steps-container').html(template({url: new_archive.url, userguide_url: userguide_url,
-            vesting_privs: vesting_privs}));
-
+        $('#steps-container').html('');
         $('.preview-row').removeClass('hide').hide().slideDown();
 
         refreshIntervalIds.push(setInterval(check_status, 2000));
@@ -136,7 +132,7 @@ function uploadIt(data) {
         var source = $("#success-steps-template").html();
         var template = Handlebars.compile(source);
         $('#steps-container').html(template({url: new_archive.url,
-            userguide_url: userguide_url, vesting_privs: vesting_privs}));
+            userguide_url: userguide_url, vesting_privs: vesting_privs})).removeClass('hide').hide().slideDown();
     }
     else {
         return xhr.abort();
@@ -191,7 +187,12 @@ function check_status() {
             var source = $("#preview-available-template").html();
             var template = Handlebars.compile(source);
             $('#preview-container').html(template({image_url: image_url,
-                archive_url: new_archive.url}));
+                archive_url: new_archive.url})).removeClass('hide').hide().slideDown();
+                
+            var source = $("#success-steps-template").html();
+            var template = Handlebars.compile(source);
+            $('#steps-container').html(template({url: new_archive.url, userguide_url: userguide_url,
+                vesting_privs: vesting_privs})).removeClass('hide').hide().slideDown();
 
             // Clear out our pending jobs
             $.each(refreshIntervalIds, function(ndx, id) {
