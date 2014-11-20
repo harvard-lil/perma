@@ -7,9 +7,6 @@ if os.environ.has_key('CLEARDB_DATABASE_URL'):
     import dj_database_url
     DATABASES['default'] =  dj_database_url.config('CLEARDB_DATABASE_URL')
 
-# Honor the 'X-Forwarded-Proto' header for request.is_secure()
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
 # Allow all host headers
 # TODO: this is from Heroku's getting started with Django page -- is there a safer way?
 ALLOWED_HOSTS = ['*']
