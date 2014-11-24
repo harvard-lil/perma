@@ -60,6 +60,13 @@ def run(port="0.0.0.0:8000"):
     except ImportError:
         local("python manage.py runserver %s" % port)
 
+def run_ssl(port="0.0.0.0:8000"):
+    """
+        Run django test server with SSL.
+    """
+    local("python manage.py runsslserver %s" % port)
+    return
+
 def test(apps="perma mirroring"):
     """
         Run perma tests. (For coverage, run `coverage report` after tests pass.)
@@ -217,13 +224,6 @@ def shell():
 
 
 ### MIRRORING ###
-
-def sync_mirror():
-    """
-        Fetch all archived links from upstream.
-    """
-    from mirroring.tasks import sync_mirror
-    sync_mirror()
 
 def generate_keys():
     """

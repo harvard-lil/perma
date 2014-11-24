@@ -156,6 +156,7 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'djangosecure.middleware.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -205,6 +206,7 @@ INSTALLED_APPS = (
     'pipeline',
     'sorl.thumbnail',
     'django_forms_bootstrap',
+    'djangosecure',  # force SSL -- this can be removed in Django 1.8
 
     # django admin -- has to come after our apps for our admin template overrides to work
     'django.contrib.admin',
@@ -400,3 +402,4 @@ THUMBNAIL_FORMAT = 'PNG' #
 
 # feature flags
 SINGLE_LINK_HEADER_TEST = False
+
