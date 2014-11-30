@@ -11,7 +11,6 @@ from api.serializers import MultipartSerializer
                    # Load the api subdomain routes
                    ROOT_URLCONF='api.urls',
                    SUBDOMAIN_URLCONFS={})
-
 class ApiResourceTestCase(ResourceTestCase):
 
     def setUp(self):

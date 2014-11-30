@@ -2,6 +2,7 @@ from .utils import ApiResourceTestCase
 
 from perma.models import LinkUser
 
+
 class CurrentUserResourceTestCase(ApiResourceTestCase):
     fixtures = ['fixtures/users.json',
                 'fixtures/api_keys.json']
@@ -17,7 +18,7 @@ class CurrentUserResourceTestCase(ApiResourceTestCase):
                                    authentication=self.get_credentials())
         self.assertValidJSONResponse(resp)
         obj = self.deserialize(resp)
-        keys = ['id','first_name','last_name']
+        keys = ['id', 'first_name', 'last_name']
         self.assertKeys(obj, keys+['resource_uri'])
         # Make sure the JSON contains the same values as the authenticated user
         for key in keys:
