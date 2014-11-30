@@ -9,6 +9,9 @@ this_module = unicode(
     sys.getfilesystemencoding())
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(this_module))))
 
+FIXTURE_DIRS = (
+    PROJECT_ROOT,
+)
 
 DATABASES = {
     'default': {
