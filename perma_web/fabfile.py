@@ -380,11 +380,10 @@ def set_up_folders():
                 link.folders.add(get_vesting_org_subfolder(link.vesting_org, link.vested_by_editor))
 
 
-
 try:
     from fab_targets import *
 except ImportError, e:
-    if e.message=='No module named fab_targets':
+    if e.args[0] == 'No module named fab_targets':
         print "Warning: no fab_targets file found."
     else:
         raise
