@@ -9,8 +9,10 @@ from django.db import models
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.utils.text import slugify
+from django.utils.functional import cached_property
 from mptt.exceptions import InvalidMove
 from mptt.models import MPTTModel, TreeForeignKey
+from model_utils import FieldTracker
 
 # For Link
 import socket
@@ -32,6 +34,8 @@ class Registrar(models.Model):
 
     # what info to send downstream
     mirror_fields = ('name', 'email', 'website')
+
+    tracker = FieldTracker()
 
     def save(self, *args, **kwargs):
         super(Registrar, self).save(*args, **kwargs)
@@ -66,6 +70,8 @@ class VestingOrg(models.Model):
 
     # what info to send downstream
     mirror_fields = ('name', 'registrar')
+
+    tracker = FieldTracker()
 
     def __init__(self, *args, **kwargs):
         """ Capture original values so we can deal with changes during save. """
@@ -141,6 +147,7 @@ class LinkUser(AbstractBaseUser):
     root_folder = models.OneToOneField('Folder', blank=True, null=True)
 
     objects = LinkUserManager()
+    tracker = FieldTracker()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -282,6 +289,7 @@ class Folder(MPTTModel):
     is_root_folder = models.BooleanField(default=False)
 
     objects = FolderManager()
+    tracker = FieldTracker()
 
     def __init__(self, *args, **kwargs):
         super(Folder, self).__init__(*args, **kwargs)
@@ -442,54 +450,38 @@ class Link(models.Model):
                      'vested', 'vested_timestamp', 'vesting_org')
 
     objects = LinkManager()
+    tracker = FieldTracker()
 
-    _ip = None
-    _headers = None
-    _url_details = None
-    _media_type = None
-
-    @property
+    @cached_property
     def url_details(self):
-        if not self._url_details:
-            self._url_details = urlparse(self.submitted_url)
+        return urlparse(self.submitted_url)
 
-        return self._url_details
-
-    @property
+    @cached_property
     def ip(self):
-        if self._ip is None:
-            try:
-                self._ip = socket.gethostbyname(self.url_details.netloc.split(':')[0])
-            except socket.gaierror:
-                self._ip = False
+        try:
+            return socket.gethostbyname(self.url_details.netloc.split(':')[0])
+        except socket.gaierror:
+            return False
 
-        return self._ip
-
-    @property
+    @cached_property
     def headers(self):
-        if self._headers is None:
-            try:
-                self._headers = requests.head(
-                    self.submitted_url,
-                    verify=False, # don't check SSL cert?
-                    headers={'User-Agent': USER_AGENT, 'Accept-Encoding':'*'},
-                    timeout=HEADER_CHECK_TIMEOUT
-                ).headers
-            except (requests.ConnectionError, requests.Timeout):
-                self._headers = False
-
-        return self._headers
+        try:
+            return requests.head(
+                self.submitted_url,
+                verify=False,  # don't check SSL cert?
+                headers={'User-Agent': USER_AGENT, 'Accept-Encoding': '*'},
+                timeout=HEADER_CHECK_TIMEOUT
+            ).headers
+        except (requests.ConnectionError, requests.Timeout):
+            return False
 
     # media_type is a file extension-ish normalized mimemedia_type
-    @property
+    @cached_property
     def media_type(self):
-        if self._media_type is None:
-            if self.headers['content-type'] in ['application/pdf', 'application/x-pdf'] or self.submitted_url.endswith('.pdf'):
-                self._media_type = 'pdf'
-            else:
-                self._media_type = False
-
-        return self._media_type
+        if self.headers['content-type'] in ['application/pdf', 'application/x-pdf'] or self.submitted_url.endswith('.pdf'):
+            return 'pdf'
+        else:
+            return False
 
     def save(self, *args, **kwargs):
         # Set a default title if one is missing
@@ -591,18 +583,20 @@ class Asset(models.Model):
     this class to track those locations.
     """
     link = models.ForeignKey(Link, null=False, related_name='assets')
-    base_storage_path = models.CharField(max_length=2100, null=True, blank=True) # where we store these assets, relative to some base in our settings
-    favicon = models.CharField(max_length=2100, null=True, blank=True) # Retrieved favicon
-    image_capture = models.CharField(max_length=2100, null=True, blank=True) # Headless browser image capture
-    warc_capture = models.CharField(max_length=2100, null=True, blank=True) # source capture, probably point to an index.html page
-    pdf_capture = models.CharField(max_length=2100, null=True, blank=True) # We capture a PDF version (through a user upload or through our capture)
-    text_capture = models.CharField(max_length=2100, null=True, blank=True) # We capture a text dump of the resource
+    base_storage_path = models.CharField(max_length=2100, null=True, blank=True)  # where we store these assets, relative to some base in our settings
+    favicon = models.CharField(max_length=2100, null=True, blank=True)  # Retrieved favicon
+    image_capture = models.CharField(max_length=2100, null=True, blank=True)  # Headless browser image capture
+    warc_capture = models.CharField(max_length=2100, null=True, blank=True)  # source capture, probably point to an index.html page
+    pdf_capture = models.CharField(max_length=2100, null=True, blank=True)  # We capture a PDF version (through a user upload or through our capture)
+    text_capture = models.CharField(max_length=2100, null=True, blank=True)  # We capture a text dump of the resource
     instapaper_timestamp = models.DateTimeField(null=True)
     instapaper_hash = models.CharField(max_length=2100, null=True)
     instapaper_id = models.IntegerField(null=True)
 
     # what info to send downstream
     mirror_fields = ('link', 'base_storage_path', 'image_capture', 'warc_capture', 'pdf_capture', 'text_capture')
+
+    tracker = FieldTracker()
 
     def __init__(self, *args, **kwargs):
         super(Asset, self).__init__(*args, **kwargs)
