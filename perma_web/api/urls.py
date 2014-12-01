@@ -1,4 +1,3 @@
-from django.conf.urls import *
 from tastypie.api import Api
 from api.resources import (VestingOrgResource,
                            LinkResource,
