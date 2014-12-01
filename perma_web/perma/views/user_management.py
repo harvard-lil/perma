@@ -933,7 +933,7 @@ def api_key_create(request):
             request.user.api_key.save()
         except ApiKey.DoesNotExist:
             ApiKey.objects.create(user=request.user)
-        return HttpResponseRedirect(reverse('user_management_manage_account'))
+        return HttpResponseRedirect(reverse('user_management_settings_tools'))
 
 # @login_required
 # def batch_convert(request):
