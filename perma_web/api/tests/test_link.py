@@ -1,5 +1,4 @@
 import unittest
-import datetime
 import os
 from django.test.utils import override_settings
 from .utils import ApiResourceTestCase
@@ -10,10 +9,15 @@ from django.conf import settings
 
 TEST_ASSETS_DIR = os.path.join(settings.PROJECT_ROOT, "perma/tests/assets")
 
+
+@override_settings(BANNED_IP_RANGES=[])
 class LinkResourceTestCase(ApiResourceTestCase):
     fixtures = ['fixtures/users.json',
                 'fixtures/archive.json',
                 'fixtures/api_keys.json']
+
+    serve_files = [os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.html'),
+                   os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.pdf')]
 
     def setUp(self):
         super(LinkResourceTestCase, self).setUp()
@@ -40,9 +44,9 @@ class LinkResourceTestCase(ApiResourceTestCase):
             'vesting_org': None,
             'resource_uri': self.detail_url
         }
-        
+
         self.post_data = {
-            'url': 'http://example.com',
+            'url': self.server_url + "/test.html",
             'title': 'This is a test page'
         }
 
@@ -91,11 +95,18 @@ class LinkResourceTestCase(ApiResourceTestCase):
             data = dict(self.post_data.copy(), file=test_file)
             self.assertHttpBadRequest(self.api_client.post(self.list_url, format='multipart', data=data, authentication=self.get_credentials()))
             self.assertEqual(Link.objects.count(), count)
-        
+
     def test_should_add_http_to_url(self):
         count = Link.objects.count()
         self.assertHttpCreated(self.api_client.post(self.list_url, format='json', data={'url': 'example.com'}, authentication=self.get_credentials()))
         self.assertEqual(Link.objects.count(), count+1)
+
+    def test_should_reject_invalid_ip(self):
+        # Confirm that local IP captures are banned by default, then unban for testing.
+        with self.settings(BANNED_IP_RANGES=["0.0.0.0/8", "127.0.0.0/8"]):
+            count = Link.objects.count()
+            self.assertHttpBadRequest(self.api_client.post(self.list_url, format='json', data={'url': 'httpexamplecom'}, authentication=self.get_credentials()))
+            self.assertEqual(Link.objects.count(), count)
 
     def test_should_reject_malformed_url(self):
         count = Link.objects.count()
@@ -117,7 +128,7 @@ class LinkResourceTestCase(ApiResourceTestCase):
         count = Link.objects.count()
         self.assertHttpBadRequest(self.api_client.post(self.list_url, format='json', data={'url': 'http://upload.wikimedia.org/wikipedia/commons/9/9e/Balaton_Hungary_Landscape.jpg'}, authentication=self.get_credentials()))
         self.assertEqual(Link.objects.count(), count)
-        
+
     def test_patch_detail_unauthenticated(self):
         self.assertHttpUnauthorized(self.api_client.patch(self.detail_url, format='json', data={}))
 
@@ -140,7 +151,7 @@ class LinkResourceTestCase(ApiResourceTestCase):
         for attr in ['dark_archived', 'vested', 'notes']:
             self.assertNotEqual(getattr(link, attr), old_data[attr])
             self.assertEqual(getattr(link, attr), new_data[attr])
-            
+
     def test_should_limit_patch_to_link_owner(self):
         resp = self.api_client.get(self.detail_url, format='json')
         self.assertValidJSONResponse(resp)
@@ -149,10 +160,18 @@ class LinkResourceTestCase(ApiResourceTestCase):
                         vested=True,
                         notes='These are test notes',
                         dark_archived=True)
-        
+
         self.assertHttpUnauthorized(self.api_client.patch(self.detail_url, format='json', data=new_data, authentication=self.get_credentials(self.user_2)))
         self.assertEqual(self.deserialize(self.api_client.get(self.detail_url, format='json')), old_data)
-        
+
+    @unittest.expectedFailure
+    def test_should_allow_registrar_user_of_link_vesting_org_registrar_to_dark_archive(self):
+        self.fail()
+
+    @unittest.expectedFailure
+    def test_should_allow_vesting_user_of_link_vesting_org_to_dark_archive(self):
+        self.fail()
+
     def test_delete_detail_unauthenticated(self):
         self.assertHttpUnauthorized(self.api_client.delete(self.detail_url, format='json'))
 
