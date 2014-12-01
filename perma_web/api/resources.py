@@ -18,7 +18,6 @@ from celery import chain
 from django.conf import settings
 from perma.utils import run_task
 from perma.tasks import get_pdf, proxy_capture
-from mirroring.tasks import compress_link_assets, poke_mirrors
 from mimetypes import MimeTypes
 import os
 from django.core.files.storage import default_storage
@@ -161,14 +160,6 @@ class LinkResource(MultipartResource, DefaultResource):
                 asset.image_capture = file_name
             asset.save()
         else:
-            # celery tasks to run after scraping is complete
-            postprocessing_tasks = []
-            if settings.MIRRORING_ENABLED:
-                postprocessing_tasks += [
-                    compress_link_assets.s(guid=asset.link.guid),
-                    poke_mirrors.s(link_guid=asset.link.guid),
-                ]
-
             asset.image_capture = 'pending'
             task_args = [asset.link.guid,
                          asset.link.submitted_url,
@@ -178,21 +169,11 @@ class LinkResource(MultipartResource, DefaultResource):
             # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
             if asset.link.media_type == 'pdf':
                 asset.pdf_capture = 'pending'
-
-                # run background celery tasks as a chain (each finishes before calling the next)
-                run_task(chain(
-                    get_pdf.s(*task_args),
-                    *postprocessing_tasks
-                ))
+                run_task(get_pdf.s(*task_args))
             else:  # else, it's not a PDF. Let's try our best to retrieve what we can
                 asset.text_capture = 'pending'
                 asset.warc_capture = 'pending'
-
-                # run background celery tasks as a chain (each finishes before calling the next)
-                run_task(chain(
-                    proxy_capture.s(*task_args),
-                    *postprocessing_tasks
-                ))
+                run_task(proxy_capture.s(*task_args))
 
             asset.save()
 
