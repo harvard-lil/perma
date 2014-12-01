@@ -2,20 +2,21 @@ from tastypie import fields
 from tastypie.resources import ModelResource
 from perma.models import LinkUser, Link, Asset, Folder, VestingOrg
 from django.conf.urls import url
+from django.core.urlresolvers import NoReverseMatch
 from tastypie.utils import trailing_slash
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from tastypie.exceptions import NotFound
+from tastypie.http import HttpGone, HttpMultipleChoices
 from validations import LinkValidation
 
 from tastypie.authentication import ApiKeyAuthentication
 from authentication import DefaultAuthentication
 
-from tastypie.authorization import ReadOnlyAuthorization
-from authorizations import DefaultAuthorization, CurrentUserAuthorization
+from authorizations import (DefaultAuthorization,
+                            LinkAuthorization,
+                            CurrentUserAuthorization)
 
 # LinkResource
-from celery import chain
-from django.conf import settings
 from perma.utils import run_task
 from perma.tasks import get_pdf, proxy_capture
 from mimetypes import MimeTypes
@@ -23,18 +24,14 @@ import os
 from django.core.files.storage import default_storage
 from datetime import datetime
 
+
 class DefaultResource(ModelResource):
 
     class Meta:
         authentication = DefaultAuthentication()
         authorization = DefaultAuthorization()
         always_return_data = True
-    
-    def __init__(self, api_name=None):
-        super(DefaultResource, self).__init__(api_name=api_name)
-        
-        if not getattr(self._meta, 'user_field', None):
-            self._meta.user_field = 'user'
+
 
 # via: http://stackoverflow.com/a/14134853/313561
 # also: https://github.com/toastdriven/django-tastypie/issues/42#issuecomment-5485666
@@ -56,11 +53,13 @@ USER_FIELDS = [
     'last_name'
 ]
 
+
 class LinkUserResource(DefaultResource):
     class Meta(DefaultResource.Meta):
         resource_name = 'users'
         queryset = LinkUser.objects.all()
         fields = USER_FIELDS
+
 
 class VestingOrgResource(DefaultResource):
     class Meta(DefaultResource.Meta):
@@ -71,6 +70,7 @@ class VestingOrgResource(DefaultResource):
             'name'
         ]
 
+
 class AssetResource(DefaultResource):
     # archive = fields.ForeignKey(LinkResource, 'link', full=False, null=False, readonly=True)
     archive = fields.CharField(attribute='link_id')
@@ -78,10 +78,11 @@ class AssetResource(DefaultResource):
     class Meta(DefaultResource.Meta):
         resource_name = 'assets'
         queryset = Asset.objects.all()
-        filtering = { 'archive': ['exact'] }
+        filtering = {'archive': ['exact']}
 
     def dehydrate_archive(self, bundle):
         return {'guid': bundle.data['archive']}
+
 
 class LinkResource(MultipartResource, DefaultResource):
     guid = fields.CharField(attribute='guid', readonly=True)
@@ -102,9 +103,9 @@ class LinkResource(MultipartResource, DefaultResource):
     class Meta(DefaultResource.Meta):
         resource_name = 'archives'
         queryset = Link.objects.all()
-        fields = [None] # prevents ModelResource from auto-including additional fields
-        user_field = 'created_by'
+        fields = [None]  # prevents ModelResource from auto-including additional fields
         validation = LinkValidation()
+        authorization = LinkAuthorization()
 
     # via: http://django-tastypie.readthedocs.org/en/latest/cookbook.html#nested-resources
     def prepend_urls(self):
@@ -123,17 +124,17 @@ class LinkResource(MultipartResource, DefaultResource):
 
         asset_resource = AssetResource()
         return asset_resource.get_list(request, archive=obj.pk)
-        
+
     def hydrate_url(self, bundle):
         # Clean up the user submitted url
         if bundle.data.get('url', None):
-            url = bundle.data.get('url','').strip()
+            url = bundle.data.get('url', '').strip()
             if url[:4] != 'http':
                 url = 'http://' + url
 
             bundle.data['url'] = url
         return bundle
-            
+
     def obj_create(self, bundle, **kwargs):
         # We've received a request to archive a URL. That process is managed here.
         # We create a new entry in our datastore and pass the work off to our indexing
@@ -161,21 +162,20 @@ class LinkResource(MultipartResource, DefaultResource):
             asset.save()
         else:
             asset.image_capture = 'pending'
-            task_args = [asset.link.guid,
-                         asset.link.submitted_url,
-                         asset.base_storage_path,
-                         bundle.request.META.get('HTTP_USER_AGENT', '')]
-
             # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
             if asset.link.media_type == 'pdf':
                 asset.pdf_capture = 'pending'
-                run_task(get_pdf.s(*task_args))
+                task = get_pdf
             else:  # else, it's not a PDF. Let's try our best to retrieve what we can
                 asset.text_capture = 'pending'
                 asset.warc_capture = 'pending'
-                run_task(proxy_capture.s(*task_args))
+                task = proxy_capture
 
             asset.save()
+            run_task(task.s(asset.link.guid,
+                            asset.link.submitted_url,
+                            asset.base_storage_path,
+                            bundle.request.META.get('HTTP_USER_AGENT', '')))
 
         return bundle
 
@@ -189,15 +189,15 @@ class LinkResource(MultipartResource, DefaultResource):
 
         self.authorized_delete_detail(self.get_object_list(bundle.request), bundle)
         if not bundle.obj.user_deleted and not bundle.obj.vested:
-            bundle.obj.user_deleted=True
-            bundle.obj.user_deleted_timestamp=datetime.now()
+            bundle.obj.user_deleted = True
+            bundle.obj.user_deleted_timestamp = datetime.now()
             bundle.obj.save()
+
 
 class FolderResource(DefaultResource):
     class Meta(DefaultResource.Meta):
         resource_name = 'folders'
         queryset = Folder.objects.all()
-        user_field = 'created_by'
         fields = [
             'creation_timestamp',
             'id',
@@ -211,6 +211,7 @@ class FolderResource(DefaultResource):
             'slug',
             'tree_id'
         ]
+
 
 class CurrentUserResource(DefaultResource):
     class Meta(DefaultResource.Meta):
@@ -244,6 +245,7 @@ class CurrentUserResource(DefaultResource):
         except NoReverseMatch:
             return ''
 
+
 class CurrentUserNestedResource(object):
     class Meta:
         authentication = ApiKeyAuthentication()
@@ -253,12 +255,13 @@ class CurrentUserNestedResource(object):
         """
         Assign created objects to the current user
         """
-        params = {self._meta.user_field: bundle.request.user}
-        return super(CurrentUserFolderResource, self).obj_create(bundle, **params)
+        return super(CurrentUserFolderResource, self).obj_create(bundle, created_by=bundle.request.user)
+
 
 class CurrentUserLinkResource(CurrentUserNestedResource, LinkResource):
     class Meta(CurrentUserNestedResource.Meta, LinkResource.Meta):
         resource_name = 'user/' + LinkResource.Meta.resource_name
+
 
 class CurrentUserFolderResource(CurrentUserNestedResource, FolderResource):
     class Meta(CurrentUserNestedResource.Meta, FolderResource.Meta):
