@@ -51,6 +51,7 @@ class DirectTemplateView(TemplateView):
         return super(DirectTemplateView, self).dispatch(request, *args, **kwargs)
 
 
+@must_be_mirrored
 def landing(request):
     """
     The landing page
