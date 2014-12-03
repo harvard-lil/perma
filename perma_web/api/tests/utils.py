@@ -1,11 +1,12 @@
 from django.test.utils import override_settings
+from django.conf import settings
 from tastypie.test import ResourceTestCase, TestApiClient
 from api.serializers import MultipartSerializer
 
 import socket
 import perma.tasks
 
-# for server_thread
+# for web server
 from django.utils.functional import cached_property
 import os
 import tempfile
@@ -49,6 +50,15 @@ class ApiResourceTestCase(ResourceTestCase):
         super(ApiResourceTestCase, self).setUp()
         self.api_client = TestApiClient(serializer=MultipartSerializer())
 
+        self._media_org = settings.MEDIA_ROOT
+        self._media_tmp = settings.MEDIA_ROOT = tempfile.mkdtemp()
+        print("Created MEDIA_ROOT temp dir " + settings.MEDIA_ROOT)
+
+    def tearDown(self):
+        settings.MEDIA_ROOT = self._media_org
+        shutil.rmtree(self._media_tmp)
+        print("Removed MEDIA_ROOT temp dir " + self._media_tmp)
+
     def get_credentials(self, user=None):
         user = user or self.user
         return self.create_apikey(username=user.email, api_key=user.api_key.key)
@@ -68,16 +78,16 @@ class ApiResourceTestCase(ResourceTestCase):
 
         # Run in temp dir.
         # We have to (implicitly) cwd to this so SimpleHTTPRequestHandler serves the files for us.
-        cls._old_cwd = os.getcwd()
-        cls._tmpdir = tempfile.mkdtemp()
-        os.chdir(cls._tmpdir)
-        print("Created temp dir " + cls._tmpdir)
+        cls._cwd_org = os.getcwd()
+        cls._server_tmp = tempfile.mkdtemp()
+        os.chdir(cls._server_tmp)
+        print("Created server temp dir " + cls._server_tmp)
 
         # Copy over files to current temp dir, stripping paths.
         print("Serving files:")
         for file in cls.serve_files:
             print("- " + file)
-            shutil.copyfile(os.path.join(cls._old_cwd, file), os.path.basename(file))
+            shutil.copyfile(os.path.join(cls._cwd_org, file), os.path.basename(file))
 
         # start server
         httpd = HTTPServer(('', cls.server_port), SimpleHTTPRequestHandler)
@@ -89,8 +99,8 @@ class ApiResourceTestCase(ResourceTestCase):
     @classmethod
     def kill_server(cls):
         cls._server_process.terminate()
-        os.chdir(cls._old_cwd)
-        shutil.rmtree(cls._tmpdir)
+        os.chdir(cls._cwd_org)
+        shutil.rmtree(cls._server_tmp)
 
     @cached_property
     def server_url(self):
