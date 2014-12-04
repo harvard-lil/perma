@@ -146,7 +146,7 @@ def deploy_code(restart=True, branch='master'):
     """
         Deploy code only. This is faster than the full deploy.
     """
-    run("find . -name "*.pyc" -exec rm -rf {} \;")
+    run('find . -name "*.pyc" -exec rm -rf {} \;')
     run("git pull origin %s" % branch)
     if restart:
           restart_server()
