@@ -55,3 +55,6 @@ boto==2.29.1
 # sauce integration testing
 sauceclient==0.1.0
 pytest-xdist==1.10
+
+# speed up testing
+django-nose==1.2

@@ -9,9 +9,13 @@ this_module = unicode(
     sys.getfilesystemencoding())
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(this_module))))
 
+# Testing
+
 FIXTURE_DIRS = (
     PROJECT_ROOT,
 )
+
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 DATABASES = {
     'default': {
@@ -210,6 +214,7 @@ INSTALLED_APPS = (
     'sorl.thumbnail',
     'django_forms_bootstrap',
     'djangosecure',  # force SSL -- this can be removed in Django 1.8
+    'django_nose', # for faster testing
 
     # django admin -- has to come after our apps for our admin template overrides to work
     'django.contrib.admin',
