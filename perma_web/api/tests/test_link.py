@@ -88,6 +88,8 @@ class LinkResourceTestCase(ApiResourceTestCase):
         link = Link.objects.latest('creation_timestamp')
         self.assertHasAsset(link, "image_capture")
         self.assertHasAsset(link, "warc_capture")
+        self.assertFalse(link.dark_archived_robots_txt_blocked)
+        self.assertEqual(link.submitted_title, "Test title.")
 
     def test_should_create_archive_from_pdf_file(self):
         count = Link.objects.count()
@@ -95,6 +97,9 @@ class LinkResourceTestCase(ApiResourceTestCase):
             data = dict(self.post_data.copy(), file=test_file)
             self.assertHttpCreated(self.api_client.post(self.list_url, format='multipart', data=data, authentication=self.get_credentials()))
             self.assertEqual(Link.objects.count(), count+1)
+
+            link = Link.objects.latest('creation_timestamp')
+            self.assertHasAsset(link, "pdf_capture")
 
     def test_should_create_archive_from_jpg_file(self):
         count = Link.objects.count()
