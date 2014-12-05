@@ -25,7 +25,19 @@ from multiprocessing import Process
                    PIPELINE_ENABLED=False,
                    # Load the api subdomain routes
                    ROOT_URLCONF='api.urls',
-                   SUBDOMAIN_URLCONFS={})
+                   SUBDOMAIN_URLCONFS={},
+                   # Speed up tests with these hacks
+                   # http://www.daveoncode.com/2013/09/23/effective-tdd-tricks-to-speed-up-django-tests-up-to-10x-faster/
+                   PASSWORD_HASHERS=('django.contrib.auth.hashers.MD5PasswordHasher',),
+                   DATABASES={'default': {
+                       'ENGINE': 'django.db.backends.sqlite3',
+                       'NAME': 'api_test_db'
+                   }},
+                   DEBUG=False,
+                   TEMPLATE_DEBUG=False,
+                   CELERY_ALWAYS_EAGER=True,
+                   CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
+                   BROKER_BACKEND='memory')
 class ApiResourceTestCase(ResourceTestCase):
 
     url_base = "/v1"
