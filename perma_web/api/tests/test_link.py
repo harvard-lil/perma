@@ -78,14 +78,17 @@ class LinkResourceTestCase(ApiResourceTestCase):
         self.assertKeys(self.deserialize(resp), self.get_data.keys())
 
     def test_post_list_unauthenticated(self):
-        self.assertHttpUnauthorized(self.api_client.post(self.list_url, format='json', data=self.post_data))
+        self.assertHttpUnauthorized(
+            self.api_client.post(self.list_url,
+                                 format='json',
+                                 data=self.post_data))
 
     def test_should_create_archive_from_html_url(self):
         count = Link.objects.count()
         self.assertHttpCreated(
             self.api_client.post(self.list_url,
                                  format='json',
-                                 data={"url": self.server_url + "/test.html"},
+                                 data={'url': self.server_url + "/test.html"},
                                  authentication=self.get_credentials()))
 
         self.assertEqual(Link.objects.count(), count+1)
@@ -101,7 +104,7 @@ class LinkResourceTestCase(ApiResourceTestCase):
         self.assertHttpCreated(
             self.api_client.post(self.list_url,
                                  format='json',
-                                 data={"url": self.server_url + "/test.pdf"},
+                                 data={'url': self.server_url + "/test.pdf"},
                                  authentication=self.get_credentials()))
 
         self.assertEqual(Link.objects.count(), count+1)
@@ -113,7 +116,12 @@ class LinkResourceTestCase(ApiResourceTestCase):
         count = Link.objects.count()
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf')) as test_file:
             data = dict(self.post_data.copy(), file=test_file)
-            self.assertHttpCreated(self.api_client.post(self.list_url, format='multipart', data=data, authentication=self.get_credentials()))
+            self.assertHttpCreated(
+                self.api_client.post(self.list_url,
+                                     format='multipart',
+                                     data=data,
+                                     authentication=self.get_credentials()))
+
             self.assertEqual(Link.objects.count(), count+1)
 
             link = Link.objects.latest('creation_timestamp')
@@ -123,51 +131,94 @@ class LinkResourceTestCase(ApiResourceTestCase):
         count = Link.objects.count()
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.jpg')) as test_file:
             data = dict(self.post_data.copy(), file=test_file)
-            self.assertHttpCreated(self.api_client.post(self.list_url, format='multipart', data=data, authentication=self.get_credentials()))
+            self.assertHttpCreated(
+                self.api_client.post(self.list_url,
+                                     format='multipart',
+                                     data=data,
+                                     authentication=self.get_credentials()))
+
             self.assertEqual(Link.objects.count(), count+1)
 
     def test_should_reject_invalid_file(self):
         count = Link.objects.count()
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.html')) as test_file:
             data = dict(self.post_data.copy(), file=test_file)
-            self.assertHttpBadRequest(self.api_client.post(self.list_url, format='multipart', data=data, authentication=self.get_credentials()))
+            self.assertHttpBadRequest(
+                self.api_client.post(self.list_url,
+                                     format='multipart',
+                                     data=data,
+                                     authentication=self.get_credentials()))
+
             self.assertEqual(Link.objects.count(), count)
 
     def test_should_add_http_to_url(self):
         count = Link.objects.count()
-        self.assertHttpCreated(self.api_client.post(self.list_url, format='json', data={'url': 'example.com'}, authentication=self.get_credentials()))
+        self.assertHttpCreated(
+            self.api_client.post(self.list_url,
+                                 format='json',
+                                 data={'url': 'example.com'},
+                                 authentication=self.get_credentials()))
+
         self.assertEqual(Link.objects.count(), count+1)
 
     def test_should_reject_invalid_ip(self):
         # Confirm that local IP captures are banned by default, then unban for testing.
         with self.settings(BANNED_IP_RANGES=["0.0.0.0/8", "127.0.0.0/8"]):
             count = Link.objects.count()
-            self.assertHttpBadRequest(self.api_client.post(self.list_url, format='json', data={'url': 'httpexamplecom'}, authentication=self.get_credentials()))
+            self.assertHttpBadRequest(
+                self.api_client.post(self.list_url,
+                                     format='json',
+                                     data={'url': self.server_url},
+                                     authentication=self.get_credentials()))
+
             self.assertEqual(Link.objects.count(), count)
 
     def test_should_reject_malformed_url(self):
         count = Link.objects.count()
-        self.assertHttpBadRequest(self.api_client.post(self.list_url, format='json', data={'url': 'httpexamplecom'}, authentication=self.get_credentials()))
+        self.assertHttpBadRequest(
+            self.api_client.post(self.list_url,
+                                 format='json',
+                                 data={'url': 'httpexamplecom'},
+                                 authentication=self.get_credentials()))
+
         self.assertEqual(Link.objects.count(), count)
 
     def test_should_reject_unresolvable_domain_url(self):
         count = Link.objects.count()
-        self.assertHttpBadRequest(self.api_client.post(self.list_url, format='json', data={'url': 'http://this-is-not-a-functioning-url.com'}, authentication=self.get_credentials()))
+        self.assertHttpBadRequest(
+            self.api_client.post(self.list_url,
+                                 format='json',
+                                 data={'url': 'http://this-is-not-a-functioning-url.com'},
+                                 authentication=self.get_credentials()))
+
         self.assertEqual(Link.objects.count(), count)
 
     @unittest.expectedFailure
     def test_should_reject_unloadable_url(self):
         count = Link.objects.count()
-        self.assertHttpBadRequest(self.api_client.post(self.list_url, format='json', data={'url': 'http://www.google.com/this-should-404'}, authentication=self.get_credentials()))
+        self.assertHttpBadRequest(
+            self.api_client.post(self.list_url,
+                                 format='json',
+                                 data={'url': 'http://www.google.com/this-should-404'},
+                                 authentication=self.get_credentials()))
+
         self.assertEqual(Link.objects.count(), count)
 
     def test_should_reject_large_url(self):
         count = Link.objects.count()
-        self.assertHttpBadRequest(self.api_client.post(self.list_url, format='json', data={'url': 'http://upload.wikimedia.org/wikipedia/commons/9/9e/Balaton_Hungary_Landscape.jpg'}, authentication=self.get_credentials()))
+        self.assertHttpBadRequest(
+            self.api_client.post(self.list_url,
+                                 format='json',
+                                 data={'url': 'http://upload.wikimedia.org/wikipedia/commons/9/9e/Balaton_Hungary_Landscape.jpg'},
+                                 authentication=self.get_credentials()))
+
         self.assertEqual(Link.objects.count(), count)
 
     def test_patch_detail_unauthenticated(self):
-        self.assertHttpUnauthorized(self.api_client.patch(self.detail_url, format='json', data={}))
+        self.assertHttpUnauthorized(
+            self.api_client.patch(self.detail_url,
+                                  format='json',
+                                  data={}))
 
     def test_patch_detail(self):
         # Grab the current data & modify it slightly.
@@ -180,7 +231,12 @@ class LinkResourceTestCase(ApiResourceTestCase):
                         dark_archived=True)
 
         count = Link.objects.count()
-        self.assertHttpAccepted(self.api_client.patch(self.detail_url, format='json', data=new_data, authentication=self.get_credentials()))
+        self.assertHttpAccepted(
+            self.api_client.patch(self.detail_url,
+                                  format='json',
+                                  data=new_data,
+                                  authentication=self.get_credentials()))
+
         # Make sure the count hasn't changed & we did an update.
         self.assertEqual(Link.objects.count(), count)
 
@@ -210,15 +266,34 @@ class LinkResourceTestCase(ApiResourceTestCase):
         self.fail()
 
     def test_delete_detail_unauthenticated(self):
-        self.assertHttpUnauthorized(self.api_client.delete(self.detail_url, format='json'))
+        self.assertHttpUnauthorized(
+            self.api_client.delete(self.detail_url,
+                                   format='json'))
 
     def test_delete_detail(self):
-        self.assertHttpOK(self.api_client.get(self.detail_url, format='json'))
-        self.assertHttpAccepted(self.api_client.delete(self.detail_url, format='json', authentication=self.get_credentials()))
-        self.assertHttpNotFound(self.api_client.get(self.detail_url, format='json'))
+        self.assertHttpOK(
+            self.api_client.get(self.detail_url,
+                                format='json'))
+
+        self.assertHttpAccepted(
+            self.api_client.delete(self.detail_url,
+                                   format='json',
+                                   authentication=self.get_credentials()))
+
+        self.assertHttpNotFound(
+            self.api_client.get(self.detail_url,
+                                format='json'))
 
     def test_should_limit_delete_to_link_owner(self):
-        self.assertHttpOK(self.api_client.get(self.detail_url, format='json'))
-        self.assertHttpUnauthorized(self.api_client.delete(self.detail_url, format='json', authentication=self.get_credentials(self.user_2)))
+        self.assertHttpOK(
+            self.api_client.get(self.detail_url,
+                                format='json'))
+
+        self.assertHttpUnauthorized(
+            self.api_client.delete(self.detail_url,
+                                   format='json',
+                                   authentication=self.get_credentials(self.user_2)))
         # confirm that the link wasn't deleted
-        self.assertHttpOK(self.api_client.get(self.detail_url, format='json'))
+        self.assertHttpOK(
+            self.api_client.get(self.detail_url,
+                                format='json'))
