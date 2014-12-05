@@ -44,7 +44,7 @@ class LinkValidation(Validation):
         errors = {}
 
         if bundle.data.get('url', '') == '':
-            if not bundle.obj.pk: # if it's a new entry
+            if not bundle.obj.pk:  # if it's a new entry
                 errors['url'] = "URL cannot be empty."
         else:
             try:

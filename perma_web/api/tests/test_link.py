@@ -3,6 +3,7 @@ import os
 from django.test.utils import override_settings
 from .utils import ApiResourceTestCase
 from api.resources import LinkResource
+from perma import models
 from perma.models import Link, LinkUser
 
 from django.conf import settings
@@ -184,6 +185,7 @@ class LinkResourceTestCase(ApiResourceTestCase):
         self.assertEqual(Link.objects.count(), count)
 
     def test_should_reject_unresolvable_domain_url(self):
+        models.HEADER_CHECK_TIMEOUT = 1  # only wait 1 second before giving up
         count = Link.objects.count()
         self.assertHttpBadRequest(
             self.api_client.post(self.list_url,
@@ -199,7 +201,7 @@ class LinkResourceTestCase(ApiResourceTestCase):
         self.assertHttpBadRequest(
             self.api_client.post(self.list_url,
                                  format='json',
-                                 data={'url': 'http://www.google.com/this-should-404'},
+                                 data={'url': 'http://192.0.2.1/'},
                                  authentication=self.get_credentials()))
 
         self.assertEqual(Link.objects.count(), count)
