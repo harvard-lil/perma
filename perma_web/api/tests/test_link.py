@@ -80,9 +80,14 @@ class LinkResourceTestCase(ApiResourceTestCase):
     def test_post_list_unauthenticated(self):
         self.assertHttpUnauthorized(self.api_client.post(self.list_url, format='json', data=self.post_data))
 
-    def test_should_create_archive_from_url(self):
+    def test_should_create_archive_from_html_url(self):
         count = Link.objects.count()
-        self.assertHttpCreated(self.api_client.post(self.list_url, format='json', data=self.post_data, authentication=self.get_credentials()))
+        self.assertHttpCreated(
+            self.api_client.post(self.list_url,
+                                 format='json',
+                                 data={"url": self.server_url + "/test.html"},
+                                 authentication=self.get_credentials()))
+
         self.assertEqual(Link.objects.count(), count+1)
 
         link = Link.objects.latest('creation_timestamp')
@@ -90,6 +95,19 @@ class LinkResourceTestCase(ApiResourceTestCase):
         self.assertHasAsset(link, "warc_capture")
         self.assertFalse(link.dark_archived_robots_txt_blocked)
         self.assertEqual(link.submitted_title, "Test title.")
+
+    def test_should_create_archive_from_pdf_url(self):
+        count = Link.objects.count()
+        self.assertHttpCreated(
+            self.api_client.post(self.list_url,
+                                 format='json',
+                                 data={"url": self.server_url + "/test.pdf"},
+                                 authentication=self.get_credentials()))
+
+        self.assertEqual(Link.objects.count(), count+1)
+
+        link = Link.objects.latest('creation_timestamp')
+        self.assertHasAsset(link, "pdf_capture")
 
     def test_should_create_archive_from_pdf_file(self):
         count = Link.objects.count()
