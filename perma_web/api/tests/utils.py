@@ -1,5 +1,6 @@
 from django.test.utils import override_settings
 from django.conf import settings
+from django.test import TransactionTestCase
 from tastypie.test import ResourceTestCase, TestApiClient
 from api.serializers import MultipartSerializer
 
@@ -19,6 +20,10 @@ from multiprocessing import Process
 
 @override_settings(ROOT_URLCONF='api.urls')
 class ApiResourceTestCase(ResourceTestCase):
+    # See https://github.com/toastdriven/django-tastypie/issues/684#issuecomment-65910589
+    # Remove when upgraded to Django 1.7?
+    _fixture_setup = TransactionTestCase._fixture_setup
+    _fixture_teardown = TransactionTestCase._fixture_teardown
 
     url_base = "/v1"
 
