@@ -9,14 +9,6 @@ this_module = unicode(
     sys.getfilesystemencoding())
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(this_module))))
 
-# Testing
-
-FIXTURE_DIRS = (
-    PROJECT_ROOT,
-)
-
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.

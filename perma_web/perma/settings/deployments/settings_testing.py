@@ -1,3 +1,27 @@
+from settings_common import PROJECT_ROOT
+
+"""
+#########
+# Setup #
+#########
+"""
+
+FIXTURE_DIRS = (
+    PROJECT_ROOT,
+)
+
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
+NOSE_ARGS = [
+    '--nologcapture',
+]
+
+"""
+#############
+# Overrides #
+#############
+"""
+
 RUN_TASKS_ASYNC = False  # avoid sending celery tasks to queue -- just run inline
 
 # django-pipeline causes problems if enabled for tests, so disable it.
