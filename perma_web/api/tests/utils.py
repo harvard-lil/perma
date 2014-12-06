@@ -16,11 +16,8 @@ from SimpleHTTPServer import SimpleHTTPRequestHandler
 import multiprocessing
 from multiprocessing import Process
 
-# import perma.settings.deployments.settings_testing as ts
-# test_settings = {k: v for (k, v) in ts.__dict__.items() if k.isupper()}
 
-
-# @override_settings(**test_settings)
+@override_settings(ROOT_URLCONF='api.urls')
 class ApiResourceTestCase(ResourceTestCase):
 
     url_base = "/v1"

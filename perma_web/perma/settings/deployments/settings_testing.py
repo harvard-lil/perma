@@ -30,19 +30,30 @@ RUN_TASKS_ASYNC = False  # avoid sending celery tasks to queue -- just run inlin
 STATICFILES_STORAGE = 'pipeline.storage.NonPackagingPipelineStorage'
 PIPELINE_ENABLED = False
 
-# Load the api subdomain routes
-ROOT_URLCONF = 'api.urls'
 SUBDOMAIN_URLCONFS = {}
 
-# Speed up tests with these hacks
-# http://www.daveoncode.com/2013/09/23/effective-tdd-tricks-to-speed-up-django-tests-up-to-10x-faster/
-PASSWORD_HASHERS = ('django.contrib.auth.hashers.MD5PasswordHasher',)
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'api_test_db'
-    }
-}
+"""
+###############
+# Speed Hacks #
+###############
+
+Reference:
+- https://docs.djangoproject.com/en/1.4/topics/testing/#speeding-up-the-tests
+- http://www.daveoncode.com/2013/09/23/effective-tdd-tricks-to-speed-up-django-tests-up-to-10x-faster/
+"""
+
+# Note: this is recommended by the Django docs but
+# currently conflicts with some of our tests
+# PASSWORD_HASHERS = (
+#     'django.contrib.auth.hashers.MD5PasswordHasher',
+# )
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'TEST_NAME': None
+#     }
+# }
 
 DEBUG = False
 TEMPLATE_DEBUG = False
