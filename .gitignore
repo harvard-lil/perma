@@ -29,3 +29,4 @@ services/logs/*
 services/mysql/data/*
 !services/mysql/data/README
 perma_web/static-collected
+/perma_web/api/tests/.coverage
