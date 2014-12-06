@@ -19,6 +19,7 @@ class LinkResourceTestCase(ApiResourceTestCase):
                 'fixtures/api_keys.json']
 
     serve_files = [os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.html'),
+                   os.path.join(TEST_ASSETS_DIR, 'target_capture_files/noarchive.html'),
                    os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.pdf')]
 
     def setUp(self):
@@ -84,6 +85,12 @@ class LinkResourceTestCase(ApiResourceTestCase):
                                  format='json',
                                  data=self.post_data))
 
+    """
+    ########################
+    # URL Archive Creation #
+    ########################
+    """
+
     def test_should_create_archive_from_html_url(self):
         count = Link.objects.count()
         self.assertHttpCreated(
@@ -113,6 +120,35 @@ class LinkResourceTestCase(ApiResourceTestCase):
         link = Link.objects.latest('creation_timestamp')
         self.assertHasAsset(link, "pdf_capture")
 
+    def test_should_add_http_to_url(self):
+        count = Link.objects.count()
+        self.assertHttpCreated(
+            self.api_client.post(self.list_url,
+                                 format='json',
+                                 data={'url': 'example.com'},
+                                 authentication=self.get_credentials()))
+
+        self.assertEqual(Link.objects.count(), count+1)
+
+    def test_should_respect_noarchive_in_html(self):
+        count = Link.objects.count()
+        self.assertHttpCreated(
+            self.api_client.post(self.list_url,
+                                 format='json',
+                                 data={'url': self.server_url + "/noarchive.html"},
+                                 authentication=self.get_credentials()))
+
+        self.assertEqual(Link.objects.count(), count+1)
+
+        link = Link.objects.latest('creation_timestamp')
+        self.assertTrue(link.dark_archived_robots_txt_blocked)
+
+    """
+    #########################
+    # File Archive Creation #
+    #########################
+    """
+
     def test_should_create_archive_from_pdf_file(self):
         count = Link.objects.count()
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf')) as test_file:
@@ -140,6 +176,12 @@ class LinkResourceTestCase(ApiResourceTestCase):
 
             self.assertEqual(Link.objects.count(), count+1)
 
+    """
+    ##############
+    # Validation #
+    ##############
+    """
+
     def test_should_reject_invalid_file(self):
         count = Link.objects.count()
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.html')) as test_file:
@@ -151,16 +193,6 @@ class LinkResourceTestCase(ApiResourceTestCase):
                                      authentication=self.get_credentials()))
 
             self.assertEqual(Link.objects.count(), count)
-
-    def test_should_add_http_to_url(self):
-        count = Link.objects.count()
-        self.assertHttpCreated(
-            self.api_client.post(self.list_url,
-                                 format='json',
-                                 data={'url': 'example.com'},
-                                 authentication=self.get_credentials()))
-
-        self.assertEqual(Link.objects.count(), count+1)
 
     def test_should_reject_invalid_ip(self):
         # Confirm that local IP captures are banned by default, then unban for testing.
@@ -216,11 +248,43 @@ class LinkResourceTestCase(ApiResourceTestCase):
 
         self.assertEqual(Link.objects.count(), count)
 
+    """
+    #################
+    # Authorization #
+    #################
+    """
+
+    def test_should_limit_patch_to_link_owner(self):
+        resp = self.api_client.get(self.detail_url, format='json')
+        self.assertValidJSONResponse(resp)
+        old_data = self.deserialize(resp)
+        new_data = dict(old_data,
+                        vested=True,
+                        notes='These are test notes',
+                        dark_archived=True)
+
+        self.assertHttpUnauthorized(self.api_client.patch(self.detail_url, format='json', data=new_data, authentication=self.get_credentials(self.user_2)))
+        self.assertEqual(self.deserialize(self.api_client.get(self.detail_url, format='json')), old_data)
+
+    @unittest.expectedFailure
+    def test_should_allow_registrar_user_of_link_vesting_org_registrar_to_dark_archive(self):
+        self.fail()
+
+    @unittest.expectedFailure
+    def test_should_allow_vesting_user_of_link_vesting_org_to_dark_archive(self):
+        self.fail()
+
     def test_patch_detail_unauthenticated(self):
         self.assertHttpUnauthorized(
             self.api_client.patch(self.detail_url,
                                   format='json',
                                   data={}))
+
+    """
+    #########
+    # Other #
+    #########
+    """
 
     def test_patch_detail(self):
         # Grab the current data & modify it slightly.
@@ -246,26 +310,6 @@ class LinkResourceTestCase(ApiResourceTestCase):
         for attr in ['dark_archived', 'vested', 'notes']:
             self.assertNotEqual(getattr(link, attr), old_data[attr])
             self.assertEqual(getattr(link, attr), new_data[attr])
-
-    def test_should_limit_patch_to_link_owner(self):
-        resp = self.api_client.get(self.detail_url, format='json')
-        self.assertValidJSONResponse(resp)
-        old_data = self.deserialize(resp)
-        new_data = dict(old_data,
-                        vested=True,
-                        notes='These are test notes',
-                        dark_archived=True)
-
-        self.assertHttpUnauthorized(self.api_client.patch(self.detail_url, format='json', data=new_data, authentication=self.get_credentials(self.user_2)))
-        self.assertEqual(self.deserialize(self.api_client.get(self.detail_url, format='json')), old_data)
-
-    @unittest.expectedFailure
-    def test_should_allow_registrar_user_of_link_vesting_org_registrar_to_dark_archive(self):
-        self.fail()
-
-    @unittest.expectedFailure
-    def test_should_allow_vesting_user_of_link_vesting_org_to_dark_archive(self):
-        self.fail()
 
     def test_delete_detail_unauthenticated(self):
         self.assertHttpUnauthorized(
