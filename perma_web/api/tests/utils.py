@@ -49,12 +49,10 @@ class ApiResourceTestCase(ResourceTestCase):
 
         self._media_org = settings.MEDIA_ROOT
         self._media_tmp = settings.MEDIA_ROOT = tempfile.mkdtemp()
-        print("Created MEDIA_ROOT temp dir " + settings.MEDIA_ROOT)
 
     def tearDown(self):
         settings.MEDIA_ROOT = self._media_org
         shutil.rmtree(self._media_tmp)
-        print("Removed MEDIA_ROOT temp dir " + self._media_tmp)
 
     def get_credentials(self, user=None):
         user = user or self.user

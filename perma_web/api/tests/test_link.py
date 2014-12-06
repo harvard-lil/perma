@@ -227,7 +227,6 @@ class LinkResourceTestCase(ApiResourceTestCase):
 
         self.assertEqual(Link.objects.count(), count)
 
-    @unittest.expectedFailure
     def test_should_reject_unloadable_url(self):
         count = Link.objects.count()
         self.assertHttpBadRequest(

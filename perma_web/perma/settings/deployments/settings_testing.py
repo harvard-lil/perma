@@ -10,12 +10,6 @@ FIXTURE_DIRS = (
     PROJECT_ROOT,
 )
 
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-
-NOSE_ARGS = [
-    '--nologcapture',
-]
-
 """
 #############
 # Overrides #
@@ -55,8 +49,6 @@ Reference:
 #     }
 # }
 
-DEBUG = False
-TEMPLATE_DEBUG = False
 CELERY_ALWAYS_EAGER = True
 CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 BROKER_BACKEND = 'memory'
