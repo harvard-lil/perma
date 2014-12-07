@@ -20,8 +20,6 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
 
         self.link_1 = Link.objects.get(pk="3SLN-JHX9")
 
-        self.user_2 = LinkUser.objects.get(email='test_registrar_member@example.com')
-
         self.list_url = "{0}/{1}/".format(self.url_base, LinkResource.Meta.resource_name)
         self.detail_url = "{0}{1}/".format(self.list_url, self.link_1.pk)
 
@@ -90,3 +88,17 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
         self.fail()
         # if request.user.has_group('vesting_user') and not link.vesting_org == request.user.vesting_org:
         #     return HttpResponseRedirect(reverse('single_linky', args=[guid]))
+
+    def test_should_limit_delete_to_link_owner(self):
+        self.assertHttpOK(
+            self.api_client.get(self.detail_url,
+                                format='json'))
+
+        self.assertHttpUnauthorized(
+            self.api_client.delete(self.detail_url,
+                                   format='json',
+                                   authentication=self.get_credentials(self.user_2)))
+        # confirm that the link wasn't deleted
+        self.assertHttpOK(
+            self.api_client.get(self.detail_url,
+                                format='json'))

@@ -48,7 +48,7 @@ Reference:
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': 'perma_test_db'
+#         'NAME': None
 #     }
 # }
 

@@ -1,12 +1,13 @@
 import os
-from .utils import ApiResourceTestCase, TEST_ASSETS_DIR
+from .utils import ApiResourceTransactionTestCase, TEST_ASSETS_DIR
 from api.resources import LinkResource
 from perma.models import Link, LinkUser
 
 from django.core.files.storage import default_storage
 
 
-class LinkResourceTestCase(ApiResourceTestCase):
+# Use a TransactionTestCase here because archive capture is threaded
+class LinkResourceTestCase(ApiResourceTransactionTestCase):
     fixtures = ['fixtures/users.json',
                 'fixtures/archive.json',
                 'fixtures/api_keys.json']
@@ -64,7 +65,7 @@ class LinkResourceTestCase(ApiResourceTestCase):
         self.assertValidJSONResponse(resp)
 
         objs = self.deserialize(resp)['objects']
-        self.assertEqual(len(objs), 2)
+        self.assertEqual(len(objs), Link.objects.count())
         self.assertKeys(objs[0], self.get_data.keys())
 
     def test_get_detail_json(self):
@@ -234,19 +235,5 @@ class LinkResourceTestCase(ApiResourceTestCase):
                                    authentication=self.get_credentials()))
 
         self.assertHttpNotFound(
-            self.api_client.get(self.detail_url,
-                                format='json'))
-
-    def test_should_limit_delete_to_link_owner(self):
-        self.assertHttpOK(
-            self.api_client.get(self.detail_url,
-                                format='json'))
-
-        self.assertHttpUnauthorized(
-            self.api_client.delete(self.detail_url,
-                                   format='json',
-                                   authentication=self.get_credentials(self.user_2)))
-        # confirm that the link wasn't deleted
-        self.assertHttpOK(
             self.api_client.get(self.detail_url,
                                 format='json'))

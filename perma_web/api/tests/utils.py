@@ -34,10 +34,6 @@ def copy_file_or_dir(src, dst):
 
 @override_settings(ROOT_URLCONF='api.urls', BANNED_IP_RANGES=[])
 class ApiResourceTestCase(ResourceTestCase):
-    # See https://github.com/toastdriven/django-tastypie/issues/684#issuecomment-65910589
-    # Remove when upgraded to Django 1.7?
-    _fixture_setup = TransactionTestCase._fixture_setup
-    _fixture_teardown = TransactionTestCase._fixture_teardown
 
     url_base = "/v1"
 
@@ -126,3 +122,13 @@ class ApiResourceTestCase(ResourceTestCase):
     @cached_property
     def server_url(self):
         return "http://" + self.server_domain + ":" + str(self.server_port)
+
+
+class ApiResourceTransactionTestCase(ApiResourceTestCase):
+    """
+    For use with threaded tests like archive creation
+    See https://github.com/toastdriven/django-tastypie/issues/684#issuecomment-65910589
+    Remove when upgraded to Django 1.7?
+    """
+    _fixture_setup = TransactionTestCase._fixture_setup
+    _fixture_teardown = TransactionTestCase._fixture_teardown
