@@ -191,6 +191,9 @@ class LinkResourceTestCase(ApiResourceTestCase):
 
             self.assertEqual(Link.objects.count(), count+1)
 
+            link = Link.objects.latest('creation_timestamp')
+            self.assertHasAsset(link, "image_capture")
+
     """
     ##############
     # Validation #
