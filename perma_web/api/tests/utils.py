@@ -10,12 +10,24 @@ import perma.tasks
 # for web server
 from django.utils.functional import cached_property
 import os
+import errno
 import tempfile
 import shutil
 from BaseHTTPServer import HTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 import multiprocessing
 from multiprocessing import Process
+from contextlib import contextmanager
+
+
+def copy_file_or_dir(src, dst):
+    try:
+        shutil.copytree(src, dst)
+    except OSError as e:
+        if e.errno == errno.ENOTDIR:
+            shutil.copy(src, dst)
+        else:
+            raise
 
 
 @override_settings(ROOT_URLCONF='api.urls')
@@ -31,7 +43,8 @@ class ApiResourceTestCase(ResourceTestCase):
     server_port = 8999
     serve_files = []
 
-    perma.tasks.ROBOTS_TXT_TIMEOUT = perma.tasks.AFTER_LOAD_TIMEOUT = 1  # reduce wait times for testing
+    # reduce wait times for testing
+    perma.tasks.ROBOTS_TXT_TIMEOUT = perma.tasks.AFTER_LOAD_TIMEOUT = 1
 
     @classmethod
     def setUpClass(cls):
@@ -82,7 +95,8 @@ class ApiResourceTestCase(ResourceTestCase):
         print("Serving files:")
         for file in cls.serve_files:
             print("- " + file)
-            shutil.copyfile(os.path.join(cls._cwd_org, file), os.path.basename(file))
+            copy_file_or_dir(os.path.join(cls._cwd_org, file),
+                             os.path.basename(file))
 
         # start server
         httpd = HTTPServer(('', cls.server_port), SimpleHTTPRequestHandler)
@@ -96,6 +110,16 @@ class ApiResourceTestCase(ResourceTestCase):
         cls._server_process.terminate()
         os.chdir(cls._cwd_org)
         shutil.rmtree(cls._server_tmp)
+
+    @contextmanager
+    def serve_file(self, filename):
+        src = os.path.join(self._cwd_org, filename)
+        dst = os.path.basename(filename)
+        try:
+            copy_file_or_dir(src, dst)
+            yield
+        finally:
+            os.remove(dst)
 
     @cached_property
     def server_url(self):

@@ -125,18 +125,33 @@ class LinkResourceTestCase(ApiResourceTestCase):
         self.assertHttpCreated(
             self.api_client.post(self.list_url,
                                  format='json',
-                                 data={'url': 'example.com'},
+                                 data={'url': self.server_url.split("//")[1] + "/test.html"},
                                  authentication=self.get_credentials()))
 
         self.assertEqual(Link.objects.count(), count+1)
 
-    def test_should_respect_noarchive_in_html(self):
+    def test_should_dark_archive_when_noarchive_in_html(self):
         count = Link.objects.count()
         self.assertHttpCreated(
             self.api_client.post(self.list_url,
                                  format='json',
                                  data={'url': self.server_url + "/noarchive.html"},
                                  authentication=self.get_credentials()))
+
+        self.assertEqual(Link.objects.count(), count+1)
+
+        link = Link.objects.latest('creation_timestamp')
+        self.assertTrue(link.dark_archived_robots_txt_blocked)
+
+    def test_should_dark_archive_when_disallowed_in_robots_txt(self):
+        count = Link.objects.count()
+
+        with self.serve_file(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/robots.txt')):
+            self.assertHttpCreated(
+                self.api_client.post(self.list_url,
+                                     format='json',
+                                     data={'url': self.server_url + "/test.html"},
+                                     authentication=self.get_credentials()))
 
         self.assertEqual(Link.objects.count(), count+1)
 
