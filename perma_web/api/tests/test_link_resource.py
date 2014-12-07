@@ -188,30 +188,6 @@ class LinkResourceTestCase(ApiResourceTestCase):
             self.assertHasAsset(link, "image_capture")
 
     """
-    #################
-    # Authorization #
-    #################
-    """
-
-    def test_should_limit_patch_to_link_owner(self):
-        resp = self.api_client.get(self.detail_url, format='json')
-        self.assertValidJSONResponse(resp)
-        old_data = self.deserialize(resp)
-        new_data = dict(old_data,
-                        vested=True,
-                        notes='These are test notes',
-                        dark_archived=True)
-
-        self.assertHttpUnauthorized(self.api_client.patch(self.detail_url, format='json', data=new_data, authentication=self.get_credentials(self.user_2)))
-        self.assertEqual(self.deserialize(self.api_client.get(self.detail_url, format='json')), old_data)
-
-    def test_patch_detail_unauthenticated(self):
-        self.assertHttpUnauthorized(
-            self.api_client.patch(self.detail_url,
-                                  format='json',
-                                  data={}))
-
-    """
     #########
     # Other #
     #########
