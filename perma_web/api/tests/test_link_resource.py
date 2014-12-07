@@ -1,18 +1,11 @@
-import unittest
 import os
-from django.test.utils import override_settings
-from .utils import ApiResourceTestCase
+from .utils import ApiResourceTestCase, TEST_ASSETS_DIR
 from api.resources import LinkResource
-from perma import models
 from perma.models import Link, LinkUser
 
-from django.conf import settings
 from django.core.files.storage import default_storage
 
-TEST_ASSETS_DIR = os.path.join(settings.PROJECT_ROOT, "perma/tests/assets")
 
-
-@override_settings(BANNED_IP_RANGES=[])
 class LinkResourceTestCase(ApiResourceTestCase):
     fixtures = ['fixtures/users.json',
                 'fixtures/archive.json',
@@ -195,77 +188,6 @@ class LinkResourceTestCase(ApiResourceTestCase):
             self.assertHasAsset(link, "image_capture")
 
     """
-    ##############
-    # Validation #
-    ##############
-    """
-
-    def test_should_reject_invalid_file(self):
-        count = Link.objects.count()
-        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.html')) as test_file:
-            data = dict(self.post_data.copy(), file=test_file)
-            self.assertHttpBadRequest(
-                self.api_client.post(self.list_url,
-                                     format='multipart',
-                                     data=data,
-                                     authentication=self.get_credentials()))
-
-            self.assertEqual(Link.objects.count(), count)
-
-    def test_should_reject_invalid_ip(self):
-        # Confirm that local IP captures are banned by default, then unban for testing.
-        with self.settings(BANNED_IP_RANGES=["0.0.0.0/8", "127.0.0.0/8"]):
-            count = Link.objects.count()
-            self.assertHttpBadRequest(
-                self.api_client.post(self.list_url,
-                                     format='json',
-                                     data={'url': self.server_url},
-                                     authentication=self.get_credentials()))
-
-            self.assertEqual(Link.objects.count(), count)
-
-    def test_should_reject_malformed_url(self):
-        count = Link.objects.count()
-        self.assertHttpBadRequest(
-            self.api_client.post(self.list_url,
-                                 format='json',
-                                 data={'url': 'httpexamplecom'},
-                                 authentication=self.get_credentials()))
-
-        self.assertEqual(Link.objects.count(), count)
-
-    def test_should_reject_unresolvable_domain_url(self):
-        models.HEADER_CHECK_TIMEOUT = 1  # only wait 1 second before giving up
-        count = Link.objects.count()
-        self.assertHttpBadRequest(
-            self.api_client.post(self.list_url,
-                                 format='json',
-                                 data={'url': 'http://this-is-not-a-functioning-url.com'},
-                                 authentication=self.get_credentials()))
-
-        self.assertEqual(Link.objects.count(), count)
-
-    def test_should_reject_unloadable_url(self):
-        count = Link.objects.count()
-        self.assertHttpBadRequest(
-            self.api_client.post(self.list_url,
-                                 format='json',
-                                 data={'url': 'http://192.0.2.1/'},
-                                 authentication=self.get_credentials()))
-
-        self.assertEqual(Link.objects.count(), count)
-
-    def test_should_reject_large_url(self):
-        count = Link.objects.count()
-        self.assertHttpBadRequest(
-            self.api_client.post(self.list_url,
-                                 format='json',
-                                 data={'url': 'http://upload.wikimedia.org/wikipedia/commons/9/9e/Balaton_Hungary_Landscape.jpg'},
-                                 authentication=self.get_credentials()))
-
-        self.assertEqual(Link.objects.count(), count)
-
-    """
     #################
     # Authorization #
     #################
@@ -282,14 +204,6 @@ class LinkResourceTestCase(ApiResourceTestCase):
 
         self.assertHttpUnauthorized(self.api_client.patch(self.detail_url, format='json', data=new_data, authentication=self.get_credentials(self.user_2)))
         self.assertEqual(self.deserialize(self.api_client.get(self.detail_url, format='json')), old_data)
-
-    @unittest.expectedFailure
-    def test_should_allow_registrar_user_of_link_vesting_org_registrar_to_dark_archive(self):
-        self.fail()
-
-    @unittest.expectedFailure
-    def test_should_allow_vesting_user_of_link_vesting_org_to_dark_archive(self):
-        self.fail()
 
     def test_patch_detail_unauthenticated(self):
         self.assertHttpUnauthorized(

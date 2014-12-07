@@ -19,6 +19,8 @@ import multiprocessing
 from multiprocessing import Process
 from contextlib import contextmanager
 
+TEST_ASSETS_DIR = os.path.join(settings.PROJECT_ROOT, "perma/tests/assets")
+
 
 def copy_file_or_dir(src, dst):
     try:
@@ -30,7 +32,7 @@ def copy_file_or_dir(src, dst):
             raise
 
 
-@override_settings(ROOT_URLCONF='api.urls')
+@override_settings(ROOT_URLCONF='api.urls', BANNED_IP_RANGES=[])
 class ApiResourceTestCase(ResourceTestCase):
     # See https://github.com/toastdriven/django-tastypie/issues/684#issuecomment-65910589
     # Remove when upgraded to Django 1.7?
