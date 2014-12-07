@@ -3,7 +3,9 @@
         "pk": "7CF8-SS4G",
         "model": "perma.link",
         "fields": {
-            "folders": [24],
+            "folders": [
+                24
+            ],
             "view_count": 3,
             "vested": false,
             "vested_timestamp": null,
@@ -22,7 +24,9 @@
         "pk": "JJ3S-2Q5N",
         "model": "perma.link",
         "fields": {
-            "folders": [25],
+            "folders": [
+                25
+            ],
             "view_count": 1,
             "vested": false,
             "vested_timestamp": null,
@@ -35,6 +39,31 @@
             "vested_by_editor": null,
             "creation_timestamp": "2014-06-16T19:22:51Z",
             "vesting_org": null
+        }
+    },
+    {
+        "pk": "3SLN-JHX9",
+        "model": "perma.link",
+        "fields": {
+            "folders": [
+                25,
+                27
+            ],
+            "view_count": 2,
+            "vested": true,
+            "vested_timestamp": "2014-12-07T18:56:33Z",
+            "user_deleted": false,
+            "dark_archived_robots_txt_blocked": false,
+            "created_by": 4,
+            "dark_archived_by": null,
+            "user_deleted_timestamp": null,
+            "dark_archived": false,
+            "submitted_title": "MetaFilter | Community Weblog",
+            "submitted_url": "http://metafilter.com",
+            "vested_by_editor": 3,
+            "creation_timestamp": "2014-12-07T18:55:37Z",
+            "notes": "",
+            "vesting_org": 1
         }
     },
     {
@@ -66,6 +95,22 @@
             "pdf_capture": "cap.pdf",
             "link": "7CF8-SS4G",
             "base_storage_path": "2014/6/16/19/23/7CF8-SS4G",
+            "instapaper_hash": null
+        }
+    },
+    {
+        "pk": 3,
+        "model": "perma.asset",
+        "fields": {
+            "text_capture": null,
+            "instapaper_timestamp": null,
+            "warc_capture": "archive.warc.gz",
+            "instapaper_id": null,
+            "favicon": null,
+            "image_capture": "cap.png",
+            "pdf_capture": null,
+            "link": "3SLN-JHX9",
+            "base_storage_path": "2014/12/7/18/55/3SLN-JHX9",
             "instapaper_hash": null
         }
     }

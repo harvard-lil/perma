@@ -58,3 +58,4 @@ pytest-xdist==1.10
 
 # speed up testing
 pysqlite==2.6.3
+django-nose==1.3.0

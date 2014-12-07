@@ -25,5 +25,23 @@
             "key": "aajklajfdkslajafksdjweeeifjdaizledajk243",
             "created": "2014-09-01T00:00:00+00:00"
         }
+    },
+    {
+        "pk": 4,
+        "model": "tastypie.ApiKey",
+        "fields": {
+            "user": 4,
+            "key": "azjewjvmdaewiofjvewioqr30942fdjeoaewjvjz",
+            "created": "2014-09-01T00:00:00+00:00"
+        }
+    },
+    {
+        "pk": 5,
+        "model": "tastypie.ApiKey",
+        "fields": {
+            "user": 5,
+            "key": "35f2490vs29riewoafiwri09z32i09sig9490053",
+            "created": "2014-09-01T00:00:00+00:00"
+        }
     }
 ]

@@ -1,4 +1,4 @@
-from settings_common import PROJECT_ROOT
+from settings_dev import PROJECT_ROOT, INSTALLED_APPS
 
 """
 #########
@@ -9,6 +9,9 @@ from settings_common import PROJECT_ROOT
 FIXTURE_DIRS = (
     PROJECT_ROOT,
 )
+
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+INSTALLED_APPS += ("django_nose",)
 
 """
 #############
