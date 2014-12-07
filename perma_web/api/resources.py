@@ -22,7 +22,7 @@ from perma.tasks import get_pdf, proxy_capture
 from mimetypes import MimeTypes
 import os
 from django.core.files.storage import default_storage
-from datetime import datetime
+from django.utils import timezone
 
 
 class DefaultResource(ModelResource):
@@ -188,10 +188,10 @@ class LinkResource(MultipartResource, DefaultResource):
                 raise NotFound("A model instance matching the provided arguments could not be found.")
 
         self.authorized_delete_detail(self.get_object_list(bundle.request), bundle)
-        if not bundle.obj.user_deleted and not bundle.obj.vested:
-            bundle.obj.user_deleted = True
-            bundle.obj.user_deleted_timestamp = datetime.now()
-            bundle.obj.save()
+
+        bundle.obj.user_deleted = True
+        bundle.obj.user_deleted_timestamp = timezone.now()
+        bundle.obj.save()
 
 
 class FolderResource(DefaultResource):

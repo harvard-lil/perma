@@ -15,7 +15,7 @@ class DefaultAuthorization(ReadOnlyAuthorization):
         if bundle.obj.created_by == bundle.request.user:
             return True
         else:
-            raise Unauthorized("Sorry, you don't have access")
+            raise Unauthorized("Sorry, you don't have permission")
 
     def delete_detail(self, object_list, bundle):
         return self.update_detail(object_list, bundle)
@@ -28,13 +28,13 @@ class LinkAuthorization(DefaultAuthorization):
                         Link.objects.get(Link.objects.user_access_filter(bundle.request.user),
                                          pk=bundle.obj.pk))
         except Link.DoesNotExist:
-            raise Unauthorized("Sorry, you don't have access")
+            raise Unauthorized("Sorry, you don't have permission")
 
     def delete_detail(self, object_list, bundle):
-        if bundle.obj.created_by == bundle.request.user:
+        if not bundle.obj.vested and bundle.obj.created_by == bundle.request.user:
             return True
         else:
-            raise Unauthorized("Sorry, you don't have access")
+            raise Unauthorized("Sorry, you don't have permission")
 
 
 class CurrentUserAuthorization(ReadOnlyAuthorization):
