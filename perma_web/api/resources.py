@@ -98,6 +98,7 @@ class LinkResource(MultipartResource, DefaultResource):
     created_by = fields.ForeignKey(LinkUserResource, 'created_by', full=True, null=True, blank=True, readonly=True)
     vested_by_editor = fields.ForeignKey(LinkUserResource, 'vested_by_editor', full=True, null=True, blank=True, readonly=True)
     vesting_org = fields.ForeignKey(VestingOrgResource, 'vesting_org', full=True, null=True, readonly=True)
+    dark_archived_by = fields.ForeignKey(LinkUserResource, 'dark_archived_by', full=True, null=True, blank=True, readonly=True)
     # assets = fields.ToManyField(AssetResource, 'assets', full=True, readonly=True)
 
     class Meta(DefaultResource.Meta):
@@ -133,6 +134,11 @@ class LinkResource(MultipartResource, DefaultResource):
                 url = 'http://' + url
 
             bundle.data['url'] = url
+        return bundle
+
+    def hydrate_dark_archived(self, bundle):
+        if not bundle.obj.dark_archived and bundle.data['dark_archived']:
+            bundle.obj.dark_archived_by = bundle.request.user
         return bundle
 
     def obj_create(self, bundle, **kwargs):
