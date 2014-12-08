@@ -25,6 +25,10 @@ from django.core.files.storage import default_storage
 from django.utils import timezone
 
 
+def pk_to_uri(resource, pk):
+    return resource().get_resource_uri(resource._meta.object_class(pk=pk))
+
+
 class DefaultResource(ModelResource):
 
     class Meta:
@@ -97,7 +101,7 @@ class LinkResource(MultipartResource, DefaultResource):
     # Relationships
     created_by = fields.ForeignKey(LinkUserResource, 'created_by', full=True, null=True, blank=True, readonly=True)
     vested_by_editor = fields.ForeignKey(LinkUserResource, 'vested_by_editor', full=True, null=True, blank=True, readonly=True)
-    vesting_org = fields.ForeignKey(VestingOrgResource, 'vesting_org', full=True, null=True, readonly=True)
+    vesting_org = fields.ForeignKey(VestingOrgResource, 'vesting_org', full=True, null=True)
     dark_archived_by = fields.ForeignKey(LinkUserResource, 'dark_archived_by', full=True, null=True, blank=True, readonly=True)
     # assets = fields.ToManyField(AssetResource, 'assets', full=True, readonly=True)
 
@@ -137,8 +141,44 @@ class LinkResource(MultipartResource, DefaultResource):
         return bundle
 
     def hydrate_dark_archived(self, bundle):
-        if not bundle.obj.dark_archived and bundle.data['dark_archived']:
+        if not bundle.obj.dark_archived and bundle.data.get('dark_archived', None):
             bundle.obj.dark_archived_by = bundle.request.user
+        return bundle
+
+    def hydrate_vested(self, bundle):
+        if not bundle.obj.vested and bundle.data.get('vested', None):
+            bundle.obj.vested_by_editor = bundle.request.user
+            bundle.obj.vested_timestamp = timezone.now()
+
+        return bundle
+
+    def hydrate_vesting_org(self, bundle):
+        if bundle.data.get('vested', None) and not bundle.obj.vesting_org:
+            # If the user passed a vesting org id, grab the uri
+            # but don't make a DB call - we'll validate it later
+            if bundle.data.get('vesting_org', None):
+                try:
+                    # int() sniffs if an id has been passed
+                    int(bundle.data['vesting_org'])
+                    bundle.data['vesting_org'] = pk_to_uri(VestingOrgResource,
+                                                           bundle.data['vesting_org'])
+                except ValueError:
+                    pass
+            else:
+                # Set defaults
+                try:
+                    if bundle.request.user.has_group('vesting_user'):
+                        bundle.data['vesting_org'] = bundle.request.user.vesting_org
+                    elif bundle.request.user.has_group('registrar_user'):
+                        bundle.data['vesting_org'] = VestingOrg.objects.get(registrar=bundle.request.user.registrar)
+                    elif bundle.request.user.has_group('registry_user'):
+                        bundle.data['vesting_org'] = VestingOrg.objects.get()
+                except MultipleObjectsReturned:
+                    pass
+        else:
+            # Clear out the vesting_org so it's not updated otherwise
+            bundle.data.pop('vesting_org', None)
+
         return bundle
 
     def obj_create(self, bundle, **kwargs):
