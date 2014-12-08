@@ -1,4 +1,4 @@
-{% load compressed truncatesmart has_group %}<!DOCTYPE html>
+{% load compressed has_group %}<!DOCTYPE html>
 <html lang="en-us">
     <head>
         <title>perma.cc{% block title %}{% endblock %}</title>
@@ -52,7 +52,7 @@
 					  	{% if request.user.is_authenticated %}
                             {% comment %}<li><a href="{% url 'logout' %}" style="color: #aaa;">Log out</a></li>{% endcomment %}
                             <li class="dropdown">
-                              <a href="#" class="dropdown-toggle navbar-link" data-toggle="dropdown" role="button" aria-expanded="false">{% if request.user.first_name %}{{ request.user.first_name }}{% else %}{{ request.user.email|truncateatsymbol }}{% endif %} <span class="caret"></span></a>
+                              <a href="#" class="dropdown-toggle navbar-link" data-toggle="dropdown" role="button" aria-expanded="false">{{ request.user.get_short_name }} <span class="caret"></span></a>
                               <ul class="dropdown-menu" role="menu">
                                 <li><a href="{% url 'link_browser' %}">My links</a></li>
                                 

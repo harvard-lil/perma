@@ -1036,7 +1036,7 @@ def limited_login(request, template_name='registration/login.html',
                 # Set the user-info cookie for mirror servers.
                 # This will be set by the main server, e.g. //dashboard.perma.cc,
                 # but will be readable by any mirror serving //perma.cc.
-                user_info = serializers.serialize("json", [request.user], fields=['groups','registrar','vesting_org'])
+                user_info = serializers.serialize("json", [request.user], fields=['groups','registrar','vesting_org','first_name','last_name','email'])
 
                 # The cookie should last as long as the login cookie, so cookie logic is copied from SessionMiddleware.
                 if request.session.get_expire_at_browser_close():
@@ -1053,7 +1053,7 @@ def limited_login(request, template_name='registration/login.html',
                                     expires=expires,
                                     domain=get_mirror_cookie_domain(request),
                                     path=settings.SESSION_COOKIE_PATH,
-                                    secure=settings.SESSION_COOKIE_SECURE or None,
+                                    secure=False,  # so we can read the cookie on http link playbacks -- this can be changed if we no longer rely on http: links
                                     httponly=settings.SESSION_COOKIE_HTTPONLY or None)
 
             return response
