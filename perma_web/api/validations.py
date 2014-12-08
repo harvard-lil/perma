@@ -74,4 +74,8 @@ class LinkValidation(Validation):
             elif bundle.data.get('file').size > settings.MAX_ARCHIVE_FILE_SIZE:
                 errors['file'] = "File is too large."
 
+        if bundle.data.get('vested'):
+            if not bundle.data.get('vesting_org'):
+                errors['vesting_org'] = "Not a valid vesting org"
+
         return errors
