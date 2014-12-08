@@ -74,6 +74,10 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
             self.deserialize(self.api_client.get(url, format='json')),
             old_data)
 
+    ###########
+    # Editing #
+    ###########
+
     def test_should_allow_unvested_link_owner_to_patch_notes_and_title(self):
         self.patch_link(self.unvested_url, self.unvested_link.created_by, self.patch_data)
 
@@ -97,6 +101,10 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
     def test_should_reject_patch_from_user_lacking_owner_and_folder_access(self):
         self.reject_patch_link(self.vested_url, self.vesting_manager, self.patch_data)
 
+    ###########
+    # Vesting #
+    ###########
+
     def test_should_allow_member_of_vesting_org_to_vest(self):
         data = self.patch_link(self.unvested_url, self.vesting_member, {'vested': True})
         self.assertEqual(data['vested_by_editor']['id'], self.vesting_member.id)
@@ -111,6 +119,10 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
 
     def test_should_reject_vest_from_user_lacking_vesting_privileges(self):
         self.reject_patch_link(self.unvested_url, self.regular_user, {'vested': True})
+
+    ##################
+    # Dark Archiving #
+    ##################
 
     def test_should_allow_link_owner_to_dark_archive(self):
         user = self.vested_link.created_by
