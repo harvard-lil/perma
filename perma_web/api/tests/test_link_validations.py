@@ -92,7 +92,7 @@ class LinkValidationsTestCase(ApiResourceTestCase):
 
         self.assertEqual(Link.objects.count(), count)
 
-    def test_should_reject_vest_without_vesting_org(self):
+    def test_should_reject_vest_when_missing_vesting_org(self):
         old_data = self.deserialize(self.api_client.get(self.unvested_url, format='json'))
         new_data = old_data.copy()
         new_data.update({'vested': True})
