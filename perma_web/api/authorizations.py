@@ -22,7 +22,16 @@ class DefaultAuthorization(ReadOnlyAuthorization):
 
 
 class LinkAuthorization(DefaultAuthorization):
+
     def update_detail(self, object_list, bundle):
+        # For vesting
+        if bundle.obj.tracker.has_changed("vested"):
+            if bundle.request.user.has_group(['registrar_user', 'registry_user', 'vesting_user']):
+                return True
+            else:
+                raise Unauthorized("Sorry, you don't have permission")
+
+        # For editing
         try:
             return bool(bundle.obj.created_by == bundle.request.user or
                         Link.objects.get(Link.objects.user_access_filter(bundle.request.user),
@@ -38,6 +47,7 @@ class LinkAuthorization(DefaultAuthorization):
 
 
 class CurrentUserAuthorization(ReadOnlyAuthorization):
+
     def all_detail(self, object_list, bundle):
         if bundle.request.user.is_authenticated():
             return True
