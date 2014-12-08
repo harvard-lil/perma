@@ -98,17 +98,19 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
         self.reject_patch_link(self.vested_url, self.vesting_manager, self.patch_data)
 
     def test_should_allow_member_of_vesting_org_to_vest(self):
-        user = self.vested_link.vesting_org.users.first()
-        data = self.patch_link(self.vested_url, user, {'dark_archived': True})
-        self.assertEqual(data['dark_archived_by']['id'], user.id)
+        data = self.patch_link(self.unvested_url, self.vesting_member, {'vested': True})
+        self.assertEqual(data['vested_by_editor']['id'], self.vesting_member.id)
 
     def test_should_allow_member_of_registrar_to_vest(self):
-        user = LinkUser.objects.filter(registrar=self.vested_link.vesting_org.registrar.pk).first()
-        data = self.patch_link(self.vested_url, user, {'vested': True})
-        self.assertEqual(data['vested_by_editor']['id'], user.id)
+        data = self.patch_link(self.unvested_url, self.registrar_member, {'vested': True})
+        self.assertEqual(data['vested_by_editor']['id'], self.registrar_member.id)
+
+    def test_should_allow_member_of_registry_to_vest(self):
+        data = self.patch_link(self.unvested_url, self.registry_member, {'vested': True})
+        self.assertEqual(data['vested_by_editor']['id'], self.registry_member.id)
 
     def test_should_reject_vest_from_user_lacking_vesting_privileges(self):
-        self.reject_patch_link(self.vested_url, self.vesting_manager, {'dark_archived': True})
+        self.reject_patch_link(self.unvested_url, self.regular_user, {'vested': True})
 
     def test_should_allow_link_owner_to_dark_archive(self):
         user = self.vested_link.created_by
