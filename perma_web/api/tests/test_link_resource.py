@@ -79,11 +79,9 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
                                  format='json',
                                  data=self.post_data))
 
-    """
     ########################
     # URL Archive Creation #
     ########################
-    """
 
     def test_should_create_archive_from_html_url(self):
         count = Link.objects.count()
@@ -152,11 +150,9 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         link = Link.objects.latest('creation_timestamp')
         self.assertTrue(link.dark_archived_robots_txt_blocked)
 
-    """
     #########################
     # File Archive Creation #
     #########################
-    """
 
     def test_should_create_archive_from_pdf_file(self):
         count = Link.objects.count()
@@ -188,11 +184,9 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             link = Link.objects.latest('creation_timestamp')
             self.assertHasAsset(link, "image_capture")
 
-    """
     #########
     # Other #
     #########
-    """
 
     def test_patch_detail(self):
         # Grab the current data & modify it slightly.

@@ -233,7 +233,8 @@ NUMBER_RETRIES = 3 # if wget fails to get a resource, try to get again this many
 WAIT_BETWEEN_TRIES = .5 # wait between .5 and this many seconds between http requests to our source
 
 # Max file size (for our downloads)
-MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 100 # 100 MB
+MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 100  # 100 MB
+MAX_HTTP_FETCH_SIZE = 1024 * 1024  # 1 MB
 
 # Rate limits
 MINUTE_LIMIT = '6000/m'
