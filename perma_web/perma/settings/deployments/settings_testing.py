@@ -48,6 +48,10 @@ Reference:
 #     'django.contrib.auth.hashers.MD5PasswordHasher',
 # )
 
+# Using the Django SQLite in-memory DB for testing is faster,
+# but threaded tasks won't have access in Django <=1.7
+# - https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-TEST_NAME
+# - https://code.djangoproject.com/ticket/12118
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.sqlite3',
