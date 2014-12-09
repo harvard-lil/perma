@@ -49,7 +49,7 @@ class LinkValidation(Validation):
         if bundle.data.get('url', '') == '':
             if not bundle.obj.pk:  # if it's a new entry
                 errors['url'] = "URL cannot be empty."
-        else:
+        elif bundle.obj.tracker.has_changed('submitted_url'):  # url is aliased to submitted_url in the API
             try:
                 validate = URLValidator()
                 validate(bundle.data.get('url'))
@@ -77,18 +77,17 @@ class LinkValidation(Validation):
             elif bundle.data.get('file').size > settings.MAX_ARCHIVE_FILE_SIZE:
                 errors['file'] = "File is too large."
 
-        if bundle.data.get('vested', None):
+        if bundle.data.get('vested', None) and bundle.obj.tracker.has_changed('vested'):
             if not bundle.obj.vesting_org:
                 errors['vesting_org'] = "vesting_org can't be blank"
-            if bundle.obj.tracker.has_changed('vested'):
-                if not bundle.data.get("folder", None):
-                    errors['folder'] = "a folder must be specified when vesting"
-                else:
-                    try:
-                        folder = Folder.objects.get(pk=bundle.data.get("folder"))
-                        if folder.vesting_org != bundle.obj.vesting_org:
-                            errors['folder'] = "the folder must belong to the vesting_org"
-                    except Folder.DoesNotExist:
-                        errors['folder'] = "the folder you specified does not exist"
+            elif not bundle.data.get("folder", None):
+                errors['folder'] = "a folder must be specified when vesting"
+            else:
+                try:
+                    folder = Folder.objects.get(pk=bundle.data.get("folder"))
+                    if folder.vesting_org != bundle.obj.vesting_org:
+                        errors['folder'] = "the folder must belong to the vesting_org"
+                except Folder.DoesNotExist:
+                    errors['folder'] = "the folder you specified does not exist"
 
         return errors
