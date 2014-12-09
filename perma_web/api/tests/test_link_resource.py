@@ -39,7 +39,11 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             'guid': str(self.link_1.guid),
             'creation_timestamp': '2014-06-16T15:23:24',
             'vesting_org': None,
-            'resource_uri': self.detail_url
+            'resource_uri': self.detail_url,
+            'folders': [],
+            'assets': [],
+            'dark_archived_by': {},
+            'dark_archived_robots_txt_blocked': False
         }
 
         self.post_data = {
@@ -76,7 +80,6 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     def test_post_list_unauthenticated(self):
         self.assertHttpUnauthorized(
             self.api_client.post(self.list_url,
-                                 format='json',
                                  data=self.post_data))
 
     ########################
@@ -87,7 +90,6 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         count = Link.objects.count()
         self.assertHttpCreated(
             self.api_client.post(self.list_url,
-                                 format='json',
                                  data={'url': self.server_url + "/test.html"},
                                  authentication=self.get_credentials()))
 
@@ -103,7 +105,6 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         count = Link.objects.count()
         self.assertHttpCreated(
             self.api_client.post(self.list_url,
-                                 format='json',
                                  data={'url': self.server_url + "/test.pdf"},
                                  authentication=self.get_credentials()))
 
@@ -116,7 +117,6 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         count = Link.objects.count()
         self.assertHttpCreated(
             self.api_client.post(self.list_url,
-                                 format='json',
                                  data={'url': self.server_url.split("//")[1] + "/test.html"},
                                  authentication=self.get_credentials()))
 
@@ -126,7 +126,6 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         count = Link.objects.count()
         self.assertHttpCreated(
             self.api_client.post(self.list_url,
-                                 format='json',
                                  data={'url': self.server_url + "/noarchive.html"},
                                  authentication=self.get_credentials()))
 
@@ -141,7 +140,6 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         with self.serve_file(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/robots.txt')):
             self.assertHttpCreated(
                 self.api_client.post(self.list_url,
-                                     format='json',
                                      data={'url': self.server_url + "/test.html"},
                                      authentication=self.get_credentials()))
 
@@ -189,45 +187,16 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     #########
 
     def test_patch_detail(self):
-        # Grab the current data & modify it slightly.
-        resp = self.api_client.get(self.detail_url, format='json')
-        self.assertValidJSONResponse(resp)
-        old_data = self.deserialize(resp)
-        new_data = dict(old_data,
-                        vested=True,
-                        notes='These are test notes',
-                        dark_archived=True)
-
-        count = Link.objects.count()
-        self.assertHttpAccepted(
-            self.api_client.patch(self.detail_url,
-                                  format='json',
-                                  data=new_data,
-                                  authentication=self.get_credentials()))
-
-        # Make sure the count hasn't changed & we did an update.
-        self.assertEqual(Link.objects.count(), count)
-
-        link = Link.objects.get(pk=self.link_1.pk)
-        for attr in ['dark_archived', 'vested', 'notes']:
-            self.assertNotEqual(getattr(link, attr), old_data[attr])
-            self.assertEqual(getattr(link, attr), new_data[attr])
-
-    def test_delete_detail_unauthenticated(self):
-        self.assertHttpUnauthorized(
-            self.api_client.delete(self.detail_url,
-                                   format='json'))
+        self.successful_patch(self.detail_url,
+                              self.link_1.created_by,
+                              {'notes': 'These are new notes',
+                               'title': 'This is a new title'})
 
     def test_delete_detail(self):
-        self.assertHttpOK(
-            self.api_client.get(self.detail_url,
-                                format='json'))
+        self.assertHttpOK(self.api_client.get(self.detail_url))
 
         self.assertHttpAccepted(
             self.api_client.delete(self.detail_url,
-                                   format='json',
                                    authentication=self.get_credentials()))
 
-        self.assertHttpNotFound(
-            self.api_client.get(self.detail_url,
-                                format='json'))
+        self.assertHttpNotFound(self.api_client.get(self.detail_url))

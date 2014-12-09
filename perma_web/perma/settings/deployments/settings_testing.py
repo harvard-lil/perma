@@ -14,6 +14,7 @@ FIXTURE_DIRS = (
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 INSTALLED_APPS += ("django_nose",)
 logging.getLogger('south').setLevel(logging.INFO)
+logging.getLogger('subdomains.middleware').setLevel(logging.ERROR)
 
 """
 #############

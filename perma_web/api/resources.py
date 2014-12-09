@@ -122,7 +122,7 @@ class LinkResource(MultipartResource, DefaultResource):
     vested_by_editor = fields.ForeignKey(LinkUserResource, 'vested_by_editor', full=True, null=True, blank=True, readonly=True)
     vesting_org = fields.ForeignKey(VestingOrgResource, 'vesting_org', full=True, null=True)
     dark_archived_by = fields.ForeignKey(LinkUserResource, 'dark_archived_by', full=True, null=True, blank=True, readonly=True)
-    folders = fields.ToManyField(FolderResource, 'folders')
+    folders = fields.ToManyField(FolderResource, 'folders', null=True)
     assets = fields.ToManyField(AssetResource, 'assets', readonly=True)
 
     class Meta(DefaultResource.Meta):
