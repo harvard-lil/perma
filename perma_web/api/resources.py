@@ -143,6 +143,7 @@ class LinkResource(MultipartResource, DefaultResource):
     def hydrate_dark_archived(self, bundle):
         if not bundle.obj.dark_archived and bundle.data.get('dark_archived', None):
             bundle.obj.dark_archived_by = bundle.request.user
+
         return bundle
 
     def hydrate_vested(self, bundle):

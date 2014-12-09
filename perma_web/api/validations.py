@@ -77,7 +77,7 @@ class LinkValidation(Validation):
                 errors['file'] = "File is too large."
 
         if bundle.data.get('vested'):
-            if not bundle.data.get('vesting_org'):
+            if not bundle.obj.vesting_org:
                 errors['vesting_org'] = "vesting_org can't be blank"
 
         return errors
