@@ -1,3 +1,4 @@
+from django.conf import settings
 from tastypie import fields
 from tastypie.resources import ModelResource
 from perma.models import LinkUser, Link, Asset, Folder, VestingOrg
@@ -18,7 +19,7 @@ from authorizations import (DefaultAuthorization,
 
 # LinkResource
 from perma.utils import run_task
-from perma.tasks import get_pdf, proxy_capture
+from perma.tasks import get_pdf, proxy_capture, upload_to_internet_archive
 from mimetypes import MimeTypes
 import os
 from django.core.files.storage import default_storage
@@ -223,6 +224,23 @@ class LinkResource(MultipartResource, DefaultResource):
                             asset.link.submitted_url,
                             asset.base_storage_path,
                             bundle.request.META.get('HTTP_USER_AGENT', '')))
+
+        return bundle
+
+    def obj_update(self, bundle, skip_errors=False, **kwargs):
+        was_vested = bundle.obj.vested
+
+        bundle = super(LinkResource, self).obj_update(bundle, skip_errors, **kwargs)
+
+        if not was_vested and bundle.obj.vested:
+            self.post_vesting(bundle)
+
+        return bundle
+
+    def post_vesting(self, bundle):
+        # Upload to IA after update
+        if settings.UPLOAD_TO_INTERNET_ARCHIVE and bundle.obj.can_upload_to_internet_archive():
+            run_task(upload_to_internet_archive, link_guid=bundle.obj.guid)
 
         return bundle
 
