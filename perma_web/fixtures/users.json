@@ -20,7 +20,16 @@
             "date_created": "2013-06-26"
         }
     },
-
+    {
+        "pk": 2,
+        "model": "perma.VestingOrg",
+        "fields": {
+            "name": "Another Journal",
+            "registrar": 1,
+            "shared_folder": 28,
+            "date_created": "2013-06-26"
+        }
+    },
     {
         "pk": 22,
         "model": "perma.folder",
@@ -135,7 +144,25 @@
             "vesting_org": 1
         }
     },
-
+    {
+        "pk": 28,
+        "model": "perma.folder",
+        "fields": {
+            "rght": 2,
+            "name": "Another Journal",
+            "parent": null,
+            "level": 0,
+            "created_by": null,
+            "lft": 1,
+            "is_root_folder": false,
+            "tree_id": 6,
+            "owned_by": null,
+            "is_shared_folder": true,
+            "creation_timestamp": "2014-09-02T16:58:10Z",
+            "slug": "another-journal",
+            "vesting_org": 2
+        }
+    },
     {
         "pk": 1,
         "model": "perma.LinkUser",

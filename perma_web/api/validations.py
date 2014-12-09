@@ -8,7 +8,9 @@ import imghdr
 
 from django.conf import settings
 
+
 class LinkValidation(Validation):
+
     def is_valid_ip(self, ip):
         for banned_ip_range in settings.BANNED_IP_RANGES:
             if IPAddress(ip) in IPNetwork(banned_ip_range):
@@ -77,8 +79,5 @@ class LinkValidation(Validation):
         if bundle.data.get('vested'):
             if not bundle.data.get('vesting_org'):
                 errors['vesting_org'] = "vesting_org can't be blank"
-            elif (bundle.request.user.has_group('registrar_user') and
-                  bundle.request.user.registrar != bundle.obj.vesting_org.registrar):
-                errors['vesting_org'] = "Invalid vesting_org"
 
         return errors

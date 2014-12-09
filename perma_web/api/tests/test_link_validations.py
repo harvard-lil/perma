@@ -7,6 +7,9 @@ from django.test.utils import override_settings
 
 
 class LinkValidationsTestCase(ApiResourceTestCase):
+
+    assertHttpRejected = ApiResourceTestCase.assertHttpBadRequest
+
     fixtures = ['fixtures/users.json',
                 'fixtures/api_keys.json',
                 'fixtures/archive.json']
@@ -17,7 +20,8 @@ class LinkValidationsTestCase(ApiResourceTestCase):
     def setUp(self):
         super(LinkValidationsTestCase, self).setUp()
 
-        self.user = LinkUser.objects.get(email='test_vesting_member@example.com')
+        self.registry_member = LinkUser.objects.get(pk=1)
+        self.vesting_member = LinkUser.objects.get(pk=3)
 
         self.vested_link = Link.objects.get(pk="3SLN-JHX9")
         self.unvested_link = Link.objects.get(pk="7CF8-SS4G")
@@ -26,10 +30,6 @@ class LinkValidationsTestCase(ApiResourceTestCase):
 
         self.vested_url = "{0}{1}/".format(self.list_url, self.vested_link.pk)
         self.unvested_url = "{0}{1}/".format(self.list_url, self.unvested_link.pk)
-
-    def get_credentials(self, user=None):
-        user = user or self.user
-        return self.create_apikey(username=user.email, api_key=user.api_key.key)
 
     ########
     # URLs #
@@ -42,7 +42,7 @@ class LinkValidationsTestCase(ApiResourceTestCase):
             self.api_client.post(self.list_url,
                                  format='json',
                                  data={'url': self.server_url},
-                                 authentication=self.get_credentials()))
+                                 authentication=self.get_credentials(self.vesting_member)))
 
         self.assertEqual(Link.objects.count(), count)
 
@@ -52,7 +52,7 @@ class LinkValidationsTestCase(ApiResourceTestCase):
             self.api_client.post(self.list_url,
                                  format='json',
                                  data={'url': 'httpexamplecom'},
-                                 authentication=self.get_credentials()))
+                                 authentication=self.get_credentials(self.vesting_member)))
 
         self.assertEqual(Link.objects.count(), count)
 
@@ -63,7 +63,7 @@ class LinkValidationsTestCase(ApiResourceTestCase):
             self.api_client.post(self.list_url,
                                  format='json',
                                  data={'url': 'http://this-is-not-a-functioning-url.com'},
-                                 authentication=self.get_credentials()))
+                                 authentication=self.get_credentials(self.vesting_member)))
 
         self.assertEqual(Link.objects.count(), count)
 
@@ -73,7 +73,7 @@ class LinkValidationsTestCase(ApiResourceTestCase):
             self.api_client.post(self.list_url,
                                  format='json',
                                  data={'url': 'http://192.0.2.1/'},
-                                 authentication=self.get_credentials()))
+                                 authentication=self.get_credentials(self.vesting_member)))
 
         self.assertEqual(Link.objects.count(), count)
 
@@ -84,7 +84,7 @@ class LinkValidationsTestCase(ApiResourceTestCase):
             self.api_client.post(self.list_url,
                                  format='json',
                                  data={'url': self.server_url + '/test.jpg'},
-                                 authentication=self.get_credentials()))
+                                 authentication=self.get_credentials(self.vesting_member)))
 
         self.assertEqual(Link.objects.count(), count)
 
@@ -100,7 +100,7 @@ class LinkValidationsTestCase(ApiResourceTestCase):
                                      format='multipart',
                                      data={'url': self.server_url + '/test.html',
                                            'file': test_file},
-                                     authentication=self.get_credentials()))
+                                     authentication=self.get_credentials(self.vesting_member)))
 
             self.assertEqual(Link.objects.count(), count)
 
@@ -113,7 +113,7 @@ class LinkValidationsTestCase(ApiResourceTestCase):
                                      format='multipart',
                                      data={'url': self.server_url + '/test.html',
                                            'file': test_file},
-                                     authentication=self.get_credentials()))
+                                     authentication=self.get_credentials(self.vesting_member)))
 
             self.assertEqual(Link.objects.count(), count)
 
@@ -122,18 +122,11 @@ class LinkValidationsTestCase(ApiResourceTestCase):
     ###################
 
     def test_should_reject_vest_when_missing_vesting_org(self):
-        old_data = self.deserialize(self.api_client.get(self.unvested_url, format='json'))
-        new_data = old_data.copy()
-        new_data.update({'vested': True})
+        self.rejected_patch(self.unvested_url,
+                            self.registry_member,  # registry_member has multiple vesting_orgs
+                            {'vested': True})
 
-        count = Link.objects.count()
-        self.assertHttpBadRequest(
-            self.api_client.patch(self.unvested_url,
-                                  format='json',
-                                  data=new_data,
-                                  authentication=self.get_credentials(self.unvested_link.created_by)))
-
-        self.assertEqual(Link.objects.count(), count)
-        self.assertEqual(
-            self.deserialize(self.api_client.get(self.unvested_url, format='json')),
-            old_data)
+    def test_should_reject_vest_when_vesting_org_not_found(self):
+        self.rejected_patch(self.unvested_url,
+                            self.unvested_link.created_by,
+                            {'vested': True, 'vesting_org': 999})

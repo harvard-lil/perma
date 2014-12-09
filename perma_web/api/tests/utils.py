@@ -123,6 +123,45 @@ class ApiResourceTestCase(ResourceTestCase):
     def server_url(self):
         return "http://" + self.server_domain + ":" + str(self.server_port)
 
+    def successful_patch(self, url, user, new_vals):
+        old_data = self.deserialize(self.api_client.get(url, format='json'))
+        new_data = old_data.copy()
+        new_data.update(new_vals)
+
+        # count = Link.objects.count()
+        self.assertHttpAccepted(
+            self.api_client.patch(url,
+                                  data=new_data,
+                                  authentication=self.get_credentials(user)))
+
+        # Make sure the count hasn't changed & we did an update.
+        # self.assertEqual(Link.objects.count(), count)
+
+        fresh_data = self.deserialize(self.api_client.get(url, format='json'))
+        for attr in new_vals.keys():
+            self.assertNotEqual(fresh_data[attr], old_data[attr])
+            self.assertEqual(fresh_data[attr], new_data[attr])
+
+        return fresh_data
+
+    def rejected_patch(self, url, user, new_vals):
+        old_data = self.deserialize(self.api_client.get(url, format='json'))
+        new_data = old_data.copy()
+        new_data.update(new_vals)
+
+        # count = Link.objects.count()
+        resp = self.api_client.patch(url,
+                                     data=new_data,
+                                     authentication=self.get_credentials(user))
+        self.assertHttpRejected(resp)
+
+        # self.assertEqual(Link.objects.count(), count)
+        self.assertEqual(
+            self.deserialize(self.api_client.get(url, format='json')),
+            old_data)
+
+        return resp
+
 
 class ApiResourceTransactionTestCase(ApiResourceTestCase):
     """
