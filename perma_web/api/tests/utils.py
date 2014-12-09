@@ -139,8 +139,17 @@ class ApiResourceTestCase(ResourceTestCase):
 
         fresh_data = self.deserialize(self.api_client.get(url, format='json'))
         for attr in new_vals.keys():
+            # Make sure the data actually changed
             self.assertNotEqual(fresh_data[attr], old_data[attr])
-            self.assertEqual(fresh_data[attr], new_data[attr])
+            # Make sure the data changed to what we specified
+            try:
+                self.assertEqual(fresh_data[attr], new_data[attr])
+            except AssertionError:
+                # If we specified a nested ID, we'll be getting back an object
+                if str(new_data[attr]).isdigit() and isinstance(fresh_data[attr], dict):
+                    self.assertEqual(new_data[attr], fresh_data[attr]['id'])
+                else:
+                    raise
 
         return fresh_data
 
