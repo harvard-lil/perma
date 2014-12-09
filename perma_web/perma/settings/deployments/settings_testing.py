@@ -1,4 +1,5 @@
 from settings_dev import PROJECT_ROOT, INSTALLED_APPS
+import logging
 
 """
 #########
@@ -12,6 +13,7 @@ FIXTURE_DIRS = (
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 INSTALLED_APPS += ("django_nose",)
+logging.getLogger('south').setLevel(logging.INFO)
 
 """
 #############
