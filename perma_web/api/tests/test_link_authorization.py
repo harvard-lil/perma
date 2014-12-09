@@ -8,8 +8,9 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
     assertHttpRejected = ApiResourceTestCase.assertHttpUnauthorized
 
     fixtures = ['fixtures/users.json',
-                'fixtures/archive.json',
-                'fixtures/api_keys.json']
+                'fixtures/groups.json',
+                'fixtures/api_keys.json',
+                'fixtures/archive.json']
 
     def setUp(self):
         super(LinkAuthorizationTestCase, self).setUp()
