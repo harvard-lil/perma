@@ -83,7 +83,12 @@ class LinkValidation(Validation):
         if bundle.obj.tracker.has_changed('vested'):
             if not bundle.data.get("folder", None):
                 errors['folder'] = "a folder must be specified when vesting"
-            if Folder.objects.get(pk=bundle.data.get("folder")).vesting_org != bundle.obj.vesting_org:
-                errors['folder'] = "the folder must belong to the vesting_org"
+            else:
+                try:
+                    folder = Folder.objects.get(pk=bundle.data.get("folder"))
+                    if folder.vesting_org != bundle.obj.vesting_org:
+                        errors['folder'] = "the folder must belong to the vesting_org"
+                except Folder.DoesNotExist:
+                    errors['folder'] = "the folder you specified does not exist"
 
         return errors
