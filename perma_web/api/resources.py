@@ -75,6 +75,24 @@ class VestingOrgResource(DefaultResource):
             'name'
         ]
 
+class FolderResource(DefaultResource):
+    class Meta(DefaultResource.Meta):
+        resource_name = 'folders'
+        queryset = Folder.objects.all()
+        fields = [
+            'creation_timestamp',
+            'id',
+            'is_root_folder',
+            'is_shared_folder',
+            'level',
+            'lft',
+            'name',
+            'resource_uri',
+            'rght',
+            'slug',
+            'tree_id'
+        ]
+
 
 class AssetResource(DefaultResource):
     # archive = fields.ForeignKey(LinkResource, 'link', full=False, null=False, readonly=True)
@@ -104,7 +122,8 @@ class LinkResource(MultipartResource, DefaultResource):
     vested_by_editor = fields.ForeignKey(LinkUserResource, 'vested_by_editor', full=True, null=True, blank=True, readonly=True)
     vesting_org = fields.ForeignKey(VestingOrgResource, 'vesting_org', full=True, null=True)
     dark_archived_by = fields.ForeignKey(LinkUserResource, 'dark_archived_by', full=True, null=True, blank=True, readonly=True)
-    # assets = fields.ToManyField(AssetResource, 'assets', full=True, readonly=True)
+    folders = fields.ToManyField(FolderResource, 'folders')
+    assets = fields.ToManyField(AssetResource, 'assets', readonly=True)
 
     class Meta(DefaultResource.Meta):
         resource_name = 'archives'
@@ -257,25 +276,6 @@ class LinkResource(MultipartResource, DefaultResource):
         bundle.obj.user_deleted = True
         bundle.obj.user_deleted_timestamp = timezone.now()
         bundle.obj.save()
-
-
-class FolderResource(DefaultResource):
-    class Meta(DefaultResource.Meta):
-        resource_name = 'folders'
-        queryset = Folder.objects.all()
-        fields = [
-            'creation_timestamp',
-            'id',
-            'is_root_folder',
-            'is_shared_folder',
-            'level',
-            'lft',
-            'name',
-            'resource_uri',
-            'rght',
-            'slug',
-            'tree_id'
-        ]
 
 
 class CurrentUserResource(DefaultResource):
