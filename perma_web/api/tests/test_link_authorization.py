@@ -65,7 +65,9 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
     def test_should_allow_member_of_vesting_org_to_vest(self):
         data = self.successful_patch(self.unvested_url,
                                      self.vesting_member,
-                                     {'vested': True, 'vesting_org': 1})
+                                     {'vested': True,
+                                      'vesting_org': 1,
+                                      'folder': 27})
 
         self.assertEqual(data['vested_by_editor']['id'], self.vesting_member.id)
 

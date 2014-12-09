@@ -7,6 +7,7 @@ from PyPDF2 import PdfFileReader
 import imghdr
 
 from django.conf import settings
+from perma.models import Folder
 
 
 class LinkValidation(Validation):
@@ -79,5 +80,10 @@ class LinkValidation(Validation):
         if bundle.data.get('vested', None):
             if not bundle.obj.vesting_org:
                 errors['vesting_org'] = "vesting_org can't be blank"
+        if bundle.obj.tracker.has_changed('vested'):
+            if not bundle.data.get("folder", None):
+                errors['folder'] = "a folder must be specified when vesting"
+            if Folder.objects.get(pk=bundle.data.get("folder")).vesting_org != bundle.obj.vesting_org:
+                errors['folder'] = "the folder must belong to the vesting_org"
 
         return errors

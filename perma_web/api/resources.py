@@ -257,7 +257,10 @@ class LinkResource(MultipartResource, DefaultResource):
         return bundle
 
     def post_vesting(self, bundle):
-        # Upload to IA after update
+        target_folder = Folder.objects.get(pk=bundle.data.get("folder"),
+                                           vesting_org=bundle.obj.vesting_org)
+        bundle.obj.move_to_folder_for_user(target_folder, bundle.request.user)
+
         if settings.UPLOAD_TO_INTERNET_ARCHIVE and bundle.obj.can_upload_to_internet_archive():
             run_task(upload_to_internet_archive, link_guid=bundle.obj.guid)
 
