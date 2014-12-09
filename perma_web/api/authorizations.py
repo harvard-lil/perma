@@ -23,13 +23,26 @@ class DefaultAuthorization(ReadOnlyAuthorization):
 
 class LinkAuthorization(DefaultAuthorization):
 
+    def can_vest_to_org(self, user, vesting_org):
+        if user.has_group('vesting_user'):
+            return user.vesting_org == vesting_org
+        elif user.has_group('registrar_user'):
+            return user.registrar == vesting_org.registrar
+        elif user.has_group('registry_user'):
+            return True
+        else:
+            return False
+
     def update_detail(self, object_list, bundle):
         # For vesting
         if bundle.obj.tracker.has_changed("vested"):
             if bundle.request.user.has_group(['registrar_user', 'registry_user', 'vesting_user']):
-                return True
+                if self.can_vest_to_org(bundle.request.user, bundle.obj.vesting_org):
+                    return True
+                else:
+                    raise Unauthorized("Sorry, you can't vest to that organization")
             else:
-                raise Unauthorized("Sorry, you don't have permission")
+                raise Unauthorized("Sorry, you don't vesting have permission")
 
         # For editing
         try:
