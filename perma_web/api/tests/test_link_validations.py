@@ -72,7 +72,7 @@ class LinkValidationsTestCase(ApiResourceTestCase):
         self.assertHttpBadRequest(
             self.api_client.post(self.list_url,
                                  format='json',
-                                 data={'url': 'http://192.0.2.1/'},
+                                 data={'url': 'http://128.0.0.0/'},
                                  authentication=self.get_credentials(self.vesting_member)))
 
         self.assertEqual(Link.objects.count(), count)

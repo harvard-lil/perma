@@ -478,7 +478,7 @@ class Link(models.Model):
     # media_type is a file extension-ish normalized mimemedia_type
     @cached_property
     def media_type(self):
-        if self.headers['content-type'] in ['application/pdf', 'application/x-pdf'] or self.submitted_url.endswith('.pdf'):
+        if self.headers.get('content-type', None) in ['application/pdf', 'application/x-pdf'] or self.submitted_url.endswith('.pdf'):
             return 'pdf'
         else:
             return False
