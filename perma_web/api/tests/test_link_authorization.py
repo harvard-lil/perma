@@ -63,23 +63,34 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
     ###########
 
     def test_should_allow_member_of_vesting_org_to_vest(self):
-        data = self.successful_patch(self.unvested_url, self.vesting_member, {'vested': True})
+        data = self.successful_patch(self.unvested_url,
+                                     self.vesting_member,
+                                     {'vested': True, 'vesting_org': 1})
+
         self.assertEqual(data['vested_by_editor']['id'], self.vesting_member.id)
 
     def test_should_allow_member_of_registrar_to_vest(self):
-        data = self.successful_patch(self.unvested_url, self.registrar_member, {'vested': True})
+        data = self.successful_patch(self.unvested_url,
+                                     self.registrar_member,
+                                     {'vested': True, 'vesting_org': 2})
+
         self.assertEqual(data['vested_by_editor']['id'], self.registrar_member.id)
 
     def test_should_allow_member_of_registry_to_vest(self):
-        data = self.successful_patch(self.unvested_url, self.registry_member, {'vested': True})
+        data = self.successful_patch(self.unvested_url,
+                                     self.registry_member,
+                                     {'vested': True, 'vesting_org': 2})
+
         self.assertEqual(data['vested_by_editor']['id'], self.registry_member.id)
 
     def test_should_reject_vest_from_user_lacking_vesting_privileges(self):
-        self.rejected_patch(self.unvested_url, self.regular_user, {'vested': True})
+        self.rejected_patch(self.unvested_url,
+                            self.regular_user,
+                            {'vested': True, 'vesting_org': 1})
 
     def test_should_reject_vest_when_user_doesnt_belong_to_vesting_org(self):
         self.rejected_patch(self.unvested_url,
-                            self.unvested_link.created_by,
+                            self.vesting_member,
                             {'vested': True, 'vesting_org': 2})
 
     ##################
