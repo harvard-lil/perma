@@ -75,6 +75,7 @@ class VestingOrgResource(DefaultResource):
             'name'
         ]
 
+
 class FolderResource(DefaultResource):
     class Meta(DefaultResource.Meta):
         resource_name = 'folders'
