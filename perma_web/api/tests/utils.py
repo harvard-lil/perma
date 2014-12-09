@@ -97,14 +97,17 @@ class ApiResourceTestCase(ResourceTestCase):
                              os.path.basename(file))
 
         # start server
-        httpd = HTTPServer(('', cls.server_port), SimpleHTTPRequestHandler)
-        httpd._BaseServer__is_shut_down = multiprocessing.Event()
-        cls._server_process = Process(target=httpd.serve_forever)
+        cls._httpd = HTTPServer(('', cls.server_port), SimpleHTTPRequestHandler)
+        cls._httpd._BaseServer__is_shut_down = multiprocessing.Event()
+        cls._server_process = Process(target=cls._httpd.serve_forever)
         cls._server_process.start()
         return cls._server_process
 
     @classmethod
     def kill_server(cls):
+        # If you don't close the server before terminating
+        # the thread the port isn't freed up.
+        cls._httpd.server_close()
         cls._server_process.terminate()
         os.chdir(cls._cwd_org)
         shutil.rmtree(cls._server_tmp)
