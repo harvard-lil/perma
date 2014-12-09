@@ -54,7 +54,7 @@ class LinkValidation(Validation):
                 validate(bundle.data.get('url'))
 
                 # Don't force URL resolution validation if a file is provided
-                if not bundle.data.get('file'):
+                if not bundle.data.get('file', None):
                     if not bundle.obj.ip:
                         errors['url'] = "Couldn't resolve domain."
                     elif not self.is_valid_ip(bundle.obj.ip):
@@ -66,7 +66,7 @@ class LinkValidation(Validation):
             except ValidationError:
                 errors['url'] = "Not a valid URL."
 
-        if bundle.data.get('file'):
+        if bundle.data.get('file', None):
             mime = MimeTypes()
             mime_type = mime.guess_type(bundle.data.get('file').name)[0]
 
@@ -76,7 +76,7 @@ class LinkValidation(Validation):
             elif bundle.data.get('file').size > settings.MAX_ARCHIVE_FILE_SIZE:
                 errors['file'] = "File is too large."
 
-        if bundle.data.get('vested'):
+        if bundle.data.get('vested', None):
             if not bundle.obj.vesting_org:
                 errors['vesting_org'] = "vesting_org can't be blank"
 
