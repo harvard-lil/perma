@@ -39,30 +39,3 @@ def truncatesmart(value, limit=80):
 
     # Join the words and return
     return ' '.join(words) + '...'
-    
-
-@register.filter
-def truncateatsymbol(value):
-    """
-    Truncates a string after a given number of chars keeping whole words.
-
-    Usage:
-        {{ string|truncateatsymbol }}
-        {{ string|truncatesmart:50 }}
-    """
-    try:
-        has_at = value.index('@')
-    # not an email
-    except ValueError:
-        # Fail silently.
-        return value
-
-    # Make sure it's unicode
-    value = unicode(value)
-
-    # Break into words and remove the last
-    words = value.split('@')[:-1]
-
-    # Join the words and return
-    #return ' '.join(words) + '...'
-    return ' '.join(words)
