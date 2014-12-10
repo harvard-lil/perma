@@ -1,6 +1,9 @@
 # From http://djangosnippets.org/snippets/1259/
 
+import logging
 from django import template
+
+logger = logging.getLogger(__name__)
 
 register = template.Library()
 

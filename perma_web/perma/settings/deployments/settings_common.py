@@ -156,11 +156,13 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'perma.middleware.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'mirroring.middleware.MirrorAuthenticationMiddleware',
+    'perma.middleware.AdminAuthMiddleware',
     'mirroring.middleware.MirrorForwardingMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
     # Uncomment the next line for simple clickjacking protection:
@@ -179,6 +181,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.request',   # include `request` in templates
     'django.core.context_processors.static',    # include `STATIC_URL` in templates
     'django.core.context_processors.media',     # include `MEDIA_URL` in templates
+    'django.contrib.auth.context_processors.auth',  # for Django admin
 )
 
 INSTALLED_APPS = (
@@ -202,6 +205,11 @@ INSTALLED_APPS = (
     'mptt',
     'pipeline',
     'sorl.thumbnail',
+    'django_forms_bootstrap',
+    'djangosecure',  # force SSL -- this can be removed in Django 1.8
+
+    # django admin -- has to come after our apps for our admin template overrides to work
+    'django.contrib.admin',
 )
 
 AUTH_USER_MODEL = 'perma.LinkUser'
@@ -364,12 +372,6 @@ GPG_DIRECTORY = None  # use default
 GPG_PUBLIC_KEY = None
 GPG_PRIVATE_KEY = None
 
-
-# where we will store zip archives created for transferring to mirrors
-# this is relative to MEDIA_ROOT
-MEDIA_ARCHIVES_ROOT = 'zip_archives/'
-
-
 # internet archive stuff
 UPLOAD_TO_INTERNET_ARCHIVE = False
 INTERNET_ARCHIVE_COLLECTION = 'perma_cc'
@@ -400,3 +402,4 @@ THUMBNAIL_FORMAT = 'PNG' #
 
 # feature flags
 SINGLE_LINK_HEADER_TEST = False
+

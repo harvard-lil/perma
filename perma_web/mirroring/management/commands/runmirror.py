@@ -84,13 +84,14 @@ class Command(BaseCommand):
 
         try:
             print "Creating mirror database ..."
+            print "(If you get stuck on this step after a previous run, try `sudo service mysql restart`)"
             main_database = settings.DATABASES['default']['NAME']
             mirror_database = main_database+"_mirror"
             mysql_credentials = [
                 "-u"+settings.DATABASES['default']['USER'],
                 "-p" + settings.DATABASES['default']['PASSWORD'],
             ]
-            empty_tables = ['perma_linkuser','perma_link','perma_asset']
+            empty_tables = ['perma_linkuser','perma_link','perma_asset', 'mirroring_updatequeue']
             mysqldump_command = "mysqldump %(user)s %(password)s %%(options)s %(main_database)s %%(tables)s | mysql %(user)s %(password)s %(mirror_database)s" % {
                 'user':mysql_credentials[0], 'password':mysql_credentials[1], 'main_database':main_database, 'mirror_database':mirror_database,
             }
@@ -108,6 +109,7 @@ class Command(BaseCommand):
             print "Launching main server ..."
             main_server_env = dict(
                 DJANGO__DOWNSTREAM_SERVERS__0__address='http://%s:%s' % (mirror_server_address, mirror_server_port),
+                DJANGO__DOWNSTREAM_SERVERS__0__public_key=settings.GPG_PUBLIC_KEY,
                 DJANGO__MIRRORING_ENABLED='True',
                 DJANGO__CELERY_DEFAULT_QUEUE='runmirror_main_queue',
                 DJANGO__DIRECT_MEDIA_URL='http://%s:%s/media/' % (main_server_media, router_port),
@@ -116,7 +118,7 @@ class Command(BaseCommand):
             running_processes.append(subprocess.Popen(['python', 'manage.py', 'runserver', str(main_server_port)],
                                              env=dict(os.environ, **main_server_env)))
             running_processes.append(subprocess.Popen(
-                ['celery', '-A', 'perma', 'worker', '--loglevel=info', '-Q', 'runmirror_main_queue', '--hostname=runmirror_main_queue'],
+                ['celery', '-A', 'perma', 'worker', '--loglevel=info', '--queues=runmirror_main_queue', '--hostname=runmirror_main_queue', '--beat', '--concurrency=1'],
                 env=dict(os.environ, **main_server_env)))
 
             print "Launching mirror server ..."
@@ -127,14 +129,13 @@ class Command(BaseCommand):
                 DJANGO__MIRROR_SERVER='True',
                 DJANGO__UPSTREAM_SERVER__address='http://%s:%s' % (main_server_address, main_server_port),
                 DJANGO__UPSTREAM_SERVER__public_key=settings.GPG_PUBLIC_KEY,
-                #DJANGO__RUN_TASKS_ASYNC='False',
                 DJANGO__MEDIA_ROOT=temp_dir.name,
                 DJANGO__WARC_HOST='%s:%s' % (mirror_server_media, router_port),
             )
             running_processes.append(subprocess.Popen(['python', 'manage.py', 'runserver', str(mirror_server_port)],
                                              env=dict(os.environ, **mirror_server_env)))
             running_processes.append(subprocess.Popen(
-                ['celery', '-A', 'perma', 'worker', '--loglevel=info', '-Q', 'runmirror_mirror_queue', '--hostname=runmirror_mirror_queue'],
+                ['celery', '-A', 'perma', 'worker', '--loglevel=info', '--queues=runmirror_mirror_queue', '--hostname=runmirror_mirror_queue', '--beat', '--concurrency=1'],
                 env=dict(os.environ, **mirror_server_env)))
 
             print "Syncing contents from %s to %s ..." % (settings.MEDIA_ROOT, temp_dir.name)
@@ -153,6 +154,9 @@ class Command(BaseCommand):
 
             site = server.Site(root)
             reactor.listenTCP(router_port, site)
+
+            print "------------- Ready for requests -----------------"
+
             reactor.run()
 
         finally:

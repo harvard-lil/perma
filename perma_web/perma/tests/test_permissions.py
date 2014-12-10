@@ -56,6 +56,7 @@ class PermissionsTestCase(PermaTestCase):
                 'urls': [
                     ['user_management_vesting_user_add_user'],
                     ['user_management_manage_single_vesting_user_remove', {'kwargs':{'user_id': 3}}],
+                    ['user_management_settings_organizations'],
                 ],
                 'allowed': {'test_vesting_member@example.com',
                 'test_registrar_member@example.com'}
@@ -75,7 +76,9 @@ class PermissionsTestCase(PermaTestCase):
             },
             {
                 'urls': [
-                    ['user_management_manage_account'],
+                    ['user_management_settings_profile'],
+                    ['user_management_settings_password'],
+                    ['user_management_settings_tools'],
                     ['create_link'],
                     ['upload_link', {'success_status':400}],
                     ['link_browser'],

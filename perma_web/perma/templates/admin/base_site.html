@@ -1,0 +1,34 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {% trans 'Django site admin' %}{% endblock %}
+
+{% block extrahead %}
+    <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
+    <style>
+        #header {
+            background-color: #F7F7F7;
+            color: black;
+        }
+        #header a{
+            color: black !important;
+        }
+        #branding h1{
+            color:  #ff4100;
+        }
+    </style>
+{% endblock %}
+
+{% block branding %}
+    <h1 id="site-name">
+        <img src="{{ STATIC_URL }}img/infinity-logo2.png">
+        Perma Admin Console
+    </h1>
+{% endblock %}
+
+{% block userlinks %}
+    {{ block.super }}
+    / <a href="{% url 'create_link' %}">Back to Dashboard</a>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

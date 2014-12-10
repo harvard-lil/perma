@@ -4,6 +4,7 @@ import re
 
 from django.contrib.auth.models import Group, BaseUserManager, AbstractBaseUser
 from django.conf import settings
+from django.core.files.storage import default_storage
 from django.db import models
 from django.db.models import Q
 from django.db.models.query import QuerySet
@@ -23,6 +24,9 @@ class Registrar(models.Model):
     website = models.URLField(max_length=500)
     date_created = models.DateField(auto_now_add=True, null=True)
     default_vesting_org = models.OneToOneField('VestingOrg', blank=True, null=True, related_name='default_for_registrars')
+
+    # what info to send downstream
+    mirror_fields = ('name', 'email', 'website')
 
     def save(self, *args, **kwargs):
         super(Registrar, self).save(*args, **kwargs)
@@ -54,6 +58,9 @@ class VestingOrg(models.Model):
     registrar = models.ForeignKey(Registrar, null=True, related_name="vesting_orgs")
     shared_folder = models.OneToOneField('Folder', blank=True, null=True)
     date_created = models.DateField(auto_now_add=True, null=True)
+
+    # what info to send downstream
+    mirror_fields = ('name', 'registrar')
 
     def __init__(self, *args, **kwargs):
         """ Capture original values so we can deal with changes during save. """
@@ -121,7 +128,7 @@ class LinkUser(AbstractBaseUser):
     groups = models.ManyToManyField(Group, null=True)
     is_active = models.BooleanField(default=True)
     is_confirmed = models.BooleanField(default=False)
-    is_admin = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
     date_joined = models.DateField(auto_now_add=True)
     first_name = models.CharField(max_length=45, blank=True)
     last_name = models.CharField(max_length=45, blank=True)
@@ -132,6 +139,9 @@ class LinkUser(AbstractBaseUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+
+    class Meta:
+        verbose_name = 'User'
 
     def save(self, *args, **kwargs):
         """ Make sure root folder is created for each user. """
@@ -161,12 +171,6 @@ class LinkUser(AbstractBaseUser):
         "Does the user have permissions to view the app `app_label`?"
         # Simplest possible answer: Yes, always
         return True
-
-    @property
-    def is_staff(self):
-        "Is the user a member of staff?"
-        # Simplest possible answer: All admins are staff
-        return self.is_admin
 
     _group_names_cache = None
     def has_group(self, group):
@@ -332,16 +336,14 @@ class Folder(MPTTModel):
         """ Find a slug that doesn't collide with another folder in parent folder. """
         self.slug = slugify(unicode(self.name))
 
-        # root folder can't conflict
-        if self.is_root_folder:
-            return
-
         if self.is_shared_folder:
             # don't let shared folders collide with any other shared folder
             collision_query = Folder.objects.exclude(pk=self.pk).filter(is_shared_folder=True)
-        else:
+        elif self.parent:
             # normal folders just can't collide with fellow children of parent
             collision_query = self.parent.get_children().exclude(pk=self.pk)
+        else:
+            return  # root folder can't conflict
 
         i = 1
         while collision_query.filter(slug=self.slug).exists():
@@ -418,6 +420,11 @@ class Link(models.Model):
     folders = models.ManyToManyField(Folder, related_name='links', blank=True, null=True)
     notes = models.TextField(blank=True)
 
+    # what info to send downstream
+    mirror_fields = ('guid', 'submitted_url', 'creation_timestamp', 'submitted_title', 'dark_archived',
+                     'dark_archived_robots_txt_blocked', 'user_deleted', 'user_deleted_timestamp',
+                     'vested', 'vested_timestamp', 'vesting_org')
+
     objects = LinkManager()
 
     def save(self, *args, **kwargs):
@@ -457,7 +464,7 @@ class Link(models.Model):
                 self.folders.add(initial_folder)
 
     def __unicode__(self):
-        return self.submitted_url
+        return self.guid
 
     @classmethod
     def get_canonical_guid(self, guid):
@@ -526,6 +533,9 @@ class Asset(models.Model):
     instapaper_hash = models.CharField(max_length=2100, null=True)
     instapaper_id = models.IntegerField(null=True)
 
+    # what info to send downstream
+    mirror_fields = ('link', 'base_storage_path', 'image_capture', 'warc_capture', 'pdf_capture', 'text_capture')
+
     def __init__(self, *args, **kwargs):
         super(Asset, self).__init__(*args, **kwargs)
         if self.link_id and not self.base_storage_path:
@@ -554,6 +564,10 @@ class Asset(models.Model):
 
     def text_url(self):
         return self.base_url(self.text_capture)
+
+    def walk_files(self):
+        """ Return iterator of all files for this asset. """
+        return default_storage.walk(self.base_storage_path)
 
     
 #########################

@@ -460,9 +460,7 @@ def list_users_in_group(request, group_name):
                     new_user.vesting_org = request.user.vesting_org
 
             new_user.save()
-
-            group = Group.objects.get(name=group_name)
-            new_user.groups.add(group)
+            new_user.groups = [Group.objects.get(name=group_name)]
 
             email_new_user(request, new_user)
 
@@ -488,7 +486,7 @@ def edit_user_in_group(request, user_id, group_name):
 
     # Registrar members can only edit their own vesting members
     if not is_registry:
-    	if group_name == 'vesting_user' and request.user.registrar != target_user.vesting_org.registrar:
+        if group_name == 'vesting_user' and request.user.registrar != target_user.vesting_org.registrar:
             raise Http404
         if group_name == 'registrar_user' or group_name == 'user' or group_name == 'registry_user':
             raise Http404
@@ -586,12 +584,8 @@ def vesting_user_add_user(request):
                 target_user.vesting_org = vesting_org
             else:
                 target_user.vesting_org = request.user.vesting_org
-    
-            group = Group.objects.get(name='vesting_user')
-            all_groups = Group.objects.all()
-            for ag in all_groups:
-              target_user.groups.remove(ag)
-            target_user.groups.add(group)
+
+            target_user.groups = [Group.objects.get(name='vesting_user')]
     
             if is_new_user:
                 target_user.is_active = False
@@ -644,12 +638,7 @@ def registrar_user_add_user(request):
                 is_new_user = True
     
             target_user.registrar = request.user.registrar
-    
-            group = Group.objects.get(name='registrar_user')
-            all_groups = Group.objects.all()
-            for ag in all_groups:
-              target_user.groups.remove(ag)
-            target_user.groups.add(group)
+            target_user.groups = [Group.objects.get(name='registrar_user')]
     
             if is_new_user:
                 target_user.is_active = False
@@ -676,12 +665,7 @@ def vesting_user_leave_vesting_org(request):
     if request.method == 'POST':
         request.user.vesting_org = None
         request.user.save()
-        
-        group = Group.objects.get(name='user')
-        all_groups = Group.objects.all()
-        for ag in all_groups:
-            request.user.groups.remove(ag)
-        request.user.groups.add(group)
+        request.user.groups = [Group.objects.get(name='user')]
 
         return HttpResponseRedirect(reverse('user_management_manage_account'))
 
@@ -864,15 +848,15 @@ def user_add_vesting_org(request, user_id):
     context = RequestContext(request, context)
 
     return render_to_response('user_management/user_add_vesting_org.html', context)
-
+    
 
 @login_required
-def manage_account(request):
+def settings_profile(request):
     """
-    Account management stuff. Change password, change email, ...
+    Settings profile, change name, change email, ...
     """
 
-    context = {'next': request.get_full_path(), 'this_page': 'settings'}
+    context = {'next': request.get_full_path(), 'this_page': 'settings_profile'}
     context.update(csrf(request))
 
     if request.method == 'POST':
@@ -881,8 +865,10 @@ def manage_account(request):
 
         if form.is_valid():
             form.save()
+            
+            messages.add_message(request, messages.INFO, 'Profile saved!', extra_tags='safe')
 
-            return HttpResponseRedirect(reverse('user_management_manage_account'))
+            return HttpResponseRedirect(reverse('user_management_settings_profile'))
 
         else:
             context.update({'form': form,})
@@ -892,7 +878,46 @@ def manage_account(request):
 
     context = RequestContext(request, context)
     
-    return render_to_response('user_management/manage-account.html', context)
+    return render_to_response('user_management/settings-profile.html', context)
+    
+
+@login_required
+def settings_password(request):
+    """
+    Settings change password ...
+    """
+
+    context = {'next': request.get_full_path(), 'this_page': 'settings_password'}
+
+    context = RequestContext(request, context)
+    
+    return render_to_response('user_management/settings-password.html', context)
+    
+
+@require_group(['registrar_user', 'vesting_user'])
+def settings_organizations(request):
+    """
+    Settings view organizations, leave organizations ...
+    """
+
+    context = {'next': request.get_full_path(), 'this_page': 'settings_organizations'}
+
+    context = RequestContext(request, context)
+    
+    return render_to_response('user_management/settings-organizations.html', context)
+    
+    
+@login_required
+def settings_tools(request):
+    """
+    Settings tools ...
+    """
+
+    context = {'next': request.get_full_path(), 'this_page': 'settings_tools'}
+
+    context = RequestContext(request, context)
+    
+    return render_to_response('user_management/settings-tools.html', context)
 
 
 # @login_required
@@ -1007,27 +1032,29 @@ def limited_login(request, template_name='registration/login.html',
 
             response = HttpResponseRedirect(redirect_to)
 
-            # Set the user-info cookie for mirror servers.
-            # This will be set by the main server, e.g. //dashboard.perma.cc,
-            # but will be readable by any mirror serving //perma.cc.
-            user_info = serializers.serialize("json", [request.user], fields=['groups','registrar','vesting_org'])
+            if settings.MIRRORING_ENABLED:
+                # Set the user-info cookie for mirror servers.
+                # This will be set by the main server, e.g. //dashboard.perma.cc,
+                # but will be readable by any mirror serving //perma.cc.
+                user_info = serializers.serialize("json", [request.user], fields=['groups','registrar','vesting_org','first_name','last_name','email'])
 
-            # The cookie should last as long as the login cookie, so cookie logic is copied from SessionMiddleware.
-            if request.session.get_expire_at_browser_close():
-                max_age = None
-                expires = None
-            else:
-                max_age = request.session.get_expiry_age()
-                expires_time = time.time() + max_age
-                expires = cookie_date(expires_time)
-            response.set_cookie(settings.MIRROR_COOKIE_NAME,
-                                sign_message(user_info),
-                                max_age=max_age,
-                                expires=expires,
-                                domain=get_mirror_cookie_domain(request),
-                                path=settings.SESSION_COOKIE_PATH,
-                                secure=settings.SESSION_COOKIE_SECURE or None,
-                                httponly=settings.SESSION_COOKIE_HTTPONLY or None)
+                # The cookie should last as long as the login cookie, so cookie logic is copied from SessionMiddleware.
+                if request.session.get_expire_at_browser_close():
+                    max_age = None
+                    expires = None
+                else:
+                    max_age = request.session.get_expiry_age()
+                    expires_time = time.time() + max_age
+                    expires = cookie_date(expires_time)
+
+                response.set_cookie(settings.MIRROR_COOKIE_NAME,
+                                    sign_message(user_info),
+                                    max_age=max_age,
+                                    expires=expires,
+                                    domain=get_mirror_cookie_domain(request),
+                                    path=settings.SESSION_COOKIE_PATH,
+                                    secure=False,  # so we can read the cookie on http link playbacks -- this can be changed if we no longer rely on http: links
+                                    httponly=settings.SESSION_COOKIE_HTTPONLY or None)
 
             return response
     else:
@@ -1061,8 +1088,7 @@ def register(request):
             new_user.is_active = False
             new_user.save()
 
-            group = Group.objects.get(name='user')
-            new_user.groups.add(group)
+            new_user.groups = [Group.objects.get(name='user')]
             
             email_new_user(request, new_user)
 

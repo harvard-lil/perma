@@ -24,6 +24,7 @@ from mirroring.utils import must_be_mirrored
 
 from ..models import Link, Asset
 from perma.forms import ContactForm
+from perma.middleware import ssl_optional
 from perma.utils import absolute_url
 
 
@@ -50,6 +51,23 @@ class DirectTemplateView(TemplateView):
         """ Add must_be_mirrored decorator. """
         return super(DirectTemplateView, self).dispatch(request, *args, **kwargs)
 
+
+@must_be_mirrored
+def landing(request):
+    """
+    The landing page
+    """
+    site_name = str(Site.objects.get_current())
+    
+    if request.user.is_authenticated() and ('HTTP_REFERER' not in request.META or request.META['HTTP_REFERER'].find(site_name) == -1):
+        return HttpResponseRedirect(reverse('create_link'))
+        
+    else:
+        context = RequestContext(request, {'this_page': 'landing'})
+    
+        return render_to_response('landing.html', context)
+    
+
 def stats(request):
     """
     The global stats
@@ -64,6 +82,7 @@ def stats(request):
 
 
 @must_be_mirrored
+@ssl_optional
 @ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block=True, ip=False,
            keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
 @ratelimit(method='GET', rate=settings.HOUR_LIMIT, block=True, ip=False,
@@ -87,6 +106,17 @@ def single_linky(request, guid):
     serve_type = request.GET.get('type','image' if settings.SINGLE_LINK_HEADER_TEST else 'live')
     if not serve_type in valid_serve_types:
         serve_type = 'image' if settings.SINGLE_LINK_HEADER_TEST else 'live'
+
+    # SSL check
+    # This helper func will return a redirect if we are trying to view a live http link from an https frame
+    # (which will fail because of the mixed content policy),
+    # or if we are using an http frame and could be using https.
+    def ssl_redirect(link):
+        if serve_type == 'live' and not link.startswith('https'):
+            if request.is_secure():
+                return HttpResponseRedirect("http://%s%s" % (request.get_host(), request.get_full_path()))
+        elif not request.is_secure():
+            return HttpResponseRedirect("https://%s%s" % (request.get_host(), request.get_full_path()))
 
     # fetch link from DB -- unless we're logged in on a mirror server,
     # in which case always fetch status from upstream so we show the right edit buttons
@@ -117,16 +147,27 @@ def single_linky(request, guid):
             context['linky'] = serializers.deserialize("json", context['linky']).next().object
             context['asset'] = serializers.deserialize("json", context['asset']).next().object
             context['asset'].link = context['linky']
+
+            # make sure frame and content ssl match (see helper func above)
+            redirect = ssl_redirect(context['linky'].submitted_url)
+            if redirect:
+                return redirect
+
         else:
             raise Http404
 
     if not context:
+        # make sure frame and content ssl match (see helper func above)
+        redirect = ssl_redirect(link.submitted_url)
+        if redirect:
+            return redirect
+
         # Increment the view count if we're not the referrer
         parsed_url = urlparse(request.META.get('HTTP_REFERER', ''))
-        current_site = Site.objects.get_current()
         
-        if not current_site.domain in parsed_url.netloc:
+        if not settings.MIRROR_SERVER and not request.get_host() in parsed_url.netloc:
             link.view_count += 1
+            link._no_downstream_update = True  # no need to pass this change to mirror servers
             link.save()
 
         asset = Asset.objects.get(link=link)
