@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.forms import UserChangeForm
 from django.contrib.sites.models import Site
 from django.db.models import Count, Max, Min
+
 from mptt.admin import MPTTModelAdmin
 
 from .models import *
@@ -78,7 +80,17 @@ class VestingOrgAdmin(admin.ModelAdmin):
         return obj.vested_links
 
 
+class LinkUserChangeForm(UserChangeForm):
+    class Meta:
+        model = LinkUser
+
+    def __init__(self, *args, **kwargs):
+        del self.base_fields['username']
+        super(LinkUserChangeForm, self).__init__(*args, **kwargs)
+
+
 class LinkUserAdmin(UserAdmin):
+    form = LinkUserChangeForm
     fieldsets = (
         ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
         (None, {'fields': ('password',)}),
