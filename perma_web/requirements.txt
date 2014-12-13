@@ -28,6 +28,7 @@ internetarchive==0.7.0          # upload warcs to internet archive
 python-dateutil==2.2            # calculate link expiration date
 Wand==0.3.8					            # ImageMagick bindings to help with thumbnail creation and PDF -> PNG conversions
 django-tastypie==0.12.1         # API framework
+-e git://github.com/felixleong/django-tastypie-extendedmodelresource.git@8f55f873c025ea72e7c1cbab7ca884e5b6408516#egg=django-tastypie-extendedmodelresource
 sorl-thumbnail==11.12			      # Used to create our thumbnails
 Pillow==2.6.1					          # Used to generate thumbnails with sorl. We can likely remove this dependency when Sorl 12.x is released (and we use Wand as our sorl engine)
 redis==2.10.1					          # Needed to bind with Redis. Supports our sorl thumbnails in production

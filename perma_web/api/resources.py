@@ -1,6 +1,6 @@
 from django.conf import settings
 from tastypie import fields
-from tastypie.resources import ModelResource
+from extendedmodelresource import ExtendedModelResource
 from perma.models import LinkUser, Link, Asset, Folder, VestingOrg
 from django.conf.urls import url
 from django.core.urlresolvers import NoReverseMatch
@@ -30,7 +30,7 @@ def pk_to_uri(resource, pk):
     return resource().get_resource_uri(resource._meta.object_class(pk=pk))
 
 
-class DefaultResource(ModelResource):
+class DefaultResource(ExtendedModelResource):
 
     class Meta:
         authentication = DefaultAuthentication()
@@ -74,6 +74,9 @@ class VestingOrgResource(DefaultResource):
             'id',
             'name'
         ]
+
+    class Nested:
+        folders = fields.ToManyField('api.resources.FolderResource', 'folders', null=True)
 
 
 class FolderResource(DefaultResource):
