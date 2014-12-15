@@ -32,6 +32,21 @@ def copy_file_or_dir(src, dst):
             raise
 
 
+class TestHTTPServer(HTTPServer):
+
+    def server_close(self):
+        """Called to clean-up the server.
+
+        May be overridden.
+
+        """
+        try:
+            self.socket.shutdown(socket.SHUT_RDWR)
+        except socket.error:
+            pass
+        self.socket.close()
+
+
 @override_settings(ROOT_URLCONF='api.urls', BANNED_IP_RANGES=[])
 class ApiResourceTestCase(ResourceTestCase):
 
@@ -97,7 +112,7 @@ class ApiResourceTestCase(ResourceTestCase):
                              os.path.basename(file))
 
         # start server
-        cls._httpd = HTTPServer(('', cls.server_port), SimpleHTTPRequestHandler)
+        cls._httpd = TestHTTPServer(('', cls.server_port), SimpleHTTPRequestHandler)
         cls._httpd._BaseServer__is_shut_down = multiprocessing.Event()
         cls._server_process = Process(target=cls._httpd.serve_forever)
         cls._server_process.start()
