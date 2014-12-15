@@ -101,6 +101,11 @@ class ApiResourceTestCase(ResourceTestCase):
         cls._httpd._BaseServer__is_shut_down = multiprocessing.Event()
         cls._server_process = Process(target=cls._httpd.serve_forever)
         cls._server_process.start()
+
+        # once the server is started, we can return to our working dir
+        # and the server thread will continue to server from the tmp dir
+        os.chdir(cls._cwd_org)
+
         return cls._server_process
 
     @classmethod
@@ -109,13 +114,11 @@ class ApiResourceTestCase(ResourceTestCase):
         # the thread the port isn't freed up.
         cls._httpd.server_close()
         cls._server_process.terminate()
-        os.chdir(cls._cwd_org)
         shutil.rmtree(cls._server_tmp)
 
     @contextmanager
-    def serve_file(self, filename):
-        src = os.path.join(self._cwd_org, filename)
-        dst = os.path.basename(filename)
+    def serve_file(self, src):
+        dst = os.path.join(self._server_tmp, os.path.basename(src))
         try:
             copy_file_or_dir(src, dst)
             yield
