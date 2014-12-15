@@ -67,7 +67,7 @@ def run_ssl(port="0.0.0.0:8000"):
     local("python manage.py runsslserver %s" % port)
     return
 
-def test(apps="perma mirroring"):
+def test(apps="perma mirroring api"):
     """
         Run perma tests. (For coverage, run `coverage report` after tests pass.)
     """
