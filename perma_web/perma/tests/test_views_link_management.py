@@ -262,12 +262,16 @@ class TasksTestCase(PermaTestCase):
         self.log_in_user('test_registrar_member@example.com')
         test_link = Link.objects.get(guid='7CF8-SS4G')
 
-        # first submit should show us a dropdown of folders to save vested link to
+        # first submit should show us a dropdown of vesting orgs (since there are more than one for this registrar)
         response = self.post('vest_link', reverse_kwargs={'args': [test_link.guid]})
+        vesting_org_id = response.context['vesting_orgs'][0].pk
+
+        # second submit should show us a dropdown of folders to save vested link to
+        response = self.post('vest_link', {'vesting_org': vesting_org_id}, reverse_kwargs={'args': [test_link.guid]})
         folder_id = response.context['folder_tree'][0].pk
 
-        # second submit uses folder_id to actually vest, and should forward
-        self.post('vest_link', {'folder':folder_id}, reverse_kwargs={'args': [test_link.guid]}, require_status_code=302)
+        # third submit uses folder_id to actually vest, and should forward
+        self.post('vest_link', {'folder': folder_id, 'vesting_org': vesting_org_id}, reverse_kwargs={'args': [test_link.guid]}, require_status_code=302)
 
 
     def test_dark_archive_link(self):
