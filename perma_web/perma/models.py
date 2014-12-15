@@ -123,9 +123,9 @@ class LinkUser(AbstractBaseUser):
         unique=True,
         db_index=True,
     )
-    registrar = models.ForeignKey(Registrar, null=True)
-    vesting_org = models.ForeignKey(VestingOrg, null=True, related_name='users')
-    groups = models.ManyToManyField(Group, null=True)
+    registrar = models.ForeignKey(Registrar, blank=True, null=True)
+    vesting_org = models.ForeignKey(VestingOrg, blank=True, null=True, related_name='users')
+    groups = models.ManyToManyField(Group, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_confirmed = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -402,7 +402,7 @@ class Link(models.Model):
     """
     This is the core of the Perma link.
     """
-    guid = models.CharField(max_length=255, null=False, blank=False, primary_key=True)
+    guid = models.CharField(max_length=255, null=False, blank=False, primary_key=True, editable=False)
     view_count = models.IntegerField(default=1)
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)
     creation_timestamp = models.DateTimeField(auto_now_add=True)
@@ -416,7 +416,7 @@ class Link(models.Model):
     vested = models.BooleanField(default=False)
     vested_by_editor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='vested_links')
     vested_timestamp = models.DateTimeField(null=True, blank=True)
-    vesting_org = models.ForeignKey(VestingOrg, null=True)
+    vesting_org = models.ForeignKey(VestingOrg, null=True, blank=True)
     folders = models.ManyToManyField(Folder, related_name='links', blank=True, null=True)
     notes = models.TextField(blank=True)
 
