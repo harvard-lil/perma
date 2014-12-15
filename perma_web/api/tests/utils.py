@@ -84,7 +84,7 @@ class ApiResourceTestCase(ResourceTestCase):
 
         # Run in temp dir.
         # We have to (implicitly) cwd to this so SimpleHTTPRequestHandler serves the files for us.
-        cls._cwd_org = os.getcwd()
+        cwd = os.getcwd()
         cls._server_tmp = tempfile.mkdtemp()
         os.chdir(cls._server_tmp)
         print("Created server temp dir " + cls._server_tmp)
@@ -93,7 +93,7 @@ class ApiResourceTestCase(ResourceTestCase):
         print("Serving files:")
         for file in cls.serve_files:
             print("- " + file)
-            copy_file_or_dir(os.path.join(cls._cwd_org, file),
+            copy_file_or_dir(os.path.join(cwd, file),
                              os.path.basename(file))
 
         # start server
@@ -104,7 +104,7 @@ class ApiResourceTestCase(ResourceTestCase):
 
         # once the server is started, we can return to our working dir
         # and the server thread will continue to server from the tmp dir
-        os.chdir(cls._cwd_org)
+        os.chdir(cwd)
 
         return cls._server_process
 
