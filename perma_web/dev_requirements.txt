@@ -2,3 +2,4 @@
 ipdb
 django-debug-toolbar==1.2.1     # if installed, debug-toolbar will be included in INSTALLED_APPS by settings_dev.py
 django-extensions==1.4.4        # if installed, `fab run` will use `python manage.py runserver_plus`
+pysqlite==2.6.3                 # for use with in memory testing set in settings_testing.py

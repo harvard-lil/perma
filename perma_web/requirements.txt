@@ -56,6 +56,5 @@ boto==2.29.1
 sauceclient==0.1.0
 pytest-xdist==1.10
 
-# speed up testing
-pysqlite==2.6.3
+# speedy testing
 django-nose==1.3.0
