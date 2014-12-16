@@ -10,8 +10,8 @@ from tastypie.exceptions import NotFound
 from tastypie.http import HttpGone, HttpMultipleChoices
 from validations import LinkValidation
 
-from tastypie.authentication import ApiKeyAuthentication
-from authentication import DefaultAuthentication
+from authentication import (DefaultAuthentication,
+                            CurrentUserAuthentication)
 
 from authorizations import (DefaultAuthorization,
                             LinkAuthorization,
@@ -286,7 +286,7 @@ class CurrentUserResource(DefaultResource):
     class Meta(DefaultResource.Meta):
         resource_name = 'user'
         queryset = LinkUser.objects.all()
-        authentication = ApiKeyAuthentication()
+        authentication = CurrentUserAuthentication()
         authorization = CurrentUserAuthorization()
         list_allowed_methods = []
         detail_allowed_methods = ['get']
@@ -317,7 +317,7 @@ class CurrentUserResource(DefaultResource):
 
 class CurrentUserNestedResource(object):
     class Meta:
-        authentication = ApiKeyAuthentication()
+        authentication = CurrentUserAuthentication()
         authorization = CurrentUserAuthorization()
 
     def obj_create(self, bundle, **kwargs):
