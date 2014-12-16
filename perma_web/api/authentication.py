@@ -3,9 +3,15 @@ from tastypie.authentication import (MultiAuthentication,
                                      SessionAuthentication)
 
 
+# Order here matters. If ApiKeyAuthentication comes first,
+# you'll get "You cannot access body after reading from request's data stream"
+# errors when POSTing multipart forms using SessionAuthentication
+backends = (SessionAuthentication(), ApiKeyAuthentication())
+
+
 class DefaultAuthentication(MultiAuthentication):
 
-    backends = (ApiKeyAuthentication(), SessionAuthentication())
+    backends = backends
 
     def __init__(self, *backends, **kwargs):
         pass  # prevent self.backends from being overwritten
@@ -20,7 +26,7 @@ class DefaultAuthentication(MultiAuthentication):
 
 class CurrentUserAuthentication(MultiAuthentication):
 
-    backends = (ApiKeyAuthentication(), SessionAuthentication())
+    backends = backends
 
     def __init__(self, *backends, **kwargs):
         pass  # prevent self.backends from being overwritten

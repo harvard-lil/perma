@@ -5,8 +5,20 @@ if (!String.prototype.trim) {
     // Make sure we trim BOM and NBSP
     rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
     return this.replace(rtrim, "");
-  }
+  };
 }
+
+// Set CSRF on every local request
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        if (settings.type == 'POST' || settings.type == 'PUT' || settings.type == 'DELETE') {
+            var hostname = $('<a>').prop('href', settings.url).prop('hostname');
+            if ( hostname == location.hostname) {
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            }
+        }
+    }
+});
 
 // Initializations
 $(document).ready(function() {
@@ -28,7 +40,7 @@ $(document).ready(function() {
         $('#broken-link-report').html('');
         $('form.feedback').find("input[type=email], textarea").val("");
         $('#user_email').val(user_email);
-    })
+    });
 
     
     $("input#submit-feedback").click(function(){
