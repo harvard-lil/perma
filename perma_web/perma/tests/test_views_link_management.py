@@ -172,34 +172,6 @@ class TasksTestCase(PermaTestCase):
                 # TODO: check that robots.txt appears in warc capture
 
 
-    def test_upload_file(self):
-        """
-            Test file upload.
-        """
-        # helpers
-        def upload_file(file_name):
-            with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', file_name)) as file:
-                 return self.get_response_and_asset(
-                    reverse('upload_link'),
-                    {'title':'test','url':'http://test.com','file':file})
-
-        # Test PDF upload.
-        response, asset = upload_file('test.pdf')
-        self.assertEqual(response.status_code, 201,
-                         "Unexpected response %s: %s" % (response.status_code, response.content))
-        self.assert_asset_has(asset, "pdf_capture")
-
-        # Test image upload.
-        response, asset = upload_file('test.jpg')
-        self.assertEqual(response.status_code, 201,
-                         "Unexpected response %s: %s" % (response.status_code, response.content))
-        self.assert_asset_has(asset, "image_capture")
-
-        # Test bad file upload.
-        response, asset = upload_file('test.html')
-        self.assertEqual(response.status_code, 400)
-
-
     def test_link_browsing(self):
         test_link = Link.objects.get(guid='7CF8-SS4G')
 

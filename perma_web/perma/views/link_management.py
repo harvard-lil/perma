@@ -122,22 +122,6 @@ def create_link(request):
         'this_page': 'create_link',
     })
 
-
-def validate_upload_file(upload, mime_type):
-    # Make sure files are not corrupted.
-
-    if mime_type == 'image/jpeg':
-        return imghdr.what(upload) == 'jpeg'
-    elif mime_type == 'image/png':
-        return imghdr.what(upload) == 'png'
-    elif mime_type == 'image/gif':
-        return imghdr.what(upload) == 'gif'
-    elif mime_type == 'application/pdf':
-        doc = PdfFileReader(upload)
-        if doc.numPages >= 0:
-            return True
-    return False
-
 ###### LINK BROWSING ######
 
 @login_required
