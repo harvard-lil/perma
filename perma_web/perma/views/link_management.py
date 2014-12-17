@@ -138,56 +138,6 @@ def validate_upload_file(upload, mime_type):
             return True
     return False
 
-@login_required
-def upload_file(request):
-    if request.method == 'POST':
-        form = UploadFileForm(request.POST, request.FILES)
-        if form.is_valid():
-
-            mime = MimeTypes()
-            uploaded_file = request.FILES['file']
-            mime_type = mime.guess_type(uploaded_file.name)
-
-            # Get mime type string from tuple
-            if mime_type[0]:
-                mime_type = mime_type[0]
-            else:
-                return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Invalid file.'}), 'application/json')
-
-            if validate_upload_file(uploaded_file, mime_type) and uploaded_file.size <= settings.MAX_ARCHIVE_FILE_SIZE:
-                link = Link(submitted_url=form.cleaned_data['url'], submitted_title=form.cleaned_data['title'], created_by = request.user)
-                link.save()
-
-                asset = Asset(link=link)
-                file_name = 'cap' + mime.guess_extension(mime_type)
-                file_path = os.path.join(asset.base_storage_path, file_name)
-
-                uploaded_file.file.seek(0)
-                file_name = default_storage.store_file(uploaded_file, file_path)
-
-                if mime_type == 'application/pdf':
-                    asset.pdf_capture = file_name
-                else:
-                    asset.image_capture = file_name
-                asset.save()
-
-                response_object = {'status':'success', 'linky_id':link.guid, 'linky_hash':link.guid}
-
-                return HttpResponse(json.dumps(response_object), 'application/json', 201)  # '201 Created' status
-            else:
-                return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Only gif, jpg, and pdf files supported. Max of 50 MB.'}), 'application/json')
-        else:
-            if not request.FILES:
-                return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Missing file.'}), 'application/json')
-            elif not form.data['title']:
-                return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Title is required.'}), 'application/json')
-            elif not form.data['url']:
-                return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'URL is required.'}), 'application/json')
-            
-
-    return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'No file submitted.'}), 'application/json')
-
-
 ###### LINK BROWSING ######
 
 @login_required
