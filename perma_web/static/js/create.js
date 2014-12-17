@@ -120,28 +120,23 @@ function uploadIt(data) {
     // If a user wants to upload their own screen capture, we display
     // a modal and the form in that modal is handled here
 
-    if(data.status == 'success') {
-        $('#archive-upload').modal('hide');
+    $('#archive-upload').modal('hide');
 
-        var upload_image_url = static_prefix + '/img/upload-preview.jpg';
-        new_archive.url = mirror_server_host  + '/' + data.linky_id;
+    var upload_image_url = static_prefix + '/img/upload-preview.jpg';
+    new_archive.url = mirror_server_host  + '/' + data.guid;
 
-        var source = $("#preview-available-no-upload-option-template").html();
-        var template = Handlebars.compile(source);
-        $('#preview-container').html(template({image_url: upload_image_url, archive_url: new_archive.url}));
+    var source = $("#preview-available-no-upload-option-template").html();
+    var template = Handlebars.compile(source);
+    $('#preview-container').html(template({image_url: upload_image_url, archive_url: new_archive.url}));
 
-        // Get our spinner going now that we're drawing it
-        var target = document.getElementById('spinner');
-        var spinner = new Spinner(opts).spin(target);
+    // Get our spinner going now that we're drawing it
+    var target = document.getElementById('spinner');
+    var spinner = new Spinner(opts).spin(target);
 
-        var source = $("#success-steps-template").html();
-        var template = Handlebars.compile(source);
-        $('#steps-container').html(template({url: new_archive.url,
-            userguide_url: userguide_url, vesting_privs: vesting_privs})).removeClass('hide').hide().slideDown();
-    }
-    else {
-        return xhr.abort();
-    }
+    var source = $("#success-steps-template").html();
+    var template = Handlebars.compile(source);
+    $('#steps-container').html(template({url: new_archive.url,
+        userguide_url: userguide_url, vesting_privs: vesting_privs})).removeClass('hide').hide().slideDown();
 }
 
 function upload_form() {
