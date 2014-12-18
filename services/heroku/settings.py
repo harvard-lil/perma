@@ -27,6 +27,13 @@ BROKER_POOL_LIMIT=1
 BROKER_URL = os.environ.get('CLOUDAMQP_URL')
 CELERY_RESULT_BACKEND = os.environ.get('REDISCLOUD_URL')
 
+# logging
+LOGGING['handlers']['default'] = {
+    'level': 'INFO',
+    'class': 'logging.StreamHandler',
+    'formatter': 'standard',
+}
+
 
 # these are relative to the S3 bucket
 MEDIA_ROOT = '/generated/'
@@ -55,10 +62,6 @@ THUMBNAIL_REDIS_PORT = _parsed_redis_url['port']
 
 
 ### OVERRIDE THESE WITH ENV VARS ###
-
-# Google Analytics
-GOOGLE_ANALYTICS_KEY = 'UA-XXXXX-X'
-GOOGLE_ANALYTICS_DOMAIN = 'example.com'
 
 # The host we want to display (used when DEBUG=False)
 HOST = 'perma.cc'
