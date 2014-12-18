@@ -1,10 +1,9 @@
-import json
 from multiprocessing.pool import ThreadPool
 import os
 import os.path
+import tempfile
 from urlparse import urljoin
 from celery import shared_task
-from celery.contrib import rdb
 import requests
 
 from django.conf import settings
@@ -105,24 +104,53 @@ def get_updates():
 
 
 @shared_task
-@transaction.atomic
+# @transaction.atomic
 def get_full_database():
     """
         Fetch full database from upstream.
     """
     lock = get_update_queue_lock()
 
-    try:
-        print "MIRROR: Importing full database."
-        result = upstream_request(reverse('mirroring:export_database')).json()
-        for model_class, serialized_models in result['database']:
-            for obj in serializers.deserialize("json", serialized_models):
-                obj.object.save()
-        if result['update_index'] != '0':
-            UpdateQueue(pk=int(result['update_index']), json='dummy').save()
-    except Exception as e:
-        print e
-        rdb.set_trace()
+    def save_cache(obj_cache):
+        if obj_cache:
+            print "Saving %s objects of type %s." % (len(obj_cache), type(obj_cache[0]))
+            Model = type(obj_cache[0])
+            Model.objects.filter(pk__in=[obj.pk for obj in obj_cache]).delete()
+            print "Deleted."
+            Model.objects.bulk_create(obj_cache)
+            print "Done saving."
+            del obj_cache[:]
+
+
+    data_temp_file = tempfile.TemporaryFile()
+    data_stream = upstream_request(reverse('mirroring:export_database'), stream=True)
+    for chunk in data_stream.iter_content(chunk_size=1024):
+        data_temp_file.write(chunk)
+
+    print "Got data file."
+
+    update_index = None
+    data_temp_file.seek(0)
+    obj_cache = []
+    for line in data_temp_file:
+        if update_index is None:
+            update_index = int(line.strip())
+        else:
+            obj = serializers.deserialize("json", line).next().object
+            if len(obj_cache) > 1000 or (obj_cache and type(obj_cache[0]) != type(obj)):
+                save_cache(obj_cache)
+            if not obj_cache:
+                print line
+            obj_cache.append(obj)
+
+    print "Final save."
+
+    save_cache(obj_cache)
+
+    print "Done! Saving update index %s." % update_index
+
+    if update_index:
+        UpdateQueue.objects.get_or_create(pk=update_index, defaults={'json': 'dummy'})
 
 
 @shared_task

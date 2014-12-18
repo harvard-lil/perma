@@ -1,7 +1,7 @@
 import json
 
 from django.core import serializers
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, StreamingHttpResponse
 
 from perma.utils import run_task
 from perma.views.common import single_linky
@@ -50,17 +50,20 @@ def export_updates(request, last_known_update):
 @read_downstream_request
 def export_database(request):
     """
-        Get JSON dump of entire DB.
+        Return JSON dump of mirrored portions of entire DB.
     """
     try:
         update_index = UpdateQueue.objects.order_by('-pk')[0].pk
     except IndexError:
         update_index = 0
-    out = {
-        'update_index': update_index,
-        'database': [(Model.__name__, serializers.serialize("json", Model.objects.all(), fields=Model.mirror_fields)) for Model in SYNCED_MODELS]
-    }
-    return HttpResponse(json.dumps(out), content_type="application/json")
+    def generate_lines():
+        print "MODELS", SYNCED_MODELS
+        yield "%s\n" % update_index
+        for Model in SYNCED_MODELS:
+            print "SENDING %s objects." % Model.objects.count()
+            for obj in Model.objects.all():
+                yield serializers.serialize("json", [obj], fields=Model.mirror_fields, ensure_ascii=False)+"\n"
+    return StreamingHttpResponse(generate_lines(), content_type="application/json")
 
 
 @may_be_mirrored
