@@ -2,6 +2,7 @@ import datetime
 from functools import wraps
 import hashlib
 import json
+from django.http import HttpResponseBadRequest, HttpResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 import gnupg
 import pytz
@@ -70,6 +71,9 @@ def sign_message(message, key=settings.GPG_PRIVATE_KEY):
     fingerprint = get_fingerprint(key)
     return get_gpg().sign(message, keyid=fingerprint)
 
+class SignatureError(Exception):
+    pass
+
 def read_signed_message(message, valid_keys, max_age=None, cache=False):
     """
         Read a PGP-signed message and return its data, if the signing key matches `key`.
@@ -92,18 +96,15 @@ def read_signed_message(message, valid_keys, max_age=None, cache=False):
         valid_fingerprints = set(get_fingerprint(key) for key in valid_keys)
         verified_message = get_gpg().decrypt(message)  # decrypt instead of verify, even if message isn't encrypted, so we get the message content in verified_message.data
         if verified_message.fingerprint not in valid_fingerprints:
-            raise Exception("Signature verification failed: fingerprint does not match %s for message %s." % (valid_fingerprints, message))
+            raise SignatureError("Signature verification failed: fingerprint does not match.")
         if max_age is not None and time.time() - int(verified_message.timestamp) > max_age:
-            raise Exception("Message is too old.")
+            raise SignatureError("Message is too old.")
         verified_message = verified_message.data[:-1]  # strip extra \n that gpg adds
 
         if cache:
             django_cache.set(cache_key, verified_message)
 
     return verified_message
-
-
-### auth ###
 
 def sign_post_data(json_data):
     return {'signed_data':sign_message(json.dumps(json_data))}
@@ -112,7 +113,12 @@ def read_request_decorator(func, valid_keys):
     @csrf_exempt  # don't want/need CSRF because we're making sure these requests are signed
     @wraps(func)
     def decode(request):
-        message = read_signed_message(request.POST['signed_data'], valid_keys, max_age=60*5)
+        if 'signed_data' not in request.POST:
+            return HttpResponseBadRequest("Mirroring request must include signed_data POST value.")
+        try:
+            message = read_signed_message(request.POST['signed_data'], valid_keys, max_age=60*5)
+        except SignatureError:
+            return HttpResponseForbidden(str(SignatureError))
         kwargs = json.loads(message)
         return func(request, **kwargs)
     return decode

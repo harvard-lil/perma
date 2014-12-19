@@ -17,28 +17,37 @@ from .models import UpdateQueue
 
 ### helpers ###
 
-def upstream_request(relative_url, json_data={}, **request_kwargs):
+def send_request(target_server, url, method='GET', **request_kwargs):
+    """
+        target_server is a dict with 'address':'https://...' and optional 'request_kwargs':{<<stuff to pass to requests.request>>}.
+    """
+    request_kwargs.update(target_server.get('request_kwargs', {}))
+
+    if url.startswith('//'):
+        # if url has no protocol, default to https
+        url = 'https:' + url
+    elif not (url.startswith('http:') or url.startswith('https:')):
+        # elif url is relative, prepend with target_server address
+        url = urljoin(target_server['address'], url)
+
+    return requests.request(method, urljoin(target_server['address'], url), **request_kwargs)
+
+def post_message_upstream(relative_url, json_data={}, **request_kwargs):
     """ Make a request to the upstream server. """
-    request_kwargs.setdefault('headers', settings.UPSTREAM_SERVER.get('headers', {}))
     if 'data' not in request_kwargs:
         request_kwargs['data'] = sign_post_data(json_data)
-    return requests.request('POST', urljoin(settings.UPSTREAM_SERVER['address'], relative_url), **request_kwargs)
 
-def downstream_request(downstream_server, relative_url, json_data={}, **request_kwargs):
-    """ Make a request to the downstream server. """
-    request_kwargs.setdefault('headers', downstream_server.get('headers', {}))
-    if 'data' not in request_kwargs:
-        request_kwargs['data'] = sign_post_data(json_data)
-    return requests.request('POST', urljoin(downstream_server['address'], relative_url), **request_kwargs)
+    return send_request(settings.UPSTREAM_SERVER, relative_url, 'POST', **request_kwargs)
 
-def parallel_downstream_request(relative_url, json_data={}, **request_kwargs):
+def post_message_downstream(relative_url, json_data={}, **request_kwargs):
     """ Make a request to all downstream requests in parallel threads, returning when all are finished. """
+
     if 'data' not in request_kwargs:
         request_kwargs['data'] = sign_post_data(json_data)
 
     def call_downstream_request(mirror):
         print "MAIN: Sending update to", mirror['address']
-        downstream_request(mirror, relative_url, **request_kwargs)
+        send_request(mirror, relative_url, 'POST', **request_kwargs)
 
     pool = ThreadPool(processes=min(len(settings.DOWNSTREAM_SERVERS), 10))
     return pool.map(call_downstream_request, settings.DOWNSTREAM_SERVERS)
@@ -65,7 +74,7 @@ def send_updates():
     if updates:
         print "MAIN: Sending updates %s" % ", ".join(str(update['pk']) for update in updates)
         UpdateQueue.objects.filter(pk__in=[update['pk'] for update in updates]).update(sent=True)
-        parallel_downstream_request(reverse("mirroring:import_updates"), json_data={'updates': list(updates)})
+        post_message_downstream(reverse("mirroring:import_updates"), json_data={'updates': list(updates)})
     else:
         print "MAIN: Nothing to send."
 
@@ -88,7 +97,7 @@ def get_updates():
         return get_full_database.apply()
 
     try:
-        result = upstream_request(reverse('mirroring:export_updates'), json_data={'last_known_update':last_known_update_id}).json()
+        result = post_message_upstream(reverse('mirroring:export_updates'), json_data={'last_known_update':last_known_update_id}).json()
     except Exception as e:  # TODO: narrow this down
         # upstream server doesn't have the updates we need; fetch whole database
         print "MIRROR: Error fetching updates: %s. Fetching whole database." % e
@@ -104,7 +113,7 @@ def get_updates():
 
 
 @shared_task
-# @transaction.atomic
+@transaction.atomic
 def get_full_database():
     """
         Fetch full database from upstream.
@@ -123,7 +132,7 @@ def get_full_database():
 
 
     data_temp_file = tempfile.TemporaryFile()
-    data_stream = upstream_request(reverse('mirroring:export_database'), stream=True)
+    data_stream = post_message_upstream(reverse('mirroring:export_database'), stream=True)
     for chunk in data_stream.iter_content(chunk_size=1024):
         data_temp_file.write(chunk)
 
@@ -166,18 +175,17 @@ def trigger_media_sync(*args, **kwargs):
         else:
             expanded_paths.append(path)
 
-    parallel_downstream_request(reverse("mirroring:media_sync"), json_data={
+    post_message_downstream(reverse("mirroring:media_sync"), json_data={
         'paths': expanded_paths,
-        'media_url': settings.DIRECT_MEDIA_URL,
     })
 
 
 @shared_task
 def background_media_sync(*args, **kwargs):
     paths = kwargs['paths']
-    upstream_media_url = kwargs['media_url']
+    upstream_media_url = settings.UPSTREAM_SERVER.get('media_url', settings.UPSTREAM_SERVER['address']+'/media/')
     for path in paths:
         request_url = urljoin(upstream_media_url, path)
         print "Storing ", request_url
-        request = requests.get(request_url, stream=True)
+        request = send_request(settings.UPSTREAM_SERVER, request_url, stream=True)
         default_storage.store_file(request.raw, path)

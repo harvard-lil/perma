@@ -90,10 +90,10 @@ def import_updates(request, updates):
 
 @may_be_mirrored
 @read_upstream_request
-def media_sync(request, media_url, paths):
+def media_sync(request, paths):
     """
         Receive a set of updates and apply them. We run this in a celery task so we can return immediately.
     """
     print "MIRROR: Receiving media sync"
-    run_task(background_media_sync, media_url=media_url, paths=paths)
+    run_task(background_media_sync, paths=paths)
     return HttpResponse("OK")
