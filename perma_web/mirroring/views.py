@@ -53,16 +53,19 @@ def export_database(request):
         Return JSON dump of mirrored portions of entire DB.
     """
     try:
-        update_index = UpdateQueue.objects.order_by('-pk')[0].pk
+        update_index = UpdateQueue.objects.order_by('-pk')[0]
     except IndexError:
-        update_index = 0
+        update_index = None
+
     def generate_lines():
-        print "MODELS", SYNCED_MODELS
-        yield "%s\n" % update_index
         for Model in SYNCED_MODELS:
             print "SENDING %s objects." % Model.objects.count()
             for obj in Model.objects.all():
                 yield serializers.serialize("json", [obj], fields=Model.mirror_fields, ensure_ascii=False)+"\n"
+
+        if update_index:
+            yield serializers.serialize("json", [update_index], fields=['action', 'json'], ensure_ascii=False)+"\n"
+
     return StreamingHttpResponse(generate_lines(), content_type="application/json")
 
 

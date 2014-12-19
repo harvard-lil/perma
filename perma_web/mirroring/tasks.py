@@ -10,7 +10,7 @@ from django.conf import settings
 from django.core.files.storage import default_storage
 from django.core.urlresolvers import reverse
 from django.core import serializers
-from django.db import transaction
+from django.db import transaction, connection
 
 from .utils import sign_post_data
 from .models import UpdateQueue
@@ -131,20 +131,24 @@ def get_full_database():
             del obj_cache[:]
 
 
-    data_temp_file = tempfile.TemporaryFile()
+    temp_file = tempfile.NamedTemporaryFile(suffix=".json", delete=False)
     data_stream = post_message_upstream(reverse('mirroring:export_database'), stream=True)
     for chunk in data_stream.iter_content(chunk_size=1024):
-        data_temp_file.write(chunk)
+        temp_file.write(chunk)
+    temp_file.file.close()
 
     print "Got data file."
 
-    update_index = None
-    data_temp_file.seek(0)
-    obj_cache = []
-    for line in data_temp_file:
-        if update_index is None:
-            update_index = int(line.strip())
-        else:
+    # call_command("loaddata", temp_file.name)
+    # temp_file.unlink(temp_file.name)
+    #
+    # print "Full DB loaded."
+
+
+    with connection.constraint_checks_disabled():
+        # update_index = None
+        obj_cache = []
+        for line in temp_file:
             obj = serializers.deserialize("json", line).next().object
             if len(obj_cache) > 1000 or (obj_cache and type(obj_cache[0]) != type(obj)):
                 save_cache(obj_cache)
@@ -152,14 +156,14 @@ def get_full_database():
                 print line
             obj_cache.append(obj)
 
-    print "Final save."
+        print "Final save."
 
-    save_cache(obj_cache)
+        save_cache(obj_cache)
 
-    print "Done! Saving update index %s." % update_index
+    print "Done!"
 
-    if update_index:
-        UpdateQueue.objects.get_or_create(pk=update_index, defaults={'json': 'dummy'})
+    # if update_index:
+    #     UpdateQueue.objects.get_or_create(pk=update_index, defaults={'json': 'dummy'})
 
 
 @shared_task
