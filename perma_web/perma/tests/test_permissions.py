@@ -80,7 +80,6 @@ class PermissionsTestCase(PermaTestCase):
                     ['user_management_settings_password'],
                     ['user_management_settings_tools'],
                     ['create_link'],
-                    ['upload_link', {'success_status':400}],
                     ['link_browser'],
                     ['folder_contents', {'kwargs': {'folder_id': '12345'}, 'success_status': 404}],
                     ['user_delete_link', {'kwargs':{'guid':'1234'},'success_status':404}],
