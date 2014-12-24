@@ -38,6 +38,7 @@ django-secure==1.0.1            # Force SSL -- this can be removed in Django 1.8
 django-sslserver==0.14          # For testing SSL locally.
 django-subdomains==2.0.4        # enables subdomain based url routing
 django-model-utils==2.2         # for tracking dirty models
+django-settings-context-processor==0.2 # make settings available in templates
 
 # deployment
 gunicorn==18.0

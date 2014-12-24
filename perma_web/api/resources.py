@@ -98,10 +98,12 @@ class FolderResource(DefaultResource):
 class AssetResource(DefaultResource):
     # archive = fields.ForeignKey(LinkResource, 'link', full=False, null=False, readonly=True)
     archive = fields.CharField(attribute='link_id')
+    favicon = fields.CharField(null=True, blank=True)
 
     class Meta(DefaultResource.Meta):
         resource_name = 'assets'
         queryset = Asset.objects.all()
+        fields = [None]  # prevents ModelResource from auto-including additional fields
         filtering = {'archive': ['exact']}
 
     def dehydrate_archive(self, bundle):
@@ -109,6 +111,7 @@ class AssetResource(DefaultResource):
 
 
 class LinkResource(MultipartResource, DefaultResource):
+    always_return_data = True
     guid = fields.CharField(attribute='guid', readonly=True)
     creation_timestamp = fields.DateTimeField(attribute='creation_timestamp', readonly=True)
     url = fields.CharField(attribute='submitted_url')
@@ -124,7 +127,7 @@ class LinkResource(MultipartResource, DefaultResource):
     vesting_org = fields.ForeignKey(VestingOrgResource, 'vesting_org', full=True, null=True)
     dark_archived_by = fields.ForeignKey(LinkUserResource, 'dark_archived_by', full=True, null=True, blank=True, readonly=True)
     folders = fields.ToManyField(FolderResource, 'folders', null=True)
-    assets = fields.ToManyField(AssetResource, 'assets', readonly=True)
+    assets = fields.ToManyField(AssetResource, 'assets', readonly=True, full=True)
 
     class Meta(DefaultResource.Meta):
         resource_name = 'archives'

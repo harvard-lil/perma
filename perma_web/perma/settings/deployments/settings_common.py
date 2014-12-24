@@ -180,6 +180,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.static',    # include `STATIC_URL` in templates
     'django.core.context_processors.media',     # include `MEDIA_URL` in templates
     'django.contrib.auth.context_processors.auth',  # for Django admin
+    'settings_context_processor.context_processors.settings',  # to easily use settings in templates
 )
 
 INSTALLED_APPS = (
@@ -206,6 +207,7 @@ INSTALLED_APPS = (
     'sorl.thumbnail',
     'django_forms_bootstrap',
     'djangosecure',  # force SSL -- this can be removed in Django 1.8
+    'settings_context_processor',
 
     # django admin -- has to come after our apps for our admin template overrides to work
     'django.contrib.admin',
@@ -422,3 +424,9 @@ SINGLE_LINK_HEADER_TEST = False
 # security settings -- set these to true if SSL is available
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
+
+API_VERSION = 1
+
+TEMPLATE_VISIBLE_SETTINGS = (
+    'API_VERSION',
+)

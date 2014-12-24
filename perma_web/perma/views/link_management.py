@@ -22,9 +22,6 @@ from django.http import HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import HttpResponse, render_to_response, get_object_or_404, render
 from django.template import RequestContext
 
-from mirroring.tasks import trigger_media_sync
-
-from ..forms import UploadFileForm
 from ..models import Link, Asset, Folder, VestingOrg, FolderException
 from ..tasks import get_pdf, proxy_capture, upload_to_internet_archive
 from ..utils import require_group, run_task
@@ -33,9 +30,10 @@ from ..utils import require_group, run_task
 logger = logging.getLogger(__name__)
 valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp', 'submitted_title', '-submitted_title']
 
-HEADER_CHECK_TIMEOUT = 10 # seconds to wait before giving up when checking headers for requested link
+HEADER_CHECK_TIMEOUT = 10  # seconds to wait before giving up when checking headers for requested link
 
 ###### LINK CREATION ######
+
 
 @login_required
 def create_link(request):

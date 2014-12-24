@@ -6,25 +6,48 @@ var new_archive = {};
 // Where we queue up our archive guids for polling
 var refreshIntervalIds = [];
 
+var templates = {};
+
 /* Our globals. Look out interwebs - end */
 
 
 
 /* Everything that needs to happen at page load - start */
 
-$(document).ready(function() {
+$(function() {
+
+    $("script[type='text/x-handlebars-template']").each(function(){
+        var $this = $(this),
+            name = $this.attr('id').replace('-template', '').replace(/-/g, '_');
+        templates[name] = Handlebars.compile($this.html());
+    });
+
     $('#archive-upload-confirm').modal({show: false});
     $('#archive-upload').modal({show: false});
 
     // When a new url is entered into our form
     $('#linker').submit(function() {
-        linkIt();
+        var $this = $(this);
+        $.ajax($this.attr('action'), {
+            method: $this.attr('method'),
+            contentType: 'application/json',
+            data: JSON.stringify({
+                url: $this.find("input[name=url]").val()
+            }),
+            success: linkIt,
+            error: linkNot
+        });
+
         return false;
     });
 
     // When a user uploads their own capture
     $('#archive_upload_form').submit(function() {
-        $(this).ajaxSubmit({success: uploadIt, error: uploadNot});
+        $(this).ajaxSubmit({
+            success: uploadIt,
+            error: uploadNot
+        });
+
         return false;
     });
 
@@ -40,66 +63,40 @@ $(document).ready(function() {
 
 /* Handle the the main action (enter url, hit the button) button - start */
 
-function linkIt(){
-    // This does the "get url and exchange it for an archive" through
-    // an AJAX post work.
+function linkIt(data){
+    new_archive.url = mirror_server_host  + '/' + data.guid;
+    new_archive.guid = data.guid;
+    new_archive.title = data.title;
+    new_archive.static_prefix = static_prefix;
 
-    var rawUrl = $("#rawUrl").val();
+    $('#preview-container').html(templates.success(new_archive));
 
-    var request = $.ajax({
-        url: "/manage/create/",
-        type: "POST",
-        data: {
-            url: rawUrl,
-            folder: $('#linker select').val(),
-            'csrfmiddlewaretoken': csrf_token
-        },
-        dataType: "json"
-    });
+    // Get our spinner going now that we're drawing it
+    var target = document.getElementById('spinner');
+    var spinner = new Spinner(opts).spin(target);
 
-    request.done(function(data) {
-        new_archive.url = mirror_server_host  + '/' + data.linky_id;
-        new_archive.linky_id = data.linky_id;
-        new_archive.original = rawUrl;
-        new_archive.title = data.linky_title;
-        new_archive.favicon_url = data.favicon_url;
-        new_archive.preview = data.linky_cap;
-        new_archive.message_pdf = data.message_pdf;
-        new_archive.static_prefix = static_prefix;
+    $('#steps-container').html('');
+    $('.preview-row').removeClass('hide').hide().slideDown();
 
-        var source = $("#success-template").html();
-        var template = Handlebars.compile(source);
-        $('#preview-container').html(template(new_archive));
-        $('#archive_upload_form #title').val(new_archive.title);
-        $('#archive_upload_form #url').val(new_archive.original);
+    refreshIntervalIds.push(setInterval(check_status, 2000));
+}
 
-        // Get our spinner going now that we're drawing it
-        var target = document.getElementById('spinner');
-        var spinner = new Spinner(opts).spin(target);
+function linkNot(jqXHR){
+    $('#preview-container').html(templates.preview_failure({static_prefix:static_prefix}));
 
-        $('#steps-container').html('');
-        $('.preview-row').removeClass('hide').hide().slideDown();
+    var message = "";
+    if (jqXHR.status == 400 && jqXHR.responseText){
+        var errors = JSON.parse(jqXHR.responseText).archives;
+        for (var prop in errors) {
+            message += errors[prop] + " ";
+        }
+    }
 
-        refreshIntervalIds.push(setInterval(check_status, 2000));
+    $('#steps-container').html(templates.error({
+        message: message || "Error " + jqXHR.status
+    }));
 
-    });
-    request.fail(function(jqXHR) {
-        var source = $("#preview-failure-template").html();
-        var template = Handlebars.compile(source);
-        $('#preview-container').html(template({static_prefix:static_prefix}));
-
-        var source = $("#error-template").html();
-        var template = Handlebars.compile(source);
-        var message = jqXHR.status==400 && jqXHR.responseText ? jqXHR.responseText : "Error "+jqXHR.status;
-        $('#steps-container').html(template({
-            url: rawUrl,
-            message: message
-        }));
-        $('#archive_upload_form #url').val(rawUrl);
-        $('#archive_upload_form #title').val(rawUrl);
-
-        $('.preview-row').removeClass('hide').hide().slideDown();
-    });
+    $('.preview-row').removeClass('hide').hide().slideDown();
 }
 
 /* Handle the the main action (enter url, hit the button) button - start */
@@ -125,18 +122,14 @@ function uploadIt(data) {
     var upload_image_url = static_prefix + '/img/upload-preview.jpg';
     new_archive.url = mirror_server_host  + '/' + data.guid;
 
-    var source = $("#preview-available-no-upload-option-template").html();
-    var template = Handlebars.compile(source);
-    $('#preview-container').html(template({image_url: upload_image_url, archive_url: new_archive.url}));
+    $('#preview-container').html(templates.preview_available_no_upload_option({image_url: upload_image_url, archive_url: new_archive.url}));
 
     // Get our spinner going now that we're drawing it
     var target = document.getElementById('spinner');
     var spinner = new Spinner(opts).spin(target);
 
-    var source = $("#success-steps-template").html();
-    var template = Handlebars.compile(source);
-    $('#steps-container').html(template({url: new_archive.url,
-        userguide_url: userguide_url, vesting_privs: vesting_privs})).removeClass('hide').hide().slideDown();
+    $('#steps-container').html(templates.success_steps({url: new_archive.url,
+                                                        userguide_url: userguide_url, vesting_privs: vesting_privs})).removeClass('hide').hide().slideDown();
 }
 
 function upload_form() {
@@ -168,39 +161,33 @@ function upload_form() {
 function check_status() {
 
     // Check our status service to see if we have archiving jobs pending
-	var request = $.ajax({
-		url: status_url + new_archive.linky_id,
-		type: "GET",
-		dataType: "json",
-		cache: false
-	});
+	  var request = $.ajax({
+		    url: api_path + "/archives/" + new_archive.guid,
+		    cache: false
+	  });
 
-	request.done(function(data) {
+	  request.done(function(data) {
 
-		// if no status is pending
-		if (data.image_capture !== 'pending') {
+		    // if no status is pending
+		    if (data.image_capture !== 'pending') {
 
             // Replace our Archive Pending spinner and message
             // with our new thumbnail
             var image_url = data.thumbnail;
 
-            var source = $("#preview-available-template").html();
-            var template = Handlebars.compile(source);
-            $('#preview-container').html(template({image_url: image_url,
-                archive_url: new_archive.url})).removeClass('hide').hide().slideDown();
-                
-            var source = $("#success-steps-template").html();
-            var template = Handlebars.compile(source);
-            $('#steps-container').html(template({url: new_archive.url, userguide_url: userguide_url,
-                vesting_privs: vesting_privs})).removeClass('hide').hide().slideDown();
+            $('#preview-container').html(templates.preview_available({image_url: image_url,
+                                                                      archive_url: new_archive.url})).removeClass('hide').hide().slideDown();
+            
+            $('#steps-container').html(templates.success_steps({url: new_archive.url, userguide_url: userguide_url,
+                                                                vesting_privs: vesting_privs})).removeClass('hide').hide().slideDown();
 
             // Clear out our pending jobs
             $.each(refreshIntervalIds, function(ndx, id) {
-			    clearInterval(id);
-			});
+			          clearInterval(id);
+			      });
 
-		}
-	});
+		    }
+	  });
 }
 
 /* Our polling function for the thumbnail completion - end */
