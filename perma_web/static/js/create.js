@@ -162,7 +162,7 @@ function check_status() {
 
     // Check our status service to see if we have archiving jobs pending
 	  var request = $.ajax({
-		    url: api_path + "/archives/" + new_archive.guid,
+		    url: api_path + "/archives/" + new_archive.guid + "/",
 		    cache: false
 	  });
 
@@ -175,11 +175,16 @@ function check_status() {
             // with our new thumbnail
             var image_url = data.thumbnail;
 
-            $('#preview-container').html(templates.preview_available({image_url: image_url,
-                                                                      archive_url: new_archive.url})).removeClass('hide').hide().slideDown();
+            $('#preview-container').html(templates.preview_available({
+                image_url: image_url,
+                archive_url: new_archive.url
+            })).removeClass('hide').hide().slideDown();
             
-            $('#steps-container').html(templates.success_steps({url: new_archive.url, userguide_url: userguide_url,
-                                                                vesting_privs: vesting_privs})).removeClass('hide').hide().slideDown();
+            $('#steps-container').html(templates.success_steps({
+                url: new_archive.url,
+                userguide_url: userguide_url,
+                vesting_privs: vesting_privs
+            })).removeClass('hide').hide().slideDown();
 
             // Clear out our pending jobs
             $.each(refreshIntervalIds, function(ndx, id) {

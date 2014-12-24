@@ -96,9 +96,11 @@ class FolderResource(DefaultResource):
 
 
 class AssetResource(DefaultResource):
-    # archive = fields.ForeignKey(LinkResource, 'link', full=False, null=False, readonly=True)
-    archive = fields.CharField(attribute='link_id')
-    favicon = fields.CharField(null=True, blank=True)
+    favicon = fields.CharField(attribute='favicon', null=True, blank=True)
+    image_capture = fields.CharField(attribute='image_capture', null=True, blank=True)
+    warc_capture = fields.CharField(attribute='warc_capture', null=True, blank=True)
+    pdf_capture = fields.CharField(attribute='pdf_capture', null=True, blank=True)
+    text_capture = fields.CharField(attribute='text_capture', null=True, blank=True)
 
     class Meta(DefaultResource.Meta):
         resource_name = 'assets'
