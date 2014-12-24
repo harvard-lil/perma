@@ -96,6 +96,7 @@ class FolderResource(DefaultResource):
 
 
 class AssetResource(DefaultResource):
+    base_storage_path = fields.CharField(attribute='base_storage_path', null=True, blank=True)
     favicon = fields.CharField(attribute='favicon', null=True, blank=True)
     image_capture = fields.CharField(attribute='image_capture', null=True, blank=True)
     warc_capture = fields.CharField(attribute='warc_capture', null=True, blank=True)

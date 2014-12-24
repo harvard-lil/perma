@@ -167,13 +167,13 @@ function check_status() {
 	  });
 
 	  request.done(function(data) {
+        var asset = data.assets[0];
 
 		    // if no status is pending
-		    if (data.image_capture !== 'pending') {
-
+		    if (asset.image_capture !== 'pending') {
             // Replace our Archive Pending spinner and message
             // with our new thumbnail
-            var image_url = data.thumbnail;
+            var image_url = MEDIA_URL + asset.base_storage_path + "/" + asset.image_capture;
 
             $('#preview-container').html(templates.preview_available({
                 image_url: image_url,
