@@ -32,93 +32,15 @@ valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timesta
 
 HEADER_CHECK_TIMEOUT = 10  # seconds to wait before giving up when checking headers for requested link
 
-###### LINK CREATION ######
 
+###### LINK CREATION ######
 
 @login_required
 def create_link(request):
-    """
-    Create new links
-    """
-    if request.POST:
-        # We've received a request to archive a URL. That process is managed here.
-        # We create a new entry in our datastore and pass the work off to our indexing
-        # workers. They do their thing, updating the model as they go. When we get some minimum
-        # set of results we can present the user (a guid for the link), we respond back.
-
-        target_url = request.POST.get('url').strip()
-
-        # If we don't get a protocol, assume http
-        if target_url[:4] != 'http':
-            target_url = 'http://' + target_url
-
-        # Does this thing look like a valid URL?
-        validate = URLValidator()
-        try:
-            validate(target_url)
-        except ValidationError:
-            return HttpResponseBadRequest("Not a valid URL.")
-
-        # By default, use the domain as title
-        url_details = urlparse(target_url)
-        target_title = url_details.netloc
-
-        # Check for banned IP.
-        try:
-            target_ip = socket.gethostbyname(url_details.netloc.split(':')[0])
-        except socket.gaierror:
-            return HttpResponseBadRequest("Couldn't resolve domain.")
-        for banned_ip_range in settings.BANNED_IP_RANGES:
-            if IPAddress(target_ip) in IPNetwork(banned_ip_range):
-                return HttpResponseBadRequest("Not a valid IP.")
-
-        # Get target url headers. We get the mime-type and content length from this.
-        try:
-            target_url_headers = requests.head(
-                target_url,
-                verify=False, # don't check SSL cert?
-                headers={'User-Agent': request.META['HTTP_USER_AGENT'], 'Accept-Encoding':'*'},
-                timeout=HEADER_CHECK_TIMEOUT
-            ).headers
-        except (requests.ConnectionError, requests.Timeout):
-            return HttpResponseBadRequest("Couldn't load URL.")
-        try:
-            if int(target_url_headers.get('content-length', 0)) > 1024 * 1024 * 100:
-                return HttpResponseBadRequest("Target page is too large (max size 1MB).")
-        except ValueError:
-            # Weird -- content-length header wasn't an integer. Carry on.
-            pass
-
-        # Create link.
-        link = Link(submitted_url=target_url, created_by=request.user, submitted_title=target_title)
-        link.save()
-
-        guid = link.guid
-        asset = Asset(link=link)
-        response_object = {'linky_id': guid, 'linky_title':''}
-
-        # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
-        if target_url_headers.get('content-type',None) in ['application/pdf', 'application/x-pdf'] or target_url.endswith('.pdf'):
-            asset.pdf_capture = 'pending'
-            asset.image_capture = 'pending'
-            asset.save()
-
-            run_task(get_pdf.s(guid, target_url, asset.base_storage_path, request.META['HTTP_USER_AGENT']))
-
-            response_object['message_pdf'] = True
-
-        else:  # else, it's not a PDF. Let's try our best to retrieve what we can
-            asset.image_capture = 'pending'
-            asset.warc_capture = 'pending'
-            asset.save()
-
-            run_task(proxy_capture.s(guid, target_url, asset.base_storage_path, request.META['HTTP_USER_AGENT']))
-
-        return HttpResponse(json.dumps(response_object), content_type="application/json", status=201) # '201 Created' status
-
     return render(request, 'user_management/create-link.html', {
         'this_page': 'create_link',
     })
+
 
 ###### LINK BROWSING ######
 
