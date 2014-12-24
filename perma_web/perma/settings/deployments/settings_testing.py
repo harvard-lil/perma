@@ -1,26 +1,24 @@
-from settings_dev import PROJECT_ROOT, INSTALLED_APPS
-import logging
+from settings_dev import PROJECT_ROOT
 
-"""
 #########
 # Setup #
 #########
-"""
 
 FIXTURE_DIRS = (
     PROJECT_ROOT,
 )
 
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-INSTALLED_APPS += ("django_nose",)
-logging.getLogger('south').setLevel(logging.INFO)
-logging.getLogger('subdomains.middleware').setLevel(logging.ERROR)
+# Uncomment to enable Nose as your test runner
+# from settings_dev import INSTALLED_APPS
+# import logging
+# TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+# INSTALLED_APPS += ("django_nose",)
+# logging.getLogger('south').setLevel(logging.INFO)
+# logging.getLogger('subdomains.middleware').setLevel(logging.ERROR)
 
-"""
 #############
 # Overrides #
 #############
-"""
 
 RUN_TASKS_ASYNC = False  # avoid sending celery tasks to queue -- just run inline
 
@@ -32,15 +30,16 @@ PIPELINE_ENABLED = False
 
 SUBDOMAIN_URLCONFS = {}
 
-"""
 ###############
 # Speed Hacks #
 ###############
+# Reference:
+# - https://docs.djangoproject.com/en/1.4/topics/testing/#speeding-up-the-tests
+# - http://www.daveoncode.com/2013/09/23/effective-tdd-tricks-to-speed-up-django-tests-up-to-10x-faster/
 
-Reference:
-- https://docs.djangoproject.com/en/1.4/topics/testing/#speeding-up-the-tests
-- http://www.daveoncode.com/2013/09/23/effective-tdd-tricks-to-speed-up-django-tests-up-to-10x-faster/
-"""
+CELERY_ALWAYS_EAGER = True
+CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+BROKER_BACKEND = 'memory'
 
 # Note: this is recommended by the Django docs but
 # currently conflicts with some of our tests
@@ -58,7 +57,3 @@ Reference:
 #         'NAME': None
 #     }
 # }
-
-CELERY_ALWAYS_EAGER = True
-CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
-BROKER_BACKEND = 'memory'
