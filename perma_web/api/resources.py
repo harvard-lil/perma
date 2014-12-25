@@ -97,6 +97,9 @@ class FolderResource(DefaultResource):
             'tree_id'
         ]
 
+    class Nested:
+        archives = fields.ToManyField('api.resources.LinkResource', 'links', readonly=True, full=True)
+
 
 class AssetResource(DefaultResource):
     base_storage_path = fields.CharField(attribute='base_storage_path', null=True, blank=True)
