@@ -3,6 +3,13 @@
 
 {% block title %} | Perma links{% endblock %}
 
+{% block globaljs %}
+    {{ block.super }}
+    <script>
+        var url_docs_perma_link_vesting = "{% url 'docs_perma_link_vesting' %}";
+    </script>
+{% endblock %}
+
 {% block scripts %}
     {{ block.super }}
     {% compressed_js 'links_list' %}
@@ -102,7 +109,7 @@
                 {{else}}
                     <span class="alert-danger">
                         Expires on {{expiration_date_formatted}} unless
-                        {{!-- <a href="[[#if request.user|has_group:'registry_user,registrar_user,vesting_user']][[local_url]][[else]][[url 'docs_perma_link_vesting']][[/if]]">vested</a> --}}
+                        <a href="{{#if can_vest}}{{local_url}}{{else}}{{url_docs_perma_link_vesting}}{{/if}}">vested</a>
                     </span>
                 {{/if}}
             </div>

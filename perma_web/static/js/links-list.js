@@ -196,12 +196,11 @@ $(function() {
                 showLoadingMessage = false;
                 data.objects.map(function(obj){
                     obj.local_url = mirror_server_host + '/' + obj.guid;
-                    if (obj.vested_timestamp) {
-                        obj.vested_timestamp_formatted = new Date(obj.vested_timestamp).format("M. j, Y");
-                    }
-
+                    obj.can_vest = current_user.has_group(['registry_user','registrar_user','vesting_user']);
+                    obj.url_docs_perma_link_vesting = url_docs_perma_link_vesting;
                     obj.expiration_date_formatted = new Date(obj.expiration_date).format("M. j, Y");
                     obj.creation_timestamp_formatted = new Date(obj.creation_timestamp).format("M. j, Y");
+                    if (obj.vested_timestamp) obj.vested_timestamp_formatted = new Date(obj.vested_timestamp).format("M. j, Y");
                 });
                 linkTable.html(templates.created_link_items(data));
             });
