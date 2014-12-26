@@ -52,18 +52,17 @@ class MultipartResource(object):
             return data
         return super(MultipartResource, self).deserialize(request, data, format)
 
-USER_FIELDS = [
-    'id',
-    'first_name',
-    'last_name'
-]
-
 
 class LinkUserResource(DefaultResource):
+    first_name = fields.CharField(attribute='first_name', blank=True, null=True)
+    last_name = fields.CharField(attribute='last_name', blank=True, null=True)
+    full_name = fields.CharField(attribute='get_full_name', blank=True, null=True)
+    short_name = fields.CharField(attribute='get_short_name', blank=True, null=True)
+
     class Meta(DefaultResource.Meta):
         resource_name = 'users'
         queryset = LinkUser.objects.all()
-        fields = USER_FIELDS
+        fields = [None]  # prevents ModelResource from auto-including additional fields
 
 
 class VestingOrgResource(DefaultResource):
@@ -296,7 +295,7 @@ class LinkResource(MultipartResource, DefaultResource):
         bundle.obj.save()
 
 
-class CurrentUserResource(DefaultResource):
+class CurrentUserResource(LinkUserResource):
     class Meta(DefaultResource.Meta):
         resource_name = 'user'
         queryset = LinkUser.objects.all()
@@ -304,7 +303,7 @@ class CurrentUserResource(DefaultResource):
         authorization = CurrentUserAuthorization()
         list_allowed_methods = []
         detail_allowed_methods = ['get']
-        fields = USER_FIELDS
+        fields = [None]  # prevents ModelResource from auto-including additional fields
 
     # Limit the url to only the first route (/resource) to allow nested resources
     def base_urls(self):
