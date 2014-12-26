@@ -33,6 +33,13 @@
     static_prefix = "{{STATIC_URL}}",
     MEDIA_URL = "{{ MEDIA_URL }}";
 
+    // current user
+    var current_user = {
+      has_group: function(group){
+        return true;
+      }
+    };
+
     // templates
     var templates = {};
     $(function(){
