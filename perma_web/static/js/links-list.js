@@ -197,7 +197,7 @@ $(function() {
                 data.objects.map(function(obj){
                     obj.local_url = mirror_server_host + '/' + obj.guid;
                     if (obj.vested_timestamp) {
-                        obj.vested_date_formatted = new Date(obj.vested_timestamp).format("M. j, Y");
+                        obj.vested_timestamp_formatted = new Date(obj.vested_timestamp).format("M. j, Y");
                     }
 
                     obj.expiration_date_formatted = new Date(obj.expiration_date).format("M. j, Y");
