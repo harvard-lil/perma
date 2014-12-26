@@ -121,6 +121,7 @@ class AssetResource(DefaultResource):
 class LinkResource(MultipartResource, DefaultResource):
     always_return_data = True
     guid = fields.CharField(attribute='guid', readonly=True)
+    view_count = fields.IntegerField(attribute='view_count', default=1)
     creation_timestamp = fields.DateTimeField(attribute='creation_timestamp', readonly=True)
     url = fields.CharField(attribute='submitted_url')
     title = fields.CharField(attribute='submitted_title', blank=True)
