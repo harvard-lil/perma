@@ -94,16 +94,14 @@
             <div class="col-sm-6">
                 <a href="{{local_url}}" target="_blank">{{local_url}}</a><br/>
                 <a href="{{url}}" target="_blank" class="original-link">
-                    {{truncate url 200}}
+                    {{truncatechars url 200}}
                 </a>
                 <br/>
-                {{#if link.vested}}
-                    {{!-- local_datetime:"M. j, Y" --}}
-                    <span class="vested-date">Vested on {{vested_timestamp}}</span>
+                {{#if vested}}
+                    <span class="vested-date">Vested on {{vested_timestamp_formatted}}</span>
                 {{else}}
                     <span class="alert-danger">
-                        {{!-- local_datetime:"M. j, Y" --}}
-                        Expires on {{get_expiration_date}} unless
+                        Expires on {{expiration_date_formatted}} unless
                         {{!-- <a href="[[#if request.user|has_group:'registry_user,registrar_user,vesting_user']][[local_url]][[else]][[url 'docs_perma_link_vesting']][[/if]]">vested</a> --}}
                     </span>
                 {{/if}}
@@ -112,8 +110,7 @@
                 <span class="link-title-display">{{title}}</span>
             </div>
             <div class="col-sm-2">
-                {{!-- local_datetime:"M. j, Y" --}}
-                {{creation_timestamp}}
+                {{creation_timestamp_formatted}}
             </div>
         </div>
 
@@ -149,7 +146,7 @@
             <div class="col-sm-6">
                 <div><strong>Views:</strong> {{view_count}}</div>
                 <div><strong>Created by:</strong> {{created_by.get_full_name}}</div>
-                {{#if link.vested }}
+                {{#if vested }}
                     <div><strong>Vested by:</strong> {{vested_by_editor.get_full_name}}</div>
                 {{/if}}
             </div>

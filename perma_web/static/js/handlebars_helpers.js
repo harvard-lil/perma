@@ -1,4 +1,4 @@
-Handlebars.registerHelper ('truncate', function (str, len) {
+Handlebars.registerHelper ('truncatechars', function (str, len) {
     if (str.length > len) {
         var new_str = str.substr (0, len+1);
 

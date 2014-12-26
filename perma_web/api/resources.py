@@ -130,6 +130,7 @@ class LinkResource(MultipartResource, DefaultResource):
     vested_timestamp = fields.DateTimeField(attribute='vested_timestamp', readonly=True, null=True)
     dark_archived = fields.BooleanField(attribute='dark_archived', blank=True, default=False)
     dark_archived_robots_txt_blocked = fields.BooleanField(attribute='dark_archived_robots_txt_blocked', blank=True, default=False)
+    expiration_date = fields.DateTimeField(attribute='get_expiration_date', readonly=True)
     # Relationships
     created_by = fields.ForeignKey(LinkUserResource, 'created_by', full=True, null=True, blank=True, readonly=True)
     vested_by_editor = fields.ForeignKey(LinkUserResource, 'vested_by_editor', full=True, null=True, blank=True, readonly=True)
@@ -144,6 +145,7 @@ class LinkResource(MultipartResource, DefaultResource):
         fields = [None]  # prevents ModelResource from auto-including additional fields
         validation = LinkValidation()
         authorization = LinkAuthorization()
+        ordering = ['creation_timestamp']
 
     # via: http://django-tastypie.readthedocs.org/en/latest/cookbook.html#nested-resources
     def prepend_urls(self):
