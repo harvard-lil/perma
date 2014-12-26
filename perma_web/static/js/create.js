@@ -6,8 +6,6 @@ var new_archive = {};
 // Where we queue up our archive guids for polling
 var refreshIntervalIds = [];
 
-var templates = {};
-
 /* Our globals. Look out interwebs - end */
 
 
@@ -15,12 +13,6 @@ var templates = {};
 /* Everything that needs to happen at page load - start */
 
 $(function() {
-
-    $("script[type='text/x-handlebars-template']").each(function(){
-        var $this = $(this),
-            name = $this.attr('id').replace('-template', '').replace(/-/g, '_');
-        templates[name] = Handlebars.compile($this.html());
-    });
 
     $('#archive-upload-confirm').modal({show: false});
     $('#archive-upload').modal({show: false});

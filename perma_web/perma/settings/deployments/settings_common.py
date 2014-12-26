@@ -88,7 +88,6 @@ PIPELINE_JS = {
     'create': {
         'source_filenames': (
             'js/spin.js',
-            'js/handlebars.js',
             'js/jquery.form.min.js',
             'js/create.js',
         ),

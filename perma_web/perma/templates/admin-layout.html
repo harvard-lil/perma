@@ -20,6 +20,31 @@
 </div> <!--row-->
 {% endblock %}
 
+{% block globaljs %}
+<script src="{{ STATIC_URL }}js/handlebars.js"></script>
+<script src="{{ STATIC_URL }}js/handlebars_helpers.js"></script>
+<script>
+    // config
+    var api_version = {{ API_VERSION }},
+    api_path = "/api/v" + api_version,
+    main_server_host = "http://{{request.main_server_host}}",
+    mirror_server_host = "http://{{request.mirror_server_host}}",
+    csrf_token = "{{csrf_token}}",
+    static_prefix = "{{STATIC_URL}}",
+    MEDIA_URL = "{{ MEDIA_URL }}";
+
+    // templates
+    var templates = {};
+    $(function(){
+      $("script[type='text/x-handlebars-template']").each(function(){
+        var $this = $(this),
+            name = $this.attr('id').replace('-template', '').replace(/-/g, '_');
+        templates[name] = Handlebars.compile($this.html());
+      });
+    });
+</script>
+{% endblock %}
+
 {% block scripts %}
 <script>
 

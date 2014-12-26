@@ -73,14 +73,7 @@
 
 {% block scripts %}
     <script>
-        var api_version = {{ API_VERSION }},
-        api_path = "/api/v" + api_version,
-        main_server_host = "http://{{request.main_server_host}}",
-        mirror_server_host = "http://{{request.mirror_server_host}}",
-        csrf_token = "{{csrf_token}}",
-        static_prefix = "{{STATIC_URL}}",
-        MEDIA_URL = "{{ MEDIA_URL }}",
-        userguide_url = "{% url 'docs_perma_link_vesting' %}";
+        var userguide_url = "{% url 'docs_perma_link_vesting' %}";
         vest_link_url = "{% url 'vest_link' 'GUID' %}";
 
         vesting_privs = false;

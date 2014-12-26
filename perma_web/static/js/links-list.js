@@ -163,7 +163,7 @@ $(function() {
     function getFolderURL(folderID) {
         if (!folderID)
             folderID = getSelectedFolderID();
-        return folderContentsURL.replace('FOLDER_ID', folderID);
+        return api_path + '/folders/' + folderID + '/archives/';
     }
 
     function postJSONToFolder(folderID, json) {
@@ -192,7 +192,10 @@ $(function() {
             .always(function (data) {
                 // same thing runs on success or error, since we get back success or error-displaying HTML
                 showLoadingMessage = false;
-                linkTable.html(data.responseText || data);
+                data.objects.map(function(obj){
+                    obj.local_url = mirror_server_host + '/' + obj.guid;
+                });
+                linkTable.html(templates.created_link_items(data));
             });
     }
 
