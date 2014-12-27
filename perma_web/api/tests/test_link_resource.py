@@ -200,3 +200,13 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
                                    authentication=self.get_credentials()))
 
         self.assertHttpNotFound(self.api_client.get(self.detail_url))
+
+    #########################
+    # Sorting and Filtering #
+    #########################
+
+    def test_should_allow_ordering_by_creation_timestamp(self):
+        pass
+
+    def test_should_allow_filtering_by_query_string(self):
+        pass
