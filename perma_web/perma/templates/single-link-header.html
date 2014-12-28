@@ -231,9 +231,14 @@
    	    </div>
    	{% endif %}
    	{% endif %}
-<script>
-	var status_url = "{% main_url 'service_link_status' archive.guid %}";
-</script>
+{% endblock %}
+
+{% block globaljs %}
+    {{ block.super }}
+    {% include 'js_config.html' %}
+    <script>
+        var archive = {{ archive|safe }};
+    </script>
 {% endblock %}
 
 {% block scripts %}

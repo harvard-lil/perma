@@ -33,6 +33,10 @@
         <script src="{{ STATIC_URL }}js/jquery.js"></script>
         <script src="{{ STATIC_URL }}js/bootstrap3.js"></script>
         <script src="{{ STATIC_URL }}js/global.js"></script>
+
+        {% block globaljs %}
+        {% endblock %}
+
         {% block scripts %}
         {% endblock %}
 
