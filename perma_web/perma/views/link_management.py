@@ -1,36 +1,23 @@
-import imghdr
-import logging, json, os
+import logging
+import json
 from datetime import datetime
-import socket
-from urlparse import urlparse
-from mimetypes import MimeTypes
-from celery import chain
 from django.db import transaction
 from django.contrib import messages
-from netaddr import IPAddress, IPNetwork
-import requests
-from PyPDF2 import PdfFileReader
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.files.storage import default_storage
 from django.core.urlresolvers import reverse
-from django.core.validators import URLValidator
-from django.core.exceptions import ValidationError
-from django.db.models import Q
 from django.http import HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import HttpResponse, render_to_response, get_object_or_404, render
 from django.template import RequestContext
 
 from ..models import Link, Asset, Folder, VestingOrg, FolderException
-from ..tasks import get_pdf, proxy_capture, upload_to_internet_archive
+from ..tasks import upload_to_internet_archive
 from ..utils import require_group, run_task
 
 
 logger = logging.getLogger(__name__)
 valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp', 'submitted_title', '-submitted_title']
-
-HEADER_CHECK_TIMEOUT = 10  # seconds to wait before giving up when checking headers for requested link
 
 
 ###### LINK CREATION ######
@@ -50,6 +37,7 @@ def link_browser(request, path):
     return render(request, 'user_management/created-links.html', {
         'this_page': 'link_browser',
     })
+
 
 @login_required
 def folder_contents(request, folder_id):
@@ -133,19 +121,8 @@ def folder_contents(request, folder_id):
     # start with all links belonging to user
     links = Link.objects.accessible_to(user).select_related('vested_by_editor', 'created_by')
 
-    # handle search
-    search_query = request.GET.get('q', None)
-    if search_query:
-        links = links.filter(
-            Q(guid__icontains=search_query) |
-            Q(submitted_url__icontains=search_query) |
-            Q(submitted_title__icontains=search_query) |
-            Q(notes__icontains=search_query)
-        )
-
-    else:
-        # limit links to current folder
-        links = links.filter(folders=current_folder)
+    # limit links to current folder
+    links = links.filter(folders=current_folder)
 
     # handle sorting
     DEFAULT_SORT = '-creation_timestamp'
@@ -161,10 +138,10 @@ def folder_contents(request, folder_id):
     return render(request, 'user_management/includes/created-link-items.html', {
         'links': links,
         'current_folder': current_folder,
-        'search_query': search_query,
         'shared_with_count': shared_with_count,
         'in_iframe': request.GET.get('iframe'),
     })
+
 
 ###### link editing ######
 @require_group(['registrar_user', 'registry_user', 'vesting_user'])
@@ -179,7 +156,7 @@ def vest_link(request, guid):
     # make user pick a vesting org, if they have more than one
     if not vesting_org:
         if request.POST.get('vesting_org'):
-            vesting_org = get_object_or_404(VestingOrg, pk=request.POST['vesting_org'], **({'registrar':user.registrar} if user.registrar else {}))
+            vesting_org = get_object_or_404(VestingOrg, pk=request.POST['vesting_org'], **({'registrar': user.registrar} if user.registrar else {}))
         else:
             if user.registrar:
                 vesting_orgs = VestingOrg.objects.filter(registrar=user.registrar)
@@ -189,11 +166,11 @@ def vest_link(request, guid):
             if not vesting_orgs:
                 messages.add_message(request, messages.ERROR, "Please create a vesting organization before vesting links.")
                 return HttpResponseRedirect(reverse('single_linky', args=[guid]))
-            elif len(vesting_orgs)==1:
+            elif len(vesting_orgs) == 1:
                 vesting_org = vesting_orgs[0]
             else:
                 return render(request, 'link-vest-confirm.html', {
-                    'vesting_orgs':vesting_orgs,
+                    'vesting_orgs': vesting_orgs,
                     'link': link,
                 })
 
@@ -226,19 +203,18 @@ def vest_link(request, guid):
 
     return HttpResponseRedirect(reverse('single_linky', args=[guid]))
 
-    
-    
-@login_required    
+
+@login_required
 def user_delete_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
     asset = Asset.objects.get(link=link)
     if request.method == 'POST':
         if not request.user == link.created_by:
             return HttpResponseRedirect(reverse('single_linky', args=[guid]))
-            
+
         if not link.user_deleted and not link.vested:
-            link.user_deleted=True
-            link.user_deleted_timestamp=datetime.now()
+            link.user_deleted = True
+            link.user_deleted_timestamp = datetime.now()
             link.save()
 
         return HttpResponseRedirect(reverse('link_browser'))
@@ -253,14 +229,14 @@ def dark_archive_link(request, guid):
         if request.user.has_group('registrar_user'):
             if not link.vesting_org.registrar == request.user.registrar and not request.user == link.created_by:
                 return HttpResponseRedirect(reverse('single_linky', args=[guid]))
-        elif request.user.has_group('vesting_user'): 
+        elif request.user.has_group('vesting_user'):
             if not link.vesting_org == request.user.vesting_org and not request.user == link.created_by:
                 return HttpResponseRedirect(reverse('single_linky', args=[guid]))
         elif not request.user == link.created_by:
             return HttpResponseRedirect(reverse('single_linky', args=[guid]))
-            
+
         if not link.dark_archived:
-            link.dark_archived=True
+            link.dark_archived = True
             link.dark_archived_by = request.user
             link.save()
         return HttpResponseRedirect(reverse('single_linky', args=[guid]))
