@@ -30,26 +30,35 @@ $(function() {
         statusElement.html('saving ...');
         saveNeeded = true;
 
+        var guid = inputElement.attr('id').match(/.+-(.+-.+)/)[1],
+            data = {};
+
+        data[name] = inputElement.val();
+
         // use a setTimeout so notes are only saved once every few seconds
         setTimeout(function () {
             if (saveNeeded) {
                 saveNeeded = false;
                 lastSaveTime = new Date().getTime();
                 var saveValue = inputElement.val();
-                request = postJSON(document.location,
-                                   {
-                                       action: 'save_link_attribute',
-                                       link_id: getLinkIDForFormElement(inputElement),
-                                       name: name,
-                                       value: saveValue
-                                   },
-                                   function (data) {
-                                       statusElement.html('saved.');
-                                       inputElement.attr('last_value_saved', saveValue);
-                                   }
-                );
-                if (callback)
-                    request.done(callback);
+
+                var request = $.ajax({
+                    url: api_path + '/archives/' + guid + '/',
+                    type: "PATCH",
+                    contentType: 'application/json',
+                    data: JSON.stringify(data)
+                });
+
+                request.done(function(data){
+                   statusElement.html('saved.');
+                   inputElement.attr('last_value_saved', saveValue);
+                });
+
+                if (callback) request.done(callback);
+
+                request.fail(function (jqXHR) {
+                    informUser(jqXHR.status == 400 && jqXHR.responseText ? jqXHR.responseText : "Error " + jqXHR.status, 'danger');
+                });
             }
         }, Math.max(saveBufferSeconds * 1000 - (new Date().getTime() - lastSaveTime), 0));
     }
@@ -109,7 +118,7 @@ $(function() {
     // save changes to title field
     }).on('textchange', '.link-title', function () {
         var textarea = $(this);
-        saveInput(textarea, textarea.prevAll('.title-save-status'), 'submitted_title', function () {
+        saveInput(textarea, textarea.prevAll('.title-save-status'), 'title', function () {
             // update display title when saved
             textarea.closest('.link-container').find('.link-title-display').text(textarea.val());
         });
