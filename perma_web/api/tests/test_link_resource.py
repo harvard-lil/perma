@@ -38,12 +38,14 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             'vested_by_editor': None,
             'guid': str(self.link_1.guid),
             'creation_timestamp': '2014-06-16T15:23:24',
+            'expiration_date': '2014-06-16T15:23:24',
             'vesting_org': None,
             'resource_uri': self.detail_url,
             'folders': [],
             'assets': [],
             'dark_archived_by': {},
-            'dark_archived_robots_txt_blocked': False
+            'dark_archived_robots_txt_blocked': False,
+            'view_count': 1
         }
 
         self.post_data = {
