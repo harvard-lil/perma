@@ -1,6 +1,7 @@
 from django.conf import settings
 from tastypie import fields
 from extendedmodelresource import ExtendedModelResource
+from django.contrib.auth.models import Group
 from perma.models import LinkUser, Link, Asset, Folder, VestingOrg
 from django.conf.urls import url
 from django.core.urlresolvers import NoReverseMatch
@@ -32,11 +33,11 @@ def pk_to_uri(resource, pk):
 
 
 class DefaultResource(ExtendedModelResource):
-
     class Meta:
         authentication = DefaultAuthentication()
         authorization = DefaultAuthorization()
         always_return_data = True
+        fields = [None]  # prevents ModelResource from auto-including additional fields
 
 
 # via: http://stackoverflow.com/a/14134853/313561
@@ -54,16 +55,24 @@ class MultipartResource(object):
         return super(MultipartResource, self).deserialize(request, data, format)
 
 
+class GroupResource(DefaultResource):
+    name = fields.CharField(attribute='name')
+
+    class Meta(DefaultResource.Meta):
+        resource_name = 'groups'
+        queryset = Group.objects.all()
+
+
 class LinkUserResource(DefaultResource):
     first_name = fields.CharField(attribute='first_name', blank=True, null=True)
     last_name = fields.CharField(attribute='last_name', blank=True, null=True)
     full_name = fields.CharField(attribute='get_full_name', blank=True, null=True)
     short_name = fields.CharField(attribute='get_short_name', blank=True, null=True)
+    groups = fields.ToManyField(GroupResource, 'groups', full=True, blank=True, null=True)
 
     class Meta(DefaultResource.Meta):
         resource_name = 'users'
         queryset = LinkUser.objects.all()
-        fields = [None]  # prevents ModelResource from auto-including additional fields
 
 
 class VestingOrgResource(DefaultResource):
@@ -112,7 +121,6 @@ class AssetResource(DefaultResource):
     class Meta(DefaultResource.Meta):
         resource_name = 'assets'
         queryset = Asset.objects.all()
-        fields = [None]  # prevents ModelResource from auto-including additional fields
         filtering = {'archive': ['exact']}
 
     def dehydrate_archive(self, bundle):
@@ -143,7 +151,6 @@ class LinkResource(MultipartResource, DefaultResource):
     class Meta(DefaultResource.Meta):
         resource_name = 'archives'
         queryset = Link.objects.all()
-        fields = [None]  # prevents ModelResource from auto-including additional fields
         validation = LinkValidation()
         authorization = LinkAuthorization()
         ordering = ['creation_timestamp']
@@ -313,14 +320,12 @@ class LinkResource(MultipartResource, DefaultResource):
 
 
 class CurrentUserResource(LinkUserResource):
-    class Meta(DefaultResource.Meta):
+    class Meta(LinkUserResource.Meta):
         resource_name = 'user'
-        queryset = LinkUser.objects.all()
         authentication = CurrentUserAuthentication()
         authorization = CurrentUserAuthorization()
         list_allowed_methods = []
         detail_allowed_methods = ['get']
-        fields = [None]  # prevents ModelResource from auto-including additional fields
 
     # Limit the url to only the first route (/resource) to allow nested resources
     def base_urls(self):

@@ -6,7 +6,8 @@
 {% block globaljs %}
     {{ block.super }}
     <script>
-        var url_docs_perma_link_vesting = "{% url 'docs_perma_link_vesting' %}";
+        var current_user = {{ current_user|safe }},
+            url_docs_perma_link_vesting = "{% url 'docs_perma_link_vesting' %}";
     </script>
 {% endblock %}
 

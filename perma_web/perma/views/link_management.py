@@ -15,6 +15,12 @@ from ..models import Link, Asset, Folder, VestingOrg, FolderException
 from ..tasks import upload_to_internet_archive
 from ..utils import require_group, run_task
 
+# The api app conflicts with the legacy api view
+# so we have to import via string.
+# FIXME: If this is still here when upgrading to Django 1.7,
+# import_by_path changed to import_string
+from django.utils.module_loading import import_by_path
+LinkUserResource = import_by_path('api.resources.LinkUserResource')
 
 logger = logging.getLogger(__name__)
 valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp', 'submitted_title', '-submitted_title']
@@ -34,8 +40,13 @@ def create_link(request):
 @login_required
 def link_browser(request, path):
     """ Display links created by or vested by user, or attached to user's vesting org. """
+
+    lur = LinkUserResource()
+    lur_bundle = lur.build_bundle(obj=request.user, request=request)
+
     return render(request, 'user_management/created-links.html', {
         'this_page': 'link_browser',
+        'current_user': lur.serialize(None, lur.full_dehydrate(lur_bundle), 'application/json'),
     })
 
 
