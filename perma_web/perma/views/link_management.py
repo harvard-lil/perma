@@ -47,25 +47,6 @@ def create_link(request):
 @login_required
 def link_browser(request, path):
     """ Display links created by or vested by user, or attached to user's vesting org. """
-
-    # handle updates to individual links
-    if request.POST:
-        out = {'success': 1}
-        action = request.POST.get('action')
-
-        # save notes/title
-        if action == 'save_link_attribute':
-            if request.POST.get('name') not in ['notes', 'submitted_title']:
-                return HttpResponseBadRequest("Attribute not recognized.")
-            link = get_object_or_404(Link, Link.objects.user_access_filter(request.user), pk=request.POST['link_id'])
-            setattr(link, request.POST['name'], request.POST['value'])
-            link.save()
-
-        else:
-            return HttpResponseBadRequest("Action not recognized.")
-
-        return HttpResponse(json.dumps(out), content_type="application/json")
-
     return render(request, 'user_management/created-links.html', {
         'this_page': 'link_browser',
     })
