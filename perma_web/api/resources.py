@@ -4,6 +4,7 @@ from extendedmodelresource import ExtendedModelResource
 from perma.models import LinkUser, Link, Asset, Folder, VestingOrg
 from django.conf.urls import url
 from django.core.urlresolvers import NoReverseMatch
+from django.db.models import Q
 from tastypie.utils import trailing_slash
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from tastypie.exceptions import NotFound
@@ -164,6 +165,21 @@ class LinkResource(MultipartResource, DefaultResource):
 
         asset_resource = AssetResource()
         return asset_resource.get_list(request, archive=obj.pk)
+
+    def apply_filters(self, request, applicable_filters):
+        base_object_list = super(LinkResource, self).apply_filters(request, applicable_filters)
+
+        search_query = request.GET.get('q', None)
+        if search_query:
+            qset = (
+                Q(guid__icontains=search_query) |
+                Q(submitted_url__icontains=search_query) |
+                Q(submitted_title__icontains=search_query) |
+                Q(notes__icontains=search_query)
+            )
+            return base_object_list.filter(qset)
+        else:
+            return base_object_list
 
     def hydrate_url(self, bundle):
         # Clean up the user submitted url

@@ -179,7 +179,9 @@ $(function() {
     // *** actions ***
 
     var showLoadingMessage = false;
-    function showFolderContents(folderID) {
+    function showFolderContents(folderID, query) {
+        if(!query || !query.trim()) query = null;
+
         // if fetching folder contents takes more than 500ms, show a loading message
         showLoadingMessage = true;
         setTimeout(function(){
@@ -187,16 +189,20 @@ $(function() {
                 linkTable.html("Loading folder contents ...");
         }, 500);
 
+        var data = {order_by: '-creation_timestamp'};
+        if (query) data.q = query;
+
         // fetch contents
         $.ajax(getFolderURL(folderID), {
             contentType: 'application/json',
-            data: {order_by: '-creation_timestamp'}
+            data: data
         }).always(function (data) {
                 // same thing runs on success or error, since we get back success or error-displaying HTML
                 showLoadingMessage = false;
                 data.objects.map(function(obj){
                     obj.local_url = mirror_server_host + '/' + obj.guid;
                     obj.can_vest = current_user.has_group(['registry_user','registrar_user','vesting_user']);
+                    obj.search_query_in_notes = (query && obj.notes.indexOf(query) > -1);
                     obj.url_docs_perma_link_vesting = url_docs_perma_link_vesting;
                     obj.expiration_date_formatted = new Date(obj.expiration_date).format("M. j, Y");
                     obj.creation_timestamp_formatted = new Date(obj.creation_timestamp).format("M. j, Y");
@@ -247,11 +253,10 @@ $(function() {
     // search form
     $('.search-query-form').on('submit', function (e) {
         e.preventDefault();
-        $.get(getFolderURL(null) + '?q=' + $('.search-query').val())
-            .always(function (data) {
-                        // same thing runs on success or error
-                        linkTable.html(data.responseText || data);
-                    });
+        var query = $('.search-query').val();
+        if(query && query.trim()){
+            showFolderContents(getSelectedFolderID(), query);
+        }
     });
     linkTable.on('click', 'a.clear-search', function () {
         showFolderContents(getSelectedFolderID());

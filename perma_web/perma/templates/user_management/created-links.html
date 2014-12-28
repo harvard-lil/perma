@@ -121,10 +121,7 @@
             </div>
         </div>
 
-        {{!-- FIXME --}}
-        <div class="row link-details" {{!-- [[#if search_query in --
-                                -- link.notes --
-                                -- ]]style="display:block"[[/if]] --}}>
+        <div class="row link-details" {{#if search_query_in_notes}}style="display:block"{{/if}}>
             <div class="col-sm-6">
 
                 <div class="form-group">
