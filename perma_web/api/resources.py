@@ -64,6 +64,7 @@ class GroupResource(DefaultResource):
 
 
 class LinkUserResource(DefaultResource):
+    id = fields.IntegerField(attribute='id')
     first_name = fields.CharField(attribute='first_name', blank=True, null=True)
     last_name = fields.CharField(attribute='last_name', blank=True, null=True)
     full_name = fields.CharField(attribute='get_full_name', blank=True, null=True)
