@@ -18,11 +18,8 @@ class CurrentUserResourceTestCase(ApiResourceTestCase):
                                    authentication=self.get_credentials())
         self.assertValidJSONResponse(resp)
         obj = self.deserialize(resp)
-        keys = ['id', 'first_name', 'last_name']
+        keys = ['id', 'first_name', 'last_name', 'short_name', 'full_name', 'groups']
         self.assertKeys(obj, keys+['resource_uri'])
-        # Make sure the JSON contains the same values as the authenticated user
-        for key in keys:
-            self.assertEqual(obj[key], getattr(self.user, key))
 
     def test_get_detail_unauthenticated(self):
         self.assertHttpUnauthorized(self.api_client.get(self.detail_url, format='json'))

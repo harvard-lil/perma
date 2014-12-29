@@ -321,7 +321,9 @@ class LinkResource(MultipartResource, DefaultResource):
 
 
 class CurrentUserResource(LinkUserResource):
-    class Meta(LinkUserResource.Meta):
+    # Don't inherit from DefaultResource.Meta or anything with fields = [None]
+    # else fields won't be inherited properly
+    class Meta:
         resource_name = 'user'
         authentication = CurrentUserAuthentication()
         authorization = CurrentUserAuthorization()
