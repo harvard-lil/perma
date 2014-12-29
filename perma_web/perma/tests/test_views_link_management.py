@@ -125,10 +125,6 @@ class TasksTestCase(PermaTestCase):
         response = self.client.get(reverse('folder_contents', args=[folder1.pk]) + "?q=" + test_link.guid)
         self.assertTrue(test_link in response.context['links'])
 
-        # Search folder1 for non-matching string
-        response = self.client.get(reverse('folder_contents', args=[folder1.pk]) + "?q=does_not_exist")
-        self.assertTrue(len(response.context['links']) == 0)
-
         # Try to delete folder1 -- shouldn't work because there's stuff in it
         response = submit_to_folder(folder1, {'action': 'delete_folder'})
         self.assertTrue(response.status_code == 400 and 'empty' in response.content)
