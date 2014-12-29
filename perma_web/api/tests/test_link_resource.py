@@ -185,15 +185,19 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             link = Link.objects.latest('creation_timestamp')
             self.assertHasAsset(link, "image_capture")
 
-    #########
-    # Other #
-    #########
+    ############
+    # Updating #
+    ############
 
     def test_patch_detail(self):
         self.successful_patch(self.detail_url,
                               self.link_1.created_by,
                               {'notes': 'These are new notes',
                                'title': 'This is a new title'})
+
+    ############
+    # Deleting #
+    ############
 
     def test_delete_detail(self):
         self.assertHttpOK(self.api_client.get(self.detail_url))
