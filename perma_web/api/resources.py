@@ -151,10 +151,9 @@ class LinkResource(MultipartResource, DefaultResource):
 
     class Meta(DefaultResource.Meta):
         resource_name = 'archives'
-        queryset = Link.objects.all()
+        queryset = Link.objects.all().order_by('-creation_timestamp')  # default order
         validation = LinkValidation()
         authorization = LinkAuthorization()
-        ordering = ['creation_timestamp']
 
     # via: http://django-tastypie.readthedocs.org/en/latest/cookbook.html#nested-resources
     def prepend_urls(self):

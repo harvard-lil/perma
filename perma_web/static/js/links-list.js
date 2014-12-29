@@ -198,7 +198,7 @@ $(function() {
                 linkTable.html("Loading folder contents ...");
         }, 500);
 
-        var data = {order_by: '-creation_timestamp'};
+        var data = {};
         if (query) data.q = query;
 
         // fetch contents

@@ -1,4 +1,5 @@
 import os
+import dateutil.parser
 from .utils import ApiResourceTransactionTestCase, TEST_ASSETS_DIR
 from api.resources import LinkResource
 from perma.models import Link, LinkUser
@@ -67,7 +68,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         return self.create_apikey(username=user.email, api_key=user.api_key.key)
 
     def test_get_list_json(self):
-        resp = self.api_client.get(self.list_url, format='json')
+        resp = self.api_client.get(self.list_url)
         self.assertValidJSONResponse(resp)
 
         objs = self.deserialize(resp)['objects']
@@ -75,7 +76,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertKeys(objs[0], self.get_data.keys())
 
     def test_get_detail_json(self):
-        resp = self.api_client.get(self.detail_url, format='json')
+        resp = self.api_client.get(self.detail_url)
         self.assertValidJSONResponse(resp)
         self.assertKeys(self.deserialize(resp), self.get_data.keys())
 
@@ -203,12 +204,53 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
         self.assertHttpNotFound(self.api_client.get(self.detail_url))
 
-    #########################
-    # Sorting and Filtering #
-    #########################
+    ############
+    # Ordering #
+    ############
 
-    def test_should_allow_ordering_by_creation_timestamp(self):
-        pass
+    def test_should_be_ordered_by_creation_timestamp_desc_by_default(self):
+        resp = self.api_client.get(self.list_url)
+        self.assertValidJSONResponse(resp)
 
-    def test_should_allow_filtering_by_query_string(self):
-        pass
+        objs = self.deserialize(resp)['objects']
+
+        for i, obj in enumerate(objs):
+            if i > 0:
+                self.assertGreater(dateutil.parser.parse(objs[i - 1]['creation_timestamp']),
+                                   dateutil.parser.parse(obj['creation_timestamp']))
+
+    #############
+    # Filtering #
+    #############
+
+    def test_should_allow_filtering_guid_by_query_string(self):
+        resp = self.api_client.get(self.list_url, data={'q': '3SLN'})
+        self.assertValidJSONResponse(resp)
+
+        objs = self.deserialize(resp)['objects']
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0]['guid'], '3SLN-JHX9')
+
+    def test_should_allow_filtering_url_by_query_string(self):
+        resp = self.api_client.get(self.list_url, data={'q': '1406'})
+        self.assertValidJSONResponse(resp)
+
+        objs = self.deserialize(resp)['objects']
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0]['url'], 'http://arxiv.org/pdf/1406.3611.pdf')
+
+    def test_should_allow_filtering_title_by_query_string(self):
+        resp = self.api_client.get(self.list_url, data={'q': 'Community Weblog'})
+        self.assertValidJSONResponse(resp)
+
+        objs = self.deserialize(resp)['objects']
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
+
+    def test_should_allow_filtering_notes_by_query_string(self):
+        resp = self.api_client.get(self.list_url, data={'q': 'all cool things'})
+        self.assertValidJSONResponse(resp)
+
+        objs = self.deserialize(resp)['objects']
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0]['notes'], 'Maybe the source of all cool things on the internet.')
