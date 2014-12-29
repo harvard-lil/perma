@@ -140,14 +140,6 @@ class TasksTestCase(PermaTestCase):
         response = submit_to_folder(folder2, {'action': 'rename_folder', 'name':'test'})
         self.assertTrue(Folder.objects.get(pk=folder2.pk).name == 'test')
 
-        # Edit link notes.
-        self.submit_form('link_browser', {'action': 'save_link_attribute', 'link_id': test_link.pk, 'name': 'notes', 'value': 'test'})
-        self.assertTrue(Link.objects.get(pk=test_link.pk).notes == 'test')
-
-        # Edit link title.
-        self.submit_form('link_browser', {'action': 'save_link_attribute', 'link_id': test_link.pk, 'name': 'submitted_title', 'value': 'test edit'})
-        self.assertTrue(Link.objects.get(pk=test_link.pk).submitted_title == 'test edit')
-
 
     def test_vest_link(self):
         # setup -- log in as registrar to trigger vesting org selection code path
