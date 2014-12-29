@@ -198,7 +198,7 @@ $(function() {
                 linkTable.html("Loading folder contents ...");
         }, 500);
 
-        var data = {};
+        var data = {limit: 0};
         if (query) data.q = query;
 
         // fetch contents
