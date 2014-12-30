@@ -13,10 +13,10 @@ $(function(){
                 success: function(){
                     window.location = url_link_browser;
                 },
-                failure: function(){
+                error: function(jqXHR){
                     $this.removeClass("disabled");
                     $this.text(prev_text);
-                    alert("There was an error");
+                    informUser(jqXHR.status == 400 && jqXHR.responseText ? jqXHR.responseText : "Error " + jqXHR.status, 'danger');
                 }
             });
         }
