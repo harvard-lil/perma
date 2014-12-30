@@ -172,7 +172,7 @@ $(function() {
     function getFolderURL(folderID) {
         if (!folderID)
             folderID = getSelectedFolderID();
-        return api_path + '/folders/' + folderID + '/archives/';
+        return api_path + '/folders/' + folderID + '/';
     }
 
     function postJSONToFolder(folderID, json) {
@@ -202,7 +202,7 @@ $(function() {
         if (query) data.q = query;
 
         // fetch contents
-        $.ajax(getFolderURL(folderID), {
+        $.ajax(api_path + '/folders/' + folderID + '/archives/', {
             contentType: 'application/json',
             data: data
         }).always(function (data) {
@@ -231,7 +231,11 @@ $(function() {
     }
 
     function createFolder(parentFolderID, newName) {
-        return postJSONToFolder(parentFolderID, {action: 'new_folder', name: newName});
+        return $.ajax(api_path + "/folders/" + parentFolderID + "/folders/", {
+            method: "POST",
+            contentType: 'application/json',
+            data: JSON.stringify({name: newName})
+        });
     }
 
     function renameFolder(folderID, newName) {

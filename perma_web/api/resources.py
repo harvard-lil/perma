@@ -8,6 +8,7 @@ from django.core.urlresolvers import NoReverseMatch
 from django.db.models import Q
 from tastypie.utils import trailing_slash
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from tastypie.resources import ModelResource
 from tastypie.exceptions import NotFound
 from tastypie.http import HttpGone, HttpMultipleChoices
 from validations import LinkValidation
@@ -90,25 +91,28 @@ class VestingOrgResource(DefaultResource):
 
 
 class FolderResource(DefaultResource):
+    id = fields.IntegerField(attribute='id')
+    name = fields.CharField(attribute='name')
+    parent_id = fields.IntegerField(attribute='parent_id', null=True, blank=True)
+
     class Meta(DefaultResource.Meta):
         resource_name = 'folders'
         queryset = Folder.objects.all()
-        fields = [
-            'creation_timestamp',
-            'id',
-            'is_root_folder',
-            'is_shared_folder',
-            'level',
-            'lft',
-            'name',
-            'resource_uri',
-            'rght',
-            'slug',
-            'tree_id'
-        ]
 
     class Nested:
-        archives = fields.ToManyField('api.resources.LinkResource', 'links', readonly=True, full=True)
+        folders = fields.ToManyField('api.resources.FolderResource', 'children', full=True)
+        archives = fields.ToManyField('api.resources.LinkResource', 'links', full=True)
+
+    def post_list(self, request, **kwargs):
+        # Bypass extendedmodelresource as it doesn't allow nested post_list
+        return super(ModelResource, self).post_list(request, **kwargs)
+
+    def obj_create(self, bundle, **kwargs):
+        # Assign the parent folder on nested post_list
+        if 'parent_object' in kwargs:
+            kwargs = {'parent': kwargs['parent_object']}
+
+        return super(FolderResource, self).obj_create(bundle, **kwargs)
 
 
 class AssetResource(DefaultResource):
