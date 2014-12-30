@@ -112,6 +112,7 @@ class FolderResource(DefaultResource):
         if 'parent_object' in kwargs:
             kwargs = {'parent': kwargs['parent_object']}
 
+        kwargs['created_by'] = bundle.request.user
         return super(FolderResource, self).obj_create(bundle, **kwargs)
 
 
