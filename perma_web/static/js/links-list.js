@@ -251,10 +251,9 @@ $(function() {
     }
 
     function deleteFolder(folderID) {
-        return postJSON(
-            getFolderURL(folderID),
-            {action: 'delete_folder'}
-        );
+        return $.ajax(api_path + "/folders/" + folderID + "/", {
+            method: "DELETE"
+        });
     }
 
 
