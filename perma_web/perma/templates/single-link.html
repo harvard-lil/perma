@@ -229,7 +229,7 @@
     {{ block.super }}
     {% include 'js_config.html' %}
     <script>
-        var archive = {{ archive|safe }};
+        var archive = {{ archive_json|safe }};
     </script>
 {% endblock %}
 

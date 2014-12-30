@@ -21,6 +21,7 @@ from ..utils import require_group, run_task
 # import_by_path changed to import_string
 from django.utils.module_loading import import_by_path
 LinkUserResource = import_by_path('api.resources.LinkUserResource')
+LinkResource = import_by_path('api.resources.LinkResource')
 
 logger = logging.getLogger(__name__)
 valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp', 'submitted_title', '-submitted_title']
@@ -219,17 +220,16 @@ def vest_link(request, guid):
 def user_delete_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
     asset = Asset.objects.get(link=link)
-    if request.method == 'POST':
-        if not request.user == link.created_by:
-            return HttpResponseRedirect(reverse('single_linky', args=[guid]))
 
-        if not link.user_deleted and not link.vested:
-            link.user_deleted = True
-            link.user_deleted_timestamp = datetime.now()
-            link.save()
+    lr = LinkResource()
+    lr_bundle = lr.build_bundle(obj=link, request=request)
+    archive_json = lr.serialize(None, lr.full_dehydrate(lr_bundle), 'application/json')
 
-        return HttpResponseRedirect(reverse('link_browser'))
-    return render_to_response('link-delete-confirm.html', {'link': link, 'asset': asset}, RequestContext(request))
+    return render_to_response('link-delete-confirm.html',
+                              {'link': link,
+                               'asset': asset,
+                               'archive_json': archive_json},
+                              RequestContext(request))
 
 
 @login_required

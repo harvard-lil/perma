@@ -234,7 +234,7 @@ def single_linky(request, guid):
 
     lr = LinkResource()
     lr_bundle = lr.build_bundle(obj=link, request=request)
-    context['archive'] = lr.serialize(None, lr.full_dehydrate(lr_bundle), 'application/json')
+    context['archive_json'] = lr.serialize(None, lr.full_dehydrate(lr_bundle), 'application/json')
 
     return render(request, 'single-link-header.html' if settings.SINGLE_LINK_HEADER_TEST else 'single-link.html', context)
 
