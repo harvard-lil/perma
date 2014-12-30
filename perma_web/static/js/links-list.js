@@ -239,7 +239,11 @@ $(function() {
     }
 
     function renameFolder(folderID, newName) {
-        return postJSONToFolder(folderID, {action: 'rename_folder', name: newName});
+        return $.ajax(api_path + "/folders/" + folderID + "/", {
+            method: "PATCH",
+            contentType: 'application/json',
+            data: JSON.stringify({name: newName})
+        });
     }
 
     function moveItems(targetFolderID, links, folders) {
