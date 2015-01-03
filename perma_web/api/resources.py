@@ -103,6 +103,12 @@ class FolderResource(DefaultResource):
         folders = fields.ToManyField('api.resources.FolderResource', 'children', full=True)
         archives = fields.ToManyField('api.resources.LinkResource', 'links', full=True)
 
+    def hydrate_name(self, bundle):
+        # Clean up the user submitted name
+        if bundle.data.get('name', None):
+            bundle.data['name'] = bundle.data['name'].strip()
+        return bundle
+
     def post_list(self, request, **kwargs):
         # Bypass extendedmodelresource as it doesn't allow nested post_list
         return super(ModelResource, self).post_list(request, **kwargs)
