@@ -1,7 +1,6 @@
 import os
 from .utils import ApiResourceTestCase, TEST_ASSETS_DIR
 from api.resources import LinkResource
-from perma import models
 from perma.models import Link, LinkUser
 from django.test.utils import override_settings
 
@@ -59,15 +58,15 @@ class LinkValidationsTestCase(ApiResourceTestCase):
         self.assertEqual(Link.objects.count(), count)
 
     def test_should_reject_unresolvable_domain_url(self):
-        models.HEADER_CHECK_TIMEOUT = 0.25  # only wait 1/4 second before giving up
-        count = Link.objects.count()
-        self.assertHttpBadRequest(
-            self.api_client.post(self.list_url,
-                                 format='json',
-                                 data={'url': 'http://this-is-not-a-functioning-url.com'},
-                                 authentication=self.get_credentials(self.vesting_member)))
+        with self.header_timeout(0.25):  # only wait 1/4 second before giving up
+            count = Link.objects.count()
+            self.assertHttpBadRequest(
+                self.api_client.post(self.list_url,
+                                     format='json',
+                                     data={'url': 'http://this-is-not-a-functioning-url.com'},
+                                     authentication=self.get_credentials(self.vesting_member)))
 
-        self.assertEqual(Link.objects.count(), count)
+            self.assertEqual(Link.objects.count(), count)
 
     def test_should_reject_unloadable_url(self):
         count = Link.objects.count()

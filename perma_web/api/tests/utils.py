@@ -3,6 +3,7 @@ from django.conf import settings
 from django.test import TransactionTestCase
 from tastypie.test import ResourceTestCase, TestApiClient
 from api.serializers import MultipartSerializer
+from perma import models
 
 import socket
 import perma.tasks
@@ -143,6 +144,15 @@ class ApiResourceTestCase(ResourceTestCase):
     @cached_property
     def server_url(self):
         return "http://" + self.server_domain + ":" + str(self.server_port)
+
+    @contextmanager
+    def header_timeout(self, timeout):
+        prev_t = models.HEADER_CHECK_TIMEOUT
+        try:
+            models.HEADER_CHECK_TIMEOUT = timeout
+            yield
+        finally:
+            models.HEADER_CHECK_TIMEOUT = prev_t
 
     def successful_patch(self, url, user, new_vals):
         old_data = self.deserialize(self.api_client.get(url, format='json'))
