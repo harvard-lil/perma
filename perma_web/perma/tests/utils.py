@@ -8,6 +8,7 @@ from perma.models import Registrar, VestingOrg, LinkUser
 class PermaTestCase(TransactionTestCase):
     fixtures = ['fixtures/groups.json',
                 'fixtures/users.json',
+                'fixtures/folders.json',
                 'fixtures/archive.json']
 
     def setUp(self):

@@ -132,7 +132,7 @@ Then apply South migrations:
 
 If you want to play with the admin views, load the user and group data fixtures:
 
-    $ python manage.py loaddata fixtures/users.json fixtures/groups.json
+    $ python manage.py loaddata fixtures/users.json fixtures/folders.json fixtures/groups.json
 
 The password for all test users is "pass".
 

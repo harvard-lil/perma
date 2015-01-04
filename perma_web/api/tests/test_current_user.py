@@ -5,6 +5,7 @@ from perma.models import LinkUser
 
 class CurrentUserResourceTestCase(ApiResourceTestCase):
     fixtures = ['fixtures/users.json',
+                'fixtures/folders.json',
                 'fixtures/api_keys.json']
 
     def setUp(self):

@@ -5,9 +5,11 @@ from perma.models import Link, LinkUser
 
 class LinkAuthorizationTestCase(ApiResourceTestCase):
 
+    resource = LinkResource
     assertHttpRejected = ApiResourceTestCase.assertHttpUnauthorized
 
     fixtures = ['fixtures/users.json',
+                'fixtures/folders.json',
                 'fixtures/groups.json',
                 'fixtures/api_keys.json',
                 'fixtures/archive.json']

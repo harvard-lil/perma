@@ -111,7 +111,7 @@ def init_dev_db():
     """
     local("python manage.py syncdb --noinput")
     local("python manage.py migrate")
-    local("python manage.py loaddata fixtures/sites.json fixtures/users.json fixtures/groups.json")
+    local("python manage.py loaddata fixtures/sites.json fixtures/users.json fixtures/folders.json fixtures/groups.json")
 
 def south_out(app="perma"):
     """

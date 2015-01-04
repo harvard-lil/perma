@@ -8,9 +8,11 @@ from django.test.utils import override_settings
 
 class LinkValidationsTestCase(ApiResourceTestCase):
 
+    resource = LinkResource
     assertHttpRejected = ApiResourceTestCase.assertHttpBadRequest
 
     fixtures = ['fixtures/users.json',
+                'fixtures/folders.json',
                 'fixtures/api_keys.json',
                 'fixtures/archive.json']
 

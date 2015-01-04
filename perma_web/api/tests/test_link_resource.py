@@ -10,6 +10,7 @@ from django.core.files.storage import default_storage
 # Use a TransactionTestCase here because archive capture is threaded
 class LinkResourceTestCase(ApiResourceTransactionTestCase):
     fixtures = ['fixtures/users.json',
+                'fixtures/folders.json',
                 'fixtures/archive.json',
                 'fixtures/api_keys.json']
 
