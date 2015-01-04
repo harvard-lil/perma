@@ -149,14 +149,14 @@ class ApiResourceTestCase(ResourceTestCase):
         new_data = old_data.copy()
         new_data.update(new_vals)
 
-        # count = Link.objects.count()
+        count = self.resource._meta.queryset.count()
         resp = self.api_client.patch(url,
                                      data=new_data,
                                      authentication=self.get_credentials(user))
         self.assertHttpAccepted(resp)
 
         # Make sure the count hasn't changed & we did an update.
-        # self.assertEqual(Link.objects.count(), count)
+        self.assertEqual(self.resource._meta.queryset.count(), count)
 
         fresh_data = self.deserialize(self.api_client.get(url, format='json'))
         for attr in new_vals.keys():
@@ -181,18 +181,34 @@ class ApiResourceTestCase(ResourceTestCase):
         new_data = old_data.copy()
         new_data.update(new_vals)
 
-        # count = Link.objects.count()
+        count = self.resource._meta.queryset.count()
         resp = self.api_client.patch(url,
                                      data=new_data,
                                      authentication=self.get_credentials(user))
         self.assertHttpRejected(resp)
 
-        # self.assertEqual(Link.objects.count(), count)
+        self.assertEqual(self.resource._meta.queryset.count(), count)
         self.assertEqual(
             self.deserialize(self.api_client.get(url, format='json')),
             old_data)
 
         return resp
+
+    def successful_delete(self, url, user):
+        count = self.resource._meta.queryset.count()
+
+        self.assertHttpOK(self.api_client.get(url))
+        self.assertHttpAccepted(self.api_client.delete(url,
+                                                       authentication=self.get_credentials(user)))
+        self.assertEqual(self.resource._meta.queryset.count(), count-1)
+        self.assertHttpNotFound(self.api_client.get(url))
+
+    def rejected_delete(self, url, user):
+        count = self.resource._meta.queryset.count()
+        self.assertHttpRejected(self.api_client.delete(url,
+                                                       authentication=self.get_credentials(user)))
+        self.assertEqual(self.resource._meta.queryset.count(), count)
+        self.assertHttpOK(self.api_client.get(url))
 
 
 class ApiResourceTransactionTestCase(ApiResourceTestCase):

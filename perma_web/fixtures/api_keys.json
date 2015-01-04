@@ -43,5 +43,14 @@
             "key": "35f2490vs29riewoafiwri09z32i09sig9490053",
             "created": "2014-09-01T00:00:00+00:00"
         }
+    },
+    {
+        "pk": 6,
+        "model": "tastypie.ApiKey",
+        "fields": {
+            "user": 6,
+            "key": "zjklrfew9f9032fioepwm93i90fjew9090vejerj",
+            "created": "2014-09-01T00:00:00+00:00"
+        }
     }
 ]

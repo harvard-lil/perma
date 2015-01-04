@@ -67,6 +67,27 @@
         }
     },
     {
+        "pk": "UU32-XY8I",
+        "model": "perma.link",
+        "fields": {
+            "folders": [
+                30
+            ],
+            "view_count": 1,
+            "vested": false,
+            "vested_timestamp": null,
+            "notes": "",
+            "dark_archived_robots_txt_blocked": false,
+            "created_by": 4,
+            "dark_archived": false,
+            "submitted_title": "Wikipedia",
+            "submitted_url": "https://www.wikipedia.org/",
+            "vested_by_editor": null,
+            "creation_timestamp": "2014-06-16T19:22:51Z",
+            "vesting_org": null
+        }
+    },
+    {
         "pk": 1,
         "model": "perma.asset",
         "fields": {
@@ -111,6 +132,22 @@
             "pdf_capture": null,
             "link": "3SLN-JHX9",
             "base_storage_path": "2014/12/7/18/55/3SLN-JHX9",
+            "instapaper_hash": null
+        }
+    },
+    {
+        "pk": 4,
+        "model": "perma.asset",
+        "fields": {
+            "text_capture": null,
+            "instapaper_timestamp": null,
+            "warc_capture": "archive.warc.gz",
+            "instapaper_id": null,
+            "favicon": null,
+            "image_capture": "cap.png",
+            "pdf_capture": null,
+            "link": "UU32-XY8I",
+            "base_storage_path": "2014/12/7/18/55/UU32-XY8I",
             "instapaper_hash": null
         }
     }

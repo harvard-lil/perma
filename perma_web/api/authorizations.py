@@ -21,6 +21,28 @@ class DefaultAuthorization(ReadOnlyAuthorization):
         return self.update_detail(object_list, bundle)
 
 
+class FolderAuthorization(DefaultAuthorization):
+    def delete_detail(self, object_list, bundle):
+        if bundle.obj.is_shared_folder:
+            raise Unauthorized("Shared folders cannot be deleted.")
+        elif bundle.obj.is_root_folder:
+            raise Unauthorized("Root folders cannot be deleted.")
+        elif not bundle.obj.is_empty():
+            raise Unauthorized("Folders can only be deleted if they are empty.")
+
+        return True
+
+    def update_detail(self, object_list, bundle):
+        # For renaming
+        if bundle.obj.tracker.has_changed("name"):
+            if bundle.obj.is_shared_folder:
+                raise Unauthorized("Shared folders cannot be renamed.")
+            elif bundle.obj.is_root_folder:
+                raise Unauthorized("Root folders cannot be renamed.")
+
+        return True
+
+
 class LinkAuthorization(DefaultAuthorization):
 
     def can_vest_to_org(self, user, vesting_org):

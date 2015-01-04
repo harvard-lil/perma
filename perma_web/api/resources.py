@@ -17,6 +17,7 @@ from authentication import (DefaultAuthentication,
                             CurrentUserAuthentication)
 
 from authorizations import (DefaultAuthorization,
+                            FolderAuthorization,
                             LinkAuthorization,
                             CurrentUserAuthorization)
 
@@ -98,6 +99,7 @@ class FolderResource(DefaultResource):
     class Meta(DefaultResource.Meta):
         resource_name = 'folders'
         queryset = Folder.objects.all()
+        authorization = FolderAuthorization()
 
     class Nested:
         folders = fields.ToManyField('api.resources.FolderResource', 'children', full=True)
