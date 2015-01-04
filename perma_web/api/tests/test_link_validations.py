@@ -59,7 +59,7 @@ class LinkValidationsTestCase(ApiResourceTestCase):
         self.assertEqual(Link.objects.count(), count)
 
     def test_should_reject_unresolvable_domain_url(self):
-        models.HEADER_CHECK_TIMEOUT = 1  # only wait 1 second before giving up
+        models.HEADER_CHECK_TIMEOUT = 0.25  # only wait 1/4 second before giving up
         count = Link.objects.count()
         self.assertHttpBadRequest(
             self.api_client.post(self.list_url,
