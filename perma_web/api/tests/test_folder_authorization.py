@@ -62,18 +62,18 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
 
     def test_should_allow_member_of_folders_registrar_to_view(self):
         self.assertHttpOK(
-            self.api_client.get(self.detail_url(self.nonempty_root_folder),
+            self.api_client.get(self.detail_url(self.nonempty_shared_folder),
                                 authentication=self.get_credentials(self.registrar_member)))
 
     def test_should_allow_member_of_folders_vesting_org_to_view(self):
         self.assertHttpOK(
-            self.api_client.get(self.detail_url(self.nonempty_root_folder),
+            self.api_client.get(self.detail_url(self.nonempty_shared_folder),
                                 authentication=self.get_credentials(self.vesting_member)))
 
-    @unittest.skip("Pending")
     def test_should_reject_view_from_user_lacking_owner_and_registrar_and_vesting_org_access(self):
         self.assertHttpUnauthorized(
-            self.api_client.get(self.detail_url(self.nonempty_root_folder)))
+            self.api_client.get(self.detail_url(self.nonempty_shared_folder),
+                                authentication=self.get_credentials(self.regular_user)))
 
     ###########
     # Editing #

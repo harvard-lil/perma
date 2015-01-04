@@ -6,22 +6,37 @@ from tastypie.exceptions import Unauthorized
 class DefaultAuthorization(ReadOnlyAuthorization):
 
     def create_detail(self, object_list, bundle):
-        if bundle.request.user.is_authenticated():
-            return True
-        else:
+        if not bundle.request.user.is_authenticated():
             raise Unauthorized("You must be a registered user.")
 
+        return True
+
     def update_detail(self, object_list, bundle):
-        if bundle.obj.created_by == bundle.request.user:
-            return True
-        else:
+        if bundle.obj.created_by != bundle.request.user:
             raise Unauthorized("Sorry, you don't have permission")
 
-    def delete_detail(self, object_list, bundle):
-        return self.update_detail(object_list, bundle)
+        return True
+
+    delete_detail = update_detail
 
 
 class FolderAuthorization(DefaultAuthorization):
+
+    def can_access_folder(self, user, folder):
+        if user == folder.owned_by:
+            return True
+        elif user.has_group('registrar_user'):
+            return user.registrar == folder.vesting_org.registrar
+        else:
+            vesting_org = user.get_default_vesting_org()
+            return vesting_org and vesting_org == folder.vesting_org
+
+    def read_detail(self, object_list, bundle):
+        if not self.can_access_folder(bundle.request.user, bundle.obj):
+            raise Unauthorized("Sorry, you don't have access to that folder.")
+
+        return True
+
     def delete_detail(self, object_list, bundle):
         if bundle.obj.is_shared_folder:
             raise Unauthorized("Shared folders cannot be deleted.")
@@ -58,13 +73,12 @@ class LinkAuthorization(DefaultAuthorization):
     def update_detail(self, object_list, bundle):
         # For vesting
         if bundle.obj.tracker.has_changed("vested"):
-            if bundle.request.user.has_group(['registrar_user', 'registry_user', 'vesting_user']):
-                if self.can_vest_to_org(bundle.request.user, bundle.obj.vesting_org):
-                    return True
-                else:
-                    raise Unauthorized("Sorry, you can't vest to that organization")
-            else:
+            if not bundle.request.user.has_group(['registrar_user', 'registry_user', 'vesting_user']):
                 raise Unauthorized("Sorry, you don't vesting have permission")
+            if not self.can_vest_to_org(bundle.request.user, bundle.obj.vesting_org):
+                raise Unauthorized("Sorry, you can't vest to that organization")
+
+            return True
 
         # For editing
         try:
@@ -75,25 +89,25 @@ class LinkAuthorization(DefaultAuthorization):
             raise Unauthorized("Sorry, you don't have permission")
 
     def delete_detail(self, object_list, bundle):
-        if not bundle.obj.vested and bundle.obj.created_by == bundle.request.user:
-            return True
-        else:
+        if bundle.obj.vested or bundle.obj.created_by != bundle.request.user:
             raise Unauthorized("Sorry, you don't have permission")
+
+        return True
 
 
 class CurrentUserAuthorization(ReadOnlyAuthorization):
 
     def all_detail(self, object_list, bundle):
-        if bundle.request.user.is_authenticated():
-            return True
-        else:
+        if not bundle.request.user.is_authenticated():
             raise Unauthorized("You must be authenticated.")
 
+        return True
+
     def all_list(self, object_list, bundle):
-        if bundle.request.user.is_authenticated():
-            return object_list.filter(created_by=bundle.request.user)
-        else:
+        if not bundle.request.user.is_authenticated():
             raise Unauthorized("You must be authenticated.")
+
+        return object_list.filter(created_by=bundle.request.user)
 
     read_detail = create_detail = update_detail = delete_detail = all_detail
     read_list = all_list  # create_list = update_list = delete_list = disallowed system wide
