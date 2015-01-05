@@ -1,9 +1,11 @@
+import gzip
 from multiprocessing.pool import ThreadPool
 import os
 import os.path
 import tempfile
 from urlparse import urljoin
 from celery import shared_task
+from celery.contrib import rdb
 import requests
 
 from django.conf import settings
@@ -12,8 +14,9 @@ from django.core.urlresolvers import reverse
 from django.core import serializers
 from django.db import transaction, connection
 
-from .utils import sign_post_data
+from .utils import sign_post_data, get_gpg, get_fingerprint
 from .models import UpdateQueue
+import perma.models
 
 ### helpers ###
 
@@ -93,16 +96,16 @@ def get_updates():
     except IndexError:
         # we have no existing deltas; fetch the whole database
         print "MIRROR: No known updates, fetching whole database."
-        lock = None
-        return get_full_database.apply()
+        post_message_upstream(reverse('mirroring:export_database'))
+        return
 
     try:
         result = post_message_upstream(reverse('mirroring:export_updates'), json_data={'last_known_update':last_known_update_id}).json()
     except Exception as e:  # TODO: narrow this down
         # upstream server doesn't have the updates we need; fetch whole database
         print "MIRROR: Error fetching updates: %s. Fetching whole database." % e
-        lock = None
-        return get_full_database.apply()
+        post_message_upstream(reverse('mirroring:export_database'))
+        return
 
     # import updates
     if result:
@@ -114,11 +117,101 @@ def get_updates():
 
 @shared_task
 @transaction.atomic
-def get_full_database():
+def save_full_database(*args, **kwargs):
+    lock = get_update_queue_lock()
+
+    # helpers
+    def send_database_dump_downstream(file_path, update_id):
+        post_message_downstream(reverse("mirroring:import_database"),
+                                json_data={'file_path': file_path, 'update_id': update_id})
+
+    # first check if there is an existing dump we can send
+    downstream_server = kwargs['downstream_server']
+    downstream_key = get_fingerprint(downstream_server['public_key'])
+    dump_dir = 'database_dumps/%s' % (downstream_key)
+    if default_storage.exists(dump_dir):
+        files = default_storage.listdir(dump_dir)[1]
+        for file_name in files:
+            file_path = os.path.join(dump_dir, file_name)
+            try:
+                UpdateQueue.objects.get(pk=file_name)
+                send_database_dump_downstream(file_path, int(file_name))
+                return
+            except UpdateQueue.DoesNotExist:
+                # dump is no longer useful -- doesn't catch us up to existing deltas
+                default_storage.delete(file_path)
+
+    # no existing dump, let's create one ...
+
+    temp_file = tempfile.NamedTemporaryFile(delete=False)
+    temp_file.close()
+    gzip_temp_file = gzip.GzipFile(temp_file.name, mode='wb', compresslevel=1)
+    encrypted_temp_file = tempfile.NamedTemporaryFile(delete=False)
+    encrypted_temp_file.close()
+
+    try:
+        update_index = UpdateQueue.objects.order_by('-pk')[0]
+    except IndexError:
+        update_index = None
+
+    for attr in dir(perma.models):
+        Model = getattr(perma.models, attr)
+        if hasattr(Model, 'mirror_fields'):
+            print "SENDING %s objects." % Model.objects.count()
+            for obj in Model.objects.all():
+                gzip_temp_file.write(serializers.serialize("json", [obj], fields=Model.mirror_fields, ensure_ascii=False)+"\n")
+
+    if update_index:
+        gzip_temp_file.write(serializers.serialize("json", [update_index], fields=['action', 'json'], ensure_ascii=False)+"\n")
+
+    gzip_temp_file.close()
+
+    get_gpg().encrypt_file(open(temp_file.name, 'rb'),
+                           recipients=[downstream_key],
+                           sign=get_fingerprint(settings.GPG_PRIVATE_KEY),
+                           armor=False,
+                           output=encrypted_temp_file.name,
+                           always_trust=True)  # trust that our keys are valid
+
+    update_id = update_index.pk if update_index else 0
+    file_path = 'database_dumps/%s/%s' % (downstream_key, update_id)
+    default_storage.store_file(open(encrypted_temp_file.name, 'rb'), file_path, overwrite=True, send_signal=False)
+
+    os.remove(encrypted_temp_file.name)
+    os.remove(temp_file.name)
+
+    send_database_dump_downstream(file_path, update_id)
+
+
+@shared_task
+@transaction.atomic
+def get_full_database(*args, **kwargs):
     """
         Fetch full database from upstream.
     """
     lock = get_update_queue_lock()
+
+    # first check that we still need this update
+    file_path = kwargs['file_path']
+    update_id = kwargs['update_id']
+    if UpdateQueue.objects.filter(pk__gte=update_id).count():
+        return
+
+    # download encrypted file
+    upstream_media_url = settings.UPSTREAM_SERVER.get('media_url', settings.UPSTREAM_SERVER['address']+'/media/')
+    data_stream = send_request(settings.UPSTREAM_SERVER, urljoin(upstream_media_url, file_path), stream=True)
+    # encrypted_temp_file = tempfile.TemporaryFile()
+    # for chunk in data_stream.iter_content(1024):
+    #     encrypted_temp_file.write(chunk)
+    # encrypted_temp_file.seek(0)
+
+    # decrypt
+    temp_file = tempfile.NamedTemporaryFile(delete=False)
+    temp_file.close()
+    get_gpg().decrypt_file(data_stream.raw, output=temp_file.name, always_trust=True)
+    gzip_temp_file = gzip.GzipFile(temp_file.name, mode='rb')
+
+    print "Got data file."
 
     def save_cache(obj_cache):
         if obj_cache:
@@ -130,25 +223,10 @@ def get_full_database():
             print "Done saving."
             del obj_cache[:]
 
-
-    temp_file = tempfile.NamedTemporaryFile(suffix=".json", delete=False)
-    data_stream = post_message_upstream(reverse('mirroring:export_database'), stream=True)
-    for chunk in data_stream.iter_content(chunk_size=1024):
-        temp_file.write(chunk)
-    temp_file.file.close()
-
-    print "Got data file."
-
-    # call_command("loaddata", temp_file.name)
-    # temp_file.unlink(temp_file.name)
-    #
-    # print "Full DB loaded."
-
-
     with connection.constraint_checks_disabled():
         # update_index = None
         obj_cache = []
-        for line in temp_file:
+        for line in gzip_temp_file:
             obj = serializers.deserialize("json", line).next().object
             if len(obj_cache) > 1000 or (obj_cache and type(obj_cache[0]) != type(obj)):
                 save_cache(obj_cache)
@@ -160,10 +238,10 @@ def get_full_database():
 
         save_cache(obj_cache)
 
-    print "Done!"
+    gzip_temp_file.close()
+    os.remove(temp_file.name)
 
-    # if update_index:
-    #     UpdateQueue.objects.get_or_create(pk=update_index, defaults={'json': 'dummy'})
+    print "Done!"
 
 
 @shared_task
@@ -191,5 +269,6 @@ def background_media_sync(*args, **kwargs):
     for path in paths:
         request_url = urljoin(upstream_media_url, path)
         print "Storing ", request_url
-        request = send_request(settings.UPSTREAM_SERVER, request_url, stream=True)
-        default_storage.store_file(request.raw, path)
+        # TODO: might be better to buffer this to a local file instead of storing it in RAM
+        request = send_request(settings.UPSTREAM_SERVER, request_url)
+        default_storage.store_data_to_file(request.content, path)

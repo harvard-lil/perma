@@ -1,23 +1,13 @@
 import json
 
-from django.core import serializers
-from django.http import HttpResponse, HttpResponseBadRequest, StreamingHttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 
 from perma.utils import run_task
 from perma.views.common import single_linky
-import perma.models
 
 from .models import UpdateQueue
-from .tasks import get_updates, background_media_sync
+from .tasks import get_updates, background_media_sync, save_full_database, get_full_database
 from .utils import may_be_mirrored, read_downstream_request, read_upstream_request
-
-
-# cache models to sync downstream, based on whether they have a 'mirror_fields' attribute
-SYNCED_MODELS = []
-for attr in dir(perma.models):
-    item = getattr(perma.models, attr)
-    if hasattr(item, 'mirror_fields'):
-        SYNCED_MODELS.append(item)
 
 
 def single_link_json(request, guid):
@@ -31,7 +21,7 @@ def single_link_json(request, guid):
 
 @may_be_mirrored
 @read_downstream_request
-def export_updates(request, last_known_update):
+def export_updates(request, request_server, last_known_update):
     """
         Return updates to database since last_known_update, if we still have that update stored,
         or else return 400 Bad Request.
@@ -48,30 +38,17 @@ def export_updates(request, last_known_update):
 
 @may_be_mirrored
 @read_downstream_request
-def export_database(request):
+def export_database(request, request_server):
     """
         Return JSON dump of mirrored portions of entire DB.
     """
-    try:
-        update_index = UpdateQueue.objects.order_by('-pk')[0]
-    except IndexError:
-        update_index = None
-
-    def generate_lines():
-        for Model in SYNCED_MODELS:
-            print "SENDING %s objects." % Model.objects.count()
-            for obj in Model.objects.all():
-                yield serializers.serialize("json", [obj], fields=Model.mirror_fields, ensure_ascii=False)+"\n"
-
-        if update_index:
-            yield serializers.serialize("json", [update_index], fields=['action', 'json'], ensure_ascii=False)+"\n"
-
-    return StreamingHttpResponse(generate_lines(), content_type="application/json")
+    run_task(save_full_database, downstream_server=request_server)
+    return HttpResponse("OK")
 
 
 @may_be_mirrored
 @read_upstream_request
-def import_updates(request, updates):
+def import_updates(request, request_server, updates):
     """
         Receive a set of updates and apply them.
     """
@@ -93,10 +70,21 @@ def import_updates(request, updates):
 
 @may_be_mirrored
 @read_upstream_request
-def media_sync(request, paths):
+def media_sync(request, request_server, paths):
     """
         Receive a set of updates and apply them. We run this in a celery task so we can return immediately.
     """
     print "MIRROR: Receiving media sync"
     run_task(background_media_sync, paths=paths)
+    return HttpResponse("OK")
+
+
+@may_be_mirrored
+@read_upstream_request
+def import_database(request, request_server, file_path, update_id):
+    """
+        Receive a set of updates and apply them. We run this in a celery task so we can return immediately.
+    """
+    print "MIRROR: Asked to save full database -- %s" % file_path
+    run_task(get_full_database, file_path=file_path, update_id=update_id)
     return HttpResponse("OK")

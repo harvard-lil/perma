@@ -58,7 +58,7 @@ def get_user(request):
                     # Since the upstream server could be *this* server on a different domain, we check for our
                     # own public key if we have no upstream server configured.
                     upstream_key = settings.UPSTREAM_SERVER['public_key'] if settings.UPSTREAM_SERVER else settings.GPG_PUBLIC_KEY
-                    user_info = read_signed_message(user_info, upstream_key, max_age=request.session.get_expiry_age())
+                    user_info, fingerprint = read_signed_message(user_info, upstream_key, max_age=request.session.get_expiry_age())
                     user = FakeLinkUser.init_from_serialized_user(user_info)
                 except Exception, e:
                     print "Error loading mirror user:", e
