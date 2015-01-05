@@ -123,7 +123,7 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
 
     def test_should_allow_folder_owner_to_delete(self):
         self.successful_delete(self.detail_url(self.empty_child_folder),
-                               self.empty_child_folder.owned_by)
+                               self.empty_child_folder.created_by)
 
     def test_should_reject_delete_from_user_lacking_owner_and_registrar_and_vesting_org_access(self):
         self.rejected_delete(self.detail_url(self.empty_shared_folder),
@@ -135,8 +135,8 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
 
     def test_reject_delete_of_root_folder(self):
         self.rejected_delete(self.detail_url(self.empty_root_folder),
-                             self.empty_root_folder.owned_by)
+                             self.empty_root_folder.created_by)
 
     def test_reject_delete_of_nonempty_folder(self):
         self.rejected_delete(self.detail_url(self.nonempty_child_folder),
-                             self.nonempty_child_folder.owned_by)
+                             self.nonempty_child_folder.created_by)

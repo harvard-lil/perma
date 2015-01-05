@@ -1,4 +1,4 @@
-from perma.models import Link
+from perma.models import Link, Folder
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.exceptions import Unauthorized
 
@@ -22,17 +22,17 @@ class DefaultAuthorization(ReadOnlyAuthorization):
 
 class FolderAuthorization(DefaultAuthorization):
 
-    def can_access_folder(self, user, folder):
-        if user == folder.owned_by:
-            return True
-        elif user.has_group('registrar_user'):
-            return user.registrar == folder.vesting_org.registrar
-        else:
-            vesting_org = user.get_default_vesting_org()
-            return vesting_org and vesting_org == folder.vesting_org
+    def can_access(self, user, obj):
+        try:
+            # returns true if exists
+            return bool(user.id == obj.created_by_id or
+                        Folder.objects.get(Folder.objects.user_access_filter(user),
+                                           pk=obj.pk))
+        except Folder.DoesNotExist:
+            return False
 
     def read_detail(self, object_list, bundle):
-        if not self.can_access_folder(bundle.request.user, bundle.obj):
+        if not self.can_access(bundle.request.user, bundle.obj):
             raise Unauthorized("Sorry, you don't have access to that folder.")
 
         return True
@@ -60,6 +60,15 @@ class FolderAuthorization(DefaultAuthorization):
 
 class LinkAuthorization(DefaultAuthorization):
 
+    def can_access(self, user, obj):
+        try:
+            # returns true if exists
+            return bool(user.id == obj.created_by_id or
+                        Link.objects.get(Link.objects.user_access_filter(user),
+                                         pk=obj.pk))
+        except Link.DoesNotExist:
+            return False
+
     def can_vest_to_org(self, user, vesting_org):
         if user.has_group('vesting_user'):
             return user.vesting_org == vesting_org
@@ -81,12 +90,10 @@ class LinkAuthorization(DefaultAuthorization):
             return True
 
         # For editing
-        try:
-            return bool(bundle.obj.created_by == bundle.request.user or
-                        Link.objects.get(Link.objects.user_access_filter(bundle.request.user),
-                                         pk=bundle.obj.pk))
-        except Link.DoesNotExist:
+        if not self.can_access(bundle.request.user, bundle.obj):
             raise Unauthorized("Sorry, you don't have permission")
+
+        return True
 
     def delete_detail(self, object_list, bundle):
         if bundle.obj.vested or bundle.obj.created_by != bundle.request.user:
