@@ -31,7 +31,7 @@ class FolderAuthorization(DefaultAuthorization):
         except Folder.DoesNotExist:
             return False
 
-    # NOTE - this is called by obj_update and obj_delete before it uses their auth
+    # NOTE - this is called by obj_update and obj_delete before it uses their auth methods
     # ex: https://github.com/toastdriven/django-tastypie/blob/master/tastypie/resources.py#L2203
     def read_detail(self, object_list, bundle):
         if not self.can_access(bundle.request.user, bundle.obj):
