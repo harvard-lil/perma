@@ -102,8 +102,8 @@ class FolderResource(DefaultResource):
         authorization = FolderAuthorization()
 
     class Nested:
-        folders = fields.ToManyField('api.resources.FolderResource', 'children', full=True)
-        archives = fields.ToManyField('api.resources.LinkResource', 'links', full=True)
+        folders = fields.ToManyField('api.resources.FolderResource', 'children', full=True, readonly=True)
+        archives = fields.ToManyField('api.resources.LinkResource', 'links', full=True, readonly=True)
 
     def hydrate_name(self, bundle):
         # Clean up the user submitted name

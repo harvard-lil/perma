@@ -126,8 +126,8 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
                                self.empty_child_folder.created_by)
 
     def test_should_reject_delete_from_user_lacking_owner_and_registrar_and_vesting_org_access(self):
-        self.rejected_delete(self.detail_url(self.empty_shared_folder),
-                             self.regular_user)
+        self.rejected_delete(self.detail_url(self.empty_child_folder),
+                             self.vesting_member)
 
     def test_reject_delete_of_shared_folder(self):
         self.rejected_delete(self.detail_url(self.empty_shared_folder),
