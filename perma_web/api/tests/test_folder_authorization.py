@@ -75,27 +75,21 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
             self.api_client.get(self.detail_url(self.nonempty_shared_folder),
                                 authentication=self.get_credentials(self.regular_user)))
 
-    ###########
-    # Editing #
-    ###########
+    ############
+    # Renaming #
+    ############
 
-    @unittest.skip("Pending")
-    def test_should_allow_folder_owner_to_patch_name_and_parent_folder(self):
-        pass
+    def test_should_allow_nonshared_nonroot_folder_owner_to_renname(self):
+        self.successful_patch(self.detail_url(self.nonempty_child_folder),
+                              self.nonempty_child_folder.created_by,
+                              {'name': 'A new name'})
 
-    @unittest.skip("Pending")
-    def test_should_allow_member_of_folders_registrar_to_patch_name_and_parent_folder(self):
-        pass
+    def test_should_reject_rename_from_user_lacking_owner_access(self):
+        self.rejected_patch(self.detail_url(self.nonempty_child_folder),
+                            self.registrar_member,
+                            {'name': 'A new name'})
 
-    @unittest.skip("Pending")
-    def test_should_allow_member_of_folders_vesting_org_to_patch_name_and_parent_folder(self):
-        pass
-
-    @unittest.skip("Pending")
-    def test_should_reject_patch_from_user_lacking_owner_and_registrar_and_vesting_org_access(self):
-        pass
-
-    def test_reject_rename_of_shared_folder_from_all_users(self):
+    def test_should_reject_rename_of_shared_folder_from_all_users(self):
         data = {'name': 'A new name'}
         url = self.detail_url(self.nonempty_shared_folder)
 
@@ -103,7 +97,7 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
         self.rejected_patch(url, self.registrar_member, data)
         self.rejected_patch(url, self.vesting_manager, data)
 
-    def test_reject_rename_of_root_folder_from_all_users(self):
+    def test_should_reject_rename_of_root_folder_from_all_users(self):
         data = {'name': 'A new name'}
         self.rejected_patch(self.detail_url(self.registry_member.root_folder),
                             self.registry_member, data)
@@ -116,6 +110,26 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
 
         self.rejected_patch(self.detail_url(self.regular_user.root_folder),
                             self.regular_user, data)
+
+    ##########
+    # Moving #
+    ##########
+
+    @unittest.skip("Pending")
+    def test_should_allow_folder_owner_to_move_to_new_parent(self):
+        pass
+
+    @unittest.skip("Pending")
+    def test_should_allow_member_of_folders_registrar_to_move_to_new_parent(self):
+        pass
+
+    @unittest.skip("Pending")
+    def test_should_allow_member_of_folders_vesting_org_to_move_to_new_parent(self):
+        pass
+
+    @unittest.skip("Pending")
+    def test_should_reject_move_from_user_lacking_owner_and_registrar_and_vesting_org_access(self):
+        pass
 
     ############
     # Deleting #

@@ -155,8 +155,10 @@ class ApiResourceTestCase(ResourceTestCase):
             models.HEADER_CHECK_TIMEOUT = prev_t
 
     def successful_patch(self, url, user, new_vals):
-        old_data = self.deserialize(
-            self.api_client.get(url, authentication=self.get_credentials(user)))
+        resp = self.api_client.get(url, authentication=self.get_credentials(user))
+        self.assertHttpOK(resp)
+        self.assertValidJSONResponse(resp)
+        old_data = self.deserialize(resp)
 
         new_data = old_data.copy()
         new_data.update(new_vals)

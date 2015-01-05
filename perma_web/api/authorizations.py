@@ -52,6 +52,9 @@ class FolderAuthorization(DefaultAuthorization):
         return True
 
     def update_detail(self, object_list, bundle):
+        if not self.can_access(bundle.request.user, bundle.obj):
+            raise Unauthorized("Sorry, you don't have access to that folder.")
+
         # For renaming
         if bundle.obj.tracker.has_changed("name"):
             if bundle.obj.is_shared_folder:
