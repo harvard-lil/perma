@@ -168,23 +168,8 @@ class LinkResource(MultipartResource, DefaultResource):
         validation = LinkValidation()
         authorization = LinkAuthorization()
 
-    # via: http://django-tastypie.readthedocs.org/en/latest/cookbook.html#nested-resources
-    def prepend_urls(self):
-        return [
-            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/assets%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_assets_list'), name="api_get_assets_list"),
-        ]
-
-    def get_assets_list(self, request, **kwargs):
-        try:
-            bundle = self.build_bundle(data={'pk': kwargs['pk']}, request=request)
-            obj = self.cached_obj_get(bundle=bundle, **self.remove_api_resource_names(kwargs))
-        except ObjectDoesNotExist:
-            return HttpGone()
-        except MultipleObjectsReturned:
-            return HttpMultipleChoices("More than one resource is found at this URI.")
-
-        asset_resource = AssetResource()
-        return asset_resource.get_list(request, archive=obj.pk)
+    class Nested:
+        assets = fields.ToManyField(AssetResource, 'assets')
 
     def apply_filters(self, request, applicable_filters):
         base_object_list = super(LinkResource, self).apply_filters(request, applicable_filters)
