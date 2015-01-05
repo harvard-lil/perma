@@ -159,10 +159,10 @@ def save_full_database(*args, **kwargs):
         if hasattr(Model, 'mirror_fields'):
             print "SENDING %s objects." % Model.objects.count()
             for obj in Model.objects.all():
-                gzip_temp_file.write(serializers.serialize("json", [obj], fields=Model.mirror_fields, ensure_ascii=False)+"\n")
+                gzip_temp_file.write(serializers.serialize("json", [obj], fields=Model.mirror_fields, ensure_ascii=False).encode('utf8')+"\n")
 
     if update_index:
-        gzip_temp_file.write(serializers.serialize("json", [update_index], fields=['action', 'json'], ensure_ascii=False)+"\n")
+        gzip_temp_file.write(serializers.serialize("json", [update_index], fields=['action', 'json'], ensure_ascii=False).encode('utf8')+"\n")
 
     gzip_temp_file.close()
 
@@ -227,7 +227,7 @@ def get_full_database(*args, **kwargs):
         # update_index = None
         obj_cache = []
         for line in gzip_temp_file:
-            obj = serializers.deserialize("json", line).next().object
+            obj = serializers.deserialize("json", line.decode('utf8')).next().object
             if len(obj_cache) > 1000 or (obj_cache and type(obj_cache[0]) != type(obj)):
                 save_cache(obj_cache)
             if not obj_cache:
