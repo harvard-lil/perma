@@ -155,7 +155,9 @@ class ApiResourceTestCase(ResourceTestCase):
             models.HEADER_CHECK_TIMEOUT = prev_t
 
     def successful_patch(self, url, user, new_vals):
-        old_data = self.deserialize(self.api_client.get(url, format='json'))
+        old_data = self.deserialize(
+            self.api_client.get(url, authentication=self.get_credentials(user)))
+
         new_data = old_data.copy()
         new_data.update(new_vals)
 
@@ -168,7 +170,9 @@ class ApiResourceTestCase(ResourceTestCase):
         # Make sure the count hasn't changed & we did an update.
         self.assertEqual(self.resource._meta.queryset.count(), count)
 
-        fresh_data = self.deserialize(self.api_client.get(url, format='json'))
+        fresh_data = self.deserialize(
+            self.api_client.get(url, authentication=self.get_credentials(user)))
+
         for attr in new_vals.keys():
             try:
                 # Make sure the data actually changed
@@ -187,9 +191,15 @@ class ApiResourceTestCase(ResourceTestCase):
         return fresh_data
 
     def rejected_patch(self, url, user, new_vals):
-        old_data = self.deserialize(self.api_client.get(url, format='json'))
-        new_data = old_data.copy()
-        new_data.update(new_vals)
+        old_data = self.deserialize(
+            self.api_client.get(url, authentication=self.get_credentials(user)))
+
+        # User might not have GET access to grab initial data
+        if old_data:
+            new_data = old_data.copy()
+            new_data.update(new_vals)
+        else:
+            new_data = new_vals
 
         count = self.resource._meta.queryset.count()
         resp = self.api_client.patch(url,
@@ -199,7 +209,8 @@ class ApiResourceTestCase(ResourceTestCase):
 
         self.assertEqual(self.resource._meta.queryset.count(), count)
         self.assertEqual(
-            self.deserialize(self.api_client.get(url, format='json')),
+            self.deserialize(
+                self.api_client.get(url, authentication=self.get_credentials(user))),
             old_data)
 
         return resp
@@ -207,18 +218,34 @@ class ApiResourceTestCase(ResourceTestCase):
     def successful_delete(self, url, user):
         count = self.resource._meta.queryset.count()
 
-        self.assertHttpOK(self.api_client.get(url))
-        self.assertHttpAccepted(self.api_client.delete(url,
-                                                       authentication=self.get_credentials(user)))
+        self.assertHttpOK(
+            self.api_client.get(url, authentication=self.get_credentials(user)))
+
+        self.assertHttpAccepted(
+            self.api_client.delete(url, authentication=self.get_credentials(user)))
+
         self.assertEqual(self.resource._meta.queryset.count(), count-1)
-        self.assertHttpNotFound(self.api_client.get(url))
+
+        self.assertHttpNotFound(
+            self.api_client.get(url, authentication=self.get_credentials(user)))
 
     def rejected_delete(self, url, user):
         count = self.resource._meta.queryset.count()
-        self.assertHttpRejected(self.api_client.delete(url,
-                                                       authentication=self.get_credentials(user)))
+
+        self.assertHttpRejected(
+            self.api_client.delete(url, authentication=self.get_credentials(user)))
+
         self.assertEqual(self.resource._meta.queryset.count(), count)
-        self.assertHttpOK(self.api_client.get(url))
+
+        resp = self.api_client.get(url, authentication=self.get_credentials(user))
+        try:
+            # If the user doesn't have access, that's okay -
+            # we were testing delete from an unauthorized user
+            self.assertHttpUnauthorized(resp)
+        except AssertionError:
+            # Check for OK last so that this is the assertion
+            # that shows up as the failure if it doesn't pass
+            self.assertHttpOK(resp)
 
 
 class ApiResourceTransactionTestCase(ApiResourceTestCase):
