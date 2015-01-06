@@ -175,9 +175,15 @@ def upload_file(request):
 
                 return HttpResponse(json.dumps(response_object), 'application/json', 201)  # '201 Created' status
             else:
-                return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Invalid file.'}), 'application/json')
+                return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Only gif, jpg, and pdf files supported. Max of 50 MB.'}), 'application/json')
         else:
-            return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Missing file.'}), 'application/json')
+            if not request.FILES:
+                return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Missing file.'}), 'application/json')
+            elif not form.data['title']:
+                return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'Title is required.'}), 'application/json')
+            elif not form.data['url']:
+                return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'URL is required.'}), 'application/json')
+            
 
     return HttpResponseBadRequest(json.dumps({'status':'failed', 'reason':'No file submitted.'}), 'application/json')
 

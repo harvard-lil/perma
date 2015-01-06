@@ -105,10 +105,11 @@ function linkIt(){
 
 /* Handle an upload - start */
 
-function uploadNot() {
+function uploadNot(data) {
     // Display an error message in our upload modal
-
-    $('#upload-error').text('The upload failed. Only gif, jpg, and pdf files supported. Max of 50 MB.');
+    var response = jQuery.parseJSON( data.responseText );
+    //$('#upload-error').text('The upload failed. Only gif, jpg, and pdf files supported. Max of 50 MB.');
+    $('#upload-error').text('The upload failed. ' + response.reason);
 }
 
 function uploadIt(data) {

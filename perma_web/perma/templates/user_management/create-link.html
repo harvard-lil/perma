@@ -36,17 +36,15 @@
 				</div>
     		</div>
 
-			<div class="center">
 				<form class="form-inline" id="archive_upload_form" action="{% url 'upload_link' %}" method="post">
 				<h4>Choose a file</h4>
-				<p><input id="file" name="file" class="input-xlarge" type="file" placeholder="example.png"></p>
-				<p><input id="title" name="title" class="input-xlarge" type="text" placeholder="Example Page Title"></p>
-				<p><input id="url" name="url" class="input-xlarge" type="text" placeholder="www.example.com"></p>
+				<input id="file" name="file" class="input-xlarge" type="file" placeholder="example.png">
+				<p><label for="title">Title</label><br><input id="title" name="title" class="input-xlarge" type="text" placeholder="Example Page Title"></p>
+				<p><label for="url">URL</label><br><input id="url" name="url" class="input-xlarge" type="text" placeholder="www.example.com"></p>
 				<button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Upload this Perma</button>
 				{% csrf_token %}
 				<p id="upload-error" class="text-error"></p>
 				</form>
-			</div>
 		</div>
 	</div>
 </div><!--/.archive-upload-->

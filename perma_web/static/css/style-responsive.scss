@@ -1244,7 +1244,8 @@ ul {
 
 #upload-error {
   margin-top:10px;
-  height:10px;
+  height:15px;
+  font-size:14px;
 }
 
 .modal-footer {
@@ -2096,6 +2097,15 @@ p.list-count-number {
 
 input#file {
 	border:0px;
+	padding-left:0px;
+}
+
+#archive_upload_form p {
+    margin-bottom:10px;
+}
+
+#archive_upload_form button {
+    margin-top:10px;
 }
 
 .delete-confirm {
