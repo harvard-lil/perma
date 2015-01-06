@@ -29,6 +29,8 @@ import os
 from django.core.files.storage import default_storage
 from django.utils import timezone
 
+import json
+
 
 def pk_to_uri(resource, pk):
     return resource().get_resource_uri(resource._meta.object_class(pk=pk))
@@ -40,6 +42,19 @@ class DefaultResource(ExtendedModelResource):
         authorization = DefaultAuthorization()
         always_return_data = True
         fields = [None]  # prevents ModelResource from auto-including additional fields
+
+    def put_url_params_to_patch(self, request, **kwargs):
+        # Only allow PUT
+        if request.method != 'PUT':
+            raise ImmediateHttpResponse(response=HttpNotImplemented())
+        # Mimic a PATCH request
+        request.method = 'PATCH'
+        # Mimic a request body using pop() so as to remove the url params from kwargs filters
+        exclude = ['api_name', 'resource_name', self._meta.detail_uri_name]
+        request._body = json.dumps({k: kwargs.pop(k) for k in kwargs.keys() if k not in exclude})
+        request.META['CONTENT_TYPE'] = 'application/json'
+        # Call dispatch_detail as though it was originally a PATCH
+        return self.dispatch_detail(request, **kwargs)
 
 
 # via: http://stackoverflow.com/a/14134853/313561
@@ -107,7 +122,7 @@ class FolderResource(DefaultResource):
 
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/(?P<parent_id>\w[\w/-]*)/%s/(?P<%s>.*?)%s$" % (self._meta.resource_name, self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('move'), name="api_move_folder"),
+            url(r"^(?P<resource_name>%s)/(?P<parent_id>\w[\w/-]*)/%s/(?P<%s>.*?)%s$" % (self._meta.resource_name, self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('put_url_params_to_patch'), name="api_move_folder"),
         ]
 
     def hydrate_name(self, bundle):
@@ -127,18 +142,6 @@ class FolderResource(DefaultResource):
 
         kwargs['created_by'] = bundle.request.user
         return super(FolderResource, self).obj_create(bundle, **kwargs)
-
-    def move(self, request, **kwargs):
-        # Only allow PUT
-        if request.method != 'PUT':
-            raise ImmediateHttpResponse(response=HttpNotImplemented())
-        # Mimic a PATCH request
-        request.method = 'PATCH'
-        # Pop the parent_id (removing it from the filters) and mimic a request body
-        request._body = '{"parent_id": "%s"}' % (kwargs.pop('parent_id', None))
-        request.META['CONTENT_TYPE'] = 'application/json'
-        # Call dispatch_detail as though it was originally a PATCH
-        return self.dispatch_detail(request, **kwargs)
 
 
 class AssetResource(DefaultResource):
@@ -190,7 +193,7 @@ class LinkResource(MultipartResource, DefaultResource):
 
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/(?P<folder_id>\w[\w/-]*)/%s/(?P<%s>.*?)%s$" % (FolderResource()._meta.resource_name, self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('move'), name="api_move_archive"),
+            url(r"^%s/(?P<folder>\w[\w/-]*)/(?P<resource_name>%s)/(?P<%s>.*?)%s$" % (FolderResource()._meta.resource_name, self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('put_url_params_to_patch'), name="api_move_archive"),
         ]
 
     def apply_filters(self, request, applicable_filters):
@@ -312,8 +315,8 @@ class LinkResource(MultipartResource, DefaultResource):
         if not was_vested and bundle.obj.vested:
             return self.post_vesting(bundle)
 
-        if bundle.data.get('folder_id', None):
-            bundle.obj.move_to_folder_for_user(Folder.objects.get(id=bundle.data['folder_id']),
+        if bundle.data.get('folder', None):
+            bundle.obj.move_to_folder_for_user(Folder.objects.get(id=bundle.data['folder']),
                                                bundle.request.user)
 
         return bundle
@@ -327,18 +330,6 @@ class LinkResource(MultipartResource, DefaultResource):
             run_task(upload_to_internet_archive, link_guid=bundle.obj.guid)
 
         return bundle
-
-    def move(self, request, **kwargs):
-        # Only allow PUT
-        if request.method != 'PUT':
-            raise ImmediateHttpResponse(response=HttpNotImplemented())
-        # Mimic a PATCH request
-        request.method = 'PATCH'
-        # Pop the parent_id (removing it from the filters) and mimic a request body
-        request._body = '{"folder_id": "%s"}' % (kwargs.pop('folder_id', None))
-        request.META['CONTENT_TYPE'] = 'application/json'
-        # Call dispatch_detail as though it was originally a PATCH
-        return self.dispatch_detail(request, **kwargs)
 
     # https://github.com/toastdriven/django-tastypie/blob/ec16d5fc7592efb5ea86321862ec0b5962efba1b/tastypie/resources.py#L2194
     def obj_delete(self, bundle, **kwargs):
