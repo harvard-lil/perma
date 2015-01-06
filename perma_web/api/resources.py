@@ -107,7 +107,7 @@ class FolderResource(DefaultResource):
 
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/(?P<parent_id>\w[\w/-]*)/folders/(?P<%s>.*?)%s$" % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('move'), name="api_move_folder"),
+            url(r"^(?P<resource_name>%s)/(?P<parent_id>\w[\w/-]*)/%s/(?P<%s>.*?)%s$" % (self._meta.resource_name, self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('move'), name="api_move_folder"),
         ]
 
     def hydrate_name(self, bundle):
