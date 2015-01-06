@@ -1,20 +1,6 @@
 $(function() {
     var linkTable = $('.link-rows');
 
-    // helpers
-    function postJSON(url, data, callback, failureCallback) {
-        return $.ajax({
-                          url: url,
-                          type: "POST",
-                          dataType: 'json',
-                          data: data,
-                          success: callback,
-                          traditional: true // use Django-style array serialization
-        }).fail(failureCallback || function (jqXHR) {
-            informUser(jqXHR.status == 400 && jqXHR.responseText ? jqXHR.responseText : "Error " + jqXHR.status, 'danger');
-        });
-    }
-
     function getLinkIDForFormElement(element){
         return element.closest('.link-container').find('.link-row').attr('link_id');
     }
@@ -126,10 +112,9 @@ $(function() {
     // handle move-to-folder dropdown
     }).on('change', '.move-to-folder', function () {
         moveSelect = $(this);
-        moveItems(
+        moveLink(
             moveSelect.val(), // selected folder_id to move link to
-            [getLinkIDForFormElement(moveSelect)], // link id to move
-            []
+            getLinkIDForFormElement(moveSelect) // link id to move
         ).done(function () {
             showFolderContents(getSelectedFolderID());
         });
@@ -175,13 +160,9 @@ $(function() {
         return api_path + '/folders/' + folderID + '/';
     }
 
-    function postJSONToFolder(folderID, json) {
-        return postJSON(getFolderURL(folderID), json);
-    }
-
     function editNodeName(node) {
         setTimeout(function () {
-            folderTree.edit(node)
+            folderTree.edit(node);
         }, 0);
     }
 
@@ -246,10 +227,6 @@ $(function() {
         });
     }
 
-    function moveItems(targetFolderID, links, folders) {
-        return postJSONToFolder(targetFolderID, {action: 'move_items', links: links, folders: folders});
-    }
-
     function moveFolder(parentID, childID) {
         return $.ajax(api_path + "/folders/" + parentID + "/folders/" + childID + "/", {
             method: "PUT"
@@ -259,6 +236,12 @@ $(function() {
     function deleteFolder(folderID) {
         return $.ajax(api_path + "/folders/" + folderID + "/", {
             method: "DELETE"
+        });
+    }
+
+    function moveLink(folderID, linkID) {
+        return $.ajax(api_path + "/folders/" + folderID + "/archives/" + linkID + "/", {
+            method: "PUT"
         });
     }
 
@@ -323,7 +306,7 @@ $(function() {
                         // link dragged onto folder
                         if (operation == 'copy_node') {
                             var targetNode = getDropTarget();
-                            moveItems(targetNode.data.folder_id, [node.id], []).done(function () {
+                            moveLink(targetNode.data.folder_id, node.id).done(function () {
                                 showFolderContents(getSelectedFolderID());
                             });
                         }

@@ -188,6 +188,11 @@ class LinkResource(MultipartResource, DefaultResource):
     class Nested:
         assets = fields.ToManyField(AssetResource, 'assets')
 
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<folder_id>\w[\w/-]*)/%s/(?P<%s>.*?)%s$" % (FolderResource()._meta.resource_name, self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('move'), name="api_move_archive"),
+        ]
+
     def apply_filters(self, request, applicable_filters):
         base_object_list = super(LinkResource, self).apply_filters(request, applicable_filters)
 
@@ -305,7 +310,11 @@ class LinkResource(MultipartResource, DefaultResource):
         bundle = super(LinkResource, self).obj_update(bundle, skip_errors, **kwargs)
 
         if not was_vested and bundle.obj.vested:
-            self.post_vesting(bundle)
+            return self.post_vesting(bundle)
+
+        if bundle.data.get('folder_id', None):
+            bundle.obj.move_to_folder_for_user(Folder.objects.get(id=bundle.data['folder_id']),
+                                               bundle.request.user)
 
         return bundle
 
@@ -318,6 +327,18 @@ class LinkResource(MultipartResource, DefaultResource):
             run_task(upload_to_internet_archive, link_guid=bundle.obj.guid)
 
         return bundle
+
+    def move(self, request, **kwargs):
+        # Only allow PUT
+        if request.method != 'PUT':
+            raise ImmediateHttpResponse(response=HttpNotImplemented())
+        # Mimic a PATCH request
+        request.method = 'PATCH'
+        # Pop the parent_id (removing it from the filters) and mimic a request body
+        request._body = '{"folder_id": "%s"}' % (kwargs.pop('folder_id', None))
+        request.META['CONTENT_TYPE'] = 'application/json'
+        # Call dispatch_detail as though it was originally a PATCH
+        return self.dispatch_detail(request, **kwargs)
 
     # https://github.com/toastdriven/django-tastypie/blob/ec16d5fc7592efb5ea86321862ec0b5962efba1b/tastypie/resources.py#L2194
     def obj_delete(self, bundle, **kwargs):
