@@ -250,6 +250,12 @@ $(function() {
         return postJSONToFolder(targetFolderID, {action: 'move_items', links: links, folders: folders});
     }
 
+    function moveFolder(parentID, childID) {
+        return $.ajax(api_path + "/folders/" + parentID + "/folders/" + childID + "/", {
+            method: "PUT"
+        });
+    }
+
     function deleteFolder(folderID) {
         return $.ajax(api_path + "/folders/" + folderID + "/", {
             method: "DELETE"
@@ -331,7 +337,7 @@ $(function() {
                             });
                         } else if (operation == 'move_node') {
                             var targetNode = getDropTarget();
-                            moveItems(targetNode.data.folder_id, [], [node.data.folder_id]).done(function () {
+                            moveFolder(targetNode.data.folder_id, node.data.folder_id).done(function () {
                                 allowedEventsCount++;
                                 folderTree.move_node(node, targetNode);
                             });

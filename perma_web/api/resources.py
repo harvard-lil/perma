@@ -9,8 +9,8 @@ from django.db.models import Q
 from tastypie.utils import trailing_slash
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from tastypie.resources import ModelResource
-from tastypie.exceptions import NotFound
-from tastypie.http import HttpGone, HttpMultipleChoices
+from tastypie.exceptions import NotFound, ImmediateHttpResponse
+from tastypie.http import HttpNotImplemented
 from validations import LinkValidation
 
 from authentication import (DefaultAuthentication,
@@ -105,6 +105,11 @@ class FolderResource(DefaultResource):
         folders = fields.ToManyField('api.resources.FolderResource', 'children', full=True, readonly=True)
         archives = fields.ToManyField('api.resources.LinkResource', 'links', full=True, readonly=True)
 
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<parent_id>\w[\w/-]*)/folders/(?P<%s>.*?)%s$" % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('move'), name="api_move_folder"),
+        ]
+
     def hydrate_name(self, bundle):
         # Clean up the user submitted name
         if bundle.data.get('name', None):
@@ -122,6 +127,18 @@ class FolderResource(DefaultResource):
 
         kwargs['created_by'] = bundle.request.user
         return super(FolderResource, self).obj_create(bundle, **kwargs)
+
+    def move(self, request, **kwargs):
+        # Only allow PUT
+        if request.method != 'PUT':
+            raise ImmediateHttpResponse(response=HttpNotImplemented())
+        # Mimic a PATCH request
+        request.method = 'PATCH'
+        # Pop the parent_id (removing it from the filters) and mimic a request body
+        request._body = '{"parent_id": "%s"}' % (kwargs.pop('parent_id', None))
+        request.META['CONTENT_TYPE'] = 'application/json'
+        # Call dispatch_detail as though it was originally a PATCH
+        return self.dispatch_detail(request, **kwargs)
 
 
 class AssetResource(DefaultResource):
