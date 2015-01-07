@@ -70,6 +70,8 @@ function linkIt(){
         var source = $("#success-template").html();
         var template = Handlebars.compile(source);
         $('#preview-container').html(template(new_archive));
+        $('#archive_upload_form #title').val(new_archive.title);
+        $('#archive_upload_form #url').val(new_archive.original);
 
         // Get our spinner going now that we're drawing it
         var target = document.getElementById('spinner');
@@ -93,6 +95,8 @@ function linkIt(){
             url: rawUrl,
             message: message
         }));
+        $('#archive_upload_form #url').val(rawUrl);
+        $('#archive_upload_form #title').val(rawUrl);
 
         $('.preview-row').removeClass('hide').hide().slideDown();
     });
