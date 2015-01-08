@@ -47,12 +47,24 @@ class DefaultResource(ExtendedModelResource):
         # Only allow PUT
         if request.method != 'PUT':
             raise ImmediateHttpResponse(response=HttpNotImplemented())
+
         # Mimic a PATCH request
         request.method = 'PATCH'
-        # Mimic a request body using pop() so as to remove the url params from kwargs filters
-        exclude = ['api_name', 'resource_name', self._meta.detail_uri_name]
-        request._body = json.dumps({k: kwargs.pop(k) for k in kwargs.keys() if k not in exclude})
+
+        # Modify request body
+        try:
+            data = self.deserialize(request, request.body, format=request.META.get('CONTENT_TYPE', 'application/json'))
+        except:
+            data = {}
+
+        for k in kwargs.keys():
+            if k not in ['api_name', 'resource_name', self._meta.detail_uri_name]:
+                # Use pop() so as to remove the url params from kwargs filters
+                data[k] = kwargs.pop(k)
+
+        request._body = json.dumps(data)
         request.META['CONTENT_TYPE'] = 'application/json'
+
         # Call dispatch_detail as though it was originally a PATCH
         return self.dispatch_detail(request, **kwargs)
 
