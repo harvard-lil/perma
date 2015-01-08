@@ -159,61 +159,18 @@ def folder_contents(request, folder_id):
 @require_group(['registrar_user', 'registry_user', 'vesting_user'])
 def vest_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
+
     if link.vested:
         return HttpResponseRedirect(reverse('single_linky', args=[guid]))
 
-    user = request.user
-    vesting_org = user.vesting_org
+    lr = LinkResource()
+    lr_bundle = lr.build_bundle(obj=link, request=request)
+    archive_json = lr.serialize(None, lr.full_dehydrate(lr_bundle), 'application/json')
 
-    # make user pick a vesting org, if they have more than one
-    if not vesting_org:
-        if request.POST.get('vesting_org'):
-            vesting_org = get_object_or_404(VestingOrg, pk=request.POST['vesting_org'], **({'registrar': user.registrar} if user.registrar else {}))
-        else:
-            if user.registrar:
-                vesting_orgs = VestingOrg.objects.filter(registrar=user.registrar)
-            else:
-                vesting_orgs = VestingOrg.objects.all()
-            vesting_orgs = list(vesting_orgs)
-            if not vesting_orgs:
-                messages.add_message(request, messages.ERROR, "Please create a vesting organization before vesting links.")
-                return HttpResponseRedirect(reverse('single_linky', args=[guid]))
-            elif len(vesting_orgs) == 1:
-                vesting_org = vesting_orgs[0]
-            else:
-                return render(request, 'link-vest-confirm.html', {
-                    'vesting_orgs': vesting_orgs,
-                    'link': link,
-                })
-
-    # make user pick a folder in the vesting org's shared folder
-    if not request.POST.get('folder'):
-        try:
-            selected_folder = link.folders.get(vesting_org=vesting_org)
-        except Folder.DoesNotExist:
-            selected_folder = None
-        return render(request, 'link-vest-confirm.html', {
-            'folder_tree': vesting_org.shared_folder.get_descendants(include_self=True),
-            'link': link,
-            'vesting_org': vesting_org,
-            'selected_folder': selected_folder,
-        })
-
-    # vest
-    if request.POST.get('vest'):
-        target_folder = get_object_or_404(Folder, pk=request.POST['folder'], vesting_org=vesting_org)
-        link.vested = True
-        link.vested_by_editor = user
-        link.vesting_org = vesting_org
-        link.vested_timestamp = datetime.now()
-        link.save()
-
-        link.move_to_folder_for_user(target_folder, request.user)
-
-        if settings.UPLOAD_TO_INTERNET_ARCHIVE and link.can_upload_to_internet_archive():
-            run_task(upload_to_internet_archive, link_guid=guid)
-
-    return HttpResponseRedirect(reverse('single_linky', args=[guid]))
+    return render(request, 'link-vest-confirm.html', {
+        'link': link,
+        'archive_json': archive_json,
+    })
 
 
 @login_required
