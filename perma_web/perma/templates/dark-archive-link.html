@@ -6,7 +6,6 @@
 
     <div class="centered-box">
         <form action="" method="post">
-          {% csrf_token %}
           <a href="/{{ link.guid }}" class="cancel-button">Cancel</a> <button type="submit" class="btn delete-confirm btn-success">Dark archive this link forever</button>
         </form>
     </div>
@@ -17,4 +16,17 @@
             {% endif %}
         {% endif %}
     </div>
+{% endblock %}
+
+{% block globaljs %}
+    {{ block.super }}
+    {% include 'js_config.html' %}
+    <script>
+        var url_single_linky = "{% url 'single_linky' link.guid %}",
+            archive = {{ archive_json|safe }};
+    </script>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ STATIC_URL }}js/dark-archive-link.js"></script>
 {% endblock %}

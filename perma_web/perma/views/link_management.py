@@ -193,19 +193,13 @@ def user_delete_link(request, guid):
 def dark_archive_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
     asset = Asset.objects.get(link=link)
-    if request.method == 'POST':
-        if request.user.has_group('registrar_user'):
-            if not link.vesting_org.registrar == request.user.registrar and not request.user == link.created_by:
-                return HttpResponseRedirect(reverse('single_linky', args=[guid]))
-        elif request.user.has_group('vesting_user'):
-            if not link.vesting_org == request.user.vesting_org and not request.user == link.created_by:
-                return HttpResponseRedirect(reverse('single_linky', args=[guid]))
-        elif not request.user == link.created_by:
-            return HttpResponseRedirect(reverse('single_linky', args=[guid]))
 
-        if not link.dark_archived:
-            link.dark_archived = True
-            link.dark_archived_by = request.user
-            link.save()
-        return HttpResponseRedirect(reverse('single_linky', args=[guid]))
-    return render_to_response('dark-archive-link.html', {'link': link, 'asset': asset}, RequestContext(request))
+    lr = LinkResource()
+    lr_bundle = lr.build_bundle(obj=link, request=request)
+    archive_json = lr.serialize(None, lr.full_dehydrate(lr_bundle), 'application/json')
+
+    return render_to_response('dark-archive-link.html',
+                              {'link': link,
+                               'asset': asset,
+                               'archive_json': archive_json},
+                              RequestContext(request))
