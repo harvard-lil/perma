@@ -41,7 +41,12 @@ class DefaultResource(ExtendedModelResource):
         authentication = DefaultAuthentication()
         authorization = DefaultAuthorization()
         always_return_data = True
-        fields = [None]  # prevents ModelResource from auto-including additional fields
+        include_resource_uri = False
+
+    @classmethod
+    # Hack to prevent ModelResource from auto-including additional fields
+    def get_fields(cls, fields=None, excludes=None):
+        return []
 
     def put_url_params_to_patch(self, request, **kwargs):
         # Only allow PUT
@@ -106,13 +111,12 @@ class LinkUserResource(DefaultResource):
 
 
 class VestingOrgResource(DefaultResource):
+    id = fields.IntegerField(attribute='id')
+    name = fields.CharField(attribute='name')
+
     class Meta(DefaultResource.Meta):
         resource_name = 'vesting_orgs'
         queryset = VestingOrg.objects.all()
-        fields = [
-            'id',
-            'name'
-        ]
 
     class Nested:
         folders = fields.ToManyField('api.resources.FolderResource', 'folders', null=True)
@@ -359,9 +363,7 @@ class LinkResource(MultipartResource, DefaultResource):
 
 
 class CurrentUserResource(LinkUserResource):
-    # Don't inherit from DefaultResource.Meta or anything with fields = [None]
-    # else fields won't be inherited properly
-    class Meta:
+    class Meta(DefaultResource.Meta):
         resource_name = 'user'
         authentication = CurrentUserAuthentication()
         authorization = CurrentUserAuthorization()
@@ -392,7 +394,7 @@ class CurrentUserResource(LinkUserResource):
 
 
 class CurrentUserNestedResource(object):
-    class Meta:
+    class Meta(DefaultResource.Meta):
         authentication = CurrentUserAuthentication()
         authorization = CurrentUserAuthorization()
 
@@ -400,7 +402,7 @@ class CurrentUserNestedResource(object):
         """
         Assign created objects to the current user
         """
-        return super(CurrentUserFolderResource, self).obj_create(bundle, created_by=bundle.request.user)
+        return super(CurrentUserNestedResource, self).obj_create(bundle, created_by=bundle.request.user)
 
 
 class CurrentUserLinkResource(CurrentUserNestedResource, LinkResource):
