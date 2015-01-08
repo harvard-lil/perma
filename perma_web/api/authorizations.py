@@ -133,6 +133,6 @@ class CurrentUserVestingOrgAuthorization(CurrentUserAuthorization):
         if not bundle.request.user.is_authenticated():
             raise Unauthorized("You must be authenticated.")
 
-        return object_list.filter(VestingOrg.objects.user_access_filter(bundle.request.user))
+        return object_list.accessible_to(bundle.request.user)
 
     read_list = all_list  # create_list = update_list = delete_list = disallowed system wide

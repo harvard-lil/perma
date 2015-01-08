@@ -63,7 +63,11 @@ class Registrar(models.Model):
 
 class VestingOrgQuerySet(QuerySet):
     def accessible_to(self, user):
-        return self.filter(VestingOrg.objects.user_access_filter(user))
+        qset = VestingOrg.objects.user_access_filter(user)
+        if qset is None:
+            return self.none()
+        else:
+            return self.filter(qset)
 
 
 class VestingOrgManager(models.Manager):
@@ -74,15 +78,14 @@ class VestingOrgManager(models.Manager):
         return VestingOrgQuerySet(self.model, using=self._db)
 
     def user_access_filter(self, user):
-        qlist = []
-
         if user.vesting_org_id:
-            qlist.append(Q(id=user.vesting_org_id))
-
-        if user.registrar_id:
-            qlist.append(Q(registrar_id=user.registrar_id))
-
-        return reduce(operator.or_, qlist)
+            return Q(id=user.vesting_org_id)
+        elif user.registrar_id:
+            return Q(registrar_id=user.registrar_id)
+        elif user.has_group('registry_user'):
+            return
+        else:
+            return None
 
 
 class VestingOrg(models.Model):
