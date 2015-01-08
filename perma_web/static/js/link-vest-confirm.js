@@ -58,7 +58,8 @@ $(function(){
             
             $.ajax(api_path + "/folders/" + folder_id + "/archives/" + archive.guid + "/", {
                 method: "PUT",
-                data: {vested: true},
+                data: JSON.stringify({vested: true}),
+                contentType: 'application/json',
                 success: function(){
                     window.location = url_single_linky;
                 },
