@@ -19,7 +19,8 @@ from authentication import (DefaultAuthentication,
 from authorizations import (DefaultAuthorization,
                             FolderAuthorization,
                             LinkAuthorization,
-                            CurrentUserAuthorization)
+                            CurrentUserAuthorization,
+                            CurrentUserVestingOrgAuthorization)
 
 # LinkResource
 from perma.utils import run_task
@@ -413,3 +414,9 @@ class CurrentUserLinkResource(CurrentUserNestedResource, LinkResource):
 class CurrentUserFolderResource(CurrentUserNestedResource, FolderResource):
     class Meta(CurrentUserNestedResource.Meta, FolderResource.Meta):
         resource_name = 'user/' + FolderResource.Meta.resource_name
+
+
+class CurrentUserVestingOrgResource(CurrentUserNestedResource, VestingOrgResource):
+    class Meta(CurrentUserNestedResource.Meta, VestingOrgResource.Meta):
+        resource_name = 'user/' + VestingOrgResource.Meta.resource_name
+        authorization = CurrentUserVestingOrgAuthorization()

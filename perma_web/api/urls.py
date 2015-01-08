@@ -5,7 +5,8 @@ from api.resources import (VestingOrgResource,
                            AssetResource,
                            CurrentUserResource,
                            CurrentUserLinkResource,
-                           CurrentUserFolderResource)
+                           CurrentUserFolderResource,
+                           CurrentUserVestingOrgResource)
 
 v1_api = Api(api_name='v1')
 v1_api.register(VestingOrgResource())
@@ -16,5 +17,6 @@ v1_api.register(AssetResource())
 v1_api.register(CurrentUserResource())
 v1_api.register(CurrentUserLinkResource())
 v1_api.register(CurrentUserFolderResource())
+v1_api.register(CurrentUserVestingOrgResource())
 
 urlpatterns = v1_api.urls

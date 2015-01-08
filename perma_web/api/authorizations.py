@@ -1,4 +1,4 @@
-from perma.models import Link, Folder
+from perma.models import Link, Folder, VestingOrg
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.exceptions import Unauthorized
 
@@ -124,4 +124,15 @@ class CurrentUserAuthorization(ReadOnlyAuthorization):
         return object_list.filter(created_by=bundle.request.user)
 
     read_detail = create_detail = update_detail = delete_detail = all_detail
+    read_list = all_list  # create_list = update_list = delete_list = disallowed system wide
+
+
+class CurrentUserVestingOrgAuthorization(CurrentUserAuthorization):
+
+    def all_list(self, object_list, bundle):
+        if not bundle.request.user.is_authenticated():
+            raise Unauthorized("You must be authenticated.")
+
+        return object_list.filter(VestingOrg.objects.user_access_filter(bundle.request.user))
+
     read_list = all_list  # create_list = update_list = delete_list = disallowed system wide
