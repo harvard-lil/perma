@@ -97,7 +97,6 @@ PIPELINE_JS = {
         'source_filenames': (
             'js/jquery-ui-1.10.3.custom.min.js',
             'js/jquery.dotdotdot-1.5.9.min.js',
-            'js/jquery.django-csrf.js',
             'js/lib/jstree.min.js',
             'js/lib/jquery.splendid.textchange.js',
             'js/links-list.js',

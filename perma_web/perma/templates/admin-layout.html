@@ -21,6 +21,7 @@
 {% endblock %}
 
 {% block globaljs %}
+<script src="{{ STATIC_URL }}js/jquery.django-csrf.js"></script>
 <script src="{{ STATIC_URL }}js/handlebars.js"></script>
 <script src="{{ STATIC_URL }}js/handlebars_helpers.js"></script>
 {% include 'js_config.html' %}
