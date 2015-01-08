@@ -78,12 +78,13 @@ class VestingOrgManager(models.Manager):
         return VestingOrgQuerySet(self.model, using=self._db)
 
     def user_access_filter(self, user):
-        if user.vesting_org_id:
+        # Sniff the user group access without making db calls
+        if user.vesting_org_id:  # user.has_group('vesting_user')
             return Q(id=user.vesting_org_id)
-        elif user.registrar_id:
+        elif user.registrar_id:  # user.has_group('registrar_user')
             return Q(registrar_id=user.registrar_id)
-        elif user.has_group('registry_user'):
-            return
+        elif user.has_group('registry_user'):  # user.has_group('registry_user')
+            return  # all
         else:
             return None
 
