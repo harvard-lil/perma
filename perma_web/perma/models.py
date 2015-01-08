@@ -1,6 +1,7 @@
 import logging
 import random
 import re
+import operator
 
 from django.contrib.auth.models import Group, BaseUserManager, AbstractBaseUser
 from django.conf import settings
@@ -58,7 +59,32 @@ class Registrar(models.Model):
             vesting_org.save()
             self.default_vesting_org = vesting_org
             self.save()
-        
+
+
+class VestingOrgQuerySet(QuerySet):
+    def accessible_to(self, user):
+        return self.filter(VestingOrg.objects.user_access_filter(user))
+
+
+class VestingOrgManager(models.Manager):
+    """
+        Vesting org manager that can enforce user access perms.
+    """
+    def get_queryset(self):
+        return VestingOrgQuerySet(self.model, using=self._db)
+
+    def user_access_filter(self, user):
+        qlist = []
+
+        if user.vesting_org_id:
+            qlist.append(Q(id=user.vesting_org_id))
+
+        if user.registrar_id:
+            qlist.append(Q(registrar_id=user.registrar_id))
+
+        return reduce(operator.or_, qlist)
+
+
 class VestingOrg(models.Model):
     """
     This is generally a journal.
@@ -71,6 +97,7 @@ class VestingOrg(models.Model):
     # what info to send downstream
     mirror_fields = ('name', 'registrar')
 
+    objects = VestingOrgManager()
     tracker = FieldTracker()
 
     def __init__(self, *args, **kwargs):
