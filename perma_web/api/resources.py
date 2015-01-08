@@ -33,10 +33,6 @@ from django.utils import timezone
 import json
 
 
-def pk_to_uri(resource, pk):
-    return resource().get_resource_uri(resource._meta.object_class(pk=pk))
-
-
 class DefaultResource(ExtendedModelResource):
     class Meta:
         authentication = DefaultAuthentication()
@@ -48,6 +44,10 @@ class DefaultResource(ExtendedModelResource):
     # Hack to prevent ModelResource from auto-including additional fields
     def get_fields(cls, fields=None, excludes=None):
         return []
+
+    # Convert a resource public key to a uri that tastypie can consume
+    def pk_to_uri(resource, pk):
+        return resource().get_resource_uri(resource._meta.object_class(pk=pk))
 
     def put_url_params_to_patch(self, request, **kwargs):
         # Only allow PUT
@@ -262,8 +262,8 @@ class LinkResource(MultipartResource, DefaultResource):
                 try:
                     # int() sniffs if an id has been passed
                     int(bundle.data['vesting_org'])
-                    bundle.data['vesting_org'] = pk_to_uri(VestingOrgResource,
-                                                           bundle.data['vesting_org'])
+                    bundle.data['vesting_org'] = self.pk_to_uri(VestingOrgResource,
+                                                                bundle.data['vesting_org'])
                 except ValueError:
                     pass
             elif VestingOrg.objects.accessible_to(bundle.request.user).count() == 1:
