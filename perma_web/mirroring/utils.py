@@ -2,6 +2,7 @@ import datetime
 from functools import wraps
 import hashlib
 import json
+from django.http import HttpResponseBadRequest, HttpResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 import gnupg
 import pytz
@@ -64,11 +65,22 @@ def get_fingerprint(key):
         _fingerprint_cache[key] = get_gpg().import_keys(key).fingerprints[0]
     return _fingerprint_cache[key]
 
+def get_key(fingerprint):
+    """
+        Reverse of get_fingerprint -- look up a key based on a fingerprint we previously cached.
+    """
+    for key, candidate in _fingerprint_cache.iteritems():
+        if candidate==fingerprint:
+            return key
+
 def sign_message(message, key=settings.GPG_PRIVATE_KEY):
     if not key:
         return message
     fingerprint = get_fingerprint(key)
     return get_gpg().sign(message, keyid=fingerprint)
+
+class SignatureError(Exception):
+    pass
 
 def read_signed_message(message, valid_keys, max_age=None, cache=False):
     """
@@ -85,40 +97,56 @@ def read_signed_message(message, valid_keys, max_age=None, cache=False):
     if cache:
         # Try to fetch from cache.
         cache_key = 'gpg-' + hashlib.sha256(message).hexdigest()
-        verified_message = django_cache.get(cache_key)
+        fingerprint_key = cache_key+'-fp'
+        message_data = django_cache.get(cache_key)
+        fingerprint = django_cache.get(fingerprint_key)
 
     if not verified_message:
         # Not in cache, run decode.
         valid_fingerprints = set(get_fingerprint(key) for key in valid_keys)
         verified_message = get_gpg().decrypt(message)  # decrypt instead of verify, even if message isn't encrypted, so we get the message content in verified_message.data
         if verified_message.fingerprint not in valid_fingerprints:
-            raise Exception("Signature verification failed: fingerprint does not match %s for message %s." % (valid_fingerprints, message))
+            raise SignatureError("Signature verification failed: fingerprint does not match.")
         if max_age is not None and time.time() - int(verified_message.timestamp) > max_age:
-            raise Exception("Message is too old.")
-        verified_message = verified_message.data[:-1]  # strip extra \n that gpg adds
+            raise SignatureError("Message is too old.")
+
+        message_data = verified_message.data[:-1]  # strip extra \n that gpg adds
+        fingerprint = verified_message.fingerprint
 
         if cache:
-            django_cache.set(cache_key, verified_message)
+            django_cache.set(cache_key, message_data)
+            django_cache.set(fingerprint_key, fingerprint)
 
-    return verified_message
-
-
-### auth ###
+    return message_data, fingerprint
 
 def sign_post_data(json_data):
     return {'signed_data':sign_message(json.dumps(json_data))}
 
-def read_request_decorator(func, valid_keys):
+def read_request_decorator(func, valid_servers):
     @csrf_exempt  # don't want/need CSRF because we're making sure these requests are signed
     @wraps(func)
     def decode(request):
-        message = read_signed_message(request.POST['signed_data'], valid_keys, max_age=60*5)
+        if 'signed_data' not in request.POST:
+            return HttpResponseBadRequest("Mirroring request must include signed_data POST value.")
+        try:
+            message, fingerprint = read_signed_message(request.POST['signed_data'], [s['public_key'] for s in valid_servers], max_age=60*5)
+        except SignatureError:
+            return HttpResponseForbidden(str(SignatureError))
+
+        # figure out requesting server based on message fingerprint
+        request_key = get_key(fingerprint)
+        request_server = None
+        for server in valid_servers:
+            if server['public_key'] == request_key:
+                request_server = server
+                break
+
         kwargs = json.loads(message)
-        return func(request, **kwargs)
+        return func(request, request_server, **kwargs)
     return decode
 
 def read_upstream_request(func):
-    return read_request_decorator(func, [settings.UPSTREAM_SERVER.get('public_key')])
+    return read_request_decorator(func, [settings.UPSTREAM_SERVER])
 
 def read_downstream_request(func):
-    return read_request_decorator(func, [server['public_key'] for server in settings.DOWNSTREAM_SERVERS])
+    return read_request_decorator(func, settings.DOWNSTREAM_SERVERS)

@@ -246,36 +246,38 @@ def generate_keys():
 
 ### HEROKU ###
 
-def heroku_create_app(app_name, s3_storage_bucket=None):
+def heroku_configure_app(app_name, s3_storage_bucket=None, s3_path='/'):
     """
         Set up a new Heroku Perma app.
     """
-    def heroku(cmd):
-        local("heroku %s --app %s" % (cmd, app_name))
+    def heroku(cmd, capture=False):
+        return local("heroku %s --app %s" % (cmd, app_name), capture=capture)
 
     #heroku("apps:create %s" % app_name)
-    heroku("config:add BUILDPACK_URL=git://github.com/jcushman/heroku-buildpack-python.git")
-    heroku("addons:add cleardb:ignite")
-    heroku("addons:add cloudamqp")
-    heroku("addons:add redistogo")
+    existing_addons = heroku("addons", capture=True)
+    for addon in ('cleardb', 'cloudamqp', 'rediscloud'):
+        if addon not in existing_addons:
+            heroku("addons:add %s" % addon)
 
     # Django config
     if not s3_storage_bucket:
         s3_storage_bucket = app_name
-    s3_url = 'http://%s.s3.amazonaws.com/' % s3_storage_bucket
+    s3_url = '//%s.s3.amazonaws.com%s' % (s3_storage_bucket, s3_path)
+
     django_config_vars = {
-        'SECRET_KEY':get_random_string(50, 'abcdefghijklmnopqrstuvwxyz0123456789'),
-        'ARCHIVE_URL':s3_url+'generated/',
         'AWS_STORAGE_BUCKET_NAME':s3_storage_bucket,
         'HOST':'%s.herokuapp.com' % app_name,
-        'STATIC_URL':s3_url+'static/',
+        'MEDIA_ROOT':'/generated/',
         'MEDIA_URL':s3_url+'media/',
+        'SECRET_KEY':get_random_string(50, 'abcdefghijklmnopqrstuvwxyz0123456789'),
+        'STATIC_URL':s3_url+'static/',
     }
-    for key, val in django_config_vars.items():
-        heroku("config:set DJANGO__%s=%s" % (key, val))
+    heroku("config:set %s" % " ".join("DJANGO__%s=%s" % (key, val) for key, val in django_config_vars.items()))
 
-    print "Heroku app setup completed. Remember to set DJANGO__HOST to the correct domain," +\
-          "and DJANGO__AWS_ACCESS_KEY_ID and DJANGO__AWS_SECRET_ACCESS_KEY to your credentials."
+    django_blank_vars = ('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'GPG_PRIVATE_KEY', 'GPG_PUBLIC_KEY')
+    heroku("config:set %s" % " ".join("DJANGO__%s=MISSING" % key for key in django_blank_vars))
+
+    print "Heroku app setup completed. Remember to set the following config vars: %s" % (django_blank_vars,)
 
 def heroku_push(app_name='perma', project_dir=os.path.join(settings.PROJECT_ROOT, '..')):
     """
