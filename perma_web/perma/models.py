@@ -1,7 +1,6 @@
 import logging
 import random
 import re
-import operator
 
 from django.contrib.auth.models import Group, BaseUserManager, AbstractBaseUser
 from django.conf import settings
