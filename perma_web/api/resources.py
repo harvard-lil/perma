@@ -253,12 +253,9 @@ class LinkResource(MultipartResource, DefaultResource):
 
     def hydrate_vesting_org(self, bundle):
         if bundle.data.get('vested', None) and not bundle.obj.vesting_org:
-            # A folder was passed in via URL during vest i.e. /folders/123/archives/ABC-EFG
-            if bundle.data.get('folder', None):
-                bundle.data['vesting_org'] = Folder.objects.get(pk=bundle.data.get('folder')).vesting_org
             # If the user passed a vesting org id, grab the uri
             # but don't make a DB call - we'll validate it later
-            elif bundle.data.get('vesting_org', None):
+            if bundle.data.get('vesting_org', None):
                 try:
                     # int() sniffs if an id has been passed
                     int(bundle.data['vesting_org'])
@@ -266,6 +263,9 @@ class LinkResource(MultipartResource, DefaultResource):
                                                                 bundle.data['vesting_org'])
                 except ValueError:
                     pass
+            # A folder was passed in via URL during vest i.e. /folders/123/archives/ABC-EFG
+            elif bundle.data.get('folder', None):
+                bundle.data['vesting_org'] = Folder.objects.get(pk=bundle.data.get('folder')).vesting_org
             elif VestingOrg.objects.accessible_to(bundle.request.user).count() == 1:
                 bundle.data['vesting_org'] = VestingOrg.objects.accessible_to(bundle.request.user).first()
         else:
