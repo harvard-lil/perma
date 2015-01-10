@@ -30,27 +30,25 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.list_url = "{0}/{1}/".format(self.url_base, LinkResource.Meta.resource_name)
         self.detail_url = "{0}{1}/".format(self.list_url, self.link_1.pk)
 
-        self.get_data = {
-            'vested': False,
-            'vested_timestamp': None,
-            'notes': '',
-            'title': 'arxiv.org',
-            'created_by': {'first_name': 'Vesting', 'last_name': 'Member', 'id': 3, 'resource_uri': ''},
-            'url': 'http://arxiv.org/pdf/1406.3611.pdf',
-            'dark_archived_robots_txt_blocked': False,
-            'dark_archived': False,
-            'vested_by_editor': None,
-            'guid': str(self.link_1.guid),
-            'creation_timestamp': '2014-06-16T15:23:24',
-            'expiration_date': '2014-06-16T15:23:24',
-            'vesting_org': None,
-            'resource_uri': self.detail_url,
-            'folders': [],
-            'assets': [],
-            'dark_archived_by': {},
-            'dark_archived_robots_txt_blocked': False,
-            'view_count': 1
-        }
+        self.fields = [
+            'vested',
+            'vested_timestamp',
+            'notes',
+            'title',
+            'created_by',
+            'url',
+            'dark_archived',
+            'dark_archived_by',
+            'dark_archived_robots_txt_blocked',
+            'vested_by_editor',
+            'guid',
+            'creation_timestamp',
+            'expiration_date',
+            'vesting_org',
+            'folders',
+            'assets',
+            'view_count'
+        ]
 
         self.post_data = {
             'url': self.server_url + "/test.html",
@@ -76,12 +74,12 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
         objs = self.deserialize(resp)['objects']
         self.assertEqual(len(objs), Link.objects.count())
-        self.assertKeys(objs[0], self.get_data.keys())
+        self.assertKeys(objs[0], self.fields)
 
     def test_get_detail_json(self):
         resp = self.api_client.get(self.detail_url)
         self.assertValidJSONResponse(resp)
-        self.assertKeys(self.deserialize(resp), self.get_data.keys())
+        self.assertKeys(self.deserialize(resp), self.fields)
 
     def test_post_list_unauthenticated(self):
         self.assertHttpUnauthorized(
