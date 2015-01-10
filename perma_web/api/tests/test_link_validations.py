@@ -123,15 +123,9 @@ class LinkValidationsTestCase(ApiResourceTestCase):
     # Required Fields #
     ###################
 
-    def test_should_reject_vest_when_missing_vesting_org(self):
-        self.rejected_patch(self.unvested_url,
-                            self.registry_member,  # registry_member has multiple vesting_orgs
-                            {'vested': True,
-                             'folder': 27})
-
     def test_should_reject_vest_when_vesting_org_not_found(self):
         self.rejected_patch(self.unvested_url,
-                            self.unvested_link.created_by,
+                            self.vesting_member,
                             {'vested': True,
                              'vesting_org': 999,
                              'folder': 27})
