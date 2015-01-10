@@ -46,7 +46,7 @@ class DefaultResource(ExtendedModelResource):
         return []
 
     # Convert a resource public key to a uri that tastypie can consume
-    def pk_to_uri(resource, pk):
+    def pk_to_uri(self, resource, pk):
         return resource().get_resource_uri(resource._meta.object_class(pk=pk))
 
     def put_url_params_to_patch(self, request, **kwargs):
