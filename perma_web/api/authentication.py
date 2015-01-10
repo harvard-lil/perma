@@ -20,6 +20,7 @@ class DefaultAuthentication(MultiAuthentication):
     Allow all GET requests through
     """
     def is_authenticated(self, request, **kwargs):
+        # If is_authenticated isn't run, request.user will always be anonymous
         result = super(DefaultAuthentication, self).is_authenticated(request, **kwargs)
         return request.method == 'GET' or result
 
