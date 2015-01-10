@@ -12,6 +12,14 @@ class CurrentUserResourceTestCase(ApiResourceTestCase):
         super(CurrentUserResourceTestCase, self).setUp()
         self.user = LinkUser.objects.get(email='test_vesting_member@example.com')
         self.detail_url = self.url_base+'/user/'
+        self.fields = [
+            'id',
+            'first_name',
+            'last_name',
+            'short_name',
+            'full_name',
+            'groups'
+        ]
 
     def test_get_detail_json(self):
         resp = self.api_client.get(self.detail_url,
@@ -19,8 +27,7 @@ class CurrentUserResourceTestCase(ApiResourceTestCase):
                                    authentication=self.get_credentials())
         self.assertValidJSONResponse(resp)
         obj = self.deserialize(resp)
-        keys = ['id', 'first_name', 'last_name', 'short_name', 'full_name', 'groups']
-        self.assertKeys(obj, keys+['resource_uri'])
+        self.assertKeys(obj, self.fields)
 
     def test_get_detail_unauthenticated(self):
         self.assertHttpUnauthorized(self.api_client.get(self.detail_url, format='json'))
