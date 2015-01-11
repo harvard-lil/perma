@@ -41,15 +41,13 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
     ############
 
     def test_should_allow_any_logged_in_user_to_create(self):
-        self.assertHttpCreated(
-            self.api_client.post(self.nested_url,
-                                 data={'name': 'Test Folder'},
-                                 authentication=self.get_credentials(self.regular_user)))
+        self.successful_post(self.nested_url,
+                             user=self.regular_user,
+                             data={'name': 'Test Folder'})
 
     def test_should_reject_create_from_logged_out_user(self):
-        self.assertHttpUnauthorized(
-            self.api_client.post(self.nested_url,
-                                 data={'name': 'Test Folder'}))
+        self.rejected_post(self.nested_url,
+                           data={'name': 'Test Folder'})
 
     ###########
     # Viewing #

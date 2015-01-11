@@ -106,7 +106,7 @@ class VestingOrg(models.Model):
     def __init__(self, *args, **kwargs):
         """ Capture original values so we can deal with changes during save. """
         super(VestingOrg, self).__init__(*args, **kwargs)
-        self.original_values = {'name':self.name}
+        self.original_values = {'name': self.name}
 
     def save(self, *args, **kwargs):
         super(VestingOrg, self).save(*args, **kwargs)
