@@ -1,17 +1,22 @@
 from django.conf import settings
 from tastypie import fields
 from extendedmodelresource import ExtendedModelResource
-from django.contrib.auth.models import Group
-from perma.models import LinkUser, Link, Asset, Folder, VestingOrg
 from django.conf.urls import url
 from django.core.urlresolvers import NoReverseMatch
 from django.db.models import Q
 from tastypie.utils import trailing_slash
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.core.exceptions import ObjectDoesNotExist
 from tastypie.resources import ModelResource
 from tastypie.exceptions import NotFound, ImmediateHttpResponse
 from tastypie.http import HttpNotImplemented
 from validations import LinkValidation
+from django.contrib.auth.models import Group
+from perma.models import (LinkUser,
+                          Link,
+                          Asset,
+                          Folder,
+                          VestingOrg,
+                          Registrar)
 
 from authentication import (DefaultAuthentication,
                             CurrentUserAuthentication)
@@ -121,6 +126,18 @@ class VestingOrgResource(DefaultResource):
 
     class Nested:
         folders = fields.ToManyField('api.resources.FolderResource', 'folders', null=True)
+
+
+class RegistrarResource(DefaultResource):
+    id = fields.IntegerField(attribute='id')
+    name = fields.CharField(attribute='name')
+
+    class Meta(DefaultResource.Meta):
+        resource_name = 'registrars'
+        queryset = Registrar.objects.all()
+
+    class Nested:
+        vesting_orgs = fields.ToManyField('api.resources.VestingOrgResource', 'vesting_orgs', null=True)
 
 
 class FolderResource(DefaultResource):

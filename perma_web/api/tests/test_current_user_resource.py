@@ -23,13 +23,13 @@ class CurrentUserResourceTestCase(ApiResourceTestCase):
         ]
 
     def test_get_self_detail_json(self):
-        self.successful_detail_get(self.detail_url, self.vesting_member, self.fields)
+        self.successful_detail_get(self.detail_url, self.fields, self.vesting_member)
 
     def test_get_archives_json(self):
-        self.successful_list_get(self.detail_url + 'archives/', self.vesting_member, 1)
+        self.successful_list_get(self.detail_url + 'archives/', 1, self.vesting_member)
 
     def test_get_folders_json(self):
-        self.successful_list_get(self.detail_url + 'folders/', self.vesting_member, 2)
+        self.successful_list_get(self.detail_url + 'folders/', 2, self.vesting_member)
 
     def test_get_vesting_orgs_json(self):
-        self.successful_list_get(self.detail_url + 'vesting_orgs/', self.vesting_member, 1)
+        self.successful_list_get(self.detail_url + 'vesting_orgs/', 1, self.vesting_member)

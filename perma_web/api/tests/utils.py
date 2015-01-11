@@ -154,19 +154,30 @@ class ApiResourceTestCase(ResourceTestCase):
         finally:
             models.HEADER_CHECK_TIMEOUT = prev_t
 
-    def successful_get(self, url, user):
-        self.assertHttpOK(
-            self.api_client.get(url, authentication=self.get_credentials(user)))
+    def successful_get(self, url, user=None):
+        kwargs = {}
+        if user:
+            kwargs = {'authentication': self.get_credentials(user)}
 
-    def successful_detail_get(self, url, user, fields):
-        resp = self.api_client.get(url, authentication=self.get_credentials(user))
+        self.assertHttpOK(self.api_client.get(url, **kwargs))
+
+    def successful_detail_get(self, url, fields, user=None):
+        kwargs = {}
+        if user:
+            kwargs = {'authentication': self.get_credentials(user)}
+
+        resp = self.api_client.get(url, **kwargs)
         self.assertHttpOK(resp)
         self.assertValidJSONResponse(resp)
         obj = self.deserialize(resp)
         self.assertKeys(obj, fields)
 
-    def successful_list_get(self, url, user, count):
-        resp = self.api_client.get(url, authentication=self.get_credentials(user))
+    def successful_list_get(self, url, count, user=None):
+        kwargs = {}
+        if user:
+            kwargs = {'authentication': self.get_credentials(user)}
+
+        resp = self.api_client.get(url, **kwargs)
         self.assertHttpOK(resp)
         self.assertValidJSONResponse(resp)
         data = self.deserialize(resp)

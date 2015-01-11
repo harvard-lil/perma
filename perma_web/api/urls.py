@@ -3,6 +3,7 @@ from api.resources import (VestingOrgResource,
                            LinkResource,
                            FolderResource,
                            AssetResource,
+                           RegistrarResource,
                            CurrentUserResource,
                            CurrentUserLinkResource,
                            CurrentUserFolderResource,
@@ -13,6 +14,7 @@ v1_api.register(VestingOrgResource())
 v1_api.register(LinkResource())
 v1_api.register(FolderResource())
 v1_api.register(AssetResource())
+v1_api.register(RegistrarResource())
 # /user and /user/sub_resource urls
 v1_api.register(CurrentUserResource())
 v1_api.register(CurrentUserLinkResource())
