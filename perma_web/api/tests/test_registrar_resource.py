@@ -15,10 +15,10 @@ class RegistrarResourceTestCase(ApiResourceTestCase):
         ]
 
     def test_get_list_json(self):
-        self.successful_list_get(self.list_url, 1)
+        self.successful_get(self.list_url, count=1)
 
     def test_get_detail_json(self):
-        self.successful_detail_get(self.detail_url, self.fields)
+        self.successful_get(self.detail_url, fields=self.fields)
 
     def test_get_vesting_orgs_json(self):
-        self.successful_list_get(self.detail_url + 'vesting_orgs/', 3)
+        self.successful_get(self.detail_url + 'vesting_orgs/', count=3)

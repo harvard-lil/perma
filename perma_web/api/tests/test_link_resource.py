@@ -192,9 +192,9 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
     def test_patch_detail(self):
         self.successful_patch(self.detail_url,
-                              self.link_1.created_by,
-                              {'notes': 'These are new notes',
-                               'title': 'This is a new title'})
+                              user=self.link_1.created_by,
+                              data={'notes': 'These are new notes',
+                                    'title': 'This is a new title'})
 
     ############
     # Deleting #

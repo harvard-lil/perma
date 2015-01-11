@@ -154,57 +154,53 @@ class ApiResourceTestCase(ResourceTestCase):
         finally:
             models.HEADER_CHECK_TIMEOUT = prev_t
 
-    def successful_get(self, url, user=None):
-        kwargs = {}
-        if user:
-            kwargs = {'authentication': self.get_credentials(user)}
+    def successful_get(self, url, **kwargs):
+        req_kwargs = {}
+        if kwargs.get('user', None):
+            req_kwargs = {'authentication': self.get_credentials(kwargs['user'])}
 
-        self.assertHttpOK(self.api_client.get(url, **kwargs))
-
-    def successful_detail_get(self, url, fields, user=None):
-        kwargs = {}
-        if user:
-            kwargs = {'authentication': self.get_credentials(user)}
-
-        resp = self.api_client.get(url, **kwargs)
-        self.assertHttpOK(resp)
-        self.assertValidJSONResponse(resp)
-        obj = self.deserialize(resp)
-        self.assertKeys(obj, fields)
-
-    def successful_list_get(self, url, count, user=None):
-        kwargs = {}
-        if user:
-            kwargs = {'authentication': self.get_credentials(user)}
-
-        resp = self.api_client.get(url, **kwargs)
+        resp = self.api_client.get(url, **req_kwargs)
         self.assertHttpOK(resp)
         self.assertValidJSONResponse(resp)
         data = self.deserialize(resp)
-        self.assertEqual(len(data['objects']), count)
 
-    def successful_patch(self, url, user, new_vals):
-        resp = self.api_client.get(url, authentication=self.get_credentials(user))
+        if kwargs.get('fields', None):
+            self.assertKeys(data, kwargs['fields'])
+
+        if kwargs.get('count', None):
+            self.assertEqual(len(data['objects']), kwargs['count'])
+
+    def rejected_get(self, url, **kwargs):
+        req_kwargs = {}
+        if kwargs.get('user', None):
+            req_kwargs = {'authentication': self.get_credentials(kwargs['user'])}
+
+        self.assertHttpRejected(
+            self.api_client.delete(url, **req_kwargs))
+
+    def successful_patch(self, url, **kwargs):
+        req_kwargs = {}
+        if kwargs.get('user', None):
+            req_kwargs = {'authentication': self.get_credentials(kwargs['user'])}
+
+        resp = self.api_client.get(url, **req_kwargs)
         self.assertHttpOK(resp)
         self.assertValidJSONResponse(resp)
         old_data = self.deserialize(resp)
 
         new_data = old_data.copy()
-        new_data.update(new_vals)
+        new_data.update(kwargs['data'])
 
         count = self.resource._meta.queryset.count()
-        resp = self.api_client.patch(url,
-                                     data=new_data,
-                                     authentication=self.get_credentials(user))
+        resp = self.api_client.patch(url, data=new_data, **req_kwargs)
         self.assertHttpAccepted(resp)
 
         # Make sure the count hasn't changed & we did an update.
         self.assertEqual(self.resource._meta.queryset.count(), count)
 
-        fresh_data = self.deserialize(
-            self.api_client.get(url, authentication=self.get_credentials(user)))
+        fresh_data = self.deserialize(self.api_client.get(url, **req_kwargs))
 
-        for attr in new_vals.keys():
+        for attr in kwargs['data'].keys():
             try:
                 # Make sure the data actually changed
                 self.assertNotEqual(fresh_data[attr], old_data[attr])
@@ -221,54 +217,60 @@ class ApiResourceTestCase(ResourceTestCase):
 
         return fresh_data
 
-    def rejected_patch(self, url, user, new_vals):
-        old_data = self.deserialize(
-            self.api_client.get(url, authentication=self.get_credentials(user)))
+    def rejected_patch(self, url, **kwargs):
+        req_kwargs = {}
+        if kwargs.get('user', None):
+            req_kwargs = {'authentication': self.get_credentials(kwargs['user'])}
+
+        old_data = self.deserialize(self.api_client.get(url, **req_kwargs))
 
         # User might not have GET access to grab initial data
         if old_data:
             new_data = old_data.copy()
-            new_data.update(new_vals)
+            new_data.update(kwargs['data'])
         else:
-            new_data = new_vals
+            new_data = kwargs['data']
 
         count = self.resource._meta.queryset.count()
-        resp = self.api_client.patch(url,
-                                     data=new_data,
-                                     authentication=self.get_credentials(user))
+        resp = self.api_client.patch(url, data=new_data, **req_kwargs)
         self.assertHttpRejected(resp)
 
         self.assertEqual(self.resource._meta.queryset.count(), count)
-        self.assertEqual(
-            self.deserialize(
-                self.api_client.get(url, authentication=self.get_credentials(user))),
-            old_data)
+        self.assertEqual(self.deserialize(self.api_client.get(url, **req_kwargs)), old_data)
 
         return resp
 
-    def successful_delete(self, url, user):
+    def successful_delete(self, url, **kwargs):
+        req_kwargs = {}
+        if kwargs.get('user', None):
+            req_kwargs = {'authentication': self.get_credentials(kwargs['user'])}
+
         count = self.resource._meta.queryset.count()
 
         self.assertHttpOK(
-            self.api_client.get(url, authentication=self.get_credentials(user)))
+            self.api_client.get(url, **req_kwargs))
 
         self.assertHttpAccepted(
-            self.api_client.delete(url, authentication=self.get_credentials(user)))
+            self.api_client.delete(url, **req_kwargs))
 
         self.assertEqual(self.resource._meta.queryset.count(), count-1)
 
         self.assertHttpNotFound(
-            self.api_client.get(url, authentication=self.get_credentials(user)))
+            self.api_client.get(url, **req_kwargs))
 
-    def rejected_delete(self, url, user):
+    def rejected_delete(self, url, **kwargs):
+        req_kwargs = {}
+        if kwargs.get('user', None):
+            req_kwargs = {'authentication': self.get_credentials(kwargs['user'])}
+
         count = self.resource._meta.queryset.count()
 
         self.assertHttpRejected(
-            self.api_client.delete(url, authentication=self.get_credentials(user)))
+            self.api_client.delete(url, **req_kwargs))
 
         self.assertEqual(self.resource._meta.queryset.count(), count)
 
-        resp = self.api_client.get(url, authentication=self.get_credentials(user))
+        resp = self.api_client.get(url, **req_kwargs)
         try:
             # If the user doesn't have access, that's okay -
             # we were testing delete from an unauthorized user
