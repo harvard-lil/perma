@@ -1,3 +1,4 @@
+from django.utils.encoding import force_text
 from django.test.utils import override_settings
 from django.conf import settings
 from django.test import TransactionTestCase
@@ -154,10 +155,28 @@ class ApiResourceTestCase(ResourceTestCase):
         finally:
             models.HEADER_CHECK_TIMEOUT = prev_t
 
-    def successful_get(self, url, **kwargs):
+    def assertValidJSONResponse(self, resp):
+        # Modified from tastypie to allow 201's as well
+        # https://github.com/toastdriven/django-tastypie/blob/master/tastypie/test.py#L448
+        try:
+            self.assertHttpOK(resp)
+        except AssertionError:
+            self.assertHttpCreated(resp)
+
+        self.assertTrue(resp['Content-Type'].startswith('application/json'))
+        self.assertValidJSON(force_text(resp.content))
+
+    def get_req_kwargs(self, kwargs):
         req_kwargs = {}
+        if kwargs.get('format', None):
+            req_kwargs['format'] = kwargs['format']
         if kwargs.get('user', None):
-            req_kwargs = {'authentication': self.get_credentials(kwargs['user'])}
+            req_kwargs['authentication'] = self.get_credentials(kwargs['user'])
+
+        return req_kwargs
+
+    def successful_get(self, url, **kwargs):
+        req_kwargs = self.get_req_kwargs(kwargs)
 
         resp = self.api_client.get(url, **req_kwargs)
         self.assertHttpOK(resp)
@@ -171,17 +190,37 @@ class ApiResourceTestCase(ResourceTestCase):
             self.assertEqual(len(data['objects']), kwargs['count'])
 
     def rejected_get(self, url, **kwargs):
-        req_kwargs = {}
-        if kwargs.get('user', None):
-            req_kwargs = {'authentication': self.get_credentials(kwargs['user'])}
+        req_kwargs = self.get_req_kwargs(kwargs)
 
         self.assertHttpRejected(
-            self.api_client.delete(url, **req_kwargs))
+            self.api_client.get(url, **req_kwargs))
+
+    def successful_post(self, url, **kwargs):
+        req_kwargs = self.get_req_kwargs(kwargs)
+
+        count = self.resource._meta.queryset.count()
+        resp = self.api_client.post(url, data=kwargs['data'], **req_kwargs)
+        self.assertHttpCreated(resp)
+        self.assertValidJSONResponse(resp)
+
+        # Make sure the count changed
+        self.assertEqual(self.resource._meta.queryset.count(), count+1)
+
+        return self.deserialize(resp)
+
+    def rejected_post(self, url, **kwargs):
+        req_kwargs = self.get_req_kwargs(kwargs)
+
+        count = self.resource._meta.queryset.count()
+        resp = self.api_client.post(url, data=kwargs['data'], **req_kwargs)
+
+        self.assertHttpRejected(resp)
+        self.assertEqual(self.resource._meta.queryset.count(), count)
+
+        return resp
 
     def successful_patch(self, url, **kwargs):
-        req_kwargs = {}
-        if kwargs.get('user', None):
-            req_kwargs = {'authentication': self.get_credentials(kwargs['user'])}
+        req_kwargs = self.get_req_kwargs(kwargs)
 
         resp = self.api_client.get(url, **req_kwargs)
         self.assertHttpOK(resp)
@@ -218,9 +257,7 @@ class ApiResourceTestCase(ResourceTestCase):
         return fresh_data
 
     def rejected_patch(self, url, **kwargs):
-        req_kwargs = {}
-        if kwargs.get('user', None):
-            req_kwargs = {'authentication': self.get_credentials(kwargs['user'])}
+        req_kwargs = self.get_req_kwargs(kwargs)
 
         old_data = self.deserialize(self.api_client.get(url, **req_kwargs))
 
@@ -241,9 +278,7 @@ class ApiResourceTestCase(ResourceTestCase):
         return resp
 
     def successful_delete(self, url, **kwargs):
-        req_kwargs = {}
-        if kwargs.get('user', None):
-            req_kwargs = {'authentication': self.get_credentials(kwargs['user'])}
+        req_kwargs = self.get_req_kwargs(kwargs)
 
         count = self.resource._meta.queryset.count()
 
@@ -259,9 +294,7 @@ class ApiResourceTestCase(ResourceTestCase):
             self.api_client.get(url, **req_kwargs))
 
     def rejected_delete(self, url, **kwargs):
-        req_kwargs = {}
-        if kwargs.get('user', None):
-            req_kwargs = {'authentication': self.get_credentials(kwargs['user'])}
+        req_kwargs = self.get_req_kwargs(kwargs)
 
         count = self.resource._meta.queryset.count()
 

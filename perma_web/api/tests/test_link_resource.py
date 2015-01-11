@@ -64,92 +64,55 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             default_storage.exists(os.path.join(asset.base_storage_path, getattr(asset, capture_type))),
             "Failed to create %s for %s." % (capture_type, link.submitted_url))
 
-    def get_credentials(self, user=None):
-        user = user or self.user
-        return self.create_apikey(username=user.email, api_key=user.api_key.key)
-
     def test_get_list_json(self):
-        resp = self.api_client.get(self.list_url)
-        self.assertValidJSONResponse(resp)
-
-        objs = self.deserialize(resp)['objects']
-        self.assertEqual(len(objs), Link.objects.count())
-        self.assertKeys(objs[0], self.fields)
+        self.successful_get(self.list_url, count=4)
 
     def test_get_detail_json(self):
-        resp = self.api_client.get(self.detail_url)
-        self.assertValidJSONResponse(resp)
-        self.assertKeys(self.deserialize(resp), self.fields)
-
-    def test_post_list_unauthenticated(self):
-        self.assertHttpUnauthorized(
-            self.api_client.post(self.list_url,
-                                 data=self.post_data))
+        self.successful_get(self.detail_url, fields=self.fields)
 
     ########################
     # URL Archive Creation #
     ########################
 
     def test_should_create_archive_from_html_url(self):
-        count = Link.objects.count()
-        self.assertHttpCreated(
-            self.api_client.post(self.list_url,
-                                 data={'url': self.server_url + "/test.html"},
-                                 authentication=self.get_credentials()))
+        obj = self.successful_post(self.list_url,
+                                   data={'url': self.server_url + "/test.html"},
+                                   user=self.user)
 
-        self.assertEqual(Link.objects.count(), count+1)
-
-        link = Link.objects.latest('creation_timestamp')
+        link = Link.objects.get(guid=obj['guid'])
         self.assertHasAsset(link, "image_capture")
         self.assertHasAsset(link, "warc_capture")
         self.assertFalse(link.dark_archived_robots_txt_blocked)
         self.assertEqual(link.submitted_title, "Test title.")
 
     def test_should_create_archive_from_pdf_url(self):
-        count = Link.objects.count()
-        self.assertHttpCreated(
-            self.api_client.post(self.list_url,
-                                 data={'url': self.server_url + "/test.pdf"},
-                                 authentication=self.get_credentials()))
+        obj = self.successful_post(self.list_url,
+                                   data={'url': self.server_url + "/test.pdf"},
+                                   user=self.user)
 
-        self.assertEqual(Link.objects.count(), count+1)
-
-        link = Link.objects.latest('creation_timestamp')
+        link = Link.objects.get(guid=obj['guid'])
         self.assertHasAsset(link, "pdf_capture")
 
     def test_should_add_http_to_url(self):
-        count = Link.objects.count()
-        self.assertHttpCreated(
-            self.api_client.post(self.list_url,
-                                 data={'url': self.server_url.split("//")[1] + "/test.html"},
-                                 authentication=self.get_credentials()))
-
-        self.assertEqual(Link.objects.count(), count+1)
+        self.successful_post(self.list_url,
+                             data={'url': self.server_url.split("//")[1] + "/test.html"},
+                             user=self.user)
 
     def test_should_dark_archive_when_noarchive_in_html(self):
-        count = Link.objects.count()
-        self.assertHttpCreated(
-            self.api_client.post(self.list_url,
-                                 data={'url': self.server_url + "/noarchive.html"},
-                                 authentication=self.get_credentials()))
+        obj = self.successful_post(self.list_url,
+                                   data={'url': self.server_url + "/noarchive.html"},
+                                   user=self.user)
 
-        self.assertEqual(Link.objects.count(), count+1)
-
-        link = Link.objects.latest('creation_timestamp')
+        link = Link.objects.get(guid=obj['guid'])
         self.assertTrue(link.dark_archived_robots_txt_blocked)
 
     def test_should_dark_archive_when_disallowed_in_robots_txt(self):
-        count = Link.objects.count()
-
         with self.serve_file(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/robots.txt')):
-            self.assertHttpCreated(
-                self.api_client.post(self.list_url,
-                                     data={'url': self.server_url + "/test.html"},
-                                     authentication=self.get_credentials()))
+            obj = self.successful_post(self.list_url,
+                                       data={'url': self.server_url + "/test.html"},
+                                       user=self.user)
 
-        self.assertEqual(Link.objects.count(), count+1)
-
-        link = Link.objects.latest('creation_timestamp')
+        link = Link.objects.get(guid=obj['guid'])
         self.assertTrue(link.dark_archived_robots_txt_blocked)
 
     #########################
@@ -157,33 +120,23 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     #########################
 
     def test_should_create_archive_from_pdf_file(self):
-        count = Link.objects.count()
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf')) as test_file:
-            data = dict(self.post_data.copy(), file=test_file)
-            self.assertHttpCreated(
-                self.api_client.post(self.list_url,
-                                     format='multipart',
-                                     data=data,
-                                     authentication=self.get_credentials()))
+            obj = self.successful_post(self.list_url,
+                                       format='multipart',
+                                       data=dict(self.post_data.copy(), file=test_file),
+                                       user=self.user)
 
-            self.assertEqual(Link.objects.count(), count+1)
-
-            link = Link.objects.latest('creation_timestamp')
+            link = Link.objects.get(guid=obj['guid'])
             self.assertHasAsset(link, "pdf_capture")
 
     def test_should_create_archive_from_jpg_file(self):
-        count = Link.objects.count()
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.jpg')) as test_file:
-            data = dict(self.post_data.copy(), file=test_file)
-            self.assertHttpCreated(
-                self.api_client.post(self.list_url,
-                                     format='multipart',
-                                     data=data,
-                                     authentication=self.get_credentials()))
+            obj = self.successful_post(self.list_url,
+                                       format='multipart',
+                                       data=dict(self.post_data.copy(), file=test_file),
+                                       user=self.user)
 
-            self.assertEqual(Link.objects.count(), count+1)
-
-            link = Link.objects.latest('creation_timestamp')
+            link = Link.objects.get(guid=obj['guid'])
             self.assertHasAsset(link, "image_capture")
 
     ############
@@ -201,13 +154,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     ############
 
     def test_delete_detail(self):
-        self.assertHttpOK(self.api_client.get(self.detail_url))
-
-        self.assertHttpAccepted(
-            self.api_client.delete(self.detail_url,
-                                   authentication=self.get_credentials()))
-
-        self.assertHttpNotFound(self.api_client.get(self.detail_url))
+        self.successful_delete(self.detail_url, user=self.user)
 
     ############
     # Ordering #

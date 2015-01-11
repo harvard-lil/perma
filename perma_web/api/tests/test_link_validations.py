@@ -38,86 +38,53 @@ class LinkValidationsTestCase(ApiResourceTestCase):
 
     @override_settings(BANNED_IP_RANGES=["0.0.0.0/8", "127.0.0.0/8"])
     def test_should_reject_invalid_ip(self):
-        count = Link.objects.count()
-        self.assertHttpBadRequest(
-            self.api_client.post(self.list_url,
-                                 format='json',
-                                 data={'url': self.server_url},
-                                 authentication=self.get_credentials(self.vesting_member)))
-
-        self.assertEqual(Link.objects.count(), count)
+        self.rejected_post(self.list_url,
+                           user=self.vesting_member,
+                           data={'url': self.server_url})
 
     def test_should_reject_malformed_url(self):
-        count = Link.objects.count()
-        self.assertHttpBadRequest(
-            self.api_client.post(self.list_url,
-                                 format='json',
-                                 data={'url': 'httpexamplecom'},
-                                 authentication=self.get_credentials(self.vesting_member)))
-
-        self.assertEqual(Link.objects.count(), count)
+        self.rejected_post(self.list_url,
+                           user=self.vesting_member,
+                           data={'url': 'httpexamplecom'})
 
     def test_should_reject_unresolvable_domain_url(self):
         with self.header_timeout(0.25):  # only wait 1/4 second before giving up
-            count = Link.objects.count()
-            self.assertHttpBadRequest(
-                self.api_client.post(self.list_url,
-                                     format='json',
-                                     data={'url': 'http://this-is-not-a-functioning-url.com'},
-                                     authentication=self.get_credentials(self.vesting_member)))
-
-            self.assertEqual(Link.objects.count(), count)
+            self.rejected_post(self.list_url,
+                               user=self.vesting_member,
+                               data={'url': 'http://this-is-not-a-functioning-url.com'})
 
     def test_should_reject_unloadable_url(self):
-        count = Link.objects.count()
-        self.assertHttpBadRequest(
-            self.api_client.post(self.list_url,
-                                 format='json',
-                                 # http://stackoverflow.com/a/10456069/313561
-                                 data={'url': 'http://0.42.42.42/'},
-                                 authentication=self.get_credentials(self.vesting_member)))
-
-        self.assertEqual(Link.objects.count(), count)
+        self.rejected_post(self.list_url,
+                           user=self.vesting_member,
+                           # http://stackoverflow.com/a/10456069/313561
+                           data={'url': 'http://0.42.42.42/'})
 
     @override_settings(MAX_HTTP_FETCH_SIZE=1024)
     def test_should_reject_large_url(self):
-        count = Link.objects.count()
-        self.assertHttpBadRequest(
-            self.api_client.post(self.list_url,
-                                 format='json',
-                                 data={'url': self.server_url + '/test.jpg'},
-                                 authentication=self.get_credentials(self.vesting_member)))
-
-        self.assertEqual(Link.objects.count(), count)
+        self.rejected_post(self.list_url,
+                           user=self.vesting_member,
+                           data={'url': self.server_url + '/test.jpg'})
 
     #########
     # Files #
     #########
 
     def test_should_reject_invalid_file_format(self):
-        count = Link.objects.count()
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.html')) as test_file:
-            self.assertHttpBadRequest(
-                self.api_client.post(self.list_url,
-                                     format='multipart',
-                                     data={'url': self.server_url + '/test.html',
-                                           'file': test_file},
-                                     authentication=self.get_credentials(self.vesting_member)))
-
-            self.assertEqual(Link.objects.count(), count)
+            self.rejected_post(self.list_url,
+                               format='multipart',
+                               user=self.vesting_member,
+                               data={'url': self.server_url + '/test.html',
+                                     'file': test_file})
 
     @override_settings(MAX_ARCHIVE_FILE_SIZE=1024)
     def test_should_reject_large_file(self):
-        count = Link.objects.count()
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.jpg')) as test_file:
-            self.assertHttpBadRequest(
-                self.api_client.post(self.list_url,
-                                     format='multipart',
-                                     data={'url': self.server_url + '/test.html',
-                                           'file': test_file},
-                                     authentication=self.get_credentials(self.vesting_member)))
-
-            self.assertEqual(Link.objects.count(), count)
+            self.rejected_post(self.list_url,
+                               format='multipart',
+                               user=self.vesting_member,
+                               data={'url': self.server_url + '/test.html',
+                                     'file': test_file})
 
     ###################
     # Required Fields #
