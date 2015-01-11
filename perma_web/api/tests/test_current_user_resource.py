@@ -23,29 +23,13 @@ class CurrentUserResourceTestCase(ApiResourceTestCase):
         ]
 
     def test_get_self_detail_json(self):
-        resp = self.api_client.get(self.detail_url,
-                                   authentication=self.get_credentials(self.vesting_member))
-        self.assertValidJSONResponse(resp)
-        obj = self.deserialize(resp)
-        self.assertKeys(obj, self.fields)
+        self.successful_detail_get(self.detail_url, self.vesting_member, self.fields)
 
     def test_get_archives_json(self):
-        resp = self.api_client.get(self.detail_url + 'archives/',
-                                   authentication=self.get_credentials(self.vesting_member))
-        self.assertValidJSONResponse(resp)
-        data = self.deserialize(resp)
-        self.assertEqual(len(data['objects']), 1)
+        self.successful_list_get(self.detail_url + 'archives/', self.vesting_member, 1)
 
     def test_get_folders_json(self):
-        resp = self.api_client.get(self.detail_url + 'folders/',
-                                   authentication=self.get_credentials(self.vesting_member))
-        self.assertValidJSONResponse(resp)
-        data = self.deserialize(resp)
-        self.assertEqual(len(data['objects']), 2)
+        self.successful_list_get(self.detail_url + 'folders/', self.vesting_member, 2)
 
     def test_get_vesting_orgs_json(self):
-        resp = self.api_client.get(self.detail_url + 'vesting_orgs/',
-                                   authentication=self.get_credentials(self.vesting_member))
-        self.assertValidJSONResponse(resp)
-        data = self.deserialize(resp)
-        self.assertEqual(len(data['objects']), 1)
+        self.successful_list_get(self.detail_url + 'vesting_orgs/', self.vesting_member, 1)

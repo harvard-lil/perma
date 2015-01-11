@@ -15,9 +15,7 @@ class CurrentUserAuthorizationTestCase(ApiResourceTestCase):
         self.detail_url = self.url_base+'/user/'
 
     def test_should_allow_user_to_get_self(self):
-        self.assertHttpOK(
-            self.api_client.get(self.detail_url,
-                                authentication=self.get_credentials(self.vesting_member)))
+        self.successful_get(self.detail_url, self.vesting_member)
 
     def test_get_reject_request_from_unauthenticated_visitor(self):
         self.assertHttpUnauthorized(self.api_client.get(self.detail_url))
