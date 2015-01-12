@@ -189,6 +189,8 @@ class ApiResourceTestCase(ResourceTestCase):
         if kwargs.get('count', None):
             self.assertEqual(len(data['objects']), kwargs['count'])
 
+        return data
+
     def rejected_get(self, url, **kwargs):
         req_kwargs = self.get_req_kwargs(kwargs)
 
@@ -218,6 +220,18 @@ class ApiResourceTestCase(ResourceTestCase):
         self.assertEqual(self.resource._meta.queryset.count(), count)
 
         return resp
+
+    def successful_put(self, url, **kwargs):
+        req_kwargs = self.get_req_kwargs(kwargs)
+        if kwargs.get('data', None):
+            req_kwargs['data'] = kwargs['data']
+
+        count = self.resource._meta.queryset.count()
+        resp = self.api_client.put(url, **req_kwargs)
+        self.assertHttpAccepted(resp)
+
+        # Make sure the count hasn't changed
+        self.assertEqual(self.resource._meta.queryset.count(), count)
 
     def successful_patch(self, url, **kwargs):
         req_kwargs = self.get_req_kwargs(kwargs)

@@ -23,12 +23,11 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     def setUp(self):
         super(LinkResourceTestCase, self).setUp()
 
-        self.user = LinkUser.objects.get(email='test_vesting_member@example.com')
-        self.user_2 = LinkUser.objects.get(email='test_registrar_member@example.com')
-        self.link_1 = Link.objects.get(pk='7CF8-SS4G')
+        self.vesting_member = LinkUser.objects.get(pk=3)
+        self.unvested_link = Link.objects.get(pk="7CF8-SS4G")
 
         self.list_url = "{0}/{1}/".format(self.url_base, LinkResource.Meta.resource_name)
-        self.detail_url = "{0}{1}/".format(self.list_url, self.link_1.pk)
+        self.detail_url = "{0}{1}/".format(self.list_url, self.unvested_link.pk)
 
         self.fields = [
             'vested',
@@ -77,7 +76,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     def test_should_create_archive_from_html_url(self):
         obj = self.successful_post(self.list_url,
                                    data={'url': self.server_url + "/test.html"},
-                                   user=self.user)
+                                   user=self.vesting_member)
 
         link = Link.objects.get(guid=obj['guid'])
         self.assertHasAsset(link, "image_capture")
@@ -88,7 +87,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     def test_should_create_archive_from_pdf_url(self):
         obj = self.successful_post(self.list_url,
                                    data={'url': self.server_url + "/test.pdf"},
-                                   user=self.user)
+                                   user=self.vesting_member)
 
         link = Link.objects.get(guid=obj['guid'])
         self.assertHasAsset(link, "pdf_capture")
@@ -96,12 +95,12 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     def test_should_add_http_to_url(self):
         self.successful_post(self.list_url,
                              data={'url': self.server_url.split("//")[1] + "/test.html"},
-                             user=self.user)
+                             user=self.vesting_member)
 
     def test_should_dark_archive_when_noarchive_in_html(self):
         obj = self.successful_post(self.list_url,
                                    data={'url': self.server_url + "/noarchive.html"},
-                                   user=self.user)
+                                   user=self.vesting_member)
 
         link = Link.objects.get(guid=obj['guid'])
         self.assertTrue(link.dark_archived_robots_txt_blocked)
@@ -110,7 +109,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         with self.serve_file(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/robots.txt')):
             obj = self.successful_post(self.list_url,
                                        data={'url': self.server_url + "/test.html"},
-                                       user=self.user)
+                                       user=self.vesting_member)
 
         link = Link.objects.get(guid=obj['guid'])
         self.assertTrue(link.dark_archived_robots_txt_blocked)
@@ -124,7 +123,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             obj = self.successful_post(self.list_url,
                                        format='multipart',
                                        data=dict(self.post_data.copy(), file=test_file),
-                                       user=self.user)
+                                       user=self.vesting_member)
 
             link = Link.objects.get(guid=obj['guid'])
             self.assertHasAsset(link, "pdf_capture")
@@ -134,7 +133,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             obj = self.successful_post(self.list_url,
                                        format='multipart',
                                        data=dict(self.post_data.copy(), file=test_file),
-                                       user=self.user)
+                                       user=self.vesting_member)
 
             link = Link.objects.get(guid=obj['guid'])
             self.assertHasAsset(link, "image_capture")
@@ -145,16 +144,44 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
     def test_patch_detail(self):
         self.successful_patch(self.detail_url,
-                              user=self.link_1.created_by,
+                              user=self.unvested_link.created_by,
                               data={'notes': 'These are new notes',
                                     'title': 'This is a new title'})
+
+    ##################
+    # Dark Archiving #
+    ##################
+
+    def test_dark_archive(self):
+        self.successful_patch(self.detail_url,
+                              user=self.unvested_link.created_by,
+                              data={'dark_archived': True})
+
+    ###########
+    # Vesting #
+    ###########
+
+    def test_vesting(self):
+        folder = self.vesting_member.vesting_org.folders.first()
+        folder_url = "{0}/folders/{1}/".format(self.url_base, folder.pk)
+
+        self.successful_put("{0}archives/{1}/".format(folder_url, self.unvested_link.pk),
+                            user=self.vesting_member,
+                            data={'vested': True})
+
+        obj = self.successful_get(self.detail_url, user=self.vesting_member)
+        self.assertTrue(obj['vested'])
+
+        # Make sure it's listed in the folder
+        data = self.successful_get(folder_url+"archives/", user=self.vesting_member)
+        self.assertIn(obj, data['objects'])
 
     ############
     # Deleting #
     ############
 
     def test_delete_detail(self):
-        self.successful_delete(self.detail_url, user=self.user)
+        self.successful_delete(self.detail_url, user=self.vesting_member)
 
     ############
     # Ordering #
