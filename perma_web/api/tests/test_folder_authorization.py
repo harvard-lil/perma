@@ -67,7 +67,7 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
     # Renaming #
     ############
 
-    def test_should_allow_nonshared_nonroot_folder_owner_to_renname(self):
+    def test_should_allow_nonshared_nonroot_folder_owner_to_rename(self):
         self.successful_patch(self.detail_url(self.nonempty_child_folder),
                               user=self.nonempty_child_folder.created_by,
                               data={'name': 'A new name'})
