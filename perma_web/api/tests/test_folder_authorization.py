@@ -106,21 +106,49 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
     # Moving #
     ##########
 
-    @unittest.skip("Pending")
+    def successful_folder_move(self, user, parent_folder, child_folder):
+        self.successful_put(
+            "{0}folders/{1}/".format(self.detail_url(parent_folder), child_folder.pk),
+            user=user
+        )
+
+        # Make sure it's listed in the folder
+        obj = self.successful_get(self.detail_url(child_folder), user=user)
+        data = self.successful_get(self.detail_url(parent_folder)+"folders/", user=user)
+        self.assertIn(obj, data['objects'])
+
+    def rejected_folder_move(self, user, parent_folder, child_folder):
+        try:
+            # if the user doesn't have access to the parent
+            self.rejected_get(self.detail_url(parent_folder), user=user)
+        except AssertionError:
+            self.rejected_put(
+                "{0}folders/{1}/".format(self.detail_url(parent_folder), child_folder.pk),
+                user=user
+            )
+
+            # Make sure it's not listed in the folder
+            obj = self.successful_get(self.detail_url(child_folder), user=child_folder.created_by)
+            data = self.successful_get(self.detail_url(parent_folder)+"folders/", user=parent_folder.created_by)
+            self.assertNotIn(obj, data['objects'])
+
     def test_should_allow_folder_owner_to_move_to_new_parent(self):
-        pass
+        self.successful_folder_move(self.empty_child_folder.created_by, self.nonempty_child_folder, self.empty_child_folder)
 
-    @unittest.skip("Pending")
+    # This is failing on save with a tree_id None failure. Should it even be allowed?
+    @unittest.expectedFailure
     def test_should_allow_member_of_folders_registrar_to_move_to_new_parent(self):
-        pass
+        self.successful_folder_move(self.registrar_member, self.nonempty_shared_folder, self.empty_shared_folder)
 
-    @unittest.skip("Pending")
+    @unittest.expectedFailure
     def test_should_allow_member_of_folders_vesting_org_to_move_to_new_parent(self):
-        pass
+        self.successful_folder_move(self.vesting_member, self.nonempty_shared_folder, self.empty_shared_folder)
 
-    @unittest.skip("Pending")
+    def test_should_reject_move_to_parent_to_which_user_lacks_access(self):
+        self.rejected_folder_move(self.regular_user, self.vesting_member.folders.first(), self.regular_user.folders.first())
+
     def test_should_reject_move_from_user_lacking_owner_and_registrar_and_vesting_org_access(self):
-        pass
+        self.rejected_folder_move(self.regular_user, self.regular_user.folders.first(), self.vesting_member.folders.first())
 
     ############
     # Deleting #

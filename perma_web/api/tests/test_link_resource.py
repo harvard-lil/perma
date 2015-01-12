@@ -181,6 +181,22 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         data = self.successful_get(folder_url+"archives/", user=self.vesting_member)
         self.assertIn(obj, data['objects'])
 
+    ##########
+    # Moving #
+    ##########
+
+    def test_moving(self):
+        folder = self.vesting_member.vesting_org.folders.first()
+        folder_url = "{0}/folders/{1}/".format(self.url_base, folder.pk)
+
+        self.successful_put("{0}archives/{1}/".format(folder_url, self.unvested_link.pk),
+                            user=self.vesting_member)
+
+        # Make sure it's listed in the folder
+        obj = self.successful_get(self.detail_url, user=self.vesting_member)
+        data = self.successful_get(folder_url+"archives/", user=self.vesting_member)
+        self.assertIn(obj, data['objects'])
+
     ############
     # Deleting #
     ############
