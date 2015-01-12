@@ -1,27 +1,26 @@
 from .utils import ApiResourceTestCase
 from api.resources import FolderResource
-from perma.models import LinkUser, Folder
+from perma.models import LinkUser
 
 
 class FolderResourceTestCase(ApiResourceTestCase):
+
+    resource = FolderResource
+
     fixtures = ['fixtures/users.json',
                 'fixtures/folders.json',
                 'fixtures/api_keys.json']
 
     def setUp(self):
         super(FolderResourceTestCase, self).setUp()
-        self.user = LinkUser.objects.get(email='test_vesting_member@example.com')
+        self.vesting_member = LinkUser.objects.get(pk=3)
 
         self.list_url = "{0}/{1}/".format(self.url_base, FolderResource.Meta.resource_name)
 
     def test_should_strip_whitespace_from_name(self):
-        count = Folder.objects.count()
         name = 'This is a folder name'
+        obj = self.successful_post(self.list_url,
+                                   data={'name': ' '+name+'  '},
+                                   user=self.vesting_member)
 
-        self.assertHttpCreated(
-            self.api_client.post(self.list_url,
-                                 data={'name': ' '+name+'  '},
-                                 authentication=self.get_credentials()))
-
-        self.assertEqual(Folder.objects.count(), count+1)
-        self.assertEqual(name, Folder.objects.latest('creation_timestamp').name)
+        self.assertEqual(obj['name'], name)
