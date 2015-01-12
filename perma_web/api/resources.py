@@ -143,7 +143,7 @@ class RegistrarResource(DefaultResource):
 class FolderResource(DefaultResource):
     id = fields.IntegerField(attribute='id')
     name = fields.CharField(attribute='name')
-    parent_id = fields.IntegerField(attribute='parent_id', null=True, blank=True)
+    parent = fields.ForeignKey('api.resources.FolderResource', 'parent', null=True, blank=True)
 
     class Meta(DefaultResource.Meta):
         resource_name = 'folders'
@@ -156,13 +156,27 @@ class FolderResource(DefaultResource):
 
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/(?P<parent_id>\w[\w/-]*)/%s/(?P<%s>.*?)%s$" % (self._meta.resource_name, self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('put_url_params_to_patch'), name="api_move_folder"),
+            url(r"^(?P<resource_name>%s)/(?P<parent>\w[\w/-]*)/%s/(?P<%s>.*?)%s$" % (self._meta.resource_name, self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('put_url_params_to_patch'), name="api_move_folder"),
         ]
 
     def hydrate_name(self, bundle):
         # Clean up the user submitted name
         if bundle.data.get('name', None):
             bundle.data['name'] = bundle.data['name'].strip()
+        return bundle
+
+    def hydrate_parent(self, bundle):
+        # If the user passed a parent id, grab the uri
+        # but don't make a DB call - we'll validate it later
+        if bundle.data.get('parent', None):
+            try:
+                # int() sniffs if an id has been passed
+                int(bundle.data['parent'])
+                bundle.data['parent'] = self.pk_to_uri(FolderResource,
+                                                       bundle.data['parent'])
+            except ValueError:
+                pass
+
         return bundle
 
     def post_list(self, request, **kwargs):
