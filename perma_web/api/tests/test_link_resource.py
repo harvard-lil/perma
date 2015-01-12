@@ -63,6 +63,10 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             default_storage.exists(os.path.join(asset.base_storage_path, getattr(asset, capture_type))),
             "Failed to create %s for %s." % (capture_type, link.submitted_url))
 
+    #######
+    # GET #
+    #######
+
     def test_get_list_json(self):
         self.successful_get(self.list_url, count=4)
 
