@@ -1,4 +1,5 @@
-from .utils import ApiResourceTestCase
+import os
+from .utils import ApiResourceTestCase, TEST_ASSETS_DIR
 from api.resources import LinkResource
 from perma.models import Link, LinkUser
 
@@ -42,7 +43,8 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
     ############
 
     def test_should_allow_logged_in_user_to_create(self):
-        self.successful_post(self.list_url, user=self.regular_user, data=self.post_data)
+        with self.serve_file(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.html')):
+            self.successful_post(self.list_url, user=self.regular_user, data=self.post_data)
 
     def test_should_reject_create_from_logged_out_user(self):
         self.rejected_post(self.list_url, data=self.post_data)
