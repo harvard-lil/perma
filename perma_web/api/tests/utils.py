@@ -135,6 +135,9 @@ class ApiResourceTestCase(ResourceTestCase):
 
     @contextmanager
     def serve_file(self, src):
+        if not getattr(self.__class__, "_server_process", None):
+            self.__class__.start_server()
+
         dst = os.path.join(self._server_tmp, os.path.basename(src))
         try:
             copy_file_or_dir(src, dst)
