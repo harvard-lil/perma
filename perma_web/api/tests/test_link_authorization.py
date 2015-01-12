@@ -31,8 +31,21 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
         self.vested_url = "{0}{1}/".format(self.list_url, self.vested_link.pk)
         self.unvested_url = "{0}{1}/".format(self.list_url, self.unvested_link.pk)
 
+        self.post_data = {'url': self.server_url + "/test.html",
+                          'title': 'This is a test page'}
+
         self.patch_data = {'notes': 'These are new notes',
                            'title': 'This is a new title'}
+
+    ############
+    # Creating #
+    ############
+
+    def test_should_allow_logged_in_user_to_create(self):
+        self.successful_post(self.list_url, user=self.regular_user, data=self.post_data)
+
+    def test_should_reject_create_from_logged_out_user(self):
+        self.rejected_post(self.list_url, data=self.post_data)
 
     ###########
     # Editing #
@@ -128,9 +141,9 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
     def test_should_reject_dark_archive_from_user_lacking_owner_and_folder_access(self):
         self.rejected_patch(self.vested_url, user=self.vesting_manager, data={'dark_archived': True})
 
-    #############
-    # Deleteing #
-    #############
+    ############
+    # Deleting #
+    ############
 
     def test_should_allow_owner_to_delete_link(self):
         count = Link.objects.count()
