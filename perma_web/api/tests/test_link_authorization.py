@@ -1,7 +1,7 @@
 import os
 from .utils import ApiResourceTestCase, TEST_ASSETS_DIR
 from api.resources import LinkResource
-from perma.models import Link, LinkUser
+from perma.models import Link, LinkUser, Folder
 
 
 class LinkAuthorizationTestCase(ApiResourceTestCase):
@@ -23,6 +23,8 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
         self.vesting_member = LinkUser.objects.get(pk=3)
         self.regular_user = LinkUser.objects.get(pk=4)
         self.vesting_manager = LinkUser.objects.get(pk=5)
+
+        self.empty_child_folder = Folder.objects.get(pk=29)
 
         self.vested_link = Link.objects.get(pk="3SLN-JHX9")
         self.unvested_link = Link.objects.get(pk="7CF8-SS4G")
@@ -142,6 +144,42 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
 
     def test_should_reject_dark_archive_from_user_lacking_owner_and_folder_access(self):
         self.rejected_patch(self.vested_url, user=self.vesting_manager, data={'dark_archived': True})
+
+    ##########
+    # Moving #
+    ##########
+
+    def successful_link_move(self, user, link, folder):
+        archives_url = "{0}/folders/{1}/archives/".format(self.url_base, folder.pk)
+        self.successful_put("{0}{1}/".format(archives_url, link.pk), user=user)
+
+        # Make sure it's listed in the folder
+        obj = self.successful_get(self.detail_url(link), user=user)
+        data = self.successful_get(archives_url, user=user)
+        self.assertIn(obj, data['objects'])
+
+    def rejected_link_move(self, user, link, folder):
+        folder_url = "{0}/folders/{1}/".format(self.url_base, folder.pk)
+        archives_url = "{0}archives/".format(folder_url)
+        try:
+            # if the user doesn't have access to the parent
+            self.rejected_get(folder_url, user=user)
+        except AssertionError:
+            self.rejected_put("{0}{1}/".format(archives_url, link.pk), user=user)
+
+            # Make sure it's not listed in the folder
+            obj = self.successful_get(self.detail_url(link), user=link.created_by)
+            data = self.successful_get(archives_url, user=folder.created_by)
+            self.assertNotIn(obj, data['objects'])
+
+    def test_should_allow_link_owner_to_move_to_new_folder(self):
+        self.successful_link_move(self.vested_link.created_by, self.vested_link, self.empty_child_folder)
+
+    def test_should_reject_move_to_parent_to_which_user_lacks_access(self):
+        self.rejected_link_move(self.regular_user, self.vested_link, self.vesting_member.folders.first())
+
+    def test_should_reject_move_from_user_lacking_link_owner_access(self):
+        self.rejected_link_move(self.regular_user, self.unvested_link, self.regular_user.folders.first())
 
     ############
     # Deleting #

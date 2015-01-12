@@ -78,6 +78,11 @@ class ApiResourceTestCase(ResourceTestCase):
         self._media_org = settings.MEDIA_ROOT
         self._media_tmp = settings.MEDIA_ROOT = tempfile.mkdtemp()
 
+        try:
+            self.list_url = "{0}/{1}/".format(self.url_base, self.resource.Meta.resource_name)
+        except:
+            pass
+
     def tearDown(self):
         settings.MEDIA_ROOT = self._media_org
         shutil.rmtree(self._media_tmp)
@@ -168,6 +173,9 @@ class ApiResourceTestCase(ResourceTestCase):
 
         self.assertTrue(resp['Content-Type'].startswith('application/json'))
         self.assertValidJSON(force_text(resp.content))
+
+    def detail_url(self, obj):
+        return "{0}{1}/".format(self.list_url, obj.pk)
 
     def get_req_kwargs(self, kwargs):
         req_kwargs = {}

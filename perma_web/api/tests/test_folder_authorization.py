@@ -34,9 +34,6 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
         self.list_url = "{0}/{1}/".format(self.url_base, FolderResource.Meta.resource_name)
         self.nested_url = "{0}folders/".format(self.detail_url(self.nonempty_root_folder))
 
-    def detail_url(self, folder):
-        return "{0}{1}/".format(self.list_url, folder.pk)
-
     ############
     # Creating #
     ############
