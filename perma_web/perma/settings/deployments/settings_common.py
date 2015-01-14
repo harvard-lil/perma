@@ -403,3 +403,6 @@ THUMBNAIL_FORMAT = 'PNG' #
 # feature flags
 SINGLE_LINK_HEADER_TEST = False
 
+# security settings -- set these to true if SSL is available
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
