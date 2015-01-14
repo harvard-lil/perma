@@ -112,6 +112,8 @@ def single_linky(request, guid):
     # (which will fail because of the mixed content policy),
     # or if we are using an http frame and could be using https.
     def ssl_redirect(link):
+        if not settings.SECURE_SSL_REDIRECT:
+            return
         if serve_type == 'live' and not link.startswith('https'):
             if request.is_secure():
                 return HttpResponseRedirect("http://%s%s" % (request.get_host(), request.get_full_path()))
