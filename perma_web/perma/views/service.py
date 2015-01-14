@@ -107,16 +107,17 @@ def link_status(request, guid):
     if target_asset.image_capture != 'pending' and target_asset.pdf_capture != 'pending':
         if target_asset.image_capture:
             capture_name = target_asset.image_capture
+            thumbnail_url = direct_media_url(settings.MEDIA_URL + target_asset.image_url())
         else:
             capture_name = target_asset.pdf_capture
+            thumbnail_url = settings.STATIC_URL + 'pdf-preview.jpg'
 
-        try:
-            image_path = os.path.join(settings.MEDIA_ROOT, target_asset.base_storage_path, capture_name)
-            thumbnail = get_thumbnail(image_path, '456')
-            thumbnail_url = direct_media_url(thumbnail.url)
-        except IOError:
-            logger.info("Thumnail creation failed. Unable to find capture image")
-
+        # try:
+        #    #image_path = os.path.join(settings.MEDIA_ROOT, target_asset.base_storage_path, capture_name)
+        #    #thumbnail = get_thumbnail(image_path, '456')
+        #    thumbnail_url = 'not_found.gif'  # direct_media_url(thumbnail.url)
+        #except IOError:
+        #    logger.info("Thumnail creation failed. Unable to find capture image")
     
     response_object = {"path": target_asset.base_storage_path, "text_capture": target_asset.text_capture,
             "source_capture": target_asset.warc_capture, "image_capture": target_asset.image_capture,
