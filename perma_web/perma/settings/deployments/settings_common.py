@@ -9,7 +9,6 @@ this_module = unicode(
     sys.getfilesystemencoding())
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(this_module))))
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -89,7 +88,6 @@ PIPELINE_JS = {
     'create': {
         'source_filenames': (
             'js/spin.js',
-            'js/handlebars.js',
             'js/jquery.form.min.js',
             'js/create.js',
         ),
@@ -99,7 +97,6 @@ PIPELINE_JS = {
         'source_filenames': (
             'js/jquery-ui-1.10.3.custom.min.js',
             'js/jquery.dotdotdot-1.5.9.min.js',
-            'js/jquery.django-csrf.js',
             'js/lib/jstree.min.js',
             'js/lib/jquery.splendid.textchange.js',
             'js/links-list.js',
@@ -157,6 +154,7 @@ TEMPLATE_LOADERS = (
 
 MIDDLEWARE_CLASSES = (
     'perma.middleware.SecurityMiddleware',
+    'subdomains.middleware.SubdomainURLRoutingMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -171,8 +169,6 @@ MIDDLEWARE_CLASSES = (
 
 RATELIMIT_VIEW = 'perma.views.common.rate_limit'
 
-ROOT_URLCONF = 'urls'
-
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'perma.wsgi.application'
 
@@ -182,6 +178,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.static',    # include `STATIC_URL` in templates
     'django.core.context_processors.media',     # include `MEDIA_URL` in templates
     'django.contrib.auth.context_processors.auth',  # for Django admin
+    'settings_context_processor.context_processors.settings',  # to easily use settings in templates
 )
 
 INSTALLED_APPS = (
@@ -196,6 +193,7 @@ INSTALLED_APPS = (
 
     # our apps
     'perma',
+    'api',
     'monitor',
     'mirroring',
 
@@ -207,9 +205,11 @@ INSTALLED_APPS = (
     'sorl.thumbnail',
     'django_forms_bootstrap',
     'djangosecure',  # force SSL -- this can be removed in Django 1.8
+    'settings_context_processor',
 
     # django admin -- has to come after our apps for our admin template overrides to work
     'django.contrib.admin',
+    'tastypie'
 )
 
 AUTH_USER_MODEL = 'perma.LinkUser'
@@ -233,7 +233,8 @@ NUMBER_RETRIES = 3 # if wget fails to get a resource, try to get again this many
 WAIT_BETWEEN_TRIES = .5 # wait between .5 and this many seconds between http requests to our source
 
 # Max file size (for our downloads)
-MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 100 # 100 MB
+MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 100  # 100 MB
+MAX_HTTP_FETCH_SIZE = 1024 * 1024  # 1 MB
 
 # Rate limits
 MINUTE_LIMIT = '6000/m'
@@ -392,13 +393,28 @@ LINK_EXPIRATION_TIME = relativedelta(years=2)
 WARC_HOST = None
 DIRECT_WARC_HOST = None     # host to load warc from this server in particular -- primarily useful for main server
 
-
 # Sorl settings. This releates to our thumbnail creation
 # the prod and dev configs are considerably different. See those configs for
 # details
-THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.pil_engine.Engine' # Change this to Wand when sorl 12.x is released (since we use Wand for PDF thumbnail creation)
-THUMBNAIL_FORMAT = 'PNG' #
+THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.pil_engine.Engine'  # Change this to Wand when sorl 12.x is released (since we use Wand for PDF thumbnail creation)
+THUMBNAIL_FORMAT = 'PNG'  #
 
+# for django-subdomains
+# This is the urlconf that will be used for any subdomain that is not
+# listed in ``SUBDOMAIN_URLCONFS``, or if the HTTP ``Host`` header does not
+# contain the correct domain.
+# If you're planning on using wildcard subdomains, this should correspond
+# to the urlconf that will be used for the wildcard subdomain. For example,
+# 'accountname.mysite.com' will load the ROOT_URLCONF, since it is not
+# defined in ``SUBDOMAIN_URLCONFS``.
+ROOT_URLCONF = 'urls'
+
+# A dictionary of urlconf module paths, keyed by their subdomain.
+SUBDOMAIN_URLCONFS = {
+    None: 'urls',  # no subdomain, e.g. ``example.com``
+    'www': 'urls',
+    'api': 'api.urls',
+}
 
 # feature flags
 SINGLE_LINK_HEADER_TEST = False
@@ -406,3 +422,9 @@ SINGLE_LINK_HEADER_TEST = False
 # security settings -- set these to true if SSL is available
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
+
+API_VERSION = 1
+
+TEMPLATE_VISIBLE_SETTINGS = (
+    'API_VERSION',
+)

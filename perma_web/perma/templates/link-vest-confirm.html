@@ -3,28 +3,42 @@
 {% block confirm %}
     <h1 class="cyan">Vesting Link</h1>
 
-    <form method="post">
-        {% csrf_token %}
-        {% if vesting_orgs %}
+        <form method="post" id="select-vesting-org-form" style="display:none">
             <h2>On behalf of which organization are you vesting this link?</h2>
             <div class="centered-box" style="margin-bottom: 1em">
-                <select name="vesting_org">
-                    {% for vesting_org in vesting_orgs %}
-                        <option value="{{ vesting_org.pk }}">{{ vesting_org }}</option>
-                    {% endfor %}
-                </select>
+                <select name="vesting_org"></select>
             </div>
-        {% else %}
-            <input type="hidden" name="vesting_org" value="{{ vesting_org.pk }}">
+            <div class="centered-box">
+                <a href="/{{ link.guid }}" class="cancel-button">Cancel</a>
+                <button type="submit" class="btn btn-success" name="vest" value="1">Select</button>
+            </div>
+        </form>
+
+        <form method="post" id="select-folder-form" style="display:none">
             <h2>Where do you want to put this link once vested?</h2>
-            <p>Links vested for {{ vesting_org }} must be stored in the {{ vesting_org }} shared folder.</p>
+            <p>Links vested for <span class="vesting-org-name"></span> must be stored in the <span class="vesting-org-name"></span> shared folder.</p>
             <p>
                 Choose folder:
-                {% include "includes/folder_select.html" %}
+                <select name="folder" disabled>
+                    <option>Loading...</option>
+                </select>
             </p>
-        {% endif %}
-        <div class="centered-box">
-            <a href="/{{ link.guid }}" class="cancel-button">Cancel</a> <button type="submit" class="btn btn-success" name="vest" value="1">Vest</button>
-        </div>
-    </form>
+            <div class="centered-box">
+                <a href="/{{ link.guid }}" class="cancel-button">Cancel</a>
+                <button type="submit" class="btn btn-success" name="vest" value="1">Vest</button>
+            </div>
+        </form>
+{% endblock %}
+
+{% block globaljs %}
+    {{ block.super }}
+    {% include 'js_config.html' %}
+    <script>
+        var url_single_linky = "{% url 'single_linky' link.guid %}",
+            archive = {{ archive_json|safe }};
+    </script>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ STATIC_URL }}js/link-vest-confirm.js"></script>
 {% endblock %}

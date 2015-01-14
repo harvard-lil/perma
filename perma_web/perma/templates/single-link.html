@@ -223,8 +223,13 @@
         </div><!--end linky-view-->
 
    	{% endif %}
+{% endblock %}
+
+{% block globaljs %}
+    {{ block.super }}
+    {% include 'js_config.html' %}
     <script>
-        var status_url = "{% main_url 'service_link_status' linky.guid %}";
+        var archive = {{ archive_json|safe }};
     </script>
 {% endblock %}
 
