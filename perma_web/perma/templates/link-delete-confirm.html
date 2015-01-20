@@ -1,4 +1,5 @@
 {% extends "base-archive-confirm.html" %}
+{% load compressed as_json %}
 
 {% block confirm %}
     <h1 class="cyan">Yahowza!</h1>
@@ -20,7 +21,7 @@
     {% include 'js_config.html' %}
     <script>
         var url_link_browser = "{% url 'link_browser' %}",
-            archive = {{ archive_json|safe }};
+            archive = {% as_json link %};
     </script>
 {% endblock %}
 

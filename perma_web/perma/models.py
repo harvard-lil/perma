@@ -264,6 +264,10 @@ class LinkUser(AbstractBaseUser):
         self.root_folder = root_folder
         self.save()
 
+    def as_json(self, request=None):
+        from api.resources import LinkUserResource
+        return LinkUserResource().as_json(self, request)
+
 
 class FolderException(Exception):
     pass
@@ -605,6 +609,10 @@ class Link(models.Model):
         return self.vested \
                and not self.dark_archived and not self.dark_archived_robots_txt_blocked \
                and self.assets.filter(warc_capture__contains='.warc').exists()
+
+    def as_json(self, request=None):
+        from api.resources import LinkResource
+        return LinkResource().as_json(self, request)
 
 
 class Asset(models.Model):

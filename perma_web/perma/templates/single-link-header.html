@@ -1,5 +1,5 @@
 {% extends "base-archive-responsive.html" %}
-{% load has_group is_darchive local_datetime mirror_tags count_archives %}
+{% load has_group is_darchive local_datetime mirror_tags count_archives compressed as_json %}
 {% block title %} | {{archive.submitted_title}}{% endblock %}
 {% block meta-head %}
 <meta name="robots" content="noindex, noarchive, noodp, noimageindex">
@@ -237,7 +237,7 @@
     {{ block.super }}
     {% include 'js_config.html' %}
     <script>
-        var archive = {{ archive_json|safe }};
+        var archive = {% as_json archive %};
     </script>
 {% endblock %}
 

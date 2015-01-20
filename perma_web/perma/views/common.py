@@ -27,13 +27,6 @@ from perma.forms import ContactForm
 from perma.middleware import ssl_optional
 from perma.utils import absolute_url
 
-# The api app conflicts with the legacy api view
-# so we have to import via string.
-# FIXME: If this is still here when upgrading to Django 1.7,
-# import_by_path changed to import_string
-from django.utils.module_loading import import_by_path
-LinkResource = import_by_path('api.resources.LinkResource')
-
 
 logger = logging.getLogger(__name__)
 valid_serve_types = ['image', 'pdf', 'source', 'text', 'warc', 'warc_download']
@@ -233,10 +226,6 @@ def single_linky(request, guid):
     elif serve_type == 'warc_download':
         if context['asset'].warc_download_url():
             return HttpResponseRedirect(context.get('MEDIA_URL', settings.MEDIA_URL)+context['asset'].warc_download_url())
-
-    lr = LinkResource()
-    lr_bundle = lr.build_bundle(obj=link, request=request)
-    context['archive_json'] = lr.serialize(None, lr.full_dehydrate(lr_bundle), 'application/json')
 
     return render(request, 'single-link-header.html' if settings.SINGLE_LINK_HEADER_TEST else 'single-link.html', context)
 

@@ -79,6 +79,14 @@ class DefaultResource(ExtendedModelResource):
         # Call dispatch_detail as though it was originally a PATCH
         return self.dispatch_detail(request, **kwargs)
 
+    def as_json(self, obj, request=None):
+        """
+            Serialize an object as JSON,
+            using the privileges of the requesting user if supplied.
+        """
+        bundle = self.build_bundle(obj=obj, request=request)
+        return self.serialize(None, self.full_dehydrate(bundle), 'application/json')
+
 
 # via: http://stackoverflow.com/a/14134853/313561
 # also: https://github.com/toastdriven/django-tastypie/issues/42#issuecomment-5485666

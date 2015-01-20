@@ -1,12 +1,12 @@
 {% extends "admin-layout.html" %}
-{% load mptt_tags repeat local_datetime compressed has_group %}
+{% load mptt_tags repeat local_datetime compressed has_group as_json %}
 
 {% block title %} | Perma links{% endblock %}
 
 {% block globaljs %}
     {{ block.super }}
     <script>
-        var current_user = {{ current_user|safe }},
+        var current_user = {% as_json request.user %},
             url_docs_perma_link_vesting = "{% url 'docs_perma_link_vesting' %}";
     </script>
 {% endblock %}

@@ -1,5 +1,5 @@
 {% extends "base-archive-responsive.html" %}
-{% load file_exists  truncatesmart has_group is_darchive local_datetime mirror_tags local_datetime %}
+{% load file_exists  truncatesmart has_group is_darchive local_datetime mirror_tags compressed as_json %}
 
 {% block title %} | {{linky.submitted_title}}{% endblock %}
 
@@ -229,7 +229,7 @@
     {{ block.super }}
     {% include 'js_config.html' %}
     <script>
-        var archive = {{ archive_json|safe }};
+        var archive = {% as_json linky %};
     </script>
 {% endblock %}
 
