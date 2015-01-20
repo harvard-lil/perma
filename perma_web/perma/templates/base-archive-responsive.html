@@ -10,8 +10,13 @@
         <meta name="description" content="{% block meta_description %} Broken links are everywhere. Perma helps authors and journals create permanent links for citations in their published work.{% endblock %}">
         {% block meta-head %}{% endblock %}
         <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
-        
+
+        {# Python variables for use in Javascript #}
+        {% include 'js_config.html' %}
+
         {% compressed_css 'base' %}
+        {% compressed_js 'global_archive_head' %}
+
         {% block styles %}{% endblock %}
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
 		<!--[if lt IE 9]>
@@ -30,13 +35,7 @@
 			</div><!--/.main-container #main-content"-->
 		</section><!--/#main-->
 
-        <script src="{{ STATIC_URL }}js/jquery.js"></script>
-        <script src="{{ STATIC_URL }}js/bootstrap3.js"></script>
-        <script src="{{ STATIC_URL }}js/global.js"></script>
-
-        {% block globaljs %}
-            <script src="{{ STATIC_URL }}js/jquery.django-csrf.js"></script>
-        {% endblock %}
+        {% compressed_js 'global' %}
 
         {% block scripts %}
         {% endblock %}

@@ -85,6 +85,46 @@ PIPELINE_COMPILERS = (
 PIPELINE_DISABLE_WRAPPER = True
 
 PIPELINE_JS = {
+    # scripts included at the foot of all pages
+    'global': {
+        'source_filenames': (
+            'js/jquery.js',
+            'js/bootstrap3.js',
+            'js/global.js',
+        ),
+        'output_filename': 'js/global-bundle.js',
+    },
+
+    # scripts included in the head of all pages (not counting archive pages)
+    'global_head': {
+        'source_filenames': (
+            'js/modernizr.js',
+            'js/holder.js',
+            'js/local-datetime.js',
+        ),
+        'output_filename': 'js/global-head-bundle.js',
+    },
+
+    # scripts included in the head of archive pages
+    'global_archive_head': {
+        'source_filenames': (
+            'js/local-datetime.js',
+        ),
+        'output_filename': 'js/global-bundle.js',
+    },
+
+    # scripts included in all user dashboard pages
+    'admin': {
+        'source_filenames': (
+            'js/handlebars.js',
+            'js/handlebars_helpers.js',
+            'js/admin.js',
+        ),
+        'output_filename': 'js/admin-bundle.js',
+    },
+
+    ## scripts for individual pages ##
+
     'create': {
         'source_filenames': (
             'js/spin.js',
@@ -113,6 +153,37 @@ PIPELINE_JS = {
             'js/landing.js',
         ),
         'output_filename': 'js/landing-bundle.js',
+    },
+    'stats': {
+        'source_filenames': (
+            'js/d3.v3.js',
+            'js/stats.js',
+        ),
+        'output_filename': 'js/stats-bundle.js',
+    },
+    'dark-archive-link': {
+        'source_filenames': (
+            'js/dark-archive-link.js',
+        ),
+        'output_filename': 'js/dark-archive-link-bundle.js',
+    },
+    'link-delete-confirm': {
+        'source_filenames': (
+            'js/link-delete-confirm.js',
+        ),
+        'output_filename': 'js/link-delete-confirm-bundle.js',
+    },
+    'link-vest-confirm': {
+        'source_filenames': (
+            'js/link-vest-confirm.js',
+        ),
+        'output_filename': 'js/link-vest-confirm-bundle.js',
+    },
+    'single-link': {
+        'source_filenames': (
+            'js/single-link.js',
+        ),
+        'output_filename': 'js/single-link-bundle.js',
     },
 }
 
@@ -412,7 +483,6 @@ ROOT_URLCONF = 'urls'
 # A dictionary of urlconf module paths, keyed by their subdomain.
 SUBDOMAIN_URLCONFS = {
     None: 'urls',  # no subdomain, e.g. ``example.com``
-    'www': 'urls',
     'api': 'api.urls',
 }
 

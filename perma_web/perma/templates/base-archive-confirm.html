@@ -2,11 +2,6 @@
 
 {% block title %} | {{link.submitted_title}}{% endblock %}
 
-{% block styles %}
-    {# put in styles because this has to be available during page load #}
-    <script src="{{ STATIC_URL }}js/local-datetime.js "></script>
-{% endblock %}
-
 {% block header %}
 
     {% if messages %}

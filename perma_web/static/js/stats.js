@@ -272,7 +272,7 @@ var draw_hits_vis = function(){
         .append("g")
 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-	d3.tsv(static_prefix + "stats/hits-data.tsv", function(error, data) {
+	d3.tsv(settings.STATIC_URL + "stats/hits-data.tsv", function(error, data) {
 	  data.forEach(function(d) {
 	    d.date = parseDate(d.date);
 	    d.close = +d.close;
