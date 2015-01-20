@@ -59,7 +59,7 @@ function linkIt(data){
     new_archive.url = mirror_server_host  + '/' + data.guid;
     new_archive.guid = data.guid;
     new_archive.title = data.title;
-    new_archive.static_prefix = static_prefix;
+    new_archive.static_prefix = settings.STATIC_URL;
 
     $('#preview-container').html(templates.success(new_archive));
 
@@ -74,7 +74,7 @@ function linkIt(data){
 }
 
 function linkNot(jqXHR){
-    $('#preview-container').html(templates.preview_failure({static_prefix:static_prefix}));
+    $('#preview-container').html(templates.preview_failure({static_prefix:settings.STATIC_URL}));
 
     var message = "";
     if (jqXHR.status == 400 && jqXHR.responseText){
@@ -111,7 +111,7 @@ function uploadIt(data) {
 
     $('#archive-upload').modal('hide');
 
-    var upload_image_url = static_prefix + '/img/upload-preview.jpg';
+    var upload_image_url = settings.STATIC_URL + '/img/upload-preview.jpg';
     new_archive.url = mirror_server_host  + '/' + data.guid;
 
     $('#preview-container').html(templates.preview_available_no_upload_option({image_url: upload_image_url, archive_url: new_archive.url}));
@@ -165,7 +165,7 @@ function check_status() {
 		    if (asset.image_capture !== 'pending') {
             // Replace our Archive Pending spinner and message
             // with our new thumbnail
-            var image_url = MEDIA_URL + asset.base_storage_path + "/" + asset.image_capture;
+            var image_url = settings.MEDIA_URL + asset.base_storage_path + "/" + asset.image_capture;
 
             $('#preview-container').html(templates.preview_available({
                 image_url: image_url,

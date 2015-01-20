@@ -82,7 +82,7 @@ class VestingOrgManager(models.Manager):
             return Q(id=user.vesting_org_id)
         elif user.registrar_id:  # user.has_group('registrar_user')
             return Q(registrar_id=user.registrar_id)
-        elif user.has_group('registry_user'):  # user.has_group('registry_user')
+        elif user.is_staff:  # user.has_group('registry_user')
             return  # all
         else:
             return None
@@ -263,6 +263,10 @@ class LinkUser(AbstractBaseUser):
         root_folder.save()
         self.root_folder = root_folder
         self.save()
+
+    def as_json(self, request=None):
+        from api.resources import LinkUserResource
+        return LinkUserResource().as_json(self, request)
 
 
 class FolderException(Exception):
@@ -449,7 +453,7 @@ class LinkManager(models.Manager):
         return self.get_queryset().accessible_to(user)
 
 HEADER_CHECK_TIMEOUT = 10
-# This the is the PhantomJS default agent
+# This is the PhantomJS default agent
 USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X) AppleWebKit/534.34 (KHTML, like Gecko) PhantomJS/1.9.0 (development) Safari/534.34"
 
 class Link(models.Model):
@@ -605,6 +609,10 @@ class Link(models.Model):
         return self.vested \
                and not self.dark_archived and not self.dark_archived_robots_txt_blocked \
                and self.assets.filter(warc_capture__contains='.warc').exists()
+
+    def as_json(self, request=None):
+        from api.resources import LinkResource
+        return LinkResource().as_json(self, request)
 
 
 class Asset(models.Model):

@@ -1,4 +1,5 @@
 {% extends "base-archive-confirm.html" %}
+{% load compressed as_json %}
 
 {% block confirm %}
     <h1 class="cyan">Yahowza!</h1>
@@ -15,15 +16,11 @@
     </div>
 {% endblock %}
 
-{% block globaljs %}
-    {{ block.super }}
-    {% include 'js_config.html' %}
+{% block scripts %}
     <script>
         var url_link_browser = "{% url 'link_browser' %}",
-            archive = {{ archive_json|safe }};
+            archive = {% as_json link %};
     </script>
-{% endblock %}
 
-{% block scripts %}
-    <script src="{{ STATIC_URL }}js/link-delete-confirm.js"></script>
+    {% compressed_js 'link-delete-confirm' %}
 {% endblock %}
