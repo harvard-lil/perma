@@ -7,11 +7,6 @@
     <meta name="robots" content="noindex, noarchive, noodp, noimageindex">
 {% endblock %}
 
-{% block styles %}
-    {# put in styles because this has to be available during page load #}
-    <script src="{{ STATIC_URL }}js/local-datetime.js "></script>
-{% endblock %}
-
 {% block header %}
     <!-- Served up by Perma mirror, {{ request.META.HTTP_HOST }} -->
     <header>
@@ -225,14 +220,10 @@
    	{% endif %}
 {% endblock %}
 
-{% block globaljs %}
-    {{ block.super }}
-    {% include 'js_config.html' %}
+{% block scripts %}
     <script>
         var archive = {% as_json linky %};
     </script>
-{% endblock %}
 
-{% block scripts %}
-    <script src="{{ STATIC_URL }}js/single-link.js"></script>
+    {% compressed_js 'single-link' %}
 {% endblock %}

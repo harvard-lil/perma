@@ -4,12 +4,6 @@
 {% block meta-head %}
 <meta name="robots" content="noindex, noarchive, noodp, noimageindex">
 {% endblock %}
-{% block styles %}
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/font-awesome.min.css">
-
-    {# put in styles because this has to be available during page load #}
-    <script src="{{ STATIC_URL }}js/local-datetime.js "></script>
-{% endblock %}
 
 {% block header %}
 <!-- Served up by Perma mirror, {{ request.META.HTTP_HOST }} -->
@@ -233,14 +227,10 @@
    	{% endif %}
 {% endblock %}
 
-{% block globaljs %}
-    {{ block.super }}
-    {% include 'js_config.html' %}
+{% block scripts %}
     <script>
         var archive = {% as_json archive %};
     </script>
-{% endblock %}
 
-{% block scripts %}
-    <script src="{{ STATIC_URL }}js/single-link.js"></script>
+    {% compressed_js 'single-link' %}
 {% endblock %}

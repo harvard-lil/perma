@@ -66,6 +66,8 @@
 {% endblock %}
 
 {% block scripts %}
+    {{ block.super }}
+
     <script>
         var userguide_url = "{% url 'docs_perma_link_vesting' %}";
         vest_link_url = "{% url 'vest_link' 'GUID' %}";
@@ -77,8 +79,8 @@
     </script>
 
     {% compressed_js 'create' %}
-
 {% endblock %}
+
 {% block templates %}
 
 {% verbatim %}

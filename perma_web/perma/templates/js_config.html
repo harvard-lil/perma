@@ -1,9 +1,11 @@
 <script>
-  var api_version = {{ API_VERSION }},
-  api_path = "/api/v" + api_version,
-  main_server_host = "http://{{request.main_server_host}}",
-  mirror_server_host = "http://{{request.mirror_server_host}}",
-  csrf_token = "{{csrf_token}}",
-  static_prefix = "{{STATIC_URL}}",
-  MEDIA_URL = "{{ MEDIA_URL }}";
+    var settings = {
+        API_VERSION: {{ API_VERSION }},
+        STATIC_URL: "{{ STATIC_URL }}",
+        MEDIA_URL: "{{ MEDIA_URL }}"
+    },
+    api_path = "/api/v" + settings.API_VERSION,
+    main_server_host = "http://{{request.main_server_host}}",
+    mirror_server_host = "http://{{request.mirror_server_host}}",
+    feedback_url = "{% url 'service_receive_feedback' %}";
 </script>

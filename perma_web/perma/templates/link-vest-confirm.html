@@ -31,15 +31,11 @@
         </form>
 {% endblock %}
 
-{% block globaljs %}
-    {{ block.super }}
-    {% include 'js_config.html' %}
+{% block scripts %}
     <script>
         var url_single_linky = "{% url 'single_linky' link.guid %}",
             archive = {% as_json link %};
     </script>
-{% endblock %}
 
-{% block scripts %}
-    <script src="{{ STATIC_URL }}js/link-vest-confirm.js"></script>
+    {% compressed_js 'link-vest-confirm' %}
 {% endblock %}

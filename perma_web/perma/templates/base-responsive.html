@@ -14,15 +14,10 @@
         <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
         {% compressed_css 'base' %}
 
-        <script>
-            {# template variables for use in Javascript files #}
-            var settings = {
-                STATIC_URL: "{{ STATIC_URL }}",
-                MEDIA_URL: "{{ MEDIA_URL }}"
-            }
-        </script>
-        <script src="{{ STATIC_URL }}js/modernizr.js"></script>
-		<script src="{{ STATIC_URL }}js/holder.js"></script>
+        {# Python variables for use in Javascript #}
+        {% include 'js_config.html' %}
+
+        {% compressed_js 'global_head' %}
         {% block styles %}{% endblock %}
         
         <!--[if lt IE 9]>
@@ -189,27 +184,12 @@
 	    </div>		
 	</div>
 </div><!--/feedback modal-->
-
-    <script src="{{ STATIC_URL }}js/jquery.js"></script>
-    <script src="{{ STATIC_URL }}js/bootstrap3.js"></script>
-    <script src="{{ STATIC_URL }}js/global.js"></script>
-
-    {% block globaljs %}
-    {% endblock %}
+    {% compressed_js 'global' %}
 
     {% block scripts %}
     {% endblock %}
     
     {% block templates %}
     {% endblock %}
-
-
-    
-    <script type="text/javascript">
-      feedback_url = "{% url 'service_receive_feedback' %}";
-      $(document).ready(function(){
-        $('.infinity-navbar').tooltip({'trigger': 'hover', 'placement': 'bottom', 'container':'body', 'delay': 350});
-      });
-    </script>
   </body>
 </html>

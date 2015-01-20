@@ -3,16 +3,12 @@
 
 {% block title %} | Perma links{% endblock %}
 
-{% block globaljs %}
+{% block scripts %}
     {{ block.super }}
     <script>
         var current_user = {% as_json request.user %},
             url_docs_perma_link_vesting = "{% url 'docs_perma_link_vesting' %}";
     </script>
-{% endblock %}
-
-{% block scripts %}
-    {{ block.super }}
     {% compressed_js 'links_list' %}
 {% endblock %}
 

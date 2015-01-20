@@ -1,11 +1,6 @@
 {% extends "layout-responsive.html" %}
 {% load startswith has_group %}
 
-{% block styles %}
-    {# put in styles because this has to be available during page load #}
-    <script src="{{ STATIC_URL }}js/local-datetime.js "></script>
-{% endblock %}
-
 {% block row %}
 
 <div id="dashboard-container">
@@ -52,18 +47,3 @@
 </div><!--/#dashboard-container-->
 </div> <!--row-->
 {% endblock %}
-
-{% block scripts %}
-<script>
-
-$(document).ready(function(){
-    // Toggle users dropdown
-    $('.manage-users-button').click(function(){
-        $('.users-secondary').toggle();
-    });
-});
-
-</script>
-
-
-{% endblock scripts %}
