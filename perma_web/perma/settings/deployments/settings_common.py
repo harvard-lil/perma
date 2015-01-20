@@ -483,7 +483,6 @@ ROOT_URLCONF = 'urls'
 # A dictionary of urlconf module paths, keyed by their subdomain.
 SUBDOMAIN_URLCONFS = {
     None: 'urls',  # no subdomain, e.g. ``example.com``
-    'www': 'urls',
     'api': 'api.urls',
 }
 

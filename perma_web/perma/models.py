@@ -82,7 +82,7 @@ class VestingOrgManager(models.Manager):
             return Q(id=user.vesting_org_id)
         elif user.registrar_id:  # user.has_group('registrar_user')
             return Q(registrar_id=user.registrar_id)
-        elif user.has_group('registry_user'):  # user.has_group('registry_user')
+        elif user.is_staff:  # user.has_group('registry_user')
             return  # all
         else:
             return None
@@ -453,7 +453,7 @@ class LinkManager(models.Manager):
         return self.get_queryset().accessible_to(user)
 
 HEADER_CHECK_TIMEOUT = 10
-# This the is the PhantomJS default agent
+# This is the PhantomJS default agent
 USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X) AppleWebKit/534.34 (KHTML, like Gecko) PhantomJS/1.9.0 (development) Safari/534.34"
 
 class Link(models.Model):

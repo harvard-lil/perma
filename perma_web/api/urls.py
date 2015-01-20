@@ -1,3 +1,4 @@
+from django.conf import settings
 from tastypie.api import Api
 from api.resources import (VestingOrgResource,
                            LinkResource,
@@ -9,7 +10,7 @@ from api.resources import (VestingOrgResource,
                            CurrentUserFolderResource,
                            CurrentUserVestingOrgResource)
 
-v1_api = Api(api_name='v1')
+v1_api = Api(api_name='v%s' % settings.API_VERSION)
 v1_api.register(VestingOrgResource())
 v1_api.register(LinkResource())
 v1_api.register(FolderResource())
