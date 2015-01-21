@@ -1,0 +1,77 @@
+{% extends "layout-responsive.html" %}
+{% load file_exists %}
+{% block title %} | Docs{% endblock %}
+
+{% block meta_description %}
+This section of the user guide covers how to create new archives and organize your archives.
+{% endblock %}
+
+{% block content %}
+<div class="container">
+	<div class="col-sm-8 docs">
+		<h2>Creating, Organizing & Annotating</h2>
+		<h4><a href="#create-link">Creating a Perma Link</a></h4>
+		<h4><a href="#organize-links">Organizing Links</a></h4>
+		<br/>
+		<hr>
+		<h4><div id="create-link">Creating a Perma Link</div></h4>
+		<p>A Perma Link allows you to direct your readers to an archived version of the contents of a web page specified by you.</p>
+		
+		<p>To create a Perma Link, enter the URL of the web page into the entry box, as shown below, and click on the blue infinity button to direct Perma to create an archive of the contents of that page.</p>
+			
+		<button class="center btn btn-info">
+			<div class="infinity">
+				<img class="button-img" src="/static/img/infinity-white.png" alt="Loading..." />
+			</div>
+		</button><br/><br/>
+		
+		<p>The entry box will accept multiple formats, including www and https://.</p>
+		
+		<img src="{{ STATIC_URL }}img/docs/creating-perma2.gif" class="img-responsive screen-shot" alt="A screenshot of the Create an Archive page with the URL of a potential archive."/>
+		
+		<p>At your direction, Perma will archive the web page found at your specified URL. Once processing is complete, Perma will display a thumbnail image of the archived web page and a new Perma Link (such as perma.cc/ABCD-1234) for that archive. </p> 
+		
+		<img src="{{ STATIC_URL }}img/docs/thumbnail.gif" class="img-responsive screen-shot" alt="A screenshot of a Create an Archive page with a newly created archive. Includes the URL and the thumbnail preview."/>
+
+		
+		<p>You should review the thumbnail image and click on the new Perma Link to confirm that the archived page rendered correctly. If it did not, you can use the upload option, just beneath the thumbnail image, to upload your own screenshots (.png, .jpg) or PDF documents.</p>
+		
+		<img src="{{ STATIC_URL }}img/docs/upload.gif" class="img-responsive screen-shot" alt="A screenshot of the upload your own window."/>
+		
+		<br/>
+		<p class="orange">Important Note: At this point, you’ve created a temporary archive. To become permanent, your archive and the accompanying Perma Link must be vested. <a href="{% url 'docs_perma_link_vesting' %}">Click here to learn more about vesting.</a></p>
+
+		<br/>
+		<h4><div id="organize-links">Organizing Links</a></h4>
+		
+		<p>Perma provides many useful ways to view, organize and annotate the Perma Links and archives you’ve created. If you're a vesting user, you also have access to the Perma Links and archives vested by other members of your Vesting Organization.</p>
+		
+		<p>To see these Perma Links, click on Links in the navigation menu on the left.</p>
+		
+		<img src="{{ STATIC_URL }}img/docs/link-folders.png" class="img-responsive screen-shot" alt="A screen shot of the Perma links page. This lists all the archives you've created and the shared folders to which you have access. "/>
+	
+		<p>All users have a "My Links" folder containing links that you created and which have not been vested. Within your "My Links" folder you can create sub-folders and organize your unvested links to suit your preferences.<p>
+
+		<p>Vesting users also see, in addition to their "My Links" folders, a folder bearing the name of any Vesting Organization (such as a law journal) to which they belong. These are shared folders, and all members of the Vesting Organization have access to the folder and its contents.</p>
+
+		<p>In addition to organizing links in folders, you can change the titles of your links and add notes to each link. The notes are visible to you and to anyone with vesting authority with whom you share the Perma Link. .</p>
+	
+		<img src="{{ STATIC_URL }}img/docs/more-link-details.png" class="img-responsive screen-shot" alt="A screenshot of the more button on each Perma archive in your Perma Links page."/>
+		
+		<img src="{{ STATIC_URL }}img/docs/expanded-link-details.png" class="img-responsive screen-shot" alt="A screenshot of your Perma links page showing the editable details of the archive."/>
+		
+		<p>You also can search or sort your links using the search bar above the link list or by clicking the column headings.</p>
+		
+		<img src="{{ STATIC_URL }}img/docs/search.png" class="img-responsive screen-shot" alt="Responsive image"/>
+			
+	</div>
+	<div class="col-sm-3 col-sm-offset-1 docs-nav">
+		<ul class="nav nav-pills nav-stacked">
+			<li><a href="{% url 'docs' %}">Overview</a></li>
+			<li class="active"><a href="{% url 'docs_developer_archives' %}">Archives</a></li>
+			<li ><a href="{% url 'docs_perma_link_creation' %}">Creating, Organizing & Annotating</a></li>
+		</ul>	
+	</div>
+</div>	
+
+{% endblock %}

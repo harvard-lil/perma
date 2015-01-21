@@ -1,0 +1,38 @@
+{% extends "layout-responsive.html" %}
+{% load file_exists %}
+{% block title %} | Docs{% endblock %}
+
+{% block meta_description %}
+Welcome to the Perma.cc developer guide.
+{% endblock %}
+
+{% block content %}
+<div class="container">
+	<div class="col-sm-8 docs">
+		<h2>Overview</h2>
+		<hr>
+		
+		<p>With the Perma.cc API you can engage with your archives without being limited to HTML interactions provided by Perma.cc.</p>
+		
+		<h4>API Key</h4>
+		
+		<p>Many of the resources managed by the API will require you to use an API key. Find your API key in your Dashboard under the Settings, Tools section. Click on the Generate an API key button.</p>
+		
+		<img src="{{ STATIC_URL }}img/docs/create-api-key.png" class="img-responsive" alt="Create an API key "/>
+		
+		<h4>JSONP</h4>
+		<p>The Perma.cc API supports JSONP. Just ...</p>
+		
+	</div>
+	<div class="col-sm-3 col-sm-offset-1">
+		<ul class="nav nav-pills nav-stacked">
+		  	<li class="active"><a href="{% url 'docs' %}">Overview</a></li>
+		  	
+			<li><a href="{% url 'docs_developer_archives' %}">Archives</a></li>
+			<li><a href="{% url 'docs_perma_link_creation' %}">Creating, Organizing & Annotating</a></li></a></li>
+			<li><a href="{% url 'docs_perma_link_vesting' %}">Link Vesting</a></li>
+
+		</ul>
+	</div>
+</div>
+{% endblock %}
