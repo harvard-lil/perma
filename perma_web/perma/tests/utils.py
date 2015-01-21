@@ -1,21 +1,14 @@
 import json
 from django.test import TransactionTestCase
 from django.core.urlresolvers import reverse
-from django.test.utils import override_settings
 
 from perma.models import Registrar, VestingOrg, LinkUser
 
 
-@override_settings(
-    RUN_TASKS_ASYNC=False,  # avoid sending celery tasks to queue -- just run inline
-
-    # django-pipeline causes problems if enabled for tests, so disable it.
-    # That's not great because it's a less accurate test -- when we upgrade to Django 1.7, consider using
-    # StaticLiveServerCase instead. http://stackoverflow.com/a/22058962/307769
-    STATICFILES_STORAGE='pipeline.storage.NonPackagingPipelineStorage',
-)
 class PermaTestCase(TransactionTestCase):
-    fixtures = ['fixtures/groups.json','fixtures/users.json',
+    fixtures = ['fixtures/groups.json',
+                'fixtures/users.json',
+                'fixtures/folders.json',
                 'fixtures/archive.json']
 
     def setUp(self):
@@ -103,5 +96,3 @@ class PermaTestCase(TransactionTestCase):
             self.assertTrue(error_keys <= set(form_errors().keys()), "Couldn't find expected error keys. Expected: %s. Found: %s" % (error_keys, form_errors()))
 
         return resp
-
-

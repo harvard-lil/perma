@@ -5,8 +5,9 @@ if (!String.prototype.trim) {
     // Make sure we trim BOM and NBSP
     rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
     return this.replace(rtrim, "");
-  }
+  };
 }
+
 
 // Initializations
 $(document).ready(function() {
@@ -28,13 +29,16 @@ $(document).ready(function() {
         $('#broken-link-report').html('');
         $('form.feedback').find("input[type=email], textarea").val("");
         $('#user_email').val(user_email);
-    })
+    });
 
     
     $("input#submit-feedback").click(function(){
       var data = $('form.feedback').serializeArray();
+
+      // todo -- is this necessary with our global csrf cookie js?
       var csrftoken = getCookie('csrftoken');
       data.push({name: 'csrfmiddlewaretoken', value: csrftoken});
+
       data.push({name: 'visited_page', value: $(location).attr('href')});
       var brokenLink = $('#broken-link').text();
       if(brokenLink)
@@ -59,6 +63,9 @@ $(document).ready(function() {
     $(document).on('click', '.popup-alert', function(){
         $(this).remove();
     });
+
+    // show infinity button "Create perma archive" tooltip on hover
+    $('.infinity-navbar').tooltip({'trigger': 'hover', 'placement': 'bottom', 'container':'body', 'delay': 350});
 });
 
 // Clear fields on focus
@@ -66,6 +73,10 @@ $(".clear-on-focus")
   .focus(function() { if (this.value === this.defaultValue) { this.value = ''; } })
   .blur(function() { if (this.value === '') { this.value = this.defaultValue; }
 });
+
+
+// set up jquery to properly set CSRF header on AJAX post
+// via https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax
 
 function getCookie(name) {
     var cookieValue = null;
@@ -82,6 +93,20 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
+$.ajaxSetup({
+    crossDomain: false, // obviates need for sameOrigin test
+    beforeSend: function(xhr, settings) {
+        if (!csrfSafeMethod(settings.type)) {
+            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+        }
+    }
+});
+
 
 // check if this is a retina-style display
 // via http://stackoverflow.com/a/20413768

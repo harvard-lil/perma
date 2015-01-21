@@ -1,10 +1,5 @@
 {% extends "layout-responsive.html" %}
-{% load startswith has_group %}
-
-{% block styles %}
-    {# put in styles because this has to be available during page load #}
-    <script src="{{ STATIC_URL }}js/local-datetime.js "></script>
-{% endblock %}
+{% load startswith has_group compressed %}
 
 {% block row %}
 
@@ -21,16 +16,6 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-
-$(document).ready(function(){
-    // Toggle users dropdown
-    $('.manage-users-button').click(function(){
-        $('.users-secondary').toggle();
-    });
-});
-
-</script>
-
-
+    {{ block.super }}
+    {% compressed_js 'admin' %}
 {% endblock scripts %}

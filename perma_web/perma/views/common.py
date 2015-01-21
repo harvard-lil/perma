@@ -12,8 +12,8 @@ from django.views.generic import TemplateView
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
 
-from datetime import datetime
-import os, logging
+import os
+import logging
 from urlparse import urlparse
 import requests
 import json
@@ -29,7 +29,7 @@ from perma.utils import absolute_url
 
 
 logger = logging.getLogger(__name__)
-valid_serve_types = ['image','pdf','source','text','warc','warc_download']
+valid_serve_types = ['image', 'pdf', 'source', 'text', 'warc', 'warc_download']
 
 
 class DirectTemplateView(TemplateView):
@@ -112,6 +112,8 @@ def single_linky(request, guid):
     # (which will fail because of the mixed content policy),
     # or if we are using an http frame and could be using https.
     def ssl_redirect(link):
+        if not settings.SECURE_SSL_REDIRECT:
+            return
         if serve_type == 'live' and not link.startswith('https'):
             if request.is_secure():
                 return HttpResponseRedirect("http://%s%s" % (request.get_host(), request.get_full_path()))

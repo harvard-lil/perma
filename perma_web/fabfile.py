@@ -67,7 +67,7 @@ def run_ssl(port="0.0.0.0:8000"):
     local("python manage.py runsslserver %s" % port)
     return
 
-def test(apps="perma mirroring"):
+def test(apps="perma mirroring api"):
     """
         Run perma tests. (For coverage, run `coverage report` after tests pass.)
     """
@@ -111,7 +111,7 @@ def init_dev_db():
     """
     local("python manage.py syncdb --noinput")
     local("python manage.py migrate")
-    local("python manage.py loaddata fixtures/users.json fixtures/groups.json")
+    local("python manage.py loaddata fixtures/sites.json fixtures/users.json fixtures/folders.json fixtures/groups.json")
 
 def south_out(app="perma"):
     """
@@ -380,11 +380,10 @@ def set_up_folders():
                 link.folders.add(get_vesting_org_subfolder(link.vesting_org, link.vested_by_editor))
 
 
-
 try:
     from fab_targets import *
 except ImportError, e:
-    if e.message=='No module named fab_targets':
+    if e.args[0] == 'No module named fab_targets':
         print "Warning: no fab_targets file found."
     else:
         raise
