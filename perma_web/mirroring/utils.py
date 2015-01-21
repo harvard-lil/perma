@@ -2,12 +2,12 @@ import datetime
 from functools import wraps
 import hashlib
 import json
-from django.http import HttpResponseBadRequest, HttpResponse, HttpResponseForbidden
-from django.views.decorators.csrf import csrf_exempt
 import gnupg
-import pytz
 import time
 
+from django.core import serializers
+from django.http import HttpResponseBadRequest, HttpResponseForbidden
+from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.utils.decorators import available_attrs
 from django.core.cache import cache as django_cache
@@ -42,6 +42,16 @@ def may_be_mirrored(view_func):
 
     wrapped_view.may_be_mirrored = True
     return wraps(view_func, assigned=available_attrs(view_func))(wrapped_view)
+
+
+### user serialization ###
+
+def serialize_user(user):
+    return serializers.serialize("json", [user], fields=['groups','registrar','vesting_org','first_name','last_name','email'])
+
+def deserialize_user(serialized_user):
+    serialized_user = serialized_user.replace('perma.linkuser', 'mirroring.fakelinkuser')
+    return serializers.deserialize("json", serialized_user).next().object
 
 
 ### gpg ###

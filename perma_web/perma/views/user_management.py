@@ -20,7 +20,7 @@ from django.core.context_processors import csrf
 from django.core.paginator import Paginator
 from django.contrib.auth.models import Group
 from django.contrib import messages
-from mirroring.utils import sign_message
+from mirroring.utils import sign_message, serialize_user
 from tastypie.models import ApiKey
 
 from perma.forms import (
@@ -1051,7 +1051,7 @@ def limited_login(request, template_name='registration/login.html',
                 # Set the user-info cookie for mirror servers.
                 # This will be set by the main server, e.g. //dashboard.perma.cc,
                 # but will be readable by any mirror serving //perma.cc.
-                user_info = serializers.serialize("json", [request.user], fields=['groups','registrar','vesting_org','first_name','last_name','email'])
+                user_info = serialize_user(request.user)
 
                 # The cookie should last as long as the login cookie, so cookie logic is copied from SessionMiddleware.
                 if request.session.get_expire_at_browser_close():

@@ -17,11 +17,6 @@ class FakeLinkUser(LinkUser):
         It will be created from a serialized user object put in a cookie by the upstream server.
     """
 
-    @classmethod
-    def init_from_serialized_user(cls, serialized_user):
-        serialized_user = serialized_user.replace('perma.linkuser', 'mirroring.fakelinkuser')
-        return serializers.deserialize("json", serialized_user).next().object
-
     class Meta:
         proxy = True
 

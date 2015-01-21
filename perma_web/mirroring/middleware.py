@@ -5,8 +5,7 @@ from django.conf import settings
 from django.http import HttpResponsePermanentRedirect
 from django.utils.functional import SimpleLazyObject
 
-from .models import FakeLinkUser
-from .utils import read_signed_message
+from .utils import read_signed_message, deserialize_user
 
 ### helpers ###
 
@@ -59,7 +58,7 @@ def get_user(request):
                     # own public key if we have no upstream server configured.
                     upstream_key = settings.UPSTREAM_SERVER['public_key'] if settings.UPSTREAM_SERVER else settings.GPG_PUBLIC_KEY
                     user_info, fingerprint = read_signed_message(user_info, upstream_key, max_age=request.session.get_expiry_age())
-                    user = FakeLinkUser.init_from_serialized_user(user_info)
+                    user = deserialize_user(user_info)
                 except Exception, e:
                     print "Error loading mirror user:", e
 

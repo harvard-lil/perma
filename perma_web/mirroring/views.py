@@ -10,13 +10,14 @@ from .tasks import get_updates, background_media_sync, save_full_database, get_f
 from .utils import may_be_mirrored, read_downstream_request, read_upstream_request
 
 
-def single_link_json(request, guid):
+@read_downstream_request
+def single_link_json(request, request_server, guid):
     """
         This is a version of the single link page that can only be called on the main server.
         It gets called as JSON (by the regular single link page on a mirror) and returns
         the data necessary for the mirror to render the page.
     """
-    return single_linky(request, guid)
+    return single_linky(request, guid, send_downstream=True)
 
 
 @may_be_mirrored
