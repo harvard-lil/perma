@@ -89,7 +89,7 @@ class ApiResourceTestCase(ResourceTestCase):
 
     def get_credentials(self, user=None):
         user = user or self.user
-        return self.create_apikey(username=user.email, api_key=user.api_key.key)
+        return "ApiKey %s" % user.api_key.key
 
     @classmethod
     def start_server(cls):
