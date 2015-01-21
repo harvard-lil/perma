@@ -44,6 +44,7 @@ urlpatterns = patterns('perma.views',
     url(r'^docs/developer/?$', DirectTemplateView.as_view(template_name='docs/developer/index.html'), name='docs'),
     url(r'^docs/developer/user-profile/?$', DirectTemplateView.as_view(template_name='docs/developer/user-profile.html'), name='docs_developer_user_profile'),
     url(r'^docs/developer/archives/?$', DirectTemplateView.as_view(template_name='docs/developer/archives.html'), name='docs_developer_archives'),
+    url(r'^docs/developer/folders/?$', DirectTemplateView.as_view(template_name='docs/developer/folders.html'), name='docs_developer_folders'),
 
     #API routes
     url(r'^api/linky/urldump/?$', 'api.urldump', name='urldump'),
