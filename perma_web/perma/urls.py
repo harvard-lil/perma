@@ -40,8 +40,9 @@ urlpatterns = patterns('perma.views',
     url(r'^docs/perma-user-roles/?$', DirectTemplateView.as_view(template_name='docs/perma-user-roles.html'), name='docs_perma_user_roles'),
     url(r'^docs/faq/?$', DirectTemplateView.as_view(template_name='docs/faq.html'), name='docs_faq'),
     
-    #Developer 
+    #Developer docs
     url(r'^docs/developer/?$', DirectTemplateView.as_view(template_name='docs/developer/index.html'), name='docs'),
+    url(r'^docs/developer/user-profile/?$', DirectTemplateView.as_view(template_name='docs/developer/user-profile.html'), name='docs_developer_user_profile'),
     url(r'^docs/developer/archives/?$', DirectTemplateView.as_view(template_name='docs/developer/archives.html'), name='docs_developer_archives'),
 
     #API routes

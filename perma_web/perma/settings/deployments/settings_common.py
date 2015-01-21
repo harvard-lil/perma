@@ -185,6 +185,12 @@ PIPELINE_JS = {
         ),
         'output_filename': 'js/single-link-bundle.js',
     },
+    'doc-developer': {
+        'source_filenames': (
+            'js/pretty-print-json.js',
+        ),
+        'output_filename': 'js/pretty-print-json.js',
+    },
 }
 
 PIPELINE_CSS = {

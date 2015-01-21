@@ -19,16 +19,22 @@ Welcome to the Perma.cc developer guide.
 		<p>Many of the resources managed by the API will require you to use an API key. Find your API key in your Dashboard under the Settings, Tools section. Click on the Generate an API key button.</p>
 		
 		<img src="{{ STATIC_URL }}img/docs/create-api-key.png" class="img-responsive" alt="Create an API key "/>
+
+		<h4>Serialization and paging</h4>
+		<p>We can serve up the results in JSON or XML. Paging is easy too. (briefly describe paging here)</p>
 		
 		<h4>JSONP</h4>
 		<p>The Perma.cc API supports JSONP. Just ...</p>
+		
+		<h4>Examples in cURL</h4>
+		<p>Our API documentation is example based, and those examples show you how to interact with the API using the <a href="http://en.wikipedia.org/wiki/CURL">cURL</a> command line utility. You can add the -v option to help debug your HTTP interactions.</p>
 		
 	</div>
 	<div class="col-sm-3 col-sm-offset-1">
 		<ul class="nav nav-pills nav-stacked">
 		  	<li class="active"><a href="{% url 'docs' %}">Overview</a></li>
-		  	
-			<li><a href="{% url 'docs_developer_archives' %}">Archives</a></li>
+		  	<li><a href="{% url 'docs_developer_user_profile' %}">User Profile</a></li>
+			<li><a href="{% url 'docs_developer_archives' %}">Archives API</a></li>
 			<li><a href="{% url 'docs_perma_link_creation' %}">Creating, Organizing & Annotating</a></li></a></li>
 			<li><a href="{% url 'docs_perma_link_vesting' %}">Link Vesting</a></li>
 
