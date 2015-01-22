@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user as django_get_user
-from django.contrib.auth.models import AnonymousUser, Group
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.middleware import AuthenticationMiddleware
 from django.conf import settings
 from django.http import HttpResponsePermanentRedirect
@@ -10,25 +10,34 @@ from .utils import read_signed_message
 
 ### helpers ###
 
+def get_subdomain(request):
+    """
+        Given request, get portion before the first .
+    """
+    if not hasattr(request, 'subdomain'):
+        request.subdomain = request.get_host().split('.', 1)[0]
+    return request.subdomain
+
 def get_main_server_host(request):
     """
-        Given request, return the host domain with the MIRROR_USERS_SUBDOMAIN included.
+        Given request, return the host domain with the DASHBOARD_SUBDOMAIN included.
     """
     if not hasattr(request, 'main_server_host'):
         host = request.get_host()
-        if not host.startswith(settings.MIRROR_USERS_SUBDOMAIN + '.'):
-            host = settings.MIRROR_USERS_SUBDOMAIN + '.' + host
+        if not get_subdomain(request) == settings.DASHBOARD_SUBDOMAIN:
+            host = settings.DASHBOARD_SUBDOMAIN + '.' + host
         request.main_server_host = host
     return request.main_server_host
 
 def get_mirror_server_host(request):
     """
-        Given request, return the host domain with the MIRROR_USERS_SUBDOMAIN excluded.
+        Given request, return the host domain with the DASHBOARD_SUBDOMAIN excluded.
     """
     if not hasattr(request, 'mirror_server_host'):
         host = request.get_host()
-        if host.startswith(settings.MIRROR_USERS_SUBDOMAIN + '.'):
-            host = host[len(settings.MIRROR_USERS_SUBDOMAIN + '.'):]
+        subdomain = get_subdomain(request)
+        if subdomain == settings.DASHBOARD_SUBDOMAIN or subdomain == settings.API_SUBDOMAIN:
+            host = host.split('.', 1)[1]
         request.mirror_server_host = host
     return request.mirror_server_host
 
@@ -97,7 +106,7 @@ class MirrorForwardingMiddleware(object):
             If we're doing mirroring, make sure that the user is directed to the main domain
             or the generic domain depending on whether the view they requested @must_be_mirrored.
         """
-        if settings.MIRRORING_ENABLED:
+        if settings.MIRRORING_ENABLED and not getattr(request, 'no_mirror_forwarding', False):
             if getattr(view_func, 'may_be_mirrored', False):
                 return
 

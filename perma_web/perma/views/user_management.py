@@ -990,10 +990,7 @@ def account_is_deactivated(request):
 
 
 def get_mirror_cookie_domain(request):
-    host = request.get_host().split(':')[0] # remove port
-    if host.startswith(settings.MIRROR_USERS_SUBDOMAIN+'.'):
-        host = host[len(settings.MIRROR_USERS_SUBDOMAIN+'.'):]
-    return '.'+host
+    return '.' + request.mirror_server_host.split(':')[0]  # remove port
 
 
 def logout(request):
