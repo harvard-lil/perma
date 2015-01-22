@@ -25,8 +25,7 @@ class FolderAuthorization(DefaultAuthorization):
     def can_access(self, user, obj):
         try:
             # returns true if exists
-            return bool(user.id == obj.created_by_id or
-                        Folder.objects.get(Folder.objects.user_access_filter(user),
+            return bool(Folder.objects.get(Folder.objects.user_access_filter(user),
                                            pk=obj.pk))
         except Folder.DoesNotExist:
             return False
