@@ -20,7 +20,7 @@ This section of the user guide covers how to view the information associated wit
 		<p>View user account details.</p>
 		<pre>curl {{ request.META.HTTP_HOST }}/api/v1/user/?api_key=your-api-key</pre>
 		<p>This will display the basic information associated with a user's account. Pass in your API key using a GET.</p>
-		<pre class="prettyprint">{"first_name": "Regular", "full_name": "Regular User", "groups": [{"name": "user"}], "id": 4, "last_name": "User", "short_name": "Regular"}</pre>
+		<pre class="prettyprint">{"first_name": "Regular", "full_name": "Regular User", "id": 4, "last_name": "User", "short_name": "Regular"}</pre>
 		
 		<h4>Update a user's profile</h4>
 		<p>We should provide an example of updating a user's name and email here.</p>

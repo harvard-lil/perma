@@ -10,7 +10,6 @@ from tastypie.resources import ModelResource
 from tastypie.exceptions import NotFound, ImmediateHttpResponse
 from tastypie.http import HttpNotImplemented
 from validations import LinkValidation
-from django.contrib.auth.models import Group
 from perma.models import (LinkUser,
                           Link,
                           Asset,
@@ -103,21 +102,12 @@ class MultipartResource(object):
         return super(MultipartResource, self).deserialize(request, data, format)
 
 
-class GroupResource(DefaultResource):
-    name = fields.CharField(attribute='name')
-
-    class Meta(DefaultResource.Meta):
-        resource_name = 'groups'
-        queryset = Group.objects.all()
-
-
 class LinkUserResource(DefaultResource):
     id = fields.IntegerField(attribute='id')
     first_name = fields.CharField(attribute='first_name', blank=True, null=True)
     last_name = fields.CharField(attribute='last_name', blank=True, null=True)
     full_name = fields.CharField(attribute='get_full_name', blank=True, null=True)
     short_name = fields.CharField(attribute='get_short_name', blank=True, null=True)
-    groups = fields.ToManyField(GroupResource, 'groups', full=True, blank=True, null=True)
 
     class Meta(DefaultResource.Meta):
         resource_name = 'users'

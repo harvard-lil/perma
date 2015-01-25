@@ -1,5 +1,5 @@
 {% extends "admin-layout.html" %}
-{% load truncatesmart compressed has_group %}
+{% load truncatesmart compressed %}
 {% block title %} | Create a Perma link{% endblock %}
 
 {% block content %}
@@ -69,13 +69,9 @@
     {{ block.super }}
 
     <script>
-        var userguide_url = "{% url 'docs_perma_link_vesting' %}";
-        vest_link_url = "{% url 'vest_link' 'GUID' %}";
-
-        vesting_privs = false;
-        {% if request.user|has_group:'registry_user,registrar_user,vesting_user' and not linky.vested %}
-            vesting_privs = true;
-        {% endif %}
+        var userguide_url = "{% url 'docs_perma_link_vesting' %}",
+            vest_link_url = "{% url 'vest_link' 'GUID' %}",
+            vesting_privs = {% if request.user.can_vest %}true{% else %}false{% endif %};
     </script>
 
     {% compressed_js 'create' %}

@@ -1,12 +1,11 @@
 import logging
 
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 
 from ..models import Link, Asset, Folder
-from ..utils import require_group
 
 logger = logging.getLogger(__name__)
 valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp', 'submitted_title', '-submitted_title']
@@ -66,7 +65,8 @@ def folder_contents(request, folder_id):
 
 
 ###### link editing ######
-@require_group(['registrar_user', 'registry_user', 'vesting_user'])
+@login_required
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_vesting_org_member())
 def vest_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
 

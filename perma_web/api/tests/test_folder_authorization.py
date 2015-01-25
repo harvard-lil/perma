@@ -11,7 +11,6 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
 
     fixtures = ['fixtures/users.json',
                 'fixtures/folders.json',
-                'fixtures/groups.json',
                 'fixtures/archive.json',
                 'fixtures/api_keys.json']
 

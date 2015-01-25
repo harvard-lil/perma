@@ -2,7 +2,7 @@ import logging
 import random
 import re
 
-from django.contrib.auth.models import Group, BaseUserManager, AbstractBaseUser
+from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import models
@@ -77,12 +77,11 @@ class VestingOrgManager(models.Manager):
         return VestingOrgQuerySet(self.model, using=self._db)
 
     def user_access_filter(self, user):
-        # Sniff the user group access without making db calls
-        if user.vesting_org_id:  # user.has_group('vesting_user')
+        if user.is_vesting_org_member():
             return Q(id=user.vesting_org_id)
-        elif user.registrar_id:  # user.has_group('registrar_user')
+        elif user.is_registrar_member():
             return Q(registrar_id=user.registrar_id)
-        elif user.is_staff:  # user.has_group('registry_user')
+        elif user.is_staff:
             return  # all
         else:
             return None
@@ -130,7 +129,7 @@ class VestingOrg(models.Model):
 
 
 class LinkUserManager(BaseUserManager):
-    def create_user(self, email, registrar, vesting_org, date_joined, first_name, last_name, authorized_by, confirmation_code, password=None, groups=None):
+    def create_user(self, email, registrar, vesting_org, date_joined, first_name, last_name, authorized_by, confirmation_code, password=None):
         """
         Creates and saves a User with the given email, registrar and password.
         """
@@ -141,7 +140,6 @@ class LinkUserManager(BaseUserManager):
             email=self.normalize_email(email),
             registrar=registrar,
             vesting_org=vesting_org,
-            groups=groups,
             date_joined = date_joined,
             first_name = first_name,
             last_name = last_name,
@@ -164,9 +162,8 @@ class LinkUser(AbstractBaseUser):
         unique=True,
         db_index=True,
     )
-    registrar = models.ForeignKey(Registrar, blank=True, null=True)
-    vesting_org = models.ForeignKey(VestingOrg, blank=True, null=True, related_name='users')
-    groups = models.ManyToManyField(Group, blank=True, null=True)
+    registrar = models.ForeignKey(Registrar, blank=True, null=True, help_text="If set, this user is a registrar member. This should not be set if vesting org is set!")
+    vesting_org = models.ForeignKey(VestingOrg, blank=True, null=True, related_name='users', help_text="If set, this user is a vesting org member. This should not be set if registrar is set!")
     is_active = models.BooleanField(default=True)
     is_confirmed = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -186,8 +183,13 @@ class LinkUser(AbstractBaseUser):
         verbose_name = 'User'
 
     def save(self, *args, **kwargs):
-        """ Make sure root folder is created for each user. """
+        # Don't allow users to have both a registrar and vesting_org.
+        # This is just a data consistency check -- logic earlier in the app should make sure this doesn't happen.
+        assert not (self.vesting_org_id and self.registrar_id), "Users cannot have both a registrar and a vesting org."
+
         super(LinkUser, self).save(*args, **kwargs)
+
+        # make sure root folder is created for each user.
         if not self.root_folder:
             self.create_root_folder()
 
@@ -204,35 +206,11 @@ class LinkUser(AbstractBaseUser):
     def __unicode__(self):
         return self.email
 
-    def has_perm(self, perm, obj=None):
-        "Does the user have a specific permission?"
-        # Simplest possible answer: Yes, always
-        return True
-
-    def has_module_perms(self, app_label):
-        "Does the user have permissions to view the app `app_label`?"
-        # Simplest possible answer: Yes, always
-        return True
-
-    _group_names_cache = None
-    def has_group(self, group):
-        """
-            Return true if user is in the named group.
-            If group is a list, user must be in one of the groups in the list.
-        """
-        if not self._group_names_cache:
-            self._group_names_cache = set(group.name for group in self.groups.all())
-
-        if hasattr(group, '__iter__'):
-            return set(group) & self._group_names_cache  # set intersection
-        else:
-            return group in self._group_names_cache
-
     def all_folder_trees(self):
         """
             Get all folders for this user, including shared folders
         """
-        if self.has_group('registrar_user'):
+        if self.is_registrar_member():
             vesting_orgs = self.registrar.vesting_orgs.all()
         else:
             vesting_orgs = [self.get_default_vesting_org()]
@@ -240,11 +218,11 @@ class LinkUser(AbstractBaseUser):
             ([vesting_org.shared_folder.get_descendants(include_self=True) for vesting_org in vesting_orgs if vesting_org])
 
     def get_default_vesting_org(self):
-        if self.has_group('vesting_user') and self.vesting_org:
+        if self.is_vesting_org_member():
             return self.vesting_org
-        if self.has_group('registrar_user') and self.registrar:
+        if self.is_registrar_member():
             return self.registrar.default_vesting_org
-        if self.has_group('registry_user'):
+        if self.is_staff:
             try:
                 return VestingOrg.objects.get(pk=settings.FALLBACK_VESTING_ORG_ID)
             except VestingOrg.DoesNotExist:
@@ -268,6 +246,36 @@ class LinkUser(AbstractBaseUser):
         from api.resources import LinkUserResource
         return LinkUserResource().as_json(self, request)
 
+    ### permissions ###
+
+    def has_perm(self, perm, obj=None):
+        """
+            Does the user have a specific permission?
+            Simplest possible answer: Yes, always
+            This is only used by the django admin for is_staff=True users.
+        """
+        return True
+
+    def has_module_perms(self, app_label):
+        """
+            Does the user have permissions to view the app `app_label`?
+            Simplest possible answer: Yes, always
+            This is only used by the django admin for is_staff=True users.
+        """
+        return True
+
+    def can_vest(self):
+        """ Can the user vest links? """
+        return bool(self.is_staff or self.is_registrar_member() or self.is_vesting_org_member())
+
+    def is_registrar_member(self):
+        """ Is the user a member of a registrar? """
+        return bool(self.registrar_id)
+
+    def is_vesting_org_member(self):
+        """ Is the user a member of a vesting org? """
+        return bool(self.vesting_org_id)
+
 
 class FolderException(Exception):
     pass
@@ -290,7 +298,7 @@ class FolderManager(models.Manager):
         filter = Q(owned_by=user)
 
         # vesting org folders
-        if user.has_group('registrar_user'):
+        if user.is_registrar_member():
             filter |= Q(vesting_org__registrar=user.registrar)
         else:
             default_vesting_org = user.get_default_vesting_org()
@@ -437,7 +445,7 @@ class LinkManager(models.Manager):
         filter = Q(folders__owned_by=user)
 
         # links in vesting org folders
-        if user.has_group('registrar_user'):
+        if user.is_registrar_member():
             filter |= Q(folders__vesting_org__registrar=user.registrar)
         else:
             default_vesting_org = user.get_default_vesting_org()

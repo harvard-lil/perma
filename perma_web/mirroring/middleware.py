@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user as django_get_user
-from django.contrib.auth.models import AnonymousUser, Group
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.middleware import AuthenticationMiddleware
 from django.conf import settings
 from django.http import HttpResponsePermanentRedirect

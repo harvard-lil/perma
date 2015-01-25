@@ -3,8 +3,7 @@ from .utils import ApiResourceTestCase
 
 class VestingOrgResourceTestCase(ApiResourceTestCase):
     fixtures = ['fixtures/users.json',
-                'fixtures/folders.json',
-                'fixtures/groups.json']
+                'fixtures/folders.json']
 
     def setUp(self):
         super(VestingOrgResourceTestCase, self).setUp()

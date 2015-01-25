@@ -1,5 +1,7 @@
-from django.db.models import Q
 import operator
+
+from django.db.models import Q
+from django.conf import settings
 
         
 class favicon:
@@ -60,31 +62,6 @@ class favicon:
 
 
         return False
-
-
-
-### require_group decorator ###
-
-from functools import wraps
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect
-from django.conf import settings
-
-def require_group(group, redirect_url=settings.LOGIN_REDIRECT_URL):
-    """
-        Require user to be logged in and belong to group with given name.
-        If group is a list, user must have one of the named groups.
-        If user does not belong to group, they will be sent to redirect_url.
-    """
-    def require_group_decorator(wrapped_func):
-        @login_required
-        @wraps(wrapped_func)
-        def wrapper(request, *args, **kwargs):
-            if not request.user.has_group(group):
-                return HttpResponseRedirect(redirect_url)
-            return wrapped_func(request, *args, **kwargs)
-        return wrapper
-    return require_group_decorator
 
 
 ### celery helpers ###
