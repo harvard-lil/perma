@@ -231,20 +231,22 @@ TEMPLATE_LOADERS = (
 
 MIDDLEWARE_CLASSES = (
     'perma.middleware.SecurityMiddleware',
-    'subdomains.middleware.SubdomainURLRoutingMiddleware',
+    'api.middleware.APISubdomainMiddleware',  # this should come before MirrorForwardingMiddleware
+    'mirroring.middleware.MirrorForwardingMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'mirroring.middleware.MirrorAuthenticationMiddleware',
     'perma.middleware.AdminAuthMiddleware',
-    'mirroring.middleware.MirrorForwardingMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
 RATELIMIT_VIEW = 'perma.views.common.rate_limit'
+
+ROOT_URLCONF = 'urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'perma.wsgi.application'
@@ -420,13 +422,14 @@ CELERY_SEND_TASK_ERROR_EMAILS = True
 # if you're running a mirror on Heroku or something like that.
 RUN_TASKS_ASYNC = True
 
+API_SUBDOMAIN = 'api'
 
 ### mirror stuff
 
 MIRRORING_ENABLED = False           # whether to use mirroring features
 MIRROR_SERVER = False               # whether we are a mirror
 MIRROR_COOKIE_NAME = 'user_info'
-MIRROR_USERS_SUBDOMAIN = 'dashboard'
+DASHBOARD_SUBDOMAIN = 'dashboard'
 DIRECT_MEDIA_URL = MEDIA_URL        # URL to load media from this server in particular -- primarily useful for main server
 
 # Where to fetch new archives from, if we are a mirror.
@@ -475,22 +478,6 @@ DIRECT_WARC_HOST = None     # host to load warc from this server in particular -
 # details
 THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.pil_engine.Engine'  # Change this to Wand when sorl 12.x is released (since we use Wand for PDF thumbnail creation)
 THUMBNAIL_FORMAT = 'PNG'  #
-
-# for django-subdomains
-# This is the urlconf that will be used for any subdomain that is not
-# listed in ``SUBDOMAIN_URLCONFS``, or if the HTTP ``Host`` header does not
-# contain the correct domain.
-# If you're planning on using wildcard subdomains, this should correspond
-# to the urlconf that will be used for the wildcard subdomain. For example,
-# 'accountname.mysite.com' will load the ROOT_URLCONF, since it is not
-# defined in ``SUBDOMAIN_URLCONFS``.
-ROOT_URLCONF = 'urls'
-
-# A dictionary of urlconf module paths, keyed by their subdomain.
-SUBDOMAIN_URLCONFS = {
-    None: 'urls',  # no subdomain, e.g. ``example.com``
-    'api': 'api.urls',
-}
 
 # feature flags
 SINGLE_LINK_HEADER_TEST = False

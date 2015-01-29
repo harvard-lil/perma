@@ -72,13 +72,15 @@ class Command(BaseCommand):
         router_port = 8000
         running_processes = []
 
-        main_server_port = 8001
-        main_server_address = '%s.perma.dev' % settings.MIRROR_USERS_SUBDOMAIN
-        main_server_media = 'user-content.'+main_server_address
-
         mirror_server_port = 8002
         mirror_server_address = 'perma.dev'
         mirror_server_media = 'user-content.'+mirror_server_address
+
+        main_server_port = 8001
+        main_server_address = '%s.%s' % (settings.DASHBOARD_SUBDOMAIN, mirror_server_address)
+        api_server_address = 'api.%s' % mirror_server_address
+        main_server_media = 'user-content.'+main_server_address
+
 
         temp_dir = tempdir.TempDir()
 
@@ -146,6 +148,7 @@ class Command(BaseCommand):
 
             main_host = ForwardedReverseProxyResource('127.0.0.1', main_server_port, '')
             root.addHost(main_server_address, main_host)
+            root.addHost(api_server_address, main_host)
             root.addHost(main_server_media, main_host)
 
             mirror_host = ForwardedReverseProxyResource('127.0.0.1', mirror_server_port, '')
