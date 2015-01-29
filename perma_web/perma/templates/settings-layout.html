@@ -1,5 +1,4 @@
 {% extends "layout-responsive.html" %}
-{% load startswith has_group %}
 
 {% block row %}
 
@@ -16,7 +15,7 @@
             
             <li{% if this_page == 'settings_tools' %} class="active"{% endif %}><a href="{% url 'user_management_settings_tools' %}">Tools</a></li>
 
-            {% if request.user|has_group:'vesting_user' %}
+            {% if request.user.is_vesting_org_member %}
             <!-- Settings -->
             <li{% if this_page == 'settings_organizations' %} class="active"{% endif %}><a href="{% url 'user_management_settings_organizations' %}" id="dashboard-settings">Organizations</a></li>
             {% endif %}

@@ -46,9 +46,6 @@ def may_be_mirrored(view_func):
 
 ### user serialization ###
 
-def serialize_user(user):
-    return serializers.serialize("json", [user], fields=['groups','registrar','vesting_org','first_name','last_name','email'])
-
 def deserialize_user(serialized_user):
     serialized_user = serialized_user.replace('perma.linkuser', 'mirroring.fakelinkuser')
     return serializers.deserialize("json", serialized_user).next().object

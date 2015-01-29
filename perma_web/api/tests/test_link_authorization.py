@@ -11,7 +11,6 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
 
     fixtures = ['fixtures/users.json',
                 'fixtures/folders.json',
-                'fixtures/groups.json',
                 'fixtures/api_keys.json',
                 'fixtures/archive.json']
 
@@ -23,6 +22,7 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
         self.vesting_member = LinkUser.objects.get(pk=3)
         self.regular_user = LinkUser.objects.get(pk=4)
         self.vesting_manager = LinkUser.objects.get(pk=5)
+        self.unrelated_vesting_member = LinkUser.objects.get(pk=6)  # belongs to a different vesting org than the one vesting this link
 
         self.empty_child_folder = Folder.objects.get(pk=29)
 
@@ -76,7 +76,7 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
         self.successful_patch(self.vested_url, user=user, data=self.patch_data)
 
     def test_should_reject_patch_from_user_lacking_owner_and_folder_access(self):
-        self.rejected_patch(self.vested_url, user=self.vesting_manager, data=self.patch_data)
+        self.rejected_patch(self.vested_url, user=self.unrelated_vesting_member, data=self.patch_data)
 
     ###########
     # Vesting #
@@ -143,7 +143,7 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
         self.assertEqual(data['dark_archived_by']['id'], user.id)
 
     def test_should_reject_dark_archive_from_user_lacking_owner_and_folder_access(self):
-        self.rejected_patch(self.vested_url, user=self.vesting_manager, data={'dark_archived': True})
+        self.rejected_patch(self.vested_url, user=self.unrelated_vesting_member, data={'dark_archived': True})
 
     ##########
     # Moving #

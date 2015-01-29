@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 
 
 class AuthViewsTestCase(TestCase):
-    fixtures = ['fixtures/groups.json', 'fixtures/users.json', 'fixtures/folders.json']
+    fixtures = ['fixtures/users.json', 'fixtures/folders.json']
 
     def setUp(self):
         self.client = Client()
