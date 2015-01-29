@@ -277,6 +277,10 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
     save_screenshot(browser, image_path)
     save_fields(asset, image_capture=image_name)
 
+    # scroll to bottom of page and back up, in case that prompts anything else to load
+    browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    browser.execute_script("window.scrollTo(0, 0);")
+
     # make sure all requests are finished
     print "Waiting for post-load requests."
     start_time = time.time()
