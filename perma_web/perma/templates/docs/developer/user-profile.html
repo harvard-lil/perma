@@ -1,0 +1,47 @@
+{% extends "layout-responsive.html" %}
+{% load file_exists compressed %}
+
+{% block title %} | Docs{% endblock %}
+
+{% block meta_description %}
+This section of the user guide covers how to view the information associated with a user's account
+{% endblock %}
+
+{% block content %}
+<div class="container">
+	<div class="col-sm-8 docs">
+		<h2>Managing a user's profile</h2>
+		<br/>
+		<hr>
+		<p>The User profile API helps you create and manage archives.</p>
+		<p>The base resource for this API is <code>https://{{ request.META.HTTP_HOST }}/api/v1/user/</code></p>
+		
+		<h4>View a basic user profile</h4>
+		<p>View user account details.</p>
+		<pre>curl {{ request.META.HTTP_HOST }}/api/v1/user/?api_key=your-api-key</pre>
+		<p>This will display the basic information associated with a user's account. Pass in your API key using a GET.</p>
+		<pre class="prettyprint">{"first_name": "Regular", "full_name": "Regular User", "groups": [{"name": "user"}], "id": 4, "last_name": "User", "short_name": "Regular"}</pre>
+		
+		<h4>Update a user's profile</h4>
+		<p>We should provide an example of updating a user's name and email here.</p>
+		<pre>curl with patch to user profile</pre>
+		<p>This will update the user's last name and email address.</p>
+		<pre class="prettyprint">{some appropriate response}</pre>
+		
+	</div>
+	<div class="col-sm-3 col-sm-offset-1 docs-nav">
+		<ul class="nav nav-pills nav-stacked">
+			<li><a href="{% url 'dev_docs' %}">Overview</a></li>
+			<li class="active"><a href="{% url 'docs_developer_user_profile' %}">User Profile</a></li>
+			<li ><a href="{% url 'docs_developer_archives' %}">Archives API</a></li>
+			<li><a href="{% url 'docs_developer_folders' %}">Folders API</a></li>
+
+		</ul>	
+	</div>
+</div>	
+
+{% endblock %}
+
+{% block scripts %}
+    {% compressed_js 'doc-developer' %}
+{% endblock %}

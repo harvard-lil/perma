@@ -53,7 +53,9 @@ def post_message_downstream(relative_url, json_data={}, **request_kwargs):
         send_request(mirror, relative_url, 'POST', **request_kwargs)
 
     pool = ThreadPool(processes=min(len(settings.DOWNSTREAM_SERVERS), 10))
-    return pool.map(call_downstream_request, settings.DOWNSTREAM_SERVERS)
+    out = pool.map(call_downstream_request, settings.DOWNSTREAM_SERVERS)
+    pool.close()
+    return out
 
 def get_update_queue_lock():
     """

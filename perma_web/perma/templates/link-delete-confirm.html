@@ -1,13 +1,11 @@
 {% extends "base-archive-confirm.html" %}
+{% load compressed as_json %}
 
 {% block confirm %}
     <h1 class="cyan">Yahowza!</h1>
     <h2>Do you really want to <span class="dark">delete</span> this link forever?</h2>
     <div class="centered-box">
-        <form action="" method="post">
-          {% csrf_token %}
-          <a href="/{{ link.guid }}" class="cancel-button">Cancel</a> <button type="submit" class="btn delete-confirm btn-success">Delete this link forever</button>
-        </form>
+        <a href="/{{ link.guid }}" class="cancel-button">Cancel</a> <button type="submit" class="btn delete-confirm btn-success">Delete this link forever</button>
     </div>
     <div class="library-thumbnail user-delete-thumbnail">
         {% if asset.image_capture and asset.image_capture != 'failed' %}
@@ -16,4 +14,13 @@
             {% endif %}
         {% endif %}
     </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        var url_link_browser = "{% url 'link_browser' %}",
+            archive = {% as_json link %};
+    </script>
+
+    {% compressed_js 'link-delete-confirm' %}
 {% endblock %}

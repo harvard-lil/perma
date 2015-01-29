@@ -1,0 +1,54 @@
+{% extends "layout-responsive.html" %}
+{% load file_exists compressed%}
+{% block title %} | Docs{% endblock %}
+
+{% block meta_description %}
+Welcome to the Perma.cc developer guide.
+{% endblock %}
+
+{% block content %}
+<div class="container">
+	<div class="col-sm-8 docs">
+		<h2>Overview</h2>
+		<hr>
+		
+		<p>With the Perma.cc API you can engage with your archives without being limited to HTML interactions provided by Perma.cc.</p>
+		
+		<h4>API Key</h4>
+		
+		<p>Many of the resources managed by the API will require you to use an API key. Find your API key in your Dashboard under the Settings, Tools section. Click on the Generate an API key button.</p>
+		
+		<img src="{{ STATIC_URL }}img/docs/create-api-key.png" class="img-responsive" alt="Create an API key "/>
+
+		<h4>Paging</h4>
+		<p>Most result sets are returned in batches of 20 items. You can page through the items using the offset parameter. For example, if you wanted to start at the 101st result start start on the fifth page (we start counting at 0, of course).</p>
+		<pre>curl https://{{ request.META.HTTP_HOST }}/api/v1/archives/?offset=4</pre>
+		
+		<h4>Limiting</h4>
+		<p>If you'd prefer to get a smaller result, specify the number of results using the limit parameter.</p>
+		<pre>curl https://{{ request.META.HTTP_HOST }}/api/v1/archives/?limit=1</pre>
+	
+		<h4>JSONP</h4>
+		<p>When building applications in JavaScript you often have to be mindful of the browser's <a href="http://en.wikipedia.org/wiki/Same-origin_policy">same origin policy</a>. JSONP is a way to work with the same origin policy and the Perma.cc API offers full supports. Just add a callback argument to your query string.</p>
+		<pre>curl https://{{ request.META.HTTP_HOST }}/api/v1/folders/28/?api_key=your-api-key&callback=name-of-your-callback</pre>
+		<p>Your response wrapped in your callback</p>
+		<pre class="prettyprint">name-of-your-callback({"id": 28, "name": "a new folder name", "parent": "/api/v1/folders/25/"})</pre>
+		
+		<h4>Examples in cURL</h4>
+		<p>Our API documentation is example based, and our examples show you how to interact with the API using the <a href="http://en.wikipedia.org/wiki/CURL">cURL</a> command line utility. A friendly tip - you can add the -v option to help debug your HTTP interactions.</p>
+		
+	</div>
+	<div class="col-sm-3 col-sm-offset-1">
+		<ul class="nav nav-pills nav-stacked">
+		  	<li class="active"><a href="{% url 'dev_docs' %}">Overview</a></li>
+		  	<li><a href="{% url 'docs_developer_user_profile' %}">User Profile</a></li>
+			<li><a href="{% url 'docs_developer_archives' %}">Archives API</a></li>
+			<li><a href="{% url 'docs_developer_folders' %}">Folders API</a></li>
+		</ul>
+	</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {% compressed_js 'doc-developer' %}
+{% endblock %}

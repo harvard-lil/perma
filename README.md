@@ -1,3 +1,5 @@
+![](https://raw.githubusercontent.com/harvard-lil/perma/develop/perma_web/static/img/watermark.png)
+
 Perma - indelible links
 =====
 
@@ -6,6 +8,11 @@ Perma.cc helps authors and journals create permanent archived citations in their
 
 [![Build Status](https://travis-ci.org/harvard-lil/perma.png?branch=develop)](https://travis-ci.org/harvard-lil/perma) [![Coverage Status](https://coveralls.io/repos/harvard-lil/perma/badge.png?branch=develop)](https://coveralls.io/r/harvard-lil/perma?branch=develop)
 
+## Connect with Perma.cc
+
+- Use Perma.cc at [Perma.cc](https://perma.cc)
+- Twitter [@permacc](https://twitter.com/permacc)
+- Email us at [info@perma.cc](mailto:info@perma.cc)
 
 ## Installation
 

@@ -9,8 +9,15 @@ from django.db import models
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.utils.text import slugify
+from django.utils.functional import cached_property
 from mptt.exceptions import InvalidMove
 from mptt.models import MPTTModel, TreeForeignKey
+from model_utils import FieldTracker
+
+# For Link
+import socket
+from urlparse import urlparse
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +34,8 @@ class Registrar(models.Model):
 
     # what info to send downstream
     mirror_fields = ('name', 'email', 'website')
+
+    tracker = FieldTracker()
 
     def save(self, *args, **kwargs):
         super(Registrar, self).save(*args, **kwargs)
@@ -49,7 +58,36 @@ class Registrar(models.Model):
             vesting_org.save()
             self.default_vesting_org = vesting_org
             self.save()
-        
+
+
+class VestingOrgQuerySet(QuerySet):
+    def accessible_to(self, user):
+        qset = VestingOrg.objects.user_access_filter(user)
+        if qset is None:
+            return self.none()
+        else:
+            return self.filter(qset)
+
+
+class VestingOrgManager(models.Manager):
+    """
+        Vesting org manager that can enforce user access perms.
+    """
+    def get_queryset(self):
+        return VestingOrgQuerySet(self.model, using=self._db)
+
+    def user_access_filter(self, user):
+        # Sniff the user group access without making db calls
+        if user.vesting_org_id:  # user.has_group('vesting_user')
+            return Q(id=user.vesting_org_id)
+        elif user.registrar_id:  # user.has_group('registrar_user')
+            return Q(registrar_id=user.registrar_id)
+        elif user.is_staff:  # user.has_group('registry_user')
+            return  # all
+        else:
+            return None
+
+
 class VestingOrg(models.Model):
     """
     This is generally a journal.
@@ -62,10 +100,13 @@ class VestingOrg(models.Model):
     # what info to send downstream
     mirror_fields = ('name', 'registrar')
 
+    objects = VestingOrgManager()
+    tracker = FieldTracker()
+
     def __init__(self, *args, **kwargs):
         """ Capture original values so we can deal with changes during save. """
         super(VestingOrg, self).__init__(*args, **kwargs)
-        self.original_values = {'name':self.name}
+        self.original_values = {'name': self.name}
 
     def save(self, *args, **kwargs):
         super(VestingOrg, self).save(*args, **kwargs)
@@ -136,6 +177,7 @@ class LinkUser(AbstractBaseUser):
     root_folder = models.OneToOneField('Folder', blank=True, null=True)
 
     objects = LinkUserManager()
+    tracker = FieldTracker()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -222,6 +264,10 @@ class LinkUser(AbstractBaseUser):
         self.root_folder = root_folder
         self.save()
 
+    def as_json(self, request=None):
+        from api.resources import LinkUserResource
+        return LinkUserResource().as_json(self, request)
+
 
 class FolderException(Exception):
     pass
@@ -277,12 +323,13 @@ class Folder(MPTTModel):
     is_root_folder = models.BooleanField(default=False)
 
     objects = FolderManager()
+    tracker = FieldTracker()
 
     def __init__(self, *args, **kwargs):
         super(Folder, self).__init__(*args, **kwargs)
 
         # set defaults
-        if not self.pk:
+        if (args or kwargs) and not self.pk:
             # set ownership same as parent
             if self.parent:
                 if self.parent.vesting_org:
@@ -373,7 +420,14 @@ class LinkManager(models.Manager):
         Link manager that can enforce user access perms.
     """
     def get_queryset(self):
-        return LinkQuerySet(self.model, using=self._db)
+        # exclude deleted entries by default
+        return LinkQuerySet(self.model, using=self._db).filter(user_deleted=False)
+
+    def all_with_deleted(self):
+        return super(LinkManager, self).get_query_set()
+
+    def deleted_set(self):
+        return super(LinkManager, self).get_query_set().filter(user_deleted=True)
 
     def user_access_filter(self, user):
         """
@@ -397,6 +451,10 @@ class LinkManager(models.Manager):
 
     def accessible_to(self, user):
         return self.get_queryset().accessible_to(user)
+
+HEADER_CHECK_TIMEOUT = 10
+# This is the PhantomJS default agent
+USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X) AppleWebKit/534.34 (KHTML, like Gecko) PhantomJS/1.9.0 (development) Safari/534.34"
 
 class Link(models.Model):
     """
@@ -426,8 +484,44 @@ class Link(models.Model):
                      'vested', 'vested_timestamp', 'vesting_org')
 
     objects = LinkManager()
+    tracker = FieldTracker()
+
+    @cached_property
+    def url_details(self):
+        return urlparse(self.submitted_url)
+
+    @cached_property
+    def ip(self):
+        try:
+            return socket.gethostbyname(self.url_details.netloc.split(':')[0])
+        except socket.gaierror:
+            return False
+
+    @cached_property
+    def headers(self):
+        try:
+            return requests.head(
+                self.submitted_url,
+                verify=False,  # don't check SSL cert?
+                headers={'User-Agent': USER_AGENT, 'Accept-Encoding': '*'},
+                timeout=HEADER_CHECK_TIMEOUT
+            ).headers
+        except (requests.ConnectionError, requests.Timeout):
+            return False
+
+    # media_type is a file extension-ish normalized mimemedia_type
+    @cached_property
+    def media_type(self):
+        if self.headers.get('content-type', None) in ['application/pdf', 'application/x-pdf'] or self.submitted_url.endswith('.pdf'):
+            return 'pdf'
+        else:
+            return False
 
     def save(self, *args, **kwargs):
+        # Set a default title if one is missing
+        if not self.submitted_title:
+            self.submitted_title = self.url_details.netloc
+
         initial_folder = kwargs.pop('initial_folder', None)
 
         if not self.pk and not kwargs.get("pregenerated_guid", False):
@@ -516,6 +610,10 @@ class Link(models.Model):
                and not self.dark_archived and not self.dark_archived_robots_txt_blocked \
                and self.assets.filter(warc_capture__contains='.warc').exists()
 
+    def as_json(self, request=None):
+        from api.resources import LinkResource
+        return LinkResource().as_json(self, request)
+
 
 class Asset(models.Model):
     """
@@ -523,18 +621,20 @@ class Asset(models.Model):
     this class to track those locations.
     """
     link = models.ForeignKey(Link, null=False, related_name='assets')
-    base_storage_path = models.CharField(max_length=2100, null=True, blank=True) # where we store these assets, relative to some base in our settings
-    favicon = models.CharField(max_length=2100, null=True, blank=True) # Retrieved favicon
-    image_capture = models.CharField(max_length=2100, null=True, blank=True) # Headless browser image capture
-    warc_capture = models.CharField(max_length=2100, null=True, blank=True) # source capture, probably point to an index.html page
-    pdf_capture = models.CharField(max_length=2100, null=True, blank=True) # We capture a PDF version (through a user upload or through our capture)
-    text_capture = models.CharField(max_length=2100, null=True, blank=True) # We capture a text dump of the resource
+    base_storage_path = models.CharField(max_length=2100, null=True, blank=True)  # where we store these assets, relative to some base in our settings
+    favicon = models.CharField(max_length=2100, null=True, blank=True)  # Retrieved favicon
+    image_capture = models.CharField(max_length=2100, null=True, blank=True)  # Headless browser image capture
+    warc_capture = models.CharField(max_length=2100, null=True, blank=True)  # source capture, probably point to an index.html page
+    pdf_capture = models.CharField(max_length=2100, null=True, blank=True)  # We capture a PDF version (through a user upload or through our capture)
+    text_capture = models.CharField(max_length=2100, null=True, blank=True)  # We capture a text dump of the resource
     instapaper_timestamp = models.DateTimeField(null=True)
     instapaper_hash = models.CharField(max_length=2100, null=True)
     instapaper_id = models.IntegerField(null=True)
 
     # what info to send downstream
     mirror_fields = ('link', 'base_storage_path', 'image_capture', 'warc_capture', 'pdf_capture', 'text_capture')
+
+    tracker = FieldTracker()
 
     def __init__(self, *args, **kwargs):
         super(Asset, self).__init__(*args, **kwargs)

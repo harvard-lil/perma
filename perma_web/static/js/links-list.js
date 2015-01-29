@@ -1,20 +1,6 @@
 $(function() {
     var linkTable = $('.link-rows');
 
-    // helpers
-    function postJSON(url, data, callback, failureCallback) {
-        return $.ajax({
-                          url: url,
-                          type: "POST",
-                          dataType: 'json',
-                          data: data,
-                          success: callback,
-                          traditional: true // use Django-style array serialization
-        }).fail(failureCallback || function (jqXHR) {
-            informUser(jqXHR.status == 400 && jqXHR.responseText ? jqXHR.responseText : "Error " + jqXHR.status, 'danger');
-        });
-    }
-
     function getLinkIDForFormElement(element){
         return element.closest('.link-container').find('.link-row').attr('link_id');
     }
@@ -30,26 +16,35 @@ $(function() {
         statusElement.html('saving ...');
         saveNeeded = true;
 
+        var guid = inputElement.attr('id').match(/.+-(.+-.+)/)[1],
+            data = {};
+
+        data[name] = inputElement.val();
+
         // use a setTimeout so notes are only saved once every few seconds
         setTimeout(function () {
             if (saveNeeded) {
                 saveNeeded = false;
                 lastSaveTime = new Date().getTime();
                 var saveValue = inputElement.val();
-                request = postJSON(document.location,
-                                   {
-                                       action: 'save_link_attribute',
-                                       link_id: getLinkIDForFormElement(inputElement),
-                                       name: name,
-                                       value: saveValue
-                                   },
-                                   function (data) {
-                                       statusElement.html('saved.');
-                                       inputElement.attr('last_value_saved', saveValue);
-                                   }
-                );
-                if (callback)
-                    request.done(callback);
+
+                var request = $.ajax({
+                    url: api_path + '/archives/' + guid + '/',
+                    type: "PATCH",
+                    contentType: 'application/json',
+                    data: JSON.stringify(data)
+                });
+
+                request.done(function(data){
+                   statusElement.html('saved.');
+                   inputElement.attr('last_value_saved', saveValue);
+                });
+
+                if (callback) request.done(callback);
+
+                request.fail(function (jqXHR) {
+                    informUser(jqXHR.status == 400 && jqXHR.responseText ? jqXHR.responseText : "Error " + jqXHR.status, 'danger');
+                });
             }
         }, Math.max(saveBufferSeconds * 1000 - (new Date().getTime() - lastSaveTime), 0));
     }
@@ -109,7 +104,7 @@ $(function() {
     // save changes to title field
     }).on('textchange', '.link-title', function () {
         var textarea = $(this);
-        saveInput(textarea, textarea.prevAll('.title-save-status'), 'submitted_title', function () {
+        saveInput(textarea, textarea.prevAll('.title-save-status'), 'title', function () {
             // update display title when saved
             textarea.closest('.link-container').find('.link-title-display').text(textarea.val());
         });
@@ -117,10 +112,9 @@ $(function() {
     // handle move-to-folder dropdown
     }).on('change', '.move-to-folder', function () {
         moveSelect = $(this);
-        moveItems(
+        moveLink(
             moveSelect.val(), // selected folder_id to move link to
-            [getLinkIDForFormElement(moveSelect)], // link id to move
-            []
+            getLinkIDForFormElement(moveSelect) // link id to move
         ).done(function () {
             showFolderContents(getSelectedFolderID());
         });
@@ -163,23 +157,21 @@ $(function() {
     function getFolderURL(folderID) {
         if (!folderID)
             folderID = getSelectedFolderID();
-        return folderContentsURL.replace('FOLDER_ID', folderID);
-    }
-
-    function postJSONToFolder(folderID, json) {
-        return postJSON(getFolderURL(folderID), json);
+        return api_path + '/folders/' + folderID + '/';
     }
 
     function editNodeName(node) {
         setTimeout(function () {
-            folderTree.edit(node)
+            folderTree.edit(node);
         }, 0);
     }
 
     // *** actions ***
 
     var showLoadingMessage = false;
-    function showFolderContents(folderID) {
+    function showFolderContents(folderID, query) {
+        if(!query || !query.trim()) query = null;
+
         // if fetching folder contents takes more than 500ms, show a loading message
         showLoadingMessage = true;
         setTimeout(function(){
@@ -187,32 +179,70 @@ $(function() {
                 linkTable.html("Loading folder contents ...");
         }, 500);
 
+        var data = {limit: 0};
+        if (query) data.q = query;
+
         // fetch contents
-        $.get(getFolderURL(folderID))
-            .always(function (data) {
+        $.ajax(api_path + '/folders/' + folderID + '/archives/', {
+            contentType: 'application/json',
+            data: data
+        }).always(function (data) {
                 // same thing runs on success or error, since we get back success or error-displaying HTML
                 showLoadingMessage = false;
-                linkTable.html(data.responseText || data);
+                data.objects.map(function(obj){
+                    obj.local_url = mirror_server_host + '/' + obj.guid;
+
+                    var i = current_user.groups.length;
+                    while (!obj.can_vest && i){
+                        i--;
+                        obj.can_vest = ['registry_user',
+                                        'registrar_user',
+                                        'vesting_user'
+                                       ].indexOf(current_user.groups[i].name) > -1;
+                    }
+
+                    obj.search_query_in_notes = (query && obj.notes.indexOf(query) > -1);
+                    obj.url_docs_perma_link_vesting = url_docs_perma_link_vesting;
+                    obj.expiration_date_formatted = new Date(obj.expiration_date).format("M. j, Y");
+                    obj.creation_timestamp_formatted = new Date(obj.creation_timestamp).format("M. j, Y");
+                    if (obj.vested_timestamp) obj.vested_timestamp_formatted = new Date(obj.vested_timestamp).format("M. j, Y");
+                });
+                linkTable.html(templates.created_link_items(data));
             });
     }
 
     function createFolder(parentFolderID, newName) {
-        return postJSONToFolder(parentFolderID, {action: 'new_folder', name: newName});
+        return $.ajax(api_path + "/folders/" + parentFolderID + "/folders/", {
+            method: "POST",
+            contentType: 'application/json',
+            data: JSON.stringify({name: newName})
+        });
     }
 
     function renameFolder(folderID, newName) {
-        return postJSONToFolder(folderID, {action: 'rename_folder', name: newName});
+        return $.ajax(api_path + "/folders/" + folderID + "/", {
+            method: "PATCH",
+            contentType: 'application/json',
+            data: JSON.stringify({name: newName})
+        });
     }
 
-    function moveItems(targetFolderID, links, folders) {
-        return postJSONToFolder(targetFolderID, {action: 'move_items', links: links, folders: folders});
+    function moveFolder(parentID, childID) {
+        return $.ajax(api_path + "/folders/" + parentID + "/folders/" + childID + "/", {
+            method: "PUT"
+        });
     }
 
     function deleteFolder(folderID) {
-        return postJSON(
-            getFolderURL(folderID),
-            {action: 'delete_folder'}
-        );
+        return $.ajax(api_path + "/folders/" + folderID + "/", {
+            method: "DELETE"
+        });
+    }
+
+    function moveLink(folderID, linkID) {
+        return $.ajax(api_path + "/folders/" + folderID + "/archives/" + linkID + "/", {
+            method: "PUT"
+        });
     }
 
 
@@ -237,11 +267,10 @@ $(function() {
     // search form
     $('.search-query-form').on('submit', function (e) {
         e.preventDefault();
-        $.get(getFolderURL(null) + '?q=' + $('.search-query').val())
-            .always(function (data) {
-                        // same thing runs on success or error
-                        linkTable.html(data.responseText || data);
-                    });
+        var query = $('.search-query').val();
+        if(query && query.trim()){
+            showFolderContents(getSelectedFolderID(), query);
+        }
     });
     linkTable.on('click', 'a.clear-search', function () {
         showFolderContents(getSelectedFolderID());
@@ -277,7 +306,7 @@ $(function() {
                         // link dragged onto folder
                         if (operation == 'copy_node') {
                             var targetNode = getDropTarget();
-                            moveItems(targetNode.data.folder_id, [node.id], []).done(function () {
+                            moveLink(targetNode.data.folder_id, node.id).done(function () {
                                 showFolderContents(getSelectedFolderID());
                             });
                         }
@@ -291,7 +320,7 @@ $(function() {
                             });
                         } else if (operation == 'move_node') {
                             var targetNode = getDropTarget();
-                            moveItems(targetNode.data.folder_id, [], [node.data.folder_id]).done(function () {
+                            moveFolder(targetNode.data.folder_id, node.data.folder_id).done(function () {
                                 allowedEventsCount++;
                                 folderTree.move_node(node, targetNode);
                             });
@@ -306,7 +335,7 @@ $(function() {
                             createFolder(node_parent.data.folder_id, newName).done(function (server_response) {
                                 allowedEventsCount++;
                                 folderTree.create_node(node_parent, node, "last", function (new_folder_node) {
-                                    new_folder_node.data = {folder_id: server_response.new_folder_id};
+                                    new_folder_node.data = {folder_id: server_response.id};
                                     editNodeName(new_folder_node);
                                 });
                             });
