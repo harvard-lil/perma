@@ -5,6 +5,31 @@ $(function() {
         return element.closest('.link-container').find('.link-row').attr('link_id');
     }
 
+    function showError(jqXHR){
+        var message;
+
+        if(jqXHR.status == 400 && jqXHR.responseText){
+            try{
+                var parsedResponse = JSON.parse(jqXHR.responseText);
+                while(typeof parsedResponse == 'object'){
+                    for(var key in parsedResponse){
+                        if (parsedResponse.hasOwnProperty(key)){
+                            parsedResponse = parsedResponse[key];
+                            break;
+                        }
+                    }
+                }
+                message = parsedResponse;
+            }catch(SyntaxError){}
+        }
+
+        if(!message){
+            message = "Error " + jqXHR.status;
+        }
+
+        informUser(message, 'danger');
+    }
+
     // save changes to a given text box to the server
     var saveNeeded = false,
         lastSaveTime = 0,
@@ -28,23 +53,15 @@ $(function() {
                 lastSaveTime = new Date().getTime();
                 var saveValue = inputElement.val();
 
-                var request = $.ajax({
-                    url: api_path + '/archives/' + guid + '/',
-                    type: "PATCH",
-                    contentType: 'application/json',
-                    data: JSON.stringify(data)
-                });
+                var request = apiRequest("PATCH", '/archives/' + guid + '/', data);
 
                 request.done(function(data){
-                   statusElement.html('saved.');
-                   inputElement.attr('last_value_saved', saveValue);
+                    if(!saveNeeded)
+                        statusElement.html('saved.');
+                        inputElement.attr('last_value_saved', saveValue);
                 });
 
                 if (callback) request.done(callback);
-
-                request.fail(function (jqXHR) {
-                    informUser(jqXHR.status == 400 && jqXHR.responseText ? jqXHR.responseText : "Error " + jqXHR.status, 'danger');
-                });
             }
         }, Math.max(saveBufferSeconds * 1000 - (new Date().getTime() - lastSaveTime), 0));
     }
@@ -154,12 +171,6 @@ $(function() {
         return getSelectedNode().data.folder_id;
     }
 
-    function getFolderURL(folderID) {
-        if (!folderID)
-            folderID = getSelectedFolderID();
-        return api_path + '/folders/' + folderID + '/';
-    }
-
     function editNodeName(node) {
         setTimeout(function () {
             folderTree.edit(node);
@@ -183,10 +194,8 @@ $(function() {
         if (query) data.q = query;
 
         // fetch contents
-        $.ajax(api_path + '/folders/' + folderID + '/archives/', {
-            contentType: 'application/json',
-            data: data
-        }).always(function (data) {
+        apiRequest("GET", '/folders/' + folderID + '/archives/', data)
+            .always(function (data) {
                 // same thing runs on success or error, since we get back success or error-displaying HTML
                 showLoadingMessage = false;
                 data.objects.map(function(obj){
@@ -203,37 +212,23 @@ $(function() {
     }
 
     function createFolder(parentFolderID, newName) {
-        return $.ajax(api_path + "/folders/" + parentFolderID + "/folders/", {
-            method: "POST",
-            contentType: 'application/json',
-            data: JSON.stringify({name: newName})
-        });
+        return apiRequest("POST", "/folders/" + parentFolderID + "/folders/", {name: newName});
     }
 
     function renameFolder(folderID, newName) {
-        return $.ajax(api_path + "/folders/" + folderID + "/", {
-            method: "PATCH",
-            contentType: 'application/json',
-            data: JSON.stringify({name: newName})
-        });
+        return apiRequest("PATCH", "/folders/" + folderID + "/", {name: newName});
     }
 
     function moveFolder(parentID, childID) {
-        return $.ajax(api_path + "/folders/" + parentID + "/folders/" + childID + "/", {
-            method: "PUT"
-        });
+        return apiRequest("PUT", "/folders/" + parentID + "/folders/" + childID + "/");
     }
 
     function deleteFolder(folderID) {
-        return $.ajax(api_path + "/folders/" + folderID + "/", {
-            method: "DELETE"
-        });
+        return apiRequest("DELETE", "/folders/" + folderID + "/");
     }
 
     function moveLink(folderID, linkID) {
-        return $.ajax(api_path + "/folders/" + folderID + "/archives/" + linkID + "/", {
-            method: "PUT"
-        });
+        return apiRequest("PUT", "/folders/" + folderID + "/archives/" + linkID + "/");
     }
 
 

@@ -389,14 +389,13 @@ var spinner = new Spinner(opts).spin(target);
 	var check_status = function() {
 		
 	// Check our status service to see if we have archiving jobs pending
-		var request = $.ajax({
-			url: api_path + "/archives/" + archive.guid + "/",
-			type: "GET",
+		apiRequest("GET", "/archives/" + archive.guid + "/", null, {
+            error: null,
 			dataType: "jsonp"
 		});
 
 		request.done(function(data) {
-      var asset = data.assets[0];
+            var asset = data.assets[0];
 
 			if ($('#image_cap_container_loading').is(":visible") && asset.image_capture != 'pending') {
 				$('#image_cap_container_loading').hide();

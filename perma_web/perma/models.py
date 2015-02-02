@@ -8,7 +8,6 @@ from django.core.files.storage import default_storage
 from django.db import models
 from django.db.models import Q
 from django.db.models.query import QuerySet
-from django.utils.text import slugify
 from django.utils.functional import cached_property
 from mptt.exceptions import InvalidMove
 from mptt.models import MPTTModel, TreeForeignKey
@@ -82,9 +81,12 @@ class VestingOrgManager(models.Manager):
         elif user.is_registrar_member():
             return Q(registrar_id=user.registrar_id)
         elif user.is_staff:
-            return  # all
+            return Q()  # all
         else:
             return None
+
+    def accessible_to(self, user):
+        return self.get_queryset().accessible_to(user)
 
 
 class VestingOrg(models.Model):
@@ -102,19 +104,16 @@ class VestingOrg(models.Model):
     objects = VestingOrgManager()
     tracker = FieldTracker()
 
-    def __init__(self, *args, **kwargs):
-        """ Capture original values so we can deal with changes during save. """
-        super(VestingOrg, self).__init__(*args, **kwargs)
-        self.original_values = {'name': self.name}
-
     def save(self, *args, **kwargs):
+        name_has_changed = self.tracker.has_changed('name')
         super(VestingOrg, self).save(*args, **kwargs)
         if not self.shared_folder:
             # Make sure shared folder is created for each vesting org.
             self.create_shared_folder()
-        elif self.name != self.original_values['name']:
+        elif name_has_changed:
             # Rename shared folder if vesting org name changes.
-            self.shared_folder.rename(self.name)
+            self.shared_folder.name = self.name
+            self.shared_folder.save()
 
     def __unicode__(self):
         return self.name
@@ -162,7 +161,7 @@ class LinkUser(AbstractBaseUser):
         unique=True,
         db_index=True,
     )
-    registrar = models.ForeignKey(Registrar, blank=True, null=True, help_text="If set, this user is a registrar member. This should not be set if vesting org is set!")
+    registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar member. This should not be set if vesting org is set!")
     vesting_org = models.ForeignKey(VestingOrg, blank=True, null=True, related_name='users', help_text="If set, this user is a vesting org member. This should not be set if registrar is set!")
     is_active = models.BooleanField(default=True)
     is_confirmed = models.BooleanField(default=False)
@@ -277,10 +276,6 @@ class LinkUser(AbstractBaseUser):
         return bool(self.vesting_org_id)
 
 
-class FolderException(Exception):
-    pass
-
-
 class FolderQuerySet(QuerySet):
     def accessible_to(self, user):
         return self.filter(Folder.objects.user_access_filter(user))
@@ -313,7 +308,6 @@ class FolderManager(models.Manager):
 
 class Folder(MPTTModel):
     name = models.CharField(max_length=255, null=False, blank=False)
-    slug = models.CharField(max_length=255, null=False, blank=False)
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children')
     creation_timestamp = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='folders_created',)
@@ -333,11 +327,9 @@ class Folder(MPTTModel):
     objects = FolderManager()
     tracker = FieldTracker()
 
-    def __init__(self, *args, **kwargs):
-        super(Folder, self).__init__(*args, **kwargs)
-
+    def save(self, *args, **kwargs):
         # set defaults
-        if (args or kwargs) and not self.pk:
+        if not self.pk:
             # set ownership same as parent
             if self.parent:
                 if self.parent.vesting_org:
@@ -346,8 +338,18 @@ class Folder(MPTTModel):
                     self.owned_by = self.parent.owned_by
             if self.created_by and not self.owned_by and not self.vesting_org:
                 self.owned_by = self.created_by
-            if not self.slug:
-                self.set_slug()
+
+        parent_has_changed = self.tracker.has_changed('parent_id')
+
+        super(Folder, self).save(*args, **kwargs)
+
+        if parent_has_changed:
+            # make sure that child folders share vesting_org and owned_by with new parent folder
+            # (one or the other should be set, but not both)
+            if self.parent.vesting_org_id:
+                self.get_descendants(include_self=True).update(vesting_org=self.parent.vesting_org_id, owned_by=None)
+            else:
+                self.get_descendants(include_self=True).update(owned_by=self.parent.owned_by_id, vesting_org=None)
 
     class MPTTMeta:
         order_insertion_by = ['name']
@@ -361,61 +363,12 @@ class Folder(MPTTModel):
     def contained_links(self):
         return Link.objects.filter(folders__in=self.get_descendants(include_self=True))
 
-    def move_to_folder(self, destination_folder):
-        if self.is_shared_folder:
-            raise FolderException("Can't move vesting organization's shared folder.")
-
-        if self.is_root_folder:
-            raise FolderException("Can't move main folder.")
-
-        if self.vesting_org and self.vesting_org != destination_folder.vesting_org and self.contained_links().filter(vested=True).exists():
-            raise FolderException("Can't move folder with vested links out of organization's shared folder.")
-
-        self.parent = destination_folder
-        self.set_slug()
-        try:
-            self.save()
-        except InvalidMove:
-            raise FolderException("Can't move a folder inside itself.")
-
-        # make sure that child folders share vesting_org and owned_by with new parent folder
-        # (one or the other should be set, but not both)
-        if destination_folder.vesting_org:
-            if self.vesting_org != destination_folder.vesting_org:
-                self.get_descendants(include_self=True).update(vesting_org=destination_folder.vesting_org, owned_by=None)
-        else:
-            if self.owned_by != destination_folder.owned_by:
-                self.get_descendants(include_self=True).update(owned_by=destination_folder.owned_by, vesting_org=None)
-
-    def set_slug(self):
-        """ Find a slug that doesn't collide with another folder in parent folder. """
-        self.slug = slugify(unicode(self.name))
-
-        if self.is_shared_folder:
-            # don't let shared folders collide with any other shared folder
-            collision_query = Folder.objects.exclude(pk=self.pk).filter(is_shared_folder=True)
-        elif self.parent:
-            # normal folders just can't collide with fellow children of parent
-            collision_query = self.parent.get_children().exclude(pk=self.pk)
-        else:
-            return  # root folder can't conflict
-
-        i = 1
-        while collision_query.filter(slug=self.slug).exists():
-            self.slug = "%s-%s" % (slugify(unicode(self.name)), i)
-            i += 1
-
     def display_level(self):
         """
             Get hierarchical level for this folder. If this is a shared folder, level should be one higher
             because it is displayed below user's root folder.
         """
         return self.level + (1 if self.vesting_org_id else 0)
-
-    def rename(self, new_name):
-        self.name = new_name
-        self.set_slug()
-        self.save()
 
 
 class LinkQuerySet(QuerySet):

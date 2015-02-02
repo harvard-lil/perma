@@ -71,7 +71,7 @@ def manage_registrar(request):
     if search_query:
         registrars = get_search_query(registrars, search_query, ['name', 'email', 'website'])
         
-    registrars = registrars.annotate(vested_links=Count('vesting_orgs__link',distinct=True), registrar_users=Count('linkuser', distinct=True),last_active=Max('linkuser__last_login', distinct=True),vesting_orgs_count=Count('vesting_orgs',distinct=True)).order_by(sort)
+    registrars = registrars.annotate(vested_links=Count('vesting_orgs__link',distinct=True), registrar_users=Count('users', distinct=True),last_active=Max('users__last_login', distinct=True),vesting_orgs_count=Count('vesting_orgs',distinct=True)).order_by(sort)
 
     registrar_count = registrars.count()
     vesting_org_count = registrars.aggregate(count=Sum('vesting_orgs_count'))

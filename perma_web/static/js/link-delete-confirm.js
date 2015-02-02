@@ -8,15 +8,14 @@ $(function(){
             $this.addClass("disabled");
             $this.text("Deleting link...");
             
-            $.ajax(api_path + "/archives/" + archive.guid + "/", {
-                method: "DELETE",
+            apiRequest("DELETE", "/archives/" + archive.guid + "/", null, {
                 success: function(){
                     window.location = url_link_browser;
                 },
                 error: function(jqXHR){
                     $this.removeClass("disabled");
                     $this.text(prev_text);
-                    informUser(jqXHR.status == 400 && jqXHR.responseText ? jqXHR.responseText : "Error " + jqXHR.status, 'danger');
+                    showAPIError(jqXHR);
                 }
             });
         }

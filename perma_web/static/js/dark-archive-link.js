@@ -8,17 +8,14 @@ $(function(){
             $this.addClass("disabled");
             $this.text("Dark archiving link...");
             
-            $.ajax(api_path + "/archives/" + archive.guid + "/", {
-                method: "PATCH",
-                data: JSON.stringify({dark_archived: true}),
-                contentType: 'application/json',
+            apiRequest("PATCH", "/archives/" + archive.guid + "/", {dark_archived: true}, {
                 success: function(){
                     window.location = url_single_linky;
                 },
                 error: function(jqXHR){
                     $this.removeClass("disabled");
                     $this.text(prev_text);
-                    informUser(jqXHR.status == 400 && jqXHR.responseText ? jqXHR.responseText : "Error " + jqXHR.status, 'danger');
+                    showAPIError(jqXHR);
                 }
             });
         }
