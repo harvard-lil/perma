@@ -76,11 +76,11 @@ class LinkAuthorization(DefaultAuthorization):
             return False
 
     def can_vest_to_org(self, user, vesting_org):
-        if user.has_group('vesting_user'):
+        if user.is_vesting_org_member():
             return user.vesting_org == vesting_org
-        elif user.has_group('registrar_user'):
+        elif user.is_registrar_member():
             return user.registrar == vesting_org.registrar
-        elif user.has_group('registry_user'):
+        elif user.is_staff:
             return True
         else:
             return False
@@ -88,7 +88,7 @@ class LinkAuthorization(DefaultAuthorization):
     def update_detail(self, object_list, bundle):
         # For vesting
         if bundle.obj.tracker.has_changed("vested"):
-            if not bundle.request.user.has_group(['registrar_user', 'registry_user', 'vesting_user']):
+            if not bundle.request.user.can_vest():
                 raise Unauthorized("Sorry, you don't vesting have permission")
             if not self.can_vest_to_org(bundle.request.user, bundle.obj.vesting_org):
                 raise Unauthorized("Sorry, you can't vest to that organization")

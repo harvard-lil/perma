@@ -76,6 +76,9 @@
             <div class="row list-user list-user-registrar">
             <div class="col-sm-12">
             <a class="pull-right" href="{% url 'user_management_manage_single_registrar' registrar.id %}">edit</a>
+            {% if request.user.is_staff %}
+                <br><a class="pull-right" href="{% url "admin:perma_registrar_change" registrar.id %}">edit in admin console</a>
+            {% endif %}
             <p class="list-name">{{ registrar.name }}</p>
             </div>
               <div class="col-sm-5">

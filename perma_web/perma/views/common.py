@@ -20,6 +20,7 @@ import json
 from ratelimit.decorators import ratelimit
 
 from mirroring.middleware import get_url_for_host
+from mirroring.tasks import post_message_upstream
 from mirroring.utils import must_be_mirrored
 
 from ..models import Link, Asset
@@ -89,7 +90,7 @@ def stats(request):
            keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
 @ratelimit(method='GET', rate=settings.DAY_LIMIT, block=True, ip=False,
            keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
-def single_linky(request, guid):
+def single_linky(request, guid, send_downstream=False):
     """
     Given a Perma ID, serve it up. Vesting also takes place here.
     """
@@ -114,7 +115,7 @@ def single_linky(request, guid):
     def ssl_redirect(link):
         if not settings.SECURE_SSL_REDIRECT:
             return
-        if serve_type == 'live' and not link.startswith('https'):
+        if serve_type == 'live' and not link.startswith('https') and not send_downstream:
             if request.is_secure():
                 return HttpResponseRedirect("http://%s%s" % (request.get_host(), request.get_full_path()))
         elif not request.is_secure():
@@ -122,27 +123,17 @@ def single_linky(request, guid):
 
     # fetch link from DB -- unless we're logged in on a mirror server,
     # in which case always fetch status from upstream so we show the right edit buttons
-    link = None
-    if not (settings.MIRROR_SERVER and request.user.groups.all()):
-        try:
-            link = Link.objects.get(guid=guid)
-        except Link.DoesNotExist:
-            pass
+    try:
+        link = Link.objects.get(guid=guid)
+    except Link.DoesNotExist:
+        link = None
 
     # if we can't find the Link locally, and we're a mirror server, fetch from upstream -- otherwise 404
-    if not link:
-        if settings.MIRROR_SERVER:
-            try:
-                json_url = get_url_for_host(request,
-                                            request.main_server_host,
-                                            reverse('mirroring:single_link_json', args=[guid])+"?type="+serve_type)
-                json_response = requests.get(json_url, headers={'Content-Type': 'application/json'})
-            except requests.ConnectionError:
-                raise Http404
-
-            # check response
-            if not json_response.ok:
-                raise Http404
+    if settings.MIRROR_SERVER and (request.user.groups.all() or not link):
+        try:
+            json_response = post_message_upstream(reverse('mirroring:single_link_json')+"?type="+serve_type,
+                                                  json_data={'guid':guid})
+            assert json_response.ok
 
             # load context from JSON
             context = json.loads(json_response.content)
@@ -155,8 +146,11 @@ def single_linky(request, guid):
             if redirect:
                 return redirect
 
-        else:
-            raise Http404
+        except (requests.ConnectionError, AssertionError):
+            logging.exception("Error fetching upstream playback data")
+
+    if not link and not context:
+        raise Http404
 
     if not context:
         # make sure frame and content ssl match (see helper func above)
@@ -215,8 +209,8 @@ def single_linky(request, guid):
                 'warc_url': asset.warc_url()
             }
 
-    if request.META.get('CONTENT_TYPE') == 'application/json':
-        # if we were called as JSON (by a mirror), serialize and send back as JSON
+    if send_downstream:
+        # if we were called by a mirror, serialize and send back as JSON
         context['warc_url'] = absolute_url(request, context['asset'].warc_url(settings.DIRECT_WARC_HOST))
         context['MEDIA_URL'] = absolute_url(request, settings.DIRECT_MEDIA_URL)
         context['asset'] = serializers.serialize("json", [context['asset']], fields=['text_capture','image_capture','pdf_capture','warc_capture','base_storage_path'])

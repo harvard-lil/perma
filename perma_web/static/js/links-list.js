@@ -191,16 +191,7 @@ $(function() {
                 showLoadingMessage = false;
                 data.objects.map(function(obj){
                     obj.local_url = mirror_server_host + '/' + obj.guid;
-
-                    var i = current_user.groups.length;
-                    while (!obj.can_vest && i){
-                        i--;
-                        obj.can_vest = ['registry_user',
-                                        'registrar_user',
-                                        'vesting_user'
-                                       ].indexOf(current_user.groups[i].name) > -1;
-                    }
-
+                    obj.can_vest = can_vest;
                     obj.search_query_in_notes = (query && obj.notes.indexOf(query) > -1);
                     obj.url_docs_perma_link_vesting = url_docs_perma_link_vesting;
                     obj.expiration_date_formatted = new Date(obj.expiration_date).format("M. j, Y");

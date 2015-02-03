@@ -12,8 +12,8 @@ class Migration(DataMigration):
         # Note: Remember to use orm['appname.ModelName'] rather than "from appname.models..."
         db.clear_table('auth_group')
         
-        from django.core.management import call_command
-        call_command("loaddata", "fixtures/groups.json")
+        # from django.core.management import call_command
+        # call_command("loaddata", "fixtures/groups.json")
 
     def backwards(self, orm):
         "Write your backwards methods here."

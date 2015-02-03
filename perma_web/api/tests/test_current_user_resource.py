@@ -6,7 +6,6 @@ from perma.models import LinkUser
 class CurrentUserResourceTestCase(ApiResourceTestCase):
     fixtures = ['fixtures/users.json',
                 'fixtures/folders.json',
-                'fixtures/groups.json',
                 'fixtures/api_keys.json',
                 'fixtures/archive.json']
 
@@ -20,7 +19,6 @@ class CurrentUserResourceTestCase(ApiResourceTestCase):
             'last_name',
             'short_name',
             'full_name',
-            'groups'
         ]
 
     def test_get_self_detail_json(self):

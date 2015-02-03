@@ -106,20 +106,6 @@ class UserManagementViewsTestCase(PermaTestCase):
                            reverse_kwargs={'args': [new_user.pk]},
                            success_url=reverse('user_management_manage_' + view_name))
 
-        # user_add_registrar and user_add_vesting_org
-        user = LinkUser.objects.get(email='test_user@example.com')
-        session = self.client.session
-        session['old_group'] = 'user'
-        session.save()
-        # - pick registrar
-        self.submit_form('user_management_user_add_registrar', reverse_kwargs={'args': [user.pk]},
-                       data={'a-registrar': 1},
-                       success_url=reverse('user_management_manage_user'))
-        # - pick vesting org
-        self.submit_form('user_management_user_add_vesting_org', reverse_kwargs={'args': [user.pk]},
-                       data={'a-vesting_org': 1},
-                       success_url=reverse('user_management_manage_user'))
-
         # manage_account
         self.submit_form('user_management_settings_profile',
                        data={
