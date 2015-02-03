@@ -282,7 +282,7 @@ class BaseLinkResource(MultipartResource, DefaultResource):
 
     class Meta(DefaultResource.Meta):
         resource_name = 'archives'
-        queryset = Link.objects.filter(user_deleted=False).order_by('-creation_timestamp')  # default order
+        queryset = Link.objects.all().order_by('-creation_timestamp')  # default order
         validation = LinkValidation()
 
     class Nested:

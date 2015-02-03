@@ -392,7 +392,7 @@ class LinkManager(models.Manager):
 
     def user_access_filter(self, user):
         """
-            User can see/modify a link if they created it or it is in a vesting org folder they belong to, AND it is not deleted
+            User can see/modify a link if they created it or it is in a vesting org folder they belong to.
         """
         # personal links
         filter = Q(folders__owned_by=user)
@@ -404,9 +404,6 @@ class LinkManager(models.Manager):
             default_vesting_org = user.get_default_vesting_org()
             if default_vesting_org:
                 filter |= Q(folders__vesting_org=default_vesting_org)
-
-        # make sure link not deleted
-        filter &= Q(user_deleted=False)
 
         return filter
 
