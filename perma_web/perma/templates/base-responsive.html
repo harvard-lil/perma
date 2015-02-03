@@ -44,6 +44,9 @@
 					</div>
 					<div class="navbar-collapse collapse">
 					  <ul class="nav navbar-nav navbar-right">
+					    {% if not this_page == 'create_link' %}
+                            <li><a href="{% url 'create_link' %}" role="button" class="btn btn-large btn-info infinity-navbar navbar-btn" data-toggle="tooltip" title="Create Perma archive">CREATE <img src="{{ STATIC_URL }}img/infinity-logo2.png" alt="Loading..." /></a></li>
+                            {% endif %}
 					  	{% if request.user.is_authenticated %}
                             {% comment %}<li><a href="{% url 'logout' %}" style="color: #aaa;">Log out</a></li>{% endcomment %}
                             <li class="dropdown">
@@ -85,7 +88,6 @@
                                 <li><a href="{% url 'logout' %}">Log out</a></li>
                               </ul>
                             </li>
-                            <li><a href="{% url 'create_link' %}" role="button" class="btn btn-large btn-info infinity-navbar navbar-btn" data-toggle="tooltip" title="Create Perma archive"><img src="{{ STATIC_URL }}img/infinity-white.png" alt="Loading..." /></a></li>
 						{% else %}
                             <li><a href="{% url 'about' %}" class="navbar-link{% if this_page == 'about' %} this-page{% endif %}">About</a></li>
                             <li><a href="{% url 'user_management_limited_login' %}" class="navbar-link">Log in</a></li>

@@ -252,12 +252,20 @@ p {
 }
 
 .infinity-navbar {
-	font-size:16px;
+	font-size:14px;
 	margin-left:10px;
+	font-family:$sans-font;
+	background-color:#fff;
+	color:$perma-blue;
+}
+
+.infinity-navbar:hover {
+    background-color:#f7f7f7;
+    color:$perma-blue;
 }
 
 .infinity-navbar img {
-    width:32px;
+    width:27px;
     margin-top:-2px;
 }
 
