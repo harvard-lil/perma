@@ -131,3 +131,48 @@ function informUser(message, alertClass){
           message +
       '</div>').prependTo('body').fadeIn('fast');
 }
+
+
+function apiRequest(method, url, data, requestArgs){
+    // set up arguments for API request
+    requestArgs = typeof requestArgs !== 'undefined' ? requestArgs : {};
+
+    if(data){
+        requestArgs.data = JSON.stringify(data);
+        requestArgs.contentType = 'application/json';
+    }
+
+    requestArgs.url = api_path + url;
+    requestArgs.method = method;
+
+    if(!('error' in requestArgs))
+        requestArgs.error = showAPIError;
+
+    return $.ajax(requestArgs);
+}
+
+// parse and display error results from API
+function showAPIError(jqXHR){
+    var message;
+
+    if(jqXHR.status == 400 && jqXHR.responseText){
+        try{
+            var parsedResponse = JSON.parse(jqXHR.responseText);
+            while(typeof parsedResponse == 'object'){
+                for(var key in parsedResponse){
+                    if (parsedResponse.hasOwnProperty(key)){
+                        parsedResponse = parsedResponse[key];
+                        break;
+                    }
+                }
+            }
+            message = parsedResponse;
+        }catch(SyntaxError){}
+    }
+
+    if(!message){
+        message = "Error " + jqXHR.status;
+    }
+
+    informUser(message, 'danger');
+}

@@ -1,7 +1,7 @@
 import os
 import dateutil.parser
 from .utils import ApiResourceTransactionTestCase, TEST_ASSETS_DIR
-from api.resources import LinkResource
+from api.resources import LinkResource, CurrentUserLinkResource, PublicLinkResource
 from perma.models import Link, LinkUser
 
 from django.core.files.storage import default_storage
@@ -24,29 +24,40 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         super(LinkResourceTestCase, self).setUp()
 
         self.vesting_member = LinkUser.objects.get(pk=3)
+        self.regular_user = LinkUser.objects.get(pk=4)
+
         self.unvested_link = Link.objects.get(pk="7CF8-SS4G")
+        self.vested_link = Link.objects.get(pk="3SLN-JHX9")
 
         self.list_url = "{0}/{1}/".format(self.url_base, LinkResource.Meta.resource_name)
-        self.detail_url = "{0}{1}/".format(self.list_url, self.unvested_link.pk)
+        self.unvested_link_detail_url = "{0}{1}/".format(self.list_url, self.unvested_link.pk)
+        self.vested_link_detail_url = "{0}{1}/".format(self.list_url, self.vested_link.pk)
 
-        self.fields = [
+        self.logged_in_list_url = "{0}/{1}/".format(self.url_base, CurrentUserLinkResource.Meta.resource_name)
+        self.logged_in_unvested_link_detail_url = "{0}{1}/".format(self.logged_in_list_url, self.unvested_link.pk)
+
+        self.public_list_url = "{0}/{1}/".format(self.url_base, PublicLinkResource.Meta.resource_name)
+        self.public_vested_link_detail_url = "{0}{1}/".format(self.public_list_url, self.vested_link.pk)
+
+        self.logged_out_fields = [
             'vested',
             'vested_timestamp',
-            'notes',
             'title',
-            'created_by',
             'url',
             'dark_archived',
-            'dark_archived_by',
             'dark_archived_robots_txt_blocked',
-            'vested_by_editor',
             'guid',
             'creation_timestamp',
             'expiration_date',
             'vesting_org',
-            'folders',
             'assets',
             'view_count'
+        ]
+        self.logged_in_fields = self.logged_out_fields + [
+            'notes',
+            'created_by',
+            'dark_archived_by',
+            'vested_by_editor',
         ]
 
         self.post_data = {
@@ -68,10 +79,10 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     #######
 
     def test_get_list_json(self):
-        self.successful_get(self.list_url, count=4)
+        self.successful_get(self.public_list_url, count=2)
 
     def test_get_detail_json(self):
-        self.successful_get(self.detail_url, fields=self.fields)
+        self.successful_get(self.public_vested_link_detail_url, fields=self.logged_out_fields)
 
     ########################
     # URL Archive Creation #
@@ -147,7 +158,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     ############
 
     def test_patch_detail(self):
-        self.successful_patch(self.detail_url,
+        self.successful_patch(self.unvested_link_detail_url,
                               user=self.unvested_link.created_by,
                               data={'notes': 'These are new notes',
                                     'title': 'This is a new title'})
@@ -157,7 +168,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     ##################
 
     def test_dark_archive(self):
-        self.successful_patch(self.detail_url,
+        self.successful_patch(self.unvested_link_detail_url,
                               user=self.unvested_link.created_by,
                               data={'dark_archived': True})
 
@@ -173,7 +184,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
                             user=self.vesting_member,
                             data={'vested': True})
 
-        obj = self.successful_get(self.detail_url, user=self.vesting_member)
+        obj = self.successful_get(self.unvested_link_detail_url, user=self.vesting_member)
         self.assertTrue(obj['vested'])
 
         # Make sure it's listed in the folder
@@ -192,7 +203,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
                             user=self.vesting_member)
 
         # Make sure it's listed in the folder
-        obj = self.successful_get(self.detail_url, user=self.vesting_member)
+        obj = self.successful_get(self.unvested_link_detail_url, user=self.vesting_member)
         data = self.successful_get(folder_url+"archives/", user=self.vesting_member)
         self.assertIn(obj, data['objects'])
 
@@ -201,21 +212,18 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     ############
 
     def test_delete_detail(self):
-        self.successful_delete(self.detail_url, user=self.vesting_member)
+        self.successful_delete(self.unvested_link_detail_url, user=self.vesting_member)
 
     ############
     # Ordering #
     ############
 
     def test_should_be_ordered_by_creation_timestamp_desc_by_default(self):
-        resp = self.api_client.get(self.list_url)
-        self.assertValidJSONResponse(resp)
-
-        objs = self.deserialize(resp)['objects']
-
+        data = self.successful_get(self.logged_in_list_url, user=self.regular_user)
+        objs = data['objects']
         for i, obj in enumerate(objs):
             if i > 0:
-                self.assertGreater(dateutil.parser.parse(objs[i - 1]['creation_timestamp']),
+                self.assertGreaterEqual(dateutil.parser.parse(objs[i - 1]['creation_timestamp']),
                                    dateutil.parser.parse(obj['creation_timestamp']))
 
     #############
@@ -223,33 +231,29 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     #############
 
     def test_should_allow_filtering_guid_by_query_string(self):
-        resp = self.api_client.get(self.list_url, data={'q': '3SLN'})
-        self.assertValidJSONResponse(resp)
+        data = self.successful_get(self.logged_in_list_url, data={'q': '3SLN'}, user=self.regular_user)
+        objs = data['objects']
 
-        objs = self.deserialize(resp)['objects']
         self.assertEqual(len(objs), 1)
         self.assertEqual(objs[0]['guid'], '3SLN-JHX9')
 
     def test_should_allow_filtering_url_by_query_string(self):
-        resp = self.api_client.get(self.list_url, data={'q': '1406'})
-        self.assertValidJSONResponse(resp)
+        data = self.successful_get(self.logged_in_list_url, data={'q': 'metafilter.com'}, user=self.regular_user)
+        objs = data['objects']
 
-        objs = self.deserialize(resp)['objects']
         self.assertEqual(len(objs), 1)
-        self.assertEqual(objs[0]['url'], 'http://arxiv.org/pdf/1406.3611.pdf')
+        self.assertEqual(objs[0]['url'], 'http://metafilter.com')
 
     def test_should_allow_filtering_title_by_query_string(self):
-        resp = self.api_client.get(self.list_url, data={'q': 'Community Weblog'})
-        self.assertValidJSONResponse(resp)
+        data = self.successful_get(self.logged_in_list_url, data={'q': 'Community Weblog'}, user=self.regular_user)
+        objs = data['objects']
 
-        objs = self.deserialize(resp)['objects']
         self.assertEqual(len(objs), 1)
         self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
 
     def test_should_allow_filtering_notes_by_query_string(self):
-        resp = self.api_client.get(self.list_url, data={'q': 'all cool things'})
-        self.assertValidJSONResponse(resp)
+        data = self.successful_get(self.logged_in_list_url, data={'q': 'all cool things'}, user=self.regular_user)
+        objs = data['objects']
 
-        objs = self.deserialize(resp)['objects']
         self.assertEqual(len(objs), 1)
         self.assertEqual(objs[0]['notes'], 'Maybe the source of all cool things on the internet.')

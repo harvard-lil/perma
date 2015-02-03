@@ -153,10 +153,7 @@ function upload_form() {
 function check_status() {
 
     // Check our status service to see if we have archiving jobs pending
-	  var request = $.ajax({
-		    url: api_path + "/archives/" + new_archive.guid + "/",
-		    cache: false
-	  });
+	  var request = apiRequest("GET", "/archives/" + new_archive.guid + "/", {'cache': false});
 
 	  request.done(function(data) {
         var asset = data.assets[0];

@@ -1,79 +1,138 @@
-from perma.models import Link, Folder, VestingOrg
+from perma.models import Link, Folder
 from tastypie.authorization import ReadOnlyAuthorization
-from tastypie.exceptions import Unauthorized
+from tastypie.exceptions import Unauthorized, BadRequest
 
 
-class DefaultAuthorization(ReadOnlyAuthorization):
+class FolderAuthorization(ReadOnlyAuthorization):
+
+    def can_access(self, user, obj):
+        # staff can access any folder
+        if user.is_staff:
+            return True
+
+        # private folders
+        if obj.owned_by_id == user.pk:
+            return True
+
+        # shared folders
+        elif obj.vesting_org_id:
+            if user.is_vesting_org_member():
+                return user.vesting_org_id == obj.vesting_org_id
+            elif user.is_registrar_member():
+                return user.registrar_id == obj.vesting_org.registrar_id
+
+        return False
+
+    def read_list(self, object_list, bundle):
+        # /folders endpoint shouldn't list anything, but /folders/<id>/folders should
+        if not bundle.parent_object:
+            raise Unauthorized()
+        return object_list
+
+    # NOTE - this is called by obj_update and obj_delete before it uses their auth methods
+    # ex: https://github.com/toastdriven/django-tastypie/blob/master/tastypie/resources.py#L2203
+    def read_detail(self, object_list, bundle):
+        if not self.can_access(bundle.request.user, bundle.obj):
+            raise Unauthorized()
+
+        return True
+
+    def delete_detail(self, object_list, bundle):
+
+        if not self.can_access(bundle.request.user, bundle.obj):
+            raise Unauthorized()
+
+        if bundle.obj.is_shared_folder:
+            raise BadRequest("Shared folders cannot be deleted.")
+        elif bundle.obj.is_root_folder:
+            raise BadRequest("Root folders cannot be deleted.")
+        elif not bundle.obj.is_empty():
+            raise BadRequest("Folders can only be deleted if they are empty.")
+
+        return True
+
+    def update_detail(self, object_list, bundle):
+        if not self.can_access(bundle.request.user, bundle.obj):
+            raise Unauthorized()
+
+        return True
+
+    def create_detail(self, object_list, bundle):
+        return bundle.obj.parent and self.can_access(bundle.request.user, bundle.obj.parent)
+
+
+class PublicLinkAuthorization(ReadOnlyAuthorization):
+
+    def read_list(self, object_list, bundle):
+        return object_list.filter(vested=True)
+
+    def read_detail(self, object_list, bundle):
+        return bundle.obj.vested
+
+
+class AuthenticatedLinkAuthorization(ReadOnlyAuthorization):
+    def read_list(self, object_list, bundle):
+        if not bundle.request.user.is_authenticated():
+            raise Unauthorized()
+
+        return object_list.accessible_to(bundle.request.user)
+
+    def read_detail(self, object_list, bundle):
+        if not bundle.request.user.is_authenticated():
+            raise Unauthorized()
+
+        # It is possible to vest a link you can't (yet) read.
+        # If patching an unvested link, we skip the read permissions check and rely on patch authorization.
+        if bundle.request.method == 'PATCH' and not bundle.obj.vested and bundle.request.user.can_vest():
+            return True
+
+        if bundle.request.user.is_staff:
+            return True
+
+        return Link.objects.filter(pk=bundle.obj.pk).accessible_to(bundle.request.user).exists()
+
+class CurrentUserAuthorization(ReadOnlyAuthorization):
+
+    def all_detail(self, object_list, bundle):
+        if not bundle.request.user.is_authenticated():
+            raise Unauthorized()
+
+        return True
+
+    def all_list(self, object_list, bundle):
+        if not bundle.request.user.is_authenticated():
+            raise Unauthorized()
+
+        return object_list.filter(created_by=bundle.request.user)
+
+    read_detail = create_detail = update_detail = delete_detail = all_detail
+    read_list = all_list  # create_list = update_list = delete_list = disallowed system wide
+
+
+class CurrentUserVestingOrgAuthorization(CurrentUserAuthorization):
+
+    def all_list(self, object_list, bundle):
+        if not bundle.request.user.is_authenticated():
+            raise Unauthorized()
+
+        return object_list.accessible_to(bundle.request.user)
+
+    read_list = all_list  # create_list = update_list = delete_list = disallowed system wide
+
+class LinkAuthorization(AuthenticatedLinkAuthorization):
+
+    def can_access(self, user, obj):
+        # staff can access any link
+        if user.is_staff:
+            return True
+
+        return Link.objects.filter(pk=obj.pk).accessible_to(user).exists()
 
     def create_detail(self, object_list, bundle):
         if not bundle.request.user.is_authenticated():
             raise Unauthorized("You must be a registered user.")
 
         return True
-
-    def update_detail(self, object_list, bundle):
-        if bundle.obj.created_by != bundle.request.user:
-            raise Unauthorized("Sorry, you don't have permission")
-
-        return True
-
-    delete_detail = update_detail
-
-
-class FolderAuthorization(DefaultAuthorization):
-
-    def can_access(self, user, obj):
-        try:
-            # returns true if exists
-            return bool(Folder.objects.get(Folder.objects.user_access_filter(user),
-                                           pk=obj.pk))
-        except Folder.DoesNotExist:
-            return False
-
-    # NOTE - this is called by obj_update and obj_delete before it uses their auth methods
-    # ex: https://github.com/toastdriven/django-tastypie/blob/master/tastypie/resources.py#L2203
-    def read_detail(self, object_list, bundle):
-        if not self.can_access(bundle.request.user, bundle.obj):
-            raise Unauthorized("Sorry, you don't have access to that folder.")
-
-        return True
-
-    def delete_detail(self, object_list, bundle):
-        if bundle.obj.is_shared_folder:
-            raise Unauthorized("Shared folders cannot be deleted.")
-        elif bundle.obj.is_root_folder:
-            raise Unauthorized("Root folders cannot be deleted.")
-        elif not bundle.obj.is_empty():
-            raise Unauthorized("Folders can only be deleted if they are empty.")
-        elif not self.can_access(bundle.request.user, bundle.obj):
-            raise Unauthorized("Sorry, you don't have access to that folder.")
-
-        return True
-
-    def update_detail(self, object_list, bundle):
-        if not self.can_access(bundle.request.user, bundle.obj):
-            raise Unauthorized("Sorry, you don't have access to that folder.")
-
-        # For renaming
-        if bundle.obj.tracker.has_changed("name"):
-            if bundle.obj.is_shared_folder:
-                raise Unauthorized("Shared folders cannot be renamed.")
-            elif bundle.obj.is_root_folder:
-                raise Unauthorized("Root folders cannot be renamed.")
-
-        return True
-
-
-class LinkAuthorization(DefaultAuthorization):
-
-    def can_access(self, user, obj):
-        try:
-            # returns true if exists
-            return bool(user.id == obj.created_by_id or
-                        Link.objects.get(Link.objects.user_access_filter(user),
-                                         pk=obj.pk))
-        except Link.DoesNotExist:
-            return False
 
     def can_vest_to_org(self, user, vesting_org):
         if user.is_vesting_org_member():
@@ -88,50 +147,19 @@ class LinkAuthorization(DefaultAuthorization):
     def update_detail(self, object_list, bundle):
         # For vesting
         if bundle.obj.tracker.has_changed("vested"):
-            if not bundle.request.user.can_vest():
-                raise Unauthorized("Sorry, you don't vesting have permission")
-            if not self.can_vest_to_org(bundle.request.user, bundle.obj.vesting_org):
-                raise Unauthorized("Sorry, you can't vest to that organization")
+            if not bundle.request.user.can_vest() or not self.can_vest_to_org(bundle.request.user, bundle.obj.vesting_org):
+                raise Unauthorized()
 
             return True
 
         # For editing
         if not self.can_access(bundle.request.user, bundle.obj):
-            raise Unauthorized("Sorry, you don't have permission")
+            raise Unauthorized()
 
         return True
 
     def delete_detail(self, object_list, bundle):
-        if bundle.obj.vested or bundle.obj.created_by != bundle.request.user:
-            raise Unauthorized("Sorry, you don't have permission")
+        if bundle.obj.vested or not self.can_access(bundle.request.user, bundle.obj):
+            raise Unauthorized()
 
         return True
-
-
-class CurrentUserAuthorization(ReadOnlyAuthorization):
-
-    def all_detail(self, object_list, bundle):
-        if not bundle.request.user.is_authenticated():
-            raise Unauthorized("You must be authenticated.")
-
-        return True
-
-    def all_list(self, object_list, bundle):
-        if not bundle.request.user.is_authenticated():
-            raise Unauthorized("You must be authenticated.")
-
-        return object_list.filter(created_by=bundle.request.user)
-
-    read_detail = create_detail = update_detail = delete_detail = all_detail
-    read_list = all_list  # create_list = update_list = delete_list = disallowed system wide
-
-
-class CurrentUserVestingOrgAuthorization(CurrentUserAuthorization):
-
-    def all_list(self, object_list, bundle):
-        if not bundle.request.user.is_authenticated():
-            raise Unauthorized("You must be authenticated.")
-
-        return object_list.accessible_to(bundle.request.user)
-
-    read_list = all_list  # create_list = update_list = delete_list = disallowed system wide

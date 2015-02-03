@@ -5,10 +5,10 @@ from perma.models import Link, LinkUser
 from django.test.utils import override_settings
 
 
-class LinkValidationsTestCase(ApiResourceTestCase):
+class LinkValidationTestCase(ApiResourceTestCase):
 
     resource = LinkResource
-    assertHttpRejected = ApiResourceTestCase.assertHttpBadRequest
+    rejected_status_code = 400  # Bad Request
 
     fixtures = ['fixtures/users.json',
                 'fixtures/folders.json',
@@ -19,7 +19,7 @@ class LinkValidationsTestCase(ApiResourceTestCase):
                    os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.jpg')]
 
     def setUp(self):
-        super(LinkValidationsTestCase, self).setUp()
+        super(LinkValidationTestCase, self).setUp()
 
         self.registry_member = LinkUser.objects.get(pk=1)
         self.vesting_member = LinkUser.objects.get(pk=3)
@@ -99,13 +99,13 @@ class LinkValidationsTestCase(ApiResourceTestCase):
 
     def test_should_reject_vest_when_missing_folder(self):
         self.rejected_patch(self.unvested_url,
-                            user=self.unvested_link.created_by,
+                            user=self.vesting_member,
                             data={'vested': True,
                                   'vesting_org': 1})
 
     def test_should_reject_vest_when_folder_doesnt_belong_to_vesting_org(self):
         self.rejected_patch(self.unvested_url,
-                            user=self.unvested_link.created_by,
+                            user=self.vesting_member,
                             data={'vested': True,
                                   'vesting_org': 1,
                                   'folder': 28})

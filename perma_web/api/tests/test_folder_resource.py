@@ -18,9 +18,12 @@ class FolderResourceTestCase(ApiResourceTestCase):
         self.empty_child_folder = Folder.objects.get(pk=29)
         self.nonempty_child_folder = Folder.objects.get(pk=30)
 
+    def nested_url(self, obj):
+        return self.detail_url(obj) + "folders/"
+
     def test_should_strip_whitespace_from_name(self):
         name = 'This is a folder name'
-        obj = self.successful_post(self.list_url,
+        obj = self.successful_post(self.nested_url(self.vesting_member.root_folder),
                                    data={'name': ' '+name+'  '},
                                    user=self.vesting_member)
 
@@ -39,4 +42,5 @@ class FolderResourceTestCase(ApiResourceTestCase):
         # Make sure it's listed in the folder
         obj = self.successful_get(self.detail_url(child_folder), user=user)
         data = self.successful_get(self.detail_url(parent_folder)+"folders/", user=user)
+
         self.assertIn(obj, data['objects'])

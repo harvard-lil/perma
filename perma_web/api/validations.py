@@ -81,14 +81,42 @@ class LinkValidation(Validation):
         if bundle.data.get('vested', None) and bundle.obj.tracker.has_changed('vested'):
             if not bundle.obj.vesting_org:
                 errors['vesting_org'] = "vesting_org can't be blank"
-            elif not bundle.data.get("folder", None):
-                errors['folder'] = "a folder must be specified when vesting"
-            else:
-                try:
-                    folder = Folder.objects.get(pk=bundle.data.get("folder"))
-                    if folder.vesting_org != bundle.obj.vesting_org:
+            elif not bundle.obj.folders.filter(vesting_org=bundle.obj.vesting_org):
+                # if not currently in the vesting org's folder, the folder needs to be supplied
+                if not bundle.data.get("folder", None):
+                    errors['folder'] = "This archive is not currently in the vesting org's folder. Please specify a folder belonging to the vesting org when vesting."
+                else:
+                    if bundle.data['folder'].vesting_org != bundle.obj.vesting_org:
                         errors['folder'] = "the folder must belong to the vesting_org"
-                except Folder.DoesNotExist:
-                    errors['folder'] = "the folder you specified does not exist"
+
+        # Moving folder when not vesting
+        elif bundle.data.get("folder", None):
+            if bundle.obj.vested and bundle.obj.vesting_org_id != bundle.data['folder'].vesting_org_id:
+                errors['folder'] = "Vested archives cannot be moved out of the vesting organization's shared folder."
+
+        return errors
+
+
+class FolderValidation(Validation):
+    def is_valid(self, bundle, request=None):
+        errors = {}
+
+        # For renaming
+        if bundle.obj.tracker.has_changed("name"):
+            if bundle.obj.is_shared_folder:
+                errors['name'] = "Shared folders cannot be renamed."
+            elif bundle.obj.is_root_folder:
+                errors['name'] = "User's main folder cannot be renamed."
+
+        # For moving
+        if bundle.obj.tracker.has_changed("parent_id"):
+            if not bundle.obj.parent_id:
+                errors['parent'] = "Can't move folder to top level."
+            elif bundle.obj.is_shared_folder:
+                errors['parent'] = "Can't move vesting organization's shared folder."
+            elif bundle.obj.is_root_folder:
+                errors['parent'] = "Can't move user's main folder."
+            elif bundle.obj.vesting_org_id and bundle.obj.vesting_org_id != bundle.obj.parent.vesting_org_id and bundle.obj.contained_links().filter(vested=True).exists():
+                errors['parent'] = "Can't move folder with vested links out of organization's shared folder."
 
         return errors
