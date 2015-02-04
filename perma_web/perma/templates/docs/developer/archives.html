@@ -1,18 +1,23 @@
 {% extends "layout-responsive.html" %}
 {% load file_exists compressed %}
 
-{% block title %} | Docs{% endblock %}
+{% block title %} | Developer Docs{% endblock %}
 
 {% block meta_description %}
 This section of the user guide covers how to create new archives and organize your archives.
 {% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container developer-docs">
 	<div class="col-sm-8 docs">
-		<h2>Creating and Managing Archives</h2>
-		<br/>
+		<div class="api-warning">
+			<i class="icon-exclamation-sign"></i>
+			<p>The Perma.cc API is new and its behavior is in flux. It will be finalized and available for production on February 12, 2015.</p>
+		</div>
+		
+		<h2>API - Create and manage archives</h2>
 		<hr>
+		
 		<p>The Archives API helps you create and manage archives.</p>
 		<p>The base resource for this API is <code>https://{{ request.META.HTTP_HOST }}/api/v1/archives/</code></p>
 		
@@ -64,10 +69,11 @@ This section of the user guide covers how to create new archives and organize yo
 	</div>
 	<div class="col-sm-3 col-sm-offset-1 docs-nav">
 		<ul class="nav nav-pills nav-stacked">
-			<li><a href="{% url 'dev_docs' %}">Overview</a></li>
-			<li><a href="{% url 'docs_developer_user_profile' %}">User Profile</a></li>
-			<li class="active"><a href="{% url 'docs_developer_archives' %}">Archives API</a></li>
-			<li><a href="{% url 'docs_developer_folders' %}">Folders API</a></li>
+		  	<li><a href="{% url 'dev_docs' %}">Overview</a></li>
+		  	<li><a href="{% url 'dev_docs' %}">Public Archives</a></li>
+		  	<li><a href="{% url 'docs_developer_user_profile' %}">Users</a></li>
+			<li class="active"><a href="{% url 'docs_developer_archives' %}">Archives</a></li>
+			<li><a href="{% url 'docs_developer_folders' %}">Folders</a></li>
 		</ul>	
 	</div>
 </div>	

@@ -2877,4 +2877,65 @@ p.orange {
 
 /* Archive error page end */
 
+/* Developer docs start */
+
+
+.developer-docs {
+
+	.nav-pills > li > a
+	{
+		display: block;
+		padding: 5px;
+		border: none;
+	}
+	
+	.nav-pills > li.active > a
+	{
+		background-color: #f7f7f7;
+		border: 1px solid #e6e6e6;
+	}
+	
+	.api-warning {
+		border: 1px #FF3535 solid;
+		background-color: #FF3535;
+		padding: 15px 15px 0 15px;
+		margin-top: 30px;
+	}
+	
+	.api-warning p {
+		color: #fff;
+		font-size: 18px;
+	}
+	
+	.api-warning .icon-exclamation-sign {
+		font-size: 55px;
+		color: #fff;
+		display: inline;
+		float: left;
+		margin-right: 15px;
+		margin-top: -2px;
+	}
+
+	h4 {
+		margin-top: 40px;
+		color: #333;
+	}
+	
+	p {
+		font-family: $sans-font;
+		font-size: 16px;
+		color: #555;
+	}
+
+	pre {
+		background-color: #fafafb;
+		border-color: #ddd;
+		color: #444;
+		margin-left: 0;
+	}
+
+}
+
+/* Developer docs end */
+
 
