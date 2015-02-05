@@ -110,7 +110,7 @@ PIPELINE_JS = {
         'source_filenames': (
             'js/local-datetime.js',
         ),
-        'output_filename': 'js/global-bundle.js',
+        'output_filename': 'js/global-archive-head.js',
     },
 
     # scripts included in all user dashboard pages
