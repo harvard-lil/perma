@@ -17,6 +17,13 @@
     src: url('../fonts/RobotoSlab-Regular.eot');
     src: local("Roboto Slab Regular"), local("RobotoSlab-Regular"), url('../fonts/RobotoSlab-Regular.eot?#iefix') format("embedded-opentype"), url('../fonts/RobotoSlab-Regular.woff') format("woff"), url('../fonts/RobotoSlab-Regular.ttf') format("truetype")
     }
+@font-face {
+    font-family: "Inconsolata";
+    font-style: normal;
+    font-weight: 400;
+    src: url('../fonts/RobotoSlab-Regular.eot');
+    src: local("Roboto Slab Regular"), local("RobotoSlab-Regular"), url('../fonts/RobotoSlab-Regular.eot?#iefix') format("embedded-opentype"), url('../fonts/RobotoSlab-Regular.woff') format("woff"), url('../fonts/RobotoSlab-Regular.ttf') format("truetype")
+    }
 /* End - our locally hosted Google Fonts */
 
 
@@ -2919,6 +2926,11 @@ p.orange {
 	h4 {
 		margin-top: 40px;
 		color: #333;
+	}
+	
+	code {
+		color: #333;
+		background-color: #eef8ff;
 	}
 	
 	p {
