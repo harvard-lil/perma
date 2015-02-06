@@ -671,7 +671,7 @@ def vesting_user_leave_vesting_org(request):
         request.user.vesting_org = None
         request.user.save()
 
-        return HttpResponseRedirect(reverse('user_management_manage_account'))
+        return HttpResponseRedirect(reverse('create_link'))
 
     context = RequestContext(request, context)
 
@@ -1197,7 +1197,7 @@ def email_new_vesting_user(request, user):
 
 http://%s%s
 
-''' % (user.vesting_org.name, user.vesting_org.name, host, reverse('user_management_manage_account'))
+''' % (user.vesting_org.name, user.vesting_org.name, host, reverse('create_link'))
 
     send_mail(
         "Your Perma.cc account is now associated with {vesting_org}".format(vesting_org=user.vesting_org.name),
@@ -1218,7 +1218,7 @@ def email_new_registrar_user(request, user):
 
 http://%s%s
 
-''' % (user.registrar.name, user.registrar.name, host, reverse('user_management_manage_account'))
+''' % (user.registrar.name, user.registrar.name, host, reverse('create_link'))
 
     send_mail(
         "Your Perma.cc account is now associated with {registrar}".format(registrar=user.registrar.name),
