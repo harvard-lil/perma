@@ -392,9 +392,8 @@ var spinner = new Spinner(opts).spin(target);
 		apiRequest("GET", "/archives/" + archive.guid + "/", null, {
             error: null,
 			dataType: "jsonp"
-		});
 
-		request.done(function(data) {
+		}).done(function(data) {
             var asset = data.assets[0];
 
 			if ($('#image_cap_container_loading').is(":visible") && asset.image_capture != 'pending') {
