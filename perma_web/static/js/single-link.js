@@ -388,10 +388,12 @@ var spinner = new Spinner(opts).spin(target);
 
 	var check_status = function() {
 		
-	// Check our status service to see if we have archiving jobs pending
+	    // Check our status service to see if we have archiving jobs pending
 		apiRequest("GET", "/archives/" + archive.guid + "/", null, {
-            error: null,
-			dataType: "jsonp"
+            error: null, // cancel out the default error handling provided by apiRequest,
+            xhrFields: {
+                withCredentials: true
+            }
 
 		}).done(function(data) {
             var asset = data.assets[0];

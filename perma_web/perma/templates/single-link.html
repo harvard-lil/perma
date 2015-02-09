@@ -77,8 +77,10 @@
                                     {% if asset.image_capture and asset.image_capture != 'failed' and not asset.pdf_capture%}
                                         <li>
                                             {% if asset.image_capture == 'pending' %}
-                                                <span id="image_cap_container_loading" class="tab-styling">Screen capture</span>
-                                                <a id="image_cap_container_complete" class="tab-styling{% if serve_type == 'image' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=image" style="display:none;">Screen capture</a>
+                                                {% if request.user.is_authenticated %}
+                                                    <span id="image_cap_container_loading" class="tab-styling">Screen capture</span>
+                                                    <a id="image_cap_container_complete" class="tab-styling{% if serve_type == 'image' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=image" style="display:none;">Screen capture</a>
+                                                {% endif %}
                                             {% else %}
                                                 <span id="image_cap_container_loading" class="tab-styling" style="display:none;">Screen capture</span>
                                                 <a id="image_cap_container_complete" class="tab-styling{% if serve_type == 'image' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=image">Screen capture</a>
@@ -89,8 +91,10 @@
                                     {% if asset.warc_capture and asset.warc_capture != 'failed' %}
                                         <li>
                                             {% if asset.warc_capture == 'pending' %}
-                                                <span id="warc_cap_container_loading" class="tab-styling">Archiving page</span>
-                                                <a id="warc_cap_container_complete" class="tab-styling{% if serve_type == 'source' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source" style="display:none;">Archived page</a>
+                                                {% if request.user.is_authenticated %}
+                                                    <span id="warc_cap_container_loading" class="tab-styling">Archiving page</span>
+                                                    <a id="warc_cap_container_complete" class="tab-styling{% if serve_type == 'source' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=source" style="display:none;">Archived page</a>
+                                                {% endif %}
                                             {% else %}
                                                 <span id="warc_cap_container_loading" class="tab-styling" style="display:none;">Archiving page</span>
                                                 <!--<img src="{{ STATIC_URL }}img/dots.gif" alt="Archiving...">-->
@@ -102,8 +106,10 @@
                                     {% if asset.pdf_capture and asset.pdf_capture != 'failed' %}
                                         <li>
                                             {% if asset.pdf_capture == 'pending' %}
-                                                <span id="pdf_cap_container_loading" class="tab-styling">Archiving PDF</span>
-                                                <a id="pdf_cap_container_complete" class="tab-styling{% if serve_type == 'pdf' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=pdf" style="display:none;">PDF</a>
+                                                {% if request.user.is_authenticated %}
+                                                    <span id="pdf_cap_container_loading" class="tab-styling">Archiving PDF</span>
+                                                    <a id="pdf_cap_container_complete" class="tab-styling{% if serve_type == 'pdf' %}active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=pdf" style="display:none;">PDF</a>
+                                                {% endif %}
                                             {% else %}
                                                 <span id="pdf_cap_container_loading" class="tab-styling" style="display:none;">Archiving PDF</span>
                                                 <a id="pdf_cap_container_complete" class="tab-styling{% if serve_type == 'pdf' %} active-view{% endif %}" href="{% url 'single_linky' linky.guid %}?type=pdf">PDF</a>
