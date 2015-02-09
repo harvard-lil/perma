@@ -129,7 +129,7 @@ def single_linky(request, guid, send_downstream=False):
         link = None
 
     # if we can't find the Link locally, and we're a mirror server, fetch from upstream -- otherwise 404
-    if settings.MIRROR_SERVER and (request.user.groups.all() or not link):
+    if settings.MIRROR_SERVER and (request.user.is_authenticated() or not link):
         try:
             json_response = post_message_upstream(reverse('mirroring:single_link_json')+"?type="+serve_type,
                                                   json_data={'guid':guid})
