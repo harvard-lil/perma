@@ -65,7 +65,12 @@ def run_ssl(port="0.0.0.0:8000"):
         Run django test server with SSL.
     """
     local("python manage.py runsslserver %s" % port)
-    return
+
+def runmirror():
+    """
+        Run parallel django main and mirror servers.
+    """
+    local("python manage.py runmirror")
 
 def test(apps="perma mirroring api"):
     """

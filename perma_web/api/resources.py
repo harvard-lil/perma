@@ -14,6 +14,7 @@ from extendedmodelresource import ExtendedModelResource
 from mptt.exceptions import InvalidMove
 from tastypie import fields
 from tastypie.authorization import ReadOnlyAuthorization
+from tastypie.serializers import Serializer
 from tastypie.utils import trailing_slash
 from tastypie import http
 from tastypie.resources import ModelResource
@@ -307,6 +308,7 @@ class PublicLinkResource(BaseLinkResource):
     class Meta(BaseLinkResource.Meta):
         resource_name = 'public/' + BaseLinkResource.Meta.resource_name
         authorization = PublicLinkAuthorization()
+        serializer = Serializer(formats=['json', 'jsonp'])  # enable jsonp
 
 
 class AuthenticatedLinkResource(BaseLinkResource):
@@ -421,7 +423,6 @@ class LinkResource(AuthenticatedLinkResource):
                 asset.pdf_capture = 'pending'
                 task = get_pdf
             else:  # else, it's not a PDF. Let's try our best to retrieve what we can
-                asset.text_capture = 'pending'
                 asset.warc_capture = 'pending'
                 task = proxy_capture
 
@@ -460,6 +461,30 @@ class LinkResource(AuthenticatedLinkResource):
         bundle.obj.user_deleted = True
         bundle.obj.user_deleted_timestamp = timezone.now()
         bundle.obj.save()
+
+    def add_cors_headers(self, request, response):
+        response['Access-Control-Allow-Origin'] = "http%s://%s" % ("s" if request.is_secure() else "", request.mirror_server_host)
+        response['Access-Control-Allow-Headers'] = 'content-type, authorization, x-requested-with'
+        response['Access-Control-Allow-Credentials'] = 'true'
+        return response
+
+    def get_detail(self, request, **kwargs):
+        """ Allow single-link mirror pages to read link details from the main server. """
+        response = super(LinkResource, self).get_detail(request, **kwargs)
+        self.add_cors_headers(request, response)
+        return response
+
+    def method_check(self, request, allowed=None):
+        """
+            Check for an OPTIONS request. If so return the Allow- headers.
+            Based on https://gist.github.com/miraculixx/6536381
+        """
+        try:
+            return super(LinkResource, self).method_check(request, allowed)
+        except ImmediateHttpResponse as response_exception:
+            if request.method.lower() == "options":
+                self.add_cors_headers(request, response_exception.response)
+            raise
 
 
 class CurrentUserResource(LinkUserResource):
