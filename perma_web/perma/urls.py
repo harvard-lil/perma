@@ -49,6 +49,7 @@ urlpatterns = patterns('perma.views',
 
     #API routes
     url(r'^api/linky/urldump/?$', 'api.urldump', name='urldump'),
+    url(r'^api/linky/urldump/get?', 'api.get_url', name='get_url'),
     url(r'^api/linky/urldump/(?P<since>\d{4}-\d{2}-\d{2})/?', 'api.urldump', name='urldump_with_since'),
     
     #Services
