@@ -463,7 +463,8 @@ class LinkResource(AuthenticatedLinkResource):
         bundle.obj.save()
 
     def add_cors_headers(self, request, response):
-        response['Access-Control-Allow-Origin'] = "http%s://%s" % ("s" if request.is_secure() else "", request.mirror_server_host)
+        origin_is_secure = request.META.get('HTTP_ORIGIN', '').startswith('https')
+        response['Access-Control-Allow-Origin'] = "http%s://%s" % ("s" if origin_is_secure else "", request.mirror_server_host)
         response['Access-Control-Allow-Headers'] = 'content-type, authorization, x-requested-with'
         response['Access-Control-Allow-Credentials'] = 'true'
         return response
