@@ -141,7 +141,7 @@
     {% else %}
 
         {# message for a darchived link that user has permission to access #}
-        {% if request.user.can_vest or request.user == linky.created_by %}
+        {% if request.user.can_vest or request.user.pk == linky.created_by.pk %}
             {% if linky|is_darchive %}
             <div class="col-sm-6 col-sm-offset-3 yahowza text-center">
                 <img class="dark-bulb center" src="{{ STATIC_URL }}img/dark-bulb.png">
@@ -161,7 +161,7 @@
             <div class="watermark center">
 
                 {% if not linky.vested and serve_type != 'live' %}
-                    {% if not linky|is_darchive or request.user.can_vest or request.user == linky.created_by %}
+                    {% if not linky|is_darchive or request.user.can_vest or request.user.pk == linky.created_by.pk %}
 						<div class="watermark-container">
 							<span class="pull-right">
 								<span class="glyphicon glyphicon-remove"></span>
@@ -192,7 +192,7 @@
                         </div>
                     {% endif %}
 
-                {% elif linky|is_darchive and not request.user.can_vest and not request.user == linky.created_by %}
+                {% elif linky|is_darchive and not request.user.can_vest and not request.user.pk == linky.created_by.pk %}
                     <img class="dark-bulb center" src="{{ STATIC_URL }}img/dark-bulb.png">
                     <h1 class="cyan">Apologies.</h1>
                     <h2>
