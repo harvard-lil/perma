@@ -138,8 +138,12 @@ function apiRequest(method, url, data, requestArgs){
     requestArgs = typeof requestArgs !== 'undefined' ? requestArgs : {};
 
     if(data){
-        requestArgs.data = JSON.stringify(data);
-        requestArgs.contentType = 'application/json';
+        if(method == "GET"){
+            requestArgs.data = data;
+        }else {
+            requestArgs.data = JSON.stringify(data);
+            requestArgs.contentType = 'application/json';
+        }
     }
 
     requestArgs.url = api_path + url;

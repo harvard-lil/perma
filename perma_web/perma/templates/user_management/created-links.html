@@ -90,8 +90,33 @@
 {% endblock %}
 
 {% block templates %}
+    {% comment %}
+        {# this needs to be translated for the API and added to created-link-items-template #}
+        {% if current_folder.vesting_org %}
+            <div class="shared-folder-label alert-info">
+                {% if shared_with_count %}
+                    This folder is shared with {{ shared_with_count }} other member{{ shared_with_count|pluralize }} of {{ current_folder.vesting_org }}.
+                {% else %}
+                    This folder will be shared with members of {{ current_folder.vesting_org }}.
+                {% endif %}
+            </div>
+        {% elif request.user.can_vest %}
+            <div class="shared-folder-label alert-info" style="background-color: #F5F5F5">
+                This folder is not shared.
+            </div>
+        {% endif %}
+    {% endcomment %}
 {% verbatim %}
 <script id="created-link-items-template" type="text/x-handlebars-template">
+{{#if query }}
+    <div class="shared-folder-label alert-success">
+        Search results for "{{ query }}".
+        <a href="#" class="clear-search">Clear search.</a>
+    </div>
+{{else}}
+    <!-- TODO: insert template from comment above -->
+{{/if}}
+
 {{#each objects}}
     <div class="link-container">
 
