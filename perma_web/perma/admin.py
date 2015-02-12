@@ -39,8 +39,8 @@ class RegistrarAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return super(RegistrarAdmin, self).get_queryset(request).annotate(
             vested_links=Count('vesting_orgs__link',distinct=True),
-            registrar_users=Count('linkuser', distinct=True),
-            last_active=Max('linkuser__last_login', distinct=True),
+            registrar_users=Count('users', distinct=True),
+            last_active=Max('users__last_login', distinct=True),
             vesting_orgs_count=Count('vesting_orgs',distinct=True)
         )
     def vested_links(self, obj):
