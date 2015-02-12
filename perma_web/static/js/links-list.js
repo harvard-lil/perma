@@ -181,7 +181,10 @@ $(function() {
 
     var showLoadingMessage = false;
     function showFolderContents(folderID, query) {
-        if(!query || !query.trim()) query = null;
+        if(!query || !query.trim()){
+            query = null;
+            $('.search-query').val('');  // clear query after user clicks a folder
+        }
 
         // if fetching folder contents takes more than 500ms, show a loading message
         showLoadingMessage = true;
@@ -190,11 +193,18 @@ $(function() {
                 linkTable.html("Loading folder contents ...");
         }, 500);
 
-        var data = {limit: 0};
-        if (query) data.q = query;
+        var data = {limit: 0},
+            endpoint;
+
+        if (query) {
+            data.q = query;
+            endpoint = '/archives/';
+        }else{
+            endpoint = '/folders/' + folderID + '/archives/';
+        }
 
         // fetch contents
-        apiRequest("GET", '/folders/' + folderID + '/archives/', data)
+        apiRequest("GET", endpoint, data)
             .always(function (data) {
                 // same thing runs on success or error, since we get back success or error-displaying HTML
                 showLoadingMessage = false;
@@ -207,7 +217,7 @@ $(function() {
                     obj.creation_timestamp_formatted = new Date(obj.creation_timestamp).format("M. j, Y");
                     if (obj.vested_timestamp) obj.vested_timestamp_formatted = new Date(obj.vested_timestamp).format("M. j, Y");
                 });
-                linkTable.html(templates.created_link_items(data));
+                linkTable.html(templates.created_link_items({objects:data.objects, query:query}));
             });
     }
 
