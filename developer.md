@@ -6,7 +6,7 @@ This document does not cover installing Perma.cc. You should use the install doc
 There are a bunch of moving pieces in Perma.cc. This document provides some notes on common dances you might have to perform.
 
 
-### Git and GitHub
+## Git and GitHub
 
 We use git to track code changes and use [GitHub](https://github.com/harvard-lil/perma) to host the code publicly.
 
@@ -15,7 +15,7 @@ The Master branch always contains production code (probably the thing currently 
 Leverage [feature branches](http://nvie.com/posts/a-successful-git-branching-model/) in your local development flow. Merge your code back into the develop branch and push to GitHub often. Small, quick commits avoid nightmare merge problems.
 
 
-### Optional developer packages ###
+## Optional developer packages
 
 You can install some handy developer packages with `pip install -r dev_requirements.txt`:
 
@@ -28,10 +28,23 @@ You can install some handy developer packages with `pip install -r dev_requireme
 `django-extensions` and `django-debug-toolbar` can both cause confusing errors occasionally, so try disabling them
 if you run into something odd.
 
-### Logs
+## Logs
 
 If you are using Vagrant, all of your logs will end up in /vagrant/services/logs. As a convenience, you can tail -f all of them with `fab logs`.
 
+
+## Code style and techniques
+
+### User roles and permissions tests
+
+We have several types of users:
+
+* Logged in users are identified the standard Django way: `user.is_authenticated`
+* Users may belong to a vesting org (`user.vesting_org is not None`). You should test this with `user.is_vesting_org_member()`, which avoids an extra database call and can be easily updated in case the underlying data model changes.
+* Users may belong to a registrar (`user.registrar is not None`). You should test this with `user.is_registrar_member()`. 
+* Admin users are identified the standard Django way: `user.is_staff`
+
+Currently a user can be either a member of a single vesting org or a single registrar. In the future we may allow multiple relationships.
 
 ### Managing static files and user-generated files
 
@@ -69,27 +82,20 @@ Further reading:
 * [Django docs for default_storage](https://docs.djangoproject.com/en/dev/topics/files/)
 * [Django docs for serving static files](https://docs.djangoproject.com/en/dev/howto/static-files/)
 
-### Using Sass to manage CSS
 
-We use Compass to translate Sass to CSS. A command like the following is likely helpful when you're developing
-    
-    $ cd perma_web
-    $ compass watch --sass-dir static/css/ --css-dir static/css
-
-
-### Hosting fonts locally
+## Hosting fonts locally
 
 We like to host our fonts locally. If you're liking a font from Google fonts and the licesning allows, check out[fontdump](https://pypi.python.org/pypi/fontdump/1.2.0)
 
 
-###  Schema and data migrations using South
+##  Schema and data migrations using South
 
 *** Before changing the schema or the data of your database, make a backup! ***
 
 If you make a change to the Django model (models get mapped directly to relational database tables), you'll need to create a [South](http://south.aeracode.org/) migration. South migrations come in two flavors: schema migrations and data migrations.
 
 
-#### Schema migrations and data migrations
+### Schema migrations and data migrations
 
 Schema migrations are used when changing the model structure (adding, removing, editing fields) and data migrations are used when you need to ferry data between your schema changes (you renamed a field and need to move data from the old field name to the new field name).
 
@@ -112,7 +118,7 @@ Even though you've changed your models file and created a migration (just a pyth
 Data migrations follow the same flow, but add a step in the middle. See the [South docs](http://south.readthedocs.org/en/latest/tutorial/part3.html) for details on how to perform a data migration.
 
 
-#### Track migrations in Git and get started
+### Track migrations in Git and get started
 
 You should commit your migrations to your repository and push to GitHub.
 
@@ -129,7 +135,7 @@ If you've been developing Perma without using South, you might need to apply the
     $ ./manage.py migrate perma 0001 --fake
 
 
-### Testing and Test Coverage
+## Testing and Test Coverage
 
 If you add or change a feature, be sure to add a test for it in perma/tests/. Tests are run like this:
 
@@ -140,7 +146,7 @@ You should always run the tests before committing code.
 The `fab test` command also generates handy coverage information. You can access it with the `coverage` command.
 
 
-#### Sauce Browser Tests
+### Sauce Browser Tests
 
 We also use Sauce Labs to do functional testing of the site in common browsers before deploying. If you have a Sauce account,
 you can set SAUCE_USERNAME and SAUCE_ACCESS_KEY in settings.py, and then run our Sauce tests with
@@ -159,12 +165,12 @@ convenient to change to that directory and run `python run_tests.py`, rather tha
 kicked off by `fab test_sauce`.
 
 
-### Debugging email-related issues
+## Debugging email-related issues
 
 If you're working on an email related task, the contents of emails should be dumped to the standard out courtesy of EMAIL_BACKEND in settings_dev.py.
 
 
-### Mirroring
+## Mirroring
 
 Perma uses a mirroring system in which one server handles logged-in users and content creation, and a set of mirrors help to serve archived content.
 A load balancer routes traffic between them. The net effect is that http://dashboard.perma.cc is served by one server,
@@ -193,7 +199,7 @@ You can edit the codebase normally and each server will incorporate your changes
 To see how the mirror emulation works, check out perma_web/mirroring/management/commands/runmirror.py
 
 
-### Working with Celery
+## Working with Celery
 
 Celery does two things in Perma.cc. It runs the indexing tasks (the things that accept a url and generate an archive) and it runs the scheduled jobs (to gather things nightly like statistics. just like cron might).
 
@@ -215,11 +221,11 @@ Once installed in /etc/init/, you can start and stop Celery as a service. Someth
 Find more about daemonizing Celery in the [in the Celery docs](http://docs.celeryproject.org/en/latest/tutorials/daemonizing.html#daemonizing).
 
 
-### Working with Redis
+## Working with Redis
 
 In our production environment we use Redis as a cache for our thumbnail data. If you're working on Perma you likely won't need it, but if you do want to simulate the production environment, reference Redis and Sorl settings the prod settings file.
 
-### Working with RabbitMQ
+## Working with RabbitMQ
 
 RabbitMQ is the message broker. In Perma.cc's case, it accepts message from Celery, tosses them in a queue, and dolls them out to Celery worker tasks as needed.
 
@@ -414,13 +420,13 @@ Now you can start and stop RabbitMQ as a service. Something like,
     $ sudo service rabbitmq-server stop; sudo service rabbitmq-server start;
 
 
-### ImageMagick and Wand
+## ImageMagick and Wand
 
 If you're on OS X you should might need to do adjust and [environment variable](http://docs.wand-py.org/en/0.3.8/guide/install.html#install-imagemagick-on-mac)
 
 	export MAGICK_HOME=/opt/local
 
-### Other bits
+## Other bits
 
 Use [Handlebars](http://handlebarsjs.com/) when injecting markup using JavaScript.
 

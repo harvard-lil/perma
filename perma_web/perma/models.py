@@ -2,15 +2,21 @@ import logging
 import random
 import re
 
-from django.contrib.auth.models import Group, BaseUserManager, AbstractBaseUser
+from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import models
 from django.db.models import Q
 from django.db.models.query import QuerySet
-from django.utils.text import slugify
+from django.utils.functional import cached_property
 from mptt.exceptions import InvalidMove
 from mptt.models import MPTTModel, TreeForeignKey
+from model_utils import FieldTracker
+
+# For Link
+import socket
+from urlparse import urlparse
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +33,8 @@ class Registrar(models.Model):
 
     # what info to send downstream
     mirror_fields = ('name', 'email', 'website')
+
+    tracker = FieldTracker()
 
     def save(self, *args, **kwargs):
         super(Registrar, self).save(*args, **kwargs)
@@ -49,7 +57,38 @@ class Registrar(models.Model):
             vesting_org.save()
             self.default_vesting_org = vesting_org
             self.save()
-        
+
+
+class VestingOrgQuerySet(QuerySet):
+    def accessible_to(self, user):
+        qset = VestingOrg.objects.user_access_filter(user)
+        if qset is None:
+            return self.none()
+        else:
+            return self.filter(qset)
+
+
+class VestingOrgManager(models.Manager):
+    """
+        Vesting org manager that can enforce user access perms.
+    """
+    def get_queryset(self):
+        return VestingOrgQuerySet(self.model, using=self._db)
+
+    def user_access_filter(self, user):
+        if user.is_vesting_org_member():
+            return Q(id=user.vesting_org_id)
+        elif user.is_registrar_member():
+            return Q(registrar_id=user.registrar_id)
+        elif user.is_staff:
+            return Q()  # all
+        else:
+            return None
+
+    def accessible_to(self, user):
+        return self.get_queryset().accessible_to(user)
+
+
 class VestingOrg(models.Model):
     """
     This is generally a journal.
@@ -62,19 +101,19 @@ class VestingOrg(models.Model):
     # what info to send downstream
     mirror_fields = ('name', 'registrar')
 
-    def __init__(self, *args, **kwargs):
-        """ Capture original values so we can deal with changes during save. """
-        super(VestingOrg, self).__init__(*args, **kwargs)
-        self.original_values = {'name':self.name}
+    objects = VestingOrgManager()
+    tracker = FieldTracker()
 
     def save(self, *args, **kwargs):
+        name_has_changed = self.tracker.has_changed('name')
         super(VestingOrg, self).save(*args, **kwargs)
         if not self.shared_folder:
             # Make sure shared folder is created for each vesting org.
             self.create_shared_folder()
-        elif self.name != self.original_values['name']:
+        elif name_has_changed:
             # Rename shared folder if vesting org name changes.
-            self.shared_folder.rename(self.name)
+            self.shared_folder.name = self.name
+            self.shared_folder.save()
 
     def __unicode__(self):
         return self.name
@@ -89,7 +128,7 @@ class VestingOrg(models.Model):
 
 
 class LinkUserManager(BaseUserManager):
-    def create_user(self, email, registrar, vesting_org, date_joined, first_name, last_name, authorized_by, confirmation_code, password=None, groups=None):
+    def create_user(self, email, registrar, vesting_org, date_joined, first_name, last_name, authorized_by, confirmation_code, password=None):
         """
         Creates and saves a User with the given email, registrar and password.
         """
@@ -100,7 +139,6 @@ class LinkUserManager(BaseUserManager):
             email=self.normalize_email(email),
             registrar=registrar,
             vesting_org=vesting_org,
-            groups=groups,
             date_joined = date_joined,
             first_name = first_name,
             last_name = last_name,
@@ -123,9 +161,8 @@ class LinkUser(AbstractBaseUser):
         unique=True,
         db_index=True,
     )
-    registrar = models.ForeignKey(Registrar, blank=True, null=True)
-    vesting_org = models.ForeignKey(VestingOrg, blank=True, null=True, related_name='users')
-    groups = models.ManyToManyField(Group, blank=True, null=True)
+    registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar member. This should not be set if vesting org is set!")
+    vesting_org = models.ForeignKey(VestingOrg, blank=True, null=True, related_name='users', help_text="If set, this user is a vesting org member. This should not be set if registrar is set!")
     is_active = models.BooleanField(default=True)
     is_confirmed = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -136,6 +173,7 @@ class LinkUser(AbstractBaseUser):
     root_folder = models.OneToOneField('Folder', blank=True, null=True)
 
     objects = LinkUserManager()
+    tracker = FieldTracker()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -144,8 +182,13 @@ class LinkUser(AbstractBaseUser):
         verbose_name = 'User'
 
     def save(self, *args, **kwargs):
-        """ Make sure root folder is created for each user. """
+        # Don't allow users to have both a registrar and vesting_org.
+        # This is just a data consistency check -- logic earlier in the app should make sure this doesn't happen.
+        assert not (self.vesting_org_id and self.registrar_id), "Users cannot have both a registrar and a vesting org."
+
         super(LinkUser, self).save(*args, **kwargs)
+
+        # make sure root folder is created for each user.
         if not self.root_folder:
             self.create_root_folder()
 
@@ -162,35 +205,11 @@ class LinkUser(AbstractBaseUser):
     def __unicode__(self):
         return self.email
 
-    def has_perm(self, perm, obj=None):
-        "Does the user have a specific permission?"
-        # Simplest possible answer: Yes, always
-        return True
-
-    def has_module_perms(self, app_label):
-        "Does the user have permissions to view the app `app_label`?"
-        # Simplest possible answer: Yes, always
-        return True
-
-    _group_names_cache = None
-    def has_group(self, group):
-        """
-            Return true if user is in the named group.
-            If group is a list, user must be in one of the groups in the list.
-        """
-        if not self._group_names_cache:
-            self._group_names_cache = set(group.name for group in self.groups.all())
-
-        if hasattr(group, '__iter__'):
-            return set(group) & self._group_names_cache  # set intersection
-        else:
-            return group in self._group_names_cache
-
     def all_folder_trees(self):
         """
             Get all folders for this user, including shared folders
         """
-        if self.has_group('registrar_user'):
+        if self.is_registrar_member():
             vesting_orgs = self.registrar.vesting_orgs.all()
         else:
             vesting_orgs = [self.get_default_vesting_org()]
@@ -198,11 +217,11 @@ class LinkUser(AbstractBaseUser):
             ([vesting_org.shared_folder.get_descendants(include_self=True) for vesting_org in vesting_orgs if vesting_org])
 
     def get_default_vesting_org(self):
-        if self.has_group('vesting_user') and self.vesting_org:
+        if self.is_vesting_org_member():
             return self.vesting_org
-        if self.has_group('registrar_user') and self.registrar:
+        if self.is_registrar_member():
             return self.registrar.default_vesting_org
-        if self.has_group('registry_user'):
+        if self.is_staff:
             try:
                 return VestingOrg.objects.get(pk=settings.FALLBACK_VESTING_ORG_ID)
             except VestingOrg.DoesNotExist:
@@ -222,9 +241,39 @@ class LinkUser(AbstractBaseUser):
         self.root_folder = root_folder
         self.save()
 
+    def as_json(self, request=None):
+        from api.resources import LinkUserResource
+        return LinkUserResource().as_json(self, request)
 
-class FolderException(Exception):
-    pass
+    ### permissions ###
+
+    def has_perm(self, perm, obj=None):
+        """
+            Does the user have a specific permission?
+            Simplest possible answer: Yes, always
+            This is only used by the django admin for is_staff=True users.
+        """
+        return True
+
+    def has_module_perms(self, app_label):
+        """
+            Does the user have permissions to view the app `app_label`?
+            Simplest possible answer: Yes, always
+            This is only used by the django admin for is_staff=True users.
+        """
+        return True
+
+    def can_vest(self):
+        """ Can the user vest links? """
+        return bool(self.is_staff or self.is_registrar_member() or self.is_vesting_org_member())
+
+    def is_registrar_member(self):
+        """ Is the user a member of a registrar? """
+        return bool(self.registrar_id)
+
+    def is_vesting_org_member(self):
+        """ Is the user a member of a vesting org? """
+        return bool(self.vesting_org_id)
 
 
 class FolderQuerySet(QuerySet):
@@ -244,7 +293,7 @@ class FolderManager(models.Manager):
         filter = Q(owned_by=user)
 
         # vesting org folders
-        if user.has_group('registrar_user'):
+        if user.is_registrar_member():
             filter |= Q(vesting_org__registrar=user.registrar)
         else:
             default_vesting_org = user.get_default_vesting_org()
@@ -259,7 +308,6 @@ class FolderManager(models.Manager):
 
 class Folder(MPTTModel):
     name = models.CharField(max_length=255, null=False, blank=False)
-    slug = models.CharField(max_length=255, null=False, blank=False)
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children')
     creation_timestamp = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='folders_created',)
@@ -277,10 +325,9 @@ class Folder(MPTTModel):
     is_root_folder = models.BooleanField(default=False)
 
     objects = FolderManager()
+    tracker = FieldTracker()
 
-    def __init__(self, *args, **kwargs):
-        super(Folder, self).__init__(*args, **kwargs)
-
+    def save(self, *args, **kwargs):
         # set defaults
         if not self.pk:
             # set ownership same as parent
@@ -291,8 +338,18 @@ class Folder(MPTTModel):
                     self.owned_by = self.parent.owned_by
             if self.created_by and not self.owned_by and not self.vesting_org:
                 self.owned_by = self.created_by
-            if not self.slug:
-                self.set_slug()
+
+        parent_has_changed = self.tracker.has_changed('parent_id')
+
+        super(Folder, self).save(*args, **kwargs)
+
+        if parent_has_changed:
+            # make sure that child folders share vesting_org and owned_by with new parent folder
+            # (one or the other should be set, but not both)
+            if self.parent.vesting_org_id:
+                self.get_descendants(include_self=True).update(vesting_org=self.parent.vesting_org_id, owned_by=None)
+            else:
+                self.get_descendants(include_self=True).update(owned_by=self.parent.owned_by_id, vesting_org=None)
 
     class MPTTMeta:
         order_insertion_by = ['name']
@@ -306,61 +363,12 @@ class Folder(MPTTModel):
     def contained_links(self):
         return Link.objects.filter(folders__in=self.get_descendants(include_self=True))
 
-    def move_to_folder(self, destination_folder):
-        if self.is_shared_folder:
-            raise FolderException("Can't move vesting organization's shared folder.")
-
-        if self.is_root_folder:
-            raise FolderException("Can't move main folder.")
-
-        if self.vesting_org and self.vesting_org != destination_folder.vesting_org and self.contained_links().filter(vested=True).exists():
-            raise FolderException("Can't move folder with vested links out of organization's shared folder.")
-
-        self.parent = destination_folder
-        self.set_slug()
-        try:
-            self.save()
-        except InvalidMove:
-            raise FolderException("Can't move a folder inside itself.")
-
-        # make sure that child folders share vesting_org and owned_by with new parent folder
-        # (one or the other should be set, but not both)
-        if destination_folder.vesting_org:
-            if self.vesting_org != destination_folder.vesting_org:
-                self.get_descendants(include_self=True).update(vesting_org=destination_folder.vesting_org, owned_by=None)
-        else:
-            if self.owned_by != destination_folder.owned_by:
-                self.get_descendants(include_self=True).update(owned_by=destination_folder.owned_by, vesting_org=None)
-
-    def set_slug(self):
-        """ Find a slug that doesn't collide with another folder in parent folder. """
-        self.slug = slugify(unicode(self.name))
-
-        if self.is_shared_folder:
-            # don't let shared folders collide with any other shared folder
-            collision_query = Folder.objects.exclude(pk=self.pk).filter(is_shared_folder=True)
-        elif self.parent:
-            # normal folders just can't collide with fellow children of parent
-            collision_query = self.parent.get_children().exclude(pk=self.pk)
-        else:
-            return  # root folder can't conflict
-
-        i = 1
-        while collision_query.filter(slug=self.slug).exists():
-            self.slug = "%s-%s" % (slugify(unicode(self.name)), i)
-            i += 1
-
     def display_level(self):
         """
             Get hierarchical level for this folder. If this is a shared folder, level should be one higher
             because it is displayed below user's root folder.
         """
         return self.level + (1 if self.vesting_org_id else 0)
-
-    def rename(self, new_name):
-        self.name = new_name
-        self.set_slug()
-        self.save()
 
 
 class LinkQuerySet(QuerySet):
@@ -373,30 +381,38 @@ class LinkManager(models.Manager):
         Link manager that can enforce user access perms.
     """
     def get_queryset(self):
-        return LinkQuerySet(self.model, using=self._db)
+        # exclude deleted entries by default
+        return LinkQuerySet(self.model, using=self._db).filter(user_deleted=False)
+
+    def all_with_deleted(self):
+        return super(LinkManager, self).get_query_set()
+
+    def deleted_set(self):
+        return super(LinkManager, self).get_query_set().filter(user_deleted=True)
 
     def user_access_filter(self, user):
         """
-            User can see/modify a link if they created it or it is in a vesting org folder they belong to, AND it is not deleted
+            User can see/modify a link if they created it or it is in a vesting org folder they belong to.
         """
         # personal links
         filter = Q(folders__owned_by=user)
 
         # links in vesting org folders
-        if user.has_group('registrar_user'):
+        if user.is_registrar_member():
             filter |= Q(folders__vesting_org__registrar=user.registrar)
         else:
             default_vesting_org = user.get_default_vesting_org()
             if default_vesting_org:
                 filter |= Q(folders__vesting_org=default_vesting_org)
 
-        # make sure link not deleted
-        filter &= Q(user_deleted=False)
-
         return filter
 
     def accessible_to(self, user):
         return self.get_queryset().accessible_to(user)
+
+HEADER_CHECK_TIMEOUT = 10
+# This is the PhantomJS default agent
+USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X) AppleWebKit/534.34 (KHTML, like Gecko) PhantomJS/1.9.0 (development) Safari/534.34"
 
 class Link(models.Model):
     """
@@ -426,8 +442,44 @@ class Link(models.Model):
                      'vested', 'vested_timestamp', 'vesting_org')
 
     objects = LinkManager()
+    tracker = FieldTracker()
+
+    @cached_property
+    def url_details(self):
+        return urlparse(self.submitted_url)
+
+    @cached_property
+    def ip(self):
+        try:
+            return socket.gethostbyname(self.url_details.netloc.split(':')[0])
+        except socket.gaierror:
+            return False
+
+    @cached_property
+    def headers(self):
+        try:
+            return requests.head(
+                self.submitted_url,
+                verify=False,  # don't check SSL cert?
+                headers={'User-Agent': USER_AGENT, 'Accept-Encoding': '*'},
+                timeout=HEADER_CHECK_TIMEOUT
+            ).headers
+        except (requests.ConnectionError, requests.Timeout):
+            return False
+
+    # media_type is a file extension-ish normalized mimemedia_type
+    @cached_property
+    def media_type(self):
+        if self.headers.get('content-type', None) in ['application/pdf', 'application/x-pdf'] or self.submitted_url.endswith('.pdf'):
+            return 'pdf'
+        else:
+            return False
 
     def save(self, *args, **kwargs):
+        # Set a default title if one is missing
+        if not self.submitted_title:
+            self.submitted_title = self.url_details.netloc
+
         initial_folder = kwargs.pop('initial_folder', None)
 
         if not self.pk and not kwargs.get("pregenerated_guid", False):
@@ -516,6 +568,10 @@ class Link(models.Model):
                and not self.dark_archived and not self.dark_archived_robots_txt_blocked \
                and self.assets.filter(warc_capture__contains='.warc').exists()
 
+    def as_json(self, request=None):
+        from api.resources import LinkResource
+        return LinkResource().as_json(self, request)
+
 
 class Asset(models.Model):
     """
@@ -523,18 +579,20 @@ class Asset(models.Model):
     this class to track those locations.
     """
     link = models.ForeignKey(Link, null=False, related_name='assets')
-    base_storage_path = models.CharField(max_length=2100, null=True, blank=True) # where we store these assets, relative to some base in our settings
-    favicon = models.CharField(max_length=2100, null=True, blank=True) # Retrieved favicon
-    image_capture = models.CharField(max_length=2100, null=True, blank=True) # Headless browser image capture
-    warc_capture = models.CharField(max_length=2100, null=True, blank=True) # source capture, probably point to an index.html page
-    pdf_capture = models.CharField(max_length=2100, null=True, blank=True) # We capture a PDF version (through a user upload or through our capture)
-    text_capture = models.CharField(max_length=2100, null=True, blank=True) # We capture a text dump of the resource
+    base_storage_path = models.CharField(max_length=2100, null=True, blank=True)  # where we store these assets, relative to some base in our settings
+    favicon = models.CharField(max_length=2100, null=True, blank=True)  # Retrieved favicon
+    image_capture = models.CharField(max_length=2100, null=True, blank=True)  # Headless browser image capture
+    warc_capture = models.CharField(max_length=2100, null=True, blank=True)  # source capture, probably point to an index.html page
+    pdf_capture = models.CharField(max_length=2100, null=True, blank=True)  # We capture a PDF version (through a user upload or through our capture)
+    text_capture = models.CharField(max_length=2100, null=True, blank=True)  # We capture a text dump of the resource
     instapaper_timestamp = models.DateTimeField(null=True)
     instapaper_hash = models.CharField(max_length=2100, null=True)
     instapaper_id = models.IntegerField(null=True)
 
     # what info to send downstream
     mirror_fields = ('link', 'base_storage_path', 'image_capture', 'warc_capture', 'pdf_capture', 'text_capture')
+
+    tracker = FieldTracker()
 
     def __init__(self, *args, **kwargs):
         super(Asset, self).__init__(*args, **kwargs)

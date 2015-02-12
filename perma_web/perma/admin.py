@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm
+from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
+from django.core.exceptions import ValidationError
 from django.db.models import Count, Max, Min
 
 from mptt.admin import MPTTModelAdmin
@@ -37,8 +39,8 @@ class RegistrarAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return super(RegistrarAdmin, self).get_queryset(request).annotate(
             vested_links=Count('vesting_orgs__link',distinct=True),
-            registrar_users=Count('linkuser', distinct=True),
-            last_active=Max('linkuser__last_login', distinct=True),
+            registrar_users=Count('users', distinct=True),
+            last_active=Max('users__last_login', distinct=True),
             vesting_orgs_count=Count('vesting_orgs',distinct=True)
         )
     def vested_links(self, obj):
@@ -88,25 +90,34 @@ class LinkUserChangeForm(UserChangeForm):
         del self.base_fields['username']
         super(LinkUserChangeForm, self).__init__(*args, **kwargs)
 
+    def clean(self):
+        cleaned_data = super(LinkUserChangeForm, self).clean()
+
+        # check that we're not trying to set both a registrar and a vesting org
+        if cleaned_data.get('registrar') and cleaned_data.get('vesting_org'):
+            raise ValidationError("User may have either a vesting org or registrar but not both.")
+
+        return cleaned_data
+
 
 class LinkUserAdmin(UserAdmin):
     form = LinkUserChangeForm
     fieldsets = (
         ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
         (None, {'fields': ('password',)}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'groups', 'registrar', 'vesting_org')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'registrar', 'vesting_org')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
-    filter_horizontal = ('groups',)
-    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'date_joined', 'last_login', 'created_links_count', 'vested_links_count')
+    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'date_joined', 'last_login', 'created_links_count', 'vested_links_count', 'registrar', 'vesting_org')
     search_fields = ('first_name', 'last_name', 'email')
-    list_filter = ('is_staff', 'is_active', 'groups')
+    list_filter = ('is_staff', 'is_active')
     ordering = None
     readonly_fields = ['date_joined']
     inlines = [
         new_class("CreatedLinksInline", InlineEditLinkMixin, LinkInline, fk_name='created_by', verbose_name_plural="Created Links"),
         new_class("VestedLinksInline", InlineEditLinkMixin, LinkInline, fk_name='vested_by_editor', verbose_name_plural="Vested Links"),
     ]
+    filter_horizontal = []
 
     # statistics
     def get_queryset(self, request):

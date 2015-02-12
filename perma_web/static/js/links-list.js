@@ -1,22 +1,33 @@
 $(function() {
     var linkTable = $('.link-rows');
 
-    // helpers
-    function postJSON(url, data, callback, failureCallback) {
-        return $.ajax({
-                          url: url,
-                          type: "POST",
-                          dataType: 'json',
-                          data: data,
-                          success: callback,
-                          traditional: true // use Django-style array serialization
-        }).fail(failureCallback || function (jqXHR) {
-            informUser(jqXHR.status == 400 && jqXHR.responseText ? jqXHR.responseText : "Error " + jqXHR.status, 'danger');
-        });
-    }
-
     function getLinkIDForFormElement(element){
         return element.closest('.link-container').find('.link-row').attr('link_id');
+    }
+
+    function showError(jqXHR){
+        var message;
+
+        if(jqXHR.status == 400 && jqXHR.responseText){
+            try{
+                var parsedResponse = JSON.parse(jqXHR.responseText);
+                while(typeof parsedResponse == 'object'){
+                    for(var key in parsedResponse){
+                        if (parsedResponse.hasOwnProperty(key)){
+                            parsedResponse = parsedResponse[key];
+                            break;
+                        }
+                    }
+                }
+                message = parsedResponse;
+            }catch(SyntaxError){}
+        }
+
+        if(!message){
+            message = "Error " + jqXHR.status;
+        }
+
+        informUser(message, 'danger');
     }
 
     // save changes to a given text box to the server
@@ -30,26 +41,27 @@ $(function() {
         statusElement.html('saving ...');
         saveNeeded = true;
 
+        var guid = inputElement.attr('id').match(/.+-(.+-.+)/)[1],
+            data = {};
+
+        data[name] = inputElement.val();
+
         // use a setTimeout so notes are only saved once every few seconds
         setTimeout(function () {
             if (saveNeeded) {
                 saveNeeded = false;
                 lastSaveTime = new Date().getTime();
                 var saveValue = inputElement.val();
-                request = postJSON(document.location,
-                                   {
-                                       action: 'save_link_attribute',
-                                       link_id: getLinkIDForFormElement(inputElement),
-                                       name: name,
-                                       value: saveValue
-                                   },
-                                   function (data) {
-                                       statusElement.html('saved.');
-                                       inputElement.attr('last_value_saved', saveValue);
-                                   }
-                );
-                if (callback)
-                    request.done(callback);
+
+                var request = apiRequest("PATCH", '/archives/' + guid + '/', data);
+
+                request.done(function(data){
+                    if(!saveNeeded)
+                        statusElement.html('saved.');
+                        inputElement.attr('last_value_saved', saveValue);
+                });
+
+                if (callback) request.done(callback);
             }
         }, Math.max(saveBufferSeconds * 1000 - (new Date().getTime() - lastSaveTime), 0));
     }
@@ -109,7 +121,7 @@ $(function() {
     // save changes to title field
     }).on('textchange', '.link-title', function () {
         var textarea = $(this);
-        saveInput(textarea, textarea.prevAll('.title-save-status'), 'submitted_title', function () {
+        saveInput(textarea, textarea.prevAll('.title-save-status'), 'title', function () {
             // update display title when saved
             textarea.closest('.link-container').find('.link-title-display').text(textarea.val());
         });
@@ -117,10 +129,9 @@ $(function() {
     // handle move-to-folder dropdown
     }).on('change', '.move-to-folder', function () {
         moveSelect = $(this);
-        moveItems(
+        moveLink(
             moveSelect.val(), // selected folder_id to move link to
-            [getLinkIDForFormElement(moveSelect)], // link id to move
-            []
+            getLinkIDForFormElement(moveSelect) // link id to move
         ).done(function () {
             showFolderContents(getSelectedFolderID());
         });
@@ -160,26 +171,21 @@ $(function() {
         return getSelectedNode().data.folder_id;
     }
 
-    function getFolderURL(folderID) {
-        if (!folderID)
-            folderID = getSelectedFolderID();
-        return folderContentsURL.replace('FOLDER_ID', folderID);
-    }
-
-    function postJSONToFolder(folderID, json) {
-        return postJSON(getFolderURL(folderID), json);
-    }
-
     function editNodeName(node) {
         setTimeout(function () {
-            folderTree.edit(node)
+            folderTree.edit(node);
         }, 0);
     }
 
     // *** actions ***
 
     var showLoadingMessage = false;
-    function showFolderContents(folderID) {
+    function showFolderContents(folderID, query) {
+        if(!query || !query.trim()){
+            query = null;
+            $('.search-query').val('');  // clear query after user clicks a folder
+        }
+
         // if fetching folder contents takes more than 500ms, show a loading message
         showLoadingMessage = true;
         setTimeout(function(){
@@ -187,32 +193,52 @@ $(function() {
                 linkTable.html("Loading folder contents ...");
         }, 500);
 
+        var data = {limit: 0},
+            endpoint;
+
+        if (query) {
+            data.q = query;
+            endpoint = '/archives/';
+        }else{
+            endpoint = '/folders/' + folderID + '/archives/';
+        }
+
         // fetch contents
-        $.get(getFolderURL(folderID))
+        apiRequest("GET", endpoint, data)
             .always(function (data) {
                 // same thing runs on success or error, since we get back success or error-displaying HTML
                 showLoadingMessage = false;
-                linkTable.html(data.responseText || data);
+                data.objects.map(function(obj){
+                    obj.local_url = mirror_server_host + '/' + obj.guid;
+                    obj.can_vest = can_vest;
+                    obj.search_query_in_notes = (query && obj.notes.indexOf(query) > -1);
+                    obj.url_docs_perma_link_vesting = url_docs_perma_link_vesting;
+                    obj.expiration_date_formatted = new Date(obj.expiration_date).format("M. j, Y");
+                    obj.creation_timestamp_formatted = new Date(obj.creation_timestamp).format("M. j, Y");
+                    if (obj.vested_timestamp) obj.vested_timestamp_formatted = new Date(obj.vested_timestamp).format("M. j, Y");
+                });
+                linkTable.html(templates.created_link_items({objects:data.objects, query:query}));
             });
     }
 
     function createFolder(parentFolderID, newName) {
-        return postJSONToFolder(parentFolderID, {action: 'new_folder', name: newName});
+        return apiRequest("POST", "/folders/" + parentFolderID + "/folders/", {name: newName});
     }
 
     function renameFolder(folderID, newName) {
-        return postJSONToFolder(folderID, {action: 'rename_folder', name: newName});
+        return apiRequest("PATCH", "/folders/" + folderID + "/", {name: newName});
     }
 
-    function moveItems(targetFolderID, links, folders) {
-        return postJSONToFolder(targetFolderID, {action: 'move_items', links: links, folders: folders});
+    function moveFolder(parentID, childID) {
+        return apiRequest("PUT", "/folders/" + parentID + "/folders/" + childID + "/");
     }
 
     function deleteFolder(folderID) {
-        return postJSON(
-            getFolderURL(folderID),
-            {action: 'delete_folder'}
-        );
+        return apiRequest("DELETE", "/folders/" + folderID + "/");
+    }
+
+    function moveLink(folderID, linkID) {
+        return apiRequest("PUT", "/folders/" + folderID + "/archives/" + linkID + "/");
     }
 
 
@@ -237,11 +263,10 @@ $(function() {
     // search form
     $('.search-query-form').on('submit', function (e) {
         e.preventDefault();
-        $.get(getFolderURL(null) + '?q=' + $('.search-query').val())
-            .always(function (data) {
-                        // same thing runs on success or error
-                        linkTable.html(data.responseText || data);
-                    });
+        var query = $('.search-query').val();
+        if(query && query.trim()){
+            showFolderContents(getSelectedFolderID(), query);
+        }
     });
     linkTable.on('click', 'a.clear-search', function () {
         showFolderContents(getSelectedFolderID());
@@ -277,7 +302,7 @@ $(function() {
                         // link dragged onto folder
                         if (operation == 'copy_node') {
                             var targetNode = getDropTarget();
-                            moveItems(targetNode.data.folder_id, [node.id], []).done(function () {
+                            moveLink(targetNode.data.folder_id, node.id).done(function () {
                                 showFolderContents(getSelectedFolderID());
                             });
                         }
@@ -291,7 +316,7 @@ $(function() {
                             });
                         } else if (operation == 'move_node') {
                             var targetNode = getDropTarget();
-                            moveItems(targetNode.data.folder_id, [], [node.data.folder_id]).done(function () {
+                            moveFolder(targetNode.data.folder_id, node.data.folder_id).done(function () {
                                 allowedEventsCount++;
                                 folderTree.move_node(node, targetNode);
                             });
@@ -306,7 +331,7 @@ $(function() {
                             createFolder(node_parent.data.folder_id, newName).done(function (server_response) {
                                 allowedEventsCount++;
                                 folderTree.create_node(node_parent, node, "last", function (new_folder_node) {
-                                    new_folder_node.data = {folder_id: server_response.new_folder_id};
+                                    new_folder_node.data = {folder_id: server_response.id};
                                     editNodeName(new_folder_node);
                                 });
                             });

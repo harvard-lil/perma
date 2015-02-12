@@ -17,6 +17,13 @@
     src: url('../fonts/RobotoSlab-Regular.eot');
     src: local("Roboto Slab Regular"), local("RobotoSlab-Regular"), url('../fonts/RobotoSlab-Regular.eot?#iefix') format("embedded-opentype"), url('../fonts/RobotoSlab-Regular.woff') format("woff"), url('../fonts/RobotoSlab-Regular.ttf') format("truetype")
     }
+@font-face {
+    font-family: "Inconsolata";
+    font-style: normal;
+    font-weight: 400;
+    src: url('../fonts/RobotoSlab-Regular.eot');
+    src: local("Roboto Slab Regular"), local("RobotoSlab-Regular"), url('../fonts/RobotoSlab-Regular.eot?#iefix') format("embedded-opentype"), url('../fonts/RobotoSlab-Regular.woff') format("woff"), url('../fonts/RobotoSlab-Regular.ttf') format("truetype")
+    }
 /* End - our locally hosted Google Fonts */
 
 
@@ -252,12 +259,20 @@ p {
 }
 
 .infinity-navbar {
-	font-size:16px;
+	font-size:14px;
 	margin-left:10px;
+	font-family:$sans-font;
+	background-color:#fff;
+	color:$perma-blue;
+}
+
+.infinity-navbar:hover {
+    background-color:#f7f7f7;
+    color:$perma-blue;
 }
 
 .infinity-navbar img {
-    width:32px;
+    width:27px;
     margin-top:-2px;
 }
 
@@ -2868,5 +2883,76 @@ p.orange {
 
 
 /* Archive error page end */
+
+/* Developer docs start */
+
+
+.developer-docs {
+
+	.nav-pills > li > a
+	{
+		display: block;
+		padding: 5px;
+		border: none;
+	}
+	
+	.nav-pills > li.active > a
+	{
+		background-color: #f7f7f7;
+		border: 1px solid #e6e6e6;
+	}
+	
+	.api-warning {
+		border: 1px #FF3535 solid;
+		background-color: #FF3535;
+		padding: 15px 15px 0 15px;
+		margin-top: 30px;
+	}
+	
+	.api-warning p {
+		color: #fff;
+		font-size: 18px;
+	}
+	
+	.api-warning .icon-exclamation-sign {
+		font-size: 85px;
+		color: #fff;
+		display: inline;
+		float: left;
+		margin-right: 15px;
+		margin-top: -3px;
+	}
+	
+	.api-warning a {
+		color: #fff;
+		border-bottom: 1px solid #fff;
+	}
+
+	h4 {
+		margin-top: 40px;
+		color: #333;
+	}
+	
+	code {
+		color: #333;
+		background-color: #eef8ff;
+	}
+	
+	p {
+		font-family: $sans-font;
+		font-size: 16px;
+		color: #555;
+	}
+
+	pre {
+		background-color: #fafafb;
+		border-color: #ddd;
+		color: #444;
+		margin-left: 0;
+	}
+
+}
+
+/* Developer docs end */
 
 

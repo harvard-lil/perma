@@ -9,7 +9,6 @@ this_module = unicode(
     sys.getfilesystemencoding())
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(this_module))))
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -86,10 +85,49 @@ PIPELINE_COMPILERS = (
 PIPELINE_DISABLE_WRAPPER = True
 
 PIPELINE_JS = {
+    # scripts included at the foot of all pages
+    'global': {
+        'source_filenames': (
+            'js/jquery.js',
+            'js/bootstrap3.js',
+            'js/global.js',
+        ),
+        'output_filename': 'js/global-bundle.js',
+    },
+
+    # scripts included in the head of all pages (not counting archive pages)
+    'global_head': {
+        'source_filenames': (
+            'js/modernizr.js',
+            'js/holder.js',
+            'js/local-datetime.js',
+        ),
+        'output_filename': 'js/global-head-bundle.js',
+    },
+
+    # scripts included in the head of archive pages
+    'global_archive_head': {
+        'source_filenames': (
+            'js/local-datetime.js',
+        ),
+        'output_filename': 'js/global-archive-head.js',
+    },
+
+    # scripts included in all user dashboard pages
+    'admin': {
+        'source_filenames': (
+            'js/handlebars.js',
+            'js/handlebars_helpers.js',
+            'js/admin.js',
+        ),
+        'output_filename': 'js/admin-bundle.js',
+    },
+
+    ## scripts for individual pages ##
+
     'create': {
         'source_filenames': (
             'js/spin.js',
-            'js/handlebars.js',
             'js/jquery.form.min.js',
             'js/create.js',
         ),
@@ -99,7 +137,6 @@ PIPELINE_JS = {
         'source_filenames': (
             'js/jquery-ui-1.10.3.custom.min.js',
             'js/jquery.dotdotdot-1.5.9.min.js',
-            'js/jquery.django-csrf.js',
             'js/lib/jstree.min.js',
             'js/lib/jquery.splendid.textchange.js',
             'js/links-list.js',
@@ -116,6 +153,43 @@ PIPELINE_JS = {
             'js/landing.js',
         ),
         'output_filename': 'js/landing-bundle.js',
+    },
+    'stats': {
+        'source_filenames': (
+            'js/d3.v3.js',
+            'js/stats.js',
+        ),
+        'output_filename': 'js/stats-bundle.js',
+    },
+    'dark-archive-link': {
+        'source_filenames': (
+            'js/dark-archive-link.js',
+        ),
+        'output_filename': 'js/dark-archive-link-bundle.js',
+    },
+    'link-delete-confirm': {
+        'source_filenames': (
+            'js/link-delete-confirm.js',
+        ),
+        'output_filename': 'js/link-delete-confirm-bundle.js',
+    },
+    'link-vest-confirm': {
+        'source_filenames': (
+            'js/link-vest-confirm.js',
+        ),
+        'output_filename': 'js/link-vest-confirm-bundle.js',
+    },
+    'single-link': {
+        'source_filenames': (
+            'js/single-link.js',
+        ),
+        'output_filename': 'js/single-link-bundle.js',
+    },
+    'doc-developer': {
+        'source_filenames': (
+            'js/pretty-print-json.js',
+        ),
+        'output_filename': 'js/pretty-print-json.js',
     },
 }
 
@@ -157,13 +231,14 @@ TEMPLATE_LOADERS = (
 
 MIDDLEWARE_CLASSES = (
     'perma.middleware.SecurityMiddleware',
+    'api.middleware.APISubdomainMiddleware',  # this should come before MirrorForwardingMiddleware
+    'mirroring.middleware.MirrorForwardingMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'mirroring.middleware.MirrorAuthenticationMiddleware',
     'perma.middleware.AdminAuthMiddleware',
-    'mirroring.middleware.MirrorForwardingMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -182,6 +257,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.static',    # include `STATIC_URL` in templates
     'django.core.context_processors.media',     # include `MEDIA_URL` in templates
     'django.contrib.auth.context_processors.auth',  # for Django admin
+    'settings_context_processor.context_processors.settings',  # to easily use settings in templates
 )
 
 INSTALLED_APPS = (
@@ -196,6 +272,7 @@ INSTALLED_APPS = (
 
     # our apps
     'perma',
+    'api',
     'monitor',
     'mirroring',
 
@@ -207,9 +284,11 @@ INSTALLED_APPS = (
     'sorl.thumbnail',
     'django_forms_bootstrap',
     'djangosecure',  # force SSL -- this can be removed in Django 1.8
+    'settings_context_processor',
 
     # django admin -- has to come after our apps for our admin template overrides to work
     'django.contrib.admin',
+    'tastypie'
 )
 
 AUTH_USER_MODEL = 'perma.LinkUser'
@@ -233,7 +312,8 @@ NUMBER_RETRIES = 3 # if wget fails to get a resource, try to get again this many
 WAIT_BETWEEN_TRIES = .5 # wait between .5 and this many seconds between http requests to our source
 
 # Max file size (for our downloads)
-MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 100 # 100 MB
+MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 100  # 100 MB
+MAX_HTTP_FETCH_SIZE = 1024 * 1024  # 1 MB
 
 # Rate limits
 MINUTE_LIMIT = '6000/m'
@@ -342,13 +422,14 @@ CELERY_SEND_TASK_ERROR_EMAILS = True
 # if you're running a mirror on Heroku or something like that.
 RUN_TASKS_ASYNC = True
 
+API_SUBDOMAIN = 'api'
 
 ### mirror stuff
 
 MIRRORING_ENABLED = False           # whether to use mirroring features
 MIRROR_SERVER = False               # whether we are a mirror
 MIRROR_COOKIE_NAME = 'user_info'
-MIRROR_USERS_SUBDOMAIN = 'dashboard'
+DASHBOARD_SUBDOMAIN = 'dashboard'
 DIRECT_MEDIA_URL = MEDIA_URL        # URL to load media from this server in particular -- primarily useful for main server
 
 # Where to fetch new archives from, if we are a mirror.
@@ -392,13 +473,11 @@ LINK_EXPIRATION_TIME = relativedelta(years=2)
 WARC_HOST = None
 DIRECT_WARC_HOST = None     # host to load warc from this server in particular -- primarily useful for main server
 
-
 # Sorl settings. This releates to our thumbnail creation
 # the prod and dev configs are considerably different. See those configs for
 # details
-THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.pil_engine.Engine' # Change this to Wand when sorl 12.x is released (since we use Wand for PDF thumbnail creation)
-THUMBNAIL_FORMAT = 'PNG' #
-
+THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.pil_engine.Engine'  # Change this to Wand when sorl 12.x is released (since we use Wand for PDF thumbnail creation)
+THUMBNAIL_FORMAT = 'PNG'  #
 
 # feature flags
 SINGLE_LINK_HEADER_TEST = False
@@ -406,3 +485,12 @@ SINGLE_LINK_HEADER_TEST = False
 # security settings -- set these to true if SSL is available
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
+
+API_VERSION = 1
+
+TEMPLATE_VISIBLE_SETTINGS = (
+    'API_VERSION',
+    'SECURE_SSL_REDIRECT',
+)
+
+TASTYPIE_DEFAULT_FORMATS = ['json']

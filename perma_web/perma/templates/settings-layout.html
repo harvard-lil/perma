@@ -1,10 +1,4 @@
 {% extends "layout-responsive.html" %}
-{% load startswith has_group %}
-
-{% block styles %}
-    {# put in styles because this has to be available during page load #}
-    <script src="{{ STATIC_URL }}js/local-datetime.js "></script>
-{% endblock %}
 
 {% block row %}
 
@@ -21,7 +15,7 @@
             
             <li{% if this_page == 'settings_tools' %} class="active"{% endif %}><a href="{% url 'user_management_settings_tools' %}">Tools</a></li>
 
-            {% if request.user|has_group:'vesting_user' %}
+            {% if request.user.is_vesting_org_member %}
             <!-- Settings -->
             <li{% if this_page == 'settings_organizations' %} class="active"{% endif %}><a href="{% url 'user_management_settings_organizations' %}" id="dashboard-settings">Organizations</a></li>
             {% endif %}
@@ -41,17 +35,3 @@
 </div> <!--row-->
 {% endblock %}
 
-{% block scripts %}
-<script>
-
-$(document).ready(function(){
-    // Toggle users dropdown
-    $('.manage-users-button').click(function(){
-        $('.users-secondary').toggle();
-    });
-});
-
-</script>
-
-
-{% endblock scripts %}

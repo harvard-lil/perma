@@ -1,9 +1,20 @@
 Installing Perma
 =====
 
-## Quick Start
+## Initial Setup
 
 Perma is a Python application built on the [Django](https://www.djangoproject.com/) web framework.
+
+To get up and running, read through the [Quick Start](#quick-start) or
+[Manual Install](#install) instructions, but first you'll need add the
+following domains to your hosts file:
+
+    127.0.0.1 perma.dev api.perma.dev dashboard.perma.dev user-content.perma.dev
+
+For additional information on modifying your hosts file,
+[try this help doc](http://www.rackspace.com/knowledge_center/article/how-do-i-modify-my-hosts-file).
+
+## Quick Start
 
 If you are running Perma locally for development, we recommend using our pre-built
 [Vagrant](http://docs.vagrantup.com/v2/getting-started/) virtual machine. This will take more disk space (~700MB),
@@ -57,7 +68,7 @@ Then you can run the test server:
     Starting development server at http://0.0.0.0:8000/
     Quit the server with CONTROL-C.
 
-That's it! You should now be able to load Perma in your browser at `http://127.0.0.1:8000/`.
+That's it! You should now be able to load Perma in your browser at `http://perma.dev:8000/`.
 
 ## Install
 
@@ -119,9 +130,9 @@ Then apply South migrations:
 
     $ python manage.py migrate
 
-If you want to play with the admin views, load the user and group data fixtures:
+If you want to play with the admin views, load the user data fixtures:
 
-    $ python manage.py loaddata fixtures/users.json fixtures/groups.json
+    $ python manage.py loaddata fixtures/users.json fixtures/folders.json
 
 The password for all test users is "pass".
 

@@ -5,8 +5,9 @@ if (!String.prototype.trim) {
     // Make sure we trim BOM and NBSP
     rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
     return this.replace(rtrim, "");
-  }
+  };
 }
+
 
 // Initializations
 $(document).ready(function() {
@@ -28,13 +29,16 @@ $(document).ready(function() {
         $('#broken-link-report').html('');
         $('form.feedback').find("input[type=email], textarea").val("");
         $('#user_email').val(user_email);
-    })
+    });
 
     
     $("input#submit-feedback").click(function(){
       var data = $('form.feedback').serializeArray();
+
+      // todo -- is this necessary with our global csrf cookie js?
       var csrftoken = getCookie('csrftoken');
       data.push({name: 'csrfmiddlewaretoken', value: csrftoken});
+
       data.push({name: 'visited_page', value: $(location).attr('href')});
       var brokenLink = $('#broken-link').text();
       if(brokenLink)
@@ -59,6 +63,9 @@ $(document).ready(function() {
     $(document).on('click', '.popup-alert', function(){
         $(this).remove();
     });
+
+    // show infinity button "Create perma archive" tooltip on hover
+    $('.infinity-navbar').tooltip({'trigger': 'hover', 'placement': 'bottom', 'container':'body', 'delay': 350});
 });
 
 // Clear fields on focus
@@ -66,6 +73,10 @@ $(".clear-on-focus")
   .focus(function() { if (this.value === this.defaultValue) { this.value = ''; } })
   .blur(function() { if (this.value === '') { this.value = this.defaultValue; }
 });
+
+
+// set up jquery to properly set CSRF header on AJAX post
+// via https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax
 
 function getCookie(name) {
     var cookieValue = null;
@@ -82,6 +93,20 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
+$.ajaxSetup({
+    crossDomain: false, // obviates need for sameOrigin test
+    beforeSend: function(xhr, settings) {
+        if (!csrfSafeMethod(settings.type)) {
+            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+        }
+    }
+});
+
 
 // check if this is a retina-style display
 // via http://stackoverflow.com/a/20413768
@@ -105,4 +130,53 @@ function informUser(message, alertClass){
           '<button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>'+
           message +
       '</div>').prependTo('body').fadeIn('fast');
+}
+
+
+function apiRequest(method, url, data, requestArgs){
+    // set up arguments for API request
+    requestArgs = typeof requestArgs !== 'undefined' ? requestArgs : {};
+
+    if(data){
+        if(method == "GET"){
+            requestArgs.data = data;
+        }else {
+            requestArgs.data = JSON.stringify(data);
+            requestArgs.contentType = 'application/json';
+        }
+    }
+
+    requestArgs.url = api_path + url;
+    requestArgs.method = method;
+
+    if(!('error' in requestArgs))
+        requestArgs.error = showAPIError;
+
+    return $.ajax(requestArgs);
+}
+
+// parse and display error results from API
+function showAPIError(jqXHR){
+    var message;
+
+    if(jqXHR.status == 400 && jqXHR.responseText){
+        try{
+            var parsedResponse = JSON.parse(jqXHR.responseText);
+            while(typeof parsedResponse == 'object'){
+                for(var key in parsedResponse){
+                    if (parsedResponse.hasOwnProperty(key)){
+                        parsedResponse = parsedResponse[key];
+                        break;
+                    }
+                }
+            }
+            message = parsedResponse;
+        }catch(SyntaxError){}
+    }
+
+    if(!message){
+        message = "Error " + jqXHR.status;
+    }
+
+    informUser(message, 'danger');
 }

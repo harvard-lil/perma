@@ -1,14 +1,8 @@
 {% extends "base-archive-responsive.html" %}
-{% load has_group is_darchive local_datetime mirror_tags count_archives %}
+{% load is_darchive local_datetime mirror_tags count_archives compressed as_json %}
 {% block title %} | {{archive.submitted_title}}{% endblock %}
 {% block meta-head %}
 <meta name="robots" content="noindex, noarchive, noodp, noimageindex">
-{% endblock %}
-{% block styles %}
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/font-awesome.min.css">
-
-    {# put in styles because this has to be available during page load #}
-    <script src="{{ STATIC_URL }}js/local-datetime.js "></script>
 {% endblock %}
 
 {% block header %}
@@ -43,13 +37,13 @@
                         <div class="col-xs-12 col-sm-3">
                             <div class="pull-right button-container">
                                 {% if request.user.is_authenticated %}
-                                    {% if request.user|has_group:'registry_user,registrar_user,vesting_user' and not archive.vested %}
+                                    {% if request.user.can_vest and not archive.vested %}
                                         <form action="{% main_url 'vest_link' archive.guid %}" method="post">
                                         {% csrf_token %}
                                             <p class="float-right"><input type="submit" value="Vest site" name="vest" class="btn vest"></p>
                                         </form>
                                     {% endif %}
-                                    {% if request.user|has_group:'registry_user' %}
+                                    {% if request.user.is_staff %}
                                         <p class="float-right"><a class="btn vest" href="{% url 'dark_archive_link' archive.guid %}">Dark archive</a></p>
                                     {% endif %}
                                     {% if request.user == archive.created_by and not archive.vested and not archive.dark_archive %}
@@ -166,20 +160,20 @@
 {% block content %}
     <div class="overlay" onClick="style.pointerEvents='none'"></div>
 
-    {% if archive.dark_archived and request.user|has_group:'registry_user,registrar_user,vesting_user' %}
+    {% if archive.dark_archived and request.user.can_vest %}
     	<div class="col-sm-6 col-sm-offset-3 yahowza-small">
 			<div class="darchive">
 				<img class="dark-bulb-small" src="{{ STATIC_URL }}img/dark-bulb.png">
 				<h2 class="orange">This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with a takedown notice.</h2>
 			</div>
 		</div>
-	{% elif archive.dark_archived_robots_txt_blocked and request.user|has_group:'registry_user,registrar_user,vesting_user' %}
+	{% elif archive.dark_archived_robots_txt_blocked and request.user.can_vest %}
     	<div class="col-sm-6 col-sm-offset-3 yahowza-small">
     		<img class="dark-bulb-small" src="{{ STATIC_URL }}img/dark-bulb.png">
 			<h2>This link is in the <span class="dark">dark archive</span> because Perma.cc has <a href="{% url 'faq' %}#robots-text">respected the content creator's request to not share this archive publicly</a.>.</h2>
 		</div>
 	{% endif %}
-    {% if not archive|is_darchive or request.user|has_group:'registry_user,registrar_user,vesting_user' %}
+    {% if not archive|is_darchive or request.user.can_vest %}
         {% if not archive.user_deleted %}
 	<div class="archive-view center">
   		<div class="watermark center">
@@ -231,11 +225,12 @@
    	    </div>
    	{% endif %}
    	{% endif %}
-<script>
-	var status_url = "{% main_url 'service_link_status' archive.guid %}";
-</script>
 {% endblock %}
 
 {% block scripts %}
-    <script src="{{ STATIC_URL }}js/single-link.js"></script>
+    <script>
+        var archive = {% as_json archive %};
+    </script>
+
+    {% compressed_js 'single-link' %}
 {% endblock %}

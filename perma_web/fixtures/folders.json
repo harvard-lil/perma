@@ -1,0 +1,326 @@
+[
+{
+    "pk": 22,
+    "model": "perma.folder",
+    "fields": {
+        "rght": 2,
+        "name": "Empty root folder",
+        "parent": null,
+        "level": 0,
+        "created_by": 1,
+        "lft": 1,
+        "is_root_folder": true,
+        "tree_id": 1,
+        "owned_by": 1,
+        "is_shared_folder": false,
+        "creation_timestamp": "2014-09-02T16:57:03Z",
+        "vesting_org": null
+    }
+},
+{
+    "pk": 23,
+    "model": "perma.folder",
+    "fields": {
+        "rght": 4,
+        "name": "My Links",
+        "parent": null,
+        "level": 0,
+        "created_by": 2,
+        "lft": 1,
+        "is_root_folder": true,
+        "tree_id": 2,
+        "owned_by": 2,
+        "is_shared_folder": false,
+        "creation_timestamp": "2014-09-02T16:57:03Z",
+        "vesting_org": null
+    }
+},
+{
+    "pk": 24,
+    "model": "perma.folder",
+    "fields": {
+        "rght": 2,
+        "name": "My Links",
+        "parent": null,
+        "level": 0,
+        "created_by": 3,
+        "lft": 1,
+        "is_root_folder": true,
+        "tree_id": 3,
+        "owned_by": 3,
+        "is_shared_folder": false,
+        "creation_timestamp": "2014-09-02T16:57:03Z",
+        "vesting_org": null
+    }
+},
+{
+    "pk": 25,
+    "model": "perma.folder",
+    "fields": {
+        "rght": 2,
+        "name": "My Links",
+        "parent": null,
+        "level": 0,
+        "created_by": 4,
+        "lft": 1,
+        "is_root_folder": true,
+        "tree_id": 4,
+        "owned_by": 4,
+        "is_shared_folder": false,
+        "creation_timestamp": "2014-09-02T16:57:03Z",
+        "vesting_org": null
+    }
+},
+{
+    "pk": 26,
+    "model": "perma.folder",
+    "fields": {
+        "rght": 2,
+        "name": "My Links",
+        "parent": null,
+        "level": 0,
+        "created_by": 5,
+        "lft": 1,
+        "is_root_folder": true,
+        "tree_id": 5,
+        "owned_by": 5,
+        "is_shared_folder": false,
+        "creation_timestamp": "2014-09-02T16:57:03Z",
+        "vesting_org": null
+    }
+},
+{
+    "pk": 27,
+    "model": "perma.folder",
+    "fields": {
+        "rght": 6,
+        "name": "Test Journal",
+        "parent": null,
+        "level": 0,
+        "created_by": null,
+        "lft": 1,
+        "is_root_folder": false,
+        "tree_id": 6,
+        "owned_by": null,
+        "is_shared_folder": true,
+        "creation_timestamp": "2014-09-02T16:58:10Z",
+        "vesting_org": 1
+    }
+},
+{
+    "pk": 28,
+    "model": "perma.folder",
+    "fields": {
+        "rght": 6,
+        "name": "Another Journal",
+        "parent": null,
+        "level": 0,
+        "created_by": null,
+        "lft": 1,
+        "is_root_folder": false,
+        "tree_id": 7,
+        "owned_by": null,
+        "is_shared_folder": true,
+        "creation_timestamp": "2014-09-02T16:58:10Z",
+        "vesting_org": 2
+    }
+},
+{
+    "pk": 29,
+    "model": "perma.folder",
+    "fields": {
+        "rght": 2,
+        "name": "Empty child folder",
+        "parent": 25,
+        "level": 1,
+        "created_by": 4,
+        "lft": 1,
+        "is_root_folder": false,
+        "tree_id": 4,
+        "owned_by": 4,
+        "is_shared_folder": false,
+        "creation_timestamp": "2014-09-02T16:57:03Z",
+        "vesting_org": null
+    }
+},
+{
+    "pk": 30,
+    "model": "perma.folder",
+    "fields": {
+        "rght": 2,
+        "name": "Non-empty child folder",
+        "parent": 25,
+        "level": 1,
+        "created_by": 4,
+        "lft": 1,
+        "is_root_folder": false,
+        "tree_id": 4,
+        "owned_by": 4,
+        "is_shared_folder": false,
+        "creation_timestamp": "2014-09-02T16:57:03Z",
+        "vesting_org": null
+    }
+},
+{
+    "pk": 31,
+    "model": "perma.folder",
+    "fields": {
+        "rght": 6,
+        "name": "A Third Journal",
+        "parent": null,
+        "level": 0,
+        "created_by": null,
+        "lft": 1,
+        "is_root_folder": false,
+        "tree_id": 8,
+        "owned_by": null,
+        "is_shared_folder": true,
+        "creation_timestamp": "2014-09-02T16:58:10Z",
+        "vesting_org": 3
+    }
+},
+{
+    "pk": 32,
+    "model": "perma.folder",
+    "fields": {
+        "rght": 2,
+        "name": "My Links",
+        "parent": null,
+        "level": 0,
+        "created_by": 6,
+        "lft": 1,
+        "is_root_folder": true,
+        "tree_id": 9,
+        "owned_by": 6,
+        "is_shared_folder": false,
+        "creation_timestamp": "2014-09-02T16:57:03Z",
+        "vesting_org": null
+    }
+},
+{
+    "pk": 33,
+    "model": "perma.folder",
+    "fields": {
+        "rght": 2,
+        "name": "My Links",
+        "parent": null,
+        "level": 0,
+        "created_by": 6,
+        "lft": 1,
+        "is_root_folder": true,
+        "tree_id": 9,
+        "owned_by": 6,
+        "is_shared_folder": false,
+        "creation_timestamp": "2014-09-02T16:57:03Z",
+        "vesting_org": null
+    }
+},
+{
+    "pk": 34,
+    "model": "perma.folder",
+    "fields": {
+        "rght": 3,
+        "name": "Test Journal subfolder1",
+        "parent": 27,
+        "level": 1,
+        "created_by": null,
+        "lft": 2,
+        "is_root_folder": false,
+        "tree_id": 6,
+        "owned_by": null,
+        "is_shared_folder": false,
+        "creation_timestamp": "2015-01-28T21:43:38Z",
+        "vesting_org": 1
+    }
+},
+{
+    "pk": 35,
+    "model": "perma.folder",
+    "fields": {
+        "rght": 5,
+        "name": "Test Journal subfolder2",
+        "parent": 27,
+        "level": 1,
+        "created_by": null,
+        "lft": 4,
+        "is_root_folder": false,
+        "tree_id": 6,
+        "owned_by": null,
+        "is_shared_folder": false,
+        "creation_timestamp": "2015-01-28T21:43:45Z",
+        "vesting_org": 1
+    }
+},
+{
+    "pk": 36,
+    "model": "perma.folder",
+    "fields": {
+        "rght": 5,
+        "name": "Another Journal subfolder2",
+        "parent": 28,
+        "level": 1,
+        "created_by": null,
+        "lft": 4,
+        "is_root_folder": false,
+        "tree_id": 7,
+        "owned_by": null,
+        "is_shared_folder": false,
+        "creation_timestamp": "2015-01-28T21:44:34Z",
+        "vesting_org": 2
+    }
+},
+{
+    "pk": 37,
+    "model": "perma.folder",
+    "fields": {
+        "rght": 3,
+        "name": "Another Journal subfolder1",
+        "parent": 28,
+        "level": 1,
+        "created_by": null,
+        "lft": 2,
+        "is_root_folder": false,
+        "tree_id": 7,
+        "owned_by": null,
+        "is_shared_folder": false,
+        "creation_timestamp": "2015-01-28T21:44:43Z",
+        "vesting_org": 2
+    }
+},
+{
+    "pk": 38,
+    "model": "perma.folder",
+    "fields": {
+        "rght": 3,
+        "name": "A Third Journal subfolder1",
+        "parent": 31,
+        "level": 1,
+        "created_by": null,
+        "lft": 2,
+        "is_root_folder": false,
+        "tree_id": 8,
+        "owned_by": null,
+        "is_shared_folder": false,
+        "creation_timestamp": "2015-01-28T21:44:53Z",
+        "vesting_org": 3
+    }
+},
+{
+    "pk": 39,
+    "model": "perma.folder",
+    "fields": {
+        "rght": 5,
+        "name": "A Third Journal subfolder2",
+        "parent": 31,
+        "level": 1,
+        "created_by": null,
+        "lft": 4,
+        "is_root_folder": false,
+        "tree_id": 8,
+        "owned_by": null,
+        "is_shared_folder": false,
+        "creation_timestamp": "2015-01-28T21:45:00Z",
+        "vesting_org": 3
+    }
+}
+]

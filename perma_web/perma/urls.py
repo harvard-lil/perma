@@ -39,6 +39,13 @@ urlpatterns = patterns('perma.views',
     url(r'^docs/robustness/?$', DirectTemplateView.as_view(template_name='docs/robustness.html'), name='docs_robustness'),
     url(r'^docs/perma-user-roles/?$', DirectTemplateView.as_view(template_name='docs/perma-user-roles.html'), name='docs_perma_user_roles'),
     url(r'^docs/faq/?$', DirectTemplateView.as_view(template_name='docs/faq.html'), name='docs_faq'),
+    
+    #Developer docs
+    url(r'^docs/developer/?$', DirectTemplateView.as_view(template_name='docs/developer/index.html'), name='dev_docs'),
+    url(r'^docs/developer/public/?$', DirectTemplateView.as_view(template_name='docs/developer/public.html'), name='docs_developer_public'),
+    url(r'^docs/developer/user-profile/?$', DirectTemplateView.as_view(template_name='docs/developer/user-profile.html'), name='docs_developer_user_profile'),
+    url(r'^docs/developer/archives/?$', DirectTemplateView.as_view(template_name='docs/developer/archives.html'), name='docs_developer_archives'),
+    url(r'^docs/developer/folders/?$', DirectTemplateView.as_view(template_name='docs/developer/folders.html'), name='docs_developer_folders'),
 
     #API routes
     url(r'^api/linky/urldump/?$', 'api.urldump', name='urldump'),
@@ -72,17 +79,17 @@ urlpatterns = patterns('perma.views',
     url(r'^password/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', auth_views.password_reset_confirm, {'template_name': 'registration/password_reset_confirm.html'}, name='password_reset_confirm'),
     url(r'^password/reset/complete/?$', auth_views.password_reset_complete, {'template_name': 'registration/password_reset_complete.html'}, name='password_reset_complete'),
     url(r'^password/reset/done/?$', auth_views.password_reset_done, {'template_name': 'registration/password_reset_done.html'}, name='password_reset_done'),
-    
+    url(r'^api_key/create/?$', 'user_management.api_key_create', name='api_key_create'),
+
     # Settings
     url(r'^settings/profile/?$', 'user_management.settings_profile', name='user_management_settings_profile'),
     url(r'^settings/password/?$', 'user_management.settings_password', name='user_management_settings_password'),
     url(r'^settings/organizations/?$', 'user_management.settings_organizations', name='user_management_settings_organizations'),
     url(r'^settings/tools/?$', 'user_management.settings_tools', name='user_management_settings_tools'),
-    
+
     # Link management
     url(r'^manage/?$', RedirectView.as_view(url='/manage/create/', permanent=False)),
     url(r'^manage/create/?$', 'link_management.create_link', name='create_link'),
-    url(r'^manage/create/upload/?$', 'link_management.upload_file', name='upload_link'),
     url(r'^manage/dark-archive/%s/?$' % guid_pattern, 'link_management.dark_archive_link', name='dark_archive_link'),
     url(r'^manage/vest/%s/?$' % guid_pattern, 'link_management.vest_link', name='vest_link'),
     url(r'^manage/delete-link/%s/?$' % guid_pattern, 'link_management.user_delete_link', name='user_delete_link'),

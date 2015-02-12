@@ -18,8 +18,8 @@ class Migration(DataMigration):
             
         db.clear_table('auth_group')
         
-        from django.core.management import call_command
-        call_command("loaddata", "fixtures/groups.json")
+        # from django.core.management import call_command
+        # call_command("loaddata", "fixtures/groups.json")
 
     def backwards(self, orm):
         "Write your backwards methods here."

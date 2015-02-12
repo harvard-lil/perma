@@ -1,4 +1,5 @@
 {% extends "base-archive-confirm.html" %}
+{% load compressed as_json %}
 
 {% block confirm %}
     <h1 class="cyan">Yahowza!</h1>
@@ -6,7 +7,6 @@
 
     <div class="centered-box">
         <form action="" method="post">
-          {% csrf_token %}
           <a href="/{{ link.guid }}" class="cancel-button">Cancel</a> <button type="submit" class="btn delete-confirm btn-success">Dark archive this link forever</button>
         </form>
     </div>
@@ -17,4 +17,13 @@
             {% endif %}
         {% endif %}
     </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        var url_single_linky = "{% url 'single_linky' link.guid %}",
+            archive = {% as_json link %};
+    </script>
+
+    {% compressed_js 'dark-archive-link' %}
 {% endblock %}

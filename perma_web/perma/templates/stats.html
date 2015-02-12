@@ -1,5 +1,5 @@
 {% extends "layout-responsive.html" %}
-{% load file_exists %}
+{% load file_exists compressed %}
 {% block title %} | The numbers{% endblock %}
 {% block meta %}<META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">{% endblock %}
 {% block styles %}
@@ -7,17 +7,15 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ STATIC_URL }}js/d3.v3.js"></script>
-<script>
-	var static_prefix = "{{ STATIC_URL }}";
-	var stats_users_url = "{% url 'service_stats_users' %}";
-	var stats_vesting_orgs_url = "{% url 'service_stats_vesting_org' %}";
-	var stats_registrars_url = "{% url 'service_stats_registrar' %}";
-	var stats_links_url = "{% url 'service_stats_links' %}";
-	var stats_darchived_links_url = "{% url 'service_stats_darchive_links' %}";
-	var stats_storage_url = "{% url 'service_stats_storage' %}";
-</script>
-<script src="{{ STATIC_URL }}js/stats.js"></script>
+    <script>
+        var stats_users_url = "{% url 'service_stats_users' %}";
+        var stats_vesting_orgs_url = "{% url 'service_stats_vesting_org' %}";
+        var stats_registrars_url = "{% url 'service_stats_registrar' %}";
+        var stats_links_url = "{% url 'service_stats_links' %}";
+        var stats_darchived_links_url = "{% url 'service_stats_darchive_links' %}";
+        var stats_storage_url = "{% url 'service_stats_storage' %}";
+    </script>
+    {% compressed_js 'stats' %}
 {% endblock %}
 
 {% block content %}
@@ -35,9 +33,6 @@
 			<h2>The libraries</h2>
 			<div id="registrars-vis" class="vis-container"></div>
 			<p class="vis-desc">All libraries. <span id="library_count"></span> in total.</p>
-			<h2>The hits</h2>
-			<div id="hits-vis" class="vis-container"></div>
-			<p class="vis-desc">Weekly unique hits to all of Perma.cc</p>
 			<h2>The links</h2>
 			<div id="links-vis" class="vis-container"></div>
 			<p class="vis-desc">All links (vested, unvested, dark and non-dark archive). <span id="link_count"></span> in total.</p>
@@ -47,34 +42,6 @@
 			<h2>The storage</h2>
 			<div id="storage-vis" class="vis-container"></div>
 			<p class="vis-desc">Space used for all archives. <span id="total_size"></span> GB in total.</p>
-			<h2>The cool links</h2>
-			<div id="cool-links">
-				<p>The top ten most popular links as measured by view count.</p>
-			
-				<table class="cool-links-table vested-table">
-		    	<thead>
-		      	<tr>
-		      	<th> </th>
-		        <th>Link</th>
-					  <th>Date created</th>
-					  <th>Date vested</th>
-					  <th>Views</th>
-				  </tr>
-				</thead>
-				<tbody>
-				{% for link in top_links_all_time %}
-				<tr>
-				  <td class="linky-abbr-vested">{% if link.vested %}<span class="fancy-infinity">&infin;</span>{% endif %}</td>
-				  <td class="linky-abbr-title"><a href="{% url 'single_linky' link.guid %}" target="_blank">{{ link.submitted_title }}</a><br><a href="{{ link.submitted_url }}" target="_blank"><small>{{ link.submitted_url }}</small></a><br></td>
-				  <td class="linky-abbr-date-time">{{ link.creation_timestamp|date:"m/d/Y" }}</td>
-				  <td class="linky-abbr-date-time">{{ link.vested_timestamp|date:"m/d/Y" }}</td>
-				  <td class="linky-view-count">{{ link.view_count }}</td>
-			  {% empty %}
-				<tr><td>No Perma links found.</td></tr>
-			  {% endfor %}
-			  </tbody>
-			  </table>	
-			</div><!-- end cool links-->
 		</div><!--span-->
 	</div><!--row-->
 </div><!--container-->

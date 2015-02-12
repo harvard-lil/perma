@@ -277,6 +277,10 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
     save_screenshot(browser, image_path)
     save_fields(asset, image_capture=image_name)
 
+    # scroll to bottom of page and back up, in case that prompts anything else to load
+    browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    browser.execute_script("window.scrollTo(0, 0);")
+
     # make sure all requests are finished
     print "Waiting for post-load requests."
     start_time = time.time()
@@ -385,10 +389,10 @@ def get_nightly_stats():
     """
     
     # Five types user accounts
-    total_count_regular_users = LinkUser.objects.filter(groups__name='user').count()
-    total_count_vesting_members = LinkUser.objects.filter(groups__name='vesting_user').count()
-    total_count_registrar_members = LinkUser.objects.filter(groups__name='registrar_user').count()
-    total_count_registry_members = LinkUser.objects.filter(groups__name='registry_user').count()
+    total_count_regular_users = LinkUser.objects.filter(is_staff=False, vesting_org_id=None, registrar_id=None).count()
+    total_count_vesting_members = LinkUser.objects.exclude(vesting_org_id=None).count()
+    total_count_registrar_members = LinkUser.objects.exclude(registrar_id=None).count()
+    total_count_registry_members = LinkUser.objects.filter(is_staff=True).count()
     
     # Registrar count
     total_count_registrars = Registrar.objects.all().count()

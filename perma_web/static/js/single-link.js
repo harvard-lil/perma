@@ -388,45 +388,46 @@ var spinner = new Spinner(opts).spin(target);
 
 	var check_status = function() {
 		
-	// Check our status service to see if we have archiving jobs pending
-		var request = $.ajax({
-			url: status_url,
-			type: "GET",
-			dataType: "jsonp"
-		});
+	    // Check our status service to see if we have archiving jobs pending
+		apiRequest("GET", "/archives/" + archive.guid + "/", null, {
+            error: null, // cancel out the default error handling provided by apiRequest,
+            xhrFields: {
+                withCredentials: true
+            }
 
-		request.done(function(data) {
+		}).done(function(data) {
+            var asset = data.assets[0];
 
-			if ($('#image_cap_container_loading').is(":visible") && data.image_capture != 'pending') {
+			if ($('#image_cap_container_loading').is(":visible") && asset.image_capture != 'pending') {
 				$('#image_cap_container_loading').hide();
-                if(data.image_capture != 'failed')
+                if(asset.image_capture != 'failed')
     				$('#image_cap_container_complete').show();
 			}
 			
-			if ($('#warc_cap_container_loading').is(":visible") && data.source_capture != 'pending') {
+			if ($('#warc_cap_container_loading').is(":visible") && asset.source_capture != 'pending') {
 				$('#warc_cap_container_loading').hide();
-				if(data.source_capture != 'failed')
+				if(asset.source_capture != 'failed')
     				$('#warc_cap_container_complete').show();
 			}
 			
-			if ($('#pdf_cap_container_loading').is(":visible") && data.pdf_capture != 'pending') {
+			if ($('#pdf_cap_container_loading').is(":visible") && asset.pdf_capture != 'pending') {
 				$('#pdf_cap_container_loading').hide();
-				if(data.pdf_capture != 'failed')
+				if(asset.pdf_capture != 'failed')
     				$('#pdf_cap_container_complete').show();
 			}
 			
-			if ($('#text_cap_container_loading').is(":visible") && data.text_capture != 'pending') {
+			if ($('#text_cap_container_loading').is(":visible") && asset.text_capture != 'pending') {
 				$('#text_cap_container_loading').hide();
-				if(data.text_capture != 'failed')
+				if(asset.text_capture != 'failed')
     				$('#text_cap_container_complete').show();
 			}
 			
 			// if no status is pending
-			if (data.image_capture != 'pending' && data.source_capture != 'pending' && data.pdf_capture != 'pending' && data.text_capture != 'pending') {
+			if (asset.image_capture != 'pending' && asset.source_capture != 'pending' && asset.pdf_capture != 'pending' && asset.text_capture != 'pending') {
 				clearInterval(refreshIntervalId);
 			}	
 		});
-	}
+	};
 
 	$(document).ready(function() {
 		
