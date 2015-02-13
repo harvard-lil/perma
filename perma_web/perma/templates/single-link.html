@@ -17,7 +17,7 @@
                         <a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo2.png"></a>
                     </div><!--end span 3 -->
                     <div class="col-sm-6 meta-data">
-                        {% if not linky.user_deleted or request.user.pk == linky.created_by.pk %}
+                        {% if not linky.user_deleted or request.user.pk == linky.created_by_id %}
                             <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a><br/>
 
                             <!--<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a>-->
@@ -40,12 +40,11 @@
                                             <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
                                         {% elif request.user.is_vesting_org_member and request.user.vesting_org == linky.vesting_org %}
                                             <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
-                                        {% elif request.user.pk == linky.created_by.pk %}
+                                        {% elif request.user.pk == linky.created_by_id %}
                                             <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
                                         {% endif %}
                                     {% endif %}
-
-                                    {% if request.user.pk == linky.created_by.pk and not linky.vested %}
+                                    {% if request.user.pk == linky.created_by_id and not linky.vested %}
                                         <a class="btn user-delete" href="{% main_url 'user_delete_link' linky.guid %}"><i class="icon-trash"></i> Delete</a>
                                     {% endif %}
                                 {% endif %}
@@ -131,7 +130,7 @@
     {# deleted unvested link #}
     {% if linky.user_deleted %}
         <div class="col-sm-6 col-sm-offset-3 yahowza text-center">
-            {% if request.user.pk == linky.created_by.pk %}
+            {% if request.user.pk == linky.created_by_id %}
                 <h2>You deleted this link.</h2>
             {% else %}
                 <h1 class="cyan">Apologies.</h1><h2>This unvested link was deleted by the user who created it.</h2>
@@ -141,7 +140,7 @@
     {% else %}
 
         {# message for a darchived link that user has permission to access #}
-        {% if request.user.can_vest or request.user.pk == linky.created_by.pk %}
+        {% if request.user.can_vest or request.user.pk == linky.created_by_id %}
             {% if linky|is_darchive %}
             <div class="col-sm-6 col-sm-offset-3 yahowza text-center">
                 <img class="dark-bulb center" src="{{ STATIC_URL }}img/dark-bulb.png">
@@ -161,7 +160,7 @@
             <div class="watermark center">
 
                 {% if not linky.vested and serve_type != 'live' %}
-                    {% if not linky|is_darchive or request.user.can_vest or request.user.pk == linky.created_by.pk %}
+                    {% if not linky|is_darchive or request.user.can_vest or request.user.pk == linky.created_by_id %}
 						<div class="watermark-container">
 							<span class="pull-right">
 								<span class="glyphicon glyphicon-remove"></span>
@@ -192,7 +191,7 @@
                         </div>
                     {% endif %}
 
-                {% elif linky|is_darchive and not request.user.can_vest and not request.user.pk == linky.created_by.pk %}
+                {% elif linky|is_darchive and not request.user.can_vest and not request.user.pk == linky.created_by_id %}
                     <img class="dark-bulb center" src="{{ STATIC_URL }}img/dark-bulb.png">
                     <h1 class="cyan">Apologies.</h1>
                     <h2>
