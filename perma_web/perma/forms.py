@@ -151,9 +151,7 @@ class VestingMemberWithVestingOrgFormEdit(forms.ModelForm):
 
     class Meta:
         model = LinkUser
-        fields = ["email", "vesting_org"]
-        
-    email = forms.EmailField(widget=forms.TextInput(attrs={'disabled':'disabled'}))
+        fields = ["vesting_org"]
 
     vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
     
