@@ -1121,6 +1121,17 @@ input.url-extension {
     width: 200px !important;
 }
 
+select optgroup {
+    margin: 15px 0px 5px 2px;
+    color: #888;
+    font-family:$sans-font;
+    font-weight:400;
+}
+
+select option {
+    margin-bottom:2px;
+}
+
 /* Add link widget */
 
 /* iframes */

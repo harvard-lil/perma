@@ -149,6 +149,7 @@ class LinkUserResource(DefaultResource):
 class VestingOrgResource(DefaultResource):
     id = fields.IntegerField(attribute='id')
     name = fields.CharField(attribute='name')
+    registrar = fields.CharField(attribute='registrar__name')
 
     class Meta(DefaultResource.Meta):
         resource_name = 'vesting_orgs'
