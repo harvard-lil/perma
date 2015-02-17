@@ -44,7 +44,7 @@ $(function(){
             });
     };
     
-    apiRequest("GET", "/user/vesting_orgs/", {limit: 100})
+    apiRequest("GET", "/user/vesting_orgs/", {limit: 300, order_by:'registrar'})
         .success(function(data) {
             var sorted = [];
             Object.keys(data.objects).sort(function(a,b){
@@ -68,9 +68,9 @@ $(function(){
                 select_folder(data.objects[0]);
             } else {
                 informUser("Please create a vesting organization before vesting links.");
-                setTimeout(function () {
+                /*setTimeout(function () {
                     window.location = url_single_linky;
-                }, 3000);
+                }, 3000);*/
             }
         });
 

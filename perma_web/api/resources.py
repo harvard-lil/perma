@@ -154,6 +154,7 @@ class VestingOrgResource(DefaultResource):
     class Meta(DefaultResource.Meta):
         resource_name = 'vesting_orgs'
         queryset = VestingOrg.objects.all()
+        ordering = ['name', 'registrar']
 
     class Nested:
         folders = fields.ToManyField('api.resources.FolderResource', 'folders', null=True)
