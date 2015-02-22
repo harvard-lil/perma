@@ -44,7 +44,7 @@ gevent==1.0.1
 
 # PyWB-related stuff
 surt==0.2                       # our simple CDX server to canonicalize URL
-pywb==0.7.5
+pywb==0.7.8
 warcprox==1.2
 
 # alternate storages
