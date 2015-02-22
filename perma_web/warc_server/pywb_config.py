@@ -17,6 +17,7 @@ from django.core.files.storage import default_storage
 from django.core.exceptions import DisallowedHost
 from django.core.cache import cache as django_cache
 
+from pywb.cdx.cdxserver import CDXServer
 from pywb.cdx.cdxsource import CDXSource
 from pywb.framework import archivalrouter
 from pywb.framework.wbrequestresponse import WbResponse
@@ -77,6 +78,19 @@ class Router(archivalrouter.ArchivalRouter):
                 (settings.DIRECT_WARC_HOST and env.get('HTTP_HOST') == settings.DIRECT_WARC_HOST):
             raise DisallowedHost("Playback request used invalid domain.")
         return super(Router, self).__call__(env)
+
+
+class PermaCDXServer(CDXServer):
+    def add_cdx_source(self, source, config):
+        if isinstance(source, CDXSource):
+            self._add_cdx_source(source)
+
+        elif isinstance(source, str):
+            if os.path.isdir(source):
+                for fn in os.listdir(source):
+                    self.add_cdx_source(os.path.join(source, fn), config)
+            else:
+                self._add_cdx_source(self._create_cdx_source(source, config))
 
 
 class PermaCDXSource(CDXSource):
