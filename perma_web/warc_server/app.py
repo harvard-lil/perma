@@ -4,11 +4,15 @@
 from pywb.framework.wsgi_wrappers import init_app
 from pywb_config import PermaCDXServer, create_perma_pywb_app
 from pywb.webapp.pywb_init import create_wb_router
+from django.core.files.storage import default_storage
 
+# must be ascii, for some reason, else you'll get
+# 'unicode' object has no attribute 'get'
+path = default_storage.path('').encode('ascii', 'ignore') + '/'
 application = init_app(create_wb_router,
                        load_yaml=False,
                        config={
-                           'collections': {'pywb': '/Users/leppert/github/perma/services/django/generated_assets/'},
-                           'archive_paths': '/Users/leppert/github/perma/services/django/generated_assets/',
+                           'collections': {'pywb': path},
+                           'archive_paths': path,
                            'server_cls': PermaCDXServer
                        })
