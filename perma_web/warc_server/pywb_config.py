@@ -28,6 +28,7 @@ from pywb.webapp.handlers import WBHandler
 from pywb.webapp.query_handler import QueryHandler
 from pywb.webapp.pywb_init import create_wb_handler
 from pywb.webapp.views import add_env_globals
+from pywb.webapp.pywb_init import create_wb_router
 
 from perma.models import Link
 
@@ -179,8 +180,8 @@ class CachedLoader(BlockLoader):
             return afile
 
 
-#=================================================================
-def create_perma_pywb_app(config):
+# =================================================================
+def create_perma_wb_router(config={}):
     """
         Configure server.
 
@@ -216,16 +217,8 @@ def create_perma_pywb_app(config):
 
     wb_handler.replay.content_loader.record_loader.loader = CachedLoader()
 
-    # Finally, create wb router
-    return Router(
-        {
-            Route(r'([a-zA-Z0-9\-]+)', wb_handler)
-        },
-        # Specify hostnames that pywb will be running on
-        # This will help catch occasionally missed rewrites that fall-through to the host
-        # (See archivalrouter.ReferRedirect)
-        hostpaths=['http://localhost:8000/'],
-        port=8000,
-        error_view=ErrorTemplateView()
-    )
+    router = create_wb_router(config)
+    router.error_view = ErrorTemplateView()
+    router.routes.insert(0, Route(r'([a-zA-Z0-9]+(-[a-zA-Z0-9]+)+)', wb_handler))
 
+    return router
