@@ -209,6 +209,7 @@ def create_perma_wb_router(config={}):
 
     router = create_wb_router(config)
     router.error_view = ErrorTemplateView()
+    # GUID regex assumes post November 2013 ID format
     router.routes.insert(0, Route(r'([a-zA-Z0-9]+(-[a-zA-Z0-9]+)+)', wb_handler))
 
     return router
