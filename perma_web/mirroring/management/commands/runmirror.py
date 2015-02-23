@@ -114,7 +114,7 @@ class Command(BaseCommand):
                 DJANGO__DOWNSTREAM_SERVERS__0__public_key=settings.GPG_PUBLIC_KEY,
                 DJANGO__MIRRORING_ENABLED='True',
                 DJANGO__CELERY_DEFAULT_QUEUE='runmirror_main_queue',
-                DJANGO__DIRECT_MEDIA_URL='http://%s:%s/media/' % (main_server_media, router_port),
+                DJANGO__DIRECT_MEDIA_URL='//%s:%s/media/' % (main_server_media, router_port),
                 DJANGO__DIRECT_WARC_HOST='%s:%s' % (main_server_media, router_port),
             )
             running_processes.append(subprocess.Popen(['python', 'manage.py', 'runserver', str(main_server_port)],
