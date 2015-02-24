@@ -11,6 +11,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
+from django.views.static import serve as media_view
 
 import os
 import logging
@@ -19,9 +20,8 @@ import requests
 import json
 from ratelimit.decorators import ratelimit
 
-from mirroring.middleware import get_url_for_host
 from mirroring.tasks import post_message_upstream
-from mirroring.utils import must_be_mirrored
+from mirroring.utils import must_be_mirrored, may_be_mirrored
 
 from ..models import Link, Asset
 from perma.forms import ContactForm
@@ -209,6 +209,10 @@ def single_linky(request, guid, send_downstream=False):
                 'warc_url': asset.warc_url()
             }
 
+        # check that we have the disk assets for this asset
+        if settings.MIRROR_SERVER and not asset.last_integrity_check:
+            asset.verify_media()
+
     if send_downstream:
         # if we were called by a mirror, serialize and send back as JSON
         context['warc_url'] = absolute_url(request, context['asset'].warc_url(settings.DIRECT_WARC_HOST))
@@ -291,3 +295,16 @@ def contact(request):
 
         context = RequestContext(request, {'form': form})
         return render_to_response('contact.html', context)
+
+
+@may_be_mirrored
+def debug_media_view(request, *args, **kwargs):
+    """
+        Override Django's built-in dev-server view for serving media files,
+        in order to NOT set content-encoding for gzip files.
+        This stops the dev server from messing up delivery of archive.warc.gz files.
+    """
+    response = media_view(request, *args, **kwargs)
+    if response.get("Content-Encoding") == "gzip":
+        del response["Content-Encoding"]
+    return response

@@ -1,3 +1,4 @@
+import json
 import random, string, logging, time
 from django.core import serializers
 from ratelimit.decorators import ratelimit
@@ -14,12 +15,13 @@ from django.utils.http import is_safe_url, cookie_date
 from django.http import HttpResponseRedirect, Http404
 from django.template import RequestContext
 from django.template.response import TemplateResponse
-from django.shortcuts import render_to_response, get_object_or_404, resolve_url
+from django.shortcuts import render_to_response, get_object_or_404, resolve_url, render
 from django.core.urlresolvers import reverse
 from django.core.context_processors import csrf
 from django.core.paginator import Paginator
 from django.contrib import messages
-from mirroring.utils import sign_message
+from mirroring.tasks import send_request
+from mirroring.utils import sign_message, sign_post_data
 from tastypie.models import ApiKey
 
 from perma.forms import (
@@ -847,7 +849,25 @@ def user_add_vesting_org(request, user_id):
     context = RequestContext(request, context)
 
     return render_to_response('user_management/user_add_vesting_org.html', context)
-    
+
+
+@login_required
+@user_passes_test(lambda user: user.is_staff)
+def mirrors(request):
+    """
+        List status of mirrors.
+    """
+    mirrors = []
+    for mirror in settings.DOWNSTREAM_SERVERS:
+        out = {'address': mirror['address']}
+        response = send_request(mirror, reverse("mirroring:get_status"), 'POST', data=sign_post_data({}))
+        if response.ok:
+            out['status'] = json.loads(response.content)
+        else:
+            out['error'] = "Error fetching status: %s" % response.response_code
+        mirrors.append(out)
+    return render(request, 'user_management/mirrors.html', {'mirrors':mirrors})
+
 
 @login_required
 def settings_profile(request):

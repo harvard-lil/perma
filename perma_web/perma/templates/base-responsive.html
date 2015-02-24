@@ -77,7 +77,10 @@
                                 <li><a href="{% url 'user_management_manage_vesting_user' %}">Manage users</a></li>
                                 {% endif %}
                                 {% if request.user.is_staff %}
-                                <li><a href="{% url 'admin:index' %}">Admin console</a></li>
+                                    <li><a href="{% url 'admin:index' %}">Admin console</a></li>
+                                    {% if MIRRORING_ENABLED %}
+                                        <li><a href="{% url 'mirrors' %}">Mirrors</a></li>
+                                    {% endif %}
                                 {% endif %}
                                 <li><a href="{% url 'user_management_settings_tools' %}">Tools</a></li>
                                 <li><a href="{% url 'user_management_settings_profile' %}">Settings</a></li>

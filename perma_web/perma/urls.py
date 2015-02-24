@@ -1,11 +1,10 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls import patterns, url
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
 
-from .views.common import DirectTemplateView
+from .views.common import DirectTemplateView, debug_media_view
 
 
 guid_pattern = r'(?P<guid>[a-zA-Z0-9\-]+)'
@@ -120,6 +119,7 @@ urlpatterns = patterns('perma.views',
     url(r'^manage/users/(?P<user_id>[a-zA-Z0-9]+)/add-vesting-org/?$', 'user_management.user_add_vesting_org', name='user_management_user_add_vesting_org'),
     url(r'^manage/vesting-users/add-user/?$', 'user_management.vesting_user_add_user', name='user_management_vesting_user_add_user'),
     url(r'^manage/account/leave-vesting-organization/?$', 'user_management.vesting_user_leave_vesting_org', name='user_management_vesting_user_leave_vesting_org'),
+    url(r'^manage/mirrors/?$', 'user_management.mirrors', name='mirrors'),
 #    url(r'^manage/batch-convert/?$', 'user_management.batch_convert', name='user_management_batch_convert'),
 #    url(r'^manage/export/?$', 'user_management.export', name='user_management_export'),
 #    url(r'^manage/custom-domain/?$', 'user_management.custom_domain', name='user_management_custom_domain'),
@@ -134,10 +134,9 @@ urlpatterns = patterns('perma.views',
 # debug-only serving of static and media assets
 if settings.DEBUG:
     from django.contrib.staticfiles.views import serve as static_view
-    from django.views.static import serve as media_view
     from mirroring.utils import may_be_mirrored
     urlpatterns += static(settings.STATIC_URL, may_be_mirrored(static_view)) + \
-                   static(getattr(settings, 'DEBUG_MEDIA_URL', settings.MEDIA_URL), may_be_mirrored(media_view), document_root=settings.MEDIA_ROOT)
+                   static(getattr(settings, 'DEBUG_MEDIA_URL', settings.MEDIA_URL), debug_media_view, document_root=settings.MEDIA_ROOT)
 
 handler404 = 'perma.views.common.server_error_404'
 handler500 = 'perma.views.common.server_error_500'

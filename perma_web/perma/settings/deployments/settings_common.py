@@ -492,6 +492,12 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'API_VERSION',
     'SECURE_SSL_REDIRECT',
     'DIRECT_MEDIA_URL',
+    'MIRRORING_ENABLED',
 )
 
 TASTYPIE_DEFAULT_FORMATS = ['json']
+
+
+# Schedule celerybeat jobs.
+# These will be added to CELERYBEAT_SCHEDULE in settings.utils.post_processing
+CELERYBEAT_JOB_NAMES = []

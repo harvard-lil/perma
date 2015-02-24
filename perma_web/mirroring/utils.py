@@ -141,10 +141,9 @@ def read_request_decorator(func, valid_servers):
             return HttpResponseForbidden(str(SignatureError))
 
         # figure out requesting server based on message fingerprint
-        request_key = get_key(fingerprint)
         request_server = None
         for server in valid_servers:
-            if server['public_key'] == request_key:
+            if get_fingerprint(server['public_key']) == fingerprint:
                 request_server = server
                 break
 
