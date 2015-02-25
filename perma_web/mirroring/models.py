@@ -80,7 +80,7 @@ class UpdateQueue(models.Model):
 ### in Django 1.8 we can avoid that issue by putting this in signals.py and importing it from ready()
 ### https://docs.djangoproject.com/en/dev/topics/signals/
 
-if settings.DOWNSTREAM_SERVERS:
+if settings.MIRRORING_ENABLED and not settings.MIRROR_SERVER:
     def queue_update(instance, action='update'):
         # Only send model classes with a mirror_fields setting.
         # Set _no_downstream_update on individual instances to disable sending of trivial updates.
