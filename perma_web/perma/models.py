@@ -421,7 +421,7 @@ class Link(models.Model):
     guid = models.CharField(max_length=255, null=False, blank=False, primary_key=True, editable=False)
     view_count = models.IntegerField(default=1)
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)
-    creation_timestamp = models.DateTimeField(auto_now_add=True)
+    creation_timestamp = models.DateTimeField(default=timezone.now, editable=False)
     submitted_title = models.CharField(max_length=2100, null=False, blank=False)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='created_links',)
     dark_archived = models.BooleanField(default=False)
