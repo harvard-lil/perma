@@ -218,10 +218,17 @@ def get_full_database(*args, **kwargs):
         if obj_cache:
             print "Saving %s objects of type %s." % (len(obj_cache), type(obj_cache[0]))
             Model = type(obj_cache[0])
-            Model.objects.filter(pk__in=[obj.pk for obj in obj_cache]).delete()
+
+            # first we delete the existing objects (if any), using all_with_deleted() as the queryset if it exists on the model,
+            # so we don't accidentally skip "deleted" link objects.
+            queryset = getattr(Model.objects, 'all_with_deleted', Model.objects.get_queryset)()
+            queryset.filter(pk__in=[obj.pk for obj in obj_cache]).delete()
             print "Deleted."
+
+            # now re-add the objects
             Model.objects.bulk_create(obj_cache)
             print "Done saving."
+            
             del obj_cache[:]
 
     with connection.constraint_checks_disabled():
