@@ -53,9 +53,8 @@ def post_message_downstream(relative_url, json_data={}, **request_kwargs):
         send_request(mirror, relative_url, 'POST', **request_kwargs)
 
     pool = ThreadPool(processes=min(len(settings.DOWNSTREAM_SERVERS), 10))
-    out = pool.map(call_downstream_request, settings.DOWNSTREAM_SERVERS)
+    pool.map(call_downstream_request, settings.DOWNSTREAM_SERVERS)
     pool.close()
-    return out
 
 def get_update_queue_lock():
     """
@@ -219,10 +218,17 @@ def get_full_database(*args, **kwargs):
         if obj_cache:
             print "Saving %s objects of type %s." % (len(obj_cache), type(obj_cache[0]))
             Model = type(obj_cache[0])
-            Model.objects.filter(pk__in=[obj.pk for obj in obj_cache]).delete()
+
+            # first we delete the existing objects (if any), using all_with_deleted() as the queryset if it exists on the model,
+            # so we don't accidentally skip "deleted" link objects.
+            queryset = getattr(Model.objects, 'all_with_deleted', Model.objects.get_queryset)()
+            queryset.filter(pk__in=[obj.pk for obj in obj_cache]).delete()
             print "Deleted."
+
+            # now re-add the objects
             Model.objects.bulk_create(obj_cache)
             print "Done saving."
+            
             del obj_cache[:]
 
     with connection.constraint_checks_disabled():
@@ -272,5 +278,18 @@ def background_media_sync(*args, **kwargs):
         request_url = urljoin(upstream_media_url, path)
         print "Storing ", request_url
         # TODO: might be better to buffer this to a local file instead of storing it in RAM
-        request = send_request(settings.UPSTREAM_SERVER, request_url)
-        default_storage.store_data_to_file(request.content, path)
+        try:
+            response = send_request(settings.UPSTREAM_SERVER, request_url)
+            assert response.ok
+        except (requests.ConnectionError, AssertionError):
+            print "Warning: unable to fetch file %s" % request_url
+            continue
+        default_storage.store_data_to_file(response.content, path)
+
+
+@shared_task
+def integrity_check(*args, **kwargs):
+    check_count = max(1, perma.models.Asset.objects.count()/30/24/12)
+    for asset in perma.models.Asset.objects.order_by('last_integrity_check')[:check_count]:
+        print "Verifying %s" % asset.link_id
+        asset.verify_media()

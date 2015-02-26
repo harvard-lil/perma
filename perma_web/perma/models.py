@@ -8,8 +8,8 @@ from django.core.files.storage import default_storage
 from django.db import models
 from django.db.models import Q
 from django.db.models.query import QuerySet
+from django.utils import timezone
 from django.utils.functional import cached_property
-from mptt.exceptions import InvalidMove
 from mptt.models import MPTTModel, TreeForeignKey
 from model_utils import FieldTracker
 
@@ -421,7 +421,7 @@ class Link(models.Model):
     guid = models.CharField(max_length=255, null=False, blank=False, primary_key=True, editable=False)
     view_count = models.IntegerField(default=1)
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)
-    creation_timestamp = models.DateTimeField(auto_now_add=True)
+    creation_timestamp = models.DateTimeField(default=timezone.now, editable=False)
     submitted_title = models.CharField(max_length=2100, null=False, blank=False)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='created_links',)
     dark_archived = models.BooleanField(default=False)
@@ -589,6 +589,9 @@ class Asset(models.Model):
     instapaper_hash = models.CharField(max_length=2100, null=True)
     instapaper_id = models.IntegerField(null=True)
 
+    last_integrity_check = models.DateTimeField(blank=True, null=True)  # for a mirror server, the last time our disk assets were checked against upstream
+    integrity_check_succeeded = models.NullBooleanField(blank=True, null=True)      # whether the last integrity check succeeded
+
     # what info to send downstream
     mirror_fields = ('link', 'base_storage_path', 'image_capture', 'warc_capture', 'pdf_capture', 'text_capture')
 
@@ -626,6 +629,32 @@ class Asset(models.Model):
     def walk_files(self):
         """ Return iterator of all files for this asset. """
         return default_storage.walk(self.base_storage_path)
+
+    def verify_media(self):
+        if settings.MIRROR_SERVER:
+            from mirroring.tasks import background_media_sync
+            urls = []
+            if self.image_capture and '.png' in self.image_capture:
+                urls.append(self.base_url(self.image_capture))
+            if self.pdf_capture and '.pdf' in self.pdf_capture:
+                urls.append(self.base_url(self.pdf_capture))
+            if self.warc_capture and '.warc' in self.warc_capture:
+                urls.append(self.base_url(self.warc_capture))
+            if self.text_capture and '.html' in self.text_capture:
+                urls.append(self.base_url(self.text_capture))
+
+            missing_urls = [url for url in urls if not default_storage.exists(url)]
+            background_media_sync(paths=missing_urls)
+
+            still_missing_urls = [url for url in missing_urls if not default_storage.exists(url)]
+            if still_missing_urls:
+                logger.error("Verifying media failed for %s: still missing %s." % (self.link_id, still_missing_urls))
+                self.integrity_check_succeeded = False
+            else:
+                self.integrity_check_succeeded = True
+
+            self.last_integrity_check = timezone.now()
+            self.save()
 
     
 #########################

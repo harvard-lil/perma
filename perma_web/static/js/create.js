@@ -162,7 +162,7 @@ function check_status() {
 		    if (asset.image_capture !== 'pending') {
             // Replace our Archive Pending spinner and message
             // with our new thumbnail
-            var image_url = settings.MEDIA_URL + asset.base_storage_path + "/" + asset.image_capture;
+            var image_url = settings.DIRECT_MEDIA_URL + asset.base_storage_path + "/" + asset.image_capture;
 
             $('#preview-container').html(templates.preview_available({
                 image_url: image_url,

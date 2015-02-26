@@ -431,6 +431,7 @@ MIRROR_SERVER = False               # whether we are a mirror
 MIRROR_COOKIE_NAME = 'user_info'
 DASHBOARD_SUBDOMAIN = 'dashboard'
 DIRECT_MEDIA_URL = MEDIA_URL        # URL to load media from this server in particular -- primarily useful for main server
+SERVER_DISPLAY_NAME = 'default'
 
 # Where to fetch new archives from, if we are a mirror.
 UPSTREAM_SERVER = {}
@@ -491,6 +492,14 @@ API_VERSION = 1
 TEMPLATE_VISIBLE_SETTINGS = (
     'API_VERSION',
     'SECURE_SSL_REDIRECT',
+    'DIRECT_MEDIA_URL',
+    'MIRRORING_ENABLED',
+    'SERVER_DISPLAY_NAME',
 )
 
 TASTYPIE_DEFAULT_FORMATS = ['json']
+
+# Schedule celerybeat jobs.
+# These will be added to CELERYBEAT_SCHEDULE in settings.utils.post_processing
+CELERYBEAT_JOB_NAMES = []
+
