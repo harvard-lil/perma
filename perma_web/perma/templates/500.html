@@ -1,15 +1,11 @@
 {% extends "layout-responsive.html" %}
-{% load file_exists %}
 {% block title %} | 500{% endblock %}
 
 {% block content %}
-<div class="container">
-<div class="row">
 	<div class="col-sm-12 column">
 		<div class="center-block">
 			<h2>Error. HTTP 500. Sorry.</h2>
 			<p>Please <a href="{% url 'contact' %}" >drop us a note</a> and let us know how you found this error.</p>
 		</div>
 	</div>
-</div>	
 {% endblock %}

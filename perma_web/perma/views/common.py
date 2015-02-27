@@ -161,7 +161,7 @@ def single_linky(request, guid, send_downstream=False):
         # Increment the view count if we're not the referrer
         parsed_url = urlparse(request.META.get('HTTP_REFERER', ''))
         
-        if not settings.MIRROR_SERVER and not request.get_host() in parsed_url.netloc:
+        if not settings.MIRROR_SERVER and not request.get_host() in parsed_url.netloc and not settings.READ_ONLY_MODE:
             link.view_count += 1
             link._no_downstream_update = True  # no need to pass this change to mirror servers
             link.save()

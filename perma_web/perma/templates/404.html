@@ -1,15 +1,11 @@
 {% extends "layout-responsive.html" %}
-{% load file_exists %}
 {% block title %} | 404{% endblock %}
 
 {% block content %}
-<div class="container">
-<div class="row">
 	<div class="col-sm-12 column">
 		<div class="center-block">
 			<h2>Page not found. HTTP 404. Sorry.</h2>
 			<p>The thing you're looking for doesn't exist at this address. If that seems wrong to you, <a href="{% url 'contact' %}" >please drop us a note</a>.</p>
 		</div>
 	</div>
-</div>	
 {% endblock %}
