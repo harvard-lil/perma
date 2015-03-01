@@ -190,6 +190,16 @@ def create_perma_wb_router(config={}):
     # paths
     script_path = os.path.dirname(__file__)
 
+    # Get root storage location for warcs.
+    # archive_path should be the location pywb can find warcs, like 'file://generated/' or 'http://perma.s3.amazonaws.com/generated/'
+    # We can get it by requesting the location of a blank file from default_storage.
+    # default_storage may use disk or network storage depending on config, so we look for either a path() or url()
+    try:
+        archive_path = 'file://' + default_storage.path('') + '/'
+    except NotImplementedError:
+        archive_path = default_storage.url('/')
+        archive_path = archive_path.split('?', 1)[0]  # remove query params
+
     query_handler = QueryHandler.init_from_config(PermaCDXSource())
 
     # pywb template vars (used in templates called by pywb, such as head_insert.html, but not our ErrorTemplateView)
@@ -197,7 +207,7 @@ def create_perma_wb_router(config={}):
 
     # use util func to create the handler
     wb_handler = create_wb_handler(query_handler,
-                                   dict(archive_paths=config.get('archive_paths', None),
+                                   dict(archive_paths=[archive_path],
                                         wb_handler_class=Handler,
                                         buffer_response=True,
 
