@@ -4,6 +4,7 @@ import re
 import socket
 from urlparse import urlparse
 import requests
+import itertools
 
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
@@ -15,6 +16,7 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from mptt.models import MPTTModel, TreeForeignKey
 from model_utils import FieldTracker
+from pywb.cdx.cdxobject import CDXObject
 
 
 logger = logging.getLogger(__name__)
@@ -699,6 +701,36 @@ class Stat(models.Model):
 
     # TODO, we also display the top 10 perma links in the stats view
     # we should probably generate these here or put them in memcache or something
+
+
+class CDXLine(models.Model):
+    urlkey = models.URLField(max_length=2100, null=False, blank=False)
+    raw = models.TextField(null=False, blank=False)
+    asset = models.ForeignKey(Asset, null=False, blank=False, related_name='cdx_lines')
+
+    def __init__(self, *args, **kwargs):
+        super(CDXLine, self).__init__(*args, **kwargs)
+        self.__set_defaults()
+
+    @cached_property
+    def __parsed(self):
+        return CDXObject(self.raw)
+
+    def __set_defaults(self):
+        if not self.urlkey:
+            self.urlkey = self.__parsed['urlkey']
+
+    def is_revisit(self):
+        return self.__parsed.is_revisit()
+
+    def save(self, *args, **kwargs):
+        super(CDXLine, self).save(*args, **kwargs)
+
+# Add getters for pywb CDXObject properties in the event we'd
+# like to parse them and store them seperately in the db as well
+cdx_props = set(itertools.chain(*CDXObject.CDX_FORMATS))
+for key in cdx_props.difference(CDXLine._meta.get_all_field_names()):
+    setattr(CDXLine, key.replace('.', '_'), property(lambda self, key=key: self.__parsed[key]))
 
 
 ### read only mode ###
