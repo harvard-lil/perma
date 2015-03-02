@@ -361,6 +361,7 @@ def get_thumbnail(request, guid=None):
             image_path = os.path.join(settings.MEDIA_ROOT, target_asset.base_storage_path, capture_name)
             thumbnail = sorl_get_thumbnail(image_path, sizes.get(size))
             thumbnail_url = thumbnail.url
+            django_cache.delete(cache_key)
         except IOError:
             logger.info("Thumnail creation failed. Unable to find capture image")
 
