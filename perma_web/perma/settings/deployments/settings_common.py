@@ -240,6 +240,7 @@ MIDDLEWARE_CLASSES = (
     'mirroring.middleware.MirrorAuthenticationMiddleware',
     'perma.middleware.AdminAuthMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
+    'perma.middleware.ReadOnlyMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
@@ -503,3 +504,6 @@ TASTYPIE_DEFAULT_FORMATS = ['json']
 # These will be added to CELERYBEAT_SCHEDULE in settings.utils.post_processing
 CELERYBEAT_JOB_NAMES = []
 
+
+# Set to true to disable database/file writes for maintenance.
+READ_ONLY_MODE = False
