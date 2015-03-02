@@ -35,7 +35,7 @@ def post_process_settings(settings):
         },
         'cleanup-screencap-monitoring': {
             'task': 'monitor.tasks.delete_screencaps',
-            'schedule': crontab(hour='*/2'),  # every other hour
+            'schedule': crontab(minute='35', hour='*/2'),  # every other hour
         },
 
         # mirror server
