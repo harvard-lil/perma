@@ -5,6 +5,8 @@ import socket
 from urlparse import urlparse
 import requests
 import itertools
+import os
+import io
 
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
@@ -17,6 +19,7 @@ from django.utils.functional import cached_property
 from mptt.models import MPTTModel, TreeForeignKey
 from model_utils import FieldTracker
 from pywb.cdx.cdxobject import CDXObject
+from pywb.warc.cdxindexer import write_cdx_index
 
 
 logger = logging.getLogger(__name__)
@@ -658,7 +661,17 @@ class Asset(models.Model):
             self.last_integrity_check = timezone.now()
             self.save()
 
-    
+    def write_cdx_lines(self):
+        warc_path = os.path.join(self.base_storage_path, self.warc_capture)
+        with default_storage.open(warc_path, 'rb') as warc_file, io.BytesIO() as cdx_io:
+            write_cdx_index(cdx_io, warc_file, warc_path)
+
+            cdx_io.seek(0)
+            next(cdx_io) # first line is a header so skip it
+            for line in cdx_io:
+                CDXLine.objects.get_or_create(asset=self, raw=line)
+
+
 #########################
 # Stats related models
 #########################
