@@ -723,9 +723,6 @@ class CDXLine(models.Model):
     def is_revisit(self):
         return self.__parsed.is_revisit()
 
-    def save(self, *args, **kwargs):
-        super(CDXLine, self).save(*args, **kwargs)
-
 # Add getters for pywb CDXObject properties in the event we'd
 # like to parse them and store them seperately in the db as well
 cdx_props = set(itertools.chain(*CDXObject.CDX_FORMATS))
