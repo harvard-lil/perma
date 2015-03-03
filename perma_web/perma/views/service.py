@@ -1,3 +1,5 @@
+from PIL import Image
+
 from django.conf import settings
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
@@ -6,12 +8,14 @@ from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect, render_to_response
 from django.template import RequestContext
+from django.core.cache import cache as django_cache
+from django.contrib.auth.decorators import login_required
 
-import json, os, logging, csv
+import json, os, logging, csv, hashlib
 from perma.models import Link, Asset, Stat
-from sorl.thumbnail import get_thumbnail
+from sorl.thumbnail import get_thumbnail as sorl_get_thumbnail
 from mirroring.utils import may_be_mirrored, must_be_mirrored
-from perma.utils import direct_media_url
+
 
 logger = logging.getLogger(__name__)
 
@@ -97,31 +101,9 @@ def link_status(request, guid):
     """
     target_link = get_object_or_404(Link, guid=guid)
     target_asset = get_object_or_404(Asset, link=target_link)
-
-
-    # Create a thumbnail for new archives.
-    # this logic should be temporary. When we refactor the asset/link model
-    # relationship we should wrap this thumbnailing work into a func in utils
-    # or maybe even a standaole service
-    thumbnail_url = ''
-    if target_asset.image_capture != 'pending' and target_asset.pdf_capture != 'pending':
-        if target_asset.image_capture:
-            capture_name = target_asset.image_capture
-            thumbnail_url = direct_media_url(settings.MEDIA_URL + target_asset.image_url())
-        else:
-            capture_name = target_asset.pdf_capture
-            thumbnail_url = settings.STATIC_URL + 'pdf-preview.jpg'
-
-        # try:
-        #    #image_path = os.path.join(settings.MEDIA_ROOT, target_asset.base_storage_path, capture_name)
-        #    #thumbnail = get_thumbnail(image_path, '456')
-        #    thumbnail_url = 'not_found.gif'  # direct_media_url(thumbnail.url)
-        #except IOError:
-        #    logger.info("Thumnail creation failed. Unable to find capture image")
     
     response_object = {"path": target_asset.base_storage_path, "text_capture": target_asset.text_capture,
             "source_capture": target_asset.warc_capture, "image_capture": target_asset.image_capture,
-            "thumbnail": thumbnail_url,
             "pdf_capture": target_asset.pdf_capture,
             "vested": target_link.vested,
             "dark_archived": target_link.dark_archived,
@@ -321,7 +303,7 @@ def image_wrapper(request, guid):
     """
     When we display an image, our display logic is greatly simplified if we
     display our archived image in an iframe. That's all we do here, take
-    and archived image and wrap it in a page that we server through an iframe
+    an archived image and wrap it in a page that we server through an iframe
     """
 
     asset = Asset.objects.get(link__guid=guid)
@@ -334,3 +316,68 @@ def image_wrapper(request, guid):
         raise Http404
 
     return render_to_response('image_wrapper.html', {'asset': asset}, RequestContext(request))
+
+@login_required
+def get_thumbnail(request, guid=None):
+    """
+    This is our thumbnailing service. Pass it the guid of an archive and 
+    a size and get back a URL for the thumbnail.
+
+    This is a pretty basic, naive implemention and we may want to outsource
+    this at some point to imgix or thumbor or some other service.
+    """
+
+    # Is this a guid we know about?
+    target_link = get_object_or_404(Link, guid=guid)
+    target_asset = get_object_or_404(Asset, link=target_link)
+
+    # Get size
+    allowed_sizes = {'small': '200', 'medium': '600'}
+    size = allowed_sizes.get(request.GET.get('size', 'medium'), '600')
+
+    # Have we recently received a thumbnail request for this?
+    # If so, let's assume we're still processing it
+    cache_key = 'thumbnail-%s-%s' % (size, hashlib.sha256(guid).hexdigest())
+    if django_cache.get(cache_key):
+        return HttpResponse(status=202)
+
+    django_cache.set(cache_key, True)
+    try:
+
+        # Try to create a thumbnail. We need to make sure that our archiving
+        # tasks aren't still going though. So, don't thumbnail if we see
+        # 'pending' statuses.
+        thumbnail_url = ''
+        if target_asset.image_capture != 'pending' and target_asset.pdf_capture != 'pending':
+            capture_name = None
+            if target_asset.image_capture and target_asset.image_capture != 'failed':
+                capture_name = target_asset.image_capture
+            elif target_asset.pdf_capture != 'failed':
+                capture_name = target_asset.pdf_capture
+
+            if capture_name is not None:
+
+                image_path = os.path.join(settings.MEDIA_ROOT, target_asset.base_storage_path, capture_name)
+
+                try:
+                    # enforce max image size limit
+                    pixel_count = 0
+                    if image_path.endswith('.png'):
+                        image_size = Image.open(image_path).size
+                        pixel_count = image_size[0]*image_size[1]
+
+                    if pixel_count > settings.MAX_IMAGE_SIZE:
+                        logger.info("Can't generate thumbnail -- image is too large.")
+
+                    else:
+                        thumbnail = sorl_get_thumbnail(image_path, size)
+                        thumbnail_url = thumbnail.url
+
+                except IOError:
+                    logger.info("Thumbnail creation failed. Unable to find capture image")
+
+        data = json.dumps({"thumbnail": thumbnail_url,})
+        return HttpResponse(data, content_type="application/json")
+
+    finally:
+        django_cache.delete(cache_key)

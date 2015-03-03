@@ -288,15 +288,25 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
     meta_thread.start()
     meta_thread.join(ELEMENT_DISCOVERY_TIMEOUT*2)
 
-    # save preliminary screenshot immediately, and an updated version later
-    # (we want to return results quickly, but also give javascript time to render final results)
-    print "Saving first screenshot."
-    save_screenshot(browser, image_path)
-    save_fields(asset, image_capture=image_name)
-
     # scroll to bottom of page and back up, in case that prompts anything else to load
     browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     browser.execute_script("window.scrollTo(0, 0);")
+
+    # get page size to decide whether to take a screenshot
+    root_element = browser.find_element_by_tag_name('body')
+    page_size = root_element.size
+    pixel_count = page_size['width']*page_size['height']
+    capture_screenshot = pixel_count < settings.MAX_IMAGE_SIZE
+    if not capture_screenshot:
+        print "Not saving screenshots! Page size is %s pixels." % pixel_count
+        save_fields(asset, image_capture='failed')
+
+    # save preliminary screenshot immediately, and an updated version later
+    # (we want to return results quickly, but also give javascript time to render final results)
+    if capture_screenshot:
+        print "Saving first screenshot."
+        save_screenshot(browser, image_path)
+        save_fields(asset, image_capture=image_name)
 
     # make sure all requests are finished
     print "Waiting for post-load requests."
@@ -310,8 +320,9 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
         time.sleep(.5)
 
     # take second screenshot after all requests done
-    print "Taking second screenshot."
-    save_screenshot(browser, image_path)
+    if capture_screenshot:
+        print "Taking second screenshot."
+        save_screenshot(browser, image_path)
 
     # teardown (have to do this before save to make sure WARC is done writing):
     print "Shutting down browser and proxies."
