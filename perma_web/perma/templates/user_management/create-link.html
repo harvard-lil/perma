@@ -110,9 +110,18 @@
 {% verbatim %}
 <script id="preview-available-template" type="text/x-handlebars-template">
     <p id="upload-option">Archive not as expected? <a href="" onclick="return upload_form();">Upload your own</a></p>
-    <div class="library-thumbnail">
-        <a href="{{archive_url}}" target="_blank"><img src="{{image_url}}" class="img-responsive"></a>
-    </div>
+    {{#if image_url }}
+        <div class="library-thumbnail">
+                <a href="{{archive_url}}" target="_blank"><img src="{{image_url}}" class="img-responsive"></a>
+        </div>
+    {{ else }}
+        <div class="thumbnail-placeholder">
+            <p class="spinner-message">
+                Sorry, we can't show you a preview for this archive.
+                Please <a href="{{archive_url}}" target="_blank">check the full archive</a> to make sure it captured properly.
+            </p>
+        </div>
+    {{/if}}
 </script>
 {% endverbatim %}
 

@@ -1,3 +1,5 @@
+from PIL import Image
+
 from django.conf import settings
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
@@ -13,7 +15,7 @@ import json, os, logging, csv, hashlib
 from perma.models import Link, Asset, Stat
 from sorl.thumbnail import get_thumbnail as sorl_get_thumbnail
 from mirroring.utils import may_be_mirrored, must_be_mirrored
-from perma.utils import direct_media_url
+
 
 logger = logging.getLogger(__name__)
 
@@ -325,50 +327,57 @@ def get_thumbnail(request, guid=None):
     this at some point to imgix or thumbor or some other service.
     """
 
-
     # Is this a guid we know about?
     target_link = get_object_or_404(Link, guid=guid)
     target_asset = get_object_or_404(Asset, link=target_link)
 
+    # Get size
+    allowed_sizes = {'small': '200', 'medium': '600'}
+    size = allowed_sizes.get(request.GET.get('size', 'medium'), '600')
 
     # Have we recently received a thumbnail request for this?
     # If so, let's assume we're still processing it
-    size = request.GET.get('size', 'medium')
     cache_key = 'thumbnail-%s-%s' % (size, hashlib.sha256(guid).hexdigest())
     if django_cache.get(cache_key):
         return HttpResponse(status=202)
 
-
-    # Some common sizes we might use
-    sizes = {'small': '200', 'medium': '600'}
-
-
-    # Try to reate a thumbnail. We need to make sure that our archiving
-    # tasks aren't still going thought. So, don't thumbnail if we see
-    # 'pending' statuses
     django_cache.set(cache_key, True)
-    thumbnail_url = ''
+    try:
 
+        # Try to create a thumbnail. We need to make sure that our archiving
+        # tasks aren't still going though. So, don't thumbnail if we see
+        # 'pending' statuses.
+        thumbnail_url = ''
+        if target_asset.image_capture != 'pending' and target_asset.pdf_capture != 'pending':
+            capture_name = None
+            if target_asset.image_capture and target_asset.image_capture != 'failed':
+                capture_name = target_asset.image_capture
+            elif target_asset.pdf_capture != 'failed':
+                capture_name = target_asset.pdf_capture
 
-    thumbnail_url = ''
-    if target_asset.image_capture != 'pending' and target_asset.pdf_capture != 'pending':
-        if target_asset.image_capture:
-            capture_name = target_asset.image_capture
-        else:
-            capture_name = target_asset.pdf_capture
+            if capture_name is not None:
 
-        try:
-            image_path = os.path.join(settings.MEDIA_ROOT, target_asset.base_storage_path, capture_name)
-            thumbnail = sorl_get_thumbnail(image_path, sizes.get(size))
-            thumbnail_url = thumbnail.url
-            django_cache.delete(cache_key)
-        except IOError:
-            logger.info("Thumnail creation failed. Unable to find capture image")
+                image_path = os.path.join(settings.MEDIA_ROOT, target_asset.base_storage_path, capture_name)
 
+                try:
+                    # enforce max image size limit
+                    pixel_count = 0
+                    if image_path.endswith('.png'):
+                        image_size = Image.open(image_path).size
+                        pixel_count = image_size[0]*image_size[1]
 
-    data = json.dumps({"thumbnail": thumbnail_url,})
-    if 'callback' in request.REQUEST:
-        # jsonp response
-        data = '%s(%s);' % (request.REQUEST['callback'], data)
+                    if pixel_count > settings.MAX_IMAGE_SIZE:
+                        logger.info("Can't generate thumbnail -- image is too large.")
 
-    return HttpResponse(data, content_type="application/json", status=200)
+                    else:
+                        thumbnail = sorl_get_thumbnail(image_path, size)
+                        thumbnail_url = thumbnail.url
+
+                except IOError:
+                    logger.info("Thumbnail creation failed. Unable to find capture image")
+
+        data = json.dumps({"thumbnail": thumbnail_url,})
+        return HttpResponse(data, content_type="application/json")
+
+    finally:
+        django_cache.delete(cache_key)
