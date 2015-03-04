@@ -5,8 +5,6 @@ import socket
 from urlparse import urlparse
 import requests
 import itertools
-import os
-import io
 
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
@@ -19,7 +17,6 @@ from django.utils.functional import cached_property
 from mptt.models import MPTTModel, TreeForeignKey
 from model_utils import FieldTracker
 from pywb.cdx.cdxobject import CDXObject
-from pywb.warc.cdxindexer import write_cdx_index
 
 
 logger = logging.getLogger(__name__)
@@ -672,6 +669,7 @@ class Asset(models.Model):
                 CDXLine.objects.get_or_create(asset=self, raw=line)
 
 
+
 #########################
 # Stats related models
 #########################
@@ -735,6 +733,11 @@ class CDXLine(models.Model):
 
     def is_revisit(self):
         return self.__parsed.is_revisit()
+
+# cdx_props = set(itertools.chain(*CDXObject.CDX_FORMATS))
+# for key in cdx_props.difference(CDXLine._meta.get_all_field_names()):
+    # setattr(CDXLine, key.replace('.', '_'), property(lambda self, key=key: self.__parsed[key]))
+
 
 # Add getters for pywb CDXObject properties in the event we'd
 # like to parse them and store them seperately in the db as well

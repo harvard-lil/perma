@@ -1,6 +1,7 @@
 from __future__ import absolute_import # to avoid importing local .celery instead of celery package
 
 from functools import wraps
+import io
 import os
 import os.path
 import tempfile
@@ -30,8 +31,9 @@ from django.template import Context
 from django.template.defaultfilters import truncatechars
 from django.forms.models import model_to_dict
 from django.conf import settings
+from pywb.warc.cdxindexer import write_cdx_index
 
-from perma.models import Asset, Stat, Registrar, LinkUser, Link, VestingOrg
+from perma.models import Asset, Stat, Registrar, LinkUser, Link, VestingOrg, CDXLine
 from perma.utils import imagemagick_temp_dir
 
 
@@ -355,15 +357,25 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
     if have_warc:
         # print "Saving WARC."
         try:
-            temp_warc_path = os.path.join(warc_writer.directory, warc_writer._f_finalname)
-            with open(temp_warc_path, 'rb') as warc_file:
+            temp_warc_path = os.path.join(warc_writer.directory,
+                                          warc_writer._f_finalname)
+            with open(temp_warc_path, 'rb') as warc_file, io.BytesIO() as cdx_io:
                 warc_name = default_storage.store_file(warc_file, warc_path)
                 save_fields(asset, warc_capture=warc_name)
+
+                print "Writing CDX lines to the DB"
+                warc_file.seek(0)
+                write_cdx_index(cdx_io, warc_file, warc_path)
+                cdx_io.seek(0)
+                next(cdx_io)  # first line is a header so skip it
+                for line in cdx_io:
+                    CDXLine.objects.create(asset=asset, raw=line)
         except Exception as e:
             logger.info("Web Archive File creation failed for %s: %s" % (target_url, e))
             save_fields(asset, warc_capture='failed')
 
     # print "%s capture done." % link_guid
+
 
 class GetPDFTask(Task):
     """

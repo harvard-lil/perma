@@ -31,6 +31,7 @@ from pywb.webapp.views import add_env_globals
 from pywb.webapp.pywb_init import create_wb_router
 
 from perma.models import Link
+from perma.models import CDXLine
 
 
 # include guid in CDX requests
@@ -82,6 +83,7 @@ class Router(archivalrouter.ArchivalRouter):
 
 
 class PermaCDXServer(CDXServer):
+    # overridden to recurse into folders
     def add_cdx_source(self, source, config):
         if isinstance(source, CDXSource):
             self._add_cdx_source(source)
@@ -92,6 +94,16 @@ class PermaCDXServer(CDXServer):
                     self.add_cdx_source(os.path.join(source, fn), config)
             else:
                 self._add_cdx_source(self._create_cdx_source(source, config))
+
+    def _create_cdx_source(self, filename, config):
+        if filename == 'CDXLine':
+            return QuerySetCDXSource()
+        return super(PermaCDXServer, self)._create_cdx_source(filename, config)
+
+
+class QuerySetCDXSource(CDXSource):
+    def load_cdx(self, query):
+        return (i.raw for i in CDXLine.objects.filter(urlkey=query.key))
 
 
 class PermaCDXSource(CDXSource):
