@@ -83,27 +83,10 @@ class Router(archivalrouter.ArchivalRouter):
 
 
 class PermaCDXServer(CDXServer):
-    # overridden to recurse into folders
-    def add_cdx_source(self, source, config):
-        if isinstance(source, CDXSource):
-            self._add_cdx_source(source)
-
-        elif isinstance(source, str):
-            if os.path.isdir(source):
-                for fn in os.listdir(source):
-                    self.add_cdx_source(os.path.join(source, fn), config)
-            else:
-                self._add_cdx_source(self._create_cdx_source(source, config))
-
     def _create_cdx_source(self, filename, config):
-        if filename == 'CDXLine':
-            return QuerySetCDXSource()
+        if filename == 'PermaCDXSource':
+            return PermaCDXSource()
         return super(PermaCDXServer, self)._create_cdx_source(filename, config)
-
-
-class QuerySetCDXSource(CDXSource):
-    def load_cdx(self, query):
-        return (i.raw for i in CDXLine.objects.filter(urlkey=query.key))
 
 
 class PermaCDXSource(CDXSource):
@@ -111,59 +94,11 @@ class PermaCDXSource(CDXSource):
         """
             This function accepts a standard CDX request, except with a GUID instead of date, and returns a standard CDX 11 response.
         """
-        guid = query.params['guid']
-        url = query.url
+        filters = {'urlkey': query.key}
+        if query.params.get('guid'):
+            filters['asset__link_id'] = query.params.get('guid')
 
-        # We'll first check the key-value store to see if we cached the lookup for this guid on a previous request.
-        # This will be common, since each playback triggers lots of requests for the same .warc file.
-        cache_key = guid + '-surts'
-        url_key = guid+'-url'
-        surt_lookup = django_cache.get(cache_key)
-        url = url or django_cache.get(url_key)
-        if surt_lookup and url:
-            surt_lookup = json.loads(surt_lookup)
-
-        else:
-            # nothing in cache; find requested link in database
-            try:
-                link = Link.objects.select_related().get(pk=guid)
-            except Link.DoesNotExist:
-                return []
-
-            # cache url, which may be blank if this is the first request
-            if not url:
-                url = link.submitted_url
-            django_cache.set(url_key, url, timeout=60*60)
-
-            # get warc file
-            for asset in link.assets.all():
-                if '.warc' in asset.warc_capture:
-                    warc_path = os.path.join(asset.base_storage_path, asset.warc_capture)
-                    break
-            else:
-                return []  # no .warc file -- do something to handle this?
-
-            # now we have to get an index of all the URLs in this .warc file
-            # first try fetching it from a .cdx file on disk
-            cdx_path = warc_path.replace('.gz', '').replace('.warc', '.cdx')
-
-            if not default_storage.exists(cdx_path):
-                # there isn't a .cdx file on disk either -- let's create it
-                with default_storage.open(warc_path, 'rb') as warc_file, default_storage.open(cdx_path, 'wb') as cdx_file:
-                    write_cdx_index(cdx_file, warc_file, warc_path, sort=True)
-
-            # now load the URL index from disk and stick it in the cache
-            cdx_lines = (line.strip() for line in default_storage.open(cdx_path, 'rb'))
-            surt_lookup = dict((key, list(val)) for key, val in groupby(cdx_lines, key=lambda line: line.split(' ', 1)[0]))
-            django_cache.set(cache_key, json.dumps(surt_lookup), timeout=60*60)
-
-        # find cdx lines for url
-        sorted_url = surt(url)
-        if sorted_url in surt_lookup:
-            return (str(i) for i in surt_lookup[sorted_url])
-
-        # didn't find requested url in this archive
-        return []
+        return CDXLine.objects.filter(**filters).values_list('raw', flat=True)
 
 
 class CachedLoader(BlockLoader):
@@ -222,9 +157,7 @@ def create_perma_wb_router(config={}):
                                    dict(archive_paths=[archive_path],
                                         wb_handler_class=Handler,
                                         buffer_response=True,
-
                                         head_insert_html=os.path.join(script_path, 'head_insert.html'),
-
                                         redir_to_exact=False))
 
     wb_handler.replay.content_loader.record_loader.loader = CachedLoader()
