@@ -2897,7 +2897,7 @@ p.orange {
 /* Developer docs start */
 
 
-.developer-docs {
+.developer-docs, .user-docs {
 
 	.nav-pills > li > a
 	{
@@ -2911,6 +2911,10 @@ p.orange {
 		background-color: #f7f7f7;
 		border: 1px solid #e6e6e6;
 	}
+
+}
+
+.developer-docs {
 	
 	.api-warning {
 		border: 1px #FF3535 solid;
@@ -2964,5 +2968,3 @@ p.orange {
 }
 
 /* Developer docs end */
-
-
