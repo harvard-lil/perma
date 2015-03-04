@@ -58,15 +58,11 @@ def landing(request):
     """
     The landing page
     """
-    site_name = str(Site.objects.get_current())
-    
-    if request.user.is_authenticated() and ('HTTP_REFERER' not in request.META or request.META['HTTP_REFERER'].find(site_name) == -1):
+    if request.user.is_authenticated() and request.mirror_server_host not in request.META.get('HTTP_REFERER',''):
         return HttpResponseRedirect(reverse('create_link'))
         
     else:
-        context = RequestContext(request, {'this_page': 'landing'})
-    
-        return render_to_response('landing.html', context)
+        return render(request, 'landing.html', {'this_page': 'landing'})
     
 
 def stats(request):
@@ -217,8 +213,8 @@ def single_linky(request, guid, send_downstream=False):
         # if we were called by a mirror, serialize and send back as JSON
         context['warc_url'] = absolute_url(request, context['asset'].warc_url(settings.DIRECT_WARC_HOST))
         context['MEDIA_URL'] = absolute_url(request, settings.DIRECT_MEDIA_URL)
-        context['asset'] = serializers.serialize("json", [context['asset']], fields=['text_capture','image_capture','pdf_capture','warc_capture','base_storage_path'])
-        context['linky'] = serializers.serialize("json", [context['linky']], fields=['dark_archived','guid','vested','vesting_org','view_count','creation_timestamp','submitted_url','submitted_title','created_by'])
+        context['asset'] = serializers.serialize("json", [context['asset']], fields=Asset.mirror_fields)
+        context['linky'] = serializers.serialize("json", [context['linky']], fields=Link.mirror_fields+('created_by',))
         return HttpResponse(json.dumps(context), content_type="application/json")
 
     elif serve_type == 'warc_download':
