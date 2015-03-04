@@ -371,7 +371,7 @@ def get_thumbnail(request, guid=None):
 
                     else:
                         thumbnail = sorl_get_thumbnail(image_path, size)
-                        thumbnail_url = thumbnail.url
+                        thumbnail_url = thumbnail.url.replace(settings.MEDIA_URL, '', 1)
 
                 except IOError:
                     logger.info("Thumbnail creation failed. Unable to find capture image")
