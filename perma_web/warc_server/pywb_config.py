@@ -19,6 +19,7 @@ from pywb.cdx.cdxserver import CDXServer
 from pywb.cdx.cdxsource import CDXSource
 from pywb.framework import archivalrouter
 from pywb.framework.wbrequestresponse import WbResponse
+from pywb.framework.memento import MementoResponse, LINK_FORMAT
 from pywb.rewrite.wburl import WbUrl
 from pywb.utils.loaders import BlockLoader, LimitReader
 from pywb.webapp.handlers import WBHandler
@@ -29,9 +30,12 @@ from pywb.webapp.pywb_init import create_wb_router
 
 from perma.models import CDXLine
 
+# Assumes post November 2013 GUID format
+GUID_REGEX = r'([a-zA-Z0-9]+(-[a-zA-Z0-9]+)+)'
+
 
 # include guid in CDX requests
-class Route(archivalrouter.Route):
+class PermaRoute(archivalrouter.Route):
     def apply_filters(self, wbrequest, matcher):
         """Parse the GUID and find the CDXLine in the DB"""
 
@@ -46,21 +50,53 @@ class Route(archivalrouter.Route):
         wbrequest.custom_params['guid'] = guid
 
         # Adds the Memento-Datetime header
+        # Normally this is done in MementoReqMixin#_parse_extra
+        # but we need the GUID to make the DB query and that
+        # isn't parsed from the url until this point
         wbrequest.wb_url.set_replay_timestamp(line.timestamp)
 
 
 # prevent mod getting added to rewritten urls
 # timestamp already disabled via 'redir_to_exact' flag
-class Url(WbUrl):
+class PermaUrl(WbUrl):
     def to_str(self, **overrides):
         overrides['mod'] = ''
         overrides['timestamp'] = ''
         return WbUrl.to_str(self, **overrides)
 
 
-class Handler(WBHandler):
+class PermaMementoResponse(MementoResponse):
+    def make_link(self, url, type):
+        if type == 'timegate':
+            # Remove the GUID from the url using regex since
+            # we don't have access to the request or params here
+            url = re.compile(GUID_REGEX+'/').sub('', url, 1)
+        return '<{0}>; rel="{1}"'.format(url, type)
+
+    def make_timemap_link(self, wbrequest):
+        format_ = '<{0}>; rel="timemap"; type="{1}"'
+
+        url = wbrequest.urlrewriter.get_new_url(mod='timemap',
+                                                timestamp='',
+                                                type=wbrequest.wb_url.QUERY)
+
+        # Remove the GUID from the url
+        url = url.replace(wbrequest.custom_params['guid']+'/', '', 1)
+        return format_.format(url, LINK_FORMAT)
+
+
+class PermaHandler(WBHandler):
+    def __init__(self, query_handler, config=None):
+        super(PermaHandler, self).__init__(query_handler, config)
+        self.response_class = PermaMementoResponse
+
+    def _init_replay_view(self, config):
+        replay_view = super(PermaHandler, self)._init_replay_view(config)
+        replay_view.response_class = PermaMementoResponse
+        return replay_view
+
     def get_wburl_type(self):
-        return Url
+        return PermaUrl
 
 
 class ErrorTemplateView(object):
@@ -73,14 +109,14 @@ class ErrorTemplateView(object):
 
     def render_response(self, **kwargs):
         template_result = self.render_to_string(**dict(kwargs,
-                                                     STATIC_URL=settings.STATIC_URL,
-                                                     DEBUG=settings.DEBUG))
+                                                       STATIC_URL=settings.STATIC_URL,
+                                                       DEBUG=settings.DEBUG))
         status = kwargs.get('status', '200 OK')
         content_type = kwargs.get('content_type', 'text/html; charset=utf-8')
         return WbResponse.text_response(template_result.encode('utf-8'), status=status, content_type=content_type)
 
 
-class Router(archivalrouter.ArchivalRouter):
+class PermaRouter(archivalrouter.ArchivalRouter):
     def __call__(self, env):
         """
             Before routing requests, make sure that host is equal to WARC_HOST or DIRECT_WARC_HOST if set.
@@ -88,7 +124,7 @@ class Router(archivalrouter.ArchivalRouter):
         if settings.WARC_HOST and env.get('HTTP_HOST') != settings.WARC_HOST and not \
                 (settings.DIRECT_WARC_HOST and env.get('HTTP_HOST') == settings.DIRECT_WARC_HOST):
             raise DisallowedHost("Playback request used invalid domain.")
-        return super(Router, self).__call__(env)
+        return super(PermaRouter, self).__call__(env)
 
 
 class PermaCDXServer(CDXServer):
@@ -169,7 +205,7 @@ def create_perma_wb_router(config={}):
     # use util func to create the handler
     wb_handler = create_wb_handler(query_handler,
                                    dict(archive_paths=[archive_path],
-                                        wb_handler_class=Handler,
+                                        wb_handler_class=PermaHandler,
                                         buffer_response=True,
                                         head_insert_html=os.path.join(script_path, 'head_insert.html'),
                                         enable_memento=True,
@@ -177,8 +213,7 @@ def create_perma_wb_router(config={}):
 
     wb_handler.replay.content_loader.record_loader.loader = CachedLoader()
 
-    # GUID regex assumes post November 2013 ID format
-    route = Route(r'([a-zA-Z0-9]+(-[a-zA-Z0-9]+)+)', wb_handler)
+    route = PermaRoute(GUID_REGEX, wb_handler)
 
     router = create_wb_router(config)
     router.error_view = ErrorTemplateView()

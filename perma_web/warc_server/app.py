@@ -2,8 +2,9 @@
 # alongside the main Django app in wsgi.py
 
 from pywb.framework.wsgi_wrappers import init_app
-from pywb_config import PermaCDXServer, create_perma_wb_router
 from django.core.files.storage import default_storage
+from pywb_config import (PermaCDXServer,
+                         create_perma_wb_router)
 
 # must be ascii, for some reason, else you'll get
 # 'unicode' object has no attribute 'get'
