@@ -731,12 +731,12 @@ class CDXLine(models.Model):
         if not self.urlkey:
             self.urlkey = self.__parsed['urlkey']
 
+    @cached_property
+    def timestamp(self):
+        return self.__parsed['timestamp']
+
     def is_revisit(self):
         return self.__parsed.is_revisit()
-
-# cdx_props = set(itertools.chain(*CDXObject.CDX_FORMATS))
-# for key in cdx_props.difference(CDXLine._meta.get_all_field_names()):
-    # setattr(CDXLine, key.replace('.', '_'), property(lambda self, key=key: self.__parsed[key]))
 
 
 # Add getters for pywb CDXObject properties in the event we'd

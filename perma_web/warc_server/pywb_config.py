@@ -1,6 +1,4 @@
 import StringIO
-from itertools import groupby
-import json
 import os
 import re
 from surt import surt
@@ -23,21 +21,25 @@ from pywb.framework import archivalrouter
 from pywb.framework.wbrequestresponse import WbResponse
 from pywb.rewrite.wburl import WbUrl
 from pywb.utils.loaders import BlockLoader, LimitReader
-from pywb.warc.cdxindexer import write_cdx_index
 from pywb.webapp.handlers import WBHandler
 from pywb.webapp.query_handler import QueryHandler
 from pywb.webapp.pywb_init import create_wb_handler
 from pywb.webapp.views import add_env_globals
 from pywb.webapp.pywb_init import create_wb_router
 
-from perma.models import Link
 from perma.models import CDXLine
 
 
 # include guid in CDX requests
 class Route(archivalrouter.Route):
     def apply_filters(self, wbrequest, matcher):
-        wbrequest.custom_params['guid'] = matcher.group(1)
+        guid = matcher.group(1)
+        urlkey = surt(wbrequest.wb_url_str)
+
+        line = CDXLine.objects.get(urlkey=urlkey, asset__link_id=guid)
+        wbrequest.wb_url.set_replay_timestamp(line.timestamp)
+
+        wbrequest.custom_params['guid'] = guid
 
 
 # prevent mod getting added to rewritten urls
@@ -158,13 +160,16 @@ def create_perma_wb_router(config={}):
                                         wb_handler_class=Handler,
                                         buffer_response=True,
                                         head_insert_html=os.path.join(script_path, 'head_insert.html'),
+                                        enable_memento=True,
                                         redir_to_exact=False))
 
     wb_handler.replay.content_loader.record_loader.loader = CachedLoader()
 
+    # GUID regex assumes post November 2013 ID format
+    route = Route(r'([a-zA-Z0-9]+(-[a-zA-Z0-9]+)+)', wb_handler)
+
     router = create_wb_router(config)
     router.error_view = ErrorTemplateView()
-    # GUID regex assumes post November 2013 ID format
-    router.routes.insert(0, Route(r'([a-zA-Z0-9]+(-[a-zA-Z0-9]+)+)', wb_handler))
+    router.routes.insert(0, route)
 
     return router
