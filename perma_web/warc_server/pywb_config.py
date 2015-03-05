@@ -33,13 +33,20 @@ from perma.models import CDXLine
 # include guid in CDX requests
 class Route(archivalrouter.Route):
     def apply_filters(self, wbrequest, matcher):
+        """Parse the GUID and find the CDXLine in the DB"""
+
         guid = matcher.group(1)
         urlkey = surt(wbrequest.wb_url_str)
+        line = CDXLine.objects.get(urlkey=urlkey,
+                                   asset__link_id=guid)
 
-        line = CDXLine.objects.get(urlkey=urlkey, asset__link_id=guid)
-        wbrequest.wb_url.set_replay_timestamp(line.timestamp)
-
+        # Store the line for use in PermaCDXSource
+        # so we don't need to hit the DB again
+        wbrequest.custom_params['line'] = line
         wbrequest.custom_params['guid'] = guid
+
+        # Adds the Memento-Datetime header
+        wbrequest.wb_url.set_replay_timestamp(line.timestamp)
 
 
 # prevent mod getting added to rewritten urls
@@ -96,6 +103,11 @@ class PermaCDXSource(CDXSource):
         """
             This function accepts a standard CDX request, except with a GUID instead of date, and returns a standard CDX 11 response.
         """
+        # When a GUID is in the url, we'll have already queried for the line
+        # in order to grab the timestamp for Memento-Datetime header
+        if query.params.get('line'):
+            return (query.params.get('line').raw,)
+
         filters = {'urlkey': query.key}
         if query.params.get('guid'):
             filters['asset__link_id'] = query.params.get('guid')
