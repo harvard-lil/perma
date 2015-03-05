@@ -13,7 +13,7 @@ application = init_app(create_perma_wb_router,
                        load_yaml=False,
                        config={
                            'port': 8000,
-                           'collections': {'pywb': 'PermaCDXSource'},
+                           'collections': {'': 'PermaCDXSource'},
                            'archive_paths': path,
                            'server_cls': PermaCDXServer,
                            'enable_memento': True
