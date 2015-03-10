@@ -145,7 +145,7 @@ function get_thumbnail() {
     })
     .done(function(data) {
         $('#preview-container').html(templates.preview_available({
-            image_url: data.thumbnail,
+            image_url: settings.DIRECT_MEDIA_URL + data.thumbnail,
             archive_url: new_archive.url
         })).removeClass('hide').hide().slideDown();
     });
