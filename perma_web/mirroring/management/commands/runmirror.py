@@ -143,8 +143,11 @@ class Command(BaseCommand):
                 ['celery', '-A', 'perma', 'worker', '--loglevel=info', '--queues=runmirror_mirror_queue', '--hostname=runmirror_mirror_queue', '--beat', '--concurrency=1'],
                 env=dict(os.environ, **mirror_server_env)))
 
-            print "Syncing contents from %s to %s ..." % (settings.MEDIA_ROOT, media_temp_dir.name)
+            # print "Syncing contents from %s to %s ..." % (settings.MEDIA_ROOT, media_temp_dir.name)
             # subprocess.call("cp -r %s* '%s'" % (settings.MEDIA_ROOT, temp_dir.name), shell=True)
+
+            # clear out old database dumps
+            subprocess.call(["rm", "-r", os.path.join(settings.MEDIA_ROOT, 'database_dumps')])
 
             print "Launching reverse proxy ..."
             root = vhost.NameVirtualHost()
@@ -173,4 +176,6 @@ class Command(BaseCommand):
             # remove temp files
             media_temp_dir.dissolve()
             gpg_temp_dir.dissolve()
+            subprocess.call(["rm", "-r", os.path.join(settings.MEDIA_ROOT, 'database_dumps')])
+
 

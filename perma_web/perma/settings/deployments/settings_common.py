@@ -278,7 +278,6 @@ INSTALLED_APPS = (
     'mirroring',
 
     # third party apps
-    'south',
     'ratelimit',
     'mptt',
     'pipeline',
@@ -510,3 +509,7 @@ CELERYBEAT_JOB_NAMES = []
 
 # Set to true to disable database/file writes for maintenance.
 READ_ONLY_MODE = False
+
+
+# In Django 1.7, including this silences a warning about tests
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'

@@ -1,165 +1,192 @@
 # -*- coding: utf-8 -*-
-import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+from __future__ import unicode_literals
+
+from django.db import models, migrations
+import mptt.fields
+import django.utils.timezone
+from django.conf import settings
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        # Adding model 'Registrar'
-        db.create_table(u'perma_registrar', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=400)),
-            ('email', self.gf('django.db.models.fields.EmailField')(max_length=254)),
-            ('website', self.gf('django.db.models.fields.URLField')(max_length=500)),
-        ))
-        db.send_create_signal(u'perma', ['Registrar'])
+    dependencies = [
+    ]
 
-        # Adding model 'LinkUser'
-        db.create_table(u'perma_linkuser', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('password', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('last_login', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
-            ('email', self.gf('django.db.models.fields.EmailField')(unique=True, max_length=255, db_index=True)),
-            ('registrar', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['perma.Registrar'], null=True)),
-            ('is_active', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('is_admin', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('date_joined', self.gf('django.db.models.fields.DateField')(auto_now_add=True, blank=True)),
-            ('first_name', self.gf('django.db.models.fields.CharField')(max_length=45, blank=True)),
-            ('last_name', self.gf('django.db.models.fields.CharField')(max_length=45, blank=True)),
-            ('authorized_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='authorized_by_manager', null=True, to=orm['perma.LinkUser'])),
-            ('confirmation_code', self.gf('django.db.models.fields.CharField')(max_length=45, blank=True)),
-        ))
-        db.send_create_signal(u'perma', ['LinkUser'])
-
-        # Adding M2M table for field groups on 'LinkUser'
-        db.create_table(u'perma_linkuser_groups', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('linkuser', models.ForeignKey(orm[u'perma.linkuser'], null=False)),
-            ('group', models.ForeignKey(orm[u'auth.group'], null=False))
-        ))
-        db.create_unique(u'perma_linkuser_groups', ['linkuser_id', 'group_id'])
-
-        # Adding model 'Link'
-        db.create_table(u'perma_link', (
-            ('guid', self.gf('django.db.models.fields.CharField')(max_length=255, primary_key=True)),
-            ('view_count', self.gf('django.db.models.fields.IntegerField')(default=1)),
-            ('submitted_url', self.gf('django.db.models.fields.URLField')(max_length=2100)),
-            ('creation_timestamp', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('submitted_title', self.gf('django.db.models.fields.CharField')(max_length=2100)),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='created_by', null=True, to=orm['perma.LinkUser'])),
-            ('vested', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('vested_by_editor', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='vested_by_editor', null=True, to=orm['perma.LinkUser'])),
-            ('vested_timestamp', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-        ))
-        db.send_create_signal(u'perma', ['Link'])
-
-        # Adding model 'Asset'
-        db.create_table(u'perma_asset', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('link', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['perma.Link'])),
-            ('base_storage_path', self.gf('django.db.models.fields.CharField')(max_length=2100, null=True, blank=True)),
-            ('favicon', self.gf('django.db.models.fields.CharField')(max_length=2100, null=True, blank=True)),
-            ('image_capture', self.gf('django.db.models.fields.CharField')(max_length=2100, null=True, blank=True)),
-            ('warc_capture', self.gf('django.db.models.fields.CharField')(max_length=2100, null=True, blank=True)),
-            ('pdf_capture', self.gf('django.db.models.fields.CharField')(max_length=2100, null=True, blank=True)),
-            ('text_capture', self.gf('django.db.models.fields.CharField')(max_length=2100, null=True, blank=True)),
-            ('instapaper_timestamp', self.gf('django.db.models.fields.DateTimeField')(null=True)),
-            ('instapaper_hash', self.gf('django.db.models.fields.CharField')(max_length=2100, null=True)),
-            ('instapaper_id', self.gf('django.db.models.fields.IntegerField')(null=True)),
-        ))
-        db.send_create_signal(u'perma', ['Asset'])
-
-
-    def backwards(self, orm):
-        # Deleting model 'Registrar'
-        db.delete_table(u'perma_registrar')
-
-        # Deleting model 'LinkUser'
-        db.delete_table(u'perma_linkuser')
-
-        # Removing M2M table for field groups on 'LinkUser'
-        db.delete_table('perma_linkuser_groups')
-
-        # Deleting model 'Link'
-        db.delete_table(u'perma_link')
-
-        # Deleting model 'Asset'
-        db.delete_table(u'perma_asset')
-
-
-    models = {
-        u'auth.group': {
-            'Meta': {'object_name': 'Group'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '80'}),
-            'permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'})
-        },
-        u'auth.permission': {
-            'Meta': {'ordering': "(u'content_type__app_label', u'content_type__model', u'codename')", 'unique_together': "((u'content_type', u'codename'),)", 'object_name': 'Permission'},
-            'codename': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contenttypes.ContentType']"}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
-        },
-        u'contenttypes.contenttype': {
-            'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
-            'app_label': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        },
-        u'perma.asset': {
-            'Meta': {'object_name': 'Asset'},
-            'base_storage_path': ('django.db.models.fields.CharField', [], {'max_length': '2100', 'null': 'True', 'blank': 'True'}),
-            'favicon': ('django.db.models.fields.CharField', [], {'max_length': '2100', 'null': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'image_capture': ('django.db.models.fields.CharField', [], {'max_length': '2100', 'null': 'True', 'blank': 'True'}),
-            'instapaper_hash': ('django.db.models.fields.CharField', [], {'max_length': '2100', 'null': 'True'}),
-            'instapaper_id': ('django.db.models.fields.IntegerField', [], {'null': 'True'}),
-            'instapaper_timestamp': ('django.db.models.fields.DateTimeField', [], {'null': 'True'}),
-            'link': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['perma.Link']"}),
-            'pdf_capture': ('django.db.models.fields.CharField', [], {'max_length': '2100', 'null': 'True', 'blank': 'True'}),
-            'text_capture': ('django.db.models.fields.CharField', [], {'max_length': '2100', 'null': 'True', 'blank': 'True'}),
-            'warc_capture': ('django.db.models.fields.CharField', [], {'max_length': '2100', 'null': 'True', 'blank': 'True'})
-        },
-        u'perma.link': {
-            'Meta': {'object_name': 'Link'},
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'created_by'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
-            'creation_timestamp': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'guid': ('django.db.models.fields.CharField', [], {'max_length': '255', 'primary_key': 'True'}),
-            'submitted_title': ('django.db.models.fields.CharField', [], {'max_length': '2100'}),
-            'submitted_url': ('django.db.models.fields.URLField', [], {'max_length': '2100'}),
-            'vested': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'vested_by_editor': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'vested_by_editor'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
-            'vested_timestamp': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'view_count': ('django.db.models.fields.IntegerField', [], {'default': '1'})
-        },
-        u'perma.linkuser': {
-            'Meta': {'object_name': 'LinkUser'},
-            'authorized_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'authorized_by_manager'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
-            'confirmation_code': ('django.db.models.fields.CharField', [], {'max_length': '45', 'blank': 'True'}),
-            'date_joined': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'email': ('django.db.models.fields.EmailField', [], {'unique': 'True', 'max_length': '255', 'db_index': 'True'}),
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '45', 'blank': 'True'}),
-            'groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Group']", 'null': 'True', 'symmetrical': 'False'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'is_admin': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '45', 'blank': 'True'}),
-            'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'registrar': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['perma.Registrar']", 'null': 'True'})
-        },
-        u'perma.registrar': {
-            'Meta': {'object_name': 'Registrar'},
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '254'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '400'}),
-            'website': ('django.db.models.fields.URLField', [], {'max_length': '500'})
-        }
-    }
-
-    complete_apps = ['perma']
+    operations = [
+        migrations.CreateModel(
+            name='LinkUser',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('password', models.CharField(max_length=128, verbose_name='password')),
+                ('last_login', models.DateTimeField(default=django.utils.timezone.now, verbose_name='last login')),
+                ('email', models.EmailField(unique=True, max_length=255, verbose_name=b'email address', db_index=True)),
+                ('is_active', models.BooleanField(default=True)),
+                ('is_confirmed', models.BooleanField(default=False)),
+                ('is_staff', models.BooleanField(default=False)),
+                ('date_joined', models.DateField(auto_now_add=True)),
+                ('first_name', models.CharField(max_length=45, blank=True)),
+                ('last_name', models.CharField(max_length=45, blank=True)),
+                ('confirmation_code', models.CharField(max_length=45, blank=True)),
+            ],
+            options={
+                'verbose_name': 'User',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Asset',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('base_storage_path', models.CharField(max_length=2100, null=True, blank=True)),
+                ('favicon', models.CharField(max_length=2100, null=True, blank=True)),
+                ('image_capture', models.CharField(max_length=2100, null=True, blank=True)),
+                ('warc_capture', models.CharField(max_length=2100, null=True, blank=True)),
+                ('pdf_capture', models.CharField(max_length=2100, null=True, blank=True)),
+                ('text_capture', models.CharField(max_length=2100, null=True, blank=True)),
+                ('instapaper_timestamp', models.DateTimeField(null=True)),
+                ('instapaper_hash', models.CharField(max_length=2100, null=True)),
+                ('instapaper_id', models.IntegerField(null=True)),
+                ('last_integrity_check', models.DateTimeField(null=True, blank=True)),
+                ('integrity_check_succeeded', models.NullBooleanField()),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Folder',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=255)),
+                ('creation_timestamp', models.DateTimeField(auto_now_add=True)),
+                ('is_shared_folder', models.BooleanField(default=False)),
+                ('is_root_folder', models.BooleanField(default=False)),
+                ('lft', models.PositiveIntegerField(editable=False, db_index=True)),
+                ('rght', models.PositiveIntegerField(editable=False, db_index=True)),
+                ('tree_id', models.PositiveIntegerField(editable=False, db_index=True)),
+                ('level', models.PositiveIntegerField(editable=False, db_index=True)),
+                ('created_by', models.ForeignKey(related_name='folders_created', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('owned_by', models.ForeignKey(related_name='folders', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('parent', mptt.fields.TreeForeignKey(related_name='children', blank=True, to='perma.Folder', null=True)),
+            ],
+            options={
+                'abstract': False,
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Link',
+            fields=[
+                ('guid', models.CharField(max_length=255, serialize=False, editable=False, primary_key=True)),
+                ('view_count', models.IntegerField(default=1)),
+                ('submitted_url', models.URLField(max_length=2100)),
+                ('creation_timestamp', models.DateTimeField(default=django.utils.timezone.now, editable=False)),
+                ('submitted_title', models.CharField(max_length=2100)),
+                ('dark_archived', models.BooleanField(default=False)),
+                ('dark_archived_robots_txt_blocked', models.BooleanField(default=False)),
+                ('user_deleted', models.BooleanField(default=False)),
+                ('user_deleted_timestamp', models.DateTimeField(null=True, blank=True)),
+                ('vested', models.BooleanField(default=False)),
+                ('vested_timestamp', models.DateTimeField(null=True, blank=True)),
+                ('notes', models.TextField(blank=True)),
+                ('created_by', models.ForeignKey(related_name='created_links', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('dark_archived_by', models.ForeignKey(related_name='darchived_links', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('folders', models.ManyToManyField(related_name='links', null=True, to='perma.Folder', blank=True)),
+                ('vested_by_editor', models.ForeignKey(related_name='vested_links', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Registrar',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=400)),
+                ('email', models.EmailField(max_length=254)),
+                ('website', models.URLField(max_length=500)),
+                ('date_created', models.DateField(auto_now_add=True, null=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Stat',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('creation_timestamp', models.DateTimeField(auto_now_add=True)),
+                ('regular_user_count', models.IntegerField(default=1)),
+                ('vesting_member_count', models.IntegerField(default=1)),
+                ('vesting_manager_count', models.IntegerField(default=1)),
+                ('registrar_member_count', models.IntegerField(default=1)),
+                ('registry_member_count', models.IntegerField(default=1)),
+                ('vesting_org_count', models.IntegerField(default=1)),
+                ('registrar_count', models.IntegerField(default=1)),
+                ('unvested_count', models.IntegerField(default=1)),
+                ('vested_count', models.IntegerField(default=1)),
+                ('darchive_takedown_count', models.IntegerField(default=0)),
+                ('darchive_robots_count', models.IntegerField(default=0)),
+                ('global_uniques', models.IntegerField(default=1)),
+                ('disk_usage', models.FloatField(default=0.0)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='VestingOrg',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=400)),
+                ('date_created', models.DateField(auto_now_add=True, null=True)),
+                ('registrar', models.ForeignKey(related_name='vesting_orgs', to='perma.Registrar', null=True)),
+                ('shared_folder', models.OneToOneField(null=True, blank=True, to='perma.Folder')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.AddField(
+            model_name='registrar',
+            name='default_vesting_org',
+            field=models.OneToOneField(related_name='default_for_registrars', null=True, blank=True, to='perma.VestingOrg'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='link',
+            name='vesting_org',
+            field=models.ForeignKey(blank=True, to='perma.VestingOrg', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='folder',
+            name='vesting_org',
+            field=models.ForeignKey(related_name='folders', blank=True, to='perma.VestingOrg', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='asset',
+            name='link',
+            field=models.ForeignKey(related_name='assets', to='perma.Link'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='linkuser',
+            name='registrar',
+            field=models.ForeignKey(related_name='users', blank=True, to='perma.Registrar', help_text=b'If set, this user is a registrar member. This should not be set if vesting org is set!', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='linkuser',
+            name='root_folder',
+            field=models.OneToOneField(null=True, blank=True, to='perma.Folder'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='linkuser',
+            name='vesting_org',
+            field=models.ForeignKey(related_name='users', blank=True, to='perma.VestingOrg', help_text=b'If set, this user is a vesting org member. This should not be set if registrar is set!', null=True),
+            preserve_default=True,
+        ),
+    ]
