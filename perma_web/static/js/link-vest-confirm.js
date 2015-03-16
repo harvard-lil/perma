@@ -64,6 +64,7 @@ $(function(){
                     $vesting_org_select.append($("<option>").val(vesting_org.id).text(vesting_org.name));
                 });
                 $select_vesting_org_form.show();
+                $("#vesting_org_select").val(selected_vesting_org);
             } else if (data.objects.length == 1) {
                 select_folder(data.objects[0]);
             } else {
