@@ -18,10 +18,16 @@ class Migration(SchemaMigration):
         db.send_create_signal(u'perma', ['CDXLine'])
 
 
+        # Changing field 'Link.creation_timestamp'
+        db.alter_column(u'perma_link', 'creation_timestamp', self.gf('django.db.models.fields.DateTimeField')())
+
     def backwards(self, orm):
         # Deleting model 'CDXLine'
         db.delete_table(u'perma_cdxline')
 
+
+        # Changing field 'Link.creation_timestamp'
+        db.alter_column(u'perma_link', 'creation_timestamp', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True))
 
     models = {
         u'perma.asset': {
@@ -33,6 +39,8 @@ class Migration(SchemaMigration):
             'instapaper_hash': ('django.db.models.fields.CharField', [], {'max_length': '2100', 'null': 'True'}),
             'instapaper_id': ('django.db.models.fields.IntegerField', [], {'null': 'True'}),
             'instapaper_timestamp': ('django.db.models.fields.DateTimeField', [], {'null': 'True'}),
+            'integrity_check_succeeded': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
+            'last_integrity_check': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'link': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'assets'", 'to': u"orm['perma.Link']"}),
             'pdf_capture': ('django.db.models.fields.CharField', [], {'max_length': '2100', 'null': 'True', 'blank': 'True'}),
             'text_capture': ('django.db.models.fields.CharField', [], {'max_length': '2100', 'null': 'True', 'blank': 'True'}),
@@ -64,7 +72,7 @@ class Migration(SchemaMigration):
         u'perma.link': {
             'Meta': {'object_name': 'Link'},
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'created_links'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
-            'creation_timestamp': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'creation_timestamp': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'dark_archived': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'dark_archived_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'darchived_links'", 'null': 'True', 'to': u"orm['perma.LinkUser']"}),
             'dark_archived_robots_txt_blocked': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
