@@ -1,5 +1,4 @@
 from settings_common import *
-from celery.schedules import crontab
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
@@ -12,21 +11,9 @@ TEMPLATE_DEBUG = DEBUG
 # The base location, on disk, where we want to store our generated assets
 MEDIA_ROOT = '/perma/assets/generated'
 
-# Schedule our nightly stats generation
-CELERYBEAT_SCHEDULE = {
-    'get-nightly-stats': {
-        'task': 'perma.tasks.get_nightly_stats',
-        'schedule': crontab(minute='05', hour='02', day_of_week='*'),
-    },
-    'email-weekly-stats': {
-        'task': 'perma.tasks.email_weekly_stats',
-        'schedule': crontab(minute='05', hour='06', day_of_week='tuesday'),
-    },
-    'cleanup-screencap-monitoring': {
-        'task': 'monitor.tasks.delete_screencaps',
-        'schedule': crontab(hour='*/2'), # every other hour
-    },
-}
+# Schedule celerybeat jobs.
+# These will be added to CELERYBEAT_SCHEDULE in settings.utils.post_processing
+CELERYBEAT_JOB_NAMES = ['get-nightly-stats', 'email-weekly-stats', 'cleanup-screencap-monitoring']
 
 # If a task is running longer than five minutes, kill it
 CELERYD_TASK_TIME_LIMIT = 300

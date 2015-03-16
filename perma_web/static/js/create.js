@@ -135,6 +135,27 @@ function upload_form() {
 
 
 
+
+/* Handle the thumbnail fetching - start */
+
+function get_thumbnail() {
+    $.ajax({
+        url: main_server_host + thumbnail_service_url + new_archive.guid,
+        cache: false
+    })
+    .done(function(data) {
+        $('#preview-container').html(templates.preview_available({
+            image_url: settings.DIRECT_MEDIA_URL + data.thumbnail,
+            archive_url: new_archive.url
+        })).removeClass('hide').hide().slideDown();
+    });
+}
+
+/* Handle the thumbnail fetching - end */
+
+
+
+
 /* Our polling function for the thumbnail completion - start */
 
 // The plan is to set a timer to periodically check if the thumbnail
@@ -162,12 +183,7 @@ function check_status() {
 		    if (asset.image_capture !== 'pending') {
             // Replace our Archive Pending spinner and message
             // with our new thumbnail
-            var image_url = settings.MEDIA_URL + asset.base_storage_path + "/" + asset.image_capture;
-
-            $('#preview-container').html(templates.preview_available({
-                image_url: image_url,
-                archive_url: new_archive.url
-            })).removeClass('hide').hide().slideDown();
+            get_thumbnail();
             
             $('#steps-container').html(templates.success_steps({
                 url: new_archive.url,

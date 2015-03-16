@@ -118,6 +118,13 @@ class DefaultResource(ExtendedModelResource):
     def raise_error_response(self, bundle, errors):
         raise ImmediateHttpResponse(response=self.error_response(bundle.request, errors))
 
+    def _handle_500(self, request, exception):
+        if settings.READ_ONLY_MODE:
+            return self.error_response(request, {
+                'error_message':"Perma is in read only mode for scheduled maintenance. Please try again shortly."
+            })
+        super(DefaultResource, self)._handle_500(request, exception)
+
 
 # via: http://stackoverflow.com/a/14134853/313561
 # also: https://github.com/toastdriven/django-tastypie/issues/42#issuecomment-5485666
@@ -149,10 +156,12 @@ class LinkUserResource(DefaultResource):
 class VestingOrgResource(DefaultResource):
     id = fields.IntegerField(attribute='id')
     name = fields.CharField(attribute='name')
+    registrar = fields.CharField(attribute='registrar__name')
 
     class Meta(DefaultResource.Meta):
         resource_name = 'vesting_orgs'
         queryset = VestingOrg.objects.all()
+        ordering = ['name', 'registrar']
 
     class Nested:
         folders = fields.ToManyField('api.resources.FolderResource', 'folders', null=True)
@@ -396,6 +405,12 @@ class LinkResource(AuthenticatedLinkResource):
         # We create a new entry in our datastore and pass the work off to our indexing
         # workers. They do their thing, updating the model as they go. When we get some minimum
         # set of results we can present the user (a guid for the link), we respond back.
+
+        if settings.READ_ONLY_MODE:
+            raise ImmediateHttpResponse(response=self.error_response(bundle.request, {
+                'archives': {'__all__': "Perma has paused archive creation for scheduled maintenance. Please try again shortly."},
+                'reason': "Perma has paused archive creation for scheduled maintenance. Please try again shortly.",
+            }))
 
         # Runs validation (exception thrown if invalid), sets properties and saves the object
         bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user)

@@ -11,6 +11,8 @@ import django.dispatch
 from pipeline.storage import PipelineMixin
 from storages.backends.s3boto import S3BotoStorage
 
+from perma.utils import ReadOnlyException
+
 file_saved = django.dispatch.Signal(providing_args=["instance", "path", "overwrite"])
 
 class StorageHelpersMixin(object):
@@ -27,6 +29,9 @@ class StorageHelpersMixin(object):
             File name will only change if file_path conflicts with an existing file.
             If overwrite=True, existing file will instead be deleted and overwritten.
         """
+        if settings.READ_ONLY_MODE:
+            raise ReadOnlyException("Read only mode enabled.")
+
         if overwrite:
             if self.exists(file_path):
                 self.delete(file_path)

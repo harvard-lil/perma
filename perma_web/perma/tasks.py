@@ -157,6 +157,26 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
 
     print "%s: Fetching %s" % (link_guid, target_url)
 
+    # Set up a teardown function we can call at any point to shut down all the background
+    # threads and processes involved with proxy archiving.
+    meta_thread = browser = robots_txt_thread = warcprox_controller = warcprox_thread = None
+    def teardown():
+        if browser:
+            browser.quit()  # shut down phantomjs
+
+            # For some reason we have to manually close the pipe selenium uses to talk to PhantomJS,
+            # or else we get a filehandle leak. This is probably a bug in selenium as of 2.44.0 --
+            # see https://code.google.com/p/selenium/issues/detail?id=8498
+            browser.service.process.stdin.close()
+        if meta_thread:
+            meta_thread.join()  # wait until meta thread is done
+        if robots_txt_thread:
+            robots_txt_thread.join()  # wait until robots thread is done
+        if warcprox_controller:
+            warcprox_controller.stop.set()  # send signal to shut down warc thread
+        if warcprox_thread:
+            warcprox_thread.join()  # wait until warcprox thread is done writing out warc
+
     # create a request handler class that counts unique requests and responses
     unique_requests = set()
     unique_responses = set()
@@ -238,10 +258,7 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
         if not unique_responses:
             # if nothing at all has loaded yet, give up on the capture
             save_fields(asset, warc_capture='failed', image_capture='failed')
-            browser.quit()  # shut down phantomjs
-            robots_txt_thread.join()  # wait until robots thread is done
-            warcprox_controller.stop.set()  # send signal to shut down warc thread
-            warcprox_thread.join()
+            teardown()
             return
     print "Finished fetching url."
 
@@ -271,15 +288,25 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
     meta_thread.start()
     meta_thread.join(ELEMENT_DISCOVERY_TIMEOUT*2)
 
-    # save preliminary screenshot immediately, and an updated version later
-    # (we want to return results quickly, but also give javascript time to render final results)
-    print "Saving first screenshot."
-    save_screenshot(browser, image_path)
-    save_fields(asset, image_capture=image_name)
-
     # scroll to bottom of page and back up, in case that prompts anything else to load
     browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     browser.execute_script("window.scrollTo(0, 0);")
+
+    # get page size to decide whether to take a screenshot
+    root_element = browser.find_element_by_tag_name('body')
+    page_size = root_element.size
+    pixel_count = page_size['width']*page_size['height']
+    capture_screenshot = pixel_count < settings.MAX_IMAGE_SIZE
+    if not capture_screenshot:
+        print "Not saving screenshots! Page size is %s pixels." % pixel_count
+        save_fields(asset, image_capture='failed')
+
+    # save preliminary screenshot immediately, and an updated version later
+    # (we want to return results quickly, but also give javascript time to render final results)
+    if capture_screenshot:
+        print "Saving first screenshot."
+        save_screenshot(browser, image_path)
+        save_fields(asset, image_capture=image_name)
 
     # make sure all requests are finished
     print "Waiting for post-load requests."
@@ -293,20 +320,16 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
         time.sleep(.5)
 
     # take second screenshot after all requests done
-    print "Taking second screenshot."
-    save_screenshot(browser, image_path)
+    if capture_screenshot:
+        print "Taking second screenshot."
+        save_screenshot(browser, image_path)
 
-    # teardown:
+    # teardown (have to do this before save to make sure WARC is done writing):
     print "Shutting down browser and proxies."
-    browser.quit()  # shut down phantomjs
-    robots_txt_thread.join()  # wait until robots thread is done
-    meta_thread.join()  # wait until meta thread is done
-    warcprox_controller.stop.set()  # send signal to shut down warc thread
-    warcprox_thread.join()  # wait until warcprox thread is done writing out warc
-
-    print "Saving WARC."
+    teardown()
 
     # save generated warc file
+    print "Saving WARC."
     try:
         temp_warc_path = os.path.join(warc_writer.directory, warc_writer._f_finalname)
         with open(temp_warc_path, 'rb') as warc_file:

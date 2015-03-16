@@ -240,6 +240,7 @@ MIDDLEWARE_CLASSES = (
     'mirroring.middleware.MirrorAuthenticationMiddleware',
     'perma.middleware.AdminAuthMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
+    'perma.middleware.ReadOnlyMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
@@ -314,6 +315,9 @@ WAIT_BETWEEN_TRIES = .5 # wait between .5 and this many seconds between http req
 # Max file size (for our downloads)
 MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 100  # 100 MB
 MAX_HTTP_FETCH_SIZE = 1024 * 1024  # 1 MB
+
+# Max image size for screenshots and thumbnails
+MAX_IMAGE_SIZE = 1024*1024*50  # 50 megapixels
 
 # Rate limits
 MINUTE_LIMIT = '6000/m'
@@ -431,6 +435,7 @@ MIRROR_SERVER = False               # whether we are a mirror
 MIRROR_COOKIE_NAME = 'user_info'
 DASHBOARD_SUBDOMAIN = 'dashboard'
 DIRECT_MEDIA_URL = MEDIA_URL        # URL to load media from this server in particular -- primarily useful for main server
+SERVER_DISPLAY_NAME = 'default'
 
 # Where to fetch new archives from, if we are a mirror.
 UPSTREAM_SERVER = {}
@@ -491,6 +496,17 @@ API_VERSION = 1
 TEMPLATE_VISIBLE_SETTINGS = (
     'API_VERSION',
     'SECURE_SSL_REDIRECT',
+    'DIRECT_MEDIA_URL',
+    'MIRRORING_ENABLED',
+    'SERVER_DISPLAY_NAME',
 )
 
 TASTYPIE_DEFAULT_FORMATS = ['json']
+
+# Schedule celerybeat jobs.
+# These will be added to CELERYBEAT_SCHEDULE in settings.utils.post_processing
+CELERYBEAT_JOB_NAMES = []
+
+
+# Set to true to disable database/file writes for maintenance.
+READ_ONLY_MODE = False

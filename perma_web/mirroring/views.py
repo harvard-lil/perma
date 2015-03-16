@@ -3,6 +3,7 @@ import json
 from django.http import HttpResponse, HttpResponseBadRequest
 
 from perma.utils import run_task
+from perma.models import Link, Asset
 from perma.views.common import single_linky
 
 from .models import UpdateQueue
@@ -89,3 +90,14 @@ def import_database(request, request_server, file_path, update_id):
     print "MIRROR: Asked to save full database -- %s" % file_path
     run_task(get_full_database, file_path=file_path, update_id=update_id)
     return HttpResponse("OK")
+
+
+@may_be_mirrored
+@read_upstream_request
+def get_status(request, request_server):
+    status = {
+        'total_archives': Link.objects.count(),
+        'verified_archives': Asset.objects.filter(integrity_check_succeeded=True).count(),
+        'failed_archives': Asset.objects.filter(integrity_check_succeeded=False).count(),
+    }
+    return HttpResponse(json.dumps(status), content_type="application/json")

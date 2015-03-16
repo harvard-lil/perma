@@ -1,0 +1,25 @@
+{% extends "admin-layout.html" %}
+{% block title %} | Mirror servers{% endblock %}
+
+{% block content %}
+    <h3>Mirrors</h3>
+
+    {% for mirror in mirrors %}
+        <div class="row">
+            <div class="col-sm-3">
+                {{ mirror.address }}
+            </div>
+            <div id="steps-container" class="col-sm-9">
+                {% if mirror.error %}
+                    {{ mirror.error }}
+                {% else %}
+                    Mirror knows about {{ mirror.status.total_archives }} archives.<br/>
+                    Mirror has verified data for {{ mirror.status.verified_archives }} archives.<br/>
+                    {% if mirror.status.failed_archives %}
+                        <b>WARNING: Mirror failed to verify {{ mirror.status.failed_archives }} archives!</b><br/>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}

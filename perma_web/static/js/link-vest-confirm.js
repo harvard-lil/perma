@@ -44,10 +44,23 @@ $(function(){
             });
     };
     
-    apiRequest("GET", "/user/vesting_orgs/")
+    apiRequest("GET", "/user/vesting_orgs/", {limit: 300, order_by:'registrar'})
         .success(function(data) {
+            var sorted = [];
+            Object.keys(data.objects).sort(function(a,b){
+                return data.objects[a].registrar < data.objects[b].registrar ? -1 : 1
+            }).forEach(function(key){
+                sorted.push(data.objects[key]);
+            });
+            data.objects = sorted;
+            var optgroup = data.objects[0].registrar;
+            $vesting_org_select.append($("<optgroup>").attr('label', optgroup));
             if (data.objects.length > 1) {
                 data.objects.map(function (vesting_org) {
+                    if(vesting_org.registrar !== optgroup) {
+                        optgroup = vesting_org.registrar;
+                        $vesting_org_select.append($("<optgroup>").attr('label', optgroup));
+                    }
                     $vesting_org_select.append($("<option>").val(vesting_org.id).text(vesting_org.name));
                 });
                 $select_vesting_org_form.show();
@@ -55,9 +68,9 @@ $(function(){
                 select_folder(data.objects[0]);
             } else {
                 informUser("Please create a vesting organization before vesting links.");
-                setTimeout(function () {
+                /*setTimeout(function () {
                     window.location = url_single_linky;
-                }, 3000);
+                }, 3000);*/
             }
         });
 

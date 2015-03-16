@@ -1121,6 +1121,17 @@ input.url-extension {
     width: 200px !important;
 }
 
+select optgroup {
+    margin: 15px 0px 5px 2px;
+    color: #888;
+    font-family:$sans-font;
+    font-weight:400;
+}
+
+select option {
+    margin-bottom:2px;
+}
+
 /* Add link widget */
 
 /* iframes */
@@ -1259,7 +1270,6 @@ ul {
 
 #upload-error {
   margin-top:10px;
-  height:15px;
   font-size:14px;
 }
 
@@ -2887,7 +2897,7 @@ p.orange {
 /* Developer docs start */
 
 
-.developer-docs {
+.developer-docs, .user-docs {
 
 	.nav-pills > li > a
 	{
@@ -2901,6 +2911,10 @@ p.orange {
 		background-color: #f7f7f7;
 		border: 1px solid #e6e6e6;
 	}
+
+}
+
+.developer-docs {
 	
 	.api-warning {
 		border: 1px #FF3535 solid;
@@ -2954,5 +2968,3 @@ p.orange {
 }
 
 /* Developer docs end */
-
-
