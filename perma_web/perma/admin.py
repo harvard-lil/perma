@@ -1,10 +1,11 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.forms import UserChangeForm
+from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Max, Min
+from django import forms
 
 from mptt.admin import MPTTModelAdmin
 
@@ -82,8 +83,19 @@ class VestingOrgAdmin(admin.ModelAdmin):
         return obj.vested_links
 
 
-class LinkUserChangeForm(UserChangeForm):
+class LinkUserAddForm(UserCreationForm):
+    username = None
+    # email = forms.EmailField(label="Email", max_length=254)
+
     class Meta:
+        model = LinkUser
+        fields = ("email",)
+
+    def clean_username(self):
+        return self.cleaned_data["username"]
+
+class LinkUserChangeForm(UserChangeForm):
+    class Meta(UserChangeForm.Meta):
         model = LinkUser
 
     def __init__(self, *args, **kwargs):
@@ -102,11 +114,18 @@ class LinkUserChangeForm(UserChangeForm):
 
 class LinkUserAdmin(UserAdmin):
     form = LinkUserChangeForm
+    add_form = LinkUserAddForm
     fieldsets = (
         ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
         (None, {'fields': ('password',)}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'registrar', 'vesting_org')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'password1', 'password2'),
+        }),
     )
     list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'date_joined', 'last_login', 'created_links_count', 'vested_links_count', 'registrar', 'vesting_org')
     search_fields = ('first_name', 'last_name', 'email')
