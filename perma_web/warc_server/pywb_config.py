@@ -28,7 +28,7 @@ from pywb.webapp.pywb_init import create_wb_handler
 from pywb.webapp.views import add_env_globals
 from pywb.webapp.pywb_init import create_wb_router
 
-from perma.models import CDXLine
+from perma.models import CDXLine, Asset
 
 # Assumes post November 2013 GUID format
 GUID_REGEX = r'([a-zA-Z0-9]+(-[a-zA-Z0-9]+)+)'
@@ -41,8 +41,16 @@ class PermaRoute(archivalrouter.Route):
 
         guid = matcher.group(1)
         urlkey = surt(wbrequest.wb_url_str)
-        line = CDXLine.objects.get(urlkey=urlkey,
-                                   asset__link_id=guid)
+
+        # Legacy archives didn't generate CDXLines during
+        # capture so generate them on demand if not found
+        try:
+            line = CDXLine.objects.get(urlkey=urlkey,
+                                       asset__link_id=guid)
+        except CDXLine.DoesNotExist:
+            asset = Asset.objects.get(link_id=guid)
+            lines = CDXLine.objects.create_all_from_asset(asset)
+            line = next(line for line in lines if line.urlkey==urlkey)
 
         # Store the line for use in PermaCDXSource
         # so we don't need to hit the DB again
