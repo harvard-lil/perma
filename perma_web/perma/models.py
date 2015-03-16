@@ -739,13 +739,6 @@ class CDXLine(models.Model):
         return self.__parsed.is_revisit()
 
 
-# Add getters for pywb CDXObject properties in the event we'd
-# like to parse them and store them seperately in the db as well
-cdx_props = set(itertools.chain(*CDXObject.CDX_FORMATS))
-for key in cdx_props.difference(CDXLine._meta.get_all_field_names()):
-    setattr(CDXLine, key.replace('.', '_'), property(lambda self, key=key: self.__parsed[key]))
-
-
 ### read only mode ###
 
 # install signals to prevent database writes if settings.READ_ONLY_MODE is set
