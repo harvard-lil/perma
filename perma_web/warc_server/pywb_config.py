@@ -100,12 +100,19 @@ class PermaMementoResponse(MementoResponse):
 
 
 class PermaHandler(WBHandler):
+    """ A roundabout way of using a custom class for query_html since pywb provides no config option for that property """
     def __init__(self, query_handler, config=None):
+        query_handler.views['html'] = PermaCapturesView('memento/query.html')
         super(PermaHandler, self).__init__(query_handler, config)
+
+
+class PermaGUIDHandler(PermaHandler):
+    def __init__(self, query_handler, config=None):
+        super(PermaGUIDHandler, self).__init__(query_handler, config)
         self.response_class = PermaMementoResponse
 
     def _init_replay_view(self, config):
-        replay_view = super(PermaHandler, self)._init_replay_view(config)
+        replay_view = super(PermaGUIDHandler, self)._init_replay_view(config)
         replay_view.response_class = PermaMementoResponse
         return replay_view
 
@@ -113,10 +120,9 @@ class PermaHandler(WBHandler):
         return PermaUrl
 
 
-class ErrorTemplateView(object):
-    """ View for pywb errors -- basically just hands off to the archive-error.html Django template. """
-    def __init__(self):
-        self.template = get_template('archive-error.html')
+class PermaTemplateView(object):
+    def __init__(self, filename):
+        self.template = get_template(filename)
 
     def render_to_string(self, **kwargs):
         return unicode(self.template.render(Context(kwargs)))
@@ -128,6 +134,21 @@ class ErrorTemplateView(object):
         status = kwargs.get('status', '200 OK')
         content_type = kwargs.get('content_type', 'text/html; charset=utf-8')
         return WbResponse.text_response(template_result.encode('utf-8'), status=status, content_type=content_type)
+
+
+class PermaCapturesView(PermaTemplateView):
+    def render_response(self, wbrequest, cdx_lines, **kwargs):
+        def format_cdx_lines():
+            for cdx in cdx_lines:
+                cdx['url'] = wbrequest.wb_url.get_url(url=cdx['original'])
+                yield cdx
+
+        return PermaTemplateView.render_response(self,
+                                                 cdx_lines=list(format_cdx_lines()),
+                                                 url=wbrequest.wb_url.get_url(),
+                                                 type=wbrequest.wb_url.type,
+                                                 prefix=wbrequest.wb_prefix,
+                                                 **kwargs)
 
 
 class PermaRouter(archivalrouter.ArchivalRouter):
@@ -219,7 +240,7 @@ def create_perma_wb_router(config={}):
     # use util func to create the handler
     wb_handler = create_wb_handler(query_handler,
                                    dict(archive_paths=[archive_path],
-                                        wb_handler_class=PermaHandler,
+                                        wb_handler_class=PermaGUIDHandler,
                                         buffer_response=True,
                                         head_insert_html=os.path.join(script_path, 'head_insert.html'),
                                         enable_memento=True,
@@ -230,7 +251,7 @@ def create_perma_wb_router(config={}):
     route = PermaRoute(GUID_REGEX, wb_handler)
 
     router = create_wb_router(config)
-    router.error_view = ErrorTemplateView()
+    router.error_view = PermaTemplateView('archive-error.html')
     router.routes.insert(0, route)
 
     return router
