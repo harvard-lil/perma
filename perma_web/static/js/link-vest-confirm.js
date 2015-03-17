@@ -40,6 +40,7 @@ $(function(){
                 $folder_select.html("").attr("disabled", false);
                 rootFolders.map(function(folder){
                     writeTree(folder, 0);
+                    $("#folder_select").val(selected_folder);
                 });
             });
     };
