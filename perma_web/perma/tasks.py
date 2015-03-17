@@ -122,10 +122,10 @@ class ProxyCaptureTask(Task):
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
         if self.request.retries >= self.max_retries:
             asset = Asset.objects.get(link_id=args[0] if args else kwargs['link_guid'])
-            if asset.image_capture == "pending":
-                asset.image_capture = "failed"
-            if asset.warc_capture == "pending":
-                asset.warc_capture = "failed"
+            if asset.image_capture == Asset.CAPTURE_STATUS_PENDING:
+                asset.image_capture = Asset.CAPTURE_STATUS_FAILED
+            if asset.warc_capture == Asset.CAPTURE_STATUS_PENDING:
+                asset.warc_capture = Asset.CAPTURE_STATUS_FAILED
             asset.save()
 
 
@@ -380,10 +380,10 @@ class GetPDFTask(Task):
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
         if self.request.retries >= self.max_retries:
             asset = Asset.objects.get(link_id=args[0] if args else kwargs['link_guid'])
-            if asset.image_capture == "pending":
-                asset.image_capture = "failed"
-            if asset.pdf_capture == "pending":
-                asset.pdf_capture = "failed"
+            if asset.image_capture == Asset.CAPTURE_STATUS_PENDING:
+                asset.image_capture = Asset.CAPTURE_STATUS_FAILED
+            if asset.pdf_capture == Asset.CAPTURE_STATUS_PENDING:
+                asset.pdf_capture = Asset.CAPTURE_STATUS_FAILED
             asset.save()
 
 @shared_task(bind=True,
@@ -418,7 +418,9 @@ def get_pdf(self, link_guid, target_url, base_storage_path, user_agent):
         # Limit our filesize
         if temp.tell() > settings.MAX_ARCHIVE_FILE_SIZE:
             logger.info("PDF capture too big, %s" % target_url)
-            save_fields(asset, pdf_capture='failed', image_capture='failed')
+            save_fields(asset,
+                        pdf_capture=Asset.CAPTURE_STATUS_FAILED,
+                        image_capture=Asset.CAPTURE_STATUS_FAILED)
             return
 
     # store temp file

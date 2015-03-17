@@ -27,6 +27,7 @@ from pywb.webapp.query_handler import QueryHandler
 from pywb.webapp.pywb_init import create_wb_handler
 from pywb.webapp.views import add_env_globals
 from pywb.webapp.pywb_init import create_wb_router
+from pywb.utils.wbexception import NotFoundException
 
 from perma.models import CDXLine, Asset
 
@@ -49,8 +50,13 @@ class PermaRoute(archivalrouter.Route):
                                        asset__link_id=guid)
         except CDXLine.DoesNotExist:
             asset = Asset.objects.get(link_id=guid)
+            if asset.warc_capture in [Asset.CAPTURE_STATUS_PENDING, Asset.CAPTURE_STATUS_FAILED]:
+                raise NotFoundException()
+
             lines = CDXLine.objects.create_all_from_asset(asset)
             line = next(line for line in lines if line.urlkey==urlkey)
+            if not line:
+                raise NotFoundException()
 
         # Store the line for use in PermaCDXSource
         # so we don't need to hit the DB again

@@ -601,6 +601,9 @@ class Asset(models.Model):
 
     tracker = FieldTracker()
 
+    CAPTURE_STATUS_PENDING = 'pending'
+    CAPTURE_STATUS_FAILED = 'failed'
+
     def __init__(self, *args, **kwargs):
         super(Asset, self).__init__(*args, **kwargs)
         if self.link_id and not self.base_storage_path:
