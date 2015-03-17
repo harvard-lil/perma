@@ -19,7 +19,7 @@
             <p>Links vested for <span class="vesting-org-name"></span> must be stored in the <span class="vesting-org-name"></span> shared folder.</p>
             <p>
                 Choose folder:
-                <select name="folder" disabled>
+                <select name="folder" disabled id="folder_select">
                     <option>Loading...</option>
                 </select>
             </p>
@@ -33,7 +33,8 @@
 {% block scripts %}
     <script>
         var url_single_linky = "{% url 'single_linky' link.guid %}",
-        selected_vesting_org = "{{latest.vesting_org_id}}",
+            selected_vesting_org = "{{latest.vesting_org_id}}",
+            selected_folder = "{{folder.id}}",
             archive = {% as_json link %};
     </script>
 
