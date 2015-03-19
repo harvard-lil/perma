@@ -191,7 +191,12 @@
 								<div class="col-sm-4 col-xs-12">
 									<span class="pull-left">
 										<h2>Temporary Archive</h2>
-										<p>This archive is temporary and will expire on <span class="highlight">{{ linky.get_expiration_date|local_datetime:"M. j, Y" }}</span> unless <a href="{% url 'docs_perma_link_vesting' %}" target="_blank">vested</a>.</p>
+										<p>This archive is temporary and will expire on <span class="highlight">{{ linky.get_expiration_date|local_datetime:"M. j, Y" }}</span> unless {% if not request.user.is_authenticated or not request.user.can_vest %}<a href="{% url 'docs_perma_link_vesting' %}" target="_blank">vested</a>{% else %}vested{% endif %}.</p>
+										{% if request.user.is_authenticated %}
+                                            {% if request.user.can_vest and not linky.vested %}
+                                                <a class="btn vest banner-btn" href="{% main_url 'vest_link' linky.guid %}">Vest site</a>
+                                            {% endif %}
+                                    {% endif %}
 									</span>
 								</div>
 							</div> <!-- nested row -->
