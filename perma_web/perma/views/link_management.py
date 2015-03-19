@@ -76,7 +76,7 @@ def vest_link(request, guid):
         latest = None
         
     if latest:
-        folder = latest.folders.all()[0]
+        folder = latest.folders.exclude(vesting_org_id__isnull=True)[0]
 
     if link.vested:
         return HttpResponseRedirect(reverse('single_linky', args=[guid]))
