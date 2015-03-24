@@ -1,6 +1,8 @@
-from PIL import Image
+import json, os, logging, csv, hashlib
+from sorl.thumbnail import get_thumbnail as sorl_get_thumbnail
 
 from django.conf import settings
+from django.core.files.storage import default_storage
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.http import Http404
@@ -11,10 +13,11 @@ from django.template import RequestContext
 from django.core.cache import cache as django_cache
 from django.contrib.auth.decorators import login_required
 
-import json, os, logging, csv, hashlib
-from perma.models import Link, Asset, Stat
-from sorl.thumbnail import get_thumbnail as sorl_get_thumbnail
 from mirroring.utils import may_be_mirrored, must_be_mirrored
+
+from perma.models import Link, Asset, Stat
+from perma.utils import get_png_size
+
 
 
 logger = logging.getLogger(__name__)
@@ -348,33 +351,22 @@ def get_thumbnail(request, guid=None):
         # tasks aren't still going though. So, don't thumbnail if we see
         # 'pending' statuses.
         thumbnail_url = ''
-        if target_asset.image_capture != 'pending' and target_asset.pdf_capture != 'pending':
-            capture_name = None
-            if target_asset.image_capture and target_asset.image_capture != 'failed':
-                capture_name = target_asset.image_capture
-            elif target_asset.pdf_capture != 'failed':
-                capture_name = target_asset.pdf_capture
+        if target_asset.image_capture and target_asset.image_capture != 'pending' and target_asset.image_capture != 'failed':
+            image_path = os.path.join(target_asset.base_storage_path, target_asset.image_capture)
 
-            if capture_name is not None:
+            try:
+                # enforce max image size limit
+                image_size = get_png_size(default_storage.open(image_path))
+                print "Image size: ", image_size
+                if image_size[0]*image_size[1] > settings.MAX_IMAGE_SIZE:
+                    logger.info("Can't generate thumbnail -- image is too large.")
 
-                image_path = os.path.join(settings.MEDIA_ROOT, target_asset.base_storage_path, capture_name)
+                else:
+                    thumbnail = sorl_get_thumbnail(image_path, size)
+                    thumbnail_url = thumbnail.url.replace(settings.MEDIA_URL, '', 1)
 
-                try:
-                    # enforce max image size limit
-                    pixel_count = 0
-                    if image_path.endswith('.png'):
-                        image_size = Image.open(image_path).size
-                        pixel_count = image_size[0]*image_size[1]
-
-                    if pixel_count > settings.MAX_IMAGE_SIZE:
-                        logger.info("Can't generate thumbnail -- image is too large.")
-
-                    else:
-                        thumbnail = sorl_get_thumbnail(image_path, size)
-                        thumbnail_url = thumbnail.url.replace(settings.MEDIA_URL, '', 1)
-
-                except IOError:
-                    logger.info("Thumbnail creation failed. Unable to find capture image")
+            except (IOError, ValueError):
+                logger.info("Thumbnail creation failed.")
 
         data = json.dumps({"thumbnail": thumbnail_url,})
         return HttpResponse(data, content_type="application/json")
