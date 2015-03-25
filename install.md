@@ -173,7 +173,7 @@ We use ImageMagick (through [Wand](http://docs.wand-py.org/)) to create thumbnai
 
     yum install ImageMagick-devel
 
-If you're on OS X you should might need to do adjust and [environment variable](http://docs.wand-py.org/en/0.3.8/guide/install.html#install-imagemagick-on-mac)
+If you're on OS X you might need to adjust an [environment variable](http://docs.wand-py.org/en/0.3.8/guide/install.html#install-imagemagick-on-mac)
 
 	export MAGICK_HOME=/opt/local
 

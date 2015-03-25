@@ -31,6 +31,7 @@ from django.forms.models import model_to_dict
 from django.conf import settings
 
 from perma.models import Asset, Stat, Registrar, LinkUser, Link, VestingOrg
+from perma.utils import imagemagick_temp_dir
 
 
 logger = logging.getLogger(__name__)
@@ -398,11 +399,13 @@ def get_pdf(self, link_guid, target_url, base_storage_path, user_agent):
     
     # Get first page of the PDF and created an image from it
     # Save it to disk as our image capture (likely a temporary measure)
-    with Image(filename=temp.name) as img:
-        image_name = 'cap.png'
-        image_path = os.path.join(base_storage_path, image_name)
-        default_storage.store_data_to_file(img.make_blob('png'), image_path, overwrite=True)
-        save_fields(asset, image_capture=image_name)
+    # The [0] in the filename gets passed through to ImageMagick and limits PDFs to the first page.
+    with imagemagick_temp_dir():
+        with Image(filename=temp.name+"[0]") as img:
+            image_name = 'cap.png'
+            image_path = os.path.join(base_storage_path, image_name)
+            default_storage.store_data_to_file(img.make_blob('png'), image_path, overwrite=True)
+            save_fields(asset, image_capture=image_name)
 
 @shared_task
 def get_nightly_stats():
