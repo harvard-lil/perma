@@ -5,7 +5,11 @@ import os
 import re
 from surt import surt
 
+# configure Django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "perma.settings")
+import django
+django.setup()
+
 from django.conf import settings
 from django.template import Context
 from django.template.loader import get_template
