@@ -26,7 +26,8 @@ This section of the user guide covers how to view the information associated wit
 		<pre>curl https://api.{{ request.META.HTTP_HOST }}/v1/public/archives/?limit=1</pre>
 		<p>Response</p>
 		<pre class="prettyprint">{"meta": {"limit": 1, "next": "/v1/public/archives/?limit=1", "offset": 0, "previous": null, "total_count": 2}, "objects": [{"assets": [{"base_storage_path": "2015/1/21/22/39/Y6JJ-TDUJ", "favicon": null, "image_capture": "cap.png", "pdf_capture": null, "text_capture": "pending", "warc_capture": "archive.warc.gz"}], "creation_timestamp": "2015-01-21T17:39:44", "dark_archived": true, "dark_archived_robots_txt_blocked": false, "expiration_date": "2017-01-21T17:39:44", "guid": "Y6JJ-TDUJ", "title": "Example.com. yo.", "url": "http://example.com", "vested": true, "vested_timestamp": "2015-01-21T17:49:39", "vesting_org": {"id": 1, "name": "Test Journal"}, "view_count": 1}]}</pre>
-		
+		<p>(Note that "vesting_org" may be null, even if the link is vested, if the vesting org has opted to vest privately.)</p>
+
 		<h4>Get one archive</h4>
 		<p>If we have a the globally unique ID of one archive, we can GET details on it.</p>
 		<pre>curl https://api.{{ request.META.HTTP_HOST }}/v1/public/archives/Y6JJ-TDUJ/</pre>

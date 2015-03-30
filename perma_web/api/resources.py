@@ -319,6 +319,11 @@ class PublicLinkResource(BaseLinkResource):
         authorization = PublicLinkAuthorization()
         serializer = Serializer(formats=['json', 'jsonp'])  # enable jsonp
 
+    def dehydrate_vesting_org(self, bundle):
+        # The vesting org for a given link may or may not be public.
+        # For now, just mark all as private.
+        return None
+
 
 class AuthenticatedLinkResource(BaseLinkResource):
     notes = fields.CharField(attribute='notes', blank=True)
