@@ -457,11 +457,12 @@ class Link(models.Model):
     @cached_property
     def headers(self):
         try:
-            return requests.head(
+            return requests.get(
                 self.submitted_url,
                 verify=False,  # don't check SSL cert?
                 headers={'User-Agent': USER_AGENT, 'Accept-Encoding': '*'},
-                timeout=HEADER_CHECK_TIMEOUT
+                timeout=HEADER_CHECK_TIMEOUT,
+                stream=True  # we're only looking at the headers
             ).headers
         except (requests.ConnectionError, requests.Timeout):
             return False
