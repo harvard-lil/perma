@@ -8,6 +8,7 @@ import threading
 import urlparse
 from celery import shared_task, Task
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException, NoSuchElementException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.proxy import ProxyType
 import datetime
@@ -130,7 +131,7 @@ class ProxyCaptureTask(Task):
 
 @shared_task(bind=True,
              default_retry_delay=30,  # seconds
-             max_retries=3,
+             max_retries=2,
              base=ProxyCaptureTask)
 @retry_on_error
 @tempdir.run_in_tempdir()
@@ -158,16 +159,185 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
 
     print "%s: Fetching %s" % (link_guid, target_url)
 
-    # Set up a teardown function we can call at any point to shut down all the background
-    # threads and processes involved with proxy archiving.
+    # Set up an exception we can trigger to halt capture and release all the resources involved.
+    class HaltCaptureException(Exception):
+        pass
     meta_thread = browser = robots_txt_thread = warcprox_controller = warcprox_thread = None
-    def teardown():
+    have_warc = False
+
+    try:
+
+        # create a request handler class that counts unique requests and responses
+        unique_requests = set()
+        unique_responses = set()
+        count_lock = threading.Lock()
+        class CountingRequestHandler(warcprox.WarcProxyHandler):
+            def _proxy_request(self):
+                with count_lock:
+                    unique_requests.add(self.url)
+                warcprox.WarcProxyHandler._proxy_request(self)
+                with count_lock:
+                    unique_responses.add(self.url)
+
+        # connect warcprox to an open port
+        warcprox_port = 27500
+        recorded_url_queue = warcprox.queue.Queue()
+        fake_cert_authority = warcprox.CertificateAuthority()
+        for i in xrange(500):
+            try:
+                proxy = warcprox.WarcProxy(
+                    server_address=("127.0.0.1", warcprox_port),
+                    ca=fake_cert_authority,
+                    recorded_url_q=recorded_url_queue,
+                    req_handler_class=CountingRequestHandler
+                )
+                break
+            except socket_error as e:
+                if e.errno != errno.EADDRINUSE:
+                    raise
+            warcprox_port += 1
+        else:
+            raise self.retry(exc=Exception("WarcProx couldn't find an open port."))
+        proxy_address = "127.0.0.1:%s" % warcprox_port
+
+        # start warcprox in the background
+        warc_writer = warcprox.WarcWriterThread(recorded_url_q=recorded_url_queue, gzip=True, port=warcprox_port)
+        warcprox_controller = warcprox.WarcproxController(proxy, warc_writer)
+        warcprox_thread = threading.Thread(target=warcprox_controller.run_until_shutdown, name="warcprox", args=())
+        warcprox_thread.start()
+
+        print "WarcProx opened."
+
+        # fetch robots.txt in the background
+        def robots_txt_thread():
+            print "Fetching robots.txt ..."
+            parsed_url = urlparse.urlparse(target_url)
+            robots_txt_location = parsed_url.scheme + '://' + parsed_url.netloc + '/robots.txt'
+            try:
+                robots_txt_response = requests.get(robots_txt_location,
+                                                   headers={'User-Agent': user_agent},
+                                                   proxies={parsed_url.scheme:'http://'+proxy_address},
+                                                   cert=fake_cert_authority.ca_file)
+            except (requests.ConnectionError, requests.Timeout):
+                print "Couldn't reach robots.txt"
+                return
+            if not robots_txt_response.ok:
+                print "No robots.txt found"
+
+            # We only want to respect robots.txt if Perma is specifically asked not to archive (we're not a crawler)
+            if 'Perma' in robots_txt_response.content:
+                # We found Perma specifically mentioned
+                rp = robotparser.RobotFileParser()
+                rp.parse([line.strip() for line in robots_txt_response.content.split('\n')])
+                if not rp.can_fetch('Perma', target_url):
+                    save_fields(link, dark_archived_robots_txt_blocked=True)
+            print "Robots.txt fetched."
+        robots_txt_thread = threading.Thread(target=robots_txt_thread, name="robots")
+        robots_txt_thread.start()
+
+        # fetch page in the background
+        # (we'll give
+        print "Fetching url."
+        browser = get_browser(user_agent, proxy_address, fake_cert_authority.ca_file)
+        browser.set_window_size(1024, 800)
+        page_load_thread = threading.Thread(target=browser.get, args=(target_url,))  # returns after onload
+        page_load_thread.start()
+        page_load_thread.join(PAGE_LOAD_TIMEOUT)
+        if page_load_thread.is_alive():
+            print "Waited 60 seconds for onLoad event -- giving up."
+            if not unique_responses:
+                # if nothing at all has loaded yet, give up on the capture
+                save_fields(asset, warc_capture='failed', image_capture='failed')
+                raise HaltCaptureException
+        print "Finished fetching url."
+
+        # get page title
+        print "Getting title."
+        if browser.title:
+            save_fields(link, submitted_title=browser.title)
+
+        # check meta tags
+        # (run this in a thread and give it long enough to find the tags, but then let other stuff proceed)
+        print "Checking meta tags."
+        def meta_thread():
+            # get all meta tags
+            meta_tags = browser.find_elements_by_tag_name('meta')
+            # first look for <meta name='perma'>
+            meta_tag = next((tag for tag in meta_tags if tag.get_attribute('name').lower()=='perma'), None)
+            # else look for <meta name='robots'>
+            if not meta_tag:
+                meta_tag = next((tag for tag in meta_tags if tag.get_attribute('name').lower() == 'robots'), None)
+            # if we found a relevant meta tag, check for noarchive
+            if meta_tag and 'noarchive' in meta_tag.get_attribute("content").lower():
+                save_fields(link, dark_archived_robots_txt_blocked=True)
+                print "Meta found, darchiving"
+            else:
+                print "Meta not found."
+        meta_thread = threading.Thread(target=meta_thread)
+        meta_thread.start()
+        meta_thread.join(ELEMENT_DISCOVERY_TIMEOUT*2)
+
+        # scroll to bottom of page and back up, in case that prompts anything else to load
+        try:
+            browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            browser.execute_script("window.scrollTo(0, 0);")
+        except WebDriverException:
+            pass
+
+        # get page size to decide whether to take a screenshot
+        capture_screenshot = False
+        try:
+            root_element = browser.find_element_by_tag_name('body')
+        except NoSuchElementException:
+            try:
+                root_element = browser.find_element_by_tag_name('frameset')
+            except NoSuchElementException:
+                root_element = None
+        if root_element:
+            page_size = root_element.size
+            pixel_count = page_size['width']*page_size['height']
+            capture_screenshot = pixel_count < settings.MAX_IMAGE_SIZE
+        if not capture_screenshot:
+            print "Not saving screenshots! Page size is %s pixels." % pixel_count
+            save_fields(asset, image_capture='failed')
+
+        # save preliminary screenshot immediately, and an updated version later
+        # (we want to return results quickly, but also give javascript time to render final results)
+        if capture_screenshot:
+            print "Saving first screenshot."
+            save_screenshot(browser, image_path)
+            save_fields(asset, image_capture=image_name)
+
+        # make sure all requests are finished
+        print "Waiting for post-load requests."
+        start_time = time.time()
+        time.sleep(min(AFTER_LOAD_TIMEOUT, 5))
+        while len(unique_responses) < len(unique_requests):
+            print "%s/%s finished" % (len(unique_responses), len(unique_requests))
+            if time.time() - start_time > AFTER_LOAD_TIMEOUT:
+                print "Waited %s seconds to finish post-load requests -- giving up." % AFTER_LOAD_TIMEOUT
+                break
+            time.sleep(.5)
+
+        # take second screenshot after all requests done
+        if capture_screenshot:
+            print "Taking second screenshot."
+            save_screenshot(browser, image_path)
+
+        have_warc = True
+
+    except HaltCaptureException:
+        pass
+
+    finally:
+        # teardown (have to do this before save to make sure WARC is done writing):
+        print "Shutting down browser and proxies."
+
         if browser:
             browser.quit()  # shut down phantomjs
 
-            # For some reason we have to manually close the pipe selenium uses to talk to PhantomJS,
-            # or else we get a filehandle leak. This is probably a bug in selenium as of 2.44.0 --
-            # see https://code.google.com/p/selenium/issues/detail?id=8498
+            # This can be removed when this bugfix ships in selenium:
+            # https://code.google.com/p/selenium/issues/detail?id=8498
             browser.service.process.stdin.close()
         if meta_thread:
             meta_thread.join()  # wait until meta thread is done
@@ -178,167 +348,17 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
         if warcprox_thread:
             warcprox_thread.join()  # wait until warcprox thread is done writing out warc
 
-    # create a request handler class that counts unique requests and responses
-    unique_requests = set()
-    unique_responses = set()
-    count_lock = threading.Lock()
-    class CountingRequestHandler(warcprox.WarcProxyHandler):
-        def _proxy_request(self):
-            with count_lock:
-                unique_requests.add(self.url)
-            warcprox.WarcProxyHandler._proxy_request(self)
-            with count_lock:
-                unique_responses.add(self.url)
-
-    # connect warcprox to an open port
-    warcprox_port = 27500
-    recorded_url_queue = warcprox.queue.Queue()
-    fake_cert_authority = warcprox.CertificateAuthority()
-    for i in xrange(500):
-        try:
-            proxy = warcprox.WarcProxy(
-                server_address=("127.0.0.1", warcprox_port),
-                ca=fake_cert_authority,
-                recorded_url_q=recorded_url_queue,
-                req_handler_class=CountingRequestHandler
-            )
-            break
-        except socket_error as e:
-            if e.errno != errno.EADDRINUSE:
-                raise
-        warcprox_port += 1
-    else:
-        raise self.retry(exc=Exception("WarcProx couldn't find an open port."))
-    proxy_address = "127.0.0.1:%s" % warcprox_port
-
-    # start warcprox in the background
-    warc_writer = warcprox.WarcWriterThread(recorded_url_q=recorded_url_queue, gzip=True, port=warcprox_port)
-    warcprox_controller = warcprox.WarcproxController(proxy, warc_writer)
-    warcprox_thread = threading.Thread(target=warcprox_controller.run_until_shutdown, name="warcprox", args=())
-    warcprox_thread.start()
-
-    print "WarcProx opened."
-
-    # fetch robots.txt in the background
-    def robots_txt_thread():
-        print "Fetching robots.txt ..."
-        parsed_url = urlparse.urlparse(target_url)
-        robots_txt_location = parsed_url.scheme + '://' + parsed_url.netloc + '/robots.txt'
-        try:
-            robots_txt_response = requests.get(robots_txt_location,
-                                               headers={'User-Agent': user_agent},
-                                               proxies={parsed_url.scheme:'http://'+proxy_address},
-                                               cert=fake_cert_authority.ca_file)
-        except (requests.ConnectionError, requests.Timeout):
-            print "Couldn't reach robots.txt"
-            return
-        if not robots_txt_response.ok:
-            print "No robots.txt found"
-
-        # We only want to respect robots.txt if Perma is specifically asked not to archive (we're not a crawler)
-        if 'Perma' in robots_txt_response.content:
-            # We found Perma specifically mentioned
-            rp = robotparser.RobotFileParser()
-            rp.parse([line.strip() for line in robots_txt_response.content.split('\n')])
-            if not rp.can_fetch('Perma', target_url):
-                save_fields(link, dark_archived_robots_txt_blocked=True)
-        print "Robots.txt fetched."
-    robots_txt_thread = threading.Thread(target=robots_txt_thread, name="robots")
-    robots_txt_thread.start()
-
-    # fetch page in the background
-    # (we'll give
-    print "Fetching url."
-    browser = get_browser(user_agent, proxy_address, fake_cert_authority.ca_file)
-    browser.set_window_size(1024, 800)
-    page_load_thread = threading.Thread(target=browser.get, args=(target_url,))  # returns after onload
-    page_load_thread.start()
-    page_load_thread.join(PAGE_LOAD_TIMEOUT)
-    if page_load_thread.is_alive():
-        print "Waited 60 seconds for onLoad event -- giving up."
-        if not unique_responses:
-            # if nothing at all has loaded yet, give up on the capture
-            save_fields(asset, warc_capture='failed', image_capture='failed')
-            teardown()
-            return
-    print "Finished fetching url."
-
-    # get page title
-    print "Getting title."
-    if browser.title:
-        save_fields(link, submitted_title=browser.title)
-
-    # check meta tags
-    # (run this in a thread and give it long enough to find the tags, but then let other stuff proceed)
-    print "Checking meta tags."
-    def meta_thread():
-        # get all meta tags
-        meta_tags = browser.find_elements_by_tag_name('meta')
-        # first look for <meta name='perma'>
-        meta_tag = next((tag for tag in meta_tags if tag.get_attribute('name').lower()=='perma'), None)
-        # else look for <meta name='robots'>
-        if not meta_tag:
-            meta_tag = next((tag for tag in meta_tags if tag.get_attribute('name').lower() == 'robots'), None)
-        # if we found a relevant meta tag, check for noarchive
-        if meta_tag and 'noarchive' in meta_tag.get_attribute("content").lower():
-            save_fields(link, dark_archived_robots_txt_blocked=True)
-            print "Meta found, darchiving"
-        else:
-            print "Meta not found."
-    meta_thread = threading.Thread(target=meta_thread)
-    meta_thread.start()
-    meta_thread.join(ELEMENT_DISCOVERY_TIMEOUT*2)
-
-    # scroll to bottom of page and back up, in case that prompts anything else to load
-    browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    browser.execute_script("window.scrollTo(0, 0);")
-
-    # get page size to decide whether to take a screenshot
-    root_element = browser.find_element_by_tag_name('body')
-    page_size = root_element.size
-    pixel_count = page_size['width']*page_size['height']
-    capture_screenshot = pixel_count < settings.MAX_IMAGE_SIZE
-    if not capture_screenshot:
-        print "Not saving screenshots! Page size is %s pixels." % pixel_count
-        save_fields(asset, image_capture='failed')
-
-    # save preliminary screenshot immediately, and an updated version later
-    # (we want to return results quickly, but also give javascript time to render final results)
-    if capture_screenshot:
-        print "Saving first screenshot."
-        save_screenshot(browser, image_path)
-        save_fields(asset, image_capture=image_name)
-
-    # make sure all requests are finished
-    print "Waiting for post-load requests."
-    start_time = time.time()
-    time.sleep(min(AFTER_LOAD_TIMEOUT, 5))
-    while len(unique_responses) < len(unique_requests):
-        print "%s/%s finished" % (len(unique_responses), len(unique_requests))
-        if time.time() - start_time > AFTER_LOAD_TIMEOUT:
-            print "Waited %s seconds to finish post-load requests -- giving up." % AFTER_LOAD_TIMEOUT
-            break
-        time.sleep(.5)
-
-    # take second screenshot after all requests done
-    if capture_screenshot:
-        print "Taking second screenshot."
-        save_screenshot(browser, image_path)
-
-    # teardown (have to do this before save to make sure WARC is done writing):
-    print "Shutting down browser and proxies."
-    teardown()
-
     # save generated warc file
-    print "Saving WARC."
-    try:
-        temp_warc_path = os.path.join(warc_writer.directory, warc_writer._f_finalname)
-        with open(temp_warc_path, 'rb') as warc_file:
-            warc_name = default_storage.store_file(warc_file, warc_path)
-            save_fields(asset, warc_capture=warc_name)
-    except Exception as e:
-        logger.info("Web Archive File creation failed for %s: %s" % (target_url, e))
-        save_fields(asset, warc_capture='failed')
+    if have_warc:
+        print "Saving WARC."
+        try:
+            temp_warc_path = os.path.join(warc_writer.directory, warc_writer._f_finalname)
+            with open(temp_warc_path, 'rb') as warc_file:
+                warc_name = default_storage.store_file(warc_file, warc_path)
+                save_fields(asset, warc_capture=warc_name)
+        except Exception as e:
+            logger.info("Web Archive File creation failed for %s: %s" % (target_url, e))
+            save_fields(asset, warc_capture='failed')
 
     print "%s capture done." % link_guid
 
