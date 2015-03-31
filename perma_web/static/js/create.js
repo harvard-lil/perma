@@ -174,30 +174,48 @@ function get_thumbnail() {
 function check_status() {
 
     // Check our status service to see if we have archiving jobs pending
-	  var request = apiRequest("GET", "/archives/" + new_archive.guid + "/", {'cache': false});
+    var request = apiRequest("GET", "/archives/" + new_archive.guid + "/", {'cache': false});
 
-	  request.done(function(data) {
+    request.done(function(data) {
         var asset = data.assets[0];
 
-		    // if no status is pending
-		    if (asset.image_capture !== 'pending') {
-            // Replace our Archive Pending spinner and message
-            // with our new thumbnail
-            get_thumbnail();
-            
-            $('#steps-container').html(templates.success_steps({
-                url: new_archive.url,
-                userguide_url: userguide_url,
-                vesting_privs: vesting_privs
-            })).removeClass('hide').hide().slideDown();
-
+        if (asset.image_capture !== 'pending') {
             // Clear out our pending jobs
             $.each(refreshIntervalIds, function(ndx, id) {
-			          clearInterval(id);
-			      });
+                clearInterval(id);
+            });
 
-		    }
-	  });
+            // If we don't have an image capture for a preview ...
+            if(asset.image_capture == 'failed'){
+
+                // ... but another capture succeeded, show the success template with no image_url.
+                if((asset.pdf_capture && asset.pdf_capture != 'failed') || (asset.warc_capture && asset.warc_capture != 'failed')) {
+                    $('#preview-container').html(templates.preview_available({
+                        image_url: null,
+                        archive_url: new_archive.url
+                    })).removeClass('hide').hide().slideDown();
+
+                // ... and the other captures also failed, show an error message/upload form.
+                }else{
+                    $('#preview-container').html(templates.preview_failure({static_prefix:settings.STATIC_URL}));
+                    $('#steps-container').html(templates.error({
+                        message: "Error: URL capture failed."
+                    }));
+                    $('.preview-row').removeClass('hide').hide().slideDown();
+                }
+
+            }else {
+                // Show success message and thumbnail.
+                get_thumbnail();
+                $('#steps-container').html(templates.success_steps({
+                    url: new_archive.url,
+                    userguide_url: userguide_url,
+                    vesting_privs: vesting_privs
+                })).removeClass('hide').hide().slideDown();
+            }
+
+        }
+    });
 }
 
 /* Our polling function for the thumbnail completion - end */
