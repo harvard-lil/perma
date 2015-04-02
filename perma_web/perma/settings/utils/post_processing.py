@@ -2,6 +2,8 @@
 # here we do stuff that should be checked or fixed after ALL settings from any source are loaded
 # this is called by __init__.py
 
+from celery.schedules import crontab
+
 def post_process_settings(settings):
 
     # check secret key
@@ -19,3 +21,28 @@ def post_process_settings(settings):
     except KeyError:
         # no custom setting for CELERY_DEFAULT_QUEUE
         pass
+
+    # add the named celerybeat jobs
+    celerybeat_job_options = {
+        # primary server
+        'get-nightly-stats': {
+            'task': 'perma.tasks.get_nightly_stats',
+            'schedule': crontab(minute='05', hour='02', day_of_week='*'),
+        },
+        'email-weekly-stats': {
+            'task': 'perma.tasks.email_weekly_stats',
+            'schedule': crontab(minute='05', hour='06', day_of_week='tuesday'),
+        },
+        'cleanup-screencap-monitoring': {
+            'task': 'monitor.tasks.delete_screencaps',
+            'schedule': crontab(minute='35', hour='*/2'),  # every other hour
+        },
+
+        # mirror server
+        'mirror-integrity-check': {
+            'task': 'mirroring.tasks.integrity_check',
+            'schedule': crontab(minute='*/5'),  # every five minutes, check a small number of archives
+        },
+    }
+    settings['CELERYBEAT_SCHEDULE'] = dict(((job, celerybeat_job_options[job]) for job in settings.get('CELERYBEAT_JOB_NAMES', [])),
+                                           **settings.get('CELERYBEAT_SCHEDULE', {}))

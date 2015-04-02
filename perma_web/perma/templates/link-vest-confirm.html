@@ -3,11 +3,10 @@
 
 {% block confirm %}
     <h1 class="cyan">Vesting Link</h1>
-
         <form method="post" id="select-vesting-org-form" style="display:none">
             <h2>On behalf of which organization are you vesting this link?</h2>
             <div class="centered-box" style="margin-bottom: 1em">
-                <select name="vesting_org"></select>
+                <select name="vesting_org" id="vesting_org_select"></select>
             </div>
             <div class="centered-box">
                 <a href="/{{ link.guid }}" class="cancel-button">Cancel</a>
@@ -20,7 +19,7 @@
             <p>Links vested for <span class="vesting-org-name"></span> must be stored in the <span class="vesting-org-name"></span> shared folder.</p>
             <p>
                 Choose folder:
-                <select name="folder" disabled>
+                <select name="folder" disabled id="folder_select">
                     <option>Loading...</option>
                 </select>
             </p>
@@ -34,6 +33,8 @@
 {% block scripts %}
     <script>
         var url_single_linky = "{% url 'single_linky' link.guid %}",
+            selected_vesting_org = "{{latest.vesting_org_id}}",
+            selected_folder = "{{folder.id}}",
             archive = {% as_json link %};
     </script>
 

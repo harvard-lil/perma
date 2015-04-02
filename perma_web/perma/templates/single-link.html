@@ -7,8 +7,24 @@
     <meta name="robots" content="noindex, noarchive, noodp, noimageindex">
 {% endblock %}
 
+{% comment %}
+    IMPORTANT: Due to mirroring logic, in this template the Link object will only have the following values set:
+
+        ('guid', 'submitted_url', 'creation_timestamp', 'submitted_title', 'dark_archived',
+         'dark_archived_robots_txt_blocked', 'user_deleted', 'user_deleted_timestamp',
+         'vested', 'vested_timestamp', 'vesting_org')
+
+    (Determined by Link.mirror_fields).
+
+    UNLESS request.user.is_authenticated == True, in which case the Link object will also have the following fields
+    fetched in realtime from upstream:
+
+        ('created_by',)
+
+    (Determined by the send_downstream block of perma.views.common.single_linky)
+{% endcomment %}
+
 {% block header %}
-    <!-- Served up by Perma mirror, {{ request.META.HTTP_HOST }} -->
     <header>
         <div class="navbar navbar-default navbar-static-top tab-border">
             <div class="container">
@@ -17,11 +33,11 @@
                         <a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo2.png"></a>
                     </div><!--end span 3 -->
                     <div class="col-sm-6 meta-data">
-                        {% if not linky.user_deleted or request.user.pk == linky.created_by_id %}
+                        {% if not linky.user_deleted or request.user.is_authenticated and request.user.pk == linky.created_by_id %}
                             <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a><br/>
 
                             <!--<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a>-->
-                            <span class="light-grey">created {{ linky.creation_timestamp|local_datetime }} | {{ linky.view_count }} view{% if linky.view_count > 1 %}s{% endif %} </span>
+                            <span class="light-grey">created {{ linky.creation_timestamp|local_datetime }}{# | {{ linky.view_count }} view{% if linky.view_count > 1 %}s{% endif %}  #}</span>
                         {% endif %}
                     </div><!--end span 6 -->
                     <div class="col-sm-offset-1 col-sm-1 button-set">
@@ -40,11 +56,11 @@
                                             <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
                                         {% elif request.user.is_vesting_org_member and request.user.vesting_org == linky.vesting_org %}
                                             <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
-                                        {% elif request.user.pk == linky.created_by_id %}
+                                        {% elif request.user.is_authenticated and request.user.pk == linky.created_by_id %}
                                             <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
                                         {% endif %}
                                     {% endif %}
-                                    {% if request.user.pk == linky.created_by_id and not linky.vested %}
+                                    {% if request.user.is_authenticated and request.user.pk == linky.created_by_id and not linky.vested %}
                                         <a class="btn user-delete" href="{% main_url 'user_delete_link' linky.guid %}"><i class="icon-trash"></i> Delete</a>
                                     {% endif %}
                                 {% endif %}
@@ -130,7 +146,7 @@
     {# deleted unvested link #}
     {% if linky.user_deleted %}
         <div class="col-sm-6 col-sm-offset-3 yahowza text-center">
-            {% if request.user.pk == linky.created_by_id %}
+            {% if request.user.is_authenticated and request.user.pk == linky.created_by_id %}
                 <h2>You deleted this link.</h2>
             {% else %}
                 <h1 class="cyan">Apologies.</h1><h2>This unvested link was deleted by the user who created it.</h2>
@@ -138,9 +154,8 @@
         </div>
 
     {% else %}
-
         {# message for a darchived link that user has permission to access #}
-        {% if request.user.can_vest or request.user.pk == linky.created_by_id %}
+        {% if request.user.can_vest or request.user.is_authenticated and request.user.pk == linky.created_by_id %}
             {% if linky|is_darchive %}
             <div class="col-sm-6 col-sm-offset-3 yahowza text-center">
                 <img class="dark-bulb center" src="{{ STATIC_URL }}img/dark-bulb.png">
@@ -149,7 +164,11 @@
                 {% elif linky.dark_archived_robots_txt_blocked %}
                     <h2>This link is in the <span class="dark">dark archive</span> because Perma.cc has <a href="{% url 'faq' %}#robots-text">respected the content creator's request to not share this archive publicly</a>.</h2>
                 {% endif %}
-                <p>You can see the contents only because you are logged into a vesting account.</p>
+                {% if request.user.can_vest %}
+                    <p>You can see the contents only because you are logged into a vesting account.</p>
+                {% else %}
+                    <p>You can see the contents only because you created this link.</p>
+                {% endif %}
             </div>
             </div><div class="row"> {# go to next row #}
             {% endif %}
@@ -160,7 +179,7 @@
             <div class="watermark center">
 
                 {% if not linky.vested and serve_type != 'live' %}
-                    {% if not linky|is_darchive or request.user.can_vest or request.user.pk == linky.created_by_id %}
+                    {% if not linky|is_darchive or request.user.can_vest or request.user.is_authenticated and request.user.pk == linky.created_by_id %}
 						<div class="watermark-container">
 							<span class="pull-right">
 								<span class="glyphicon glyphicon-remove"></span>
@@ -172,7 +191,12 @@
 								<div class="col-sm-4 col-xs-12">
 									<span class="pull-left">
 										<h2>Temporary Archive</h2>
-										<p>This archive is temporary and will expire on <span class="highlight">{{ linky.get_expiration_date|local_datetime:"M. j, Y" }}</span> unless <a href="{% url 'docs_perma_link_vesting' %}" target="_blank">vested</a>.</p>
+										<p>This archive is temporary and will expire on <span class="highlight">{{ linky.get_expiration_date|local_datetime:"M. j, Y" }}</span> unless {% if not request.user.is_authenticated or not request.user.can_vest %}<a href="{% url 'docs_perma_link_vesting' %}" target="_blank">vested</a>{% else %}vested{% endif %}.</p>
+										{% if request.user.is_authenticated %}
+                                            {% if request.user.can_vest and not linky.vested %}
+                                                <a class="btn vest banner-btn" href="{% main_url 'vest_link' linky.guid %}">Vest site</a>
+                                            {% endif %}
+                                    {% endif %}
 									</span>
 								</div>
 							</div> <!-- nested row -->
@@ -191,36 +215,31 @@
                         </div>
                     {% endif %}
 
-                {% elif linky|is_darchive and not request.user.can_vest and not request.user.pk == linky.created_by_id %}
+                {% elif not linky|is_darchive or request.user.can_vest or request.user.is_authenticated and request.user.pk == linky.created_by_id %}
+                    {% if serve_type == 'image' %}
+                        <img class="image-view" src="{{ MEDIA_URL }}{{ asset.image_url }}"/>
+
+                    {% elif serve_type == 'pdf' %}
+                        <iframe src="{{ MEDIA_URL }}{{ asset.pdf_url }}">
+                            <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
+                        </iframe>
+
+                    {% elif serve_type == 'source' %}
+                        <iframe src="{{ warc_url }}" sandbox="allow-forms allow-scripts allow-top-navigation">
+                            <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
+                        </iframe>
+
+                    {% endif %}
+
+                {% else %}
                     <img class="dark-bulb center" src="{{ STATIC_URL }}img/dark-bulb.png">
                     <h1 class="cyan">Apologies.</h1>
                     <h2>
                         This link is not available in our public archive.<br/>
                         Contact a participating librarian to get a copy.
                     </h2>
-                    {% comment %}
-                        <br/>
-                        {% if linky.dark_archived %}
-                            <p>This link is in the <span class="dark">dark archive</span> because Perma.cc has complied with a takedown notice.</p>
-                        {% elif linky.dark_archived_robots_txt_blocked %}
-                            <p>This link is in the <span class="dark">dark archive</span> because Perma.cc has <a href="{% url 'faq' %}#robots-text">respected the content creator's request to not share this archive publicly</a>.</p>
-                        {% endif %}
-                    {% endcomment %}
-
-                {% elif serve_type == 'image' %}
-                    <img class="image-view" src="{{ MEDIA_URL }}{{ asset.image_url }}"/>
-
-                {% elif serve_type == 'pdf' %}
-                    <iframe src="{{ MEDIA_URL }}{{ asset.pdf_url }}">
-                        <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
-                    </iframe>
-
-                {% elif serve_type == 'source' %}
-                    <iframe src="{{ warc_url }}" sandbox="allow-forms allow-scripts allow-top-navigation">
-                        <p>Unable to create a live view of <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a></p>
-                    </iframe>
-
                 {% endif %}
+
             </div><!--end watermark-->
         </div><!--end linky-view-->
 

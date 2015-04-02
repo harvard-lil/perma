@@ -1,8 +1,7 @@
 # Package:                      # Used for:
 
-Django==1.6.8
+Django==1.7.6
 MySQL-python==1.2.5
-South==1.0.1
 lxml==3.2.1
 PyPDF2==1.20                    # check integrity of uploaded PDFs
 celery==3.1.12
@@ -13,7 +12,7 @@ simplejson==3.3.0
 oauth2==1.5.211
 smhasher==0.150.1
 pytz==2013b
-django-mptt==0.6.0
+django-mptt==0.6.1
 Werkzeug==0.9.4
 Fabric==1.8.2
 pexpect==3.1
@@ -26,12 +25,11 @@ tempdir==0.6                    # create temp dirs to be deleted at end of funct
 netaddr==0.7.12                 # to check archive IPs against banned ranges
 internetarchive==0.7.0          # upload warcs to internet archive
 python-dateutil==2.2            # calculate link expiration date
-Wand==0.3.8					            # ImageMagick bindings to help with thumbnail creation and PDF -> PNG conversions
+Wand==0.3.8					    # ImageMagick bindings to help with thumbnail creation and PDF -> PNG conversions
 django-tastypie==0.12.1         # API framework
 -e git://github.com/leppert/django-tastypie-extendedmodelresource.git@caf08005699d8e5616f93726bd8c1c5a51f74b07#egg=django-tastypie-extendedmodelresource
-sorl-thumbnail==11.12			      # Used to create our thumbnails
-Pillow==2.6.1					          # Used to generate thumbnails with sorl. We can likely remove this dependency when Sorl 12.x is released (and we use Wand as our sorl engine)
-redis==2.10.1					          # Needed to bind with Redis. Supports our sorl thumbnails in production
+sorl-thumbnail==12.2			# Used to create our thumbnails
+redis==2.10.1					# Needed to bind with Redis. Supports our sorl thumbnails in production
 django-redis==3.7.2             # use redis as django's cache backend
 python-gnupg==0.3.6             # Sign messages between main server and mirrors.
 django-forms-bootstrap==3.0.1   # produce Bootstrap compatable forms

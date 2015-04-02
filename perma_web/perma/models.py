@@ -1,6 +1,9 @@
 import logging
 import random
 import re
+import socket
+from urlparse import urlparse
+import requests
 
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
@@ -8,15 +11,11 @@ from django.core.files.storage import default_storage
 from django.db import models
 from django.db.models import Q
 from django.db.models.query import QuerySet
+from django.utils import timezone
 from django.utils.functional import cached_property
-from mptt.exceptions import InvalidMove
 from mptt.models import MPTTModel, TreeForeignKey
 from model_utils import FieldTracker
 
-# For Link
-import socket
-from urlparse import urlparse
-import requests
 
 logger = logging.getLogger(__name__)
 
@@ -421,7 +420,7 @@ class Link(models.Model):
     guid = models.CharField(max_length=255, null=False, blank=False, primary_key=True, editable=False)
     view_count = models.IntegerField(default=1)
     submitted_url = models.URLField(max_length=2100, null=False, blank=False)
-    creation_timestamp = models.DateTimeField(auto_now_add=True)
+    creation_timestamp = models.DateTimeField(default=timezone.now, editable=False)
     submitted_title = models.CharField(max_length=2100, null=False, blank=False)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='created_links',)
     dark_archived = models.BooleanField(default=False)
@@ -458,11 +457,12 @@ class Link(models.Model):
     @cached_property
     def headers(self):
         try:
-            return requests.head(
+            return requests.get(
                 self.submitted_url,
                 verify=False,  # don't check SSL cert?
                 headers={'User-Agent': USER_AGENT, 'Accept-Encoding': '*'},
-                timeout=HEADER_CHECK_TIMEOUT
+                timeout=HEADER_CHECK_TIMEOUT,
+                stream=True  # we're only looking at the headers
             ).headers
         except (requests.ConnectionError, requests.Timeout):
             return False
@@ -589,6 +589,9 @@ class Asset(models.Model):
     instapaper_hash = models.CharField(max_length=2100, null=True)
     instapaper_id = models.IntegerField(null=True)
 
+    last_integrity_check = models.DateTimeField(blank=True, null=True)  # for a mirror server, the last time our disk assets were checked against upstream
+    integrity_check_succeeded = models.NullBooleanField(blank=True, null=True)      # whether the last integrity check succeeded
+
     # what info to send downstream
     mirror_fields = ('link', 'base_storage_path', 'image_capture', 'warc_capture', 'pdf_capture', 'text_capture')
 
@@ -626,6 +629,32 @@ class Asset(models.Model):
     def walk_files(self):
         """ Return iterator of all files for this asset. """
         return default_storage.walk(self.base_storage_path)
+
+    def verify_media(self):
+        if settings.MIRROR_SERVER:
+            from mirroring.tasks import background_media_sync
+            urls = []
+            if self.image_capture and '.png' in self.image_capture:
+                urls.append(self.base_url(self.image_capture))
+            if self.pdf_capture and '.pdf' in self.pdf_capture:
+                urls.append(self.base_url(self.pdf_capture))
+            if self.warc_capture and '.warc' in self.warc_capture:
+                urls.append(self.base_url(self.warc_capture))
+            if self.text_capture and '.html' in self.text_capture:
+                urls.append(self.base_url(self.text_capture))
+
+            missing_urls = [url for url in urls if not default_storage.exists(url)]
+            background_media_sync(paths=missing_urls)
+
+            still_missing_urls = [url for url in missing_urls if not default_storage.exists(url)]
+            if still_missing_urls:
+                logger.error("Verifying media failed for %s: still missing %s." % (self.link_id, still_missing_urls))
+                self.integrity_check_succeeded = False
+            else:
+                self.integrity_check_succeeded = True
+
+            self.last_integrity_check = timezone.now()
+            self.save()
 
     
 #########################
@@ -670,3 +699,32 @@ class Stat(models.Model):
 
     # TODO, we also display the top 10 perma links in the stats view
     # we should probably generate these here or put them in memcache or something
+
+
+### read only mode ###
+
+# install signals to prevent database writes if settings.READ_ONLY_MODE is set
+
+### this is in models for now because it's annoying to put it in signals.py and resolve circular imports with models.py
+### in Django 1.8 we can avoid that issue by putting this in signals.py and importing it from ready()
+### https://docs.djangoproject.com/en/dev/topics/signals/
+
+from django.contrib.sessions.models import Session
+from django.db.models.signals import pre_save
+
+from .utils import ReadOnlyException
+
+write_whitelist = (
+    (Session, None),
+    (LinkUser, {'password'}),
+    (LinkUser, {'last_login'}),
+)
+
+def read_only_mode(sender, instance, **kwargs):
+    for whitelist_sender, whitelist_fields in write_whitelist:
+        if whitelist_sender==sender and (whitelist_fields is None or whitelist_fields==kwargs['update_fields']):
+            return
+    raise ReadOnlyException("Read only mode enabled.")
+
+if settings.READ_ONLY_MODE:
+    pre_save.connect(read_only_mode)

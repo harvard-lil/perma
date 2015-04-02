@@ -1,6 +1,8 @@
 from functools import wraps
 
+from django.conf import settings
 from django.http import Http404
+from django.shortcuts import render
 from django.utils.decorators import available_attrs
 import djangosecure.middleware
 
@@ -40,3 +42,11 @@ class SecurityMiddleware(djangosecure.middleware.SecurityMiddleware):
         if getattr(view_func, 'ssl_optional', False):
             return
         return super(SecurityMiddleware, self).process_request(request)
+
+
+### read only mode ###
+
+class ReadOnlyMiddleware(object):
+    def process_exception(self, request, exception):
+        if settings.READ_ONLY_MODE:
+            return render(request, 'read_only_mode.html')

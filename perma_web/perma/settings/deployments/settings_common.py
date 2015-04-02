@@ -240,6 +240,7 @@ MIDDLEWARE_CLASSES = (
     'mirroring.middleware.MirrorAuthenticationMiddleware',
     'perma.middleware.AdminAuthMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
+    'perma.middleware.ReadOnlyMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
@@ -277,7 +278,6 @@ INSTALLED_APPS = (
     'mirroring',
 
     # third party apps
-    'south',
     'ratelimit',
     'mptt',
     'pipeline',
@@ -314,6 +314,9 @@ WAIT_BETWEEN_TRIES = .5 # wait between .5 and this many seconds between http req
 # Max file size (for our downloads)
 MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 100  # 100 MB
 MAX_HTTP_FETCH_SIZE = 1024 * 1024  # 1 MB
+
+# Max image size for screenshots and thumbnails
+MAX_IMAGE_SIZE = 1024*1024*50  # 50 megapixels
 
 # Rate limits
 MINUTE_LIMIT = '6000/m'
@@ -431,6 +434,7 @@ MIRROR_SERVER = False               # whether we are a mirror
 MIRROR_COOKIE_NAME = 'user_info'
 DASHBOARD_SUBDOMAIN = 'dashboard'
 DIRECT_MEDIA_URL = MEDIA_URL        # URL to load media from this server in particular -- primarily useful for main server
+SERVER_DISPLAY_NAME = 'default'
 
 # Where to fetch new archives from, if we are a mirror.
 UPSTREAM_SERVER = {}
@@ -473,11 +477,10 @@ LINK_EXPIRATION_TIME = relativedelta(years=2)
 WARC_HOST = None
 DIRECT_WARC_HOST = None     # host to load warc from this server in particular -- primarily useful for main server
 
-# Sorl settings. This releates to our thumbnail creation
-# the prod and dev configs are considerably different. See those configs for
-# details
-THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.pil_engine.Engine'  # Change this to Wand when sorl 12.x is released (since we use Wand for PDF thumbnail creation)
-THUMBNAIL_FORMAT = 'PNG'  #
+# Sorl settings. This relates to our thumbnail creation.
+# The prod and dev configs are considerably different. See those configs for details.
+THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.wand_engine.Engine'
+THUMBNAIL_FORMAT = 'PNG'
 
 # feature flags
 SINGLE_LINK_HEADER_TEST = False
@@ -491,6 +494,21 @@ API_VERSION = 1
 TEMPLATE_VISIBLE_SETTINGS = (
     'API_VERSION',
     'SECURE_SSL_REDIRECT',
+    'DIRECT_MEDIA_URL',
+    'MIRRORING_ENABLED',
+    'SERVER_DISPLAY_NAME',
 )
 
 TASTYPIE_DEFAULT_FORMATS = ['json']
+
+# Schedule celerybeat jobs.
+# These will be added to CELERYBEAT_SCHEDULE in settings.utils.post_processing
+CELERYBEAT_JOB_NAMES = []
+
+
+# Set to true to disable database/file writes for maintenance.
+READ_ONLY_MODE = False
+
+
+# In Django 1.7, including this silences a warning about tests
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'

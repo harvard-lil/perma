@@ -2,10 +2,11 @@
     var settings = {
         API_VERSION: {{ API_VERSION }},
         STATIC_URL: "{{ STATIC_URL }}",
-        MEDIA_URL: "{{ MEDIA_URL }}"
+        MEDIA_URL: "{{ MEDIA_URL }}",
+        DIRECT_MEDIA_URL: "{{ DIRECT_MEDIA_URL }}"
     },
     api_path = "http{% if SECURE_SSL_REDIRECT %}s{% endif %}://{{request.main_server_host}}/api/v" + settings.API_VERSION,
-    main_server_host = "http://{{request.main_server_host}}",
+    main_server_host = "//{{request.main_server_host}}",
     mirror_server_host = "http://{{request.mirror_server_host}}",
     feedback_url = "{% url 'service_receive_feedback' %}";
 </script>

@@ -82,7 +82,8 @@ class Command(BaseCommand):
         main_server_media = 'user-content.'+main_server_address
 
 
-        temp_dir = tempdir.TempDir()
+        media_temp_dir = tempdir.TempDir()
+        gpg_temp_dir = tempdir.TempDir()
 
         try:
             print "Creating mirror database ..."
@@ -114,7 +115,7 @@ class Command(BaseCommand):
                 DJANGO__DOWNSTREAM_SERVERS__0__public_key=settings.GPG_PUBLIC_KEY,
                 DJANGO__MIRRORING_ENABLED='True',
                 DJANGO__CELERY_DEFAULT_QUEUE='runmirror_main_queue',
-                DJANGO__DIRECT_MEDIA_URL='http://%s:%s/media/' % (main_server_media, router_port),
+                DJANGO__DIRECT_MEDIA_URL='//%s:%s/media/' % (main_server_media, router_port),
                 DJANGO__DIRECT_WARC_HOST='%s:%s' % (main_server_media, router_port),
             )
             running_processes.append(subprocess.Popen(['python', 'manage.py', 'runserver', str(main_server_port)],
@@ -131,8 +132,10 @@ class Command(BaseCommand):
                 DJANGO__MIRROR_SERVER='True',
                 DJANGO__UPSTREAM_SERVER__address='http://%s:%s' % (main_server_address, main_server_port),
                 DJANGO__UPSTREAM_SERVER__public_key=settings.GPG_PUBLIC_KEY,
-                DJANGO__MEDIA_ROOT=temp_dir.name,
+                DJANGO__MEDIA_ROOT=media_temp_dir.name,
                 DJANGO__WARC_HOST='%s:%s' % (mirror_server_media, router_port),
+                DJANGO__CELERYBEAT_JOB_NAMES__0='mirror-integrity-check',
+                DJANGO__GPG_DIRECTORY=gpg_temp_dir.name,
             )
             running_processes.append(subprocess.Popen(['python', 'manage.py', 'runserver', str(mirror_server_port)],
                                              env=dict(os.environ, **mirror_server_env)))
@@ -140,8 +143,11 @@ class Command(BaseCommand):
                 ['celery', '-A', 'perma', 'worker', '--loglevel=info', '--queues=runmirror_mirror_queue', '--hostname=runmirror_mirror_queue', '--beat', '--concurrency=1'],
                 env=dict(os.environ, **mirror_server_env)))
 
-            print "Syncing contents from %s to %s ..." % (settings.MEDIA_ROOT, temp_dir.name)
-            subprocess.call("cp -r %s* '%s'" % (settings.MEDIA_ROOT, temp_dir.name), shell=True)
+            # print "Syncing contents from %s to %s ..." % (settings.MEDIA_ROOT, media_temp_dir.name)
+            # subprocess.call("cp -r %s* '%s'" % (settings.MEDIA_ROOT, temp_dir.name), shell=True)
+
+            # clear out old database dumps
+            subprocess.call(["rm", "-r", os.path.join(settings.MEDIA_ROOT, 'database_dumps')])
 
             print "Launching reverse proxy ..."
             root = vhost.NameVirtualHost()
@@ -168,4 +174,8 @@ class Command(BaseCommand):
                 process.terminate()
 
             # remove temp files
-            temp_dir.dissolve()
+            media_temp_dir.dissolve()
+            gpg_temp_dir.dissolve()
+            subprocess.call(["rm", "-r", os.path.join(settings.MEDIA_ROOT, 'database_dumps')])
+
+

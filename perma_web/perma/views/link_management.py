@@ -69,12 +69,22 @@ def folder_contents(request, folder_id):
 @user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_vesting_org_member())
 def vest_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
+    folder = None
+    try:
+        latest = Link.objects.filter(vested_by_editor_id=request.user.id).latest('vested_timestamp')
+    except:
+        latest = None
+        
+    if latest:
+        folder = latest.folders.exclude(vesting_org_id__isnull=True)[0]
 
     if link.vested:
         return HttpResponseRedirect(reverse('single_linky', args=[guid]))
 
     return render(request, 'link-vest-confirm.html', {
         'link': link,
+        'latest': latest,
+        'folder': folder,
     })
 
 

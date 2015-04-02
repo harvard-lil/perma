@@ -1,9 +1,13 @@
+from contextlib import contextmanager
 import operator
+import os
 
 from django.db.models import Q
 from django.conf import settings
+import struct
+import tempdir
 
-        
+
 class favicon:
     
     def get_favicon(target_url, parsed_html, link_guid, disk_path, url_details):
@@ -125,3 +129,36 @@ def direct_media_url(url):
 def show_debug_toolbar(request):
     """ Used by django-debug-toolbar in settings_dev.py to decide whether to show debug toolbar. """
     return settings.DEBUG
+
+### read only mode ###
+
+class ReadOnlyException(Exception):
+    pass
+
+### image manipulation ###
+
+@contextmanager
+def imagemagick_temp_dir():
+    """
+        Inside this context manager, the environment variable MAGICK_TEMPORARY_PATH will be set to a
+        temp path that gets deleted when the context closes. This stops Wand's calls to ImageMagick
+        leaving temp files around.
+    """
+    temp_dir = tempdir.TempDir()
+    old_environ = dict(os.environ)
+    os.environ['MAGICK_TEMPORARY_PATH'] = temp_dir.name
+    try:
+        yield
+    finally:
+        os.environ.clear()
+        os.environ.update(old_environ)
+        temp_dir.dissolve()
+
+def get_png_size(fh):
+    data = fh.read(24)
+    if len(data) < 24:
+        raise IOError
+    if data[:8] != '\211PNG\r\n\032\n' or data[12:16] != 'IHDR':
+        raise ValueError("File is not a png.")
+    w, h = struct.unpack('>LL', data[16:24])
+    return int(w), int(h)
