@@ -189,6 +189,8 @@ class FolderResource(DefaultResource):
         queryset = Folder.objects.all()
         authorization = FolderAuthorization()
         validation = FolderValidation()
+        limit = 300
+        max_limit = 300
 
     class Nested:
         folders = fields.ToManyField('api.resources.FolderResource', 'children', full=True, readonly=True)
