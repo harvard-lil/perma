@@ -59,12 +59,7 @@ class VestingOrgAdmin(admin.ModelAdmin):
     search_fields = ['name']
     list_display = ['name', 'registrar', 'vesting_users', 'last_active', 'first_active', 'vested_links']
     list_filter = ['registrar']
-    inlines = [
-        new_class("VestingOrgUserInline", InlineEditLinkMixin, admin.TabularInline, model=LinkUser,
-                  fields=['first_name', 'last_name', 'email'],
-                  can_delete = False),
-    ]
-
+    
     # statistics
     def get_queryset(self, request):
         return super(VestingOrgAdmin, self).get_queryset(request).annotate(
@@ -127,7 +122,7 @@ class LinkUserAdmin(UserAdmin):
             'fields': ('email', 'password1', 'password2'),
         }),
     )
-    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'date_joined', 'last_login', 'created_links_count', 'vested_links_count', 'registrar', 'vesting_org')
+    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'date_joined', 'last_login', 'created_links_count', 'vested_links_count', 'registrar')
     search_fields = ('first_name', 'last_name', 'email')
     list_filter = ('is_staff', 'is_active')
     ordering = None
