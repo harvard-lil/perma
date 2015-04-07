@@ -165,7 +165,7 @@ class LinkUser(AbstractBaseUser):
         db_index=True,
     )
     registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar member. This should not be set if vesting org is set!")
-    vesting_org = models.ForeignKey(VestingOrg, blank=True, null=True, related_name='users', help_text="If set, this user is a vesting org member. This should not be set if registrar is set!")
+    vesting_org = models.ManyToManyField(VestingOrg, blank=True, null=True, related_name='users_new', help_text="If set, this user is a vesting org member. This should not be set if registrar is set!")
     is_active = models.BooleanField(default=True)
     is_confirmed = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
