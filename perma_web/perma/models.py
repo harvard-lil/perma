@@ -76,7 +76,7 @@ class VestingOrgManager(models.Manager):
 
     def user_access_filter(self, user):
         if user.is_vesting_org_member():
-            return Q(id=user.vesting_org_id)
+            return Q(id=user.vesting_org.all()[0].id)
         elif user.is_registrar_member():
             return Q(registrar_id=user.registrar_id)
         elif user.is_staff:
@@ -212,12 +212,14 @@ class LinkUser(AbstractBaseUser):
             vesting_orgs = self.registrar.vesting_orgs.all()
         else:
             vesting_orgs = [self.get_default_vesting_org()]
+
+
         return [self.root_folder.get_descendants(include_self=True)] + \
             ([vesting_org.shared_folder.get_descendants(include_self=True) for vesting_org in vesting_orgs if vesting_org])
 
     def get_default_vesting_org(self):
         if self.is_vesting_org_member():
-            return self.vesting_org
+            return self.vesting_org.all()[0]
         if self.is_registrar_member():
             return self.registrar.default_vesting_org
         if self.is_staff:
@@ -272,7 +274,7 @@ class LinkUser(AbstractBaseUser):
 
     def is_vesting_org_member(self):
         """ Is the user a member of a vesting org? """
-        return bool(self.vesting_org_id)
+        return bool(self.vesting_org.all())
 
 
 class FolderQuerySet(QuerySet):
