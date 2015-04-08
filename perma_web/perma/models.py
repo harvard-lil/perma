@@ -165,7 +165,7 @@ class LinkUser(AbstractBaseUser):
         db_index=True,
     )
     registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar member. This should not be set if vesting org is set!")
-    vesting_org = models.ManyToManyField(VestingOrg, blank=True, null=True, related_name='users_new', help_text="If set, this user is a vesting org member. This should not be set if registrar is set!")
+    vesting_org = models.ManyToManyField(VestingOrg, blank=True, null=True, help_text="If set, this user is a vesting org member. This should not be set if registrar is set!")
     is_active = models.BooleanField(default=True)
     is_confirmed = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -187,7 +187,10 @@ class LinkUser(AbstractBaseUser):
     def save(self, *args, **kwargs):
         # Don't allow users to have both a registrar and vesting_org.
         # This is just a data consistency check -- logic earlier in the app should make sure this doesn't happen.
-        assert not (self.vesting_org_id and self.registrar_id), "Users cannot have both a registrar and a vesting org."
+        # Our m2m relationship on linksuser/vestingorg forces us to find out if
+        # this is a new item (self.pk == None for new items)
+        if self.pk is not None:
+            assert not (bool(self.vesting_org.all()) and self.registrar_id), "Users cannot have both a registrar and a vesting org."
 
         super(LinkUser, self).save(*args, **kwargs)
 
