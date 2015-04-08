@@ -41,7 +41,7 @@ from perma.forms import (
     UserFormSelfEdit, 
     SetPasswordForm, 
 )
-from perma.models import Registrar, LinkUser, VestingOrg
+from perma.models import Registrar, LinkUser, VestingOrg, Link
 from perma.utils import get_search_query
 
 logger = logging.getLogger(__name__)
@@ -177,21 +177,46 @@ def manage_vesting_org(request):
     if is_registry:
         registrars = Registrar.objects.all().order_by('name')
         
-    vesting_orgs = vesting_orgs.select_related('registrar').order_by(sort).annotate(vesting_users=Count('users', distinct=True), last_active=Max('users__last_login', distinct=True),created_date=Min('users__date_joined', distinct=True), vested_links=Count('link', distinct=True))
+    #vesting_orgs = vesting_orgs.select_related('registrar').order_by(sort)#.annotate(vesting_users=Count('users', 
+    #    distinct=True), last_active=Max('users__last_login', distinct=True), 
+    #    created_date=Min('users__date_joined', distinct=True), vested_links=Count('link', distinct=True))
     
-    users_count = vesting_orgs.aggregate(count=Sum('vesting_users'))
+    composite_vesting_orgs = []
+
+    users_count = 0
+
+    for vo in vesting_orgs:
+        vesting_users = LinkUser.objects.filter(vesting_org=vo).count()
+        users_count+=vesting_users
+        composite_vesting_org = {
+            'id': vo.id,
+            'name': vo.name,
+            'vesting_users': vesting_users,
+            'last_active': LinkUser.objects.filter(vesting_org=vo).aggregate(Max('last_login')).get('last_login__max'),
+            'date_created': LinkUser.objects.filter(vesting_org=vo).aggregate(Min('date_joined')).get('date_joined__min'),
+            'vested_links': Link.objects.filter(vesting_org=vo).count()}
+
+        composite_vesting_orgs.append(composite_vesting_org)
+
+    #users_count = vesting_orgs.aggregate(count=Sum('vesting_users'))
     
     #active_users = LinkUser.objects.all().filter(is_active=True, is_confirmed=True, vesting_org__in=vesting_orgs).count()
     #deactivated_users = LinkUser.objects.all().filter(is_confirmed=True, is_active=False, vesting_org__in=vesting_orgs).count()
     #unactivated_users = LinkUser.objects.all().filter(is_confirmed=False, is_active=False, vesting_org__in=vesting_orgs).count()
         
-    vesting_orgs_count = vesting_orgs.count()
+
     paginator = Paginator(vesting_orgs, settings.MAX_USER_LIST_SIZE)
     vesting_orgs = paginator.page(page)
 
-    context = {'vesting_orgs': vesting_orgs,
+    context = {'vesting_orgs': composite_vesting_orgs,
         'this_page': 'users_vesting_orgs',
-        'search_query':search_query, 'users_count': users_count, 'vesting_orgs_count': vesting_orgs_count, 'registrars': registrars, 'registrar_filter': registrar_filter, 'sort': sort}
+        'search_query':search_query,
+
+        'users_count': users_count,
+
+
+        'registrars': registrars, 'registrar_filter': registrar_filter, 
+        'sort': sort}
 
     if request.method == 'POST':
 
@@ -375,13 +400,13 @@ def list_users_in_group(request, group_name):
             users = LinkUser.objects.filter(registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links_count=Count('vested_links', distinct=True))
         is_registrar = True
     elif request.user.is_vesting_org_member():
-        users = LinkUser.objects.filter(vesting_org=request.user.vesting_org).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links_count=Count('vested_links', distinct=True))
+        users = LinkUser.objects.filter(vesting_org__in=request.user.vesting_org.all()).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links_count=Count('vested_links', distinct=True))
 
     # apply group filter
     if group_name == 'registrar_user':
         users = users.exclude(registrar_id=None)
     elif group_name == 'vesting_user':
-        users = users.exclude(vesting_org_id=None)
+        users = users.exclude(vesting_org=None)
     elif group_name == 'user':
         users = users.filter(registrar_id=None, vesting_org_id=None, is_staff=False)
     else:
@@ -589,9 +614,9 @@ def vesting_user_add_user(request):
     
             if request.user.is_registrar_member():
                 vesting_org = form.cleaned_data['vesting_org']
-                target_user.vesting_org = vesting_org
+                target_user.vesting_org.add(vesting_org)
             else:
-                target_user.vesting_org = request.user.vesting_org
+                target_user.vesting_org.add(request.user.vesting_org.all()[0])
     
             if is_new_user:
                 target_user.is_active = False
