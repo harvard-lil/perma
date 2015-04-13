@@ -17,9 +17,9 @@ Werkzeug==0.9.4
 Fabric==1.8.2
 pexpect==3.1
 coverage==3.7.1
-selenium==2.41.0
+selenium==2.45.0
 jsmin==2.0.9
-django-pipeline==1.3.23         # manages our css and js assets
+django-pipeline==1.4.7          # manages our css and js assets
 django-pipeline-compass==0.1.5  # lets us compile .scss to .css
 tempdir==0.6                    # create temp dirs to be deleted at end of function -- handy for archive creation
 netaddr==0.7.12                 # to check archive IPs against banned ranges
