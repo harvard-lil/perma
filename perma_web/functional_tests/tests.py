@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import socket
 import StringIO
 import imghdr
 import os
@@ -10,8 +11,11 @@ from selenium.common.exceptions import ElementNotVisibleException, NoSuchElement
 import time
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
+SERVER_DOMAIN = 'perma.dev'
 RUN_LOCAL = os.environ.get('RUN_TESTS_LOCAL') == 'True'
 
+
+assert socket.gethostbyname(SERVER_DOMAIN) in ('0.0.0.0', '127.0.0.1'), "Please add `127.0.0.1 " + SERVER_DOMAIN + "` to your hosts file before running this test."
 
 # set up browsers
 if RUN_LOCAL:
@@ -73,11 +77,14 @@ def on_platforms(platforms, local):
 
 # via: https://github.com/Victory/django-travis-saucelabs/blob/master/mysite/saucetests/tests.py
 @on_platforms(browsers, RUN_LOCAL)
-class PermaTest(StaticLiveServerTestCase):
-    fixtures = ['fixtures/users.json',
+class FunctionalTest(StaticLiveServerTestCase):
+    fixtures = ['fixtures/sites.json',
+                'fixtures/users.json',
                 'fixtures/folders.json']
 
     def setUp(self):
+        self.server_thread.host = SERVER_DOMAIN
+
         if RUN_LOCAL:
             self.setUpLocal()
         else:
