@@ -2,74 +2,91 @@ from __future__ import print_function
 
 import StringIO
 import imghdr
-import new
 import os
-import unittest
 import requests
-from sauceclient import SauceClient
 import sys
 from selenium import webdriver
 from selenium.common.exceptions import ElementNotVisibleException, NoSuchElementException
 import time
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
-
-# get settings
-SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
-HOST = os.environ.get('HOST', 'http://127.0.0.1:8000')
-USERNAME = os.environ.get('SAUCE_USERNAME')
-ACCESS_KEY = os.environ.get('SAUCE_ACCESS_KEY')
-assert USERNAME and ACCESS_KEY, "Please make sure that SAUCE_USERNAME and SAUCE_ACCESS_KEY are set."
-
-# base setup
-sauce = SauceClient(USERNAME, ACCESS_KEY)
-os.chdir(SCRIPT_DIR)
+RUN_LOCAL = os.environ.get('RUN_TESTS_LOCAL') == 'True'
 
 
 # set up browsers
-# options: https://saucelabs.com/platforms
-browsers = [
-    {"platform": "Mac OS X 10.9",
-    "browserName": "chrome",
-    "version": "31"},
+if RUN_LOCAL:
+    browsers = ['Firefox']
+else:
+    from sauceclient import SauceClient
+    USERNAME = os.environ.get('SAUCE_USERNAME')
+    ACCESS_KEY = os.environ.get('SAUCE_ACCESS_KEY')
+    assert USERNAME and ACCESS_KEY, "Please make sure that SAUCE_USERNAME and SAUCE_ACCESS_KEY are set."
+    sauce = SauceClient(USERNAME, ACCESS_KEY)
+    
+    # options: https://saucelabs.com/platforms
+    browsers = [
+        {"platform": "Mac OS X 10.9",
+        "browserName": "chrome",
+        "version": "31"},
 
-    {"platform": "Windows 8.1",
-    "browserName": "internet explorer",
-    "version": "11"},
+        {"platform": "Windows 8.1",
+        "browserName": "internet explorer",
+        "version": "11"},
 
-    {"platform": "Windows 7",
-    "browserName": "firefox",
-    "version": "30"},
+        {"platform": "Windows 7",
+        "browserName": "firefox",
+        "version": "30"},
 
-    {"platform": "Windows XP",
-    "browserName": "internet explorer",
-    "version": "8"},
+        {"platform": "Windows XP",
+        "browserName": "internet explorer",
+        "version": "8"},
 
-    {"platform": "OS X 10.9",
-    "browserName": "iPhone",
-    "version": "7.1",
-    "device-orientation": "portrait",
-    "nonSyntheticWebClick": False},
-]
+        {"platform": "OS X 10.9",
+        "browserName": "iPhone",
+        "version": "7.1",
+        "device-orientation": "portrait",
+        "nonSyntheticWebClick": False},
+    ]
 
 ## helpers
-def on_platforms(platforms):
-    """
-        Run given unit test in each platform (browser) provided.
-        Via http://saucelabs.com/examples/example.py
-    """
+def on_platforms(platforms, local):
+    if local:
+        def decorator(base_class):
+            module = sys.modules[base_class.__module__].__dict__
+            for i, platform in enumerate(platforms):
+                d = dict(base_class.__dict__)
+                d['browser'] = platform
+                name = "%s_%s" % (base_class.__name__, i + 1)
+                module[name] = type(name, (base_class,), d)
+            pass
+        return decorator
+
     def decorator(base_class):
         module = sys.modules[base_class.__module__].__dict__
         for i, platform in enumerate(platforms):
             d = dict(base_class.__dict__)
             d['desired_capabilities'] = platform
-            name = "%s_%s_%s" % (platform['platform'], platform['browserName'], platform['version'])
-            module[name] = new.classobj(name, (base_class,), d)
+            name = "%s_%s" % (base_class.__name__, i + 1)
+            module[name] = type(name, (base_class,), d)
     return decorator
 
 
-@on_platforms(browsers)
-class PermaTest(unittest.TestCase):
+@on_platforms(browsers, RUN_LOCAL)
+class PermaTest(StaticLiveServerTestCase):
+
     def setUp(self):
+        if RUN_LOCAL:
+            self.setUpLocal()
+        else:
+            self.setUpSauce()
+
+    def tearDown(self):
+        if RUN_LOCAL:
+            self.tearDownLocal()
+        else:
+            self.tearDownSauce()
+
+    def setUpSauce(self):
         self.desired_capabilities['name'] = self.id()
 
         sauce_url = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
@@ -79,13 +96,31 @@ class PermaTest(unittest.TestCase):
         )
         self.driver.implicitly_wait(30)
 
-    def test_all(self):
-        # get host
-        host = HOST
-        if not host.startswith('http'):
-            host = "http://"+host
+        sauce_url = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
+        self.driver = webdriver.Remote(
+            desired_capabilities=self.desired_capabilities,
+            command_executor=sauce_url % (USERNAME, ACCESS_KEY)
+        )
+        self.driver.implicitly_wait(5)
 
-        self.driver.implicitly_wait(10)
+    def setUpLocal(self):
+        self.driver = getattr(webdriver, self.browser)()
+        self.driver.implicitly_wait(3)
+
+    def tearDownLocal(self):
+        self.driver.quit()
+
+    def tearDownSauce(self):
+        print("Link to your job: https://saucelabs.com/jobs/%s" % self.driver.session_id)
+        try:
+            if sys.exc_info() == (None, None, None):
+                sauce.jobs.update_job(self.driver.session_id, passed=True)
+            else:
+                sauce.jobs.update_job(self.driver.session_id, passed=False)
+        finally:
+            self.driver.quit()
+
+    def test_all(self):
 
         # helpers
         def click_link(link_text):
@@ -116,11 +151,20 @@ class PermaTest(unittest.TestCase):
             return element.is_displayed()
 
         def info(*args):
+            if RUN_LOCAL:
+                infoLocal(*args)
+            else:
+                infoSauce(*args)
+
+        def infoSauce(*args):
             print("%s %s %s:" % (
                 self.desired_capabilities['platform'],
                 self.desired_capabilities['browserName'],
                 self.desired_capabilities['version'],
             ), *args)
+
+        def infoLocal(*args):
+            print(*args)
 
         def repeat_while_exception(func, exception=Exception, timeout=10, sleep_time=.1):
             end_time = time.time()+timeout
@@ -133,8 +177,8 @@ class PermaTest(unittest.TestCase):
                     time.sleep(sleep_time)
 
 
-        info("Loading homepage from %s." % host)
-        self.driver.get(host)
+        info("Loading homepage from %s." % self.live_server_url)
+        self.driver.get(self.live_server_url)
         assert is_displayed(get_element_with_text("Websites Change"))
 
         info("Checking Perma In Action section.")
@@ -175,18 +219,3 @@ class PermaTest(unittest.TestCase):
         warc_url = self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src')
         self.driver.get(warc_url)
         assert is_displayed(get_element_with_text('This domain is established to be used for illustrative examples', 'p'))
-
-    def tearDown(self):
-        print("Link to your job: https://saucelabs.com/jobs/%s" % self.driver.session_id)
-        try:
-            if sys.exc_info() == (None, None, None):
-                sauce.jobs.update_job(self.driver.session_id, passed=True)
-            else:
-                sauce.jobs.update_job(self.driver.session_id, passed=False)
-        finally:
-            self.driver.quit()
-
-
-
-if __name__ == '__main__':
-    unittest.main()
