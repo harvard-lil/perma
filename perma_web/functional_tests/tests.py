@@ -73,6 +73,8 @@ def on_platforms(platforms, local):
 
 @on_platforms(browsers, RUN_LOCAL)
 class PermaTest(StaticLiveServerTestCase):
+    fixtures = ['fixtures/users.json',
+                'fixtures/folders.json']
 
     def setUp(self):
         if RUN_LOCAL:
