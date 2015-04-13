@@ -1,5 +1,5 @@
 {% extends "base-archive-responsive.html" %}
-{% load is_darchive local_datetime mirror_tags count_archives compressed as_json %}
+{% load is_darchive local_datetime mirror_tags count_archives pipeline as_json %}
 {% block title %} | {{archive.submitted_title}}{% endblock %}
 {% block meta-head %}
 <meta name="robots" content="noindex, noarchive, noodp, noimageindex">
