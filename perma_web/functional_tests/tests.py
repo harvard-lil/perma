@@ -71,6 +71,7 @@ def on_platforms(platforms, local):
     return decorator
 
 
+# via: https://github.com/Victory/django-travis-saucelabs/blob/master/mysite/saucetests/tests.py
 @on_platforms(browsers, RUN_LOCAL)
 class PermaTest(StaticLiveServerTestCase):
     fixtures = ['fixtures/users.json',
