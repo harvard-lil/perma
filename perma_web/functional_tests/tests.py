@@ -10,6 +10,7 @@ from selenium import webdriver
 from selenium.common.exceptions import ElementNotVisibleException, NoSuchElementException
 import time
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from perma.wsgi import application as wsgi_app
 
 SERVER_DOMAIN = 'perma.dev'
 RUN_LOCAL = os.environ.get('RUN_TESTS_LOCAL') == 'True'
@@ -83,6 +84,9 @@ class FunctionalTest(StaticLiveServerTestCase):
                 'fixtures/folders.json']
 
     def setUp(self):
+        # By default, the test server only mounts the django app,
+        # which will leave out the warc app, so mount them both here
+        self.server_thread.httpd.set_app(self.server_thread.static_handler(wsgi_app))
         self.server_thread.host = SERVER_DOMAIN
 
         if RUN_LOCAL:
