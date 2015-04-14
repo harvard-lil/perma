@@ -217,7 +217,7 @@ class FunctionalTest(StaticLiveServerTestCase):
         url_input.click()
         url_input.send_keys("example.com")
         get_id('addlink').click() # submit
-        thumbnail = repeat_while_exception(lambda: get_css_selector(".library-thumbnail img"), NoSuchElementException)
+        thumbnail = repeat_while_exception(lambda: get_css_selector(".library-thumbnail img"), NoSuchElementException, timeout=15)
         thumbnail_data = requests.get(thumbnail.get_attribute('src'))
         thumbnail_fh = StringIO.StringIO(thumbnail_data.content)
         assert imghdr.what(thumbnail_fh) == 'png'
