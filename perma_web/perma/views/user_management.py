@@ -594,6 +594,9 @@ def vesting_user_add_user(request):
         cannot_add = False
         if request.user.is_registrar_member():
             form = CreateUserFormWithVestingOrg(form_data, prefix = "a", initial={'email': user_email}, registrar_id=request.user.registrar_id)
+        elif request.user.is_vesting_org_member():
+            form = CreateUserFormWithVestingOrg(form_data, prefix = "a", initial={'email': user_email}, vesting_org_member_id=request.user.pk)
+
         else:
             form = CreateUserForm(form_data, prefix = "a", initial={'email': user_email})
     else:
@@ -606,18 +609,13 @@ def vesting_user_add_user(request):
             
     context = {'this_page': 'users_vesting_users', 'user_email': user_email, 'form': form, 'target_user': target_user, 'cannot_add': cannot_add}
 
-    if request.method == 'POST': 
+    if request.method == 'POST':
         if ((form and form.is_valid()) or form == None) and not cannot_add:
             if target_user == None:
+
                 target_user = form.save()
                 is_new_user = True
-    
-            if request.user.is_registrar_member():
-                vesting_org = form.cleaned_data['vesting_org']
-                target_user.vesting_org.add(vesting_org)
-            else:
-                target_user.vesting_org.add(request.user.vesting_org.all()[0])
-    
+        
             if is_new_user:
                 target_user.is_active = False
                 email_new_user(request, target_user)
@@ -627,6 +625,16 @@ def vesting_user_add_user(request):
                 messages.add_message(request, messages.INFO, '<h4>Success!</h4> <strong>%s</strong> is now a vesting user.' % target_user.email, extra_tags='safe')
             
             target_user.save()
+
+            if request.user.is_registrar_member():
+                vesting_org = form.cleaned_data['vesting_org']
+                for vo in vesting_org:
+                    target_user.vesting_org.add(vo)
+
+            else:
+                target_user.vesting_org.add(request.user.vesting_org.all()[0])
+
+
 
             return HttpResponseRedirect(reverse('user_management_manage_vesting_user'))
 
