@@ -534,8 +534,6 @@ def edit_user_in_group(request, user_id, group_name):
 
     # Registrar members can only edit their own vesting members
     if not is_staff:
-        if group_name == 'vesting_user' and request.user.registrar != target_user.vesting_org.registrar:
-            raise Http404
         if group_name == 'registrar_user' or group_name == 'user' or group_name == 'registry_user':
             raise Http404
 
@@ -752,7 +750,13 @@ def manage_single_vesting_user_remove(request, user_id):
 
     # Vesting managers can only edit their own vesting members
     if request.user.is_registrar_member():
-        if request.user.registrar != target_member.vesting_org.registrar:
+        registar_is_member = False
+
+        for vo in target_member.vesting_org.all():
+            if vo.registrar == request.user.registrar:
+                registar_is_member = True
+
+        if not registar_is_member:
             raise Http404
     else:
         if request.user.vesting_org != target_member.vesting_org:
@@ -762,7 +766,7 @@ def manage_single_vesting_user_remove(request, user_id):
                'this_page': 'users_vesting_user'}
 
     if request.method == 'POST':
-        target_member.vesting_org = None
+        target_member.vesting_org.remove()
         target_member.save()
 
         return HttpResponseRedirect(reverse('user_management_manage_vesting_user'))

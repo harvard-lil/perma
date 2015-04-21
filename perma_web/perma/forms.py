@@ -166,7 +166,7 @@ class VestingMemberWithVestingOrgFormEdit(forms.ModelForm):
         model = LinkUser
         fields = ["vesting_org"]
 
-    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
+    vesting_org = forms.ModelMultipleChoiceField(queryset=VestingOrg.objects.all().order_by('name'),label="Vesting organization")
     
         
 class VestingMemberWithGroupFormEdit(UserFormEdit):
