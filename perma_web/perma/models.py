@@ -135,13 +135,13 @@ class LinkUserManager(BaseUserManager):
         """
         Creates and saves a User with the given email, registrar and password.
         """
+
         if not email:
             raise ValueError('Users must have an email address')
 
         user = self.model(
             email=self.normalize_email(email),
             registrar=registrar,
-            vesting_org=vesting_org,
             date_joined = date_joined,
             first_name = first_name,
             last_name = last_name,
@@ -150,6 +150,9 @@ class LinkUserManager(BaseUserManager):
         )
 
         user.set_password(password)
+        user.save()
+
+        user.vesting_org.add(vesting_org)
         user.save()
 
         user.create_root_folder()
