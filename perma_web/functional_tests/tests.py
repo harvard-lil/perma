@@ -11,6 +11,7 @@ from selenium.common.exceptions import ElementNotVisibleException, NoSuchElement
 import time
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from perma.wsgi import application as wsgi_app
+from perma.settings import SAUCE_USERNAME, SAUCE_ACCESS_KEY
 
 SERVER_DOMAIN = 'perma.dev'
 RUN_LOCAL = os.environ.get('RUN_TESTS_LOCAL') == 'True'
@@ -23,10 +24,8 @@ if RUN_LOCAL:
     browsers = ['Firefox']
 else:
     from sauceclient import SauceClient
-    USERNAME = os.environ.get('SAUCE_USERNAME')
-    ACCESS_KEY = os.environ.get('SAUCE_ACCESS_KEY')
-    assert USERNAME and ACCESS_KEY, "Please make sure that SAUCE_USERNAME and SAUCE_ACCESS_KEY are set."
-    sauce = SauceClient(USERNAME, ACCESS_KEY)
+    assert SAUCE_USERNAME and SAUCE_ACCESS_KEY, "Please make sure that SAUCE_USERNAME and SAUCE_ACCESS_KEY are set."
+    sauce = SauceClient(SAUCE_USERNAME, SAUCE_ACCESS_KEY)
     
     # options: https://saucelabs.com/platforms
     browsers = [
@@ -106,14 +105,7 @@ class FunctionalTest(StaticLiveServerTestCase):
         sauce_url = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
         self.driver = webdriver.Remote(
             desired_capabilities=self.desired_capabilities,
-            command_executor=sauce_url % (USERNAME, ACCESS_KEY)
-        )
-        self.driver.implicitly_wait(30)
-
-        sauce_url = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
-        self.driver = webdriver.Remote(
-            desired_capabilities=self.desired_capabilities,
-            command_executor=sauce_url % (USERNAME, ACCESS_KEY)
+            command_executor=sauce_url % (SAUCE_USERNAME, SAUCE_ACCESS_KEY)
         )
         self.driver.implicitly_wait(5)
 

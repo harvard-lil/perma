@@ -1,6 +1,7 @@
 # Travis is our continuous integration test server.
 # This file gets copied by .travis.yml to perma_web/perma/settings/
 
+import os
 from .deployments.settings_dev import *
 
 DEBUG = False
@@ -19,3 +20,6 @@ HOST = 'perma.cc'
 
 # Where we store our generated assets (phantomjs images)
 MEDIA_ROOT = '/tmp/perma/assets'
+
+SAUCE_USERNAME = os.environ.get('SAUCE_USERNAME')
+SAUCE_ACCESS_KEY = os.environ.get('SAUCE_USERNAME')
