@@ -267,7 +267,6 @@ class ApiResourceTestCase(ResourceTestCase):
         if check_results:
         # Fetch the existing data for comparison.
             resp = self.api_client.get(url, **req_kwargs)
-            can_get = True
             self.assertHttpOK(resp)
             self.assertValidJSONResponse(resp)
             old_data = self.deserialize(resp)

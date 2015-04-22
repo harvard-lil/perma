@@ -6,7 +6,6 @@ import tempfile
 from django.utils.crypto import get_random_string
 from fabric.api import *
 import subprocess
-from perma.models import Registrar, Link
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'perma.settings')
 from django.conf import settings

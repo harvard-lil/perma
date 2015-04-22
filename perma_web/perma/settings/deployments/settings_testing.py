@@ -20,7 +20,7 @@ FIXTURE_DIRS = (
 # Overrides #
 #############
 
-# Because LiveServerTestCase runs with DEBUG = True
+# Because LiveServerTestCase runs with DEBUG = False
 # and some of the mirroring logic depends on that,
 # let's add a reliable flag we can use
 TESTING = True
