@@ -481,6 +481,7 @@ DIRECT_WARC_HOST = None     # host to load warc from this server in particular -
 # The prod and dev configs are considerably different. See those configs for details.
 THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.wand_engine.Engine'
 THUMBNAIL_FORMAT = 'PNG'
+THUMBNAIL_COLORSPACE = None
 
 # feature flags
 SINGLE_LINK_HEADER_TEST = False
