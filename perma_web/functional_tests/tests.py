@@ -204,9 +204,10 @@ class FunctionalTest(StaticLiveServerTestCase):
         assert is_displayed(get_element_with_text('Create a Perma archive', 'h3')) # wait for load
 
         info("Creating archive.")
+        url_to_capture = 'example.com'
         url_input = get_id('rawUrl') # type url
         url_input.click()
-        url_input.send_keys("example.com")
+        url_input.send_keys(url_to_capture)
         get_id('addlink').click() # submit
         thumbnail = repeat_while_exception(lambda: get_css_selector(".library-thumbnail img"), NoSuchElementException, timeout=15)
         thumbnail_data = requests.get(thumbnail.get_attribute('src'))
@@ -224,3 +225,13 @@ class FunctionalTest(StaticLiveServerTestCase):
         warc_url = self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src')
         self.driver.get(warc_url)
         assert is_displayed(get_element_with_text('This domain is established to be used for illustrative examples', 'p'))
+
+        # Timemap
+        self.driver.get(self.live_server_url + '/warc/pywb/*/' + url_to_capture)
+        assert is_displayed(get_element_with_text('1', 'b')) # the number of captures
+        assert is_displayed(get_element_with_text('http://' + url_to_capture, 'b'))
+
+        # Displays playback by timestamp
+        get_xpath("//a").click()
+        assert is_displayed(get_element_with_text('This domain is established to be used for illustrative examples', 'p'))
+        playback_url = self.driver.current_url
