@@ -11,16 +11,15 @@ from selenium.common.exceptions import ElementNotVisibleException, NoSuchElement
 import time
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from perma.wsgi import application as wsgi_app
-from perma.settings import SAUCE_USERNAME, SAUCE_ACCESS_KEY
+from perma.settings import SAUCE_USERNAME, SAUCE_ACCESS_KEY, RUN_FUNCTIONAL_LOCALLY
 
 SERVER_DOMAIN = 'perma.dev'
-RUN_LOCAL = os.environ.get('RUN_TESTS_LOCAL') == 'True'
 
 
 assert socket.gethostbyname(SERVER_DOMAIN) in ('0.0.0.0', '127.0.0.1'), "Please add `127.0.0.1 " + SERVER_DOMAIN + "` to your hosts file before running this test."
 
 # set up browsers
-if RUN_LOCAL:
+if RUN_FUNCTIONAL_LOCALLY:
     browsers = ['Firefox']
 else:
     from sauceclient import SauceClient
@@ -76,7 +75,7 @@ def on_platforms(platforms, local):
 
 
 # via: https://github.com/Victory/django-travis-saucelabs/blob/master/mysite/saucetests/tests.py
-@on_platforms(browsers, RUN_LOCAL)
+@on_platforms(browsers, RUN_FUNCTIONAL_LOCALLY)
 class FunctionalTest(StaticLiveServerTestCase):
     fixtures = ['fixtures/sites.json',
                 'fixtures/users.json',
@@ -88,13 +87,13 @@ class FunctionalTest(StaticLiveServerTestCase):
         self.server_thread.httpd.set_app(self.server_thread.static_handler(wsgi_app))
         self.server_thread.host = SERVER_DOMAIN
 
-        if RUN_LOCAL:
+        if RUN_FUNCTIONAL_LOCALLY:
             self.setUpLocal()
         else:
             self.setUpSauce()
 
     def tearDown(self):
-        if RUN_LOCAL:
+        if RUN_FUNCTIONAL_LOCALLY:
             self.tearDownLocal()
         else:
             self.tearDownSauce()
@@ -157,7 +156,7 @@ class FunctionalTest(StaticLiveServerTestCase):
             return element.is_displayed()
 
         def info(*args):
-            if RUN_LOCAL:
+            if RUN_FUNCTIONAL_LOCALLY:
                 infoLocal(*args)
             else:
                 infoSauce(*args)

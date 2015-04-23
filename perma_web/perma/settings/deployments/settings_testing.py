@@ -1,3 +1,4 @@
+import os
 from settings_dev import PROJECT_ROOT
 
 #########
@@ -7,6 +8,8 @@ from settings_dev import PROJECT_ROOT
 FIXTURE_DIRS = (
     PROJECT_ROOT,
 )
+
+RUN_FUNCTIONAL_LOCALLY = os.environ.get('RUN_FUNCTIONAL_LOCALLY', 'True') == 'True'
 
 # Uncomment to enable Nose as your test runner
 # from settings_dev import INSTALLED_APPS
