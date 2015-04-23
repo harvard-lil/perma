@@ -9,7 +9,8 @@ FIXTURE_DIRS = (
     PROJECT_ROOT,
 )
 
-RUN_FUNCTIONAL_LOCALLY = os.environ.get('RUN_FUNCTIONAL_LOCALLY', 'True') == 'True'
+# Default to local functional tests
+USE_SAUCE = os.environ.get('USE_SAUCE', 'False') == 'True'
 
 # Uncomment to enable Nose as your test runner
 # from settings_dev import INSTALLED_APPS

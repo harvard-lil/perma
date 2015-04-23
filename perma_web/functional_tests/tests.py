@@ -3,7 +3,6 @@ from __future__ import print_function
 import socket
 import StringIO
 import imghdr
-import os
 import requests
 import sys
 from selenium import webdriver
@@ -11,7 +10,7 @@ from selenium.common.exceptions import ElementNotVisibleException, NoSuchElement
 import time
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from perma.wsgi import application as wsgi_app
-from perma.settings import SAUCE_USERNAME, SAUCE_ACCESS_KEY, RUN_FUNCTIONAL_LOCALLY
+from perma.settings import SAUCE_USERNAME, SAUCE_ACCESS_KEY, USE_SAUCE
 
 SERVER_DOMAIN = 'perma.dev'
 
@@ -19,7 +18,7 @@ SERVER_DOMAIN = 'perma.dev'
 assert socket.gethostbyname(SERVER_DOMAIN) in ('0.0.0.0', '127.0.0.1'), "Please add `127.0.0.1 " + SERVER_DOMAIN + "` to your hosts file before running this test."
 
 # set up browsers
-if RUN_FUNCTIONAL_LOCALLY:
+if not USE_SAUCE:
     browsers = ['Firefox']
 else:
     from sauceclient import SauceClient
@@ -52,30 +51,30 @@ else:
     ]
 
 ## helpers
-def on_platforms(platforms, local):
-    if local:
+def on_platforms(platforms, use_sauce):
+    if use_sauce:
         def decorator(base_class):
             module = sys.modules[base_class.__module__].__dict__
             for i, platform in enumerate(platforms):
                 d = dict(base_class.__dict__)
-                d['browser'] = platform
+                d['desired_capabilities'] = platform
                 name = "%s_%s" % (base_class.__name__, i + 1)
                 module[name] = type(name, (base_class,), d)
-            pass
         return decorator
 
     def decorator(base_class):
         module = sys.modules[base_class.__module__].__dict__
         for i, platform in enumerate(platforms):
             d = dict(base_class.__dict__)
-            d['desired_capabilities'] = platform
+            d['browser'] = platform
             name = "%s_%s" % (base_class.__name__, i + 1)
             module[name] = type(name, (base_class,), d)
+        pass
     return decorator
 
 
 # via: https://github.com/Victory/django-travis-saucelabs/blob/master/mysite/saucetests/tests.py
-@on_platforms(browsers, RUN_FUNCTIONAL_LOCALLY)
+@on_platforms(browsers, USE_SAUCE)
 class FunctionalTest(StaticLiveServerTestCase):
     fixtures = ['fixtures/sites.json',
                 'fixtures/users.json',
@@ -87,16 +86,16 @@ class FunctionalTest(StaticLiveServerTestCase):
         self.server_thread.httpd.set_app(self.server_thread.static_handler(wsgi_app))
         self.server_thread.host = SERVER_DOMAIN
 
-        if RUN_FUNCTIONAL_LOCALLY:
-            self.setUpLocal()
-        else:
+        if USE_SAUCE:
             self.setUpSauce()
+        else:
+            self.setUpLocal()
 
     def tearDown(self):
-        if RUN_FUNCTIONAL_LOCALLY:
-            self.tearDownLocal()
-        else:
+        if USE_SAUCE:
             self.tearDownSauce()
+        else:
+            self.tearDownLocal()
 
     def setUpSauce(self):
         self.desired_capabilities['name'] = self.id()
@@ -156,10 +155,10 @@ class FunctionalTest(StaticLiveServerTestCase):
             return element.is_displayed()
 
         def info(*args):
-            if RUN_FUNCTIONAL_LOCALLY:
-                infoLocal(*args)
-            else:
+            if USE_SAUCE:
                 infoSauce(*args)
+            else:
+                infoLocal(*args)
 
         def infoSauce(*args):
             print("%s %s %s:" % (
