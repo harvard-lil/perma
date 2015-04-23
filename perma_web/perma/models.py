@@ -593,7 +593,7 @@ class Asset(models.Model):
     integrity_check_succeeded = models.NullBooleanField(blank=True, null=True)      # whether the last integrity check succeeded
 
     # what info to send downstream
-    mirror_fields = ('link', 'base_storage_path', 'image_capture', 'warc_capture', 'pdf_capture', 'text_capture')
+    mirror_fields = ('link', 'base_storage_path', 'image_capture', 'warc_capture', 'pdf_capture', 'text_capture', 'favicon')
 
     tracker = FieldTracker()
 
@@ -604,6 +604,9 @@ class Asset(models.Model):
 
     def base_url(self, extra=u""):
         return "%s/%s" % (self.base_storage_path, extra)
+
+    def favicon_url(self):
+        return self.base_url(self.favicon)
 
     def image_url(self):
         return self.base_url(self.image_capture)

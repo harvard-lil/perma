@@ -122,6 +122,9 @@
 
         <div class="row link-row" link_id="{{guid}}">
             <div class="col-sm-6">
+                {{#if favicon_url}}
+                    <img src="{{ favicon_url }}" width="16" height="16">
+                {{/if}}
                 <a href="{{local_url}}" target="_blank">{{local_url}}</a><br/>
                 <a href="{{url}}" target="_blank" class="original-link">
                     {{truncatechars url 200}}

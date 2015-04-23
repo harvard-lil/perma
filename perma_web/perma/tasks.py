@@ -165,7 +165,7 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
     # Set up an exception we can trigger to halt capture and release all the resources involved.
     class HaltCaptureException(Exception):
         pass
-    meta_thread = browser = robots_txt_thread = warcprox_controller = warcprox_thread = None
+    meta_thread = browser = robots_txt_thread = warcprox_controller = warcprox_thread = favicon_thread = None
     have_warc = False
 
     try:
@@ -203,6 +203,15 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
             raise self.retry(exc=Exception("WarcProx couldn't find an open port."))
         proxy_address = "127.0.0.1:%s" % warcprox_port
 
+        # set up requests getter for one-off requests outside of selenium
+        parsed_target_url = urlparse.urlparse(target_url)
+        target_url_base = parsed_target_url.scheme + '://' + parsed_target_url.netloc + '/'
+        def proxied_get_request(url):
+            return requests.get(url,
+                                headers={'User-Agent': user_agent},
+                                proxies={parsed_target_url.scheme: 'http://' + proxy_address},
+                                cert=fake_cert_authority.ca_file)
+
         # start warcprox in the background
         warc_writer = warcprox.WarcWriterThread(recorded_url_q=recorded_url_queue, gzip=True, port=warcprox_port)
         warcprox_controller = warcprox.WarcproxController(proxy, warc_writer)
@@ -213,16 +222,13 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
 
         # fetch robots.txt in the background
         def robots_txt_thread():
-            # print "Fetching robots.txt ..."
-            parsed_url = urlparse.urlparse(target_url)
-            robots_txt_location = parsed_url.scheme + '://' + parsed_url.netloc + '/robots.txt'
+            #print "Fetching robots.txt ..."
+            robots_txt_location = target_url_base + 'robots.txt'
             try:
-                robots_txt_response = requests.get(robots_txt_location,
-                                                   headers={'User-Agent': user_agent},
-                                                   proxies={parsed_url.scheme:'http://'+proxy_address},
-                                                   cert=fake_cert_authority.ca_file)
-            except (requests.ConnectionError, requests.Timeout):
-                # print "Couldn't reach robots.txt"
+                robots_txt_response = proxied_get_request(robots_txt_location)
+                assert robots_txt_response.ok
+            except (requests.ConnectionError, requests.Timeout, AssertionError):
+                #print "Couldn't reach robots.txt"
                 return
 
             # We only want to respect robots.txt if Perma is specifically asked not to archive (we're not a crawler)
@@ -237,7 +243,6 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
         robots_txt_thread.start()
 
         # fetch page in the background
-        # (we'll give
         # print "Fetching url."
         browser = get_browser(user_agent, proxy_address, fake_cert_authority.ca_file)
         browser.set_window_size(1024, 800)
@@ -251,6 +256,35 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
                 save_fields(asset, warc_capture='failed', image_capture='failed')
                 raise HaltCaptureException
         # print "Finished fetching url."
+
+        # get favicon
+        favicons = browser.find_elements_by_xpath('//link[@rel="icon" or @rel="shortcut icon"]')
+        favicons = [i for i in favicons if i.get_attribute('href')]
+        if favicons:
+            favicon_url = urlparse.urljoin(browser.current_url, favicons[0].get_attribute('href'))
+            favicon_extension = favicon_url.rsplit('.',1)[-1]
+            if not favicon_extension in ['ico', 'gif', 'jpg', 'jpeg', 'png']:
+                favicon_url = None
+        else:
+            favicon_url = urlparse.urljoin(browser.current_url, '/favicon.ico')
+        if favicon_url:
+            # try to fetch favicon in background
+            def favicon_thread():
+                # print "Fetching favicon from %s ..." % favicon_url
+                try:
+                    favicon_response = proxied_get_request(favicon_url)
+                    assert favicon_response.ok
+                except (requests.ConnectionError, requests.Timeout, AssertionError):
+                    # print "Couldn't get favicon"
+                    return
+                favicon_file = favicon_url.rsplit('/',1)[-1]
+                default_storage.store_data_to_file(favicon_response.content,
+                                                   os.path.join(base_storage_path, favicon_file),
+                                                   overwrite=True)
+                save_fields(asset, favicon=favicon_file)
+                print "Saved favicon as %s" % favicon_file
+            favicon_thread = threading.Thread(target=favicon_thread, name="favicon")
+            favicon_thread.start()
 
         # get page title
         # print "Getting title."
@@ -343,6 +377,8 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
             meta_thread.join()  # wait until meta thread is done
         if robots_txt_thread:
             robots_txt_thread.join()  # wait until robots thread is done
+        if favicon_thread:
+            favicon_thread.join()  # wait until favicon thread is done
         if warcprox_controller:
             warcprox_controller.stop.set()  # send signal to shut down warc thread
         if warcprox_thread:
