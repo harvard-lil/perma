@@ -168,6 +168,27 @@ class VestingMemberWithVestingOrgFormEdit(forms.ModelForm):
 
     vesting_org = forms.ModelMultipleChoiceField(queryset=VestingOrg.objects.all().order_by('name'),label="Vesting organization")
     
+
+class VestingMemberWithVestingOrgAsVestingMemberFormEdit(forms.ModelForm):
+    """
+    TODO: this form has a gross name. rename it.
+    """
+    
+    def __init__(self, *args, **kwargs):
+        vesting_user_id = False
+        if 'vesting_user_id' in kwargs:
+            vesting_user_id = kwargs.pop('vesting_user_id')
+        super(VestingMemberWithVestingOrgAsVestingMemberFormEdit, self).__init__(*args, **kwargs)
+        if vesting_user_id:
+            editing_user = LinkUser.objects.get(pk=vesting_user_id)
+            self.fields['vesting_org'].queryset = editing_user.vesting_org.all().order_by('name')
+
+    class Meta:
+        model = LinkUser
+        fields = ["vesting_org"]
+
+    vesting_org = forms.ModelMultipleChoiceField(queryset=VestingOrg.objects.all().order_by('name'),label="Vesting organization", required=False,)
+
         
 class VestingMemberWithGroupFormEdit(UserFormEdit):
     """
@@ -189,7 +210,7 @@ class VestingMemberWithGroupFormEdit(UserFormEdit):
         model = LinkUser
         fields = ("first_name", "last_name", "email", "vesting_org",)
 
-    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
+    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization", required=False,)
 
         
 class UserAddRegistrarForm(forms.ModelForm):
