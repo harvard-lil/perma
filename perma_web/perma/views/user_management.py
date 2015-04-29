@@ -585,7 +585,7 @@ def edit_user_in_group(request, user_id, group_name):
         if is_staff:
             form = VestingMemberWithGroupFormEdit(form_data, prefix="a", instance=target_user)
         else:
-            form = VestingMemberWithVestingOrgFormEdit(form_data, prefix="a", instance=target_user, registrar_id=request.user.registrar_id)
+            form = VestingMemberWithVestingOrgFormEdit(form_data, prefix="a", instance=target_user, registrar_id=request.user.registrar_id,)
     else:
         form = UserFormEdit(form_data, prefix="a", instance=target_user)
 
