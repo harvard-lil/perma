@@ -34,6 +34,7 @@ from perma.forms import (
     UserFormEdit,
     RegistrarMemberFormEdit,
     VestingMemberWithVestingOrgFormEdit,
+    VestingMemberWithVestingOrgAsVestingMemberFormEdit,
     VestingMemberWithGroupFormEdit, 
     UserAddRegistrarForm,
     UserAddVestingOrgForm,
@@ -541,11 +542,42 @@ def edit_user_in_group(request, user_id, group_name):
         Edit particular user with given group name.
     """
 
+
+    # Manage vesting user.
+    # TODO: refactor this so that we're not catching just vesting 
+    # org member here at the top of the logic
+    if request.user.is_vesting_org_member():
+        target_user = get_object_or_404(LinkUser, id=user_id)
+
+        context = {
+            'target_user': target_user, 'group_name':group_name,
+            'this_page': 'users_{group_name}s'.format(group_name=group_name),
+            'pretty_group_name':group_name.replace('_', ' ').capitalize(),
+            'user_list_url':'user_management_manage_{group_name}'.format(group_name=group_name),
+            'delete_user_url':'user_management_manage_single_{group_name}_delete'.format(group_name=group_name),
+        }
+
+        form_data = request.POST or None
+        form = VestingMemberWithVestingOrgAsVestingMemberFormEdit(form_data, prefix="a", instance=target_user, vesting_user_id=request.user.pk)
+
+
+        if request.method == 'POST':
+
+            if form.is_valid():
+                new_user = form.save()
+
+                return HttpResponseRedirect(reverse(context['user_list_url']))
+
+        context['form'] = form
+
+        context = RequestContext(request, context)
+
+        return render_to_response('user_management/manage_single_user.html', context)
+
     is_registrar = request.user.is_registrar_member()
     is_staff = request.user.is_staff
 
     target_user = get_object_or_404(LinkUser, id=user_id)
-
 
 
     # Registrar members can only edit their own vesting members
@@ -766,7 +798,6 @@ def manage_single_vesting_user_remove(request, user_id):
 
     # Vesting managers can only edit their own vesting members
     if request.user.is_registrar_member():
-
         # Get the union of the user's and the registrar member's vesting orgs
         shared_vesting_orgs = target_member.vesting_org.all() | VestingOrg.objects.filter(registrar=request.user.registrar)
 
