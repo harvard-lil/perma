@@ -7,9 +7,9 @@
 	  <p>View the organizations you belong to</p>
 		<div class="sponsoring-library-info">
             {% with request.user.vesting_org as vesting_org %}
-                <h5>Your sponsoring library</h5>
-                {% if vesting_org and vesting_org.registrar %}
-                    {% with vesting_org.registrar as registrar %}
+                <h5>Your sponsoring library and organization</h5>
+                    {% for vo in vesting_org.all %}
+                    {% with vo.registrar as registrar %}
                         <p>
                             {% if registrar.website %}
                                 <strong><a href="{{registrar.website}}" target="_blank">{{registrar}}</a></strong>
@@ -17,17 +17,11 @@
                                 <strong>{{registrar}}</strong>
                             {% endif %}
                             <br>{{registrar.email}}
-                        </p>
                     {% endwith %}
-                {% else %}
-                    <p>Seems to be missing</p>
-                {% endif %}
-                <h5>Your vesting organization</h5>
-                {% if vesting_org %}
-                    <p>{{ vesting_org }} <a href="{% url 'user_management_vesting_user_leave_vesting_org' %}" class="btn btn-default btn-xs" role="button">Leave</a></p>
-                {% else %}
-                    <p>Seems to be missing</p>
-                {% endif %}
+                            <p>{{ vo }} <a href="{% url 'user_management_vesting_user_leave_vesting_org' %}" class="btn btn-default btn-xs" role="button">Leave</a></p>
+                        </p>
+                    
+                    {% endfor %}
             {% endwith %}
         </div>
     <br/><br/>

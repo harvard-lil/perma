@@ -17,7 +17,9 @@ class FolderAuthorization(ReadOnlyAuthorization):
         # shared folders
         elif obj.vesting_org_id:
             if user.is_vesting_org_member():
-                return user.vesting_org_id == obj.vesting_org_id
+                for vo in user.vesting_org.all():
+                    if vo.id == obj.vesting_org_id:
+                        return True
             elif user.is_registrar_member():
                 return user.registrar_id == obj.vesting_org.registrar_id
 
@@ -136,7 +138,10 @@ class LinkAuthorization(AuthenticatedLinkAuthorization):
 
     def can_vest_to_org(self, user, vesting_org):
         if user.is_vesting_org_member():
-            return user.vesting_org == vesting_org
+            if user.is_vesting_org_member():
+                for vo in user.vesting_org.all():
+                    if vo.id == vesting_org.id:
+                        return True
         elif user.is_registrar_member():
             return user.registrar == vesting_org.registrar
         elif user.is_staff:
