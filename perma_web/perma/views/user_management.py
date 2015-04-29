@@ -335,7 +335,7 @@ def manage_vesting_user(request):
     return list_users_in_group(request, 'vesting_user')
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_member())
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_vesting_org_member())
 def manage_single_vesting_user(request, user_id):
     return edit_user_in_group(request, user_id, 'vesting_user')
 
@@ -521,7 +521,6 @@ def list_users_in_group(request, group_name):
 
     return render_to_response('user_management/manage_users.html', context)
 
-
 def edit_user_in_group(request, user_id, group_name):
     """
         Edit particular user with given group name.
@@ -531,6 +530,8 @@ def edit_user_in_group(request, user_id, group_name):
     is_staff = request.user.is_staff
 
     target_user = get_object_or_404(LinkUser, id=user_id)
+
+
 
     # Registrar members can only edit their own vesting members
     if not is_staff:
@@ -740,7 +741,7 @@ def delete_user_in_group(request, user_id, group_name):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_registrar_member() or user.is_vesting_org_member())
+@user_passes_test(lambda user: user.is_registrar_member() or user.is_vesting_org_member() or user.is_staff)
 def manage_single_vesting_user_remove(request, user_id):
     """
         Basically demote a vesting user to a regular user.
@@ -750,20 +751,35 @@ def manage_single_vesting_user_remove(request, user_id):
 
     # Vesting managers can only edit their own vesting members
     if request.user.is_registrar_member():
-        registar_is_member = False
 
-        for vo in target_member.vesting_org.all():
-            if vo.registrar == request.user.registrar:
-                registar_is_member = True
+        # Get the union of the user's and the registrar member's vesting orgs
+        shared_vesting_orgs = target_member.vesting_org.all() | VestingOrg.objects.filter(registrar=request.user.registrar)
 
-        if not registar_is_member:
+        if len(shared_vesting_orgs) == 0:
             raise Http404
+
+        vesting_orgs = VestingOrg.objects.filter(registrar=request.user.registrar)
+
+
+    elif request.user.is_vesting_org_member():
+        shared_vesting_orgs = target_member.vesting_org.all() | request.user.vesting_org.all()
+
+        if len(shared_vesting_orgs) == 0:
+            raise Http404
+
+        vesting_orgs = request.user.vesting_org.all()
+
     else:
-        if request.user.vesting_org != target_member.vesting_org:
-            raise Http404
+        # Must be registry member
+        vesting_orgs = target_member.vesting_org.all()
+
+
+    # Find all vesting orgs that user belongs to and which
+    # this registrar member admins
 
     context = {'target_member': target_member,
-               'this_page': 'users_vesting_user'}
+               'this_page': 'users_vesting_user',
+               'vesting_orgs': vesting_orgs}
 
     if request.method == 'POST':
         target_member.vesting_org.remove()
