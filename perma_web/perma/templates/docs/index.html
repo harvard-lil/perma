@@ -8,34 +8,141 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 
 {% block content %}
 <div class="container user-docs">
-	<div class="col-sm-8 docs">
+	<div class="col-sm-3 col-sm-offset-1" id="docs-toc">
+		<h2>Overview</h2>
+			<h3>What is Perma.cc?</h3>
+			<h3>What does Perma.cc do?</h3>
+			<h3>What is vesting?</h3>
+			<h3>A Perma.cc Example</h3>
+		<h2>Perma.cc Basics</h2>
+			<h3>Account-Holders</h3>
+			<h3>Creating an Account</h3>
+			<h3>Navigating Your Account</h3>
+			<h3>Creating Links</h3>
+			<h3>Vesting Links</h3>
+			<h3>Annotating Links</h3>
+			<h3>Organizing Links</h3>
+			<h3>Using Links</h3>
+		<h2>For Libraries</h2>
+			<h3>Library Roles</h3>
+			<h3>Creating New Vesting Orgs</h3>
+			<h3>Supporting Journals</h3>
+			<h3>Supporting Faculty</h3>
+		<h2>For Courts</h2>
+			
+		<h2>For Journals</h2>
+		<h2>For Faculty</h2>
+		<h2>For Lawyers</h2>
+		<h2>For Publishers</h2>
+		<h2>For Journalists</h2>
+		<h2>Contact Us</h2>
+		
+
+
+	</div>
+	<div class="col-sm-8 docs" id="docs-body">
 		<h2>Overview</h2>
 		<hr>
-		<p>Perma.cc is a service, currently in beta, that helps authors, editors and publishers protect their work - and their readers - from the ill effects of link rot.</p>
+			<h4>What is Perma.cc?</h4>
+				<p>Perma.cc is a service that helps prevent link rot.</p>
+				
+				<p>Link rot (and “reference rot”) is what happens when you cite to an online source that later disappears or changes. Link rot is a big problem. It's especially bad for academic scholarship and judicial opinions, which depend heavily on citations to stable sources that readers can access. For example, a <a href="http://perma.cc/48QZ-DT6L">study</a> conducted by researchers at Harvard Law School found that more than 70% of the links in a sample of law journals and 50% of the links in Supreme Court opinions no longer work.</p>
+
+				<p>Perma.cc and its <a href="{% url 'about' %}">consortium of participating libraries</a> are working to solve this problem.</p>
+			<h4>What does Perma.cc Do?</h4>
+				<p>You tell Perma.cc the web address you want to preserve and cite. Our software goes to that web address, preserves what's there, deposits it into our collection, and gives you a unique URL (e.g. "perma.cc/ABCD-1234") that points to the record in our collection. You then can use that link in your citation so that your readers can get to a stable, accurate record of the source you referenced, even if the original source disappears from the web.</p>
+			<h4>What is Vesting?</h4>
+				<p>Perma.cc's mission is the very long-term preservation of <em>sources</em> - online materials that are being referenced, relied upon, critiqued or commented upon in some fashion and for which preservation and public accessability is important. Perma.cc is not a generic preservation or storage service.</p>
+				<p>To better serve this mission, we've introduced vesting. Vesting is the act of confirming that a given link and the record to which it points is in fact the cited source and thus should be deposited into the permanent collection of participating libraries. Once vested, a link and its associated record become permament. Unvested links eventually expire.</p>
+				<p>While anyone can use Perma.cc to create unvested links, only designated users, and the organizations to which they belong, have the authority to vest links. Perma.cc's partner institutions - called "registrars" - decide who gets vesting authority. </p>
+			<h4>An Example of Perma.cc in Action</h4>
+				<p>Suppose you're a law professor working on an article and you want to cite to the FBI's <a href="http://www.fbi.gov/wanted/topten">Top Ten Most Wanted List</a>. Because that list changes over time, your citation is going to rot and your future readers won't be able to access your actual source at the original URL. That's bad for you and your readers.</p>
+				<p>But if you give Perma.cc the web address - e.g. http://www.fbi.gov/wanted/topten - our software will visit the page, make a record of it and give you a unique URL that points to the preserved record - e.g. <a href="http://perma.cc/T8U2-994F">http://perma.cc/T8U2-994F</a>.</p>
+				<p>If you have vesting privileges, you can vest the link yourself. Or, when you submit your article for publication, the publishing journal can vest the link. At that point, the link can be added to your citation, and your future readers will be able to access the intended source no matter what happens to the original web page.</p>
+				<p>Sound good? Please <a href="{% url 'register' %}">sign up</a> and give it try, or read on to learn more.
+		<hr>
+		<h2>Perma.cc Basics</h2>
+		<hr>
+			<h4>Types of Account-Holders</h4>
+				<p>Perma.cc has three categories of account-holders: (1) registrar users; (2) vesting users; (3) general users. Each category has different authorities and responsibilities.</p>
+				<p><em>Registrar users</em> belong to libraries and other trusted institutions that have become registrars. They have vesting privileges. They help administer Perma.cc, and they decide which other users and organizations receive vesting privileges. For example, the Harvard Law School Library is a registrar. Some members of the Library staff are registrar users. They grant vesting privileges to new journals and faculty, and they help all of the Harvard Law School journals and faculty members who use Perma.cc. </p>
+				<p><em>Vesting users</em> belong to journals or other organizations that have been granted vesting privileges by libraries. They can vest links on behalf of their organizations, and they can add and remove other vesting users on behalf of their organizations. For example, the <em>Harvard Law Review</em> is a vesting organization. Several of its editors are vesting users. They vest the links cited in published articles, and they decide when to add new vesting users to the Law Review (such as on selection), or when to remove vesting users from the Law Review (such as on graduation).<p>
+				<p><em>General users</em> are individuals with Perma.cc accounts, who aren't affiliated with a vesting organization or registrar. General users can create and manage their own links, but they do not have vesting authority. <p>
+				<table class="table table-striped table-bordered">
+					<tbody>
+						<tr>
+							<th class="table-center"><h4>Authority</h4></th>
+							<th class="table-center"><h4>Registrar User</h4></th>
+							<th class="table-center"><h4>Vesting User</h4></th>
+							<th class="table-center"><h4>General User</h4></th>
+						</tr>
+						<tr>
+							<td>Create Vesting Orgs</td>
+							<td><div class="circle"></div></td>
+							<td></td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>Grant Vesting Authority</td>
+							<td><div class="circle"></div></td>
+							<td><div class="circle2"></div></td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>Vest Links</td>
+							<td><div class="circle"></div></td>
+							<td><div class="circle2"></div></td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>Create Links</td>
+							<td><div class="circle"></div></td>
+							<td><div class="circle2"></div></td>
+							<td><div class="circle3"></div></td>
+						</tr>
+					</tbody>
+				</table>     
+
+			<h4><div id="create-account">Creating an Account</div></h4>
+				<p>To use Perma.cc to preserve online sources, you'll need to create an account. It's easy. Just <a href="{% url 'register' %}">click here</a> or find the <kbd>Create An Account</kbd> button on the home page:</p>
+				
+				<img src="{{ STATIC_URL }}img/docs/screenshot_home.png" class="img-resdponsive screen-shot" alt="A screenshot of the landing page."/>
+
+				<p>Then enter your email, first and last name. And please read the <a href="{% url 'terms_of_service' %}">terms of service</a>!</p>
+				
+				<img src="{{ STATIC_URL }}img/docs/screenshot_create_account.png" class="img-responsive screen-shot" alt="A screnshot of the registration page."/>
+				
+				<!--<p>If your chosen account information is available (not already taken by another user), you will see a confirmation page and receive an email at the account you specified. Please follow the instructions in the email to activate your account. If the system indicates that your email address has already been assigned to another user, it is possible that someone in your institution has already added you as a user.  You can use the password reset option and your email address to claim your account.</p>
+				
+				<img src="{{ STATIC_URL }}img/email-account.gif" class="img-responsive screen-shot" alt="Responsive image"/>
+				
+				<p>If you are affiliated with a law library, academic law journal, or court system, you may receive an email that an account has been created for you.  Follow the instructions in that email to activate your account, which will be affiliated with your particular institution including the power to vest links if assigned to you.</p>-->
+			<h4>Navigating Your Account</h4>
+				<p>When you log in to Perma, you’ll see the Perma dropdown menu in the upper right corner of the screen. From this menu you can navigate to your links, to various user management pages (if you're a registrar user or vesting user), and to our tools and settings pages.</p>
+
+				<img src="{{ STATIC_URL }}img/docs/screenshot_dropdown.png" class="img-responsive screen-shot" alt="A screenshot of the Perma dropdown menu."/>
+
+				<p>The <em>My Links</em> page gives you quick access to all of the links you've created. If you're a member of a vesting organization or registrar, you'll also see all of the links associated with your organization. From this page, you also can <a href="#annotating-links">annotate</a> links and <a href="#organizing-links">organize</a> them into folders according to your or your organization's preferences.</p>
 		
-		<p>Link rot (or “reference rot”) is the phenomenon by which material cited to on the Web vanishes or changes beyond recognition over time. </p>
+				<img src="{{ STATIC_URL }}img/docs/screenshot_my_links.png" class="img-responsive screen-shot" alt="A screenshot of the Create an Archive page."/>
 		
-		<p>This problem is particularly serious in legal scholarship and judicial opinions. A <a href="http://perma.cc/48QZ-DT6L">recent study</a> found that more than 70% of the links in a sample of law journals and 50% of the links in Supreme Court opinions no longer work.</p>
-		
-		<img src="{{ STATIC_URL }}img/docs/create-vest-archive.gif" class="img-responsive" alt="The Perma.cc workflow in the form of railroad tracks. Create. Vest. Archive."/>
-		
-		<p>Perma and its consortium of participating libraries aim to solve this problem.</p>
-		
-		<p>By using Perma, you can archive web pages cited in your work. Each time you archive a web page, Perma generates a unique URL - a “Perma Link” - that will allow you to direct readers to the cited reference even if the original source goes away. </p>
-		
+
+
+
+			<h4>Preserving Links</h4>
+
+<img src="{{ STATIC_URL }}img/docs/create-vest-archive.gif" class="img-responsive" alt="The Perma.cc workflow in the form of railroad tracks. Create. Vest. Archive."/>
+			
+
+			<h4 id="annotating-links">Annotating Links</h4>
+			<h4 id="organizing-links">Organizing Links</h4>
+		<h2>For Libraries and Library Users</h2>
+		<h2>For Courts and Court Users</h2>
+		<h2>For Academic Journals and Journal Users</h2>
+		<h2>For Faculty Users</h2>
+		<h2>For Law Firms and Lawyers</h2>
+		<h2>For Publishers, Journalists and Others</h2>
 	</div>
-	<div class="col-sm-3 col-sm-offset-1">
-		<ul class="nav nav-pills nav-stacked">
-		  	<li class="active"><a href="{% url 'docs' %}">Overview</a></li>
-			<li><a href="{% url 'docs_getting-started' %}">Getting Started</a></li>
-			<li><a href="{% url 'docs_perma_link_creation' %}">Creating, Organizing & Annotating</a></li></a></li>
-			<li><a href="{% url 'docs_perma_link_vesting' %}">Link Vesting</a></li>
-			<li><a href="{% url 'docs_perma_archive' %}">Archiving & Storage</a></li>
-			<li><a href="{% url 'docs_perma_user_roles' %}">User Roles</a></li>
-			<!--<li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>-->
-			<li><a href="{% url 'docs_libraries' %}">Libraries</a></li>
-			<li><a href="{% url 'docs_faq' %}">FAQs</a></li>
-		</ul>
-	</div>
+	
 </div>
 {% endblock %}
