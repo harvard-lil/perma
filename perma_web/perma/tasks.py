@@ -361,7 +361,7 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
                 warc_name = default_storage.store_file(warc_file, warc_path)
                 save_fields(asset, warc_capture=warc_name)
 
-            print "Writing CDX lines to the DB"
+            # print "Writing CDX lines to the DB"
             CDXLine.objects.create_all_from_asset(asset)
 
         except Exception as e:
