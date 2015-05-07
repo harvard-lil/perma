@@ -1,6 +1,6 @@
-{% extends "base-archive-responsive.html" %}
+{% extends "base-responsive.html" %}
 
-{% block content %}
+{% block row %}
 <script>
 function ts_to_date(ts, is_gmt)
 {
@@ -27,7 +27,7 @@ function ts_to_date(ts, is_gmt)
 <h2>pywb Query Results</h2>
 {% if cdx_lines %}
 <b>{{ cdx_lines|length }}</b> captures of <b>{{ url }}</b>
-<table id="captures" style="border-spacing: 10px;">
+<table id="captures" style="border-spacing: 10px; width: 100%;">
   <tr>
     <th>Capture</th>
     <th>Status</th>
