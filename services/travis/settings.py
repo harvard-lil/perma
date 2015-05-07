@@ -20,6 +20,3 @@ HOST = 'perma.cc'
 
 # Where we store our generated assets (phantomjs images)
 MEDIA_ROOT = '/tmp/perma/assets'
-
-SAUCE_USERNAME = os.environ.get('SAUCE_USERNAME')
-SAUCE_ACCESS_KEY = os.environ.get('SAUCE_USERNAME')
