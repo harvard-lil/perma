@@ -113,11 +113,12 @@ kbd {
     margin: 0 2px;
     font-family: 'Roboto Slab', sans-serif;
   	color: #ffffff;
-  	background-color: #5cb85c;
+  	background-color: #00C157;
   	border-color: #4cae4c;
   	font-size:14px;
   	padding:3px 6px;
   	border-radius: 2px;
+    white-space:nowrap;
 }
 
 .docs kbd a {
