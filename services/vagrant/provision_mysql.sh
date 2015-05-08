@@ -13,5 +13,5 @@ fi
 
 # create perma db
 if [ ! -d /mysql_data/perma ]; then
-  mysql -uroot -proot -e "create database perma character set utf8; grant all on perma.* to perma@'localhost' identified by 'perma';"
+  mysql -uroot -proot -e "create database perma character set utf8; grant all on perma.* to perma@'localhost' identified by 'perma'; grant all on test_perma.* to perma@'localhost' identified by 'perma';"
 fi

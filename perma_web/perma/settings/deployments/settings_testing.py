@@ -9,9 +9,6 @@ FIXTURE_DIRS = (
     PROJECT_ROOT,
 )
 
-# Default to local functional tests
-USE_SAUCE = False
-
 # Uncomment to enable Nose as your test runner
 # from settings_dev import INSTALLED_APPS
 # import logging

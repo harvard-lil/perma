@@ -8,6 +8,7 @@ ln -sf /vagrant/services/vagrant/guest_hosts /etc/hosts
 
 ### basic packages ###
 apt-get -y update
+apt-get -y dist-upgrade
 apt-get install -y git build-essential
 
 ### install mysql ###
@@ -25,8 +26,9 @@ mysql -uroot -proot -e "create database perma character set utf8;" &&
 
 ### install Python packages ###
 apt-get install -y python-dev                                                                                           # for stuff that compiles from source
-apt-get install -y libffi-dev                                                                                           # dependency for cryptography
-sudo apt-get install -y libxml2-dev libxslt1-dev                                                                        # dependencies for lxml
+apt-get install -y libffi-dev libssl-dev                                                                                # dependencies for cryptography
+apt-get install -y libxml2-dev libxslt1-dev                                                                             # dependencies for lxml
+apt-get install -y libmagickwand-dev                                                                                    # dependency for imagemagick
 apt-get install -y python-pip
 pip install --upgrade pip virtualenvwrapper
 export WORKON_HOME=/home/vagrant/.virtualenvs
@@ -54,13 +56,10 @@ cp /vagrant/services/uwsgi/uwsgi.conf /etc/init/uwsgi.conf
 # have to download manually since the apt-get phantomjs is currently back at version 1.4
 apt-get install -y fontconfig
 cd /usr/local/share
-wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-1.9.7-linux-x86_64.tar.bz2
-tar xjf phantomjs-1.9.7-linux-x86_64.tar.bz2
-ln -s /usr/local/share/phantomjs-1.9.7-linux-x86_64/bin/phantomjs /usr/bin/
-rm phantomjs-1.9.7-linux-x86_64.tar.bz2
-
-### install ImageMagick ###
-apt-get install libmagickwand-dev
+wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-1.9.8-linux-x86_64.tar.bz2
+tar xjf phantomjs-1.9.8-linux-x86_64.tar.bz2
+ln -s /usr/local/share/phantomjs-1.9.8-linux-x86_64/bin/phantomjs /usr/bin/
+rm phantomjs-1.9.8-linux-x86_64.tar.bz2
 
 ### clean up permissions ###
 chown -R vagrant /home/vagrant/.virtualenvs
