@@ -519,4 +519,4 @@ READ_ONLY_MODE = False
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'  # In Django 1.7, including this silences a warning about tests
 USE_SAUCE = False  # Default to local functional tests
 SAUCE_USERNAME = None
-SAUCE_PASSWORD = None
+SAUCE_ACCESS_KEY = None
