@@ -53,10 +53,13 @@ class PermaRoute(archivalrouter.Route):
                                        asset__link_id=guid)
 
         # Legacy archives didn't generate CDXLines during
-        # capture so generate them on demand if not found
+        # capture so generate them on demand if not found, unless
+        # A: the warc capture hasn't been generated OR
+        # B: we know other cdx lines have already been generated
+        #    and the requested line is simply missing
         if lines.count() == 0:
             asset = Asset.objects.get(link_id=guid)
-            if asset.warc_capture in [Asset.CAPTURE_STATUS_PENDING, Asset.CAPTURE_STATUS_FAILED]:
+            if asset.warc_capture in [Asset.CAPTURE_STATUS_PENDING, Asset.CAPTURE_STATUS_FAILED] or asset.cdx_lines.count() > 0:
                 raise NotFoundException()
 
             lines = CDXLine.objects.create_all_from_asset(asset)
