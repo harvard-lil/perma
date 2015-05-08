@@ -1,3 +1,4 @@
+import os
 from settings_dev import PROJECT_ROOT
 
 #########
@@ -7,6 +8,9 @@ from settings_dev import PROJECT_ROOT
 FIXTURE_DIRS = (
     PROJECT_ROOT,
 )
+
+# Default to local functional tests
+USE_SAUCE = False
 
 # Uncomment to enable Nose as your test runner
 # from settings_dev import INSTALLED_APPS
@@ -19,6 +23,11 @@ FIXTURE_DIRS = (
 #############
 # Overrides #
 #############
+
+# Because LiveServerTestCase runs with DEBUG = False
+# and some of the mirroring logic depends on that,
+# let's add a reliable flag we can use
+TESTING = True
 
 RUN_TASKS_ASYNC = False  # avoid sending celery tasks to queue -- just run inline
 

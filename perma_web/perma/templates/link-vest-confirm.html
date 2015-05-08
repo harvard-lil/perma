@@ -1,5 +1,5 @@
 {% extends "base-archive-confirm.html" %}
-{% load compressed as_json %}
+{% load pipeline as_json %}
 
 {% block confirm %}
     <h1 class="cyan">Vesting Link</h1>
@@ -38,5 +38,5 @@
             archive = {% as_json link %};
     </script>
 
-    {% compressed_js 'link-vest-confirm' %}
+    {% javascript 'link-vest-confirm' %}
 {% endblock %}

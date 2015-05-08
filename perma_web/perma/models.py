@@ -1,3 +1,5 @@
+import io
+import os
 import logging
 import random
 import re
@@ -15,6 +17,8 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from mptt.models import MPTTModel, TreeForeignKey
 from model_utils import FieldTracker
+from pywb.cdx.cdxobject import CDXObject
+from pywb.warc.cdxindexer import write_cdx_index
 
 
 logger = logging.getLogger(__name__)
@@ -597,6 +601,9 @@ class Asset(models.Model):
 
     tracker = FieldTracker()
 
+    CAPTURE_STATUS_PENDING = 'pending'
+    CAPTURE_STATUS_FAILED = 'failed'
+
     def __init__(self, *args, **kwargs):
         super(Asset, self).__init__(*args, **kwargs)
         if self.link_id and not self.base_storage_path:
@@ -656,7 +663,7 @@ class Asset(models.Model):
             self.last_integrity_check = timezone.now()
             self.save()
 
-    
+
 #########################
 # Stats related models
 #########################
@@ -699,6 +706,46 @@ class Stat(models.Model):
 
     # TODO, we also display the top 10 perma links in the stats view
     # we should probably generate these here or put them in memcache or something
+
+
+class CDXLineManager(models.Manager):
+    def create_all_from_asset(self, asset):
+        results = []
+        warc_path = os.path.join(asset.base_storage_path, asset.warc_capture)
+        with default_storage.open(warc_path, 'rb') as warc_file, io.BytesIO() as cdx_io:
+            write_cdx_index(cdx_io, warc_file, warc_path)
+            cdx_io.seek(0)
+            next(cdx_io) # first line is a header so skip it
+            for line in cdx_io:
+                results.append(CDXLine.objects.get_or_create(asset=asset, raw=line)[0])
+
+        return results
+
+
+class CDXLine(models.Model):
+    urlkey = models.URLField(max_length=2100, null=False, blank=False)
+    raw = models.TextField(null=False, blank=False)
+    asset = models.ForeignKey(Asset, null=False, blank=False, related_name='cdx_lines')
+    objects = CDXLineManager()
+
+    def __init__(self, *args, **kwargs):
+        super(CDXLine, self).__init__(*args, **kwargs)
+        self.__set_defaults()
+
+    @cached_property
+    def __parsed(self):
+        return CDXObject(self.raw)
+
+    def __set_defaults(self):
+        if not self.urlkey:
+            self.urlkey = self.__parsed['urlkey']
+
+    @cached_property
+    def timestamp(self):
+        return self.__parsed['timestamp']
+
+    def is_revisit(self):
+        return self.__parsed.is_revisit()
 
 
 ### read only mode ###

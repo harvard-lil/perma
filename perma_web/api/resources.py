@@ -439,13 +439,13 @@ class LinkResource(AuthenticatedLinkResource):
                 asset.image_capture = file_name
             asset.save()
         else:
-            asset.image_capture = 'pending'
+            asset.image_capture = Asset.CAPTURE_STATUS_PENDING
             # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
             if asset.link.media_type == 'pdf':
-                asset.pdf_capture = 'pending'
+                asset.pdf_capture = Asset.CAPTURE_STATUS_PENDING
                 task = get_pdf
             else:  # else, it's not a PDF. Let's try our best to retrieve what we can
-                asset.warc_capture = 'pending'
+                asset.warc_capture = Asset.CAPTURE_STATUS_PENDING
                 task = proxy_capture
 
             asset.save()
