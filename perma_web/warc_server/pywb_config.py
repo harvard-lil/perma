@@ -49,12 +49,12 @@ class PermaRoute(archivalrouter.Route):
         except Link.DoesNotExist:
             raise NotFoundException()
 
-        try:
-            line = CDXLine.objects.get(urlkey=urlkey,
+        lines = CDXLine.objects.filter(urlkey=urlkey,
                                        asset__link_id=guid)
+
         # Legacy archives didn't generate CDXLines during
         # capture so generate them on demand if not found
-        except CDXLine.DoesNotExist:
+        if lines.count() == 0:
             asset = Asset.objects.get(link_id=guid)
             if asset.warc_capture in [Asset.CAPTURE_STATUS_PENDING, Asset.CAPTURE_STATUS_FAILED]:
                 raise NotFoundException()
@@ -66,14 +66,14 @@ class PermaRoute(archivalrouter.Route):
 
         # Store the line for use in PermaCDXSource
         # so we don't need to hit the DB again
-        wbrequest.custom_params['line'] = line
+        wbrequest.custom_params['lines'] = lines
         wbrequest.custom_params['guid'] = guid
 
         # Adds the Memento-Datetime header
         # Normally this is done in MementoReqMixin#_parse_extra
         # but we need the GUID to make the DB query and that
         # isn't parsed from the url until this point
-        wbrequest.wb_url.set_replay_timestamp(line.timestamp)
+        wbrequest.wb_url.set_replay_timestamp(lines.first().timestamp)
 
 
 # prevent mod getting added to rewritten urls
@@ -180,10 +180,10 @@ class PermaCDXSource(CDXSource):
         """
             This function accepts a standard CDX request, except with a GUID instead of date, and returns a standard CDX 11 response.
         """
-        # When a GUID is in the url, we'll have already queried for the line
+        # When a GUID is in the url, we'll have already queried for the lines
         # in order to grab the timestamp for Memento-Datetime header
-        if query.params.get('line'):
-            return (query.params.get('line').raw,)
+        if query.params.get('lines'):
+            return query.params.get('lines').values_list('raw', flat=True)
 
         filters = {'urlkey': query.key}
         if query.params.get('guid'):
