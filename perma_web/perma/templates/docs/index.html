@@ -9,31 +9,33 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 {% block content %}
 <div class="container user-docs">
 	<div class="col-sm-3" id="docs-toc">
-		<a href="#overview"><h2>Overview</h2></a>
-			<a href="#what-is-perma"><h3>What is Perma.cc?</h3><a>
-			<a href="#what-does-perma-do"><h3>What does Perma.cc do?</h3></a>
-			<a href="#what-is-vesting"><h3>What is vesting?</h3></a>
-			<a href="#example-perma"><h3>Example of Perma.cc in action</h3></a>
-		<a href="#perma-basics"><h2>Perma.cc Basics</h2></a>
-			<a href="#account-holders"><h3>Account-Holders</h3></a>
-			<a href="#create-account"><h3>Creating an Account</h3></a>
-			<a href="#navigating-account"><h3>Navigating Your Account</h3></a>
-			<a href="#creating-links"><h3>Creating Links</h3></a>
-			<a href="#vesting-links"><h3>Vesting Links</h3></a>
-			<a href="#annotating-links"><h3>Annotating Links</h3></a>
-			<a href="#organizing-links"><h3>Organizing Links</h3></a>
-			<a href="#using-links"><h3>Using Links</h3></a>
-		<h2>For Libraries and Other Registrars</h2>
-			<h3>Authority and responsibilities</h3>
-			<h3>Creating new vesting orgs</h3>
-			<h3>Supporting your journals</h3>
-			<h3>Supporting your faculty</h3>
-		<h2>For Journals, Courts and Other Vesting Orgs</h2>
-			<h3>Authority and responsibilities</h3>
-			<h3>Adding and removing vesting users</h3>
-		<h2>For Lawyers, Publishers, Journalists and Others Interested in Vesting</h2>
+		<ul>
+			<a href="#overview"><li><h2>Overview</h2></li></a>
+				<a href="#what-is-perma"><li><h3>What is Perma.cc?</h3></li></a>
+				<a href="#what-does-perma-do"><li><h3>What does Perma.cc do?</h3></li></a>
+				<a href="#what-is-vesting"><li><h3>What is vesting?</h3></li></a>
+				<a href="#example-perma"><li><h3>Example of Perma.cc in action</h3></li></a>
+			<a href="#perma-basics"><li><h2>Perma.cc Basics</h2></li></a>
+				<a href="#account-holders"><li><h3>Account-Holders</h3></li></a>
+				<a href="#create-account"><li><h3>Creating an Account</h3></li></a>
+				<a href="#navigating-account"><li><h3>Navigating Your Account</h3></li></a>
+				<a href="#creating-links"><li><h3>Creating Links</h3></li></a>
+				<a href="#vesting-links"><li><h3>Vesting Links</h3></li></a>
+				<a href="#annotating-links"><li><h3>Annotating Links</h3></li></a>
+				<a href="#organizing-links"><li><h3>Organizing Links</h3></li></a>
+				<a href="#using-links"><li><h3>Using Links</h3></li></a>
+			<a href="#libraries-registrars"><li><h2>For Libraries and Other Registrars</h2></li></a>
+				<a href="#libraries-authority"><li><h3>Authority and responsibilities</h3></li></a>
+				<a href="#creating-vesting-orgs"><li><h3>Creating new vesting orgs</h3></li></a>
+				<a href="#supporting-journals"></li><h3>Supporting your journals</h3></li></a>
+				<a href="#supporting-faculty"></li><h3>Supporting your faculty</h3></li></a>
+			<a href="#journals-vesting-orgs"><li><h2>For Journals, Courts and Other Vesting Orgs</h2></li></a>
+				<a href="#journals-authority"><li><h3>Authority and responsibilities</h3></li></a>
+				<a href="#adding-vesting-users"><li><h3>Adding and removing vesting users</h3></li></a>
+			<a href="#lawyers-publishers-others"><li><h2>For Lawyers, Publishers, Journalists and Others Interested in Vesting</h2></li></a>
+		<ul>
 	</div>
-	<div class="col-sm-9 docs" id="docs-body">
+	<div class="col-sm-8 docs" id="docs-body">
 		<h2 id="overview">Overview</h2>
 		<hr>
 			<h4 id="what-is-perma">What is Perma.cc?</h4>
@@ -122,10 +124,26 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 
 
 
-			<h4 id="preserving-links">Preserving links</h4>
+			<h4 id="creating-links">Creating links</h4>
 
-<img src="{{ STATIC_URL }}img/docs/create-vest-archive.gif" class="img-responsive" alt="The Perma.cc workflow in the form of railroad tracks. Create. Vest. Archive."/>
-			
+				<p>A Perma Link allows you to direct your readers to an archived version of the contents of a web page specified by you. To create a Perma Link, enter the URL of the web page into the entry box to direct Perma to create a record of the contents of that page.</p>	
+				
+				<p>The entry box will accept multiple formats, including www and https://.</p>
+		
+				<img src="{{ STATIC_URL }}img/docs/screenshot-create-link.png" class="img-responsive screen-shot" alt="A screenshot of the Create an Archive page with the URL of a potential archive."/>
+				
+				<p>At your direction, Perma will preserve the web page found at your specified URL. Once processing is complete, Perma will display a thumbnail image of the archived web page and a new Perma Link (such as perma.cc/ABCD-1234) for that archive. You should review the thumbnail image and click on the new Perma Link to confirm that the new record displays accurately.</p> 
+				
+				<img src="{{ STATIC_URL }}img/docs/screenshot-success.png" class="img-responsive screen-shot" alt="A screenshot of a Create an Archive page with a newly created archive. Includes the URL and the thumbnail preview."/>
+
+				<p class="orange">Important Note: At this point, you’ve created a temporary archive. To become permanent, your archive and the accompanying Perma Link must be vested. <a href="{% url 'docs_perma_link_vesting' %}">Click here to learn more about vesting.</a></p>
+
+				<p>If preservation fails for some reason, Perma.cc will display a "Failure" message and give you the option to upload your own screenshots (.png, .jpg) or PDF documents.</p>
+				
+				<img src="{{ STATIC_URL }}img/docs/screenshot-upload.png" class="img-responsive screen-shot" alt="A screenshot of the upload your own window."/>
+				
+				<p class="orange">Important Note: At this point, you’ve created a temporary archive. To become permanent, your archive and the accompanying Perma Link must be vested. <a href="{% url 'docs_perma_link_vesting' %}">Click here to learn more about vesting.</a></p>
+				
 			<h4 id="vesting-links">Vesting links</h4>
 			<h4 id="annotating-links">Annotating links</h4>
 			<h4 id="organizing-links">Organizing links</h4>

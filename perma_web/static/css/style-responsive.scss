@@ -113,7 +113,7 @@ kbd {
     margin: 0 2px;
     font-family: 'Roboto Slab', sans-serif;
   	color: #ffffff;
-  	background-color: #00C157;
+  	background-color: #60B65B;
   	border-color: #4cae4c;
   	font-size:14px;
   	padding:3px 6px;
@@ -3029,27 +3029,30 @@ p.orange {
 
     #docs-toc {
         padding-top:20px;
-        overflow:auto;
+        margin-bottom:100px;
 
         h2 {
             font-size: 18px;
             padding: 10px;
-            margin:0px
+            margin:0px;
+            border-left:2px solid #fff;
         }
         h3 {
             font-size: 14px;
-            padding:10px 10px 10px 15px;
+            padding:5px 5px 5px 15px;
             margin:0px;
             color: #000;
+            border-left:2px solid #fff;
         }
         h2:hover, h3:hover {
-            background-color:#0099FF;
-            color:#fff;
+            border-left:2px solid #0099FF;
             cursor:pointer;
         }
+
     }
 
     #docs-body {
+       
     }
 }
 
