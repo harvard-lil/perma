@@ -24,7 +24,7 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 				<a href="#annotating-links"><li><h3>Annotating Links</h3></li></a>
 				<a href="#organizing-links"><li><h3>Organizing Links</h3></li></a>
 				<a href="#using-links"><li><h3>Using Links</h3></li></a>
-			<a href="#libraries-registrars"><li><h2>For Libraries and Other Registrars</h2></li></a>
+			<a href="#libraries-and-registrars"><li><h2>For Libraries and Other Registrars</h2></li></a>
 				<a href="#libraries-authority"><li><h3>Authority and responsibilities</h3></li></a>
 				<a href="#creating-vesting-orgs"><li><h3>Creating new vesting orgs</h3></li></a>
 				<a href="#supporting-journals"></li><h3>Supporting your journals</h3></li></a>
@@ -41,7 +41,7 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 			<h4 id="what-is-perma">What is Perma.cc?</h4>
 				<p>Perma.cc is a service that helps prevent link rot.</p>
 				
-				<p>Link rot (and “reference rot”) is what happens when you cite to an online source that later disappears or changes. Link rot is a big problem. It's especially bad for academic scholarship and judicial opinions, which depend heavily on citations to stable sources that readers can access. For example, a <a href="http://perma.cc/48QZ-DT6L">study</a> conducted by researchers at Harvard Law School found that more than 70% of the links in a sample of law journals and 50% of the links in Supreme Court opinions no longer work.</p>
+				<p>Link rot (and “reference rot”) happens when you cite to an online source that later disappears or changes. It's a big problem, especially for academic scholarship and judicial opinions, which depend heavily on citations to stable sources that readers can access. For example, a <a href="http://perma.cc/48QZ-DT6L">study</a> conducted by researchers at Harvard Law School found that more than 70% of the links in a sample of law journals and 50% of the links in Supreme Court opinions no longer work.</p>
 
 				<p>Perma.cc and its <a href="{% url 'about' %}">consortium of participating libraries</a> are working to solve this problem.</p>
 			<h4 id="what-does-perma-do">What does Perma.cc do?</h4>
@@ -59,8 +59,8 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 		<hr>
 			<h4 id="account-holders">Account-holders</h4>
 				<p>Perma.cc has three categories of account-holders: (1) registrar users; (2) vesting users; (3) general users. Each category has different authorities and responsibilities.</p>
-				<p><em>Registrar users</em> are people who work at libraries and other trusted institutions that have become registrars. They have vesting privileges. They help administer Perma.cc, and they decide which other users and organizations receive vesting privileges. For example, the Harvard Law School Library is a registrar. Some members of the Library staff are registrar users. They grant vesting privileges to new journals and faculty, and they help all of the Harvard Law School journals and faculty members who use Perma.cc. </p>
-				<p><em>Vesting users</em> are people who belong to journals or other organizations that have been granted vesting privileges by libraries. They can vest links on behalf of their organizations, and they can add and remove other vesting users on behalf of their organizations. For example, the <em>Harvard Law Review</em> is a vesting organization. Several of its editors are vesting users. They vest the links cited in published articles, and they decide when to add new vesting users to the Law Review (such as when the new class of editors is selected), or when to remove vesting users from the Law Review (such as when a class of editors graduates).<p>
+				<p><em><strong><span id="registrar-users">Registrar users</span></strong></em> are people who work at libraries and other trusted institutions that have become registrars. They have vesting privileges. They help administer Perma.cc, and they decide which other users and organizations receive vesting privileges. For example, the Harvard Law School Library is a registrar. Some members of the Library staff are registrar users. They grant vesting privileges to new journals and faculty, and they help all of the Harvard Law School journals and faculty members who use Perma.cc. </p>
+				<p><em><strong><span id="vesting-users">Vesting users</span></strong></em> are people who belong to journals or other organizations that have been granted vesting privileges by libraries. They can vest links on behalf of their organizations, and they can add and remove other vesting users on behalf of their organizations. For example, the <em>Harvard Law Review</em> is a vesting organization. Several of its editors are vesting users. They vest the links cited in published articles, and they decide when to add new vesting users to the Law Review (such as when the new class of editors is selected), or when to remove vesting users from the Law Review (such as when a class of editors graduates).<p>
 				<p><em>General users</em> are individuals with Perma.cc accounts, who aren't affiliated with a vesting organization or registrar. General users can create and manage their own links, but they can't vest their links. <p>
 				<table class="table table-striped table-bordered">
 					<tbody>
@@ -71,9 +71,15 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 							<th class="table-center"><h4>General User</h4></th>
 						</tr>
 						<tr>
-							<td>Create Vesting Orgs</td>
+							<td>Create Links</td>
 							<td><div class="circle"></div></td>
-							<td></td>
+							<td><div class="circle2"></div></td>
+							<td><div class="circle3"></div></td>
+						</tr>
+						<tr>
+							<td>Vest Links</td>
+							<td><div class="circle"></div></td>
+							<td><div class="circle2"></div></td>
 							<td></td>
 						</tr>
 						<tr>
@@ -83,16 +89,10 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 							<td></td>
 						</tr>
 						<tr>
-							<td>Vest Links</td>
+							<td>Create Vesting Orgs</td>
 							<td><div class="circle"></div></td>
-							<td><div class="circle2"></div></td>
 							<td></td>
-						</tr>
-						<tr>
-							<td>Create Links</td>
-							<td><div class="circle"></div></td>
-							<td><div class="circle2"></div></td>
-							<td><div class="circle3"></div></td>
+							<td></td>
 						</tr>
 					</tbody>
 				</table>     
@@ -123,13 +123,13 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 
 			<h4 id="creating-links">Creating links</h4>
 
-				<p>To make a Perma Link, just enter the source URL and click the button. Perma will visit the web page and create a record of the contents of that page.</p>	
+				<p>To make a Perma Link, just enter the source URL and click the button. Perma will visit the web page at your direction and create a record of the contents of that page.</p>	
 				
-				<p>The entry box will accept multiple formats, including www and https://.</p>
+				<p>The entry box accepts multiple formats, including www and https://.</p>
 		
 				<img src="{{ STATIC_URL }}img/docs/screenshot-create-link.png" class="img-responsive screen-shot" alt="A screenshot of the Create an Archive page with the URL of a potential archive."/>
 				
-				<p>Once processing is complete, Perma will display a "Success!" message, a thumbnail image of the preserved page and the new Perma Link (such as perma.cc/ABCD-1234). You should review the thumbnail image and click on the new Perma Link to confirm that the new record displays accurately.</p> 
+				<p>Once processing is done, Perma will display a "Success!" message, a thumbnail image of the preserved page and the new Perma Link (such as perma.cc/ABCD-1234). You should review the thumbnail image and click on the new Perma Link to confirm that the new record displays accurately.</p> 
 				
 				<img src="{{ STATIC_URL }}img/docs/screenshot-success.png" class="img-responsive screen-shot" alt="A screenshot of a Create an Archive page with a newly created archive. Includes the URL and the thumbnail preview."/>
 
@@ -139,32 +139,53 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 				
 			<h4 id="vesting-links">Vesting links</h4>
 
-				<p>Each link starts out as unvested and temporary. Perma will maintain these links for at least two years after they're made. Then Perma will give you the option to renew the record for another temporary period, after which it will expire.</p>
+				<p>Each link starts out as unvested and temporary. Perma will maintain these links for at least two years after they're made. Then Perma will give you the option to renew the record for another temporary period, after which it will expire. Unvested links have a large orange banner and stopwatch icon to make it clear to everyone that they are temporary and will expire:</p>
 
-				<p>To become permanent, a link must be vested. A user with vesting privileges simply needs to visit the Perma Link URL, review the archived material and click the “Vest” button in the upper right corner of the screen. After clicking "Vest," the user will be asked to assign the vested link to a particular Vesting Organization.</p>
-				
-				<img src="{{ STATIC_URL }}img/docs/vest.gif" class="img-responsive screen-shot" alt="A screenshot of the single archive page, highlighting the vesting button."/>
-				
-				<p>Once vested, a Perma Link cannot be deleted by users.</p><br/>
+				<img src="{{ STATIC_URL }}/img/docs/screenshot_temp_warning.png" class="img-responsive screen-shot" alt="A screenshot of the temporary link banner."/>
 
-				<h4><div id="vesting-priviledges">Registrars, Vesting Organizations &amp; Vesting Users</div></h4>
+				<p>A link must be vested to become permanent. A user with vesting privileges simply needs to visit the link, review the archived material and click the green <kbd>Vest site</kbd> button in the upper right corner of the screen.</p>
+								
+				<p>After clicking "Vest," the user will be prompted to assign the vested link to the appropriate Vesting Organization and folder for that organization. Once vested, a Perma Link cannot be deleted by users.</p>
 
-				<pre>Reg·is·trar<div class="highlighted-definition">An institution (such as a library) that is responsible for the Vesting Organizations it creates.</div></pre>
-				
-				<pre class="inset2">Vest·ing Or·gan·i·za·tion<div class="highlighted-definition">An entity (such as a law journal or court) that is responsible for the Vesting Users it creates and the Perma Links that are vested by those Vesting Users. </div></pre>
-				
-				<pre class="inset1">Vest·ing Us·er<div class="highlighted-definition">A Perma user who is affiliated with one or more Vesting Organizations and has the authority to vest Perma Links on behalf of those organizations.</div></pre>
-				
-				<p>To ensure that vesting occurs only when warranted, Perma restricts vesting privileges to certain users - called “Vesting Users.” Each Vesting User is affiliated with a Vesting Organization, each of which is affiliated, in turn, with a Registrar. Whenever a Perma Link is vested, it is associated not only with the user who created it, but also with the Vesting User,  the Vesting Organization and the Registrar responsible for making it part of the permanent collection of participating libraries.</p>
-				
-				<p>We leave it to Registrars and Vesting Organization to manage permissions for their organizations and to adopt policies for adding new Vesting Organizations and authorizing new Vesting Users.</p>
-				
-				<p>If you are affiliated with a law library, law journal, or court system <a href="{% url 'about' %}">click here</a> to see if your institution is a perma.cc partner. If so, you can contact your institution directly for information about vesting privileges. If you do not see your institution listed, then please contact us at <a href="mailto:info@perma.cc">info@perma.cc</a> and we’ll see if we can help.</a>
+			<h4 id="organizing-links">Organizing links</h4>
+
+				<p>You can organize your links into folders. Just select "My links" from the dropdown menu to access your folders. From this view you can add folders, delete folders, rename folders, and drag-and-drop links into the right folders. If you're a <a href="#registrar-users">registrar user</a> or <a href="#vesting-users">vesting user</a>, you'll have access to all the folders for your organization:</p>
+
+				<img src="{{ STATIC_URL }}img/docs/screenshot_my_links.png" class="img-responsive screen-shot" alt="A screenshot of the Create an Archive page."/>
+
+				<p>Note that once a link is vested, it can't be moved from vesting organization's folders to another.</p>
 
 			<h4 id="annotating-links">Annotating links</h4>
-			<h4 id="organizing-links">Organizing links</h4>
+
+				<p>You can annotate any link accessible to you. Just select "My links" from the dropdown menu, click on the right folder, and then click the "More" button on the item you want to annotate. The item will expand to display more details about the link. From this view you can edit the title, add notes, move the link to another folder and view other metadata about the link:</p>
+
+				<img src="{{ STATIC_URL }}/img/docs/screenshot_annotate.png" class="img-responsive screen-shot" alt="A screenshot of the link metadata view."/>
+
 			<h4 id="using-links">Using links</h4>
-		<h2>For Libraries and Other Registrars</h2>
+
+				<p>How you use the links in citations is really up to you. We like it when journals include the original citation and the Perma Link, like this:</p>
+
+				<img src="{{ STATIC_URL }}/img/examples/HLR_2.gif" class="img-responsive screen-shot" alt="An example from the Harvard Law Review" />
+
+				<p>But that's not the only way to do it. The key is to make it easy for your readers (and critics) to find the source if the original link rots.</p>
+
+		<h2 id="libraries-and-registrars">For Libraries and Other Registrars</h2>
+
+			<h4 id="becoming-registrar">Becoming a registrar</h4>
+				<p>Any academic library can become a registrar for free. Just email us at <a href="mailto:info@perma.cc">info@perma.cc</a> and tell us who you are, what kinds of users and usage you intend to support and who your contact person is. We'll get back to with some very basic setup instructions.</p>
+				<p>In general, registrar status is reserved for libraries and other trusted insitutions that help administer Perma.cc and ensure its appropriate use. If you're not with an academic library but still would like to be a registrar, please email us at <a href="mailto:info@perma.cc">info@perma.cc</a> and tell us who you are, why you want to join Perma as registrar and what types of users and organizations you would expect to support as a registrar.</p>  
+			<h4 id="libraries-authority">Authority and responsibilities</h4>
+				<p>Registrars can vest links, confer (and withdraw) vesting authority and create new vesting organizations. Typically this means acting as the hub of a network of vesting organizations and their users. As a registrar, you'll help train and support Perma.cc users within your network. You'll also be responsible for ensuring that those in your network with vesting authority do not abuse that authority. Every link vested by anyone within your network becomes automatically associated with you, as the relevant registrar, so it's important that you exercise judgment in approving vesting organizations. If you like, you can adopt policies and best practices for Perma.cc usage by those in your network.</p>
+			<h4 id="creating-vesting-orgs">Creating new vesting orgs</h4>
+				<p>Creating new vesting organizations is easy. Just click on "Manage users" in the dropdown menu and select "Vesting organizations." Click "add new" to trigger the new vesting organization form, fill out the appropriate details and press the <kbd>Create new vesting organization</kbd> button:<p>
+
+				<img src="{{ STATIC_URL }}/img/docs/screenshot_new_vesting_orgs.png" class="img-responsive screen-shot" alt="Screenshot of manage users screen." />
+
+
+			<h4 id="supporting-journals">Supporting your journals</h4>
+			<h4 id="supporting-faculty">Supporting your faculty</h4>
+			
+
 		<h2>For Journals, Courts and Other Vesting Organizations</h2>
 		<h2>For Academic Journals and Journal Users</h2>
 		<h2>For Faculty Users</h2>
