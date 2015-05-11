@@ -17,15 +17,15 @@ Werkzeug==0.9.4
 Fabric==1.8.2
 pexpect==3.1
 coverage==3.7.1
-selenium==2.41.0
+selenium==2.45.0
 jsmin==2.0.9
-django-pipeline==1.3.23         # manages our css and js assets
+django-pipeline==1.4.7          # manages our css and js assets
 django-pipeline-compass==0.1.5  # lets us compile .scss to .css
 tempdir==0.6                    # create temp dirs to be deleted at end of function -- handy for archive creation
 netaddr==0.7.12                 # to check archive IPs against banned ranges
 internetarchive==0.7.0          # upload warcs to internet archive
 python-dateutil==2.2            # calculate link expiration date
-Wand==0.3.8					    # ImageMagick bindings to help with thumbnail creation and PDF -> PNG conversions
+Wand==0.4           				    # ImageMagick bindings to help with thumbnail creation and PDF -> PNG conversions
 django-tastypie==0.12.1         # API framework
 -e git://github.com/leppert/django-tastypie-extendedmodelresource.git@caf08005699d8e5616f93726bd8c1c5a51f74b07#egg=django-tastypie-extendedmodelresource
 sorl-thumbnail==12.2			# Used to create our thumbnails
@@ -44,7 +44,7 @@ gevent==1.0.1
 
 # PyWB-related stuff
 surt==0.2                       # our simple CDX server to canonicalize URL
-pywb==0.7.5
+pywb==0.8.2
 warcprox==1.2
 
 # alternate storages

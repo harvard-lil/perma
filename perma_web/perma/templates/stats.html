@@ -1,5 +1,5 @@
 {% extends "layout-responsive.html" %}
-{% load file_exists compressed %}
+{% load file_exists pipeline %}
 {% block title %} | The numbers{% endblock %}
 {% block meta %}<META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">{% endblock %}
 {% block styles %}
@@ -15,7 +15,7 @@
         var stats_darchived_links_url = "{% url 'service_stats_darchive_links' %}";
         var stats_storage_url = "{% url 'service_stats_storage' %}";
     </script>
-    {% compressed_js 'stats' %}
+    {% javascript 'stats' %}
 {% endblock %}
 
 {% block content %}

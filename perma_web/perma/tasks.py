@@ -31,7 +31,7 @@ from django.template.defaultfilters import truncatechars
 from django.forms.models import model_to_dict
 from django.conf import settings
 
-from perma.models import Asset, Stat, Registrar, LinkUser, Link, VestingOrg
+from perma.models import Asset, Stat, Registrar, LinkUser, Link, VestingOrg, CDXLine
 from perma.utils import imagemagick_temp_dir
 
 
@@ -122,10 +122,10 @@ class ProxyCaptureTask(Task):
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
         if self.request.retries >= self.max_retries:
             asset = Asset.objects.get(link_id=args[0] if args else kwargs['link_guid'])
-            if asset.image_capture == "pending":
-                asset.image_capture = "failed"
-            if asset.warc_capture == "pending":
-                asset.warc_capture = "failed"
+            if asset.image_capture == Asset.CAPTURE_STATUS_PENDING:
+                asset.image_capture = Asset.CAPTURE_STATUS_FAILED
+            if asset.warc_capture == Asset.CAPTURE_STATUS_PENDING:
+                asset.warc_capture = Asset.CAPTURE_STATUS_FAILED
             asset.save()
 
 
@@ -355,15 +355,21 @@ def proxy_capture(self, link_guid, target_url, base_storage_path, user_agent='')
     if have_warc:
         # print "Saving WARC."
         try:
-            temp_warc_path = os.path.join(warc_writer.directory, warc_writer._f_finalname)
+            temp_warc_path = os.path.join(warc_writer.directory,
+                                          warc_writer._f_finalname)
             with open(temp_warc_path, 'rb') as warc_file:
                 warc_name = default_storage.store_file(warc_file, warc_path)
                 save_fields(asset, warc_capture=warc_name)
+
+            # print "Writing CDX lines to the DB"
+            CDXLine.objects.create_all_from_asset(asset)
+
         except Exception as e:
             logger.info("Web Archive File creation failed for %s: %s" % (target_url, e))
             save_fields(asset, warc_capture='failed')
 
     # print "%s capture done." % link_guid
+
 
 class GetPDFTask(Task):
     """
@@ -374,10 +380,10 @@ class GetPDFTask(Task):
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
         if self.request.retries >= self.max_retries:
             asset = Asset.objects.get(link_id=args[0] if args else kwargs['link_guid'])
-            if asset.image_capture == "pending":
-                asset.image_capture = "failed"
-            if asset.pdf_capture == "pending":
-                asset.pdf_capture = "failed"
+            if asset.image_capture == Asset.CAPTURE_STATUS_PENDING:
+                asset.image_capture = Asset.CAPTURE_STATUS_FAILED
+            if asset.pdf_capture == Asset.CAPTURE_STATUS_PENDING:
+                asset.pdf_capture = Asset.CAPTURE_STATUS_FAILED
             asset.save()
 
 @shared_task(bind=True,
@@ -412,7 +418,9 @@ def get_pdf(self, link_guid, target_url, base_storage_path, user_agent):
         # Limit our filesize
         if temp.tell() > settings.MAX_ARCHIVE_FILE_SIZE:
             logger.info("PDF capture too big, %s" % target_url)
-            save_fields(asset, pdf_capture='failed', image_capture='failed')
+            save_fields(asset,
+                        pdf_capture=Asset.CAPTURE_STATUS_FAILED,
+                        image_capture=Asset.CAPTURE_STATUS_FAILED)
             return
 
     # store temp file

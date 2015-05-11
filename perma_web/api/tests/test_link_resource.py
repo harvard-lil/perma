@@ -96,6 +96,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         link = Link.objects.get(guid=obj['guid'])
         self.assertHasAsset(link, "image_capture")
         self.assertHasAsset(link, "warc_capture")
+        self.assertTrue(link.assets.first().cdx_lines.count() > 0)
         self.assertFalse(link.dark_archived_robots_txt_blocked)
         self.assertEqual(link.submitted_title, "Test title.")
 

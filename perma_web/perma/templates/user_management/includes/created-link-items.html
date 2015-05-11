@@ -1,7 +1,7 @@
-{% load local_datetime compressed %}
+{% load local_datetime pipeline %}
 
 {% if in_iframe %}
-    {% compressed_css 'base' %}
+    {% stylesheet 'base' %}
 {% endif %}
 
 {% if search_query %}

@@ -1,5 +1,5 @@
 {% extends "layout-responsive.html" %}
-{% load compressed %}
+{% load pipeline %}
 
 {% block row %}
 
@@ -17,5 +17,5 @@
 
 {% block scripts %}
     {{ block.super }}
-    {% compressed_js 'admin' %}
+    {% javascript 'admin' %}
 {% endblock scripts %}

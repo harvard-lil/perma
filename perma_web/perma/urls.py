@@ -133,7 +133,7 @@ urlpatterns = patterns('perma.views',
 )
 
 # debug-only serving of static and media assets
-if settings.DEBUG:
+if settings.DEBUG or settings.TESTING:
     from django.contrib.staticfiles.views import serve as static_view
     from mirroring.utils import may_be_mirrored
     urlpatterns += static(settings.STATIC_URL, may_be_mirrored(static_view)) + \
