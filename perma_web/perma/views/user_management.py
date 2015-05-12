@@ -547,7 +547,7 @@ def edit_user_in_group(request, user_id, group_name):
     # Vesting managers can only edit their own vesting members
     if request.user.is_registrar_member():
         # Get the intersection of the user's and the registrar member's vesting orgs
-        vesting_orgs = target_member.vesting_org.all() & VestingOrg.objects.filter(registrar=request.user.registrar)
+        vesting_orgs = target_user.vesting_org.all() & VestingOrg.objects.filter(registrar=request.user.registrar)
 
         if len(vesting_orgs) == 0:
             raise Http404
@@ -603,7 +603,17 @@ def vesting_user_add_user(request):
             form = CreateUserForm(form_data, prefix = "a", initial={'email': user_email})
     else:
         if request.user.is_registrar_member():
-            form = UserAddVestingOrgForm(form_data, prefix = "a", registrar_id=request.user.registrar_id, vesting_org_member_id=request.user.pk)
+
+            # First, do a little error checking. This target user might already
+            # be in each vesting org admined by the user
+            vesting_orgs = VestingOrg.objects.filter(registrar=request.user.registrar).exclude(pk__in=target_user.vesting_org.all())
+
+            if len(vesting_orgs) > 0:
+                form = UserAddVestingOrgForm(form_data, prefix = "a", registrar_id=request.user.registrar_id, target_user_id=target_user.pk)
+            else:
+                messages.add_message(request, messages.ERROR, '<h4>Not added.</h4> <strong>%s</strong> is already a member of all your vesting organizations.' % target_user.email, extra_tags='safe')
+                return HttpResponseRedirect(reverse('user_management_manage_vesting_user'))
+
         else:
 
             # First, do a little error checking. This target user might already
@@ -613,7 +623,6 @@ def vesting_user_add_user(request):
 
             if len(vesting_orgs) > 0:
                 form = UserAddVestingOrgForm(form_data, prefix = "a", vesting_org_member_id=request.user.pk, target_user_id=target_user.pk)
-                messages.add_message(request, messages.SUCCESS, '<h4>Success!</h4> <strong>%s</strong> is now a vesting user.' % target_user.email, extra_tags='safe')
             else:
                 messages.add_message(request, messages.ERROR, '<h4>Not added.</h4> <strong>%s</strong> is already a member of all your vesting organizations.' % target_user.email, extra_tags='safe')
                 return HttpResponseRedirect(reverse('user_management_manage_vesting_user'))
@@ -705,12 +714,12 @@ def registrar_user_add_user(request):
 
 @login_required
 @user_passes_test(lambda user: user.is_vesting_org_member())
-def vesting_user_leave_vesting_org(request):
+def vesting_user_leave_vesting_org(request, vesting_org_id):
 
     context = {'this_page': 'settings', 'user': request.user}
 
     if request.method == 'POST':
-        request.user.vesting_org = None
+        request.user.vesting_org.remove(vesting_org_id)
         request.user.save()
 
         return HttpResponseRedirect(reverse('create_link'))
@@ -758,7 +767,12 @@ def manage_single_vesting_user_remove(request, user_id, vesting_org_id):
     vesting_org = VestingOrg.objects.get(id=vesting_org_id)
     target_user = LinkUser.objects.get(pk=user_id)
 
-    if vesting_org not in request.user.vesting_org.all():
+    if request.user.is_vesting_org_member() and vesting_org not in request.user.vesting_org.all():
+        # A vesting user should only be able to remove a vesting user if
+        # they're in the vesting org
+        raise Http404
+
+    if request.user.is_registrar_member() and vesting_org not in VestingOrg.objects.filter(registrar=request.user.registrar):
         # A vesting user should only be able to remove a vesting user if
         # they're in the vesting org
         raise Http404

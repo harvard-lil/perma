@@ -263,16 +263,15 @@ class UserAddVestingOrgForm(forms.ModelForm):
 
         super(UserAddVestingOrgForm, self).__init__(*args, **kwargs)
 
-        vesting_org_member = LinkUser.objects.get(pk=vesting_org_member_id)
         target_user = LinkUser.objects.get(pk=target_user_id)
 
         # Vesting managers can only edit their own vesting members
         if registrar_id:
             # Get the union of the user's and the registrar member's vesting orgs
-            vesting_orgs = vesting_org_member.vesting_org.all() & VestingOrg.objects.filter(registrar_id=registrar_id)
-            vesting_orgs = vesting_orgs.exclude(pk__in=target_user.vesting_org.all())
+            vesting_orgs = VestingOrg.objects.filter(registrar_id=registrar_id).exclude(pk__in=target_user.vesting_org.all())
 
         elif vesting_org_member_id:
+            vesting_org_member = LinkUser.objects.get(pk=vesting_org_member_id)
             vesting_orgs = vesting_org_member.vesting_org.all().exclude(pk__in=target_user.vesting_org.all())
 
         else:
