@@ -19,7 +19,7 @@
 			</div>
 			{% endfor %}
 			{% if request.user.is_staff and group_name == 'vesting_user' %}
-			<a href="{% url 'delete_user_url' target_user.id %}"><span class="text-error"><i class="icon-trash"></i> {% if target_user.is_confirmed %}Deactivate{% else %}Delete{% endif %} this user</span> <!--{{target_registrar_member.username}}--></a>
+			<a href="{% url 'user_management_manage_single_user_delete' target_user.id %}"><span class="text-error"><i class="icon-trash"></i> {% if target_user.is_confirmed %}Deactivate{% else %}Delete{% endif %} this user</span> <!--{{target_registrar_member.username}}--></a>
 			{% endif %}
 		</div>
 	</div>

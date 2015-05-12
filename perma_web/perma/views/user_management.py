@@ -560,7 +560,7 @@ def edit_user_in_group(request, user_id, group_name):
 
     else:
         # Must be registry member
-        vesting_orgs = target_member.vesting_org.all()
+        vesting_orgs = target_user.vesting_org.all()
 
 
     context = {
@@ -579,7 +579,7 @@ def edit_user_in_group(request, user_id, group_name):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_registrar_member() or user.is_vesting_org_member())
+@user_passes_test(lambda user: user.is_registrar_member() or user.is_vesting_org_member() or user.is_staff)
 def vesting_user_add_user(request):
     """
         Add new user for vesting org.
@@ -614,11 +614,11 @@ def vesting_user_add_user(request):
                 messages.add_message(request, messages.ERROR, '<h4>Not added.</h4> <strong>%s</strong> is already a member of all your vesting organizations.' % target_user.email, extra_tags='safe')
                 return HttpResponseRedirect(reverse('user_management_manage_vesting_user'))
 
-        else:
+        elif request.user.is_vesting_org_member():
 
             # First, do a little error checking. This target user might already
             # be in each vesting org admined by the user
-            vesting_orgs = request.user.vesting_org.all() & target_user.vesting_org.all()
+            vesting_orgs = request.user.vesting_org.all() | target_user.vesting_org.all()
             vesting_orgs = vesting_orgs.exclude(pk__in=target_user.vesting_org.all())
 
             if len(vesting_orgs) > 0:
@@ -626,6 +626,13 @@ def vesting_user_add_user(request):
             else:
                 messages.add_message(request, messages.ERROR, '<h4>Not added.</h4> <strong>%s</strong> is already a member of all your vesting organizations.' % target_user.email, extra_tags='safe')
                 return HttpResponseRedirect(reverse('user_management_manage_vesting_user'))
+        else:
+            # User is registry member
+            # and we're not going to bother to check if the user is already a
+            # member of all vesting orgs. That's a crazy corner case.
+
+            form = UserAddVestingOrgForm(form_data, prefix = "a", target_user_id=target_user.pk)
+
 
             
     context = {'this_page': 'users_vesting_users', 'user_email': user_email, 'form': form, 'target_user': target_user}
