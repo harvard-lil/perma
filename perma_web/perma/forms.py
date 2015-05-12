@@ -276,7 +276,7 @@ class UserAddVestingOrgForm(forms.ModelForm):
 
         else:
             # Must be registry member
-            vesting_orgs = VestingOrg.objects.all(pk__in=target_user.vesting_org.all())
+            vesting_orgs = VestingOrg.objects.all().exclude(pk__in=target_user.vesting_org.all())
 
         self.fields['vesting_org'] = forms.ModelMultipleChoiceField(queryset=vesting_orgs.order_by('name'), label="Vesting organization", widget=CustomSelectSingleAsList)
 
@@ -284,13 +284,6 @@ class UserAddVestingOrgForm(forms.ModelForm):
     class Meta:
         model = LinkUser
         fields = ("vesting_org",)         
-
-
-
-    #vesting_org = forms.ModelChoiceField(queryset=self.fields.vesting_orgs.order_by('name'), empty_label=None, label="Vesting organization", widget=CustomSelectSingleAsList)
-
-
-
 
     
     
