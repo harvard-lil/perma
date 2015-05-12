@@ -1051,7 +1051,7 @@ def limited_login(request, template_name='registration/login.html',
             
             host = request.get_host()
 
-            if settings.DEBUG == False:
+            if settings.DEBUG == False and settings.TESTING == False:
                 host = settings.HOST
 
             # Ensure the user-originating redirection url is safe.
@@ -1188,7 +1188,7 @@ def email_new_user(request, user):
             random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(30))
         user.save()
       
-    host = request.get_host() if settings.DEBUG else settings.HOST
+    host = request.get_host() if settings.DEBUG or settings.TESTING else settings.HOST
 
     content = '''To activate your account, please click the link below or copy it to your web browser.  You will need to create a new password.
 
@@ -1211,7 +1211,7 @@ def email_new_vesting_user(request, user):
     Send email to newly created vesting accounts
     """
 
-    host = request.get_host() if settings.DEBUG else settings.HOST
+    host = request.get_host() if settings.DEBUG or settings.TESTING else settings.HOST
 
     content = '''Your Perma.cc account has been associated with %s.  You now have vesting privileges.  If this is a mistake, visit your account settings page to leave %s.
 
@@ -1232,7 +1232,7 @@ def email_new_registrar_user(request, user):
     Send email to newly created registrar accounts
     """
 
-    host = request.get_host() if settings.DEBUG else settings.HOST
+    host = request.get_host() if settings.DEBUG or settings.TESTING else settings.HOST
 
     content = '''Your Perma.cc account has been associated with %s.  If this is a mistake, visit your account settings page to leave %s.
 

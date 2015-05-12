@@ -24,6 +24,11 @@ DATABASES = {
     }
 }
 
+# Because LiveServerTestCase runs with DEBUG = True
+# and some of the mirroring logic depends on that,
+# let's add a reliable flag we can use
+TESTING = False
+
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -510,5 +515,8 @@ CELERYBEAT_JOB_NAMES = []
 READ_ONLY_MODE = False
 
 
-# In Django 1.7, including this silences a warning about tests
-TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+# tests
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'  # In Django 1.7, including this silences a warning about tests
+USE_SAUCE = False  # Default to local functional tests
+SAUCE_USERNAME = None
+SAUCE_ACCESS_KEY = None

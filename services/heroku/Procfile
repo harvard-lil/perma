@@ -1,2 +1,2 @@
-web: gunicorn --log-level debug --access-logfile - -w 4 -b 0.0.0.0:$PORT -k gevent perma.wsgi
-worker: celery -A perma worker --loglevel=info --concurrency=1
+web: newrelic-admin run-program gunicorn --log-level debug --access-logfile - -w 1 -b 0.0.0.0:$PORT -k gevent perma.wsgi
+worker: newrelic-admin run-program celery -A perma worker --loglevel=info --concurrency=1

@@ -94,7 +94,7 @@ class MirrorForwardingMiddleware(object):
             request.main_server_host = get_main_server_host(request)
             request.mirror_server_host = get_mirror_server_host(request)
         else:
-            if settings.DEBUG:
+            if settings.DEBUG or settings.TESTING:
                 request.mirror_server_host = request.get_host()
             else:
                 request.mirror_server_host = settings.HOST

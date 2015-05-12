@@ -1,5 +1,5 @@
 {% extends "layout-responsive.html" %}
-{% load file_exists compressed %}
+{% load file_exists pipeline %}
 
 {% block title %} | Developer Docs{% endblock %}
 
@@ -67,5 +67,5 @@ This section of the developer's guide explains how to use the API to manage fold
 {% endblock %}
 
 {% block scripts %}
-    {% compressed_js 'doc-developer' %}
+    {% javascript 'doc-developer' %}
 {% endblock %}

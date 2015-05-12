@@ -1,5 +1,5 @@
 {% extends "admin-layout.html" %}
-{% load compressed %}
+{% load pipeline %}
 {% block title %} | Create a Perma link{% endblock %}
 
 {% block content %}
@@ -75,7 +75,7 @@
             thumbnail_service_url = "{% url 'service_get_thumbnail' %}";
     </script>
 
-    {% compressed_js 'create' %}
+    {% javascript 'create' %}
 {% endblock %}
 
 {% block templates %}

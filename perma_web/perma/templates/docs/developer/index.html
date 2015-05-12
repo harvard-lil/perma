@@ -1,5 +1,5 @@
 {% extends "layout-responsive.html" %}
-{% load file_exists compressed%}
+{% load file_exists pipeline %}
 {% block title %} | Developer Docs{% endblock %}
 
 {% block meta_description %}
@@ -97,6 +97,6 @@ Welcome to the Perma.cc developer guide.
 {% endblock %}
 
 {% block scripts %}
-    {% compressed_js 'doc-developer' %}
+    {% javascript 'doc-developer' %}
 {% endblock %}
 
