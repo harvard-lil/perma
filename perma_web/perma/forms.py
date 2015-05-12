@@ -250,6 +250,7 @@ class UserAddVestingOrgForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         registrar_id = False
         vesting_org_member_id = False
+        target_user_id = False
 
         if 'registrar_id' in kwargs:
             registrar_id = kwargs.pop('registrar_id')
@@ -257,26 +258,28 @@ class UserAddVestingOrgForm(forms.ModelForm):
         if 'vesting_org_member_id' in kwargs:
             vesting_org_member_id = kwargs.pop('vesting_org_member_id')
 
+        if 'target_user_id' in kwargs:
+            target_user_id = kwargs.pop('target_user_id')
+
         super(UserAddVestingOrgForm, self).__init__(*args, **kwargs)
 
         vesting_org_member = LinkUser.objects.get(pk=vesting_org_member_id)
+        target_user = LinkUser.objects.get(pk=target_user_id)
 
         # Vesting managers can only edit their own vesting members
         if registrar_id:
             # Get the union of the user's and the registrar member's vesting orgs
-            vesting_orgs = vesting_org_member.vesting_org.all() | VestingOrg.objects.filter(registrar_id=registrar_id)
+            vesting_orgs = vesting_org_member.vesting_org.all() & VestingOrg.objects.filter(registrar_id=registrar_id)
+            vesting_orgs = vesting_orgs.exclude(pk__in=target_user.vesting_org.all())
 
         elif vesting_org_member_id:
-            vesting_orgs = vesting_org_member.vesting_org.all()
+            vesting_orgs = vesting_org_member.vesting_org.all().exclude(pk__in=target_user.vesting_org.all())
 
         else:
             # Must be registry member
-            vesting_orgs = VestingOrg.objects.all()
-
-        #self.fields['vesting_org'].queryset = vesting_orgs.order_by('name')
+            vesting_orgs = VestingOrg.objects.all(pk__in=target_user.vesting_org.all())
 
         self.fields['vesting_org'] = forms.ModelMultipleChoiceField(queryset=vesting_orgs.order_by('name'), label="Vesting organization", widget=CustomSelectSingleAsList)
-
 
 
     class Meta:
