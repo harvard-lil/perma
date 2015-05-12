@@ -18,7 +18,7 @@
                             {% endif %}
                             <br>{{registrar.email}}
                     {% endwith %}
-                            <p>{{ vo }} <a href="{% url 'user_management_vesting_user_leave_vesting_org' %}" class="btn btn-default btn-xs" role="button">Leave</a></p>
+                            <p>{{ vo }} <a href="{% url 'user_management_vesting_user_leave_vesting_org' vo.id %}" class="btn btn-default btn-xs" role="button">Leave</a></p>
                         </p>
                     
                     {% endfor %}
