@@ -528,7 +528,7 @@ def list_users_in_group(request, group_name):
 
             email_new_user(request, new_user)
 
-            messages.add_message(request, messages.INFO, '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % new_user.email, extra_tags='safe')
+            messages.add_message(request, messages.SUCCESS, '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % new_user.email, extra_tags='safe')
             return HttpResponseRedirect(reverse(context['user_list_url']))
 
     context['form'] = form
@@ -546,22 +546,17 @@ def edit_user_in_group(request, user_id, group_name):
 
     # Vesting managers can only edit their own vesting members
     if request.user.is_registrar_member():
-        # Get the union of the user's and the registrar member's vesting orgs
-        shared_vesting_orgs = target_member.vesting_org.all() | VestingOrg.objects.filter(registrar=request.user.registrar)
+        # Get the intersection of the user's and the registrar member's vesting orgs
+        vesting_orgs = target_member.vesting_org.all() & VestingOrg.objects.filter(registrar=request.user.registrar)
 
-        if len(shared_vesting_orgs) == 0:
+        if len(vesting_orgs) == 0:
             raise Http404
-
-        vesting_orgs = VestingOrg.objects.filter(registrar=request.user.registrar)
-
 
     elif request.user.is_vesting_org_member():
-        shared_vesting_orgs = target_user.vesting_org.all() | request.user.vesting_org.all()
+        vesting_orgs = target_user.vesting_org.all() & request.user.vesting_org.all()
 
-        if len(shared_vesting_orgs) == 0:
+        if len(vesting_orgs) == 0:
             raise Http404
-
-        vesting_orgs = request.user.vesting_org.all()
 
     else:
         # Must be registry member
@@ -610,7 +605,19 @@ def vesting_user_add_user(request):
         if request.user.is_registrar_member():
             form = UserAddVestingOrgForm(form_data, prefix = "a", registrar_id=request.user.registrar_id, vesting_org_member_id=request.user.pk)
         else:
-            form = UserAddVestingOrgForm(form_data, prefix = "a", vesting_org_member_id=request.user.pk)
+
+            # First, do a little error checking. This target user might already
+            # be in each vesting org admined by the user
+            vesting_orgs = request.user.vesting_org.all() & target_user.vesting_org.all()
+            vesting_orgs = vesting_orgs.exclude(pk__in=target_user.vesting_org.all())
+
+            if len(vesting_orgs) > 0:
+                form = UserAddVestingOrgForm(form_data, prefix = "a", vesting_org_member_id=request.user.pk, target_user_id=target_user.pk)
+                messages.add_message(request, messages.SUCCESS, '<h4>Success!</h4> <strong>%s</strong> is now a vesting user.' % target_user.email, extra_tags='safe')
+            else:
+                messages.add_message(request, messages.ERROR, '<h4>Not added.</h4> <strong>%s</strong> is already a member of all your vesting organizations.' % target_user.email, extra_tags='safe')
+                return HttpResponseRedirect(reverse('user_management_manage_vesting_user'))
+
             
     context = {'this_page': 'users_vesting_users', 'user_email': user_email, 'form': form, 'target_user': target_user}
 
@@ -618,18 +625,18 @@ def vesting_user_add_user(request):
 
     if request.method == 'POST':
         if ((form and form.is_valid()) or form == None):
-            if target_user == None:
 
+            if target_user == None:
                 target_user = form.save()
                 is_new_user = True
         
             if is_new_user:
                 target_user.is_active = False
                 email_new_user(request, target_user)
-                messages.add_message(request, messages.INFO, '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % target_user.email, extra_tags='safe')
+                messages.add_message(request, messages.SUCCESS, '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % target_user.email, extra_tags='safe')
             else:
                 email_new_vesting_user(request, target_user)
-                messages.add_message(request, messages.INFO, '<h4>Success!</h4> <strong>%s</strong> is now a vesting user.' % target_user.email, extra_tags='safe')
+                messages.add_message(request, messages.SUCCESS, '<h4>Success!</h4> <strong>%s</strong> is now a vesting user.' % target_user.email, extra_tags='safe')
 
             vesting_org = form.cleaned_data['vesting_org'][0]
             target_user.vesting_org.add(vesting_org)
@@ -682,10 +689,10 @@ def registrar_user_add_user(request):
             if is_new_user:
                 target_user.is_active = False
                 email_new_user(request, target_user)
-                messages.add_message(request, messages.INFO, '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % target_user.email, extra_tags='safe')
+                messages.add_message(request, messages.SUCCESS, '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % target_user.email, extra_tags='safe')
             else:
                 email_new_registrar_user(request, target_user)
-                messages.add_message(request, messages.INFO, '<h4>Success!</h4> <strong>%s</strong> is now a registrar user.' % target_user.email, extra_tags='safe')
+                messages.add_message(request, messages.SUCCESS, '<h4>Success!</h4> <strong>%s</strong> is now a registrar user.' % target_user.email, extra_tags='safe')
             
             target_user.save()
 
@@ -931,7 +938,7 @@ def settings_profile(request):
         if form.is_valid():
             form.save()
             
-            messages.add_message(request, messages.INFO, 'Profile saved!', extra_tags='safe')
+            messages.add_message(request, messages.SUCCESS, 'Profile saved!', extra_tags='safe')
 
             return HttpResponseRedirect(reverse('user_management_settings_profile'))
 
@@ -1210,7 +1217,7 @@ def register_email_code_password(request, code):
             user.is_active = True
             user.is_confirmed = True
             user.save()
-            messages.add_message(request, messages.INFO, 'Your account is activated.  Log in below.')
+            messages.add_message(request, messages.SUCCESS, 'Your account is activated.  Log in below.')
             return HttpResponseRedirect(reverse('user_management_limited_login'))
     else:
         form = SetPasswordForm(user=user)
