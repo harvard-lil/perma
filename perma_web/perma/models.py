@@ -80,7 +80,7 @@ class VestingOrgManager(models.Manager):
 
     def user_access_filter(self, user):
         if user.is_vesting_org_member():
-            return Q(id=user.vesting_org.all()[0].id)
+            return Q(id__in=user.vesting_org.all())
         elif user.is_registrar_member():
             return Q(registrar_id=user.registrar_id)
         elif user.is_staff:
