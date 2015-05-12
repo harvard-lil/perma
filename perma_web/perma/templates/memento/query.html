@@ -1,0 +1,54 @@
+{% extends "base-responsive.html" %}
+
+{% block row %}
+<script>
+function ts_to_date(ts, is_gmt)
+{
+    if (ts.length < 14) {
+        return ts;
+    }
+    
+    var datestr = (ts.substring(0, 4) + "-" + 
+                  ts.substring(4, 6) + "-" +
+                  ts.substring(6, 8) + "T" +
+                  ts.substring(8, 10) + ":" +
+                  ts.substring(10, 12) + ":" +
+                  ts.substring(12, 14) + "-00:00");
+    
+    var date = new Date(datestr);
+    if (is_gmt) {
+        return date.toGMTString();
+    } else {
+        return date.toLocaleString();
+    }
+}
+</script>
+
+<h2>pywb Query Results</h2>
+{% if cdx_lines %}
+<b>{{ cdx_lines|length }}</b> captures of <b>{{ url }}</b>
+<table id="captures" style="border-spacing: 10px; width: 100%;">
+  <tr>
+    <th>Capture</th>
+    <th>Status</th>
+    <th>Original Url</th>
+    <th>Archive File</th>
+  </tr>
+  {% for cdx in cdx_lines  %}
+  <tr style="{% if cdx.mimetype != 'warc/revisit' %}font-weight: bold{% endif %}">
+    <td><a href="{{ prefix }}{{ cdx.timestamp }}/{{ cdx.original }}">
+    <script>document.write(window.ts_to_date("{{ cdx.timestamp}}", true))</script>
+    </a></td>
+    <td>{{ cdx.statuscode }}</td>
+    <td>{{ cdx.original }}</td>
+    <td>{{ cdx.filename }}</td>
+  </tr>
+  {% endfor %}
+</table>
+<p>
+<i><b>* Unique captures are bold.</b> Other captures are duplicates of a previous capture.</i>
+</p>
+{% else %}
+<i>No captures found for <b>{{ url }}</b></i>
+{% endif %}
+{% endblock %}

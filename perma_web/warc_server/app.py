@@ -2,7 +2,21 @@
 # alongside the main Django app in wsgi.py
 
 from pywb.framework.wsgi_wrappers import init_app
-from pywb_config import create_perma_pywb_app
+from django.core.files.storage import default_storage
+from pywb_config import (PermaCDXServer,
+                         PermaHandler,
+                         create_perma_wb_router)
 
-application = init_app(create_perma_pywb_app,
-                       load_yaml=False)
+# must be ascii, for some reason, else you'll get
+# 'unicode' object has no attribute 'get'
+path = default_storage.path('').encode('ascii', 'ignore') + '/'
+application = init_app(create_perma_wb_router,
+                       load_yaml=False,
+                       config={
+                           'port': 8000,
+                           'collections': {'': 'PermaCDXSource'},
+                           'archive_paths': path,
+                           'server_cls': PermaCDXServer,
+                           'wb_handler_class': PermaHandler,
+                           'enable_memento': True
+                       })
