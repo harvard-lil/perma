@@ -421,7 +421,7 @@ def list_users_in_group(request, group_name):
     elif group_name == 'vesting_user':
         users = users.exclude(vesting_org=None)
     elif group_name == 'user':
-        users = users.filter(registrar_id=None, vesting_org_id=None, is_staff=False)
+        users = users.filter(registrar_id=None, is_staff=False)
     else:
         raise NotImplementedError("Unknown group name: %s" % group_name)
 
@@ -651,13 +651,17 @@ def vesting_user_add_user(request):
                 email_new_user(request, target_user)
                 messages.add_message(request, messages.SUCCESS, '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % target_user.email, extra_tags='safe')
             else:
-                email_new_vesting_user(request, target_user)
                 messages.add_message(request, messages.SUCCESS, '<h4>Success!</h4> <strong>%s</strong> is now a vesting user.' % target_user.email, extra_tags='safe')
 
             vesting_org = form.cleaned_data['vesting_org'][0]
             target_user.vesting_org.add(vesting_org)
 
             target_user.save()
+
+            if not is_new_user:
+                # Drop the newly added vesting user a friendly note
+                email_new_vesting_user(request, target_user, vesting_org)
+
 
             return HttpResponseRedirect(reverse('user_management_manage_vesting_user'))
 
@@ -1280,23 +1284,21 @@ http://%s%s
     )
     
 
-def email_new_vesting_user(request, user):
+def email_new_vesting_user(request, user, vesting_org):
     """
     Send email to newly created vesting accounts
     """
 
     host = request.get_host() if settings.DEBUG or settings.TESTING else settings.HOST
 
-    latest_vesting_org = user.vesting_org.last()
-
     content = '''Your Perma.cc account has been associated with %s.  You now have vesting privileges.  If this is a mistake, visit your account settings page to leave %s.
 
 http://%s%s
 
-''' % (latest_vesting_org.name, latest_vesting_org.name, host, reverse('create_link'))
+''' % (vesting_org.name, vesting_org.name, host, reverse('create_link'))
 
     send_mail(
-        "Your Perma.cc account is now associated with {vesting_org}".format(vesting_org=latest_vesting_org.name),
+        "Your Perma.cc account is now associated with {vesting_org}".format(vesting_org=vesting_org.name),
         content,
         settings.DEFAULT_FROM_EMAIL,
         [user.email], fail_silently=False

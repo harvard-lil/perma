@@ -221,7 +221,7 @@ class LinkUser(AbstractBaseUser):
         if self.is_registrar_member():
             vesting_orgs = self.registrar.vesting_orgs.all()
         else:
-            vesting_orgs =list(self.get_default_vesting_org())
+            vesting_orgs = list(self.get_default_vesting_org())
 
 
         return [self.root_folder.get_descendants(include_self=True)] + \
@@ -233,11 +233,9 @@ class LinkUser(AbstractBaseUser):
         if self.is_registrar_member():
             return self.registrar.default_vesting_org
         if self.is_staff:
-            try:
-                return VestingOrg.objects.get(pk=settings.FALLBACK_VESTING_ORG_ID)
-            except VestingOrg.DoesNotExist:
-                raise Exception("Default vesting org not found -- check FALLBACK_VESTING_ORG_ID setting.")
-        return None
+            return VestingOrg.objects.all()
+            
+        return []
 
     def create_root_folder(self):
         if self.root_folder:
