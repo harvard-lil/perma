@@ -113,11 +113,12 @@ kbd {
     margin: 0 2px;
     font-family: 'Roboto Slab', sans-serif;
   	color: #ffffff;
-  	background-color: #5cb85c;
+  	background-color: #60B65B;
   	border-color: #4cae4c;
   	font-size:14px;
   	padding:3px 6px;
   	border-radius: 2px;
+    white-space:nowrap;
 }
 
 .docs kbd a {
@@ -140,7 +141,7 @@ kbd a:hover, kbd:hover, kbd:active {
   	border:1px solid #ccc;
 	border-radius:3px;
 	margin:10px 20px 20px 10px;
-	width:75%;
+	width:90%;
 }
 
 
@@ -1175,7 +1176,7 @@ img.image-view {
 
 .circle, .circle2, .circle3 {
     width: 30%;
-    height:0;
+    height:50%;
     padding-bottom: 30%;
     -moz-border-radius: 50%;
     -webkit-border-radius: 50%;
@@ -2955,8 +2956,15 @@ p.orange {
 		border-bottom: 1px solid #fff;
 	}
 
-	h4 {
-		margin-top: 40px;
+	h2 {
+        margin-top: 25px;
+        margin-bottom: 25px;
+    }
+
+    h4 {
+		margin-top: 25px;
+        margin-bottom: 25px;
+        font-size:20px;
 		color: #333;
 	}
 	
@@ -2978,6 +2986,88 @@ p.orange {
 		margin-left: 0;
 	}
 
+    table {
+        h4 {
+            font-size:16px;
+        }
+
+        .table-center {
+            text-align:center;
+        }
+    }
+
 }
 
 /* Developer docs end */
+
+/* User docs */
+
+.user-docs {
+
+    h2 {
+        margin-top: 25px;
+        margin-bottom: 25px;
+    }
+
+    h4 {
+        margin-top: 25px;
+        margin-bottom: 25px;
+        font-size:20px;
+        color: #333;
+    }
+      
+    p {
+        font-family: $sans-font;
+        font-size: 16px;
+        color: #555;
+    }
+
+
+    table {
+        h4 {
+            font-size:16px;
+        }
+
+        .table-center {
+            text-align:center;
+        }
+    }
+
+    #docs-toc {
+        padding-top:20px;
+        margin-bottom:100px;
+
+        h2 {
+            font-size: 18px;
+            padding: 10px;
+            margin:0px;
+            border-left:2px solid #fff;
+        }
+        h3 {
+            font-size: 14px;
+            padding:0px 5px 5px 15px;
+            margin:0px;
+            color: #000;
+            border-left:2px solid #fff;
+        }
+        h2:hover, h3:hover {
+            border-left:2px solid #0099FF;
+            cursor:pointer;
+        }
+
+    }
+
+    #docs-body {
+        
+        .red {
+            color:red;
+            border:none;
+            font-weight:bold;
+        }
+       
+    }
+}
+
+
+/* End user docs  */
+

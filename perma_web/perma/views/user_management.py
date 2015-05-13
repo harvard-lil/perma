@@ -287,6 +287,16 @@ def manage_single_vesting_org(request, vesting_org_id):
 
 
 @login_required
+@user_passes_test(lambda user: user.is_staff)
+def manage_registry_user(request):
+    return list_users_in_group(request, 'registry_user')
+    
+@login_required
+@user_passes_test(lambda user: user.is_staff)
+def manage_single_registry_user_delete(request, user_id):
+    return delete_user_in_group(request, user_id, 'registry_user')
+
+@login_required
 @user_passes_test(lambda user: user.is_staff or user.is_registrar_member())
 def manage_registrar_user(request):
     return list_users_in_group(request, 'registrar_user')
@@ -404,7 +414,9 @@ def list_users_in_group(request, group_name):
         users = LinkUser.objects.filter(vesting_org__in=request.user.vesting_org.all()).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links_count=Count('vested_links', distinct=True))
 
     # apply group filter
-    if group_name == 'registrar_user':
+    if group_name == 'registry_user':
+        users = users.exclude(is_staff=False).exclude(id=request.user.id)
+    elif group_name == 'registrar_user':
         users = users.exclude(registrar_id=None)
     elif group_name == 'vesting_user':
         users = users.exclude(vesting_org=None)
@@ -508,6 +520,9 @@ def list_users_in_group(request, group_name):
             if group_name == 'vesting_user':
                 if not (is_registry or is_registrar):
                     new_user.vesting_org = request.user.vesting_org
+                    
+            if group_name == 'registry_user':
+            	new_user.is_staff = True
 
             new_user.save()
 
@@ -801,6 +816,29 @@ def manage_single_registrar_user_remove(request, user_id):
 
     return render_to_response('user_management/user_remove_registrar_confirm.html', context)
 
+
+@login_required
+@user_passes_test(lambda user: user.is_staff)
+def manage_single_registry_user_remove(request, user_id):
+    """
+        Basically demote a registry to a regular user.
+    """
+
+    target_member = get_object_or_404(LinkUser, id=user_id)
+
+    context = {'target_member': target_member,
+               'this_page': 'users_registry_user'}
+
+    if request.method == 'POST':
+        target_member.is_staff = False
+        target_member.save()
+
+        return HttpResponseRedirect(reverse('user_management_manage_registry_user'))
+
+    context = RequestContext(request, context)
+
+    return render_to_response('user_management/user_remove_registry_confirm.html', context)
+    
 
 @login_required
 @user_passes_test(lambda user: user.is_staff)

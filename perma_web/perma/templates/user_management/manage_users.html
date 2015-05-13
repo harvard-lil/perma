@@ -131,7 +131,7 @@
             {% endif %}
             {% endif %}
             {% if request.user.is_staff %}
-            {% if not group_name == 'user' %}
+            {% if not group_name == 'user' and not group_name == 'registry_user' %}
             <div class="dropdown">
                   <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
                     Registrar <span class="caret"></span>
@@ -200,7 +200,12 @@
                 <p class="list-status">
                 {% if listed_user.is_active %}
                     {% if request.user.is_staff %}
+                    	{% if group_name != 'registry_user' %}
                         <a href="{% url single_user_url listed_user.id %}">remove/delete</a>
+                        {% else %}
+                        <a href="{% url 'user_management_manage_single_registry_user_remove' listed_user.id %}">remove</a>
+                        {% endif %}
+>>>>>>> develop
                     {% elif request.user.is_registrar_member and group_name == 'vesting_user' %}
                         <a href="{% url single_user_url listed_user.id %}">remove</a>
                     {% elif request.user.is_registrar_member and group_name == 'registrar_user' %}
