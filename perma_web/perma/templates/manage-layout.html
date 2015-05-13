@@ -14,6 +14,7 @@
             <h4>Manage users</h4>
 
             {% if request.user.is_staff %}
+                <li {% if this_page == "users_registry_users" %}class="active" {% endif %}><a href="{% url 'user_management_manage_registry_user' %}">Registry users</a></li>
                 <li {% if this_page == "users_registrars" %}class="active" {% endif %}><a href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>
             {% endif %}
 
