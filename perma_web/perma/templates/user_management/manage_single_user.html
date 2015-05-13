@@ -7,14 +7,14 @@
 		<div class="col-sm-12">	
 			<h3>Remove from vesting organization</h3>
 			
-			<p>{{ target_user.email }} a member of the following vesting organizations</p>
+			<p>{{ target_user.email }} a member of the following vesting organization(s)</p>
 			{% for vesting_org in vesting_orgs %}
-			<div class="row">
-				<div class="col-xs-2">
-					{{ vesting_org.name }}
+			<div class="row remove-message-container">
+				<div class="col-xs-4">
+					<p>{{ vesting_org.name }}</p>
 				</div>
-				<div class="col-xs-8">
-				 	<a href="{% url 'user_management_manage_single_vesting_user_remove' user_id=target_user.id vesting_org_id=vesting_org.id %}" role="button" class="btn btn-large dashboard pull-left" data-toggle="tooltip">Remove </a> 
+				<div class="col-xs-4">
+				 	<a href="{% url 'user_management_manage_single_vesting_user_remove' user_id=target_user.id vesting_org_id=vesting_org.id %}" role="button" class="btn btn-large btn-danger pull-left" data-toggle="tooltip">Remove </a> 
 				</div>
 			</div>
 			{% endfor %}

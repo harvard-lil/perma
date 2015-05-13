@@ -2529,6 +2529,15 @@ a.tab-styling, .tab-styling {
   border-color: #ebccd1;
 }
 
+.remove-message-container {
+    padding: 10px 0 0 0;
+    margin-bottom: 10px;
+}
+
+.remove-message-container p {
+    font-size: 18px;
+}
+
 a.btn.vest, a.btn.dashboard, a.btn.user-delete {
 	width:100px;
 	padding:2px 0px;
