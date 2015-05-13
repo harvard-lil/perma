@@ -8,66 +8,6 @@ import struct
 import tempdir
 
 
-class favicon:
-    
-    def get_favicon(target_url, parsed_html, link_guid, disk_path, url_details):
-        """ Given a URL and the markup, see if we can find a favicon.
-            TODO: this is a rough draft. cleanup and move to an appropriate place. """
-
-        # We already have the parsed HTML, let's see if there is a favicon in the META elements
-        favicons = parsed_html.xpath('//link[@rel="icon"]/@href')
-
-        favicon = False
-
-        if len(favicons) > 0:
-            favicon = favicons[0]
-
-        if not favicon:
-            favicons = parsed_html.xpath('//link[@rel="shortcut"]/@href')
-            if len(favicons) > 0:
-                favicon = favicons[0]
-
-        if not favicon:
-            favicons = parsed_html.xpath('//link[@rel="shortcut icon"]/@href')
-            if len(favicons) > 0:
-                favicon = favicons[0]
-
-        if favicon:
-
-            if re.match(r'^//', favicon):
-                favicon = url_details.scheme + ':' + favicon
-            elif not re.match(r'^http', favicon):
-                favicon = url_details.scheme + '://' + url_details.netloc + '/' + favicon
-
-            try:
-              f = urllib2.urlopen(favicon)
-              data = f.read()
-
-              with open(disk_path + 'fav.png', "wb") as asset:
-                asset.write(data)
-
-              return 'fav.png'
-            except urllib2.HTTPError:
-              pass
-
-        # If we haven't returned True above, we didn't find a favicon in the markup.
-        # let's try the favicon convention: http://example.com/favicon.ico
-        target_favicon_url = url_details.scheme + '://' + url_details.netloc + '/favicon.ico'
-
-        try:
-            f = urllib2.urlopen(target_favicon_url)
-            data = f.read()
-            with open(disk_path + 'fav.ico' , "wb") as asset:
-                asset.write(data)
-
-            return 'fav' + '.ico'
-        except urllib2.HTTPError:
-            pass
-
-
-        return False
-
-
 ### celery helpers ###
 
 def run_task(task, *args, **kwargs):

@@ -34,6 +34,9 @@
                     </div><!--end span 3 -->
                     <div class="col-sm-6 meta-data">
                         {% if not linky.user_deleted or request.user.is_authenticated and request.user.pk == linky.created_by_id %}
+                            {% if asset.favicon %}
+                                <img src="{{ MEDIA_URL }}{{ asset.favicon_url }}" width="16" height="16">
+                            {% endif %}
                             <a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_title}}</a><br/>
 
                             <!--<a class="submitted_url" href="{{linky.submitted_url}}">{{linky.submitted_url}}</a>-->
