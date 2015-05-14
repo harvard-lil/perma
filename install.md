@@ -55,7 +55,7 @@ pacakges we depend on (you'll have to do this every time requirements.txt change
 
     (perma)vagrant@perma_0.1:/vagrant/perma_web$ pip install -r requirements.txt
 
-Initialize the database (this will call `syncdb`, apply South migrations, and load fixtures):
+Initialize the database (this will call `syncdb`, apply migrations, and load fixtures):
 
     (perma)vagrant@perma_0.1:/vagrant/perma_web$ fab init_dev_db
 
@@ -126,7 +126,7 @@ You should have the pieces in place. Let's create the tables in your database us
 
     $ python manage.py syncdb --noinput
 
-Then apply South migrations:
+Then apply migrations:
 
     $ python manage.py migrate
 

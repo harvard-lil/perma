@@ -121,6 +121,37 @@ def init_dev_db():
     local("python manage.py migrate")
     local("python manage.py loaddata fixtures/sites.json fixtures/users.json fixtures/folders.json")
 
+@task
+def set_user_upload_field():
+    """
+        Temporary task to fix user_upload field.
+    """
+    from perma.models import Asset
+    from django.db.models import Q
+    from urlparse import urlparse
+
+    first_change_date = '2014-04-10 13:22:44'  # last date when uploaded filenames still started with a slash
+    second_change_date = '2014-10-27 18:43:26'  # date when non-uploaded PDFs started to set image_capture
+
+    # user uploads up to first_change_date can be identified because
+    # image_capture or pdf_capture will start with a slash
+    Asset.objects.filter(link__creation_timestamp__lte=first_change_date).filter(
+        Q(image_capture__startswith='/') | Q(pdf_capture__startswith='/')
+    ).update(user_upload=True)
+
+    # image uploads at any time can be identified because pdf_capture and warc_capture are null
+    Asset.objects.filter(pdf_capture=None, warc_capture=None).exclude(image_capture=None).update(user_upload=True)
+
+    # PDF uploads after second_change_date can be identified because
+    # image_capture is null
+    Asset.objects.filter(link__creation_timestamp__gte=second_change_date, image_capture=None).update(user_upload=True)
+
+    # PDF uploads between first_change_date and second_change_date can be identified because
+    # submitted_title is not the submitted_url domain
+    for asset in Asset.objects.filter(link__creation_timestamp__gt=first_change_date, link__creation_timestamp__lt=second_change_date).exclude(pdf_capture=None).select_related('link'):
+        if asset.link.submitted_title != urlparse(asset.link.submitted_url).netloc:
+            asset.user_upload = True
+            asset.save()
 
 ### DEPLOYMENT ###
 

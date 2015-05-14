@@ -598,6 +598,7 @@ class Asset(models.Model):
     instapaper_timestamp = models.DateTimeField(null=True)
     instapaper_hash = models.CharField(max_length=2100, null=True)
     instapaper_id = models.IntegerField(null=True)
+    user_upload = models.BooleanField(default=False)  # whether the user uploaded this file or we fetched it from the web
 
     last_integrity_check = models.DateTimeField(blank=True, null=True)  # for a mirror server, the last time our disk assets were checked against upstream
     integrity_check_succeeded = models.NullBooleanField(blank=True, null=True)      # whether the last integrity check succeeded
