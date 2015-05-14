@@ -4,11 +4,13 @@ import sys, os
 from datetime import date
 import tempfile
 from django.utils.crypto import get_random_string
+import django
 from fabric.api import *
 import subprocess
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'perma.settings')
 from django.conf import settings
+django.setup()
 
 
 ### SETUP ###
@@ -19,6 +21,7 @@ env.PYTHON_BIN = 'python'
 WSGI_FILE = 'perma/wsgi.py'
 LOCAL_DB_SETTINGS = settings.DATABASES['default']
 env.DATABASE_BACKUP_DIR = None # If relative path, dir is relative to REMOTE_DIR. If None, no backup will be done.
+
 
 _already_setup = False
 def setup_remote(f):
@@ -45,10 +48,18 @@ def setup_remote(f):
         return f(*args, **kwargs)
     return wrapper
 
+# def run_as_perma(*args, **kwargs):
+#     """
+#         Version of fabric's `run()` that sudoes into the `perma` user to run the command.
+#     """
+#     with _setenv({'shell': 'sudo -p "%s" su perma -c' % env.sudo_prompt}):
+#         return run(*args, **kwargs)
+
 
 ### GENERAL UTILITIES ###
 
-def run(port="0.0.0.0:8000"):
+@task(name='run')
+def run_django(port="0.0.0.0:8000"):
     """
         Run django test server on open port, so it's accessible outside Vagrant.
     """
@@ -59,18 +70,21 @@ def run(port="0.0.0.0:8000"):
     except ImportError:
         local("python manage.py runserver %s" % port)
 
+@task
 def run_ssl(port="0.0.0.0:8000"):
     """
         Run django test server with SSL.
     """
     local("python manage.py runsslserver %s" % port)
 
+@task
 def runmirror():
     """
         Run parallel django main and mirror servers.
     """
     local("python manage.py runmirror")
 
+@task
 def test(apps="perma mirroring api functional_tests"):
     """
         Run perma tests. (For coverage, run `coverage report` after tests pass.)
@@ -83,6 +97,7 @@ def test(apps="perma mirroring api functional_tests"):
     ]
     local("coverage run --source='.' --omit='%s' manage.py test %s" % (",".join(excluded_files), apps))
 
+@task
 def sauce_tunnel():
     """
         Set up Sauce tunnel before running functional tests targeted at localhost.
@@ -92,46 +107,69 @@ def sauce_tunnel():
     local("sc -u %s -k %s" % (settings.SAUCE_USERNAME, settings.SAUCE_ACCESS_KEY))
 
 
+@task
 def logs(log_dir=os.path.join(settings.PROJECT_ROOT, '../services/logs/')):
     """ Tail all logs. """
     local("tail -f %s/*" % log_dir)
 
+@task
 def init_dev_db():
     """
-        Run syncdb, South migrate, and import fixtures for new dev database.
+        Run syncdb, apply migrations, and import fixtures for new dev database.
     """
     local("python manage.py syncdb --noinput")
     local("python manage.py migrate")
     local("python manage.py loaddata fixtures/sites.json fixtures/users.json fixtures/folders.json")
 
-def south_out(app="perma"):
+@task
+def set_user_upload_field():
     """
-        Migrate schema changes out of models.py to migration files.
+        Temporary task to fix user_upload field.
     """
-    local("python manage.py schemamigration %s --auto" % app)
+    from perma.models import Asset
+    from django.db.models import Q
+    from urlparse import urlparse
 
-def south_in(*args):
-    """
-        Migrate schema changes from migration files into db. For single app, do fab south_in:app_name
-    """
-    local("python manage.py migrate %s" % (" ".join(args)))
+    first_change_date = '2014-04-10 13:22:44'  # last date when uploaded filenames still started with a slash
+    second_change_date = '2014-10-27 18:43:26'  # date when non-uploaded PDFs started to set image_capture
 
+    # user uploads up to first_change_date can be identified because
+    # image_capture or pdf_capture will start with a slash
+    Asset.objects.filter(link__creation_timestamp__lte=first_change_date).filter(
+        Q(image_capture__startswith='/') | Q(pdf_capture__startswith='/')
+    ).update(user_upload=True)
+
+    # image uploads at any time can be identified because pdf_capture and warc_capture are null
+    Asset.objects.filter(pdf_capture=None, warc_capture=None).exclude(image_capture=None).update(user_upload=True)
+
+    # PDF uploads after second_change_date can be identified because
+    # image_capture is null
+    Asset.objects.filter(link__creation_timestamp__gte=second_change_date, image_capture=None).update(user_upload=True)
+
+    # PDF uploads between first_change_date and second_change_date can be identified because
+    # submitted_title is not the submitted_url domain
+    for asset in Asset.objects.filter(link__creation_timestamp__gt=first_change_date, link__creation_timestamp__lt=second_change_date).exclude(pdf_capture=None).select_related('link'):
+        if asset.link.submitted_title != urlparse(asset.link.submitted_url).netloc:
+            asset.user_upload = True
+            asset.save()
 
 ### DEPLOYMENT ###
 
+@task
 @setup_remote
 def deploy(branch='master'):
     """
-        Full deployment: back up database, pull code, install requirements, sync db, run south migrations, collect static files, restart server.
+        Full deployment: back up database, pull code, install requirements, sync db, run migrations, collect static files, restart server.
     """
     backup_database()
     deploy_code(restart=False, branch=branch)
     pip_install()
     run("%s manage.py syncdb" % env.PYTHON_BIN)
-    run("fab south_in")
+    run("%s manage.py migrate" % env.PYTHON_BIN)
     run("%s manage.py collectstatic --noinput --clear" % env.PYTHON_BIN)
     
 
+@task
 @setup_remote
 def deploy_code(restart=True, branch='master'):
     """
@@ -142,6 +180,7 @@ def deploy_code(restart=True, branch='master'):
     if restart:
           restart_server()
           
+@task
 def tag_new_release(tag):
     """
         Roll develop into master and tag it
@@ -154,9 +193,11 @@ def tag_new_release(tag):
     local("git checkout develop")
     
           
+@task
 def pip_install():
       run("pip install -r requirements.txt")
 
+@task
 @setup_remote
 def restart_server():
     """
@@ -166,6 +207,7 @@ def restart_server():
     run("sudo stop celerybeat; sudo start celerybeat;")
 
 
+@task
 @setup_remote
 def stop_server():
     """
@@ -176,6 +218,7 @@ def stop_server():
     run("sudo service celerybeat stop")
     
     
+@task
 @setup_remote
 def start_server():
     """
@@ -187,11 +230,13 @@ def start_server():
 
 ### DATABASE STUFF ###
 
+@task
 @setup_remote
 def backup_database():
     if env.DATABASE_BACKUP_DIR:
         run("fab local_backup_database:%s" % env.DATABASE_BACKUP_DIR)
 
+@task
 def local_backup_database(backup_dir):
     # WARNING: this is totally untested
     # this is going to be triggered by calling fab on the remote server, so that LOCAL_DB_SETTINGS has the remote settings
@@ -205,6 +250,7 @@ def local_backup_database(backup_dir):
     child.expect('Enter password:')
     child.sendline(LOCAL_DB_SETTINGS['PASSWORD'])
 
+@task
 @setup_remote
 def shell():
     """
@@ -217,6 +263,7 @@ def shell():
 
 ### MIRRORING ###
 
+@task
 def generate_keys():
     """
         Generate a keypair suitable for settings.py on the main server.
@@ -237,6 +284,7 @@ def generate_keys():
 
 ### HEROKU ###
 
+@task
 def heroku_configure_app(app_name, s3_storage_bucket=None, s3_path='/'):
     """
         Set up a new Heroku Perma app.
@@ -270,6 +318,7 @@ def heroku_configure_app(app_name, s3_storage_bucket=None, s3_path='/'):
 
     print "Heroku app setup completed. Remember to set the following config vars: %s" % (django_blank_vars,)
 
+@task
 def heroku_push(app_name='perma', project_dir=os.path.join(settings.PROJECT_ROOT, '..')):
     """
         Push code to Heroku.
