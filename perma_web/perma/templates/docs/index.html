@@ -16,23 +16,25 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 				<a href="#what-is-vesting"><li><h3>What is vesting?</h3></li></a>
 				<a href="#example-perma"><li><h3>Perma.cc example</h3></li></a>
 			<a href="#perma-basics"><li><h2>Perma.cc Basics</h2></li></a>
-				<a href="#account-holders"><li><h3>Account-Holders</h3></li></a>
-				<a href="#create-account"><li><h3>Creating an Account</h3></li></a>
-				<a href="#navigating-account"><li><h3>Navigating Your Account</h3></li></a>
-				<a href="#creating-links"><li><h3>Creating Links</h3></li></a>
-				<a href="#vesting-links"><li><h3>Vesting Links</h3></li></a>
-				<a href="#annotating-links"><li><h3>Annotating Links</h3></li></a>
-				<a href="#organizing-links"><li><h3>Organizing Links</h3></li></a>
+				<a href="#account-holders"><li><h3>Account-holders</h3></li></a>
+				<a href="#create-account"><li><h3>Creating an account</h3></li></a>
+				<a href="#navigating-account"><li><h3>Navigating your account</h3></li></a>
+				<a href="#creating-links"><li><h3>Creating links</h3></li></a>
+				<a href="#vesting-links"><li><h3>Vesting links</h3></li></a>
+				<a href="#annotating-links"><li><h3>Annotating links</h3></li></a>
+				<a href="#organizing-links"><li><h3>Organizing links</h3></li></a>
 				<a href="#using-links"><li><h3>Using Links</h3></li></a>
+				<a href="#archive-formats"><li><h3>Archive formats</h3></li></a>
+				<a href="#darchive"><li><h3>Dark archive policies</h3></li></a>
 			<a href="#libraries-and-registrars"><li><h2>For Libraries and Other Registrars</h2></li></a>
 				<a href="#libraries-authority"><li><h3>Authority and responsibilities</h3></li></a>
 				<a href="#creating-vesting-orgs"><li><h3>Creating new vesting orgs</h3></li></a>
-				<a href="#supporting-journals"></li><h3>Supporting your journals</h3></li></a>
-				<a href="#supporting-faculty"></li><h3>Supporting your faculty</h3></li></a>
+				<a href="#placing-users-with-vesting-orgs"><li><h3>Placing users with vesting orgs</li></h3>
+				<a href="#supporting-journals-and-faculty"></li><h3>Supporting journals and faculty</h3></li></a>
 			<a href="#journals-vesting-orgs"><li><h2>For Journals, Courts and Other Vesting Orgs</h2></li></a>
+				<a href="becoming-vesting-org"><li><h3>Becoming a vesting org</h3></li></a>
 				<a href="#journals-authority"><li><h3>Authority and responsibilities</h3></li></a>
 				<a href="#adding-vesting-users"><li><h3>Adding and removing vesting users</h3></li></a>
-			<a href="#lawyers-publishers-others"><li><h2>For Lawyers, Publishers, Journalists and Others Interested in Vesting</h2></li></a>
 		<ul>
 	</div>
 	<div class="col-sm-8 docs" id="docs-body">
@@ -173,24 +175,32 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 
 			<h4 id="becoming-registrar">Becoming a registrar</h4>
 				<p>Any academic library can become a registrar for free. Just email us at <a href="mailto:info@perma.cc">info@perma.cc</a> and tell us who you are, what kinds of users and usage you intend to support and who your contact person is. We'll get back to with some very basic setup instructions.</p>
-				<p>In general, registrar status is reserved for libraries and other trusted insitutions that help administer Perma.cc and ensure its appropriate use. If you're not with an academic library but still would like to be a registrar, please email us at <a href="mailto:info@perma.cc">info@perma.cc</a> and tell us who you are, why you want to join Perma as registrar and what types of users and organizations you would expect to support as a registrar.</p>  
+				<p>In general, registrar status is reserved for libraries and other trusted insitutions that help administer Perma.cc and ensure its appropriate use. If you're not with an academic library but still would like to be a registrar, please email us and tell us who you are, why you want to join Perma as registrar and what types of users and organizations you would expect to support as a registrar.</p>  
+
 			<h4 id="libraries-authority">Authority and responsibilities</h4>
 				<p>Registrars can vest links, confer (and withdraw) vesting authority and create new vesting organizations. Typically this means acting as the hub of a network of vesting organizations and their users. As a registrar, you'll help train and support Perma.cc users within your network. You'll also be responsible for ensuring that those in your network with vesting authority do not abuse that authority. Every link vested by anyone within your network becomes automatically associated with you, as the relevant registrar, so it's important that you exercise judgment in approving vesting organizations. If you like, you can adopt policies and best practices for Perma.cc usage by those in your network.</p>
+
 			<h4 id="creating-vesting-orgs">Creating new vesting orgs</h4>
 				<p>Creating new vesting organizations is easy. Just click on "Manage users" in the dropdown menu and select "Vesting organizations." Click "add new" to trigger the new vesting organization form, fill out the appropriate details and press the <kbd>Create new vesting organization</kbd> button:<p>
 
 				<img src="{{ STATIC_URL }}/img/docs/screenshot_new_vesting_orgs.png" class="img-responsive screen-shot" alt="Screenshot of manage users screen." />
 
+			<h4 id="placing-users-with-vesting-orgs">Assigning users to vesting orgs</h4>
+				<p>Once you've created a vesting org, you'll want to assign at least one vesting user to that vesting org. Just click on "Manage users" in the dropdown menu and select "Vesting users." Click "add new" to trigger the new vesting user form and enter the person's email. If she already has a Perma.cc account, we'll note that and invite you to assign that user to a vesting org. If she doesn't have a Perma.cc account, we'll ask you for the person's name and invite you to assign her to a vesting org. Once you submit, we'll send that person a verification email so she can get up and running.</p>
+				<p>Currently, we do not allow vesting users to be assigned to more than one vesting org at the same time (we're working on this though). You can switch vesting users from one vesting org to the other. To do this, first remove the user from the old vesting org and then add her to the new vesting org.</p> 
 
-			<h4 id="supporting-journals">Supporting your journals</h4>
-			<h4 id="supporting-faculty">Supporting your faculty</h4>
-			
+			<h4 id="supporting-journals-and-faculty">Supporting journals and faculty</h4>
+				<p>Each library is free to develop its own Perma.cc policies and practices. As a registrar, you can support as many or as few users associated with your institution as you like. To get you started, here are a few approaches you might adopt for helping journals and faculty use Perma.cc.</p>
+				<p>For journals, many libraries set up each journal up as a vesting org and then let the journal manage its own internal usage. Many libraries help journals by training new members and serving as a resource for questions about how to use Perma.cc.</p>
+				<p>For faculty, many libraries create separate vesting orgs for each faculty member. These faculty vesting orgs can include the faculty member herself, as well as any secretaries, research assistants or interns. Remember that if you combine faculty into a single vesting org, they will be able to observe - and potentially move - each other's links.</p>
 
-		<h2>For Journals, Courts and Other Vesting Organizations</h2>
-		<h2>For Academic Journals and Journal Users</h2>
-		<h2>For Faculty Users</h2>
-		<h2>For Law Firms and Lawyers</h2>
-		<h2>For Publishers, Journalists and Others</h2>
+		<h2 id="journals-vesting-orgs">For Journals, Courts and Other Vesting Organizations</h2>
+
+			<h4 id="becoming-vesting-org">Becoming a vesting org</h4>
+				<p>If you're with an academic institution, simply contact your library and ask if it is a Perma.cc registrar. If your library isn't yet a registrar, ask them to contact us at <a href="mailto: info@perma.cc">info@perma.cc</a> about joining Perma.cc as a registrar." If you're part of a court or other governmental entity, please contact us directly.</p>  
+
+			<h4 id="journals-authority">Authority and responsibilities</h4>
+			<h4 id="adding-vesting-users">Adding and removing vesting users</h4>
 	</div>
 	
 </div>
