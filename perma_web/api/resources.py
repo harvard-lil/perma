@@ -437,6 +437,7 @@ class LinkResource(AuthenticatedLinkResource):
                 asset.pdf_capture = file_name
             else:
                 asset.image_capture = file_name
+            asset.user_upload = True
             asset.save()
         else:
             asset.image_capture = Asset.CAPTURE_STATUS_PENDING
