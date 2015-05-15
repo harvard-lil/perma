@@ -461,18 +461,22 @@ def get_pdf(self, link_guid, target_url, base_storage_path, user_agent):
 
     # store temp file
     temp.seek(0)
-    pdf_name = default_storage.store_file(temp, pdf_path)
+    pdf_name = default_storage.store_file(temp, pdf_path, overwrite=True)
     save_fields(asset, pdf_capture=pdf_name)
     
     # Get first page of the PDF and created an image from it
     # Save it to disk as our image capture (likely a temporary measure)
     # The [0] in the filename gets passed through to ImageMagick and limits PDFs to the first page.
-    with imagemagick_temp_dir():
-        with Image(filename=temp.name+"[0]") as img:
-            image_name = 'cap.png'
-            image_path = os.path.join(base_storage_path, image_name)
-            default_storage.store_data_to_file(img.make_blob('png'), image_path, overwrite=True)
-            save_fields(asset, image_capture=image_name)
+    try:
+        with imagemagick_temp_dir():
+            with Image(filename=temp.name+"[0]") as img:
+                image_name = 'cap.png'
+                image_path = os.path.join(base_storage_path, image_name)
+                default_storage.store_data_to_file(img.make_blob('png'), image_path, overwrite=True)
+                save_fields(asset, image_capture=image_name)
+    except Exception as e:
+        # errors with the thumbnail aren't dealbreakers -- just log here
+        print "Error creating PDF thumbnail: %s" % e
 
 @shared_task
 def get_nightly_stats():
