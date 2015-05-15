@@ -282,7 +282,7 @@ class LinkUser(AbstractBaseUser):
 
     def is_vesting_org_member(self):
         """ Is the user a member of a vesting org? """
-        return bool(self.vesting_org.all())
+        return self.vesting_org.exists()
 
 
 class FolderQuerySet(QuerySet):
