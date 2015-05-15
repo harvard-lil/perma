@@ -598,7 +598,10 @@ class Asset(models.Model):
     instapaper_timestamp = models.DateTimeField(null=True)
     instapaper_hash = models.CharField(max_length=2100, null=True)
     instapaper_id = models.IntegerField(null=True)
-    user_upload = models.BooleanField(default=False)  # whether the user uploaded this file or we fetched it from the web
+
+    user_upload = models.BooleanField(
+        default=False)  # whether the user uploaded this file or we fetched it from the web
+    user_upload_file_name = models.CharField(max_length=2100, null=True, blank=True)  # if user upload, the original file name of the upload
 
     user_upload = models.BooleanField(
         default=False)  # whether the user uploaded this file or we fetched it from the web

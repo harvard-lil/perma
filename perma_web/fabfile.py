@@ -167,9 +167,12 @@ def fix_file_names(real=False):
     def move_upload(asset, old_name):
         # translate old name like /cap.jpeg to new name like cap.jpg
         old_name = old_name.replace('/','')
-        new_name = old_name
-        for a, b in (('cap','upload'), ('jfif', 'jpg'), ('jpeg', 'jpg')):
-            new_name = new_name.replace(a, b)
+        if old_name.startswith('cap_'):
+            new_name = 'upload.pdf'
+        else:
+            new_name = old_name
+            for a, b in (('cap','upload'), ('jfif', 'jpg'), ('jpeg', 'jpg')):
+                new_name = new_name.replace(a, b)
 
         # move file
         from_path = default_storage.path(os.path.join(asset.base_storage_path, old_name))
@@ -177,6 +180,14 @@ def fix_file_names(real=False):
         print "Moving '%s' to '%s'" % (from_path, to_path)
         if real:
             os.rename(from_path, to_path)
+
+        # delete duplicate PDFs
+        if old_name.startswith('cap_'):
+            for duplicate_pdf in glob.glob(default_storage.path(asset.base_storage_path)+'/cap*.pdf'):
+                cold_storage_dir = os.path.join('/perma/assets/cold_storage/duplicate_pdfs/', asset.base_storage_path)
+                print "\tMoving '%s' to '%s'" % (duplicate_pdf, cold_storage_dir)
+                if real:
+                    subprocess.call("mkdir -p %s/; mv %s %s/" % (cold_storage_dir, duplicate_pdf, cold_storage_dir), shell=True)
 
         return new_name
 
@@ -188,29 +199,6 @@ def fix_file_names(real=False):
             asset.image_capture = move_upload(asset, asset.image_capture)
             print "Saving new image_capture %s" % asset.image_capture
 
-        if real:
-            asset.save()
-
-    for asset in Asset.objects.filter(pdf_capture__startswith="cap_"):
-        old_name = asset.pdf_capture
-        new_name = 'cap.pdf'
-
-        # move file
-        from_path = default_storage.path(os.path.join(asset.base_storage_path, old_name))
-        to_path = default_storage.path(os.path.join(asset.base_storage_path, new_name))
-        print "Moving '%s' to '%s'" % (from_path, to_path)
-        if real:
-            os.rename(from_path, to_path)
-
-        # delete duplicate PDFs
-        for duplicate_pdf in glob.glob(default_storage.path(asset.base_storage_path) + '/cap_*.pdf'):
-            cold_storage_dir = os.path.join('/perma/assets/cold_storage/duplicate_pdfs/', asset.base_storage_path)
-            print "\tMoving '%s' to '%s'" % (duplicate_pdf, cold_storage_dir)
-            if real:
-                subprocess.call("mkdir -p %s/; mv %s %s/" % (cold_storage_dir, duplicate_pdf, cold_storage_dir),
-                                shell=True)
-
-        asset.pdf_capture = new_name
         if real:
             asset.save()
 
