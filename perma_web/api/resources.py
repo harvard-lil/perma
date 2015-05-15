@@ -1,5 +1,4 @@
 import json
-from mimetypes import MimeTypes
 import os
 
 from django.conf import settings
@@ -20,7 +19,7 @@ from tastypie import http
 from tastypie.resources import ModelResource
 from tastypie.exceptions import NotFound, ImmediateHttpResponse
 
-from validations import LinkValidation, FolderValidation
+from validations import LinkValidation, FolderValidation, mime_type_lookup, get_mime_type
 from perma.models import (LinkUser,
                           Link,
                           Asset,
@@ -425,9 +424,9 @@ class LinkResource(AuthenticatedLinkResource):
 
         uploaded_file = bundle.data.get('file')
         if uploaded_file:
-            mime = MimeTypes()
-            mime_type = mime.guess_type(uploaded_file.name)[0]
-            file_name = 'cap' + mime.guess_extension(mime_type)
+            # normalize file name to upload.jpg, upload.png, upload.gif, or upload.pdf
+            mime_type = get_mime_type(uploaded_file.name)
+            file_name = 'upload.%s' % mime_type_lookup[mime_type]['new_extension']
             file_path = os.path.join(asset.base_storage_path, file_name)
 
             uploaded_file.file.seek(0)
@@ -438,6 +437,7 @@ class LinkResource(AuthenticatedLinkResource):
             else:
                 asset.image_capture = file_name
             asset.user_upload = True
+            asset.user_upload_file_name = uploaded_file.name
             asset.save()
         else:
             asset.image_capture = Asset.CAPTURE_STATUS_PENDING
