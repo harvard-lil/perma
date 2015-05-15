@@ -17,4 +17,10 @@ class Migration(migrations.Migration):
             field=models.BooleanField(default=False),
             preserve_default=True,
         ),
+        migrations.AddField(
+            model_name='asset',
+            name='user_upload_file_name',
+            field=models.CharField(max_length=2100, null=True, blank=True),
+            preserve_default=True,
+        ),
     ]

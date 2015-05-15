@@ -2,13 +2,47 @@ from tastypie.validation import Validation
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from netaddr import IPAddress, IPNetwork
-from mimetypes import MimeTypes
 from PyPDF2 import PdfFileReader
 import imghdr
 
 from django.conf import settings
-from perma.models import Folder
 
+# Map allowed file extensions to mime types.
+# WARNING: If you change this, also change `accept=""` in create-link.html
+file_extension_lookup = {
+    'jpg':'image/jpeg',
+    'jpeg':'image/jpeg',
+    'pdf':'application/pdf',
+    'png':'image/png',
+    'gif':'image/gif',
+}
+
+# Map allowed mime types to new file extensions and validation functions.
+# We manually pick the new extension instead of using MimeTypes().guess_extension,
+# because that varies between systems.
+mime_type_lookup = {
+    'image/jpeg':{
+        'new_extension':'jpg',
+        'valid_file': lambda f: imghdr.what(f) == 'jpeg',
+    },
+    'image/png': {
+        'new_extension': 'png',
+        'valid_file': lambda f: imghdr.what(f) == 'png',
+    },
+    'image/gif': {
+        'new_extension': 'gif',
+        'valid_file': lambda f: imghdr.what(f) == 'gif',
+    },
+    'application/pdf': {
+        'new_extension': 'jpg',
+        'valid_file': lambda f: PdfFileReader(f).numPages >= 0,
+    }
+}
+
+def get_mime_type(file_name):
+    """ Return mime type (for a valid file extension) or None if file extension is unknown. """
+    file_extension = file_name.rsplit('.', 1)[-1].lower()
+    return file_extension_lookup.get(file_extension)
 
 class LinkValidation(Validation):
 
@@ -32,20 +66,6 @@ class LinkValidation(Validation):
             # Weird -- content-length header wasn't an integer. Carry on.
             pass
         return True
-
-    def is_valid_file(self, upload, mime_type):
-        # Make sure files are not corrupted.
-        if mime_type == 'image/jpeg':
-            return imghdr.what(upload) == 'jpeg'
-        elif mime_type == 'image/png':
-            return imghdr.what(upload) == 'png'
-        elif mime_type == 'image/gif':
-            return imghdr.what(upload) == 'gif'
-        elif mime_type == 'application/pdf':
-            doc = PdfFileReader(upload)
-            if doc.numPages >= 0:
-                return True
-        return False
 
     def is_valid(self, bundle, request=None):
         if not bundle.data:
@@ -73,14 +93,14 @@ class LinkValidation(Validation):
             except ValidationError:
                 errors['url'] = "Not a valid URL."
 
-        if bundle.data.get('file', None):
-            mime = MimeTypes()
-            mime_type = mime.guess_type(bundle.data.get('file').name)[0]
+        uploaded_file = bundle.data.get('file')
+        if uploaded_file:
+            mime_type = get_mime_type(uploaded_file.name)
 
             # Get mime type string from tuple
-            if not mime_type or not self.is_valid_file(bundle.data.get('file'), mime_type):
+            if not mime_type or not mime_type_lookup[mime_type]['valid_file'](uploaded_file):
                 errors['file'] = "Invalid file."
-            elif bundle.data.get('file').size > settings.MAX_ARCHIVE_FILE_SIZE:
+            elif uploaded_file.size > settings.MAX_ARCHIVE_FILE_SIZE:
                 errors['file'] = "File is too large."
 
         # Vesting

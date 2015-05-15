@@ -100,9 +100,31 @@ function linkNot(jqXHR){
 
 function uploadNot(data) {
     // Display an error message in our upload modal
-    var response = jQuery.parseJSON( data.responseText );
-    //$('#upload-error').text('The upload failed. Only gif, jpg, and pdf files supported. Max of 50 MB.');
-    $('#upload-error').text('The upload failed. ' + response.reason);
+    var response = jQuery.parseJSON( data.responseText),
+        reasons = [];
+    $('.js-warning').remove();
+    $('.has-error').removeClass('has-error');
+    if(response.archives){
+        // If error message comes in as {archive:{file:"message",url:"message"}},
+        // show appropriate error message next to each field.
+        for(var key in response.archives) {
+            if(response.archives.hasOwnProperty(key)) {
+                var input = $('#'+key);
+                if(input.length){
+                    input.after('<span class="help-block js-warning">'+response.archives[key]+'</span>');
+                    input.closest('div').addClass('has-error');
+                }else{
+                    reasons.push(response.archives[key]);
+                }
+            }
+        }
+    }else if(response.reason){
+        reasons.push(response.reason);
+    }else{
+        reasons.push(response);
+    }
+
+    $('#upload-error').text('Upload failed. ' + reasons.join(". "));
 }
 
 function uploadIt(data) {
@@ -127,6 +149,7 @@ function uploadIt(data) {
 function upload_form() {
     $('#linky-confirm').modal('hide');
     $('#upload-error').text('');
+    $('#archive_upload_form input[name="url"]').val($('#rawUrl').val());
     $('#archive-upload').modal('show');
     return false;
 }
