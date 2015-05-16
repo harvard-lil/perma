@@ -178,7 +178,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     ###########
 
     def test_vesting(self):
-        folder = self.vesting_member.vesting_org.folders.first()
+        folder = self.vesting_member.vesting_org.first().folders.first()
         folder_url = "{0}/folders/{1}/".format(self.url_base, folder.pk)
 
         self.successful_put("{0}archives/{1}/".format(folder_url, self.unvested_link.pk),
@@ -197,8 +197,8 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     ##########
 
     def test_moving(self):
-        vesting_org = self.vesting_member[0]
-        folder = vesting_org.folders.first()
+        #vesting_org = self.vesting_member[0]
+        folder = self.vesting_member.vesting_org.first().folders.first()
         folder_url = "{0}/folders/{1}/".format(self.url_base, folder.pk)
 
         self.successful_put("{0}archives/{1}/".format(folder_url, self.unvested_link.pk),
