@@ -770,26 +770,25 @@ def delete_user_in_group(request, user_id, group_name):
 
 @login_required
 @user_passes_test(lambda user: user.is_registrar_member() or user.is_vesting_org_member() or user.is_staff)
-def manage_single_vesting_user_remove(request, user_id, vesting_org_id):
+def manage_single_vesting_user_remove(request, user_id):
     """
         Basically demote a vesting user to a regular user.
     """
 
-    vesting_org = VestingOrg.objects.get(id=vesting_org_id)
-    target_user = LinkUser.objects.get(pk=user_id)
+    if request.method == 'POST':
 
-    if request.user.is_vesting_org_member() and vesting_org not in request.user.vesting_org.all():
-        # A vesting user should only be able to remove a vesting user if
-        # they're in the vesting org
-        raise Http404
+        vesting_org = get_object_or_404(VestingOrg, pk=request.POST.get('vesting_org'))
+        target_user = get_object_or_404(LinkUser, id=user_id)
 
-    if request.user.is_registrar_member() and vesting_org not in VestingOrg.objects.filter(registrar=request.user.registrar):
-        # A vesting user should only be able to remove a vesting user if
-        # they're in the vesting org
-        raise Http404
+        if request.user.is_vesting_org_member() and vesting_org not in request.user.vesting_org.all():
+            # A vesting user should only be able to remove a vesting user if they're in the vesting org
+            raise Http404
 
+        elif request.user.is_registrar_member() and vesting_org.registrar != request.user.registrar:
+            # A registrar user should only be able to remove a vesting user if they're the registrar for that vesting org
+            raise Http404
 
-    target_user.vesting_org.remove(vesting_org)
+        target_user.vesting_org.remove(vesting_org)
 
     return HttpResponseRedirect(reverse('user_management_manage_vesting_user'))
 

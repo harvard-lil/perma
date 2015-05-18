@@ -49,27 +49,14 @@ class PermissionsTestCase(PermaTestCase):
             {
                 'urls': [
                     ['user_management_manage_single_vesting_user', {'kwargs':{'user_id': 3}}],
+                    ['user_management_manage_vesting_user'],
+                    ['vest_link', {'kwargs': {'guid': '1234'}, 'success_status': 404}],
+                    ['user_management_vesting_user_add_user'],
+                    ['user_management_manage_single_vesting_user_remove', {'kwargs':{'user_id': 3},
+                     'success_status': 302}],
                 ],
                 'allowed': {'test_registry_member@example.com', 'test_registrar_member@example.com',
                         'test_vesting_member@example.com'},
-            },
-            {
-                'urls': [
-                    ['user_management_manage_vesting_user'],
-                    ['vest_link', {'kwargs': {'guid': '1234'}, 'success_status': 404}],
-                ],
-                'allowed': {'test_registry_member@example.com', 'test_registrar_member@example.com',
-                            'test_vesting_member@example.com'}
-            },
-            {
-                'urls': [
-                    ['user_management_vesting_user_add_user'],
-                    ['user_management_manage_single_vesting_user_remove', {'kwargs':{'user_id': 3, 'vesting_org_id': 1},
-                     'success_status': 302}],
-                    
-                ],
-                'allowed': {'test_registry_member@example.com', 'test_vesting_member@example.com',
-                'test_registrar_member@example.com'}
             },
             {
                 'urls': [
