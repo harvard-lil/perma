@@ -11,6 +11,17 @@
         }
     },
     {
+        "pk": 2,
+        "model": "perma.registrar",
+        "fields": {
+            "name": "Another Library",
+            "email": "library@university2.edu",
+            "website": "http://university2.edu/library",
+            "default_vesting_org": 4,
+            "date_created": "2014-07-27"
+        }
+    },
+    {
         "pk": 1,
         "model": "perma.VestingOrg",
         "fields": {
@@ -38,6 +49,16 @@
             "registrar": 1,
             "shared_folder": 31,
             "date_created": "2013-06-26"
+        }
+    },
+    {
+        "pk": 4,
+        "model": "perma.VestingOrg",
+        "fields": {
+            "name": "Another Library's Journal",
+            "registrar": 2,
+            "shared_folder": 40,
+            "date_created": "2014-07-27"
         }
     },
     {
@@ -133,6 +154,22 @@
             "first_name": "Another-Vesting",
             "last_name": "Member",
             "root_folder": 32
+        }
+    },
+    {
+        "pk": 7,
+        "model": "perma.LinkUser",
+        "fields": {
+            "vesting_org": [3,4],
+            "is_active": true,
+            "is_confirmed": true,
+            "last_login": "2013-07-23T18:38:27Z",
+            "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+            "email": "test_another_library_vesting_member@example.com",
+            "date_joined": "2013-06-26",
+            "first_name": "Another-Library",
+            "last_name": "Vesting-Member",
+            "root_folder": 41
         }
     }
 ]
