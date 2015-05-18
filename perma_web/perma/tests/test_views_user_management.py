@@ -76,17 +76,6 @@ class UserManagementViewsTestCase(PermaTestCase):
                            success_query=LinkUser.objects.filter(email=email))
             new_user = LinkUser.objects.get(email=email)
 
-            # edit user
-            email += '1'
-            self.submit_form('user_management_manage_single_' + view_name, reverse_kwargs={'args':[new_user.pk]},
-                           data=dict(base_user.items() + form_extras.items() + [
-                               ['a-email', email],
-                               ['a-group',1],
-                               ]),
-                           success_url=reverse('user_management_manage_' + view_name),
-                           success_query=LinkUser.objects.filter(email=email))
-
-
             # delete user (deactivate)
             new_user.is_confirmed = True
             new_user.save()

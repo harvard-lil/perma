@@ -522,7 +522,7 @@ def list_users_in_group(request, group_name):
                     new_user.vesting_org = request.user.vesting_org
                     
             if group_name == 'registry_user':
-            	new_user.is_staff = True
+                new_user.is_staff = True
 
             new_user.save()
 
@@ -755,7 +755,7 @@ def delete_user_in_group(request, user_id, group_name):
     if request.method == 'POST':
         if target_member.is_confirmed:
             target_member.is_active = False
-            target_member.vesting_org = None
+            target_member.vesting_org.clear()
             target_member.registrar = None
             target_member.save()
         else:
