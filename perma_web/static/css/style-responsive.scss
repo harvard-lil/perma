@@ -2523,6 +2523,21 @@ a.tab-styling, .tab-styling {
     color: #ff4100;
 }
 
+.alert-error {
+  color: #a94442;
+  background-color: #f2dede;
+  border-color: #ebccd1;
+}
+
+.remove-message-container {
+    padding: 10px 0 0 0;
+    margin-bottom: 10px;
+}
+
+.remove-message-container p {
+    font-size: 18px;
+}
+
 a.btn.vest, a.btn.dashboard, a.btn.user-delete {
 	width:100px;
 	padding:2px 0px;

@@ -76,7 +76,7 @@
         "pk": 3,
         "model": "perma.LinkUser",
         "fields": {
-            "vesting_org": 1,
+            "vesting_org": [1],
             "is_active": true,
             "is_confirmed": true,
             "last_login": "2013-07-23T18:38:27Z",
@@ -107,7 +107,7 @@
         "pk": 5,
         "model": "perma.LinkUser",
         "fields": {
-            "vesting_org": 1,
+            "vesting_org": [1],
             "is_active": true,
             "is_confirmed": true,
             "last_login": "2013-07-23T18:38:27Z",
@@ -123,7 +123,7 @@
         "pk": 6,
         "model": "perma.LinkUser",
         "fields": {
-            "vesting_org": 3,
+            "vesting_org": [3],
             "is_active": true,
             "is_confirmed": true,
             "last_login": "2013-07-23T18:38:27Z",

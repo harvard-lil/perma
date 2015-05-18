@@ -102,7 +102,8 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
         self.successful_patch(self.vested_url, user=self.vested_link.created_by, data=self.patch_data)
 
     def test_should_allow_member_of_links_vesting_org_to_patch_notes_and_title(self):
-        self.successful_patch(self.vested_url, user=self.vested_link.vesting_org.users.first(), data=self.patch_data)
+        user = LinkUser.objects.filter(vesting_org=self.vested_link.vesting_org).first()
+        self.successful_patch(self.vested_url, user=user, data=self.patch_data)
 
     def test_should_allow_member_of_links_vesting_registrar_to_patch_notes_and_title(self):
         registrar = self.vested_link.vesting_org.registrar
@@ -172,10 +173,10 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
         self.assertEqual(data['dark_archived_by']['id'], user.id)
 
     def test_should_allow_member_of_links_vesting_org_to_dark_archive(self):
-        user = self.vested_link.vesting_org.users.first()
-        self.successful_patch(self.vested_url, user=user, data={'dark_archived': True})
-        data = self.successful_get(self.vested_url, user=user)
-        self.assertEqual(data['dark_archived_by']['id'], user.id)
+        users_in_vesting_org = LinkUser.objects.filter(vesting_org=self.vested_link.vesting_org)
+        self.successful_patch(self.vested_url, user=users_in_vesting_org[0], data={'dark_archived': True})
+        data = self.successful_get(self.vested_url, user=users_in_vesting_org[1])
+        self.assertEqual(data['dark_archived_by']['id'], users_in_vesting_org[0].id)
 
     def test_should_allow_member_of_links_vesting_registrar_to_dark_archive(self):
         user = self.vested_link.vesting_org.registrar.users.first()
