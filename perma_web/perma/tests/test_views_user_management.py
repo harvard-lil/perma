@@ -66,7 +66,6 @@ class UserManagementViewsTestCase(PermaTestCase):
         for view_name, form_extras in [
             ['registrar_user', {'a-registrar': 1}],
             ['user', {}],
-            ['vesting_user', {'a-vesting_org': 1}],
         ]:
             # create user
             email += '1'
