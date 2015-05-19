@@ -34,7 +34,7 @@ mime_type_lookup = {
         'valid_file': lambda f: imghdr.what(f) == 'gif',
     },
     'application/pdf': {
-        'new_extension': 'jpg',
+        'new_extension': 'pdf',
         'valid_file': lambda f: PdfFileReader(f).numPages >= 0,
     }
 }
