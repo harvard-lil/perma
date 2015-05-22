@@ -16,10 +16,12 @@ class FolderAuthorization(ReadOnlyAuthorization):
 
         # shared folders
         elif obj.vesting_org_id:
-            if user.is_vesting_org_member():
-                return user.vesting_org_id == obj.vesting_org_id
-            elif user.is_registrar_member():
+            if user.is_registrar_member():
+                # if user is registrar, must be registrar for this vesting org
                 return user.registrar_id == obj.vesting_org.registrar_id
+            else:
+                # else, user must belong to this vesting org
+                return user.vesting_org.filter(pk=obj.vesting_org_id).exists()
 
         return False
 
@@ -135,14 +137,15 @@ class LinkAuthorization(AuthenticatedLinkAuthorization):
         return True
 
     def can_vest_to_org(self, user, vesting_org):
-        if user.is_vesting_org_member():
-            return user.vesting_org == vesting_org
-        elif user.is_registrar_member():
+        if user.is_registrar_member():
+            # user must be registrar for this vesting org ...
             return user.registrar == vesting_org.registrar
         elif user.is_staff:
+            # ... or staff ...
             return True
         else:
-            return False
+            # ... or belong to this vesting org
+            return user.vesting_org.filter(pk=vesting_org.pk).exists()
 
     def update_detail(self, object_list, bundle):
         # For vesting

@@ -80,7 +80,7 @@ class VestingOrgManager(models.Manager):
 
     def user_access_filter(self, user):
         if user.is_vesting_org_member():
-            return Q(id=user.vesting_org_id)
+            return Q(id__in=user.vesting_org.all())
         elif user.is_registrar_member():
             return Q(registrar_id=user.registrar_id)
         elif user.is_staff:
@@ -135,13 +135,13 @@ class LinkUserManager(BaseUserManager):
         """
         Creates and saves a User with the given email, registrar and password.
         """
+
         if not email:
             raise ValueError('Users must have an email address')
 
         user = self.model(
             email=self.normalize_email(email),
             registrar=registrar,
-            vesting_org=vesting_org,
             date_joined = date_joined,
             first_name = first_name,
             last_name = last_name,
@@ -150,6 +150,9 @@ class LinkUserManager(BaseUserManager):
         )
 
         user.set_password(password)
+        user.save()
+
+        user.vesting_org.add(vesting_org)
         user.save()
 
         user.create_root_folder()
@@ -165,7 +168,7 @@ class LinkUser(AbstractBaseUser):
         db_index=True,
     )
     registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar member. This should not be set if vesting org is set!")
-    vesting_org = models.ForeignKey(VestingOrg, blank=True, null=True, related_name='users', help_text="If set, this user is a vesting org member. This should not be set if registrar is set!")
+    vesting_org = models.ManyToManyField(VestingOrg, blank=True, null=True, help_text="If set, this user is a vesting org member. This should not be set if registrar is set!")
     is_active = models.BooleanField(default=True)
     is_confirmed = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -187,7 +190,10 @@ class LinkUser(AbstractBaseUser):
     def save(self, *args, **kwargs):
         # Don't allow users to have both a registrar and vesting_org.
         # This is just a data consistency check -- logic earlier in the app should make sure this doesn't happen.
-        assert not (self.vesting_org_id and self.registrar_id), "Users cannot have both a registrar and a vesting org."
+        # Our m2m relationship on linksuser/vestingorg forces us to find out if
+        # this is a new item (self.pk == None for new items)
+        if self.pk is not None:
+            assert not (bool(self.vesting_org.all()) and self.registrar_id), "Users cannot have both a registrar and a vesting org."
 
         super(LinkUser, self).save(*args, **kwargs)
 
@@ -215,21 +221,21 @@ class LinkUser(AbstractBaseUser):
         if self.is_registrar_member():
             vesting_orgs = self.registrar.vesting_orgs.all()
         else:
-            vesting_orgs = [self.get_default_vesting_org()]
+            vesting_orgs = list(self.get_default_vesting_org())
+
+
         return [self.root_folder.get_descendants(include_self=True)] + \
             ([vesting_org.shared_folder.get_descendants(include_self=True) for vesting_org in vesting_orgs if vesting_org])
 
     def get_default_vesting_org(self):
         if self.is_vesting_org_member():
-            return self.vesting_org
+            return self.vesting_org.all()
         if self.is_registrar_member():
             return self.registrar.default_vesting_org
         if self.is_staff:
-            try:
-                return VestingOrg.objects.get(pk=settings.FALLBACK_VESTING_ORG_ID)
-            except VestingOrg.DoesNotExist:
-                raise Exception("Default vesting org not found -- check FALLBACK_VESTING_ORG_ID setting.")
-        return None
+            return VestingOrg.objects.all()
+            
+        return []
 
     def create_root_folder(self):
         if self.root_folder:
@@ -276,7 +282,7 @@ class LinkUser(AbstractBaseUser):
 
     def is_vesting_org_member(self):
         """ Is the user a member of a vesting org? """
-        return bool(self.vesting_org_id)
+        return self.vesting_org.exists()
 
 
 class FolderQuerySet(QuerySet):

@@ -1,52 +1,35 @@
 {% extends "manage-layout.html" %}
 
-{% block title %} | {{ pretty_group_name }}{% endblock %}
 
 {% block content %}
 <div class="container">
 	<div class="row">
 		<div class="col-sm-12">	
-			<h3>Edit {{ pretty_group_name|lower }}</h3>
-			<h4>{{ target_user.email }}</h4>
-			<form method="post">
-				{% csrf_token %}
-				<fieldset>
-				<span class="text-error">{{ form.non_field_errors }}</span>
-					{% for field in form %}
-					<label for="id_{{ field.name }}">{{ field.label }}</label><br/>
-			
-					{% if field.name == 'registrar' %}
-						<select name="a-registrar" id="id_a-registrar">
-							{% for x,y in form.fields.registrar.choices %}
-								<option value="{{ x }}" {% if x == target_user.registrar.id %} selected {% endif %} >{{ y }}</option>
-							{% endfor %}
-						</select>
-					{% elif field.name == 'vesting_org' %}
-						<select name="a-vesting_org" id="id_a-vesting_org">
-							{% for x,y in form.fields.vesting_org.choices %}
-								<option value="{{ x }}" {% if x == target_user.vesting_org.id %} selected {% endif %} >{{ y }}</option>
-							{% endfor %}
-						</select>
-						<br/>
-					{% else %}
-						{{ field }}<br/>
-					{% endif %}
-					{% if field.errors %}
-					{% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
-					{%elif field.help_text %}
-					<span class="help-inline">{{ field.help_text }}</span>
-					{% endif %}
-					{% endfor %}
-				</fieldset>
-				<button type="submit" class="btn-success">Save changes</button>
-			</form>
-			
-			{% if not request.user.is_staff and group_name == 'vesting_user' %}
-			<a href="{% url 'user_management_manage_single_vesting_user_remove' target_user.id %}"><span class="text-remove"><i class="glyphicon glyphicon-remove-circle"></i> Remove this user from {{target_user.vesting_org.name}} <!--{{target_registrar_member.username}}--></span></a>
-			{% elif not request.user.is_staff and group_name == 'registrar_user' %}
-			<a href="{% url 'user_management_manage_single_registrar_user_remove' target_user.id %}"><span class="text-remove"><i class="glyphicon glyphicon-remove-circle"></i> Remove this user from {{target_user.registrar.name}} <!--{{target_registrar_member.username}}--></span></a>
-			{% else %}
-			<a href="{% url delete_user_url target_user.id %}"><span class="text-error"><i class="icon-trash"></i> {% if target_user.is_confirmed %}Deactivate{% else %}Delete{% endif %} this user</span> <!--{{target_registrar_member.username}}--></a>
+			{% if vesting_orgs %}
+                <h3>Remove from vesting organization</h3>
+
+                <p>{{ target_user.email }} is a member of the following vesting organization{{ vesting_orgs|pluralize }}:</p>
+                <form action="{% url 'user_management_manage_single_vesting_user_remove' user_id=target_user.id %}" method="POST">
+                    {% csrf_token %}
+                    {% for vesting_org in vesting_orgs %}
+                        <div class="row remove-message-container">
+                            <div class="col-xs-4">
+                                <p>{{ vesting_org.name }}</p>
+                            </div>
+                            <div class="col-xs-4">
+                                <button name="vesting_org" value="{{ vesting_org.id }}" class="btn btn-large btn-danger pull-left" data-toggle="tooltip">Remove</button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </form>
+            {% endif %}
+			{% if request.user.is_staff %}
+    			<a href="{% url 'user_management_manage_single_user_delete' target_user.id %}">
+                    <span class="text-error">
+                        <i class="icon-trash"></i>
+                        {% if target_user.is_confirmed %}Deactivate{% else %}Delete{% endif %} this user
+                    </span>
+                </a>
 			{% endif %}
 		</div>
 	</div>
