@@ -11,6 +11,22 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RemoveField(
+            model_name='asset',
+            name='instapaper_hash',
+        ),
+        migrations.RemoveField(
+            model_name='asset',
+            name='instapaper_id',
+        ),
+        migrations.RemoveField(
+            model_name='asset',
+            name='instapaper_timestamp',
+        ),
+        migrations.RemoveField(
+            model_name='asset',
+            name='text_capture',
+        ),
         migrations.AddField(
             model_name='asset',
             name='user_upload',

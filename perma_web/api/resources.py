@@ -249,7 +249,6 @@ class AssetResource(DefaultResource):
     image_capture = fields.CharField(attribute='image_capture', null=True, blank=True)
     warc_capture = fields.CharField(attribute='warc_capture', null=True, blank=True)
     pdf_capture = fields.CharField(attribute='pdf_capture', null=True, blank=True)
-    text_capture = fields.CharField(attribute='text_capture', null=True, blank=True)
 
     class Meta(DefaultResource.Meta):
         resource_name = 'assets'

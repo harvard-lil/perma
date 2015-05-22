@@ -594,10 +594,6 @@ class Asset(models.Model):
     image_capture = models.CharField(max_length=2100, null=True, blank=True)  # Headless browser image capture
     warc_capture = models.CharField(max_length=2100, null=True, blank=True)  # source capture, probably point to an index.html page
     pdf_capture = models.CharField(max_length=2100, null=True, blank=True)  # We capture a PDF version (through a user upload or through our capture)
-    text_capture = models.CharField(max_length=2100, null=True, blank=True)  # We capture a text dump of the resource
-    instapaper_timestamp = models.DateTimeField(null=True)
-    instapaper_hash = models.CharField(max_length=2100, null=True)
-    instapaper_id = models.IntegerField(null=True)
 
     user_upload = models.BooleanField(
         default=False)  # whether the user uploaded this file or we fetched it from the web
@@ -611,7 +607,7 @@ class Asset(models.Model):
     integrity_check_succeeded = models.NullBooleanField(blank=True, null=True)      # whether the last integrity check succeeded
 
     # what info to send downstream
-    mirror_fields = ('link', 'base_storage_path', 'image_capture', 'warc_capture', 'pdf_capture', 'text_capture', 'favicon')
+    mirror_fields = ('link', 'base_storage_path', 'image_capture', 'warc_capture', 'pdf_capture', 'favicon')
 
     tracker = FieldTracker()
 
@@ -647,9 +643,6 @@ class Asset(models.Model):
     def pdf_url(self):
         return self.base_url(self.pdf_capture)
 
-    def text_url(self):
-        return self.base_url(self.text_capture)
-
     def walk_files(self):
         """ Return iterator of all files for this asset. """
         return default_storage.walk(self.base_storage_path)
@@ -664,8 +657,6 @@ class Asset(models.Model):
                 urls.append(self.base_url(self.pdf_capture))
             if self.warc_capture and '.warc' in self.warc_capture:
                 urls.append(self.base_url(self.warc_capture))
-            if self.text_capture and '.html' in self.text_capture:
-                urls.append(self.base_url(self.text_capture))
 
             missing_urls = [url for url in urls if not default_storage.exists(url)]
             background_media_sync(paths=missing_urls)

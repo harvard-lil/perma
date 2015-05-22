@@ -105,7 +105,7 @@ def link_status(request, guid):
     target_link = get_object_or_404(Link, guid=guid)
     target_asset = get_object_or_404(Asset, link=target_link)
     
-    response_object = {"path": target_asset.base_storage_path, "text_capture": target_asset.text_capture,
+    response_object = {"path": target_asset.base_storage_path,
             "source_capture": target_asset.warc_capture, "image_capture": target_asset.image_capture,
             "pdf_capture": target_asset.pdf_capture,
             "vested": target_link.vested,

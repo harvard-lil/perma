@@ -176,12 +176,6 @@ def single_linky(request, guid, send_downstream=False):
                        'warc_url': asset.warc_url()}
 
         else:
-            text_capture = None
-            if serve_type == 'text':
-                if asset.text_capture and asset.text_capture != 'pending':
-                    with default_storage.open(os.path.join(asset.base_storage_path, asset.text_capture), 'r') as f:
-                        text_capture = f.read()
-
             # If we are going to serve up the live version of the site, let's make sure it's iframe-able
             display_iframe = False
             if serve_type == 'live':
@@ -201,7 +195,6 @@ def single_linky(request, guid, send_downstream=False):
                 'next': request.get_full_path(),
                 'display_iframe': display_iframe,
                 'serve_type': serve_type,
-                'text_capture': text_capture,
                 'warc_url': asset.warc_url()
             }
 

@@ -141,64 +141,48 @@
         "pk": 1,
         "model": "perma.asset",
         "fields": {
-            "text_capture": "pending",
-            "instapaper_timestamp": null,
             "warc_capture": "pending",
-            "instapaper_id": null,
             "favicon": null,
             "image_capture": "cap.png",
             "pdf_capture": null,
             "link": "JJ3S-2Q5N",
-            "base_storage_path": "2014/6/16/19/22/JJ3S-2Q5N",
-            "instapaper_hash": null
+            "base_storage_path": "2014/6/16/19/22/JJ3S-2Q5N"
         }
     },
     {
         "pk": 2,
         "model": "perma.asset",
         "fields": {
-            "text_capture": null,
-            "instapaper_timestamp": null,
             "warc_capture": null,
-            "instapaper_id": null,
             "favicon": null,
             "image_capture": null,
             "pdf_capture": "cap.pdf",
             "link": "7CF8-SS4G",
-            "base_storage_path": "2014/6/16/19/23/7CF8-SS4G",
-            "instapaper_hash": null
+            "base_storage_path": "2014/6/16/19/23/7CF8-SS4G"
         }
     },
     {
         "pk": 3,
         "model": "perma.asset",
         "fields": {
-            "text_capture": null,
-            "instapaper_timestamp": null,
             "warc_capture": "archive.warc.gz",
-            "instapaper_id": null,
             "favicon": null,
             "image_capture": "cap.png",
             "pdf_capture": null,
             "link": "3SLN-JHX9",
-            "base_storage_path": "2014/12/7/18/55/3SLN-JHX9",
-            "instapaper_hash": null
+            "base_storage_path": "2014/12/7/18/55/3SLN-JHX9"
         }
     },
     {
         "pk": 4,
         "model": "perma.asset",
         "fields": {
-            "text_capture": null,
-            "instapaper_timestamp": null,
             "warc_capture": "archive.warc.gz",
-            "instapaper_id": null,
             "favicon": null,
             "image_capture": "cap.png",
             "pdf_capture": null,
             "link": "UU32-XY8I",
-            "base_storage_path": "2014/12/7/18/55/UU32-XY8I",
-            "instapaper_hash": null
+            "base_storage_path": "2014/12/7/18/55/UU32-XY8I"
         }
     }
 ]
