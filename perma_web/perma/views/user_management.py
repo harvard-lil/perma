@@ -598,9 +598,8 @@ def vesting_user_add_user(request):
             form = CreateUserFormWithVestingOrg(form_data, prefix = "a", initial={'email': user_email}, registrar_id=request.user.registrar_id)
         elif request.user.is_vesting_org_member():
             form = CreateUserFormWithVestingOrg(form_data, prefix = "a", initial={'email': user_email}, vesting_org_member_id=request.user.pk)
-
         else:
-            form = CreateUserForm(form_data, prefix = "a", initial={'email': user_email})
+            form = CreateUserFormWithVestingOrg(form_data, prefix = "a", initial={'email': user_email})
     else:
         if request.user.is_registrar_member():
 
