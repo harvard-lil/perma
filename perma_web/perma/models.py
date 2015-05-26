@@ -599,14 +599,6 @@ class Asset(models.Model):
         default=False)  # whether the user uploaded this file or we fetched it from the web
     user_upload_file_name = models.CharField(max_length=2100, null=True, blank=True)  # if user upload, the original file name of the upload
 
-    user_upload = models.BooleanField(
-        default=False)  # whether the user uploaded this file or we fetched it from the web
-    user_upload_file_name = models.CharField(max_length=2100, null=True, blank=True)  # if user upload, the original file name of the upload
-
-    user_upload = models.BooleanField(
-        default=False)  # whether the user uploaded this file or we fetched it from the web
-    user_upload_file_name = models.CharField(max_length=2100, null=True, blank=True)  # if user upload, the original file name of the upload
-
     last_integrity_check = models.DateTimeField(blank=True, null=True)  # for a mirror server, the last time our disk assets were checked against upstream
     integrity_check_succeeded = models.NullBooleanField(blank=True, null=True)      # whether the last integrity check succeeded
 
