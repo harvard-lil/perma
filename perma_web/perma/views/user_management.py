@@ -421,7 +421,7 @@ def list_users_in_group(request, group_name):
     elif group_name == 'vesting_user':
         users = users.exclude(vesting_org=None)
     elif group_name == 'user':
-        users = users.filter(registrar_id=None, is_staff=False)
+        users = users.filter(registrar_id=None, is_staff=False, vesting_org=None)
     else:
         raise NotImplementedError("Unknown group name: %s" % group_name)
 
