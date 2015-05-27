@@ -1,9 +1,9 @@
-{% load compressed %}<!DOCTYPE html>
+{% load pipeline %}<!DOCTYPE html>
 <html lang="en-us">
     <head>
         <!-- Served up by Perma server: {{ SERVER_DISPLAY_NAME }} -->
 
-        <title>perma.cc{% block title %}{% endblock %}</title>
+        <title>Perma.cc | Preventing Link Rot{% block title %}{% endblock %}</title>
 
         {# currently 'edge' or nothing seems to be the best IE mode for modern sites -- see http://stackoverflow.com/a/8942455 #}
         <meta http-equiv="x-ua-compatible" content="IE=edge">
@@ -14,12 +14,12 @@
         {% block meta %}{% endblock %}  
 
         <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
-        {% compressed_css 'base' %}
+        {% stylesheet 'base' %}
 
         {# Python variables for use in Javascript #}
         {% include 'js_config.html' %}
 
-        {% compressed_js 'global_head' %}
+        {% javascript 'global_head' %}
         {% block styles %}{% endblock %}
         
         <!--[if lt IE 9]>
@@ -61,6 +61,7 @@
                                     <li role="presentation" class="dropdown-header">Manage users</li>
 
                                     {% if request.user.is_staff %}
+                                        <li><a href="{% url 'user_management_manage_registry_user' %}">Registry users</a></li>
                                         <li><a href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>
                                     {% endif %}
 
@@ -192,7 +193,7 @@
 	    </div>		
 	</div>
 </div><!--/feedback modal-->
-    {% compressed_js 'global' %}
+    {% javascript 'global' %}
 
     {% block scripts %}
     {% endblock %}

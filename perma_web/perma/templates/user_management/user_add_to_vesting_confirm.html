@@ -4,12 +4,7 @@
 
 {% block content %}
 
-	{% if cannot_add %}
-	<div class="alert alert-danger alert-block"><strong>Error!</strong> <p>{{ user_email }} is already affiliated and cannot be added to another vesting organization.</p></div>
-	<br>
-	<p><a href="{% url 'user_management_manage_vesting_user' %}">Go back</a></p>
-	{% else %}
-	<h3>Add {{ user_email }} as a vesting user</h3>
+	<h3>Add {{ user_email }}</h3>
 	{% if target_user = None %}
 	<form method="post">
           {% csrf_token %}
@@ -20,8 +15,7 @@
               {{ field }}
               {% if field.errors %}<br/>
                 {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
-              {%elif field.help_text %}
-                <span class="help-inline">{{ field.help_text }}</span>
+              
               {% endif %}<br/>
             {% endfor %}
           </fieldset>
@@ -29,8 +23,12 @@
           <a href="{% url 'user_management_manage_vesting_user' %}">Cancel</a>
     </form>
     {% else %}
-        {% if request.user.is_staff or request.user.is_registrar_member %}
+        {% if request.user.is_staff or request.user.is_registrar_member or request.user.is_vesting_org_member %}
+
         <p>{{ user_email }} already has an account.  Would you like to add them to a vesting organization?</p>
+
+        
+
         <form method="post">
           {% csrf_token %}
               <fieldset>
@@ -40,8 +38,6 @@
               {{ field }}
               {% if field.errors %}<br/>
                 {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
-              {%elif field.help_text %}
-                <span class="help-inline">{{ field.help_text }}</span>
               {% endif %}<br/>
             {% endfor %}
           </fieldset>
@@ -55,7 +51,6 @@
     <button type="submit" class="btn-success">Add as a vesting user</button>
           <a href="{% url 'user_management_manage_vesting_user' %}">Cancel</a>
           </form>
-    {% endif %}
     {% endif %}
     {% endif %}
 

@@ -96,6 +96,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         link = Link.objects.get(guid=obj['guid'])
         self.assertHasAsset(link, "image_capture")
         self.assertHasAsset(link, "warc_capture")
+        self.assertTrue(link.assets.first().cdx_lines.count() > 0)
         self.assertFalse(link.dark_archived_robots_txt_blocked)
         self.assertEqual(link.submitted_title, "Test title.")
 
@@ -177,7 +178,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     ###########
 
     def test_vesting(self):
-        folder = self.vesting_member.vesting_org.folders.first()
+        folder = self.vesting_member.vesting_org.first().folders.first()
         folder_url = "{0}/folders/{1}/".format(self.url_base, folder.pk)
 
         self.successful_put("{0}archives/{1}/".format(folder_url, self.unvested_link.pk),
@@ -196,7 +197,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     ##########
 
     def test_moving(self):
-        folder = self.vesting_member.vesting_org.folders.first()
+        folder = self.vesting_member.vesting_org.first().folders.first()
         folder_url = "{0}/folders/{1}/".format(self.url_base, folder.pk)
 
         self.successful_put("{0}archives/{1}/".format(folder_url, self.unvested_link.pk),

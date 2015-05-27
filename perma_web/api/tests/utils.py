@@ -105,10 +105,7 @@ class ApiResourceTestCase(ResourceTestCase):
                 with run_server_in_temp_folder(['test/assets/test.html','test/assets/test.pdf']):
                     assert(requests.get("http://localhost/test.html") == contents_of_file("test.html"))
         """
-        try:
-            assert socket.gethostbyname(cls.server_domain) == '127.0.0.1'
-        except (socket.gaierror, AssertionError):
-            cls.fail("Please add `127.0.0.1 " + cls.server_domain + "` to your hosts file before running this test.")
+        assert socket.gethostbyname(cls.server_domain) in ('0.0.0.0', '127.0.0.1'), "Please add `127.0.0.1 " + cls.server_domain + "` to your hosts file before running this test."
 
         # Run in temp dir.
         # We have to (implicitly) cwd to this so SimpleHTTPRequestHandler serves the files for us.
@@ -270,7 +267,6 @@ class ApiResourceTestCase(ResourceTestCase):
         if check_results:
         # Fetch the existing data for comparison.
             resp = self.api_client.get(url, **req_kwargs)
-            can_get = True
             self.assertHttpOK(resp)
             self.assertValidJSONResponse(resp)
             old_data = self.deserialize(resp)

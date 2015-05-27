@@ -2,11 +2,12 @@ import logging
 
 from django import forms
 from django.forms import ModelForm
+from django.forms.widgets import flatatt
+from django.utils.html import mark_safe
 
 from perma.models import Registrar, VestingOrg, LinkUser
 
 logger = logging.getLogger(__name__)
-
 
 class RegistrarForm(ModelForm):
     class Meta:
@@ -76,24 +77,51 @@ class CreateUserFormWithRegistrar(CreateUserForm):
         return registrar
 
 
+class CustomSelectSingleAsList(forms.SelectMultiple):
+    # Thank you, http://stackoverflow.com/a/14971139
+    def render(self, name, value, attrs=None, choices=()):
+        if value is None: value = []
+        final_attrs = self.build_attrs(attrs, name=name)
+        output = [u'<select %s>' % flatatt(final_attrs)] # NOTE removed the multiple attribute
+        options = self.render_options(choices, value)
+        if options:
+            output.append(options)
+        output.append('</select>')
+        return mark_safe(u'\n'.join(output))
+
+
 class CreateUserFormWithVestingOrg(CreateUserForm):
     """
     stripped down user reg form
     This is mostly a django.contrib.auth.forms.UserCreationForm
     """
     def __init__(self, *args, **kwargs):
-      registrar_id = False
-      if 'registrar_id' in kwargs:
-        registrar_id = kwargs.pop('registrar_id')
-      super(CreateUserFormWithVestingOrg, self).__init__(*args, **kwargs)
-      if registrar_id:
-        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id).order_by('name')
+        registrar_id = False
+        vesting_org_member_id = False
+
+        if 'registrar_id' in kwargs:
+            registrar_id = kwargs.pop('registrar_id')
+
+        if 'vesting_org_member_id' in kwargs:
+            vesting_org_member_id = kwargs.pop('vesting_org_member_id')
+
+        super(CreateUserFormWithVestingOrg, self).__init__(*args, **kwargs)
+
+        if registrar_id:
+            self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id).order_by('name')
+        elif vesting_org_member_id:
+            user = LinkUser.objects.get(id=vesting_org_member_id)
+            self.fields['vesting_org'].queryset = user.vesting_org.all()
+        else:
+            self.fields['vesting_org'].queryset = VestingOrg.objects.all().order_by('name')
+
     
     class Meta:
         model = LinkUser
         fields = ["first_name", "last_name", "email", "vesting_org"]
 
-    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
+    vesting_org = forms.ModelMultipleChoiceField(queryset=VestingOrg.objects.all().order_by('name'),label="Vesting organization", widget=CustomSelectSingleAsList)
+
 
     def clean_vesting_org(self):
         vesting_org = self.cleaned_data["vesting_org"]
@@ -153,8 +181,29 @@ class VestingMemberWithVestingOrgFormEdit(forms.ModelForm):
         model = LinkUser
         fields = ["vesting_org"]
 
-    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
+    vesting_org = forms.ModelMultipleChoiceField(queryset=VestingOrg.objects.all().order_by('name'),label="Vesting organization", required=False,)
     
+
+class VestingMemberWithVestingOrgAsVestingMemberFormEdit(forms.ModelForm):
+    """
+    TODO: this form has a gross name. rename it.
+    """
+    
+    def __init__(self, *args, **kwargs):
+        vesting_user_id = False
+        if 'vesting_user_id' in kwargs:
+            vesting_user_id = kwargs.pop('vesting_user_id')
+        super(VestingMemberWithVestingOrgAsVestingMemberFormEdit, self).__init__(*args, **kwargs)
+        if vesting_user_id:
+            editing_user = LinkUser.objects.get(pk=vesting_user_id)
+            self.fields['vesting_org'].queryset = editing_user.vesting_org.all().order_by('name')
+
+    class Meta:
+        model = LinkUser
+        fields = ["vesting_org"]
+
+    vesting_org = forms.ModelMultipleChoiceField(queryset=VestingOrg.objects.all().order_by('name'),label="Vesting organization", required=False,)
+
         
 class VestingMemberWithGroupFormEdit(UserFormEdit):
     """
@@ -176,7 +225,7 @@ class VestingMemberWithGroupFormEdit(UserFormEdit):
         model = LinkUser
         fields = ("first_name", "last_name", "email", "vesting_org",)
 
-    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
+    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization", required=False,)
 
         
 class UserAddRegistrarForm(forms.ModelForm):
@@ -200,18 +249,46 @@ class UserAddVestingOrgForm(forms.ModelForm):
     """
 
     def __init__(self, *args, **kwargs):
-      registrar_id = False
-      if 'registrar_id' in kwargs:
-        registrar_id = kwargs.pop('registrar_id')
-      super(UserAddVestingOrgForm, self).__init__(*args, **kwargs)
-      if registrar_id:
-        self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id).order_by('name')
-    
+        registrar_id = False
+        vesting_org_member_id = False
+        target_user_id = False
+
+        if 'registrar_id' in kwargs:
+            registrar_id = kwargs.pop('registrar_id')
+
+        if 'vesting_org_member_id' in kwargs:
+            vesting_org_member_id = kwargs.pop('vesting_org_member_id')
+
+        if 'target_user_id' in kwargs:
+            target_user_id = kwargs.pop('target_user_id')
+
+        super(UserAddVestingOrgForm, self).__init__(*args, **kwargs)
+
+        target_user = LinkUser.objects.get(pk=target_user_id)
+
+        # Vesting managers can only edit their own vesting members
+        if registrar_id:
+            # Get the vesting orgs the logged in user admins. Exclude the ones
+            # the target user is already in
+            vesting_orgs = VestingOrg.objects.filter(registrar_id=registrar_id).exclude(pk__in=target_user.vesting_org.all())
+        elif vesting_org_member_id:
+            # Get the vesting orgs the logged in user admins. Exclude the ones
+            # the target user is already in
+            vesting_org_member = LinkUser.objects.get(pk=vesting_org_member_id)
+            vesting_orgs = vesting_org_member.vesting_org.all().exclude(pk__in=target_user.vesting_org.all())
+
+        else:
+            # Must be registry member.
+            vesting_orgs = VestingOrg.objects.all().exclude(pk__in=target_user.vesting_org.all())
+
+        self.fields['vesting_org'] = forms.ModelMultipleChoiceField(queryset=vesting_orgs.order_by('name'), label="Vesting organization", widget=CustomSelectSingleAsList)
+
+
     class Meta:
         model = LinkUser
         fields = ("vesting_org",)         
 
-    vesting_org = forms.ModelChoiceField(queryset=VestingOrg.objects.all().order_by('name'), empty_label=None, label="Vesting organization")
+    
     
     def save(self, commit=True):
         user = super(UserAddVestingOrgForm, self).save(commit=False)

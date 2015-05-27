@@ -29,7 +29,7 @@
     <div class="row">
         <div class="col-sm-3">
                 <p class="count-label">Users</p>
-                <p class="count-number">{{ users_count.count }}</p>
+                <p class="count-number">{{ users_count }}</p>
             </div>
             {% comment %}
             <div class="col-sm-3">
@@ -43,7 +43,7 @@
             {% endcomment %}
         <div class="col-sm-3">
             <p class="count-label">Vesting Organizations</p>
-            <p class="count-number">{{ vesting_orgs_count }}</p>
+            <p class="count-number">{{ vesting_orgs|length }}</p>
         </div>
     </div>
 
@@ -56,7 +56,7 @@
         {% endif %}
         <div class="row">
             <div class="col-sm-12">
-                <p class="sort-filter-count">{{vesting_orgs_count}} vesting organization{% if not vesting_orgs_count == 1 %}s{% endif %}</p>
+                <p class="sort-filter-count">{{ vesting_orgs|length }} vesting organization{% if not vesting_orgs_count == 1 %}s{% endif %}</p>
                 <div class="sort-filter-bar">
                 {% include "user_management/includes/search_form_simple.html" %}
                 <div class="dropdown">

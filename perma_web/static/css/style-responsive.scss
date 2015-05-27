@@ -113,11 +113,12 @@ kbd {
     margin: 0 2px;
     font-family: 'Roboto Slab', sans-serif;
   	color: #ffffff;
-  	background-color: #5cb85c;
+  	background-color: #60B65B;
   	border-color: #4cae4c;
   	font-size:14px;
   	padding:3px 6px;
   	border-radius: 2px;
+    white-space:nowrap;
 }
 
 .docs kbd a {
@@ -140,7 +141,7 @@ kbd a:hover, kbd:hover, kbd:active {
   	border:1px solid #ccc;
 	border-radius:3px;
 	margin:10px 20px 20px 10px;
-	width:75%;
+	width:90%;
 }
 
 
@@ -1175,7 +1176,7 @@ img.image-view {
 
 .circle, .circle2, .circle3 {
     width: 30%;
-    height:0;
+    height:50%;
     padding-bottom: 30%;
     -moz-border-radius: 50%;
     -webkit-border-radius: 50%;
@@ -1398,6 +1399,10 @@ ul {
 .jumbo {
     color:$perma-blue;
     padding-bottom:20px;
+}
+
+.vesting-orgs-list-container {
+    margin-bottom: 80px;
 }
 
 h3 {
@@ -2030,11 +2035,11 @@ td.registrar-website-cell {
 }
 
 .list-email {
-    margin-bottom:0px;
+    margin-bottom:20px;
 }
 
 .list-user-registrar .list-email {
-    margin-top:20px;
+
 }
 
 .list-website {
@@ -2042,9 +2047,7 @@ td.registrar-website-cell {
 }
 
 .list-vesting-org, .list-registrar {
-    margin-top:20px;
-    margin-bottom:0px;
-    font-weight:500;
+    margin-bottom: 0;
 }
 
 .list-vesting-org a, .list-registrar a {
@@ -2522,6 +2525,21 @@ a.tab-styling, .tab-styling {
     color: #ff4100;
 }
 
+.alert-error {
+  color: #a94442;
+  background-color: #f2dede;
+  border-color: #ebccd1;
+}
+
+.remove-message-container {
+    padding: 10px 0 0 0;
+    margin-bottom: 10px;
+}
+
+.remove-message-container p {
+    font-size: 18px;
+}
+
 a.btn.vest, a.btn.dashboard, a.btn.user-delete {
 	width:100px;
 	padding:2px 0px;
@@ -2949,8 +2967,15 @@ p.orange {
 		border-bottom: 1px solid #fff;
 	}
 
-	h4 {
-		margin-top: 40px;
+	h2 {
+        margin-top: 25px;
+        margin-bottom: 25px;
+    }
+
+    h4 {
+		margin-top: 25px;
+        margin-bottom: 25px;
+        font-size:20px;
 		color: #333;
 	}
 	
@@ -2972,6 +2997,88 @@ p.orange {
 		margin-left: 0;
 	}
 
+    table {
+        h4 {
+            font-size:16px;
+        }
+
+        .table-center {
+            text-align:center;
+        }
+    }
+
 }
 
 /* Developer docs end */
+
+/* User docs */
+
+.user-docs {
+
+    h2 {
+        margin-top: 25px;
+        margin-bottom: 25px;
+    }
+
+    h4 {
+        margin-top: 25px;
+        margin-bottom: 25px;
+        font-size:20px;
+        color: #333;
+    }
+      
+    p {
+        font-family: $sans-font;
+        font-size: 16px;
+        color: #555;
+    }
+
+
+    table {
+        h4 {
+            font-size:16px;
+        }
+
+        .table-center {
+            text-align:center;
+        }
+    }
+
+    #docs-toc {
+        padding-top:20px;
+        margin-bottom:100px;
+
+        h2 {
+            font-size: 18px;
+            padding: 10px;
+            margin:0px;
+            border-left:2px solid #fff;
+        }
+        h3 {
+            font-size: 14px;
+            padding:0px 5px 5px 15px;
+            margin:0px;
+            color: #000;
+            border-left:2px solid #fff;
+        }
+        h2:hover, h3:hover {
+            border-left:2px solid #0099FF;
+            cursor:pointer;
+        }
+
+    }
+
+    #docs-body {
+        
+        .red {
+            color:red;
+            border:none;
+            font-weight:bold;
+        }
+       
+    }
+}
+
+
+/* End user docs  */
+

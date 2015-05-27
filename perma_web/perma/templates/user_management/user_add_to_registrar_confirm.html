@@ -7,7 +7,7 @@
 	{% if cannot_add %}
 	<div class="alert alert-danger alert-block"><strong>Error!</strong> <p>{{ user_email }} is already affiliated and cannot be added to your registrar.</p></div>
 	<br>
-	<p><a href="{% url 'user_management_manage_vesting_user' %}">Go back</a></p>
+	<p><a href="{% url 'user_management_manage_registrar_user' %}">Go back</a></p>
 	{% else %}
 	<h3>Add {{ user_email }} as a registrar user</h3>
 	{% if target_user = None %}

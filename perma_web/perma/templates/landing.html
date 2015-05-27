@@ -1,6 +1,6 @@
 {% extends "layout-responsive.html" %}
 
-{% load compressed %}
+{% load pipeline %}
 
 {% block styles %}
 {% endblock %}
@@ -254,5 +254,5 @@
 {% endblock %}
 
 {% block scripts %}
-    {% compressed_js 'landing' %}
+    {% javascript 'landing' %}
 {% endblock %}
