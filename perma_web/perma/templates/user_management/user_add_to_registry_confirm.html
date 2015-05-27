@@ -5,11 +5,11 @@
 {% block content %}
 
 	{% if cannot_add %}
-	<div class="alert alert-danger alert-block"><strong>Error!</strong> <p>{{ user_email }} is already affiliated and cannot be added to your registrar.</p></div>
+	<div class="alert alert-danger alert-block"><strong>Error!</strong> <p>{{ user_email }} is already a registry member.</p></div>
 	<br>
-	<p><a href="{% url 'user_management_manage_registrar_user' %}">Go back</a></p>
+	<p><a href="{% url 'user_management_manage_registry_user' %}">Go back</a></p>
 	{% else %}
-	<h3>Add {{ user_email }} as a registrar user</h3>
+	<h3>Add {{ user_email }} as a registry user</h3>
 	{% if target_user = None %}
 	<form method="post">
           {% csrf_token %}
@@ -25,15 +25,15 @@
               {% endif %}<br/>
             {% endfor %}
           </fieldset>
-          <button type="submit" class="btn-success">Add registrar user</button>
-          <a href="{% url 'user_management_manage_registrar_user' %}">Cancel</a>
+          <button type="submit" class="btn-success">Add registry user</button>
+          <a href="{% url 'user_management_manage_registry_user' %}">Cancel</a>
     </form>
     {% else %}
-        <p>{{ user_email }} already has an account.  Would you like to add this user to {{ request.user.registrar.name }}?</p>
+        <p>{{ user_email }} already has an account.  Would you like to give this user registry powers?</p>
         <form method="post">
         {% csrf_token %}
-    <button type="submit" class="btn-success">Add as a registrar user</button>
-          <a href="{% url 'user_management_manage_registrar_user' %}">Cancel</a>
+    <button type="submit" class="btn-success">Give this user registry powers</button>
+          <a href="{% url 'user_management_manage_registry_user' %}">Cancel</a>
           </form>
     {% endif %}
     {% endif %}

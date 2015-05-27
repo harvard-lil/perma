@@ -670,7 +670,7 @@ def vesting_user_add_user(request):
     
 
 @login_required
-@user_passes_test(lambda user: user.is_registrar_member())
+@user_passes_test(lambda user: user.is_registrar_member() or user.is_staff)
 def registrar_user_add_user(request):
     """
         Registrar users can add other registrar users
@@ -689,7 +689,10 @@ def registrar_user_add_user(request):
     form_data = request.POST or None
     if target_user == None:
         cannot_add = False
-        form = CreateUserForm(form_data, prefix = "a", initial={'email': user_email})
+        if request.user.is_registrar_member():
+            form = CreateUserForm(form_data, prefix = "a", initial={'email': user_email})
+        else:
+            form = CreateUserFormWithRegistrar(form_data, prefix = "a", initial={'email': user_email})
     else:
         if not target_user.can_vest():
             cannot_add = False
@@ -703,7 +706,8 @@ def registrar_user_add_user(request):
                 target_user = form.save()
                 is_new_user = True
     
-            target_user.registrar = request.user.registrar
+            if request.user.is_registrar_member():
+                target_user.registrar = request.user.registrar
     
             if is_new_user:
                 target_user.is_active = False
@@ -723,16 +727,70 @@ def registrar_user_add_user(request):
     
 
 @login_required
+@user_passes_test(lambda user: user.is_staff)
+def registry_user_add_user(request):
+    """
+        Registry users can add other registry users
+    """
+    
+    user_email = request.GET.get('email', None)
+    try:
+        target_user = LinkUser.objects.get(email=user_email)
+    except LinkUser.DoesNotExist:
+        target_user = None
+        
+    cannot_add = True
+    is_new_user = False
+    
+    form = None
+    form_data = request.POST or None
+    if target_user == None:
+        cannot_add = False
+        form = CreateUserForm(form_data, prefix = "a", initial={'email': user_email})
+    else:
+        if not target_user.is_staff:
+            cannot_add = False
+        form = None
+            
+    context = {'this_page': 'users_registry_users', 'user_email': user_email, 'form': form, 'target_user': target_user, 'cannot_add': cannot_add}
+
+    if request.method == 'POST': 
+        if ((form and form.is_valid()) or form == None) and not cannot_add:
+            if target_user == None:
+                target_user = form.save()
+                is_new_user = True
+    
+            target_user.is_staff = True
+    
+            if is_new_user:
+                target_user.is_active = False
+                email_new_user(request, target_user)
+                messages.add_message(request, messages.SUCCESS, '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % target_user.email, extra_tags='safe')
+            else:
+                email_new_registrar_user(request, target_user)
+                messages.add_message(request, messages.SUCCESS, '<h4>Success!</h4> <strong>%s</strong> is now a registry user.' % target_user.email, extra_tags='safe')
+            
+            target_user.save()
+
+            return HttpResponseRedirect(reverse('user_management_manage_registry_user'))
+
+    context = RequestContext(request, context)
+
+    return render_to_response('user_management/user_add_to_registry_confirm.html', context)
+    
+
+@login_required
 @user_passes_test(lambda user: user.is_vesting_org_member())
 def vesting_user_leave_vesting_org(request, vesting_org_id):
 
-    context = {'this_page': 'settings', 'user': request.user}
+    vesting_org = get_object_or_404(VestingOrg, id=vesting_org_id)
+    context = {'this_page': 'settings', 'user': request.user, 'vesting_org': vesting_org}
 
     if request.method == 'POST':
         request.user.vesting_org.remove(vesting_org_id)
         request.user.save()
 
-        return HttpResponseRedirect(reverse('create_link'))
+        return HttpResponseRedirect(reverse('user_management_settings_organizations'))
 
     context = RequestContext(request, context)
 
