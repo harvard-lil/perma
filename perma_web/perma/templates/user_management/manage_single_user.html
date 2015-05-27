@@ -6,7 +6,7 @@
 	<div class="row">
 		<div class="col-sm-12">	
 			{% if vesting_orgs %}
-                <div class="veating-orgs-list-container">
+                <div class="vesting-orgs-list-container">
                     <h3>Remove from vesting organization</h3>
                     <p>{{ target_user.email }} is a member of the following vesting organization{{ vesting_orgs|pluralize }}:</p>
                     <form action="{% url 'user_management_manage_single_vesting_user_remove' user_id=target_user.id %}" method="POST">
