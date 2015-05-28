@@ -41,7 +41,7 @@ class PermaRoute(archivalrouter.Route):
         """Parse the GUID and find the CDXLine in the DB"""
 
         guid = matcher.group(1)
-        urlkey = surt(wbrequest.wb_url_str)
+        urlkey = surt(wbrequest.wb_url.url)
 
         try:
             # This will filter out links that have user_deleted=True
@@ -63,8 +63,8 @@ class PermaRoute(archivalrouter.Route):
                 raise NotFoundException()
 
             lines = CDXLine.objects.create_all_from_asset(asset)
-            line = next(line for line in lines if line.urlkey==urlkey)
-            if not line:
+            lines = [line for line in lines if line.urlkey==urlkey]
+            if not lines:
                 raise NotFoundException()
 
         # Store the line for use in PermaCDXSource
