@@ -183,7 +183,7 @@ def single_linky(request, guid, send_downstream=False):
                     response = requests.head(link.submitted_url,
                                              headers={'User-Agent': request.META['HTTP_USER_AGENT'], 'Accept-Encoding': '*'},
                                              timeout=5)
-                    display_iframe = 'X-Frame-Options' not in response.headers
+                    display_iframe = 'X-Frame-Options' not in response.headers and 'attachment' not in response.headers.get('Content-Disposition')
                     # TODO actually check if X-Frame-Options specifically allows requests from us
                 except:
                     # Something is broken with the site, so we might as well display it in an iFrame so the user knows
