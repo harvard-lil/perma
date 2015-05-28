@@ -202,6 +202,7 @@ PIPELINE_CSS = {
     'base': {
         'source_filenames': (
             'css/bootstrap3.css',
+            'css/bootstrap-glyphicons.css',
             'css/style-responsive.scss',
             'css/font-awesome.min.css',
         ),
