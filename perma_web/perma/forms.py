@@ -109,10 +109,11 @@ class CreateUserFormWithVestingOrg(CreateUserForm):
 
         if registrar_id:
             self.fields['vesting_org'].queryset = VestingOrg.objects.filter(registrar_id=registrar_id).order_by('name')
-
-        if vesting_org_member_id:
+        elif vesting_org_member_id:
             user = LinkUser.objects.get(id=vesting_org_member_id)
             self.fields['vesting_org'].queryset = user.vesting_org.all()
+        else:
+            self.fields['vesting_org'].queryset = VestingOrg.objects.all().order_by('name')
 
     
     class Meta:

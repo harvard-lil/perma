@@ -4,7 +4,7 @@
 
 {% block content %}
 
-	<h3>Add {{ user_email }} as a vesting user</h3>
+	<h3>Add {{ user_email }}</h3>
 	{% if target_user = None %}
 	<form method="post">
           {% csrf_token %}

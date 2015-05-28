@@ -20,6 +20,7 @@ class PermissionsTestCase(PermaTestCase):
             {
                 'urls': [
                     ['user_management_manage_registry_user'],
+                    ['user_management_registry_user_add_user'],
                     ['user_management_manage_single_registry_user_delete', {'kwargs':{'user_id': 1}}],
                     ['user_management_manage_single_registry_user_remove', {'kwargs':{'user_id': 1}}],
                     ['user_management_manage_registrar'],
@@ -41,6 +42,7 @@ class PermissionsTestCase(PermaTestCase):
             {
                 'urls': [
                     ['user_management_manage_registrar_user'],
+                    ['user_management_registrar_user_add_user'],
                     ['user_management_manage_vesting_org'],
                     ['user_management_manage_single_vesting_org', {'kwargs':{'vesting_org_id':1}}],
                 ],
@@ -60,7 +62,6 @@ class PermissionsTestCase(PermaTestCase):
             },
             {
                 'urls': [
-                    ['user_management_registrar_user_add_user'],
                     ['user_management_manage_single_registrar_user_remove', {'kwargs':{'user_id': 2}}],
                 ],
                 'allowed': {'test_registrar_member@example.com'}
