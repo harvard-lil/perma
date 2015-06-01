@@ -21,9 +21,9 @@
 	    <div class="col-sm-8 docs">
 			  <h4><div id="general">General</div></h4>
 
-			 	<div class="question" data-href="who-is">Who created Perma.cc?</div>
+			 	<div class="question" data-href="who-is">Who runs Perma.cc?</div>
 			 	<div class="answer">
-			 		<p>Perma.cc is developed and maintained by the <a href="http://librarylab.law.harvard.edu/index.html">Harvard Library Innovation Lab</a> at the Harvard Law School Library.
+			 		<p>Perma.cc is developed and maintained by the <a href="http://librarylab.law.harvard.edu/index.html">Harvard Library Innovation Lab</a> at the Harvard Law School Library. Perma.cc is administered by a <a href="{% url 'about' %}#partners">consortium</a> of libraries, with each library assisting its local journals and faculty users. 
 			 		</p>
 			 	</div>	
 
@@ -49,6 +49,11 @@
 				  	<p>If you are affiliated with an academic institution, please contact your library. If your library is already a Perma.cc partner (check the <a href="{% url 'about' %}">partner list</a>), then they will be able to help you directly. If your library is not yet a Perma.cc partner and is interested in joining, please ask them to contact us at <a href="mailto:info@perma.cc">info@perma.cc</a>, and we'll set them up as a <a href="{% url 'docs' %}#libraries-and-registrars">registrar</a>.</p>
 				  	<p>If you are affiliated with a court, please contact us directly at <a href="mailto:info@perma.cc">info@perma.cc</a> for assistance.</a>
 				  	<p>Vesting currently is limited to those affiliated with academic institutions or courts, but we are exploring ways to expand access. If you're interested in vesting but aren't affiliated with an academic institution or court, please join our <a href="http://eepurl.com/boOdBj">interest list</a> to stay informed.</p> 
+				  </div>
+
+				  <div class="question" data-href="how-many-links">How many links has Perma.cc helped save from rot?</div>
+				  <div class="answer">
+				  	<p>A bunch, and counting. Take a look at our <a href="{% url 'global_stats' %}">stats page</a> for more details.</p>
 				  </div>
 							  
 			  <h4><div id="librarian">Libraries</div></h4>
@@ -90,7 +95,7 @@
 
 				<div class="question" data-href="multiple-vesting-orgs">Can vesting users be affiliated with multiple journals?</div>
 				<div class="answer">
-					<p>Yes. Check out the <a href="{% url 'docs' %}#user guide for more information about assigning vesting users to multiple vesting orgs.</p>
+					<p>Yes. Check out the <a href="{% url 'docs' %}#placing-users-with-vesting-orgs">user guide</a> for more information about assigning vesting users to multiple vesting orgs.</p>
 				</div>
 
 
