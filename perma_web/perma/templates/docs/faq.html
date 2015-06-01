@@ -46,8 +46,8 @@
 				
 				  <div class="question" data-href="get-vesting-privileges">How do I get vesting privileges?</div>
 				  <div class="answer">
-				  	<p>If you are affiliated with an academic institution, please contact your library. If your library is already a Perma.cc partner (check the <a href="{% url 'about' %}">partner list</a>), then they will be able to help you directly. If your library is not yet a Perma.cc partner and is interested in joining, please ask them to contact us at <a href="mailto:info@perma.cc">info@perma.cc</a>, and we'll set them up as a <a href="{% url 'docs' %}#libraries-and-registrars">registrar</a>.</p>
-				  	<p>If you are affiliated with a court, please contact us directly at <a href="mailto:info@perma.cc">info@perma.cc</a> for assistance.</a>
+				  	<p>If you're affiliated with an academic institution, please contact your library. If your library is already a Perma.cc partner (check the <a href="{% url 'about' %}">partner list</a>), then they will be able to help you directly. If your library is not yet a Perma.cc partner and is interested in joining, please ask them to contact us at <a href="mailto:info@perma.cc">info@perma.cc</a>, and we'll set them up as a <a href="{% url 'docs' %}#libraries-and-registrars">registrar</a>.</p>
+				  	<p>If you're affiliated with a court, please contact us directly at <a href="mailto:info@perma.cc">info@perma.cc</a> for assistance.</a>
 				  	<p>Vesting currently is limited to those affiliated with academic institutions or courts, but we are exploring ways to expand access. If you're interested in vesting but aren't affiliated with an academic institution or court, please join our <a href="http://eepurl.com/boOdBj">interest list</a> to stay informed.</p> 
 				  </div>
 
@@ -69,9 +69,9 @@
 					<p>Non-academic libraries should <a href="mailto:info@perma.cc">contact us</a> to learn more about the options currently available for your patrons and staff.</p> 
 				</div>
 			
-				<div class="question" data-href="sponsor-journal">What are the fees to become a Perma.cc partner library or registrar?</div>
+				<div class="question" data-href="sponsor-journal">What are the fees to become a Perma.cc registrar?</div>
 				<div class="answer">
-					<p>Nothing.</p>
+					<p>Becoming a registrar is free for academic libraries and courts.</p>
 				</div>
 			
 				<div class="question" data-href="registrar-responsibilities">What are the responsibilities of a Perma.cc registrar?</div>
@@ -98,101 +98,68 @@
 					<p>Yes. Check out the <a href="{% url 'docs' %}#placing-users-with-vesting-orgs">user guide</a> for more information about assigning vesting users to multiple vesting orgs.</p>
 				</div>
 
-
-
-
-			<h4><div id="faculty">Academic faculty</div></h4>
-
-
-
-
-			<h4><div id="courtstaff">Court staff</div></h4>
-
-
-
-
-			
-			  <h4><div id="vestinguser">Vesting Users</div></h4>
-				<div class="question" data-href="journal-sign-up">How can I sign my journal up to use Perma.cc?</div>
+				<div class="question" data-href="bluebook">What does the Bluebook say about using Perma.cc?</div>
 				<div class="answer">
-					<p>If your journal would like to become a Vesting Organization, simply email <a href="mailto:info@perma.cc">info@perma.cc</a>, and we will connect you with a Registrar library (traditionally the library associated with your institution). The Registrar library will add your journal as a Vesting Organization and create at least one Vesting User account, which will enable you to create the accounts your staff will need to vest Perma.cc Links.</p>
+					<p>Rule 18.2.1(d) in the 20th Edition of <a href="https://www.legalbluebook.com/">The Bluebook</a> says: "Archiving of Internet sources is encouraged, but only when a reliable archival tool is available.  For citations to Internet sources, append the archive URL to the full citation in brackets."</p>
+					<p>The Bluebook uses Perma.cc as an example of a reliable archival tool.</p>
 				</div>
+			  			
+		  <h4><div id="technical">Technical</div></h4>
+		  	<div class="question" data-href="which-browsers">Which web browsers does Perma.cc support?</div>
+		  	<div class="answer">
+		  		<p>
+		  			Perma.cc works on Chrome, Firefox, Safari and IE8+.
+		  		</p>
+		  	</div>
 
-				<div class="question" data-href="how-to-vest">How do I vest a Perma.cc link?</div>
-				<div class="answer">
-					<p>To vest a Perma.cc link, a user with vesting privileges (a &quot;Vesting User&quot;) simply needs to the visit the Perma Link URL, review the archived material and click the &quot;Vest&quot; button in the upper right corner of the screen.</p>
-					<p>For more information, visit: <a hrer="http://perma.cc/docs/perma-link-vesting">http://perma.cc/docs/perma-link-vesting</a>.</p>
+		  	<div class="question" data-href="perma-code">Is Perma.cc open source?</div>
+		  	<div class="answer">
+		  		<p>
+		  			Why yes, it is. The Perma.cc code is <a href="https://github.com/harvard-lil/perma">accessible on Github</a> and dual licensed under the MIT and GPL licenses. Contributions are most welcome.
+		  		</p>
+		  	</div>
 
-				</div>
-				
-				<div class="question" data-href="article-without-links">What if an author submits an article without Perma.cc links?</div>
-				<div class="answer">
-					<p>All Vesting Users will have the capability to both create and vest Perma.cc links. Thus, Vesting Users can create Perma.cc Links for cited URLs as part of the subciting process.</p>
-				</div>
-			
-				<div class="question" data-href="citation">How should I include the Perma.cc link in a citation?</div>
-				<div class="answer">
-					<p>Each journal has the ability to formulate its own standard. However, we recommend using a citation format that incorporates the Perma.cc Link URL in brackets after the original URL.</p>
-					<p>For example: "Title of Online Source, Author, http://www.example.com/the-original-source-URL.html[http://perma.cc/ABCD-1234]."</p>
-				</div>
-				<br/><br/>
-			
-			  <h4><div id="technical">Technical</div></h4>
-			  	<div class="question" data-href="which-browsers">Which web browsers does Perma.cc support?</div>
-			  	<div class="answer">
-			  		<p>
-			  			Perma.cc works on Chrome, Firefox, Safari and IE8+.
-			  		</p>
-			  	</div>
+		  	<div class="question" data-href="perma-api">Does Perma.cc have an API?</div>
+		  	<div class="answer">
+		  		<p>
+		  			Why yes, we do. It's still in its infancy, but if you're interested in learning more please check our <a href="{% url 'dev_docs' %}">developer guide</a> for the details.
+		  		</p>
+		  	</div>
 
-			  	<div class="question" data-href="perma-code">Is Perma.cc open source?</div>
-			  	<div class="answer">
-			  		<p>
-			  			Why yes, it is. The Perma.cc code is <a href="https://github.com/harvard-lil/perma">accessible on Github</a> and dual licensed under the MIT and GPL licenses. Contributions are most welcome.
-			  		</p>
-			  	</div>
+		  	<div class="question" data-href="no-indexing">Are Perma.cc archives available in search engines?</div>
+		  	<div class="answer">
+		  		<p>We don't make archived pages available to search engines.</p>
+		  	</div>
 
-			  	<div class="question" data-href="perma-api">Does Perma.cc have an API?</div>
-			  	<div class="answer">
-			  		<p>
-			  			Why yes, we do. It's still in its infancy, but if you're interested in learning more please check our <a href="{% url 'dev_docs' %}">developer guide</a> for the details.
-			  		</p>
-			  	</div>
-
-			  	<div class="question" data-href="no-indexing">Are Perma.cc archives available in search engines?</div>
-			  	<div class="answer">
-			  		<p>We don't make archived pages available to search engines.</p>
-			  	</div>
-
-				<div class="question" data-href="robots-text">Can I prevent Perma.cc from publicly displaying archives of pages from my site?</div>
-				<div class="answer">
-					 <p>
-	                     It's important to note that Perma.cc does not crawl your site like a search engine might,
-	                     and it does not make its archives available in search engines. It simply saves a copy of a single page at the direction of a user, as though the user visited your page and used the "Save as ..." function of their browser.
-	                 </p>
-					 <p>
-	                     If you don't want Perma.cc to make archives of your site available online to future readers of scholarly work, we're happy to respect your wishes.
-	                 </p>
-					 <p>
-	                     To prevent online archives for entire sections of your site,
-	                     use a configuration in your robots.txt file like the one below:
-	                 </p>
-					 <p class="code">
-					 	 User-agent: Perma<br/>
-						 Disallow: /private-stuff/
-					 </p>
-					 <p>
-	                     To prevent online archives for a single page, use one of the following meta tags:
-	                 </p>
-					 <p class="code">
-						 &lt;meta name="Perma" content="noarchive" /&gt;
-						 &lt;meta name="robots" content="noarchive" /&gt;
-					 </p>
-					 <p>
-	                     With either or both of these rules in place, Perma.cc will still allow the user to store
-	                     the requested page in library archives, but will not display it at the perma.cc website.
-	                 </p>
-				</div>
+			<div class="question" data-href="robots-text">Can I prevent Perma.cc from publicly displaying archives of pages from my site?</div>
+			<div class="answer">
+				 <p>
+                     It's important to note that Perma.cc does not crawl your site like a search engine might,
+                     and it does not make its archives available in search engines. It simply saves a copy of a single page at the direction of a user, as though the user visited your page and used the "Save as ..." function of their browser.
+                 </p>
+				 <p>
+                     If you don't want Perma.cc to make archives of your site available online to future readers of scholarly work, we're happy to respect your wishes.
+                 </p>
+				 <p>
+                     To prevent online archives for entire sections of your site,
+                     use a configuration in your robots.txt file like the one below:
+                 </p>
+				 <p class="code">
+				 	 User-agent: Perma<br/>
+					 Disallow: /private-stuff/
+				 </p>
+				 <p>
+                     To prevent online archives for a single page, use one of the following meta tags:
+                 </p>
+				 <p class="code">
+					 &lt;meta name="Perma" content="noarchive" /&gt;
+					 &lt;meta name="robots" content="noarchive" /&gt;
+				 </p>
+				 <p>
+                     With either or both of these rules in place, Perma.cc will still allow the user to store
+                     the requested page in library archives, but will not display it at the perma.cc website.
+                 </p>
+			</div>
 		</div>
 
  
