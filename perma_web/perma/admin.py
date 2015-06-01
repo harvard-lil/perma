@@ -62,20 +62,15 @@ class VestingOrgAdmin(admin.ModelAdmin):
     
     # statistics
     def get_queryset(self, request):
-        return super(VestingOrgAdmin, self).get_queryset(request).annotate(
-            vesting_users=Count('users', distinct=True),
-            last_active=Max('users__last_login', distinct=True),
-            first_active=Min('users__date_joined', distinct=True),
-            vested_links=Count('link', distinct=True),
-        )
+        return super(VestingOrgAdmin, self).get_queryset(request).select_related('registrar').prefetch_related('users')
     def vesting_users(self, obj):
-        return obj.vesting_users
+        return obj.users.count()
     def last_active(self, obj):
-        return obj.last_active
+        return max(u.last_login for u in obj.users.all()) if obj.users.count() else '-'
     def first_active(self, obj):
-        return obj.first_active
+        return min(u.date_joined for u in obj.users.all()) if obj.users.count() else '-'
     def vested_links(self, obj):
-        return obj.vested_links
+        return obj.link_set.count()
 
 
 class LinkUserAddForm(UserCreationForm):
@@ -131,18 +126,15 @@ class LinkUserAdmin(UserAdmin):
         new_class("CreatedLinksInline", InlineEditLinkMixin, LinkInline, fk_name='created_by', verbose_name_plural="Created Links"),
         new_class("VestedLinksInline", InlineEditLinkMixin, LinkInline, fk_name='vested_by_editor', verbose_name_plural="Vested Links"),
     ]
-    filter_horizontal = []
+    filter_horizontal = ['vesting_org']
 
     # statistics
     def get_queryset(self, request):
-        return super(LinkUserAdmin, self).get_queryset(request).annotate(
-            vested_links_count=Count('vested_links', distinct=True),
-            created_links_count = Count('created_links', distinct=True)
-        )
+        return super(LinkUserAdmin, self).get_queryset(request).prefetch_related('vested_links', 'created_links')
     def vested_links_count(self, obj):
-        return obj.vested_links_count
+        return obj.vested_links.count()
     def created_links_count(self, obj):
-        return obj.created_links_count
+        return obj.created_links.count()
 
 
 class LinkAdmin(admin.ModelAdmin):
@@ -161,6 +153,7 @@ class LinkAdmin(admin.ModelAdmin):
                   fields=['base_storage_path', 'image_capture', 'warc_capture', 'pdf_capture', 'text_capture'],
                   can_delete=False, max_num=1),
     ]
+    raw_id_fields = ['created_by','vested_by_editor','dark_archived_by']
 
 
 class FolderAdmin(MPTTModelAdmin):
