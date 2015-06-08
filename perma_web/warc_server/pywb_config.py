@@ -49,8 +49,7 @@ class PermaRoute(archivalrouter.Route):
         except Link.DoesNotExist:
             raise NotFoundException()
 
-        lines = CDXLine.objects.filter(urlkey=urlkey,
-                                       asset__link_id=guid)
+        lines = CDXLine.objects.filter(urlkey=urlkey, asset__link_id=guid)
 
         # Legacy archives didn't generate CDXLines during
         # capture so generate them on demand if not found, unless
@@ -62,9 +61,9 @@ class PermaRoute(archivalrouter.Route):
             if asset.warc_capture in [Asset.CAPTURE_STATUS_PENDING, Asset.CAPTURE_STATUS_FAILED] or asset.cdx_lines.count() > 0:
                 raise NotFoundException()
 
-            lines = CDXLine.objects.create_all_from_asset(asset)
-            lines = [line for line in lines if line.urlkey==urlkey]
-            if not lines:
+            CDXLine.objects.create_all_from_asset(asset)
+            lines = CDXLine.objects.filter(urlkey=urlkey, asset__link_id=guid)
+            if not len(lines):
                 raise NotFoundException()
 
         # Store the line for use in PermaCDXSource
