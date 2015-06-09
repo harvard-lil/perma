@@ -30,7 +30,7 @@ from perma.utils import absolute_url
 
 
 logger = logging.getLogger(__name__)
-valid_serve_types = ['image', 'pdf', 'source', 'text', 'warc', 'warc_download']
+valid_serve_types = ['image', 'pdf', 'source', 'warc_download']
 
 
 class DirectTemplateView(TemplateView):
