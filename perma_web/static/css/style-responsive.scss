@@ -2221,18 +2221,19 @@ a.underline {
 
 div.faq div.question {
     font-size: 16px;
-    margin-top: 0.6em;
+    margin-top: 0.4em;
     cursor: pointer;
+    padding-left:5px;
 }
 
 div.faq div.answer {
     display: none;
-    margin: .4em 0 1.4em 0;
+    margin: .4em 0 0 0;
     color: #333;
     line-height: 1.6;
     border:1px solid #efefef;
     background-color: #f8f8f8;
-    padding:10px;
+    padding:10px 10px 0 10px;
      -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
     box-sizing: border-box;
