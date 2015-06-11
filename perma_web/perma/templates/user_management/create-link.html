@@ -25,20 +25,28 @@
 		    <div class="modal-content">
     		    <div class="modal-header">
         		    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-				        <div class="logo-condensed-header">
-					          <a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo2.png"></a>
-				        </div>
+                    <div class="logo-condensed-header">
+                          <a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo2.png"></a>
+                    </div>
     		    </div>
 
-				    <form class="form-inline" id="archive_upload_form" action="{% url 'api_dispatch_list' resource_name='archives' api_name='v1' %}" method="post">
-				        <h4>Choose a file</h4>
-				        <input id="file" name="file" class="input-xlarge" type="file" placeholder="example.png">
-				        <p><label for="title">Title</label><br><input id="title" name="title" class="input-xlarge" type="text" placeholder="Example Page Title"></p>
-				        <p><label for="url">URL</label><br><input id="url" name="url" class="input-xlarge" type="text" placeholder="www.example.com"></p>
-				        <button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Upload this Perma</button>
-				        {% csrf_token %}
-				        <p id="upload-error" class="text-error"></p>
-				    </form>
+                <form id="archive_upload_form" action="{% url 'api_dispatch_list' resource_name='archives' api_name='v1' %}" method="post">
+                    <div class="form-group">
+                        <label class="control-label" for="file">Choose a file</label>
+                        <input id="file" name="file" class="form-control" type="file" placeholder="example.png" accept=".png,.jpg,.jpeg,.gif,.pdf">
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label" for="title">Title</label>
+                        <input id="title" name="title" class="form-control" type="text" placeholder="Example Page Title">
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label" for="url">URL</label>
+                        <input id="url" name="url" class="form-control" type="text" placeholder="www.example.com">
+                    </div>
+                    <button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Upload this Perma</button>
+                    {% csrf_token %}
+                    <p id="upload-error" class="text-error"></p>
+                </form>
 		    </div>
 	  </div>
 </div><!--/.archive-upload-->

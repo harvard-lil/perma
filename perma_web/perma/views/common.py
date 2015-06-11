@@ -30,7 +30,7 @@ from perma.utils import absolute_url
 
 
 logger = logging.getLogger(__name__)
-valid_serve_types = ['image', 'pdf', 'source', 'text', 'warc', 'warc_download']
+valid_serve_types = ['image', 'pdf', 'source', 'warc_download']
 
 
 class DirectTemplateView(TemplateView):
@@ -176,12 +176,6 @@ def single_linky(request, guid, send_downstream=False):
                        'warc_url': asset.warc_url()}
 
         else:
-            text_capture = None
-            if serve_type == 'text':
-                if asset.text_capture and asset.text_capture != 'pending':
-                    with default_storage.open(os.path.join(asset.base_storage_path, asset.text_capture), 'r') as f:
-                        text_capture = f.read()
-
             # If we are going to serve up the live version of the site, let's make sure it's iframe-able
             display_iframe = False
             if serve_type == 'live':
@@ -189,7 +183,7 @@ def single_linky(request, guid, send_downstream=False):
                     response = requests.head(link.submitted_url,
                                              headers={'User-Agent': request.META['HTTP_USER_AGENT'], 'Accept-Encoding': '*'},
                                              timeout=5)
-                    display_iframe = 'X-Frame-Options' not in response.headers
+                    display_iframe = 'X-Frame-Options' not in response.headers and 'attachment' not in response.headers.get('Content-Disposition')
                     # TODO actually check if X-Frame-Options specifically allows requests from us
                 except:
                     # Something is broken with the site, so we might as well display it in an iFrame so the user knows
@@ -201,7 +195,6 @@ def single_linky(request, guid, send_downstream=False):
                 'next': request.get_full_path(),
                 'display_iframe': display_iframe,
                 'serve_type': serve_type,
-                'text_capture': text_capture,
                 'warc_url': asset.warc_url()
             }
 

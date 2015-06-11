@@ -20,6 +20,8 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
                    os.path.join(TEST_ASSETS_DIR, 'target_capture_files/noarchive.html'),
                    os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.pdf')]
 
+    rejected_status_code = 400  # Bad Request
+
     def setUp(self):
         super(LinkResourceTestCase, self).setUp()
 
@@ -143,6 +145,10 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
             link = Link.objects.get(guid=obj['guid'])
             self.assertHasAsset(link, "pdf_capture")
+            asset = link.assets.first()
+            self.assertEqual(asset.user_upload, True)
+            self.assertEqual(asset.user_upload_file_name, 'test.pdf')
+            self.assertEqual(asset.pdf_capture, 'upload.pdf')
 
     def test_should_create_archive_from_jpg_file(self):
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.jpg')) as test_file:
@@ -153,6 +159,18 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
             link = Link.objects.get(guid=obj['guid'])
             self.assertHasAsset(link, "image_capture")
+            asset = link.assets.first()
+            self.assertEqual(asset.user_upload, True)
+            self.assertEqual(asset.user_upload_file_name, 'test.jpg')
+            self.assertEqual(asset.image_capture, 'upload.jpg')
+
+    def test_should_reject_invalid_file(self):
+        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.html')) as test_file:
+            obj = self.rejected_post(self.list_url,
+                                     format='multipart',
+                                     data=dict(self.post_data.copy(), file=test_file),
+                                     user=self.vesting_member)
+            self.assertIn('Invalid file', obj.content)
 
     ############
     # Updating #

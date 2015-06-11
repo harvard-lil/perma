@@ -88,34 +88,34 @@ Further reading:
 We like to host our fonts locally. If you're liking a font from Google fonts and the licesning allows, check out[fontdump](https://pypi.python.org/pypi/fontdump/1.2.0)
 
 
-##  Schema and data migrations using South
+##  Schema and data migrations
 
 *** Before changing the schema or the data of your database, make a backup! ***
 
-If you make a change to the Django model (models get mapped directly to relational database tables), you'll need to create a [South](http://south.aeracode.org/) migration. South migrations come in two flavors: schema migrations and data migrations.
+If you make a change to the Django model (models get mapped directly to relational database tables), you'll need to create a [migration](https://docs.djangoproject.com/en/1.7/topics/migrations/). Migrations come in two flavors: schema migrations and data migrations.
 
 
 ### Schema migrations and data migrations
 
 Schema migrations are used when changing the model structure (adding, removing, editing fields) and data migrations are used when you need to ferry data between your schema changes (you renamed a field and need to move data from the old field name to the new field name).
 
-The most straight forward data migration might be the addition of a new model or the addition of a field to a model. When you perform a straight forward change to the model, your South command might look like this
+The most straight forward data migration might be the addition of a new model or the addition of a field to a model. When you perform a straight forward change to the model, your command might look like this
 
-    $ ./manage.py schemamigration perma --auto
+    $ ./manage.py makemigrations
 
-(Or use our shortcut, `fab south_out` ) This will create a migration file for you on disk, something like,
+This will create a migration file for you on disk, something like,
 
     $ cat perma_web/perma/migrations/0003_auto__add_vestingorg__add_field_linkuser_vesting_org.py
 
 Even though you've changed your models file and created a migration (just a python file on disk), your database remains unchanged. You'll need to apply the migration to update your database,
 
-    $ ./manage.py migrate perma
+    $ ./manage.py migrate
 
-(Or use our shortcut, `fab south_in` ) Now, your database, your model, and your migration should all be at the same point. You can list your migrations using the list command,
+Now, your database, your model, and your migration should all be at the same point. You can list your migrations using the list command,
 
     $ ./manage.py migrate --list
 
-Data migrations follow the same flow, but add a step in the middle. See the [South docs](http://south.readthedocs.org/en/latest/tutorial/part3.html) for details on how to perform a data migration.
+Data migrations follow the same flow, but add a step in the middle. See the [Django docs](https://docs.djangoproject.com/en/1.7/topics/migrations/#data-migrations) for details on how to perform a data migration.
 
 
 ### Track migrations in Git and get started
@@ -124,15 +124,6 @@ You should commit your migrations to your repository and push to GitHub.
 
     $ git add perma_web/perma/migrations/0003_auto__add_vestingorg__add_field_linkuser_vesting_org.py
     $ git commit -m "Added migration"
-
-
-If you've just installed Perma.cc, you'll want to make sure to convert your app to a south-based app
-
-	$ ./manage.py convert_to_south perma
-	
-If you've been developing Perma without using South, you might need to apply the first migration as a "fake" migration
-	
-    $ ./manage.py migrate perma 0001 --fake
 
 
 ## Testing and Test Coverage

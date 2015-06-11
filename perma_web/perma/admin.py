@@ -158,7 +158,7 @@ class LinkAdmin(admin.ModelAdmin):
     readonly_fields = ['guid', 'view_count', 'folders', 'creation_timestamp']
     inlines = [
         new_class("AssetInline", admin.TabularInline, model=Asset,
-                  fields=['base_storage_path', 'image_capture', 'warc_capture', 'pdf_capture', 'text_capture'],
+                  fields=['base_storage_path', 'image_capture', 'warc_capture', 'pdf_capture',],
                   can_delete=False, max_num=1),
     ]
 
