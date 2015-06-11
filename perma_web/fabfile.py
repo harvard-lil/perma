@@ -121,6 +121,99 @@ def init_dev_db():
     local("python manage.py migrate")
     local("python manage.py loaddata fixtures/sites.json fixtures/users.json fixtures/folders.json")
 
+@task
+def set_user_upload_field():
+    """
+        Temporary task to fix user_upload field.
+    """
+    from perma.models import Asset
+    from django.db.models import Q
+    from urlparse import urlparse
+
+    first_change_date = '2014-04-10 13:22:44'  # last date when uploaded filenames still started with a slash
+    second_change_date = '2014-10-27 18:43:26'  # date when non-uploaded PDFs started to set image_capture
+
+    # user uploads up to first_change_date can be identified because
+    # image_capture or pdf_capture will start with a slash
+    Asset.objects.filter(link__creation_timestamp__lte=first_change_date).filter(
+        Q(image_capture__startswith='/') | Q(pdf_capture__startswith='/')
+    ).update(user_upload=True)
+
+    # image uploads at any time can be identified because pdf_capture and warc_capture are null
+    Asset.objects.filter(pdf_capture=None, warc_capture=None).exclude(image_capture=None).update(user_upload=True)
+
+    # PDF uploads after second_change_date can be identified because
+    # image_capture is null
+    Asset.objects.filter(link__creation_timestamp__gte=second_change_date, image_capture=None).update(user_upload=True)
+
+    # PDF uploads between first_change_date and second_change_date can be identified because
+    # submitted_title is not the submitted_url domain
+    for asset in Asset.objects.filter(link__creation_timestamp__gt=first_change_date, link__creation_timestamp__lt=second_change_date).exclude(pdf_capture=None).select_related('link'):
+        if asset.link.submitted_title != urlparse(asset.link.submitted_url).netloc:
+            asset.user_upload = True
+            asset.save()
+
+    print "%s archives are now marked as user uploads." % Asset.objects.filter(user_upload=True).count()
+
+@task
+def fix_file_names(real=False):
+    """
+        Temporary task to normalize uploaded file names.
+    """
+    from perma.models import Asset
+    from django.core.files.storage import default_storage
+    import glob, subprocess
+
+    def move_upload(asset, old_name):
+        # translate old name like /cap.jpeg to new name like cap.jpg
+        old_name = old_name.replace('/','')
+        new_name = old_name
+        for a, b in (('cap','upload'), ('jfif', 'jpg'), ('jpeg', 'jpg')):
+            new_name = new_name.replace(a, b)
+
+        # move file
+        from_path = default_storage.path(os.path.join(asset.base_storage_path, old_name))
+        to_path = default_storage.path(os.path.join(asset.base_storage_path, new_name))
+        print "Moving '%s' to '%s'" % (from_path, to_path)
+        if real:
+            os.rename(from_path, to_path)
+
+        return new_name
+
+    for asset in Asset.objects.filter(user_upload=True):
+        if asset.pdf_capture and 'cap' in asset.pdf_capture:
+            asset.pdf_capture = move_upload(asset, asset.pdf_capture)
+            print "Saving new pdf_capture %s" % asset.pdf_capture
+        elif asset.image_capture and 'cap' in asset.image_capture:
+            asset.image_capture = move_upload(asset, asset.image_capture)
+            print "Saving new image_capture %s" % asset.image_capture
+
+        if real:
+            asset.save()
+
+    for asset in Asset.objects.filter(pdf_capture__startswith="cap_"):
+        old_name = asset.pdf_capture
+        new_name = 'cap.pdf'
+
+        # move file
+        from_path = default_storage.path(os.path.join(asset.base_storage_path, old_name))
+        to_path = default_storage.path(os.path.join(asset.base_storage_path, new_name))
+        print "Moving '%s' to '%s'" % (from_path, to_path)
+        if real:
+            os.rename(from_path, to_path)
+
+        # delete duplicate PDFs
+        for duplicate_pdf in glob.glob(default_storage.path(asset.base_storage_path) + '/cap_*.pdf'):
+            cold_storage_dir = os.path.join('/perma/assets/cold_storage/duplicate_pdfs/', asset.base_storage_path)
+            print "\tMoving '%s' to '%s'" % (duplicate_pdf, cold_storage_dir)
+            if real:
+                subprocess.call("mkdir -p %s/; mv %s %s/" % (cold_storage_dir, duplicate_pdf, cold_storage_dir),
+                                shell=True)
+
+        asset.pdf_capture = new_name
+        if real:
+            asset.save()
+
 
 ### DEPLOYMENT ###
 

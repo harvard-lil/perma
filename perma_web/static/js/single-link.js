@@ -416,14 +416,8 @@ var spinner = new Spinner(opts).spin(target);
     				$('#pdf_cap_container_complete').show();
 			}
 			
-			if ($('#text_cap_container_loading').is(":visible") && asset.text_capture != 'pending') {
-				$('#text_cap_container_loading').hide();
-				if(asset.text_capture != 'failed')
-    				$('#text_cap_container_complete').show();
-			}
-			
 			// if no status is pending
-			if (asset.image_capture != 'pending' && asset.source_capture != 'pending' && asset.pdf_capture != 'pending' && asset.text_capture != 'pending') {
+			if (asset.image_capture != 'pending' && asset.source_capture != 'pending' && asset.pdf_capture != 'pending') {
 				clearInterval(refreshIntervalId);
 			}	
 		});

@@ -69,7 +69,7 @@ class PermissionsTestCase(PermaTestCase):
 
             {
                 'urls': [
-                    ['user_management_vesting_user_leave_vesting_org', {'kwargs':{'vesting_org_id': 1}, 'success_status': 302}],
+                    ['user_management_vesting_user_leave_vesting_org', {'kwargs':{'vesting_org_id': 1}}],
                 ],
                 'allowed': {'test_vesting_member@example.com'}
             },

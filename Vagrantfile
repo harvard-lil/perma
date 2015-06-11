@@ -9,7 +9,7 @@ $MYSQL_GID = 113
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # configure NFS mount for speed
-  config.vm.network :private_network, ip: '192.168.50.50'
+  config.vm.network :private_network, type: :dhcp  # ip: '192.168.50.50'
   config.vm.synced_folder ".", "/vagrant", type: "nfs"
 
   # ports
