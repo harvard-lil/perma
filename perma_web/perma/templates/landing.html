@@ -22,7 +22,7 @@
                 {% if request.user.is_authenticated %}
                     <p><a href="{% url 'link_browser' %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
                 {% else %}
-				    <p><a href="{% url 'register' %}" class="btn btn-large btn-success">Create an account</a></p>
+				    <p><a href="{% url 'register' %}" class="btn btn-large btn-success">Learn more and sign up</a></p>
                 {% endif %}
 			
 			</div>	
@@ -50,6 +50,7 @@
 				<div class="col-sm-6">
 					<p class="mega"><span class="orange">Powered by Libraries</span></p>
 					<p>Perma.cc is powered by libraries because we're in the forever business. We're already looking after printed materials. It's time we did the same for links.</p>
+					<p><a href="{% url 'docs_perma_link_creation' %}" class="btn btn-large btn-more">RESOURCES FOR LIBRARIES</a></p>
 				</div><!--col-sm-6-->
 			</div><!--row-->
 			<div class="row">
