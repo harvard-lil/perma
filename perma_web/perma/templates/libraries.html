@@ -1,0 +1,59 @@
+{% extends "layout-responsive.html" %}
+{% block title %} | Contact{% endblock %}
+
+{% block meta %}
+<meta name="robots" content="noarchive">
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="row">
+		<div class="col-sm-7">
+			<h1>Libraries</h1>
+            <p>Perma.cc is amazing and FREE for libraries.</p>
+        </div>
+    </div> <!-- row -->
+    <div class="row">
+		<div class="col-sm-9">
+		    <h2>Request an account</h2>
+            <form method="post" role="form">
+                {% csrf_token %}
+                <h4>Your library information</h4>
+                <fieldset>
+                    <span class="text-error">{{ registrar_form.non_field_errors }}</span>
+                      {% for field in registrar_form %}
+                        <label for="id_{{ field.name }}">{{ field.label }}</label><br>
+                        {{ field }}
+                        {% if field.errors %}
+                          {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+                        {%elif field.help_text %}
+                          <span class="help-inline">{{ field.help_text }}</span>
+                        {% endif %}
+                        <br>
+                    {% endfor %}  
+                </fieldset>
+                {% if user_form %}
+                <h4>Your information</h4>
+                <fieldset>
+                    <span class="text-error">{{ user_form.non_field_errors }}</span>
+                      {% for field in user_form %}
+                        <label for="id_{{ field.name }}">{{ field.label }}</label><br>
+                        {{ field }}
+                        {% if field.errors %}
+                          {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+                        {%elif field.help_text %}
+                          <span class="help-inline">{{ field.help_text }}</span>
+                        {% endif %}
+                        <br>
+                    {% endfor %}  
+                </fieldset>
+                {% endif %}
+
+                <button type="submit" class="btn btn-success">Request account</button>
+            </form>
+		</div><!--col -->
+	</div><!--row-->
+</div><!--container-->
+{% endblock content %}

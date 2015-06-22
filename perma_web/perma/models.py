@@ -281,6 +281,10 @@ class LinkUser(AbstractBaseUser):
     def is_registrar_member(self):
         """ Is the user a member of a registrar? """
         return bool(self.registrar_id)
+        
+    def has_registrar_pending(self):
+        """ Has requested creation of registrar """
+        return bool(self.pending_registrar)
 
     def is_vesting_org_member(self):
         """ Is the user a member of a vesting org? """
