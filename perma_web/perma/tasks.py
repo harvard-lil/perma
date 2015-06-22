@@ -487,7 +487,7 @@ def get_nightly_stats():
     
     # Five types user accounts
     total_count_regular_users = LinkUser.objects.filter(is_staff=False, vesting_org_id=None, registrar_id=None).count()
-    total_count_vesting_members = LinkUser.objects.exclude(vesting_org_id=None).count()
+    total_count_vesting_members = LinkUser.objects.exclude(vesting_org=None).count()
     total_count_registrar_members = LinkUser.objects.exclude(registrar_id=None).count()
     total_count_registry_members = LinkUser.objects.filter(is_staff=True).count()
     
