@@ -2027,11 +2027,17 @@ td.registrar-website-cell {
 .list-name {
     font-size:24px;
     font-weight:500;
-    margin-bottom:0px;
+    margin-bottom:5px;
+    line-height:1.2em;
 }
 
 .list-name a {
     color:#333;
+}
+
+.list-name .text-warning {
+    margin-left:8px;
+    color: #ff4100;
 }
 
 .list-email {
@@ -2074,6 +2080,7 @@ td.registrar-website-cell {
     margin-top:5px;
     font-size:12px;
     margin-bottom:0px;
+    position:relative;
 }
 
 .list-count-group {
@@ -2870,10 +2877,6 @@ p.orange {
     .list-status, .list-date {
         text-align:left;
     }
-    .list-status {
-        position:absolute;
-        bottom:-20px;
-    }
     .list-date {
         margin-bottom:20px;
         margin-top:15px;
@@ -2881,6 +2884,7 @@ p.orange {
     }
     .list-count-group {
         margin-bottom:8px;
+        float:none;
     }
 }
 
