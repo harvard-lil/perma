@@ -2689,6 +2689,21 @@ img.dark-bulb {
 	display:none;
 }
 
+.container.libraries-power h2 {
+    margin-top:0px;
+}
+
+.container.libraries-power p {
+    font-size:16px;
+}
+
+.container.libraries-power ul {
+    list-style-type: disc;
+    margin-left: 0px;
+    font-weight:300;
+    font-size:16px;
+}
+
 /* Stats page start */
 .container.stats {
     font-size:13px;
