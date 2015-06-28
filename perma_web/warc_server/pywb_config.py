@@ -84,7 +84,7 @@ class PermaUrl(WbUrl):
     def to_str(self, **overrides):
         overrides['mod'] = ''
         overrides['timestamp'] = ''
-        return WbUrl.to_str(self, **overrides)
+        return super(PermaUrl, self).to_str(**overrides)
 
 
 class PermaMementoResponse(MementoResponse):
@@ -141,15 +141,8 @@ class PermaGUIDMementoResponse(PermaMementoResponse):
         return '<{0}>; rel="{1}"'.format(url, type)
 
     def make_timemap_link(self, wbrequest):
-        format_ = '<{0}>; rel="timemap"; type="{1}"'
-
-        url = wbrequest.urlrewriter.get_new_url(mod='timemap',
-                                                timestamp='',
-                                                type=wbrequest.wb_url.QUERY)
-
-        # Remove the GUID from the url
-        url = url.replace(wbrequest.custom_params['guid']+'/', '', 1)
-        return format_.format(url, LINK_FORMAT)
+        url = super(PermaMementoResponse, self).make_timemap_link(wbrequest)
+        return url.replace(wbrequest.custom_params['guid']+'/', '', 1)
 
 
 class PermaHandler(WBHandler):
