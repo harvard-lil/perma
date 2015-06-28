@@ -25,7 +25,7 @@ from pywb.utils.loaders import BlockLoader, LimitReader
 from pywb.webapp.handlers import WBHandler
 from pywb.webapp.query_handler import QueryHandler
 from pywb.webapp.pywb_init import create_wb_handler
-from pywb.webapp.views import add_env_globals
+from pywb.webapp.views import add_env_globals, MementoTimemapView
 from pywb.webapp.pywb_init import create_wb_router
 from pywb.utils.wbexception import NotFoundException
 
@@ -153,9 +153,12 @@ class PermaGUIDMementoResponse(PermaMementoResponse):
 
 
 class PermaHandler(WBHandler):
-    """ A roundabout way of using a custom class for query_html since pywb provides no config option for that property """
+    """ A roundabout way of using a custom class for query_handler views since pywb provides no config option for those properties """
     def __init__(self, query_handler, config=None):
+        # Renders our Perma styled Timemap HTML with Cache-Control header
         query_handler.views['html'] = PermaCapturesView('memento/query.html')
+        # Renders the Timemap plain text download with Cache-Control header
+        query_handler.views['timemap'] = PermaMementoTimemapView()
         super(PermaHandler, self).__init__(query_handler, config)
         self.response_class = PermaMementoResponse
 
@@ -177,6 +180,14 @@ class PermaGUIDHandler(PermaHandler):
 
     def get_wburl_type(self):
         return PermaUrl
+
+
+class PermaMementoTimemapView(MementoTimemapView):
+    def render_response(self, wbrequest, cdx_lines, **kwargs):
+        response = super(PermaMementoTimemapView, self).render_response(wbrequest, cdx_lines, **kwargs)
+        response.status_headers.headers.append(('Cache-Control',
+                                                'max-age={}'.format(CACHE_MAX_AGES['timemap'])))
+        return response
 
 
 class PermaTemplateView(object):
