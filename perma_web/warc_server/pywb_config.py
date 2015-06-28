@@ -34,12 +34,6 @@ from perma.models import CDXLine, Asset, Link
 # Assumes post November 2013 GUID format
 GUID_REGEX = r'([a-zA-Z0-9]+(-[a-zA-Z0-9]+)+)'
 
-CACHE_MAX_AGES = {
-    'default' : 60 * 60,     # 1hr
-    'timegate': 60 * 60,     # 1hr
-    'timemap' : 60 * 30,     # 30mins
-    'memento' : 60 * 60 * 4, # 4hrs
-}
 
 # include guid in CDX requests
 class PermaRoute(archivalrouter.Route):
@@ -136,7 +130,7 @@ class PermaMementoResponse(MementoResponse):
             req_type = 'default'
 
         self.status_headers.headers.append(('Cache-Control',
-                                            'max-age={}'.format(CACHE_MAX_AGES[req_type])))
+                                            'max-age={}'.format(settings.CACHE_MAX_AGES[req_type])))
 
 
 class PermaGUIDMementoResponse(PermaMementoResponse):
@@ -186,7 +180,7 @@ class PermaMementoTimemapView(MementoTimemapView):
     def render_response(self, wbrequest, cdx_lines, **kwargs):
         response = super(PermaMementoTimemapView, self).render_response(wbrequest, cdx_lines, **kwargs)
         response.status_headers.headers.append(('Cache-Control',
-                                                'max-age={}'.format(CACHE_MAX_AGES['timemap'])))
+                                                'max-age={}'.format(settings.CACHE_MAX_AGES['timemap'])))
         return response
 
 
@@ -221,7 +215,7 @@ class PermaCapturesView(PermaTemplateView):
                                                      **kwargs)
 
         response.status_headers.headers.append(('Cache-Control',
-                                                'max-age={}'.format(CACHE_MAX_AGES['timemap'])))
+                                                'max-age={}'.format(settings.CACHE_MAX_AGES['timemap'])))
         return response
 
 

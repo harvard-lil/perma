@@ -335,6 +335,15 @@ LOGIN_MINUTE_LIMIT = '5000/m'
 LOGIN_HOUR_LIMIT = '10000/h'
 LOGIN_DAY_LIMIT = '50000/d'
 
+# Cache-Control max-age settings
+CACHE_MAX_AGES = {
+    'default'      : 60 * 60,     # 1hr
+    'single_linky' : 60 * 60,     # 1hr
+    'timegate'     : 60 * 60,     # 1hr
+    'timemap'      : 60 * 30,     # 30mins
+    'memento'      : 60 * 60 * 4, # 4hrs
+}
+
 # Dashboard user lists
 MAX_USER_LIST_SIZE = 50
 
