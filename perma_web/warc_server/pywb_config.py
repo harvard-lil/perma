@@ -153,9 +153,9 @@ class PermaHandler(WBHandler):
         self.response_class = PermaMementoResponse
 
     def _init_replay_view(self, config):
-        view = super(PermaHandler, self)._init_replay_view(config)
-        view.response_class = PermaMementoResponse
-        return view
+        replay_view = super(PermaHandler, self)._init_replay_view(config)
+        replay_view.response_class = PermaMementoResponse
+        return replay_view
 
 
 class PermaGUIDHandler(PermaHandler):
