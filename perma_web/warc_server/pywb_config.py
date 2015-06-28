@@ -19,7 +19,7 @@ from pywb.cdx.cdxserver import CDXServer
 from pywb.cdx.cdxsource import CDXSource
 from pywb.framework import archivalrouter
 from pywb.framework.wbrequestresponse import WbResponse
-from pywb.framework.memento import MementoResponse, LINK_FORMAT
+from pywb.framework.memento import MementoResponse
 from pywb.rewrite.wburl import WbUrl
 from pywb.utils.loaders import BlockLoader, LimitReader
 from pywb.webapp.handlers import WBHandler
@@ -34,6 +34,12 @@ from perma.models import CDXLine, Asset, Link
 # Assumes post November 2013 GUID format
 GUID_REGEX = r'([a-zA-Z0-9]+(-[a-zA-Z0-9]+)+)'
 
+CACHE_MAX_AGES = {
+    'default' : 60 * 60,     # 1hr
+    'timegate': 60 * 60,     # 1hr
+    'timemap' : 60 * 30,     # 30mins
+    'memento' : 60 * 60 * 4, # 4hrs
+}
 
 # include guid in CDX requests
 class PermaRoute(archivalrouter.Route):
@@ -94,7 +100,8 @@ class PermaMementoResponse(MementoResponse):
 
     # is_x logic taken verbatim from MementoResponse#_init_derived
     def set_cache_header(self, params):
-        max_age = 60 * 60 # 1hr default
+        is_timegate = False
+        is_memento = False
 
         wbrequest = params.get('wbrequest')
         cdx = params.get('cdx')
@@ -105,9 +112,6 @@ class PermaMementoResponse(MementoResponse):
 
             is_timegate = (wbrequest.options.get('is_timegate', False) and
                            not is_top_frame)
-
-            # Determine if memento:
-            is_memento = False
 
             # if no cdx included, not a memento, unless top-frame special
             if not cdx:
@@ -124,12 +128,15 @@ class PermaMementoResponse(MementoResponse):
             elif not is_timegate:
                 is_memento = (wbrequest.wb_url.type == wbrequest.wb_url.REPLAY)
 
-            if is_timegate:
-                max_age = 60 * 60 # 1hr
-            elif is_memento:
-                max_age = 60 * 60 * 4 # 4hrs
+        if is_timegate:
+            req_type = 'timegate'
+        elif is_memento:
+            req_type = 'memento'
+        else:
+            req_type = 'default'
 
-        self.status_headers.headers.append(('Cache-Control', 'max-age={}'.format(max_age)))
+        self.status_headers.headers.append(('Cache-Control',
+                                            'max-age={}'.format(CACHE_MAX_AGES[req_type])))
 
 
 class PermaGUIDMementoResponse(PermaMementoResponse):
@@ -195,12 +202,16 @@ class PermaCapturesView(PermaTemplateView):
                 cdx['url'] = wbrequest.wb_url.get_url(url=cdx['original'])
                 yield cdx
 
-        return PermaTemplateView.render_response(self,
-                                                 cdx_lines=list(format_cdx_lines()),
-                                                 url=wbrequest.wb_url.get_url(),
-                                                 type=wbrequest.wb_url.type,
-                                                 prefix=wbrequest.wb_prefix,
-                                                 **kwargs)
+        response = PermaTemplateView.render_response(self,
+                                                     cdx_lines=list(format_cdx_lines()),
+                                                     url=wbrequest.wb_url.get_url(),
+                                                     type=wbrequest.wb_url.type,
+                                                     prefix=wbrequest.wb_prefix,
+                                                     **kwargs)
+
+        response.status_headers.headers.append(('Cache-Control',
+                                                'max-age={}'.format(CACHE_MAX_AGES['timemap'])))
+        return response
 
 
 class PermaRouter(archivalrouter.ArchivalRouter):
