@@ -88,6 +88,51 @@ class PermaUrl(WbUrl):
 
 
 class PermaMementoResponse(MementoResponse):
+    def _init_derived(self, params):
+        self.set_cache_header(params)
+        super(PermaMementoResponse, self)._init_derived(params)
+
+    # is_x logic taken verbatim from MementoResponse#_init_derived
+    def set_cache_header(self, params):
+        max_age = 60 * 60 # 1hr default
+
+        wbrequest = params.get('wbrequest')
+        cdx = params.get('cdx')
+
+        if wbrequest and wbrequest.wb_url:
+
+            is_top_frame = wbrequest.wb_url.is_top_frame
+
+            is_timegate = (wbrequest.options.get('is_timegate', False) and
+                           not is_top_frame)
+
+            # Determine if memento:
+            is_memento = False
+
+            # if no cdx included, not a memento, unless top-frame special
+            if not cdx:
+                # special case: include the headers but except Memento-Datetime
+                # since this is really an intermediate resource
+                if is_top_frame:
+                    is_memento = True
+
+            # otherwise, if in proxy mode, then always a memento
+            elif wbrequest.options['is_proxy']:
+                is_memento = True
+
+            # otherwise only if timestamp replay (and not a timegate)
+            elif not is_timegate:
+                is_memento = (wbrequest.wb_url.type == wbrequest.wb_url.REPLAY)
+
+            if is_timegate:
+                max_age = 60 * 60 # 1hr
+            elif is_memento:
+                max_age = 60 * 60 * 4 # 4hrs
+
+        self.status_headers.headers.append(('Cache-Control', 'max-age={}'.format(max_age)))
+
+
+class PermaGUIDMementoResponse(PermaMementoResponse):
     def make_link(self, url, type):
         if type == 'timegate':
             # Remove the GUID from the url using regex since
@@ -112,16 +157,22 @@ class PermaHandler(WBHandler):
     def __init__(self, query_handler, config=None):
         query_handler.views['html'] = PermaCapturesView('memento/query.html')
         super(PermaHandler, self).__init__(query_handler, config)
+        self.response_class = PermaMementoResponse
+
+    def _init_replay_view(self, config):
+        view = super(PermaHandler, self)._init_replay_view(config)
+        view.response_class = PermaMementoResponse
+        return view
 
 
 class PermaGUIDHandler(PermaHandler):
     def __init__(self, query_handler, config=None):
         super(PermaGUIDHandler, self).__init__(query_handler, config)
-        self.response_class = PermaMementoResponse
+        self.response_class = PermaGUIDMementoResponse
 
     def _init_replay_view(self, config):
         replay_view = super(PermaGUIDHandler, self)._init_replay_view(config)
-        replay_view.response_class = PermaMementoResponse
+        replay_view.response_class = PermaGUIDMementoResponse
         return replay_view
 
     def get_wburl_type(self):
