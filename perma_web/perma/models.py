@@ -188,13 +188,6 @@ class LinkUser(AbstractBaseUser):
         verbose_name = 'User'
 
     def save(self, *args, **kwargs):
-        # Don't allow users to have both a registrar and vesting_org.
-        # This is just a data consistency check -- logic earlier in the app should make sure this doesn't happen.
-        # Our m2m relationship on linksuser/vestingorg forces us to find out if
-        # this is a new item (self.pk == None for new items)
-        if self.pk is not None:
-            assert not (bool(self.vesting_org.all()) and self.registrar_id), "Users cannot have both a registrar and a vesting org."
-
         super(LinkUser, self).save(*args, **kwargs)
 
         # make sure root folder is created for each user.
