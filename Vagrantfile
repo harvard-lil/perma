@@ -8,9 +8,12 @@ $MYSQL_UID = 108
 $MYSQL_GID = 113
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  # configure NFS mount for speed
-  config.vm.network :private_network, type: :dhcp  # ip: '192.168.50.50'
-  config.vm.synced_folder ".", "/vagrant", type: "nfs"
+  if ENV['VAGRANT_NFS']
+    # configure NFS mount for speed
+    config.vm.network :private_network, type: :dhcp
+    config.vm.synced_folder ".", "/vagrant", type: "nfs",
+      mount_options: ['actimeo=1']  # detect changes every 1 second for django reload
+  end
 
   # ports
   config.vm.network :forwarded_port, guest: 8000, host: 8000 # django dev server
@@ -53,7 +56,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.box_version = ">= 0.3.0, < 0.4.0"
     config.vm.provision "shell", path: "services/vagrant/provision_mysql.sh"
   end
-
 
   # configure CPU/RAM
   # via https://stefanwrobel.com/how-to-make-vagrant-performance-not-suck
