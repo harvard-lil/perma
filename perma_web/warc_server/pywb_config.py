@@ -19,13 +19,13 @@ from pywb.cdx.cdxserver import CDXServer
 from pywb.cdx.cdxsource import CDXSource
 from pywb.framework import archivalrouter
 from pywb.framework.wbrequestresponse import WbResponse
-from pywb.framework.memento import MementoResponse, LINK_FORMAT
+from pywb.framework.memento import MementoResponse
 from pywb.rewrite.wburl import WbUrl
 from pywb.utils.loaders import BlockLoader, LimitReader
 from pywb.webapp.handlers import WBHandler
 from pywb.webapp.query_handler import QueryHandler
 from pywb.webapp.pywb_init import create_wb_handler
-from pywb.webapp.views import add_env_globals
+from pywb.webapp.views import add_env_globals, MementoTimemapView
 from pywb.webapp.pywb_init import create_wb_router
 from pywb.utils.wbexception import NotFoundException
 
@@ -84,10 +84,56 @@ class PermaUrl(WbUrl):
     def to_str(self, **overrides):
         overrides['mod'] = ''
         overrides['timestamp'] = ''
-        return WbUrl.to_str(self, **overrides)
+        return super(PermaUrl, self).to_str(**overrides)
 
 
 class PermaMementoResponse(MementoResponse):
+    def _init_derived(self, params):
+        self.set_cache_header(params)
+        super(PermaMementoResponse, self)._init_derived(params)
+
+    # is_x logic taken verbatim from MementoResponse#_init_derived
+    def set_cache_header(self, params):
+        is_timegate = False
+        is_memento = False
+
+        wbrequest = params.get('wbrequest')
+        cdx = params.get('cdx')
+
+        if wbrequest and wbrequest.wb_url:
+
+            is_top_frame = wbrequest.wb_url.is_top_frame
+
+            is_timegate = (wbrequest.options.get('is_timegate', False) and
+                           not is_top_frame)
+
+            # if no cdx included, not a memento, unless top-frame special
+            if not cdx:
+                # special case: include the headers but except Memento-Datetime
+                # since this is really an intermediate resource
+                if is_top_frame:
+                    is_memento = True
+
+            # otherwise, if in proxy mode, then always a memento
+            elif wbrequest.options['is_proxy']:
+                is_memento = True
+
+            # otherwise only if timestamp replay (and not a timegate)
+            elif not is_timegate:
+                is_memento = (wbrequest.wb_url.type == wbrequest.wb_url.REPLAY)
+
+        if is_timegate:
+            req_type = 'timegate'
+        elif is_memento:
+            req_type = 'memento'
+        else:
+            req_type = 'default'
+
+        self.status_headers.headers.append(('Cache-Control',
+                                            'max-age={}'.format(settings.CACHE_MAX_AGES[req_type])))
+
+
+class PermaGUIDMementoResponse(PermaMementoResponse):
     def make_link(self, url, type):
         if type == 'timegate':
             # Remove the GUID from the url using regex since
@@ -96,36 +142,46 @@ class PermaMementoResponse(MementoResponse):
         return '<{0}>; rel="{1}"'.format(url, type)
 
     def make_timemap_link(self, wbrequest):
-        format_ = '<{0}>; rel="timemap"; type="{1}"'
-
-        url = wbrequest.urlrewriter.get_new_url(mod='timemap',
-                                                timestamp='',
-                                                type=wbrequest.wb_url.QUERY)
-
-        # Remove the GUID from the url
-        url = url.replace(wbrequest.custom_params['guid']+'/', '', 1)
-        return format_.format(url, LINK_FORMAT)
+        url = super(PermaMementoResponse, self).make_timemap_link(wbrequest)
+        return url.replace(wbrequest.custom_params['guid']+'/', '', 1)
 
 
 class PermaHandler(WBHandler):
-    """ A roundabout way of using a custom class for query_html since pywb provides no config option for that property """
+    """ A roundabout way of using a custom class for query_handler views since pywb provides no config option for those properties """
     def __init__(self, query_handler, config=None):
+        # Renders our Perma styled Timemap HTML with Cache-Control header
         query_handler.views['html'] = PermaCapturesView('memento/query.html')
+        # Renders the Timemap plain text download with Cache-Control header
+        query_handler.views['timemap'] = PermaMementoTimemapView()
         super(PermaHandler, self).__init__(query_handler, config)
+        self.response_class = PermaMementoResponse
+
+    def _init_replay_view(self, config):
+        replay_view = super(PermaHandler, self)._init_replay_view(config)
+        replay_view.response_class = PermaMementoResponse
+        return replay_view
 
 
 class PermaGUIDHandler(PermaHandler):
     def __init__(self, query_handler, config=None):
         super(PermaGUIDHandler, self).__init__(query_handler, config)
-        self.response_class = PermaMementoResponse
+        self.response_class = PermaGUIDMementoResponse
 
     def _init_replay_view(self, config):
         replay_view = super(PermaGUIDHandler, self)._init_replay_view(config)
-        replay_view.response_class = PermaMementoResponse
+        replay_view.response_class = PermaGUIDMementoResponse
         return replay_view
 
     def get_wburl_type(self):
         return PermaUrl
+
+
+class PermaMementoTimemapView(MementoTimemapView):
+    def render_response(self, wbrequest, cdx_lines, **kwargs):
+        response = super(PermaMementoTimemapView, self).render_response(wbrequest, cdx_lines, **kwargs)
+        response.status_headers.headers.append(('Cache-Control',
+                                                'max-age={}'.format(settings.CACHE_MAX_AGES['timemap'])))
+        return response
 
 
 class PermaTemplateView(object):
@@ -151,12 +207,16 @@ class PermaCapturesView(PermaTemplateView):
                 cdx['url'] = wbrequest.wb_url.get_url(url=cdx['original'])
                 yield cdx
 
-        return PermaTemplateView.render_response(self,
-                                                 cdx_lines=list(format_cdx_lines()),
-                                                 url=wbrequest.wb_url.get_url(),
-                                                 type=wbrequest.wb_url.type,
-                                                 prefix=wbrequest.wb_prefix,
-                                                 **kwargs)
+        response = PermaTemplateView.render_response(self,
+                                                     cdx_lines=list(format_cdx_lines()),
+                                                     url=wbrequest.wb_url.get_url(),
+                                                     type=wbrequest.wb_url.type,
+                                                     prefix=wbrequest.wb_prefix,
+                                                     **kwargs)
+
+        response.status_headers.headers.append(('Cache-Control',
+                                                'max-age={}'.format(settings.CACHE_MAX_AGES['timemap'])))
+        return response
 
 
 class PermaRouter(archivalrouter.ArchivalRouter):

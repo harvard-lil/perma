@@ -1,19 +1,17 @@
 from django.core import serializers
-from django.core.files.storage import default_storage
 from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.shortcuts import render_to_response, render
 from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, Http404, HttpResponse, HttpResponseNotFound, HttpResponseServerError
 from django.core.urlresolvers import reverse
 from django.conf import settings
-from django.contrib.sites.models import Site
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import cache_control
 from django.core.mail import send_mail
 from django.views.static import serve as media_view
 
-import os
 import logging
 from urlparse import urlparse
 import requests
@@ -80,6 +78,7 @@ def stats(request):
 
 @must_be_mirrored
 @ssl_optional
+@cache_control(max_age=settings.CACHE_MAX_AGES['single_linky'])
 @ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block=True, ip=False,
            keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
 @ratelimit(method='GET', rate=settings.HOUR_LIMIT, block=True, ip=False,
