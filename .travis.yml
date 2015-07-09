@@ -16,6 +16,12 @@ install:
   - pip install coveralls
 before_script:
   - mysql -e 'create database perma;'
+
+  # try to avoid mysql has gone away errors
+  # via https://github.com/travis-ci/travis-ci/issues/2250
+  - echo -e "[server]\nmax_allowed_packet=64M" | sudo tee -a /etc/mysql/conf.d/perma.cnf
+  - sudo service mysql restart
+
   - python manage.py collectstatic --noinput
 script:
   fab test
