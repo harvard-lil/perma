@@ -374,7 +374,7 @@ def list_users_in_group(request, group_name):
             users = users.filter(registrar=request.user.registrar)
         is_registrar = True
     elif request.user.is_vesting_org_member:
-        users = users.filter(vesting_org=request.user.vesting_org)
+        users = users.filter(vesting_org__in=request.user.vesting_org.all())
     else:
         raise Http404  # this shouldn't happen
 
