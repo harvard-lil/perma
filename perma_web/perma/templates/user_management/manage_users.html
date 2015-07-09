@@ -179,6 +179,7 @@
                 {% else %}
                     {{ listed_user.first_name }} {{ listed_user.last_name }}
                 {% endif %}
+                {% if listed_user == request.user %}(you){% endif %}
                 </p>
               <p class="list-email">{{ listed_user.email }}</p>
               <p class="list-vesting-org">
