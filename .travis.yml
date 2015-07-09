@@ -19,8 +19,14 @@ before_script:
 
   # try to avoid mysql has gone away errors
   # via https://github.com/travis-ci/travis-ci/issues/2250
-  - echo -e "[server]\nmax_allowed_packet=64M" | sudo tee -a /etc/mysql/conf.d/perma.cnf
+  - echo -e "[server]\nmax_allowed_packet=64M\nwait_timeout=36000" | sudo tee -a /etc/mysql/conf.d/perma.cnf
   - sudo service mysql restart
+  - mysql -e "SHOW VARIABLES LIKE 'max_allowed_packet';"
+  - mysql -e "SHOW VARIABLES LIKE 'wait_timeout';"
+  - mysql -e "SET GLOBAL wait_timeout = 36000;"
+  - mysql -e "SET GLOBAL max_allowed_packet = 67108864;"
+  - mysql -e "SHOW VARIABLES LIKE 'max_allowed_packet';"
+  - mysql -e "SHOW VARIABLES LIKE 'wait_timeout';"
 
   - python manage.py collectstatic --noinput
 script:
