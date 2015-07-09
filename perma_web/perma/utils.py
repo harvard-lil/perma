@@ -1,10 +1,13 @@
 from contextlib import contextmanager
 import operator
 import os
+from django.core.paginator import Paginator
 
 from django.db.models import Q
 from django.conf import settings
 import struct
+from django.utils.http import urlquote
+from django.utils.safestring import mark_safe
 import tempdir
 
 
@@ -20,31 +23,55 @@ def run_task(task, *args, **kwargs):
     else:
         return task.apply(args, kwargs, **options)
 
-### simple search ###
+### list view helpers ###
 
-def get_search_query(target, search_string, fields):
+def apply_search_query(request, queryset, fields):
     """
-        For the given `target` (either a Model or QuerySet),
+        For the given `queryset`,
         apply consecutive .filter()s such that each word
-        in `search_string` appears in one of the `fields`.
+        in request.GET['q'] appears in one of the `fields`.
     """
+    search_string = request.GET.get('q', '')
+    if not search_string:
+        return queryset, ''
+
     # get words in search_string
     required_words = search_string.strip().split()
     if not required_words:
-        return target
-
-    # if we got a Model, turn into a QuerySet
-    if hasattr(target, 'objects'):
-        target = target.objects
+        return queryset
 
     for required_word in required_words:
-        # apply the equivalent of target = target.filter(Q(field1__icontains=required_word) | Q(field2__icontains=required_word) | ...)
+        # apply the equivalent of queryset = queryset.filter(Q(field1__icontains=required_word) | Q(field2__icontains=required_word) | ...)
         query_parts = [Q(**{field+"__icontains":required_word}) for field in fields]
         query_parts_joined = reduce(operator.or_, query_parts, Q())
-        target = target.filter(query_parts_joined)
+        queryset = queryset.filter(query_parts_joined)
 
-    return target
-    
+    return queryset, search_string
+
+def apply_sort_order(request, queryset, valid_sorts, default_sort=None):
+    """
+        For the given `queryset`,
+        apply sort order based on request.GET['sort'].
+    """
+    if not default_sort:
+        default_sort = valid_sorts[0]
+    sort = request.GET.get('sort', default_sort)
+    if sort not in valid_sorts:
+      sort = default_sort
+    return queryset.order_by(sort), sort
+
+def apply_pagination(request, queryset):
+    """
+        For the given `queryset`,
+        apply pagination based on request.GET['page'].
+    """
+    try:
+        page = max(int(request.GET.get('page', 1)), 1)
+    except ValueError:
+        page = 1
+    paginator = Paginator(queryset, settings.MAX_USER_LIST_SIZE)
+    return paginator.page(page)
+
 ### url manipulation ###
 
 def absolute_url(request, url):

@@ -31,11 +31,6 @@ from perma.forms import (
     CreateUserForm,
     CreateUserFormWithRegistrar,
     CreateUserFormWithVestingOrg,
-    UserFormEdit,
-    RegistrarMemberFormEdit,
-    VestingMemberWithVestingOrgFormEdit,
-    VestingMemberWithVestingOrgAsVestingMemberFormEdit,
-    VestingMemberWithGroupFormEdit, 
     UserAddRegistrarForm,
     UserAddVestingOrgForm,
     UserRegForm,
@@ -43,11 +38,12 @@ from perma.forms import (
     SetPasswordForm, 
 )
 from perma.models import Registrar, LinkUser, VestingOrg, Link
-from perma.utils import get_search_query
+from perma.utils import apply_search_query, apply_pagination, apply_sort_order
 
 logger = logging.getLogger(__name__)
-valid_member_sorts = ['-email', 'email', 'last_name', '-last_name', 'admin', '-admin', 'registrar__name', '-registrar__name', 'vesting_org__name', '-vesting_org__name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'vested_links_count', '-vested_links_count']
+valid_member_sorts = ['last_name', '-last_name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'vested_links_count', '-vested_links_count']
 valid_registrar_sorts = ['name', '-name', 'vested_links', '-vested_links', '-date_created', 'date_created', 'last_active', '-last_active']
+valid_vesting_org_sorts = ['name', '-name', 'vested_links', '-vested_links', '-date_created', 'date_created', 'last_active', '-last_active', 'vesting_users', '-vesting_users']
 
 
 @login_required
@@ -57,55 +53,47 @@ def manage_registrar(request):
     Linky admins can manage registrars (libraries)
     """
 
-    DEFAULT_SORT = 'name'
-
-    sort = request.GET.get('sort', DEFAULT_SORT)
-    if sort not in valid_registrar_sorts:
-      sort = DEFAULT_SORT
-      
-    page = request.GET.get('page', 1)
-    if page < 1:
-        page = 1
-
     registrars = Registrar.objects.all()
 
-    # handle search
-    search_query = request.GET.get('q', '')
-    if search_query:
-        registrars = get_search_query(registrars, search_query, ['name', 'email', 'website'])
-        
-    registrars = registrars.annotate(vested_links=Count('vesting_orgs__link',distinct=True), registrar_users=Count('users', distinct=True),last_active=Max('users__last_login', distinct=True),vesting_orgs_count=Count('vesting_orgs',distinct=True)).order_by(sort)
+    # handle sorting
+    registrars, sort = apply_sort_order(request, registrars, valid_registrar_sorts)
 
-    registrar_count = registrars.count()
+    # handle search
+    registrars, search_query = apply_search_query(request, registrars, ['name', 'email', 'website'])
+
+    # handle annotations
+    registrars = registrars.annotate(
+        vested_links=Count('vesting_orgs__link',distinct=True),
+        registrar_users=Count('users', distinct=True),
+        last_active=Max('users__last_login'),
+        vesting_orgs_count=Count('vesting_orgs',distinct=True),
+    )
+
     vesting_org_count = registrars.aggregate(count=Sum('vesting_orgs_count'))
     #users_count = registrars.aggregate(count=Sum('registrar_users'))
-    registrar_results = registrars.count()
-    
-    paginator = Paginator(registrars, settings.MAX_USER_LIST_SIZE)
-    registrars = paginator.page(page)
 
-    context = {'registrars': registrars, 'registrar_count': registrar_count, 'vesting_org_count':vesting_org_count, #'users_count': users_count, 
-        'this_page': 'users_registrars', 'registrar_results': registrar_results,
-        'search_query':search_query}
+    # handle pagination
+    registrars = apply_pagination(request, registrars)
 
+    # handle creation of new registrars
     if request.method == 'POST':
-
         form = RegistrarForm(request.POST, prefix = "a")
 
         if form.is_valid():
             new_user = form.save()
-
             return HttpResponseRedirect(reverse('user_management_manage_registrar'))
-
-        else:
-            context.update({'form': form})
     else:
         form = RegistrarForm(prefix = "a")
-        context.update({'form': form,})
-    
-    context = RequestContext(request, context)
 
-    return render_to_response('user_management/manage_registrars.html', context)
+    return render(request, 'user_management/manage_registrars.html', {
+        'registrars': registrars,
+        'vesting_org_count': vesting_org_count,
+        # 'users_count': users_count,
+        'this_page': 'users_registrars',
+        'search_query': search_query,
+        'sort': sort,
+        'form': form,
+    })
 
 
 @login_required
@@ -145,86 +133,64 @@ def manage_vesting_org(request):
     Registry and registrar members can manage vesting organizations (journals)
     """
 
-    DEFAULT_SORT = 'name'
-    is_registry = False
-    registrars = None
+    is_registry = request.user.is_staff
+    vesting_orgs = VestingOrg.objects.select_related('registrar')
 
-    sort = request.GET.get('sort', DEFAULT_SORT)
-    if sort not in valid_registrar_sorts:
-      sort = DEFAULT_SORT
-      
-    page = request.GET.get('page', 1)
-    if page < 1:
-        page = 1
-        
-    # If registry member, return all active vesting members. If registrar member, return just those vesting members that belong to the registrar member's registrar
-    if request.user.is_staff:
-        vesting_orgs = VestingOrg.objects.all()
-        is_registry = True
-    else:
-        vesting_orgs = VestingOrg.objects.filter(registrar=request.user.registrar)
+    # handle sorting
+    vesting_orgs, sort = apply_sort_order(request, vesting_orgs, valid_vesting_org_sorts)
 
     # handle search
-    search_query = request.GET.get('q', '')
-    if search_query:
-        vesting_orgs = get_search_query(vesting_orgs, search_query, ['name', 'registrar__name'])
-        
+    vesting_orgs, search_query = apply_search_query(request, vesting_orgs, ['name', 'registrar__name'])
+
+    # If not registry member, return just those vesting orgs that belong to the registrar member's registrar
+    if not is_registry:
+        vesting_orgs = vesting_orgs.filter(registrar__id=request.user.registrar_id)
+
     # handle registrar filter
     registrar_filter = request.GET.get('registrar', '')
     if registrar_filter:
         vesting_orgs = vesting_orgs.filter(registrar__id=registrar_filter)
         registrar_filter = Registrar.objects.get(pk=registrar_filter)
 
-    if is_registry:
-        registrars = Registrar.objects.all().order_by('name')
-        
-    #vesting_orgs = vesting_orgs.select_related('registrar').order_by(sort)#.annotate(vesting_users=Count('users', 
-    #    distinct=True), last_active=Max('users__last_login', distinct=True), 
-    #    created_date=Min('users__date_joined', distinct=True), vested_links=Count('link', distinct=True))
-    
-    composite_vesting_orgs = []
+    # add annotations
+    vesting_orgs = vesting_orgs.annotate(
+        vesting_users=Count('users', distinct=True),
+        last_active=Max('users__last_login'),
+        vested_links=Count('link', distinct=True)
+    )
 
-    users_count = 0
+    # get total user count
+    users_count = vesting_orgs.aggregate(count=Sum('vesting_users'))['count']
 
-    for vo in vesting_orgs:
-        vesting_users = LinkUser.objects.filter(vesting_org=vo).count()
-        users_count+=vesting_users
-        composite_vesting_org = {
-            'id': vo.id,
-            'name': vo.name,
-            'vesting_users': vesting_users,
-            'last_active': LinkUser.objects.filter(vesting_org=vo).aggregate(Max('last_login')).get('last_login__max'),
-            'date_created': LinkUser.objects.filter(vesting_org=vo).aggregate(Min('date_joined')).get('date_joined__min'),
-            'vested_links': Link.objects.filter(vesting_org=vo).count()}
+    # handle pagination
+    vesting_orgs = apply_pagination(request, vesting_orgs)
 
-        composite_vesting_orgs.append(composite_vesting_org)
-
-    #users_count = vesting_orgs.aggregate(count=Sum('vesting_users'))
-    
+    # composite_vesting_orgs = []
+    #
+    # users_count = 0
+    #
+    # for vo in vesting_orgs:
+    #     vesting_users = LinkUser.objects.filter(vesting_org=vo).count()
+    #     users_count+=vesting_users
+    #     composite_vesting_org = {
+    #         'id': vo.id,
+    #         'name': vo.name,
+    #         'vesting_users': vesting_users,
+    #         'last_active': LinkUser.objects.filter(vesting_org=vo).aggregate(Max('last_login')).get('last_login__max'),
+    #         'date_created': LinkUser.objects.filter(vesting_org=vo).aggregate(Min('date_joined')).get('date_joined__min'),
+    #         'vested_links': Link.objects.filter(vesting_org=vo).count()}
+    #
+    #     composite_vesting_orgs.append(composite_vesting_org)
     #active_users = LinkUser.objects.all().filter(is_active=True, is_confirmed=True, vesting_org__in=vesting_orgs).count()
     #deactivated_users = LinkUser.objects.all().filter(is_confirmed=True, is_active=False, vesting_org__in=vesting_orgs).count()
     #unactivated_users = LinkUser.objects.all().filter(is_confirmed=False, is_active=False, vesting_org__in=vesting_orgs).count()
-        
 
-    paginator = Paginator(vesting_orgs, settings.MAX_USER_LIST_SIZE)
-    vesting_orgs = paginator.page(page)
-
-    context = {'vesting_orgs': composite_vesting_orgs,
-        'this_page': 'users_vesting_orgs',
-        'search_query':search_query,
-
-        'users_count': users_count,
-
-
-        'registrars': registrars, 'registrar_filter': registrar_filter, 
-        'sort': sort}
-
+    # handle creation of new vesting orgs
     if request.method == 'POST':
-
         if is_registry:
-          form = VestingOrgWithRegistrarForm(request.POST, prefix = "a")
+            form = VestingOrgWithRegistrarForm(request.POST, prefix = "a")
         else:
-          form = VestingOrgForm(request.POST, prefix = "a")
+            form = VestingOrgForm(request.POST, prefix = "a")
 
         if form.is_valid():
             new_user = form.save()
@@ -233,19 +199,25 @@ def manage_vesting_org(request):
                 new_user.save()
 
             return HttpResponseRedirect(reverse('user_management_manage_vesting_org'))
-
-        else:
-            context.update({'form': form})
     else:
         if is_registry:
             form = VestingOrgWithRegistrarForm(prefix = "a")
         else:
             form = VestingOrgForm(prefix = "a")
-        context.update({'form': form,})
-    
-    context = RequestContext(request, context)
 
-    return render_to_response('user_management/manage_vesting_orgs.html', context)
+    return render(request, 'user_management/manage_vesting_orgs.html', {
+        'vesting_orgs': vesting_orgs,
+        'this_page': 'users_vesting_orgs',
+        'search_query': search_query,
+
+        'users_count': users_count,
+
+        'registrars': Registrar.objects.all().order_by('name'),
+        'registrar_filter': registrar_filter,
+        'sort': sort,
+
+        'form': form,
+    })
 
 
 @login_required
@@ -341,12 +313,12 @@ def manage_single_user_reactivate(request, user_id):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_vesting_org_member())
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_vesting_org_member)
 def manage_vesting_user(request):
     return list_users_in_group(request, 'vesting_user')
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_vesting_org_member())
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_vesting_org_member)
 def manage_single_vesting_user(request, user_id):
     return edit_user_in_group(request, user_id, 'vesting_user')
 
@@ -370,33 +342,24 @@ def list_users_in_group(request, group_name):
     is_registry = False
     is_registrar = False
     added_user = request.REQUEST.get('added_user')
+    users = LinkUser.objects.prefetch_related('vesting_org')  # .exclude(id=request.user.id)
 
-    def sorts():
-        DEFAULT_SORT = ['last_name']
-        sorts = DEFAULT_SORT
+    # handle sorting
+    users, sort = apply_sort_order(request, users, valid_member_sorts)
 
-        sort = request.GET.get('sort', DEFAULT_SORT)
-        if sort not in valid_member_sorts:
-            sorts = DEFAULT_SORT
-        elif sort == 'admin':
-            sorts = ['is_active', 'password']
-        elif sort == '-admin':
-            sorts = ['-is_active', '-password']
-        else:
-            sorts[0] = sort
-        return sorts
+    # handle search
+    users, search_query = apply_search_query(request, users, ['email', 'first_name', 'last_name', 'vesting_org__name'])
+
+    # apply annotations
+    users = users.annotate(vested_links_count=Count('vested_links', distinct=True))
 
     registrar_filter = request.GET.get('registrar', '')
-    page = request.GET.get('page', 1)
-    if page < 1:
-        page = 1
 
-    users = None
     registrars = None
     vesting_orgs = None
 
+    # apply permissions limits
     if request.user.is_staff:
-        users = LinkUser.objects.select_related('vesting_org').order_by(*sorts()).annotate(vested_links_count=Count('vested_links', distinct=True))
         if registrar_filter:
             vesting_orgs = VestingOrg.objects.filter(registrar__id=registrar_filter).order_by('name')
         else:
@@ -405,38 +368,31 @@ def list_users_in_group(request, group_name):
         is_registry = True
     elif request.user.is_registrar_member():
         if group_name == 'vesting_user':
-            users = LinkUser.objects.filter(vesting_org__registrar=request.user.registrar).order_by(*sorts()).annotate(vested_links_count=Count('vested_links', distinct=True))
+            users = users.filter(vesting_org__registrar=request.user.registrar)
             vesting_orgs = VestingOrg.objects.filter(registrar_id=request.user.registrar_id).order_by('name')
         else:
-            users = LinkUser.objects.filter(registrar=request.user.registrar).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links_count=Count('vested_links', distinct=True))
+            users = users.filter(registrar=request.user.registrar)
         is_registrar = True
-    elif request.user.is_vesting_org_member():
-        users = LinkUser.objects.filter(vesting_org__in=request.user.vesting_org.all()).exclude(id=request.user.id).order_by(*sorts()).annotate(vested_links_count=Count('vested_links', distinct=True))
+    elif request.user.is_vesting_org_member:
+        users = users.filter(vesting_org=request.user.vesting_org)
+    else:
+        raise Http404  # this shouldn't happen
 
     # apply group filter
     if group_name == 'registry_user':
-        users = users.exclude(is_staff=False).exclude(id=request.user.id)
+        users = users.exclude(is_staff=False)
     elif group_name == 'registrar_user':
-        users = users.exclude(registrar_id=None)
+        users = users.exclude(registrar_id=None).prefetch_related('registrar')
     elif group_name == 'vesting_user':
         users = users.exclude(vesting_org=None)
     elif group_name == 'user':
         users = users.filter(registrar_id=None, is_staff=False, vesting_org=None)
     else:
         raise NotImplementedError("Unknown group name: %s" % group_name)
-
-    sort_url = ''
-    
-    # handle search
-    search_query = request.GET.get('q', '')
-    if search_query:
-        users = get_search_query(users, search_query, ['email', 'first_name', 'last_name', 'vesting_org__name'])
-        sort_url = '&q={search_query}'.format(search_query=search_query)
         
     # handle status filter
     status = request.GET.get('status', '')
     if status:
-        sort_url = '{sort_url}&status={status}'.format(sort_url=sort_url, status=status)
         if status == 'active':
             users = users.filter(is_confirmed=True, is_active=True)
         elif status == 'deactivated':
@@ -448,33 +404,30 @@ def list_users_in_group(request, group_name):
     vesting_org_filter = request.GET.get('vesting_org', '')
     if vesting_org_filter:
         users = users.filter(vesting_org__id=vesting_org_filter)
-        sort_url = '{sort_url}&vesting_org={vesting_org_filter}'.format(sort_url=sort_url, vesting_org_filter=vesting_org_filter)
         vesting_org_filter = VestingOrg.objects.get(pk=vesting_org_filter)
         
     # handle registrar filter
     if registrar_filter:
         if group_name == 'vesting_user':
-            users = users.filter(vesting_org__registrar__id=registrar_filter)
+            users = users.filter(vesting_org__registrar_id=registrar_filter)
         elif group_name == 'registrar_user':
-            users = users.filter(registrar__id=registrar_filter)
-        sort_url = '{sort_url}&registrar={registrar_filter}'.format(sort_url=sort_url, registrar_filter=registrar_filter)
+            users = users.filter(registrar_id=registrar_filter)
         registrar_filter = Registrar.objects.get(pk=registrar_filter)
 
-    users = users.select_related('vesting_org')
+    # get total counts
     active_users = users.filter(is_active=True, is_confirmed=True).count()
     deactivated_users = None
     if is_registry:
         deactivated_users = users.filter(is_confirmed=True, is_active=False).count()
     unactivated_users = users.filter(is_confirmed=False, is_active=False).count()
-    users_count = users.count()
     total_vested_links_count = users.aggregate(count=Sum('vested_links_count'))
-    paginator = Paginator(users, settings.MAX_USER_LIST_SIZE)
-    users = paginator.page(page)
-    logger.debug('users_{group_name}s'.format(group_name=group_name))
+
+    # handle pagination
+    users = apply_pagination(request, users)
+
     context = {
         'this_page': 'users_{group_name}s'.format(group_name=group_name),
         'users': users,
-        'users_count': users_count,
         'active_users': active_users,
         'deactivated_users': deactivated_users,
         'unactivated_users': unactivated_users,
@@ -489,15 +442,15 @@ def list_users_in_group(request, group_name):
         'single_user_url':'user_management_manage_single_{group_name}'.format(group_name=group_name),
         'delete_user_url':'user_management_manage_single_{group_name}_delete'.format(group_name=group_name),
         
-        'sort': sorts()[0],
+        'sort': sort,
         'search_query': search_query,
         'registrar_filter': registrar_filter,
         'vesting_org_filter': vesting_org_filter,
         'status': status,
-        'sort_url': sort_url
     }
     context['pretty_group_name_plural'] = context['pretty_group_name'] + "s"
 
+    # handle creation of new users
     form = None
     form_data = request.POST or None
     if group_name == 'registrar_user':
@@ -509,33 +462,22 @@ def list_users_in_group(request, group_name):
             form = CreateUserFormWithVestingOrg(form_data, prefix="a", registrar_id=request.user.registrar_id)
     if not form:
         form = CreateUserForm(form_data, prefix = "a")
-
     if request.method == 'POST':
-
         if form.is_valid():
             new_user = form.save()
-
             new_user.is_active = False
-
             if group_name == 'vesting_user':
                 if not (is_registry or is_registrar):
                     new_user.vesting_org = request.user.vesting_org
-                    
             if group_name == 'registry_user':
                 new_user.is_staff = True
-
             new_user.save()
-
             email_new_user(request, new_user)
-
             messages.add_message(request, messages.SUCCESS, '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % new_user.email, extra_tags='safe')
             return HttpResponseRedirect(reverse(context['user_list_url']))
 
     context['form'] = form
-
-    context = RequestContext(request, context)
-
-    return render_to_response('user_management/manage_users.html', context)
+    return render(request, 'user_management/manage_users.html', context)
 
 def edit_user_in_group(request, user_id, group_name):
     """
@@ -552,7 +494,7 @@ def edit_user_in_group(request, user_id, group_name):
         if len(vesting_orgs) == 0:
             raise Http404
 
-    elif request.user.is_vesting_org_member():
+    elif request.user.is_vesting_org_member:
         vesting_orgs = target_user.vesting_org.all() & request.user.vesting_org.all()
 
         if len(vesting_orgs) == 0:
@@ -579,7 +521,7 @@ def edit_user_in_group(request, user_id, group_name):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_registrar_member() or user.is_vesting_org_member() or user.is_staff)
+@user_passes_test(lambda user: user.is_registrar_member() or user.is_vesting_org_member or user.is_staff)
 def vesting_user_add_user(request):
     """
         Add new user for vesting org.
@@ -596,7 +538,7 @@ def vesting_user_add_user(request):
     if target_user == None:
         if request.user.is_registrar_member():
             form = CreateUserFormWithVestingOrg(form_data, prefix = "a", initial={'email': user_email}, registrar_id=request.user.registrar_id)
-        elif request.user.is_vesting_org_member():
+        elif request.user.is_vesting_org_member:
             form = CreateUserFormWithVestingOrg(form_data, prefix = "a", initial={'email': user_email}, vesting_org_member_id=request.user.pk)
         else:
             form = CreateUserFormWithVestingOrg(form_data, prefix = "a", initial={'email': user_email})
@@ -613,7 +555,7 @@ def vesting_user_add_user(request):
                 messages.add_message(request, messages.ERROR, '<h4>Not added.</h4> <strong>%s</strong> is already a member of all your vesting organizations.' % target_user.email, extra_tags='safe')
                 return HttpResponseRedirect(reverse('user_management_manage_vesting_user'))
 
-        elif request.user.is_vesting_org_member():
+        elif request.user.is_vesting_org_member:
 
             # First, do a little error checking. This target user might already
             # be in each vesting org admined by the user
@@ -780,7 +722,7 @@ def registry_user_add_user(request):
     
 
 @login_required
-@user_passes_test(lambda user: user.is_vesting_org_member())
+@user_passes_test(lambda user: user.is_vesting_org_member)
 def vesting_user_leave_vesting_org(request, vesting_org_id):
 
     vesting_org = get_object_or_404(VestingOrg, id=vesting_org_id)
@@ -826,7 +768,7 @@ def delete_user_in_group(request, user_id, group_name):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_registrar_member() or user.is_vesting_org_member() or user.is_staff)
+@user_passes_test(lambda user: user.is_registrar_member() or user.is_vesting_org_member or user.is_staff)
 def manage_single_vesting_user_remove(request, user_id):
     """
         Basically demote a vesting user to a regular user.
@@ -837,7 +779,7 @@ def manage_single_vesting_user_remove(request, user_id):
         vesting_org = get_object_or_404(VestingOrg, pk=request.POST.get('vesting_org'))
         target_user = get_object_or_404(LinkUser, id=user_id)
 
-        if request.user.is_vesting_org_member() and vesting_org not in request.user.vesting_org.all():
+        if request.user.is_vesting_org_member and vesting_org not in request.user.vesting_org.all():
             # A vesting user should only be able to remove a vesting user if they're in the vesting org
             raise Http404
 
@@ -1048,7 +990,7 @@ def settings_password(request):
     
 
 @login_required
-@user_passes_test(lambda user: user.is_registrar_member() or user.is_vesting_org_member())
+@user_passes_test(lambda user: user.is_registrar_member() or user.is_vesting_org_member)
 def settings_organizations(request):
     """
     Settings view organizations, leave organizations ...

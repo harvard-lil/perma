@@ -79,7 +79,7 @@ class VestingOrgManager(models.Manager):
         return VestingOrgQuerySet(self.model, using=self._db)
 
     def user_access_filter(self, user):
-        if user.is_vesting_org_member():
+        if user.is_vesting_org_member:
             return Q(id__in=user.vesting_org.all())
         elif user.is_registrar_member():
             return Q(registrar_id=user.registrar_id)
@@ -228,7 +228,7 @@ class LinkUser(AbstractBaseUser):
             ([vesting_org.shared_folder.get_descendants(include_self=True) for vesting_org in vesting_orgs if vesting_org])
 
     def get_default_vesting_org(self):
-        if self.is_vesting_org_member():
+        if self.is_vesting_org_member:
             return self.vesting_org.all()
         if self.is_registrar_member():
             return self.registrar.default_vesting_org
@@ -274,12 +274,13 @@ class LinkUser(AbstractBaseUser):
 
     def can_vest(self):
         """ Can the user vest links? """
-        return bool(self.is_staff or self.is_registrar_member() or self.is_vesting_org_member())
+        return bool(self.is_staff or self.is_registrar_member() or self.is_vesting_org_member)
 
     def is_registrar_member(self):
         """ Is the user a member of a registrar? """
         return bool(self.registrar_id)
 
+    @cached_property
     def is_vesting_org_member(self):
         """ Is the user a member of a vesting org? """
         return self.vesting_org.exists()
