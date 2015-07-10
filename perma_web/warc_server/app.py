@@ -15,8 +15,11 @@ from pywb_config import (PermaCDXServer,
 real_handle_exception = WSGIApp.handle_exception
 def handle_exception(self, env, exc, print_trace):
     if print_trace:
-        logging.error(traceback.format_exc(exc), extra={'request':WSGIRequest(env)})
-        logging.info("SOME INFO")
+        try:
+            extra = {'request':WSGIRequest(env)}
+        except:
+            extra = {}
+        logging.error(traceback.format_exc(exc), extra=extra)
     return real_handle_exception(self, env, exc, print_trace)
 WSGIApp.handle_exception = handle_exception
 
