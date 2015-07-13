@@ -40,7 +40,7 @@ If you are using Vagrant, all of your logs will end up in /vagrant/services/logs
 We have several types of users:
 
 * Logged in users are identified the standard Django way: `user.is_authenticated`
-* Users may belong to a vesting org (`user.vesting_org is not None`). You should test this with `user.is_vesting_org_member()`, which avoids an extra database call and can be easily updated in case the underlying data model changes.
+* Users may belong to a vesting org. You should test this with `user.is_vesting_org_member`.
 * Users may belong to a registrar (`user.registrar is not None`). You should test this with `user.is_registrar_member()`. 
 * Admin users are identified the standard Django way: `user.is_staff`
 
