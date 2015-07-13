@@ -447,6 +447,7 @@ API_SUBDOMAIN = 'api'
 MIRRORING_ENABLED = False           # whether to use mirroring features
 MIRROR_SERVER = False               # whether we are a mirror
 MIRROR_COOKIE_NAME = 'user_info'
+CACHE_BYPASS_COOKIE_NAME = 'bypass_cache'
 DASHBOARD_SUBDOMAIN = 'dashboard'
 DIRECT_MEDIA_URL = MEDIA_URL        # URL to load media from this server in particular -- primarily useful for main server
 SERVER_DISPLAY_NAME = 'default'
