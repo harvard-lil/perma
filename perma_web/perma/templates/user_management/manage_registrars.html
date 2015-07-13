@@ -7,6 +7,11 @@
 {% block content %}
 
 	<h3>Existing registrars <small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
+	{% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.level_tag }} alert-block">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
+        {% endfor %}
+    {% endif %}
 		<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
       <form method="post">
         {% csrf_token %}
@@ -52,19 +57,32 @@
                 {% include "user_management/includes/search_form_simple.html" %}
                 <div class="dropdown">
                   <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
+                    Status <span class="caret"></span>
+                  </a>
+                
+                
+                  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                    <li>
+                        <a {% if status == 'approved' %}class="selected" {% endif %}href="?status=approved&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}"><i class="icon-ok"></i> Approved</a>
+                        <a {% if status == 'pending' %}class="selected" {% endif %}href="?status=pending&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}"><i class="icon-ok"></i> Needs approval</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="dropdown">
+                  <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
                     Sort <span class="caret"></span>
                   </a>
                 
                   <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                     <li>
-                        <a {% if sort == 'name' %}class="selected" {% endif %}href="?sort=name&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}"><i class="icon-ok"></i> Name A - Z</a>
-                        <a {% if sort == '-name' %}class="selected" {% endif %} href="?sort=-name&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}"><i class="icon-ok"></i> Name Z - A</a>
-                        <a {% if sort == '-date_created' %}class="selected" {% endif %} href="?sort=-date_created&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}"><i class="icon-ok"></i> Newest</a>
-                        <a {% if sort == 'date_created' %}class="selected" {% endif %} href="?sort=date_created&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}"><i class="icon-ok"></i> Oldest</a>
-                        <a {% if sort == '-last_active' %}class="selected" {% endif %} href="?sort=-last_active&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}"><i class="icon-ok"></i> Recently active</a>
-                        <a {% if sort == 'last_active' %}class="selected" {% endif %} href="?sort=last_active&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}"><i class="icon-ok"></i> Least recently active</a>
-                        <a {% if sort == '-vested_links' %}class="selected" {% endif %} href="?sort=-vested_links&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}"><i class="icon-ok"></i> Most vested links</a>
-                        <a {% if sort == 'vested_links' %}class="selected" {% endif %} href="?sort=vested_links&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}"><i class="icon-ok"></i> Least vested links</a>
+                        <a {% if sort == 'name' %}class="selected" {% endif %}href="?sort=name&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}"><i class="icon-ok"></i> Name A - Z</a>
+                        <a {% if sort == '-name' %}class="selected" {% endif %} href="?sort=-name&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}"><i class="icon-ok"></i> Name Z - A</a>
+                        <a {% if sort == '-date_created' %}class="selected" {% endif %} href="?sort=-date_created&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}"><i class="icon-ok"></i> Newest</a>
+                        <a {% if sort == 'date_created' %}class="selected" {% endif %} href="?sort=date_created&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}"><i class="icon-ok"></i> Oldest</a>
+                        <a {% if sort == '-last_active' %}class="selected" {% endif %} href="?sort=-last_active&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}"><i class="icon-ok"></i> Recently active</a>
+                        <a {% if sort == 'last_active' %}class="selected" {% endif %} href="?sort=last_active&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}"><i class="icon-ok"></i> Least recently active</a>
+                        <a {% if sort == '-vested_links' %}class="selected" {% endif %} href="?sort=-vested_links&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}"><i class="icon-ok"></i> Most vested links</a>
+                        <a {% if sort == 'vested_links' %}class="selected" {% endif %} href="?sort=vested_links&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}"><i class="icon-ok"></i> Least vested links</a>
                     </li>
                   </ul>
                 </div>
@@ -73,13 +91,25 @@
         </div>
         {% if registrars %}
           {% for registrar in registrars %}
+            {% if not registrar.is_approved %}
+            <div class="row muted list-user list-user-registrar">
+            {% else %}
             <div class="row list-user list-user-registrar">
-            <div class="col-sm-12">
-            <a class="pull-right" href="{% url 'user_management_manage_single_registrar' registrar.id %}">edit</a>
-            {% if request.user.is_staff %}
-                <br><a class="pull-right" href="{% url "admin:perma_registrar_change" registrar.id %}">edit in admin console</a>
             {% endif %}
-            <p class="list-name">{{ registrar.name }}</p>
+            <div class="col-md-8">
+            <p class="list-name">{{ registrar.name }}{% if not registrar.is_approved %} <a class="text-warning" href="{% url 'user_management_approve_pending_registrar' registrar.id %}"> needs approval</a>{% endif %}</p>
+            </div>
+            <div class="col-md-4">
+            <p class="list-status">
+            {% if not registrar.is_approved %}
+            <a class="text-warning" href="{% url 'user_management_approve_pending_registrar' registrar.id %}">Review and approve</a>
+            {% else %}
+            <a href="{% url 'user_management_manage_single_registrar' registrar.id %}">edit</a>
+            {% if request.user.is_staff %}
+                <br><a href="{% url "admin:perma_registrar_change" registrar.id %}">edit in admin console</a>
+            {% endif %}
+            {% endif %}
+            </p>
             </div>
               <div class="col-sm-5">
               <div class="list-count-group">
@@ -115,7 +145,7 @@
             </div>
             <div class="col-sm-5">
                 <p class="list-date">
-              created {{ registrar.date_created|date:'N j, Y'}}
+              {% if not registrar.is_approved %}requested{% else %}created{% endif %} {{ registrar.date_created|date:'N j, Y'}}
               <br>
               {% if registrar.last_active %}
                 last active {{ registrar.last_active|date:'N j, Y'}}

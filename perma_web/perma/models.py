@@ -33,6 +33,7 @@ class Registrar(models.Model):
     website = models.URLField(max_length=500)
     date_created = models.DateField(auto_now_add=True, null=True)
     default_vesting_org = models.OneToOneField('VestingOrg', blank=True, null=True, related_name='default_for_registrars')
+    is_approved = models.BooleanField(default=False)
 
     # what info to send downstream
     mirror_fields = ('name', 'email', 'website')
@@ -168,6 +169,7 @@ class LinkUser(AbstractBaseUser):
         db_index=True,
     )
     registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar member. This should not be set if vesting org is set!")
+    pending_registrar = models.IntegerField(blank=True, null=True)
     vesting_org = models.ManyToManyField(VestingOrg, blank=True, null=True, related_name='users', help_text="If set, this user is a vesting org member. This should not be set if registrar is set!")
     is_active = models.BooleanField(default=True)
     is_confirmed = models.BooleanField(default=False)
@@ -279,6 +281,10 @@ class LinkUser(AbstractBaseUser):
     def is_registrar_member(self):
         """ Is the user a member of a registrar? """
         return bool(self.registrar_id)
+        
+    def has_registrar_pending(self):
+        """ Has requested creation of registrar """
+        return bool(self.pending_registrar)
 
     def is_vesting_org_member(self):
         """ Is the user a member of a vesting org? """

@@ -74,6 +74,15 @@ def manage_registrar(request):
     if search_query:
         registrars = get_search_query(registrars, search_query, ['name', 'email', 'website'])
         
+    # handle status filter
+    status = request.GET.get('status', '')
+    if status:
+        #sort_url = '{sort_url}&status={status}'.format(sort_url=sort_url, status=status)
+        if status == 'approved':
+            registrars = registrars.filter(is_approved=True)
+        elif status == 'pending':
+            registrars = registrars.filter(is_approved=False)
+        
     registrars = registrars.annotate(vested_links=Count('vesting_orgs__link',distinct=True), registrar_users=Count('users', distinct=True),last_active=Max('users__last_login', distinct=True),vesting_orgs_count=Count('vesting_orgs',distinct=True)).order_by(sort)
 
     registrar_count = registrars.count()
@@ -86,14 +95,16 @@ def manage_registrar(request):
 
     context = {'registrars': registrars, 'registrar_count': registrar_count, 'vesting_org_count':vesting_org_count, #'users_count': users_count, 
         'this_page': 'users_registrars', 'registrar_results': registrar_results,
-        'search_query':search_query}
+        'search_query':search_query, 'status': status, 'sort': sort}
 
     if request.method == 'POST':
 
         form = RegistrarForm(request.POST, prefix = "a")
 
         if form.is_valid():
-            new_user = form.save()
+            new_user = form.save(commit=False)
+            new_user.is_approved = True
+            new_user.save()
 
             return HttpResponseRedirect(reverse('user_management_manage_registrar'))
 
@@ -137,6 +148,35 @@ def manage_single_registrar(request, registrar_id):
     context = RequestContext(request, context)
 
     return render_to_response('user_management/manage_single_registrar.html', context)
+    
+    
+@login_required
+@user_passes_test(lambda user: user.is_staff)
+def approve_pending_registrar(request, registrar_id):
+    """ Perma admins can approve account requests from libraries """
+
+    target_registrar = get_object_or_404(Registrar, id=registrar_id)
+    target_registrar_member = get_object_or_404(LinkUser, pending_registrar=registrar_id)
+
+    context = {'target_registrar': target_registrar, 'target_registrar_member': target_registrar_member,
+        'this_page': 'users_registrars'}
+
+    if request.method == 'POST':
+        target_registrar.is_approved = True
+        target_registrar.save()
+        
+        target_registrar_member.registrar = target_registrar
+        target_registrar_member.pending_registrar = None
+        target_registrar_member.save()
+        email_approved_registrar_user(request, target_registrar_member)
+
+        messages.add_message(request, messages.SUCCESS, '<h4>Registrar approved!</h4> <strong>%s</strong> will receive a notification email with further instructions.' % target_registrar_member.email, extra_tags='safe')
+        return HttpResponseRedirect(reverse('user_management_manage_registrar'))
+
+    context = RequestContext(request, context)
+
+    return render_to_response('user_management/approve_pending_registrar.html', context)
+    
     
 @login_required
 @user_passes_test(lambda user: user.is_staff or user.is_registrar_member())
@@ -1048,13 +1088,19 @@ def settings_password(request):
     
 
 @login_required
-@user_passes_test(lambda user: user.is_registrar_member() or user.is_vesting_org_member())
+@user_passes_test(lambda user: user.is_registrar_member() or user.is_vesting_org_member() or user.has_registrar_pending())
 def settings_organizations(request):
     """
     Settings view organizations, leave organizations ...
     """
 
-    context = {'next': request.get_full_path(), 'this_page': 'settings_organizations'}
+    if request.user.has_registrar_pending():
+        pending_registrar = get_object_or_404(Registrar, id=request.user.pending_registrar)
+        messages.add_message(request, messages.INFO, "Thank you for requesting an account for your library. Perma.cc will review your request as soon as possible.")
+    else:
+        pending_registrar = None
+    
+    context = {'next': request.get_full_path(), 'this_page': 'settings_organizations', 'pending_registrar': pending_registrar}
 
     context = RequestContext(request, context)
     
@@ -1242,6 +1288,82 @@ def limited_login(request, template_name='registration/login.html',
 
 @ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block=True, ip=False,
            keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
+def libraries(request):
+    """
+    Info for libraries, allow them to request accounts
+    """
+    
+    context = {}
+    registrar_count = Registrar.objects.all().count()
+    
+    if request.method == 'POST':
+        registrar_form = RegistrarForm(request.POST, prefix = "b")
+        registrar_form.fields['name'].label = "Library name"
+        registrar_form.fields['email'].label = "Library email"
+        registrar_form.fields['website'].label = "Library website"
+        if request.user.is_authenticated():
+            user_form = None
+        else:
+            user_form = UserRegForm(request.POST, prefix = "a")
+            user_form.fields['email'].label = "Your email"
+        user_email = request.POST.get('a-email', None)
+        try:
+            target_user = LinkUser.objects.get(email=user_email)
+        except LinkUser.DoesNotExist:
+            target_user = None
+        if target_user:
+            messages.add_message(request, messages.INFO, "You already have a Perma account, please sign in to request an account for your library.")
+            request.session['request_data'] = registrar_form.data
+            return HttpResponseRedirect('/login?next=/libraries/')
+        
+        if registrar_form.is_valid():
+            new_registrar = registrar_form.save(commit=False)
+            new_registrar.is_approved = False
+            new_registrar.save()
+            email_registrar_request(request, new_registrar)
+
+
+            if not request.user.is_authenticated():
+                if user_form.is_valid():
+                    new_user = user_form.save(commit=False)
+                    new_user.backend='django.contrib.auth.backends.ModelBackend'
+                    new_user.is_active = False
+                    new_user.pending_registrar = new_registrar.id
+                    new_user.save()
+                    
+                    email_pending_registrar_user(request, new_user)
+                    return HttpResponseRedirect(reverse('register_library_instructions'))
+                else:
+                    context.update({'user_form':user_form, 'registrar_form':registrar_form})
+            else:
+                request.user.pending_registrar= new_registrar.id
+                request.user.save()
+
+                return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+            
+        else:
+            context.update({'user_form':user_form, 'registrar_form':registrar_form})
+    else:
+        request_data = request.session.get('request_data','')
+        user_form = None
+        if not request.user.is_authenticated():
+            user_form = UserRegForm(prefix = "a")
+            user_form.fields['email'].label = "Your email"
+        if request_data:
+            registrar_form = RegistrarForm(request_data, prefix = "b")
+        else:
+            registrar_form = RegistrarForm(prefix = "b")
+        registrar_form.fields['name'].label = "Library name"
+        registrar_form.fields['email'].label = "Library email"
+        registrar_form.fields['website'].label = "Library website"
+
+    return render_to_response("libraries.html",
+        {'user_form':user_form, 'registrar_form':registrar_form, 'registrar_count': registrar_count},
+        RequestContext(request))
+
+
+@ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block=True, ip=False,
+           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
 def register(request):
     """
     Register a new user
@@ -1312,6 +1434,13 @@ def register_email_instructions(request):
     """
     return render_to_response('registration/check_email.html', RequestContext(request))
     
+
+def register_library_instructions(request):
+    """
+    After the user requested a library account, give instructions
+    """
+    return render_to_response('registration/check_email_library.html', RequestContext(request))
+    
     
 def email_new_user(request, user):
     """
@@ -1376,6 +1505,83 @@ http://%s%s
 
     send_mail(
         "Your Perma.cc account is now associated with {registrar}".format(registrar=user.registrar.name),
+        content,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email], fail_silently=False
+    )
+    
+    
+def email_pending_registrar_user(request, user):
+    """
+    Send email to newly created accounts for folks requesting library accounts
+    """
+    if not user.confirmation_code:
+        user.confirmation_code = ''.join(
+            random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(30))
+        user.save()
+      
+    host = request.get_host() if settings.DEBUG or settings.TESTING else settings.HOST
+
+    content = '''We will review your library account request as soon as possible. A personal account has been created for you and will be linked to your library once that account is approved. 
+    
+To activate this personal account, please click the link below or copy it to your web browser.  You will need to create a new password.
+
+http://%s%s
+
+''' % (host, reverse('register_password', args=[user.confirmation_code]))
+
+    logger.debug(content)
+
+    send_mail(
+        "A Perma.cc account has been created for you",
+        content,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email], fail_silently=False
+    )
+    
+    
+def email_registrar_request(request, pending_registrar):
+    """
+    Send email to Perma.cc admins when a library requests an account
+    """
+      
+    host = request.get_host() if settings.DEBUG or settings.TESTING else settings.HOST
+
+    content = '''A new library account request from %s is awaiting review and approval. 
+
+http://%s%s
+
+''' % (pending_registrar.name, host, reverse('user_management_approve_pending_registrar', args=[pending_registrar.id]))
+
+    logger.debug(content)
+
+    send_mail(
+        "Perma.cc new library registrar account request",
+        content,
+        pending_registrar.email,
+        [settings.DEFAULT_FROM_EMAIL], fail_silently=False
+    )
+    
+
+def email_approved_registrar_user(request, user):
+    """
+    Send email to newly approved registrar accounts for folks requesting library accounts
+    """
+      
+    host = request.get_host() if settings.DEBUG or settings.TESTING else settings.HOST
+
+    content = '''Your request for a Perma.cc library account has been approved and your personal account has been linked. 
+    
+To start creating vesting organizations and users, please click the link below or copy it to your web browser.
+
+http://%s%s
+
+''' % (host, reverse('user_management_manage_vesting_org'))
+
+    logger.debug(content)
+
+    send_mail(
+        "Your Perma.cc library account is approved",
         content,
         settings.DEFAULT_FROM_EMAIL,
         [user.email], fail_silently=False

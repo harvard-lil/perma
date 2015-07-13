@@ -1,0 +1,70 @@
+{% extends "layout-responsive.html" %}
+{% block title %} | Contact{% endblock %}
+
+{% block meta %}
+<meta name="robots" content="noarchive">
+{% endblock %}
+
+{% block content %}
+
+<div class="container libraries-power">
+    <h1>Libraries power Perma.cc</h1>
+    <div class="row">
+		<div class="col-sm-7">
+            <p>For centuries, libraries have worked together to preserve print sources and to make those sources accessible to the public. Today they do the same for online sources through Perma’s active network of library partners.</p>
+            
+            <h4>How Perma.cc works for libraries</h4>
+            <p>We call our library partners “registrars.” Each registrar sponsors and administers Perma for its local community of scholars and journals. Check out our <a href="{% url 'docs' %}">user guide</a> to learn more about how libraries use Perma.cc. </p>
+            <h4>Join our library network</h4>
+            <p>Our network is now <strong>{{registrar_count}}</strong> libraries strong. <a href="{% url 'about' %}#partners">View the complete list</a>. {% if not request.user.pending_registrar and not request.user.is_registrar_member %}If your library isn’t a member yet, we invite you to request an account with the form to the right.{% endif %}</p>
+            <h4>Why libraries join our network</h4>
+            <ul>
+                <li>Offer Perma as a service to patrons</li>
+                <li>Perma costs nothing for academic libraries</li>
+                <li>Perma is easy to use and administer</li>
+                <li>Perma prevents link rot</li>
+            </ul>
+        </div>
+    {% if not request.user.pending_registrar and not request.user.is_registrar_member %}
+		<div class="col-sm-4 col-sm-offset-1">
+		    <h2>Request library account</h2>
+            <form method="post" role="form">
+                {% csrf_token %}
+                <h4>Your library information</h4>
+                <fieldset>
+                    <span class="text-error">{{ registrar_form.non_field_errors }}</span>
+                      {% for field in registrar_form %}
+                        <label for="id_{{ field.name }}">{{ field.label }}</label><br>
+                        {{ field }}
+                        {% if field.errors %}
+                          {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+                        {%elif field.help_text %}
+                          <span class="help-inline">{{ field.help_text }}</span>
+                        {% endif %}
+                        <br>
+                    {% endfor %}  
+                </fieldset>
+                {% if user_form %}
+                <h4>Your information</h4>
+                <fieldset>
+                    <span class="text-error">{{ user_form.non_field_errors }}</span>
+                      {% for field in user_form %}
+                        <label for="id_{{ field.name }}">{{ field.label }}</label><br>
+                        {{ field }}
+                        {% if field.errors %}
+                          {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+                        {%elif field.help_text %}
+                          <span class="help-inline">{{ field.help_text }}</span>
+                        {% endif %}
+                        <br>
+                    {% endfor %}  
+                </fieldset>
+                {% endif %}
+
+                <button type="submit" class="btn btn-success">Request account</button>
+            </form>
+		</div><!--col -->
+	</div><!--row-->
+	{% endif %}
+</div><!--container-->
+{% endblock content %}

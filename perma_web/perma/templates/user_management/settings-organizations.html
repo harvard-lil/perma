@@ -4,6 +4,11 @@
 
 {% block content %}
 	  <h3>Organizations</h3>
+	  {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.level_tag }} alert-block">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
+        {% endfor %}
+        {% endif %}
 		<div class="sponsoring-library-info">
             {% with request.user.vesting_org as vesting_org %}
                 <h5>Your sponsoring library and organization(s)</h5>
@@ -22,6 +27,19 @@
                     
                     {% endfor %}
             {% endwith %}
+            {% if pending_registrar %}
+                <p><strong>Pending registrar</strong> {{pending_registrar.name}}</p>
+            {% endif %}
+            
+            {% if request.user.registrar %}
+                <p>
+                {% if request.user.registrar.website %}
+                    <strong><a href="{{registrar.website}}" target="_blank">{{request.user.registrar}}</a></strong>
+                {% else %}
+                    <strong>{{request.user.registrar}}</strong>
+                {% endif %}
+                <br>{{request.user.registrar.email}}
+            {% endif %}
         </div>
     <br/><br/>
 
