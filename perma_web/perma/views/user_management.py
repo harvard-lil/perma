@@ -1138,9 +1138,10 @@ def get_mirror_cookie_domain(request):
 def logout(request):
     response = auth_views.logout(request, template_name='registration/logout.html')
     # on logout, delete the mirror cookie
-    response.delete_cookie(settings.MIRROR_COOKIE_NAME,
-                           domain=get_mirror_cookie_domain(request),
-                           path=settings.SESSION_COOKIE_PATH)
+    cookie_kwargs = {'domain': get_mirror_cookie_domain(request),
+                     'path': settings.SESSION_COOKIE_PATH}
+    response.delete_cookie(settings.CACHE_BYPASS_COOKIE_NAME, **cookie_kwargs)
+    response.delete_cookie(settings.MIRROR_COOKIE_NAME, **cookie_kwargs)
     return response
 
 
@@ -1186,6 +1187,26 @@ def limited_login(request, template_name='registration/login.html',
 
             response = HttpResponseRedirect(redirect_to)
 
+            # The cookie should last as long as the login cookie, so cookie logic is copied from SessionMiddleware.
+            if request.session.get_expire_at_browser_close():
+                max_age = None
+                expires = None
+            else:
+                max_age = request.session.get_expiry_age()
+                expires_time = time.time() + max_age
+                expires = cookie_date(expires_time)
+
+            cookie_kwargs = {'max_age': max_age,
+                             'expires': expires,
+                             'domain' : get_mirror_cookie_domain(request),
+                             'path'   : settings.SESSION_COOKIE_PATH}
+
+            # Allows cache to be bypass in Cloudflare page rules
+            response.set_cookie(settings.CACHE_BYPASS_COOKIE_NAME,
+                                1,
+                                httponly=False,
+                                **cookie_kwargs)
+
             if settings.MIRRORING_ENABLED:
                 # Set the user-info cookie for mirror servers.
                 # This will be set by the main server, e.g. //dashboard.perma.cc,
@@ -1193,23 +1214,11 @@ def limited_login(request, template_name='registration/login.html',
 
                 user_info = serializers.serialize("json", [request.user], fields=['registrar','vesting_org','first_name','last_name','email','is_staff'])
 
-                # The cookie should last as long as the login cookie, so cookie logic is copied from SessionMiddleware.
-                if request.session.get_expire_at_browser_close():
-                    max_age = None
-                    expires = None
-                else:
-                    max_age = request.session.get_expiry_age()
-                    expires_time = time.time() + max_age
-                    expires = cookie_date(expires_time)
-
                 response.set_cookie(settings.MIRROR_COOKIE_NAME,
                                     sign_message(user_info),
-                                    max_age=max_age,
-                                    expires=expires,
-                                    domain=get_mirror_cookie_domain(request),
-                                    path=settings.SESSION_COOKIE_PATH,
                                     secure=False,  # so we can read the cookie on http link playbacks -- this can be changed if we no longer rely on http: links
-                                    httponly=settings.SESSION_COOKIE_HTTPONLY or None)
+                                    httponly=settings.SESSION_COOKIE_HTTPONLY or None,
+                                    **cookie_kwargs)
 
             return response
     else:
