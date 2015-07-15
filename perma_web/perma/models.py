@@ -213,20 +213,21 @@ class LinkUser(AbstractBaseUser):
         """
             Get all folders for this user, including shared folders
         """
-        if self.is_registrar_member():
-            vesting_orgs = self.registrar.vesting_orgs.all()
-        else:
-            vesting_orgs = list(self.get_default_vesting_org())
-
+        
+        orgs = self.get_orgs()
 
         return [self.root_folder.get_descendants(include_self=True)] + \
-            ([vesting_org.shared_folder.get_descendants(include_self=True) for vesting_org in vesting_orgs if vesting_org])
+            ([org.shared_folder.get_descendants(include_self=True) for org in orgs if org])
 
-    def get_default_vesting_org(self):
+    def get_orgs(self):
+        """
+            Get organizations in which this user is a member
+        """
+
         if self.is_vesting_org_member:
             return self.vesting_org.all()
         if self.is_registrar_member():
-            return self.registrar.default_vesting_org
+            return self.registrar.vesting_orgs.all()
         if self.is_staff:
             return VestingOrg.objects.all()
             
@@ -301,13 +302,10 @@ class FolderManager(models.Manager):
         # personal folders
         filter = Q(owned_by=user)
 
-        # vesting org folders
-        if user.is_registrar_member():
-            filter |= Q(vesting_org__registrar=user.registrar)
-        else:
-            default_vesting_org = user.get_default_vesting_org()
-            if default_vesting_org:
-                filter |= Q(vesting_org=default_vesting_org)
+        # folders owned by orgs in which the user a member
+        orgs = user.get_orgs()
+        if orgs:
+            filter |= Q(vesting_org=orgs)
 
         return filter
 
@@ -406,13 +404,10 @@ class LinkManager(models.Manager):
         # personal links
         filter = Q(folders__owned_by=user)
 
-        # links in vesting org folders
-        if user.is_registrar_member():
-            filter |= Q(folders__vesting_org__registrar=user.registrar)
-        else:
-            default_vesting_org = user.get_default_vesting_org()
-            if default_vesting_org:
-                filter |= Q(folders__vesting_org=default_vesting_org)
+        # links owned by orgs in which the user a member
+        orgs = user.get_orgs()
+        if orgs:
+            filter |= Q(folders__vesting_org=orgs)
 
         return filter
 
