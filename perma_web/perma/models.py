@@ -680,8 +680,8 @@ class Stat(models.Model):
 
     # Our user counts
     regular_user_count = models.IntegerField(default=1)
-    member_count = models.IntegerField(default=1)
-    manager_count = models.IntegerField(default=1)
+    org_member_count = models.IntegerField(default=1)
+    org_manager_count = models.IntegerField(default=1)
     registrar_member_count = models.IntegerField(default=1)
     registry_member_count = models.IntegerField(default=1)
 

@@ -17,7 +17,7 @@
             "submitted_url": "http://arxiv.org/pdf/1406.3611.pdf",
             "vested_by_editor": null,
             "creation_timestamp": "2014-06-16T19:23:24Z",
-            "vesting_org": null
+            "organization": null
         }
     },
     {
@@ -38,7 +38,7 @@
             "submitted_url": "http://dolekemp96.org",
             "vested_by_editor": null,
             "creation_timestamp": "2014-06-16T19:22:51Z",
-            "vesting_org": null
+            "organization": null
         }
     },
     {
@@ -63,7 +63,7 @@
             "vested_by_editor": 3,
             "creation_timestamp": "2014-12-07T18:55:37Z",
             "notes": "Maybe the source of all cool things on the internet.",
-            "vesting_org": 1
+            "organization": 1
         }
     },
     {
@@ -87,8 +87,8 @@
             "submitted_url": "http://google.com",
             "vested_by_editor": 3,
             "creation_timestamp": "2014-12-08T18:55:37Z",
-            "notes": "In a vesting org subfolder, vested.",
-            "vesting_org": 1
+            "notes": "In an org subfolder, vested.",
+            "organization": 1
         }
     },
     {
@@ -112,8 +112,8 @@
             "submitted_url": "http://google.com",
             "vested_by_editor": null,
             "creation_timestamp": "2014-12-09T18:55:37Z",
-            "notes": "In a vesting org subfolder, unvested.",
-            "vesting_org": null
+            "notes": "In an org subfolder, unvested.",
+            "organization": null
         }
     },
     {
@@ -134,7 +134,7 @@
             "submitted_url": "https://www.wikipedia.org/",
             "vested_by_editor": null,
             "creation_timestamp": "2014-07-19T20:21:31Z",
-            "vesting_org": null
+            "organization": null
         }
     },
     {
