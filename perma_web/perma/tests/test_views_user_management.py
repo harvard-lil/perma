@@ -28,34 +28,34 @@ class UserManagementViewsTestCase(PermaTestCase):
                        success_url=reverse('user_management_manage_registrar'),
                        success_query=Registrar.objects.filter(name='test_views_registrar2'))
 
-        # manage_vesting_org
-        self.submit_form('user_management_manage_vesting_org',
+        # manage_organization
+        self.submit_form('user_management_manage_organization',
                        data={
-                           'a-name': 'test_views_vesting_org',
+                           'a-name': 'test_views_organization',
                            'a-registrar': 1},
-                       success_url=reverse('user_management_manage_vesting_org'),
-                       success_query=VestingOrg.objects.filter(name='test_views_vesting_org'))
+                       success_url=reverse('user_management_manage_organization'),
+                       success_query=Organization.objects.filter(name='test_views_organization'))
         self.log_in_user('test_registrar_member@example.com')
-        self.submit_form('user_management_manage_vesting_org',
+        self.submit_form('user_management_manage_organization',
                        data={
-                           'a-name': 'test_views_vesting_org2'},
-                       success_url=reverse('user_management_manage_vesting_org'),
-                       success_query=VestingOrg.objects.filter(name='test_views_vesting_org2'))
+                           'a-name': 'test_views_organization2'},
+                       success_url=reverse('user_management_manage_organization'),
+                       success_query=Organization.objects.filter(name='test_views_organization2'))
         
 
         # manage user views
-        self.submit_form('user_management_manage_single_vesting_org', reverse_kwargs={'args':[1]},
+        self.submit_form('user_management_manage_single_organization', reverse_kwargs={'args':[1]},
                        data={
-                           'a-name': 'test_views_vesting_org3'},
-                       success_url=reverse('user_management_manage_vesting_org'),
-                       success_query=VestingOrg.objects.filter(name='test_views_vesting_org3'))
+                           'a-name': 'test_views_organization3'},
+                       success_url=reverse('user_management_manage_organization'),
+                       success_query=Organization.objects.filter(name='test_views_organization3'))
         self.log_in_user('test_registry_member@example.com')
-        self.submit_form('user_management_manage_single_vesting_org', reverse_kwargs={'args':[1]},
+        self.submit_form('user_management_manage_single_organization', reverse_kwargs={'args':[1]},
                        data={
-                           'a-name': 'test_views_vesting_org3',
+                           'a-name': 'test_views_organization3',
                            'a-registrar': 1},
-                       success_url=reverse('user_management_manage_vesting_org'),
-                       success_query=VestingOrg.objects.filter(name='test_views_vesting_org3'))
+                       success_url=reverse('user_management_manage_organization'),
+                       success_query=Organization.objects.filter(name='test_views_organization3'))
 
         base_user = {
             'a-first_name':'First',
@@ -66,7 +66,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         for view_name, form_extras in [
             ['registrar_user', {'a-registrar': 1}],
             ['user', {}],
-            ['vesting_user', {'a-vesting_org': 1}],
+            ['org_user', {'a_org': 1}],
         ]:
             # create user
             email += '1'

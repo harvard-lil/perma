@@ -5,7 +5,7 @@ from api.resources import (LinkResource,
                            CurrentUserResource,
                            CurrentUserLinkResource,
                            CurrentUserFolderResource,
-                           CurrentUserVestingOrgResource, PublicLinkResource)
+                           CurrentUserOrganizationResource, PublicLinkResource)
 
 ### v1 ###
 
@@ -25,11 +25,11 @@ v1_api.register(FolderResource())
 # /user
 # /user/archives
 # /user/folders
-# /user/vesting_orgs
+# /user/organizations
 v1_api.register(CurrentUserResource())
 v1_api.register(CurrentUserLinkResource())
 v1_api.register(CurrentUserFolderResource())
-v1_api.register(CurrentUserVestingOrgResource())
+v1_api.register(CurrentUserOrganizationResource())
 
 ### v1a ###
 
