@@ -179,6 +179,8 @@ class LinkUser(AbstractBaseUser):
     last_name = models.CharField(max_length=45, blank=True)
     confirmation_code = models.CharField(max_length=45, blank=True)
     root_folder = models.OneToOneField('Folder', blank=True, null=True)
+    requested_account_type = models.CharField(max_length=45, blank=True, null=True)
+    requested_account_note = models.CharField(max_length=45, blank=True, null=True)
 
     objects = LinkUserManager()
     tracker = FieldTracker()

@@ -31,6 +31,8 @@ from perma.forms import (
     CreateUserForm,
     CreateUserFormWithRegistrar,
     CreateUserFormWithVestingOrg,
+    CreateUserFormWithCourt,
+    CreateUserFormWithUniversity,
     UserFormEdit,
     RegistrarMemberFormEdit,
     VestingMemberWithVestingOrgFormEdit,
@@ -694,6 +696,8 @@ def vesting_user_add_user(request):
 
             vesting_org = form.cleaned_data['vesting_org'][0]
             target_user.vesting_org.add(vesting_org)
+            target_user.requested_account_note = None
+            target_user.requested_account_type = None
 
             target_user.save()
 
@@ -757,6 +761,8 @@ def registrar_user_add_user(request):
                 email_new_registrar_user(request, target_user)
                 messages.add_message(request, messages.SUCCESS, '<h4>Success!</h4> <strong>%s</strong> is now a registrar user.' % target_user.email, extra_tags='safe')
             
+            target_user.requested_account_note = None
+            target_user.requested_account_type = None
             target_user.save()
 
             return HttpResponseRedirect(reverse('user_management_manage_registrar_user'))
@@ -1385,6 +1391,126 @@ def register(request):
     return render_to_response("registration/register.html",
         {'form':form},
         RequestContext(request))
+        
+        
+@ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block=True, ip=False,
+           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
+def sign_up(request):
+    """
+    Register a new user
+    """
+    if request.method == 'POST':
+        form = UserRegForm(request.POST)
+        if form.is_valid():
+            new_user = form.save(commit=False)
+            new_user.backend='django.contrib.auth.backends.ModelBackend'
+            new_user.is_active = False
+            new_user.save()
+            
+            email_new_user(request, new_user)
+
+            return HttpResponseRedirect(reverse('register_email_instructions'))
+    else:
+        form = UserRegForm()
+
+    return render_to_response("registration/sign-up.html",
+        {'form':form},
+        RequestContext(request))
+        
+        
+@ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block=True, ip=False,
+           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
+def sign_up_courts(request):
+    """
+    Register a new court user
+    """
+    if request.method == 'POST':
+        form = CreateUserFormWithCourt(request.POST)
+        user_email = request.POST.get('email', None)
+        try:
+            target_user = LinkUser.objects.get(email=user_email)
+        except LinkUser.DoesNotExist:
+            target_user = None
+        if target_user:
+            email_court_request(request, target_user)
+            return HttpResponseRedirect(reverse('court_request_response'))
+
+        if form.is_valid():
+            new_user = form.save(commit=False)
+            new_user.backend='django.contrib.auth.backends.ModelBackend'
+            new_user.is_active = False
+            new_user.requested_account_type = 'court'
+            create_account = request.POST.get('create_account', None)
+            if create_account:
+                new_user.save()
+                email_new_user(request, new_user)
+                email_court_request(request, new_user)
+                messages.add_message(request, messages.INFO, "We will shortly follow up with more information about how Perma.cc could work in your court.")
+                return HttpResponseRedirect(reverse('register_email_instructions'))
+            else:
+                email_court_request(request, new_user)
+                return HttpResponseRedirect(reverse('court_request_response'))
+
+    else:
+        form = CreateUserFormWithCourt()
+
+    return render_to_response("registration/sign-up-courts.html",
+        {'form':form},
+        RequestContext(request))
+        
+        
+@ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block=True, ip=False,
+           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
+def sign_up_faculty(request):
+    """
+    Register a new user
+    """
+    if request.method == 'POST':
+        form = CreateUserFormWithUniversity(request.POST)
+        if form.is_valid():
+            new_user = form.save(commit=False)
+            new_user.backend='django.contrib.auth.backends.ModelBackend'
+            new_user.is_active = False
+            new_user.requested_account_type = 'faculty'
+            new_user.save()
+            
+            email_new_user(request, new_user)
+            
+            messages.add_message(request, messages.INFO, "Remember to ask your library about access to special Perma.cc priveleges.")
+            return HttpResponseRedirect(reverse('register_email_instructions'))
+    else:
+        form = CreateUserFormWithUniversity()
+
+    return render_to_response("registration/sign-up-faculty.html",
+        {'form':form},
+        RequestContext(request))
+        
+        
+@ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block=True, ip=False,
+           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
+def sign_up_journals(request):
+    """
+    Register a new user
+    """
+    if request.method == 'POST':
+        form = CreateUserFormWithUniversity(request.POST)
+        if form.is_valid():
+            new_user = form.save(commit=False)
+            new_user.backend='django.contrib.auth.backends.ModelBackend'
+            new_user.is_active = False
+            new_user.requested_account_type = 'journals'
+            new_user.save()
+            
+            email_new_user(request, new_user)
+
+            messages.add_message(request, messages.INFO, "Remember to ask your library about access to special Perma.cc priveleges.")
+            return HttpResponseRedirect(reverse('register_email_instructions'))
+    else:
+        form = CreateUserFormWithUniversity()
+
+    return render_to_response("registration/sign-up-journals.html",
+        {'form':form},
+        RequestContext(request))
 
 
 # def register_email_code_confirmation(request, code):
@@ -1440,6 +1566,13 @@ def register_library_instructions(request):
     After the user requested a library account, give instructions
     """
     return render_to_response('registration/check_email_library.html', RequestContext(request))
+    
+
+def court_request_response(request):
+    """
+    After the user has requested info about a court account
+    """
+    return render_to_response('registration/court_request.html', RequestContext(request))
     
     
 def email_new_user(request, user):
@@ -1585,4 +1718,34 @@ http://%s%s
         content,
         settings.DEFAULT_FROM_EMAIL,
         [user.email], fail_silently=False
+    )
+
+
+def email_court_request(request, court):
+    """
+    Send email to Perma.cc admins when a library requests an account
+    """
+      
+    host = request.get_host() if settings.DEBUG or settings.TESTING else settings.HOST
+    try:
+        target_user = LinkUser.objects.get(email=court.email)
+    except LinkUser.DoesNotExist:
+        target_user = None
+    account_status = "does not have a personal account."
+    if target_user:
+        account_status = "has a personal account."
+
+    content = '''%s %s has requested more information about creating a court account for %s. 
+    
+This user %s
+
+''' % (court.first_name, court.last_name, court.requested_account_note, account_status)
+
+    logger.debug(content)
+
+    send_mail(
+        "Perma.cc new library court account information request",
+        content,
+        court.email,
+        [settings.DEFAULT_FROM_EMAIL], fail_silently=False
     )

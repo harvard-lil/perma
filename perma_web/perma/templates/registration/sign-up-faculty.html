@@ -1,0 +1,59 @@
+{% extends "layout-responsive.html" %}
+
+{% block meta_description %}
+Register for a Perma.cc account. Welcome aboard.
+{% endblock %}
+
+{% block content %}
+<div class="container learn-more">
+	<div class="row">
+		<div class="col-sm-12">	
+			<h2>Learn more and sign up</h2>
+			<h4>Perma.cc for <a class="btn btn-large btn-more" href="{% url 'sign_up' %}" role="button">Everyone</a><a class="btn btn-large btn-more" href="{% url 'sign_up_courts' %}" role="button">Courts</a><a class="btn btn-large btn-more btn-active" href="{% url 'sign_up_faculty' %}" role="button">Faculty</a><a class="btn btn-large btn-more" href="{% url 'sign_up_journals' %}" role="button">Journals</a></h4>
+		</div>
+	</div>
+	<div class="row">
+	    <div class="col-sm-6">
+            <h4>Perma.cc works for faculty</h4>			
+		</div>
+	    <div class="col-sm-6">	
+	        <h4>Contact your library</h4>
+	        <p>Your library will grant you special Perma.cc priveleges.</p>
+	        <p>Ask if your library is already a Perma.cc member. If not, they can sign up at the <a href="{% url 'libraries' %}">Perma.cc libraries</a> page.</p>
+	        <p>You can create a free account now for yourself.</p>
+	        <h4>Create an account</h4>	
+			<form method="post" action="">
+				{% csrf_token %}
+				 <fieldset>
+				<span class="text-error"><br/>{{ form.non_field_errors }}</span>
+				{% for field in form %}
+				  <label for="id_{{ field.name }}">{{ field.label }}</label><br/>
+				  {{ field }}
+				  {% if field.errors %}
+					{% for error in field.errors %}<span class="text-error"><br/>{{ error }}</span>{% endfor %}
+				  {%elif field.help_text %}
+					<span class="help-inline"><br/>{{ field.help_text }}</span>
+				  {% endif %}<br/>
+				{% endfor %}  
+			  </fieldset>
+				<p><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
+				<button type="submit" class="btn-success">Create account</button>
+			</form>
+		</div>
+	</div>
+</div>
+<br/>
+<br/>
+<br/>
+<br/>
+{% endblock content %}
+{% block scripts %}
+<script>
+$(document).ready(function(){
+    $('input[type=text]:first').focus();
+    $('#id_create_account').change(function() {
+        $('.terms-statement').slideToggle();
+    });
+});
+</script>
+{% endblock scripts %}
