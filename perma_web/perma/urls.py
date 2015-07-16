@@ -126,8 +126,7 @@ urlpatterns = patterns('perma.views',
     url(r'^manage/users/(?P<user_id>[a-zA-Z0-9]+)/add-registrar/?$', 'user_management.user_add_registrar', name='user_management_user_add_registrar'),
     #url(r'^manage/users/(?P<user_id>[a-zA-Z0-9]+)/add-vesting-org/?$', 'user_management.user_add_vesting_org', name='user_management_user_add_vesting_org'),
     url(r'^manage/organization-users/add-user/?$', 'user_management.organization_user_add_user', name='user_management_organization_user_add_user'),
-    url(r'^manage/account/leave-organization-organization/(?P<org_id>[a-zA-Z0-9]+)/?$', 'user_management.organization_user_leave_organization', name='user_management_organization_user_leave_organization'),
-    url(r'^manage/mirrors/?$', 'user_management.mirrors', name='mirrors'),
+    url(r'^manage/account/leave-organization/(?P<org_id>[a-zA-Z0-9]+)/?$', 'user_management.organization_user_leave_organization', name='user_management_organization_user_leave_organization'),
 #    url(r'^manage/batch-convert/?$', 'user_management.batch_convert', name='user_management_batch_convert'),
 #    url(r'^manage/export/?$', 'user_management.export', name='user_management_export'),
 #    url(r'^manage/custom-domain/?$', 'user_management.custom_domain', name='user_management_custom_domain'),
@@ -140,10 +139,9 @@ urlpatterns = patterns('perma.views',
 )
 
 # debug-only serving of static and media assets
-if settings.DEBUG or settings.TESTING:
+if settings.DEBUG:
     from django.contrib.staticfiles.views import serve as static_view
-    from mirroring.utils import may_be_mirrored
-    urlpatterns += static(settings.STATIC_URL, may_be_mirrored(static_view)) + \
+    urlpatterns += static(settings.STATIC_URL, static_view) + \
                    static(getattr(settings, 'DEBUG_MEDIA_URL', settings.MEDIA_URL), debug_media_view, document_root=settings.MEDIA_ROOT)
 
 handler404 = 'perma.views.common.server_error_404'

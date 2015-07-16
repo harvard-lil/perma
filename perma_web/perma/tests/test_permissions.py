@@ -36,7 +36,6 @@ class PermissionsTestCase(PermaTestCase):
                     ['user_management_manage_single_organization_user_delete', {'kwargs':{'user_id': 3}}],
                     ['user_management_manage_single_organization_user_reactivate', {'kwargs':{'user_id': 3}}],
                     ['user_management_manage_single_user_reactivate', {'kwargs':{'user_id': 4}}],
-                    ['mirrors'],
                 ],
                 'allowed': {'test_registry_member@example.com'},
             },

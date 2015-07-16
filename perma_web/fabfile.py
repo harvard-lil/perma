@@ -78,14 +78,7 @@ def run_ssl(port="0.0.0.0:8000"):
     local("python manage.py runsslserver %s" % port)
 
 @task
-def runmirror():
-    """
-        Run parallel django main and mirror servers.
-    """
-    local("python manage.py runmirror")
-
-@task
-def test(apps="perma mirroring api functional_tests"):
+def test(apps="perma api functional_tests"):
     """
         Run perma tests. (For coverage, run `coverage report` after tests pass.)
     """
@@ -93,7 +86,6 @@ def test(apps="perma mirroring api functional_tests"):
         "perma/migrations/*",
         "*/tests/*",
         "fabfile.py",
-        "mirroring/management/commands/runmirror.py"
     ]
     local("coverage run --source='.' --omit='%s' manage.py test %s" % (",".join(excluded_files), apps))
 
@@ -321,27 +313,6 @@ def shell():
     from fabric.context_managers import char_buffered
     with char_buffered(sys.stdin):
         open_shell("cd %s && workon %s" % (env.REMOTE_DIR, env.VIRTUALENV_NAME))
-
-
-### MIRRORING ###
-
-@task
-def generate_keys():
-    """
-        Generate a keypair suitable for settings.py on the main server.
-    """
-    if '/vagrant/' in __file__:
-        print "WARNING: This command does not run well under Vagrant, as it requires random entropy."
-    import gnupg
-    gpg = gnupg.GPG(gnupghome=settings.GPG_DIRECTORY)
-    gpg_input = gpg.gen_key_input()  # use sensible defaults
-    print "Generating keypair with this input: %s" % gpg_input
-    key = gpg.gen_key(gpg_input)
-    print "Copy these keys into settings.py on the main server, and into UPSTREAM_SERVER['public_key'] on the mirror servers:"
-    print "\nGPG_PUBLIC_KEY = %s\nGPG_PRIVATE_KEY = %s" % (
-        repr(gpg.export_keys(key.fingerprint)),  # public key
-        repr(gpg.export_keys(key.fingerprint, True))  # private key
-    )
 
 
 ### HEROKU ###

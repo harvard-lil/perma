@@ -161,35 +161,6 @@ kicked off by `fab test_sauce`.
 If you're working on an email related task, the contents of emails should be dumped to the standard out courtesy of EMAIL_BACKEND in settings_dev.py.
 
 
-## Mirroring
-
-Perma uses a mirroring system in which one server handles logged-in users and content creation, and a set of mirrors help to serve archived content.
-A load balancer routes traffic between them. The net effect is that http://dashboard.perma.cc is served by one server,
-while http://perma.cc may be served by any randomly selected mirror.
-
-For development, we simulate Perma's network by running a simple load balancer on the local machine at \*.perma.dev:8000.
-The load balancer routes requests to dashboard.perma.dev:8000 to the main Django dev server running on port :8001,
-and requests to perma.dev:8000 to a mirror Django dev server running on port :8002.
-
-To set that up, first edit your hosts file (/etc/hosts or \system32\drivers\etc\hosts) to add the following line:
-
-    127.0.0.1    *.perma.dev
-
-(If you're using Vagrant, this should happen on your host machine. The rest happens in the guest machine.)
-
-Install Twisted:
-
-    pip install twisted
-    
-Launch the simple load balancer and two Django dev servers:
-
-    python manage.py runmirror
-
-You can edit the codebase normally and each server will incorporate your changes.
-
-To see how the mirror emulation works, check out perma_web/mirroring/management/commands/runmirror.py
-
-
 ## Working with Celery
 
 Celery does two things in Perma.cc. It runs the indexing tasks (the things that accept a url and generate an archive) and it runs the scheduled jobs (to gather things nightly like statistics. just like cron might).

@@ -210,9 +210,9 @@ $(function() {
                 showLoadingMessage = false;
                 data.objects.map(function(obj){
                     if(obj.assets && obj.assets.length){
-                        if(obj.assets[0].favicon) obj.favicon_url = settings.DIRECT_MEDIA_URL + obj.assets[0].base_storage_path + '/' + obj.assets[0].favicon;
+                        if(obj.assets[0].favicon) obj.favicon_url = settings.MEDIA_URL + obj.assets[0].base_storage_path + '/' + obj.assets[0].favicon;
                     }
-                    obj.local_url = mirror_server_host + '/' + obj.guid;
+                    obj.local_url = settings.HOST + '/' + obj.guid;
                     obj.can_vest = can_vest;
                     obj.search_query_in_notes = (query && obj.notes.indexOf(query) > -1);
                     obj.url_docs_perma_link_vesting = url_docs_perma_link_vesting;

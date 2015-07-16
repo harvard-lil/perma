@@ -30,14 +30,14 @@
 
         <div class="row link-row" link_id="{{ link.pk }}">
             <div class="col-sm-6">
-                <a href="http://{{request.mirror_server_host}}/{{link.guid}}" target="_blank">http://{{request.mirror_server_host}}/{{link.guid}}</a><br/>
+                <a href="http://{{HOST}}/{{link.guid}}" target="_blank">http://{{HOST}}/{{link.guid}}</a><br/>
                 <a href="{{ link.submitted_url }}" target="_blank" class="original-link">{{ link.submitted_url|truncatechars:200 }}</a><br/>
                 {% if link.vested %}
                     <span class="vested-date">Vested on {{ link.vested_timestamp|local_datetime:"M. j, Y" }}</span>
                 {% else %}
                     <span class="alert-danger">
                         Expires on {{ link.get_expiration_date|local_datetime:"M. j, Y" }} unless
-                        <a href="{% if request.user.can_vest %}http://{{request.mirror_server_host}}/{{link.guid}}{% else %}{% url 'docs_perma_link_vesting' %}{% endif %}">vested</a>
+                        <a href="{% if request.user.can_vest %}http://{{HOST}}/{{link.guid}}{% else %}{% url 'docs_perma_link_vesting' %}{% endif %}">vested</a>
                     </span>
                 {% endif %}
             </div>

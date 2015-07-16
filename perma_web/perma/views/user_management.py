@@ -1,7 +1,7 @@
 import json
 import random, string, logging, time
-from django.core import serializers
 from ratelimit.decorators import ratelimit
+from tastypie.models import ApiKey
 
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login
@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import views as auth_views
 from django.contrib.sites.models import get_current_site
+from django.core import serializers
 from django.core.mail import send_mail
 from django.db.models import Count, Max, Min, Sum
 from django.utils.http import is_safe_url, cookie_date
@@ -20,9 +21,6 @@ from django.core.urlresolvers import reverse
 from django.core.context_processors import csrf
 from django.core.paginator import Paginator
 from django.contrib import messages
-from mirroring.tasks import send_request
-from mirroring.utils import sign_message, sign_post_data
-from tastypie.models import ApiKey
 
 from perma.forms import (
     RegistrarForm, 
@@ -951,24 +949,6 @@ def user_add_organization(request, user_id):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
-def mirrors(request):
-    """
-        List status of mirrors.
-    """
-    mirrors = []
-    for mirror in settings.DOWNSTREAM_SERVERS:
-        out = {'address': mirror['address']}
-        response = send_request(mirror, reverse("mirroring:get_status"), 'POST', data=sign_post_data({}))
-        if response.ok:
-            out['status'] = json.loads(response.content)
-        else:
-            out['error'] = "Error fetching status: %s" % response.response_code
-        mirrors.append(out)
-    return render(request, 'user_management/mirrors.html', {'mirrors':mirrors})
-
-
-@login_required
 def settings_profile(request):
     """
     Settings profile, change name, change email, ...
@@ -1113,17 +1093,16 @@ def account_is_deactivated(request):
     return render_to_response('user_management/deactivated.html', RequestContext(request))
 
 
-def get_mirror_cookie_domain(request):
-    return '.' + request.mirror_server_host.split(':')[0]  # remove port
+def get_sitewide_cookie_domain(request):
+    return '.' + settings.HOST.split(':')[0]  # remove port
 
 
 def logout(request):
     response = auth_views.logout(request, template_name='registration/logout.html')
-    # on logout, delete the mirror cookie
-    cookie_kwargs = {'domain': get_mirror_cookie_domain(request),
+    # on logout, delete the cache bypass cookie
+    cookie_kwargs = {'domain': get_sitewide_cookie_domain(request),
                      'path': settings.SESSION_COOKIE_PATH}
     response.delete_cookie(settings.CACHE_BYPASS_COOKIE_NAME, **cookie_kwargs)
-    response.delete_cookie(settings.MIRROR_COOKIE_NAME, **cookie_kwargs)
     return response
 
 
@@ -1154,11 +1133,8 @@ def limited_login(request, template_name='registration/login.html',
             
           
         if form.is_valid():
-            
-            host = request.get_host()
 
-            if settings.DEBUG == False and settings.TESTING == False:
-                host = settings.HOST
+            host = request.get_host() if settings.DEBUG else settings.HOST
 
             # Ensure the user-originating redirection url is safe.
             if not is_safe_url(url=redirect_to, host=host):
@@ -1169,6 +1145,7 @@ def limited_login(request, template_name='registration/login.html',
 
             response = HttpResponseRedirect(redirect_to)
 
+            # set cache bypass cookie
             # The cookie should last as long as the login cookie, so cookie logic is copied from SessionMiddleware.
             if request.session.get_expire_at_browser_close():
                 max_age = None
@@ -1180,7 +1157,7 @@ def limited_login(request, template_name='registration/login.html',
 
             cookie_kwargs = {'max_age': max_age,
                              'expires': expires,
-                             'domain' : get_mirror_cookie_domain(request),
+                             'domain' : get_sitewide_cookie_domain(request),
                              'path'   : settings.SESSION_COOKIE_PATH}
 
             # Allows cache to be bypass in Cloudflare page rules
@@ -1188,19 +1165,6 @@ def limited_login(request, template_name='registration/login.html',
                                 1,
                                 httponly=False,
                                 **cookie_kwargs)
-
-            if settings.MIRRORING_ENABLED:
-                # Set the user-info cookie for mirror servers.
-                # This will be set by the main server, e.g. //dashboard.perma.cc,
-                # but will be readable by any mirror serving //perma.cc.
-
-                user_info = serializers.serialize("json", [request.user], fields=['registrar','organizations','first_name','last_name','email','is_staff'])
-
-                response.set_cookie(settings.MIRROR_COOKIE_NAME,
-                                    sign_message(user_info),
-                                    secure=False,  # so we can read the cookie on http link playbacks -- this can be changed if we no longer rely on http: links
-                                    httponly=settings.SESSION_COOKIE_HTTPONLY or None,
-                                    **cookie_kwargs)
 
             return response
     else:
@@ -1385,7 +1349,7 @@ def email_new_user(request, user):
             random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(30))
         user.save()
       
-    host = request.get_host() if settings.DEBUG or settings.TESTING else settings.HOST
+    host = request.get_host() if settings.DEBUG else settings.HOST
 
     content = '''To activate your account, please click the link below or copy it to your web browser.  You will need to create a new password.
 
@@ -1408,7 +1372,7 @@ def email_new_organization_user(request, user, org):
     Send email to newly created organization accounts
     """
 
-    host = request.get_host() if settings.DEBUG or settings.TESTING else settings.HOST
+    host = request.get_host() if settings.DEBUG else settings.HOST
 
     content = '''Your Perma.cc account has been associated with %s.  You now manage archives and peers within the organization.  If this is a mistake, visit your account settings page to leave %s.
 
@@ -1429,7 +1393,7 @@ def email_new_registrar_user(request, user):
     Send email to newly created registrar accounts
     """
 
-    host = request.get_host() if settings.DEBUG or settings.TESTING else settings.HOST
+    host = request.get_host() if settings.DEBUG else settings.HOST
 
     content = '''Your Perma.cc account has been associated with %s.  If this is a mistake, visit your account settings page to leave %s.
 
@@ -1454,7 +1418,7 @@ def email_pending_registrar_user(request, user):
             random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(30))
         user.save()
       
-    host = request.get_host() if settings.DEBUG or settings.TESTING else settings.HOST
+    host = request.get_host() if settings.DEBUG else settings.HOST
 
     content = '''We will review your library account request as soon as possible. A personal account has been created for you and will be linked to your library once that account is approved. 
     
@@ -1479,7 +1443,7 @@ def email_registrar_request(request, pending_registrar):
     Send email to Perma.cc admins when a library requests an account
     """
       
-    host = request.get_host() if settings.DEBUG or settings.TESTING else settings.HOST
+    host = request.get_host() if settings.DEBUG else settings.HOST
 
     content = '''A new library account request from %s is awaiting review and approval. 
 
@@ -1502,7 +1466,7 @@ def email_approved_registrar_user(request, user):
     Send email to newly approved registrar accounts for folks requesting library accounts
     """
       
-    host = request.get_host() if settings.DEBUG or settings.TESTING else settings.HOST
+    host = request.get_host() if settings.DEBUG else settings.HOST
 
     content = '''Your request for a Perma.cc library account has been approved and your personal account has been linked. 
     

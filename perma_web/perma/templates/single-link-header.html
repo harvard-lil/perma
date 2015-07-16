@@ -1,5 +1,5 @@
 {% extends "base-archive-responsive.html" %}
-{% load is_darchive local_datetime mirror_tags count_archives pipeline as_json %}
+{% load is_darchive local_datetime count_archives pipeline as_json %}
 {% block title %} | {{archive.submitted_title}}{% endblock %}
 {% block meta-head %}
 <meta name="robots" content="noindex, noarchive, noodp, noimageindex">
@@ -37,7 +37,7 @@
                             <div class="pull-right button-container">
                                 {% if request.user.is_authenticated %}
                                     {% if request.user.can_vest and not archive.vested %}
-                                        <form action="{% main_url 'vest_link' archive.guid %}" method="post">
+                                        <form action="{% url 'vest_link' archive.guid %}" method="post">
                                         {% csrf_token %}
                                             <p class="float-right"><input type="submit" value="Vest site" name="vest" class="btn vest"></p>
                                         </form>

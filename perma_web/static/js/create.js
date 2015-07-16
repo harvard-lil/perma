@@ -56,7 +56,7 @@ $(function() {
 /* Handle the the main action (enter url, hit the button) button - start */
 
 function linkIt(data){
-    new_archive.url = mirror_server_host  + '/' + data.guid;
+    new_archive.url = settings.HOST  + '/' + data.guid;
     new_archive.guid = data.guid;
     new_archive.title = data.title;
     new_archive.static_prefix = settings.STATIC_URL;
@@ -134,7 +134,7 @@ function uploadIt(data) {
     $('#archive-upload').modal('hide');
 
     var upload_image_url = settings.STATIC_URL + '/img/upload-preview.jpg';
-    new_archive.url = mirror_server_host  + '/' + data.guid;
+    new_archive.url = settings.HOST  + '/' + data.guid;
 
     $('#preview-container').html(templates.preview_available_no_upload_option({image_url: upload_image_url, archive_url: new_archive.url}));
 
@@ -163,12 +163,12 @@ function upload_form() {
 
 function get_thumbnail() {
     $.ajax({
-        url: main_server_host + thumbnail_service_url + new_archive.guid,
+        url: thumbnail_service_url + new_archive.guid,
         cache: false
     })
     .done(function(data) {
         $('#preview-container').html(templates.preview_available({
-            image_url: settings.DIRECT_MEDIA_URL + data.thumbnail,
+            image_url: settings.MEDIA_URL + data.thumbnail,
             archive_url: new_archive.url
         })).removeClass('hide').hide().slideDown();
     });

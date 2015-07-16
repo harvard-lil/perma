@@ -13,8 +13,6 @@ from django.template import RequestContext
 from django.core.cache import cache as django_cache
 from django.contrib.auth.decorators import login_required
 
-from mirroring.utils import may_be_mirrored, must_be_mirrored
-
 from perma.models import Link, Asset, Stat
 from perma.utils import get_png_size
 
@@ -95,7 +93,6 @@ def receive_feedback(request):
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
 
 
-@may_be_mirrored
 def link_status(request, guid):
     """
     A service that provides the state of a perma.
@@ -299,7 +296,6 @@ def bookmarklet_create(request):
     add_url = add_url + querystring
     return redirect(add_url)
 
-@must_be_mirrored
 def image_wrapper(request, guid):
     """
     When we display an image, our display logic is greatly simplified if we

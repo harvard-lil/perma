@@ -37,12 +37,6 @@ def post_process_settings(settings):
             'task': 'monitor.tasks.delete_screencaps',
             'schedule': crontab(minute='35', hour='*/2'),  # every other hour
         },
-
-        # mirror server
-        'mirror-integrity-check': {
-            'task': 'mirroring.tasks.integrity_check',
-            'schedule': crontab(minute='*/5'),  # every five minutes, check a small number of archives
-        },
     }
     settings['CELERYBEAT_SCHEDULE'] = dict(((job, celerybeat_job_options[job]) for job in settings.get('CELERYBEAT_JOB_NAMES', [])),
                                            **settings.get('CELERYBEAT_SCHEDULE', {}))

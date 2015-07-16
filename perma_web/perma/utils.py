@@ -72,25 +72,6 @@ def apply_pagination(request, queryset):
     paginator = Paginator(queryset, settings.MAX_USER_LIST_SIZE)
     return paginator.page(page)
 
-### url manipulation ###
-
-def absolute_url(request, url):
-    """
-        Get absolute URL for relative URL based on request.
-        We wrap Django's version to also check for '//' absolute links.
-    """
-    if url.startswith('//'):
-        return url
-    return request.build_absolute_uri(url)
-
-def direct_media_url(url):
-    """
-        Given a URL that includes MEDIA_URL, convert it to include DIRECT_MEDIA_URL instead if that is set.
-    """
-    if not settings.DIRECT_MEDIA_URL:
-        return url
-    return url.replace(settings.MEDIA_URL, settings.DIRECT_MEDIA_URL, 1)
-
 ### debug toolbar ###
 
 def show_debug_toolbar(request):

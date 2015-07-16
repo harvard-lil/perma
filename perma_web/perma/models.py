@@ -35,9 +35,6 @@ class Registrar(models.Model):
     default_organization = models.OneToOneField('Organization', blank=True, null=True, related_name='default_for_registrars') # each registrar gets a default org
     is_approved = models.BooleanField(default=False)
 
-    # what info to send downstream
-    mirror_fields = ('name', 'email', 'website')
-
     tracker = FieldTracker()
 
     def save(self, *args, **kwargs):
@@ -101,9 +98,6 @@ class Organization(models.Model):
     registrar = models.ForeignKey(Registrar, null=True, related_name="organizations")
     shared_folder = models.OneToOneField('Folder', blank=True, null=True, related_name="organization_")  # related_name isn't used, just set to avoid name collision with Folder.organization
     date_created = models.DateField(auto_now_add=True, null=True)
-
-    # what info to send downstream
-    mirror_fields = ('name', 'registrar')
 
     objects = OrganizationManager()
     tracker = FieldTracker()
@@ -440,11 +434,6 @@ class Link(models.Model):
     folders = models.ManyToManyField(Folder, related_name='links', blank=True, null=True)
     notes = models.TextField(blank=True)
 
-    # what info to send downstream
-    mirror_fields = ('guid', 'submitted_url', 'creation_timestamp', 'submitted_title', 'dark_archived',
-                     'dark_archived_robots_txt_blocked', 'user_deleted', 'user_deleted_timestamp',
-                     'vested', 'vested_timestamp', 'organization')
-
     objects = LinkManager()
     tracker = FieldTracker()
 
@@ -594,12 +583,6 @@ class Asset(models.Model):
         default=False)  # whether the user uploaded this file or we fetched it from the web
     user_upload_file_name = models.CharField(max_length=2100, null=True, blank=True)  # if user upload, the original file name of the upload
 
-    last_integrity_check = models.DateTimeField(blank=True, null=True)  # for a mirror server, the last time our disk assets were checked against upstream
-    integrity_check_succeeded = models.NullBooleanField(blank=True, null=True)      # whether the last integrity check succeeded
-
-    # what info to send downstream
-    mirror_fields = ('link', 'base_storage_path', 'image_capture', 'warc_capture', 'pdf_capture', 'favicon')
-
     tracker = FieldTracker()
 
     CAPTURE_STATUS_PENDING = 'pending'
@@ -637,30 +620,6 @@ class Asset(models.Model):
     def walk_files(self):
         """ Return iterator of all files for this asset. """
         return default_storage.walk(self.base_storage_path)
-
-    def verify_media(self):
-        if settings.MIRROR_SERVER:
-            from mirroring.tasks import background_media_sync
-            urls = []
-            if self.image_capture and '.png' in self.image_capture:
-                urls.append(self.base_url(self.image_capture))
-            if self.pdf_capture and '.pdf' in self.pdf_capture:
-                urls.append(self.base_url(self.pdf_capture))
-            if self.warc_capture and '.warc' in self.warc_capture:
-                urls.append(self.base_url(self.warc_capture))
-
-            missing_urls = [url for url in urls if not default_storage.exists(url)]
-            background_media_sync(paths=missing_urls)
-
-            still_missing_urls = [url for url in missing_urls if not default_storage.exists(url)]
-            if still_missing_urls:
-                logger.error("Verifying media failed for %s: still missing %s." % (self.link_id, still_missing_urls))
-                self.integrity_check_succeeded = False
-            else:
-                self.integrity_check_succeeded = True
-
-            self.last_integrity_check = timezone.now()
-            self.save()
 
 
 #########################

@@ -24,11 +24,6 @@ DATABASES = {
     }
 }
 
-# Because LiveServerTestCase runs with DEBUG = True
-# and some of the mirroring logic depends on that,
-# let's add a reliable flag we can use
-TESTING = False
-
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -237,13 +232,12 @@ TEMPLATE_LOADERS = (
 
 MIDDLEWARE_CLASSES = (
     'perma.middleware.SecurityMiddleware',
-    'api.middleware.APISubdomainMiddleware',  # this should come before MirrorForwardingMiddleware
-    'mirroring.middleware.MirrorForwardingMiddleware',
+    'api.middleware.APISubdomainMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'mirroring.middleware.MirrorAuthenticationMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'perma.middleware.AdminAuthMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
     'perma.middleware.ReadOnlyMiddleware',
@@ -281,7 +275,6 @@ INSTALLED_APPS = (
     'perma',
     'api',
     'monitor',
-    'mirroring',
 
     # third party apps
     'ratelimit',
@@ -431,42 +424,12 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_SEND_TASK_ERROR_EMAILS = True
 
 # Control whether Celery tasks should be run in the background or during a request.
-# This should normally be True, but it might be handy to not use async tasks
-# if you're running a mirror on Heroku or something like that.
+# This should normally be True, but it's handy to not require rabbitmq and celery sometimes.
 RUN_TASKS_ASYNC = True
 
 API_SUBDOMAIN = 'api'
 
-### mirror stuff
-
-MIRRORING_ENABLED = False           # whether to use mirroring features
-MIRROR_SERVER = False               # whether we are a mirror
-MIRROR_COOKIE_NAME = 'user_info'
 CACHE_BYPASS_COOKIE_NAME = 'bypass_cache'
-DASHBOARD_SUBDOMAIN = 'dashboard'
-DIRECT_MEDIA_URL = MEDIA_URL        # URL to load media from this server in particular -- primarily useful for main server
-SERVER_DISPLAY_NAME = 'default'
-
-# Where to fetch new archives from, if we are a mirror.
-UPSTREAM_SERVER = {}
-## Example:
-# UPSTREAM_SERVER = {
-#     'address':'http://perma.cc',
-#     'headers':{
-#         #'Host':'perma.cc',  # example -- handy if fetching updates over a VPN, where 'address' might be a local IP address instead of domain name
-#     },
-#     'public_key':None,
-# }
-
-# Where to push updates to.
-# Each entry in this list is a dict in the same format as UPSTREAM_SERVER, above.
-# Note that we can have both an upstream and downstream servers if this and UPSTREAM_SERVER are set.
-DOWNSTREAM_SERVERS = []
-
-# signing/encryption
-GPG_DIRECTORY = None  # use default
-GPG_PUBLIC_KEY = None
-GPG_PRIVATE_KEY = None
 
 # internet archive stuff
 UPLOAD_TO_INTERNET_ARCHIVE = False
@@ -503,9 +466,7 @@ API_VERSION = 1
 TEMPLATE_VISIBLE_SETTINGS = (
     'API_VERSION',
     'SECURE_SSL_REDIRECT',
-    'DIRECT_MEDIA_URL',
-    'MIRRORING_ENABLED',
-    'SERVER_DISPLAY_NAME',
+    'HOST',
 )
 
 TASTYPIE_DEFAULT_FORMATS = ['json']
