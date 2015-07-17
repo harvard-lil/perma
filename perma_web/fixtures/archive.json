@@ -137,52 +137,95 @@
             "organization": null
         }
     },
-    {
-        "pk": 1,
-        "model": "perma.asset",
-        "fields": {
-            "warc_capture": "pending",
-            "favicon": null,
-            "image_capture": "cap.png",
-            "pdf_capture": null,
-            "link": "JJ3S-2Q5N",
-            "base_storage_path": "2014/6/16/19/22/JJ3S-2Q5N"
-        }
+  {
+    "fields": {
+      "status": "pending",
+      "url": "http://dolekemp96.org",
+      "user_upload": false,
+      "record_type": "response",
+      "role": "primary",
+      "content_type": null,
+      "link": "JJ3S-2Q5N"
     },
-    {
-        "pk": 2,
-        "model": "perma.asset",
-        "fields": {
-            "warc_capture": null,
-            "favicon": null,
-            "image_capture": null,
-            "pdf_capture": "cap.pdf",
-            "link": "7CF8-SS4G",
-            "base_storage_path": "2014/6/16/19/23/7CF8-SS4G"
-        }
+    "model": "perma.capture",
+    "pk": 1
+  },
+  {
+    "fields": {
+      "status": "success",
+      "url": "file:///JJ3S-2Q5N/cap.png",
+      "user_upload": false,
+      "record_type": "resource",
+      "role": "screenshot",
+      "content_type": "image/png",
+      "link": "JJ3S-2Q5N"
     },
-    {
-        "pk": 3,
-        "model": "perma.asset",
-        "fields": {
-            "warc_capture": "archive.warc.gz",
-            "favicon": null,
-            "image_capture": "cap.png",
-            "pdf_capture": null,
-            "link": "3SLN-JHX9",
-            "base_storage_path": "2014/12/7/18/55/3SLN-JHX9"
-        }
+    "model": "perma.capture",
+    "pk": 2
+  },
+  {
+    "fields": {
+      "status": "success",
+      "url": "http://arxiv.org/pdf/1406.3611.pdf",
+      "user_upload": false,
+      "record_type": "response",
+      "role": "primary",
+      "content_type": "application/pdf",
+      "link": "7CF8-SS4G"
     },
-    {
-        "pk": 4,
-        "model": "perma.asset",
-        "fields": {
-            "warc_capture": "archive.warc.gz",
-            "favicon": null,
-            "image_capture": "cap.png",
-            "pdf_capture": null,
-            "link": "UU32-XY8I",
-            "base_storage_path": "2014/12/7/18/55/UU32-XY8I"
-        }
-    }
+    "model": "perma.capture",
+    "pk": 3
+  },
+  {
+    "fields": {
+      "status": "success",
+      "url": "http://metafilter.com",
+      "user_upload": false,
+      "record_type": "response",
+      "role": "primary",
+      "content_type": "text/html",
+      "link": "3SLN-JHX9"
+    },
+    "model": "perma.capture",
+    "pk": 4
+  },
+  {
+    "fields": {
+      "status": "success",
+      "url": "file:///3SLN-JHX9/cap.png",
+      "user_upload": false,
+      "record_type": "resource",
+      "role": "screenshot",
+      "content_type": "image/png",
+      "link": "3SLN-JHX9"
+    },
+    "model": "perma.capture",
+    "pk": 5
+  },
+  {
+    "fields": {
+      "status": "success",
+      "url": "https://www.wikipedia.org/",
+      "user_upload": false,
+      "record_type": "response",
+      "role": "primary",
+      "content_type": "text/html",
+      "link": "UU32-XY8I"
+    },
+    "model": "perma.capture",
+    "pk": 6
+  },
+  {
+    "fields": {
+      "status": "success",
+      "url": "file:///UU32-XY8I/cap.png",
+      "user_upload": false,
+      "record_type": "resource",
+      "role": "screenshot",
+      "content_type": "image/png",
+      "link": "UU32-XY8I"
+    },
+    "model": "perma.capture",
+    "pk": 7
+  }
 ]

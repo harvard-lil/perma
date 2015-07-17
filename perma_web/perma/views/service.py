@@ -1,8 +1,6 @@
-import json, os, logging, csv, hashlib
-from sorl.thumbnail import get_thumbnail as sorl_get_thumbnail
+import json, logging, csv
 
 from django.conf import settings
-from django.core.files.storage import default_storage
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.http import Http404
@@ -10,12 +8,9 @@ from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect, render_to_response
 from django.template import RequestContext
-from django.core.cache import cache as django_cache
 from django.contrib.auth.decorators import login_required
 
-from perma.models import Link, Asset, Stat
-from perma.utils import get_png_size
-
+from perma.models import Link, Stat
 
 
 logger = logging.getLogger(__name__)
@@ -91,30 +86,6 @@ def receive_feedback(request):
     response_object = {'submitted': 'true', 'content': content}
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
-
-
-def link_status(request, guid):
-    """
-    A service that provides the state of a perma.
-    TODO: this should obviously become part of an API, we probably also want to evaluate some long polling
-    approach?
-    """
-    target_link = get_object_or_404(Link, guid=guid)
-    target_asset = get_object_or_404(Asset, link=target_link)
-    
-    response_object = {"path": target_asset.base_storage_path,
-            "source_capture": target_asset.warc_capture, "image_capture": target_asset.image_capture,
-            "pdf_capture": target_asset.pdf_capture,
-            "vested": target_link.vested,
-            "dark_archived": target_link.dark_archived,
-            "submitted_title":target_link.submitted_title}
-
-    data = json.dumps(response_object)
-    if 'callback' in request.REQUEST:
-        # jsonp response
-        data = '%s(%s);' % (request.REQUEST['callback'], data)
-    return HttpResponse(data, content_type="application/json", status=200)
-
 
 def stats_users(request):
     """
@@ -315,55 +286,18 @@ def image_wrapper(request, guid):
     return render_to_response('image_wrapper.html', {'asset': asset}, RequestContext(request))
 
 @login_required
-def get_thumbnail(request, guid=None):
+def get_thumbnail(request, guid):
     """
-    This is our thumbnailing service. Pass it the guid of an archive and 
-    a size and get back a URL for the thumbnail.
-
-    This is a pretty basic, naive implemention and we may want to outsource
-    this at some point to imgix or thumbor or some other service.
+        This is our thumbnailing service. Pass it the guid of an archive and get back the thumbnail.
     """
 
-    # Is this a guid we know about?
-    target_link = get_object_or_404(Link, guid=guid)
-    target_asset = get_object_or_404(Asset, link=target_link)
+    link = get_object_or_404(Link, guid=guid)
 
-    # Get size
-    allowed_sizes = {'small': '200', 'medium': '600'}
-    size = allowed_sizes.get(request.GET.get('size', 'medium'), '600')
-
-    # Have we recently received a thumbnail request for this?
-    # If so, let's assume we're still processing it
-    cache_key = 'thumbnail-%s-%s' % (size, hashlib.sha256(guid).hexdigest())
-    if django_cache.get(cache_key):
+    if link.thumbnail_status == 'generating':
         return HttpResponse(status=202)
 
-    django_cache.set(cache_key, True)
-    try:
+    thumbnail_contents = link.get_thumbnail()
+    if not thumbnail_contents:
+        raise Http404
 
-        # Try to create a thumbnail. We need to make sure that our archiving
-        # tasks aren't still going though. So, don't thumbnail if we see
-        # 'pending' statuses.
-        thumbnail_url = ''
-        if target_asset.image_capture and target_asset.image_capture != 'pending' and target_asset.image_capture != 'failed':
-            image_path = os.path.join(target_asset.base_storage_path, target_asset.image_capture)
-
-            try:
-                # enforce max image size limit
-                image_size = get_png_size(default_storage.open(image_path))
-                print "Image size: ", image_size
-                if image_size[0]*image_size[1] > settings.MAX_IMAGE_SIZE:
-                    logger.info("Can't generate thumbnail -- image is too large.")
-
-                else:
-                    thumbnail = sorl_get_thumbnail(image_path, size)
-                    thumbnail_url = thumbnail.url.replace(settings.MEDIA_URL, '', 1)
-
-            except (IOError, ValueError):
-                logger.info("Thumbnail creation failed.")
-
-        data = json.dumps({"thumbnail": thumbnail_url,})
-        return HttpResponse(data, content_type="application/json")
-
-    finally:
-        django_cache.delete(cache_key)
+    return HttpResponse(thumbnail_contents.read(), content_type='image/png')

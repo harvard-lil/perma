@@ -1,5 +1,4 @@
 import json
-import os
 
 from django.conf import settings
 from django.conf.urls import url
@@ -7,7 +6,6 @@ from django.core.urlresolvers import NoReverseMatch
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
-from django.core.files.storage import default_storage
 
 from extendedmodelresource import ExtendedModelResource
 from mptt.exceptions import InvalidMove
@@ -26,10 +24,10 @@ from validations import (LinkValidation,
 
 from perma.models import (LinkUser,
                           Link,
-                          Asset,
                           Folder,
                           Organization,
-                          Registrar)
+                          Registrar,
+                          Capture)
 
 from authentication import (DefaultAuthentication,
                             CurrentUserAuthentication)
@@ -42,7 +40,7 @@ from authorizations import (FolderAuthorization,
 
 # LinkResource
 from perma.utils import run_task
-from perma.tasks import get_pdf, proxy_capture, upload_to_internet_archive
+from perma.tasks import proxy_capture, upload_to_internet_archive
 
 
 
@@ -247,16 +245,20 @@ class FolderResource(DefaultResource):
             self.raise_error_response(bundle, {"parent":e.args[0]})
 
 
-class AssetResource(DefaultResource):
-    base_storage_path = fields.CharField(attribute='base_storage_path', null=True, blank=True)
-    favicon = fields.CharField(attribute='favicon', null=True, blank=True)
-    image_capture = fields.CharField(attribute='image_capture', null=True, blank=True)
-    warc_capture = fields.CharField(attribute='warc_capture', null=True, blank=True)
-    pdf_capture = fields.CharField(attribute='pdf_capture', null=True, blank=True)
+class CaptureResource(DefaultResource):
+    role = fields.CharField(attribute='role', null=True, blank=True)
+    status = fields.CharField(attribute='status', null=True, blank=True)
+    url = fields.CharField(attribute='url', null=True, blank=True)
+    record_type = fields.CharField(attribute='record_type', null=True, blank=True)
+    content_type = fields.CharField(attribute='content_type', null=True, blank=True)
+    user_upload = fields.BooleanField(attribute='user_upload', null=True, blank=True)
+
+    # calculated fields
+    playback_url = fields.CharField(attribute='playback_url', null=True, blank=True)
 
     class Meta(DefaultResource.Meta):
-        resource_name = 'assets'
-        queryset = Asset.objects.all()
+        resource_name = 'captures'
+        queryset = Capture.objects.all()
         filtering = {'archive': ['exact']}
 
     def dehydrate_archive(self, bundle):
@@ -292,15 +294,15 @@ class BaseLinkResource(MultipartResource, DefaultResource):
     dark_archived_robots_txt_blocked = fields.BooleanField(attribute='dark_archived_robots_txt_blocked', blank=True, default=False)
     expiration_date = fields.DateTimeField(attribute='get_expiration_date', readonly=True)
     organization = fields.ForeignKey(OrganizationResource, 'organization', full=True, blank=True, null=True)
-    assets = fields.ToManyField(AssetResource, 'assets', readonly=True, full=True)
+    captures = fields.ToManyField(CaptureResource, 'captures', readonly=True, full=True)
 
     class Meta(DefaultResource.Meta):
         resource_name = 'archives'
         queryset = Link.objects.all().order_by('-creation_timestamp')  # default order
         validation = LinkValidation()
 
-    class Nested:
-        assets = fields.ToManyField(AssetResource, 'assets')
+    # class Nested:
+    #     captures = fields.ToManyField(CaptureResource, 'captures')
 
     def apply_filters(self, request, applicable_filters):
         base_object_list = super(BaseLinkResource, self).apply_filters(request, applicable_filters)
@@ -422,40 +424,49 @@ class LinkResource(AuthenticatedLinkResource):
 
         # Runs validation (exception thrown if invalid), sets properties and saves the object
         bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user)
-        asset = Asset(link=bundle.obj)
+        link = bundle.obj
 
         uploaded_file = bundle.data.get('file')
         if uploaded_file:
             # normalize file name to upload.jpg, upload.png, upload.gif, or upload.pdf
             mime_type = get_mime_type(uploaded_file.name)
             file_name = 'upload.%s' % mime_type_lookup[mime_type]['new_extension']
-            file_path = os.path.join(asset.base_storage_path, file_name)
+            warc_url = "file:///%s/%s" % (link.guid, file_name)
+
+            capture = Capture(link=link,
+                              role='primary',
+                              status='success',
+                              record_type='resource',
+                              user_upload='True',
+                              content_type=mime_type,
+                              url=warc_url)
 
             uploaded_file.file.seek(0)
-            file_name = default_storage.store_file(uploaded_file, file_path)
+            capture.write_warc_resource_record(uploaded_file)
+            capture.save()
 
-            if mime_type == 'application/pdf':
-                asset.pdf_capture = file_name
-            else:
-                asset.image_capture = file_name
-            asset.user_upload = True
-            asset.user_upload_file_name = uploaded_file.name
-            asset.save()
         else:
-            asset.image_capture = Asset.CAPTURE_STATUS_PENDING
-            # If it appears as if we're trying to archive a PDF, only run our PDF retrieval tool
-            if asset.link.media_type == 'pdf':
-                asset.pdf_capture = Asset.CAPTURE_STATUS_PENDING
-                task = get_pdf
-            else:  # else, it's not a PDF. Let's try our best to retrieve what we can
-                asset.warc_capture = Asset.CAPTURE_STATUS_PENDING
-                task = proxy_capture
+            # create primary capture placeholder
+            Capture(
+                link=link,
+                role='primary',
+                status='pending',
+                record_type='response',
+                url=link.submitted_url,
+            ).save()
 
-            asset.save()
-            run_task(task.s(asset.link.guid,
-                            asset.link.submitted_url,
-                            asset.base_storage_path,
-                            bundle.request.META.get('HTTP_USER_AGENT', '')))
+            # create screenshot placeholder
+            Capture(
+                link=link,
+                role='screenshot',
+                status='pending',
+                record_type='resource',
+                url="file:///%s/cap.png" % link.guid,
+                content_type='image/png',
+            ).save()
+
+            # kick off capture task
+            run_task(proxy_capture.s(link.guid, bundle.request.META.get('HTTP_USER_AGENT', '')))
 
         return bundle
 

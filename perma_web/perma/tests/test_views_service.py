@@ -49,30 +49,3 @@ class ServiceViewsTestCase(PermaTestCase):
         self.assertEqual('true', jsoned_response['submitted'])
         self.assertIsNotNone(jsoned_response['content'])
 
-    def test_link_status(self):
-        """During link creation we can poll the link for its status"""
-
-        response = self.client.get(reverse('service_link_status', kwargs={'guid': 'JJ3S-2Q5N',}))
-        self.assertEqual(response.status_code, 200)
-
-        jsoned_response = json.loads(response.content)
-        self.assertIsNotNone(jsoned_response['path'])
-        self.assertIsNotNone(jsoned_response['source_capture'])
-        self.assertIsNotNone(jsoned_response['image_capture'])
-        self.assertIsNone(jsoned_response['pdf_capture'])
-        self.assertEqual(False, jsoned_response['vested'])
-        self.assertEqual(False, jsoned_response['dark_archived'])
-
-        response = self.client.get(reverse('service_link_status', kwargs={'guid': '7CF8-SS4G',}))
-        self.assertEqual(response.status_code, 200)
-
-        jsoned_response = json.loads(response.content)
-        self.assertIsNotNone(jsoned_response['path'])
-        self.assertIsNone(jsoned_response['source_capture'])
-        self.assertIsNone(jsoned_response['image_capture'])
-        self.assertIsNotNone(jsoned_response['pdf_capture'])
-        self.assertEqual(False, jsoned_response['vested'])
-        self.assertEqual(False, jsoned_response['dark_archived'])
-
-        response = self.client.get(reverse('service_link_status', kwargs={'guid': '7CF8-JJJJ',}))
-        self.assertEqual(response.status_code, 404)

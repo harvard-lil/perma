@@ -1,6 +1,7 @@
 import StringIO
 import os
 import re
+from pywb.rewrite.header_rewriter import HeaderRewriter
 from surt import surt
 
 # configure Django
@@ -29,7 +30,7 @@ from pywb.webapp.views import add_env_globals, MementoTimemapView
 from pywb.webapp.pywb_init import create_wb_router
 from pywb.utils.wbexception import NotFoundException
 
-from perma.models import CDXLine, Asset, Link
+from perma.models import CDXLine, Link
 
 # Assumes post November 2013 GUID format
 GUID_REGEX = r'([a-zA-Z0-9]+(-[a-zA-Z0-9]+)+)'
@@ -49,7 +50,7 @@ class PermaRoute(archivalrouter.Route):
         except Link.DoesNotExist:
             raise NotFoundException()
 
-        lines = CDXLine.objects.filter(urlkey=urlkey, asset__link_id=guid)
+        lines = CDXLine.objects.filter(urlkey=urlkey, link_id=guid)
 
         # Legacy archives didn't generate CDXLines during
         # capture so generate them on demand if not found, unless
@@ -57,12 +58,15 @@ class PermaRoute(archivalrouter.Route):
         # B: we know other cdx lines have already been generated
         #    and the requested line is simply missing
         if lines.count() == 0:
-            asset = Asset.objects.get(link_id=guid)
-            if asset.warc_capture in [Asset.CAPTURE_STATUS_PENDING, Asset.CAPTURE_STATUS_FAILED] or asset.cdx_lines.count() > 0:
+            if link.cdx_lines.count() > 0:
                 raise NotFoundException()
 
-            CDXLine.objects.create_all_from_asset(asset)
-            lines = CDXLine.objects.filter(urlkey=urlkey, asset__link_id=guid)
+            # TEMP: remove after all legacy warcs have been exported
+            if not default_storage.exists(link.warc_storage_file()):
+                link.export_warc()
+
+            CDXLine.objects.create_all_from_link(link)
+            lines = CDXLine.objects.filter(urlkey=urlkey, link_id=guid)
             if not len(lines):
                 raise NotFoundException()
 
@@ -248,7 +252,7 @@ class PermaCDXSource(CDXSource):
 
         filters = {'urlkey': query.key}
         if query.params.get('guid'):
-            filters['asset__link_id'] = query.params.get('guid')
+            filters['link_id'] = query.params.get('guid')
 
         return CDXLine.objects.filter(**filters).values_list('raw', flat=True)
 
@@ -277,6 +281,21 @@ class CachedLoader(BlockLoader):
             return LimitReader(afile, length)
         else:
             return afile
+
+
+# Monkey patch HeaderRewriter to remove the content-disposition header
+# if content-type is PDF, so that PDFs display in the browser instead of downloading.
+orig_HeaderRewriter_rewrite = HeaderRewriter.rewrite
+def new_rewrite(self, status_headers, urlrewriter, cookie_rewriter):
+    result = orig_HeaderRewriter_rewrite(self, status_headers, urlrewriter, cookie_rewriter)
+    if status_headers.get_header('Content-Type') == 'application/pdf':
+        content_disposition = status_headers.get_header('Content-Disposition')
+        if content_disposition and 'attachment' in content_disposition:
+            result.status_headers.headers = [h for h in result.status_headers.headers if h[0].lower() != 'content-disposition']
+            result.removed_header_dict['content-disposition'] = content_disposition
+            result.status_headers.headers.append((self.header_prefix + 'Content-Disposition', content_disposition))
+    return result
+HeaderRewriter.rewrite = new_rewrite
 
 
 # =================================================================

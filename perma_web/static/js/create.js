@@ -47,6 +47,7 @@ $(function() {
     $('#dashboard-users').click(function(){
         $('.users-secondary').toggle();
     });
+
 });
 
 /* Everything that needs to happen at page load - end */
@@ -162,16 +163,10 @@ function upload_form() {
 /* Handle the thumbnail fetching - start */
 
 function get_thumbnail() {
-    $.ajax({
-        url: thumbnail_service_url + new_archive.guid,
-        cache: false
-    })
-    .done(function(data) {
-        $('#preview-container').html(templates.preview_available({
-            image_url: settings.MEDIA_URL + data.thumbnail,
-            archive_url: new_archive.url
-        })).removeClass('hide').hide().slideDown();
-    });
+    $('#preview-container').html(templates.preview_available({
+        image_url: thumbnail_service_url.replace('GUID', new_archive.guid),
+        archive_url: new_archive.url
+    })).removeClass('hide').hide().slideDown();
 }
 
 /* Handle the thumbnail fetching - end */
@@ -200,43 +195,50 @@ function check_status() {
     var request = apiRequest("GET", "/archives/" + new_archive.guid + "/", {'cache': false});
 
     request.done(function(data) {
-        var asset = data.assets[0];
+        var capturesPending = false,
+            capturesSucceeded = false;
+        $.each(data.captures, function(i, capture){
+            if(capture.status == 'pending') capturesPending = true;
+            if(capture.status == 'success') capturesSucceeded = true;
+        });
 
-        if (asset.image_capture !== 'pending') {
+        // We're done checking status when nothing is pending.
+        if(capturesSucceeded || !capturesPending){
+
             // Clear out our pending jobs
             $.each(refreshIntervalIds, function(ndx, id) {
                 clearInterval(id);
             });
 
-            // If we don't have an image capture for a preview ...
-            if(asset.image_capture == 'failed'){
-
-                // ... but another capture succeeded, show the success template with no image_url.
-                if((asset.pdf_capture && asset.pdf_capture != 'failed') || (asset.warc_capture && asset.warc_capture != 'failed')) {
-                    $('#preview-container').html(templates.preview_available({
-                        image_url: null,
-                        archive_url: new_archive.url
-                    })).removeClass('hide').hide().slideDown();
-
-                // ... and the other captures also failed, show an error message/upload form.
-                }else{
-                    $('#preview-container').html(templates.preview_failure({static_prefix:settings.STATIC_URL}));
-                    $('#steps-container').html(templates.error({
-                        message: "Error: URL capture failed."
-                    }));
-                    $('.preview-row').removeClass('hide').hide().slideDown();
-                }
-
-            }else {
-                // Show success message and thumbnail.
-                get_thumbnail();
+            // If we have at least one success, show success message.
+            if(capturesSucceeded){
                 $('#steps-container').html(templates.success_steps({
                     url: new_archive.url,
                     userguide_url: userguide_url,
                     vesting_privs: vesting_privs
                 })).removeClass('hide').hide().slideDown();
-            }
 
+                $('#preview-container').html(templates.preview_available({
+                    image_url: thumbnail_service_url.replace('GUID', new_archive.guid),
+                    archive_url: new_archive.url
+                })).removeClass('hide').hide().slideDown();
+
+                // Catch failure to load thumbnail, and show thumbnail-not-available message
+                $('.library-thumbnail img').on('error', function() {
+                    $('#preview-container').html(templates.preview_available({
+                        image_url: null,
+                        archive_url: new_archive.url
+                    }));
+                });
+
+            // Else show failure message/upload form.
+            }else {
+                $('#preview-container').html(templates.preview_failure({static_prefix: settings.STATIC_URL}));
+                $('#steps-container').html(templates.error({
+                    message: "Error: URL capture failed."
+                }));
+                $('.preview-row').removeClass('hide').hide().slideDown();
+            }
         }
     });
 }

@@ -8,10 +8,8 @@
         <a href="/{{ link.guid }}" class="cancel-button">Cancel</a> <button type="submit" class="btn delete-confirm btn-success">Delete this link forever</button>
     </div>
     <div class="library-thumbnail user-delete-thumbnail">
-        {% if asset.image_capture and asset.image_capture != 'failed' %}
-            {% if asset.image_capture != 'pending' %}
-                <img src="{{ MEDIA_URL }}{{ asset.image_url }}"/>
-            {% endif %}
+        {% if link.thumbnail_status != 'failed' %}
+            <img src="{% url 'service_get_thumbnail' link.guid %}"/>
         {% endif %}
     </div>
 {% endblock %}

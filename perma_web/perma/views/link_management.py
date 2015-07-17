@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 
-from ..models import Link, Asset, Folder
+from ..models import Link, Folder
 
 logger = logging.getLogger(__name__)
 valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp', 'submitted_title', '-submitted_title']
@@ -91,20 +91,16 @@ def vest_link(request, guid):
 @login_required
 def user_delete_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
-    asset = Asset.objects.get(link=link)
 
     return render(request, 'link-delete-confirm.html', {
         'link': link,
-        'asset': asset,
     })
 
 
 @login_required
 def dark_archive_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
-    asset = Asset.objects.get(link=link)
 
     return render(request, 'dark-archive-link.html', {
         'link': link,
-        'asset': asset,
     })
