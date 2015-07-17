@@ -144,7 +144,7 @@
       "user_upload": false,
       "record_type": "response",
       "role": "primary",
-      "content_type": null,
+      "content_type": "",
       "link": "JJ3S-2Q5N"
     },
     "model": "perma.capture",
