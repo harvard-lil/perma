@@ -57,7 +57,7 @@ class RegistrarAdmin(admin.ModelAdmin):
 class OrganizationAdmin(admin.ModelAdmin):
     fields = ['name', 'registrar']
     search_fields = ['name']
-    list_display = ['name', 'registrar', 'org', 'last_active', 'first_active', 'vested_links']
+    list_display = ['name', 'registrar', 'org_users', 'last_active', 'first_active', 'vested_links']
     list_filter = ['registrar']
     
     # statistics
@@ -108,7 +108,7 @@ class LinkUserAdmin(UserAdmin):
     fieldsets = (
         ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
         (None, {'fields': ('password',)}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'registrar', 'organization')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'registrar', 'organizations')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
     add_fieldsets = (
@@ -126,7 +126,7 @@ class LinkUserAdmin(UserAdmin):
         new_class("CreatedLinksInline", InlineEditLinkMixin, LinkInline, fk_name='created_by', verbose_name_plural="Created Links"),
         new_class("VestedLinksInline", InlineEditLinkMixin, LinkInline, fk_name='vested_by_editor', verbose_name_plural="Vested Links"),
     ]
-    filter_horizontal = ['organization']
+    filter_horizontal = ['organizations']
 
     # statistics
     def get_queryset(self, request):
