@@ -446,7 +446,6 @@ LINK_EXPIRATION_TIME = relativedelta(years=2)
 # If set, warc content must be served from this host.
 # On production, this is highly recommended to be different from hosts in ALLOWED_HOSTS.
 WARC_HOST = None
-DIRECT_WARC_HOST = None     # host to load warc from this server in particular -- primarily useful for main server
 
 # Sorl settings. This relates to our thumbnail creation.
 # The prod and dev configs are considerably different. See those configs for details.
