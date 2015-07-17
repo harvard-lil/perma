@@ -32,7 +32,7 @@ class Registrar(models.Model):
     email = models.EmailField(max_length=254)
     website = models.URLField(max_length=500)
     date_created = models.DateField(auto_now_add=True, null=True)
-    organization = models.OneToOneField('Organization', blank=True, null=True, related_name='default_for_registrars') # each registrar gets a default org
+    default_organization = models.OneToOneField('Organization', blank=True, null=True, related_name='default_for_registrars') # each registrar gets a default org
     is_approved = models.BooleanField(default=False)
 
     # what info to send downstream
@@ -99,7 +99,7 @@ class Organization(models.Model):
     """
     name = models.CharField(max_length=400)
     registrar = models.ForeignKey(Registrar, null=True, related_name="organizations")
-    shared_folder = models.OneToOneField('Folder', blank=True, null=True)
+    shared_folder = models.OneToOneField('Folder', blank=True, null=True, related_name="shared_org_folder")
     date_created = models.DateField(auto_now_add=True, null=True)
 
     # what info to send downstream
@@ -323,7 +323,7 @@ class Folder(MPTTModel):
     owned_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='folders',)
 
     # this will be set if this is inside a shared folder
-    organization = models.ForeignKey(Organization, null=True, blank=True, related_name='folders')
+    organization = models.ForeignKey(Organization, null=True, blank=True, related_name='org_folder')
 
     # true if this is the apex shared folder (not subfolder) for a org
     is_shared_folder = models.BooleanField(default=False)
@@ -343,7 +343,7 @@ class Folder(MPTTModel):
                     self.organization = self.parent.organization
                 else:
                     self.owned_by = self.parent.owned_by
-            if self.created_by and not self.owned_by and not self.organization
+            if self.created_by and not self.owned_by and not self.organization:
                 self.owned_by = self.created_by
 
         parent_has_changed = self.tracker.has_changed('parent_id')
