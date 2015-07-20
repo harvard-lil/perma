@@ -6,13 +6,13 @@
         "disk_usage": 0.0, 
         "global_uniques": 0, 
         "creation_timestamp": "2013-09-06T10:28:44Z", 
-        "vesting_manager_count": 0, 
+        "org_manager_count": 0, 
         "registrar_count": 0, 
         "registrar_member_count": 0, 
         "vested_count": 0, 
         "registry_member_count": 0, 
         "unvested_count": 0, 
-        "vesting_member_count": 0, 
+        "org_member_count": 0, 
         "regular_user_count": 0
     }
 },
@@ -23,13 +23,13 @@
         "disk_usage": 1181116006, 
         "global_uniques": 0, 
         "creation_timestamp": "2013-10-03T10:28:44Z", 
-        "vesting_manager_count": 43, 
+        "org_manager_count": 43, 
         "registrar_count": 0, 
         "registrar_member_count": 19, 
         "vested_count": 49, 
         "registry_member_count": 6, 
         "unvested_count": 483, 
-        "vesting_member_count": 46, 
+        "org_member_count": 46, 
         "regular_user_count": 96
     }
 },
@@ -40,13 +40,13 @@
         "disk_usage": 1181116006, 
         "global_uniques": 0, 
         "creation_timestamp": "2013-10-10T10:28:44Z", 
-        "vesting_manager_count": 49, 
+        "org_manager_count": 49, 
         "registrar_count": 0, 
         "registrar_member_count": 20, 
         "vested_count": 66, 
         "registry_member_count": 6, 
         "unvested_count": 896, 
-        "vesting_member_count": 156, 
+        "org_member_count": 156, 
         "regular_user_count": 97
     }
 },
@@ -57,13 +57,13 @@
         "disk_usage": 6120328396, 
         "global_uniques": 0, 
         "creation_timestamp": "2013-10-28T10:28:44Z", 
-        "vesting_manager_count": 63, 
+        "org_manager_count": 63, 
         "registrar_count": 25, 
         "registrar_member_count": 25, 
         "vested_count": 628, 
         "registry_member_count": 6, 
         "unvested_count": 2245, 
-        "vesting_member_count": 317, 
+        "org_member_count": 317, 
         "regular_user_count": 928
     }
 }

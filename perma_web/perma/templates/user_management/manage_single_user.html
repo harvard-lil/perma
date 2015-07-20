@@ -5,19 +5,19 @@
 <div class="container">
 	<div class="row">
 		<div class="col-sm-12">	
-			{% if vesting_orgs %}
+			{% if orgs %}
                 <div class="vesting-orgs-list-container">
                     <h3>Remove from vesting organization</h3>
-                    <p>{{ target_user.email }} is a member of the following vesting organization{{ vesting_orgs|pluralize }}:</p>
-                    <form action="{% url 'user_management_manage_single_vesting_user_remove' user_id=target_user.id %}" method="POST">
+                    <p>{{ target_user.email }} is a member of the following vesting organization{{ orgs|pluralize }}:</p>
+                    <form action="{% url 'user_management_manage_single_organization_user_remove' user_id=target_user.id %}" method="POST">
                         {% csrf_token %}
-                        {% for vesting_org in vesting_orgs %}
+                        {% for org in orgs %}
                             <div class="row remove-message-container">
                                 <div class="col-xs-4">
-                                    <p>{{ vesting_org.name }}</p>
+                                    <p>{{ org.name }}</p>
                                 </div>
                                 <div class="col-xs-4">
-                                    <button name="vesting_org" value="{{ vesting_org.id }}" class="btn btn-large btn-danger pull-left" data-toggle="tooltip">Remove</button>
+                                    <button name="org" value="{{ org.id }}" class="btn btn-large btn-danger pull-left" data-toggle="tooltip">Remove</button>
                                 </div>
                             </div>
                         {% endfor %}

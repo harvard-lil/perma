@@ -26,9 +26,9 @@ class LinkInline(admin.TabularInline):
 
 class RegistrarAdmin(admin.ModelAdmin):
     search_fields = ['name', 'email', 'website']
-    list_display = ['name', 'email', 'website', 'vested_links', 'registrar_users', 'last_active', 'vesting_orgs_count']
+    list_display = ['name', 'email', 'website', 'vested_links', 'registrar_users', 'last_active', 'orgs_count']
     inlines = [
-        new_class("VestingOrgInline", InlineEditLinkMixin, admin.TabularInline, model=VestingOrg,
+        new_class("OrganizationInline", InlineEditLinkMixin, admin.TabularInline, model=Organization,
                   fields=['name',],
                   can_delete=False),
         new_class("RegistrarUserInline", InlineEditLinkMixin, admin.TabularInline, model=LinkUser,
@@ -39,10 +39,10 @@ class RegistrarAdmin(admin.ModelAdmin):
     # statistics
     def get_queryset(self, request):
         return super(RegistrarAdmin, self).get_queryset(request).annotate(
-            vested_links=Count('vesting_orgs__link',distinct=True),
+            vested_links=Count('orgs__link',distinct=True),
             registrar_users=Count('users', distinct=True),
             last_active=Max('users__last_login', distinct=True),
-            vesting_orgs_count=Count('vesting_orgs',distinct=True)
+            orgs_count=Count('organizations',distinct=True)
         )
     def vested_links(self, obj):
         return obj.vested_links
@@ -50,20 +50,20 @@ class RegistrarAdmin(admin.ModelAdmin):
         return obj.registrar_users
     def last_active(self, obj):
         return obj.last_active
-    def vesting_orgs_count(self, obj):
-        return obj.vesting_orgs_count
+    def orgs_count(self, obj):
+        return obj.orgs_count
 
 
-class VestingOrgAdmin(admin.ModelAdmin):
+class OrganizationAdmin(admin.ModelAdmin):
     fields = ['name', 'registrar']
     search_fields = ['name']
-    list_display = ['name', 'registrar', 'vesting_users', 'last_active', 'first_active', 'vested_links']
+    list_display = ['name', 'registrar', 'org_users', 'last_active', 'first_active', 'vested_links']
     list_filter = ['registrar']
     
     # statistics
     def get_queryset(self, request):
-        return super(VestingOrgAdmin, self).get_queryset(request).select_related('registrar').prefetch_related('users')
-    def vesting_users(self, obj):
+        return super(OrganizationAdmin, self).get_queryset(request).select_related('registrar').prefetch_related('users')
+    def org_users(self, obj):
         return obj.users.count()
     def last_active(self, obj):
         return max(u.last_login for u in obj.users.all()) if obj.users.count() else '-'
@@ -95,9 +95,9 @@ class LinkUserChangeForm(UserChangeForm):
     def clean(self):
         cleaned_data = super(LinkUserChangeForm, self).clean()
 
-        # check that we're not trying to set both a registrar and a vesting org
-        if cleaned_data.get('registrar') and cleaned_data.get('vesting_org'):
-            raise ValidationError("User may have either a vesting org or registrar but not both.")
+        # check that we're not trying to set both a registrar and an org
+        if cleaned_data.get('registrar') and cleaned_data.get('organization'):
+            raise ValidationError("User may have either an org or registrar but not both.")
 
         return cleaned_data
 
@@ -108,7 +108,7 @@ class LinkUserAdmin(UserAdmin):
     fieldsets = (
         ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
         (None, {'fields': ('password',)}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'registrar', 'vesting_org')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'registrar', 'organizations')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
     add_fieldsets = (
@@ -126,7 +126,7 @@ class LinkUserAdmin(UserAdmin):
         new_class("CreatedLinksInline", InlineEditLinkMixin, LinkInline, fk_name='created_by', verbose_name_plural="Created Links"),
         new_class("VestedLinksInline", InlineEditLinkMixin, LinkInline, fk_name='vested_by_editor', verbose_name_plural="Vested Links"),
     ]
-    filter_horizontal = ['vesting_org']
+    filter_horizontal = ['organizations']
 
     # statistics
     def get_queryset(self, request):
@@ -142,7 +142,7 @@ class LinkAdmin(admin.ModelAdmin):
     search_fields = ['guid', 'submitted_url', 'submitted_title']
     fieldsets = (
         (None, {'fields': ('guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp', 'view_count')}),
-        ('Vesting', {'fields': ('vested', 'vested_by_editor', 'vesting_org', 'vested_timestamp')}),
+        ('Vesting', {'fields': ('vested', 'vested_by_editor', 'organization', 'vested_timestamp')}),
         ('Dark Archive', {'fields': ('dark_archived', 'dark_archived_robots_txt_blocked', 'dark_archived_by',)}),
         ('User Delete', {'fields': ('user_deleted', 'user_deleted_timestamp',)}),
         ('Organization', {'fields': ('folders', 'notes')}),
@@ -157,8 +157,8 @@ class LinkAdmin(admin.ModelAdmin):
 
 
 class FolderAdmin(MPTTModelAdmin):
-    list_display = ['name', 'owned_by', 'vesting_org']
-    list_filter = ['owned_by', 'vesting_org']
+    list_display = ['name', 'owned_by', 'organization']
+    list_filter = ['owned_by', 'organization']
 
 
 
@@ -173,6 +173,6 @@ admin.site.unregister(Group)
 # add our models
 admin.site.register(Link, LinkAdmin)
 admin.site.register(LinkUser, LinkUserAdmin)
-admin.site.register(VestingOrg, VestingOrgAdmin)
+admin.site.register(Organization, OrganizationAdmin)
 admin.site.register(Registrar, RegistrarAdmin)
 admin.site.register(Folder, FolderAdmin)

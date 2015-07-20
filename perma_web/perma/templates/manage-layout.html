@@ -19,10 +19,10 @@
             {% endif %}
 
             <li {% if this_page == "users_registrar_users" %}class="active" {% endif %}><a href="{% url 'user_management_manage_registrar_user' %}">Registrar users</a></li>
-            <li {% if this_page == "users_vesting_orgs" %}class="active" {% endif %}><a href="{% url 'user_management_manage_vesting_org' %}">Vesting organizations</a></li>
+            <li {% if this_page == "users_vesting_orgs" %}class="active" {% endif %}><a href="{% url 'user_management_manage_organization' %}">Vesting organizations</a></li>
 
             <!-- Vesting users -->
-            <li {% if this_page == "users_vesting_users" %}class="active" {% endif %}><a href="{% url 'user_management_manage_vesting_user' %}">Vesting users</a></li>
+            <li {% if this_page == "users_organization_users" %}class="active" {% endif %}><a href="{% url 'user_management_manage_organization_user' %}">Vesting users</a></li>
 
             <!-- Regular users -->
             {% if request.user.is_staff %}
@@ -33,7 +33,7 @@
     {% endif %}
 
    <!-- Dashboard tab content -->
-    <div class="tab-content {% if request.user.is_vesting_org_member %}col-sm-12{% else %}col-sm-9{% endif %}">
+    <div class="tab-content {% if request.user.is_organization_member %}col-sm-12{% else %}col-sm-9{% endif %}">
         <div class="tab-pane active">
         {% block content %}{% endblock content %}
         </div><!--/.tab-pane-->

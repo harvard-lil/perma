@@ -131,8 +131,8 @@ def stats_users(request):
     stats = Stat.objects.only(
         'creation_timestamp',
         'regular_user_count',
-        'vesting_member_count',
-        'vesting_manager_count',
+        'org_member_count',
+        'org_manager_count',
         'registrar_member_count',
         'registry_member_count')[:1000]
     
@@ -146,8 +146,8 @@ def stats_users(request):
     
     for stat in stats:
         writer.writerow(['Regular user', stat.regular_user_count, stat.creation_timestamp.strftime('%d-%b-%y')])
-        writer.writerow(['Vesting member', stat.vesting_member_count, stat.creation_timestamp.strftime('%d-%b-%y')])
-        writer.writerow(['Vesting manager', stat.vesting_manager_count, stat.creation_timestamp.strftime('%d-%b-%y')])
+        writer.writerow(['Vesting member', stat.org_member_count, stat.creation_timestamp.strftime('%d-%b-%y')])
+        writer.writerow(['Vesting manager', stat.org_manager_count, stat.creation_timestamp.strftime('%d-%b-%y')])
         writer.writerow(['Registrar member', stat.registrar_member_count, stat.creation_timestamp.strftime('%d-%b-%y')])
         writer.writerow(['Registry member', stat.registry_member_count, stat.creation_timestamp.strftime('%d-%b-%y')])
     
@@ -232,7 +232,7 @@ def stats_storage(request):
 
     return response
     
-def stats_vesting_org(request):
+def stats_org(request):
     """
     Retrieve nightly stats for total number of vesting orgs, dump them out here so that our D3 vis can render them, real-purty-like
 
@@ -241,7 +241,7 @@ def stats_vesting_org(request):
 
     # Get the 1000 most recent.
     # TODO: if we make it more than a 1000 days, implement some better interface.
-    stats = Stat.objects.only('vesting_org_count')[:1000]
+    stats = Stat.objects.only('org_count')[:1000]
 
     response = HttpResponse()
     response['Content-Disposition'] = 'attachment; filename="data.tsv"'
@@ -252,7 +252,7 @@ def stats_vesting_org(request):
     writer.writerow(headers)
 
     for stat in stats:
-        writer.writerow([stat.creation_timestamp.strftime('%d-%b-%y'), stat.vesting_org_count])
+        writer.writerow([stat.creation_timestamp.strftime('%d-%b-%y'), stat._count])
 
     return response
     
