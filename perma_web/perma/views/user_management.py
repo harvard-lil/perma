@@ -485,6 +485,12 @@ def list_users_in_group(request, group_name):
             users = users.filter(is_confirmed=True, is_active=False)
         elif status == 'unactivated':
             users = users.filter(is_confirmed=False, is_active=False)
+            
+    # handle upgrade filter
+    upgrade = request.GET.get('upgrade', '')
+    if upgrade:
+        sort_url = '{sort_url}&upgrade={upgrade}'.format(sort_url=sort_url, upgrade=upgrade)
+        users = users.filter(requested_account_type=upgrade)
         
     # handle vesting org filter
     vesting_org_filter = request.GET.get('vesting_org', '')
@@ -536,6 +542,7 @@ def list_users_in_group(request, group_name):
         'registrar_filter': registrar_filter,
         'vesting_org_filter': vesting_org_filter,
         'status': status,
+        'upgrade': upgrade,
         'sort_url': sort_url
     }
     context['pretty_group_name_plural'] = context['pretty_group_name'] + "s"
@@ -1498,7 +1505,7 @@ def sign_up_journals(request):
             new_user = form.save(commit=False)
             new_user.backend='django.contrib.auth.backends.ModelBackend'
             new_user.is_active = False
-            new_user.requested_account_type = 'journals'
+            new_user.requested_account_type = 'journal'
             new_user.save()
             
             email_new_user(request, new_user)
