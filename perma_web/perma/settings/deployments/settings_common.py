@@ -512,6 +512,7 @@ TEMPLATE_VISIBLE_SETTINGS = (
 )
 
 TASTYPIE_DEFAULT_FORMATS = ['json']
+TASTYPIE_FULL_DEBUG = True  # Better Tastypie error handling for debugging. Only has an effect when DEBUG=True.
 
 # Schedule celerybeat jobs.
 # These will be added to CELERYBEAT_SCHEDULE in settings.utils.post_processing

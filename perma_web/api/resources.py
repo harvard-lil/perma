@@ -122,7 +122,7 @@ class DefaultResource(ExtendedModelResource):
             return self.error_response(request, {
                 'error_message':"Perma is in read only mode for scheduled maintenance. Please try again shortly."
             })
-        super(DefaultResource, self)._handle_500(request, exception)
+        return super(DefaultResource, self)._handle_500(request, exception)
 
 
 # via: http://stackoverflow.com/a/14134853/313561
@@ -410,7 +410,6 @@ class LinkResource(AuthenticatedLinkResource):
         # We create a new entry in our datastore and pass the work off to our indexing
         # workers. They do their thing, updating the model as they go. When we get some minimum
         # set of results we can present the user (a guid for the link), we respond back.
-
         if settings.READ_ONLY_MODE:
             raise ImmediateHttpResponse(response=self.error_response(bundle.request, {
                 'archives': {'__all__': "Perma has paused archive creation for scheduled maintenance. Please try again shortly."},
