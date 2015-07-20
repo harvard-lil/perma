@@ -90,7 +90,7 @@ class LinkValidationTestCase(ApiResourceTestCase):
     # Required Fields #
     ###################
 
-    def test_should_reject_vest_when_vesting_org_not_found(self):
+    def test_should_reject_vest_when_org_not_found(self):
         self.rejected_patch(self.unvested_url,
                             user=self.vesting_member,
                             data={'vested': True,
@@ -103,7 +103,7 @@ class LinkValidationTestCase(ApiResourceTestCase):
                             data={'vested': True,
                                   'organization': 1})
 
-    def test_should_reject_vest_when_folder_doesnt_belong_to_vesting_org(self):
+    def test_should_reject_vest_when_folder_doesnt_belong_to_org(self):
         self.rejected_patch(self.unvested_url,
                             user=self.vesting_member,
                             data={'vested': True,

@@ -1,14 +1,14 @@
 $(function(){
 
-    var $select_vesting_org_form = $("#select-vesting-org-form"),
+    var $select_organization_form = $("#select-vesting-org-form"),
         $select_folder_form = $("#select-folder-form"),
-        $vesting_org_select = $select_vesting_org_form.find("select[name='vesting_org']"),
+        $organization_select = $select_organization_form.find("select[name='organization']"),
         $folder_select = $select_folder_form.find("select[name='folder']");
 
-    var select_folder = function(vesting_org){
-        $select_folder_form.find(".vesting-org-name").text(vesting_org.name);
+    var select_folder = function(organization){
+        $select_folder_form.find(".vesting-org-name").text(organization.name);
         $select_folder_form.show();
-        apiRequest("GET", "/user/organizations/" + vesting_org.id + "/folders/")
+        apiRequest("GET", "/user/organizations/" + organization.id + "/folders/")
             .success(function(data){
 
                 // build folder lookup
@@ -55,17 +55,17 @@ $(function(){
             });
             data.objects = sorted;
             var optgroup = data.objects[0].registrar;
-            $vesting_org_select.append($("<optgroup>").attr('label', optgroup));
+            $organization_select.append($("<optgroup>").attr('label', optgroup));
             if (data.objects.length > 1) {
-                data.objects.map(function (vesting_org) {
-                    if(vesting_org.registrar !== optgroup) {
-                        optgroup = vesting_org.registrar;
-                        $vesting_org_select.append($("<optgroup>").attr('label', optgroup));
+                data.objects.map(function (organization) {
+                    if(organization.registrar !== optgroup) {
+                        optgroup = organization.registrar;
+                        $organization_select.append($("<optgroup>").attr('label', optgroup));
                     }
-                    $vesting_org_select.append($("<option>").val(vesting_org.id).text(vesting_org.name));
+                    $organization_select.append($("<option>").val(organization.id).text(organization.name));
                 });
-                $select_vesting_org_form.show();
-                $("#vesting_org_select").val(selected_vesting_org);
+                $select_organization_form.show();
+                $("#organization_select").val(selected_organization);
             } else if (data.objects.length == 1) {
                 select_folder(data.objects[0]);
             } else {
@@ -76,9 +76,9 @@ $(function(){
             }
         });
 
-    $select_vesting_org_form.find("button").click(function(){
-        $select_vesting_org_form.hide();
-        select_folder({id: $vesting_org_select.val(), name: $vesting_org_select.find(":selected").text()});
+    $select_organization_form.find("button").click(function(){
+        $select_organization_form.hide();
+        select_folder({id: $organization_select.val(), name: $organization_select.find(":selected").text()});
         return false;
     });
     

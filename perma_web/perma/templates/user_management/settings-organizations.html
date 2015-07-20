@@ -10,9 +10,9 @@
         {% endfor %}
         {% endif %}
 		<div class="sponsoring-library-info">
-            {% with request.user.organizations as vesting_org %}
+            {% with request.user.organizations as organization %}
                 <h5>Your sponsoring library and organization(s)</h5>
-                    {% for vo in vesting_org.all %}
+                    {% for vo in organization.all %}
                     {% with vo.registrar as registrar %}
                         <p>
                             {% if registrar.website %}

@@ -1,5 +1,5 @@
 {% extends "manage-layout.html" %}
-{% load local_datetime humanize current_query_string visible_vesting_orgs %}
+{% load local_datetime humanize current_query_string visible_organizations %}
 {% block title %} | {{ pretty_group_name_plural }}{% endblock %}
 
 {% block content %}
@@ -64,10 +64,10 @@
                 <p class="count-number">{{ total_vested_links_count.count|default:0|intcomma }}</p>
             </div>
         </div>
-        {% if registrar_filter.name or vesting_org_filter.name or status or search_query %}
+        {% if registrar_filter.name or org_filter.name or status or search_query %}
         <div class="row">
             <div class="col-sm-12">
-                <a class="remove-search-filters" href="?sort=last_name"><i class="icon-remove-sign"></i> Clear{% if registrar_filter %} registrar:<strong>{{registrar_filter}}</strong>{% endif %}{% if vesting_org_filter %} vesting organization:<strong>{{vesting_org_filter}}</strong>{% endif %}{% if status %} status:<strong>{{status}}</strong>{% endif %}{% if search_query %} search:<strong>{{search_query}}</strong>{% endif %}</a>
+                <a class="remove-search-filters" href="?sort=last_name"><i class="icon-remove-sign"></i> Clear{% if registrar_filter %} registrar:<strong>{{registrar_filter}}</strong>{% endif %}{% if org_filter %} vesting organization:<strong>{{org_filter}}</strong>{% endif %}{% if status %} status:<strong>{{status}}</strong>{% endif %}{% if search_query %} search:<strong>{{search_query}}</strong>{% endif %}</a>
             </div>
         </div>
         {% endif %}
@@ -120,12 +120,12 @@
                 
                   <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                     <li>
-                        {% if vesting_orgs %}
-                            {% for vesting_org in vesting_orgs %}
-                                {% if vesting_org_filter == vesting_org %}
-                                    <a class="selected" href="?{% current_query_string vesting_org='' %}"><i class="icon-ok"></i> {{vesting_org.name}}</a>
+                        {% if orgs %}
+                            {% for org in orgs %}
+                                {% if organization_filter == org %}
+                                    <a class="selected" href="?{% current_query_string org='' %}"><i class="icon-ok"></i> {{org.name}}</a>
                                 {% else %}
-                                    <a href="?{% current_query_string vesting_org=vesting_org.id %}"><i class="icon-ok"></i> {{vesting_org.name}}</a>
+                                    <a href="?{% current_query_string org=org.id %}"><i class="icon-ok"></i> {{org.name}}</a>
                                 {% endif %}
                             {% endfor %}
                         {% else %}
@@ -149,9 +149,9 @@
                         {% if registrars %}
                             {% for registrar in registrars %}
                                 {% if registrar_filter == registrar %}
-                                    <a class="selected" href="?{% current_query_string registrar='' vesting_org='' %}"><i class="icon-ok"></i> {{registrar.name}}</a>
+                                    <a class="selected" href="?{% current_query_string registrar='' organization='' %}"><i class="icon-ok"></i> {{registrar.name}}</a>
                                 {% else %}
-                                    <a href="?{% current_query_string registrar=registrar.id vesting_org='' %}"><i class="icon-ok"></i> {{registrar.name}}</a>
+                                    <a href="?{% current_query_string registrar=registrar.id organization='' %}"><i class="icon-ok"></i> {{registrar.name}}</a>
                                 {% endif %}
                             {% endfor %}
                         {% else %}
@@ -183,8 +183,8 @@
                 </p>
               <p class="list-email">{{ listed_user.email }}</p>
               <p class="list-vesting-org">
-                {% for vesting_org in listed_user|visible_vesting_orgs:request.user %}
-                    <a href="{% url 'user_management_manage_organization' %}?q={{vesting_org.name.split|join:'+'|lower}}">{{vesting_org.name.strip}}</a>
+                {% for organization in listed_user|visible_organizations:request.user %}
+                    <a href="{% url 'user_management_manage_organization' %}?q={{organization.name.split|join:'+'|lower}}">{{organization.name.strip}}</a>
                     {% include "user_management/includes/comma.html" %}
                 {% endfor %}
               </p>

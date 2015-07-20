@@ -19,7 +19,7 @@
             {% endif %}
 
             <li {% if this_page == "users_registrar_users" %}class="active" {% endif %}><a href="{% url 'user_management_manage_registrar_user' %}">Registrar users</a></li>
-            <li {% if this_page == "users_vesting_orgs" %}class="active" {% endif %}><a href="{% url 'user_management_manage_organization' %}">Vesting organizations</a></li>
+            <li {% if this_page == "users_orgs" %}class="active" {% endif %}><a href="{% url 'user_management_manage_organization' %}">Vesting organizations</a></li>
 
             <!-- Vesting users -->
             <li {% if this_page == "users_organization_users" %}class="active" {% endif %}><a href="{% url 'user_management_manage_organization_user' %}">Vesting users</a></li>

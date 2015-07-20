@@ -3,7 +3,7 @@ from django import template
 register = template.Library()
 
 @register.filter
-def visible_vesting_orgs(vesting_user, viewing_user):
+def visible_organizations(vesting_user, viewing_user):
     """
         Return just the  orgs that viewing_user is allowed to know about.
     """

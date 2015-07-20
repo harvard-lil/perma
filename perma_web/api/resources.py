@@ -392,7 +392,7 @@ class LinkResource(AuthenticatedLinkResource):
             elif Organization.objects.accessible_to(bundle.request.user).count() == 1:
                 bundle.data['organization'] = Organization.objects.accessible_to(bundle.request.user).first()
         else:
-            # Clear out the vesting_org so it's not updated otherwise
+            # Clear out the organization so it's not updated otherwise
             bundle.data.pop('organization', None)
 
         return bundle

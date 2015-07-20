@@ -113,7 +113,7 @@
             {% if request.user.is_staff %}
                 <br><a class="pull-right" href="{% url 'admin:perma_organization_change' org.id %}">edit in admin console</a>
             {% endif %}
-            <p class="list-name"><a href="{% url 'user_management_manage_organization_user' %}?vesting_org={{org.id}}">{{ org.name }}</a></p>
+            <p class="list-name"><a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">{{ org.name }}</a></p>
             </div>
               <div class="col-sm-5">
               <div class="list-count-group">
@@ -128,7 +128,7 @@
                     {% endcomment %}
               </div>
               <div class="col-sm-7 center-list-count">
-                <div class="list-count-group"><a href="{% url 'user_management_manage_organization_user' %}?vesting_org={{org.id}}">
+                <div class="list-count-group"><a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">
                 <p class="list-count-number">{{ org.vesting_users|default_if_none:"0" }}</p>
                 <p class="list-count-label">users</p></a>
                 </div>

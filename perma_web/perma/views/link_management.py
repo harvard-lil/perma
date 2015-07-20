@@ -53,8 +53,8 @@ def folder_contents(request, folder_id):
     links = links.order_by(sort)
 
     shared_with_count = 0
-    if current_folder.vesting_org:
-        shared_with_count = max(current_folder.vesting_org.users.count()-1, 0)
+    if current_folder.organization:
+        shared_with_count = max(current_folder.organization.users.count()-1, 0)
 
     return render(request, 'user_management/includes/created-link-items.html', {
         'links': links,
@@ -76,7 +76,7 @@ def vest_link(request, guid):
         latest = None
         
     if latest:
-        folder = latest.folders.exclude(vesting_org_id__isnull=True)[0]
+        folder = latest.folders.exclude(organization_id__isnull=True)[0]
 
     if link.vested:
         return HttpResponseRedirect(reverse('single_linky', args=[guid]))

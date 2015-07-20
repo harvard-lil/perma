@@ -10,12 +10,12 @@
         <a href="#" class="clear-search">Clear search.</a>
     </div>
 {% else %}
-    {% if current_folder.vesting_org %}
+    {% if current_folder.organization %}
         <div class="shared-folder-label alert-info">
             {% if shared_with_count %}
-                This folder is shared with {{ shared_with_count }} other member{{ shared_with_count|pluralize }} of {{ current_folder.vesting_org }}.
+                This folder is shared with {{ shared_with_count }} other member{{ shared_with_count|pluralize }} of {{ current_folder.organization }}.
             {% else %}
-                This folder will be shared with members of {{ current_folder.vesting_org }}.
+                This folder will be shared with members of {{ current_folder.organization }}.
             {% endif %}
         </div>
     {% elif request.user.can_vest %}

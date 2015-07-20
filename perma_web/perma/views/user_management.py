@@ -423,13 +423,13 @@ def list_users_in_group(request, group_name):
     # handle org filter
     org_filter = request.GET.get('org', '')
     if org_filter:
-        users = users.filter(organization__id=org_filter)
+        users = users.filter(organizations__id=org_filter)
         org_filter = Organization.objects.get(pk=org_filter)
         
     # handle registrar filter
     if registrar_filter:
         if group_name == 'organization_user':
-            users = users.filter(organization__registrar_id=registrar_filter)
+            users = users.filter(organizations__registrar_id=registrar_filter)
         elif group_name == 'registrar_user':
             users = users.filter(registrar_id=registrar_filter)
         registrar_filter = Registrar.objects.get(pk=registrar_filter)

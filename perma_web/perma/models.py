@@ -99,7 +99,7 @@ class Organization(models.Model):
     """
     name = models.CharField(max_length=400)
     registrar = models.ForeignKey(Registrar, null=True, related_name="organizations")
-    shared_folder = models.OneToOneField('Folder', blank=True, null=True, related_name="shared_org_folder")
+    shared_folder = models.OneToOneField('Folder', blank=True, null=True, related_name="organization_")  # related_name isn't used, just set to avoid name collision with Folder.organization
     date_created = models.DateField(auto_now_add=True, null=True)
 
     # what info to send downstream
@@ -323,7 +323,7 @@ class Folder(MPTTModel):
     owned_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='folders',)
 
     # this will be set if this is inside a shared folder
-    organization = models.ForeignKey(Organization, null=True, blank=True, related_name='org_folder')
+    organization = models.ForeignKey(Organization, null=True, blank=True, related_name='folders')
 
     # true if this is the apex shared folder (not subfolder) for a org
     is_shared_folder = models.BooleanField(default=False)
@@ -681,7 +681,7 @@ class Stat(models.Model):
     # Our user counts
     regular_user_count = models.IntegerField(default=1)
     org_member_count = models.IntegerField(default=1)
-    org_manager_count = models.IntegerField(default=1)
+    org_manager_count = models.IntegerField(default=1)  # keeping this for legacy counts, doesn't mean anything
     registrar_member_count = models.IntegerField(default=1)
     registry_member_count = models.IntegerField(default=1)
 
