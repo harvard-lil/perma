@@ -43,8 +43,8 @@ class CurrentUserAuthorizationTestCase(ApiResourceTestCase):
         self.assertNotEqual(vm_data['objects'], reg_data['objects'])
 
     def test_should_provide_different_vesting_org_data_relative_to_user(self):
-        vm_data = self.successful_get(self.detail_url + 'vesting_orgs/', user=self.vesting_member)
-        reg_data = self.successful_get(self.detail_url + 'vesting_orgs/', user=self.regular_user)
+        vm_data = self.successful_get(self.detail_url + 'organizations/', user=self.vesting_member)
+        reg_data = self.successful_get(self.detail_url + 'organizations/', user=self.regular_user)
 
         self.assertEqual(vm_data.keys(), reg_data.keys())
         self.assertNotEqual(vm_data['objects'], reg_data['objects'])
