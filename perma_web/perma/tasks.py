@@ -476,7 +476,8 @@ def get_pdf(self, link_guid, target_url, base_storage_path, user_agent):
                 save_fields(asset, image_capture=image_name)
     except Exception as e:
         # errors with the thumbnail aren't dealbreakers -- just log here
-        print "Error creating PDF thumbnail: %s" % e
+        print "Error creating PDF thumbnail of %s: %s" % (target_url, e)
+        save_fields(asset, image_capture=Asset.CAPTURE_STATUS_FAILED)
 
 @shared_task
 def get_nightly_stats():
