@@ -1439,6 +1439,10 @@ def sign_up_courts(request):
         except LinkUser.DoesNotExist:
             target_user = None
         if target_user:
+            requested_account_note = request.POST.get('requested_account_note', None)
+            target_user.requested_account_type = 'court'
+            target_user.requested_account_note = requested_account_note
+            target_user.save()
             email_court_request(request, target_user)
             return HttpResponseRedirect(reverse('court_request_response'))
 
