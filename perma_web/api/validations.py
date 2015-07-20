@@ -55,7 +55,7 @@ class LinkValidation(Validation):
     def is_valid_size(self, headers):
         # If we get a PDF, check its file size as we download it
         # and don't worry about what the header tells us about size
-        if headers.get('content-type', None) == 'application/pdf':
+        if headers.get('content-type', '').lower() == 'application/pdf':
             return True
 
         try:
