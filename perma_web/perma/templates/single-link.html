@@ -57,7 +57,7 @@
                                             <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
                                         {% elif request.user.is_registrar_member and linky.vesting_org.registrar == request.user.registrar %}
                                             <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
-                                        {% elif request.user.is_vesting_org_member and request.user.vesting_org == linky.vesting_org %}
+                                        {% elif request.user.is_organization_member and request.user.vesting_org == linky.vesting_org %}
                                             <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
                                         {% elif request.user.is_authenticated and request.user.pk == linky.created_by_id %}
                                             <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>

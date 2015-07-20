@@ -66,7 +66,7 @@ def folder_contents(request, folder_id):
 
 ###### link editing ######
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_vesting_org_member)
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
 def vest_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
     folder = None

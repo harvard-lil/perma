@@ -75,7 +75,7 @@ def manage_registrar(request):
         vested_links=Count('organizations__link',distinct=True),
         registrar_users=Count('users', distinct=True),
         last_active=Max('users__last_login'),
-        orgs_count=Count('oganizations',distinct=True),
+        orgs_count=Count('organizations',distinct=True),
     )
 
     orgs_count = registrars.aggregate(count=Sum('orgs_count'))
@@ -218,7 +218,7 @@ def manage_organization(request):
                 new_user.registrar_id = request.user.registrar_id
                 new_user.save()
 
-            return HttpResponseRedirect(reverse('user_management_manage_org'))
+            return HttpResponseRedirect(reverse('user_management_manage_organization'))
     else:
         if is_registry:
             form = OrganizationWithRegistrarForm(prefix = "a")
@@ -261,7 +261,7 @@ def manage_single_organization(request, org_id):
         if form.is_valid():
             new_user = form.save()
             
-            return HttpResponseRedirect(reverse('user_management_manage_org'))
+            return HttpResponseRedirect(reverse('user_management_manage_organization'))
 
         else:
             context.update({'form': form,})
@@ -274,7 +274,7 @@ def manage_single_organization(request, org_id):
     
     context = RequestContext(request, context)
 
-    return render_to_response('user_management/manage_single_org.html', context)
+    return render_to_response('user_management/manage_single_organization.html', context)
 
 
 
@@ -344,7 +344,7 @@ def manage_single_organization_user(request, user_id):
 
 @login_required
 @user_passes_test(lambda user: user.is_staff)
-def manage_single_organizaion_user_delete(request, user_id):
+def manage_single_organization_user_delete(request, user_id):
     return delete_user_in_group(request, user_id, 'organization_user')
 
 @login_required
@@ -388,13 +388,13 @@ def list_users_in_group(request, group_name):
         is_registry = True
     elif request.user.is_registrar_member():
         if group_name == 'organization_user':
-            users = users.filter(organization__registrar=request.user.registrar)
+            users = users.filter(organizations__registrar=request.user.registrar)
             orgs = Organization.objects.filter(registrar_id=request.user.registrar_id).order_by('name')
         else:
             users = users.filter(registrar=request.user.registrar)
         is_registrar = True
     elif request.user.is_organization_member:
-        users = users.filter(organization__in=request.user.organizations.all())
+        users = users.filter(organizations__in=request.user.organizations.all())
     else:
         raise Http404  # this shouldn't happen
 
@@ -470,6 +470,7 @@ def list_users_in_group(request, group_name):
     }
     context['pretty_group_name_plural'] = context['pretty_group_name'] + "s"
 
+
     # handle creation of new users
     form = None
     form_data = request.POST or None
@@ -523,7 +524,6 @@ def edit_user_in_group(request, user_id, group_name):
     else:
         # Must be registry member
         orgs = target_user.organizations.all()
-
 
     context = {
         'target_user': target_user, 'group_name':group_name,
@@ -614,8 +614,8 @@ def organization_user_add_user(request):
             else:
                 messages.add_message(request, messages.SUCCESS, '<h4>Success!</h4> <strong>%s</strong> is now a member of an organization.' % target_user.email, extra_tags='safe')
 
-            org = form.cleaned_data['org'][0]
-            target_user.org.add(org)
+            org = form.cleaned_data['organizations'][0]
+            target_user.organizations.add(org)
 
             target_user.save()
 
@@ -796,6 +796,8 @@ def manage_single_organization_user_remove(request, user_id):
 
     if request.method == 'POST':
 
+        print "post"
+
         org = get_object_or_404(Organization, pk=request.POST.get('org'))
         target_user = get_object_or_404(LinkUser, id=user_id)
 
@@ -808,6 +810,7 @@ def manage_single_organization_user_remove(request, user_id):
             raise Http404
 
         target_user.organizations.remove(org)
+
 
     return HttpResponseRedirect(reverse('user_management_manage_organization_user'))
 
@@ -1010,7 +1013,7 @@ def settings_password(request):
     
 
 @login_required
-@user_passes_test(lambda user: user.is_registrar_member() or user.is_organization_member() or user.has_registrar_pending())
+@user_passes_test(lambda user: user.is_registrar_member() or user.is_organization_member or user.has_registrar_pending())
 def settings_organizations(request):
     """
     Settings view organizations, leave organizations ...

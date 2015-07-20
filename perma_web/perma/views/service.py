@@ -232,7 +232,7 @@ def stats_storage(request):
 
     return response
     
-def stats_vesting_org(request):
+def stats_org(request):
     """
     Retrieve nightly stats for total number of vesting orgs, dump them out here so that our D3 vis can render them, real-purty-like
 

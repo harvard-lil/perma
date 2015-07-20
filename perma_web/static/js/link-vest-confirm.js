@@ -8,7 +8,7 @@ $(function(){
     var select_folder = function(vesting_org){
         $select_folder_form.find(".vesting-org-name").text(vesting_org.name);
         $select_folder_form.show();
-        apiRequest("GET", "/user/vesting_orgs/" + vesting_org.id + "/folders/")
+        apiRequest("GET", "/user/organizations/" + vesting_org.id + "/folders/")
             .success(function(data){
 
                 // build folder lookup
@@ -45,7 +45,7 @@ $(function(){
             });
     };
     
-    apiRequest("GET", "/user/vesting_orgs/", {limit: 300, order_by:'registrar'})
+    apiRequest("GET", "/user/organizations/", {limit: 300, order_by:'registrar'})
         .success(function(data) {
             var sorted = [];
             Object.keys(data.objects).sort(function(a,b){

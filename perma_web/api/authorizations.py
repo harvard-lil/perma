@@ -21,7 +21,7 @@ class FolderAuthorization(ReadOnlyAuthorization):
                 return user.registrar_id == obj.organization.registrar_id
             else:
                 # else, user must belong to this org
-                return user.organization.filter(pk=obj.organization_id).exists()
+                return user.organizations.filter(pk=obj.organization_id).exists()
 
         return False
 
