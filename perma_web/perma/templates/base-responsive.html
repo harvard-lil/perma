@@ -66,8 +66,8 @@
                                     {% endif %}
 
                                     <li><a href="{% url 'user_management_manage_registrar_user' %}">Registrar users</a></li>
-                                    <li><a href="{% url 'user_management_manage_vesting_org' %}">Vesting organizations</a></li>
-                                    <li><a href="{% url 'user_management_manage_vesting_user' %}">Vesting users</a></li>
+                                    <li><a href="{% url 'user_management_manage_organization' %}">Vesting organizations</a></li>
+                                    <li><a href="{% url 'user_management_manage_organization_user' %}">Vesting users</a></li>
 
                                     {% if request.user.is_staff %}
                                         <li><a href="{% url 'user_management_manage_user' %}">Users</a></li>
@@ -76,8 +76,8 @@
                                 {% endif %}
                                 
                                 <!-- Vesting users -->
-                                {% if request.user.is_vesting_org_member %}
-                                <li><a href="{% url 'user_management_manage_vesting_user' %}">Manage users</a></li>
+                                {% if request.user.is_organization_member %}
+                                <li><a href="{% url 'user_management_manage_organization_user' %}">Manage users</a></li>
                                 {% endif %}
                                 {% if request.user.is_staff %}
                                     <li><a href="{% url 'admin:index' %}">Admin console</a></li>

@@ -158,7 +158,7 @@ class OrganizationResource(DefaultResource):
     registrar = fields.CharField(attribute='registrar__name')
 
     class Meta(DefaultResource.Meta):
-        resource_name = 'vesting_orgs'
+        resource_name = 'organizations'
         queryset = Organization.objects.all()
         ordering = ['name', 'registrar']
 
@@ -175,7 +175,7 @@ class RegistrarResource(DefaultResource):
         queryset = Registrar.objects.all()
 
     class Nested:
-        vesting_orgs = fields.ToManyField('api.resources.OrganizationResource', 'vesting_orgs', null=True)
+        organizations = fields.ToManyField('api.resources.OrganizationResource', 'organizations', null=True)
 
 
 class FolderResource(DefaultResource):
@@ -272,7 +272,7 @@ class BaseLinkResource(MultipartResource, DefaultResource):
             AuthorizedLinkResource          AuthorizedLinkAuthentication
                 LinkResource                LinkAuthentication                          /archives
                 LinkResource                                                            /folders/<id>/archives
-                LinkResource                                                            /user/vesting_orgs/<id>/folders
+                LinkResource                                                            /user/organizations/<id>/folders
                 CurrentUserLinkResource                                                 /user/archives
     """
 
@@ -287,7 +287,7 @@ class BaseLinkResource(MultipartResource, DefaultResource):
     dark_archived = fields.BooleanField(attribute='dark_archived', blank=True, default=False)
     dark_archived_robots_txt_blocked = fields.BooleanField(attribute='dark_archived_robots_txt_blocked', blank=True, default=False)
     expiration_date = fields.DateTimeField(attribute='get_expiration_date', readonly=True)
-    vesting_org = fields.ForeignKey(OrganizationResource, 'vesting_org', full=True, blank=True, null=True)
+    organization = fields.ForeignKey(OrganizationResource, 'organization', full=True, blank=True, null=True)
     assets = fields.ToManyField(AssetResource, 'assets', readonly=True, full=True)
 
     class Meta(DefaultResource.Meta):
@@ -319,7 +319,7 @@ class PublicLinkResource(BaseLinkResource):
         authorization = PublicLinkAuthorization()
         serializer = Serializer(formats=['json', 'jsonp'])  # enable jsonp
 
-    def dehydrate_vesting_org(self, bundle):
+    def dehydrate_organization(self, bundle):
         # The vesting org for a given link may or may not be public.
         # For now, just mark all as private.
         return None
@@ -377,23 +377,23 @@ class LinkResource(AuthenticatedLinkResource):
 
         return bundle
 
-    def hydrate_vesting_org(self, bundle):
-        if bundle.data.get('vested', None) and not bundle.obj.vesting_org:
+    def hydrate_organization(self, bundle):
+        if bundle.data.get('vested', None) and not bundle.obj.organization:
             # If the user passed a vesting org id, grab the object.
             # Permissions will be checked later.
-            if bundle.data.get('vesting_org', None):
+            if bundle.data.get('organization', None):
                 try:
-                    bundle.data['vesting_org'] = Organization.objects.get(pk=bundle.data['vesting_org'])
+                    bundle.data['organization'] = Organization.objects.get(pk=bundle.data['organization'])
                 except Organization.DoesNotExist:
-                    self.raise_error_response(bundle, {'vesting_org':"Vesting org not found."})
+                    self.raise_error_response(bundle, {'organization':"Vesting org not found."})
             # A folder was passed in via URL during vest i.e. /folders/123/archives/ABC-EFG
             elif bundle.data.get('folder', None):
-                bundle.data['vesting_org'] = bundle.data['folder'].vesting_org
+                bundle.data['organization'] = bundle.data['folder'].organization
             elif Organization.objects.accessible_to(bundle.request.user).count() == 1:
-                bundle.data['vesting_org'] = Organization.objects.accessible_to(bundle.request.user).first()
+                bundle.data['organization'] = Organization.objects.accessible_to(bundle.request.user).first()
         else:
             # Clear out the vesting_org so it's not updated otherwise
-            bundle.data.pop('vesting_org', None)
+            bundle.data.pop('organization', None)
 
         return bundle
 

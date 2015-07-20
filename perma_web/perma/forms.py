@@ -108,24 +108,24 @@ class CreateUserFormWithOrganization(CreateUserForm):
         super(CreateUserFormWithOrganization, self).__init__(*args, **kwargs)
 
         if registrar_id:
-            self.fields['organization'].queryset = Organization.objects.filter(registrar_id=registrar_id).order_by('name')
+            self.fields['organizations'].queryset = Organization.objects.filter(registrar_id=registrar_id).order_by('name')
         elif org_member_id:
             user = LinkUser.objects.get(id=org_member_id)
-            self.fields['organization'].queryset = user.organizations.all()
+            self.fields['organizations'].queryset = user.organizations.all()
         else:
-            self.fields['organization'].queryset = Organization.objects.all().order_by('name')
+            self.fields['organizations'].queryset = Organization.objects.all().order_by('name')
 
     
     class Meta:
         model = LinkUser
-        fields = ["first_name", "last_name", "email", "organization"]
+        fields = ["first_name", "last_name", "email", "organizations"]
 
-    org = forms.ModelMultipleChoiceField(queryset=Organization.objects.all().order_by('name'),label="Organization", widget=CustomSelectSingleAsList)
+    organizations = forms.ModelMultipleChoiceField(queryset=Organization.objects.all().order_by('name'),label="Organization", widget=CustomSelectSingleAsList)
 
 
     def clean_organization(self):
-        org = self.cleaned_data["organization"]
-        return org
+        organizations = self.cleaned_data["organizations"]
+        return organizations
 
 
 class UserFormEdit(forms.ModelForm):
@@ -175,11 +175,11 @@ class OrganizationMemberWithOrganizationFormEdit(forms.ModelForm):
             registrar_id = kwargs.pop('registrar_id')
         super(OrganizationMemberWithOrganizationFormEdit, self).__init__(*args, **kwargs)
         if registrar_id:
-            self.fields['organization'].queryset = Organization.objects.filter(registrar_id=registrar_id).order_by('name')
+            self.fields['organizations'].queryset = Organization.objects.filter(registrar_id=registrar_id).order_by('name')
 
     class Meta:
         model = LinkUser
-        fields = ["organization"]
+        fields = ["organizations"]
 
     org = forms.ModelMultipleChoiceField(queryset=Organization.objects.all().order_by('name'),label="Organization", required=False,)
     
@@ -196,11 +196,11 @@ class OrganizationMemberWithOrganizationOrgAsOrganizationMemberFormEdit(forms.Mo
         super(OrganizationMemberWithOrganizationOrgAsOrganizationMemberFormEdit, self).__init__(*args, **kwargs)
         if organization_user_id:
             editing_user = LinkUser.objects.get(pk=organization_user_id)
-            self.fields['organization'].queryset = editing_user.organizations.all().order_by('name')
+            self.fields['organizations'].queryset = editing_user.organizations.all().order_by('name')
 
     class Meta:
         model = LinkUser
-        fields = ["organization"]
+        fields = ["organizations"]
 
     org = forms.ModelMultipleChoiceField(queryset=Organization.objects.all().order_by('name'),label="Organization", required=False,)
 
@@ -219,11 +219,11 @@ class OrganizationMemberWithGroupFormEdit(UserFormEdit):
             registrar_id = kwargs.pop('registrar_id')
         super(OrganizationMemberWithGroupFormEdit, self).__init__(*args, **kwargs)
         if registrar_id:
-            self.fields['organization'].queryset = Organization.objects.filter(registrar_id=registrar_id).order_by('name')
+            self.fields['organizations'].queryset = Organization.objects.filter(registrar_id=registrar_id).order_by('name')
         
     class Meta:
         model = LinkUser
-        fields = ("first_name", "last_name", "email", "organization",)
+        fields = ("first_name", "last_name", "email", "organizations",)
 
     org = forms.ModelChoiceField(queryset=Organization.objects.all().order_by('name'), empty_label=None, label="Organization", required=False,)
 
@@ -281,12 +281,12 @@ class UserAddOrganizationForm(forms.ModelForm):
             # Must be registry member.
             orgs = Organization.objects.all().exclude(pk__in=target_user.organizations.all())
 
-        self.fields['organization'] = forms.ModelMultipleChoiceField(queryset=orgs.order_by('name'), label="Organization", widget=CustomSelectSingleAsList)
+        self.fields['organizations'] = forms.ModelMultipleChoiceField(queryset=orgs.order_by('name'), label="Organization", widget=CustomSelectSingleAsList)
 
 
     class Meta:
         model = LinkUser
-        fields = ("organization",)         
+        fields = ("organizations",)         
 
     
     

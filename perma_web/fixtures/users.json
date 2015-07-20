@@ -97,7 +97,7 @@
         "pk": 3,
         "model": "perma.LinkUser",
         "fields": {
-            "organization": [1],
+            "organizations": [1],
             "is_active": true,
             "is_confirmed": true,
             "last_login": "2013-07-23T18:38:27Z",
@@ -128,7 +128,7 @@
         "pk": 5,
         "model": "perma.LinkUser",
         "fields": {
-            "organization": [1],
+            "organizations": [1],
             "is_active": true,
             "is_confirmed": true,
             "last_login": "2013-07-23T18:38:27Z",
@@ -144,7 +144,7 @@
         "pk": 6,
         "model": "perma.LinkUser",
         "fields": {
-            "organization": [3],
+            "organizations": [3],
             "is_active": true,
             "is_confirmed": true,
             "last_login": "2013-07-23T18:38:27Z",
@@ -160,7 +160,7 @@
         "pk": 7,
         "model": "perma.LinkUser",
         "fields": {
-            "organization": [3,4],
+            "organizations": [3,4],
             "is_active": true,
             "is_confirmed": true,
             "last_login": "2013-07-23T18:38:27Z",
