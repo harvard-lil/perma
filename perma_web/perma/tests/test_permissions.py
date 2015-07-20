@@ -70,7 +70,7 @@ class PermissionsTestCase(PermaTestCase):
 
             {
                 'urls': [
-                    ['user_management_organization_user_leave_organization_org', {'kwargs':{'org_id': 1}}],
+                    ['user_management_organization_user_leave_organization', {'kwargs':{'org_id': 1}}],
                 ],
                 'allowed': {'test_org_user@example.com'}
             },

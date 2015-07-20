@@ -106,7 +106,7 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
         self.successful_patch(self.vested_url, user=user, data=self.patch_data)
 
     def test_should_allow_member_of_links_vesting_registrar_to_patch_notes_and_title(self):
-        registrar = self.vested_link.vesting_org.registrar
+        registrar = self.vested_link.organization.registrar
         user = LinkUser.objects.filter(registrar=registrar.pk).first()
         self.successful_patch(self.vested_url, user=user, data=self.patch_data)
 
