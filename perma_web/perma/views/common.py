@@ -97,7 +97,7 @@ def single_linky(request, guid):
     def ssl_redirect(link):
         if not settings.SECURE_SSL_REDIRECT:
             return
-        if serve_type == 'live' and not link.startswith('https') and not send_downstream:
+        if serve_type == 'live' and not link.startswith('https'):
             if request.is_secure():
                 return HttpResponseRedirect("http://%s%s" % (request.get_host(), request.get_full_path()))
         elif not request.is_secure():
