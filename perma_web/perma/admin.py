@@ -4,8 +4,7 @@ from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
-from django.db.models import Count, Max, Min
-from django import forms
+from django.db.models import Count, Max
 
 from mptt.admin import MPTTModelAdmin
 

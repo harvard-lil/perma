@@ -6,8 +6,6 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.conf import settings
 import struct
-from django.utils.http import urlquote
-from django.utils.safestring import mark_safe
 import tempdir
 
 
