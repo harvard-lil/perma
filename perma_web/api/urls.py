@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.conf.urls import patterns, url
+from django.http import HttpResponse
 from django.views.generic.base import RedirectView
 
 from tastypie.api import Api, NamespacedApi
@@ -54,3 +55,6 @@ v1a_api._canonicals = v1_api._canonicals.copy()
 ### add API versions to urlpatters ###
 
 urlpatterns = v1_api.urls + v1a_api.urls + collateral_urls
+
+handler404 = lambda (request): HttpResponse(status=404)
+handler500 = lambda (request): HttpResponse(status=500)
