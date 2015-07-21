@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from functools import wraps
 import shutil
 import sys, os
@@ -15,45 +16,25 @@ django.setup()
 
 ### SETUP ###
 env.REMOTE_DIR = None
-env.VIRTUALENV_NAME = None
-env.SETUP_PREFIXES = None # list of prefixes to run in setup_remote, e.g. [prefix('do stuff')]
+env.VIRTUALENV_NAME = 'perma'
 env.PYTHON_BIN = 'python'
 WSGI_FILE = 'perma/wsgi.py'
 LOCAL_DB_SETTINGS = settings.DATABASES['default']
 env.DATABASE_BACKUP_DIR = None # If relative path, dir is relative to REMOTE_DIR. If None, no backup will be done.
 
 
-_already_setup = False
-def setup_remote(f):
-    """
-        Decorator to make sure we're running things in the right remote directory,
-        with the virtualenv set up.
-    """
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        global _already_setup
-        if not _already_setup:
-            _already_setup = True
-            def apply_withs(withs, target_func):
-                if withs:
-                    with withs[0]:
-                        return apply_withs(withs[1:], target_func)
-                return target_func()
-            prefixes = [cd(env.REMOTE_DIR)]
-            if env.VIRTUALENV_NAME:
-                prefixes.append(prefix("workon "+env.VIRTUALENV_NAME))
-            if env.SETUP_PREFIXES:
-                prefixes += env.SETUP_PREFIXES
-            return apply_withs(prefixes, lambda: f(*args, **kwargs))
-        return f(*args, **kwargs)
-    return wrapper
+@contextmanager
+def web_root():
+    with cd(env.REMOTE_DIR):
+        if env.VIRTUALENV_NAME:
+            with prefix("workon "+env.VIRTUALENV_NAME):
+                yield
+        else:
+            yield
 
-# def run_as_perma(*args, **kwargs):
-#     """
-#         Version of fabric's `run()` that sudoes into the `perma` user to run the command.
-#     """
-#     with _setenv({'shell': 'sudo -p "%s" su perma -c' % env.sudo_prompt}):
-#         return run(*args, **kwargs)
+def run_as_web_user(*args, **kwargs):
+    kwargs.setdefault('user', 'perma')
+    return sudo(*args, **kwargs)
 
 
 ### GENERAL UTILITIES ###
@@ -113,104 +94,10 @@ def init_dev_db():
     local("python manage.py migrate")
     local("python manage.py loaddata fixtures/sites.json fixtures/users.json fixtures/folders.json")
 
-@task
-def set_user_upload_field():
-    """
-        Temporary task to fix user_upload field.
-    """
-    from perma.models import Asset
-    from django.db.models import Q
-    from urlparse import urlparse
-
-    first_change_date = '2014-04-10 13:22:44'  # last date when uploaded filenames still started with a slash
-    second_change_date = '2014-10-27 18:43:26'  # date when non-uploaded PDFs started to set image_capture
-
-    # user uploads up to first_change_date can be identified because
-    # image_capture or pdf_capture will start with a slash
-    Asset.objects.filter(link__creation_timestamp__lte=first_change_date).filter(
-        Q(image_capture__startswith='/') | Q(pdf_capture__startswith='/')
-    ).update(user_upload=True)
-
-    # image uploads at any time can be identified because pdf_capture and warc_capture are null
-    Asset.objects.filter(pdf_capture=None, warc_capture=None).exclude(image_capture=None).update(user_upload=True)
-
-    # PDF uploads after second_change_date can be identified because
-    # image_capture is null
-    Asset.objects.filter(link__creation_timestamp__gte=second_change_date, image_capture=None).update(user_upload=True)
-
-    # PDF uploads between first_change_date and second_change_date can be identified because
-    # submitted_title is not the submitted_url domain
-    for asset in Asset.objects.filter(link__creation_timestamp__gt=first_change_date, link__creation_timestamp__lt=second_change_date).exclude(pdf_capture=None).select_related('link'):
-        if asset.link.submitted_title != urlparse(asset.link.submitted_url).netloc:
-            asset.user_upload = True
-            asset.save()
-
-    print "%s archives are now marked as user uploads." % Asset.objects.filter(user_upload=True).count()
-
-@task
-def fix_file_names(real=False):
-    """
-        Temporary task to normalize uploaded file names.
-    """
-    from perma.models import Asset
-    from django.core.files.storage import default_storage
-    import glob, subprocess
-
-    def move_upload(asset, old_name):
-        # translate old name like /cap.jpeg to new name like cap.jpg
-        old_name = old_name.replace('/','')
-        new_name = old_name
-        for a, b in (('cap','upload'), ('jfif', 'jpg'), ('jpeg', 'jpg')):
-            new_name = new_name.replace(a, b)
-
-        # move file
-        from_path = default_storage.path(os.path.join(asset.base_storage_path, old_name))
-        to_path = default_storage.path(os.path.join(asset.base_storage_path, new_name))
-        print "Moving '%s' to '%s'" % (from_path, to_path)
-        if real:
-            os.rename(from_path, to_path)
-
-        return new_name
-
-    for asset in Asset.objects.filter(user_upload=True):
-        if asset.pdf_capture and 'cap' in asset.pdf_capture:
-            asset.pdf_capture = move_upload(asset, asset.pdf_capture)
-            print "Saving new pdf_capture %s" % asset.pdf_capture
-        elif asset.image_capture and 'cap' in asset.image_capture:
-            asset.image_capture = move_upload(asset, asset.image_capture)
-            print "Saving new image_capture %s" % asset.image_capture
-
-        if real:
-            asset.save()
-
-    for asset in Asset.objects.filter(pdf_capture__startswith="cap_"):
-        old_name = asset.pdf_capture
-        new_name = 'cap.pdf'
-
-        # move file
-        from_path = default_storage.path(os.path.join(asset.base_storage_path, old_name))
-        to_path = default_storage.path(os.path.join(asset.base_storage_path, new_name))
-        print "Moving '%s' to '%s'" % (from_path, to_path)
-        if real:
-            os.rename(from_path, to_path)
-
-        # delete duplicate PDFs
-        for duplicate_pdf in glob.glob(default_storage.path(asset.base_storage_path) + '/cap_*.pdf'):
-            cold_storage_dir = os.path.join('/perma/assets/cold_storage/duplicate_pdfs/', asset.base_storage_path)
-            print "\tMoving '%s' to '%s'" % (duplicate_pdf, cold_storage_dir)
-            if real:
-                subprocess.call("mkdir -p %s/; mv %s %s/" % (cold_storage_dir, duplicate_pdf, cold_storage_dir),
-                                shell=True)
-
-        asset.pdf_capture = new_name
-        if real:
-            asset.save()
-
 
 ### DEPLOYMENT ###
 
 @task
-@setup_remote
 def deploy(branch='master'):
     """
         Full deployment: back up database, pull code, install requirements, sync db, run migrations, collect static files, restart server.
@@ -218,22 +105,25 @@ def deploy(branch='master'):
     backup_database()
     deploy_code(restart=False, branch=branch)
     pip_install()
-    run("%s manage.py syncdb" % env.PYTHON_BIN)
-    run("%s manage.py migrate" % env.PYTHON_BIN)
-    run("%s manage.py collectstatic --noinput --clear" % env.PYTHON_BIN)
-    
+    with web_root():
+        run_as_web_user("%s manage.py syncdb" % env.PYTHON_BIN)
+        run_as_web_user("%s manage.py migrate" % env.PYTHON_BIN)
+        run_as_web_user("%s manage.py collectstatic --noinput --clear" % env.PYTHON_BIN)
+    restart_server()
+
 
 @task
-@setup_remote
 def deploy_code(restart=True, branch='master'):
     """
         Deploy code only. This is faster than the full deploy.
     """
-    run('find . -name "*.pyc" -exec rm -rf {} \;')
-    run("git pull origin %s" % branch)
+    with web_root():
+        run_as_web_user('find . -name "*.pyc" -exec rm -rf {} \;')
+        run_as_web_user("git pull origin %s" % branch)
     if restart:
-          restart_server()
-          
+        restart_server()
+
+
 @task
 def tag_new_release(tag):
     """
@@ -249,70 +139,52 @@ def tag_new_release(tag):
           
 @task
 def pip_install():
-      run("pip install -r requirements.txt")
+    with web_root():
+        run_as_web_user("pip install -r requirements.txt")
 
 @task
-@setup_remote
 def restart_server():
-    """
-        Touch the wsgi file to restart the remote server (hopefully).
-    """
-    run("sudo stop celery; sudo start celery;")
-    run("sudo stop celerybeat; sudo start celerybeat;")
+    stop_server()
+    start_server()
 
 
 @task
-@setup_remote
 def stop_server():
     """
         Stop the services
     """
-    run("sudo service gunicorn stop")
-    run("sudo service celery stop")
-    run("sudo service celerybeat stop")
+    sudo("stop celery", shell=False)
     
     
 @task
-@setup_remote
 def start_server():
     """
         Start the services
     """
-    run("sudo service gunicorn start")
-    run("sudo service celery start")
-    run("sudo service celerybeat start")
+    sudo("start celery", shell=False)
 
 ### DATABASE STUFF ###
 
 @task
-@setup_remote
 def backup_database():
     if env.DATABASE_BACKUP_DIR:
-        run("fab local_backup_database:%s" % env.DATABASE_BACKUP_DIR)
+        with web_root():
+            run_as_web_user("fab local_backup_database:%s" % env.DATABASE_BACKUP_DIR)
 
 @task
 def local_backup_database(backup_dir):
-    # WARNING: this is totally untested
     # this is going to be triggered by calling fab on the remote server, so that LOCAL_DB_SETTINGS has the remote settings
-    import pexpect
-    child = pexpect.spawn(r"""mysqldump --user={user} {database} | gzip > {backup_dir}/{date}.sql.gz""".format(
-        user=LOCAL_DB_SETTINGS['USER'],
-        database=LOCAL_DB_SETTINGS['NAME'],
-        backup_dir=backup_dir,
-        date=date.today().isoformat()
+    import tempfile
+    out_file_path = os.path.join(backup_dir, "%s.sql.gz" % date.today().isoformat())
+    temp_password_file = tempfile.NamedTemporaryFile()
+    temp_password_file.write("[client]\nuser=%s\npassword=%s\n" % (LOCAL_DB_SETTINGS['USER'], LOCAL_DB_SETTINGS['PASSWORD']))
+    temp_password_file.flush()
+    local("mysqldump --defaults-extra-file=%s -h%s %s | gzip > %s" % (
+        temp_password_file.name,
+        LOCAL_DB_SETTINGS['HOST'],
+        LOCAL_DB_SETTINGS['NAME'],
+        out_file_path
     ))
-    child.expect('Enter password:')
-    child.sendline(LOCAL_DB_SETTINGS['PASSWORD'])
-
-@task
-@setup_remote
-def shell():
-    """
-        Handy way to drop into remote shell with Django stuff set up.
-    """
-    from fabric.context_managers import char_buffered
-    with char_buffered(sys.stdin):
-        open_shell("cd %s && workon %s" % (env.REMOTE_DIR, env.VIRTUALENV_NAME))
 
 
 ### HEROKU ###
