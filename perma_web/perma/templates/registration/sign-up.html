@@ -8,16 +8,16 @@ Register for a Perma.cc account. Welcome aboard.
 <div class="container learn-more">
 	<div class="row">
 		<div class="col-sm-12">	
-			<h2>Learn more and sign up</h2>
+			<h1>Learn more and sign up</h1>
 			<h4>Perma.cc for <a class="btn btn-large btn-more btn-active" href="{% url 'sign_up' %}" role="button">Everyone</a><a class="btn btn-large btn-more" href="{% url 'sign_up_courts' %}" role="button">Courts</a><a class="btn btn-large btn-more" href="{% url 'sign_up_faculty' %}" role="button">Faculty</a><a class="btn btn-large btn-more" href="{% url 'sign_up_journals' %}" role="button">Journals</a></h4>
 		</div>
 	</div>
 	<div class="row">
-	    <div class="col-sm-6">
-            <h4>Perma.cc works for everyone</h4>			
+	    <div class="col-sm-7">
+            <h2>Perma.cc works for everyone</h2>			
 		</div>
-	    <div class="col-sm-6">	
-	        <h4>Create an account</h4>	
+	    <div class="col-sm-4 col-sm-offset-1">	
+	        <h2>Create an account</h2>	
 			<form method="post" action="">
 				{% csrf_token %}
 				 <fieldset>
