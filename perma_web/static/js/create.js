@@ -56,7 +56,7 @@ $(function() {
 /* Handle the the main action (enter url, hit the button) button - start */
 
 function linkIt(data){
-    new_archive.url = settings.HOST  + '/' + data.guid;
+    new_archive.url = 'http://' + settings.HOST  + '/' + data.guid;
     new_archive.guid = data.guid;
     new_archive.title = data.title;
     new_archive.static_prefix = settings.STATIC_URL;
@@ -134,7 +134,7 @@ function uploadIt(data) {
     $('#archive-upload').modal('hide');
 
     var upload_image_url = settings.STATIC_URL + '/img/upload-preview.jpg';
-    new_archive.url = settings.HOST  + '/' + data.guid;
+    new_archive.url = 'http://' + settings.HOST  + '/' + data.guid;
 
     $('#preview-container').html(templates.preview_available_no_upload_option({image_url: upload_image_url, archive_url: new_archive.url}));
 
