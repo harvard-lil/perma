@@ -1,4 +1,4 @@
-from perma.models import Link, Folder
+from perma.models import Link
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.exceptions import Unauthorized, BadRequest
 
@@ -34,6 +34,10 @@ class FolderAuthorization(ReadOnlyAuthorization):
     # NOTE - this is called by obj_update and obj_delete before it uses their auth methods
     # ex: https://github.com/toastdriven/django-tastypie/blob/master/tastypie/resources.py#L2203
     def read_detail(self, object_list, bundle):
+        # It's a /schema request
+        if bundle.obj.pk is None:
+            return True
+
         if not self.can_access(bundle.request.user, bundle.obj):
             raise Unauthorized()
 
@@ -69,6 +73,10 @@ class PublicLinkAuthorization(ReadOnlyAuthorization):
         return object_list.filter(vested=True)
 
     def read_detail(self, object_list, bundle):
+        # It's a /schema request
+        if bundle.obj.pk is u'':
+            return True
+
         return bundle.obj.vested
 
 
@@ -80,6 +88,10 @@ class AuthenticatedLinkAuthorization(ReadOnlyAuthorization):
         return object_list.accessible_to(bundle.request.user)
 
     def read_detail(self, object_list, bundle):
+        # It's a /schema request
+        if bundle.obj.pk is u'':
+            return True
+
         if not bundle.request.user.is_authenticated():
             raise Unauthorized()
 
@@ -107,7 +119,14 @@ class CurrentUserAuthorization(ReadOnlyAuthorization):
 
         return object_list.filter(created_by=bundle.request.user)
 
-    read_detail = create_detail = update_detail = delete_detail = all_detail
+    def read_detail(self, object_list, bundle):
+        # It's a /schema request
+        if bundle.obj.pk is u'':
+            return True
+
+        return self.all_detail(object_list, bundle)
+
+    create_detail = update_detail = delete_detail = all_detail
     read_list = all_list  # create_list = update_list = delete_list = disallowed system wide
 
 
