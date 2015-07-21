@@ -734,15 +734,33 @@ section#home-description {
 /* Learn more */
 
 .learn-more .btn-more {
-    margin-top:15px;
-    margin-right:15px;
-    margin-left:10px;
-    margin-bottom:35px;
+    margin:5px 5px 5px 10px;
 }
 
 .learn-more .btn-active {
     background:#09f;
     color:#fff;
+}
+
+.container.libraries-power h2, .container.learn-more h2 {
+    margin-top:0px;
+}
+
+.container.libraries-power p, .container.learn-more p {
+    font-size:16px;
+}
+
+.container.libraries-power ul {
+    list-style-type: disc;
+    margin-left: 0px;
+    font-weight:300;
+    font-size:16px;
+}
+
+@media(min-width:768px){
+    .learn-more .btn-more {
+        margin:15px 15px 35px 10px;
+    }
 }
 
 /* End learn more */
@@ -2703,21 +2721,6 @@ img.dark-bulb {
 
 .none {
 	display:none;
-}
-
-.container.libraries-power h2 {
-    margin-top:0px;
-}
-
-.container.libraries-power p {
-    font-size:16px;
-}
-
-.container.libraries-power ul {
-    list-style-type: disc;
-    margin-left: 0px;
-    font-weight:300;
-    font-size:16px;
 }
 
 /* Stats page start */

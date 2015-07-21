@@ -1,4 +1,5 @@
 {% extends "layout-responsive.html" %}
+{% block title %} | Sign Up{% endblock %}
 
 {% block meta_description %}
 Register for a Perma.cc account. Welcome aboard.
@@ -8,16 +9,21 @@ Register for a Perma.cc account. Welcome aboard.
 <div class="container learn-more">
 	<div class="row">
 		<div class="col-sm-12">	
-			<h2>Learn more and sign up</h2>
+			<h1>Learn more and sign up</h1>
 			<h4>Perma.cc for <a class="btn btn-large btn-more" href="{% url 'sign_up' %}" role="button">Everyone</a><a class="btn btn-large btn-more btn-active" href="{% url 'sign_up_courts' %}" role="button">Courts</a><a class="btn btn-large btn-more" href="{% url 'sign_up_faculty' %}" role="button">Faculty</a><a class="btn btn-large btn-more" href="{% url 'sign_up_journals' %}" role="button">Journals</a></h4>
 		</div>
 	</div>
 	<div class="row">
-	    <div class="col-sm-6">
-            <h4>Perma.cc works for courts</h4>			
+	    <div class="col-sm-7">
+            <h2>Perma.cc works for courts</h2>	
+            <p>Courts care deeply about the long-term accuracy, integrity and reliability of the citations in their opinions. When web citations break, or the referenced content changes, that undermines all the hard work put in to get citations right.</p>
+            <h4>How courts use Perma.cc</h4>
+            <p>Many court systems use Perma to prevent link rot in their opinions. Each court receives a free organizational account and can designate editors, clerks, reporters of decisions or others to create permanent links for their web citations. Check out our <a href="{% url 'docs' %}">user guide</a> to learn more.</p>
+            <h4>Join Perma.cc now</h4>
+            <p>If your court is interested in Perma.cc, please use the form to contact us, and we’ll be in touch shortly to set up an informational call to introduce you and your colleagues to Perma.cc and to answer your questions.</p>
 		</div>
-	    <div class="col-sm-6">	
-	        <h4>Request more information</h4>	
+	    <div class="col-sm-4 col-sm-offset-1">	
+	        <h2>Request information</h2>	
 			<form method="post" action="">
 				{% csrf_token %}
 				 <fieldset>
@@ -40,7 +46,7 @@ Register for a Perma.cc account. Welcome aboard.
                 <p class="terms-statement"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
                 {% endif %}
 			  </fieldset>
-				<button type="submit" class="btn-success">Create account</button>
+				<button type="submit" class="btn-success">Send request</button>
 			</form>
 		</div>
 	</div>
