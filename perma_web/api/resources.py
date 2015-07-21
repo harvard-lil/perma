@@ -516,6 +516,7 @@ class LinkResource(AuthenticatedLinkResource):
 class CurrentUserResource(LinkUserResource):
     class Meta(DefaultResource.Meta):
         resource_name = 'user'
+        queryset = LinkUser.objects.all()[:0] # needed for /schema to render
         authentication = CurrentUserAuthentication()
         authorization = CurrentUserAuthorization()
         list_allowed_methods = []
