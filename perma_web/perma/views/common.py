@@ -18,6 +18,7 @@ from ratelimit.decorators import ratelimit
 from ..models import Link, Asset
 from perma.forms import ContactForm
 from perma.middleware import ssl_optional
+from perma.utils import if_anonymous
 
 
 logger = logging.getLogger(__name__)
@@ -64,7 +65,7 @@ def stats(request):
 
 
 @ssl_optional
-@cache_control(max_age=settings.CACHE_MAX_AGES['single_linky'])
+@if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['single_linky']))
 @ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block=True, ip=False,
            keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
 @ratelimit(method='GET', rate=settings.HOUR_LIMIT, block=True, ip=False,
