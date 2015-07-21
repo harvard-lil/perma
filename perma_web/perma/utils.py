@@ -127,3 +127,24 @@ def get_png_size(fh):
         raise ValueError("File is not a png.")
     w, h = struct.unpack('>LL', data[16:24])
     return int(w), int(h)
+
+### caching ###
+
+# via: http://stackoverflow.com/a/9377910/313561
+def if_anonymous(decorator):
+    """ Returns decorated view if user is not admin. Un-decorated otherwise """
+
+    def _decorator(view):
+
+        decorated_view = decorator(view)  # This holds the view with cache decorator
+
+        def _view(request, *args, **kwargs):
+
+            if request.user.is_authenticated():
+                return view(request, *args, **kwargs)  # view without @cache
+            else:
+                return decorated_view(request, *args, **kwargs) # view with @cache
+
+        return _view
+
+    return _decorator
