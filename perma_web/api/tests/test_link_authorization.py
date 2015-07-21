@@ -28,13 +28,13 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
         self.vested_link = Link.objects.get(pk="3SLN-JHX9")
         self.unvested_link = Link.objects.get(pk="7CF8-SS4G")
 
-        self.public_list_url = "{0}/{1}/".format(self.url_base, PublicLinkResource.Meta.resource_name)
-        self.public_vested_url = "{0}{1}/".format(self.public_list_url, self.vested_link.pk)
-        self.public_unvested_url = "{0}{1}/".format(self.public_list_url, self.unvested_link.pk)
+        self.public_list_url = "{0}/{1}".format(self.url_base, PublicLinkResource.Meta.resource_name)
+        self.public_vested_url = "{0}/{1}".format(self.public_list_url, self.vested_link.pk)
+        self.public_unvested_url = "{0}/{1}".format(self.public_list_url, self.unvested_link.pk)
 
-        self.list_url = "{0}/{1}/".format(self.url_base, LinkResource.Meta.resource_name)
-        self.vested_url = "{0}{1}/".format(self.list_url, self.vested_link.pk)
-        self.unvested_url = "{0}{1}/".format(self.list_url, self.unvested_link.pk)
+        self.list_url = "{0}/{1}".format(self.url_base, LinkResource.Meta.resource_name)
+        self.vested_url = "{0}/{1}".format(self.list_url, self.vested_link.pk)
+        self.unvested_url = "{0}/{1}".format(self.list_url, self.unvested_link.pk)
 
         self.post_data = {'url': self.server_url + "/test.html",
                           'title': 'This is a test page'}
@@ -192,25 +192,25 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
     ##########
 
     def successful_link_move(self, user, link, folder):
-        archives_url = "{0}/folders/{1}/archives/".format(self.url_base, folder.pk)
-        self.successful_put("{0}{1}/".format(archives_url, link.pk), user=user)
+        archives_url = "{0}/folders/{1}/archives".format(self.url_base, folder.pk)
+        self.successful_put("{0}/{1}".format(archives_url, link.pk), user=user)
 
         # Make sure it's listed in the folder
-        obj = self.successful_get("{0}{1}/".format(self.list_url, link.pk), user=user)
+        obj = self.successful_get("{0}/{1}".format(self.list_url, link.pk), user=user)
         data = self.successful_get(archives_url, user=user)
         self.assertIn(obj, data['objects'])
 
     def rejected_link_move(self, user, link, folder, expected_status_code=401):
-        folder_url = "{0}/folders/{1}/".format(self.url_base, folder.pk)
-        archives_url = "{0}archives/".format(folder_url)
+        folder_url = "{0}/folders/{1}".format(self.url_base, folder.pk)
+        archives_url = "{0}/archives".format(folder_url)
         try:
             # if the user doesn't have access to the parent
             self.rejected_get(folder_url, user=user)
         except AssertionError:
-            self.rejected_put("{0}{1}/".format(archives_url, link.pk), user=user, expected_status_code=expected_status_code)
+            self.rejected_put("{0}/{1}".format(archives_url, link.pk), user=user, expected_status_code=expected_status_code)
 
             # Make sure it's not listed in the folder
-            obj = self.successful_get("{0}{1}/".format(self.list_url, link.pk), user=link.created_by)
+            obj = self.successful_get("{0}/{1}".format(self.list_url, link.pk), user=link.created_by)
             data = self.successful_get(archives_url, user=folder.created_by)
             self.assertNotIn(obj, data['objects'])
 
