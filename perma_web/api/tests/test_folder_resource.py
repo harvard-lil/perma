@@ -21,6 +21,9 @@ class FolderResourceTestCase(ApiResourceTestCase):
     def nested_url(self, obj):
         return self.detail_url(obj) + "folders/"
 
+    def test_get_schema_json(self):
+        self.successful_get(self.list_url + 'schema/', user=self.vesting_member)
+
     def test_should_strip_whitespace_from_name(self):
         name = 'This is a folder name'
         obj = self.successful_post(self.nested_url(self.vesting_member.root_folder),
