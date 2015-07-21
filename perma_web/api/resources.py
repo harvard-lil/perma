@@ -19,7 +19,11 @@ from tastypie import http
 from tastypie.resources import ModelResource
 from tastypie.exceptions import NotFound, ImmediateHttpResponse
 
-from validations import LinkValidation, FolderValidation, mime_type_lookup, get_mime_type
+from validations import (LinkValidation,
+                         FolderValidation,
+                         mime_type_lookup,
+                         get_mime_type)
+
 from perma.models import (LinkUser,
                           Link,
                           Asset,
