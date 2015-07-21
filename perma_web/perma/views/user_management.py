@@ -664,20 +664,19 @@ def registrar_user_add_user(request):
         if ((form and form.is_valid()) or form == None) and not cannot_add:
             if target_user == None:
                 target_user = form.save()
-                is_new_user = True
-    
-            if request.user.is_registrar_member():
-                target_user.registrar = request.user.registrar
-    
-            if is_new_user:
                 target_user.is_active = False
-                email_new_user(request, target_user)
+                target_user.save()
                 messages.add_message(request, messages.SUCCESS, '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % target_user.email, extra_tags='safe')
             else:
-                email_new_registrar_user(request, target_user)
                 messages.add_message(request, messages.SUCCESS, '<h4>Success!</h4> <strong>%s</strong> is now a registrar user.' % target_user.email, extra_tags='safe')
-            
-            target_user.save()
+
+
+            # If a librarian is adding a peer
+            if request.user.is_registrar_member():
+                target_user.registrar = request.user.registrar
+                target_user.save()
+                email_new_registrar_user(request, target_user)
+
 
             return HttpResponseRedirect(reverse('user_management_manage_registrar_user'))
 
