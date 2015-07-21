@@ -468,8 +468,17 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'HOST',
 )
 
+
+### Tastypie
+# http://django-tastypie.readthedocs.org/en/latest/settings.html
+
+TASTYPIE_ALLOW_MISSING_SLASH = True
+APPEND_SLASH = False
+
 TASTYPIE_DEFAULT_FORMATS = ['json']
+
 TASTYPIE_FULL_DEBUG = True  # Better Tastypie error handling for debugging. Only has an effect when DEBUG=True.
+
 
 # Schedule celerybeat jobs.
 # These will be added to CELERYBEAT_SCHEDULE in settings.utils.post_processing
