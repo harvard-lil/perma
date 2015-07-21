@@ -517,9 +517,9 @@ class CurrentUserResource(LinkUserResource):
         list_allowed_methods = []
         detail_allowed_methods = ['get']
 
-    # Limit the url to only the first route (/resource) to allow nested resources
+    # Limit the url to only the first route (/resource) and schema to allow nested resources
     def base_urls(self):
-        return [super(CurrentUserResource, self).base_urls()[0]]
+        return super(CurrentUserResource, self).base_urls()[0:2]
 
     # Map the detail view to the list view so that detail shows at the resource root
     def dispatch_list(self, request, **kwargs):
