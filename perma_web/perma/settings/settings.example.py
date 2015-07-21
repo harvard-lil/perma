@@ -45,7 +45,8 @@ DEFAULT_FROM_EMAIL = 'email@example.com'
 DEVELOPER_EMAIL = DEFAULT_FROM_EMAIL
 
 
-# The host we want to display (used when DEBUG=False)
+# The host we want to display
+# Likely set to localhost:8000 if you're working in a dev instance
 HOST = 'perma.cc'
 
 
