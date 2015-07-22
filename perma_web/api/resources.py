@@ -19,7 +19,11 @@ from tastypie import http
 from tastypie.resources import ModelResource
 from tastypie.exceptions import NotFound, ImmediateHttpResponse
 
-from validations import LinkValidation, FolderValidation, mime_type_lookup, get_mime_type
+from validations import (LinkValidation,
+                         FolderValidation,
+                         mime_type_lookup,
+                         get_mime_type)
+
 from perma.models import (LinkUser,
                           Link,
                           Asset,
@@ -487,14 +491,15 @@ class LinkResource(AuthenticatedLinkResource):
 class CurrentUserResource(LinkUserResource):
     class Meta(DefaultResource.Meta):
         resource_name = 'user'
+        queryset = LinkUser.objects.all()[:0] # needed for /schema to render
         authentication = CurrentUserAuthentication()
         authorization = CurrentUserAuthorization()
         list_allowed_methods = []
         detail_allowed_methods = ['get']
 
-    # Limit the url to only the first route (/resource) to allow nested resources
+    # Limit the url to only the first route (/resource) and schema to allow nested resources
     def base_urls(self):
-        return [super(CurrentUserResource, self).base_urls()[0]]
+        return super(CurrentUserResource, self).base_urls()[0:2]
 
     # Map the detail view to the list view so that detail shows at the resource root
     def dispatch_list(self, request, **kwargs):

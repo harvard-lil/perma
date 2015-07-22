@@ -80,6 +80,12 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     # GET #
     #######
 
+    def test_get_schema_json(self):
+        self.successful_get(self.list_url + 'schema/', user=self.vesting_member)
+
+    def test_get_public_schema_json(self):
+        self.successful_get(self.public_list_url + 'schema/', user=self.vesting_member)
+
     def test_get_list_json(self):
         self.successful_get(self.public_list_url, count=2)
 

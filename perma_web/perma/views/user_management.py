@@ -35,7 +35,7 @@ from perma.forms import (
     UserFormSelfEdit, 
     SetPasswordForm, 
 )
-from perma.models import Registrar, LinkUser, Organization, Link
+from perma.models import Registrar, LinkUser, Organization
 from perma.utils import apply_search_query, apply_pagination, apply_sort_order
 
 logger = logging.getLogger(__name__)
