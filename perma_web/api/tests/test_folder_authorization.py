@@ -33,15 +33,15 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
         self.test_journal_subfolder_with_unvested_link = Folder.objects.get(pk=35)
 
 
-        # self.list_url = self.url_base + '/user/folders/'
-        # self.nested_url = "{0}{1}/folders/".format(self.list_url, self.nonempty_root_folder.pk)
-        self.list_url = "{0}/{1}/".format(self.url_base, FolderResource.Meta.resource_name)
-        #self.nested_url = "{0}folders/".format(self.detail_url(self.nonempty_root_folder))
+        # self.list_url = self.url_base + '/user/folders'
+        # self.nested_url = "{0}/{1}/folders".format(self.list_url, self.nonempty_root_folder.pk)
+        self.list_url = "{0}/{1}".format(self.url_base, FolderResource.Meta.resource_name)
+        #self.nested_url = "{0}/folders".format(self.detail_url(self.nonempty_root_folder))
 
     # helpers
 
     def nested_url(self, obj):
-        return self.detail_url(obj)+"folders/"
+        return self.detail_url(obj)+"/folders"
 
     ############
     # Creating #
@@ -129,25 +129,25 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
 
     def successful_folder_move(self, user, parent_folder, child_folder):
         self.successful_put(
-            "{0}folders/{1}/".format(self.detail_url(parent_folder), child_folder.pk),
+            "{0}/folders/{1}".format(self.detail_url(parent_folder), child_folder.pk),
             user=user
         )
 
         # Make sure it's listed in the folder
         obj = self.successful_get(self.detail_url(child_folder), user=user)
-        data = self.successful_get(self.detail_url(parent_folder)+"folders/", user=user)
+        data = self.successful_get(self.detail_url(parent_folder)+"/folders", user=user)
         self.assertIn(obj, data['objects'])
 
     def rejected_folder_move(self, user, parent_folder, child_folder, expected_status_code=401):
         self.rejected_put(
-            "{0}folders/{1}/".format(self.detail_url(parent_folder), child_folder.pk),
+            "{0}/folders/{1}".format(self.detail_url(parent_folder), child_folder.pk),
             expected_status_code=expected_status_code,
             user=user
         )
 
         # Make sure it's not listed in the folder
         obj = self.successful_get(self.detail_url(child_folder), user=child_folder.created_by)
-        data = self.successful_get(self.detail_url(parent_folder)+"folders/", user=parent_folder.created_by)
+        data = self.successful_get(self.detail_url(parent_folder)+"/folders", user=parent_folder.created_by)
         self.assertNotIn(obj, data['objects'])
 
     def test_should_allow_folder_owner_to_move_to_new_parent(self):

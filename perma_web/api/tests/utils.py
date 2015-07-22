@@ -85,7 +85,7 @@ class ApiResourceTestCase(ResourceTestCase):
         self._media_tmp = settings.MEDIA_ROOT = tempfile.mkdtemp()
 
         try:
-            self.list_url = "{0}/{1}/".format(self.url_base, self.resource.Meta.resource_name)
+            self.list_url = "{0}/{1}".format(self.url_base, self.resource.Meta.resource_name)
         except:
             pass
 
@@ -178,7 +178,7 @@ class ApiResourceTestCase(ResourceTestCase):
         self.assertValidJSON(force_text(resp.content))
 
     def detail_url(self, obj):
-        return "{0}{1}/".format(self.list_url, obj.pk)
+        return "{0}/{1}".format(self.list_url, obj.pk)
 
     def get_req_kwargs(self, kwargs):
         req_kwargs = {}

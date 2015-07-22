@@ -19,7 +19,7 @@ class FolderResourceTestCase(ApiResourceTestCase):
         self.nonempty_child_folder = Folder.objects.get(pk=30)
 
     def nested_url(self, obj):
-        return self.detail_url(obj) + "folders/"
+        return self.detail_url(obj) + "/folders"
 
     def test_get_schema_json(self):
         self.successful_get(self.list_url + 'schema/', user=self.vesting_member)
@@ -38,12 +38,12 @@ class FolderResourceTestCase(ApiResourceTestCase):
         child_folder = self.empty_child_folder
 
         self.successful_put(
-            "{0}folders/{1}/".format(self.detail_url(parent_folder), child_folder.pk),
+            "{0}/folders/{1}".format(self.detail_url(parent_folder), child_folder.pk),
             user=user
         )
 
         # Make sure it's listed in the folder
         obj = self.successful_get(self.detail_url(child_folder), user=user)
-        data = self.successful_get(self.detail_url(parent_folder)+"folders/", user=user)
+        data = self.successful_get(self.detail_url(parent_folder)+"/folders", user=user)
 
         self.assertIn(obj, data['objects'])
