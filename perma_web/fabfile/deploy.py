@@ -118,7 +118,9 @@ def local_backup_database(backup_dir):
 
 @task
 def backup_code():
+    """ Create a .tar.gz of the perma_web folder and store in env.CODE_BACKUP_DIR. """
     if env.CODE_BACKUP_DIR:
-        with web_root():
-            out_file_path = os.path.join(env.CODE_BACKUP_DIR, "code_backup_%s.tar.gz" % date.today().isoformat())
-            run_as_web_user("tar --xform='s:./:perma_web/:' -cvzf %s ." % out_file_path)
+        with web_root(), cd(".."):
+            out_file_path = os.path.join(env.CODE_BACKUP_DIR, "perma_web_%s.tar.gz" % date.today().isoformat())
+            # || [[ $? -eq 1 ]] makes sure that we still consider an exit code of 1 (meaning files changed during tar) a success
+            run_as_web_user("tar -cvzf %s perma_web || [[ $? -eq 1 ]]" % out_file_path)
