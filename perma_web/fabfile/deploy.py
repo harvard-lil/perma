@@ -95,7 +95,7 @@ def start_server():
 def backup_database():
     if env.DATABASE_BACKUP_DIR:
         with web_root():
-            run_as_web_user("fab local_backup_database:%s" % env.DATABASE_BACKUP_DIR)
+            run_as_web_user("fab deploy.local_backup_database:%s" % env.DATABASE_BACKUP_DIR)
 
 @task
 def local_backup_database(backup_dir):
