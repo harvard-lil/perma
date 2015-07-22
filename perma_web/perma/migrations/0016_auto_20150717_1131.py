@@ -76,7 +76,7 @@ def reverse_migrate_assets(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('perma', '0013_auto_20150717_1130'),
+        ('perma', '0015_auto_20150717_1130'),
     ]
 
     operations = [
