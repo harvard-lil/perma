@@ -57,7 +57,7 @@ pacakges we depend on (you'll have to do this every time requirements.txt change
 
 Initialize the database (this will call `syncdb`, apply migrations, and load fixtures):
 
-    (perma)vagrant@perma_0.1:/vagrant/perma_web$ fab init_dev_db
+    (perma)vagrant@perma_0.1:/vagrant/perma_web$ fab dev.init_db
 
 Then you can run the test server:
 

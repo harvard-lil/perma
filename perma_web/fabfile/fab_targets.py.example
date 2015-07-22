@@ -1,0 +1,10 @@
+from fabric.api import env, task
+
+# This file lets you override Fabric env vars like REMOTE_DIR for a particular deployment target.
+# For example:
+
+@task
+def prod():
+    env.REMOTE_DIR = '/whatever'
+
+# Fab can then be run with a command like `fab prod deploy`.

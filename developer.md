@@ -147,7 +147,7 @@ you can set SAUCE_USERNAME and SAUCE_ACCESS_KEY in settings.py, and then run our
 By default `fab test_sauce` is pointed at 127.0.0.1:8000, which Sauce can't reach from outside, so you'll have to set
 up a tunnel first by running
 
-    $ fab sauce_tunnel
+    $ fab dev.sauce_tunnel
     
 in the background or in another terminal window.
 
