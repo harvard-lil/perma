@@ -129,7 +129,7 @@
               </div>
               <div class="col-sm-7 center-list-count">
                 <div class="list-count-group"><a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">
-                <p class="list-count-number">{{ org.vesting_users|default_if_none:"0" }}</p>
+                <p class="list-count-number">{{ org.organization_users|default_if_none:"0" }}</p>
                 <p class="list-count-label">users</p></a>
                 </div>
                 {% comment %}
@@ -152,7 +152,7 @@
                 <p class="list-date">
               created {{ org.date_created|date:'N j, Y' }}
             <br>
-              {% if org.vesting_users %}
+              {% if org.organization_users %}
               last active {{ org.last_active|date:'N j, Y'}}
               {% else %}
               <span class="text-warning">no existing users</span>
