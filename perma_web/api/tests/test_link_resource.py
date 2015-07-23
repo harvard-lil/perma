@@ -31,15 +31,15 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.unvested_link = Link.objects.get(pk="7CF8-SS4G")
         self.vested_link = Link.objects.get(pk="3SLN-JHX9")
 
-        self.list_url = "{0}/{1}/".format(self.url_base, LinkResource.Meta.resource_name)
-        self.unvested_link_detail_url = "{0}{1}/".format(self.list_url, self.unvested_link.pk)
-        self.vested_link_detail_url = "{0}{1}/".format(self.list_url, self.vested_link.pk)
+        self.list_url = "{0}/{1}".format(self.url_base, LinkResource.Meta.resource_name)
+        self.unvested_link_detail_url = "{0}/{1}".format(self.list_url, self.unvested_link.pk)
+        self.vested_link_detail_url = "{0}/{1}".format(self.list_url, self.vested_link.pk)
 
-        self.logged_in_list_url = "{0}/{1}/".format(self.url_base, CurrentUserLinkResource.Meta.resource_name)
-        self.logged_in_unvested_link_detail_url = "{0}{1}/".format(self.logged_in_list_url, self.unvested_link.pk)
+        self.logged_in_list_url = "{0}/{1}".format(self.url_base, CurrentUserLinkResource.Meta.resource_name)
+        self.logged_in_unvested_link_detail_url = "{0}/{1}".format(self.logged_in_list_url, self.unvested_link.pk)
 
-        self.public_list_url = "{0}/{1}/".format(self.url_base, PublicLinkResource.Meta.resource_name)
-        self.public_vested_link_detail_url = "{0}{1}/".format(self.public_list_url, self.vested_link.pk)
+        self.public_list_url = "{0}/{1}".format(self.url_base, PublicLinkResource.Meta.resource_name)
+        self.public_vested_link_detail_url = "{0}/{1}".format(self.public_list_url, self.vested_link.pk)
 
         self.logged_out_fields = [
             'vested',
@@ -79,6 +79,12 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     #######
     # GET #
     #######
+
+    def test_get_schema_json(self):
+        self.successful_get(self.list_url + '/schema', user=self.vesting_member)
+
+    def test_get_public_schema_json(self):
+        self.successful_get(self.public_list_url + '/schema', user=self.vesting_member)
 
     def test_get_list_json(self):
         self.successful_get(self.public_list_url, count=2)
@@ -197,9 +203,9 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
     def test_vesting(self):
         folder = self.vesting_member.organizations.first().folders.first()
-        folder_url = "{0}/folders/{1}/".format(self.url_base, folder.pk)
+        folder_url = "{0}/folders/{1}".format(self.url_base, folder.pk)
 
-        self.successful_put("{0}archives/{1}/".format(folder_url, self.unvested_link.pk),
+        self.successful_put("{0}/archives/{1}".format(folder_url, self.unvested_link.pk),
                             user=self.vesting_member,
                             data={'vested': True})
 
@@ -207,7 +213,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertTrue(obj['vested'])
 
         # Make sure it's listed in the folder
-        data = self.successful_get(folder_url+"archives/", user=self.vesting_member)
+        data = self.successful_get(folder_url+"/archives", user=self.vesting_member)
         self.assertIn(obj, data['objects'])
 
     ##########
@@ -216,14 +222,14 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
     def test_moving(self):
         folder = self.vesting_member.organizations.first().folders.first()
-        folder_url = "{0}/folders/{1}/".format(self.url_base, folder.pk)
+        folder_url = "{0}/folders/{1}".format(self.url_base, folder.pk)
 
-        self.successful_put("{0}archives/{1}/".format(folder_url, self.unvested_link.pk),
+        self.successful_put("{0}/archives/{1}".format(folder_url, self.unvested_link.pk),
                             user=self.vesting_member)
 
         # Make sure it's listed in the folder
         obj = self.successful_get(self.unvested_link_detail_url, user=self.vesting_member)
-        data = self.successful_get(folder_url+"archives/", user=self.vesting_member)
+        data = self.successful_get(folder_url+"/archives", user=self.vesting_member)
         self.assertIn(obj, data['objects'])
 
     ############
