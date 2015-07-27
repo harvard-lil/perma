@@ -3,6 +3,7 @@
         "pk": 1,
         "model": "perma.registrar",
         "fields": {
+            "is_approved": true,
             "name": "Test Library",
             "email": "library@university.edu",
             "website": "http://university.edu/library",
@@ -14,6 +15,7 @@
         "pk": 2,
         "model": "perma.registrar",
         "fields": {
+            "is_approved": false,
             "name": "Another Library",
             "email": "library@university2.edu",
             "website": "http://university2.edu/library",
@@ -35,7 +37,6 @@
         "pk": 2,
         "model": "perma.Organization",
         "fields": {
-            "is_approved": true,
             "name": "Another Journal",
             "registrar": 1,
             "shared_folder": 28,
@@ -46,7 +47,6 @@
         "pk": 3,
         "model": "perma.Organization",
         "fields": {
-            "is_approved": false,
             "name": "A Third Journal",
             "registrar": 1,
             "shared_folder": 31,
