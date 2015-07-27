@@ -35,6 +35,7 @@
         "pk": 2,
         "model": "perma.Organization",
         "fields": {
+            "is_approved": true,
             "name": "Another Journal",
             "registrar": 1,
             "shared_folder": 28,
@@ -45,6 +46,7 @@
         "pk": 3,
         "model": "perma.Organization",
         "fields": {
+            "is_approved": false,
             "name": "A Third Journal",
             "registrar": 1,
             "shared_folder": 31,
