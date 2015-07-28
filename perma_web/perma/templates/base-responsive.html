@@ -92,7 +92,7 @@
                               </ul>
                             </li>
 						{% else %}
-                            <li><a href="{% url 'about' %}" class="navbar-link{% if this_page == 'about' %} this-page{% endif %}">About</a></li>
+                            <li><a href="{% url 'sign_up' %}" class="navbar-link{% if this_page == 'sign_up' %} this-page{% endif %}">Sign up</a></li>
                             <li><a href="{% url 'user_management_limited_login' %}" class="navbar-link">Log in</a></li>
                             {% comment %}
                             <li><a href="{% url 'register' %}" id="nav-button" class="btn btn-large btn-success">Sign Up</a></li>

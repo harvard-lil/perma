@@ -735,6 +735,7 @@ section#home-description {
 
 .learn-more .btn-more {
     margin:5px 5px 5px 10px;
+    display:block;
 }
 
 .learn-more .btn-active {
@@ -760,6 +761,7 @@ section#home-description {
 @media(min-width:768px){
     .learn-more .btn-more {
         margin:15px 15px 35px 10px;
+        display:inline-block;
     }
 }
 
