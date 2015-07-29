@@ -3,15 +3,15 @@
 
 {% block content %}
 
-	<h3>Leave {{ vesting_org.name }}</h3>
+	<h3>Leave {{ org.name }}</h3>
 	<br/>
 	<br/>
-	<p>Yahowza! Do you really want to leave <strong>{{ vesting_org.name }}</strong> forever?</p>
-	<div class="alert alert-danger">You will lose vesting privileges for <strong>{{ vesting_org.name }}</strong>.</div>
+	<p>Yahowza! Do you really want to leave <strong>{{ org.name }}</strong> forever?</p>
+	<div class="alert alert-danger">You will lose vesting privileges for <strong>{{ org.name }}</strong>.</div>
 	<br/>
 	<form action="" method="POST">
-	      {% csrf_token %}
-        <a href="{% url 'user_management_settings_organizations' %}">Cancel</a> <button type="submit" class="btn-success delete-confirm">Leave {{ user.vesting_org.name }} forever</button>
+        {% csrf_token %}
+        <a href="{% url 'user_management_settings_organizations' %}">Cancel</a> <button type="submit" class="btn-success delete-confirm">Leave {{ org.name }} forever</button>
     </form>
 
 {% endblock %}

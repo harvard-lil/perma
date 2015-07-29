@@ -32,56 +32,53 @@ class Registrar(models.Model):
     email = models.EmailField(max_length=254)
     website = models.URLField(max_length=500)
     date_created = models.DateField(auto_now_add=True, null=True)
-    default_vesting_org = models.OneToOneField('VestingOrg', blank=True, null=True, related_name='default_for_registrars')
+    default_organization = models.OneToOneField('Organization', blank=True, null=True, related_name='default_for_registrars') # each registrar gets a default org
     is_approved = models.BooleanField(default=False)
-
-    # what info to send downstream
-    mirror_fields = ('name', 'email', 'website')
 
     tracker = FieldTracker()
 
     def save(self, *args, **kwargs):
         super(Registrar, self).save(*args, **kwargs)
-        self.create_default_vesting_org()
+        self.create_default_org()
 
     def __unicode__(self):
         return self.name
         
-    def create_default_vesting_org(self):
+    def create_default_org(self):
         """
-            Create a default vesting org for this registrar, if there isn't
-            one. (When registrar member vests, we associate that archive
-            with this vesting org by default.)
+            Create a default org for this registrar, if there isn't
+            one. (When registrar member creates an archive, we
+            associate that archive with this org by default.)
         """
         
-        if self.default_vesting_org:
+        if self.default_organization:
             return
         else:
-            vesting_org = VestingOrg(registrar=self, name="Default Vesting Organization")
-            vesting_org.save()
-            self.default_vesting_org = vesting_org
+            org = Organization(registrar=self, name="Default Organization")
+            org.save()
+            self.default_organization = org
             self.save()
 
 
-class VestingOrgQuerySet(QuerySet):
+class OrganizationQuerySet(QuerySet):
     def accessible_to(self, user):
-        qset = VestingOrg.objects.user_access_filter(user)
+        qset = Organization.objects.user_access_filter(user)
         if qset is None:
             return self.none()
         else:
             return self.filter(qset)
 
 
-class VestingOrgManager(models.Manager):
+class OrganizationManager(models.Manager):
     """
-        Vesting org manager that can enforce user access perms.
+        Org manager that can enforce user access perms.
     """
     def get_queryset(self):
-        return VestingOrgQuerySet(self.model, using=self._db)
+        return OrganizationQuerySet(self.model, using=self._db)
 
     def user_access_filter(self, user):
-        if user.is_vesting_org_member():
-            return Q(id__in=user.vesting_org.all())
+        if user.is_organization_member:
+            return Q(id__in=user.organizations.all())
         elif user.is_registrar_member():
             return Q(registrar_id=user.registrar_id)
         elif user.is_staff:
@@ -93,29 +90,26 @@ class VestingOrgManager(models.Manager):
         return self.get_queryset().accessible_to(user)
 
 
-class VestingOrg(models.Model):
+class Organization(models.Model):
     """
     This is generally a journal.
     """
     name = models.CharField(max_length=400)
-    registrar = models.ForeignKey(Registrar, null=True, related_name="vesting_orgs")
-    shared_folder = models.OneToOneField('Folder', blank=True, null=True)
+    registrar = models.ForeignKey(Registrar, null=True, related_name="organizations")
+    shared_folder = models.OneToOneField('Folder', blank=True, null=True, related_name="organization_")  # related_name isn't used, just set to avoid name collision with Folder.organization
     date_created = models.DateField(auto_now_add=True, null=True)
 
-    # what info to send downstream
-    mirror_fields = ('name', 'registrar')
-
-    objects = VestingOrgManager()
+    objects = OrganizationManager()
     tracker = FieldTracker()
 
     def save(self, *args, **kwargs):
         name_has_changed = self.tracker.has_changed('name')
-        super(VestingOrg, self).save(*args, **kwargs)
+        super(Organization, self).save(*args, **kwargs)
         if not self.shared_folder:
-            # Make sure shared folder is created for each vesting org.
+            # Make sure shared folder is created for each org.
             self.create_shared_folder()
         elif name_has_changed:
-            # Rename shared folder if vesting org name changes.
+            # Rename shared folder if org name changes.
             self.shared_folder.name = self.name
             self.shared_folder.save()
 
@@ -125,14 +119,14 @@ class VestingOrg(models.Model):
     def create_shared_folder(self):
         if self.shared_folder:
             return
-        shared_folder = Folder(name=self.name, vesting_org=self, is_shared_folder=True)
+        shared_folder = Folder(name=self.name, organization=self, is_shared_folder=True)
         shared_folder.save()
         self.shared_folder = shared_folder
         self.save()
 
 
 class LinkUserManager(BaseUserManager):
-    def create_user(self, email, registrar, vesting_org, date_joined, first_name, last_name, authorized_by, confirmation_code, password=None):
+    def create_user(self, email, registrar, organization, date_joined, first_name, last_name, authorized_by, confirmation_code, password=None):
         """
         Creates and saves a User with the given email, registrar and password.
         """
@@ -153,7 +147,7 @@ class LinkUserManager(BaseUserManager):
         user.set_password(password)
         user.save()
 
-        user.vesting_org.add(vesting_org)
+        user.organizations.add(organization)
         user.save()
 
         user.create_root_folder()
@@ -168,9 +162,9 @@ class LinkUser(AbstractBaseUser):
         unique=True,
         db_index=True,
     )
-    registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar member. This should not be set if vesting org is set!")
+    registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar member. This should not be set if org is set!")
     pending_registrar = models.IntegerField(blank=True, null=True)
-    vesting_org = models.ManyToManyField(VestingOrg, blank=True, null=True, related_name='users', help_text="If set, this user is a vesting org member. This should not be set if registrar is set!")
+    organizations = models.ManyToManyField(Organization, blank=True, null=True, related_name='users', help_text="If set, this user is an org member. This should not be set if registrar is set!")
     is_active = models.BooleanField(default=True)
     is_confirmed = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -215,22 +209,23 @@ class LinkUser(AbstractBaseUser):
         """
             Get all folders for this user, including shared folders
         """
-        if self.is_registrar_member():
-            vesting_orgs = self.registrar.vesting_orgs.all()
-        else:
-            vesting_orgs = list(self.get_default_vesting_org())
-
+        
+        orgs = self.get_orgs()
 
         return [self.root_folder.get_descendants(include_self=True)] + \
-            ([vesting_org.shared_folder.get_descendants(include_self=True) for vesting_org in vesting_orgs if vesting_org])
+            ([org.shared_folder.get_descendants(include_self=True) for org in orgs if org])
 
-    def get_default_vesting_org(self):
-        if self.is_vesting_org_member():
-            return self.vesting_org.all()
+    def get_orgs(self):
+        """
+            Get organizations in which this user is a member
+        """
+
+        if self.is_organization_member:
+            return self.organizations.all()
         if self.is_registrar_member():
-            return self.registrar.default_vesting_org
+            return self.registrar.organizations.all()
         if self.is_staff:
-            return VestingOrg.objects.all()
+            return Organization.objects.all()
             
         return []
 
@@ -271,7 +266,7 @@ class LinkUser(AbstractBaseUser):
 
     def can_vest(self):
         """ Can the user vest links? """
-        return bool(self.is_staff or self.is_registrar_member() or self.is_vesting_org_member())
+        return bool(self.is_staff or self.is_registrar_member() or self.is_organization_member)
 
     def is_registrar_member(self):
         """ Is the user a member of a registrar? """
@@ -281,9 +276,10 @@ class LinkUser(AbstractBaseUser):
         """ Has requested creation of registrar """
         return bool(self.pending_registrar)
 
-    def is_vesting_org_member(self):
-        """ Is the user a member of a vesting org? """
-        return self.vesting_org.exists()
+    @cached_property
+    def is_organization_member(self):
+        """ Is the user a member of an org? """
+        return self.organizations.exists()
 
 
 class FolderQuerySet(QuerySet):
@@ -302,13 +298,10 @@ class FolderManager(models.Manager):
         # personal folders
         filter = Q(owned_by=user)
 
-        # vesting org folders
-        if user.is_registrar_member():
-            filter |= Q(vesting_org__registrar=user.registrar)
-        else:
-            default_vesting_org = user.get_default_vesting_org()
-            if default_vesting_org:
-                filter |= Q(vesting_org=default_vesting_org)
+        # folders owned by orgs in which the user a member
+        orgs = user.get_orgs()
+        if orgs:
+            filter |= Q(organization=orgs)
 
         return filter
 
@@ -322,13 +315,13 @@ class Folder(MPTTModel):
     creation_timestamp = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='folders_created',)
 
-    # this may be null if this is the shared folder for a vesting org
+    # this may be null if this is the shared folder for a org
     owned_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='folders',)
 
     # this will be set if this is inside a shared folder
-    vesting_org = models.ForeignKey(VestingOrg, null=True, blank=True, related_name='folders')
+    organization = models.ForeignKey(Organization, null=True, blank=True, related_name='folders')
 
-    # true if this is the apex shared folder (not subfolder) for a vesting org
+    # true if this is the apex shared folder (not subfolder) for a org
     is_shared_folder = models.BooleanField(default=False)
 
     # true if this is the apex folder for a user
@@ -342,11 +335,11 @@ class Folder(MPTTModel):
         if not self.pk:
             # set ownership same as parent
             if self.parent:
-                if self.parent.vesting_org:
-                    self.vesting_org = self.parent.vesting_org
+                if self.parent.organization:
+                    self.organization = self.parent.organization
                 else:
                     self.owned_by = self.parent.owned_by
-            if self.created_by and not self.owned_by and not self.vesting_org:
+            if self.created_by and not self.owned_by and not self.organization:
                 self.owned_by = self.created_by
 
         parent_has_changed = self.tracker.has_changed('parent_id')
@@ -354,12 +347,12 @@ class Folder(MPTTModel):
         super(Folder, self).save(*args, **kwargs)
 
         if parent_has_changed:
-            # make sure that child folders share vesting_org and owned_by with new parent folder
+            # make sure that child folders share organization and owned_by with new parent folder
             # (one or the other should be set, but not both)
-            if self.parent.vesting_org_id:
-                self.get_descendants(include_self=True).update(vesting_org=self.parent.vesting_org_id, owned_by=None)
+            if self.parent.organization_id:
+                self.get_descendants(include_self=True).update(organization=self.parent.organization_id, owned_by=None)
             else:
-                self.get_descendants(include_self=True).update(owned_by=self.parent.owned_by_id, vesting_org=None)
+                self.get_descendants(include_self=True).update(owned_by=self.parent.owned_by_id, organization=None)
 
     class MPTTMeta:
         order_insertion_by = ['name']
@@ -378,7 +371,7 @@ class Folder(MPTTModel):
             Get hierarchical level for this folder. If this is a shared folder, level should be one higher
             because it is displayed below user's root folder.
         """
-        return self.level + (1 if self.vesting_org_id else 0)
+        return self.level + (1 if self.organization_id else 0)
 
 
 class LinkQuerySet(QuerySet):
@@ -402,18 +395,15 @@ class LinkManager(models.Manager):
 
     def user_access_filter(self, user):
         """
-            User can see/modify a link if they created it or it is in a vesting org folder they belong to.
+            User can see/modify a link if they created it or it is in an org folder they belong to.
         """
         # personal links
         filter = Q(folders__owned_by=user)
 
-        # links in vesting org folders
-        if user.is_registrar_member():
-            filter |= Q(folders__vesting_org__registrar=user.registrar)
-        else:
-            default_vesting_org = user.get_default_vesting_org()
-            if default_vesting_org:
-                filter |= Q(folders__vesting_org=default_vesting_org)
+        # links owned by orgs in which the user a member
+        orgs = user.get_orgs()
+        if orgs:
+            filter |= Q(folders__organization=orgs)
 
         return filter
 
@@ -442,14 +432,9 @@ class Link(models.Model):
     vested = models.BooleanField(default=False)
     vested_by_editor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='vested_links')
     vested_timestamp = models.DateTimeField(null=True, blank=True)
-    vesting_org = models.ForeignKey(VestingOrg, null=True, blank=True)
+    organization = models.ForeignKey(Organization, null=True, blank=True)
     folders = models.ManyToManyField(Folder, related_name='links', blank=True, null=True)
     notes = models.TextField(blank=True)
-
-    # what info to send downstream
-    mirror_fields = ('guid', 'submitted_url', 'creation_timestamp', 'submitted_title', 'dark_archived',
-                     'dark_archived_robots_txt_blocked', 'user_deleted', 'user_deleted_timestamp',
-                     'vested', 'vested_timestamp', 'vesting_org')
 
     objects = LinkManager()
     tracker = FieldTracker()
@@ -481,7 +466,7 @@ class Link(models.Model):
     # media_type is a file extension-ish normalized mimemedia_type
     @cached_property
     def media_type(self):
-        if self.headers.get('content-type', None) in ['application/pdf', 'application/x-pdf'] or self.submitted_url.endswith('.pdf'):
+        if self.headers.get('content-type', '').lower() in ['application/pdf', 'application/x-pdf'] or self.submitted_url.endswith('.pdf'):
             return 'pdf'
         else:
             return False
@@ -600,12 +585,6 @@ class Asset(models.Model):
         default=False)  # whether the user uploaded this file or we fetched it from the web
     user_upload_file_name = models.CharField(max_length=2100, null=True, blank=True)  # if user upload, the original file name of the upload
 
-    last_integrity_check = models.DateTimeField(blank=True, null=True)  # for a mirror server, the last time our disk assets were checked against upstream
-    integrity_check_succeeded = models.NullBooleanField(blank=True, null=True)      # whether the last integrity check succeeded
-
-    # what info to send downstream
-    mirror_fields = ('link', 'base_storage_path', 'image_capture', 'warc_capture', 'pdf_capture', 'favicon')
-
     tracker = FieldTracker()
 
     CAPTURE_STATUS_PENDING = 'pending'
@@ -644,30 +623,6 @@ class Asset(models.Model):
         """ Return iterator of all files for this asset. """
         return default_storage.walk(self.base_storage_path)
 
-    def verify_media(self):
-        if settings.MIRROR_SERVER:
-            from mirroring.tasks import background_media_sync
-            urls = []
-            if self.image_capture and '.png' in self.image_capture:
-                urls.append(self.base_url(self.image_capture))
-            if self.pdf_capture and '.pdf' in self.pdf_capture:
-                urls.append(self.base_url(self.pdf_capture))
-            if self.warc_capture and '.warc' in self.warc_capture:
-                urls.append(self.base_url(self.warc_capture))
-
-            missing_urls = [url for url in urls if not default_storage.exists(url)]
-            background_media_sync(paths=missing_urls)
-
-            still_missing_urls = [url for url in missing_urls if not default_storage.exists(url)]
-            if still_missing_urls:
-                logger.error("Verifying media failed for %s: still missing %s." % (self.link_id, still_missing_urls))
-                self.integrity_check_succeeded = False
-            else:
-                self.integrity_check_succeeded = True
-
-            self.last_integrity_check = timezone.now()
-            self.save()
-
 
 #########################
 # Stats related models
@@ -686,13 +641,13 @@ class Stat(models.Model):
 
     # Our user counts
     regular_user_count = models.IntegerField(default=1)
-    vesting_member_count = models.IntegerField(default=1)
-    vesting_manager_count = models.IntegerField(default=1)
+    org_member_count = models.IntegerField(default=1)
+    org_manager_count = models.IntegerField(default=1)  # keeping this for legacy counts, doesn't mean anything
     registrar_member_count = models.IntegerField(default=1)
     registry_member_count = models.IntegerField(default=1)
 
-    # Our vesting org count
-    vesting_org_count = models.IntegerField(default=1)
+    # Our org count
+    org_count = models.IntegerField(default=1)
 
     # Our registrar count
     registrar_count = models.IntegerField(default=1)

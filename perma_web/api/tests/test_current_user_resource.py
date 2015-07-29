@@ -23,6 +23,9 @@ class CurrentUserResourceTestCase(ApiResourceTestCase):
             'full_name',
         ]
 
+    def test_get_schema_json(self):
+        self.successful_get(self.detail_url + 'schema/', user=self.vesting_member)
+
     def test_get_self_detail_json(self):
         self.successful_get(self.detail_url, user=self.vesting_member, fields=self.fields)
 
@@ -33,5 +36,5 @@ class CurrentUserResourceTestCase(ApiResourceTestCase):
     def test_get_folders_json(self):
         self.successful_get(self.detail_url + 'folders/', user=self.vesting_member, count=1)
 
-    def test_get_vesting_orgs_json(self):
-        self.successful_get(self.detail_url + 'vesting_orgs/', user=self.vesting_member, count=1)
+    def test_get_orgs_json(self):
+        self.successful_get(self.detail_url + 'organizations/', user=self.vesting_member, count=1)

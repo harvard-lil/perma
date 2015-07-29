@@ -31,7 +31,7 @@ from django.template.defaultfilters import truncatechars
 from django.forms.models import model_to_dict
 from django.conf import settings
 
-from perma.models import Asset, Stat, Registrar, LinkUser, Link, VestingOrg, CDXLine
+from perma.models import Asset, Stat, Registrar, LinkUser, Link, Organization, CDXLine
 from perma.utils import imagemagick_temp_dir
 
 
@@ -476,7 +476,8 @@ def get_pdf(self, link_guid, target_url, base_storage_path, user_agent):
                 save_fields(asset, image_capture=image_name)
     except Exception as e:
         # errors with the thumbnail aren't dealbreakers -- just log here
-        print "Error creating PDF thumbnail: %s" % e
+        print "Error creating PDF thumbnail of %s: %s" % (target_url, e)
+        save_fields(asset, image_capture=Asset.CAPTURE_STATUS_FAILED)
 
 @shared_task
 def get_nightly_stats():
@@ -486,8 +487,8 @@ def get_nightly_stats():
     """
     
     # Five types user accounts
-    total_count_regular_users = LinkUser.objects.filter(is_staff=False, vesting_org=None, registrar_id=None).count()
-    total_count_vesting_members = LinkUser.objects.exclude(vesting_org=None).count()
+    total_count_regular_users = LinkUser.objects.filter(is_staff=False, organizations=None, registrar_id=None).count()
+    total_count_org_members = LinkUser.objects.exclude(organizations=None).count()
     total_count_registrar_members = LinkUser.objects.exclude(registrar_id=None).count()
     total_count_registry_members = LinkUser.objects.filter(is_staff=True).count()
     
@@ -495,7 +496,7 @@ def get_nightly_stats():
     total_count_registrars = Registrar.objects.all().count()
     
     # Journal account
-    total_vesting_orgs = VestingOrg.objects.all().count()
+    total_orgs = Organizations.objects.all().count()
     
     # Two types of links
     total_count_unvested_links = Link.objects.filter(vested=False).count()
@@ -527,11 +528,11 @@ def get_nightly_stats():
     # We've now gathered all of our data. Let's write it to the model
     stat = Stat(
         regular_user_count=total_count_regular_users,
-        vesting_member_count=total_count_vesting_members,
+        org_member_count=total_count_org_members,
         registrar_member_count=total_count_registrar_members,
         registry_member_count=total_count_registry_members,
         registrar_count=total_count_registrars,
-        vesting_org_count=total_vesting_orgs,
+        org_count=total_orgs,
         unvested_count=total_count_unvested_links,
         darchive_takedown_count = total_count_darchive_takedown_links,
         darchive_robots_count = total_count_darchive_robots_links,
@@ -564,9 +565,9 @@ def upload_to_internet_archive(self, link_guid):
         'mediatype':'web',
         'date':link.creation_timestamp,
         'title':'%s: %s' % (link_guid, truncatechars(link.submitted_title, 50)),
-        'description': 'Perma.cc archive of %s created on %s and vested on %s by %s.' % (link.submitted_url, link.creation_timestamp, link.vested_timestamp, link.vesting_org),
+        'description': 'Perma.cc archive of %s created on %s and vested on %s by %s.' % (link.submitted_url, link.creation_timestamp, link.vested_timestamp, link.organization),
         'contributor':'Perma.cc',
-        'sponsor':"%s - %s" % (link.vesting_org, link.vesting_org.registrar),
+        'sponsor':"%s - %s" % (link.organization, link.organization.registrar),
 
         # custom metadata
         'submitted_url':link.submitted_url,
@@ -612,9 +613,9 @@ def email_weekly_stats():
         'prev_regular_users_count': previous_stats['regular_user_count'],
         'current_regular_users_count': current_stats['regular_user_count'],
 
-        'num_vesting_members_added': current_stats['vesting_member_count'] - previous_stats['vesting_member_count'],
-        'prev_vesting_members_count': previous_stats['vesting_member_count'],
-        'current_vesting_members_count': current_stats['vesting_member_count'],
+        'num_org_members_added': current_stats['org_member_count'] - previous_stats['org_member_count'],
+        'prev_org_members_count': previous_stats['org_member_count'],
+        'current_org_members_count': current_stats['org_member_count'],
 
         'num_registar_members_added': current_stats['registrar_member_count'] - previous_stats['registrar_member_count'],
         'prev_registrar_members_count': previous_stats['registrar_member_count'],
@@ -624,9 +625,9 @@ def email_weekly_stats():
         'prev_registry_members_count': previous_stats['registry_member_count'],
         'current_registry_members_count': current_stats['registry_member_count'],
 
-        'num_vesting_orgs_added': current_stats['vesting_org_count'] - previous_stats['vesting_org_count'],
-        'prev_vesting_orgs_count': previous_stats['vesting_org_count'],
-        'current_vesting_orgs_count': current_stats['vesting_org_count'],
+        'num_orgs_added': current_stats['org_count'] - previous_stats['org_count'],
+        'prev_orgs_count': previous_stats['org_count'],
+        'current_orgs_count': current_stats['org_count'],
 
         'num_registrars_added': current_stats['registrar_count'] - previous_stats['registrar_count'],
         'prev_registrars_count': previous_stats['registrar_count'],

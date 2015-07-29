@@ -58,7 +58,7 @@ urlpatterns = patterns('perma.views',
     url(r'^service/stats/links/?$', 'service.stats_links', name='service_stats_links'),
     url(r'^service/stats/darchive-links/?$', 'service.stats_darchive_links', name='service_stats_darchive_links'),
     url(r'^service/stats/storage/?$', 'service.stats_storage', name='service_stats_storage'),
-    url(r'^service/stats/vesting-org/?$', 'service.stats_vesting_org', name='service_stats_vesting_org'),
+    url(r'^service/stats/org/?$', 'service.stats_org', name='service_stats_org'),
     url(r'^service/stats/registrar/?$', 'service.stats_registrar', name='service_stats_registrar'),
     url(r'^service/bookmarklet-create/$', 'service.bookmarklet_create', name='service.bookmarklet_create'),
     url(r'^service/image-wrapper/%s?/?$' % guid_pattern, 'service.image_wrapper', name='service_image_wrapper'),
@@ -107,8 +107,8 @@ urlpatterns = patterns('perma.views',
     url(r'^manage/registrars/?$', 'user_management.manage_registrar', name='user_management_manage_registrar'),
     url(r'^manage/registrars/(?P<registrar_id>[a-zA-Z0-9]+)/?$', 'user_management.manage_single_registrar', name='user_management_manage_single_registrar'),
     url(r'^manage/registrars/approve/(?P<registrar_id>[a-zA-Z0-9]+)/?$', 'user_management.approve_pending_registrar', name='user_management_approve_pending_registrar'),
-    url(r'^manage/vesting-organizations/?$', 'user_management.manage_vesting_org', name='user_management_manage_vesting_org'),
-    url(r'^manage/vesting-organizations/(?P<vesting_org_id>[a-zA-Z0-9]+)/?$', 'user_management.manage_single_vesting_org', name='user_management_manage_single_vesting_org'),
+    url(r'^manage/organizations/?$', 'user_management.manage_organization', name='user_management_manage_organization'),
+    url(r'^manage/organizations/(?P<org_id>[a-zA-Z0-9]+)/?$', 'user_management.manage_single_organization', name='user_management_manage_single_organization'),
     url(r'^manage/registry-users/add-user/?$', 'user_management.registry_user_add_user', name='user_management_registry_user_add_user'),
     url(r'^manage/registry-users/?$', 'user_management.manage_registry_user', name='user_management_manage_registry_user'),
     url(r'^manage/registry-user/(?P<user_id>[a-zA-Z0-9]+)/delete/?$', 'user_management.manage_single_registry_user_delete', name='user_management_manage_single_registry_user_delete'),
@@ -123,16 +123,15 @@ urlpatterns = patterns('perma.views',
     url(r'^manage/users/(?P<user_id>[a-zA-Z0-9]+)/?$', 'user_management.manage_single_user', name='user_management_manage_single_user'),
     url(r'^manage/users/(?P<user_id>[a-zA-Z0-9]+)/delete/?$', 'user_management.manage_single_user_delete', name='user_management_manage_single_user_delete'),
     url(r'^manage/users/(?P<user_id>[a-zA-Z0-9]+)/reactivate/?$', 'user_management.manage_single_user_reactivate', name='user_management_manage_single_user_reactivate'),
-    url(r'^manage/vesting-users/?$', 'user_management.manage_vesting_user', name='user_management_manage_vesting_user'),
-    url(r'^manage/vesting-users/(?P<user_id>[a-zA-Z0-9]+)/?$', 'user_management.manage_single_vesting_user', name='user_management_manage_single_vesting_user'),
-    url(r'^manage/vesting-users/(?P<user_id>[a-zA-Z0-9]+)/delete/?$', 'user_management.manage_single_vesting_user_delete', name='user_management_manage_single_vesting_user_delete'),
-    url(r'^manage/vesting-users/(?P<user_id>[a-zA-Z0-9]+)/reactivate/?$', 'user_management.manage_single_vesting_user_reactivate', name='user_management_manage_single_vesting_user_reactivate'),
-    url(r'^manage/vesting-users/(?P<user_id>[a-zA-Z0-9]+)/remove/?$', 'user_management.manage_single_vesting_user_remove', name='user_management_manage_single_vesting_user_remove'),
+    url(r'^manage/organization-users/?$', 'user_management.manage_organization_user', name='user_management_manage_organization_user'),
+    url(r'^manage/organization-users/(?P<user_id>[a-zA-Z0-9]+)/?$', 'user_management.manage_single_organization_user', name='user_management_manage_single_organization_user'),
+    url(r'^manage/organization-users/(?P<user_id>[a-zA-Z0-9]+)/delete/?$', 'user_management.manage_single_organization_user_delete', name='user_management_manage_single_organization_user_delete'),
+    url(r'^manage/organization-users/(?P<user_id>[a-zA-Z0-9]+)/reactivate/?$', 'user_management.manage_single_organization_user_reactivate', name='user_management_manage_single_organization_user_reactivate'),
+    url(r'^manage/organization-users/(?P<user_id>[a-zA-Z0-9]+)/remove/?$', 'user_management.manage_single_organization_user_remove', name='user_management_manage_single_organization_user_remove'),
     url(r'^manage/users/(?P<user_id>[a-zA-Z0-9]+)/add-registrar/?$', 'user_management.user_add_registrar', name='user_management_user_add_registrar'),
     #url(r'^manage/users/(?P<user_id>[a-zA-Z0-9]+)/add-vesting-org/?$', 'user_management.user_add_vesting_org', name='user_management_user_add_vesting_org'),
-    url(r'^manage/vesting-users/add-user/?$', 'user_management.vesting_user_add_user', name='user_management_vesting_user_add_user'),
-    url(r'^manage/account/leave-vesting-organization/(?P<vesting_org_id>[a-zA-Z0-9]+)/?$', 'user_management.vesting_user_leave_vesting_org', name='user_management_vesting_user_leave_vesting_org'),
-    url(r'^manage/mirrors/?$', 'user_management.mirrors', name='mirrors'),
+    url(r'^manage/organization-users/add-user/?$', 'user_management.organization_user_add_user', name='user_management_organization_user_add_user'),
+    url(r'^manage/account/leave-organization/(?P<org_id>[a-zA-Z0-9]+)/?$', 'user_management.organization_user_leave_organization', name='user_management_organization_user_leave_organization'),
 #    url(r'^manage/batch-convert/?$', 'user_management.batch_convert', name='user_management_batch_convert'),
 #    url(r'^manage/export/?$', 'user_management.export', name='user_management_export'),
 #    url(r'^manage/custom-domain/?$', 'user_management.custom_domain', name='user_management_custom_domain'),
@@ -145,10 +144,9 @@ urlpatterns = patterns('perma.views',
 )
 
 # debug-only serving of static and media assets
-if settings.DEBUG or settings.TESTING:
+if settings.DEBUG:
     from django.contrib.staticfiles.views import serve as static_view
-    from mirroring.utils import may_be_mirrored
-    urlpatterns += static(settings.STATIC_URL, may_be_mirrored(static_view)) + \
+    urlpatterns += static(settings.STATIC_URL, static_view) + \
                    static(getattr(settings, 'DEBUG_MEDIA_URL', settings.MEDIA_URL), debug_media_view, document_root=settings.MEDIA_ROOT)
 
 handler404 = 'perma.views.common.server_error_404'

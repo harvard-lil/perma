@@ -28,13 +28,13 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
         self.vested_link = Link.objects.get(pk="3SLN-JHX9")
         self.unvested_link = Link.objects.get(pk="7CF8-SS4G")
 
-        self.public_list_url = "{0}/{1}/".format(self.url_base, PublicLinkResource.Meta.resource_name)
-        self.public_vested_url = "{0}{1}/".format(self.public_list_url, self.vested_link.pk)
-        self.public_unvested_url = "{0}{1}/".format(self.public_list_url, self.unvested_link.pk)
+        self.public_list_url = "{0}/{1}".format(self.url_base, PublicLinkResource.Meta.resource_name)
+        self.public_vested_url = "{0}/{1}".format(self.public_list_url, self.vested_link.pk)
+        self.public_unvested_url = "{0}/{1}".format(self.public_list_url, self.unvested_link.pk)
 
-        self.list_url = "{0}/{1}/".format(self.url_base, LinkResource.Meta.resource_name)
-        self.vested_url = "{0}{1}/".format(self.list_url, self.vested_link.pk)
-        self.unvested_url = "{0}{1}/".format(self.list_url, self.unvested_link.pk)
+        self.list_url = "{0}/{1}".format(self.url_base, LinkResource.Meta.resource_name)
+        self.vested_url = "{0}/{1}".format(self.list_url, self.vested_link.pk)
+        self.unvested_url = "{0}/{1}".format(self.list_url, self.unvested_link.pk)
 
         self.post_data = {'url': self.server_url + "/test.html",
                           'title': 'This is a test page'}
@@ -101,12 +101,12 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
     def test_should_allow_vested_link_owner_to_patch_notes_and_title(self):
         self.successful_patch(self.vested_url, user=self.vested_link.created_by, data=self.patch_data)
 
-    def test_should_allow_member_of_links_vesting_org_to_patch_notes_and_title(self):
-        user = LinkUser.objects.filter(vesting_org=self.vested_link.vesting_org).first()
+    def test_should_allow_member_of_links_org_to_patch_notes_and_title(self):
+        user = LinkUser.objects.filter(organizations=self.vested_link.organization).first()
         self.successful_patch(self.vested_url, user=user, data=self.patch_data)
 
     def test_should_allow_member_of_links_vesting_registrar_to_patch_notes_and_title(self):
-        registrar = self.vested_link.vesting_org.registrar
+        registrar = self.vested_link.organization.registrar
         user = LinkUser.objects.filter(registrar=registrar.pk).first()
         self.successful_patch(self.vested_url, user=user, data=self.patch_data)
 
@@ -117,11 +117,11 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
     # Vesting #
     ###########
 
-    def test_should_allow_member_of_vesting_org_to_vest(self):
+    def test_should_allow_member_of_org_to_vest(self):
         self.successful_patch(self.unvested_url,
                               user=self.vesting_member,
                               data={'vested': True,
-                                    'vesting_org': 1,
+                                    'organization': 1,
                                     'folder': 27})
 
         data = self.successful_get(self.unvested_url, user=self.vesting_member)
@@ -132,7 +132,7 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
                               user=self.registrar_member,
                               check_results=False,  # Not checking results because registrar lacks permission to GET pre-patch state of link before it's vested.
                               data={'vested': True,
-                                    'vesting_org': 2,
+                                    'organization': 2,
                                     'folder': 28})
 
         data = self.successful_get(self.unvested_url, user=self.registrar_member)
@@ -142,7 +142,7 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
         self.successful_patch(self.unvested_url,
                                      user=self.registry_member,
                                      data={'vested': True,
-                                           'vesting_org': 2,
+                                           'organization': 2,
                                            'folder': 28})
 
         data = self.successful_get(self.unvested_url, user=self.registry_member)
@@ -152,14 +152,14 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
         self.rejected_patch(self.unvested_url,
                             user=self.regular_user,
                             data={'vested': True,
-                                  'vesting_org': 1,
+                                  'organization': 1,
                                   'folder': 27})
 
-    def test_should_reject_vest_when_user_doesnt_belong_to_vesting_org(self):
+    def test_should_reject_vest_when_user_doesnt_belong_to_org(self):
         self.rejected_patch(self.unvested_url,
                             user=self.vesting_member,
                             data={'vested': True,
-                                  'vesting_org': 2,
+                                  'organization': 2,
                                   'folder': 28})
 
     ##################
@@ -172,14 +172,14 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
         data = self.successful_get(self.vested_url, user=user)
         self.assertEqual(data['dark_archived_by']['id'], user.id)
 
-    def test_should_allow_member_of_links_vesting_org_to_dark_archive(self):
-        users_in_vesting_org = LinkUser.objects.filter(vesting_org=self.vested_link.vesting_org)
-        self.successful_patch(self.vested_url, user=users_in_vesting_org[0], data={'dark_archived': True})
-        data = self.successful_get(self.vested_url, user=users_in_vesting_org[1])
-        self.assertEqual(data['dark_archived_by']['id'], users_in_vesting_org[0].id)
+    def test_should_allow_member_of_links_org_to_dark_archive(self):
+        users_in_org = LinkUser.objects.filter(organizations=self.vested_link.organization)
+        self.successful_patch(self.vested_url, user=users_in_org[0], data={'dark_archived': True})
+        data = self.successful_get(self.vested_url, user=users_in_org[1])
+        self.assertEqual(data['dark_archived_by']['id'], users_in_org[0].id)
 
     def test_should_allow_member_of_links_vesting_registrar_to_dark_archive(self):
-        user = self.vested_link.vesting_org.registrar.users.first()
+        user = self.vested_link.organization.registrar.users.first()
         self.successful_patch(self.vested_url, user=user, data={'dark_archived': True})
         data = self.successful_get(self.vested_url, user=user)
         self.assertEqual(data['dark_archived_by']['id'], user.id)
@@ -192,30 +192,30 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
     ##########
 
     def successful_link_move(self, user, link, folder):
-        archives_url = "{0}/folders/{1}/archives/".format(self.url_base, folder.pk)
-        self.successful_put("{0}{1}/".format(archives_url, link.pk), user=user)
+        archives_url = "{0}/folders/{1}/archives".format(self.url_base, folder.pk)
+        self.successful_put("{0}/{1}".format(archives_url, link.pk), user=user)
 
         # Make sure it's listed in the folder
-        obj = self.successful_get("{0}{1}/".format(self.list_url, link.pk), user=user)
+        obj = self.successful_get("{0}/{1}".format(self.list_url, link.pk), user=user)
         data = self.successful_get(archives_url, user=user)
         self.assertIn(obj, data['objects'])
 
     def rejected_link_move(self, user, link, folder, expected_status_code=401):
-        folder_url = "{0}/folders/{1}/".format(self.url_base, folder.pk)
-        archives_url = "{0}archives/".format(folder_url)
+        folder_url = "{0}/folders/{1}".format(self.url_base, folder.pk)
+        archives_url = "{0}/archives".format(folder_url)
         try:
             # if the user doesn't have access to the parent
             self.rejected_get(folder_url, user=user)
         except AssertionError:
-            self.rejected_put("{0}{1}/".format(archives_url, link.pk), user=user, expected_status_code=expected_status_code)
+            self.rejected_put("{0}/{1}".format(archives_url, link.pk), user=user, expected_status_code=expected_status_code)
 
             # Make sure it's not listed in the folder
-            obj = self.successful_get("{0}{1}/".format(self.list_url, link.pk), user=link.created_by)
+            obj = self.successful_get("{0}/{1}".format(self.list_url, link.pk), user=link.created_by)
             data = self.successful_get(archives_url, user=folder.created_by)
             self.assertNotIn(obj, data['objects'])
 
     def test_should_allow_link_owner_to_move_to_new_folder(self):
-        self.successful_link_move(self.vesting_member, self.vested_link, self.vested_link.vesting_org.shared_folder.children.first())
+        self.successful_link_move(self.vesting_member, self.vested_link, self.vested_link.organization.shared_folder.children.first())
 
     def test_should_reject_move_of_vested_link_outside_of_shared_folder(self):
         self.rejected_link_move(self.vesting_member, self.vested_link, self.vesting_member.root_folder, expected_status_code=400)

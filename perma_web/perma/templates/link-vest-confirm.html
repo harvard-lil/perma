@@ -6,7 +6,7 @@
         <form method="post" id="select-vesting-org-form" style="display:none">
             <h2>On behalf of which organization are you vesting this link?</h2>
             <div class="centered-box" style="margin-bottom: 1em">
-                <select name="vesting_org" id="vesting_org_select"></select>
+                <select name="organization" id="organization_select"></select>
             </div>
             <div class="centered-box">
                 <a href="/{{ link.guid }}" class="cancel-button">Cancel</a>
@@ -33,7 +33,7 @@
 {% block scripts %}
     <script>
         var url_single_linky = "{% url 'single_linky' link.guid %}",
-            selected_vesting_org = "{{latest.vesting_org_id}}",
+            selected_organization = "{{latest.organization_id}}",
             selected_folder = "{{folder.id}}",
             archive = {% as_json link %};
     </script>

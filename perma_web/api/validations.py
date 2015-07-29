@@ -55,7 +55,7 @@ class LinkValidation(Validation):
     def is_valid_size(self, headers):
         # If we get a PDF, check its file size as we download it
         # and don't worry about what the header tells us about size
-        if headers.get('content-type', None) == 'application/pdf':
+        if headers.get('content-type', '').lower() == 'application/pdf':
             return True
 
         try:
@@ -105,20 +105,20 @@ class LinkValidation(Validation):
 
         # Vesting
         if bundle.data.get('vested', None) and bundle.obj.tracker.has_changed('vested'):
-            if not bundle.obj.vesting_org:
-                errors['vesting_org'] = "vesting_org can't be blank"
-            elif not bundle.obj.folders.filter(vesting_org=bundle.obj.vesting_org):
-                # if not currently in the vesting org's folder, the folder needs to be supplied
+            if not bundle.obj.organization:
+                errors['organization'] = "organization can't be blank"
+            elif not bundle.obj.folders.filter(organization=bundle.obj.organization):
+                # if not currently in the org's folder, the folder needs to be supplied
                 if not bundle.data.get("folder", None):
-                    errors['folder'] = "This archive is not currently in the vesting org's folder. Please specify a folder belonging to the vesting org when vesting."
+                    errors['folder'] = "This archive is not currently in the org's folder. Please specify a folder belonging to the org when vesting."
                 else:
-                    if bundle.data['folder'].vesting_org != bundle.obj.vesting_org:
-                        errors['folder'] = "the folder must belong to the vesting_org"
+                    if bundle.data['folder'].organization != bundle.obj.organization:
+                        errors['folder'] = "the folder must belong to the organization"
 
-        # Moving folder when not vesting
+        # Moving folder when not organization
         elif bundle.data.get("folder", None):
-            if bundle.obj.vested and bundle.obj.vesting_org_id != bundle.data['folder'].vesting_org_id:
-                errors['folder'] = "Vested archives cannot be moved out of the vesting organization's shared folder."
+            if bundle.obj.vested and bundle.obj.organization_id != bundle.data['folder'].organization_id:
+                errors['folder'] = "Vested archives cannot be moved out of the organization's shared folder."
 
         return errors
 
@@ -139,10 +139,10 @@ class FolderValidation(Validation):
             if not bundle.obj.parent_id:
                 errors['parent'] = "Can't move folder to top level."
             elif bundle.obj.is_shared_folder:
-                errors['parent'] = "Can't move vesting organization's shared folder."
+                errors['parent'] = "Can't move organization's shared folder."
             elif bundle.obj.is_root_folder:
                 errors['parent'] = "Can't move user's main folder."
-            elif bundle.obj.vesting_org_id and bundle.obj.vesting_org_id != bundle.obj.parent.vesting_org_id and bundle.obj.contained_links().filter(vested=True).exists():
+            elif bundle.obj.organization_id and bundle.obj.organization_id != bundle.obj.parent.organization_id and bundle.obj.contained_links().filter(vested=True).exists():
                 errors['parent'] = "Can't move folder with vested links out of organization's shared folder."
 
         return errors

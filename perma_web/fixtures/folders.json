@@ -14,7 +14,7 @@
         "owned_by": 1,
         "is_shared_folder": false,
         "creation_timestamp": "2014-09-02T16:57:03Z",
-        "vesting_org": null
+        "organization": null
     }
 },
 {
@@ -32,7 +32,7 @@
         "owned_by": 2,
         "is_shared_folder": false,
         "creation_timestamp": "2014-09-02T16:57:03Z",
-        "vesting_org": null
+        "organization": null
     }
 },
 {
@@ -50,7 +50,7 @@
         "owned_by": 3,
         "is_shared_folder": false,
         "creation_timestamp": "2014-09-02T16:57:03Z",
-        "vesting_org": null
+        "organization": null
     }
 },
 {
@@ -68,7 +68,7 @@
         "owned_by": 4,
         "is_shared_folder": false,
         "creation_timestamp": "2014-09-02T16:57:03Z",
-        "vesting_org": null
+        "organization": null
     }
 },
 {
@@ -86,7 +86,7 @@
         "owned_by": 5,
         "is_shared_folder": false,
         "creation_timestamp": "2014-09-02T16:57:03Z",
-        "vesting_org": null
+        "organization": null
     }
 },
 {
@@ -104,7 +104,7 @@
         "owned_by": null,
         "is_shared_folder": true,
         "creation_timestamp": "2014-09-02T16:58:10Z",
-        "vesting_org": 1
+        "organization": 1
     }
 },
 {
@@ -122,7 +122,7 @@
         "owned_by": null,
         "is_shared_folder": true,
         "creation_timestamp": "2014-09-02T16:58:10Z",
-        "vesting_org": 2
+        "organization": 2
     }
 },
 {
@@ -140,7 +140,7 @@
         "owned_by": 4,
         "is_shared_folder": false,
         "creation_timestamp": "2014-09-02T16:57:03Z",
-        "vesting_org": null
+        "organization": null
     }
 },
 {
@@ -158,7 +158,7 @@
         "owned_by": 4,
         "is_shared_folder": false,
         "creation_timestamp": "2014-09-02T16:57:03Z",
-        "vesting_org": null
+        "organization": null
     }
 },
 {
@@ -176,7 +176,7 @@
         "owned_by": null,
         "is_shared_folder": true,
         "creation_timestamp": "2014-09-02T16:58:10Z",
-        "vesting_org": 3
+        "organization": 3
     }
 },
 {
@@ -194,7 +194,7 @@
         "owned_by": 6,
         "is_shared_folder": false,
         "creation_timestamp": "2014-09-02T16:57:03Z",
-        "vesting_org": null
+        "organization": null
     }
 },
 {
@@ -212,7 +212,7 @@
         "owned_by": 6,
         "is_shared_folder": false,
         "creation_timestamp": "2014-09-02T16:57:03Z",
-        "vesting_org": null
+        "organization": null
     }
 },
 {
@@ -230,7 +230,7 @@
         "owned_by": null,
         "is_shared_folder": false,
         "creation_timestamp": "2015-01-28T21:43:38Z",
-        "vesting_org": 1
+        "organization": 1
     }
 },
 {
@@ -248,7 +248,7 @@
         "owned_by": null,
         "is_shared_folder": false,
         "creation_timestamp": "2015-01-28T21:43:45Z",
-        "vesting_org": 1
+        "organization": 1
     }
 },
 {
@@ -266,7 +266,7 @@
         "owned_by": null,
         "is_shared_folder": false,
         "creation_timestamp": "2015-01-28T21:44:34Z",
-        "vesting_org": 2
+        "organization": 2
     }
 },
 {
@@ -284,7 +284,7 @@
         "owned_by": null,
         "is_shared_folder": false,
         "creation_timestamp": "2015-01-28T21:44:43Z",
-        "vesting_org": 2
+        "organization": 2
     }
 },
 {
@@ -302,7 +302,7 @@
         "owned_by": null,
         "is_shared_folder": false,
         "creation_timestamp": "2015-01-28T21:44:53Z",
-        "vesting_org": 3
+        "organization": 3
     }
 },
 {
@@ -320,7 +320,7 @@
         "owned_by": null,
         "is_shared_folder": false,
         "creation_timestamp": "2015-01-28T21:45:00Z",
-        "vesting_org": 3
+        "organization": 3
     }
 },
 {
@@ -338,7 +338,7 @@
         "owned_by": null,
         "is_shared_folder": true,
         "creation_timestamp": "2014-09-02T16:58:10Z",
-        "vesting_org": 4
+        "organization": 4
     }
 },
 {
@@ -356,7 +356,7 @@
         "owned_by": 7,
         "is_shared_folder": false,
         "creation_timestamp": "2014-09-02T16:57:03Z",
-        "vesting_org": null
+        "organization": null
     }
 }
 ]

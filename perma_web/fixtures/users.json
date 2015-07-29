@@ -3,10 +3,11 @@
         "pk": 1,
         "model": "perma.registrar",
         "fields": {
+            "is_approved": true,
             "name": "Test Library",
             "email": "library@university.edu",
             "website": "http://university.edu/library",
-            "default_vesting_org": 1,
+            "default_organization": 1,
             "date_created": "2013-06-26"
         }
     },
@@ -14,16 +15,17 @@
         "pk": 2,
         "model": "perma.registrar",
         "fields": {
+            "is_approved": false,
             "name": "Another Library",
             "email": "library@university2.edu",
             "website": "http://university2.edu/library",
-            "default_vesting_org": 4,
+            "default_organization": 4,
             "date_created": "2014-07-27"
         }
     },
     {
         "pk": 1,
-        "model": "perma.VestingOrg",
+        "model": "perma.Organization",
         "fields": {
             "name": "Test Journal",
             "registrar": 1,
@@ -33,7 +35,7 @@
     },
     {
         "pk": 2,
-        "model": "perma.VestingOrg",
+        "model": "perma.Organization",
         "fields": {
             "name": "Another Journal",
             "registrar": 1,
@@ -43,7 +45,7 @@
     },
     {
         "pk": 3,
-        "model": "perma.VestingOrg",
+        "model": "perma.Organization",
         "fields": {
             "name": "A Third Journal",
             "registrar": 1,
@@ -53,7 +55,7 @@
     },
     {
         "pk": 4,
-        "model": "perma.VestingOrg",
+        "model": "perma.Organization",
         "fields": {
             "name": "Another Library's Journal",
             "registrar": 2,
@@ -97,14 +99,14 @@
         "pk": 3,
         "model": "perma.LinkUser",
         "fields": {
-            "vesting_org": [1],
+            "organizations": [1],
             "is_active": true,
             "is_confirmed": true,
             "last_login": "2013-07-23T18:38:27Z",
             "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
-            "email": "test_vesting_member@example.com",
+            "email": "test_org_user@example.com",
             "date_joined": "2013-06-26",
-            "first_name": "Vesting",
+            "first_name": "Organization",
             "last_name": "Member",
             "root_folder": 24
         }
@@ -128,14 +130,14 @@
         "pk": 5,
         "model": "perma.LinkUser",
         "fields": {
-            "vesting_org": [1],
+            "organizations": [1],
             "is_active": true,
             "is_confirmed": true,
             "last_login": "2013-07-23T18:38:27Z",
             "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
-            "email": "test_vesting_manager@example.com",
+            "email": "test_org_manager@example.com",
             "date_joined": "2013-06-26",
-            "first_name": "Vesting",
+            "first_name": "Organization",
             "last_name": "Manager",
             "root_folder": 26
         }
@@ -144,14 +146,14 @@
         "pk": 6,
         "model": "perma.LinkUser",
         "fields": {
-            "vesting_org": [3],
+            "organizations": [3],
             "is_active": true,
             "is_confirmed": true,
             "last_login": "2013-07-23T18:38:27Z",
             "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
-            "email": "test_another_vesting_member@example.com",
+            "email": "test_another_org_member@example.com",
             "date_joined": "2013-06-26",
-            "first_name": "Another-Vesting",
+            "first_name": "Another-Org",
             "last_name": "Member",
             "root_folder": 32
         }
@@ -160,15 +162,15 @@
         "pk": 7,
         "model": "perma.LinkUser",
         "fields": {
-            "vesting_org": [3,4],
+            "organizations": [3,4],
             "is_active": true,
             "is_confirmed": true,
             "last_login": "2013-07-23T18:38:27Z",
             "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
-            "email": "test_another_library_vesting_member@example.com",
+            "email": "test_another_library_org_member@example.com",
             "date_joined": "2013-06-26",
             "first_name": "Another-Library",
-            "last_name": "Vesting-Member",
+            "last_name": "Organization-Member",
             "root_folder": 41
         }
     },

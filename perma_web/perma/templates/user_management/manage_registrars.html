@@ -1,5 +1,5 @@
 {% extends "manage-layout.html" %}
-{% load local_datetime humanize %}
+{% load local_datetime humanize current_query_string %}
 {% block title %} | Registrars{% endblock %}
 
 {% block manage-nav-registrar %}<li class="active"><a href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>{% endblock %}
@@ -34,12 +34,12 @@
     
     <div class="row">
         <div class="col-sm-3">
-            <p class="count-label">Vesting Organizations</p>
-            <p class="count-number">{{ vesting_org_count.count }}</p>
+            <p class="count-label">Organizations</p>
+            <p class="count-number">{{ orgs_count.count }}</p>
         </div>
         <div class="col-sm-3">
             <p class="count-label">Registrars</p>
-            <p class="count-number">{{ registrar_count }}</p>
+            <p class="count-number">{{ registrars.paginator.count }}</p>
         </div>
     </div>
 
@@ -52,7 +52,7 @@
         {% endif %}
         <div class="row">
             <div class="col-sm-12">
-                <p class="sort-filter-count">{{registrar_results}} registrar{% if not registrar_results == 1 %}s{% endif %}</p>
+                <p class="sort-filter-count">{{ registrars.paginator.count }} registrar{{ registrars.paginator.count|pluralize }}</p>
                 <div class="sort-filter-bar">
                 {% include "user_management/includes/search_form_simple.html" %}
                 <div class="dropdown">
@@ -75,14 +75,14 @@
                 
                   <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                     <li>
-                        <a {% if sort == 'name' %}class="selected" {% endif %}href="?sort=name&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}"><i class="icon-ok"></i> Name A - Z</a>
-                        <a {% if sort == '-name' %}class="selected" {% endif %} href="?sort=-name&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}"><i class="icon-ok"></i> Name Z - A</a>
-                        <a {% if sort == '-date_created' %}class="selected" {% endif %} href="?sort=-date_created&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}"><i class="icon-ok"></i> Newest</a>
-                        <a {% if sort == 'date_created' %}class="selected" {% endif %} href="?sort=date_created&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}"><i class="icon-ok"></i> Oldest</a>
-                        <a {% if sort == '-last_active' %}class="selected" {% endif %} href="?sort=-last_active&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}"><i class="icon-ok"></i> Recently active</a>
-                        <a {% if sort == 'last_active' %}class="selected" {% endif %} href="?sort=last_active&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}"><i class="icon-ok"></i> Least recently active</a>
-                        <a {% if sort == '-vested_links' %}class="selected" {% endif %} href="?sort=-vested_links&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}"><i class="icon-ok"></i> Most vested links</a>
-                        <a {% if sort == 'vested_links' %}class="selected" {% endif %} href="?sort=vested_links&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}"><i class="icon-ok"></i> Least vested links</a>
+                        <a {% if sort == 'name' %}class="selected" {% endif %}href="?{% current_query_string sort="name" %}"><i class="icon-ok"></i> Name A - Z</a>
+                        <a {% if sort == '-name' %}class="selected" {% endif %} href="?{% current_query_string sort="-name" %}"><i class="icon-ok"></i> Name Z - A</a>
+                        <a {% if sort == '-date_created' %}class="selected" {% endif %} href="?{% current_query_string sort="-date_created" %}"><i class="icon-ok"></i> Newest</a>
+                        <a {% if sort == 'date_created' %}class="selected" {% endif %} href="?{% current_query_string sort="date_created" %}"><i class="icon-ok"></i> Oldest</a>
+                        <a {% if sort == '-last_active' %}class="selected" {% endif %} href="?{% current_query_string sort="-last_active" %}"><i class="icon-ok"></i> Recently active</a>
+                        <a {% if sort == 'last_active' %}class="selected" {% endif %} href="?{% current_query_string sort="last_active" %}"><i class="icon-ok"></i> Least recently active</a>
+                        <a {% if sort == '-vested_links' %}class="selected" {% endif %} href="?{% current_query_string sort="-vested_links" %}"><i class="icon-ok"></i> Most vested links</a>
+                        <a {% if sort == 'vested_links' %}class="selected" {% endif %} href="?{% current_query_string sort="vested_links" %}"><i class="icon-ok"></i> Least vested links</a>
                     </li>
                   </ul>
                 </div>
@@ -124,18 +124,13 @@
                 {% endcomment %}
               </div>
               <div class="col-sm-7">
-                <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_org' %}?registrar={{registrar.id}}">
-                <p class="list-count-number">{{ registrar.vesting_orgs_count }}</p>
-                <p class="list-count-label">vesting orgs</p></a>
+                <div class="list-count-group"><a href="{% url 'user_management_manage_organization' %}?registrar={{registrar.id}}">
+                <p class="list-count-number">{{ registrar.orgs_count }}</p>
+                <p class="list-count-label">org{{ registrar.orgs_count|pluralize }}</p></a>
                 </div>
-                {% comment %}
-                <div class="list-count-group"><a href="{% url 'user_management_manage_vesting_user' %}?registrar={{registrar.id}}">
-                <p class="list-count-number">{{ registrar.vesting_users }}</p>
-                <p class="list-count-label">vesting users</p></a>
-                </div>
-                {% endcomment %}
-                <div class="list-count-group"><a href="{% url 'user_management_manage_registrar_user' %}?registrar={{registrar.id}}">
-                <p class="list-count-number">{{ registrar.registrar_users }}</p>
+                
+                <div class="list-count-group pull-right"><a href="{% url 'user_management_manage_registrar_user' %}?registrar={{registrar.id}}">
+                <p class="list-count-number right">{{ registrar.registrar_users }}</p>
                 <p class="list-count-label">registrar users</p></a>
                 </div>
             </div>

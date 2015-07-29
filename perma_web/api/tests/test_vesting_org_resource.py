@@ -1,7 +1,7 @@
 from .utils import ApiResourceTestCase
 
 
-class VestingOrgResourceTestCase(ApiResourceTestCase):
+class OrganizationResourceTestCase(ApiResourceTestCase):
     pass
     # Currently there is no vesting org resource.
     # We may want to add one for public vesting orgs, however.
@@ -10,8 +10,8 @@ class VestingOrgResourceTestCase(ApiResourceTestCase):
     #             'fixtures/folders.json']
     #
     # def setUp(self):
-    #     super(VestingOrgResourceTestCase, self).setUp()
-    #     self.list_url = self.url_base+'/vesting_orgs/'
+    #     super(OrganizationResourceTestCase, self).setUp()
+    #     self.list_url = self.url_base+'/organizations/'
     #     self.detail_url = self.list_url+'1/'
     #     self.fields = [
     #         'id',

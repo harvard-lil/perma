@@ -1,4 +1,4 @@
-from perma.models import Link, Folder
+from perma.models import Link
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.exceptions import Unauthorized, BadRequest
 
@@ -15,13 +15,13 @@ class FolderAuthorization(ReadOnlyAuthorization):
             return True
 
         # shared folders
-        elif obj.vesting_org_id:
+        elif obj.organization_id:
             if user.is_registrar_member():
-                # if user is registrar, must be registrar for this vesting org
-                return user.registrar_id == obj.vesting_org.registrar_id
+                # if user is registrar, must be registrar for this org
+                return user.registrar_id == obj.organization.registrar_id
             else:
-                # else, user must belong to this vesting org
-                return user.vesting_org.filter(pk=obj.vesting_org_id).exists()
+                # else, user must belong to this org
+                return user.organizations.filter(pk=obj.organization_id).exists()
 
         return False
 
@@ -34,6 +34,10 @@ class FolderAuthorization(ReadOnlyAuthorization):
     # NOTE - this is called by obj_update and obj_delete before it uses their auth methods
     # ex: https://github.com/toastdriven/django-tastypie/blob/master/tastypie/resources.py#L2203
     def read_detail(self, object_list, bundle):
+        # It's a /schema request
+        if bundle.obj.pk is None:
+            return True
+
         if not self.can_access(bundle.request.user, bundle.obj):
             raise Unauthorized()
 
@@ -69,6 +73,10 @@ class PublicLinkAuthorization(ReadOnlyAuthorization):
         return object_list.filter(vested=True)
 
     def read_detail(self, object_list, bundle):
+        # It's a /schema request
+        if bundle.obj.pk is u'':
+            return True
+
         return bundle.obj.vested
 
 
@@ -80,6 +88,10 @@ class AuthenticatedLinkAuthorization(ReadOnlyAuthorization):
         return object_list.accessible_to(bundle.request.user)
 
     def read_detail(self, object_list, bundle):
+        # It's a /schema request
+        if bundle.obj.pk is u'':
+            return True
+
         if not bundle.request.user.is_authenticated():
             raise Unauthorized()
 
@@ -107,11 +119,18 @@ class CurrentUserAuthorization(ReadOnlyAuthorization):
 
         return object_list.filter(created_by=bundle.request.user)
 
-    read_detail = create_detail = update_detail = delete_detail = all_detail
+    def read_detail(self, object_list, bundle):
+        # It's a /schema request
+        if bundle.obj.pk is u'':
+            return True
+
+        return self.all_detail(object_list, bundle)
+
+    create_detail = update_detail = delete_detail = all_detail
     read_list = all_list  # create_list = update_list = delete_list = disallowed system wide
 
 
-class CurrentUserVestingOrgAuthorization(CurrentUserAuthorization):
+class CurrentUserOrganizationAuthorization(CurrentUserAuthorization):
 
     def all_list(self, object_list, bundle):
         if not bundle.request.user.is_authenticated():
@@ -136,21 +155,21 @@ class LinkAuthorization(AuthenticatedLinkAuthorization):
 
         return True
 
-    def can_vest_to_org(self, user, vesting_org):
+    def can_vest_to_org(self, user, org):
         if user.is_registrar_member():
-            # user must be registrar for this vesting org ...
-            return user.registrar == vesting_org.registrar
+            # user must be registrar for this org ...
+            return user.registrar == org.registrar
         elif user.is_staff:
             # ... or staff ...
             return True
         else:
-            # ... or belong to this vesting org
-            return user.vesting_org.filter(pk=vesting_org.pk).exists()
+            # ... or belong to this org
+            return user.organizations.filter(pk=org.pk).exists()
 
     def update_detail(self, object_list, bundle):
         # For vesting
         if bundle.obj.tracker.has_changed("vested"):
-            if not bundle.request.user.can_vest() or not self.can_vest_to_org(bundle.request.user, bundle.obj.vesting_org):
+            if not bundle.request.user.can_vest() or not self.can_vest_to_org(bundle.request.user, bundle.obj.organization):
                 raise Unauthorized()
 
             return True

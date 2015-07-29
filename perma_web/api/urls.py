@@ -1,11 +1,26 @@
-from django.conf.urls import patterns, include
+from django.conf import settings
+from django.conf.urls import patterns, url
+from django.http import HttpResponse
+from django.views.generic.base import RedirectView
+
 from tastypie.api import Api, NamespacedApi
 from api.resources import (LinkResource,
                            FolderResource,
                            CurrentUserResource,
                            CurrentUserLinkResource,
                            CurrentUserFolderResource,
-                           CurrentUserVestingOrgResource, PublicLinkResource)
+                           CurrentUserOrganizationResource, PublicLinkResource)
+
+### collateral ###
+
+class RedirectWithRootDomain(RedirectView):
+    def get_redirect_url(self, *args, **kwargs):
+        url = super(RedirectWithRootDomain, self).get_redirect_url(*args, **kwargs)
+        return self.request.scheme + '://' + settings.HOST + url
+
+collateral_urls = patterns('',
+  url(r'^/?$', RedirectWithRootDomain.as_view(url='/docs/developer', permanent=True))
+)
 
 ### v1 ###
 
@@ -25,11 +40,11 @@ v1_api.register(FolderResource())
 # /user
 # /user/archives
 # /user/folders
-# /user/vesting_orgs
+# /user/organizations
 v1_api.register(CurrentUserResource())
 v1_api.register(CurrentUserLinkResource())
 v1_api.register(CurrentUserFolderResource())
-v1_api.register(CurrentUserVestingOrgResource())
+v1_api.register(CurrentUserOrganizationResource())
 
 ### v1a ###
 
@@ -39,5 +54,7 @@ v1a_api._canonicals = v1_api._canonicals.copy()
 
 ### add API versions to urlpatters ###
 
-urlpatterns = v1_api.urls + v1a_api.urls
+urlpatterns = v1_api.urls + v1a_api.urls + collateral_urls
 
+handler404 = lambda (request): HttpResponse(status=404)
+handler500 = lambda (request): HttpResponse(status=500)

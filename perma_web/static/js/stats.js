@@ -107,7 +107,7 @@ var draw_folks_vis = function(){
 	});
 }
 
-var draw_vesting_orgs_vis = function(){
+var draw_organizations_vis = function(){
 	
 	var parseDate = d3.time.format("%d-%b-%y").parse;
 	
@@ -137,7 +137,7 @@ var draw_vesting_orgs_vis = function(){
         .append("g")
 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-	d3.tsv(stats_vesting_orgs_url, function(error, data) {
+	d3.tsv(stats_organizations_url, function(error, data) {
 	  data.forEach(function(d) {
 	    d.date = parseDate(d.date);
 	    d.close = +d.close;
@@ -150,7 +150,7 @@ var draw_vesting_orgs_vis = function(){
 	  y.domain(d3.extent(data, function(d) { latest_size = d.close; return d.close; }));
 
 	  // Set the total size of store in our text description of the vis
-	  d3.select('#vesting_org_count').text(latest_size);
+	  d3.select('#organization_count').text(latest_size);
 
 	  svg.append("g")
 	      .attr("class", "x axis")
@@ -503,7 +503,7 @@ var draw_storage_vis = function(){
 }
 
 draw_folks_vis();
-draw_vesting_orgs_vis();
+draw_organizations_vis();
 draw_registrar_vis();
 draw_links_vis();
 draw_darchive_vis();

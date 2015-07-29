@@ -20,11 +20,6 @@ FIXTURE_DIRS = (
 # Overrides #
 #############
 
-# Because LiveServerTestCase runs with DEBUG = False
-# and some of the mirroring logic depends on that,
-# let's add a reliable flag we can use
-TESTING = True
-
 RUN_TASKS_ASYNC = False  # avoid sending celery tasks to queue -- just run inline
 
 # django-pipeline causes problems if enabled for tests, so disable it.

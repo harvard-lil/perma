@@ -40,11 +40,11 @@ If you are using Vagrant, all of your logs will end up in /vagrant/services/logs
 We have several types of users:
 
 * Logged in users are identified the standard Django way: `user.is_authenticated`
-* Users may belong to a vesting org (`user.vesting_org is not None`). You should test this with `user.is_vesting_org_member()`, which avoids an extra database call and can be easily updated in case the underlying data model changes.
+* Users may belong to an organization. You should test this with `user.is_organization_member`.
 * Users may belong to a registrar (`user.registrar is not None`). You should test this with `user.is_registrar_member()`. 
 * Admin users are identified the standard Django way: `user.is_staff`
 
-Currently a user can be either a member of a single vesting org or a single registrar. In the future we may allow multiple relationships.
+Currently a user can be either a member of a single organization or a single registrar. In the future we may allow multiple relationships.
 
 ### Managing static files and user-generated files
 
@@ -147,7 +147,7 @@ you can set SAUCE_USERNAME and SAUCE_ACCESS_KEY in settings.py, and then run our
 By default `fab test_sauce` is pointed at 127.0.0.1:8000, which Sauce can't reach from outside, so you'll have to set
 up a tunnel first by running
 
-    $ fab sauce_tunnel
+    $ fab dev.sauce_tunnel
     
 in the background or in another terminal window.
 
@@ -159,35 +159,6 @@ kicked off by `fab test_sauce`.
 ## Debugging email-related issues
 
 If you're working on an email related task, the contents of emails should be dumped to the standard out courtesy of EMAIL_BACKEND in settings_dev.py.
-
-
-## Mirroring
-
-Perma uses a mirroring system in which one server handles logged-in users and content creation, and a set of mirrors help to serve archived content.
-A load balancer routes traffic between them. The net effect is that http://dashboard.perma.cc is served by one server,
-while http://perma.cc may be served by any randomly selected mirror.
-
-For development, we simulate Perma's network by running a simple load balancer on the local machine at \*.perma.dev:8000.
-The load balancer routes requests to dashboard.perma.dev:8000 to the main Django dev server running on port :8001,
-and requests to perma.dev:8000 to a mirror Django dev server running on port :8002.
-
-To set that up, first edit your hosts file (/etc/hosts or \system32\drivers\etc\hosts) to add the following line:
-
-    127.0.0.1    *.perma.dev
-
-(If you're using Vagrant, this should happen on your host machine. The rest happens in the guest machine.)
-
-Install Twisted:
-
-    pip install twisted
-    
-Launch the simple load balancer and two Django dev servers:
-
-    python manage.py runmirror
-
-You can edit the codebase normally and each server will incorporate your changes.
-
-To see how the mirror emulation works, check out perma_web/mirroring/management/commands/runmirror.py
 
 
 ## Working with Celery

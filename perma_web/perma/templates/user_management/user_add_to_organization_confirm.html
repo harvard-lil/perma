@@ -1,0 +1,45 @@
+{% extends "admin-layout.html" %}
+
+{% block title %} | Add user{% endblock %}
+
+{% block content %}
+
+	<h3>Add {{ user_email }}</h3>
+	{% if not target_user %}
+	    <form method="post">
+            {% csrf_token %}
+            <fieldset>
+                <span class="text-error">{{ form.non_field_errors }}</span>
+                {% for field in form %}
+                    <label for="id_{{ field.name }}">{{ field.label }}</label><br/>
+                    {{ field }}
+                    {% if field.errors %}<br/>
+                        {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+                    {% endif %}<br/>
+                {% endfor %}
+            </fieldset>
+            <button type="submit" class="btn-success">Add vesting user</button>
+            <a href="{% url 'user_management_manage_organization_user' %}">Cancel</a>
+        </form>
+    {% else %}
+
+        <p>{{ user_email }} already has an account.  Would you like to add them to a vesting organization?</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <fieldset>
+                <span class="text-error">{{ form.non_field_errors }}</span>
+                {% for field in form %}
+                    <label for="id_{{ field.name }}">{{ field.label }}</label><br/>
+                    {{ field }}
+                    {% if field.errors %}<br/>
+                        {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+                    {% endif %}<br/>
+                {% endfor %}
+            </fieldset>
+            <button type="submit" class="btn-success">Add to vesting organization</button>
+            <a href="{% url 'user_management_manage_organization_user' %}">Cancel</a>
+        </form>
+    {% endif %}
+
+{% endblock %}

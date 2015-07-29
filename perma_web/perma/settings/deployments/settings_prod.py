@@ -22,9 +22,6 @@ CELERYD_TASK_TIME_LIMIT = 300
 LOGGING['handlers']['default']['filename'] = '/var/log/perma/perma.log'
 PHANTOMJS_LOG = '/var/log/perma/phantom.log'
 
-# default vesting org for links vested by registry users
-FALLBACK_VESTING_ORG_ID = 15  # HLS Default Vesting Org
-
 # use separate subdomain for user content
 MEDIA_URL = '//user-content.perma.cc/media/'
 WARC_HOST = 'user-content.perma.cc'

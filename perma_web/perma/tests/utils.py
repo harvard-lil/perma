@@ -2,7 +2,7 @@ import json
 from django.test import TransactionTestCase
 from django.core.urlresolvers import reverse
 
-from perma.models import Registrar, VestingOrg, LinkUser
+from perma.models import Registrar, Organization, LinkUser
 
 
 class PermaTestCase(TransactionTestCase):
@@ -11,11 +11,11 @@ class PermaTestCase(TransactionTestCase):
                 'fixtures/archive.json']
 
     def setUp(self):
-        # create test registrar and vesting org
+        # create test registrar and an org
         # TODO: move these to fixtures
         registrar = Registrar(name='Test Registrar', email='registrar@test.com', website='http://testregistrar.com')
         registrar.save()
-        VestingOrg(name='Test Vesting Org', registrar=registrar).save()
+        Organization(name='Test Org', registrar=registrar).save()
 
     def log_in_user(self, username, password='pass'):
         # TODO: check resp to see if login actually worked

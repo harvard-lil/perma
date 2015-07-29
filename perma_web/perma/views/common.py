@@ -1,11 +1,9 @@
-from django.core import serializers
 from django.template import RequestContext
 from django.template.loader import render_to_string
-from django.shortcuts import render_to_response, render
-from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, Http404, HttpResponse, HttpResponseNotFound, HttpResponseServerError
+from django.shortcuts import render_to_response, render, get_object_or_404
+from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, HttpResponseNotFound, HttpResponseServerError
 from django.core.urlresolvers import reverse
 from django.conf import settings
-from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_control
@@ -15,16 +13,12 @@ from django.views.static import serve as media_view
 import logging
 from urlparse import urlparse
 import requests
-import json
 from ratelimit.decorators import ratelimit
-
-from mirroring.tasks import post_message_upstream
-from mirroring.utils import must_be_mirrored, may_be_mirrored
 
 from ..models import Link, Asset
 from perma.forms import ContactForm
 from perma.middleware import ssl_optional
-from perma.utils import absolute_url
+from perma.utils import if_anonymous
 
 
 logger = logging.getLogger(__name__)
@@ -45,18 +39,12 @@ class DirectTemplateView(TemplateView):
                     context[key] = value
         return context
 
-    @method_decorator(must_be_mirrored)
-    def dispatch(self, request, *args, **kwargs):
-        """ Add must_be_mirrored decorator. """
-        return super(DirectTemplateView, self).dispatch(request, *args, **kwargs)
 
-
-@must_be_mirrored
 def landing(request):
     """
     The landing page
     """
-    if request.user.is_authenticated() and request.mirror_server_host not in request.META.get('HTTP_REFERER',''):
+    if request.user.is_authenticated() and settings.HOST not in request.META.get('HTTP_REFERER',''):
         return HttpResponseRedirect(reverse('create_link'))
         
     else:
@@ -76,16 +64,15 @@ def stats(request):
     return render_to_response('stats.html', context)
 
 
-@must_be_mirrored
 @ssl_optional
-@cache_control(max_age=settings.CACHE_MAX_AGES['single_linky'])
+@if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['single_linky']))
 @ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block=True, ip=False,
            keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
 @ratelimit(method='GET', rate=settings.HOUR_LIMIT, block=True, ip=False,
            keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
 @ratelimit(method='GET', rate=settings.DAY_LIMIT, block=True, ip=False,
            keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
-def single_linky(request, guid, send_downstream=False):
+def single_linky(request, guid):
     """
     Given a Perma ID, serve it up. Vesting also takes place here.
     """
@@ -93,10 +80,10 @@ def single_linky(request, guid, send_downstream=False):
     # Create a canonical version of guid (non-alphanumerics removed, hyphens every 4 characters, uppercase),
     # and forward to that if it's different from current guid.
     canonical_guid = Link.get_canonical_guid(guid)
+    link = get_object_or_404(Link, guid=canonical_guid)
+
     if canonical_guid != guid:
         return HttpResponsePermanentRedirect(reverse('single_linky', args=[canonical_guid]))
-
-    context = None
 
     # User requested archive type
     serve_type = request.GET.get('type','image' if settings.SINGLE_LINK_HEADER_TEST else 'live')
@@ -110,108 +97,62 @@ def single_linky(request, guid, send_downstream=False):
     def ssl_redirect(link):
         if not settings.SECURE_SSL_REDIRECT:
             return
-        if serve_type == 'live' and not link.startswith('https') and not send_downstream:
+        if serve_type == 'live' and not link.startswith('https'):
             if request.is_secure():
                 return HttpResponseRedirect("http://%s%s" % (request.get_host(), request.get_full_path()))
         elif not request.is_secure():
             return HttpResponseRedirect("https://%s%s" % (request.get_host(), request.get_full_path()))
 
-    # fetch link from DB -- unless we're logged in on a mirror server,
-    # in which case always fetch status from upstream so we show the right edit buttons
-    try:
-        link = Link.objects.get(guid=guid)
-    except Link.DoesNotExist:
-        link = None
+    # make sure frame and content ssl match (see helper func above)
+    redirect = ssl_redirect(link.submitted_url)
+    if redirect:
+        return redirect
 
-    # if we can't find the Link locally, and we're a mirror server, fetch from upstream -- otherwise 404
-    if settings.MIRROR_SERVER and (request.user.is_authenticated() or not link):
-        try:
-            json_response = post_message_upstream(reverse('mirroring:single_link_json')+"?type="+serve_type,
-                                                  json_data={'guid':guid})
-            assert json_response.ok
+    # Increment the view count if we're not the referrer
+    parsed_url = urlparse(request.META.get('HTTP_REFERER', ''))
 
-            # load context from JSON
-            context = json.loads(json_response.content)
-            context['linky'] = serializers.deserialize("json", context['linky']).next().object
-            context['asset'] = serializers.deserialize("json", context['asset']).next().object
-            context['asset'].link = context['linky']
+    if not request.get_host() in parsed_url.netloc and not settings.READ_ONLY_MODE:
+        link.view_count += 1
+        link.save()
 
-            # make sure frame and content ssl match (see helper func above)
-            redirect = ssl_redirect(context['linky'].submitted_url)
-            if redirect:
-                return redirect
+    asset = Asset.objects.get(link=link)
 
-        except (requests.ConnectionError, AssertionError):
-            logging.exception("Error fetching upstream playback data")
+    if settings.SINGLE_LINK_HEADER_TEST:
+        # If we have a PDF, we want to serve it up by default instead of an image
+        if asset.pdf_capture and asset.pdf_capture != 'failed':
+            serve_type = 'pdf'
 
-    if not link and not context:
-        raise Http404
+        created_datestamp = link.creation_timestamp
+        pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
+        context = {'archive': link, 'asset': asset, 'pretty_date': pretty_date, 'next': request.get_full_path(),
+                   'serve_type': serve_type,
+                   'warc_url': asset.warc_url()}
 
-    if not context:
-        # make sure frame and content ssl match (see helper func above)
-        redirect = ssl_redirect(link.submitted_url)
-        if redirect:
-            return redirect
+    else:
+        # If we are going to serve up the live version of the site, let's make sure it's iframe-able
+        display_iframe = False
+        if serve_type == 'live':
+            try:
+                response = requests.head(link.submitted_url,
+                                         headers={'User-Agent': request.META['HTTP_USER_AGENT'], 'Accept-Encoding': '*'},
+                                         timeout=5)
+                display_iframe = 'X-Frame-Options' not in response.headers and 'attachment' not in response.headers.get('Content-Disposition')
+                # TODO actually check if X-Frame-Options specifically allows requests from us
+            except:
+                # Something is broken with the site, so we might as well display it in an iFrame so the user knows
+                display_iframe = True
 
-        # Increment the view count if we're not the referrer
-        parsed_url = urlparse(request.META.get('HTTP_REFERER', ''))
-        
-        if not settings.MIRROR_SERVER and not request.get_host() in parsed_url.netloc and not settings.READ_ONLY_MODE:
-            link.view_count += 1
-            link._no_downstream_update = True  # no need to pass this change to mirror servers
-            link.save()
+        context = {
+            'linky': link,
+            'asset': asset,
+            'next': request.get_full_path(),
+            'display_iframe': display_iframe,
+            'serve_type': serve_type,
+            'warc_url': asset.warc_url()
+        }
 
-        asset = Asset.objects.get(link=link)
-
-        if settings.SINGLE_LINK_HEADER_TEST:
-            # If we have a PDF, we want to serve it up by default instead of an image
-            if asset.pdf_capture and asset.pdf_capture != 'failed':
-                serve_type = 'pdf'
-
-            created_datestamp = link.creation_timestamp
-            pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
-            context = {'archive': link, 'asset': asset, 'pretty_date': pretty_date, 'next': request.get_full_path(),
-                       'serve_type': serve_type,
-                       'warc_url': asset.warc_url()}
-
-        else:
-            # If we are going to serve up the live version of the site, let's make sure it's iframe-able
-            display_iframe = False
-            if serve_type == 'live':
-                try:
-                    response = requests.head(link.submitted_url,
-                                             headers={'User-Agent': request.META['HTTP_USER_AGENT'], 'Accept-Encoding': '*'},
-                                             timeout=5)
-                    display_iframe = 'X-Frame-Options' not in response.headers and 'attachment' not in response.headers.get('Content-Disposition')
-                    # TODO actually check if X-Frame-Options specifically allows requests from us
-                except:
-                    # Something is broken with the site, so we might as well display it in an iFrame so the user knows
-                    display_iframe = True
-
-            context = {
-                'linky': link,
-                'asset': asset,
-                'next': request.get_full_path(),
-                'display_iframe': display_iframe,
-                'serve_type': serve_type,
-                'warc_url': asset.warc_url()
-            }
-
-        # check that we have the disk assets for this asset
-        if settings.MIRROR_SERVER and not asset.last_integrity_check:
-            asset.verify_media()
-
-    if send_downstream:
-        # if we were called by a mirror, serialize and send back as JSON
-        context['warc_url'] = absolute_url(request, context['asset'].warc_url(settings.DIRECT_WARC_HOST))
-        context['MEDIA_URL'] = absolute_url(request, settings.DIRECT_MEDIA_URL)
-        context['asset'] = serializers.serialize("json", [context['asset']], fields=Asset.mirror_fields)
-        context['linky'] = serializers.serialize("json", [context['linky']], fields=Link.mirror_fields+('created_by',))
-        return HttpResponse(json.dumps(context), content_type="application/json")
-
-    elif serve_type == 'warc_download':
-        if context['asset'].warc_download_url():
-            return HttpResponseRedirect(context.get('MEDIA_URL', settings.MEDIA_URL)+context['asset'].warc_download_url())
+    if serve_type == 'warc_download' and context['asset'].warc_download_url():
+        return HttpResponseRedirect(context.get('MEDIA_URL', settings.MEDIA_URL)+context['asset'].warc_download_url())
 
     return render(request, 'single-link-header.html' if settings.SINGLE_LINK_HEADER_TEST else 'single-link.html', context)
 
@@ -285,7 +226,6 @@ def contact(request):
         return render_to_response('contact.html', context)
 
 
-@may_be_mirrored
 def debug_media_view(request, *args, **kwargs):
     """
         Override Django's built-in dev-server view for serving media files,

@@ -14,7 +14,7 @@ smhasher==0.150.1
 pytz==2013b
 django-mptt==0.6.1
 Werkzeug==0.9.4
-Fabric==1.8.2
+Fabric==1.10.2
 pexpect==3.1
 coverage==3.7.1
 selenium==2.45.0
@@ -26,12 +26,11 @@ netaddr==0.7.12                 # to check archive IPs against banned ranges
 internetarchive==0.7.0          # upload warcs to internet archive
 python-dateutil==2.2            # calculate link expiration date
 Wand==0.4           				    # ImageMagick bindings to help with thumbnail creation and PDF -> PNG conversions
-django-tastypie==0.12.1         # API framework
+django-tastypie==0.12.2         # API framework
 -e git://github.com/leppert/django-tastypie-extendedmodelresource.git@caf08005699d8e5616f93726bd8c1c5a51f74b07#egg=django-tastypie-extendedmodelresource
 sorl-thumbnail==12.2			# Used to create our thumbnails
 redis==2.10.1					# Needed to bind with Redis. Supports our sorl thumbnails in production
 django-redis==3.7.2             # use redis as django's cache backend
-python-gnupg==0.3.6             # Sign messages between main server and mirrors.
 django-forms-bootstrap==3.0.1   # produce Bootstrap compatable forms
 django-secure==1.0.1            # Force SSL -- this can be removed in Django 1.8
 django-sslserver==0.14          # For testing SSL locally.

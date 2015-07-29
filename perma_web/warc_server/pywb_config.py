@@ -222,10 +222,9 @@ class PermaCapturesView(PermaTemplateView):
 class PermaRouter(archivalrouter.ArchivalRouter):
     def __call__(self, env):
         """
-            Before routing requests, make sure that host is equal to WARC_HOST or DIRECT_WARC_HOST if set.
+            Before routing requests, make sure that host is equal to WARC_HOST.
         """
-        if settings.WARC_HOST and env.get('HTTP_HOST') != settings.WARC_HOST and not \
-                (settings.DIRECT_WARC_HOST and env.get('HTTP_HOST') == settings.DIRECT_WARC_HOST):
+        if settings.WARC_HOST and env.get('HTTP_HOST') != settings.WARC_HOST:
             raise DisallowedHost("Playback request used invalid domain.")
         return super(PermaRouter, self).__call__(env)
 

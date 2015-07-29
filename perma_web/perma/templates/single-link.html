@@ -1,28 +1,11 @@
 {% extends "base-archive-responsive.html" %}
-{% load file_exists  truncatesmart is_darchive local_datetime mirror_tags pipeline as_json %}
+{% load file_exists  truncatesmart is_darchive local_datetime pipeline as_json %}
 
 {% block title %} | {{linky.submitted_title}}{% endblock %}
 
 {% block meta-head %}
     <meta name="robots" content="noindex, noarchive, noodp, noimageindex">
 {% endblock %}
-
-{% comment %}
-    IMPORTANT: Due to mirroring logic, in this template the Link object will only have the following values set:
-
-        ('guid', 'submitted_url', 'creation_timestamp', 'submitted_title', 'dark_archived',
-         'dark_archived_robots_txt_blocked', 'user_deleted', 'user_deleted_timestamp',
-         'vested', 'vested_timestamp', 'vesting_org')
-
-    (Determined by Link.mirror_fields).
-
-    UNLESS request.user.is_authenticated == True, in which case the Link object will also have the following fields
-    fetched in realtime from upstream:
-
-        ('created_by',)
-
-    (Determined by the send_downstream block of perma.views.common.single_linky)
-{% endcomment %}
 
 {% block header %}
     <header>
@@ -49,22 +32,22 @@
                             {% if request.user.is_authenticated %}
                                 {% if not linky.user_deleted %}
                                     {% if request.user.can_vest and not linky.vested %}
-                                        <a class="btn vest" href="{% main_url 'vest_link' linky.guid %}">Vest site</a>
+                                        <a class="btn vest" href="{% url 'vest_link' linky.guid %}">Vest site</a>
                                     {% endif %}
 
                                     {% if not linky|is_darchive %}
                                         {% if request.user.is_staff %}
-                                            <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
-                                        {% elif request.user.is_registrar_member and linky.vesting_org.registrar == request.user.registrar %}
-                                            <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
-                                        {% elif request.user.is_vesting_org_member and request.user.vesting_org == linky.vesting_org %}
-                                            <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
+                                            <a class="btn dashboard" href="{% url 'dark_archive_link' linky.guid %}">Dark archive</a>
+                                        {% elif request.user.is_registrar_member and linky.organization.registrar == request.user.registrar %}
+                                            <a class="btn dashboard" href="{% url 'dark_archive_link' linky.guid %}">Dark archive</a>
+                                        {% elif request.user.is_organization_member and linky.organization in request.user.organizations.all %}
+                                            <a class="btn dashboard" href="{% url 'dark_archive_link' linky.guid %}">Dark archive</a>
                                         {% elif request.user.is_authenticated and request.user.pk == linky.created_by_id %}
-                                            <a class="btn dashboard" href="{% main_url 'dark_archive_link' linky.guid %}">Dark archive</a>
+                                            <a class="btn dashboard" href="{% url 'dark_archive_link' linky.guid %}">Dark archive</a>
                                         {% endif %}
                                     {% endif %}
                                     {% if request.user.is_authenticated and request.user.pk == linky.created_by_id and not linky.vested %}
-                                        <a class="btn user-delete" href="{% main_url 'user_delete_link' linky.guid %}"><i class="icon-trash"></i> Delete</a>
+                                        <a class="btn user-delete" href="{% url 'user_delete_link' linky.guid %}"><i class="icon-trash"></i> Delete</a>
                                     {% endif %}
                                 {% endif %}
 
@@ -193,7 +176,7 @@
 										<p>This archive is temporary and will expire on <span class="highlight">{{ linky.get_expiration_date|local_datetime:"M. j, Y" }}</span> unless {% if not request.user.is_authenticated or not request.user.can_vest %}<a href="{% url 'docs_perma_link_vesting' %}" target="_blank">vested</a>{% else %}vested{% endif %}.</p>
 										{% if request.user.is_authenticated %}
                                             {% if request.user.can_vest and not linky.vested %}
-                                                <a class="btn vest banner-btn" href="{% main_url 'vest_link' linky.guid %}">Vest site</a>
+                                                <a class="btn vest banner-btn" href="{% url 'vest_link' linky.guid %}">Vest site</a>
                                             {% endif %}
                                     {% endif %}
 									</span>
