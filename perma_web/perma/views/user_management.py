@@ -423,7 +423,6 @@ def list_users_in_group(request, group_name):
     # handle upgrade filter
     upgrade = request.GET.get('upgrade', '')
     if upgrade:
-        sort_url = '{sort_url}&upgrade={upgrade}'.format(sort_url=sort_url, upgrade=upgrade)
         users = users.filter(requested_account_type=upgrade)
         
     # handle org filter
@@ -474,7 +473,6 @@ def list_users_in_group(request, group_name):
         'org_filter': org_filter,
         'status': status,
         'upgrade': upgrade,
-        'sort_url': sort_url
     }
     context['pretty_group_name_plural'] = context['pretty_group_name'] + "s"
 
