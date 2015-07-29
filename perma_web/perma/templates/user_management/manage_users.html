@@ -101,13 +101,11 @@
                   <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
                     Upgrade interest <span class="caret"></span>
                   </a>
-                
-                
                   <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                     <li>
-                        <a {% if upgrade == 'court' %}class="selected" {% endif %}href="?upgrade=court&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if vesting_org_filter %}&vesting_org={{ vesting_org_filter.id }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Court</a>
-                        <a {% if upgrade == 'faculty' %}class="selected" {% endif %}href="?upgrade=faculty&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if vesting_org_filter %}&vesting_org={{ vesting_org_filter.id }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Faculty</a>
-                        <a {% if upgrade == 'journal' %}class="selected" {% endif %}href="?upgrade=journal&page={{ users.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if vesting_org_filter %}&vesting_org={{ vesting_org_filter.id }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Journal</a>
+                        <a {% if upgrade == 'court' %}class="selected" {% endif %}href="?{% current_query_string upgrade="court" %}"><i class="icon-ok"></i> Court</a>
+                        <a {% if upgrade == 'faculty' %}class="selected" {% endif %}href="?{% current_query_string upgrade="faculty" %}"><i class="icon-ok"></i> Faculty</a>
+                        <a {% if upgrade == 'journal' %}class="selected" {% endif %}href="?{% current_query_string upgrade="journal" %}"><i class="icon-ok"></i> Journal</a>
                     </li>
                   </ul>
                 </div>
