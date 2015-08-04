@@ -1,13 +1,11 @@
 # Tests for the django admin:
 
-# First monkey-patch LinkUser to have a create_superuser method, which is expected by django-admin-smoke-tests ...
-from perma.models import LinkUser
-superuser = LinkUser.objects.get(pk=1)
-LinkUser.objects.create_superuser = lambda *args, **kwargs: superuser
+import django_admin_smoke_tests.tests
+from perma.models import LinkUserManager, LinkUser
+from .utils import PermaTestCase
 
-# ... then run the django-admin-smoke-tests test suite:
-from django_admin_smoke_tests.tests import AdminSiteSmokeTest
-
-class AdminTestCase(AdminSiteSmokeTest):
+class AdminTestCase(django_admin_smoke_tests.tests.AdminSiteSmokeTest, PermaTestCase):
     def setUp(self):
+        # monkey-patch create_superuser, which is relied on by the django_admin_smoke_tests package
+        LinkUserManager.create_superuser = lambda *args, **kwargs: LinkUser.objects.get(pk=1)
         return super(AdminTestCase, self).setUp()
