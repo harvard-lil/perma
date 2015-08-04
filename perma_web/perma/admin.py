@@ -38,7 +38,7 @@ class RegistrarAdmin(admin.ModelAdmin):
     # statistics
     def get_queryset(self, request):
         return super(RegistrarAdmin, self).get_queryset(request).annotate(
-            vested_links=Count('orgs__link',distinct=True),
+            vested_links=Count('organizations__link',distinct=True),
             registrar_users=Count('users', distinct=True),
             last_active=Max('users__last_login', distinct=True),
             orgs_count=Count('organizations',distinct=True)
@@ -137,7 +137,7 @@ class LinkUserAdmin(UserAdmin):
 
 
 class LinkAdmin(admin.ModelAdmin):
-    list_display = ['guid', 'submitted_url', 'submitted_title', 'creation_timestamp', 'vested']
+    list_display = ['guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp', 'vested', 'vested_by_editor', 'vested_timestamp']
     search_fields = ['guid', 'submitted_url', 'submitted_title']
     fieldsets = (
         (None, {'fields': ('guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp', 'view_count')}),
@@ -153,6 +153,9 @@ class LinkAdmin(admin.ModelAdmin):
                   can_delete=False, max_num=1),
     ]
     raw_id_fields = ['created_by','vested_by_editor','dark_archived_by']
+
+    def get_queryset(self, request):
+        return super(LinkAdmin, self).get_queryset(request).select_related('created_by', 'vested_by_editor')
 
 
 class FolderAdmin(MPTTModelAdmin):
