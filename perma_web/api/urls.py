@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.conf.urls import patterns, url
+from django.conf.urls import patterns, url, include
 from django.http import HttpResponse
 from django.views.generic.base import RedirectView
 
@@ -56,5 +56,15 @@ v1a_api._canonicals = v1_api._canonicals.copy()
 
 urlpatterns = v1_api.urls + v1a_api.urls + collateral_urls
 
+### error handlers ###
+
 handler404 = lambda (request): HttpResponse(status=404)
 handler500 = lambda (request): HttpResponse(status=500)
+
+### django debug toolbar ###
+
+if settings.DEBUG and hasattr(settings, 'DEBUG_TOOLBAR_CONFIG'):
+    import debug_toolbar
+    urlpatterns += patterns('',
+                            url(r'^__debug__/', include(debug_toolbar.urls)),
+                            )
