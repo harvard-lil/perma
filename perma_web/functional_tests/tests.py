@@ -8,7 +8,10 @@ import sys
 from selenium import webdriver
 from selenium.common.exceptions import ElementNotVisibleException, NoSuchElementException
 import time
+
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.conf import settings
+
 from perma.wsgi import application as wsgi_app
 from perma.settings import SAUCE_USERNAME, SAUCE_ACCESS_KEY, USE_SAUCE
 
@@ -19,7 +22,7 @@ assert socket.gethostbyname(SERVER_DOMAIN) in ('0.0.0.0', '127.0.0.1'), "Please 
 
 # set up browsers
 if not USE_SAUCE:
-    browsers = ['Firefox']
+    browsers = ['PhantomJS']
 else:
     from sauceclient import SauceClient
     assert SAUCE_USERNAME and SAUCE_ACCESS_KEY, "Please make sure that SAUCE_USERNAME and SAUCE_ACCESS_KEY are set."
@@ -106,6 +109,7 @@ class FunctionalTest(StaticLiveServerTestCase):
             command_executor=sauce_url % (SAUCE_USERNAME, SAUCE_ACCESS_KEY)
         )
         self.driver.implicitly_wait(5)
+        socket.setdefaulttimeout(10)
 
     def setUpLocal(self):
         self.driver = getattr(webdriver, self.browser)()
@@ -126,7 +130,7 @@ class FunctionalTest(StaticLiveServerTestCase):
         finally:
             self.driver.quit()
 
-    def _skip_test_all(self):
+    def test_all(self):
 
         # helpers
         def click_link(link_text):
@@ -182,6 +186,8 @@ class FunctionalTest(StaticLiveServerTestCase):
                         raise
                     time.sleep(sleep_time)
 
+        def fix_host(url, host=settings.HOST):
+            return url.replace('http://' + host, self.live_server_url)
 
         info("Loading homepage from %s." % self.live_server_url)
         self.driver.get(self.live_server_url)
@@ -214,7 +220,7 @@ class FunctionalTest(StaticLiveServerTestCase):
         url_input.click()
         url_input.send_keys(url_to_capture)
         get_id('addlink').click() # submit
-        thumbnail = repeat_while_exception(lambda: get_css_selector(".library-thumbnail img"), NoSuchElementException, timeout=15)
+        thumbnail = repeat_while_exception(lambda: get_css_selector(".library-thumbnail img"), NoSuchElementException, timeout=60)
         # thumbnail_data = requests.get(thumbnail.get_attribute('src'))
         # thumbnail_fh = StringIO.StringIO(thumbnail_data.content)
         # assert imghdr.what(thumbnail_fh) == 'png'
@@ -222,12 +228,12 @@ class FunctionalTest(StaticLiveServerTestCase):
         # but note that the contents change between PhantomJS versions and OSes, so we'd need a fuzzy match
 
         info("Viewing playback.")
-        archive_url = get_xpath("//a[@class='perma-url']").get_attribute('href') # get url from green button
+        archive_url = fix_host(get_xpath("//a[@class='perma-url']").get_attribute('href'))  # get url from green button
         self.driver.get(archive_url)
         assert is_displayed(get_element_with_text('Live page view', 'a'))
         archive_view_link = get_id('warc_cap_container_complete')
         repeat_while_exception(lambda: archive_view_link.click(), ElementNotVisibleException) # wait for archiving to finish
-        warc_url = self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src')
+        warc_url = fix_host(self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src'), settings.WARC_HOST)
         self.driver.get(warc_url)
         assert is_displayed(get_element_with_text('This domain is established to be used for illustrative examples', 'p'))
 
