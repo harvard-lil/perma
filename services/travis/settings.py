@@ -17,6 +17,7 @@ DEFAULT_FROM_EMAIL = 'email@example.com'
 
 # The host we want to display (used when DEBUG=False)
 HOST = 'perma.cc'
+WARC_HOST = 'perma-archives.org'
 
 # Where we store our generated assets (phantomjs images)
 MEDIA_ROOT = '/tmp/perma/assets'

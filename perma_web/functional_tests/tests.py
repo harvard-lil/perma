@@ -179,7 +179,6 @@ class FunctionalTest(StaticLiveServerTestCase):
         def repeat_while_exception(func, exception=Exception, timeout=10, sleep_time=.1):
             end_time = time.time()+timeout
             while True:
-                info("repeating", func, time.time())
                 try:
                     return func()
                 except exception:
