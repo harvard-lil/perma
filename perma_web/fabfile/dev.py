@@ -33,9 +33,11 @@ def test(apps="perma api functional_tests"):
         Run perma tests. (For coverage, run `coverage report` after tests pass.)
     """
     excluded_files = [
-        "perma/migrations/*",
+        "*/migrations/*",
+        "*/management/*",
         "*/tests/*",
-        "fabfile.py",
+        "fabfile/*",
+        "functional_tests/*",
     ]
     local("coverage run --source='.' --omit='%s' manage.py test %s" % (",".join(excluded_files), apps))
 
