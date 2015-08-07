@@ -83,6 +83,10 @@ class FunctionalTest(StaticLiveServerTestCase):
                 'fixtures/users.json',
                 'fixtures/folders.json']
 
+    base_desired_capabilities = {
+        'loggingPrefs': {'browser': 'ALL'}
+    }
+
     def setUp(self):
         # By default, the test server only mounts the django app,
         # which will leave out the warc app, so mount them both here
@@ -101,18 +105,21 @@ class FunctionalTest(StaticLiveServerTestCase):
             self.tearDownLocal()
 
     def setUpSauce(self):
-        self.desired_capabilities['name'] = self.id()
+        desired_capabilities = dict(self.base_desired_capabilities, **self.base_desired_capabilities)
+        desired_capabilities['name'] = self.id()
 
         sauce_url = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
         self.driver = webdriver.Remote(
-            desired_capabilities=self.desired_capabilities,
+            desired_capabilities=desired_capabilities,
             command_executor=sauce_url % (SAUCE_USERNAME, SAUCE_ACCESS_KEY)
         )
         self.driver.implicitly_wait(5)
         socket.setdefaulttimeout(10)
 
     def setUpLocal(self):
-        self.driver = getattr(webdriver, self.browser)()
+        self.driver = getattr(webdriver, self.browser)(
+            desired_capabilities=self.base_desired_capabilities,
+        )
         self.driver.implicitly_wait(3)
         socket.setdefaulttimeout(10)
         self.driver.set_window_size(1024, 800)
@@ -160,6 +167,13 @@ class FunctionalTest(StaticLiveServerTestCase):
                     return False
             return element.is_displayed()
 
+        def assert_text_displayed(text, element_type='*'):
+            self.assertTrue(is_displayed(get_element_with_text(text, element_type)))
+
+        def type_to_element(element, text):
+            element.click()
+            element.send_keys(text)
+
         def info(*args):
             if USE_SAUCE:
                 infoSauce(*args)
@@ -191,16 +205,16 @@ class FunctionalTest(StaticLiveServerTestCase):
 
         info("Loading homepage from %s." % self.live_server_url)
         self.driver.get(self.live_server_url)
-        assert is_displayed(get_element_with_text("Websites Change"))
+        assert_text_displayed("Websites Change")
 
         info("Checking Perma In Action section.")
         get_xpath("//a[@data-img='MSC_1']").click()
-        assert is_displayed(get_id('example-title'))
-        get_xpath("//div[@id='example-image-wrapper']/img").click() # click on random element to trigger Sauce screenshot
+        self.assertTrue(is_displayed(get_id('example-title')))
+        get_xpath("//div[@id='example-image-wrapper']/img").click()  # click on random element to trigger Sauce screenshot
 
         info("Loading docs.")
         get_xpath("//a[@href='/docs']").click()
-        assert is_displayed(get_element_with_text('Overview', 'h2')) # wait for load
+        assert_text_displayed('Overview', 'h2')  # wait for load
 
         info("Logging in.")
         try:
@@ -208,43 +222,61 @@ class FunctionalTest(StaticLiveServerTestCase):
         except ElementNotVisibleException:
             pass  # not in mobile view
         repeat_while_exception(lambda: click_link("Log in"))
-        assert "Email address" in get_xpath('//body').text
+        self.assertTrue("Email address" in get_xpath('//body').text)
         get_id('id_username').send_keys('test_registrar_member@example.com')
         get_id('id_password').send_keys('pass')
         get_xpath("//button[@class='btn-success login']").click()
-        assert is_displayed(get_element_with_text('Create a Perma archive', 'h3')) # wait for load
+        assert_text_displayed('Create a Perma archive', 'h3')  # wait for load
 
         info("Creating archive.")
         url_to_capture = 'example.com'
-        url_input = get_id('rawUrl') # type url
-        url_input.click()
-        url_input.send_keys(url_to_capture)
+        type_to_element(get_id('rawUrl'), url_to_capture)  # type url
         get_id('addlink').click() # submit
         thumbnail = repeat_while_exception(lambda: get_css_selector(".library-thumbnail img"), NoSuchElementException, timeout=60)
         # thumbnail_data = requests.get(thumbnail.get_attribute('src'))
         # thumbnail_fh = StringIO.StringIO(thumbnail_data.content)
-        # assert imghdr.what(thumbnail_fh) == 'png'
+        # self.assertEqual(imghdr.what(thumbnail_fh), 'png')
         # TODO: We could check the size of the generated png or the contents,
         # but note that the contents change between PhantomJS versions and OSes, so we'd need a fuzzy match
 
         info("Viewing playback.")
-        archive_url = fix_host(get_xpath("//a[@class='perma-url']").get_attribute('href'))  # get url from green button
+        display_archive_url = get_xpath("//a[@class='perma-url']").get_attribute('href')  # get url from green button
+        archive_url = fix_host(display_archive_url)
         self.driver.get(archive_url)
-        assert is_displayed(get_element_with_text('Live page view', 'a'))
+        assert_text_displayed('Live page view', 'a')
         archive_view_link = get_id('warc_cap_container_complete')
         repeat_while_exception(lambda: archive_view_link.click(), ElementNotVisibleException) # wait for archiving to finish
         warc_url = fix_host(self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src'), settings.WARC_HOST)
         self.driver.get(warc_url)
-        assert is_displayed(get_element_with_text('This domain is established to be used for illustrative examples', 'p'))
+        assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
+
+        # My Links
+
+        # show links
+        self.driver.get(self.live_server_url + '/manage/links')
+        # create folder
+        get_css_selector('.new-folder').click()
+        # find link
+        assert_text_displayed(display_archive_url)
+        # show details
+        get_css_selector('.link-expand').click()
+        # for some reason these are throwing 500 errors on PATCH:
+        # # change title
+        # type_to_element(get_css_selector('input.link-title'), 'test')
+        # repeat_while_exception(get_xpath("//span[contains(@class,'title-save-status') and contains(text(),'saved.')]"), NoSuchElementException)
+        # # change notes
+        # type_to_element(get_css_selector('input.link-notes'), 'test')
+        # repeat_while_exception(get_xpath("//span[contains(@class,'notes-save-status') and contains(text(),'saved.')]"), NoSuchElementException)
 
         # Timemap
 
         info("Checking timemap.")
         self.driver.get(self.live_server_url + '/warc/pywb/*/' + url_to_capture)
-        assert is_displayed(get_element_with_text('1', 'b')) # the number of captures
-        assert is_displayed(get_element_with_text('http://' + url_to_capture, 'b'))
+        self.assertTrue(is_displayed(get_element_with_text('1', 'b')))  # the number of captures
+        assert_text_displayed('http://' + url_to_capture, 'b')
 
         # Displays playback by timestamp
         get_xpath("//a[contains(@href, '%s')]" % url_to_capture).click()
-        assert is_displayed(get_element_with_text('This domain is established to be used for illustrative examples', 'p'))
+        assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
         playback_url = self.driver.current_url
+
