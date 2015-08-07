@@ -205,7 +205,7 @@ class FolderResource(DefaultResource):
     def prepend_urls(self):
         return [
             # /folders/<parent>/folders/<pk>/
-            url(r"^(?P<resource_name>%s)/(?P<parent>\w[\w/-]*)/%s/(?P<%s>.*?)%s$" % (self._meta.resource_name, self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('put_url_params_to_patch'), name="api_move_folder"),
+            url(r"^(?P<resource_name>%s)/(?P<parent>\w[\w/-]*)/%s/(?P<%s>\w[\w/-]*)%s$" % (self._meta.resource_name, self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('put_url_params_to_patch'), name="api_move_folder"),
         ]
 
     def hydrate_name(self, bundle):
@@ -353,7 +353,7 @@ class LinkResource(AuthenticatedLinkResource):
 
     def prepend_urls(self):
         return [
-            url(r"^%s/(?P<folder>\w[\w/-]*)/(?P<resource_name>%s)/(?P<%s>.*?)%s$" % (
+            url(r"^%s/(?P<folder>\w[\w/-]*)/(?P<resource_name>%s)/(?P<%s>[^\./]+)%s$" % (
                 FolderResource()._meta.resource_name, self._meta.resource_name, self._meta.detail_uri_name,
                 trailing_slash()), self.wrap_view('put_url_params_to_patch'), name="api_move_archive"),
         ]
