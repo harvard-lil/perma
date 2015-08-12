@@ -52,7 +52,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             'creation_timestamp',
             'expiration_date',
             'organization',
-            'assets',
+            'captures',
             'view_count'
         ]
         self.logged_in_fields = self.logged_out_fields + [
@@ -67,14 +67,15 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             'title': 'This is a test page'
         }
 
-    def assertHasAsset(self, link, capture_type):
+    def assertValidCapture(self, capture):
         """
-            Make sure capture of given type was created on disk and stored with this asset.
+            Make sure capture matches WARC contents.
         """
-        asset = link.assets.first()
-        self.assertTrue(
-            default_storage.exists(os.path.join(asset.base_storage_path, getattr(asset, capture_type))),
-            "Failed to create %s for %s." % (capture_type, link.submitted_url))
+        headers, data = capture.link.replay_url(capture.url)
+        self.assertTrue(capture.content_type, "Capture is missing a content type.")
+        self.assertEqual(capture.content_type, capture.read_content_type())
+        data = "".join(data)
+        self.assertTrue(data, "Capture data is missing.")
 
     #######
     # GET #
@@ -102,9 +103,9 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
                                    user=self.vesting_member)
 
         link = Link.objects.get(guid=obj['guid'])
-        self.assertHasAsset(link, "image_capture")
-        self.assertHasAsset(link, "warc_capture")
-        self.assertTrue(link.assets.first().cdx_lines.count() > 0)
+        self.assertValidCapture(link.screenshot_capture)
+        self.assertValidCapture(link.primary_capture)
+        self.assertTrue(link.cdx_lines.count() > 0)
         self.assertFalse(link.dark_archived_robots_txt_blocked)
         self.assertEqual(link.submitted_title, "Test title.")
 
@@ -114,7 +115,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
                                    user=self.vesting_member)
 
         link = Link.objects.get(guid=obj['guid'])
-        self.assertHasAsset(link, "pdf_capture")
+        self.assertValidCapture(link.primary_capture)
 
     def test_should_add_http_to_url(self):
         self.successful_post(self.list_url,
@@ -150,11 +151,8 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
                                        user=self.vesting_member)
 
             link = Link.objects.get(guid=obj['guid'])
-            self.assertHasAsset(link, "pdf_capture")
-            asset = link.assets.first()
-            self.assertEqual(asset.user_upload, True)
-            self.assertEqual(asset.user_upload_file_name, 'test.pdf')
-            self.assertEqual(asset.pdf_capture, 'upload.pdf')
+            self.assertValidCapture(link.primary_capture)
+            self.assertEqual(link.primary_capture.user_upload, True)
 
     def test_should_create_archive_from_jpg_file(self):
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.jpg')) as test_file:
@@ -164,11 +162,8 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
                                        user=self.vesting_member)
 
             link = Link.objects.get(guid=obj['guid'])
-            self.assertHasAsset(link, "image_capture")
-            asset = link.assets.first()
-            self.assertEqual(asset.user_upload, True)
-            self.assertEqual(asset.user_upload_file_name, 'test.jpg')
-            self.assertEqual(asset.image_capture, 'upload.jpg')
+            self.assertValidCapture(link.primary_capture)
+            self.assertEqual(link.primary_capture.user_upload, True)
 
     def test_should_reject_invalid_file(self):
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.html')) as test_file:

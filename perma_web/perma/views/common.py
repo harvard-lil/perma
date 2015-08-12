@@ -1,9 +1,19 @@
+from wsgiref.util import FileWrapper
+import logging
+from urlparse import urlparse
+import requests
+from ratelimit.decorators import ratelimit
+
+from django.core.files.storage import default_storage
 from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.shortcuts import render_to_response, render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, HttpResponseNotFound, HttpResponseServerError
+from django.shortcuts import render_to_response, render, get_object_or_404
+from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, Http404, HttpResponse, HttpResponseNotFound, HttpResponseServerError, StreamingHttpResponse
 from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_control
@@ -86,9 +96,9 @@ def single_linky(request, guid):
         return HttpResponsePermanentRedirect(reverse('single_linky', args=[canonical_guid]))
 
     # User requested archive type
-    serve_type = request.GET.get('type','image' if settings.SINGLE_LINK_HEADER_TEST else 'live')
+    serve_type = request.GET.get('type', 'live')
     if not serve_type in valid_serve_types:
-        serve_type = 'image' if settings.SINGLE_LINK_HEADER_TEST else 'live'
+        serve_type = 'live'
 
     # SSL check
     # This helper func will return a redirect if we are trying to view a live http link from an https frame
@@ -114,47 +124,46 @@ def single_linky(request, guid):
     if not request.get_host() in parsed_url.netloc and not settings.READ_ONLY_MODE:
         link.view_count += 1
         link.save()
+    # serve raw WARC
+    if serve_type == 'warc_download':
+        # TEMP: remove this line after all legacy warcs have been exported
+        if not default_storage.exists(link.warc_storage_file()):
+            link.export_warc()
 
-    asset = Asset.objects.get(link=link)
-
-    if settings.SINGLE_LINK_HEADER_TEST:
-        # If we have a PDF, we want to serve it up by default instead of an image
-        if asset.pdf_capture and asset.pdf_capture != 'failed':
-            serve_type = 'pdf'
-
-        created_datestamp = link.creation_timestamp
-        pretty_date = created_datestamp.strftime("%B %d, %Y %I:%M GMT")
-        context = {'archive': link, 'asset': asset, 'pretty_date': pretty_date, 'next': request.get_full_path(),
-                   'serve_type': serve_type,
-                   'warc_url': asset.warc_url()}
-
-    else:
+        response = StreamingHttpResponse(FileWrapper(default_storage.open(link.warc_storage_file()), 1024 * 8),
+                                         content_type="application/gzip")
+        response['Content-Disposition'] = "attachment; filename=%s.warc.gz" % link.guid
+        return response
+        
+    display_iframe = False
+    capture = None
+    if serve_type == 'live':
         # If we are going to serve up the live version of the site, let's make sure it's iframe-able
-        display_iframe = False
-        if serve_type == 'live':
-            try:
-                response = requests.head(link.submitted_url,
-                                         headers={'User-Agent': request.META['HTTP_USER_AGENT'], 'Accept-Encoding': '*'},
-                                         timeout=5)
-                display_iframe = 'X-Frame-Options' not in response.headers and 'attachment' not in response.headers.get('Content-Disposition')
-                # TODO actually check if X-Frame-Options specifically allows requests from us
-            except:
-                # Something is broken with the site, so we might as well display it in an iFrame so the user knows
-                display_iframe = True
+        try:
+            response = requests.head(link.submitted_url,
+                                     headers={'User-Agent': request.META['HTTP_USER_AGENT'], 'Accept-Encoding': '*'},
+                                     timeout=5)
+            display_iframe = 'X-Frame-Options' not in response.headers and 'attachment' not in response.headers.get('Content-Disposition')
+            # TODO actually check if X-Frame-Options specifically allows requests from us
+        except:
+            # Something is broken with the site, so we might as well display it in an iFrame so the user knows
+            display_iframe = True
+        
+    elif serve_type == 'source' or serve_type == 'pdf':
+        capture = link.primary_capture
 
-        context = {
-            'linky': link,
-            'asset': asset,
-            'next': request.get_full_path(),
-            'display_iframe': display_iframe,
-            'serve_type': serve_type,
-            'warc_url': asset.warc_url()
-        }
+    elif serve_type == 'image':
+        capture = link.screenshot_capture
 
-    if serve_type == 'warc_download' and context['asset'].warc_download_url():
-        return HttpResponseRedirect(context.get('MEDIA_URL', settings.MEDIA_URL)+context['asset'].warc_download_url())
+    context = {
+        'link': link,
+        'capture': capture,
+        'next': request.get_full_path(),
+        'display_iframe': display_iframe,
+        'serve_type': serve_type
+    }
 
-    return render(request, 'single-link-header.html' if settings.SINGLE_LINK_HEADER_TEST else 'single-link.html', context)
+    return render(request, 'single-link.html', context)
 
 
 def rate_limit(request, exception):

@@ -1,4 +1,3 @@
-import json
 import random, string, logging, time
 from ratelimit.decorators import ratelimit
 from tastypie.models import ApiKey
@@ -9,9 +8,8 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import views as auth_views
 from django.contrib.sites.models import get_current_site
-from django.core import serializers
 from django.core.mail import send_mail
-from django.db.models import Count, Max, Min, Sum
+from django.db.models import Count, Max, Sum
 from django.utils.http import is_safe_url, cookie_date
 from django.http import HttpResponseRedirect, Http404
 from django.template import RequestContext
@@ -19,7 +17,6 @@ from django.template.response import TemplateResponse
 from django.shortcuts import render_to_response, get_object_or_404, resolve_url, render
 from django.core.urlresolvers import reverse
 from django.core.context_processors import csrf
-from django.core.paginator import Paginator
 from django.contrib import messages
 
 from perma.forms import (

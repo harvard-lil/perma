@@ -80,7 +80,7 @@
         var userguide_url = "{% url 'docs_perma_link_vesting' %}",
             vest_link_url = "{% url 'vest_link' 'GUID' %}",
             vesting_privs = {% if request.user.can_vest %}true{% else %}false{% endif %},
-            thumbnail_service_url = "{% url 'service_get_thumbnail' %}";
+            thumbnail_service_url = "{% url 'service_get_thumbnail' guid='GUID' %}";
     </script>
 
     {% javascript 'create' %}

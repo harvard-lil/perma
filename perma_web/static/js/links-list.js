@@ -209,9 +209,10 @@ $(function() {
                 // same thing runs on success or error, since we get back success or error-displaying HTML
                 showLoadingMessage = false;
                 data.objects.map(function(obj){
-                    if(obj.assets && obj.assets.length){
-                        if(obj.assets[0].favicon) obj.favicon_url = settings.MEDIA_URL + obj.assets[0].base_storage_path + '/' + obj.assets[0].favicon;
-                    }
+                    $.each(obj.captures, function(i, capture){
+                        if(capture.role == 'favicon')
+                            obj.favicon_url = capture.playback_url;
+                    });
                     obj.local_url = 'http://' + settings.HOST + '/' + obj.guid;
                     obj.can_vest = can_vest;
                     obj.search_query_in_notes = (query && obj.notes.indexOf(query) > -1);

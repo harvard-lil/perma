@@ -1,16 +1,22 @@
+import hashlib
 import io
+import json
+from mimetypes import MimeTypes
 import os
 import logging
 import random
 import re
 import socket
+import tempfile
 from urlparse import urlparse
+from hanzo import warctools
 import requests
+from wand.image import Image
 
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
 from django.core.files.storage import default_storage
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.utils import timezone
@@ -19,7 +25,7 @@ from mptt.models import MPTTModel, TreeForeignKey
 from model_utils import FieldTracker
 from pywb.cdx.cdxobject import CDXObject
 from pywb.warc.cdxindexer import write_cdx_index
-
+from api.validations import get_mime_type
 
 logger = logging.getLogger(__name__)
 
@@ -434,6 +440,9 @@ class Link(models.Model):
     folders = models.ManyToManyField(Folder, related_name='links', blank=True, null=True)
     notes = models.TextField(blank=True)
 
+    thumbnail_status = models.CharField(max_length=10, null=True, blank=True, choices=(
+        ('generating', 'generating'), ('generated', 'generated'), ('failed', 'failed')))
+
     objects = LinkManager()
     tracker = FieldTracker()
 
@@ -543,15 +552,6 @@ class Link(models.Model):
         if folder:
             self.folders.add(folder)
 
-    def generate_storage_path(self):
-        """
-            Generate the path where assets for this link should be stored.
-        """
-        if not self.guid:
-            raise Exception("Can only generate storage path after link is saved.")
-        creation_date = self.creation_timestamp
-        return "/".join(str(x) for x in [creation_date.year, creation_date.month, creation_date.day, creation_date.hour, creation_date.minute, self.guid])
-
     def get_expiration_date(self):
         """ Return date when this link will theoretically be deleted. """
         return self.creation_timestamp + settings.LINK_EXPIRATION_TIME
@@ -559,12 +559,306 @@ class Link(models.Model):
     def can_upload_to_internet_archive(self):
         """ Return True if this link is appropriate for upload to IA. """
         return self.vested \
-               and not self.dark_archived and not self.dark_archived_robots_txt_blocked \
-               and self.assets.filter(warc_capture__contains='.warc').exists()
+               and not self.dark_archived and not self.dark_archived_robots_txt_blocked
 
     def as_json(self, request=None):
         from api.resources import LinkResource
         return LinkResource().as_json(self, request)
+
+    def guid_as_path(self):
+        # For a GUID like ABCD-1234, return a path like AB/CD/12.
+        stripped_guid = re.sub('[^0-9A-Za-z]+', '', self.guid)
+        guid_parts = [stripped_guid[i:i + 2] for i in range(0, len(stripped_guid), 2)]
+        return '/'.join(guid_parts[:-1])
+
+    def warc_storage_file(self):
+        return os.path.join(settings.WARC_STORAGE_DIR, self.guid_as_path(), '%s.warc.gz' % self.guid)
+
+    def get_thumbnail(self, source_file=None):
+        if self.thumbnail_status == 'failed' or self.thumbnail_status == 'generating':
+            return None
+
+        thumbnail_path = os.path.join(settings.THUMBNAIL_STORAGE_PATH, self.guid_as_path(), 'thumbnail.png')
+
+        if self.thumbnail_status == 'generated' and default_storage.exists(thumbnail_path):
+            return default_storage.open(thumbnail_path)
+
+        try:
+
+            warc_url = None
+            image = None
+
+            if source_file:
+                image = Image(file=source_file)
+            else:
+
+                if self.screenshot_capture and self.screenshot_capture.status == 'success':
+                    warc_url = self.screenshot_capture.url
+                else:
+                    pdf_capture = self.captures.filter(content_type__startswith='application/pdf').first()
+                    if pdf_capture:
+                        warc_url = pdf_capture.url
+
+                if warc_url:
+                    self.thumbnail_status = 'generating'
+                    self.save()
+
+                    headers, data = self.replay_url(warc_url)
+                    temp_file = tempfile.NamedTemporaryFile(suffix='.' + warc_url.rsplit('.', 1)[-1])
+                    for chunk in data:
+                        temp_file.write(chunk)
+                    temp_file.flush()
+                    image = Image(filename=temp_file.name + "[0]")  # [0] limits ImageMagick to first page of PDF
+
+            if image:
+                with imagemagick_temp_dir():
+                    with image as opened_img:
+                        opened_img.transform(resize='600')
+                        # opened_img.resize(600,600)
+                        with Image(width=600, height=600) as dst_image:
+                            dst_image.composite(opened_img, 0, 0)
+                            dst_image.compression_quality = 60
+                            default_storage.store_data_to_file(dst_image.make_blob('png'), thumbnail_path, overwrite=True)
+
+                self.thumbnail_status = 'generated'
+                self.save()
+
+                return default_storage.open(thumbnail_path)
+
+        except Exception as e:
+            print "Thumbnail generation failed for %s: %s" % (self.guid, e)
+
+        self.thumbnail_status = 'failed'
+        self.save()
+
+    @cached_property
+    def screenshot_capture(self):
+        return self.captures.filter(role='screenshot').first()
+
+    @cached_property
+    def primary_capture(self):
+        return self.captures.filter(role='primary').first()
+
+    @cached_property
+    def favicon_capture(self):
+        return self.captures.filter(role='favicon').first()
+
+    def write_warc_header(self, out_file):
+        # build warcinfo header
+        headers = [
+            (warctools.WarcRecord.ID, warctools.WarcRecord.random_warc_uuid()),
+            (warctools.WarcRecord.TYPE, warctools.WarcRecord.WARCINFO),
+            (warctools.WarcRecord.DATE, warctools.warc.warc_datetime_str(self.creation_timestamp))
+        ]
+        warcinfo_fields = [
+            b'operator: Perma.cc',
+            b'format: WARC File Format 1.0',
+            b'Perma-GUID: %s' % self.guid,
+        ]
+        data = b'\r\n'.join(warcinfo_fields) + b'\r\n'
+        warcinfo_record = warctools.WarcRecord(headers=headers, content=(b'application/warc-fields', data))
+        warcinfo_record.write_to(out_file, gzip=True)
+
+    def write_warc_resource_record(self, source_file_handle_or_data, url, content_type, warc_date=None, out_file=None):
+        data = source_file_handle_or_data.read() if hasattr(source_file_handle_or_data, 'read') else source_file_handle_or_data
+        return self.write_warc_record(warctools.WarcRecord.RESOURCE, url, data, content_type, warc_date, out_file)
+
+    def write_warc_metadata_record(self, metadata, url, concurrent_to, warc_date=None, out_file=None):
+        data = json.dumps(metadata)
+        extra_headers = [
+            (warctools.WarcRecord.CONCURRENT_TO, concurrent_to)
+        ]
+        return self.write_warc_record(warctools.WarcRecord.RESOURCE, url, data, "application/json", warc_date, out_file, extra_headers)
+
+    def write_warc_record(self, record_type, url, data, content_type, warc_date=None, out_file=None, extra_headers=None):
+        # set default date and convert to string if necessary
+        warc_date = warc_date or timezone.now()
+        if hasattr(warc_date, 'isoformat'):
+            warc_date = warctools.warc.warc_datetime_str(warc_date)
+
+        close_file = not out_file
+        out_file = out_file or self.open_warc_for_writing()
+        headers = [
+            (warctools.WarcRecord.TYPE, record_type),
+            (warctools.WarcRecord.ID, warctools.WarcRecord.random_warc_uuid()),
+            (warctools.WarcRecord.DATE, warc_date),
+            (warctools.WarcRecord.URL, url),
+            (warctools.WarcRecord.BLOCK_DIGEST, b'sha1:%s' % hashlib.sha1(data).hexdigest())
+        ]
+        if extra_headers:
+            headers.extend(extra_headers)
+        record = warctools.WarcRecord(headers=headers, content=(content_type, data))
+        record.write_to(out_file, gzip=True)
+
+        if close_file:
+            self.close_warc_after_writing(out_file)
+
+        return headers
+
+    def write_warc_raw_data(self, source_file_handle_or_data, out_file=None):
+        close_file = not out_file
+        out_file = out_file or self.open_warc_for_writing()
+        if hasattr(source_file_handle_or_data, 'read'):
+            copy_file_data(source_file_handle_or_data, out_file)
+        else:
+            out_file.write(source_file_handle_or_data)
+        if close_file:
+            self.close_warc_after_writing(out_file)
+
+    def open_warc_for_writing(self):
+        out = tempfile.TemporaryFile()
+        if default_storage.exists(self.warc_storage_file()):
+            copy_file_data(default_storage.open(self.warc_storage_file()), out)
+        else:
+            self.write_warc_header(out)
+        return out
+
+    def close_warc_after_writing(self, out):
+        out.flush()
+        out.seek(0)
+        default_storage.store_file(out, self.warc_storage_file(), overwrite=True)
+        out.close()
+
+    @transaction.atomic
+    def export_warc(self):
+        # by using select_for_update and checking for existence of this file,
+        # we make sure that we won't accidentally try to create the file multiple
+        # times in parallel.
+        asset = self.assets.select_for_update().first()
+        if default_storage.exists(self.warc_storage_file()):
+            return
+
+        guid = self.guid
+        out = self.open_warc_for_writing()
+
+        def write_resource_record(file_path, url, content_type):
+            self.write_warc_resource_record(
+                default_storage.open(file_path),
+                url,
+                content_type,
+                default_storage.created_time(file_path),
+                out)
+
+        def write_metadata_record(metadata, target_headers):
+            concurrent_to = (v for k, v in target_headers if k == warctools.WarcRecord.ID).next()
+            warc_date = (v for k, v in target_headers if k == warctools.WarcRecord.DATE).next()
+            url = (v for k, v in target_headers if k == warctools.WarcRecord.URL).next()
+            self.write_warc_metadata_record(metadata, url, concurrent_to, warc_date, out)
+
+        # write PDF capture
+        if asset.pdf_capture and ('cap' in asset.pdf_capture or 'upload' in asset.pdf_capture):
+            file_path = os.path.join(asset.base_storage_path, asset.pdf_capture)
+            headers = write_resource_record(file_path, "file:///%s/%s" % (guid, asset.pdf_capture), 'application/pdf')
+            write_metadata_record({'role':'primary', 'user_upload':asset.user_upload}, headers)
+
+        # write image capture (if it's not a PDF thumbnail)
+        elif (asset.image_capture and ('cap' in asset.image_capture or 'upload' in asset.image_capture)):
+            file_path = os.path.join(asset.base_storage_path, asset.image_capture)
+            mime_type = get_mime_type(asset.image_capture)
+            write_resource_record(file_path, "file:///%s/%s" % (guid, asset.image_capture), mime_type)
+
+        if asset.warc_capture:
+            # write WARC capture
+            if asset.warc_capture == 'archive.warc.gz':
+                file_path = os.path.join(asset.base_storage_path, asset.warc_capture)
+                self.write_warc_raw_data(default_storage.open(file_path), out)
+
+            # write wget capture
+            elif asset.warc_capture == 'source/index.html':
+                mime = MimeTypes()
+                for root, dirs, files in default_storage.walk(os.path.join(asset.base_storage_path, 'source')):
+                    rel_path = root.split(asset.base_storage_path, 1)[-1]
+                    for file_name in files:
+                        mime_type = mime.guess_type(file_name)[0]
+                        write_resource_record(os.path.join(root, file_name),
+                                              "file:///%s%s/%s" % (guid, rel_path, file_name), mime_type)
+
+        self.close_warc_after_writing(out)
+
+        # regenerate CDX index
+        self.cdx_lines.all().delete()
+
+    def replay_url(self, url):
+        """
+            Given a URL contained in this WARC, return the headers and data as played back by pywb.
+        """
+        import sys
+        from warc_server.app import application
+
+        fake_environ = {'HTTP_COOKIE': {}, 'QUERY_STRING': '', 'REQUEST_METHOD': 'GET', 'SCRIPT_NAME': '',
+                        'SERVER_NAME': 'fake', 'SERVER_PORT': '80', 'SERVER_PROTOCOL': 'HTTP/1.1',
+                        'wsgi.errors': sys.stderr, 'wsgi.input': sys.stdin}
+
+        fake_environ['PATH_INFO'] = '/%s/%s' % (self.guid, url)
+
+        headers = {}
+
+        def fake_start_response(status, response_headers, exc_info=None):
+            headers.update(response_headers)
+
+        data = application(fake_environ, fake_start_response)
+
+        return headers, data
+
+    def base_playback_url(self, host=None):
+        host = host or settings.WARC_HOST
+        return u"%s/warc/%s/" % (("//" + host if host else ''), self.guid)
+
+
+class Capture(models.Model):
+    link = models.ForeignKey(Link, null=False, related_name='captures')
+    role = models.CharField(max_length=10, choices=(('primary','primary'),('screenshot','screenshot'),('favicon','favicon')))
+    status = models.CharField(max_length=10, choices=(('pending','pending'),('failed','failed'),('success','success')))
+    url = models.CharField(max_length=2100, blank=True, null=True)
+    record_type = models.CharField(max_length=10, choices=(
+        ('response','WARC Response record -- recorded from web'),
+        ('resource','WARC Resource record -- file without web headers')))
+    content_type = models.CharField(max_length=255, null=False, default='', help_text="HTTP Content-type header.")
+    user_upload = models.BooleanField(default=False, help_text="True if the user uploaded this capture.")
+
+    def write_warc_resource_record(self, in_file, warc_date=None, out_file=None):
+        return self.link.write_warc_resource_record(in_file, self.url, self.content_type, warc_date, out_file)
+
+    def get_headers(self):
+        headers, data = self.link.replay_url(self.url)
+        return headers
+
+    def read_content_type(self):
+        """ Read content-type from warc file. """
+        for key, val in self.get_headers().iteritems():
+            if key.lower() == 'content-type':
+                return val
+        return ''
+
+    def use_sandbox(self):
+        """
+            Whether the iframe we use to display this capture should be sandboxed.
+            Answer is yes unless we're playing back a PDF, which currently can't
+            be sandboxed in Chrome.
+        """
+        return not self.content_type.startswith("application/pdf")
+
+    INLINE_TYPES = {'image/jpeg', 'image/gif', 'image/png', 'image/tiff', 'text/html', 'text/plain', 'application/pdf',
+                    'application/xhtml', 'application/xhtml+xml'}
+
+    def show_interstitial(self):
+        """
+            Whether we should show an interstitial view/download button instead of showing the content directly.
+            True unless we recognize the mime type as something that should be shown inline (PDF/HTML/image).
+        """
+        return self.mime_type() not in self.INLINE_TYPES
+
+    def mime_type(self):
+        """
+            Return normalized mime type from content_type.
+            Stuff after semicolon is stripped, type is lowercased, and x- prefix is removed.
+        """
+        return self.content_type.split(";", 1)[0].lower().replace('/x-', '/')
+
+    def playback_url(self):
+        if not self.url:
+            return None
+        return u"%s%s%s" % (self.link.base_playback_url(), "id_/" if self.record_type == 'resource' else "", self.url)
 
 
 class Asset(models.Model):
@@ -576,7 +870,7 @@ class Asset(models.Model):
     base_storage_path = models.CharField(max_length=2100, null=True, blank=True)  # where we store these assets, relative to some base in our settings
     favicon = models.CharField(max_length=2100, null=True, blank=True)  # Retrieved favicon
     image_capture = models.CharField(max_length=2100, null=True, blank=True)  # Headless browser image capture
-    warc_capture = models.CharField(max_length=2100, null=True, blank=True)  # source capture, probably point to an index.html page
+    warc_capture = models.CharField(max_length=2100, null=True, blank=True)  # source capture
     pdf_capture = models.CharField(max_length=2100, null=True, blank=True)  # We capture a PDF version (through a user upload or through our capture)
 
     user_upload = models.BooleanField(
@@ -599,27 +893,25 @@ class Asset(models.Model):
     def favicon_url(self):
         return self.base_url(self.favicon)
 
-    def image_url(self):
-        return self.base_url(self.image_capture)
+    def resource_url(self, url):
+        return "id_/file:///%s/%s" % (self.link_id, url)
 
-    def warc_url(self, host=settings.WARC_HOST):
-        if self.warc_capture and '.warc' in self.warc_capture:
-            return ("//"+host if host else '') + \
-                   u"/warc/%s/%s" % (self.link.guid, self.link.submitted_url)
+    def image_url(self):
+        return self.resource_url(self.image_capture)
+
+    def pdf_url(self):
+        return self.resource_url(self.pdf_capture)
+
+    def warc_url(self):
+        if self.warc_capture and self.warc_capture=='archive.warc.gz':
+            return self.link.submitted_url
         else:
-            return settings.MEDIA_URL+self.base_url(self.warc_capture)
+            return self.resource_url(self.warc_capture)
 
     def warc_download_url(self):
         if '.warc' in self.warc_capture:
             return self.base_url(self.warc_capture)
         return None
-
-    def pdf_url(self):
-        return self.base_url(self.pdf_capture)
-
-    def walk_files(self):
-        """ Return iterator of all files for this asset. """
-        return default_storage.walk(self.base_storage_path)
 
 
 #########################
@@ -667,23 +959,23 @@ class Stat(models.Model):
 
 
 class CDXLineManager(models.Manager):
-    def create_all_from_asset(self, asset):
-        results = []
-        warc_path = os.path.join(asset.base_storage_path, asset.warc_capture)
+    def create_all_from_link(self, link):
+        warc_path = link.warc_storage_file()
         with default_storage.open(warc_path, 'rb') as warc_file, io.BytesIO() as cdx_io:
             write_cdx_index(cdx_io, warc_file, warc_path)
             cdx_io.seek(0)
             next(cdx_io) # first line is a header so skip it
-            for line in cdx_io:
-                results.append(CDXLine.objects.get_or_create(asset=asset, raw=line)[0])
+            results = [CDXLine.objects.get_or_create(link=link, raw=line)[0] for line in cdx_io]
 
         return results
 
 
 class CDXLine(models.Model):
+    link = models.ForeignKey(Link, null=True, related_name='cdx_lines')
+    asset = models.ForeignKey(Asset, null=True, related_name='cdx_lines')
     urlkey = models.URLField(max_length=2100, null=False, blank=False)
     raw = models.TextField(null=False, blank=False)
-    asset = models.ForeignKey(Asset, null=False, blank=False, related_name='cdx_lines')
+
     objects = CDXLineManager()
 
     def __init__(self, *args, **kwargs):
@@ -717,7 +1009,7 @@ class CDXLine(models.Model):
 from django.contrib.sessions.models import Session
 from django.db.models.signals import pre_save
 
-from .utils import ReadOnlyException
+from .utils import ReadOnlyException, copy_file_data, imagemagick_temp_dir
 
 write_whitelist = (
     (Session, None),

@@ -53,7 +53,6 @@ urlpatterns = patterns('perma.views',
     #Services
     url(r'^service/email-confirm/?$', 'service.email_confirm', name='service_email_confirm'),
     url(r'^service/receive-feedback/?$', 'service.receive_feedback', name='service_receive_feedback'),
-    url(r'^service/link/status/%s?/?$' % guid_pattern, 'service.link_status', name='service_link_status'),
     url(r'^service/stats/users/?$', 'service.stats_users', name='service_stats_users'),
     url(r'^service/stats/links/?$', 'service.stats_links', name='service_stats_links'),
     url(r'^service/stats/darchive-links/?$', 'service.stats_darchive_links', name='service_stats_darchive_links'),
@@ -62,7 +61,7 @@ urlpatterns = patterns('perma.views',
     url(r'^service/stats/registrar/?$', 'service.stats_registrar', name='service_stats_registrar'),
     url(r'^service/bookmarklet-create/$', 'service.bookmarklet_create', name='service.bookmarklet_create'),
     url(r'^service/image-wrapper/%s?/?$' % guid_pattern, 'service.image_wrapper', name='service_image_wrapper'),
-    url(r'^service/thumbnail/%s?/?$' % guid_pattern, 'service.get_thumbnail', name='service_get_thumbnail'),
+    url(r'^service/thumbnail/%s/thumbnail.png$' % guid_pattern, 'service.get_thumbnail', name='service_get_thumbnail'),
 
     # Session/account management
     url(r'^login/?$', 'user_management.limited_login', {'template_name': 'registration/login.html'}, name='user_management_limited_login'),
