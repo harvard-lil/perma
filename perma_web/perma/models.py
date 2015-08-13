@@ -980,7 +980,8 @@ class CDXLine(models.Model):
 
     def __init__(self, *args, **kwargs):
         super(CDXLine, self).__init__(*args, **kwargs)
-        self.__set_defaults()
+        if self.raw:
+            self.__set_defaults()
 
     @cached_property
     def __parsed(self):
