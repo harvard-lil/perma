@@ -1,0 +1,62 @@
+{% extends "layout-responsive.html" %}
+
+{% block meta_description %}
+Register for a Perma.cc account. Welcome aboard.
+{% endblock %}
+{% block meta %}<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">{% endblock %} 
+
+{% block content %}
+<div class="container learn-more">
+	<div class="row">
+		<div class="col-sm-12">	
+			<h1>Learn more and sign up</h1>
+			<h4>Perma.cc for <a class="btn btn-large btn-more" href="{% url 'sign_up' %}" role="button">Everyone</a><a class="btn btn-large btn-more" href="{% url 'sign_up_courts' %}" role="button">Courts</a><a class="btn btn-large btn-more" href="{% url 'sign_up_faculty' %}" role="button">Faculty</a><a class="btn btn-large btn-more btn-active" href="{% url 'sign_up_journals' %}" role="button">Journals</a><a class="btn btn-large btn-more" href="{% url 'libraries' %}">Libraries</a></h4>
+		</div>
+	</div>
+	<div class="row">
+	    <div class="col-sm-7">
+            <h2>Perma.cc for journals</h2>	
+            <p>Journal editors care about the accuracy, integrity and reliability of citations. When web citations break, or the referenced content changes, that reflects poorly on the journal and the editors who work so hard to verify sources.</p>
+            <h4>How journals use Perma.cc</h4>
+            <p>Almost 300 journals use Perma to prevent link rot in their articles. Each journal receives a free organizational account and can designate editors to create permanent links for their web citations. Check out our <a href="{% url 'docs' %}">user guide</a> to learn more.</p>
+            <h4>Join Perma.cc now</h4>
+            <p>Organizational accounts are free for academic journals that are sponsored by their library. If your library is already a registrar (review our <a href="{% url 'about' %}#partners">list of registrars</a>), simply contact them to request sponsorship. If your library isn’t a registrar yet, invite them to visit the <a href="{% url 'libraries' %}">Perma.cc libraries</a> page to request membership.</p>
+            <p>In the meantime, you can create a free personal account to start using Perma.cc right away.</p>
+		</div>
+	    <div class="col-sm-4 col-sm-offset-1">	
+	        <h2>Create an account</h2>	
+			<form method="post" action="">
+				{% csrf_token %}
+				 <fieldset>
+				<span class="text-error"><br/>{{ form.non_field_errors }}</span>
+				{% for field in form %}
+				  <label for="id_{{ field.name }}">{{ field.label }}</label><br/>
+				  {{ field }}
+				  {% if field.errors %}
+					{% for error in field.errors %}<span class="text-error"><br/>{{ error }}</span>{% endfor %}
+				  {%elif field.help_text %}
+					<span class="help-inline"><br/>{{ field.help_text }}</span>
+				  {% endif %}<br/>
+				{% endfor %}  
+			  </fieldset>
+				<p><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
+				<button type="submit" class="btn-success">Create account</button>
+			</form>
+		</div>
+	</div>
+</div>
+<br/>
+<br/>
+<br/>
+<br/>
+{% endblock content %}
+{% block scripts %}
+<script>
+$(document).ready(function(){
+    //$('input[type=text]:first').focus();
+    $('#id_create_account').change(function() {
+        $('.terms-statement').slideToggle();
+    });
+});
+</script>
+{% endblock scripts %}

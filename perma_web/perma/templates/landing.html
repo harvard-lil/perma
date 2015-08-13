@@ -22,7 +22,7 @@
                 {% if request.user.is_authenticated %}
                     <p><a href="{% url 'link_browser' %}" class="btn btn-large btn-success">Visit Your Dashboard</a></p>
                 {% else %}
-				    <p><a href="{% url 'register' %}" class="btn btn-large btn-success">Learn more and sign up</a></p>
+				    <p><a href="{% url 'sign_up' %}" class="btn btn-large btn-success">Learn more and sign up</a></p>
                 {% endif %}
 			
 			</div>	

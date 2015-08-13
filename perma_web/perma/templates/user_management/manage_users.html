@@ -64,10 +64,10 @@
                 <p class="count-number">{{ total_vested_links_count.count|default:0|intcomma }}</p>
             </div>
         </div>
-        {% if registrar_filter.name or org_filter.name or status or search_query %}
+        {% if registrar_filter.name or org_filter.name or status or upgrade or search_query %}
         <div class="row">
             <div class="col-sm-12">
-                <a class="remove-search-filters" href="?sort=last_name"><i class="icon-remove-sign"></i> Clear{% if registrar_filter %} registrar:<strong>{{registrar_filter}}</strong>{% endif %}{% if org_filter %} vesting organization:<strong>{{org_filter}}</strong>{% endif %}{% if status %} status:<strong>{{status}}</strong>{% endif %}{% if search_query %} search:<strong>{{search_query}}</strong>{% endif %}</a>
+                <a class="remove-search-filters" href="?sort=last_name"><i class="icon-remove-sign"></i> Clear{% if registrar_filter %} registrar:<strong>{{registrar_filter}}</strong>{% endif %}{% if org_filter %} vesting organization:<strong>{{org_filter}}</strong>{% endif %}{% if status %} status:<strong>{{status}}</strong>{% endif %}{% if upgrade %} upgrade interest:<strong>{{upgrade}}</strong>{% endif %}{% if search_query %} search:<strong>{{search_query}}</strong>{% endif %}</a>
             </div>
         </div>
         {% endif %}
@@ -96,6 +96,20 @@
                     </li>
                   </ul>
                 </div>
+                {% if request.user.is_staff and group_name == 'user' %}
+            <div class="dropdown">
+                  <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
+                    Upgrade interest <span class="caret"></span>
+                  </a>
+                  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                    <li>
+                        <a {% if upgrade == 'court' %}class="selected" {% endif %}href="?{% current_query_string upgrade="court" %}"><i class="icon-ok"></i> Court</a>
+                        <a {% if upgrade == 'faculty' %}class="selected" {% endif %}href="?{% current_query_string upgrade="faculty" %}"><i class="icon-ok"></i> Faculty</a>
+                        <a {% if upgrade == 'journal' %}class="selected" {% endif %}href="?{% current_query_string upgrade="journal" %}"><i class="icon-ok"></i> Journal</a>
+                    </li>
+                  </ul>
+                </div>
+            {% endif %}
             <div class="dropdown">
                   <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
                     Status <span class="caret"></span>
@@ -188,9 +202,12 @@
                     {% include "user_management/includes/comma.html" %}
                 {% endfor %}
               </p>
-              {% if group_name == 'registrar_user' and request.user.is_staff %}
-                  <p class="list-registrar"><a href="{% url 'user_management_manage_registrar' %}?q={{listed_user.registrar.name.split|join:'+'|lower}}">{{ listed_user.registrar.name }}</a></p>
-              {% endif %}
+              <p class="list-vesting-org">
+                {% if request.user.is_staff and listed_user.requested_account_type %}
+                    Interested in a {{listed_user.requested_account_type}} account with {{listed_user.requested_account_note}}
+                {% endif %}
+              </p>
+            {% if group_name == 'registrar_user' and request.user.is_staff %}<p class="list-registrar"><a href="{% url 'user_management_manage_registrar' %}?q={{listed_user.registrar.name.split|join:'+'|lower}}">{{ listed_user.registrar.name }}</a></p>{% endif %}
               </div>
               <div class="col-sm-3">
                 {% if group_name == 'organization_user' %}

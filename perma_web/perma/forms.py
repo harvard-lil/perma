@@ -75,6 +75,41 @@ class CreateUserFormWithRegistrar(CreateUserForm):
     def clean_registrar(self):
         registrar = self.cleaned_data["registrar"]
         return registrar
+        
+        
+class CreateUserFormWithCourt(CreateUserForm):
+    """
+    add court to the create user form
+    """
+
+    requested_account_note = forms.CharField(required=True)
+    
+    class Meta:
+        model = LinkUser
+        fields = ["first_name", "last_name", "email", "requested_account_note"]
+
+    def __init__(self, *args, **kwargs):
+        super(CreateUserFormWithCourt, self).__init__(*args, **kwargs)
+        self.fields['requested_account_note'].label = "Your court"
+        self.fields['first_name'].label = "Your first name"
+        self.fields['last_name'].label = "Your last name"
+        self.fields['email'].label = "Your email"
+        
+        
+class CreateUserFormWithUniversity(CreateUserForm):
+    """
+    add court to the create user form
+    """
+
+    requested_account_note = forms.CharField(required=True)
+    
+    class Meta:
+        model = LinkUser
+        fields = ["first_name", "last_name", "email", "requested_account_note"]
+
+    def __init__(self, *args, **kwargs):
+        super(CreateUserFormWithUniversity, self).__init__(*args, **kwargs)
+        self.fields['requested_account_note'].label = "Your university"
 
 
 class CustomSelectSingleAsList(forms.SelectMultiple):

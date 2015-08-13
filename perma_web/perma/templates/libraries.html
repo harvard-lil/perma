@@ -1,5 +1,5 @@
 {% extends "layout-responsive.html" %}
-{% block title %} | Contact{% endblock %}
+{% block title %} | Libraries{% endblock %}
 
 {% block meta %}
 <meta name="robots" content="noarchive">
@@ -56,7 +56,7 @@
                     {% endfor %}  
                 </fieldset>
                 {% endif %}
-
+                <p class="terms-statement"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
                 <button type="submit" class="btn btn-success">Request account</button>
             </form>
 		</div><!--col -->

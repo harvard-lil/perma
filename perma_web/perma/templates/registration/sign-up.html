@@ -1,0 +1,54 @@
+{% extends "layout-responsive.html" %}
+
+{% block meta_description %}
+Register for a Perma.cc account. Welcome aboard.
+{% endblock %}
+{% block meta %}<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">{% endblock %} 
+
+{% block content %}
+<div class="container learn-more">
+	<div class="row">
+		<div class="col-sm-12">	
+			<h1>Learn more and sign up</h1>
+			<h4>Perma.cc for <a class="btn btn-large btn-more btn-active" href="{% url 'sign_up' %}" role="button">Everyone</a><a class="btn btn-large btn-more" href="{% url 'sign_up_courts' %}" role="button">Courts</a><a class="btn btn-large btn-more" href="{% url 'sign_up_faculty' %}" role="button">Faculty</a><a class="btn btn-large btn-more" href="{% url 'sign_up_journals' %}" role="button">Journals</a><a class="btn btn-large btn-more" href="{% url 'libraries' %}">Libraries</a></h4>
+		</div>
+	</div>
+	<div class="row">
+	    <div class="col-sm-7">
+            <h2>Sign up for Perma.cc</h2>
+            <p>Get started using Perma.cc right away with a personal account.</p>
+		</div>
+	    <div class="col-sm-4 col-sm-offset-1">	
+	        <h2>Create an account</h2>	
+			<form method="post" action="">
+				{% csrf_token %}
+				 <fieldset>
+				<span class="text-error"><br/>{{ form.non_field_errors }}</span>
+				{% for field in form %}
+				  <label for="id_{{ field.name }}">{{ field.label }}</label><br/>
+				  {{ field }}
+				  {% if field.errors %}
+					{% for error in field.errors %}<span class="text-error"><br/>{{ error }}</span>{% endfor %}
+				  {%elif field.help_text %}
+					<span class="help-inline"><br/>{{ field.help_text }}</span>
+				  {% endif %}<br/>
+				{% endfor %}  
+			  </fieldset>
+				<p><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
+				<button type="submit" class="btn-success">Create account</button>
+			</form>
+		</div>
+	</div>
+</div>
+<br/>
+<br/>
+<br/>
+<br/>
+{% endblock content %}
+{% block scripts %}
+<script>
+$(document).ready(function(){
+    $('input[type=email]:first').focus();
+});
+</script>
+{% endblock scripts %}
