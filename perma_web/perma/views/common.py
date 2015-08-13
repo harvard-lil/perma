@@ -17,7 +17,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_control
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 from django.views.static import serve as media_view
 
 import logging
@@ -28,8 +28,7 @@ from ratelimit.decorators import ratelimit
 from ..models import Link, Asset
 from perma.forms import ContactForm
 from perma.middleware import ssl_optional
-from perma.utils import if_anonymous
-
+from perma.utils import if_anonymous, send_contact_email
 
 logger = logging.getLogger(__name__)
 valid_serve_types = ['image', 'pdf', 'source', 'warc_download']
@@ -215,11 +214,10 @@ def contact(request):
 
             ''' % (form.cleaned_data['message'], from_address, user_agent)
 
-            send_mail(
+            send_contact_email(
                 "New message from Perma contact form",
                 content,
-                from_address,
-                [settings.DEFAULT_FROM_EMAIL], fail_silently=False
+                from_address
             )
 
             # redirect to a new URL:

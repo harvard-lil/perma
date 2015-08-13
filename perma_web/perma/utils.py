@@ -1,12 +1,13 @@
 from contextlib import contextmanager
 import operator
 import os
-from django.core.paginator import Paginator
-
-from django.db.models import Q
-from django.conf import settings
 import struct
 import tempdir
+
+from django.core.mail import EmailMessage
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.conf import settings
 
 
 ### celery helpers ###
@@ -141,3 +142,18 @@ def copy_file_data(from_file_handle, to_file_handle, chunk_size=1024*100):
         if not data:
             break
         to_file_handle.write(data)
+
+### email ###
+
+def send_contact_email(title, content, from_address):
+    """
+        Send a message on behalf of a user to the admins.
+        Use reply-to for the user address so we can use email services that require authenticated from addresses.
+    """
+    EmailMessage(
+        title,
+        content,
+        settings.DEFAULT_FROM_EMAIL,
+        [settings.DEFAULT_FROM_EMAIL],
+        headers={'Reply-To': from_address}
+    ).send(fail_silently=False)
