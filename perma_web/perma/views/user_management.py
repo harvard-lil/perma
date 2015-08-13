@@ -33,7 +33,7 @@ from perma.forms import (
     SetPasswordForm, 
 )
 from perma.models import Registrar, LinkUser, Organization
-from perma.utils import apply_search_query, apply_pagination, apply_sort_order
+from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_contact_email
 
 logger = logging.getLogger(__name__)
 valid_member_sorts = ['last_name', '-last_name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'vested_links_count', '-vested_links_count']
@@ -1450,11 +1450,10 @@ http://%s%s
 
     logger.debug(content)
 
-    send_mail(
+    send_contact_email(
         "Perma.cc new library registrar account request",
         content,
-        pending_registrar.email,
-        [settings.DEFAULT_FROM_EMAIL], fail_silently=False
+        pending_registrar.email
     )
     
 

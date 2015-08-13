@@ -11,6 +11,7 @@ from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
 
 from perma.models import Link, Stat
+from perma.utils import send_contact_email
 
 
 logger = logging.getLogger(__name__)
@@ -76,11 +77,10 @@ def receive_feedback(request):
 ''' % (visited_page, feedback_text, broken_text, user_agent)
     logger.debug(content)
     
-    send_mail(
+    send_contact_email(
         "New Perma feedback",
         content,
-        from_address,
-        [settings.DEFAULT_FROM_EMAIL], fail_silently=False
+        from_address
     )
         
     response_object = {'submitted': 'true', 'content': content}
