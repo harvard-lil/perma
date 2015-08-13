@@ -18,7 +18,7 @@ def configure_app(app_name, s3_storage_bucket=None, s3_path='/'):
 
     #heroku("apps:create %s" % app_name)
     existing_addons = heroku("addons", capture=True)
-    for addon in ('cleardb', 'cloudamqp', 'rediscloud'):
+    for addon in ('cloudamqp', 'rediscloud'):
         if addon not in existing_addons:
             heroku("addons:add %s" % addon)
 
@@ -40,6 +40,8 @@ def configure_app(app_name, s3_storage_bucket=None, s3_path='/'):
     django_blank_vars = ('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'GPG_PRIVATE_KEY', 'GPG_PUBLIC_KEY')
     heroku("config:set %s" % " ".join("DJANGO__%s=MISSING" % key for key in django_blank_vars))
 
+    heroku("config:set BUILDPACK_URL=https://github.com/heroku/heroku-buildpack-multi.git")
+
     print "Heroku app setup completed. Remember to set the following config vars: %s" % (django_blank_vars,)
 
 @task
@@ -57,8 +59,10 @@ def push(app_name='perma', project_dir=os.path.join(settings.PROJECT_ROOT, '..')
     with lcd(dest_dir):
 
         # set up heroku files
-        local("cp -r %s ." % os.path.join(heroku_files_dir, "bin"))
         local("cp %s ." % os.path.join(heroku_files_dir, "Procfile"))
+        local("cp %s ." % os.path.join(heroku_files_dir, "amazon-rds-combined-ca-bundle.pem"))
+        local("cp %s ." % os.path.join(heroku_files_dir, "runtime.txt"))
+        local("cp %s .buildpacks" % os.path.join(heroku_files_dir, "buildpacks"))
         local("cp %s perma/" % os.path.join(heroku_files_dir, "wsgi_heroku.py"))
         local("cp %s perma/settings/" % os.path.join(heroku_files_dir, "settings.py"))
         local("cat %s >> requirements.txt" % os.path.join(heroku_files_dir, "extra_requirements.txt"))
