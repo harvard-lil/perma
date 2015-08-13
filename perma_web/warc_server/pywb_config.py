@@ -26,7 +26,7 @@ from pywb.utils.loaders import BlockLoader, LimitReader
 from pywb.webapp.handlers import WBHandler
 from pywb.webapp.query_handler import QueryHandler
 from pywb.webapp.pywb_init import create_wb_handler
-from pywb.webapp.views import add_env_globals, MementoTimemapView
+from pywb.webapp.views import MementoTimemapView
 from pywb.webapp.pywb_init import create_wb_router
 from pywb.utils.wbexception import NotFoundException
 
@@ -34,6 +34,22 @@ from perma.models import CDXLine, Link
 
 # Assumes post November 2013 GUID format
 GUID_REGEX = r'([a-zA-Z0-9]+(-[a-zA-Z0-9]+)+)'
+
+
+def get_archive_path():
+    # Get root storage location for warcs, based on default_storage.
+    # archive_path should be the location pywb can find warcs, like 'file://generated/' or 'http://perma.s3.amazonaws.com/generated/'
+    # We can get it by requesting the location of a blank file from default_storage.
+    # default_storage may use disk or network storage depending on config, so we look for either a path() or url()
+    try:
+        archive_path = 'file://' + default_storage.path('') + '/'
+    except NotImplementedError:
+        archive_path = default_storage.url('/')
+        archive_path = archive_path.split('?', 1)[0]  # remove query params
+
+    # must be ascii, for some reason, else you'll get
+    # 'unicode' object has no attribute 'get'
+    return archive_path.encode('ascii', 'ignore')
 
 
 # include guid in CDX requests
@@ -93,48 +109,21 @@ class PermaUrl(WbUrl):
 
 class PermaMementoResponse(MementoResponse):
     def _init_derived(self, params):
-        self.set_cache_header(params)
-        super(PermaMementoResponse, self)._init_derived(params)
-
-    # is_x logic taken verbatim from MementoResponse#_init_derived
-    def set_cache_header(self, params):
-        is_timegate = False
-        is_memento = False
-
+        """
+            Override MementoResponse to set cache time based on type of response (single memento or timegate).
+        """
+        # is_timegate logic via super _init_derived function:
         wbrequest = params.get('wbrequest')
-        cdx = params.get('cdx')
+        if not wbrequest or not wbrequest.wb_url:
+            return
+        is_top_frame = wbrequest.options.get('is_top_frame', False)
+        is_timegate = (wbrequest.options.get('is_timegate', False) and not is_top_frame)
 
-        if wbrequest and wbrequest.wb_url:
+        # set cache time
+        cache_time = settings.CACHE_MAX_AGES["timegate"] if is_timegate else settings.CACHE_MAX_AGES["memento"]
+        self.status_headers.headers.append(('Cache-Control', 'max-age={}'.format(cache_time)))
 
-            is_top_frame = wbrequest.wb_url.is_top_frame
-
-            is_timegate = (wbrequest.options.get('is_timegate', False) and
-                           not is_top_frame)
-
-            # if no cdx included, not a memento, unless top-frame special
-            if not cdx:
-                # special case: include the headers but except Memento-Datetime
-                # since this is really an intermediate resource
-                if is_top_frame:
-                    is_memento = True
-
-            # otherwise, if in proxy mode, then always a memento
-            elif wbrequest.options['is_proxy']:
-                is_memento = True
-
-            # otherwise only if timestamp replay (and not a timegate)
-            elif not is_timegate:
-                is_memento = (wbrequest.wb_url.type == wbrequest.wb_url.REPLAY)
-
-        if is_timegate:
-            req_type = 'timegate'
-        elif is_memento:
-            req_type = 'memento'
-        else:
-            req_type = 'default'
-
-        self.status_headers.headers.append(('Cache-Control',
-                                            'max-age={}'.format(settings.CACHE_MAX_AGES[req_type])))
+        return super(PermaMementoResponse, self)._init_derived(params)
 
 
 class PermaGUIDMementoResponse(PermaMementoResponse):
@@ -206,13 +195,8 @@ class PermaTemplateView(object):
 
 class PermaCapturesView(PermaTemplateView):
     def render_response(self, wbrequest, cdx_lines, **kwargs):
-        def format_cdx_lines():
-            for cdx in cdx_lines:
-                cdx['url'] = wbrequest.wb_url.get_url(url=cdx['original'])
-                yield cdx
-
         response = PermaTemplateView.render_response(self,
-                                                     cdx_lines=list(format_cdx_lines()),
+                                                     cdx_lines=list(cdx_lines),
                                                      url=wbrequest.wb_url.get_url(),
                                                      type=wbrequest.wb_url.type,
                                                      prefix=wbrequest.wb_prefix,
@@ -305,39 +289,22 @@ def create_perma_wb_router(config={}):
 
         This should do basically the same stuff as pywb.webapp.pywb_init.create_wb_router()
     """
-    # paths
-    script_path = os.path.dirname(__file__)
+    # start with the default PyWB router
+    router = create_wb_router(config)
 
-    # Get root storage location for warcs.
-    # archive_path should be the location pywb can find warcs, like 'file://generated/' or 'http://perma.s3.amazonaws.com/generated/'
-    # We can get it by requesting the location of a blank file from default_storage.
-    # default_storage may use disk or network storage depending on config, so we look for either a path() or url()
-    try:
-        archive_path = 'file://' + default_storage.path('') + '/'
-    except NotImplementedError:
-        archive_path = default_storage.url('/')
-        archive_path = archive_path.split('?', 1)[0]  # remove query params
-
-    query_handler = QueryHandler.init_from_config(PermaCDXSource())
-
-    # pywb template vars (used in templates called by pywb, such as head_insert.html, but not our ErrorTemplateView)
-    add_env_globals({'static_path': settings.STATIC_URL})
-
-    # use util func to create the handler
-    wb_handler = create_wb_handler(query_handler,
-                                   dict(archive_paths=[archive_path],
+    # insert a custom route that knows how to play back based on GUID
+    wb_handler = create_wb_handler(QueryHandler.init_from_config(PermaCDXSource()),
+                                   dict(archive_paths=[get_archive_path()],
                                         wb_handler_class=PermaGUIDHandler,
                                         buffer_response=True,
-                                        head_insert_html=os.path.join(script_path, 'head_insert.html'),
+                                        # head_insert_html=os.path.join(os.path.dirname(__file__), 'head_insert.html'),
                                         enable_memento=True,
                                         redir_to_exact=False))
-
     wb_handler.replay.content_loader.record_loader.loader = CachedLoader()
-
     route = PermaRoute(GUID_REGEX, wb_handler)
-
-    router = create_wb_router(config)
-    router.error_view = PermaTemplateView('archive-error.html')
     router.routes.insert(0, route)
+
+    # use our Django error view
+    router.error_view = PermaTemplateView('archive-error.html')
 
     return router

@@ -1,14 +1,17 @@
 # this is a wsgi application that gets included with its own url prefix
 # alongside the main Django app in wsgi.py
 import logging
+import os
 import traceback
 
+from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
-from django.core.files.storage import default_storage
+
 from pywb.framework.wsgi_wrappers import init_app, WSGIApp
 from pywb_config import (PermaCDXServer,
                          PermaHandler,
-                         create_perma_wb_router)
+                         create_perma_wb_router,
+                         get_archive_path)
 
 
 # monkey-patch WSGIApp.handle_exception to log exceptions as errors
@@ -24,16 +27,22 @@ def handle_exception(self, env, exc, print_trace):
 WSGIApp.handle_exception = handle_exception
 
 
-# must be ascii, for some reason, else you'll get
-# 'unicode' object has no attribute 'get'
-path = default_storage.path('').encode('ascii', 'ignore') + '/'
 application = init_app(create_perma_wb_router,
                        load_yaml=False,
                        config={
                            'port': 8000,
                            'collections': {'': 'PermaCDXSource'},
-                           'archive_paths': path,
+                           'archive_paths': get_archive_path(),
                            'server_cls': PermaCDXServer,
                            'wb_handler_class': PermaHandler,
-                           'enable_memento': True
+                           'enable_memento': True,
+                           'framed_replay': False,
+
+                           # pywb template vars (used in templates called by pywb, such as head_insert.html, but not our ErrorTemplateView)
+                           'template_globals': {
+                               'static_path': settings.STATIC_URL.rstrip('/')+'/pywb'
+                           },
+
+                           # so pywb's Jinja2 templates find our warc_server/templates dir
+                           'template_packages': ['warc_server', 'pywb'],
                        })
