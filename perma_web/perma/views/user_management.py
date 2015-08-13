@@ -142,7 +142,10 @@ def approve_pending_registrar(request, registrar_id):
     """ Perma admins can approve account requests from libraries """
 
     target_registrar = get_object_or_404(Registrar, id=registrar_id)
-    target_registrar_member = get_object_or_404(LinkUser, pending_registrar=registrar_id)
+    try:
+        target_registrar_member = LinkUser.objects.get(pending_registrar=registrar_id)
+    except LinkUser.DoesNotExist:
+        target_registrar_member = None
 
     context = {'target_registrar': target_registrar, 'target_registrar_member': target_registrar_member,
         'this_page': 'users_registrars'}
