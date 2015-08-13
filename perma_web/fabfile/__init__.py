@@ -8,12 +8,8 @@ django.setup()
 from django.conf import settings
 
 # import sub-tasks
-from . import dev, deploy
+from . import dev, deploy, heroku
 from .dev import run_django, test
-
-# import Heroku subtasks (must come after django conf)
-sys.path.append(os.path.join(settings.PROJECT_ROOT, '../services/'))
-import heroku.fabfile as heroku
 
 # optionally import fab_targets
 try:

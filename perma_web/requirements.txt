@@ -19,7 +19,7 @@ pexpect==3.1
 coverage==3.7.1
 selenium==2.45.0
 jsmin==2.0.9
-django-pipeline==1.4.7          # manages our css and js assets
+django-pipeline==1.5.3          # manages our css and js assets
 django-pipeline-compass==0.1.5  # lets us compile .scss to .css
 tempdir==0.6                    # create temp dirs to be deleted at end of function -- handy for archive creation
 netaddr==0.7.12                 # to check archive IPs against banned ranges
@@ -39,8 +39,8 @@ django-settings-context-processor==0.2 # make settings available in templates
 django-admin-smoke-tests==0.1.11    # basic tests for the Django admin
 
 # deployment
-gunicorn==18.0
-gevent==1.0.1
+gunicorn==19.3.0
+gevent==1.0.2
 
 # PyWB-related stuff
 surt==0.2                       # our simple CDX server to canonicalize URL

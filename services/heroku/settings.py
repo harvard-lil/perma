@@ -2,10 +2,10 @@
 
 from .deployments.settings_prod import *
 
-# Parse database configuration from $DATABASE_URL
-if os.environ.has_key('CLEARDB_DATABASE_URL'):
-    import dj_database_url
-    DATABASES['default'] =  dj_database_url.config('CLEARDB_DATABASE_URL')
+# Parse database configuration from env DATABASE_URL
+# import dj_database_url
+# DATABASES['default'] =  dj_database_url.config('DATABASE_URL')
+DATABASES['default']['OPTIONS'] = {'ssl': {'ca': os.path.join(PROJECT_ROOT, 'amazon-rds-combined-ca-bundle.pem')}}
 
 # Allow all host headers
 # TODO: this is from Heroku's getting started with Django page -- is there a safer way?
@@ -13,10 +13,6 @@ ALLOWED_HOSTS = ['*']
 
 STATICFILES_DIRS = (
     os.path.join(PROJECT_ROOT, 'static'),
-)
-
-ADMINS = (
-    (os.environ.get('ADMIN_NAME', 'Your Name'), os.environ.get('ADMIN_EMAIL', 'your_email@example.com')),
 )
 
 DEFAULT_FILE_STORAGE = 'perma.storage_backends.MediaRootS3BotoStorage'
@@ -34,6 +30,9 @@ LOGGING['handlers']['default'] = {
     'formatter': 'standard',
 }
 
+ADMINS = (
+    (os.environ.get('ADMIN_NAME', 'Your Name'), os.environ.get('ADMIN_EMAIL', 'your_email@example.com')),
+)
 
 # these are relative to the S3 bucket
 MEDIA_ROOT = '/generated/'
