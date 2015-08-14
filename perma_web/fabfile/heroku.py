@@ -64,7 +64,7 @@ def push(app_name='perma', project_dir=os.path.join(settings.PROJECT_ROOT, '..')
         local("cp %s ." % os.path.join(heroku_files_dir, "runtime.txt"))
         local("cp %s .buildpacks" % os.path.join(heroku_files_dir, "buildpacks"))
         local("cp %s perma/" % os.path.join(heroku_files_dir, "wsgi_heroku.py"))
-        local("cp %s perma/settings/" % os.path.join(heroku_files_dir, "settings.py"))
+        local("cp %s perma/settings/settings.py" % os.path.join(heroku_files_dir, "heroku_settings.py"))
         local("cat %s >> requirements.txt" % os.path.join(heroku_files_dir, "extra_requirements.txt"))
 
         # set up git
