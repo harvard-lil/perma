@@ -43,8 +43,6 @@ class PermissionsTestCase(PermaTestCase):
                 'urls': [
                     ['user_management_manage_registrar_user'],
                     ['user_management_registrar_user_add_user'],
-                    ['user_management_manage_organization'],
-                    ['user_management_manage_single_organization', {'kwargs':{'org_id':1}}],
                 ],
                 'allowed': {'test_registry_member@example.com', 'test_registrar_member@example.com'},
             },
@@ -53,6 +51,8 @@ class PermissionsTestCase(PermaTestCase):
                     ['user_management_manage_single_organization_user', {'kwargs':{'user_id': 3}}],
                     ['user_management_manage_organization_user'],
                     ['vest_link', {'kwargs': {'guid': '1234'}, 'success_status': 404}],
+                    ['user_management_manage_organization'],
+                    ['user_management_manage_single_organization', {'kwargs':{'org_id':1}}],
                     ['user_management_organization_user_add_user'],
                     ['user_management_manage_single_organization_user_remove', {'kwargs':{'user_id': 3},
                      'success_status': 302}],

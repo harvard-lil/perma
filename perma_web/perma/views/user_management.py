@@ -168,7 +168,7 @@ def approve_pending_registrar(request, registrar_id):
     
     
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_member())
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
 def manage_organization(request):
     """
     Registry and registrar members can manage organizations (journals)
@@ -185,7 +185,10 @@ def manage_organization(request):
 
     # If not registry member, return just those orgs that belong to the registrar member's registrar
     if not is_registry:
-        orgs = orgs.filter(registrar__id=request.user.registrar_id)
+    	if request.user.is_registrar_member():
+        	orgs = orgs.filter(registrar__id=request.user.registrar_id)
+        else:
+        	orgs = orgs.filter(pk__in=request.user.organizations.all())
 
     # handle registrar filter
     registrar_filter = request.GET.get('registrar', '')
@@ -241,12 +244,16 @@ def manage_organization(request):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_member())
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
 def manage_single_organization(request, org_id):
     """ Registry and registrar members can manage organizations (journals)
         in this view, we allow for edit/delete """
 
     target_org = get_object_or_404(Organization, id=org_id)
+    
+    if request.user.is_organization_member:
+        if target_org not in request.user.organizations.all():
+            raise Http404
 
     context = {'target_org': target_org,
         'this_page': 'users_orgs'}
