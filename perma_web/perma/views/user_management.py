@@ -679,7 +679,10 @@ def registrar_user_add_user(request):
     else:
         if not target_user.can_vest():
             cannot_add = False
-        form = None
+        if request.user.is_registrar_member():
+        	form = None
+        else:
+        	form = UserAddRegistrarForm(form_data, prefix = "a")
             
     context = {'this_page': 'users_registrar_users', 'user_email': user_email, 'form': form, 'target_user': target_user, 'cannot_add': cannot_add}
 
@@ -691,6 +694,8 @@ def registrar_user_add_user(request):
     
             if request.user.is_registrar_member():
                 target_user.registrar = request.user.registrar
+            else:
+            	target_user.registrar = form.cleaned_data['registrar']
     
             if is_new_user:
                 target_user.is_active = False
@@ -1534,7 +1539,7 @@ def email_new_organization_user(request, user, org):
 
 http://%s%s
 
-''' % (org.name, org.name, host, reverse('create_link'))
+''' % (org.name, org.name, host, reverse('user_management_settings_organizations'))
 
     send_mail(
         "Your Perma.cc account is now associated with {org}".format(org=org.name),
@@ -1555,7 +1560,7 @@ def email_new_registrar_user(request, user):
 
 http://%s%s
 
-''' % (user.registrar.name, user.registrar.name, host, reverse('create_link'))
+''' % (user.registrar.name, user.registrar.name, host, reverse('user_management_settings_organizations'))
 
     send_mail(
         "Your Perma.cc account is now associated with {registrar}".format(registrar=user.registrar.name),
