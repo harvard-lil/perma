@@ -1643,6 +1643,26 @@ ul#linky-ul li {
   margin-bottom: 35px;
 }
 
+.sponsoring-library-info h5 {
+	margin-bottom:25px;
+}
+
+.sponsoring-library-info .edit-org-link, .sponsoring-library-info .leave-org-btn {
+	font-family: $sans-font;
+	margin-left: 15px;
+	font-size:12px;
+}
+
+.registrar-info {
+	float:left;
+}
+
+.edit-registrar-btn {
+	margin-left:35px;
+	font-family: $sans-font;
+	float:left;
+}
+
 #add-member {
   margin-bottom: 35px;
 }

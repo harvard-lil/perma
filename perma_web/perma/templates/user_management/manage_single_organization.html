@@ -1,26 +1,18 @@
 {% extends "manage-layout.html" %}
+{% load bootstrap_tags %}
 {% block title %} | Edit organization{% endblock %}
 
 {% block content %}
 
-		<h3>Edit organization</h3>
-
-    <form method="post">
-      {% csrf_token %}
-		  <fieldset>
-		  <span class="text-error">{{ form.non_field_errors }}</span>
-        {% for field in form %}
-          <label for="id_{{ field.name }}">{{ field.label }}</label><br/>
-          {{ field }}
-          {% if field.errors %}
-            {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
-          {%elif field.help_text %}
-            <span class="help-inline">{{ field.help_text }}</span>
-          {% endif %}
-          <br>
-        {% endfor %}  
-      </fieldset>
-      <button type="submit" class="btn-success">Save changes</button>
-    </form>
+	<h3>Edit organization</h3>
+	<div class="row">
+		<div class="col-sm-6">
+    		<form method="post">
+      			{% csrf_token %}
+				{{ form|as_bootstrap }}
+      			<button type="submit" class="btn-success">Save changes</button>
+    		</form>
+    	</div>
+    </div>
 
 {% endblock %}

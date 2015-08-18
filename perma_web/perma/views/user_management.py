@@ -106,12 +106,15 @@ def manage_registrar(request):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_member())
 def manage_single_registrar(request, registrar_id):
     """ Linky admins can manage registrars (libraries)
         in this view, we allow for edit/delete """
 
     target_registrar = get_object_or_404(Registrar, id=registrar_id)
+    if request.user.is_registrar_member():	
+    	if not target_registrar == request.user.registrar:
+            raise Http404
 
     context = {'target_registrar': target_registrar,
         'this_page': 'users_registrars'}
@@ -123,7 +126,10 @@ def manage_single_registrar(request, registrar_id):
         if form.is_valid():
             new_user = form.save()
             
-            return HttpResponseRedirect(reverse('user_management_manage_registrar'))
+            if request.user.is_staff:
+            	return HttpResponseRedirect(reverse('user_management_manage_registrar'))
+            else:
+            	return HttpResponseRedirect(reverse('user_management_settings_organizations'))
 
         else:
             context.update({'form': form,})
