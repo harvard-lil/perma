@@ -1384,7 +1384,7 @@ def sign_up_faculty(request):
             
             email_new_user(request, new_user)
             
-            messages.add_message(request, messages.INFO, "Remember to ask your library about access to special Perma.cc priveleges.")
+            messages.add_message(request, messages.INFO, "Remember to ask your library about access to special Perma.cc privileges.")
             return HttpResponseRedirect(reverse('register_email_instructions'))
     else:
         form = CreateUserFormWithUniversity()
