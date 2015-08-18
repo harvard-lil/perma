@@ -15,15 +15,12 @@ Register for a Perma.cc account. Welcome aboard.
 	<div class="row">
 	    <div class="col-sm-7">
             <h2>Perma.cc for faculty</h2>	
-            <p>Scholarship depends on accurate, reliable citations to stable sources. When web citations break, or the referenced content changes, that undermines good scholarship.</p>
-            <h4>How faculty use Perma.cc</h4>
-            <p>Individual faculty members can use Perma to prevent link rot in their scholarship. Faculty members can authorize others, such as assistants and researchers, to preserve web sources on their behalf. Please review our <a href="{% url 'docs' %}">user guide</a> to learn more about how Perma works for faculty.</p>
-            <h4>Join Perma.cc now</h4>
-            <p>Organizational accounts are free for faculty members who are sponsored by their library. If your library is already a registrar (review our <a href="{% url 'about' %}#partners">list of registrars</a>), simply contact them to request sponsorship. If your library isn’t a registrar yet, invite them to visit <a href="{% url 'libraries' %}">Perma.cc libraries</a> page to request registrar status.</p>
-            <p>In the meantime, get started using Perma.cc right away with a personal account.</p>
+            <p>Faculty use Perma.cc to prevent link rot in their scholarship. Faculty also can authorize others, such as assistants and researchers, to preserve web sources on their behalf. 
+            <p>Unlimited faculty accounts are free for any faculty member who is authorized by his or her library. If your library is already registered with us (<a href="{% url 'about' %}#partners">see the full list here</a>), contact them for setup. If not, invite your library to visit our <a href="{% url 'libraries' %}">library resource</a> page to request membership, and we'll help them get started.</p>
+            <p>In the meantime, you can get started now by completing this form to create an individual account.</p> 
 		</div>
 	    <div class="col-sm-4 col-sm-offset-1">	
-	        <h2>Create an account</h2>	
+	        <h2>Create an individual account</h2>	
 			<form method="post" action="">
 				{% csrf_token %}
 				 <fieldset>

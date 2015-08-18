@@ -7,17 +7,23 @@
 
 {% block content %}
 
-<div class="container libraries-power">
-    <h1>Libraries power Perma.cc</h1>
+<div class="container libraries-power learn-more">
     <div class="row">
+        <div class="col-sm-12"> 
+            <h1>Learn more and sign up</h1>
+            <a class="btn btn-large btn-more" href="{% url 'sign_up_journals' %}" role="button">Journals</a><a class="btn btn-large btn-more" href="{% url 'sign_up_courts' %}" role="button">Courts</a><a class="btn btn-large btn-more" href="{% url 'sign_up_faculty' %}" role="button">Faculty</a><a class="btn btn-large btn-more btn-active" href="{% url 'libraries' %}">Libraries</a><a class="btn btn-large btn-more" href="{% url 'sign_up' %}" role="button">Individuals</a>
+        </div>
+    </div>
+    <div class="row">
+        
 		<div class="col-sm-7">
+            <h4>Libraries power Perma.cc</h4>
             <p>For centuries, libraries have worked together to preserve print sources and to make those sources accessible to the public. Today they do the same for online sources through Perma’s active network of library partners.</p>
             
-            <h4>How Perma.cc works for libraries</h4>
             <p>We call our library partners “registrars,” and our <a href="{% url 'about' %}#partners">network of registrars</a> is now <strong>{{registrar_count}}</strong> institutions strong. Each registrar sponsors and administers Perma for its local community of scholars and journals.</p>
-            <p>Check out our <a href="{% url 'docs' %}#libraries-and-registrars">user guide</a> to learn more about how libraries use Perma.cc.</p>
-            <h4>Join our library network</h4>
-            <p>Libraries join Perma.cc to make Perma.cc available to their patrons and to help prevent link rot. Perma.cc is free for academic libraries and the journals and faculty they support, and it's easy to use and administer.</p>
+            <p>Please review our <a href="{% url 'docs' %}#libraries-and-registrars">user guide</a> to learn more about how libraries use Perma.cc.</p>
+            <h4>Join Perma.cc's library network</h4>
+            <p>Perma.cc is free for academic libraries and the journals and faculty they support, and it's easy to use and administer.</p>
             <p>{% if not request.user.pending_registrar and not request.user.is_registrar_member %}If your library isn’t a member yet and would like to join, please fill out the form to the right to request a registrar account.{% endif %}</p>
             
         </div>
