@@ -1,0 +1,47 @@
+{% load pipeline %}<!DOCTYPE html>
+<html lang="en-us">
+    <head>
+        <title>Perma{% block title %}{% endblock %}</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="x-ua-compatible" content="IE=edge">
+        <meta name="google" value="notranslate" />
+        <!-- TODO add default meta description -->
+        <meta name="description" content="{% block meta_description %} Broken links are everywhere. Perma helps authors and journals create permanent links for citations in their published work.{% endblock %}">
+        {% block meta-head %}{% endblock %}
+        <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
+
+        {# Python variables for use in Javascript #}
+        {% include 'js_config.html' %}
+
+        {% stylesheet 'base' %}
+        {% javascript 'global_archive_head' %}
+        
+
+
+        {% block styles %}{% endblock %}
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+		<!--[if lt IE 9]>
+  			<script src="{{ STATIC_URL }}js/html5shiv.js"></script>
+  			<script src="{{ STATIC_URL }}js/respond.js"></script>
+		<![endif]-->
+    </head>
+    <body>
+		{% block header %}{% endblock header %}
+		<section id="main-archive">
+			<div id="main-content" class="container-fluid">
+				<div class="row">
+                    {% block content %}
+                    {% endblock content %}
+				</div><!--/.row-fluid-->
+			</div><!--/.main-container #main-content"-->
+		</section><!--/#main-->
+
+        {% javascript 'global' %}
+
+        {% block scripts %}
+        {% endblock %}
+
+        {% block templates %}
+        {% endblock %}
+    </body>
+</html>

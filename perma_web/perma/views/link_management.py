@@ -81,7 +81,7 @@ def vest_link(request, guid):
     if link.vested:
         return HttpResponseRedirect(reverse('single_linky', args=[guid]))
 
-    return render(request, 'link-vest-confirm.html', {
+    return render(request, 'archive/confirm/link-vest-confirm.html', {
         'link': link,
         'latest': latest,
         'folder': folder,
@@ -92,7 +92,7 @@ def vest_link(request, guid):
 def user_delete_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
 
-    return render(request, 'link-delete-confirm.html', {
+    return render(request, 'archive/confirm/link-delete-confirm.html', {
         'link': link,
     })
 
@@ -101,6 +101,6 @@ def user_delete_link(request, guid):
 def dark_archive_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
 
-    return render(request, 'dark-archive-link.html', {
+    return render(request, 'archive/confirm/dark-archive-link.html', {
         'link': link,
     })

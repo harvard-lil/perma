@@ -554,6 +554,24 @@ class Link(models.Model):
         if folder:
             self.folders.add(folder)
 
+    def can_view(self, user):
+        """
+            Not all links are viewable by all users -- some users
+            have privileged access to view dark archived links. For example, 
+            a user can view their own dark archived links.
+        """
+
+        if not self.dark_archived:
+            return True
+
+        if self.created_by == user:
+            return True
+
+        if self.organization in user.get_orgs:
+            return True
+
+        return False
+
     def get_expiration_date(self):
         """ Return date when this link will theoretically be deleted. """
         return self.creation_timestamp + settings.LINK_EXPIRATION_TIME
