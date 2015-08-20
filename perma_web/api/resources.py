@@ -498,6 +498,37 @@ class LinkResource(AuthenticatedLinkResource):
         bundle.obj.user_deleted_timestamp = timezone.now()
         bundle.obj.save()
 
+    ###
+    # Allow cross-domain requests from insecure site to secure site.
+    # This allows us to update the loading icons for live-view single-link page for insecure links.
+    # Can be removed when we stop showing that view.
+    ###
+
+    def add_cors_headers(self, request, response):
+        if not request.is_secure():
+            response['Access-Control-Allow-Origin'] = 'http://%s' % settings.HOST
+            response['Access-Control-Allow-Headers'] = 'content-type, authorization, x-requested-with'
+            response['Access-Control-Allow-Credentials'] = 'true'
+        return response
+
+    def get_detail(self, request, **kwargs):
+        """ Allow single-link mirror pages to read link details from the main server. """
+        response = super(LinkResource, self).get_detail(request, **kwargs)
+        self.add_cors_headers(request, response)
+        return response
+
+    def method_check(self, request, allowed=None):
+        """
+            Check for an OPTIONS request. If so return the Allow- headers.
+            Based on https://gist.github.com/miraculixx/6536381
+        """
+        try:
+            return super(LinkResource, self).method_check(request, allowed)
+        except ImmediateHttpResponse as response_exception:
+            if request.method.lower() == "options":
+                self.add_cors_headers(request, response_exception.response)
+            raise
+
 
 class CurrentUserResource(LinkUserResource):
     class Meta(DefaultResource.Meta):
