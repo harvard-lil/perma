@@ -219,7 +219,24 @@ def contact(request):
             return render_to_response('contact.html', context)
 
     else:
-        form = ContactForm(initial={'message': request.GET.get('message', '')})
+
+        # Our contact form serves a couple of purposes
+        # If we get a message parameter, we're getting a message from the create form
+        # about a failed archive
+        #
+        # If we get a flagged parameter, we're getting the guid of an archive from the
+        # Flag as inappropriate button on an archive page
+        #
+        # We likely want to clean up this contact for logic if we tack much else on
+        
+        message = request.GET.get('message', '')
+        flagged_archive_guid = request.GET.get('flag', '')
+
+        if flagged_archive_guid:
+            message = 'http://perma.cc/%s contains material that is inappropriate.' % flagged_archive_guid
+
+
+        form = ContactForm(initial={'message': message})
 
         context = RequestContext(request, {'form': form})
         return render_to_response('contact.html', context)
