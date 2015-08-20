@@ -50,8 +50,10 @@
                 <p>
                     Created {{ link.creation_timestamp|local_datetime:"F j, Y" }}
 
-                    {% if link.screenshot_capture and serve_type != 'image' %}
-                        Looks wrong? Try the <a href="{% url 'single_linky' link.guid %}?type=image">Screenshot View</a>.
+                    {% if serve_type != 'image' %}
+                        {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
+                            Looks wrong? Try the <a href="{% url 'single_linky' link.guid %}?type=image">Screenshot View</a>.
+                        {% endif %}
                     {% else %}
                         Below is a screenshot of the capture. <a href="{% url 'single_linky' link.guid %}?type=source">View the capture</a>.
                     {% endif %}                   
