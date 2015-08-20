@@ -46,7 +46,7 @@ INSTALLED_APPS += ("sslserver",)
 try:
     import debug_toolbar
     INSTALLED_APPS += (
-        'debug_toolbar.apps.DebugToolbarConfig',
+        'debug_toolbar',
     )
     DEBUG_TOOLBAR_CONFIG = {
         'SHOW_TOOLBAR_CALLBACK': 'perma.utils.show_debug_toolbar'  # we have to override this check because the default depends on IP address, which doesn't work inside Vagrant

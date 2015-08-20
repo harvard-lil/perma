@@ -1,6 +1,6 @@
 # handy packages to have in a dev environment
 ipdb
-django-debug-toolbar==1.2.1     # if installed, debug-toolbar will be included in INSTALLED_APPS by settings_dev.py
+django-debug-toolbar==1.3.2     # if installed, debug-toolbar will be included in INSTALLED_APPS by settings_dev.py
 django-extensions==1.4.4        # if installed, `fab run` will use `python manage.py runserver_plus`
 django-nose==1.3.0              # an alternative test runner; enable in settings_testing.py
 pysqlite==2.6.3                 # for use with in memory testing set in settings_testing.py
