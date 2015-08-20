@@ -829,7 +829,10 @@ class Capture(models.Model):
         return headers
 
     def read_content_type(self):
-        """ Read content-type from warc file. """
+        """
+            Read content-type from warc file.
+            TODO: This does NOT work if the capture starts with a redirect to a different URL.
+        """
         for key, val in self.get_headers().iteritems():
             if key.lower() == 'content-type':
                 return val
