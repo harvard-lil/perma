@@ -202,10 +202,10 @@ def proxy_capture(self, link_guid, user_agent=''):
 
         # use the HAR log to retrieve the URL we ended up, after any forwards,
         # and the content type.
-        content_type = None
+        content_type = ''
         for header in har_log_entries[0]['response']['headers']:
             if header['name'].lower() == 'content-type':
-                content_type = header['value']
+                content_type = header['value'].lower()
         content_url = har_log_entries[0]['request']['url']
         have_html = content_type and content_type.startswith('text/html')
         print "Finished fetching url."
@@ -376,13 +376,10 @@ def proxy_capture(self, link_guid, user_agent=''):
                                           warc_writer._f_finalname)
             with open(temp_warc_path, 'rb') as warc_file:
                 link.write_warc_raw_data(warc_file)
-                save_fields(link.primary_capture, status='success')
+                save_fields(link.primary_capture, status='success', content_type=content_type)
 
             print "Writing CDX lines to the DB"
             CDXLine.objects.create_all_from_link(link)
-
-            # now we have CDX lines we can read the correct content-type
-            save_fields(link.primary_capture, content_type=link.primary_capture.read_content_type())
 
         except Exception as e:
             print "Web Archive File creation failed for %s: %s" % (target_url, e)
