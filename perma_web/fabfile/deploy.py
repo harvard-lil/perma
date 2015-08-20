@@ -6,18 +6,14 @@ from fabric.api import *
 
 ### HELPERS ###
 
-@contextmanager
-def web_root():
+def run_as_web_user(*args, **kwargs):
+    kwargs.setdefault('user', 'perma')
     with cd(env.REMOTE_DIR):
         if env.VIRTUALENV_NAME:
             with prefix("workon "+env.VIRTUALENV_NAME):
-                yield
+                return sudo(*args, **kwargs)
         else:
-            yield
-
-def run_as_web_user(*args, **kwargs):
-    kwargs.setdefault('user', 'perma')
-    return sudo(*args, **kwargs)
+            return sudo(*args, **kwargs)
 
 ### DEPLOYMENT ###
 
@@ -31,26 +27,28 @@ def deploy(skip_backup=False):
         backup_code()
     deploy_code(restart=False)
     pip_install()
-    with web_root():
-        run_as_web_user("%s manage.py migrate" % env.PYTHON_BIN)
-        run_as_web_user("%s manage.py collectstatic --noinput --clear" % env.PYTHON_BIN)
+    run_as_web_user("%s manage.py migrate" % env.PYTHON_BIN)
+    run_as_web_user("%s manage.py collectstatic --noinput --clear" % env.PYTHON_BIN)
     restart_server()
 
 
 @task
-def deploy_code(restart=True, repo='origin', branch=None):
+def deploy_code(restart=True):
     """
         Deploy code only. This is faster than the full deploy.
     """
-    with web_root():
-        run_as_web_user("find . -name '*.pyc' -delete")
-        if branch:
-            run_as_web_user("git pull %s %s" % (repo, branch))
-        else:
-            run_as_web_user("git pull")
+    run_as_web_user("find . -name '*.pyc' -delete")
+    git("pull")
     if restart:
         restart_server()
 
+
+@task
+def git(*args):
+    """
+        Run a remote git command. Example:  fab git:"pull foo bar"
+    """
+    run_as_web_user("git %s" % " ".join(args))
 
 @task
 def tag_new_release(tag):
@@ -68,8 +66,7 @@ def tag_new_release(tag):
 
 @task
 def pip_install():
-    with web_root():
-        run_as_web_user("pip install -r requirements.txt")
+    run_as_web_user("pip install -r requirements.txt")
 
 @task
 def restart_server():
@@ -95,8 +92,7 @@ def start_server():
 @task
 def backup_database():
     if env.DATABASE_BACKUP_DIR:
-        with web_root():
-            run_as_web_user("fab deploy.local_backup_database:%s" % env.DATABASE_BACKUP_DIR)
+        run_as_web_user("fab deploy.local_backup_database:%s" % env.DATABASE_BACKUP_DIR)
 
 @task
 def local_backup_database(backup_dir):
@@ -120,7 +116,7 @@ def local_backup_database(backup_dir):
 def backup_code():
     """ Create a .tar.gz of the perma_web folder and store in env.CODE_BACKUP_DIR. """
     if env.CODE_BACKUP_DIR:
-        with web_root(), cd(".."):
+        with cd(".."):
             out_file_path = os.path.join(env.CODE_BACKUP_DIR, "perma_web_%s.tar.gz" % date.today().isoformat())
             # || [[ $? -eq 1 ]] makes sure that we still consider an exit code of 1 (meaning files changed during tar) a success
             run_as_web_user("tar -cvzf %s perma_web || [[ $? -eq 1 ]]" % out_file_path)
