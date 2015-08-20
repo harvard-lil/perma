@@ -43,18 +43,25 @@
 
         <div class="primary-segment row style="background-color: #09f"">
             <div class="col-sm-2">
-                <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapse-details" aria-expanded="false" aria-controls="collapse-details">
-                    Show details
-                </button>
+                <button id="details-button" class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapse-details" aria-expanded="false" aria-controls="collapse-details">Show details</button>
             </div>
-            <div class="col-sm-3">
+            <div class="col-sm-5">
                 <p>This page is a Perma.cc record</p>
-                <p>Created {{ link.creation_timestamp|local_datetime:"F j, Y" }} Looks wrong? Try the <a href="{% url 'single_linky' link.guid %}?type=image">Screenshot View</a>.</p>
+                <p>
+                    Created {{ link.creation_timestamp|local_datetime:"F j, Y" }}
+
+                    {% if link.screenshot_capture and serve_type != 'image' %}
+                        Looks wrong? Try the <a href="{% url 'single_linky' link.guid %}?type=image">Screenshot View</a>.
+                    {% else %}
+                        Below is a screenshot of the capture. <a href="{% url 'single_linky' link.guid %}?type=source">View the capture</a>.
+                    {% endif %}                   
+
+                </p>
             </div>
             <div class="col-sm-2">
                 <p><a href="{{link.submitted_url}}" target="_blank">View the live page</a></p>
             </div>
-            <div class="col-sm-5">
+            <div class="col-sm-3">
                 {% if request.user.is_authenticated %}
                     <div class="navbar-collapse collapse">
                       <ul class="nav navbar-nav navbar-right">
