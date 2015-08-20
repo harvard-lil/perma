@@ -117,6 +117,11 @@
                 <p>Original page title, {{link.submitted_title}}</p>
                 <p>Record creation date, {{ link.creation_timestamp|local_datetime }}</p>
 
+                {% if link.organization %}
+                    <p>Archiving Organization</p>
+                    <p>{{ link.organization }}</p>
+                {% endif %}
+
                 {% if request.user.is_authenticated %}
 
                     {% if request.user.can_vest and not link.vested %}
