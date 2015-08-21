@@ -198,8 +198,10 @@ function check_status() {
         var capturesPending = false,
             capturesSucceeded = false;
         $.each(data.captures, function(i, capture){
-            if(capture.status == 'pending') capturesPending = true;
-            if(capture.status == 'success') capturesSucceeded = true;
+            if(capture.role != 'favicon') {
+                if (capture.status == 'pending') capturesPending = true;
+                if (capture.status == 'success') capturesSucceeded = true;
+            }
         });
 
         // We're done checking status when nothing is pending.

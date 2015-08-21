@@ -576,7 +576,7 @@ class Link(models.Model):
     def warc_storage_file(self):
         return os.path.join(settings.WARC_STORAGE_DIR, self.guid_as_path(), '%s.warc.gz' % self.guid)
 
-    def get_thumbnail(self, source_file=None):
+    def get_thumbnail(self, image_data=None):
         if self.thumbnail_status == 'failed' or self.thumbnail_status == 'generating':
             return None
 
@@ -590,8 +590,8 @@ class Link(models.Model):
             warc_url = None
             image = None
 
-            if source_file:
-                image = Image(file=source_file)
+            if image_data:
+                image = Image(blob=image_data)
             else:
 
                 if self.screenshot_capture and self.screenshot_capture.status == 'success':
@@ -603,7 +603,7 @@ class Link(models.Model):
 
                 if warc_url:
                     self.thumbnail_status = 'generating'
-                    self.save()
+                    self.save(update_fields=['thumbnail_status'])
 
                     headers, data = self.replay_url(warc_url)
                     temp_file = tempfile.NamedTemporaryFile(suffix='.' + warc_url.rsplit('.', 1)[-1])
@@ -623,7 +623,7 @@ class Link(models.Model):
                             default_storage.store_data_to_file(dst_image.make_blob('png'), thumbnail_path, overwrite=True)
 
                 self.thumbnail_status = 'generated'
-                self.save()
+                self.save(update_fields=['thumbnail_status'])
 
                 return default_storage.open(thumbnail_path)
 
@@ -631,7 +631,7 @@ class Link(models.Model):
             print "Thumbnail generation failed for %s: %s" % (self.guid, e)
 
         self.thumbnail_status = 'failed'
-        self.save()
+        self.save(update_fields=['thumbnail_status'])
 
     @cached_property
     def screenshot_capture(self):
