@@ -818,6 +818,9 @@ class Capture(models.Model):
     content_type = models.CharField(max_length=255, null=False, default='', help_text="HTTP Content-type header.")
     user_upload = models.BooleanField(default=False, help_text="True if the user uploaded this capture.")
 
+    def __unicode__(self):
+        return "%s %s" % (self.role, self.status)
+
     def write_warc_resource_record(self, in_file, warc_date=None, out_file=None):
         return self.link.write_warc_resource_record(in_file, self.url, self.content_type, warc_date, out_file)
 
@@ -826,7 +829,10 @@ class Capture(models.Model):
         return headers
 
     def read_content_type(self):
-        """ Read content-type from warc file. """
+        """
+            Read content-type from warc file.
+            TODO: This does NOT work if the capture starts with a redirect to a different URL.
+        """
         for key, val in self.get_headers().iteritems():
             if key.lower() == 'content-type':
                 return val
