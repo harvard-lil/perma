@@ -1633,7 +1633,7 @@ def email_court_request(request, court):
     Send email to Perma.cc admins when a library requests an account
     """
       
-    host = request.get_host() if settings.DEBUG or settings.TESTING else settings.HOST
+    host = request.get_host() if settings.DEBUG else settings.HOST
     try:
         target_user = LinkUser.objects.get(email=court.email)
     except LinkUser.DoesNotExist:
