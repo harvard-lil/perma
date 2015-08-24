@@ -32,8 +32,10 @@ from pywb.utils.wbexception import NotFoundException
 
 from perma.models import CDXLine, Link
 
-# Assumes post November 2013 GUID format
-GUID_REGEX = r'([a-zA-Z0-9]+(-[a-zA-Z0-9]+)+)'
+
+newstyle_guid_regex = r'[A-Z0-9]{1,4}(-[A-Z0-9]{4})+'  # post Nov. 2013
+oldstyle_guid_regex = r'0[a-zA-Z0-9]{9,10}'  # pre Nov. 2013
+GUID_REGEX = r'(%s|%s)' % (oldstyle_guid_regex, newstyle_guid_regex)
 
 
 def get_archive_path():
