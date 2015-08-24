@@ -65,3 +65,16 @@ def init_db():
     """
     local("python manage.py migrate")
     local("python manage.py loaddata fixtures/sites.json fixtures/users.json fixtures/folders.json")
+
+@task
+def export_warcs(start_guid=''):
+    from perma.models import Asset
+    from django.core.files.storage import default_storage
+
+    for asset in Asset.objects.filter(link_id__gte=start_guid).order_by('link_id').select_related('link'):
+        print "Exporting %s" % start_guid
+        if default_storage.exists(asset.link.warc_storage_file()):
+            print "-- Already exported."
+            continue
+        asset.link.export_warc()
+        print "-- Exported."
