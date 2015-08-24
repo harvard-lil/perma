@@ -72,7 +72,7 @@ def export_warcs(start_guid=''):
     from django.core.files.storage import default_storage
 
     for asset in Asset.objects.filter(link_id__gte=start_guid).order_by('link_id').select_related('link'):
-        print "Exporting %s" % start_guid
+        print "Exporting %s" % asset.link_id
         if default_storage.exists(asset.link.warc_storage_file()):
             print "-- Already exported."
             continue
