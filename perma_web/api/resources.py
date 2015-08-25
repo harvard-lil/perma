@@ -275,7 +275,7 @@ class BaseLinkResource(MultipartResource, DefaultResource):
         --------------                      ---------------------------------------     ------------
         BaseLinkResource
             PublicLinkResource              PublicLinkAuthentication                    /public/archives
-            AuthorizedLinkResource          AuthorizedLinkAuthentication
+            AuthenticatedLinkResource       AuthenticatedLinkResource
                 LinkResource                LinkAuthentication                          /archives
                 LinkResource                                                            /folders/<id>/archives
                 LinkResource                                                            /user/organizations/<id>/folders
@@ -298,7 +298,7 @@ class BaseLinkResource(MultipartResource, DefaultResource):
 
     class Meta(DefaultResource.Meta):
         resource_name = 'archives'
-        queryset = Link.objects.all().order_by('-creation_timestamp')  # default order
+        queryset = Link.objects.order_by('-creation_timestamp').select_related('organization', 'organization__registrar').prefetch_related('captures')
         validation = LinkValidation()
 
     # class Nested:
@@ -342,6 +342,7 @@ class AuthenticatedLinkResource(BaseLinkResource):
 
     class Meta(BaseLinkResource.Meta):
         authorization = AuthenticatedLinkAuthorization()
+        queryset = BaseLinkResource.Meta.queryset.select_related('created_by', 'vested_by_editor', 'dark_archived_by')
 
     def get_search_filters(self, search_query):
         return (super(AuthenticatedLinkResource, self).get_search_filters(search_query) |
@@ -350,7 +351,7 @@ class AuthenticatedLinkResource(BaseLinkResource):
 
 class LinkResource(AuthenticatedLinkResource):
 
-    class Meta(BaseLinkResource.Meta):
+    class Meta(AuthenticatedLinkResource.Meta):
         authorization = LinkAuthorization()
 
     def prepend_urls(self):
