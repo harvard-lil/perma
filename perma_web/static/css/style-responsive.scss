@@ -3123,3 +3123,16 @@ p.orange {
 
 /* End user docs  */
 
+/* About page */
+
+.partner-list{
+    -webkit-column-count: 2; /* Chrome, Safari, Opera */
+    -moz-column-count: 2; /* Firefox */
+    column-count: 2;
+
+    .column{
+        margin-bottom: .5em;
+    }
+}
+
+/* End about page  */
