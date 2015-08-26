@@ -18,7 +18,10 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
     serve_files = [os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.html'),
                    os.path.join(TEST_ASSETS_DIR, 'target_capture_files/noarchive.html'),
-                   os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.pdf')]
+                   os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.pdf'),
+                   os.path.join(TEST_ASSETS_DIR, 'target_capture_files/favicon.ico'),
+                   os.path.join(TEST_ASSETS_DIR, 'target_capture_files/favicon_meta.ico')
+                   ]
 
     rejected_status_code = 400  # Bad Request
 
@@ -71,6 +74,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         """
             Make sure capture matches WARC contents.
         """
+        self.assertEqual(capture.status, 'success')
         headers, data = capture.link.replay_url(capture.url)
         self.assertTrue(capture.content_type, "Capture is missing a content type.")
         self.assertEqual(capture.content_type, capture.read_content_type())
@@ -105,6 +109,10 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         link = Link.objects.get(guid=obj['guid'])
         self.assertValidCapture(link.screenshot_capture)
         self.assertValidCapture(link.primary_capture)
+
+        # test favicon captured via meta tag
+        self.assertIn("favicon_meta.ico", link.favicon_capture.url)
+
         self.assertTrue(link.cdx_lines.count() > 0)
         self.assertFalse(link.dark_archived_robots_txt_blocked)
         self.assertEqual(link.submitted_title, "Test title.")
@@ -129,6 +137,9 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
         link = Link.objects.get(guid=obj['guid'])
         self.assertTrue(link.dark_archived_robots_txt_blocked)
+
+        # test favicon captured via favicon.ico well-known URL
+        self.assertIn("favicon.ico", link.favicon_capture.url)
 
     def test_should_dark_archive_when_disallowed_in_robots_txt(self):
         with self.serve_file(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/robots.txt')):

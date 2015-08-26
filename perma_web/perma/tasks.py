@@ -210,26 +210,28 @@ def proxy_capture(self, link_guid, user_agent=''):
         have_html = content_type and content_type.startswith('text/html')
         print "Finished fetching url."
 
-        # get favicon url
-        favicon_url = urlparse.urljoin(content_url, '/favicon.ico')
+        # get favicon urls
+        favicon_urls = []
         if have_html:
             favicons = browser.find_elements_by_xpath('//link[@rel="icon" or @rel="shortcut icon"]')
             for candidate_favicon in favicons:
                 if candidate_favicon.get_attribute('href'):
-                    candidate_favicon_url = urlparse.urljoin(browser.current_url, candidate_favicon.get_attribute('href'))
+                    candidate_favicon_url = urlparse.urljoin(content_url, candidate_favicon.get_attribute('href'))
                     favicon_extension = candidate_favicon_url.rsplit('.',1)[-1]
                     if favicon_extension in ['ico', 'gif', 'jpg', 'jpeg', 'png']:
-                        favicon_url = candidate_favicon_url
-                        break
+                        favicon_urls.append(candidate_favicon_url)
+        favicon_urls.append(urlparse.urljoin(content_url, '/favicon.ico'))
 
         # fetch favicon
-        print "Fetching favicon from %s ..." % favicon_url
-        try:
-            favicon_response = proxied_get_request(favicon_url)
-            assert favicon_response.ok
-        except (requests.ConnectionError, requests.Timeout, AssertionError):
-            print "Couldn't get favicon"
-            favicon_url = None
+        for favicon_url in favicon_urls:
+            print "Fetching favicon from %s ..." % favicon_url
+            try:
+                favicon_response = proxied_get_request(favicon_url)
+                assert favicon_response.ok
+                break
+            except (requests.ConnectionError, requests.Timeout, AssertionError):
+                print "Couldn't get favicon"
+                favicon_url = None
 
         # fetch robots.txt in the background
         def robots_txt_thread():
