@@ -41,7 +41,14 @@ class Registrar(models.Model):
     default_organization = models.OneToOneField('Organization', blank=True, null=True, related_name='default_for_registrars') # each registrar gets a default org
     is_approved = models.BooleanField(default=False)
 
+    show_partner_status = models.BooleanField(default=False, help_text="Whether to show this registrar in our list of partners.")
+    partner_display_name = models.CharField(max_length=400, blank=True, null=True, help_text="Optional. Use this to override 'name' for the partner list.")
+    logo = models.ImageField(upload_to='registrar_logos', blank=True, null=True)
+
     tracker = FieldTracker()
+
+    class Meta:
+        ordering = ['name']
 
     def save(self, *args, **kwargs):
         super(Registrar, self).save(*args, **kwargs)
@@ -57,7 +64,7 @@ class Registrar(models.Model):
             associate that archive with this org by default.)
         """
         
-        if self.default_organization:
+        if hasattr(self, 'default_organization') and self.default_organization is not None:
             return
         else:
             org = Organization(registrar=self, name="Default Organization")
