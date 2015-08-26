@@ -988,7 +988,7 @@ class CDXLineManager(models.Manager):
 class CDXLine(models.Model):
     link = models.ForeignKey(Link, null=True, related_name='cdx_lines')
     asset = models.ForeignKey(Asset, null=True, related_name='cdx_lines')
-    urlkey = models.URLField(max_length=2100, null=False, blank=False)
+    urlkey = models.CharField(max_length=2100, null=False, blank=False, db_index=True)
     raw = models.TextField(null=False, blank=False)
 
     objects = CDXLineManager()
