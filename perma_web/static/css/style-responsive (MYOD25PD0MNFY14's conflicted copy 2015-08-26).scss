@@ -10,8 +10,10 @@
 ///////////////////////////////////////////////
 // The OLD
 
-
-@import "_perma-old.scss";	
+.__perma {
+	@import "_bootstrap3.scss";
+	@import "_perma-old.scss";	
+}
 
 
 

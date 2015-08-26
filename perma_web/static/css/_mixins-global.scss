@@ -1,0 +1,116 @@
+/////////////////////////
+
+//	dev()
+//	allows you to set an arbitrary max-width for your page for responsive testing
+//	ex: @include dev(320px);
+
+@mixin dev($width){
+	html { background-color: #eee; }
+	body {
+	    max-width: #{$width}px;
+	}
+}
+
+/////////////////////////
+
+//	respond()
+//	add a min-width media query at the nth value in $respond-breakpoints
+// 	ex:
+// 	h1 {
+// 		font-size: $size-large;
+// 		@include respond(3) {
+// 			font-size: $size-1xlarge;
+// 		} 
+//	}
+
+@mixin respond($n) {
+	@media only screen and (min-width: nth($respond-breakpoints, $n) + 1) {
+		@content;
+	}
+}
+
+//	these old respond()s are here becouse the new one seems to be broken with the django-pipeline compiler
+
+$width-xmobile-respond: $width-mobile + 1; 	// 376px;
+$width-tablet-respond: $width-xmobile + 1; 		// 640px;
+$width-desktop-respond: $width-tablet + 1; 	// 1048px;
+$width-wide-respond: $width-desktop + 1; 		// 1168px;
+$width-max-respond: $width-wide + 1; 		// 1168px;
+
+
+@mixin respond-mobile {
+	@media only screen and (max-width: $width-mobile) {
+		@content;
+	}
+}
+
+@mixin respond-xmobile {
+	@media only screen and (min-width: $width-xmobile-respond) {
+		@content;
+	}
+}
+
+@mixin respond-tablet {
+	@media only screen and (min-width: $width-tablet) {
+		@content;
+	}
+}
+
+@mixin respond-desktop {
+	@media only screen and (min-width: $width-desktop) {
+		@content;
+	}
+}
+
+@mixin respond-wide {
+	@media only screen and (min-width: $width-wide) {
+		@content;
+	}
+}
+
+@mixin respond-max {
+	@media only screen and (min-width: $width-max) {
+		@content;
+	}
+}
+
+// mixins for links
+
+@mixin link-none($linkcolor){
+	color: $linkcolor;
+	text-decoration: none;
+	&:link { color: $linkcolor; }
+	&:visited { color: $linkcolor}
+	&:hover { color: $linkcolor; }
+	&:active { color: $linkcolor; }
+}
+
+@mixin link-highlight($linkcolor, $highlightcolor){
+	color: $linkcolor;
+	text-decoration: none;
+	&:link { color: $linkcolor; }
+	&:visited { color: $linkcolor}
+	&:hover { color: $highlightcolor; }
+	&:active { color: $linkcolor; }
+}
+
+@mixin link-underline($linkcolor, $highlightcolor){
+	color: $linkcolor;
+	text-decoration: underline;
+	&:link { color: $linkcolor; }
+	&:visited { color: $linkcolor}
+	&:hover { color: $highlightcolor; }
+	&:active { color: $linkcolor; }
+}
+
+@mixin link-underline-on-hover($linkcolor, $highlightcolor){
+	color: $linkcolor;
+	text-decoration: none;
+	&:link { color: $linkcolor; }
+	&:visited { color: $linkcolor}
+	&:hover { 
+		color: $linkcolor; 
+		text-decoration: underline;
+	}
+	&:active { color: $highlightcolor; }
+}

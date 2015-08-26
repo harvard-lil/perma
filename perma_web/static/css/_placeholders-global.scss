@@ -1,0 +1,167 @@
+/////////////////////////
+
+// placeholders used to extend common elements
+
+//	style- : helper styles
+
+// PRODUCTION CLASS HOOKS
+
+//	b-	: block
+//	e-	: element
+//	_	: modifier
+
+%style-clears-floats {
+	&:after {
+		display: table;
+		content: " ";
+		clear: both;
+	}
+}
+
+%style-block-centered {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+%style-container {
+	@extend %style-block-centered;
+	@extend %style-clears-floats;
+	padding-left: $grid;
+	padding-right: $grid;
+	max-width: $width-max;
+	overflow: hidden;
+	@include respond-tablet {
+		padding-left: $double;
+		padding-right: $double;
+	}
+}
+
+%style-vcenter-parent {
+	display: table;
+}
+
+%style-vcenter-child {
+	display: table-cell;
+	vertical-align: middle;
+}
+
+%style-pageLede {
+	font-family: $font-hed-alt;
+    font-weight: 300;
+    font-size: 22px;
+}
+
+%style-body-text {
+	font-size: 18px;
+	font-weight: 300;
+	font-family: $font-body;
+	line-height: 1.5;
+}
+
+%style-docs-ah {
+    font-size: 24px;
+    border-top: 1px solid $color-blue;
+    padding-top: $grid;
+    margin-top: $grid * 8;
+    font-family: $font-hed-alt;
+    font-weight: 700;
+    color: $color-blue;
+    &:first-child {
+        margin-top: 0;
+    }
+}
+
+%style-docs-bh {
+    font-size: 18px;
+    border-top: 1px solid $color-black;
+    padding-top: $grid;
+    margin-top: $grid * 6;
+    font-family: $font-hed-alt;
+    font-weight: 700;
+    color: $color-black;
+}
+
+%style-overview-container {
+	margin: $grid * 6 0 0 0;
+	background-color: $color-background;
+	border-radius: 2px;
+	@extend %style-clears-floats;
+	& + div {
+		padding-top: $grid * 3;
+		margin-top: $grid * 4;
+	}
+}
+
+%style-overview-module {
+	float: left;
+	width: 20%;
+	&:first-child {
+		a {
+			border-left: 2px solid white;
+		}
+	}
+	a {
+		border-right: 2px solid white;
+		height: 11.5em;
+		display: block;
+		margin: 0;
+		padding: $double;
+		&:hover {
+			background-color: $color-blue !important;
+			color: white;
+			p, strong {
+				color: white !important;
+			}
+			strong:after {
+			    background-position: -9px * 5 !important;
+			}
+		}
+		&:active {
+			background-color: $color-black !important;
+		}
+	}
+	a._jump {
+		height: 5.75em;
+		background-color: $color-trans-whispergray;
+		padding-top: 19px;
+		+ a {
+			border-top: 2px solid white;
+		}
+		strong {
+			font-weight: 300;
+			color: $color-orange;
+			&:after {
+				background-position: -9px * 0;
+				top: 3px;
+			}
+		}
+	}
+	&._active a {
+		background-color: $color-white;
+	}
+	strong {
+		display: block;
+		font-weight: 800;
+		font-size: 20px;
+		&:after {
+		    content: '';
+		    height: 17px;
+		    width: 9px;
+		    display: inline-block;
+		    background-image: url('../img/ui/perma-ui-chev-right-small.png');
+		    background-repeat: no-repeat;
+		    background-size: 54px 17px;
+		    background-position: -9px * 2;
+		    top: 2px;
+			margin-left: $grid;
+			margin-right: -17px;
+		}
+	}
+	p {
+		font-family: $font-hed-alt;
+		font-weight: 300;
+		margin-top: $grid;
+		font-size: 14px;
+		padding-right: $grid;
+	}
+}
