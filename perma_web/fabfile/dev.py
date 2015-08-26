@@ -68,13 +68,13 @@ def init_db():
 
 @task
 def export_warcs(start_guid=''):
-    from perma.models import Asset
+    from perma.models import Link
     from django.core.files.storage import default_storage
 
-    for asset in Asset.objects.filter(link_id__gte=start_guid).order_by('link_id').select_related('link'):
-        print "Exporting %s" % asset.link_id
-        if default_storage.exists(asset.link.warc_storage_file()):
+    for link in Link.objects.exclude(assets=None):
+        print "Exporting %s" % link.guid
+        if default_storage.exists(link.warc_storage_file()):
             print "-- Already exported."
             continue
-        asset.link.export_warc()
+        link.export_warc()
         print "-- Exported."
