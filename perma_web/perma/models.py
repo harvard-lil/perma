@@ -743,7 +743,7 @@ class Link(models.Model):
         def write_resource_record(file_path, url, content_type):
             self.write_warc_resource_record(
                 default_storage.open(file_path),
-                url,
+                url.encode('utf8'),
                 content_type,
                 default_storage.created_time(file_path),
                 out)
@@ -758,7 +758,7 @@ class Link(models.Model):
         if asset.pdf_capture and ('cap' in asset.pdf_capture or 'upload' in asset.pdf_capture):
             file_path = os.path.join(asset.base_storage_path, asset.pdf_capture)
             headers = write_resource_record(file_path, "file:///%s/%s" % (guid, asset.pdf_capture), 'application/pdf')
-            write_metadata_record({'role':'primary', 'user_upload':asset.user_upload}, headers)
+            #write_metadata_record({'role':'primary', 'user_upload':asset.user_upload}, headers)
 
         # write image capture (if it's not a PDF thumbnail)
         elif (asset.image_capture and ('cap' in asset.image_capture or 'upload' in asset.image_capture)):
