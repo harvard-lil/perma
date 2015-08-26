@@ -727,6 +727,8 @@ class Link(models.Model):
         # we make sure that we won't accidentally try to create the file multiple
         # times in parallel.
         asset = self.assets.select_for_update().first()
+        if not asset:
+            return  # this is not an old-style Link
         if default_storage.exists(self.warc_storage_file()):
             return
 
