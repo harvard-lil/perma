@@ -129,7 +129,7 @@ def proxy_capture(self, link_guid, user_agent=''):
     # Set up an exception we can trigger to halt capture and release all the resources involved.
     class HaltCaptureException(Exception):
         pass
-    meta_thread = browser = robots_txt_thread = warcprox_controller = warcprox_thread = favicon_thread = None
+    meta_thread = browser = robots_txt_thread = warcprox_controller = warcprox_thread = favicon_url = None
     have_warc = False
 
     try:
@@ -214,32 +214,22 @@ def proxy_capture(self, link_guid, user_agent=''):
         favicon_url = urlparse.urljoin(content_url, '/favicon.ico')
         if have_html:
             favicons = browser.find_elements_by_xpath('//link[@rel="icon" or @rel="shortcut icon"]')
-            favicons = [i for i in favicons if i.get_attribute('href')]
-            if favicons:
-                favicon_url = urlparse.urljoin(browser.current_url, favicons[0].get_attribute('href'))
-                favicon_extension = favicon_url.rsplit('.',1)[-1]
-                if not favicon_extension in ['ico', 'gif', 'jpg', 'jpeg', 'png']:
-                    favicon_url = None
+            for candidate_favicon in favicons:
+                if candidate_favicon.get_attribute('href'):
+                    candidate_favicon_url = urlparse.urljoin(browser.current_url, candidate_favicon.get_attribute('href'))
+                    favicon_extension = candidate_favicon_url.rsplit('.',1)[-1]
+                    if favicon_extension in ['ico', 'gif', 'jpg', 'jpeg', 'png']:
+                        favicon_url = candidate_favicon_url
+                        break
 
-        # fetch favicon in the background
-        def favicon_thread():
-            print "Fetching favicon from %s ..." % favicon_url
-            try:
-                favicon_response = proxied_get_request(favicon_url)
-                assert favicon_response.ok
-            except (requests.ConnectionError, requests.Timeout, AssertionError):
-                print "Couldn't get favicon"
-                return
-            Capture(
-                link=link,
-                role='favicon',
-                status='success',
-                record_type='response',
-                url=favicon_url
-            ).save()
-            print "Saved favicon at %s" % favicon_url
-        favicon_thread = threading.Thread(target=favicon_thread, name="favicon")
-        favicon_thread.start()
+        # fetch favicon
+        print "Fetching favicon from %s ..." % favicon_url
+        try:
+            favicon_response = proxied_get_request(favicon_url)
+            assert favicon_response.ok
+        except (requests.ConnectionError, requests.Timeout, AssertionError):
+            print "Couldn't get favicon"
+            favicon_url = None
 
         # fetch robots.txt in the background
         def robots_txt_thread():
@@ -358,8 +348,6 @@ def proxy_capture(self, link_guid, user_agent=''):
             meta_thread.join()  # wait until meta thread is done
         if robots_txt_thread:
             robots_txt_thread.join()  # wait until robots thread is done
-        if favicon_thread:
-            favicon_thread.join()  # wait until favicon thread is done
         if warcprox_controller:
             warcprox_controller.stop.set()  # send signal to shut down warc thread
         if warcprox_thread:
@@ -377,6 +365,18 @@ def proxy_capture(self, link_guid, user_agent=''):
             with open(temp_warc_path, 'rb') as warc_file:
                 link.write_warc_raw_data(warc_file)
                 save_fields(link.primary_capture, status='success', content_type=content_type)
+
+            # We only save the Capture for the favicon once the warc is stored,
+            # since the data for the favicon lives in the warc.
+            if favicon_url:
+                Capture(
+                    link=link,
+                    role='favicon',
+                    status='success',
+                    record_type='response',
+                    url=favicon_url
+                ).save()
+                print "Saved favicon at %s" % favicon_url
 
             print "Writing CDX lines to the DB"
             CDXLine.objects.create_all_from_link(link)
