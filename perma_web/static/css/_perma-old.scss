@@ -226,11 +226,6 @@ p {
 	line-height:38px;
 }
 
-.navbar-nav > li > a.navbar-link.dropdown-toggle {
-    padding-bottom:5px;
-    color:#666;
-}
-
 .settings-dropdown {
     font-size:24px;
     margin-top:-2px;
@@ -271,17 +266,21 @@ div.tooltip-inner {
     color:#fff;
 }
 
+/*
 .navbar-default .navbar-nav > li > a.navbar-link:hover,
 .navbar-default .navbar-nav > li > a.navbar-link:focus {
-      color: #007acc;
+     color: #007acc;
   border-color: #269abc;
-  }
-  
+	}
+ */
+ 
+/*
 .navbar-default .navbar-nav > .dropdown > a:hover .caret,
 .navbar-default .navbar-nav > .dropdown > a:focus .caret {
   border-top-color: #007acc;
   border-bottom-color: #007acc;
 }
+*/
 
 /* Header */
 
@@ -2210,9 +2209,11 @@ a.underline {
     margin-top:4px;
 }
 
+/*
 .dropdown {
     font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
 }
+*/
 
 .alpha {
     border-radius: 50%;

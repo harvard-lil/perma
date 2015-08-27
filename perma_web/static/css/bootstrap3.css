@@ -3023,11 +3023,13 @@ textarea.input-group-sm > .input-group-btn > .btn {
   padding: 10px 15px;
 }
 
+/*
 .nav > li > a.navbar-link:hover,
 .nav > li > a.navbar-link:focus {
   text-decoration: none;
   background-color: #eeeeee;
 }
+*/
 
 .nav > li.disabled > a {
   color: #999999;
@@ -3615,11 +3617,14 @@ tr.link-details
   color: #777777;
 }
 
+/*
 .navbar-default .navbar-nav > li > a.navbar-link {
   color: #09f;
   font-size:20px;
 }
+*/
 
+/*
 .navbar-default .navbar-nav > li > a.navbar-link:hover,
 .navbar-default .navbar-nav > li > a.navbar-link:focus {
   color: #333333;
@@ -3639,6 +3644,7 @@ tr.link-details
   color: #cccccc;
   background-color: transparent;
 }
+*/
 
 .navbar-default .navbar-toggle {
   border-color: #dddddd;
