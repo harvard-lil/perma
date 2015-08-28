@@ -1,0 +1,90 @@
+/////////////////////////
+
+//	grid
+
+$grid: 8px;
+$double: $grid * 2;
+$half: $grid / 2;
+
+/////////////////////////
+
+//	width (breakpoints)
+//	$width-value
+
+$width-mobile: $grid * 40; 		// 320px;
+$width-xmobile: $grid * 48; 	// 376px;
+$width-tablet: 767px; 		// 640px;
+$width-desktop: 991px; 	// 1048px;
+$width-wide: 1199px; 		// 1168px;
+$width-max: $width-wide; 		// 1168px;
+
+$width-column: $width-mobile;
+$width-sidebar: $grid * 22; 	// 172px;
+
+$width-max-measure: 55em; 
+
+$height-nav-mobile: $grid * 7;
+$height-nav-xmobile: $grid * 8;
+$height-nav-tablet: $grid * 10;
+$height-nav-desktop: $grid * 12;
+
+/////////////////////////
+
+//	colors
+//	$color-name
+
+$color-background: #F6F8F1;
+$color-highlight: #F7FF6F;
+$color-hover: #0092FF;
+$color-active: #222;
+$color-error: red;
+
+
+$color-blue: #2D76EE;
+$color-orange: #DD671A;
+
+$color-green: #77AE3A;
+$color-khaki: #F6F8F1;
+
+$color-black: #222;
+$color-trans-black: rgba(0,0,0,.95);
+$color-trans-darkgray: rgba(0,0,0,.5);
+$color-trans-gray: rgba(0,0,0,.4);
+$color-trans-lightgray: rgba(0,0,0,.1);
+$color-trans-whispergray: rgba(100,100,0,.02);
+$color-white: white;
+$color-trans-textwhite: rgba(254,254,254,.4);
+$color-trans-darkwhite: rgba(254,254,254,.9);
+$color-trans-white: rgba(254,254,254,.5);
+$color-trans-lightwhite: rgba(254,254,254,.25);
+
+/////////////////////////
+
+//	typography
+
+//	$font-name
+$font-body: 'Roboto Slab', sans-serif;
+$font-hed:  "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
+$font-hed-alt:  "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
+$font-mono: 'Inconsolata', 'Courier', monospace;
+
+
+//	$font-name
+$size-3xlarge: 72px;
+$size-2xlarge: 48px;
+$size-xlarge: 40px;
+$size-large: 24px;
+$size-xbody: 1.222222rem;
+$size-body: 17px;
+$size-small: 12px;
+
+/////////////////////////
+
+//	respond
+ 
+//	1: xmobile
+//	2: tablet
+// 	3: desktop
+//	4: wide
+// 	5: max
+$respond-breakpoints: $width-mobile $width-xmobile $width-tablet $width-desktop $width-wide $width-max; // used with @mixin respond(n)

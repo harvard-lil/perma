@@ -29,29 +29,29 @@
     </head>
     <body>
 
-    	<header>
+    	<header class="_default __permaNew">
     	    <div class="navbar navbar-default navbar-static-top">
 				<div class="container">
 					<div class="navbar-header">
-					  <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-					  </button>
+						<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+						</button>
 					  
-					  <div class="logo navbar-brand">
-							<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo2.png"></a>
+						<div class="navbar-brand logo">
+							<a href="{% url 'landing' %}">Perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/perma-logo-orange.svg"></a>
 						</div>
 					</div>
 					<div class="navbar-collapse collapse">
 					  <ul class="nav navbar-nav navbar-right">
 					  	{% if request.user.is_authenticated %}
 					  	    {% if not this_page == 'create_link' %}
-                            <li><a href="{% url 'create_link' %}" role="button" class="btn btn-large btn-info infinity-navbar navbar-btn" data-toggle="tooltip" title="Create new Perma archive">CREATE <img src="{{ STATIC_URL }}img/infinity-logo2.png" alt="Loading..." /></a></li>
+                            <li><a href="{% url 'create_link' %}" role="button" class="btn btn-large btn-info navbar-create navbar-btn" data-toggle="tooltip" title="Create new Perma archive">Create new Perma Link</a></li>
                             {% endif %}
                             {% comment %}<li><a href="{% url 'logout' %}" style="color: #aaa;">Log out</a></li>{% endcomment %}
                             <li class="dropdown">
-                              <a href="#" class="dropdown-toggle navbar-link" data-toggle="dropdown" role="button" aria-expanded="false">{{ request.user.get_short_name }} <span class="caret"></span></a>
+                              <a href="#" class="dropdown-toggle navbar-link" data-toggle="dropdown" role="button" aria-expanded="false">{{ request.user.get_short_name }}</a>
                               <ul class="dropdown-menu" role="menu">
                                 <li><a href="{% url 'link_browser' %}">My links</a></li>
                                 
@@ -88,7 +88,11 @@
                               </ul>
                             </li>
 						{% else %}
-                            <li><a href="{% url 'sign_up' %}" class="navbar-link{% if this_page == 'sign_up' %} this-page{% endif %}">Sign up</a></li>
+                            <!--<li><a href="#" class="navbar-link">How it Works</a></li>-->
+                            <li><a href="{% url 'about' %}" class="navbar-link">About Perma.cc</a></li>
+                            <li><a href="{% url 'docs' %}" class="navbar-link">Guide</a></li>
+                            <li><a href="https://blogs.law.harvard.edu/perma/" class="navbar-link">Blog</a></li>
+                            <li><a href="{% url 'sign_up' %}" class="btn _nav{% if this_page == 'sign_up' %} this-page{% endif %}">Sign up</a></li>
                             <li><a href="{% url 'user_management_limited_login' %}" class="navbar-link">Log in</a></li>
                             {% comment %}
                             <li><a href="{% url 'register' %}" id="nav-button" class="btn btn-large btn-success">Sign Up</a></li>
@@ -99,7 +103,8 @@
 				</div><!--/container -->
 			</div><!--/navbar -->	
 		</header>
-  
+
+		  
 		<section id="main">
 			{% if this_page != 'landing' and this_page != 'manage' %}
 			<div class="container" id="main-content">

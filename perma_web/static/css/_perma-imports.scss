@@ -1,0 +1,9 @@
+// perma imports
+// must be loaded in this order
+
+@import "compass/css3";					// 1. import compass mixins
+@import "_fonts.scss";						// 2. import font definitions
+@import "_vars-global.scss";				// 3. import global variables
+@import "_mixins-global.scss";			// 4. import global mixins
+@import "_placeholders-global.scss";		// 5. import global placeholders
+//@import "_reset.scss";						// 6. style reset and global defaults
