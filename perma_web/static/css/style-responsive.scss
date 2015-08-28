@@ -1002,9 +1002,13 @@ body {
 
 .navbar {
 	.container {
-		width: 100%;
+		padding: 0 $double; // review
+		margin-right: 0;
+		margin-left: 0;
 		@include respond-tablet {
 			max-width: 782px; // review
+			margin-right: auto;
+			margin-left: auto;
 		}
 		@include respond-desktop {
 			max-width: 1002px; // review
@@ -1023,25 +1027,44 @@ body {
 	}
 }
 
-.navbar-nav {
-	@extend %style-vcenter-parent;
-	margin: 0;
-	height: $height-nav-mobile;
-	font-size: 17px;
-	font-weight: 300;
-	color: $color-black;
-	@include respond-xmobile {
-		height: $height-nav-xmobile;
+&._expanded { // remove when trigger off
+	.navbar-default {
+		border-bottom: none;
 	}
+	button.navbar-toggle {
+		background-color: black;
+		.icon-bar {
+			background-color: white;
+		}
+		&:hover {
+			background-color: $color-hover;
+		}
+		&:active {
+			background-color: $color-active;
+		}
+		&:focus {
+			background-color: black;
+		}
+	}
+}
+
+.navbar-nav {
+	height: auto;
+	margin: 0;
 	@include respond-tablet {
 		height: $height-nav-tablet;
+		display: table;
+		font-size: 17px;
+		font-weight: 300;
+		color: $color-black;
+		& > li {
+			display: table-cell;
+			vertical-align: middle;
+			float: none;
+		}
 	}
 	@include respond-desktop {
 		height: $height-nav-desktop;
-	}
-	& > li {
-		@extend %style-vcenter-child;
-		float: none;
 	}
 }
 
@@ -1123,6 +1146,10 @@ header navbar-header ul li a.this-page {
 }
 
 .dropdown-toggle {
+	display: none !important; // review
+	@include respond-tablet {
+		display: block !important; // review
+	}
 	&.navbar-link {
 		padding-top: 15px;
 	    padding-bottom: 15px;
@@ -1163,14 +1190,24 @@ header navbar-header ul li a.this-page {
 	}
 }
 
+li.dropdown {
+	margin: 0;
+}
 
 .dropdown-menu {
-	position: absolute; // DEL WHEN FINAL
-	top: 77px;
-	padding-top: $double;
-	border-radius: 2px;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
-	border-color: black;
+	position: relative;
+    float: none;
+    width: auto;
+    margin: 0 -7px;
+   	@include respond-tablet {
+		position: absolute; // DEL WHEN FINAL
+		top: 77px;
+		margin: 2px 0 0;
+		padding-top: $double;
+		border-radius: 2px;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
+		border-color: black;
+	}
 	@include respond-desktop {
 		top: 85px;
 	}
@@ -1196,7 +1233,10 @@ header navbar-header ul li a.this-page {
 }
 
 .navbar-create {
-	margin-right: $double;
+	margin: 0 -7px $grid;
+	@include respond-tablet {
+		margin: $double $double;
+	}
 }
 
 .navbar-collapse {
@@ -1256,6 +1296,112 @@ header navbar-header ul li a.this-page {
 	margin-bottom: 25px;
 	margin-top: -20px;
 }
+
+// toggle
+
+.navbar-toggle {
+	display: block;
+	position: absolute;
+	top: $grid;
+    right: $grid;
+    bottom: $grid;
+    width: 51px !important;
+    border: none;
+    background-color: $color-background;
+    margin: 0;
+    border-radius: 2px;
+    .icon-bar {
+	    background-color: $color-black;
+	    display: block;
+	    width: 22px;
+	    height: 2px;
+	    border-radius: 1px;
+	    margin-right: auto;
+	    margin-left: auto;
+	    & + .icon-bar {
+		    margin-top: $half;
+	    }
+    }
+    &:hover {
+	    background-color: $color-hover;
+	    .icon-bar {
+		    background-color: $color-white;
+		}
+    }
+    &:active {
+	    background-color: $color-black;
+	    .icon-bar {
+		    background-color: $color-white;
+		}
+    }
+	&:focus {
+		outline: none;
+	    background-color: $color-blue;
+	    .icon-bar {
+		    background-color: $color-white;
+		}
+	}
+	@include respond-tablet {
+		display: none;
+	}
+	@include respond-xmobile {
+		width: $grid * 8;
+	}
+}
+
+
+// when nav is open
+
+.collapsing {
+    -webkit-transition: none;
+    transition: none;
+}
+
+header._expanded {
+	.navbar-toggle {
+		background-color: black;
+		&:hover {
+			background-color: $color-orange;
+		}
+		&:active {
+			background-color: $color-black;
+		}
+	}
+}
+
+.navbar-collapse {
+	overflow: visible;
+    -webkit-transition: none !important;
+    transition: none !important;
+    height: auto !important;
+    padding: 0;
+    margin: 0;
+    border: none;
+    max-height: none;
+}
+
+.navbar-collapse.in {
+	.dropdown-menu {
+		display: block;
+	}
+}
+
+button.navbar-toggle.menu-adjust {
+	position: fixed;
+	right: 20px;
+	background: $color-blue;
+	top: 0px;
+	  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+       -o-user-select: none;
+          user-select: none;
+}
+
+button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active, button.navbar-toggle.menu-adjust:focus, button.navbar-toggle.menu-adjust: visited {
+	background: #06a;
+}
+
 
 
 /////////////////////////
@@ -3756,148 +3902,6 @@ ul.navbar-nav.tabbed > li, ul.navbar-nav.tabbed > li a {
 	background: $color-blue;
 }
 
-// toggle
-
-.navbar-toggle {
-	display: block;
-	position: absolute;
-	top: 0;
-    right: -$grid;
-    bottom: -1px;
-    width: $grid * 7;
-    border: none;
-    background-color: $color-blue;
-    margin: 0;
-    .icon-bar {
-	    background-color: $color-white;
-	    display: block;
-	    width: 22px;
-	    height: 2px;
-	    border-radius: 1px;
-	    margin-right: auto;
-	    margin-left: auto;
-	    & + .icon-bar {
-		    margin-top: $half;
-	    }
-    }
-    &:hover {
-	    background-color: $color-hover;
-    }
-    &:active {
-	    background-color: $color-black;
-    }
-	@include respond-tablet {
-		display: none;
-	}
-	&:focus {
-		outline: none;
-	}
-	@include respond-xmobile {
-		width: $grid * 8;
-	}
-}
-
-
-// when nav is open
-
-.collapsing {
-    -webkit-transition: none;
-    transition: none;
-}
-
-header._expanded {
-	.navbar-toggle {
-		background-color: black;
-		&:hover {
-			background-color: $color-orange;
-		}
-		&:active {
-			background-color: $color-black;
-		}
-	}
-}
-
-.navbar-collapse.in, .navbar-collapse.collapsing {
-	margin-right: -$grid;
-	margin-left: -$grid;
-	background-color: black;
-	color: white;
-	font-family: $font-hed-alt;
-	ul, li {
-		display: block;
-		text-align: right;
-	}
-	li {
-		padding: 0 $grid;
-		margin-bottom: 0;
-		& + li {
-			border-top: 1px solid $color-trans-lightwhite;
-		}
-	}
-	.navbar-nav {
-		height: auto;
-		margin-bottom: $half;
-		margin-top: $half;
-	}
-	a.navbar-link, a.navbar-link:visited {
-		color: $color-white;
-		padding-right: 14px;
-		&:hover {
-			color: $color-orange;
-		}
-		&:active {
-			color: $color-blue;
-		}
-		&:after {
-		    content: '';
-		    height: 17px;
-		    width: 9px;
-		    display: inline-block;
-		    background-image: url('../img/ui/perma-ui-chev-right-small.png');
-		    background-repeat: no-repeat;
-		    background-size: 54px 17px;
-		    background-position: -9px * 3;
-		    top: 3px;
-			margin-left: $grid;
-		}
-		&:hover::after {
-		    background-position: -9px * 0;
-		}
-		&:active::after {
-		    background-position: -9px * 3;
-		}
-	}
-	.btn._nav {
-	    background-color: $color-blue;
-	    padding: $grid;
-	    margin: $grid 0;
-	    &:hover {
-		    background-color: $color-orange;
-	    }
-	    &:active {
-		    background-color: $color-blue;
-	    }
-	}
-}
-
-
-
-button.navbar-toggle.menu-adjust {
-	position: fixed;
-	right: 20px;
-	background: $color-blue;
-	top: 0px;
-	  -webkit-user-select: none;
-     -moz-user-select: none;
-      -ms-user-select: none;
-       -o-user-select: none;
-          user-select: none;
-}
-
-button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active, button.navbar-toggle.menu-adjust:focus, button.navbar-toggle.menu-adjust: visited {
-	background: #06a;
-}
-
 ul.nav.navbar-nav.tabbed {
 	margin: 0 auto 0 auto;
 	position: relative;
@@ -4278,10 +4282,6 @@ p.orange {
 		border-radius: 3px;
 		margin: 10px 20px 20px 10px;
 		width: 100%
-	}
-
-	.navbar-nav {
-		margin: 7.5px 0px;
 	}
 
 	a.btn.vest, a.btn.dashboard, input.btn.vest {
