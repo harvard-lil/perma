@@ -25,7 +25,7 @@ from urlparse import urlparse
 import requests
 from ratelimit.decorators import ratelimit
 
-from ..models import Link, Asset
+from ..models import Link, Asset, Registrar
 from perma.forms import ContactForm
 from perma.middleware import ssl_optional
 from perma.utils import if_anonymous, send_contact_email
@@ -58,7 +58,13 @@ def landing(request):
         
     else:
         return render(request, 'landing.html', {'this_page': 'landing'})
-    
+
+def about(request):
+    """
+    The about page
+    """
+    partners = sorted(Registrar.objects.filter(show_partner_status=True), key=lambda r: r.partner_display_name or r.name)
+    return render(request, 'about.html', {'partners': partners})
 
 def stats(request):
     """
