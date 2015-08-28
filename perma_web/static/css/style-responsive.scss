@@ -1194,31 +1194,112 @@ li.dropdown {
 	margin: 0;
 }
 
-.dropdown-menu {
+&._expanded .navbar-nav { // review
+	position: relative;
+    width: auto;
+    z-index: 1000;
+    padding: 5px 0;
+    margin: 2px 0 0;
+	margin-right: -7px;
+    font-size: 14px;
+    list-style: none;
+    background-color: white;
+    background-clip: padding-box;
+	border-radius: 2px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);	
+	border: 1px solid black;
+	padding-top: $double;
+	& > li > a {
+		font-family: $font-hed-alt;
+		padding: $half 12px $half $grid * 3;
+		font-size: $size-body;
+		text-align: right;
+		&:hover, &:focus {
+			background-color: $color-hover;
+			color: white;
+		}
+	}
+	.btn._nav {
+		margin: 0;
+	    background-color: $color-blue;
+	    color: white;
+	    padding-top: $double;
+	    padding-bottom: $double;
+	    margin-top: $grid;
+	    margin-bottom: $grid;
+	    margin-right: $half;
+	    margin-left: $half;
+	    padding-right: 12px;
+	    &:after {
+			content: '';
+			width: 9px;
+			height: 17px;
+			display: inline-block;
+			margin-left: $grid;
+			position: relative;
+			top: 3px;
+			background-image: url('../img/ui/perma-ui-chev-right-small.png');
+			background-repeat: no-repeat;
+			background-position: 0 0;
+			background-size: 54px 17px;
+			background-position-x: -9px * 5;
+	    }
+    }
+}
+
+&._expanded .dropdown-menu { // review
+	padding: 0;
+	margin: 0;
+	border: none;
+	box-shadow: none;
+	min-width: none;
+	width: auto;
+}
+
+.dropdown-menu   { // review
 	position: relative;
     float: none;
     width: auto;
-    margin: 0 -7px;
-   	@include respond-tablet {
+    z-index: 1000;
+    display: none;
+    padding: 5px 0;
+    margin: 2px 0 0;
+	margin-right: -7px;
+    font-size: 14px;
+    list-style: none;
+    background-color: white;
+    background-clip: padding-box;
+	border-radius: 2px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
+	border-color: black;
+	padding-top: $double;
+	min-width: 272px;
+  	@include respond-tablet {
 		position: absolute; // DEL WHEN FINAL
 		top: 77px;
-		margin: 2px 0 0;
-		padding-top: $double;
-		border-radius: 2px;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
-		border-color: black;
+		margin-right: 0;
 	}
 	@include respond-desktop {
 		top: 85px;
 	}
 	& > li > a {
 		font-family: $font-hed-alt;
-		padding: $half 44px $half $grid * 3;
+		padding: $half 12px $half $grid * 3;
 		font-size: $size-body;
 		text-align: right;
-		&:hover {
-			background-color: $color-active;
+		&:hover, &:focus {
+			background-color: $color-hover;
+			color: white;
 		}
+		@include respond-tablet {
+			padding-right: 44px;
+		}
+	}
+}
+
+.dropdown.open {
+	.dropdown-menu {
+		display: block;
 	}
 }
 
@@ -1227,9 +1308,12 @@ li.dropdown {
     font-weight: 400;
     letter-spacing: 1px;
     text-align: right;
-    padding-right: 44px;
+    padding-right: 11px;
     padding-top: 7px;
     color: $color-blue;
+	@include respond-tablet {
+		padding-right: 44px;
+	}
 }
 
 .navbar-create {
@@ -1249,6 +1333,7 @@ li.dropdown {
 // 	min-width: 235px;
 //	text-decoration: none;
 	padding: 0;
+	min-width: 0;
 	@extend %style-vcenter-parent;
 	@include respond-xmobile {
 		height: $height-nav-xmobile;
@@ -1268,6 +1353,7 @@ li.dropdown {
 		height: $height-nav-mobile;
 		font-size: 24px;
 		padding-left: $double;
+		min-width: 0;
 		@include respond-tablet {
 			font-size: 36px;
 		}
@@ -1305,11 +1391,14 @@ li.dropdown {
 	top: $grid;
     right: $grid;
     bottom: $grid;
-    width: 51px !important;
+    width: 43px !important;
     border: none;
     background-color: $color-background;
     margin: 0;
     border-radius: 2px;
+    @include respond-xmobile{
+	    width: 51px !important;
+    }
     .icon-bar {
 	    background-color: $color-black;
 	    display: block;
