@@ -1316,8 +1316,33 @@ li.dropdown {
 	}
 }
 
+&._expanded .navbar-create { // review
+	margin: 0;
+    background-color: $color-blue;
+    color: white;
+    padding-top: $double !important;
+    padding-bottom: $double !important;
+    margin-top: $grid;
+    margin-bottom: $grid;
+    margin-right: $half;
+    margin-left: $half;
+    padding-right: 12px;
+    &:after {
+		content: '';
+		width: 9px;
+		height: 17px;
+		display: inline-block;
+		margin-left: $grid;
+		position: relative;
+		top: 3px;
+		background-image: url('../img/ui/perma-ui-chev-right-small.png');
+		background-repeat: no-repeat;
+		background-position: -45px center;
+		background-size: 54px 17px;
+    }
+}
+
 .navbar-create {
-	margin: 0 -7px $grid;
 	@include respond-tablet {
 		margin: $double $double;
 	}
