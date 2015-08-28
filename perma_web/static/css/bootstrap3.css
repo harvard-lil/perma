@@ -3043,12 +3043,14 @@ textarea.input-group-sm > .input-group-btn > .btn {
   background-color: transparent;
 }
 
+/*
 .nav .open > a,
 .nav .open > a:hover,
 .nav .open > a:focus {
   background-color: #eeeeee;
   border-color: #428bca;
 }
+*/
 
 .nav .nav-divider {
   height: 1px;
@@ -3664,6 +3666,7 @@ tr.link-details
   border-color: #e6e6e6;
 }
 
+/*
 .navbar-default .navbar-nav > .dropdown > a:hover .caret,
 .navbar-default .navbar-nav > .dropdown > a:focus .caret {
   border-top-color: #333333;
@@ -3719,6 +3722,7 @@ tr.link-details
 .navbar-default .navbar-link:hover {
   color: #333333;
 }
+*/
 
 .navbar-inverse {
   background-color: #222222;
@@ -3805,6 +3809,7 @@ tr.link-details
   border-bottom-color: #ffffff;
 }
 
+/*
 @media (max-width: 767px) {
   .navbar-inverse .navbar-nav .open .dropdown-menu > .dropdown-header {
     border-color: #080808;
@@ -3838,6 +3843,7 @@ tr.link-details
 .navbar-inverse .navbar-link:hover {
   color: #ffffff;
 }
+*/
 
 .breadcrumb {
   padding: 8px 15px;

@@ -1030,7 +1030,13 @@ body {
 	}
 }
 
-.navbar-link {
+.navbar-collapse .navbar-nav.navbar-right:last-child {
+	@include respond-tablet {
+		margin-right: 0;
+	}	
+}
+
+.navbar-link, .navbar-toggle {
 	@include link-highlight($color-black, $color-orange);
 }
 
@@ -1101,9 +1107,16 @@ header navbar-header ul li a.this-page {
     text-decoration: none;
 }
 
-
 .dropdown-toggle {
-	&:after {
+	&.navbar-link {
+		padding-top: 15px;
+	    padding-bottom: 15px;
+	    padding-left: 31px;
+	    padding-right: $double;
+	    border-radius: 2px;
+	    border: 2px solid $color-background;
+	}
+    &:after {
 	    content: '';
 	    height: 9px;
 	    width: 18px;
@@ -1115,6 +1128,9 @@ header navbar-header ul li a.this-page {
 	    top: -1px;
 		margin-left: $grid;
 	}
+	&:hover {
+		background-color: $color-background;
+	}
 	&:hover::after {
 	    background-position: -17px * 0;
 	}
@@ -1124,16 +1140,50 @@ header navbar-header ul li a.this-page {
 }
 
 .open .dropdown-toggle {
+	color: white;
+	background-color: black;
+	border-color: black;
 	&:after {
 		transform: rotate(180deg);
 	}
 }
 
-// DEL WHEN FINAL
+
 .dropdown-menu {
-	position: absolute;
+	position: absolute; // DEL WHEN FINAL
+	top: 77px;
+	padding-top: $double;
+	border-radius: 2px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
+	border-color: black;
+	& > li > a {
+		font-family: $font-hed-alt;
+		padding: $half 44px $half $grid * 3;
+		font-size: $size-body;
+		text-align: right;
+		&:hover {
+			background-color: $color-active;
+		}
+	}
 }
 
+.dropdown-header {
+	font-family: $font-hed-alt;
+    font-weight: 400;
+    letter-spacing: 1px;
+    text-align: right;
+    padding-right: 44px;
+    padding-top: 7px;
+    color: $color-blue;
+}
+
+.navbar-create {
+	margin-right: $double;
+}
+
+.navbar-collapse {
+	padding: 0;
+}
 
 // .logo span { display: none; }
 
@@ -1159,6 +1209,7 @@ header navbar-header ul li a.this-page {
 		color: $color-black;
 		height: $height-nav-mobile;
 		font-size: 24px;
+		padding-left: $double;
 		@include respond-tablet {
 			font-size: 36px;
 		}
@@ -1453,10 +1504,6 @@ div.tooltip-inner {
 }
 
 .tooltip.bottom > .tooltip-arrow {border-bottom-color: #666;}
-
-.dropdown-header {
-    text-transform: uppercase;
-}
 
 .dropdown-menu > li > a:hover, .dropdown-menu > li > a:focus {
     background-color: #09f;
