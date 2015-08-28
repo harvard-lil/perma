@@ -1153,7 +1153,7 @@ header navbar-header ul li a.this-page {
 	&.navbar-link {
 		padding-top: 15px;
 	    padding-bottom: 15px;
-	    padding-left: 31px;
+	    padding-left: 28px;
 	    padding-right: $double;
 	    border-radius: 2px;
 	    border: 2px solid $color-background;
@@ -1166,27 +1166,33 @@ header navbar-header ul li a.this-page {
 	    background-image: url('../img/ui/perma-ui-chev-down.png');
 	    background-repeat: no-repeat;
 	    background-size: 102px 9px;
-	    background-position: -17px * 3;
+	    background-position: -17px * 2;
 	    top: -1px;
 		margin-left: $grid;
 	}
 	&:hover {
-		background-color: $color-background;
+		color: $color-blue;
+	}
+	&:active {
+		border-color: $color-trans-lightgray;
 	}
 	&:hover::after {
-	    background-position: -17px * 0;
-	}
-	&:active::after {
 	    background-position: -17px * 3;
 	}
 }
 
 .open .dropdown-toggle {
-	color: white;
-	background-color: black;
-	border-color: black;
+	border-color: $color-background;
+	background-color: $color-background;
 	&:after {
 		transform: rotate(180deg);
+		background-position: -17px * 0;
+	}
+	&:hover {
+		color: $color-black;
+	}
+	&:active {
+		border-color: $color-trans-lightgray;
 	}
 }
 
@@ -1273,7 +1279,7 @@ li.dropdown {
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
 	border-color: black;
 	padding-top: $double;
-	min-width: 272px;
+	min-width: $grid * 27;
   	@include respond-tablet {
 		position: absolute; // DEL WHEN FINAL
 		top: 77px;
@@ -1292,7 +1298,7 @@ li.dropdown {
 			color: white;
 		}
 		@include respond-tablet {
-			padding-right: 44px;
+			padding-right: 20px;
 		}
 	}
 }
@@ -1312,7 +1318,7 @@ li.dropdown {
     padding-top: 7px;
     color: $color-blue;
 	@include respond-tablet {
-		padding-right: 44px;
+		padding-right: 20px;
 	}
 }
 
@@ -1397,7 +1403,7 @@ li.dropdown {
 	display: inline-block;
 	height: 13px;
 	@include respond-tablet {
-		height: 20px;
+		height: 21px;
 		margin-left: $grid
 	}
 }
