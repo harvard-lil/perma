@@ -1000,6 +1000,21 @@ body {
 
 // header / nav
 
+.navbar {
+	.container {
+		width: 100%;
+		@include respond-tablet {
+			max-width: 782px; // review
+		}
+		@include respond-desktop {
+			max-width: 1002px; // review
+		}
+		@include respond-wide {
+			max-width: 1202px; // review
+		}
+	}
+}
+
 .navbar-default {
 	background: $color-white;
 	border-bottom: 1px solid $color-trans-lightgray;
@@ -1156,6 +1171,9 @@ header navbar-header ul li a.this-page {
 	border-radius: 2px;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
 	border-color: black;
+	@include respond-desktop {
+		top: 85px;
+	}
 	& > li > a {
 		font-family: $font-hed-alt;
 		padding: $half 44px $half $grid * 3;
