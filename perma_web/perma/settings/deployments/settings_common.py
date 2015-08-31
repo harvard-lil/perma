@@ -28,7 +28,7 @@ DATABASES = {
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
 # In a Windows environment this must be set to your system time zone.
-TIME_ZONE = 'America/New_York'
+TIME_ZONE = 'UTC'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -277,6 +277,7 @@ INSTALLED_APPS = (
     'perma',
     'api',
     'monitor',
+    'lockss',
 
     # third party apps
     'ratelimit',
@@ -373,6 +374,10 @@ LOGGING = {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
         }
     },
     'loggers': {
@@ -381,6 +386,10 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True
         },
+        'django.db.backends': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        }
     }
 }
 
@@ -500,3 +509,6 @@ SAUCE_USERNAME = None
 SAUCE_ACCESS_KEY = None
 
 WARC_STORAGE_DIR = 'warcs'  # relative to MEDIA_ROOT
+
+from datetime import timedelta
+ARCHIVE_DELAY = timedelta(hours=24)
