@@ -4,8 +4,8 @@
 {% block mainFlags %}__permaNew{% endblock mainFlags %}
 
 {% block content %}
-    <h1 class="page-title">Create a Perma Link</h1>
-	<p class="page-lede">Enter any URL to preserve it forever.</p>
+    <h1 class="create-title">Create a new Perma Link</h1>
+	<p class="create-lede">Enter any URL to preserve it forever.</p>
     <form class="form-inline" id="linker" action="{% url 'api_dispatch_list' resource_name='archives' api_name='v1' %}" method="post">
 		<fieldset class="fieldset-priority">
 	        <input 	id="rawUrl" 

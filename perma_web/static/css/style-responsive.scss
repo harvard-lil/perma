@@ -693,6 +693,20 @@ p.body { @extend %style-body-text; }
 
 .page-lede { @extend %style-pageLede; }
 
+.create-title {
+    text-align: center;
+    font-family: $font-hed-alt;
+    font-weight: 900;
+    font-size: 48px;
+}
+
+.create-lede {
+    text-align: center;
+    font-family: $font-hed-alt;
+    color: $color-orange;
+    font-size: 24px;
+}
+
 .lockup + div {
 	margin-top: $grid * 6;
 }
