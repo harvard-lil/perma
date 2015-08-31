@@ -42,7 +42,7 @@
     		    <div class="modal-header">
         		    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     <div class="logo-condensed-header">
-                          <a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo2.png"></a>
+                          <a href="{% url 'landing' %}">Perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo2.png"></a>
                     </div>
     		    </div>
 
@@ -73,7 +73,7 @@
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
          <div class="logo-condensed-header">
-			<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo2.png"></a>
+			<a href="{% url 'landing' %}">Perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo2.png"></a>
 		</div>
     </div>
     <div class="modal-body">
@@ -116,7 +116,7 @@
     <p class="message-large">Failure</p>
     <p>Unable to create the archive.</p>
     <h4 class="text-warning">{{ message }}<h4/>
-    <p>You can <a href="" onclick="return upload_form();">upload your own archive</a>. If that's not desirable, please <a href="#" data-toggle="modal" data-target="#feedbackModal" id="report-error">let us know what's happening.</a></p>
+    <p>You can <a href="" onclick="return upload_form();">upload your own archive</a>. If that’s not desirable, please <a href="#" data-toggle="modal" data-target="#feedbackModal" id="report-error">let us know what’s happening.</a></p>
 </script>
 {% endverbatim %}
 
@@ -141,7 +141,7 @@
     {{ else }}
         <div class="thumbnail-placeholder">
             <p class="spinner-message">
-                Sorry, we can't show you a preview for this archive.
+                Sorry, we can’t show you a preview for this archive.
                 Please <a href="{{archive_url}}" target="_blank">check the full archive</a> to make sure it captured properly.
             </p>
         </div>
@@ -169,12 +169,12 @@
 <script id="success-steps-template" type="text/x-handlebars-template">
     <p class="message-large">Success!</p>
     {{#if vesting_privs }}
-            <p>You're halfway there. To make this archive permanent, review and vest it.</p>
+            <p>Your Perma Link is below. This unvested Perma Link will be active for two years. To preserve it permanently, review and vest it.</p>
     {{ else }}
-            <p>You're halfway there. To make this archive permanent, it needs to be vested by a partner organization. <a href="{{userguide_url}}">Learn more about vesting.</a></p>
+            <p>Your Perma Link is below. This unvested Perma Link will be active for two years. To preserve it permanently, it needs to be vested by a partner organization. <a href="{{userguide_url}}">Learn more about vesting.</a></p>
     {{/if}}
 
-    <p class="message-url"> <a href="{{url}}" target="_blank" class="perma-url">{{url}}</a></p>
+    <p class="message-url"> <a href="{{url}}" target="_blank" class="perma">{{url}}</a></p>
 </script>
 {% endverbatim %}
 

@@ -675,6 +675,7 @@ a.perma, p a.perma {
 			background-position-x: -30px * 1 !important;
 		}
 	}
+	/*
 	&:before {
 		content: '';
 		width: 26px;
@@ -689,6 +690,7 @@ a.perma, p a.perma {
 		background-size: 167px 12px;
 		background-position-x: -28px * 2;
 	}
+	*/
 	@include respond-tablet {
 		padding: 6px 6px 6px 4px;
 		font-size: 14px;
@@ -891,6 +893,52 @@ p.body { @extend %style-body-text; }
     @include opacity(.3);
 }
 
+.preview-row {
+    margin: 0;
+    margin-top: $grid * 7;
+    padding: $grid * 4 $double;
+    border-radius: $half;
+    background: white;
+    box-shadow: -1px 0 5px 0 rgba(0,0,0,0.06) , 1px 0 5px 0 rgba(0,0,0,0.06) , 0 1px 5px 0 rgba(0,0,0,0.12);
+    border-radius: $half;
+    border: 1px solid $color-blue;
+}
+
+#steps-container {
+	min-height: 400px;
+
+	.message-large {
+		font-size: 40px;
+	    font-family: 'Roboto', sans-serif;
+	    color: #2D76EE;
+	    font-weight: 200;
+	    margin-bottom: 0;
+	}
+	
+	p {
+	    font-size: 18px;
+		font-family: $font-body;
+		color: $color-black;
+	}
+	
+	a.perma-url {
+		font-family: $font-body;
+	    font-size: 26px;
+	}
+	
+	.message-url {
+	    margin: 20px 0;
+	}
+	
+	.text-warning {
+	    margin: 40px 0;
+	}
+	
+	a.perma {
+		font-size: 24px;
+		padding: $grid;
+	}
+}
 
 
 
@@ -1138,6 +1186,12 @@ kbd a:hover, kbd:hover, kbd:active {
 		    border-color: $color-blue;
 		    color: $color-blue;
 		    background-color: $color-white;
+		    box-shadow: none;
+	    }
+	}
+	button {
+	    &:focus {
+		    box-shadow: none;
 	    }
 	}
 	input[type="checkbox"] {
@@ -2788,36 +2842,6 @@ div#dashboard-container div#batch-convert {
     -webkit-border-radius: 5px;
 }
 
-#steps-container {
-    min-height: 400px;
-}
-
-#steps-container .message-large {
-    font-size: 33px;
-	font-family: $font-body;
-    color: $color-orange;
-    font-weight: 400;
-    margin-bottom: 0;
-}
-
-#steps-container p {
-    font-size: 17px;
-	font-family: $font-hed;
-	color: #555;
-}
-
-#steps-container a.perma-url {
-	font-family: $font-body;
-    font-size: 26px;
-}
-
-#steps-container .message-url {
-    margin: 20px 0;
-}
-
-#steps-container .text-warning {
-    margin: 40px 0;
-}
 
 //	/ Dashboard - create 
 
@@ -2831,6 +2855,7 @@ button#addlink {
 
 //	Form elements 
 
+/*
 input.text-input {
     border-radius: 4px;
     color: $color-orange;
@@ -2846,6 +2871,7 @@ input.text-input {
     .text-input-active {
         color: #555 !important;
     }
+*/
 
 input.url-extension {
     display: none;
