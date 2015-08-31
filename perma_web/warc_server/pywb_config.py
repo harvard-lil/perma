@@ -255,20 +255,26 @@ class CachedLoader(BlockLoader):
         cache_key = 'warc-'+re.sub('[^\w-]', '', url)
         file_contents = django_cache.get(cache_key)
         if not file_contents:
+            # url wasn't in cache -- load contents
 
-            # url wasn't in cache -- try fetching from LOCKSS network
-            lockss_key = url.replace('file://','').replace(WARC_STORAGE_PATH, 'http://'+settings.HOST+'/lockss/fetch')
-            lockss_server = random.choice(settings.LOCKSS_SERVERS)
-            lockss_url = urljoin(lockss_server, 'ServeContent')
-            try:
-                print "Fetching from %s?url=%s" % (lockss_url, lockss_key)
-                response = requests.get(lockss_url, params={'url':lockss_key})
-                assert response.ok
-                file_contents = response.content
-                print "Got content from lockss"
-            except (requests.ConnectionError, requests.Timeout, AssertionError):
+            file_contents = None
 
-                # url wasn't in LOCKSS yet -- fetch from local disk using super()
+            if settings.LOCKSS_SERVERS:
+                # try fetching from LOCKSS network
+                lockss_key = url.replace('file://', '').replace(WARC_STORAGE_PATH, 'http://' + settings.HOST + '/lockss/fetch')
+                lockss_server = random.choice(settings.LOCKSS_SERVERS)
+                lockss_url = urljoin(lockss_server['content_url'], 'ServeContent')
+                try:
+                    print "Fetching from %s?url=%s" % (lockss_url, lockss_key)
+                    response = requests.get(lockss_url, params={'url': lockss_key})
+                    assert response.ok
+                    file_contents = response.content
+                    print "Got content from lockss"
+                except (requests.ConnectionError, requests.Timeout, AssertionError):
+                    pass  # leave file_contenst as None and try next option
+
+            if file_contents is None:
+                # url wasn't in LOCKSS yet or LOCKSS is disabled -- fetch from local disk using super()
                 file_contents = super(CachedLoader, self).load(url).read()
                 print "Got content from local disk"
 
@@ -290,6 +296,20 @@ class CachedLoader(BlockLoader):
             return LimitReader(afile, length)
         else:
             return afile
+
+    def _load_from_lockss(self, url):
+        # url wasn't in cache -- try fetching from LOCKSS network
+        lockss_key = url.replace('file://', '').replace(WARC_STORAGE_PATH, 'http://' + settings.HOST + '/lockss/fetch')
+        lockss_server = random.choice(settings.LOCKSS_SERVERS)
+        lockss_url = urljoin(lockss_server, 'ServeContent')
+        try:
+            print "Fetching from %s?url=%s" % (lockss_url, lockss_key)
+            response = requests.get(lockss_url, params={'url': lockss_key})
+            assert response.ok
+            print "Got content from lockss"
+            return response.content
+        except (requests.ConnectionError, requests.Timeout, AssertionError):
+            return None
 
 
 # Monkey patch HeaderRewriter to remove the content-disposition header
