@@ -150,8 +150,9 @@ class LinkAdmin(admin.ModelAdmin):
         ('Dark Archive', {'fields': ('dark_archived', 'dark_archived_robots_txt_blocked', 'dark_archived_by',)}),
         ('User Delete', {'fields': ('user_deleted', 'user_deleted_timestamp',)}),
         ('Organization', {'fields': ('folders', 'notes')}),
+        ('Mirroring', {'fields': ('archive_timestamp',)})
     )
-    readonly_fields = ['guid', 'view_count', 'folders', 'creation_timestamp']
+    readonly_fields = ['guid', 'view_count', 'folders', 'creation_timestamp']  #, 'archive_timestamp']
     inlines = [
         new_class("CaptureInline", admin.TabularInline, model=Capture,
                   fields=['url', 'content_type', 'record_type', 'user_upload'],

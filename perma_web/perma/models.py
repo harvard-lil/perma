@@ -25,7 +25,10 @@ from mptt.models import MPTTModel, TreeForeignKey
 from model_utils import FieldTracker
 from pywb.cdx.cdxobject import CDXObject
 from pywb.warc.cdxindexer import write_cdx_index
+
 from api.validations import get_mime_type
+from .utils import copy_file_data
+
 
 logger = logging.getLogger(__name__)
 
@@ -460,6 +463,8 @@ class Link(models.Model):
     notes = models.TextField(blank=True)
     is_private = models.BooleanField(default=False)
 
+    archive_timestamp = models.DateTimeField(blank=True, null=True, help_text="Date after which this link is eligible to be copied by the mirror network.")
+
     thumbnail_status = models.CharField(max_length=10, null=True, blank=True, choices=(
         ('generating', 'generating'), ('generated', 'generated'), ('failed', 'failed')))
 
@@ -505,29 +510,30 @@ class Link(models.Model):
 
         initial_folder = kwargs.pop('initial_folder', None)
 
-        if not self.pk and not kwargs.get("pregenerated_guid", False):
-            # not self.pk => not created yet
-            # only try 100 attempts at finding an unused GUID
-            # (100 attempts should never be necessary, since we'll expand the keyspace long before
-            # there are frequent collisions)
-            guid_character_set = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
-            for i in range(100):
-                # Generate an 8-character random string like "1A2B3C4D"
-                guid = ''.join(random.choice(guid_character_set) for _ in range(8))
+        if not self.pk:
+            if not self.archive_timestamp:
+                self.archive_timestamp = self.creation_timestamp + settings.ARCHIVE_DELAY
+            if not kwargs.pop("pregenerated_guid", False):
+                # not self.pk => not created yet
+                # only try 100 attempts at finding an unused GUID
+                # (100 attempts should never be necessary, since we'll expand the keyspace long before
+                # there are frequent collisions)
+                guid_character_set = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
+                for i in range(100):
+                    # Generate an 8-character random string like "1A2B3C4D"
+                    guid = ''.join(random.choice(guid_character_set) for _ in range(8))
 
-                # apply standard formatting (hyphens)
-                guid = Link.get_canonical_guid(guid)
-                
-                # Avoid GUIDs starting with four letters (in case we need those later)
-                match = re.search(r'^[A-Z]{4}', guid)
-                
-                if not match and not Link.objects.filter(guid=guid).exists():
-                    break
-            else:
-                raise Exception("No valid GUID found in 100 attempts.")
-            self.guid = guid
-        if "pregenerated_guid" in kwargs:
-            del kwargs["pregenerated_guid"]
+                    # apply standard formatting (hyphens)
+                    guid = Link.get_canonical_guid(guid)
+
+                    # Avoid GUIDs starting with four letters (in case we need those later)
+                    match = re.search(r'^[A-Z]{4}', guid)
+
+                    if not match and not Link.objects.filter(guid=guid).exists():
+                        break
+                else:
+                    raise Exception("No valid GUID found in 100 attempts.")
+                self.guid = guid
 
         super(Link, self).save(*args, **kwargs)
 
@@ -1045,30 +1051,3 @@ class CDXLine(models.Model):
         return self.__parsed.is_revisit()
 
 
-### read only mode ###
-
-# install signals to prevent database writes if settings.READ_ONLY_MODE is set
-
-### this is in models for now because it's annoying to put it in signals.py and resolve circular imports with models.py
-### in Django 1.8 we can avoid that issue by putting this in signals.py and importing it from ready()
-### https://docs.djangoproject.com/en/dev/topics/signals/
-
-from django.contrib.sessions.models import Session
-from django.db.models.signals import pre_save
-
-from .utils import ReadOnlyException, copy_file_data, imagemagick_temp_dir
-
-write_whitelist = (
-    (Session, None),
-    (LinkUser, {'password'}),
-    (LinkUser, {'last_login'}),
-)
-
-def read_only_mode(sender, instance, **kwargs):
-    for whitelist_sender, whitelist_fields in write_whitelist:
-        if whitelist_sender==sender and (whitelist_fields is None or whitelist_fields==kwargs['update_fields']):
-            return
-    raise ReadOnlyException("Read only mode enabled.")
-
-if settings.READ_ONLY_MODE:
-    pre_save.connect(read_only_mode)

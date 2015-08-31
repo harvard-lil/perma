@@ -275,6 +275,7 @@ INSTALLED_APPS = (
     'perma',
     'api',
     'monitor',
+    'lockss',
 
     # third party apps
     'ratelimit',
@@ -503,3 +504,6 @@ SAUCE_USERNAME = None
 SAUCE_ACCESS_KEY = None
 
 WARC_STORAGE_DIR = 'warcs'  # relative to MEDIA_ROOT
+
+from datetime import timedelta
+ARCHIVE_DELAY = timedelta(hours=24)
