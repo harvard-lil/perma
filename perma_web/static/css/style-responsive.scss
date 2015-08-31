@@ -940,6 +940,11 @@ p.body { @extend %style-body-text; }
 	}
 }
 
+.thumbnail-placeholder {
+	width: 100%;
+    border: none;
+}
+
 
 
 
@@ -1048,6 +1053,7 @@ kbd a:hover, kbd:hover, kbd:active {
 	-ms-user-select: none;
 	-o-user-select: none;
 	user-select: none;
+	box-shadow: none !important;
 	@include link-highlight($color-white, $color-white);
 	@include respond-tablet {
 		white-space: nowrap;
@@ -2832,15 +2838,6 @@ div#dashboard-container div#batch-convert {
 }
 
 
-.thumbnail-placeholder {
-    min-height: 350px;
-	width: 100%;
-	text-align: center;
-    border: 1px #bbb solid;
-    border-radius: 5px;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-}
 
 
 //	/ Dashboard - create 

@@ -133,7 +133,7 @@
 
 {% verbatim %}
 <script id="preview-available-template" type="text/x-handlebars-template">
-    <p id="upload-option">Archive not as expected? <a href="" onclick="return upload_form();">Upload your own</a></p>
+    <p id="upload-option">Does this capture look wrong? <a href="" onclick="return upload_form();">Upload your own</a></p>
     {{#if image_url }}
         <div class="library-thumbnail">
                 <a href="{{archive_url}}" target="_blank"><img src="{{image_url}}" class="img-responsive"></a>
@@ -169,12 +169,14 @@
 <script id="success-steps-template" type="text/x-handlebars-template">
     <p class="message-large">Success!</p>
     {{#if vesting_privs }}
-            <p>Your Perma Link is below. This unvested Perma Link will be active for two years. To preserve it permanently, review and vest it.</p>
+            <p>Your Perma Link is below.</p>
+            <p class="message-url"> <a href="{{url}}" target="_blank" class="perma">{{url}}</a></p>
+            <p>This unvested Perma Link will be active for two years. To preserve it permanently, review and vest it.</p>
     {{ else }}
-            <p>Your Perma Link is below. This unvested Perma Link will be active for two years. To preserve it permanently, it needs to be vested by a partner organization. <a href="{{userguide_url}}">Learn more about vesting.</a></p>
+            <p>Your Perma Link is below.</p>
+            <p class="message-url"> <a href="{{url}}" target="_blank" class="perma">{{url}}</a></p>
+            <p>This unvested Perma Link will be active for two years. To preserve it permanently, it needs to be vested by a partner organization. <a href="{{userguide_url}}">Learn more about vesting.</a></p>
     {{/if}}
-
-    <p class="message-url"> <a href="{{url}}" target="_blank" class="perma">{{url}}</a></p>
 </script>
 {% endverbatim %}
 
