@@ -36,7 +36,9 @@ div.main-container {
     width: 100%;
 }
 
-#main {
+section.__permaNew#main { // review
+    color: $color-black;
+    font-family: $font-body;
 	padding-top: $grid * 4;
 	padding-bottom: $grid * 4;
 	background-color: $color-white;
@@ -512,12 +514,14 @@ body._welcome #main {
 
 // this body tag is used for specificity, since django-pipeline seems to be compiling the css in the wrong order.
 
-body {
+// review (removed for compatability with __permaNew)
+//body {
 	h1, h2, h3, h4, h5 { 
 		font-family: $font-hed-alt; 
 		font-weight: 900;
 		line-height: 1.2;
 		margin: 0;
+		color: $color-black;
 		@include respond-tablet {
 			font-family: $font-body;
 			font-weight: 300;
@@ -556,7 +560,7 @@ body {
 			margin-bottom: 0;
 		}
 	}
-}
+//} // review
 
 .docs h4 {
 	color: $color-blue;
@@ -686,6 +690,9 @@ p {
 p.body { @extend %style-body-text; }
 
 .lockup p { @extend %style-pageLede; } 
+
+.page-lede { @extend %style-pageLede; }
+
 .lockup + div {
 	margin-top: $grid * 6;
 }
@@ -874,9 +881,10 @@ kbd a:hover, kbd:hover, kbd:active {
 
 // forms
 
-// again, a body for pipelien specificity 
+// again, a body for pipeline specificity 
 
-body {
+// review; removed for __permaNew
+//body {
 	form {
 		margin-top: $grid * 3;
 		.btn {
@@ -987,7 +995,7 @@ body {
 		  }
 	  }
 	}
-}
+//} // review
 
 .col-sm-4 form .form-group {
 	@include respond-tablet {
@@ -1156,7 +1164,7 @@ header navbar-header ul li a.this-page {
 	    padding-left: 28px;
 	    padding-right: $double;
 	    border-radius: 2px;
-	    border: 2px solid $color-background;
+	    border: 1px solid $color-trans-whispergray;
 	}
     &:after {
 	    content: '';
@@ -2393,10 +2401,7 @@ div.dashboard-blurb {
     }
 
 #dashboard-container {
-    //overflow: hidden;
-    margin-top: 35px;
-    position: relative;
-
+    margin-top: 0;
     > div {
         //padding: 0;
     }
