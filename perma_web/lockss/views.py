@@ -100,4 +100,5 @@ def daemon_settings(request):
     return render(request, 'lockss/daemon_settings.txt', {
         'django_url_prefix': django_url_prefix(),
         'static_url_prefix': static_url_prefix,
+        'servers': settings.LOCKSS_SERVERS,
     }, content_type="text/plain")

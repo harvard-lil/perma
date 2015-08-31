@@ -505,5 +505,12 @@ SAUCE_ACCESS_KEY = None
 
 WARC_STORAGE_DIR = 'warcs'  # relative to MEDIA_ROOT
 
+
+### LOCKSS ###
+
 from datetime import timedelta
 ARCHIVE_DELAY = timedelta(hours=24)
+
+LOCKSS_SERVERS = [
+    #{'ip':'', 'hostname':'', 'peer_port':'9729', 'content_url':''},
+]

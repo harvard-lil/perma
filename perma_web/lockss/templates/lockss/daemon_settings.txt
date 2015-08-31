@@ -1,9 +1,10 @@
 {% load staticfiles %}
-#org.lockss.id.initialV3PeerList=\
-#    TCP:[127.0.0.1]:9721;\
-#    TCP:[127.0.0.1]:9722;\
-#    TCP:[127.0.0.1]:9723;\
-#    TCP:[127.0.0.1]:9724
+
+# peer list
+{% if servers %}
+org.lockss.id.initialV3PeerList=\{% for server in servers %}
+    TCP:[{{ server.ip }}]:{{ server.peer_port }}{% if not forloop.last %};\{% endif %}{% endfor %}
+{% endif %}
 
 # plugins
 org.lockss.plugin.registries={{ static_url_prefix }}lockss/plugins/plugins.html
