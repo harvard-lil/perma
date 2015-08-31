@@ -25,10 +25,18 @@ html {
 }
 
 body {
-/*  	background: $color-blue; */
+	background: white;
     color: $color-black;
     font-family: $font-body;
     margin: 0;
+}
+
+footer { 
+	background-color: white;
+}
+
+.carousel-control {
+	background-color: transparent;
 }
 
 div.main-container {
@@ -52,6 +60,67 @@ body._welcome #main {
 	padding-bottom: 0;
 }
 
+.carousel {
+	height: $grid * 16;
+	margin: $grid * 5 0 $double;
+	.ui-chev-left, .ui-chev-right {
+		height: 25px;
+		width: 28px;
+		background-color: transparent;
+		display: inline-block;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		z-index: 5;
+		background-repeat: no-repeat;
+		background-position: 0 0;
+		background-size: 168px 25px;
+		&:hover {
+			background-position-x: -28px * 3;
+		}
+		&:active {
+			background-position-x: -28px * 1;
+		}
+	}
+	.ui-chev-left {
+		background-image: url('../img/ui/perma-ui-chev-left-big.png');
+	}
+	.ui-chev-right {
+		background-image: url('../img/ui/perma-ui-chev-right-big.png');
+	}
+}
+
+.carousel-indicators {
+  position: absolute;
+  top: 115px;
+  bottom: 0px;
+  left: 50%;
+  z-index: 15;
+  width: 60%;
+  padding-left: 0;
+  margin-left: -30%;
+  text-align: center;
+  list-style: none;
+}
+
+.carousel-indicators li {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 1px;
+  text-indent: -999px;
+  cursor: pointer;
+  border: 2px solid $color-orange;
+  border-radius: 10px;
+  background-color: transparent;
+}
+
+.carousel-indicators .active {
+  width: 12px;
+  height: 12px;
+  margin: 0;
+  background-color: $color-orange;
+}
 
 
 
@@ -507,6 +576,8 @@ div.main-container {
 body._welcome #main {
 	padding-bottom: 0;
 }
+
+
 
 /////////////////////////
 
@@ -1127,6 +1198,16 @@ kbd a:hover, kbd:hover, kbd:active {
 			  margin-top: 4px;
 		  }
 	  }
+	}
+	input[type="text"], 
+	textarea, 
+	button[type="submit"],
+	button#addlink, 
+	.infinity-navbar {
+	    -webkit-transition: none;
+		-moz-transition: none;
+		-ms-transition: none;
+		-o-transition: none;
 	}
 //} // review
 
@@ -2019,33 +2100,6 @@ border-radius: 3px;
     bottom: 0px;
 }
 
-.carousel {
-	.ui-chev-left, .ui-chev-right {
-		height: 25px;
-		width: 28px;
-		background-color: transparent;
-		display: inline-block;
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		z-index: 5;
-		background-repeat: no-repeat;
-		background-position: 0 0;
-		background-size: 168px 25px;
-		&:hover {
-			background-position-x: -28px * 3;
-		}
-		&:active {
-			background-position-x: -28px * 1;
-		}
-	}
-	.ui-chev-left {
-		background-image: url('../img/ui/perma-ui-chev-left-big.png');
-	}
-	.ui-chev-right {
-		background-image: url('../img/ui/perma-ui-chev-right-big.png');
-	}
-}
 
 
 // home page sections
