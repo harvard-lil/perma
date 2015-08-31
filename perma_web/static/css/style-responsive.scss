@@ -693,6 +693,9 @@ p.body { @extend %style-body-text; }
 
 .page-lede { @extend %style-pageLede; }
 
+
+// create
+
 .create-title {
     text-align: center;
     font-family: $font-hed-alt;
@@ -705,7 +708,123 @@ p.body { @extend %style-body-text; }
     font-family: $font-hed-alt;
     color: $color-orange;
     font-size: 24px;
+    margin-bottom: 0;
 }
+
+.form-priority {
+	margin: $grid * 5 auto;
+}
+
+
+#linker {
+	.form-priority-fieldset {
+		padding: $grid * 6 $grid * 4;
+	}
+	
+	input.form-priority-input {
+		margin: 0;
+		width: $grid * 110;
+		float: left;
+		padding: 12px;
+	    height: auto;
+	}
+	
+	.form-priority-fieldset .btn {
+		float: right;
+		width: $grid * 25;
+	}
+	
+	button#addlink {
+		margin: 0;
+	}
+}
+
+#examples {
+    padding: $grid * 7 0;
+	text-align: center;
+    //	stop :before element from resizing page 
+    position: relative;
+    overflow: hidden;
+
+    .thumbnail {
+        vertical-align: top;
+        margin: 1em;
+    }
+    .thumbnail > img {
+        width: 23%;
+        margin: 1em;
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .content {
+        display: inline-block;
+        vertical-align: middle;
+
+        p: last-child {
+            margin-bottom: 0;
+        }
+    }
+    .btn {
+	    display: block;
+	    float: left;
+    }
+    .btn + .btn {
+	    margin-left: 1px;
+    }
+}
+
+@media(min-width: 768px) {
+    #examples {
+        .thumbnail {
+            display: table-cell;
+            float: none;
+        }
+        .container {
+            border-collapse: separate;
+        }
+    }
+
+    #examples-items {
+        border-spacing: 5px;
+        margin-top: $grid * 3;
+    }
+}
+@media(min-width: 992px) {
+  #examples .content {
+      width: 70%;
+  }
+}
+
+#example {
+    div {
+        text-align: center;
+    }
+    img {
+        width: 100%;
+    }
+}
+
+#example-title {
+    margin-bottom: 2em;
+    font-weight: 300;
+}
+
+#example-image-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 80%;
+}
+.example-link {
+    position: absolute;
+    background-color: #ffff00;
+    @include opacity(.3);
+}
+
+
+
+
+
+
 
 .lockup + div {
 	margin-top: $grid * 6;
@@ -2211,107 +2330,6 @@ ul#links {
     margin: 10px auto 0 auto;
 }*/
 
-#linker {
-    margin-bottom: 1em;
-
-    input {
-        //max-width: 434px;
-        width: 80%;
-		color: #444;
-    }
-
-    button {
-        width: 10%;
-        min-width: 70px;
-    }
-
-    .folders {
-        margin-right: 20%;
-        text-align: right;
-        margin-top: .5em;
-    }
-}
-
-#examples {
-    padding: $grid * 7 0;
-	text-align: center;
-    //	stop :before element from resizing page 
-    position: relative;
-    overflow: hidden;
-
-    .thumbnail {
-        vertical-align: top;
-        margin: 1em;
-    }
-    .thumbnail > img {
-        width: 23%;
-        margin: 1em;
-        display: inline-block;
-        vertical-align: middle;
-    }
-    .content {
-        display: inline-block;
-        vertical-align: middle;
-
-        p: last-child {
-            margin-bottom: 0;
-        }
-    }
-    .btn {
-	    display: block;
-	    float: left;
-    }
-    .btn + .btn {
-	    margin-left: 1px;
-    }
-}
-
-@media(min-width: 768px) {
-    #examples {
-        .thumbnail {
-            display: table-cell;
-            float: none;
-        }
-        .container {
-            border-collapse: separate;
-        }
-    }
-
-    #examples-items {
-        border-spacing: 5px;
-        margin-top: $grid * 3;
-    }
-}
-@media(min-width: 992px) {
-  #examples .content {
-      width: 70%;
-  }
-}
-
-#example {
-    div {
-        text-align: center;
-    }
-    img {
-        width: 100%;
-    }
-}
-
-#example-title {
-    margin-bottom: 2em;
-    font-weight: 300;
-}
-
-#example-image-wrapper {
-    position: relative;
-    display: inline-block;
-    width: 80%;
-}
-.example-link {
-    position: absolute;
-    background-color: #ffff00;
-    @include opacity(.3);
-}
 
 #supporting-partners {
     margin-top: $grid * 4;
@@ -2751,9 +2769,11 @@ div#dashboard-container div#batch-convert {
 
 //	Add link widget 
 
+/*
 button#addlink {
 	margin-top: -8px;
 }
+*/
 
 //	Form elements 
 
