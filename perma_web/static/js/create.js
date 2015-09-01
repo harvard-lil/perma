@@ -69,7 +69,7 @@ function linkIt(data){
     var spinner = new Spinner(opts).spin(target);
 
     $('#steps-container').html('');
-    $('.preview-row').removeClass('hide');
+    $('.preview-row').removeClass('hide').hide().fadeIn(500);
 
     refreshIntervalIds.push(setInterval(check_status, 2000));
 }
