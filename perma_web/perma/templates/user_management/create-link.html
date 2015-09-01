@@ -142,10 +142,12 @@
         </div>
     {{ else }}
         <div class="thumbnail-placeholder">
-            <p class="spinner-message">
-                Sorry, we can’t show you a preview for this archive.
-                Please <a href="{{archive_url}}" target="_blank">check the full archive</a> to make sure it captured properly.
-            </p>
+			<div class="thumbnail-message">
+	            <p class="spinner-message">
+	                Sorry, we can’t show you a preview for this archive.
+	                Please <a href="{{archive_url}}" target="_blank">check the full archive</a> to make sure it captured properly.
+	            </p>
+			</div>
         </div>
     {{/if}}
 </script>

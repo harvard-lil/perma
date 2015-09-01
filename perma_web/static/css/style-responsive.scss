@@ -803,7 +803,7 @@ p.body { @extend %style-body-text; }
 		margin: 0;
 		width: $grid * 110;
 		float: left;
-		padding: 13px;
+		padding: 14px;
 	    height: auto;
 	}
 	
@@ -962,13 +962,21 @@ p.body { @extend %style-body-text; }
 	margin-top: 0;
 }
 
+#spinner + .spinner-message {
+	padding-top: 	$grid;
+    color: $color-blue;
+    font-weight: 700;
+    margin-top: $grid * 3;
+}
+
 .spinner-message {
     text-align: center;
     font-size: 16px;
-	padding-top: 	$grid;
-    color: $color-blue;
     font-family: $font-hed-alt;
     font-weight: 400;
+    padding: 0;
+    margin: 0;
+    color: $color-orange;
 }
 
 .library-thumbnail {
@@ -976,6 +984,7 @@ p.body { @extend %style-body-text; }
 	border-radius: 4px;
 	-moz-border-radius: 4px;
 	-webkit-border-radius: 4px;
+	height: 538px;
 }
 
 

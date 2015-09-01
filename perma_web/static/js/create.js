@@ -69,7 +69,7 @@ function linkIt(data){
     var spinner = new Spinner(opts).spin(target);
 
     $('#steps-container').html('');
-    $('.preview-row').removeClass('hide').hide().slideDown();
+    $('.preview-row').removeClass('hide');
 
     refreshIntervalIds.push(setInterval(check_status, 2000));
 }
@@ -89,7 +89,7 @@ function linkNot(jqXHR){
         message: message || "Error " + jqXHR.status
     }));
 
-    $('.preview-row').removeClass('hide').hide().slideDown();
+    $('.preview-row').removeClass('hide');
 }
 
 /* Handle the the main action (enter url, hit the button) button - start */
@@ -144,7 +144,7 @@ function uploadIt(data) {
     var spinner = new Spinner(opts).spin(target);
 
     $('#steps-container').html(templates.success_steps({url: new_archive.url,
-                                                        userguide_url: userguide_url, vesting_privs: vesting_privs})).removeClass('hide').hide().slideDown();
+                                                        userguide_url: userguide_url, vesting_privs: vesting_privs})).removeClass('hide');
 }
 
 function upload_form() {
@@ -166,7 +166,7 @@ function get_thumbnail() {
     $('#preview-container').html(templates.preview_available({
         image_url: thumbnail_service_url.replace('GUID', new_archive.guid),
         archive_url: new_archive.url
-    })).removeClass('hide').hide().slideDown();
+    })).removeClass('hide');
 }
 
 /* Handle the thumbnail fetching - end */
@@ -218,12 +218,12 @@ function check_status() {
                     url: new_archive.url,
                     userguide_url: userguide_url,
                     vesting_privs: vesting_privs
-                })).removeClass('hide').hide().slideDown();
+                })).removeClass('hide');
 
                 $('#preview-container').html(templates.preview_available({
                     image_url: thumbnail_service_url.replace('GUID', new_archive.guid),
                     archive_url: new_archive.url
-                })).removeClass('hide').hide().slideDown();
+                })).removeClass('hide');
 
                 // Catch failure to load thumbnail, and show thumbnail-not-available message
                 $('.library-thumbnail img').on('error', function() {
@@ -239,7 +239,7 @@ function check_status() {
                 $('#steps-container').html(templates.error({
                     message: "Error: URL capture failed."
                 }));
-                $('.preview-row').removeClass('hide').hide().slideDown();
+                $('.preview-row').removeClass('hide');
             }
         }
     });
