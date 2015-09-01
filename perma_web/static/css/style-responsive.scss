@@ -778,9 +778,9 @@ p.body { @extend %style-body-text; }
 
 .create-lede {
     text-align: center;
-    font-family: $font-hed-alt;
+    font-family: $font-body;
     color: $color-orange;
-    font-size: 24px;
+    font-size: 26px;
     margin-bottom: 0;
 }
 
@@ -899,13 +899,13 @@ p.body { @extend %style-body-text; }
     padding: $grid * 4 $double;
     border-radius: $half;
     background: white;
-    box-shadow: -1px 0 5px 0 rgba(0,0,0,0.06) , 1px 0 5px 0 rgba(0,0,0,0.06) , 0 1px 5px 0 rgba(0,0,0,0.12);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
     border-radius: $half;
     border: 1px solid $color-blue;
 }
 
 #steps-container {
-	min-height: 400px;
+	min-height: 0;
 
 	.message-large {
 		font-size: 40px;
@@ -942,9 +942,36 @@ p.body { @extend %style-body-text; }
 
 .thumbnail-placeholder {
 	width: 100%;
-    border: none;
+    border: 2px dashed $color-trans-lightgray;
+    padding: $grid * 4;
+    display: table;
 }
 
+.thumbnail-message {
+	display: table-cell;
+	vertical-align: middle;
+}
+
+#spinner {
+	display: inline-block;
+	margin-top: 0;
+}
+
+.spinner-message {
+    text-align: center;
+    font-size: 16px;
+	padding-top: 	$grid;
+    color: $color-blue;
+    font-family: $font-hed-alt;
+    font-weight: 400;
+}
+
+.library-thumbnail {
+	border: 3px solid $color-trans-lightgray;
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+}
 
 
 
@@ -2738,13 +2765,6 @@ div#dashboard-container div#library {}
 
         }
 
-		.library-thumbnail {
-
-       		 border: 1px solid #eee;
-       		 border-radius: 4px;
-       		 -moz-border-radius: 4px;
-        	-webkit-border-radius: 4px;
-		}
 
         div.library-thumbnail a:hover {
         }
@@ -4218,17 +4238,6 @@ a.tab-styling, .tab-styling {
     margin: 0 0 0 -12px;
 }
 
-#spinner {
-	display: inline-block;
-	margin-top: 155px;
-}
-
-.spinner-message {
-    text-align: center;
-    font-size: 14px;
-	margin-top: 	24px;
-    color: $color-orange;
-}
 
 .alert-error {
   color: #a94442;

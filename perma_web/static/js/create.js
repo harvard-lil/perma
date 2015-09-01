@@ -252,16 +252,18 @@ function check_status() {
 /* Our spinner controller - start */
 
 var opts = {
-    lines: 9, // The number of lines to draw
-    length: 9, // The length of each line
-    width: 5, // The line thickness
+    lines: 17, // The number of lines to draw
+    length: 2, // The length of each line
+    width: 1.5, // The line thickness
     radius: 10, // The radius of the inner circle
-    corners: 1, // Corner roundness (0..1)
+    scale: 1.7, // Scales overall size of the spinner
+    corners: 0, // Corner roundness (0..1)
     rotate: 0, // The rotation offset
     direction: 1, // 1: clockwise, -1: counterclockwise
-    color: '#ff4100', // #rgb or #rrggbb or array of colors
-    speed: 1, // Rounds per second
-    trail: 60, // Afterglow percentage
+    color: '#2D76EE', // #rgb or #rrggbb or array of colors
+    opacity: 0.25, // Opacity of the lines
+    speed: 0.7, // Rounds per second
+    trail: 100, // Afterglow percentage
     shadow: false, // Whether to render a shadow
     hwaccel: false, // Whether to use hardware acceleration
     className: 'spinner', // The CSS class to assign to the spinner
