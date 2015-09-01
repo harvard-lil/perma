@@ -89,7 +89,7 @@ function linkNot(jqXHR){
         message: message || "Error " + jqXHR.status
     }));
 
-    $('.preview-row').removeClass('hide');
+    $('.preview-row').removeClass('hide').hide().fadeIn(500);
 }
 
 /* Handle the the main action (enter url, hit the button) button - start */

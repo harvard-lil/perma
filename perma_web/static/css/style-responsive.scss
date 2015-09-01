@@ -771,6 +771,9 @@ p.body { @extend %style-body-text; }
 
 .page-lede { @extend %style-pageLede; }
 
+.modal {
+	position: fixed;
+}
 
 // create
 
