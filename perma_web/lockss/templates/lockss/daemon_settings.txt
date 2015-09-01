@@ -13,3 +13,14 @@ org.lockss.plugin.keystore.location={{ static_url_prefix }}lockss/plugins/plugin
 
 # titledbs
 org.lockss.titleDbs={{ django_url_prefix }}{% url 'lockss:titledb' %}
+
+# disable content proxy and put content server on port 8080
+org.lockss.contentui.port=8080
+org.lockss.contentui.start=true
+org.lockss.icp.enabled=false
+org.lockss.proxy.audit.start=false
+org.lockss.proxy.port=8080
+org.lockss.proxy.start=false
+
+# content ip limit
+org.lockss.proxy.access.ip.include=140.247.209.64

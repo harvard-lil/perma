@@ -36,6 +36,10 @@ from pywb.utils.wbexception import NotFoundException
 from perma.models import CDXLine, Link
 
 
+import logging
+logger = logging.getLogger(__name__)
+
+
 newstyle_guid_regex = r'[A-Z0-9]{1,4}(-[A-Z0-9]{4})+'  # post Nov. 2013
 oldstyle_guid_regex = r'0[a-zA-Z0-9]{9,10}'  # pre Nov. 2013
 GUID_REGEX = r'(%s|%s)' % (oldstyle_guid_regex, newstyle_guid_regex)
@@ -278,25 +282,25 @@ class CachedLoader(BlockLoader):
                 lockss_server = random.choice(settings.LOCKSS_SERVERS)
                 lockss_url = urljoin(lockss_server['content_url'], 'ServeContent')
                 try:
-                    print "Fetching from %s?url=%s" % (lockss_url, lockss_key)
+                    logging.info("Fetching from %s?url=%s" % (lockss_url, lockss_key))
                     response = requests.get(lockss_url, params={'url': lockss_key})
                     assert response.ok
                     file_contents = response.content
-                    print "Got content from lockss"
-                except (requests.ConnectionError, requests.Timeout, AssertionError):
-                    pass  # leave file_contenst as None and try next option
+                    logging.info("Got content from lockss")
+                except (requests.ConnectionError, requests.Timeout, AssertionError) as e:
+                    logging.info("Couldn't get from lockss: %s" % e)
 
             if file_contents is None:
                 # url wasn't in LOCKSS yet or LOCKSS is disabled -- fetch from local disk using super()
                 file_contents = super(CachedLoader, self).load(url).read()
-                print "Got content from local disk"
+                logging.info("Got content from local disk")
 
             # cache file contents
             # use a short timeout so large warcs don't evict everything else in the cache
             django_cache.set(cache_key, file_contents, timeout=60)
 
         else:
-            print "Got content from cache"
+            logging.info("Got content from cache")
 
         # turn string contents of url into file-like object
         afile = StringIO.StringIO(file_contents)
