@@ -1,6 +1,5 @@
 from urlparse import urljoin
 from wsgiref.util import FileWrapper
-import re
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 
@@ -11,6 +10,7 @@ from django.http import HttpResponse, HttpResponseBadRequest, Http404, Streaming
 from django.shortcuts import get_object_or_404, render
 
 from perma.models import Link
+from .models import *
 
 
 ### HELPERS ###
@@ -100,5 +100,6 @@ def daemon_settings(request):
     return render(request, 'lockss/daemon_settings.txt', {
         'django_url_prefix': django_url_prefix(),
         'static_url_prefix': static_url_prefix,
-        'servers': settings.LOCKSS_SERVERS,
+        'mirrors': list(Mirror.objects.filter(enabled=True)),
+        'content_ips': settings.LOCKSS_CONTENT_IPS,
     }, content_type="text/plain")
