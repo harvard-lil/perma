@@ -297,9 +297,15 @@ if ( typeof define === 'function' && define.amd ) {
 // currently set to hit only special elements
 
 $(function() {
+	var windowHeight = $(window).height();
 	$('.modal-new').each(function() {
 		var thisHeight = $(this).actual('height');
-		var marginTop = 0 - 72 - (thisHeight / 2);
-		$(this).css('margin-top', marginTop);
+		var opticalOffset = (windowHeight - thisHeight) / 12;
+		var marginTop = 0 - opticalOffset - (thisHeight / 2);
+		if( opticalOffset > 0) {
+			$(this).css('margin-top', marginTop);
+		} else {
+			$(this).addClass('_overflow');
+		}
 	});	
 });
