@@ -1101,7 +1101,7 @@ p + .thumbnail-placeholder {
 
 .modal-content {
 	width: 600px;
-    padding: 32px;
+    padding: $grid * 4 $grid * 4 $double;
     margin-top: 0;
     margin-left: 0;
     margin: 0 auto;
@@ -1142,7 +1142,7 @@ p + .thumbnail-placeholder {
 
 .modal {
 	form {
-		margin-top: $double;
+		margin-top: $grid * 3;
 	}
 	.form-group {
 		float: none;
@@ -1182,6 +1182,9 @@ p + .thumbnail-placeholder {
 		&:focus {
 			border-color: $color-blue;
 		}
+	}
+	.text-error {
+		padding-top: 0;
 	}
 }
 
