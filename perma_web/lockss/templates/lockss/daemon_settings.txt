@@ -1,9 +1,7 @@
-{% load staticfiles %}
-
 # peer list
-{% if servers %}
-org.lockss.id.initialV3PeerList=\{% for server in servers %}
-    TCP:[{{ server.ip }}]:{{ server.peer_port }}{% if not forloop.last %};\{% endif %}{% endfor %}
+{% if mirrors %}
+org.lockss.id.initialV3PeerList=\{% for mirror in mirrors %}
+    TCP:[{{ mirror.ip }}]:{{ mirror.peer_port }}{% if not forloop.last %};\{% endif %}{% endfor %}
 {% endif %}
 
 # plugins
@@ -22,5 +20,5 @@ org.lockss.proxy.audit.start=false
 org.lockss.proxy.port=8080
 org.lockss.proxy.start=false
 
-# content ip limit
-org.lockss.proxy.access.ip.include=140.247.209.64
+# allowed IP address ranges for content playback
+org.lockss.proxy.access.ip.include={{ content_ips }}
