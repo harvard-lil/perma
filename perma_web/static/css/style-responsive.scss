@@ -19,6 +19,18 @@
 
 // general structure
 
+@-webkit-keyframes success-bg {
+    0% {background-color: $color-highlight;}
+    20% {background-color: $color-highlight;}
+    100% {background-color: white;}
+}
+@keyframes success-bg {
+    0% {background-color: $color-highlight;}
+    20% {background-color: $color-highlight;}
+    100% {background-color: white;}
+}
+
+
 html {
     min-height: 100%;
     margin: 0;
@@ -63,6 +75,16 @@ section.__permaNew#main { // review
 
 body._welcome #main {
 	padding-bottom: 0;
+}
+
+body.modal-open {
+	margin-right: 0;
+}
+
+.modal-backdrop.in {
+	opacity: 0.95;
+    filter: alpha(opacity=95);
+    background-color: white;
 }
 
 .carousel {
@@ -901,16 +923,58 @@ p.body { @extend %style-body-text; }
     @include opacity(.3);
 }
 
+
 .preview-row {
     margin: 0;
     margin-top: $grid * 7;
     padding: $grid * 4 $double;
     border-radius: $half;
-    background: white;
+    background-color: white;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
     border-radius: $half;
-    border: 1px solid $color-blue;
+    border: 2px solid $color-blue;
 }
+
+.preview-row._success,
+.preview-row._error {
+    -webkit-animation-name: success-bg;
+    -webkit-animation-duration: 0.7s;
+    -webkit-animation-timing-function: linear;
+	animation-name: success-bg;
+    animation-duration: 0.7s;
+    animation-timing-function: linear;
+}
+
+.preview-row._error {
+	border-color: $color-orange;
+	#steps-container .message-large {
+		color: $color-orange;
+	}
+	.text-warning {
+		font-family: $font-hed-alt;
+	    font-weight: 700;
+	    font-size: 24px;
+	}
+}
+
+.preview-row._success {
+	#steps-container .message-large {
+		&:before {
+			content: '';
+			background-image: url('../img/ui/perma-ui-success.svg');
+			height: 32px;
+			width: 32px;
+			background-size: contain;
+			background-color: transparent;
+			display: inline-block;
+			position: relative;
+			margin-right: $grid;
+			background-repeat: no-repeat;
+			top: 1px;
+		}
+	}	
+}
+
 
 #steps-container {
 	min-height: 0;
@@ -948,11 +1012,24 @@ p.body { @extend %style-body-text; }
 	}
 }
 
+#preview-container {
+    margin-right: -566px;
+}
+
 .thumbnail-placeholder {
 	width: 100%;
-    border: 2px dashed $color-trans-lightgray;
     padding: $grid * 4;
     display: table;
+    border: none;
+}
+
+p + .thumbnail-placeholder {
+	width: 538px;
+    border: 2px dashed $color-trans-lightgray;
+}
+
+.library-thumbnail {
+	width: 538px;
 }
 
 .thumbnail-message {
@@ -978,7 +1055,7 @@ p.body { @extend %style-body-text; }
     font-family: $font-hed-alt;
     font-weight: 400;
     padding: 0;
-    margin: 0;
+    margin: 0 auto;
     color: $color-orange;
 }
 
@@ -988,10 +1065,50 @@ p.body { @extend %style-body-text; }
 	-moz-border-radius: 4px;
 	-webkit-border-radius: 4px;
 	height: 538px;
+	background-color: white;
+}
+
+.modal {
+	width: 100%;
+    height: 100%;
+    display: none;
+    border-radius: 0;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+	z-index: 19999;
+}
+
+.modal.in {
+	//display: table !important;
+}
+
+.modal-dialog {
+	position: relative;
+	//display: table-cell;
+    margin: 0;
+	vertical-align: middle;
+    border-radius: 0;
+    left: 50%;
+    top: 50%;
+    margin-left: -300px;
+    margin-top: -240px;
+    right: auto;
+    padding: 0 0 $grid * 9;
 }
 
 
-
+.modal-content {
+	width: 600px;
+    padding: 32px;
+    margin-top: 0;
+    margin-left: 0;
+    margin: 0 auto;
+    border-radius: 2px;
+    border: 1px solid black;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
+}
 
 
 .lockup + div {
@@ -2011,17 +2128,6 @@ body._faq {
     }
 }
 
-.modal {
-    border-radius: 3px;
-	z-index: 19999;
-}
-
-.modal-content {
-	width: 95%;
-	padding: 5px 30px;
-	margin-top: 68px;
-	margin-left: 15px;
-}
 
 .subheading {
 	color: #ff1400;

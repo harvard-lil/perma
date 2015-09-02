@@ -905,6 +905,7 @@ if (!jQuery) { throw new Error("Bootstrap requires jQuery") }
       that.$element
         .addClass('in')
         .attr('aria-hidden', false)
+        .hide().fadeIn(300)
 
       that.enforceFocus()
 
@@ -990,6 +991,7 @@ if (!jQuery) { throw new Error("Bootstrap requires jQuery") }
 
       this.$backdrop = $('<div class="modal-backdrop ' + animate + '" />')
         .appendTo(document.body)
+        .hide().fadeIn(150)
 
       this.$element.on('click.dismiss.modal', $.proxy(function (e) {
         if (e.target !== e.currentTarget) return

@@ -30,8 +30,7 @@
     <div class="col-sm-6">
         <div id="preview-container"></div>
     </div>
-    <div id="steps-container" class="col-sm-6">
-    </div>
+    <div id="steps-container" class="col-sm-6"></div>
 </div>
 
 <!-- Modals -->
@@ -113,8 +112,8 @@
 
 {% verbatim %}
 <script id="error-template" type="text/x-handlebars-template">
-    <p class="message-large">Failure</p>
-    <p>Unable to create the archive.</p>
+    <p class="message-large">Capture failed.</p>
+    <p>We’re unable to create your Perma Link.</p>
     <h4 class="text-warning">{{ message }}<h4/>
     <p>You can <a href="" onclick="return upload_form();">upload your own archive</a>. If that’s not desirable, please <a href="#" data-toggle="modal" data-target="#feedbackModal" id="report-error">let us know what’s happening.</a></p>
 </script>

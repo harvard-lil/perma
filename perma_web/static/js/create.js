@@ -69,7 +69,7 @@ function linkIt(data){
     var spinner = new Spinner(opts).spin(target);
 
     $('#steps-container').html('');
-    $('.preview-row').removeClass('hide').hide().fadeIn(500);
+    $('.preview-row').removeClass('hide _error _success _wait').addClass('_wait').hide().fadeIn(500);
 
     refreshIntervalIds.push(setInterval(check_status, 2000));
 }
@@ -89,7 +89,7 @@ function linkNot(jqXHR){
         message: message || "Error " + jqXHR.status
     }));
 
-    $('.preview-row').removeClass('hide').hide().fadeIn(500);
+    $('.preview-row').removeClass('hide _error _success _wait').addClass('_error').hide().fadeIn(0);
 }
 
 /* Handle the the main action (enter url, hit the button) button - start */
@@ -214,6 +214,8 @@ function check_status() {
 
             // If we have at least one success, show success message.
             if(capturesSucceeded){
+                $('.preview-row').removeClass('hide _error _success _wait').addClass('_success');
+                
                 $('#steps-container').html(templates.success_steps({
                     url: new_archive.url,
                     userguide_url: userguide_url,
@@ -232,6 +234,8 @@ function check_status() {
                         archive_url: new_archive.url
                     }));
                 });
+                
+                
 
             // Else show failure message/upload form.
             }else {
@@ -239,7 +243,7 @@ function check_status() {
                 $('#steps-container').html(templates.error({
                     message: "Error: URL capture failed."
                 }));
-                $('.preview-row').removeClass('hide');
+                $('.preview-row').removeClass('hide _error _success _wait').addClass('_error');
             }
         }
     });
