@@ -991,7 +991,7 @@ if (!jQuery) { throw new Error("Bootstrap requires jQuery") }
 
       this.$backdrop = $('<div class="modal-backdrop ' + animate + '" />')
         .appendTo(document.body)
-        .hide().fadeIn(150)
+        .hide().fadeIn(100)
 
       this.$element.on('click.dismiss.modal', $.proxy(function (e) {
         if (e.target !== e.currentTarget) return
