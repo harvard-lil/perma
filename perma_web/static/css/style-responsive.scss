@@ -1095,7 +1095,7 @@ p + .thumbnail-placeholder {
     margin-left: -300px;
     margin-top: -240px;
     right: auto;
-    padding: 0 0 $grid * 9;
+    padding: 0 0 0;
 }
 
 
@@ -1108,6 +1108,90 @@ p + .thumbnail-placeholder {
     border-radius: 2px;
     border: 1px solid black;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
+}
+
+.modal-header {
+	margin-right: $grid * 5;
+    overflow: visible;
+	.close {
+		position: absolute;
+	    top: 0;
+	    right: -$grid * 5;
+	    width: $grid * 5;
+	    height: $grid * 5;
+	    background-color: gray;
+	    text-indent: -10000px;
+	    overflow: hidden;
+	}
+	.modal-title, .modal-description {
+		font-family: $font-hed-alt;
+	}
+	.modal-title {
+		color: $color-black;
+		font-weight: 700;
+		font-size: 24px;
+	}
+	.modal-description {
+		color: $color-black;
+		font-size: 24px;
+		font-weight: 300;
+		color: $color-blue;
+		margin-bottom: 0;
+	}
+}
+
+.modal {
+	form {
+		margin-top: $double;
+	}
+	.form-group {
+		float: none;
+		width: auto;
+		border-bottom: 1px solid $color-trans-lightgray;
+		padding-top: 18px;
+		padding-bottom: 20px;
+		margin-left: -$grid * 4;
+	    padding-left: $grid * 4;
+	    margin-right: -$grid * 4;
+	    padding-right: $grid * 4;
+	    margin-top: 0;
+	    background-color: $color-background;
+	    &:first-child {
+			border-top: 1px solid $color-trans-lightgray;
+	    }
+	    & + .form-group {
+		    margin-top: 0;
+	    }
+	}
+	label {
+		font-weight: 700;
+	}
+	.modal-actions {
+		margin-top: $grid * 4;
+	}
+	input {
+		font-size: 16px;
+		font-weight: 400;
+		height: auto;
+		padding: $grid;
+		margin-bottom: $half;
+	}
+	input#file {
+		padding-left: $grid;
+		border: 1px solid $color-trans-lightgray;
+		&:focus {
+			border-color: $color-blue;
+		}
+	}
+}
+
+.label-instruction {
+	font-size: 13px;
+	font-family: $font-hed-alt;
+	font-weight: 400;
+	color: $color-trans-gray;
+	display: inline-block;
+	float: right;
 }
 
 
@@ -1201,12 +1285,12 @@ kbd a:hover, kbd:hover, kbd:active {
 	color: $color-white;
 	font-weight: 400;
 	font-size: 14px;
-	padding: $double $grid;
+	padding: 14px $grid;
 	margin-bottom: 0;
 	text-align: center;
 	vertical-align: middle;
 	cursor: pointer;
-	border: none !important;
+	border: 2px solid transparent;
 	border-radius: 2px;
 	background-color: $color-blue;
 	-webkit-user-select: none;
@@ -1219,7 +1303,7 @@ kbd a:hover, kbd:hover, kbd:active {
 	@include respond-tablet {
 		white-space: nowrap;
 		margin: $double 0;
-		padding: $double $grid * 3;
+		padding: 14px $grid * 3;
 		display: inline-block;
 		font-weight: 700;
 		font-size: 16px;
@@ -1242,6 +1326,22 @@ kbd a:hover, kbd:hover, kbd:active {
 		margin-left: $grid * 4;
 		margin-bottom: 0;
 		background-color: $color-trans-gray;
+	}
+	&.cancel {
+		border-color: $color-orange;
+		color: $color-orange;
+		background-color: white;
+		&:hover {
+			background-color: white !important;
+			color: $color-error;
+			border-color: $color-error;
+			text-decoration: none !important;
+		}
+		&:active {
+			background-color: white !important;
+			border-color: $color-black;
+			color: $color-black;
+		}
 	}
 }
 
@@ -1349,6 +1449,7 @@ kbd a:hover, kbd:hover, kbd:active {
 	    padding: $grid;
 	    background-color: white;
 	    outline: none;
+	    box-shadow: none;
 	    &:focus {
 		    border-color: $color-blue;
 		    color: $color-blue;
@@ -2308,6 +2409,9 @@ border-radius: 3px;
     background-color: $color-background;
     @include opacity(.9);
     bottom: 0px;
+    &:focus {
+	   outline: none; 
+    }
 }
 
 
