@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="26px" height="27px" viewBox="0 0 26 27" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.3.3 (12072) - http://www.bohemiancoding.com/sketch -->
+    <title>perma-ui-success</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <g id="perma-ui-success" sketch:type="MSLayerGroup" transform="translate(1.000000, 1.000000)" stroke-width="2">
+            <ellipse id="Oval-2" stroke="#2D76EE" fill="#2D76EE" sketch:type="MSShapeGroup" cx="11.9906323" cy="12.7441406" rx="11.9906323" ry="12"></ellipse>
+            <path d="M6.99453552,13.0127176 L11.5549066,17.4882812 L17.9859485,7.48828125" id="Path-48" stroke="#FFFFFF" sketch:type="MSShapeGroup"></path>
+        </g>
+    </g>
+</svg>
