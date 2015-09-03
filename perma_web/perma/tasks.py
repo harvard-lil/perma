@@ -119,8 +119,11 @@ def proxy_capture(self, link_guid, user_agent=''):
     # basic setup
 
     link = Link.objects.get(guid=link_guid)
-
     target_url = link.submitted_url
+
+    # Override user_agent for now, since PhantomJS doesn't like some user agents.
+    # This user agent is the Chrome on Linux that's most like PhantomJS 1.9.8.
+    user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/534.36 (KHTML, like Gecko) Chrome/13.0.766.0 Safari/534.36"
 
     print "%s: Fetching %s" % (link_guid, target_url)
 
