@@ -1036,7 +1036,7 @@ p.body { @extend %style-body-text; }
 	    padding: $grid * 4 $double;
     }
     @include respond-wide {
-	    margin-top: $grid * 7;
+	    margin-top: $grid * 5;
 	    padding: $grid * 4 $double;
     }
 }
@@ -1158,8 +1158,11 @@ p.body { @extend %style-body-text; }
 	    min-height: $grid * 24;
     	width: $grid * 83;
 	}
-    @include respond-tablet {
+    @include respond-desktop {
     	width: $grid * 113;
+	}
+    @include respond-wide {
+    	width: $grid * 137;
 	}
 }
 
