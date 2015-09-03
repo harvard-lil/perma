@@ -68,6 +68,10 @@ section.__permaNew#main { // review
 	padding-bottom: $grid * 4;
 	background-color: $color-white;
 	@include respond-tablet {
+		padding-top: $grid * 5;
+		padding-bottom: $grid * 7;
+	}
+	@include respond-desktop {
 		padding-top: $grid * 7;
 		padding-bottom: $grid * 9;
 	}
@@ -149,7 +153,11 @@ body.modal-open {
   background-color: $color-orange;
 }
 
-
+.container {
+	@include respond-tablet {
+		max-width: 736px;
+	}
+}
 
 
 
@@ -595,6 +603,10 @@ div.main-container {
 	padding-bottom: $grid * 4;
 	background-color: $color-white;
 	@include respond-tablet {
+		padding-top: $grid * 5;
+		padding-bottom: $grid * 7;
+	}
+	@include respond-desktop {
 		padding-top: $grid * 7;
 		padding-bottom: $grid * 9;
 	}
@@ -612,7 +624,11 @@ body._welcome #main {
 
 // redefine general bootstrap
 
-
+.container, ._userguide .lockup, ._userguide #main .user-docs, ._userguide #main .toc-overview-container, ._signup .lockup, ._signup #main .signup-learnMore, ._signup #main .signup-overview-container {
+    @include respond-tablet {
+	    max-width: 768px;
+    }
+}
 
 /////////////////////////
 
@@ -813,6 +829,9 @@ p.body { @extend %style-body-text; }
     font-weight: 900;
     font-size: 24px;
     @include respond-tablet {
+	    font-size: 42px;
+    }
+    @include respond-desktop {
 	    font-size: 48px;
     }
 }
@@ -825,6 +844,9 @@ p.body { @extend %style-body-text; }
     font-size: 18px;
     line-height: 1.3;
     @include respond-tablet {
+	    font-size: 24px;
+    }
+    @include respond-desktop {
 	    font-size: 26px;
     }
 }
@@ -832,6 +854,9 @@ p.body { @extend %style-body-text; }
 .form-priority {
 	margin: $grid * 3 -$double;
     @include respond-tablet {
+	    margin: $grid * 4 auto;
+    }
+    @include respond-desktop {
 	    margin: $grid * 5 auto;
     }
 }
@@ -841,6 +866,9 @@ p.body { @extend %style-body-text; }
 	.form-priority-fieldset {
 		padding: $grid * 3 $double;
 	    @include respond-tablet {
+		    padding: $grid * 4 $grid * 3;
+	    }
+	    @include respond-desktop {
 		    padding: $grid * 6 $grid * 4;
 	    }
 	}
@@ -853,11 +881,14 @@ p.body { @extend %style-body-text; }
 	    font-size: 16px;
 	    @include respond-tablet {
 			margin: 0;
-			width: $grid * 110;
+			width: $grid * 61;
 			float: left;
 			padding: 14px;
 		    height: auto;
 		    font-size: 20px;
+	    }
+	    @include respond-desktop {
+		    width: $grid * 110;
 	    }
 	}
 	
@@ -867,7 +898,10 @@ p.body { @extend %style-body-text; }
 	    @include respond-tablet {
 			margin-top: 0;
 			float: right;
-			width: $grid * 25;
+			width: $grid * 23;
+	    }
+	    @include respond-desktop {
+		    width: $grid * 25;
 	    }
 	}
 	
@@ -1148,38 +1182,41 @@ p + .thumbnail-placeholder {
 	z-index: 19999;
 }
 
-.modal.in {
-	//display: table !important;
-}
+.modal.in {}
 
 .modal-dialog {
 	position: relative;
-	//display: table-cell;
     margin: 0;
-	vertical-align: middle;
     border-radius: 0;
-    left: 50%;
-    top: 50%;
-    margin-left: -300px;
-    margin-top: -240px;
+    left: auto;
+    top: auto;
     right: auto;
-    padding: 0 0 0;
+    padding: $grid;
+    @include respond-tablet {
+	    left: 50%;
+	    top: 50%;
+	    margin-left: -300px;
+	    padding: 0;
+    }
 }
 
 
 .modal-content {
-	width: 600px;
-    padding: $grid * 4 $grid * 4 $double;
+	width: auto;
+    padding: $double;
     margin-top: 0;
     margin-left: 0;
     margin: 0 auto;
     border-radius: 2px;
     border: 1px solid black;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
+    @include respond-tablet {
+	    width: 600px;
+	    padding: $grid * 4 $grid * 4 $double;
+    }
 }
 
 .modal-header {
-	margin-right: $grid * 5;
     overflow: visible;
 	.close {
 		position: absolute;
@@ -1197,20 +1234,30 @@ p + .thumbnail-placeholder {
 	.modal-title {
 		color: $color-black;
 		font-weight: 700;
-		font-size: 24px;
+		font-size: 18px;
+		line-height: 1.3;
+	    @include respond-tablet {
+		    font-size: 24px;
+	    }
 	}
 	.modal-description {
-		color: $color-black;
-		font-size: 24px;
 		font-weight: 300;
 		color: $color-blue;
 		margin-bottom: 0;
+		font-size: 18px;
+		line-height: 1.3;
+	    @include respond-tablet {
+		    font-size: 24px;
+	    }
 	}
 }
 
 .modal {
 	form {
-		margin-top: $grid * 3;
+		margin-top: $double;
+	    @include respond-tablet {
+		    margin-top: $grid * 3;
+	    }
 	}
 	.form-group {
 		float: none;
@@ -1218,10 +1265,10 @@ p + .thumbnail-placeholder {
 		border-bottom: 1px solid $color-trans-lightgray;
 		padding-top: 18px;
 		padding-bottom: 20px;
-		margin-left: -$grid * 4;
-	    padding-left: $grid * 4;
-	    margin-right: -$grid * 4;
-	    padding-right: $grid * 4;
+		margin-left: -$double;
+	    padding-left: $double;
+	    margin-right: -$double;
+	    padding-right: $double;
 	    margin-top: 0;
 	    background-color: $color-background;
 	    &:first-child {
@@ -1230,12 +1277,21 @@ p + .thumbnail-placeholder {
 	    & + .form-group {
 		    margin-top: 0;
 	    }
+	    @include respond-tablet {
+			margin-left: -$grid * 4;
+		    padding-left: $grid * 4;
+		    margin-right: -$grid * 4;
+		    padding-right: $grid * 4;
+	    }
 	}
 	label {
 		font-weight: 700;
 	}
 	.modal-actions {
-		margin-top: $grid * 4;
+		margin-top: $double;
+	    @include respond-tablet {
+		    margin-top: $grid * 4;
+	    }
 	}
 	input {
 		font-size: 16px;
@@ -1261,10 +1317,18 @@ p + .thumbnail-placeholder {
 	font-family: $font-hed-alt;
 	font-weight: 400;
 	color: $color-trans-gray;
-	display: inline-block;
-	float: right;
+	display: block;
+    @include respond-tablet {
+	    float: right;
+	    display: inline-block;
+    }
 }
 
+#dashboard-container {
+    @include respond-tablet {
+	    padding: 0 $double;
+    }
+}
 
 .lockup + div {
 	margin-top: $grid * 6;
@@ -1621,7 +1685,7 @@ kbd a:hover, kbd:hover, kbd:active {
 		margin-right: 0;
 		margin-left: 0;
 		@include respond-tablet {
-			max-width: 782px; // review
+			max-width: 768px; // review
 			margin-right: auto;
 			margin-left: auto;
 		}
