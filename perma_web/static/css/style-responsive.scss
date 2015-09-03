@@ -72,6 +72,10 @@ section.__permaNew#main { // review
 		padding-bottom: $grid * 7;
 	}
 	@include respond-desktop {
+		padding-top: $grid * 4;
+		padding-bottom: $grid * 5;
+	}
+	@include respond-wide {
 		padding-top: $grid * 7;
 		padding-bottom: $grid * 9;
 	}
@@ -156,6 +160,12 @@ body.modal-open {
 .container {
 	@include respond-tablet {
 		max-width: 736px;
+	}
+	@include respond-desktop {
+		max-width: 970px;
+	}
+	@include respond-wide {
+		max-width: 1170px;
 	}
 }
 
@@ -607,6 +617,10 @@ div.main-container {
 		padding-bottom: $grid * 7;
 	}
 	@include respond-desktop {
+		padding-top: $grid * 4;
+		padding-bottom: $grid * 5;
+	}
+	@include respond-wide {
 		padding-top: $grid * 7;
 		padding-bottom: $grid * 9;
 	}
@@ -628,6 +642,12 @@ body._welcome #main {
     @include respond-tablet {
 	    max-width: 768px;
     }
+    @include respond-desktop {
+	    max-width: 1002px;
+    }
+	@include respond-wide {
+		max-width: 1202px;
+	}
 }
 
 /////////////////////////
@@ -856,7 +876,7 @@ p.body { @extend %style-body-text; }
     @include respond-tablet {
 	    margin: $grid * 4 auto;
     }
-    @include respond-desktop {
+    @include respond-wide {
 	    margin: $grid * 5 auto;
     }
 }
@@ -888,6 +908,9 @@ p.body { @extend %style-body-text; }
 		    font-size: 20px;
 	    }
 	    @include respond-desktop {
+		    width: $grid * 86;
+	    }
+	    @include respond-wide {
 		    width: $grid * 110;
 	    }
 	}
@@ -1005,7 +1028,15 @@ p.body { @extend %style-body-text; }
     border-radius: $half;
     border: 2px solid $color-blue;
     @include respond-tablet {
-	    margin-top: $grid * 7;
+	    margin-top: $grid * 4;
+	    padding: $grid * 3 $grid;
+    }
+    @include respond-desktop {
+	    margin-top: $grid * 3;
+	    padding: $grid * 4 $double;
+    }
+    @include respond-wide {
+	    margin-top: $double;
 	    padding: $grid * 4 $double;
     }
 }
@@ -1047,6 +1078,10 @@ p.body { @extend %style-body-text; }
 			width: 22px;
 			top: 2px;
 		    @include respond-tablet {
+				height: 27px;
+				width: 27px;
+		    }
+		    @include respond-desktop {
 				height: 32px;
 				width: 32px;
 			    top: 1px;	    
@@ -1058,6 +1093,9 @@ p.body { @extend %style-body-text; }
 
 #steps-container {
 	min-height: 0;
+    @include respond-tablet {
+		margin-top: -12px;
+    }
 
 	.message-large {
 	    font-family: 'Roboto', sans-serif;
@@ -1075,7 +1113,7 @@ p.body { @extend %style-body-text; }
 	    font-size: 16px;
 		font-family: $font-body;
 		color: $color-black;
-	    @include respond-tablet {
+	    @include respond-desktop {
 		    font-size: 18px;
 	    }
 	}
@@ -1097,17 +1135,17 @@ p.body { @extend %style-body-text; }
 		font-size: 15px;
 		padding: 6px;
 	    @include respond-tablet {
-			font-size: 24px;
+			font-size: 18px;
 			padding: $grid;
+	    }
+	    @include respond-desktop {
+			font-size: 24px;
 	    }
 	}
 }
 
 #preview-container {
     margin-right: 0;
-    @include respond-tablet {
-	    margin-right: -566px;
-    }
 }
 
 .thumbnail-placeholder {
@@ -1118,13 +1156,23 @@ p.body { @extend %style-body-text; }
     min-height: $grid * 18;
     @include respond-tablet {
 	    min-height: $grid * 24;
-    }
+    	width: $grid * 83;
+	}
+    @include respond-tablet {
+    	width: $grid * 113;
+	}
 }
 
 p + .thumbnail-placeholder {
 	width: auto;
     border: 2px dashed $color-trans-lightgray;
     @include respond-tablet {
+	    width: 318px;
+    }
+    @include respond-desktop {
+		width: 448px;
+    }
+    @include respond-wide {
 		width: 538px;
     }
 }
@@ -1138,8 +1186,13 @@ p + .thumbnail-placeholder {
 	height: auto;
 	width: auto;
     @include respond-tablet {
+	    width: 318px;
+    }
+    @include respond-desktop {
+	    width: 448px;
+    }
+    @include respond-wide {
 	    width: 538px;
-	    height: 538px;
     }
 }
 
