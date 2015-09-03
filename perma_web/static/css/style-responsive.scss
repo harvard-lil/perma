@@ -1036,7 +1036,7 @@ p.body { @extend %style-body-text; }
 	    padding: $grid * 4 $double;
     }
     @include respond-wide {
-	    margin-top: $double;
+	    margin-top: $grid * 7;
 	    padding: $grid * 4 $double;
     }
 }
