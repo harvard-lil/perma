@@ -604,6 +604,10 @@ body._welcome #main {
 	padding-bottom: 0;
 }
 
+#main-content {
+	padding: 0;
+}
+
 /////////////////////////
 
 // redefine general bootstrap
@@ -826,7 +830,7 @@ p.body { @extend %style-body-text; }
 }
 
 .form-priority {
-	margin: $grid * 3 -$grid * 3;
+	margin: $grid * 3 -$double;
     @include respond-tablet {
 	    margin: $grid * 5 auto;
     }
@@ -868,7 +872,10 @@ p.body { @extend %style-body-text; }
 	}
 	
 	button#addlink {
-		margin: 0;
+		margin: $double 0 0 0;
+	    @include respond-tablet {
+			margin: 0;
+	    }
 	}
 }
 
@@ -906,7 +913,7 @@ p.body { @extend %style-body-text; }
     }
 }
 
-@media(min-width: 768px) {
+@include respond-tablet {
     #examples {
         .thumbnail {
             display: table-cell;
@@ -922,7 +929,7 @@ p.body { @extend %style-body-text; }
         margin-top: $grid * 3;
     }
 }
-@media(min-width: 992px) {
+@include respond-desktop {
   #examples .content {
       width: 70%;
   }
@@ -956,13 +963,17 @@ p.body { @extend %style-body-text; }
 
 .preview-row {
     margin: 0;
-    margin-top: $grid * 7;
-    padding: $grid * 4 $double;
+    margin-top: $double;
+    padding: $double 0;
     border-radius: $half;
     background-color: white;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
     border-radius: $half;
     border: 2px solid $color-blue;
+    @include respond-tablet {
+	    margin-top: $grid * 7;
+	    padding: $grid * 4 $double;
+    }
 }
 
 .preview-row._success,
@@ -992,15 +1003,20 @@ p.body { @extend %style-body-text; }
 		&:before {
 			content: '';
 			background-image: url('../img/ui/perma-ui-success.svg');
-			height: 32px;
-			width: 32px;
 			background-size: contain;
 			background-color: transparent;
 			display: inline-block;
 			position: relative;
 			margin-right: $grid;
 			background-repeat: no-repeat;
-			top: 1px;
+			height: 22px;
+			width: 22px;
+			top: 2px;
+		    @include respond-tablet {
+				height: 32px;
+				width: 32px;
+			    top: 1px;	    
+		    }
 		}
 	}	
 }
@@ -1010,17 +1026,24 @@ p.body { @extend %style-body-text; }
 	min-height: 0;
 
 	.message-large {
-		font-size: 40px;
 	    font-family: 'Roboto', sans-serif;
-	    color: #2D76EE;
-	    font-weight: 200;
+	    color: $color-blue;
+		font-size: 24px;
+	    font-weight: 700;
 	    margin-bottom: 0;
+	    @include respond-tablet {
+			font-size: 40px;
+		    font-weight: 200;	    
+	    }
 	}
 	
 	p {
-	    font-size: 18px;
+	    font-size: 16px;
 		font-family: $font-body;
 		color: $color-black;
+	    @include respond-tablet {
+		    font-size: 18px;
+	    }
 	}
 	
 	a.perma-url {
@@ -1037,13 +1060,20 @@ p.body { @extend %style-body-text; }
 	}
 	
 	a.perma {
-		font-size: 24px;
-		padding: $grid;
+		font-size: 15px;
+		padding: 6px;
+	    @include respond-tablet {
+			font-size: 24px;
+			padding: $grid;
+	    }
 	}
 }
 
 #preview-container {
-    margin-right: -566px;
+    margin-right: 0;
+    @include respond-tablet {
+	    margin-right: -566px;
+    }
 }
 
 .thumbnail-placeholder {
@@ -1051,15 +1081,32 @@ p.body { @extend %style-body-text; }
     padding: $grid * 4;
     display: table;
     border: none;
+    min-height: $grid * 18;
+    @include respond-tablet {
+	    min-height: $grid * 24;
+    }
 }
 
 p + .thumbnail-placeholder {
-	width: 538px;
+	width: auto;
     border: 2px dashed $color-trans-lightgray;
+    @include respond-tablet {
+		width: 538px;
+    }
 }
 
 .library-thumbnail {
-	width: 538px;
+	border: 3px solid $color-trans-lightgray;
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	background-color: white;
+	height: auto;
+	width: auto;
+    @include respond-tablet {
+	    width: 538px;
+	    height: 538px;
+    }
 }
 
 .thumbnail-message {
@@ -1087,15 +1134,6 @@ p + .thumbnail-placeholder {
     padding: 0;
     margin: 0 auto;
     color: $color-orange;
-}
-
-.library-thumbnail {
-	border: 3px solid $color-trans-lightgray;
-	border-radius: 4px;
-	-moz-border-radius: 4px;
-	-webkit-border-radius: 4px;
-	height: 538px;
-	background-color: white;
 }
 
 .modal {
