@@ -298,11 +298,13 @@ if ( typeof define === 'function' && define.amd ) {
 
 $(function() {
 	var windowHeight = $(window).height();
+	var windowWidth = $(window).width();
 	$('.modal-new').each(function() {
 		var thisHeight = $(this).actual('height');
 		var opticalOffset = (windowHeight - thisHeight) / 12;
 		var marginTop = 0 - opticalOffset - (thisHeight / 2);
-		if( opticalOffset > 0) {
+		if(windowWidth < 767) {}
+		else if( opticalOffset > 0) {
 			$(this).css('margin-top', marginTop);
 		} else {
 			$(this).addClass('_overflow');
