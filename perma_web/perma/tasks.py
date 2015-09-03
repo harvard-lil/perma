@@ -42,6 +42,7 @@ ONLOAD_EVENT_TIMEOUT = 60 # seconds to wait before giving up on the onLoad event
 RESOURCE_LOAD_TIMEOUT = 180 # seconds to wait for at least one resource to load before giving up on capture
 ELEMENT_DISCOVERY_TIMEOUT = 2 # seconds before PhantomJS gives up running a DOM request (should be instant, assuming page is loaded)
 AFTER_LOAD_TIMEOUT = 30 # seconds to allow page to keep loading additional resources after onLoad event fires
+VALID_FAVICON_MIME_TYPES = {'image/png', 'image/gif', 'image/jpg', 'image/jpeg', 'image/x-icon', 'image/vnd.microsoft.icon', 'image/ico'}
 
 ### HELPERS ###
 
@@ -129,7 +130,7 @@ def proxy_capture(self, link_guid, user_agent=''):
     # Set up an exception we can trigger to halt capture and release all the resources involved.
     class HaltCaptureException(Exception):
         pass
-    meta_thread = browser = robots_txt_thread = warcprox_controller = warcprox_thread = favicon_url = None
+    meta_thread = browser = robots_txt_thread = warcprox_controller = warcprox_thread = favicon_capture_url = None
     have_warc = False
 
     try:
@@ -217,21 +218,30 @@ def proxy_capture(self, link_guid, user_agent=''):
             for candidate_favicon in favicons:
                 if candidate_favicon.get_attribute('href'):
                     candidate_favicon_url = urlparse.urljoin(content_url, candidate_favicon.get_attribute('href'))
-                    favicon_extension = candidate_favicon_url.rsplit('.',1)[-1]
-                    if favicon_extension in ['ico', 'gif', 'jpg', 'jpeg', 'png']:
-                        favicon_urls.append(candidate_favicon_url)
+                    favicon_urls.append(candidate_favicon_url)
+                    # favicon_extension = candidate_favicon_url.rsplit('.',1)[-1]
+                    # if favicon_extension in ['ico', 'gif', 'jpg', 'jpeg', 'png']:
         favicon_urls.append(urlparse.urljoin(content_url, '/favicon.ico'))
 
-        # fetch favicon
+        # Here we fetch everything in the page that's marked as a favicon, for archival purposes.
+        # But we only record a favicon as our favicon_capture_url if it passes a mimetype whitelist.
         for favicon_url in favicon_urls:
             print "Fetching favicon from %s ..." % favicon_url
             try:
                 favicon_response = proxied_get_request(favicon_url)
                 assert favicon_response.ok
-                break
             except (requests.ConnectionError, requests.Timeout, AssertionError):
-                print "Couldn't get favicon"
-                favicon_url = None
+                continue
+
+            # apply mime type whitelist
+            if not favicon_response.headers.get('content-type', '').split(';')[0] in VALID_FAVICON_MIME_TYPES:
+                continue
+
+            # record the first valid favicon as our favicon_capture_url
+            if not favicon_capture_url:
+                favicon_capture_url = favicon_url
+        if not favicon_capture_url:
+            print "Couldn't get favicon"
 
         # fetch robots.txt in the background
         def robots_txt_thread():
@@ -370,15 +380,15 @@ def proxy_capture(self, link_guid, user_agent=''):
 
             # We only save the Capture for the favicon once the warc is stored,
             # since the data for the favicon lives in the warc.
-            if favicon_url:
+            if favicon_capture_url:
                 Capture(
                     link=link,
                     role='favicon',
                     status='success',
                     record_type='response',
-                    url=favicon_url
+                    url=favicon_capture_url
                 ).save()
-                print "Saved favicon at %s" % favicon_url
+                print "Saved favicon at %s" % favicon_capture_url
 
             print "Writing CDX lines to the DB"
             CDXLine.objects.create_all_from_link(link)
