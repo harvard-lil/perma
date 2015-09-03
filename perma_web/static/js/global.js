@@ -180,24 +180,3 @@ function showAPIError(jqXHR){
 
     informUser(message, 'danger');
 }
-
-////////////////////////////////
-/////// Universal header ///////
-/////// start            ///////
-////////////////////////////////
-
-// remove transition on exander
-
-
-// toggle on drop down in header
-//$('header').removeClass('_default').addClass('_expanded')
-//$('header').removeClass('_expanded').addClass('_default')
-     
-
-
-
-////////////////////////////////
-/////// Universal header ///////
-/////// end              ///////
-////////////////////////////////
-
