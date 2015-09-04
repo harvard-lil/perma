@@ -29,6 +29,26 @@
     20% {background-color: $color-highlight;}
     100% {background-color: white;}
 }
+@-webkit-keyframes breathe-blue {
+    0% {border-color: $color-blue;}
+    30% {border-color: $color-background;}
+    45% {border-color: $color-background;}
+    100% {border-color: $color-blue;}
+}
+@keyframes breathe-blue {
+    0% {border-color: $color-blue;}
+    30% {border-color: $color-background;}
+    45% {border-color: $color-background;}
+    100% {border-color: $color-blue;}
+}
+@-webkit-keyframes fade-blue {
+    0% {border-color: $color-blue;}
+    100% {border-color: $color-black;}
+}
+@keyframes fade-blue {
+    0% {border-color: $color-blue;}
+    100% {border-color: $color-black;}
+}
 
 
 html {
@@ -1026,7 +1046,8 @@ p.body { @extend %style-body-text; }
     background-color: white;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
     border-radius: $half;
-    border: 2px solid $color-blue;
+    border: 2px solid $color-black;
+    margin-bottom: $double;
     @include respond-tablet {
 	    margin-top: $grid * 4;
 	    padding: $grid * 3 $grid;
@@ -1039,17 +1060,30 @@ p.body { @extend %style-body-text; }
 	    margin-top: $grid * 5;
 	    padding: $grid * 4 $double;
     }
+    &._wait {
+	    -webkit-animation-name: breathe-blue;
+	    -webkit-animation-duration: 7s;
+	    -webkit-animation-timing-function: linear;
+	    -webkit-animation-iteration-count: infinite;
+		animation-name: breathe-blue;
+	    animation-duration: 7s;
+	    animation-timing-function: linear;
+	    animation-iteration-count: infinite;
+    }
+    &._success {
+		-webkit-animation: fade-blue 6s linear, success-bg .7s linear;
+		animation: fade-blue 6s linear, success-bg .7s linear;
+    }
+    &._error {
+	    -webkit-animation-name: success-bg;
+	    -webkit-animation-duration: 0.7s;
+	    -webkit-animation-timing-function: linear;
+		animation-name: success-bg;
+	    animation-duration: 0.7s;
+	    animation-timing-function: linear;
+    }
 }
 
-.preview-row._success,
-.preview-row._error {
-    -webkit-animation-name: success-bg;
-    -webkit-animation-duration: 0.7s;
-    -webkit-animation-timing-function: linear;
-	animation-name: success-bg;
-    animation-duration: 0.7s;
-    animation-timing-function: linear;
-}
 
 .preview-row._error {
 	border-color: $color-orange;
