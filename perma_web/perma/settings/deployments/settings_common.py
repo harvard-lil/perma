@@ -181,7 +181,6 @@ PIPELINE_JS = {
     },
     'single-link': {
         'source_filenames': (
-            'js/lib/spin.js',
             'js/single-link.js',
 
         ),

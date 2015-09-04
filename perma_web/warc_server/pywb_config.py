@@ -307,6 +307,6 @@ def create_perma_wb_router(config={}):
     router.routes.insert(0, route)
 
     # use our Django error view
-    router.error_view = PermaTemplateView('archive-error.html')
+    router.error_view = PermaTemplateView('archive/archive-error.html')
 
     return router

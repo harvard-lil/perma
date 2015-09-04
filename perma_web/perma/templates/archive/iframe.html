@@ -1,0 +1,10 @@
+{% if capture.show_interstitial %}
+    <div class="translucent-background no-live-preview">
+        <div>Click here to view or download this archived file (file type {{ capture.mime_type }}):</div>
+        <div><a href="{{ capture.playback_url }}" class="btn btn-primary">View/Download File</a></div>
+    </div>
+{% else %}
+    <iframe src="{{ capture.playback_url }}" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation"{% endif %}>
+        <p>Unable to create a live view of <a class="submitted_url" href="{{link.submitted_url}}">{{link.submitted_url}}</a></p>
+    </iframe>
+{% endif %}

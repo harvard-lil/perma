@@ -1,0 +1,192 @@
+{% extends "archive/base-archive-responsive.html" %}
+{% load file_exists  truncatesmart is_darchive local_datetime pipeline as_json %}
+
+{% block title %} | {{link.submitted_title}}{% endblock %}
+
+{% block meta-head %}
+    <meta name="robots" content="noindex, noarchive, noodp, noimageindex">
+{% endblock %}
+
+{% block header %}
+
+{% comment %}
+
+
+    Our header is built using three segments.
+    +-----------------------------------+
+    | Primary segment                   |
+    |                                   |
+    | This segment is always displayed  |
+    -------------------------------------
+    | Details segment                   |
+    |                                   |
+    | This segment is displayed         |
+    | if the user clicks the show       |
+    | details button                    |
+    -------------------------------------
+    | Message segment                   |
+    |                                   |
+    | If we have a message to share     |
+    | we display it here. Things like   |
+    | "Things archive is dark, but you  |
+    | can see it because you're part of |
+    | org that owns the archive" or     |
+    | "Archive created successfully,    |
+    | here's the perma.cc address of    |
+    | the archive"                      |
+    +-----------------------------------+
+ 
+ {% endcomment %}
+
+
+    <header>
+
+        <div class="primary-segment row style="background-color: #09f"">
+            <div class="col-sm-2">
+                <button id="details-button" class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapse-details" aria-expanded="false" aria-controls="collapse-details">Show details</button>
+            </div>
+            <div class="col-sm-5">
+                <p>This page is a Perma.cc record</p>
+                <p>
+                    Created {{ link.creation_timestamp|local_datetime:"F j, Y" }}
+
+                    {% if serve_type != 'image' %}
+                        {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
+                            Looks wrong? Try the <a href="{% url 'single_linky' link.guid %}?type=image">Screenshot View</a>.
+                        {% endif %}
+                    {% else %}
+                        Below is a screenshot of the capture. <a href="{% url 'single_linky' link.guid %}?type=source">View the capture</a>.
+                    {% endif %}                   
+
+                </p>
+            </div>
+            <div class="col-sm-2">
+                <p><a href="{{link.submitted_url}}" target="_blank">View the live page</a></p>
+            </div>
+            <div class="col-sm-3">
+                {% if request.user.is_authenticated %}
+                    <div class="navbar-collapse collapse">
+                      <ul class="nav navbar-nav navbar-right">
+                        {% if request.user.is_authenticated %}
+                            <li class="dropdown">
+                              <a href="#" class="dropdown-toggle navbar-link" data-toggle="dropdown" role="button" aria-expanded="false">{{ request.user.get_short_name }} <span class="caret"></span></a>
+                              <ul class="dropdown-menu" role="menu">
+                                <li><a href="{% url 'link_browser' %}">My links</a></li>
+                                
+                                {% if request.user.is_staff or request.user.is_registrar_member %}
+                                    <li class="divider"></li>
+                                    <li role="presentation" class="dropdown-header">Manage users</li>
+
+                                    {% if request.user.is_staff %}
+                                        <li><a href="{% url 'user_management_manage_registry_user' %}">Registry users</a></li>
+                                        <li><a href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>
+                                    {% endif %}
+
+                                    <li><a href="{% url 'user_management_manage_registrar_user' %}">Registrar users</a></li>
+                                    <li><a href="{% url 'user_management_manage_organization' %}">Vesting organizations</a></li>
+                                    <li><a href="{% url 'user_management_manage_organization_user' %}">Vesting users</a></li>
+
+                                    {% if request.user.is_staff %}
+                                        <li><a href="{% url 'user_management_manage_user' %}">Users</a></li>
+                                    {% endif %}
+                                    <li class="divider"></li>
+                                {% endif %}
+                                
+                                <!-- Vesting users -->
+                                {% if request.user.is_organization_member %}
+                                <li><a href="{% url 'user_management_manage_organization_user' %}">Manage users</a></li>
+                                {% endif %}
+                                {% if request.user.is_staff %}
+                                    <li><a href="{% url 'admin:index' %}">Admin console</a></li>
+                                {% endif %}
+                                <li><a href="{% url 'user_management_settings_tools' %}">Tools</a></li>
+                                <li><a href="{% url 'user_management_settings_profile' %}">Settings</a></li>
+                                <li class="divider"></li>
+                                <li><a href="{% url 'logout' %}">Log out</a></li>
+                              </ul>
+                            </li>
+                        {% else %}
+                            <li><a href="{% url 'sign_up' %}" class="navbar-link{% if this_page == 'sign_up' %} this-page{% endif %}">Sign up</a></li>
+                            <li><a href="{% url 'user_management_limited_login' %}" class="navbar-link">Log in</a></li>
+                            {% comment %}
+                            <li><a href="{% url 'register' %}" id="nav-button" class="btn btn-large btn-success">Sign Up</a></li>
+                            {% endcomment %}
+                        {% endif %}
+                      </ul>
+                    </div><!--/.nav-collapse -->
+                {% else %}
+                    <p><a href="{% url 'about' %}" target="_blank">What is Perma.cc?</a></p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div id="collapse-details" class="details-segment row collapse" style="background-color: #fff">
+            <div class="col-sm-12">
+                <p>Original page URL, {{link.submitted_url}}</p>
+                <p>Original page title, {{link.submitted_title}}</p>
+                <p>Record creation date, {{ link.creation_timestamp|local_datetime }}</p>
+
+                {% if link.organization %}
+                    <p>Archiving Organization</p>
+                    <p>{{ link.organization }}</p>
+                {% endif %}
+
+                {% if request.user.is_authenticated %}
+
+                    {% if request.user.can_vest and not link.vested %}
+                        <a class="btn vest banner-btn" href="{% url 'vest_link' link.guid %}">Vest site</a>
+                    {% endif %}
+
+                    {% if not link|is_darchive %}
+                        {% if request.user.is_staff %}
+                            <a class="btn dashboard" href="{% url 'dark_archive_link' link.guid %}">Dark archive</a>
+                        {% elif request.user.is_registrar_member and link.organization.registrar == request.user.registrar %}
+                            <a class="btn dashboard" href="{% url 'dark_archive_link' link.guid %}">Dark archive</a>
+                        {% elif request.user.is_organization_member and link.organization in request.user.organizations.all %}
+                            <a class="btn dashboard" href="{% url 'dark_archive_link' link.guid %}">Dark archive</a>
+                        {% elif request.user.is_authenticated and request.user.pk == link.created_by_id %}
+                            <a class="btn dashboard" href="{% url 'dark_archive_link' link.guid %}">Dark archive</a>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if request.user.is_authenticated and request.user.pk == link.created_by_id and not link.vested %}
+                        <a class="btn user-delete" href="{% url 'user_delete_link' link.guid %}"><i class="icon-trash"></i> Delete</a>
+                    {% endif %}
+
+                {% endif %}
+
+                {% if not request.user.is_authenticated or request.user.pk != link.created_by_id %}
+                    <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-large btn-info infinity-navbar navbar-btn" title="Flag as inappropriate">Flag as inappropriate</a>
+                {% endif %}
+                
+            </div>
+        </div>
+
+        <div class="details-message row" style="background-color: #adf">
+            {% if can_view and link.dark_archived %}
+                This archive is in the dark archive. Most folks can't see it.
+            {% endif %}
+        </div>
+
+    </header>
+{% endblock %}
+
+{% block content %}
+
+    {% if link.user_deleted %}
+        {% include "archive/deleted.html" %}
+    {% elif can_view %}
+        {% include "archive/iframe.html" %}
+    {% elif link|is_darchive %}
+        {% include "archive/dark-archive.html" %}
+    {% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        var archive = {% as_json link %};
+    </script>
+
+    {% javascript 'single-link' %}
+{% endblock %}

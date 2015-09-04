@@ -140,19 +140,11 @@ def single_linky(request, guid):
         response['Content-Disposition'] = "attachment; filename=%s.warc.gz" % link.guid
         return response
         
-    display_iframe = False
     capture = None
     if serve_type == 'live':
-        # If we are going to serve up the live version of the site, let's make sure it's iframe-able
-        try:
-            response = requests.head(link.submitted_url,
-                                     headers={'User-Agent': request.META['HTTP_USER_AGENT'], 'Accept-Encoding': '*'},
-                                     timeout=5)
-            display_iframe = 'X-Frame-Options' not in response.headers and 'attachment' not in response.headers.get('Content-Disposition')
-            # TODO actually check if X-Frame-Options specifically allows requests from us
-        except:
-            # Something is broken with the site, so we might as well display it in an iFrame so the user knows
-            display_iframe = True
+        # We used to support a live tab. That's depreicated now. Let's
+        # serve up somethign as a backup
+        capture = link.primary_capture
         
     elif serve_type == 'source' or serve_type == 'pdf':
         capture = link.primary_capture
@@ -162,13 +154,13 @@ def single_linky(request, guid):
 
     context = {
         'link': link,
+        'can_view': link.can_view(request.user),
         'capture': capture,
         'next': request.get_full_path(),
-        'display_iframe': display_iframe,
         'serve_type': serve_type
     }
 
-    return render(request, 'single-link.html', context)
+    return render(request, 'archive/single-link.html', context)
 
 
 def rate_limit(request, exception):
@@ -233,7 +225,24 @@ def contact(request):
             return render_to_response('contact.html', context)
 
     else:
-        form = ContactForm(initial={'message': request.GET.get('message', '')})
+
+        # Our contact form serves a couple of purposes
+        # If we get a message parameter, we're getting a message from the create form
+        # about a failed archive
+        #
+        # If we get a flagged parameter, we're getting the guid of an archive from the
+        # Flag as inappropriate button on an archive page
+        #
+        # We likely want to clean up this contact for logic if we tack much else on
+        
+        message = request.GET.get('message', '')
+        flagged_archive_guid = request.GET.get('flag', '')
+
+        if flagged_archive_guid:
+            message = 'http://perma.cc/%s contains material that is inappropriate.' % flagged_archive_guid
+
+
+        form = ContactForm(initial={'message': message})
 
         context = RequestContext(request, {'form': form})
         return render_to_response('contact.html', context)

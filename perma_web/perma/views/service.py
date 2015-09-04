@@ -283,7 +283,7 @@ def image_wrapper(request, guid):
         print "COULDN'T FIND LINK"
         raise Http404
 
-    return render_to_response('image_wrapper.html', {'asset': asset}, RequestContext(request))
+    return render_to_response('archive/image_wrapper.html', {'asset': asset}, RequestContext(request))
 
 @login_required
 def get_thumbnail(request, guid):
