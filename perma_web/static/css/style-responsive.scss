@@ -31,14 +31,14 @@
 }
 @-webkit-keyframes breathe-blue {
     0% {border-color: $color-blue;}
-    30% {border-color: $color-background;}
-    45% {border-color: $color-background;}
+    30% {border-color: lighten($color-blue, 40%);}
+    45% {border-color: lighten($color-blue, 40%);}
     100% {border-color: $color-blue;}
 }
 @keyframes breathe-blue {
     0% {border-color: $color-blue;}
-    30% {border-color: $color-background;}
-    45% {border-color: $color-background;}
+    30% {border-color: lighten($color-blue, 40%);}
+    45% {border-color: lighten($color-blue, 40%);}
     100% {border-color: $color-blue;}
 }
 @-webkit-keyframes fade-blue {
@@ -1046,7 +1046,7 @@ p.body { @extend %style-body-text; }
     background-color: white;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
     border-radius: $half;
-    border: 2px solid $color-black;
+    border: 1px solid $color-black;
     margin-bottom: $double;
     @include respond-tablet {
 	    margin-top: $grid * 4;
@@ -1061,26 +1061,18 @@ p.body { @extend %style-body-text; }
 	    padding: $grid * 4 $double;
     }
     &._wait {
-	    -webkit-animation-name: breathe-blue;
-	    -webkit-animation-duration: 7s;
-	    -webkit-animation-timing-function: linear;
-	    -webkit-animation-iteration-count: infinite;
-		animation-name: breathe-blue;
-	    animation-duration: 7s;
-	    animation-timing-function: linear;
-	    animation-iteration-count: infinite;
+		border-color: $color-blue;
+	    -webkit-animation: breathe-blue 7s linear 1s infinite;
+	    animation: breathe-blue 7s linear 1s infinite;
     }
     &._success {
-		-webkit-animation: fade-blue 6s linear, success-bg .7s linear;
-		animation: fade-blue 6s linear, success-bg .7s linear;
+		border-color: $color-blue;
+		-webkit-animation: success-bg .7s linear;
+		animation: success-bg .7s linear;
     }
     &._error {
-	    -webkit-animation-name: success-bg;
-	    -webkit-animation-duration: 0.7s;
-	    -webkit-animation-timing-function: linear;
-		animation-name: success-bg;
-	    animation-duration: 0.7s;
-	    animation-timing-function: linear;
+		-webkit-animation: success-bg .7s linear;
+		animation: success-bg .7s linear;
     }
 }
 
@@ -1224,12 +1216,15 @@ p + .thumbnail-placeholder {
 	width: auto;
     @include respond-tablet {
 	    width: 318px;
-    }
+ 	    height: 318px;
+   }
     @include respond-desktop {
 	    width: 448px;
+	    height: 448px;
     }
     @include respond-wide {
 	    width: 538px;
+	    height: 538px;
     }
 }
 
