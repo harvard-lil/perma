@@ -34,7 +34,7 @@
             {% if request.user.registrar %}
                 <p class="registrar-info">
                 {% if request.user.registrar.website %}
-                    <strong><a href="{{registrar.website}}" target="_blank">{{request.user.registrar}}</a></strong>
+                    <strong><a href="{{request.user.registrar.website}}" target="_blank">{{request.user.registrar}}</a></strong>
                 {% else %}
                     <strong>{{request.user.registrar}}</strong>
                 {% endif %}
