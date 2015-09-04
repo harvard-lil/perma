@@ -1,36 +1,423 @@
 /* This .scss file will automatically be compiled by django-pipeline into a .css file */
 
-/* Import some mixins from Compass */
+/////////////////////////
+
+//	perma global imports
+
+@import "_perma-imports.scss";
+@import "_reset.scss";
+
+
+//	Import some mixins from Compass
+
 @import "compass/css3/opacity";
 
 
-/* Our Sass vars start */
+$height-record-hed: $grid * 11;
 
-$secondary-font: 'Helvetica', 'sans-serif';
+// iframe start
 
-/* Our Sass vars end */
+iframe {
+    border-width: 0px 0px;
+	border-style: solid;
+	border-color: #999;
+    text-align:auto;
+    background:#fff;
+    margin:0px auto;
+    padding:auto;
+    display:block;
+    overflow-x:scroll;
+    overflow-y: scroll;
+    height:100%;
+    width:100%;
+
+}
 
 
-/* Global start */
+header {
+	background-color: $color-blue;
+	color: $color-white;
+	height: $height-record-hed;
+	overflow: visible;
+	font-family: $font-hed-alt;
+}
 
-/* Start - our locally hosted Google Fonts */
-@font-face {
-    font-family: "Roboto Slab";
-    font-style: normal;
-    font-weight: 300;
-    src: url('../fonts/RobotoSlab-Light.eot');
-    src: local("Roboto Slab Light"), local("RobotoSlab-Light"), url('../fonts/RobotoSlab-Light.eot?#iefix') format("embedded-opentype"), url('../fonts/RobotoSlab-Light.woff') format("woff"), url('../fonts/RobotoSlab-Light.ttf') format("truetype")
+.row {
+	margin: 0;
+}
+
+.btn {
+	background-color: transparent;
+	border-radius: 0;
+	&:hover {
+		background-color: transparent;
+		border-color: $color-white;
+	}
+	&:active {
+		background-color: transparent;
+		border-color: inherit;
+		box-shadow: none;
+	}
+	&:focus {
+		background-color: transparent;
+		border-color: inherit;
+		outline: none;
+		color: inherit;
+	}
+}
+
+.btn-primary {
+	font-size: 12px;
+	font-weight: 400;
+	padding: 8px 12px;
+	border: 1px solid $color-white;
+	border-radius: 10em;
+	&:hover {
+		background-color: white;
+		color: $color-blue;
+	}
+	&:hover {
+		background-color: white;
+		color: $color-blue;
+	}
+	&:active {
+		background-color: $color-black;
+		border-color: $color-black;
+		color: $color-white;
+	}
+}
+
+.primary-segment .col {
+	float: left;
+	display: table;
+	height: $height-record-hed;
+	.content {
+		display: table-cell;
+		vertical-align: middle;
+	}
+}
+
+.col._details {
+	border-right: 1px solid white;
+	padding: $grid * 3;
+	text-align: center;
+}
+
+.col._main {
+	padding-left: $grid * 3;
+}
+
+
+.title {
+	font-size: 24px;
+	font-weight: 800;
+	line-height: 1.1;
+	margin-bottom: 0;
+}
+
+.creation {
+	font-family: $font-body;
+	font-size: 17px;
+	font-weight: 200;
+	padding-top: $half;
+	margin-bottom: 0;
+	.action {
+		font-size: 12px;
+		font-family: $font-hed-alt;
+		font-weight: 400;
+		display: inline-block;
+		margin-left: $double;
+		padding-bottom: 2px;
+		vertical-align: middle;
+		a {
+			padding-bottom: 3px;
+			border-bottom: 1px solid;
+			&:hover {
+				color: $color-black;
+			}
+			&:active {
+				color: $color-hover;
+			}
+		}
+	}
+}
+
+.btn-outside {
+	display: table;
+	height: $height-record-hed;
+	border-left: 1px solid $color-white;
+	border-right: 1px solid $color-white;
+	padding: $grid * 3;
+	border-top: none;
+	border-bottom: none;
+	span {
+		display: table-cell;
+		vertical-align: middle;
+	    &:after {
+			content: '';
+			width: 9px;
+			height: 17px;
+			display: inline-block;
+			margin-left: $grid;
+			position: relative;
+			top: 4px;
+			background-image: url('../img/ui/perma-ui-chev-right-small.png');
+			background-repeat: no-repeat;
+			background-size: 54px 17px;
+			background-position: -9px * 5;
+	    }
+	}
+	&:hover {
+		background-color: white;
+		color: $color-blue;
+		span:after {
+			background-position: -9px * 2;
+		}
+	}
+	&:active {
+		background-color: $color-black;
+		border-color: $color-black;
+		color: $color-white;
+		span:after {
+			background-position: -9px * 5;
+		}
+	}
+}
+
+
+// dropdown and nav
+
+.dropdown-toggle {
+	display: none !important; // review
+	font-family: $font-body;
+	font-size: 17px;
+	font-weight: 300;
+	
+	@include respond-tablet {
+		display: block !important; // review
+	}
+	&.navbar-link {
+		padding-top: 16px;
+	    padding-bottom: 16px;
+	    padding-left: 28px;
+	    padding-right: $double;
+	    border-radius: 2px;
+	    border: 1px solid $color-trans-lightgray;
+	}
+    &:after {
+	    content: '';
+	    height: 9px;
+	    width: 18px;
+	    display: inline-block;
+	    background-image: url('../img/ui/perma-ui-chev-down.png');
+	    background-repeat: no-repeat;
+	    background-size: 102px 9px;
+	    background-position: -17px * 5;
+	    top: -1px;
+		margin-left: $grid;
+	}
+	&:hover {
+		border-color: $color-white;
+	}
+	&:active {
+		border-color: $color-black;
+		background-color: $color-black;
+	}
+	&:hover::after {
+	}
+}
+
+.open .dropdown-toggle {
+	border-color: $color-background;
+	background-color: $color-background;
+	color: $color-blue;
+	&:after {
+		transform: rotate(180deg);
+		background-position: -17px * 0;
+	}
+	&:hover {
+		color: $color-orange;
+	}
+	&:active {
+		border-color: $color-black;
+		background-color: $color-black;
+	}
+}
+
+li.dropdown {
+	margin: 0;
+}
+
+._expanded .navbar-nav { // review
+	position: relative;
+    width: auto;
+    z-index: 1000;
+    padding: 5px 0;
+    margin: 2px 0 0;
+	margin-right: -7px;
+    font-size: 14px;
+    list-style: none;
+    background-color: white;
+    background-clip: padding-box;
+	border-radius: 2px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);	
+	border: 1px solid black;
+	padding-top: $double;
+	& > li > a {
+		font-family: $font-hed-alt;
+		padding: $half 12px $half $grid * 3;
+		font-size: $size-body;
+		text-align: right;
+		&:hover, &:focus {
+			background-color: $color-hover;
+			color: white;
+		}
+	}
+	.btn._nav {
+		margin: 0;
+	    background-color: $color-blue;
+	    color: white;
+	    padding-top: $double;
+	    padding-bottom: $double;
+	    margin-top: $grid;
+	    margin-bottom: $grid;
+	    margin-right: $half;
+	    margin-left: $half;
+	    padding-right: 12px;
+	    &:after {
+			content: '';
+			width: 9px;
+			height: 17px;
+			display: inline-block;
+			margin-left: $grid;
+			position: relative;
+			top: 3px;
+			background-image: url('../img/ui/perma-ui-chev-right-small.png');
+			background-repeat: no-repeat;
+			background-position: 0 0;
+			background-size: 54px 17px;
+			background-position-x: -9px * 5;
+	    }
     }
+}
 
-@font-face {
-    font-family: "Roboto Slab";
-    font-style: normal;
+._expanded .dropdown-menu { // review
+	padding: 0;
+	margin: 0;
+	border: none;
+	box-shadow: none;
+	min-width: none;
+	width: auto;
+}
+
+.dropdown-menu   { // review
+	position: relative;
+    float: none;
+    width: auto;
+    z-index: 1000;
+    display: none;
+    padding: 5px 0;
+    margin: 2px 0 0;
+	margin-right: -7px;
+    font-size: 14px;
+    list-style: none;
+    background-color: white;
+    background-clip: padding-box;
+	border-radius: 2px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
+	border-color: black;
+	padding-top: $double;
+	min-width: $grid * 27;
+  	@include respond-tablet {
+		position: absolute; // DEL WHEN FINAL
+		top: 77px;
+		margin-right: 0;
+	}
+	@include respond-desktop {
+		top: 64px;
+	}
+	& > li > a {
+		font-family: $font-hed-alt;
+		padding: $half 12px $half $grid * 3;
+		font-size: $size-body;
+		text-align: right;
+		&:hover, &:focus {
+			background-color: $color-hover;
+			color: white;
+		}
+		@include respond-tablet {
+			padding-right: 20px;
+		}
+	}
+}
+
+.dropdown.open {
+	.dropdown-menu {
+		display: block;
+	}
+}
+
+.dropdown-header {
+	font-family: $font-hed-alt;
     font-weight: 400;
-    src: url('../fonts/RobotoSlab-Regular.eot');
-    src: local("Roboto Slab Regular"), local("RobotoSlab-Regular"), url('../fonts/RobotoSlab-Regular.eot?#iefix') format("embedded-opentype"), url('../fonts/RobotoSlab-Regular.woff') format("woff"), url('../fonts/RobotoSlab-Regular.ttf') format("truetype")
-    }
-/* End - our locally hosted Google Fonts */
+    letter-spacing: 1px;
+    text-align: right;
+    padding-right: 11px;
+    padding-top: 7px;
+    color: $color-blue;
+    text-transform: uppercase;
+	@include respond-tablet {
+		padding-right: 20px;
+	}
+}
 
+._expanded .navbar-create { // review
+	margin: 0;
+    background-color: $color-blue;
+    color: white;
+    padding-top: $double !important;
+    padding-bottom: $double !important;
+    margin-top: $grid;
+    margin-bottom: $grid;
+    margin-right: $half;
+    margin-left: $half;
+    padding-right: 12px;
+    &:after {
+		content: '';
+		width: 9px;
+		height: 17px;
+		display: inline-block;
+		margin-left: $grid;
+		position: relative;
+		top: 3px;
+		background-image: url('../img/ui/perma-ui-chev-right-small.png');
+		background-repeat: no-repeat;
+		background-position: -45px center;
+		background-size: 54px 17px;
+    }
+}
+
+.navbar-create {
+	@include respond-tablet {
+		margin: $double $double;
+	}
+}
+
+.navbar-collapse {
+	padding: 0;
+}
+
+// undo-ing bootstrap
+
+.navbar-nav.navbar-right:last-child {
+	margin-right: 0 !important;
+}
+
+
+// iframe end
+
+
+/*
 
 html {
     position:relative;
@@ -87,10 +474,10 @@ p {
     margin-top: 15px;
 }
 
-/* Global end */
+// Global end 
 
 
-/* Compact header start */
+// Compact header start 
 
 #compact-header {
     display: none;
@@ -112,9 +499,9 @@ header #compact-header .infinity-logo   {
     margin-top: 4px;
 }
 
-/* Compact header end */
+// Compact header end
 
-/* Full header start */
+// Full header start
 
 header #full-header .controls {
     margin-bottom: 30px;
@@ -216,35 +603,12 @@ ul li {
 #pdf_cap_container_complete {
     display: none;
 }
-/* Full header end */
+// Full header end
 
 
-/* iframe start */
-
-iframe {
-    border-width: 0px 0px;
-	border-style: solid;
-	border-color: #999;
-    text-align:auto;
-    background:#fff;
-    margin:0px auto;
-    padding:auto;
-    display:block;
-    overflow-x:scroll;
-    overflow-y: scroll;
-    height:100%;
-    width:100%;
-
-}
-
-.negative-margin {
-	margin-top:-20px;
-}
-
-/* iframe end */
 
 
-/* Watermark start */
+// Watermark start
 
 .watermark {
 	margin:0 auto;
@@ -268,9 +632,9 @@ img.watermark-image {
 	pointer-events:none;
 }
 
-/* Watermark end */
+// Watermark end
 
-/* Buttons start */
+// Buttons start
 
 .button-container p {
     margin: 4px 4px;
@@ -313,10 +677,10 @@ a.btn.user-delete:hover, a.btn.user-delete:focus {
   	color:#dd3800;
 }
 
-/* Buttons end */
+// Buttons end
 
 
-/* Dark archive start */
+// Dark archive start
 
 .darchive {
 	text-align:center;
@@ -335,4 +699,5 @@ img.dark-bulb {
   	width:160px;
 }
 
-/* Dark archive end */
+// Dark archive end
+*/
