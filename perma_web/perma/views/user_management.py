@@ -1617,7 +1617,8 @@ http://%s%s
     send_contact_email(
         "Perma.cc new library registrar account request",
         content,
-        pending_registrar.email
+        pending_registrar.email,
+        request
     )
     
 
