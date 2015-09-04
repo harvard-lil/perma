@@ -70,6 +70,9 @@ footer {
 		color: $color-orange;
 		font-size: 26px;
 	}
+	p {
+		max-width: none !important;
+	}
 }
 
 .carousel-control {
@@ -162,7 +165,7 @@ body.modal-open {
   display: inline-block;
   width: 10px;
   height: 10px;
-  margin: 1px;
+  margin: 1px !important;
   text-indent: -999px;
   cursor: pointer;
   border: 2px solid $color-orange;
@@ -173,7 +176,7 @@ body.modal-open {
 .carousel-indicators .active {
   width: 12px;
   height: 12px;
-  margin: 0;
+  margin: 0 !important;
   background-color: $color-orange;
 }
 
@@ -1087,6 +1090,17 @@ p.body { @extend %style-body-text; }
 	    font-weight: 700;
 	    font-size: 24px;
 	}
+	.col-sm-6:first-child {
+		display: none;
+	}
+	.col-sm-6 {
+		width: 100%;
+		text-align: center;
+	}
+	p {
+		margin-left: auto;
+		margin-right: auto;
+	}
 }
 
 .preview-row._success {
@@ -1268,6 +1282,10 @@ p + .thumbnail-placeholder {
 }
 
 .modal.in {}
+
+.modal-backdrop {
+	position: fixed;
+}
 
 .modal-dialog {
 	position: relative;
@@ -2626,7 +2644,8 @@ border-radius: 3px;
 }
 
 .carousel-control {
-    background-color: $color-background;
+    position: absolute;
+    background-color: transparent;
     @include opacity(.9);
     bottom: 0px;
     &:focus {
@@ -2783,6 +2802,7 @@ margin-bottom: 10px;
 
 //	Footer 
 
+/*
 footer {
     color: white;
     text-align: left;
@@ -2876,7 +2896,7 @@ footer {
 	    }
     }
 }
-
+*/
 
 //	Home 
 
