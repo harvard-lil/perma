@@ -15,12 +15,15 @@ import datetime
 import logging
 import robotparser
 import time
-import warcprox.warcprox as warcprox
 import requests
 import errno
 import tempdir
 from socket import error as socket_error
 import internetarchive
+import Queue as queue
+from warcprox.controller import WarcproxController
+from warcprox.warcprox import WarcProxyHandler, WarcProxy
+from warcprox.warcwriter import WarcWriter, WarcWriterThread
 
 from django.core.files.storage import default_storage
 from django.core.mail import send_mail
@@ -142,23 +145,21 @@ def proxy_capture(self, link_guid, user_agent=''):
         unique_requests = set()
         unique_responses = set()
         count_lock = threading.Lock()
-        class CountingRequestHandler(warcprox.WarcProxyHandler):
+        class CountingRequestHandler(WarcProxyHandler):
             def _proxy_request(self):
                 with count_lock:
                     unique_requests.add(self.url)
-                warcprox.WarcProxyHandler._proxy_request(self)
+                WarcProxyHandler._proxy_request(self)
                 with count_lock:
                     unique_responses.add(self.url)
 
         # connect warcprox to an open port
         warcprox_port = 27500
-        recorded_url_queue = warcprox.queue.Queue()
-        fake_cert_authority = warcprox.CertificateAuthority()
+        recorded_url_queue = queue.Queue()
         for i in xrange(500):
             try:
-                proxy = warcprox.WarcProxy(
+                proxy = WarcProxy(
                     server_address=("127.0.0.1", warcprox_port),
-                    ca=fake_cert_authority,
                     recorded_url_q=recorded_url_queue,
                     req_handler_class=CountingRequestHandler
                 )
@@ -176,11 +177,12 @@ def proxy_capture(self, link_guid, user_agent=''):
             return requests.get(url,
                                 headers={'User-Agent': user_agent},
                                 proxies={'http': 'http://' + proxy_address, 'https': 'http://' + proxy_address},
-                                cert=fake_cert_authority.ca_file)
+                                cert=proxy.ca.ca_file)
 
         # start warcprox in the background
-        warc_writer = warcprox.WarcWriterThread(recorded_url_q=recorded_url_queue, gzip=True, port=warcprox_port)
-        warcprox_controller = warcprox.WarcproxController(proxy, warc_writer)
+        warc_writer = WarcWriter(gzip=True, port=warcprox_port)
+        warc_writer_thread = WarcWriterThread(recorded_url_q=recorded_url_queue, warc_writer=warc_writer)
+        warcprox_controller = WarcproxController(proxy, warc_writer_thread)
         warcprox_thread = threading.Thread(target=warcprox_controller.run_until_shutdown, name="warcprox", args=())
         warcprox_thread.start()
 
@@ -188,7 +190,7 @@ def proxy_capture(self, link_guid, user_agent=''):
 
         # fetch page in the background
         print "Fetching url."
-        browser = get_browser(user_agent, proxy_address, fake_cert_authority.ca_file)
+        browser = get_browser(user_agent, proxy_address, proxy.ca.ca_file)
         browser.set_window_size(1024, 800)
         start_time = time.time()
         page_load_thread = threading.Thread(target=browser.get, args=(target_url,))  # returns after onload
