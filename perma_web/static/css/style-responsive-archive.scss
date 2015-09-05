@@ -110,7 +110,7 @@ header {
 
 .title {
 	font-size: 24px;
-	font-weight: 800;
+	font-weight: 700;
 	line-height: 1.1;
 	margin-bottom: 0;
 }
@@ -217,11 +217,10 @@ header {
 		margin-left: $grid;
 	}
 	&:hover {
-		border-color: $color-white;
+		background-color: $color-trans-lightgray;
 	}
 	&:active {
-		border-color: $color-black;
-		background-color: $color-black;
+		border-color: $color-trans-gray;
 	}
 	&:hover::after {
 	}
@@ -240,7 +239,6 @@ header {
 	}
 	&:active {
 		border-color: $color-black;
-		background-color: $color-black;
 	}
 }
 
