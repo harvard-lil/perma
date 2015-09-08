@@ -174,11 +174,11 @@
     <p class="message-large">Success!</p>
     {{#if vesting_privs }}
             <p>Your Perma Link is below.</p>
-            <p class="message-url"> <a href="{{url}}" target="_blank" class="perma">{{url}}</a></p>
+            <p class="message-url"> <a href="{{url}}" target="_blank" class="perma" id="perma-success-url">{{url}}</a></p>
             <p>This unvested Perma Link will be active for two years. Review and vest it to preserve it permanently.</p>
     {{ else }}
             <p>Your Perma Link is below.</p>
-            <p class="message-url"> <a href="{{url}}" target="_blank" class="perma">{{url}}</a></p>
+            <p class="message-url"> <a href="{{url}}" target="_blank" class="perma" id="perma-success-url">{{url}}</a></p>
             <p>This unvested Perma Link will be active for two years. To preserve it permanently, it needs to be vested by a partner organization. <a href="{{userguide_url}}">Learn more about vesting.</a></p>
     {{/if}}
 </script>
