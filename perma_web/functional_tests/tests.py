@@ -246,7 +246,7 @@ class FunctionalTest(StaticLiveServerTestCase):
         assert_text_displayed('Live page view', 'a')
         archive_view_link = get_id('warc_cap_container_complete')
         repeat_while_exception(lambda: archive_view_link.click(), ElementNotVisibleException) # wait for archiving to finish
-        warc_url = fix_host(self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src'))
+        warc_url = fix_host(self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src'), settings.WARC_HOST)
         self.driver.get(warc_url)
         assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
 
