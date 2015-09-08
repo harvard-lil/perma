@@ -44,10 +44,6 @@ def receive_feedback(request):
     """
     Take feedback data and send it off in an email
     """
-    
-    user_agent = ''
-    if 'HTTP_USER_AGENT' in request.META:
-        user_agent = request.META.get('HTTP_USER_AGENT')
 
     visited_page = request.POST.get('visited_page')
     feedback_text = request.POST.get('feedback_text')
@@ -61,26 +57,22 @@ def receive_feedback(request):
     
     from_address = request.POST.get('user_email')
     content = '''
-    Visited page: %s
-    
-    COMMENTS
-    --------
-    %s
-    
-    
-    %s
-    
-    USER INFO
-    ---------
-    %s
+Visited page: %s
 
-''' % (visited_page, feedback_text, broken_text, user_agent)
+COMMENTS
+--------
+%s
+
+
+%s
+''' % (visited_page, feedback_text, broken_text)
     logger.debug(content)
     
     send_contact_email(
         "New Perma feedback",
         content,
-        from_address
+        from_address,
+        request
     )
         
     response_object = {'submitted': 'true', 'content': content}

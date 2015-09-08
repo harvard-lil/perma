@@ -145,11 +145,24 @@ def copy_file_data(from_file_handle, to_file_handle, chunk_size=1024*100):
 
 ### email ###
 
-def send_contact_email(title, content, from_address):
+def send_contact_email(title, content, from_address, request):
     """
         Send a message on behalf of a user to the admins.
         Use reply-to for the user address so we can use email services that require authenticated from addresses.
     """
+
+    # append user agent and from email
+    user_agent = ''
+    if request:
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+    content += """
+
+----
+User email: %s
+User agent: %s
+""" % (from_address, user_agent)
+
+    # send message
     EmailMessage(
         title,
         content,

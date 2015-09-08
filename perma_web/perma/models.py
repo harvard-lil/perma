@@ -752,6 +752,8 @@ class Link(models.Model):
         # we make sure that we won't accidentally try to create the file multiple
         # times in parallel.
         asset = self.assets.select_for_update().first()
+        if not asset:
+            return  # this is not an old-style Link
         if default_storage.exists(self.warc_storage_file()):
             return
 
@@ -1006,7 +1008,7 @@ class CDXLineManager(models.Manager):
 class CDXLine(models.Model):
     link = models.ForeignKey(Link, null=True, related_name='cdx_lines')
     asset = models.ForeignKey(Asset, null=True, related_name='cdx_lines')
-    urlkey = models.URLField(max_length=2100, null=False, blank=False)
+    urlkey = models.CharField(max_length=2100, null=False, blank=False)
     raw = models.TextField(null=False, blank=False)
 
     objects = CDXLineManager()
