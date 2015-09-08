@@ -13,7 +13,8 @@
 @import "compass/css3/opacity";
 
 
-$height-record-hed: $grid * 11;
+$height-record-hed: 97px;
+$color-trans-white: rgba(254,254,254,.75);
 
 // iframe start
 
@@ -98,7 +99,7 @@ header {
 }
 
 .col._details {
-	border-right: 1px solid white;
+	border-right: 1px solid $color-trans-white;
 	padding: $grid * 3;
 	text-align: center;
 }
@@ -145,8 +146,8 @@ header {
 .btn-outside {
 	display: table;
 	height: $height-record-hed;
-	border-left: 1px solid $color-white;
-	border-right: 1px solid $color-white;
+	border-left: 1px solid $color-trans-white;
+	border-right: 1px solid $color-trans-white;
 	padding: $grid * 3;
 	border-top: none;
 	border-bottom: none;
@@ -187,7 +188,7 @@ header {
 
 // dropdown and nav
 
-.dropdown-toggle {
+.nav > li > a.dropdown-toggle {
 	display: none !important; // review
 	font-family: $font-body;
 	font-size: 17px;
@@ -226,7 +227,7 @@ header {
 	}
 }
 
-.open .dropdown-toggle {
+.nav > li.open > a.dropdown-toggle {
 	border-color: $color-background;
 	background-color: $color-background;
 	color: $color-blue;
