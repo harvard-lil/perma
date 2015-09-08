@@ -14,7 +14,7 @@
 
 
 $height-record-hed: 97px;
-$color-trans-white: rgba(254,254,254,.75);
+$color-trans-white: rgba(254,254,254,.65);
 
 // iframe start
 
@@ -134,10 +134,11 @@ header {
 			padding-bottom: 3px;
 			border-bottom: 1px solid;
 			&:hover {
-				color: $color-black;
+				border-color: $color-hover;
 			}
 			&:active {
-				color: $color-hover;
+				border-color: $color-active;
+				color: $color-active;
 			}
 		}
 	}
