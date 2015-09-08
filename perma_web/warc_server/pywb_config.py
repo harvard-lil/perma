@@ -60,14 +60,19 @@ class PermaRoute(archivalrouter.Route):
         """Parse the GUID and find the CDXLine in the DB"""
 
         guid = matcher.group(1)
-        urlkey = surt(wbrequest.wb_url.url)
-
         try:
             # This will filter out links that have user_deleted=True
             link = Link.objects.get(guid=guid)
         except Link.DoesNotExist:
             raise NotFoundException()
 
+        if not wbrequest.wb_url:
+            # This is a bare request to /warc/1234-5678/ -- return so we can send a forward to submitted_url in PermaGUIDHandler.
+            wbrequest.custom_params['guid'] = guid
+            wbrequest.custom_params['url'] = link.submitted_url
+            return
+
+        urlkey = surt(wbrequest.wb_url.url)
         lines = CDXLine.objects.filter(urlkey=urlkey, link_id=guid)
 
         # Legacy archives didn't generate CDXLines during
@@ -161,6 +166,14 @@ class PermaGUIDHandler(PermaHandler):
     def __init__(self, query_handler, config=None):
         super(PermaGUIDHandler, self).__init__(query_handler, config)
         self.response_class = PermaGUIDMementoResponse
+
+    def __call__(self, wbrequest):
+        """
+            If someone requests a bare GUID url like /warc/1234-5678/, forward them to the submitted_url playback for that GUID.
+        """
+        if wbrequest.wb_url_str == '/':
+            return WbResponse.redir_response("/warc/%s/%s" % (wbrequest.custom_params['guid'], wbrequest.custom_params['url']), status='301 Moved Permanently')
+        return super(PermaGUIDHandler, self).__call__(wbrequest)
 
     def _init_replay_view(self, config):
         replay_view = super(PermaGUIDHandler, self)._init_replay_view(config)

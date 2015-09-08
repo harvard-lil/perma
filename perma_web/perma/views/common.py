@@ -199,31 +199,23 @@ def contact(request):
         if form.is_valid():
             # If our form is valid, let's generate and email to our contact folks
 
-            user_agent = 'Unknown'
-            if 'HTTP_USER_AGENT' in request.META:
-                user_agent = request.META.get('HTTP_USER_AGENT')
-
             from_address = form.cleaned_data['email']
 
             content = '''
-            This is a message from the Perma.cc contact form, http://perma.cc/contact
+This is a message from the Perma.cc contact form, http://perma.cc/contact
 
 
 
-            Message from user
-            --------
-            %s
-
-
-            User email: %s
-            User agent: %s
-
-            ''' % (form.cleaned_data['message'], from_address, user_agent)
+Message from user
+--------
+%s
+''' % (form.cleaned_data['message'])
 
             send_contact_email(
                 "New message from Perma contact form",
                 content,
-                from_address
+                from_address,
+                request
             )
 
             # redirect to a new URL:

@@ -22,7 +22,7 @@
                             {% endif %}
                             <br>{{registrar.email}}
                     {% endwith %}
-                            <p>{{ vo }} <a href="{% url 'user_management_organization_user_leave_organization' vo.id %}" class="btn btn-default btn-xs" role="button">Leave</a></p>
+                            <p>{{ vo }} <a href="{% url 'user_management_organization_user_leave_organization' vo.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Leave</a> <a href="{% url 'user_management_manage_single_organization' vo.id %}" class="edit-org-link">Edit organization</a></p>
                         </p>
                     
                     {% endfor %}
@@ -32,13 +32,15 @@
             {% endif %}
             
             {% if request.user.registrar %}
-                <p>
+                <p class="registrar-info">
                 {% if request.user.registrar.website %}
-                    <strong><a href="{{registrar.website}}" target="_blank">{{request.user.registrar}}</a></strong>
+                    <strong><a href="{{request.user.registrar.website}}" target="_blank">{{request.user.registrar}}</a></strong>
                 {% else %}
                     <strong>{{request.user.registrar}}</strong>
                 {% endif %}
                 <br>{{request.user.registrar.email}}
+                </p>
+                <a href="{% url 'user_management_manage_single_registrar' request.user.registrar.id %}" class="btn btn-default btn-xs edit-registrar-btn" role="button">Edit</a>
             {% endif %}
         </div>
     <br/><br/>

@@ -106,12 +106,15 @@ def manage_registrar(request):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_member())
 def manage_single_registrar(request, registrar_id):
     """ Linky admins can manage registrars (libraries)
         in this view, we allow for edit/delete """
 
     target_registrar = get_object_or_404(Registrar, id=registrar_id)
+    if request.user.is_registrar_member():	
+    	if not target_registrar == request.user.registrar:
+            raise Http404
 
     context = {'target_registrar': target_registrar,
         'this_page': 'users_registrars'}
@@ -123,7 +126,10 @@ def manage_single_registrar(request, registrar_id):
         if form.is_valid():
             new_user = form.save()
             
-            return HttpResponseRedirect(reverse('user_management_manage_registrar'))
+            if request.user.is_staff:
+            	return HttpResponseRedirect(reverse('user_management_manage_registrar'))
+            else:
+            	return HttpResponseRedirect(reverse('user_management_settings_organizations'))
 
         else:
             context.update({'form': form,})
@@ -168,7 +174,7 @@ def approve_pending_registrar(request, registrar_id):
     
     
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_member())
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
 def manage_organization(request):
     """
     Registry and registrar members can manage organizations (journals)
@@ -185,7 +191,10 @@ def manage_organization(request):
 
     # If not registry member, return just those orgs that belong to the registrar member's registrar
     if not is_registry:
-        orgs = orgs.filter(registrar__id=request.user.registrar_id)
+    	if request.user.is_registrar_member():
+        	orgs = orgs.filter(registrar__id=request.user.registrar_id)
+        else:
+        	orgs = orgs.filter(pk__in=request.user.organizations.all())
 
     # handle registrar filter
     registrar_filter = request.GET.get('registrar', '')
@@ -241,12 +250,16 @@ def manage_organization(request):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_member())
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
 def manage_single_organization(request, org_id):
     """ Registry and registrar members can manage organizations (journals)
         in this view, we allow for edit/delete """
 
     target_org = get_object_or_404(Organization, id=org_id)
+    
+    if request.user.is_organization_member:
+        if target_org not in request.user.organizations.all():
+            raise Http404
 
     context = {'target_org': target_org,
         'this_page': 'users_orgs'}
@@ -666,7 +679,10 @@ def registrar_user_add_user(request):
     else:
         if not target_user.can_vest():
             cannot_add = False
-        form = None
+        if request.user.is_registrar_member():
+        	form = None
+        else:
+        	form = UserAddRegistrarForm(form_data, prefix = "a")
             
     context = {'this_page': 'users_registrar_users', 'user_email': user_email, 'form': form, 'target_user': target_user, 'cannot_add': cannot_add}
 
@@ -678,6 +694,8 @@ def registrar_user_add_user(request):
     
             if request.user.is_registrar_member():
                 target_user.registrar = request.user.registrar
+            else:
+            	target_user.registrar = form.cleaned_data['registrar']
     
             if is_new_user:
                 target_user.is_active = False
@@ -1521,7 +1539,7 @@ def email_new_organization_user(request, user, org):
 
 http://%s%s
 
-''' % (org.name, org.name, host, reverse('create_link'))
+''' % (org.name, org.name, host, reverse('user_management_settings_organizations'))
 
     send_mail(
         "Your Perma.cc account is now associated with {org}".format(org=org.name),
@@ -1542,7 +1560,7 @@ def email_new_registrar_user(request, user):
 
 http://%s%s
 
-''' % (user.registrar.name, user.registrar.name, host, reverse('create_link'))
+''' % (user.registrar.name, user.registrar.name, host, reverse('user_management_settings_organizations'))
 
     send_mail(
         "Your Perma.cc account is now associated with {registrar}".format(registrar=user.registrar.name),
@@ -1599,7 +1617,8 @@ http://%s%s
     send_contact_email(
         "Perma.cc new library registrar account request",
         content,
-        pending_registrar.email
+        pending_registrar.email,
+        request
     )
     
 
