@@ -1,6 +1,7 @@
 $(document).ready(function() {
     $("#details-button").click(function () {
-        $(this).text($(this).text() == "Show details" ? "Hide details" : "Show details");
+        $(this).text($(this).text() == "Show record details" ? "Hide record details" : "Show record details");
+        $('header').toggleClass('_activeDetails');
     });    
 
     adjustHeight();

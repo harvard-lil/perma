@@ -15,6 +15,8 @@
 
 $height-record-hed: 97px;
 $color-trans-white: rgba(254,254,254,.65);
+$color-yellow: #d0a60f;
+
 
 // iframe start
 
@@ -23,7 +25,7 @@ iframe {
 	border-style: solid;
 	border-color: #999;
     text-align:auto;
-    background:#fff;
+    background:#ffffff;
     margin:0px auto;
     padding:auto;
     display:block;
@@ -67,24 +69,37 @@ header {
 	}
 }
 
-.btn-primary {
+.btn-ui-small {
 	font-size: 12px;
 	font-weight: 400;
 	padding: 8px 12px;
-	border: 1px solid $color-white;
+	border: 1px solid ;
 	border-radius: 10em;
+	color: $color-blue;
+	border-color: $color-blue;
+	background-color: transparent;
 	&:hover {
-		background-color: white;
-		color: $color-blue;
-	}
-	&:hover {
-		background-color: white;
-		color: $color-blue;
+		border-width: 2px;
+		padding: 7px 11px;
 	}
 	&:active {
-		background-color: $color-black;
-		border-color: $color-black;
-		color: $color-white;
+		border-width: 2px;
+		padding: 7px 11px;
+		color: white;
+		background-color: $color-blue;
+	}
+}
+
+.btn-ui-small.details {
+	@extend %btn-ui-small;
+	border-color: $color-white;
+	color: $color-white;
+	width: 11em;
+	&:hover {
+	}
+	&:active {
+		color: $color-blue;
+		background-color: $color-white;
 	}
 }
 
@@ -99,13 +114,17 @@ header {
 }
 
 .col._details {
-	border-right: 1px solid $color-trans-white;
 	padding: $grid * 3;
 	text-align: center;
 }
 
 .col._main {
 	padding-left: $grid * 3;
+	border-left: 1px solid $color-trans-white;
+}
+
+.col._livepage {
+	padding-right: 0;
 }
 
 
@@ -117,19 +136,16 @@ header {
 }
 
 .creation {
-	font-family: $font-body;
-	font-size: 17px;
-	font-weight: 200;
-	padding-top: $half;
+	font-family: $font-hed-alt;
+	font-size: 14px;
+	font-weight: 400;
+	padding-top: $grid;
 	margin-bottom: 0;
 	.action {
-		font-size: 12px;
-		font-family: $font-hed-alt;
-		font-weight: 400;
 		display: inline-block;
 		margin-left: $double;
 		padding-bottom: 2px;
-		vertical-align: middle;
+		vertical-align: baseline;
 		a {
 			padding-bottom: 3px;
 			border-bottom: 1px solid;
@@ -144,6 +160,10 @@ header {
 	}
 }
 
+.cat {
+	font-weight: 700;
+}
+
 .btn-outside {
 	display: table;
 	height: $height-record-hed;
@@ -152,6 +172,8 @@ header {
 	padding: $grid * 3;
 	border-top: none;
 	border-bottom: none;
+	margin-left: auto;
+	margin-right: 0;
 	span {
 		display: table-cell;
 		vertical-align: middle;
@@ -413,6 +435,92 @@ li.dropdown {
 
 .navbar-nav.navbar-right:last-child {
 	margin-right: 0 !important;
+}
+
+// ui-tray
+
+%ui-tray-alignment {
+	padding-left: $grid * 5;
+	padding-right: $grid * 5;
+	margin: 0 -$double;
+}
+
+.ui-tray {
+	z-index: 100;
+    background-color: white;
+    border: 1px solid $color-blue;
+    color: $color-black;
+    position: absolute;
+    left: 16.66667%;
+    width: 66.66667%;
+    margin-top: $grid;
+    border-radius: 2px;
+    overflow: hidden;
+    box-sizing: border-box;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
+    height: auto !important;
+    display: none;
+}
+
+dl.tray-detail-group {
+	padding: $double $grid * 3;
+    margin: 0;
+	& + .tray-detail-group {
+		border-top: 1px solid $color-trans-lightgray;
+	}
+}
+
+dd.tray-detail-entry {
+	font-size: 16px;
+	font-weight: 200;
+}
+
+p.fp {
+	font-size: 10px;
+	color: $color-trans-gray;
+	font-weight: 400;
+	font-family: $font-hed-alt;
+	line-height: 1.4;
+	padding-top: $grid * 3;
+	a {
+		text-decoration: underline;
+		&:hover {
+			color: $color-blue;
+		}
+	}
+}
+
+.tray-actions {
+	padding-top: $double;
+    padding-bottom: $double;
+    background-color: $color-background;
+    text-align: left;
+    padding-left: $grid * 3;
+    margin-top: $half;
+}
+
+a.btn-ui-small.btn-dashboard {
+	border-color: $color-blue;
+	color: $color-blue;
+	margin-left: -2px;
+	margin-right: $grid;
+	&.vest {
+	}
+	&.darchive {
+	}
+	&.user-delete {
+		border-color: $color-error;
+		color: $color-error;
+	}
+}
+
+
+// ui-activeDetails
+
+._activeDetails {
+	.ui-tray {
+		display: block;
+	}
 }
 
 

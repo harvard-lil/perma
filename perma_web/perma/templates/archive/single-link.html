@@ -44,13 +44,13 @@
         <div class="primary-segment row style="background-color: #09f"">
             <div class="col col-sm-2 _details">
             	<div class="content">
-	                <button id="details-button" class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapse-details" aria-expanded="false" aria-controls="collapse-details">Show record details</button>
+	                <button id="details-button" class="btn btn-ui-small btn-primary details" type="button" data-toggle="collapse" data-target="#collapse-details" aria-expanded="false" aria-controls="collapse-details">Show record details</button>
             	</div>
             </div>
             <div class="col col-sm-5 _main">
             	<div class="content">
 	                <p class="title">This page is a <span class="logo">Perma.cc</span> record</p>
-	                <p class="creation">Created {{ link.creation_timestamp|local_datetime:"F j, Y" }}
+	                <p class="creation"><span class="cat">Created</span> {{ link.creation_timestamp|local_datetime:"F j, Y" }}
 	
 	                    {% if serve_type != 'image' %}
 	                        {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
@@ -63,12 +63,12 @@
 	                </p>
             	</div>
             </div>
-            <div class="col col-sm-2 _livepage">
+            <div class="col col-sm-3 _livepage">
             	<div class="content">
 	                <a class="btn btn-outside" href="{{link.submitted_url}}" target="_blank"><span>View the live page</span></a>
             	</div>
             </div>
-            <div class="col col-sm-3 _user">
+            <div class="col col-sm-2 _user">
             	<div class="content">
 	                {% if request.user.is_authenticated %}
 	                    <div class="navbar-collapse collapse">
@@ -127,37 +127,54 @@
             </div>
         </div>
 
-        <div id="collapse-details" class="details-segment row collapse" style="background-color: #fff">
-            <div class="col-sm-12">
-                <p>Original page URL, {{link.submitted_url}}</p>
-                <p>Original page title, {{link.submitted_title}}</p>
-                <p>Record creation date, {{ link.creation_timestamp|local_datetime }}</p>
-
+        <div id="collapse-details" class="details-segment ui-tray row collapse">
+            <div class="tray-details">
+            	<dl class="tray-detail-group">
+            		<dt class="tray-detail-title">Original page URL</dt>
+            		<dd class="tray-detail-entry">{{link.submitted_url}}</dd>
+				</dl>
+            	<dl class="tray-detail-group">
+					<dt class="tray-detail-title">Original page title</dt>
+            		<dd class="tray-detail-entry">{{link.submitted_title}}</dd>
+            	</dl>
+            	<dl class="tray-detail-group">
+            		<dt class="tray-detail-title">Record creation date</dt>
+            		<dd class="tray-detail-entry">{{ link.creation_timestamp|local_datetime }}</dd>
+				</dl>
+            	
                 {% if link.organization %}
-                    <p>Archiving Organization</p>
-                    <p>{{ link.organization }}</p>
+            	<dl class="tray-detail-group">
+                    <p class="tray-detail-title">Archiving Organization</p>
+                    <p class="tray-detail-title">{{ link.organization }}</p>
+            	</dl>
                 {% endif %}
 
+                <!--
+                <p class="fp">Perma.cc is a web archiving service developed by the Library Innovation Lab at Harvard University. The data captured in the archived Perma.cc record is the copyright of its original creators. Neither Harvard University nor the archiving individual are responsible for its content. <a href="http://perma.cc/about">More about Perma.cc.</a></p>
+                -->
+                
+            </div>
+            <div class="tray-actions">
                 {% if request.user.is_authenticated %}
 
                     {% if request.user.can_vest and not link.vested %}
-                        <a class="btn vest banner-btn" href="{% url 'vest_link' link.guid %}">Vest site</a>
+                        <a class="btn btn-ui-small btn-dashboard vest" href="{% url 'vest_link' link.guid %}">Vest this record</a>
                     {% endif %}
 
                     {% if not link|is_darchive %}
                         {% if request.user.is_staff %}
-                            <a class="btn dashboard" href="{% url 'dark_archive_link' link.guid %}">Dark archive</a>
+                            <a class="btn btn-ui-small btn-dashboard darchive" href="{% url 'dark_archive_link' link.guid %}">Move to dark archive</a>
                         {% elif request.user.is_registrar_member and link.organization.registrar == request.user.registrar %}
-                            <a class="btn dashboard" href="{% url 'dark_archive_link' link.guid %}">Dark archive</a>
+                            <a class="btn btn-ui-small btn-dashboard darchive" href="{% url 'dark_archive_link' link.guid %}">Move to dark archive</a>
                         {% elif request.user.is_organization_member and link.organization in request.user.organizations.all %}
-                            <a class="btn dashboard" href="{% url 'dark_archive_link' link.guid %}">Dark archive</a>
+                            <a class="btn btn-ui-small btn-dashboard darchive" href="{% url 'dark_archive_link' link.guid %}">Move to dark archive</a>
                         {% elif request.user.is_authenticated and request.user.pk == link.created_by_id %}
-                            <a class="btn dashboard" href="{% url 'dark_archive_link' link.guid %}">Dark archive</a>
+                            <a class="btn btn-dashboard darchive" href="{% url 'dark_archive_link' link.guid %}">Move to dark archive</a>
                         {% endif %}
                     {% endif %}
 
                     {% if request.user.is_authenticated and request.user.pk == link.created_by_id and not link.vested %}
-                        <a class="btn user-delete" href="{% url 'user_delete_link' link.guid %}"><i class="icon-trash"></i> Delete</a>
+                        <a class="btn btn-ui-small btn-dashboard user-delete" href="{% url 'user_delete_link' link.guid %}"><i class="icon-trash"></i> Delete record</a>
                     {% endif %}
 
                 {% endif %}
@@ -165,13 +182,12 @@
                 {% if not request.user.is_authenticated or request.user.pk != link.created_by_id %}
                     <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-large btn-info infinity-navbar navbar-btn" title="Flag as inappropriate">Flag as inappropriate</a>
                 {% endif %}
-                
             </div>
         </div>
 
         <div class="details-message row" style="background-color: #adf">
             {% if can_view and link.dark_archived %}
-                This archive is in the dark archive. Most folks can't see it.
+                This archive is in the dark archive. It’s only visible to libraries and your Archiving Organization.
             {% endif %}
         </div>
 
