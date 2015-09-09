@@ -470,9 +470,15 @@ dl.tray-detail-group {
 	}
 }
 
+dt.tray-detail-title {
+	font-weight: 700;
+	color: $color-blue;
+}
+
 dd.tray-detail-entry {
-	font-size: 16px;
-	font-weight: 200;
+	font-size: 17px;
+	font-weight: 400;
+	margin-top: 2px;
 }
 
 p.fp {
