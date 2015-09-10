@@ -174,14 +174,14 @@
                     {% endif %}
 
                     {% if request.user.is_authenticated and request.user.pk == link.created_by_id and not link.vested %}
-                        <a class="btn btn-ui-small btn-dashboard user-delete" href="{% url 'user_delete_link' link.guid %}"><i class="icon-trash"></i> Delete record</a>
+                        <a class="btn btn-ui-small btn-dashboard user-delete" href="{% url 'user_delete_link' link.guid %}">Delete record</a>
                     {% endif %}
 
                 {% endif %}
 
-                {% if not request.user.is_authenticated or request.user.pk != link.created_by_id %}
-                    <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-large btn-info infinity-navbar navbar-btn" title="Flag as inappropriate">Flag as inappropriate</a>
-                {% endif %}
+                {# if not request.user.is_authenticated or request.user.pk != link.created_by_id #}
+                    <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-ui-small btn-dashboard flag" title="Flag as inappropriate">Flag as inappropriate</a>
+                {# endif #}
             </div>
         </div>
 

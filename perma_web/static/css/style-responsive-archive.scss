@@ -72,19 +72,19 @@ header {
 .btn-ui-small {
 	font-size: 12px;
 	font-weight: 400;
-	padding: 8px 12px;
-	border: 1px solid ;
+	padding: 7px 11px;
+	border: 2px solid ;
 	border-radius: 10em;
 	color: $color-blue;
 	border-color: $color-blue;
 	background-color: transparent;
 	&:hover {
-		border-width: 2px;
-		padding: 7px 11px;
+		border-width: 3px;
+		padding: 6px 10px;
 	}
 	&:active {
-		border-width: 2px;
-		padding: 7px 11px;
+		border-width: 3px;
+		padding: 6px 10px;
 		color: white;
 		background-color: $color-blue;
 	}
@@ -129,10 +129,21 @@ header {
 
 
 .title {
-	font-size: 24px;
+	font-size: 30px;
 	font-weight: 700;
 	line-height: 1.1;
 	margin-bottom: 0;
+	margin-left: -.075em;
+//	.logo:after {
+//		content: '';
+//		background-image: url('../img/perma-logo-white.svg');
+//		background-size: 28px auto;
+//		background-repeat: no-repeat;
+//		width: 32px;
+//		height: 13px;
+//		margin-left: 6px;
+//		display: inline-block;
+//	}
 }
 
 .creation {
@@ -451,10 +462,12 @@ li.dropdown {
     border: 1px solid $color-blue;
     color: $color-black;
     position: absolute;
-    left: 16.66667%;
-    width: 66.66667%;
-    margin-top: $grid;
-    border-radius: 2px;
+    left: 16.6%;
+    width: 66.666666667%;
+    margin-top: 0;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
+    border-top: none;
     overflow: hidden;
     box-sizing: border-box;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
@@ -502,7 +515,8 @@ p.fp {
     background-color: $color-background;
     text-align: left;
     padding-left: $grid * 3;
-    margin-top: $half;
+    padding-right: $grid * 2;
+	margin-top: $half;
 }
 
 a.btn-ui-small.btn-dashboard {
@@ -510,6 +524,9 @@ a.btn-ui-small.btn-dashboard {
 	color: $color-blue;
 	margin-left: -2px;
 	margin-right: $grid;
+	&:active {
+		color: white;
+	}
 	&.vest {
 	}
 	&.darchive {
@@ -517,8 +534,37 @@ a.btn-ui-small.btn-dashboard {
 	&.user-delete {
 		border-color: $color-error;
 		color: $color-error;
+		&:active {
+			background-color: $color-error;
+			color: white;
+		}
+	}
+	&.flag {
+		float: right;
+	    &:before {
+			content: '';
+			width: 15px;
+			height: 16px;
+			display: inline-block;
+			margin-right: 6px;
+			position: relative;
+			top: 0;
+			background-image: url('../img/ui/perma-ui-flag.svg');
+			background-repeat: no-repeat;
+			background-position: 0 0;
+			background-size: 84px 16px;
+			background-position: -14px * 3;
+			margin-top: -$half;
+			margin-bottom: -$half;
+	    }
+	    &:active:before {
+		    background-position: -14px * 5;
+	    }
 	}
 }
+
+
+
 
 
 // ui-activeDetails
