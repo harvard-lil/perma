@@ -1,5 +1,5 @@
 # heroku requirements
-# these will get added onto the end of requirements.txt by `fab heroku_push`
+# these will get added onto the end of requirements.txt by heroku-buildpack-perma
 
 dj_database_url==0.3.0
 dj-static==0.0.5
