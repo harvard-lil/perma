@@ -8,6 +8,10 @@ addons:
   hosts:
     - perma.dev
 
+cache:
+  directories:
+    - $HOME/.cache/pip
+
 before_install:
   - cp services/travis/settings.py perma_web/perma/settings/
   - cd perma_web
