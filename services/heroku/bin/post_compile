@@ -1,4 +1,5 @@
 #!/bin/sh
 
 # Run Django migrations.
+echo "-----> Migrating database"
 ./manage.py migrate
