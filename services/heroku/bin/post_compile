@@ -1,5 +1,9 @@
 #!/bin/sh
 
+indent() {
+  sed "s/^/       /"
+}
+
 # Run Django migrations.
 echo "-----> Migrating database"
-./manage.py migrate
+./manage.py migrate | indent
