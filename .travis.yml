@@ -8,6 +8,10 @@ addons:
   hosts:
     - perma.dev
 
+cache:
+  directories:
+    - $HOME/.cache/pip
+
 before_install:
   - cp services/travis/settings.py perma_web/perma/settings/
   - cd perma_web
@@ -15,15 +19,17 @@ install:
   - pip install -r requirements.txt
   - pip install coveralls
 before_script:
-  - mysql -e 'create database perma;'
+  - mysql -e 'CREATE DATABASE perma;'
 
   # try to avoid mysql has gone away errors
-  # via https://github.com/travis-ci/travis-ci/issues/2250
-  - echo -e "[server]\nmax_allowed_packet=64M\nwait_timeout=36000" | sudo tee -a /etc/mysql/conf.d/perma.cnf
-  - sudo service mysql restart
+  - mysql -e 'SET GLOBAL max_allowed_packet = 64*1024*1024;'
+  - mysql -e 'SET GLOBAL wait_timeout = 36000;'
 
   - python manage.py collectstatic --noinput
 script:
   fab test
 after_success:
   - coveralls
+
+# See: http://docs.travis-ci.com/user/migrating-from-legacy/?utm_source=legacy-notice&utm_medium=banner&utm_campaign=legacy-upgrade#tl%3Bdr
+sudo: false
