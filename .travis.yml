@@ -36,8 +36,9 @@ sudo: false
 
 deploy:
   provider: heroku
+  strategy: git
   api_key:
-    develop:
+    deploy-develop-to-heroku-on-successful-travis-ci-build:
       secure: X44fGPD+xQCeKFr3smBXOwWeXtkTNlzIWkJbA4sEP3fPVZvso8EDgG3SuQ4G7CF9kgM/pquFp+00/AiE2fPL644iVNJXFW/5ajxpMCc7pFEU8Fbba2uJAA51W+sK/n9hKMxc0ZCk0JA7TZ6sX7cOElMScFnea2ZeuW+XtanD3hM=
   app:
     deploy-develop-to-heroku-on-successful-travis-ci-build: perma-staging
