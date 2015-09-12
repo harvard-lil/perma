@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Run Django migrations.
+./manage.py migrate
