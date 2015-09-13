@@ -10,6 +10,14 @@ ROLLBAR = {
     'branch': os.environ.get('GIT_BRANCH'),
     'root': '/app',
 }
+LOGGING['handlers']['rollbar'] = {
+    'filters': ['require_debug_false'],
+    'access_token': os.environ.get('ROLLBAR_ACCESS_TOKEN'),
+    'environment': 'development' if DEBUG else 'production',
+    'class': 'rollbar.logger.RollbarHandler'
+}
+if os.environ.get('LOG_TO_ROLLBAR'):
+    LOGGING['loggers']['']['handlers'] += ['rollbar']
 
 # Parse database configuration from env DATABASE_URL
 # import dj_database_url
