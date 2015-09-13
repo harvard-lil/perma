@@ -39,7 +39,7 @@ deploy:
   strategy: git
   api_key:
     develop:
-      secure: X44fGPD+xQCeKFr3smBXOwWeXtkTNlzIWkJbA4sEP3fPVZvso8EDgG3SuQ4G7CF9kgM/pquFp+00/AiE2fPL644iVNJXFW/5ajxpMCc7pFEU8Fbba2uJAA51W+sK/n9hKMxc0ZCk0JA7TZ6sX7cOElMScFnea2ZeuW+XtanD3hM=
+      secure: LoWQTXmxz4urd8+O0j09UUr89vGe4+LK5CE40vHkUiuflpCGFtea4nd7oSVlPTOtZHFw0oha59pbJEiT5aE57rAeJoBb3t4+E+GH4kreP9DkXy2wqVmEQZz70I/Js1jaB8Rnu6AqhMsITx2T4nzURPU9o9uEOAyp19Kx3+taguI=
   app:
     develop: perma-staging
   on:
