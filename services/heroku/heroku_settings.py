@@ -2,7 +2,11 @@
 
 from .deployments.settings_prod import *
 
-# Add Rollbar for monitoring
+###########
+# ROLLBAR #
+###########
+
+# Backend
 MIDDLEWARE_CLASSES += ('rollbar.contrib.django.middleware.RollbarNotifierMiddleware',)
 ROLLBAR = {
     'access_token': os.environ.get('ROLLBAR_ACCESS_TOKEN'),
@@ -10,6 +14,13 @@ ROLLBAR = {
     'branch': os.environ.get('GIT_BRANCH'),
     'root': '/app',
 }
+
+# Frontend
+ROLLBAR_CLIENT_ACCESS_TOKEN = os.environ.get('ROLLBAR_CLIENT_ACCESS_TOKEN')
+TEMPLATE_VISIBLE_SETTINGS += ('ROLLBAR_CLIENT_ACCESS_TOKEN',)
+PIPELINE_JS['global']['source_filenames'] += ('js/lib/rollbar.js',)
+
+# Logging
 LOGGING['handlers']['rollbar'] = {
     'filters': ['require_debug_false'],
     'access_token': os.environ.get('ROLLBAR_ACCESS_TOKEN'),
