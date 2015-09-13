@@ -2,6 +2,15 @@
 
 from .deployments.settings_prod import *
 
+# Add Rollbar for monitoring
+MIDDLEWARE_CLASSES += ('rollbar.contrib.django.middleware.RollbarNotifierMiddleware',)
+ROLLBAR = {
+    'access_token': os.environ.get('ROLLBAR_ACCESS_TOKEN'),
+    'environment': 'development' if DEBUG else 'production',
+    'branch': os.environ.get('GIT_BRANCH'),
+    'root': '/app',
+}
+
 # Parse database configuration from env DATABASE_URL
 # import dj_database_url
 # DATABASES['default'] =  dj_database_url.config('DATABASE_URL')
