@@ -2,6 +2,34 @@
 
 from .deployments.settings_prod import *
 
+###########
+# ROLLBAR #
+###########
+
+# Backend
+MIDDLEWARE_CLASSES += ('rollbar.contrib.django.middleware.RollbarNotifierMiddleware',)
+ROLLBAR = {
+    'access_token': os.environ.get('ROLLBAR_ACCESS_TOKEN'),
+    'environment': 'development' if DEBUG else 'production',
+    'branch': os.environ.get('GIT_BRANCH'),
+    'root': '/app',
+}
+
+# Frontend
+ROLLBAR_CLIENT_ACCESS_TOKEN = os.environ.get('ROLLBAR_CLIENT_ACCESS_TOKEN')
+TEMPLATE_VISIBLE_SETTINGS += ('ROLLBAR_CLIENT_ACCESS_TOKEN',)
+PIPELINE_JS['global']['source_filenames'] += ('js/lib/rollbar.js',)
+
+# Logging
+LOGGING['handlers']['rollbar'] = {
+    'filters': ['require_debug_false'],
+    'access_token': os.environ.get('ROLLBAR_ACCESS_TOKEN'),
+    'environment': 'development' if DEBUG else 'production',
+    'class': 'rollbar.logger.RollbarHandler'
+}
+if os.environ.get('LOG_TO_ROLLBAR'):
+    LOGGING['loggers']['']['handlers'] += ['rollbar']
+
 # Parse database configuration from env DATABASE_URL
 # import dj_database_url
 # DATABASES['default'] =  dj_database_url.config('DATABASE_URL')
