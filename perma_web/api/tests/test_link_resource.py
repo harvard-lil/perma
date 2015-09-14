@@ -17,6 +17,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
                 'fixtures/api_keys.json']
 
     serve_files = [os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.html'),
+                   [os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.html'), 'test page.html'],
                    os.path.join(TEST_ASSETS_DIR, 'target_capture_files/noarchive.html'),
                    os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.pdf'),
                    os.path.join(TEST_ASSETS_DIR, 'target_capture_files/favicon.ico'),
@@ -149,6 +150,14 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
         link = Link.objects.get(guid=obj['guid'])
         self.assertTrue(link.dark_archived_robots_txt_blocked)
+
+    def test_should_accept_spaces_in_url(self):
+        obj = self.successful_post(self.list_url,
+                                   data={'url': self.server_url + "/test page.html?a b=c d#e f"},
+                                   user=self.vesting_member)
+
+        link = Link.objects.get(guid=obj['guid'])
+        self.assertValidCapture(link.primary_capture)
 
     #########################
     # File Archive Creation #
