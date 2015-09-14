@@ -74,6 +74,7 @@ STATIC_ROOT = '/static/'
 AWS_QUERYSTRING_AUTH = False
 
 # archive creation
+PHANTOMJS_BINARY = '/app/vendor/phantomjs/bin/phantomjs' # celery won't find this otherwise
 PHANTOMJS_LOG = 'phantomjs.log' # this will just get thrown away
 
 # parse redis url
