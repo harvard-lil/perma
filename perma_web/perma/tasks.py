@@ -72,7 +72,7 @@ def retry_on_error(func):
         try:
             return func(task, *args, **kwargs)
         except Exception as e:
-            logger.error("Task failed, calling retry.\nArgs: %s\nKwargs: %s\nError: %s" % (args, kwargs, e))
+            logger.exception("Task failed, calling retry.\nArgs: %s\nKwargs: %s\nError: %s" % (args, kwargs, e))
             task.retry(exc=e)
     return with_retry
 
