@@ -78,7 +78,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertEqual(capture.status, 'success')
         headers, data = capture.link.replay_url(capture.url)
         self.assertTrue(capture.content_type, "Capture is missing a content type.")
-        self.assertEqual(capture.content_type, capture.read_content_type())
+        self.assertEqual(capture.content_type.split(';',1)[0], capture.read_content_type().split(';',1)[0])
         data = "".join(data)
         self.assertTrue(data, "Capture data is missing.")
 
