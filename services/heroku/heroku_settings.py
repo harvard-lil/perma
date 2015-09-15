@@ -20,15 +20,15 @@ ROLLBAR_CLIENT_ACCESS_TOKEN = os.environ.get('ROLLBAR_CLIENT_ACCESS_TOKEN')
 TEMPLATE_VISIBLE_SETTINGS += ('ROLLBAR_CLIENT_ACCESS_TOKEN',)
 PIPELINE_JS['global']['source_filenames'] += ('js/lib/rollbar.js',)
 
-# Logging
+# Logging - enables celery error reporting
 LOGGING['handlers']['rollbar'] = {
+    'level': 'ERROR',
     'filters': ['require_debug_false'],
     'access_token': os.environ.get('ROLLBAR_ACCESS_TOKEN'),
     'environment': 'development' if DEBUG else 'production',
     'class': 'rollbar.logger.RollbarHandler'
 }
-if os.environ.get('LOG_TO_ROLLBAR'):
-    LOGGING['loggers']['']['handlers'] += ['rollbar']
+LOGGING['loggers']['']['handlers'] += ['rollbar']
 
 # Parse database configuration from env DATABASE_URL
 # import dj_database_url
@@ -130,5 +130,3 @@ STATIC_URL = 'http://BUCKET_NAME.s3.amazonaws.com/static/'
 # See: https://docs.djangoproject.com/en/1.3/ref/settings/#server-email
 # SERVER_EMAIL = EMAIL_HOST_USER
 ########## END EMAIL CONFIGURATION
-
-

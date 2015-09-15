@@ -423,6 +423,7 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_SEND_TASK_ERROR_EMAILS = True
+CELERYD_HIJACK_ROOT_LOGGER = False
 
 # Control whether Celery tasks should be run in the background or during a request.
 # This should normally be True, but it's handy to not require rabbitmq and celery sometimes.
