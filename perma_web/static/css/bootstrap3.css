@@ -670,7 +670,7 @@ blockquote small:before {
 }
 
 blockquote.pull-right {
-  padding-right: 15px;
+  padding-right: 16px;
   padding-left: 0;
   border-right: 5px solid #eeeeee;
   border-left: 0;
@@ -750,8 +750,8 @@ pre code {
 }
 
 .container {
-  /*padding-right: 15px;
-  padding-left: 15px;*/
+  /*padding-right: 16px;
+  padding-left: 16px;*/
   margin-right: auto;
   margin-left: auto;
 }
@@ -777,8 +777,8 @@ pre code {
 }
 
 /*.row {
-  margin-right: -15px;
-  margin-left: -15px;
+  margin-right: -16px;
+  margin-left: -16px;
 }*/
 
 .row:before,
@@ -803,14 +803,14 @@ pre code {
 
 @media (min-width: 768px) {
   .row {
-    margin-right: -15px;
-    margin-left: -15px;
+    margin-right: -16px;
+    margin-left: -16px;
   }
 }
 
 .row .row {
-  margin-right: -15px;
-  margin-left: -15px;
+  margin-right: -16px;
+  margin-left: -16px;
 }
 
 .col-xs-1,
@@ -863,8 +863,8 @@ pre code {
 .col-lg-12 {
   position: relative;
   min-height: 1px;
-  padding-right: 15px;
-  padding-left: 15px;
+  padding-right: 16px;
+  padding-left: 16px;
 }
 
 .col-xs-1,
@@ -1592,7 +1592,7 @@ table th[class*="col-"] {
 @media (max-width: 768px) {
   .table-responsive {
     width: 100%;
-    margin-bottom: 15px;
+    margin-bottom: 16px;
     overflow-x: scroll;
     overflow-y: hidden;
     border: 1px solid #dddddd;
@@ -1759,7 +1759,7 @@ textarea.form-control {
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 16px;
 }
 
 .radio,
@@ -1973,8 +1973,8 @@ textarea.input-lg {
 }
 
 .form-horizontal .form-group {
-  margin-right: -15px;
-  margin-left: -15px;
+  margin-right: -16px;
+  margin-left: -16px;
 }
 
 .form-horizontal .form-group:before,
@@ -3020,7 +3020,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
 .nav > li > a.navbar-link {
   position: relative;
   display: block;
-  padding: 10px 15px;
+  padding: 10px 16px;
 }
 
 /*
@@ -3287,8 +3287,8 @@ textarea.input-group-sm > .input-group-btn > .btn {
 
 .navbar-collapse {
   max-height: 340px;
-  padding-right: 15px;
-  padding-left: 15px;
+  padding-right: 16px;
+  padding-left: 16px;
   overflow-x: visible;
   border-top: 1px solid transparent;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -3335,10 +3335,10 @@ textarea.input-group-sm > .input-group-btn > .btn {
     overflow-y: visible;
   }
   .navbar-collapse .navbar-nav.navbar-left:first-child {
-    margin-left: -15px;
+    margin-left: -16px;
   }
   .navbar-collapse .navbar-nav.navbar-right:last-child {
-    margin-right: -15px;
+    margin-right: -16px;
   }
   .navbar-collapse .navbar-text:last-child {
     margin-right: 0;
@@ -3350,8 +3350,8 @@ textarea.input-group-sm > .input-group-btn > .btn {
 
 .container > .navbar-header,
 .container > .navbar-collapse {
-  margin-right: -15px;
-  margin-left: -15px;
+  margin-right: -16px;
+  margin-left: -16px;
 }
 
 @media (min-width: 768px) {
@@ -3399,7 +3399,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
 
 .navbar-brand {
   float: left;
-  padding: 15px 15px;
+  padding: 16px 16px;
   font-size: 18px;
   line-height: 20px;
 }
@@ -3411,7 +3411,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
 
 @media (min-width: 768px) {
   .navbar > .container .navbar-brand {
-    margin-left: -15px;
+    margin-left: -16px;
   }
 }
 
@@ -3420,7 +3420,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
   float: right;
   padding: 9px 10px;
   margin-top: 8px;
-  margin-right: 15px;
+  margin-right: 16px;
   margin-bottom: 8px;
   background-color: #09f;
   border: 1px solid transparent;
@@ -3457,7 +3457,7 @@ tr.link-details
 }
 
 .navbar-nav {
-  margin: 7.5px -15px;
+  margin: 7.5px -16px;
 }
 
 .navbar-nav > li > a.navbar-link {
@@ -3478,7 +3478,7 @@ tr.link-details
   }
   .navbar-nav .open .dropdown-menu > li > a,
   .navbar-nav .open .dropdown-menu .dropdown-header {
-    padding: 5px 15px 5px 25px;
+    padding: 5px 16px 5px 25px;
   }
   .navbar-nav .open .dropdown-menu > li > a {
     line-height: 20px;
@@ -3497,8 +3497,8 @@ tr.link-details
     float: left;
   }
   .navbar-nav > li > a.navbar-link {
-    padding-top: 15px;
-    padding-bottom: 15px;
+    padding-top: 16px;
+    padding-bottom: 16px;
   }
 }
 
@@ -3512,11 +3512,11 @@ tr.link-details
 }
 
 .navbar-form {
-  padding: 10px 15px;
+  padding: 10px 16px;
   margin-top: 8px;
-  margin-right: -15px;
+  margin-right: -16px;
   margin-bottom: 8px;
-  margin-left: -15px;
+  margin-left: -16px;
   border-top: 1px solid transparent;
   border-bottom: 1px solid transparent;
   -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -3589,14 +3589,14 @@ tr.link-details
 
 .navbar-text {
   float: left;
-  margin-top: 15px;
-  margin-bottom: 15px;
+  margin-top: 16px;
+  margin-bottom: 16px;
 }
 
 @media (min-width: 768px) {
   .navbar-text {
-    margin-right: 15px;
-    margin-left: 15px;
+    margin-right: 16px;
+    margin-left: 16px;
   }
 }
 
@@ -3846,7 +3846,7 @@ tr.link-details
 */
 
 .breadcrumb {
-  padding: 8px 15px;
+  padding: 8px 16px;
   margin-bottom: 20px;
   list-style: none;
   background-color: #f5f5f5;
@@ -4007,7 +4007,7 @@ tr.link-details
   padding: 5px 14px;
   background-color: #ffffff;
   border: 1px solid #dddddd;
-  border-radius: 15px;
+  border-radius: 16px;
 }
 
 .pager li > a:hover,
@@ -4227,7 +4227,7 @@ a.thumbnail:focus {
 }
 
 .alert {
-  padding: 15px;
+  padding: 16px;
   margin-bottom: 0px;
   border: 1px solid transparent;
   border-radius: 4px;
@@ -4446,7 +4446,7 @@ a.thumbnail:focus {
 
 .media,
 .media .media {
-  margin-top: 15px;
+  margin-top: 16px;
 }
 
 .media:first-child {
@@ -4482,7 +4482,7 @@ a.thumbnail:focus {
 .list-group-item {
   position: relative;
   display: block;
-  padding: 10px 15px;
+  padding: 10px 16px;
   margin-bottom: -1px;
   background-color: #ffffff;
   border: 1px solid #dddddd;
@@ -4562,7 +4562,7 @@ a.list-group-item:focus {
 }
 
 .panel-body {
-  padding: 15px;
+  padding: 16px;
 }
 
 .panel-body:before,
@@ -4615,7 +4615,7 @@ a.list-group-item:focus {
 }
 
 .panel-heading {
-  padding: 10px 15px;
+  padding: 10px 16px;
   border-bottom: 1px solid transparent;
   border-top-right-radius: 3px;
   border-top-left-radius: 3px;
@@ -4632,7 +4632,7 @@ a.list-group-item:focus {
 }
 
 .panel-footer {
-  padding: 10px 15px;
+  padding: 10px 16px;
   background-color: #f5f5f5;
   border-top: 1px solid #dddddd;
   border-bottom-right-radius: 3px;
@@ -4834,7 +4834,7 @@ button.close {
 body.modal-open,
 .modal-open .navbar-fixed-top,
 .modal-open .navbar-fixed-bottom {
-  margin-right: 15px;
+  margin-right: 16px;
 }
 
 .modal {
@@ -4926,7 +4926,7 @@ body.modal-open,
 
 .modal-footer {
   padding: 19px 20px 20px;
-  margin-top: 15px;
+  margin-top: 16px;
   text-align: right;
   border-top: 1px solid #e5e5e5;
 }
@@ -4973,8 +4973,8 @@ body.modal-open,
     padding-bottom: 30px;
   }
   .modal-content {
-    -webkit-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 0 5px 16px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 5px 16px rgba(0, 0, 0, 0.5);
   }
 }
 
@@ -5437,8 +5437,8 @@ user-select: none;
   .carousel-control .icon-next {
     width: 30px;
     height: 30px;
-    margin-top: -15px;
-    margin-left: -15px;
+    margin-top: -16px;
+    margin-left: -16px;
     font-size: 30px;
   }
   .carousel-caption {

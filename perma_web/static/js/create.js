@@ -72,7 +72,7 @@ function linkIt(data){
     var spinner = new Spinner(opts).spin(target);
 
     $('#steps-container').html('');
-    $('.preview-row').removeClass('hide').hide().slideDown();
+    $('.preview-row').removeClass('hide _error _success _wait').addClass('_wait').hide().fadeIn(500);
 
     refreshIntervalIds.push(setInterval(check_status, 2000));
 }
@@ -99,7 +99,7 @@ function linkNot(jqXHR){
         upload_allowed: upload_allowed
     }));
 
-    $('.preview-row').removeClass('hide').hide().slideDown();
+    $('.preview-row').removeClass('hide _error _success _wait').addClass('_error').hide().fadeIn(0);
 }
 
 /* Handle the the main action (enter url, hit the button) button - start */
@@ -154,7 +154,7 @@ function uploadIt(data) {
     var spinner = new Spinner(opts).spin(target);
 
     $('#steps-container').html(templates.success_steps({url: new_archive.url,
-                                                        userguide_url: userguide_url, vesting_privs: vesting_privs})).removeClass('hide').hide().slideDown();
+                                                        userguide_url: userguide_url, vesting_privs: vesting_privs})).removeClass('hide');
 }
 
 function upload_form() {
@@ -176,7 +176,7 @@ function get_thumbnail() {
     $('#preview-container').html(templates.preview_available({
         image_url: thumbnail_service_url.replace('GUID', new_archive.guid),
         archive_url: new_archive.url
-    })).removeClass('hide').hide().slideDown();
+    })).removeClass('hide');
 }
 
 /* Handle the thumbnail fetching - end */
@@ -225,16 +225,17 @@ function check_status() {
             // If we have at least one success, show success message.
             if(capturesSucceeded){
             	$('#linker input').val('');
+                $('.preview-row').removeClass('hide _error _success _wait').addClass('_success');
                 $('#steps-container').html(templates.success_steps({
                     url: new_archive.url,
                     userguide_url: userguide_url,
                     vesting_privs: vesting_privs
-                })).removeClass('hide').hide().slideDown();
+                })).removeClass('hide');
 
                 $('#preview-container').html(templates.preview_available({
                     image_url: thumbnail_service_url.replace('GUID', new_archive.guid),
                     archive_url: new_archive.url
-                })).removeClass('hide').hide().slideDown();
+                })).removeClass('hide');
 
                 // Catch failure to load thumbnail, and show thumbnail-not-available message
                 $('.library-thumbnail img').on('error', function() {
@@ -243,6 +244,8 @@ function check_status() {
                         archive_url: new_archive.url
                     }));
                 });
+                
+                
 
             // Else show failure message/upload form.
             }else {
@@ -250,7 +253,7 @@ function check_status() {
                 $('#steps-container').html(templates.error({
                     message: "Error: URL capture failed."
                 }));
-                $('.preview-row').removeClass('hide').hide().slideDown();
+                $('.preview-row').removeClass('hide _error _success _wait').addClass('_error');
             }
         }
     });
@@ -263,16 +266,18 @@ function check_status() {
 /* Our spinner controller - start */
 
 var opts = {
-    lines: 9, // The number of lines to draw
-    length: 9, // The length of each line
-    width: 5, // The line thickness
+    lines: 17, // The number of lines to draw
+    length: 2, // The length of each line
+    width: 1.5, // The line thickness
     radius: 10, // The radius of the inner circle
-    corners: 1, // Corner roundness (0..1)
+    scale: 1.7, // Scales overall size of the spinner
+    corners: 0, // Corner roundness (0..1)
     rotate: 0, // The rotation offset
     direction: 1, // 1: clockwise, -1: counterclockwise
-    color: '#ff4100', // #rgb or #rrggbb or array of colors
-    speed: 1, // Rounds per second
-    trail: 60, // Afterglow percentage
+    color: '#2D76EE', // #rgb or #rrggbb or array of colors
+    opacity: 0.25, // Opacity of the lines
+    speed: 0.7, // Rounds per second
+    trail: 100, // Afterglow percentage
     shadow: false, // Whether to render a shadow
     hwaccel: false, // Whether to use hardware acceleration
     className: 'spinner', // The CSS class to assign to the spinner

@@ -3,7 +3,9 @@
         API_VERSION: {{ API_VERSION }},
         STATIC_URL: "{{ STATIC_URL }}",
         MEDIA_URL: "{{ MEDIA_URL }}",
-        HOST: "{{ HOST }}"
+        HOST: "{{ HOST }}",
+        ROLLBAR_ACCESS_TOKEN: "{{ ROLLBAR_CLIENT_ACCESS_TOKEN }}",
+        DEBUG: {{ DEBUG|lower }}
     },
     api_path = "/api/v" + settings.API_VERSION,
     feedback_url = "{% url 'service_receive_feedback' %}";

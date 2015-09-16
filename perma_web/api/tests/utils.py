@@ -102,8 +102,12 @@ class ApiResourceTestCase(ResourceTestCase):
         """
             Set up a server with some known files to run captures against. Example:
 
-                with run_server_in_temp_folder(['test/assets/test.html','test/assets/test.pdf']):
+                with run_server_in_temp_folder([
+                        'test/assets/test.html',
+                        'test/assets/test.pdf',
+                        ['test/assets/test.html', 'some_other_url.html']):
                     assert(requests.get("http://localhost/test.html") == contents_of_file("test.html"))
+                    assert(requests.get("http://localhost/some_other_url.html") == contents_of_file("test.html"))
         """
         assert socket.gethostbyname(cls.server_domain) in ('0.0.0.0', '127.0.0.1'), "Please add `127.0.0.1 " + cls.server_domain + "` to your hosts file before running this test."
 
@@ -112,14 +116,19 @@ class ApiResourceTestCase(ResourceTestCase):
         cwd = os.getcwd()
         cls._server_tmp = tempfile.mkdtemp()
         os.chdir(cls._server_tmp)
-        print("Created server temp dir " + cls._server_tmp)
 
         # Copy over files to current temp dir, stripping paths.
-        print("Serving files:")
-        for file in cls.serve_files:
-            print("- " + file)
-            copy_file_or_dir(os.path.join(cwd, file),
-                             os.path.basename(file))
+        for source_file in cls.serve_files:
+
+            # handle single strings
+            if isinstance(source_file, basestring):
+                target_url = os.path.basename(source_file)
+
+            # handle tuple like (source_file, target_url)
+            else:
+                source_file, target_url = source_file
+
+            copy_file_or_dir(os.path.join(cwd, source_file), target_url)
 
         # start server
         cls._httpd = TestHTTPServer(('', cls.server_port), SimpleHTTPRequestHandler)

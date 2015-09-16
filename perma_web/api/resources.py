@@ -11,7 +11,6 @@ from extendedmodelresource import ExtendedModelResource
 from mptt.exceptions import InvalidMove
 from tastypie import fields
 from tastypie.authorization import ReadOnlyAuthorization
-from tastypie.serializers import Serializer
 from tastypie.utils import trailing_slash
 from tastypie import http
 from tastypie.resources import ModelResource
@@ -38,6 +37,8 @@ from authorizations import (FolderAuthorization,
                             CurrentUserOrganizationAuthorization, PublicLinkAuthorization,
                             AuthenticatedLinkAuthorization)
 
+from serializers import DefaultSerializer
+
 # LinkResource
 from perma.utils import run_task
 from perma.tasks import proxy_capture, upload_to_internet_archive
@@ -50,6 +51,7 @@ class DefaultResource(ExtendedModelResource):
         authorization = ReadOnlyAuthorization()
         always_return_data = True
         include_resource_uri = False
+        serializer = DefaultSerializer()
 
     @classmethod
     # Hack to prevent ModelResource from auto-including additional fields
@@ -323,7 +325,7 @@ class PublicLinkResource(BaseLinkResource):
     class Meta(BaseLinkResource.Meta):
         resource_name = 'public/' + BaseLinkResource.Meta.resource_name
         authorization = PublicLinkAuthorization()
-        serializer = Serializer(formats=['json', 'jsonp'])  # enable jsonp
+        serializer = DefaultSerializer(formats=['json', 'jsonp'])  # enable jsonp
 
     def dehydrate_organization(self, bundle):
         # The vesting org for a given link may or may not be public.

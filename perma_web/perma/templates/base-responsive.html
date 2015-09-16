@@ -27,7 +27,7 @@
 		<![endif]-->
 
     </head>
-    <body>
+    <body class="{% block bodyFlags %}{% endblock bodyFlags %}">
 
     	<header class="_default __permaNew">
     	    <div class="navbar navbar-default navbar-static-top">
@@ -105,7 +105,7 @@
 		</header>
 
 		  
-		<section id="main">
+		<section id="main" class="{% block mainFlags %}{% endblock mainFlags %}">
 			{% if this_page != 'landing' and this_page != 'manage' %}
 			<div class="container" id="main-content">
 				<div class="row">

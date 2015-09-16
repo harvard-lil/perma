@@ -1,3 +1,4 @@
+import urllib
 from tastypie.validation import Validation
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
@@ -78,7 +79,7 @@ class LinkValidation(Validation):
         elif bundle.obj.tracker.has_changed('submitted_url'):  # url is aliased to submitted_url in the API
             try:
                 validate = URLValidator()
-                validate(bundle.data.get('url'))
+                validate(bundle.data.get('url').replace(' ', '%20'))
 
                 # Don't force URL resolution validation if a file is provided
                 if not bundle.data.get('file', None):
