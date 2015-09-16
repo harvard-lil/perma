@@ -17,7 +17,7 @@
                     </div><!--end span 3 -->
                     <div class="col-sm-6 meta-data">
                         {% if not link.user_deleted or request.user.is_authenticated and request.user.pk == link.created_by_id %}
-                            {% if link.favicon_capture %}
+                            {% if link.favicon_capture and link.favicon_capture.status == 'success' %}
                                 <img src="{{ link.favicon_capture.playback_url }}" width="16" height="16">
                             {% endif %}
                             <a class="submitted_url" href="{{link.submitted_url}}">{{link.submitted_title}}</a><br/>
