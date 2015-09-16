@@ -423,6 +423,22 @@ class LinkResource(AuthenticatedLinkResource):
                 'reason': "Perma has paused archive creation for scheduled maintenance. Please try again shortly.",
             }))
 
+        # Make sure a limited user has links left to create
+        today = timezone.now()
+        link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month=today.month, created_by_id=bundle.request.user.id).count()
+        links_remaining = settings.MONTHLY_CREATE_LIMIT - link_count
+        if bundle.request.user.has_limit() and links_remaining < 1:
+        	raise ImmediateHttpResponse(response=self.error_response(bundle.request, {
+                'archives': {'__all__': "You've already reached your limit."},
+                'reason': "You've already reached your limit.",
+            }))
+            
+        # Return the number remaining links after this one is created
+        if bundle.request.user.has_limit():
+        	bundle.data['links_remaining'] = links_remaining - 1
+        else:
+        	bundle.data['links_remaining'] = 'unlimited'
+        
         # Runs validation (exception thrown if invalid), sets properties and saves the object
         bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user)
         link = bundle.obj

@@ -63,6 +63,9 @@ function linkIt(data){
     new_archive.static_prefix = settings.STATIC_URL;
 
     $('#preview-container').html(templates.success(new_archive));
+    $('#links-remaining').text(data.links_remaining);
+    if(data.links_remaining < 1) 
+    	$('#linker input, #linker button').attr('disabled', 'disabled').blur();
 
     // Get our spinner going now that we're drawing it
     var target = document.getElementById('spinner');
@@ -84,9 +87,16 @@ function linkNot(jqXHR){
             message += errors[prop] + " ";
         }
     }
+    
+    var upload_allowed = true;
+    if(message.indexOf("limit") > -1) {
+    	$('#links-remaining').text('0');
+    	upload_allowed = false;
+    }
 
     $('#steps-container').html(templates.error({
-        message: message || "Error " + jqXHR.status
+        message: message || "Error " + jqXHR.status,
+        upload_allowed: upload_allowed
     }));
 
     $('.preview-row').removeClass('hide').hide().slideDown();
@@ -214,6 +224,7 @@ function check_status() {
 
             // If we have at least one success, show success message.
             if(capturesSucceeded){
+            	$('#linker input').val('');
                 $('#steps-container').html(templates.success_steps({
                     url: new_archive.url,
                     userguide_url: userguide_url,

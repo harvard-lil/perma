@@ -102,7 +102,7 @@ class LinkValidation(Validation):
                 errors['file'] = "Invalid file."
             elif uploaded_file.size > settings.MAX_ARCHIVE_FILE_SIZE:
                 errors['file'] = "File is too large."
-
+       
         # Vesting
         if bundle.data.get('vested', None) and bundle.obj.tracker.has_changed('vested'):
             if not bundle.obj.organization:
