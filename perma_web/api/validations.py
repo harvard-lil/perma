@@ -1,4 +1,4 @@
-import urllib
+from requests import TooManyRedirects
 from tastypie.validation import Validation
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
@@ -93,6 +93,8 @@ class LinkValidation(Validation):
                         errors['url'] = "Target page is too large (max size 1MB)."
             except ValidationError:
                 errors['url'] = "Not a valid URL."
+            except TooManyRedirects:
+                errors['url'] = "URL caused a redirect loop."
 
         uploaded_file = bundle.data.get('file')
         if uploaded_file:
