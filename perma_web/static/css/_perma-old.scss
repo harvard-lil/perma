@@ -54,12 +54,12 @@ body {
 	width:95%;
 	padding:5px 30px;
 	margin-top:68px;
-	margin-left:15px;
+	margin-left:16px;
 }
 
 .subheading {
 	color:#ff1400;
-	margin-left:15px;
+	margin-left:16px;
 }
 pre {
 	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
@@ -68,7 +68,7 @@ pre {
 	background:#ddf1ff;
 	border:1px solid #bbe4ff;
 	color:#ff4100;
-	margin:15px 0px 15px 30px;
+	margin:16px 0px 16px 30px;
 	word-break: normal;
 	word-wrap: normal;
 }
@@ -137,7 +137,7 @@ kbd a:hover, kbd:hover, kbd:active {
 }
 
 #cancel-feedback {
-  margin-right:15px;
+  margin-right:16px;
   padding-top:5px;
 }
 
@@ -181,7 +181,7 @@ h4 {
 
 h5 a {
 	color:#333;
-	margin-left:15px;
+	margin-left:16px;
 	line-height:1.4;
 }
 
@@ -735,7 +735,7 @@ section#home-description {
 
 @media(min-width:768px){
     .learn-more .btn-more {
-        margin:15px 15px 35px 10px;
+        margin:16px 16px 35px 10px;
         display:inline-block;
     }
 }
@@ -794,7 +794,7 @@ div.dashboard-blurb {
             h3 {
                 color: #999;
                 font-size: 14px;
-                margin: 15px 0 0 0;
+                margin: 16px 0 0 0;
                 padding: 0;
             }
             a {
@@ -890,7 +890,7 @@ div.dashboard-blurb {
         div#dashboard-container ul#dashboard-tabs li h3 {
             color: #999;
             font-size: 14px;
-            margin: 15px 0 0 0;
+            margin: 16px 0 0 0;
             padding: 0;
         }
 
@@ -975,7 +975,7 @@ div#dashboard-container div#library {}
         }
 
         div.user-delete-thumbnail {
-            margin-bottom:15px;
+            margin-bottom:16px;
         }
 
         p.library-link-title, #upload-option {
@@ -1018,7 +1018,7 @@ div#dashboard-container div#library {}
             color: #777;
             font-size: 12px;
             line-height: 12px;
-            margin: 10px 0 15px 0;
+            margin: 10px 0 16px 0;
         }
 
         p.library-link-label { margin: 0; }
@@ -1084,12 +1084,12 @@ div#dashboard-container div#batch-convert {
 	font-family: $sans-font;
 	color: #555;
 }
-
+/*
 #steps-container a.perma-url {
 	font-family: $spicy-font;
     font-size: 26px;
 }
-
+*/
 #steps-container .message-url {
     margin: 20px 0;
 }
@@ -1134,7 +1134,7 @@ input.url-extension {
 }
 
 select optgroup {
-    margin: 15px 0px 5px 2px;
+    margin: 16px 0px 5px 2px;
     color: #888;
     font-family:$sans-font;
     font-weight:400;
@@ -1272,7 +1272,7 @@ ul {
 
 #linky-desc {
   float:left;
-  margin-left:15px;
+  margin-left:16px;
   width:320px;
 }
 
@@ -1343,7 +1343,7 @@ ul {
   list-style:none;
   margin-left:auto;
   margin-right:auto;
-  margin-top:15px;
+  margin-top:16px;
   width:75%;
 }
 
@@ -1580,7 +1580,7 @@ a.grey {
 	color:#aaa;
 }
 .indexed {
-    margin-bottom:15px;
+    margin-bottom:16px;
 }
 
 .manage-nav {
@@ -1634,11 +1634,11 @@ ul#linky-ul li {
 
 .embedded-form fieldset {
   margin-top:25px;
-  margin-bottom:15px;
+  margin-bottom:16px;
 }
 
 fieldset {
-  margin-bottom:15px;
+  margin-bottom:16px;
 }
 
 #id_a-email:disabled {
@@ -1702,7 +1702,7 @@ fieldset {
 .dropdown-form a {
   font-size:12px;
   display:block;
-  margin-top:15px;
+  margin-top:16px;
 }
 
 h3 small {
@@ -1971,13 +1971,13 @@ td.registrar-website-cell {
 
 
 .sort-filter-bar {
-    padding-top:15px;
-    padding-bottom:15px;
+    padding-top:16px;
+    padding-bottom:16px;
     float:right;
 }
 
 .sort-filter-bar .dropdown {
-    margin-right:15px;
+    margin-right:16px;
     padding-top: 7px;
     float:right;
 }
@@ -2023,7 +2023,7 @@ td.registrar-website-cell {
 }
 
 .list-user {
-    padding:15px 0px 8px 0px;
+    padding:16px 0px 8px 0px;
     margin-bottom:0px;
     border-top: 1px solid #dddddd;
     font-family: $sans-font;
@@ -2308,7 +2308,7 @@ a.orange:hover, .orange:active {
 	  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
     box-sizing: border-box;
-    padding:15px;
+    padding:16px;
     border-radius: 3px;
     margin-top:20px;
 
@@ -2373,7 +2373,7 @@ ol li {
 	background-color: #fff;
 	color:#000;
 	border:1px solid #eee;
-    padding:10px 15px;
+    padding:10px 16px;
      -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
     box-sizing: border-box;
@@ -2400,7 +2400,7 @@ ul.navbar-nav.tabbed > li, ul.navbar-nav.tabbed > li a {
 
 .navbar-nav.tabbed > li a.tab-styling, .navbar-nav.tabbed > li.tab-styling, span.tab-styling {
 	color:#fff;
-	padding:15px 10px 0px 10px;
+	padding:16px 10px 0px 10px;
 	background:$perma-blue;
 	margin:0 2px;
 	border-top-right-radius: 3px;
@@ -2808,7 +2808,7 @@ p.orange {
         font-size:28px;
     }
     .sort-filter-bar {
-        margin-bottom:15px;
+        margin-bottom:16px;
     }
     .sort-filter-bar, .sort-filter-bar .dropdown, .sort-filter-bar form {
         float:none !important;
@@ -2892,7 +2892,7 @@ p.orange {
     }
     .list-date {
         margin-bottom:20px;
-        margin-top:15px;
+        margin-top:16px;
         clear:both;
     }
     .list-count-group {
@@ -2962,7 +2962,7 @@ p.orange {
 	.api-warning {
 		border: 1px #FF3535 solid;
 		background-color: #FF3535;
-		padding: 15px 15px 0 15px;
+		padding: 16px 16px 0 16px;
 		margin-top: 30px;
 	}
 	
@@ -2976,7 +2976,7 @@ p.orange {
 		color: #fff;
 		display: inline;
 		float: left;
-		margin-right: 15px;
+		margin-right: 16px;
 		margin-top: -3px;
 	}
 	
@@ -3074,7 +3074,7 @@ p.orange {
         }
         h3 {
             font-size: 14px;
-            padding:0px 5px 5px 15px;
+            padding:0px 5px 5px 16px;
             margin:0px;
             color: #000;
             border-left:2px solid #fff;

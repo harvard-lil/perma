@@ -15,7 +15,7 @@ $width-mobile: $grid * 40; 		// 320px;
 $width-xmobile: $grid * 48; 	// 376px;
 $width-tablet: 767px; 		// 640px;
 $width-desktop: 991px; 	// 1048px;
-$width-wide: 1199px; 		// 1168px;
+$width-wide: 1202px; 		// 1168px;
 $width-max: $width-wide; 		// 1168px;
 
 $width-column: $width-mobile;
@@ -51,7 +51,7 @@ $color-trans-black: rgba(0,0,0,.95);
 $color-trans-darkgray: rgba(0,0,0,.5);
 $color-trans-gray: rgba(0,0,0,.4);
 $color-trans-lightgray: rgba(0,0,0,.1);
-$color-trans-whispergray: rgba(100,100,0,.02);
+$color-trans-whispergray: rgba(100,100,0,.07);
 $color-white: white;
 $color-trans-textwhite: rgba(254,254,254,.4);
 $color-trans-darkwhite: rgba(254,254,254,.9);
