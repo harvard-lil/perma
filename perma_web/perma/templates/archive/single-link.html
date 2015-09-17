@@ -41,13 +41,13 @@
 
     <header>
 
-        <div class="primary-segment row style="background-color: #09f"">
+        <div class="primary-segment row">
             <div class="col col-sm-2 _details">
             	<div class="content">
-	                <button id="details-button" class="btn btn-ui-small btn-primary details" type="button" data-toggle="collapse" data-target="#collapse-details" aria-expanded="false" aria-controls="collapse-details">Show record details</button>
+	                <button id="details-button" class="btn btn-ui-small btn-primary details" type="button" data-toggle="collapse" data-target="#collapse-details" aria-expanded="false" aria-controls="collapse-details"><span>Show record details</span></button>
             	</div>
             </div>
-            <div class="col col-sm-5 _main">
+            <div class="col col-sm-6 _main">
             	<div class="content">
 	                <p class="title">This page is a <span class="logo">Perma.cc</span> record</p>
 	                <p class="creation"><span class="cat">Created</span> {{ link.creation_timestamp|local_datetime:"F j, Y" }}
@@ -63,7 +63,7 @@
 	                </p>
             	</div>
             </div>
-            <div class="col col-sm-3 _livepage">
+            <div class="col col-sm-2 _livepage">
             	<div class="content">
 	                <a class="btn btn-outside" href="{{link.submitted_url}}" target="_blank"><span>View the live page</span></a>
             	</div>
@@ -71,6 +71,12 @@
             <div class="col col-sm-2 _user">
             	<div class="content">
 	                {% if request.user.is_authenticated %}
+						<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+						</button>
+
 	                    <div class="navbar-collapse collapse">
 	                      <ul class="nav navbar-nav navbar-right">
 	                        {% if request.user.is_authenticated %}

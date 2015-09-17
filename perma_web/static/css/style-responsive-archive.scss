@@ -40,9 +40,13 @@ iframe {
 header {
 	background-color: $color-blue;
 	color: $color-white;
-	height: $height-record-hed;
 	overflow: visible;
 	font-family: $font-hed-alt;
+	border-bottom: $grid solid #e5e5e5;
+    box-sizing: content-box;	
+	@include respond-desktop {
+		height: $height-record-hed;
+	}
 }
 
 .row {
@@ -91,45 +95,150 @@ header {
 }
 
 .btn-ui-small.details {
-	@extend %btn-ui-small;
-	border-color: $color-white;
+	border: none;
+	padding: 0;
+	font-size: 14px;
 	color: $color-white;
-	width: 11em;
-	&:hover {
+	display: table;
+	height: $grid * 6;
+	width: 100%;
+	text-align: left;
+	padding-left: $double;
+	border-radius: 0;
+	span {
+		vertical-align: middle;
 	}
-	&:active {
+	&:hover {
+		border: none;
+		padding: 0;
+		padding-left: $double;
 		color: $color-blue;
 		background-color: $color-white;
+	}
+	&:active {
+		border: none;
+		padding: 0;
+		padding-left: $double;
+	}
+	@include respond-desktop {
+		text-align: center;
+		font-size: 12px;
+		font-weight: 400;
+		padding: 7px 11px;
+		border: 2px solid  $color-white;
+		border-radius: 10em;
+		background-color: transparent;
+		width: 11em;
+		display: inline-block;
+		height: auto;
+		span {
+			display: inline;
+		}
+		&:hover {
+			border: 3px solid $color-white;
+			padding: 6px 10px;
+		}
+		&:active {
+			border: 3px solid $color-white;
+			padding: 6px 10px;
+			color: $color-blue;
+			background-color: $color-white;
+		}
+	}
+}
+
+header .primary-segment {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	@include respond-desktop {
+		display: block;
 	}
 }
 
 .primary-segment .col {
-	float: left;
 	display: table;
-	height: $height-record-hed;
 	.content {
 		display: table-cell;
 		vertical-align: middle;
 	}
+	@include respond-desktop {
+		float: left;
+	}
+
 }
 
 .col._details {
-	padding: $grid * 3;
+	padding: 0;
 	text-align: center;
+	order: 3;
+	width: 50%;
+	@include respond-desktop {
+		text-align: center;
+		padding: $grid * 3;
+		height: $height-record-hed;
+		width: 180px;
+	}
+	@include respond-wide {
+		width: 18%;
+	}
 }
 
 .col._main {
-	padding-left: $grid * 3;
-	border-left: 1px solid $color-trans-white;
+	padding-left: $grid * 2;
+	border-bottom: 1px solid $color-trans-white;
+	order: 1;
+	width: 70%;
+	height: $height-record-hed;	
+	@include respond-tablet {
+		height: $height-record-hed;	
+	}
+	@include respond-desktop {
+		border-left: 1px solid $color-trans-white;
+		border-bottom: none;
+		width: 40%;
+	}
+	@include respond-wide {
+		width: 46%;
+		padding-left: $grid * 3;
+	}
 }
 
 .col._livepage {
-	padding-right: 0;
+	padding: 0;
+	order: 4;
+	width: 50%;
+	@include respond-desktop {
+		height: $height-record-hed;
+		width: 18%;
+	}
+	@include respond-wide {
+		width: 18%;
+	}
+}
+
+.col._user {
+	float: right;
+	order: 2;
+	width: 30%;
+	border-bottom: 1px solid $color-trans-white;
+	height: $height-record-hed;	
+	@include respond-tablet {
+		height: $height-record-hed;	
+	}
+	@include respond-desktop {
+		border-bottom: none;
+		width: 22%;
+	}
+	@include respond-wide {
+		width: 18%;
+		float: left;
+	}
 }
 
 
 .title {
-	font-size: 30px;
+	font-size: 24px;
 	font-weight: 700;
 	line-height: 1.1;
 	margin-bottom: 0;
@@ -149,12 +258,16 @@ header {
 .creation {
 	font-family: $font-hed-alt;
 	font-size: 14px;
-	font-weight: 400;
-	padding-top: $grid;
+	font-weight: 200;
+	padding-top: $half;
 	margin-bottom: 0;
+	letter-spacing: .01em;
+	@include respond-wide {
+		font-size: 16px;
+	}
 	.action {
 		display: inline-block;
-		margin-left: $double;
+		margin-left: 0;
 		padding-bottom: 2px;
 		vertical-align: baseline;
 		a {
@@ -169,22 +282,46 @@ header {
 			}
 		}
 	}
+	@include respond-wide {
+		.action {
+			margin-left: $double;
+		}
+	}
 }
 
 .cat {
-	font-weight: 700;
+	//font-weight: 700;
 }
 
 .btn-outside {
 	display: table;
-	height: $height-record-hed;
+	height: $grid * 6;
 	border-left: 1px solid $color-trans-white;
-	border-right: 1px solid $color-trans-white;
-	padding: $grid * 3;
+	border-right: none;
+	padding: $grid * 2;
 	border-top: none;
 	border-bottom: none;
 	margin-left: auto;
-	margin-right: 0;
+	margin-right: auto;
+	width: 100%;
+	padding: 0;
+	text-align: right;
+	padding-right: $double;	
+	@include respond-tablet {
+		height: $grid * 5;
+	}
+	@include respond-desktop {
+		height: $height-record-hed;
+		padding: $grid * 2;
+		border-right: 1px solid $color-trans-white;
+		margin-right: 0;
+		width: auto;
+		padding: $grid * 2;
+		text-align: center;
+	}
+	@include respond-wide {
+		padding: $grid * 3;
+	}
 	span {
 		display: table-cell;
 		vertical-align: middle;
@@ -459,20 +596,26 @@ li.dropdown {
 .ui-tray {
 	z-index: 100;
     background-color: white;
-    border: 1px solid $color-blue;
+    border-bottom: 1px solid $color-blue;
     color: $color-black;
     position: absolute;
-    left: 16.6%;
-    width: 66.666666667%;
+    left: 0;
+    right: 0;
     margin-top: 0;
-    border-bottom-left-radius: 2px;
-    border-bottom-right-radius: 2px;
     border-top: none;
     overflow: hidden;
     box-sizing: border-box;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
     height: auto !important;
     display: none;
+	@include respond-wide {
+	    left: 18%;
+	    width: 64%;
+	    border: 1px solid $color-blue;
+	    border-top: none;
+	    border-bottom-left-radius: 2px;
+	    border-bottom-right-radius: 2px;
+	}
 }
 
 dl.tray-detail-group {
@@ -563,6 +706,70 @@ a.btn-ui-small.btn-dashboard {
 	}
 }
 
+// toggle
+
+.navbar-toggle {
+	display: block;
+	position: absolute;
+	top: 21px;
+    right: 0;
+    bottom: $grid;
+    width: 43px !important;
+    height: 43px !important;
+    border: none;
+    background-color: $color-background;
+    margin: 0;
+    border-radius: 2px;
+    @include respond-xmobile{
+	    width: 51px !important;
+ 	    height: 51px !important;
+   }
+    .icon-bar {
+	    background-color: $color-black;
+	    display: block;
+	    width: 22px;
+	    height: 2px;
+	    border-radius: 1px;
+	    margin-right: auto;
+	    margin-left: auto;
+	    & + .icon-bar {
+		    margin-top: $half;
+	    }
+    }
+    &:hover {
+	    background-color: $color-hover;
+	    .icon-bar {
+		    background-color: $color-white;
+		}
+    }
+    &:active {
+	    background-color: $color-black;
+	    .icon-bar {
+		    background-color: $color-white;
+		}
+    }
+	&:focus {
+		outline: none;
+	    background-color: $color-blue;
+	    .icon-bar {
+		    background-color: $color-white;
+		}
+	}
+	@include respond-tablet {
+		display: none;
+	}
+	@include respond-xmobile {
+		width: $grid * 8;
+	}
+}
+
+
+// when nav is open
+
+.collapsing {
+    -webkit-transition: none;
+    transition: none;
+}
 
 
 
