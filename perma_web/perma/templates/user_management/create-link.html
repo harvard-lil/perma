@@ -27,11 +27,12 @@
 	        		data-trigger="manual"
 	        		{% endif %} />
 	        <button class="btn btn-large btn-info _active-when-valid" id="addlink" type="submit" {% if request.user.has_limit and links_remaining < 1 %}disabled="disabled"{% endif %}>Create Perma Link</button>
+	        {% if request.user.has_limit %}
+			<p id="links-remaining-message">You have <span id="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account. <a href="{% url 'sign_up' %}">Learn more about accounts</a>.</p>
+			{% endif %}
 		</fieldset>
     </form><!--/#linker-->
-	{% if request.user.has_limit %}
-	You have <span id="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account. <a href="{% url 'sign_up' %}">Learn more about accounts</a>.
-	{% endif %}
+	
 
 <div class="row preview-row hide">
     <div class="col-sm-6">
