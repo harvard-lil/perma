@@ -223,6 +223,7 @@ header .primary-segment {
 	width: 30%;
 	border-bottom: 1px solid $color-trans-white;
 	height: $height-record-hed;	
+	text-align: center;
 	@include respond-tablet {
 		height: $height-record-hed;	
 	}
@@ -233,6 +234,19 @@ header .primary-segment {
 	@include respond-wide {
 		width: 18%;
 		float: left;
+	}
+	a.about {
+		padding-bottom: 3px;
+		border-bottom: 1px solid;
+		font-weight: 200;
+		&:hover {
+			border-color: $color-hover;
+		}
+		&:active {
+			border-color: $color-active;
+			color: $color-active;
+		}
+		font-size: 14px;
 	}
 }
 
