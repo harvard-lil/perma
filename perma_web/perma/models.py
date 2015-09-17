@@ -280,6 +280,10 @@ class LinkUser(AbstractBaseUser):
     def can_vest(self):
         """ Can the user vest links? """
         return bool(self.is_staff or self.is_registrar_member() or self.is_organization_member)
+        
+    def has_limit(self):
+        """ Does the user have a link creation limit? """
+        return bool(not self.is_staff and not self.is_registrar_member() and not self.is_organization_member)
 
     def is_registrar_member(self):
         """ Is the user a member of a registrar? """
