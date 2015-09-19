@@ -76,9 +76,9 @@ header {
 .btn-ui-small {
 	font-size: 12px;
 	font-weight: 400;
-	padding: 7px 11px;
+	padding: 5px 9px;
 	border: 2px solid ;
-	border-radius: 10em;
+	border-radius: 4px;
 	color: $color-blue;
 	border-color: $color-blue;
 	background-color: transparent;
@@ -91,6 +91,10 @@ header {
 		padding: 6px 10px;
 		color: white;
 		background-color: $color-blue;
+	}
+	@include respond-tablet {
+		padding: 7px 11px;
+		border-radius: 10em;
 	}
 }
 
@@ -186,12 +190,15 @@ header .primary-segment {
 
 .col._main {
 	padding-left: $grid * 2;
-	border-bottom: 1px solid $color-trans-white;
 	order: 1;
-	width: 70%;
+	width: 100%;
+	padding-right: 54px;
 	height: $height-record-hed;	
 	@include respond-tablet {
-		height: $height-record-hed;	
+		height: $height-record-hed;
+		width: 70%;
+		padding-right: $double;
+		border-bottom: 1px solid $color-trans-white;
 	}
 	@include respond-desktop {
 		border-left: 1px solid $color-trans-white;
@@ -220,12 +227,13 @@ header .primary-segment {
 .col._user {
 	float: right;
 	order: 2;
-	width: 30%;
+	width: 100%;
 	border-bottom: 1px solid $color-trans-white;
-	height: $height-record-hed;	
 	text-align: center;
 	@include respond-tablet {
 		height: $height-record-hed;	
+		width: 30%;
+		display: table;
 	}
 	@include respond-desktop {
 		border-bottom: none;
@@ -252,7 +260,7 @@ header .primary-segment {
 
 
 .title {
-	font-size: 24px;
+	font-size: 15px;
 	font-weight: 700;
 	line-height: 1.1;
 	margin-bottom: 0;
@@ -267,6 +275,9 @@ header .primary-segment {
 //		margin-left: 6px;
 //		display: inline-block;
 //	}
+	@include respond-tablet { 
+		font-size: 24px;
+	}
 }
 
 .creation {
@@ -321,9 +332,6 @@ header .primary-segment {
 	padding: 0;
 	text-align: right;
 	padding-right: $double;	
-	@include respond-tablet {
-		height: $grid * 5;
-	}
 	@include respond-desktop {
 		height: $height-record-hed;
 		padding: $grid * 2;
@@ -503,8 +511,7 @@ li.dropdown {
     z-index: 1000;
     display: none;
     padding: 5px 0;
-    margin: 2px 0 0;
-	margin-right: -7px;
+    margin: 0;
     font-size: 14px;
     list-style: none;
     background-color: white;
@@ -518,6 +525,8 @@ li.dropdown {
 		position: absolute; // DEL WHEN FINAL
 		top: 77px;
 		margin-right: 0;
+		margin-right: -7px;
+		margin-top: 2px;
 	}
 	@include respond-desktop {
 		top: 64px;
@@ -591,12 +600,30 @@ li.dropdown {
 
 .navbar-collapse {
 	padding: 0;
+	max-height: none;
+	overflow: visible;
+	border: none;
+	box-shadow: none;
+	&.in {
+		overflow: visible;
+	}
+}
+
+.navbar-collapse.in .dropdown-menu {
+    display: block;
 }
 
 // undo-ing bootstrap
 
 .navbar-nav.navbar-right:last-child {
 	margin-right: 0 !important;
+}
+
+.navbar-nav {
+	margin: -12px 0 $double 0;
+	@include respond-tablet {
+		margin: 0;
+	}
 }
 
 // ui-tray
@@ -633,10 +660,13 @@ li.dropdown {
 }
 
 dl.tray-detail-group {
-	padding: $double $grid * 3;
+	padding: $double;
     margin: 0;
 	& + .tray-detail-group {
 		border-top: 1px solid $color-trans-lightgray;
+	}
+	@include respond-desktop {
+		padding: $double $grid * 3;
 	}
 }
 
@@ -646,9 +676,12 @@ dt.tray-detail-title {
 }
 
 dd.tray-detail-entry {
-	font-size: 17px;
+	font-size: 15px;
 	font-weight: 400;
 	margin-top: 2px;
+	@include respond-tablet {
+		font-size: 17px;
+	}
 }
 
 p.fp {
@@ -671,9 +704,20 @@ p.fp {
     padding-bottom: $double;
     background-color: $color-background;
     text-align: left;
-    padding-left: $grid * 3;
-    padding-right: $grid * 2;
+    padding-left: $double;
+    padding-right: $grid;
 	margin-top: $half;
+	@include respond-desktop {
+	    padding-left: $grid * 3;
+	    padding-right: $double;
+	}
+}
+
+.label-verbose {
+	display: none;
+	@include respond-tablet {
+	    display: inline;
+	}
 }
 
 a.btn-ui-small.btn-dashboard {
@@ -726,7 +770,7 @@ a.btn-ui-small.btn-dashboard {
 	display: block;
 	position: absolute;
 	top: 21px;
-    right: 0;
+    right: 16px;
     bottom: $grid;
     width: 43px !important;
     height: 43px !important;
@@ -734,12 +778,13 @@ a.btn-ui-small.btn-dashboard {
     background-color: $color-background;
     margin: 0;
     border-radius: 2px;
+    z-index: 100;
     @include respond-xmobile{
 	    width: 51px !important;
  	    height: 51px !important;
    }
     .icon-bar {
-	    background-color: $color-black;
+	    background-color: $color-blue;
 	    display: block;
 	    width: 22px;
 	    height: 2px;
@@ -752,21 +797,24 @@ a.btn-ui-small.btn-dashboard {
     }
     &:hover {
 	    background-color: $color-hover;
+	    border-radius: 2px;
 	    .icon-bar {
 		    background-color: $color-white;
 		}
     }
     &:active {
 	    background-color: $color-black;
+	    border-radius: 2px;
 	    .icon-bar {
 		    background-color: $color-white;
 		}
     }
 	&:focus {
 		outline: none;
-	    background-color: $color-blue;
+	    border-radius: 2px;
+	    background-color: $color-white;
 	    .icon-bar {
-		    background-color: $color-white;
+		    background-color: $color-blue;
 		}
 	}
 	@include respond-tablet {
