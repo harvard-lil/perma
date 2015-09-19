@@ -193,12 +193,15 @@ header .primary-segment {
 	order: 1;
 	width: 100%;
 	padding-right: 54px;
-	height: $height-record-hed;	
+	height: auto;	
 	@include respond-tablet {
 		height: $height-record-hed;
 		width: 70%;
 		padding-right: $double;
 		border-bottom: 1px solid $color-trans-white;
+		.content {
+			padding: 0;
+		}
 	}
 	@include respond-desktop {
 		border-left: 1px solid $color-trans-white;
@@ -209,6 +212,10 @@ header .primary-segment {
 		width: 46%;
 		padding-left: $grid * 3;
 	}
+	.content {
+		padding: 12px 0;
+	}
+	
 }
 
 .col._livepage {
@@ -275,6 +282,9 @@ header .primary-segment {
 //		margin-left: 6px;
 //		display: inline-block;
 //	}
+	@media (min-width: 400px) {
+		font-size: 18px;
+	}
 	@include respond-tablet { 
 		font-size: 24px;
 	}
@@ -615,12 +625,14 @@ li.dropdown {
 
 // undo-ing bootstrap
 
-.navbar-nav.navbar-right:last-child {
-	margin-right: 0 !important;
+@include respond-tablet {
+	.navbar-nav.navbar-right:last-child {
+		margin-right: 0 !important;
+	}
 }
 
 .navbar-nav {
-	margin: -12px 0 $double 0;
+	margin: 0 -$grid $double -$grid;
 	@include respond-tablet {
 		margin: 0;
 	}
@@ -769,8 +781,8 @@ a.btn-ui-small.btn-dashboard {
 .navbar-toggle {
 	display: block;
 	position: absolute;
-	top: 21px;
-    right: 16px;
+	top: 8px;
+    right: 8px;
     bottom: $grid;
     width: 43px !important;
     height: 43px !important;
@@ -781,7 +793,7 @@ a.btn-ui-small.btn-dashboard {
     z-index: 100;
     @include respond-xmobile{
 	    width: 51px !important;
- 	    height: 51px !important;
+ 	    height: 48px !important;
    }
     .icon-bar {
 	    background-color: $color-blue;
