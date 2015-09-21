@@ -54,7 +54,7 @@
 	                <button id="details-button" class="btn btn-ui-small btn-primary details" type="button" data-toggle="collapse" data-target="#collapse-details" aria-expanded="false" aria-controls="collapse-details"><span>Show record details</span></button>
             	</div>
             </div>
-            <div class="col col-sm-6 _main">
+            <div class="col col-sm-6 _main {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
             	<div class="content">
 	                <p class="title">This page is a <span class="logo">Perma.cc</span> record</p>
 	                <p class="creation"><span class="cat">Created</span> {{ link.creation_timestamp|local_datetime:"F j, Y" }}
@@ -66,7 +66,10 @@
 	                    {% else %}
 	                        <span class="action"><span class="label-verbose">This is a screenshot. </span><a href="{% url 'single_linky' link.guid %}?type=source">See the Capture View</a></span>
 	                    {% endif %}                   
-	
+						{% if request.user.is_authenticated %}
+						{% else %}
+							<a class="about" href="{% url 'about' %}" target="_blank">What is Perma.cc?</a>
+						{% endif %}
 	                </p>
             	</div>
             </div>
@@ -75,7 +78,7 @@
 	                <a class="btn btn-outside" href="{{link.submitted_url}}" target="_blank"><span>View the live page</span></a>
             	</div>
             </div>
-            <div class="col col-sm-2 _user">
+            <div class="col col-sm-2 _user {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
             	<div class="content">
 	                {% if request.user.is_authenticated %}
 	                    <div class="navbar-collapse collapse">

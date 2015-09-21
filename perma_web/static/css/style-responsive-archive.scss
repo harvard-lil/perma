@@ -192,7 +192,10 @@ header .primary-segment {
 	padding-left: $grid * 2;
 	order: 1;
 	width: 100%;
-	padding-right: 64px;
+	&._unauthenticated {
+		padding-right: $double;
+	}
+	padding-right: $grid * 8;
 	height: auto;	
 	@include respond-tablet {
 		height: $height-record-hed;
@@ -231,6 +234,20 @@ header .primary-segment {
 	}
 }
 
+a.about {
+	padding-bottom: 3px;
+	border-bottom: 1px solid;
+	font-weight: 200;
+	&:hover {
+		border-color: $color-hover;
+	}
+	&:active {
+		border-color: $color-active;
+		color: $color-active;
+	}
+	font-size: 14px;
+}
+
 .col._user {
 	float: right;
 	order: 2;
@@ -250,18 +267,17 @@ header .primary-segment {
 		width: 18%;
 		float: left;
 	}
-	a.about {
-		padding-bottom: 3px;
-		border-bottom: 1px solid;
-		font-weight: 200;
-		&:hover {
-			border-color: $color-hover;
+	&._unauthenticated {
+		a.about {
+			display: none; 
 		}
-		&:active {
-			border-color: $color-active;
-			color: $color-active;
+		@include respond-tablet {
+			text-align: right;
+			a.about { display: inline; }
 		}
-		font-size: 14px;
+		@include respond-desktop {
+			text-align: center;
+		}
 	}
 }
 
@@ -303,6 +319,7 @@ header .primary-segment {
 	.action {
 		display: inline;
 		margin-left: 0;
+		margin-right: .7em;
 		padding-bottom: 2px;
 		vertical-align: baseline;
 		.label-verbose {
@@ -331,6 +348,13 @@ header .primary-segment {
 		.action {
 			margin-left: $double;
 		}
+	}
+	a.about {
+	    vertical-align: baseline;
+		display: inline-block;
+	}
+	@include respond-tablet {
+		a.about { display: none; }
 	}
 }
 
