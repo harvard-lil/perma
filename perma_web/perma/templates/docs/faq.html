@@ -2,12 +2,13 @@
 {% load file_exists %}
 {% block title %} | Docs{% endblock %}
 
-{% block bodyclass %}_faq{% endblock %}
-{% block bodyFlags %}{% endblock bodyFlags %}
+{% block bodyFlags %}_faq{% endblock bodyFlags %}
 {% block mainFlags %}{% endblock mainFlags %}
 
 {% block content %}
-<h1>Frequently Asked Questions</h1>
+<div class="col-sm-12">
+	<h1>Frequently Asked Questions</h1>
+</div>
 
 <div class="container user-docs">
 	<div class="row faq">
@@ -17,7 +18,6 @@
 		    	<li class="docs-toc-section"><a href="#librarian">Librarians</a></li>
 		    	<li class="docs-toc-section"><a href="#journals">Academic journals</a></li>
 		    	<li class="docs-toc-section"><a href="#faculty">Academic faculty</a></li>
-		    	<li class="docs-toc-section"><a href="#courtstaff">Court staff</a></li>
 		    	<li class="docs-toc-section"><a href="#technical">Technical questions</a></li>
 			</ul>
 		</div>
@@ -146,18 +146,18 @@
 				 <p>
                      To prevent online archives for entire sections of your site,
                      use a configuration in your robots.txt file like the one below:
-                 </p>
-				 <p class="code">
-				 	 User-agent: Perma<br/>
-					 Disallow: /private-stuff/
-				 </p>
-				 <p>
+                </p>
+				<div class="code-block">
+					<p>User-agent: Perma</p>
+					<p>Disallow: /private-stuff/</p>
+				</div>
+				<p>
                      To prevent online archives for a single page, use one of the following meta tags:
                  </p>
-				 <p class="code">
-					 &lt;meta name="Perma" content="noarchive" /&gt;
-					 &lt;meta name="robots" content="noarchive" /&gt;
-				 </p>
+				 <div class="code-block">
+				 	<p>&lt;meta name="Perma" content="noarchive" /&gt;</p>
+				 	<p>&lt;meta name="robots" content="noarchive" /&gt;</p>
+				 </div>
 				 <p>
                      With either or both of these rules in place, Perma.cc will still allow the user to store
                      the requested page in library archives, but will not display it at the perma.cc website.

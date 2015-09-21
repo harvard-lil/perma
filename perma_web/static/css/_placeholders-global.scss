@@ -61,7 +61,7 @@
 
 %style-docs-ah {
     font-size: 24px;
-    border-top: 1px solid $color-blue;
+    border-top: 2px solid $color-blue;
     padding-top: $grid;
     margin-top: $grid * 8;
     font-family: $font-hed-alt;
@@ -74,12 +74,12 @@
 
 %style-docs-bh {
     font-size: 18px;
-    border-top: 1px solid $color-black;
+    border-top: 1px solid $color-orange;
     padding-top: $grid;
     margin-top: $grid * 6;
     font-family: $font-hed-alt;
-    font-weight: 700;
-    color: $color-black;
+    font-weight: 300;
+    color: $color-orange;
 }
 
 %style-overview-container {

@@ -52,7 +52,7 @@
 
 
 html {
-    min-height: 100%;
+    height: 100%;
     margin: 0;
 }
 
@@ -61,6 +61,7 @@ body {
     color: $color-black;
     font-family: $font-body;
     margin: 0;
+    min-height: 100%;
 }
 
 footer { 
@@ -91,16 +92,16 @@ section#main { // review XX
 	padding-bottom: $grid * 4;
 	background-color: $color-white;
 	@include respond-tablet {
-		padding-top: $grid * 5;
-		padding-bottom: $grid * 7;
+		padding-top: $grid * 4;
+		padding-bottom: $grid * 25;
 	}
 	@include respond-desktop {
-		padding-top: $grid * 4;
-		padding-bottom: $grid * 5;
+		padding-top: $grid * 2;
+		padding-bottom: $grid * 25;
 	}
 	@include respond-wide {
-		padding-top: $grid * 7;
-		padding-bottom: $grid * 9;
+		padding-top: $grid * 2;
+		padding-bottom: $grid * 25;
 	}
 }
 
@@ -606,7 +607,7 @@ html {
 }
 
 body {
-  	background: $color-blue;
+  	background: $color-white;
     color: $color-black;
     font-family: $font-body;
     margin: 0;
@@ -663,22 +664,23 @@ input:focus, *:hover {
 	padding: 0 $double; // review
 	overflow: hidden;
 	@include respond-tablet {
-		max-width: 736px; // review
+		max-width: $width-tablet; // review
 		margin-right: auto;
 		margin-left: auto;
 //		padding-left: $double;
 //		padding-right: $double;
 	}
 	@include respond-desktop {
-		max-width: $width-desktop - ($grid *2); // review
+		
+		max-width: $width-desktop; // review
 	}
 	@include respond-wide {
-		max-width: $width-wide - ($grid *2); // review
+		max-width: $width-wide; // review
 	}
 }
 
-._userguide .lockup, ._userguide #main .user-docs, ._userguide #main .toc-overview-container, ._signup .lockup, ._signup #main .signup-learnMore, ._signup #main .signup-overview-container {
-	@extend .container;
+.container-bleed {
+	max-width: none !important;
 }
 
 
@@ -690,6 +692,7 @@ input:focus, *:hover {
 }
 
 .row {
+	margin: 0 -$double;
 	.col-sm-6 + .col-sm-6 {
 		margin-top: $grid * 4;
 		@include respond-tablet {
@@ -697,6 +700,10 @@ input:focus, *:hover {
 			padding-left: $grid * 4
 		}
 	}
+}
+
+.row.row-nobleed {
+	margin: 0;
 }
 
 /////////////////////////
@@ -722,7 +729,7 @@ h1 {
     font-weight: 300;
     font-size: 40px;
 	@include respond-tablet {
-		font-size: 36px;
+		font-size: 35px;
 	}
 }
 
@@ -759,7 +766,7 @@ a {
 
 p a {
 	font-family: $font-hed-alt;
-	font-weight: 900;
+	font-weight: 700;
 	&:hover {
 		text-decoration: underline;
 	}
@@ -921,10 +928,10 @@ p.body { @extend %style-body-text; }
 .form-priority {
 	margin: $grid * 3 -$double;
     @include respond-tablet {
-	    margin: $grid * 4 -$double;
+	    margin: $grid * 4 0;
     }
     @include respond-wide {
-	    margin: $grid * 5 -$double;
+	    margin: $grid * 5 0;
     }
 }
 
@@ -955,10 +962,10 @@ p.body { @extend %style-body-text; }
 		    font-size: 20px;
 	    }
 	    @include respond-desktop {
-		    width: $grid * 86;
+		    width: $grid * 85;
 	    }
 	    @include respond-wide {
-		    width: $grid * 112;
+		    width: $grid * 111;
 	    }
 	}
 	
@@ -1566,7 +1573,7 @@ kbd a:hover, kbd:hover, kbd:active {
 	}
 	&._nav {
 		margin-top: 0;
-		margin-left: $grid * 4;
+		margin-left: $grid;
 		margin-bottom: 0;
 		background-color: $color-trans-gray;
 	}
@@ -1792,7 +1799,7 @@ body {
 
 .navbar-default {
 	background: $color-white;
-	border-bottom: 1px solid $color-trans-lightgray;
+	//border-bottom: 1px solid $color-trans-lightgray;
 	.container {
 		overflow: visible;
 	}
@@ -1871,9 +1878,6 @@ body {
 
 .container > .navbar-header { // specificity for bootstrap
 	z-index: 10;
-	@include respond-tablet {
-		margin-left: -$double;
-	}
 }
 
 
@@ -1887,11 +1891,18 @@ ul .nav.navbar-nav.navbar-right li a {
     line-height: 10px;
 }
 
+.nav > li > a.navbar-link {
+	padding: 10px 12px;  // specificity for bootstrap
+	@include respond-desktop {
+		padding: 10px $double;  // specificity for bootstrap
+	}
+}
 
-.dropdown-toggle {
-	display: none !important; // review
+
+.nav > li > .dropdown-toggle {
+	display: none; 
 	@include respond-tablet {
-		display: block !important; // review
+		display: block;
 	}
 	&.navbar-link {
 		padding-top: 16px;
@@ -2101,6 +2112,14 @@ li.dropdown {
 	padding: 0;
 }
 
+.navbar-collapse .navbar-nav.navbar-right:last-child {
+	margin-right: $double;
+	@include respond-tablet {
+		margin-right: 0;
+	}
+}
+
+
 // .logo span { display: none; }
 
 .logo {
@@ -2271,21 +2290,54 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
 
 // docs
 
-.docs-ah { @extend %style-docs-ah; }
-.docs-bh { @extend %style-docs-bh; }
-.body-text { @extend %style-body-text; }
+.docs-ah, .docs-body h2 { 
+	font-size: 24px;
+    border-top: 2px solid $color-blue;
+    padding-top: $grid;
+    margin-top: $grid * 6;
+    font-family: $font-hed-alt;
+    font-weight: 700;
+    color: $color-blue;
+    &:first-child {
+        margin-top: 0;
+    }
+  	@include respond-tablet {
+	    margin-top: $grid * 8;
+	}
+}
+
+.docs-bh, .docs-body h3 { 
+	font-size: 16px;
+    border-top: 1px solid $color-orange;
+    padding-top: $grid;
+    margin-top: $grid * 3;
+    margin-bottom: $grid;
+    font-family: $font-hed-alt;
+    font-weight: 300;
+    color: $color-orange;
+ 	@include respond-tablet {
+	    margin-top: $grid * 6;
+	    margin-bottom: $double;
+		font-size: 18px;
+	}
+}
+
+p.body-text { 
+	font-size: 15px;
+	font-weight: 300;
+	font-family: $font-body;
+	line-height: 1.5;
+	@include respond-tablet {
+		font-size: 18px;
+	}
+}
 
 
-._userguide {
-	.lockup { @extend %style-container; }
-	#main {
-		.container {
-			padding-left: 0;
-			padding-right: 0;
-			max-width: none;
-		}
-		.user-docs { @extend %style-container; }
-		.toc-overview-container { @extend %style-container; }
+._userguide  {
+	.container#main-content {
+		padding-left: 0;
+		padding-right: 0;
+		max-width: none;
 	}
 }
 
@@ -2301,6 +2353,7 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
 .docs-toc {
 	font-family: $font-hed-alt;
 	font-size: 14px;
+	padding-bottom: $grid * 6;
 	@include respond-tablet {
 		padding-right: $grid * 6;
 	}
@@ -2317,8 +2370,8 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
 			padding: 6px 0;
 			border-top: 1px solid $color-trans-lightgray;
 			&:hover {
-				color: $color-hover !important;
-				border-color: $color-hover !important;
+				color: $color-blue !important;
+				border-color: $color-blue !important;
 			}
 			&:active {
 				color: $color-active !important;
@@ -2350,13 +2403,8 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
 }
 
 .docs-body {
-	h2, h3 {
-        font-size: 24px;
-	}
 	
-    h2 { @extend %style-docs-ah; }
-    h3 { @extend %style-docs-bh; }
-    p { @extend %style-body-text; }
+    p { @extend p.body-text; }
 
     table {
         h4 {
@@ -2373,10 +2421,39 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
 
 // faq
 
-body._faq {
-	.faq-section-title { @extend %style-docs-ah; }
-	.faq-question { @extend %style-docs-bh; }
-	.faq-answer p { @extend %style-body-text; }
+.faq-section-title { @extend %style-docs-ah; }
+.faq-question { @extend %style-docs-bh; }
+.faq-answer p { @extend p.body-text; }
+
+p.code {
+	color: $color-error;
+	font-weight: 700;
+}
+
+div.code-block {
+	background-color: $color-trans-whispergray;
+	border: 1px solid $color-trans-lightgray;
+	padding: $grid;
+	border-radius: 2px;
+	margin-bottom: 1em;
+	font-family: $font-mono;
+	font-size: 14px;
+	p {
+		font-family: $font-mono;
+		font-size: 14px;
+		padding-left: $grid * 2;
+		text-indent: -$grid * 2;
+		margin: 0;
+	}
+}
+
+span.code {
+	font-family: $font-mono;
+	background-color: $color-trans-whispergray;
+	border: 1px solid $color-trans-lightgray;
+	padding: $grid;
+	border-radius: 2px;
+	font-size: 14px;
 }
 
 
@@ -2769,13 +2846,17 @@ margin-bottom: 10px;
 
 //	Footer 
 
-/*
+
 footer {
-    color: white;
     text-align: left;
     padding: 0 0 $grid * 5;
-    background: $color-blue;
+    background: $color-white;
     font-family: $font-hed-alt;
+    color: $color-blue;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
     .container {
 	    overflow: visible;
     }
@@ -2792,8 +2873,8 @@ footer {
 		}
 	}
 	a {
-		padding-bottom: $grid;
-		border-bottom: 2px solid transparent;
+		padding-bottom: $half;
+		border-bottom: 1px solid transparent;
 	}
     a.home {
 	    font-size: 32px;
@@ -2826,7 +2907,7 @@ footer {
     #boilerplate {
 	    font-size: 12px;
 	    font-weight: 300;
-	    margin-top: 19px;
+	    margin-top: 3px;
 	    padding-left: 0;
 	    li:first-child {
 		    border-color: $color-trans-textwhite;
@@ -2836,9 +2917,9 @@ footer {
 	    }
     }
     @include respond-tablet {
-	    padding: $grid * 10 0;
+	    padding: $double 0 $grid * 3;
 		a:hover {
-		    border-color: $color-white;
+		    border-color: $color-orange;
 		}
 	    li {
 		    padding-top: 0;
@@ -2863,7 +2944,7 @@ footer {
 	    }
     }
 }
-*/
+
 
 //	Home 
 
