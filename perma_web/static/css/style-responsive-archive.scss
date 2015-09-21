@@ -192,7 +192,7 @@ header .primary-segment {
 	padding-left: $grid * 2;
 	order: 1;
 	width: 100%;
-	padding-right: 54px;
+	padding-right: 64px;
 	height: auto;	
 	@include respond-tablet {
 		height: $height-record-hed;
@@ -301,13 +301,23 @@ header .primary-segment {
 		font-size: 16px;
 	}
 	.action {
-		display: inline-block;
+		display: inline;
 		margin-left: 0;
 		padding-bottom: 2px;
 		vertical-align: baseline;
+		.label-verbose {
+		    width: .7em;
+		    @include respond-tablet {
+			    display: inline;
+			    width: auto;
+			    height: auto;
+			    text-indent: 0;
+		    }
+		}
 		a {
 			padding-bottom: 3px;
 			border-bottom: 1px solid;
+			display: inline-block;
 			&:hover {
 				border-color: $color-hover;
 			}
@@ -726,9 +736,16 @@ p.fp {
 }
 
 .label-verbose {
-	display: none;
+    display: inline-block;
+    width: 0;
+    height: 1em;
+    overflow: hidden;
+    text-indent: -1000px;
 	@include respond-tablet {
 	    display: inline;
+	    width: auto;
+	    height: auto;
+	    text-indent: 0;
 	}
 }
 
