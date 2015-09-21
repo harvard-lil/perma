@@ -61,10 +61,10 @@
 	
 	                    {% if serve_type != 'image' %}
 	                        {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
-	                            <span class="action"><span class="label-verbose">Looks wrong? Try the </span><a href="{% url 'single_linky' link.guid %}?type=image">Screenshot View</a></span>
+	                            <span class="action"><span class="label-verbose">Looks wrong?  </span><a href="{% url 'single_linky' link.guid %}?type=image">See the Screenshot View</a></span>
 	                        {% endif %}
 	                    {% else %}
-	                        <span class="action">This is a screenshot. <a href="{% url 'single_linky' link.guid %}?type=source">See the Capture View</a></span>
+	                        <span class="action"><span class="label-verbose">This is a screenshot. </span><a href="{% url 'single_linky' link.guid %}?type=source">See the Capture View</a></span>
 	                    {% endif %}                   
 	
 	                </p>
