@@ -226,7 +226,7 @@ class FunctionalTest(StaticLiveServerTestCase):
         get_id('id_username').send_keys('test_registrar_member@example.com')
         get_id('id_password').send_keys('pass')
         get_xpath("//button[@class='btn-success login']").click()
-        assert_text_displayed('Create a Perma archive', 'h3')  # wait for load
+        assert_text_displayed('Create a new Perma Link', 'h1')  # wait for load
 
         info("Creating archive.")
         url_to_capture = 'example.com'
@@ -240,10 +240,10 @@ class FunctionalTest(StaticLiveServerTestCase):
         # but note that the contents change between PhantomJS versions and OSes, so we'd need a fuzzy match
 
         info("Viewing playback.")
-        display_archive_url = get_xpath("//a[@class='perma-url']").get_attribute('href')  # get url from green button
+        display_archive_url = get_xpath("//a[@id='perma-success-url']").get_attribute('href')  # get url from green button
         archive_url = fix_host(display_archive_url)
         self.driver.get(archive_url)
-        assert_text_displayed('Live page view', 'a')
+        assert_text_displayed('View the live page', 'a')
         archive_view_link = get_id('warc_cap_container_complete')
         repeat_while_exception(lambda: archive_view_link.click(), ElementNotVisibleException) # wait for archiving to finish
         warc_url = fix_host(self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src'), settings.WARC_HOST)
