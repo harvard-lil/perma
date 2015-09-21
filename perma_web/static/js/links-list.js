@@ -210,7 +210,7 @@ $(function() {
                 showLoadingMessage = false;
                 data.objects.map(function(obj){
                     $.each(obj.captures, function(i, capture){
-                        if(capture.role == 'favicon')
+                        if(capture.role == 'favicon' && capture.status == 'success')
                             obj.favicon_url = capture.playback_url;
                     });
                     obj.local_url = 'http://' + settings.HOST + '/' + obj.guid;

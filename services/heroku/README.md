@@ -1,6 +1,6 @@
 This directory contains files that will be used when pushing Perma to Heroku.
 
-Files are copied to the appropriate places during deployment by `fab heroku_push`
+Files are copied to the appropriate places during deployment by heroku-buildpack-perma
 
 settings.py will import arbitrary settings from the environment, e.g.:
 

@@ -1,6 +1,34 @@
-# This file will be copied to settings/settings.py by `fab heroku_push`
+# This file will be copied to settings/settings.py by heroku-buildpack-perma
 
 from .deployments.settings_prod import *
+
+###########
+# ROLLBAR #
+###########
+
+# Backend
+MIDDLEWARE_CLASSES += ('rollbar.contrib.django.middleware.RollbarNotifierMiddleware',)
+ROLLBAR = {
+    'access_token': os.environ.get('ROLLBAR_ACCESS_TOKEN'),
+    'environment': 'development' if DEBUG else 'production',
+    'branch': os.environ.get('GIT_BRANCH'),
+    'root': '/app',
+}
+
+# Frontend
+ROLLBAR_CLIENT_ACCESS_TOKEN = os.environ.get('ROLLBAR_CLIENT_ACCESS_TOKEN')
+TEMPLATE_VISIBLE_SETTINGS += ('ROLLBAR_CLIENT_ACCESS_TOKEN',)
+PIPELINE_JS['global']['source_filenames'] += ('js/lib/rollbar.js',)
+
+# Logging - enables celery error reporting
+LOGGING['handlers']['rollbar'] = {
+    'level': 'ERROR',
+    'filters': ['require_debug_false'],
+    'access_token': os.environ.get('ROLLBAR_ACCESS_TOKEN'),
+    'environment': 'development' if DEBUG else 'production',
+    'class': 'rollbar.logger.RollbarHandler'
+}
+LOGGING['loggers']['']['handlers'] += ['rollbar']
 
 # Parse database configuration from env DATABASE_URL
 # import dj_database_url
@@ -102,5 +130,3 @@ STATIC_URL = 'http://BUCKET_NAME.s3.amazonaws.com/static/'
 # See: https://docs.djangoproject.com/en/1.3/ref/settings/#server-email
 # SERVER_EMAIL = EMAIL_HOST_USER
 ########## END EMAIL CONFIGURATION
-
-

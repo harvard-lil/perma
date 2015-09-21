@@ -1182,11 +1182,11 @@ p.body { @extend %style-body-text; }
 	    }
 	}
 	
-	a.perma-url {
+/*	a.perma-url {
 		font-family: $font-body;
 	    font-size: 26px;
 	}
-	
+	*/
 	.message-url {
 	    margin: 20px 0;
 	}
@@ -3955,7 +3955,7 @@ table {
 }
 
 //	Zebra striping 
-tr: nth-of-type(odd) {
+tr:nth-of-type(odd) {
 
 }
 thead {

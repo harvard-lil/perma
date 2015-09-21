@@ -1,10 +1,5 @@
 from fabric.api import *
 
-import os
-import shutil
-import tempfile
-
-from django.conf import settings
 from django.utils.crypto import get_random_string
 
 
@@ -43,39 +38,3 @@ def configure_app(app_name, s3_storage_bucket=None, s3_path='/'):
     heroku("config:set BUILDPACK_URL=https://github.com/heroku/heroku-buildpack-multi.git")
 
     print "Heroku app setup completed. Remember to set the following config vars: %s" % (django_blank_vars,)
-
-@task
-def push(app_name='perma', project_dir=os.path.join(settings.PROJECT_ROOT, '..')):
-    """
-        Push code to Heroku.
-    """
-    # where we'll get files from to set up the heroku deployment
-    heroku_files_dir = os.path.join(project_dir, "services", "heroku")
-
-    # copy perma_web to a temp dir for deployment
-    dest_dir = tempfile.mkdtemp()
-    local("cp -r %s/* %s" % (os.path.join(project_dir, "perma_web"), dest_dir))
-
-    with lcd(dest_dir):
-
-        # set up heroku files
-        local("cp %s ." % os.path.join(heroku_files_dir, "Procfile"))
-        local("cp %s ." % os.path.join(heroku_files_dir, "amazon-rds-combined-ca-bundle.pem"))
-        local("cp %s ." % os.path.join(heroku_files_dir, "runtime.txt"))
-        local("cp %s .buildpacks" % os.path.join(heroku_files_dir, "buildpacks"))
-        local("cp %s perma/" % os.path.join(heroku_files_dir, "wsgi_heroku.py"))
-        local("cp %s perma/settings/settings.py" % os.path.join(heroku_files_dir, "heroku_settings.py"))
-        local("cat %s >> requirements.txt" % os.path.join(heroku_files_dir, "extra_requirements.txt"))
-
-        # set up git
-        local(r'sed "s/perma_web\/perma\/settings\/settings.py|perma_web\///g" %s/%s > %s' % (project_dir, '.gitignore', '.gitignore'))
-        local("git init")
-        local("git add -A")
-        local("git commit -m 'heroku push `date`'")
-        local("heroku git:remote -a %s" % app_name)
-
-        # push to heroku
-        local("git push --force heroku master")
-
-    # delete temp dir
-    shutil.rmtree(dest_dir)
