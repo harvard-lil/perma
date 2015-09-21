@@ -753,6 +753,7 @@ p.fp {
     padding-left: $double;
     padding-right: $grid;
 	margin-top: $half;
+	overflow: auto;
 	@include respond-desktop {
 	    padding-left: $grid * 3;
 	    padding-right: $double;
