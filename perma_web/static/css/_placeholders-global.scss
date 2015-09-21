@@ -24,15 +24,16 @@
 }
 
 %style-container {
-	@extend %style-block-centered;
 	@extend %style-clears-floats;
-	padding-left: $grid;
-	padding-right: $grid;
-	max-width: $width-max;
+	margin-right: 0;
+	margin-left: 0;
+	padding: 0 $double * 2; // review
 	overflow: hidden;
 	@include respond-tablet {
-		padding-left: $double;
-		padding-right: $double;
+		margin-right: auto;
+		margin-left: auto;
+//		padding-left: $double;
+//		padding-right: $double;
 	}
 }
 

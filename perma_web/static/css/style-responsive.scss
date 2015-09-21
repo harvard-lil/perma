@@ -11,7 +11,7 @@
 // The OLD
 
 
-@import "_perma-old.scss";
+//@import "_perma-old.scss";
 	
 
 ///////////////////////////////////////////////
@@ -84,7 +84,7 @@ div.main-container {
     width: 100%;
 }
 
-section.__permaNew#main { // review
+section#main { // review XX
     color: $color-black;
     font-family: $font-body;
 	padding-top: $grid * 4;
@@ -180,18 +180,6 @@ body.modal-open {
   background-color: $color-orange;
 }
 
-.container {
-	@include respond-tablet {
-		max-width: 736px;
-	}
-	@include respond-desktop {
-		max-width: 970px;
-	}
-	@include respond-wide {
-		max-width: 1170px;
-	}
-}
-
 
 
 
@@ -199,7 +187,6 @@ body.modal-open {
 ///////////////////////////////////////////////
 // The NEW
 
-.__permaNew {
 
 ////////////////////////////////
 
@@ -653,23 +640,62 @@ body._welcome #main {
 	padding-bottom: 0;
 }
 
-#main-content {
-	padding: 0;
+*:focus {
+	outline-style: solid !important;
+    outline-color: rgba(0,0,0,0.07) !important;
+    outline-offset: 1px !important;
+    outline-width: 5px !important;
+}
+
+input:focus, *:hover {
+	outline: none !important;
 }
 
 /////////////////////////
 
 // redefine general bootstrap
 
-.container, ._userguide .lockup, ._userguide #main .user-docs, ._userguide #main .toc-overview-container, ._signup .lockup, ._signup #main .signup-learnMore, ._signup #main .signup-overview-container {
-    @include respond-tablet {
-	    max-width: 768px;
-    }
-    @include respond-desktop {
-	    max-width: 1002px;
-    }
+
+.container {
+	@extend %style-clears-floats;
+	margin-right: 0;
+	margin-left: 0;
+	padding: 0 $double; // review
+	overflow: hidden;
+	@include respond-tablet {
+		max-width: 736px; // review
+		margin-right: auto;
+		margin-left: auto;
+//		padding-left: $double;
+//		padding-right: $double;
+	}
+	@include respond-desktop {
+		max-width: $width-desktop - ($grid *2); // review
+	}
 	@include respond-wide {
-		max-width: 1202px;
+		max-width: $width-wide - ($grid *2); // review
+	}
+}
+
+._userguide .lockup, ._userguide #main .user-docs, ._userguide #main .toc-overview-container, ._signup .lockup, ._signup #main .signup-learnMore, ._signup #main .signup-overview-container {
+	@extend .container;
+}
+
+
+.container {
+	.container {
+//		padding-left: 0;
+//		padding-right: 0;
+	}
+}
+
+.row {
+	.col-sm-6 + .col-sm-6 {
+		margin-top: $grid * 4;
+		@include respond-tablet {
+			margin-top: 0;
+			padding-left: $grid * 4
+		}
 	}
 }
 
@@ -677,55 +703,50 @@ body._welcome #main {
 
 // general styles
 
-// this body tag is used for specificity, since django-pipeline seems to be compiling the css in the wrong order.
+h1, h2, h3, h4, h5 { 
+	font-family: $font-hed-alt; 
+	font-weight: 900;
+	line-height: 1.2;
+	margin: 0;
+	color: $color-black;
+	@include respond-tablet {
+		font-family: $font-body;
+		font-weight: 300;
+	}
+	&:first-child {
+		margin-top: 0;
+	}
+}
 
-// review (removed for compatability with __permaNew)
-//body {
-	h1, h2, h3, h4, h5 { 
-		font-family: $font-hed-alt; 
-		font-weight: 900;
-		line-height: 1.2;
-		margin: 0;
-		color: $color-black;
-		@include respond-tablet {
-			font-family: $font-body;
-			font-weight: 300;
-		}
-		&:first-child {
-			margin-top: 0;
-		}
+h1 {
+    font-weight: 300;
+    font-size: 40px;
+	@include respond-tablet {
+		font-size: 36px;
 	}
-	
-	h1 {
-	    font-weight: 300;
-	    font-size: 40px;
-		@include respond-tablet {
-			font-size: 36px;
-		}
-	}
-	
-	h2 {
-	    margin-top: 25px;
-	    font-size: 26px;
-	    color: $color-orange;
-	}
-	
-	h3 {
-		font-size: 28px;
-	}
-	
-	h4 {
-		color: $color-orange;
-	}
+}
 
-	p {
-		line-height: 1.5;
-		max-width: $width-max-measure;
-		&:last-child {
-			margin-bottom: 0;
-		}
+h2 {
+    margin-top: 25px;
+    font-size: 26px;
+    color: $color-orange;
+}
+
+h3 {
+	font-size: 28px;
+}
+
+h4 {
+	color: $color-orange;
+}
+
+p {
+	line-height: 1.5;
+	max-width: $width-max-measure;
+	&:last-child {
+		margin-bottom: 0;
 	}
-//} // review
+}
 
 .docs h4 {
 	color: $color-blue;
@@ -860,9 +881,12 @@ p.body { @extend %style-body-text; }
 
 .page-lede { @extend %style-pageLede; }
 
-.modal {
-	position: fixed;
+.modal { position: fixed; }
+
+.text-warning {
+	color: $color-error;
 }
+
 
 // create
 
@@ -897,10 +921,10 @@ p.body { @extend %style-body-text; }
 .form-priority {
 	margin: $grid * 3 -$double;
     @include respond-tablet {
-	    margin: $grid * 4 auto;
+	    margin: $grid * 4 -$double;
     }
     @include respond-wide {
-	    margin: $grid * 5 auto;
+	    margin: $grid * 5 -$double;
     }
 }
 
@@ -934,7 +958,7 @@ p.body { @extend %style-body-text; }
 		    width: $grid * 86;
 	    }
 	    @include respond-wide {
-		    width: $grid * 110;
+		    width: $grid * 112;
 	    }
 	}
 	
@@ -1245,6 +1269,7 @@ p + .thumbnail-placeholder {
 .thumbnail-message {
 	display: table-cell;
 	vertical-align: middle;
+	text-align: center;
 }
 
 #spinner {
@@ -1427,11 +1452,6 @@ p + .thumbnail-placeholder {
     }
 }
 
-#dashboard-container {
-    @include respond-tablet {
-	    padding: 0 $double;
-    }
-}
 
 .lockup + div {
 	margin-top: $grid * 6;
@@ -1498,23 +1518,6 @@ kbd a:hover, kbd:hover, kbd:active {
   	border-color: #398439;
 }
 
-.container {
-	@extend %style-container;
-	.container {
-		padding-left: 0;
-		padding-right: 0;
-	}
-}
-
-.row {
-	.col-sm-6 + .col-sm-6 {
-		margin-top: $grid * 4;
-		@include respond-tablet {
-			margin-top: 0;
-			padding-left: $grid * 4
-		}
-	}
-}
 
 .btn {
 	display: block;
@@ -1549,12 +1552,14 @@ kbd a:hover, kbd:hover, kbd:active {
 			margin-left: $double;
 		}
 	}
-	&:hover {
+	&:hover, &:focus {
 		background-color: $color-hover !important;
 		text-decoration: none !important;
+		border-color: transparent;
 	}
 	&:active {
 		background-color: $color-black !important;
+		border-color: transparent;
 	}
 	& + .btn {
 		margin-top: $grid * 2;
@@ -1569,7 +1574,7 @@ kbd a:hover, kbd:hover, kbd:active {
 		border-color: $color-orange;
 		color: $color-orange;
 		background-color: white;
-		&:hover {
+		&:hover, &:focus {
 			background-color: white !important;
 			color: $color-error;
 			border-color: $color-error;
@@ -1641,7 +1646,7 @@ kbd a:hover, kbd:hover, kbd:active {
 // again, a body for pipeline specificity 
 
 // review; removed for __permaNew
-//body {
+body {
 	form {
 		margin-top: $grid * 3;
 		.btn {
@@ -1769,7 +1774,7 @@ kbd a:hover, kbd:hover, kbd:active {
 		-ms-transition: none;
 		-o-transition: none;
 	}
-//} // review
+} // review
 
 .col-sm-4 form .form-group {
 	@include respond-tablet {
@@ -1783,22 +1788,6 @@ kbd a:hover, kbd:hover, kbd:active {
 // header / nav
 
 .navbar {
-	.container {
-		padding: 0 $double; // review
-		margin-right: 0;
-		margin-left: 0;
-		@include respond-tablet {
-			max-width: 768px; // review
-			margin-right: auto;
-			margin-left: auto;
-		}
-		@include respond-desktop {
-			max-width: 1002px; // review
-		}
-		@include respond-wide {
-			max-width: 1202px; // review
-		}
-	}
 }
 
 .navbar-default {
@@ -1809,7 +1798,7 @@ kbd a:hover, kbd:hover, kbd:active {
 	}
 }
 
-&._expanded { // remove when trigger off
+._expanded { // remove when trigger off
 	.navbar-default {
 		border-bottom: none;
 	}
@@ -1832,7 +1821,7 @@ kbd a:hover, kbd:hover, kbd:active {
 
 .navbar-nav {
 	height: auto;
-	margin: 0;
+	margin: 0 $double $double;
 	@include respond-tablet {
 		height: $height-nav-tablet;
 		display: table;
@@ -1850,11 +1839,6 @@ kbd a:hover, kbd:hover, kbd:active {
 	}
 }
 
-.navbar-collapse .navbar-nav.navbar-right:last-child {
-	@include respond-tablet {
-		margin-right: 0;
-	}	
-}
 
 .navbar-link, .navbar-toggle {
 	@include link-highlight($color-black, $color-orange);
@@ -1885,25 +1869,13 @@ kbd a:hover, kbd:hover, kbd:active {
 }
 
 
-.navbar-header {
+.container > .navbar-header { // specificity for bootstrap
 	z-index: 10;
+	@include respond-tablet {
+		margin-left: -$double;
+	}
 }
 
-header navbar-header ul {
-    list-style: none;
-    text-align: right;
-}
-
-header navbar-header ul li {
-    display: inline;
-    font-size: 17.5px;
-    margin-left: 30px;
-    text-transform: uppercase;
-}
-
-header navbar-header ul li#header-greeting { margin-left: 0; }
-
-header navbar-header ul li a#nav-button { margin-top: -4px; }
 
 ul .nav.navbar-nav.navbar-right li a {
     background-color: #fff;
@@ -1915,17 +1887,6 @@ ul .nav.navbar-nav.navbar-right li a {
     line-height: 10px;
 }
 
-header navbar-header ul li a:hover {
-    background-color: #efefef;
-    color: #333;
-    text-decoration: none;
-}
-
-header navbar-header ul li a.this-page {
-    background-color: #efefef;
-    color: #333;
-    text-decoration: none;
-}
 
 .dropdown-toggle {
 	display: none !important; // review
@@ -1982,7 +1943,7 @@ li.dropdown {
 	margin: 0;
 }
 
-&._expanded .navbar-nav { // review
+._expanded .navbar-nav { // review
 	position: relative;
     width: auto;
     z-index: 1000;
@@ -2035,7 +1996,7 @@ li.dropdown {
     }
 }
 
-&._expanded .dropdown-menu { // review
+._expanded .dropdown-menu { // review
 	padding: 0;
 	margin: 0;
 	border: none;
@@ -2104,7 +2065,7 @@ li.dropdown {
 	}
 }
 
-&._expanded .navbar-create { // review
+._expanded .navbar-create { // review
 	margin: 0;
     background-color: $color-blue;
     color: white;
@@ -2310,6 +2271,11 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
 
 // docs
 
+.docs-ah { @extend %style-docs-ah; }
+.docs-bh { @extend %style-docs-bh; }
+.body-text { @extend %style-body-text; }
+
+
 ._userguide {
 	.lockup { @extend %style-container; }
 	#main {
@@ -2412,6 +2378,7 @@ body._faq {
 	.faq-question { @extend %style-docs-bh; }
 	.faq-answer p { @extend %style-body-text; }
 }
+
 
 /////////////////////////
 
@@ -3856,7 +3823,7 @@ ul#linky-ul li {
 }
 
 .sponsoring-library-info .edit-org-link, .sponsoring-library-info .leave-org-btn {
-	font-family: $sans-font;
+	font-family: $font-hed-alt;
 	margin-left: 15px;
 	font-size:12px;
 }
@@ -3867,7 +3834,7 @@ ul#linky-ul li {
 
 .edit-registrar-btn {
 	margin-left:35px;
-	font-family: $sans-font;
+	font-family: $font-hed-alt;
 	float:left;
 }
 
@@ -4741,6 +4708,7 @@ a.tab-styling, .tab-styling {
     font-size: 18px;
 }
 
+/*
 a.btn.vest, a.btn.dashboard, a.btn.user-delete {
 	width: 100px;
 	padding: 2px 0px;
@@ -4779,6 +4747,7 @@ a.btn.user-delete:hover, a.btn.user-delete:focus {
 	border: 1px solid #222;
   	color: #222;
 }
+*/
 
 .btn-more {}
 
@@ -5185,4 +5154,3 @@ p.orange {
 
 //	End user docs  
 
-}
