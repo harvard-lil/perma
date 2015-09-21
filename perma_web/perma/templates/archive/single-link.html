@@ -13,28 +13,28 @@
 
 
     Our header is built using three segments.
-    +-----------------------------------+
-    | Primary segment                   |
-    |                                   |
-    | This segment is always displayed  |
-    -------------------------------------
-    | Details segment                   |
-    |                                   |
-    | This segment is displayed         |
-    | if the user clicks the show       |
-    | details button                    |
-    -------------------------------------
-    | Message segment                   |
-    |                                   |
-    | If we have a message to share     |
-    | we display it here. Things like   |
-    | "Things archive is dark, but you  |
-    | can see it because you're part of |
-    | org that owns the archive" or     |
-    | "Archive created successfully,    |
-    | here's the perma.cc address of    |
-    | the archive"                      |
-    +-----------------------------------+
+    +------------------------------------+
+    | Primary segment                   					|
+    |                                   					|
+    | This segment is always displayed  				|
+    --------------------------------------
+    | Details segment                   					|
+    |                                   					|
+    | This segment is displayed         					|
+    | if the user clicks the show       					|
+    | details button                    					|
+    --------------------------------------
+    | Status banner segment                   			|
+    |                                   					|
+    | If we have a message to share     				|
+    | we display it here. Things like   					|
+    | "Things archive is dark, but you  					|
+    | can see it because you're part of 					|
+    | org that owns the archive" or     					|
+    | "Archive created successfully,    					|
+    | here's the perma.cc address of  				  	|
+    | the archive"                      					|
+    +------------------------------------+
  
  {% endcomment %}
 
@@ -192,7 +192,7 @@
             </div>
         </div>
 
-        <div class="details-message row">
+        <div class="banner banner-status row">
             {% if can_view and link.dark_archived %}
                 This archive is in the dark archive. It’s only visible to libraries and your Archiving Organization.
             {% endif %}
@@ -210,6 +210,13 @@
     {% elif link|is_darchive %}
         {% include "archive/dark-archive.html" %}
     {% endif %}
+
+<!-- Modals -->
+
+<!-- vest -->
+<!-- delete -->
+<!-- darchive -->
+<!-- flag -->
 
 {% endblock %}
 
