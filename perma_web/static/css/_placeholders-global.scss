@@ -91,16 +91,24 @@
 
 %style-overview-module {
 	&:last-child {
-		.toc-module-content {
-			border-right: 2px solid white;
+		@include respond-tablet {
+			.toc-module-content {
+				border-right: 2px solid white;
+			}
 		}
 	}
 	.toc-module-content {
-		border-left: 2px solid white;
-		height: 13em;
+		height: auto;
 		display: block;
 		margin: 0;
-		padding: $double;
+		padding: $grid $double;
+		border-bottom: 1px solid white;
+		@include respond-tablet {
+			height: 13em;
+			border-left: 2px solid white;
+			border-bottom: none;
+			padding: $double;
+		}
 	}
 	a {
 		&:hover {
@@ -151,16 +159,28 @@
 		}
 	}
 	div.toc-module-content {
-		background-color: $color-white;
-		border-color: $color-blue;
+		background-color: $color-blue;
+		color: white;
+		padding-top: 10px;
+		padding-bottom: 10px;
+		@include respond-tablet {
+			background-color: $color-white;
+			color: $color-black;
+			padding: $double;
+		}
 		strong:after {
-			background-position: -9px * 4;
+			background-position: -9px * 5;
+			display: none;
+			@include respond-tablet {
+				display: inline-block;
+				background-position: -9px * 4;
+			}
 		}
 	}
 	strong {
 		display: block;
-		font-weight: 800;
-		font-size: 20px;
+		font-weight: 700;
+		font-size: 14px;
 		&:after {
 		    content: '';
 		    height: 17px;
@@ -170,9 +190,16 @@
 		    background-repeat: no-repeat;
 		    background-size: 54px 17px;
 		    background-position: -9px * 2;
-		    top: 2px;
+		    top: 3px;
 			margin-left: $grid;
 			margin-right: -17px;
+			@include respond-tablet {
+				top: 2px;
+			}
+		}
+		@include respond-tablet {
+			font-size: 20px;
+			font-weight: 800;
 		}
 	}
 	p {
@@ -181,5 +208,9 @@
 		margin-top: $grid;
 		font-size: 14px;
 		padding-right: $grid;
+		display: none; 
+		@include respond-tablet {
+			display: block; 
+		}
 	}
 }

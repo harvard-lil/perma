@@ -665,7 +665,7 @@ input:focus, *:hover {
 	margin-right: 0;
 	margin-left: 0;
 	padding: 0 $double; // review
-	overflow: hidden;
+	overflow: visible; // review
 	@include respond-tablet {
 		max-width: $width-tablet; // review
 		margin-right: auto;
@@ -684,6 +684,7 @@ input:focus, *:hover {
 
 .container-bleed {
 	max-width: none !important;
+	padding: 0;
 }
 
 
@@ -697,7 +698,7 @@ input:focus, *:hover {
 .row {
 	margin: 0 -$double;
 	.col-sm-6 + .col-sm-6 {
-		margin-top: $grid * 4;
+		// margin-top: $grid * 4;
 		@include respond-tablet {
 			margin-top: 0;
 			padding-left: $grid * 4
@@ -715,17 +716,22 @@ input:focus, *:hover {
 }
 
 .col.col-right {
-	float: right;
+	@include respond-tablet {
+		float: right;
+	}
 }
 
 .col.align-right {
-	text-align: right;
+	@include respond-tablet {
+		text-align: right;
+	}
 }
 
 
 .col-sm-by5 {
-	width: 100 / 5 * 1%;
+	width: 100%;
 	@include respond-tablet {
+		width: 100 / 5 * 1%;
 		float: left;
 	}
 }
@@ -758,7 +764,17 @@ h1 {
 
 span.subsection {
 	color: $color-blue;
-	font-size: 35px;
+	font-size: 28px;
+	display: none;
+	margin-top: $grid;
+	@include respond-tablet {
+		font-size: 35px;
+		display: inline;
+		margin-top: 0;
+		&:before {
+			content: '/ ';
+		}
+	}
 }
 
 h2 {
@@ -2375,23 +2391,56 @@ p.body-text {
 
 ._userguide  {
 	.container#main-content {
-		padding-left: 0;
-		padding-right: 0;
-		max-width: none;
+		@include respond-tablet {
+			padding-left: 0;
+			padding-right: 0;
+			max-width: none;
+		}
 	}
 }
 
 .toc-overview { @extend %style-overview-container; }
 
+.toc-overview-container .row {
+	display: flex;
+	flex-wrap: wrap;
+	@include respond-tablet {
+		display: block;
+	}
+	.toc-module {
+		@media (max-width: $width-tablet - 1) {
+			width: 100%;
+		}
+	}
+	.toc-module._active {
+		order: -1;
+	}
+}
+
 .toc-module { @extend %style-overview-module; }
 
 .user-docs {
-	padding-top: $grid * 3;
-	margin-top: $grid * 4;
+	padding-top: $double;
+	margin-top: $double;
+	@include respond-tablet {
+		padding-top: $grid * 3;
+		margin-top: $grid * 4;
+	}
 }
 
 div.user-docs + div.toc-overview {
-	margin-top: $grid * 9;
+	margin-top: $grid * 3;
+	margin-bottom: -$grid * 3;
+	@include respond-tablet {
+		margin-top: $grid * 9;
+		margin-bottom: 0;
+	}
+	div.toc-module-content {
+		display: none;
+		@include respond-tablet {
+			display: block;
+		}
+	}
 }
 
 .docs-toc {
@@ -2456,7 +2505,10 @@ div.user-docs + div.toc-overview {
 
     table {
         h4 {
-            font-size: 16px;
+            font-size: 12px;
+            @include respond-tablet {
+	            font-size: 16px;
+            }
         }
 
         .table-center {
