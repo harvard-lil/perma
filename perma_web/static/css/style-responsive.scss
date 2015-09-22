@@ -2342,6 +2342,37 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
 	}
 }
 
+li.docs-bh {
+	list-style-type: none;
+	counter-increment: step-counter;
+	&:before {
+		content: counter(step-counter)'. ';
+	}
+}
+
+ol.tos {
+	margin-left: 0;
+	padding-left: 0;
+	ul ul {
+		margin-top: 1em;
+		margin-bottom: 1em; 
+	}
+}
+
+ul.tos li {
+	@extend p.body-text;
+	+ li {
+		margin-top: 1em;
+	}
+}
+
+.alpha-list {
+	display: inline;
+	font-weight: 700;
+	font-family: $font-hed-alt;
+	padding-right: .5em;
+}
+
 p.body-text { 
 	font-size: 15px;
 	font-weight: 300;
@@ -4751,11 +4782,6 @@ li {
 	margin-bottom: 5px;
 }
 
-.alpha-list {
-	width: 20px;
-	color: black;
-	margin: 0 0 -19px -45px;
-}
 
 ul.tos {
 	margin-left: 25px;
