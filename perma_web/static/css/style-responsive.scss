@@ -1534,43 +1534,6 @@ strong {
 	}
 }
 
-pre {
-	font-family: $font-mono;
-	font-weight: 300;
-	font-size: 16px;
-	background: #ddf1ff;
-	border: 1px solid #bbe4ff;
-	color: $color-orange;
-	margin: 16px 0px 16px 30px;
-	word-break: normal;
-	word-wrap: normal;
-}
-
-kbd {
-    margin: 0 2px;
-    font-family: $font-mono;
-  	color: $color-white;
-  	background-color: #60B65B;
-  	border-color: #4cae4c;
-  	font-size: 14px;
-  	padding: 3px 6px;
-  	border-radius: 2px;
-    white-space: nowrap;
-}
-
-.nobreak {
-	white-space: nowrap;	
-}
-
-.docs kbd a {
-	color: #fff;
-}
-
-kbd a:hover, kbd:hover, kbd:active {
-	color: #fff;
-	background-color: #47a447;
-  	border-color: #398439;
-}
 
 
 .btn {
@@ -2371,6 +2334,7 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
     font-family: $font-hed-alt;
     font-weight: 300;
     color: $color-orange;
+    line-height: 1.3;
  	@include respond-tablet {
 	    margin-top: $grid * 6;
 	    margin-bottom: $double;
@@ -2451,7 +2415,7 @@ div.user-docs + div.toc-overview {
 	font-size: 14px;
 	padding-bottom: $grid * 6;
 	@include respond-tablet {
-		padding-right: 0;
+		padding-right: $grid;
 	}
 	@include respond-desktop {
 		padding-right: $grid * 6;
@@ -2536,7 +2500,7 @@ p.code {
 	font-weight: 700;
 }
 
-div.code-block {
+%code {
 	background-color: $color-trans-whispergray;
 	border: 1px solid $color-trans-lightgray;
 	padding: $grid;
@@ -2544,6 +2508,12 @@ div.code-block {
 	margin-bottom: 1em;
 	font-family: $font-mono;
 	font-size: 14px;
+	word-break: normal;
+	word-wrap: normal;
+}
+
+div.code-block {
+	@extend %code;
 	p {
 		font-family: $font-mono;
 		font-size: 14px;
@@ -2553,13 +2523,83 @@ div.code-block {
 	}
 }
 
-span.code {
+pre {
+	@extend %code;
+}
+
+kbd {
+    margin: 0 2px;
+    font-family: $font-mono;
+  	color: $color-white;
+  	background-color: #60B65B;
+  	border-color: #4cae4c;
+  	font-size: 14px;
+  	padding: 3px 6px;
+  	border-radius: 2px;
+    white-space: nowrap;
+}
+
+.nobreak {
+	white-space: nowrap;	
+}
+
+.docs kbd a {
+	color: #fff;
+}
+
+kbd a:hover, kbd:hover, kbd:active {
+	color: #fff;
+	background-color: #47a447;
+  	border-color: #398439;
+}
+
+div.warning {
+	background-color: $color-error;
+	padding: $double;
+	border-radius: 2px;
+	overflow: auto;
+	p {
+		color: $color-white;
+		font-size: 14px;
+		font-family: $font-hed-alt;
+		font-weight: 400;
+
+	}
+	.icon-exclamation-sign {
+		font-size: 85px;
+		color: $color-white;
+		display: inline;
+		float: left;
+		margin-right: 16px;
+		margin-top: -3px;
+	}
+	a {
+		color: $color-white;
+		border-bottom: 1px solid;
+	}
+	@include respond-tablet {
+		p {
+			font-size: 15px;
+		}
+	}
+	@include respond-desktop {
+		p {
+			font-size: 18px;
+		}
+	}
+	@include respond-wide {
+	}
+}
+
+
+code, span.code {
 	font-family: $font-mono;
 	background-color: $color-trans-whispergray;
 	border: 1px solid $color-trans-lightgray;
 	padding: $grid;
 	border-radius: 2px;
 	font-size: 14px;
+	color: $color-black;
 }
 
 
@@ -5241,94 +5281,6 @@ p.orange {
 //	Archive error page end 
 
 //	Developer docs start 
-
-
-.developer-docs, .user-docs {
-
-	.nav-pills > li > a
-	 {
-		display: block;
-		padding: 5px;
-		border: none;
-	}
-	
-	.nav-pills > li.active > a
-	 {
-		background-color: #f7f7f7;
-		border: 1px solid #e6e6e6;
-	}
-
-}
-
-.developer-docs {
-	
-	.api-warning {
-		border: 1px #FF3535 solid;
-		background-color: #FF3535;
-		padding: 16px 16px 0 16px;
-		margin-top: 30px;
-	}
-	
-	.api-warning p {
-		color: #fff;
-		font-size: 18px;
-	}
-	
-	.api-warning .icon-exclamation-sign {
-		font-size: 85px;
-		color: #fff;
-		display: inline;
-		float: left;
-		margin-right: 16px;
-		margin-top: -3px;
-	}
-	
-	.api-warning a {
-		color: #fff;
-		border-bottom: 1px solid #fff;
-	}
-
-	h2 {
-        margin-top: 25px;
-        margin-bottom: 25px;
-    }
-
-    h4 {
-		margin-top: 25px;
-        margin-bottom: 25px;
-        font-size: 20px;
-		color: #333;
-	}
-	
-	code {
-		color: #333;
-		background-color: #eef8ff;
-	}
-	
-	p {
-		font-family: $font-hed;
-		font-size: 16px;
-		color: #555;
-	}
-
-	pre {
-		background-color: #fafafb;
-		border-color: #ddd;
-		color: #444;
-		margin-left: 0;
-	}
-
-    table {
-        h4 {
-            font-size: 16px;
-        }
-
-        .table-center {
-            text-align: center;
-        }
-    }
-
-}
 
 //	Developer docs end 
 
