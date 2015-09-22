@@ -95,6 +95,16 @@ header {
 	@include respond-tablet {
 		padding: 7px 11px;
 		border-radius: 10em;
+		&:hover {
+			border-width: 3px;
+			padding: 6px 10px;
+		}
+		&:active {
+			border-width: 3px;
+			padding: 6px 10px;
+			color: white;
+			background-color: $color-blue;
+		}
 	}
 }
 
