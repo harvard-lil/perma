@@ -57,11 +57,14 @@ html {
 }
 
 body {
-	background: white;
+	background-color: $color-blue;
     color: $color-black;
     font-family: $font-body;
     margin: 0;
     min-height: 100%;
+    @include respond-tablet {
+		background-color: white;
+    }
 }
 
 footer { 
@@ -89,9 +92,10 @@ section#main { // review XX
     color: $color-black;
     font-family: $font-body;
 	padding-top: $grid * 4;
-	padding-bottom: $grid * 4;
+	padding-bottom: $grid * 36;
 	background-color: $color-white;
 	@include respond-tablet {
+		padding-bottom: $grid * 4;
 		padding-top: $grid * 4;
 		padding-bottom: $grid * 25;
 	}
@@ -2851,28 +2855,41 @@ margin-bottom: 10px;
 
 footer {
     text-align: left;
-    padding: 0 0 $grid * 5;
-    background: $color-white;
+    padding: $double 0 $grid * 5;
+    background: $color-blue;
     font-family: $font-hed-alt;
-    color: $color-blue;
+    color: $color-white;
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
+    font-weight: 700;
+    @include respond-tablet {
+	    padding-top: 0;
+	    background: $color-white;
+		color: $color-blue;
+	    font-size: 12px;
+    }
+    @include respond-desktop {
+	    font-size: 14px;
+    }
     .container {
 	    overflow: visible;
     }
+    div.col-sm-6 {
+	    width: 50%;
+	    float: left;
+	    margin-top: 0 !important;
+    }
     ul {
 	    margin: 0;
+	    padding: 0;
     }
     li { 
 		padding-top: $half;
 		margin-top: $grid;
 		padding-top: $grid;
 		border-top: 1px solid $color-trans-textwhite;
-		&:first-child {
-			border-color: transparent;
-		}
 	}
 	a {
 		padding-bottom: $half;
@@ -2898,9 +2915,6 @@ footer {
     }
     #footer-nav {
 	    padding-left: 0;
-	    li:first-child {
-		    margin-bottom: $double;
-	    }
 	    a {
 		    margin-right: $double;
 		    font-weight: 700;
@@ -2921,9 +2935,6 @@ footer {
 		    display: inline-block;
 	    }
 	    #footer-nav {
-		    li:first-child {
-			    margin-bottom: 0;
-		    }
 		    float: left;
 	    }
 	    #boilerplate {
