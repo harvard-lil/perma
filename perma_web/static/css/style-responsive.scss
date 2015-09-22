@@ -1901,6 +1901,10 @@ ul .nav.navbar-nav.navbar-right li a {
 	@include respond-desktop {
 		padding: 10px $double;  // specificity for bootstrap
 	}
+	&._login {
+		font-family: $font-hed-alt;
+		font-weight: 700;
+	}
 }
 
 
