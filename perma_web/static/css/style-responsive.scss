@@ -2390,6 +2390,10 @@ p.body-text {
 	margin-top: $grid * 4;
 }
 
+div.user-docs + div.toc-overview {
+	margin-top: $grid * 9;
+}
+
 .docs-toc {
 	font-family: $font-hed-alt;
 	font-size: 14px;
