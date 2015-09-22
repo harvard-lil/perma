@@ -12,41 +12,56 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 <div class="container">
 	<div class="row">
 		<div class="col-sm-12">
-			<h1>Perma.cc user guide</h1>
+			<h1>Perma.cc user guide<span class="subsection"> / Overview</span></h1>
 		</div>
 	</div>
 </div>
 
 <div class="container container-bleed toc-overview">
 	<div class="container toc-overview-container">
-		<div class="toc-module">
-			<a class="toc-module-content" href="#overview">
-				<strong class="toc-module-title">Overview</strong>
-				<p class="toc-module-description">An introduction to Perma.cc, why it exists, and how people and organizations are using it.</p>
-			</a>
+		<div class="row">
+			<div class="col col-sm-by5 toc-module col-no-gutter _active">
+				<div class="toc-module-content">
+					<strong class="toc-module-title">Overview</strong>
+					<p class="toc-module-description">An introduction to Perma.cc, why it exists, and how people and organizations are using it.</p>
+				</div>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_getting-started' %}">
+					<strong class="toc-module-title">Getting Started</strong>
+					<p class="toc-module-description">Learn the different kinds of users, organizations, and privileges. Learn to create, use, and organize Perma Links.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_perma_archive' %}">
+					<strong class="toc-module-title">Perma.cc records</strong>
+					<p class="toc-module-description">Learn how journal, courts, and other orgnizations use Perma.cc and support their members.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_perma_link_creation' %}">
+					<strong class="toc-module-title">Organizing &amp; Annotating</strong>
+					<p class="toc-module-description">Libraries have a special role in Perma.cc — learn how to use Perma.cc to support your journals and faculty.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_perma_user_roles' %}">
+					<strong class="toc-module-title">Users &amp; Affiliations</strong>
+					<p class="toc-module-description">Learn how journal, courts, and other orgnizations use Perma.cc and support their members.</p>
+				</a>
+			</div>
 		</div>
-		<div class="toc-module">
-			<a class="toc-module-content" href="#perma-basics">
-				<strong class="toc-module-title">Perma.cc basics</strong>
-				<p class="toc-module-description">Learn the different kinds of users, organizations, and privileges. Learn to create, use, and organize Perma Links.</p>
-			</a>
-		</div>
-		<div class="toc-module">
-			<a class="toc-module-content" href="#libraries-and-registrars">
-				<strong class="toc-module-title">Libraries and other institutions</strong>
-				<p class="toc-module-description">Libraries have a special role in Perma.cc — learn how to use Perma.cc to support your journals and faculty.</p>
-			</a>
-		</div>
-		<div class="toc-module">
-			<a class="toc-module-content" href="#journals-vesting-orgs">
-				<strong class="toc-module-title">Journals, courts, and other organizations</strong>
-				<p class="toc-module-description">Learn how journal, courts, and other orgnizations use Perma.cc and support their members.</p>
-			</a>
-		</div>
-		<div class="toc-module">
+	</div>
+</div>
+
+<div class="container">
+	<div class="row">
+		<div class="col col-sm-6 toc-module">
 			<a class="toc-module-content _jump" href="{% url 'docs_faq' %}">
 				<strong class="toc-module-title">Frequently asked questions</strong>
 			</a>
+		</div>
+		<div class="col col-sm-6 toc-module col-right align-right">
 			<a class="toc-module-content _jump" href="{% url 'dev_docs' %}">
 				<strong class="toc-module-title">Perma.cc for developers</strong>
 			</a>
@@ -54,11 +69,12 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 	</div>
 </div>
 
+
 <div class="container user-docs" id="overview">
 	<div class="row">
 		<div class="col-sm-4 docs-toc" >
 			<ul>
-				<li class="docs-toc-chapter _active"><a href="#overview">Overview</a></li>
+				<li class="docs-toc-chapter _active"><a href="#overview">Introducing Perma.cc</a></li>
 				<li class="docs-toc-section"><a href="#what-is-perma">What is Perma.cc?</a></li>
 				<li class="docs-toc-section"><a href="#what-does-perma-do">What does Perma.cc do?</a></li>
 				<li class="docs-toc-section"><a href="#what-is-vesting">What is vesting?</a></li>
@@ -69,7 +85,7 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 			<ul>
 		</div>
 		<div class="col-sm-8 docs docs-body">
-			<h2>Overview</h2>
+			<h2>Introducing Perma.cc</h2>
 			<h3 id="what-is-perma">What is Perma.cc?</h3>
 			<p>Perma.cc is a service that helps prevent link rot.</p>
 			
@@ -94,7 +110,7 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 	<div class="row">
 		<div class="col-sm-4 docs-toc">
 			<ul>
-				<li class="docs-toc-chapter"><a href="#overview">Overview</a></li>
+				<li class="docs-toc-chapter"><a href="#overview">Introducing Perma.cc</a></li>
 				<li class="docs-toc-chapter _active"><a href="#perma-basics">Perma.cc Basics</a></li>
 					<li class="docs-toc-section"><a href="#account-holders">Account-holders</a></li>
 					<li class="docs-toc-section"><a href="#create-account">Creating an account</a></li>
@@ -255,7 +271,7 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 	<div class="row">
 		<div class="col-sm-4 docs-toc">
 			<ul>
-				<li class="docs-toc-chapter"><a href="#overview">Overview</a></li>
+				<li class="docs-toc-chapter"><a href="#overview">Introducing Perma.cc</a></li>
 				<li class="docs-toc-chapter"><a href="#perma-basics">Perma.cc Basics</a></li>
 				<li class="docs-toc-chapter _active"><a href="#libraries-and-registrars">For Libraries and Other Registrars</a></li>
 					<li class="docs-toc-section"><a href="#becoming-registrar">Becoming a registrar</a></li>
@@ -298,7 +314,7 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 	<div class="row">
 		<div class="col-sm-4 docs-toc">
 			<ul>
-				<li class="docs-toc-chapter"><a href="#overview">Overview</a></li>
+				<li class="docs-toc-chapter"><a href="#overview">Introducing Perma.cc</a></li>
 				<li class="docs-toc-chapter"><a href="#perma-basics">Perma.cc Basics</a></li>
 				<li class="docs-toc-chapter"><a href="#libraries-and-registrars">For Libraries and Other Registrars</a></li>
 				<li class="docs-toc-chapter _active"><a href="#journals-vesting-orgs">For Journals, Courts, and Other Vesting Orgs</a></li>
@@ -321,6 +337,43 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 			<p>Every vesting user within a vesting org has the ability to add or remove vesting users on behalf of the organization. Each organization should decide for itself, in consultation with its registrar, how it wants to manage the addition and removal of vesting users.</p>
 			<p>To add new vesting users, just click on "Manage users" in the dropdown menu and select "Vesting users." Click "add new" to trigger the vesting user form, enter the email address of the person you want to add, and click the "add" button.</p>
 			<p>To remove vesting users from your vesting org, just click on "Manage users" in the dropdown menu, find the person's name in your list of vesting users, and click "edit/remove," which will take you to an edit screen. From that screen you can remove the user from your vesting org.<p>
+		</div>
+	</div>
+</div>
+
+<div class="container container-bleed toc-overview">
+	<div class="container toc-overview-container">
+		<div class="row">
+			<div class="col col-sm-by5 toc-module col-no-gutter _active">
+				<div class="toc-module-content">
+					<strong class="toc-module-title">Overview</strong>
+					<p class="toc-module-description">An introduction to Perma.cc, why it exists, and how people and organizations are using it.</p>
+				</div>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_getting-started' %}">
+					<strong class="toc-module-title">Getting Started</strong>
+					<p class="toc-module-description">Learn the different kinds of users, organizations, and privileges. Learn to create, use, and organize Perma Links.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_perma_archive' %}">
+					<strong class="toc-module-title">Perma.cc records</strong>
+					<p class="toc-module-description">Learn how journal, courts, and other orgnizations use Perma.cc and support their members.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_perma_link_creation' %}">
+					<strong class="toc-module-title">Organizing &amp; Annotating</strong>
+					<p class="toc-module-description">Libraries have a special role in Perma.cc — learn how to use Perma.cc to support your journals and faculty.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_perma_user_roles' %}">
+					<strong class="toc-module-title">Users &amp; Affiliations</strong>
+					<p class="toc-module-description">Learn how journal, courts, and other orgnizations use Perma.cc and support their members.</p>
+				</a>
+			</div>
 		</div>
 	</div>
 </div>

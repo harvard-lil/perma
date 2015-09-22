@@ -705,8 +705,29 @@ input:focus, *:hover {
 	}
 }
 
-.row.row-nobleed {
+.row.row-no-bleed {
 	margin: 0;
+}
+
+.col.col-no-gutter {
+	padding-left: 0;
+	padding-right: 0;
+}
+
+.col.col-right {
+	float: right;
+}
+
+.col.align-right {
+	text-align: right;
+}
+
+
+.col-sm-by5 {
+	width: 100 / 5 * 1%;
+	@include respond-tablet {
+		float: left;
+	}
 }
 
 /////////////////////////
@@ -733,6 +754,11 @@ h1 {
 	@include respond-tablet {
 		font-size: 48px;
 	}
+}
+
+span.subsection {
+	color: $color-blue;
+	font-size: 35px;
 }
 
 h2 {

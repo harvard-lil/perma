@@ -87,26 +87,22 @@
 	background-color: $color-background;
 	border-radius: 2px;
 	@extend %style-clears-floats;
-	& + div {
-		padding-top: $grid * 3;
-		margin-top: $grid * 4;
-	}
 }
 
 %style-overview-module {
-	float: left;
-	width: 20%;
 	&:first-child {
-		a {
+		.toc-module-content {
 			border-left: 2px solid white;
 		}
 	}
-	a {
+	.toc-module-content {
 		border-right: 2px solid white;
 		height: 13em;
 		display: block;
 		margin: 0;
 		padding: $double;
+	}
+	a {
 		&:hover {
 			background-color: $color-blue !important;
 			color: white;
@@ -122,13 +118,11 @@
 		}
 	}
 	a._jump {
-		height: 6.5em;
-		background-color: $color-trans-whispergray;
-		padding-top: 19px;
-		+ a {
-			border-top: 2px solid white;
-		}
-		strong {
+		display: inline-block;
+		height: auto;
+		padding-left: 0;
+	    padding-right: 30px;
+    		strong {
 			font-weight: 300;
 			color: $color-orange;
 			&:after {
@@ -136,9 +130,31 @@
 				top: 3px;
 			}
 		}
+		&:hover {
+			background-color: transparent !important;
+			color: $color-blue;
+			p, strong {
+				color: $color-blue !important;
+			}
+			strong:after {
+			    background-position: -9px * 2 !important;
+			}
+		}
+		&:active {
+			background-color: transparent !important;
+			p, strong {
+				color: $color-black !important;
+			}
+			strong:after {
+			    background-position: -9px * 1 !important;
+			}
+		}
 	}
-	&._active a {
+	&._active .toc-module-content {
 		background-color: $color-white;
+		strong:after {
+			background-position: -9px * 4;
+		}
 	}
 	strong {
 		display: block;
