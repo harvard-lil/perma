@@ -171,6 +171,9 @@
 			    background-position: -9px * 1 !important;
 			}
 		}
+		@include respond-desktop {
+			padding-top: $grid * 3;
+		}
 	}
 	div.toc-module-content {
 		background-color: $color-blue;
