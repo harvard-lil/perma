@@ -2580,16 +2580,14 @@ span.code {
 
 
 .screen-shot {
-	margin: 0 0 20px 0;
+	-moz-box-shadow:    0 2px 4px rgba(0, 0, 0, 0.175);	
+	-webkit-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);	
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);	
+
+  	border: 1px solid $color-trans-lightgray;
 	border-radius: 2px;
-	border: 1px solid $color-blue;
-	-moz-box-shadow:    0 0 2px 2px #eee;
-  -webkit-box-shadow: 0 0 2px 2px #eee;
-  box-shadow:         0 0 2px 2px #eee;
-  	border: 1px solid #ccc;
-	border-radius: 3px;
-	margin: 10px 20px 20px 10px;
-	width: 90%;
+	margin: $grid * 4 0;
+	width: 100%;
 }
 
 
