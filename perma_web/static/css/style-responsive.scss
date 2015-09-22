@@ -92,10 +92,9 @@ section#main { // review XX
     color: $color-black;
     font-family: $font-body;
 	padding-top: $grid * 4;
-	padding-bottom: $grid * 36;
+	padding-bottom: $grid * 4;
 	background-color: $color-white;
 	@include respond-tablet {
-		padding-bottom: $grid * 4;
 		padding-top: $grid * 4;
 		padding-bottom: $grid * 25;
 	}
@@ -918,10 +917,12 @@ p.body { @extend %style-body-text; }
     font-family: $font-hed-alt;
     color: $color-orange;
     margin-bottom: 0;
-    font-size: 18px;
+    font-size: 15px;
     line-height: 1.3;
     font-weight: 700;
+    margin-top: $half;
     @include respond-tablet {
+	    margin-top: 0;
 	    font-size: 21px;
     }
     @include respond-desktop {
@@ -1904,10 +1905,6 @@ ul .nav.navbar-nav.navbar-right li a {
 
 
 .nav > li > .dropdown-toggle {
-	display: none; 
-	@include respond-tablet {
-		display: block;
-	}
 	&.navbar-link {
 		padding-top: 16px;
 	    padding-bottom: 16px;
@@ -1917,6 +1914,10 @@ ul .nav.navbar-nav.navbar-right li a {
 	    border: 1px solid $color-trans-whispergray;
 	    font-family: $font-hed-alt;
 	    font-weight: 700;
+		display: none; 
+		@include respond-tablet {
+			display: block;
+		}
 	}
     &:after {
 	    content: '';
@@ -2109,6 +2110,9 @@ li.dropdown {
 }
 
 .navbar-create {
+    margin-top: 0;
+    margin-bottom: 8px;
+    margin-right: -7px;
 	@include respond-tablet {
 		margin: $double $double;
 	}
@@ -2859,12 +2863,12 @@ footer {
     background: $color-blue;
     font-family: $font-hed-alt;
     color: $color-white;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
     font-weight: 700;
     @include respond-tablet {
+	    position: absolute;
+	    bottom: 0;
+	    left: 0;
+	    right: 0;
 	    padding-top: 0;
 	    background: $color-white;
 		color: $color-blue;
