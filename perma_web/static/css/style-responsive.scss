@@ -665,7 +665,7 @@ input:focus, *:hover {
 	margin-right: 0;
 	margin-left: 0;
 	padding: 0 $double; // review
-	overflow: visible; // review
+	overflow: hidden; // review
 	@include respond-tablet {
 		max-width: $width-tablet; // review
 		margin-right: auto;
@@ -730,7 +730,7 @@ input:focus, *:hover {
 
 .col-sm-by5 {
 	width: 100%;
-	@include respond-tablet {
+	@include respond-desktop {
 		width: 100 / 5 * 1%;
 		float: left;
 	}
@@ -767,7 +767,7 @@ span.subsection {
 	font-size: 28px;
 	display: none;
 	margin-top: $grid;
-	@include respond-tablet {
+	@include respond-desktop {
 		font-size: 35px;
 		display: inline;
 		margin-top: 0;
@@ -2384,6 +2384,9 @@ p.body-text {
 	font-family: $font-body;
 	line-height: 1.5;
 	@include respond-tablet {
+		font-size: 16px;
+	}
+	@include respond-desktop {
 		font-size: 18px;
 	}
 }
@@ -2430,14 +2433,14 @@ p.body-text {
 
 div.user-docs + div.toc-overview {
 	margin-top: $grid * 3;
-	margin-bottom: -$grid * 3;
+	border-bottom: none;
 	@include respond-tablet {
 		margin-top: $grid * 9;
 		margin-bottom: 0;
 	}
 	div.toc-module-content {
 		display: none;
-		@include respond-tablet {
+		@include respond-desktop {
 			display: block;
 		}
 	}
@@ -2448,6 +2451,9 @@ div.user-docs + div.toc-overview {
 	font-size: 14px;
 	padding-bottom: $grid * 6;
 	@include respond-tablet {
+		padding-right: 0;
+	}
+	@include respond-desktop {
 		padding-right: $grid * 6;
 	}
 
