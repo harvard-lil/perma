@@ -717,7 +717,6 @@ h1, h2, h3, h4, h5 {
 	margin: 0;
 	color: $color-black;
 	@include respond-tablet {
-		font-family: $font-body;
 		font-weight: 300;
 	}
 	&:first-child {
@@ -729,7 +728,7 @@ h1 {
     font-weight: 300;
     font-size: 40px;
 	@include respond-tablet {
-		font-size: 35px;
+		font-size: 48px;
 	}
 }
 
