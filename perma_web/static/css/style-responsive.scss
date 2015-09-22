@@ -2444,6 +2444,10 @@ p.body-text {
 
 .docs-body {
 	
+	h2 + p {
+		margin-top: $double;
+	}
+	
     p { @extend p.body-text; }
 
     table {

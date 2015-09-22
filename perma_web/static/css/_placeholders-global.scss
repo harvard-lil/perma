@@ -90,13 +90,13 @@
 }
 
 %style-overview-module {
-	&:first-child {
+	&:last-child {
 		.toc-module-content {
-			border-left: 2px solid white;
+			border-right: 2px solid white;
 		}
 	}
 	.toc-module-content {
-		border-right: 2px solid white;
+		border-left: 2px solid white;
 		height: 13em;
 		display: block;
 		margin: 0;
@@ -150,8 +150,9 @@
 			}
 		}
 	}
-	&._active .toc-module-content {
+	div.toc-module-content {
 		background-color: $color-white;
+		border-color: $color-blue;
 		strong:after {
 			background-position: -9px * 4;
 		}
