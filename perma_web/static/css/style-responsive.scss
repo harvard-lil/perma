@@ -760,6 +760,11 @@ h1 {
 	}
 }
 
+h1 + form ,
+h1 + div {
+	margin-top: $grid * 4;
+}
+
 span.subsection {
 	color: $color-blue;
 	font-size: 28px;
@@ -1667,135 +1672,133 @@ strong {
 // again, a body for pipeline specificity 
 
 // review; removed for __permaNew
-body {
-	form {
-		margin-top: $grid * 3;
-		.btn {
-			background-color: $color-blue;
-			&:hover {
-				background-color: $color-hover;
-			}
-			&:active {
-				background-color: $color-active;
-			}
+form {
+	margin-top: $grid * 3;
+	.btn {
+		background-color: $color-blue;
+		&:hover {
+			background-color: $color-hover;
+		}
+		&:active {
+			background-color: $color-active;
 		}
 	}
-	
-	fieldset {
-		background-color: $color-background;
-		border-radius: 4px;
-		padding: $double $grid;
-		border: none;
-		margin: 0;
-		@include respond-tablet {
-			padding: $grid $grid $grid * 3 $grid * 3;
-		}
+}
+
+fieldset {
+	background-color: $color-background;
+	border-radius: 4px;
+	padding: $double $grid;
+	border: none;
+	margin: 0;
+	@include respond-tablet {
+		padding: $grid $grid $grid * 4 $grid * 3;
 	}
-	h3 + fieldset {
-		margin-top: $double;
-	}
-	label, input {
-		display: block;
-		font-family: $font-hed-alt;
-		width: 100%;
-	}
-	label {
-		margin: 0; 
-		font-weight: 400;
-		font-size: 14px;
-	}
-	input {
-		margin: $grid 0 0 0;
-		font-weight: 700;
-	    font-size: 20px;
-	    border: 1px solid $color-trans-lightgray;
-	    border-radius: 4px;
-	    padding: $grid;
-	    background-color: white;
-	    outline: none;
+}
+h3 + fieldset {
+	margin-top: $double;
+}
+label, input {
+	display: block;
+	font-family: $font-hed-alt;
+	width: 100%;
+}
+label {
+	margin: 0; 
+	font-weight: 400;
+	font-size: 14px;
+}
+input {
+	margin: $grid 0 0 0;
+	font-weight: 700;
+    font-size: 20px;
+    border: 1px solid $color-trans-lightgray;
+    border-radius: 4px;
+    padding: $grid;
+    background-color: white;
+    outline: none;
+    box-shadow: none;
+    &:focus {
+	    border-color: $color-blue;
+	    color: $color-blue;
+	    background-color: $color-white;
 	    box-shadow: none;
-	    &:focus {
-		    border-color: $color-blue;
-		    color: $color-blue;
-		    background-color: $color-white;
-		    box-shadow: none;
-	    }
+    }
+}
+button {
+    &:focus {
+	    box-shadow: none;
+    }
+}
+input[type="checkbox"] {
+	width: auto;
+}
+div.checkbox {
+	padding: $grid;
+    background-color: $color-highlight;
+    margin-right: $double;
+    margin-top: $grid * 3;
+    border-radius: 2px;
+    padding-top: $grid;
+    padding-left: 36px;
 	}
-	button {
-	    &:focus {
-		    box-shadow: none;
-	    }
+._error {
+	input {
+		border-color: $color-error;
 	}
-	input[type="checkbox"] {
+}
+input + label {
+	margin-top: $double;
+}
+button {
+	width: 100%;
+	@include respond-tablet {
 		width: auto;
 	}
-	div.checkbox {
-		padding: $grid;
-	    background-color: $color-highlight;
-	    margin-right: $double;
-	    margin-top: $grid * 3;
-	    border-radius: 2px;
-	    padding-top: $grid;
-	    padding-left: 36px;
- 	}
-	._error {
-		input {
-			border-color: $color-error;
-		}
-	}
-	input + label {
+}
+.form-group {
+	margin-bottom: 0;
+	@include respond-tablet {
+		float: left;
+		width: 50%;
 		margin-top: $double;
+		padding-right: $double;
 	}
-	button {
-		width: 100%;
-		@include respond-tablet {
-			width: auto;
-		}
-	}
-	.form-group {
-		margin-bottom: 0;
-		@include respond-tablet {
-			float: left;
-			width: 50%;
-			margin-top: $double;
-			padding-right: $double;
-		}
-	}
-	.form-group + .form-group {
-		margin-top: $double;
-	}
-	.text-error, .errorlist {
-		color: $color-error;
-		font-family: $font-hed-alt;
-		font-weight: 700;
-		font-size: 12px;
-		clear: both;
-		display: block;
-		padding-top: $double;
-	}
-	.errorlist {
-	  list-style-type: none;
-	  margin: 0;
-	  padding: 0;
-	  li {
-		  margin-bottom: 0;
-		  line-height: 1.4;
-		  & + li {
-			  margin-top: 4px;
-		  }
+}
+.form-group + .form-group {
+	margin-top: $double;
+}
+.text-error, .errorlist {
+	color: $color-error;
+	font-family: $font-hed-alt;
+	font-weight: 700;
+	font-size: 12px;
+	clear: both;
+	display: block;
+	padding-top: $double;
+}
+.errorlist {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  li {
+	  margin-bottom: 0;
+	  line-height: 1.4;
+	  & + li {
+		  margin-top: 4px;
 	  }
-	}
-	input[type="text"], 
-	textarea, 
-	button[type="submit"],
-	button#addlink, 
-	.infinity-navbar {
-	    -webkit-transition: none;
-		-moz-transition: none;
-		-ms-transition: none;
-		-o-transition: none;
-	}
-} // review
+  }
+}
+input[type="text"], 
+textarea, 
+button[type="submit"],
+button#addlink, 
+.infinity-navbar {
+    -webkit-transition: none;
+	-moz-transition: none;
+	-ms-transition: none;
+	-o-transition: none;
+}
 
 .col-sm-4 form .form-group {
 	@include respond-tablet {
