@@ -4693,6 +4693,9 @@ div.faq-answer {
 		font-family: $font-body;
 		font-weight: 200;
 	}
+	& + p {
+		margin-top: $double;
+	}
 }
 
 .title {
