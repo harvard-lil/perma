@@ -1,36 +1,918 @@
 /* This .scss file will automatically be compiled by django-pipeline into a .css file */
 
-/* Import some mixins from Compass */
+/////////////////////////
+
+//	perma global imports
+
+@import "_perma-imports.scss";
+@import "_reset.scss";
+
+
+//	Import some mixins from Compass
+
 @import "compass/css3/opacity";
 
 
-/* Our Sass vars start */
-
-$secondary-font: 'Helvetica', 'sans-serif';
-
-/* Our Sass vars end */
+$height-record-hed: 97px;
+$color-trans-white: rgba(254,254,254,.65);
+$color-yellow: #d0a60f;
 
 
-/* Global start */
+// iframe start
 
-/* Start - our locally hosted Google Fonts */
-@font-face {
-    font-family: "Roboto Slab";
-    font-style: normal;
-    font-weight: 300;
-    src: url('../fonts/RobotoSlab-Light.eot');
-    src: local("Roboto Slab Light"), local("RobotoSlab-Light"), url('../fonts/RobotoSlab-Light.eot?#iefix') format("embedded-opentype"), url('../fonts/RobotoSlab-Light.woff') format("woff"), url('../fonts/RobotoSlab-Light.ttf') format("truetype")
+iframe {
+    border-width: 0px 0px;
+	border-style: solid;
+	border-color: #999;
+    text-align:auto;
+    background:#ffffff;
+    margin:0px auto;
+    padding:auto;
+    display:block;
+    overflow-x:scroll;
+    overflow-y: scroll;
+    height:100%;
+    width:100%;
+
+}
+
+
+header {
+	background-color: $color-blue;
+	color: $color-white;
+	overflow: visible;
+	font-family: $font-hed-alt;
+	border-bottom: $grid solid #e5e5e5;
+    box-sizing: content-box;	
+	@include respond-desktop {
+		height: $height-record-hed;
+	}
+}
+
+.row {
+	margin: 0;
+}
+
+.btn {
+	background-color: transparent;
+	border-radius: 0;
+	&:hover {
+		background-color: transparent;
+		border-color: $color-white;
+	}
+	&:active {
+		background-color: transparent;
+		border-color: inherit;
+		box-shadow: none;
+	}
+	&:focus {
+		background-color: transparent;
+		border-color: inherit;
+		outline: none;
+		color: inherit;
+	}
+}
+
+.btn-ui-small {
+	font-size: 12px;
+	font-weight: 400;
+	padding: 5px 9px;
+	border: 2px solid ;
+	border-radius: 4px;
+	color: $color-blue;
+	border-color: $color-blue;
+	background-color: transparent;
+	&:hover {
+		border-width: 3px;
+		padding: 4px 8px;
+	}
+	&:active {
+		border-width: 3px;
+		padding: 4px 8px;
+		color: white;
+		background-color: $color-blue;
+	}
+	@include respond-tablet {
+		padding: 7px 11px;
+		border-radius: 10em;
+		&:hover {
+			border-width: 3px;
+			padding: 6px 10px;
+		}
+		&:active {
+			border-width: 3px;
+			padding: 6px 10px;
+			color: white;
+			background-color: $color-blue;
+		}
+	}
+}
+
+.btn-ui-small.details {
+	border: none;
+	padding: 0;
+	font-size: 14px;
+	color: $color-white;
+	display: table;
+	height: $grid * 6;
+	width: 100%;
+	text-align: left;
+	padding-left: $double;
+	border-radius: 0;
+	span {
+		vertical-align: middle;
+	}
+	&:hover {
+		border: none;
+		padding: 0;
+		padding-left: $double;
+		color: $color-blue;
+		background-color: $color-white;
+	}
+	&:active {
+		border: none;
+		padding: 0;
+		padding-left: $double;
+	}
+	@include respond-desktop {
+		text-align: center;
+		font-size: 12px;
+		font-weight: 400;
+		padding: 7px 11px;
+		border: 2px solid  $color-white;
+		border-radius: 10em;
+		background-color: transparent;
+		width: 11em;
+		display: inline-block;
+		height: auto;
+		span {
+			display: inline;
+		}
+		&:hover {
+			border: 3px solid $color-white;
+			padding: 6px 10px;
+		}
+		&:active {
+			border: 3px solid $color-white;
+			padding: 6px 10px;
+			color: $color-blue;
+			background-color: $color-white;
+		}
+	}
+}
+
+header .primary-segment {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	@include respond-desktop {
+		display: block;
+	}
+}
+
+.primary-segment .col {
+	display: table;
+	.content {
+		display: table-cell;
+		vertical-align: middle;
+	}
+	@include respond-desktop {
+		float: left;
+	}
+
+}
+
+.col._details {
+	padding: 0;
+	text-align: center;
+	order: 3;
+	width: 50%;
+	@include respond-desktop {
+		text-align: center;
+		padding: $grid * 3;
+		height: $height-record-hed;
+		width: 180px;
+	}
+	@include respond-wide {
+		width: 18%;
+	}
+}
+
+.col._main {
+	padding-left: $grid * 2;
+	order: 1;
+	width: 100%;
+	&._unauthenticated {
+		padding-right: $double;
+	}
+	padding-right: $grid * 8;
+	height: auto;	
+	@include respond-tablet {
+		height: $height-record-hed;
+		width: 70%;
+		padding-right: $double;
+		border-bottom: 1px solid $color-trans-white;
+		.content {
+			padding: 0;
+		}
+	}
+	@include respond-desktop {
+		border-left: 1px solid $color-trans-white;
+		border-bottom: none;
+		width: 40%;
+	}
+	@include respond-wide {
+		width: 46%;
+		padding-left: $grid * 3;
+	}
+	.content {
+		padding: 12px 0;
+	}
+	
+}
+
+.col._livepage {
+	padding: 0;
+	order: 4;
+	width: 50%;
+	@include respond-desktop {
+		height: $height-record-hed;
+		width: 18%;
+	}
+	@include respond-wide {
+		width: 18%;
+	}
+}
+
+a.about {
+	padding-bottom: 3px;
+	border-bottom: 1px solid;
+	font-weight: 200;
+	&:hover {
+		border-color: $color-hover;
+	}
+	&:active {
+		border-color: $color-active;
+		color: $color-active;
+	}
+	font-size: 14px;
+}
+
+.col._user {
+	float: right;
+	order: 2;
+	width: 100%;
+	border-bottom: 1px solid $color-trans-white;
+	text-align: center;
+	@include respond-tablet {
+		height: $height-record-hed;	
+		width: 30%;
+		display: table;
+	}
+	@include respond-desktop {
+		border-bottom: none;
+		width: 22%;
+	}
+	@include respond-wide {
+		width: 18%;
+		float: left;
+	}
+	&._unauthenticated {
+		a.about {
+			display: none; 
+		}
+		@include respond-tablet {
+			text-align: right;
+			a.about { display: inline; }
+		}
+		@include respond-desktop {
+			text-align: center;
+		}
+	}
+}
+
+
+.title {
+	font-size: 15px;
+	font-weight: 700;
+	line-height: 1.1;
+	margin-bottom: 0;
+	margin-left: -.075em;
+//	.logo:after {
+//		content: '';
+//		background-image: url('../img/perma-logo-white.svg');
+//		background-size: 28px auto;
+//		background-repeat: no-repeat;
+//		width: 32px;
+//		height: 13px;
+//		margin-left: 6px;
+//		display: inline-block;
+//	}
+	@media (min-width: 400px) {
+		font-size: 18px;
+	}
+	@include respond-tablet { 
+		font-size: 24px;
+	}
+}
+
+.creation {
+	font-family: $font-hed-alt;
+	font-size: 14px;
+	font-weight: 200;
+	padding-top: $half;
+	margin-bottom: 0;
+	letter-spacing: .01em;
+	@include respond-wide {
+		font-size: 16px;
+	}
+	.action {
+		display: inline;
+		margin-left: 0;
+		margin-right: .7em;
+		padding-bottom: 2px;
+		vertical-align: baseline;
+		.label-verbose {
+		    width: .7em;
+		    @include respond-tablet {
+			    display: inline;
+			    width: auto;
+			    height: auto;
+			    text-indent: 0;
+		    }
+		}
+		a {
+			padding-bottom: 3px;
+			border-bottom: 1px solid;
+			display: inline-block;
+			&:hover {
+				border-color: $color-hover;
+			}
+			&:active {
+				border-color: $color-active;
+				color: $color-active;
+			}
+		}
+	}
+	@include respond-wide {
+		.action {
+			margin-left: $double;
+		}
+	}
+	a.about {
+	    vertical-align: baseline;
+		display: inline-block;
+	}
+	@include respond-tablet {
+		a.about { display: none; }
+	}
+}
+
+.cat {
+	//font-weight: 700;
+}
+
+.btn-outside {
+	display: table;
+	height: $grid * 6;
+	border-left: 1px solid $color-trans-white;
+	border-right: none;
+	padding: $grid * 2;
+	border-top: none;
+	border-bottom: none;
+	margin-left: auto;
+	margin-right: auto;
+	width: 100%;
+	padding: 0;
+	text-align: right;
+	padding-right: $double;	
+	@include respond-desktop {
+		height: $height-record-hed;
+		padding: $grid * 2;
+		border-right: 1px solid $color-trans-white;
+		margin-right: 0;
+		width: auto;
+		padding: $grid * 2;
+		text-align: center;
+	}
+	@include respond-wide {
+		padding: $grid * 3;
+	}
+	span {
+		display: table-cell;
+		vertical-align: middle;
+	    &:after {
+			content: '';
+			width: 9px;
+			height: 17px;
+			display: inline-block;
+			margin-left: $grid;
+			position: relative;
+			top: 4px;
+			background-image: url('../img/ui/perma-ui-chev-right-small.png');
+			background-repeat: no-repeat;
+			background-size: 54px 17px;
+			background-position: -9px * 5;
+	    }
+	}
+	&:hover {
+		background-color: white;
+		color: $color-blue;
+		span:after {
+			background-position: -9px * 2;
+		}
+	}
+	&:active {
+		background-color: $color-black;
+		border-color: $color-black;
+		color: $color-white;
+		span:after {
+			background-position: -9px * 5;
+		}
+	}
+}
+
+
+// dropdown and nav
+
+.nav > li > a.dropdown-toggle {
+	display: none !important; // review
+	font-family: $font-body;
+	font-size: 17px;
+	font-weight: 300;
+	
+	@include respond-tablet {
+		display: block !important; // review
+	}
+	&.navbar-link {
+		padding-top: 16px;
+	    padding-bottom: 16px;
+	    padding-left: 28px;
+	    padding-right: $double;
+	    border-radius: 2px;
+	    border: 1px solid $color-trans-lightgray;
+	}
+    &:after {
+	    content: '';
+	    height: 9px;
+	    width: 18px;
+	    display: inline-block;
+	    background-image: url('../img/ui/perma-ui-chev-down.png');
+	    background-repeat: no-repeat;
+	    background-size: 102px 9px;
+	    background-position: -17px * 5;
+	    top: -1px;
+		margin-left: $grid;
+	}
+	&:hover {
+		background-color: $color-trans-lightgray;
+	}
+	&:active {
+		border-color: $color-trans-gray;
+	}
+	&:hover::after {
+	}
+}
+
+.nav > li.open > a.dropdown-toggle {
+	border-color: $color-background;
+	background-color: $color-background;
+	color: $color-blue;
+	&:after {
+		transform: rotate(180deg);
+		background-position: -17px * 0;
+	}
+	&:hover {
+		color: $color-orange;
+	}
+	&:active {
+		border-color: $color-black;
+	}
+}
+
+li.dropdown {
+	margin: 0;
+}
+
+/*
+._expanded .navbar-nav { // review
+	position: relative;
+    width: auto;
+    z-index: 1000;
+    padding: 5px 0;
+    margin: 2px 0 0;
+	margin-right: -7px;
+    font-size: 14px;
+    list-style: none;
+    background-color: white;
+    background-clip: padding-box;
+	border-radius: 2px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);	
+	border: 1px solid black;
+	padding-top: $double;
+	& > li > a {
+		font-family: $font-hed-alt;
+		padding: $half 12px $half $grid * 3;
+		font-size: $size-body;
+		text-align: right;
+		&:hover, &:focus {
+			background-color: $color-hover;
+			color: white;
+		}
+	}
+	.btn._nav {
+		margin: 0;
+	    background-color: $color-blue;
+	    color: white;
+	    padding-top: $double;
+	    padding-bottom: $double;
+	    margin-top: $grid;
+	    margin-bottom: $grid;
+	    margin-right: $half;
+	    margin-left: $half;
+	    padding-right: 12px;
+	    &:after {
+			content: '';
+			width: 9px;
+			height: 17px;
+			display: inline-block;
+			margin-left: $grid;
+			position: relative;
+			top: 3px;
+			background-image: url('../img/ui/perma-ui-chev-right-small.png');
+			background-repeat: no-repeat;
+			background-position: 0 0;
+			background-size: 54px 17px;
+			background-position-x: -9px * 5;
+	    }
     }
+}
 
-@font-face {
-    font-family: "Roboto Slab";
-    font-style: normal;
+._expanded .dropdown-menu { // review
+	padding: 0;
+	margin: 0;
+	border: none;
+	box-shadow: none;
+	min-width: none;
+	width: auto;
+}
+*/
+
+.dropdown-menu   { // review
+	position: relative;
+    float: none;
+    width: auto;
+    z-index: 1000;
+    display: none;
+    padding: 5px 0;
+    margin: 0;
+    font-size: 14px;
+    list-style: none;
+    background-color: white;
+    background-clip: padding-box;
+	border-radius: 2px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
+	border-color: black;
+	padding-top: $double;
+	min-width: $grid * 27;
+  	@include respond-tablet {
+		position: absolute; // DEL WHEN FINAL
+		top: 77px;
+		margin-right: 0;
+		margin-right: -7px;
+		margin-top: 2px;
+	}
+	@include respond-desktop {
+		top: 64px;
+	}
+	& > li > a {
+		font-family: $font-hed-alt;
+		padding: $half 12px $half $grid * 3;
+		font-size: $size-body;
+		text-align: right;
+		&:hover, &:focus {
+			background-color: $color-hover;
+			color: white;
+		}
+		@include respond-tablet {
+			padding-right: 20px;
+		}
+	}
+}
+
+.dropdown.open {
+	.dropdown-menu {
+		display: block;
+	}
+}
+
+.dropdown-header {
+	font-family: $font-hed-alt;
     font-weight: 400;
-    src: url('../fonts/RobotoSlab-Regular.eot');
-    src: local("Roboto Slab Regular"), local("RobotoSlab-Regular"), url('../fonts/RobotoSlab-Regular.eot?#iefix') format("embedded-opentype"), url('../fonts/RobotoSlab-Regular.woff') format("woff"), url('../fonts/RobotoSlab-Regular.ttf') format("truetype")
-    }
-/* End - our locally hosted Google Fonts */
+    letter-spacing: 1px;
+    text-align: right;
+    padding-right: 11px;
+    padding-top: 7px;
+    color: $color-blue;
+    text-transform: uppercase;
+	@include respond-tablet {
+		padding-right: 20px;
+	}
+}
 
+._expanded .navbar-create { // review
+	margin: 0;
+    background-color: $color-blue;
+    color: white;
+    padding-top: $double !important;
+    padding-bottom: $double !important;
+    margin-top: $grid;
+    margin-bottom: $grid;
+    margin-right: $half;
+    margin-left: $half;
+    padding-right: 12px;
+    &:after {
+		content: '';
+		width: 9px;
+		height: 17px;
+		display: inline-block;
+		margin-left: $grid;
+		position: relative;
+		top: 3px;
+		background-image: url('../img/ui/perma-ui-chev-right-small.png');
+		background-repeat: no-repeat;
+		background-position: -45px center;
+		background-size: 54px 17px;
+    }
+}
+
+.navbar-create {
+	@include respond-tablet {
+		margin: $double $double;
+	}
+}
+
+.navbar-collapse {
+	padding: 0;
+	max-height: none;
+	overflow: visible;
+	border: none;
+	box-shadow: none;
+	&.in {
+		overflow: visible;
+	}
+}
+
+.navbar-collapse.in .dropdown-menu {
+    display: block;
+}
+
+// undo-ing bootstrap
+
+@include respond-tablet {
+	.navbar-nav.navbar-right:last-child {
+		margin-right: 0 !important;
+	}
+}
+
+.navbar-nav {
+	margin: 0 -$grid $double -$grid;
+	@include respond-tablet {
+		margin: 0;
+	}
+}
+
+// ui-tray
+
+%ui-tray-alignment {
+	padding-left: $grid * 5;
+	padding-right: $grid * 5;
+	margin: 0 -$double;
+}
+
+.ui-tray {
+	z-index: 100;
+    background-color: white;
+    border-bottom: 1px solid $color-blue;
+    color: $color-black;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin-top: 0;
+    border-top: none;
+    overflow: hidden;
+    box-sizing: border-box;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
+    height: auto !important;
+    display: none;
+	@include respond-wide {
+	    left: 18%;
+	    width: 64%;
+	    border: 1px solid $color-blue;
+	    border-top: none;
+	    border-bottom-left-radius: 2px;
+	    border-bottom-right-radius: 2px;
+	}
+}
+
+dl.tray-detail-group {
+	padding: $double;
+    margin: 0;
+	& + .tray-detail-group {
+		border-top: 1px solid $color-trans-lightgray;
+	}
+	@include respond-desktop {
+		padding: $double $grid * 3;
+	}
+}
+
+dt.tray-detail-title {
+	font-weight: 700;
+	color: $color-blue;
+}
+
+dd.tray-detail-entry {
+	font-size: 15px;
+	font-weight: 400;
+	margin-top: 2px;
+	@include respond-tablet {
+		font-size: 17px;
+	}
+}
+
+p.fp {
+	font-size: 10px;
+	color: $color-trans-gray;
+	font-weight: 400;
+	font-family: $font-hed-alt;
+	line-height: 1.4;
+	padding-top: $grid * 3;
+	a {
+		text-decoration: underline;
+		&:hover {
+			color: $color-blue;
+		}
+	}
+}
+
+.tray-actions {
+	padding-top: $double;
+    padding-bottom: $double;
+    background-color: $color-background;
+    text-align: left;
+    padding-left: $double;
+    padding-right: $grid;
+	margin-top: $half;
+	overflow: auto;
+	@include respond-desktop {
+	    padding-left: $grid * 3;
+	    padding-right: $double;
+	}
+}
+
+.label-verbose {
+    display: inline-block;
+    width: 0;
+    height: 1em;
+    overflow: hidden;
+    text-indent: -1000px;
+	@include respond-tablet {
+	    display: inline;
+	    width: auto;
+	    height: auto;
+	    text-indent: 0;
+	}
+}
+
+a.btn-ui-small.btn-dashboard {
+	border-color: $color-blue;
+	color: $color-blue;
+	margin-left: -2px;
+	margin-right: $grid;
+	&:active {
+		color: white;
+	}
+	&.vest {
+	}
+	&.darchive {
+	}
+	&.user-delete {
+		border-color: $color-error;
+		color: $color-error;
+		&:active {
+			background-color: $color-error;
+			color: white;
+		}
+	}
+	&.flag {
+		float: right;
+	    &:before {
+			content: '';
+			width: 15px;
+			height: 16px;
+			display: inline-block;
+			margin-right: 6px;
+			position: relative;
+			top: 0;
+			background-image: url('../img/ui/perma-ui-flag.svg');
+			background-repeat: no-repeat;
+			background-position: 0 0;
+			background-size: 84px 16px;
+			background-position: -14px * 3;
+			margin-top: -$half;
+			margin-bottom: -$half;
+	    }
+	    &:active:before {
+		    background-position: -14px * 5;
+	    }
+	}
+}
+
+// toggle
+
+.navbar-toggle {
+	display: block;
+	position: absolute;
+	top: 8px;
+    right: 8px;
+    bottom: $grid;
+    width: 43px !important;
+    height: 43px !important;
+    border: none;
+    background-color: $color-background;
+    margin: 0;
+    border-radius: 2px;
+    z-index: 100;
+    @include respond-xmobile{
+	    width: 51px !important;
+ 	    height: 48px !important;
+   }
+    .icon-bar {
+	    background-color: $color-blue;
+	    display: block;
+	    width: 22px;
+	    height: 2px;
+	    border-radius: 1px;
+	    margin-right: auto;
+	    margin-left: auto;
+	    & + .icon-bar {
+		    margin-top: $half;
+	    }
+    }
+    &:hover {
+	    background-color: $color-hover;
+	    border-radius: 2px;
+	    .icon-bar {
+		    background-color: $color-white;
+		}
+    }
+    &:active {
+	    background-color: $color-black;
+	    border-radius: 2px;
+	    .icon-bar {
+		    background-color: $color-white;
+		}
+    }
+	&:focus {
+		outline: none;
+	    border-radius: 2px;
+	    background-color: $color-white;
+	    .icon-bar {
+		    background-color: $color-blue;
+		}
+	}
+	@include respond-tablet {
+		display: none;
+	}
+	@include respond-xmobile {
+		width: $grid * 8;
+	}
+}
+
+
+// when nav is open
+
+.collapsing {
+    -webkit-transition: none;
+    transition: none;
+}
+
+
+
+
+// ui-activeDetails
+
+._activeDetails {
+	.ui-tray {
+		display: block;
+	}
+}
+
+
+// iframe end
+
+
+/*
 
 html {
     position:relative;
@@ -87,10 +969,10 @@ p {
     margin-top: 15px;
 }
 
-/* Global end */
+// Global end 
 
 
-/* Compact header start */
+// Compact header start 
 
 #compact-header {
     display: none;
@@ -112,9 +994,9 @@ header #compact-header .infinity-logo   {
     margin-top: 4px;
 }
 
-/* Compact header end */
+// Compact header end
 
-/* Full header start */
+// Full header start
 
 header #full-header .controls {
     margin-bottom: 30px;
@@ -216,35 +1098,12 @@ ul li {
 #pdf_cap_container_complete {
     display: none;
 }
-/* Full header end */
+// Full header end
 
 
-/* iframe start */
-
-iframe {
-    border-width: 0px 0px;
-	border-style: solid;
-	border-color: #999;
-    text-align:auto;
-    background:#fff;
-    margin:0px auto;
-    padding:auto;
-    display:block;
-    overflow-x:scroll;
-    overflow-y: scroll;
-    height:100%;
-    width:100%;
-
-}
-
-.negative-margin {
-	margin-top:-20px;
-}
-
-/* iframe end */
 
 
-/* Watermark start */
+// Watermark start
 
 .watermark {
 	margin:0 auto;
@@ -268,9 +1127,9 @@ img.watermark-image {
 	pointer-events:none;
 }
 
-/* Watermark end */
+// Watermark end
 
-/* Buttons start */
+// Buttons start
 
 .button-container p {
     margin: 4px 4px;
@@ -313,10 +1172,10 @@ a.btn.user-delete:hover, a.btn.user-delete:focus {
   	color:#dd3800;
 }
 
-/* Buttons end */
+// Buttons end
 
 
-/* Dark archive start */
+// Dark archive start
 
 .darchive {
 	text-align:center;
@@ -335,4 +1194,5 @@ img.dark-bulb {
   	width:160px;
 }
 
-/* Dark archive end */
+// Dark archive end
+*/

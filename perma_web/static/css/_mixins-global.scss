@@ -31,11 +31,11 @@
 
 //	these old respond()s are here becouse the new one seems to be broken with the django-pipeline compiler
 
-$width-xmobile-respond: $width-mobile + 1; 	// 376px;
-$width-tablet-respond: $width-xmobile + 1; 		// 640px;
-$width-desktop-respond: $width-tablet + 1; 	// 1048px;
-$width-wide-respond: $width-desktop + 1; 		// 1168px;
-$width-max-respond: $width-wide + 1; 		// 1168px;
+$width-xmobile-respond: $width-mobile; 	// 376px;
+$width-tablet-respond: $width-xmobile; 		// 640px;
+$width-desktop-respond: $width-tablet; 	// 1048px;
+$width-wide-respond: $width-desktop; 		// 1168px;
+$width-max-respond: $width-wide; 		// 1168px;
 
 
 @mixin respond-mobile {
