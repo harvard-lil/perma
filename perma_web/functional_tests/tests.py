@@ -205,7 +205,7 @@ class FunctionalTest(StaticLiveServerTestCase):
 
         info("Loading homepage from %s." % self.live_server_url)
         self.driver.get(self.live_server_url)
-        assert_text_displayed("Websites Change")
+        assert_text_displayed("Perma.cc prevents link rot.") # new text on landing now
 
         info("Checking Perma In Action section.")
         get_xpath("//a[@data-img='MSC_1']").click()
@@ -214,7 +214,7 @@ class FunctionalTest(StaticLiveServerTestCase):
 
         info("Loading docs.")
         get_xpath("//a[@href='/docs']").click()
-        assert_text_displayed('Overview', 'h2')  # wait for load
+        assert_text_displayed('Introducing Perma.cc', 'h2')  # new text -- wait for load
 
         info("Logging in.")
         try:
