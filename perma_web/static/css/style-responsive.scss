@@ -930,7 +930,7 @@ p.body { @extend %style-body-text; }
 
 .lockup p { @extend %style-pageLede; } 
 
-.page-lede { @extend %style-pageLede; }
+.page-lede, .page-dek { @extend %style-pageLede; }
 
 .modal { position: fixed; }
 
@@ -2309,7 +2309,7 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
 
 // docs
 
-.docs-ah, .docs-body h2 { 
+.docs-ah, .reading-body h2 { 
 	font-size: 22px;
     border-top: 2px solid $color-blue;
     padding-top: $grid;
@@ -2325,7 +2325,7 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
 	}
 }
 
-.docs-bh, .docs-body h3 { 
+.docs-bh, .reading-body h3 { 
 	font-size: 16px;
     border-top: 1px solid $color-orange;
     padding-top: $grid;
@@ -2359,7 +2359,7 @@ ol.tos {
 	}
 }
 
-div.docs-body li {
+div.reading-body li {
 	@extend p.body-text;
 	+ li {
 		margin-top: 1em;
@@ -2387,13 +2387,12 @@ p.body-text {
 }
 
 
-._userguide  {
-	.container#main-content {
-		@include respond-tablet {
-			padding-left: 0;
-			padding-right: 0;
-			max-width: none;
-		}
+._userguide .container#main-content,
+._signup .container#main-content {
+	@include respond-tablet {
+		padding-left: 0;
+		padding-right: 0;
+		max-width: none;
 	}
 }
 
@@ -2417,22 +2416,22 @@ p.body-text {
 
 .toc-module { @extend %style-overview-module; }
 
-.user-docs {
+.container-reading {
 	padding-top: $double;
 	margin-top: $double;
-	& + .user-docs {
+	& + .container-reading {
 		margin-top: $grid * 8;
 	}
 	@include respond-tablet {
 		padding-top: $grid * 3;
 		margin-top: $grid * 4;
-		& + .user-docs {
+		& + .container-reading {
 			margin-top: $grid * 4;
 		}
 	}
 }
 
-div.user-docs + div.toc-overview {
+div.container-reading + div.toc-overview {
 	margin-top: $grid * 3;
 	border-bottom: none;
 	@include respond-tablet {
@@ -2447,7 +2446,7 @@ div.user-docs + div.toc-overview {
 	}
 }
 
-.docs-toc {
+.reading-toc {
 	font-family: $font-hed-alt;
 	font-size: 14px;
 	padding-bottom: $grid * 6;
@@ -2478,20 +2477,20 @@ div.user-docs + div.toc-overview {
 				border-color: $color-active !important;
 			}
 		}
-		&.docs-toc-chapter._active a {
+		&.reading-toc-chapter._active a {
 			border-color: $color-blue;
 			color: $color-blue;
 		}
 	}
 
-	.docs-toc-chapter, .docs-toc-section {}
+	.reading-toc-chapter, .reading-toc-section {}
 	
-	li.docs-toc-chapter a {
+	li.reading-toc-chapter a {
 		font-weight: 700;
 		border-color: $color-black;
 	}
 	
-	li.docs-toc-section {
+	li.reading-toc-section {
 		font-weight: 300;
 	}
 	
@@ -2502,7 +2501,7 @@ div.user-docs + div.toc-overview {
     }
 }
 
-.docs-body {
+.reading-body {
 	
 	h2 + p {
 		margin-top: $double;
@@ -2644,18 +2643,7 @@ code, span.code {
 
 // signup
 
-._signup {
-	.lockup { @extend %style-container; }
-	#main {
-		.container {
-			padding-left: 0;
-			padding-right: 0;
-			max-width: none;
-		}
-		.signup-learnMore { @extend %style-container; }
-		.signup-overview-container { @extend %style-container; }
-	}
-}
+._signup {}
 
 .signup-overview {
 	@extend %style-overview-container;
