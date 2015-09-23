@@ -6,57 +6,175 @@
 Getting started with Perma.cc. Learn how to create an account and login.
 {% endblock %}
 
+{% block bodyFlags %}_userguide{% endblock %}
+{% block mainFlags %}_fullWidth{% endblock %}
+
 {% block content %}
-<div class="container user-docs">
-	<div class="col-sm-8 docs">
-		<h2>Getting Started</h2>
-		<h4><a href="#create-account">Creating an Account</a></h4>
-		<h4><a href="#log-in">Your Perma Dashboard</a></h4>
-		<br/>
-		<hr>
-		<h4><div id="create-account">Creating an Account</div></h4>
-		<!--<p>To make PermaLinks, you will need an account. If you are a general user creating links for your own use, remember, your links will not be saved permanently until they are “vested” by a vesting user.  Unvested links will be available for a period of two years.  </p>
-		
-		<p>If you are affiliated with a law library, academic law journal, or court system <a href="#">click here to see if your institution</a> is a perma.cc partner and contact your institution directly for vesting privileges. </p>-->
-		
-		<p>To use Perma to archive web pages, you need a Perma account. To create an account, <a href="{% url 'register' %}">click here</a> or find <kbd><a href="{% url 'register' %}">Create An Account</a></kbd> on the home page</p>
-		
-		<img src="{{ STATIC_URL }}img/docs/create-account.gif" class="img-responsive screen-shot" alt="A screenshot of the landing page."/>
-
-		<p>All we need is your email, first and last name. Please read the <a href="{% url 'terms_of_service' %}">terms of service</a>!</p>
-		
-		<img src="{{ STATIC_URL }}img/docs/register.gif" class="img-responsive screen-shot" alt="A screnshot of the registration page."/>
-		
-		<!--<p>If your chosen account information is available (not already taken by another user), you will see a confirmation page and receive an email at the account you specified. Please follow the instructions in the email to activate your account. If the system indicates that your email address has already been assigned to another user, it is possible that someone in your institution has already added you as a user.  You can use the password reset option and your email address to claim your account.</p>
-		
-		<img src="{{ STATIC_URL }}img/email-account.gif" class="img-responsive screen-shot" alt="Responsive image"/>
-		
-		<p>If you are affiliated with a law library, academic law journal, or court system, you may receive an email that an account has been created for you.  Follow the instructions in that email to activate your account, which will be affiliated with your particular institution including the power to vest links if assigned to you.</p>-->
-
-		<br/>
-		<h4><div id="log-in">Your Perma Dashboard</div></h4>
-		<p>When you log in to Perma, you’ll see your Perma “Dashboard.” You also can access your dashboard anytime by clicking “Dashboard” in the upper right corner of your screen.</p>
-		
-		<p>From your Dashboard, you can create new Perma Links, view your existing Perma Links and archives, and access your account settings.</p>
-		
-		<img src="{{ STATIC_URL }}img/docs/creating-perma1.gif" class="img-responsive screen-shot" alt="A screenshot of the Create an Archive page."/>
-		
-		<br/>
-		
+<div class="container">
+	<div class="row">
+		<div class="col-sm-12">
+			<h1>Perma.cc user guide <span class="subsection">Getting Started</span></h1>
+		</div>
 	</div>
-	<div class="col-sm-3 col-sm-offset-1 docs-nav">
-		<ul class="nav nav-pills nav-stacked">
-			<li><a href="{% url 'docs' %}">Overview</a></li>
-			<li class="active"><a href="{% url 'docs_getting-started' %}">Getting Started</a></li>
-			<li><a href="{% url 'docs_perma_link_creation' %}">Creating, Organizing & Annotating</a></li>
-			<li><a href="{% url 'docs_perma_link_vesting' %}">Vesting</a></li>
-			<li><a href="{% url 'docs_perma_archive' %}">Archiving & Storage</a></li>
-			<li><a href="{% url 'docs_perma_user_roles' %}">User Roles</a></li>
-			<!--<li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>-->
-			<li><a href="{% url 'docs_libraries' %}">Libraries</a></li>
-			<li><a href="{% url 'docs_faq' %}">FAQs</a></li>
-		</ul>	
+</div>
+
+<div class="container container-bleed toc-overview">
+	<div class="container toc-overview-container">
+		<div class="row">
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs' %}">
+					<strong class="toc-module-title">Overview</strong>
+					<p class="toc-module-description">An introduction to Perma.cc, why it exists, and how people and organizations are using it.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter _active">
+				<div class="toc-module-content" href="{% url 'docs_getting-started' %}">
+					<strong class="toc-module-title">Getting Started</strong>
+					<p class="toc-module-description">Learn the different kinds of users, organizations, and privileges. Learn to create, use, and organize Perma Links.</p>
+				</div>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_perma_archive' %}">
+					<strong class="toc-module-title">Perma.cc records</strong>
+					<p class="toc-module-description">Learn how journal, courts, and other orgnizations use Perma.cc and support their members.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_perma_link_creation' %}">
+					<strong class="toc-module-title">Organizing &amp; Annotating</strong>
+					<p class="toc-module-description">Libraries have a special role in Perma.cc — learn how to use Perma.cc to support your journals and faculty.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_perma_user_roles' %}">
+					<strong class="toc-module-title">Users &amp; Affiliations</strong>
+					<p class="toc-module-description">Learn how journal, courts, and other orgnizations use Perma.cc and support their members.</p>
+				</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="create-account" class="container container-reading">
+	<div class="row">
+		<div class="col-sm-4 reading-toc" >
+			<ul>
+				<li class="reading-toc-chapter _active"><a href="#create-account">Creating an Account</a></li>
+				<li class="reading-toc-chapter"><a href="#create-link">Creating a Perma Link</a></li>
+				<li class="reading-toc-chapter"><a href="#log-in">The Perma.cc Dashboard</a></li>
+			<ul>
+		</div>
+
+		<div class="col-sm-8 docs reading-body">
+			<h2>Creating an Account</h2>
+			
+			<p>To use Perma to archive web pages, you need a Perma account. To create an account, <a href="{% url 'register' %}">click here</a> or find <kbd><a href="{% url 'register' %}">Create An Account</a></kbd> on the home page</p>
+			
+			<img src="{{ STATIC_URL }}img/docs/create-account.gif" class="img-responsive screen-shot" alt="A screenshot of the landing page."/>
+	
+			<p>All we need is your email, first and last name. Please read the <a href="{% url 'terms_of_service' %}">terms of service</a>!</p>
+			
+			<img src="{{ STATIC_URL }}img/docs/register.gif" class="img-responsive screen-shot" alt="A screnshot of the registration page."/>
+		</div>
+	</div>
+</div>
+				
+<div id="create-link" class="container container-reading">
+	<div class="row">
+		<div class="col-sm-4 reading-toc" >
+			<ul>
+				<li class="reading-toc-chapter"><a href="#create-account">Creating an Account</a></li>
+				<li class="reading-toc-chapter _active"><a href="#create-link">Creating a Perma Link</a></li>
+				<li class="reading-toc-chapter"><a href="#log-in">The Perma.cc Dashboard</a></li>
+			<ul>
+		</div>
+
+		<div class="col col-sm-8 docs reading-body">
+			<h2>Creating a Perma Link</h2>
+			<p>A Perma Link allows you to direct your readers to an archived version of the contents of a web page specified by you.</p>
+			
+			<p>To create a Perma Link, enter the URL of the web page into the entry box, as shown below, and click on the blue infinity button to direct Perma to create an archive of the contents of that page.</p>
+				
+			<button class="center btn btn-info">
+				<div class="infinity">
+					<img class="button-img" src="/static/img/infinity-white.png" alt="Loading..." />
+				</div>
+			</button><br/><br/>
+			
+			<p>The entry box will accept multiple formats, including www and https://.</p>
+			
+			<img src="{{ STATIC_URL }}img/docs/creating-perma2.gif" class="img-responsive screen-shot" alt="A screenshot of the Create an Archive page with the URL of a potential archive."/>
+			
+			<p>At your direction, Perma will archive the web page found at your specified URL. Once processing is complete, Perma will display a thumbnail image of the archived web page and a new Perma Link (such as perma.cc/ABCD-1234) for that archive. </p> 
+			
+			<img src="{{ STATIC_URL }}img/docs/thumbnail.gif" class="img-responsive screen-shot" alt="A screenshot of a Create an Archive page with a newly created archive. Includes the URL and the thumbnail preview."/>
+	
+			
+			<p>You should review the thumbnail image and click on the new Perma Link to confirm that the archived page rendered correctly. If it did not, you can use the upload option, just beneath the thumbnail image, to upload your own screenshots (.png, .jpg) or PDF documents.</p>
+			
+			<img src="{{ STATIC_URL }}img/docs/upload.gif" class="img-responsive screen-shot" alt="A screenshot of the upload your own window."/>
+			
+			<p class="orange">Important Note: At this point, you’ve created a temporary archive. To become permanent, your archive and the accompanying Perma Link must be vested. <a href="{% url 'docs_perma_link_vesting' %}">Click here to learn more about vesting.</a></p>
+		</div>
+	</div>
+</div>
+
+<div id="log-in" class="container container-reading">
+	<div class="row">
+		<div class="col-sm-4 reading-toc" >
+			<ul>
+				<li class="reading-toc-chapter"><a href="#create-account">Creating an Account</a></li>
+				<li class="reading-toc-chapter"><a href="#create-link">Creating a Perma Link</a></li>
+				<li class="reading-toc-chapter _active"><a href="#log-in">The Perma.cc Dashboard</a></li>
+			<ul>
+		</div>
+
+		<div class="col col-sm-8 docs reading-body">
+			<h2>The Perma.cc Dashboard</h2>
+			<p>When you log in to Perma, you’ll see your Perma “Dashboard.” You also can access your dashboard anytime by clicking “Dashboard” in the upper right corner of your screen.</p>
+			
+			<p>From your Dashboard, you can create new Perma Links, view your existing Perma Links and archives, and access your account settings.</p>
+			
+			<img src="{{ STATIC_URL }}img/docs/creating-perma1.gif" class="img-responsive screen-shot" alt="A screenshot of the Create an Archive page."/>
+		</div>
 	</div>
 </div>	
+
+<div class="container container-bleed toc-overview">
+	<div class="container toc-overview-container">
+		<div class="row">
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs' %}">
+					<strong class="toc-module-title">Overview</strong>
+					<p class="toc-module-description">An introduction to Perma.cc, why it exists, and how people and organizations are using it.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<div class="toc-module-content" href="{% url 'docs_getting-started' %}">
+					<strong class="toc-module-title">Getting Started</strong>
+					<p class="toc-module-description">Learn the different kinds of users, organizations, and privileges. Learn to create, use, and organize Perma Links.</p>
+				</div>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_perma_archive' %}">
+					<strong class="toc-module-title">Perma.cc records</strong>
+					<p class="toc-module-description">Learn how journal, courts, and other orgnizations use Perma.cc and support their members.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_perma_link_creation' %}">
+					<strong class="toc-module-title">Organizing &amp; Annotating</strong>
+					<p class="toc-module-description">Libraries have a special role in Perma.cc — learn how to use Perma.cc to support your journals and faculty.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_perma_user_roles' %}">
+					<strong class="toc-module-title">Users &amp; Affiliations</strong>
+					<p class="toc-module-description">Learn how journal, courts, and other orgnizations use Perma.cc and support their members.</p>
+				</a>
+			</div>
+		</div>
+	</div>
+</div>
 
 {% endblock %}

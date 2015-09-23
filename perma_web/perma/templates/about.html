@@ -2,71 +2,118 @@
 {% load file_exists %}
 {% block title %} | About{% endblock %}
 
+{% block meta_description %}
+Perma.cc prevents link rot.
+{% endblock %}
+
+{% block bodyFlags %}_about{% endblock %}
+{% block mainFlags %}_fullWidth{% endblock %}
+
 {% block content %}
 <div class="container">
-<h2>About Perma</h2>
-
-<div class="row">
-	<div class="col-sm-6 column">	
-		<p>Perma.cc is a service that helps scholars, courts and others create web citation links that will never break.</p>
-		
-		<p>When a user creates a Perma.cc link, Perma.cc archives the referenced content and generates a link to an archived record of the page. Regardless of what may happen to the original source, the archived record will always be available through the Perma.cc link. To learn more about how Perma.cc works, please take a look at our <a href="{% url 'docs' %}">user guide</a>.</p>
-	</div>
-	<div class="col-sm-6 column">	
-		<p>Perma.cc is developed and maintained by the Harvard Law School Library in conjunction with university law libraries across the country and other organizations in the “forever” business.</p>
-	</div>
-</div>
-<div class="row">
-	<div class="col-sm-6 column">	
-		<h3>Why use Perma.cc</h3>
-		
-		<p><a href="http://papers.ssrn.com/sol3/papers.cfm?abstract_id=2329161">In a sample of several legal journals</a>, approximately 70% of all links in citations published between 1999 and 2011 no longer point to the same material.  Broken links in journal articles undermine the citation-based system of legal scholarship by obscuring the evidence underlying authors’ ideas.</p>
-		
-		<p>As Internet usage becomes more widespread and web citations in legal scholarship become more common, the problem of link rot will become increasingly important.</p>
-		
-		<p>Using Perma.cc ensures that material cited by authors will always be accessible to readers, preserving the foundation of legal scholarship online.</p>
-	</div>
-	<div class="col-sm-6 column">	
-		<h3>How it works</h3>
-		
-		<p>Any author can go to the Perma.cc website and input a URL. Perma.cc downloads the material at that URL and gives back a new URL (a “Perma.cc link”) that can then be inserted in a paper.</p>
-		
-		<p>After the paper has been submitted to a journal, the journal staff checks that the provided Perma.cc link actually represents the cited material. If it does, the staff “vests” the link and it is forever preserved.  Links that are not “vested” will be preserved for two years, at which point the author will have the option to renew the link for another two years.</p>
-		
-		<p>Readers who encounter Perma.cc links can click on them like ordinary URLs. This takes them to the Perma.cc site where they are presented with a page that has links both to the original web source (along with some information, including the date of the Perma.cc link’s creation) and to the archived version stored by Perma.cc.</p>
-	</div>
-</div>	
-
-
-<div class="row">
-	<div class="col-sm-12 column">
-	    <h3>Perma Partners</h3>
-    </div>
-</div>
-
-<div class="row partner-list">
-    {% for partner in partners %}
-        <div class="col-sm-12 column">
-            <a href="{{ partner.website }}">{{ partner.partner_display_name|default:partner.name }}</a>
-        </div>
-    {% endfor %}
-</div>
-
-
-<div class="row">
-	<div class="col-sm-offset-3 col-sm-6 column">
-	<h3>Explore our Stats</h3>
-		<a href="{% url 'global_stats' %}"><img class="stats-graph" src="{{ STATIC_URL }}img/graph-illus.png" alt="A placeholder graph showing a potential Perma.cc growth curve."/></a><p class="right">We've put together a <a href="{% url 'global_stats' %}">Stats page</a> to begin to visualize activity.</p>
+	<div class="row">
+		<div class="col-sm-12">
+			<h1 class="page-title">About Perma.cc</h1>
+			<p class="page-dek">Perma.cc is a service that helps scholars, courts and others create web citation links that will never break. Perma.cc prevents link rot.</p>
+		</div>
 	</div>
 </div>
 
-<div class="row">
-	<div class="col-sm-12 column">
-		<h3>Contact</h3>
-		
-		<p>For more information, please contact email us at <a href="mailto:info@perma.cc">info@perma.cc</a></p>
-		<br/>
-		<br/>
+<div class="container container-reading" id="what-is-perma">
+	<div class="row">
+		<div class="col-sm-4 reading-toc" >
+			<ul>
+				<li class="reading-toc-chapter _active"><a href="#developer-overview">What is Perma.cc?</a></li>
+				<li class="reading-toc-chapter"><a href="#why-use-perma">Why use Perma.cc</a></li>
+				<li class="reading-toc-chapter"><a href="#how-perma-works">How Perma.cc works</a></li>
+				<li class="reading-toc-chapter"><a href="#perma-partners">Perma.cc’s Partners</a></li>
+				<li class="reading-toc-chapter"><a href="#stats">Perma.cc’s Stats</a></li>
+			<ul>
+		</div>
+
+		<div class="col-sm-8 docs reading-body">
+			<h2>What is Perma.cc?</h2>
+			<p>When a user creates a Perma.cc link, Perma.cc archives the referenced content and generates a link to an archived record of the page. Regardless of what may happen to the original source, the archived record will always be available through the Perma.cc link. To learn more about how Perma.cc works, please take a look at our <a href="{% url 'docs' %}">user guide</a>.</p>
+			<p>Perma.cc is developed and maintained by the Harvard Law School Library in conjunction with university law libraries across the country and other organizations in the “forever” business.</p>
+		</div>
 	</div>
-</div>	
+</div>
+
+<div class="container container-reading" id="why-use-perma">
+	<div class="row">
+		<div class="col-sm-8 docs reading-body col-right">
+			<h2>Why use Perma.cc</h2>
+			<p><a href="http://papers.ssrn.com/sol3/papers.cfm?abstract_id=2329161">In a sample of several legal journals</a>, approximately 70% of all links in citations published between 1999 and 2011 no longer point to the same material.  Broken links in journal articles undermine the citation-based system of legal scholarship by obscuring the evidence underlying authors’ ideas.</p>
+			<p>As Internet usage becomes more widespread and web citations in legal scholarship become more common, the problem of link rot will become increasingly important.</p>
+			<p>Using Perma.cc ensures that material cited by authors will always be accessible to readers, preserving the foundation of legal scholarship online.</p>
+		</div>
+	</div>
+</div>
+
+<div class="container container-reading" id="how-perma-works">
+	<div class="row">
+		<div class="col-sm-8 docs reading-body col-right">
+			<h2>How Perma.cc works</h2>
+			<p>Any author can go to the Perma.cc website and input a URL. Perma.cc downloads the material at that URL and gives back a new URL (a “Perma.cc link”) that can then be inserted in a paper.</p>
+			<p>After the paper has been submitted to a journal, the journal staff checks that the provided Perma.cc link actually represents the cited material. If it does, the staff “vests” the link and it is forever preserved.  Links that are not “vested” will be preserved for two years, at which point the author will have the option to renew the link for another two years.</p>
+			<p>Readers who encounter Perma.cc links can click on them like ordinary URLs. This takes them to the Perma.cc site where they are presented with a page that has links both to the original web source (along with some information, including the date of the Perma.cc link’s creation) and to the archived version stored by Perma.cc.</p>
+		</div>
+	</div>
+</div>
+
+<div class="container container-reading" id="perma-partners">
+	<div class="row">
+		<div class="col-sm-8 docs reading-body col-right">
+			<h2>Perma.cc’s Partners</h2>
+		</div>
+	</div>
+	<div class="row partner-list">
+	    {% for partner in partners %}
+	        <div class="col col-sm-8 docs reading-body col-right column">
+	            <a href="{{ partner.website }}">{{ partner.partner_display_name|default:partner.name }}</a>
+	        </div>
+	    {% endfor %}
+	</div>
+</div>
+
+<div class="container container-bleed container-bg">
+	<div class="container container-display">
+		<div class="row">
+			<div class="col-sm-6">
+        		<div class="content">
+					<h2 class="mega">Library-strength reliability</h2>
+					<p>Perma.cc was built by Harvard’s <a href="http://librarylab.law.harvard.edu">Library Innovation Lab</a> and is backed by the power of libraries. We’re both in the forever business: libraries already look after physical and digital materials — now we can do the same for links.</p>
+					<p class="body">If you’re a librarian or are affiliated with a library, we can make using Perma.cc free and simple for you and the scholars that depend on you. We’ve answered many common questions and prepared a special library signup at the link below.</p>
+					<p><a href="{% url 'libraries' %}" class="btn btn-large">Try Perma.cc for libraries</a></p>
+        		</div>
+			</div><!--col-sm-6-->
+			<div class="col-sm-6">
+        		<div class="content">
+					<div id="plot-map-container"></div>
+					<div class="caption">
+						<p>Perma.cc is used and supported by libraries and institutions across America.</p>
+					</div>
+        		</div>
+			</div><!--col-sm-6-->
+		</div><!--row-->
+		<div class="row">
+			<div class="col-sm-12">
+                {% include "includes/participating_institutions.html" %}
+			</div><!--col-sm-12-->
+		</div><!--row-->	
+	</div>
+</div>
+
+<div class="container container-reading" id="stats">
+	<div class="row">
+		<div class="col-sm-8 docs reading-body col-right">
+			<h2>Perma.cc’s Stats</h2>
+			<a href="{% url 'global_stats' %}"><img class="stats-graph" src="{{ STATIC_URL }}img/graph-illus.png" alt="A placeholder graph showing a potential Perma.cc growth curve."/></a><p class="right">We've put together a <a href="{% url 'global_stats' %}">Stats page</a> to begin to visualize activity.</p>
+		</div>
+	</div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
 {% endblock %}

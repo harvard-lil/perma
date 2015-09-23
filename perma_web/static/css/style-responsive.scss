@@ -11,7 +11,7 @@
 // The OLD
 
 
-@import "_perma-old.scss";
+//@import "_perma-old.scss";
 	
 
 ///////////////////////////////////////////////
@@ -52,15 +52,19 @@
 
 
 html {
-    min-height: 100%;
+    height: 100%;
     margin: 0;
 }
 
 body {
-	background: white;
+	background-color: $color-blue;
     color: $color-black;
     font-family: $font-body;
     margin: 0;
+    min-height: 100%;
+    @include respond-tablet {
+		background-color: white;
+    }
 }
 
 footer { 
@@ -84,29 +88,26 @@ div.main-container {
     width: 100%;
 }
 
-section.__permaNew#main { // review
+section#main { // review XX
     color: $color-black;
     font-family: $font-body;
 	padding-top: $grid * 4;
 	padding-bottom: $grid * 4;
 	background-color: $color-white;
 	@include respond-tablet {
-		padding-top: $grid * 5;
-		padding-bottom: $grid * 7;
+		padding-top: $grid * 4;
+		padding-bottom: $grid * 25;
 	}
 	@include respond-desktop {
-		padding-top: $grid * 4;
-		padding-bottom: $grid * 5;
+		padding-top: $grid * 2;
+		padding-bottom: $grid * 25;
 	}
 	@include respond-wide {
-		padding-top: $grid * 7;
-		padding-bottom: $grid * 9;
+		padding-top: $grid * 2;
+		padding-bottom: $grid * 25;
 	}
 }
 
-body._welcome #main {
-	padding-bottom: 0;
-}
 
 body.modal-open {
 	margin-right: 0;
@@ -180,18 +181,6 @@ body.modal-open {
   background-color: $color-orange;
 }
 
-.container {
-	@include respond-tablet {
-		max-width: 736px;
-	}
-	@include respond-desktop {
-		max-width: 970px;
-	}
-	@include respond-wide {
-		max-width: 1170px;
-	}
-}
-
 
 
 
@@ -199,7 +188,6 @@ body.modal-open {
 ///////////////////////////////////////////////
 // The NEW
 
-.__permaNew {
 
 ////////////////////////////////
 
@@ -619,7 +607,7 @@ html {
 }
 
 body {
-  	background: $color-blue;
+  	background: $color-white;
     color: $color-black;
     font-family: $font-body;
     margin: 0;
@@ -649,27 +637,100 @@ div.main-container {
 	}
 }
 
-body._welcome #main {
-	padding-bottom: 0;
+
+*:focus {
+	outline-style: solid !important;
+    outline-color: rgba(0,0,0,0.07) !important;
+    outline-offset: 1px !important;
+    outline-width: 5px !important;
 }
 
-#main-content {
-	padding: 0;
+input:focus, *:hover {
+	outline: none !important;
 }
 
 /////////////////////////
 
 // redefine general bootstrap
 
-.container, ._userguide .lockup, ._userguide #main .user-docs, ._userguide #main .toc-overview-container, ._signup .lockup, ._signup #main .signup-learnMore, ._signup #main .signup-overview-container {
-    @include respond-tablet {
-	    max-width: 768px;
-    }
-    @include respond-desktop {
-	    max-width: 1002px;
-    }
+
+.container {
+	@extend %style-clears-floats;
+	margin-right: 0;
+	margin-left: 0;
+	padding: 0 $double; // review
+	overflow: hidden; // review
+	@include respond-tablet {
+		max-width: $width-tablet; // review
+		margin-right: auto;
+		margin-left: auto;
+//		padding-left: $double;
+//		padding-right: $double;
+	}
+	@include respond-desktop {
+		
+		max-width: $width-desktop; // review
+	}
 	@include respond-wide {
-		max-width: 1202px;
+		max-width: $width-wide; // review
+	}
+}
+
+.container-bleed {
+	max-width: none !important;
+	padding: 0;
+	margin-top: $grid * 6;
+}
+
+.container-bg {
+	background-color: $color-background;
+}
+
+.container-display {
+	padding: $grid * 6 0;
+	@include respond-tablet {
+		padding: $grid * 9 0;
+	}
+}
+
+.row {
+	margin: 0 -$double;
+	.col-sm-6 + .col-sm-6 {
+		// margin-top: $grid * 4;
+		@include respond-tablet {
+			margin-top: 0;
+			padding-left: $grid * 4
+		}
+	}
+}
+
+.row.row-no-bleed {
+	margin: 0;
+}
+
+.col.col-no-gutter {
+	padding-left: 0;
+	padding-right: 0;
+}
+
+div.col-right {
+	@include respond-tablet {
+		float: right;
+	}
+}
+
+.col.align-right {
+	@include respond-tablet {
+		text-align: right;
+	}
+}
+
+
+.col-sm-by5 {
+	width: 100%;
+	@include respond-desktop {
+		width: 100 / 5 * 1%;
+		float: left;
 	}
 }
 
@@ -677,55 +738,64 @@ body._welcome #main {
 
 // general styles
 
-// this body tag is used for specificity, since django-pipeline seems to be compiling the css in the wrong order.
+h1, h2, h3, h4, h5 { 
+	font-family: $font-hed-alt; 
+	font-weight: 900;
+	line-height: 1.2;
+	margin: 0;
+	color: $color-black;
+	@include respond-tablet {
+		font-weight: 300;
+	}
+	&:first-child {
+		margin-top: 0;
+	}
+}
 
-// review (removed for compatability with __permaNew)
-//body {
-	h1, h2, h3, h4, h5 { 
-		font-family: $font-hed-alt; 
-		font-weight: 900;
-		line-height: 1.2;
-		margin: 0;
-		color: $color-black;
-		@include respond-tablet {
-			font-family: $font-body;
-			font-weight: 300;
-		}
-		&:first-child {
-			margin-top: 0;
-		}
+h1 {
+    font-weight: 300;
+    font-size: 40px;
+	@include respond-tablet {
+		font-size: 48px;
 	}
-	
-	h1 {
-	    font-weight: 300;
-	    font-size: 40px;
-		@include respond-tablet {
-			font-size: 36px;
-		}
-	}
-	
-	h2 {
-	    margin-top: 25px;
-	    font-size: 26px;
-	    color: $color-orange;
-	}
-	
-	h3 {
-		font-size: 28px;
-	}
-	
-	h4 {
-		color: $color-orange;
-	}
+}
 
-	p {
-		line-height: 1.5;
-		max-width: $width-max-measure;
-		&:last-child {
-			margin-bottom: 0;
+span.subsection {
+	color: $color-blue;
+	font-size: 28px;
+	display: none;
+	margin-top: $grid;
+	@include respond-desktop {
+		font-size: 35px;
+		display: inline;
+		margin-top: 0;
+		&:before {
+			content: '/ ';
 		}
 	}
-//} // review
+}
+
+h2 {
+    margin-top: 25px;
+    font-size: 26px;
+    color: $color-orange;
+}
+
+h3 {
+	font-size: 28px;
+}
+
+h4 {
+	color: $color-orange;
+}
+
+p {
+	line-height: 1.5;
+	max-width: $width-max-measure;
+	&:last-child {
+		margin-bottom: 0;
+	}
+}
 
 .docs h4 {
 	color: $color-blue;
@@ -738,7 +808,7 @@ a {
 
 p a {
 	font-family: $font-hed-alt;
-	font-weight: 900;
+	font-weight: 700;
 	&:hover {
 		text-decoration: underline;
 	}
@@ -858,11 +928,14 @@ p.body { @extend %style-body-text; }
 
 .lockup p { @extend %style-pageLede; } 
 
-.page-lede { @extend %style-pageLede; }
+.page-lede, .page-dek { @extend %style-pageLede; }
 
-.modal {
-	position: fixed;
+.modal { position: fixed; }
+
+.text-warning {
+	color: $color-error;
 }
+
 
 // create
 
@@ -881,26 +954,29 @@ p.body { @extend %style-body-text; }
 
 .create-lede {
     text-align: center;
-    font-family: $font-body;
+    font-family: $font-hed-alt;
     color: $color-orange;
     margin-bottom: 0;
-    font-size: 18px;
+    font-size: 15px;
     line-height: 1.3;
+    font-weight: 700;
+    margin-top: $half;
     @include respond-tablet {
-	    font-size: 24px;
+	    margin-top: 0;
+	    font-size: 21px;
     }
     @include respond-desktop {
-	    font-size: 26px;
+	    font-size: 21px;
     }
 }
 
 .form-priority {
 	margin: $grid * 3 -$double;
     @include respond-tablet {
-	    margin: $grid * 4 auto;
+	    margin: $grid * 4 0;
     }
     @include respond-wide {
-	    margin: $grid * 5 auto;
+	    margin: $grid * 5 0;
     }
 }
 
@@ -931,10 +1007,10 @@ p.body { @extend %style-body-text; }
 		    font-size: 20px;
 	    }
 	    @include respond-desktop {
-		    width: $grid * 86;
+		    width: $grid * 85;
 	    }
 	    @include respond-wide {
-		    width: $grid * 110;
+		    width: $grid * 111;
 	    }
 	}
 	
@@ -1251,6 +1327,7 @@ p + .thumbnail-placeholder {
 .thumbnail-message {
 	display: table-cell;
 	vertical-align: middle;
+	text-align: center;
 }
 
 #spinner {
@@ -1433,11 +1510,6 @@ p + .thumbnail-placeholder {
     }
 }
 
-#dashboard-container {
-    @include respond-tablet {
-	    padding: 0 $double;
-    }
-}
 
 .lockup + div {
 	margin-top: $grid * 6;
@@ -1466,61 +1538,7 @@ strong {
 	}
 }
 
-pre {
-	font-family: $font-mono;
-	font-weight: 300;
-	font-size: 16px;
-	background: #ddf1ff;
-	border: 1px solid #bbe4ff;
-	color: $color-orange;
-	margin: 16px 0px 16px 30px;
-	word-break: normal;
-	word-wrap: normal;
-}
 
-kbd {
-    margin: 0 2px;
-    font-family: $font-mono;
-  	color: $color-white;
-  	background-color: #60B65B;
-  	border-color: #4cae4c;
-  	font-size: 14px;
-  	padding: 3px 6px;
-  	border-radius: 2px;
-    white-space: nowrap;
-}
-
-.nobreak {
-	white-space: nowrap;	
-}
-
-.docs kbd a {
-	color: #fff;
-}
-
-kbd a:hover, kbd:hover, kbd:active {
-	color: #fff;
-	background-color: #47a447;
-  	border-color: #398439;
-}
-
-.container {
-	@extend %style-container;
-	.container {
-		padding-left: 0;
-		padding-right: 0;
-	}
-}
-
-.row {
-	.col-sm-6 + .col-sm-6 {
-		margin-top: $grid * 4;
-		@include respond-tablet {
-			margin-top: 0;
-			padding-left: $grid * 4
-		}
-	}
-}
 
 .btn {
 	display: block;
@@ -1555,19 +1573,21 @@ kbd a:hover, kbd:hover, kbd:active {
 			margin-left: $double;
 		}
 	}
-	&:hover {
+	&:hover, &:focus {
 		background-color: $color-hover !important;
 		text-decoration: none !important;
+		border-color: transparent;
 	}
 	&:active {
 		background-color: $color-black !important;
+		border-color: transparent;
 	}
 	& + .btn {
 		margin-top: $grid * 2;
 	}
 	&._nav {
 		margin-top: 0;
-		margin-left: $grid * 4;
+		margin-left: $grid;
 		margin-bottom: 0;
 		background-color: $color-trans-gray;
 	}
@@ -1575,7 +1595,7 @@ kbd a:hover, kbd:hover, kbd:active {
 		border-color: $color-orange;
 		color: $color-orange;
 		background-color: white;
-		&:hover {
+		&:hover, &:focus {
 			background-color: white !important;
 			color: $color-error;
 			border-color: $color-error;
@@ -1647,7 +1667,7 @@ kbd a:hover, kbd:hover, kbd:active {
 // again, a body for pipeline specificity 
 
 // review; removed for __permaNew
-//body {
+body {
 	form {
 		margin-top: $grid * 3;
 		.btn {
@@ -1775,7 +1795,7 @@ kbd a:hover, kbd:hover, kbd:active {
 		-ms-transition: none;
 		-o-transition: none;
 	}
-//} // review
+} // review
 
 .col-sm-4 form .form-group {
 	@include respond-tablet {
@@ -1789,33 +1809,17 @@ kbd a:hover, kbd:hover, kbd:active {
 // header / nav
 
 .navbar {
-	.container {
-		padding: 0 $double; // review
-		margin-right: 0;
-		margin-left: 0;
-		@include respond-tablet {
-			max-width: 768px; // review
-			margin-right: auto;
-			margin-left: auto;
-		}
-		@include respond-desktop {
-			max-width: 1002px; // review
-		}
-		@include respond-wide {
-			max-width: 1202px; // review
-		}
-	}
 }
 
 .navbar-default {
 	background: $color-white;
-	border-bottom: 1px solid $color-trans-lightgray;
+	//border-bottom: 1px solid $color-trans-lightgray;
 	.container {
 		overflow: visible;
 	}
 }
 
-&._expanded { // remove when trigger off
+._expanded { // remove when trigger off
 	.navbar-default {
 		border-bottom: none;
 	}
@@ -1838,7 +1842,7 @@ kbd a:hover, kbd:hover, kbd:active {
 
 .navbar-nav {
 	height: auto;
-	margin: 0;
+	margin: 0 $double $double;
 	@include respond-tablet {
 		height: $height-nav-tablet;
 		display: table;
@@ -1856,11 +1860,6 @@ kbd a:hover, kbd:hover, kbd:active {
 	}
 }
 
-.navbar-collapse .navbar-nav.navbar-right:last-child {
-	@include respond-tablet {
-		margin-right: 0;
-	}	
-}
 
 .navbar-link, .navbar-toggle {
 	@include link-highlight($color-black, $color-orange);
@@ -1891,25 +1890,10 @@ kbd a:hover, kbd:hover, kbd:active {
 }
 
 
-.navbar-header {
+.container > .navbar-header { // specificity for bootstrap
 	z-index: 10;
 }
 
-header navbar-header ul {
-    list-style: none;
-    text-align: right;
-}
-
-header navbar-header ul li {
-    display: inline;
-    font-size: 17.5px;
-    margin-left: 30px;
-    text-transform: uppercase;
-}
-
-header navbar-header ul li#header-greeting { margin-left: 0; }
-
-header navbar-header ul li a#nav-button { margin-top: -4px; }
 
 ul .nav.navbar-nav.navbar-right li a {
     background-color: #fff;
@@ -1921,23 +1905,19 @@ ul .nav.navbar-nav.navbar-right li a {
     line-height: 10px;
 }
 
-header navbar-header ul li a:hover {
-    background-color: #efefef;
-    color: #333;
-    text-decoration: none;
-}
-
-header navbar-header ul li a.this-page {
-    background-color: #efefef;
-    color: #333;
-    text-decoration: none;
-}
-
-.dropdown-toggle {
-	display: none !important; // review
-	@include respond-tablet {
-		display: block !important; // review
+.nav > li > a.navbar-link {
+	padding: 10px 12px;  // specificity for bootstrap
+	@include respond-desktop {
+		padding: 10px $double;  // specificity for bootstrap
 	}
+	&._login {
+		font-family: $font-hed-alt;
+		font-weight: 700;
+	}
+}
+
+
+.nav > li > .dropdown-toggle {
 	&.navbar-link {
 		padding-top: 16px;
 	    padding-bottom: 16px;
@@ -1945,6 +1925,12 @@ header navbar-header ul li a.this-page {
 	    padding-right: $double;
 	    border-radius: 2px;
 	    border: 1px solid $color-trans-whispergray;
+	    font-family: $font-hed-alt;
+	    font-weight: 700;
+		display: none; 
+		@include respond-tablet {
+			display: block;
+		}
 	}
     &:after {
 	    content: '';
@@ -1988,66 +1974,61 @@ li.dropdown {
 	margin: 0;
 }
 
-&._expanded .navbar-nav { // review
-	position: relative;
-    width: auto;
-    z-index: 1000;
-    padding: 5px 0;
-    margin: 2px 0 0;
-	margin-right: -7px;
-    font-size: 14px;
-    list-style: none;
-    background-color: white;
-    background-clip: padding-box;
-	border-radius: 2px;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);	
-	border: 1px solid black;
-	padding-top: $double;
-	& > li > a {
-		font-family: $font-hed-alt;
-		padding: $half 12px $half $grid * 3;
-		font-size: $size-body;
-		text-align: right;
-		&:hover, &:focus {
-			background-color: $color-hover;
-			color: white;
+@include respond-mobile {
+	.navbar-nav {
+	    display: none;
+		position: relative;
+	    float: none;
+	    width: auto;
+	    padding: 5px 0;
+	    margin: 2px 0 0;
+		margin-right: -7px;
+	    font-size: 14px;
+	    list-style: none;
+	    background-color: white;
+	    background-clip: padding-box;
+		border-radius: 2px;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
+		border: 1px solid black;
+		& > li > a {
+			font-family: $font-hed-alt;
+			padding: $half 12px $half $grid * 3;
+			font-size: $size-body;
+			text-align: right;
+			&:hover, &:focus {
+				background-color: $color-hover;
+				color: white;
+			}
+			&.navbar-link._login {
+				font-weight: 400;
+			}
+		}
+		.btn._nav {
+			margin: 0;
+			background-color: transparent;
+			color: $color-black;
+			border-radius: 0;
+			&:hover {
+				color: $color-white;
+			}
 		}
 	}
-	.btn._nav {
-		margin: 0;
-	    background-color: $color-blue;
-	    color: white;
-	    padding-top: $double;
-	    padding-bottom: $double;
-	    margin-top: $grid;
-	    margin-bottom: $grid;
-	    margin-right: $half;
-	    margin-left: $half;
-	    padding-right: 12px;
-	    &:after {
-			content: '';
-			width: 9px;
-			height: 17px;
-			display: inline-block;
-			margin-left: $grid;
-			position: relative;
-			top: 3px;
-			background-image: url('../img/ui/perma-ui-chev-right-small.png');
-			background-repeat: no-repeat;
-			background-position: 0 0;
-			background-size: 54px 17px;
-			background-position-x: -9px * 5;
-	    }
-    }
+	.navbar-collapse.in .navbar-nav {
+		display: block;
+	}
 }
 
-&._expanded .dropdown-menu { // review
-	padding: 0;
-	margin: 0;
-	border: none;
-	box-shadow: none;
-	min-width: none;
-	width: auto;
+@include respond-mobile {
+	a.navbar-create {
+		margin: 0;
+		background-color: transparent;
+		color: $color-black !important;
+		border-radius: 0;
+		margin-right: 0;
+		&:hover {
+			color: $color-white !important;
+		}
+	}
 }
 
 .dropdown-menu   { // review
@@ -2056,22 +2037,42 @@ li.dropdown {
     width: auto;
     z-index: 1000;
     display: none;
-    padding: 5px 0;
-    margin: 2px 0 0;
-	margin-right: -7px;
+    padding: 0;
+    margin: 0;
+	margin-right: 0;
     font-size: 14px;
     list-style: none;
-    background-color: white;
+    background-color: transparent;
     background-clip: padding-box;
-	border-radius: 2px;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
-	border-color: black;
-	padding-top: $double;
-	min-width: $grid * 27;
+	border-radius: 0;
+	box-shadow: none;
+	border: none;
+	padding-top: 0;
+	min-width: 0;
+	top: auto;
+	margin-right: 0;
   	@include respond-tablet {
+		position: relative;
+	    float: none;
+	    width: auto;
+	    z-index: 1000;
+	    display: none;
+	    padding: 5px 0;
+	    margin: 2px 0 0;
+		margin-right: -7px;
+	    font-size: 14px;
+	    list-style: none;
+	    background-color: white;
+	    background-clip: padding-box;
+		border-radius: 2px;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
+		border-color: black;
+		padding-top: $double;
+		min-width: $grid * 27;
 		position: absolute; // DEL WHEN FINAL
 		top: 77px;
 		margin-right: 0;
+		border: 1px solid;
 	}
 	@include respond-desktop {
 		top: 85px;
@@ -2105,38 +2106,17 @@ li.dropdown {
     padding-right: 11px;
     padding-top: 7px;
     color: $color-blue;
+    text-transform: uppercase;
 	@include respond-tablet {
 		padding-right: 20px;
 	}
 }
 
-&._expanded .navbar-create { // review
-	margin: 0;
-    background-color: $color-blue;
-    color: white;
-    padding-top: $double !important;
-    padding-bottom: $double !important;
-    margin-top: $grid;
-    margin-bottom: $grid;
-    margin-right: $half;
-    margin-left: $half;
-    padding-right: 12px;
-    &:after {
-		content: '';
-		width: 9px;
-		height: 17px;
-		display: inline-block;
-		margin-left: $grid;
-		position: relative;
-		top: 3px;
-		background-image: url('../img/ui/perma-ui-chev-right-small.png');
-		background-repeat: no-repeat;
-		background-position: -45px center;
-		background-size: 54px 17px;
-    }
-}
 
 .navbar-create {
+    margin-top: 0;
+    margin-bottom: 8px;
+    margin-right: -7px;
 	@include respond-tablet {
 		margin: $double $double;
 	}
@@ -2145,6 +2125,19 @@ li.dropdown {
 .navbar-collapse {
 	padding: 0;
 }
+
+.navbar-collapse.in {
+	overflow: visible;
+}
+
+.navbar-collapse .navbar-nav.navbar-right:last-child {
+	margin-right: $grid;
+	margin-left: $grid;
+	@include respond-tablet {
+		margin-right: 0;
+	}
+}
+
 
 // .logo span { display: none; }
 
@@ -2174,7 +2167,7 @@ li.dropdown {
 		padding-left: $double;
 		min-width: 0;
 		@include respond-tablet {
-			font-size: 36px;
+			font-size: 28px;
 		}
 	}
 }
@@ -2191,7 +2184,7 @@ li.dropdown {
 	display: inline-block;
 	height: 13px;
 	@include respond-tablet {
-		height: 21px;
+		height: 15px;
 		margin-left: $grid
 	}
 }
@@ -2316,32 +2309,149 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
 
 // docs
 
-._userguide {
-	.lockup { @extend %style-container; }
-	#main {
-		.container {
-			padding-left: 0;
-			padding-right: 0;
-			max-width: none;
-		}
-		.user-docs { @extend %style-container; }
-		.toc-overview-container { @extend %style-container; }
+.docs-ah, .reading-body h2 { 
+	font-size: 22px;
+    border-top: 2px solid $color-blue;
+    padding-top: $grid;
+    margin-top: $grid * 6;
+    font-family: $font-hed-alt;
+    font-weight: 700;
+    color: $color-blue;
+    &:first-child {
+        margin-top: 0;
+    }
+  	@include respond-tablet {
+	    margin-top: $grid * 8;
+	}
+}
+
+.docs-bh, .reading-body h3 { 
+	font-size: 16px;
+    border-top: 1px solid $color-orange;
+    padding-top: $grid;
+    margin-top: $grid * 3;
+    margin-bottom: $grid;
+    font-family: $font-hed-alt;
+    font-weight: 300;
+    color: $color-orange;
+    line-height: 1.3;
+ 	@include respond-tablet {
+	    margin-top: $grid * 6;
+	    margin-bottom: $double;
+		font-size: 18px;
+	}
+}
+
+li.docs-bh {
+	list-style-type: none;
+	counter-increment: step-counter;
+	&:before {
+		content: counter(step-counter)'. ';
+	}
+}
+
+ol.tos {
+	margin-left: 0;
+	padding-left: 0;
+	ul ul {
+		margin-top: 1em;
+		margin-bottom: 1em; 
+	}
+}
+
+div.reading-body li {
+	@extend p.body-text;
+	+ li {
+		margin-top: 1em;
+	}
+}
+
+.alpha-list {
+	display: inline;
+	font-weight: 700;
+	font-family: $font-hed-alt;
+	padding-right: .5em;
+}
+
+p.body-text { 
+	font-size: 15px;
+	font-weight: 300;
+	font-family: $font-body;
+	line-height: 1.5;
+	@include respond-tablet {
+		font-size: 16px;
+	}
+	@include respond-desktop {
+		font-size: 18px;
+	}
+}
+
+#main._fullWidth #main-content {
+	@include respond-tablet {
+		padding-left: 0;
+		padding-right: 0;
+		max-width: none;
 	}
 }
 
 .toc-overview { @extend %style-overview-container; }
 
-.toc-module { @extend %style-overview-module; }
-
-.user-docs {
-	padding-top: $grid * 3;
-	margin-top: $grid * 4;
+.toc-overview-container .row {
+	display: flex;
+	flex-wrap: wrap;
+	@include respond-tablet {
+		display: block;
+	}
+	.toc-module {
+		@media (max-width: $width-tablet - 1) {
+			width: 100%;
+		}
+	}
+	.toc-module._active {
+		order: -1;
+	}
 }
 
-.docs-toc {
+.toc-module { @extend %style-overview-module; }
+
+.container-reading {
+	padding-top: $double;
+	margin-top: $double;
+	& + .container-reading {
+		margin-top: $grid * 8;
+	}
+	@include respond-tablet {
+		padding-top: $grid * 3;
+		margin-top: $grid * 4;
+		& + .container-reading {
+			margin-top: $grid * 4;
+		}
+	}
+}
+
+div.container-reading + div.toc-overview {
+	margin-top: $grid * 3;
+	border-bottom: none;
+	@include respond-tablet {
+		margin-top: $grid * 9;
+		margin-bottom: 0;
+	}
+	div.toc-module-content {
+		display: none;
+		@include respond-desktop {
+			display: block;
+		}
+	}
+}
+
+.reading-toc {
 	font-family: $font-hed-alt;
 	font-size: 14px;
+	padding-bottom: $grid * 6;
 	@include respond-tablet {
+		padding-right: $grid;
+	}
+	@include respond-desktop {
 		padding-right: $grid * 6;
 	}
 
@@ -2357,28 +2467,28 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
 			padding: 6px 0;
 			border-top: 1px solid $color-trans-lightgray;
 			&:hover {
-				color: $color-hover !important;
-				border-color: $color-hover !important;
+				color: $color-blue !important;
+				border-color: $color-blue !important;
 			}
 			&:active {
 				color: $color-active !important;
 				border-color: $color-active !important;
 			}
 		}
-		&.docs-toc-chapter._active a {
+		&.reading-toc-chapter._active a {
 			border-color: $color-blue;
 			color: $color-blue;
 		}
 	}
 
-	.docs-toc-chapter, .docs-toc-section {}
+	.reading-toc-chapter, .reading-toc-section {}
 	
-	li.docs-toc-chapter a {
+	li.reading-toc-chapter a {
 		font-weight: 700;
 		border-color: $color-black;
 	}
 	
-	li.docs-toc-section {
+	li.reading-toc-section {
 		font-weight: 300;
 	}
 	
@@ -2389,20 +2499,20 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
     }
 }
 
-.docs-body {
-	h2, h3 {
-        font-size: 24px;
+.reading-body {
+	margin-top: $grid * 6;
+	@include respond-tablet {
+		margin-top: 0;
 	}
-	
-    h2 { @extend %style-docs-ah; }
-    h3 { @extend %style-docs-bh; }
-    p { @extend %style-body-text; }
-
+	h2 + p { margin-top: $double; }
+    p { @extend p.body-text; }
     table {
         h4 {
-            font-size: 16px;
+            font-size: 12px;
+            @include respond-tablet {
+	            font-size: 16px;
+            }
         }
-
         .table-center {
             text-align: center;
         }
@@ -2413,28 +2523,123 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
 
 // faq
 
-body._faq {
-	.faq-section-title { @extend %style-docs-ah; }
-	.faq-question { @extend %style-docs-bh; }
-	.faq-answer p { @extend %style-body-text; }
+.faq-section-title { @extend %style-docs-ah; }
+.faq-question { @extend %style-docs-bh; }
+.faq-answer p { @extend p.body-text; }
+
+p.code {
+	color: $color-error;
+	font-weight: 700;
 }
+
+%code {
+	background-color: $color-trans-whispergray;
+	border: 1px solid $color-trans-lightgray;
+	padding: $grid;
+	border-radius: 2px;
+	margin-bottom: 1em;
+	font-family: $font-mono;
+	font-size: 14px;
+	word-break: normal;
+	word-wrap: normal;
+}
+
+div.code-block {
+	@extend %code;
+	p {
+		font-family: $font-mono;
+		font-size: 14px;
+		padding-left: $grid * 2;
+		text-indent: -$grid * 2;
+		margin: 0;
+	}
+}
+
+pre {
+	@extend %code;
+}
+
+kbd {
+    margin: 0 2px;
+    font-family: $font-mono;
+  	color: $color-white;
+  	background-color: #60B65B;
+  	border-color: #4cae4c;
+  	font-size: 14px;
+  	padding: 3px 6px;
+  	border-radius: 2px;
+    white-space: nowrap;
+}
+
+.nobreak {
+	white-space: nowrap;	
+}
+
+.docs kbd a {
+	color: #fff;
+}
+
+kbd a:hover, kbd:hover, kbd:active {
+	color: #fff;
+	background-color: #47a447;
+  	border-color: #398439;
+}
+
+div.warning {
+	background-color: $color-error;
+	padding: $double;
+	border-radius: 2px;
+	overflow: auto;
+	p {
+		color: $color-white;
+		font-size: 14px;
+		font-family: $font-hed-alt;
+		font-weight: 400;
+
+	}
+	.icon-exclamation-sign {
+		font-size: 85px;
+		color: $color-white;
+		display: inline;
+		float: left;
+		margin-right: 16px;
+		margin-top: -3px;
+	}
+	a {
+		color: $color-white;
+		border-bottom: 1px solid;
+	}
+	@include respond-tablet {
+		p {
+			font-size: 15px;
+		}
+	}
+	@include respond-desktop {
+		p {
+			font-size: 18px;
+		}
+	}
+	@include respond-wide {
+	}
+}
+
+
+code, span.code {
+	font-family: $font-mono;
+	background-color: $color-trans-whispergray;
+	border: 1px solid $color-trans-lightgray;
+	padding: $grid;
+	border-radius: 2px;
+	font-size: 14px;
+	color: $color-black;
+}
+
 
 /////////////////////////
 
 // signup
 
-._signup {
-	.lockup { @extend %style-container; }
-	#main {
-		.container {
-			padding-left: 0;
-			padding-right: 0;
-			max-width: none;
-		}
-		.signup-learnMore { @extend %style-container; }
-		.signup-overview-container { @extend %style-container; }
-	}
-}
+._signup {}
 
 .signup-overview {
 	@extend %style-overview-container;
@@ -2494,16 +2699,14 @@ body._faq {
 
 
 .screen-shot {
-	margin: 0 0 20px 0;
+	-moz-box-shadow:    0 2px 4px rgba(0, 0, 0, 0.175);	
+	-webkit-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);	
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);	
+
+  	border: 1px solid $color-trans-lightgray;
 	border-radius: 2px;
-	border: 1px solid $color-blue;
-	-moz-box-shadow:    0 0 2px 2px #eee;
-  -webkit-box-shadow: 0 0 2px 2px #eee;
-  box-shadow:         0 0 2px 2px #eee;
-  	border: 1px solid #ccc;
-	border-radius: 3px;
-	margin: 10px 20px 20px 10px;
-	width: 90%;
+	margin: $grid * 4 0;
+	width: 100%;
 }
 
 
@@ -2593,10 +2796,8 @@ ul.partners {
 	list-style-type: none;
 }
 
-.login {
-	border: 1px solid #4cae4c;
-border-radius: 3px;
-
+body form .btn.login {
+	background-color: $color-green;
 }
 
 .bold {
@@ -2808,31 +3009,48 @@ margin-bottom: 10px;
 
 //	Footer 
 
-/*
+
 footer {
-    color: white;
     text-align: left;
-    padding: 0 0 $grid * 5;
+    padding: $double 0 $grid * 5;
     background: $color-blue;
     font-family: $font-hed-alt;
+    color: $color-white;
+    font-weight: 700;
+    @include respond-tablet {
+	    position: absolute;
+	    bottom: 0;
+	    left: 0;
+	    right: 0;
+	    padding-top: 0;
+	    background: $color-white;
+		color: $color-blue;
+	    font-size: 12px;
+    }
+    @include respond-desktop {
+	    font-size: 14px;
+    }
     .container {
 	    overflow: visible;
     }
+    div.col-sm-6 {
+	    width: 50%;
+	    float: left;
+	    margin-top: 0 !important;
+    }
     ul {
 	    margin: 0;
+	    padding: 0;
     }
     li { 
 		padding-top: $half;
 		margin-top: $grid;
 		padding-top: $grid;
 		border-top: 1px solid $color-trans-textwhite;
-		&:first-child {
-			border-color: transparent;
-		}
 	}
 	a {
-		padding-bottom: $grid;
-		border-bottom: 2px solid transparent;
+		padding-bottom: $half;
+		border-bottom: 1px solid transparent;
 	}
     a.home {
 	    font-size: 32px;
@@ -2854,30 +3072,15 @@ footer {
     }
     #footer-nav {
 	    padding-left: 0;
-	    li:first-child {
-		    margin-bottom: $double;
-	    }
 	    a {
 		    margin-right: $double;
 		    font-weight: 700;
 	    }
     }
-    #boilerplate {
-	    font-size: 12px;
-	    font-weight: 300;
-	    margin-top: 19px;
-	    padding-left: 0;
-	    li:first-child {
-		    border-color: $color-trans-textwhite;
-	    }
-	    a {
-		    font-weight: 400;
-	    }
-    }
     @include respond-tablet {
-	    padding: $grid * 10 0;
+	    padding: $double 0 $grid * 5;
 		a:hover {
-		    border-color: $color-white;
+		    border-color: $color-orange;
 		}
 	    li {
 		    padding-top: 0;
@@ -2889,20 +3092,18 @@ footer {
 		    display: inline-block;
 	    }
 	    #footer-nav {
-		    li:first-child {
-			    margin-bottom: 0;
-		    }
 		    float: left;
 	    }
 	    #boilerplate {
 		    float: right;
+		    font-weight: 700;
 		    a {
 			    margin-left: $double;
 		    }
 	    }
     }
 }
-*/
+
 
 //	Home 
 
@@ -3862,7 +4063,7 @@ ul#linky-ul li {
 }
 
 .sponsoring-library-info .edit-org-link, .sponsoring-library-info .leave-org-btn {
-	font-family: $sans-font;
+	font-family: $font-hed-alt;
 	margin-left: 15px;
 	font-size:12px;
 }
@@ -3873,7 +4074,7 @@ ul#linky-ul li {
 
 .edit-registrar-btn {
 	margin-left:35px;
-	font-family: $sans-font;
+	font-family: $font-hed-alt;
 	float:left;
 }
 
@@ -4054,7 +4255,7 @@ td {
 }
 
 
-//** Link Browser **
+// Link Browser
 
 .folders-box {
     padding: 0;
@@ -4496,6 +4697,9 @@ div.faq-answer {
 		font-family: $font-body;
 		font-weight: 200;
 	}
+	& + p {
+		margin-top: $double;
+	}
 }
 
 .title {
@@ -4521,12 +4725,18 @@ a.orange:hover, .orange:active {
 }
 
 .welcome {
+	padding-top: $grid * 3;
 	.mega {
 		font-weight: 300;
 		font-size: 40px;
 		@include respond-tablet {
 			font-size: 36px;
 		}
+	}
+	img {
+		max-height: 27em;
+		padding-top: 0;
+		margin-top: 0;
 	}
 }
 
@@ -4569,11 +4779,6 @@ li {
 	margin-bottom: 5px;
 }
 
-.alpha-list {
-	width: 20px;
-	color: black;
-	margin: 0 0 -19px -45px;
-}
 
 ul.tos {
 	margin-left: 25px;
@@ -4747,6 +4952,7 @@ a.tab-styling, .tab-styling {
     font-size: 18px;
 }
 
+/*
 a.btn.vest, a.btn.dashboard, a.btn.user-delete {
 	width: 100px;
 	padding: 2px 0px;
@@ -4785,6 +4991,7 @@ a.btn.user-delete:hover, a.btn.user-delete:focus {
 	border: 1px solid #222;
   	color: #222;
 }
+*/
 
 .btn-more {}
 
@@ -5009,18 +5216,6 @@ p.orange {
         -webkit-border-radius: 0px;
         margin-right: 0px;
 	}
-	.screen-shot {
-		margin: 0 0 20px 0;
-		border-radius: 2px;
-		border: 1px solid $color-blue;
-		-moz-box-shadow:    0 0 2px 2px #eee;
-	  -webkit-box-shadow: 0 0 2px 2px #eee;
-	  box-shadow:         0 0 2px 2px #eee;
-		border: 1px solid #ccc;
-		border-radius: 3px;
-		margin: 10px 20px 20px 10px;
-		width: 100%
-	}
 
 	a.btn.vest, a.btn.dashboard, input.btn.vest {
 		margin-left: 0px;
@@ -5098,97 +5293,8 @@ p.orange {
 
 //	Developer docs start 
 
-
-.developer-docs, .user-docs {
-
-	.nav-pills > li > a
-	 {
-		display: block;
-		padding: 5px;
-		border: none;
-	}
-	
-	.nav-pills > li.active > a
-	 {
-		background-color: #f7f7f7;
-		border: 1px solid #e6e6e6;
-	}
-
-}
-
-.developer-docs {
-	
-	.api-warning {
-		border: 1px #FF3535 solid;
-		background-color: #FF3535;
-		padding: 16px 16px 0 16px;
-		margin-top: 30px;
-	}
-	
-	.api-warning p {
-		color: #fff;
-		font-size: 18px;
-	}
-	
-	.api-warning .icon-exclamation-sign {
-		font-size: 85px;
-		color: #fff;
-		display: inline;
-		float: left;
-		margin-right: 16px;
-		margin-top: -3px;
-	}
-	
-	.api-warning a {
-		color: #fff;
-		border-bottom: 1px solid #fff;
-	}
-
-	h2 {
-        margin-top: 25px;
-        margin-bottom: 25px;
-    }
-
-    h4 {
-		margin-top: 25px;
-        margin-bottom: 25px;
-        font-size: 20px;
-		color: #333;
-	}
-	
-	code {
-		color: #333;
-		background-color: #eef8ff;
-	}
-	
-	p {
-		font-family: $font-hed;
-		font-size: 16px;
-		color: #555;
-	}
-
-	pre {
-		background-color: #fafafb;
-		border-color: #ddd;
-		color: #444;
-		margin-left: 0;
-	}
-
-    table {
-        h4 {
-            font-size: 16px;
-        }
-
-        .table-center {
-            text-align: center;
-        }
-    }
-
-}
-
 //	Developer docs end 
 
 
 //	End user docs  
 
-}

@@ -181,7 +181,6 @@ PIPELINE_JS = {
     },
     'single-link': {
         'source_filenames': (
-            'js/lib/spin.js',
             'js/single-link.js',
 
         ),
@@ -209,7 +208,6 @@ PIPELINE_CSS = {
         'source_filenames': (
             'css/bootstrap3.css',
             'css/style-responsive-archive.scss',
-            'css/font-awesome.min.css',
         ),
         'output_filename': 'css/base-archive-bundle.css',
     },

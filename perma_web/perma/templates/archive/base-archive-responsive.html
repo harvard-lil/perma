@@ -9,11 +9,12 @@
         <meta name="description" content="{% block meta_description %} Broken links are everywhere. Perma helps authors and journals create permanent links for citations in their published work.{% endblock %}">
         {% block meta-head %}{% endblock %}
         <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
         {# Python variables for use in Javascript #}
         {% include 'js_config.html' %}
 
-        {% stylesheet 'base' %}
+        {% stylesheet 'base-archive' %}
         {% javascript 'global_archive_head' %}
         
 

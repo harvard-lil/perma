@@ -205,7 +205,7 @@ class FunctionalTest(StaticLiveServerTestCase):
 
         info("Loading homepage from %s." % self.live_server_url)
         self.driver.get(self.live_server_url)
-        assert_text_displayed("Websites Change")
+        assert_text_displayed("Perma.cc prevents link rot.") # new text on landing now
 
         info("Checking Perma In Action section.")
         get_xpath("//a[@data-img='MSC_1']").click()
@@ -214,7 +214,7 @@ class FunctionalTest(StaticLiveServerTestCase):
 
         info("Loading docs.")
         get_xpath("//a[@href='/docs']").click()
-        assert_text_displayed('Overview', 'h2')  # wait for load
+        assert_text_displayed('Introducing Perma.cc', 'h2')  # new text -- wait for load
 
         info("Logging in.")
         try:
@@ -225,7 +225,7 @@ class FunctionalTest(StaticLiveServerTestCase):
         self.assertTrue("Email address" in get_xpath('//body').text)
         get_id('id_username').send_keys('test_registrar_member@example.com')
         get_id('id_password').send_keys('pass')
-        get_xpath("//button[@class='btn-success login']").click()
+        get_xpath("//button[@class='btn btn-success login']").click() # new design button
         assert_text_displayed('Create a new Perma Link', 'h1')  # wait for load
 
         info("Creating archive.")
@@ -243,9 +243,9 @@ class FunctionalTest(StaticLiveServerTestCase):
         display_archive_url = get_xpath("//a[@id='perma-success-url']").get_attribute('href')  # get url from green button
         archive_url = fix_host(display_archive_url)
         self.driver.get(archive_url)
-        assert_text_displayed('Live page view', 'a')
-        archive_view_link = get_id('warc_cap_container_complete')
-        repeat_while_exception(lambda: archive_view_link.click(), ElementNotVisibleException) # wait for archiving to finish
+        assert_text_displayed('See the Screenshot View', 'a')
+        # archive_view_link = get_id('warc_cap_container_complete')
+        # repeat_while_exception(lambda: archive_view_link.click(), ElementNotVisibleException) # wait for archiving to finish
         warc_url = fix_host(self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src'), settings.WARC_HOST)
         self.driver.get(warc_url)
         assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
