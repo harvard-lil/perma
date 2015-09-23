@@ -1970,66 +1970,61 @@ li.dropdown {
 	margin: 0;
 }
 
-._expanded .navbar-nav { // review
-	position: relative;
-    width: auto;
-    z-index: 1000;
-    padding: 5px 0;
-    margin: 2px 0 0;
-	margin-right: -7px;
-    font-size: 14px;
-    list-style: none;
-    background-color: white;
-    background-clip: padding-box;
-	border-radius: 2px;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);	
-	border: 1px solid black;
-	padding-top: $double;
-	& > li > a {
-		font-family: $font-hed-alt;
-		padding: $half 12px $half $grid * 3;
-		font-size: $size-body;
-		text-align: right;
-		&:hover, &:focus {
-			background-color: $color-hover;
-			color: white;
+@include respond-mobile {
+	.navbar-nav {
+	    display: none;
+		position: relative;
+	    float: none;
+	    width: auto;
+	    padding: 5px 0;
+	    margin: 2px 0 0;
+		margin-right: -7px;
+	    font-size: 14px;
+	    list-style: none;
+	    background-color: white;
+	    background-clip: padding-box;
+		border-radius: 2px;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
+		border: 1px solid black;
+		& > li > a {
+			font-family: $font-hed-alt;
+			padding: $half 12px $half $grid * 3;
+			font-size: $size-body;
+			text-align: right;
+			&:hover, &:focus {
+				background-color: $color-hover;
+				color: white;
+			}
+			&.navbar-link._login {
+				font-weight: 400;
+			}
+		}
+		.btn._nav {
+			margin: 0;
+			background-color: transparent;
+			color: $color-black;
+			border-radius: 0;
+			&:hover {
+				color: $color-white;
+			}
 		}
 	}
-	.btn._nav {
-		margin: 0;
-	    background-color: $color-blue;
-	    color: white;
-	    padding-top: $double;
-	    padding-bottom: $double;
-	    margin-top: $grid;
-	    margin-bottom: $grid;
-	    margin-right: $half;
-	    margin-left: $half;
-	    padding-right: 12px;
-	    &:after {
-			content: '';
-			width: 9px;
-			height: 17px;
-			display: inline-block;
-			margin-left: $grid;
-			position: relative;
-			top: 3px;
-			background-image: url('../img/ui/perma-ui-chev-right-small.png');
-			background-repeat: no-repeat;
-			background-position: 0 0;
-			background-size: 54px 17px;
-			background-position-x: -9px * 5;
-	    }
-    }
+	.navbar-collapse.in .navbar-nav {
+		display: block;
+	}
 }
 
-._expanded .dropdown-menu { // review
-	padding: 0;
-	margin: 0;
-	border: none;
-	box-shadow: none;
-	min-width: none;
-	width: auto;
+@include respond-mobile {
+	a.navbar-create {
+		margin: 0;
+		background-color: transparent;
+		color: $color-black !important;
+		border-radius: 0;
+		margin-right: 0;
+		&:hover {
+			color: $color-white !important;
+		}
+	}
 }
 
 .dropdown-menu   { // review
@@ -2038,22 +2033,42 @@ li.dropdown {
     width: auto;
     z-index: 1000;
     display: none;
-    padding: 5px 0;
-    margin: 2px 0 0;
-	margin-right: -7px;
+    padding: 0;
+    margin: 0;
+	margin-right: 0;
     font-size: 14px;
     list-style: none;
-    background-color: white;
+    background-color: transparent;
     background-clip: padding-box;
-	border-radius: 2px;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
-	border-color: black;
-	padding-top: $double;
-	min-width: $grid * 27;
+	border-radius: 0;
+	box-shadow: none;
+	border: none;
+	padding-top: 0;
+	min-width: 0;
+	top: auto;
+	margin-right: 0;
   	@include respond-tablet {
+		position: relative;
+	    float: none;
+	    width: auto;
+	    z-index: 1000;
+	    display: none;
+	    padding: 5px 0;
+	    margin: 2px 0 0;
+		margin-right: -7px;
+	    font-size: 14px;
+	    list-style: none;
+	    background-color: white;
+	    background-clip: padding-box;
+		border-radius: 2px;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
+		border-color: black;
+		padding-top: $double;
+		min-width: $grid * 27;
 		position: absolute; // DEL WHEN FINAL
 		top: 77px;
 		margin-right: 0;
+		border: 1px solid;
 	}
 	@include respond-desktop {
 		top: 85px;
@@ -2087,36 +2102,12 @@ li.dropdown {
     padding-right: 11px;
     padding-top: 7px;
     color: $color-blue;
+    text-transform: uppercase;
 	@include respond-tablet {
 		padding-right: 20px;
 	}
 }
 
-._expanded .navbar-create { // review
-	margin: 0;
-    background-color: $color-blue;
-    color: white;
-    padding-top: $double !important;
-    padding-bottom: $double !important;
-    margin-top: $grid;
-    margin-bottom: $grid;
-    margin-right: $half;
-    margin-left: $half;
-    padding-right: 12px;
-    &:after {
-		content: '';
-		width: 9px;
-		height: 17px;
-		display: inline-block;
-		margin-left: $grid;
-		position: relative;
-		top: 3px;
-		background-image: url('../img/ui/perma-ui-chev-right-small.png');
-		background-repeat: no-repeat;
-		background-position: -45px center;
-		background-size: 54px 17px;
-    }
-}
 
 .navbar-create {
     margin-top: 0;
@@ -2131,8 +2122,13 @@ li.dropdown {
 	padding: 0;
 }
 
+.navbar-collapse.in {
+	overflow: visible;
+}
+
 .navbar-collapse .navbar-nav.navbar-right:last-child {
-	margin-right: $double;
+	margin-right: $grid;
+	margin-left: $grid;
 	@include respond-tablet {
 		margin-right: 0;
 	}
@@ -2502,13 +2498,12 @@ div.container-reading + div.toc-overview {
 }
 
 .reading-body {
-	
-	h2 + p {
-		margin-top: $double;
+	margin-top: $grid * 3;
+	@include respond-tablet {
+		margin-top: 0;
 	}
-	
+	h2 + p { margin-top: $double; }
     p { @extend p.body-text; }
-
     table {
         h4 {
             font-size: 12px;
@@ -2516,7 +2511,6 @@ div.container-reading + div.toc-overview {
 	            font-size: 16px;
             }
         }
-
         .table-center {
             text-align: center;
         }

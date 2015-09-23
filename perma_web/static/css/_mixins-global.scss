@@ -39,7 +39,7 @@ $width-max-respond: $width-wide; 		// 1168px;
 
 
 @mixin respond-mobile {
-	@media only screen and (max-width: $width-mobile) {
+	@media only screen and (max-width: 767px) {
 		@content;
 	}
 }
