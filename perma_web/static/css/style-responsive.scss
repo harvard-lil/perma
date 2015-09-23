@@ -2498,7 +2498,7 @@ div.container-reading + div.toc-overview {
 }
 
 .reading-body {
-	margin-top: $grid * 3;
+	margin-top: $grid * 6;
 	@include respond-tablet {
 		margin-top: 0;
 	}
