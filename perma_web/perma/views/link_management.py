@@ -1,5 +1,7 @@
 import logging
+from django.utils import timezone
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
@@ -15,9 +17,14 @@ valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timesta
 
 @login_required
 def create_link(request):
-    return render(request, 'user_management/create-link.html', {
-        'this_page': 'create_link',
-    })
+	today = timezone.now()
+	link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month=today.month, created_by_id=request.user.id).count()
+	links_remaining = settings.MONTHLY_CREATE_LIMIT - link_count
+	
+	return render(request, 'user_management/create-link.html', {
+		'this_page': 'create_link',
+		'links_remaining': links_remaining,
+	})
 
 
 ###### LINK BROWSING ######

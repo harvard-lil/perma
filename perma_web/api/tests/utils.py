@@ -25,6 +25,9 @@ TEST_ASSETS_DIR = os.path.join(settings.PROJECT_ROOT, "perma/tests/assets")
 
 
 def copy_file_or_dir(src, dst):
+    dst_dir = os.path.abspath(os.path.dirname(dst))
+    if not os.path.isdir(dst_dir):
+        os.makedirs(dst_dir)
     try:
         shutil.copytree(src, dst)
     except OSError as e:
