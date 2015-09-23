@@ -2310,7 +2310,7 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
 // docs
 
 .docs-ah, .docs-body h2 { 
-	font-size: 24px;
+	font-size: 22px;
     border-top: 2px solid $color-blue;
     padding-top: $grid;
     margin-top: $grid * 6;
@@ -2420,9 +2420,15 @@ p.body-text {
 .user-docs {
 	padding-top: $double;
 	margin-top: $double;
+	& + .user-docs {
+		margin-top: $grid * 8;
+	}
 	@include respond-tablet {
 		padding-top: $grid * 3;
 		margin-top: $grid * 4;
+		& + .user-docs {
+			margin-top: $grid * 4;
+		}
 	}
 }
 
@@ -5218,18 +5224,6 @@ p.orange {
         -moz-border-radius: 0px;
         -webkit-border-radius: 0px;
         margin-right: 0px;
-	}
-	.screen-shot {
-		margin: 0 0 20px 0;
-		border-radius: 2px;
-		border: 1px solid $color-blue;
-		-moz-box-shadow:    0 0 2px 2px #eee;
-	  -webkit-box-shadow: 0 0 2px 2px #eee;
-	  box-shadow:         0 0 2px 2px #eee;
-		border: 1px solid #ccc;
-		border-radius: 3px;
-		margin: 10px 20px 20px 10px;
-		width: 100%
 	}
 
 	a.btn.vest, a.btn.dashboard, input.btn.vest {
