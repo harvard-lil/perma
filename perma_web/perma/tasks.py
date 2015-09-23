@@ -177,7 +177,7 @@ def proxy_capture(self, link_guid, user_agent=''):
             return requests.get(url,
                                 headers={'User-Agent': user_agent},
                                 proxies={'http': 'http://' + proxy_address, 'https': 'http://' + proxy_address},
-                                cert=proxy.ca.ca_file)
+                                verify=False)
 
         # start warcprox in the background
         warc_writer = WarcWriter(gzip=True, port=warcprox_port)
@@ -212,6 +212,7 @@ def proxy_capture(self, link_guid, user_agent=''):
         for header in har_log_entries[0]['response']['headers']:
             if header['name'].lower() == 'content-type':
                 content_type = header['value'].lower()
+                break
         content_url = har_log_entries[0]['request']['url']
         have_html = content_type and content_type.startswith('text/html')
         print "Finished fetching url."
@@ -251,7 +252,7 @@ def proxy_capture(self, link_guid, user_agent=''):
         # fetch robots.txt in the background
         def robots_txt_thread():
             print "Fetching robots.txt ..."
-            robots_txt_location = urlparse.urljoin(content_url, 'robots.txt')
+            robots_txt_location = urlparse.urljoin(content_url, '/robots.txt')
             try:
                 robots_txt_response = proxied_get_request(robots_txt_location)
                 assert robots_txt_response.ok
