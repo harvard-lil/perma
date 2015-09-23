@@ -424,7 +424,7 @@ def get_nightly_stats():
     total_count_registrars = Registrar.objects.all().count()
     
     # Journal account
-    total_orgs = Organizations.objects.all().count()
+    total_orgs = Organization.objects.all().count()
     
     # Two types of links
     total_count_unvested_links = Link.objects.filter(vested=False).count()
