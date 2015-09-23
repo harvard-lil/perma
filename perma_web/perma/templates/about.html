@@ -79,11 +79,28 @@ Perma.cc prevents link rot.
 <div class="container container-bleed container-bg">
 	<div class="container container-display">
 		<div class="row">
-	        <div class="col col-sm-12 docs reading-body">
-	        <h4 class="display-title">Powered by Libraries</h4>
-			    {% include "includes/participating_institutions.html" %}
-	        </div>
-		</div>
+			<div class="col-sm-6">
+        		<div class="content">
+					<h2 class="mega">Library-strength reliability</h2>
+					<p>Perma.cc was built by Harvard’s <a href="http://librarylab.law.harvard.edu">Library Innovation Lab</a> and is backed by the power of libraries. We’re both in the forever business: libraries already look after physical and digital materials — now we can do the same for links.</p>
+					<p class="body">If you’re a librarian or are affiliated with a library, we can make using Perma.cc free and simple for you and the scholars that depend on you. We’ve answered many common questions and prepared a special library signup at the link below.</p>
+					<p><a href="{% url 'libraries' %}" class="btn btn-large">Try Perma.cc for libraries</a></p>
+        		</div>
+			</div><!--col-sm-6-->
+			<div class="col-sm-6">
+        		<div class="content">
+					<div id="plot-map-container"></div>
+					<div class="caption">
+						<p>Perma.cc is used and supported by libraries and institutions across America.</p>
+					</div>
+        		</div>
+			</div><!--col-sm-6-->
+		</div><!--row-->
+		<div class="row">
+			<div class="col-sm-12">
+                {% include "includes/participating_institutions.html" %}
+			</div><!--col-sm-12-->
+		</div><!--row-->	
 	</div>
 </div>
 
@@ -96,4 +113,7 @@ Perma.cc prevents link rot.
 	</div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
 {% endblock %}

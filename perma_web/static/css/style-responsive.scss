@@ -108,9 +108,6 @@ section#main { // review XX
 	}
 }
 
-body._welcome #main {
-	padding-bottom: 0;
-}
 
 body.modal-open {
 	margin-right: 0;
@@ -640,9 +637,6 @@ div.main-container {
 	}
 }
 
-body._welcome #main {
-	padding-bottom: 0;
-}
 
 *:focus {
 	outline-style: solid !important;
@@ -4724,12 +4718,18 @@ a.orange:hover, .orange:active {
 }
 
 .welcome {
+	padding-top: $grid * 3;
 	.mega {
 		font-weight: 300;
 		font-size: 40px;
 		@include respond-tablet {
 			font-size: 36px;
 		}
+	}
+	img {
+		max-height: 27em;
+		padding-top: 0;
+		margin-top: 0;
 	}
 }
 
