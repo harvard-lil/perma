@@ -89,7 +89,6 @@
 %style-overview-container {
 	margin: $grid * 6 0 0 0;
 	background-color: $color-background;
-	border-radius: 2px;
 	@extend %style-clears-floats;
 	@include respond-tablet {
 	}

@@ -685,13 +685,17 @@ input:focus, *:hover {
 .container-bleed {
 	max-width: none !important;
 	padding: 0;
+	margin-top: $grid * 6;
 }
 
+.container-bg {
+	background-color: $color-background;
+}
 
-.container {
-	.container {
-//		padding-left: 0;
-//		padding-right: 0;
+.container-display {
+	padding: $grid * 6 0;
+	@include respond-tablet {
+		padding: $grid * 9 0;
 	}
 }
 
@@ -715,7 +719,7 @@ input:focus, *:hover {
 	padding-right: 0;
 }
 
-.col.col-right {
+div.col-right {
 	@include respond-tablet {
 		float: right;
 	}
@@ -2382,9 +2386,7 @@ p.body-text {
 	}
 }
 
-
-._userguide .container#main-content,
-._signup .container#main-content {
+#main._fullWidth #main-content {
 	@include respond-tablet {
 		padding-left: 0;
 		padding-right: 0;
