@@ -298,6 +298,9 @@ LOGIN_URL = '/login'
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
 
+# Monthly limit for regular users
+MONTHLY_CREATE_LIMIT = 10
+
 # When getting the source with wget, let's set some details
 ARCHIVE_QUOTA = '20m' # Maximum filesize
 ARCHIVE_LIMIT_RATE = '100m' # Download limit rate; TODO reduce for production

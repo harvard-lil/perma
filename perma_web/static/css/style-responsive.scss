@@ -981,6 +981,12 @@ p.body { @extend %style-body-text; }
 			margin: 0;
 	    }
 	}
+	
+	#links-remaining-message {
+		margin-top:10px;
+		text-align:center;
+		float:left;
+	}
 }
 
 #examples {
