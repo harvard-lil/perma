@@ -15,7 +15,7 @@ Log in to your Perma.cc account. Welcome back.
 
     <div class="row">
         <div class="col-sm-12">
-            <h1>Log in to your Perma.cc account</h1>
+            <h1 class="page-title">Log in to your Perma.cc account</h1>
                 <form method="post" action="{% url 'user_management_limited_login' %}{% if next %}?next={{ next }}{% endif %}" class="temp-form-css">
                 {% csrf_token %}
                      <fieldset>

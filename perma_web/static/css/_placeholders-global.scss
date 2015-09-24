@@ -87,10 +87,11 @@
 }
 
 %style-overview-container {
-	margin: $grid * 6 0 0 0;
+	margin: $grid * 4 0 0 0;
 	background-color: $color-background;
 	@extend %style-clears-floats;
 	@include respond-tablet {
+		margin: $grid * 6 0 0 0;
 	}
 	@include respond-desktop {
 	}

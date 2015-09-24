@@ -119,9 +119,14 @@ body.modal-open {
     background-color: white;
 }
 
+//	Carousel Customization 
+
 .carousel {
-	height: $grid * 16;
-	margin: $grid * 5 0 $double;
+	margin: $grid * 6 0 0;
+    text-align: center;
+	.carousel-inner {
+		height: $grid * 16;
+	}
 	.ui-chev-left, .ui-chev-right {
 		height: 25px;
 		width: 28px;
@@ -179,6 +184,56 @@ body.modal-open {
   height: 12px;
   margin: 0 !important;
   background-color: $color-orange;
+}
+
+#carousel-example-generic, #examples {
+	display: none;
+	@include respond-tablet {
+		display: block;
+	}
+}
+
+.carousel-inner > .item > a > img {
+	height: 37px;
+	@include opacity(.6);
+	padding: 5px;
+	background: #fff;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -ms-border-radius: 3px;
+    margin-bottom: 10px;
+	display: inline;
+	list-style-type: none;
+}
+
+
+.carousel .item a.square img {
+    margin-top: 10px;
+    height: 74px;
+}
+
+
+.carousel-indicators {
+    position: static;
+    width: 100%;
+    margin-left: 0;
+}
+
+.carousel .item {
+    text-align: center;
+    padding: 0 166px;
+}
+
+.carousel-control {
+    position: absolute;
+    background-color: transparent;
+    @include opacity(.9);
+    bottom: 0px;
+    &:focus {
+	   outline: none; 
+    }
 }
 
 
@@ -687,9 +742,9 @@ input:focus, *:hover {
 }
 
 .container-display {
-	padding: $grid * 6 0;
+	padding: $grid * 4 $double;
 	@include respond-tablet {
-		padding: $grid * 9 0;
+		padding: $grid * 9 $double;
 	}
 }
 
@@ -758,6 +813,11 @@ h1 {
 	@include respond-tablet {
 		font-size: 48px;
 	}
+}
+
+h1 + form ,
+h1 + div {
+	margin-top: $grid * 4;
 }
 
 span.subsection {
@@ -924,7 +984,7 @@ p {
     color: $color-black;
 }
 
-p.body { @extend %style-body-text; }
+p.body { @extend p.body-text; }
 
 .lockup p { @extend %style-pageLede; } 
 
@@ -934,6 +994,20 @@ p.body { @extend %style-body-text; }
 
 .text-warning {
 	color: $color-error;
+}
+
+.label-verbose, .verbose {
+    display: inline-block;
+    width: 0;
+    height: 1em;
+    overflow: hidden;
+    text-indent: -1000px;
+	@include respond-tablet {
+	    display: inline;
+	    width: auto;
+	    height: auto;
+	    text-indent: 0;
+	}
 }
 
 
@@ -1638,12 +1712,14 @@ strong {
 	box-shadow: -1px 0 2px 0 rgba(0,0,0,0.12) , 1px 0 2px 0 rgba(0,0,0,0.12) , 0 1px 1px 0 rgba(0,0,0,0.24);
 	border-radius: 2px;
 	padding: $grid * 3 $double;
-	margin-bottom: 3px;
+	margin: $double $double 0;
+	background-color: white;
 	@include respond-tablet {
 		box-shadow: none;
 		border-radius: 0;
 		padding: 0;
-		margin-bottom: 0;
+		margin: 0;
+		background-color: transparent;
 		img {
 			padding: $grid * 3 $grid * 3 0 $grid * 3;
 		}
@@ -1667,135 +1743,149 @@ strong {
 // again, a body for pipeline specificity 
 
 // review; removed for __permaNew
-body {
-	form {
-		margin-top: $grid * 3;
-		.btn {
-			background-color: $color-blue;
-			&:hover {
-				background-color: $color-hover;
-			}
-			&:active {
-				background-color: $color-active;
-			}
+form {
+	margin-top: $grid * 3;
+	.btn {
+		background-color: $color-blue;
+		&:hover {
+			background-color: $color-hover;
+		}
+		&:active {
+			background-color: $color-active;
 		}
 	}
-	
-	fieldset {
-		background-color: $color-background;
-		border-radius: 4px;
-		padding: $double $grid;
-		border: none;
-		margin: 0;
-		@include respond-tablet {
-			padding: $grid $grid $grid * 3 $grid * 3;
+}
+
+form {
+	overflow: auto;
+}
+
+fieldset {
+	background-color: $color-background;
+	border-radius: 4px;
+	padding: $double $grid;
+	border: none;
+	margin: 0;
+	@include respond-tablet {
+		padding: $grid $grid $grid * 4 $grid * 3;
+	}
+	&.col-sm-6 {
+		& + button {
+			float: left;
+			clear: both;
+		}
+		.form-group {
+			width: 100%;
+			padding-right: 0;
 		}
 	}
-	h3 + fieldset {
-		margin-top: $double;
-	}
-	label, input {
-		display: block;
-		font-family: $font-hed-alt;
-		width: 100%;
-	}
-	label {
-		margin: 0; 
-		font-weight: 400;
-		font-size: 14px;
-	}
-	input {
-		margin: $grid 0 0 0;
-		font-weight: 700;
-	    font-size: 20px;
-	    border: 1px solid $color-trans-lightgray;
-	    border-radius: 4px;
-	    padding: $grid;
-	    background-color: white;
-	    outline: none;
+}
+h3 + fieldset {
+	margin-top: $double;
+}
+label, input {
+	display: block;
+	font-family: $font-hed-alt;
+	width: 100%;
+}
+label {
+	margin: 0; 
+	font-weight: 400;
+	font-size: 14px;
+}
+input {
+	margin: $grid 0 0 0;
+	font-weight: 700;
+    font-size: 20px;
+    border: 1px solid $color-trans-lightgray;
+    border-radius: 4px;
+    padding: $grid;
+    background-color: white;
+    outline: none;
+    box-shadow: none;
+    &:focus {
+	    border-color: $color-blue;
+	    color: $color-blue;
+	    background-color: $color-white;
 	    box-shadow: none;
-	    &:focus {
-		    border-color: $color-blue;
-		    color: $color-blue;
-		    background-color: $color-white;
-		    box-shadow: none;
-	    }
+    }
+}
+button {
+    &:focus {
+	    box-shadow: none;
+    }
+}
+input[type="checkbox"] {
+	width: auto;
+}
+div.checkbox {
+	padding: $grid;
+    background-color: $color-highlight;
+    margin-right: $double;
+    margin-top: $grid * 3;
+    border-radius: 2px;
+    padding-top: $grid;
+    padding-left: 36px;
 	}
-	button {
-	    &:focus {
-		    box-shadow: none;
-	    }
+._error {
+	input {
+		border-color: $color-error;
 	}
-	input[type="checkbox"] {
+}
+input + label {
+	margin-top: $double;
+}
+button {
+	width: 100%;
+	@include respond-tablet {
 		width: auto;
 	}
-	div.checkbox {
-		padding: $grid;
-	    background-color: $color-highlight;
-	    margin-right: $double;
-	    margin-top: $grid * 3;
-	    border-radius: 2px;
-	    padding-top: $grid;
-	    padding-left: 36px;
- 	}
-	._error {
-		input {
-			border-color: $color-error;
-		}
-	}
-	input + label {
+}
+
+.form-group {
+	margin-bottom: 0;
+	@include respond-tablet {
+		float: left;
+		width: 50%;
 		margin-top: $double;
+		padding-right: $double;
 	}
-	button {
-		width: 100%;
-		@include respond-tablet {
-			width: auto;
-		}
-	}
-	.form-group {
-		margin-bottom: 0;
-		@include respond-tablet {
-			float: left;
-			width: 50%;
-			margin-top: $double;
-			padding-right: $double;
-		}
-	}
-	.form-group + .form-group {
-		margin-top: $double;
-	}
-	.text-error, .errorlist {
-		color: $color-error;
-		font-family: $font-hed-alt;
-		font-weight: 700;
-		font-size: 12px;
-		clear: both;
-		display: block;
-		padding-top: $double;
-	}
-	.errorlist {
-	  list-style-type: none;
-	  margin: 0;
-	  padding: 0;
-	  li {
-		  margin-bottom: 0;
-		  line-height: 1.4;
-		  & + li {
-			  margin-top: 4px;
-		  }
+}
+
+.form-group + .form-group {
+	margin-top: $double;
+}
+.text-error, .errorlist {
+	color: $color-error;
+	font-family: $font-hed-alt;
+	font-weight: 700;
+	font-size: 12px;
+	clear: both;
+	display: block;
+	padding-top: $double;
+}
+.errorlist {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  li {
+	  margin-bottom: 0;
+	  line-height: 1.4;
+	  & + li {
+		  margin-top: 4px;
 	  }
-	}
-	input[type="text"], 
-	textarea, 
-	button[type="submit"],
-	button#addlink, 
-	.infinity-navbar {
-	    -webkit-transition: none;
-		-moz-transition: none;
-		-ms-transition: none;
-		-o-transition: none;
-	}
-} // review
+  }
+}
+input[type="text"], 
+textarea, 
+button[type="submit"],
+button#addlink, 
+.infinity-navbar {
+    -webkit-transition: none;
+	-moz-transition: none;
+	-ms-transition: none;
+	-o-transition: none;
+}
 
 .col-sm-4 form .form-group {
 	@include respond-tablet {
@@ -2500,7 +2590,7 @@ div.container-reading + div.toc-overview {
 }
 
 .reading-body {
-	margin-top: $grid * 6;
+	margin-top: 0; // $grid * 6;
 	@include respond-tablet {
 		margin-top: 0;
 	}
@@ -2652,7 +2742,7 @@ code, span.code {
 .signup-learnMore {
     h2 { @extend %style-docs-ah; }
     h3 { @extend %style-docs-bh; }
-    p { @extend %style-body-text; }
+    p { @extend p.body-text; }
 }
 
 
@@ -2804,61 +2894,7 @@ body form .btn.login {
 	font-weight: bold;
 }
 
-//	Carousel Customization 
 
-#carousel-example-generic, #examples {
-	display: none;
-	@include respond-tablet {
-		display: block;
-	}
-}
-
-.carousel-inner > .item > a > img {
-	height: 37px;
-	@include opacity(.6);
-	padding: 5px;
-	background: #fff;
-	border: 1px solid #ccc;
-	border-radius: 3px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    -ms-border-radius: 3px;
-    margin-bottom: 10px;
-	display: inline;
-	list-style-type: none;
-}
-
-
-.carousel .item a.square img {
-    margin-top: 10px;
-    height: 74px;
-}
-
-.carousel {
-    text-align: center;
-    margin-top: 1em;
-}
-
-.carousel-indicators {
-    position: static;
-    width: 100%;
-    margin-left: 0;
-}
-
-.carousel .item {
-    text-align: center;
-    padding: 0 166px;
-}
-
-.carousel-control {
-    position: absolute;
-    background-color: transparent;
-    @include opacity(.9);
-    bottom: 0px;
-    &:focus {
-	   outline: none; 
-    }
-}
 
 
 
@@ -2870,17 +2906,9 @@ body form .btn.login {
 		margin-top: $grid * 3;
 		border-top: 1px solid $color-blue;
 		padding-top: $grid * 3;
-		margin-left: -$grid;
-		margin-right: -$grid;
-		padding-left: $grid;
-		padding-right: $grid;
 		@include respond-tablet {
 			margin-top: $grid * 4;
 			padding-top: $grid * 4;
-			padding-left: 0;
-			padding-right: 0;
-			margin-left: 0;
-			margin-right: 0;
 			&:nth-child(2n + 1) {
 				._image {
 					float: left;
@@ -2913,25 +2941,26 @@ h4.how-point-title {
 	}
 }
 
+p.display {
+    font-size: 15px;
+    line-height: 1.5;
+    margin-bottom: 1em;
+    padding: 0;
+	@include respond-tablet {
+	    font-size: 16px;
+	    margin-bottom: $double;
+	}
+	@include respond-desktop {
+	    font-size: 20px;
+	    margin-bottom: $grid * 4;
+	}
+}
+.caption p {
+	@extend p.caption;
+}
+
 #home-description {
 	padding: 0;
-	p {
-	    font-size: 16px;
-	    line-height: 1.5;
-	    margin-bottom: 1em;
-	    padding: 0;
-	    &.body {
-			font-size: 16px;
-		    line-height: 1.6;
-	    }
-		@include respond-tablet {
-		    font-size: 20px;
-		    margin-bottom: $grid * 4;
-		}
-	}
-	.caption p {
-		@extend p.caption;
-	}
 	p#subtext {
         font-size: 16px;
         margin: 0;
@@ -4740,6 +4769,15 @@ a.orange:hover, .orange:active {
 	}
 }
 
+div.buttons {
+	margin-left: -$grid;
+	margin-right: -$grid;
+	.btn {
+		margin-right: $grid;
+		margin-left: $grid;
+	}
+}
+
 .welcome2 {
     padding: $grid * 3 0;
     margin: $grid * 3 auto 0;
@@ -4781,7 +4819,11 @@ li {
 
 
 ul.tos {
-	margin-left: 25px;
+	margin-left: 0;
+	padding-left: 0;
+	@include respond-tablet {
+		margin-left: $grid * 3;
+	}
 }
 
 ol li {
