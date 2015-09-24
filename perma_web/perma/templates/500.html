@@ -3,9 +3,7 @@
 
 {% block content %}
 	<div class="col-sm-12 column">
-		<div class="center-block">
-			<h2>Error. HTTP 500. Sorry.</h2>
-			<p>Please <a href="{% url 'contact' %}" >drop us a note</a> and let us know how you found this error.</p>
-		</div>
+		<h1 class="page-title">Error.</h1>
+		<p class="page-dek"><strong> HTTP 500.</strong> Please <a href="{% url 'contact' %}" >drop us a note</a> and let us know how you found this error.</p>
 	</div>
 {% endblock %}
