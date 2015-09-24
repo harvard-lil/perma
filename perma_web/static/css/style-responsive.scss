@@ -2503,7 +2503,7 @@ div.container-reading + div.toc-overview {
 }
 
 .reading-body {
-	margin-top: $grid * 6;
+	margin-top: 0; // $grid * 6;
 	@include respond-tablet {
 		margin-top: 0;
 	}
@@ -4784,7 +4784,11 @@ li {
 
 
 ul.tos {
-	margin-left: 25px;
+	margin-left: 0;
+	padding-left: 0;
+	@include respond-tablet {
+		margin-left: $grid * 3;
+	}
 }
 
 ol li {
