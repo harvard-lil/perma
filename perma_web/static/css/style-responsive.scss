@@ -996,6 +996,20 @@ p.body { @extend p.body-text; }
 	color: $color-error;
 }
 
+.label-verbose, .verbose {
+    display: inline-block;
+    width: 0;
+    height: 1em;
+    overflow: hidden;
+    text-indent: -1000px;
+	@include respond-tablet {
+	    display: inline;
+	    width: auto;
+	    height: auto;
+	    text-indent: 0;
+	}
+}
+
 
 // create
 
@@ -1698,12 +1712,14 @@ strong {
 	box-shadow: -1px 0 2px 0 rgba(0,0,0,0.12) , 1px 0 2px 0 rgba(0,0,0,0.12) , 0 1px 1px 0 rgba(0,0,0,0.24);
 	border-radius: 2px;
 	padding: $grid * 3 $double;
-	margin-bottom: 3px;
+	margin: $double $double 0;
+	background-color: white;
 	@include respond-tablet {
 		box-shadow: none;
 		border-radius: 0;
 		padding: 0;
-		margin-bottom: 0;
+		margin: 0;
+		background-color: transparent;
 		img {
 			padding: $grid * 3 $grid * 3 0 $grid * 3;
 		}
@@ -2874,17 +2890,9 @@ body form .btn.login {
 		margin-top: $grid * 3;
 		border-top: 1px solid $color-blue;
 		padding-top: $grid * 3;
-		margin-left: -$grid;
-		margin-right: -$grid;
-		padding-left: $grid;
-		padding-right: $grid;
 		@include respond-tablet {
 			margin-top: $grid * 4;
 			padding-top: $grid * 4;
-			padding-left: 0;
-			padding-right: 0;
-			margin-left: 0;
-			margin-right: 0;
 			&:nth-child(2n + 1) {
 				._image {
 					float: left;

@@ -63,7 +63,7 @@
 						<p><a href="{% url 'libraries' %}" class="btn btn-large">Try Perma.cc for libraries</a></p>
 	        		</div>
 				</div><!--col-sm-6-->
-				<div class="col-sm-6">
+				<div class="col-sm-6 _image">
 	        		<div class="content">
 						<div id="plot-map-container"></div>
 						<div class="caption">
@@ -155,7 +155,7 @@
                     <p class="how-point-subtitle">Convert your link into a Perma Link.</p>
                     <p class="display">With a Perma.cc account, you can create links to permanent records of the web pages cited in your work. All you have to do is enter the URL of the page you want to preserve. Perma.cc creates a snapshot record of the page at that moment and gives you a unique, unbreakable Perma Link — like <a href="http://perma.cc/FC7M-CRS9" class="perma" target="_blank">perma.cc/FC7M-CRS9</a> — that you can use in your citations to direct readers to the preserved record.</p>
                     <p class="display">These unvested Perma Links remain active for two years. To preserve them permanently, continue to Step 2 and <a href="{% url 'docs_perma_link_vesting' %}" class="vocab">vest</a> them.
-                    <p><a href="{% url 'docs_perma_link_creation' %}" class="btn btn-large btn-more">Read more about creating Perma Links</a></p>
+                    <p><a href="{% url 'docs_perma_link_creation' %}" class="btn btn-large btn-more">Read more<span class="verbose"> about creating Perma Links</span></a></p>
                 </div>
                 <div class="col-sm-6 _image">
                     <img class="img-responsive" src="{{ STATIC_URL }}img/create-links.png" alt="An illustration of Perma.cc links being placed in a documents citations."/>
@@ -170,7 +170,7 @@
                     <h4 class="how-point-title" id="vest"><span class="num">2 /</span> Vest</h4>
                     <p class="how-point-subtitle">Approve your Perma Link.</p>
                     <p class="display">To keep your Perma Link active permanently, it needs to be vested (or “approved”) by someone affiliated with a <a href="{% url 'docs_perma_link_vesting' %}" class="vocab">Vesting Organization</a>, such as a library, journal, or court. Vesting helps assure that our Perma Links are valid, necessary, and correct. Perma.cc limits vesting privileges to help prevent abuse and to focus on solving the problem of link rot in academic and legal writing.</p>
-                    <p><a href="{% url 'docs_perma_link_vesting' %}" class="btn btn-large btn-more">Read more about vesting and Vesting Organizations</a></p>
+                    <p><a href="{% url 'docs_perma_link_vesting' %}" class="btn btn-large btn-more">Read more<span class="verbose"> about vesting and Vesting Organizations</span></a></p>
                 </div>
                 <div class="col-sm-6 _image">
                     <img src="{{ STATIC_URL }}img/signal.png" class="img-responsive" alt="Responsive image" alt="A railroad light with green and red colors. Perma.cc archive need to be vested before they receive the permanent archive greenlight.">
@@ -185,7 +185,7 @@
 	                <h4 class="how-point-title" id="archive"><span class="num">3 /</span> Archive</h4>
                     <p class="how-point-subtitle">Preserve your Perma Link permanently.</p>
                     <p class="display">Once your Perma Link is vested, it will be preserved in perpetutity by our <a href="#">network of participating libraries</a>. You can organize and manage your Perma Links through your Perma.cc <a href="#" class="vocab">Dashboard.</a></p>
-                    <p><a href="{% url 'docs_perma_archive' %}" class="btn btn-large btn-more">Read more about Perma Link records</a></p>
+                    <p><a href="{% url 'docs_perma_archive' %}" class="btn btn-large btn-more">Read more<span class="verbose"> about Perma Link records</span></a></p>
 	            </div>
                 <div class="col-sm-6 _image">
                     <img class="img-responsive" src="{{ STATIC_URL }}img/shelf2.png" alt="An illustration of Perma.cc archives sitting next to books. Physical and digital archives are important to libraries."/>
