@@ -1,53 +1,97 @@
 {% extends "layout-responsive.html" %}
 
 {% block meta_description %}
-Register for a Perma.cc account. Welcome aboard.
+Create a Perma.cc account.
 {% endblock %}
 
+{% block bodyFlags %}_signup _unaffiliated{% endblock %}
+{% block mainFlags %}_fullWidth{% endblock %}
+
+
 {% block content %}
-<div class="container learn-more">
+<div class="container">
 	<div class="row">
-		<div class="col-sm-12">	
-			<h1>Learn more and sign up</h1>
-			<a class="btn btn-large btn-more" href="{% url 'sign_up_journals' %}" role="button">Journals</a><a class="btn btn-large btn-more" href="{% url 'sign_up_courts' %}" role="button">Courts</a><a class="btn btn-large btn-more" href="{% url 'sign_up_faculty' %}" role="button">Faculty</a><a class="btn btn-large btn-more" href="{% url 'libraries' %}">Libraries</a><a class="btn btn-large btn-more btn-active" href="{% url 'sign_up' %}" role="button">Individuals</a>
-		</div>
-	</div>
-	<div class="row">
-	    <div class="col-sm-7">
-            <p>Anyone can create a free, individual Perma.cc account, which will allow you to create unvested links. Just complete this form to get started.</p>
-            <p>Please note that for your links to be saved in the permanent archive they will have to be approved by someone with vesting authority. To learn more about how Perma.cc works and the limitations of unvested links, please review our <a href="{% url 'docs' %}#what-is-vesting">user guide</a>.</p>
-		</div>
-	    <div class="col-sm-4 col-sm-offset-1">	
-	        <h2>Create an individual account</h2>	
-			<form method="post" action="">
-				{% csrf_token %}
-				 <fieldset>
-				<span class="text-error"><br/>{{ form.non_field_errors }}</span>
-				{% for field in form %}
-				  <label for="id_{{ field.name }}">{{ field.label }}</label><br/>
-				  {{ field }}
-				  {% if field.errors %}
-					{% for error in field.errors %}<span class="text-error"><br/>{{ error }}</span>{% endfor %}
-				  {%elif field.help_text %}
-					<span class="help-inline"><br/>{{ field.help_text }}</span>
-				  {% endif %}<br/>
-				{% endfor %}  
-			  </fieldset>
-				<p><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
-				<button type="submit" class="btn-success">Create account</button>
-			</form>
+		<div class="col-sm-12">
+			<h1 class="page-title">Sign up with Perma.cc</h1>
+			<p class="page-dek">Perma.cc is free to use for anyone. However, some types of users and organizations have special privileges and responsibilities. Select the affiliation that best describes you or your organization to learn more and get started creating an account. See <a href="{% url 'docs' %}">our documentation</a> for more about Perma.cc’s affiliations and roles.</p>
 		</div>
 	</div>
 </div>
-<br/>
-<br/>
-<br/>
-<br/>
+
+<div class="container container-bleed toc-overview">
+	<div class="container toc-overview-container">
+		<div class="row">
+			<div class="col col-sm-by5 toc-module col-no-gutter _active">
+				<div class="toc-module-content" href="{% url 'sign_up' %}">
+					<strong class="toc-module-title">Individual</strong>
+					<p class="toc-module-description">Anyone can create a free account and start creating Perma Links.</p>
+				</div>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'libraries' %}">
+					<strong class="toc-module-title">Libraries</strong>
+					<p class="toc-module-description">Libraries play a critical role in powering and supporting Perma.cc.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'sign_up_journals' %}">
+					<strong class="toc-module-title">Journals</strong>
+					<p class="toc-module-description">Over 150 academic law journals prevent link rot with Perma.cc.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'sign_up_courts' %}">
+					<strong class="toc-module-title">Courts</strong>
+					<p class="toc-module-description">Courts care deeply about the long-term accuracy, integrity and reliability of the citations in their opinions.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'sign_up_faculty' %}">
+					<strong class="toc-module-title">Faculty</strong>
+					<p class="toc-module-description">Faculty use Perma.cc to prevent link rot in their scholarship.</p>
+				</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="container container-reading">
+	<div class="row">
+	    <div class="col-sm-4 signup-learnMore-form">	
+	        <h2 class="docs-ah">Create an individual account</h2>	
+			<form method="post" action="">
+				{% csrf_token %}
+				 <fieldset>
+					{% for field in form %}
+						<div class="form-group{% if field.errors %} _error{% endif %}">
+							<label for="id_{{ field.name }}">{{ field.label }}</label>
+							{{ field }}
+							{% if field.errors %}
+								{% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+							{%elif field.help_text %}
+								<span class="help-inline">{{ field.help_text }}</span>
+							{% endif %}
+						</div>
+					{% endfor %}
+                	{% if form.non_field_errors %}<span class="text-error">{{ form.non_field_errors }}</span>{% endif %}
+					<p><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
+				 </fieldset>
+				<button type="submit" class="btn btn-success">Create account</button>
+			</form>
+		</div>
+	    <div class="col-sm-8 reading-body">
+            <h2 class="docs-ah">Perma.cc for individual users</h2>
+            <p>Anyone can create a free, individual Perma.cc account, which will allow you to create unvested links. Just complete this form to get started.</p>
+			<p>Please note that for your links to be saved in the permanent archive they will have to be approved by someone with vesting authority. To learn more about how Perma.cc works and the limitations of unvested links, please review our <a href="{% url 'docs' %}">user guide</a>.
+		</div>
+	</div>
+</div>
 {% endblock content %}
 {% block scripts %}
 <script>
 $(document).ready(function(){
     $('input[type=email]:first').focus();
+    $('body').scrollTop(0);
 });
 </script>
 {% endblock scripts %}

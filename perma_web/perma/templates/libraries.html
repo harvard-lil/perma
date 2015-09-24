@@ -1,72 +1,121 @@
 {% extends "layout-responsive.html" %}
-{% block title %} | Libraries{% endblock %}
 
-{% block meta %}
-<meta name="robots" content="noarchive">
+{% block meta_description %}
+Perma.cc for libraries
 {% endblock %}
 
-{% block content %}
+{% block bodyFlags %}_signup _libraries{% endblock %}
+{% block mainFlags %}_fullWidth{% endblock %}
 
-<div class="container libraries-power learn-more">
-    <div class="row">
-        <div class="col-sm-12"> 
-            <h1>Learn more and sign up</h1>
-            <a class="btn btn-large btn-more" href="{% url 'sign_up_journals' %}" role="button">Journals</a><a class="btn btn-large btn-more" href="{% url 'sign_up_courts' %}" role="button">Courts</a><a class="btn btn-large btn-more" href="{% url 'sign_up_faculty' %}" role="button">Faculty</a><a class="btn btn-large btn-more btn-active" href="{% url 'libraries' %}">Libraries</a><a class="btn btn-large btn-more" href="{% url 'sign_up' %}" role="button">Individuals</a>
-        </div>
-    </div>
-    <div class="row">
-        
-		<div class="col-sm-7">
-            <h4>Libraries power Perma.cc</h4>
-            <p>For centuries, libraries have worked together to preserve print sources and to make those sources accessible to the public. Today they do the same for online sources through Perma.cc’s active network of library partners.</p>
-            <h4>Network of registrars</h4>
-            <p>We call our library partners “registrars,” and our <a href="{% url 'about' %}#partners">network of registrars</a> is now <strong>{{registrar_count}}</strong> institutions strong. Each registrar sponsors and administers Perma.cc for its local community of scholars and journals.</p>
-            <h4>Free and easy to use</h4>
-            <p>Perma.cc is free for academic libraries and the journals and faculty they support, and it's easy to use and administer. Please review our <a href="{% url 'docs' %}#libraries-and-registrars">user guide</a> to learn more about how libraries use Perma.cc.</p>
-            <h4>Join Perma.cc's library network</h4>
-            <p>{% if not request.user.pending_registrar and not request.user.is_registrar_member %}If your library isn’t a member yet and would like to join, please fill out the form to the right to request a registrar account.{% endif %}</p>
-            
-        </div>
-    {% if not request.user.pending_registrar and not request.user.is_registrar_member %}
-		<div class="col-sm-4 col-sm-offset-1">
-		    <h2>Request library account</h2>
-            <form method="post" role="form">
-                {% csrf_token %}
-                <h4>Your library information</h4>
-                <fieldset>
-                    <span class="text-error">{{ registrar_form.non_field_errors }}</span>
-                      {% for field in registrar_form %}
-                        <label for="id_{{ field.name }}">{{ field.label }}</label><br>
-                        {{ field }}
-                        {% if field.errors %}
-                          {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
-                        {%elif field.help_text %}
-                          <span class="help-inline">{{ field.help_text }}</span>
-                        {% endif %}
-                        <br>
-                    {% endfor %}  
-                </fieldset>
-                {% if user_form %}
-                <h4>Your information</h4>
-                <fieldset>
-                    <span class="text-error">{{ user_form.non_field_errors }}</span>
-                      {% for field in user_form %}
-                        <label for="id_{{ field.name }}">{{ field.label }}</label><br>
-                        {{ field }}
-                        {% if field.errors %}
-                          {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
-                        {%elif field.help_text %}
-                          <span class="help-inline">{{ field.help_text }}</span>
-                        {% endif %}
-                        <br>
-                    {% endfor %}  
-                </fieldset>
-                {% endif %}
-                <p class="terms-statement"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
-                <button type="submit" class="btn btn-success">Request account</button>
-            </form>
-		</div><!--col -->
-	</div><!--row-->
-	{% endif %}
-</div><!--container-->
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-sm-12">
+			<h1 class="page-title">Perma.cc for libraries</h1>
+			<p class="page-dek">For centuries, libraries have worked together to preserve print sources and to make those sources accessible to the public. Today they do the same for online sources through Perma’s active network of library partners.</p>
+		</div>
+	</div>
+</div>
+
+<div class="container container-bleed toc-overview">
+	<div class="container toc-overview-container">
+		<div class="row">
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'sign_up' %}">
+					<strong class="toc-module-title">Individual</strong>
+					<p class="toc-module-description">Anyone can create a free account and start creating Perma Links.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter _active">
+				<div class="toc-module-content" href="{% url 'libraries' %}">
+					<strong class="toc-module-title">Libraries</strong>
+					<p class="toc-module-description">Libraries play a critical role in powering and supporting Perma.cc.</p>
+				</div>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'sign_up_journals' %}">
+					<strong class="toc-module-title">Journals</strong>
+					<p class="toc-module-description">Over 150 academic law journals prevent link rot with Perma.cc.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'sign_up_courts' %}">
+					<strong class="toc-module-title">Courts</strong>
+					<p class="toc-module-description">Courts care deeply about the long-term accuracy, integrity and reliability of the citations in their opinions.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'sign_up_faculty' %}">
+					<strong class="toc-module-title">Faculty</strong>
+					<p class="toc-module-description">Faculty use Perma.cc to prevent link rot in their scholarship.</p>
+				</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="container container-reading">
+	<div class="row">
+	    {% if not request.user.pending_registrar and not request.user.is_registrar_member %}
+			<div class="col-sm-4 signup-learnMore-form">
+			    <h2 class="docs-ah">Request library account</h2>
+	            <form method="post" role="form">
+	                {% csrf_token %}
+	                <h3 class="docs-bh">Your library information</h3>
+	                <fieldset>
+						{% for field in registrar_form %}
+							<div class="form-group{% if field.errors %} _error{% endif %}">
+								<label for="id_{{ field.name }}">{{ field.label }}</label>
+								{{ field }}
+								{% if field.errors %}
+									{% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+								{%elif field.help_text %}
+									<span class="help-inline">{{ field.help_text }}</span>
+								{% endif %}
+							</div>
+						{% endfor %}
+	                	{% if registrar_form.non_field_errors %}<span class="text-error">{{ registrar_form.non_field_errors }}</span>{% endif %}
+	                </fieldset>
+	                {% if user_form %}
+	                <h3 class="docs-bh">Your information</h3>
+	                <fieldset>
+						{% for field in user_form %}
+							<div class="form-group{% if field.errors %} _error{% endif %}">
+								<label for="id_{{ field.name }}">{{ field.label }}</label>
+								{{ field }}
+								{% if field.errors %}
+									{% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+								{%elif field.help_text %}
+									<span class="help-inline">{{ field.help_text }}</span>
+								{% endif %}
+							</div>
+						{% endfor %}
+	                	{% if user_.non_field_errors %}<span class="text-error">{{ user_.non_field_errors }}</span>{% endif %}
+						<p class="terms-statement"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
+	                </fieldset>
+	                {% endif %}
+	                <button type="submit" class="btn btn-success">Request account</button>
+	            </form>
+			</div><!--col -->
+		{% endif %}
+	    <div class="col-sm-8 reading-body">
+	        <h2>Libraries power Perma.cc</h2>
+	        <p>For centuries, libraries have worked together to preserve print sources and to make those sources accessible to the public. Today they do the same for online sources through Perma.cc’s active network of library partners.</p>
+	        <h3>Network of registrars</h3>
+	        <p>We call our library partners “registrars,” and our <a href="{% url 'about' %}#partners">network of registrars</a> is now <strong>{{registrar_count}}</strong> institutions strong. Each registrar sponsors and administers Perma for its local community of scholars and journals.</p>
+	        
+	        <h3>Free and easy to use</h3>
+	        <p>Perma.cc is free for academic libraries and the journals and faculty they support, and it's easy to use and administer. Please review our <a href="{% url 'docs' %}#libraries-and-registrars">user guide</a> to learn more about how libraries use Perma.cc.</p>
+			{% if not request.user.pending_registrar and not request.user.is_registrar_member %}
+		        <h3>Join our library network</h3>
+		        <p>If your library isn’t a member yet and would like to join, please fill out the form on this page to request a registrar account.</p>
+		    {% endif %}  
+		</div>
+	</div>
+</div>
 {% endblock content %}
+{% block scripts %}
+<script>
+</script>
+{% endblock scripts %}

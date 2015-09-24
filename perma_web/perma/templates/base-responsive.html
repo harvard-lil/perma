@@ -29,7 +29,7 @@
     </head>
     <body class="{% block bodyFlags %}{% endblock bodyFlags %}">
 
-    	<header class="_default __permaNew">
+    	<header class="_default">
     	    <div class="navbar navbar-default navbar-static-top">
 				<div class="container">
 					<div class="navbar-header">
@@ -53,7 +53,7 @@
                             <li class="dropdown">
                               <a href="#" class="dropdown-toggle navbar-link" data-toggle="dropdown" role="button" aria-expanded="false">{{ request.user.get_short_name }}</a>
                               <ul class="dropdown-menu" role="menu">
-                                <li><a href="{% url 'link_browser' %}">My links</a></li>
+                                <li><a href="{% url 'link_browser' %}">Your Perma Links</a></li>
                                 
                                 {% if request.user.is_staff or request.user.is_registrar_member %}
                                     <li class="divider"></li>
@@ -81,8 +81,11 @@
                                 {% if request.user.is_staff %}
                                     <li><a href="{% url 'admin:index' %}">Admin console</a></li>
                                 {% endif %}
+                                <li class="divider"></li>
+                                <li role="presentation" class="dropdown-header">Settings</li>
+                                <li><a href="{% url 'user_management_settings_profile' %}">Profile</a></li>
+                                <li><a href="{% url 'user_management_settings_password' %}">Password</a></li>
                                 <li><a href="{% url 'user_management_settings_tools' %}">Tools</a></li>
-                                <li><a href="{% url 'user_management_settings_profile' %}">Settings</a></li>
                                 <li class="divider"></li>
                                 <li><a href="{% url 'logout' %}">Log out</a></li>
                               </ul>
@@ -93,7 +96,7 @@
                             <li><a href="{% url 'docs' %}" class="navbar-link">Guide</a></li>
                             <li><a href="https://blogs.law.harvard.edu/perma/" class="navbar-link">Blog</a></li>
                             <li><a href="{% url 'sign_up' %}" class="btn _nav{% if this_page == 'sign_up' %} this-page{% endif %}">Sign up</a></li>
-                            <li><a href="{% url 'user_management_limited_login' %}" class="navbar-link">Log in</a></li>
+                            <li><a href="{% url 'user_management_limited_login' %}" class="navbar-link _login">Log in</a></li>
                             {% comment %}
                             <li><a href="{% url 'register' %}" id="nav-button" class="btn btn-large btn-success">Sign Up</a></li>
                             {% endcomment %}
@@ -120,38 +123,30 @@
 		{% block footer %}
 		
 		
-		<footer>
-			<div class="container">
-				<div class="row">
-					<div class="col-sm-12">
-						<p class="built-by">Built & Run by Libraries</p>
-						<p id="footer-nav">
-						<a href="{% url 'landing' %}">Home</a>
-						&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-                        			<a href="https://blogs.law.harvard.edu/perma/">Blog</a>
-                        			&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-						<a href="{% url 'about' %}">About</a>
-						&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-						<a href="{% url 'docs' %}">User Guide</a>
-						&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-						<a href="{% url 'dev_docs' %}">Developer Guide</a>
-						&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-						<a href="{% url 'contact' %}">Contact</a>
-						</p><!--/#footer-nav-->
-
-						{% include "includes/participating_institutions.html" %}
-
-						<p id="boilerplate">
-							<a href="{% url 'terms_of_service' %}">terms of service</a>
-							&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-							<a href="{% url 'privacy_policy' %}">privacy policy</a>
-							&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-						   <a href="{% url 'copyright_policy' %}">copyright policy</a>
-						</p>
-					</div><!--/col-->
-				</div><!--/row-->
-			</div><!--/container-->
-		</footer>
+<footer>
+	<div class="container">
+		<div class="row">
+			<div class="col col-sm-6">
+				<ul id="footer-nav">
+		            <!--<li class="footer-nav-item"><a class="home" href="{% url 'landing' %}">Perma.cc</a></li>-->
+		            <li class="footer-nav-item"><a href="{% url 'about' %}">About</a></li>
+		            <li class="footer-nav-item"><a href="{% url 'docs' %}">Guide</a></li>
+		            <li class="footer-nav-item"><a href="{% url 'dev_docs' %}">Developers</a></li>
+		            <li class="footer-nav-item"><a href="{% url 'contact' %}">Contact</a></li>
+		            <li class="footer-nav-item"><a href="https://blogs.law.harvard.edu/perma/">Blog</a></li>
+		            <li class="footer-nav-item"><a href="https://github.com/harvard-lil/perma">Github</a></li>
+				</ul>
+			</div>
+			<div class="col col-sm-6">
+				<ul id="boilerplate">
+					<li class="boilerplate-item"><a href="{% url 'terms_of_service' %}">Terms of Service</a></li>
+					<li class="boilerplate-item"><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
+					<li class="boilerplate-item"><a href="{% url 'copyright_policy' %}">Copyright Policy</a></li>
+				</ul>
+			</div>
+		</div>
+	</div><!--/container-->
+</footer>
 		
 	{% endblock %}
 		

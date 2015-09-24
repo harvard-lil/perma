@@ -18,6 +18,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
     serve_files = [os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.html'),
                    [os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.html'), 'test page.html'],
+                   [os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.html'), 'subdir/test.html'],
                    os.path.join(TEST_ASSETS_DIR, 'target_capture_files/noarchive.html'),
                    os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.pdf'),
                    os.path.join(TEST_ASSETS_DIR, 'target_capture_files/favicon.ico'),
@@ -145,7 +146,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     def test_should_dark_archive_when_disallowed_in_robots_txt(self):
         with self.serve_file(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/robots.txt')):
             obj = self.successful_post(self.list_url,
-                                       data={'url': self.server_url + "/test.html"},
+                                       data={'url': self.server_url + "/subdir/test.html"},
                                        user=self.vesting_member)
 
         link = Link.objects.get(guid=obj['guid'])

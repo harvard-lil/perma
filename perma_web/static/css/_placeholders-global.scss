@@ -24,15 +24,16 @@
 }
 
 %style-container {
-	@extend %style-block-centered;
 	@extend %style-clears-floats;
-	padding-left: $grid;
-	padding-right: $grid;
-	max-width: $width-max;
+	margin-right: 0;
+	margin-left: 0;
+	padding: 0 $double * 2; // review
 	overflow: hidden;
 	@include respond-tablet {
-		padding-left: $double;
-		padding-right: $double;
+		margin-right: auto;
+		margin-left: auto;
+//		padding-left: $double;
+//		padding-right: $double;
 	}
 }
 
@@ -48,7 +49,11 @@
 %style-pageLede {
 	font-family: $font-hed-alt;
     font-weight: 300;
-    font-size: 22px;
+    font-size: 16px;
+    margin-top: $double;
+    @include respond-tablet {
+	    font-size: 22px;
+    }
 }
 
 %style-body-text {
@@ -60,7 +65,7 @@
 
 %style-docs-ah {
     font-size: 24px;
-    border-top: 1px solid $color-blue;
+    border-top: 2px solid $color-blue;
     padding-top: $grid;
     margin-top: $grid * 8;
     font-family: $font-hed-alt;
@@ -73,39 +78,56 @@
 
 %style-docs-bh {
     font-size: 18px;
-    border-top: 1px solid $color-black;
+    border-top: 1px solid $color-orange;
     padding-top: $grid;
     margin-top: $grid * 6;
     font-family: $font-hed-alt;
-    font-weight: 700;
-    color: $color-black;
+    font-weight: 300;
+    color: $color-orange;
 }
 
 %style-overview-container {
-	margin: $grid * 6 0 0 0;
+	margin: $grid * 4 0 0 0;
 	background-color: $color-background;
-	border-radius: 2px;
 	@extend %style-clears-floats;
-	& + div {
-		padding-top: $grid * 3;
-		margin-top: $grid * 4;
+	@include respond-tablet {
+		margin: $grid * 6 0 0 0;
+	}
+	@include respond-desktop {
 	}
 }
 
 %style-overview-module {
-	float: left;
-	width: 20%;
-	&:first-child {
-		a {
+	&:last-child {
+		@include respond-tablet {
+			.toc-module-content {
+				border-right: 2px solid white;
+				border-bottom: none;
+			}
+		}
+	}
+	.toc-module-content {
+		height: auto;
+		display: block;
+		margin: 0;
+		padding: $grid $double;
+		border-bottom: 1px solid white;
+		@include respond-tablet {
 			border-left: 2px solid white;
+			border-right: 2px solid white;
+			padding: 12px $double;
+		}
+		@include respond-desktop {
+			height: 15em;
+			border-right: none;
+			border-bottom: none;
+			padding: $double;
+		}
+		@include respond-wide {
+			height: 13em;
 		}
 	}
 	a {
-		border-right: 2px solid white;
-		height: 11.5em;
-		display: block;
-		margin: 0;
-		padding: $double;
 		&:hover {
 			background-color: $color-blue !important;
 			color: white;
@@ -121,13 +143,11 @@
 		}
 	}
 	a._jump {
-		height: 5.75em;
-		background-color: $color-trans-whispergray;
-		padding-top: 19px;
-		+ a {
-			border-top: 2px solid white;
-		}
-		strong {
+		display: inline-block;
+		height: auto;
+		padding-left: 0;
+	    padding-right: 30px;
+    		strong {
 			font-weight: 300;
 			color: $color-orange;
 			&:after {
@@ -135,14 +155,57 @@
 				top: 3px;
 			}
 		}
+		&:hover {
+			background-color: transparent !important;
+			color: $color-blue;
+			p, strong {
+				color: $color-blue !important;
+			}
+			strong:after {
+			    background-position: -9px * 2 !important;
+			}
+		}
+		&:active {
+			background-color: transparent !important;
+			p, strong {
+				color: $color-black !important;
+			}
+			strong:after {
+			    background-position: -9px * 1 !important;
+			}
+		}
+		@include respond-desktop {
+			padding-top: $grid * 3;
+		}
 	}
-	&._active a {
-		background-color: $color-white;
+	div.toc-module-content {
+		background-color: $color-blue;
+		color: white;
+		padding-top: 10px;
+		padding-bottom: 10px;
+		p {
+			color: white;
+		}
+		@include respond-tablet {
+			padding-top: 14px;
+			padding-bottom: 12px;
+		}
+		@include respond-desktop {
+			background-color: $color-white;
+			color: $color-black;
+			padding: $double;
+			p {
+				color: $color-black;
+			}
+		}
+		strong:after {
+			display: none;
+		}
 	}
 	strong {
 		display: block;
-		font-weight: 800;
-		font-size: 20px;
+		font-weight: 700;
+		font-size: 14px;
 		&:after {
 		    content: '';
 		    height: 17px;
@@ -152,16 +215,35 @@
 		    background-repeat: no-repeat;
 		    background-size: 54px 17px;
 		    background-position: -9px * 2;
-		    top: 2px;
+		    top: 3px;
 			margin-left: $grid;
 			margin-right: -17px;
+			@include respond-desktop {
+				top: 2px;
+			}
+		}
+		@include respond-tablet {
+			font-size: 15px;
+		}
+		@include respond-desktop {
+			font-size: 18px;
+		}
+		@include respond-wide {
+			font-size: 20px;
 		}
 	}
 	p {
 		font-family: $font-hed-alt;
 		font-weight: 300;
-		margin-top: $grid;
 		font-size: 14px;
 		padding-right: $grid;
+		display: none; 
+		@include respond-tablet {
+			display: block;
+			margin-top: $half;
+		}
+		@include respond-desktop {
+			margin-top: $grid;
+		}
 	}
 }

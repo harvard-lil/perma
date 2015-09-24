@@ -6,78 +6,170 @@
 This section of the user guide describes the Perma.cc user roles, their capabilites, and their hierarchy.
 {% endblock %}
 
-{% block content %}
-<div class="container user-docs">
-	<div class="col-sm-8 docs">
-		<h2>Perma User Roles</h2>
-		<h4><a href="#registrar">Registrar User</a></h4>
-		<h4><a href="#vesting-user">Vesting User</a></h4>
-		<h4><a href="#general-user">General User</a></h4>
-		<br/>
-		<hr>
-		<p>Perma account-holders fall into three categories: (1) Registrar Users; (2) Vesting Users; and (3) General Users. Each of these categories carries different authorities and responsibilities.</p>
-		<table class="table table-striped table-bordered">
-		<tbody>
-		<tr>
-		<th><h4>Authority</h4></th>
-		<th><h4>Registrar User</h4></th>
-		<th><h4>Vesting User</h4></th>
-		<th><h4>General User</h4></th>
-		</tr>
-		<tr>
-		<td>Create Vesting Organizations</td>
-		<td><div class="circle"></div></td>
-		<td></td>
-		<td></td>
-		</tr>
-		<tr>
-		<td>Give Vesting Privileges to Others</td>
-		<td><div class="circle"></div></td>
-		<td><div class="circle2"></div></td>
-		<td></td>
-		</tr>
-		<tr>
-		<td>Vest Links</td>
-		<td><div class="circle"></div></td>
-		<td><div class="circle2"></div></td>
-		<td></td>
-		</tr>
-		<tr>
-		<td>Create Links</td>
-		<td><div class="circle"></div></td>
-		<td><div class="circle2"></div></td>
-		<td><div class="circle3"></div></td>
-		</tr>
-		</tbody>
-	</table>
-		<h4><div id="registrar">Registrar User</div></h4>
-		<p>Registrars are institutions (typically libraries) that create and support the activities of Vesting Organizations. Registrars act through Registrar Users - individual account-holders authorized to act on behalf of the institution for purposes of Perma. Registrar Users have the authority to create new Vesting Organizations and Vesting Users and to vest Perma Links.    </p>
+{% block bodyFlags %}_userguide{% endblock %}
+{% block mainFlags %}_fullWidth{% endblock %}
 
-		<br/>
-		<h4><div id="vesting-user">Vesting User</div></h4>
-		<p>Vesting Organizations are entities (typically journals or courts) that administer the vesting of Perma Links relevant to them. Vesting Organizations act through Vesting Users - individual account-holders authorized to vest Perma Links on behalf of the Vesting Organization and to create new Vesting Users affiliated with the Vesting Organization. </p>
-	
-		<br/>
-		<h4><div id="general-user">General User</div></h4>
-		
-		<p>General users can create and manage their own Perma Links and temporary archives, but they do not have vesting authority. </p>
-		
-	
-		
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-sm-12">
+			<h1>Perma.cc user guide <span class="subsection">Users &amp; Affiliations</span></h1>
+		</div>
 	</div>
-	<div class="col-sm-3 col-sm-offset-1">
-		<ul class="nav nav-pills nav-stacked">
-			<li><a href="{% url 'docs' %}">Overview</a></li>
-			<li><a href="{% url 'docs_getting-started' %}">Getting Started</a></li>
-			<li><a href="{% url 'docs_perma_link_creation' %}">Creating, Organizing & Annotating</a></li>  
-			<li><a href="{% url 'docs_perma_link_vesting' %}">Vesting</a></li>
-			<li><a href="{% url 'docs_perma_archive' %}">Archiving & Storage</a></li>
-			<li class="active"><a href="{% url 'docs_perma_user_roles' %}">User Roles</a></li>
-			<!--<li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>-->
-			<li><a href="{% url 'docs_libraries' %}">Libraries</a></li>
-			<li><a href="{% url 'docs_faq' %}">FAQs</a></li>
-		</ul>
+</div>
+
+<div class="container container-bleed toc-overview">
+	<div class="container toc-overview-container">
+		<div class="row">
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs' %}">
+					<strong class="toc-module-title">Overview</strong>
+					<p class="toc-module-description">An introduction to Perma.cc, why it exists, and how people and organizations are using it.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_getting-started' %}">
+					<strong class="toc-module-title">Getting Started</strong>
+					<p class="toc-module-description">Learn the different kinds of users, organizations, and privileges. Learn to create, use, and organize Perma Links.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_perma_archive' %}">
+					<strong class="toc-module-title">Perma.cc records</strong>
+					<p class="toc-module-description">Learn how journal, courts, and other orgnizations use Perma.cc and support their members.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_perma_link_creation' %}">
+					<strong class="toc-module-title">Organizing &amp; Annotating</strong>
+					<p class="toc-module-description">Libraries have a special role in Perma.cc — learn how to use Perma.cc to support your journals and faculty.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter _active">
+				<div class="toc-module-content" href="{% url 'docs_perma_user_roles' %}">
+					<strong class="toc-module-title">Users &amp; Affiliations</strong>
+					<p class="toc-module-description">Learn how journal, courts, and other orgnizations use Perma.cc and support their members.</p>
+				</div>
+			</div>
+		</div>
 	</div>
-</div>	
+</div>
+
+<div id="overview" class="container container-reading">
+	<div class="row">
+		<div class="col-sm-4 reading-toc" >
+			<ul>
+				<li class="reading-toc-chapter _active"><a href="#overview">Introducing User Roles</a></li>
+				<li class="reading-toc-chapter"><a href="#registrar-users">Registrar Users</a></li>
+				<li class="reading-toc-chapter"><a href="#vesting-users">Vesting Users</a></li>
+				<li class="reading-toc-chapter"><a href="#general-users">Unaffiliated Users</a></li>
+			<ul>
+		</div>
+
+		<div class="col-sm-8 docs reading-body">
+			<h2>Introducing User Roles</h2>
+			<p>Perma account-holders fall into three categories: (1) Registrar Users; (2) Vesting Users; and (3) General Users. Each of these categories carries different authorities and responsibilities.</p>
+			<table class="table table-striped table-bordered">
+			<tbody>
+			<tr>
+			<th><h4>Authority</h4></th>
+			<th><h4>Registrar User</h4></th>
+			<th><h4>Vesting User</h4></th>
+			<th><h4>General User</h4></th>
+			</tr>
+			<tr>
+			<td>Create Vesting Organizations</td>
+			<td><div class="circle"></div></td>
+			<td></td>
+			<td></td>
+			</tr>
+			<tr>
+			<td>Give Vesting Privileges to Others</td>
+			<td><div class="circle"></div></td>
+			<td><div class="circle2"></div></td>
+			<td></td>
+			</tr>
+			<tr>
+			<td>Vest Links</td>
+			<td><div class="circle"></div></td>
+			<td><div class="circle2"></div></td>
+			<td></td>
+			</tr>
+			<tr>
+			<td>Create Links</td>
+			<td><div class="circle"></div></td>
+			<td><div class="circle2"></div></td>
+			<td><div class="circle3"></div></td>
+			</tr>
+			</tbody>
+		</table>
+		</div>
+	</div>
+</div>
+
+<div class="container container-reading">
+	<div class="row">
+		<div class="col col-sm-8 docs reading-body col-right">
+			<h2 id="registrar-users">Registrar Users</h2>
+			<p>Registrars are institutions (typically libraries) that create and support the activities of Vesting Organizations. Registrars act through Registrar Users - individual account-holders authorized to act on behalf of the institution for purposes of Perma. Registrar Users have the authority to create new Vesting Organizations and Vesting Users and to vest Perma Links.    </p>
+		</div>
+	</div>
+</div>
+
+<div id="vesting-users" class="container container-reading">
+	<div class="row">
+		<div class="col col-sm-8 docs reading-body col-right">
+			<h2>Vesting Users</h2>
+			<p>Vesting Organizations are entities (typically journals or courts) that administer the vesting of Perma Links relevant to them. Vesting Organizations act through Vesting Users - individual account-holders authorized to vest Perma Links on behalf of the Vesting Organization and to create new Vesting Users affiliated with the Vesting Organization. </p>
+		</div>
+	</div>
+</div>
+	
+<div id="general-users" class="container container-reading">
+	<div class="row">
+		<div class="col col-sm-8 docs reading-body col-right">
+			<h2>Unaffiliated Users</h2>
+			
+			<p>Unaffiliated users can create and manage their own Perma Links and temporary archives, but they do not have vesting authority. </p>
+		</div>
+	</div>
+</div>
+
+<div class="container container-bleed toc-overview">
+	<div class="container toc-overview-container">
+		<div class="row">
+			<div class="col col-sm-by5 toc-module col-no-gutter _active">
+				<a class="toc-module-content" href="{% url 'docs' %}">
+					<strong class="toc-module-title">Overview</strong>
+					<p class="toc-module-description">An introduction to Perma.cc, why it exists, and how people and organizations are using it.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_getting-started' %}">
+					<strong class="toc-module-title">Getting Started</strong>
+					<p class="toc-module-description">Learn the different kinds of users, organizations, and privileges. Learn to create, use, and organize Perma Links.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_perma_archive' %}">
+					<strong class="toc-module-title">Perma.cc records</strong>
+					<p class="toc-module-description">Learn how journal, courts, and other orgnizations use Perma.cc and support their members.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_perma_link_creation' %}">
+					<strong class="toc-module-title">Organizing &amp; Annotating</strong>
+					<p class="toc-module-description">Libraries have a special role in Perma.cc — learn how to use Perma.cc to support your journals and faculty.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<div class="toc-module-content" href="{% url 'docs_perma_user_roles' %}">
+					<strong class="toc-module-title">Users &amp; Affiliations</strong>
+					<p class="toc-module-description">Learn how journal, courts, and other orgnizations use Perma.cc and support their members.</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
 
 {% endblock %}
