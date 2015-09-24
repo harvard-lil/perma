@@ -1756,6 +1756,10 @@ form {
 	}
 }
 
+form {
+	overflow: auto;
+}
+
 fieldset {
 	background-color: $color-background;
 	border-radius: 4px;
@@ -1764,6 +1768,16 @@ fieldset {
 	margin: 0;
 	@include respond-tablet {
 		padding: $grid $grid $grid * 4 $grid * 3;
+	}
+	&.col-sm-6 {
+		& + button {
+			float: left;
+			clear: both;
+		}
+		.form-group {
+			width: 100%;
+			padding-right: 0;
+		}
 	}
 }
 h3 + fieldset {
@@ -1827,6 +1841,7 @@ button {
 		width: auto;
 	}
 }
+
 .form-group {
 	margin-bottom: 0;
 	@include respond-tablet {
@@ -1836,6 +1851,7 @@ button {
 		padding-right: $double;
 	}
 }
+
 .form-group + .form-group {
 	margin-top: $double;
 }
@@ -1852,6 +1868,7 @@ button {
   list-style-type: none;
   margin: 0;
   padding: 0;
+  padding-top: $double;
   li {
 	  margin-bottom: 0;
 	  line-height: 1.4;
