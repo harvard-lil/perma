@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 
-from ..models import Link, Folder
+from ..models import Link, Folder, Organization
 
 logger = logging.getLogger(__name__)
 valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp', 'submitted_title', '-submitted_title']
@@ -17,6 +17,24 @@ valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timesta
 
 @login_required
 def create_link(request):
+	try:
+		selected_org = Link.objects.filter(created_by_id=request.user.id).latest('creation_timestamp').organization
+	except:
+		selected_org = Organization.objects.accessible_to(request.user).first()
+		
+	if not selected_org:
+		org_id = None
+	else:
+		org_id = selected_org.id
+		
+	return create_link_with_org(request, org_id)
+
+@login_required
+def create_link_with_org(request, org_id):
+	try:
+		org = get_object_or_404(Organization, id=org_id)
+	except:
+		org = None
 	today = timezone.now()
 	link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month=today.month, created_by_id=request.user.id).count()
 	links_remaining = settings.MONTHLY_CREATE_LIMIT - link_count
@@ -24,6 +42,7 @@ def create_link(request):
 	return render(request, 'user_management/create-link.html', {
 		'this_page': 'create_link',
 		'links_remaining': links_remaining,
+		'selected_org': org,
 	})
 
 

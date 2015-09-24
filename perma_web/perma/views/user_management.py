@@ -1034,12 +1034,37 @@ def settings_organizations(request):
         messages.add_message(request, messages.INFO, "Thank you for requesting an account for your library. Perma.cc will review your request as soon as possible.")
     else:
         pending_registrar = None
+        
+    if request.method == 'POST':
+        org = get_object_or_404(Organization, pk=request.POST.get('org'))
+        org.default_to_private = request.POST.get('default_to_private')
+        org.save()
+
+        return HttpResponseRedirect(reverse('user_management_settings_organizations'))
     
     context = {'next': request.get_full_path(), 'this_page': 'settings_organizations', 'pending_registrar': pending_registrar}
 
     context = RequestContext(request, context)
     
     return render_to_response('user_management/settings-organizations.html', context)
+    
+    
+@login_required
+@user_passes_test(lambda user: user.is_registrar_member() or user.is_organization_member)
+def settings_organizations_change_privacy(request, org_id):
+
+    org = get_object_or_404(Organization, id=org_id)
+    context = {'this_page': 'settings', 'user': request.user, 'org': org}
+
+    if request.method == 'POST':
+        org.default_to_private = not org.default_to_private
+        org.save()
+
+        return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+
+    context = RequestContext(request, context)
+
+    return render_to_response('user_management/settings-organizations-change-privacy.html', context)
     
     
 @login_required

@@ -14,18 +14,32 @@ var refreshIntervalIds = [];
 
 $(function() {
 
+	$organization_select = $("#organization_select"),
+
     $('#archive-upload-confirm').modal({show: false});
     $('#archive-upload').modal({show: false});
 
     // When a new url is entered into our form
     $('#linker').submit(function() {
         var $this = $(this);
+        var linker_data = {};
+        if(selected_organization){
+        	linker_data = {
+                url: $this.find("input[name=url]").val(),
+                organization: selected_organization,
+                folder: shared_folder
+            };
+        }
+        else {
+        	linker_data = {
+        		url: $this.find("input[name=url]").val()
+        	};
+        }
+        
         $.ajax($this.attr('action'), {
             method: $this.attr('method'),
             contentType: 'application/json',
-            data: JSON.stringify({
-                url: $this.find("input[name=url]").val()
-            }),
+            data: JSON.stringify(linker_data),
             success: linkIt,
             error: linkNot
         });
@@ -47,6 +61,46 @@ $(function() {
     $('#dashboard-users').click(function(){
         $('.users-secondary').toggle();
     });
+    
+    apiRequest("GET", "/user/organizations/", {limit: 300, order_by:'registrar'})
+        .success(function(data) {
+            var sorted = [];
+            Object.keys(data.objects).sort(function(a,b){
+                return data.objects[a].registrar < data.objects[b].registrar ? -1 : 1
+            }).forEach(function(key){
+                sorted.push(data.objects[key]);
+            });
+            data.objects = sorted;
+            var optgroup = data.objects[0].registrar;
+            $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
+            if (data.objects.length > 0) {
+                data.objects.map(function (organization) {
+                    if(organization.registrar !== optgroup) {
+                        optgroup = organization.registrar;
+                        $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
+                    }
+                    var opt_text = organization.name;
+                    if (organization.default_to_private) {
+                    	opt_text += " (PRIVATE)";	
+                    }
+                    if(selected_organization == organization.id) {
+                    	$('#organization_select_form').find('.dropdown-toggle').html(opt_text);
+                    }
+                    else {
+                    	$organization_select.append("<li><a href='" + create_url + '/' + organization.id + "'>" + opt_text + "</a></li>");
+                    }
+                });
+                //$organization_select.show();
+                //$("#organization_select").val(selected_organization);
+            /*} else if (data.objects.length == 1) {
+                select_folder(data.objects[0]);*/
+            } else {
+                informUser("Please create a vesting organization before vesting links.");
+                /*setTimeout(function () {
+                    window.location = url_single_linky;
+                }, 3000);*/
+            }
+        });
 
 });
 
@@ -57,6 +111,11 @@ $(function() {
 /* Handle the the main action (enter url, hit the button) button - start */
 
 function linkIt(data){
+	/*apiRequest("PUT", "/folders/" + shared_folder + "/archives/" + data.guid + "/", {
+                error: function(jqXHR){
+                    showAPIError(jqXHR);
+                }
+            });*/
     new_archive.url = 'http://' + settings.HOST  + '/' + data.guid;
     new_archive.guid = data.guid;
     new_archive.title = data.title;

@@ -91,11 +91,13 @@ urlpatterns = patterns('perma.views',
     url(r'^settings/profile/?$', 'user_management.settings_profile', name='user_management_settings_profile'),
     url(r'^settings/password/?$', 'user_management.settings_password', name='user_management_settings_password'),
     url(r'^settings/organizations/?$', 'user_management.settings_organizations', name='user_management_settings_organizations'),
+    url(r'^settings/organizations-change-privacy/(?P<org_id>[a-zA-Z0-9]+)/', 'user_management.settings_organizations_change_privacy', name='user_management_settings_organizations_change_privacy'),
     url(r'^settings/tools/?$', 'user_management.settings_tools', name='user_management_settings_tools'),
 
     # Link management
     url(r'^manage/?$', RedirectView.as_view(url='/manage/create/', permanent=False)),
     url(r'^manage/create/?$', 'link_management.create_link', name='create_link'),
+    url(r'^manage/create/(?P<org_id>[a-zA-Z0-9]+)/?$', 'link_management.create_link_with_org', name='create_link_with_org'),
     url(r'^manage/dark-archive/%s/?$' % guid_pattern, 'link_management.dark_archive_link', name='dark_archive_link'),
     url(r'^manage/vest/%s/?$' % guid_pattern, 'link_management.vest_link', name='vest_link'),
     url(r'^manage/delete-link/%s/?$' % guid_pattern, 'link_management.user_delete_link', name='user_delete_link'),

@@ -111,6 +111,7 @@ class Organization(models.Model):
     registrar = models.ForeignKey(Registrar, null=True, related_name="organizations")
     shared_folder = models.OneToOneField('Folder', blank=True, null=True, related_name="organization_")  # related_name isn't used, just set to avoid name collision with Folder.organization
     date_created = models.DateField(auto_now_add=True, null=True)
+    default_to_private = models.BooleanField(default=False)
 
     objects = OrganizationManager()
     tracker = FieldTracker()
@@ -452,6 +453,7 @@ class Link(models.Model):
     organization = models.ForeignKey(Organization, null=True, blank=True)
     folders = models.ManyToManyField(Folder, related_name='links', blank=True, null=True)
     notes = models.TextField(blank=True)
+    is_private = models.BooleanField(default=False)
 
     thumbnail_status = models.CharField(max_length=10, null=True, blank=True, choices=(
         ('generating', 'generating'), ('generated', 'generated'), ('failed', 'failed')))
