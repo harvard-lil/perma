@@ -28,7 +28,10 @@
 	                {% if request.user.is_authenticated %}
 	                    <p><a href="{% url 'link_browser' %}" class="btn btn-large btn-success">Visit your Dashboard</a></p>
 	                {% else %}
-					    <p><a href="{% url 'sign_up' %}" class="btn btn-large btn-success _primary">Learn more and sign up</a><a href="{% url 'libraries' %}" class="btn btn-large btn-success">Try Perma.cc for libraries</a></p>
+					    <div class="buttons">
+					    	<a href="{% url 'sign_up' %}" class="btn btn-large btn-success _primary">Learn more and sign up</a>
+					    	<a href="{% url 'libraries' %}" class="btn btn-large btn-success">Try Perma.cc for libraries</a>
+					    </div>
 	                {% endif %}
         		</div>
 			</div>	
