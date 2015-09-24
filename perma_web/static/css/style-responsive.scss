@@ -119,9 +119,14 @@ body.modal-open {
     background-color: white;
 }
 
+//	Carousel Customization 
+
 .carousel {
-	height: $grid * 16;
-	margin: $grid * 5 0 $double;
+	margin: $grid * 6 0 0;
+    text-align: center;
+	.carousel-inner {
+		height: $grid * 16;
+	}
 	.ui-chev-left, .ui-chev-right {
 		height: 25px;
 		width: 28px;
@@ -179,6 +184,56 @@ body.modal-open {
   height: 12px;
   margin: 0 !important;
   background-color: $color-orange;
+}
+
+#carousel-example-generic, #examples {
+	display: none;
+	@include respond-tablet {
+		display: block;
+	}
+}
+
+.carousel-inner > .item > a > img {
+	height: 37px;
+	@include opacity(.6);
+	padding: 5px;
+	background: #fff;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -ms-border-radius: 3px;
+    margin-bottom: 10px;
+	display: inline;
+	list-style-type: none;
+}
+
+
+.carousel .item a.square img {
+    margin-top: 10px;
+    height: 74px;
+}
+
+
+.carousel-indicators {
+    position: static;
+    width: 100%;
+    margin-left: 0;
+}
+
+.carousel .item {
+    text-align: center;
+    padding: 0 166px;
+}
+
+.carousel-control {
+    position: absolute;
+    background-color: transparent;
+    @include opacity(.9);
+    bottom: 0px;
+    &:focus {
+	   outline: none; 
+    }
 }
 
 
@@ -687,9 +742,9 @@ input:focus, *:hover {
 }
 
 .container-display {
-	padding: $grid * 6 0;
+	padding: $grid * 4 $double;
 	@include respond-tablet {
-		padding: $grid * 9 0;
+		padding: $grid * 9 $double;
 	}
 }
 
@@ -929,7 +984,7 @@ p {
     color: $color-black;
 }
 
-p.body { @extend %style-body-text; }
+p.body { @extend p.body-text; }
 
 .lockup p { @extend %style-pageLede; } 
 
@@ -2655,7 +2710,7 @@ code, span.code {
 .signup-learnMore {
     h2 { @extend %style-docs-ah; }
     h3 { @extend %style-docs-bh; }
-    p { @extend %style-body-text; }
+    p { @extend p.body-text; }
 }
 
 
@@ -2807,61 +2862,7 @@ body form .btn.login {
 	font-weight: bold;
 }
 
-//	Carousel Customization 
 
-#carousel-example-generic, #examples {
-	display: none;
-	@include respond-tablet {
-		display: block;
-	}
-}
-
-.carousel-inner > .item > a > img {
-	height: 37px;
-	@include opacity(.6);
-	padding: 5px;
-	background: #fff;
-	border: 1px solid #ccc;
-	border-radius: 3px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    -ms-border-radius: 3px;
-    margin-bottom: 10px;
-	display: inline;
-	list-style-type: none;
-}
-
-
-.carousel .item a.square img {
-    margin-top: 10px;
-    height: 74px;
-}
-
-.carousel {
-    text-align: center;
-    margin-top: 1em;
-}
-
-.carousel-indicators {
-    position: static;
-    width: 100%;
-    margin-left: 0;
-}
-
-.carousel .item {
-    text-align: center;
-    padding: 0 166px;
-}
-
-.carousel-control {
-    position: absolute;
-    background-color: transparent;
-    @include opacity(.9);
-    bottom: 0px;
-    &:focus {
-	   outline: none; 
-    }
-}
 
 
 
@@ -2916,25 +2917,22 @@ h4.how-point-title {
 	}
 }
 
+p.display {
+    font-size: 15px;
+    line-height: 1.5;
+    margin-bottom: 1em;
+    padding: 0;
+	@include respond-tablet {
+	    font-size: 20px;
+	    margin-bottom: $grid * 4;
+	}
+}
+.caption p {
+	@extend p.caption;
+}
+
 #home-description {
 	padding: 0;
-	p {
-	    font-size: 16px;
-	    line-height: 1.5;
-	    margin-bottom: 1em;
-	    padding: 0;
-	    &.body {
-			font-size: 16px;
-		    line-height: 1.6;
-	    }
-		@include respond-tablet {
-		    font-size: 20px;
-		    margin-bottom: $grid * 4;
-		}
-	}
-	.caption p {
-		@extend p.caption;
-	}
 	p#subtext {
         font-size: 16px;
         margin: 0;
