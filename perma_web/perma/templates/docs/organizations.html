@@ -3,17 +3,15 @@
 {% block title %} | Docs{% endblock %}
 
 {% block meta_description %}
-This section of the user guide covers how to create new archives and organize your archives.
+This section of the user guide describes the way organizations, like journals and courts, can use Perma.cc.
 {% endblock %}
 
-{% block bodyFlags %}_userguide{% endblock %}
-{% block mainFlags %}_fullWidth{% endblock %}
-
 {% block content %}
+
 <div class="container">
 	<div class="row">
 		<div class="col-sm-12">
-			<h1>Perma.cc user guide <span class="subsection">Organizing &amp; Annotating</span></h1>
+			<h1>Perma.cc user guide <span class="subsection">Overview</span></h1>
 		</div>
 	</div>
 </div>
@@ -55,49 +53,45 @@ This section of the user guide covers how to create new archives and organize yo
 	</div>
 </div>
 
-
-<div id="organize-links" class="container container-reading">
+<div class="container container-reading" id="overview">
 	<div class="row">
 		<div class="col-sm-4 reading-toc" >
 			<ul>
-				<li class="reading-toc-chapter"><a href="#organize-links">Organizing Perma Links</a></li>
+				<li class="reading-toc-chapter"><a href="#journals-vesting-orgs">For Journals, Courts, and Other Vesting Orgs</a></li>
+				<li class="reading-toc-section"><a href="#becoming-vesting-org">Becoming a vesting org</a></li>
+				<li class="reading-toc-section"><a href="#journals-authority">Authority and responsibilities</a></li>
+				<li class="reading-toc-section"><a href="#adding-vesting-users">Adding and removing vesting users</a></li>
 			<ul>
 		</div>
 
-		<div class="col col-sm-8 docs reading-body">
-			<h2>Organizing Perma Links</h2>
-		
-			<p>Perma provides many useful ways to view, organize and annotate the Perma Links and archives you’ve created. If you're a vesting user, you also have access to the Perma Links and archives vested by other members of your Vesting Organization.</p>
+		<div class="col-sm-8 reading-body">
+			<h2>For Journals, Courts, and Other Vesting Organizations</h2>
 			
-			<p>To see these Perma Links, click on Links in the navigation menu on the left.</p>
+			<h3 id="becoming-vesting-org">Becoming a vesting org</h3>
+			<p>If you're with an academic institution, simply contact your library and ask if it is a Perma.cc registrar. If your library isn't yet a registrar, ask them to contact us at <a href="mailto:info@perma.cc">info@perma.cc</a> about joining Perma.cc as a registrar. If you're part of a court or other governmental entity, please contact us directly and we'll help you get started.</p>  
 			
-			<img src="{{ STATIC_URL }}img/docs/link-folders.png" class="img-responsive screen-shot" alt="A screen shot of the Perma links page. This lists all the archives you've created and the shared folders to which you have access. "/>
-		
-			<p>All users have a "My Links" folder containing links that you created and which have not been vested. Within your "My Links" folder you can create sub-folders and organize your unvested links to suit your preferences.<p>
-	
-			<p>Vesting users also see, in addition to their "My Links" folders, a folder bearing the name of any Vesting Organization (such as a law journal) to which they belong. These are shared folders, and all members of the Vesting Organization have access to the folder and its contents.</p>
-	
-			<p>In addition to organizing links in folders, you can change the titles of your links and add notes to each link. The notes are visible to you and to anyone with vesting authority with whom you share the Perma Link. .</p>
-		
-			<img src="{{ STATIC_URL }}img/docs/more-link-details.png" class="img-responsive screen-shot" alt="A screenshot of the more button on each Perma archive in your Perma Links page."/>
+			<h3 id="journals-authority">Authority and responsibilities</h3>
+			<p>Vesting orgs can vest links and confer (and withdraw) vesting authority. Typically a vesting org is a collection of vesting users working together on a journal, for a faculty member or for a court. A vesting org is responsible for ensuring that its vesting users do not abuse their vesting authority. Every link vested by anyone within your vesting org becomes automatically associated with the vesting org, so it's important that you exercise judgment about who can be a vesting user and what vesting activities are appropriate. If you like, you can adopt policies and best practices for Perma.cc usage by those in your organization.<p>
+			<p>Within a vesting org, every vesting user has access to all of the links vested on behalf of the org. This lets vesting org members work collaboratively and to organize links across the organization. It also means every member's vesting activities are visible to all the other members of the vesting org.</p> 
 			
-			<img src="{{ STATIC_URL }}img/docs/expanded-link-details.png" class="img-responsive screen-shot" alt="A screenshot of your Perma links page showing the editable details of the archive."/>
-			
-			<p>You also can search or sort your links using the search bar above the link list or by clicking the column headings.</p>
-			
-			<img src="{{ STATIC_URL }}img/docs/search.png" class="img-responsive screen-shot" alt="Responsive image"/>
+			<h3 id="adding-vesting-users">Adding and removing vesting users</h3>
+			<p>Every vesting user within a vesting org has the ability to add or remove vesting users on behalf of the organization. Each organization should decide for itself, in consultation with its registrar, how it wants to manage the addition and removal of vesting users.</p>
+			<p>To add new vesting users, just click on "Manage users" in the dropdown menu and select "Vesting users." Click "add new" to trigger the vesting user form, enter the email address of the person you want to add, and click the "add" button.</p>
+			<p>To remove vesting users from your vesting org, just click on "Manage users" in the dropdown menu, find the person's name in your list of vesting users, and click "edit/remove," which will take you to an edit screen. From that screen you can remove the user from your vesting org.<p>
 		</div>
 	</div>
-</div>	
+</div>
+
+
 
 <div class="container container-bleed toc-overview">
 	<div class="container toc-overview-container">
 		<div class="row">
 			<div class="col col-sm-by5 toc-module col-no-gutter _active">
-				<a class="toc-module-content" href="{% url 'docs' %}">
+				<div class="toc-module-content">
 					<strong class="toc-module-title">Overview</strong>
 					<p class="toc-module-description">An introduction to Perma.cc, why it exists, and how people and organizations are using it.</p>
-				</a>
+				</div>
 			</div>
 			<div class="col col-sm-by5 toc-module col-no-gutter">
 				<a class="toc-module-content" href="{% url 'docs_getting-started' %}">
@@ -112,10 +106,10 @@ This section of the user guide covers how to create new archives and organize yo
 				</a>
 			</div>
 			<div class="col col-sm-by5 toc-module col-no-gutter">
-				<div class="toc-module-content" href="{% url 'docs_perma_link_creation' %}">
+				<a class="toc-module-content" href="{% url 'docs_perma_link_creation' %}">
 					<strong class="toc-module-title">Organizing &amp; Annotating</strong>
 					<p class="toc-module-description">Libraries have a special role in Perma.cc — learn how to use Perma.cc to support your journals and faculty.</p>
-				</div>
+				</a>
 			</div>
 			<div class="col col-sm-by5 toc-module col-no-gutter">
 				<a class="toc-module-content" href="{% url 'docs_perma_user_roles' %}">
@@ -126,6 +120,5 @@ This section of the user guide covers how to create new archives and organize yo
 		</div>
 	</div>
 </div>
-
 
 {% endblock %}

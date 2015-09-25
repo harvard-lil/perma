@@ -38,6 +38,7 @@ urlpatterns = patterns('perma.views',
     url(r'^docs/robustness/?$', DirectTemplateView.as_view(template_name='docs/robustness.html'), name='docs_robustness'),
     url(r'^docs/perma-user-roles/?$', DirectTemplateView.as_view(template_name='docs/perma-user-roles.html'), name='docs_perma_user_roles'),
     url(r'^docs/faq/?$', DirectTemplateView.as_view(template_name='docs/faq.html'), name='docs_faq'),
+    url(r'^docs/organizations/?$', DirectTemplateView.as_view(template_name='docs/organizations.html'), name='docs_organizations'),
     
     #Developer docs
     url(r'^docs/developer/?$', DirectTemplateView.as_view(template_name='docs/developer/index.html'), name='dev_docs'),

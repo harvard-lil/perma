@@ -23,32 +23,32 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 		<div class="row">
 			<div class="col col-sm-by5 toc-module col-no-gutter _active">
 				<div class="toc-module-content" href="{% url 'docs' %}">
-					<strong class="toc-module-title">Overview</strong>
-					<p class="toc-module-description">An introduction to Perma.cc, why it exists, and how people and organizations are using it.</p>
+					<strong class="toc-module-title">Getting Started</strong>
+					<p class="toc-module-description">An introduction to Perma.cc, why it exists, and how to use it.</p>
 				</div>
 			</div>
 			<div class="col col-sm-by5 toc-module col-no-gutter">
-				<a class="toc-module-content" href="{% url 'docs_getting-started' %}">
-					<strong class="toc-module-title">Getting Started</strong>
-					<p class="toc-module-description">Learn the different kinds of users, organizations, and privileges. Learn to create, use, and organize Perma Links.</p>
-				</a>
-			</div>
-			<div class="col col-sm-by5 toc-module col-no-gutter">
-				<a class="toc-module-content" href="{% url 'docs_perma_archive' %}">
-					<strong class="toc-module-title">Perma.cc records</strong>
-					<p class="toc-module-description">Learn how journal, courts, and other orgnizations use Perma.cc and support their members.</p>
-				</a>
-			</div>
-			<div class="col col-sm-by5 toc-module col-no-gutter">
 				<a class="toc-module-content" href="{% url 'docs_perma_link_creation' %}">
-					<strong class="toc-module-title">Organizing &amp; Annotating</strong>
-					<p class="toc-module-description">Libraries have a special role in Perma.cc — learn how to use Perma.cc to support your journals and faculty.</p>
+					<strong class="toc-module-title">About Links</strong>
+					<p class="toc-module-description">Learn about the links and records you can create with Perma.cc.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_libraries' %}">
+					<strong class="toc-module-title">For Libraries</strong>
+					<p class="toc-module-description">Learn about the special role of libraries in supporting Perma.cc.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter">
+				<a class="toc-module-content" href="{% url 'docs_organizations' %}">
+					<strong class="toc-module-title">For Organizations</strong>
+					<p class="toc-module-description">Learn how journals, courts and other organizations can use Perma.cc.</p>
 				</a>
 			</div>
 			<div class="col col-sm-by5 toc-module col-no-gutter">
 				<a class="toc-module-content" href="{% url 'docs_perma_user_roles' %}">
-					<strong class="toc-module-title">Users &amp; Affiliations</strong>
-					<p class="toc-module-description">Learn how journal, courts, and other orgnizations use Perma.cc and support their members.</p>
+					<strong class="toc-module-title">FAQ</strong>
+					<p class="toc-module-description">Answers to your common questions about Perma.cc.</p>
 				</a>
 			</div>
 		</div>
@@ -59,25 +59,14 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 	<div class="row">
 		<div class="col-sm-4 reading-toc" >
 			<ul>
-				<li class="reading-toc-chapter"><a href="#overview">Introducing Perma.cc</a></li>
+				<li class="reading-toc-chapter"><a href="#overview">Overview</a></li>
 				<li class="reading-toc-section"><a href="#what-is-perma">What is Perma.cc?</a></li>
 				<li class="reading-toc-section"><a href="#what-does-perma-do">What does Perma.cc do?</a></li>
-				<li class="reading-toc-section"><a href="#what-is-vesting">What is vesting?</a></li>
 				<li class="reading-toc-section"><a href="#example-perma">Perma.cc example</a></li>
 
 				
 
-				<li class="reading-toc-chapter"><a href="#libraries-and-registrars">For Libraries and Other Registrars</a></li>
-				<li class="reading-toc-section"><a href="#becoming-registrar">Becoming a registrar</a></li>
-				<li class="reading-toc-section"><a href="#libraries-authority">Authority and responsibilities</a></li>
-				<li class="reading-toc-section"><a href="#creating-vesting-orgs">Creating new vesting orgs</a></li>
-				<li class="reading-toc-section"><a href="#placing-users-with-vesting-orgs">Assigning users to vesting orgs</a></li>
-				<li class="reading-toc-section"><a href="#supporting-journals-and-faculty">Supporting journals and faculty</a></li>
-
-				<li class="reading-toc-chapter"><a href="#journals-vesting-orgs">For Journals, Courts, and Other Vesting Orgs</a></li>
-				<li class="reading-toc-section"><a href="#becoming-vesting-org">Becoming a vesting org</a></li>
-				<li class="reading-toc-section"><a href="#journals-authority">Authority and responsibilities</a></li>
-				<li class="reading-toc-section"><a href="#adding-vesting-users">Adding and removing vesting users</a></li>
+				
 			<ul>
 		</div>
 
@@ -91,9 +80,7 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 			<p>Perma.cc and its <a href="{% url 'about' %}">consortium of participating libraries</a> are working to solve this problem.</p>
 			<h3 id="what-does-perma-do">What does Perma.cc do?</h3>
 			<p>You tell Perma.cc the web address you want to preserve and cite. Our software goes to that web address, preserves what's there, deposits it into our collection, and gives you a unique URL (e.g. "perma.cc/ABCD-1234") that points to the record in our collection. You then can use that link in your citation so that your readers can get to a stable, accurate record of the source you referenced, even if the original source disappears from the web.</p>
-			<h3 id="what-is-vesting">What is vesting?</h3>
-			<p>Perma.cc's mission is the very long-term preservation of online <em>sources</em>. To better serve this mission, we've introduced vesting. Vesting is the act of confirming that a given link and the record to which it points is in fact the cited source and thus should be deposited into the permanent collection of participating libraries. Once vested, a link and its associated record become permament. Unvested links eventually expire.</p>
-			<p>While anyone can use Perma.cc to create unvested links, only designated users (we call them <em>vesting users</em>) have the authority to vest links. Perma.cc's partner libraries - called "registrars" - decide who gets vesting authority. </p>
+			
 			<h3 id="example-perma">Perma.cc example</h3>
 			<p>Suppose you're a law professor working on an article and you want to cite to the FBI's <a href="http://www.fbi.gov/wanted/topten">Top Ten Most Wanted List</a>. Because that list changes over time, your citation is going to rot and your future readers won't be able to access your actual source at the original URL. That's bad for you and your readers.</p>
 			<p>But if you give Perma.cc the web address - e.g. <a href="http://www.fbi.gov/wanted/topten">http://www.fbi.gov/wanted/topten</a> - our software will visit the page, make a record of it and give you a unique URL that points to the preserved record - e.g. <a class="perma" href="https://perma.cc/T8U2-994F?type=source">perma.cc/T8U2-994F</a>.</p>
@@ -105,38 +92,7 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 
 
 
-<div class="container container-reading" id="libraries-and-registrars">
-	<div class="row">
-		<div class="col-sm-4 reading-toc">
-			
-		</div>
-		<div class="col-sm-8 reading-body">
-			<h2>For Libraries and Other Registrars</h2>
-			
-			<h3 id="becoming-registrar">Becoming a registrar</h3>
-			<p>Any academic library can become a registrar for free. Just email us at <a href="mailto:info@perma.cc">info@perma.cc</a> and tell us who you are, what kinds of users and usage you intend to support and who your contact person is. We'll get back to with some very basic setup instructions.</p>
-			<p>In general, registrar status is reserved for libraries and other trusted insitutions that help administer Perma.cc and ensure its appropriate use. If you're not with an academic library but still would like to be a registrar, please email us and tell us who you are, why you want to join Perma as registrar and what types of users and organizations you would expect to support as a registrar.</p>  
-			
-			<h3 id="libraries-authority">Authority and responsibilities</h3>
-			<p>Registrars can vest links, confer (and withdraw) vesting authority and create new vesting organizations. Typically this means acting as the hub of a network of vesting organizations and their users. As a registrar, you'll help train and support Perma.cc users within your network. You'll also be responsible for ensuring that those in your network with vesting authority do not abuse that authority. Every link vested by anyone within your network becomes automatically associated with you, as the relevant registrar, so it's important that you exercise judgment in approving vesting organizations. If you like, you can adopt policies and best practices for Perma.cc usage by those in your network.</p>
-			
-			<h3 id="creating-vesting-orgs">Creating new vesting orgs</h3>
-			<p>Creating new vesting organizations is easy. Just click on "Manage users" in the dropdown menu and select "Vesting organizations." Click "add new" to trigger the new vesting organization form, fill out the appropriate details and press the <kbd>Create new vesting organization</kbd> button:<p>
-			
-			<img src="{{ STATIC_URL }}/img/docs/screenshot_new_vesting_orgs.png" class="img-responsive screen-shot" alt="Screenshot of manage users screen." />
-			
-			<h3 id="placing-users-with-vesting-orgs">Assigning users to vesting orgs</h3>
-			<p>Once you've created a vesting org, you'll want to assign at least one vesting user to that vesting org. Just click on "Manage users" in the dropdown menu and select "Vesting users." Click "add new" to trigger the new vesting user form and enter the person's email. If she already has a Perma.cc account, we'll note that and invite you to assign that user to a vesting org. If she doesn't have a Perma.cc account, we'll ask you for the person's name and invite you to assign her to a vesting org. Once you submit, we'll send that person a verification email so she can get up and running.</p>
-			<p>Vesting users may be associated with more than one vesting org. To assign a vesting user to another vesting org, click on "Manage users" in the dropdown menu and select "Vesting users." Then click "add new," enter the user's email address and select the appropriate vesting org.</p>
-			<p>To remove a vesting user from a vesting org, click on "Manage users" in the dropdown menu and select "Vesting users." Find the person's name and click "edit/remove," which will take you to an edit screen. From that screen you can remove the user from the desired vesting orgs.</p> 
-			
-			<h3 id="supporting-journals-and-faculty">Supporting journals and faculty</h3>
-			<p>Each library is free to develop its own Perma.cc policies and practices. As a registrar, you can support as many or as few users associated with your institution as you like. To get you started, here are a few approaches you might adopt for helping journals and faculty use Perma.cc.</p>
-			<p>For journals, many libraries set up each journal up as a vesting org and then let the journal manage its own internal usage. Many libraries help journals by training new members and serving as a resource for questions about how to use Perma.cc.</p>
-			<p>For faculty, many libraries create separate vesting orgs for each faculty member. These faculty vesting orgs can include the faculty member herself, as well as any secretaries, research assistants or interns. Remember that if you combine faculty into a single vesting org, they will be able to observe - and potentially move - each other's links.</p>
-		</div>
-	</div>
-</div>
+
 
 <div class="container container-reading" id="journals-vesting-orgs">
 	<div class="row">
