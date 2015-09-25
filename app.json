@@ -91,6 +91,7 @@
     }
   },
   "addons":[
+    "cleardb",
     "cloudamqp",
     "newrelic",
     "papertrail",
