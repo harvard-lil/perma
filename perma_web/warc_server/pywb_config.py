@@ -296,7 +296,7 @@ class CachedLoader(BlockLoader):
                 random.shuffle(mirrors)
 
                 for attempt_mirror_name, lockss_base_url in mirrors:
-                    lockss_key = url.replace('file://', '').replace(WARC_STORAGE_PATH, 'http://' + settings.HOST + '/lockss/fetch')
+                    lockss_key = url.replace('file://', '').replace(WARC_STORAGE_PATH, 'https://' + settings.HOST + '/lockss/fetch')
                     lockss_url = urljoin(lockss_base_url, 'ServeContent')
                     try:
                         logging.info("Fetching from %s?url=%s" % (lockss_url, lockss_key))

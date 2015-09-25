@@ -10,6 +10,9 @@ def set_archive_timestamps(apps, schema_editor):
         link.archive_timestamp = link.creation_timestamp + timedelta(days=1)
         link.save()
 
+def reverse_archive_timestamps(apps, schema_editor):
+    pass
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -17,5 +20,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(set_archive_timestamps),
+        migrations.RunPython(set_archive_timestamps, reverse_archive_timestamps),
     ]

@@ -1,16 +1,35 @@
 # LOCKSS Installation Instructions
 
-## Install Java
-
-Grab the [latest Java JRE](http://www.oracle.com/technetwork/java/javase/downloads/index.html) and install it. Red Hat:
-
-    sudo rpm -ivh jre-8u60-linux-x64.rpm 
-
-## Install LOCKSS daemon:
-
-    $ sudo yum-config-manager --add-repo http://www.lockss.org/repo/
-    $ sudo yum install lockss-daemon
+## Add LOCKSS repo:
     
+    $ sudo yum install yum-utils
+    $ sudo yum-config-manager --add-repo http://www.lockss.org/repo/
+    $ sudo rpm --import http://www.lockss.org/LOCKSS-GPG-RPM-KEY
+
+## Install packages:
+
+    $ sudo yum install -y lockss-daemon java-1.8.0-openjdk-headless.x86_64 ntp 
+
+## Enable services:
+
+    $ sudo chkconfig --add lockss
+    $ sudo chkconfig lockss on
+    $ sudo chkconfig ntpd on
+    
+## Make LOCKSS storage dir:
+
+    $ sudo mkdir -p /srv/caches/cache0
+    
+## Lock down SSH by subnet:
+
+(If not handled by router/firewall.)
+
+## Open LOCKSS ports:
+
+    $ sudo iptables -I INPUT 1 -m state --state NEW -m tcp -p tcp --dport 8081 -j ACCEPT
+    $ sudo iptables -I INPUT 1 -m state --state NEW -m tcp -p tcp --dport 8082 -j ACCEPT
+    $ sudo iptables -I INPUT 1 -m state --state NEW -m tcp -p tcp --dport 9729 -j ACCEPT
+
 ## Configure LOCKSS daemon:
 
     $ sudo /etc/lockss/hostconfig
@@ -32,10 +51,11 @@ Grab the [latest Java JRE](http://www.oracle.com/technetwork/java/javase/downloa
     Path to java: [/usr/bin/java] <something like /usr/java/jre1.8.0_60/bin/java>
     Java switches: []
     Configuration URL: [http://props.lockss.org:8001/daemon/lockss.xml] https://perma.cc/lockss/daemon_settings.txt
-    Verify configuration server authenticity?: [Y] n
+    Verify configuration server authenticity?: [Y]
+    Server certificate keystore: [lockss-ca] /etc/lockss/perma-test.keystore
     Configuration proxy (host:port): [NONE]
     Preservation group(s): [prod] perma
-    Content storage directories: [] /srv/caches/cache0; /srv/caches/cache1
+    Content storage directories: [] /srv/caches/cache0
     Temporary storage directory: [/srv/caches/cache0/tmp]
     User name for web UI administration: [] lockss
     Password for web UI administration user lockss: []
@@ -44,6 +64,10 @@ Grab the [latest Java JRE](http://www.oracle.com/technetwork/java/javase/downloa
     Configuration:
     ...
     OK to store this configuration: [Y]
+    
+## Import Perma server certificate:
+
+    sudo keytool -importkeystore -srckeystore /etc/lockss/perma-test.keystore -destkeystore /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.60-2.b27.el7_1.x86_64/jre/lib/security/cacerts
     
 ## Start daemon:
 
