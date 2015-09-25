@@ -28,18 +28,6 @@
     "DJANGO__DATABASE__default__allow_thread_sharing":{
       "required":true
     },
-    "DJANGO__DATABASES__default__HOST":{
-      "required":true
-    },
-    "DJANGO__DATABASES__default__NAME":{
-      "required":true
-    },
-    "DJANGO__DATABASES__default__PASSWORD":{
-      "required":true
-    },
-    "DJANGO__DATABASES__default__USER":{
-      "required":true
-    },
     "DJANGO__DEBUG":{
       "required":true
     },
