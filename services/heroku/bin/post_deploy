@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# This is only used by dev and staging Heroku apps
+
+source ./indent
+
+# Run Django database seed.
+echo "-----> Seeding database"
+fab dev.init_db | indent
