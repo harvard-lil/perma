@@ -760,7 +760,8 @@ input:focus, *:hover {
 }
 
 .row.row-no-bleed {
-	margin: 0;
+	margin-left: 0;
+	margin-right: 0;
 }
 
 .col.col-no-gutter {
@@ -1793,6 +1794,7 @@ label {
 	font-weight: 400;
 	font-size: 14px;
 }
+
 input {
 	margin: $grid 0 0 0;
 	font-weight: 700;
@@ -1810,6 +1812,7 @@ input {
 	    box-shadow: none;
     }
 }
+
 button {
     &:focus {
 	    box-shadow: none;
@@ -1844,12 +1847,37 @@ button {
 
 .form-group {
 	margin-bottom: 0;
+	text-align: left;
 	@include respond-tablet {
 		float: left;
 		width: 50%;
 		margin-top: $double;
 		padding-right: $double;
 	}
+	&.fg-inline {
+	}
+	&.fg-search {
+		width: 100%;
+		padding-right: 60px;
+	}
+}
+
+button.btn-inline {
+    display: inline-block;
+    padding: 9px;
+    margin: 0;
+    vertical-align: middle;
+    border: 1px solid transparent;
+    margin-top: $grid * 3;
+}
+
+button.btn-search {
+	width: $grid * 6;
+    position: absolute;
+    right: 24px;
+    display: block;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
 }
 
 .form-group + .form-group {
@@ -4286,6 +4314,11 @@ td {
 
 // Link Browser
 
+
+.panel-default {
+	margin-top: $grid * 3;
+}
+
 .folders-box {
     padding: 0;
     border-right: 1px #DDD solid;
@@ -4348,11 +4381,6 @@ td {
         padding: .5em;
         border-bottom: 1px #ddd solid;
         font-weight: bold;
-    }
-
-    .search-query-form {
-        float: none !important;
-        display: inline-block;
     }
 
     .link-rows {
