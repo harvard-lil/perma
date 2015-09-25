@@ -32,9 +32,12 @@ LOGGING['loggers']['']['handlers'] += ['rollbar']
 
 # Parse database configuration from env DATABASE_URL
 if os.environ.get('CLEARDB_DATABASE_URL', False):
+    # ClearDB
     import dj_database_url
     DATABASES['default'] =  dj_database_url.config('CLEARDB_DATABASE_URL')
-DATABASES['default']['OPTIONS'] = {'ssl': {'ca': os.path.join(PROJECT_ROOT, 'amazon-rds-combined-ca-bundle.pem')}}
+else:
+    # Amazon RDS
+    DATABASES['default']['OPTIONS'] = {'ssl': {'ca': os.path.join(PROJECT_ROOT, 'amazon-rds-combined-ca-bundle.pem')}}
 
 # Allow all host headers
 # TODO: this is from Heroku's getting started with Django page -- is there a safer way?
