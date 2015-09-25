@@ -4390,13 +4390,19 @@ td {
 
     .link-container {
         padding: $double 0;
-        border-bottom: 1px solid $color-trans-lightgray;
+        border-top: 1px solid $color-trans-lightgray;
         position: relative;
 		font-family: $font-hed-alt;
 		&:hover {
 			background-color: rgba(0,0,0,.02);
+			border-top-color: $color-blue;
+			.link-expand {
+				display: block;
+			}
 		}
-		.link-secondary {
+
+		.record-secondary {
+			margin-top: $half;
 		}
 		
         .link-row {
@@ -4420,13 +4426,11 @@ td {
 				font-size: 16px;
 				font-weight: 200;
 				color: $color-blue;
-				margin-top: $grid;
 			}
 			.record-date {
 				font-size: 14px;
 				font-weight: 400;
-				margin-top: $grid;
-				margin-bottom: $grid * 3;
+				//margin-top: 2px;
 				color: $color-trans-gray;
 				.label {
 					font-size: 14px;
@@ -4466,12 +4470,18 @@ td {
 
         .link-expand {
             position: absolute;
-            right: 0px;
-            bottom: 0px;
-            padding: 0.2em .4em .2em .6em;
-            background-color: $color-trans-whispergray;
-            border-top-left-radius: 2px;
-            color: $color-trans-gray;
+            display: none;
+            width: 160px;
+            left: 50%;
+            margin-left: -80px;
+            text-align: center;
+            top: -1px;
+            padding: 0.3em $double .2em $grid * 3;
+            background-color: $color-blue;
+            border-bottom-left-radius: 2px;
+            border-bottom-right-radius: 2px;
+            color: $color-white;
+            font-size: 10px;
         }
     }
 }

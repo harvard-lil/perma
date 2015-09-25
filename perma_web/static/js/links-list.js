@@ -73,7 +73,7 @@ $(function() {
             details = button.closest('.link-container').find('.link-details');
         if(details.is(":visible")){
             details.hide();
-            button.text('More');
+            button.text('Show Record Details');
         }else{
             // when showing link details, update the move-to-folder select input
             // based on the current folderTree structure
@@ -110,7 +110,7 @@ $(function() {
             addChildren(folderTree.get_node('#'), 1);
 
             details.show();
-            button.text('Hide');
+            button.text('Hide Record Details');
         }
 
     // save changes to notes field

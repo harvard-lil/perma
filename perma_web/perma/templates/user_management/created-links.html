@@ -128,11 +128,17 @@
 	            <div class="col col-sm-8">
 	                <strong class="link-title-display">{{ title }}</strong>
 	                <div class="record-url"><a href="{{ url }}" target="_blank" class="original-link">{{ truncatechars url 200 }}</a></div>
-	                <div class="record-affil">Record Affiliation</div>
 
 	            </div>
 	            <div class="col col-sm-4 align-right">
-	                <a class="perma" href="{{local_url}}" target="_blank">{{local_url}}</a><br/>
+	                <a class="perma" href="{{local_url}}" target="_blank">{{local_url}}</a>
+	            </div>
+            </div>
+            <div class="row row-no-bleed record-secondary">
+	            <div class="col col-sm-8">
+	                <div class="record-affil">Record Affiliation</div>
+	            </div>
+	            <div class="col col-sm-4 align-right">
 		            <span class="record-date"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
 	            </div>
             </div>
@@ -171,7 +177,7 @@
             </div>
         </div>
 
-        <a href="#" class="link-expand">Record Details</a>
+        <a href="#" class="link-expand">Show Record Details</a>
     </div>
 {{/each}}
 </script>
