@@ -33,14 +33,3 @@ after_success:
 
 # See: http://docs.travis-ci.com/user/migrating-from-legacy/?utm_source=legacy-notice&utm_medium=banner&utm_campaign=legacy-upgrade#tl%3Bdr
 sudo: false
-
-deploy:
-  provider: heroku
-  strategy: git
-  api_key:
-    develop:
-      secure: LoWQTXmxz4urd8+O0j09UUr89vGe4+LK5CE40vHkUiuflpCGFtea4nd7oSVlPTOtZHFw0oha59pbJEiT5aE57rAeJoBb3t4+E+GH4kreP9DkXy2wqVmEQZz70I/Js1jaB8Rnu6AqhMsITx2T4nzURPU9o9uEOAyp19Kx3+taguI=
-  app:
-    develop: perma-staging
-  on:
-    repo: harvard-lil/perma
