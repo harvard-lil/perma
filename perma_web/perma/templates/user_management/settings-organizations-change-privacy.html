@@ -1,0 +1,21 @@
+{% extends "admin-layout.html" %}
+{% block title %} | Leave vesting organization{% endblock %}
+
+{% block content %}
+
+	<h3>Change default privacy settings for all links in {{ org.name }}?</h3>
+	<br/>
+	<br/>
+    
+    <form method="post">
+    	{% csrf_token %}
+    	{% if org.default_to_private %}
+    		<p>Links are <strong>PRIVATE</strong> by default.</p>
+        	<p><a href="{% url 'user_management_settings_organizations' %}">Cancel</a> <button type="submit" class="btn btn-success">Set to public</button></p>
+        {% else %}
+        	<p>Links are <strong>PUBLIC</strong> by default.</p> 
+        	<p><a href="{% url 'user_management_settings_organizations' %}">Cancel</a> <button type="submit" class="btn btn-success">Set to private</button></p>
+        {% endif %}
+    </form>
+
+{% endblock %}

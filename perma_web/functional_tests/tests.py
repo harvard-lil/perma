@@ -201,7 +201,7 @@ class FunctionalTest(StaticLiveServerTestCase):
                     time.sleep(sleep_time)
 
         def fix_host(url, host=settings.HOST):
-            return url.replace('http://' + host, self.live_server_url)
+        	return url.replace('http://' + host, self.live_server_url)
 
         info("Loading homepage from %s." % self.live_server_url)
         self.driver.get(self.live_server_url)
@@ -223,7 +223,7 @@ class FunctionalTest(StaticLiveServerTestCase):
             pass  # not in mobile view
         repeat_while_exception(lambda: click_link("Log in"))
         self.assertTrue("Email address" in get_xpath('//body').text)
-        get_id('id_username').send_keys('test_registrar_member@example.com')
+        get_id('id_username').send_keys('test_user@example.com')
         get_id('id_password').send_keys('pass')
         get_xpath("//button[@class='btn btn-success login']").click() # new design button
         assert_text_displayed('Create a new Perma Link', 'h1')  # wait for load
