@@ -224,6 +224,9 @@ function check_status() {
 
             // If we have at least one success, show success message.
             if(capturesSucceeded){
+
+                window.location.href = new_archive.url;
+
             	$('#linker input').val('');
                 $('.preview-row').removeClass('hide _error _success _wait').addClass('_success');
                 $('#steps-container').html(templates.success_steps({
