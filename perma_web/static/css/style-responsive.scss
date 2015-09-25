@@ -4445,9 +4445,13 @@ td {
 			border: 1px solid black !important;
 			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
 			border-radius: 2px;
-			margin: 0 -$double $double -$double;
-			padding: $grid * 2 $double;
+			margin: 0 -$grid $double -$grid;
+			padding: $grid * 2 $grid;
 			padding-bottom: 0;
+			@include respond-tablet {
+				margin: 0 -$double $double -$double;
+				padding: $grid * 2 $double;
+			}
 			&:hover {
 				background-color: white;
 				.link-title-display {
@@ -4574,8 +4578,12 @@ td {
             background-color: $color-background;
             padding: $double 0 $grid;
             margin-top: $double;
-			margin-left: -$double;
-		    margin-right: -$double;
+			margin-left: -$grid;
+		    margin-right: -$grid;
+			@include respond-tablet {
+				margin-left: -$double;
+			    margin-right: -$double;
+			}
 		    .form-group {
 			    margin-top: 0;
 			    width: 100%;
