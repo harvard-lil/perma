@@ -27,11 +27,10 @@ from ratelimit.decorators import ratelimit
 
 from ..models import Link, Asset, Registrar
 from perma.forms import ContactForm
-from perma.middleware import ssl_optional
 from perma.utils import if_anonymous, send_contact_email
 
 logger = logging.getLogger(__name__)
-valid_serve_types = ['image', 'pdf', 'source', 'warc_download']
+valid_serve_types = ['image', 'warc_download']
 
 
 class DirectTemplateView(TemplateView):
@@ -79,7 +78,6 @@ def stats(request):
     return render_to_response('stats.html', context)
 
 
-@ssl_optional
 @if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['single_linky']))
 @ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block=True, ip=False,
            keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
@@ -100,35 +98,19 @@ def single_linky(request, guid):
     if canonical_guid != guid:
         return HttpResponsePermanentRedirect(reverse('single_linky', args=[canonical_guid]))
 
-    # User requested archive type
-    serve_type = request.GET.get('type', 'live')
-    if not serve_type in valid_serve_types:
-        serve_type = 'live'
-
-    # SSL check
-    # This helper func will return a redirect if we are trying to view a live http link from an https frame
-    # (which will fail because of the mixed content policy),
-    # or if we are using an http frame and could be using https.
-    def ssl_redirect(link):
-        if not settings.SECURE_SSL_REDIRECT:
-            return
-        if serve_type == 'live' and not link.startswith('https'):
-            if request.is_secure():
-                return HttpResponseRedirect("http://%s%s" % (request.get_host(), request.get_full_path()))
-        elif not request.is_secure():
-            return HttpResponseRedirect("https://%s%s" % (request.get_host(), request.get_full_path()))
-
-    # make sure frame and content ssl match (see helper func above)
-    redirect = ssl_redirect(link.submitted_url)
-    if redirect:
-        return redirect
+    # If we get an unrecognized archive type (which could be an old type like 'live' or 'pdf'), forward to default version
+    serve_type = request.GET.get('type')
+    if serve_type is None:
+        serve_type = 'source'
+    elif serve_type not in valid_serve_types:
+        return HttpResponsePermanentRedirect(reverse('single_linky', args=[canonical_guid]))
 
     # Increment the view count if we're not the referrer
     parsed_url = urlparse(request.META.get('HTTP_REFERER', ''))
-
     if not request.get_host() in parsed_url.netloc and not settings.READ_ONLY_MODE:
         link.view_count += 1
         link.save()
+
     # serve raw WARC
     if serve_type == 'warc_download':
         # TEMP: remove this line after all legacy warcs have been exported
@@ -139,18 +121,11 @@ def single_linky(request, guid):
                                          content_type="application/gzip")
         response['Content-Disposition'] = "attachment; filename=%s.warc.gz" % link.guid
         return response
-        
-    capture = None
-    if serve_type == 'live':
-        # We used to support a live tab. That's depreicated now. Let's
-        # serve up somethign as a backup
-        capture = link.primary_capture
-        
-    elif serve_type == 'source' or serve_type == 'pdf':
-        capture = link.primary_capture
 
-    elif serve_type == 'image':
+    if serve_type == 'image':
         capture = link.screenshot_capture
+    else:
+        capture = link.primary_capture
 
     context = {
         'link': link,
