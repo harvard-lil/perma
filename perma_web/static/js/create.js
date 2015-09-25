@@ -111,27 +111,22 @@ $(function() {
 /* Handle the the main action (enter url, hit the button) button - start */
 
 function linkIt(data){
-	/*apiRequest("PUT", "/folders/" + shared_folder + "/archives/" + data.guid + "/", {
-                error: function(jqXHR){
-                    showAPIError(jqXHR);
-                }
-            });*/
+
+    // Clear any error messages out
+    $('.preview-row').remove();
+
     new_archive.url = 'http://' + settings.HOST  + '/' + data.guid;
     new_archive.guid = data.guid;
-    new_archive.title = data.title;
-    new_archive.static_prefix = settings.STATIC_URL;
 
-    $('#preview-container').html(templates.success(new_archive));
+    // Get our spinner going now that we're drawing it
+    $('#addlink').html('Creating');
+    var target = document.getElementById('addlink');
+    var spinner = new Spinner(opts).spin(target);
+    
+
     $('#links-remaining').text(data.links_remaining);
     if(data.links_remaining < 1) 
     	$('#linker input, #linker button').attr('disabled', 'disabled').blur();
-
-    // Get our spinner going now that we're drawing it
-    var target = document.getElementById('spinner');
-    var spinner = new Spinner(opts).spin(target);
-
-    $('#steps-container').html('');
-    $('.preview-row').removeClass('hide _error _success _wait').addClass('_wait').hide().fadeIn(500);
 
     refreshIntervalIds.push(setInterval(check_status, 2000));
 }
@@ -227,22 +222,6 @@ function upload_form() {
 /* Handle an upload - end */
 
 
-
-
-/* Handle the thumbnail fetching - start */
-
-function get_thumbnail() {
-    $('#preview-container').html(templates.preview_available({
-        image_url: thumbnail_service_url.replace('GUID', new_archive.guid),
-        archive_url: new_archive.url
-    })).removeClass('hide');
-}
-
-/* Handle the thumbnail fetching - end */
-
-
-
-
 /* Our polling function for the thumbnail completion - start */
 
 // The plan is to set a timer to periodically check if the thumbnail
@@ -281,36 +260,13 @@ function check_status() {
                 clearInterval(id);
             });
 
-            // If we have at least one success, show success message.
+            // If we have at least one success, forward to the new archive
             if(capturesSucceeded){
 
                 window.location.href = new_archive.url;
 
-            	$('#linker input').val('');
-                $('.preview-row').removeClass('hide _error _success _wait').addClass('_success');
-                $('#steps-container').html(templates.success_steps({
-                    url: new_archive.url,
-                    userguide_url: userguide_url,
-                    vesting_privs: vesting_privs
-                })).removeClass('hide');
-
-                $('#preview-container').html(templates.preview_available({
-                    image_url: thumbnail_service_url.replace('GUID', new_archive.guid),
-                    archive_url: new_archive.url
-                })).removeClass('hide');
-
-                // Catch failure to load thumbnail, and show thumbnail-not-available message
-                $('.library-thumbnail img').on('error', function() {
-                    $('#preview-container').html(templates.preview_available({
-                        image_url: null,
-                        archive_url: new_archive.url
-                    }));
-                });
-                
-                
-
             // Else show failure message/upload form.
-            }else {
+            } else {
                 $('#preview-container').html(templates.preview_failure({static_prefix: settings.STATIC_URL}));
                 $('#steps-container').html(templates.error({
                     message: "Error: URL capture failed."
@@ -327,24 +283,25 @@ function check_status() {
 
 /* Our spinner controller - start */
 
+
 var opts = {
-    lines: 17, // The number of lines to draw
-    length: 2, // The length of each line
+    lines: 11, // The number of lines to draw
+    length: 3, // The length of each line
     width: 1.5, // The line thickness
-    radius: 10, // The radius of the inner circle
+    radius: 5, // The radius of the inner circle
     scale: 1.7, // Scales overall size of the spinner
     corners: 0, // Corner roundness (0..1)
     rotate: 0, // The rotation offset
     direction: 1, // 1: clockwise, -1: counterclockwise
-    color: '#2D76EE', // #rgb or #rrggbb or array of colors
-    opacity: 0.25, // Opacity of the lines
-    speed: 0.7, // Rounds per second
-    trail: 100, // Afterglow percentage
+    color: '#fff', // #rgb or #rrggbb or array of colors
+    opacity: 0.35, // Opacity of the lines
+    speed: 0.8, // Rounds per second
+    trail: 70, // Afterglow percentage
     shadow: false, // Whether to render a shadow
     hwaccel: false, // Whether to use hardware acceleration
     className: 'spinner', // The CSS class to assign to the spinner
     zIndex: 2e9, // The z-index (defaults to 2000000000)
-    top: 'auto', // Top position relative to parent in px
+    top: '25px', // Top position relative to parent in px
     left: 'auto' // Left position relative to parent in px
 };
 
