@@ -66,7 +66,7 @@
         <div class="container link-headers">
             <div class="row">
                 <div class="col-sm-12">
-                    <h3 class="link-header body-ah">Perma Link Records</h3>
+                    <h3 class="link-header body-ah">Perma Links</h3>
                 </div>
             </div>
             {% comment %}
@@ -147,22 +147,22 @@
             <div class="col-sm-8">
 
                 <div class="form-group z-top">
-                    <label for="link-title-{{guid}}">Display title:</label>
-                    <span class="muted title-save-status"></span>
-                    <input type="text" class="form-control link-title" name="input" id="link-title-{{guid}}" value="{{title}}">
+                    <label for="link-title-{{guid}}">Display title</label>
+                    <span class="title-save-status"></span>
+                    <input type="text" class="link-title" name="input" id="link-title-{{guid}}" value="{{title}}">
                 </div>
 
                 <div class="form-group z-top">
-                    <label for="link-notes-{{guid}}">Notes:</label>
-                    <span class="muted notes-save-status"></span>
-                    <textarea id="link-notes-{{guid}}" class="form-control link-notes">{{notes}}</textarea>
+                    <label for="link-notes-{{guid}}">Notes</label>
+                    <span class="notes-save-status"></span>
+                    <textarea id="link-notes-{{guid}}" class="link-notes" rows="6">{{notes}}</textarea>
+	                <span class="muted">
+	                    Notes are visible to users who create or vest a link, but not to visitors.
+	                </span>
                 </div>
-                <span class="muted z-top">
-                    Notes are visible to users who create or vest a link, but not to visitors.
-                </span>
 
                 <div class="form-group z-top">
-                    <label for="move-to-folder-{{guid}}">Move to folder:</label>
+                   <label for="move-to-folder-{{guid}}">Move to folder</label>
                     <select id="move-to-folder-{{guid}}" class="move-to-folder form-control"></select>
                 </div>
 

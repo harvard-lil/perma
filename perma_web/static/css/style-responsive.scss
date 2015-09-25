@@ -812,7 +812,7 @@ h1 {
     font-weight: 300;
     font-size: 40px;
 	@include respond-tablet {
-		font-size: 48px;
+		font-size: 46px;
 	}
 }
 
@@ -1858,8 +1858,17 @@ button {
 	&.fg-inline {
 	}
 	&.fg-search {
+		input {
+			margin-top: 0;
+		}
 		width: 100%;
-		padding-right: 60px;
+		padding-right: 44px;
+		@include respond-tablet {
+			padding-right: 60px;
+			input {
+				margin-top: 8px;
+			}
+		}
 	}
 }
 
@@ -1879,6 +1888,13 @@ button.btn-search {
     display: block;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
+    top: -8px;
+    right: 8px;
+    height: 42px;
+    @include respond-tablet {
+	    top: 8px;
+	    right: 24px;
+    }
 }
 
 .form-group + .form-group {
@@ -4329,7 +4345,14 @@ td {
 }
 
 .folders-box {
-
+    @include respond-tablet {
+	    width: 100%;
+    }
+    @include respond-desktop {
+	    width: 25%
+    }
+    padding-bottom: $double;
+    
     > .panel-heading {
 		border-top: 2px solid #2D76EE;
 	    padding-top: 8px;
@@ -4354,6 +4377,8 @@ td {
         padding: $double $grid $double 0;
         overflow: auto;
 	    font-family: $font-hed-alt;
+	    margin-top: $double;
+	    border-top: 1px solid $color-trans-lightgray;
         .jstree-clicked {
 			border: 1px solid $color-blue;
 		    color: $color-white;
@@ -4364,8 +4389,13 @@ td {
         .jstree-hovered {
 		    background-color: $color-highlight;
 		    box-shadow: none;
+		    color: $color-black;
 		}
     }
+
+	.jstree-container-ul {
+		margin-left: -6px;
+	}
 
     li {
         margin-left: 1em;
@@ -4375,7 +4405,12 @@ td {
 .links-box {
     border-left: none;
     position: relative;
-
+    @include respond-tablet {
+	    width: 100%;
+    }
+    @include respond-desktop {
+	    width: 75%
+    }
     > .panel-heading {
         border-top-left-radius: 0;
         border-color: #DDD;
@@ -4391,9 +4426,6 @@ td {
     }
 
     .link-headers {
-        @media (max-width: 767px) {
-            display: none;
-        }
         padding: 0 0 $double;
     }
 
@@ -4413,8 +4445,8 @@ td {
 			border: 1px solid black !important;
 			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
 			border-radius: 2px;
-			margin: 0 -$grid $double -$grid;
-			padding: $grid * 2 $grid;
+			margin: 0 -$double $double -$double;
+			padding: $grid * 2 $double;
 			padding-bottom: 0;
 			&:hover {
 				background-color: white;
@@ -4431,7 +4463,10 @@ td {
 		}
 
 		.record-secondary {
-			margin-top: $half;
+			margin-top: $grid;
+			@include respond-tablet {
+				margin-top: $half;
+			}
 		}
 		
         .link-row {
@@ -4439,7 +4474,6 @@ td {
             cursor: -moz-grab;
             cursor: -webkit-grab;
             cursor: grab;
-
 			.perma {
 				display: inline-block;	
 			}
@@ -4503,15 +4537,71 @@ td {
                     text-decoration: underline;
                 }
             }
+			.col-sm-8 {
+				width: 100%;
+			}
+			.col-sm-4 {
+				width: 100%;
+			}
+			.align-right {
+				text-align: left;
+				padding-top: $grid;
+			}
+			@include respond-tablet {
+				.col-sm-8 {
+					width: 50%;
+				}
+				.col-sm-4 {
+					width: 50%;
+				}
+				.align-right {
+					text-align: right;
+					padding-top: 0;
+				}
+			}
+			@include respond-wide {
+				.col-sm-8 {
+					width: 66.66666666666666%;
+				}
+				.col-sm-4 {
+					width: 33.33333333333333%;
+				}
+			}
         }
 
         .link-details {
             display: none;
             background-color: $color-background;
-            padding: $double $grid $grid * 3;
+            padding: $double 0 $grid;
             margin-top: $double;
-			margin-left: -$grid;
-		    margin-right: -$grid;
+			margin-left: -$double;
+		    margin-right: -$double;
+		    .form-group {
+			    margin-top: 0;
+			    width: 100%;
+			    padding-bottom: $double;
+			    input, textarea, select {
+				    margin-top: $grid;
+				    display: block;
+				    width: 100%;
+				    clear: both;
+				    font-size: 16px;
+			    }
+			    div.label-group {
+				    overflow: auto;
+			    }
+			    label, .title-save-status, .notes-save-status {
+				    float: left;
+				    width: auto;
+				    padding-bottom: $grid;
+			    }
+			    .title-save-status, .notes-save-status {
+				    color: $color-orange;
+				    margin-top: 0;
+				    margin-left: .7em;
+				    font-weight: 700;
+			    }
+		    }
         }
 
         .link-expand {
@@ -4527,7 +4617,7 @@ td {
             color: transparent;
             font-size: 1px;
             &:active {
-	            background-color: lighten($color-highlight, 30%);
+	            background-color: lighten($color-highlight, 25%);
             }
             &:focus {
 	            outline: none !important;
@@ -4938,7 +5028,9 @@ img[usemap] {
 
 
 .muted, .muted p {
-	color: #9c9c9c;
+	color: $color-trans-gray;
+	margin-top: $grid;
+	display: block;
 }
 
 ul {

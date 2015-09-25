@@ -38,7 +38,7 @@ $(function() {
         if(inputElement.val()==inputElement.attr('last_value_saved'))
             return;
 
-        statusElement.html('saving ...');
+        statusElement.html('Saving...');
         saveNeeded = true;
 
         var guid = inputElement.attr('id').match(/.+-(.+-.+)/)[1],
@@ -57,7 +57,7 @@ $(function() {
 
                 request.done(function(data){
                     if(!saveNeeded)
-                        statusElement.html('saved.');
+                        statusElement.html('Saved!');
                         inputElement.attr('last_value_saved', saveValue);
                 });
 
