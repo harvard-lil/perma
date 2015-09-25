@@ -160,6 +160,7 @@ class OrganizationResource(DefaultResource):
     id = fields.IntegerField(attribute='id')
     name = fields.CharField(attribute='name')
     registrar = fields.CharField(attribute='registrar__name')
+    default_to_private = fields.BooleanField(attribute='default_to_private', null=True, blank=True)
 
     class Meta(DefaultResource.Meta):
         resource_name = 'organizations'
@@ -387,7 +388,7 @@ class LinkResource(AuthenticatedLinkResource):
         return bundle
 
     def hydrate_organization(self, bundle):
-        if bundle.data.get('vested', None) and not bundle.obj.organization:
+        if not bundle.obj.organization:
             # If the user passed a vesting org id, grab the object.
             # Permissions will be checked later.
             if bundle.data.get('organization', None):
@@ -442,7 +443,12 @@ class LinkResource(AuthenticatedLinkResource):
         	bundle.data['links_remaining'] = 'unlimited'
         
         # Runs validation (exception thrown if invalid), sets properties and saves the object
-        bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user)
+        if bundle.data.get('organization'):
+        	is_private = Organization.objects.get(pk=bundle.data['organization']).default_to_private
+        	bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user, organization_id=bundle.data['organization'], is_private=is_private)
+        	bundle.obj.move_to_folder_for_user(bundle.data['folder'], bundle.request.user)
+        else:
+        	bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user)
         link = bundle.obj
 
         uploaded_file = bundle.data.get('file')
