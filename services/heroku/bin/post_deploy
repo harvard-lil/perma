@@ -1,8 +1,7 @@
-#!/bin/sh
-
+#!/usr/bin/env bash
 # This is only used by dev and staging Heroku apps
 
-source ./indent
+source bin/utils
 
 # Run Django database seed.
 echo "-----> Seeding database"
