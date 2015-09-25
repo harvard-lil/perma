@@ -65,14 +65,8 @@
     <div class="col-sm-9 links-box">
         <div class="container link-headers">
             <div class="row">
-                <div class="col-sm-6">
-                    Link
-                </div>
-                <div class="col-sm-4">
-                    Title
-                </div>
-                <div class="col-sm-2">
-                    Created
+                <div class="col-sm-12">
+                    <h3 class="link-header">Perma Link Records</h3>
                 </div>
             </div>
             {% comment %}
@@ -126,20 +120,25 @@
         <div class="row link-row row-no-bleed" link_id="{{ guid }}">
             <div class="row row-no-bleed">
 	            <div class="col col-sm-8">
-	                <strong class="link-title-display">{{ title }}</strong>
-	                <div class="record-url"><a href="{{ url }}" target="_blank" class="original-link">{{ truncatechars url 200 }}</a></div>
-
+	            	<div class="link-title-display">
+		            	<span class="z-top">{{ title }}</span>
+	            	</div>
+	                <div class="record-url">
+	                	<a href="{{ url }}" target="_blank" class="original-link z-top">{{ truncatechars url 200 }}</a>
+	                </div>
 	            </div>
 	            <div class="col col-sm-4 align-right">
-	                <a class="perma" href="{{local_url}}" target="_blank">{{local_url}}</a>
+	                <a class="perma z-top" href="{{local_url}}" target="_blank">{{local_url}}</a>
 	            </div>
             </div>
             <div class="row row-no-bleed record-secondary">
 	            <div class="col col-sm-8">
-	                <div class="record-affil">Record Affiliation</div>
+	                <div class="record-affil">
+		                <span class="z-top">Record Affiliation</span>
+		            </div>
 	            </div>
 	            <div class="col col-sm-4 align-right">
-		            <span class="record-date"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
+		            <span class="record-date z-top"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
 	            </div>
             </div>
         </div>
@@ -147,37 +146,38 @@
         <div class="row link-details" {{#if search_query_in_notes}}style="display:block"{{/if}}>
             <div class="col-sm-8">
 
-                <div class="form-group">
+                <div class="form-group z-top">
                     <label for="link-title-{{guid}}">Display title:</label>
                     <span class="muted title-save-status"></span>
                     <input type="text" class="form-control link-title" name="input" id="link-title-{{guid}}" value="{{title}}">
                 </div>
 
-                <div class="form-group">
+                <div class="form-group z-top">
                     <label for="link-notes-{{guid}}">Notes:</label>
                     <span class="muted notes-save-status"></span>
                     <textarea id="link-notes-{{guid}}" class="form-control link-notes">{{notes}}</textarea>
                 </div>
-                <span class="muted">
+                <span class="muted z-top">
                     Notes are visible to users who create or vest a link, but not to visitors.
                 </span>
 
-                <div class="form-group">
+                <div class="form-group z-top">
                     <label for="move-to-folder-{{guid}}">Move to folder:</label>
                     <select id="move-to-folder-{{guid}}" class="move-to-folder form-control"></select>
                 </div>
 
             </div>
             <div class="col-sm-4">
-                <div><strong>Views:</strong> {{view_count}}</div>
-                <div><strong>Created by:</strong> {{created_by.full_name}}</div>
+                <div>
+                	<span class="z-top"><strong>Views:</strong> {{view_count}}</span></div>
+                <div><span class="z-top"><strong>Created by:</strong> {{created_by.full_name}}</span></div>
                 {{#if vested}}
-                    <div><strong>Vested by:</strong> {{vested_by_editor.full_name}}</div>
+                    <div><span class="z-top"><strong>Vested by:</strong> {{vested_by_editor.full_name}}</span></div>
                 {{/if}}
             </div>
         </div>
 
-        <a href="#" class="link-expand">Show Record Details</a>
+        <a href="#" class="link-expand z-bottom">Show Record Details</a>
     </div>
 {{/each}}
 </script>

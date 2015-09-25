@@ -67,13 +67,15 @@ $(function() {
     }
 
     // hide and show link details
-    linkTable.on('mousedown', '.link-expand', function () {
+    linkTable.on('click', '.link-expand', function () {
         // handle details link to hide/show link details
         var button = $(this),
             details = button.closest('.link-container').find('.link-details');
+            linkContainer = button.closest('.link-container');
         if(details.is(":visible")){
             details.hide();
             button.text('Show Record Details');
+            linkContainer.toggleClass( '_active' )
         }else{
             // when showing link details, update the move-to-folder select input
             // based on the current folderTree structure
@@ -111,6 +113,7 @@ $(function() {
 
             details.show();
             button.text('Hide Record Details');
+            linkContainer.toggleClass( '_active' )
         }
 
     // save changes to notes field

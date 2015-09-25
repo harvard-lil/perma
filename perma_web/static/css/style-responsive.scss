@@ -4380,12 +4380,12 @@ td {
         }
 
         padding: .5em;
-        border-bottom: 1px #ddd solid;
         font-weight: bold;
     }
 
     .link-rows {
         padding: 0;
+        overflow: visible;
     }
 
     .link-container {
@@ -4393,12 +4393,21 @@ td {
         border-top: 1px solid $color-trans-lightgray;
         position: relative;
 		font-family: $font-hed-alt;
+		background-color: white;
+		&._active {
+			border: 1px solid black !important;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
+			border-radius: 2px;
+			margin: $grid -$grid;
+			padding: $double 7px;
+			padding-bottom: 0;
+			&:hover {
+				background-color: white;
+			}
+		}
 		&:hover {
 			background-color: rgba(0,0,0,.02);
 			border-top-color: $color-blue;
-			.link-expand {
-				display: block;
-			}
 		}
 
 		.record-secondary {
@@ -4421,11 +4430,30 @@ td {
 			.original-link {
 				font-size: 16px;
 				font-weight: 200;
+				&:hover, &:focus {
+					color: $color-hover;
+				}
+				&:active {
+					color: $color-active;
+				}
 			}
 			.record-affil {
 				font-size: 16px;
 				font-weight: 200;
 				color: $color-blue;
+				&:before {
+					content: '';
+					width: 19px;
+					height: 18px;
+					display: inline-block;
+					position: relative;
+					top: 3px;
+					background-image: url('../img/ui/perma-ui-affil.svg');
+					background-repeat: no-repeat;
+					background-position: 0 0;
+					background-size: 19px 18px;
+					z-index: 10;
+				}
 			}
 			.record-date {
 				font-size: 14px;
@@ -4447,10 +4475,6 @@ td {
                 word-wrap : break-word;
             }
 
-            .original-link:hover {
-                color: #888;
-            }
-
             .alert-danger {
                 background-color: #FFF;
 
@@ -4463,25 +4487,37 @@ td {
 
         .link-details {
             display: none;
-            // background-color: #F5F5F5;
-            padding: .5em;
-            margin-left: 0px;
+            background-color: $color-background;
+            padding: $double $grid $grid * 3;
+            margin-top: $double;
+			margin-left: -7px;
+		    margin-right: -7px;
         }
 
         .link-expand {
             position: absolute;
-            display: none;
-            width: 160px;
-            left: 50%;
-            margin-left: -80px;
             text-align: center;
-            top: -1px;
-            padding: 0.3em $double .2em $grid * 3;
-            background-color: $color-blue;
-            border-bottom-left-radius: 2px;
-            border-bottom-right-radius: 2px;
-            color: $color-white;
-            font-size: 10px;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: $half $double 3px;
+            background-color: transparent;
+            border-radius: 0;
+            color: transparent;
+            font-size: 1px;
+            &:active {
+	            background-color: $color-highlight;
+            }
+            &:focus {
+	            outline: none !important;
+            }
+        }
+        .z-top {
+            z-index: 10;
+        }
+        .z-bottom {
+            z-index: 0;
         }
     }
 }
