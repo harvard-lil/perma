@@ -1,6 +1,8 @@
 {
   "name":"perma",
-  "scripts":{},
+  "scripts": {
+    "postdeploy": "bin/post_deploy"
+  },
   "env":{
     "BUILDPACK_URL":{
       "required":true
