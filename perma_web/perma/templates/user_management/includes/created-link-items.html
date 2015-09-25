@@ -29,23 +29,22 @@
     <div class="link-container">
 
         <div class="row link-row" link_id="{{ link.pk }}">
-            <div class="col-sm-6">
-                <a href="http://{{HOST}}/{{link.guid}}" target="_blank">http://{{HOST}}/{{link.guid}}</a><br/>
-                <a href="{{ link.submitted_url }}" target="_blank" class="original-link">{{ link.submitted_url|truncatechars:200 }}</a><br/>
-                {% if link.vested %}
-                    <span class="vested-date">Vested on {{ link.vested_timestamp|local_datetime:"M. j, Y" }}</span>
-                {% else %}
-                    <span class="alert-danger">
-                        Expires on {{ link.get_expiration_date|local_datetime:"M. j, Y" }} unless
-                        <a href="{% if request.user.can_vest %}http://{{HOST}}/{{link.guid}}{% else %}{% url 'docs_perma_link_vesting' %}{% endif %}">vested</a>
-                    </span>
-                {% endif %}
+            <div class="row">
+	            <div class="col-sm-6">
+	                <strong class="link-title-display">{{ link.submitted_title }}</strong>
+	                <a href="{{ link.submitted_url }}" target="_blank" class="original-link">{{ link.submitted_url|truncatechars:200 }}</a><br/>
+	            </div>
+	            <div class="col-sm-6">
+	                <a class="perma" href="http://{{HOST}}/{{link.guid}}" target="_blank">http://{{HOST}}/{{link.guid}}</a><br/>
+	            </div>
             </div>
-            <div class="col-sm-4">
-                <span class="link-title-display">{{ link.submitted_title }}</span>
-            </div>
-            <div class="col-sm-2">
-                {{ link.creation_timestamp|local_datetime:"M. j, Y" }}
+            <div class="row">
+	            <div class="col-sm-6">
+	            	<div class="record-affil">Record Affiliation</div>
+	            </div>
+	            <div class="col-sm-6">
+		            {{ link.creation_timestamp|local_datetime:"M j, Y" }}
+	            </div>
             </div>
         </div>
 

@@ -179,24 +179,15 @@
 		}
 	}
 	div.toc-module-content {
-		background-color: $color-blue;
-		color: white;
+		background-color: $color-highlight;
 		padding-top: 10px;
 		padding-bottom: 10px;
-		p {
-			color: white;
-		}
 		@include respond-tablet {
 			padding-top: 14px;
 			padding-bottom: 12px;
 		}
 		@include respond-desktop {
-			background-color: $color-white;
-			color: $color-black;
 			padding: $double;
-			p {
-				color: $color-black;
-			}
 		}
 		strong:after {
 			display: none;

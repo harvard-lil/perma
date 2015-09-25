@@ -119,38 +119,27 @@
     <!-- TODO: insert template from comment above -->
 {{/if}}
 
+
 {{#each objects}}
     <div class="link-container">
 
-        <div class="row link-row" link_id="{{guid}}">
-            <div class="col-sm-6">
-                {{#if favicon_url}}
-                    <img src="{{ favicon_url }}" width="16" height="16">
-                {{/if}}
-                <a href="{{local_url}}" target="_blank">{{local_url}}</a><br/>
-                <a href="{{url}}" target="_blank" class="original-link">
-                    {{truncatechars url 200}}
-                </a>
-                <br/>
-                {{#if vested}}
-                    <span class="vested-date">Vested on {{vested_timestamp_formatted}}</span>
-                {{else}}
-                    <span class="alert-danger">
-                        Expires on {{expiration_date_formatted}} unless
-                        <a href="{{#if can_vest}}{{local_url}}{{else}}{{url_docs_perma_link_vesting}}{{/if}}">vested</a>
-                    </span>
-                {{/if}}
-            </div>
-            <div class="col-sm-4">
-                <span class="link-title-display">{{title}}</span>
-            </div>
-            <div class="col-sm-2">
-                {{creation_timestamp_formatted}}
+        <div class="row link-row row-no-bleed" link_id="{{ guid }}">
+            <div class="row row-no-bleed">
+	            <div class="col col-sm-8">
+	                <strong class="link-title-display">{{ title }}</strong>
+	                <div class="record-url"><a href="{{ url }}" target="_blank" class="original-link">{{ truncatechars url 200 }}</a></div>
+	                <div class="record-affil">Record Affiliation</div>
+
+	            </div>
+	            <div class="col col-sm-4 align-right">
+	                <a class="perma" href="{{local_url}}" target="_blank">{{local_url}}</a><br/>
+		            <span class="record-date"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
+	            </div>
             </div>
         </div>
 
         <div class="row link-details" {{#if search_query_in_notes}}style="display:block"{{/if}}>
-            <div class="col-sm-6">
+            <div class="col-sm-8">
 
                 <div class="form-group">
                     <label for="link-title-{{guid}}">Display title:</label>
@@ -173,7 +162,7 @@
                 </div>
 
             </div>
-            <div class="col-sm-6">
+            <div class="col-sm-4">
                 <div><strong>Views:</strong> {{view_count}}</div>
                 <div><strong>Created by:</strong> {{created_by.full_name}}</div>
                 {{#if vested}}
@@ -182,7 +171,7 @@
             </div>
         </div>
 
-        <a href="#" class="link-expand">More</a>
+        <a href="#" class="link-expand">Record Details</a>
     </div>
 {{/each}}
 </script>

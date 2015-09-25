@@ -1652,6 +1652,7 @@ strong {
 		background-color: $color-hover !important;
 		text-decoration: none !important;
 		border-color: transparent;
+		color: white !important;
 	}
 	&:active {
 		background-color: $color-black !important;
@@ -4388,18 +4389,57 @@ td {
     }
 
     .link-container {
-        padding: .5em;
-        border-bottom: 1px #DDD solid;
+        padding: $double 0;
+        border-bottom: 1px solid $color-trans-lightgray;
         position: relative;
-
+		font-family: $font-hed-alt;
+		&:hover {
+			background-color: rgba(0,0,0,.02);
+		}
+		.link-secondary {
+		}
+		
         .link-row {
             cursor: move; //	fallback for IE 
             cursor: -moz-grab;
             cursor: -webkit-grab;
             cursor: grab;
 
-            .original-link, .vested-date {
-                color: #aaa;
+			.perma {
+				display: inline-block;	
+			}
+			.link-title-display {
+				font-size: 16px;
+				font-weight: 700;
+			}
+			.original-link {
+				font-size: 16px;
+				font-weight: 200;
+			}
+			.record-affil {
+				font-size: 16px;
+				font-weight: 200;
+				color: $color-blue;
+				margin-top: $grid;
+			}
+			.record-date {
+				font-size: 14px;
+				font-weight: 400;
+				margin-top: $grid;
+				margin-bottom: $grid * 3;
+				color: $color-trans-gray;
+				.label {
+					font-size: 14px;
+					font-weight: 400;
+					color: $color-trans-gray;
+					margin: 0;
+					padding: 0;
+				}
+			}
+            .vested-date, .record-date {
+                display: block;
+            }
+            .original-link, .vested-date, .record-date {
                 word-wrap : break-word;
             }
 
@@ -4419,7 +4459,7 @@ td {
 
         .link-details {
             display: none;
-            background-color: #F5F5F5;
+            // background-color: #F5F5F5;
             padding: .5em;
             margin-left: 0px;
         }
@@ -4428,12 +4468,10 @@ td {
             position: absolute;
             right: 0px;
             bottom: 0px;
-            border-left: 1px solid #ddd;
-            border-top: 1px solid #ddd;
             padding: 0.2em .4em .2em .6em;
-            background-color: desaturate(lighten($color-blue, 45%), 40%);
-            border-radius: 4px 0px;
-            color: #777;
+            background-color: $color-trans-whispergray;
+            border-top-left-radius: 2px;
+            color: $color-trans-gray;
         }
     }
 }
