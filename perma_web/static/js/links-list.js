@@ -126,7 +126,7 @@ $(function() {
         var textarea = $(this);
         saveInput(textarea, textarea.prevAll('.title-save-status'), 'title', function () {
             // update display title when saved
-            textarea.closest('.link-container').find('.link-title-display').text(textarea.val());
+            textarea.closest('.link-container').find('.link-title-display span').text(textarea.val());
         });
 
     // handle move-to-folder dropdown

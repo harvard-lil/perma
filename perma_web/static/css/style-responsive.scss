@@ -2428,7 +2428,7 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
 
 // docs
 
-.docs-ah, .reading-body h2 { 
+.body-ah, .docs-ah, .reading-body h2 { 
 	font-size: 22px;
     border-top: 2px solid $color-blue;
     padding-top: $grid;
@@ -2444,7 +2444,7 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
 	}
 }
 
-.docs-bh, .reading-body h3 { 
+.body-bh, .docs-bh, .reading-body h3 { 
 	font-size: 16px;
     border-top: 1px solid $color-orange;
     padding-top: $grid;
@@ -4317,34 +4317,54 @@ td {
 
 
 .panel-default {
-	margin-top: $grid * 3;
+	margin-top: $grid * 6;
+	border: none;
+}
+
+.panel-heading {
+	padding: $grid 0 0;
+    border-bottom: none;
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
 }
 
 .folders-box {
-    padding: 0;
-    border-right: 1px #DDD solid;
 
     > .panel-heading {
-        background-color: #F5F5F5;
-        border-top-right-radius: 0;
-        border-color: #DDD;
-
+		border-top: 2px solid #2D76EE;
+	    padding-top: 8px;
+	    color: #2D76EE;
+	    font-family: $font-hed-alt;
+	    font-weight: 700;
+	    font-size: 21px;
+    
         a {
-            color: #515151;
-            font-size: 1.2em;
-            position: relative;
-            top: .1em;
-            margin-left: .5em;
+			position: relative;
+		    top: 5px;
+		    margin-left: 0.5em;
+		    font-size: 20px;
+		    color: $color-trans-gray;
+		    &:hover {
+			    color: $color-hover;
+		    }
         }
     }
 
     #folder-tree {
-        padding: .5em;
+        padding: $double $grid $double 0;
         overflow: auto;
-
+	    font-family: $font-hed-alt;
         .jstree-clicked {
-            background-color: desaturate(lighten($color-blue, 45%), 40%);
-        }
+			border: 1px solid $color-blue;
+		    color: $color-white;
+		    background-color: $color-blue;
+		    box-shadow: none;
+		    padding-right: 6px;
+		}
+        .jstree-hovered {
+		    background-color: $color-highlight;
+		    box-shadow: none;
+		}
     }
 
     li {
@@ -4353,12 +4373,8 @@ td {
 }
 
 .links-box {
-    padding: 0;
-
-    //	left border that overlaps with right border of folders-box, so we get whichever is tallest 
-    border-left: 1px #DDD solid;
+    border-left: none;
     position: relative;
-    left: -1px;
 
     > .panel-heading {
         border-top-left-radius: 0;
@@ -4378,9 +4394,7 @@ td {
         @media (max-width: 767px) {
             display: none;
         }
-
-        padding: .5em;
-        font-weight: bold;
+        padding: 0 0 $double;
     }
 
     .link-rows {
@@ -4390,6 +4404,7 @@ td {
 
     .link-container {
         padding: $double 0;
+        border: 1px solid transparent;
         border-top: 1px solid $color-trans-lightgray;
         position: relative;
 		font-family: $font-hed-alt;
@@ -4398,16 +4413,21 @@ td {
 			border: 1px solid black !important;
 			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
 			border-radius: 2px;
-			margin: $grid -$grid;
-			padding: $double 7px;
+			margin: 0 -$grid $double -$grid;
+			padding: $grid * 2 $grid;
 			padding-bottom: 0;
 			&:hover {
 				background-color: white;
+				.link-title-display {
+					color: $color-black;
+				}
 			}
 		}
 		&:hover {
-			background-color: rgba(0,0,0,.02);
 			border-top-color: $color-blue;
+			.link-title-display {
+				color: $color-blue;
+			}
 		}
 
 		.record-secondary {
@@ -4490,8 +4510,8 @@ td {
             background-color: $color-background;
             padding: $double $grid $grid * 3;
             margin-top: $double;
-			margin-left: -7px;
-		    margin-right: -7px;
+			margin-left: -$grid;
+		    margin-right: -$grid;
         }
 
         .link-expand {
@@ -4507,7 +4527,7 @@ td {
             color: transparent;
             font-size: 1px;
             &:active {
-	            background-color: $color-highlight;
+	            background-color: lighten($color-highlight, 30%);
             }
             &:focus {
 	            outline: none !important;

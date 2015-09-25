@@ -36,7 +36,7 @@
     </div>
 </div>
 
-<div class="row panel panel-default row-no-bleed">
+<div class="row panel panel-default">
     <div class="col-sm-3 folders-box">
         <div class="panel-heading">
             Folders
@@ -66,7 +66,7 @@
         <div class="container link-headers">
             <div class="row">
                 <div class="col-sm-12">
-                    <h3 class="link-header">Perma Link Records</h3>
+                    <h3 class="link-header body-ah">Perma Link Records</h3>
                 </div>
             </div>
             {% comment %}
@@ -118,7 +118,7 @@
     <div class="link-container">
 
         <div class="row link-row row-no-bleed" link_id="{{ guid }}">
-            <div class="row row-no-bleed">
+            <div class="row">
 	            <div class="col col-sm-8">
 	            	<div class="link-title-display">
 		            	<span class="z-top">{{ title }}</span>
@@ -131,7 +131,7 @@
 	                <a class="perma z-top" href="{{local_url}}" target="_blank">{{local_url}}</a>
 	            </div>
             </div>
-            <div class="row row-no-bleed record-secondary">
+            <div class="row record-secondary">
 	            <div class="col col-sm-8">
 	                <div class="record-affil">
 		                <span class="z-top">Record Affiliation</span>
@@ -143,7 +143,7 @@
             </div>
         </div>
 
-        <div class="row link-details" {{#if search_query_in_notes}}style="display:block"{{/if}}>
+        <div class="row link-details row-no-bleed" {{#if search_query_in_notes}}style="display:block"{{/if}}>
             <div class="col-sm-8">
 
                 <div class="form-group z-top">
