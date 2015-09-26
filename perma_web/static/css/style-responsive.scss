@@ -1011,7 +1011,7 @@ p.body { @extend p.body-text; }
 	}
 }
 
-.alert-success {
+.alert-success, .alert-info {
 	color: $color-green;
     background-color: $color-white;
     border: 2px solid $color-green;

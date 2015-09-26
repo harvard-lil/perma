@@ -193,7 +193,7 @@ $(function() {
         showLoadingMessage = true;
         setTimeout(function(){
             if(showLoadingMessage)
-                linkTable.html("Loading folder contents ...");
+                linkTable.html('<div class="alert-info">Loading folder contents...</div>');
         }, 500);
 
         var data = {limit: 0},
