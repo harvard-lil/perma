@@ -4830,7 +4830,7 @@ span.action {
 
 .remove-search-filters {
 	display: block;
-    margin: $double 0;
+    margin: $double 0 0;
     border: 2px solid $color-orange;
     padding: $grid;
     border-radius: 2px;
@@ -4891,7 +4891,7 @@ td.registrar-website-cell {
     border-top: 1px solid $color-blue;
     color: $color-blue;
     font-size: 16px;
-    margin-top: $grid;
+    margin-top: $grid * 3;
 }
 
 .sort-filter-bar {
@@ -4941,17 +4941,36 @@ td.registrar-website-cell {
 
 .no-users-found {
     text-align: center;
-    font-weight: 500;
+    font-weight: 200;
     font-size: 24px;
-    margin-top: 35px;
+    margin-top: $grid * 6;
+    font-family: $font-hed-alt;
+    color: $color-blue;
 }
 
 .list-user {
-    padding: 16px 0px 8px 0px;
+    padding: 16px 0px;
     margin-bottom: 0px;
-    border-top: 1px solid #dddddd;
-    font-family: $font-hed;
-    background-color: #f8f8f8;
+    border-top: 1px solid $color-trans-lightgray;
+    font-family: $font-hed-alt;
+    background-color: white;
+    a.action {
+	    display: inline-block;
+	    padding: 0px 6px 0px;
+	    border: 2px solid;
+	    border-radius: 3px;
+	    &:hover, &:focus {
+		    text-decoration: none;
+		    color: white;
+		    background-color: $color-hover;
+		    border-color: $color-hover;
+	    }
+	    &:active {
+		    text-decoration: none;
+		    background-color: $color-active;
+		    border-color: $color-active;
+	    }
+    }
 }
 
 .list-user p {
@@ -4959,15 +4978,16 @@ td.registrar-website-cell {
     color: #333;
 }
 
-.list-name {
-    font-size: 24px;
-    font-weight: 500;
-    margin-bottom: 5px;
+p.list-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+    padding: 0 $double 0 0;
     line-height: 1.2em;
 }
 
 .list-name a {
-    color: #333;
+    color: $color-blue;
 }
 
 .list-name .text-warning {
@@ -4977,6 +4997,11 @@ td.registrar-website-cell {
 
 .list-email {
     margin-bottom: 20px;
+    font-size: 16px;
+    font-weight: 200;
+    margin: 0;
+    padding: 0 $double 0 0;
+    line-height: 1.2em;
 }
 
 .list-user-registrar .list-email {
@@ -4996,9 +5021,9 @@ td.registrar-website-cell {
 }
 
 .list-date {
-    font-size: 12px;
+    font-size: 14px;
     margin-bottom: 0px;
-    margin-top: 35px;
+    margin-top: $grid * 2;
     text-align: right;
 }
 
@@ -5246,6 +5271,9 @@ img[usemap] {
 
 .muted, .muted p {
 	color: $color-trans-gray;
+}
+
+.muted {
 	margin-top: $grid;
 	display: block;
 }
