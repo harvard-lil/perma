@@ -1011,6 +1011,79 @@ p.body { @extend p.body-text; }
 	}
 }
 
+.alert-success {
+	color: $color-green;
+    background-color: $color-white;
+    border: 2px solid $color-green;
+    border-radius: 2px;
+    padding: $double;
+    font-size: 16px;
+    font-weight: 400;
+    font-family: $font-hed-alt;
+    text-align: center;
+    a {
+		font-weight: 700;
+	    display: inline-block;
+	    padding: 4px 5px 2px;
+	    background-color: #77AE3A;
+	    color: white;
+	    font-size: 12px;
+	    vertical-align: middle;
+	    border-radius: 2px;
+	    position: relative;
+	    top: -1px;
+	    margin-left: 3px;	    
+    &:hover {
+		    background-color: $color-black;
+	    }
+    }
+}
+
+.close {
+    line-height: 1;
+    color: $color-white;none;0 1px 0 #ffffff;
+    opacity: 1;
+    filter: none;
+    text-shadow: none;
+    font-weight: 200;
+    font-size: 28px;
+    color: $color-black;
+    &:hover {
+	    color: $color-blue;
+	    opacity: 1;
+	    filter: none;
+    }
+}
+
+.alert {
+	padding: $grid * 4;
+    margin-bottom: 0px;
+    border: none;
+    color: $color-black;
+    background-color: $color-highlight;
+    font-family: $font-hed-alt;
+    font-size: 22px;
+    border-radius: 0;
+    text-align: center;
+    font-weight: 200;
+}
+
+.alert-danger {
+	color: $color-black;
+    background-color: $color-highlight;
+    border-color: transparent;
+}
+
+.popup-alert {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    width: auto;
+    margin: auto;
+    max-width: none;
+    z-index: 10000;
+}
 
 // create
 
@@ -4420,9 +4493,7 @@ td {
     }
 
     .shared-folder-label {
-        border-bottom: 1px #DDD solid;
-        padding: 0.5em 1.5em;
-        font-style: italic;
+	    margin-bottom: $grid * 3;
     }
 
     .link-headers {
@@ -5530,19 +5601,6 @@ p.orange {
 }
 
 
-
-
-.popup-alert {
-  //	via http: //stackoverflow.com/a/22073084/307769 
-    position: fixed;   //	Take it out of the flow of the document 
-    left: 0;           //	Left edge at left for now 
-    right: 0;          //	Right edge at right for now, so full width 
-    top: 25%;         //	Move it down from top of window 
-    width: 700px;      //	Give it the desired width 
-    margin: auto;      //	Center it 
-    max-width: 90%;   //	Make it fit window if under 500px 
-    z-index: 10000;    //	Whatever needed to force to front (1 might do) 
-}
 
 
 
