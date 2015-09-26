@@ -3443,21 +3443,22 @@ div.dashboard-blurb {
 
     #dashboard-tabs {
         margin: 0 0 50px 0;
-        @media (max-width: 767px) {
-            margin-bottom: 0;
-        }
         &.settings-tabs a {
             padding-left: 12px;
-            
-            @media (max-width: 991px) {
-                    font-size: 16px;
-                }
         }
-
+		@include respond-mobile {
+			display: flex;
+			flex-wrap: wrap;
+			li { 
+				width: 100%; 
+				margin: 0;
+				padding: 0;
+			}
+			li.active {
+				order: -1;
+			}
+		}
         li {
-            @media (max-width: 767px) {
-                margin: 0 1em 0 0;
-            }
             img {
                 width: 30px;
             }
@@ -3511,14 +3512,6 @@ div.dashboard-blurb {
 					    background-position: -9px * 5 !important;
 					}
 				}
-                @media (max-width: 991px) {
-                    font-size: 0;
-                    min-height: 49px;
-                }
-                @media (max-width: 767px) {
-                    float: left;
-                    margin-right: 10px;
-                }
             }
             &.active a {
                 background-color: white;
@@ -4854,17 +4847,26 @@ span.action {
 		border-left: 1px solid $color-blue;
 	}
 	.count-label {
-		padding: $grid $double;
+		padding: $grid;
 		color: $color-blue;
 		font-weight: 700;
 		margin-bottom: 0;
+		font-size: 12px;
+		@include respond-desktop {
+			padding: $grid $double;
+			font-size: 14px
+		}
 	}
 	.count-number {
-		padding: $grid $double 0;
+		padding: 0 $grid 0;
 		font-weight: 200;
-		font-size: 60px;
+		font-size: 54px;
 		color: $color-blue;
 		line-height: 1;
+		@include respond-desktop {
+			padding: $grid $double;
+			font-size: 60px;
+		}
 	}
 }
 
@@ -4877,11 +4879,17 @@ span.action {
     color: $color-orange !important;
     font-family: $font-hed-alt;
     font-weight: 700;
-    font-size: 16px;
+    font-size: 14px;
     vertical-align: middle;
-    .filters-title {
+    @include respond-desktop {
 	    font-size: 16px;
+    }
+    .filters-title {
+	    font-size: 14px;
 	    font-weight: 700;
+	    @include respond-desktop {
+		    font-size: 16px;
+	    }
     }
     
     strong, .filter-label, .remove-filters {
@@ -4930,8 +4938,11 @@ td.registrar-website-cell {
 .admin-found {
     border-top: 1px solid $color-blue;
     color: $color-blue;
-    font-size: 16px;
+    font-size: 15px;
     margin-top: $grid * 3;
+    @include respond-desktop {
+	    font-size: 16px;
+    }
 }
 
 .sort-filter-bar {
@@ -4941,12 +4952,15 @@ td.registrar-website-cell {
 }
 
 .sort-filter-bar .dropdown {
-    margin-left: $grid * 3;
+    margin-left: $grid * 2;
     padding-top: 1px;
     float: right;
     font-family: $font-hed-alt;
     a[role='button']:hover, a[role='button']:focus {
 	    color: $color-hover;
+    }
+    @include respond-desktop {
+	    margin-left: $grid * 3;
     }
 }
 
@@ -4956,7 +4970,10 @@ td.registrar-website-cell {
     margin-top: $grid;
     font-family: $font-hed-alt;
     color: $color-blue;
-    font-size: 16px;
+    font-size: 15px;
+    @include respond-desktop {
+	    font-size: 16px;
+    }
 }
 
 .sort-filter-bar .dropdown-menu {
@@ -5063,6 +5080,7 @@ p.list-name {
     margin: 0;
     padding: 0 $double 0 0;
     line-height: 1.2em;
+    word-wrap : break-word;
 }
 
 .list-user-registrar .list-email {
@@ -5082,10 +5100,15 @@ p.list-name {
 }
 
 .list-date {
-    font-size: 14px;
+    font-size: 10px;
+    font-weight: 400;
     margin-bottom: 0px;
     margin-top: $grid * 2;
     text-align: right;
+    @include respond-desktop {
+	    font-size: 14px;
+	    font-weight: 200
+    }
 }
 
 .list-user-registrar .list-date {
@@ -5759,13 +5782,6 @@ p.orange {
     }
     .sort-filter-bar {
         margin-bottom: 16px;
-    }
-    .sort-filter-bar, .sort-filter-bar .dropdown, .sort-filter-bar form {
-        float: none !important;
-    }
-    .sort-filter-count {
-        position: absolute;
-        bottom: -35px;
     }
 }
 
