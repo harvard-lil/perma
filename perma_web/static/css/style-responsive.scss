@@ -1037,6 +1037,15 @@ p.body { @extend p.body-text; }
 		    background-color: $color-black;
 	    }
     }
+    h4 {
+	    color: $color-green;
+	    font-weight: 700;
+	    padding-bottom: $grid;
+    }
+}
+
+.alert-block {
+	margin: $double 0 $grid * 4;
 }
 
 .close {
@@ -2575,6 +2584,17 @@ li.docs-bh {
 	}
 }
 
+.body-ch {
+	font-size: 16px;
+	font-family: $font-hed-alt;
+	font-weight: 700;
+	margin-bottom: $grid;
+ 	@include respond-tablet {
+	    margin-bottom: $double;
+		font-size: 18px;
+	}
+}
+
 ol.tos {
 	margin-left: 0;
 	padding-left: 0;
@@ -2609,6 +2629,10 @@ p.body-text {
 	@include respond-desktop {
 		font-size: 18px;
 	}
+}
+
+._admin #main-content {
+	overflow: visible;
 }
 
 #main._fullWidth #main-content {
@@ -4242,9 +4266,6 @@ ul#linky-ul li {
 	float:left;
 }
 
-#add-member {
-  margin-bottom: 35px;
-}
 
 .account-confirmed-message {
   width: 300px;
@@ -4745,7 +4766,95 @@ body.dragging, .dragging .link-row {
     cursor: grabbing;
 }
 
+// admin users and orgs
 
+.admin-content {
+	margin-top: $grid * 6;
+}
+
+span.action {
+    display: inline-block;
+    float: right;
+    font-size: 16px;
+    padding: 3px 6px 3px;
+    border-radius: 3px;
+    background-color: $color-blue;
+    color: white;
+    font-weight: 400;
+    cursor: pointer;
+    &:hover, &:focus {
+	    background-color: $color-hover;
+    }
+    &:active {
+	    background-color: $color-active;
+    }
+    a {
+	    color: $color-white !important;
+    }
+    .icon-plus-sign, [class^="icon-"], [class*=" icon-"] {
+	    color: white;
+    }
+}
+
+#add-member {
+  padding-bottom: 0;
+}
+
+.admin-data {
+	margin: $grid * 3 0;
+	border-top: 1px solid $color-blue;
+	padding-top: 1px;
+}
+
+.admin-data-point {
+	text-align: center;
+	color: $color-blue;
+	font-family: $font-hed-alt;
+	+ .admin-data-point {
+		border-left: 1px solid $color-blue;
+	}
+	.count-label {
+		padding: $grid $double;
+		color: $color-blue;
+		font-weight: 700;
+		margin-bottom: 0;
+	}
+	.count-number {
+		padding: $grid $double 0;
+		font-weight: 200;
+		font-size: 60px;
+		color: $color-blue;
+		line-height: 1;
+	}
+}
+
+.remove-search-filters {
+	display: block;
+    margin: $double 0;
+    border: 2px solid $color-orange;
+    padding: $grid;
+    border-radius: 2px;
+    color: $color-orange !important;
+    font-family: $font-hed-alt;
+    font-weight: 700;
+    font-size: 16px;
+    strong {
+	    display: inline-block;
+	    background-color: $color-orange;
+	    border-radius: 4px;
+	    margin-left: 4px;
+	    color: white;
+	    padding: 2px 6px;
+	    font-weight: 400;
+	    &:hover {
+		    background-color: $color-black;
+	    }
+    }
+    &:active {
+	    background-color: $color-highlight;
+	    border-color: $color-highlight;
+    }
+}
 
 td.registrar-name-cell {
   min-width: 15%;
@@ -4756,25 +4865,36 @@ td.registrar-website-cell {
   word-break: break-all;
 }
 
+.admin-found {
+    border-top: 1px solid $color-blue;
+    color: $color-blue;
+    font-size: 16px;
+    margin-top: $grid;
+}
 
 .sort-filter-bar {
-    padding-top: 16px;
+    padding-top: $grid;
     padding-bottom: 16px;
     float: right;
 }
 
 .sort-filter-bar .dropdown {
-    margin-right: 16px;
-    padding-top: 7px;
+    margin-left: $grid * 3;
+    padding-top: 1px;
     float: right;
+    font-family: $font-hed-alt;
+    a[role='button']:hover, a[role='button']:focus {
+	    color: $color-hover;
+    }
 }
 
 .sort-filter-count {
-    float: left;
-    font-weight: 500;
-    margin-top: 22px;
-    font-family: $font-hed;
-    color: #333;
+	float: left;
+    font-weight: 400;
+    margin-top: $grid;
+    font-family: $font-hed-alt;
+    color: $color-blue;
+    font-size: 16px;
 }
 
 .sort-filter-bar .dropdown-menu {
@@ -4782,6 +4902,10 @@ td.registrar-website-cell {
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+    top: 29px;
+    right: 0px;
+    left: auto;
+    border-color: black;
 }
 
 .sort-filter-bar .dropdown-menu i.icon-ok {
@@ -4791,15 +4915,6 @@ td.registrar-website-cell {
 
 .sort-filter-bar .dropdown-menu .selected i.icon-ok {
     visibility: visible;
-}
-
-.remove-search-filters {
-    color: #888;
-    font-family: $font-hed;
-}
-
-.remove-search-filters strong {
-    padding: 0px 3px;
 }
 
 .no-users-found {
@@ -4914,22 +5029,6 @@ p.list-count-number {
     margin-top: 0px;
 }
 
-.count-label {
-    font-family: $font-hed;
-    font-size: 12px;
-    margin-bottom: 0px;
-    margin-top: 0px;
-    color: #888;
-    font-weight: 400;
-}
-
-.count-number {
-    font-family: $font-hed;
-    font-size: 48px;
-    font-weight: 500;
-    line-height: 1.1em;
-    color: #333;
-}
 
 .dropdown a .caret {
     border-color: #09f transparent;
