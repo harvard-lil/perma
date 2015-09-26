@@ -1041,31 +1041,48 @@ p.body { @extend p.body-text; }
 
 .close {
     line-height: 1;
-    color: $color-white;none;0 1px 0 #ffffff;
+    color: $color-white;
     opacity: 1;
     filter: none;
     text-shadow: none;
     font-weight: 200;
-    font-size: 28px;
+    font-size: 22px;
     color: $color-black;
+    width: auto;
+    position: absolute;
+    right: 16px;
+    top: 22px;
     &:hover {
 	    color: $color-blue;
 	    opacity: 1;
 	    filter: none;
     }
+    @include respond-tablet {
+	    font-size: 28px;
+	    position: relative;
+	    right: auto;
+	    top: auto;
+    }
 }
 
 .alert {
-	padding: $grid * 4;
+	padding: $grid * 3 $double;
+	padding-right: $grid * 4;
     margin-bottom: 0px;
     border: none;
     color: $color-black;
     background-color: $color-highlight;
     font-family: $font-hed-alt;
-    font-size: 22px;
+    font-size: 14px;
     border-radius: 0;
-    text-align: center;
-    font-weight: 200;
+    text-align: left;
+    font-weight: 400;
+    @include respond-tablet {
+	    font-weight: 200;
+		padding: $grid * 4;
+	    font-size: 22px;
+	    text-align: center;
+    }
 }
 
 .alert-danger {
