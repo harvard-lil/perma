@@ -96,7 +96,15 @@
     {% if registrar_filter.name or org_filter.name or status or upgrade or search_query %}
 	    <div class="row">
 	        <div class="col-sm-12">
-	            <a class="remove-search-filters" href="?sort=last_name"><i class="icon-remove-sign"></i> Clear{% if registrar_filter %} registrar:<strong>{{registrar_filter}}</strong>{% endif %}{% if org_filter %} vesting organization:<strong>{{org_filter}}</strong>{% endif %}{% if status %} status:<strong>{{status}}</strong>{% endif %}{% if upgrade %} upgrade interest:<strong>{{upgrade}}</strong>{% endif %}{% if search_query %} search:<strong>{{search_query}}</strong>{% endif %}</a>
+	            <div class="remove-search-filters" href="?sort=last_name">
+	            	<span class="filters-title">Filters: </span>
+	            	{% if registrar_filter %}<span class="filter-label">Registrar</span> <strong>{{registrar_filter}}</strong> {% endif %}
+	            	{% if org_filter %}<span class="filter-label">Vesting organization</span> <strong>{{org_filter}}</strong> {% endif %}
+	            	{% if status %}<span class="filter-label">Status</span> <strong>{{status}}</strong> {% endif %}
+	            	{% if upgrade %}<span class="filter-label">Upgrade interest</span> <strong>{{upgrade}}</strong> {% endif %}
+	            	{% if search_query %}<span class="filter-label">Search</span> <strong>{{search_query}}</strong>{% endif %}
+	            	<a class="action remove-filters" href="?sort=last_name"><i class="icon-remove-sign"></i> Clear all filters</a>
+	             </div>
 	        </div>
 	    </div>
     {% endif %}
