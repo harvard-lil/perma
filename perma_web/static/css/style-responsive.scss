@@ -3470,15 +3470,47 @@ div.dashboard-blurb {
             a {
                 background-repeat: no-repeat;
                 font-size: 16px;
-                margin-bottom: 10px;
-                padding: 12px 10px 12px 50px;
+                margin-bottom: $half;
+                padding: $grid $double;
                 position: relative;
                 display: block;
-
-                &:hover {
-                    background-color: #efefef;
-                }
-
+                border: none;
+                border-radius: 2px;
+				background-color: $color-background;
+				font-family: $font-hed-alt;
+				font-weight: 700;
+				span {
+					&:after {
+					    content: '';
+					    height: 17px;
+					    width: 9px;
+					    display: inline-block;
+					    background-image: url('../img/ui/perma-ui-chev-right-small.png');
+					    background-repeat: no-repeat;
+					    background-size: 54px 17px;
+					    background-position: -9px * 2;
+					    top: 3px;
+						margin-left: $grid;
+						margin-right: -17px;
+						@include respond-desktop {
+							top: 3px;
+						}
+					}
+				}
+				&:hover, &:focus {
+                    background-color: $color-blue;
+                    color: white;
+					span:after {
+					    background-position: -9px * 5 !important;
+					}
+				}
+				&:active {
+                    background-color: $color-black;
+                    color: white;
+					span:after {
+					    background-position: -9px * 5 !important;
+					}
+				}
                 @media (max-width: 991px) {
                     font-size: 0;
                     min-height: 49px;
@@ -3489,8 +3521,16 @@ div.dashboard-blurb {
                 }
             }
             &.active a {
-                background-color: #efefef;
-                color: #333;
+                background-color: white;
+                color: $color-blue;
+                border: 2px solid $color-blue;
+                cursor: default;
+                padding-top: 7px;
+                padding-bottom: 6px;
+                padding-left: 10px;
+                span:after {
+	                display: none;
+                }
             }
             &.dashboard-secondary a {
                 background: none;
@@ -4957,19 +4997,40 @@ td.registrar-website-cell {
     a.action {
 	    display: inline-block;
 	    padding: 0px 6px 0px;
-	    border: 2px solid;
+	    border: 2px solid $color-black;
 	    border-radius: 3px;
+	    color: $color-black;
 	    &:hover, &:focus {
 		    text-decoration: none;
 		    color: white;
-		    background-color: $color-hover;
-		    border-color: $color-hover;
+		    background-color: $color-black;
+		    border-color: $color-black;
 	    }
 	    &:active {
 		    text-decoration: none;
-		    background-color: $color-active;
-		    border-color: $color-active;
+		    background-color: $color-blue;
+		    border-color: $color-blue;
 	    }
+	    &.action-delete {
+		    border-color: $color-orange;
+		    color: $color-orange;
+		    &:hover, &:focus {
+			    color: white;
+			    background-color: $color-orange;
+			    border-color: $color-orange;
+		    }
+		    &:active {
+			    text-decoration: none;
+			    background-color: $color-active;
+			    border-color: $color-active;
+		    }
+	    }
+    }
+    p.warning {
+	    margin-top: $half;
+	    color: $color-orange;
+	    font-size: 14px;
+	    font-weight: 400;
     }
 }
 
@@ -5041,6 +5102,9 @@ p.list-name {
     font-size: 12px;
     margin-bottom: 0px;
     position: relative;
+    &:first-child {
+	    margin-top: 0;
+    }
 }
 
 .list-count-group {
@@ -5078,7 +5142,8 @@ p.list-count-number {
 
 
 .dropdown a .caret {
-    border-color: #09f transparent;
+    border-color: $color-blue transparent;
+    margin-bottom: 2px;
 }
 
 input#file {
