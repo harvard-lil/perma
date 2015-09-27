@@ -1782,14 +1782,14 @@ strong {
 		background-color: white;
 		&:hover, &:focus {
 			background-color: white !important;
-			color: $color-error;
+			color: $color-error !important;
 			border-color: $color-error;
 			text-decoration: none !important;
 		}
 		&:active {
 			background-color: white !important;
 			border-color: $color-black;
-			color: $color-black;
+			color: $color-black !important;
 		}
 	}
 }
@@ -2619,8 +2619,10 @@ li.docs-bh {
 	font-family: $font-hed-alt;
 	font-weight: 700;
 	margin-bottom: $grid;
+	margin-top: $double;
  	@include respond-tablet {
 	    margin-bottom: $double;
+	    margin-top: $grid * 3;
 		font-size: 18px;
 	}
 }
@@ -2646,6 +2648,11 @@ div.reading-body li {
 	font-weight: 700;
 	font-family: $font-hed-alt;
 	padding-right: .5em;
+}
+
+.data-list {
+	font-family: $font-hed-alt;
+	font-weight: 700;
 }
 
 p.body-text { 

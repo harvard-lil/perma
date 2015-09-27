@@ -3,15 +3,12 @@
 
 {% block content %}
 
-	<h3>Remove {{ target_member.email }}'s registry powers?</h3>
-	<br/>
-	<br/>
+	<h3 class="body-bh">Remove {{ target_member.email }}’s registry powers?</h3>
 	<p>This user will no longer have ultimate Perma power.</p>
 	<p>Do you really want to remove {{ target_member.email }} forever?</p>
-	<br/>
 	<form action="" method="POST">
 	      {% csrf_token %}
-        <a href="../">Cancel</a> <button type="submit" class="btn-success delete-confirm">Remove {{ target_member.email }} forever</button>
+        <a class="btn cancel" href="../">Cancel</a> <button type="submit" class="btn btn-success delete-confirm">Remove {{ target_member.email }} forever</button>
     </form>
 
 {% endblock %}

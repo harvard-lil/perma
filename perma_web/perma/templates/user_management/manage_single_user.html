@@ -2,40 +2,34 @@
 
 
 {% block content %}
-<div class="container">
-	<div class="row">
-		<div class="col-sm-12">	
-			{% if orgs %}
-                <div class="vesting-orgs-list-container">
-                    <h3>Remove from vesting organization</h3>
-                    <p>{{ target_user.email }} is a member of the following vesting organization{{ orgs|pluralize }}:</p>
-                    <form action="{% url 'user_management_manage_single_organization_user_remove' user_id=target_user.id %}" method="POST">
-                        {% csrf_token %}
-                        {% for org in orgs %}
-                            <div class="row remove-message-container">
-                                <div class="col-xs-4">
-                                    <p>{{ org.name }}</p>
-                                </div>
-                                <div class="col-xs-4">
-                                    <button name="org" value="{{ org.id }}" class="btn btn-large btn-danger pull-left" data-toggle="tooltip">Remove</button>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </form>
-                </div>
-            {% endif %}
-			{% if request.user.is_staff %}
-                <h3>Deactivate</h3>
-    			<a href="{% url 'user_management_manage_single_user_delete' target_user.id %}">
-                    <p>{{ target_user.email}}'s account was created on {{ target_user.date_joined}}. Last login occured on {{ target_user.last_login}}</p>
-                    <span class="text-error">
-                        <i class="icon-trash"></i>
+	{% if orgs %}
+        <div class="vesting-orgs-list-container">
+            <h3 class="body-bh">Remove from vesting organization</h3>
+            <p>{{ target_user.email }} is a member of the following vesting organization{{ orgs|pluralize }}:</p>
+            <form action="{% url 'user_management_manage_single_organization_user_remove' user_id=target_user.id %}" method="POST">
+                {% csrf_token %}
+                {% for org in orgs %}
+                    <div class="row remove-message-container">
+                        <div class="col-xs-4">
+                            <p>{{ org.name }}</p>
+                        </div>
+                        <div class="col-xs-4">
+                            <button name="org" value="{{ org.id }}" class="btn btn-large btn-danger pull-left" data-toggle="tooltip">Remove</button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </form>
+        </div>
+    {% endif %}
+	{% if request.user.is_staff %}
+        <h3 class="body-bh">Deactivate</h3>
+		<a href="{% url 'user_management_manage_single_user_delete' target_user.id %}">
+            <p>{{ target_user.email}}'s account was created on {{ target_user.date_joined}}. Last login occured on {{ target_user.last_login}}</p>
+            <span class="text-error">
+                <i class="icon-trash"></i>
 
-                        {% if target_user.is_confirmed %}Deactivate{% else %}Delete{% endif %} {{ target_user.email}}
-                    </span>
-                </a>
-			{% endif %}
-		</div>
-	</div>
-</div>
+                {% if target_user.is_confirmed %}Deactivate{% else %}Delete{% endif %} {{ target_user.email}}
+            </span>
+        </a>
+	{% endif %}
 {% endblock %}

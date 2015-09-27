@@ -3,14 +3,11 @@
 
 {% block content %}
 
-	<h3>Reactivate {{ target_member.email }}</h3>
-	<br/>
-	<br/>
-	<p>Do you really want to reactivate {{ target_member.email }}?</p>
-	<br/>
-	<form action="" method="POST">
+	<h3 class="body-bh">Reactivate {{ target_member.email }}</h3>
+			<p>Do you really want to reactivate {{ target_member.email }}?</p>
+		<form action="" method="POST">
 	      {% csrf_token %}
-        <a href="../">Cancel</a> <button type="submit" class="btn-success delete-confirm">Reactivate {{ target_member.email }}</button>
+        <a class="btn cancel" href="../">Cancel</a> <button type="submit" class="btn btn-success delete-confirm">Reactivate {{ target_member.email }}</button>
     </form>
 
 {% endblock %}
