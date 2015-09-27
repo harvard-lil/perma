@@ -2587,6 +2587,9 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
   	@include respond-tablet {
 	    margin-top: $grid * 8;
 	}
+	& + p {
+		margin-top: $double;
+	}
 }
 
 .body-bh, .docs-bh, .reading-body h3 { 

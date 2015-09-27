@@ -1,37 +1,45 @@
 {% extends "layout-responsive.html" %}
+{% block bodyFlags %}_admin{% endblock %}
 
 {% block row %}
 
-<div id="dashboard-container">
+	<div id="dashboard-container">
+	    <div class="col-sm-12">
+			<div class="row">
+			    <div class="col-sm-12">
+					<h1 class="page-title">Settings</h1>
+			    </div>
+			</div> <!-- end row -->
 
-    <div class="col-sm-3">
-        <h4>Settings</h4>
-        <!-- Dashboard tabs -->
-        <ul class="nav nav-pills nav-stacked settings-tabs" id="dashboard-tabs">
+			<div class="row admin-content">
+			    <div class="col-sm-3">
+			
+			        <!-- Dashboard tabs -->
+			        <ul class="nav nav-pills nav-stacked settings-tabs" id="dashboard-tabs">
+			
+			            <li{% if this_page == 'settings_profile' %} class="active"{% endif %}><a href="{% url 'user_management_settings_profile' %}"><span>Profile</span></a></li>
+			
+			            <li{% if this_page == 'settings_password' %} class="active"{% endif %}><a href="{% url 'user_management_settings_password' %}"><span>Password</span></a></li>
+			            
+			            <li{% if this_page == 'settings_tools' %} class="active"{% endif %}><a href="{% url 'user_management_settings_tools' %}"><span>Tools</span></a></li>
+			
+			            {% if request.user.is_organization_member or request.user.is_registrar_member or request.user.has_registrar_pending %}
+			            <!-- Settings -->
+			            <li{% if this_page == 'settings_organizations' %} class="active"{% endif %}><a href="{% url 'user_management_settings_organizations' %}" id="dashboard-settings"><span>Organizations</span></a></li>
+			            {% endif %}
+			
+			           
+			        </ul><!--/#dashboard-tabs-->
+			    </div><!--/col-sm-3-->
 
-            <li{% if this_page == 'settings_profile' %} class="active"{% endif %}><a href="{% url 'user_management_settings_profile' %}">Profile</a></li>
-
-            <li{% if this_page == 'settings_password' %} class="active"{% endif %}><a href="{% url 'user_management_settings_password' %}">Password</a></li>
-            
-            <li{% if this_page == 'settings_tools' %} class="active"{% endif %}><a href="{% url 'user_management_settings_tools' %}">Tools</a></li>
-
-            {% if request.user.is_organization_member or request.user.is_registrar_member or request.user.has_registrar_pending %}
-            <!-- Settings -->
-            <li{% if this_page == 'settings_organizations' %} class="active"{% endif %}><a href="{% url 'user_management_settings_organizations' %}" id="dashboard-settings">Organizations</a></li>
-            {% endif %}
-
-           
-        </ul><!--/#dashboard-tabs-->
-    </div><!--/col-sm-3-->
-
-   <!-- Dashboard tab content -->
-    <div class="tab-content col-sm-6">
-        <div class="tab-pane active">
-        {% block content %}{% endblock content %}
-        </div><!--/.tab-pane-->
-    </div><!--/.tab-content-->
-
-</div><!--/#dashboard-container-->
-</div> <!--row-->
+				<!-- Dashboard tab content -->
+			    <div class="tab-content col-sm-9">
+			        <div class="tab-pane active">
+			        {% block content %}{% endblock content %}
+			        </div><!--/.tab-pane-->
+			    </div><!--/.tab-content-->
+			</div>
+		</div>
+	</div><!--/#dashboard-container-->
 {% endblock %}
 

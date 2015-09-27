@@ -71,7 +71,6 @@
                                     {% if request.user.is_staff %}
                                         <li><a href="{% url 'user_management_manage_user' %}">Users</a></li>
                                     {% endif %}
-                                    <li class="divider"></li>
                                 {% endif %}
                                 
                                 <!-- Vesting users -->
@@ -79,7 +78,8 @@
                                 <li><a href="{% url 'user_management_manage_organization_user' %}">Manage users</a></li>
                                 {% endif %}
                                 {% if request.user.is_staff %}
-                                    <li><a href="{% url 'admin:index' %}">Admin console</a></li>
+                                    <li class="divider"></li>
+									<li><a href="{% url 'admin:index' %}">Admin console</a></li>
                                 {% endif %}
                                 <li class="divider"></li>
                                 <li role="presentation" class="dropdown-header">Settings</li>
