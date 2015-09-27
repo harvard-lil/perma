@@ -1,16 +1,18 @@
 <form method="post" action="{% url 'api_key_create' %}" class="embedded-form">
-<h4>API</h4>
+<h4 class="body-bh">API</h4>
   {{ api_form.non_field_errors }}
   {% if request.user.api_key.key %}
-  <p>
-    {{ api_form.api_key.errors }}
-    <label for="id_api_key">API Key</label><br/>
-    <input type="text" class="input-medium" name="api_key" id="id_api_key" value="{{ request.user.api_key.key }}">
-  </p>
+  <form>
+  	<fieldset>
+	    {% if api_form.api_key.errors %}{{ api_form.api_key.errors }}{% endif %}
+	    <div class="form-group fg-100">
+		    <label for="id_api_key">API Key</label>
+		    <input type="text" class="input-medium" name="api_key" id="id_api_key" value="{{ request.user.api_key.key }}" />
+		</div>
+    </fieldset>
+  </form>
   {% endif %}
-  <p>
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-    <input type="submit" class="btn-success" value="{% if request.user.api_key.key %}Regenerate{% else %}Generate an{% endif %} API key">
+    <input type="submit" class="btn btn-success" value="{% if request.user.api_key.key %}Regenerate{% else %}Generate an{% endif %} API key">
     <input type="hidden" name="next" value="{{ next }}">
-  </p>
 </form>

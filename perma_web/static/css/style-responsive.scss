@@ -999,7 +999,7 @@ p.body { @extend p.body-text; }
 
 .lockup p { @extend %style-pageLede; } 
 
-.page-lede, .page-dek { @extend %style-pageLede; }
+.page-lede, .page-dek, .body-dek { @extend %style-pageLede; }
 
 .modal { position: fixed; }
 
@@ -1792,6 +1792,24 @@ strong {
 			color: $color-black !important;
 		}
 	}
+	&.btn-bookmarklet {
+		padding: $grid;
+		font-size: 13px;
+		color: $color-black;
+		border: 3px solid $color-black;
+		background-color: white;
+		cursor: move;
+		margin-top: 0;
+		&:hover, &:focus, &:active {
+			border-color: $color-black !important;
+			color: $color-black !important;
+			background-color: white !important;
+		}
+	}
+	&.btn-xs {
+	    padding: 4px 8px;
+	    font-size: 12px;
+  	}
 }
 
 .thumbnail {
@@ -1948,7 +1966,7 @@ div.checkbox {
 input + label {
 	margin-top: $double;
 }
-button {
+button, input[type="submit"] {
 	width: 100%;
 	@include respond-tablet {
 		width: auto;
@@ -2589,6 +2607,16 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
 	}
 	& + p {
 		margin-top: $double;
+	}
+	& + p.page-dek, & + p.body-dek {
+		margin-top: $grid;
+	}
+}
+
+.body-ah + .body-bh {
+    margin-top: $grid * 3;
+ 	@include respond-tablet {
+	    margin-top: $grid * 6;
 	}
 }
 
@@ -4315,19 +4343,6 @@ ul#linky-ul li {
     margin-right: 5px;
 }
 
-.sponsoring-library-info {
-  margin-bottom: 35px;
-}
-
-.sponsoring-library-info h5 {
-	margin-bottom:25px;
-}
-
-.sponsoring-library-info .edit-org-link, .sponsoring-library-info .leave-org-btn {
-	font-family: $font-hed-alt;
-	margin-left: 15px;
-	font-size:12px;
-}
 
 .registrar-info {
 	float:left;
@@ -4866,6 +4881,30 @@ span.action {
     }
     .icon-plus-sign, [class^="icon-"], [class*=" icon-"] {
 	    color: white;
+    }
+}
+
+.admin-sponsor {
+	border: 1px solid $color-trans-lightgray;
+    padding: $grid;
+    font-size: 16px;
+    font-family: $font-hed-alt;
+    border-radius: 2px;
+    margin-top: $double;
+    font-weight: 200;
+    overflow: auto;
+    strong, span {
+	    display: block;
+	    padding-right: 24px;
+    }
+    .btn-xs {
+	padding: 4px 8px;
+    font-size: 12px;
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    right: $grid;
+    margin-top: -15px;
     }
 }
 

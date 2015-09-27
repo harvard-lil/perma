@@ -3,46 +3,43 @@
 {% block title %} | Settings Password{% endblock %}
 
 {% block content %}
-	  <h3>Organizations</h3>
+	  <h3 class="body-ah">Organizations</h3>
 	  {% if messages %}
         {% for message in messages %}
-            <div class="alert alert-{{ message.level_tag }} alert-block">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
+            <div class="alert-{{ message.level_tag }} alert-block">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
         {% endfor %}
         {% endif %}
 		<div class="sponsoring-library-info">
             {% with request.user.organizations as organization %}
-                <h5>Your sponsoring library and organization(s)</h5>
+                <h4 class="body-ch">Your sponsoring library and organization(s)</h4>
                     {% for vo in organization.all %}
                     {% with vo.registrar as registrar %}
-                        <p>
+                    	<div class="admin-sponsor">
                             {% if registrar.website %}
-                                <strong><a href="{{registrar.website}}" target="_blank">{{registrar}}</a></strong>
+                                <strong class="sponsor-name"><a href="{{registrar.website}}" target="_blank">{{registrar}}</a></strong>
                             {% else %}
-                                <strong>{{registrar}}</strong>
+                                <strong class="sponsor-name">{{registrar}}</strong>
                             {% endif %}
-                            <br>{{registrar.email}}
+                            	<span class="sponsor-email">{{registrar.email}}</span>
                     {% endwith %}
-                            <p>{{ vo }} <a href="{% url 'user_management_organization_user_leave_organization' vo.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Leave</a> <a href="{% url 'user_management_manage_single_organization' vo.id %}" class="edit-org-link">Edit organization</a></p>
-                        </p>
-                    
+	                            <p>{{ vo }} <a href="{% url 'user_management_organization_user_leave_organization' vo.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Leave</a> <a href="{% url 'user_management_manage_single_organization' vo.id %}" class="edit-org-link">Edit organization</a></p>
+                    	</div>
                     {% endfor %}
-            {% endwith %}
-            {% if pending_registrar %}
-                <p><strong>Pending registrar</strong> {{pending_registrar.name}}</p>
-            {% endif %}
+		    {% endwith %}
+				            {% if pending_registrar %}
+				                <p><strong>Pending registrar</strong> {{pending_registrar.name}}</p>
+				            {% endif %}
             
-            {% if request.user.registrar %}
-                <p class="registrar-info">
-                {% if request.user.registrar.website %}
-                    <strong><a href="{{request.user.registrar.website}}" target="_blank">{{request.user.registrar}}</a></strong>
-                {% else %}
-                    <strong>{{request.user.registrar}}</strong>
-                {% endif %}
-                <br>{{request.user.registrar.email}}
-                </p>
-                <a href="{% url 'user_management_manage_single_registrar' request.user.registrar.id %}" class="btn btn-default btn-xs edit-registrar-btn" role="button">Edit</a>
-            {% endif %}
+				            {% if request.user.registrar %}
+								<div class="admin-sponsor">
+				                {% if request.user.registrar.website %}
+				                    <strong><a href="{{request.user.registrar.website}}" target="_blank">{{request.user.registrar}}</a></strong>
+				                {% else %}
+				                    <strong>{{request.user.registrar}}</strong>
+				                {% endif %}
+				                <span class="sponsor-email">{{request.user.registrar.email}}</span>
+				                <a href="{% url 'user_management_manage_single_registrar' request.user.registrar.id %}" class="btn btn-default btn-xs edit-registrar-btn" role="button">Edit</a>
+								</div>
+							{% endif %}
         </div>
-    <br/><br/>
-
 {% endblock %}
