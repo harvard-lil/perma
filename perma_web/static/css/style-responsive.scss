@@ -764,9 +764,19 @@ input:focus, *:hover {
 	margin-right: 0;
 }
 
+.row.row-half-bleed {
+	margin-left: -2px;
+	margin-right: -2px;
+}
+
 .col.col-no-gutter {
 	padding-left: 0;
 	padding-right: 0;
+}
+
+.col.col-half-gutter {
+	padding-left: 2px;
+	padding-right: 2px;
 }
 
 div.col-right {
@@ -5155,6 +5165,20 @@ td.registrar-website-cell {
 			    border-color: $color-active;
 		    }
 	    }
+	    &.action-approve {
+		    border-color: $color-blue;
+		    color: $color-blue;
+		    &:hover, &:focus {
+			    color: white;
+			    background-color: $color-blue;
+			    border-color: $color-blue;
+		    }
+		    &:active {
+			    text-decoration: none;
+			    background-color: $color-active;
+			    border-color: $color-active;
+		    }
+	    }
     }
     p.warning {
 	    margin-top: $half;
@@ -5261,23 +5285,28 @@ div.org-data-points {
 	}
 }
 
-div.org-data-point {
+div.list-count-group {
 	font-weight: 200;
     font-size: 14px;
     font-weight: 200;
     border: none;
     border-radius: 3px;
     padding: 2px 11px;
-    margin-top: $double;
-    margin-right: 6px;
     background-color: $color-trans-whispergray;
     width: 100%;
-    & + .org-data-point {
-	    margin-top: 4px;
-    }
 	strong {
 		font-weight: 700;
 		color: $color-orange;
+	}
+}
+
+.col-sm-4.org-data-point {
+	margin-top: $double;
+	& + .org-data-point {
+	    margin-top: 4px;
+    }
+	@include respond-tablet {
+		width: 100%;
 	}
 	@include respond-desktop {
 		width: 33.33333333%;

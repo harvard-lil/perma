@@ -246,20 +246,22 @@
 					{% if group_name == 'registrar_user' and request.user.is_staff %}<p class="list-registrar"><a href="{% url 'user_management_manage_registrar' %}?q={{listed_user.registrar.name.split|join:'+'|lower}}">{{ listed_user.registrar.name }}</a></p>{% endif %}
 
 					{% if group_name == 'organization_user' %}
-			            <div class="row row-no-bleed org-data-points">
-							<div class="col col-sm-3 org-data-point">
+			            <div class="row row-half-bleed org-data-points">
+							<div class="col col-sm-4 col-half-gutter org-data-point">
+								<div class="list-count-group">
 									<strong class="list-count-number{% if request.user.is_organization_member%} vesting_user-list{% endif %}">{{ listed_user.vested_links_count }}</strong>
 									<span class="list-count-label">vested links</span>
-								{% comment %}
-									{% if group_name == 'organization_user' or group_name == 'user' %}
-										{% if request.user.is_staff %}
-											<div class="list-count-group">
-											<p class="list-count-number{% if group_name == 'user'%} vesting_user-list{% endif %}">{{ listed_user.created_links_count }}</p>
-											<p class="list-count-label">created links</p>
-											</div>
+									{% comment %}
+										{% if group_name == 'organization_user' or group_name == 'user' %}
+											{% if request.user.is_staff %}
+												<div class="list-count-group">
+												<p class="list-count-number{% if group_name == 'user'%} vesting_user-list{% endif %}">{{ listed_user.created_links_count }}</p>
+												<p class="list-count-label">created links</p>
+												</div>
+											{% endif %}
 										{% endif %}
-									{% endif %}
-								{% endcomment %}
+									{% endcomment %}
+								</div>
 							</div>
 			            </div>
 					{% endif %}
