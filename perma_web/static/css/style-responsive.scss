@@ -3875,7 +3875,6 @@ input.text-input {
     border: 1px solid #ccc;
     width: 289px; //	to match reCAPTCHA width 
 }
-
     .text-input-active {
         color: #555 !important;
     }
@@ -4413,7 +4412,6 @@ ul#linky-ul li {
     color: $color-blue;
     font-weight: bold;
 }
-
 .btn:active, .btn:hover {
     color: #06a;
 }
@@ -4524,7 +4522,6 @@ a.orange {
 .btn-primary {
     color: #fff;
 }
-
 .btn-primary:hover {
     color: #fcf04d;
 }
@@ -4929,11 +4926,6 @@ span.action {
 	    display: block;
 	    padding-right: 24px;
     }
-    p {
-	    font-weight: 400;
-	    margin-top: 0;
-	    margin-bottom: 0;
-    }
     .btn-xs {
 		padding: 4px 8px;
 	    font-size: 12px;
@@ -4943,27 +4935,6 @@ span.action {
 	    right: $grid;
 	    margin-top: -15px;
     }
-    a.action {
-	    display: inline-block;
-	    padding: 0px 6px 0px;
-	    border: 2px solid $color-black;
-	    border-radius: 3px;
-	    color: $color-black;
-	    font-weight: 700;
-	    font-size: 12px;
-	    top: -1px;
-	    margin-left: $half;
-	    &:hover, &:focus {
-		    text-decoration: none;
-		    color: white;
-		    background-color: $color-black;
-		    border-color: $color-black;
-	    }
-	    &:active {
-		    text-decoration: none;
-		    background-color: $color-blue;
-		    border-color: $color-blue;
-	    }
 }
 
 #add-member {
@@ -5856,7 +5827,6 @@ a.btn.vest, a.btn.dashboard, a.btn.user-delete {
 	background: #fff;
 	margin-left: 10px;
 }
-
 a.btn.vest {
 	width: 100px;
 	padding: 2px 0px;
@@ -5868,13 +5838,11 @@ a.btn.vest {
 	background: #5cb85c;
 	margin-left: 10px;
 }
-
 input.btn.vest:hover, input.btn.vest:focus, a.btn.vest:hover, a.btn.vest:focus {
 	color: #fff;
 	background: #11ad32;
 	border: 1px solid #4cae4c;
 }
-
 a.btn.dashboard:hover, a.btn.dashboard:focus {
 	border: 1px solid #222;
   	color: #222;
@@ -6165,4 +6133,3 @@ p.orange {
 
 
 //	End user docs  
-
