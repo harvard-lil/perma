@@ -4874,6 +4874,9 @@ span.action {
 		&.col-sm-4 {
 			width: 33.3333333333333%;
 		}
+		&.col-sm-6 {
+			width: 50%;
+		}
 		p.count-label {
 			font-size: 10px;
 			padding: $grid $half;
@@ -5209,7 +5212,12 @@ p.list-name {
     }
 }
 
-.list-vesting-org a, .list-registrar a {
+.list-registrar a {
+	color: $color-trans-gray;
+	font-weight: 700;
+}
+
+.list-vesting-org a {
     color: $color-black;
 }
 
@@ -5218,6 +5226,15 @@ p.list-name {
     margin-bottom: 5px;
 }
 
+.list-count-label a {
+	font-size: 85%;
+	font-weight: 700;
+	color: $color-trans-gray;
+	margin-left: 4px;
+	&:hover {
+		color: $color-black;
+	}
+}
 
 
 .list-date {
@@ -5235,6 +5252,14 @@ p.list-name {
     }
 }
 
+
+div.org-data-points {
+	margin-bottom: $double;
+	@include respond-tablet {
+		margin-bottom: 0;
+	}
+}
+
 div.org-data-point {
 	font-weight: 200;
     font-size: 14px;
@@ -5242,13 +5267,23 @@ div.org-data-point {
     border: none;
     border-radius: 3px;
     padding: 2px 11px;
-    margin-top: $grid;
+    margin-top: $double;
     margin-right: 6px;
     background-color: $color-trans-whispergray;
+    width: 100%;
+    & + .org-data-point {
+	    margin-top: 4px;
+    }
 	strong {
 		font-weight: 700;
 		color: $color-orange;
-	} 
+	}
+	@include respond-desktop {
+		width: 33.33333333%;
+	    & + .org-data-point {
+		    margin-top: $double;
+	    }
+	}
 }
  
 .list-status {
@@ -5283,17 +5318,6 @@ p.list-count-number {
     margin-top: 25px;
 }
 
-.list-user-registrar p.list-count-number {
-    margin-top: 5px;
-}
-
-.list-user-registrar .center-list-count p.list-count-number {
-    text-align: center;
-}
-
-.list-count-number.vesting_user-list {
-    margin-top: 0px;
-}
 
 
 .dropdown a .caret {
@@ -5908,10 +5932,6 @@ p.orange {
 	tbody {
 		font-size: 12px;
 	}
-	.list-count-number {
-        margin-top: 10px;
-        font-size: 28px;
-    }
     .sort-filter-bar {
         margin-bottom: 16px;
     }
