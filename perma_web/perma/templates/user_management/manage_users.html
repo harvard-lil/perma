@@ -4,7 +4,7 @@
 
 {% block content %}
 
-	<h2 class="body-ah">{{ pretty_group_name_plural|title }} <span class="action"><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add user</a></span></h2>
+	<h2 class="body-ah">{{ pretty_group_name_plural|title }} <span class="action"><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add {{ pretty_group_name|lower }}</a></span></h2>
 
 	{% if messages %}
 		{% for message in messages %}
@@ -19,24 +19,30 @@
 	<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
 		{% if group_name == 'organization_user' %}
 			<form method="get" action="{% url 'user_management_organization_user_add_user' %}" class="form-inline" role="form">
-				<div class="form-group">
-					<input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
-				</div>
-				<button type="submit" class="btn btn-default">Add</button>
+				<fieldset>
+					<div class="form-group fg-inline">
+						<input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
+					</div>
+					<button type="submit" class="btn btn-default btn-inline">Add {{ pretty_group_name }}</button>
+				</fieldset>
 			</form>
 			{% elif group_name == 'registrar_user' %}
 			<form method="get" action="{% url 'user_management_registrar_user_add_user' %}" class="form-inline" role="form">
-				<div class="form-group">
-					<input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
-				</div>
-				<button type="submit" class="btn btn-default">Add</button>
+				<fieldset>
+					<div class="form-group fg-inline">
+						<input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
+					</div>
+					<button type="submit" class="btn btn-default btn-inline">Add {{ pretty_group_name }}</button>
+				</fieldset>
 			</form>
 			{% elif group_name == 'registry_user' %}
 			<form method="get" action="{% url 'user_management_registry_user_add_user' %}" class="form-inline" role="form">
-				<div class="form-group">
-					<input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
-				</div>
-				<button type="submit" class="btn btn-default">Add</button>
+				<fieldset>
+					<div class="form-group fg-inline">
+						<input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
+					</div>
+					<button type="submit" class="btn btn-default btn-inline">Add {{ pretty_group_name }}</button>
+				</fieldset>
 			</form>
 		{% else %}
 			<form method="post">
@@ -63,7 +69,7 @@
 		
 		
 	<div class="row row-no-bleed admin-data">
-		<div class="col {% if request.user.is_staff and group_name == 'user' %}col-sm-3{% else %}col-sm-3{% endif %} col col-no-gutter admin-data-point">
+		<div class="col {% if request.user.is_staff and group_name == 'user' %}col-sm-3{% else %}col-sm-4{% endif %} col col-no-gutter admin-data-point">
 			<p class="count-label">Users</p>
 			<p class="count-number">{{ users.paginator.count|intcomma }}</p>
 		</div>
@@ -75,12 +81,12 @@
 			</div>
 		{% endif %}
 
-		<div class="col {% if request.user.is_staff and group_name == 'user' %}col-sm-3{% else %}col-sm-3{% endif %} col col-no-gutter admin-data-point">
+		<div class="col {% if request.user.is_staff and group_name == 'user' %}col-sm-3{% else %}col-sm-4{% endif %} col col-no-gutter admin-data-point">
 			<p class="count-label">Unactivated Users</p>
 			<p class="count-number">{{ unactivated_users }}</p>
 		</div>
 
-		<div class="col {% if request.user.is_staff and group_name == 'user' %}col-sm-3{% else %}col-sm-3{% endif %} col col-no-gutter admin-data-point">
+		<div class="col {% if request.user.is_staff and group_name == 'user' %}col-sm-3{% else %}col-sm-4{% endif %} col col-no-gutter admin-data-point">
 			<p class="count-label">Vested Links</p>
 			<p class="count-number">{{ total_vested_links_count.count|default:0|intcomma }}</p>
 		</div>
