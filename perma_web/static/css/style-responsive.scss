@@ -2019,6 +2019,23 @@ button, input[type="submit"] {
   	}
 }
 
+textarea {
+	margin: $grid 0 0 0;
+	display: block;
+	width: 100%;
+	font-size: 16px;
+	font-weight: 400;
+	font-family: $font-hed-alt;
+    outline: none;
+    box-shadow: none;
+    border: 1px solid $color-trans-lightgray;
+    border-radius: 4px;
+	&:focus {
+		border-color: $color-blue;
+	}
+}
+
+
 button.btn-inline {
     display: inline-block;
     padding: 9px;
@@ -2083,6 +2100,16 @@ button#addlink,
 	@include respond-tablet {
 		float: none;
 		width: 100%;
+	}
+}
+
+
+.col-sm-6.contact-form {
+	@include respond-tablet {
+		width: 100%;
+	}
+	@include respond-desktop {
+		width: 50%;
 	}
 }
 
