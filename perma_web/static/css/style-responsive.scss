@@ -1085,23 +1085,6 @@ p.body { @extend p.body-text; }
 }
 
 .alert {
-	padding: $grid * 3 $double;
-	padding-right: $grid * 4;
-    margin-bottom: 0px;
-    border: none;
-    color: $color-black;
-    background-color: $color-highlight;
-    font-family: $font-hed-alt;
-    font-size: 14px;
-    border-radius: 0;
-    text-align: left;
-    font-weight: 400;
-    @include respond-tablet {
-	    font-weight: 200;
-		padding: $grid * 4;
-	    font-size: 22px;
-	    text-align: center;
-    }
 }
 
 .alert-danger {
@@ -1119,6 +1102,23 @@ p.body { @extend p.body-text; }
     margin: auto;
     max-width: none;
     z-index: 10000;
+	padding: $grid * 3 $double;
+	padding-right: $grid * 4;
+    margin-bottom: 0px;
+    border: none;
+    color: $color-black;
+    background-color: $color-highlight;
+    font-family: $font-hed-alt;
+    font-size: 14px;
+    border-radius: 0;
+    text-align: left;
+    font-weight: 400;
+    @include respond-tablet {
+	    font-weight: 200;
+		padding: $grid * 4;
+	    font-size: 22px;
+	    text-align: center;
+    }
 }
 
 // create
