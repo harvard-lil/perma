@@ -1,6 +1,6 @@
 {% extends "settings-layout.html" %}
 
-{% block title %} | Settings Password{% endblock %}
+{% block title %} | Settings | Organizations{% endblock %}
 
 {% block content %}
 	  <h3 class="body-ah">Organizations</h3>
@@ -22,12 +22,13 @@
                             {% endif %}
                             	<span class="sponsor-email">{{registrar.email}}</span>
                     {% endwith %}
-	                            <p>{{ vo }} <a href="{% url 'user_management_organization_user_leave_organization' vo.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Leave</a> <a href="{% url 'user_management_manage_single_organization' vo.id %}" class="edit-org-link">Edit organization</a></p>
+	                            <p>{{ vo }}</p>
+	                            <a href="{% url 'user_management_organization_user_leave_organization' vo.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Leave</a> <a href="{% url 'user_management_manage_single_organization' vo.id %}" class="edit-org-link">Edit organization</a>
                     	</div>
                     {% endfor %}
 		    {% endwith %}
 				            {% if pending_registrar %}
-				                <p><strong>Pending registrar</strong> {{pending_registrar.name}}</p>
+				                <p class="body-text"><strong>Pending registrar</strong> {{pending_registrar.name}}</p>
 				            {% endif %}
             
 				            {% if request.user.registrar %}
