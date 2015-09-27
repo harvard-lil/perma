@@ -1974,6 +1974,21 @@ button {
 			}
 		}
 	}
+	select {
+		margin-top: $grid;
+	    display: block;
+	    width: 100%;
+	    clear: both;
+	    font-size: 16px;
+	    font-family: $font-hed-alt;
+	    font-weight: 400;
+	    height: 42px;
+	    &:focus {
+		    border-color: $color-blue;
+		    box-shadow: none;
+		    -webkit-box-shadow: none;
+	    }
+  	}
 }
 
 button.btn-inline {
@@ -4951,7 +4966,7 @@ span.action {
 		    background-color: $color-black;
 		    border-color: $color-black;
 	    }
-	    @include reposnd-tablet {
+	    @include respond-tablet {
 		    float: right;
 		    width: auto;
 		    margin-left: $half;
@@ -5097,11 +5112,12 @@ td.registrar-website-cell {
 .list-user {
 	padding: $grid 0px;
     margin-bottom: 0px;
-    border-top: 1px solid $color-trans-lightgray;
+    border-top: 1px solid $color-black;
     font-family: $font-hed-alt;
     background-color: white;
     &.muted {
 	    margin-top: 0;
+	    border-top: 1px solid $color-trans-gray;
     }
     a.action {
 	    display: inline-block;
@@ -5109,6 +5125,8 @@ td.registrar-website-cell {
 	    border: 2px solid $color-black;
 	    border-radius: 3px;
 	    color: $color-black;
+	    font-weight: 700;
+	    font-size: 12px;
 	    &:hover, &:focus {
 		    text-decoration: none;
 		    color: white;
@@ -5142,7 +5160,7 @@ td.registrar-website-cell {
 	    font-weight: 400;
 	    margin-bottom: 0;
     }
-    @include repond-tablet {
+    @include respond-tablet {
 	    padding: $double 0px;
     }
     @include respond-mobile {
@@ -5163,6 +5181,10 @@ p.list-name {
     margin: 0;
     padding: 0 $double 0 0;
     line-height: 1.2em;
+    color: $color-black;
+    a {
+	    color: $color-black;
+    }
 }
 
 .list-name a {
@@ -5174,7 +5196,7 @@ p.list-name {
     color: $color-orange;
 }
 
-.list-email {
+.list-email, .list-registrar {
     margin-bottom: 20px;
     font-size: 16px;
     font-weight: 200;
@@ -5182,23 +5204,21 @@ p.list-name {
     padding: 0 $double 0 0;
     line-height: 1.2em;
     word-wrap : break-word;
+    a {
+	    font-weight: 200;
+    }
 }
 
-.list-user-registrar .list-email {
-
+.list-vesting-org a, .list-registrar a {
+    color: $color-black;
 }
+
 
 .list-website {
     margin-bottom: 5px;
 }
 
-.list-vesting-org, .list-registrar {
-    margin-bottom: 0;
-}
 
-.list-vesting-org a, .list-registrar a {
-    color: #333;
-}
 
 .list-date {
 	font-size: 14px;
@@ -5215,12 +5235,20 @@ p.list-name {
     }
 }
 
-.list-user-registrar .list-date {
-    margin-top: 20px;
-}
-
-.list-date.vesting_user-list {
-    margin-top: 18px;
+div.org-data-point {
+	font-weight: 200;
+    font-size: 14px;
+    font-weight: 200;
+    border: none;
+    border-radius: 3px;
+    padding: 2px 11px;
+    margin-top: $grid;
+    margin-right: 6px;
+    background-color: $color-trans-whispergray;
+	strong {
+		font-weight: 700;
+		color: $color-orange;
+	} 
 }
  
 .list-status {
