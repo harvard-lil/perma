@@ -4,7 +4,7 @@
 
 {% block content %}
 
-	<h2 class="body-ah">{{ pretty_group_name_plural|title }} <span class="action"><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add {{ pretty_group_name|lower }}</a></span></h2>
+	<h2 class="body-ah">{{ pretty_group_name_plural|title }} <span class="action"><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add<span class="verbose"> {{ pretty_group_name|lower }}</a></a></span></h2>
 
 	{% if messages %}
 		{% for message in messages %}
@@ -219,7 +219,7 @@
 				{% else %}
 					<div class="row list-user row-no-bleed">
 				{% endif %}
-				<div class="col col-sm-6 col-no-gutter">
+				<div class="col col-sm-8 col-no-gutter">
 					<p class="list-name">
 					{% if not listed_user.first_name and not listed_user.last_name %}
 						{{ listed_user.email }}
@@ -244,26 +244,28 @@
 					{% endif %}
 					</p>
 					{% if group_name == 'registrar_user' and request.user.is_staff %}<p class="list-registrar"><a href="{% url 'user_management_manage_registrar' %}?q={{listed_user.registrar.name.split|join:'+'|lower}}">{{ listed_user.registrar.name }}</a></p>{% endif %}
-				</div>
-				<div class="col col-sm-3 col-no-gutter">
+
 					{% if group_name == 'organization_user' %}
-						<div class="list-count-group">
-						<p class="list-count-number{% if request.user.is_organization_member%} vesting_user-list{% endif %}">{{ listed_user.vested_links_count }}</p>
-						<p class="list-count-label">vested links</p>
-						</div>
+			            <div class="row row-no-bleed org-data-points">
+							<div class="col col-sm-3 org-data-point">
+									<strong class="list-count-number{% if request.user.is_organization_member%} vesting_user-list{% endif %}">{{ listed_user.vested_links_count }}</strong>
+									<span class="list-count-label">vested links</span>
+								{% comment %}
+									{% if group_name == 'organization_user' or group_name == 'user' %}
+										{% if request.user.is_staff %}
+											<div class="list-count-group">
+											<p class="list-count-number{% if group_name == 'user'%} vesting_user-list{% endif %}">{{ listed_user.created_links_count }}</p>
+											<p class="list-count-label">created links</p>
+											</div>
+										{% endif %}
+									{% endif %}
+								{% endcomment %}
+							</div>
+			            </div>
 					{% endif %}
-					{% comment %}
-					{% if group_name == 'organization_user' or group_name == 'user' %}
-						{% if request.user.is_staff %}
-						<div class="list-count-group">
-						<p class="list-count-number{% if group_name == 'user'%} vesting_user-list{% endif %}">{{ listed_user.created_links_count }}</p>
-						<p class="list-count-label">created links</p>
-						</div>
-						{% endif %}
-					{% endif %}
-					{% endcomment %}
 				</div>
-				<div class="col col-sm-3 col-no-gutter align-right admin-actions">
+
+				<div class="col col-sm-4 col-no-gutter align-right admin-actions">
 					<p class="list-status">
 						{% if listed_user.is_active %}
 							{% if request.user.is_staff %}

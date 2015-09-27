@@ -5199,7 +5199,7 @@ p.list-name {
     color: $color-orange;
 }
 
-.list-email, .list-registrar {
+.list-email, .list-registrar, .list-vesting-org {
     margin-bottom: 20px;
     font-size: 16px;
     font-weight: 200;
@@ -5212,14 +5212,15 @@ p.list-name {
     }
 }
 
-.list-registrar a {
+p.list-vesting-org {
+	color: $color-trans-gray;
+}
+
+.list-registrar a, .list-vesting-org a {
 	color: $color-trans-gray;
 	font-weight: 700;
 }
 
-.list-vesting-org a {
-    color: $color-black;
-}
 
 
 .list-website {
