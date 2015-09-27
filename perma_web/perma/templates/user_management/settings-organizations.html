@@ -22,9 +22,16 @@
                             {% endif %}
                             	<span class="sponsor-email">{{registrar.email}}</span>
                     {% endwith %}
-	                            <p>{{ vo }}</p>
-	                            <a href="{% url 'user_management_organization_user_leave_organization' vo.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Leave</a> <a href="{% url 'user_management_manage_single_organization' vo.id %}" class="edit-org-link">Edit organization</a>
-                    	</div>
+                            <p>{{ vo }}</p>
+                            <a href="{% url 'user_management_organization_user_leave_organization' vo.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Leave</a> <a href="{% url 'user_management_manage_single_organization' vo.id %}" class="edit-org-link">Edit organization</a>
+	              			{% if vo.default_to_private %}
+		              			<p>Links are <strong>PRIVATE</strong> by default</p>
+		          				<a href="{% url 'user_management_settings_organizations_change_privacy' vo.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Set to public</a>
+		                    {% else %}
+			          			<p>Links are <strong>PUBLIC</strong> by default</p>
+			          			<a href="{% url 'user_management_settings_organizations_change_privacy' vo.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Set to private</a>
+		                    {% endif %}
+						</div>
                     {% endfor %}
 		    {% endwith %}
 				            {% if pending_registrar %}
