@@ -4,11 +4,12 @@
 {% block content %}
 
 	<h3 class="body-bh">Leave {{ org.name }}</h3>
-			<p>Yahowza! Do you really want to leave <strong>{{ org.name }}</strong> forever?</p>
+		<p class="body-dek">Yahowza! Do you really want to leave <strong>{{ org.name }}</strong> forever?</p>
 	<div class="alert alert-danger">You will lose vesting privileges for <strong>{{ org.name }}</strong>.</div>
-		<form action="" method="POST">
+	<form action="" method="POST">
         {% csrf_token %}
-        <a href="{% url 'user_management_settings_organizations' %}">Cancel</a> <button type="submit" class="btn btn-success delete-confirm">Leave {{ org.name }} forever</button>
+        <a class="btn cancel" href="{% url 'user_management_settings_organizations' %}">Cancel</a>
+        <button type="submit" class="btn btn-success delete-confirm">Leave {{ org.name }} forever</button>
     </form>
 
 {% endblock %}

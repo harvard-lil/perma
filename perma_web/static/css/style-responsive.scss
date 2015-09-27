@@ -4912,7 +4912,11 @@ span.action {
     }
 }
 
-.admin-sponsor {
+.org-settings {
+	margin-top: $double;
+}
+
+.settings-block {
 	border: 1px solid $color-trans-lightgray;
     padding: $grid;
     font-size: 16px;
@@ -4925,6 +4929,11 @@ span.action {
 	    display: block;
 	    padding-right: 24px;
     }
+    p {
+	    font-weight: 400;
+	    margin-top: 0;
+	    margin-bottom: 0;
+    }
     .btn-xs {
 		padding: 4px 8px;
 	    font-size: 12px;
@@ -4934,6 +4943,27 @@ span.action {
 	    right: $grid;
 	    margin-top: -15px;
     }
+    a.action {
+	    display: inline-block;
+	    padding: 0px 6px 0px;
+	    border: 2px solid $color-black;
+	    border-radius: 3px;
+	    color: $color-black;
+	    font-weight: 700;
+	    font-size: 12px;
+	    top: -1px;
+	    margin-left: $half;
+	    &:hover, &:focus {
+		    text-decoration: none;
+		    color: white;
+		    background-color: $color-black;
+		    border-color: $color-black;
+	    }
+	    &:active {
+		    text-decoration: none;
+		    background-color: $color-blue;
+		    border-color: $color-blue;
+	    }
 }
 
 #add-member {

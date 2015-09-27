@@ -3,18 +3,18 @@
 
 {% block content %}
 
-	<h3>Change default privacy settings for all links in {{ org.name }}?</h3>
-	<br/>
-	<br/>
-    
+	<h3 class="body-bh">Change default privacy settings for all links in {{ org.name }}?</h3>
+
     <form method="post">
     	{% csrf_token %}
     	{% if org.default_to_private %}
-    		<p>Links are <strong>PRIVATE</strong> by default.</p>
-        	<p><a href="{% url 'user_management_settings_organizations' %}">Cancel</a> <button type="submit" class="btn btn-success">Set to public</button></p>
+    		<p class="body-dek">Links are <strong>Private</strong> by default.</p>
+        	<a class="btn-cancel" href="{% url 'user_management_settings_organizations' %}">Cancel</a>
+        	<button type="submit" class="btn btn-success">Set to public</button></p>
         {% else %}
-        	<p>Links are <strong>PUBLIC</strong> by default.</p> 
-        	<p><a href="{% url 'user_management_settings_organizations' %}">Cancel</a> <button type="submit" class="btn btn-success">Set to private</button></p>
+        	<p class="body-dek">Links are <strong>Public</strong> by default.</p> 
+        	<a class="btn cancel" href="{% url 'user_management_settings_organizations' %}">Cancel</a>
+        	<button type="submit" class="btn btn-success">Set to private</button></p>
         {% endif %}
     </form>
 

@@ -3,18 +3,18 @@
 {% block title %} | Settings | Organizations{% endblock %}
 
 {% block content %}
-	  <h3 class="body-ah">Organizations</h3>
+	  <h3 class="body-ah">Organization Settings</h3>
 	  {% if messages %}
         {% for message in messages %}
             <div class="alert-{{ message.level_tag }} alert-block">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
         {% endfor %}
         {% endif %}
-		<div class="sponsoring-library-info">
+		<div class="org-settings">
             {% with request.user.organizations as organization %}
-                <h4 class="body-ch">Your sponsoring library and organization(s)</h4>
+                <h4 class="body-ch">Your sponsor organization(s)</h4>
                     {% for vo in organization.all %}
                     {% with vo.registrar as registrar %}
-                    	<div class="admin-sponsor">
+                    	<div class="settings-block">
                             {% if registrar.website %}
                                 <strong class="sponsor-name"><a href="{{registrar.website}}" target="_blank">{{registrar}}</a></strong>
                             {% else %}
@@ -22,13 +22,20 @@
                             {% endif %}
                             	<span class="sponsor-email">{{registrar.email}}</span>
                     {% endwith %}
-                            <p>{{ vo }}</p>
-                            <a href="{% url 'user_management_organization_user_leave_organization' vo.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Leave</a> <a href="{% url 'user_management_manage_single_organization' vo.id %}" class="edit-org-link">Edit organization</a>
+                    	</div>
+                <h4 class="body-ch">Your vesting organization</h4>
+                    	<div class="settings-block">
+                            <p>{{ vo }} <a href="{% url 'user_management_manage_single_organization' vo.id %}" class="action edit-org-link">Edit organization</a></p>
+                            <a href="{% url 'user_management_organization_user_leave_organization' vo.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Leave</a> 
+                            
+                    	</div>
+                <h4 class="body-ch">Organizational privacy settings</h4>
+                    	<div class="settings-block">
 	              			{% if vo.default_to_private %}
-		              			<p>Links are <strong>PRIVATE</strong> by default</p>
+		              			<p>Links are <strong>Private</strong> by default</p>
 		          				<a href="{% url 'user_management_settings_organizations_change_privacy' vo.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Set to public</a>
 		                    {% else %}
-			          			<p>Links are <strong>PUBLIC</strong> by default</p>
+			          			<p>Links are <strong>Public</strong> by default</p>
 			          			<a href="{% url 'user_management_settings_organizations_change_privacy' vo.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Set to private</a>
 		                    {% endif %}
 						</div>
