@@ -134,7 +134,7 @@
 						{% endif %}
 
 			            <div class="row row-half-bleed org-data-points">
-							<div class="col-sm-4 org-data-point">
+							<div class="col col-sm-4 col-half-gutter org-data-point">
 				                <div class="list-count-group">
 									<strong class="list-count-number">{{ org.vested_links|intcomma }}</strong>
 									<span class="list-count-label">vested links</span>
@@ -146,7 +146,7 @@
 				                    {% endcomment %}
 				                </div>
 							</div>
-							<div class="col-sm-4 org-data-point">
+							<div class="col col-sm-4 col-half-gutter org-data-point">
 				                <div class="list-count-group">
 					                <strong class="list-count-number">{{ org.organization_users|default_if_none:"0" }}</strong>
 					                <span class="list-count-label">users <a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">View</a></span>
