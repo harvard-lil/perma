@@ -4709,6 +4709,11 @@ td {
 // Link Browser
 
 
+.panel {
+	box-shadow: none;
+	-webkit-box-shadow: none;
+}
+
 .panel-default {
 	margin-top: $grid * 6;
 	border: none;
