@@ -1,8 +1,6 @@
 from perma.models import Link
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.exceptions import Unauthorized, BadRequest
-from django.utils import timezone
-from datetime import timedelta
 
 class FolderAuthorization(ReadOnlyAuthorization):
 
