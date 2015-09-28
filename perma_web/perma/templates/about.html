@@ -1,5 +1,5 @@
 {% extends "layout-responsive.html" %}
-{% load file_exists %}
+{% load file_exists pipeline %}
 {% block title %} | About{% endblock %}
 
 {% block meta_description %}
@@ -116,4 +116,5 @@ Perma.cc prevents link rot.
 {% endblock %}
 
 {% block scripts %}
+	{% javascript 'map' %}
 {% endblock %}
