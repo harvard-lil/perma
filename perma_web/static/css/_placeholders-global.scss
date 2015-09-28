@@ -178,6 +178,7 @@
 			padding-top: $grid * 3;
 		}
 	}
+	
 	div.toc-module-content {
 		background-color: $color-blue;
 		color: white;
@@ -198,10 +199,12 @@
 				color: $color-black;
 			}
 		}
+
 		strong:after {
 			display: none;
 		}
 	}
+
 	strong {
 		display: block;
 		font-weight: 700;

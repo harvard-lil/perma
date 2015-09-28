@@ -1,0 +1,36 @@
+<div class="container container-bleed toc-overview">
+	<div class="container toc-overview-container">
+		<div class="row">
+			<div class="col col-sm-by5 toc-module col-no-gutter {% if request.path == "/docs" %} _selected {% endif %}">
+				<a class="toc-module-content" href="{% url 'docs' %}">
+					<strong class="toc-module-title">Getting Started</strong>
+					<p class="toc-module-description">An introduction to Perma.cc, why it exists, and how to use it.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter {% if request.path == "/docs/perma-link-creation" %} _selected {% endif %}">
+				<a class="toc-module-content" href="{% url 'docs_perma_link_creation' %}">
+					<strong class="toc-module-title">About Links and Records</strong>
+					<p class="toc-module-description">Learn about the links and records you can create with Perma.cc.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter {% if request.path == "/docs/libraries" %} _selected {% endif %}">
+				<a class="toc-module-content" href="{% url 'docs_libraries' %}">
+					<strong class="toc-module-title">For Libraries</strong>
+					<p class="toc-module-description">Learn about the special role of libraries in supporting Perma.cc.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter {% if request.path == "/docs/organizations" %} _selected {% endif %}">
+				<a class="toc-module-content" href="{% url 'docs_organizations' %}">
+					<strong class="toc-module-title">For Organizations</strong>
+					<p class="toc-module-description">Learn how journals, courts and other organizations can use Perma.cc.</p>
+				</a>
+			</div>
+			<div class="col col-sm-by5 toc-module col-no-gutter {% if request.path == "/docs/faq" %} _selected {% endif %}">
+				<a class="toc-module-content" href="{% url 'docs_faq' %}">
+					<strong class="toc-module-title">FAQ</strong>
+					<p class="toc-module-description">Answers to your common questions about Perma.cc.</p>
+				</a>
+			</div>
+		</div>
+	</div>
+</div>
