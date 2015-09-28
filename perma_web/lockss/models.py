@@ -27,13 +27,14 @@ class Mirror(models.Model):
     @classmethod
     def get_cached_mirrors(cls):
         """
-            Get a list of (name, content_url) pairs for each mirror, to use when playing back content.
+            Get a list of {'name':,'content_url':,'ip':} dicts for each active mirror.
             Keep result in cache.
         """
         # get mirror list from cache
         mirrors = django_cache.get('mirrors')
+        attrs = ('name', 'content_url', 'ip')
         if mirrors is None:
-            mirrors = [(mirror.name, mirror.content_url) for mirror in cls.objects.filter(enabled=True)]
+            mirrors = [dict((attr, getattr(mirror, attr)) for attr in attrs) for mirror in cls.objects.filter(enabled=True)]
             django_cache.set('mirrors', mirrors)
 
         # return mirrors

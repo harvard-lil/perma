@@ -6,7 +6,7 @@ from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from django.conf import settings
 from django.core.files.storage import default_storage
-from django.http import HttpResponse, HttpResponseBadRequest, Http404, StreamingHttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest, Http404, StreamingHttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render
 
 from perma.models import Link
@@ -15,13 +15,25 @@ from .models import *
 
 ### HELPERS ###
 
-def django_url_prefix():
+def django_url_prefix(request):
     http_prefix = "s" if settings.SECURE_SSL_REDIRECT else ""
-    return "http%s://%s" % (http_prefix, settings.HOST)
+    return "http%s://%s" % (http_prefix, request.get_host())
+
+def allow_by_ip(view_func):
+    def authorize(request, *args, **kwargs):
+        user_ip = request.META['REMOTE_ADDR']
+        print Mirror.get_cached_mirrors()
+        for mirror in Mirror.get_cached_mirrors():
+            print user_ip, mirror
+            if user_ip == mirror['ip']:
+                return view_func(request, *args, **kwargs)
+        return HttpResponseForbidden()
+    return authorize
 
 
 ### VIEWS ###
 
+@allow_by_ip
 def search(request):
     updates = Link.objects.filter(archive_timestamp__lte=timezone.now()).exclude(archive_timestamp=None).order_by('archive_timestamp')
 
@@ -56,6 +68,7 @@ def search(request):
     return HttpResponse("\n".join(files_to_index), content_type="text/plain")
 
 
+@allow_by_ip
 def fetch_warc(request, path, guid):
     # fetch link and check path is correct
     link = get_object_or_404(Link, pk=guid)
@@ -73,10 +86,12 @@ def fetch_warc(request, path, guid):
     return response
 
 
+@allow_by_ip
 def permission(request):
     return HttpResponse("LOCKSS system has permission to collect, preserve, and serve this open access Archival Unit")
 
 
+@allow_by_ip
 def titledb(request):
     # build list of all year/month combos since we started, in the form [[2014, "01"],[2014, "02"],...]
     first_archive_date = Link.objects.order_by('creation_timestamp')[0].creation_timestamp
@@ -89,16 +104,19 @@ def titledb(request):
 
     return render(request, 'lockss/titledb.xml', {
         'archival_units': archival_units,
-        'django_url_prefix': django_url_prefix(),
+        'django_url_prefix': django_url_prefix(request),
     })
 
+
+@allow_by_ip
 def daemon_settings(request):
     """ Generate settings files for our PLN nodes. """
 
-    static_url_prefix = urljoin(django_url_prefix(), settings.STATIC_URL)
+    url_prefix = django_url_prefix(request)
+    static_url_prefix = urljoin(url_prefix, settings.STATIC_URL)
 
     return render(request, 'lockss/daemon_settings.txt', {
-        'django_url_prefix': django_url_prefix(),
+        'django_url_prefix': url_prefix,
         'static_url_prefix': static_url_prefix,
         'mirrors': list(Mirror.objects.filter(enabled=True)),
         'content_ips': settings.LOCKSS_CONTENT_IPS,

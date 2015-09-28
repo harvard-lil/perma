@@ -295,15 +295,15 @@ class CachedLoader(BlockLoader):
                 mirrors = Mirror.get_cached_mirrors()
                 random.shuffle(mirrors)
 
-                for attempt_mirror_name, lockss_base_url in mirrors:
+                for mirror in mirrors:
                     lockss_key = url.replace('file://', '').replace(WARC_STORAGE_PATH, 'https://' + settings.HOST + '/lockss/fetch')
-                    lockss_url = urljoin(lockss_base_url, 'ServeContent')
+                    lockss_url = urljoin(mirror['content_url'], 'ServeContent')
                     try:
                         logging.info("Fetching from %s?url=%s" % (lockss_url, lockss_key))
                         response = requests.get(lockss_url, params={'url': lockss_key})
                         assert response.ok
                         file_contents = response.content
-                        mirror_name = attempt_mirror_name
+                        mirror_name = mirror['name']
                         logging.info("Got content from lockss")
                     except (requests.ConnectionError, requests.Timeout, AssertionError) as e:
                         logging.info("Couldn't get from lockss: %s" % e)

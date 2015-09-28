@@ -465,8 +465,6 @@ class Link(models.Model):
 
     archive_timestamp = models.DateTimeField(blank=True, null=True, help_text="Date after which this link is eligible to be copied by the mirror network.")
 
-    archive_timestamp = models.DateTimeField(blank=True, null=True, help_text="Date after which this link is eligible to be copied by the mirror network.")
-
     thumbnail_status = models.CharField(max_length=10, null=True, blank=True, choices=(
         ('generating', 'generating'), ('generated', 'generated'), ('failed', 'failed')))
 

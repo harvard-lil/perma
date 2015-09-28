@@ -511,5 +511,5 @@ WARC_STORAGE_DIR = 'warcs'  # relative to MEDIA_ROOT
 from datetime import timedelta
 ARCHIVE_DELAY = timedelta(hours=24)
 
-USE_LOCKSS_REPLAY = True  # whether to replay captures from LOCKSS, if servers are available
+USE_LOCKSS_REPLAY = False  # whether to replay captures from LOCKSS, if servers are available
 LOCKSS_CONTENT_IPS = ""  # IPs of Perma servers allowed to play back LOCKSS content -- e.g. "10.1.146.0/24;140.247.209.64"
