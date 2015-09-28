@@ -296,7 +296,7 @@ if ( typeof define === 'function' && define.amd ) {
 // set margins for modal windows
 // currently set to hit only special elements
 
-$(function() {
+$(document).ready(function() {
 	var windowHeight = $(window).height();
 	var windowWidth = $(window).width();
 	$('.modal-new').each(function() {

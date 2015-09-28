@@ -1232,6 +1232,7 @@ p.body { @extend p.body-text; }
 	    a {
 		    font-weight: 400;
 		    text-decoration: underline;
+		    white-space: nowrap;
 		    &:hover, &:focus {
 			    color: $color-hover;
 		    }
