@@ -1219,10 +1219,35 @@ p.body { @extend p.body-text; }
 	}
 	
 	#links-remaining-message, #organization_select_form {
-		margin-top:10px;
-		text-align:center;
-		float:left;
+		margin-top: $grid * 3;
+		text-align: center;
+		float: left;
+		width: 100%;
+		max-width: none;
+		font-family: $font-hed-alt;
 	}
+	#links-remaining-message {
+	    color: $color-blue;
+	    font-weight: 700;
+	    a {
+		    font-weight: 400;
+		    text-decoration: underline;
+		    &:hover, &:focus {
+			    color: $color-hover;
+		    }
+		    &:active {
+			    color: $color-active;
+		    }
+	    }
+	  	#links-remaining {
+		  	display: inline-block;
+		    padding: 1px 12px 0;
+		    background-color: $color-blue;
+		    color: white;
+		    border-radius: 4px;
+		    margin: 0 2px;
+	  	}
+  	}
 }
 
 #examples {
