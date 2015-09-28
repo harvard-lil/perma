@@ -1331,6 +1331,20 @@ p.body { @extend p.body-text; }
 			    background-position: -17px * 0;
 			}
 	  	}
+	  	
+	    .links-remaining {
+	        display: inline-block;
+		    font-size: 12px;
+		    font-weight: 700;
+		    color: white;
+		    background-color: $color-blue;
+		    padding: 2px 8px 1px;
+		    vertical-align: middle;
+		    bottom: 2px;
+		    margin-left: $half;
+		    border-radius: 4px;
+	    }
+
 	  	.label-affil {
 		  	width: 100%;
 	  	}
