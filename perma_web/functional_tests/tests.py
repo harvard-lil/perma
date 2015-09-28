@@ -119,7 +119,6 @@ class FunctionalTest(StaticLiveServerTestCase):
     def setUpLocal(self):
         self.driver = getattr(webdriver, self.browser)(
             desired_capabilities=self.base_desired_capabilities,
-            executable_path='/Users/phillipsm/dev_area/perma/perma_web/lib/phantomjs'
         )
         self.driver.implicitly_wait(3)
         socket.setdefaulttimeout(10)
@@ -202,12 +201,7 @@ class FunctionalTest(StaticLiveServerTestCase):
                     time.sleep(sleep_time)
 
         def fix_host(url, host=settings.HOST):
-            u = url.replace('http://perma.dev:8000', self.live_server_url)
-            u = u.replace('http://perma.dev:8000', 'http://perma.dev:8081')
-            u = u.replace('http://localhost:8000', 'http://perma.dev:8081')
-            u = u.replace('http://localhost:8081', 'http://perma.dev:8081')
-
-            return u
+            return url.replace('http://' + host, self.live_server_url)
 
         info("Loading homepage from %s." % self.live_server_url)
         self.driver.get(self.live_server_url)
