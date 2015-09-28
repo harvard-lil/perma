@@ -241,6 +241,7 @@ class FunctionalTest(StaticLiveServerTestCase):
         # Get the guid of the created archive
         display_guid = fix_host(self.driver.current_url)[-9:]
 
+        self.driver.get(fix_host(self.driver.current_url))
 
         info("Viewing playback.")
         assert_text_displayed('See the Screenshot View', 'a')
