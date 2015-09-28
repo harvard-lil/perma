@@ -714,7 +714,7 @@ input:focus, *:hover {
 	margin-right: 0;
 	margin-left: 0;
 	padding: 0 $double; // review
-	overflow: hidden; // review
+	overflow-y: visible; // review
 	@include respond-tablet {
 		max-width: $width-tablet; // review
 		margin-right: auto;
@@ -1249,6 +1249,132 @@ p.body { @extend p.body-text; }
 		    margin: 0 2px;
 	  	}
   	}
+  	#organization_select_form {
+	  	.label-affil, .dropdown-affil {
+		  	float: left;
+		    width: 50%;
+		    text-align: left;
+	  	}
+	  	.label-affil {
+		  	border-color: transparent;
+			&:before {
+				content: '';
+				width: 19px;
+				height: 18px;
+				display: inline-block;
+				position: relative;
+				top: 1px;
+				background-image: url('../img/ui/perma-ui-affil.svg');
+				background-repeat: no-repeat;
+				background-position: 0 0;
+				background-size: 19px 18px;
+				z-index: 10;
+				margin-right: $half;
+			}
+	  	}
+	  	.dropdown-affil {
+	  	}
+
+	  	.label-affil,
+	  	.selector-trigger {
+		  	font-size: 18px;
+		    font-weight: 200;
+		    padding-top: $half;
+		    padding-bottom: $half;
+		    border-top-width: 1px;
+		    border-bottom-width: 1px;
+		  	@include respond-desktop {
+			  	font-size: 20px;
+			    font-weight: 200;
+			    padding-top: $grid;
+			    padding-bottom: $grid;
+		  	}
+		}	  	
+			  	
+	  	.selector-trigger {
+		  	width: 100%;
+		  	text-align: left;
+		  	background-color: rgba(255,255,255,.4);
+		    top: auto;
+		    padding-right: 24px;
+		    &:after {
+			    content: '';
+			    height: 9px;
+			    width: 18px;
+			    display: inline-block;
+			    background-image: url('../img/ui/perma-ui-chev-down.png');
+			    background-repeat: no-repeat;
+			    background-size: 102px 9px;
+			    background-position: -17px * 0;
+			    top: -1px;
+				margin-left: $grid;
+				position: absolute;
+				right: 8px;
+				top: 16px;
+			}
+			&:hover {
+				color: $color-blue;
+			}
+			&:active {
+				border-color: $color-trans-lightgray;
+			}
+			&:hover::after {
+			    background-position: -17px * 0;
+			}
+	  	}
+	  	@include respond-tablet {
+		  	// total 688px
+		  	.label-affil {
+			  	width: $grid * 36;
+		  	}
+		  	.dropdown-affil,
+		  	.dropdown.open .selector-menu {
+			    width: 688px - ($grid * 36);
+		  	}
+	  	}
+	  	@include respond-desktop {
+		  	// total 894px
+		  	.label-affil {
+			  	width: $grid * 46;
+		  	}
+		  	.dropdown-affil,
+		  	.dropdown.open .selector-menu {
+			    width: 894px - ($grid * 46);
+		  	}
+	  	}
+	  	@include respond-wide {
+		  	// total 1104px
+		  	.label-affil {
+			  	width: $grid * 46;
+		  	}
+		  	.dropdown-affil,
+		  	.dropdown.open .selector-menu {
+			    width: 1104px - ($grid * 46);
+		  	}
+	  	}
+	  	
+	  	
+	  	.dropdown.open {
+		  	.selector-trigger {
+			  	border-color: black;
+			  	border-bottom: transparent;
+			  	background-color: white;
+			  	border-bottom-left-radius: 0;
+			  	border-bottom-right-radius: 0;
+			  	&:after {
+				    background-position: -17px * 0;
+			  	}
+		  	}
+		  	.selector-menu {
+			    top: $grid * 4;
+			    border-top: 0;
+			    border-radius: 4px;
+			    border-top-left-radius: 0;
+			    border-top-right-radius: 0;
+			    text-align: left;
+  		  	}
+	  	}
+  	}
 }
 
 #examples {
@@ -1651,6 +1777,7 @@ p + .thumbnail-placeholder {
 .modal {
 	form {
 		margin-top: $double;
+		overflow: visible;
 	    @include respond-tablet {
 		    margin-top: $grid * 3;
 	    }
@@ -1912,7 +2039,7 @@ form {
 }
 
 form {
-	overflow: auto;
+	overflow-y: visible;
 }
 
 fieldset {
