@@ -427,17 +427,15 @@ class LinkResource(AuthenticatedLinkResource):
             }))
 
         # Make sure a limited user has links left to create
-        today = timezone.now()
-        link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month=today.month, created_by_id=bundle.request.user.id).count()
-        links_remaining = settings.MONTHLY_CREATE_LIMIT - link_count
-        if bundle.request.user.has_limit() and links_remaining < 1:
+        links_remaining = bundle.request.user.get_links_remaining()
+        if (bundle.request.user.has_limit() or not bundle.data.get('organization')) and links_remaining < 1:
         	raise ImmediateHttpResponse(response=self.error_response(bundle.request, {
                 'archives': {'__all__': "You've already reached your limit."},
                 'reason': "You've already reached your limit.",
             }))
             
         # Return the number remaining links after this one is created
-        if bundle.request.user.has_limit():
+        if bundle.request.user.has_limit() or not bundle.data.get('organization'):
         	bundle.data['links_remaining'] = links_remaining - 1
         else:
         	bundle.data['links_remaining'] = 'unlimited'

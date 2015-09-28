@@ -35,9 +35,10 @@ def create_link_with_org(request, org_id):
 		org = get_object_or_404(Organization, id=org_id)
 	except:
 		org = None
-	today = timezone.now()
-	link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month=today.month, created_by_id=request.user.id).count()
-	links_remaining = settings.MONTHLY_CREATE_LIMIT - link_count
+
+	links_remaining = request.user.get_links_remaining()
+	if links_remaining < 0:
+		links_remaining = 0
 	
 	return render(request, 'user_management/create-link.html', {
 		'this_page': 'create_link',
