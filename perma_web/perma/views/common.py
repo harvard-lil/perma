@@ -137,6 +137,7 @@ def single_linky(request, guid):
     context = {
         'link': link,
         'can_view': link.can_view(request.user),
+        'can_delete': link.can_delete(request.user),
         'capture': capture,
         'next': request.get_full_path(),
         'serve_type': serve_type,

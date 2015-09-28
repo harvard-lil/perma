@@ -600,6 +600,17 @@ class Link(models.Model):
         """ Return date when this link will theoretically be deleted. """
         return self.creation_timestamp + settings.LINK_EXPIRATION_TIME
 
+    def can_delete(self, user):
+        """ An archive can be deleted if it is less than 24 hours old-style
+            and it was created by a user or someone in the org """
+
+        user_has_delete_privs = False
+
+        if user.is_staff or self.created_by == user or self.organization in user.get_orgs:
+            user_has_delete_privs = True
+
+        return timezone.now() < self.archive_timestamp and user_has_delete_privs
+
     def can_upload_to_internet_archive(self):
         """ Return True if this link is appropriate for upload to IA. """
         return self.vested \

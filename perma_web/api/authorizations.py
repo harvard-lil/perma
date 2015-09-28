@@ -1,7 +1,8 @@
 from perma.models import Link
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.exceptions import Unauthorized, BadRequest
-
+from django.utils import timezone
+from datetime import timedelta
 
 class FolderAuthorization(ReadOnlyAuthorization):
 
@@ -181,7 +182,8 @@ class LinkAuthorization(AuthenticatedLinkAuthorization):
         return True
 
     def delete_detail(self, object_list, bundle):
-        if bundle.obj.vested or not self.can_access(bundle.request.user, bundle.obj):
+
+        if not bundle.obj.can_delete(bundle.request.user):
             raise Unauthorized()
 
         return True
