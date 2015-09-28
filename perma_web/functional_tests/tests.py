@@ -238,7 +238,8 @@ class FunctionalTest(StaticLiveServerTestCase):
         while create_page_url == fix_host(self.driver.current_url):
             time.sleep(1)
 
-        display_archive_url = fix_host(self.driver.current_url)
+        # Get the guid of the created archive
+        display_guid = fix_host(self.driver.current_url)[-9:]
 
 
         info("Viewing playback.")
@@ -256,7 +257,7 @@ class FunctionalTest(StaticLiveServerTestCase):
         # create folder
         get_css_selector('.new-folder').click()
         # find link
-        assert_text_displayed(display_archive_url)
+        assert_text_displayed(display_guid)
         # show details
         get_css_selector('.link-expand').click()
         # for some reason these are throwing 500 errors on PATCH:
