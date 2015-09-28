@@ -2,18 +2,27 @@
 {% load file_exists %}
 {% block title %} | Docs{% endblock %}
 
-{% block bodyFlags %}_faq{% endblock bodyFlags %}
-{% block mainFlags %}{% endblock mainFlags %}
+{% block meta_description %}
+This section of the user guide provides answers to common questions about Perma.cc.
+{% endblock %}
+
+{% block bodyFlags %}_userguide{% endblock %}
+{% block mainFlags %}_fullWidth{% endblock %}
 
 {% block content %}
-<div class="col-sm-12">
-	<h1>Frequently Asked Questions</h1>
+
+<div class="container">
+	<div class="row">
+		<div class="col-sm-12">
+			<h1>Perma.cc user guide <span class="subsection">FAQ</span></h1>
+		</div>
+	</div>
 </div>
 
 {% include 'docs/docs_menu.html' %}
 
 <div class="container container-reading">
-	<div class="row faq">
+	<div class="row">
 		<div class="col-sm-4 reading-toc">
 			<ul>
 		    	<li class="reading-toc-section"><a href="#general">General</a></li>
@@ -23,7 +32,7 @@
 		    	<li class="reading-toc-section"><a href="#technical">Technical questions</a></li>
 			</ul>
 		</div>
-	    <div class="col-sm-8 docs">
+	    <div class="col-sm-8 reading-body">
 			  <h2 class="docs-ah" id="general">General</h2>
 
 			 	<div class="docs-bh" data-href="who-is">Who runs Perma.cc?</div>
