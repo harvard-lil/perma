@@ -19,35 +19,35 @@ This section of the developer's guide explains how to use the API to manage fold
 		<hr>
 		
 		<p>The Folders API helps you create and manage folders.</p>
-		<p>The base resource for this API is <code>https://api.{{ request.META.HTTP_HOST }}/v1/folders/</code></p>
+		<p>The base resource for this API is <code>https://api.{{ request.get_host() }}/v1/folders/</code></p>
 		
 		<h4>Create a folder</h4>
 		<p>Create a new folder using a POST</p>
-		<pre>curl -H 'Content-Type: application/json' -X POST -d '{"name": "a new folder"}' https://api.{{ request.META.HTTP_HOST }}/v1/folders/25/folders/?api_key=your-api-key</pre>
+		<pre>curl -H 'Content-Type: application/json' -X POST -d '{"name": "a new folder"}' https://api.{{ request.get_host() }}/v1/folders/25/folders/?api_key=your-api-key</pre>
 		<p>The response will include the id of the new folder and the folder's parent ID.</p>
 		<pre class="prettyprint">{"id": 35, "name": "a new folder", "parent": "/v1/folders/25/"}</pre>
 
 		<h4>View a folder's details</h4>
 		<p>Use a GET to retrieve details of an existing folder.</p>
-		<pre>curl -v "https://api.{{ request.META.HTTP_HOST }}/v1/folders/28/?api_key=your-api-key"</pre>
+		<pre>curl -v "https://api.{{ request.get_host() }}/v1/folders/28/?api_key=your-api-key"</pre>
 		<p>The response will include the id of the new folder and the folder's parent ID (the same response that you get when you create a new folder).</p>
 		<pre class="prettyprint">{"id": 35, "name": "a new folder", "parent": "/v1/folders/25/"}</pre>
 		
 		<h4>Rename a folder</h4>
 		<p>Use a PATCH to change a folder's name.</p>
-		<pre>curl -H 'Content-Type: application/json' -X PATCH -d '{"name": "a new folder name"}' 'https://api.{{ request.META.HTTP_HOST }}/v1/folders/28/?api_key=your-api-key'</pre>
+		<pre>curl -H 'Content-Type: application/json' -X PATCH -d '{"name": "a new folder name"}' 'https://api.{{ request.get_host() }}/v1/folders/28/?api_key=your-api-key'</pre>
 		<p>The response will include the new folder name.</p>
 		<pre class="prettyprint">{"id": 28, "name": "a new folder name", "parent": "/v1/folders/25/"}</pre>
 		
 		<h4>Move a folder</h4>
 		<p>Use a PUT to move a folder into another folder.</p>
-		<pre>curl -H 'Content-Type: application/json' -X PUT https://api.{{ request.META.HTTP_HOST }}/v1/folders/35/folders/36/?api_key=your-api-key</pre>
+		<pre>curl -H 'Content-Type: application/json' -X PUT https://api.{{ request.get_host() }}/v1/folders/35/folders/36/?api_key=your-api-key</pre>
 		<p>This command moved folder 36 into folder 35. The response will include the folder's new parent id.</p>
 		<pre class="prettyprint">{"id": 36, "name": "just another folder", "parent": "/v1/folders/35/"}</pre>
 		
 		<h4>Delete a folder</h4>
 		<p>Use a DELETE to delete a folder.</p>
-		<pre>curl -X DELETE https://api.{{ request.META.HTTP_HOST }}/v1/folders/36/?api_key=your-api-key</pre>
+		<pre>curl -X DELETE https://api.{{ request.get_host() }}/v1/folders/36/?api_key=your-api-key</pre>
 		<p>This command deleted folder 36. There will be no content in the HTTP response. You will see the a 204 HTTP status code returned.</p>
 		<pre class="prettyprint">No response. HTTP status will be 204.</pre>
 		
