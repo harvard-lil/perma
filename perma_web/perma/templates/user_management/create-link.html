@@ -2,7 +2,7 @@
 {% load pipeline %}
 {% block title %} | Create a Perma link{% endblock %}
 {% block bodyFlags %}{% endblock bodyFlags %}
-{% block mainFlags %}__permaNew{% endblock mainFlags %}
+{% block mainFlags %}{% endblock mainFlags %}
 
 {% block content %}
 	<!-- regular link creation -->
@@ -35,14 +35,15 @@
 	        {% if request.user.has_limit %}
 			<p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account. <a href="{% url 'sign_up' %}">Learn more about accounts</a>.</p>
 			{% else %}
-			<div id="organization_select_form">This PermaLink with be affiliated with 
-			<div class="dropdown">
-  				<button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-    			Dropdown
-    			<span class="caret"></span>
-  				</button>
-  				<ul class="dropdown-menu" aria-labelledby="dropdownMenu1" id="organization_select"></ul>
-			</div>
+			<div id="organization_select_form">
+				<span class="label-affil">This Perma Link with be affiliated with</span>
+				<div class="dropdown dropdown-affil">
+	  				<button class="dropdown-toggle selector-trigger selector-affil" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+		    			Dropdown
+		    			<span class="caret"></span>
+	  				</button>
+	  				<ul class="dropdown-menu selector-menu" aria-labelledby="dropdownMenu1" id="organization_select"></ul>
+				</div>
 			</div>
 			{% endif %}
 		</fieldset>
@@ -107,15 +108,15 @@
                 <form id="archive_upload_form" action="{% url 'api_dispatch_list' resource_name='archives' api_name='v1' %}" method="post">
                     <div class="form-group">
                         <label class="control-label" for="title">New Perma Link title <span class="label-instruction">The page title associated with this upload</span></label>
-                        <input id="title" name="title" class="form-control" type="text" placeholder="Example Page Title">
+                        <input id="title" name="title" class="" type="text" placeholder="Example Page Title">
                     </div>
                     <div class="form-group">
                         <label class="control-label" for="url">New Perma Link URL <span class="label-instruction">The URL associated with this upload</span></label>
-                        <input id="url" name="url" class="form-control" type="text" placeholder="www.example.com">
+                        <input id="url" name="url" class="" type="text" placeholder="www.example.com">
                     </div>
                     <div class="form-group">
                         <label class="control-label" for="file">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed</span></label>
-                        <input id="file" name="file" class="form-control" type="file" placeholder="example.png" accept=".png,.jpg,.jpeg,.gif,.pdf">
+                        <input id="file" name="file" class="" type="file" placeholder="example.png" accept=".png,.jpg,.jpeg,.gif,.pdf">
                     </div>
                     <div class="modal-actions">
 	                    <button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Upload and create Perma Link</button>
