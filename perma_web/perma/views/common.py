@@ -54,7 +54,7 @@ def landing(request):
     """
     The landing page
     """
-    if request.user.is_authenticated() and settings.HOST not in request.META.get('HTTP_REFERER',''):
+    if request.user.is_authenticated() and request.get_host() not in request.META.get('HTTP_REFERER',''):
         return HttpResponseRedirect(reverse('create_link'))
         
     else:

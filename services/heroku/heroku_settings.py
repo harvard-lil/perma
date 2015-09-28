@@ -92,9 +92,6 @@ THUMBNAIL_REDIS_PORT = _parsed_redis_url['port']
 
 ### OVERRIDE THESE WITH ENV VARS ###
 
-# The host we want to display (used when DEBUG=False)
-HOST = 'perma.cc'
-
 # Amazon storage
 AWS_ACCESS_KEY_ID = ''
 AWS_SECRET_ACCESS_KEY = ''

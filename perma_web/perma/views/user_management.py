@@ -1149,7 +1149,7 @@ def account_is_deactivated(request):
 
 
 def get_sitewide_cookie_domain(request):
-    return '.' + settings.HOST.split(':')[0]  # remove port
+    return '.' + request.get_host().split(':')[0]  # remove port
 
 
 def logout(request):

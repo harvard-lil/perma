@@ -32,9 +32,6 @@ ALLOWED_HOSTS = []
 GOOGLE_ANALYTICS_KEY = 'UA-XXXXX-X'
 GOOGLE_ANALYTICS_DOMAIN = 'example.com'
 
-# The host we want to display (used when DEBUG=False)
-HOST = 'perma.dev:8000'
-
 CELERY_RESULT_BACKEND = 'amqp'
 
 # SSL (run test server with SSL using `fab run_ssl`)
