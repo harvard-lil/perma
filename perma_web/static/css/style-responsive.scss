@@ -1306,11 +1306,13 @@ p.body { @extend p.body-text; }
 			    background-repeat: no-repeat;
 			    background-size: 102px 9px;
 			    background-position: -17px * 0;
-			    top: -1px;
+			    top: 12px;
 				margin-left: $grid;
 				position: absolute;
 				right: 8px;
-				top: 16px;
+				@include respond-desktop {
+					top: 18px;
+				}
 			}
 			&:hover {
 				color: $color-blue;
@@ -1322,14 +1324,21 @@ p.body { @extend p.body-text; }
 			    background-position: -17px * 0;
 			}
 	  	}
+	  	.label-affil {
+		  	width: 100%;
+	  	}
+	  	.dropdown-affil,
+	  	.dropdown.open .selector-menu {
+		    width: 100%;
+	  	}
 	  	@include respond-tablet {
 		  	// total 688px
 		  	.label-affil {
-			  	width: $grid * 36;
+			  	width: $grid * 41;
 		  	}
 		  	.dropdown-affil,
 		  	.dropdown.open .selector-menu {
-			    width: 688px - ($grid * 36);
+			    width: 688px - ($grid * 41);
 		  	}
 	  	}
 	  	@include respond-desktop {
@@ -1353,6 +1362,33 @@ p.body { @extend p.body-text; }
 		  	}
 	  	}
 	  	
+	  	.selector-menu {
+		    position: relative;
+		    float: none;
+		    width: auto;
+		    z-index: 1000;
+		    display: none;
+		    padding: 5px 0;
+		    margin: 0;
+		    margin-right: -7px;
+		    font-size: 14px;
+		    list-style: none;
+		    background-color: white;
+		    background-clip: padding-box;
+		    border-radius: 2px;
+		    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
+		    border-color: black;
+		    padding-top: 16px;
+		    min-width: 216px;
+		    top: 0;
+		    margin-right: 0;
+		    border: 1px solid;
+		    @include respond-tablet {
+			    margin-top: 2px;
+			    position: absolute;
+			    top: $grid * 4;
+		    }
+	  	}
 	  	
 	  	.dropdown.open {
 		  	.selector-trigger {
@@ -1366,7 +1402,7 @@ p.body { @extend p.body-text; }
 			  	}
 		  	}
 		  	.selector-menu {
-			    top: $grid * 4;
+			    display: block;
 			    border-top: 0;
 			    border-radius: 4px;
 			    border-top-left-radius: 0;
