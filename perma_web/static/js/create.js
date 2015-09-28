@@ -119,10 +119,9 @@ function linkIt(data){
     new_archive.guid = data.guid;
 
     // Get our spinner going now that we're drawing it
-    $('#addlink').html('Creating');
+    $('#addlink').html('Creating').attr('disabled', 'disabled');
     var target = document.getElementById('addlink');
     var spinner = new Spinner(opts).spin(target);
-    
 
     $('#links-remaining').text(data.links_remaining);
     if(data.links_remaining < 1) 
@@ -154,6 +153,12 @@ function linkNot(jqXHR){
     }));
 
     $('.preview-row').removeClass('hide _error _success _wait').addClass('_error').hide().fadeIn(0);
+
+
+    // Reset our button
+    $('#addlink').html('Create Perma Link').removeAttr('disabled');
+    // remove spinner
+
 }
 
 /* Handle the the main action (enter url, hit the button) button - start */
