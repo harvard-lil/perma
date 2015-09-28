@@ -21,6 +21,8 @@
 	        		type="text" 
 	        		{% if request.user.has_limit and links_remaining < 1 %}
 	        		disabled="disabled"
+	        		{% elif not selected_org and links_remaining < 1 %}
+	        		disabled="disabled"
 	        		{% else %} 
 	        		placeholder="Paste your URL here." 
 	        		data-placement="bottom" 
@@ -29,9 +31,9 @@
 	        		data-html="true" 
 	        		data-trigger="manual"
 	        		{% endif %} />
-	        <button class="btn btn-large btn-info _active-when-valid" id="addlink" type="submit" {% if request.user.has_limit and links_remaining < 1 %}disabled="disabled"{% endif %}>Create Perma Link</button>
+	        <button class="btn btn-large btn-info _active-when-valid" id="addlink" type="submit" {% if request.user.has_limit and links_remaining < 1 %}disabled="disabled"{% endif %}{% if not selected_org and links_remaining < 1 %}disabled="disabled"{% endif %}>Create Perma Link</button>
 	        {% if request.user.has_limit %}
-			<p id="links-remaining-message">You have <span id="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account. <a href="{% url 'sign_up' %}">Learn more about accounts</a>.</p>
+			<p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account. <a href="{% url 'sign_up' %}">Learn more about accounts</a>.</p>
 			{% else %}
 			<div id="organization_select_form">This PermaLink with be affiliated with 
 			<div class="dropdown">
@@ -157,6 +159,7 @@
             selected_organization = "{{selected_org.id}}",
             shared_folder = "{{selected_org.shared_folder_id}}",
             create_url = "{% url 'create_link' %}",
+            links_remaining = "{{links_remaining}}",
             thumbnail_service_url = "{% url 'service_get_thumbnail' guid='GUID' %}";
     </script>
 

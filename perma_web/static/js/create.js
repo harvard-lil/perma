@@ -18,6 +18,8 @@ $(function() {
 
     $('#archive-upload-confirm').modal({show: false});
     $('#archive-upload').modal({show: false});
+    
+    $('#organization_select_form').find('.dropdown-toggle').html("Yourself <span class='links-remaining'>" + links_remaining + "<span>");
 
     // When a new url is entered into our form
     $('#linker').submit(function() {
@@ -72,10 +74,11 @@ $(function() {
             });
             data.objects = sorted;
             var optgroup = data.objects[0].registrar;
-            $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
             if (data.objects.length > 0) {
+            	var select_yourself = true;
                 data.objects.map(function (organization) {
                     if(organization.registrar !== optgroup) {
+                    	$organization_select.prepend("<li class='dropdown-header'>" + optgroup + "</li>");
                         optgroup = organization.registrar;
                         $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
                     }
@@ -84,12 +87,16 @@ $(function() {
                     	opt_text += " (PRIVATE)";	
                     }
                     if(selected_organization == organization.id) {
+                    	select_yourself = false;
                     	$('#organization_select_form').find('.dropdown-toggle').html(opt_text);
                     }
                     else {
                     	$organization_select.append("<li><a href='" + create_url + '/' + organization.id + "'>" + opt_text + "</a></li>");
                     }
                 });
+                if (!select_yourself) {
+                	$organization_select.append("<li><a href='" + create_url + '/0' + "'>Yourself <span class='links-remaining'>" + links_remaining + "<span></a></li>");
+                }
                 //$organization_select.show();
                 //$("#organization_select").val(selected_organization);
             /*} else if (data.objects.length == 1) {
@@ -118,6 +125,10 @@ function linkIt(data){
     new_archive.url = 'http://' + settings.HOST  + '/' + data.guid;
     new_archive.guid = data.guid;
 
+    $('.links-remaining').text(data.links_remaining);
+    if(data.links_remaining < 1) 
+    	$('#linker input, #linker button').attr('disabled', 'disabled').blur();
+
     // Get our spinner going now that we're drawing it
     $('#addlink').html('Creating').attr('disabled', 'disabled');
     var target = document.getElementById('addlink');
@@ -143,7 +154,7 @@ function linkNot(jqXHR){
     
     var upload_allowed = true;
     if(message.indexOf("limit") > -1) {
-    	$('#links-remaining').text('0');
+    	$('.links-remaining').text('0');
     	upload_allowed = false;
     }
 
