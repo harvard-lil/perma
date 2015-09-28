@@ -45,12 +45,20 @@ header {
 	border-bottom: $grid solid #e5e5e5;
     box-sizing: content-box;	
 	@include respond-desktop {
-		height: $height-record-hed;
 	}
 }
 
 .row {
 	margin: 0;
+}
+
+.banner-status {
+	padding: 12px $grid * 6;
+    font-size: 18px;
+    font-weight: 200;
+    background-color: white;
+    color: $color-blue;
+    border-bottom: 1px solid $color-blue;
 }
 
 .btn {
