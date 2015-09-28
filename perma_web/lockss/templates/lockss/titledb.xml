@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE lockss-config [
+<!ELEMENT lockss-config (if|property)*>
+<!ELEMENT property (property|list|value|if)*>
+<!ELEMENT list (value)+>
+<!ELEMENT value (#PCDATA)>
+<!ELEMENT test EMPTY>
+<!ELEMENT and (and|or|not|test)*>
+<!ELEMENT or (and|or|not|test)*>
+<!ELEMENT not (and|or|not|test)*>
+<!ELEMENT if (and|or|not|then|else|test|property)*>
+<!ELEMENT then (if|property)*>
+<!ELEMENT else (if|property)*>
+<!ATTLIST property name CDATA #REQUIRED>
+<!ATTLIST property value CDATA #IMPLIED>
+<!ATTLIST test hostname CDATA #IMPLIED>
+<!ATTLIST test group CDATA #IMPLIED>
+<!ATTLIST test daemonVersionMin CDATA #IMPLIED>
+<!ATTLIST test daemonVersionMax CDATA #IMPLIED>
+<!ATTLIST test daemonVersion CDATA #IMPLIED>
+<!ATTLIST test platformVersionMin CDATA #IMPLIED>
+<!ATTLIST test platformVersionMax CDATA #IMPLIED>
+<!ATTLIST test platformVersion CDATA #IMPLIED>
+<!ATTLIST test platformName CDATA #IMPLIED>
+<!ATTLIST if hostname CDATA #IMPLIED>
+<!ATTLIST if group CDATA #IMPLIED>
+<!ATTLIST if daemonVersionMin CDATA #IMPLIED>
+<!ATTLIST if daemonVersionMax CDATA #IMPLIED>
+<!ATTLIST if daemonVersion CDATA #IMPLIED>
+<!ATTLIST if platformVersionMin CDATA #IMPLIED>
+<!ATTLIST if platformVersionMax CDATA #IMPLIED>
+<!ATTLIST if platformVersion CDATA #IMPLIED>
+<!ATTLIST if platformName CDATA #IMPLIED>
+<!ATTLIST list append CDATA #IMPLIED>
+]>
+
+<!-- May 7, 2015 5:44:15 PM -->
+
+<lockss-config>
+
+ <property name="org.lockss.titleSet">
+
+  <property name="Permacc">
+   <property name="name" value="All Perma.cc AUs" />
+   <property name="class" value="xpath" />
+   <property name="xpath" value='[attributes/publisher="Perma.cc"]' />
+  </property>
+
+ </property>
+
+ <property name="org.lockss.title">
+
+ {% for year, month in archival_units %}
+
+  <property name="PermaPluginPermaccCapturesFor{{ year }}{{ month }}">
+   <property name="attributes.publisher" value="Perma.cc" />
+   <property name="journalTitle" value="Perma.cc Archives" />
+   <property name="type" value="journal" />
+   <property name="title" value="Perma.cc Captures For {{ year }}-{{ month }}" />
+   <property name="plugin" value="cc.perma.plugin.PermaPlugin" />
+   <property name="param.1">
+    <property name="key" value="base_url" />
+    <property name="value" value="{{ django_url_prefix }}/" />
+   </property>
+   <property name="param.2">
+    <property name="key" value="year" />
+    <property name="value" value="{{ year}}" />
+   </property>
+   <property name="param.3">
+    <property name="key" value="month" />
+    <property name="value" value="{{ month }}" />
+   </property>
+   <property name="attributes.year" value="{{ year }}" />
+  </property>
+
+ {% endfor %}
+
+ </property>
+
+</lockss-config>

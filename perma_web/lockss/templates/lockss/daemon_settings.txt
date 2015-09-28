@@ -1,0 +1,24 @@
+# peer list
+{% if mirrors %}
+org.lockss.id.initialV3PeerList=\{% for mirror in mirrors %}
+    TCP:[{{ mirror.ip }}]:{{ mirror.peer_port }}{% if not forloop.last %};\{% endif %}{% endfor %}
+{% endif %}
+
+# plugins
+org.lockss.plugin.registries={{ static_url_prefix }}lockss/plugins/plugins.html
+org.lockss.plugin.registries.crawlInterval=12h
+org.lockss.plugin.keystore.location={{ static_url_prefix }}lockss/plugins/plugin.keystore
+
+# titledbs
+org.lockss.titleDbs={{ django_url_prefix }}{% url 'lockss:titledb' %}
+
+# disable content proxy and put content server on port 8080
+org.lockss.contentui.port=8080
+org.lockss.contentui.start=true
+org.lockss.icp.enabled=false
+org.lockss.proxy.audit.start=false
+org.lockss.proxy.port=8080
+org.lockss.proxy.start=false
+
+# allowed IP address ranges for content playback
+org.lockss.proxy.access.ip.include={{ content_ips }}
