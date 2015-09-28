@@ -5,18 +5,17 @@
 {% block manage-nav-settings %}<li class="active"><a href="{% url 'create_link' %}">Account settings</a></li>{% endblock %}
 
 {% block content %}
-	  <h3>Profile</h3>
-	  <p>Change your name and email</p>
+	  <h3 class="body-ah">Profile</h3>
+	  <p class="body-dek">Change your name and email</p>
 	  {% if messages %}
         {% for message in messages %}
             <div class="alert alert-success alert-block">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
         {% endfor %}
     {% endif %}
-		<form method="post">
-      {% csrf_token %}
-	{{ form|as_bootstrap }}
-      <button type="submit" class="btn-success">Save changes</button>
-    </form>
-    <br/><br/>
+	<form method="post">
+		{% csrf_token %}
+		{{ form|as_bootstrap }}
+		<button type="submit" class="btn btn-success">Save changes</button>
+	</form>
 
 {% endblock %}

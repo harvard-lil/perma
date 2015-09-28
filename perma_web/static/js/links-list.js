@@ -38,7 +38,7 @@ $(function() {
         if(inputElement.val()==inputElement.attr('last_value_saved'))
             return;
 
-        statusElement.html('saving ...');
+        statusElement.html('Saving...');
         saveNeeded = true;
 
         var guid = inputElement.attr('id').match(/.+-(.+-.+)/)[1],
@@ -57,7 +57,7 @@ $(function() {
 
                 request.done(function(data){
                     if(!saveNeeded)
-                        statusElement.html('saved.');
+                        statusElement.html('Saved!');
                         inputElement.attr('last_value_saved', saveValue);
                 });
 
@@ -67,13 +67,15 @@ $(function() {
     }
 
     // hide and show link details
-    linkTable.on('mousedown', '.link-expand', function () {
+    linkTable.on('click', '.link-expand', function () {
         // handle details link to hide/show link details
         var button = $(this),
             details = button.closest('.link-container').find('.link-details');
+            linkContainer = button.closest('.link-container');
         if(details.is(":visible")){
             details.hide();
-            button.text('More');
+            button.text('Show Record Details');
+            linkContainer.toggleClass( '_active' )
         }else{
             // when showing link details, update the move-to-folder select input
             // based on the current folderTree structure
@@ -110,7 +112,8 @@ $(function() {
             addChildren(folderTree.get_node('#'), 1);
 
             details.show();
-            button.text('Hide');
+            button.text('Hide Record Details');
+            linkContainer.toggleClass( '_active' )
         }
 
     // save changes to notes field
@@ -123,7 +126,7 @@ $(function() {
         var textarea = $(this);
         saveInput(textarea, textarea.prevAll('.title-save-status'), 'title', function () {
             // update display title when saved
-            textarea.closest('.link-container').find('.link-title-display').text(textarea.val());
+            textarea.closest('.link-container').find('.link-title-display span').text(textarea.val());
         });
 
     // handle move-to-folder dropdown
@@ -190,7 +193,7 @@ $(function() {
         showLoadingMessage = true;
         setTimeout(function(){
             if(showLoadingMessage)
-                linkTable.html("Loading folder contents ...");
+                linkTable.html('<div class="alert-info">Loading folder contents...</div>');
         }, 500);
 
         var data = {limit: 0},
@@ -217,9 +220,9 @@ $(function() {
                     obj.can_vest = can_vest;
                     obj.search_query_in_notes = (query && obj.notes.indexOf(query) > -1);
                     obj.url_docs_perma_link_vesting = url_docs_perma_link_vesting;
-                    obj.expiration_date_formatted = new Date(obj.expiration_date).format("M. j, Y");
-                    obj.creation_timestamp_formatted = new Date(obj.creation_timestamp).format("M. j, Y");
-                    if (obj.vested_timestamp) obj.vested_timestamp_formatted = new Date(obj.vested_timestamp).format("M. j, Y");
+                    obj.expiration_date_formatted = new Date(obj.expiration_date).format("F j, Y");
+                    obj.creation_timestamp_formatted = new Date(obj.creation_timestamp).format("F j, Y");
+                    if (obj.vested_timestamp) obj.vested_timestamp_formatted = new Date(obj.vested_timestamp).format("F j, Y");
                 });
                 linkTable.html(templates.created_link_items({objects:data.objects, query:query}));
             });

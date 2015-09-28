@@ -19,73 +19,69 @@
 {% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-sm-12">
-	<h3>Your Perma links</h3>
-
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{% if message.level >= 30 %}danger{% else %}success{% endif %}" style="clear:both; margin:1em">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
-        {% endfor %}
-    {% endif %}
+<div class="row">
+    <div class="col-sm-12">
+		<h1 class="page-title">Your Perma Links</h1>
+	    {% if messages %}
+	        {% for message in messages %}
+	            <div class="alert alert-{% if message.level >= 30 %}danger{% else %}success{% endif %}" style="clear:both; margin:1em">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
+	        {% endfor %}
+	    {% endif %}
     </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        {% include "user_management/includes/search_form.html" with search_placeholder="Search Your Perma Links" %}
     </div>
+</div>
 
-    <div class="row panel panel-default">
-        <div class="col-sm-3 folders-box">
-            <div class="panel-heading">
-                Folders
-                <a href="#" class="pull-right delete-folder icon-trash" title="Delete Selected Folder"></a>
-                <a href="#" class="pull-right edit-folder icon-edit" title="Rename Selected Folder"></a>
-                <a href="#" class="pull-right new-folder icon-plus" title="New Folder"></a>
-            </div>
-            <div id="folder-tree">
-                <ul>
-                    {% for tree in request.user.all_folder_trees %}
-                        {% recursetree tree %}
-                            <li data-folder_id="{{ node.pk }}" data-jstree='{ {% if node.is_root_folder %}"selected":true{% elif node.is_shared_folder %}"type":"shared_folder"{% endif %} }'>
-                                <a href="{% url "folder_contents" folder_id=node.pk %}?iframe=1" target="folder-contents">{{ node.name }}</a>
-                                {% if not node.is_leaf_node %}
-                                    <ul>
-                                        {{ children }}
-                                    </ul>
-                                {% endif %}
-                            </li>
-                        {% endrecursetree %}
-                    {% endfor %}
-                </ul>
-            </div>
-
+<div class="row panel panel-default">
+    <div class="col-sm-3 folders-box">
+        <div class="panel-heading">
+            Folders
+            <a href="#" class="pull-right delete-folder icon-trash" title="Delete Selected Folder"></a>
+            <a href="#" class="pull-right edit-folder icon-edit" title="Rename Selected Folder"></a>
+            <a href="#" class="pull-right new-folder icon-plus" title="New Folder"></a>
         </div>
-        <div class="col-sm-9 links-box">
-            <div class="panel-heading">
-                {% include "user_management/includes/search_form.html" with search_placeholder="Search Links" %}
-            </div>
-            <div class="container link-headers">
-                <div class="row">
-                    <div class="col-sm-6">
-                        Link
-                    </div>
-                    <div class="col-sm-4">
-                        Title
-                    </div>
-                    <div class="col-sm-2">
-                        Created
-                    </div>
+        <div id="folder-tree">
+            <ul>
+                {% for tree in request.user.all_folder_trees %}
+                    {% recursetree tree %}
+                        <li data-folder_id="{{ node.pk }}" data-jstree='{ {% if node.is_root_folder %}"selected":true{% elif node.is_shared_folder %}"type":"shared_folder"{% endif %} }'>
+                            <a href="{% url "folder_contents" folder_id=node.pk %}?iframe=1" target="folder-contents">{{ node.name }}</a>
+                            {% if not node.is_leaf_node %}
+                                <ul>
+                                    {{ children }}
+                                </ul>
+                            {% endif %}
+                        </li>
+                    {% endrecursetree %}
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-sm-9 links-box">
+        <div class="container link-headers">
+            <div class="row">
+                <div class="col-sm-12">
+                    <h3 class="link-header body-ah">Perma Links</h3>
                 </div>
-                {% comment %}
-                <th class="linky-abbr-title"><a href="?sort={% if sort == 'submitted_title' %}-{% endif %}submitted_title{% if search_query %}&q={{ search_query }}{% endif %}">Title</a></th>
-                <th class="linky-abbr-date-time"><a href="?sort={% if sort == 'creation_timestamp' %}-{% endif %}creation_timestamp{% if search_query %}&q={{ search_query }}{% endif %}">Created</a></th>
-                <th class="linky-abbr-date-time"><a href="?sort={% if sort == 'vested_timestamp' %}-{% endif %}vested_timestamp{% if search_query %}&q={{ search_query }}{% endif %}">Vested</a></th>
-                {% endcomment %}
             </div>
-            <div class="container link-rows">
-                <noscript>
-                    <iframe src="{% url "folder_contents" folder_id=request.user.root_folder_id %}?iframe=1" name="folder-contents"></iframe>
-                </noscript>
-            </div>
+            {% comment %}
+            <th class="linky-abbr-title"><a href="?sort={% if sort == 'submitted_title' %}-{% endif %}submitted_title{% if search_query %}&q={{ search_query }}{% endif %}">Title</a></th>
+            <th class="linky-abbr-date-time"><a href="?sort={% if sort == 'creation_timestamp' %}-{% endif %}creation_timestamp{% if search_query %}&q={{ search_query }}{% endif %}">Created</a></th>
+            <th class="linky-abbr-date-time"><a href="?sort={% if sort == 'vested_timestamp' %}-{% endif %}vested_timestamp{% if search_query %}&q={{ search_query }}{% endif %}">Vested</a></th>
+            {% endcomment %}
+        </div>
+        <div class="container link-rows">
+            <noscript>
+                <iframe src="{% url "folder_contents" folder_id=request.user.root_folder_id %}?iframe=1" name="folder-contents"></iframe>
+            </noscript>
         </div>
     </div>
+</div>
 
 {% endblock %}
 
@@ -101,7 +97,7 @@
                 {% endif %}
             </div>
         {% elif request.user.can_vest %}
-            <div class="shared-folder-label alert-info" style="background-color: #F5F5F5">
+            <div class="shared-folder-label alert-info">
                 This folder is not shared.
             </div>
         {% endif %}
@@ -117,70 +113,71 @@
     <!-- TODO: insert template from comment above -->
 {{/if}}
 
+
 {{#each objects}}
     <div class="link-container">
 
-        <div class="row link-row" link_id="{{guid}}">
-            <div class="col-sm-6">
-                {{#if favicon_url}}
-                    <img src="{{ favicon_url }}" width="16" height="16">
-                {{/if}}
-                <a href="{{local_url}}" target="_blank">{{local_url}}</a><br/>
-                <a href="{{url}}" target="_blank" class="original-link">
-                    {{truncatechars url 200}}
-                </a>
-                <br/>
-                {{#if vested}}
-                    <span class="vested-date">Vested on {{vested_timestamp_formatted}}</span>
-                {{else}}
-                    <span class="alert-danger">
-                        Expires on {{expiration_date_formatted}} unless
-                        <a href="{{#if can_vest}}{{local_url}}{{else}}{{url_docs_perma_link_vesting}}{{/if}}">vested</a>
-                    </span>
-                {{/if}}
+        <div class="row link-row row-no-bleed" link_id="{{ guid }}">
+            <div class="row">
+	            <div class="col col-sm-8">
+	            	<div class="link-title-display">
+		            	<span class="z-top">{{ title }}</span>
+	            	</div>
+	                <div class="record-url">
+	                	<a href="{{ url }}" target="_blank" class="original-link z-top">{{ truncatechars url 200 }}</a>
+	                </div>
+	            </div>
+	            <div class="col col-sm-4 align-right">
+	                <a class="perma z-top" href="{{local_url}}" target="_blank">{{local_url}}</a>
+	            </div>
             </div>
-            <div class="col-sm-4">
-                <span class="link-title-display">{{title}}</span>
-            </div>
-            <div class="col-sm-2">
-                {{creation_timestamp_formatted}}
+            <div class="row record-secondary">
+	            <div class="col col-sm-8">
+	                <div class="record-affil">
+		                <span class="z-top">Record Affiliation</span>
+		            </div>
+	            </div>
+	            <div class="col col-sm-4 align-right">
+		            <span class="record-date z-top"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
+	            </div>
             </div>
         </div>
 
-        <div class="row link-details" {{#if search_query_in_notes}}style="display:block"{{/if}}>
-            <div class="col-sm-6">
+        <div class="row link-details row-no-bleed" {{#if search_query_in_notes}}style="display:block"{{/if}}>
+            <div class="col-sm-8">
 
-                <div class="form-group">
-                    <label for="link-title-{{guid}}">Display title:</label>
-                    <span class="muted title-save-status"></span>
-                    <input type="text" class="form-control link-title" name="input" id="link-title-{{guid}}" value="{{title}}">
+                <div class="form-group z-top">
+                    <label for="link-title-{{guid}}">Display title</label>
+                    <span class="title-save-status"></span>
+                    <input type="text" class="link-title" name="input" id="link-title-{{guid}}" value="{{title}}">
                 </div>
 
-                <div class="form-group">
-                    <label for="link-notes-{{guid}}">Notes:</label>
-                    <span class="muted notes-save-status"></span>
-                    <textarea id="link-notes-{{guid}}" class="form-control link-notes">{{notes}}</textarea>
+                <div class="form-group z-top">
+                    <label for="link-notes-{{guid}}">Notes</label>
+                    <span class="notes-save-status"></span>
+                    <textarea id="link-notes-{{guid}}" class="link-notes" rows="6">{{notes}}</textarea>
+	                <span class="muted">
+	                    Notes are visible to users who create or vest a link, but not to visitors.
+	                </span>
                 </div>
-                <span class="muted">
-                    Notes are visible to users who create or vest a link, but not to visitors.
-                </span>
 
-                <div class="form-group">
-                    <label for="move-to-folder-{{guid}}">Move to folder:</label>
+                <div class="form-group z-top">
+                   <label for="move-to-folder-{{guid}}">Move to folder</label>
                     <select id="move-to-folder-{{guid}}" class="move-to-folder form-control"></select>
                 </div>
 
             </div>
-            <div class="col-sm-6">
-                <div><strong>Views:</strong> {{view_count}}</div>
-                <div><strong>Created by:</strong> {{created_by.full_name}}</div>
+            <div class="col-sm-4">
+                <div>
+                	<span class="z-top"><strong>Views:</strong> {{view_count}}</span></div>
+                <div><span class="z-top"><strong>Created by:</strong> {{created_by.full_name}}</span></div>
                 {{#if vested}}
-                    <div><strong>Vested by:</strong> {{vested_by_editor.full_name}}</div>
+                    <div><span class="z-top"><strong>Vested by:</strong> {{vested_by_editor.full_name}}</span></div>
                 {{/if}}
             </div>
         </div>
 
-        <a href="#" class="link-expand">More</a>
+        <a href="#" class="link-expand z-bottom">Show Record Details</a>
     </div>
 {{/each}}
 </script>

@@ -760,12 +760,23 @@ input:focus, *:hover {
 }
 
 .row.row-no-bleed {
-	margin: 0;
+	margin-left: 0;
+	margin-right: 0;
+}
+
+.row.row-half-bleed {
+	margin-left: -2px;
+	margin-right: -2px;
 }
 
 .col.col-no-gutter {
 	padding-left: 0;
 	padding-right: 0;
+}
+
+.col.col-half-gutter {
+	padding-left: 2px;
+	padding-right: 2px;
 }
 
 div.col-right {
@@ -811,7 +822,7 @@ h1 {
     font-weight: 300;
     font-size: 40px;
 	@include respond-tablet {
-		font-size: 48px;
+		font-size: 46px;
 	}
 }
 
@@ -988,7 +999,7 @@ p.body { @extend p.body-text; }
 
 .lockup p { @extend %style-pageLede; } 
 
-.page-lede, .page-dek { @extend %style-pageLede; }
+.page-lede, .page-dek, .body-dek { @extend %style-pageLede; }
 
 .modal { position: fixed; }
 
@@ -1010,6 +1021,105 @@ p.body { @extend p.body-text; }
 	}
 }
 
+.alert-success, .alert-info {
+	color: $color-green;
+    background-color: $color-white;
+    border: 2px solid $color-green;
+    border-radius: 2px;
+    padding: $double;
+    font-size: 16px;
+    font-weight: 400;
+    font-family: $font-hed-alt;
+    text-align: center;
+    a {
+		font-weight: 700;
+	    display: inline-block;
+	    padding: 4px 5px 2px;
+	    background-color: #77AE3A;
+	    color: white;
+	    font-size: 12px;
+	    vertical-align: middle;
+	    border-radius: 2px;
+	    position: relative;
+	    top: -1px;
+	    margin-left: 3px;	    
+    &:hover {
+		    background-color: $color-black;
+	    }
+    }
+    h4 {
+	    color: $color-green;
+	    font-weight: 700;
+	    padding-bottom: $grid;
+    }
+}
+
+.alert-block {
+	margin: $double 0 $grid * 4;
+}
+
+.close {
+    line-height: 1;
+    color: $color-white;
+    opacity: 1;
+    filter: none;
+    text-shadow: none;
+    font-weight: 200;
+    font-size: 22px;
+    color: $color-black;
+    width: auto;
+    position: absolute;
+    right: 16px;
+    top: 22px;
+    &:hover {
+	    color: $color-blue;
+	    opacity: 1;
+	    filter: none;
+    }
+    @include respond-tablet {
+	    font-size: 28px;
+	    position: relative;
+	    right: auto;
+	    top: auto;
+    }
+}
+
+.alert {
+}
+
+.alert-danger {
+	color: $color-black;
+    background-color: $color-highlight;
+    border-color: transparent;
+}
+
+.popup-alert {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    width: auto;
+    margin: auto;
+    max-width: none;
+    z-index: 10000;
+	padding: $grid * 3 $double;
+	padding-right: $grid * 4;
+    margin-bottom: 0px;
+    border: none;
+    color: $color-black;
+    background-color: $color-highlight;
+    font-family: $font-hed-alt;
+    font-size: 14px;
+    border-radius: 0;
+    text-align: left;
+    font-weight: 400;
+    @include respond-tablet {
+	    font-weight: 200;
+		padding: $grid * 4;
+	    font-size: 22px;
+	    text-align: center;
+    }
+}
 
 // create
 
@@ -1651,6 +1761,7 @@ strong {
 		background-color: $color-hover !important;
 		text-decoration: none !important;
 		border-color: transparent;
+		color: white !important;
 	}
 	&:active {
 		background-color: $color-black !important;
@@ -1671,16 +1782,34 @@ strong {
 		background-color: white;
 		&:hover, &:focus {
 			background-color: white !important;
-			color: $color-error;
+			color: $color-error !important;
 			border-color: $color-error;
 			text-decoration: none !important;
 		}
 		&:active {
 			background-color: white !important;
 			border-color: $color-black;
-			color: $color-black;
+			color: $color-black !important;
 		}
 	}
+	&.btn-bookmarklet {
+		padding: $grid;
+		font-size: 13px;
+		color: $color-black;
+		border: 3px solid $color-black;
+		background-color: white;
+		cursor: move;
+		margin-top: 0;
+		&:hover, &:focus, &:active {
+			border-color: $color-black !important;
+			color: $color-black !important;
+			background-color: white !important;
+		}
+	}
+	&.btn-xs {
+	    padding: 4px 8px;
+	    font-size: 12px;
+  	}
 }
 
 .thumbnail {
@@ -1793,6 +1922,7 @@ label {
 	font-weight: 400;
 	font-size: 14px;
 }
+
 input {
 	margin: $grid 0 0 0;
 	font-weight: 700;
@@ -1810,6 +1940,7 @@ input {
 	    box-shadow: none;
     }
 }
+
 button {
     &:focus {
 	    box-shadow: none;
@@ -1835,7 +1966,7 @@ div.checkbox {
 input + label {
 	margin-top: $double;
 }
-button {
+button, input[type="submit"] {
 	width: 100%;
 	@include respond-tablet {
 		width: auto;
@@ -1844,12 +1975,91 @@ button {
 
 .form-group {
 	margin-bottom: 0;
+	text-align: left;
 	@include respond-tablet {
 		float: left;
 		width: 50%;
 		margin-top: $double;
 		padding-right: $double;
 	}
+	&.fg-inline {
+	}
+	&.fg-100 {
+		@include respond-tablet {
+			width: 100%;
+		}
+	}
+	&.fg-search {
+		input {
+			margin-top: 0;
+		}
+		width: 100%;
+		padding-right: 44px;
+		@include respond-tablet {
+			padding-right: 60px;
+			input {
+				margin-top: 8px;
+			}
+		}
+	}
+	select {
+		margin-top: $grid;
+	    display: block;
+	    width: 100%;
+	    clear: both;
+	    font-size: 16px;
+	    font-family: $font-hed-alt;
+	    font-weight: 400;
+	    height: 42px;
+	    &:focus {
+		    border-color: $color-blue;
+		    box-shadow: none;
+		    -webkit-box-shadow: none;
+	    }
+  	}
+}
+
+textarea {
+	margin: $grid 0 0 0;
+	display: block;
+	width: 100%;
+	font-size: 16px;
+	font-weight: 400;
+	font-family: $font-hed-alt;
+    outline: none;
+    box-shadow: none;
+    border: 1px solid $color-trans-lightgray;
+    border-radius: 4px;
+    resize:vertical;
+	&:focus {
+		border-color: $color-blue;
+	}
+}
+
+
+button.btn-inline {
+    display: inline-block;
+    padding: 9px;
+    margin: 0;
+    vertical-align: middle;
+    border: 1px solid transparent;
+    margin-top: $grid * 3;
+}
+
+button.btn-search {
+	width: $grid * 6;
+    position: absolute;
+    right: 24px;
+    display: block;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    top: -8px;
+    right: 8px;
+    height: 42px;
+    @include respond-tablet {
+	    top: 8px;
+	    right: 24px;
+    }
 }
 
 .form-group + .form-group {
@@ -1891,6 +2101,16 @@ button#addlink,
 	@include respond-tablet {
 		float: none;
 		width: 100%;
+	}
+}
+
+
+.col-sm-6.contact-form {
+	@include respond-tablet {
+		width: 100%;
+	}
+	@include respond-desktop {
+		width: 50%;
 	}
 }
 
@@ -2399,7 +2619,7 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
 
 // docs
 
-.docs-ah, .reading-body h2 { 
+.body-ah, .docs-ah, .reading-body h2 { 
 	font-size: 22px;
     border-top: 2px solid $color-blue;
     padding-top: $grid;
@@ -2413,9 +2633,22 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
   	@include respond-tablet {
 	    margin-top: $grid * 8;
 	}
+	& + p {
+		margin-top: $double;
+	}
+	& + p.page-dek, & + p.body-dek {
+		margin-top: $grid;
+	}
 }
 
-.docs-bh, .reading-body h3 { 
+.body-ah + .body-bh {
+    margin-top: $grid * 3;
+ 	@include respond-tablet {
+	    margin-top: $grid * 6;
+	}
+}
+
+.body-bh, .docs-bh, .reading-body h3 { 
 	font-size: 16px;
     border-top: 1px solid $color-orange;
     padding-top: $grid;
@@ -2437,6 +2670,19 @@ li.docs-bh {
 	counter-increment: step-counter;
 	&:before {
 		content: counter(step-counter)'. ';
+	}
+}
+
+.body-ch {
+	font-size: 16px;
+	font-family: $font-hed-alt;
+	font-weight: 700;
+	margin-bottom: $grid;
+	margin-top: $double;
+ 	@include respond-tablet {
+	    margin-bottom: $double;
+	    margin-top: $grid * 3;
+		font-size: 18px;
 	}
 }
 
@@ -2463,6 +2709,11 @@ div.reading-body li {
 	padding-right: .5em;
 }
 
+.data-list {
+	font-family: $font-hed-alt;
+	font-weight: 700;
+}
+
 p.body-text { 
 	font-size: 15px;
 	font-weight: 300;
@@ -2474,6 +2725,10 @@ p.body-text {
 	@include respond-desktop {
 		font-size: 18px;
 	}
+}
+
+._admin #main-content {
+	overflow: visible;
 }
 
 #main._fullWidth #main-content {
@@ -3283,22 +3538,23 @@ div.dashboard-blurb {
     }
 
     #dashboard-tabs {
-        margin: 0 0 50px 0;
-        @media (max-width: 767px) {
-            margin-bottom: 0;
-        }
+        margin: 0 0 $grid * 3 0;
         &.settings-tabs a {
             padding-left: 12px;
-            
-            @media (max-width: 991px) {
-                    font-size: 16px;
-                }
         }
-
+		@include respond-mobile {
+			display: flex;
+			flex-wrap: wrap;
+			li { 
+				width: 100%; 
+				margin: 0;
+				padding: 0;
+			}
+			li.active {
+				order: -1;
+			}
+		}
         li {
-            @media (max-width: 767px) {
-                margin: 0 1em 0 0;
-            }
             img {
                 width: 30px;
             }
@@ -3311,27 +3567,59 @@ div.dashboard-blurb {
             a {
                 background-repeat: no-repeat;
                 font-size: 16px;
-                margin-bottom: 10px;
-                padding: 12px 10px 12px 50px;
+                margin-bottom: $half;
+                padding: $grid $double;
                 position: relative;
                 display: block;
-
-                &:hover {
-                    background-color: #efefef;
-                }
-
-                @media (max-width: 991px) {
-                    font-size: 0;
-                    min-height: 49px;
-                }
-                @media (max-width: 767px) {
-                    float: left;
-                    margin-right: 10px;
-                }
+                border: none;
+                border-radius: 2px;
+				background-color: $color-background;
+				font-family: $font-hed-alt;
+				font-weight: 700;
+				span {
+					&:after {
+					    content: '';
+					    height: 17px;
+					    width: 9px;
+					    display: inline-block;
+					    background-image: url('../img/ui/perma-ui-chev-right-small.png');
+					    background-repeat: no-repeat;
+					    background-size: 54px 17px;
+					    background-position: -9px * 2;
+					    top: 3px;
+						margin-left: $grid;
+						margin-right: -17px;
+						@include respond-desktop {
+							top: 3px;
+						}
+					}
+				}
+				&:hover, &:focus {
+                    background-color: $color-blue;
+                    color: white;
+					span:after {
+					    background-position: -9px * 5 !important;
+					}
+				}
+				&:active {
+                    background-color: $color-black;
+                    color: white;
+					span:after {
+					    background-position: -9px * 5 !important;
+					}
+				}
             }
             &.active a {
-                background-color: #efefef;
-                color: #333;
+                background-color: white;
+                color: $color-blue;
+                border: 2px solid $color-blue;
+                cursor: default;
+                padding-top: 7px;
+                padding-bottom: 6px;
+                padding-left: 10px;
+                span:after {
+	                display: none;
+                }
             }
             &.dashboard-secondary a {
                 background: none;
@@ -3587,7 +3875,6 @@ input.text-input {
     border: 1px solid #ccc;
     width: 289px; //	to match reCAPTCHA width 
 }
-
     .text-input-active {
         color: #555 !important;
     }
@@ -4083,19 +4370,6 @@ ul#linky-ul li {
     margin-right: 5px;
 }
 
-.sponsoring-library-info {
-  margin-bottom: 35px;
-}
-
-.sponsoring-library-info h5 {
-	margin-bottom:25px;
-}
-
-.sponsoring-library-info .edit-org-link, .sponsoring-library-info .leave-org-btn {
-	font-family: $font-hed-alt;
-	margin-left: 15px;
-	font-size:12px;
-}
 
 .registrar-info {
 	float:left;
@@ -4107,9 +4381,6 @@ ul#linky-ul li {
 	float:left;
 }
 
-#add-member {
-  margin-bottom: 35px;
-}
 
 .account-confirmed-message {
   width: 300px;
@@ -4141,7 +4412,6 @@ ul#linky-ul li {
     color: $color-blue;
     font-weight: bold;
 }
-
 .btn:active, .btn:hover {
     color: #06a;
 }
@@ -4252,7 +4522,6 @@ a.orange {
 .btn-primary {
     color: #fff;
 }
-
 .btn-primary:hover {
     color: #fcf04d;
 }
@@ -4286,32 +4555,71 @@ td {
 
 // Link Browser
 
+
+.panel-default {
+	margin-top: $grid * 6;
+	border: none;
+}
+
+.panel-heading {
+	padding: $grid 0 0;
+    border-bottom: none;
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
+}
+
 .folders-box {
-    padding: 0;
-    border-right: 1px #DDD solid;
-
+    @include respond-tablet {
+	    width: 100%;
+    }
+    @include respond-desktop {
+	    width: 25%
+    }
+    padding-bottom: $double;
+    
     > .panel-heading {
-        background-color: #F5F5F5;
-        border-top-right-radius: 0;
-        border-color: #DDD;
-
+		border-top: 2px solid #2D76EE;
+	    padding-top: 8px;
+	    color: #2D76EE;
+	    font-family: $font-hed-alt;
+	    font-weight: 700;
+	    font-size: 21px;
+    
         a {
-            color: #515151;
-            font-size: 1.2em;
-            position: relative;
-            top: .1em;
-            margin-left: .5em;
+			position: relative;
+		    top: 5px;
+		    margin-left: 0.5em;
+		    font-size: 20px;
+		    color: $color-trans-gray;
+		    &:hover {
+			    color: $color-hover;
+		    }
         }
     }
 
     #folder-tree {
-        padding: .5em;
+        padding: $double $grid $double 0;
         overflow: auto;
-
+	    font-family: $font-hed-alt;
+	    margin-top: $double;
+	    border-top: 1px solid $color-trans-lightgray;
         .jstree-clicked {
-            background-color: desaturate(lighten($color-blue, 45%), 40%);
-        }
+			border: 1px solid $color-blue;
+		    color: $color-white;
+		    background-color: $color-blue;
+		    box-shadow: none;
+		    padding-right: 6px;
+		}
+        .jstree-hovered {
+		    background-color: $color-highlight;
+		    box-shadow: none;
+		    color: $color-black;
+		}
     }
+
+	.jstree-container-ul {
+		margin-left: -6px;
+	}
 
     li {
         margin-left: 1em;
@@ -4319,13 +4627,14 @@ td {
 }
 
 .links-box {
-    padding: 0;
-
-    //	left border that overlaps with right border of folders-box, so we get whichever is tallest 
-    border-left: 1px #DDD solid;
+    border-left: none;
     position: relative;
-    left: -1px;
-
+    @include respond-tablet {
+	    width: 100%;
+    }
+    @include respond-desktop {
+	    width: 75%
+    }
     > .panel-heading {
         border-top-left-radius: 0;
         border-color: #DDD;
@@ -4335,48 +4644,115 @@ td {
     }
 
     .shared-folder-label {
-        border-bottom: 1px #DDD solid;
-        padding: 0.5em 1.5em;
-        font-style: italic;
+	    margin-bottom: $grid * 3;
     }
 
     .link-headers {
-        @media (max-width: 767px) {
-            display: none;
-        }
-
-        padding: .5em;
-        border-bottom: 1px #ddd solid;
-        font-weight: bold;
-    }
-
-    .search-query-form {
-        float: none !important;
-        display: inline-block;
+        padding: 0 0 $double;
     }
 
     .link-rows {
         padding: 0;
+        overflow: visible;
     }
 
     .link-container {
-        padding: .5em;
-        border-bottom: 1px #DDD solid;
+        padding: $double 0;
+        border: 1px solid transparent;
+        border-top: 1px solid $color-trans-lightgray;
         position: relative;
+		font-family: $font-hed-alt;
+		background-color: white;
+		&._active {
+			border: 1px solid black !important;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
+			border-radius: 2px;
+			margin: 0 -$grid $double -$grid;
+			padding: $grid * 2 $grid;
+			padding-bottom: 0;
+			@include respond-tablet {
+				margin: 0 -$double $double -$double;
+				padding: $grid * 2 $double;
+			}
+			&:hover {
+				background-color: white;
+				.link-title-display {
+					color: $color-black;
+				}
+			}
+		}
+		&:hover {
+			border-top-color: $color-blue;
+			.link-title-display {
+				color: $color-blue;
+			}
+		}
 
+		.record-secondary {
+			margin-top: $grid;
+			@include respond-tablet {
+				margin-top: $half;
+			}
+		}
+		
         .link-row {
             cursor: move; //	fallback for IE 
             cursor: -moz-grab;
             cursor: -webkit-grab;
             cursor: grab;
-
-            .original-link, .vested-date {
-                color: #aaa;
-                word-wrap : break-word;
+			.perma {
+				display: inline-block;	
+			}
+			.link-title-display {
+				font-size: 16px;
+				font-weight: 700;
+			}
+			.original-link {
+				font-size: 16px;
+				font-weight: 200;
+				&:hover, &:focus {
+					color: $color-hover;
+				}
+				&:active {
+					color: $color-active;
+				}
+			}
+			.record-affil {
+				font-size: 16px;
+				font-weight: 200;
+				color: $color-blue;
+				&:before {
+					content: '';
+					width: 19px;
+					height: 18px;
+					display: inline-block;
+					position: relative;
+					top: 3px;
+					background-image: url('../img/ui/perma-ui-affil.svg');
+					background-repeat: no-repeat;
+					background-position: 0 0;
+					background-size: 19px 18px;
+					z-index: 10;
+				}
+			}
+			.record-date {
+				font-size: 14px;
+				font-weight: 400;
+				//margin-top: 2px;
+				color: $color-trans-gray;
+				.label {
+					font-size: 14px;
+					font-weight: 400;
+					color: $color-trans-gray;
+					margin: 0;
+					padding: 0;
+				}
+			}
+            .vested-date, .record-date {
+                display: block;
             }
-
-            .original-link:hover {
-                color: #888;
+            .original-link, .vested-date, .record-date {
+                word-wrap : break-word;
             }
 
             .alert-danger {
@@ -4387,25 +4763,101 @@ td {
                     text-decoration: underline;
                 }
             }
+			.col-sm-8 {
+				width: 100%;
+			}
+			.col-sm-4 {
+				width: 100%;
+			}
+			.align-right {
+				text-align: left;
+				padding-top: $grid;
+			}
+			@include respond-tablet {
+				.col-sm-8 {
+					width: 50%;
+				}
+				.col-sm-4 {
+					width: 50%;
+				}
+				.align-right {
+					text-align: right;
+					padding-top: 0;
+				}
+			}
+			@include respond-wide {
+				.col-sm-8 {
+					width: 66.66666666666666%;
+				}
+				.col-sm-4 {
+					width: 33.33333333333333%;
+				}
+			}
         }
 
         .link-details {
             display: none;
-            background-color: #F5F5F5;
-            padding: .5em;
-            margin-left: 0px;
+            background-color: $color-background;
+            padding: $double 0 $grid;
+            margin-top: $double;
+			margin-left: -$grid;
+		    margin-right: -$grid;
+			@include respond-tablet {
+				margin-left: -$double;
+			    margin-right: -$double;
+			}
+		    .form-group {
+			    margin-top: 0;
+			    width: 100%;
+			    padding-bottom: $double;
+			    input, textarea, select {
+				    margin-top: $grid;
+				    display: block;
+				    width: 100%;
+				    clear: both;
+				    font-size: 16px;
+			    }
+			    div.label-group {
+				    overflow: auto;
+			    }
+			    label, .title-save-status, .notes-save-status {
+				    float: left;
+				    width: auto;
+				    padding-bottom: $grid;
+			    }
+			    .title-save-status, .notes-save-status {
+				    color: $color-orange;
+				    margin-top: 0;
+				    margin-left: .7em;
+				    font-weight: 700;
+			    }
+		    }
         }
 
         .link-expand {
             position: absolute;
-            right: 0px;
-            bottom: 0px;
-            border-left: 1px solid #ddd;
-            border-top: 1px solid #ddd;
-            padding: 0.2em .4em .2em .6em;
-            background-color: desaturate(lighten($color-blue, 45%), 40%);
-            border-radius: 4px 0px;
-            color: #777;
+            text-align: center;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: $half $double 3px;
+            background-color: transparent;
+            border-radius: 0;
+            color: transparent;
+            font-size: 1px;
+            &:active {
+	            background-color: lighten($color-highlight, 25%);
+            }
+            &:focus {
+	            outline: none !important;
+            }
+        }
+        .z-top {
+            z-index: 10;
+        }
+        .z-bottom {
+            z-index: 0;
         }
     }
 }
@@ -4427,7 +4879,192 @@ body.dragging, .dragging .link-row {
     cursor: grabbing;
 }
 
+// admin users and orgs
 
+.admin-content {
+	margin-top: $grid * 6;
+}
+
+span.action {
+    display: inline-block;
+    float: right;
+    font-size: 16px;
+    padding: 3px 6px 3px;
+    border-radius: 3px;
+    background-color: $color-blue;
+    color: white;
+    font-weight: 400;
+    cursor: pointer;
+    &:hover, &:focus {
+	    background-color: $color-hover;
+    }
+    &:active {
+	    background-color: $color-active;
+    }
+    a {
+	    color: $color-white !important;
+    }
+    .icon-plus-sign, [class^="icon-"], [class*=" icon-"] {
+	    color: white;
+    }
+}
+
+.org-settings {
+	margin-top: $double;
+}
+
+.settings-block {
+	border: 1px solid $color-trans-lightgray;
+    padding: $grid;
+    font-size: 16px;
+    font-family: $font-hed-alt;
+    border-radius: 2px;
+    margin-top: $double;
+    font-weight: 200;
+    overflow: auto;
+    .sponsor-name, .sponsor-email, p {
+	    display: block;
+	    padding-right: 24px;
+    }
+    .btn-xs {
+		padding: 4px 8px;
+	    font-size: 12px;
+	    margin: 0;
+	    position: absolute;
+	    top: 50%;
+	    right: $grid;
+	    margin-top: -15px;
+    }
+}
+
+#add-member {
+  padding-bottom: 0;
+}
+
+.admin-data {
+	margin: $grid * 3 0 0;
+	border-top: 1px solid $color-blue;
+	padding-top: 1px;
+	@include respond-tablet  {
+		margin: $grid * 3 0;
+	}
+}
+
+.admin-data-point {
+	text-align: center;
+	color: $color-blue;
+	font-family: $font-hed-alt;
+	@include respond-mobile {
+		float: left;
+		&.col-sm-3 {
+			width: 25%;
+		}
+		&.col-sm-4 {
+			width: 33.3333333333333%;
+		}
+		&.col-sm-6 {
+			width: 50%;
+		}
+		p.count-label {
+			font-size: 10px;
+			padding: $grid $half;
+			line-height: 1.2;
+			height: 3em;
+		}
+		p.count-number {
+			font-size: 24px;
+			padding: $grid $half 0;
+		}
+	}
+	+ .admin-data-point {
+		border-left: 1px solid $color-blue;
+	}
+	.count-label {
+		padding: $grid;
+		color: $color-blue;
+		font-weight: 700;
+		margin-bottom: 0;
+		font-size: 12px;
+		@include respond-desktop {
+			padding: $grid $double;
+			font-size: 14px
+		}
+	}
+	.count-number {
+		padding: 0 $grid 0;
+		font-weight: 200;
+		font-size: 54px;
+		color: $color-blue;
+		line-height: 1;
+		@include respond-desktop {
+			padding: $grid $double;
+			font-size: 60px;
+		}
+	}
+}
+
+.remove-search-filters {
+	display: block;
+    margin: $double 0 0;
+    border: 2px solid $color-orange;
+    padding: $grid;
+    border-radius: 2px;
+    color: $color-orange !important;
+    font-family: $font-hed-alt;
+    font-weight: 700;
+    font-size: 14px;
+    vertical-align: middle;
+    @include respond-desktop {
+	    font-size: 16px;
+    }
+    .filters-title {
+	    font-size: 14px;
+	    font-weight: 700;
+	    @include respond-desktop {
+		    font-size: 16px;
+	    }
+    }
+    
+    strong, .filter-label, .remove-filters {
+	    display: inline-block;
+	    border: 1px solid $color-orange;
+	    padding: 2px 6px;
+    }
+    
+    strong {
+	    background-color: $color-orange;
+	    border-top-right-radius: 4px;
+	    border-bottom-right-radius: 4px;
+	    color: white;
+	    font-weight: 400;
+	    margin-left: -.3em;
+    }
+    .filter-label {
+	    border-top-left-radius: 4px;
+	    border-bottom-left-radius: 4px;
+	    border: 1px solid $color-orange;
+		margin-left: 4px;
+    }
+    .remove-filters {
+	    background-color: $color-orange;
+	    border-radius: 4px;
+	    color: white;
+	    font-weight: 400;
+	    width: 100%;
+	    margin-left: 0;
+	    margin-top: 8px;
+    	&:hover {
+		    background-color: $color-black;
+		    border-color: $color-black;
+	    }
+	    @include respond-tablet {
+		    float: right;
+		    width: auto;
+		    margin-left: $half;
+		    margin-top: 0;
+	    }
+    }
+}
 
 td.registrar-name-cell {
   min-width: 15%;
@@ -4438,25 +5075,97 @@ td.registrar-website-cell {
   word-break: break-all;
 }
 
+.admin-found {
+    border-top: 1px solid $color-blue;
+    color: $color-blue;
+    font-size: 15px;
+    margin-top: $grid * 3;
+    @include respond-desktop {
+	    font-size: 16px;
+    }
+}
 
 .sort-filter-bar {
-    padding-top: 16px;
+    padding-top: $grid;
     padding-bottom: 16px;
-    float: right;
+    border-top: 1px solid $color-blue;
+    float: left;
+    clear: both;
+    width: 100%;
+    strong {
+	    display: none;
+    }
+    .dropdown {
+	    float: left;
+	    margin-right: $double;
+    }
+    @include respond-tablet {
+	    width: auto;
+	    float: right;
+	    clear: none;
+	    border-top: none;
+	    strong {
+		    display: inline;
+	    }
+	    .dropdown {
+		    float: right;
+		    margin-left: $grid * 2;
+		    margin-right: 0;
+	    }
+    }
+    @include respond-mobile {
+	    border-bottom: 1px solid $color-blue;
+	    padding-bottom: $grid;
+	    div.dropdown {
+		    float: none;
+		    width: 100%;
+		    + .dropdown {
+			    border-top: 1px solid $color-blue;
+			    margin-top: $grid;
+			    padding-top: $grid;
+		    }
+	    }
+	    .dropdown.open {
+		    float: none;
+		    width: 100%;
+	    }
+	    ul.dropdown-menu {
+		    max-width: none;
+		    top: auto;
+		    left: auto;
+		    right: auto;
+		    li {
+			    margin-bottom: 0;
+		    }
+		    li a {
+			    text-align: left;
+			    padding-left: $grid;
+		    }
+	    }
+    }
 }
 
 .sort-filter-bar .dropdown {
-    margin-right: 16px;
-    padding-top: 7px;
-    float: right;
+    padding-top: 1px;
+    font-family: $font-hed-alt;
+    a[role='button']:hover, a[role='button']:focus {
+	    color: $color-hover;
+    }
+    @include respond-desktop {
+	    margin-left: $grid * 3;
+    }
 }
 
 .sort-filter-count {
-    float: left;
-    font-weight: 500;
-    margin-top: 22px;
-    font-family: $font-hed;
-    color: #333;
+	float: left;
+    font-weight: 400;
+    margin-top: $grid;
+    font-family: $font-hed-alt;
+    color: $color-blue;
+    font-size: 15px;
+    @include respond-desktop {
+	    font-size: 16px;
+    }
 }
 
 .sort-filter-bar .dropdown-menu {
@@ -4464,6 +5173,10 @@ td.registrar-website-cell {
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+    top: 29px;
+    right: 0px;
+    left: auto;
+    border-color: black;
 }
 
 .sort-filter-bar .dropdown-menu i.icon-ok {
@@ -4475,28 +5188,91 @@ td.registrar-website-cell {
     visibility: visible;
 }
 
-.remove-search-filters {
-    color: #888;
-    font-family: $font-hed;
-}
-
-.remove-search-filters strong {
-    padding: 0px 3px;
-}
-
 .no-users-found {
     text-align: center;
-    font-weight: 500;
+    font-weight: 200;
     font-size: 24px;
-    margin-top: 35px;
+    margin-top: $double;
+    font-family: $font-hed-alt;
+    color: $color-blue;
+    @include respond-tablet {
+	    margin-top: $grid * 6;
+    }
 }
 
 .list-user {
-    padding: 16px 0px 8px 0px;
+	padding: $grid 0px;
     margin-bottom: 0px;
-    border-top: 1px solid #dddddd;
-    font-family: $font-hed;
-    background-color: #f8f8f8;
+    border-top: 1px solid $color-black;
+    font-family: $font-hed-alt;
+    background-color: white;
+    &.muted {
+	    margin-top: 0;
+	    border-top: 1px solid $color-trans-gray;
+    }
+    a.action {
+	    display: inline-block;
+	    padding: 0px 6px 0px;
+	    border: 2px solid $color-black;
+	    border-radius: 3px;
+	    color: $color-black;
+	    font-weight: 700;
+	    font-size: 12px;
+	    &:hover, &:focus {
+		    text-decoration: none;
+		    color: white;
+		    background-color: $color-black;
+		    border-color: $color-black;
+	    }
+	    &:active {
+		    text-decoration: none;
+		    background-color: $color-blue;
+		    border-color: $color-blue;
+	    }
+	    &.action-delete {
+		    border-color: $color-orange;
+		    color: $color-orange;
+		    &:hover, &:focus {
+			    color: white;
+			    background-color: $color-orange;
+			    border-color: $color-orange;
+		    }
+		    &:active {
+			    text-decoration: none;
+			    background-color: $color-active;
+			    border-color: $color-active;
+		    }
+	    }
+	    &.action-approve {
+		    border-color: $color-blue;
+		    color: $color-blue;
+		    &:hover, &:focus {
+			    color: white;
+			    background-color: $color-blue;
+			    border-color: $color-blue;
+		    }
+		    &:active {
+			    text-decoration: none;
+			    background-color: $color-active;
+			    border-color: $color-active;
+		    }
+	    }
+    }
+    p.warning {
+	    margin-top: $half;
+	    color: $color-orange;
+	    font-size: 14px;
+	    font-weight: 400;
+	    margin-bottom: 0;
+    }
+    @include respond-tablet {
+	    padding: $double 0px;
+    }
+    @include respond-mobile {
+	    .admin-actions {
+		    margin-top: $grid;
+	    }
+    }
 }
 
 .list-user p {
@@ -4504,15 +5280,20 @@ td.registrar-website-cell {
     color: #333;
 }
 
-.list-name {
-    font-size: 24px;
-    font-weight: 500;
-    margin-bottom: 5px;
+p.list-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+    padding: 0 $double 0 0;
     line-height: 1.2em;
+    color: $color-black;
+    a {
+	    color: $color-black;
+    }
 }
 
 .list-name a {
-    color: #333;
+    color: $color-blue;
 }
 
 .list-name .text-warning {
@@ -4520,39 +5301,97 @@ td.registrar-website-cell {
     color: $color-orange;
 }
 
-.list-email {
+.list-email, .list-registrar, .list-vesting-org {
     margin-bottom: 20px;
+    font-size: 16px;
+    font-weight: 200;
+    margin: 0;
+    padding: 0 $double 0 0;
+    line-height: 1.2em;
+    word-wrap : break-word;
+    a {
+	    font-weight: 200;
+    }
 }
 
-.list-user-registrar .list-email {
-
+p.list-vesting-org {
+	color: $color-trans-gray;
 }
+
+.list-registrar a, .list-vesting-org a {
+	color: $color-trans-gray;
+	font-weight: 700;
+}
+
+
 
 .list-website {
     margin-bottom: 5px;
 }
 
-.list-vesting-org, .list-registrar {
-    margin-bottom: 0;
+.list-count-label a {
+	font-size: 85%;
+	font-weight: 700;
+	color: $color-trans-gray;
+	margin-left: 4px;
+	&:hover {
+		color: $color-black;
+	}
 }
 
-.list-vesting-org a, .list-registrar a {
-    color: #333;
-}
 
 .list-date {
-    font-size: 12px;
+	font-size: 14px;
+    font-weight: 400;
     margin-bottom: 0px;
-    margin-top: 35px;
+    margin-top: $grid * 2;
     text-align: right;
+    @include respond-tablet { 
+	    font-size: 10px;
+    }
+    @include respond-desktop {
+	    font-size: 14px;
+	    font-weight: 200
+    }
 }
 
-.list-user-registrar .list-date {
-    margin-top: 20px;
+
+div.org-data-points {
+	margin-bottom: $double;
+	@include respond-tablet {
+		margin-bottom: 0;
+	}
 }
 
-.list-date.vesting_user-list {
-    margin-top: 18px;
+div.list-count-group {
+	font-weight: 200;
+    font-size: 14px;
+    font-weight: 200;
+    border: none;
+    border-radius: 3px;
+    padding: 2px 11px;
+    background-color: $color-trans-whispergray;
+    width: 100%;
+	strong {
+		font-weight: 700;
+		color: $color-orange;
+	}
+}
+
+.col-sm-4.org-data-point {
+	margin-top: $double;
+	& + .org-data-point {
+	    margin-top: 4px;
+    }
+	@include respond-tablet {
+		width: 100%;
+	}
+	@include respond-desktop {
+		width: 33.33333333%;
+	    & + .org-data-point {
+		    margin-top: $double;
+	    }
+	}
 }
  
 .list-status {
@@ -4561,6 +5400,9 @@ td.registrar-website-cell {
     font-size: 12px;
     margin-bottom: 0px;
     position: relative;
+    &:first-child {
+	    margin-top: 0;
+    }
 }
 
 .list-count-group {
@@ -4584,37 +5426,11 @@ p.list-count-number {
     margin-top: 25px;
 }
 
-.list-user-registrar p.list-count-number {
-    margin-top: 5px;
-}
 
-.list-user-registrar .center-list-count p.list-count-number {
-    text-align: center;
-}
-
-.list-count-number.vesting_user-list {
-    margin-top: 0px;
-}
-
-.count-label {
-    font-family: $font-hed;
-    font-size: 12px;
-    margin-bottom: 0px;
-    margin-top: 0px;
-    color: #888;
-    font-weight: 400;
-}
-
-.count-number {
-    font-family: $font-hed;
-    font-size: 48px;
-    font-weight: 500;
-    line-height: 1.1em;
-    color: #333;
-}
 
 .dropdown a .caret {
-    border-color: #09f transparent;
+    border-color: $color-blue transparent;
+    margin-bottom: 2px;
 }
 
 input#file {
@@ -4806,7 +5622,12 @@ img[usemap] {
 
 
 .muted, .muted p {
-	color: #9c9c9c;
+	color: $color-trans-gray;
+}
+
+.muted {
+	margin-top: $grid;
+	display: block;
 }
 
 ul {
@@ -5006,7 +5827,6 @@ a.btn.vest, a.btn.dashboard, a.btn.user-delete {
 	background: #fff;
 	margin-left: 10px;
 }
-
 a.btn.vest {
 	width: 100px;
 	padding: 2px 0px;
@@ -5018,13 +5838,11 @@ a.btn.vest {
 	background: #5cb85c;
 	margin-left: 10px;
 }
-
 input.btn.vest:hover, input.btn.vest:focus, a.btn.vest:hover, a.btn.vest:focus {
 	color: #fff;
 	background: #11ad32;
 	border: 1px solid #4cae4c;
 }
-
 a.btn.dashboard:hover, a.btn.dashboard:focus {
 	border: 1px solid #222;
   	color: #222;
@@ -5219,19 +6037,8 @@ p.orange {
 	tbody {
 		font-size: 12px;
 	}
-	.list-count-number {
-        margin-top: 10px;
-        font-size: 28px;
-    }
     .sort-filter-bar {
         margin-bottom: 16px;
-    }
-    .sort-filter-bar, .sort-filter-bar .dropdown, .sort-filter-bar form {
-        float: none !important;
-    }
-    .sort-filter-count {
-        position: absolute;
-        bottom: -35px;
     }
 }
 
@@ -5300,19 +6107,6 @@ p.orange {
 
 
 
-.popup-alert {
-  //	via http: //stackoverflow.com/a/22073084/307769 
-    position: fixed;   //	Take it out of the flow of the document 
-    left: 0;           //	Left edge at left for now 
-    right: 0;          //	Right edge at right for now, so full width 
-    top: 25%;         //	Move it down from top of window 
-    width: 700px;      //	Give it the desired width 
-    margin: auto;      //	Center it 
-    max-width: 90%;   //	Make it fit window if under 500px 
-    z-index: 10000;    //	Whatever needed to force to front (1 might do) 
-}
-
-
 
 //	Archive error page start 
 
@@ -5339,4 +6133,3 @@ p.orange {
 
 
 //	End user docs  
-

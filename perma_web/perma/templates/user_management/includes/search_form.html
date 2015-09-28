@@ -1,10 +1,8 @@
-<form class="pull-right search-query-form form-inline">
-    <div class="form-group">
-        <div class="input-group">
-            <input type="text" name="q" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Search" }}" class="search-query form-control"/>
-            <span class="input-group-btn">
-                <button type="submit" name="submit" value="1" class="btn btn-default"><span class="icon-search"></span></button>
-            </span>
-        </div>
-    </div>
+<form class="search-query-form form-inline">
+	<fieldset>
+	    <div class="form-group fg-inline fg-search">
+	        <input type="text" name="q" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Search" }}" class="search-query"/>
+	    </div>
+	    <button type="submit" name="submit" value="1" class="btn btn-default btn-inline btn-search"><span class="icon-search"></span></button>
+	</fieldset>
 </form>
