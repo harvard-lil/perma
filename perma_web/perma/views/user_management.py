@@ -1189,7 +1189,7 @@ def limited_login(request, template_name='registration/login.html',
           
         if form.is_valid():
 
-            host = request.get_host() if settings.DEBUG else settings.HOST
+            host = request.get_host()
 
             # Ensure the user-originating redirection url is safe.
             if not is_safe_url(url=redirect_to, host=host):
@@ -1535,7 +1535,7 @@ def email_new_user(request, user):
             random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(30))
         user.save()
       
-    host = request.get_host() if settings.DEBUG else settings.HOST
+    host = request.get_host()
 
     content = '''To activate your account, please click the link below or copy it to your web browser.  You will need to create a new password.
 
@@ -1558,7 +1558,7 @@ def email_new_organization_user(request, user, org):
     Send email to newly created organization accounts
     """
 
-    host = request.get_host() if settings.DEBUG else settings.HOST
+    host = request.get_host()
 
     content = '''Your Perma.cc account has been associated with %s.  You now manage archives and peers within the organization.  If this is a mistake, visit your account settings page to leave %s.
 
@@ -1579,7 +1579,7 @@ def email_new_registrar_user(request, user):
     Send email to newly created registrar accounts
     """
 
-    host = request.get_host() if settings.DEBUG else settings.HOST
+    host = request.get_host()
 
     content = '''Your Perma.cc account has been associated with %s.  If this is a mistake, visit your account settings page to leave %s.
 
@@ -1604,7 +1604,7 @@ def email_pending_registrar_user(request, user):
             random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(30))
         user.save()
       
-    host = request.get_host() if settings.DEBUG else settings.HOST
+    host = request.get_host()
 
     content = '''We will review your library account request as soon as possible. A personal account has been created for you and will be linked to your library once that account is approved. 
     
@@ -1629,7 +1629,7 @@ def email_registrar_request(request, pending_registrar):
     Send email to Perma.cc admins when a library requests an account
     """
       
-    host = request.get_host() if settings.DEBUG else settings.HOST
+    host = request.get_host()
 
     content = '''A new library account request from %s is awaiting review and approval. 
 
@@ -1652,7 +1652,7 @@ def email_approved_registrar_user(request, user):
     Send email to newly approved registrar accounts for folks requesting library accounts
     """
       
-    host = request.get_host() if settings.DEBUG else settings.HOST
+    host = request.get_host()
 
     content = '''Your request for a Perma.cc library account has been approved and your personal account has been linked. 
     
@@ -1677,7 +1677,7 @@ def email_court_request(request, court):
     Send email to Perma.cc admins when a library requests an account
     """
       
-    host = request.get_host() if settings.DEBUG else settings.HOST
+    host = request.get_host()
     try:
         target_user = LinkUser.objects.get(email=court.email)
     except LinkUser.DoesNotExist:
