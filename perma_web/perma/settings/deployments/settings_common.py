@@ -145,14 +145,20 @@ PIPELINE_JS = {
     },
     'landing': {
         'source_filenames': (
+            'js/landing.js',
+        ),
+        'output_filename': 'js/landing-bundle.js',
+    },
+    'map': {
+        'source_filenames': (
             'js/raphael.js',
             'js/raphael.scale.js',
             'js/g.raphael.js',
             'js/usmap.js',
             'js/rwdImageMaps.js',
-            'js/landing.js',
+            'js/map.js',
         ),
-        'output_filename': 'js/landing-bundle.js',
+        'output_filename': 'js/map-bundle.js',
     },
     'stats': {
         'source_filenames': (
