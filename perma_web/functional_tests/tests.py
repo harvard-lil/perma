@@ -201,7 +201,7 @@ class FunctionalTest(StaticLiveServerTestCase):
                     time.sleep(sleep_time)
 
         def fix_host(url, host=settings.HOST):
-        	return url.replace('http://' + host, self.live_server_url)
+            return url.replace('http://' + host, self.live_server_url)
 
         info("Loading homepage from %s." % self.live_server_url)
         self.driver.get(self.live_server_url)
@@ -230,19 +230,20 @@ class FunctionalTest(StaticLiveServerTestCase):
 
         info("Creating archive.")
         url_to_capture = 'example.com'
+        create_page_url = fix_host(self.driver.current_url)
         type_to_element(get_id('rawUrl'), url_to_capture)  # type url
         get_id('addlink').click() # submit
-        thumbnail = repeat_while_exception(lambda: get_css_selector(".library-thumbnail img"), NoSuchElementException, timeout=60)
-        # thumbnail_data = requests.get(thumbnail.get_attribute('src'))
-        # thumbnail_fh = StringIO.StringIO(thumbnail_data.content)
-        # self.assertEqual(imghdr.what(thumbnail_fh), 'png')
-        # TODO: We could check the size of the generated png or the contents,
-        # but note that the contents change between PhantomJS versions and OSes, so we'd need a fuzzy match
+
+        # When we've successfully created an archive, we'll get forwarded
+        while create_page_url == fix_host(self.driver.current_url):
+            time.sleep(1)
+
+        # Get the guid of the created archive
+        display_guid = fix_host(self.driver.current_url)[-9:]
+
+        self.driver.get(fix_host(self.driver.current_url))
 
         info("Viewing playback.")
-        display_archive_url = get_xpath("//a[@id='perma-success-url']").get_attribute('href')  # get url from green button
-        archive_url = fix_host(display_archive_url)
-        self.driver.get(archive_url)
         assert_text_displayed('See the Screenshot View', 'a')
         # archive_view_link = get_id('warc_cap_container_complete')
         # repeat_while_exception(lambda: archive_view_link.click(), ElementNotVisibleException) # wait for archiving to finish
@@ -257,7 +258,7 @@ class FunctionalTest(StaticLiveServerTestCase):
         # create folder
         get_css_selector('.new-folder').click()
         # find link
-        assert_text_displayed(display_archive_url)
+        assert_text_displayed(display_guid)
         # show details
         get_css_selector('.link-expand').click()
         # for some reason these are throwing 500 errors on PATCH:
@@ -279,4 +280,3 @@ class FunctionalTest(StaticLiveServerTestCase):
         get_xpath("//a[contains(@href, '%s')]" % url_to_capture).click()
         assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
         playback_url = self.driver.current_url
-

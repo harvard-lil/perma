@@ -3,6 +3,7 @@ import logging
 from urlparse import urlparse
 import requests
 from ratelimit.decorators import ratelimit
+from datetime import timedelta
 
 from django.core.files.storage import default_storage
 from django.template import RequestContext
@@ -13,6 +14,7 @@ from django.shortcuts import render_to_response, render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, Http404, HttpResponse, HttpResponseNotFound, HttpResponseServerError, StreamingHttpResponse
 from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.views.decorators.csrf import csrf_exempt
@@ -127,12 +129,18 @@ def single_linky(request, guid):
     else:
         capture = link.primary_capture
 
+    if request.user.is_authenticated():
+        # If a record is new (less than a minute old), let's assume
+        # that the user just created it and we should show them a new record message
+        new_record = link.creation_timestamp > timezone.now() - timedelta(seconds=60)
+
     context = {
         'link': link,
         'can_view': link.can_view(request.user),
         'capture': capture,
         'next': request.get_full_path(),
-        'serve_type': serve_type
+        'serve_type': serve_type,
+        'new_record': new_record,
     }
 
     return render(request, 'archive/single-link.html', context)
