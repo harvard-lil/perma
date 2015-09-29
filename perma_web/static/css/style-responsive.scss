@@ -1172,8 +1172,13 @@ p.body { @extend p.body-text; }
 	background-color: $color-black;
 	.create-title {
 		color: white;
-		padding-top: $grid * 5;
+		padding-top: $grid;
 	}
+    @include respond-tablet {
+		.create-title {
+			padding-top: $grid * 5;
+		}
+    }
 }
 
 #linker {
