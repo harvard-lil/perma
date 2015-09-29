@@ -1169,16 +1169,22 @@ p.body { @extend p.body-text; }
 }
 
 #main._isPrivate {
-	background-color: $color-black;
-	.create-title {
-		color: white;
-		padding-top: $grid;
-	}
-    @include respond-tablet {
+	#main-content {
+		background-color: $color-black;
+		padding-bottom: 0;
+		padding-top: $double;
 		.create-title {
-			padding-top: $grid * 5;
+			color: white;
+			padding-top: $grid;
 		}
-    }
+	    @include respond-tablet {
+			padding-bottom: $grid * 4;
+			padding-top: 0;
+			.create-title {
+				padding-top: $grid * 5;
+			}
+	    }
+	}
 }
 
 #linker {
