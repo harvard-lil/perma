@@ -1214,6 +1214,25 @@ p.body { @extend p.body-text; }
 		    width: $grid * 25;
 	    }
 	}
+
+	&._isPrivate {
+		input.form-priority-input {
+		    @include respond-tablet {
+			    width: $grid * 54;
+		    }
+		    @include respond-desktop {
+			    width: $grid * 80;
+		    }
+		    @include respond-wide {
+			    width: $grid * 106;
+		    }
+		}
+		.form-priority-fieldset .btn {
+		    @include respond-tablet {
+				width: $grid * 30;
+		    }
+		}
+	}
 	
 	button#addlink {
 		margin: $double 0 0 0;
