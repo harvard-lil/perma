@@ -1245,6 +1245,9 @@ p.body { @extend p.body-text; }
 			    left: 50%;
 			    top: 10px;
 		    }
+		    &:hover, &:focus {
+			    color: $color-blue !important;
+		    }
 		}
 	}
 	
