@@ -2389,11 +2389,12 @@ button.btn-search {
     display: block;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
-    top: -8px;
-    right: 8px;
-    height: 42px;
+    top: $double;
+    right: $double;
+    margin: 0;
     @include respond-tablet {
-	    top: 8px;
+	    top: $grid * 4;
+	    bottom: $grid * 4;
 	    right: 24px;
     }
 }
@@ -3493,6 +3494,7 @@ ul.partners {
 
 body form .btn.login {
 	background-color: $color-green;
+	margin-bottom: $double;
 }
 
 .bold {
