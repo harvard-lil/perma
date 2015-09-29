@@ -84,7 +84,7 @@ $(function() {
                     }
                     var opt_text = organization.name;
                     if (organization.default_to_private) {
-                    	opt_text += " (PRIVATE)";	
+                    	opt_text += ' <span class="ui-private">(Private)</span>';	
                     }
                     if(selected_organization == organization.id) {
                     	select_yourself = false;

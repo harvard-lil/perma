@@ -1168,6 +1168,13 @@ p.body { @extend p.body-text; }
     }
 }
 
+#main._isPrivate {
+	background-color: $color-black;
+	.create-title {
+		color: white;
+		padding-top: $grid * 5;
+	}
+}
 
 #linker {
 	.form-priority-fieldset {
@@ -1216,6 +1223,9 @@ p.body { @extend p.body-text; }
 	}
 
 	&._isPrivate {
+		fieldset {
+			background-color: black;
+		}
 		input.form-priority-input {
 		    @include respond-tablet {
 			    width: $grid * 54;
@@ -1228,9 +1238,27 @@ p.body { @extend p.body-text; }
 		    }
 		}
 		.form-priority-fieldset .btn {
+			background-color: $color-orange;
 		    @include respond-tablet {
 				width: $grid * 30;
 		    }
+		}
+		#organization_select_form {
+			.label-affil {
+				color: white;
+				&:before {
+					background-image: url('../img/ui/perma-ui-affil-isPrivate.svg');
+				}
+			}
+			.selector-trigger {
+				background-color: transparent;
+				color: white;
+			}
+			.dropdown.open {
+				.selector-trigger {
+					color: $color-blue;
+				}
+			}
 		}
 	}
 	
@@ -1320,6 +1348,20 @@ p.body { @extend p.body-text; }
 			    padding-bottom: $grid;
 		  	}
 		}	  	
+		
+	    span.ui-private {
+		    overflow: hidden;
+		    display: inline-block;
+		    text-indent: -10000px;
+		    position: relative;
+		    height: 16px;
+		    width: 18px;
+		    background-image: url('../img/ui/perma-ui-private.png');
+		    background-repeat: no-repeat;
+		    background-size: cover;
+		    margin-left: 4px;
+		    bottom: -1px;
+	    }
 			  	
 	  	.selector-trigger {
 		  	width: 100%;
@@ -1454,7 +1496,7 @@ p.body { @extend p.body-text; }
 	  	.dropdown.open {
 		  	.selector-trigger {
 			  	border-color: black;
-			  	border-bottom: transparent;
+			  	border-bottom-color: transparent;
 			  	background-color: white;
 			  	border-bottom-left-radius: 0;
 			  	border-bottom-right-radius: 0;
