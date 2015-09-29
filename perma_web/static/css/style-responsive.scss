@@ -1011,7 +1011,7 @@ p.body { @extend p.body-text; }
 	color: $color-error;
 }
 
-.label-verbose, .verbose {
+.label-verbose, .verbose, .discretionary {
     display: inline-block;
     width: 0;
     height: 1em;
@@ -1169,16 +1169,22 @@ p.body { @extend p.body-text; }
 }
 
 #main._isPrivate {
-	background-color: $color-black;
-	.create-title {
-		color: white;
-		padding-top: $grid;
-	}
-    @include respond-tablet {
+	#main-content {
+		background-color: $color-black;
+		padding-bottom: 0;
+		padding-top: $double;
 		.create-title {
-			padding-top: $grid * 5;
+			color: white;
+			padding-top: $grid;
 		}
-    }
+	    @include respond-tablet {
+			padding-bottom: $grid * 4;
+			padding-top: 0;
+			.create-title {
+				padding-top: $grid * 5;
+			}
+	    }
+	}
 }
 
 #linker {
@@ -1225,7 +1231,23 @@ p.body { @extend p.body-text; }
 	    @include respond-desktop {
 		    width: $grid * 25;
 	    }
+		&._isWorking {
+			font-size: 13px;
+		    background-color: transparent !important;
+		    text-align: center;
+		    padding-bottom: 0px;
+		    padding-top: 32px;
+		    color: $color-blue;
+		    border-color: transparent !important;
+	        opacity: 1;
+		    filter: alpha(opacity=100);
+		    .spinner {
+			    left: 50%;
+			    top: 10px;
+		    }
+		}
 	}
+	
 
 	&._isPrivate {
 		fieldset {
@@ -2111,6 +2133,15 @@ strong {
 	&.btn-xs {
 	    padding: 4px 8px;
 	    font-size: 12px;
+  	}
+  	&.delete-confirm {
+	  	background-color: $color-error;
+		&:hover, &:focus {
+			background-color: $color-black !important;
+		}
+		&:active {
+			background-color: $color-error !important;
+		}
   	}
 }
 

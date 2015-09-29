@@ -154,8 +154,8 @@
             	
                 {% if link.organization %}
             	<dl class="tray-detail-group">
-                    <p class="tray-detail-title">Archiving Organization</p>
-                    <p class="tray-detail-title">{{ link.organization }}</p>
+                    <dt class="tray-detail-title">Archiving Organization</dt>
+                    <dd class="tray-detail-entry">{{ link.organization }}</dd>
             	</dl>
                 {% endif %}
 
@@ -194,15 +194,21 @@
                 {# endif #}
             </div>
         </div>
-
-        <div class="banner banner-status row">
-            {% if can_view and link.dark_archived %}
-                This archive is in the dark archive. It’s only visible to libraries and your Archiving Organization.
-            {% endif %}
-            {% if new_record %}
-                new record. neato.
-            {% endif %}
-        </div>
+		
+		{% if can_view and link.dark_archived %}
+	        <div class="banner banner-status row _isDarchive">
+		        <strong>This record is in the Dark Archive.</strong> It’s only visible to libraries and your Archiving Organization.
+	        </div>
+        {% endif %}
+       
+        {% if new_record %}
+	        <div class="banner banner-status row _isNewRecord">
+		        <strong>Success!</strong>
+		        <span class="message">Your new Perma Link is <input class="perma" type="text" value="{{ HOST }}{% url 'single_linky' link.guid %}"></input></span>
+		        <span class="link-options"><a href="{% url 'user_delete_link' link.guid %}">Delete</a><span class="verbose"> (Perma Links are permanent after 24 hours)</span></span>
+		        <a class="action new-link" href="{% url 'create_link' %}">Make a new Perma Link</a>
+	        </div>
+        {% endif %}
 
     </header>
 {% endblock %}

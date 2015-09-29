@@ -17,6 +17,11 @@ $height-record-hed: 97px;
 $color-trans-white: rgba(254,254,254,.65);
 $color-yellow: #d0a60f;
 
+@-webkit-keyframes success-bg {
+    0% {background-color: $color-highlight;}
+    20% {background-color: $color-highlight;}
+    100% {background-color: white;}
+}
 
 // iframe start
 
@@ -53,12 +58,117 @@ header {
 }
 
 .banner-status {
-	padding: 12px $grid * 6;
-    font-size: 18px;
-    font-weight: 200;
+	padding: 12px $grid * 2;
+    font-size: 14px;
+    font-weight: 400;
     background-color: white;
     color: $color-blue;
     border-bottom: 1px solid $color-blue;
+    &._isNewRecord {
+		-webkit-animation: success-bg .7s linear;
+		animation: success-bg .7s linear;
+		padding-top: 10px;
+		padding-bottom: 10px;
+		strong {
+			&:before {
+				content: '';
+				background-image: url('../img/ui/perma-ui-success.svg');
+				background-size: contain;
+				background-color: transparent;
+				display: none;
+				position: absolute;
+				margin-right: $grid;
+				background-repeat: no-repeat;
+				height: 22px;
+				width: 22px;
+				top: -6px;
+				left: -1px;
+			    @include respond-tablet {
+					display: inline-block;
+					height: 27px;
+					width: 27px;
+			    }
+			    @include respond-desktop {
+					height: 32px;
+					width: 32px;
+					top: -6px;
+					left: 0;
+			    }
+			}
+		    @include respond-tablet {
+				padding-left: $grid * 4;
+		    }
+		    @include respond-desktop {
+				padding-left: $grid * 5;
+		    }
+		}
+		.link-options {
+			font-size: 13px;
+			color: $color-trans-gray;
+			padding-left: $half;
+			a {
+				color: $color-orange;
+				text-decoration: underline;
+				&:hover {
+					color: $color-black;
+				}
+				&:active {
+					color: $color-blue;
+				}
+			}
+		}
+		input.perma {
+		    display: inline-block;
+		    border: 1px solid $color-blue;
+		    padding: 4px 8px;
+		    border-radius: 2px;
+		    font-weight: 700;
+		    color: $color-blue;
+		    width: auto;
+		    width: 14em;
+		    text-align: center;
+		    &:focus {
+			    outline: none;
+		    }
+		}
+    }
+	strong {
+		display: block;
+		@include respond-tablet {
+			display: inline;
+		}
+	}
+    .action.new-link {
+        display: inline-block;
+	    float: right;
+	    font-size: 14px;
+	    font-weight: 400;
+	    padding: 2px 8px;
+	    background-color: $color-blue;
+	    color: white;
+	    border-radius: 2px;
+	    margin-top: 3px;
+		&:hover {
+			background-color: $color-hover;
+		}
+		&:active {
+			background-color: $color-active;
+		}
+    }
+	@include respond-tablet {
+		.verbose {
+		    display: inline-block;
+		    width: 0;
+		    height: 1em;
+		    overflow: hidden;
+		    text-indent: -1000px;
+		}
+	}
+	@include respond-desktop {
+		padding: 12px $grid * 6;
+	    font-size: 18px;
+	    font-weight: 200;
+	}
 }
 
 .btn {
