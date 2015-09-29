@@ -1011,7 +1011,7 @@ p.body { @extend p.body-text; }
 	color: $color-error;
 }
 
-.label-verbose, .verbose {
+.label-verbose, .verbose, .discretionary {
     display: inline-block;
     width: 0;
     height: 1em;
