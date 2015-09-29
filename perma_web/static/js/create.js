@@ -74,8 +74,8 @@ $(function() {
                 sorted.push(data.objects[key]);
             });
             data.objects = sorted;
-            var optgroup = data.objects[0].registrar;
             if (data.objects.length > 0) {
+            	var optgroup = data.objects[0].registrar;
             	var select_yourself = true;
                 data.objects.map(function (organization) {
                     if(organization.registrar !== optgroup) {
@@ -98,15 +98,6 @@ $(function() {
                 if (!select_yourself) {
                 	$organization_select.append("<li><a href='" + create_url + '/0' + "'>Yourself <span class='links-remaining'>" + links_remaining + "<span></a></li>");
                 }
-                //$organization_select.show();
-                //$("#organization_select").val(selected_organization);
-            /*} else if (data.objects.length == 1) {
-                select_folder(data.objects[0]);*/
-            } else {
-                informUser("Please create a vesting organization before vesting links.");
-                /*setTimeout(function () {
-                    window.location = url_single_linky;
-                }, 3000);*/
             }
         });
 
