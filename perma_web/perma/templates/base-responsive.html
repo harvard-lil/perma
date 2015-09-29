@@ -114,11 +114,9 @@
 		<section id="main" class="{% block mainFlags %}{% endblock mainFlags %}">
 			{% if this_page != 'landing' and this_page != 'manage' %}
 			<div class="container" id="main-content">
-				<div class="row">
-					{% endif %}
-					{% block row %}{% endblock row %}
-					{% if this_page != 'landing' %}
-				</div><!--/.row-->
+				{% endif %}
+				{% block row %}{% endblock row %}
+				{% if this_page != 'landing' %}
 			</div><!--/.main-container #main-content"-->
 			{% endif %}
 		</section><!--/#main-->

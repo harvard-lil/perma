@@ -731,10 +731,14 @@ input:focus, *:hover {
 	}
 }
 
-.container-bleed {
+.container-full {
 	max-width: none !important;
 	padding: 0;
 	margin-top: $grid * 6;
+}
+
+.container.container-bleed {
+	padding: 0;
 }
 
 .container-bg {
@@ -2956,6 +2960,11 @@ p.body-text {
 
 ._admin #main-content {
 	overflow: visible;
+}
+
+.container#main-content {
+	max-width: none;
+	padding: 0;
 }
 
 #main._fullWidth #main-content {
