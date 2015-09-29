@@ -1231,7 +1231,23 @@ p.body { @extend p.body-text; }
 	    @include respond-desktop {
 		    width: $grid * 25;
 	    }
+		&._isWorking {
+			font-size: 13px;
+		    background-color: transparent !important;
+		    text-align: center;
+		    padding-bottom: 0px;
+		    padding-top: 32px;
+		    color: $color-blue;
+		    border-color: transparent !important;
+	        opacity: 1;
+		    filter: alpha(opacity=100);
+		    .spinner {
+			    left: 50%;
+			    top: 10px;
+		    }
+		}
 	}
+	
 
 	&._isPrivate {
 		fieldset {

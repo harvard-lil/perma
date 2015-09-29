@@ -25,6 +25,7 @@ $(function() {
     $('#linker').submit(function() {
         var $this = $(this);
         var linker_data = {};
+        imWorking();
         if(selected_organization){
         	linker_data = {
                 url: $this.find("input[name=url]").val(),
@@ -130,9 +131,9 @@ function linkIt(data){
     	$('#linker input, #linker button').attr('disabled', 'disabled').blur();
 
     // Get our spinner going now that we're drawing it
-    $('#addlink').html('Creating').attr('disabled', 'disabled');
-    var target = document.getElementById('addlink');
-    var spinner = new Spinner(opts).spin(target);
+//	$('#addlink').html('Creating your Perma Link').attr('disabled', 'disabled').addClass('_isWorking');
+//	var target = document.getElementById('addlink');
+//	var spinner = new Spinner(opts).spin(target);
 
     $('#links-remaining').text(data.links_remaining);
     if(data.links_remaining < 1) 
@@ -140,6 +141,14 @@ function linkIt(data){
 
     refreshIntervalIds.push(setInterval(check_status, 2000));
 }
+
+function imWorking(){
+    // Get our spinner going now that we're drawing it
+	$('#addlink').html('Creating your Perma Link').attr('disabled', 'disabled').addClass('_isWorking');
+	var target = document.getElementById('addlink');
+	var spinner = new Spinner(opts).spin(target);
+}
+
 
 function linkNot(jqXHR){
     $('#preview-container').html(templates.preview_failure({static_prefix:settings.STATIC_URL}));
@@ -167,7 +176,7 @@ function linkNot(jqXHR){
 
 
     // Reset our button
-    $('#addlink').html('Create Perma Link').removeAttr('disabled');
+    $('#addlink').html('Create Perma Link').removeAttr('disabled').removeClass('_isWorking');
     // remove spinner
 
 }
@@ -299,26 +308,27 @@ function check_status() {
 
 /* Our spinner controller - start */
 
-
 var opts = {
-    lines: 11, // The number of lines to draw
-    length: 3, // The length of each line
-    width: 1.5, // The line thickness
-    radius: 5, // The radius of the inner circle
-    scale: 1.7, // Scales overall size of the spinner
-    corners: 0, // Corner roundness (0..1)
-    rotate: 0, // The rotation offset
-    direction: 1, // 1: clockwise, -1: counterclockwise
-    color: '#fff', // #rgb or #rrggbb or array of colors
-    opacity: 0.35, // Opacity of the lines
-    speed: 0.8, // Rounds per second
-    trail: 70, // Afterglow percentage
-    shadow: false, // Whether to render a shadow
-    hwaccel: false, // Whether to use hardware acceleration
-    className: 'spinner', // The CSS class to assign to the spinner
-    zIndex: 2e9, // The z-index (defaults to 2000000000)
-    top: '25px', // Top position relative to parent in px
-    left: 'auto' // Left position relative to parent in px
+  lines: 15 // The number of lines to draw
+, length: 2 // The length of each line
+, width: 2 // The line thickness
+, radius: 9 // The radius of the inner circle
+, scale: 1 // Scales overall size of the spinner
+, corners: 0 // Corner roundness (0..1)
+, color: '#2D76EE' // #rgb or #rrggbb or array of colors
+, opacity: 0.25 // Opacity of the lines
+, rotate: 0 // The rotation offset
+, direction: 1 // 1: clockwise, -1: counterclockwise
+, speed: 1 // Rounds per second
+, trail: 50 // Afterglow percentage
+, fps: 20 // Frames per second when using setTimeout() as a fallback for CSS
+, zIndex: 2e9 // The z-index (defaults to 2000000000)
+, className: 'spinner' // The CSS class to assign to the spinner
+, top: '12px' // Top position relative to parent
+, left: '50%' // Left position relative to parent
+, shadow: false // Whether to render a shadow
+, hwaccel: false // Whether to use hardware acceleration
+, position: 'absolute' // Element positioning
 };
 
 /* Our spinner controller - end */
