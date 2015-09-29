@@ -4117,7 +4117,7 @@ div#dashboard-container div#library {}
         }
 
         div.user-delete-thumbnail {
-            margin-bottom: 16px;
+            margin-top: $double;
         }
 
         p.library-link-title, #upload-option {
@@ -5800,10 +5800,6 @@ input#file {
 
 #archive_upload_form button {
     margin-top: 10px;
-}
-
-.delete-confirm {
-  margin-left: 85px;
 }
 
 .nav {
