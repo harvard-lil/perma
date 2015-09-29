@@ -5279,7 +5279,7 @@ span.action {
     overflow: auto;
     .sponsor-name, .sponsor-email, p {
 	    display: block;
-	    padding-right: 24px;
+	    padding-right: 72px;
     }
     .btn-xs {
 		padding: 4px 8px;
@@ -5289,6 +5289,7 @@ span.action {
 	    top: 50%;
 	    right: $grid;
 	    margin-top: -15px;
+	    width: auto;
     }
 }
 
