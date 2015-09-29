@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="20px" height="18px" viewBox="0 0 20 18" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.3.3 (12072) - http://www.bohemiancoding.com/sketch -->
+    <title>Oval 65 + Oval 66 + Line Copy 2</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <g id="create-private" sketch:type="MSArtboardGroup" transform="translate(-886.000000, -514.000000)" stroke="#DD671A" stroke-width="2">
+            <g id="Group" sketch:type="MSLayerGroup" transform="translate(0.000000, 34.000000)">
+                <g transform="translate(96.000000, 321.000000)" id="Oval-65-+-Oval-66-+-Line-Copy-2" sketch:type="MSShapeGroup">
+                    <g transform="translate(56.000000, 150.000000)">
+                        <g transform="translate(734.000000, 10.000000)">
+                            <path d="M9.82213107,14.9862427 C16.9483976,14.9862427 19.6789548,7.97740135 19.6789548,7.97740135 C19.6789548,7.97740135 16.786256,1.05118408 9.82213107,1.05118408 C2.85800616,1.05118408 0.0071777458,7.97740135 0.0071777458,7.97740135 C0.0071777458,7.97740135 2.69586454,14.9862427 9.82213107,14.9862427 Z" id="Oval-65"></path>
+                            <circle id="Oval-66" cx="9.8" cy="8" r="4.2"></circle>
+                            <path d="M2.49167377,15.5083256 L17.5089254,0.491074264" id="Line" stroke-linecap="round"></path>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

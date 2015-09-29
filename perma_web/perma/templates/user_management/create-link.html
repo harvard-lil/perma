@@ -2,7 +2,8 @@
 {% load pipeline %}
 {% block title %} | Create a Perma link{% endblock %}
 {% block bodyFlags %}{% endblock bodyFlags %}
-{% block mainFlags %}{% endblock mainFlags %}
+{% block mainFlags %}{% if selected_org.default_to_private %}_isPrivate{% endif %}{% endblock mainFlags %}
+
 
 {% block content %}
 	<!-- regular link creation -->
@@ -54,7 +55,7 @@
 	<div id="create-link-container" class="create-private-link">
     <h1 class="create-title">Create a Private Perma Link</h1>
 	<p class="create-lede">Private Perma Links are visible only to your Archiving Organization.</p>
-    <form 	class="form-priority" 
+    <form 	class="form-priority _isPrivate" 
     		id="linker" 
     		action="{% url 'api_dispatch_list' resource_name='archives' api_name='v1' %}" 
     		method="post">
@@ -74,14 +75,15 @@
 	        		data-trigger="manual"
 	        		{% endif %} />
 	        <button class="btn btn-large btn-info _active-when-valid" id="addlink" type="submit">Create Private Perma Link</button>
-			<div id="organization_select_form">This PermaLink with be affiliated with 
-			<div class="dropdown">
-  				<button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-    			Dropdown
-    			<span class="caret"></span>
-  				</button>
-  				<ul class="dropdown-menu" aria-labelledby="dropdownMenu1" id="organization_select"></ul>
-			</div>
+			<div id="organization_select_form">
+				<span class="label-affil">This Perma Link with be affiliated with</span>
+				<div class="dropdown dropdown-affil">
+	  				<button class="dropdown-toggle selector-trigger selector-affil" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+		    			Dropdown
+		    			<span class="caret"></span>
+	  				</button>
+	  				<ul class="dropdown-menu selector-menu" aria-labelledby="dropdownMenu1" id="organization_select"></ul>
+				</div>
 			</div>
 		</fieldset>
     </form><!--/#linker-->
