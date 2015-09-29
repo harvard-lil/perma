@@ -70,6 +70,8 @@ header {
 		padding-top: 10px;
 		padding-bottom: 10px;
 		strong {
+			padding-top: $half;
+			float: left;
 			&:before {
 				content: '';
 				background-image: url('../img/ui/perma-ui-success.svg');
@@ -97,6 +99,8 @@ header {
 			}
 		    @include respond-tablet {
 				padding-left: $grid * 4;
+				padding-top: 0;
+				float: none;
 		    }
 		    @include respond-desktop {
 				padding-left: $grid * 5;
@@ -156,7 +160,7 @@ header {
 		}
     }
 	@include respond-tablet {
-		.verbose {
+		.link-options .verbose {
 		    display: inline-block;
 		    width: 0;
 		    height: 1em;
@@ -168,6 +172,14 @@ header {
 		padding: 12px $grid * 6;
 	    font-size: 18px;
 	    font-weight: 200;
+	}
+	@include respond-wide { 
+		.link-options .verbose { 
+		    display: inline;
+		    width: auto;
+		    height: auto;
+		    text-indent: 0;
+		}
 	}
 }
 
