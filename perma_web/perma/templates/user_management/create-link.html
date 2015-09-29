@@ -3,9 +3,6 @@
 {% block title %} | Create a Perma link{% endblock %}
 {% block bodyFlags %}{% endblock bodyFlags %}
 
-{% if selected_org.default_to_private %}
-{% block mainFlags %}_isPrivate{% endblock mainFlags %}
-{% endif %}
 
 {% block content %}
 	<!-- regular link creation -->
@@ -54,6 +51,7 @@
 	</div>
 	{% else %}
 	<!-- private link creation -->
+	{% block mainFlags %}_isPrivate{% endblock mainFlags %}
 	<div id="create-link-container" class="create-private-link">
     <h1 class="create-title">Create a Private Perma Link</h1>
 	<p class="create-lede">Private Perma Links are visible only to your Archiving Organization.</p>
