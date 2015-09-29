@@ -253,7 +253,14 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     ############
 
     def test_delete_detail(self):
-        self.successful_delete(self.unvested_link_detail_url, user=self.vesting_member)
+        with self.serve_file(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/robots.txt')):
+            obj = self.successful_post(self.list_url,
+                                       data={'url': self.server_url + "/subdir/test.html"},
+                                       user=self.vesting_member)
+
+            new_link = Link.objects.get(guid=obj['guid'])
+            new_link_url = "{0}/{1}".format(self.list_url, new_link.pk)
+            self.successful_delete(new_link_url, user=self.vesting_member)
 
     ############
     # Ordering #

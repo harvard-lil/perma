@@ -606,7 +606,7 @@ class Link(models.Model):
 
         user_has_delete_privs = False
 
-        if user.is_staff or self.created_by == user or self.organization in user.get_orgs:
+        if user.is_staff or self.created_by == user or self.organization in user.get_orgs():
             user_has_delete_privs = True
 
         return timezone.now() < self.archive_timestamp and user_has_delete_privs
