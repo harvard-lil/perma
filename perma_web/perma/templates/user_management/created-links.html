@@ -133,9 +133,11 @@
             </div>
             <div class="row record-secondary">
 	            <div class="col col-sm-8">
+	            	{{#if organization }}
 	                <div class="record-affil">
-		                <span class="z-top">Record Affiliation</span>
+		                <span class="z-top">{{organization.name}}</span>
 		            </div>
+		            {{/if}}
 	            </div>
 	            <div class="col col-sm-4 align-right">
 		            <span class="record-date z-top"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
