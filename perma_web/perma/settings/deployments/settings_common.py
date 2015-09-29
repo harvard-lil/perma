@@ -145,14 +145,20 @@ PIPELINE_JS = {
     },
     'landing': {
         'source_filenames': (
+            'js/landing.js',
+        ),
+        'output_filename': 'js/landing-bundle.js',
+    },
+    'map': {
+        'source_filenames': (
             'js/raphael.js',
             'js/raphael.scale.js',
             'js/g.raphael.js',
             'js/usmap.js',
             'js/rwdImageMaps.js',
-            'js/landing.js',
+            'js/map.js',
         ),
-        'output_filename': 'js/landing-bundle.js',
+        'output_filename': 'js/map-bundle.js',
     },
     'stats': {
         'source_filenames': (
@@ -275,6 +281,7 @@ INSTALLED_APPS = (
     'perma',
     'api',
     'monitor',
+    'lockss',
 
     # third party apps
     'ratelimit',
@@ -374,7 +381,7 @@ LOGGING = {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
-        }
+        },
     },
     'loggers': {
         '': {
@@ -503,3 +510,12 @@ SAUCE_USERNAME = None
 SAUCE_ACCESS_KEY = None
 
 WARC_STORAGE_DIR = 'warcs'  # relative to MEDIA_ROOT
+
+
+### LOCKSS ###
+
+from datetime import timedelta
+ARCHIVE_DELAY = timedelta(hours=24)
+
+USE_LOCKSS_REPLAY = False  # whether to replay captures from LOCKSS, if servers are available
+LOCKSS_CONTENT_IPS = ""  # IPs of Perma servers allowed to play back LOCKSS content -- e.g. "10.1.146.0/24;140.247.209.64"

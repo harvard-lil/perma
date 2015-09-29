@@ -1,10 +1,17 @@
 import StringIO
 import os
+import random
+import threading
 import re
+from urlparse import urljoin
 from pywb.rewrite.header_rewriter import HeaderRewriter
+from pywb.rewrite.rewrite_content import RewriteContent
+import requests
 from surt import surt
 
 # configure Django
+from lockss.models import Mirror
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "perma.settings")
 import django
 django.setup()
@@ -33,9 +40,15 @@ from pywb.utils.wbexception import NotFoundException
 from perma.models import CDXLine, Link
 
 
+import logging
+logger = logging.getLogger(__name__)
+
+
 newstyle_guid_regex = r'[A-Z0-9]{1,4}(-[A-Z0-9]{4})+'  # post Nov. 2013
 oldstyle_guid_regex = r'0[a-zA-Z0-9]{9,10}'  # pre Nov. 2013
 GUID_REGEX = r'(%s|%s)' % (oldstyle_guid_regex, newstyle_guid_regex)
+WARC_STORAGE_PATH = os.path.join(settings.MEDIA_ROOT, settings.WARC_STORAGE_DIR)
+thread_local_data = threading.local()
 
 
 def get_archive_path():
@@ -161,6 +174,12 @@ class PermaHandler(WBHandler):
         replay_view.response_class = PermaMementoResponse
         return replay_view
 
+    def handle_request(self, wbrequest):
+        # include wbrequest in thread locals for later access
+        wbrequest.mirror_name = None
+        thread_local_data.wbrequest = wbrequest
+        return super(PermaHandler, self).handle_request(wbrequest)
+
 
 class PermaGUIDHandler(PermaHandler):
     def __init__(self, query_handler, config=None):
@@ -261,13 +280,50 @@ class CachedLoader(BlockLoader):
         File loader that stores requested file in key-value cache for quick retrieval.
     """
     def load(self, url, offset=0, length=-1):
+
         # first try to fetch url contents from cache
         cache_key = 'warc-'+re.sub('[^\w-]', '', url)
+        mirror_name_cache_key = cache_key+'-mirror-name'
+        mirror_name = ''
+
         file_contents = django_cache.get(cache_key)
-        if not file_contents:
-            # url wasn't in cache -- fetch entire contents of url from super() and put in cache
-            file_contents = super(CachedLoader, self).load(url).read()
-            django_cache.set(cache_key, file_contents, timeout=60)  # use a short timeout so large warcs don't evict everything else in the cache
+        if file_contents is None:
+            # url wasn't in cache -- load contents
+
+            # try fetching from each mirror in the LOCKSS network, in random order
+            if settings.USE_LOCKSS_REPLAY:
+                mirrors = Mirror.get_cached_mirrors()
+                random.shuffle(mirrors)
+
+                for mirror in mirrors:
+                    lockss_key = url.replace('file://', '').replace(WARC_STORAGE_PATH, 'https://' + settings.HOST + '/lockss/fetch')
+                    lockss_url = urljoin(mirror['content_url'], 'ServeContent')
+                    try:
+                        logging.info("Fetching from %s?url=%s" % (lockss_url, lockss_key))
+                        response = requests.get(lockss_url, params={'url': lockss_key})
+                        assert response.ok
+                        file_contents = response.content
+                        mirror_name = mirror['name']
+                        logging.info("Got content from lockss")
+                    except (requests.ConnectionError, requests.Timeout, AssertionError) as e:
+                        logging.info("Couldn't get from lockss: %s" % e)
+
+            # If url wasn't in LOCKSS yet or LOCKSS is disabled, fetch from local storage using super()
+            if file_contents is None:
+                file_contents = super(CachedLoader, self).load(url).read()
+                logging.info("Got content from local disk")
+
+            # cache file contents
+            # use a short timeout so large warcs don't evict everything else in the cache
+            django_cache.set(cache_key, file_contents, timeout=60)
+            django_cache.set(mirror_name_cache_key, mirror_name, timeout=60)
+
+        else:
+            mirror_name = django_cache.get(mirror_name_cache_key)
+            logging.info("Got content from cache")
+
+        # set wbrequest.mirror_name so it can be displayed in template later
+        thread_local_data.wbrequest.mirror_name = mirror_name
 
         # turn string contents of url into file-like object
         afile = StringIO.StringIO(file_contents)
