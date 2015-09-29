@@ -2134,6 +2134,15 @@ strong {
 	    padding: 4px 8px;
 	    font-size: 12px;
   	}
+  	&.delete-confirm {
+	  	background-color: $color-error;
+		&:hover, &:focus {
+			background-color: $color-black !important;
+		}
+		&:active {
+			background-color: $color-error !important;
+		}
+  	}
 }
 
 .thumbnail {
