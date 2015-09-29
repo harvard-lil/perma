@@ -1481,6 +1481,11 @@ p.body { @extend p.body-text; }
 		    a {
 			    border-top: 1px solid rgba(0,0,0,.2);
 			    padding-top: 11px;
+			    &:hover {
+				    span.ui-private {
+					    background-image: url('../img/ui/perma-ui-private-white.png');
+				    }
+			    }
 		    }
 		    .dropdown-header, a {
 		        text-align: left;
