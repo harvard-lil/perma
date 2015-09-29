@@ -51,7 +51,7 @@
                             {% endif %}
                             {% comment %}<li><a href="{% url 'logout' %}" style="color: #aaa;">Log out</a></li>{% endcomment %}
                             <li class="dropdown">
-                              <a href="#" class="dropdown-toggle navbar-link" data-toggle="dropdown" role="button" aria-expanded="false">{{ request.user.get_short_name }}</a>
+                              <a href="#" class="dropdown-toggle navbar-link needsclick" data-toggle="dropdown" role="button" aria-expanded="false">{{ request.user.get_short_name }}</a>
                               <ul class="dropdown-menu" role="menu">
                                 <li><a href="{% url 'link_browser' %}">Your Perma Links</a></li>
                                 
