@@ -192,6 +192,7 @@
 			padding-top: $grid * 3;
 		}
 	}
+	
 	div.toc-module-content {
 		background-color: $color-white;
 		color: $color-blue;
@@ -210,10 +211,12 @@
 		@include respond-desktop {
 			padding: 13px 16px;
 		}
+
 		strong:after {
 			display: none;
 		}
 	}
+
 	strong {
 		display: block;
 		font-weight: 700;

@@ -3062,6 +3062,15 @@ p.body-text {
 	.toc-module._active {
 		order: -1;
 	}
+	._selected {
+		strong {
+			color: $color-blue;
+	
+			&:after {
+				display: none;
+			}
+		}
+	}
 }
 
 .toc-module { @extend %style-overview-module; }

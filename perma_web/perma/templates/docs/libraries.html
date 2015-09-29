@@ -6,47 +6,64 @@
 This section of the user guide describes the Perma.cc library consortium and the ways libraries make Perma.cc possible.
 {% endblock %}
 
+{% block bodyFlags %}_userguide{% endblock %}
+{% block mainFlags %}_fullWidth{% endblock %}
+
 {% block content %}
-<div class="container container-reading">
-	<div class="col-sm-8 docs">
-		<h2>Libraries</h2>
-		<h4><a href="#collaboration">Collaboration</a></h4>
-		<h4><a href="#preservation">Preservation</a></h4>
-		<h4><a href="#stewardship">Stewardship</a></h4>
-		<h4><a href="#dissemination">Dissemination</a></h4>
-		<br/>
-		<hr>
-		
-		<pre>Par·tic·i·pat·ing Li·brar·y<div class="highlighted-definition">A member of the Perma.cc library consortium. <a href="{% url 'about' %}">Find the complete list here</a>.</div></pre>
-		
-		<h4><div id="collaboration">Collaboration</div></h4>
-		<p>Libraries naturally collaborate to maintain networks of accessible information. That collaborative nature animates Perma, which is supported by a consortium of library partners. Working together, these library partners can help maintain the integrity of scholarship and judicial opinions.</p><br/>
-		
-		<h4><div id="preservation">Preservation</div></h4>
-		<p>Libraries have long led efforts to preserve important information against loss and destruction. As online sources become more prevalent, libraries are a natural home for digital preservation efforts like Perma.  
-</p><br/>
-		
-		<img src="{{ STATIC_URL }}img/docs/shelf.gif" class="img-responsive" alt="An illustration of Perma.cc archives sitting next to books. Physical and digital archives are important to libraries."/>
-		
-		<h4><div id="stewardship">Stewardship</div></h4>
-		<p>Within Perma, libraries serve as custodians of the online sources that form the foundation of legal scholarship, judicial opinions and education. Acting as Registrars, libraries have an important responsibility to support and monitor the organizations affiliated with their institutions, and librarians can help curate the growing collection of materials archived using Perma.</p><br/>
-		
-		<h4><div id="dissemination">Dissemination</div></h4>
-		<p>Libraries also serve as a primary source for dissemination of materials archived using Perma. Just as libraries traditionally have served their patrons’ requests for access to physical materials, libraries participating in Perma play an important role in helping readers get access to the digital materials on which academic scholarship and judicial opinions increasingly rest.</p><br/>
+
+<div class="container">
+	<div class="row">
+		<div class="col-sm-12">
+			<h1>Perma.cc user guide <span class="subsection">For Libraries</span></h1>
+		</div>
 	</div>
-	<div class="col-sm-3 col-sm-offset-1">
-		<ul class="nav nav-pills nav-stacked">
-			<li><a href="{% url 'docs' %}">Overview</a></li>
-			<li><a href="{% url 'docs_getting-started' %}">Getting Started</a></li>
-			<li><a href="{% url 'docs_perma_link_creation' %}">Creating, Organizing & Annotating</a></li>
-			<li><a href="{% url 'docs_perma_link_vesting' %}">Vesting</a></li>
-			<li><a href="{% url 'docs_perma_archive' %}">Archiving & Storage</a></li>
-			<li><a href="{% url 'docs_perma_user_roles' %}">User Roles</a></li>
-			<!--<li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>-->
-			<li class="active"><a href="{% url 'docs_libraries' %}">Libraries</a></li>
-			<li><a href="{% url 'docs_faq' %}">FAQs</a></li>
-		</ul>
+</div>
+
+{% include 'docs/docs_menu.html' %}
+
+<div class="container container-reading" id="overview">
+	<div class="row">
+		<div class="col-sm-4 reading-toc" >
+			<ul>
+				<li class="reading-toc-chapter"><a href="#libraries-and-registrars">Libraries as Registrars</a></li>
+				<li class="reading-toc-section"><a href="#becoming-registrar">Becoming a registrar</a></li>
+				<li class="reading-toc-section"><a href="#libraries-authority">Authority and responsibilities</a></li>
+				<li class="reading-toc-section"><a href="#supporting-journals-and-faculty">Supporting journals and faculty</a></li>
+				<li class="reading-toc-chapter"><a href="#libraries-and-registrars">Libraries as Mirrors</a></li>
+				<li class="reading-toc-section"><a href="#creating-vesting-orgs">What is a Perma mirror</a></li>
+				<li class="reading-toc-section"><a href="#supporting-journals-and-faculty">Joining the mirror network</a></li>
+			<ul>
+		</div>
+
+		<div class="col-sm-8 reading-body">
+			<h2>For Libraries and Other Registrars</h2>
+			
+			<h3 id="becoming-registrar">Becoming a registrar</h3>
+			<p>Any academic library can become a registrar for free. Just email us at <a href="mailto:info@perma.cc">info@perma.cc</a> and tell us who you are, what kinds of users and usage you intend to support and who your contact person is. We'll get back to with some very basic setup instructions.</p>
+			<p>In general, registrar status is reserved for libraries and other trusted insitutions that help administer Perma.cc and ensure its appropriate use. If you're not with an academic library but still would like to be a registrar, please email us and tell us who you are, why you want to join Perma as registrar and what types of users and organizations you would expect to support as a registrar.</p>  
+			
+			<h3 id="libraries-authority">Authority and responsibilities</h3>
+			<p>Registrars can vest links, confer (and withdraw) vesting authority and create new vesting organizations. Typically this means acting as the hub of a network of vesting organizations and their users. As a registrar, you'll help train and support Perma.cc users within your network. You'll also be responsible for ensuring that those in your network with vesting authority do not abuse that authority. Every link vested by anyone within your network becomes automatically associated with you, as the relevant registrar, so it's important that you exercise judgment in approving vesting organizations. If you like, you can adopt policies and best practices for Perma.cc usage by those in your network.</p>
+			
+			<h3 id="creating-vesting-orgs">Creating new vesting orgs</h3>
+			<p>Creating new vesting organizations is easy. Just click on "Manage users" in the dropdown menu and select "Vesting organizations." Click "add new" to trigger the new vesting organization form, fill out the appropriate details and press the <kbd>Create new vesting organization</kbd> button:<p>
+			
+			<img src="{{ STATIC_URL }}/img/docs/screenshot_new_vesting_orgs.png" class="img-responsive screen-shot" alt="Screenshot of manage users screen." />
+			
+			<h3 id="placing-users-with-vesting-orgs">Assigning users to vesting orgs</h3>
+			<p>Once you've created a vesting org, you'll want to assign at least one vesting user to that vesting org. Just click on "Manage users" in the dropdown menu and select "Vesting users." Click "add new" to trigger the new vesting user form and enter the person's email. If she already has a Perma.cc account, we'll note that and invite you to assign that user to a vesting org. If she doesn't have a Perma.cc account, we'll ask you for the person's name and invite you to assign her to a vesting org. Once you submit, we'll send that person a verification email so she can get up and running.</p>
+			<p>Vesting users may be associated with more than one vesting org. To assign a vesting user to another vesting org, click on "Manage users" in the dropdown menu and select "Vesting users." Then click "add new," enter the user's email address and select the appropriate vesting org.</p>
+			<p>To remove a vesting user from a vesting org, click on "Manage users" in the dropdown menu and select "Vesting users." Find the person's name and click "edit/remove," which will take you to an edit screen. From that screen you can remove the user from the desired vesting orgs.</p> 
+			
+			<h3 id="supporting-journals-and-faculty">Supporting journals and faculty</h3>
+			<p>Each library is free to develop its own Perma.cc policies and practices. As a registrar, you can support as many or as few users associated with your institution as you like. To get you started, here are a few approaches you might adopt for helping journals and faculty use Perma.cc.</p>
+			<p>For journals, many libraries set up each journal up as a vesting org and then let the journal manage its own internal usage. Many libraries help journals by training new members and serving as a resource for questions about how to use Perma.cc.</p>
+			<p>For faculty, many libraries create separate vesting orgs for each faculty member. These faculty vesting orgs can include the faculty member herself, as well as any secretaries, research assistants or interns. Remember that if you combine faculty into a single vesting org, they will be able to observe - and potentially move - each other's links.</p>
+		</div>
 	</div>
-</div>	
+</div>
+
+
+{% include 'docs/docs_menu.html' %}
 
 {% endblock %}
