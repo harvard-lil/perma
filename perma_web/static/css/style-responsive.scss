@@ -2127,6 +2127,9 @@ strong {
 		background-color: white;
 		cursor: move;
 		margin-top: 0;
+		width: auto;
+		margin-bottom: $double;
+		float: left;
 		&:hover, &:focus, &:active {
 			border-color: $color-black !important;
 			color: $color-black !important;
@@ -3056,6 +3059,7 @@ p.body-text {
 	font-weight: 300;
 	font-family: $font-body;
 	line-height: 1.5;
+	clear: both;
 	@include respond-tablet {
 		font-size: 16px;
 	}
