@@ -1,7 +1,7 @@
 <div class="container container-full toc-overview">
 	<div class="container toc-overview-container">
 		<div class="row">
-			<div class="col col-sm-by5 toc-module col-no-gutter">
+			<div class="col col-sm-by5 toc-module col-no-gutter{% if request.path == "/docs" %} _active{% endif %}">
 				{% if request.path == "/docs" %}
 				<div class="toc-module-content">
 				{% else %}
@@ -12,7 +12,7 @@
 				{% if request.path == "/docs" %}</div>{% else %}</a>{% endif %}
 			</div>
 
-			<div class="col col-sm-by5 toc-module col-no-gutter">
+			<div class="col col-sm-by5 toc-module col-no-gutter{% if request.path == "/docs/perma-link-creation" %} _active{% endif %}">
 				{% if request.path == "/docs/perma-link-creation" %}
 				<div class="toc-module-content">
 				{% else %}
@@ -23,7 +23,7 @@
 				{% if request.path == "/docs/perma-link-creation" %}</div>{% else %}</a>{% endif %}
 			</div>
 
-			<div class="col col-sm-by5 toc-module col-no-gutter">
+			<div class="col col-sm-by5 toc-module col-no-gutter{% if request.path == "/docs/libraries" %} _active{% endif %}">
 				{% if request.path == "/docs/libraries" %}
 				<div class="toc-module-content">
 				{% else %}
@@ -34,7 +34,7 @@
 				{% if request.path == "/docs/libraries" %}</div>{% else %}</a>{% endif %}
 			</div>
 
-			<div class="col col-sm-by5 toc-module col-no-gutter">
+			<div class="col col-sm-by5 toc-module col-no-gutter{% if request.path == "/docs/organizations" %} _active{% endif %}">
 				{% if request.path == "/docs/organizations" %}
 				<div class="toc-module-content">
 				{% else %}
@@ -45,7 +45,7 @@
 				{% if request.path == "/docs/organizations" %}</div>{% else %}</a>{% endif %}
 			</div>
 
-			<div class="col col-sm-by5 toc-module col-no-gutter">
+			<div class="col col-sm-by5 toc-module col-no-gutter{% if request.path == "/docs/faq" %} _active{% endif %}">
 				{% if request.path == "/docs/faq" %}
 				<div class="toc-module-content">
 				{% else %}
