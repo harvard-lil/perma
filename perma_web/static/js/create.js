@@ -113,7 +113,6 @@ $(function() {
                 });
                 obj.local_url = 'http://' + settings.HOST + '/' + obj.guid;
                 obj.creation_timestamp_formatted = new Date(obj.creation_timestamp).format("F j, Y");
-
                 if (Date.now() < Date.parse(obj.archive_timestamp)) {
                     obj.delete_available = true;
                 }
