@@ -4007,10 +4007,10 @@ div.dashboard-blurb {
                 position: relative;
                 display: block;
                 border: none;
-                border-radius: 2px;
 				background-color: $color-background;
 				font-family: $font-hed-alt;
 				font-weight: 700;
+				border-radius: 0;
 				span {
 					&:after {
 					    content: '';
@@ -4042,6 +4042,9 @@ div.dashboard-blurb {
 					span:after {
 					    background-position: -9px * 5 !important;
 					}
+				}
+				@include respond-tablet {
+	                border-radius: 2px;
 				}
             }
             &.active a {
