@@ -224,7 +224,12 @@ $(function() {
                     obj.url_docs_perma_link_vesting = url_docs_perma_link_vesting;
                     obj.expiration_date_formatted = new Date(obj.expiration_date).format("F j, Y");
                     obj.creation_timestamp_formatted = new Date(obj.creation_timestamp).format("F j, Y");
-                    if (obj.vested_timestamp) obj.vested_timestamp_formatted = new Date(obj.vested_timestamp).format("F j, Y");
+                    if (obj.vested_timestamp) {
+                        obj.vested_timestamp_formatted = new Date(obj.vested_timestamp).format("F j, Y");
+                    }
+                    if (Date.now() < Date.parse(obj.archive_timestamp)) {
+                        obj.delete_available = true;
+                    }
                 });
                 linkTable.html(templates.created_link_items({objects:data.objects, query:query}));
             });
