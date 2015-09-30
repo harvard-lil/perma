@@ -5,8 +5,7 @@
 {% block manage-nav-settings %}<li class="active"><a href="{% url 'create_link' %}">Account settings</a></li>{% endblock %}
 
 {% block content %}
-	<h3 class="body-ah">Tools</h3>
-	<h4 class="body-bh">Bookmarklet</h4>
+	<h3 class="body-ah">Bookmarklet</h3>
 	<p class="body-text">You can create Perma links using our bookmarklet. Drag the following button to your bookmarks bar.</p>
 	<a class="btn btn-bookmarklet" href="javascript:window.open('http://www.perma.cc/service/bookmarklet-create/?v=1&url='+encodeURIComponent(location.href));window.focus();">Create Perma link</a>
 	<p class="body-text">Then, click the button while you’re viewing the page you want to save.</p>

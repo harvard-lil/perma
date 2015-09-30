@@ -1011,6 +1011,16 @@ p.body { @extend p.body-text; }
 	color: $color-error;
 }
 
+._noMobile {
+	@include respond-mobile {
+		display: none !important;
+	}
+}
+
+._soleContent {
+	margin-bottom: $double;
+}
+
 .label-verbose, .verbose, .discretionary {
     display: inline-block;
     width: 0;
@@ -2067,7 +2077,7 @@ strong {
 
 .btn {
 	display: block;
-	margin-top: $grid * 3;
+	margin-top: $grid * 2;
 	font-family: $font-hed-alt;
 	color: $color-white;
 	font-weight: 400;
@@ -3929,6 +3939,7 @@ div.dashboard-blurb {
             padding-left: 12px;
         }
 		@include respond-mobile {
+	        margin: 0 -$double $grid * 3;
 			display: flex;
 			flex-wrap: wrap;
 			li { 
@@ -3953,7 +3964,7 @@ div.dashboard-blurb {
             a {
                 background-repeat: no-repeat;
                 font-size: 16px;
-                margin-bottom: $half;
+                margin-bottom: 1px;
                 padding: $grid $double;
                 position: relative;
                 display: block;
@@ -3998,14 +4009,21 @@ div.dashboard-blurb {
             &.active a {
                 background-color: white;
                 color: $color-blue;
-                border: 2px solid $color-blue;
+                border: 2px solid transparent;
                 cursor: default;
                 padding-top: 7px;
-                padding-bottom: 6px;
+                padding-bottom: $grid;
                 padding-left: 10px;
                 span:after {
 	                display: none;
                 }
+				font-size: 24px;
+				font-weight: 200;
+				line-height: 1.2;
+				@include respond-tablet {
+					font-size: 15px;
+					font-weight: 700;
+				}
             }
             &.dashboard-secondary a {
                 background: none;
@@ -5273,7 +5291,10 @@ body.dragging, .dragging .link-row {
 // admin users and orgs
 
 .admin-content {
-	margin-top: $grid * 6;
+	margin-top: 11px;
+	@include respond-tablet {
+		margin-top: $grid * 6;
+	}
 }
 
 span.action {
