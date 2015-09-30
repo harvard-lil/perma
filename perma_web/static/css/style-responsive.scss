@@ -1354,6 +1354,7 @@ p.body { @extend p.body-text; }
 			}
 	  	}
 	  	.dropdown-affil {
+		  	margin-top: $grid;
 	  	}
 
 	  	.selector-menu a,
@@ -1455,6 +1456,9 @@ p.body { @extend p.body-text; }
 		  	.dropdown-affil,
 		  	.dropdown.open .selector-menu {
 			    width: 688px - ($grid * 41);
+		  	}
+		  	.dropdown-affil {
+			  	margin-top: 0;
 		  	}
 	  	}
 	  	@include respond-desktop {
