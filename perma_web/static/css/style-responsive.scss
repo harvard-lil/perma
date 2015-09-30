@@ -1882,18 +1882,21 @@ p + .thumbnail-placeholder {
 }
 
 .modal-dialog {
-	position: relative;
+	position: absolute;
     margin: 0;
     border-radius: 0;
-    left: auto;
-    top: auto;
-    right: auto;
-    padding: $grid;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    padding: 0;
     @include respond-tablet {
+		position: relative;
 	    left: 50%;
 	    top: 50%;
+	    right: auto;
+	    bottom: auto;
 	    margin-left: -300px;
-	    padding: 0;
     }
 }
 
@@ -1904,12 +1907,18 @@ p + .thumbnail-placeholder {
     margin-top: 0;
     margin-left: 0;
     margin: 0 auto;
-    border-radius: 2px;
-    border: 1px solid black;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    height: 100%;
+    overflow-y: scroll;
     @include respond-tablet {
 	    width: 600px;
 	    padding: $grid * 4 $grid * 4 $double;
+	    border-radius: 2px;
+	    border: 1px solid black;
+	    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
+	    height: auto;
     }
 }
 
