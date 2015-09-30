@@ -5369,6 +5369,14 @@ span.action {
     margin-top: $double;
     font-weight: 200;
     overflow: auto;
+    p a {
+	    display: block;
+	    font-size: 13px;
+	    text-decoration: underline;
+    }
+    p {
+	    margin-bottom: 0;
+    }
     .sponsor-name, .sponsor-email, p {
 	    display: block;
 	    padding-right: 72px;
