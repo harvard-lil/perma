@@ -194,7 +194,7 @@
                         {% endif %}
                     {% endif %}
 
-                    {% if request.user.is_authenticated and request.user.pk == link.created_by_id and not link.vested %}
+                    {% if can_delete %}
                         <a class="btn btn-ui-small btn-dashboard user-delete" href="{% url 'user_delete_link' link.guid %}">Delete<span class="label-verbose"> record</span></a>
                     {% endif %}
 

@@ -37,7 +37,7 @@
 			<p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account. <a href="{% url 'sign_up' %}">Learn more about accounts</a>.</p>
 			{% else %}
 			<div id="organization_select_form">
-				<span class="label-affil">This Perma Link with be affiliated with</span>
+				<span class="label-affil">This Perma Link will be affiliated with</span>
 				<div class="dropdown dropdown-affil">
 	  				<button class="dropdown-toggle selector-trigger selector-affil needsclick" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 		    			Dropdown
@@ -90,12 +90,26 @@
 	</div>
 	{% endif %}
 
+
+<!-- our container for error messages -->
 <div class="row row-no-bleed preview-row hide">
     <div class="col-sm-6">
         <div id="preview-container"></div>
     </div>
     <div id="steps-container" class="col-sm-6"></div>
 </div>
+<!-- / our container for error messages -->
+
+
+<!-- recently created links -->
+<div class="row panel panel-default">
+    <div class="col-sm-12 links-box">
+    </div>
+</div>
+<!-- / recently created links -->
+
+
+
 
 <!-- Modals -->
 <!-- Upload file modal -->
@@ -196,6 +210,60 @@
     </div>-->
 </script>
 {% endverbatim %}
+
+
+<!-- recently created links -->
+
+{% verbatim %}
+<script id="created-link-items-template" type="text/x-handlebars-template">
+
+	<div class="container link-headers">
+            <div class="row">
+                <div class="col-sm-12">
+                    <h3 class="link-header body-ah">Recent Perma Links</h3>
+                </div>
+            </div>
+        </div>
+	<div class="container link-rows">
+
+{{#each objects}}
+    <div class="link-container">
+        <div class="row link-row row-no-bleed">
+            <div class="row">
+	            <div class="col col-sm-8">
+	            	<div class="link-title-display">
+		            	<span class="z-top">{{ title }}</span>
+	            	</div>
+	                <div class="record-url">
+	                	<a href="{{ url }}" target="_blank" class="original-link z-top">{{ truncatechars url 200 }}</a>
+	                </div>
+	            </div>
+	            <div class="col col-sm-4 align-right">
+	                {{#if delete_available}}<a href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}<a class="perma z-top" href="{{local_url}}" target="_blank">{{local_url}}</a>
+	            </div>
+            </div>
+            <div class="row record-secondary">
+	            <div class="col col-sm-8">
+	            	{{#if organization }}
+	                <div class="record-affil">
+		                <span class="z-top">{{organization.name}}</span>
+		            </div>
+		            {{/if}}
+	            </div>
+	            <div class="col col-sm-4 align-right">
+		            <span class="record-date z-top"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
+	            </div>
+            </div>
+        </div>
+    </div>
+{{/each}}
+
+</div>
+</script>
+{% endverbatim %}
+
+<!-- / recently created links -->
+
 
 <!-- Bookmarklet -->
 

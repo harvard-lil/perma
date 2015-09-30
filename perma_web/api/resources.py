@@ -342,6 +342,7 @@ class AuthenticatedLinkResource(BaseLinkResource):
     dark_archived_by = fields.ForeignKey(LinkUserResource, 'dark_archived_by', full=True, null=True, blank=True,
                                          readonly=True)
     # folders = fields.ToManyField(FolderResource, 'folders', readonly=True, null=True)
+    archive_timestamp = fields.DateTimeField(attribute='archive_timestamp', readonly=True)
 
     class Meta(BaseLinkResource.Meta):
         authorization = AuthenticatedLinkAuthorization()

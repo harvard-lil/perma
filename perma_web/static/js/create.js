@@ -25,7 +25,7 @@ $(function() {
     $('#linker').submit(function() {
         var $this = $(this);
         var linker_data = {};
-        imWorking();
+
         if(selected_organization){
         	linker_data = {
                 url: $this.find("input[name=url]").val(),
@@ -101,6 +101,27 @@ $(function() {
             }
         });
 
+    // Draw our recent links
+
+    // fetch our recent links from the aPI
+    apiRequest("GET", '/archives', {limit: 5})
+        .always(function (data) {
+            data.objects.map(function(obj){
+                $.each(obj.captures, function(i, capture){
+                    if(capture.role == 'favicon' && capture.status == 'success')
+                        obj.favicon_url = capture.playback_url;
+                });
+                obj.local_url = 'http://' + settings.HOST + '/' + obj.guid;
+                obj.creation_timestamp_formatted = new Date(obj.creation_timestamp).format("F j, Y");
+
+                if (Date.now() < Date.parse(obj.archive_timestamp)) {
+                    obj.delete_available = true;
+                }
+            });
+            $('.links-box').html(templates.created_link_items({objects:data.objects}));
+        });
+
+
 });
 
 /* Everything that needs to happen at page load - end */
@@ -110,38 +131,42 @@ $(function() {
 /* Handle the the main action (enter url, hit the button) button - start */
 
 function linkIt(data){
+    // Success message from API. We should have a GUID now (but the
+    // archive is still be generated)
+
 
     // Clear any error messages out
     $('.preview-row').remove();
 
+    // Start our spinner and disable our input field
+    toggleCreateAvailable();
+
     new_archive.url = 'http://' + settings.HOST  + '/' + data.guid;
     new_archive.guid = data.guid;
-
-    $('.links-remaining').text(data.links_remaining);
-    if(data.links_remaining < 1) 
-    	$('#linker input, #linker button').attr('disabled', 'disabled').blur();
-
-    // Get our spinner going now that we're drawing it
-//	$('#addlink').html('Creating your Perma Link').attr('disabled', 'disabled').addClass('_isWorking');
-//	var target = document.getElementById('addlink');
-//	var spinner = new Spinner(opts).spin(target);
-
-    $('#links-remaining').text(data.links_remaining);
-    if(data.links_remaining < 1) 
-    	$('#linker input, #linker button').attr('disabled', 'disabled').blur();
 
     refreshIntervalIds.push(setInterval(check_status, 2000));
 }
 
-function imWorking(){
-    // Get our spinner going now that we're drawing it
-	$('#addlink').html('Creating your Perma Link').attr('disabled', 'disabled').addClass('_isWorking');
-	var target = document.getElementById('addlink');
-	var spinner = new Spinner(opts).spin(target);
+function toggleCreateAvailable() {
+    // Get our spinner going and display a "we're working" message
+
+    if ($('#addlink').hasClass('_isWorking')) {
+        $('#addlink').html('Create Perma Link').removeAttr('disabled').removeClass('_isWorking');
+        var target = document.getElementById('addlink');
+        $(target).spin(false);
+        $('#rawUrl').removeAttr('disabled');
+    } else {
+    	$('#addlink').html('Creating your Perma Link').attr('disabled', 'disabled').addClass('_isWorking');
+    	var target = document.getElementById('addlink');
+    	var spinner = new Spinner(opts).spin(target);
+        $('#rawUrl').attr('disabled', 'disabled');
+    }
 }
 
 
 function linkNot(jqXHR){
+    // The API told us something went wrong. Often times it's a 
+    // malformed URL
     $('#preview-container').html(templates.preview_failure({static_prefix:settings.STATIC_URL}));
 
     var message = "";
@@ -166,9 +191,9 @@ function linkNot(jqXHR){
     $('.preview-row').removeClass('hide _error _success _wait').addClass('_error').hide().fadeIn(0);
 
 
-    // Reset our button
+    // Reset our button and remove our spinner
     $('#addlink').html('Create Perma Link').removeAttr('disabled').removeClass('_isWorking');
-    // remove spinner
+
 
 }
 
@@ -217,14 +242,7 @@ function uploadIt(data) {
     var upload_image_url = settings.STATIC_URL + '/img/upload-preview.jpg';
     new_archive.url = 'http://' + settings.HOST  + '/' + data.guid;
 
-    $('#preview-container').html(templates.preview_available_no_upload_option({image_url: upload_image_url, archive_url: new_archive.url}));
-
-    // Get our spinner going now that we're drawing it
-    var target = document.getElementById('spinner');
-    var spinner = new Spinner(opts).spin(target);
-
-    $('#steps-container').html(templates.success_steps({url: new_archive.url,
-                                                        userguide_url: userguide_url, vesting_privs: vesting_privs})).removeClass('hide');
+    window.location.href = new_archive.url;
 }
 
 function upload_form() {
@@ -288,6 +306,9 @@ function check_status() {
                     message: "Error: URL capture failed."
                 }));
                 $('.preview-row').removeClass('hide _error _success _wait').addClass('_error');
+
+                // Toggle our create button
+                toggleCreateAvailable();
             }
         }
     });
@@ -300,26 +321,26 @@ function check_status() {
 /* Our spinner controller - start */
 
 var opts = {
-  lines: 15 // The number of lines to draw
-, length: 2 // The length of each line
-, width: 2 // The line thickness
-, radius: 9 // The radius of the inner circle
-, scale: 1 // Scales overall size of the spinner
-, corners: 0 // Corner roundness (0..1)
-, color: '#2D76EE' // #rgb or #rrggbb or array of colors
-, opacity: 0.25 // Opacity of the lines
-, rotate: 0 // The rotation offset
-, direction: 1 // 1: clockwise, -1: counterclockwise
-, speed: 1 // Rounds per second
-, trail: 50 // Afterglow percentage
-, fps: 20 // Frames per second when using setTimeout() as a fallback for CSS
-, zIndex: 2e9 // The z-index (defaults to 2000000000)
-, className: 'spinner' // The CSS class to assign to the spinner
-, top: '12px' // Top position relative to parent
-, left: '50%' // Left position relative to parent
-, shadow: false // Whether to render a shadow
-, hwaccel: false // Whether to use hardware acceleration
-, position: 'absolute' // Element positioning
+    lines: 15, // The number of lines to draw
+    length: 2, // The length of each line
+    width: 2, // The line thickness
+    radius: 9, // The radius of the inner circle
+    scale: 1, // Scales overall size of the spinner
+    corners: 0, // Corner roundness (0..1)
+    color: '#2D76EE', // #rgb or #rrggbb or array of colors
+    opacity: 0.25, // Opacity of the lines
+    rotate: 0, // The rotation offset
+    direction: 1, // 1: clockwise, -1: counterclockwise
+    speed: 1, // Rounds per second
+    trail: 50, // Afterglow percentage
+    fps: 20, // Frames per second when using setTimeout() as a fallback for CSS
+    zIndex: 2e9, // The z-index (defaults to 2000000000)
+    className: 'spinner', // The CSS class to assign to the spinner
+    top: '12px', // Top position relative to parent
+    left: '50%', // Left position relative to parent
+    shadow: false, // Whether to render a shadow
+    hwaccel: false, // Whether to use hardware acceleration
+    position: 'absolute' // Element positioning
 };
 
 /* Our spinner controller - end */
