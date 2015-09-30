@@ -1022,6 +1022,10 @@ p.body { @extend p.body-text; }
 	margin-bottom: $double;
 }
 
+.nobreak {
+	white-space: nowrap;
+}
+
 .label-verbose, .verbose, .discretionary {
     display: inline-block;
     width: 0;
@@ -1139,11 +1143,13 @@ p.body { @extend p.body-text; }
 // create
 
 .create-title {
-    text-align: center;
     font-family: $font-hed-alt;
-    font-weight: 900;
-    font-size: 24px;
+    text-align: left;
+    font-size: 40px;
+    font-weight: 300;
     @include respond-tablet {
+	    text-align: center;
+	    font-weight: 900;
 	    font-size: 42px;
     }
     @include respond-desktop {
@@ -1152,7 +1158,6 @@ p.body { @extend p.body-text; }
 }
 
 .create-lede {
-    text-align: center;
     font-family: $font-hed-alt;
     color: $color-orange;
     margin-bottom: 0;
@@ -1161,6 +1166,7 @@ p.body { @extend p.body-text; }
     font-weight: 700;
     margin-top: $half;
     @include respond-tablet {
+	    text-align: center;
 	    margin-top: 0;
 	    font-size: 21px;
     }
@@ -1170,7 +1176,7 @@ p.body { @extend p.body-text; }
 }
 
 .form-priority {
-	margin: $grid * 3 -$double;
+	margin: $grid * 3 -$double 0;
     @include respond-tablet {
 	    margin: $grid * 4 0;
     }
@@ -1180,10 +1186,11 @@ p.body { @extend p.body-text; }
 }
 
 #main._isPrivate {
+	padding-bottom: 0;
 	#main-content {
 		background-color: $color-black;
 		padding-bottom: 0;
-		padding-top: $double;
+		padding-top: $grid;
 		.create-title {
 			color: white;
 			padding-top: $grid;
