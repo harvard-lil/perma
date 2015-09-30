@@ -1104,6 +1104,7 @@ p.body { @extend p.body-text; }
 }
 
 .alert {
+	font-family: $font-hed-alt;
 }
 
 .alert-danger {
