@@ -226,7 +226,7 @@ class FunctionalTest(StaticLiveServerTestCase):
         get_id('id_username').send_keys('test_user@example.com')
         get_id('id_password').send_keys('pass')
         get_xpath("//button[@class='btn btn-success login']").click() # new design button
-        assert_text_displayed('Create a new Perma Link', 'h1')  # wait for load
+        assert_text_displayed('Create a new', 'h1')  # wait for load # new design
 
         info("Creating archive.")
         url_to_capture = 'example.com'
