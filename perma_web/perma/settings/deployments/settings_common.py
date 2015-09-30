@@ -90,6 +90,7 @@ PIPELINE_JS = {
         'source_filenames': (
             'js/jquery.js',
             'js/bootstrap3.js',
+            'js/fastclick.min.js',
             'js/global.js',
         ),
         'output_filename': 'js/global-bundle.js',

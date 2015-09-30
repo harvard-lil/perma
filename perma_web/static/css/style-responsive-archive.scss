@@ -23,6 +23,11 @@ $color-yellow: #d0a60f;
     100% {background-color: white;}
 }
 
+body, html {
+	height: 100%;
+	overflow-y: scroll;
+}
+
 // iframe start
 
 iframe {

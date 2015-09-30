@@ -68,6 +68,7 @@ $(function() {
 
     // hide and show link details
     linkTable.on('click', '.link-expand', function () {
+
         // handle details link to hide/show link details
         var button = $(this),
             details = button.closest('.link-container').find('.link-details');
@@ -115,7 +116,8 @@ $(function() {
             button.text('Hide Record Details');
             linkContainer.toggleClass( '_active' )
         }
-
+        
+        return false;
     // save changes to notes field
     }).on('input propertychange change', '.link-notes', function () {
         var textarea = $(this);
