@@ -123,7 +123,7 @@ $(function(){
             var imgURL = settings.STATIC_URL+'img/examples/'+key+(isHighDensity()?'@2x':'')+'.gif';
             $example.find('img').attr('src','')         // remove URL so image load event will fire even if they click the same button twice
                                 .attr('src', imgURL);   // then insert new URL
-            $example.find('#example-title > span').html("<a href='"+data.url+"'>"+data.cite+"</a>");
+            $example.find('#example-title').html(data.cite+" <a class='outside' href='"+data.url+"'>View Original</a>");
             $example.find('#example-image-wrapper .example-link').remove();
             for(var i=0, len=data.links.length; i<len; i++){
                 var link = data.links[i],
@@ -139,9 +139,9 @@ $(function(){
             }
 
             // make sure content is in view
-            $('html, body').animate({
-                scrollTop: $example.offset().top-10
-            }, 1000);
+            //$('html, body').animate({
+            //    scrollTop: $example.offset().top-10
+            //}, 1000);
 
         }else{
             // they clicked the same button again; hide the $example panel
@@ -163,3 +163,4 @@ $(function(){
         });
     });
 });
+    

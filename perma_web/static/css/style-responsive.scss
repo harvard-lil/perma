@@ -1619,6 +1619,7 @@ p.body { @extend p.body-text; }
 #example-title {
     margin-bottom: 2em;
     font-weight: 300;
+    font-family: $font-hed-alt;
 }
 
 #example-image-wrapper {
