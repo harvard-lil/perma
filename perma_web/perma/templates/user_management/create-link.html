@@ -2,7 +2,7 @@
 {% load pipeline %}
 {% block title %} | Create a Perma link{% endblock %}
 {% block bodyFlags %}{% endblock bodyFlags %}
-{% block mainFlags %}{% if selected_org.default_to_private %}_isPrivate{% endif %}{% endblock mainFlags %}
+{% block mainFlags %}_create{% if selected_org.default_to_private %} _isPrivate{% else %} _isPublic{% endif %}{% endblock mainFlags %}
 
 
 {% block content %}

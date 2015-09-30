@@ -1186,7 +1186,6 @@ p.body { @extend p.body-text; }
 }
 
 #main._isPrivate {
-	padding-bottom: 0;
 	#main-content {
 		background-color: $color-black;
 		padding-bottom: 0;
@@ -1203,6 +1202,10 @@ p.body { @extend p.body-text; }
 			}
 	    }
 	}
+}
+
+#main._create {
+	padding-bottom: 0;
 }
 
 #linker {
