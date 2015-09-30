@@ -10,7 +10,7 @@ $(function(){
             
             apiRequest("DELETE", "/archives/" + archive.guid + "/", null, {
                 success: function(){
-                    window.location = url_link_browser;
+                    window.location = refer_url;
                 },
                 error: function(jqXHR){
                     $this.removeClass("disabled");

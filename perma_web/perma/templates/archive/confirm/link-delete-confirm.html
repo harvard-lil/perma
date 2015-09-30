@@ -17,7 +17,8 @@
 {% block scripts %}
     <script>
         var url_link_browser = "{% url 'link_browser' %}",
-            archive = {% as_json link %};
+            archive = {% as_json link %},
+        	refer_url = "{{ request.META.HTTP_REFERER }}";
     </script>
 
     {% javascript 'link-delete-confirm' %}
