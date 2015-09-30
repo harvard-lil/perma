@@ -4057,8 +4057,9 @@ div.dashboard-blurb {
 				font-weight: 200;
 				line-height: 1.2;
 				@include respond-tablet {
-					font-size: 15px;
-					font-weight: 700;
+					font-size: 16px;
+					font-weight: 400;
+					border-color: $color-blue;
 				}
             }
             &.dashboard-secondary a {
