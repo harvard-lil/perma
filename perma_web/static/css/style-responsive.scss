@@ -1210,7 +1210,7 @@ p.body { @extend p.body-text; }
 			padding-top: $grid;
 		}
 	    @include respond-tablet {
-			padding-bottom: $grid * 4;
+			padding-bottom: 0;
 			padding-top: 0;
 			.create-title {
 				padding-top: $grid * 5;
@@ -1219,8 +1219,22 @@ p.body { @extend p.body-text; }
 	}
 }
 
+#create-link-container {
+	padding-left: $double;
+	padding-right: $double; 
+}
+
+.create-private-link {
+    @include respond-tablet {
+	    padding-bottom: $grid * 3;
+    }
+}
+
 #main._create {
 	padding-bottom: 0;
+    @include respond-tablet {
+	    padding-bottom: 200px;
+    }
 }
 
 #linker {
