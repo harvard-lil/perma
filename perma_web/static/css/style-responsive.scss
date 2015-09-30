@@ -92,7 +92,7 @@ section#main { // review XX
     color: $color-black;
     font-family: $font-body;
 	padding-top: $grid * 4;
-	padding-bottom: $double;
+	padding-bottom: $grid * 3;
 	background-color: $color-white;
 	@include respond-tablet {
 		padding-top: $grid * 4;
