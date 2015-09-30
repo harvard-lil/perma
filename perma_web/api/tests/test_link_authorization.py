@@ -231,12 +231,16 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
     ############
 
     def test_should_allow_owner_to_delete_link(self):
-        count = Link.objects.count()
-        self.successful_delete(self.unvested_url, user=self.vesting_member)
-        self.assertEqual(Link.objects.count(), count-1)
-        self.rejected_get(self.unvested_url, user=self.vesting_member, expected_status_code=404)
+        with self.serve_file(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.html')):
+            successful_response = self.successful_post(self.list_url, user=self.regular_user, data=self.post_data)
+            new_link = Link.objects.get(pk=successful_response['guid'])
+            new_link_url = "{0}/{1}".format(self.list_url, new_link.pk)
+            count = Link.objects.count()
+            self.successful_delete(new_link_url, user=self.regular_user)
+            self.assertEqual(Link.objects.count(), count-1)
+            self.rejected_get(new_link_url, user=self.regular_user, expected_status_code=404)
 
-    def test_should_reject_delete_for_vested_link(self):
+    def test_should_reject_delete_for_out_of_window_link(self):        
         self.rejected_delete(self.vested_url, user=self.vesting_member)
         self.successful_get(self.vested_url, user=self.vesting_member)
 
