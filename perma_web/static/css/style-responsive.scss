@@ -3972,7 +3972,9 @@ div.dashboard-blurb {
     #dashboard-tabs {
         margin: 0 0 $grid * 3 0;
         &.settings-tabs a {
-            padding-left: 12px;
+	        @include respond-tablet {
+	            padding-left: 12px;
+	        }
         }
 		@include respond-mobile {
 	        margin: 0 -$double $grid * 3;
@@ -4045,11 +4047,9 @@ div.dashboard-blurb {
             &.active a {
                 background-color: white;
                 color: $color-blue;
-                border: 2px solid transparent;
                 cursor: default;
                 padding-top: 7px;
                 padding-bottom: $grid;
-                padding-left: 10px;
                 span:after {
 	                display: none;
                 }
@@ -4059,7 +4059,7 @@ div.dashboard-blurb {
 				@include respond-tablet {
 					font-size: 16px;
 					font-weight: 400;
-					border-color: $color-blue;
+					border: 2px solid $color-blue;
 				}
             }
             &.dashboard-secondary a {
