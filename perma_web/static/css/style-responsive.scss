@@ -1695,6 +1695,12 @@ p.body { @extend p.body-text; }
 	}
 }
 
+._isPublic {
+	.create-errors {
+		padding: 0;
+	}
+}
+
 .preview-row {
     margin: $double;
     padding: $double 0;
