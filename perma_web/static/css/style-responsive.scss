@@ -5026,9 +5026,16 @@ td {
 }
 
 .panel-default {
-	padding-top: $grid * 6;
+	padding-top: $grid * 3;
 	border: none;
 	border-radius: 0;
+	@include respond-tablet {
+		padding-top: $grid * 6;
+	}
+}
+
+._create .panel-default {
+	margin: 0;
 }
 
 .panel-heading {
