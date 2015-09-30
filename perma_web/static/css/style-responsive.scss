@@ -1371,7 +1371,7 @@ p.body { @extend p.body-text; }
 			    color: $color-active;
 		    }
 	    }
-	  	#links-remaining {
+	  	.links-remaining {
 		  	display: inline-block;
 		    padding: 1px 12px 0;
 		    background-color: $color-blue;
@@ -1478,6 +1478,18 @@ p.body { @extend p.body-text; }
 			}
 	  	}
 	  	
+	    .links-remaining {
+	        display: inline-block;
+		    font-size: 12px;
+		    font-weight: 700;
+		    color: white;
+		    background-color: $color-blue;
+		    padding: 2px 8px 0;
+		    vertical-align: middle;
+		    bottom: 2px;
+		    margin-left: $half;
+		    border-radius: 4px;
+	    }
 
 	  	.label-affil {
 		  	width: 100%;
@@ -1591,22 +1603,6 @@ p.body { @extend p.body-text; }
   		  	}
 	  	}
   	}
-}
-
-#links-remaining-message {
-    .links-remaining {
-        display: inline-block;
-	    font-size: 12px;
-	    font-weight: 700;
-	    color: white;
-	    background-color: $color-blue;
-	    padding: 1px 8px 0;
-	    vertical-align: middle;
-	    bottom: 2px;
-	    margin-left: $half;
-	    margin-right: $half;
-	    border-radius: 4px;
-    }
 }
 
 #examples {
