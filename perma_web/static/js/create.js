@@ -185,7 +185,8 @@ function linkNot(jqXHR){
 
     $('#steps-container').html(templates.error({
         message: message || "Error " + jqXHR.status,
-        upload_allowed: upload_allowed
+        upload_allowed: upload_allowed,
+        contact_url: contact_url
     }));
 
     $('.preview-row').removeClass('hide _error _success _wait').addClass('_error').hide().fadeIn(0);
