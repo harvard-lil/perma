@@ -2,14 +2,14 @@
 {% load pipeline %}
 {% block title %} | Create a Perma link{% endblock %}
 {% block bodyFlags %}{% endblock bodyFlags %}
-{% block mainFlags %}{% if selected_org.default_to_private %}_isPrivate{% endif %}{% endblock mainFlags %}
+{% block mainFlags %}_create{% if selected_org.default_to_private %} _isPrivate{% else %} _isPublic{% endif %}{% endblock mainFlags %}
 
 
 {% block content %}
 	<!-- regular link creation -->
 	{% if not selected_org.default_to_private %}
 	<div id="create-link-container">
-    <h1 class="create-title">Create a new Perma Link</h1>
+    <h1 class="create-title">Create a new <span class="nobreak">Perma Link</span></h1>
 	<p class="create-lede">Enter any URL to preserve it forever.</p>
     <form 	class="form-priority" 
     		id="linker" 
@@ -184,7 +184,7 @@
     <p>We’re unable to create your Perma Link.</p>
     <h4 class="text-warning">{{ message }}<h4/>
      {{#if upload_allowed}}
-    <p>You can <a href="" onclick="return upload_form();">upload your own archive</a> or <a href="#" data-toggle="modal" data-target="#feedbackModal" id="report-error">contact us about this error.</a></p>
+    <p>You can <a href="" onclick="return upload_form();">upload your own archive</a> or <a href="#">contact us about this error.</a></p>
     {{/if}}
 </script>
 {% endverbatim %}

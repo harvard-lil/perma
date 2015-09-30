@@ -12,6 +12,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         {% block meta %}{% endblock %}  
 
+		<link href='https://fonts.googleapis.com/css?family=Roboto+Mono' rel='stylesheet' type='text/css'>
         <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
         {% stylesheet 'base' %}
 
@@ -87,7 +88,7 @@
                                 <li><a href="{% url 'user_management_settings_password' %}">Password</a></li>
                                 <li><a href="{% url 'user_management_settings_tools' %}">Tools</a></li>
                                 {% if request.user.is_organization_member or request.user.is_registrar_member or request.user.has_registrar_pending %}
-	                                <li><a href="{% url 'user_management_settings_organizations' %}">Organizations</a></li>
+	                                <li><a href="{% url 'user_management_settings_organizations' %}">Your Organization</a></li>
 								{% endif %}
                                 <li class="divider"></li>
                                 <li><a href="{% url 'logout' %}">Log out</a></li>
@@ -156,40 +157,6 @@
         </div><!--/.container-fluid-->
 
 
-    <div class="modal" id="feedbackModal" tabindex="-1" role="dialog" aria-labelledby="feedbackModal" aria-hidden="true">
-	    <div class="modal-dialog modal-sm">
-		<div class="modal-content">
-    		<div class="modal-header">
-        		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-				<div class="logo-condensed-header">
-					<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo2.png"></a>
-				</div>
-    		</div>
-			<div class="center feedback-form-inputs">
-			    <form class="feedback" name="feedback">
-				<h4>Feedback</h4>
-				<p id="broken-link-report"></p>
-                <label for="user_email">Your email</label><br>
-                <input type="email" name="user_email" id="user_email" class="input-xlarge">
-                <br>
-                <label for="feedback_text">Comments</label><br>
-                <textarea name="feedback_text" class="input-xlarge"></textarea>
-                </form>
-			</div>
-			<div class="modal-footer feedback-form-inputs">
-                <input class="btn btn-primary btn-large pull-right" value="Send" id="submit-feedback">
-           <a href="#" data-dismiss="modal" id="cancel-feedback" class="pull-right">cancel</a>
-            </div>
-            <div class="center feedback-form-submitted">
-                <h4>Your feedback has been sent.</h4>
-            </div>
-            <div class="modal-footer feedback-form-submitted">
-           <!--<a href="#" data-dismiss="modal" id="cancel-feedback" class="pull-right">close</a>-->
-           <input data-dismiss="modal" class="btn btn-primary btn-large pull-right" value="Close">
-            </div>
-	    </div>		
-	</div>
-</div><!--/feedback modal-->
     {% javascript 'global' %}
 
     {% block scripts %}

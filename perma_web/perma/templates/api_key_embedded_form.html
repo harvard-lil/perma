@@ -1,5 +1,5 @@
 <form method="post" action="{% url 'api_key_create' %}" class="embedded-form">
-<h4 class="body-bh">API</h4>
+<h3 class="body-ah">API</h3>
   {{ api_form.non_field_errors }}
   {% if request.user.api_key.key %}
   <form>
