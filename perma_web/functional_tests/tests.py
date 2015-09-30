@@ -3,7 +3,11 @@ from __future__ import print_function
 import socket
 import StringIO
 import imghdr
-import requests
+import os
+import subprocess
+import unittest
+import re
+import datetime
 import sys
 from selenium import webdriver
 from selenium.common.exceptions import ElementNotVisibleException, NoSuchElementException
@@ -15,70 +19,110 @@ from django.conf import settings
 from perma.wsgi import application as wsgi_app
 from perma.settings import SAUCE_USERNAME, SAUCE_ACCESS_KEY, USE_SAUCE
 
-SERVER_DOMAIN = 'perma.dev'
+
+# In this file we point a browser at a test server and navigate the site.
+# There are two separate choices to make:
+# (1) is the server remote, or a local Django test server we start for the occasion?
+# (2) is the browser a local PhantomJS browser, or a set of remote Sauce browsers?
+#
+# Examples:
+#
+# Local browser, local server:
+# $ fab test:functional_tests
+#
+# Remote Sauce browsers, local server:
+# $ fab dev.sauce_tunnel &  # (keep this open in the background for all tests)
+# $ fab dev.test_sauce
+#
+# Remote Sauce browsers, remote server:
+# $ fab dev.test_sauce:https://perma.cc
 
 
-assert socket.gethostbyname(SERVER_DOMAIN) in ('0.0.0.0', '127.0.0.1'), "Please add `127.0.0.1 " + SERVER_DOMAIN + "` to your hosts file before running this test."
+# (1) Configure remote vs. local server:
 
-# set up browsers
-if not USE_SAUCE:
-    browsers = ['PhantomJS']
+REMOTE_SERVER_URL = os.environ.get('SERVER_URL')
+LOCAL_SERVER_DOMAIN = 'perma.dev'
+build_name = datetime.datetime.now().isoformat().split('.')[0]
+
+if REMOTE_SERVER_URL:
+    BaseTestCase = unittest.TestCase
+    build_name += '-' + REMOTE_SERVER_URL  # pretty label for remote jobs: datetime-target_url
+
 else:
+    BaseTestCase = StaticLiveServerTestCase
+    assert socket.gethostbyname(LOCAL_SERVER_DOMAIN) in ('0.0.0.0', '127.0.0.1'), "Please add `127.0.0.1 " + LOCAL_SERVER_DOMAIN + "` to your hosts file before running this test."
+    build_name += subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip()  # pretty label for local jobs: datetime-git_branch
+
+
+# (2) Configure Sauce vs. local PhantomJS browsers:
+
+if USE_SAUCE:
     from sauceclient import SauceClient
     assert SAUCE_USERNAME and SAUCE_ACCESS_KEY, "Please make sure that SAUCE_USERNAME and SAUCE_ACCESS_KEY are set."
     sauce = SauceClient(SAUCE_USERNAME, SAUCE_ACCESS_KEY)
     
     # options: https://saucelabs.com/platforms
     browsers = [
-        {"platform": "Mac OS X 10.9",
+        # Chrome
+        {"platform": "Mac OS X 10.10",
         "browserName": "chrome",
-        "version": "31"},
+        "version": "45"},
 
+        {"platform": "Windows 7",
+         "browserName": "chrome",
+         "version": "45"},
+
+        # Safari
+        {"platform": "OS X 10.10",
+         "browserName": "safari",
+         "version": "8.0"},
+
+        # IE
         {"platform": "Windows 8.1",
         "browserName": "internet explorer",
         "version": "11"},
 
         {"platform": "Windows 7",
+         "browserName": "internet explorer",
+         "version": "9.0"},
+
+        # Firefox
+        {"platform": "Windows 7",
         "browserName": "firefox",
-        "version": "30"},
+        "version": "40"},
 
-        {"platform": "Windows XP",
-        "browserName": "internet explorer",
-        "version": "8"},
-
-        {"platform": "OS X 10.9",
+        # iOS
+        {"platform": "OS X 10.10",
         "browserName": "iPhone",
-        "version": "7.1",
-        "device-orientation": "portrait",
-        "nonSyntheticWebClick": False},
+        "version": "8.4",
+        "deviceOrientation": "portrait",
+        "deviceName": "iPhone 6",},
     ]
 
-## helpers
-def on_platforms(platforms, use_sauce):
-    if use_sauce:
-        def decorator(base_class):
-            module = sys.modules[base_class.__module__].__dict__
-            for i, platform in enumerate(platforms):
-                d = dict(base_class.__dict__)
-                d['desired_capabilities'] = platform
-                name = "%s_%s" % (base_class.__name__, i + 1)
-                module[name] = type(name, (base_class,), d)
-        return decorator
+else:
+    browsers = [{}]  # single PhantomJS test case with empty dict -- no special desired_capabilities
 
+
+## helpers
+
+def on_platforms(platforms):
+    """
+        Generate a version of the test case class for each platform.
+        via: https://github.com/Victory/django-travis-saucelabs/blob/master/mysite/saucetests/tests.py
+    """
     def decorator(base_class):
         module = sys.modules[base_class.__module__].__dict__
         for i, platform in enumerate(platforms):
-            d = dict(base_class.__dict__)
-            d['browser'] = platform
+            d = dict(base_class.__dict__, desired_capabilities=platform)
             name = "%s_%s" % (base_class.__name__, i + 1)
             module[name] = type(name, (base_class,), d)
-        pass
     return decorator
 
 
-# via: https://github.com/Victory/django-travis-saucelabs/blob/master/mysite/saucetests/tests.py
-@on_platforms(browsers, USE_SAUCE)
-class FunctionalTest(StaticLiveServerTestCase):
+## the actual tests!
+
+@on_platforms(browsers)
+class FunctionalTest(BaseTestCase):
     fixtures = ['fixtures/sites.json',
                 'fixtures/users.json',
                 'fixtures/folders.json']
@@ -88,15 +132,22 @@ class FunctionalTest(StaticLiveServerTestCase):
     }
 
     def setUp(self):
-        # By default, the test server only mounts the django app,
-        # which will leave out the warc app, so mount them both here
-        self.server_thread.httpd.set_app(self.server_thread.static_handler(wsgi_app))
-        self.server_thread.host = SERVER_DOMAIN
+        if REMOTE_SERVER_URL:
+            self.server_url = REMOTE_SERVER_URL
+        else:
+            self.server_url = self.live_server_url
+
+            # By default, the test server only mounts the django app,
+            # which will leave out the warc app, so mount them both here
+            self.server_thread.httpd.set_app(self.server_thread.static_handler(wsgi_app))
+            self.server_thread.host = LOCAL_SERVER_DOMAIN
 
         if USE_SAUCE:
             self.setUpSauce()
         else:
             self.setUpLocal()
+
+        self.driver.implicitly_wait(5)
 
     def tearDown(self):
         if USE_SAUCE:
@@ -105,23 +156,22 @@ class FunctionalTest(StaticLiveServerTestCase):
             self.tearDownLocal()
 
     def setUpSauce(self):
-        desired_capabilities = dict(self.base_desired_capabilities, **self.base_desired_capabilities)
+        desired_capabilities = dict(self.base_desired_capabilities, **self.desired_capabilities)
         desired_capabilities['name'] = self.id()
+        desired_capabilities['build'] = build_name
 
         sauce_url = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
         self.driver = webdriver.Remote(
             desired_capabilities=desired_capabilities,
             command_executor=sauce_url % (SAUCE_USERNAME, SAUCE_ACCESS_KEY)
         )
-        self.driver.implicitly_wait(5)
-        socket.setdefaulttimeout(10)
+        socket.setdefaulttimeout(300)  # spinning up iOS browser can take a few minutes
 
     def setUpLocal(self):
-        self.driver = getattr(webdriver, self.browser)(
+        self.driver = webdriver.PhantomJS(
             desired_capabilities=self.base_desired_capabilities,
         )
-        self.driver.implicitly_wait(3)
-        socket.setdefaulttimeout(10)
+        socket.setdefaulttimeout(30)
         self.driver.set_window_size(1024, 800)
 
     def tearDownLocal(self):
@@ -201,18 +251,25 @@ class FunctionalTest(StaticLiveServerTestCase):
                     time.sleep(sleep_time)
 
         def fix_host(url, host=settings.HOST):
-            return url.replace('http://' + host, self.live_server_url)
+            return url.replace('http://' + host, self.server_url)
 
-        info("Loading homepage from %s." % self.live_server_url)
-        self.driver.get(self.live_server_url)
+        info("Loading homepage from %s." % self.server_url)
+        self.driver.get(self.server_url)
         assert_text_displayed("Perma.cc prevents link rot.") # new text on landing now
 
         info("Checking Perma In Action section.")
-        get_xpath("//a[@data-img='MSC_1']").click()
-        self.assertTrue(is_displayed(get_id('example-title')))
-        get_xpath("//div[@id='example-image-wrapper']/img").click()  # click on random element to trigger Sauce screenshot
+        try:
+            get_xpath("//a[@data-img='MSC_1']").click()
+            self.assertTrue(is_displayed(get_id('example-title')))
+            get_xpath("//div[@id='example-image-wrapper']/img").click()  # click on random element to trigger Sauce screenshot
+        except ElementNotVisibleException:
+            pass  # this section is hidden for mobile browsers, so just skip this test
 
         info("Loading docs.")
+        try:
+            get_css_selector('.navbar-toggle').click()  # show navbar in mobile view
+        except ElementNotVisibleException:
+            pass  # not in mobile view
         get_xpath("//a[@href='/docs']").click()
         assert_text_displayed('Introducing Perma.cc', 'h2')  # new text -- wait for load
 
@@ -222,11 +279,11 @@ class FunctionalTest(StaticLiveServerTestCase):
         except ElementNotVisibleException:
             pass  # not in mobile view
         repeat_while_exception(lambda: click_link("Log in"))
-        self.assertTrue("Email address" in get_xpath('//body').text)
+        assert_text_displayed("Email address", 'label')
         get_id('id_username').send_keys('test_user@example.com')
         get_id('id_password').send_keys('pass')
         get_xpath("//button[@class='btn btn-success login']").click() # new design button
-        assert_text_displayed('Create a new Perma Link', 'h1')  # wait for load
+        assert_text_displayed('Create a new', 'h1')  # wait for load
 
         info("Creating archive.")
         url_to_capture = 'example.com'
@@ -238,23 +295,22 @@ class FunctionalTest(StaticLiveServerTestCase):
         while create_page_url == fix_host(self.driver.current_url):
             time.sleep(1)
 
+        info("Viewing playback.")
         # Get the guid of the created archive
         display_guid = fix_host(self.driver.current_url)[-9:]
-
-        self.driver.get(fix_host(self.driver.current_url))
-
-        info("Viewing playback.")
-        assert_text_displayed('See the Screenshot View', 'a')
-        # archive_view_link = get_id('warc_cap_container_complete')
-        # repeat_while_exception(lambda: archive_view_link.click(), ElementNotVisibleException) # wait for archiving to finish
+        # Grab the WARC url for later.
         warc_url = fix_host(self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src'), settings.WARC_HOST)
+        # Check out the screeshot.
+        get_element_with_text('See the Screenshot View', 'a').click()
+        assert_text_displayed('This is a screenshot.')
+        # Load the WARC URL separately, because Safari driver doesn't let us inspect it as an iframe
         self.driver.get(warc_url)
         assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
 
         # My Links
 
         # show links
-        self.driver.get(self.live_server_url + '/manage/links')
+        self.driver.get(self.server_url + '/manage/links')
         # create folder
         get_css_selector('.new-folder').click()
         # find link
@@ -272,8 +328,8 @@ class FunctionalTest(StaticLiveServerTestCase):
         # Timemap
 
         info("Checking timemap.")
-        self.driver.get(self.live_server_url + '/warc/pywb/*/' + url_to_capture)
-        self.assertTrue(is_displayed(get_element_with_text('1', 'b')))  # the number of captures
+        self.driver.get(self.server_url + '/warc/pywb/*/' + url_to_capture)
+        self.assertIsNotNone(re.search(r'<b>[1-9]\d*</b> captures', self.driver.page_source))  # Make sure that `<b>foo</b> captures` shows a positive number of captures
         assert_text_displayed('http://' + url_to_capture, 'b')
 
         # Displays playback by timestamp

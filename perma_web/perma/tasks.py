@@ -358,10 +358,6 @@ def proxy_capture(self, link_guid, user_agent=''):
 
         if browser:
             browser.quit()  # shut down phantomjs
-
-            # This can be removed when this bugfix ships in selenium:
-            # https://code.google.com/p/selenium/issues/detail?id=8498
-            browser.service.process.stdin.close()
         if meta_thread:
             meta_thread.join()  # wait until meta thread is done
         if robots_txt_thread:
