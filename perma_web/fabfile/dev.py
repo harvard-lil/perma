@@ -2,6 +2,7 @@ import os
 import subprocess
 import sys
 from django.conf import settings
+from fabric.context_managers import shell_env
 from fabric.decorators import task
 from fabric.operations import local
 
@@ -40,6 +41,24 @@ def test(apps="perma api functional_tests"):
         "functional_tests/*",
     ]
     local("coverage run --source='.' --omit='%s' manage.py test %s" % (",".join(excluded_files), apps))
+
+
+@task
+def test_sauce(server_url=None, test_flags=''):
+    """
+        Run functional_tests through Sauce rather than local phantomjs.
+    """
+    shell_envs = {
+        'DJANGO_LIVE_TEST_SERVER_ADDRESS': "0.0.0.0:8000",  # tell Django to make the live test server visible outside vagrant (this is unrelated to server_url)
+        'DJANGO__USE_SAUCE': "True"
+    }
+    if server_url:
+        shell_envs['SERVER_URL'] = server_url
+    else:
+        print "\n\nLaunching local live server. Be sure Sauce tunnel is running! (fab dev.sauce_tunnel)\n\n"
+
+    with shell_env(**shell_envs):
+        test("functional_tests "+test_flags)
 
 
 @task

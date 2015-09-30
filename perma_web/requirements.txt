@@ -17,7 +17,7 @@ Werkzeug==0.9.4
 Fabric==1.10.2
 pexpect==3.1
 coverage==3.7.1
-selenium==2.45.0
+selenium==2.47.3
 jsmin==2.0.9
 django-pipeline==1.5.3          # manages our css and js assets
 django-pipeline-compass==0.1.5  # lets us compile .scss to .css
