@@ -55,6 +55,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             'dark_archived_robots_txt_blocked',
             'guid',
             'creation_timestamp',
+            'archive_timestamp',
             'expiration_date',
             'organization',
             'captures',
