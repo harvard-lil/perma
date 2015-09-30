@@ -895,7 +895,7 @@ a.perma, p a.perma {
 	color: $color-blue;
 	white-space: nowrap;
 	font-size: 12px;
-	padding: 4px 4px 4px 2px;
+	padding: 2px 4px;
 	border: 2px solid $color-blue;
 	vertical-align: middle;
 	border-radius: 2px;
@@ -1619,6 +1619,7 @@ p.body { @extend p.body-text; }
 #example-title {
     margin-bottom: 2em;
     font-weight: 300;
+    font-family: $font-hed-alt;
 }
 
 #example-image-wrapper {
@@ -2127,6 +2128,9 @@ strong {
 		background-color: white;
 		cursor: move;
 		margin-top: 0;
+		width: auto;
+		margin-bottom: $double;
+		float: left;
 		&:hover, &:focus, &:active {
 			border-color: $color-black !important;
 			color: $color-black !important;
@@ -2389,11 +2393,12 @@ button.btn-search {
     display: block;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
-    top: -8px;
-    right: 8px;
-    height: 42px;
+    top: $double;
+    right: $double;
+    margin: 0;
     @include respond-tablet {
-	    top: 8px;
+	    top: $grid * 4;
+	    bottom: $grid * 4;
 	    right: 24px;
     }
 }
@@ -3055,6 +3060,7 @@ p.body-text {
 	font-weight: 300;
 	font-family: $font-body;
 	line-height: 1.5;
+	clear: both;
 	@include respond-tablet {
 		font-size: 16px;
 	}
@@ -3493,6 +3499,7 @@ ul.partners {
 
 body form .btn.login {
 	background-color: $color-green;
+	margin-bottom: $double;
 }
 
 .bold {
@@ -3706,9 +3713,14 @@ footer {
     }
     #footer-nav {
 	    padding-left: 0;
+    }
+    #footer-nav, #boilerplate {
 	    a {
-		    margin-right: $double;
+		    margin-right: 0;
 		    font-weight: 700;
+		    width: 100%;
+		    display: block;
+		    padding-bottom: 0;
 	    }
     }
     @include respond-tablet {
@@ -3733,6 +3745,14 @@ footer {
 		    font-weight: 700;
 		    a {
 			    margin-left: $double;
+		    }
+	    }
+	    #footer-nav, #boilerplate {
+		    a {
+			    margin-right: $double;
+			    display: inline;
+			    width: auto;
+			    padding-bottom: $half;
 		    }
 	    }
     }
@@ -4117,7 +4137,7 @@ div#dashboard-container div#library {}
         }
 
         div.user-delete-thumbnail {
-            margin-bottom: 16px;
+            margin-top: $double;
         }
 
         p.library-link-title, #upload-option {
@@ -5279,7 +5299,7 @@ span.action {
     overflow: auto;
     .sponsor-name, .sponsor-email, p {
 	    display: block;
-	    padding-right: 24px;
+	    padding-right: 72px;
     }
     .btn-xs {
 		padding: 4px 8px;
@@ -5289,6 +5309,7 @@ span.action {
 	    top: 50%;
 	    right: $grid;
 	    margin-top: -15px;
+	    width: auto;
     }
 }
 
@@ -5799,10 +5820,6 @@ input#file {
 
 #archive_upload_form button {
     margin-top: 10px;
-}
-
-.delete-confirm {
-  margin-left: 85px;
 }
 
 .nav {

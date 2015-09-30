@@ -32,9 +32,7 @@ Log in to your Perma.cc account. Welcome back.
 							{% endfor %}
                         	{% if form.non_field_errors %}<span class="text-error">{{ form.non_field_errors }}</span>{% endif %}
                     </fieldset>
-                    <div>
-	                    <button type="submit" class="btn btn-success login">Log in to Perma.cc</button>
-                    </div>
+                    <button type="submit" class="btn btn-success login">Log in to Perma.cc</button>
                     <p class="form-helper">Forgot your password? No problem! <a class="nobreak" href="{% url 'password_reset' %}">Create a new password.</a></p>
                     <p class="form-helper">Don’t have an account? <a class="nobreak" href="{% url 'register' %}">Create an account.</a></p>
                 </form>

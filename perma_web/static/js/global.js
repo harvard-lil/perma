@@ -311,3 +311,8 @@ $(document).ready(function() {
 		}
 	});	
 });
+
+// initialize fastclick
+$(function() {
+    FastClick.attach(document.body);
+});

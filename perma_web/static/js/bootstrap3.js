@@ -572,7 +572,7 @@ if (!jQuery) { throw new Error("Bootstrap requires jQuery") }
 
     this.$element
       .one($.support.transition.end, $.proxy(complete, this))
-      .emulateTransitionEnd(350)
+      .emulateTransitionEnd(0)
       [dimension](this.$element[0][scrollSize])
   }
 
@@ -609,7 +609,7 @@ if (!jQuery) { throw new Error("Bootstrap requires jQuery") }
     this.$element
       [dimension](0)
       .one($.support.transition.end, $.proxy(complete, this))
-      .emulateTransitionEnd(350)
+      .emulateTransitionEnd(0)
   }
 
   Collapse.prototype.toggle = function () {

@@ -87,7 +87,7 @@
 }
 
 %style-overview-container {
-	margin: $grid * 4 0 0 0;
+	margin: $grid 0 0 0;
 	background-color: $color-background;
 	@extend %style-clears-floats;
 	@include respond-tablet {
@@ -197,13 +197,14 @@
 		background-color: $color-white;
 		color: $color-blue;
 		padding: 10px 14px;
-		border: 3px solid $color-blue !important;
+		border: 3px solid transparent !important;
 		margin-right: 1px;
 		margin-left: 1px;
 		p {
 			color: $color-blue;
 		}
 		@include respond-tablet {
+			border: 3px solid $color-blue !important;
 			padding: 12px 17px 10px 17px;
 			margin-right: 0;
 			margin-left: 0;
@@ -211,7 +212,15 @@
 		@include respond-desktop {
 			padding: 13px 16px;
 		}
-
+		strong {
+			font-size: 24px;
+			font-weight: 200;
+			line-height: 1.2;
+			@include respond-tablet {
+				font-size: 15px;
+				font-weight: 700;
+			}
+		}
 		strong:after {
 			display: none;
 		}
