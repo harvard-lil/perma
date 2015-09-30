@@ -1688,7 +1688,11 @@ p.body { @extend p.body-text; }
 }
 
 .create-errors {
-	padding: 0 $double;
+	padding: $double 0;
+	background: white;
+	.no-wide {
+		padding: 0 $double;
+	}
 }
 
 .preview-row {
