@@ -115,23 +115,21 @@
 
 
 {{#each objects}}
-    <div class="link-container">
+    <div class="link-container{{#if is_private }} _isPrivate{{/if}}">
 
         <div class="row link-row row-no-bleed" link_id="{{ guid }}">
             <div class="row">
-	            <div class="col col-sm-8">
+	            <div class="col col-sm-7">
 	            	<div class="link-title-display">
-                        {{#if is_private }}
-                            [private]
-                        {{/if}}
-		            	<span class="z-top">{{ title }}</span>
+		            	{{#if is_private }}<span class="z-top ui-private">[private] </span>{{/if}}<span class="z-top">{{ title }}</span>
 	            	</div>
 	                <div class="record-url">
 	                	<a href="{{ url }}" target="_blank" class="original-link z-top">{{ truncatechars url 200 }}</a>
 	                </div>
 	            </div>
-	            <div class="col col-sm-4 align-right">
-	                {{#if delete_available}}<a href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}<a class="perma z-top" href="{{local_url}}" target="_blank">{{local_url}}</a>
+	            <div class="col col-sm-5 align-right">
+	                {{#if delete_available}}<a class="delete z-top" href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}
+	                <a class="perma z-top" href="{{local_url}}" target="_blank">{{local_url}}</a>
 	            </div>
             </div>
             <div class="row record-secondary">

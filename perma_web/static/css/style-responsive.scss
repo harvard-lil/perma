@@ -5120,17 +5120,6 @@ td {
     &.recent-links {
 	    width: 100%;
 	    padding-top: $grid * 3;
-	    a.delete {
-		    margin-right: $grid;
-		    color: $color-orange;
-		    text-decoration: underline;
-		    &:hover, &:focus {
-			    color: $color-error;
-		    }
-		    &:active {
-			    color: $color-black;
-		    }
-	    }
 		@include respond-mobile {
 			padding-left: $double;
 			padding-right: $double;
@@ -5148,6 +5137,18 @@ td {
         padding: 3px;
         text-align: right;
         background-color: #F5F5F5;
+    }
+
+    a.delete {
+	    margin-right: $grid;
+	    color: $color-orange;
+	    text-decoration: underline;
+	    &:hover, &:focus {
+		    color: $color-error;
+	    }
+	    &:active {
+		    color: $color-black;
+	    }
     }
 
     .shared-folder-label {
@@ -5187,6 +5188,25 @@ td {
 					color: $color-black;
 				}
 			}
+		}
+		&._isPrivate {
+		    span.ui-private {
+			    overflow: hidden;
+			    display: inline-block;
+			    text-indent: -10000px;
+			    position: relative;
+			    height: 16px;
+			    width: 18px;
+			    background-image: url('../img/ui/perma-ui-private.png');
+			    background-repeat: no-repeat;
+			    background-size: cover;
+			    margin-right: 4px;
+			    bottom: -2px;
+		    }
+		    a.perma {
+			    color: $color-black;
+			    border-color: $color-black;
+		    }
 		}
 		&:hover {
 			border-top-color: $color-blue;
@@ -5270,10 +5290,10 @@ td {
                     text-decoration: underline;
                 }
             }
-			.col-sm-8 {
+			.col-sm-7 {
 				width: 100%;
 			}
-			.col-sm-4 {
+			.col-sm-5 {
 				width: 100%;
 			}
 			.align-right {
@@ -5281,10 +5301,10 @@ td {
 				padding-top: $grid;
 			}
 			@include respond-tablet {
-				.col-sm-8 {
+				.col-sm-7 {
 					width: 50%;
 				}
-				.col-sm-4 {
+				.col-sm-5 {
 					width: 50%;
 				}
 				.align-right {
@@ -5293,11 +5313,11 @@ td {
 				}
 			}
 			@include respond-wide {
-				.col-sm-8 {
-					width: 66.66666666666666%;
+				.col-sm-7 {
+					width: 60%;
 				}
-				.col-sm-4 {
-					width: 33.33333333333333%;
+				.col-sm-5 {
+					width: 40%;
 				}
 			}
         }

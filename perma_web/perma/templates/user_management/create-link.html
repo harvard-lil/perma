@@ -232,15 +232,12 @@
 	<div class="container link-rows">
 
 {{#each objects}}
-    <div class="link-container">
+    <div class="link-container{{#if is_private }} _isPrivate{{/if}}">
         <div class="row link-row row-no-bleed">
             <div class="row">
 	            <div class="col col-sm-8">
 	            	<div class="link-title-display">
-	            		{{#if is_private }}
-                            [private]
-                        {{/if}}
-		            	<span class="z-top">{{ title }}</span>
+		            	{{#if is_private }}<span class="z-top ui-private">[private] </span>{{/if}}<span class="z-top">{{ title }}</span>
 	            	</div>
 	                <div class="record-url">
 	                	<a href="{{ url }}" target="_blank" class="original-link z-top">{{ truncatechars url 200 }}</a>
