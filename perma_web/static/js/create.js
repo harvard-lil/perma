@@ -60,6 +60,9 @@ $(function() {
         return false;
     });
 
+
+    /* Org affiliation dropdown logic */
+
     // Toggle users dropdown
     $('#dashboard-users').click(function(){
         $('.users-secondary').toggle();
@@ -92,18 +95,19 @@ $(function() {
                     	$('#organization_select_form').find('.dropdown-toggle').html(opt_text);
                     }
                     else {
-                    	$organization_select.append("<li><a href='" + create_url + '/' + organization.id + "'>" + opt_text + "</a></li>");
+                    	$organization_select.append("<li><a href='" + create_url + "/" + organization.id + "' onClick='appendURL(this)'>" + opt_text + "</a></li>");
                     }
                 });
                 if (!select_yourself) {
-                	$organization_select.append("<li><a href='" + create_url + '/0' + "'>Yourself <span class='links-remaining'>" + links_remaining + "<span></a></li>");
+                	$organization_select.append("<li><a href='" + create_url + "/0" + "' onClick='appendURL(this)'>Yourself <span class='links-remaining'>" + links_remaining + "<span></a></li>");
                 }
             }
-        });
+        });        
+
+    /* Org affiliation dropdown logic - end */
+
 
     // Draw our recent links
-
-    // fetch our recent links from the aPI
     apiRequest("GET", '/archives', {limit: 5})
         .always(function (data) {
             data.objects.map(function(obj){
@@ -121,6 +125,9 @@ $(function() {
             $('.links-box').html(templates.created_link_items({objects:data.objects}));
         });
 
+
+    // Populate email field in feedback form if the user needs to send feedback
+    $('#user_email').val('{{request.user.email}}');
 
 });
 
@@ -316,6 +323,49 @@ function check_status() {
 }
 
 /* Our polling function for the thumbnail completion - end */
+
+
+/* URL appending */
+
+/* Org selection is link based, so if the user selects an org from
+   the dropdown, we link to that page (reloading and losing state on the
+    create page). Here, let's grab the URL from the form field and append
+it to the org's href (in the org selection dropdown) */
+
+function appendURL(elem) {       
+    if ($('#rawUrl').val().length > 0) {
+        var link_to_create = $(elem).attr("href") + "?url=" + $('#rawUrl').val();
+        $(elem).attr("href", link_to_create);
+    }
+}
+
+/* URL appending - end */
+
+
+
+/* Catch incoming URLs as param values. Both from the bookmarklet or from the create page */
+
+// Get parameter by name
+// from https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+// Populate the URL field and submit the "create link" form
+$(document).ready(function() {
+    var bookmarklet_url = getParameterByName('url');
+    if (bookmarklet_url) {
+        $('.bookmarklet-button').hide();
+        $('#rawUrl').val(bookmarklet_url);
+    }
+});
+
+
+/* Catch incoming URLs as param values. Both from the bookmarklet or from the create page - end */
+
 
 
 

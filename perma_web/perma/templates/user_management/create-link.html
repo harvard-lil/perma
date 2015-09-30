@@ -265,36 +265,4 @@
 
 <!-- / recently created links -->
 
-
-<!-- Bookmarklet -->
-
-<script>
-
-// Catches the incoming bookmarklet archive request
-
-// Get parameter by name
-// from https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
-function getParameterByName(name) {
-    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-        results = regex.exec(location.search);
-    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-}
-
-var user_email = '{{request.user.email}}';
-
-// Populate the URL field and submit the "create link" form
-$(document).ready(function() {
-    var bookmarklet_url = getParameterByName('url');
-    if (bookmarklet_url) {
-        $('.bookmarklet-button').hide();
-        $('#rawUrl').val(bookmarklet_url);
-    }
-    
-    // Populate email field in feedback form
-    $('#user_email').val(user_email);
-});
-
-</script>
-
 {% endblock templates %}
