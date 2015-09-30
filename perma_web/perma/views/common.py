@@ -95,7 +95,7 @@ def single_linky(request, guid):
     # Create a canonical version of guid (non-alphanumerics removed, hyphens every 4 characters, uppercase),
     # and forward to that if it's different from current guid.
     canonical_guid = Link.get_canonical_guid(guid)
-    link = get_object_or_404(Link, guid=canonical_guid)
+    link = get_object_or_404(Link.objects.all_with_deleted(), guid=canonical_guid)
 
     if canonical_guid != guid:
         return HttpResponsePermanentRedirect(reverse('single_linky', args=[canonical_guid]))
@@ -130,7 +130,7 @@ def single_linky(request, guid):
         capture = link.primary_capture
 
     new_record = False
-    if request.user.is_authenticated():
+    if request.user.is_authenticated() and not link.user_deleted:
         # If a record is new (less than a minute old), let's assume
         # that the user just created it and we should show them a new record message
         new_record = link.creation_timestamp > timezone.now() - timedelta(seconds=60)
