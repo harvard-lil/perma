@@ -24,7 +24,7 @@ $color-yellow: #d0a60f;
 }
 
 body, html {
-	overflow: auto;
+	overflow: visible;
 }
 
 // iframe start
@@ -107,6 +107,47 @@ header {
 .row {
 	margin: 0;
 }
+
+.record-message {
+	text-align: center;
+    margin: 64px 0 24px;
+    font-family: $font-hed-alt;
+    padding: 0 $double;
+    @include respond-tablet {
+	    margin: 128px 0 48px;
+    }
+}
+
+.record-message-primary {
+	font-size: 24px;
+    font-weight: 300;
+    line-height: 1.2;
+    @include respond-tablet {
+		font-size: 36px;
+    }
+}
+
+.record-message-secondary {
+	max-width: 35em;
+    margin: 0 auto;
+    font-size: 14px;
+    line-height: 1.5;
+    color: $color-trans-gray;
+    @include respond-tablet {
+	    font-size: 16px;
+    }
+    a {
+	    text-decoration: underline;
+	    &:hover, &:focus {
+		    color: $color-hover;
+	    }
+	    &:active {
+		    color: $color-active;
+	    }
+    }
+}
+
+
 
 .banner-status {
 	padding: 12px $grid * 2;
