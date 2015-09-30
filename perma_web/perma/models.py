@@ -604,6 +604,9 @@ class Link(models.Model):
         """ An archive can be deleted if it is less than 24 hours old-style
             and it was created by a user or someone in the org """
 
+        if not user.is_authenticated():
+            return False
+
         user_has_delete_privs = False
 
         if user.is_staff or self.created_by == user or self.organization in user.get_orgs():
