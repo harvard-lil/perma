@@ -24,8 +24,7 @@ $color-yellow: #d0a60f;
 }
 
 body, html {
-	height: 100%;
-	overflow-y: scroll;
+	overflow: auto;
 }
 
 // iframe start
