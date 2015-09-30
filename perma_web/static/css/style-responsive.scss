@@ -3368,6 +3368,21 @@ code, span.code {
 
 ._signup {}
 
+
+@include respond-mobile {
+	.signup-info {
+		display: flex;
+		flex-direction: column-reverse;
+		flex-wrap: wrap;
+	}
+	.signup-learnMore-form, .reading-body {
+		width: 100%;
+	}
+	.signup-learnMore-form {
+		margin-top: $grid * 4;
+	}
+}
+
 .signup-overview {
 	@extend %style-overview-container;
 }
