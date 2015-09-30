@@ -65,6 +65,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             'created_by',
             'dark_archived_by',
             'archive_timestamp',
+            'is_private',
             'vested_by_editor',
         ]
 

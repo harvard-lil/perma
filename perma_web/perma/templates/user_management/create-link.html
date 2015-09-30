@@ -180,6 +180,7 @@
             selected_organization = "{{selected_org.id}}",
             shared_folder = "{{selected_org.shared_folder_id}}",
             create_url = "{% url 'create_link' %}",
+            contact_url = "{% url 'contact' %}",
             links_remaining = "{{links_remaining}}",
             thumbnail_service_url = "{% url 'service_get_thumbnail' guid='GUID' %}";
     </script>
@@ -202,7 +203,7 @@
     <p>We’re unable to create your Perma Link.</p>
     <h4 class="text-warning">{{ message }}<h4/>
      {{#if upload_allowed}}
-    <p>You can <a href="" onclick="return upload_form();">upload your own archive</a> or <a href="#">contact us about this error.</a></p>
+    <p>You can <a href="" onclick="return upload_form();">upload your own archive</a> or <a href="{{contact_url}}">contact us about this error.</a></p>
     {{/if}}
 </script>
 {% endverbatim %}
@@ -236,6 +237,9 @@
             <div class="row">
 	            <div class="col col-sm-8">
 	            	<div class="link-title-display">
+	            		{{#if is_private }}
+                            [private]
+                        {{/if}}
 		            	<span class="z-top">{{ title }}</span>
 	            	</div>
 	                <div class="record-url">
@@ -243,7 +247,8 @@
 	                </div>
 	            </div>
 	            <div class="col col-sm-4 align-right">
-	                {{#if delete_available}}<a class="delete z-top" href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}<a class="perma z-top" href="{{local_url}}" target="_blank">{{local_url}}</a>
+	                {{#if delete_available}}<a class="delete z-top" href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}
+	                <a class="perma z-top" href="{{local_url}}" target="_blank">{{local_url}}</a>
 	            </div>
             </div>
             <div class="row record-secondary">
@@ -304,37 +309,5 @@
 {% endverbatim %}
 
 <!-- / recently created links -->
-
-
-<!-- Bookmarklet -->
-
-<script>
-
-// Catches the incoming bookmarklet archive request
-
-// Get parameter by name
-// from https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
-function getParameterByName(name) {
-    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-        results = regex.exec(location.search);
-    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-}
-
-var user_email = '{{request.user.email}}';
-
-// Populate the URL field and submit the "create link" form
-$(document).ready(function() {
-    var bookmarklet_url = getParameterByName('url');
-    if (bookmarklet_url) {
-        $('.bookmarklet-button').hide();
-        $('#rawUrl').val(bookmarklet_url);
-    }
-    
-    // Populate email field in feedback form
-    $('#user_email').val(user_email);
-});
-
-</script>
 
 {% endblock templates %}

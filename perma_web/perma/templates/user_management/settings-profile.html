@@ -12,9 +12,22 @@
             <div class="alert alert-success alert-block">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
         {% endfor %}
     {% endif %}
-	<form method="post">
+	<form method="post" action="">
 		{% csrf_token %}
-		{{ form|as_bootstrap }}
+		<fieldset>
+		{% for field in form %}
+			<div class="form-group{% if field.errors %} _error{% endif %}">
+				<label for="id_{{ field.name }}">{{ field.label }}</label>
+				{{ field }}
+				{% if field.errors %}
+					{% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+				{%elif field.help_text %}
+					<span class="help-inline">{{ field.help_text }}</span>
+				{% endif %}
+			</div>
+		{% endfor %}
+		{% if form.non_field_errors %}<span class="text-error">{{ form.non_field_errors }}</span>{% endif %}
+		</fieldset>
 		<button type="submit" class="btn btn-success">Save changes</button>
 	</form>
 

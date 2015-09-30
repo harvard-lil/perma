@@ -121,6 +121,9 @@
             <div class="row">
 	            <div class="col col-sm-8">
 	            	<div class="link-title-display">
+                        {{#if is_private }}
+                            [private]
+                        {{/if}}
 		            	<span class="z-top">{{ title }}</span>
 	            	</div>
 	                <div class="record-url">
@@ -128,7 +131,7 @@
 	                </div>
 	            </div>
 	            <div class="col col-sm-4 align-right">
-	                <a class="perma z-top" href="{{local_url}}" target="_blank">{{local_url}}</a>
+	                {{#if delete_available}}<a href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}<a class="perma z-top" href="{{local_url}}" target="_blank">{{local_url}}</a>
 	            </div>
             </div>
             <div class="row record-secondary">
