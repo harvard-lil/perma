@@ -2427,12 +2427,12 @@ button.btn-inline {
 button.btn-search {
 	width: $grid * 6;
     position: absolute;
-    right: 24px;
     display: block;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     top: $double;
-    right: $double;
+    bottom: $double;
+    right: $grid;
     margin: 0;
     @include respond-tablet {
 	    top: $grid * 4;
@@ -5003,8 +5003,9 @@ td {
 }
 
 .panel-default {
-	margin-top: $grid * 6;
+	padding-top: $grid * 6;
 	border: none;
+	border-radius: 0;
 }
 
 .panel-heading {
