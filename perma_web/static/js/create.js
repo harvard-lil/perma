@@ -101,6 +101,27 @@ $(function() {
             }
         });
 
+    // Draw our recent links
+
+    // fetch our recent links from the aPI
+    apiRequest("GET", '/archives', {limit: 5})
+        .always(function (data) {
+            data.objects.map(function(obj){
+                $.each(obj.captures, function(i, capture){
+                    if(capture.role == 'favicon' && capture.status == 'success')
+                        obj.favicon_url = capture.playback_url;
+                });
+                obj.local_url = 'http://' + settings.HOST + '/' + obj.guid;
+                obj.creation_timestamp_formatted = new Date(obj.creation_timestamp).format("F j, Y");
+
+                if (Date.now() < Date.parse(obj.archive_timestamp)) {
+                    obj.delete_available = true;
+                }
+            });
+            $('.links-box').html(templates.created_link_items({objects:data.objects}));
+        });
+
+
 });
 
 /* Everything that needs to happen at page load - end */
@@ -118,7 +139,7 @@ function linkIt(data){
     new_archive.guid = data.guid;
 
     $('.links-remaining').text(data.links_remaining);
-    if(data.links_remaining < 1) 
+    if(data.links_remaining < 1)    
     	$('#linker input, #linker button').attr('disabled', 'disabled').blur();
 
     // Get our spinner going now that we're drawing it

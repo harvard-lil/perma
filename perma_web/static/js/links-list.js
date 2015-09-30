@@ -353,7 +353,6 @@ $(function() {
                 check_while_dragging: false,
                 drag_target: '.link-row',
                 drag_finish: function (data) {
-                    console.log(data);
                 }
             },
             types: {
