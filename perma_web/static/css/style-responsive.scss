@@ -932,7 +932,7 @@ a.perma, p a.perma {
 	}
 	*/
 	@include respond-tablet {
-		padding: 6px 6px 6px 4px;
+		padding: 6px;
 		font-size: 14px;
 		&:before {
 			width: 30px;
@@ -1024,6 +1024,20 @@ p.body { @extend p.body-text; }
 
 .nobreak {
 	white-space: nowrap;
+}
+
+.no-wide {
+	margin-left: auto;
+	margin-right: auto;
+	@include respond-tablet {
+		max-width: $width-tablet;
+	}
+	@include respond-desktop {
+		max-width: $width-desktop;
+	}
+	@include respond-wide {
+		max-width: $width-wide;
+	}
 }
 
 .label-verbose, .verbose, .discretionary {
@@ -1196,7 +1210,7 @@ p.body { @extend p.body-text; }
 			padding-top: $grid;
 		}
 	    @include respond-tablet {
-			padding-bottom: $grid * 4;
+			padding-bottom: 0;
 			padding-top: 0;
 			.create-title {
 				padding-top: $grid * 5;
@@ -1205,8 +1219,22 @@ p.body { @extend p.body-text; }
 	}
 }
 
+#create-link-container {
+	padding-left: $double;
+	padding-right: $double; 
+}
+
+.create-private-link {
+    @include respond-tablet {
+	    padding-bottom: $grid * 3;
+    }
+}
+
 #main._create {
 	padding-bottom: 0;
+    @include respond-tablet {
+	    padding-bottom: 200px;
+    }
 }
 
 #linker {
@@ -1456,7 +1484,7 @@ p.body { @extend p.body-text; }
 		    font-weight: 700;
 		    color: white;
 		    background-color: $color-blue;
-		    padding: 2px 8px 1px;
+		    padding: 2px 8px 0;
 		    vertical-align: middle;
 		    bottom: 2px;
 		    margin-left: $half;
@@ -1659,17 +1687,28 @@ p.body { @extend p.body-text; }
     @include opacity(.3);
 }
 
+.create-errors {
+	padding: $double 0;
+	background: white;
+	.no-wide {
+		padding: 0 $double;
+	}
+}
+
+._isPublic {
+	.create-errors {
+		padding: 0;
+	}
+}
 
 .preview-row {
-    margin: 0;
-    margin-top: $double;
+    margin: $double;
     padding: $double 0;
     border-radius: $half;
     background-color: white;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
     border-radius: $half;
     border: 1px solid $color-black;
-    margin-bottom: $double;
     @include respond-tablet {
 	    margin-top: $grid * 4;
 	    padding: $grid * 3 $grid;
@@ -2427,12 +2466,12 @@ button.btn-inline {
 button.btn-search {
 	width: $grid * 6;
     position: absolute;
-    right: 24px;
     display: block;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     top: $double;
-    right: $double;
+    bottom: $double;
+    right: $grid;
     margin: 0;
     @include respond-tablet {
 	    top: $grid * 4;
@@ -3972,7 +4011,9 @@ div.dashboard-blurb {
     #dashboard-tabs {
         margin: 0 0 $grid * 3 0;
         &.settings-tabs a {
-            padding-left: 12px;
+	        @include respond-tablet {
+	            padding-left: 12px;
+	        }
         }
 		@include respond-mobile {
 	        margin: 0 -$double $grid * 3;
@@ -4005,10 +4046,10 @@ div.dashboard-blurb {
                 position: relative;
                 display: block;
                 border: none;
-                border-radius: 2px;
 				background-color: $color-background;
 				font-family: $font-hed-alt;
 				font-weight: 700;
+				border-radius: 0;
 				span {
 					&:after {
 					    content: '';
@@ -4041,15 +4082,16 @@ div.dashboard-blurb {
 					    background-position: -9px * 5 !important;
 					}
 				}
+				@include respond-tablet {
+	                border-radius: 2px;
+				}
             }
             &.active a {
                 background-color: white;
                 color: $color-blue;
-                border: 2px solid transparent;
                 cursor: default;
                 padding-top: 7px;
                 padding-bottom: $grid;
-                padding-left: 10px;
                 span:after {
 	                display: none;
                 }
@@ -4059,7 +4101,7 @@ div.dashboard-blurb {
 				@include respond-tablet {
 					font-size: 16px;
 					font-weight: 400;
-					border-color: $color-blue;
+					border: 2px solid $color-blue;
 				}
             }
             &.dashboard-secondary a {
@@ -4085,11 +4127,6 @@ div.dashboard-blurb {
 
     h3 {
         margin-top: 0;
-    }
-
-    div.tab-content {
-        //overflow: hidden;
-        min-height: 170px;
     }
 }
 
@@ -5000,8 +5037,16 @@ td {
 }
 
 .panel-default {
-	margin-top: $grid * 6;
+	padding-top: $grid * 3;
 	border: none;
+	border-radius: 0;
+	@include respond-tablet {
+		padding-top: $grid * 6;
+	}
+}
+
+._create .panel-default {
+	margin: 0;
 }
 
 .panel-heading {
@@ -5072,6 +5117,25 @@ td {
 .links-box {
     border-left: none;
     position: relative;
+    &.recent-links {
+	    width: 100%;
+	    padding-top: $grid * 3;
+	    a.delete {
+		    margin-right: $grid;
+		    color: $color-orange;
+		    text-decoration: underline;
+		    &:hover, &:focus {
+			    color: $color-error;
+		    }
+		    &:active {
+			    color: $color-black;
+		    }
+	    }
+		@include respond-mobile {
+			padding-left: $double;
+			padding-right: $double;
+		}
+   }
     @include respond-tablet {
 	    width: 100%;
     }

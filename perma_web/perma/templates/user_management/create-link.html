@@ -8,102 +8,106 @@
 {% block content %}
 	<!-- regular link creation -->
 	{% if not selected_org.default_to_private %}
-	<div id="create-link-container">
-    <h1 class="create-title">Create a new <span class="nobreak">Perma Link</span></h1>
-	<p class="create-lede">Enter any URL to preserve it forever.</p>
-    <form 	class="form-priority" 
-    		id="linker" 
-    		action="{% url 'api_dispatch_list' resource_name='archives' api_name='v1' %}" 
-    		method="post">
-		<fieldset class="form-priority-fieldset">
-	        <input 	id="rawUrl" 
-	        		name="url" 
-	        		class="text-input select-on-click form-priority-input" 
-	        		type="text" 
-	        		{% if request.user.has_limit and links_remaining < 1 %}
-	        		disabled="disabled"
-	        		{% elif not selected_org and links_remaining < 1 %}
-	        		disabled="disabled"
-	        		{% else %} 
-	        		placeholder="Paste your URL here." 
-	        		data-placement="bottom" 
-	        		data-content="To save a link, enter its URL and click the <strong>Create Perma Link</strong> button. To see the links you've saved, click <strong>Library</strong> in the menu to the left." 
-	        		data-original-title="Start building your library" 
-	        		data-html="true" 
-	        		data-trigger="manual"
-	        		{% endif %} />
-	        <button class="btn btn-large btn-info _active-when-valid" id="addlink" type="submit" {% if request.user.has_limit and links_remaining < 1 %}disabled="disabled"{% endif %}{% if not selected_org and links_remaining < 1 %}disabled="disabled"{% endif %}>Create Perma Link</button>
-	        {% if request.user.has_limit %}
-			<p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account. <a href="{% url 'sign_up' %}">Learn more about accounts</a>.</p>
-			{% else %}
-			<div id="organization_select_form">
-				<span class="label-affil">This Perma Link will be affiliated with</span>
-				<div class="dropdown dropdown-affil">
-	  				<button class="dropdown-toggle selector-trigger selector-affil needsclick" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-		    			Dropdown
-		    			<span class="caret"></span>
-	  				</button>
-	  				<ul class="dropdown-menu selector-menu" aria-labelledby="dropdownMenu1" id="organization_select"></ul>
+	<div id="create-link-container" class="no-wide">
+	    <h1 class="create-title">Create a new <span class="nobreak">Perma Link</span></h1>
+		<p class="create-lede">Enter any URL to preserve it forever.</p>
+	    <form 	class="form-priority" 
+	    		id="linker" 
+	    		action="{% url 'api_dispatch_list' resource_name='archives' api_name='v1' %}" 
+	    		method="post">
+			<fieldset class="form-priority-fieldset">
+		        <input 	id="rawUrl" 
+		        		name="url" 
+		        		class="text-input select-on-click form-priority-input" 
+		        		type="text" 
+		        		{% if request.user.has_limit and links_remaining < 1 %}
+		        		disabled="disabled"
+		        		{% elif not selected_org and links_remaining < 1 %}
+		        		disabled="disabled"
+		        		{% else %} 
+		        		placeholder="Paste your URL here." 
+		        		data-placement="bottom" 
+		        		data-content="To save a link, enter its URL and click the <strong>Create Perma Link</strong> button. To see the links you've saved, click <strong>Library</strong> in the menu to the left." 
+		        		data-original-title="Start building your library" 
+		        		data-html="true" 
+		        		data-trigger="manual"
+		        		{% endif %} />
+		        <button class="btn btn-large btn-info _active-when-valid" id="addlink" type="submit" {% if request.user.has_limit and links_remaining < 1 %}disabled="disabled"{% endif %}{% if not selected_org and links_remaining < 1 %}disabled="disabled"{% endif %}>Create Perma Link</button>
+		        {% if request.user.has_limit %}
+				<p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account. <a href="{% url 'sign_up' %}">Learn more about accounts</a>.</p>
+				{% else %}
+				<div id="organization_select_form">
+					<span class="label-affil">This Perma Link will be affiliated with</span>
+					<div class="dropdown dropdown-affil">
+		  				<button class="dropdown-toggle selector-trigger selector-affil needsclick" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+			    			Dropdown
+			    			<span class="caret"></span>
+		  				</button>
+		  				<ul class="dropdown-menu selector-menu" aria-labelledby="dropdownMenu1" id="organization_select"></ul>
+					</div>
 				</div>
-			</div>
-			{% endif %}
-		</fieldset>
-    </form><!--/#linker-->
+				{% endif %}
+			</fieldset>
+	    </form><!--/#linker-->
 	</div>
 	{% else %}
 	<!-- private link creation -->
-	<div id="create-link-container" class="create-private-link">
-    <h1 class="create-title">Create a Private Perma Link</h1>
-	<p class="create-lede">Private Perma Links are visible only to your Archiving Organization.</p>
-    <form 	class="form-priority _isPrivate" 
-    		id="linker" 
-    		action="{% url 'api_dispatch_list' resource_name='archives' api_name='v1' %}" 
-    		method="post">
-		<fieldset class="form-priority-fieldset">
-	        <input 	id="rawUrl" 
-	        		name="url" 
-	        		class="text-input select-on-click form-priority-input" 
-	        		type="text" 
-	        		{% if request.user.has_limit and links_remaining < 1 %}
-	        		disabled="disabled"
-	        		{% else %} 
-	        		placeholder="Paste your URL here." 
-	        		data-placement="bottom" 
-	        		data-content="To save a link, enter its URL and click the <strong>Create Perma Link</strong> button. To see the links you've saved, click <strong>Library</strong> in the menu to the left." 
-	        		data-original-title="Start building your library" 
-	        		data-html="true" 
-	        		data-trigger="manual"
-	        		{% endif %} />
-	        <button class="btn btn-large btn-info _active-when-valid" id="addlink" type="submit">Create Private Perma Link</button>
-			<div id="organization_select_form">
-				<span class="label-affil">This Perma Link with be affiliated with</span>
-				<div class="dropdown dropdown-affil">
-	  				<button class="dropdown-toggle selector-trigger selector-affil needsclick" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-		    			Dropdown
-		    			<span class="caret"></span>
-	  				</button>
-	  				<ul class="dropdown-menu selector-menu" aria-labelledby="dropdownMenu1" id="organization_select"></ul>
+	<div id="create-link-container" class="create-private-link no-wide">
+	    <h1 class="create-title">Create a Private Perma Link</h1>
+		<p class="create-lede">Private Perma Links are visible only to your Archiving Organization.</p>
+	    <form 	class="form-priority _isPrivate" 
+	    		id="linker" 
+	    		action="{% url 'api_dispatch_list' resource_name='archives' api_name='v1' %}" 
+	    		method="post">
+			<fieldset class="form-priority-fieldset">
+		        <input 	id="rawUrl" 
+		        		name="url" 
+		        		class="text-input select-on-click form-priority-input" 
+		        		type="text" 
+		        		{% if request.user.has_limit and links_remaining < 1 %}
+		        		disabled="disabled"
+		        		{% else %} 
+		        		placeholder="Paste your URL here." 
+		        		data-placement="bottom" 
+		        		data-content="To save a link, enter its URL and click the <strong>Create Perma Link</strong> button. To see the links you've saved, click <strong>Library</strong> in the menu to the left." 
+		        		data-original-title="Start building your library" 
+		        		data-html="true" 
+		        		data-trigger="manual"
+		        		{% endif %} />
+		        <button class="btn btn-large btn-info _active-when-valid" id="addlink" type="submit">Create Private Perma Link</button>
+				<div id="organization_select_form">
+					<span class="label-affil">This Perma Link with be affiliated with</span>
+					<div class="dropdown dropdown-affil">
+		  				<button class="dropdown-toggle selector-trigger selector-affil needsclick" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+			    			Dropdown
+			    			<span class="caret"></span>
+		  				</button>
+		  				<ul class="dropdown-menu selector-menu" aria-labelledby="dropdownMenu1" id="organization_select"></ul>
+					</div>
 				</div>
-			</div>
-		</fieldset>
-    </form><!--/#linker-->
+			</fieldset>
+	    </form><!--/#linker-->
 	</div>
 	{% endif %}
 
 
 <!-- our container for error messages -->
-<div class="row row-no-bleed preview-row hide">
-    <div class="col-sm-6">
-        <div id="preview-container"></div>
-    </div>
-    <div id="steps-container" class="col-sm-6"></div>
+<div class="create-errors">
+	<div class="no-wide">
+		<div class="row row-no-bleed preview-row hide">
+		    <div class="col-sm-6">
+		        <div id="preview-container"></div>
+		    </div>
+		    <div id="steps-container" class="col-sm-6"></div>
+		</div>
+	</div>
 </div>
 <!-- / our container for error messages -->
 
 
 <!-- recently created links -->
 <div class="row panel panel-default">
-    <div class="col-sm-12 links-box">
+    <div class="col-sm-12 links-box recent-links no-wide">
     </div>
 </div>
 <!-- / recently created links -->
@@ -243,7 +247,7 @@
 	                </div>
 	            </div>
 	            <div class="col col-sm-4 align-right">
-	                {{#if delete_available}}<a href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}
+	                {{#if delete_available}}<a class="delete z-top" href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}
 	                <a class="perma z-top" href="{{local_url}}" target="_blank">{{local_url}}</a>
 	            </div>
             </div>
@@ -260,6 +264,43 @@
 	            </div>
             </div>
         </div>
+
+        <div class="row link-details row-no-bleed">
+            <div class="col-sm-8">
+
+                <div class="form-group z-top">
+                    <label for="link-title-{{guid}}">Display title</label>
+                    <span class="title-save-status"></span>
+                    <input type="text" class="link-title" name="input" id="link-title-{{guid}}" value="{{title}}">
+                </div>
+
+                <div class="form-group z-top">
+                    <label for="link-notes-{{guid}}">Notes</label>
+                    <span class="notes-save-status"></span>
+                    <textarea id="link-notes-{{guid}}" class="link-notes" rows="6">{{notes}}</textarea>
+	                <span class="muted">
+	                    Notes are visible to users who create or vest a link, but not to visitors.
+	                </span>
+                </div>
+
+                <div class="form-group z-top">
+                   <label for="move-to-folder-{{guid}}">Move to folder</label>
+                    <select id="move-to-folder-{{guid}}" class="move-to-folder form-control"></select>
+                </div>
+
+            </div>
+            <div class="col-sm-4">
+                <div>
+                	<span class="z-top"><strong>Views:</strong> {{view_count}}</span></div>
+                <div><span class="z-top"><strong>Created by:</strong> {{created_by.full_name}}</span></div>
+                {{#if vested}}
+                    <div><span class="z-top"><strong>Vested by:</strong> {{vested_by_editor.full_name}}</span></div>
+                {{/if}}
+            </div>
+        </div>
+
+        <a href="#" class="link-expand z-bottom">Show Record Details</a>
+
     </div>
 {{/each}}
 

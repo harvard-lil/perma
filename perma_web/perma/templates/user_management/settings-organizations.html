@@ -11,7 +11,7 @@
         {% endif %}
 		<div class="org-settings">
             {% with request.user.organizations as organization %}
-                <h4 class="body-ch">Your sponsor organization(s)</h4>
+                <h4 class="body-bh">Your sponsor organization(s)</h4>
                     {% for vo in organization.all %}
                     {% with vo.registrar as registrar %}
                     	<div class="settings-block">
@@ -23,13 +23,13 @@
                             	<span class="sponsor-email">{{registrar.email}}</span>
                     {% endwith %}
                     	</div>
-                <h4 class="body-ch">Your vesting organization</h4>
+                <h4 class="body-bh">Your vesting organization</h4>
                     	<div class="settings-block">
                             <p>{{ vo }} <a href="{% url 'user_management_manage_single_organization' vo.id %}" class="action edit-org-link">Edit organization</a></p>
                             <a href="{% url 'user_management_organization_user_leave_organization' vo.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Leave</a> 
                             
                     	</div>
-                <h4 class="body-ch">Organizational privacy settings</h4>
+                <h4 class="body-bh">Organizational privacy settings</h4>
                     	<div class="settings-block">
 	              			{% if vo.default_to_private %}
 		              			<p>Links are <strong>Private</strong> by default</p>
