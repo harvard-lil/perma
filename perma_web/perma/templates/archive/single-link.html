@@ -39,7 +39,7 @@
  {% endcomment %}
 
 
-    <header>
+    <header{% if link.is_private %} class="_isPrivate"{% endif %}>
         {% if request.user.is_authenticated %}
 			<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
 				<span class="icon-bar"></span>
@@ -56,7 +56,7 @@
             </div>
             <div class="col col-sm-6 _main {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
             	<div class="content">
-	                <p class="title">This page is a <span class="logo">Perma.cc</span> record</p>
+	                <p class="title"><span class="verbose">This is a </span>{% if link.is_private %}Private {% endif %}<span class="logo">Perma.cc</span> record</p>
 	                <p class="creation"><span class="cat">Created</span> {{ link.creation_timestamp|local_datetime:"F j, Y" }}
 	
 	                    {% if serve_type != 'image' %}

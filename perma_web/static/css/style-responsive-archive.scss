@@ -29,6 +29,13 @@ body, html {
 
 // iframe start
 
+.verbose {
+	display: none;
+	@include respond-tablet {
+		display: inline;
+	}
+}
+
 iframe {
     border-width: 0px 0px;
 	border-style: solid;
@@ -54,6 +61,46 @@ header {
 	border-bottom: $grid solid #e5e5e5;
     box-sizing: content-box;	
 	@include respond-desktop {
+	}
+	&._isPrivate {
+		background-color: $color-black;
+		.title {
+			margin-left: 0;
+			@include respond-tablet { 
+				font-size: 22px;
+			}
+			@include respond-wide { 
+				font-size: 24px;
+			}
+		}
+		.title:before {
+		    content: '';
+		    display: inline-block;
+		    position: relative;
+		    height: 16px;
+		    width: 18px;
+		    background-image: url('../img/ui/perma-ui-private.png');
+		    background-repeat: no-repeat;
+		    background-size: cover;
+		    margin-right: 4px;
+		    bottom: -2px;
+		}
+		.navbar-toggle .icon-bar {
+			background-color: $color-black;
+		}
+		.ui-tray {
+			border-color: $color-black;
+		}
+		@media (min-width: 400px) {
+			.title:before {
+			    bottom: -1px;
+			}
+		}
+		@include respond-tablet {
+			.title:before {
+			    bottom: 0;
+			}
+		}
 	}
 }
 
@@ -433,7 +480,7 @@ a.about {
 
 
 .title {
-	font-size: 15px;
+	font-size: 17px;
 	font-weight: 700;
 	line-height: 1.1;
 	margin-bottom: 0;
