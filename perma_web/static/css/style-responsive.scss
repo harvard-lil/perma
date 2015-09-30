@@ -1371,7 +1371,7 @@ p.body { @extend p.body-text; }
 			    color: $color-active;
 		    }
 	    }
-	  	#links-remaining {
+	  	.links-remaining {
 		  	display: inline-block;
 		    padding: 1px 12px 0;
 		    background-color: $color-blue;
@@ -5044,7 +5044,7 @@ td {
 	border: none;
 	border-radius: 0;
 	@include respond-tablet {
-		padding-top: $grid * 6;
+		padding-top: $grid * 5;
 	}
 }
 

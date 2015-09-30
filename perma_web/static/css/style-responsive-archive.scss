@@ -24,10 +24,17 @@ $color-yellow: #d0a60f;
 }
 
 body, html {
-	overflow: auto;
+	overflow: visible;
 }
 
 // iframe start
+
+.verbose {
+	display: none;
+	@include respond-tablet {
+		display: inline;
+	}
+}
 
 iframe {
     border-width: 0px 0px;
@@ -55,11 +62,92 @@ header {
     box-sizing: content-box;	
 	@include respond-desktop {
 	}
+	&._isPrivate {
+		background-color: $color-black;
+		.title {
+			margin-left: 0;
+			@include respond-tablet { 
+				font-size: 22px;
+			}
+			@include respond-wide { 
+				font-size: 24px;
+			}
+		}
+		.title:before {
+		    content: '';
+		    display: inline-block;
+		    position: relative;
+		    height: 16px;
+		    width: 18px;
+		    background-image: url('../img/ui/perma-ui-private.png');
+		    background-repeat: no-repeat;
+		    background-size: cover;
+		    margin-right: 4px;
+		    bottom: -2px;
+		}
+		.navbar-toggle .icon-bar {
+			background-color: $color-black;
+		}
+		.ui-tray {
+			border-color: $color-black;
+		}
+		@media (min-width: 400px) {
+			.title:before {
+			    bottom: -1px;
+			}
+		}
+		@include respond-tablet {
+			.title:before {
+			    bottom: 0;
+			}
+		}
+	}
 }
 
 .row {
 	margin: 0;
 }
+
+.record-message {
+	text-align: center;
+    margin: 64px 0 24px;
+    font-family: $font-hed-alt;
+    padding: 0 $double;
+    @include respond-tablet {
+	    margin: 128px 0 48px;
+    }
+}
+
+.record-message-primary {
+	font-size: 24px;
+    font-weight: 300;
+    line-height: 1.2;
+    @include respond-tablet {
+		font-size: 36px;
+    }
+}
+
+.record-message-secondary {
+	max-width: 35em;
+    margin: 0 auto;
+    font-size: 14px;
+    line-height: 1.5;
+    color: $color-trans-gray;
+    @include respond-tablet {
+	    font-size: 16px;
+    }
+    a {
+	    text-decoration: underline;
+	    &:hover, &:focus {
+		    color: $color-hover;
+	    }
+	    &:active {
+		    color: $color-active;
+	    }
+    }
+}
+
+
 
 .banner-status {
 	padding: 12px $grid * 2;
@@ -433,7 +521,7 @@ a.about {
 
 
 .title {
-	font-size: 15px;
+	font-size: 17px;
 	font-weight: 700;
 	line-height: 1.1;
 	margin-bottom: 0;
