@@ -44,7 +44,7 @@ def test(apps="perma api functional_tests"):
 
 
 @task
-def test_sauce(server_url=None):
+def test_sauce(server_url=None, test_flags=''):
     """
         Run functional_tests through Sauce rather than local phantomjs.
     """
@@ -58,7 +58,7 @@ def test_sauce(server_url=None):
         print "\n\nLaunching local live server. Be sure Sauce tunnel is running! (fab dev.sauce_tunnel)\n\n"
 
     with shell_env(**shell_envs):
-        test("functional_tests")
+        test("functional_tests "+test_flags)
 
 
 @task

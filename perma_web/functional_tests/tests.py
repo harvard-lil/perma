@@ -135,12 +135,12 @@ class FunctionalTest(BaseTestCase):
         if REMOTE_SERVER_URL:
             self.server_url = REMOTE_SERVER_URL
         else:
-            self.server_url = self.live_server_url
-
             # By default, the test server only mounts the django app,
             # which will leave out the warc app, so mount them both here
             self.server_thread.httpd.set_app(self.server_thread.static_handler(wsgi_app))
             self.server_thread.host = LOCAL_SERVER_DOMAIN
+
+            self.server_url = self.live_server_url
 
         if USE_SAUCE:
             self.setUpSauce()
@@ -291,11 +291,9 @@ class FunctionalTest(BaseTestCase):
         type_to_element(get_id('rawUrl'), url_to_capture)  # type url
         get_id('addlink').click() # submit
 
-        # When we've successfully created an archive, we'll get forwarded
-        while create_page_url == fix_host(self.driver.current_url):
-            time.sleep(1)
-
         info("Viewing playback.")
+        # wait 60 seconds to be forwarded to archive page
+        repeat_while_exception(lambda: get_element_with_text('See the Screenshot View', 'a'), NoSuchElementException, 60)
         # Get the guid of the created archive
         display_guid = fix_host(self.driver.current_url)[-9:]
         # Grab the WARC url for later.
@@ -329,7 +327,7 @@ class FunctionalTest(BaseTestCase):
 
         info("Checking timemap.")
         self.driver.get(self.server_url + '/warc/pywb/*/' + url_to_capture)
-        self.assertIsNotNone(re.search(r'<b>[1-9]\d*</b> captures', self.driver.page_source))  # Make sure that `<b>foo</b> captures` shows a positive number of captures
+        self.assertIsNotNone(re.search(r'<b>[1-9]\d*</b> captures?', self.driver.page_source))  # Make sure that `<b>foo</b> captures` shows a positive number of captures
         assert_text_displayed('http://' + url_to_capture, 'b')
 
         # Displays playback by timestamp

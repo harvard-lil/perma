@@ -146,8 +146,6 @@ function linkIt(data){
 
     // Start our spinner and disable our input field
     toggleCreateAvailable();
-
-    new_archive.url = 'http://' + settings.HOST  + '/' + data.guid;
     new_archive.guid = data.guid;
 
     refreshIntervalIds.push(setInterval(check_status, 2000));
@@ -247,9 +245,7 @@ function uploadIt(data) {
     $('#archive-upload').modal('hide');
 
     var upload_image_url = settings.STATIC_URL + '/img/upload-preview.jpg';
-    new_archive.url = 'http://' + settings.HOST  + '/' + data.guid;
-
-    window.location.href = new_archive.url;
+    window.location.href = '/' + data.guid;
 }
 
 function upload_form() {
@@ -304,7 +300,7 @@ function check_status() {
             // If we have at least one success, forward to the new archive
             if(capturesSucceeded){
 
-                window.location.href = new_archive.url;
+                window.location.href = "/" + new_archive.guid;
 
             // Else show failure message/upload form.
             } else {
@@ -339,8 +335,6 @@ function appendURL(elem) {
 }
 
 /* URL appending - end */
-
-
 
 /* Catch incoming URLs as param values. Both from the bookmarklet or from the create page */
 
