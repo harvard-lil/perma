@@ -932,7 +932,7 @@ a.perma, p a.perma {
 	}
 	*/
 	@include respond-tablet {
-		padding: 6px 6px 6px 4px;
+		padding: 6px;
 		font-size: 14px;
 		&:before {
 			width: 30px;
@@ -4091,8 +4091,17 @@ div.dashboard-blurb {
     }
 
     div.tab-content {
-        //overflow: hidden;
-        min-height: 170px;
+		margin-left: auto;
+		margin-right: auto;
+		@include respond-tablet {
+			max-width: $width-tablet;
+		}
+		@include respond-desktop {
+			max-width: $width-desktop;
+		}
+		@include respond-wide {
+			max-width: $width-wide;
+		}
     }
 }
 
