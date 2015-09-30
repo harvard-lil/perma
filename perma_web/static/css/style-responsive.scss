@@ -1687,17 +1687,18 @@ p.body { @extend p.body-text; }
     @include opacity(.3);
 }
 
+.create-errors {
+	padding: 0 $double;
+}
 
 .preview-row {
-    margin: 0;
-    margin-top: $double;
+    margin: $double;
     padding: $double 0;
     border-radius: $half;
     background-color: white;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
     border-radius: $half;
     border: 1px solid $color-black;
-    margin-bottom: $double;
     @include respond-tablet {
 	    margin-top: $grid * 4;
 	    padding: $grid * 3 $grid;
