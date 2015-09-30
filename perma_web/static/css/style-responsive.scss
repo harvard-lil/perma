@@ -3839,18 +3839,21 @@ footer {
 		    display: inline-block;
 	    }
 	    #footer-nav {
-		    float: left;
+		    float: left; 
+		    a {
+			    margin-right: $double;
+		    }
 	    }
 	    #boilerplate {
 		    float: right;
 		    font-weight: 700;
 		    a {
 			    margin-left: $double;
+			    margin-right: 0;
 		    }
 	    }
 	    #footer-nav, #boilerplate {
 		    a {
-			    margin-right: $double;
 			    display: inline;
 			    width: auto;
 			    padding-bottom: $half;
@@ -5163,6 +5166,20 @@ td {
         padding: 0;
         overflow: visible;
     }
+
+	.perma-link {
+		@include respond-mobile {
+			display: flex;
+			flex-direction: row;
+			a.perma {
+				order: -1;
+			}
+			a.delete {
+				margin-left: $grid;
+				margin-top: 2px;
+			}
+		}
+	}
 
     .link-container {
         padding: $double 0;
