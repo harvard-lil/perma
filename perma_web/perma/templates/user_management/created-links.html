@@ -19,7 +19,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="row no-wide">
     <div class="col-sm-12">
 		<h1 class="page-title">Your Perma Links</h1>
 	    {% if messages %}
@@ -30,13 +30,13 @@
     </div>
 </div>
 
-<div class="row">
+<div class="row no-wide">
     <div class="col-sm-12">
         {% include "user_management/includes/search_form.html" with search_placeholder="Search Your Perma Links" %}
     </div>
 </div>
 
-<div class="row panel panel-default">
+<div class="row panel panel-default no-wide">
     <div class="col-sm-3 folders-box">
         <div class="panel-heading">
             Folders

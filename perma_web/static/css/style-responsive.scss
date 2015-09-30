@@ -1026,6 +1026,20 @@ p.body { @extend p.body-text; }
 	white-space: nowrap;
 }
 
+.no-wide {
+	margin-left: auto;
+	margin-right: auto;
+	@include respond-tablet {
+		max-width: $width-tablet;
+	}
+	@include respond-desktop {
+		max-width: $width-desktop;
+	}
+	@include respond-wide {
+		max-width: $width-wide;
+	}
+}
+
 .label-verbose, .verbose, .discretionary {
     display: inline-block;
     width: 0;
@@ -4088,20 +4102,6 @@ div.dashboard-blurb {
 
     h3 {
         margin-top: 0;
-    }
-
-    div.tab-content {
-		margin-left: auto;
-		margin-right: auto;
-		@include respond-tablet {
-			max-width: $width-tablet;
-		}
-		@include respond-desktop {
-			max-width: $width-desktop;
-		}
-		@include respond-wide {
-			max-width: $width-wide;
-		}
     }
 }
 
