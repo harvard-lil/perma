@@ -5099,6 +5099,25 @@ td {
 .links-box {
     border-left: none;
     position: relative;
+    &.recent-links {
+	    width: 100%;
+	    padding-top: $grid * 3;
+	    a.delete {
+		    margin-right: $grid;
+		    color: $color-orange;
+		    text-decoration: underline;
+		    &:hover, &:focus {
+			    color: $color-error;
+		    }
+		    &:active {
+			    color: $color-black;
+		    }
+	    }
+		@include respond-mobile {
+			padding-left: $double;
+			padding-right: $double;
+		}
+   }
     @include respond-tablet {
 	    width: 100%;
     }

@@ -103,7 +103,7 @@
 
 <!-- recently created links -->
 <div class="row panel panel-default">
-    <div class="col-sm-12 links-box no-wide">
+    <div class="col-sm-12 links-box recent-links no-wide">
     </div>
 </div>
 <!-- / recently created links -->
@@ -239,7 +239,7 @@
 	                </div>
 	            </div>
 	            <div class="col col-sm-4 align-right">
-	                {{#if delete_available}}<a href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}<a class="perma z-top" href="{{local_url}}" target="_blank">{{local_url}}</a>
+	                {{#if delete_available}}<a class="delete" href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}<a class="perma z-top" href="{{local_url}}" target="_blank">{{local_url}}</a>
 	            </div>
             </div>
             <div class="row record-secondary">
@@ -255,6 +255,43 @@
 	            </div>
             </div>
         </div>
+
+        <div class="row link-details row-no-bleed">
+            <div class="col-sm-8">
+
+                <div class="form-group z-top">
+                    <label for="link-title-{{guid}}">Display title</label>
+                    <span class="title-save-status"></span>
+                    <input type="text" class="link-title" name="input" id="link-title-{{guid}}" value="{{title}}">
+                </div>
+
+                <div class="form-group z-top">
+                    <label for="link-notes-{{guid}}">Notes</label>
+                    <span class="notes-save-status"></span>
+                    <textarea id="link-notes-{{guid}}" class="link-notes" rows="6">{{notes}}</textarea>
+	                <span class="muted">
+	                    Notes are visible to users who create or vest a link, but not to visitors.
+	                </span>
+                </div>
+
+                <div class="form-group z-top">
+                   <label for="move-to-folder-{{guid}}">Move to folder</label>
+                    <select id="move-to-folder-{{guid}}" class="move-to-folder form-control"></select>
+                </div>
+
+            </div>
+            <div class="col-sm-4">
+                <div>
+                	<span class="z-top"><strong>Views:</strong> {{view_count}}</span></div>
+                <div><span class="z-top"><strong>Created by:</strong> {{created_by.full_name}}</span></div>
+                {{#if vested}}
+                    <div><span class="z-top"><strong>Vested by:</strong> {{vested_by_editor.full_name}}</span></div>
+                {{/if}}
+            </div>
+        </div>
+
+        <a href="#" class="link-expand z-bottom">Show Record Details</a>
+
     </div>
 {{/each}}
 
