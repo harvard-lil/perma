@@ -64,6 +64,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             'notes',
             'created_by',
             'dark_archived_by',
+            'archive_timestamp',
             'vested_by_editor',
         ]
 
