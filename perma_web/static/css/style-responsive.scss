@@ -1456,7 +1456,7 @@ p.body { @extend p.body-text; }
 		    font-weight: 700;
 		    color: white;
 		    background-color: $color-blue;
-		    padding: 2px 8px 1px;
+		    padding: 2px 8px 0;
 		    vertical-align: middle;
 		    bottom: 2px;
 		    margin-left: $half;
