@@ -100,15 +100,15 @@
 		                                {% endif %}
 		
 		                                <li><a href="{% url 'user_management_manage_registrar_user' %}">Registrar users</a></li>
-		                                <li><a href="{% url 'user_management_manage_organization' %}">Vesting organizations</a></li>
-		                                <li><a href="{% url 'user_management_manage_organization_user' %}">Vesting users</a></li>
+		                                <li><a href="{% url 'user_management_manage_organization' %}">Organizations</a></li>
+		                                <li><a href="{% url 'user_management_manage_organization_user' %}">Organization users</a></li>
 		
 		                                {% if request.user.is_staff %}
 		                                    <li><a href="{% url 'user_management_manage_user' %}">Users</a></li>
 		                                {% endif %}
 		                            {% endif %}
 		                            
-		                            <!-- Vesting users -->
+		                            <!-- Org users -->
 		                            {% if request.user.is_organization_member %}
 		                            <li><a href="{% url 'user_management_manage_organization_user' %}">Manage users</a></li>
 		                            {% endif %}
@@ -178,10 +178,6 @@
             <div class="tray-actions">
                 {% if request.user.is_authenticated %}
 
-                    {% if request.user.can_vest and not link.vested %}
-                        <a class="btn btn-ui-small btn-dashboard vest" href="{% url 'vest_link' link.guid %}">Vest<span class="label-verbose"> this record</span></a>
-                    {% endif %}
-
                     {% if not link|is_darchive %}
                         {% if request.user.is_staff %}
                             <a class="btn btn-ui-small btn-dashboard darchive" href="{% url 'dark_archive_link' link.guid %}"><span class="label-verbose">Move to </span>Dark archive</a>
@@ -236,7 +232,6 @@
 
 <!-- Modals -->
 
-<!-- vest -->
 <!-- delete -->
 <!-- darchive -->
 <!-- flag -->
