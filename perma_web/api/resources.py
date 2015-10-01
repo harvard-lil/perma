@@ -344,6 +344,7 @@ class AuthenticatedLinkResource(BaseLinkResource):
     # folders = fields.ToManyField(FolderResource, 'folders', readonly=True, null=True)
     archive_timestamp = fields.DateTimeField(attribute='archive_timestamp', readonly=True)
     is_private = fields.BooleanField(attribute='is_private')
+    capture_progress_display = fields.CharField(attribute='capture_progress_display', blank=True)
 
     class Meta(BaseLinkResource.Meta):
         authorization = AuthenticatedLinkAuthorization()
@@ -431,24 +432,25 @@ class LinkResource(AuthenticatedLinkResource):
         # Make sure a limited user has links left to create
         links_remaining = bundle.request.user.get_links_remaining()
         if (bundle.request.user.has_limit() or not bundle.data.get('organization')) and links_remaining < 1:
-        	raise ImmediateHttpResponse(response=self.error_response(bundle.request, {
+            raise ImmediateHttpResponse(response=self.error_response(bundle.request, {
                 'archives': {'__all__': "You've already reached your limit."},
                 'reason': "You've already reached your limit.",
             }))
             
         # Return the number remaining links after this one is created
         if bundle.request.user.has_limit() or not bundle.data.get('organization'):
-        	bundle.data['links_remaining'] = links_remaining - 1
+            bundle.data['links_remaining'] = links_remaining - 1
         else:
-        	bundle.data['links_remaining'] = 'unlimited'
+            bundle.data['links_remaining'] = 'unlimited'
         
         # Runs validation (exception thrown if invalid), sets properties and saves the object
+        create_args = {'created_by': bundle.request.user, 'capture_progress_display': "Preparing to capture"}
         if bundle.data.get('organization'):
-        	is_private = Organization.objects.get(pk=bundle.data['organization']).default_to_private
-        	bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user, organization_id=bundle.data['organization'], is_private=is_private)
-        	bundle.obj.move_to_folder_for_user(bundle.data['folder'], bundle.request.user)
+            is_private = Organization.objects.get(pk=bundle.data['organization']).default_to_private
+            bundle = super(LinkResource, self).obj_create(bundle, organization_id=bundle.data['organization'], is_private=is_private, **create_args)
+            bundle.obj.move_to_folder_for_user(bundle.data['folder'], bundle.request.user)
         else:
-        	bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user)
+            bundle = super(LinkResource, self).obj_create(bundle, **create_args)
         link = bundle.obj
 
         uploaded_file = bundle.data.get('file')

@@ -131,16 +131,13 @@ function linkIt(data){
 
 function toggleCreateAvailable() {
     // Get our spinner going and display a "we're working" message
-
-    if ($('#addlink').hasClass('_isWorking')) {
-        $('#addlink').html('Create Perma Link').removeAttr('disabled').removeClass('_isWorking');
-        var target = document.getElementById('addlink');
-        $(target).spin(false);
+    $addlink = $('#addlink');
+    if ($addlink.hasClass('_isWorking')) {
+        $addlink.html('Create Perma Link').removeAttr('disabled').removeClass('_isWorking');
         $('#rawUrl').removeAttr('disabled');
     } else {
-    	$('#addlink').html('Creating your Perma Link').attr('disabled', 'disabled').addClass('_isWorking');
-    	var target = document.getElementById('addlink');
-    	var spinner = new Spinner(opts).spin(target);
+    	$addlink.html('<span id="captureStatus">Creating your Perma Link</span>').attr('disabled', 'disabled').addClass('_isWorking');
+    	new Spinner(opts).spin($addlink[0]);
         $('#rawUrl').attr('disabled', 'disabled');
     }
 }
@@ -175,9 +172,7 @@ function linkNot(jqXHR){
 
 
     // Reset our button and remove our spinner
-    $('#addlink').html('Create Perma Link').removeAttr('disabled').removeClass('_isWorking');
-
-
+    toggleCreateAvailable();
 }
 
 /* Handle the the main action (enter url, hit the button) button - start */
@@ -291,6 +286,9 @@ function check_status() {
                 // Toggle our create button
                 toggleCreateAvailable();
             }
+        }else{
+            if(data.capture_progress_display)
+                $('#captureStatus').text(data.capture_progress_display || "Creating your Perma Link");
         }
     });
 }
