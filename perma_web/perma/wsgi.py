@@ -28,7 +28,7 @@ from whitenoise.django import DjangoWhiteNoise
 # subclass WhiteNoise to add missing mime types
 class PermaWhiteNoise(DjangoWhiteNoise):
     def __init__(self, *args, **kwargs):
-        self.EXTRA_MIMETYPES += (('image/svg+xml', '.svg'))
+        self.EXTRA_MIMETYPES += (('image/svg+xml', '.svg'),)
         super(PermaWhiteNoise, self).__init__(*args, **kwargs)
 
 
