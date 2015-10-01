@@ -7,5 +7,3 @@ newrelic==2.54.0.41
 rollbar==0.9.14
 cffi                        # This is a dependency of some of our packages. Heroku will detect it and install a previously-compiled version.
 
-# Overrides django-pipeline with a branch that fixes https://github.com/cyberdelia/django-pipeline/issues/473
--e git://github.com/skirsdeda/django-pipeline.git@fix473#egg=django-pipeline-heroku-fix
