@@ -5140,6 +5140,10 @@ td {
         background-color: #F5F5F5;
     }
 
+    form {
+    	margin-top: 0;
+    }
+
     a.delete {
 	    margin-right: $grid;
 	    color: $color-orange;
@@ -5153,6 +5157,7 @@ td {
     }
 
     .shared-folder-label {
+    	margin-top: $grid * 3;
 	    margin-bottom: $grid * 3;
     }
 
@@ -5229,6 +5234,9 @@ td {
 				color: $color-blue;
 			}
 		}
+		&:first-child {
+		    border-top: none;
+	    }
 
 		.record-secondary {
 			margin-top: $grid;

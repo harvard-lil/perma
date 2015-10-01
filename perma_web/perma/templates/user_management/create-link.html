@@ -111,11 +111,6 @@
 
 
 <!-- Your Perma Links -->
-
-
-
-
-
 <div class="row no-wide">
     <div class="col-sm-12">
 		<h1 class="page-title">Your Perma Links</h1>
@@ -127,11 +122,7 @@
     </div>
 </div>
 
-<div class="row no-wide">
-    <div class="col-sm-12">
-        {% include "user_management/includes/search_form.html" with search_placeholder="Search Your Perma Links" %}
-    </div>
-</div>
+
 
 <div class="row panel panel-default no-wide">
     <div class="col-sm-3 folders-box">
@@ -166,38 +157,16 @@
                     <h3 class="link-header body-ah">Perma Links</h3>
                 </div>
             </div>
-            {% comment %}
-            <th class="linky-abbr-title"><a href="?sort={% if sort == 'submitted_title' %}-{% endif %}submitted_title{% if search_query %}&q={{ search_query }}{% endif %}">Title</a></th>
-            <th class="linky-abbr-date-time"><a href="?sort={% if sort == 'creation_timestamp' %}-{% endif %}creation_timestamp{% if search_query %}&q={{ search_query }}{% endif %}">Created</a></th>
-            <th class="linky-abbr-date-time"><a href="?sort={% if sort == 'vested_timestamp' %}-{% endif %}vested_timestamp{% if search_query %}&q={{ search_query }}{% endif %}">Vested</a></th>
-            {% endcomment %}
         </div>
+        {% include "user_management/includes/search_form.html" with search_placeholder="Search Your Perma Links" %}
         <div class="container link-rows">
+
             <noscript>
                 <iframe src="{% url "folder_contents" folder_id=request.user.root_folder_id %}?iframe=1" name="folder-contents"></iframe>
             </noscript>
         </div>
     </div>
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <!-- / Your Perma Links -->
 
 
