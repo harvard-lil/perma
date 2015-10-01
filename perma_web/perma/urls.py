@@ -145,11 +145,5 @@ urlpatterns = patterns('perma.views',
 
 )
 
-# debug-only serving of static and media assets
-if settings.DEBUG:
-    from django.contrib.staticfiles.views import serve as static_view
-    urlpatterns += static(settings.STATIC_URL, static_view) + \
-                   static(getattr(settings, 'DEBUG_MEDIA_URL', settings.MEDIA_URL), debug_media_view, document_root=settings.MEDIA_ROOT)
-
 handler404 = 'perma.views.common.server_error_404'
 handler500 = 'perma.views.common.server_error_500'

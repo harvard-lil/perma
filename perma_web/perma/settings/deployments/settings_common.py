@@ -67,10 +67,10 @@ STATICFILES_FINDERS = (         # how to look for static files
 )
 
 # Django Pipeline config
-STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
+STATICFILES_STORAGE = 'perma.storage_backends.StaticStorage'
 
 # media storage -- default_storage config
-DEFAULT_FILE_STORAGE = 'perma.storage_backends.FileSystemStorage'
+DEFAULT_FILE_STORAGE = 'perma.storage_backends.FileSystemMediaStorage'
 
 # We likely want to do something like this:
 # PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.jsmin.JSMinCompressor'

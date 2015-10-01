@@ -47,8 +47,7 @@ STATICFILES_DIRS = (
     os.path.join(PROJECT_ROOT, 'static'),
 )
 
-DEFAULT_FILE_STORAGE = 'perma.storage_backends.MediaRootS3BotoStorage'
-STATICFILES_STORAGE = 'perma.storage_backends.StaticRootS3BotoStorage'
+DEFAULT_FILE_STORAGE = 'perma.storage_backends.S3MediaStorage'
 
 # message passing
 # settings via https://www.cloudamqp.com/docs/celery.html
