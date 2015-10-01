@@ -62,8 +62,8 @@
                                     {% endif %}
 
                                     <li><a href="{% url 'user_management_manage_registrar_user' %}">Registrar users</a></li>
-                                    <li><a href="{% url 'user_management_manage_organization' %}">Vesting organizations</a></li>
-                                    <li><a href="{% url 'user_management_manage_organization_user' %}">Vesting users</a></li>
+                                    <li><a href="{% url 'user_management_manage_organization' %}">Organizations</a></li>
+                                    <li><a href="{% url 'user_management_manage_organization_user' %}">Organization users</a></li>
 
                                     {% if request.user.is_staff %}
                                         <li><a href="{% url 'user_management_manage_user' %}">Users</a></li>

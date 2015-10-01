@@ -27,7 +27,6 @@ Perma.cc prevents link rot.
 				<li class="reading-toc-chapter"><a href="#why-use-perma">Why use Perma.cc</a></li>
 				<li class="reading-toc-chapter"><a href="#how-perma-works">How Perma.cc works</a></li>
 				<li class="reading-toc-chapter"><a href="#perma-partners">Perma.cc’s Partners</a></li>
-				<li class="reading-toc-chapter"><a href="#stats">Perma.cc’s Stats</a></li>
 			<ul>
 		</div>
 
@@ -103,16 +102,6 @@ Perma.cc prevents link rot.
 	    {% endfor %}
 	</div>
 </div>
-
-<div class="container container-reading" id="stats">
-	<div class="row">
-		<div class="col-sm-8 docs reading-body col-right">
-			<h2>Perma.cc’s Stats</h2>
-			<a href="{% url 'global_stats' %}"><img class="stats-graph" src="{{ STATIC_URL }}img/graph-illus.png" alt="A placeholder graph showing a potential Perma.cc growth curve."/></a><p class="right">We've put together a <a href="{% url 'global_stats' %}">Stats page</a> to begin to visualize activity.</p>
-		</div>
-	</div>
-</div>
-
 {% endblock %}
 
 {% block scripts %}

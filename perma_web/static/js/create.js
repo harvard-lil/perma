@@ -39,6 +39,9 @@ $(function() {
         	};
         }
         
+        // Start our spinner and disable our input field with just a tiny delay
+        window.setTimeout(toggleCreateAvailable(), 150);
+
         $.ajax($this.attr('action'), {
             method: $this.attr('method'),
             contentType: 'application/json',
@@ -121,8 +124,6 @@ function linkIt(data){
     // Clear any error messages out
     $('.preview-row').remove();
 
-    // Start our spinner and disable our input field
-    toggleCreateAvailable();
     new_archive.guid = data.guid;
 
     refreshIntervalIds.push(setInterval(check_status, 2000));
