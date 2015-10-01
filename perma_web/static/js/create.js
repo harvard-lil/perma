@@ -105,29 +105,6 @@ $(function() {
         });        
 
     /* Org affiliation dropdown logic - end */
-
-
-    // Draw our recent links
-    apiRequest("GET", '/archives', {limit: 5})
-        .always(function (data) {
-            data.objects.map(function(obj){
-                $.each(obj.captures, function(i, capture){
-                    if(capture.role == 'favicon' && capture.status == 'success')
-                        obj.favicon_url = capture.playback_url;
-                });
-                obj.local_url = 'http://' + settings.HOST + '/' + obj.guid;
-                obj.creation_timestamp_formatted = new Date(obj.creation_timestamp).format("F j, Y");
-                if (Date.now() < Date.parse(obj.archive_timestamp)) {
-                    obj.delete_available = true;
-                }
-            });
-            $('.links-box').html(templates.created_link_items({objects:data.objects}));
-        });
-
-
-    // Populate email field in feedback form if the user needs to send feedback
-    $('#user_email').val('{{request.user.email}}');
-
 });
 
 /* Everything that needs to happen at page load - end */

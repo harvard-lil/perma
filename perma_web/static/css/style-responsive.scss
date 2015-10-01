@@ -1221,7 +1221,8 @@ p.body { @extend p.body-text; }
 
 #create-link-container {
 	padding-left: $double;
-	padding-right: $double; 
+	padding-right: $double;
+	padding-bottom: $double * 4;
 }
 
 .create-private-link {
@@ -5048,9 +5049,6 @@ td {
 	}
 }
 
-._create .panel-default {
-	margin: 0;
-}
 
 .panel-heading {
 	padding: $grid 0 0;
