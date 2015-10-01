@@ -25,8 +25,15 @@ from warc_server.app import application as warc_application
 from whitenoise.django import DjangoWhiteNoise
 
 
+# subclass WhiteNoise to add missing mime types
+class PermaWhiteNoise(DjangoWhiteNoise):
+    def __init__(self, *args, **kwargs):
+        self.EXTRA_MIMETYPES += (('image/svg+xml', '.svg'))
+        super(PermaWhiteNoise, self).__init__(*args, **kwargs)
+
+
 application = DispatcherMiddleware(
-    DjangoWhiteNoise(get_wsgi_application()),  # Django app wrapped with whitenoise to serve static assets
+    PermaWhiteNoise(get_wsgi_application()),  # Django app wrapped with whitenoise to serve static assets
     {
         '/warc': warc_application,  # pywb for record playback
     }
