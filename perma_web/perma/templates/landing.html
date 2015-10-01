@@ -26,7 +26,7 @@
 					<p class="display">Our solution is called a <strong class="vocab">Perma Link</strong>. <br/>Here’s an example: <a class="perma" href="http://perma.cc/4RH7-999Q" target="_blank">perma.cc/4RH7-999Q</a></p>
 	
 	                {% if request.user.is_authenticated %}
-	                    <p><a href="{% url 'link_browser' %}" class="btn btn-large btn-success">Visit your Dashboard</a></p>
+	                    <p><a href="{% url 'create_link' %}" class="btn btn-large btn-success">Visit your Dashboard</a></p>
 	                {% else %}
 					    <div class="buttons">
 					    	<a href="{% url 'sign_up' %}" class="btn btn-large btn-success _primary">Learn more and sign up</a>
@@ -133,25 +133,6 @@
     <div id="how-it-works">
         <div class="container">
         	<h2 class="text-center mega">How Perma.cc works</h2>
-            <!-- 
-            <div class="row">
-                <div class="col-xs-12">
-                    <img class="img-responsive" src="{{ STATIC_URL }}img/tracks.png" alt="The Perma.cc workflow in the form of railroad tracks. Create. Vest. Archive." />
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-xs-4 title">
-                    <h3><a href="#create" class="mega">Create</a></h3>
-                </div>
-                <div class="col-xs-4 title">
-                    <h3><a href="#vest" class="mega">Vest</a></h3>
-                </div>
-                <div class="col-xs-4 title">
-                    <h3><a href="#archive" class="mega">Archive</a></h3>
-                </div>
-            </div>
-            -->
-
             <div class="row">
                 <div class="col-sm-6 _text">
                     <h4 class="how-point-title" id="create"><span class="num">1 /</span> Create</h4>

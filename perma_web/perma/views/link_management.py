@@ -50,15 +50,6 @@ def create_link_with_org(request, org_id):
 ###### LINK BROWSING ######
 
 @login_required
-def link_browser(request, path):
-    """ Display links created by or vested by user, or attached to user's vesting org. """
-
-    return render(request, 'user_management/created-links.html', {
-        'this_page': 'link_browser',
-    })
-
-
-@login_required
 def folder_contents(request, folder_id):
     # helper vars
     user = request.user
