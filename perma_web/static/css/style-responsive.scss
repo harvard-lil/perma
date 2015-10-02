@@ -2752,6 +2752,9 @@ li.dropdown {
 }
 
 @include respond-mobile {
+	.navbar-create-button {
+		display: none !important;
+	}
 	a.navbar-create {
 		margin: 0;
 		background-color: transparent;
