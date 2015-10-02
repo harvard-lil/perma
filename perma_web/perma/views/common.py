@@ -133,7 +133,7 @@ def single_linky(request, guid):
     if request.user.is_authenticated() and not link.user_deleted:
         # If a record is new (less than a minute old), let's assume
         # that the user just created it and we should show them a new record message
-        new_record = link.creation_timestamp > timezone.now() - timedelta(seconds=60)
+        new_record = link.creation_timestamp > timezone.now() - timedelta(seconds=300)
 
     context = {
         'link': link,
