@@ -3,6 +3,7 @@
 {% block title %} | Add user{% endblock %}
 
 {% block content %}
+<div class="container">
 
 	<h3 class="body-bh">Add {{ user_email }}</h3>
 	{% if not target_user %}
@@ -35,5 +36,5 @@
             <a href="{% url 'user_management_manage_organization_user' %}">Cancel</a>
         </form>
     {% endif %}
-
+</div>
 {% endblock %}

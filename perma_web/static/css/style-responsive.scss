@@ -1225,6 +1225,10 @@ p.body { @extend p.body-text; }
 	padding-bottom: $double * 4;
 }
 
+._isPublic #create-link-container {
+	padding-bottom: 0;
+}
+
 .create-private-link {
     @include respond-tablet {
 	    padding-bottom: $grid * 3;

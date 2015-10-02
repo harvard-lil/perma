@@ -16,7 +16,7 @@
 		{% csrf_token %}
 		<fieldset>
 		{% for field in form %}
-			<div class="form-group{% if field.errors %} _error{% endif %}">
+			<div class="form-group fg-100{% if field.errors %} _error{% endif %}">
 				<label for="id_{{ field.name }}">{{ field.label }}</label>
 				{{ field }}
 				{% if field.errors %}

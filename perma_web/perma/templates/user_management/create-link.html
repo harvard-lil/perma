@@ -111,17 +111,15 @@
 
 
 <!-- Your Perma Links -->
+{% if messages %}
 <div class="row no-wide">
     <div class="col-sm-12">
-		<h1 class="page-title">Your Perma Links</h1>
-	    {% if messages %}
 	        {% for message in messages %}
 	            <div class="alert alert-{% if message.level >= 30 %}danger{% else %}success{% endif %}" style="clear:both; margin:1em">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
 	        {% endfor %}
-	    {% endif %}
     </div>
 </div>
-
+{% endif %}
 
 
 <div class="row panel panel-default no-wide">

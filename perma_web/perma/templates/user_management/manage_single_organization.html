@@ -4,14 +4,15 @@
 
 {% block content %}
 
+<div class="container">
 	<h3 class="body-bh">Edit organization</h3>
 	<div class="row">
-		<div class="col-sm-6">
+		<div class="col-sm-12">
     		<form method="post" action="">
 				{% csrf_token %}
 				<fieldset>
 				{% for field in form %}
-					<div class="form-group{% if field.errors %} _error{% endif %}">
+					<div class="form-group fg-100{% if field.errors %} _error{% endif %}">
 					<label for="id_{{ field.name }}">{{ field.label }}</label>
 					{{ field }}
 					{% if field.errors %}
@@ -27,5 +28,5 @@
 			</form>
     	</div>
     </div>
-
+</div>
 {% endblock %}
