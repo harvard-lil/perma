@@ -414,10 +414,10 @@ class LinkManager(models.Manager):
         return LinkQuerySet(self.model, using=self._db).filter(user_deleted=False)
 
     def all_with_deleted(self):
-        return super(LinkManager, self).get_query_set()
+        return super(LinkManager, self).get_queryset()
 
     def deleted_set(self):
-        return super(LinkManager, self).get_query_set().filter(user_deleted=True)
+        return super(LinkManager, self).get_queryset().filter(user_deleted=True)
 
     def user_access_filter(self, user):
         """
