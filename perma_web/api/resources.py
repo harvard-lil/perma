@@ -344,7 +344,7 @@ class AuthenticatedLinkResource(BaseLinkResource):
     # folders = fields.ToManyField(FolderResource, 'folders', readonly=True, null=True)
     archive_timestamp = fields.DateTimeField(attribute='archive_timestamp', readonly=True)
     is_private = fields.BooleanField(attribute='is_private')
-    capture_progress_display = fields.CharField(attribute='capture_progress_display', blank=True)
+    capture_progress_display = fields.CharField(attribute='capture_progress_display', null=True, blank=True)
 
     class Meta(BaseLinkResource.Meta):
         authorization = AuthenticatedLinkAuthorization()
