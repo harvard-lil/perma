@@ -136,7 +136,7 @@ function toggleCreateAvailable() {
         $addlink.html('Create Perma Link').removeAttr('disabled').removeClass('_isWorking');
         $('#rawUrl').removeAttr('disabled');
     } else {
-    	$addlink.html('<span id="captureStatus">Creating your Perma Link</span>').attr('disabled', 'disabled').addClass('_isWorking');
+    	$addlink.html('<div id="capture-status">Creating your Perma Link</div>').attr('disabled', 'disabled').addClass('_isWorking');
     	new Spinner(opts).spin($addlink[0]);
         $('#rawUrl').attr('disabled', 'disabled');
     }
@@ -288,7 +288,7 @@ function check_status() {
             }
         }else{
             if(data.capture_progress_display)
-                $('#captureStatus').text(data.capture_progress_display || "Creating your Perma Link");
+                $('#capture-status').text(data.capture_progress_display || "Creating your Perma Link");
         }
     });
 }
