@@ -3392,6 +3392,7 @@ div.warning {
 	a {
 		color: $color-white;
 		border-bottom: 1px solid;
+		&:hover, &:focus { text-decoration: none; }
 	}
 	@include respond-tablet {
 		p {
