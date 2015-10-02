@@ -5174,6 +5174,9 @@ td {
     .link-rows {
         padding: $grid * 3 0 0;
         overflow: visible;
+        .alert-success {
+	        padding-top: 0;
+        }
     }
 
 	.perma-link {
