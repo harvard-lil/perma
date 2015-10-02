@@ -18,7 +18,6 @@ import time
 import requests
 import errno
 import tempdir
-import random
 from socket import error as socket_error
 import internetarchive
 import Queue as queue
