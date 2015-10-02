@@ -48,13 +48,13 @@
 					  <ul class="nav navbar-nav navbar-right">
 					  	{% if request.user.is_authenticated %}
                             {% if not this_page == 'create_link' %}
-                                <li><a href="{% url 'create_link' %}" role="button" class="btn btn-large btn-info navbar-create navbar-btn" data-toggle="tooltip" title="Create new Perma archive">Create and manage links</a></li>
+                                <li><a href="{% url 'create_link' %}" role="button" class="btn btn-large btn-info navbar-create navbar-btn" data-toggle="tooltip" title="Create new Perma archive">Create and manage Perma Links</a></li>
                             {% endif %}
                             <li class="dropdown">
                               <a href="#" class="dropdown-toggle navbar-link needsclick" data-toggle="dropdown" role="button" aria-expanded="false">{{ request.user.get_short_name }}</a>
                               <ul class="dropdown-menu" role="menu">
                                 {% if not this_page == 'create_link' %}
-                                <li><a href="{% url 'create_link' %}">Create and manage links</a></li>
+                                <li><a href="{% url 'create_link' %}">Create and manage Perma Links</a></li>
                                 <li class="divider"></li>
                                 {% endif %}
                                 
