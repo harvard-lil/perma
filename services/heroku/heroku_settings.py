@@ -43,12 +43,7 @@ else:
 # TODO: this is from Heroku's getting started with Django page -- is there a safer way?
 ALLOWED_HOSTS = ['*']
 
-STATICFILES_DIRS = (
-    os.path.join(PROJECT_ROOT, 'static'),
-)
-
-DEFAULT_FILE_STORAGE = 'perma.storage_backends.MediaRootS3BotoStorage'
-STATICFILES_STORAGE = 'perma.storage_backends.StaticRootS3BotoStorage'
+DEFAULT_FILE_STORAGE = 'perma.storage_backends.S3MediaStorage'
 
 # message passing
 # settings via https://www.cloudamqp.com/docs/celery.html
@@ -72,7 +67,6 @@ ADMINS = (
 
 # these are relative to the S3 bucket
 MEDIA_ROOT = '/generated/'
-STATIC_ROOT = '/static/'
 
 # AWS storage settings
 AWS_QUERYSTRING_AUTH = False
@@ -106,7 +100,6 @@ AWS_ACCESS_KEY_ID = ''
 AWS_SECRET_ACCESS_KEY = ''
 AWS_STORAGE_BUCKET_NAME = ''
 MEDIA_URL = 'http://BUCKET_NAME.s3.amazonaws.com/media/'
-STATIC_URL = 'http://BUCKET_NAME.s3.amazonaws.com/static/'
 
 
 ########## EMAIL CONFIGURATION

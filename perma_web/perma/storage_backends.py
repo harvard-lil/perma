@@ -2,7 +2,7 @@
 import cStringIO as StringIO
 import os
 
-from django.contrib.staticfiles.storage import CachedFilesMixin
+from django.contrib.staticfiles.storage import CachedFilesMixin, ManifestStaticFilesStorage
 from django.core.files.storage import FileSystemStorage as DjangoFileSystemStorage
 from django.core.files import File
 from django.conf import settings
@@ -10,12 +10,22 @@ import django.dispatch
 
 from pipeline.storage import PipelineMixin
 from storages.backends.s3boto import S3BotoStorage
+from whitenoise.django import GzipStaticFilesMixin
 
 from perma.utils import ReadOnlyException
 
 file_saved = django.dispatch.Signal(providing_args=["instance", "path", "overwrite"])
 
-class StorageHelpersMixin(object):
+
+### Static files config
+
+class StaticStorage(GzipStaticFilesMixin, PipelineMixin, ManifestStaticFilesStorage):
+    pass
+
+
+### Media files config
+
+class BaseMediaStorage(object):
     """
         This mixin provides some helper functions for working with files
         in both local disk and remote storage.
@@ -70,13 +80,9 @@ class StorageHelpersMixin(object):
             yield top, dirs, nondirs
 
 
-class FileSystemStorage(StorageHelpersMixin, DjangoFileSystemStorage):
+class FileSystemMediaStorage(BaseMediaStorage, DjangoFileSystemStorage):
     pass
 
 
-class StaticRootS3BotoStorage(PipelineMixin, CachedFilesMixin, S3BotoStorage):
-    location = settings.STATIC_ROOT
-
-
-class MediaRootS3BotoStorage(StorageHelpersMixin, StaticRootS3BotoStorage):
+class S3MediaStorage(BaseMediaStorage, S3BotoStorage):
     location = settings.MEDIA_ROOT

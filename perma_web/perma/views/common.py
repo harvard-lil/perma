@@ -223,15 +223,3 @@ Message from user
 
         context = RequestContext(request, {'form': form})
         return render_to_response('contact.html', context)
-
-
-def debug_media_view(request, *args, **kwargs):
-    """
-        Override Django's built-in dev-server view for serving media files,
-        in order to NOT set content-encoding for gzip files.
-        This stops the dev server from messing up delivery of archive.warc.gz files.
-    """
-    response = media_view(request, *args, **kwargs)
-    if response.get("Content-Encoding") == "gzip":
-        del response["Content-Encoding"]
-    return response
