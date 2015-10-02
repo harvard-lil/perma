@@ -1222,7 +1222,7 @@ p.body { @extend p.body-text; }
 #create-link-container {
 	padding-left: $double;
 	padding-right: $double;
-	padding-bottom: $double * 4;
+	padding-bottom: $grid * 3;
 }
 
 ._isPublic #create-link-container {
