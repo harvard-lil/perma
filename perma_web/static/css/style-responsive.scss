@@ -5122,6 +5122,7 @@ td {
 .links-box {
     border-left: none;
     position: relative;
+    padding-bottom: $grid * 3;
     &.recent-links {
 	    width: 100%;
 	    padding-top: $grid * 3;
