@@ -5171,7 +5171,7 @@ td {
     }
 
     .link-rows {
-        padding: 0;
+        padding: $grid * 3 0 0;
         overflow: visible;
     }
 
@@ -5239,9 +5239,6 @@ td {
 				color: $color-blue;
 			}
 		}
-		&:first-child {
-		    border-top: none;
-	    }
 
 		.record-secondary {
 			margin-top: $grid;
