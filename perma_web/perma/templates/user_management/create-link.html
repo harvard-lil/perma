@@ -124,47 +124,49 @@
 
 <div class="row panel panel-default">
 	<div class="container no-wide">
-	    <div class="col-sm-3 folders-box">
-	        <div class="panel-heading">
-	            Folders
-	            <a href="#" class="pull-right delete-folder icon-trash" title="Delete Selected Folder"></a>
-	            <a href="#" class="pull-right edit-folder icon-edit" title="Rename Selected Folder"></a>
-	            <a href="#" class="pull-right new-folder icon-plus" title="New Folder"></a>
-	        </div>
-	        <div id="folder-tree">
-	            <ul>
-	                {% for tree in request.user.all_folder_trees %}
-	                    {% recursetree tree %}
-	                        <li data-folder_id="{{ node.pk }}" data-jstree='{ {% if node.is_root_folder %}"selected":true{% elif node.is_shared_folder %}"type":"shared_folder"{% endif %} }'>
-	                            <a href="{% url "folder_contents" folder_id=node.pk %}?iframe=1" target="folder-contents">{{ node.name }}</a>
-	                            {% if not node.is_leaf_node %}
-	                                <ul>
-	                                    {{ children }}
-	                                </ul>
-	                            {% endif %}
-	                        </li>
-	                    {% endrecursetree %}
-	                {% endfor %}
-	            </ul>
-	        </div>
-	    </div>
-	
-	    <div class="col-sm-9 links-box">
-	        <div class="container link-headers">
-	            <div class="row">
-	                <div class="col-sm-12">
-	                    <h3 class="link-header body-ah">Your Perma Links</h3>
-	                </div>
-	            </div>
-	        </div>
-	        {% include "user_management/includes/search_form.html" with search_placeholder="Search Your Perma Links" %}
-	        <div class="container link-rows">
-	
-	            <noscript>
-	                <iframe src="{% url "folder_contents" folder_id=request.user.root_folder_id %}?iframe=1" name="folder-contents"></iframe>
-	            </noscript>
-	        </div>
-	    </div>
+		<div class="row">
+		    <div class="col-sm-3 folders-box">
+		        <div class="panel-heading">
+		            Folders
+		            <a href="#" class="pull-right delete-folder icon-trash" title="Delete Selected Folder"></a>
+		            <a href="#" class="pull-right edit-folder icon-edit" title="Rename Selected Folder"></a>
+		            <a href="#" class="pull-right new-folder icon-plus" title="New Folder"></a>
+		        </div>
+		        <div id="folder-tree">
+		            <ul>
+		                {% for tree in request.user.all_folder_trees %}
+		                    {% recursetree tree %}
+		                        <li data-folder_id="{{ node.pk }}" data-jstree='{ {% if node.is_root_folder %}"selected":true{% elif node.is_shared_folder %}"type":"shared_folder"{% endif %} }'>
+		                            <a href="{% url "folder_contents" folder_id=node.pk %}?iframe=1" target="folder-contents">{{ node.name }}</a>
+		                            {% if not node.is_leaf_node %}
+		                                <ul>
+		                                    {{ children }}
+		                                </ul>
+		                            {% endif %}
+		                        </li>
+		                    {% endrecursetree %}
+		                {% endfor %}
+		            </ul>
+		        </div>
+		    </div>
+		
+		    <div class="col-sm-9 links-box">
+		        <div class="container link-headers">
+		            <div class="row">
+		                <div class="col-sm-12">
+		                    <h3 class="link-header body-ah">Your Perma Links</h3>
+		                </div>
+		            </div>
+		        </div>
+		        {% include "user_management/includes/search_form.html" with search_placeholder="Search Your Perma Links" %}
+		        <div class="container link-rows">
+		
+		            <noscript>
+		                <iframe src="{% url "folder_contents" folder_id=request.user.root_folder_id %}?iframe=1" name="folder-contents"></iframe>
+		            </noscript>
+		        </div>
+		    </div>
+		</div>
 	</div>
 </div>
 <!-- / Your Perma Links -->
