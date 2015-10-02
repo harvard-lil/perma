@@ -6,7 +6,7 @@
 <div class="container">
 	<h3 class="body-bh">Remove {{ target_member.email }}’s registry powers?</h3>
 	<p class="body-dek">This user will no longer have ultimate Perma power.</p>
-	<p>Do you really want to remove <strong>{{ target_member.email }}<strong> forever?</p>
+	<p>Do you really want to remove <strong>{{ target_member.email }}</strong> forever?</p>
 	<form action="" method="POST">
 	      {% csrf_token %}
         <a class="btn cancel" href="../">Cancel</a> <button type="submit" class="btn btn-success delete-confirm">Remove {{ target_member.email }} forever</button>

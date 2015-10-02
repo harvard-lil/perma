@@ -20,7 +20,7 @@
 						<fieldset>
 							{% if form.non_field_errors %}<span class="text-error">{{ form.non_field_errors }}</span>{% endif %}
 							{% for field in form %}
-								<div class="form-group{% if field.errors %} _error{% endif %}">
+								<div class="form-group fg-100{% if field.errors %} _error{% endif %}">
 									<label for="id_{{ field.name }}">{{ field.label }}</label>
 									{{ field }}
 									{% if field.errors %}

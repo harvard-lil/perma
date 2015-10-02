@@ -20,7 +20,7 @@
 		{% if group_name == 'organization_user' %}
 			<form method="get" action="{% url 'user_management_organization_user_add_user' %}" class="form-inline" role="form">
 				<fieldset>
-					<div class="form-group fg-inline">
+					<div class="form-group fg-100">
 						<input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
 					</div>
 					<button type="submit" class="btn btn-default btn-inline">Add {{ pretty_group_name }}</button>
