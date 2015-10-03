@@ -56,9 +56,9 @@ MONITOR_ROOT = '/tmp/perma/monitor'
 MONITOR_URL = '/monitor/media/'
 
 # static files
-STATIC_ROOT = ''                # where to store collected static files
+STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static-collected')                # where to store collected static files
 STATIC_URL = '/static/'         # URL to serve static files
-STATICFILES_DIRS = ('static',)  # where to look for static files (in addition to app/static/)
+STATICFILES_DIRS = (os.path.join(PROJECT_ROOT, 'static'),)  # where to look for static files (in addition to app/static/)
 STATICFILES_FINDERS = (         # how to look for static files
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
@@ -67,10 +67,10 @@ STATICFILES_FINDERS = (         # how to look for static files
 )
 
 # Django Pipeline config
-STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
+STATICFILES_STORAGE = 'perma.storage_backends.StaticStorage'
 
 # media storage -- default_storage config
-DEFAULT_FILE_STORAGE = 'perma.storage_backends.FileSystemStorage'
+DEFAULT_FILE_STORAGE = 'perma.storage_backends.FileSystemMediaStorage'
 
 # We likely want to do something like this:
 # PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.jsmin.JSMinCompressor'

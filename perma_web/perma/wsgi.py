@@ -21,12 +21,20 @@ os.environ.setdefault("CELERY_LOADER", "django")
 # file. This includes Django's development server, if the WSGI_APPLICATION
 # setting points here.
 from django.core.wsgi import get_wsgi_application
-
 from warc_server.app import application as warc_application
+from whitenoise.django import DjangoWhiteNoise
+
+
+# subclass WhiteNoise to add missing mime types
+class PermaWhiteNoise(DjangoWhiteNoise):
+    def __init__(self, *args, **kwargs):
+        self.EXTRA_MIMETYPES += (('image/svg+xml', '.svg'),)
+        super(PermaWhiteNoise, self).__init__(*args, **kwargs)
+
 
 application = DispatcherMiddleware(
-    get_wsgi_application(), # Django
+    PermaWhiteNoise(get_wsgi_application()),  # Django app wrapped with whitenoise to serve static assets
     {
-        '/warc': warc_application,
+        '/warc': warc_application,  # pywb for record playback
     }
 )

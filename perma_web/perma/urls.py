@@ -1,10 +1,8 @@
-from django.conf import settings
-from django.conf.urls.static import static
 from django.conf.urls import patterns, url
 from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
 
-from .views.common import DirectTemplateView, debug_media_view
+from .views.common import DirectTemplateView
 
 
 guid_pattern = r'(?P<guid>[a-zA-Z0-9\-]+)'
@@ -144,12 +142,6 @@ urlpatterns = patterns('perma.views',
     url(r'^%s/?$' % r'(?P<guid>[^\./]+)', 'common.single_linky', name='single_linky'),
 
 )
-
-# debug-only serving of static and media assets
-if settings.DEBUG:
-    from django.contrib.staticfiles.views import serve as static_view
-    urlpatterns += static(settings.STATIC_URL, static_view) + \
-                   static(getattr(settings, 'DEBUG_MEDIA_URL', settings.MEDIA_URL), debug_media_view, document_root=settings.MEDIA_ROOT)
 
 handler404 = 'perma.views.common.server_error_404'
 handler500 = 'perma.views.common.server_error_500'

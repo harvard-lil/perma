@@ -130,10 +130,9 @@ def single_linky(request, guid):
         capture = link.primary_capture
 
     new_record = False
-    if request.user.is_authenticated() and not link.user_deleted:
-        # If a record is new (less than a minute old), let's assume
-        # that the user just created it and we should show them a new record message
-        new_record = link.creation_timestamp > timezone.now() - timedelta(seconds=60)
+    if request.user.is_authenticated() and link.created_by_id == request.user.id and not link.user_deleted:
+        # If this record was just created by the current user, show them a new record message
+        new_record = link.creation_timestamp > timezone.now() - timedelta(seconds=300)
 
     context = {
         'link': link,
@@ -223,15 +222,3 @@ Message from user
 
         context = RequestContext(request, {'form': form})
         return render_to_response('contact.html', context)
-
-
-def debug_media_view(request, *args, **kwargs):
-    """
-        Override Django's built-in dev-server view for serving media files,
-        in order to NOT set content-encoding for gzip files.
-        This stops the dev server from messing up delivery of archive.warc.gz files.
-    """
-    response = media_view(request, *args, **kwargs)
-    if response.get("Content-Encoding") == "gzip":
-        del response["Content-Encoding"]
-    return response
