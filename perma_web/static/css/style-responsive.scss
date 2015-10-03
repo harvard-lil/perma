@@ -5383,32 +5383,6 @@ td {
 			    }
 		    }
         }
-
-        .link-expand {
-            position: absolute;
-            text-align: center;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: $half $double 3px;
-            background-color: transparent;
-            border-radius: 0;
-            color: transparent;
-            font-size: 1px;
-            &:active {
-	            background-color: lighten($color-highlight, 25%);
-            }
-            &:focus {
-	            outline: none !important;
-            }
-        }
-        .z-top {
-            z-index: 10;
-        }
-        .z-bottom {
-            z-index: 0;
-        }
     }
 }
 
@@ -5422,11 +5396,19 @@ td {
     display: none !important;
 }
 
-body.dragging, .dragging .link-row {
+body.dragging, body.dragging * {
     cursor: move; //	fallback for IE 
     cursor: -moz-grabbing;
     cursor: -webkit-grabbing;
     cursor: grabbing;
+
+    // stop random text being selected during drag'n'drop
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 // admin users and orgs

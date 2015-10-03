@@ -1,5 +1,6 @@
 $(function() {
-    var linkTable = $('.link-rows');
+    var linkTable = $('.link-rows'),
+        dragStartPosition;
 
     function getLinkIDForFormElement(element){
         return element.closest('.link-container').find('.link-row').attr('link_id');
@@ -66,18 +67,43 @@ $(function() {
         }, Math.max(saveBufferSeconds * 1000 - (new Date().getTime() - lastSaveTime), 0));
     }
 
-    // hide and show link details
-    linkTable.on('click', '.link-expand', function () {
+    /*
+        Link rows respond to both a *click* to hide/show details, and a *drag* to move to different folders.
+        So we start the drag on mousedown, and then check on mouseup whether it's more like a click or drag.
+     */
 
-        // handle details link to hide/show link details
-        var button = $(this),
-            details = button.closest('.link-container').find('.link-details');
-            linkContainer = button.closest('.link-container');
+    // .link-row mousedown -- start drag event
+    linkTable.on('mousedown', '.link-row', function (e) {
+        if ($(e.target).hasClass('no-drag'))
+            return;
+
+        $.vakata.dnd.start(e, {
+            jstree: true,
+            obj: $(this),
+            nodes: [
+                {id: $(this).attr('link_id')}
+            ]
+        }, '<div id="jstree-dnd" class="jstree-default"><i class="jstree-icon jstree-er"></i>[link]</div>');
+
+        // record drag start position so we can check how far we were dragged on mouseup
+        dragStartPosition = [e.pageX, e.pageY];
+
+    // .link-row mouseup -- hide and show link details, if not dragging
+    }).on('mouseup', '.link-row', function (e) {
+        // prevent JSTree's tap-to-drag behavior
+        $.vakata.dnd.stop(e);
+
+        // don't treat this as a click if the mouse has moved more than 5 pixels -- it's probably an aborted drag'n'drop
+        if(Math.sqrt(Math.pow(e.pageX-dragStartPosition[0], 2), Math.pow(e.pageY-dragStartPosition[1], 2))>5)
+            return;
+
+        // hide/show link details
+        var linkContainer = $(this).closest('.link-container'),
+            details = linkContainer.find('.link-details');
         if(details.is(":visible")){
             details.hide();
-            button.text('Show Record Details');
             linkContainer.toggleClass( '_active' )
-        }else{
+        }else {
             // when showing link details, update the move-to-folder select input
             // based on the current folderTree structure
 
@@ -86,10 +112,9 @@ $(function() {
                 moveSelect = details.find('.move-to-folder');
             moveSelect.find('option').remove();
 
-
             // recursively populate select ...
-            function addChildren(node, depth){
-                for(var i=0;i<node.children.length;i++){
+            function addChildren(node, depth) {
+                for (var i = 0; i < node.children.length; i++) {
                     var childNode = folderTree.get_node(node.children[i]);
 
                     // For each node, we create an <option> using text() for the folder name,
@@ -101,23 +126,22 @@ $(function() {
                             text: childNode.text.trim(),
                             selected: childNode.data.folder_id == currentFolderID
                         }).prepend(
-                            new Array(depth).join('&nbsp;&nbsp;')+'- '
+                            new Array(depth).join('&nbsp;&nbsp;') + '- '
                         )
                     );
 
                     // recurse
-                    if(childNode.children && childNode.children.length)
-                        addChildren(childNode, depth+1);
+                    if (childNode.children && childNode.children.length)
+                        addChildren(childNode, depth + 1);
                 }
             }
+
             addChildren(folderTree.get_node('#'), 1);
 
             details.show();
-            button.text('Hide Record Details');
-            linkContainer.toggleClass( '_active' )
+            linkContainer.toggleClass('_active')
         }
-        
-        return false;
+
     // save changes to notes field
     }).on('input propertychange change', '.link-notes', function () {
         var textarea = $(this);
@@ -142,21 +166,7 @@ $(function() {
         });
     });
 
-    // make links draggable
-    linkTable.on('mousedown', '.link-row', function (e) {
-        if ($(e.target).hasClass('no-drag'))
-            return;
-
-        $.vakata.dnd.start(e, {
-            jstree: true,
-            obj: $(this),
-            nodes: [
-                { id: $(this).attr('link_id') }
-            ]
-        }, '<div id="jstree-dnd" class="jstree-default"><i class="jstree-icon jstree-er"></i>[link]</div>');
-    }).on('click', '.link-row td', function (e) {
-        $(this).closest('tr').next('.link-details').toggle();
-    });
+    // set body class during drag'n'drop
     $(document).on('dnd_start.vakata', function (e, data) {
         $('body').addClass("dragging");
 
