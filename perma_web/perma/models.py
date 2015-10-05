@@ -467,6 +467,7 @@ class Link(models.Model):
 
     thumbnail_status = models.CharField(max_length=10, null=True, blank=True, choices=(
         ('generating', 'generating'), ('generated', 'generated'), ('failed', 'failed')))
+    capture_progress_display = models.CharField(max_length=255, null=True, blank=True)
 
     objects = LinkManager()
     tracker = FieldTracker()

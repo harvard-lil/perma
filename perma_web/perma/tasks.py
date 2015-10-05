@@ -88,6 +88,9 @@ def save_fields(instance, **kwargs):
         setattr(instance, key, val)
     instance.save(update_fields=kwargs.keys())
 
+def display_progress(link, status):
+    save_fields(link, capture_progress_display=status)
+    print status
 
 ### TASKS ##
 
@@ -122,6 +125,7 @@ def proxy_capture(self, link_guid, user_agent=''):
     # basic setup
 
     link = Link.objects.get(guid=link_guid)
+    display_progress(link, "Starting capture")
     target_url = link.submitted_url
 
     # Override user_agent for now, since PhantomJS doesn't like some user agents.
@@ -186,10 +190,8 @@ def proxy_capture(self, link_guid, user_agent=''):
         warcprox_thread = threading.Thread(target=warcprox_controller.run_until_shutdown, name="warcprox", args=())
         warcprox_thread.start()
 
-        print "WarcProx opened."
-
         # fetch page in the background
-        print "Fetching url."
+        display_progress(link, "Fetching target URL")
         browser = get_browser(user_agent, proxy_address, proxy.ca.ca_file)
         browser.set_window_size(1024, 800)
         start_time = time.time()
@@ -215,9 +217,9 @@ def proxy_capture(self, link_guid, user_agent=''):
                 break
         content_url = har_log_entries[0]['request']['url']
         have_html = content_type and content_type.startswith('text/html')
-        print "Finished fetching url."
 
         # get favicon urls
+        display_progress(link, "Fetching favicon")
         favicon_urls = []
         if have_html:
             favicons = browser.find_elements_by_xpath('//link[@rel="icon" or @rel="shortcut icon"]')
@@ -250,6 +252,7 @@ def proxy_capture(self, link_guid, user_agent=''):
             print "Couldn't get favicon"
 
         # fetch robots.txt in the background
+        display_progress(link, "Fetching robots.txt")
         def robots_txt_thread():
             print "Fetching robots.txt ..."
             robots_txt_location = urlparse.urljoin(content_url, '/robots.txt')
@@ -273,7 +276,6 @@ def proxy_capture(self, link_guid, user_agent=''):
 
         if have_html:
             # get page title
-            print "Getting title."
             if browser.title:
                 save_fields(link, submitted_title=browser.title)
 
@@ -305,7 +307,7 @@ def proxy_capture(self, link_guid, user_agent=''):
                 pass
 
             # make sure all requests are finished
-            print "Waiting for post-load requests."
+            display_progress(link, "Checking for additional resources")
             start_time = time.time()
             time.sleep(min(AFTER_LOAD_TIMEOUT, 5))
             while len(unique_responses) < len(unique_requests):
@@ -331,7 +333,7 @@ def proxy_capture(self, link_guid, user_agent=''):
 
             # take screenshot after all requests done
             if capture_screenshot:
-                print "Taking screenshot."
+                display_progress(link, "Taking screenshot")
                 screenshot_data = browser.get_screenshot_as_png()
                 link.screenshot_capture.write_warc_resource_record(screenshot_data)
                 save_fields(link.screenshot_capture, status='success')
@@ -354,7 +356,7 @@ def proxy_capture(self, link_guid, user_agent=''):
 
     finally:
         # teardown (have to do this before save to make sure WARC is done writing):
-        print "Shutting down browser and proxies."
+        display_progress(link, "Finishing up")
 
         if browser:
             browser.quit()  # shut down phantomjs
@@ -372,7 +374,6 @@ def proxy_capture(self, link_guid, user_agent=''):
 
     # save generated warc file
     if have_warc:
-        print "Saving WARC."
         try:
             temp_warc_path = os.path.join(warc_writer.directory,
                                           warc_writer._f_finalname)
@@ -398,8 +399,9 @@ def proxy_capture(self, link_guid, user_agent=''):
         except Exception as e:
             print "Web Archive File creation failed for %s: %s" % (target_url, e)
             save_fields(link.primary_capture, warc_capture='failed')
+            return
 
-
+    display_progress(link, "Capture done")
     print "%s capture done." % link_guid
 
 

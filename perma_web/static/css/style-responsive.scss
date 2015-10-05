@@ -1352,6 +1352,13 @@ p.body { @extend p.body-text; }
 	    @include respond-tablet {
 			margin: 0;
 	    }
+
+        #capture-status{
+            /* keep capture status to one line-height tall, with overflow visibly wrapping below */
+            overflow: visible;
+            white-space: normal;
+            height: 1.5em;
+        }
 	}
 	
 	#links-remaining-message, #organization_select_form {
