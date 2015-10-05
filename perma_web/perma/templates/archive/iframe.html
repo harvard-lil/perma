@@ -5,7 +5,7 @@
 	        <div><a href="{{ capture.playback_url }}" class="btn btn-primary">View/Download File</a></div>
 	<div>
 {% else %}
-    <iframe src="{{ capture.playback_url }}" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation"{% endif %}>
+    <iframe src="{{ capture.playback_url }}" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin"{% endif %}>
         <p>Unable to create a live view of <a class="submitted_url" href="{{link.submitted_url}}">{{link.submitted_url}}</a></p>
     </iframe>
 {% endif %}

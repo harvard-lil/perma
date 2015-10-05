@@ -268,7 +268,7 @@ function check_status() {
         });
 
         // We're done checking status when nothing is pending.
-        if(capturesSucceeded || !capturesPending){
+        if(!capturesPending){
 
             // Clear out our pending jobs
             $.each(refreshIntervalIds, function(ndx, id) {
