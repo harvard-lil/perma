@@ -302,27 +302,27 @@
             <div class="row">
 	            <div class="col col-sm-7">
 	            	<div class="link-title-display">
-		            	{{#if is_private }}<span class="z-top ui-private">[private] </span>{{/if}}<span class="z-top">{{ title }}</span>
+		            	{{#if is_private }}<span class="ui-private">[private] </span>{{/if}}<span>{{ title }}</span>
 	            	</div>
 	                <div class="record-url">
-	                	<a href="{{ url }}" target="_blank" class="original-link z-top">{{ truncatechars url 200 }}</a>
+	                	<a href="{{ url }}" target="_blank" class="original-link no-drag">{{ truncatechars url 200 }}</a>
 	                </div>
 	            </div>
 	            <div class="col col-sm-5 align-right perma-link">
-	                {{#if delete_available}}<a class="delete z-top" href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}
-	                <a class="perma z-top" href="{{local_url}}" target="_blank">{{local_url}}</a>
+	                {{#if delete_available}}<a class="delete no-drag" href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}
+	                <a class="perma no-drag" href="{{local_url}}" target="_blank">{{local_url}}</a>
 	            </div>
             </div>
             <div class="row record-secondary">
 	            <div class="col col-sm-7">
 	            	{{#if organization }}
 	                <div class="record-affil">
-		                <span class="z-top">{{organization.name}}</span>
+		                <span>{{organization.name}}</span>
 		            </div>
 		            {{/if}}
 	            </div>
 	            <div class="col col-sm-5 align-right">
-		            <span class="record-date z-top"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
+		            <span class="record-date"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
 	            </div>
             </div>
         </div>
@@ -330,13 +330,13 @@
         <div class="row link-details row-no-bleed" {{#if search_query_in_notes}}style="display:block"{{/if}}>
             <div class="col-sm-7">
 
-                <div class="form-group z-top">
+                <div class="form-group">
                     <label for="link-title-{{guid}}">Display title</label>
                     <span class="title-save-status"></span>
                     <input type="text" class="link-title" name="input" id="link-title-{{guid}}" value="{{title}}">
                 </div>
 
-                <div class="form-group z-top">
+                <div class="form-group">
                     <label for="link-notes-{{guid}}">Notes</label>
                     <span class="notes-save-status"></span>
                     <textarea id="link-notes-{{guid}}" class="link-notes" rows="6">{{notes}}</textarea>
@@ -345,7 +345,7 @@
 	                </span>
                 </div>
 
-                <div class="form-group z-top">
+                <div class="form-group">
                    <label for="move-to-folder-{{guid}}">Move to folder</label>
                     <select id="move-to-folder-{{guid}}" class="move-to-folder form-control"></select>
                 </div>
@@ -353,15 +353,13 @@
             </div>
             <div class="col-sm-5">
                 <div>
-                	<span class="z-top"><strong>Views:</strong> {{view_count}}</span></div>
-                <div><span class="z-top"><strong>Created by:</strong> {{created_by.full_name}}</span></div>
+                	<span><strong>Views:</strong> {{view_count}}</span></div>
+                <div><span><strong>Created by:</strong> {{created_by.full_name}}</span></div>
                 {{#if vested}}
-                    <div><span class="z-top"><strong>Vested by:</strong> {{vested_by_editor.full_name}}</span></div>
+                    <div><span><strong>Vested by:</strong> {{vested_by_editor.full_name}}</span></div>
                 {{/if}}
             </div>
         </div>
-
-        <a href="#" class="link-expand z-bottom">Show Record Details</a>
     </div>
 {{else}}
     <div class="row link-row row-no-bleed">
