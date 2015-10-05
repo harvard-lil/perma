@@ -301,6 +301,51 @@ header {
 	}
 }
 
+.btn-primary {
+	display: block;
+	margin-top: $grid * 2;
+	font-family: $font-hed-alt;
+	color: $color-white;
+	font-weight: 400;
+	font-size: 14px;
+	padding: 14px $grid;
+	margin-bottom: 0;
+	text-align: center;
+	vertical-align: middle;
+	cursor: pointer;
+	border: 2px solid transparent;
+	border-radius: 2px;
+	background-color: $color-blue;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+	box-shadow: none !important;
+	@include link-highlight($color-white, $color-white);
+	@include respond-tablet {
+		white-space: nowrap;
+		margin: $double 0;
+		padding: 14px $grid * 3;
+		display: inline-block;
+		font-weight: 700;
+		font-size: 16px;
+		& + .btn {
+			margin-left: $double;
+		}
+	}
+	&:hover, &:focus {
+		background-color: $color-hover !important;
+		text-decoration: none !important;
+		border-color: transparent;
+		color: white !important;
+	}
+	&:active {
+		background-color: $color-black !important;
+		border-color: transparent;
+	}
+}
+
 .btn-ui-small {
 	font-size: 12px;
 	font-weight: 400;

@@ -20,7 +20,7 @@
 		{% if group_name == 'organization_user' %}
 			<form method="get" action="{% url 'user_management_organization_user_add_user' %}" class="form-inline" role="form">
 				<fieldset>
-					<div class="form-group fg-inline">
+					<div class="form-group fg-100">
 						<input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
 					</div>
 					<button type="submit" class="btn btn-default btn-inline">Add {{ pretty_group_name }}</button>
@@ -29,7 +29,7 @@
 			{% elif group_name == 'registrar_user' %}
 			<form method="get" action="{% url 'user_management_registrar_user_add_user' %}" class="form-inline" role="form">
 				<fieldset>
-					<div class="form-group fg-inline">
+					<div class="form-group fg-100">
 						<input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
 					</div>
 					<button type="submit" class="btn btn-default btn-inline">Add {{ pretty_group_name }}</button>
@@ -38,7 +38,7 @@
 			{% elif group_name == 'registry_user' %}
 			<form method="get" action="{% url 'user_management_registry_user_add_user' %}" class="form-inline" role="form">
 				<fieldset>
-					<div class="form-group fg-inline">
+					<div class="form-group fg-100">
 						<input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
 					</div>
 					<button type="submit" class="btn btn-default btn-inline">Add {{ pretty_group_name }}</button>
@@ -51,7 +51,7 @@
 				<fieldset>
 					{% if form.non_field_errors %}<span class="text-error">{{ form.non_field_errors }}</span>{% endif %}
 					{% for field in form %}
-						<div class="form-group{% if field.errors %} _error{% endif %}">
+						<div class="form-group fg-100{% if field.errors %} _error{% endif %}">
 							<label for="id_{{ field.name }}">{{ field.label }}</label>
 							{{ field }}
 							{% if field.errors %}

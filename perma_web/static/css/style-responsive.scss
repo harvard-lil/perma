@@ -1222,7 +1222,11 @@ p.body { @extend p.body-text; }
 #create-link-container {
 	padding-left: $double;
 	padding-right: $double;
-	padding-bottom: $double * 4;
+	padding-bottom: $grid * 3;
+}
+
+._isPublic #create-link-container {
+	padding-bottom: 0;
 }
 
 .create-private-link {
@@ -2748,6 +2752,9 @@ li.dropdown {
 }
 
 @include respond-mobile {
+	.navbar-create-button {
+		display: none !important;
+	}
 	a.navbar-create {
 		margin: 0;
 		background-color: transparent;
@@ -3074,7 +3081,7 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
     margin-top: $grid * 3;
     margin-bottom: $grid;
     font-family: $font-hed-alt !important;
-    font-weight: 400;
+    font-weight: 400 !important;
     color: $color-orange;
     line-height: 1.3;
  	@include respond-tablet {
@@ -3388,6 +3395,7 @@ div.warning {
 	a {
 		color: $color-white;
 		border-bottom: 1px solid;
+		&:hover, &:focus { text-decoration: none; }
 	}
 	@include respond-tablet {
 		p {
@@ -5044,6 +5052,7 @@ td {
 	padding-top: $grid * 3;
 	border: none;
 	border-radius: 0;
+	margin: 0;
 	@include respond-tablet {
 		padding-top: $grid * 5;
 	}
@@ -5118,6 +5127,7 @@ td {
 .links-box {
     border-left: none;
     position: relative;
+    padding-bottom: $grid * 3;
     &.recent-links {
 	    width: 100%;
 	    padding-top: $grid * 3;
@@ -5166,8 +5176,11 @@ td {
     }
 
     .link-rows {
-        padding: 0;
+        padding: $grid * 3 0 0;
         overflow: visible;
+        .alert-success {
+	        margin-top: 0;
+        }
     }
 
 	.perma-link {
@@ -5234,9 +5247,6 @@ td {
 				color: $color-blue;
 			}
 		}
-		&:first-child {
-		    border-top: none;
-	    }
 
 		.record-secondary {
 			margin-top: $grid;
