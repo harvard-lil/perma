@@ -204,7 +204,7 @@
             </div>
         </div>
 		
-		{% if can_view and link.dark_archived %}
+		{% if can_view and link|is_darchive %}
 	        <div class="banner banner-status row _isDarchive">
 		        <strong>This record is in the Dark Archive.</strong> It’s only visible to libraries and your Archiving Organization.
 	        </div>

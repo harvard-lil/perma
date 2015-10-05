@@ -30,8 +30,8 @@ class CurrentUserResourceTestCase(ApiResourceTestCase):
         self.successful_get(self.detail_url, user=self.vesting_member, fields=self.fields)
 
     def test_get_archives_json(self):
-        self.successful_get(self.detail_url + 'archives/', user=self.vesting_member, count=4)
-        self.successful_get(self.detail_url + 'archives/', user=self.regular_user, count=5)
+        self.successful_get(self.detail_url + 'archives/', user=self.vesting_member, count=6)
+        self.successful_get(self.detail_url + 'archives/', user=self.regular_user, count=7)
 
     def test_get_folders_json(self):
         self.successful_get(self.detail_url + 'folders/', user=self.vesting_member, count=1)
