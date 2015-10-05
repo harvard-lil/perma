@@ -88,6 +88,11 @@ def save_fields(instance, **kwargs):
         setattr(instance, key, val)
     instance.save(update_fields=kwargs.keys())
 
+def add_thread(thread_list, func):
+    new_thread = threading.Thread(target=func)
+    new_thread.start()
+    thread_list.append(new_thread)
+
 
 ### TASKS ##
 
@@ -101,7 +106,6 @@ class ProxyCaptureTask(Task):
         if self.request.retries >= self.max_retries:
             Capture.objects.filter(link_id=(args[0] if args else kwargs['link_guid']), status='pending').update(status='failed')
 
-
 @shared_task(bind=True,
              default_retry_delay=30,  # seconds
              max_retries=2,
@@ -110,7 +114,7 @@ class ProxyCaptureTask(Task):
 @tempdir.run_in_tempdir()
 def proxy_capture(self, link_guid, user_agent=''):
     """
-    start warcprox process. Warcprox is a MITM proxy server and needs to be running 
+    start warcprox process. Warcprox is a MITM proxy server and needs to be running
     before, during and after phantomjs gets a screenshot.
 
     Create an image from the supplied URL, write it to disk and update our asset model with the path.
@@ -120,9 +124,9 @@ def proxy_capture(self, link_guid, user_agent=''):
     So we can use local paths for temp files, and they'll just disappear when the function exits.
     """
     # basic setup
-
     link = Link.objects.get(guid=link_guid)
     target_url = link.submitted_url
+
 
     # Override user_agent for now, since PhantomJS doesn't like some user agents.
     # This user agent is the Chrome on Linux that's most like PhantomJS 1.9.8.
@@ -136,8 +140,10 @@ def proxy_capture(self, link_guid, user_agent=''):
     # Set up an exception we can trigger to halt capture and release all the resources involved.
     class HaltCaptureException(Exception):
         pass
-    meta_thread = browser = robots_txt_thread = warcprox_controller = warcprox_thread = favicon_capture_url = None
+    browser = warcprox_controller = warcprox_thread = None
     have_warc = False
+    thread_list = []
+    successful_favicon_urls = []
 
     try:
 
@@ -218,36 +224,38 @@ def proxy_capture(self, link_guid, user_agent=''):
         print "Finished fetching url."
 
         # get favicon urls
-        favicon_urls = []
-        if have_html:
-            favicons = browser.find_elements_by_xpath('//link[@rel="icon" or @rel="shortcut icon"]')
-            for candidate_favicon in favicons:
-                if candidate_favicon.get_attribute('href'):
-                    candidate_favicon_url = urlparse.urljoin(content_url, candidate_favicon.get_attribute('href'))
-                    favicon_urls.append(candidate_favicon_url)
-                    # favicon_extension = candidate_favicon_url.rsplit('.',1)[-1]
-                    # if favicon_extension in ['ico', 'gif', 'jpg', 'jpeg', 'png']:
-        favicon_urls.append(urlparse.urljoin(content_url, '/favicon.ico'))
-
         # Here we fetch everything in the page that's marked as a favicon, for archival purposes.
         # But we only record a favicon as our favicon_capture_url if it passes a mimetype whitelist.
-        for favicon_url in favicon_urls:
-            print "Fetching favicon from %s ..." % favicon_url
-            try:
-                favicon_response = proxied_get_request(favicon_url)
-                assert favicon_response.ok
-            except (requests.ConnectionError, requests.Timeout, AssertionError):
-                continue
+        def favicon_thread():
+            favicon_urls = []
+            if have_html:
+                favicons = browser.find_elements_by_css_selector('link[rel="shortcut icon"],link[rel="icon"]')
+                for candidate_favicon in favicons:
+                    if candidate_favicon.get_attribute('href'):
+                        candidate_favicon_url = urlparse.urljoin(content_url, candidate_favicon.get_attribute('href'))
+                        favicon_urls.append(candidate_favicon_url)
+            favicon_urls.append(urlparse.urljoin(content_url, '/favicon.ico'))
+            if not favicon_urls:
+                return
 
-            # apply mime type whitelist
-            if not favicon_response.headers.get('content-type', '').split(';')[0] in VALID_FAVICON_MIME_TYPES:
-                continue
+            for favicon_url in favicon_urls:
+                print "Fetching favicon from %s ..." % favicon_url
+                try:
+                    favicon_response = proxied_get_request(favicon_url)
+                    assert favicon_response.ok
+                except (requests.ConnectionError, requests.Timeout, AssertionError) as e:
+                    print "Failed:", e
+                    continue
 
-            # record the first valid favicon as our favicon_capture_url
-            if not favicon_capture_url:
-                favicon_capture_url = favicon_url
-        if not favicon_capture_url:
-            print "Couldn't get favicon"
+                # apply mime type whitelist
+                if not favicon_response.headers.get('content-type', '').split(';')[0] in VALID_FAVICON_MIME_TYPES:
+                    continue
+
+                successful_favicon_urls.append(favicon_url)
+
+            if not successful_favicon_urls:
+                print "Couldn't get favicon"
+        add_thread(thread_list, favicon_thread)
 
         # fetch robots.txt in the background
         def robots_txt_thread():
@@ -268,8 +276,7 @@ def proxy_capture(self, link_guid, user_agent=''):
                 if not rp.can_fetch('Perma', target_url):
                     save_fields(link, dark_archived_robots_txt_blocked=True)
                     print "Robots.txt fetched."
-        robots_txt_thread = threading.Thread(target=robots_txt_thread, name="robots")
-        robots_txt_thread.start()
+        add_thread(thread_list, robots_txt_thread)
 
         if have_html:
             # get page title
@@ -292,10 +299,7 @@ def proxy_capture(self, link_guid, user_agent=''):
                 if meta_tag and 'noarchive' in meta_tag.get_attribute("content").lower():
                     save_fields(link, dark_archived_robots_txt_blocked=True)
                     print "Meta found, darchiving"
-
-            meta_thread = threading.Thread(target=meta_thread)
-            meta_thread.start()
-            meta_thread.join(ELEMENT_DISCOVERY_TIMEOUT*2)
+            add_thread(thread_list, meta_thread)
 
             # scroll to bottom of page and back up, in case that prompts anything else to load
             try:
@@ -307,7 +311,7 @@ def proxy_capture(self, link_guid, user_agent=''):
             # make sure all requests are finished
             print "Waiting for post-load requests."
             start_time = time.time()
-            time.sleep(min(AFTER_LOAD_TIMEOUT, 5))
+            time.sleep(min(AFTER_LOAD_TIMEOUT, 1.5))
             while len(unique_responses) < len(unique_requests):
                 print "%s/%s finished" % (len(unique_responses), len(unique_requests))
                 if time.time() - start_time > AFTER_LOAD_TIMEOUT:
@@ -338,7 +342,6 @@ def proxy_capture(self, link_guid, user_agent=''):
             else:
                 print "Not saving screenshots! Page size is %s pixels." % pixel_count
                 save_fields(link.screenshot_capture, status='failed')
-
         else:
             # no screenshot if not HTML
             save_fields(link.screenshot_capture, status='failed')
@@ -356,12 +359,10 @@ def proxy_capture(self, link_guid, user_agent=''):
         # teardown (have to do this before save to make sure WARC is done writing):
         print "Shutting down browser and proxies."
 
+        for thread in thread_list:
+            thread.join()  # wait until threads are done (have to do this before closing phantomjs)
         if browser:
             browser.quit()  # shut down phantomjs
-        if meta_thread:
-            meta_thread.join()  # wait until meta thread is done
-        if robots_txt_thread:
-            robots_txt_thread.join()  # wait until robots thread is done
         if warcprox_controller:
             warcprox_controller.stop.set()  # send signal to shut down warc thread
         if warcprox_thread:
@@ -382,15 +383,15 @@ def proxy_capture(self, link_guid, user_agent=''):
 
             # We only save the Capture for the favicon once the warc is stored,
             # since the data for the favicon lives in the warc.
-            if favicon_capture_url:
+            if successful_favicon_urls:
                 Capture(
                     link=link,
                     role='favicon',
                     status='success',
                     record_type='response',
-                    url=favicon_capture_url
+                    url=successful_favicon_urls[0]
                 ).save()
-                print "Saved favicon at %s" % favicon_capture_url
+                print "Saved favicon at %s" % successful_favicon_urls
 
             print "Writing CDX lines to the DB"
             CDXLine.objects.create_all_from_link(link)
