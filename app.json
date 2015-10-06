@@ -73,9 +73,6 @@
     "DJANGO__SECRET_KEY":{
       "required":true
     },
-    "DJANGO__STATIC_URL":{
-      "required":true
-    },
     "DJANGO__WARC_HOST":{
       "required":true
     }
