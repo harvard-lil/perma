@@ -45,6 +45,11 @@ DEFAULT_FROM_EMAIL = 'email@example.com'
 DEVELOPER_EMAIL = DEFAULT_FROM_EMAIL
 
 
+# The host we want to display
+# Likely set to localhost:8000 if you're working in a dev instance
+HOST = 'perma.cc'
+
+
 # Sauce Labs credentials
 SAUCE_USERNAME = ''
 SAUCE_ACCESS_KEY = ''

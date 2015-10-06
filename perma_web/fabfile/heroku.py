@@ -24,6 +24,7 @@ def configure_app(app_name, s3_storage_bucket=None, s3_path='/'):
 
     django_config_vars = {
         'AWS_STORAGE_BUCKET_NAME':s3_storage_bucket,
+        'HOST':'%s.herokuapp.com' % app_name,
         'MEDIA_ROOT':'/generated/',
         'MEDIA_URL':s3_url+'media/',
         'SECRET_KEY':get_random_string(50, 'abcdefghijklmnopqrstuvwxyz0123456789'),
