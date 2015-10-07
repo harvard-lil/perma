@@ -9,7 +9,10 @@
         <meta name="description" content="{% block meta_description %} Broken links are everywhere. Perma helps authors and journals create permanent links for citations in their published work.{% endblock %}">
         {% block meta-head %}{% endblock %}
         <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <!--<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">-->
+        <!-- iOS9 viewport bug hack -->
+        <meta name="viewport" content="initial-scale=1.0001, minimum-scale=1.0001, maximum-scale=1.0001"/>
+        <!-- -->
 
         {# Python variables for use in Javascript #}
         {% include 'js_config.html' %}
