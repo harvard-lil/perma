@@ -1,5 +1,6 @@
 *.pyc
 perma_web/lib/
+.env
 perma_web/perma/settings/settings.py
 perma_web/celerybeat-schedule*
 perma_web/fab_targets.py
