@@ -107,10 +107,10 @@
             "vested": false,
             "vested_timestamp": null,
             "user_deleted": false,
+            "user_deleted_timestamp": null,
             "dark_archived_robots_txt_blocked": false,
             "created_by": 4,
             "dark_archived_by": null,
-            "user_deleted_timestamp": null,
             "dark_archived": false,
             "submitted_title": "Google",
             "submitted_url": "http://google.com",
@@ -141,6 +141,80 @@
             "creation_timestamp": "2014-07-19T20:21:31Z",
             "archive_timestamp": "2014-07-20T20:21:31Z",
             "organization": null
+        }
+    },
+    {
+        "pk": "ABCD-0001",
+        "model": "perma.link",
+        "fields": {
+            "folders": [
+                30,
+                34
+            ],
+            "view_count": 1,
+            "vested": false,
+            "vested_timestamp": null,
+            "notes": "Dark archived.",
+            "dark_archived_robots_txt_blocked": false,
+            "created_by": 4,
+            "dark_archived": true,
+            "dark_archived_by": 4,
+            "submitted_title": "Wikipedia",
+            "submitted_url": "https://www.wikipedia.org/",
+            "vested_by_editor": null,
+            "creation_timestamp": "2014-07-19T20:21:31Z",
+            "archive_timestamp": "2014-07-20T20:21:31Z",
+            "organization": 1
+        }
+    },
+    {
+        "pk": "ABCD-0002",
+        "model": "perma.link",
+        "fields": {
+            "folders": [
+                30,
+                34
+            ],
+            "view_count": 1,
+            "vested": false,
+            "vested_timestamp": null,
+            "notes": "Dark archived - robots.txt.",
+            "dark_archived_robots_txt_blocked": true,
+            "created_by": 4,
+            "dark_archived": false,
+            "dark_archived_by": 4,
+            "submitted_title": "Wikipedia",
+            "submitted_url": "https://www.wikipedia.org/",
+            "vested_by_editor": null,
+            "creation_timestamp": "2014-07-19T20:21:31Z",
+            "archive_timestamp": "2014-07-20T20:21:31Z",
+            "organization": 1
+        }
+    },
+    {
+        "pk": "ABCD-0003",
+        "model": "perma.link",
+        "fields": {
+            "folders": [
+                30,
+                34
+            ],
+            "view_count": 1,
+            "vested": false,
+            "vested_timestamp": null,
+            "notes": "",
+            "dark_archived_robots_txt_blocked": false,
+            "created_by": 4,
+            "dark_archived": false,
+            "dark_archived_by": null,
+            "user_deleted": true,
+            "user_deleted_timestamp": "2014-07-19T20:22:31Z",
+            "submitted_title": "Wikipedia",
+            "submitted_url": "https://www.wikipedia.org/",
+            "vested_by_editor": null,
+            "creation_timestamp": "2014-07-19T20:21:31Z",
+            "archive_timestamp": "2014-07-20T20:21:31Z",
+            "organization": 1
         }
     },
   {
@@ -233,5 +307,44 @@
     },
     "model": "perma.capture",
     "pk": 7
+  },
+  {
+    "fields": {
+      "status": "success",
+      "url": "file:///ABCD-0001/cap.png",
+      "user_upload": false,
+      "record_type": "resource",
+      "role": "screenshot",
+      "content_type": "image/png",
+      "link": "ABCD-0001"
+    },
+    "model": "perma.capture",
+    "pk": 8
+  },
+  {
+    "fields": {
+      "status": "success",
+      "url": "file:///ABCD-0002/cap.png",
+      "user_upload": false,
+      "record_type": "resource",
+      "role": "screenshot",
+      "content_type": "image/png",
+      "link": "ABCD-0002"
+    },
+    "model": "perma.capture",
+    "pk": 9
+  },
+  {
+    "fields": {
+      "status": "success",
+      "url": "file:///ABCD-0003/cap.png",
+      "user_upload": false,
+      "record_type": "resource",
+      "role": "screenshot",
+      "content_type": "image/png",
+      "link": "ABCD-0003"
+    },
+    "model": "perma.capture",
+    "pk": 10
   }
 ]

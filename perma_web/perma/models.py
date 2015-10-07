@@ -585,13 +585,16 @@ class Link(models.Model):
             a user can view their own dark archived links.
         """
 
-        if not self.dark_archived:
+        if not self.dark_archived and not self.dark_archived_robots_txt_blocked:
             return True
+
+        if user.is_anonymous():
+            return False
 
         if self.created_by == user:
             return True
 
-        if self.organization in user.get_orgs:
+        if self.organization in user.get_orgs():
             return True
 
         return False
