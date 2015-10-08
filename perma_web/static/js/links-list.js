@@ -1,6 +1,7 @@
 $(function() {
     var linkTable = $('.link-rows'),
-        dragStartPosition;
+        dragStartPosition,
+        lastRowToggleTime = 0;
 
     function getLinkIDForFormElement(element){
         return element.closest('.link-container').find('.link-row').attr('link_id');
@@ -73,7 +74,7 @@ $(function() {
      */
 
     // .link-row mousedown -- start drag event
-    linkTable.on('mousedown', '.link-row', function (e) {
+    linkTable.on('mousedown touchstart', '.link-row', function (e) {
         if ($(e.target).hasClass('no-drag'))
             return;
 
@@ -86,16 +87,21 @@ $(function() {
         }, '<div id="jstree-dnd" class="jstree-default"><i class="jstree-icon jstree-er"></i>[link]</div>');
 
         // record drag start position so we can check how far we were dragged on mouseup
-        dragStartPosition = [e.pageX, e.pageY];
+        dragStartPosition = [e.pageX || e.originalEvent.touches[0].pageX, e.pageY || e.originalEvent.touches[0].pageY];
 
     // .link-row mouseup -- hide and show link details, if not dragging
-    }).on('mouseup', '.link-row', function (e) {
+    }).on('mouseup touchend', '.link-row', function (e) {
         // prevent JSTree's tap-to-drag behavior
         $.vakata.dnd.stop(e);
 
-        // don't treat this as a click if the mouse has moved more than 5 pixels -- it's probably an aborted drag'n'drop
-        if(Math.sqrt(Math.pow(e.pageX-dragStartPosition[0], 2), Math.pow(e.pageY-dragStartPosition[1], 2))>5)
+        // don't treat this as a click if the mouse has moved more than 5 pixels -- it's probably an aborted drag'n'drop or touch scroll
+        if(Math.sqrt(Math.pow(e.pageX-dragStartPosition[0], 2)*Math.pow(e.pageY-dragStartPosition[1], 2))>5)
             return;
+
+        // don't toggle faster than twice a second (in case we get both mouseup and touchend events)
+        if(new Date().getTime() - lastRowToggleTime < 500)
+            return;
+        lastRowToggleTime = new Date().getTime();
 
         // hide/show link details
         var linkContainer = $(this).closest('.link-container'),
