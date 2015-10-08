@@ -40,7 +40,6 @@ django-settings-context-processor==0.2 # make settings available in templates
 django-admin-smoke-tests==0.1.11    # basic tests for the Django admin
 Pillow==2.9.0                   # Used by the Django admin for ImageField display
 whitenoise==2.0.4               # serve static assets
-python-dotenv==0.1.3            # load settings from .env file
 
 # deployment
 gunicorn==19.3.0

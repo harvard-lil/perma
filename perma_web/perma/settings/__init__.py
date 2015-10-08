@@ -1,13 +1,5 @@
 # This is the base module that will be imported by Django.
 
-# Load any environmental variables from `perma_web/.env`
-# To create from heroku, run `heroku config -s > .env`
-import os
-env_file = os.path.join(os.path.dirname(__file__), '../../.env')
-if os.path.isfile(env_file):
-    from dotenv import load_dotenv
-    load_dotenv(env_file)
-
 # Try to import the custom settings.py file, which will in turn import one of the deployment targets.
 # If it doesn't exist we assume this is a vanilla development environment and import .deployments.settings_dev.
 try:
