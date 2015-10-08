@@ -2,6 +2,7 @@
 
 # Load any environmental variables from `perma_web/.env`
 # To create from heroku, run `heroku config -s > .env`
+import os
 env_file = os.path.join(os.path.dirname(__file__), '../.env')
 if os.path.isfile(env_file):
     from dotenv import load_dotenv
