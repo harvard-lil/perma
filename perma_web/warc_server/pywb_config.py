@@ -1,11 +1,12 @@
 import StringIO
+from collections import defaultdict
+from contextlib import contextmanager
 import os
 import random
 import threading
 import re
 from urlparse import urljoin
 from pywb.rewrite.header_rewriter import HeaderRewriter
-from pywb.rewrite.rewrite_content import RewriteContent
 import requests
 from surt import surt
 
@@ -50,6 +51,18 @@ GUID_REGEX = r'(%s|%s)' % (oldstyle_guid_regex, newstyle_guid_regex)
 WARC_STORAGE_PATH = os.path.join(settings.MEDIA_ROOT, settings.WARC_STORAGE_DIR)
 thread_local_data = threading.local()
 
+@contextmanager
+def close_database_connection():
+    """
+        Normally Django closes its connections at the end of the request.
+        Here there's no Django request, so if we use the DB we close it manually.
+        See http://stackoverflow.com/a/1346401/307769
+    """
+    try:
+        yield
+    finally:
+        from django.db import connection
+        connection.close()
 
 def get_archive_path():
     # Get root storage location for warcs, based on default_storage.
@@ -73,49 +86,58 @@ class PermaRoute(archivalrouter.Route):
         """Parse the GUID and find the CDXLine in the DB"""
 
         guid = matcher.group(1)
-        try:
-            # This will filter out links that have user_deleted=True
-            link = Link.objects.get(guid=guid)
-        except Link.DoesNotExist:
-            raise NotFoundException()
+        cache_key = guid+'-cdx'
+        cached_cdx = django_cache.get(cache_key)
+        if cached_cdx is None or not wbrequest.wb_url:
+            with close_database_connection():
+                try:
+                    # This will filter out links that have user_deleted=True
+                    link = Link.objects.get(guid=guid)
+                except Link.DoesNotExist:
+                    raise NotFoundException()
 
-        if not wbrequest.wb_url:
-            # This is a bare request to /warc/1234-5678/ -- return so we can send a forward to submitted_url in PermaGUIDHandler.
-            wbrequest.custom_params['guid'] = guid
-            wbrequest.custom_params['url'] = link.submitted_url
-            return
+                if not wbrequest.wb_url:
+                    # This is a bare request to /warc/1234-5678/ -- return so we can send a forward to submitted_url in PermaGUIDHandler.
+                    wbrequest.custom_params['guid'] = guid
+                    wbrequest.custom_params['url'] = link.submitted_url
+                    return
+
+                # Legacy archives didn't generate CDXLines during
+                # capture so generate them on demand if not found, unless
+                # A: the warc capture hasn't been generated OR
+                # B: we know other cdx lines have already been generated
+                #    and the requested line is simply missing
+                lines = list(link.cdx_lines.all())
+                if not lines:
+
+                    # TEMP: remove after all legacy warcs have been exported
+                    if not default_storage.exists(link.warc_storage_file()):
+                        link.export_warc()
+
+                    lines = CDXLine.objects.create_all_from_link(link)
+
+                # build a lookup of all cdx lines for this link indexed by urlkey, like:
+                # cached_cdx = {'urlkey1':['raw1','raw2'], 'urlkey2':['raw3','raw4']}
+                cached_cdx = defaultdict(list)
+                for line in lines:
+                    cached_cdx[line.urlkey].append(line.raw)
+                django_cache.set(cache_key, cached_cdx)
 
         urlkey = surt(wbrequest.wb_url.url)
-        lines = CDXLine.objects.filter(urlkey=urlkey, link_id=guid)
-
-        # Legacy archives didn't generate CDXLines during
-        # capture so generate them on demand if not found, unless
-        # A: the warc capture hasn't been generated OR
-        # B: we know other cdx lines have already been generated
-        #    and the requested line is simply missing
-        if lines.count() == 0:
-            if link.cdx_lines.count() > 0:
-                raise NotFoundException()
-
-            # TEMP: remove after all legacy warcs have been exported
-            if not default_storage.exists(link.warc_storage_file()):
-                link.export_warc()
-
-            CDXLine.objects.create_all_from_link(link)
-            lines = CDXLine.objects.filter(urlkey=urlkey, link_id=guid)
-            if not len(lines):
-                raise NotFoundException()
+        cdx_lines = cached_cdx.get(urlkey)
+        if not cdx_lines:
+            raise NotFoundException()
 
         # Store the line for use in PermaCDXSource
         # so we don't need to hit the DB again
-        wbrequest.custom_params['lines'] = lines
+        wbrequest.custom_params['lines'] = cdx_lines
         wbrequest.custom_params['guid'] = guid
 
         # Adds the Memento-Datetime header
         # Normally this is done in MementoReqMixin#_parse_extra
         # but we need the GUID to make the DB query and that
         # isn't parsed from the url until this point
-        wbrequest.wb_url.set_replay_timestamp(lines.first().timestamp)
+        wbrequest.wb_url.set_replay_timestamp(CDXLine(raw=cdx_lines[0]).timestamp)
 
 
 # prevent mod getting added to rewritten urls
@@ -266,13 +288,14 @@ class PermaCDXSource(CDXSource):
         # When a GUID is in the url, we'll have already queried for the lines
         # in order to grab the timestamp for Memento-Datetime header
         if query.params.get('lines'):
-            return query.params.get('lines').values_list('raw', flat=True)
+            return query.params['lines']
 
         filters = {'urlkey': query.key}
         if query.params.get('guid'):
-            filters['link_id'] = query.params.get('guid')
+            filters['link_id'] = query.params['guid']
 
-        return CDXLine.objects.filter(**filters).values_list('raw', flat=True)
+        with close_database_connection():
+            return CDXLine.objects.filter(**filters).values_list('raw', flat=True)
 
 
 class CachedLoader(BlockLoader):
