@@ -13,7 +13,6 @@ from selenium.common.exceptions import ElementNotVisibleException, NoSuchElement
 import time
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from django.conf import settings
 
 from perma.wsgi import application as wsgi_app
 from perma.settings import SAUCE_USERNAME, SAUCE_ACCESS_KEY, USE_SAUCE
