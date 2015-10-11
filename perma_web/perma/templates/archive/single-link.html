@@ -213,7 +213,7 @@
         {% if new_record %}
 	        <div class="banner banner-status row _isNewRecord">
 		        <strong>Success!</strong>
-		        <span class="message verbose">Your new Perma Link is <input class="perma" type="text" value="{{ HOST }}{% url 'single_linky' link.guid %}"></input></span>
+		        <span class="message verbose">Your new Perma Link is <input class="perma" type="text" value="{{ request.get_host }}{% url 'single_linky' link.guid %}"></input></span>
 		        <span class="link-options verbose"><a href="{% url 'user_delete_link' link.guid %}">Delete</a><span class="verbose"> (Perma Links are permanent after 24 hours)</span></span>
 		        <a class="action new-link" href="{% url 'create_link' %}">Make a new Perma Link</a>
 	        </div>
