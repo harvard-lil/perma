@@ -250,8 +250,9 @@ class FunctionalTest(BaseTestCase):
 
         def fix_host(url):
             o = urlparse(url)
-            o._replace(scheme='http',
-                       netloc="{0}:{1}".format(self.server_thread.host, self.server_thread.port))
+            o = o._replace(scheme='http',
+                           netloc="{0}:{1}".format(self.server_thread.host,
+                                                   self.server_thread.port))
             return o.geturl()
 
         info("Loading homepage from %s." % self.server_url)
