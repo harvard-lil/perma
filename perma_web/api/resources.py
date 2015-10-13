@@ -530,7 +530,7 @@ class LinkResource(AuthenticatedLinkResource):
     ###
 
     def add_cors_headers(self, request, response):
-        response['Access-Control-Allow-Origin'] = 'http://%s' % request.get_host()
+        response['Access-Control-Allow-Origin'] = 'http://%s' % settings.HOST
         response['Access-Control-Allow-Headers'] = 'content-type, authorization, x-requested-with'
         response['Access-Control-Allow-Credentials'] = 'true'
         return response

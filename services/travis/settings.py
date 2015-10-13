@@ -1,7 +1,6 @@
 # Travis is our continuous integration test server.
 # This file gets copied by .travis.yml to perma_web/perma/settings/
 
-import os
 from .deployments.settings_dev import *
 
 DEBUG = False
@@ -17,7 +16,6 @@ DEFAULT_FROM_EMAIL = 'email@example.com'
 
 # The host we want to display (used when DEBUG=False)
 HOST = 'perma.cc'
-
 WARC_HOST = 'perma-archives.org'
 
 # Where we store our generated assets (phantomjs images)
