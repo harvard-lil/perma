@@ -208,24 +208,27 @@ $(function() {
                 linkTable.html('<div class="alert-info">Loading folder contents...</div>');
         }, 500);
 
-        var data = {limit: 0},
+        var requestCount = 20,
+            requestData = {limit: requestCount, offset:0},
             endpoint;
 
         if (query) {
-            data.q = query;
+            requestData.q = query;
             endpoint = '/archives/';
         }else{
             endpoint = '/folders/' + folderID + '/archives/';
         }
 
-        // fetch contents
-        apiRequest("GET", endpoint, data)
-            .always(function (data) {
+        // Content fetcher.
+        // This is wrapped in a function so it can be called repeatedly for infinite scrolling.
+        function getNextContents() {
+            apiRequest("GET", endpoint, requestData).always(function (response) {
                 // same thing runs on success or error, since we get back success or error-displaying HTML
                 showLoadingMessage = false;
-                data.objects.map(function(obj){
-                    $.each(obj.captures, function(i, capture){
-                        if(capture.role == 'favicon' && capture.status == 'success')
+                var links = response.objects;
+                $.each(links, function (i, obj) {
+                    $.each(obj.captures, function (i, capture) {
+                        if (capture.role == 'favicon' && capture.status == 'success')
                             obj.favicon_url = capture.playback_url;
                     });
                     obj.local_url = '/' + obj.guid;
@@ -241,8 +244,29 @@ $(function() {
                         obj.delete_available = true;
                     }
                 });
-                linkTable.html(templates.created_link_items({objects:data.objects, query:query}));
+
+                // append HTML
+                if(requestData.offset==0)
+                    linkTable.empty();
+                linkTable.find('.links-loading-more').remove();
+                linkTable.append(templates.created_link_items({links: links, query: query}));
+
+                // If we received exactly `requestCount` number of links, there may be more to fetch from the server.
+                // Set a waypoint event to trigger when the last link comes into view.
+                if(links.length == requestCount){
+                    requestData.offset += requestCount;
+                    linkTable.find('.link-container:last').waypoint(function(direction) {
+                        this.destroy();  // cancel waypoint
+                        linkTable.append('<div class="links-loading-more">Loading more ...</div>');
+                        getNextContents();
+                    }, {
+                        offset:'100%'  // trigger waypoint when element hits bottom of window
+                    });
+                }
+
             });
+        }
+        getNextContents();
     }
 
     function createFolder(parentFolderID, newName) {
