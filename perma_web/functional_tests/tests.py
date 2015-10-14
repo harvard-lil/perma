@@ -1,20 +1,18 @@
 from __future__ import print_function
 
 import socket
-import StringIO
-import imghdr
 import os
 import subprocess
 import unittest
 import re
 import datetime
 import sys
+from urlparse import urlparse
 from selenium import webdriver
 from selenium.common.exceptions import ElementNotVisibleException, NoSuchElementException
 import time
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from django.conf import settings
 
 from perma.wsgi import application as wsgi_app
 from perma.settings import SAUCE_USERNAME, SAUCE_ACCESS_KEY, USE_SAUCE
@@ -250,8 +248,12 @@ class FunctionalTest(BaseTestCase):
                         raise
                     time.sleep(sleep_time)
 
-        def fix_host(url, host=settings.HOST):
-            return url.replace('http://' + host, self.server_url)
+        def fix_host(url):
+            o = urlparse(url)
+            o = o._replace(scheme='http',
+                           netloc="{0}:{1}".format(self.server_thread.host,
+                                                   self.server_thread.port))
+            return o.geturl()
 
         info("Loading homepage from %s." % self.server_url)
         self.driver.get(self.server_url)
@@ -297,7 +299,7 @@ class FunctionalTest(BaseTestCase):
         # Get the guid of the created archive
         display_guid = fix_host(self.driver.current_url)[-9:]
         # Grab the WARC url for later.
-        warc_url = fix_host(self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src'), settings.WARC_HOST)
+        warc_url = fix_host(self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src'))
         # Check out the screeshot.
         get_element_with_text('See the Screenshot View', 'a').click()
         assert_text_displayed('This is a screenshot.')

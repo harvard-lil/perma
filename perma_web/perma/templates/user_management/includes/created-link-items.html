@@ -35,7 +35,7 @@
 	                <a href="{{ link.submitted_url }}" target="_blank" class="original-link">{{ link.submitted_url|truncatechars:200 }}</a><br/>
 	            </div>
 	            <div class="col-sm-6">
-	                <a class="perma" href="http://{{HOST}}/{{link.guid}}" target="_blank">http://{{HOST}}/{{link.guid}}</a><br/>
+	                <a class="perma" href="/{{link.guid}}" target="_blank">https://{{request.get_host}}/{{link.guid}}</a><br/>
 	            </div>
             </div>
             <div class="row">
