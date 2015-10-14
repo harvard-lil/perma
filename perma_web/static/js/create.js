@@ -147,31 +147,36 @@ function toggleCreateAvailable() {
 
 
 function linkNot(jqXHR){
-    // The API told us something went wrong. Often times it's a 
-    // malformed URL
-    $('#preview-container').html(templates.preview_failure({static_prefix:settings.STATIC_URL}));
+    // The API told us something went wrong.
 
-    var message = "";
-    if (jqXHR.status == 400 && jqXHR.responseText){
-        var errors = JSON.parse(jqXHR.responseText).archives;
-        for (var prop in errors) {
-            message += errors[prop] + " ";
+    if(jqXHR.status == 401){
+    // special handling if user becomes unexpectedly logged out
+        showAPIError(jqXHR);
+    }else {
+        $('#preview-container').html(templates.preview_failure({static_prefix: settings.STATIC_URL}));
+
+        var message = "";
+        if (jqXHR.status == 400 && jqXHR.responseText) {
+            var errors = JSON.parse(jqXHR.responseText).archives;
+            for (var prop in errors) {
+                message += errors[prop] + " ";
+            }
         }
-    }
-    
-    var upload_allowed = true;
-    if(message.indexOf("limit") > -1) {
-    	$('.links-remaining').text('0');
-    	upload_allowed = false;
-    }
 
-    $('#steps-container').html(templates.error({
-        message: message || "Error " + jqXHR.status,
-        upload_allowed: upload_allowed,
-        contact_url: contact_url
-    }));
+        var upload_allowed = true;
+        if (message.indexOf("limit") > -1) {
+            $('.links-remaining').text('0');
+            upload_allowed = false;
+        }
 
-    $('.preview-row').removeClass('hide _error _success _wait').addClass('_error').hide().fadeIn(0);
+        $('#steps-container').html(templates.error({
+            message: message || "Error " + jqXHR.status,
+            upload_allowed: upload_allowed,
+            contact_url: contact_url
+        }));
+
+        $('.preview-row').removeClass('hide _error _success _wait').addClass('_error').hide().fadeIn(0);
+    }
 
 
     // Reset our button and remove our spinner
@@ -187,9 +192,16 @@ function linkNot(jqXHR){
 
 /* Handle an upload - start */
 
-function uploadNot(data) {
+function uploadNot(jqXHR) {
     // Display an error message in our upload modal
-    var response = jQuery.parseJSON( data.responseText),
+
+    // special handling if user becomes unexpectedly logged out
+    if(jqXHR.status == 401){
+        showAPIError(jqXHR);
+        return;
+    }
+
+    var response = jQuery.parseJSON( jqXHR.responseText),
         reasons = [];
     $('.js-warning').remove();
     $('.has-error').removeClass('has-error');

@@ -6,31 +6,6 @@ $(function() {
         return element.closest('.link-container').find('.link-row').attr('link_id');
     }
 
-    function showError(jqXHR){
-        var message;
-
-        if(jqXHR.status == 400 && jqXHR.responseText){
-            try{
-                var parsedResponse = JSON.parse(jqXHR.responseText);
-                while(typeof parsedResponse == 'object'){
-                    for(var key in parsedResponse){
-                        if (parsedResponse.hasOwnProperty(key)){
-                            parsedResponse = parsedResponse[key];
-                            break;
-                        }
-                    }
-                }
-                message = parsedResponse;
-            }catch(SyntaxError){}
-        }
-
-        if(!message){
-            message = "Error " + jqXHR.status;
-        }
-
-        informUser(message, 'danger');
-    }
-
     // save changes to a given text box to the server
     var saveNeeded = false,
         lastSaveTime = 0,
