@@ -56,11 +56,11 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             'guid',
             'creation_timestamp',
             'expiration_date',
-            'organization',
             'captures',
             'view_count'
         ]
         self.logged_in_fields = self.logged_out_fields + [
+            'organization',
             'notes',
             'created_by',
             'dark_archived_by',
