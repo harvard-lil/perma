@@ -248,10 +248,11 @@ def proxy_capture(self, link_guid, user_agent=''):
                     continue
 
                 # apply mime type whitelist
-                if not favicon_response.headers.get('content-type', '').split(';')[0] in VALID_FAVICON_MIME_TYPES:
+                mime_type = favicon_response.headers.get('content-type', '').split(';')[0]
+                if not mime_type in VALID_FAVICON_MIME_TYPES:
                     continue
 
-                successful_favicon_urls.append(favicon_url)
+                successful_favicon_urls.append((favicon_url, mime_type))
 
             if not successful_favicon_urls:
                 print "Couldn't get favicon"
@@ -389,7 +390,8 @@ def proxy_capture(self, link_guid, user_agent=''):
                     role='favicon',
                     status='success',
                     record_type='response',
-                    url=successful_favicon_urls[0]
+                    url=successful_favicon_urls[0][0],
+                    content_type=successful_favicon_urls[0][1]
                 ).save()
                 print "Saved favicon at %s" % successful_favicon_urls
 
