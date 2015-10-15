@@ -6,6 +6,8 @@ var new_archive = {};
 // Where we queue up our archive guids for polling
 var refreshIntervalIds = [];
 
+var spinner;
+
 /* Our globals. Look out interwebs - end */
 
 
@@ -131,16 +133,15 @@ function linkIt(data){
 
 function toggleCreateAvailable() {
     // Get our spinner going and display a "we're working" message
-
-    if ($('#addlink').hasClass('_isWorking')) {
-        $('#addlink').html('Create Perma Link').removeAttr('disabled').removeClass('_isWorking');
-        var target = document.getElementById('addlink');
-        $(target).spin(false);
+    $addlink = $('#addlink');
+    if ($addlink.hasClass('_isWorking')) {
+        $addlink.html('Create Perma Link').removeAttr('disabled').removeClass('_isWorking');
+        spinner.stop();
         $('#rawUrl').removeAttr('disabled');
     } else {
-    	$('#addlink').html('Creating your Perma Link').attr('disabled', 'disabled').addClass('_isWorking');
-    	var target = document.getElementById('addlink');
-    	var spinner = new Spinner(opts).spin(target);
+        $addlink.html('<div id="capture-status">Creating your Perma Link</div>').attr('disabled', 'disabled').addClass('_isWorking');
+        spinner = new Spinner(opts);
+        spinner.spin($addlink[0]);
         $('#rawUrl').attr('disabled', 'disabled');
     }
 }
@@ -173,11 +174,7 @@ function linkNot(jqXHR){
 
     $('.preview-row').removeClass('hide _error _success _wait').addClass('_error').hide().fadeIn(0);
 
-
-    // Reset our button and remove our spinner
-    $('#addlink').html('Create Perma Link').removeAttr('disabled').removeClass('_isWorking');
-
-
+    toggleCreateAvailable();
 }
 
 /* Handle the the main action (enter url, hit the button) button - start */
