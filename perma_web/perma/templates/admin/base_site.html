@@ -27,7 +27,14 @@
 {% endblock %}
 
 {% block userlinks %}
-    {{ block.super }}
+    {% url 'django-admindocs-docroot' as docsroot %}
+    {% if docsroot %}
+        <a href="{{ docsroot }}">{% trans 'Documentation' %}</a> /
+    {% endif %}
+    {% if user.has_usable_password %}
+    <a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a> /
+    {% endif %}
+    <a href="{% url 'logout' %}">{% trans 'Log out' %}</a>
     / <a href="{% url 'create_link' %}">Back to Dashboard</a>
 {% endblock %}
 
