@@ -79,6 +79,8 @@ def get_archive_path():
     # 'unicode' object has no attribute 'get'
     return archive_path.encode('ascii', 'ignore')
 
+def raise_not_found(url):
+    raise NotFoundException('No Captures found for: %s' % url, url=url)
 
 # include guid in CDX requests
 class PermaRoute(archivalrouter.Route):
@@ -94,7 +96,7 @@ class PermaRoute(archivalrouter.Route):
                     # This will filter out links that have user_deleted=True
                     link = Link.objects.get(guid=guid)
                 except Link.DoesNotExist:
-                    raise NotFoundException()
+                    raise_not_found(wbrequest.wb_url)
 
                 if not wbrequest.wb_url:
                     # This is a bare request to /warc/1234-5678/ -- return so we can send a forward to submitted_url in PermaGUIDHandler.
@@ -126,7 +128,7 @@ class PermaRoute(archivalrouter.Route):
         urlkey = surt(wbrequest.wb_url.url)
         cdx_lines = cached_cdx.get(urlkey)
         if not cdx_lines:
-            raise NotFoundException()
+            raise_not_found(wbrequest.wb_url)
 
         # Store the line for use in PermaCDXSource
         # so we don't need to hit the DB again
