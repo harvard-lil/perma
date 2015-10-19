@@ -2,8 +2,6 @@
 # these will get added onto the end of requirements.txt by heroku-buildpack-perma
 
 dj_database_url==0.3.0
-dj-static==0.0.5
 newrelic==2.54.0.41
 rollbar==0.9.14
 cffi                        # This is a dependency of some of our packages. Heroku will detect it and install a previously-compiled version.
-
