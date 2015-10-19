@@ -296,7 +296,6 @@ class BaseLinkResource(MultipartResource, DefaultResource):
     dark_archived = fields.BooleanField(attribute='dark_archived', blank=True, default=False)
     dark_archived_robots_txt_blocked = fields.BooleanField(attribute='dark_archived_robots_txt_blocked', blank=True, default=False)
     expiration_date = fields.DateTimeField(attribute='get_expiration_date', readonly=True)
-    organization = fields.ForeignKey(OrganizationResource, 'organization', full=True, blank=True, null=True)
     captures = fields.ToManyField(CaptureResource, 'captures', readonly=True, full=True)
 
     class Meta(DefaultResource.Meta):
@@ -344,6 +343,7 @@ class AuthenticatedLinkResource(BaseLinkResource):
     # folders = fields.ToManyField(FolderResource, 'folders', readonly=True, null=True)
     archive_timestamp = fields.DateTimeField(attribute='archive_timestamp', readonly=True)
     is_private = fields.BooleanField(attribute='is_private')
+    organization = fields.ForeignKey(OrganizationResource, 'organization', full=True, blank=True, null=True)
 
     class Meta(BaseLinkResource.Meta):
         authorization = AuthenticatedLinkAuthorization()
