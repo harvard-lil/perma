@@ -164,13 +164,15 @@
             		<dt class="tray-detail-title">Record creation date</dt>
             		<dd class="tray-detail-entry">{{ link.creation_timestamp|local_datetime }}</dd>
 				</dl>
-            	
-                {% if link.organization %}
-            	<dl class="tray-detail-group">
-                    <dt class="tray-detail-title">Archiving Organization</dt>
-                    <dd class="tray-detail-entry">{{ link.organization }}</dd>
-            	</dl>
-                {% endif %}
+
+                {% comment %}
+                    {% if link.organization %}
+                    <dl class="tray-detail-group">
+                        <dt class="tray-detail-title">Archiving Organization</dt>
+                        <dd class="tray-detail-entry">{{ link.organization }}</dd>
+                    </dl>
+                    {% endif %}
+                {% endcomment %}
 
                 <!--
                 <p class="fp">Perma.cc is a web archiving service developed by the Library Innovation Lab at Harvard University. The data captured in the archived Perma.cc record is the copyright of its original creators. Neither Harvard University nor the archiving individual are responsible for its content. <a href="http://perma.cc/about">More about Perma.cc.</a></p>
