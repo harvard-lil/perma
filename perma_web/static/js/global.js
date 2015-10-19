@@ -172,9 +172,9 @@ function showAPIError(jqXHR){
             }
             message = parsedResponse;
         }catch(SyntaxError){}
-    }
-
-    if(!message){
+    }else if(jqXHR.status == 401){
+        message = "<a href='/login'>You appear to be logged out. Please click here to log back in</a>.";
+    }else{
         message = "Error " + jqXHR.status;
     }
 
