@@ -247,13 +247,13 @@ class PermaCDXSource(CDXSource):
         # When a GUID is in the url, we'll have already queried for the lines
         # in order to grab the timestamp for Memento-Datetime header
         if query.params.get('lines'):
-            return query.params.get('lines').values_list('raw', flat=True)
+            return [str(i) for i in query.params.get('lines').values_list('raw', flat=True)]
 
         filters = {'urlkey': query.key}
         if query.params.get('guid'):
             filters['link_id'] = query.params.get('guid')
 
-        return CDXLine.objects.filter(**filters).values_list('raw', flat=True)
+        return [str(i) for i in CDXLine.objects.filter(**filters).values_list('raw', flat=True)]
 
 
 class CachedLoader(BlockLoader):
