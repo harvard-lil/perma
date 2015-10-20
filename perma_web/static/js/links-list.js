@@ -7,40 +7,27 @@ $(function() {
         return element.closest('.link-container').find('.link-row').attr('link_id');
     }
 
-    // save changes to a given text box to the server
-    var saveNeeded = false,
-        lastSaveTime = 0,
-        saveBufferSeconds = 3;
+    // save changes in a given text box to the server
+    var saveBufferSeconds = .5,
+        timeouts = {};
     function saveInput(inputElement, statusElement, name, callback) {
-        if(inputElement.val()==inputElement.attr('last_value_saved'))
-            return;
-
         statusElement.html('Saving...');
-        saveNeeded = true;
 
         var guid = inputElement.attr('id').match(/.+-(.+-.+)/)[1],
-            data = {};
+            timeoutKey = guid+name;
 
-        data[name] = inputElement.val();
+        if(timeouts[timeoutKey])
+            clearTimeout(timeouts[timeoutKey]);
 
         // use a setTimeout so notes are only saved once every few seconds
-        setTimeout(function () {
-            if (saveNeeded) {
-                saveNeeded = false;
-                lastSaveTime = new Date().getTime();
-                var saveValue = inputElement.val();
-
-                var request = apiRequest("PATCH", '/archives/' + guid + '/', data);
-
-                request.done(function(data){
-                    if(!saveNeeded)
-                        statusElement.html('Saved!');
-                        inputElement.attr('last_value_saved', saveValue);
-                });
-
-                if (callback) request.done(callback);
-            }
-        }, Math.max(saveBufferSeconds * 1000 - (new Date().getTime() - lastSaveTime), 0));
+        timeouts[timeoutKey] = setTimeout(function () {
+            var data = {};
+            data[name] = inputElement.val();
+            var request = apiRequest("PATCH", '/archives/' + guid + '/', data).done(function(data){
+                statusElement.html('Saved!');
+            });
+            if (callback) request.done(callback);
+        }, saveBufferSeconds*1000);
     }
 
     /*
@@ -138,13 +125,11 @@ $(function() {
 
     // handle move-to-folder dropdown
     }).on('change', '.move-to-folder', function () {
-        moveSelect = $(this);
+        var moveSelect = $(this);
         moveLink(
             moveSelect.val(), // selected folder_id to move link to
             getLinkIDForFormElement(moveSelect) // link id to move
-        ).done(function () {
-            showFolderContents(getSelectedFolderID());
-        });
+        );
     });
 
     // set body class during drag'n'drop
@@ -186,7 +171,7 @@ $(function() {
         showLoadingMessage = true;
         setTimeout(function(){
             if(showLoadingMessage)
-                linkTable.html('<div class="alert-info">Loading folder contents...</div>');
+                linkTable.empty().html('<div class="alert-info">Loading folder contents...</div>');
         }, 500);
 
         var requestCount = 20,
@@ -267,7 +252,10 @@ $(function() {
     }
 
     function moveLink(folderID, linkID) {
-        return apiRequest("PUT", "/folders/" + folderID + "/archives/" + linkID + "/");
+        return apiRequest("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function(){
+            // once we're done moving the link, hide it from the current folder
+            $('.link-row[link_id="'+linkID+'"]').closest('.link-container').remove();
+        });
     }
 
 
@@ -331,9 +319,7 @@ $(function() {
                         // link dragged onto folder
                         if (operation == 'copy_node') {
                             var targetNode = getDropTarget();
-                            moveLink(targetNode.data.folder_id, node.id).done(function () {
-                                showFolderContents(getSelectedFolderID());
-                            });
+                            moveLink(targetNode.data.folder_id, node.id);
                         }
                     } else {
                         // internal folder action
