@@ -47,7 +47,7 @@ gevent==1.0.2
 
 # PyWB-related stuff
 surt==0.2                       # our simple CDX server to canonicalize URL
-pywb==0.10.6
+pywb==0.10.9.1
 -e git://github.com/internetarchive/warcprox.git@67f2ceb717c158771a18e040e062f7aff20e95dd#egg=warcprox  # use 7/17/15 version of warcprox, which has SNI support not yet in warcprox==1.4
 
 # alternate storages
