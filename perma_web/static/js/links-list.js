@@ -30,40 +30,27 @@ $(function() {
         informUser(message, 'danger');
     }
 
-    // save changes to a given text box to the server
-    var saveNeeded = false,
-        lastSaveTime = 0,
-        saveBufferSeconds = 3;
+    // save changes in a given text box to the server
+    var saveBufferSeconds = .5,
+        timeouts = {};
     function saveInput(inputElement, statusElement, name, callback) {
-        if(inputElement.val()==inputElement.attr('last_value_saved'))
-            return;
-
-        statusElement.html('saving ...');
-        saveNeeded = true;
+        statusElement.html('Saving...');
 
         var guid = inputElement.attr('id').match(/.+-(.+-.+)/)[1],
-            data = {};
+            timeoutKey = guid+name;
 
-        data[name] = inputElement.val();
+        if(timeouts[timeoutKey])
+            clearTimeout(timeouts[timeoutKey]);
 
         // use a setTimeout so notes are only saved once every few seconds
-        setTimeout(function () {
-            if (saveNeeded) {
-                saveNeeded = false;
-                lastSaveTime = new Date().getTime();
-                var saveValue = inputElement.val();
-
-                var request = apiRequest("PATCH", '/archives/' + guid + '/', data);
-
-                request.done(function(data){
-                    if(!saveNeeded)
-                        statusElement.html('saved.');
-                        inputElement.attr('last_value_saved', saveValue);
-                });
-
-                if (callback) request.done(callback);
-            }
-        }, Math.max(saveBufferSeconds * 1000 - (new Date().getTime() - lastSaveTime), 0));
+        timeouts[timeoutKey] = setTimeout(function () {
+            var data = {};
+            data[name] = inputElement.val();
+            var request = apiRequest("PATCH", '/archives/' + guid + '/', data).done(function(data){
+                statusElement.html('Saved!');
+            });
+            if (callback) request.done(callback);
+        }, saveBufferSeconds*1000);
     }
 
     // hide and show link details
