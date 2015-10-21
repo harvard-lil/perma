@@ -206,6 +206,10 @@ body.modal-open {
     margin-bottom: 10px;
 	display: inline;
 	list-style-type: none;
+
+	-webkit-filter: grayscale(100%);
+	filter: gray;
+	filter: grayscale(100%);
 }
 
 
