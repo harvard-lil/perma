@@ -90,6 +90,7 @@ class PermaRoute(archivalrouter.Route):
         guid = matcher.group(1)
         cache_key = guid+'-cdx'
         cached_cdx = django_cache.get(cache_key)
+        redirect_matcher = re.compile(r' 30[1-7] ')
         if cached_cdx is None or not wbrequest.wb_url:
             with close_database_connection():
                 try:
@@ -123,6 +124,14 @@ class PermaRoute(archivalrouter.Route):
                 cached_cdx = defaultdict(list)
                 for line in lines:
                     cached_cdx[line.urlkey].append(line.raw)
+
+                # remove any redirects if we also have a non-redirect capture for the same URL, to prevent redirect loops
+                for urlkey, lines in cached_cdx.iteritems():
+                    if len(lines) > 1:
+                        lines_without_redirects = [line for line in lines if not redirect_matcher.search(line)]
+                        if lines_without_redirects:
+                            cached_cdx[urlkey] = lines_without_redirects
+
                 django_cache.set(cache_key, cached_cdx)
 
         urlkey = surt(wbrequest.wb_url.url)
