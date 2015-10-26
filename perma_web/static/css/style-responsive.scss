@@ -51,6 +51,8 @@
 }
 
 
+// The Basics
+
 html {
     height: 100%;
     margin: 0;
@@ -79,14 +81,64 @@ footer {
 	}
 }
 
+// Container, Row, Column
+
+.container {
+    margin: 0 auto;
+}
+
+.container {
+	@extend %style-clears-floats;
+	@extend %style-block-centered;
+	width: 100%;
+	padding: 0 $page-margin;
+	overflow-y: visible;
+	overflow-x: hidden;
+	@include respond-tablet {
+		max-width: $width-tablet; 
+	}
+	@include respond-desktop {
+		max-width: $width-desktop; 
+	}
+	@include respond-wide {
+		max-width: $width-wide; 
+	}
+}
+
+.container.container-full {
+	max-width: none;
+	padding: 0;
+	margin-top: $grid * 6; //??
+}
+
+.container.container-bleed {
+	padding: 0;
+}
+
+.container.container-bg {
+	background-color: $color-background;
+}
+
+.container.container-display {
+	padding: $grid * 4 $double;
+	@include respond-tablet {
+		padding: $grid * 9 $double;
+	}
+}
+
+
+div.main-container, 
+.container.container-full {
+    margin: 0 auto;
+    width: 100%;
+}
+
+
+
 .carousel-control {
 	background-color: transparent;
 }
 
-div.main-container {
-    margin: 0 auto;
-    width: 100%;
-}
 
 section#main { // review XX
     color: $color-black;
@@ -710,48 +762,6 @@ input:focus, *:hover {
 // redefine general bootstrap
 
 
-.container {
-	@extend %style-clears-floats;
-	margin-right: 0;
-	margin-left: 0;
-	padding: 0 $double; // review
-	overflow-y: visible; // review
-	@include respond-tablet {
-		max-width: $width-tablet; // review
-		margin-right: auto;
-		margin-left: auto;
-//		padding-left: $double;
-//		padding-right: $double;
-	}
-	@include respond-desktop {
-		
-		max-width: $width-desktop; // review
-	}
-	@include respond-wide {
-		max-width: $width-wide; // review
-	}
-}
-
-.container-full {
-	max-width: none !important;
-	padding: 0;
-	margin-top: $grid * 6;
-}
-
-.container.container-bleed {
-	padding: 0;
-}
-
-.container-bg {
-	background-color: $color-background;
-}
-
-.container-display {
-	padding: $grid * 4 $double;
-	@include respond-tablet {
-		padding: $grid * 9 $double;
-	}
-}
 
 .row {
 	margin: 0 -$double;
@@ -3481,15 +3491,6 @@ code {
 	border-bottom: 3px solid $color-orange;
 }
 
-.container-fluid {
-    padding: 0;
-
-    .row > div {
-        padding: 0;
-    }
-}
-
-
 .subheading {
 	color: #ff1400;
 	margin-left: 16px;
@@ -4450,12 +4451,10 @@ img.image-view {
     background: #adf;
 }
 
-td.linky-link input {
-	border: 1px solid #eee;
-	padding: 2px 4px;
-	margin: 0px;
-	width: 90%;
-}
+
+
+
+
 
 .translucent-background {
 	background: rgba(255,255,255,.9);
@@ -4480,9 +4479,8 @@ ul {
 .negative-margin {
 	margin-top: -20px;
 }
-#linky-upload {
-    outline: none;
-}
+
+
 
 #frame {
     margin: 0 auto;
@@ -4507,20 +4505,9 @@ ul {
     left: 20px;
 }
 
-#linky-confirm {
-    width: 900px; //	SET THE WIDTH OF THE MODAL 
-    margin-left: -450px; //	CHANGE MARGINS TO ACCOMODATE THE NEW WIDTH (original = margin: -250px 0 0 -280px;) 
-}
 
-.linky-view {
-	min-height: 330px;
-}
 
-#linky-desc {
-  float: left;
-  margin-left: 16px;
-  width: 320px;
-}
+
 
 #emailPerma {
   margin-top: 8px;
@@ -4539,78 +4526,25 @@ ul {
     @include opacity(.6);
 }
 
-#linky-error h4, #linky-error button {
-  margin: 25px 0;
-}
 
-#linky-preview img, .loading-background {
-  max-width: 500px;
-  background: #fff;
-}
 
-#linky-preview {
-  max-height: 400px;
-  width: 515px;
-  border: 1px solid #ddd;
-  background: #fff;
-  overflow: auto;
-}
+
 
 .border {
      border: 1px solid #ddd;
 }
 
-#linkyUrl {
-  height: 140px;
-}
 
-#linky_title {
-  margin-top: 10px;
-  display: block;
-}
-
-#saveLinky {
-  margin-top: 45px;
-}
 
 #local-list {
   display: none;
 }
 
-#linky-list th {
-  width: 200px;
-}
 
-.linky-ul-header {
-    margin-top: 5px;
-}
 
-.perma-ul {
-  list-style: none;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 16px;
-  width: 75%;
-}
 
-.perma-ul li {
-  margin-top: 20px;
-}
 
-.perma-ul li h4 {
-  margin-bottom: 0px;
-}
 
-.perma-ul li h4 a {
-    color: #003355;
-}
-
-.perma-ul .row-fluid: last-child {
-  -moz-mask: -moz-gradient(linear, left top,
-    left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)));
-  -webkit-mask-image: -webkit-gradient(linear, left top,
-    left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)));
-}
 
 #register-prompt {
   margin-top: 25px;
@@ -4674,29 +4608,6 @@ h3 {
     border: 1px solid red;
 }
 
-img.linky-image, img.linky-image-preview {
-    border: 1px solid #ccc;
-    margin-top: -40px;
-    margin-bottom: 25px;
-    border-radius: 3px;
-    -moz-box-shadow: 0 0 2px 2px #eee;
-    -webkit-box-shadow: 0 0 2px 2px#eee;
-    box-shadow: 0 0 2px 2px #eee;
-    background: #fff;
-}
-
-img.linky-image {
-    margin-top: 0px;
-}
-
-img.linky-image-preview {
-    width: 300px;
-}
-
-#linky-pdf {
-	min-height: 450px;
-	display: block;
-}
 
 .watermark {
 	margin: 0 auto;
@@ -4837,25 +4748,16 @@ a.grey {
 
 }
 
-.recent-linky-summary {
-    margin-left: 24px;
-    margin-top: -9px;
-    margin-bottom: -13px;
-}
 
-.recent-linky-summary small a, .linky-abbr-title small {
-	font-style: italic;
-	color: #aaa;
-}
+
+
 .copy-confirm {
   margin-top: 5px;
   color: #006dcc;
 }
 
-ul#linky-ul li {
-    margin-left: 5px;
-    margin-right: 5px;
-}
+
+
 
 
 .registrar-info {
@@ -4950,11 +4852,9 @@ h3 small {
     top: -5px;
     cursor: pointer;
 }
-#linky-list h3 {
-	font-family: 'Roboto Slab', sans-serif;
-    font-size: 25px;
 
-}
+
+
 .white-box {
     background: rgba(255,255,255,.5);
     border-radius: 3px;
@@ -6581,9 +6481,7 @@ p.orange {
 
 
 @media (max-width:  992px) {
-	td.linky-link {
-		width: 200px;
-	}
+
 	tbody {
 		font-size: 12px;
 	}
