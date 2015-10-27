@@ -299,7 +299,7 @@ input:focus, *:hover {
 	outline: none !important;
 }
 
-// The Basics
+// The Basics (Structure)
 
 html {
     height: 100%;
@@ -339,6 +339,191 @@ section#main {
 	}
 	@include respond-wide {
 	}
+}
+
+// The Basics (Heds)
+
+h1, h2, h3, h4, h5 { 
+	font-family: $font-hed-alt; 
+	font-weight: 900;
+	line-height: 1.2;
+	margin: 0;
+	color: $color-black;
+	@include respond-tablet {
+		font-weight: 300;
+	}
+	&:first-child {
+		margin-top: 0;
+	}
+}
+
+h1 {
+    font-weight: 300;
+    font-size: 40px;
+	@include respond-tablet {
+		font-size: 46px;
+	}
+	& + form,
+	& + div {
+		margin-top: $grid * 4;
+	}
+	.subsection {
+		color: $color-blue;
+		font-size: 28px;
+		display: none;
+		margin-top: $grid;
+		@include respond-desktop {
+			font-size: 35px;
+			display: inline;
+			margin-top: 0;
+			&:before {
+				content: '/ ';
+			}
+		}
+	}
+}
+
+h2 {
+    margin-top: 25px;
+    font-size: 26px;
+    color: $color-orange;
+}
+
+h3 {
+	font-size: 28px;
+}
+
+h4 {
+	color: $color-orange; //?
+}
+
+.docs h4 {
+	color: $color-blue; //?
+	font-size: 22px; //?
+}
+
+h5 {
+	a {
+		color: #333;
+		margin-left: 16px;
+		line-height: 1.4;
+	}
+}
+
+p {
+    margin-bottom: 1em;
+    font-weight: 300;
+    color: $color-black;
+	line-height: 1.5;
+	max-width: $width-max-measure;
+	&:last-child {
+		margin-bottom: 0;
+	}
+	a {
+		font-family: $font-hed-alt;
+		font-weight: 700;
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+}
+
+a {
+	font-weight: inherit;
+}
+
+a.perma, p a.perma {
+	font-family: $font-hed-alt;
+	font-weight: 900;
+	color: $color-blue;
+	white-space: nowrap;
+	font-size: 12px;
+	padding: 2px 4px;
+	border: 2px solid $color-blue;
+	vertical-align: middle;
+	border-radius: 2px;
+	&:hover {
+		text-decoration: none;
+		border-color: $color-hover;
+		color: $color-hover;
+		&:before {
+			background-position-x: -30px * 3 !important;
+		}
+	}
+	&:active {
+		border-color: $color-black;
+		color: $color-black;
+		&:before {
+			background-position-x: -30px * 1 !important;
+		}
+	}
+	@include respond-tablet {
+		padding: 6px;
+		font-size: 14px;
+		&:before {
+			width: 30px;
+			top: 2px;
+			background-size: 180px 14px;
+			background-position-x: -30px * 2;
+		}
+		&:hover {
+			&:before {
+				background-position-x: -30px * 1;
+			}
+		}
+		&:active {
+			&:before {
+				background-position-x: -30px * 1;
+			}
+		}
+	}
+}
+
+a.outside, p a.outside {
+	font-family: $font-hed-alt;
+    font-weight: 300;
+    white-space: nowrap;
+    padding: 6px 12px;
+    background-color: $color-blue;
+    border-radius: 5em;
+    font-size: 14px;
+    margin: 0 $half;
+    &:visited, &:link {
+	    color: $color-white;
+    }
+    &:after {
+		content: '';
+		width: 9px;
+		height: 17px;
+		display: inline-block;
+		margin-left: $grid;
+		position: relative;
+		top: 3px;
+		background-image: url('../img/ui/perma-ui-chev-right-small.png');
+		background-repeat: no-repeat;
+		background-position: 0 0;
+		background-size: 54px 17px;
+		background-position-x: -9px * 5;
+    }
+	&:hover {
+		text-decoration: none;
+		background-color: $color-hover;
+	}
+	&:active {
+		background-color: $color-black;
+	}
+}
+
+// Global Flags
+
+._noMobile {
+	@include respond-mobile {
+		display: none !important;
+	}
+}
+
+._soleContent {
+	margin-bottom: $double;
 }
 
 
@@ -399,6 +584,155 @@ section#main {
 	}
 }
 
+.row {
+	margin: 0 $bleed;
+	.col-sm-6 + .col-sm-6 {
+		// margin-top: $grid * 4;
+		@include respond-tablet {
+			margin-top: 0;
+			padding-left: $grid * 4
+		}
+	}
+}
+
+.row.row-no-bleed {
+	margin-left: 0;
+	margin-right: 0;
+}
+
+.row.row-half-bleed {
+	margin-left: -2px;
+	margin-right: -2px;
+}
+
+.col.col-no-gutter {
+	padding-left: 0;
+	padding-right: 0;
+}
+
+.col.col-half-gutter {
+	padding-left: 2px;
+	padding-right: 2px;
+}
+
+div.col-right {
+	@include respond-tablet {
+		float: right;
+	}
+}
+
+.col.align-right {
+	@include respond-tablet {
+		text-align: right;
+	}
+}
+
+.col-sm-by5 {
+	width: 100%;
+	@include respond-desktop {
+		width: 100 / 5 * 1%;
+		float: left;
+	}
+}
+
+// Heds
+
+.page-title {
+	margin-top: 0;
+    font-weight: 300;
+    font-size: 40px;
+	@include respond-tablet {
+		font-size: 46px;
+	}
+}
+
+.page-subtitle {
+	
+}
+
+.page-dek {
+	font-family: $font-hed-alt;
+    font-weight: 300;
+    font-size: 16px;
+    margin-top: $double;
+    @include respond-tablet {
+	    font-size: 22px;
+    }
+}
+
+.body-text {
+	font-size: 15px;
+	font-weight: 300;
+	font-family: $font-body;
+	line-height: 1.5;
+	clear: both;
+	@include respond-tablet {
+		font-size: 16px;
+	}
+	@include respond-desktop {
+		font-size: 18px;
+	}
+}
+
+.body-ah { 
+	font-size: 22px;
+    border-top: 2px solid $color-blue;
+    padding-top: $grid;
+    margin-top: $grid * 6;
+    font-family: $font-hed-alt;
+    font-weight: 700;
+    color: $color-blue;
+    &:first-child {
+        margin-top: 0;
+    }
+  	@include respond-tablet {
+	    margin-top: $grid * 8;
+	}
+	& + p {
+		margin-top: $double;
+	}
+	& + p.page-dek {
+		margin-top: $grid;
+	}
+}
+
+.body-ah + .body-bh {
+    margin-top: $grid * 3;
+ 	@include respond-tablet {
+	    margin-top: $grid * 6;
+	}
+}
+
+.body-bh { 
+	font-size: 16px;
+    border-top: 1px solid $color-orange;
+    padding-top: $grid;
+    margin-top: $grid * 3;
+    margin-bottom: $grid;
+    font-family: $font-hed-alt !important;
+    font-weight: 400 !important;
+    color: $color-orange;
+    line-height: 1.3;
+ 	@include respond-tablet {
+	    margin-top: $grid * 6;
+	    margin-bottom: $double;
+		font-size: 18px;
+	}
+}
+
+.body-ch {
+	font-size: 16px;
+	font-family: $font-hed-alt;
+	font-weight: 700;
+	margin-bottom: $grid;
+	margin-top: $double;
+ 	@include respond-tablet {
+	    margin-bottom: $double;
+	    margin-top: $grid * 3;
+		font-size: 18px;
+	}
+}
+
 // Modals
 
 body.modal-open {
@@ -410,6 +744,9 @@ body.modal-open {
     filter: alpha(opacity=95);
     background-color: white;
 }
+
+.modal { position: fixed; }
+
 
 // Carousel
 
@@ -754,278 +1091,40 @@ body.modal-open {
 
 
 
-// redefine general bootstrap
 
 
-
-.row {
-	margin: 0 -$double;
-	.col-sm-6 + .col-sm-6 {
-		// margin-top: $grid * 4;
-		@include respond-tablet {
-			margin-top: 0;
-			padding-left: $grid * 4
-		}
-	}
+._admin #main-content {
+	overflow: visible;
 }
 
-.row.row-no-bleed {
-	margin-left: 0;
-	margin-right: 0;
-}
-
-.row.row-half-bleed {
-	margin-left: -2px;
-	margin-right: -2px;
-}
-
-.col.col-no-gutter {
-	padding-left: 0;
-	padding-right: 0;
-}
-
-.col.col-half-gutter {
-	padding-left: 2px;
-	padding-right: 2px;
-}
-
-div.col-right {
+#main._fullWidth #main-content {
 	@include respond-tablet {
-		float: right;
-	}
-}
-
-.col.align-right {
-	@include respond-tablet {
-		text-align: right;
+		padding-left: 0;
+		padding-right: 0;
+		max-width: none;
 	}
 }
 
 
-.col-sm-by5 {
-	width: 100%;
-	@include respond-desktop {
-		width: 100 / 5 * 1%;
-		float: left;
-	}
-}
+
+
+
 
 /////////////////////////
 
 // general styles
 
-h1, h2, h3, h4, h5 { 
-	font-family: $font-hed-alt; 
-	font-weight: 900;
-	line-height: 1.2;
-	margin: 0;
-	color: $color-black;
-	@include respond-tablet {
-		font-weight: 300;
-	}
-	&:first-child {
-		margin-top: 0;
-	}
-}
 
-h1 {
-    font-weight: 300;
-    font-size: 40px;
-	@include respond-tablet {
-		font-size: 46px;
-	}
-}
 
-h1 + form ,
-h1 + div {
-	margin-top: $grid * 4;
-}
 
-span.subsection {
-	color: $color-blue;
-	font-size: 28px;
-	display: none;
-	margin-top: $grid;
-	@include respond-desktop {
-		font-size: 35px;
-		display: inline;
-		margin-top: 0;
-		&:before {
-			content: '/ ';
-		}
-	}
-}
 
-h2 {
-    margin-top: 25px;
-    font-size: 26px;
-    color: $color-orange;
-}
 
-h3 {
-	font-size: 28px;
-}
 
-h4 {
-	color: $color-orange;
-}
-
-p {
-	line-height: 1.5;
-	max-width: $width-max-measure;
-	&:last-child {
-		margin-bottom: 0;
-	}
-}
-
-.docs h4 {
-	color: $color-blue;
-	font-size: 22px;
-}
-
-a {
-	font-weight: inherit;
-}
-
-p a {
-	font-family: $font-hed-alt;
-	font-weight: 700;
-	&:hover {
-		text-decoration: underline;
-	}
-}
-
-a.perma, p a.perma {
-	font-family: $font-hed-alt;
-	font-weight: 900;
-	color: $color-blue;
-	white-space: nowrap;
-	font-size: 12px;
-	padding: 2px 4px;
-	border: 2px solid $color-blue;
-	vertical-align: middle;
-	border-radius: 2px;
-	&:hover {
-		text-decoration: none;
-		border-color: $color-hover;
-		color: $color-hover;
-		&:before {
-			background-position-x: -30px * 3 !important;
-		}
-	}
-	&:active {
-		border-color: $color-black;
-		color: $color-black;
-		&:before {
-			background-position-x: -30px * 1 !important;
-		}
-	}
-	/*
-	&:before {
-		content: '';
-		width: 26px;
-		height: 14px;
-		display: inline-block;
-		margin-right: $half;
-		position: relative;
-		top: 4px;
-		background-image: url('../img/ui/perma-ui-8-small.png');
-		background-repeat: no-repeat;
-		background-position: 0 0;
-		background-size: 167px 12px;
-		background-position-x: -28px * 2;
-	}
-	*/
-	@include respond-tablet {
-		padding: 6px;
-		font-size: 14px;
-		&:before {
-			width: 30px;
-			top: 2px;
-			background-size: 180px 14px;
-			background-position-x: -30px * 2;
-		}
-		&:hover {
-			&:before {
-				background-position-x: -30px * 1;
-			}
-		}
-		&:active {
-			&:before {
-				background-position-x: -30px * 1;
-			}
-		}
-	}
-}
-
-a.outside, p a.outside {
-	font-family: $font-hed-alt;
-    font-weight: 300;
-    white-space: nowrap;
-    padding: 6px 12px;
-    background-color: $color-blue;
-    border-radius: 5em;
-    font-size: 14px;
-    margin: 0 $half;
-    &:visited, &:link {
-	    color: $color-white;
-    }
-    &:after {
-		content: '';
-		width: 9px;
-		height: 17px;
-		display: inline-block;
-		margin-left: $grid;
-		position: relative;
-		top: 3px;
-		background-image: url('../img/ui/perma-ui-chev-right-small.png');
-		background-repeat: no-repeat;
-		background-position: 0 0;
-		background-size: 54px 17px;
-		background-position-x: -9px * 5;
-    }
-	&:hover {
-		text-decoration: none;
-		background-color: $color-hover;
-	}
-	&:active {
-		background-color: $color-black;
-	}
-}
-
-h5 a {
-	color: #333;
-	margin-left: 16px;
-	line-height: 1.4;
-}
-
-p {
-    margin-bottom: 1em;
-    font-weight: 300;
-    color: $color-black;
-}
-
-p.body { @extend p.body-text; }
-
-.lockup p { @extend %style-pageLede; } 
-
-.page-lede, .page-dek, .body-dek { @extend %style-pageLede; }
-
-.modal { position: fixed; }
 
 .text-warning {
 	color: $color-error;
 }
 
-._noMobile {
-	@include respond-mobile {
-		display: none !important;
-	}
-}
-
-._soleContent {
-	margin-bottom: $double;
-}
 
 .nobreak {
 	white-space: nowrap;
@@ -3046,131 +3145,8 @@ button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active,
 
 
 
-/////////////////////////
 
-// docs
-
-.body-ah, .docs-ah, .reading-body h2 { 
-	font-size: 22px;
-    border-top: 2px solid $color-blue;
-    padding-top: $grid;
-    margin-top: $grid * 6;
-    font-family: $font-hed-alt;
-    font-weight: 700;
-    color: $color-blue;
-    &:first-child {
-        margin-top: 0;
-    }
-  	@include respond-tablet {
-	    margin-top: $grid * 8;
-	}
-	& + p {
-		margin-top: $double;
-	}
-	& + p.page-dek, & + p.body-dek {
-		margin-top: $grid;
-	}
-}
-
-.body-ah + .body-bh {
-    margin-top: $grid * 3;
- 	@include respond-tablet {
-	    margin-top: $grid * 6;
-	}
-}
-
-.body-bh, .docs-bh, .reading-body h3 { 
-	font-size: 16px;
-    border-top: 1px solid $color-orange;
-    padding-top: $grid;
-    margin-top: $grid * 3;
-    margin-bottom: $grid;
-    font-family: $font-hed-alt !important;
-    font-weight: 400 !important;
-    color: $color-orange;
-    line-height: 1.3;
- 	@include respond-tablet {
-	    margin-top: $grid * 6;
-	    margin-bottom: $double;
-		font-size: 18px;
-	}
-}
-
-li.docs-bh {
-	list-style-type: none;
-	counter-increment: step-counter;
-	&:before {
-		content: counter(step-counter)'. ';
-	}
-}
-
-.body-ch {
-	font-size: 16px;
-	font-family: $font-hed-alt;
-	font-weight: 700;
-	margin-bottom: $grid;
-	margin-top: $double;
- 	@include respond-tablet {
-	    margin-bottom: $double;
-	    margin-top: $grid * 3;
-		font-size: 18px;
-	}
-}
-
-ol.tos {
-	margin-left: 0;
-	padding-left: 0;
-	ul ul {
-		margin-top: 1em;
-		margin-bottom: 1em; 
-	}
-}
-
-div.reading-body li {
-	@extend p.body-text;
-	+ li {
-		margin-top: 1em;
-	}
-}
-
-.alpha-list {
-	display: inline;
-	font-weight: 700;
-	font-family: $font-hed-alt;
-	padding-right: .5em;
-}
-
-.data-list {
-	font-family: $font-hed-alt;
-	font-weight: 700;
-}
-
-p.body-text { 
-	font-size: 15px;
-	font-weight: 300;
-	font-family: $font-body;
-	line-height: 1.5;
-	clear: both;
-	@include respond-tablet {
-		font-size: 16px;
-	}
-	@include respond-desktop {
-		font-size: 18px;
-	}
-}
-
-._admin #main-content {
-	overflow: visible;
-}
-
-#main._fullWidth #main-content {
-	@include respond-tablet {
-		padding-left: 0;
-		padding-right: 0;
-		max-width: none;
-	}
-}
-
+// Docs formatting
 
 .container-reading {
 	padding-top: $double;
@@ -3263,7 +3239,7 @@ div.container-reading + div.overview {
 		margin-top: 0;
 	}
 	h2 + p { margin-top: $double; }
-    p { @extend p.body-text; }
+    p { @extend .body-text; }
     table {
         h4 {
             font-size: 12px;
@@ -3275,15 +3251,56 @@ div.container-reading + div.overview {
             text-align: center;
         }
     }
+    li {
+		@extend .body-text;
+		+ li {
+			margin-top: 1em;
+		}
+    }
 }
+
+li.body-bh {
+	list-style-type: none;
+	counter-increment: step-counter;
+	&:before {
+		content: counter(step-counter)'. ';
+	}
+}
+
+
+ol.tos {
+	margin-left: 0;
+	padding-left: 0;
+	ul ul {
+		margin-top: 1em;
+		margin-bottom: 1em; 
+	}
+}
+
+.alpha-list {
+	display: inline;
+	font-weight: 700;
+	font-family: $font-hed-alt;
+	padding-right: .5em;
+}
+
+.data-list {
+	font-family: $font-hed-alt;
+	font-weight: 700;
+}
+
+
+
+
+
 
 /////////////////////////
 
 // faq
 
-.faq-section-title { @extend %style-docs-ah; }
-.faq-question { @extend %style-docs-bh; }
-.faq-answer p { @extend p.body-text; }
+.faq-section-title { @extend %style-body-ah; }
+.faq-question { @extend %style-body-bh; }
+.faq-answer p { @extend .body-text; }
 
 p.code {
 	color: $color-error;
@@ -3426,9 +3443,9 @@ code {
 
 
 .signup-learnMore {
-    h2 { @extend %style-docs-ah; }
-    h3 { @extend %style-docs-bh; }
-    p { @extend p.body-text; }
+    h2 { @extend %style-body-ah; }
+    h3 { @extend %style-body-bh; }
+    p { @extend .body-text; }
 }
 
 

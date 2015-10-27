@@ -5,7 +5,7 @@
 
 <div class="container">
 	<h3 class="body-bh">Reactivate <strong>{{ target_member.email }}</strong></h3>
-	<p class="body-dek">Do you really want to reactivate <strong>{{ target_member.email }}</strong>?</p>
+	<p class="page-dek">Do you really want to reactivate <strong>{{ target_member.email }}</strong>?</p>
 		<form action="" method="POST">
 	      {% csrf_token %}
         <a class="btn cancel" href="../">Cancel</a> <button type="submit" class="btn btn-success delete-confirm">Reactivate {{ target_member.email }}</button>

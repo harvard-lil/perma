@@ -20,7 +20,7 @@ Create a Perma.cc account.
 
 <div class="container-full overview">
 	<div class="container-inner">
-		<div class="row">
+		<div class="row row-no-bleed">
 			<div class="col col-sm-by5 overview-module col-no-gutter _active">
 				<div class="overview-module-content" href="{% url 'sign_up' %}">
 					<strong class="overview-module-title">Individual</strong>
@@ -58,7 +58,7 @@ Create a Perma.cc account.
 <div class="container container-reading">
 	<div class="row signup-info">
 	    <div class="col-sm-4 signup-learnMore-form">	
-	        <h2 class="docs-ah">Create an individual account</h2>	
+	        <h2 class="body-ah">Create an individual account</h2>	
 			<form method="post" action="">
 				{% csrf_token %}
 				 <fieldset>
@@ -74,15 +74,15 @@ Create a Perma.cc account.
 						</div>
 					{% endfor %}
                 	{% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
-					<p><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
+					<p class="body-text"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
 				 </fieldset>
 				<button type="submit" class="btn btn-success">Create account</button>
 			</form>
 		</div>
 	    <div class="col-sm-8 reading-body">
-            <h2 class="docs-ah">Perma.cc for individual users</h2>
-            <p>Anyone can create a free, individual Perma.cc account, which will allow you to create unvested links. Just complete this form to get started.</p>
-			<p>Please note that for your links to be saved in the permanent archive they will have to be approved by someone with vesting authority. To learn more about how Perma.cc works and the limitations of unvested links, please review our <a href="{% url 'docs' %}">user guide</a>.
+            <h2 class="body-ah">Perma.cc for individual users</h2>
+            <p class="body-text">Anyone can create a free, individual Perma.cc account, which will allow you to create unvested links. Just complete this form to get started.</p>
+			<p class="body-text">Please note that for your links to be saved in the permanent archive they will have to be approved by someone with vesting authority. To learn more about how Perma.cc works and the limitations of unvested links, please review our <a href="{% url 'docs' %}">user guide</a>.
 		</div>
 	</div>
 </div>

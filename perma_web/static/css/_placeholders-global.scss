@@ -23,7 +23,6 @@
 	margin-right: auto;
 }
 
-
 %style-vcenter-parent {
 	display: table;
 }
@@ -33,6 +32,7 @@
 	vertical-align: middle;
 }
 
+/*
 %style-pageLede {
 	font-family: $font-hed-alt;
     font-weight: 300;
@@ -50,7 +50,7 @@
 	line-height: 1.5;
 }
 
-%style-docs-ah {
+%style-body-ah {
     font-size: 24px;
     border-top: 2px solid $color-blue;
     padding-top: $grid;
@@ -63,7 +63,7 @@
     }
 }
 
-%style-docs-bh {
+%style-body-bh {
     font-size: 18px;
     border-top: 1px solid $color-orange;
     padding-top: $grid;
@@ -72,6 +72,7 @@
     font-weight: 300;
     color: $color-orange;
 }
+*/
 
 /*
 %style-overview-container {

@@ -20,7 +20,7 @@ Perma.cc for journals
 
 <div class="container-full overview">
 	<div class="container-inner">
-		<div class="row">
+		<div class="row row-no-bleed">
 			<div class="col col-sm-by5 overview-module col-no-gutter">
 				<a class="overview-module-content" href="{% url 'sign_up' %}">
 					<strong class="overview-module-title">Individual</strong>
@@ -58,7 +58,7 @@ Perma.cc for journals
 <div class="container container-reading">
 	<div class="row signup-info">
 	    <div class="col-sm-4 signup-learnMore-form">	
-	        <h2 class="docs-ah">Create an account</h2>	
+	        <h2 class="body-ah">Create an account</h2>	
 			<form method="post" action="">
 				{% csrf_token %}
 				 <fieldset>
@@ -74,26 +74,26 @@ Perma.cc for journals
 						</div>
 					{% endfor %}
                 	{% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
-				<p><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
+				<p class="body-text"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
 			  </fieldset>
 				<button type="submit" class="btn btn-success">Create account</button>
 			</form>
 		</div>
 	    <div class="col-sm-8 reading-body">
-            <h2>Perma.cc for journals</h2>	
-            <p>Over 150 academic law journals prevent link rot with Perma.cc.</p>
+            <h2 class="body-ah">Perma.cc for journals</h2>	
+            <p class="body-text">Over 150 academic law journals prevent link rot with Perma.cc.</p>
 			
-			<h3>Free and easy to use</h3>
-			<p>Perma.cc is easy to use and free for any academic journal that is authorized by its library. Our <a href="{% url 'docs' %}">user guide</a> has more details on how Perma.cc works for journals.<p>
+			<h3 class="body-bh">Free and easy to use</h3>
+			<p class="body-text">Perma.cc is easy to use and free for any academic journal that is authorized by its library. Our <a href="{% url 'docs' %}">user guide</a> has more details on how Perma.cc works for journals.<p class="body-text">
 			
-			<h3>Bluebook compliant</h3>
-			<p>The Bluebook now encourages archiving online sources when a reliable service such as Perma.cc is available.<p>
+			<h3 class="body-bh">Bluebook compliant</h3>
+			<p class="body-text">The Bluebook now encourages archiving online sources when a reliable service such as Perma.cc is available.<p class="body-text">
 			
-			<h3>Contact your library for a journal account</h3>
-			<p>If your library is already registered with us (see the full list <a href="{% url 'about' %}#partners">here</a>), contact them for setup. If not, invite your library to visit our <a href="{% url 'libraries' %}">library resource page</a> to request membership, and we’ll help them get started.<p>
+			<h3 class="body-bh">Contact your library for a journal account</h3>
+			<p class="body-text">If your library is already registered with us (see the full list <a href="{% url 'about' %}#partners">here</a>), contact them for setup. If not, invite your library to visit our <a href="{% url 'libraries' %}">library resource page</a> to request membership, and we’ll help them get started.<p class="body-text">
 			
-			<h3>Try it now</h3>
-			<p>If you’d like to create a free, individual account now, please fill out this form. Your library will be able to connect this account to your journal’s account at a later date.<p>
+			<h3 class="body-bh">Try it now</h3>
+			<p class="body-text">If you’d like to create a free, individual account now, please fill out this form. Your library will be able to connect this account to your journal’s account at a later date.<p class="body-text">
 		</div>
 	</div>
 </div>

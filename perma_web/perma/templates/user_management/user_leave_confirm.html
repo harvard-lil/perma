@@ -5,7 +5,7 @@
 
 <div class="container">
 	<h3 class="body-bh">Leave {{ org.name }}</h3>
-		<p class="body-dek">Yahowza! Do you really want to leave <strong>{{ org.name }}</strong> forever?</p>
+		<p class="page-dek">Yahowza! Do you really want to leave <strong>{{ org.name }}</strong> forever?</p>
 	<div class="alert alert-danger">You will lose vesting privileges for <strong>{{ org.name }}</strong>.</div>
 	<form action="" method="POST">
         {% csrf_token %}
