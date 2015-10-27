@@ -21,7 +21,7 @@
         <h3 class="body-bh">Deactivate</h3>
 		<a href="{% url 'user_management_manage_single_user_delete' target_user.id %}">
             <p class="body-dek"><strong>{{ target_user.email}}</strong>'s account was created on {{ target_user.date_joined}}. Last login occured on {{ target_user.last_login}}</p>
-            <span class="text-error">
+            <span class="field-error">
                 <i class="icon-trash"></i>
 
                 {% if target_user.is_confirmed %}Deactivate{% else %}Delete{% endif %} {{ target_user.email}}

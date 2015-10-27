@@ -14,10 +14,10 @@
 	<form method="post">
           {% csrf_token %}
               <fieldset>
-              <span class="text-error">{{ form.non_field_errors }}</span>
+              <span class="field-error">{{ form.non_field_errors }}</span>
             {% for field in form %}
               <label for="id_{{ field.name }}">{{ field.label }}</label>              {{ field }}
-              {% if field.errors %}                {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+              {% if field.errors %}                {% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
               {%elif field.help_text %}
                 <span class="help-inline">{{ field.help_text }}</span>
               {% endif %}            {% endfor %}
@@ -30,10 +30,10 @@
         <form method="post">
         {% csrf_token %}
         <fieldset>
-              <span class="text-error">{{ form.non_field_errors }}</span>
+              <span class="field-error">{{ form.non_field_errors }}</span>
             {% for field in form %}
               <label for="id_{{ field.name }}">{{ field.label }}</label>              {{ field }}
-              {% if field.errors %}                {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+              {% if field.errors %}                {% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
               {%elif field.help_text %}
                 <span class="help-inline">{{ field.help_text }}</span>
               {% endif %}            {% endfor %}

@@ -12,12 +12,12 @@ Register for a Perma.cc account. Welcome aboard.
 			<form method="post" action="">
 				{% csrf_token %}
 				 <fieldset>
-				<span class="text-error"><br/>{{ form.non_field_errors }}</span>
+				<span class="field-error"><br/>{{ form.non_field_errors }}</span>
 				{% for field in form %}
 				  <br /><label for="id_{{ field.name }}">{{ field.label }}</label><br/>
 				  {{ field }}
 				  {% if field.errors %}
-					{% for error in field.errors %}<span class="text-error"><br/>{{ error }}</span>{% endfor %}
+					{% for error in field.errors %}<span class="field-error"><br/>{{ error }}</span>{% endfor %}
 				  {%elif field.help_text %}
 					<span class="help-inline"><br/>{{ field.help_text }}</span>
 				  {% endif %}<br/>

@@ -119,55 +119,45 @@
 		  
 		<section id="main" class="{% block mainFlags %}{% endblock mainFlags %}">
 			{% if this_page != 'landing' and this_page != 'manage' %}
-			<div class="container" id="main-content">
-				{% endif %}
-				{% block row %}{% endblock row %}
-				{% if this_page != 'landing' %}
-			</div><!--/ #main-content"-->
+				<div class="container" id="main-content">
+			{% endif %}
+
+			{% block row %}{% endblock row %}
+
+			{% if this_page != 'landing' %}
+				</div><!--/ #main-content"-->
 			{% endif %}
 		</section><!--/#main-->
 		
 		{% block footer %}
-		
-		
-<footer>
-	<div class="container">
-		<div class="row">
-			<div class="col col-sm-6">
-				<ul id="footer-nav">
-		            <!--<li class="footer-nav-item"><a class="home" href="{% url 'landing' %}">Perma.cc</a></li>-->
-		            <li class="footer-nav-item"><a href="{% url 'about' %}">About</a></li>
-		            <li class="footer-nav-item"><a href="{% url 'docs' %}">Guide</a></li>
-		            <li class="footer-nav-item"><a href="{% url 'dev_docs' %}">Developers</a></li>
-		            <li class="footer-nav-item"><a href="{% url 'contact' %}">Contact</a></li>
-		            <li class="footer-nav-item"><a href="https://blogs.law.harvard.edu/perma/">Blog</a></li>
-		            <li class="footer-nav-item"><a href="https://github.com/harvard-lil/perma">Github</a></li>
-				</ul>
-			</div>
-			<div class="col col-sm-6">
-				<ul id="boilerplate">
-					<li class="boilerplate-item"><a href="{% url 'terms_of_service' %}">Terms of Service</a></li>
-					<li class="boilerplate-item"><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
-					<li class="boilerplate-item"><a href="{% url 'copyright_policy' %}">Copyright Policy</a></li>
-				</ul>
-			</div>
-		</div>
-	</div><!--/container-->
-</footer>
-		
-	{% endblock %}
-		
-		
-            </div><!--/.row-fluid-->
-        </div><!--/.container-fluid-->
-
+			<footer>
+				<div class="container">
+					<div class="row">
+						<div class="col col-sm-6">
+							<ul id="footer-nav">
+					            <!--<li class="footer-nav-item"><a class="home" href="{% url 'landing' %}">Perma.cc</a></li>-->
+					            <li class="footer-nav-item"><a href="{% url 'about' %}">About</a></li>
+					            <li class="footer-nav-item"><a href="{% url 'docs' %}">Guide</a></li>
+					            <li class="footer-nav-item"><a href="{% url 'dev_docs' %}">Developers</a></li>
+					            <li class="footer-nav-item"><a href="{% url 'contact' %}">Contact</a></li>
+					            <li class="footer-nav-item"><a href="https://blogs.law.harvard.edu/perma/">Blog</a></li>
+					            <li class="footer-nav-item"><a href="https://github.com/harvard-lil/perma">Github</a></li>
+							</ul>
+						</div>
+						<div class="col col-sm-6">
+							<ul id="boilerplate">
+								<li class="boilerplate-item"><a href="{% url 'terms_of_service' %}">Terms of Service</a></li>
+								<li class="boilerplate-item"><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
+								<li class="boilerplate-item"><a href="{% url 'copyright_policy' %}">Copyright Policy</a></li>
+							</ul>
+						</div>
+					</div>
+				</div><!--/container-->
+			</footer>
+		{% endblock %}
 
     {% javascript 'global' %}
-
-    {% block scripts %}
-    {% endblock %}
-    
-    {% block templates %}
-    {% endblock %}
+    {% block scripts %}{% endblock %}
+    {% block templates %}{% endblock %}
   </body>
 </html>

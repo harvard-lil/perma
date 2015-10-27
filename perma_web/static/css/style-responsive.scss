@@ -2,311 +2,15 @@
 
 /////////////////////////
 
-//	perma global imports
+//	Global imports
 
 @import "_perma-imports.scss";
-
-
-///////////////////////////////////////////////
-// The OLD
-
-
-//@import "_perma-old.scss";
-	
-
-///////////////////////////////////////////////
-// The CURRENT
-
-// general structure
-
-@-webkit-keyframes success-bg {
-    0% {background-color: $color-highlight;}
-    20% {background-color: $color-highlight;}
-    100% {background-color: white;}
-}
-@keyframes success-bg {
-    0% {background-color: $color-highlight;}
-    20% {background-color: $color-highlight;}
-    100% {background-color: white;}
-}
-@-webkit-keyframes breathe-blue {
-    0% {border-color: $color-blue;}
-    30% {border-color: lighten($color-blue, 40%);}
-    45% {border-color: lighten($color-blue, 40%);}
-    100% {border-color: $color-blue;}
-}
-@keyframes breathe-blue {
-    0% {border-color: $color-blue;}
-    30% {border-color: lighten($color-blue, 40%);}
-    45% {border-color: lighten($color-blue, 40%);}
-    100% {border-color: $color-blue;}
-}
-@-webkit-keyframes fade-blue {
-    0% {border-color: $color-blue;}
-    100% {border-color: $color-black;}
-}
-@keyframes fade-blue {
-    0% {border-color: $color-blue;}
-    100% {border-color: $color-black;}
-}
-
-
-// The Basics
-
-html {
-    height: 100%;
-    margin: 0;
-}
-
-body {
-	background-color: $color-blue;
-    color: $color-black;
-    font-family: $font-body;
-    margin: 0;
-    min-height: 100%;
-    @include respond-tablet {
-		background-color: white;
-    }
-}
-
-footer { 
-	background-color: white;
-	padding: $grid * 4 0;
-	.built-by {
-		color: $color-orange;
-		font-size: 26px;
-	}
-	p {
-		max-width: none !important;
-	}
-}
-
-// Container, Row, Column
-
-.container {
-    margin: 0 auto;
-}
-
-.container {
-	@extend %style-clears-floats;
-	@extend %style-block-centered;
-	width: 100%;
-	padding: 0 $page-margin;
-	overflow-y: visible;
-	overflow-x: hidden;
-	@include respond-tablet {
-		max-width: $width-tablet; 
-	}
-	@include respond-desktop {
-		max-width: $width-desktop; 
-	}
-	@include respond-wide {
-		max-width: $width-wide; 
-	}
-}
-
-.container.container-full {
-	max-width: none;
-	padding: 0;
-	margin-top: $grid * 6; //??
-}
-
-.container.container-bleed {
-	padding: 0;
-}
-
-.container.container-bg {
-	background-color: $color-background;
-}
-
-.container.container-display {
-	padding: $grid * 4 $double;
-	@include respond-tablet {
-		padding: $grid * 9 $double;
-	}
-}
-
-
-div.main-container, 
-.container.container-full {
-    margin: 0 auto;
-    width: 100%;
-}
-
-
-
-.carousel-control {
-	background-color: transparent;
-}
-
-
-section#main { // review XX
-    color: $color-black;
-    font-family: $font-body;
-	padding-top: $grid * 4;
-	padding-bottom: $grid * 3;
-	background-color: $color-white;
-	@include respond-tablet {
-		padding-top: $grid * 4;
-		padding-bottom: $grid * 25;
-	}
-	@include respond-desktop {
-		padding-top: $grid * 2;
-		padding-bottom: $grid * 25;
-	}
-	@include respond-wide {
-		padding-top: $grid * 2;
-		padding-bottom: $grid * 25;
-	}
-}
-
-
-body.modal-open {
-	margin-right: 0;
-}
-
-.modal-backdrop.in {
-	opacity: 0.95;
-    filter: alpha(opacity=95);
-    background-color: white;
-}
-
-//	Carousel Customization 
-
-.carousel {
-	margin: $grid * 6 0 0;
-    text-align: center;
-	.carousel-inner {
-		height: $grid * 16;
-	}
-	.ui-chev-left, .ui-chev-right {
-		height: 25px;
-		width: 28px;
-		background-color: transparent;
-		display: inline-block;
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		z-index: 5;
-		background-repeat: no-repeat;
-		background-position: 0 0;
-		background-size: 168px 25px;
-		&:hover {
-			background-position-x: -28px * 3;
-		}
-		&:active {
-			background-position-x: -28px * 1;
-		}
-	}
-	.ui-chev-left {
-		background-image: url('../img/ui/perma-ui-chev-left-big.png');
-	}
-	.ui-chev-right {
-		background-image: url('../img/ui/perma-ui-chev-right-big.png');
-	}
-}
-
-.carousel-indicators {
-  position: absolute;
-  top: 115px;
-  bottom: 0px;
-  left: 50%;
-  z-index: 15;
-  width: 60%;
-  padding-left: 0;
-  margin-left: -30%;
-  text-align: center;
-  list-style: none;
-}
-
-.carousel-indicators li {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin: 1px !important;
-  text-indent: -999px;
-  cursor: pointer;
-  border: 2px solid $color-orange;
-  border-radius: 10px;
-  background-color: transparent;
-}
-
-.carousel-indicators .active {
-  width: 12px;
-  height: 12px;
-  margin: 0 !important;
-  background-color: $color-orange;
-}
-
-#carousel-example-generic, #examples {
-	display: none;
-	@include respond-tablet {
-		display: block;
-	}
-}
-
-.carousel-inner > .item > a > img {
-	height: 37px;
-	@include opacity(.6);
-	padding: 5px;
-	background: #fff;
-	border: 1px solid #ccc;
-	border-radius: 3px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    -ms-border-radius: 3px;
-    margin-bottom: 10px;
-	display: inline;
-	list-style-type: none;
-}
-
-
-.carousel .item a.square img {
-    margin-top: 10px;
-    height: 74px;
-}
-
-
-.carousel-indicators {
-    position: static;
-    width: 100%;
-    margin-left: 0;
-}
-
-.carousel .item {
-    text-align: center;
-    padding: 0 166px;
-}
-
-.carousel-control {
-    position: absolute;
-    background-color: transparent;
-    @include opacity(.9);
-    bottom: 0px;
-    &:focus {
-	   outline: none; 
-    }
-}
-
-
-
-
-
-///////////////////////////////////////////////
-// The NEW
-
-
-////////////////////////////////
+@import "_animation.scss";
 
 // normalize
-
 //	normalize.css v3.0.2 | MIT License | git.io/normalize
 
-
-
-//	1. Set default font family to sans-serif.
-//	2. Prevent iOS text size adjust after orientation change, without disabling
-//	   user zoom.
+// Not imported because of an ordering bug in django-pipeline (imports at the end of the css instead of where the import occurs)
 
 html {
   font-family: sans-serif; /* 1 */
@@ -314,18 +18,9 @@ html {
   -webkit-text-size-adjust: 100%; /* 2 */
 }
 
-//	Remove default margin.
-
 body {
   margin: 0;
 }
-
-//	HTML5 display definitions
-
-//	Correct `block` display not defined for any HTML5 element in IE 8/9.
-//	Correct `block` display not defined for `details` or `summary` in IE 10/11
-//	and Firefox.
-//	Correct `block` display not defined for `main` in IE 11.
 
 article,
 aside,
@@ -343,9 +38,6 @@ summary {
   display: block;
 }
 
-//	1. Correct `inline-block` display not defined in IE 8/9.
-//	2. Normalize vertical alignment of `progress` in Chrome, Firefox, and Opera.
-
 audio,
 canvas,
 progress,
@@ -354,80 +46,51 @@ video {
   vertical-align: baseline; /* 2 */
 }
 
-//	Prevent modern browsers from displaying `audio` without controls.
-//	Remove excess height in iOS 5 devices.
-
 audio:not([controls]) {
   display: none;
   height: 0;
 }
-
-//	Address `[hidden]` styling not present in IE 8/9/10.
-//	Hide the `template` element in IE 8/9/11, Safari, and Firefox < 22.
 
 [hidden],
 template {
   display: none;
 }
 
-//	Links
-
-//	Remove the gray background color from active links in IE 10.
-
 a {
   background-color: transparent;
 }
-
-//	Improve readability when focused and also mouse hovered in all browsers.
 
 a:active,
 a:hover {
   outline: 0;
 }
 
-//	Text-level semantics
-
-//	Address styling not present in IE 8/9/10/11, Safari, and Chrome.
-
 abbr[title] {
   border-bottom: 1px dotted;
 }
-
-//	Address style set to `bolder` in Firefox 4+, Safari, and Chrome.
 
 b,
 strong {
   font-weight: bold;
 }
 
-//	Address styling not present in Safari and Chrome.
-
 dfn {
   font-style: italic;
 }
-
-//	Address variable `h1` font-size and margin within `section` and `article`
-//	contexts in Firefox 4+, Safari, and Chrome.
 
 h1 {
   font-size: 2em;
   margin: 0.67em 0;
 }
 
-//	Address styling not present in IE 8/9.
-
 mark {
   background: #ff0;
   color: #000;
 }
 
-//	Address inconsistent and variable font size in all browsers.
-
 small {
   font-size: 80%;
 }
-
-//	Prevent `sub` and `sup` affecting `line-height` in all browsers.
 
 sub,
 sup {
@@ -445,27 +108,17 @@ sub {
   bottom: -0.25em;
 }
 
-//	Embedded content
-//	Remove border when inside `a` element in IE 8/9/10.
-
 img {
   border: 0;
 }
-
-//	Correct overflow not hidden in IE 9/10/11.
 
 svg:not(:root) {
   overflow: hidden;
 }
 
-//	Grouping content
-//	Address margin not present in IE 8/9 and Safari.
-
 figure {
   margin: 1em 40px;
 }
-
-//	Address differences between Firefox and other browsers.
 
 hr {
   -moz-box-sizing: content-box;
@@ -473,13 +126,9 @@ hr {
   height: 0;
 }
 
-//	Contain overflow in all browsers.
-
 pre {
   overflow: auto;
 }
-
-//	Address odd `em`-unit font size rendering in all browsers.
 
 code,
 kbd,
@@ -488,16 +137,6 @@ samp {
   font-family: monospace, monospace;
   font-size: 1em;
 }
-
-//	Forms
-
-//	Known limitation: by default, Chrome and Safari on OS X allow very limited
-//	styling of `select`, unless a `border` property is set.
-
-//	1. Correct color not being inherited.
-//	    Known issue: affects color of disabled elements.
-//	2. Correct font properties not being inherited.
-//	3. Address margins set differently in Firefox 4+, Safari, and Chrome.
 
 button,
 input,
@@ -509,28 +148,14 @@ textarea {
   margin: 0; /* 3 */
 }
 
-//	Address `overflow` set to `hidden` in IE 8/9/10/11.
-
 button {
   overflow: visible;
 }
-
-//	Address inconsistent `text-transform` inheritance for `button` and `select`.
-//	All other form control elements do not inherit `text-transform` values.
-//	Correct `button` style inheritance in Firefox, IE 8/9/10/11, and Opera.
-//	Correct `select` style inheritance in Firefox.
 
 button,
 select {
   text-transform: none;
 }
-
-//	1. Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio`
-//	   and `video` controls.
-//	2. Correct inability to style clickable `input` types in iOS.
-//	3. Improve usability and consistency of cursor style between image-type
-//	   `input` and others.
-
 
 button,
 html input[type="button"], /* 1 */
@@ -540,14 +165,10 @@ input[type="submit"] {
   cursor: pointer; /* 3 */
 }
 
-//	Re-set default cursor for disabled elements.
-
 button[disabled],
 html input[disabled] {
   cursor: default;
 }
-
-//	Remove inner padding and border in Firefox 4+.
 
 button::-moz-focus-inner,
 input::-moz-focus-inner {
@@ -555,18 +176,9 @@ input::-moz-focus-inner {
   padding: 0;
 }
 
-//	Address Firefox 4+ setting `line-height` on `input` using `!important` in
-//	the UA stylesheet.
-
 input {
   line-height: normal;
 }
-
-//	It's recommended that you don't attempt to style these elements.
-//	Firefox's implementation doesn't respect box-sizing, padding, or width.
-//	
-//	1. Address box sizing set to `content-box` in IE 8/9/10.
-//	2. Remove excess padding in IE 8/9/10.
 
 input[type="checkbox"],
 input[type="radio"] {
@@ -574,18 +186,10 @@ input[type="radio"] {
   padding: 0; /* 2 */
 }
 
-//	Fix the cursor style for Chrome's increment/decrement buttons. For certain
-//	`font-size` values of the `input`, it causes the cursor style of the
-//	decrement button to change from `default` to `text`.
-
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   height: auto;
 }
-
-//	1. Address `appearance` set to `searchfield` in Safari and Chrome.
-//	2. Address `box-sizing` set to `border-box` in Safari and Chrome
-//	   (include `-moz` to future-proof).
 
 input[type="search"] {
   -webkit-appearance: textfield; /* 1 */
@@ -594,16 +198,10 @@ input[type="search"] {
   box-sizing: content-box;
 }
 
-//	Remove inner padding and search cancel button in Safari and Chrome on OS X.
-//	Safari (but not Chrome) clips the cancel button when the search input has
-//	padding (and `textfield` appearance).
-
 input[type="search"]::-webkit-search-cancel-button,
 input[type="search"]::-webkit-search-decoration {
   -webkit-appearance: none;
 }
-
-//	Define consistent border, margin, and padding.
 
 fieldset {
   border: 1px solid #c0c0c0;
@@ -611,30 +209,18 @@ fieldset {
   padding: 0.35em 0.625em 0.75em;
 }
 
-//	1. Correct `color` not being inherited in IE 8/9/10/11.
-//	2. Remove padding so people aren't caught out if they zero out fieldsets.
-
 legend {
   border: 0; /* 1 */
   padding: 0; /* 2 */
 }
 
-//	Remove default vertical scrollbar in IE 8/9/10/11.
-
 textarea {
   overflow: auto;
 }
 
-//	Don't inherit the `font-weight` (applied by a rule above).
-//	NOTE: the default cannot safely be changed in Chrome and Safari on OS X.
-
 optgroup {
   font-weight: bold;
 }
-
-//	Tables
-
-//	Remove most spacing between table cells.
 
 table {
   border-collapse: collapse;
@@ -646,11 +232,9 @@ th {
   padding: 0;
 }
 
+/////////////////////////////////////////
 
-
-////////////////////////////////
-
-//	defaults
+// Defaults
 
 html {
 	box-sizing: border-box;
@@ -704,48 +288,6 @@ textarea {
     -webkit-appearance: none;
 }
 
-
-/////////////////////////
-
-// general structure
-
-html {
-    min-height: 100%;
-    margin: 0;
-}
-
-body {
-  	background: $color-white;
-    color: $color-black;
-    font-family: $font-body;
-    margin: 0;
-}
-
-div.main-container {
-    //overflow: hidden;
-    margin: 0 auto;
-    width: 100%;
-}
-
-#main {
-	padding-top: $grid * 4;
-	padding-bottom: $grid * 4;
-	background-color: $color-white;
-	@include respond-tablet {
-		padding-top: $grid * 5;
-		padding-bottom: $grid * 7;
-	}
-	@include respond-desktop {
-		padding-top: $grid * 4;
-		padding-bottom: $grid * 5;
-	}
-	@include respond-wide {
-		padding-top: $grid * 7;
-		padding-bottom: $grid * 9;
-	}
-}
-
-
 *:focus {
 	outline-style: solid !important;
     outline-color: rgba(0,0,0,0.07) !important;
@@ -757,7 +299,449 @@ input:focus, *:hover {
 	outline: none !important;
 }
 
-/////////////////////////
+// The Basics
+
+html {
+    height: 100%;
+    min-height: 100%;
+    margin: 0;
+}
+
+body {
+  	background: $color-white;
+    color: $color-black;
+    font-family: $font-body;
+    margin: 0;
+    min-height: 100%;
+}
+
+footer { 
+	background-color: white;
+	padding: $grid * 4 0;
+	.built-by {
+		color: $color-orange;
+		font-size: 26px;
+	}
+	p {
+		max-width: none !important;
+	}
+}
+
+section#main {
+	padding-top: $grid * 4;
+	padding-bottom: $grid * 3;
+	@include respond-tablet {
+		padding-top: $grid * 4;
+		padding-bottom: $grid * 25;
+	}
+	@include respond-desktop {
+		padding-top: $grid * 2;
+	}
+	@include respond-wide {
+	}
+}
+
+
+// Container, Row, Column
+
+.container {
+    margin: 0 auto;
+}
+
+.container {
+	@extend %style-clears-floats;
+	@extend %style-block-centered;
+	width: 100%;
+	padding: 0 $page-margin;
+	overflow-y: visible;
+	overflow-x: hidden;
+	@include respond-tablet {
+		max-width: $width-tablet; 
+	}
+	@include respond-desktop {
+		max-width: $width-desktop; 
+	}
+	@include respond-wide {
+		max-width: $width-wide; 
+	}
+}
+
+.container.container-full {
+	max-width: none;
+	padding: 0;
+	margin-left: 0;
+	margin-right: 0;
+}
+
+.container.container-bleed {
+	padding: 0;
+}
+
+.container.container-bg {
+	background-color: $color-background;
+}
+
+.container.container-display {
+	padding: $grid * 4 $double;
+	@include respond-tablet {
+		padding: $grid * 9 $double;
+	}
+}
+
+// Modals
+
+body.modal-open {
+	margin-right: 0;
+}
+
+.modal-backdrop.in {
+	opacity: 0.95;
+    filter: alpha(opacity=95);
+    background-color: white;
+}
+
+// Carousel
+
+.carousel {
+	margin: $grid * 6 0 0;
+    text-align: center;
+	.carousel-inner {
+		height: $grid * 16;
+	}
+	.ui-chev-left, .ui-chev-right {
+		height: 25px;
+		width: 28px;
+		background-color: transparent;
+		display: inline-block;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		z-index: 5;
+		background-repeat: no-repeat;
+		background-position: 0 0;
+		background-size: 168px 25px;
+		&:hover {
+			background-position-x: -28px * 3;
+		}
+		&:active {
+			background-position-x: -28px * 1;
+		}
+	}
+	.ui-chev-left {
+		background-image: url('../img/ui/perma-ui-chev-left-big.png');
+	}
+	.ui-chev-right {
+		background-image: url('../img/ui/perma-ui-chev-right-big.png');
+	}
+	.item {
+	    text-align: center;
+	    padding: 0 166px;
+	}
+	.item a.square img {
+	    margin-top: 10px;
+	    height: 74px;
+	}
+}
+
+.carousel-indicators {
+  position: absolute;
+  top: 115px;
+  bottom: 0px;
+  left: 50%;
+  z-index: 15;
+  width: 60%;
+  padding-left: 0;
+  margin-left: -30%;
+  text-align: center;
+  list-style: none;
+	li {
+	  display: inline-block;
+	  width: 10px;
+	  height: 10px;
+	  margin: 1px !important;
+	  text-indent: -999px;
+	  cursor: pointer;
+	  border: 2px solid $color-orange;
+	  border-radius: 10px;
+	  background-color: transparent;
+	}
+	.active {
+	  width: 12px;
+	  height: 12px;
+	  margin: 0 !important;
+	  background-color: $color-orange;
+	}
+}
+
+#carousel-example-generic, 
+#examples {
+	display: none;
+	@include respond-tablet {
+		display: block;
+	}
+}
+
+.carousel-inner > .item > a > img {
+	height: 37px;
+	@include opacity(.6);
+	padding: 5px;
+	background: #fff;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -ms-border-radius: 3px;
+    margin-bottom: 10px;
+	display: inline;
+	list-style-type: none;
+}
+
+.carousel-indicators {
+    position: static;
+    width: 100%;
+    margin-left: 0;
+}
+
+.carousel-control {
+    position: absolute;
+    background-color: transparent;
+    @include opacity(.9);
+    bottom: 0px;
+    &:focus {
+	   outline: none; 
+    }
+}
+
+// Overview
+
+.overview { 
+	margin: $grid 0 0 0;
+	background-color: $color-background;
+	@include respond-tablet {
+		margin: $grid * 6 0 0 0;
+	}
+	@include respond-desktop {
+	}
+}
+
+.overview-container .row {
+	display: flex;
+	flex-wrap: wrap;
+	@include respond-tablet {
+		display: block;
+	}
+	.overview-module {
+		@media (max-width: $width-tablet - 1) {
+			width: 100%;
+		}
+	}
+	.overview-module._active {
+		order: -1;
+	}
+	._selected {
+		strong {
+			color: $color-blue;
+	
+			&:after {
+				display: none;
+			}
+		}
+	}
+}
+
+.overview-module { 
+	border-bottom: 1px solid white;
+	@include respond-desktop {
+		border-right: 1px solid white;
+		border-bottom: none;
+	}
+	&:last-child {
+		@include respond-tablet {
+			border-bottom: none;
+		}
+		@include respond-desktop {
+			border-right: 3px solid white;
+		}
+	}
+	&:first-child {
+		@include respond-desktop {
+			border-left: 1px solid white;
+		}
+	}
+	.overview-module-content {
+		height: auto;
+		display: block;
+		margin: 0;
+		padding: $grid $double;
+		border-radius: 0;
+		@include respond-tablet {
+			border-left: 3px solid white;
+			border-right: 3px solid white;
+			padding: 12px $double;
+		}
+		@include respond-desktop {
+			height: 15em;
+			border-right: none;
+			border-bottom: none;
+			padding: $double;
+		}
+		@include respond-wide {
+			height: 13em;
+		}
+	}
+	a {
+		&:hover {
+			background-color: $color-blue !important;
+			border-left-color: $color-blue !important;
+			border-right-color: $color-blue !important;
+			color: white;
+			p, strong {
+				color: white !important;
+			}
+			strong:after {
+			    background-position: -9px * 5 !important;
+			}
+		}
+		&:active {
+			background-color: $color-black !important;
+			border-left-color: $color-black !important;
+			border-right-color: $color-black !important;
+		}
+	}
+	a._jump {
+		display: inline-block;
+		height: auto;
+		padding-left: 0;
+	    padding-right: 30px;
+    		strong {
+			font-weight: 300;
+			color: $color-orange;
+			&:after {
+				background-position: -9px * 0;
+				top: 3px;
+			}
+		}
+		&:hover {
+			background-color: transparent !important;
+			color: $color-blue;
+			p, strong {
+				color: $color-blue !important;
+			}
+			strong:after {
+			    background-position: -9px * 2 !important;
+			}
+		}
+		&:active {
+			background-color: transparent !important;
+			p, strong {
+				color: $color-black !important;
+			}
+			strong:after {
+			    background-position: -9px * 1 !important;
+			}
+		}
+		@include respond-desktop {
+			padding-top: $grid * 3;
+		}
+	}
+	
+	div.overview-module-content {
+		background-color: $color-white;
+		color: $color-blue;
+		padding: 10px 14px;
+		border: 3px solid transparent !important;
+		margin-right: 1px;
+		margin-left: 1px;
+		p {
+			color: $color-blue;
+		}
+		@include respond-tablet {
+			border: 3px solid $color-blue !important;
+			padding: 12px 17px 10px 17px;
+			margin-right: 0;
+			margin-left: 0;
+		}
+		@include respond-desktop {
+			padding: 16px;
+		}
+		strong {
+			font-size: 24px;
+			font-weight: 200;
+			line-height: 1.2;
+			@include respond-tablet {
+				font-size: 15px;
+				font-weight: 700;
+			}
+			@include respond-desktop {
+				font-size: 18px;
+			}
+			@include respond-wide {
+				font-size: 20px;
+			}
+		}
+		strong:after {
+			display: none;
+		}
+	}
+
+	strong {
+		display: block;
+		font-weight: 700;
+		font-size: 14px;
+		line-height: 1.3;
+		&:after {
+		    content: '';
+		    height: 17px;
+		    width: 9px;
+		    display: inline-block;
+		    background-image: url('../img/ui/perma-ui-chev-right-small.png');
+		    background-repeat: no-repeat;
+		    background-size: 54px 17px;
+		    background-position: -9px * 2;
+		    top: 3px;
+			margin-left: $grid;
+			margin-right: -17px;
+			@include respond-desktop {
+				top: 2px;
+			}
+		}
+		@include respond-tablet {
+			font-size: 15px;
+		}
+		@include respond-desktop {
+			font-size: 18px;
+		}
+		@include respond-wide {
+			font-size: 20px;
+		}
+	}
+	p {
+		font-family: $font-hed-alt;
+		font-weight: 300;
+		font-size: 14px;
+		padding-right: $grid;
+		display: none; 
+		@include respond-tablet {
+			display: block;
+			margin-top: $half;
+		}
+		@include respond-desktop {
+			margin-top: $grid;
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 // redefine general bootstrap
 
@@ -2094,7 +2078,7 @@ p + .thumbnail-placeholder {
 			border-color: $color-blue;
 		}
 	}
-	.text-error {
+	.field-error {
 		padding-top: 0;
 	}
 }
@@ -2498,7 +2482,7 @@ button.btn-search {
 .form-group + .form-group {
 	margin-top: $double;
 }
-.text-error, .errorlist {
+.field-error, .errorlist {
 	color: $color-error;
 	font-family: $font-hed-alt;
 	font-weight: 700;
@@ -3168,11 +3152,6 @@ p.body-text {
 	overflow: visible;
 }
 
-.container#main-content {
-	max-width: none;
-	padding: 0;
-}
-
 #main._fullWidth #main-content {
 	@include respond-tablet {
 		padding-left: 0;
@@ -3181,34 +3160,6 @@ p.body-text {
 	}
 }
 
-.toc-overview { @extend %style-overview-container; }
-
-.toc-overview-container .row {
-	display: flex;
-	flex-wrap: wrap;
-	@include respond-tablet {
-		display: block;
-	}
-	.toc-module {
-		@media (max-width: $width-tablet - 1) {
-			width: 100%;
-		}
-	}
-	.toc-module._active {
-		order: -1;
-	}
-	._selected {
-		strong {
-			color: $color-blue;
-	
-			&:after {
-				display: none;
-			}
-		}
-	}
-}
-
-.toc-module { @extend %style-overview-module; }
 
 .container-reading {
 	padding-top: $double;
@@ -3225,14 +3176,14 @@ p.body-text {
 	}
 }
 
-div.container-reading + div.toc-overview {
+div.container-reading + div.overview {
 	margin-top: $grid * 3;
 	border-bottom: none;
 	@include respond-tablet {
 		margin-top: $grid * 9;
 		margin-bottom: 0;
 	}
-	div.toc-module-content {
+	div.overview-module-content {
 		display: none;
 		@include respond-desktop {
 			display: block;
@@ -3462,13 +3413,6 @@ code {
 	}
 }
 
-.signup-overview {
-	@extend %style-overview-container;
-}
-
-.signup-module {
-	@extend %style-overview-module;
-}
 
 .signup-learnMore {
     h2 { @extend %style-docs-ah; }
@@ -3873,46 +3817,7 @@ footer {
 }
 
 
-//	Home 
-
-section#home-form-container {
-    box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333;
-    -moz-box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333;
-    -webkit-box-shadow: inset 0px 5px 10px -7px #333, inset 0px -5px 10px -7px #333;
-    background: url('../img/clouds.jpg') center top no-repeat;
-    background-color: #94c4f4;
-    padding: 0;
-    text-align: center;
-}
-
-    section#home-form-container .main-container { overflow: auto; }
-
-p#home-blurb {
-    color: #fff;
-    font-family: 'Roboto Slab', Helvetica, sans-serif;
-    font-size: 36px;
-    margin: 0;
-    padding: 10px 0 5px 0;
-    text-shadow: 2px 2px 0px #16699e;
-    -moz-text-shadow: 2px 2px 0px #16699e;
-}
-
-div.home-form-frame {
-    margin: 0 auto;
-    padding: 58px 0;
-    text-align: center;
-    width: 640px;
-}
-
-ul#links {
-	width: 408px;
-	text-align: center;
-}
-
-/*div.home-form-elements {
-    margin: 10px auto 0 auto;
-}*/
-
+//	Landing 
 
 #supporting-partners {
     margin-top: $grid * 4;
@@ -4509,18 +4414,6 @@ ul {
 
 
 
-#emailPerma {
-  margin-top: 8px;
-}
-
-#upload-error {
-  margin-top: 10px;
-  font-size: 14px;
-}
-
-.modal-footer {
-  min-height: 35px;
-}
 
 .unavailable {
     @include opacity(.6);
