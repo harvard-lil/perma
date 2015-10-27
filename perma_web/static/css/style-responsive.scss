@@ -344,17 +344,23 @@ section#main {
 
 // Container, Row, Column
 
-.container {
-    margin: 0 auto;
-}
-
-.container {
+%style-container {
 	@extend %style-clears-floats;
 	@extend %style-block-centered;
 	width: 100%;
-	padding: 0 $page-margin;
 	overflow-y: visible;
 	overflow-x: hidden;
+}
+
+.container {
+	@extend %style-container;
+}
+
+.container,
+.container-reading,
+.container-inner {
+	@extend %style-container;
+	padding: 0 $page-margin;
 	@include respond-tablet {
 		max-width: $width-tablet; 
 	}
@@ -366,22 +372,27 @@ section#main {
 	}
 }
 
-.container.container-full {
+.container-full {
+	@extend %style-container;
 	max-width: none;
 	padding: 0;
 	margin-left: 0;
 	margin-right: 0;
 }
 
-.container.container-bleed {
+.container-bleed {
+	@extend %style-container;
 	padding: 0;
 }
 
-.container.container-bg {
+.container-bg {
+	@extend %style-container;
 	background-color: $color-background;
 }
 
-.container.container-display {
+.container-display {
+	@extend %style-container;
+	@extend .container-reading;
 	padding: $grid * 4 $double;
 	@include respond-tablet {
 		padding: $grid * 9 $double;
@@ -524,7 +535,7 @@ body.modal-open {
 	}
 }
 
-.overview-container .row {
+.overview .row {
 	display: flex;
 	flex-wrap: wrap;
 	@include respond-tablet {

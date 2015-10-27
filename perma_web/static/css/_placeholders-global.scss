@@ -23,19 +23,6 @@
 	margin-right: auto;
 }
 
-%style-container {
-	@extend %style-clears-floats;
-	margin-right: 0;
-	margin-left: 0;
-	padding: 0 $double * 2; // review
-	overflow: hidden;
-	@include respond-tablet {
-		margin-right: auto;
-		margin-left: auto;
-//		padding-left: $double;
-//		padding-right: $double;
-	}
-}
 
 %style-vcenter-parent {
 	display: table;
@@ -117,7 +104,7 @@
 			border-left: 1px solid white;
 		}
 	}
-	.toc-module-content {
+	.overview-module-content {
 		height: auto;
 		display: block;
 		margin: 0;
@@ -194,7 +181,7 @@
 		}
 	}
 	
-	div.toc-module-content {
+	div.overview-module-content {
 		background-color: $color-white;
 		color: $color-blue;
 		padding: 10px 14px;
