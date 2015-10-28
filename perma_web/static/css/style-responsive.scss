@@ -234,6 +234,30 @@ th {
 
 /////////////////////////////////////////
 
+// Placeholders
+
+%style-clears-floats {
+	&:after {
+		display: table;
+		content: " ";
+		clear: both;
+	}
+}
+
+%style-block-centered {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+%style-vcenter-parent {
+	display: table;
+}
+
+%style-vcenter-child {
+	display: table-cell;
+	vertical-align: middle;
+}
+
 // Defaults
 
 html {
@@ -567,7 +591,7 @@ a.outside, p a.outside {
 
 // Container, Row, Column
 
-%style-container {
+@mixin style-container {
 	@extend %style-clears-floats;
 	@extend %style-block-centered;
 	width: 100%;
@@ -576,13 +600,13 @@ a.outside, p a.outside {
 }
 
 .container {
-	@extend %style-container;
+	@include style-container;
 }
 
 .container,
 .container-reading,
 .container-inner {
-	@extend %style-container;
+	@include style-container;
 	padding: 0 $page-margin;
 	@include respond-tablet {
 		max-width: $width-tablet; 
@@ -596,7 +620,7 @@ a.outside, p a.outside {
 }
 
 .container-full {
-	@extend %style-container;
+	@include style-container;
 	max-width: none;
 	padding: 0;
 	margin-left: 0;
@@ -613,9 +637,15 @@ a.outside, p a.outside {
 }
 
 .container-bleed {
-	@extend .container;
-	padding: 0;
-	overflow: visible;
+	@include style-container;
+	width: auto;
+	margin-left: $bleed;
+	margin-right: $bleed;
+	.container-inner {
+		overflow-x: visible;
+		padding-left: $double;
+		padding-right: $double;
+	}
 }
 
 .container-xs-bleed {
@@ -629,12 +659,12 @@ a.outside, p a.outside {
 }
 
 .container-bg {
-	@extend %style-container;
+	@include style-container;
 	background-color: $color-background;
 }
 
 .container-display {
-	@extend %style-container;
+	@include style-container;
 	@extend .container-reading;
 	padding: $grid * 4 $double;
 	@include respond-tablet {
@@ -658,6 +688,8 @@ a.outside, p a.outside {
 
 #main-content {
 	max-width: none;
+    overflow-y: visible;
+    overflow-x: visible;
 }
 
 .row {
@@ -1651,40 +1683,6 @@ kbd {
 	}
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/////////////////////////
-
-// general styles
-
-
-
-
-
-
-
-
-
-
-
-
 // Alerts
 
 .text-warning {
@@ -1764,7 +1762,6 @@ kbd {
     }
 }
 
-
 .popup-alert {
     position: fixed;
     left: 0;
@@ -1793,6 +1790,41 @@ kbd {
     }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/////////////////////////
+
+// general styles
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Create
 
 .create-title {
@@ -1800,6 +1832,7 @@ kbd {
     text-align: left;
     font-size: 40px;
     font-weight: 300;
+    line-height: 1.1;
     @include respond-tablet {
 	    text-align: center;
 	    font-weight: 900;
@@ -1817,7 +1850,7 @@ kbd {
     font-size: 15px;
     line-height: 1.3;
     font-weight: 700;
-    margin-top: $half;
+    margin-top: $grid;
     @include respond-tablet {
 	    text-align: center;
 	    margin-top: 0;
@@ -1838,29 +1871,23 @@ kbd {
     }
 }
 
-#main._isPrivate {
-	#main-content {
-		background-color: $color-black;
-		padding-bottom: 0;
-		padding-top: $grid;
-		.create-title {
-			color: white;
-			padding-top: $grid;
-		}
-	    @include respond-tablet {
-			padding-bottom: 0;
-			padding-top: 0;
-			.create-title {
-				padding-top: $grid * 5;
-			}
-	    }
+.create-private-link {
+	background-color: $color-black;
+	.create-title {
+		color: white;
 	}
+    @include respond-tablet {
+		.create-title {
+			padding-top: $grid * 4;
+		}
+    }
 }
 
 #create-link-container {
-	padding-left: $double;
-	padding-right: $double;
 	padding-bottom: $grid * 3;
+	overflow: visible;
+	padding-top: $grid * 3;
+	margin-top: -$grid * 3;
 }
 
 ._isPublic #create-link-container {
@@ -1890,7 +1917,6 @@ kbd {
 		    padding: $grid * 6 $grid * 4;
 	    }
 	}
-	
 	input.form-priority-input {
 		margin: 0;
 		width: 100%;
@@ -1912,7 +1938,6 @@ kbd {
 		    width: $grid * 111;
 	    }
 	}
-	
 	.form-priority-fieldset .btn {
 		width: 100%;
 		margin-top: $double;
@@ -1943,8 +1968,6 @@ kbd {
 		    }
 		}
 	}
-	
-
 	&._isPrivate {
 		fieldset {
 			background-color: black;
@@ -1984,14 +2007,12 @@ kbd {
 			}
 		}
 	}
-	
 	button#addlink {
 		margin: $double 0 0 0;
 	    @include respond-tablet {
 			margin: 0;
 	    }
 	}
-	
 	#links-remaining-message, #organization_select_form {
 		margin-top: $grid * 3;
 		text-align: center;
@@ -2014,8 +2035,8 @@ kbd {
 			    color: $color-active;
 		    }
 	    }
-	  	.links-remaining {
-		  	display: inline-block;
+		.links-remaining {
+			display: inline-block;
 		    padding: 1px 12px 0;
 		    background-color: $color-blue;
 		    color: white;
@@ -2049,7 +2070,6 @@ kbd {
 	  	.dropdown-affil {
 		  	margin-top: $grid;
 	  	}
-
 	  	.selector-menu a,
 	  	.label-affil,
 	  	.selector-trigger {
@@ -2060,7 +2080,6 @@ kbd {
 			    font-weight: 200;
 		  	}
 		}			    
-
 	  	.label-affil,
 	  	.selector-trigger {
 		    padding-top: $half;
@@ -2072,7 +2091,6 @@ kbd {
 			    padding-bottom: $grid;
 		  	}
 		}	  	
-		
 	    span.ui-private {
 		    overflow: hidden;
 		    display: inline-block;
@@ -2086,7 +2104,6 @@ kbd {
 		    margin-left: 4px;
 		    bottom: -1px;
 	    }
-			  	
 	  	.selector-trigger {
 		  	width: 100%;
 		  	text-align: left;
@@ -2120,7 +2137,6 @@ kbd {
 			    background-position: -17px * 0;
 			}
 	  	}
-	  	
 	    .links-remaining {
 	        display: inline-block;
 		    font-size: 12px;
@@ -2133,7 +2149,6 @@ kbd {
 		    margin-left: $half;
 		    border-radius: 4px;
 	    }
-
 	  	.label-affil {
 		  	width: 100%;
 	  	}
@@ -2142,40 +2157,20 @@ kbd {
 		    width: 100%;
 	  	}
 	  	@include respond-tablet {
-		  	// total 688px
-		  	.label-affil {
-			  	width: $grid * 41;
-		  	}
-		  	.dropdown-affil,
-		  	.dropdown.open .selector-menu {
-			    width: 688px - ($grid * 41);
-		  	}
+		  	@include link-dropdown-widths(688px, $grid * 41);
 		  	.dropdown-affil {
 			  	margin-top: 0;
 		  	}
 	  	}
 	  	@include respond-desktop {
-		  	// total 894px
-		  	.label-affil {
-			  	width: $grid * 46;
-		  	}
-		  	.dropdown-affil,
-		  	.dropdown.open .selector-menu {
-			    width: 894px - ($grid * 46);
-		  	}
+		  	@include link-dropdown-widths(894px, $grid * 46);
 	  	}
 	  	@include respond-wide {
-		  	// total 1104px
-		  	.label-affil {
-			  	width: $grid * 46;
-		  	}
-		  	.dropdown-affil,
-		  	.dropdown.open .selector-menu {
-			    width: 1104px - ($grid * 46);
-		  	}
+		  	@include link-dropdown-widths(1104px, $grid * 46);
 	  	}
 	  	
 	  	.selector-menu {
+		  	@include style-card(black);
 		    position: relative;
 		    float: none;
 		    width: auto;
@@ -2187,10 +2182,6 @@ kbd {
 		    font-size: 14px;
 		    list-style: none;
 		    background-color: white;
-		    background-clip: padding-box;
-		    border-radius: 2px;
-		    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
-		    border-color: black;
 		    padding-top: 16px;
 		    min-width: 216px;
 		    top: 0;
@@ -2224,7 +2215,6 @@ kbd {
 			    margin-top: $half;
 		    }
 	  	}
-	  	
 	  	.dropdown.open {
 		  	.selector-trigger {
 			  	border-color: black;

@@ -148,3 +148,13 @@ $width-max-respond: $width-wide; 		// 1168px;
     left: 0px;
     right: 0px;
 }
+
+@mixin link-dropdown-widths($dropdownTotal, $dropdownLabel) {
+	.label-affil {
+		width: $dropdownLabel;
+	}
+	.dropdown-affil,
+	.dropdown.open .selector-menu {
+    	width: $dropdownTotal - $dropdownLabel;
+	}
+}
