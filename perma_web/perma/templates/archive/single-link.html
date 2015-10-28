@@ -56,15 +56,15 @@
             </div>
             <div class="col col-sm-6 _main {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
             	<div class="content">
-	                <p class="title"><span class="verbose">This is a </span>{% if link.is_private %}Private {% endif %}<span class="logo">Perma.cc</span> record</p>
+	                <p class="title"><span class="_verbose">This is a </span>{% if link.is_private %}Private {% endif %}<span class="logo">Perma.cc</span> record</p>
 	                <p class="creation"><span class="cat">Created</span> {{ link.creation_timestamp|local_datetime:"F j, Y" }}
 	
 	                    {% if serve_type != 'image' %}
 	                        {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
-	                            <span class="action"><span class="label-verbose">Looks wrong?  </span><a href="{% url 'single_linky' link.guid %}?type=image">See the Screenshot View</a></span>
+	                            <span class="action"><span class="_verbose">Looks wrong?  </span><a href="{% url 'single_linky' link.guid %}?type=image">See the Screenshot View</a></span>
 	                        {% endif %}
 	                    {% else %}
-	                        <span class="action"><span class="label-verbose">This is a screenshot. </span><a href="{% url 'single_linky' link.guid %}?type=source">See the Capture View</a></span>
+	                        <span class="action"><span class="_verbose">This is a screenshot. </span><a href="{% url 'single_linky' link.guid %}?type=source">See the Capture View</a></span>
 	                    {% endif %}                   
 						{% if request.user.is_authenticated %}
 						{% else %}
@@ -184,24 +184,24 @@
 
                     {% if not link|is_darchive %}
                         {% if request.user.is_staff %}
-                            <a class="btn btn-ui-small btn-dashboard darchive" href="{% url 'dark_archive_link' link.guid %}"><span class="label-verbose">Move to </span>Dark archive</a>
+                            <a class="btn btn-ui-small btn-dashboard darchive" href="{% url 'dark_archive_link' link.guid %}"><span class="_verbose">Move to </span>Dark archive</a>
                         {% elif request.user.is_registrar_member and link.organization.registrar == request.user.registrar %}
-                            <a class="btn btn-ui-small btn-dashboard darchive" href="{% url 'dark_archive_link' link.guid %}"><span class="label-verbose">Move to </span>Dark archive</a>
+                            <a class="btn btn-ui-small btn-dashboard darchive" href="{% url 'dark_archive_link' link.guid %}"><span class="_verbose">Move to </span>Dark archive</a>
                         {% elif request.user.is_organization_member and link.organization in request.user.organizations.all %}
-                            <a class="btn btn-ui-small btn-dashboard darchive" href="{% url 'dark_archive_link' link.guid %}"><span class="label-verbose">Move to </span>Dark archive</a>
+                            <a class="btn btn-ui-small btn-dashboard darchive" href="{% url 'dark_archive_link' link.guid %}"><span class="_verbose">Move to </span>Dark archive</a>
                         {% elif request.user.is_authenticated and request.user.pk == link.created_by_id %}
-                            <a class="btn btn-ui-small btn-dashboard darchive" href="{% url 'dark_archive_link' link.guid %}"><span class="label-verbose">Move to </span>Dark archive</a>
+                            <a class="btn btn-ui-small btn-dashboard darchive" href="{% url 'dark_archive_link' link.guid %}"><span class="_verbose">Move to </span>Dark archive</a>
                         {% endif %}
                     {% endif %}
 
                     {% if can_delete %}
-                        <a class="btn btn-ui-small btn-dashboard user-delete" href="{% url 'user_delete_link' link.guid %}">Delete<span class="label-verbose"> record</span></a>
+                        <a class="btn btn-ui-small btn-dashboard user-delete" href="{% url 'user_delete_link' link.guid %}">Delete<span class="_verbose"> record</span></a>
                     {% endif %}
 
                 {% endif %}
 
                 {# if not request.user.is_authenticated or request.user.pk != link.created_by_id #}
-                    <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-ui-small btn-dashboard flag" title="Flag as inappropriate">Flag<span class="label-verbose"> as inappropriate</span></a>
+                    <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-ui-small btn-dashboard flag" title="Flag as inappropriate">Flag<span class="_verbose"> as inappropriate</span></a>
                 {# endif #}
             </div>
         </div>
@@ -216,7 +216,7 @@
 	        <div class="banner banner-status row _isNewRecord">
 		        <strong>Success!</strong>
 		        <span class="message verbose">Your new Perma Link is <input class="perma" type="text" value="{{ request.get_host }}{% url 'single_linky' link.guid %}"></input></span>
-		        <span class="link-options verbose"><a href="{% url 'user_delete_link' link.guid %}">Delete</a><span class="verbose"> (Perma Links are permanent after 24 hours)</span></span>
+		        <span class="link-options verbose"><a href="{% url 'user_delete_link' link.guid %}">Delete</a><span class="_verbose"> (Perma Links are permanent after 24 hours)</span></span>
 		        <a class="action new-link" href="{% url 'create_link' %}">Make a new Perma Link</a>
 	        </div>
         {% endif %}

@@ -114,3 +114,37 @@ $width-max-respond: $width-wide; 		// 1168px;
 	}
 	&:active { color: $highlightcolor; }
 }
+
+@mixin fill-screen {
+	position: fixed;
+    border-radius: 0;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+}
+
+@mixin style-card($border-color) {
+	-moz-box-shadow:	0 2px 4px rgba(0, 0, 0, 0.175);	
+	-webkit-box-shadow:	0 2px 4px rgba(0, 0, 0, 0.175);	
+	box-shadow: 			0 2px 4px rgba(0, 0, 0, 0.175);	
+	border: 1px solid $border-color;
+	border-radius: 2px;
+	background-clip: padding-box;
+}
+
+@mixin hide-text {
+    text-indent: -10000px;
+    overflow: hidden;
+}
+
+@mixin fill-screen {
+	position: fixed;
+	width: 100%;
+    height: 100%;
+    border-radius: 0;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+}
