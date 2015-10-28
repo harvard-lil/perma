@@ -1,4 +1,4 @@
-{% extends "layout-responsive.html" %}
+{% extends "admin-layout.html" %}
 {% load mptt_tags pipeline as_json %}
 
 {% block title %} | Create a Perma link{% endblock %}
@@ -126,7 +126,7 @@
 {% endif %}
 
 
-<div class="container manage-links">
+<div class="container-xs-bleed manage-links">
 	<div class="row">
 	    <div class="col-sm-3 folders-box">
 	        <div class="panel-heading">
@@ -249,8 +249,7 @@
             can_vest = {% if request.user.can_vest %}true{% else %}false{% endif %};
     </script>
 
-
-    
+    {% javascript 'admin' %}
     {% javascript 'create' %}
 {% endblock %}
 

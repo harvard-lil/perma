@@ -1867,7 +1867,7 @@ kbd {
 	    margin: $grid * 4 0;
     }
     @include respond-wide {
-	    margin: $grid * 5 0;
+	    margin-top: $grid * 5;
     }
 }
 
@@ -1892,6 +1892,10 @@ kbd {
 
 ._isPublic #create-link-container {
 	padding-bottom: 0;
+}
+
+._isPrivate #create-link-container {
+	margin-bottom: $grid * 4;
 }
 
 .create-private-link {
@@ -2321,7 +2325,7 @@ kbd {
 }
 
 .create-errors {
-	padding: $double 0;
+	padding: 0;
 	background: white;
 	.no-wide {
 		padding: 0 $double;
@@ -2329,8 +2333,14 @@ kbd {
 }
 
 ._isPublic {
-	.create-errors {
-		padding: 0;
+	.manage-links {
+		margin-top: $grid * 4;
+	}
+}
+
+._isPrivate {
+	.manage-links {
+		margin-top: $grid * 4;
 	}
 }
 
@@ -2340,15 +2350,15 @@ kbd {
     padding: $double 0;
     background-color: white;
     @include respond-tablet {
-	    margin-top: $grid * 4;
+	    margin-top: 0;
 	    padding: $grid * 3 $grid;
     }
     @include respond-desktop {
-	    margin-top: $grid * 3;
+	    margin-top: 0;
 	    padding: $grid * 4 $double;
     }
     @include respond-wide {
-	    margin-top: $grid * 5;
+	    margin-top: 0;
 	    padding: $grid * 4 $double;
     }
     &._wait {
