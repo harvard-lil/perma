@@ -590,7 +590,11 @@ a.outside, p a.outside {
 
 // Global Flags
 
-._noMobile {
+._hide {
+    display: none;
+}
+
+._hideMobile {
 	@include respond-mobile {
 		display: none !important;
 	}
@@ -610,8 +614,41 @@ a.outside, p a.outside {
     }
 }
 
-._nobreak {
+._noWrap {
 	white-space: nowrap;	
+}
+
+._noSelect {
+	text-decoration: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+}
+
+// Character styles
+
+.muted, 
+.muted p {
+	color: $color-trans-gray;
+}
+
+.muted {
+	margin-top: $grid;
+	display: block;
+}
+
+.right {
+	text-align: right;
+}
+
+.text-warning {
+	color: $color-orange;
+}
+
+a.underline {
+	text-decoration: underline;
 }
 
 // Container, Row, Column
@@ -880,6 +917,38 @@ div.col-right {
 		margin-bottom: $double;
   	}
 }
+
+button {
+    &:focus {
+	    box-shadow: none;
+    }
+	&.btn-inline {
+	    display: inline-block;
+	    padding: 9px;
+	    margin: 0;
+	    vertical-align: middle;
+	    border: 1px solid transparent;
+	    margin-top: $grid * 3;
+	}
+	
+	&.btn-search {
+		width: $grid * 6;
+	    position: absolute;
+	    display: block;
+	    border-top-left-radius: 0;
+	    border-bottom-left-radius: 0;
+	    top: $double;
+	    bottom: $double;
+	    right: $grid;
+	    margin: 0;
+	    @include respond-tablet {
+		    top: $grid * 4;
+		    bottom: $grid * 4;
+		    right: 24px;
+	    }
+	}
+}
+
 
 
 // Heds
@@ -1815,41 +1884,6 @@ kbd {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/////////////////////////
-
-// general styles
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Create
 
 .create-title {
@@ -2459,7 +2493,6 @@ kbd {
     @include respond-tablet {
 		margin-top: -12px;
     }
-
 	.message-large {
 	    font-family: 'Roboto', sans-serif;
 	    color: $color-blue;
@@ -2471,7 +2504,6 @@ kbd {
 		    font-weight: 200;	    
 	    }
 	}
-	
 	p {
 	    font-size: 16px;
 		font-family: $font-body;
@@ -2480,20 +2512,12 @@ kbd {
 		    font-size: 18px;
 	    }
 	}
-	
-/*	a.perma-url {
-		font-family: $font-body;
-	    font-size: 26px;
-	}
-	*/
 	.message-url {
 	    margin: 20px 0;
 	}
-	
 	.text-warning {
 	    margin: 40px 0;
 	}
-	
 	a.perma {
 		font-size: 15px;
 		padding: 6px;
@@ -2655,6 +2679,8 @@ p.caption {
   }
 }
 
+
+
 ._image {
 	box-shadow: -1px 0 2px 0 rgba(0,0,0,0.12) , 1px 0 2px 0 rgba(0,0,0,0.12) , 0 1px 1px 0 rgba(0,0,0,0.24);
 	border-radius: 2px;
@@ -2679,14 +2705,8 @@ p.caption {
 
 
 
+// Forms
 
-/////////////////////////
-
-// forms
-
-// again, a body for pipeline specificity 
-
-// review; removed for __permaNew
 form {
 	margin-top: $grid * 3;
 	.btn {
@@ -2727,14 +2747,17 @@ fieldset {
 		margin-top: 2px;
 	}
 }
+
 h3 + fieldset {
 	margin-top: $double;
 }
+
 label, input {
 	display: block;
 	font-family: $font-hed-alt;
 	width: 100%;
 }
+
 label {
 	margin: 0; 
 	font-weight: 400;
@@ -2759,14 +2782,11 @@ input {
     }
 }
 
-button {
-    &:focus {
-	    box-shadow: none;
-    }
-}
+
 input[type="checkbox"] {
 	width: auto;
 }
+
 div.checkbox {
 	padding: $grid;
     background-color: $color-highlight;
@@ -2775,15 +2795,18 @@ div.checkbox {
     border-radius: 2px;
     padding-top: $grid;
     padding-left: 36px;
-	}
+}
+	
 ._error {
 	input {
 		border-color: $color-error;
 	}
 }
+
 input + label {
 	margin-top: $double;
 }
+
 button, input[type="submit"] {
 	width: 100%;
 	@include respond-tablet {
@@ -2855,36 +2878,13 @@ textarea {
 }
 
 
-button.btn-inline {
-    display: inline-block;
-    padding: 9px;
-    margin: 0;
-    vertical-align: middle;
-    border: 1px solid transparent;
-    margin-top: $grid * 3;
-}
-
-button.btn-search {
-	width: $grid * 6;
-    position: absolute;
-    display: block;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-    top: $double;
-    bottom: $double;
-    right: $grid;
-    margin: 0;
-    @include respond-tablet {
-	    top: $grid * 4;
-	    bottom: $grid * 4;
-	    right: 24px;
-    }
-}
 
 .form-group + .form-group {
 	margin-top: $double;
 }
-.field-error, .errorlist {
+
+.field-error, 
+.errorlist {
 	color: $color-error;
 	font-family: $font-hed-alt;
 	font-weight: 700;
@@ -2893,6 +2893,7 @@ button.btn-search {
 	display: block;
 	padding-top: $double;
 }
+
 .errorlist {
   list-style-type: none;
   margin: 0;
@@ -2905,6 +2906,7 @@ button.btn-search {
 	  }
   }
 }
+
 input[type="text"], 
 textarea, 
 button[type="submit"],
@@ -2932,6 +2934,16 @@ button#addlink,
 		width: 50%;
 	}
 }
+
+
+
+
+
+
+
+
+
+
 
 /////////////////////////
 
@@ -3242,7 +3254,6 @@ li.dropdown {
 	}
 }
 
-
 .navbar-create {
     margin-top: 0;
     margin-bottom: 8px;
@@ -3252,28 +3263,38 @@ li.dropdown {
 	}
 }
 
+.collapsing {
+    -webkit-transition: none;
+    transition: none;
+}
+
 .navbar-collapse {
-	padding: 0;
-}
-
-.navbar-collapse.in {
 	overflow: visible;
-}
-
-.navbar-collapse .navbar-nav.navbar-right:last-child {
-	margin-right: $grid;
-	margin-left: $grid;
-	@include respond-tablet {
-		margin-right: 0;
+    -webkit-transition: none !important;
+    transition: none !important;
+    height: auto !important;
+    padding: 0;
+    margin: 0;
+    border: none;
+    max-height: none;
+	&.in {
+		overflow: visible;
+		.dropdown-menu {
+			display: block;
+		}
+	}
+	.navbar-nav.navbar-right:last-child {
+		margin-right: $grid;
+		margin-left: $grid;
+		@include respond-tablet {
+			margin-right: 0;
+		}
 	}
 }
 
 
-// .logo span { display: none; }
 
 .logo {
-// 	min-width: 235px;
-//	text-decoration: none;
 	padding: 0;
 	min-width: 0;
 	@extend %style-vcenter-parent;
@@ -3383,10 +3404,6 @@ li.dropdown {
 
 // when nav is open
 
-.collapsing {
-    -webkit-transition: none;
-    transition: none;
-}
 
 header._expanded {
 	.navbar-toggle {
@@ -3400,38 +3417,13 @@ header._expanded {
 	}
 }
 
-.navbar-collapse {
-	overflow: visible;
-    -webkit-transition: none !important;
-    transition: none !important;
-    height: auto !important;
-    padding: 0;
-    margin: 0;
-    border: none;
-    max-height: none;
-}
 
-.navbar-collapse.in {
-	.dropdown-menu {
-		display: block;
-	}
-}
 
-button.navbar-toggle.menu-adjust {
-	position: fixed;
-	right: 20px;
-	background: $color-blue;
-	top: 0px;
-	  -webkit-user-select: none;
-     -moz-user-select: none;
-      -ms-user-select: none;
-       -o-user-select: none;
-          user-select: none;
-}
 
-button.navbar-toggle.menu-adjust:hover, button.navbar-toggle.menu-adjust:active, button.navbar-toggle.menu-adjust:focus, button.navbar-toggle.menu-adjust: visited {
-	background: #06a;
-}
+
+
+
+
 
 
 
@@ -3581,27 +3573,23 @@ p.display {
 section#main-archive {
     background-color: #fff;
     padding: 0px;
-
     .row {
         margin: 0;
     }
 }
 
 
-.column {
-  -webkit-box-sizing: border-box; //	Safari/Chrome, other WebKit 
-   -moz-box-sizing: border-box;    //	Firefox, other Gecko 
-    box-sizing: border-box;
-    padding: 0 40px;
-}
 
-.subscribe {
-text-align: center;
-margin: 0 auto;
-color: #555;
-font-size: 20px;
-margin-bottom: 10px;
-}
+
+
+
+
+
+
+
+
+
+
 
 
 //	Footer 
@@ -3745,81 +3733,38 @@ footer {
 	    vertical-align: middle;
     }
 }
-    #supporting-partners .col-sm-12 {
-        text-align: center;
-    }
-    #supporting-partners a img {
-        display: inline-block;
-        height: $grid * 5;
-        padding: $half;
-        margin-right: $grid * 3;
-        margin-bottom: $grid;
-        @include respond-tablet {
-	        height: $grid * 7;
-        }
-    }
-    #supporting-partners a img.square {
-        height: $grid * 10;
-         @include respond-tablet {
-	        height: $grid * 12;
-        }
-   }
-    
-//	Learn more 
 
-.learn-more .btn-more {
-    margin: 5px 5px 5px 10px;
-    display: block;
+#supporting-partners .col-sm-12 {
+    text-align: center;
 }
 
-.learn-more .btn-active {
-    background: #09f;
-    color: #fff;
-}
-
-.container.libraries-power h2, .container.learn-more h2 {
-    margin-top: 0px;
-}
-
-.container.libraries-power p, .container.learn-more p {
-    font-size: 16px;
-}
-
-.container.libraries-power ul {
-    list-style-type: disc;
-    margin-left: 0px;
-    font-weight: 300;
-    font-size: 16px;
-}
-
-@media(min-width: 768px) {
-    .learn-more .btn-more {
-        margin: 16px 16px 35px 10px;
-        display: inline-block;
+#supporting-partners a img {
+    display: inline-block;
+    height: $grid * 5;
+    padding: $half;
+    margin-right: $grid * 3;
+    margin-bottom: $grid;
+    @include respond-tablet {
+        height: $grid * 7;
     }
 }
 
-//	End learn more 
+#supporting-partners a img.square {
+    height: $grid * 10;
+     @include respond-tablet {
+        height: $grid * 12;
+    }
+}
+
+
+
+
 
 //	Dashboard 
 
-div.dashboard-blurb {
-    background-color: #efefef;
-    border-radius: 10px;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    margin: 20px 0 0 0;
-    padding: 10px 20px;
-}
 
-    div.dashboard-blurb p {
-        color: #777;
-        font-size: 22px;
-        line-height: 32px;
-        margin: 0 !important;
-        padding: 10px 0;
-        text-align: center;
-    }
+
+
 
 #dashboard-container {
     margin-top: 0;
@@ -4555,6 +4500,7 @@ span.action {
     }
 }
 
+
 .sort-filter-bar {
     padding-top: $grid;
     padding-bottom: 16px;
@@ -4571,7 +4517,6 @@ span.action {
     }
     @include respond-tablet {
 	    width: auto;
-	    float: right;
 	    clear: none;
 	    border-top: none;
 	    strong {
@@ -4582,6 +4527,9 @@ span.action {
 		    margin-left: $grid * 2;
 		    margin-right: 0;
 	    }
+    }
+    @include respond-desktop { 
+	    float: right;
     }
     @include respond-mobile {
 	    border-bottom: 1px solid $color-blue;
@@ -4630,9 +4578,13 @@ span.action {
 	float: left;
     font-weight: 400;
     margin-top: $grid;
-    font-family: $font-hed-alt;
+    margin-bottom: $grid;
+	font-family: $font-hed-alt;
     color: $color-blue;
     font-size: 15px;
+    @include respond-tablet {
+	    margin-bottom: 0;
+    }
     @include respond-desktop {
 	    font-size: 16px;
     }
@@ -4905,18 +4857,16 @@ p.list-count-number {
     margin-bottom: 2px;
 }
 
-input#file {
-	border: 0px;
-	padding-left: 0px;
-}
 
-#archive_upload_form p {
-    margin-bottom: 10px;
-}
 
-#archive_upload_form button {
-    margin-top: 10px;
-}
+
+
+
+
+
+
+
+
 
 .nav {
     position: relative;
@@ -4927,9 +4877,6 @@ input#file {
 	margin: 0px;
 }
 
-a.underline {
-	text-decoration: underline;
-}
 
 .nav-pills {
 	margin-top: 40px;
@@ -4944,30 +4891,6 @@ a.underline {
 
 
 
-
-
-.carat {
-    margin-top: 4px;
-}
-
-
-
-
-
-
-
-
-
-
-div.faq-answer {
-    margin: .4em 0 0 0;
-    color: #333;
-    line-height: 1.6;
-}
-
-.hide {
-    display: none;
-}
 
 .mega {
 	color: $color-black;
@@ -5061,15 +4984,7 @@ img[usemap] {
 	}
 
 
-.muted, 
-.muted p {
-	color: $color-trans-gray;
-}
 
-.muted {
-	margin-top: $grid;
-	display: block;
-}
 
 
 
@@ -5079,9 +4994,6 @@ img[usemap] {
 
 
 
-.right {
-	text-align: right;
-}
 
 
 
@@ -5093,150 +5005,3 @@ img[usemap] {
 
 
 
-
-.text-warning {
-	color: $color-orange;
-}
-
-
-small a, small a:hover, a i.icon-chevron-down, a i.icon-chevron-down:hover, a i.icon-chevron-up, a i.icon-chevron-up:hover, th a, th a:hover {
-	text-decoration: none;
-	  -webkit-user-select: none;
-     -moz-user-select: none;
-      -ms-user-select: none;
-       -o-user-select: none;
-          user-select: none;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.btn-more {}
-
-
-.btn-more:hover,
-.btn-more:focus,
-.btn-more:active {}
-
-.darchive {
-	text-align: center;
-	background: rgba(255,255,255, .5);
-	position: absolute;
-	z-index: 100;
-	margin-top: 20px;
-	border-radius: 4px;
-	@include opacity(.8);
-}
-
-
-
-
-
-
-
-
-
-.centered {
-	text-align: center;
-	margin-bottom: 40px;
-}
-
-.cancel-button {
-	  color: #ffffff;
-  background-color: #aaa;
-  border-color: #4cae4c;
-  font-size: 20px;
-    display: inline-block;
-  padding: 6px 12px;
-  margin-bottom: 0;
-
-  font-weight: normal;
-  line-height: 1.428571429;
-  text-align: center;
-  white-space: nowrap;
-  vertical-align: middle;
-  cursor: pointer;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  -webkit-user-select: none;
-     -moz-user-select: none;
-      -ms-user-select: none;
-       -o-user-select: none;
-          user-select: none;
-}
-
-.cancel-button:hover,
-.cancel-button:focus {
-	  color: #ffffff;
-  background-color: #888;
-
-}
-
-.border-bottom {
-	border-bottom: 1px solid #ccc;
-}
-.button-set {
-	margin-bottom: -30px;
-	position: relative;
-	z-index: 1000;
-}
-
-
-.text-remove {
-	font-style: italic;
-	font-size: 85%;
-}
-
-
-
-
-
-
-
-
-
-
-
-@media (max-width:  992px) {
-
-	tbody {
-		font-size: 12px;
-	}
-    .sort-filter-bar {
-        margin-bottom: 16px;
-    }
-
-
-
-
-
-
-
-
-//	Archive error page start 
-
-.archive-error .centered-box p {
-	font-size: 19px;
-	line-height: 28px;
-	padding: 0;
-}
-
-.archive-error .mega {
-	color: $color-orange;
-	font-family: $font-body;
-	margin-top: 40px;
-	margin-bottom: 30px;
-	font-size: 44px;
-}
-
-//	End user docs  
