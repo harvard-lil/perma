@@ -258,17 +258,37 @@ th {
 	vertical-align: middle;
 }
 
+%style-code {
+	font-family: $font-mono;
+	background-color: $color-trans-whispergray;
+	border: 1px solid $color-trans-lightgray;
+	border-radius: 2px;
+	word-break: normal;
+	word-wrap: normal;
+	color: $color-black;
+	font-size: 12px;
+	@include respond-tablet {
+		font-size: 13px;
+	}
+	@include respond-desktop {
+		font-size: 14px;
+	}
+}
+
 // Defaults
 
 html {
 	box-sizing: border-box;
 }
 
-html, body {
+html, 
+body {
 	overflow: auto;
 }
 
-*, *:before, *:after {
+*, 
+*:before, 
+*:after {
 	box-sizing: border-box;
 	text-rendering: optimizeLegibility;
 	-webkit-font-variant-ligatures: common-ligatures;
@@ -282,7 +302,9 @@ html, body {
 	position: relative;
 }
 
-cite, em , i {
+cite, 
+em, 
+i {
 	font-style: italic;
 	cite, em, i { font-style: inherit; }
 }
@@ -319,7 +341,8 @@ textarea {
     outline-width: 5px !important;
 }
 
-input:focus, *:hover {
+input:focus, 
+*:hover {
 	outline: none !important;
 }
 
@@ -485,109 +508,6 @@ strong {
 	}
 }
 
-a {
-	font-weight: inherit;
-}
-
-a.perma, p a.perma {
-	font-family: $font-hed-alt;
-	font-weight: 900;
-	color: $color-blue;
-	white-space: nowrap;
-	font-size: 12px;
-	padding: 2px 4px;
-	border: 2px solid $color-blue;
-	vertical-align: middle;
-	border-radius: 2px;
-	&:hover {
-		text-decoration: none;
-		border-color: $color-hover;
-		color: $color-hover;
-		&:before {
-			background-position-x: -30px * 3 !important;
-		}
-	}
-	&:active {
-		border-color: $color-black;
-		color: $color-black;
-		&:before {
-			background-position-x: -30px * 1 !important;
-		}
-	}
-	@include respond-tablet {
-		padding: 6px;
-		font-size: 14px;
-		&:before {
-			width: 30px;
-			top: 2px;
-			background-size: 180px 14px;
-			background-position-x: -30px * 2;
-		}
-		&:hover {
-			&:before {
-				background-position-x: -30px * 1;
-			}
-		}
-		&:active {
-			&:before {
-				background-position-x: -30px * 1;
-			}
-		}
-	}
-}
-
-a.outside, p a.outside {
-	font-family: $font-hed-alt;
-    font-weight: 300;
-    white-space: nowrap;
-    padding: 6px 12px;
-    background-color: $color-blue;
-    border-radius: 5em;
-    font-size: 14px;
-    margin: 0 $half;
-    &:visited, &:link {
-	    color: $color-white;
-    }
-    &:after {
-		content: '';
-		width: 9px;
-		height: 17px;
-		display: inline-block;
-		margin-left: $grid;
-		position: relative;
-		top: 3px;
-		background-image: url('../img/ui/perma-ui-chev-right-small.png');
-		background-repeat: no-repeat;
-		background-position: 0 0;
-		background-size: 54px 17px;
-		background-position-x: -9px * 5;
-    }
-	&:hover {
-		text-decoration: none;
-		background-color: $color-hover;
-	}
-	&:active {
-		background-color: $color-black;
-	}
-}
-
-%style-code {
-	font-family: $font-mono;
-	background-color: $color-trans-whispergray;
-	border: 1px solid $color-trans-lightgray;
-	border-radius: 2px;
-	word-break: normal;
-	word-wrap: normal;
-	color: $color-black;
-	font-size: 12px;
-	@include respond-tablet {
-		font-size: 13px;
-	}
-	@include respond-desktop {
-		font-size: 14px;
-	}
-}
-
 // Global Flags
 
 ._hide {
@@ -647,9 +567,63 @@ a.outside, p a.outside {
 	color: $color-orange;
 }
 
-a.underline {
-	text-decoration: underline;
+// Link styles
+
+a {
+	font-weight: inherit;
+	&.underline {
+		text-decoration: underline;
+	}
+	&.perma {
+		font-family: $font-hed-alt;
+		font-weight: 900;
+		color: $color-blue;
+		white-space: nowrap;
+		font-size: 12px;
+		padding: 2px 4px;
+		border: 2px solid $color-blue;
+		vertical-align: middle;
+		border-radius: 2px;
+		&:hover {
+			text-decoration: none;
+			border-color: $color-hover;
+			color: $color-hover;
+			&:before {
+				background-position-x: -30px * 3 !important;
+			}
+		}
+		&:active {
+			border-color: $color-black;
+			color: $color-black;
+			&:before {
+				background-position-x: -30px * 1 !important;
+			}
+		}
+		@include respond-tablet {
+			padding: 6px;
+			font-size: 14px;
+			&:before {
+				width: 30px;
+				top: 2px;
+				background-size: 180px 14px;
+				background-position-x: -30px * 2;
+			}
+			&:hover {
+				&:before {
+					background-position-x: -30px * 1;
+				}
+			}
+			&:active {
+				&:before {
+					background-position-x: -30px * 1;
+				}
+			}
+		}
+	}
 }
+
+p a.perma { @extend a.perma }
+
 
 // Container, Row, Column
 
@@ -657,6 +631,7 @@ a.underline {
 	@extend %style-clears-floats;
 	@extend %style-block-centered;
 	width: 100%;
+	overflow: visible;
 	overflow-y: visible;
 	overflow-x: hidden;
 }
