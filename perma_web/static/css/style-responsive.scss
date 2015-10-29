@@ -275,6 +275,47 @@ th {
 	}
 }
 
+@mixin style-dropdown {
+	@include style-card(black);
+    display: none;
+    position: relative;
+    top: 0;
+    float: none;
+    width: auto;
+    min-width: 216px;
+    z-index: 1000;
+    padding: $double 0 5px;
+    margin: 0 0 $double 0;
+    font-size: 14px;
+    list-style: none;
+    background-color: white;
+    @include respond-tablet {
+	    margin-top: 2px;
+	    position: absolute;
+	    top: $grid * 4;
+    }
+    li { margin-bottom: 0; }
+    a {
+	    border-top: 1px solid rgba(0,0,0,.2);
+	    padding-top: 11px;
+	    &:hover {
+		    span.ui-private {
+			    background-image: url('../img/ui/perma-ui-private-white.png') !important;
+		    }
+	    }
+    }
+    .dropdown-header, 
+    a {
+        text-align: left;
+	    padding-left: 14px;
+	    padding-top: $grid;
+	    padding-bottom: $grid;
+    }
+    .dropdown-header {
+	    margin-top: $half;
+    }
+}
+
 // Defaults
 
 html {
@@ -924,6 +965,88 @@ button {
 	}
 }
 
+
+.dropdown {
+	.selector {
+		width: 100%;
+		text-align: left;
+		font-size: 18px;
+		font-weight: 200;
+		padding-top: $half;
+		padding-bottom: $half;
+		border-top-width: 1px;
+		border-bottom-width: 1px;
+		background-color: rgba(255,255,255,.4);
+		top: auto;
+		padding-right: $grid * 3;
+	    &:after {
+		    content: '';
+		    height: 9px;
+		    width: 18px;
+		    display: inline-block;
+		    background-image: url('../img/ui/perma-ui-chev-down.png');
+		    background-repeat: no-repeat;
+		    background-size: 102px 9px;
+		    background-position: -17px * 0;
+		    top: 12px;
+			margin-left: $grid;
+			position: absolute;
+			right: 8px;
+			@include respond-desktop {
+				top: 18px;
+			}
+		}
+		&:hover {
+			color: $color-blue;
+		}
+		&:active {
+			border-color: $color-trans-lightgray;
+		}
+		&:hover::after {
+		    background-position: -17px * 0;
+		}
+		@include respond-desktop {
+			font-size: 20px;
+			font-weight: 200;
+		}
+		@include respond-desktop {
+			padding-top: $grid;
+			padding-bottom: $grid;
+		}
+	}
+	.selector-menu {
+		@include style-dropdown;
+		a {
+			font-size: 18px;
+			font-weight: 200;
+			@include respond-desktop {
+				font-size: 20px;
+				font-weight: 200;
+			}
+		}
+	}
+	&.open {
+		.selector {
+			border-color: black;
+			border-bottom-color: transparent;
+			background-color: white;
+			border-bottom-left-radius: 0;
+			border-bottom-right-radius: 0;
+			&:after {
+				background-position: -17px * 0;
+			}
+		}
+		.selector-menu {
+			display: block;
+			border-top: 0;
+			border-radius: 4px;
+			border-top-left-radius: 0;
+			border-top-right-radius: 0;
+			text-align: left;
+			width: 100%;
+		}
+	}
+}
 
 
 // Heds
@@ -1938,12 +2061,6 @@ kbd {
     }
 }
 
-#main._create {
-	padding-bottom: 0;
-    @include respond-tablet {
-	    padding-bottom: 200px;
-    }
-}
 
 #linker {
 	.form-priority-fieldset {
@@ -2034,13 +2151,14 @@ kbd {
 					background-image: url('../img/ui/perma-ui-affil-isPrivate.svg');
 				}
 			}
-			.selector-trigger {
+			.selector {
 				background-color: transparent;
 				color: white;
 			}
 			.dropdown.open {
-				.selector-trigger {
+				.selector {
 					color: $color-blue;
+					background-color: white;
 				}
 			}
 		}
@@ -2051,7 +2169,8 @@ kbd {
 			margin: 0;
 	    }
 	}
-	#links-remaining-message, #organization_select_form {
+	#links-remaining-message, 
+	#organization_select_form {
 		margin-top: $grid * 3;
 		text-align: center;
 		float: left;
@@ -2083,7 +2202,8 @@ kbd {
 	  	}
   	}
   	#organization_select_form {
-	  	.label-affil, .dropdown-affil {
+	  	.label-affil, 
+	  	.dropdown-affil {
 		  	float: left;
 		    width: 50%;
 		    text-align: left;
@@ -2108,9 +2228,7 @@ kbd {
 	  	.dropdown-affil {
 		  	margin-top: $grid;
 	  	}
-	  	.selector-menu a,
-	  	.label-affil,
-	  	.selector-trigger {
+	  	.label-affil {
 		  	font-size: 18px;
 		    font-weight: 200;
 		  	@include respond-desktop {
@@ -2118,8 +2236,7 @@ kbd {
 			    font-weight: 200;
 		  	}
 		}			    
-	  	.label-affil,
-	  	.selector-trigger {
+	  	.label-affil {
 		    padding-top: $half;
 		    padding-bottom: $half;
 		    border-top-width: 1px;
@@ -2142,39 +2259,6 @@ kbd {
 		    margin-left: 4px;
 		    bottom: -1px;
 	    }
-	  	.selector-trigger {
-		  	width: 100%;
-		  	text-align: left;
-		  	background-color: rgba(255,255,255,.4);
-		    top: auto;
-		    padding-right: 24px;
-		    &:after {
-			    content: '';
-			    height: 9px;
-			    width: 18px;
-			    display: inline-block;
-			    background-image: url('../img/ui/perma-ui-chev-down.png');
-			    background-repeat: no-repeat;
-			    background-size: 102px 9px;
-			    background-position: -17px * 0;
-			    top: 12px;
-				margin-left: $grid;
-				position: absolute;
-				right: 8px;
-				@include respond-desktop {
-					top: 18px;
-				}
-			}
-			&:hover {
-				color: $color-blue;
-			}
-			&:active {
-				border-color: $color-trans-lightgray;
-			}
-			&:hover::after {
-			    background-position: -17px * 0;
-			}
-	  	}
 	    .links-remaining {
 	        display: inline-block;
 		    font-size: 12px;
@@ -2190,8 +2274,7 @@ kbd {
 	  	.label-affil {
 		  	width: 100%;
 	  	}
-	  	.dropdown-affil,
-	  	.dropdown.open .selector-menu {
+	  	.dropdown-affil {
 		    width: 100%;
 	  	}
 	  	@include respond-tablet {
@@ -2205,73 +2288,6 @@ kbd {
 	  	}
 	  	@include respond-wide {
 		  	@include link-dropdown-widths(1104px, $grid * 46);
-	  	}
-	  	
-	  	.selector-menu {
-		  	@include style-card(black);
-		    position: relative;
-		    float: none;
-		    width: auto;
-		    z-index: 1000;
-		    display: none;
-		    padding: 5px 0;
-		    margin: 0;
-		    margin-right: -7px;
-		    font-size: 14px;
-		    list-style: none;
-		    background-color: white;
-		    padding-top: 16px;
-		    min-width: 216px;
-		    top: 0;
-		    margin-right: 0;
-		    border: 1px solid;
-		    margin-bottom: $double;
-		    @include respond-tablet {
-			    margin-top: 2px;
-			    position: absolute;
-			    top: $grid * 4;
-		    }
-		    li {
-			    margin-bottom: 0;
-		    }
-		    a {
-			    border-top: 1px solid rgba(0,0,0,.2);
-			    padding-top: 11px;
-			    &:hover {
-				    span.ui-private {
-					    background-image: url('../img/ui/perma-ui-private-white.png');
-				    }
-			    }
-		    }
-		    .dropdown-header, a {
-		        text-align: left;
-			    padding-left: 14px;
-			    padding-top: $grid;
-			    padding-bottom: $grid;
-		    }
-		    .dropdown-header {
-			    margin-top: $half;
-		    }
-	  	}
-	  	.dropdown.open {
-		  	.selector-trigger {
-			  	border-color: black;
-			  	border-bottom-color: transparent;
-			  	background-color: white;
-			  	border-bottom-left-radius: 0;
-			  	border-bottom-right-radius: 0;
-			  	&:after {
-				    background-position: -17px * 0;
-			  	}
-		  	}
-		  	.selector-menu {
-			    display: block;
-			    border-top: 0;
-			    border-radius: 4px;
-			    border-top-left-radius: 0;
-			    border-top-right-radius: 0;
-			    text-align: left;
-  		  	}
 	  	}
   	}
 }
