@@ -11,7 +11,7 @@
         </form>
     </div>
     {% if link.thumbnail_status != 'failed' %}
-	    <div class="library-thumbnail user-delete-thumbnail">
+	    <div class="screenshot-thumbnail user-delete-thumbnail">
             <img src="{% url 'service_get_thumbnail' link.guid %}"/>
 	    </div>
     {% endif %}
