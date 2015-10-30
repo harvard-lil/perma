@@ -1573,15 +1573,10 @@ div.container-reading + div.overview {
 	li.reading-toc-section {
 		font-weight: 300;
 	}
-    .red {
-        color: $color-error;
-        border: none;
-        font-weight: bold;
-    }
 }
 
 .reading-body {
-	margin-top: 0; // $grid * 6;
+	margin-top: 0;
 	@include respond-tablet {
 		margin-top: 0;
 	}
@@ -1867,14 +1862,7 @@ p.caption {
 }
 
 .popup-alert {
-    position: fixed;
-    left: 0;
-    right: 0;
-    top: 0;
-    width: auto;
-    margin: auto;
-    max-width: none;
-    z-index: 10000;
+	@include affix-to-top;
 	padding: $grid * 3 $double;
 	padding-right: $grid * 4;
     margin-bottom: 0px;
@@ -2174,17 +2162,10 @@ p.caption {
   	}
 }
 
-._isPublic {
-	.manage-links {
-		margin-top: $grid * 4;
-	}
+.manage-links {
+	margin-top: $grid * 4;
 }
 
-._isPrivate {
-	.manage-links {
-		margin-top: $grid * 4;
-	}
-}
 
 // Create errors
 
@@ -2227,7 +2208,6 @@ p.caption {
 }
 
 #error-container {
-	min-height: 0;
     @include respond-tablet {
 		margin-top: -12px;
     }
@@ -2268,10 +2248,6 @@ p.caption {
 	}
 }
 
-#preview-container {
-    margin-right: 0;
-}
-
 .screenshot-thumbnail {
 	border: 3px solid $color-trans-lightgray;
 	border-radius: 4px;
@@ -2299,6 +2275,7 @@ p.caption {
 
 form {
 	margin-top: $grid * 3;
+	overflow-y: visible;
 	.btn {
 		background-color: $color-blue;
 		&:hover {
@@ -2308,10 +2285,6 @@ form {
 			background-color: $color-active;
 		}
 	}
-}
-
-form {
-	overflow-y: visible;
 }
 
 fieldset {
@@ -2397,7 +2370,8 @@ input + label {
 	margin-top: $double;
 }
 
-button, input[type="submit"] {
+button, 
+input[type="submit"] {
 	width: 100%;
 	@include respond-tablet {
 		width: auto;
@@ -2413,8 +2387,7 @@ button, input[type="submit"] {
 		margin-top: $double;
 		padding-right: $double;
 	}
-	&.fg-inline {
-	}
+	&.fg-inline {}
 	&.fg-100 {
 		@include respond-tablet {
 			width: 100%;
@@ -2524,18 +2497,6 @@ button#addlink,
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 // Header & nav
 
 .navbar-default {
@@ -2545,30 +2506,11 @@ button#addlink,
 	}
 }
 
-._expanded { // remove when trigger off
-	.navbar-default {
-		border-bottom: none;
-	}
-	button.navbar-toggle {
-		background-color: black;
-		.icon-bar {
-			background-color: white;
-		}
-		&:hover {
-			background-color: $color-hover;
-		}
-		&:active {
-			background-color: $color-active;
-		}
-		&:focus {
-			background-color: black;
-		}
-	}
-}
 
 .navbar-nav {
 	height: auto;
 	margin: 0 $double $double;
+	font-family: $font-hed-alt;
 	@include respond-tablet {
 		height: $height-nav-tablet;
 		display: table;
@@ -2587,22 +2529,13 @@ button#addlink,
 }
 
 
-.navbar-link, .navbar-toggle {
+.navbar-link, 
+.navbar-toggle {
 	@include link-highlight($color-black, $color-orange);
 }
 
 .container > .navbar-header { // specificity for bootstrap
 	z-index: 10;
-}
-
-ul .nav.navbar-nav.navbar-right li a {
-    background-color: #fff;
-    border-radius: 3px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    color: #333;
-    padding: 5px 10px;
-    line-height: 10px;
 }
 
 .nav > li > a.navbar-link {
@@ -2611,8 +2544,11 @@ ul .nav.navbar-nav.navbar-right li a {
 		padding: 10px $double;  // specificity for bootstrap
 	}
 	&._login {
-		font-family: $font-hed-alt;
-		font-weight: 700;
+		@include respond-tablet {
+			@include link-highlight($color-hover, $color-orange);
+			font-family: $font-hed-alt;
+			font-weight: 700;
+		}
 	}
 }
 

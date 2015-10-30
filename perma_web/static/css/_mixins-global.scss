@@ -385,3 +385,14 @@ $width-max-respond: $width-wide; 		// 1168px;
 	  padding: 0;
 	}
 }
+
+@mixin affix-to-top {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    width: auto;
+    margin: auto;
+    max-width: none;
+    z-index: 10000;
+}

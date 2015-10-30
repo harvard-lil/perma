@@ -291,7 +291,6 @@ function check_status() {
 
             // Else show failure message/upload form.
             } else {
-                $('#preview-container').html(templates.preview_failure({static_prefix: settings.STATIC_URL}));
                 $('#error-container').html(templates.error({
                     message: "Error: URL capture failed."
                 }));
