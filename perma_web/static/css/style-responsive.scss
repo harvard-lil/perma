@@ -2553,12 +2553,9 @@ button#addlink,
 }
 
 
-.nav > li > .dropdown-toggle {
+.nav > li > .dropdown-toggle { // button that triggers dropdown
 	&.navbar-link {
-		padding-top: 16px;
-	    padding-bottom: 16px;
-	    padding-left: 28px;
-	    padding-right: $double;
+		padding: 16px 16px 16px 28px;
 	    border-radius: 2px;
 	    border: 1px solid $color-trans-whispergray;
 	    font-family: $font-hed-alt;
@@ -2569,16 +2566,7 @@ button#addlink,
 		}
 	}
     &:after {
-	    content: '';
-	    height: 9px;
-	    width: 18px;
-	    display: inline-block;
-	    background-image: url('../img/ui/perma-ui-chev-down.png');
-	    background-repeat: no-repeat;
-	    background-size: 102px 9px;
-	    background-position: -17px * 2;
-	    top: -1px;
-		margin-left: $grid;
+	    @include ui-chev-down;
 	}
 	&:hover {
 		color: $color-blue;
@@ -2612,29 +2600,10 @@ li.dropdown {
 
 @include respond-mobile {
 	.navbar-nav {
-		@include style-card(black);
-	    display: none;
-		position: relative;
-	    float: none;
-	    width: auto;
-	    padding: 5px 0;
-	    margin: 2px 0 0;
-		margin-right: -7px;
-	    font-size: 14px;
-	    list-style: none;
-	    background-color: white;
-		& > li > a {
-			font-family: $font-hed-alt;
-			padding: $half 12px $half $grid * 3;
-			font-size: $size-body;
-			text-align: right;
-			&:hover, &:focus {
-				background-color: $color-hover;
-				color: white;
-			}
-			&.navbar-link._login {
-				font-weight: 400;
-			}
+		@include style-dropdown-items;
+		@include style-dropdown-structure;
+		&.navbar-link._login {
+			font-weight: 400;
 		}
 		.btn._nav {
 			margin: 0;
@@ -2644,7 +2613,7 @@ li.dropdown {
 			padding: 10px 12px;
 		    border: none;
 		    line-height: 20px;
-			&:hover {
+			&:hover, &:focus {
 				color: $color-white;
 				background-color: $color-hover !important;
 			}
@@ -2669,6 +2638,7 @@ li.dropdown {
 }
 
 .dropdown-menu   { // review
+	@include style-dropdown-items;
 	position: relative;
     float: none;
     width: auto;
@@ -2677,8 +2647,6 @@ li.dropdown {
     padding: 0;
     margin: 0;
 	margin-right: 0;
-    font-size: 14px;
-    list-style: none;
     background-color: transparent;
     background-clip: padding-box;
 	border-radius: 0;
@@ -2689,37 +2657,18 @@ li.dropdown {
 	top: auto;
 	margin-right: 0;
   	@include respond-tablet {
-		@include style-card(black);
-		position: relative;
-	    float: none;
-	    width: auto;
-	    z-index: 1000;
-	    display: none;
-	    padding: 5px 0;
-	    margin: 2px 0 0;
+  		@include style-dropdown-structure;
 		margin-right: -7px;
-	    font-size: 14px;
-	    list-style: none;
-	    background-color: white;
 		padding-top: $double;
 		min-width: $grid * 27;
-		position: absolute; // DEL WHEN FINAL
+		position: absolute;
 		top: 77px;
 		margin-right: 0;
-		border: 1px solid;
 	}
 	@include respond-desktop {
 		top: 85px;
 	}
 	& > li > a {
-		font-family: $font-hed-alt;
-		padding: $half 12px $half $grid * 3;
-		font-size: $size-body;
-		text-align: right;
-		&:hover, &:focus {
-			background-color: $color-hover;
-			color: white;
-		}
 		@include respond-tablet {
 			padding-right: 20px;
 		}
@@ -2878,21 +2827,6 @@ li.dropdown {
 		width: $grid * 8;
 	}
 }
-
-
-// when nav is open
-header._expanded {
-	.navbar-toggle {
-		background-color: black;
-		&:hover {
-			background-color: $color-orange;
-		}
-		&:active {
-			background-color: $color-black;
-		}
-	}
-}
-
 
 
 

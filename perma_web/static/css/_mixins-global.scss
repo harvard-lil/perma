@@ -396,3 +396,47 @@ $width-max-respond: $width-wide; 		// 1168px;
     max-width: none;
     z-index: 10000;
 }
+
+
+@mixin ui-chev-down {
+    content: '';
+    height: 9px;
+    width: 18px;
+    display: inline-block;
+    background-image: url('../img/ui/perma-ui-chev-down.png');
+    background-repeat: no-repeat;
+    background-size: 102px 9px;
+    background-position: -17px * 2;
+    top: -1px;
+	margin-left: $grid;
+}
+
+@mixin style-dropdown-items {
+	& > li {
+	    list-style: none;
+	}
+	& > li > a {
+	    font-size: 14px;
+		font-family: $font-hed-alt;
+		padding: $half 12px $half $grid * 3;
+		font-size: $size-body;
+		text-align: right;
+		&:hover, &:focus {
+			background-color: $color-hover;
+			color: white;
+		}
+	}
+}
+
+@mixin style-dropdown-structure {
+	@include style-card(black);
+    display: none;
+	position: relative;
+    float: none;
+    width: auto;
+	z-index: 1000;
+    padding: 5px 0;
+    margin: 2px 0 0;
+	margin-right: -7px;
+    background-color: white;
+}
