@@ -1929,7 +1929,9 @@ p.caption {
 }
 
 ._isPrivate #create-link-container {
-	margin-bottom: $grid * 4;
+	@include respond-desktop {
+		margin-bottom: $grid * 4;
+	}
 }
 
 .create-private-link {

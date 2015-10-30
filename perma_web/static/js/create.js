@@ -175,7 +175,8 @@ function linkNot(jqXHR){
             contact_url: contact_url
         }));
 
-        $('.create-errors').hide().fadeIn(0);
+        $('.create-errors').addClass('_active');
+        $('.error-row').hide().fadeIn(0);
     }
 
     toggleCreateAvailable();
