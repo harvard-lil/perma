@@ -221,17 +221,27 @@ thead {
     background: none;
 }
 
-td, th {
-    border: 0px solid $color-trans-lightgray;
-    text-align: left;
-    padding: 0px;
-    vertical-align: middle;
-	width: $grid * 3;
-}
 
 td {
 	margin: 0;
 }
+
+// specificty for bootstrap
+.table thead > tr > th, 
+.table tbody > tr > th, 
+.table tfoot > tr > th, 
+.table thead > tr > td, 
+.table tbody > tr > td, 
+.table tfoot > tr > td {
+    border: 1px solid #ddd;
+    text-align: left;
+    padding: $grid;
+    vertical-align: middle;
+	width: $grid * 3;
+	font-family: $font-hed-alt;
+}
+
+
 
 // The Basics (Heds)
 
@@ -393,6 +403,28 @@ strong {
 
 .text-warning {
 	color: $color-orange;
+}
+
+.circle {
+    width: $grid * 4;
+    height: $grid * 4;
+    background-color: $color-blue;
+    margin: 0 auto;
+    border-radius: 32px;
+	&.color-green {
+		background-color: $color-green;
+	}
+	&.color-orange {
+		background-color: $color-orange;
+	}
+    &.size-m {
+	    width: $grid * 5;
+	    height: $grid * 5;
+    }
+    &.size-l {
+	    width: $grid * 6;
+	    height: $grid * 6;
+    }
 }
 
 // Link styles
@@ -1530,6 +1562,9 @@ div.container-reading + div.overview {
 			border-color: $color-blue;
 			color: $color-blue;
 		}
+	}
+	li.reading-toc-section + li.reading-toc-chapter {
+		margin-top: $double;
 	}
 	li.reading-toc-chapter a {
 		font-weight: 700;
