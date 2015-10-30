@@ -1067,11 +1067,11 @@ div#dashboard-container div#batch-convert {
     -webkit-border-radius: 5px;
 }
 
-#steps-container {
+#error-container {
     min-height: 400px;
 }
 
-#steps-container .message-large {
+#error-container .message-large {
     font-size: 33px;
 	font-family: $spicy-font;
     color: #ff4100;
@@ -1079,22 +1079,22 @@ div#dashboard-container div#batch-convert {
     margin-bottom: 0;
 }
 
-#steps-container p {
+#error-container p {
     font-size: 17px;
 	font-family: $sans-font;
 	color: #555;
 }
 /*
-#steps-container a.perma-url {
+#error-container a.perma-url {
 	font-family: $spicy-font;
     font-size: 26px;
 }
 */
-#steps-container .message-url {
+#error-container .message-url {
     margin: 20px 0;
 }
 
-#steps-container .text-warning {
+#error-container .text-warning {
     margin: 40px 0;
 }
 

@@ -383,6 +383,14 @@ strong {
 	text-align: right;
 }
 
+.left {
+	text-align: left;
+}
+
+.center {
+	text-align: center;
+}
+
 .text-warning {
 	color: $color-orange;
 }
@@ -2151,11 +2159,10 @@ p.caption {
 	}
 }
 
-.preview-row {
-	@include style-card($color-black);
+.error-row {
     margin: $double;
     padding: $double 0;
-    background-color: white;
+    background-color: $color-highlight;
     @include respond-tablet {
 	    margin-top: 0;
 	    padding: $grid * 3 $grid;
@@ -2168,39 +2175,27 @@ p.caption {
 	    margin-top: 0;
 	    padding: $grid * 4 $double;
     }
-    &._error {
-		-webkit-animation: success-bg .7s linear;
-		animation: success-bg .7s linear;
-		#steps-container .message-large {
-			color: $color-orange;
-		}
-		.text-warning {
-			font-family: $font-hed-alt;
-		    font-weight: 700;
-		    font-size: 24px;
-		}
-		.col-sm-6:first-child {
-			display: none;
-		}
-		.col-sm-6 {
-			width: 100%;
-			text-align: center;
-		}
-		p {
-			margin-left: auto;
-			margin-right: auto;
-		}
-    }
+	.text-warning {
+		font-family: $font-hed-alt;
+	    font-weight: 200;
+	    font-size: 24px;
+	}
+	p {
+		margin-left: auto;
+		margin-right: auto;
+	}
+	.message {
+		margin-top: $grid;
+	}
 }
 
-#steps-container {
+#error-container {
 	min-height: 0;
     @include respond-tablet {
 		margin-top: -12px;
     }
 	.message-large {
 	    font-family: 'Roboto', sans-serif;
-	    color: $color-blue;
 		font-size: 24px;
 	    font-weight: 700;
 	    margin-bottom: 0;
@@ -2211,7 +2206,7 @@ p.caption {
 	}
 	p {
 	    font-size: 16px;
-		font-family: $font-body;
+		font-family: $font-hed-alt;
 		color: $color-black;
 	    @include respond-desktop {
 		    font-size: 18px;
@@ -3433,131 +3428,122 @@ p.display {
 
 //	Admin 
 
-#dashboard-container {
-    margin-top: 0;
-    > div {
-        //padding: 0;
-    }
+#dashboard-container {}
 
-    #dashboard-tabs {
-        margin: 0 0 $grid * 3 0;
-        &.settings-tabs a {
-	        @include respond-tablet {
-	            padding-left: 12px;
-	        }
+#dashboard-tabs {
+    margin: 0 0 $grid * 3 0;
+    &.settings-tabs a {
+        @include respond-tablet {
+            padding-left: 12px;
         }
-		@include respond-mobile {
-	        margin: 0 -$double $grid * 3;
-			display: flex;
-			flex-wrap: wrap;
-			li { 
-				width: 100%; 
-				margin: 0;
-				padding: 0;
-			}
-			li.active {
-				order: -1;
-			}
+    }
+	@include respond-mobile {
+        margin: 0 -$double $grid * 3;
+		display: flex;
+		flex-wrap: wrap;
+		li { 
+			width: 100%; 
+			margin: 0;
+			padding: 0;
 		}
-        li {
-            img {
-                width: 30px;
-            }
-            h3 {
-                color: #999;
-                font-size: 14px;
-                margin: 16px 0 0 0;
-                padding: 0;
-            }
-            a {
-                background-repeat: no-repeat;
-                font-size: 16px;
-                margin-bottom: 1px;
-                padding: $grid $double;
-                position: relative;
-                display: block;
-                border: none;
-				background-color: $color-background;
-				font-family: $font-hed-alt;
-				font-weight: 700;
-				border-radius: 0;
-				span {
-					&:after {
-					    content: '';
-					    height: 17px;
-					    width: 9px;
-					    display: inline-block;
-					    background-image: url('../img/ui/perma-ui-chev-right-small.png');
-					    background-repeat: no-repeat;
-					    background-size: 54px 17px;
-					    background-position: -9px * 2;
-					    top: 3px;
-						margin-left: $grid;
-						margin-right: -17px;
-						@include respond-desktop {
-							top: 3px;
-						}
+		li.active {
+			order: -1;
+		}
+	}
+    li {
+        img {
+            width: 30px;
+        }
+        h3 {
+            color: #999;
+            font-size: 14px;
+            margin: 16px 0 0 0;
+            padding: 0;
+        }
+        a {
+            background-repeat: no-repeat;
+            font-size: 16px;
+            margin-bottom: 1px;
+            padding: $grid $double;
+            position: relative;
+            display: block;
+            border: none;
+			background-color: $color-background;
+			font-family: $font-hed-alt;
+			font-weight: 700;
+			border-radius: 0;
+			span {
+				&:after {
+				    content: '';
+				    height: 17px;
+				    width: 9px;
+				    display: inline-block;
+				    background-image: url('../img/ui/perma-ui-chev-right-small.png');
+				    background-repeat: no-repeat;
+				    background-size: 54px 17px;
+				    background-position: -9px * 2;
+				    top: 3px;
+					margin-left: $grid;
+					margin-right: -17px;
+					@include respond-desktop {
+						top: 3px;
 					}
 				}
-				&:hover, &:focus {
-                    background-color: $color-blue;
-                    color: white;
-					span:after {
-					    background-position: -9px * 5 !important;
-					}
+			}
+			&:hover, &:focus {
+                background-color: $color-blue;
+                color: white;
+				span:after {
+				    background-position: -9px * 5 !important;
 				}
-				&:active {
-                    background-color: $color-black;
-                    color: white;
-					span:after {
-					    background-position: -9px * 5 !important;
-					}
+			}
+			&:active {
+                background-color: $color-black;
+                color: white;
+				span:after {
+				    background-position: -9px * 5 !important;
 				}
-				@include respond-tablet {
-	                border-radius: 2px;
-				}
-            }
-            &.active a {
-                background-color: white;
-                color: $color-blue;
-                cursor: default;
-                padding-top: 7px;
-                padding-bottom: $grid;
-                span:after {
-	                display: none;
-                }
-				font-size: 24px;
-				font-weight: 200;
-				line-height: 1.2;
-				@include respond-tablet {
-					font-size: 16px;
-					font-weight: 400;
-					border: 2px solid $color-blue;
-				}
-            }
-            &.dashboard-secondary a {
-                background: none;
-                font-size: 14px;
-                margin: 0;
-                padding: 5px 0 5px 51px;
-
-                @media (max-width: 991px) {
-                    padding-left: 5px;
-                }
-            }
-            &.users-secondary {
+			}
+			@include respond-tablet {
+                border-radius: 2px;
+			}
+        }
+        &.active a {
+            background-color: white;
+            color: $color-blue;
+            cursor: default;
+            padding-top: 7px;
+            padding-bottom: $grid;
+            span:after {
                 display: none;
             }
-            &.divider {
-                border-top: 1px solid #efefef;
-                height: 1px;
-            }
-
+			font-size: 24px;
+			font-weight: 200;
+			line-height: 1.2;
+			@include respond-tablet {
+				font-size: 16px;
+				font-weight: 400;
+				border: 2px solid $color-blue;
+			}
         }
-    }
+        &.dashboard-secondary a {
+            background: none;
+            font-size: 14px;
+            margin: 0;
+            padding: 5px 0 5px 51px;
 
-    h3 {
-        margin-top: 0;
+            @media (max-width: 991px) {
+                padding-left: 5px;
+            }
+        }
+        &.users-secondary {
+            display: none;
+        }
+        &.divider {
+            border-top: 1px solid #efefef;
+            height: 1px;
+        }
+
     }
 }
 

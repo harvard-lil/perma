@@ -124,7 +124,7 @@ function linkIt(data){
 
 
     // Clear any error messages out
-    $('.preview-row').remove();
+    $('.error-row').remove();
 
     new_archive.guid = data.guid;
 
@@ -154,7 +154,6 @@ function linkNot(jqXHR){
     // special handling if user becomes unexpectedly logged out
         showAPIError(jqXHR);
     }else {
-        $('#preview-container').html(templates.preview_failure({static_prefix: settings.STATIC_URL}));
 
         var message = "";
         if (jqXHR.status == 400 && jqXHR.responseText) {
@@ -170,13 +169,13 @@ function linkNot(jqXHR){
             upload_allowed = false;
         }
 
-        $('#steps-container').html(templates.error({
+        $('#error-container').html(templates.error({
             message: message || "Error " + jqXHR.status,
             upload_allowed: upload_allowed,
             contact_url: contact_url
         }));
 
-        $('.preview-row').removeClass('hide _error _success _wait').addClass('_error').hide().fadeIn(0);
+        $('.create-errors').hide().fadeIn(0);
     }
 
     toggleCreateAvailable();
@@ -292,10 +291,10 @@ function check_status() {
             // Else show failure message/upload form.
             } else {
                 $('#preview-container').html(templates.preview_failure({static_prefix: settings.STATIC_URL}));
-                $('#steps-container').html(templates.error({
+                $('#error-container').html(templates.error({
                     message: "Error: URL capture failed."
                 }));
-                $('.preview-row').removeClass('hide _error _success _wait').addClass('_error');
+                $('.error-row').removeClass('hide _error _success _wait').addClass('_error');
 
                 // Toggle our create button
                 toggleCreateAvailable();
