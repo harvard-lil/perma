@@ -2496,8 +2496,7 @@ button#addlink,
 }
 
 
-
-// Header & nav
+// Header & global nav
 
 .navbar-default {
 	background: $color-white;
@@ -2505,7 +2504,6 @@ button#addlink,
 		overflow: visible;
 	}
 }
-
 
 .navbar-nav {
 	height: auto;
@@ -2527,7 +2525,6 @@ button#addlink,
 		height: $height-nav-desktop;
 	}
 }
-
 
 .navbar-link, 
 .navbar-toggle {
@@ -2551,7 +2548,6 @@ button#addlink,
 		}
 	}
 }
-
 
 .nav > li > .dropdown-toggle { // button that triggers dropdown
 	&.navbar-link {
@@ -2637,7 +2633,7 @@ li.dropdown {
 	}
 }
 
-.dropdown-menu   { // review
+.dropdown-menu {
 	@include style-dropdown-items;
 	position: relative;
     float: none;
@@ -2772,9 +2768,6 @@ li.dropdown {
 	}
 }
 
-
-// Toggle
-
 .navbar-toggle {
 	display: block;
 	position: absolute;
@@ -2829,45 +2822,6 @@ li.dropdown {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/////////////////////////
-
-
-._admin #main-content {
-	overflow: visible;
-}
-
-#main._fullWidth #main-content {
-	@include respond-tablet {
-		padding-left: 0;
-		padding-right: 0;
-		max-width: none;
-	}
-}
-
-
-
-
-
-
-
-
-
-
 //	Footer 
 
 footer {
@@ -2878,10 +2832,7 @@ footer {
     color: $color-white;
     font-weight: 700;
     @include respond-tablet {
-	    position: absolute;
-	    bottom: 0;
-	    left: 0;
-	    right: 0;
+		@include affix-to-bottom;
 	    padding-top: 0;
 	    background: $color-white;
 		color: $color-blue;
@@ -2979,6 +2930,47 @@ footer {
 	    }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/////////////////////////
+
+
+._admin #main-content {
+	overflow: visible;
+}
+
+#main._fullWidth #main-content {
+	@include respond-tablet {
+		padding-left: 0;
+		padding-right: 0;
+		max-width: none;
+	}
+}
+
+
+
+
+
+
+
+
+
+
 
 
 //	Landing 

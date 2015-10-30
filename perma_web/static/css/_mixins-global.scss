@@ -397,6 +397,13 @@ $width-max-respond: $width-wide; 		// 1168px;
     z-index: 10000;
 }
 
+@mixin affix-to-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
 
 @mixin ui-chev-down {
     content: '';
