@@ -554,9 +554,11 @@ p a.perma { @extend a.perma }
 }
 
 .cont-display {
+	margin-top: $grid * 3;
 	padding-top: $grid * 4;
 	padding-bottom: $grid * 4;
 	@include respond-tablet {
+		margin-top: $grid * 7;
 		padding-top: $grid * 9;
 		padding-bottom: $grid * 9;
 	}
