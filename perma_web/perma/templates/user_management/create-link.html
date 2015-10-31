@@ -13,12 +13,12 @@
 {% block adminContent %}
 	<!-- regular link creation -->
 	{% if not selected_org.default_to_private %}
-	<div id="create-link-container" class="container c-full-bleed">
-		<div class="container c-fixed">
+	<div id="create-link-container" class="container cont-full-bleed">
+		<div class="container cont-fixed">
 		    <h1 class="create-title">Create a new <span class="_noWrap">Perma Link</span></h1>
 			<p class="create-lede">Enter any URL to preserve it forever.</p>
 		</div>
-		<div class="container c-full-bleed c-s-fixed">
+		<div class="container cont-full-bleed cont-sm-fixed">
 		    <form 	class="form-priority" 
 		    		id="linker" 
 		    		action="{% url 'api_dispatch_list' resource_name='archives' api_name='v1' %}" 
@@ -57,16 +57,16 @@
 					{% endif %}
 				</fieldset>
 		    </form><!--/#linker-->
-		</div><!-- c-full-bleed c-s-fixed -->
-	</div><!-- container c-full-bleed -->
+		</div><!-- cont-full-bleed cont-sm-fixed -->
+	</div><!-- container cont-full-bleed -->
 	{% else %}
 	<!-- private link creation -->
-	<div id="create-link-container" class="container c-full-bleed create-private-link">
-		<div class="container c-fixed">
+	<div id="create-link-container" class="container cont-full-bleed create-private-link">
+		<div class="container cont-fixed">
 		    <h1 class="create-title">Create a Private Perma Link</h1>
 			<p class="create-lede">Private Perma Links are visible only to your Archiving Organization.</p>
 		</div>
-		<div class="container c-full-bleed c-s-fixed">
+		<div class="container cont-full-bleed cont-sm-fixed">
 		    <form 	class="form-priority _isPrivate" 
 		    		id="linker" 
 		    		action="{% url 'api_dispatch_list' resource_name='archives' api_name='v1' %}" 
@@ -99,13 +99,13 @@
 					</div>
 				</fieldset>
 		    </form><!--/#linker-->
-		</div><!-- c-full-bleed c-s-fixed -->
-	</div><!-- container c-full -->
+		</div><!-- cont-full-bleed cont-sm-fixed -->
+	</div><!-- container cont-full -->
 	{% endif %}
 
 
 <!-- our container for error messages -->
-<div class="create-errors container c-fixed">
+<div class="create-errors container cont-fixed">
     <div id="error-container" class="_hide"></div>
 </div>
 <!-- / our container for error messages -->
@@ -123,7 +123,7 @@
 {% endif %}
 
 
-<div class="container c-fixed manage-links">
+<div class="container cont-fixed manage-links">
 	<div class="row">
 	    <div class="col-sm-3 folders-box">
 	        <div class="panel-heading">

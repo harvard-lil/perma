@@ -6,7 +6,7 @@ Log in to your Perma.cc account. Welcome back.
 
 {% block mainContent %}
 
-<div class="container">
+<div class="container cont-fixed">
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-success account-confirmed-message">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>

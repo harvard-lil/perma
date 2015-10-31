@@ -3,7 +3,7 @@
 
 {% block adminContent %}
 
-<div class="container">
+<div class="container cont-fixed">
 	<h3 class="body-bh">Remove <strong>{{ target_member.email }}</strong> from <strong>{{target_member.registrar.name}}</strong>?</h3>
 	<p class="page-dek">This user will no longer be able to create vesting organizations and users on behalf of {{target_member.registrar.name}}.</p>
 	<p>Do you really want to remove <strong>{{ target_member.email }}</strong> forever?</p>

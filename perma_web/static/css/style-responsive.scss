@@ -498,16 +498,16 @@ p a.perma { @extend a.perma }
 	overflow-y: visible;
 }
 
-.c-full-bleed {
+.cont-full-bleed {
 	max-width: none;
 }
 
-.c-full {
-	@extend .c-full-bleed;
+.cont-full {
+	@extend .cont-full-bleed;
 	@extend .style-container-padding;
 }
 
-.c-fixed-bleed {
+.cont-fixed-bleed {
 	@include respond-tablet {
 		max-width: $width-tablet; 
 	}
@@ -519,12 +519,12 @@ p a.perma { @extend a.perma }
 	}
 }
 
-.c-fixed {
-	@extend .c-fixed-bleed;
+.cont-fixed {
+	@extend .cont-fixed-bleed;
 	@extend .style-container-padding;
 }
 
-.c-s-fixed-bleed {
+.cont-sm-fixed-bleed {
 	@include respond-tablet {
 		max-width: $width-tablet; 
 	}
@@ -536,7 +536,7 @@ p a.perma { @extend a.perma }
 	}
 }
 
-.c-s-fixed {
+.cont-sm-fixed {
 	@include respond-tablet {
 		padding: 0 $page-margin;
 		max-width: $width-tablet; 
@@ -549,11 +549,11 @@ p a.perma { @extend a.perma }
 	}
 }
 
-.c-bg {
+.cont-bg {
 	background-color: $color-background;
 }
 
-.c-display {
+.cont-display {
 	padding-top: $grid * 4;
 	padding-bottom: $grid * 4;
 	@include respond-tablet {
@@ -563,13 +563,13 @@ p a.perma { @extend a.perma }
 }
 
 /*
-.container c-full {
-	@extend .container c-full-bleed;
+.container cont-full {
+	@extend .container cont-full-bleed;
 	@extend .style-container-padding;
 }
 
 .container-fixed-bleed {
-	@extend .container c-full-bleed;
+	@extend .container cont-full-bleed;
 	@include respond-tablet {
 		max-width: $width-tablet; 
 	}
@@ -587,20 +587,20 @@ p a.perma { @extend a.perma }
 }
 
 .container {
-	@extend .container c-full-bleed;
+	@extend .container cont-full-bleed;
 }
 
 .container,
-.c-reading,
-.c-full-bleed c-s-fixed {
+.cont-reading,
+.cont-full-bleed cont-sm-fixed {
 	@extend .container-fixed;
 }
 
-.container c-full {
-	@extend .container c-full-bleed;
+.container cont-full {
+	@extend .container cont-full-bleed;
 }
 
-.c-full-bleed c-s-fixed {
+.cont-full-bleed cont-sm-fixed {
 	padding-left: 0;
 	padding-right: 0;
 	@include respond-tablet {
@@ -610,20 +610,20 @@ p a.perma { @extend a.perma }
 }
 
 .container-bleed {
-	@extend .container c-full-bleed;
+	@extend .container cont-full-bleed;
 	width: auto;
 	margin-left: $bleed;
 	margin-right: $bleed;
-	.c-full-bleed c-s-fixed {
+	.cont-full-bleed cont-sm-fixed {
 		overflow-x: visible;
 		padding-left: $double;
 		padding-right: $double;
 	}
 }
 
-.c-full-bleed c-s-full,
-.container c-full-xs-bleed {
-	@extend .container c-full-bleed;
+.cont-full-bleed cont-sm-full,
+.container cont-full-xs-bleed {
+	@extend .container cont-full-bleed;
 	overflow: visible;
 	@include respond-tablet {
 		padding-left: $double;
@@ -632,12 +632,12 @@ p a.perma { @extend a.perma }
 }
 
 .container-bg {
-	@extend .container c-full-bleed;
+	@extend .container cont-full-bleed;
 	background-color: $color-background;
 }
 
-.c-full c-display {
-	@extend .container c-full-bleed;
+.cont-full cont-display {
+	@extend .container cont-full-bleed;
 	padding: $grid * 4 $double;
 	@include respond-tablet {
 		padding: $grid * 9 $double;
@@ -1577,22 +1577,22 @@ body.modal-open {
 
 // Docs formatting and reading styles
 
-.c-reading {
+.cont-reading {
 	padding-top: $double;
 	margin-top: $double;
-	& + .c-reading {
+	& + .cont-reading {
 		margin-top: $grid * 8;
 	}
 	@include respond-tablet {
 		padding-top: $grid * 3;
 		margin-top: $grid * 4;
-		& + .c-reading {
+		& + .cont-reading {
 			margin-top: $grid * 4;
 		}
 	}
 }
 
-div.c-reading + div.overview {
+div.cont-reading + div.overview {
 	margin-top: $grid * 3;
 	border-bottom: none;
 	@include respond-tablet {
@@ -3831,6 +3831,7 @@ span.action {
     border-top: 1px solid $color-black;
     font-family: $font-hed-alt;
     background-color: white;
+    margin-top: $grid * 3;
     &.muted {
 	    margin-top: 0;
 	    border-top: 1px solid $color-trans-gray;
@@ -3892,6 +3893,7 @@ span.action {
     }
     @include respond-tablet {
 	    padding: $double 0px;
+	    margin-top: 0;
     }
     @include respond-mobile {
 	    .admin-actions {

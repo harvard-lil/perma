@@ -3,7 +3,7 @@
 
 {% block mainContent %}
 
-	<div id="dashboard-container" class="c-full-bleed c-s-full">
+	<div id="dashboard-container" class="container cont-full-bleed cont-sm-fixed-bleed">
 	    <div class="col-sm-12">
 			<div class="row">
 			    <div class="col-sm-12">
@@ -33,10 +33,8 @@
 			    </div><!--/col-sm-3-->
 
 				<!-- Dashboard tab content -->
-			    <div class="tab-content col-sm-9">
-			        <div class="tab-pane active">
-			        {% block mainContent %}{% endblock mainContent %}
-			        </div><!--/.tab-pane-->
+			    <div class="col-sm-9">
+			        {% block dashboardContent %}{% endblock dashboardContent %}
 			    </div><!--/.tab-content-->
 			</div>
 		</div>
