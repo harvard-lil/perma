@@ -1,4 +1,4 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 
 {% load pipeline %}
 
@@ -7,7 +7,7 @@
 
 {% block bodyFlags %}{% if request.user.is_authenticated %}_search{% else %}_welcome{% endif %}{% endblock %}
 
-{% block content %}
+{% block mainContent %}
 
 <!-- URL input -->
 <section id="home-description">

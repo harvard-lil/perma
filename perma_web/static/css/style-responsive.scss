@@ -487,24 +487,27 @@ p a.perma { @extend a.perma }
 
 // Container, Row, Column
 
-@mixin style-container {
-	@extend %style-clears-floats;
-	@extend %style-block-centered;
-	width: 100%;
-	overflow: visible;
-	overflow-y: visible;
-	overflow-x: hidden;
+.style-container-padding {
+	padding: 0 $page-margin;
 }
 
 .container {
-	@include style-container;
+	@extend %style-clears-floats;
+	@extend %style-block-centered;
+	width: 100%;
+	overflow-y: visible;
 }
 
-.container,
-.container-reading,
-.container-inner {
-	@include style-container;
-	padding: 0 $page-margin;
+.c-full-bleed {
+	max-width: none;
+}
+
+.c-full {
+	@extend .c-full-bleed;
+	@extend .style-container-padding;
+}
+
+.c-fixed-bleed {
 	@include respond-tablet {
 		max-width: $width-tablet; 
 	}
@@ -516,15 +519,88 @@ p a.perma { @extend a.perma }
 	}
 }
 
-.container-full {
-	@include style-container;
-	max-width: none;
-	padding: 0;
-	margin-left: 0;
-	margin-right: 0;
+.c-fixed {
+	@extend .c-fixed-bleed;
+	@extend .style-container-padding;
 }
 
-.container-inner {
+.c-s-fixed-bleed {
+	@include respond-tablet {
+		max-width: $width-tablet; 
+	}
+	@include respond-desktop {
+		max-width: $width-desktop; 
+	}
+	@include respond-wide {
+		max-width: $width-wide; 
+	}
+}
+
+.c-s-fixed {
+	@include respond-tablet {
+		padding: 0 $page-margin;
+		max-width: $width-tablet; 
+	}
+	@include respond-desktop {
+		max-width: $width-desktop; 
+	}
+	@include respond-wide {
+		max-width: $width-wide; 
+	}
+}
+
+.c-bg {
+	background-color: $color-background;
+}
+
+.c-display {
+	padding-top: $grid * 4;
+	padding-bottom: $grid * 4;
+	@include respond-tablet {
+		padding-top: $grid * 9;
+		padding-bottom: $grid * 9;
+	}
+}
+
+/*
+.container c-full {
+	@extend .container c-full-bleed;
+	@extend .style-container-padding;
+}
+
+.container-fixed-bleed {
+	@extend .container c-full-bleed;
+	@include respond-tablet {
+		max-width: $width-tablet; 
+	}
+	@include respond-desktop {
+		max-width: $width-desktop; 
+	}
+	@include respond-wide {
+		max-width: $width-wide; 
+	}
+}
+
+.container-fixed {
+	@extend .container-fixed-bleed;
+	@extend .style-container-padding;
+}
+
+.container {
+	@extend .container c-full-bleed;
+}
+
+.container,
+.c-reading,
+.c-full-bleed c-s-fixed {
+	@extend .container-fixed;
+}
+
+.container c-full {
+	@extend .container c-full-bleed;
+}
+
+.c-full-bleed c-s-fixed {
 	padding-left: 0;
 	padding-right: 0;
 	@include respond-tablet {
@@ -534,20 +610,20 @@ p a.perma { @extend a.perma }
 }
 
 .container-bleed {
-	@include style-container;
+	@extend .container c-full-bleed;
 	width: auto;
 	margin-left: $bleed;
 	margin-right: $bleed;
-	.container-inner {
+	.c-full-bleed c-s-fixed {
 		overflow-x: visible;
 		padding-left: $double;
 		padding-right: $double;
 	}
 }
 
-.container-xs-bleed {
-	@extend .container;
-	padding: 0;
+.c-full-bleed c-s-full,
+.container c-full-xs-bleed {
+	@extend .container c-full-bleed;
 	overflow: visible;
 	@include respond-tablet {
 		padding-left: $double;
@@ -556,18 +632,18 @@ p a.perma { @extend a.perma }
 }
 
 .container-bg {
-	@include style-container;
+	@extend .container c-full-bleed;
 	background-color: $color-background;
 }
 
-.container-display {
-	@include style-container;
-	@extend .container-reading;
+.c-full c-display {
+	@extend .container c-full-bleed;
 	padding: $grid * 4 $double;
 	@include respond-tablet {
 		padding: $grid * 9 $double;
 	}
 }
+*/
 
 .no-wide {
 	margin-left: auto;
@@ -582,6 +658,8 @@ p a.perma { @extend a.perma }
 		max-width: $width-wide;
 	}
 }
+
+
 
 #main-content {
 	max-width: none;
@@ -1499,22 +1577,22 @@ body.modal-open {
 
 // Docs formatting and reading styles
 
-.container-reading {
+.c-reading {
 	padding-top: $double;
 	margin-top: $double;
-	& + .container-reading {
+	& + .c-reading {
 		margin-top: $grid * 8;
 	}
 	@include respond-tablet {
 		padding-top: $grid * 3;
 		margin-top: $grid * 4;
-		& + .container-reading {
+		& + .c-reading {
 			margin-top: $grid * 4;
 		}
 	}
 }
 
-div.container-reading + div.overview {
+div.c-reading + div.overview {
 	margin-top: $grid * 3;
 	border-bottom: none;
 	@include respond-tablet {
@@ -1919,7 +1997,8 @@ p.caption {
 }
 
 .form-priority {
-	margin: $grid * 3 -$double 0;
+	margin-top: $grid * 3;
+	margin-bottom: 0;
     @include respond-tablet {
 	    margin: $grid * 4 0;
     }
@@ -1942,7 +2021,6 @@ p.caption {
 
 #create-link-container {
 	padding-bottom: $grid * 3;
-	overflow: visible;
 	padding-top: $grid * 3;
 	margin-top: -$grid * 3;
 }
@@ -2169,47 +2247,17 @@ p.caption {
 
 // Create errors
 
-.create-errors {
-	padding: 0;
-	background: white;
-	.no-wide {
-		padding: 0 $double;
-	}
-}
-
-.error-row {
-    margin: $double;
-    padding: $double 0;
+#error-container {
+    padding: $double;
     background-color: $color-highlight;
+    text-align: center;
+    margin-top: $grid * 3;
     @include respond-tablet {
 	    margin-top: 0;
-	    padding: $grid * 3 $grid;
+	    padding: $grid * 2 $grid $grid * 3;
     }
     @include respond-desktop {
-	    margin-top: 0;
-	    padding: $grid * 4 $double;
-    }
-    @include respond-wide {
-	    margin-top: 0;
-	    padding: $grid * 4 $double;
-    }
-	.text-warning {
-		font-family: $font-hed-alt;
-	    font-weight: 200;
-	    font-size: 24px;
-	}
-	p {
-		margin-left: auto;
-		margin-right: auto;
-	}
-	.message {
-		margin-top: $grid;
-	}
-}
-
-#error-container {
-    @include respond-tablet {
-		margin-top: -12px;
+	    padding: $grid * 3 $double $grid * 4;
     }
 	.message-large {
 	    font-family: 'Roboto', sans-serif;
@@ -2225,26 +2273,14 @@ p.caption {
 	    font-size: 16px;
 		font-family: $font-hed-alt;
 		color: $color-black;
+		margin-left: auto;
+		margin-right: auto;
 	    @include respond-desktop {
 		    font-size: 18px;
 	    }
 	}
-	.message-url {
-	    margin: 20px 0;
-	}
-	.text-warning {
-	    margin: 40px 0;
-	}
-	a.perma {
-		font-size: 15px;
-		padding: 6px;
-	    @include respond-tablet {
-			font-size: 18px;
-			padding: $grid;
-	    }
-	    @include respond-desktop {
-			font-size: 24px;
-	    }
+	.message {
+		margin-top: $grid;
 	}
 }
 
@@ -2944,11 +2980,7 @@ footer {
 
 
 
-
-
-
-/////////////////////////
-
+//	Admin 
 
 ._admin #main-content {
 	overflow: visible;
@@ -2961,371 +2993,6 @@ footer {
 		max-width: none;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-//	Landing 
-
-#supporting-partners {
-    margin-top: $grid * 4;
-    background-color: $color-background;
-    padding: $grid * 4 0;
-    text-align: center;
-    @include respond-tablet {
-	    margin-top: $grid * 7;
-	    padding: $grid * 7 0;
-    }
-    h2 {
-        margin-bottom: $grid * 5;
-        margin-top: 0;
-        font-family: $font-body;
-        font-size: 20px;
-        display: inline-block;
-        border-bottom: 2px solid $color-blue;
-        padding-bottom: $half;
-        color: $color-black;
-        font-weight: 400;
-    }
-    a {
-	    display: inline-block;
-	    vertical-align: middle;
-    }
-}
-
-#supporting-partners .col-sm-12 {
-    text-align: center;
-}
-
-#supporting-partners a img {
-    display: inline-block;
-    height: $grid * 5;
-    padding: $half;
-    margin-right: $grid * 3;
-    margin-bottom: $grid;
-    @include respond-tablet {
-        height: $grid * 7;
-    }
-}
-
-#supporting-partners a img.square {
-    height: $grid * 10;
-     @include respond-tablet {
-        height: $grid * 12;
-    }
-}
-
-#examples {
-    padding: $grid * 7 0;
-	text-align: center;
-    //	stop :before element from resizing page 
-    position: relative;
-    overflow: hidden;
-    .capsule {
-        vertical-align: top;
-        margin: 1em;
-    }
-    .capsule > img {
-        width: 23%;
-        margin: 1em;
-        display: inline-block;
-        vertical-align: middle;
-    }
-    .content {
-        display: inline-block;
-        vertical-align: middle;
-
-        p: last-child {
-            margin-bottom: 0;
-        }
-    }
-    .btn {
-	    display: block;
-	    float: left;
-    }
-    .btn + .btn {
-	    margin-left: 1px;
-    }
-	@include respond-tablet {
-        .capsule {
-            display: table-cell;
-            float: none;
-        }
-        .container {
-            border-collapse: separate;
-        }
-	}
-	@include respond-desktop {
-		.content {
-	      width: 70%;
-		}
-	}
-}
-
-#example {
-    div {
-        text-align: center;
-    }
-    img {
-        width: 100%;
-    }
-}
-
-#example-title {
-    margin-bottom: 2em;
-    font-weight: 300;
-    font-family: $font-hed-alt;
-}
-
-#example-image-wrapper {
-    position: relative;
-    display: inline-block;
-    width: 80%;
-}
-
-.example-link {
-    position: absolute;
-    background-color: #ffff00;
-    @include opacity(.3);
-}
-
-.capsule {
-  display: inline-block;
-  height: auto;
-  max-width: 100%;
-  padding: $half;
-  line-height: 1.4;
-  background-color: $color-background;
-  text-align: left;
-  border-radius: 4px;
-  h4 {
-	  font-family: $font-hed-alt;
-	  font-weight: 900;
-	  font-size: 24px;
-	  color: $color-black;
-	  margin-bottom: 0;
-	  margin-top: $double;
-  }
-  p {
-	  margin-top: $grid;
-	  font-size: 16px;
-	  line-height: 1.6;
-	  margin-bottom: $double;
-  }
-}
-
-.welcome2 {
-    padding: $grid * 3 0;
-    margin: $grid * 3 auto 0;
-	background-color: $color-background;
-	@include respond-tablet {
-	    margin-top: $grid * 7;
-	    padding: $grid * 7 0;
-	    .col-sm-6 {
-		    float: right;
-		    padding-left: $grid * 4;
-		    & + .col-sm-6 {
-			    float: left;
-			    padding-left: 0;
-		    }
-	    }
-	}
-}
-
-img[usemap] {
-		border: none;
-		height: auto;
-		max-width: 100%;
-		width: auto;
-	}
-
-.welcome, 
-.welcome2 {
-	text-align: left;
-}
-
-.welcome {
-	padding-top: $grid * 3;
-	.mega {
-		font-weight: 300;
-		font-size: 40px;
-		@include respond-tablet {
-			font-size: 36px;
-		}
-	}
-	img {
-		max-height: 27em;
-		padding-top: 0;
-		margin-top: 0;
-	}
-}
-
-div.buttons {
-	margin-left: -$grid;
-	margin-right: -$grid;
-	.btn {
-		margin-right: $grid;
-		margin-left: $grid;
-	}
-}
-
-.mega {
-	color: $color-black;
-	line-height: 1.2;
-	font-weight: 900;
-    margin-top: 0px;
-    text-align: left;
-    font-size: 24px;
-    font-family: $font-hed-alt;
-	@include respond-tablet {
-		font-size: 36px;
-		font-family: $font-body;
-		font-weight: 200;
-	}
-	& + p {
-		margin-top: $double;
-	}
-}
-
-.title {
-	text-align: center;
-}
-a.mega {
-	text-align: center;
-}
-
-a.mega:hover, a.mega:active {
-	color: #06a;
-}
-a.orange, .orange {
-	color: $color-orange;
-}
-
-a.orange:hover, .orange:active {
-	color: #e9322d;
-}
-
-#how-it-works {
-	padding-top: $grid * 4;
-	.row {
-		margin-top: $grid * 3;
-		border-top: 1px solid $color-blue;
-		padding-top: $grid * 3;
-		@include respond-tablet {
-			margin-top: $grid * 4;
-			padding-top: $grid * 4;
-			&:nth-child(2n + 1) {
-				._image {
-					float: left;
-				}
-				._text {
-					float: right;
-				}
-			}
-		}
-	}
-	@include respond-tablet {
-		padding-top: $grid * 7;
-		border-top: 1px solid $color-trans-lightgray;
-	}
-}
-
-h4.how-point-title {
-	font-size: 22px;
-	font-family: $font-hed-alt;
-	font-weight: 900;
-	color: $color-orange;
-	margin-top: 0;
-	margin-bottom: 0;
-	line-height: 1.2;
-	.num {
-		color: $color-black;
-	}
-	@include respond-tablet {
-		font-size: 32px;
-	}
-}
-
-p.display {
-    font-size: 15px;
-    line-height: 1.5;
-    margin-bottom: 1em;
-    padding: 0;
-	@include respond-tablet {
-	    font-size: 16px;
-	    margin-bottom: $double;
-	}
-	@include respond-desktop {
-	    font-size: 20px;
-	    margin-bottom: $grid * 4;
-	}
-}
-.caption p {
-	@extend p.caption;
-}
-
-#home-description {
-	padding: 0;
-	p#subtext {
-        font-size: 16px;
-        margin: 0;
-    }
-    p#home-share-buttons {
-        background-color: #fc6;
-        margin: 20px 0 0 0;
-    }
-	p.how-point-subtitle {
-		font-family: $font-hed-alt;
-		font-weight: 300;
-		color: $color-black;
-		font-size: 22px;
-		margin-top: 0;
-		line-height: 1.2;
-		margin-bottom: $grid;
-		@include respond-tablet {
-			font-size: 28px;
-			margin-bottom: $grid * 4;
-		}
-	}
-	.capsule {
-		@extend .capsule;
-		display: table-cell;
-	}
-	.btn {
-		background-color: $color-blue;
-		&:hover { 
-			background-color: $color-hover; 
-		}
-		&:active { 
-			background-color: $color-black; 
-		}
-		&._primary {
-			background-color: $color-orange;
-			&:hover { 
-				background-color: $color-hover; 
-			}
-			&:active { 
-				background-color: $color-black; 
-			}
-		}
-	}
-	.welcome2 p.mega {
-	    margin-top: 10px;
-	}
-}
-
-
-
-
-//	Admin 
 
 #dashboard-container {}
 
@@ -3847,8 +3514,11 @@ span.action {
     a {
 	    color: $color-white !important;
     }
-    .icon-plus-sign, [class^="icon-"], [class*=" icon-"] {
+    .icon-plus-sign, 
+    [class^="icon-"], 
+    [class*=" icon-"] {
 	    color: white;
+	    top: 1px;
     }
 }
 
@@ -4389,6 +4059,377 @@ p.list-count-number {
     border-color: $color-blue transparent;
     margin-bottom: 2px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//	Landing 
+
+#supporting-partners {
+    margin-top: $grid * 4;
+    background-color: $color-background;
+    padding: $grid * 4 0;
+    text-align: center;
+    @include respond-tablet {
+	    margin-top: $grid * 7;
+	    padding: $grid * 7 0;
+    }
+    h2 {
+        margin-bottom: $grid * 5;
+        margin-top: 0;
+        font-family: $font-body;
+        font-size: 20px;
+        display: inline-block;
+        border-bottom: 2px solid $color-blue;
+        padding-bottom: $half;
+        color: $color-black;
+        font-weight: 400;
+    }
+    a {
+	    display: inline-block;
+	    vertical-align: middle;
+    }
+}
+
+#supporting-partners .col-sm-12 {
+    text-align: center;
+}
+
+#supporting-partners a img {
+    display: inline-block;
+    height: $grid * 5;
+    padding: $half;
+    margin-right: $grid * 3;
+    margin-bottom: $grid;
+    @include respond-tablet {
+        height: $grid * 7;
+    }
+}
+
+#supporting-partners a img.square {
+    height: $grid * 10;
+     @include respond-tablet {
+        height: $grid * 12;
+    }
+}
+
+#examples {
+    padding: $grid * 7 0;
+	text-align: center;
+    //	stop :before element from resizing page 
+    position: relative;
+    overflow: hidden;
+    .capsule {
+        vertical-align: top;
+        margin: 1em;
+    }
+    .capsule > img {
+        width: 23%;
+        margin: 1em;
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .content {
+        display: inline-block;
+        vertical-align: middle;
+
+        p: last-child {
+            margin-bottom: 0;
+        }
+    }
+    .btn {
+	    display: block;
+	    float: left;
+    }
+    .btn + .btn {
+	    margin-left: 1px;
+    }
+	@include respond-tablet {
+        .capsule {
+            display: table-cell;
+            float: none;
+        }
+        .container {
+            border-collapse: separate;
+        }
+	}
+	@include respond-desktop {
+		.content {
+	      width: 70%;
+		}
+	}
+}
+
+#example {
+    div {
+        text-align: center;
+    }
+    img {
+        width: 100%;
+    }
+}
+
+#example-title {
+    margin-bottom: 2em;
+    font-weight: 300;
+    font-family: $font-hed-alt;
+}
+
+#example-image-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 80%;
+}
+
+.example-link {
+    position: absolute;
+    background-color: #ffff00;
+    @include opacity(.3);
+}
+
+.capsule {
+  display: inline-block;
+  height: auto;
+  max-width: 100%;
+  padding: $half;
+  line-height: 1.4;
+  background-color: $color-background;
+  text-align: left;
+  border-radius: 4px;
+  h4 {
+	  font-family: $font-hed-alt;
+	  font-weight: 900;
+	  font-size: 24px;
+	  color: $color-black;
+	  margin-bottom: 0;
+	  margin-top: $double;
+  }
+  p {
+	  margin-top: $grid;
+	  font-size: 16px;
+	  line-height: 1.6;
+	  margin-bottom: $double;
+  }
+}
+
+.welcome2 {
+    padding: $grid * 3 0;
+    margin: $grid * 3 auto 0;
+	background-color: $color-background;
+	@include respond-tablet {
+	    margin-top: $grid * 7;
+	    padding: $grid * 7 0;
+	    .col-sm-6 {
+		    float: right;
+		    padding-left: $grid * 4;
+		    & + .col-sm-6 {
+			    float: left;
+			    padding-left: 0;
+		    }
+	    }
+	}
+}
+
+img[usemap] {
+		border: none;
+		height: auto;
+		max-width: 100%;
+		width: auto;
+	}
+
+.welcome, 
+.welcome2 {
+	text-align: left;
+}
+
+.welcome {
+	padding-top: $grid * 3;
+	.mega {
+		font-weight: 300;
+		font-size: 40px;
+		@include respond-tablet {
+			font-size: 36px;
+		}
+	}
+	img {
+		max-height: 27em;
+		padding-top: 0;
+		margin-top: 0;
+	}
+}
+
+div.buttons {
+	margin-left: -$grid;
+	margin-right: -$grid;
+	.btn {
+		margin-right: $grid;
+		margin-left: $grid;
+	}
+}
+
+.mega {
+	color: $color-black;
+	line-height: 1.2;
+	font-weight: 900;
+    margin-top: 0px;
+    text-align: left;
+    font-size: 24px;
+    font-family: $font-hed-alt;
+	@include respond-tablet {
+		font-size: 36px;
+		font-family: $font-body;
+		font-weight: 200;
+	}
+	& + p {
+		margin-top: $double;
+	}
+}
+
+.title {
+	text-align: center;
+}
+a.mega {
+	text-align: center;
+}
+
+a.mega:hover, a.mega:active {
+	color: #06a;
+}
+a.orange, .orange {
+	color: $color-orange;
+}
+
+a.orange:hover, .orange:active {
+	color: #e9322d;
+}
+
+#how-it-works {
+	padding-top: $grid * 4;
+	.row {
+		margin-top: $grid * 3;
+		border-top: 1px solid $color-blue;
+		padding-top: $grid * 3;
+		@include respond-tablet {
+			margin-top: $grid * 4;
+			padding-top: $grid * 4;
+			&:nth-child(2n + 1) {
+				._image {
+					float: left;
+				}
+				._text {
+					float: right;
+				}
+			}
+		}
+	}
+	@include respond-tablet {
+		padding-top: $grid * 7;
+		border-top: 1px solid $color-trans-lightgray;
+	}
+}
+
+h4.how-point-title {
+	font-size: 22px;
+	font-family: $font-hed-alt;
+	font-weight: 900;
+	color: $color-orange;
+	margin-top: 0;
+	margin-bottom: 0;
+	line-height: 1.2;
+	.num {
+		color: $color-black;
+	}
+	@include respond-tablet {
+		font-size: 32px;
+	}
+}
+
+p.display {
+    font-size: 15px;
+    line-height: 1.5;
+    margin-bottom: 1em;
+    padding: 0;
+	@include respond-tablet {
+	    font-size: 16px;
+	    margin-bottom: $double;
+	}
+	@include respond-desktop {
+	    font-size: 20px;
+	    margin-bottom: $grid * 4;
+	}
+}
+.caption p {
+	@extend p.caption;
+}
+
+#home-description {
+	padding: 0;
+	p#subtext {
+        font-size: 16px;
+        margin: 0;
+    }
+    p#home-share-buttons {
+        background-color: #fc6;
+        margin: 20px 0 0 0;
+    }
+	p.how-point-subtitle {
+		font-family: $font-hed-alt;
+		font-weight: 300;
+		color: $color-black;
+		font-size: 22px;
+		margin-top: 0;
+		line-height: 1.2;
+		margin-bottom: $grid;
+		@include respond-tablet {
+			font-size: 28px;
+			margin-bottom: $grid * 4;
+		}
+	}
+	.capsule {
+		@extend .capsule;
+		display: table-cell;
+	}
+	.btn {
+		background-color: $color-blue;
+		&:hover { 
+			background-color: $color-hover; 
+		}
+		&:active { 
+			background-color: $color-black; 
+		}
+		&._primary {
+			background-color: $color-orange;
+			&:hover { 
+				background-color: $color-hover; 
+			}
+			&:active { 
+				background-color: $color-black; 
+			}
+		}
+	}
+	.welcome2 p.mega {
+	    margin-top: 10px;
+	}
+}
+
+
+
 
 
 

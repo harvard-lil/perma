@@ -1,4 +1,4 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% load file_exists %}
 {% block title %} | Terms of Service{% endblock %}
 
@@ -6,7 +6,7 @@
 The Perma.cc Terms of Service.
 {% endblock %}
 
-{% block content %}
+{% block mainContent %}
 
 <div class="container">
 	<div class="row">	
@@ -16,7 +16,7 @@ The Perma.cc Terms of Service.
 	</div>
 </div>
 
-<div class="container container-reading">
+<div class="container c-reading c-fixed">
 	<div class="row">	
 		<div class="col-sm-4 reading-toc" >
 			<ul>
@@ -142,4 +142,4 @@ The Perma.cc Terms of Service.
 		</div><!--span-->
 	</div><!--row-->
 </div><!--container-->
-{% endblock content %}
+{% endblock mainContent %}

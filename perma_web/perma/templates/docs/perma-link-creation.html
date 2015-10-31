@@ -1,4 +1,4 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% load file_exists %}
 {% block title %} | Docs{% endblock %}
 
@@ -9,7 +9,7 @@ This section of the user guide covers how to create new archives and organize yo
 {% block bodyFlags %}_userguide{% endblock %}
 {% block mainFlags %}_fullWidth{% endblock %}
 
-{% block content %}
+{% block mainContent %}
 <div class="container">
 	<div class="row">
 		<div class="col-sm-12">
@@ -20,7 +20,7 @@ This section of the user guide covers how to create new archives and organize yo
 
 {% include 'docs/docs_menu.html' %}
 
-<div id="organize-links" class="container container-reading">
+<div id="organize-links" class="container c-reading c-fixed">
 	<div class="row">
 		<div class="col-sm-4 reading-toc" >
 			<ul>

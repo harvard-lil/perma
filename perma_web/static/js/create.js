@@ -176,7 +176,7 @@ function linkNot(jqXHR){
         }));
 
         $('.create-errors').addClass('_active');
-        $('.error-row').hide().fadeIn(0);
+        $('#error-container').hide().fadeIn(0);
     }
 
     toggleCreateAvailable();

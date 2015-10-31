@@ -1,4 +1,4 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% load file_exists %}
 {% block title %} | Docs{% endblock %}
 
@@ -9,7 +9,7 @@ This section of the user guide provides answers to common questions about Perma.
 {% block bodyFlags %}_userguide{% endblock %}
 {% block mainFlags %}_fullWidth{% endblock %}
 
-{% block content %}
+{% block mainContent %}
 
 <div class="container">
 	<div class="row">
@@ -21,7 +21,7 @@ This section of the user guide provides answers to common questions about Perma.
 
 {% include 'docs/docs_menu.html' %}
 
-<div class="container container-reading">
+<div class="container c-reading c-fixed">
 	<div class="row">
 		<div class="col-sm-4 reading-toc">
 			<ul>

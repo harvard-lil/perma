@@ -1,4 +1,4 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% load file_exists %}
 {% block title %} | Docs{% endblock %}
 
@@ -9,7 +9,7 @@ Getting started with Perma.cc. Learn how to create an account and login.
 {% block bodyFlags %}_userguide{% endblock %}
 {% block mainFlags %}_fullWidth{% endblock %}
 
-{% block content %}
+{% block mainContent %}
 <div class="container">
 	<div class="row">
 		<div class="col-sm-12">
@@ -18,8 +18,8 @@ Getting started with Perma.cc. Learn how to create an account and login.
 	</div>
 </div>
 
-<div class="container-full overview">
-	<div class="container-inner">
+<div class="container c-full overview">
+	<div class="c-full-bleed c-s-fixed">
 		<div class="row">
 			<div class="col col-sm-by5 overview-module col-no-gutter">
 				<a class="overview-module-content" href="{% url 'docs' %}">
@@ -55,7 +55,7 @@ Getting started with Perma.cc. Learn how to create an account and login.
 	</div>
 </div>
 
-<div id="create-account" class="container container-reading">
+<div id="create-account" class="container c-reading c-fixed">
 	<div class="row">
 		<div class="col-sm-4 reading-toc" >
 			<ul>
@@ -231,7 +231,7 @@ Getting started with Perma.cc. Learn how to create an account and login.
 	</div>
 </div>
 				
-<div id="create-link" class="container container-reading">
+<div id="create-link" class="container c-reading c-fixed">
 	<div class="row">
 		<div class="col-sm-4 reading-toc" >
 			
@@ -267,7 +267,7 @@ Getting started with Perma.cc. Learn how to create an account and login.
 	</div>
 </div>
 
-<div id="log-in" class="container container-reading">
+<div id="log-in" class="container c-reading c-fixed">
 	<div class="row">
 		<div class="col-sm-4 reading-toc" >
 			
@@ -284,8 +284,8 @@ Getting started with Perma.cc. Learn how to create an account and login.
 	</div>
 </div>	
 
-<div class="container-full overview">
-	<div class="container-inner">
+<div class="container c-full overview">
+	<div class="c-full-bleed c-s-fixed">
 		<div class="row">
 			<div class="col col-sm-by5 overview-module col-no-gutter">
 				<a class="overview-module-content" href="{% url 'docs' %}">

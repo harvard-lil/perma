@@ -1,9 +1,9 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% block bodyFlags %}_admin{% endblock %}
 
-{% block row %}
+{% block mainContent %}
 
-	<div id="dashboard-container" class="container-xs-bleed">
+	<div id="dashboard-container" class="c-full-bleed c-s-full">
 	    <div class="col-sm-12">
 			<div class="row">
 			    <div class="col-sm-12">
@@ -35,7 +35,7 @@
 				<!-- Dashboard tab content -->
 			    <div class="tab-content col-sm-9">
 			        <div class="tab-pane active">
-			        {% block content %}{% endblock content %}
+			        {% block mainContent %}{% endblock mainContent %}
 			        </div><!--/.tab-pane-->
 			    </div><!--/.tab-content-->
 			</div>

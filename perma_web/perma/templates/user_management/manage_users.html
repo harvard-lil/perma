@@ -2,7 +2,7 @@
 {% load local_datetime humanize current_query_string visible_organizations %}
 {% block title %} | {{ pretty_group_name_plural }}{% endblock %}
 
-{% block content %}
+{% block mainContent %}
 
 	<h2 class="body-ah">{{ pretty_group_name_plural|title }} <span class="action"><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add<span class="_verbose"> {{ pretty_group_name|lower }}</a></a></span></h2>
 

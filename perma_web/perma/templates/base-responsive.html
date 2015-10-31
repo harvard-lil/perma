@@ -35,7 +35,7 @@
 
     	<header class="_default">
     	    <div class="navbar navbar-default navbar-static-top">
-				<div class="container">
+				<div class="container c-fixed">
 					<div class="navbar-header">
 						<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
 							<span class="icon-bar"></span>
@@ -119,10 +119,10 @@
 		  
 		<section id="main" class="{% block mainFlags %}{% endblock mainFlags %}">
 			{% if this_page != 'landing' and this_page != 'manage' %}
-				<div id="main-content" class="container">
+				<div id="main-content" class="container c-full-bleed">
 			{% endif %}
 
-			{% block row %}{% endblock row %}
+			{% block mainContent %}{% endblock mainContent %}
 
 			{% if this_page != 'landing' %}
 				</div><!--/ #main-content"-->
@@ -131,7 +131,7 @@
 		
 		{% block footer %}
 			<footer>
-				<div class="container">
+				<div class="container c-fixed">
 					<div class="row">
 						<div class="col col-sm-6">
 							<ul id="footer-nav">

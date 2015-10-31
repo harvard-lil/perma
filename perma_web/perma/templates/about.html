@@ -1,4 +1,4 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% load file_exists pipeline %}
 {% block title %} | About{% endblock %}
 
@@ -9,7 +9,7 @@ Perma.cc prevents link rot.
 {% block bodyFlags %}_about{% endblock %}
 {% block mainFlags %}_fullWidth{% endblock %}
 
-{% block content %}
+{% block mainContent %}
 <div class="container">
 	<div class="row">
 		<div class="col-sm-12">
@@ -19,7 +19,7 @@ Perma.cc prevents link rot.
 	</div>
 </div>
 
-<div class="container container-reading" id="what-is-perma">
+<div class="container c-reading c-fixed" id="what-is-perma">
 	<div class="row">
 		<div class="col-sm-4 reading-toc" >
 			<ul>
@@ -38,7 +38,7 @@ Perma.cc prevents link rot.
 	</div>
 </div>
 
-<div class="container container-reading" id="why-use-perma">
+<div class="container c-reading c-fixed" id="why-use-perma">
 	<div class="row">
 		<div class="col-sm-8 docs reading-body col-right">
 			<h2 class="body-ah">Why use Perma.cc</h2>
@@ -49,7 +49,7 @@ Perma.cc prevents link rot.
 	</div>
 </div>
 
-<div class="container container-reading" id="how-perma-works">
+<div class="container c-reading c-fixed" id="how-perma-works">
 	<div class="row">
 		<div class="col-sm-8 docs reading-body col-right">
 			<h2 class="body-ah">How Perma.cc works</h2>
@@ -60,8 +60,8 @@ Perma.cc prevents link rot.
 	</div>
 </div>
 
-<div class="container-full container-bg">
-	<div class="container container-display">
+<div class="container c-full container-bg">
+	<div class="container c-full c-display">
 		<div class="row">
 			<div class="col-sm-6">
         		<div class="content">
@@ -88,7 +88,7 @@ Perma.cc prevents link rot.
 	</div>
 </div>
 
-<div class="container container-reading" id="perma-partners">
+<div class="container c-reading c-fixed" id="perma-partners">
 	<div class="row">
 		<div class="col-sm-8 docs reading-body col-right">
 			<h2 class="body-ah">Perma.cc’s Partners</h2>

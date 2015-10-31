@@ -1,4 +1,4 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% load file_exists %}
 {% block title %} | Docs{% endblock %}
 
@@ -9,7 +9,7 @@ This section of the user guide describes the Perma.cc user roles, their capabili
 {% block bodyFlags %}_userguide{% endblock %}
 {% block mainFlags %}_fullWidth{% endblock %}
 
-{% block content %}
+{% block mainContent %}
 <div class="container">
 	<div class="row">
 		<div class="col-sm-12">
@@ -18,8 +18,8 @@ This section of the user guide describes the Perma.cc user roles, their capabili
 	</div>
 </div>
 
-<div class="container-full overview">
-	<div class="container-inner">
+<div class="container c-full overview">
+	<div class="c-full-bleed c-s-fixed">
 		<div class="row">
 			<div class="col col-sm-by5 overview-module col-no-gutter">
 				<a class="overview-module-content" href="{% url 'docs' %}">
@@ -55,7 +55,7 @@ This section of the user guide describes the Perma.cc user roles, their capabili
 	</div>
 </div>
 
-<div id="overview" class="container container-reading">
+<div id="overview" class="container c-reading c-fixed">
 	<div class="row">
 		<div class="col-sm-4 reading-toc" >
 			<ul>
@@ -107,7 +107,7 @@ This section of the user guide describes the Perma.cc user roles, their capabili
 	</div>
 </div>
 
-<div class="container container-reading">
+<div class="container c-reading c-fixed">
 	<div class="row">
 		<div class="col col-sm-8 docs reading-body col-right">
 			<h2 id="registrar-users">Registrar Users</h2>
@@ -116,7 +116,7 @@ This section of the user guide describes the Perma.cc user roles, their capabili
 	</div>
 </div>
 
-<div id="vesting-users" class="container container-reading">
+<div id="vesting-users" class="container c-reading c-fixed">
 	<div class="row">
 		<div class="col col-sm-8 docs reading-body col-right">
 			<h2 class="body-ah">Vesting Users</h2>
@@ -125,7 +125,7 @@ This section of the user guide describes the Perma.cc user roles, their capabili
 	</div>
 </div>
 	
-<div id="general-users" class="container container-reading">
+<div id="general-users" class="container c-reading c-fixed">
 	<div class="row">
 		<div class="col col-sm-8 docs reading-body col-right">
 			<h2 class="body-ah">Unaffiliated Users</h2>
@@ -135,8 +135,8 @@ This section of the user guide describes the Perma.cc user roles, their capabili
 	</div>
 </div>
 
-<div class="container-full overview">
-	<div class="container-inner">
+<div class="container c-full overview">
+	<div class="c-full-bleed c-s-fixed">
 		<div class="row">
 			<div class="col col-sm-by5 overview-module col-no-gutter _active">
 				<a class="overview-module-content" href="{% url 'docs' %}">
