@@ -1,4 +1,4 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 
 {% load pipeline %}
 
@@ -7,18 +7,18 @@
 
 {% block bodyFlags %}{% if request.user.is_authenticated %}_search{% else %}_welcome{% endif %}{% endblock %}
 
-{% block content %}
+{% block mainContent %}
 
 <!-- URL input -->
 <section id="home-description">
-    <div class="container">
+    <div class="container cont-fixed">
 		<div class="row">
 			<div class="col-sm-12">
 				<h1 class="page-title">Perma.cc prevents link rot.</h1>
 			</div>
 		</div>
     </div>
-    <div class="container">
+    <div class="container cont-fixed">
     	<div class="row welcome">
         	<div class="col-sm-6">
         		<div class="content">
@@ -56,7 +56,7 @@
 	</div><!--container-->	
 	       
 	<div class="welcome2">
-    	 <div class="container">
+    	 <div class="container cont-fixed">
 			<div class="row">
 				<div class="col-sm-6">
 	        		<div class="content">
@@ -85,7 +85,7 @@
 
 
     <div id="examples">
-        <div class="container">
+        <div class="container cont-fixed">
             <div class="row">
                 <div class="col-sm-12">
                     <h2 class="text-center mega">Perma.cc in the real world</h2>
@@ -93,7 +93,7 @@
             </div><!--row-->
 
             <div id="examples-items" class="row">
-                <div class="col-sm-6 thumbnail">
+                <div class="col-sm-6 capsule">
                     <img src="{{ STATIC_URL }}img/examples/michigan-supreme-court-seal-trans.gif">
                     <div class="content">
                         <h4>Michigan Supreme Court</h4>
@@ -105,7 +105,7 @@
                         </p>
                     </div>
                 </div>
-                <div class="col-sm-6 thumbnail">
+                <div class="col-sm-6 capsule">
                     <img src="{{ STATIC_URL }}img/examples/harvard-law-review.gif">
                     <div class="content">
                         <h4>Harvard Law Review</h4>
@@ -131,7 +131,7 @@
 
 
     <div id="how-it-works">
-        <div class="container">
+        <div class="container cont-fixed">
         	<h2 class="text-center mega">How Perma.cc works</h2>
             <div class="row">
                 <div class="col-sm-6 _text">
@@ -182,7 +182,7 @@
     </div>
 
     <div id="supporting-partners">
-        <div class="container">
+        <div class="container cont-fixed">
             <div class="row">
                 <div class="col-sm-12 supporting-partners">
 
@@ -211,7 +211,7 @@
 
 {% block footer %}
 <footer>
-	<div class="container">
+	<div class="container cont-fixed">
 		<div class="row">
 			<div class="col col-sm-6">
 				<ul id="footer-nav">

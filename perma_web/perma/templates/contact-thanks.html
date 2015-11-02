@@ -1,4 +1,4 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% load file_exists %}
 {% block title %} | Thanks{% endblock %}
 
@@ -6,9 +6,9 @@
 <meta name="robots" content="noarchive">
 {% endblock %}
 
-{% block content %}
+{% block mainContent %}
 
-<div class="container">
+<div class="container cont-fixed">
 	<div class="row">
 		<div class="col-sm-9">
 			<h1>Thanks</h1>
@@ -16,4 +16,4 @@
 		</div><!--col -->
 	</div><!--row-->
 </div><!--container-->
-{% endblock content %}
+{% endblock mainContent %}

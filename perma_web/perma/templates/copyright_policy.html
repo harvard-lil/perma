@@ -1,9 +1,9 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% load file_exists %}
 {% block title %} | Copyright Policy{% endblock %}
 
-{% block content %}
-<div class="container">
+{% block mainContent %}
+<div class="container cont-fixed">
 	<div class="row">	
 		<div class="col-sm-12 ">
 			<h1>Copyright Policy</h1>
@@ -11,7 +11,7 @@
 	</div>
 </div>
 
-<div class="container container-reading">
+<div class="container cont-reading cont-fixed">
 	<div class="row">	
 		<div class="col-sm-8 docs reading-body">	
 			<p class="body-text">Consistent with the Digital Millennium Copyright Act, if you believe that your copyrighted materials have been copied in a way that constitutes copyright infringement, please send an email or written notice to our designated agent for notices of infringement and provide the following information:</p>
@@ -39,4 +39,4 @@
 		</div><!--span-->
 	</div><!--row-->
 </div><!--container-->
-{% endblock content %}
+{% endblock mainContent %}

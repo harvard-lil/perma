@@ -1,4 +1,4 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% load file_exists pipeline %}
 {% block title %} | Developer Docs{% endblock %}
 
@@ -8,8 +8,8 @@ Welcome to the Perma.cc developer guide.
 
 {% block bodyFlags %}{% endblock %}
 
-{% block content %}
-<div class="container">
+{% block mainContent %}
+<div class="container cont-fixed">
 	<div class="row">
 		<div class="col-sm-12">
 			<h1>Perma.cc API for developers</h1>
@@ -17,7 +17,7 @@ Welcome to the Perma.cc developer guide.
 	</div>
 </div>
 
-<div class="container container-reading" id="developer-overview">
+<div class="container cont-reading cont-fixed" id="developer-overview">
 	<div class="row">
 		<div class="col-sm-4 reading-toc" >
 			<ul>
@@ -107,7 +107,7 @@ Welcome to the Perma.cc developer guide.
 	</div>
 </div>
 
-<div class="container container-reading" id="developer-public-archives">
+<div class="container cont-reading cont-fixed" id="developer-public-archives">
 	<div class="row">
 		<div class="col-sm-4 reading-toc" >
 			<ul>
@@ -143,7 +143,7 @@ Welcome to the Perma.cc developer guide.
 	</div>
 </div>
 
-<div class="container container-reading" id="developer-users">
+<div class="container cont-reading cont-fixed" id="developer-users">
 	<div class="row">
 		<div class="col-sm-4 reading-toc" >
 			<ul>
@@ -198,7 +198,7 @@ Welcome to the Perma.cc developer guide.
 	</div>
 </div>
 
-<div class="container container-reading" id="developer-archives">
+<div class="container cont-reading cont-fixed" id="developer-archives">
 	<div class="row">
 		<div class="col-sm-4 reading-toc" >
 			<ul>
@@ -273,7 +273,7 @@ Welcome to the Perma.cc developer guide.
 	</div>
 </div>
 
-<div class="container container-reading" id="developer-folders">
+<div class="container cont-reading cont-fixed" id="developer-folders">
 	<div class="row">
 		<div class="col-sm-4 reading-toc" >
 			<ul>

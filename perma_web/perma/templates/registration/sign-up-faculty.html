@@ -1,4 +1,4 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 
 {% block meta_description %}
 Perma.cc for faculty
@@ -8,8 +8,8 @@ Perma.cc for faculty
 {% block mainFlags %}_fullWidth{% endblock %}
 
 
-{% block content %}
-<div class="container">
+{% block mainContent %}
+<div class="container cont-fixed">
 	<div class="row">
 		<div class="col-sm-12">
 			<h1 class="page-title">Perma.cc for faculty</h1>
@@ -18,8 +18,8 @@ Perma.cc for faculty
 	</div>
 </div>
 
-<div class="container-full overview">
-	<div class="container-inner">
+<div class="container cont-full-bleed overview">
+	<div class="container cont-full-bleed cont-sm-fixed">
 		<div class="row row-no-bleed">
 			<div class="col col-sm-by5 overview-module col-no-gutter">
 				<a class="overview-module-content" href="{% url 'sign_up' %}">
@@ -55,7 +55,7 @@ Perma.cc for faculty
 	</div>
 </div>
 
-<div class="container container-reading">
+<div class="container cont-reading cont-fixed">
 	<div class="row signup-info">
 	    <div class="col-sm-4 signup-learnMore-form">	
 	        <h2 class="body-ah">Create an account</h2>	
@@ -97,7 +97,7 @@ Perma.cc for faculty
 		</div>
 	</div>
 </div>
-{% endblock content %}
+{% endblock mainContent %}
 {% block scripts %}
 <script>
 $(document).ready(function(){

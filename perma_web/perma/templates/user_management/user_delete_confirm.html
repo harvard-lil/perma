@@ -1,9 +1,9 @@
 {% extends "admin-layout.html" %}
 {% block title %} | Delete user{% endblock %}
 
-{% block content %}
+{% block adminContent %}
 
-<div class="container">
+<div class="container cont-fixed">
 	<h3 class="body-bh">Delete {{ target_member.email }}</h3>
 			<p>Yahowza! Do you really want to {% if target_member.is_confirmed %}deactivate {{ target_member.email }}{% else %}delete {{ target_member.email }} forever{% endif %}?</p>
 		<form action="" method="POST">

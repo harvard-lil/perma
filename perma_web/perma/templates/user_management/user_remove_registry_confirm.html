@@ -1,9 +1,9 @@
 {% extends "admin-layout.html" %}
 {% block title %} | Remove user{% endblock %}
 
-{% block content %}
+{% block adminContent %}
 
-<div class="container">
+<div class="container cont-fixed">
 	<h3 class="body-bh">Remove {{ target_member.email }}’s registry powers?</h3>
 	<p class="page-dek">This user will no longer have ultimate Perma power.</p>
 	<p>Do you really want to remove <strong>{{ target_member.email }}</strong> forever?</p>

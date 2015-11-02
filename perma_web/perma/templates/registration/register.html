@@ -1,11 +1,11 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 
 {% block meta_description %}
 Register for a Perma.cc account. Welcome aboard.
 {% endblock %}
 
-{% block content %}
-<div class="container">
+{% block mainContent %}
+<div class="container cont-fixed">
 	<div class="row">
 		<div class="col-sm-4">	
 			<h2>Register</h2>
@@ -41,7 +41,7 @@ Register for a Perma.cc account. Welcome aboard.
 <br/>
 <br/>
 <br/>
-{% endblock content %}
+{% endblock mainContent %}
 {% block scripts %}
 <script>
 $(document).ready(function(){

@@ -8,7 +8,7 @@
         <a href="/{{ link.guid }}" class="btn cancel">Cancel</a> <button type="submit" class="btn delete-confirm btn-success">Delete Perma Link</button>
     </div>
     {% if link.thumbnail_status != 'failed' %}
-	    <div class="library-thumbnail user-delete-thumbnail">
+	    <div class="screenshot-thumbnail user-delete-thumbnail">
             <img src="{% url 'service_get_thumbnail' link.guid %}"/>
 	    </div>
     {% endif %}

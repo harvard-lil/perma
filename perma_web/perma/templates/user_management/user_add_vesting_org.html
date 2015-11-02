@@ -2,9 +2,9 @@
 
 {% block title %} | {{ pretty_group_name }}{% endblock %}
 
-{% block content %}
+{% block adminContent %}
 
-<div class="container">
+<div class="container cont-fixed">
 	<h3 class="body-bh">Add vesting organization</h3>
 	<form method="post">
 		{% csrf_token %}

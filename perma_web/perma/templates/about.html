@@ -1,4 +1,4 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% load file_exists pipeline %}
 {% block title %} | About{% endblock %}
 
@@ -9,8 +9,8 @@ Perma.cc prevents link rot.
 {% block bodyFlags %}_about{% endblock %}
 {% block mainFlags %}_fullWidth{% endblock %}
 
-{% block content %}
-<div class="container">
+{% block mainContent %}
+<div class="container cont-fixed">
 	<div class="row">
 		<div class="col-sm-12">
 			<h1 class="page-title">About Perma.cc</h1>
@@ -19,7 +19,7 @@ Perma.cc prevents link rot.
 	</div>
 </div>
 
-<div class="container container-reading" id="what-is-perma">
+<div class="container cont-reading cont-fixed" id="what-is-perma">
 	<div class="row">
 		<div class="col-sm-4 reading-toc" >
 			<ul>
@@ -38,7 +38,7 @@ Perma.cc prevents link rot.
 	</div>
 </div>
 
-<div class="container container-reading" id="why-use-perma">
+<div class="container cont-reading cont-fixed" id="why-use-perma">
 	<div class="row">
 		<div class="col-sm-8 docs reading-body col-right">
 			<h2 class="body-ah">Why use Perma.cc</h2>
@@ -49,7 +49,7 @@ Perma.cc prevents link rot.
 	</div>
 </div>
 
-<div class="container container-reading" id="how-perma-works">
+<div class="container cont-reading cont-fixed" id="how-perma-works">
 	<div class="row">
 		<div class="col-sm-8 docs reading-body col-right">
 			<h2 class="body-ah">How Perma.cc works</h2>
@@ -60,8 +60,8 @@ Perma.cc prevents link rot.
 	</div>
 </div>
 
-<div class="container-full container-bg">
-	<div class="container container-display">
+<div class="container cont-full-bleed cont-bg cont-display">
+	<div class="container cont-fixed">
 		<div class="row">
 			<div class="col-sm-6">
         		<div class="content">
@@ -88,7 +88,7 @@ Perma.cc prevents link rot.
 	</div>
 </div>
 
-<div class="container container-reading" id="perma-partners">
+<div class="container cont-reading cont-fixed" id="perma-partners">
 	<div class="row">
 		<div class="col-sm-8 docs reading-body col-right">
 			<h2 class="body-ah">Perma.cc’s Partners</h2>

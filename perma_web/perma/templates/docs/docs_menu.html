@@ -1,5 +1,5 @@
-<div class="container-full overview">
-	<div class="container-inner">
+<div class="container cont-full-bleed overview">
+	<div class="container cont-full-bleed cont-sm-fixed">
 		<div class="row row-no-bleed">
 			<div class="col col-sm-by5 overview-module col-no-gutter{% if request.path == "/docs" %} _active{% endif %}">
 				{% if request.path == "/docs" %}
@@ -8,7 +8,7 @@
 				<a class="overview-module-content" href="{% url 'docs' %}">
 				{% endif %}
 					<strong class="overview-module-title">Getting Started</strong>
-					<p class="overview-module-description">An introduction to Perma.cc, why it exists, and how to use it.</p>
+					<p class="overview-module-description">An introduction to Perma.cc, why it exists, and how to <span class="_noWrap">use it.</span></p>
 				{% if request.path == "/docs" %}</div>{% else %}</a>{% endif %}
 			</div>
 

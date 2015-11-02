@@ -10,13 +10,15 @@
     <link rel="stylesheet" href="{{ STATIC_URL }}css/jstree-theme/style.min.css" />
 {% endblock %}
 
-{% block row %}
+{% block adminContent %}
 	<!-- regular link creation -->
 	{% if not selected_org.default_to_private %}
-	<div id="create-link-container" class="container-bleed">
-		<div class="container-inner">
+	<div id="create-link-container" class="container cont-full-bleed">
+		<div class="container cont-fixed">
 		    <h1 class="create-title">Create a new <span class="_noWrap">Perma Link</span></h1>
 			<p class="create-lede">Enter any URL to preserve it forever.</p>
+		</div>
+		<div class="container cont-full-bleed cont-sm-fixed">
 		    <form 	class="form-priority" 
 		    		id="linker" 
 		    		action="{% url 'api_dispatch_list' resource_name='archives' api_name='v1' %}" 
@@ -45,7 +47,7 @@
 					<div id="organization_select_form">
 						<span class="label-affil">This Perma Link will be affiliated with</span>
 						<div class="dropdown dropdown-affil">
-			  				<button class="dropdown-toggle selector-trigger selector-affil needsclick" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+			  				<button class="dropdown-toggle selector selector-affil needsclick" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 				    			Dropdown
 				    			<span class="caret"></span>
 			  				</button>
@@ -55,14 +57,16 @@
 					{% endif %}
 				</fieldset>
 		    </form><!--/#linker-->
-		</div><!-- container-inner -->
-	</div><!-- container-full -->
+		</div><!-- cont-full-bleed cont-sm-fixed -->
+	</div><!-- container cont-full-bleed -->
 	{% else %}
 	<!-- private link creation -->
-	<div id="create-link-container" class="container-bleed create-private-link">
-		<div class="container-inner">
+	<div id="create-link-container" class="container cont-full-bleed create-private-link">
+		<div class="container cont-fixed">
 		    <h1 class="create-title">Create a Private Perma Link</h1>
 			<p class="create-lede">Private Perma Links are visible only to your Archiving Organization.</p>
+		</div>
+		<div class="container cont-full-bleed cont-sm-fixed">
 		    <form 	class="form-priority _isPrivate" 
 		    		id="linker" 
 		    		action="{% url 'api_dispatch_list' resource_name='archives' api_name='v1' %}" 
@@ -86,7 +90,7 @@
 					<div id="organization_select_form">
 						<span class="label-affil">This Perma Link with be affiliated with</span>
 						<div class="dropdown dropdown-affil">
-			  				<button class="dropdown-toggle selector-trigger selector-affil needsclick" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+			  				<button class="dropdown-toggle selector selector-affil needsclick" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 				    			Dropdown
 				    			<span class="caret"></span>
 			  				</button>
@@ -95,21 +99,14 @@
 					</div>
 				</fieldset>
 		    </form><!--/#linker-->
-		</div><!-- container-inner -->
-	</div><!-- container-full -->
+		</div><!-- cont-full-bleed cont-sm-fixed -->
+	</div><!-- container cont-full -->
 	{% endif %}
 
 
 <!-- our container for error messages -->
-<div class="create-errors">
-	<div class="no-wide">
-		<div class="row row-no-bleed preview-row _hide">
-		    <div class="col-sm-6">
-		        <div id="preview-container"></div>
-		    </div>
-		    <div id="steps-container" class="col-sm-6"></div>
-		</div>
-	</div>
+<div class="create-errors container cont-fixed">
+    <div id="error-container" class="_hide"></div>
 </div>
 <!-- / our container for error messages -->
 
@@ -126,7 +123,7 @@
 {% endif %}
 
 
-<div class="container-xs-bleed manage-links">
+<div class="container cont-fixed manage-links">
 	<div class="row">
 	    <div class="col-sm-3 folders-box">
 	        <div class="panel-heading">
@@ -257,16 +254,15 @@
 
 {% verbatim %}
 <script id="upload-confirm-template" type="text/x-handlebars-template">
-	  <h4 class="text-warning">Upload successful!</h4>
+	  <p class="message-large">Upload successful!</p>
 	  <p><a href="{{url}}">{{url}}</a></p>
 </script>
 {% endverbatim %}
 
 {% verbatim %}
 <script id="error-template" type="text/x-handlebars-template">
-    <p class="message-large">Capture failed.</p>
-    <p>We’re unable to create your Perma Link.</p>
-    <h4 class="text-warning">{{ message }}<h4/>
+    <p class="message-large">{{ message }}</p>
+    <p class="message">We’re unable to create your Perma Link.</p>
      {{#if upload_allowed}}
     <p>You can <a href="" onclick="return upload_form();">upload your own archive</a> or <a href="{{contact_url}}">contact us about this error.</a></p>
     {{/if}}
@@ -275,7 +271,7 @@
 
 {% verbatim %}
 <script id="preview-failure-template" type="text/x-handlebars-template">
-    <!--<div class="library-thumbnail">
+    <!--<div class="screenshot-thumbnail">
         <img src="{{static_prefix}}img/sorry-preview.jpg" class="img-responsive">
     </div>-->
 </script>

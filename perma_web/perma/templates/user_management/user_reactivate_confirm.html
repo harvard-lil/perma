@@ -1,9 +1,9 @@
 {% extends "admin-layout.html" %}
 {% block title %} | Reactivate user{% endblock %}
 
-{% block content %}
+{% block adminContent %}
 
-<div class="container">
+<div class="container cont-fixed">
 	<h3 class="body-bh">Reactivate <strong>{{ target_member.email }}</strong></h3>
 	<p class="page-dek">Do you really want to reactivate <strong>{{ target_member.email }}</strong>?</p>
 		<form action="" method="POST">

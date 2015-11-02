@@ -2,7 +2,7 @@
 {% load local_datetime humanize current_query_string %}
 {% block title %} | Organizations{% endblock %}
 
-{% block content %}
+{% block dashboardContent %}
 
 	<h2 class="body-ah">Vesting Organizations {% if request.user.is_staff or request.user.is_registrar_member %}<span class="action"><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add<span class="_verbose"> vesting organization</span></a></span></h2>
 		
