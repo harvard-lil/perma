@@ -627,7 +627,7 @@ p a.perma { @extend a.perma }
 
 // Container, Row, Column
 
-@mixin style-container {
+%style-container-basic {
 	@extend %style-clears-floats;
 	@extend %style-block-centered;
 	width: 100%;
@@ -636,14 +636,8 @@ p a.perma { @extend a.perma }
 	overflow-x: hidden;
 }
 
-.container {
-	@include style-container;
-}
-
-.container,
-.container-reading,
-.container-inner {
-	@include style-container;
+%style-container-reading {
+	@extend style-container;
 	padding: 0 $page-margin;
 	@include respond-tablet {
 		max-width: $width-tablet; 
@@ -656,8 +650,14 @@ p a.perma { @extend a.perma }
 	}
 }
 
+.container,
+.container-reading,
+.container-inner {
+	@extend style-container-reading;
+}
+
 .container-full {
-	@include style-container;
+	@extend style-container-basic;
 	max-width: none;
 	padding: 0;
 	margin-left: 0;
@@ -674,7 +674,7 @@ p a.perma { @extend a.perma }
 }
 
 .container-bleed {
-	@include style-container;
+	@extend style-container-basic;
 	width: auto;
 	margin-left: $bleed;
 	margin-right: $bleed;
@@ -686,7 +686,7 @@ p a.perma { @extend a.perma }
 }
 
 .container-xs-bleed {
-	@extend .container;
+	@extend style-container-reading;
 	padding: 0;
 	overflow: visible;
 	@include respond-tablet {
@@ -696,13 +696,12 @@ p a.perma { @extend a.perma }
 }
 
 .container-bg {
-	@include style-container;
+	@extend style-container-basic;
 	background-color: $color-background;
 }
 
 .container-display {
-	@include style-container;
-	@extend .container-reading;
+	@extend style-container-reading;
 	padding: $grid * 4 $double;
 	@include respond-tablet {
 		padding: $grid * 9 $double;
