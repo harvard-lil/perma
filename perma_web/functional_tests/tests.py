@@ -316,7 +316,7 @@ class FunctionalTest(BaseTestCase):
         # find link
         assert_text_displayed(display_guid)
         # show details
-        get_css_selector('.link-row').click()
+        get_css_selector('.item-row').click()
         # for some reason these are throwing 500 errors on PATCH:
         # # change title
         # type_to_element(get_css_selector('input.link-title'), 'test')

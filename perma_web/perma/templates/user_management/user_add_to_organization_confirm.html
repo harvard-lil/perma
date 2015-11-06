@@ -16,7 +16,7 @@
                     {% if field.errors %}                        {% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
                     {% endif %}                {% endfor %}
             </fieldset>
-            <button type="submit" class="btn btn-success">Add vesting user</button>
+            <button type="submit" class="btn">Add vesting user</button>
             <a href="{% url 'user_management_manage_organization_user' %}">Cancel</a>
         </form>
     {% else %}
@@ -32,7 +32,7 @@
                     {% if field.errors %}                        {% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
                     {% endif %}                {% endfor %}
             </fieldset>
-            <button type="submit" class="btn btn-success">Add to vesting organization</button>
+            <button type="submit" class="btn">Add to vesting organization</button>
             <a href="{% url 'user_management_manage_organization_user' %}">Cancel</a>
         </form>
     {% endif %}

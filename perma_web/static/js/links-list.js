@@ -1,10 +1,10 @@
 $(function() {
-    var linkTable = $('.link-rows'),
+    var linkTable = $('.item-rows'),
         dragStartPosition,
         lastRowToggleTime = 0;
 
     function getLinkIDForFormElement(element){
-        return element.closest('.link-container').find('.link-row').attr('link_id');
+        return element.closest('.item-container').find('.item-row').attr('link_id');
     }
 
     // save changes in a given text box to the server
@@ -35,8 +35,8 @@ $(function() {
         So we start the drag on mousedown, and then check on mouseup whether it's more like a click or drag.
      */
 
-    // .link-row mousedown -- start drag event
-    linkTable.on('mousedown touchstart', '.link-row', function (e) {
+    // .item-row mousedown -- start drag event
+    linkTable.on('mousedown touchstart', '.item-row', function (e) {
         if ($(e.target).hasClass('no-drag'))
             return;
 
@@ -51,8 +51,8 @@ $(function() {
         // record drag start position so we can check how far we were dragged on mouseup
         dragStartPosition = [e.pageX || e.originalEvent.touches[0].pageX, e.pageY || e.originalEvent.touches[0].pageY];
 
-    // .link-row mouseup -- hide and show link details, if not dragging
-    }).on('mouseup touchend', '.link-row', function (e) {
+    // .item-row mouseup -- hide and show link details, if not dragging
+    }).on('mouseup touchend', '.item-row', function (e) {
         // prevent JSTree's tap-to-drag behavior
         $.vakata.dnd.stop(e);
 
@@ -66,8 +66,8 @@ $(function() {
         lastRowToggleTime = new Date().getTime();
 
         // hide/show link details
-        var linkContainer = $(this).closest('.link-container'),
-            details = linkContainer.find('.link-details');
+        var linkContainer = $(this).closest('.item-container'),
+            details = linkContainer.find('.item-details');
         if(details.is(":visible")){
             details.hide();
             linkContainer.toggleClass( '_active' )
@@ -120,7 +120,7 @@ $(function() {
         var textarea = $(this);
         saveInput(textarea, textarea.prevAll('.title-save-status'), 'title', function () {
             // update display title when saved
-            textarea.closest('.link-container').find('.link-title-display span').text(textarea.val());
+            textarea.closest('.item-container').find('.item-title-display span').text(textarea.val());
         });
 
     // handle move-to-folder dropdown
@@ -221,7 +221,7 @@ $(function() {
                 // Set a waypoint event to trigger when the last link comes into view.
                 if(links.length == requestCount){
                     requestData.offset += requestCount;
-                    linkTable.find('.link-container:last').waypoint(function(direction) {
+                    linkTable.find('.item-container:last').waypoint(function(direction) {
                         this.destroy();  // cancel waypoint
                         linkTable.append('<div class="links-loading-more">Loading more ...</div>');
                         getNextContents();
@@ -254,7 +254,7 @@ $(function() {
     function moveLink(folderID, linkID) {
         return apiRequest("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function(){
             // once we're done moving the link, hide it from the current folder
-            $('.link-row[link_id="'+linkID+'"]').closest('.link-container').remove();
+            $('.item-row[link_id="'+linkID+'"]').closest('.item-container').remove();
         });
     }
 
@@ -359,7 +359,7 @@ $(function() {
             plugins: ['contextmenu', 'dnd', 'unique', 'types'],
             dnd: {
                 check_while_dragging: false,
-                drag_target: '.link-row',
+                drag_target: '.item-row',
                 drag_finish: function (data) {
                 }
             },

@@ -26,11 +26,11 @@
 					<p class="display">Our solution is called a <strong class="vocab">Perma Link</strong>. <br/>Here’s an example: <a class="perma" href="http://perma.cc/4RH7-999Q" target="_blank">perma.cc/4RH7-999Q</a></p>
 	
 	                {% if request.user.is_authenticated %}
-	                    <p><a href="{% url 'create_link' %}" class="btn btn-large btn-success">Visit your Dashboard</a></p>
+	                    <p><a href="{% url 'create_link' %}" class="btn btn-large">Visit your Dashboard</a></p>
 	                {% else %}
 					    <div class="buttons">
-					    	<a href="{% url 'sign_up' %}" class="btn btn-large btn-success _primary">Learn more and sign up</a>
-					    	<a href="{% url 'libraries' %}" class="btn btn-large btn-success">Try Perma.cc for libraries</a>
+					    	<a href="{% url 'sign_up' %}" class="btn btn-large _primary">Learn more and sign up</a>
+					    	<a href="{% url 'libraries' %}" class="btn btn-large">Try Perma.cc for libraries</a>
 					    </div>
 	                {% endif %}
         		</div>

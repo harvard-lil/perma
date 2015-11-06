@@ -13,7 +13,7 @@
 {% block adminContent %}
 	<!-- regular link creation -->
 	{% if not selected_org.default_to_private %}
-	<div id="create-link-container" class="container cont-full-bleed">
+	<div id="create-item-container" class="container cont-full-bleed">
 		<div class="container cont-fixed">
 		    <h1 class="create-title">Create a new <span class="_noWrap">Perma Link</span></h1>
 			<p class="create-lede">Enter any URL to preserve it forever.</p>
@@ -61,7 +61,7 @@
 	</div><!-- container cont-full-bleed -->
 	{% else %}
 	<!-- private link creation -->
-	<div id="create-link-container" class="container cont-full-bleed create-private-link">
+	<div id="create-item-container" class="container cont-full-bleed create-private-link">
 		<div class="container cont-fixed">
 		    <h1 class="create-title">Create a Private Perma Link</h1>
 			<p class="create-lede">Private Perma Links are visible only to your Archiving Organization.</p>
@@ -125,7 +125,7 @@
 
 <div class="container cont-fixed manage-links">
 	<div class="row">
-	    <div class="col-sm-3 folders-box">
+	    <div class="col-md-3 col-folders">
 	        <div class="panel-heading">
 	            Folders
 	            <a href="#" class="pull-right delete-folder icon-trash" title="Delete Selected Folder"></a>
@@ -150,16 +150,16 @@
 	        </div>
 	    </div>
 	
-	    <div class="col-sm-9 links-box">
+	    <div class="col-md-9 col-links">
 	        <div class="container link-headers">
 	            <div class="row">
-	                <div class="col-sm-12">
+	                <div class="col-xs-12">
 	                    <h3 class="link-header body-ah">Your Perma Links</h3>
 	                </div>
 	            </div>
 	        </div>
 	        {% include "user_management/includes/search_form.html" with search_placeholder="Search Your Perma Links" %}
-	        <div class="container link-rows">
+	        <div class="container item-rows">
 	
 	            <noscript>
 	                <iframe src="{% url "folder_contents" folder_id=request.user.root_folder_id %}?iframe=1" name="folder-contents"></iframe>
@@ -295,38 +295,38 @@
 
 
 {{#each links}}
-    <div class="link-container{{#if is_private }} _isPrivate{{/if}}">
+    <div class="item-container _isExpandable{{#if is_private }} _isPrivate{{/if}}">
 
-        <div class="row link-row row-no-bleed" link_id="{{ guid }}">
+        <div class="row item-row row-no-bleed _isDraggable" link_id="{{ guid }}">
             <div class="row">
-	            <div class="col col-sm-7">
-	            	<div class="link-title-display">
+	            <div class="col col-sm-6 col-md-60">
+	            	<div class="item-title">
 		            	{{#if is_private }}<span class="ui-private">[private] </span>{{/if}}<span>{{ title }}</span>
 	            	</div>
-	                <div class="record-url">
-	                	<a href="{{ url }}" target="_blank" class="original-link no-drag">{{ truncatechars url 200 }}</a>
+	                <div class="item-subtitle">
+	                	<a href="{{ url }}" target="_blank" class="item-link-original no-drag">{{ truncatechars url 200 }}</a>
 	                </div>
 	            </div>
-	            <div class="col col-sm-5 align-right perma-link">
+	            <div class="col col-sm-6 col-md-40 align-right item-permalink">
 	                {{#if delete_available}}<a class="delete no-drag" href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}
 	                <a class="perma no-drag" href="{{local_url}}" target="_blank">{{local_url}}</a>
 	            </div>
             </div>
-            <div class="row record-secondary">
+            <div class="row item-secondary">
 	            <div class="col col-sm-7">
 	            	{{#if organization }}
-	                <div class="record-affil">
+	                <div class="item-affil">
 		                <span>{{organization.name}}</span>
 		            </div>
 		            {{/if}}
 	            </div>
-	            <div class="col col-sm-5 align-right">
-		            <span class="record-date"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
+	            <div class="col col-sm-5 sm-align-right">
+		            <span class="item-date"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
 	            </div>
             </div>
         </div>
 
-        <div class="row link-details row-no-bleed" {{#if search_query_in_notes}}style="display:block"{{/if}}>
+        <div class="row item-details" {{#if search_query_in_notes}}style="display:block"{{/if}}>
             <div class="col-sm-7">
 
                 <div class="form-group">
@@ -350,7 +350,7 @@
                 </div>
 
             </div>
-            <div class="col-sm-5">
+            <div class="col-sm-5 link-stats">
                 <div>
                 	<span><strong>Views:</strong> {{view_count}}</span></div>
                 <div><span><strong>Created by:</strong> {{created_by.full_name}}</span></div>
@@ -361,11 +361,11 @@
         </div>
     </div>
 {{else}}
-    <div class="row link-row row-no-bleed">
+    <div class="row item-row row-no-bleed">
         <div class="row">
-            <div class="col col-sm-12">
-                <div class="link-title-display">
-                    <p class="no-users-found">This is an empty folder</p>
+            <div class="col col-xs-12">
+                <div class="item-title">
+                    <p class="item-notification">This is an empty folder</p>
                 </div>
             </div>
         </div>

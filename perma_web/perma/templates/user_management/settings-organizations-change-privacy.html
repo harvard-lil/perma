@@ -11,11 +11,11 @@
 	    	{% if org.default_to_private %}
 	    		<p class="page-dek">Your Perma Links are currently <strong>Private</strong> by default.</p>
 	        	<a class="btn cancel" href="{% url 'user_management_settings_organizations' %}">Cancel</a>
-	        	<button type="submit" class="btn btn-success">Set to Public</button></p>
+	        	<button type="submit" class="btn">Set to Public</button></p>
 	        {% else %}
 	        	<p class="page-dek">Your Perma Links are currently <strong>Public</strong> by default.</p> 
 	        	<a class="btn cancel" href="{% url 'user_management_settings_organizations' %}">Cancel</a>
-	        	<button type="submit" class="btn btn-success">Set to Private</button></p>
+	        	<button type="submit" class="btn">Set to Private</button></p>
 	        {% endif %}
 	    </form>
     </div>

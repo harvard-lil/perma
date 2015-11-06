@@ -31,12 +31,11 @@
 
 //	these old respond()s are here becouse the new one seems to be broken with the django-pipeline compiler
 
-$width-xmobile-respond: $width-mobile; 	// 376px;
-$width-tablet-respond: $width-xmobile; 		// 640px;
-$width-desktop-respond: $width-tablet; 	// 1048px;
-$width-wide-respond: $width-desktop; 		// 1168px;
-$width-max-respond: $width-wide; 		// 1168px;
-
+$width-xmobile-respond: $width-mobile; 	// 320px;
+$width-tablet-respond: $width-xmobile; 	// 384px;
+$width-desktop-respond: $width-tablet; 	// 768px;
+$width-wide-respond: $width-desktop; 		// 990px;
+$width-max-respond: $width-wide; 			// 1200px;
 
 @mixin respond-mobile {
 	@media only screen and (max-width: 767px) {
@@ -404,7 +403,6 @@ $width-max-respond: $width-wide; 		// 1168px;
     right: 0;
 }
 
-
 @mixin ui-chev-down {
     content: '';
     height: 9px;
@@ -442,7 +440,7 @@ $width-max-respond: $width-wide; 		// 1168px;
     float: none;
     width: auto;
 	z-index: 1000;
-    padding: 5px 0;
+    padding: $grid 0;
     margin: 2px 0 0;
 	margin-right: -7px;
     background-color: white;

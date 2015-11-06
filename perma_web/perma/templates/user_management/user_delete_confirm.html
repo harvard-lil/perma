@@ -9,7 +9,7 @@
 		<form action="" method="POST">
 	    {% csrf_token %}
         <a class="btn cancel" href="../">Cancel</a>
-        <button type="submit" class="btn btn-success delete-confirm">
+        <button type="submit" class="btn delete-confirm">
             {% if target_member.is_confirmed %}Deactivate{% else %}Delete {{ target_member.email }} forever{% endif %}
         </button>
     </form>

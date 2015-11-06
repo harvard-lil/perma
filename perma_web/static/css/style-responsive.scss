@@ -1,6 +1,6 @@
 //	This .scss file will automatically be compiled by django-pipeline into a .css file 
 
-/////////////////////////
+/////////////////////////////////////////
 
 //	Global imports
 
@@ -13,7 +13,9 @@
 
 // Placeholders
 
-%style-clears-floats {
+// note: these don't use % notation because of a quirk in the django-pipeline that places %placeholders at the end of the compiled css
+
+.style-clears-floats {
 	&:after {
 		display: table;
 		content: " ";
@@ -21,21 +23,39 @@
 	}
 }
 
-%style-block-centered {
+.style-block-centered {
 	margin-left: auto;
 	margin-right: auto;
 }
 
-%style-vcenter-parent {
+.style-vcenter-parent {
 	display: table;
 }
 
-%style-vcenter-child {
+.style-vcenter-child {
 	display: table-cell;
 	vertical-align: middle;
 }
 
-%style-code {
+.style-standard-hover {
+	&:hover, &:focus {
+		color: $color-hover;
+	}
+	&:active {
+		color: $color-active;
+	}
+}
+
+.style-button-hover {
+	&:hover, &:focus {
+		background-color: $color-hover;
+	}
+	&:active {
+		background-color: $color-active;
+	}
+}
+
+.style-code {
 	font-family: $font-mono;
 	background-color: $color-trans-whispergray;
 	border: 1px solid $color-trans-lightgray;
@@ -54,44 +74,46 @@
 
 @mixin style-dropdown {
 	@include style-card(black);
-    display: none;
-    position: relative;
-    top: 0;
-    float: none;
-    width: auto;
-    min-width: 216px;
-    z-index: 1000;
-    padding: $double 0 5px;
-    margin: 0 0 $double 0;
-    font-size: 14px;
-    list-style: none;
-    background-color: white;
-    @include respond-tablet {
-	    margin-top: 2px;
-	    position: absolute;
-	    top: $grid * 4;
-    }
-    li { margin-bottom: 0; }
-    a {
-	    border-top: 1px solid rgba(0,0,0,.2);
-	    padding-top: 11px;
-	    &:hover {
-		    span.ui-private {
-			    background-image: url('../img/ui/perma-ui-private-white.png') !important;
-		    }
-	    }
-    }
-    .dropdown-header, 
-    a {
-        text-align: left;
-	    padding-left: 14px;
-	    padding-top: $grid;
-	    padding-bottom: $grid;
-    }
-    .dropdown-header {
-	    margin-top: $half;
-    }
+	display: none;
+	position: relative;
+	top: 0;
+	float: none;
+	width: auto;
+	min-width: 216px;
+	z-index: 1000;
+	padding: $double 0 5px;
+	margin: 0 0 $double 0;
+	font-size: 14px;
+	list-style: none;
+	background-color: white;
+	@include respond-tablet {
+		margin-top: 2px;
+		position: absolute;
+		top: $grid * 4;
+	}
+	li { margin-bottom: 0; }
+	a {
+		border-top: 1px solid rgba(0,0,0,.2);
+		padding-top: 11px;
+		&:hover {
+			span.ui-private {
+				background-image: url('../img/ui/perma-ui-private-white.png') !important;
+			}
+		}
+	}
+	.dropdown-header, 
+	a {
+		text-align: left;
+		padding-left: 14px;
+		padding-top: $grid;
+		padding-bottom: $grid;
+	}
+	.dropdown-header {
+		margin-top: $half;
+	}
 }
+
+/////////////////////////////////////////
 
 // Defaults
 
@@ -149,14 +171,14 @@ input[type="button"],
 input[type="submit"],
 input[type="url"],
 textarea {
-    -webkit-appearance: none;
+	-webkit-appearance: none;
 }
 
 *:focus {
 	outline-style: solid !important;
-    outline-color: rgba(0,0,0,0.07) !important;
-    outline-offset: 1px !important;
-    outline-width: 5px !important;
+	outline-color: rgba(0,0,0,0.07) !important;
+	outline-offset: 1px !important;
+	outline-width: 5px !important;
 }
 
 input:focus, 
@@ -166,20 +188,22 @@ input:focus,
 
 ul { list-style-type: none; }
 
+/////////////////////////////////////////
+
 // The Basics (Structure)
 
 html {
-    height: 100%;
-    min-height: 100%;
-    margin: 0;
+	height: 100%;
+	min-height: 100%;
+	margin: 0;
 }
 
 body {
-  	background: $color-white;
-    color: $color-black;
-    font-family: $font-body;
-    margin: 0;
-    min-height: 100%;
+	background: $color-white;
+	color: $color-black;
+	font-family: $font-body;
+	margin: 0;
+	min-height: 100%;
 }
 
 footer { 
@@ -211,14 +235,14 @@ section#main {
 table {
 	border-collapse: collapse;
 	-webkit-box-sizing: border-box; //	Safari/Chrome, other WebKit 
-	-moz-box-sizing: border-box;    //	Firefox, other Gecko 
+	-moz-box-sizing: border-box;	//	Firefox, other Gecko 
 	box-sizing: border-box;
 	max-width: inherit;
 	border-collapse: collapse;
 }
 
 thead {
-    background: none;
+	background: none;
 }
 
 
@@ -233,15 +257,15 @@ td {
 .table thead > tr > td, 
 .table tbody > tr > td, 
 .table tfoot > tr > td {
-    border: 1px solid #ddd;
-    text-align: left;
-    padding: $grid;
-    vertical-align: middle;
+	border: 1px solid #ddd;
+	text-align: left;
+	padding: $grid;
+	vertical-align: middle;
 	width: $grid * 3;
 	font-family: $font-hed-alt;
 }
 
-
+/////////////////////////////////////////
 
 // The Basics (Heds)
 
@@ -260,8 +284,8 @@ h1, h2, h3, h4, h5 {
 }
 
 h1 {
-    font-weight: 300;
-    font-size: 40px;
+	font-weight: 300;
+	font-size: 40px;
 	@include respond-tablet {
 		font-size: 46px;
 	}
@@ -286,9 +310,9 @@ h1 {
 }
 
 h2 {
-    margin-top: 25px;
-    font-size: 26px;
-    color: $color-orange;
+	margin-top: 25px;
+	font-size: 26px;
+	color: $color-orange;
 }
 
 h3 {
@@ -313,9 +337,9 @@ h5 {
 }
 
 p {
-    margin-bottom: 1em;
-    font-weight: 300;
-    color: $color-black;
+	margin-bottom: 1em;
+	font-weight: 300;
+	color: $color-black;
 	line-height: 1.5;
 	max-width: $width-max-measure;
 	&:last-child {
@@ -330,18 +354,12 @@ p {
 	}
 }
 
-strong {
-	font-weight: 900;
-	font-family: $font-hed-alt;
-	&.vocab {
-		color: $color-orange;
-	}
-}
+/////////////////////////////////////////
 
 // Global Flags
 
 ._hide {
-    display: none;
+	display: none;
 }
 
 ._hideMobile {
@@ -355,13 +373,13 @@ strong {
 }
 
 ._verbose {
-    @include respond-mobile {
-	    display: inline-block;
-	    width: 0;
-	    height: 1em;
-	    overflow: hidden;
-	    text-indent: -1000px;
-    }
+	@include respond-mobile {
+		display: inline-block;
+		width: 0;
+		height: 1em;
+		overflow: hidden;
+		text-indent: -1000px;
+	}
 }
 
 ._noWrap {
@@ -377,7 +395,24 @@ strong {
 	user-select: none;
 }
 
+._isDraggable {
+	cursor: move; //	fallback for IE 
+	cursor: -moz-grab;
+	cursor: -webkit-grab;
+	cursor: grab;
+}
+
+/////////////////////////////////////////
+
 // Character styles
+
+strong {
+	font-weight: 900;
+	font-family: $font-hed-alt;
+	&.vocab {
+		color: $color-orange;
+	}
+}
 
 .muted, 
 .muted p {
@@ -406,26 +441,28 @@ strong {
 }
 
 .circle {
-    width: $grid * 4;
-    height: $grid * 4;
-    background-color: $color-blue;
-    margin: 0 auto;
-    border-radius: 32px;
+	width: $grid * 4;
+	height: $grid * 4;
+	background-color: $color-blue;
+	margin: 0 auto;
+	border-radius: 32px;
 	&.color-green {
 		background-color: $color-green;
 	}
 	&.color-orange {
 		background-color: $color-orange;
 	}
-    &.size-m {
-	    width: $grid * 5;
-	    height: $grid * 5;
-    }
-    &.size-l {
-	    width: $grid * 6;
-	    height: $grid * 6;
-    }
+	&.size-m {
+		width: $grid * 5;
+		height: $grid * 5;
+	}
+	&.size-l {
+		width: $grid * 6;
+		height: $grid * 6;
+	}
 }
+
+/////////////////////////////////////////
 
 // Link styles
 
@@ -444,17 +481,16 @@ a {
 		border: 2px solid $color-blue;
 		vertical-align: middle;
 		border-radius: 2px;
+		@extend .style-standard-hover;
 		&:hover {
 			text-decoration: none;
 			border-color: $color-hover;
-			color: $color-hover;
 			&:before {
 				background-position-x: -30px * 3 !important;
 			}
 		}
 		&:active {
 			border-color: $color-black;
-			color: $color-black;
 			&:before {
 				background-position-x: -30px * 1 !important;
 			}
@@ -482,8 +518,53 @@ a {
 	}
 }
 
+a.action {
+	display: inline-block;
+	padding: 0px 6px 0px;
+	border: 2px solid $color-black;
+	border-radius: 2px;
+	color: $color-black;
+	font-weight: 700;
+	font-size: 12px;
+	&:hover, &:focus {
+		text-decoration: none;
+		color: white !important;
+		background-color: $color-black;
+		border-color: $color-black;
+	}
+	&:active {
+		background-color: $color-blue;
+		border-color: $color-blue;
+	}
+	&.action-delete {
+		border-color: $color-orange;
+		color: $color-orange;
+		&:hover, &:focus {
+			background-color: $color-orange;
+			border-color: $color-orange;
+		}
+		&:active {
+			background-color: $color-active;
+			border-color: $color-active;
+		}
+	}
+	&.action-approve {
+		border-color: $color-blue;
+		color: $color-blue;
+		&:hover, &:focus {
+			background-color: $color-blue;
+			border-color: $color-blue;
+		}
+		&:active {
+			background-color: $color-active;
+			border-color: $color-active;
+		}
+	}
+}
+
 p a.perma { @extend a.perma }
 
+/////////////////////////////////////////
 
 // Container, Row, Column
 
@@ -492,10 +573,11 @@ p a.perma { @extend a.perma }
 }
 
 .container {
-	@extend %style-clears-floats;
-	@extend %style-block-centered;
+	@extend .style-clears-floats;
+	@extend .style-block-centered;
 	width: 100%;
 	overflow-y: visible;
+	max-width: none;
 }
 
 .cont-full-bleed {
@@ -564,89 +646,6 @@ p a.perma { @extend a.perma }
 	}
 }
 
-/*
-.container cont-full {
-	@extend .container cont-full-bleed;
-	@extend .style-container-padding;
-}
-
-.container-fixed-bleed {
-	@extend .container cont-full-bleed;
-	@include respond-tablet {
-		max-width: $width-tablet; 
-	}
-	@include respond-desktop {
-		max-width: $width-desktop; 
-	}
-	@include respond-wide {
-		max-width: $width-wide; 
-	}
-}
-
-.container-fixed {
-	@extend .container-fixed-bleed;
-	@extend .style-container-padding;
-}
-
-.container {
-	@extend .container cont-full-bleed;
-}
-
-.container,
-.cont-reading,
-.cont-full-bleed cont-sm-fixed {
-	@extend .container-fixed;
-}
-
-.container cont-full {
-	@extend .container cont-full-bleed;
-}
-
-.cont-full-bleed cont-sm-fixed {
-	padding-left: 0;
-	padding-right: 0;
-	@include respond-tablet {
-		padding-left: $page-margin;
-		padding-right: $page-margin;
-	}
-}
-
-.container-bleed {
-	@extend .container cont-full-bleed;
-	width: auto;
-	margin-left: $bleed;
-	margin-right: $bleed;
-	.cont-full-bleed cont-sm-fixed {
-		overflow-x: visible;
-		padding-left: $double;
-		padding-right: $double;
-	}
-}
-
-.cont-full-bleed cont-sm-full,
-.container cont-full-xs-bleed {
-	@extend .container cont-full-bleed;
-	overflow: visible;
-	@include respond-tablet {
-		padding-left: $double;
-		padding-right: $double;
-	}
-}
-
-.container-bg {
-	@extend .container cont-full-bleed;
-	background-color: $color-background;
-}
-
-.cont-full cont-display {
-	@extend .container cont-full-bleed;
-	padding: $grid * 4 $double;
-	@include respond-tablet {
-		padding: $grid * 9 $double;
-	}
-}
-*/
-
 .no-wide {
 	margin-left: auto;
 	margin-right: auto;
@@ -661,16 +660,14 @@ p a.perma { @extend a.perma }
 	}
 }
 
-
-
 #main-content {
 	max-width: none;
-    overflow-y: visible;
-    overflow-x: visible;
+	overflow-y: visible;
+	overflow-x: visible;
 }
 
 .row {
-	@extend %style-clears-floats;
+	@extend .style-clears-floats;
 	margin: 0 $bleed;
 	.col-sm-6 + .col-sm-6 {
 		// margin-top: $grid * 4;
@@ -690,6 +687,8 @@ p a.perma { @extend a.perma }
 	margin-left: -2px;
 	margin-right: -2px;
 }
+
+.col {}
 
 .col.col-no-gutter {
 	padding-left: 0;
@@ -720,6 +719,26 @@ div.col-right {
 		float: left;
 	}
 }
+
+.col-md-60 {
+	@include respond-desktop {
+		width: 60%
+	}
+}
+
+.col-md-40 {
+	@include respond-desktop {
+		width: 40%
+	}
+}
+
+.sm-align-right {
+	@include respond-tablet {
+		text-align: right;
+	}
+}
+
+/////////////////////////////////////////
 
 // Buttons
 
@@ -815,96 +834,119 @@ div.col-right {
 		}
 	}
 	&.btn-xs {
-	    padding: 4px 8px;
-	    font-size: 12px;
-  	}
-  	&.delete-confirm {
-	  	background-color: $color-error;
+		padding: 4px 8px;
+		font-size: 12px;
+	}
+	&.delete-confirm {
+		background-color: $color-error;
 		&:hover, &:focus {
 			background-color: $color-black !important;
 		}
 		&:active {
 			background-color: $color-error !important;
 		}
-  	}
-  	&.login {
+	}
+	&.login {
 		background-color: $color-green;
 		margin-bottom: $double;
-  	}
+	}
 }
 
 button {
-    &:focus {
-	    box-shadow: none;
-    }
-	&.btn-inline {
-	    display: inline-block;
-	    padding: 9px;
-	    margin: 0;
-	    vertical-align: middle;
-	    border: 1px solid transparent;
-	    margin-top: $grid * 3;
+	&:focus {
+		box-shadow: none;
 	}
-	
+	&.btn-inline {
+		display: inline-block;
+		padding: 9px;
+		margin: 0;
+		vertical-align: middle;
+		border: 1px solid transparent;
+		margin-top: $grid * 3;
+	}
 	&.btn-search {
 		width: $grid * 6;
-	    position: absolute;
-	    display: block;
-	    border-top-left-radius: 0;
-	    border-bottom-left-radius: 0;
-	    top: $double;
-	    bottom: $double;
-	    right: $grid;
-	    margin: 0;
-	    @include respond-tablet {
-		    top: $grid * 4;
-		    bottom: $grid * 4;
-		    right: 24px;
-	    }
+		position: absolute;
+		display: block;
+		border-top-left-radius: 0;
+		border-bottom-left-radius: 0;
+		top: $double;
+		bottom: $double;
+		right: $grid;
+		margin: 0;
+		@include respond-tablet {
+			top: $grid * 4;
+			bottom: $grid * 4;
+			right: 24px;
+		}
 	}
 	#addlink {
 		margin: $double 0 0 0;
-	    @include respond-tablet {
+		@include respond-tablet {
 			margin: 0;
-	    }
+		}
 	}
 }
 
+/////////////////////////////////////////
 
 // UI
 
-%ui-inline {
-    overflow: hidden;
-    display: inline-block;
-    position: relative;
-    text-indent: -10000px;
-    background-image: url('#');
-    background-repeat: no-repeat;
+.style-ui-inline {
+	overflow: hidden;
+	display: inline-block;
+	position: relative;
+	text-indent: -10000px;
+	background-image: url('#');
+	background-repeat: no-repeat;
 }
 
 .ui-private {
-	@extend %ui-inline;
-    height: 16px;
-    width: 18px;
-    background-image: url('../img/ui/perma-ui-private.png');
-    background-size: cover;
-    margin-left: 4px;
-    bottom: -1px;
+	@extend .style-ui-inline;
+	height: 16px;
+	width: 18px;
+	background-image: url('../img/ui/perma-ui-private.png');
+	background-size: cover;
+	margin-left: 4px;
+	bottom: -1px;
 }
 
 .links-remaining {
-    display: inline-block;
-    font-size: 12px;
-    font-weight: 700;
-    color: white;
-    background-color: $color-blue;
-    padding: 2px 8px 0;
-    vertical-align: middle;
-    bottom: 2px;
-    margin-left: $half;
-    border-radius: 4px;
+	display: inline-block;
+	font-size: 12px;
+	font-weight: 700;
+	color: white;
+	background-color: $color-blue;
+	padding: 2px 8px 0;
+	vertical-align: middle;
+	bottom: 2px;
+	margin-left: $half;
+	border-radius: 4px;
 }
 
+@mixin style-ui-after {
+	&:after {
+		content: '';
+		display: inline-block;
+		background-repeat: no-repeat;
+		margin-left: $grid;
+	}
+}
+
+@mixin style-ui-after-chev {
+	@include style-ui-after;
+	&:after {
+		height: 17px;
+		width: 9px;
+		background-image: url('../img/ui/perma-ui-chev-right-small.png');
+		background-size: 54px 17px;
+		background-position: -9px * 2;
+		top: 3px;
+		margin-right: -17px;
+	}
+}
+
+/////////////////////////////////////////
 
 // Selector
 
@@ -921,16 +963,16 @@ button {
 		background-color: rgba(255,255,255,.4);
 		top: auto;
 		padding-right: $grid * 3;
-	    &:after {
-		    content: '';
-		    height: 9px;
-		    width: 18px;
-		    display: inline-block;
-		    background-image: url('../img/ui/perma-ui-chev-down.png');
-		    background-repeat: no-repeat;
-		    background-size: 102px 9px;
-		    background-position: -17px * 0;
-		    top: 12px;
+		&:after {
+			content: '';
+			height: 9px;
+			width: 18px;
+			display: inline-block;
+			background-image: url('../img/ui/perma-ui-chev-down.png');
+			background-repeat: no-repeat;
+			background-size: 102px 9px;
+			background-position: -17px * 0;
+			top: 12px;
 			margin-left: $grid;
 			position: absolute;
 			right: 8px;
@@ -945,7 +987,7 @@ button {
 			border-color: $color-trans-lightgray;
 		}
 		&:hover::after {
-		    background-position: -17px * 0;
+			background-position: -17px * 0;
 		}
 		@include respond-desktop {
 			font-size: 20px;
@@ -990,13 +1032,14 @@ button {
 	}
 }
 
+/////////////////////////////////////////
 
 // Heds
 
 .page-title {
 	margin-top: 0;
-    font-weight: 300;
-    font-size: 40px;
+	font-weight: 300;
+	font-size: 40px;
 	@include respond-tablet {
 		font-size: 46px;
 	}
@@ -1006,12 +1049,12 @@ button {
 
 .page-dek {
 	font-family: $font-hed-alt;
-    font-weight: 300;
-    font-size: 16px;
-    margin-top: $double;
-    @include respond-tablet {
-	    font-size: 22px;
-    }
+	font-weight: 300;
+	font-size: 16px;
+	margin-top: $double;
+	@include respond-tablet {
+		font-size: 22px;
+	}
 }
 
 .body-text {
@@ -1030,17 +1073,17 @@ button {
 
 .body-ah { 
 	font-size: 22px;
-    border-top: 2px solid $color-blue;
-    padding-top: $grid;
-    margin-top: $grid * 6;
-    font-family: $font-hed-alt;
-    font-weight: 700;
-    color: $color-blue;
-    &:first-child {
-        margin-top: 0;
-    }
-  	@include respond-tablet {
-	    margin-top: $grid * 8;
+	border-top: 2px solid $color-blue;
+	padding-top: $grid;
+	margin-top: $grid * 6;
+	font-family: $font-hed-alt;
+	font-weight: 700;
+	color: $color-blue;
+	&:first-child {
+		margin-top: 0;
+	}
+	@include respond-tablet {
+		margin-top: $grid * 8;
 	}
 	& + p {
 		margin-top: $double;
@@ -1051,25 +1094,25 @@ button {
 }
 
 .body-ah + .body-bh {
-    margin-top: $grid * 3;
- 	@include respond-tablet {
-	    margin-top: $grid * 6;
+	margin-top: $grid * 3;
+	@include respond-tablet {
+		margin-top: $grid * 6;
 	}
 }
 
 .body-bh { 
 	font-size: 16px;
-    border-top: 1px solid $color-orange;
-    padding-top: $grid;
-    margin-top: $grid * 3;
-    margin-bottom: $grid;
-    font-family: $font-hed-alt !important;
-    font-weight: 400 !important;
-    color: $color-orange;
-    line-height: 1.3;
- 	@include respond-tablet {
-	    margin-top: $grid * 6;
-	    margin-bottom: $double;
+	border-top: 1px solid $color-orange;
+	padding-top: $grid;
+	margin-top: $grid * 3;
+	margin-bottom: $grid;
+	font-family: $font-hed-alt !important;
+	font-weight: 400 !important;
+	color: $color-orange;
+	line-height: 1.3;
+	@include respond-tablet {
+		margin-top: $grid * 6;
+		margin-bottom: $double;
 		font-size: 18px;
 	}
 }
@@ -1080,12 +1123,14 @@ button {
 	font-weight: 700;
 	margin-bottom: $grid;
 	margin-top: $double;
- 	@include respond-tablet {
-	    margin-bottom: $double;
-	    margin-top: $grid * 3;
+	@include respond-tablet {
+		margin-bottom: $double;
+		margin-top: $grid * 3;
 		font-size: 18px;
 	}
 }
+
+/////////////////////////////////////////
 
 // Modals
 
@@ -1097,54 +1142,54 @@ body.modal-open {
 
 .modal-backdrop.in {
 	opacity: 0.95;
-    filter: alpha(opacity=95);
-    background-color: white;
+	filter: alpha(opacity=95);
+	background-color: white;
 }
 
 .modal {
 	@include fill-screen;
-    display: none;
+	display: none;
 	z-index: 9999;
 }
 
 .modal-dialog {
 	@include respond-mobile {
-	    padding: 0;
+		padding: 0;
 		@include fill-screen;
 	}
-    @include respond-tablet {
+	@include respond-tablet {
 		position: relative;
-	    left: 50%;
-	    top: 50%;
-	    right: auto;
-	    bottom: auto;
-	    margin-left: $modalWidth * -.5;
-    }
+		left: 50%;
+		top: 50%;
+		right: auto;
+		bottom: auto;
+		margin-left: $modalWidth * -.5;
+	}
 }
 
 .modal-content {
 	width: auto;
-    padding: $double;
-    margin-top: 0;
-    margin-left: 0;
-    margin: 0 auto;
-    border-radius: 0;
-    border: none;
-    box-shadow: none;
-    height: 100%;
-    overflow-y: scroll;
-    @include respond-tablet {
-	    @include style-card(black);
-	    width: $modalWidth;
-	    padding: $grid * 4 $grid * 4 $double;
-	    height: auto;
-    }
+	padding: $double;
+	margin-top: 0;
+	margin-left: 0;
+	margin: 0 auto;
+	border-radius: 0;
+	border: none;
+	box-shadow: none;
+	height: 100%;
+	overflow-y: scroll;
+	@include respond-tablet {
+		@include style-card(black);
+		width: $modalWidth;
+		padding: $grid * 4 $grid * 4 $double;
+		height: auto;
+	}
 	form {
 		margin-top: $double;
 		overflow: visible;
-	    @include respond-tablet {
-		    margin-top: $grid * 3;
-	    }
+		@include respond-tablet {
+			margin-top: $grid * 3;
+		}
 	}
 	.form-group {
 		float: none;
@@ -1153,32 +1198,32 @@ body.modal-open {
 		padding-top: 18px;
 		padding-bottom: 20px;
 		margin-left: -$double;
-	    padding-left: $double;
-	    margin-right: -$double;
-	    padding-right: $double;
-	    margin-top: 0;
-	    background-color: $color-background;
-	    &:first-child {
+		padding-left: $double;
+		margin-right: -$double;
+		padding-right: $double;
+		margin-top: 0;
+		background-color: $color-background;
+		&:first-child {
 			border-top: 1px solid $color-trans-lightgray;
-	    }
-	    & + .form-group {
-		    margin-top: 0;
-	    }
-	    @include respond-tablet {
+		}
+		& + .form-group {
+			margin-top: 0;
+		}
+		@include respond-tablet {
 			margin-left: -$grid * 4;
-		    padding-left: $grid * 4;
-		    margin-right: -$grid * 4;
-		    padding-right: $grid * 4;
-	    }
+			padding-left: $grid * 4;
+			margin-right: -$grid * 4;
+			padding-right: $grid * 4;
+		}
 	}
 	label {
 		font-weight: 700;
 	}
 	.modal-actions {
 		margin-top: $double;
-	    @include respond-tablet {
-		    margin-top: $grid * 4;
-	    }
+		@include respond-tablet {
+			margin-top: $grid * 4;
+		}
 	}
 	input {
 		font-size: 16px;
@@ -1200,15 +1245,15 @@ body.modal-open {
 }
 
 .modal-header {
-    overflow: visible;
+	overflow: visible;
 	.close {
-	    @include hide-text;
+		@include hide-text;
 		position: absolute;
-	    top: 0;
-	    right: -$grid * 5;
-	    width: $grid * 5;
-	    height: $grid * 5;
-	    background-color: gray;
+		top: 0;
+		right: -$grid * 5;
+		width: $grid * 5;
+		height: $grid * 5;
+		background-color: gray;
 	}
 	.modal-title, .modal-description {
 		font-family: $font-hed-alt;
@@ -1218,9 +1263,9 @@ body.modal-open {
 		font-weight: 700;
 		font-size: 18px;
 		line-height: 1.3;
-	    @include respond-tablet {
-		    font-size: 24px;
-	    }
+		@include respond-tablet {
+			font-size: 24px;
+		}
 	}
 	.modal-description {
 		font-weight: 300;
@@ -1228,9 +1273,9 @@ body.modal-open {
 		margin-bottom: 0;
 		font-size: 18px;
 		line-height: 1.3;
-	    @include respond-tablet {
-		    font-size: 24px;
-	    }
+		@include respond-tablet {
+			font-size: 24px;
+		}
 	}
 }
 
@@ -1240,17 +1285,19 @@ body.modal-open {
 	font-weight: 400;
 	color: $color-trans-gray;
 	display: block;
-    @include respond-tablet {
-	    float: right;
-	    display: inline-block;
-    }
+	@include respond-tablet {
+		float: right;
+		display: inline-block;
+	}
 }
+
+/////////////////////////////////////////
 
 // Carousel
 
 .carousel {
 	margin: $grid * 6 0 0;
-    text-align: center;
+	text-align: center;
 	.carousel-inner {
 		height: $grid * 16;
 	}
@@ -1280,42 +1327,42 @@ body.modal-open {
 		background-image: url('../img/ui/perma-ui-chev-right-big.png');
 	}
 	.item {
-	    text-align: center;
-	    padding: 0 166px;
+		text-align: center;
+		padding: 0 166px;
 	}
 	.item a.square img {
-	    margin-top: 10px;
-	    height: 74px;
+		margin-top: 10px;
+		height: 74px;
 	}
 }
 
 .carousel-indicators {
-  position: absolute;
-  top: 115px;
-  bottom: 0px;
-  left: 50%;
-  z-index: 15;
-  width: 60%;
-  padding-left: 0;
-  margin-left: -30%;
-  text-align: center;
-  list-style: none;
+	position: absolute;
+	top: 115px;
+	bottom: 0px;
+	left: 50%;
+	z-index: 15;
+	width: 60%;
+	padding-left: 0;
+	margin-left: -30%;
+	text-align: center;
+	list-style: none;
 	li {
-	  display: inline-block;
-	  width: 10px;
-	  height: 10px;
-	  margin: 1px !important;
-	  text-indent: -999px;
-	  cursor: pointer;
-	  border: 2px solid $color-orange;
-	  border-radius: 10px;
-	  background-color: transparent;
+		display: inline-block;
+		width: 10px;
+		height: 10px;
+		margin: 1px !important;
+		text-indent: -999px;
+		cursor: pointer;
+		border: 2px solid $color-orange;
+		border-radius: 10px;
+		background-color: transparent;
 	}
 	.active {
-	  width: 12px;
-	  height: 12px;
-	  margin: 0 !important;
-	  background-color: $color-orange;
+		width: 12px;
+		height: 12px;
+		margin: 0 !important;
+		background-color: $color-orange;
 	}
 }
 
@@ -1334,29 +1381,31 @@ body.modal-open {
 	background: #fff;
 	border: 1px solid #ccc;
 	border-radius: 3px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    -ms-border-radius: 3px;
-    margin-bottom: 10px;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	-ms-border-radius: 3px;
+	margin-bottom: 10px;
 	display: inline;
 	list-style-type: none;
 }
 
 .carousel-indicators {
-    position: static;
-    width: 100%;
-    margin-left: 0;
+	position: static;
+	width: 100%;
+	margin-left: 0;
 }
 
 .carousel-control {
-    position: absolute;
-    background-color: transparent;
-    @include opacity(.9);
-    bottom: 0px;
-    &:focus {
-	   outline: none; 
-    }
+	position: absolute;
+	background-color: transparent;
+	@include opacity(.9);
+	bottom: 0px;
+	&:focus {
+		outline: none; 
+	}
 }
+
+/////////////////////////////////////////
 
 // Overview
 
@@ -1445,7 +1494,7 @@ body.modal-open {
 				color: white !important;
 			}
 			strong:after {
-			    background-position: -9px * 5 !important;
+				background-position: -9px * 5 !important;
 			}
 		}
 		&:active {
@@ -1458,8 +1507,8 @@ body.modal-open {
 		display: inline-block;
 		height: auto;
 		padding-left: 0;
-	    padding-right: 30px;
-    		strong {
+		padding-right: 30px;
+			strong {
 			font-weight: 300;
 			color: $color-orange;
 			&:after {
@@ -1474,7 +1523,7 @@ body.modal-open {
 				color: $color-blue !important;
 			}
 			strong:after {
-			    background-position: -9px * 2 !important;
+				background-position: -9px * 2 !important;
 			}
 		}
 		&:active {
@@ -1483,14 +1532,13 @@ body.modal-open {
 				color: $color-black !important;
 			}
 			strong:after {
-			    background-position: -9px * 1 !important;
+				background-position: -9px * 1 !important;
 			}
 		}
 		@include respond-desktop {
 			padding-top: $grid * 3;
 		}
 	}
-	
 	div.overview-module-content {
 		background-color: $color-white;
 		color: $color-blue;
@@ -1529,24 +1577,13 @@ body.modal-open {
 			display: none;
 		}
 	}
-
 	strong {
 		display: block;
 		font-weight: 700;
 		font-size: 14px;
 		line-height: 1.3;
+		@include style-ui-after-chev;
 		&:after {
-		    content: '';
-		    height: 17px;
-		    width: 9px;
-		    display: inline-block;
-		    background-image: url('../img/ui/perma-ui-chev-right-small.png');
-		    background-repeat: no-repeat;
-		    background-size: 54px 17px;
-		    background-position: -9px * 2;
-		    top: 3px;
-			margin-left: $grid;
-			margin-right: -17px;
 			@include respond-desktop {
 				top: 2px;
 			}
@@ -1576,6 +1613,8 @@ body.modal-open {
 		}
 	}
 }
+
+/////////////////////////////////////////
 
 // Docs formatting and reading styles
 
@@ -1661,24 +1700,24 @@ div.cont-reading + div.overview {
 		margin-top: 0;
 	}
 	h2 + p { margin-top: $double; }
-    p { @extend .body-text; }
-    table {
-        h4 {
-            font-size: 12px;
-            @include respond-tablet {
-	            font-size: 16px;
-            }
-        }
-        .table-center {
-            text-align: center;
-        }
-    }
-    li {
+	p { @extend .body-text; }
+	table {
+		h4 {
+			font-size: 12px;
+			@include respond-tablet {
+				font-size: 16px;
+			}
+		}
+		.table-center {
+			text-align: center;
+		}
+	}
+	li {
 		@extend .body-text;
 		+ li {
 			margin-top: 1em;
 		}
-    }
+	}
 }
 
 div.warning {
@@ -1716,8 +1755,6 @@ div.warning {
 		p {
 			font-size: 18px;
 		}
-	}
-	@include respond-wide {
 	}
 }
 
@@ -1766,7 +1803,7 @@ ul.tos {
 
 div.code-block,
 pre {
-	@extend %style-code;
+	@extend .style-code;
 	padding: $grid;
 	margin-bottom: 1.5em;
 	p {
@@ -1785,23 +1822,25 @@ pre {
 }
 
 code {
-	@extend %style-code;
+	@extend .style-code;
 	padding: 2px 8px;
 }
 
 kbd {
-    font-family: $font-mono;
-  	background-color: $color-background;
-  	color: rgba(0,0,0,.8);
-  	padding: 3px 4px 4px;
-    font-size: 13px;
-    @include respond-tablet {
-	  	font-size: 14px;
-    }
-    @include respond-desktop {
-	  	font-size: 15px;
-    }
+	font-family: $font-mono;
+	background-color: $color-background;
+	color: rgba(0,0,0,.8);
+	padding: 3px 4px 4px;
+	font-size: 13px;
+	@include respond-tablet {
+		font-size: 14px;
+	}
+	@include respond-desktop {
+		font-size: 15px;
+	}
 }
+
+/////////////////////////////////////////
 
 // Images and captions
 
@@ -1820,9 +1859,9 @@ p.caption {
 }
 
 ._image {
-	box-shadow: 	-1px 0 2px 0 	rgba(0,0,0,0.12), 
-					1px 0 2px 0 	rgba(0,0,0,0.12), 
-					0 1px 1px 0 	rgba(0,0,0,0.24);
+	box-shadow:	-1px 0 2px 0	rgba(0,0,0,0.12), 
+					1px 0 2px 0	rgba(0,0,0,0.12), 
+					0 1px 1px 0	rgba(0,0,0,0.24);
 	border-radius: 2px;
 	padding: $grid * 3 $double;
 	margin: $double $double 0;
@@ -1838,6 +1877,8 @@ p.caption {
 		}
 	}
 }
+
+/////////////////////////////////////////
 
 // Signup
 
@@ -1862,6 +1903,8 @@ p.caption {
 	}
 }
 
+/////////////////////////////////////////
+
 // Alerts
 
 .text-warning {
@@ -1874,41 +1917,41 @@ p.caption {
 
 .alert-danger {
 	color: $color-black;
-    background-color: $color-highlight;
-    border-color: transparent;
+	background-color: $color-highlight;
+	border-color: transparent;
 }
 
 .alert-success, .alert-info {
 	color: $color-green;
-    background-color: $color-white;
-    border: 2px solid $color-green;
-    border-radius: 2px;
-    padding: $double;
-    font-size: 16px;
-    font-weight: 400;
-    font-family: $font-hed-alt;
-    text-align: center;
-    a {
+	background-color: $color-white;
+	border: 2px solid $color-green;
+	border-radius: 2px;
+	padding: $double;
+	font-size: 16px;
+	font-weight: 400;
+	font-family: $font-hed-alt;
+	text-align: center;
+	a {
 		font-weight: 700;
-	    display: inline-block;
-	    padding: 4px 5px 2px;
-	    background-color: #77AE3A;
-	    color: white;
-	    font-size: 12px;
-	    vertical-align: middle;
-	    border-radius: 2px;
-	    position: relative;
-	    top: -1px;
-	    margin-left: 3px;	    
-    &:hover {
-		    background-color: $color-black;
-	    }
-    }
-    h4 {
-	    color: $color-green;
-	    font-weight: 700;
-	    padding-bottom: $grid;
-    }
+		display: inline-block;
+		padding: 4px 5px 2px;
+		background-color: #77AE3A;
+		color: white;
+		font-size: 12px;
+		vertical-align: middle;
+		border-radius: 2px;
+		position: relative;
+		top: -1px;
+		margin-left: 3px;		
+	&:hover {
+			background-color: $color-black;
+		}
+	}
+	h4 {
+		color: $color-green;
+		font-weight: 700;
+		padding-bottom: $grid;
+	}
 }
 
 .alert-block {
@@ -1916,97 +1959,99 @@ p.caption {
 }
 
 .close {
-    line-height: 1;
-    color: $color-white;
-    opacity: 1;
-    filter: none;
-    text-shadow: none;
-    font-weight: 200;
-    font-size: 22px;
-    color: $color-black;
-    width: auto;
-    position: absolute;
-    right: 16px;
-    top: 22px;
-    &:hover {
-	    color: $color-blue;
-	    opacity: 1;
-	    filter: none;
-    }
-    @include respond-tablet {
-	    font-size: 28px;
-	    position: relative;
-	    right: auto;
-	    top: auto;
-    }
+	line-height: 1;
+	color: $color-white;
+	opacity: 1;
+	filter: none;
+	text-shadow: none;
+	font-weight: 200;
+	font-size: 22px;
+	color: $color-black;
+	width: auto;
+	position: absolute;
+	right: 16px;
+	top: 22px;
+	&:hover {
+		color: $color-blue;
+		opacity: 1;
+		filter: none;
+	}
+	@include respond-tablet {
+		font-size: 28px;
+		position: relative;
+		right: auto;
+		top: auto;
+	}
 }
 
 .popup-alert {
 	@include affix-to-top;
 	padding: $grid * 3 $double;
 	padding-right: $grid * 4;
-    margin-bottom: 0px;
-    border: none;
-    color: $color-black;
-    background-color: $color-highlight;
-    font-family: $font-hed-alt;
-    font-size: 14px;
-    border-radius: 0;
-    text-align: left;
-    font-weight: 400;
-    @include respond-tablet {
-	    font-weight: 200;
+	margin-bottom: 0px;
+	border: none;
+	color: $color-black;
+	background-color: $color-highlight;
+	font-family: $font-hed-alt;
+	font-size: 14px;
+	border-radius: 0;
+	text-align: left;
+	font-weight: 400;
+	@include respond-tablet {
+		font-weight: 200;
 		padding: $grid * 4;
-	    font-size: 22px;
-	    text-align: center;
-    }
+		font-size: 22px;
+		text-align: center;
+	}
 }
+
+/////////////////////////////////////////
 
 // Create
 
 .create-title {
-    font-family: $font-hed-alt;
-    text-align: left;
-    font-size: 40px;
-    font-weight: 300;
-    line-height: 1.1;
-    @include respond-tablet {
-	    text-align: center;
-	    font-weight: 900;
-	    font-size: 42px;
-    }
-    @include respond-desktop {
-	    font-size: 48px;
-    }
+	font-family: $font-hed-alt;
+	text-align: left;
+	font-size: 40px;
+	font-weight: 300;
+	line-height: 1.1;
+	@include respond-tablet {
+		text-align: center;
+		font-weight: 900;
+		font-size: 42px;
+	}
+	@include respond-desktop {
+		font-size: 48px;
+	}
 }
 
 .create-lede {
-    font-family: $font-hed-alt;
-    color: $color-orange;
-    margin-bottom: 0;
-    font-size: 15px;
-    line-height: 1.3;
-    font-weight: 700;
-    margin-top: $grid;
-    @include respond-tablet {
-	    text-align: center;
-	    margin-top: 0;
-	    font-size: 21px;
-    }
-    @include respond-desktop {
-	    font-size: 21px;
-    }
+	font-family: $font-hed-alt;
+	color: $color-orange;
+	margin-bottom: 0;
+	font-size: 15px;
+	line-height: 1.3;
+	font-weight: 700;
+	margin-top: $grid;
+	@include respond-tablet {
+		text-align: center;
+		margin-top: 0;
+		font-size: 21px;
+	}
+	@include respond-desktop {
+		font-size: 21px;
+	}
 }
 
 .form-priority {
 	margin-top: $grid * 3;
 	margin-bottom: 0;
-    @include respond-tablet {
-	    margin: $grid * 4 0;
-    }
-    @include respond-wide {
-	    margin-top: $grid * 5;
-    }
+	@include respond-tablet {
+		margin: $grid * 4 0;
+	}
+	@include respond-wide {
+		margin-top: $grid * 5;
+	}
 }
 
 .create-private-link {
@@ -2014,94 +2059,94 @@ p.caption {
 	.create-title {
 		color: white;
 	}
-    @include respond-tablet {
+	@include respond-tablet {
 		.create-title {
 			padding-top: $grid * 4;
 		}
-    }
+	}
 }
 
-#create-link-container {
+#create-item-container {
 	padding-bottom: $grid * 3;
 	padding-top: $grid * 3;
 	margin-top: -$grid * 3;
 }
 
-._isPublic #create-link-container {
+._isPublic #create-item-container {
 	padding-bottom: 0;
 }
 
-._isPrivate #create-link-container {
+._isPrivate #create-item-container {
 	@include respond-desktop {
 		margin-bottom: $grid * 4;
 	}
 }
 
 .create-private-link {
-    @include respond-tablet {
-	    padding-bottom: $grid * 3;
-    }
+	@include respond-tablet {
+		padding-bottom: $grid * 3;
+	}
 }
 
 #linker {
 	.form-priority-fieldset {
 		padding: $grid * 3 $double;
-	    @include respond-tablet {
-		    padding: $grid * 4 $grid * 3;
-	    }
-	    @include respond-desktop {
-		    padding: $grid * 6 $grid * 4;
-	    }
+		@include respond-tablet {
+			padding: $grid * 4 $grid * 3;
+		}
+		@include respond-desktop {
+			padding: $grid * 6 $grid * 4;
+		}
 	}
 	input.form-priority-input {
 		margin: 0;
 		width: 100%;
-	    padding: 16px 14px;
-	    height: auto;
-	    font-size: 16px;
-	    @include respond-tablet {
+		padding: 16px 14px;
+		height: auto;
+		font-size: 16px;
+		@include respond-tablet {
 			margin: 0;
 			width: $grid * 61;
 			float: left;
 			padding: 14px;
-		    height: auto;
-		    font-size: 20px;
-	    }
-	    @include respond-desktop {
-		    width: $grid * 85;
-	    }
-	    @include respond-wide {
-		    width: $grid * 111;
-	    }
+			height: auto;
+			font-size: 20px;
+		}
+		@include respond-desktop {
+			width: $grid * 85;
+		}
+		@include respond-wide {
+			width: $grid * 111;
+		}
 	}
 	.form-priority-fieldset .btn {
 		width: 100%;
 		margin-top: $double;
-	    @include respond-tablet {
+		@include respond-tablet {
 			margin-top: 0;
 			float: right;
 			width: $grid * 23;
-	    }
-	    @include respond-desktop {
-		    width: $grid * 25;
-	    }
+		}
+		@include respond-desktop {
+			width: $grid * 25;
+		}
 		&._isWorking {
 			font-size: 13px;
-		    background-color: transparent !important;
-		    text-align: center;
-		    padding-bottom: 0px;
-		    padding-top: 32px;
-		    color: $color-blue;
-		    border-color: transparent !important;
-	        opacity: 1;
-		    filter: alpha(opacity=100);
-		    .spinner {
-			    left: 50%;
-			    top: 10px;
-		    }
-		    &:hover, &:focus {
-			    color: $color-blue !important;
-		    }
+			background-color: transparent !important;
+			text-align: center;
+			padding-bottom: 0px;
+			padding-top: 32px;
+			color: $color-blue;
+			border-color: transparent !important;
+			opacity: 1;
+			filter: alpha(opacity=100);
+			.spinner {
+				left: 50%;
+				top: 10px;
+			}
+			&:hover, &:focus {
+				color: $color-blue !important;
+			}
 		}
 	}
 	&._isPrivate {
@@ -2109,21 +2154,21 @@ p.caption {
 			background-color: black;
 		}
 		input.form-priority-input {
-		    @include respond-tablet {
-			    width: $grid * 54;
-		    }
-		    @include respond-desktop {
-			    width: $grid * 80;
-		    }
-		    @include respond-wide {
-			    width: $grid * 106;
-		    }
+			@include respond-tablet {
+				width: $grid * 54;
+			}
+			@include respond-desktop {
+				width: $grid * 80;
+			}
+			@include respond-wide {
+				width: $grid * 106;
+			}
 		}
 		.form-priority-fieldset .btn {
 			background-color: $color-orange;
-		    @include respond-tablet {
+			@include respond-tablet {
 				width: $grid * 30;
-		    }
+			}
 		}
 		#organization_select_form {
 			.label-affil {
@@ -2154,37 +2199,32 @@ p.caption {
 		font-family: $font-hed-alt;
 	}
 	#links-remaining-message {
-	    color: $color-blue;
-	    font-weight: 700;
-	    a {
-		    font-weight: 400;
-		    text-decoration: underline;
-		    white-space: nowrap;
-		    &:hover, &:focus {
-			    color: $color-hover;
-		    }
-		    &:active {
-			    color: $color-active;
-		    }
-	    }
+		color: $color-blue;
+		font-weight: 700;
+		a {
+			font-weight: 400;
+			text-decoration: underline;
+			white-space: nowrap;
+			@extend .style-standard-hover;
+		}
 		.links-remaining {
 			display: inline-block;
-		    padding: 1px 12px 0;
-		    background-color: $color-blue;
-		    color: white;
-		    border-radius: 4px;
-		    margin: 0 2px;
-	  	}
-  	}
-  	#organization_select_form {
-	  	.label-affil, 
-	  	.dropdown-affil {
-		  	float: left;
-		    width: 50%;
-		    text-align: left;
-	  	}
-	  	.label-affil {
-		  	border-color: transparent;
+			padding: 1px 12px 0;
+			background-color: $color-blue;
+			color: white;
+			border-radius: 4px;
+			margin: 0 2px;
+		}
+	}
+	#organization_select_form {
+		.label-affil, 
+		.dropdown-affil {
+			float: left;
+			width: 50%;
+			text-align: left;
+		}
+		.label-affil {
+			border-color: transparent;
 			&:before {
 				content: '';
 				width: 19px;
@@ -2199,87 +2239,88 @@ p.caption {
 				z-index: 10;
 				margin-right: $half;
 			}
-	  	}
-	  	.dropdown-affil {
-		  	margin-top: $grid;
-	  	}
-	  	.label-affil {
-		  	font-size: 18px;
-		    font-weight: 200;
-		  	@include respond-desktop {
-			  	font-size: 20px;
-			    font-weight: 200;
-		  	}
-		}			    
-	  	.label-affil {
-		    padding-top: $half;
-		    padding-bottom: $half;
-		    border-top-width: 1px;
-		    border-bottom-width: 1px;
-		  	@include respond-desktop {
-			    padding-top: $grid;
-			    padding-bottom: $grid;
-		  	}
-		}	  	
-	  	.label-affil {
-		  	width: 100%;
-	  	}
-	  	.dropdown-affil {
-		    width: 100%;
-	  	}
-	  	@include respond-tablet {
-		  	@include link-dropdown-widths(688px, $grid * 41);
-		  	.dropdown-affil {
-			  	margin-top: 0;
-		  	}
-	  	}
-	  	@include respond-desktop {
-		  	@include link-dropdown-widths(894px, $grid * 46);
-	  	}
-	  	@include respond-wide {
-		  	@include link-dropdown-widths(1104px, $grid * 46);
-	  	}
-  	}
+		}
+		.dropdown-affil {
+			margin-top: $grid;
+		}
+		.label-affil {
+			font-size: 18px;
+			font-weight: 200;
+			@include respond-desktop {
+				font-size: 20px;
+				font-weight: 200;
+			}
+		}				
+		.label-affil {
+			padding-top: $half;
+			padding-bottom: $half;
+			border-top-width: 1px;
+			border-bottom-width: 1px;
+			@include respond-desktop {
+				padding-top: $grid;
+				padding-bottom: $grid;
+			}
+		}		
+		.label-affil {
+			width: 100%;
+		}
+		.dropdown-affil {
+			width: 100%;
+		}
+		@include respond-tablet {
+			@include link-dropdown-widths(688px, $grid * 41);
+			.dropdown-affil {
+				margin-top: 0;
+			}
+		}
+		@include respond-desktop {
+			@include link-dropdown-widths(894px, $grid * 46);
+		}
+		@include respond-wide {
+			@include link-dropdown-widths(1104px, $grid * 46);
+		}
+	}
 }
 
 .manage-links {
 	margin-top: $grid * 4;
 }
 
+/////////////////////////////////////////
 
 // Create errors
 
 #error-container {
-    padding: $double;
-    background-color: $color-highlight;
-    text-align: center;
-    margin-top: $grid * 3;
-    @include respond-tablet {
-	    margin-top: 0;
-	    padding: $grid * 2 $grid $grid * 3;
-    }
-    @include respond-desktop {
-	    padding: $grid * 3 $double $grid * 4;
-    }
+	padding: $double;
+	background-color: $color-highlight;
+	text-align: center;
+	margin-top: $grid * 3;
+	@include respond-tablet {
+		margin-top: 0;
+		padding: $grid * 2 $grid $grid * 3;
+	}
+	@include respond-desktop {
+		padding: $grid * 3 $double $grid * 4;
+	}
 	.message-large {
-	    font-family: 'Roboto', sans-serif;
+		font-family: 'Roboto', sans-serif;
 		font-size: 24px;
-	    font-weight: 700;
-	    margin-bottom: 0;
-	    @include respond-tablet {
+		font-weight: 700;
+		margin-bottom: 0;
+		@include respond-tablet {
 			font-size: 40px;
-		    font-weight: 200;	    
-	    }
+			font-weight: 200;		
+		}
 	}
 	p {
-	    font-size: 16px;
+		font-size: 16px;
 		font-family: $font-hed-alt;
 		color: $color-black;
 		margin-left: auto;
 		margin-right: auto;
-	    @include respond-desktop {
-		    font-size: 18px;
-	    }
+		@include respond-desktop {
+			font-size: 18px;
+		}
 	}
 	.message {
 		margin-top: $grid;
@@ -2294,20 +2335,21 @@ p.caption {
 	background-color: white;
 	height: auto;
 	width: auto;
-    @include respond-tablet {
-	    width: 318px;
- 	    height: 318px;
-   }
-    @include respond-desktop {
-	    width: 448px;
-	    height: 448px;
-    }
-    @include respond-wide {
-	    width: 538px;
-	    height: 538px;
-    }
+	@include respond-tablet {
+		width: 318px;
+		height: 318px;
+	 }
+	@include respond-desktop {
+		width: 448px;
+		height: 448px;
+	}
+	@include respond-wide {
+		width: 538px;
+		height: 538px;
+	}
 }
 
+/////////////////////////////////////////
 
 // Forms
 
@@ -2316,12 +2358,7 @@ form {
 	overflow-y: visible;
 	.btn {
 		background-color: $color-blue;
-		&:hover {
-			background-color: $color-hover;
-		}
-		&:active {
-			background-color: $color-active;
-		}
+		@extend .style-button-hover;
 	}
 }
 
@@ -2369,19 +2406,19 @@ label {
 input {
 	margin: $grid 0 0 0;
 	font-weight: 700;
-    font-size: 20px;
-    border: 1px solid $color-trans-lightgray;
-    border-radius: 4px;
-    padding: $grid;
-    background-color: white;
-    outline: none;
-    box-shadow: none;
-    &:focus {
-	    border-color: $color-blue;
-	    color: $color-blue;
-	    background-color: $color-white;
-	    box-shadow: none;
-    }
+	font-size: 20px;
+	border: 1px solid $color-trans-lightgray;
+	border-radius: 4px;
+	padding: $grid;
+	background-color: white;
+	outline: none;
+	box-shadow: none;
+	&:focus {
+		border-color: $color-blue;
+		color: $color-blue;
+		background-color: $color-white;
+		box-shadow: none;
+	}
 }
 
 input[type="checkbox"] {
@@ -2390,12 +2427,12 @@ input[type="checkbox"] {
 
 div.checkbox {
 	padding: $grid;
-    background-color: $color-highlight;
-    margin-right: $double;
-    margin-top: $grid * 3;
-    border-radius: 2px;
-    padding-top: $grid;
-    padding-left: 36px;
+	background-color: $color-highlight;
+	margin-right: $double;
+	margin-top: $grid * 3;
+	border-radius: 2px;
+	padding-top: $grid;
+	padding-left: 36px;
 }
 	
 ._error {
@@ -2446,19 +2483,19 @@ input[type="submit"] {
 	}
 	select {
 		margin-top: $grid;
-	    display: block;
-	    width: 100%;
-	    clear: both;
-	    font-size: 16px;
-	    font-family: $font-hed-alt;
-	    font-weight: 400;
-	    height: 42px;
-	    &:focus {
-		    border-color: $color-blue;
-		    box-shadow: none;
-		    -webkit-box-shadow: none;
-	    }
-  	}
+		display: block;
+		width: 100%;
+		clear: both;
+		font-size: 16px;
+		font-family: $font-hed-alt;
+		font-weight: 400;
+		height: 42px;
+		&:focus {
+			border-color: $color-blue;
+			box-shadow: none;
+			-webkit-box-shadow: none;
+		}
+	}
 }
 
 textarea {
@@ -2468,11 +2505,11 @@ textarea {
 	font-size: 16px;
 	font-weight: 400;
 	font-family: $font-hed-alt;
-    outline: none;
-    box-shadow: none;
-    border: 1px solid $color-trans-lightgray;
-    border-radius: 4px;
-    resize:vertical;
+	outline: none;
+	box-shadow: none;
+	border: 1px solid $color-trans-lightgray;
+	border-radius: 4px;
+	resize:vertical;
 	&:focus {
 		border-color: $color-blue;
 	}
@@ -2494,16 +2531,16 @@ textarea {
 }
 
 .errorlist {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-  li {
-	  margin-bottom: 0;
-	  line-height: 1.4;
-	  & + li {
-		  margin-top: 4px;
-	  }
-  }
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	li {
+	margin-bottom: 0;
+	line-height: 1.4;
+	& + li {
+		margin-top: 4px;
+	}
+	}
 }
 
 input[type="text"], 
@@ -2511,7 +2548,7 @@ textarea,
 button[type="submit"],
 button#addlink, 
 .infinity-navbar {
-    -webkit-transition: none;
+	-webkit-transition: none;
 	-moz-transition: none;
 	-ms-transition: none;
 	-o-transition: none;
@@ -2533,6 +2570,7 @@ button#addlink,
 	}
 }
 
+/////////////////////////////////////////
 
 // Header & global nav
 
@@ -2587,20 +2625,21 @@ button#addlink,
 	}
 }
 
-.nav > li > .dropdown-toggle { // button that triggers dropdown
+// button that triggers dropdown
+.nav > li > .dropdown-toggle { 
 	&.navbar-link {
 		padding: 16px 16px 16px 28px;
-	    border-radius: 2px;
-	    border: 1px solid $color-trans-whispergray;
-	    font-family: $font-hed-alt;
-	    font-weight: 700;
+		border-radius: 2px;
+		border: 1px solid $color-trans-whispergray;
+		font-family: $font-hed-alt;
+		font-weight: 700;
 		display: none; 
 		@include respond-tablet {
 			display: block;
 		}
 	}
-    &:after {
-	    @include ui-chev-down;
+	&:after {
+		@include ui-chev-down;
 	}
 	&:hover {
 		color: $color-blue;
@@ -2609,7 +2648,7 @@ button#addlink,
 		border-color: $color-trans-lightgray;
 	}
 	&:hover::after {
-	    background-position: -17px * 3;
+		background-position: -17px * 3;
 	}
 }
 
@@ -2645,8 +2684,8 @@ li.dropdown {
 			color: $color-black;
 			border-radius: 0;
 			padding: 10px 12px;
-		    border: none;
-		    line-height: 20px;
+			border: none;
+			line-height: 20px;
 			&:hover, &:focus {
 				color: $color-white;
 				background-color: $color-hover !important;
@@ -2674,15 +2713,15 @@ li.dropdown {
 .dropdown-menu {
 	@include style-dropdown-items;
 	position: relative;
-    float: none;
-    width: auto;
-    z-index: 1000;
-    display: none;
-    padding: 0;
-    margin: 0;
+	float: none;
+	width: auto;
+	z-index: 1000;
+	display: none;
+	padding: 0;
+	margin: 0;
 	margin-right: 0;
-    background-color: transparent;
-    background-clip: padding-box;
+	background-color: transparent;
+	background-clip: padding-box;
 	border-radius: 0;
 	box-shadow: none;
 	border: none;
@@ -2690,10 +2729,9 @@ li.dropdown {
 	min-width: 0;
 	top: auto;
 	margin-right: 0;
-  	@include respond-tablet {
-  		@include style-dropdown-structure;
+	@include respond-tablet {
+		@include style-dropdown-structure;
 		margin-right: -7px;
-		padding-top: $double;
 		min-width: $grid * 27;
 		position: absolute;
 		top: 77px;
@@ -2717,41 +2755,41 @@ li.dropdown {
 
 .dropdown-header {
 	font-family: $font-hed-alt;
-    font-weight: 400;
-    letter-spacing: 1px;
-    text-align: right;
-    padding-right: 11px;
-    padding-top: 7px;
-    color: $color-blue;
-    text-transform: uppercase;
+	font-weight: 400;
+	letter-spacing: 1px;
+	text-align: right;
+	padding-right: 11px;
+	padding-top: 7px;
+	color: $color-blue;
+	text-transform: uppercase;
 	@include respond-tablet {
 		padding-right: 20px;
 	}
 }
 
 .navbar-create {
-    margin-top: 0;
-    margin-bottom: 8px;
-    margin-right: -7px;
+	margin-top: 0;
+	margin-bottom: 8px;
+	margin-right: -7px;
 	@include respond-tablet {
 		margin: $double $double;
 	}
 }
 
 .collapsing {
-    -webkit-transition: none;
-    transition: none;
+	-webkit-transition: none;
+	transition: none;
 }
 
 .navbar-collapse {
 	overflow: visible;
-    -webkit-transition: none !important;
-    transition: none !important;
-    height: auto !important;
-    padding: 0;
-    margin: 0;
-    border: none;
-    max-height: none;
+	-webkit-transition: none !important;
+	transition: none !important;
+	height: auto !important;
+	padding: 0;
+	margin: 0;
+	border: none;
+	max-height: none;
 	&.in {
 		overflow: visible;
 		.dropdown-menu {
@@ -2770,19 +2808,18 @@ li.dropdown {
 .logo {
 	padding: 0;
 	min-width: 0;
-	@extend %style-vcenter-parent;
+	@extend .style-vcenter-parent;
 	@include respond-xmobile {
 		height: $height-nav-xmobile;
 	}
 	@include respond-tablet {
 		height: $height-nav-tablet;
-		// padding-bottom: $half;
 	}
 	@include respond-desktop {
 		height: $height-nav-desktop;
 	}
 	a {
-		@extend %style-vcenter-child;
+		@extend .style-vcenter-child;
 		font-family: $font-hed-alt;
 		font-weight: 900;
 		color: $color-black;
@@ -2810,45 +2847,43 @@ li.dropdown {
 	display: block;
 	position: absolute;
 	top: $grid;
-    right: $grid;
-    bottom: $grid;
-    width: 43px !important;
-    border: none;
-    background-color: $color-background;
-    margin: 0;
-    border-radius: 2px;
-    @include respond-xmobile{
-	    width: 51px !important;
-    }
-    .icon-bar {
-	    background-color: $color-black;
-	    display: block;
-	    width: 22px;
-	    height: 2px;
-	    border-radius: 1px;
-	    margin-right: auto;
-	    margin-left: auto;
-	    & + .icon-bar {
-		    margin-top: $half;
-	    }
-    }
-    &:hover {
-	    background-color: $color-hover;
-	    .icon-bar {
-		    background-color: $color-white;
+	right: $grid;
+	bottom: $grid;
+	width: 43px !important;
+	border: none;
+	background-color: $color-background;
+	margin: 0;
+	border-radius: 2px;
+	@include respond-xmobile{
+		width: 51px !important;
+	}
+	.icon-bar {
+		background-color: $color-black;
+		display: block;
+		width: 22px;
+		height: 2px;
+		border-radius: 1px;
+		margin-right: auto;
+		margin-left: auto;
+		& + .icon-bar {
+			margin-top: $half;
 		}
-    }
-    &:active {
-	    background-color: $color-black;
-	    .icon-bar {
-		    background-color: $color-white;
+	}
+	@extend .style-button-hover;
+	&:hover {
+		.icon-bar {
+			background-color: $color-white;
 		}
-    }
+	}
+	&:active {
+		.icon-bar {
+			background-color: $color-white;
+		}
+	}
 	&:focus {
 		outline: none;
-	    background-color: $color-blue;
-	    .icon-bar {
-		    background-color: $color-white;
+		.icon-bar {
+			background-color: $color-white;
 		}
 	}
 	@include respond-tablet {
@@ -2859,39 +2894,40 @@ li.dropdown {
 	}
 }
 
+/////////////////////////////////////////
 
 //	Footer 
 
 footer {
-    text-align: left;
-    padding: $double 0 $grid * 5;
-    background: $color-blue;
-    font-family: $font-hed-alt;
-    color: $color-white;
-    font-weight: 700;
-    @include respond-tablet {
+	text-align: left;
+	padding: $double 0 $grid * 5;
+	background: $color-blue;
+	font-family: $font-hed-alt;
+	color: $color-white;
+	font-weight: 700;
+	@include respond-tablet {
 		@include affix-to-bottom;
-	    padding-top: 0;
-	    background: $color-white;
+		padding-top: 0;
+		background: $color-white;
 		color: $color-blue;
-	    font-size: 12px;
-    }
-    @include respond-desktop {
-	    font-size: 14px;
-    }
-    .container {
-	    overflow: visible;
-    }
-    div.col-sm-6 {
-	    width: 50%;
-	    float: left;
-	    margin-top: 0 !important;
-    }
-    ul {
-	    margin: 0;
-	    padding: 0;
-    }
-    li { 
+		font-size: 12px;
+	}
+	@include respond-desktop {
+		font-size: 14px;
+	}
+	.container {
+		overflow: visible;
+	}
+	div.col-sm-6 {
+		width: 50%;
+		float: left;
+		margin-top: 0 !important;
+	}
+	ul {
+		margin: 0;
+		padding: 0;
+	}
+	li { 
 		padding-top: $half;
 		margin-top: $grid;
 		padding-top: $grid;
@@ -2901,112 +2937,87 @@ footer {
 		padding-bottom: $half;
 		border-bottom: 1px solid transparent;
 	}
-    a.home {
-	    font-size: 32px;
+	a.home {
+		font-size: 32px;
 		border-bottom: none;
 		&:hover {
-		    color: $color-black;
+			color: $color-black;
 		}
-	    &:after {
-		    content: '';
-		    height: 19px;
-		    width: 42px;
-		    display: inline-block;
-		    background-image: url('../img/perma-logo-white.svg');
-		    background-repeat: no-repeat;
-		    background-size: contain;
-		    top: 1px;
+		&:after {
+			content: '';
+			height: 19px;
+			width: 42px;
+			display: inline-block;
+			background-image: url('../img/perma-logo-white.svg');
+			background-repeat: no-repeat;
+			background-size: contain;
+			top: 1px;
 			margin-left: $grid;
-	    }
-    }
-    #footer-nav {
-	    padding-left: 0;
-    }
-    #footer-nav, #boilerplate {
-	    a {
-		    margin-right: 0;
-		    font-weight: 700;
-		    width: 100%;
-		    display: block;
-		    padding-bottom: 0;
-	    }
-    }
-    @include respond-tablet {
-	    padding: $double 0 $grid * 5;
-		a:hover {
-		    border-color: $color-orange;
 		}
-	    li {
-		    padding-top: 0;
-		    margin-top: 0;
-		    border-top: none;
-		    display: inline-block;
-	    }
-	    #li {
-		    display: inline-block;
-	    }
-	    #footer-nav {
-		    float: left; 
-		    a {
-			    margin-right: $double;
-		    }
-	    }
-	    #boilerplate {
-		    float: right;
-		    font-weight: 700;
-		    a {
-			    margin-left: $double;
-			    margin-right: 0;
-		    }
-	    }
-	    #footer-nav, #boilerplate {
-		    a {
-			    display: inline;
-			    width: auto;
-			    padding-bottom: $half;
-		    }
-	    }
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//	Admin 
-
-._admin #main-content {
-	overflow: visible;
-}
-
-#main._fullWidth #main-content {
-	@include respond-tablet {
+	}
+	#footer-nav {
 		padding-left: 0;
-		padding-right: 0;
-		max-width: none;
+	}
+	#footer-nav, #boilerplate {
+		a {
+			margin-right: 0;
+			font-weight: 700;
+			width: 100%;
+			display: block;
+			padding-bottom: 0;
+		}
+	}
+	@include respond-tablet {
+		padding: $double 0 $grid * 5;
+		a:hover {
+			border-color: $color-orange;
+		}
+		li {
+			padding-top: 0;
+			margin-top: 0;
+			border-top: none;
+			display: inline-block;
+		}
+		#li {
+			display: inline-block;
+		}
+		#footer-nav {
+			float: left; 
+			a {
+				margin-right: $double;
+			}
+		}
+		#boilerplate {
+			float: right;
+			font-weight: 700;
+			a {
+				margin-left: $double;
+				margin-right: 0;
+			}
+		}
+		#footer-nav, #boilerplate {
+			a {
+				display: inline;
+				width: auto;
+				padding-bottom: $half;
+			}
+		}
 	}
 }
 
-#dashboard-container {}
+/////////////////////////////////////////
 
-#dashboard-tabs {
-    margin: 0 0 $grid * 3 0;
-    &.settings-tabs a {
-        @include respond-tablet {
-            padding-left: 12px;
-        }
-    }
+//	Admin nav
+
+.nav-pills {
+	margin: 0 0 $grid * 3 0;
+	a {
+		@include respond-tablet {
+			padding-left: 12px;
+		}
+	}
 	@include respond-mobile {
-        margin: 0 -$double $grid * 3;
+		margin: 0 -$double $grid * 3;
 		display: flex;
 		flex-wrap: wrap;
 		li { 
@@ -3018,112 +3029,73 @@ footer {
 			order: -1;
 		}
 	}
-    li {
-        img {
-            width: 30px;
-        }
-        h3 {
-            color: #999;
-            font-size: 14px;
-            margin: 16px 0 0 0;
-            padding: 0;
-        }
-        a {
-            background-repeat: no-repeat;
-            font-size: 16px;
-            margin-bottom: 1px;
-            padding: $grid $double;
-            position: relative;
-            display: block;
-            border: none;
+	li {
+		a {
+			background-repeat: no-repeat;
+			font-size: 16px;
+			margin-bottom: 1px;
+			padding: $grid $double;
+			position: relative;
+			display: block;
+			border: none;
 			background-color: $color-background;
 			font-family: $font-hed-alt;
 			font-weight: 700;
 			border-radius: 0;
 			span {
+				@include style-ui-after-chev;
 				&:after {
-				    content: '';
-				    height: 17px;
-				    width: 9px;
-				    display: inline-block;
-				    background-image: url('../img/ui/perma-ui-chev-right-small.png');
-				    background-repeat: no-repeat;
-				    background-size: 54px 17px;
-				    background-position: -9px * 2;
-				    top: 3px;
-					margin-left: $grid;
-					margin-right: -17px;
 					@include respond-desktop {
 						top: 3px;
 					}
 				}
 			}
 			&:hover, &:focus {
-                background-color: $color-blue;
-                color: white;
+				background-color: $color-blue;
+				color: white;
 				span:after {
-				    background-position: -9px * 5 !important;
+					background-position: -9px * 5 !important;
 				}
 			}
 			&:active {
-                background-color: $color-black;
-                color: white;
+				background-color: $color-black;
+				color: white;
 				span:after {
-				    background-position: -9px * 5 !important;
+					background-position: -9px * 5 !important;
 				}
 			}
 			@include respond-tablet {
-                border-radius: 2px;
+				border-radius: 2px;
 			}
-        }
-        &.active a {
-            background-color: white;
-            color: $color-blue;
-            cursor: default;
-            padding-top: 7px;
-            padding-bottom: $grid;
-            span:after {
-                display: none;
-            }
+		}
+		&.active a {
+			background-color: white;
+			color: $color-blue;
+			cursor: default;
+			padding-top: 7px;
+			padding-bottom: $grid;
+			span:after {
+				display: none;
+			}
 			font-size: 24px;
 			font-weight: 200;
 			line-height: 1.2;
+			&:hover {
+				color: $color-blue;
+				background-color: transparent;
+			}
 			@include respond-tablet {
 				font-size: 16px;
 				font-weight: 400;
 				border: 2px solid $color-blue;
 			}
-        }
-        &.dashboard-secondary a {
-            background: none;
-            font-size: 14px;
-            margin: 0;
-            padding: 5px 0 5px 51px;
-
-            @media (max-width: 991px) {
-                padding-left: 5px;
-            }
-        }
-        &.users-secondary {
-            display: none;
-        }
-        &.divider {
-            border-top: 1px solid #efefef;
-            height: 1px;
-        }
-
-    }
+		}
+	}
 }
 
+/////////////////////////////////////////
 
-
-
-
-
-
-
-
-// Link Browser
+// Link browser
 
 .panel {
 	box-shadow: none;
@@ -3140,355 +3112,433 @@ footer {
 	}
 }
 
-
 .panel-heading {
 	padding: $grid 0 0;
-    border-bottom: none;
-    border-top-right-radius: 0;
-    border-top-left-radius: 0;
+	border-bottom: none;
+	border-top-right-radius: 0;
+	border-top-left-radius: 0;
 }
 
-.folders-box {
-    @include respond-tablet {
-	    width: 100%;
-    }
-    @include respond-desktop {
-	    width: 25%
-    }
-    padding-bottom: $double;
-    > .panel-heading {
+.col-folders {
+	padding-bottom: $double;
+	> .panel-heading {
 		border-top: 2px solid #2D76EE;
-	    padding-top: 8px;
-	    color: #2D76EE;
-	    font-family: $font-hed-alt;
-	    font-weight: 700;
-	    font-size: 21px;
-        a {
+		padding-top: 8px;
+		color: #2D76EE;
+		font-family: $font-hed-alt;
+		font-weight: 700;
+		font-size: 21px;
+		a {
 			position: relative;
-		    top: 5px;
-		    margin-left: 0.5em;
-		    font-size: 20px;
-		    color: $color-trans-gray;
-		    &:hover {
-			    color: $color-hover;
-		    }
-        }
-    }
-    #folder-tree {
-        padding: $double $grid $double 0;
-        overflow: auto;
-	    font-family: $font-hed-alt;
-	    margin-top: $double;
-	    border-top: 1px solid $color-trans-lightgray;
-        .jstree-clicked {
+			top: 5px;
+			margin-left: 0.5em;
+			font-size: 20px;
+			color: $color-trans-gray;
+			@extend .style-standard-hover;
+		}
+	}
+	#folder-tree {
+		padding: $double $grid $double 0;
+		overflow: auto;
+		font-family: $font-hed-alt;
+		margin-top: $double;
+		border-top: 1px solid $color-trans-lightgray;
+		.jstree-clicked {
 			border: 1px solid $color-blue;
-		    color: $color-white;
-		    background-color: $color-blue;
-		    box-shadow: none;
-		    padding-right: 6px;
+			color: $color-white;
+			background-color: $color-blue;
+			box-shadow: none;
+			padding-right: 6px;
 		}
-        .jstree-hovered {
-		    background-color: $color-highlight;
-		    box-shadow: none;
-		    color: $color-black;
+		.jstree-hovered {
+			background-color: $color-highlight;
+			box-shadow: none;
+			color: $color-black;
 		}
-    }
+	}
 	.jstree-container-ul {
 		margin-left: -6px;
 	}
-    li {
-        margin-left: 1em;
-    }
+	li {
+		margin-left: 1em;
+	}
 }
 
-.links-box {
-    border-left: none;
-    position: relative;
-    padding-bottom: $grid * 3;
-    &.recent-links {
-	    width: 100%;
-	    padding-top: $grid * 3;
+.col-links {
+	border-left: none;
+	position: relative;
+	padding-bottom: $grid * 3;
+	&.recent-links {
+		width: 100%;
+		padding-top: $grid * 3;
 		@include respond-mobile {
 			padding-left: $double;
 			padding-right: $double;
 		}
-   }
-    @include respond-tablet {
-	    width: 100%;
-    }
-    @include respond-desktop {
-	    width: 75%
-    }
-    > .panel-heading {
-        border-top-left-radius: 0;
-        border-color: #DDD;
-        padding: 3px;
-        text-align: right;
-        background-color: #F5F5F5;
-    }
-    form {
-    	margin-top: 0;
-    }
-    a.delete {
-	    margin-right: $grid;
-	    color: $color-orange;
-	    text-decoration: underline;
-	    &:hover, &:focus {
-		    color: $color-error;
-	    }
-	    &:active {
-		    color: $color-black;
-	    }
-    }
-    .shared-folder-label {
-    	margin-top: $grid * 3;
-	    margin-bottom: $grid * 3;
-    }
-    .link-headers {
-        padding: 0 0 $double;
-    }
-    .link-rows {
-        padding: $grid * 3 0 0;
-        overflow: visible;
-        .alert-success {
-	        margin-top: 0;
-        }
-    }
-	.perma-link {
-		@include respond-mobile {
-			display: flex;
-			flex-direction: row;
-			a.perma {
-				order: -1;
-			}
-			a.delete {
-				margin-left: $grid;
-				margin-top: 2px;
+	 }
+	> .panel-heading {
+		border-top-left-radius: 0;
+		border-color: #DDD;
+		padding: 3px;
+		text-align: right;
+		background-color: #F5F5F5;
+	}
+	form {
+		margin-top: 0;
+	}
+	a.delete {
+		margin-right: $grid;
+		color: $color-orange;
+		text-decoration: underline;
+		&:hover, &:focus {
+			color: $color-error;
+		}
+		&:active {
+			color: $color-black;
+		}
+	}
+	.shared-folder-label {
+		margin-top: $grid * 3;
+		margin-bottom: $grid * 3;
+	}
+	.link-headers {
+		padding: 0 0 $double;
+	}
+	.item-rows {
+		padding: $grid * 3 0 0;
+		overflow: visible;
+		.alert-success {
+			margin-top: 0;
+		}
+	}
+}
+
+/////////////////////////////////////////
+
+// Items
+
+.item-notification {
+	text-align: center;
+	font-weight: 200;
+	font-size: 24px;
+	margin-top: $double;
+	font-family: $font-hed-alt;
+	color: $color-blue;
+	@include respond-tablet {
+		margin-top: $grid * 6;
+	}
+}
+
+.item-container._isExpandable {
+	&:hover {
+		border-top-color: $color-blue;
+		.item-title-display {
+			color: $color-blue;
+		}
+	}
+	&._active {
+		@include style-card(black);
+		margin: 0 -$grid $double -$grid;
+		padding: $grid * 2 $grid;
+		@include respond-tablet {
+			margin: 0 -$double $double -$double;
+			padding: $grid * 2 $double;
+		}
+		&:hover {
+			border-top-color: black;
+			.item-title-display {
+				color: $color-black;
 			}
 		}
 	}
-    .link-container {
-        padding: $double 0;
-        border: 1px solid transparent;
-        border-top: 1px solid $color-trans-lightgray;
-        position: relative;
-		font-family: $font-hed-alt;
-		background-color: white;
-		&._active {
-			border: 1px solid black !important;
-			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
-			border-radius: 2px;
-			margin: 0 -$grid $double -$grid;
-			padding: $grid * 2 $grid;
-			padding-bottom: 0;
-			@include respond-tablet {
-				margin: 0 -$double $double -$double;
-				padding: $grid * 2 $double;
-			}
-			&:hover {
-				background-color: white;
-				.link-title-display {
-					color: $color-black;
-				}
-			}
+}
+
+.item-container {
+	padding: $double 0;
+	border: 1px solid transparent;
+	border-top: 1px solid $color-trans-lightgray;
+	position: relative;
+	font-family: $font-hed-alt;
+	background-color: white;
+	@extend .style-clears-floats;
+	&.muted {
+		.item-title {
+			color: $color-trans-gray;
 		}
-		&._isPrivate {
-		    span.ui-private {
-			    overflow: hidden;
-			    display: inline-block;
-			    text-indent: -10000px;
-			    position: relative;
-			    height: 16px;
-			    width: 18px;
-			    background-image: url('../img/ui/perma-ui-private.png');
-			    background-repeat: no-repeat;
-			    background-size: cover;
-			    margin-right: 4px;
-			    bottom: -2px;
-		    }
-		    a.perma {
-			    color: $color-black;
-			    border-color: $color-black;
-		    }
+	}
+	&._isPrivate {
+		span.ui-private {
+			@include hide-text;
+			display: inline-block;
+			position: relative;
+			height: 16px;
+			width: 18px;
+			background-image: url('../img/ui/perma-ui-private.png');
+			background-repeat: no-repeat;
+			background-size: cover;
+			margin-right: 4px;
+			bottom: -2px;
 		}
-		&:hover {
-			border-top-color: $color-blue;
-			.link-title-display {
-				color: $color-blue;
-			}
+		a.perma {
+			color: $color-black;
+			border-color: $color-black;
 		}
-		.record-secondary {
+	}
+	p.warning {
+		margin-top: $half;
+		color: $color-orange;
+		font-size: 14px;
+		font-weight: 400;
+		margin-bottom: 0;
+	}
+	@include respond-mobile {
+		.admin-actions {
 			margin-top: $grid;
-			@include respond-tablet {
-				margin-top: $half;
-			}
 		}
-        .link-row {
-            cursor: move; //	fallback for IE 
-            cursor: -moz-grab;
-            cursor: -webkit-grab;
-            cursor: grab;
-			.perma {
-				display: inline-block;	
-			}
-			.link-title-display {
-				font-size: 16px;
-				font-weight: 700;
-			}
-			.original-link {
-				font-size: 16px;
-				font-weight: 200;
-				&:hover, &:focus {
-					color: $color-hover;
-				}
-				&:active {
-					color: $color-active;
-				}
-			}
-			.record-affil {
-				font-size: 16px;
-				font-weight: 200;
-				color: $color-blue;
-				&:before {
-					content: '';
-					width: 19px;
-					height: 18px;
-					display: inline-block;
-					position: relative;
-					top: 3px;
-					background-image: url('../img/ui/perma-ui-affil.svg');
-					background-repeat: no-repeat;
-					background-position: 0 0;
-					background-size: 19px 18px;
-					z-index: 10;
-				}
-			}
-			.record-date {
-				font-size: 14px;
-				font-weight: 400;
-				//margin-top: 2px;
-				color: $color-trans-gray;
-				.label {
-					font-size: 14px;
-					font-weight: 400;
-					color: $color-trans-gray;
-					margin: 0;
-					padding: 0;
-				}
-			}
-            .vested-date, .record-date {
-                display: block;
-            }
-            .original-link, .vested-date, .record-date {
-                word-wrap : break-word;
-            }
+	}
+}
 
-            .alert-danger {
-                background-color: #FFF;
+.item-secondary {
+	margin-top: $grid;
+	@include respond-tablet {
+		margin-top: $half;
+	}
+}
 
-                a {
-                    color: inherit;
-                    text-decoration: underline;
-                }
-            }
-			.col-sm-7 {
-				width: 100%;
-			}
-			.col-sm-5 {
-				width: 100%;
-			}
-			.align-right {
-				text-align: left;
-				padding-top: $grid;
-			}
-			@include respond-tablet {
-				.col-sm-7 {
-					width: 50%;
-				}
-				.col-sm-5 {
-					width: 50%;
-				}
-				.align-right {
-					text-align: right;
-					padding-top: 0;
-				}
-			}
-			@include respond-wide {
-				.col-sm-7 {
-					width: 60%;
-				}
-				.col-sm-5 {
-					width: 40%;
-				}
-			}
-        }
-        .link-details {
-            display: none;
-            background-color: $color-background;
-            padding: $double 0 $grid;
-            margin-top: $double;
-			margin-left: -$grid;
-		    margin-right: -$grid;
-			@include respond-tablet {
-				margin-left: -$double;
-			    margin-right: -$double;
-			}
-		    .form-group {
-			    margin-top: 0;
-			    width: 100%;
-			    padding-bottom: $double;
-			    input, textarea, select {
-				    margin-top: $grid;
-				    display: block;
-				    width: 100%;
-				    clear: both;
-				    font-size: 16px;
-			    }
-			    div.label-group {
-				    overflow: auto;
-			    }
-			    label, .title-save-status, .notes-save-status {
-				    float: left;
-				    width: auto;
-				    padding-bottom: $grid;
-			    }
-			    .title-save-status, .notes-save-status {
-				    color: $color-orange;
-				    margin-top: 0;
-				    margin-left: .7em;
-				    font-weight: 700;
-			    }
-		    }
-        }
-    }
+.item-permalink {
+	@include respond-mobile {
+		display: flex;
+		flex-direction: row;
+		a.perma {
+			order: -1;
+		}
+		a.delete {
+			margin-left: $grid;
+			margin-top: 2px;
+		}
+	}
+}
+
+.item-title {
+	font-size: 16px;
+	font-weight: 700;
+	a {
+		color: $color-blue;
+	}
+	.text-warning {
+		margin-left: 8px;
+		color: $color-orange;
+	}
+}
+
+.item-subtitle {
+	font-size: 16px;
+	font-weight: 200;
+	word-wrap : break-word;
+	a {
+		@extend .style-standard-hover;
+	}
+}
+
+.item-affil {
+	font-size: 16px;
+	font-weight: 200;
+	color: $color-blue;
+	&:before {
+		content: '';
+		width: 19px;
+		height: 18px;
+		display: inline-block;
+		position: relative;
+		top: 3px;
+		background-image: url('../img/ui/perma-ui-affil.svg');
+		background-repeat: no-repeat;
+		background-position: 0 0;
+		background-size: 19px 18px;
+		z-index: 10;
+		margin-right: .15em;
+	}
+}
+
+.item-vesting-org {
+	font-size: 16px;
+	font-weight: 200;
+	margin: 2px $double $grid 0;
+	line-height: 1.2em;
+	color: $color-trans-gray;
+	a {
+		color: $color-trans-gray;
+		font-weight: 700;
+	}
+}
+
+.item-date {
+	display: block;
+	font-size: 14px;
+	font-weight: 400;
+	color: $color-trans-gray;
+	word-wrap : break-word;
+	.label {
+		font-size: 14px;
+		font-weight: 400;
+		color: $color-trans-gray;
+		margin: 0;
+		padding: 0;
+	}
+}
+
+.item-activity {
+	font-size: 14px;
+	font-weight: 400;
+	margin-bottom: 0px;
+	margin-top: $grid;
+	@include respond-tablet { 
+		font-size: 10px;
+		margin-top: $double;
+	}
+	@include respond-desktop {
+		font-size: 14px;
+		font-weight: 200
+	}
+}
+
+.item-status {
+	margin-top: 5px;
+	font-size: 12px;
+	margin-bottom: 0px;
+	position: relative;
+	&:first-child {
+		margin-top: 0;
+	}
+}
+
+.item-count-groups {
+	margin-top: $grid;
+	margin-bottom: $grid;
+	@include respond-tablet {
+		margin-bottom: 0;
+		margin-top: $double;
+	}
+}
+
+.item-count-group {
+	font-weight: 200;
+	font-size: 14px;
+	font-weight: 200;
+	border: none;
+	border-radius: 3px;
+	padding: 2px 11px;
+	margin-bottom: $half;
+	background-color: $color-trans-whispergray;
+	width: 100%;
+	strong {
+		font-weight: 700;
+		color: $color-orange;
+	}
+}
+
+.item-count-label a {
+	font-size: 85%;
+	font-weight: 700;
+	color: $color-trans-gray;
+	margin-left: 4px;
+	&:hover {
+		color: $color-black;
+	}
+}
+
+.row.item-row {
+	.perma {
+		display: inline-block;	
+	}
+	.alert-danger {
+		background-color: $color-white;
+		a {
+			color: inherit;
+			text-decoration: underline;
+		}
+	}
+	.sm-align-right {
+		padding-top: $grid;
+		@include respond-tablet {
+			padding-top: 0;
+		}
+	}
+}
+
+.row.item-details {
+	display: none;
+	background-color: $color-background;
+	padding: $double 0 $grid;
+	margin-top: $double;
+	margin-left: -$grid;
+	margin-right: -$grid;
+	@include respond-tablet {
+		margin-left: -$double;
+		margin-right: -$double;
+	}
+	.form-group {
+		margin-top: 0;
+		width: 100%;
+		padding-bottom: $double;
+		input, 
+		textarea, 
+		select {
+			margin-top: $grid;
+			display: block;
+			width: 100%;
+			clear: both;
+			font-size: 16px;
+		}
+		div.label-group {
+			overflow: auto;
+		}
+		label, 
+		.title-save-status, 
+		.notes-save-status {
+			float: left;
+			width: auto;
+			padding-bottom: $grid;
+		}
+		.title-save-status, 
+		.notes-save-status {
+			color: $color-orange;
+			margin-top: 0;
+			margin-left: .7em;
+			font-weight: 700;
+		}
+	}
 }
 
 //	hide red x in link drag-n-drop 
 #jstree-dnd.jstree-default .jstree-er {
-    background-image: none !important;
+	background-image: none !important;
 }
 
 //	hide black right arrow showing drop target in tree 
 #jstree-marker {
-    display: none !important;
+	display: none !important;
 }
 
-body.dragging, body.dragging * {
-    cursor: move; //	fallback for IE 
-    cursor: -moz-grabbing;
-    cursor: -webkit-grabbing;
-    cursor: grabbing;
+body.dragging, 
+body.dragging * {
+	cursor: move; //	fallback for IE 
+	cursor: -moz-grabbing;
+	cursor: -webkit-grabbing;
+	cursor: grabbing;
 
-    // stop random text being selected during drag'n'drop
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+	// stop random text being selected during drag'n'drop
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 }
 
-// admin users and orgs
+/////////////////////////////////////////
+
+// Admin users and orgs
 
 .admin-content {
 	margin-top: 11px;
@@ -3498,30 +3548,25 @@ body.dragging, body.dragging * {
 }
 
 span.action {
-    display: inline-block;
-    float: right;
-    font-size: 16px;
-    padding: 2px 6px 3px;
-    border-radius: 3px;
-    background-color: $color-blue;
-    color: white;
-    font-weight: 400;
-    cursor: pointer;
-    &:hover, &:focus {
-	    background-color: $color-hover;
-    }
-    &:active {
-	    background-color: $color-active;
-    }
-    a {
-	    color: $color-white !important;
-    }
-    .icon-plus-sign, 
-    [class^="icon-"], 
-    [class*=" icon-"] {
-	    color: white;
-	    top: 1px;
-    }
+	display: inline-block;
+	float: right;
+	font-size: 16px;
+	padding: 2px 6px 3px;
+	border-radius: 2px;
+	background-color: $color-blue;
+	color: white;
+	font-weight: 400;
+	cursor: pointer;
+	@extend .style-button-hover;
+	a {
+		color: $color-white !important;
+	}
+	.icon-plus-sign, 
+	[class^="icon-"], 
+	[class*=" icon-"] {
+		color: white;
+		top: 1px;
+	}
 }
 
 .org-settings {
@@ -3530,39 +3575,41 @@ span.action {
 
 .settings-block {
 	border: 1px solid $color-trans-lightgray;
-    padding: $grid;
-    font-size: 16px;
-    font-family: $font-hed-alt;
-    border-radius: 2px;
-    margin-top: $double;
-    font-weight: 200;
-    overflow: auto;
-    p a {
-	    display: block;
-	    font-size: 13px;
-	    text-decoration: underline;
-    }
-    p {
-	    margin-bottom: 0;
-    }
-    .sponsor-name, .sponsor-email, p {
-	    display: block;
-	    padding-right: 72px;
-    }
-    .btn-xs {
+	padding: $grid;
+	font-size: 16px;
+	font-family: $font-hed-alt;
+	border-radius: 2px;
+	margin-top: $double;
+	font-weight: 200;
+	overflow: auto;
+	p a {
+		display: block;
+		font-size: 13px;
+		text-decoration: underline;
+	}
+	p {
+		margin-bottom: 0;
+	}
+	.sponsor-name, 
+	.sponsor-email, 
+	p {
+		display: block;
+		padding-right: 72px;
+	}
+	.btn-xs {
 		padding: 4px 8px;
-	    font-size: 12px;
-	    margin: 0;
-	    position: absolute;
-	    top: 50%;
-	    right: $grid;
-	    margin-top: -15px;
-	    width: auto;
-    }
+		font-size: 12px;
+		margin: 0;
+		position: absolute;
+		top: 50%;
+		right: $grid;
+		margin-top: -15px;
+		width: auto;
+	}
 }
 
 #add-member {
-  padding-bottom: 0;
+	padding-bottom: 0;
 }
 
 .admin-data {
@@ -3579,16 +3626,6 @@ span.action {
 	color: $color-blue;
 	font-family: $font-hed-alt;
 	@include respond-mobile {
-		float: left;
-		&.col-sm-3 {
-			width: 25%;
-		}
-		&.col-sm-4 {
-			width: 33.3333333333333%;
-		}
-		&.col-sm-6 {
-			width: 50%;
-		}
 		p.count-label {
 			font-size: 10px;
 			padding: $grid $half;
@@ -3629,448 +3666,189 @@ span.action {
 
 .remove-search-filters {
 	display: block;
-    margin: $double 0 0;
-    border: 2px solid $color-orange;
-    padding: $grid;
-    border-radius: 2px;
-    color: $color-orange !important;
-    font-family: $font-hed-alt;
-    font-weight: 700;
-    font-size: 14px;
-    vertical-align: middle;
-    @include respond-desktop {
-	    font-size: 16px;
-    }
-    .filters-title {
-	    font-size: 14px;
-	    font-weight: 700;
-	    @include respond-desktop {
-		    font-size: 16px;
-	    }
-    }
-    
-    strong, .filter-label, .remove-filters {
-	    display: inline-block;
-	    border: 1px solid $color-orange;
-	    padding: 2px 6px;
-    }
-    
-    strong {
-	    background-color: $color-orange;
-	    border-top-right-radius: 4px;
-	    border-bottom-right-radius: 4px;
-	    color: white;
-	    font-weight: 400;
-	    margin-left: -.3em;
-    }
-    .filter-label {
-	    border-top-left-radius: 4px;
-	    border-bottom-left-radius: 4px;
-	    border: 1px solid $color-orange;
+	margin: $double 0 0;
+	border: 2px solid $color-orange;
+	padding: $grid;
+	border-radius: 2px;
+	color: $color-orange !important;
+	font-family: $font-hed-alt;
+	font-weight: 700;
+	font-size: 14px;
+	vertical-align: middle;
+	@include respond-desktop {
+		font-size: 16px;
+	}
+	.filters-title {
+		font-size: 14px;
+		font-weight: 700;
+		@include respond-desktop {
+			font-size: 16px;
+		}
+	}
+	strong, .filter-label, .remove-filters {
+		display: inline-block;
+		border: 1px solid $color-orange;
+		padding: 2px 6px;
+	}
+	strong {
+		background-color: $color-orange;
+		border-top-right-radius: 4px;
+		border-bottom-right-radius: 4px;
+		color: white;
+		font-weight: 400;
+		margin-left: -.3em;
+	}
+	.filter-label {
+		border-top-left-radius: 4px;
+		border-bottom-left-radius: 4px;
+		border: 1px solid $color-orange;
 		margin-left: 4px;
-    }
-    .remove-filters {
-	    background-color: $color-orange;
-	    border-radius: 4px;
-	    color: white;
-	    font-weight: 400;
-	    width: 100%;
-	    margin-left: 0;
-	    margin-top: 8px;
-    	&:hover {
-		    background-color: $color-black;
-		    border-color: $color-black;
-	    }
-	    @include respond-tablet {
-		    float: right;
-		    width: auto;
-		    margin-left: $half;
-		    margin-top: 0;
-	    }
-    }
+	}
+	.remove-filters {
+		background-color: $color-orange;
+		border-radius: 4px;
+		color: white;
+		font-weight: 400;
+		width: 100%;
+		margin-left: 0;
+		margin-top: 8px;
+		&:hover {
+			background-color: $color-black;
+			border-color: $color-black;
+		}
+		@include respond-tablet {
+			float: right;
+			width: auto;
+			margin-left: $half;
+			margin-top: 0;
+		}
+	}
 }
-
-
-
-
-
 
 .admin-found {
-    border-top: 1px solid $color-blue;
-    color: $color-blue;
-    font-size: 15px;
-    margin-top: $grid * 3;
-    @include respond-desktop {
-	    font-size: 16px;
-    }
+	border-top: 1px solid $color-blue;
+	color: $color-blue;
+	font-size: 15px;
+	margin-top: $grid * 3;
+	@include respond-desktop {
+		font-size: 16px;
+	}
 }
 
-
 .sort-filter-bar {
-    padding-top: $grid;
-    padding-bottom: 16px;
-    border-top: 1px solid $color-blue;
-    float: left;
-    clear: both;
-    width: 100%;
-    strong {
-	    display: none;
-    }
-    .dropdown {
-	    float: left;
-	    margin-right: $double;
-    }
-    @include respond-tablet {
-	    width: auto;
-	    clear: none;
-	    border-top: none;
-	    strong {
-		    display: inline;
-	    }
-	    .dropdown {
-		    float: right;
-		    margin-left: $grid * 2;
-		    margin-right: 0;
-	    }
-    }
-    @include respond-desktop { 
-	    float: right;
-    }
-    @include respond-mobile {
-	    border-bottom: 1px solid $color-blue;
-	    padding-bottom: $grid;
-	    div.dropdown {
-		    float: none;
-		    width: 100%;
-		    + .dropdown {
-			    border-top: 1px solid $color-blue;
-			    margin-top: $grid;
-			    padding-top: $grid;
-		    }
-	    }
-	    .dropdown.open {
-		    float: none;
-		    width: 100%;
-	    }
-	    ul.dropdown-menu {
-		    max-width: none;
-		    top: auto;
-		    left: auto;
-		    right: auto;
-		    li {
-			    margin-bottom: 0;
-		    }
-		    li a {
-			    text-align: left;
-			    padding-left: $grid;
-		    }
-	    }
-    }
+	padding-top: $grid;
+	padding-bottom: 16px;
+	border-top: 1px solid $color-blue;
+	float: left;
+	clear: both;
+	width: 100%;
+	strong {
+		display: none;
+	}
+	.dropdown {
+		float: left;
+		margin-right: $double;
+	}
+	@include respond-tablet {
+		width: auto;
+		clear: none;
+		border-top: none;
+		strong {
+			display: inline;
+		}
+		.dropdown {
+			float: right;
+			margin-left: $grid * 2;
+			margin-right: 0;
+		}
+	}
+	@include respond-desktop { 
+		float: right;
+	}
+	@include respond-mobile {
+		border-bottom: 1px solid $color-blue;
+		padding-bottom: $grid;
+		div.dropdown {
+			float: none;
+			width: 100%;
+			+ .dropdown {
+				border-top: 1px solid $color-blue;
+				margin-top: $grid;
+				padding-top: $grid;
+			}
+		}
+		.dropdown.open {
+			float: none;
+			width: 100%;
+		}
+		ul.dropdown-menu {
+			max-width: none;
+			top: auto;
+			left: auto;
+			right: auto;
+			li {
+				margin-bottom: 0;
+			}
+			li a {
+				text-align: left;
+				padding-left: $grid;
+			}
+		}
+	}
 }
 
 .sort-filter-bar .dropdown {
-    padding-top: 1px;
-    font-family: $font-hed-alt;
-    a[role='button']:hover, a[role='button']:focus {
-	    color: $color-hover;
-    }
-    @include respond-desktop {
-	    margin-left: $grid * 3;
-    }
+	padding-top: 1px;
+	font-family: $font-hed-alt;
+	a[role='button']:hover, 
+	a[role='button']:focus {
+		color: $color-hover;
+	}
+	@include respond-desktop {
+		margin-left: $grid * 3;
+	}
 }
 
 .sort-filter-count {
 	float: left;
-    font-weight: 400;
-    margin-top: $grid;
-    margin-bottom: $grid;
+	font-weight: 400;
+	margin-top: $grid;
+	margin-bottom: $grid;
 	font-family: $font-hed-alt;
-    color: $color-blue;
-    font-size: 15px;
-    @include respond-tablet {
-	    margin-bottom: 0;
-    }
-    @include respond-desktop {
-	    font-size: 16px;
-    }
-}
-
-.sort-filter-bar .dropdown-menu {
-    max-width: 450px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    top: 29px;
-    right: 0px;
-    left: auto;
-    border-color: black;
-}
-
-.sort-filter-bar .dropdown-menu i.icon-ok {
-    margin-left: -10px;
-    visibility: hidden;
-}
-
-.sort-filter-bar .dropdown-menu .selected i.icon-ok {
-    visibility: visible;
-}
-
-.no-users-found {
-    text-align: center;
-    font-weight: 200;
-    font-size: 24px;
-    margin-top: $double;
-    font-family: $font-hed-alt;
-    color: $color-blue;
-    @include respond-tablet {
-	    margin-top: $grid * 6;
-    }
-}
-
-.list-user {
-	padding: $grid 0px;
-    margin-bottom: 0px;
-    border-top: 1px solid $color-black;
-    font-family: $font-hed-alt;
-    background-color: white;
-    margin-top: $grid * 3;
-    &.muted {
-	    margin-top: 0;
-	    border-top: 1px solid $color-trans-gray;
-    }
-    a.action {
-	    display: inline-block;
-	    padding: 0px 6px 0px;
-	    border: 2px solid $color-black;
-	    border-radius: 3px;
-	    color: $color-black;
-	    font-weight: 700;
-	    font-size: 12px;
-	    &:hover, &:focus {
-		    text-decoration: none;
-		    color: white;
-		    background-color: $color-black;
-		    border-color: $color-black;
-	    }
-	    &:active {
-		    text-decoration: none;
-		    background-color: $color-blue;
-		    border-color: $color-blue;
-	    }
-	    &.action-delete {
-		    border-color: $color-orange;
-		    color: $color-orange;
-		    &:hover, &:focus {
-			    color: white;
-			    background-color: $color-orange;
-			    border-color: $color-orange;
-		    }
-		    &:active {
-			    text-decoration: none;
-			    background-color: $color-active;
-			    border-color: $color-active;
-		    }
-	    }
-	    &.action-approve {
-		    border-color: $color-blue;
-		    color: $color-blue;
-		    &:hover, &:focus {
-			    color: white;
-			    background-color: $color-blue;
-			    border-color: $color-blue;
-		    }
-		    &:active {
-			    text-decoration: none;
-			    background-color: $color-active;
-			    border-color: $color-active;
-		    }
-	    }
-    }
-    p.warning {
-	    margin-top: $half;
-	    color: $color-orange;
-	    font-size: 14px;
-	    font-weight: 400;
-	    margin-bottom: 0;
-    }
-    @include respond-tablet {
-	    padding: $double 0px;
-	    margin-top: 0;
-    }
-    @include respond-mobile {
-	    .admin-actions {
-		    margin-top: $grid;
-	    }
-    }
-}
-
-.list-user p {
-    font-family: $font-hed;
-    color: #333;
-}
-
-p.list-name {
-    font-size: 16px;
-    font-weight: 700;
-    margin: 0;
-    padding: 0 $double 0 0;
-    line-height: 1.2em;
-    color: $color-black;
-    a {
-	    color: $color-black;
-    }
-}
-
-.list-name a {
-    color: $color-blue;
-}
-
-.list-name .text-warning {
-    margin-left: 8px;
-    color: $color-orange;
-}
-
-.list-email, 
-.list-registrar, 
-.list-vesting-org {
-    margin-bottom: 20px;
-    font-size: 16px;
-    font-weight: 200;
-    margin: 0;
-    padding: 0 $double 0 0;
-    line-height: 1.2em;
-    word-wrap : break-word;
-    a {
-	    font-weight: 200;
-    }
-}
-
-p.list-vesting-org {
-	color: $color-trans-gray;
-}
-
-.list-registrar a, .list-vesting-org a {
-	color: $color-trans-gray;
-	font-weight: 700;
-}
-
-
-
-.list-website {
-    margin-bottom: 5px;
-}
-
-.list-count-label a {
-	font-size: 85%;
-	font-weight: 700;
-	color: $color-trans-gray;
-	margin-left: 4px;
-	&:hover {
-		color: $color-black;
-	}
-}
-
-
-.list-date {
-	font-size: 14px;
-    font-weight: 400;
-    margin-bottom: 0px;
-    margin-top: $grid * 2;
-    text-align: right;
-    @include respond-tablet { 
-	    font-size: 10px;
-    }
-    @include respond-desktop {
-	    font-size: 14px;
-	    font-weight: 200
-    }
-}
-
-
-div.org-data-points {
-	margin-bottom: $double;
+	color: $color-blue;
+	font-size: 15px;
 	@include respond-tablet {
 		margin-bottom: 0;
 	}
-}
-
-div.list-count-group {
-	font-weight: 200;
-    font-size: 14px;
-    font-weight: 200;
-    border: none;
-    border-radius: 3px;
-    padding: 2px 11px;
-    background-color: $color-trans-whispergray;
-    width: 100%;
-	strong {
-		font-weight: 700;
-		color: $color-orange;
-	}
-}
-
-.col-sm-4.org-data-point {
-	margin-top: $double;
-	& + .org-data-point {
-	    margin-top: 4px;
-    }
-	@include respond-tablet {
-		width: 100%;
-	}
 	@include respond-desktop {
-		width: 33.33333333%;
-	    & + .org-data-point {
-		    margin-top: $double;
-	    }
+		font-size: 16px;
 	}
 }
- 
-.list-status {
-    text-align: right;
-    margin-top: 5px;
-    font-size: 12px;
-    margin-bottom: 0px;
-    position: relative;
-    &:first-child {
-	    margin-top: 0;
-    }
+
+.sort-filter-bar .dropdown-menu {
+	max-width: 450px;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	top: 29px;
+	right: 0px;
+	left: auto;
+	border-color: black;
 }
 
-.list-count-group {
-    float: left;
-    margin-right: 12px;
+.sort-filter-bar .dropdown-menu i.icon-ok {
+	margin-left: -10px;
+	visibility: hidden;
 }
 
-p.list-count-label {
-    font-family: $font-hed;
-    font-size: 12px;
-    margin-bottom: 0px;
-    margin-top: 0px;
-    color: #888;
+.sort-filter-bar .dropdown-menu .selected i.icon-ok {
+	visibility: visible;
 }
-
-p.list-count-number {
-    font-family: $font-hed;
-    font-size: 38px;
-    line-height: 1.1em;
-    margin-bottom: 0px;
-    margin-top: 25px;
-}
-
-
 
 .dropdown a .caret {
-    border-color: $color-blue transparent;
-    margin-bottom: 2px;
+	border-color: $color-blue transparent;
+	margin-bottom: 2px;
 }
-
-
-
-
-
-
-
-
 
 
 
@@ -4086,167 +3864,167 @@ p.list-count-number {
 //	Landing 
 
 #supporting-partners {
-    margin-top: $grid * 4;
-    background-color: $color-background;
-    padding: $grid * 4 0;
-    text-align: center;
-    @include respond-tablet {
-	    margin-top: $grid * 7;
-	    padding: $grid * 7 0;
-    }
-    h2 {
-        margin-bottom: $grid * 5;
-        margin-top: 0;
-        font-family: $font-body;
-        font-size: 20px;
-        display: inline-block;
-        border-bottom: 2px solid $color-blue;
-        padding-bottom: $half;
-        color: $color-black;
-        font-weight: 400;
-    }
-    a {
-	    display: inline-block;
-	    vertical-align: middle;
-    }
+	margin-top: $grid * 4;
+	background-color: $color-background;
+	padding: $grid * 4 0;
+	text-align: center;
+	@include respond-tablet {
+		margin-top: $grid * 7;
+		padding: $grid * 7 0;
+	}
+	h2 {
+		margin-bottom: $grid * 5;
+		margin-top: 0;
+		font-family: $font-body;
+		font-size: 20px;
+		display: inline-block;
+		border-bottom: 2px solid $color-blue;
+		padding-bottom: $half;
+		color: $color-black;
+		font-weight: 400;
+	}
+	a {
+		display: inline-block;
+		vertical-align: middle;
+	}
 }
 
 #supporting-partners .col-sm-12 {
-    text-align: center;
+	text-align: center;
 }
 
 #supporting-partners a img {
-    display: inline-block;
-    height: $grid * 5;
-    padding: $half;
-    margin-right: $grid * 3;
-    margin-bottom: $grid;
-    @include respond-tablet {
-        height: $grid * 7;
-    }
+	display: inline-block;
+	height: $grid * 5;
+	padding: $half;
+	margin-right: $grid * 3;
+	margin-bottom: $grid;
+	@include respond-tablet {
+		height: $grid * 7;
+	}
 }
 
 #supporting-partners a img.square {
-    height: $grid * 10;
-     @include respond-tablet {
-        height: $grid * 12;
-    }
+	height: $grid * 10;
+	@include respond-tablet {
+		height: $grid * 12;
+	}
 }
 
 #examples {
-    padding: $grid * 7 0;
+	padding: $grid * 7 0;
 	text-align: center;
-    //	stop :before element from resizing page 
-    position: relative;
-    overflow: hidden;
-    .capsule {
-        vertical-align: top;
-        margin: 1em;
-    }
-    .capsule > img {
-        width: 23%;
-        margin: 1em;
-        display: inline-block;
-        vertical-align: middle;
-    }
-    .content {
-        display: inline-block;
-        vertical-align: middle;
+	//	stop :before element from resizing page 
+	position: relative;
+	overflow: hidden;
+	.capsule {
+		vertical-align: top;
+		margin: 1em;
+	}
+	.capsule > img {
+		width: 23%;
+		margin: 1em;
+		display: inline-block;
+		vertical-align: middle;
+	}
+	.content {
+		display: inline-block;
+		vertical-align: middle;
 
-        p: last-child {
-            margin-bottom: 0;
-        }
-    }
-    .btn {
-	    display: block;
-	    float: left;
-    }
-    .btn + .btn {
-	    margin-left: 1px;
-    }
+		p: last-child {
+			margin-bottom: 0;
+		}
+	}
+	.btn {
+		display: block;
+		float: left;
+	}
+	.btn + .btn {
+		margin-left: 1px;
+	}
 	@include respond-tablet {
-        .capsule {
-            display: table-cell;
-            float: none;
-        }
-        .container {
-            border-collapse: separate;
-        }
+		.capsule {
+			display: table-cell;
+			float: none;
+		}
+		.container {
+			border-collapse: separate;
+		}
 	}
 	@include respond-desktop {
 		.content {
-	      width: 70%;
+		width: 70%;
 		}
 	}
 }
 
 #example {
-    div {
-        text-align: center;
-    }
-    img {
-        width: 100%;
-    }
+	div {
+		text-align: center;
+	}
+	img {
+		width: 100%;
+	}
 }
 
 #example-title {
-    margin-bottom: 2em;
-    font-weight: 300;
-    font-family: $font-hed-alt;
+	margin-bottom: 2em;
+	font-weight: 300;
+	font-family: $font-hed-alt;
 }
 
 #example-image-wrapper {
-    position: relative;
-    display: inline-block;
-    width: 80%;
+	position: relative;
+	display: inline-block;
+	width: 80%;
 }
 
 .example-link {
-    position: absolute;
-    background-color: #ffff00;
-    @include opacity(.3);
+	position: absolute;
+	background-color: #ffff00;
+	@include opacity(.3);
 }
 
 .capsule {
-  display: inline-block;
-  height: auto;
-  max-width: 100%;
-  padding: $half;
-  line-height: 1.4;
-  background-color: $color-background;
-  text-align: left;
-  border-radius: 4px;
-  h4 {
-	  font-family: $font-hed-alt;
-	  font-weight: 900;
-	  font-size: 24px;
-	  color: $color-black;
-	  margin-bottom: 0;
-	  margin-top: $double;
-  }
-  p {
-	  margin-top: $grid;
-	  font-size: 16px;
-	  line-height: 1.6;
-	  margin-bottom: $double;
-  }
+	display: inline-block;
+	height: auto;
+	max-width: 100%;
+	padding: $half;
+	line-height: 1.4;
+	background-color: $color-background;
+	text-align: left;
+	border-radius: 4px;
+	h4 {
+	font-family: $font-hed-alt;
+	font-weight: 900;
+	font-size: 24px;
+	color: $color-black;
+	margin-bottom: 0;
+	margin-top: $double;
+	}
+	p {
+	margin-top: $grid;
+	font-size: 16px;
+	line-height: 1.6;
+	margin-bottom: $double;
+	}
 }
 
 .welcome2 {
-    padding: $grid * 3 0;
-    margin: $grid * 3 auto 0;
+	padding: $grid * 3 0;
+	margin: $grid * 3 auto 0;
 	background-color: $color-background;
 	@include respond-tablet {
-	    margin-top: $grid * 7;
-	    padding: $grid * 7 0;
-	    .col-sm-6 {
-		    float: right;
-		    padding-left: $grid * 4;
-		    & + .col-sm-6 {
-			    float: left;
-			    padding-left: 0;
-		    }
-	    }
+		margin-top: $grid * 7;
+		padding: $grid * 7 0;
+		.col-sm-6 {
+			float: right;
+			padding-left: $grid * 4;
+			& + .col-sm-6 {
+				float: left;
+				padding-left: 0;
+			}
+		}
 	}
 }
 
@@ -4291,10 +4069,10 @@ div.buttons {
 	color: $color-black;
 	line-height: 1.2;
 	font-weight: 900;
-    margin-top: 0px;
-    text-align: left;
-    font-size: 24px;
-    font-family: $font-hed-alt;
+	margin-top: 0px;
+	text-align: left;
+	font-size: 24px;
+	font-family: $font-hed-alt;
 	@include respond-tablet {
 		font-size: 36px;
 		font-family: $font-body;
@@ -4365,17 +4143,17 @@ h4.how-point-title {
 }
 
 p.display {
-    font-size: 15px;
-    line-height: 1.5;
-    margin-bottom: 1em;
-    padding: 0;
+	font-size: 15px;
+	line-height: 1.5;
+	margin-bottom: 1em;
+	padding: 0;
 	@include respond-tablet {
-	    font-size: 16px;
-	    margin-bottom: $double;
+		font-size: 16px;
+		margin-bottom: $double;
 	}
 	@include respond-desktop {
-	    font-size: 20px;
-	    margin-bottom: $grid * 4;
+		font-size: 20px;
+		margin-bottom: $grid * 4;
 	}
 }
 .caption p {
@@ -4385,13 +4163,13 @@ p.display {
 #home-description {
 	padding: 0;
 	p#subtext {
-        font-size: 16px;
-        margin: 0;
-    }
-    p#home-share-buttons {
-        background-color: #fc6;
-        margin: 20px 0 0 0;
-    }
+		font-size: 16px;
+		margin: 0;
+	}
+	p#home-share-buttons {
+		background-color: #fc6;
+		margin: 20px 0 0 0;
+	}
 	p.how-point-subtitle {
 		font-family: $font-hed-alt;
 		font-weight: 300;
@@ -4411,29 +4189,13 @@ p.display {
 	}
 	.btn {
 		background-color: $color-blue;
-		&:hover { 
-			background-color: $color-hover; 
-		}
-		&:active { 
-			background-color: $color-black; 
-		}
+		@extend .style-button-hover;
 		&._primary {
 			background-color: $color-orange;
-			&:hover { 
-				background-color: $color-hover; 
-			}
-			&:active { 
-				background-color: $color-black; 
-			}
+			@extend .style-button-hover;
 		}
 	}
 	.welcome2 p.mega {
-	    margin-top: 10px;
+		margin-top: 10px;
 	}
 }
-
-
-
-
-
-

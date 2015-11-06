@@ -13,6 +13,6 @@
   </form>
   {% endif %}
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-    <input type="submit" class="btn btn-success" value="{% if request.user.api_key.key %}Regenerate{% else %}Generate an{% endif %} API key">
+    <input type="submit" class="btn" value="{% if request.user.api_key.key %}Regenerate{% else %}Generate an{% endif %} API key">
     <input type="hidden" name="next" value="{{ next }}">
 </form>

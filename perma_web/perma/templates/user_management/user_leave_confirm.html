@@ -10,7 +10,7 @@
 	<form action="" method="POST">
         {% csrf_token %}
         <a class="btn cancel" href="{% url 'user_management_settings_organizations' %}">Cancel</a>
-        <button type="submit" class="btn btn-success delete-confirm">Leave {{ org.name }} forever</button>
+        <button type="submit" class="btn delete-confirm">Leave {{ org.name }} forever</button>
     </form>
 </div>
 {% endblock %}

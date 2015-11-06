@@ -21,14 +21,14 @@
                 <span class="help-inline">{{ field.help_text }}</span>
               {% endif %}            {% endfor %}
           </fieldset>
-          <button type="submit" class="btn btn-success">Add registry user</button>
+          <button type="submit" class="btn">Add registry user</button>
           <a href="{% url 'user_management_manage_registry_user' %}">Cancel</a>
     </form>
     {% else %}
         <p>{{ user_email }} already has an account.  Would you like to give this user registry powers?</p>
         <form method="post">
         {% csrf_token %}
-    <button type="submit" class="btn btn-success">Give this user registry powers</button>
+    <button type="submit" class="btn">Give this user registry powers</button>
           <a href="{% url 'user_management_manage_registry_user' %}">Cancel</a>
           </form>
     {% endif %}

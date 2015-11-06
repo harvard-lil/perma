@@ -22,7 +22,7 @@
                 <span class="help-inline">{{ field.help_text }}</span>
               {% endif %}            {% endfor %}
           </fieldset>
-          <button type="submit" class="btn btn-success">Add registrar user</button>
+          <button type="submit" class="btn">Add registrar user</button>
           <a href="{% url 'user_management_manage_registrar_user' %}">Cancel</a>
     </form>
     {% else %}
@@ -38,7 +38,7 @@
                 <span class="help-inline">{{ field.help_text }}</span>
               {% endif %}            {% endfor %}
           </fieldset>
-    <button type="submit" class="btn btn-success">Add as a registrar user</button>
+    <button type="submit" class="btn">Add as a registrar user</button>
           <a href="{% url 'user_management_manage_registrar_user' %}">Cancel</a>
           </form>
     {% endif %}

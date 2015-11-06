@@ -62,14 +62,14 @@
 						</div>
 					{% endfor %}
 				</fieldset>
-				<button type="submit" class="btn btn-success">Add {{ pretty_group_name|lower }}</button>
+				<button type="submit" class="btn">Add {{ pretty_group_name|lower }}</button>
 			</form>
 		{% endif %}
 	</div><!-- add member -->
 		
 		
 	<div class="row row-no-bleed admin-data">
-		<div class="col {% if request.user.is_staff and group_name == 'user' %}col-sm-3{% else %}col-sm-4{% endif %} col col-no-gutter admin-data-point">
+		<div class="col {% if request.user.is_staff and group_name == 'user' %}col-xs-3{% else %}col-xs-4{% endif %} col col-no-gutter admin-data-point">
 			<p class="count-label">Users</p>
 			<p class="count-number">{{ users.paginator.count|intcomma }}</p>
 		</div>
@@ -81,12 +81,12 @@
 			</div>
 		{% endif %}
 
-		<div class="col {% if request.user.is_staff and group_name == 'user' %}col-sm-3{% else %}col-sm-4{% endif %} col col-no-gutter admin-data-point">
+		<div class="col {% if request.user.is_staff and group_name == 'user' %}col-xs-3{% else %}col-xs-4{% endif %} col col-no-gutter admin-data-point">
 			<p class="count-label">Unactivated Users</p>
 			<p class="count-number">{{ unactivated_users }}</p>
 		</div>
 
-		<div class="col {% if request.user.is_staff and group_name == 'user' %}col-sm-3{% else %}col-sm-4{% endif %} col col-no-gutter admin-data-point">
+		<div class="col {% if request.user.is_staff and group_name == 'user' %}col-xs-3{% else %}col-xs-4{% endif %} col col-no-gutter admin-data-point">
 			<p class="count-label">Vested Links</p>
 			<p class="count-number">{{ total_vested_links_count.count|default:0|intcomma }}</p>
 		</div>
@@ -94,7 +94,7 @@
 	
 
 	<div class="row">
-		<div class="col-sm-12">
+		<div class="col col-xs-12">
 			{% include "user_management/includes/search_form.html" with search_placeholder="Search Users" %}
 		</div>
 	</div><!-- search -->
@@ -116,7 +116,7 @@
 	{% endif %}
 
 	<div class="row row-no-bleed">
-		<div class="col col-sm-12 admin-found col-no-gutter">
+		<div class="col admin-found col-no-gutter">
 			<p class="sort-filter-count"><strong>Found:</strong> {{ users.paginator.count }} user{{ users.paginator.count|pluralize }}</p>
 			<div class="sort-filter-bar">
 				<strong>Filter &amp; Sort:</strong>
@@ -215,48 +215,53 @@
 		{% if users %}
 			{% for listed_user in users %}
 				{% if not listed_user.is_active %}
-					<div class="row muted list-user row-no-bleed">
+					<div class="item-container muted">
 				{% else %}
-					<div class="row list-user row-no-bleed">
+					<div class="item-container">
 				{% endif %}
 				<div class="col col-sm-8 col-no-gutter">
-					<p class="list-name">
+					<div class="item-title">
 					{% if not listed_user.first_name and not listed_user.last_name %}
 						{{ listed_user.email }}
 					{% else %}
 						{{ listed_user.first_name }} {{ listed_user.last_name }}
 					{% endif %}
 					{% if listed_user == request.user %}(you){% endif %}
-					</p>
-					<p class="list-email">{{ listed_user.email }}</p>
+					</div>
+					<div class="item-subtitle">{{ listed_user.email }}</div>
 					{% if not listed_user.is_confirmed %}
 						<p class="warning">User must activate account</p>
 					{% endif %}
-					<p class="list-vesting-org">
-					{% for organization in listed_user|visible_organizations:request.user %}
-						<a href="{% url 'user_management_manage_organization' %}?q={{organization.name.split|join:'+'|lower}}">{{organization.name.strip}}</a>
-						{% include "user_management/includes/comma.html" %}
-					{% endfor %}
-					</p>
-					<p class="list-vesting-org">
-					{% if request.user.is_staff and listed_user.requested_account_type %}
-						Interested in a {{listed_user.requested_account_type}} account with {{listed_user.requested_account_note}}
+					
+					{% if listed_user|visible_organizations:request.user %}
+						<p class="item-vesting-org">
+						{% for organization in listed_user|visible_organizations:request.user %}
+							<a href="{% url 'user_management_manage_organization' %}?q={{organization.name.split|join:'+'|lower}}">{{organization.name.strip}}</a>
+							{% include "user_management/includes/comma.html" %}
+						{% endfor %}
+						</p>
 					{% endif %}
-					</p>
-					{% if group_name == 'registrar_user' and request.user.is_staff %}<p class="list-registrar"><a href="{% url 'user_management_manage_registrar' %}?q={{listed_user.registrar.name.split|join:'+'|lower}}">{{ listed_user.registrar.name }}</a></p>{% endif %}
+					
+					{% if request.user.is_staff and listed_user.requested_account_type %}
+					<p class="item-vesting-org">Interested in a {{listed_user.requested_account_type}} account with {{listed_user.requested_account_note}}</p>
+					{% endif %}
+					
+					{% if group_name == 'registrar_user' and request.user.is_staff %}
+						<div class="item-affil"><a href="{% url 'user_management_manage_registrar' %}?q={{listed_user.registrar.name.split|join:'+'|lower}}">{{ listed_user.registrar.name }}</a></div>
+					{% endif %}
 
 					{% if group_name == 'organization_user' %}
-			            <div class="row row-half-bleed org-data-points">
-							<div class="col col-sm-4 col-half-gutter org-data-point">
-								<div class="list-count-group">
+			            <div class="row row-half-bleed item-count-groups">
+							<div class="col col-xs-12 col-md-4 col-half-gutter">
+								<div class="item-count-group">
 									<strong class="list-count-number{% if request.user.is_organization_member%} vesting_user-list{% endif %}">{{ listed_user.vested_links_count }}</strong>
-									<span class="list-count-label">vested links</span>
+									<span class="item-count-label">vested links</span>
 									{% comment %}
 										{% if group_name == 'organization_user' or group_name == 'user' %}
 											{% if request.user.is_staff %}
-												<div class="list-count-group">
+												<div class="item-count-group">
 												<p class="list-count-number{% if group_name == 'user'%} vesting_user-list{% endif %}">{{ listed_user.created_links_count }}</p>
-												<p class="list-count-label">created links</p>
+												<p class="item-count-label">created links</p>
 												</div>
 											{% endif %}
 										{% endif %}
@@ -267,21 +272,21 @@
 					{% endif %}
 				</div>
 
-				<div class="col col-sm-4 col-no-gutter align-right admin-actions">
-					<p class="list-status">
+				<div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
+					<p class="item-status">
 						{% if listed_user.is_active %}
 							{% if request.user.is_staff %}
 								{% if group_name != 'registry_user' %}
 									<a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove/delete</a>
 								{% else %}
-									<a class="action action-remove" href="{% url 'user_management_manage_single_registry_user_remove' listed_user.id %}">remove</a>
+									<a class="action action-delete" href="{% url 'user_management_manage_single_registry_user_remove' listed_user.id %}">remove</a>
 								{% endif %}
 							{% elif request.user.is_registrar_member and group_name == 'organization_user' %}
-								<a class="action action-remove" href="{% url single_user_url listed_user.id %}">remove</a>
+								<a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove</a>
 							{% elif request.user.is_registrar_member and group_name == 'registrar_user' %}
-								<a class="action action-remove" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove</a>
+								<a class="action action-delete" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove</a>
 							{% else %}
-								<a class="action action-remove" href="{% url single_user_url listed_user.id %}">remove</a>
+								<a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove</a>
 							{% endif %}
 						{% elif listed_user.is_confirmed %}
 							<span class="text-warning">deactivated account</span>
@@ -293,17 +298,17 @@
 								<a class="action action-delete" href="{% url delete_user_url listed_user.id %}">delete</a>
 							{% else %}
 								{% if group_name == 'organization_user' %}
-									<a class="action action-remove" href="{% url 'user_management_manage_single_organization_user' listed_user.id %}">remove</a>
+									<a class="action action-delete" href="{% url 'user_management_manage_single_organization_user' listed_user.id %}">remove</a>
 								{% elif group_name == 'registrar_user' %}
-									<a class="action action-remove" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove</a>
+									<a class="action action-delete" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove</a>
 								{% endif %}
 							{% endif %}
 						{% endif %}
 					</p>
 					{% if request.user.is_staff %}
-						<p class="list-status"><a class="action" href="{% url "admin:perma_linkuser_change" listed_user.id %}">edit in admin console</a></p>
+						<p class="item-status"><a class="action" href="{% url "admin:perma_linkuser_change" listed_user.id %}">edit in admin console</a></p>
 					{% endif %}
-					<p class="list-date{% if request.user.is_organization_member or group_name == 'user' %} vesting_user-list{% endif %}">
+					<p class="item-activity{% if request.user.is_organization_member or group_name == 'user' %} vesting_user-list{% endif %}">
 						created {{ listed_user.date_joined|date:'F j, Y' }}
 						{% if listed_user.is_confirmed %}
 							<br>
@@ -314,7 +319,7 @@
 			</div>
 			{% endfor %}
 	{% else %}
-		<p class="no-users-found">No {{ pretty_group_name_plural|lower }} found.</p>
+		<p class="item-notification">No {{ pretty_group_name_plural|lower }} found.</p>
 	{% endif %}
 
 	{% include "user_management/includes/paginator.html" with page=users %}
