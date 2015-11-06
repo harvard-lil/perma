@@ -22,6 +22,8 @@ urlpatterns = patterns('perma.views',
     url(r'^contingency-plan/?$', DirectTemplateView.as_view(template_name='contingency_plan.html'), name='contingency_plan'),
     url(r'^contact/?$', 'common.contact', name='contact'),
     url(r'^contact/thanks/?$', DirectTemplateView.as_view(template_name='contact-thanks.html'), name='contact_thanks'),
+#   url(r'^is500/?$', DirectTemplateView.as_view(template_name='500.html'), name='is500'),
+#	url(r'^is404/?$', DirectTemplateView.as_view(template_name='404.html'), name='is404'),
     
     #Docs 
     url(r'^docs/?$', DirectTemplateView.as_view(template_name='docs/index.html'), name='docs'),

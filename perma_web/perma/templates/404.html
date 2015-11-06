@@ -1,9 +1,9 @@
 {% extends "base-responsive.html" %}
-{% block title %} | 404{% endblock %}
+{% block title %} | 404 Error{% endblock %}
 
 {% block mainContent %}
-	<div class="col-sm-12 column">
-		<h1 class="page-title">Page not found.</h1>
-		<p class="page-dek"><strong>HTTP 404.</strong> The thing you’re looking for doesn't exist at this address. Shoulda Perma’d it. If that seems wrong to you, <a href="{% url 'contact' %}" >please drop us a note</a>.</p>
-	</div>
+		<div class="col-xs-12 no-wide">
+			<h1 class="page-title">Page not found.</h1>
+			<p class="page-dek">Well that’s ironic — you’ve found our 404 page. The page you’re looking for doesn’t exist at this address. <br/>If that seems wrong to you, <a href="{% url 'contact' %}" >please drop us a note</a>.</p>
+		</div>
 {% endblock %}
