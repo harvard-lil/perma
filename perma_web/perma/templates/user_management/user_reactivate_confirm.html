@@ -3,13 +3,11 @@
 
 {% block adminContent %}
 
-<div class="container cont-fixed">
-	<h3 class="body-bh">Reactivate <strong>{{ target_member.email }}</strong></h3>
-	<p class="page-dek">Do you really want to reactivate <strong>{{ target_member.email }}</strong>?</p>
-		<form action="" method="POST">
-	      {% csrf_token %}
-        <a class="btn cancel" href="../">Cancel</a> <button type="submit" class="btn delete-confirm">Reactivate {{ target_member.email }}</button>
-    </form>
-</div>
+<h3 class="body-bh">Reactivate <strong>{{ target_member.email }}</strong></h3>
+<p class="page-dek">Do you really want to reactivate <strong>{{ target_member.email }}</strong>?</p>
+	<form action="" method="POST">
+      {% csrf_token %}
+    <a class="btn cancel" href="../">Cancel</a> <button type="submit" class="btn delete-confirm">Reactivate {{ target_member.email }}</button>
+</form>
 
 {% endblock %}

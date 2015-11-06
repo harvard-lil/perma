@@ -1,4 +1,4 @@
-{% extends "admin-layout.html" %}
+{% extends "base-responsive.html" %}
 {% load mptt_tags pipeline as_json %}
 
 {% block title %} | Create a Perma link{% endblock %}
@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="{{ STATIC_URL }}css/jstree-theme/style.min.css" />
 {% endblock %}
 
-{% block adminContent %}
+{% block mainContent %}
 	<!-- regular link creation -->
 	{% if not selected_org.default_to_private %}
 	<div id="create-item-container" class="container cont-full-bleed">
