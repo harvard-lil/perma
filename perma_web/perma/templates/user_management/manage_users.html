@@ -234,12 +234,12 @@
 					{% endif %}
 					
 					{% if listed_user|visible_organizations:request.user %}
-						<p class="item-vesting-org">
+						<div class="item-affil">
 						{% for organization in listed_user|visible_organizations:request.user %}
 							<a href="{% url 'user_management_manage_organization' %}?q={{organization.name.split|join:'+'|lower}}">{{organization.name.strip}}</a>
 							{% include "user_management/includes/comma.html" %}
 						{% endfor %}
-						</p>
+						</div>
 					{% endif %}
 					
 					{% if request.user.is_staff and listed_user.requested_account_type %}

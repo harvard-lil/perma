@@ -3323,7 +3323,8 @@ footer {
 	font-size: 16px;
 	font-weight: 700;
 	a {
-		color: $color-blue;
+		color: $color-black;
+		@extend .style-standard-hover;
 	}
 	.text-warning {
 		margin-left: 8px;
@@ -3356,7 +3357,10 @@ footer {
 		background-position: 0 0;
 		background-size: 19px 18px;
 		z-index: 10;
-		margin-right: .15em;
+	}
+	a:hover, a:focus {
+		text-decoration: underline;
+		@extend .style-standard-hover;
 	}
 }
 
