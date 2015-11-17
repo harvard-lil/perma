@@ -5,7 +5,7 @@
     <h1 class="body-bh">Delete Perma Link</h1>
     <p class="page-dek">Do you really want to delete this Perma Link forever?</p>
     <div class="centered-box">
-        <a href="/{{ link.guid }}" class="btn cancel">Cancel</a> <button type="submit" class="btn delete-confirm btn-success">Delete Perma Link</button>
+        <a href="{{ request.META.HTTP_REFERER }}" class="btn cancel">Cancel</a> <button type="submit" class="btn delete-confirm btn-success">Delete Perma Link</button>
     </div>
     {% if link.thumbnail_status != 'failed' %}
 	    <div class="library-thumbnail user-delete-thumbnail">
