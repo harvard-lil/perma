@@ -58,7 +58,10 @@ def landing(request):
         return HttpResponseRedirect(reverse('create_link'))
         
     else:
-        return render(request, 'landing.html', {'this_page': 'landing'})
+        return render(request, 'landing.html', {
+            'this_page': 'landing',
+            'partners': Registrar.objects.filter(show_partner_status=True),
+        })
 
 def about(request):
     """

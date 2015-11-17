@@ -25,11 +25,11 @@ class LinkInline(admin.TabularInline):
 
 class RegistrarAdmin(admin.ModelAdmin):
     search_fields = ['name', 'email', 'website']
-    list_display = ['name', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'vested_links', 'registrar_users', 'last_active', 'orgs_count']
-    list_editable = ['show_partner_status', 'partner_display_name']
+    list_display = ['name', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'latitude', 'longitude', 'vested_links', 'registrar_users', 'last_active', 'orgs_count']
+    list_editable = ['show_partner_status', 'partner_display_name', 'latitude', 'longitude']
     fieldsets = (
         (None, {'fields': ('name', 'email', 'website', 'default_organization', 'is_approved')}),
-        ("Partner Display", {'fields': ('show_partner_status', 'partner_display_name', 'logo')}),
+        ("Partner Display", {'fields': ('show_partner_status', 'partner_display_name', 'logo', 'latitude', 'longitude')}),
     )
     inlines = [
         new_class("OrganizationInline", InlineEditLinkMixin, admin.TabularInline, model=Organization,

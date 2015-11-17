@@ -1,0 +1,10 @@
+<div id="plot-map-container"></div>
+<script>
+    var partnerPoints = [
+        {% for partner in partners %}
+            {% if partner.latitude and partner.longitude %}
+                [{{ partner.latitude }}, {{ partner.longitude }}, "{{ partner.partner_display_name|default:partner.name }}"]{% if not forloop.last %},{% endif %}
+            {% endif %}
+        {% endfor %}
+    ]
+</script>
