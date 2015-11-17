@@ -14,7 +14,7 @@
         {% endfor %}
     {% endif %}
 		<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
-			<form method="post">
+			<form method="post" novalidate>
 				{% csrf_token %}
 				<h4 class="body-ch">Add a Registrar</h4>
 						<fieldset>
