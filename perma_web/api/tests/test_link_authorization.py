@@ -217,9 +217,6 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
     def test_should_allow_link_owner_to_move_to_new_folder(self):
         self.successful_link_move(self.vesting_member, self.vested_link, self.vested_link.organization.shared_folder.children.first())
 
-    def test_should_reject_move_of_vested_link_outside_of_shared_folder(self):
-        self.rejected_link_move(self.vesting_member, self.vested_link, self.vesting_member.root_folder, expected_status_code=400)
-
     def test_should_reject_move_to_parent_to_which_user_lacks_access(self):
         self.rejected_link_move(self.regular_user, self.vested_link, self.vesting_member.root_folder)
 

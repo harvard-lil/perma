@@ -145,7 +145,7 @@ class FolderValidation(Validation):
                 errors['parent'] = "Can't move organization's shared folder."
             elif bundle.obj.is_root_folder:
                 errors['parent'] = "Can't move user's main folder."
-            elif bundle.obj.organization_id and bundle.obj.organization_id != bundle.obj.parent.organization_id:
-                errors['parent'] = "Can't move folder with vested links out of organization's shared folder."
+            #elif bundle.obj.organization_id and bundle.obj.organization_id != bundle.obj.parent.organization_id:
+                #errors['parent'] = "Can't move folder with vested links out of organization's shared folder."
 
         return errors
