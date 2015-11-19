@@ -37,6 +37,11 @@ def create_link_with_org(request, org_id):
 	except:
 		org = None
 		
+	folder_id = request.user.root_folder_id
+	if org:
+		folder_id = org.shared_folder_id
+	folder = Folder.objects.get(id=folder_id)
+	
 	deleted = request.GET.get('deleted', '')
 	if deleted:
 		try:
@@ -54,6 +59,7 @@ def create_link_with_org(request, org_id):
 		'this_page': 'create_link',
 		'links_remaining': links_remaining,
 		'selected_org': org,
+		'folder': folder,
 	})
 
 
