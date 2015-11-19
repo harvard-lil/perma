@@ -206,7 +206,7 @@ class FolderResource(DefaultResource):
     def prepend_urls(self):
         return [
             # /folders/<parent>/folders/<pk>/
-            url(r"^(?P<resource_name>%s)/(?P<parent>\w[\w/-]*)/%s/(?P<%s>\w[\w/-]*)%s$" % (self._meta.resource_name, self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('put_url_params_to_patch'), name="api_move_folder"),
+            url(r"^(?P<resource_name>%s)/(?P<parent>\d+)/%s/(?P<%s>\d+)%s$" % (self._meta.resource_name, self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('put_url_params_to_patch'), name="api_move_folder"),
         ]
 
     def hydrate_name(self, bundle):

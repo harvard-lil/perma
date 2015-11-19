@@ -90,6 +90,7 @@ class PermaRoute(archivalrouter.Route):
         guid = matcher.group(1)
         cache_key = guid+'-cdx'
         cached_cdx = django_cache.get(cache_key)
+        redirect_matcher = re.compile(r' 30[1-7] ')
         if cached_cdx is None or not wbrequest.wb_url:
             with close_database_connection():
                 try:
@@ -122,7 +123,15 @@ class PermaRoute(archivalrouter.Route):
                 # cached_cdx = {'urlkey1':['raw1','raw2'], 'urlkey2':['raw3','raw4']}
                 cached_cdx = defaultdict(list)
                 for line in lines:
-                    cached_cdx[line.urlkey].append(line.raw)
+                    cached_cdx[line.urlkey].append(str(line.raw))
+
+                # remove any redirects if we also have a non-redirect capture for the same URL, to prevent redirect loops
+                for urlkey, lines in cached_cdx.iteritems():
+                    if len(lines) > 1:
+                        lines_without_redirects = [line for line in lines if not redirect_matcher.search(line)]
+                        if lines_without_redirects:
+                            cached_cdx[urlkey] = lines_without_redirects
+
                 django_cache.set(cache_key, cached_cdx)
 
         urlkey = surt(wbrequest.wb_url.url)
@@ -296,8 +305,7 @@ class PermaCDXSource(CDXSource):
         if query.params.get('guid'):
             filters['link_id'] = query.params['guid']
 
-        with close_database_connection():
-            return CDXLine.objects.filter(**filters).values_list('raw', flat=True)
+        return [str(i) for i in CDXLine.objects.filter(**filters).values_list('raw', flat=True)]
 
 
 class CachedLoader(BlockLoader):

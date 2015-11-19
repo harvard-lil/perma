@@ -45,7 +45,7 @@ if (window.location.hash) {
 
 __wbvidrw = (function() {
 
-    var found_embeds = false;
+    var checked_embeds = false;
 
     var FLASH_PLAYER = wbinfo.static_prefix + "/flowplayer/flowplayer-3.2.18.swf";
 
@@ -55,7 +55,7 @@ __wbvidrw = (function() {
     }
 
     function check_videos() {
-        if (found_embeds) {
+        if (checked_embeds) {
             return;
         }
 
@@ -78,13 +78,41 @@ __wbvidrw = (function() {
         handle_all_embeds();
         handle_all_objects();
 
-        found_embeds = true;
+        checked_embeds = true;
 
         handle_yt_videos(_pywbvid);
 
         //window.setInterval(handle_all_embeds, 2000);
         //_wb_wombat.add_tag_handler("embed", handle_all_embeds);
         //_wb_wombat.add_tag_handler("object", handle_all_objects);
+    }
+
+    function check_broken_vimeo()
+    {
+        if (document.querySelector("video")) {
+            return;
+        }
+
+        if (document.querySelector("object") || document.querySelector("embed")) {
+            return;
+        }
+
+        var player = document.getElementById("player");
+
+        if (!player) {
+            return;
+        }
+
+        player.classList.remove("loading");
+
+        // Add placeholder embed
+        var embed = document.createElement("embed");
+        embed.src = wbinfo.url;
+        player.appendChild(embed);
+
+        if (!window.MutationObserver) {
+            handle_embed_tag(embed);
+        }
     }
 
     function handle_embed_tag(elem)
@@ -310,7 +338,20 @@ __wbvidrw = (function() {
 
         var xhr = new XMLHttpRequest();
         xhr._no_rewrite = true;
-        xhr.open('GET', wbinfo.prefix + 'vi_/' + src, true);
+
+        var info_url;
+
+        // if in proxy mode, access video info via special proxy magic path
+        // eg: http://pywb.proxy/<coll>/vi_/<url>
+        if (wbinfo.proxy_magic) {
+            info_url = "http://" + wbinfo.proxy_magic + "/" + wbinfo.coll + "/";
+        } else {
+            info_url = wbinfo.prefix;
+        }
+
+        info_url += "vi_/" + src;
+
+        xhr.open('GET', info_url, true);
         xhr.onload = function() {
             if (xhr.status == 200) {
                 var videoinfo = JSON.parse(xhr.responseText);
@@ -631,11 +672,21 @@ __wbvidrw = (function() {
                 var r = records[i];
                 if (r.type == "childList") {
                     for (var j = 0; j < r.addedNodes.length; j++) {
-                        var elem = r.addedNodes[j];
-                        if (elem.tagName) {
-                            if (elem.tagName == "OBJECT") {
+
+                        var elem = undefined;
+                        var tag_name = undefined;
+
+                        try {
+                            elem = r.addedNodes[j];
+                            tag_name = elem.tagName;
+                        } catch (e) {
+                            continue;
+                        }
+
+                        if (tag_name) {
+                            if (tag_name == "OBJECT") {
                                 do_handle(elem, handle_object_tag);
-                            } else if (elem.tagName == "EMBED") {
+                            } else if (tag_name == "EMBED") {
                                 do_handle(elem, handle_embed_tag);
                             }
                         }                           
@@ -659,5 +710,12 @@ __wbvidrw = (function() {
         init_node_insert_obs(window);
     }
 
+
+    // VIMEO FIX
+    if (wbinfo && wbinfo.url.indexOf("player.vimeo.com/") >= 0) {
+        document.addEventListener("DOMContentLoaded", function() {
+            window.setTimeout(check_broken_vimeo, 500);
+        });
+    }
 
 })();
