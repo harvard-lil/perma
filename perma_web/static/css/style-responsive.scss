@@ -1381,12 +1381,16 @@ body.modal-open {
 	background: #fff;
 	border: 1px solid #ccc;
 	border-radius: 3px;
-	-moz-border-radius: 3px;
-	-webkit-border-radius: 3px;
-	-ms-border-radius: 3px;
-	margin-bottom: 10px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -ms-border-radius: 3px;
+    margin-bottom: 10px;
 	display: inline;
 	list-style-type: none;
+
+	-webkit-filter: grayscale(100%);
+	filter: gray;
+	filter: grayscale(100%);
 }
 
 .carousel-indicators {

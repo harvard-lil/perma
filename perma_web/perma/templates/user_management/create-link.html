@@ -15,7 +15,7 @@
 	{% if not selected_org.default_to_private %}
 	<div id="create-item-container" class="container cont-full-bleed">
 		<div class="container cont-fixed">
-		    <h1 class="create-title">Create a new <span class="_noWrap">Perma Link</span></h1>
+		    <h1 class="create-title">Create a new <span class="nobreak">Perma Link</span></h1>
 			<p class="create-lede">Enter any URL to preserve it forever.</p>
 		</div>
 		<div class="container cont-full-bleed cont-sm-fixed">
@@ -42,7 +42,7 @@
 			        		{% endif %} />
 			        <button class="btn btn-large btn-info _active-when-valid" id="addlink" type="submit" {% if request.user.has_limit and links_remaining < 1 %}disabled="disabled"{% endif %}{% if not selected_org and links_remaining < 1 %}disabled="disabled"{% endif %}>Create Perma Link</button>
 			        {% if request.user.has_limit %}
-					<p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account. <a href="{% url 'docs' %}#create-account">Learn more about accounts</a>.</p>
+					<p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account this month. <a href="{% url 'docs' %}#create-account">Learn more about accounts</a>.</p>
 					{% else %}
 					<div id="organization_select_form">
 						<span class="label-affil">This Perma Link will be affiliated with</span>

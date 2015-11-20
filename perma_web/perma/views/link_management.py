@@ -3,6 +3,7 @@ from django.utils import timezone
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
@@ -35,6 +36,15 @@ def create_link_with_org(request, org_id):
 		org = get_object_or_404(Organization, id=org_id)
 	except:
 		org = None
+		
+	deleted = request.GET.get('deleted', '')
+	if deleted:
+		try:
+			link = Link.objects.all_with_deleted().get(guid=deleted)
+		except Link.DoesNotExist:
+			link = None
+		if link:
+			messages.add_message(request, messages.INFO, 'Deleted - ' + link.submitted_title)
 
 	links_remaining = request.user.get_links_remaining()
 	if links_remaining < 0:
