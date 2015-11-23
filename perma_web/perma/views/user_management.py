@@ -780,7 +780,12 @@ def organization_user_leave_organization(request, org_id):
         request.user.organizations.remove(org)
         request.user.save()
 
-        return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+        messages.add_message(request, messages.SUCCESS, '<h4>Success.</h4> You are no longer a member of <strong>%s</strong>.' % org.name, extra_tags='safe')
+
+        if request.user.organizations.exists():
+            return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+        else:
+            return HttpResponseRedirect(reverse('create_link'))        
 
     context = RequestContext(request, context)
 
