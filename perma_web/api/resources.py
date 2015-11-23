@@ -401,8 +401,6 @@ class LinkResource(AuthenticatedLinkResource):
             # A folder was passed in via URL during vest i.e. /folders/123/archives/ABC-EFG
             elif bundle.data.get('folder', None):
                 bundle.data['organization'] = bundle.data['folder'].organization
-            elif Organization.objects.accessible_to(bundle.request.user).count() == 1:
-                bundle.data['organization'] = Organization.objects.accessible_to(bundle.request.user).first()
         else:
             # Clear out the organization so it's not updated otherwise
             bundle.data.pop('organization', None)

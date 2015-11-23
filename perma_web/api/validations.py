@@ -119,9 +119,9 @@ class LinkValidation(Validation):
                         errors['folder'] = "the folder must belong to the organization"
 
         # Moving folder when not organization
-        elif bundle.data.get("folder", None):
-            if bundle.obj.vested and bundle.obj.organization_id != bundle.data['folder'].organization_id:
-                errors['folder'] = "Vested archives cannot be moved out of the organization's shared folder."
+        #elif bundle.data.get("folder", None):
+            #if bundle.obj.organization_id and bundle.obj.organization_id != bundle.data['folder'].organization_id:
+                #errors['folder'] = "Archives belonging to an organization cannot be moved out of the organization's shared folder."
 
         return errors
 
@@ -145,7 +145,7 @@ class FolderValidation(Validation):
                 errors['parent'] = "Can't move organization's shared folder."
             elif bundle.obj.is_root_folder:
                 errors['parent'] = "Can't move user's main folder."
-            elif bundle.obj.organization_id and bundle.obj.organization_id != bundle.obj.parent.organization_id and bundle.obj.contained_links().filter(vested=True).exists():
-                errors['parent'] = "Can't move folder with vested links out of organization's shared folder."
+            #elif bundle.obj.organization_id and bundle.obj.organization_id != bundle.obj.parent.organization_id:
+                #errors['parent'] = "Can't move folder with vested links out of organization's shared folder."
 
         return errors

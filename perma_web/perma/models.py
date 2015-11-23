@@ -578,7 +578,12 @@ class Link(models.Model):
         self.folders.remove(*self.folders.accessible_to(user))
         # add it back to the given folder
         if folder:
-            self.folders.add(folder)
+        	self.folders.add(folder)
+        	if not folder.organization:
+        		self.organization = None
+        	else:
+        		self.organization = folder.organization
+        	self.save(update_fields=['organization'])
 
     def can_view(self, user):
         """

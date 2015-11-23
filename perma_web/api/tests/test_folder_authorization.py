@@ -195,10 +195,10 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
                                   self.registrar_member.root_folder,
                                   expected_status_code=400)
 
-    def test_should_reject_move_of_folder_with_vested_links_outside_org_shared_folder(self):
-        self.rejected_folder_move(self.registrar_member, self.registrar_member.root_folder,
-                                  self.test_journal_subfolder_with_vested_link,
-                                  expected_status_code=400)
+    #def test_should_reject_move_of_folder_with_vested_links_outside_org_shared_folder(self):
+        #self.rejected_folder_move(self.registrar_member, self.registrar_member.root_folder,
+                                  #self.test_journal_subfolder_with_vested_link,
+                                  #expected_status_code=400)
 
     ############
     # Deleting #

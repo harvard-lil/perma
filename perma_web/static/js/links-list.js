@@ -206,7 +206,7 @@ $(function() {
                     if (obj.vested_timestamp) {
                         obj.vested_timestamp_formatted = new Date(obj.vested_timestamp).format("F j, Y");
                     }
-                    if (Date.now() < Date.parse(obj.archive_timestamp)) {
+                    if (Date.now() < Date.parse(obj.archive_timestamp) && obj.organization == null) {
                         obj.delete_available = true;
                     }
                 });
