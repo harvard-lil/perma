@@ -1487,6 +1487,14 @@ p.body { @extend p.body-text; }
 			}
 	  	}
 	  	
+	  	.selector-trigger:disabled {
+			color:$color-trans-darkgray;
+			
+			.links-remaining {
+				background-color:$color-trans-darkgray;
+			}
+		}
+	  	
 	    .links-remaining {
 	        display: inline-block;
 		    font-size: 12px;
