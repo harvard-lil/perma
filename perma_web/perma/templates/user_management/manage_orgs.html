@@ -136,8 +136,8 @@
 			            <div class="row row-half-bleed org-data-points">
 							<div class="col col-sm-4 col-half-gutter org-data-point">
 				                <div class="list-count-group">
-									<strong class="list-count-number">{{ org.vested_links|intcomma }}</strong>
-									<span class="list-count-label">vested links</span>
+									<strong class="list-count-number">{{ org.org_links|intcomma }}</strong>
+									<span class="list-count-label">links</span>
 					                {% comment %}
 					                    <div class="list-count-group">
 						                    <p class="list-count-number{% if group_name == 'user'%} vesting_user-list{% endif %}">{{ org.created_links_count }}</p>
@@ -165,6 +165,9 @@
 						</div>
 		            </div>
 		            <div class="col col-sm-4 col-no-gutter align-right admin-actions">
+		            	{% if org.org_links < 1 %}
+		            		<a class="action" href="{% url 'user_management_manage_single_organization_delete' org.id %}">delete</a>
+		            	{% endif %}
 			            <a class="action" href="{% url 'user_management_manage_single_organization' org.id %}">edit</a>
 			            {% if request.user.is_staff %}
 			                <a class="action" href="{% url 'admin:perma_organization_change' org.id %}">edit in admin console</a>

@@ -34,7 +34,7 @@ from perma.forms import (
     UserFormSelfEdit, 
     SetPasswordForm, 
 )
-from perma.models import Registrar, LinkUser, Organization
+from perma.models import Registrar, LinkUser, Organization, Link
 from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_contact_email
 
 logger = logging.getLogger(__name__)
@@ -206,7 +206,7 @@ def manage_organization(request):
     orgs = orgs.annotate(
         organization_users=Count('users', distinct=True),
         last_active=Max('users__last_login'),
-        vested_links=Count('link', distinct=True)
+        org_links=Count('link', distinct=True)
     )
 
     # get total user count
@@ -289,6 +289,35 @@ def manage_single_organization(request, org_id):
 
     return render_to_response('user_management/manage_single_organization.html', context)
 
+
+@login_required
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
+def manage_single_organization_delete(request, org_id):
+    """
+        Delete an empty org
+    """
+
+    target_org = get_object_or_404(Organization, id=org_id)
+    links = Link.objects.filter(organization = target_org)
+    users = LinkUser.objects.filter(organizations=target_org)
+        
+    context = {'target_org': target_org,
+               'this_page': 'users_orgs',
+               }
+
+    if request.method == 'POST':
+        if links.count() > 0:
+            raise Http404
+        else:
+        	for user in users:
+        		user.organizations.remove(target_org)
+        	target_org.delete()
+
+        return HttpResponseRedirect(reverse('user_management_manage_organization'))
+
+    context = RequestContext(request, context)
+
+    return render_to_response('user_management/organization_delete_confirm.html', context)
 
 
 @login_required

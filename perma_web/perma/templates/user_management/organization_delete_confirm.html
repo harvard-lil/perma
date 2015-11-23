@@ -1,0 +1,15 @@
+{% extends "admin-layout.html" %}
+{% block title %} | Delete organization{% endblock %}
+
+{% block content %}
+
+<div class="container">
+	<h3 class="body-bh">Delete <strong>{{ target_org.name }}</strong> from <strong>{{target_org.registrar.name}}</strong>?</h3>
+	<p class="body-dek">The organization will be deleted and all associated users will no longer be able to create links on behalf of {{target_org.name}}.</p>{{users}}
+	<p>Do you really want to delete <strong>{{ target_org.name }}</strong> forever?</p>
+		<form action="" method="POST">
+	      {% csrf_token %}
+        <a class="btn cancel" href="../">Cancel</a> <button type="submit" class="btn btn-success delete-confirm">Delete {{ target_org.name }} forever</button>
+    </form>
+</div>
+{% endblock %}
