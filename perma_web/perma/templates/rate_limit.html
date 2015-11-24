@@ -1,11 +1,11 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% load file_exists %}
 {% block title %} | Error{% endblock %}
 
-{% block content %}
+{% block mainContent %}
 
 <h1>Error</h1>
 
-<p class="text-error">You have tried to access this page too many times</p>
+<p class="field-error">You have tried to access this page too many times</p>
 
-{% endblock content %}
+{% endblock mainContent %}

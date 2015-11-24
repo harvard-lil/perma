@@ -2,8 +2,8 @@
 
 {% block title %} | Settings | Your Organization{% endblock %}
 
-{% block content %}
-	  <h3 class="body-ah _noMobile">Your Organization</h3>
+{% block dashboardContent %}
+	  <h3 class="body-ah _hideMobile">Your Organization</h3>
 	  {% if messages %}
         {% for message in messages %}
             <div class="alert-{{ message.level_tag }} alert-block">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>

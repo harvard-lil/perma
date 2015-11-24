@@ -6,6 +6,10 @@ $grid: 8px;
 $double: $grid * 2;
 $half: $grid / 2;
 
+$col-gutter: $grid * 4;
+$bleed: -1 * ($col-gutter / 2);
+$page-margin: $grid * 2;
+
 /////////////////////////
 
 //	width (breakpoints)

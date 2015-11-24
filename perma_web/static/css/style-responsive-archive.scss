@@ -605,7 +605,7 @@ a.about {
 		margin-right: .7em;
 		padding-bottom: 2px;
 		vertical-align: baseline;
-		.label-verbose {
+		._verbose {
 		    width: .7em;
 		    @include respond-tablet {
 			    display: inline;
@@ -1043,7 +1043,7 @@ p.fp {
 	}
 }
 
-.label-verbose, .verbose {
+._verbose, .verbose {
     display: inline-block;
     width: 0;
     height: 1em;

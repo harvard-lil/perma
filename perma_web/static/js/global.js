@@ -18,7 +18,7 @@ $(document).ready(function() {
     // Select the input text when the user clicks the element
     $('.select-on-click').click(function() { $(this).select(); });
     
-    $('.preview-row').on('click', '#report-error', function() {
+    $('.error-row').on('click', '#report-error', function() {
         var brokenLink = $('#rawUrl').val();
         $('#broken-link-report').html('<strong id="broken-link">' + brokenLink + '</strong> is causing an error.');
     });

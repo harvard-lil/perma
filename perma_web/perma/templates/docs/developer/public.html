@@ -1,4 +1,4 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% load file_exists pipeline %}
 
 {% block title %} | Developer Docs{% endblock %}
@@ -7,30 +7,30 @@
 This section of the user guide covers how to view the information associated with a user's account
 {% endblock %}
 
-{% block content %}
+{% block mainContent %}
 <div class="container developer-docs">
 	<div class="col-sm-8 docs">
 		<div class="api-warning">
 			<i class="icon-exclamation-sign"></i>
-			<p>The Perma.cc API is new and its behavior is in flux. We are currently seeking partners that want to build applications using this API - if you're interested, <a href="{% url 'contact' %}">let's chat</a>.</p>
+			<p class="body-text">The Perma.cc API is new and its behavior is in flux. We are currently seeking partners that want to build applications using this API - if you're interested, <a href="{% url 'contact' %}">let's chat</a>.</p>
 		</div>
 		
-		<h2>Public Archives API</h2>
+		<h2 class="body-ah">Public Archives API</h2>
 		<hr>
 		
-		<p>The Public Archives API endpoint helps you find all archives in Perma.cc that have been Vested and are not in the dark archive. You do not need an API Key to use this portion of the API.</p>
-		<p>The base endpoint for this API is <code>https://api.{{ request.get_host }}/v1/public/archives/</code></p>
+		<p class="body-text">The Public Archives API endpoint helps you find all archives in Perma.cc that have been Vested and are not in the dark archive. You do not need an API Key to use this portion of the API.</p>
+		<p class="body-text">The base endpoint for this API is <code>https://api.{{ request.get_host }}/v1/public/archives/</code></p>
 		
 		<h4>Get all public archives</h4>
-		<p>Use an HTTP GET to retrieve a every public archive in Perma.cc. (In order to keep this example short, we limit our number of returned items to one.)</p>
+		<p class="body-text">Use an HTTP GET to retrieve a every public archive in Perma.cc. (In order to keep this example short, we limit our number of returned items to one.)</p>
 		<pre>curl https://api.{{ request.get_host }}/v1/public/archives/?limit=1</pre>
-		<p>Response</p>
+		<p class="body-text">Response</p>
 		<pre class="prettyprint">{"meta": {"limit": 1, "next": "/v1/public/archives/?limit=1", "offset": 0, "previous": null, "total_count": 2}, "objects": [{"assets": [{"base_storage_path": "2015/1/21/22/39/Y6JJ-TDUJ", "favicon": null, "image_capture": "cap.png", "pdf_capture": null, "warc_capture": "archive.warc.gz"}], "creation_timestamp": "2015-01-21T17:39:44Z", "dark_archived": true, "dark_archived_robots_txt_blocked": false, "expiration_date": "2017-01-21T17:39:44Z", "guid": "Y6JJ-TDUJ", "title": "Example.com. yo.", "url": "http://example.com", "vested": true, "vested_timestamp": "2015-01-21T17:49:39Z", "view_count": 1}]}</pre>
 
 		<h4>Get one archive</h4>
-		<p>If we have a the globally unique ID of one archive, we can GET details on it.</p>
+		<p class="body-text">If we have a the globally unique ID of one archive, we can GET details on it.</p>
 		<pre>curl https://api.{{ request.get_host }}/v1/public/archives/Y6JJ-TDUJ/</pre>
-		<p>Response</p>
+		<p class="body-text">Response</p>
 		<pre class="prettyprint">{"assets": [{"base_storage_path": "2015/1/21/22/39/Y6JJ-TDUJ", "favicon": null, "image_capture": "cap.png", "pdf_capture": null, "warc_capture": "archive.warc.gz"}], "creation_timestamp": "2015-01-21T17:39:44Z", "dark_archived": true, "dark_archived_robots_txt_blocked": false, "expiration_date": "2017-01-21T17:39:44Z", "guid": "Y6JJ-TDUJ", "title": "Example.com. yo.", "url": "http://example.com", "vested": true, "vested_timestamp": "2015-01-21T17:49:39Z", "view_count": 1}</pre>
 		
 	</div>

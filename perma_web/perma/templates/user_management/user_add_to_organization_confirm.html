@@ -2,22 +2,31 @@
 
 {% block title %} | Add user{% endblock %}
 
-{% block content %}
-<div class="container">
-
+{% block adminContent %}
 	<h3 class="body-bh">Add {{ user_email }}</h3>
 	{% if not target_user %}
 	    <form method="post">
             {% csrf_token %}
-            <fieldset>
-                <span class="text-error">{{ form.non_field_errors }}</span>
-                {% for field in form %}
-                    <label for="id_{{ field.name }}">{{ field.label }}</label>                    {{ field }}
-                    {% if field.errors %}                        {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
-                    {% endif %}                {% endfor %}
-            </fieldset>
-            <button type="submit" class="btn btn-success">Add vesting user</button>
-            <a href="{% url 'user_management_manage_organization_user' %}">Cancel</a>
+          <fieldset>
+				<div class="form-group{% if field.errors %} _error{% endif %}">
+		            {% for field in form %}
+						<label for="id_{{ field.name }}">{{ field.label }}</label>              
+						{{ field }}
+						{% if field.errors %}                
+							{% for error in field.errors %}
+								<span class="field-error">{{ error }}</span>
+							{% endfor %}
+							{%elif field.help_text %}
+							<span class="help-inline">{{ field.help_text }}</span>
+						{% endif %}            
+					{% endfor %}
+				</div>
+				{% if field.errors %}
+					<span class="field-error">{{ form.non_field_errors }}</span>
+				{% endif %} 
+			</fieldset>
+            <button type="submit" class="btn">Add vesting user</button>
+            <a href="{% url 'user_management_manage_organization_user' %}" class="btn cancel">Cancel</a>
         </form>
     {% else %}
 
@@ -25,16 +34,26 @@
 
         <form method="post">
             {% csrf_token %}
-            <fieldset>
-                <span class="text-error">{{ form.non_field_errors }}</span>
-                {% for field in form %}
-                    <label for="id_{{ field.name }}">{{ field.label }}</label>                    {{ field }}
-                    {% if field.errors %}                        {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
-                    {% endif %}                {% endfor %}
-            </fieldset>
-            <button type="submit" class="btn btn-success">Add to vesting organization</button>
-            <a href="{% url 'user_management_manage_organization_user' %}">Cancel</a>
+          <fieldset>
+				<div class="form-group{% if field.errors %} _error{% endif %}">
+		            {% for field in form %}
+						<label for="id_{{ field.name }}">{{ field.label }}</label>              
+						{{ field }}
+						{% if field.errors %}                
+							{% for error in field.errors %}
+								<span class="field-error">{{ error }}</span>
+							{% endfor %}
+							{%elif field.help_text %}
+							<span class="help-inline">{{ field.help_text }}</span>
+						{% endif %}            
+					{% endfor %}
+				</div>
+				{% if field.errors %}
+					<span class="field-error">{{ form.non_field_errors }}</span>
+				{% endif %} 
+			</fieldset>
+            <button type="submit" class="btn">Add to vesting organization</button>
+            <a href="{% url 'user_management_manage_organization_user' %}" class="btn cancel">Cancel</a>
         </form>
     {% endif %}
-</div>
 {% endblock %}

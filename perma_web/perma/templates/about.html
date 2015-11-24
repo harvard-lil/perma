@@ -1,4 +1,4 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% load file_exists pipeline %}
 {% block title %} | About{% endblock %}
 
@@ -7,10 +7,10 @@ Perma.cc prevents link rot.
 {% endblock %}
 
 {% block bodyFlags %}_about{% endblock %}
-{% block mainFlags %}_fullWidth{% endblock %}
+{% block mainFlags %}{% endblock %}
 
-{% block content %}
-<div class="container">
+{% block mainContent %}
+<div class="container cont-fixed">
 	<div class="row">
 		<div class="col-sm-12">
 			<h1 class="page-title">About Perma.cc</h1>
@@ -19,7 +19,7 @@ Perma.cc prevents link rot.
 	</div>
 </div>
 
-<div class="container container-reading" id="what-is-perma">
+<div class="container cont-reading cont-fixed" id="what-is-perma">
 	<div class="row">
 		<div class="col-sm-4 reading-toc" >
 			<ul>
@@ -31,51 +31,51 @@ Perma.cc prevents link rot.
 		</div>
 
 		<div class="col-sm-8 docs reading-body">
-			<h2>What is Perma.cc?</h2>
-			<p>When a user creates a Perma.cc link, Perma.cc archives the referenced content and generates a link to an archived record of the page. Regardless of what may happen to the original source, the archived record will always be available through the Perma.cc link. To learn more about how Perma.cc works, please take a look at our <a href="{% url 'docs' %}">user guide</a>.</p>
-			<p>Perma.cc is developed and maintained by the Harvard Law School Library in conjunction with university law libraries across the country and other organizations in the “forever” business.</p>
+			<h2 class="body-ah">What is Perma.cc?</h2>
+			<p class="body-text">When a user creates a Perma.cc link, Perma.cc archives the referenced content and generates a link to an archived record of the page. Regardless of what may happen to the original source, the archived record will always be available through the Perma.cc link. To learn more about how Perma.cc works, please take a look at our <a href="{% url 'docs' %}">user guide</a>.</p>
+			<p class="body-text">Perma.cc is developed and maintained by the Harvard Law School Library in conjunction with university law libraries across the country and other organizations in the “forever” business.</p>
 		</div>
 	</div>
 </div>
 
-<div class="container container-reading" id="why-use-perma">
+<div class="container cont-reading cont-fixed" id="why-use-perma">
 	<div class="row">
 		<div class="col-sm-8 docs reading-body col-right">
-			<h2>Why use Perma.cc</h2>
-			<p><a href="http://papers.ssrn.com/sol3/papers.cfm?abstract_id=2329161">In a sample of several legal journals</a>, approximately 70% of all links in citations published between 1999 and 2011 no longer point to the same material.  Broken links in journal articles undermine the citation-based system of legal scholarship by obscuring the evidence underlying authors’ ideas.</p>
-			<p>As Internet usage becomes more widespread and web citations in legal scholarship become more common, the problem of link rot will become increasingly important.</p>
-			<p>Using Perma.cc ensures that material cited by authors will always be accessible to readers, preserving the foundation of legal scholarship online.</p>
+			<h2 class="body-ah">Why use Perma.cc</h2>
+			<p class="body-text"><a href="http://papers.ssrn.com/sol3/papers.cfm?abstract_id=2329161">In a sample of several legal journals</a>, approximately 70% of all links in citations published between 1999 and 2011 no longer point to the same material.  Broken links in journal articles undermine the citation-based system of legal scholarship by obscuring the evidence underlying authors’ ideas.</p>
+			<p class="body-text">As Internet usage becomes more widespread and web citations in legal scholarship become more common, the problem of link rot will become increasingly important.</p>
+			<p class="body-text">Using Perma.cc ensures that material cited by authors will always be accessible to readers, preserving the foundation of legal scholarship online.</p>
 		</div>
 	</div>
 </div>
 
-<div class="container container-reading" id="how-perma-works">
+<div class="container cont-reading cont-fixed" id="how-perma-works">
 	<div class="row">
 		<div class="col-sm-8 docs reading-body col-right">
-			<h2>How Perma.cc works</h2>
-			<p>Any author can go to the Perma.cc website and input a URL. Perma.cc downloads the material at that URL and gives back a new URL (a “Perma.cc link”) that can then be inserted in a paper.</p>
-			<p>After the paper has been submitted to a journal, the journal staff checks that the provided Perma.cc link actually represents the cited material. If it does, the staff “vests” the link and it is forever preserved.  Links that are not “vested” will be preserved for two years, at which point the author will have the option to renew the link for another two years.</p>
-			<p>Readers who encounter Perma.cc links can click on them like ordinary URLs. This takes them to the Perma.cc site where they are presented with a page that has links both to the original web source (along with some information, including the date of the Perma.cc link’s creation) and to the archived version stored by Perma.cc.</p>
+			<h2 class="body-ah">How Perma.cc works</h2>
+			<p class="body-text">Any author can go to the Perma.cc website and input a URL. Perma.cc downloads the material at that URL and gives back a new URL (a “Perma.cc link”) that can then be inserted in a paper.</p>
+			<p class="body-text">After the paper has been submitted to a journal, the journal staff checks that the provided Perma.cc link actually represents the cited material. If it does, the staff “vests” the link and it is forever preserved.  Links that are not “vested” will be preserved for two years, at which point the author will have the option to renew the link for another two years.</p>
+			<p class="body-text">Readers who encounter Perma.cc links can click on them like ordinary URLs. This takes them to the Perma.cc site where they are presented with a page that has links both to the original web source (along with some information, including the date of the Perma.cc link’s creation) and to the archived version stored by Perma.cc.</p>
 		</div>
 	</div>
 </div>
 
-<div class="container container-full container-bg">
-	<div class="container container-display">
+<div class="container cont-full-bleed cont-bg cont-display">
+	<div class="container cont-fixed">
 		<div class="row">
 			<div class="col-sm-6">
         		<div class="content">
 					<h2 class="mega">Library-strength reliability</h2>
 					<p class="display">Perma.cc was built by Harvard’s <a href="http://librarylab.law.harvard.edu">Library Innovation Lab</a> and is backed by the power of libraries. We’re both in the forever business: libraries already look after physical and digital materials — now we can do the same for links.</p>
-					<p class="body">If you’re a librarian or are affiliated with a library, we can make using Perma.cc free and simple for you and the scholars that depend on you. We’ve answered many common questions and prepared a special library signup at the link below.</p>
-					<p><a href="{% url 'libraries' %}" class="btn btn-large">Try Perma.cc for libraries</a></p>
+					<p class="body-text">If you’re a librarian or are affiliated with a library, we can make using Perma.cc free and simple for you and the scholars that depend on you. We’ve answered many common questions and prepared a special library signup at the link below.</p>
+					<p class="body-text"><a href="{% url 'libraries' %}" class="btn btn-large">Try Perma.cc for libraries</a></p>
         		</div>
 			</div><!--col-sm-6-->
 			<div class="col-sm-6 _image">
         		<div class="content">
 					{% include "includes/partner_map.html" %}
 					<div class="caption">
-						<p>Perma.cc is used and supported by libraries and institutions across America.</p>
+						<p class="body-text">Perma.cc is used and supported by libraries and institutions across America.</p>
 					</div>
         		</div>
 			</div><!--col-sm-6-->
@@ -88,10 +88,10 @@ Perma.cc prevents link rot.
 	</div>
 </div>
 
-<div class="container container-reading" id="perma-partners">
+<div class="container cont-reading cont-fixed" id="perma-partners">
 	<div class="row">
 		<div class="col-sm-8 docs reading-body col-right">
-			<h2>Perma.cc’s Partners</h2>
+			<h2 class="body-ah">Perma.cc’s Partners</h2>
 		</div>
 	</div>
 	<div class="row partner-list">

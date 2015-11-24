@@ -1,13 +1,13 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% block title %} | Contact{% endblock %}
 
 {% block meta %}
 <meta name="robots" content="noarchive">
 {% endblock %}
 
-{% block content %}
+{% block mainContent %}
 
-<div class="container">
+<div class="container cont-fixed">
 
     <div class="row">
 		<div class="col-sm-12">
@@ -24,17 +24,17 @@
 	                <div class="form-group fg-100{% if form.email.errors %} _error{% endif%}">
 	                    <label for="id_email">Your email address</label>
 	                    <input type="email" id="id_email" name="email" value="{%if form.email.value %} {{form.email.value}} {% endif %}" autofocus="autofocus">
-	                    {% if form.email.errors %}<span class="text-error">{{ form.email.errors }}</span>{% endif %}
+	                    {% if form.email.errors %}<span class="field-error">{{ form.email.errors }}</span>{% endif %}
 	                </div>
 	                <div class="form-group fg-100{% if form.message.errors %} _error{% endif%}">
 	                    <label for="id_message">Message</label>
 	                    <textarea id="id_message" name="message" rows="5">{{ form.message.value}}</textarea>
-	                    {% if form.message.errors %}<span class="text-error">{{ form.message.errors }}</span>{% endif %}
+	                    {% if form.message.errors %}<span class="field-error">{{ form.message.errors }}</span>{% endif %}
 	                </div>
                 </fieldset>
-                <button type="submit" class="btn btn-success">Send</button>
+                <button type="submit" class="btn">Send</button>
             </form>
 		</div><!--col -->
 	</div><!--row-->
 </div><!--container-->
-{% endblock content %}
+{% endblock mainContent %}

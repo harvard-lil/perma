@@ -1,7 +1,7 @@
 {% load pipeline %}<!DOCTYPE html>
 <html lang="en-us">
     <head>
-        <title>Perma.cc | Preventing Link Rot{% block title %}{% endblock %}</title>
+        <title>Perma.cc{% block title %}{% endblock %}</title>
 
         {# currently 'edge' or nothing seems to be the best IE mode for modern sites -- see http://stackoverflow.com/a/8942455 #}
         <meta http-equiv="x-ua-compatible" content="IE=edge">
@@ -35,7 +35,7 @@
 
     	<header class="_default">
     	    <div class="navbar navbar-default navbar-static-top">
-				<div class="container">
+				<div class="container cont-fixed">
 					<div class="navbar-header">
 						<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
 							<span class="icon-bar"></span>
@@ -77,17 +77,18 @@
                                     {% if request.user.is_staff %}
                                         <li><a href="{% url 'user_management_manage_user' %}">Users</a></li>
                                     {% endif %}
+	                                <li class="divider"></li>
                                 {% endif %}
                                 
                                 <!-- Vesting users -->
                                 {% if request.user.is_organization_member %}
-                                <li><a href="{% url 'user_management_manage_organization_user' %}">Manage users</a></li>
+	                                <li><a href="{% url 'user_management_manage_organization_user' %}">Manage users</a></li>
+	                                <li class="divider"></li>
                                 {% endif %}
                                 {% if request.user.is_staff %}
-                                    <li class="divider"></li>
 									<li><a href="{% url 'admin:index' %}">Admin console</a></li>
+	                                <li class="divider"></li>
                                 {% endif %}
-                                <li class="divider"></li>
                                 <li role="presentation" class="dropdown-header">Settings</li>
                                 <li><a href="{% url 'user_management_settings_profile' %}">Profile</a></li>
                                 <li><a href="{% url 'user_management_settings_password' %}">Password</a></li>
@@ -107,7 +108,7 @@
                             <li><a href="{% url 'sign_up' %}" class="btn _nav{% if this_page == 'sign_up' %} this-page{% endif %}">Sign up</a></li>
                             <li><a href="{% url 'user_management_limited_login' %}" class="navbar-link _login">Log in</a></li>
                             {% comment %}
-                            <li><a href="{% url 'register' %}" id="nav-button" class="btn btn-large btn-success">Sign Up</a></li>
+                            <li><a href="{% url 'register' %}" id="nav-button" class="btn btn-large">Sign Up</a></li>
                             {% endcomment %}
 						{% endif %}
 					  </ul>
@@ -119,55 +120,45 @@
 		  
 		<section id="main" class="{% block mainFlags %}{% endblock mainFlags %}">
 			{% if this_page != 'landing' and this_page != 'manage' %}
-			<div class="container" id="main-content">
-				{% endif %}
-				{% block row %}{% endblock row %}
-				{% if this_page != 'landing' %}
-			</div><!--/.main-container #main-content"-->
+				<div id="main-content" class="container cont-full-bleed">
+			{% endif %}
+
+			{% block mainContent %}{% endblock mainContent %}
+
+			{% if this_page != 'landing' %}
+				</div><!--/ #main-content"-->
 			{% endif %}
 		</section><!--/#main-->
 		
 		{% block footer %}
-		
-		
-<footer>
-	<div class="container">
-		<div class="row">
-			<div class="col col-sm-6">
-				<ul id="footer-nav">
-		            <!--<li class="footer-nav-item"><a class="home" href="{% url 'landing' %}">Perma.cc</a></li>-->
-		            <li class="footer-nav-item"><a href="{% url 'about' %}">About</a></li>
-		            <li class="footer-nav-item"><a href="{% url 'docs' %}">Guide</a></li>
-		            <li class="footer-nav-item"><a href="{% url 'dev_docs' %}">Developers</a></li>
-		            <li class="footer-nav-item"><a href="{% url 'contact' %}">Contact</a></li>
-		            <li class="footer-nav-item"><a href="https://blogs.law.harvard.edu/perma/">Blog</a></li>
-		            <li class="footer-nav-item"><a href="https://github.com/harvard-lil/perma">Github</a></li>
-				</ul>
-			</div>
-			<div class="col col-sm-6">
-				<ul id="boilerplate">
-					<li class="boilerplate-item"><a href="{% url 'terms_of_service' %}">Terms of Service</a></li>
-					<li class="boilerplate-item"><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
-					<li class="boilerplate-item"><a href="{% url 'copyright_policy' %}">Copyright Policy</a></li>
-				</ul>
-			</div>
-		</div>
-	</div><!--/container-->
-</footer>
-		
-	{% endblock %}
-		
-		
-            </div><!--/.row-fluid-->
-        </div><!--/.container-fluid-->
-
+			<footer>
+				<div class="container cont-fixed">
+					<div class="row">
+						<div class="col col-sm-6">
+							<ul id="footer-nav">
+					            <!--<li class="footer-nav-item"><a class="home" href="{% url 'landing' %}">Perma.cc</a></li>-->
+					            <li class="footer-nav-item"><a href="{% url 'about' %}">About</a></li>
+					            <li class="footer-nav-item"><a href="{% url 'docs' %}">Guide</a></li>
+					            <li class="footer-nav-item"><a href="{% url 'dev_docs' %}">Developers</a></li>
+					            <li class="footer-nav-item"><a href="{% url 'contact' %}">Contact</a></li>
+					            <li class="footer-nav-item"><a href="https://blogs.law.harvard.edu/perma/">Blog</a></li>
+					            <li class="footer-nav-item"><a href="https://github.com/harvard-lil/perma">Github</a></li>
+							</ul>
+						</div>
+						<div class="col col-sm-6">
+							<ul id="boilerplate">
+								<li class="boilerplate-item"><a href="{% url 'terms_of_service' %}">Terms of Service</a></li>
+								<li class="boilerplate-item"><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
+								<li class="boilerplate-item"><a href="{% url 'copyright_policy' %}">Copyright Policy</a></li>
+							</ul>
+						</div>
+					</div>
+				</div><!--/container-->
+			</footer>
+		{% endblock %}
 
     {% javascript 'global' %}
-
-    {% block scripts %}
-    {% endblock %}
-    
-    {% block templates %}
-    {% endblock %}
+    {% block scripts %}{% endblock %}
+    {% block templates %}{% endblock %}
   </body>
 </html>

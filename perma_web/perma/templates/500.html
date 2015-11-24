@@ -1,9 +1,9 @@
-{% extends "layout-responsive.html" %}
-{% block title %} | 500{% endblock %}
+{% extends "base-responsive.html" %}
+{% block title %} | 500 Error{% endblock %}
 
-{% block content %}
-	<div class="col-sm-12 column">
-		<h1 class="page-title">Error.</h1>
-		<p class="page-dek"><strong> HTTP 500.</strong> Please <a href="{% url 'contact' %}" >drop us a note</a> and let us know how you found this error.</p>
+{% block mainContent %}
+	<div class="col-xs-12 no-wide">
+		<h1 class="page-title">Looks like you broke Perma.cc.</h1>
+		<p class="page-dek">We should have told you not to do that! There’s been an internal server error (Error 500), but don’t worry, we’ll fix it. Please <a href="{% url 'contact' %}" >contact us</a> and let us know how you found yourself here. Thanks!</p>
 	</div>
 {% endblock %}

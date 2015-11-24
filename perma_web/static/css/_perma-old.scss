@@ -957,7 +957,7 @@ div#dashboard-container div#library {}
 
         }
 
-		.library-thumbnail {
+		.screenshot-thumbnail {
 
        		 border:1px solid #eee;
        		 border-radius: 4px;
@@ -965,11 +965,11 @@ div#dashboard-container div#library {}
         	-webkit-border-radius: 4px;
 		}
 
-        div.library-thumbnail a:hover {
+        div.screenshot-thumbnail a:hover {
         }
 
 
-        div.library-thumbnail img {
+        div.screenshot-thumbnail img {
             padding: 0px;
             width:100%;
         }
@@ -1067,11 +1067,11 @@ div#dashboard-container div#batch-convert {
     -webkit-border-radius: 5px;
 }
 
-#steps-container {
+#error-container {
     min-height: 400px;
 }
 
-#steps-container .message-large {
+#error-container .message-large {
     font-size: 33px;
 	font-family: $spicy-font;
     color: #ff4100;
@@ -1079,22 +1079,22 @@ div#dashboard-container div#batch-convert {
     margin-bottom: 0;
 }
 
-#steps-container p {
+#error-container p {
     font-size: 17px;
 	font-family: $sans-font;
 	color: #555;
 }
 /*
-#steps-container a.perma-url {
+#error-container a.perma-url {
 	font-family: $spicy-font;
     font-size: 26px;
 }
 */
-#steps-container .message-url {
+#error-container .message-url {
     margin: 20px 0;
 }
 
-#steps-container .text-warning {
+#error-container .text-warning {
     margin: 40px 0;
 }
 
@@ -1817,7 +1817,7 @@ td {
 
 /*** Link Browser ***/
 
-.folders-box{
+.col-folders{
     padding:0;
     border-right: 1px #DDD solid;
 
@@ -1849,10 +1849,10 @@ td {
     }
 }
 
-.links-box {
+.col-links {
     padding: 0;
 
-    /* left border that overlaps with right border of folders-box, so we get whichever is tallest */
+    /* left border that overlaps with right border of col-folders, so we get whichever is tallest */
     border-left: 1px #DDD solid;
     position: relative;
     left: -1px;
@@ -1886,7 +1886,7 @@ td {
         display: inline-block;
     }
 
-    .link-rows {
+    .item-rows {
         padding: 0;
     }
 
@@ -1895,18 +1895,18 @@ td {
         border-bottom: 1px #DDD solid;
         position: relative;
 
-        .link-row {
+        .item-row {
             cursor: move; /* fallback for IE */
             cursor: -moz-grab;
             cursor: -webkit-grab;
             cursor: grab;
 
-            .original-link, .vested-date {
+            .item-link-original, .vested-date {
                 color:#aaa;
                 word-wrap : break-word;
             }
 
-            .original-link:hover {
+            .item-link-original:hover {
                 color:#888;
             }
 
@@ -1920,7 +1920,7 @@ td {
             }
         }
 
-        .link-details {
+        .item-details {
             display: none;
             background-color: #F5F5F5;
             padding: .5em;
@@ -1951,7 +1951,7 @@ td {
     display:none !important;
 }
 
-body.dragging, .dragging .link-row {
+body.dragging, .dragging .item-row {
     cursor:move; /* fallback for IE */
     cursor: -moz-grabbing;
     cursor: -webkit-grabbing;
@@ -2015,7 +2015,7 @@ td.registrar-website-cell {
     padding:0px 3px;
 }
 
-.no-users-found {
+.item-notification {
     text-align:center;
     font-weight:500;
     font-size:24px;
@@ -2063,30 +2063,30 @@ td.registrar-website-cell {
     margin-bottom:5px;
 }
 
-.list-vesting-org, .list-registrar {
+.item-vesting-org, .list-registrar {
     margin-bottom: 0;
 }
 
-.list-vesting-org a, .list-registrar a {
+.item-vesting-org a, .list-registrar a {
     color:#333;
 }
 
-.list-date {
+.item-activity {
     font-size:12px;
     margin-bottom:0px;
     margin-top:35px;
     text-align:right;
 }
 
-.list-user-registrar .list-date {
+.list-user-registrar .item-activity {
     margin-top:20px;
 }
 
-.list-date.vesting_user-list {
+.item-activity.vesting_user-list {
     margin-top:18px;
 }
  
-.list-status {
+.item-status {
     text-align:right;
     margin-top:5px;
     font-size:12px;
@@ -2094,12 +2094,12 @@ td.registrar-website-cell {
     position:relative;
 }
 
-.list-count-group {
+.item-count-group {
     float:left;
     margin-right:12px;
 }
 
-p.list-count-label {
+p.item-count-label {
     font-family: $sans-font;
     font-size:12px;
     margin-bottom:0px;
@@ -2681,7 +2681,7 @@ img.dark-bulb {
 	z-index:1000;
 }
 
-.text-error {
+.field-error {
 	color:#ff4100;
 	font-style: italic;
 	font-size: 85%;
@@ -2887,15 +2887,15 @@ p.orange {
 	    font-size:32px;
 	    margin-bottom:10px;
 	}
-    .list-status, .list-date {
+    .item-status, .item-activity {
         text-align:left;
     }
-    .list-date {
+    .item-activity {
         margin-bottom:20px;
         margin-top:16px;
         clear:both;
     }
-    .list-count-group {
+    .item-count-group {
         margin-bottom:8px;
         float:none;
     }

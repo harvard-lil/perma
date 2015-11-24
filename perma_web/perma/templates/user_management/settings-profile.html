@@ -4,9 +4,9 @@
 
 {% block manage-nav-settings %}<li class="active"><a href="{% url 'create_link' %}">Account settings</a></li>{% endblock %}
 
-{% block content %}
-	  <h3 class="body-ah _noMobile">Profile</h3>
-	  <p class="body-dek">Change your name and email</p>
+{% block dashboardContent %}
+	  <h3 class="body-ah _hideMobile">Profile</h3>
+	  <p class="page-dek">Change your name and email</p>
 	  {% if messages %}
         {% for message in messages %}
             <div class="alert alert-success alert-block">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
@@ -20,15 +20,15 @@
 				<label for="id_{{ field.name }}">{{ field.label }}</label>
 				{{ field }}
 				{% if field.errors %}
-					{% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+					{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
 				{%elif field.help_text %}
 					<span class="help-inline">{{ field.help_text }}</span>
 				{% endif %}
 			</div>
 		{% endfor %}
-		{% if form.non_field_errors %}<span class="text-error">{{ form.non_field_errors }}</span>{% endif %}
+		{% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
 		</fieldset>
-		<button type="submit" class="btn btn-success">Save changes</button>
+		<button type="submit" class="btn">Save changes</button>
 	</form>
 
 {% endblock %}

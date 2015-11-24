@@ -2,9 +2,9 @@
 {% load bootstrap_tags %}
 {% block title %} | Edit organization{% endblock %}
 
-{% block content %}
+{% block dashboardContent %}
 
-<div class="container">
+<div class="container cont-fixed">
 	<h3 class="body-bh">Edit organization</h3>
 	<div class="row">
 		<div class="col-sm-12">
@@ -25,15 +25,15 @@
 					<label for="id_{{ field.name }}">{{ field.label }}</label>
 					{{ field }}
 					{% if field.errors %}
-						{% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+						{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
 					{%elif field.help_text %}
 						<span class="help-inline">{{ field.help_text }}</span>
 					{% endif %}
 					</div>
 				{% endfor %}
-				{% if form.non_field_errors %}<span class="text-error">{{ form.non_field_errors }}</span>{% endif %}
+				{% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
 				</fieldset>
-				<button type="submit" class="btn btn-success">Save changes</button>
+				<button type="submit" class="btn">Save changes</button>
 			</form>
     	</div>
     </div>
