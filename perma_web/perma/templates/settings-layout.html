@@ -1,9 +1,9 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% block bodyFlags %}_admin{% endblock %}
 
-{% block row %}
+{% block mainContent %}
 
-	<div id="dashboard-container" class="container container-bleed">
+	<div id="dashboard-container" class="container cont-full-bleed cont-sm-fixed-bleed">
 	    <div class="col-sm-12">
 			<div class="row">
 			    <div class="col-sm-12">
@@ -15,7 +15,7 @@
 			    <div class="col-sm-3">
 			
 			        <!-- Dashboard tabs -->
-			        <ul class="nav nav-pills nav-stacked settings-tabs" id="dashboard-tabs">
+			        <ul class="nav nav-pills nav-stacked">
 			
 			            <li{% if this_page == 'settings_profile' %} class="active"{% endif %}><a href="{% url 'user_management_settings_profile' %}"><span>Profile</span></a></li>
 			
@@ -33,10 +33,8 @@
 			    </div><!--/col-sm-3-->
 
 				<!-- Dashboard tab content -->
-			    <div class="tab-content col-sm-9">
-			        <div class="tab-pane active">
-			        {% block content %}{% endblock content %}
-			        </div><!--/.tab-pane-->
+			    <div class="col-sm-9">
+			        {% block dashboardContent %}{% endblock dashboardContent %}
 			    </div><!--/.tab-content-->
 			</div>
 		</div>

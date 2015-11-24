@@ -8,6 +8,17 @@
  * Designed and built with all the love in the world by @mdo and @fat.
  */
 
+/*	Global changes for Perma
+ *	sm: 768px
+ *	md: 990px
+ *	changed all max-widths on containers to respond-widths
+ *
+ *
+ *
+ *
+ */
+
+
 /*! normalize.css v2.1.0 | MIT License | git.io/normalize */
 
 article,
@@ -931,7 +942,7 @@ pre code {
 
 @media (min-width: 768px) {
   .container {
-    max-width: 750px;
+    max-width: 768px;
   }
   .col-sm-1,
   .col-sm-2,
@@ -1083,9 +1094,10 @@ pre code {
   }
 }
 
-@media (min-width: 992px) {
+/* changed from 992 */
+@media (min-width: 990px) {
   .container {
-    max-width: 970px;
+    max-width: 990px;
   }
   .col-md-1,
   .col-md-2,
@@ -1248,7 +1260,7 @@ pre code {
 
 @media (min-width: 1200px) {
   .container {
-    max-width: 1170px;
+    max-width: 1200px;
   }
   .col-lg-1,
   .col-lg-2,
@@ -3446,7 +3458,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
   margin-top: 4px;
 }
 
-tr.link-details
+tr.item-details
 {
 	display:none;
 }
@@ -5534,7 +5546,7 @@ td.visible-xs {
   }
 }
 
-@media (min-width: 768px) and (max-width: 991px) {
+@media (min-width: 768px) and (max-width: 989px) {
   .visible-xs.visible-sm {
     display: block !important;
   }
@@ -5547,7 +5559,7 @@ td.visible-xs {
   }
 }
 
-@media (min-width: 992px) and (max-width: 1199px) {
+@media (min-width: 990px) and (max-width: 1199px) {
   .visible-xs.visible-md {
     display: block !important;
   }
@@ -5599,7 +5611,7 @@ td.visible-sm {
   }
 }
 
-@media (min-width: 768px) and (max-width: 991px) {
+@media (min-width: 768px) and (max-width: 989px) {
   .visible-sm {
     display: block !important;
   }
@@ -5612,7 +5624,7 @@ td.visible-sm {
   }
 }
 
-@media (min-width: 992px) and (max-width: 1199px) {
+@media (min-width: 990px) and (max-width: 1199px) {
   .visible-sm.visible-md {
     display: block !important;
   }
@@ -5664,7 +5676,7 @@ td.visible-md {
   }
 }
 
-@media (min-width: 768px) and (max-width: 991px) {
+@media (min-width: 768px) and (max-width: 989px) {
   .visible-md.visible-sm {
     display: block !important;
   }
@@ -5677,7 +5689,7 @@ td.visible-md {
   }
 }
 
-@media (min-width: 992px) and (max-width: 1199px) {
+@media (min-width: 990px) and (max-width: 1199px) {
   .visible-md {
     display: block !important;
   }
@@ -5732,7 +5744,7 @@ td.visible-lg {
    }
 }
 
-@media (min-width: 768px) and (max-width: 991px) {
+@media (min-width: 768px) and (max-width: 989px) {
   .visible-lg.visible-sm {
     display: block !important;
   }
@@ -5748,7 +5760,7 @@ td.visible-lg {
    }
 }
 
-@media (min-width: 992px) and (max-width: 1199px) {
+@media (min-width: 990px) and (max-width: 1199px) {
   .visible-lg.visible-md {
     display: block !important;
   }
@@ -5800,7 +5812,7 @@ td.hidden-xs {
   }
 }
 
-@media (min-width: 768px) and (max-width: 991px) {
+@media (min-width: 768px) and (max-width: 989px) {
   .hidden-xs.hidden-sm {
     display: none !important;
   }
@@ -5813,7 +5825,7 @@ td.hidden-xs {
   }
 }
 
-@media (min-width: 992px) and (max-width: 1199px) {
+@media (min-width: 990px) and (max-width: 1199px) {
   .hidden-xs.hidden-md {
     display: none !important;
   }
@@ -5865,7 +5877,7 @@ td.hidden-sm {
   }
 }
 
-@media (min-width: 768px) and (max-width: 991px) {
+@media (min-width: 768px) and (max-width: 989px) {
   .hidden-sm {
     display: none !important;
   }
@@ -5878,7 +5890,7 @@ td.hidden-sm {
   }
 }
 
-@media (min-width: 992px) and (max-width: 1199px) {
+@media (min-width: 990px) and (max-width: 1199px) {
   .hidden-sm.hidden-md {
     display: none !important;
   }
@@ -5930,7 +5942,7 @@ td.hidden-md {
   }
 }
 
-@media (min-width: 768px) and (max-width: 991px) {
+@media (min-width: 768px) and (max-width: 989px) {
   .hidden-md.hidden-sm {
     display: none !important;
   }
@@ -5943,7 +5955,7 @@ td.hidden-md {
   }
 }
 
-@media (min-width: 992px) and (max-width: 1199px) {
+@media (min-width: 990px) and (max-width: 1199px) {
   .hidden-md {
     display: none !important;
   }
@@ -5995,7 +6007,7 @@ td.hidden-lg {
   }
 }
 
-@media (min-width: 768px) and (max-width: 991px) {
+@media (min-width: 768px) and (max-width: 989px) {
   .hidden-lg.hidden-sm {
     display: none !important;
   }
@@ -6008,7 +6020,7 @@ td.hidden-lg {
   }
 }
 
-@media (min-width: 992px) and (max-width: 1199px) {
+@media (min-width: 990px) and (max-width: 1199px) {
   .hidden-lg.hidden-md {
     display: none !important;
   }

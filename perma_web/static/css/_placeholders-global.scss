@@ -23,20 +23,6 @@
 	margin-right: auto;
 }
 
-%style-container {
-	@extend %style-clears-floats;
-	margin-right: 0;
-	margin-left: 0;
-	padding: 0 $double * 2; // review
-	overflow: hidden;
-	@include respond-tablet {
-		margin-right: auto;
-		margin-left: auto;
-//		padding-left: $double;
-//		padding-right: $double;
-	}
-}
-
 %style-vcenter-parent {
 	display: table;
 }
@@ -46,6 +32,7 @@
 	vertical-align: middle;
 }
 
+/*
 %style-pageLede {
 	font-family: $font-hed-alt;
     font-weight: 300;
@@ -63,7 +50,7 @@
 	line-height: 1.5;
 }
 
-%style-docs-ah {
+%style-body-ah {
     font-size: 24px;
     border-top: 2px solid $color-blue;
     padding-top: $grid;
@@ -76,7 +63,7 @@
     }
 }
 
-%style-docs-bh {
+%style-body-bh {
     font-size: 18px;
     border-top: 1px solid $color-orange;
     padding-top: $grid;
@@ -85,7 +72,9 @@
     font-weight: 300;
     color: $color-orange;
 }
+*/
 
+/*
 %style-overview-container {
 	margin: $grid 0 0 0;
 	background-color: $color-background;
@@ -116,7 +105,7 @@
 			border-left: 1px solid white;
 		}
 	}
-	.toc-module-content {
+	.overview-module-content {
 		height: auto;
 		display: block;
 		margin: 0;
@@ -193,7 +182,7 @@
 		}
 	}
 	
-	div.toc-module-content {
+	div.overview-module-content {
 		background-color: $color-white;
 		color: $color-blue;
 		padding: 10px 14px;
@@ -278,3 +267,4 @@
 		}
 	}
 }
+*/

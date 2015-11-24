@@ -284,7 +284,7 @@ class FunctionalTest(BaseTestCase):
         assert_text_displayed("Email address", 'label')
         get_id('id_username').send_keys('test_user@example.com')
         get_id('id_password').send_keys('pass')
-        get_xpath("//button[@class='btn btn-success login']").click() # new design button
+        get_xpath("//button[@class='btn login']").click() # new design button, no more 'btn-success'
         assert_text_displayed('Create a new', 'h1')  # wait for load
 
         info("Creating archive.")
@@ -316,7 +316,7 @@ class FunctionalTest(BaseTestCase):
         # find link
         assert_text_displayed(display_guid)
         # show details
-        get_css_selector('.link-row').click()
+        get_css_selector('.item-row').click()
         # for some reason these are throwing 500 errors on PATCH:
         # # change title
         # type_to_element(get_css_selector('input.link-title'), 'test')

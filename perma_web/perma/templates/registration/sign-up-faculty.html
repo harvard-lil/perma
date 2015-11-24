@@ -1,15 +1,15 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 
 {% block meta_description %}
 Perma.cc for faculty
 {% endblock %}
 
 {% block bodyFlags %}_signup _faculty{% endblock %}
-{% block mainFlags %}_fullWidth{% endblock %}
+{% block mainFlags %}{% endblock %}
 
 
-{% block content %}
-<div class="container">
+{% block mainContent %}
+<div class="container cont-fixed">
 	<div class="row">
 		<div class="col-sm-12">
 			<h1 class="page-title">Perma.cc for faculty</h1>
@@ -18,47 +18,47 @@ Perma.cc for faculty
 	</div>
 </div>
 
-<div class="container container-full toc-overview">
-	<div class="container toc-overview-container">
-		<div class="row">
-			<div class="col col-sm-by5 toc-module col-no-gutter">
-				<a class="toc-module-content" href="{% url 'sign_up' %}">
-					<strong class="toc-module-title">Individual</strong>
-					<p class="toc-module-description">Anyone can create a free account and start creating Perma Links.</p>
+<div class="container cont-full-bleed overview">
+	<div class="container cont-full-bleed cont-sm-fixed">
+		<div class="row row-no-bleed">
+			<div class="col col-sm-by5 overview-module col-no-gutter">
+				<a class="overview-module-content" href="{% url 'sign_up' %}">
+					<strong class="overview-module-title">Individual</strong>
+					<p class="overview-module-description">Anyone can create a free account and start creating Perma Links.</p>
 				</a>
 			</div>
-			<div class="col col-sm-by5 toc-module col-no-gutter">
-				<a class="toc-module-content" href="{% url 'libraries' %}">
-					<strong class="toc-module-title">Libraries</strong>
-					<p class="toc-module-description">Libraries play a critical role in powering and supporting Perma.cc.</p>
+			<div class="col col-sm-by5 overview-module col-no-gutter">
+				<a class="overview-module-content" href="{% url 'libraries' %}">
+					<strong class="overview-module-title">Libraries</strong>
+					<p class="overview-module-description">Libraries play a critical role in powering and supporting Perma.cc.</p>
 				</a>
 			</div>
-			<div class="col col-sm-by5 toc-module col-no-gutter">
-				<a class="toc-module-content" href="{% url 'sign_up_journals' %}">
-					<strong class="toc-module-title">Journals</strong>
-					<p class="toc-module-description">Over 150 academic law journals prevent link rot with Perma.cc.</p>
+			<div class="col col-sm-by5 overview-module col-no-gutter">
+				<a class="overview-module-content" href="{% url 'sign_up_journals' %}">
+					<strong class="overview-module-title">Journals</strong>
+					<p class="overview-module-description">Over 150 academic law journals prevent link rot with Perma.cc.</p>
 				</a>
 			</div>
-			<div class="col col-sm-by5 toc-module col-no-gutter">
-				<a class="toc-module-content" href="{% url 'sign_up_courts' %}">
-					<strong class="toc-module-title">Courts</strong>
-					<p class="toc-module-description">Courts care deeply about the long-term accuracy, integrity and reliability of the citations in their opinions.</p>
+			<div class="col col-sm-by5 overview-module col-no-gutter">
+				<a class="overview-module-content" href="{% url 'sign_up_courts' %}">
+					<strong class="overview-module-title">Courts</strong>
+					<p class="overview-module-description">Courts care deeply about the long-term accuracy, integrity and reliability of the citations in their opinions.</p>
 				</a>
 			</div>
-			<div class="col col-sm-by5 toc-module col-no-gutter _active">
-				<div class="toc-module-content" href="{% url 'sign_up_faculty' %}">
-					<strong class="toc-module-title">Faculty</strong>
-					<p class="toc-module-description">Faculty use Perma.cc to prevent link rot in their scholarship.</p>
+			<div class="col col-sm-by5 overview-module col-no-gutter _active">
+				<div class="overview-module-content" href="{% url 'sign_up_faculty' %}">
+					<strong class="overview-module-title">Faculty</strong>
+					<p class="overview-module-description">Faculty use Perma.cc to prevent link rot in their scholarship.</p>
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
 
-<div class="container container-reading">
+<div class="container cont-reading cont-fixed">
 	<div class="row signup-info">
 	    <div class="col-sm-4 signup-learnMore-form">	
-	        <h2 class="docs-ah">Create an account</h2>	
+	        <h2 class="body-ah">Create an account</h2>	
 			<form method="post" action="">
 				{% csrf_token %}
 				 <fieldset>
@@ -67,37 +67,37 @@ Perma.cc for faculty
 							<label for="id_{{ field.name }}">{{ field.label }}</label>
 							{{ field }}
 							{% if field.errors %}
-								{% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+								{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
 							{%elif field.help_text %}
 								<span class="help-inline">{{ field.help_text }}</span>
 							{% endif %}
 						</div>
 					{% endfor %}
-                	{% if form.non_field_errors %}<span class="text-error">{{ form.non_field_errors }}</span>{% endif %}
-					<p><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
+                	{% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
+					<p class="body-text"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
 			  </fieldset>
-				<button type="submit" class="btn btn-success">Create account</button>
+				<button type="submit" class="btn">Create account</button>
 			</form>
 		</div>
 	    <div class="col-sm-8 reading-body">
-            <h2>Perma.cc for faculty</h2>	
-            <p>Faculty use Perma.cc to prevent link rot in their scholarship.</p>
+            <h2 class="body-ah">Perma.cc for faculty</h2>	
+            <p class="body-text">Faculty use Perma.cc to prevent link rot in their scholarship.</p>
 			
-			<h3>Free and easy to use</h3>
-			<p>Perma.cc is free for faculty and easy to use, and you can authorize others, such as assistants and researchers, to preserve sources on your behalf.<p>
+			<h3 class="body-bh">Free and easy to use</h3>
+			<p class="body-text">Perma.cc is free for faculty and easy to use, and you can authorize others, such as assistants and researchers, to preserve sources on your behalf.<p class="body-text">
 			
-			<h3>Bluebook compliant</h3>
-			<p>The Bluebook now encourages archiving online sources when a reliable service such as Perma.cc is available.<p>
+			<h3 class="body-bh">Bluebook compliant</h3>
+			<p class="body-text">The Bluebook now encourages archiving online sources when a reliable service such as Perma.cc is available.<p class="body-text">
 			
-			<h3>Contact your library for a journal account</h3>
-			<p>If your library is already registered with us (see the full list <a href="{% url 'about' %}#partners">here</a>), contact them for setup. If not, invite your library to visit our <a href="{% url 'libraries' %}">library resource page</a> to request membership, and we’ll help them get started.<p>
+			<h3 class="body-bh">Contact your library for a journal account</h3>
+			<p class="body-text">If your library is already registered with us (see the full list <a href="{% url 'about' %}#partners">here</a>), contact them for setup. If not, invite your library to visit our <a href="{% url 'libraries' %}">library resource page</a> to request membership, and we’ll help them get started.<p class="body-text">
 			
-			<h3>Try it now</h3>
-			<p>If you'd like to get started now with a free, individual account, please fill out this form. Your library will be able to upgrade your individual account at a later date.<p>
+			<h3 class="body-bh">Try it now</h3>
+			<p class="body-text">If you'd like to get started now with a free, individual account, please fill out this form. Your library will be able to upgrade your individual account at a later date.<p class="body-text">
 		</div>
 	</div>
 </div>
-{% endblock content %}
+{% endblock mainContent %}
 {% block scripts %}
 <script>
 $(document).ready(function(){

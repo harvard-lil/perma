@@ -2,29 +2,29 @@
 {% load local_datetime humanize current_query_string %}
 {% block title %} | Organizations{% endblock %}
 
-{% block content %}
+{% block dashboardContent %}
 
-	<h2 class="body-ah">Vesting Organizations {% if request.user.is_staff or request.user.is_registrar_member %}<span class="action"><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add<span class="verbose"> vesting organization</span></a></span></h2>
+	<h2 class="body-ah">Vesting Organizations {% if request.user.is_staff or request.user.is_registrar_member %}<span class="action"><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add<span class="_verbose"> vesting organization</span></a></span></h2>
 		
 	<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
       <form method="post">
         {% csrf_token %}
         <h4 class="body-ch">Add a Vesting Organization</h4>
 				<fieldset>
-					{% if form.non_field_errors %}<span class="text-error">{{ form.non_field_errors }}</span>{% endif %}
+					{% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
 					{% for field in form %}
 						<div class="form-group{% if field.errors %} _error{% endif %}">
 							<label for="id_{{ field.name }}">{{ field.label }}</label>
 							{{ field }}
 							{% if field.errors %}
-								{% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
+								{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
 							{%elif field.help_text %}
-								<span class="text-error">{{ field.help_text }}</span>
+								<span class="field-error">{{ field.help_text }}</span>
 							{% endif %}
 						</div>
 					{% endfor %}
 				</fieldset>
-        <button type="submit" class="btn btn-success">Create new organization</button>
+        <button type="submit" class="btn">Create new organization</button>
       </form>
     </div>
     {% else %}
@@ -32,7 +32,7 @@
     {% endif %}
 
     <div class="row row-no-bleed admin-data">
-        <div class="col col-sm-6 col-no-gutter admin-data-point">
+        <div class="col col-xs-6 col-no-gutter admin-data-point">
                 <p class="count-label">Users</p>
                 <p class="count-number">{{ users_count }}</p>
             </div>
@@ -46,7 +46,7 @@
                 <p class="count-number">{{ unactivated_users }}</p>
             </div>
             {% endcomment %}
-        <div class="col col-sm-6 col-no-gutter admin-data-point">
+        <div class="col col-xs-6 col-no-gutter admin-data-point">
             <p class="count-label">Organizations</p>
             <p class="count-number">{{ orgs.paginator.count }}</p>
         </div>
@@ -73,7 +73,7 @@
         {% endif %}
 
         <div class="row row-no-bleed">
-            <div class="col col-sm-12 admin-found col-no-gutter">
+            <div class="col admin-found col-no-gutter">
                 <p class="sort-filter-count"><strong>Found:</strong> {{ orgs.paginator.count }} organization{{ orgs.paginator.count|pluralize }}</p>
                 <div class="sort-filter-bar">
 				<strong>Filter &amp; Sort:</strong>
@@ -125,54 +125,58 @@
         </div>
         {% if orgs %}
           {% for org in orgs %}
-            <div class="row list-user row-no-bleed list-user-registrar">
+            <div class="item-container">
 		        <div class="row row-no-bleed">
 		            <div class="col col-sm-8 col-no-gutter">
-			            <p class="list-name"><a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">{{ org.name }}</a></p>
+			            <div class="item-title"><a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">{{ org.name }}</a></div>
 						{% if request.user.is_staff %}
-							<p class="list-registrar"><a href="{% url 'user_management_manage_registrar' %}?q={{org.registrar.name.split|join:'+'|lower}}">{{ org.registrar }}</a></p>
+							<div class="item-affil"><a href="{% url 'user_management_manage_registrar' %}?q={{org.registrar.name.split|join:'+'|lower}}">{{ org.registrar }}</a></div>
 						{% endif %}
 
-			            <div class="row row-half-bleed org-data-points">
-							<div class="col col-sm-4 col-half-gutter org-data-point">
-				                <div class="list-count-group">
-									<strong class="list-count-number">{{ org.org_links|intcomma }}</strong>
-									<span class="list-count-label">links</span>
+			            <div class="row row-half-bleed item-count-groups">
+							<div class="col col-xs-12 col-md-4 col-half-gutter">
+				                <div class="item-count-group">
+									<strong class="list-count-number">{{ org.vested_links|intcomma }}</strong>
+									<span class="item-count-label">links</span>
 					                {% comment %}
-					                    <div class="list-count-group">
+					                    <div class="item-count-group">
 						                    <p class="list-count-number{% if group_name == 'user'%} vesting_user-list{% endif %}">{{ org.created_links_count }}</p>
-						                    <p class="list-count-label">created links</p>
+						                    <p class="item-count-label">created links</p>
 					                    </div>
 				                    {% endcomment %}
 				                </div>
 							</div>
-							<div class="col col-sm-4 col-half-gutter org-data-point">
-				                <div class="list-count-group">
+							<div class="col col-xs-12 col-md-4 col-half-gutter">
+				                <div class="item-count-group">
 					                <strong class="list-count-number">{{ org.organization_users|default_if_none:"0" }}</strong>
-					                <span class="list-count-label">users <a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">View</a></span>
+					                <span class="item-count-label">users <a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">View</a></span>
 				                </div>
 			                </div>
 				                {% comment %}
-					                <div class="list-count-group"><a href="{% url 'user_management_manage_organization_user' %}?vesting_org={{org.name.split|join:'+'|lower}}&status=deactivated">
+					                <div class="item-count-group"><a href="{% url 'user_management_manage_organization_user' %}?vesting_org={{org.name.split|join:'+'|lower}}&status=deactivated">
 					                <p class="list-count-number">{{ org.deactivated_count|default_if_none:"0" }}</p>
-					                <p class="list-count-label">deactivated users</p></a>
+					                <p class="item-count-label">deactivated users</p></a>
 					                </div>
-					                <div class="list-count-group"><a href="{% url 'user_management_manage_organization_user' %}?vesting_org={{org.name.split|join:'+'|lower}}&status=unactivated">
+					                <div class="item-count-group"><a href="{% url 'user_management_manage_organization_user' %}?vesting_org={{org.name.split|join:'+'|lower}}&status=unactivated">
 					                <p class="list-count-number">{{ org.unactivated_count|default_if_none:"0" }}</p>
-					                <p class="list-count-label">unactivated users</p></a>
+					                <p class="item-count-label">unactivated users</p></a>
 					                </div>
 				                {% endcomment %}
 						</div>
 		            </div>
+<<<<<<< HEAD
 		            <div class="col col-sm-4 col-no-gutter align-right admin-actions">
 		            	{% if org.org_links < 1 %}
 		            		<a class="action" href="{% url 'user_management_manage_single_organization_delete' org.id %}">delete</a>
 		            	{% endif %}
+=======
+		            <div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
+>>>>>>> b8b6877dabb4a78cc159c889cfbcbf888b6d3cd2
 			            <a class="action" href="{% url 'user_management_manage_single_organization' org.id %}">edit</a>
 			            {% if request.user.is_staff %}
 			                <a class="action" href="{% url 'admin:perma_organization_change' org.id %}">edit in admin console</a>
 			            {% endif %}
-						<p class="list-date">
+						<p class="item-activity">
 						created {{ org.date_created|date:'N j, Y' }}
 						<br>
 						{% if org.organization_users %}
@@ -186,7 +190,7 @@
 			</div>	
           {% endfor %}
     {% else %}
-        <p class="no-users-found">No organizations found.</p>
+        <p class="item-notification">No organizations found.</p>
     {% endif %}
 
     {% include "user_management/includes/paginator.html" with page=orgs %}

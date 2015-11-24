@@ -1,23 +1,23 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 
 {% block meta_description %}
 Register for a Perma.cc account. Welcome aboard.
 {% endblock %}
 
-{% block content %}
-<div class="container">
+{% block mainContent %}
+<div class="container cont-fixed">
 	<div class="row">
 		<div class="col-sm-4">	
 			<h2>Register</h2>
 			<form method="post" action="">
 				{% csrf_token %}
 				 <fieldset>
-				<span class="text-error"><br/>{{ form.non_field_errors }}</span>
+				<span class="field-error"><br/>{{ form.non_field_errors }}</span>
 				{% for field in form %}
 				  <br /><label for="id_{{ field.name }}">{{ field.label }}</label><br/>
 				  {{ field }}
 				  {% if field.errors %}
-					{% for error in field.errors %}<span class="text-error"><br/>{{ error }}</span>{% endfor %}
+					{% for error in field.errors %}<span class="field-error"><br/>{{ error }}</span>{% endfor %}
 				  {%elif field.help_text %}
 					<span class="help-inline"><br/>{{ field.help_text }}</span>
 				  {% endif %}<br/>
@@ -41,7 +41,7 @@ Register for a Perma.cc account. Welcome aboard.
 <br/>
 <br/>
 <br/>
-{% endblock content %}
+{% endblock mainContent %}
 {% block scripts %}
 <script>
 $(document).ready(function(){

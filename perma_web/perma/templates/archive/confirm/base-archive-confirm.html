@@ -3,14 +3,14 @@
 {% block title %} | {{link.submitted_title}}{% endblock %}
 
 
-{% block row %}
+{% block mainContent %}
 	{% if messages %}
 	    {% for message in messages %}
 	        <div class="alert alert-{% if message.level >= 30 %}danger{% else %}success{% endif %} popup-alert">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
 	    {% endfor %}
 	{% endif %}
 
-<div class="container container-bleed" id="dashboard-container">
+<div id="dashboard-container" class="container cont-full-bleed cont-sm-fixed-bleed">
    <!-- Dashboard tab content -->
     <div class="tab-content col-sm-12">
         <div class="tab-pane active">

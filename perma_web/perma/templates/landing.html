@@ -1,4 +1,4 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 
 {% load pipeline %}
 
@@ -7,18 +7,18 @@
 
 {% block bodyFlags %}{% if request.user.is_authenticated %}_search{% else %}_welcome{% endif %}{% endblock %}
 
-{% block content %}
+{% block mainContent %}
 
 <!-- URL input -->
 <section id="home-description">
-    <div class="container">
+    <div class="container cont-fixed">
 		<div class="row">
 			<div class="col-sm-12">
 				<h1 class="page-title">Perma.cc prevents link rot.</h1>
 			</div>
 		</div>
     </div>
-    <div class="container">
+    <div class="container cont-fixed">
     	<div class="row welcome">
         	<div class="col-sm-6">
         		<div class="content">
@@ -26,11 +26,11 @@
 					<p class="display">Our solution is called a <strong class="vocab">Perma Link</strong>. <br/>Here’s an example: <a class="perma" href="http://perma.cc/4RH7-999Q" target="_blank">perma.cc/4RH7-999Q</a></p>
 	
 	                {% if request.user.is_authenticated %}
-	                    <p><a href="{% url 'create_link' %}" class="btn btn-large btn-success">Visit your Dashboard</a></p>
+	                    <p><a href="{% url 'create_link' %}" class="btn btn-large">Visit your Dashboard</a></p>
 	                {% else %}
 					    <div class="buttons">
-					    	<a href="{% url 'sign_up' %}" class="btn btn-large btn-success _primary">Learn more and sign up</a>
-					    	<a href="{% url 'libraries' %}" class="btn btn-large btn-success">Try Perma.cc for libraries</a>
+					    	<a href="{% url 'sign_up' %}" class="btn btn-large _primary">Learn more and sign up</a>
+					    	<a href="{% url 'libraries' %}" class="btn btn-large">Try Perma.cc for libraries</a>
 					    </div>
 	                {% endif %}
         		</div>
@@ -56,13 +56,13 @@
 	</div><!--container-->	
 	       
 	<div class="welcome2">
-    	 <div class="container">
+    	 <div class="container cont-fixed">
 			<div class="row">
 				<div class="col-sm-6">
 	        		<div class="content">
 						<h2 class="mega">Library-strength reliability</h2>
 						<p class="display">Perma.cc was built by Harvard’s <a href="http://librarylab.law.harvard.edu">Library Innovation Lab</a> and is backed by the power of libraries. We’re both in the forever business: libraries already look after physical and digital materials — now we can do the same for links.</p>
-						<p class="body">If you’re a librarian or are affiliated with a library, we can make using Perma.cc free and simple for you and the scholars that depend on you. We’ve answered many common questions and prepared a special library signup at the link below.</p>
+						<p class="body-text">If you’re a librarian or are affiliated with a library, we can make using Perma.cc free and simple for you and the scholars that depend on you. We’ve answered many common questions and prepared a special library signup at the link below.</p>
 						<p><a href="{% url 'libraries' %}" class="btn btn-large">Try Perma.cc for libraries</a></p>
 	        		</div>
 				</div><!--col-sm-6-->
@@ -85,7 +85,7 @@
 
 
     <div id="examples">
-        <div class="container">
+        <div class="container cont-fixed">
             <div class="row">
                 <div class="col-sm-12">
                     <h2 class="text-center mega">Perma.cc in the real world</h2>
@@ -93,7 +93,7 @@
             </div><!--row-->
 
             <div id="examples-items" class="row">
-                <div class="col-sm-6 thumbnail">
+                <div class="col-sm-6 capsule">
                     <img src="{{ STATIC_URL }}img/examples/michigan-supreme-court-seal-trans.gif">
                     <div class="content">
                         <h4>Michigan Supreme Court</h4>
@@ -105,7 +105,7 @@
                         </p>
                     </div>
                 </div>
-                <div class="col-sm-6 thumbnail">
+                <div class="col-sm-6 capsule">
                     <img src="{{ STATIC_URL }}img/examples/harvard-law-review.gif">
                     <div class="content">
                         <h4>Harvard Law Review</h4>
@@ -131,7 +131,7 @@
 
 
     <div id="how-it-works">
-        <div class="container">
+        <div class="container cont-fixed">
         	<h2 class="text-center mega">How Perma.cc works</h2>
             <div class="row">
                 <div class="col-sm-6 _text">
@@ -139,7 +139,7 @@
                     <p class="how-point-subtitle">Convert your link into a Perma Link.</p>
                     <p class="display">With a Perma.cc account, you can create links to permanent records of the web pages cited in your work. All you have to do is enter the URL of the page you want to preserve. Perma.cc creates a snapshot record of the page at that moment and gives you a unique, unbreakable Perma Link — like <a href="http://perma.cc/FC7M-CRS9" class="perma" target="_blank">perma.cc/FC7M-CRS9</a> — that you can use in your citations to direct readers to the preserved record.</p>
                     <p class="display">These unvested Perma Links remain active for two years. To preserve them permanently, continue to Step 2 and <a href="{% url 'docs_perma_link_vesting' %}" class="vocab">vest</a> them.
-                    <p><a href="{% url 'docs_perma_link_creation' %}" class="btn btn-large btn-more">Read more<span class="verbose"> about creating Perma Links</span></a></p>
+                    <p><a href="{% url 'docs_perma_link_creation' %}" class="btn btn-large btn-more">Read more<span class="_verbose"> about creating Perma Links</span></a></p>
                 </div>
                 <div class="col-sm-6 _image">
                     <img class="img-responsive" src="{{ STATIC_URL }}img/create-links.png" alt="An illustration of Perma.cc links being placed in a documents citations."/>
@@ -154,7 +154,7 @@
                     <h4 class="how-point-title" id="vest"><span class="num">2 /</span> Vest</h4>
                     <p class="how-point-subtitle">Approve your Perma Link.</p>
                     <p class="display">To keep your Perma Link active permanently, it needs to be vested (or “approved”) by someone affiliated with a <a href="{% url 'docs_perma_link_vesting' %}" class="vocab">Vesting Organization</a>, such as a library, journal, or court. Vesting helps assure that our Perma Links are valid, necessary, and correct. Perma.cc limits vesting privileges to help prevent abuse and to focus on solving the problem of link rot in academic and legal writing.</p>
-                    <p><a href="{% url 'docs_perma_link_vesting' %}" class="btn btn-large btn-more">Read more<span class="verbose"> about vesting and Vesting Organizations</span></a></p>
+                    <p><a href="{% url 'docs_perma_link_vesting' %}" class="btn btn-large btn-more">Read more<span class="_verbose"> about vesting and Vesting Organizations</span></a></p>
                 </div>
                 <div class="col-sm-6 _image">
                     <img src="{{ STATIC_URL }}img/signal.png" class="img-responsive" alt="Responsive image" alt="A railroad light with green and red colors. Perma.cc archive need to be vested before they receive the permanent archive greenlight.">
@@ -169,7 +169,7 @@
 	                <h4 class="how-point-title" id="archive"><span class="num">3 /</span> Archive</h4>
                     <p class="how-point-subtitle">Preserve your Perma Link permanently.</p>
                     <p class="display">Once your Perma Link is vested, it will be preserved in perpetutity by our <a href="#">network of participating libraries</a>. You can organize and manage your Perma Links through your Perma.cc <a href="#" class="vocab">Dashboard.</a></p>
-                    <p><a href="{% url 'docs_perma_archive' %}" class="btn btn-large btn-more">Read more<span class="verbose"> about Perma Link records</span></a></p>
+                    <p><a href="{% url 'docs_perma_archive' %}" class="btn btn-large btn-more">Read more<span class="_verbose"> about Perma Link records</span></a></p>
 	            </div>
                 <div class="col-sm-6 _image">
                     <img class="img-responsive" src="{{ STATIC_URL }}img/shelf2.png" alt="An illustration of Perma.cc archives sitting next to books. Physical and digital archives are important to libraries."/>
@@ -182,7 +182,7 @@
     </div>
 
     <div id="supporting-partners">
-        <div class="container">
+        <div class="container cont-fixed">
             <div class="row">
                 <div class="col-sm-12 supporting-partners">
 
@@ -211,7 +211,7 @@
 
 {% block footer %}
 <footer>
-	<div class="container">
+	<div class="container cont-fixed">
 		<div class="row">
 			<div class="col col-sm-6">
 				<ul id="footer-nav">
