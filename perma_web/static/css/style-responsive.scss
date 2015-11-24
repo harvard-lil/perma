@@ -5776,6 +5776,21 @@ td.registrar-website-cell {
 	    margin-top: 0;
 	    border-top: 1px solid $color-trans-gray;
     }
+    &._isPrivate {
+		    span.ui-private {
+			    overflow: hidden;
+			    display: inline-block;
+			    text-indent: -10000px;
+			    position: relative;
+			    height: 16px;
+			    width: 18px;
+			    background-image: url('../img/ui/perma-ui-private.png');
+			    background-repeat: no-repeat;
+			    background-size: cover;
+			    margin-right: 4px;
+			    bottom: -2px;
+		    }
+	}
     a.action {
 	    display: inline-block;
 	    padding: 0px 6px 0px;

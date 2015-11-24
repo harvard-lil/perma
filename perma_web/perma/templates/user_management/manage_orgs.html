@@ -125,10 +125,10 @@
         </div>
         {% if orgs %}
           {% for org in orgs %}
-            <div class="row list-user row-no-bleed list-user-registrar">
+            <div class="row list-user row-no-bleed list-user-registrar{% if org.default_to_private %} _isPrivate{% endif %}">
 		        <div class="row row-no-bleed">
 		            <div class="col col-sm-8 col-no-gutter">
-			            <p class="list-name"><a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">{{ org.name }}</a></p>
+			            <p class="list-name"><a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">{% if org.default_to_private %}<span class="ui-private">[private]</span>{% endif %}{{ org.name }}</a></p>
 						{% if request.user.is_staff %}
 							<p class="list-registrar"><a href="{% url 'user_management_manage_registrar' %}?q={{org.registrar.name.split|join:'+'|lower}}">{{ org.registrar }}</a></p>
 						{% endif %}
