@@ -1,0 +1,242 @@
+{% extends "base-responsive.html" %}
+
+{% load pipeline %}
+
+{% block styles %}
+{% endblock %}
+
+{% block bodyFlags %}{% if request.user.is_authenticated %}_search{% else %}_welcome{% endif %}{% endblock %}
+
+{% block mainContent %}
+
+<!-- URL input -->
+<section id="home-description">
+    <div class="container cont-fixed">
+		<div class="row">
+			<div class="col-sm-12">
+				<h1 class="page-title">Perma.cc prevents link rot.</h1>
+			</div>
+		</div>
+    </div>
+    <div class="container cont-fixed">
+    	<div class="row welcome">
+        	<div class="col-sm-6">
+        		<div class="content">
+					<p class="display">Websites change, go away, and get taken down. When they do, linked citations can lead to broken, blank, unintentional, or even malicious pages. This decay is called “link rot.” <strong class="orange">Perma.cc</strong> helps scholars, journals and courts prevent link rot by creating permanent, reliable, unalterable links to the online sources cited in their work. </p>
+					<p class="display">Our solution is called a <strong class="vocab">Perma Link</strong>. <br/>Here’s an example: <a class="perma" href="http://perma.cc/4RH7-999Q" target="_blank">perma.cc/4RH7-999Q</a></p>
+	
+	                {% if request.user.is_authenticated %}
+	                    <p><a href="{% url 'create_link' %}" class="btn btn-large">Visit your Dashboard</a></p>
+	                {% else %}
+					    <div class="buttons">
+					    	<a href="{% url 'sign_up' %}" class="btn btn-large _primary">Learn more and sign up</a>
+					    	<a href="{% url 'libraries' %}" class="btn btn-large">Try Perma.cc for libraries</a>
+					    </div>
+	                {% endif %}
+        		</div>
+			</div>	
+			
+			
+			<div class="col-sm-6 _image">
+        		<div class="content">
+					<a href="http://perma.cc/FC7M-CRS9" target="_blank"><img class="img-responsive" src="{{ STATIC_URL }}img/cited.gif" alt="Citations are used in the Harvard Law Review." /></a>
+					<!--<div class="">
+					<img  name="citation" src="{{ STATIC_URL }}img/citation.png" width="1168" height="952" border="0" id="citation" usemap="#m_citation" alt="" />
+					<map name="m_citation" id="m_citation">
+						<area shape="rect" coords="135,714,555,770" href="http://perma.cc/HX7J-JMHE" target="_blank" alt="" />
+						<area shape="rect" coords="99,506,644,565" href="http://perma.cc/FC7M-CRS9" target="_blank" alt="" />
+					</map>
+					</div>-->
+					<div class="caption">
+						<p>The <cite>Harvard Law Review</cite> uses Perma Links for citations to URLs in their articles.</p>
+					</div>
+        		</div>
+			</div>	
+		</div>	<!--row-->
+	</div><!--container-->	
+	       
+	<div class="welcome2">
+    	 <div class="container cont-fixed">
+			<div class="row">
+				<div class="col-sm-6">
+	        		<div class="content">
+						<h2 class="mega">Library-strength reliability</h2>
+						<p class="display">Perma.cc was built by Harvard’s <a href="http://librarylab.law.harvard.edu">Library Innovation Lab</a> and is backed by the power of libraries. We’re both in the forever business: libraries already look after physical and digital materials — now we can do the same for links.</p>
+						<p class="body-text">If you’re a librarian or are affiliated with a library, we can make using Perma.cc free and simple for you and the scholars that depend on you. We’ve answered many common questions and prepared a special library signup at the link below.</p>
+						<p><a href="{% url 'libraries' %}" class="btn btn-large">Try Perma.cc for libraries</a></p>
+	        		</div>
+				</div><!--col-sm-6-->
+				<div class="col-sm-6 _image">
+	        		<div class="content">
+					    {% include "includes/partner_map.html" %}
+						<div class="caption">
+							<p>Perma.cc is used and supported by libraries and institutions across America.</p>
+						</div>
+	        		</div>
+				</div><!--col-sm-6-->
+			</div><!--row-->
+			<div class="row">
+				<div class="col-sm-12">
+                    {% include "includes/participating_institutions.html" %}
+				</div><!--col-sm-12-->
+			</div><!--row-->	
+		</div><!--container-->
+	</div><!--/welcome2-->
+
+
+    <div id="examples">
+        <div class="container cont-fixed">
+            <div class="row">
+                <div class="col-sm-12">
+                    <h2 class="text-center mega">Perma.cc in the real world</h2>
+                </div>
+            </div><!--row-->
+
+            <div id="examples-items" class="row">
+                <div class="col-sm-6 capsule">
+                    <img src="{{ STATIC_URL }}img/examples/michigan-supreme-court-seal-trans.gif">
+                    <div class="content">
+                        <h4>Michigan Supreme Court</h4>
+                        <p>The Michigan Supreme Court uses Perma to preserve citations in its published decisions.</p>
+                        <p>
+                            <a href="#" class="btn btn-primary" role="button" data-img="MSC_1">Example 1</a>
+                            <a href="#" class="btn btn-default" role="button" data-img="MSC_2">2</a>
+                            <a href="#" class="btn btn-default" role="button" data-img="MSC_3">3</a>
+                        </p>
+                    </div>
+                </div>
+                <div class="col-sm-6 capsule">
+                    <img src="{{ STATIC_URL }}img/examples/harvard-law-review.gif">
+                    <div class="content">
+                        <h4>Harvard Law Review</h4>
+                        <p>The Harvard Law Review uses Perma to preserve citations in law review articles.</p>
+                        <p>
+                            <a href="#" class="btn btn-primary" role="button" data-img="HLR_1">Example 1</a>
+                            <a href="#" class="btn btn-default" role="button" data-img="HLR_2">2</a>
+                            <a href="#" class="btn btn-default" role="button" data-img="HLR_3">3</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="example" class="row" style="display: none">
+                <div class="col-sm-12">
+                    {# content will be put here by landing.js when buttons above are clicked #}
+                    <div id="example-image-wrapper"><img src=""></div>
+                    <div id="example-title">View Original: <span></span>.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="how-it-works">
+        <div class="container cont-fixed">
+        	<h2 class="text-center mega">How Perma.cc works</h2>
+            <div class="row">
+                <div class="col-sm-6 _text">
+                    <h4 class="how-point-title" id="create"><span class="num">1 /</span> Create</h4>
+                    <p class="how-point-subtitle">Convert your link into a Perma Link.</p>
+                    <p class="display">With a Perma.cc account, you can create links to permanent records of the web pages cited in your work. All you have to do is enter the URL of the page you want to preserve. Perma.cc creates a snapshot record of the page at that moment and gives you a unique, unbreakable Perma Link — like <a href="http://perma.cc/FC7M-CRS9" class="perma" target="_blank">perma.cc/FC7M-CRS9</a> — that you can use in your citations to direct readers to the preserved record.</p>
+                    <p class="display">These unvested Perma Links remain active for two years. To preserve them permanently, continue to Step 2 and <a href="{% url 'docs_perma_link_vesting' %}" class="vocab">vest</a> them.
+                    <p><a href="{% url 'docs_perma_link_creation' %}" class="btn btn-large btn-more">Read more<span class="_verbose"> about creating Perma Links</span></a></p>
+                </div>
+                <div class="col-sm-6 _image">
+                    <img class="img-responsive" src="{{ STATIC_URL }}img/create-links.png" alt="An illustration of Perma.cc links being placed in a documents citations."/>
+					<div class="caption">
+						<p>Perma Links are short, consistent, and simple to add to academic and legal citations.</p>
+					</div>
+                </div>
+            </div><!--row-->
+
+            <div class="row">
+                <div class="col-sm-6 _text">
+                    <h4 class="how-point-title" id="vest"><span class="num">2 /</span> Vest</h4>
+                    <p class="how-point-subtitle">Approve your Perma Link.</p>
+                    <p class="display">To keep your Perma Link active permanently, it needs to be vested (or “approved”) by someone affiliated with a <a href="{% url 'docs_perma_link_vesting' %}" class="vocab">Vesting Organization</a>, such as a library, journal, or court. Vesting helps assure that our Perma Links are valid, necessary, and correct. Perma.cc limits vesting privileges to help prevent abuse and to focus on solving the problem of link rot in academic and legal writing.</p>
+                    <p><a href="{% url 'docs_perma_link_vesting' %}" class="btn btn-large btn-more">Read more<span class="_verbose"> about vesting and Vesting Organizations</span></a></p>
+                </div>
+                <div class="col-sm-6 _image">
+                    <img src="{{ STATIC_URL }}img/signal.png" class="img-responsive" alt="Responsive image" alt="A railroad light with green and red colors. Perma.cc archive need to be vested before they receive the permanent archive greenlight.">
+					<div class="caption">
+						<p>Vesting helps to assure that our Perma Links are valid, necessary, and correct.</p>
+					</div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-sm-6 _text">
+	                <h4 class="how-point-title" id="archive"><span class="num">3 /</span> Archive</h4>
+                    <p class="how-point-subtitle">Preserve your Perma Link permanently.</p>
+                    <p class="display">Once your Perma Link is vested, it will be preserved in perpetutity by our <a href="#">network of participating libraries</a>. You can organize and manage your Perma Links through your Perma.cc <a href="#" class="vocab">Dashboard.</a></p>
+                    <p><a href="{% url 'docs_perma_archive' %}" class="btn btn-large btn-more">Read more<span class="_verbose"> about Perma Link records</span></a></p>
+	            </div>
+                <div class="col-sm-6 _image">
+                    <img class="img-responsive" src="{{ STATIC_URL }}img/shelf2.png" alt="An illustration of Perma.cc archives sitting next to books. Physical and digital archives are important to libraries."/>
+					<div class="caption">
+						<p>Perma.cc Records are preserved in perpetuity by our network of libraries and other institutions in the forever business.</p>
+					</div>
+                </div>
+            </div>
+        </div><!--/container-->
+    </div>
+
+    <div id="supporting-partners">
+        <div class="container cont-fixed">
+            <div class="row">
+                <div class="col-sm-12 supporting-partners">
+
+                    <h2>Perma.cc’s Supporting Partners</h2>
+
+                    <div>
+                        <a href="http://librarylab.law.harvard.edu/"><img src="{{ STATIC_URL }}img/supporting-partners/LIL-bw.gif" alt="Harvard Library Innovation Lab" class="square"></a>
+                        <a href="http://lipalliance.org/"><img src="{{ STATIC_URL }}img/supporting-partners/LIPA-bw.gif" alt="Legal Information Preservation Alliance" class="square"></a>
+                        <a href="http://cyber.law.harvard.edu/"><img src="{{ STATIC_URL }}img/supporting-partners/Berkman-bw.gif" alt="Berkman Center for Internet and Society"></a>
+                        <a href="http://archive.org/index.php" class="square"><img src="{{ STATIC_URL }}img/supporting-partners/IA-bw.gif" alt="Internet Archive" class="square"></a>
+                        <a href="http://dp.la/"><img src="{{ STATIC_URL }}img/supporting-partners/DPLA-bw.gif" alt="Digital Public Library of America"></a>
+                        <a href="https://www.cloudflare.com/"><img src="{{ STATIC_URL }}img/supporting-partners/CloudFlare-bw.gif" alt="CloudFlare, Inc."></a>
+                        <a href="http://dyn.com/"><img src="{{ STATIC_URL }}img/supporting-partners/Dyn-bw.gif" alt="Dyn"></a>
+                    </div>
+
+
+                </div><!--/col-->
+            </div><!--/row-->
+
+        </div><!--/container-->
+    </div>
+
+</section><!-- home-description -->
+
+{% endblock %}
+
+{% block footer %}
+<footer>
+	<div class="container cont-fixed">
+		<div class="row">
+			<div class="col col-sm-6">
+				<ul id="footer-nav">
+		            <!--<li class="footer-nav-item"><a class="home" href="{% url 'landing' %}">Perma.cc</a></li>-->
+		            <li class="footer-nav-item"><a href="{% url 'about' %}">About</a></li>
+		            <li class="footer-nav-item"><a href="{% url 'docs' %}">Guide</a></li>
+		            <li class="footer-nav-item"><a href="{% url 'dev_docs' %}">Developers</a></li>
+		            <li class="footer-nav-item"><a href="{% url 'contact' %}">Contact</a></li>
+		            <li class="footer-nav-item"><a href="https://blogs.law.harvard.edu/perma/">Blog</a></li>
+		            <li class="footer-nav-item"><a href="https://github.com/harvard-lil/perma">Github</a></li>
+				</ul>
+			</div>
+			<div class="col col-sm-6">
+				<ul id="boilerplate">
+					<li class="boilerplate-item"><a href="{% url 'terms_of_service' %}">Terms of Service</a></li>
+					<li class="boilerplate-item"><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
+					<li class="boilerplate-item"><a href="{% url 'copyright_policy' %}">Copyright Policy</a></li>
+				</ul>
+			</div>
+		</div>
+	</div><!--/container-->
+</footer>
+{% endblock %}
+
+{% block scripts %}
+    {% javascript 'landing' %}
+    {% javascript 'map' %}
+{% endblock %}
