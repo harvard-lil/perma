@@ -46,6 +46,18 @@
 	}
 }
 
+.style-standard-border-hover {
+	&:hover, &:focus {
+		color: $color-hover;
+		border-color: $color-hover;
+	}
+	&:active {
+		color: $color-active;
+		border-color: $color-active;
+	}
+}
+
+
 .style-button-hover {
 	&:hover, &:focus {
 		background-color: $color-hover;
@@ -516,6 +528,45 @@ a {
 			}
 		}
 	}
+	&.link-block {
+		display: block;
+	}
+	&.xs-badge-sq {
+		text-align: center;
+		background-color: $color-highlight;
+		display: table;
+		height: 6em;
+		border: 1px solid rgba(0,0,0,.1);
+		font-family: $font-hed-alt;
+		padding: $grid $grid * 2;
+		margin-top: $grid * 4;
+		border-radius: 2px;
+		position: relative;
+		.badge-inner {
+			display: table-cell;
+			vertical-align: middle;
+		}
+		&:after {
+			content: '';
+			display: block;
+			height: $grid * 3;
+			width: $grid * 3;
+			//background-color: white;
+			//border: 1px solid $color-blue;
+			position: absolute;
+			top: -8px;
+			right: -8px;
+			border-radius: $grid * 8;
+			//box-shadow: 0px 0px 0px 1px $color-blue;
+			background-image: url('../img/ui/perma-ui-success.svg');
+			background-size: contain;
+			background-repeat: no-repeat;
+
+		}
+		strong {
+			display: block;
+		}
+	}
 }
 
 a.action {
@@ -681,6 +732,13 @@ p a.perma { @extend a.perma }
 			margin-top: 0;
 			padding-left: $grid * 4
 		}
+	}
+}
+
+.row.row-halfgutter {
+	margin: 0 $bleed / 2 !important;
+	@include all-columns {
+		padding: 0 $bleed / -2;
 	}
 }
 
@@ -3871,19 +3929,29 @@ span.action {
 	margin-bottom: 2px;
 }
 
-
-
-
-
-
-
-
-
-
-
-
 //	Landing 
 
+
+section {
+	padding-bottom: $grid * 4;
+	& + section {
+		padding-top: $grid * 4;
+	}
+}
+
+.primary-intro {
+	font-family: $font-hed-alt;
+	font-size: $size-large;
+	a {
+		font-weight: inherit;
+		border-bottom: 1px solid $color-trans-lightgray;
+		@extend .style-standard-border-hover;
+	}
+}
+
+
+
+/*
 #supporting-partners {
 	margin-top: $grid * 4;
 	padding: $grid * 4 0;
@@ -4219,3 +4287,4 @@ p.display {
 		margin-top: 10px;
 	}
 }
+*/
