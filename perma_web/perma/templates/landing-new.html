@@ -46,22 +46,24 @@
 
 <section id="landing-problem" class="container-fluid cont-bg">
     <div class="container cont-fixed">
-		<h2 class="section-title">Why do we exist? Link rot is hurting you.</h2>
-		<p class="section-subtitle">Link rot kills academic citations. Perma.cc kills link rot.</p>
+		<h2 class="section-title">What is link rot?</h2>
+		<p class="section-subtitle">When linked citations lead to broken, blank, unintentional, or even malicious pages, that’s called “link rot.” </p>
 		<div class="row">
 			<div class="col-xs-12 col-sm-6">
-				<h3 class="section-ah">About link rot</h3>
-				<p class="section-strong">Websites change, go away, and get taken down. When they do, linked citations can lead to broken, blank, unintentional, or even malicious pages. This decay is called “link rot.”</p>
+				<h3 class="section-ah">Link rot affects you</h3>
+				<p class="section-strong">Over 50% of cited links in Spreme Court decisions no longer point to the proper page. If you link to the Web, link rot affects you too.</p>
 				<p class="section-body">Websites change, go away, and get taken down. When they do, linked citations can lead to broken, blank, unintentional, or even malicious pages. This decay is called “link rot.” Perma.cc helps scholars, journals and courts prevent link rot by creating permanent, reliable, unalterable links to the online sources cited in their work.</p>
+				<p class="section-body">Perma.cc helps scholars, journals and courts prevent link rot by creating permanent, reliable, unalterable links to the online sources cited in their work.</p>
 			</div>
 			<div class="col-xs-12 col-sm-6">
-				<h3 class="section-ah">Articles/studies</h3>
+				<h3 class="section-ah">Articles and studies</h3>
+				<p class="section-strong">Over 50% of cited links in Spreme Court decisions no longer point to the proper page. If you link to the Web, link rot affects you too.</p>
 				<p class="section-body">Websites change, go away, and get taken down. When they do, linked citations can lead to broken, blank, unintentional, or even malicious pages. This decay is called “link rot.” Perma.cc helps scholars, journals and courts prevent link rot by creating permanent, reliable, unalterable links to the online sources cited in their work:</p>
 				<ul class="section-list">
-					<li class="section-list-item"><a href="#"><strong>Link rot is real</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>The New Yorker</cite>, 2014</li>
-					<li class="section-list-item"><a href="#"><strong>Link rot in academic citations</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>The Harvard Law Review</cite>, 2013</li>
-					<li class="section-list-item"><a href="#"><strong>Menace to the courts</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>Wired</cite>, 2015</li>
-					<li class="section-list-item"><a href="#"><strong>Our fragile web</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>First Look LegalTech</cite>, 2014</li>
+					<li class="section-list-item"><a href="#" class="outside"><strong>Link rot is real</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>The New Yorker</cite>, 2014</li>
+					<li class="section-list-item"><a href="#" class="outside"><strong>Link rot in academic citations</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>The Harvard Law Review</cite>, 2013</li>
+					<li class="section-list-item"><a href="#" class="outside"><strong>Menace to the courts</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>Wired</cite>, 2015</li>
+					<li class="section-list-item"><a href="#" class="outside"><strong>Our fragile web</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>First Look LegalTech</cite>, 2014</li>
 				</ul>
 			</div>
 		</div>
@@ -70,28 +72,28 @@
 		<div class="container cont-fixed">
 			<div class="row">
 				<div class="col-xs-12 col-sm-2 col-md-1">
-					<p class="caption _alignLeft">Here’s what link rot does.</p>
+					<p class="caption-title _alignLeft">Link rot destroys connections to outside sources.</p>
 				</div>
 				<div class="col-xs-12 col-sm-10by3">
-                    <img src="{{ STATIC_URL }}img/signal.png" height="400" width="400" class="img-responsive" alt="1. A graph of citations before link rot" />
+                    <img src="{{ STATIC_URL }}img/link-rot-demo.svg" height="400" width="400" class="img-responsive" alt="1. A graph of citations before link rot" />
 					<p class="caption">Vesting helps to assure that our Perma Links are valid, necessary, and correct.</p>
 				</div>
 				<div class="col-xs-12 col-sm-10by3">
-                    <img src="{{ STATIC_URL }}img/signal.png" height="400" width="400" class="img-responsive" alt="1. A graph of citations before link rot" />
+                    <img src="{{ STATIC_URL }}img/link-rot-demo.svg" height="400" width="400" class="img-responsive" alt="1. A graph of citations before link rot" />
 					<p class="caption">Vesting helps to assure that our Perma Links are valid, necessary, and correct.</p>
 				</div>
 				<div class="col-xs-12 col-sm-10by3">
-                    <img src="{{ STATIC_URL }}img/signal.png" height="400" width="400" class="img-responsive" alt="1. A graph of citations before link rot" />
+                    <img src="{{ STATIC_URL }}img/link-rot-demo.svg" height="400" width="400" class="img-responsive" alt="1. A graph of citations before link rot" />
 					<p class="caption">Vesting helps to assure that our Perma Links are valid, necessary, and correct.</p>
 				</div>
 				<div class="col-xs-12 col-sm-2 col-md-1"></div>
 			</div>
-			<div class="row">
+			<div class="row row-subsection">
 				<div class="col-xs-12  _isCentered">
 			        {% if request.user.is_authenticated %}
 			            <a href="{% url 'create_link' %}" class="btn btn-large">Create and manage your Perma Links</a>
 			        {% else %}
-				    	<a href="{% url 'sign_up' %}" class="btn btn-large">Sign up for free</a>
+				    	<a href="{% url 'sign_up' %}" class="btn btn-large">Sign up and prevent link rot today</a>
 			        {% endif %}
 				</div>
 			</div>

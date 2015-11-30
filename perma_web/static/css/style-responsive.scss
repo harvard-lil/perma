@@ -444,7 +444,7 @@ strong {
 	text-align: left;
 }
 
-.center {
+.center, ._isCentered {
 	text-align: center;
 }
 
@@ -667,6 +667,41 @@ a.action {
 }
 
 p a.perma { @extend a.perma }
+
+a.cc {
+	display: inline-block;
+	width: 21px;
+	height: 16px;
+	overflow: hidden;
+	text-indent: -10000px;
+	@extend style-button-hover;
+	background-color: $color-blue;
+	background-image: url('../img/ui/perma-ui-8-small.png');
+	background-size: 90px 7px;
+	background-repeat: no-repeat;
+	background-position: -74px center;
+	position: relative;
+	bottom: -2px;
+	padding: 0;
+	border: 2px solid $color-blue;
+	border-radius: 2px;
+	margin: 0 .2em;
+	&:hover {
+		text-decoration: none;
+		border-color: $color-hover;
+		background-color: $color-hover;
+	}
+	&:active {
+		border-color: $color-black;
+		background-color: $color-black;
+	}
+	@include respond-tablet {
+		&:hover {
+		}
+		&:active {
+		}
+	}
+}
 
 /////////////////////////////////////////
 
@@ -893,7 +928,6 @@ div.col-right {
 		margin: $double 0;
 		padding: 14px $grid * 3;
 		display: inline-block;
-		font-weight: 700;
 		font-size: 16px;
 		& + .btn {
 			margin-left: $double;
@@ -978,7 +1012,7 @@ div.col-right {
 		@extend .style-standard-border-hover;
 		background-color: transparent;
 		border: 2px solid;
-		font-weight: 800;
+		font-weight: 400;
 		color: $color-blue;
 		&:hover, &:focus {
 			background-color: transparent !important;
@@ -4044,7 +4078,120 @@ section {
 	}
 }
 
+.section-title {
+	color: $color-black;
+	font-size: 20px;
+	@include respond-tablet {
+		font-weight: 900;
+	}
+	@include respond-desktop {
+		font-size: 24px;
+	}
+}
 
+.section-subtitle {
+	color: $color-black;
+	font-size: 18px;
+    font-family: $font-hed-alt;
+    line-height: 1.42;
+    margin-top: $half;
+    margin-bottom: 0;
+	@include respond-tablet {
+	    line-height: 1.5;
+	}
+	@include respond-desktop {
+		font-size: 24px;
+	}
+}
+
+.section-ah, 
+h3.section-ah {
+	font-size: 16px;
+    font-family: $font-hed-alt;
+	display: inline-block;
+    padding: $half 0;
+    border-bottom: 1px solid #222;
+    margin: 1.5em 0 .75em;
+    font-weight: 400;
+	@include respond-desktop {
+		font-size: 19px;
+	}
+}
+
+.section-body {
+    font-family: $font-hed-alt;
+	font-weight: 400;
+	@include respond-desktop {
+		font-size: 16px;
+	}
+}
+
+.section-strong {
+	@extend .section-body;
+	font-weight: 700;
+}
+
+.section-list {
+	padding-left: 0;
+	font-family: $font-hed-alt;
+	font-weight: 400;
+	padding-bottom: 6px;
+//	border-bottom: 1px solid $color-blue;
+	margin-bottom: $double;
+	li {
+//		margin-top: 6px;
+		padding-top: 6px;
+		padding-left: 1.2em;
+		text-indent: -1.2em;
+//		border-top: 1px solid $color-blue;
+		a.outside:before {
+			content: '➔';
+			display: inline-block;
+			width: 1.2em;
+			text-indent: 0;
+			color: $color-blue;
+		}
+		a strong {
+			text-decoration: underline;
+			@extend .style-standard-hover;
+		}
+	}
+	li + li {
+	}
+	strong {
+		font-weight: 700;
+	}
+}
+
+.section-break {
+	border-top: 1px solid $color-trans-whispergray;
+	margin-top: $grid * 4;
+	padding-top: $grid * 4;
+	@include respond-tablet {
+		margin-top: $grid * 6;
+		padding-top: $grid * 6;
+	}
+}
+
+.cont-bg .section-break {
+	border-top: 4px solid white;
+}
+
+.row-subsection {
+	padding-top: $grid * 3;
+}
+
+.caption-title {
+	font-family: $font-hed-alt;
+	font-weight: 700;
+    font-size: 14px;
+    line-height: 1.4;
+    margin-top: 0;
+}
+
+section .caption {
+	color: $color-black;
+}
 
 /*
 #supporting-partners {
