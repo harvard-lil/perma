@@ -125,10 +125,11 @@
         </div>
         {% if orgs %}
           {% for org in orgs %}
+
             <div class="item-container">
 		        <div class="row row-no-bleed">
 		            <div class="col col-sm-8 col-no-gutter">
-			            <div class="item-title"><a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">{{ org.name }}</a></div>
+			            <div class="item-title"><a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">{% if org.default_to_private %}<span class="ui-private">[private]</span> {% endif %}{{ org.name }}</a></div>
 						{% if request.user.is_staff %}
 							<div class="item-affil"><a href="{% url 'user_management_manage_registrar' %}?q={{org.registrar.name.split|join:'+'|lower}}">{{ org.registrar }}</a></div>
 						{% endif %}
@@ -136,7 +137,7 @@
 			            <div class="row row-half-bleed item-count-groups">
 							<div class="col col-xs-12 col-md-4 col-half-gutter">
 				                <div class="item-count-group">
-									<strong class="list-count-number">{{ org.vested_links|intcomma }}</strong>
+									<strong class="list-count-number">{{ org.org_links|intcomma }}</strong>
 									<span class="item-count-label">links</span>
 					                {% comment %}
 					                    <div class="item-count-group">
@@ -164,14 +165,11 @@
 				                {% endcomment %}
 						</div>
 		            </div>
-<<<<<<< HEAD
-		            <div class="col col-sm-4 col-no-gutter align-right admin-actions">
-		            	{% if org.org_links < 1 %}
+
+		            <div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
+						{% if org.org_links < 1 %}
 		            		<a class="action" href="{% url 'user_management_manage_single_organization_delete' org.id %}">delete</a>
 		            	{% endif %}
-=======
-		            <div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
->>>>>>> b8b6877dabb4a78cc159c889cfbcbf888b6d3cd2
 			            <a class="action" href="{% url 'user_management_manage_single_organization' org.id %}">edit</a>
 			            {% if request.user.is_staff %}
 			                <a class="action" href="{% url 'admin:perma_organization_change' org.id %}">edit in admin console</a>

@@ -1084,7 +1084,7 @@ def settings_organizations(request):
     
     
 @login_required
-@user_passes_test(lambda user: user.is_registrar_member() or user.is_organization_member)
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
 def settings_organizations_change_privacy(request, org_id):
 
     org = get_object_or_404(Organization, id=org_id)
@@ -1094,7 +1094,10 @@ def settings_organizations_change_privacy(request, org_id):
         org.default_to_private = not org.default_to_private
         org.save()
 
-        return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+        if request.user.is_registrar_member() or request.user.is_staff:
+        	return HttpResponseRedirect(reverse('user_management_manage_organization'))
+        else:
+        	return HttpResponseRedirect(reverse('user_management_settings_organizations'))
 
     context = RequestContext(request, context)
 

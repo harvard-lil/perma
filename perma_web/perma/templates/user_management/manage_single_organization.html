@@ -8,6 +8,15 @@
 	<h3 class="body-bh">Edit organization</h3>
 	<div class="row">
 		<div class="col-sm-12">
+			<div class="settings-block">
+	        	{% if target_org.default_to_private %}
+					<p>Links are <strong>Private</strong> by default</p>
+					<a href="{% url 'user_management_settings_organizations_change_privacy' target_org.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Set to public</a>
+				{% else %}
+					<p>Links are <strong>Public</strong> by default</p>
+					<a href="{% url 'user_management_settings_organizations_change_privacy' target_org.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Set to private</a>
+				{% endif %}
+			</div>
     		<form method="post" action="">
 				{% csrf_token %}
 				<fieldset>
