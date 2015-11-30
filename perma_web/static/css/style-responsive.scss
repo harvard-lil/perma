@@ -980,6 +980,16 @@ div.col-right {
 		border: 2px solid;
 		font-weight: 800;
 		color: $color-blue;
+		&:hover, &:focus {
+			background-color: transparent !important;
+			color: $color-hover !important;
+			border-color: $color-hover !important;
+		}
+		&:active {
+			background-color: transparent !important;
+			color: $color-black !important;
+			border-color: $color-black !important;
+		}
 	}
 }
 
@@ -4009,6 +4019,9 @@ section {
 	a {
 		font-weight: inherit;
 		border-bottom: 1px solid $color-trans-lightgray;
+		&:hover {
+			text-decoration: none;
+		}
 		@extend .style-standard-border-hover;
 	}
 	@include respond-xmobile {
