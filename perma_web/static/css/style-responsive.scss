@@ -584,6 +584,12 @@ p a.perma { @extend a.perma }
 	max-width: none;
 }
 
+.cont-fluid,
+.container-fluid {
+	@extend .container;
+	@extend .cont-full-bleed;
+}
+
 .cont-full {
 	@extend .cont-full-bleed;
 	@extend .style-container-padding;
@@ -709,6 +715,13 @@ div.col-right {
 .col.align-right {
 	@include respond-tablet {
 		text-align: right;
+	}
+}
+
+.col-sm-10by3 {
+	@include respond-tablet {
+		width: 100% * (5 / 18); // 10/3 width
+		float: left;
 	}
 }
 
@@ -3873,7 +3886,6 @@ span.action {
 
 #supporting-partners {
 	margin-top: $grid * 4;
-	background-color: $color-background;
 	padding: $grid * 4 0;
 	text-align: center;
 	@include respond-tablet {
