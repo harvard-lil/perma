@@ -4004,8 +4004,14 @@ span.action {
 
 section {
 	padding-bottom: $grid * 4;
+	@include respond-tablet {
+		padding-bottom: $grid * 6;
+	}
 	& + section {
 		padding-top: $grid * 4;
+		@include respond-tablet {
+			padding-top: $grid * 6;
+		}
 	}
 }
 
