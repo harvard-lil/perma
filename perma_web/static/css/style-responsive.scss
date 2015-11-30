@@ -539,9 +539,11 @@ a {
 		border: 1px solid rgba(0,0,0,.1);
 		font-family: $font-hed-alt;
 		padding: $grid $grid * 2;
-		margin-top: $grid * 4;
+		margin-top: $grid * 3;
 		border-radius: 2px;
 		position: relative;
+		width: 100%;
+		font-size: 12px;
 		.badge-inner {
 			display: table-cell;
 			vertical-align: middle;
@@ -561,10 +563,61 @@ a {
 			background-image: url('../img/ui/perma-ui-success.svg');
 			background-size: contain;
 			background-repeat: no-repeat;
-
 		}
 		strong {
 			display: block;
+			color: $color-black;
+		}
+		@include respond-xmobile {
+			margin-top: $grid * 4;
+			font-size: 14px;
+		}
+	}
+	&.sm-badge {
+		@include respond-tablet {
+			color: $color-hover;
+			background-color: white;
+			width: 120px;
+			height: 120px;
+			border-radius: 100px;
+			margin-top: 0;
+			margin-bottom: 16px;
+			display: block;
+			border: 1px solid $color-blue;
+			float: right;
+			font-size: 12px;
+			padding-top: 26px;
+			padding-left: 18px;
+			right: 13px;
+		}
+		@include respond-desktop {
+			width: 136px;
+			height: 136px;
+			border-radius: 152px;
+			padding: 33px 18px 18px 21px;
+			right: 16px;
+		}
+		@include respond-wide {
+			width: 152px;
+			height: 152px;
+			border-radius: 152px;
+			margin-bottom: 24px;
+			font-size: 14px;
+			padding: 35px 24px 24px 27px;
+			right: 13px;
+		}
+	}
+	&.sm-badge:hover {
+		@include respond-tablet {
+			border-color: $color-hover;
+		}
+	}
+	&.sm-badge:after {
+		@include respond-tablet {
+		}
+		@include respond-wide {
+			top: 0;
+			right: -4px;
 		}
 	}
 }
@@ -920,6 +973,13 @@ div.col-right {
 	&.login {
 		background-color: $color-green;
 		margin-bottom: $double;
+	}
+	&.btn-large-alt {
+		@extend .style-standard-border-hover;
+		background-color: transparent;
+		border: 2px solid;
+		font-weight: 800;
+		color: $color-blue;
 	}
 }
 
@@ -3941,11 +4001,27 @@ section {
 
 .primary-intro {
 	font-family: $font-hed-alt;
-	font-size: $size-large;
+	font-size: 18px;
+	strong {
+		font-weight: 300;
+		color: $color-orange;
+	}
 	a {
 		font-weight: inherit;
 		border-bottom: 1px solid $color-trans-lightgray;
 		@extend .style-standard-border-hover;
+	}
+	@include respond-xmobile {
+		font-size: 24px;
+	}
+	@include respond-tablet {
+		font-size: 28px;
+		&:last-child {
+			padding-bottom: $grid * 4;
+		}
+	}
+	@include respond-wide {
+		font-size: 32px;
 	}
 }
 
