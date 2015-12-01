@@ -1058,7 +1058,7 @@ div.col-right {
 	    &.center {
 		    float: none;
 		    display: inline-block;
-		    margin-top: $double;
+		    margin-top: 0;
 	    }
     }
 	&.delete-confirm {
@@ -4359,10 +4359,22 @@ section .caption {
 	padding-bottom: $grid * 3;
 }
 
+#landing-signup {
+	padding-bottom: 104px;
+}
+
 #landing-developers {
 	background-color: $color-black;
-	p { color: white; }
-	padding: $double 0;	
+	font-size: 20px;
+	text-align: center;
+	p { 
+		color: white; 
+		max-width: none;
+	}
+	padding: $double 0;
+	a {
+		text-decoration: underline;
+	}	
 }
 
 .row-modules {
@@ -4445,9 +4457,35 @@ section .caption {
 	color: $color-blue;
 }
 
+@-webkit-keyframes healthy {
+    0% {background-image: url('../img/link-rot-healthy.svg')}
+    25% {background-image: url('../img/link-rot-healthy-1.svg')}
+    50% {background-image: url('../img/link-rot-healthy-2.svg')}
+    75% {background-image: url('../img/link-rot-healthy-3.svg')}
+    100% {background-image: url('../img/link-rot-healthy.svg')}
+}
+@-moz-keyframes healthy {
+    0% {background-image: url('../img/link-rot-healthy.svg')}
+    25% {background-image: url('../img/link-rot-healthy-1.svg')}
+    50% {background-image: url('../img/link-rot-healthy-2.svg')}
+    75% {background-image: url('../img/link-rot-healthy-3.svg')}
+    100% {background-image: url('../img/link-rot-healthy.svg')}
+}
+@keyframes healthy {
+    0% {background-image: url('../img/link-rot-healthy.svg')}
+    25% {background-image: url('../img/link-rot-healthy-1.svg')}
+    50% {background-image: url('../img/link-rot-healthy-2.svg')}
+    75% {background-image: url('../img/link-rot-healthy-3.svg')}
+    100% {background-image: url('../img/link-rot-healthy.svg')}
+}
+
 .container-square-display {
 	height: 1200px;
-	background-image: url('../img/link-rot-healthy.svg');
+	background-image: url('../img/link-rot-healthy-1.svg');
+	-webkit-animation: healthy 1s linear infinite;
+	-moz-animation: healthy 1s linear infinite;
+	-o-animation: healthy 1s linear infinite;
+	animation: healthy 1s linear infinite;
 	background-size: 1200px 1200px;
 	background-repeat: no-repeat;
 	background-position: center center;
