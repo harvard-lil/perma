@@ -681,7 +681,7 @@ a.cc {
 	background-repeat: no-repeat;
 	background-position: -74px center;
 	position: relative;
-	bottom: -2px;
+	bottom: -3px;
 	padding: 0;
 	border: 2px solid $color-blue;
 	border-radius: 2px;
@@ -897,6 +897,46 @@ div.col-right {
 	}
 }
 
+.col-sm-3col {
+	-webkit-column-count: 3;
+    -webkit-column-gap: 24px;
+    -webkit-column-rule: 1px solid rgba(0,0,0,.1);
+	-moz-column-count: 3;
+    -moz-column-gap: 24px;
+    -moz-column-rule: 1px solid rgba(0,0,0,.1);
+	column-count: 3;
+    column-gap: 24px;
+    column-rule: 1px solid rgba(0,0,0,.1);
+}
+
+.col-md-4col {
+	@include respond-tablet {
+		-webkit-column-count: 4;
+	    -webkit-column-gap: 24px;
+	    -webkit-column-rule: 1px solid rgba(0,0,0,.1);
+		-moz-column-count: 4;
+	    -moz-column-gap: 24px;
+	    -moz-column-rule: 1px solid rgba(0,0,0,.1);
+		column-count: 4;
+	    column-gap: 24px;
+	    column-rule: 1px solid rgba(0,0,0,.1);
+	}
+}
+
+.col-md-5col {
+	@include respond-tablet {
+		-webkit-column-count: 5;
+	    -webkit-column-gap: 24px;
+	    -webkit-column-rule: 1px solid rgba(0,0,0,.1);
+		-moz-column-count: 5;
+	    -moz-column-gap: 24px;
+	    -moz-column-rule: 1px solid rgba(0,0,0,.1);
+		column-count: 5;
+	    column-gap: 24px;
+	    column-rule: 1px solid rgba(0,0,0,.1);
+	}
+}
+
 /////////////////////////////////////////
 
 // Buttons
@@ -995,6 +1035,15 @@ div.col-right {
 		padding: 4px 8px;
 		font-size: 12px;
 	}
+	&.btn-small {
+		padding: $half $grid;
+	    font-size: 14px;
+	    margin-top: 0px;
+	    float: left;
+	    clear: both;
+	    margin-left: 0;
+	    margin-bottom: $grid;	
+    }
 	&.delete-confirm {
 		background-color: $color-error;
 		&:hover, &:focus {
@@ -2030,11 +2079,20 @@ div.caption {
 p.caption {
 	font-family: $font-hed-alt;
 	font-weight: 400;
-	color: $color-trans-darkgray;
-	font-size: 14px;
+	color: $color-black;
+	font-size: 12px;
 	text-align: center;
 	max-width: 25em;
-	margin: 0 auto;
+	margin: $grid auto 0;
+	@include respond-tablet {
+		font-size: 14px;
+	}
+}
+
+.col-xs-6 p.caption {
+	@include respond-mobile {
+		line-height: 1.45;
+	}
 }
 
 ._image {
@@ -2055,6 +2113,10 @@ p.caption {
 			padding: $grid * 3 $grid * 3 0 $grid * 3;
 		}
 	}
+}
+
+.figure {
+	margin-top: $double;
 }
 
 /////////////////////////////////////////
@@ -4041,11 +4103,32 @@ section {
 	@include respond-tablet {
 		padding-bottom: $grid * 6;
 	}
+	@include respond-desktop {
+		padding-bottom: $grid * 8;
+	}
 	& + section {
 		padding-top: $grid * 4;
 		@include respond-tablet {
 			padding-top: $grid * 6;
 		}
+		@include respond-desktop {
+			padding-top: $grid * 8;
+		}
+	}
+}
+
+#landing-introduction {
+	@include respond-desktop {
+		padding-top: $grid * 4;
+	}
+}
+
+.cont-subsection {
+	//padding: $grid * 4 0;
+	margin-top: $grid * 2;
+	@include respond-tablet {
+		//padding: $grid * 6 0;
+		margin-top: $grid * 3;
 	}
 }
 
@@ -4054,7 +4137,7 @@ section {
 	font-size: 18px;
 	strong {
 		font-weight: 300;
-		color: $color-orange;
+		color: $color-blue;
 	}
 	a {
 		font-weight: inherit;
@@ -4078,6 +4161,10 @@ section {
 	}
 }
 
+.section-hed {
+	overflow: auto;
+}
+
 .section-title {
 	color: $color-black;
 	font-size: 20px;
@@ -4085,7 +4172,7 @@ section {
 		font-weight: 900;
 	}
 	@include respond-desktop {
-		font-size: 24px;
+		font-size: 28px;
 	}
 }
 
@@ -4108,11 +4195,12 @@ section {
 h3.section-ah {
 	font-size: 16px;
     font-family: $font-hed-alt;
-	display: inline-block;
+	float: left;
     padding: $half 0;
     border-bottom: 1px solid #222;
     margin: 1.5em 0 .75em;
     font-weight: 400;
+    clear: both;
 	@include respond-desktop {
 		font-size: 19px;
 	}
@@ -4121,8 +4209,18 @@ h3.section-ah {
 .section-body {
     font-family: $font-hed-alt;
 	font-weight: 400;
+	clear: both;
 	@include respond-desktop {
 		font-size: 16px;
+	}
+	&.small {
+		font-size: 85%;
+	}
+	a.cc {
+		bottom: -4px;
+	}
+	&.footnote {
+		margin-top: $grid * 4;
 	}
 }
 
@@ -4161,12 +4259,18 @@ h3.section-ah {
 	strong {
 		font-weight: 700;
 	}
+	&.list-tight {
+		li {
+			padding-top: 0;
+			margin-top: 0;
+		}
+	}
 }
 
 .section-break {
 	border-top: 1px solid $color-trans-whispergray;
-	margin-top: $grid * 4;
-	padding-top: $grid * 4;
+	margin-top: $grid * 2;
+	padding-top: $grid * 2;
 	@include respond-tablet {
 		margin-top: $grid * 6;
 		padding-top: $grid * 6;
@@ -4181,7 +4285,8 @@ h3.section-ah {
 	padding-top: $grid * 3;
 }
 
-.caption-title {
+.caption-title,
+.figure-title  {
 	font-family: $font-hed-alt;
 	font-weight: 700;
     font-size: 14px;
@@ -4189,11 +4294,29 @@ h3.section-ah {
     margin-top: 0;
 }
 
-section .caption {
-	color: $color-black;
+.figure-title {
+	border-bottom: 1px solid;
+	padding-bottom: $grid;
+	display: inline-block;
 }
 
-/*
+section .caption {
+	color: $color-black;
+	a {
+		font-weight: 400;
+		text-decoration: underline;
+		@extend .style-standard-hover;
+	}
+}
+
+.section-ah + .row {
+	margin-top: $grid * 3;
+}
+
+#landing-problem {
+	padding-bottom: $grid * 3;
+}
+
 #supporting-partners {
 	margin-top: $grid * 4;
 	padding: $grid * 4 0;
@@ -4241,6 +4364,7 @@ section .caption {
 	}
 }
 
+/*
 #examples {
 	padding: $grid * 7 0;
 	text-align: center;

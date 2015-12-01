@@ -68,33 +68,39 @@
 			</div>
 		</div>
     </div>
-    <div class="cont-full section-break">
+    <div class="container-fluid section-break">
 		<div class="container cont-fixed">
 			<div class="row">
-				<div class="col-xs-12 col-sm-2 col-md-1">
-					<p class="caption-title _alignLeft">Link rot destroys connections to outside sources.</p>
+				<div class="col-xs-12 section-hed">
+					<h3 class="section-ah">Link rot destroys connections to outside sources</h3>
 				</div>
-				<div class="col-xs-12 col-sm-10by3">
-                    <img src="{{ STATIC_URL }}img/link-rot-demo.svg" height="400" width="400" class="img-responsive" alt="1. A graph of citations before link rot" />
-					<p class="caption">Vesting helps to assure that our Perma Links are valid, necessary, and correct.</p>
+				<div class="figure col-xs-6 col-sm-3">
+                    <img src="{{ STATIC_URL }}img/link-rot-0.svg" height="400" width="400" class="img-responsive" alt="1. A graph of citations before link rot" />
+					<p class="caption"><strong>When the citation is collected.</strong> New references to websites usually start correct.</p>
 				</div>
-				<div class="col-xs-12 col-sm-10by3">
-                    <img src="{{ STATIC_URL }}img/link-rot-demo.svg" height="400" width="400" class="img-responsive" alt="1. A graph of citations before link rot" />
-					<p class="caption">Vesting helps to assure that our Perma Links are valid, necessary, and correct.</p>
+				<div class="figure col-xs-6 col-sm-3">
+                    <img src="{{ STATIC_URL }}img/link-rot-20.svg" height="400" width="400" class="img-responsive" alt="1. A graph of citations before link rot" />
+					<p class="caption"><strong>One year later.</strong> After a year, over 20% of cited links may be dead or inacessible.</p>
 				</div>
-				<div class="col-xs-12 col-sm-10by3">
-                    <img src="{{ STATIC_URL }}img/link-rot-demo.svg" height="400" width="400" class="img-responsive" alt="1. A graph of citations before link rot" />
-					<p class="caption">Vesting helps to assure that our Perma Links are valid, necessary, and correct.</p>
+				<div class="figure col-xs-6 col-sm-3">
+                    <img src="{{ STATIC_URL }}img/link-rot-50.svg" height="400" width="400" class="img-responsive" alt="1. A graph of citations before link rot" />
+					<p class="caption"><strong>Five years later.</strong> After five years, the situation is much worse, over 50% of cited links can be afftected.</p>
 				</div>
-				<div class="col-xs-12 col-sm-2 col-md-1"></div>
+				<div class="figure col-xs-6 col-sm-3">
+                    <img src="{{ STATIC_URL }}img/link-rot-80.svg" height="400" width="400" class="img-responsive" alt="1. A graph of citations before link rot" />
+					<p class="caption"><strong>As time goes on.</strong> Link rot is rarely reversible. The longer the wait, the more likely a link will be dead.</p>
+				</div>
 			</div>
 			<div class="row row-subsection">
 				<div class="col-xs-12  _isCentered">
 			        {% if request.user.is_authenticated %}
 			            <a href="{% url 'create_link' %}" class="btn btn-large">Create and manage your Perma Links</a>
 			        {% else %}
-				    	<a href="{% url 'sign_up' %}" class="btn btn-large">Sign up and prevent link rot today</a>
+				    	<a href="{% url 'sign_up' %}" class="btn btn-large">Sign up and start preventing link rot</a>
 			        {% endif %}
+				</div>
+				<div class="col-xs-12">
+					<p class="section-body small footnote">Data taken from <a href="http://harvardlawreview.org/2014/03/perma-scoping-and-addressing-the-problem-of-link-and-reference-rot-in-legal-citations/">“Perma: Scoping and Addressing the Problem of Link and Reference Rot in Legal Citations,”</a> <a class="cc" href="http://www.perma.cc/4356-6557">http://www.perma.cc/4356-6557</a> Jonathan Zittrain, Kendra Albert & Lawrence Lessig. Harvard Law Review. March 17, 2014.</p>
 				</div>
 			</div>
 		</div>
@@ -130,23 +136,21 @@
 			</div>
 		</div>
     </div>
-    <div class="cont-full cont-bg">
+    <div class="cont-full cont-subsection">
 		<div class="container cont-fixed">
+			<h3 class="section-ah">Making a Perma Link is as simple as copy and paste</h3>
 			<div class="row">
 				<div class="col-xs-12 col-sm-4">
-					<h6 class="figure-title">Enter your url</h6>
                     <img src="{{ STATIC_URL }}img/signal.png" height="400" width="400" class="img-responsive" alt="Responsive image" alt="1. A graph of citations before link rot" />
-					<p class="caption">Vesting helps to assure that our Perma Links are valid, necessary, and correct.</p>
+					<p class="caption"><strong>Add the URL you want to preserve to the Create bar.</strong> Paste any URL into the Create bar and Perma.cc does the rest. Perma.cc records preserve <a href="#">all kinds of URLS</a> (including PDFs) with near-perfect fidelity to the original.</p>
 				</div>
 				<div class="col-xs-12 col-sm-4">
-					<h6 class="figure-title">Get a Perma Link</h6>
                     <img src="{{ STATIC_URL }}img/signal.png" height="400" width="400" class="img-responsive" alt="Responsive image" alt="2. A graph of citations at the start of link rot" />
-					<p class="caption">Vesting helps to assure that our Perma Links are valid, necessary, and correct.</p>
+					<p class="caption"><strong>Perma.cc creates your Perma Link.</strong> Just select “Create” and Perma.cc builds your new record in a matter of moments. You’ll see your record when it’s finished and have a chance to <a href="#">delete</a> or <a href="#">annotate</a> it.</p>
 				</div>
 				<div class="col-xs-12 col-sm-4">
-					<h6 class="figure-title">Cite safely</h6>
                     <img src="{{ STATIC_URL }}img/signal.png" height="400" width="400" class="img-responsive" alt="Responsive image" alt="3. A graph of citations with typical link rot" />
-					<p class="caption">Vesting helps to assure that our Perma Links are valid, necessary, and correct.</p>
+					<p class="caption"><strong>Use the Perma Link URL in your citations.</strong> Use your Perma Link as you would the original cited URL. Perma.cc has a simple record management system to make <a href="#">organization</a> and <a href="#">record-keeping</a> a snap.</p>
 				</div>
 			</div>
 		</div>
@@ -267,8 +271,8 @@
 			</div><!--col-sm-12-->
 		</div><!--row-->	
 		<div class="row">
-			<div class="col-sm-3col col-md-5col">
-				<ul class="section-list partners">
+			<div class="col-sm-3col col-md-4col">
+				<ul class="section-list list-tight partners">
 					<li class="section-list-item"><a href="#">Alex A. Hanna Law Library, St. Thomas University School of Law</a></li>
 					<li class="section-list-item"><a href="#">Alexander Campbell King Law Library, University of Georgia School of Law</a></li>
 					<li class="section-list-item"><a href="#">American University Washington University Law Library</a></li>
