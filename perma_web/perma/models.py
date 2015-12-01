@@ -9,10 +9,14 @@ import re
 import socket
 import tempfile
 from urlparse import urlparse
+
+import simple_history
 from hanzo import warctools
 import requests
+from simple_history.models import HistoricalRecords
 from wand.image import Image
 
+import django.contrib.auth.models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
 from django.core.files.storage import default_storage
@@ -51,6 +55,7 @@ class Registrar(models.Model):
     longitude = models.FloatField(blank=True, null=True)
 
     tracker = FieldTracker()
+    history = HistoricalRecords()
 
     class Meta:
         ordering = ['name']
@@ -120,6 +125,7 @@ class Organization(models.Model):
 
     objects = OrganizationManager()
     tracker = FieldTracker()
+    history = HistoricalRecords()
 
     def save(self, *args, **kwargs):
         name_has_changed = self.tracker.has_changed('name')
@@ -249,9 +255,9 @@ class LinkUser(AbstractBaseUser):
         return []
         
     def get_links_remaining(self):
-    	today = timezone.now()
-    	link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month=today.month, created_by_id=self.id, organization_id=None).count()
-    	return settings.MONTHLY_CREATE_LIMIT - link_count
+        today = timezone.now()
+        link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month=today.month, created_by_id=self.id, organization_id=None).count()
+        return settings.MONTHLY_CREATE_LIMIT - link_count
 
     def create_root_folder(self):
         if self.root_folder:
@@ -308,6 +314,48 @@ class LinkUser(AbstractBaseUser):
     def is_organization_member(self):
         """ Is the user a member of an org? """
         return self.organizations.exists()
+
+    ### link permissions ###
+
+    def can_view(self, link):
+        """
+            Not all links are viewable by all users -- some users
+            have privileged access to view private links. For example,
+            a user can view their own private links.
+        """
+        if not link.is_private:
+            return True
+        return self.can_edit(link)
+
+    def can_edit(self, link):
+        """ Link is editable if it is in a folder accessible to this user. """
+        if self.is_anonymous():
+            return False
+        if self.is_staff:
+            return True
+        return Folder.objects.accessible_to(self).filter(links=link).exists()
+
+    def can_delete(self, link):
+        """
+            An archive can be deleted if it is less than 24 hours old-style
+            and it was created by a user or someone in the org.
+        """
+        return timezone.now() < link.archive_timestamp and self.can_edit(link)
+
+    def can_toggle_private(self, link):
+        if not self.can_edit(link):
+            return False
+        if link.is_private and not self.is_staff and link.private_reason != 'user':
+            return False
+        return True
+
+# special history tracking for custom user object -- see http://django-simple-history.readthedocs.org/en/latest/reference.html
+simple_history.register(LinkUser)
+
+# This ugly business makes these functions available on logged-out users as well as logged-in,
+# by monkeypatching Django's AnonymousUser object.
+for func_name in ['can_view', 'can_edit', 'can_delete', 'can_toggle_private']:
+    setattr(django.contrib.auth.models.AnonymousUser, func_name, getattr(LinkUser, func_name).__func__)
 
 
 class FolderQuerySet(QuerySet):
@@ -406,6 +454,10 @@ class LinkQuerySet(QuerySet):
     def accessible_to(self, user):
         return self.filter(Link.objects.user_access_filter(user))
 
+    def discoverable(self):
+        """ Limit queryset to Links that can be publicly found by searching. """
+        return self.filter(is_unlisted=False, is_private=False)
+
 
 class LinkManager(models.Manager):
     """
@@ -438,6 +490,10 @@ class LinkManager(models.Manager):
     def accessible_to(self, user):
         return self.get_queryset().accessible_to(user)
 
+    def discoverable(self):
+        """ Limit queryset to Links that can be publicly found by searching. """
+        return self.get_queryset().discoverable()
+
 HEADER_CHECK_TIMEOUT = 10
 # This is the PhantomJS default agent
 USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X) AppleWebKit/534.34 (KHTML, like Gecko) PhantomJS/1.9.0 (development) Safari/534.34"
@@ -452,9 +508,6 @@ class Link(models.Model):
     creation_timestamp = models.DateTimeField(default=timezone.now, editable=False)
     submitted_title = models.CharField(max_length=2100, null=False, blank=False)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='created_links',)
-    dark_archived = models.BooleanField(default=False)
-    dark_archived_robots_txt_blocked = models.BooleanField(default=False)
-    dark_archived_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='darchived_links')
     user_deleted = models.BooleanField(default=False)
     user_deleted_timestamp = models.DateTimeField(null=True, blank=True)
     vested = models.BooleanField(default=False)
@@ -463,7 +516,10 @@ class Link(models.Model):
     organization = models.ForeignKey(Organization, null=True, blank=True)
     folders = models.ManyToManyField(Folder, related_name='links', blank=True, null=True)
     notes = models.TextField(blank=True)
+
     is_private = models.BooleanField(default=False)
+    private_reason = models.CharField(max_length=10, blank=True, null=True, choices=(('policy','Robots.txt or meta tag'),('user','At user direction'),('takedown','At request of content owner')))
+    is_unlisted = models.BooleanField(default=False)
 
     archive_timestamp = models.DateTimeField(blank=True, null=True, help_text="Date after which this link is eligible to be copied by the mirror network.")
 
@@ -472,6 +528,7 @@ class Link(models.Model):
 
     objects = LinkManager()
     tracker = FieldTracker()
+    history = HistoricalRecords()
 
     @cached_property
     def url_details(self):
@@ -583,51 +640,15 @@ class Link(models.Model):
                 self.organization = None
             else:
                 self.organization = folder.organization
-        	self.save(update_fields=['organization'])
-
-    def can_view(self, user):
-        """
-            Not all links are viewable by all users -- some users
-            have privileged access to view dark archived links. For example, 
-            a user can view their own dark archived links.
-        """
-
-        if not self.dark_archived and not self.dark_archived_robots_txt_blocked:
-            return True
-
-        if user.is_anonymous():
-            return False
-
-        if self.created_by == user:
-            return True
-
-        if self.organization in user.get_orgs():
-            return True
-
-        return False
+            self.save(update_fields=['organization'])
 
     def get_expiration_date(self):
         """ Return date when this link will theoretically be deleted. """
         return self.creation_timestamp + settings.LINK_EXPIRATION_TIME
 
-    def can_delete(self, user):
-        """ An archive can be deleted if it is less than 24 hours old-style
-            and it was created by a user or someone in the org """
-
-        if not user.is_authenticated():
-            return False
-
-        user_has_delete_privs = False
-
-        if user.is_staff or self.created_by == user or self.organization in user.get_orgs():
-            user_has_delete_privs = True
-
-        return timezone.now() < self.archive_timestamp and user_has_delete_privs
-
     def can_upload_to_internet_archive(self):
         """ Return True if this link is appropriate for upload to IA. """
-        return self.vested \
-               and not self.dark_archived and not self.dark_archived_robots_txt_blocked
+        return self.vested and self.is_discoverable()
 
     def as_json(self, request=None):
         from api.resources import LinkResource
@@ -873,6 +894,9 @@ class Link(models.Model):
     def base_playback_url(self, host=None):
         host = host or settings.WARC_HOST
         return u"%s/warc/%s/" % (("//" + host if host else ''), self.guid)
+
+    def is_discoverable(self):
+        return not self.is_private and not self.is_unlisted
 
 
 class Capture(models.Model):

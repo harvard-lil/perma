@@ -27,14 +27,15 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
 
         self.vested_link = Link.objects.get(pk="3SLN-JHX9")
         self.unvested_link = Link.objects.get(pk="7CF8-SS4G")
+        self.private_link_by_user = Link.objects.get(pk="ABCD-0001")
+        self.private_link_by_takedown = Link.objects.get(pk="ABCD-0004")
+        self.unlisted_link = Link.objects.get(pk="ABCD-0005")
 
         self.public_list_url = "{0}/{1}".format(self.url_base, PublicLinkResource.Meta.resource_name)
-        self.public_vested_url = "{0}/{1}".format(self.public_list_url, self.vested_link.pk)
-        self.public_unvested_url = "{0}/{1}".format(self.public_list_url, self.unvested_link.pk)
 
         self.list_url = "{0}/{1}".format(self.url_base, LinkResource.Meta.resource_name)
-        self.vested_url = "{0}/{1}".format(self.list_url, self.vested_link.pk)
-        self.unvested_url = "{0}/{1}".format(self.list_url, self.unvested_link.pk)
+        self.vested_url = self.get_link_url(self.vested_link)
+        self.unvested_url = self.get_link_url(self.unvested_link)
 
         self.post_data = {'url': self.server_url + "/test.html",
                           'title': 'This is a test page'}
@@ -42,6 +43,11 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
         self.patch_data = {'notes': 'These are new notes',
                            'title': 'This is a new title'}
 
+    def get_public_link_url(self, link):
+        return "{0}/{1}".format(self.public_list_url, link.pk)
+
+    def get_link_url(self, link):
+        return "{0}/{1}".format(self.list_url, link.pk)
 
     #######
     # GET #
@@ -51,10 +57,10 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
         self.successful_get(self.public_list_url)
 
     def test_should_allow_logged_out_users_to_get_vested_detail(self):
-        self.successful_get(self.public_vested_url)
+        self.successful_get(self.get_public_link_url(self.vested_link))
 
-    def test_should_reject_logged_out_users_getting_unvested_detail(self):
-        self.rejected_get(self.public_unvested_url)
+    def test_should_reject_logged_out_users_getting_private_detail(self):
+        self.rejected_get(self.get_public_link_url(self.private_link_by_user))
 
     def test_should_allow_logged_in_users_to_get_logged_in_list(self):
         self.successful_get(self.list_url, user=self.regular_user)
@@ -162,30 +168,37 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
                                   'organization': 2,
                                   'folder': 28})
 
-    ##################
-    # Dark Archiving #
-    ##################
+    ######################
+    # Private / Unlisted #
+    ######################
 
-    def test_should_allow_link_owner_to_dark_archive(self):
+    def test_should_allow_link_owner_to_toggle_private(self):
         user = self.vested_link.created_by
-        self.successful_patch(self.vested_url, user=user, data={'dark_archived': True})
-        data = self.successful_get(self.vested_url, user=user)
-        self.assertEqual(data['dark_archived_by']['id'], user.id)
+        self.successful_patch(self.vested_url, user=user, data={'is_private': True, 'private_reason': 'user'})
+        self.successful_patch(self.vested_url, user=user, data={'is_private': False, 'private_reason': None})
 
-    def test_should_allow_member_of_links_org_to_dark_archive(self):
+    def test_should_allow_member_of_links_org_to_toggle_private(self):
         users_in_org = LinkUser.objects.filter(organizations=self.vested_link.organization)
-        self.successful_patch(self.vested_url, user=users_in_org[0], data={'dark_archived': True})
-        data = self.successful_get(self.vested_url, user=users_in_org[1])
-        self.assertEqual(data['dark_archived_by']['id'], users_in_org[0].id)
+        self.successful_patch(self.vested_url, user=users_in_org[0], data={'is_private': True, 'private_reason':'user'})
+        self.successful_patch(self.vested_url, user=users_in_org[0], data={'is_private': False, 'private_reason':None})
 
-    def test_should_allow_member_of_links_vesting_registrar_to_dark_archive(self):
+    def test_should_allow_member_of_links_vesting_registrar_to_toggle_private(self):
         user = self.vested_link.organization.registrar.users.first()
-        self.successful_patch(self.vested_url, user=user, data={'dark_archived': True})
-        data = self.successful_get(self.vested_url, user=user)
-        self.assertEqual(data['dark_archived_by']['id'], user.id)
+        self.successful_patch(self.vested_url, user=user, data={'is_private': True, 'private_reason': 'user'})
+        self.successful_patch(self.vested_url, user=user, data={'is_private': False, 'private_reason': None})
 
-    def test_should_reject_dark_archive_from_user_lacking_owner_and_folder_access(self):
-        self.rejected_patch(self.vested_url, user=self.unrelated_vesting_member, data={'dark_archived': True})
+    def test_should_reject_private_toggle_from_user_lacking_owner_and_folder_access(self):
+        self.rejected_patch(self.vested_url, user=self.unrelated_vesting_member, data={'is_private': True, 'private_reason':'user'})
+        self.rejected_patch(self.get_link_url(self.private_link_by_user), user=self.unrelated_vesting_member, data={'is_private': False, 'private_reason':None})
+
+    def test_should_allow_registry_member_to_toggle_takedown(self):
+        self.successful_patch(self.vested_url, user=self.registry_member, data={'is_private': True, 'private_reason': 'takedown'})
+        self.successful_patch(self.vested_url, user=self.registry_member, data={'is_private': False, 'private_reason': None})
+
+    def test_should_reject_takedown_toggle_from_nonregistry_member(self):
+        user = self.vested_link.organization.registrar.users.first()
+        self.rejected_patch(self.vested_url, user=user, data={'is_private': True, 'private_reason': 'takedown'})
+        self.rejected_patch(self.get_link_url(self.private_link_by_takedown), user=user, data={'is_private': False, 'private_reason': None})
 
     ##########
     # Moving #

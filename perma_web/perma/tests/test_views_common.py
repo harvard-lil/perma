@@ -24,10 +24,10 @@ class CommonViewsTestCase(PermaTestCase):
         self.assertIn("<iframe ", response.content)
 
     def test_regular_archive(self):
-        self.assert_can_view_capture('7CF8-SS4G')
+        self.assert_can_view_capture('3SLN-JHX9')
         for user in self.users:
             self.log_in_user(user)
-            self.assert_can_view_capture('7CF8-SS4G')
+            self.assert_can_view_capture('3SLN-JHX9')
 
     def test_dark_archive(self):
         response = self.get('single_linky', reverse_kwargs={'kwargs':{'guid': 'ABCD-0001'}})
@@ -35,14 +35,6 @@ class CommonViewsTestCase(PermaTestCase):
         for user in self.users:
             self.log_in_user(user)
             response = self.get('single_linky', reverse_kwargs={'kwargs': {'guid': 'ABCD-0001'}})
-            self.assertIn("only visible to libraries and your Archiving Organization.", response.content)
-
-    def test_dark_archive_robots_txt_blocked(self):
-        response = self.get('single_linky', reverse_kwargs={'kwargs': {'guid': 'ABCD-0002'}})
-        self.assertIn("Dark Archive and cannot be displayed.", response.content)
-        for user in self.users:
-            self.log_in_user(user)
-            response = self.get('single_linky', reverse_kwargs={'kwargs': {'guid': 'ABCD-0002'}})
             self.assertIn("only visible to libraries and your Archiving Organization.", response.content)
 
     def test_deleted(self):

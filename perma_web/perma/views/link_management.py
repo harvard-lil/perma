@@ -130,11 +130,3 @@ def user_delete_link(request, guid):
         'link': link,
     })
 
-
-@login_required
-def dark_archive_link(request, guid):
-    link = get_object_or_404(Link, guid=guid)
-
-    return render(request, 'archive/confirm/dark-archive-link.html', {
-        'link': link,
-    })
