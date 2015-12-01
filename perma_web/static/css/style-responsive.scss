@@ -780,6 +780,18 @@ a.cc {
 	background-color: $color-background;
 }
 
+.cont-bg-knockout {
+	background-color: $color-white;
+}
+
+.cont-bg-heavy {
+	background-color: $color-black;
+	color: white;
+	h1, h2, h3, h4, p {
+		color: white;		
+	}
+}
+
 .cont-display {
 	margin-top: $grid * 3;
 	padding-top: $grid * 4;
@@ -1042,7 +1054,12 @@ div.col-right {
 	    float: left;
 	    clear: both;
 	    margin-left: 0;
-	    margin-bottom: $grid;	
+	    margin-bottom: $grid;
+	    &.center {
+		    float: none;
+		    display: inline-block;
+		    margin-top: $double;
+	    }
     }
 	&.delete-confirm {
 		background-color: $color-error;
@@ -4113,6 +4130,7 @@ section {
 		}
 		@include respond-desktop {
 			padding-top: $grid * 8;
+			padding-bottom: $grid * 10;
 		}
 	}
 }
@@ -4176,6 +4194,14 @@ section {
 	}
 }
 
+.section-title-alt {
+	@extend .section-title;
+	text-align: center;
+	&.light {
+		font-weight: 300;
+	}
+}
+
 .section-subtitle {
 	color: $color-black;
 	font-size: 18px;
@@ -4189,6 +4215,11 @@ section {
 	@include respond-desktop {
 		font-size: 24px;
 	}
+}
+
+.section-subtitle-alt {
+	@extend .section-subtitle;
+	text-align: center;	
 }
 
 .section-ah, 
@@ -4221,6 +4252,11 @@ h3.section-ah {
 	}
 	&.footnote {
 		margin-top: $grid * 4;
+		color: $color-trans-darkgray;
+		@include respond-desktop {
+			margin-top: $grid * 8;
+			margin-bottom: $grid * 4;
+		}
 	}
 }
 
@@ -4309,12 +4345,26 @@ section .caption {
 	}
 }
 
+.signup-image {
+	width: 120px;
+	height: auto;
+	margin: $grid auto;
+}
+
 .section-ah + .row {
 	margin-top: $grid * 3;
 }
 
 #landing-problem {
 	padding-bottom: $grid * 3;
+}
+
+#landing-developers {
+	background-color: $color-highlight;	
+}
+
+.row-modules {
+	margin-top: $grid * 4;
 }
 
 #supporting-partners {
@@ -4363,6 +4413,49 @@ section .caption {
 		height: $grid * 12;
 	}
 }
+
+.row-stats {
+	margin-bottom: $grid * 4;
+	margin-top: $grid * 4;
+}
+
+.col-stat {
+	display: inline-block;
+	margin: $grid 0;
+	padding: 0 $grid * 4;
+	& + .col-stat {
+		border-left: 1px solid $color-blue;
+	}
+}
+
+.stat-number {
+	font-size: 80px;
+	font-weight: 900;
+	font-family: $font-hed-alt;
+	letter-spacing: 1px;
+}
+
+.stat-label {
+	font-family: $font-hed-alt;
+	font-size: 16px;
+	font-weight: 900;
+	margin-top: 0;
+	color: $color-blue;
+}
+
+.container-square-display {
+	height: 1200px;
+	background-image: url('../img/link-rot-healthy.svg');
+	background-size: 1200px 1200px;
+	background-repeat: no-repeat;
+	background-position: center center;
+	.inner {
+		top: 458px;
+		border-bottom: 1px solid rgba(0,0,0,.07);
+		padding-bottom: 32px;
+	}
+}
+
 
 /*
 #examples {

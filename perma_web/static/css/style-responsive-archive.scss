@@ -27,6 +27,14 @@ body, html {
 	overflow: visible;
 }
 
+a {
+	text-decoration: none;
+	&:link { color: inherit; }
+	&:visited { color: inherit; }
+	&:hover { color: inherit; }
+	&:active { color: inherit; }
+}
+
 // iframe start
 
 .verbose {
@@ -231,6 +239,7 @@ header {
     }
 	strong {
 		display: block;
+		position: relative;
 		@include respond-tablet {
 			display: inline;
 		}
