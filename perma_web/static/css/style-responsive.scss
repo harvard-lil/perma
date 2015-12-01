@@ -2100,7 +2100,7 @@ p.caption {
 	font-size: 12px;
 	text-align: center;
 	max-width: 25em;
-	margin: $grid auto 0;
+	margin: $grid * 3 auto 0;
 	@include respond-tablet {
 		font-size: 14px;
 	}
@@ -4360,7 +4360,9 @@ section .caption {
 }
 
 #landing-developers {
-	background-color: $color-highlight;	
+	background-color: $color-black;
+	p { color: white; }
+	padding: $double 0;	
 }
 
 .row-modules {
@@ -4450,12 +4452,21 @@ section .caption {
 	background-repeat: no-repeat;
 	background-position: center center;
 	.inner {
-		top: 458px;
+		top: $grid * 53; //456px;
 		border-bottom: 1px solid rgba(0,0,0,.07);
 		padding-bottom: 32px;
 	}
 }
 
+
+section .row .col-sm-6 + .col-sm-6 {
+	padding-left: 16px;
+}
+
+section .caption {
+	max-width: none;
+	padding-bottom: 32px;
+}
 
 
 #examples {
