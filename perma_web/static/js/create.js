@@ -138,11 +138,13 @@ function toggleCreateAvailable() {
         $addlink.html('Create Perma Link').removeAttr('disabled').removeClass('_isWorking');
         spinner.stop();
         $('#rawUrl, #organization_select_form button').removeAttr('disabled');
+        $('#links-remaining-message').removeClass('_isWorking');
     } else {
         $addlink.html('<div id="capture-status">Creating your Perma Link</div>').attr('disabled', 'disabled').addClass('_isWorking');
         spinner = new Spinner(opts);
         spinner.spin($addlink[0]);
         $('#rawUrl, #organization_select_form button').attr('disabled', 'disabled');
+        $('#links-remaining-message').addClass('_isWorking');
     }
 }
 

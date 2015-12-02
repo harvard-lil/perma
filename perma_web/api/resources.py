@@ -293,8 +293,6 @@ class BaseLinkResource(MultipartResource, DefaultResource):
     title = fields.CharField(attribute='submitted_title', blank=True)
     vested = fields.BooleanField(attribute='vested', blank=True, default=False)
     vested_timestamp = fields.DateTimeField(attribute='vested_timestamp', readonly=True, null=True)
-    dark_archived = fields.BooleanField(attribute='dark_archived', blank=True, default=False)
-    dark_archived_robots_txt_blocked = fields.BooleanField(attribute='dark_archived_robots_txt_blocked', blank=True, default=False)
     expiration_date = fields.DateTimeField(attribute='get_expiration_date', readonly=True)
     captures = fields.ToManyField(CaptureResource, 'captures', readonly=True, full=True)
 
@@ -338,16 +336,14 @@ class AuthenticatedLinkResource(BaseLinkResource):
     created_by = fields.ForeignKey(LinkUserResource, 'created_by', full=True, null=True, blank=True, readonly=True)
     vested_by_editor = fields.ForeignKey(LinkUserResource, 'vested_by_editor', full=True, null=True, blank=True,
                                          readonly=True)
-    dark_archived_by = fields.ForeignKey(LinkUserResource, 'dark_archived_by', full=True, null=True, blank=True,
-                                         readonly=True)
-    # folders = fields.ToManyField(FolderResource, 'folders', readonly=True, null=True)
-    archive_timestamp = fields.DateTimeField(attribute='archive_timestamp', readonly=True)
     is_private = fields.BooleanField(attribute='is_private')
+    private_reason = fields.CharField(attribute='private_reason', blank=True, null=True)
+    archive_timestamp = fields.DateTimeField(attribute='archive_timestamp', readonly=True)
     organization = fields.ForeignKey(OrganizationResource, 'organization', full=True, blank=True, null=True)
 
     class Meta(BaseLinkResource.Meta):
         authorization = AuthenticatedLinkAuthorization()
-        queryset = BaseLinkResource.Meta.queryset.select_related('created_by', 'vested_by_editor', 'dark_archived_by')
+        queryset = BaseLinkResource.Meta.queryset.select_related('created_by', 'vested_by_editor',)
 
     def get_search_filters(self, search_query):
         return (super(AuthenticatedLinkResource, self).get_search_filters(search_query) |
@@ -376,9 +372,13 @@ class LinkResource(AuthenticatedLinkResource):
             bundle.data['url'] = url
         return bundle
 
-    def hydrate_dark_archived(self, bundle):
-        if not bundle.obj.dark_archived and bundle.data.get('dark_archived', None):
-            bundle.obj.dark_archived_by = bundle.request.user
+    def hydrate_is_private(self, bundle):
+        if 'is_private' in bundle.data:
+            if not bundle.data.get('private_reason'):
+                if bundle.obj.is_private and not bundle.data['is_private']:
+                    bundle.data['private_reason'] = None
+                elif not bundle.obj.is_private and bundle.data['is_private']:
+                    bundle.data['private_reason'] = 'user'
 
         return bundle
 
@@ -429,24 +429,24 @@ class LinkResource(AuthenticatedLinkResource):
         # Make sure a limited user has links left to create
         links_remaining = bundle.request.user.get_links_remaining()
         if (bundle.request.user.has_limit() or not bundle.data.get('organization')) and links_remaining < 1:
-        	raise ImmediateHttpResponse(response=self.error_response(bundle.request, {
+            raise ImmediateHttpResponse(response=self.error_response(bundle.request, {
                 'archives': {'__all__': "You've already reached your limit."},
                 'reason': "You've already reached your limit.",
             }))
             
         # Return the number remaining links after this one is created
         if bundle.request.user.has_limit() or not bundle.data.get('organization'):
-        	bundle.data['links_remaining'] = links_remaining - 1
+            bundle.data['links_remaining'] = links_remaining - 1
         else:
-        	bundle.data['links_remaining'] = 'unlimited'
+            bundle.data['links_remaining'] = 'unlimited'
         
         # Runs validation (exception thrown if invalid), sets properties and saves the object
         if bundle.data.get('organization'):
-        	is_private = Organization.objects.get(pk=bundle.data['organization']).default_to_private
-        	bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user, organization_id=bundle.data['organization'], is_private=is_private)
-        	bundle.obj.move_to_folder_for_user(bundle.data['folder'], bundle.request.user)
+            is_private = Organization.objects.get(pk=bundle.data['organization']).default_to_private
+            bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user, organization_id=bundle.data['organization'], is_private=is_private)
+            bundle.obj.move_to_folder_for_user(bundle.data['folder'], bundle.request.user)
         else:
-        	bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user)
+            bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user)
         link = bundle.obj
 
         uploaded_file = bundle.data.get('file')

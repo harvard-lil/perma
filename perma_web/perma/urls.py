@@ -26,7 +26,8 @@ urlpatterns = patterns('perma.views',
     url(r'^contact/thanks/?$', DirectTemplateView.as_view(template_name='contact-thanks.html'), name='contact_thanks'),
 #   url(r'^is500/?$', DirectTemplateView.as_view(template_name='500.html'), name='is500'),
 #	url(r'^is404/?$', DirectTemplateView.as_view(template_name='404.html'), name='is404'),
-    
+	url(r'^landing-new/?$', DirectTemplateView.as_view(template_name='landing-new.html'), name='landing-new'),
+   
     #Docs 
     url(r'^docs/?$', DirectTemplateView.as_view(template_name='docs/index.html'), name='docs'),
     url(r'^docs/perma-link-creation/?$', DirectTemplateView.as_view(template_name='docs/perma-link-creation.html'), name='docs_perma_link_creation'),
@@ -101,7 +102,6 @@ urlpatterns = patterns('perma.views',
     url(r'^manage/?$', RedirectView.as_view(url='/manage/create/', permanent=False)),
     url(r'^manage/create/?$', 'link_management.create_link', name='create_link'),
     url(r'^manage/create/(?P<org_id>[a-zA-Z0-9]+)/?$', 'link_management.create_link_with_org', name='create_link_with_org'),
-    url(r'^manage/dark-archive/%s/?$' % guid_pattern, 'link_management.dark_archive_link', name='dark_archive_link'),
     url(r'^manage/vest/%s/?$' % guid_pattern, 'link_management.vest_link', name='vest_link'),
     url(r'^manage/delete-link/%s/?$' % guid_pattern, 'link_management.user_delete_link', name='user_delete_link'),
     url(r'^manage/links/folder/(?P<folder_id>.+?)/?$', 'link_management.folder_contents', name='folder_contents'),

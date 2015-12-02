@@ -27,6 +27,14 @@ body, html {
 	overflow: visible;
 }
 
+a {
+	text-decoration: none;
+	&:link { color: inherit; }
+	&:visited { color: inherit; }
+	&:hover { color: inherit; }
+	&:active { color: inherit; }
+}
+
 // iframe start
 
 .verbose {
@@ -231,6 +239,7 @@ header {
     }
 	strong {
 		display: block;
+		position: relative;
 		@include respond-tablet {
 			display: inline;
 		}
@@ -710,9 +719,9 @@ a.about {
 
 .nav > li > a.dropdown-toggle {
 	display: none !important; // review
-	font-family: $font-body;
+	font-family: $font-hed-alt;
 	font-size: 17px;
-	font-weight: 300;
+	font-weight: 700;
 	
 	@include respond-tablet {
 		display: block !important; // review
@@ -1043,7 +1052,8 @@ p.fp {
 	}
 }
 
-._verbose, .verbose {
+._verbose, 
+.verbose {
     display: inline-block;
     width: 0;
     height: 1em;
@@ -1054,6 +1064,17 @@ p.fp {
 	    width: auto;
 	    height: auto;
 	    text-indent: 0;
+	}
+	&._toDesktop {
+		@include respond-tablet {
+		    display: none;
+		}
+		@include respond-desktop {
+		    display: inline;
+		    width: auto;
+		    height: auto;
+		    text-indent: 0;
+		}
 	}
 }
 

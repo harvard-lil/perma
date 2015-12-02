@@ -164,12 +164,6 @@ PIPELINE_JS = {
         ),
         'output_filename': 'js/stats-bundle.js',
     },
-    'dark-archive-link': {
-        'source_filenames': (
-            'js/dark-archive-link.js',
-        ),
-        'output_filename': 'js/dark-archive-link-bundle.js',
-    },
     'link-delete-confirm': {
         'source_filenames': (
             'js/link-delete-confirm.js',
@@ -244,6 +238,7 @@ MIDDLEWARE_CLASSES = (
     'perma.middleware.AdminAuthMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
     'perma.middleware.ReadOnlyMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',  # record request.user for model history
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
@@ -288,6 +283,7 @@ INSTALLED_APPS = (
     'django_forms_bootstrap',
     'djangosecure',  # force SSL -- this can be removed in Django 1.8
     'settings_context_processor',
+    'simple_history',  # record model changes
 
     # django admin -- has to come after our apps for our admin template overrides to work
     'django.contrib.admin',
