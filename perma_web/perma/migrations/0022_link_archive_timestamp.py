@@ -5,8 +5,8 @@ from django.db import models, migrations
 
 
 def set_archive_timestamps(apps, schema_editor):
-    from perma.models import Link
     from django.conf import settings
+    Link = apps.get_model("perma", "Link")
     for link in Link.objects.filter(user_deleted=False):
         link.archive_timestamp = link.creation_timestamp + settings.ARCHIVE_DELAY
         link.save()

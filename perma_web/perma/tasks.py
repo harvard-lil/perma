@@ -275,7 +275,7 @@ def proxy_capture(self, link_guid, user_agent=''):
                 rp = robotparser.RobotFileParser()
                 rp.parse([line.strip() for line in robots_txt_response.content.split('\n')])
                 if not rp.can_fetch('Perma', target_url):
-                    save_fields(link, dark_archived_robots_txt_blocked=True)
+                    save_fields(link, is_private=True, private_reason='policy')
                     print "Robots.txt fetched."
         add_thread(thread_list, robots_txt_thread)
 
@@ -298,7 +298,7 @@ def proxy_capture(self, link_guid, user_agent=''):
                     meta_tag = next((tag for tag in meta_tags if tag.get_attribute('name').lower() == 'robots'), None)
                 # if we found a relevant meta tag, check for noarchive
                 if meta_tag and 'noarchive' in meta_tag.get_attribute("content").lower():
-                    save_fields(link, dark_archived_robots_txt_blocked=True)
+                    save_fields(link, is_private=True, private_reason='policy')
                     print "Meta found, darchiving"
             add_thread(thread_list, meta_thread)
 
@@ -430,8 +430,8 @@ def get_nightly_stats():
     total_count_vested_links = Link.objects.filter(vested=True).count()
     
     # Get things in the darchive
-    total_count_darchive_takedown_links = Link.objects.filter(dark_archived=True).count()
-    total_count_darchive_robots_links = Link.objects.filter(dark_archived_robots_txt_blocked=True).count()
+    total_count_darchive_takedown_links = Link.objects.filter(is_private=True, private_reason='takedown').count()
+    total_count_darchive_robots_links = Link.objects.filter(is_private=True, private_reason='policy').count()
     
     # Get the path of yesterday's file storage tree
     now = datetime.datetime.now() - datetime.timedelta(days=1)

@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Count, Max
 
 from mptt.admin import MPTTModelAdmin
+from simple_history.admin import SimpleHistoryAdmin
 
 from .models import *
 from .admin_utils import new_class, InlineEditLinkMixin
@@ -23,7 +24,7 @@ class LinkInline(admin.TabularInline):
 ### admin models ###
 
 
-class RegistrarAdmin(admin.ModelAdmin):
+class RegistrarAdmin(SimpleHistoryAdmin):
     search_fields = ['name', 'email', 'website']
     list_display = ['name', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'latitude', 'longitude', 'vested_links', 'registrar_users', 'last_active', 'orgs_count']
     list_editable = ['show_partner_status', 'partner_display_name', 'latitude', 'longitude']
@@ -58,7 +59,7 @@ class RegistrarAdmin(admin.ModelAdmin):
         return obj.orgs_count
 
 
-class OrganizationAdmin(admin.ModelAdmin):
+class OrganizationAdmin(SimpleHistoryAdmin):
     fields = ['name', 'registrar']
     search_fields = ['name']
     list_display = ['name', 'registrar', 'org_users', 'last_active', 'first_active', 'vested_links']
@@ -141,13 +142,13 @@ class LinkUserAdmin(UserAdmin):
         return obj.created_links.count()
 
 
-class LinkAdmin(admin.ModelAdmin):
+class LinkAdmin(SimpleHistoryAdmin):
     list_display = ['guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp', 'vested', 'vested_by_editor', 'vested_timestamp']
     search_fields = ['guid', 'submitted_url', 'submitted_title']
     fieldsets = (
         (None, {'fields': ('guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp', 'view_count')}),
         ('Vesting', {'fields': ('vested', 'vested_by_editor', 'organization', 'vested_timestamp')}),
-        ('Dark Archive', {'fields': ('dark_archived', 'dark_archived_robots_txt_blocked', 'dark_archived_by',)}),
+        ('Visibility', {'fields': ('is_private', 'private_reason', 'is_unlisted',)}),
         ('User Delete', {'fields': ('user_deleted', 'user_deleted_timestamp',)}),
         ('Organization', {'fields': ('folders', 'notes')}),
         ('Mirroring', {'fields': ('archive_timestamp',)})
@@ -161,7 +162,7 @@ class LinkAdmin(admin.ModelAdmin):
                   fields=['raw'],
                   can_delete=False),
     ]
-    raw_id_fields = ['created_by','vested_by_editor','dark_archived_by']
+    raw_id_fields = ['created_by','vested_by_editor',]
 
     def get_queryset(self, request):
         return super(LinkAdmin, self).get_queryset(request).select_related('created_by', 'vested_by_editor')
