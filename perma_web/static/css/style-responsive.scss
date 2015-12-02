@@ -614,9 +614,10 @@ a {
 			right: 13px;
 		}
 	}
-	&.sm-badge:hover {
+	&.sm-badge:hover, 
+	&.sm-badge:focus {
 		@include respond-tablet {
-			border-color: $color-hover;
+			border-color: $color-green;
 		}
 	}
 	&.sm-badge:after {
@@ -1098,15 +1099,14 @@ div.col-right {
 		margin-bottom: $double;
 	}
 	&.btn-large-alt {
-		@extend .style-standard-border-hover;
 		background-color: transparent;
 		border: 2px solid;
 		font-weight: 400;
 		color: $color-blue;
 		&:hover, &:focus {
 			background-color: transparent !important;
-			color: $color-hover !important;
-			border-color: $color-hover !important;
+			color: $color-green !important;
+			border-color: $color-green !important;
 		}
 		&:active {
 			background-color: transparent !important;
@@ -4596,7 +4596,7 @@ section .caption {
 		}
 	}
 	@include respond-tablet {
-		background-image: url('../img/link-rot-healthy-1.svg');
+		//background-image: url('../img/link-rot-healthy-1.svg');
 		-webkit-animation: healthy 1s linear infinite;
 		-moz-animation: healthy 1s linear infinite;
 		-o-animation: healthy 1s linear infinite;
