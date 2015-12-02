@@ -4559,68 +4559,53 @@ section .caption {
 
 @-webkit-keyframes healthy {
     0% {
-		    background-image: url('../img/link-rot-healthy.svg'); 
-		    background-size: contain;
+		    background-image: url('../img/link-rot-healthy.png'); 
 	}
     25% {
-	    	background-image: url('../img/link-rot-healthy-1.svg'); 
-	    	background-size: contain;
+	    	background-image: url('../img/link-rot-healthy-1.png'); 
 	}
     50% {
-	    	background-image: url('../img/link-rot-healthy-2.svg'); 
-	    	background-size: contain;
+	    	background-image: url('../img/link-rot-healthy-2.png'); 
 	}
     75% {
-	    	background-image: url('../img/link-rot-healthy-3.svg'); 
-	    	background-size: contain;
+	    	background-image: url('../img/link-rot-healthy-3.png'); 
 	}
     100% {
-	    	background-image: url('../img/link-rot-healthy.svg'); 
-	    	background-size: contain;
+	    	background-image: url('../img/link-rot-healthy.png'); 
 	}
 }
 @-moz-keyframes healthy {
     0% {
-		    background-image: url('../img/link-rot-healthy.svg'); 
-		    background-size: contain;
+		    background-image: url('../img/link-rot-healthy.png'); 
 	}
     25% {
-	    	background-image: url('../img/link-rot-healthy-1.svg'); 
-	    	background-size: contain;
+	    	background-image: url('../img/link-rot-healthy-1.png'); 
 	}
     50% {
-	    	background-image: url('../img/link-rot-healthy-2.svg'); 
-	    	background-size: contain;
+	    	background-image: url('../img/link-rot-healthy-2.png'); 
 	}
     75% {
-	    	background-image: url('../img/link-rot-healthy-3.svg'); 
-	    	background-size: contain;
+	    	background-image: url('../img/link-rot-healthy-3.png'); 
 	}
     100% {
-	    	background-image: url('../img/link-rot-healthy.svg'); 
-	    	background-size: contain;
+	    	background-image: url('../img/link-rot-healthy.png'); 
 	}
 }
 @keyframes healthy {
     0% {
-		    background-image: url('../img/link-rot-healthy.svg'); 
-		    background-size: contain;
+		    background-image: url('../img/link-rot-healthy.png'); 
 	}
     25% {
-	    	background-image: url('../img/link-rot-healthy-1.svg'); 
-	    	background-size: contain;
+	    	background-image: url('../img/link-rot-healthy-1.png'); 
 	}
     50% {
-	    	background-image: url('../img/link-rot-healthy-2.svg'); 
-	    	background-size: contain;
+	    	background-image: url('../img/link-rot-healthy-2.png'); 
 	}
     75% {
-	    	background-image: url('../img/link-rot-healthy-3.svg'); 
-	    	background-size: contain;
+	    	background-image: url('../img/link-rot-healthy-3.png'); 
 	}
     100% {
-	    	background-image: url('../img/link-rot-healthy.svg'); 
-	    	background-size: contain;
+	    	background-image: url('../img/link-rot-healthy.png'); 
 	}
 }
 
@@ -4641,22 +4626,22 @@ section .caption {
 		}
 	}
 	@include respond-tablet {
-		//background-image: url('../img/link-rot-healthy-1.svg');
+		background-image: url('../img/link-rot-healthy.png');
 		-webkit-animation: healthy 1s linear infinite;
 		-moz-animation: healthy 1s linear infinite;
 		-o-animation: healthy 1s linear infinite;
 		animation: healthy 1s linear infinite;
 		background-repeat: no-repeat;
 		background-position: center center;
-		background-size: 768px auto !important;
+		background-size: 768px 768px !important;
 		height: 768px;
 	}
 	@include respond-desktop {
-		background-size: 1120px auto !important;
+		background-size: 1120px 1120px !important;
 		height: 1120px;
 	}
 	@include respond-wide {
-		background-size: 1200px auto !important;
+		background-size: 1200px 1200px !important;
 		height: 1200px;
 	}
 }
@@ -4665,7 +4650,7 @@ img#healthylinks {
 	width: 100%;
 	max-width: none;
 	height: auto;
-	background-image: url('../img/link-rot-healthy-1.svg');
+	background-image: url('../img/link-rot-healthy.png');
 	-webkit-animation: healthy 1s linear infinite;
 	-moz-animation: healthy 1s linear infinite;
 	-o-animation: healthy 1s linear infinite;
