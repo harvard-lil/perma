@@ -26,7 +26,8 @@ urlpatterns = patterns('perma.views',
     url(r'^contact/thanks/?$', DirectTemplateView.as_view(template_name='contact-thanks.html'), name='contact_thanks'),
 #   url(r'^is500/?$', DirectTemplateView.as_view(template_name='500.html'), name='is500'),
 #	url(r'^is404/?$', DirectTemplateView.as_view(template_name='404.html'), name='is404'),
-    
+	url(r'^landing-new/?$', DirectTemplateView.as_view(template_name='landing-new.html'), name='landing-new'),
+   
     #Docs 
     url(r'^docs/?$', DirectTemplateView.as_view(template_name='docs/index.html'), name='docs'),
     url(r'^docs/perma-link-creation/?$', DirectTemplateView.as_view(template_name='docs/perma-link-creation.html'), name='docs_perma_link_creation'),

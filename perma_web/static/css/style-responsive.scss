@@ -46,6 +46,18 @@
 	}
 }
 
+.style-standard-border-hover {
+	&:hover, &:focus {
+		color: $color-hover;
+		border-color: $color-hover;
+	}
+	&:active {
+		color: $color-active;
+		border-color: $color-active;
+	}
+}
+
+
 .style-button-hover {
 	&:hover, &:focus {
 		background-color: $color-hover;
@@ -368,6 +380,13 @@ p {
 	}
 }
 
+._showMobile {
+	display: none;
+	@include respond-mobile {
+		display: block;
+	}
+}
+
 ._soleContent {
 	margin-bottom: $double;
 }
@@ -432,7 +451,7 @@ strong {
 	text-align: left;
 }
 
-.center {
+.center, ._isCentered {
 	text-align: center;
 }
 
@@ -516,6 +535,99 @@ a {
 			}
 		}
 	}
+	&.link-block {
+		display: block;
+	}
+	&.xs-badge-sq {
+		text-align: center;
+		background-color: $color-highlight;
+		display: table;
+		height: 6em;
+		border: 1px solid rgba(0,0,0,.1);
+		font-family: $font-hed-alt;
+		padding: $grid $grid * 2;
+		margin-top: $grid * 3;
+		border-radius: 2px;
+		position: relative;
+		width: 100%;
+		font-size: 12px;
+		.badge-inner {
+			display: table-cell;
+			vertical-align: middle;
+		}
+		&:after {
+			content: '';
+			display: block;
+			height: $grid * 3;
+			width: $grid * 3;
+			//background-color: white;
+			//border: 1px solid $color-blue;
+			position: absolute;
+			top: -8px;
+			right: -8px;
+			border-radius: $grid * 8;
+			//box-shadow: 0px 0px 0px 1px $color-blue;
+			background-image: url('../img/ui/perma-ui-success.svg');
+			background-size: contain;
+			background-repeat: no-repeat;
+		}
+		strong {
+			display: block;
+			color: $color-black;
+		}
+		@include respond-xmobile {
+			margin-top: $grid * 4;
+			font-size: 14px;
+		}
+	}
+	&.sm-badge {
+		@include respond-tablet {
+			color: $color-hover;
+			background-color: white;
+			width: 120px;
+			height: 120px;
+			border-radius: 100px;
+			margin-top: 0;
+			margin-bottom: 16px;
+			display: block;
+			border: 1px solid $color-blue;
+			float: right;
+			font-size: 12px;
+			padding-top: 26px;
+			padding-left: 18px;
+			right: 13px;
+		}
+		@include respond-desktop {
+			width: 136px;
+			height: 136px;
+			border-radius: 152px;
+			padding: 33px 18px 18px 21px;
+			right: 16px;
+		}
+		@include respond-wide {
+			width: 152px;
+			height: 152px;
+			border-radius: 152px;
+			margin-bottom: 24px;
+			font-size: 14px;
+			padding: 35px 24px 24px 27px;
+			right: 13px;
+		}
+	}
+	&.sm-badge:hover, 
+	&.sm-badge:focus {
+		@include respond-tablet {
+			border-color: $color-green;
+		}
+	}
+	&.sm-badge:after {
+		@include respond-tablet {
+		}
+		@include respond-wide {
+			top: 0;
+			right: -4px;
+		}
+	}
 }
 
 a.action {
@@ -564,6 +676,41 @@ a.action {
 
 p a.perma { @extend a.perma }
 
+a.cc {
+	display: inline-block;
+	width: 21px;
+	height: 16px;
+	overflow: hidden;
+	text-indent: -10000px;
+	@extend style-button-hover;
+	background-color: $color-blue;
+	background-image: url('../img/ui/perma-ui-8-small.png');
+	background-size: 90px 7px;
+	background-repeat: no-repeat;
+	background-position: -74px center;
+	position: relative;
+	bottom: -3px;
+	padding: 0;
+	border: 2px solid $color-blue;
+	border-radius: 2px;
+	margin: 0 .2em;
+	&:hover {
+		text-decoration: none;
+		border-color: $color-hover;
+		background-color: $color-hover;
+	}
+	&:active {
+		border-color: $color-black;
+		background-color: $color-black;
+	}
+	@include respond-tablet {
+		&:hover {
+		}
+		&:active {
+		}
+	}
+}
+
 /////////////////////////////////////////
 
 // Container, Row, Column
@@ -582,6 +729,12 @@ p a.perma { @extend a.perma }
 
 .cont-full-bleed {
 	max-width: none;
+}
+
+.cont-fluid,
+.container-fluid {
+	@extend .container;
+	@extend .cont-full-bleed;
 }
 
 .cont-full {
@@ -635,6 +788,18 @@ p a.perma { @extend a.perma }
 	background-color: $color-background;
 }
 
+.cont-bg-knockout {
+	background-color: $color-white;
+}
+
+.cont-bg-heavy {
+	background-color: $color-black;
+	color: white;
+	h1, h2, h3, h4, p {
+		color: white;		
+	}
+}
+
 .cont-display {
 	margin-top: $grid * 3;
 	padding-top: $grid * 4;
@@ -678,6 +843,13 @@ p a.perma { @extend a.perma }
 	}
 }
 
+.row.row-halfgutter {
+	margin: 0 $bleed / 2 !important;
+	@include all-columns {
+		padding: 0 $bleed / -2;
+	}
+}
+
 .row.row-no-bleed {
 	margin-left: 0;
 	margin-right: 0;
@@ -712,6 +884,13 @@ div.col-right {
 	}
 }
 
+.col-sm-10by3 {
+	@include respond-tablet {
+		width: 100% * (5 / 18); // 10/3 width
+		float: left;
+	}
+}
+
 .col-sm-by5 {
 	width: 100%;
 	@include respond-desktop {
@@ -735,6 +914,62 @@ div.col-right {
 .sm-align-right {
 	@include respond-tablet {
 		text-align: right;
+	}
+}
+
+.col-sm-2col {
+	@include respond-tablet {
+		-webkit-column-count: 2;
+	    -webkit-column-gap: 24px;
+	    -webkit-column-rule: 1px solid rgba(0,0,0,.1);
+		-moz-column-count: 2;
+	    -moz-column-gap: 24px;
+	    -moz-column-rule: 1px solid rgba(0,0,0,.1);
+		column-count: 2;
+	    column-gap: 24px;
+	    column-rule: 1px solid rgba(0,0,0,.1);
+	}
+}
+
+.col-sm-3col {
+	@include respond-tablet {
+		-webkit-column-count: 3;
+	    -webkit-column-gap: 24px;
+	    -webkit-column-rule: 1px solid rgba(0,0,0,.1);
+		-moz-column-count: 3;
+	    -moz-column-gap: 24px;
+	    -moz-column-rule: 1px solid rgba(0,0,0,.1);
+		column-count: 3;
+	    column-gap: 24px;
+	    column-rule: 1px solid rgba(0,0,0,.1);
+	}
+}
+
+.col-md-4col {
+	@include respond-desktop {
+		-webkit-column-count: 4;
+	    -webkit-column-gap: 24px;
+	    -webkit-column-rule: 1px solid rgba(0,0,0,.1);
+		-moz-column-count: 4;
+	    -moz-column-gap: 24px;
+	    -moz-column-rule: 1px solid rgba(0,0,0,.1);
+		column-count: 4;
+	    column-gap: 24px;
+	    column-rule: 1px solid rgba(0,0,0,.1);
+	}
+}
+
+.col-md-5col {
+	@include respond-desktop {
+		-webkit-column-count: 5;
+	    -webkit-column-gap: 24px;
+	    -webkit-column-rule: 1px solid rgba(0,0,0,.1);
+		-moz-column-count: 5;
+	    -moz-column-gap: 24px;
+	    -moz-column-rule: 1px solid rgba(0,0,0,.1);
+		column-count: 5;
+	    column-gap: 24px;
+	    column-rule: 1px solid rgba(0,0,0,.1);
 	}
 }
 
@@ -769,7 +1004,6 @@ div.col-right {
 		margin: $double 0;
 		padding: 14px $grid * 3;
 		display: inline-block;
-		font-weight: 700;
 		font-size: 16px;
 		& + .btn {
 			margin-left: $double;
@@ -837,6 +1071,20 @@ div.col-right {
 		padding: 4px 8px;
 		font-size: 12px;
 	}
+	&.btn-small {
+		padding: $half $grid;
+	    font-size: 14px;
+	    margin-top: 0px;
+	    float: left;
+	    clear: both;
+	    margin-left: 0;
+	    margin-bottom: $grid;
+	    &.center {
+		    float: none;
+		    display: inline-block;
+		    margin-top: 0;
+	    }
+    }
 	&.delete-confirm {
 		background-color: $color-error;
 		&:hover, &:focus {
@@ -849,6 +1097,22 @@ div.col-right {
 	&.login {
 		background-color: $color-green;
 		margin-bottom: $double;
+	}
+	&.btn-large-alt {
+		background-color: transparent;
+		border: 2px solid;
+		font-weight: 400;
+		color: $color-blue;
+		&:hover, &:focus {
+			background-color: transparent !important;
+			color: $color-green !important;
+			border-color: $color-green !important;
+		}
+		&:active {
+			background-color: transparent !important;
+			color: $color-black !important;
+			border-color: $color-black !important;
+		}
 	}
 }
 
@@ -1855,11 +2119,20 @@ div.caption {
 p.caption {
 	font-family: $font-hed-alt;
 	font-weight: 400;
-	color: $color-trans-darkgray;
-	font-size: 14px;
+	color: $color-black;
+	font-size: 12px;
 	text-align: center;
 	max-width: 25em;
-	margin: 0 auto;
+	margin: $grid * 3 auto 0;
+	@include respond-tablet {
+		font-size: 14px;
+	}
+}
+
+.col-xs-6 p.caption {
+	@include respond-mobile {
+		line-height: 1.45;
+	}
 }
 
 ._image {
@@ -1880,6 +2153,10 @@ p.caption {
 			padding: $grid * 3 $grid * 3 0 $grid * 3;
 		}
 	}
+}
+
+.figure {
+	margin-top: $double;
 }
 
 /////////////////////////////////////////
@@ -3888,22 +4165,305 @@ span.action {
 	margin-bottom: 2px;
 }
 
-
-
-
-
-
-
-
-
-
-
-
 //	Landing 
 
+
+section {
+	padding-bottom: $grid * 4;
+	@include respond-tablet {
+		padding-bottom: $grid * 6;
+	}
+	@include respond-desktop {
+		padding-bottom: $grid * 8;
+	}
+	& + section {
+		padding-top: $grid * 4;
+		@include respond-tablet {
+			padding-top: $grid * 6;
+		}
+		@include respond-desktop {
+			padding-top: $grid * 8;
+			padding-bottom: $grid * 10;
+		}
+	}
+}
+
+#landing-introduction {
+	@include respond-desktop {
+		padding-top: $grid * 4;
+	}
+}
+
+.cont-subsection {
+	//padding: $grid * 4 0;
+	margin-top: $grid * 2;
+	@include respond-tablet {
+		//padding: $grid * 6 0;
+		margin-top: $grid * 3;
+	}
+}
+
+.primary-intro {
+	font-family: $font-hed-alt;
+	font-size: 18px;
+	strong {
+		font-weight: 300;
+		color: $color-blue;
+	}
+	a {
+		font-weight: inherit;
+		border-bottom: 1px solid $color-trans-lightgray;
+		&:hover {
+			text-decoration: none;
+		}
+		@extend .style-standard-border-hover;
+	}
+	@include respond-xmobile {
+		font-size: 24px;
+	}
+	@include respond-tablet {
+		font-size: 28px;
+		&:last-child {
+			padding-bottom: $grid * 4;
+		}
+	}
+	@include respond-wide {
+		font-size: 32px;
+	}
+}
+
+.section-hed {
+	overflow: auto;
+}
+
+.section-title {
+	color: $color-black;
+	font-size: 20px;
+	@include respond-tablet {
+		font-weight: 900;
+	}
+	@include respond-desktop {
+		font-size: 28px;
+	}
+}
+
+.section-title-alt {
+	@extend .section-title;
+	text-align: center;
+	&.light {
+		font-weight: 300;
+	}
+}
+
+.section-subtitle {
+	color: $color-black;
+	font-size: 18px;
+    font-family: $font-hed-alt;
+    line-height: 1.42;
+    margin-top: $half;
+    margin-bottom: 0;
+	@include respond-tablet {
+	    line-height: 1.5;
+	}
+	@include respond-desktop {
+		font-size: 24px;
+	}
+}
+
+.section-subtitle-alt {
+	@extend .section-subtitle;
+	text-align: center;	
+}
+
+.section-ah, 
+h3.section-ah {
+	font-size: 16px;
+    font-family: $font-hed-alt;
+	float: left;
+    padding: $half 0;
+    border-bottom: 1px solid #222;
+    margin: 1.5em 0 .75em;
+    font-weight: 400;
+    clear: both;
+	@include respond-desktop {
+		font-size: 19px;
+	}
+}
+
+.section-body {
+    font-family: $font-hed-alt;
+	font-weight: 400;
+	clear: both;
+	@include respond-desktop {
+		font-size: 16px;
+	}
+	&.small {
+		font-size: 85%;
+	}
+	a.cc {
+		bottom: -4px;
+	}
+	&.footnote {
+		margin-top: $grid * 4;
+		color: $color-trans-darkgray;
+		@include respond-desktop {
+			margin-top: $grid * 8;
+			margin-bottom: $grid * 4;
+		}
+	}
+}
+
+.section-strong {
+	@extend .section-body;
+	font-weight: 700;
+}
+
+.section-list {
+	padding-left: 0;
+	font-family: $font-hed-alt;
+	font-weight: 400;
+	padding-bottom: 6px;
+//	border-bottom: 1px solid $color-blue;
+	margin-bottom: $double;
+	li {
+//		margin-top: 6px;
+		padding-top: 6px;
+		padding-left: 1.2em;
+		text-indent: -1.2em;
+//		border-top: 1px solid $color-blue;
+		a.outside:before {
+			content: '➔';
+			display: inline-block;
+			width: 1.2em;
+			text-indent: 0;
+			color: $color-blue;
+		}
+		a strong {
+			text-decoration: underline;
+			@extend .style-standard-hover;
+		}
+	}
+	li + li {
+	}
+	strong {
+		font-weight: 700;
+	}
+	&.list-tight {
+		li {
+			padding-top: 0;
+			margin-top: 0;
+		}
+	}
+}
+
+.section-break {
+	border-top: 1px solid $color-trans-whispergray;
+	margin-top: $grid * 2;
+	padding-top: $grid * 2;
+	@include respond-tablet {
+		margin-top: $grid * 6;
+		padding-top: $grid * 3;
+	}
+	@include respond-desktop {
+		margin-top: $grid * 6;
+		padding-top: $grid * 6;
+	}
+}
+
+.cont-bg .section-break {
+	border-top: 4px solid white;
+}
+
+.row-subsection {
+	padding-top: 0;
+	@include respond-tablet {
+		padding-top: $grid * 3;
+	}
+}
+
+.caption-title,
+.figure-title  {
+	font-family: $font-hed-alt;
+	font-weight: 700;
+    font-size: 14px;
+    line-height: 1.4;
+    margin-top: 0;
+}
+
+.figure-title {
+	border-bottom: 1px solid;
+	padding-bottom: $grid;
+	display: inline-block;
+}
+
+section .caption {
+	color: $color-black;
+	a {
+		font-weight: 400;
+		text-decoration: underline;
+		@extend .style-standard-hover;
+	}
+}
+
+.signup-image {
+	width: 120px;
+	height: auto;
+	margin: $grid auto;
+}
+
+.section-ah + .row {
+	margin-top: $grid * 3;
+}
+
+#landing-product {
+	padding-bottom: 0;
+}
+
+#landing-problem {
+	padding-bottom: $grid * 3;
+}
+
+#landing-signup {
+	padding-bottom: $grid * 4;
+	@include respond-tablet {
+		padding-bottom: 104px;
+	}
+}
+
+#landing-developers {
+	background-color: $color-black;
+	font-size: 16px;
+	text-align: center;
+	@include respond-mobile {
+		strong {
+			display: block;
+		}
+	}
+	p { 
+		color: white; 
+		max-width: none;
+	}
+	padding: $double 0;
+	a {
+		text-decoration: underline;
+	}	
+	@include respond-tablet {
+		font-size: 16px;
+	}
+	@include respond-desktop {
+		font-size: 20px;
+	}
+}
+
+.row-modules {
+	margin-top: $grid * 2;
+	@include respond-tablet {
+		margin-top: $grid * 4;
+	}
+}
+
 #supporting-partners {
-	margin-top: $grid * 4;
-	background-color: $color-background;
+	margin-top: 0;
 	padding: $grid * 4 0;
 	text-align: center;
 	@include respond-tablet {
@@ -3948,6 +4508,186 @@ span.action {
 		height: $grid * 12;
 	}
 }
+
+.row-stats {
+	margin-bottom: $grid;
+	margin-top: $grid * 3;
+	@include respond-tablet {
+		margin-bottom: $grid;
+		margin-top: $grid;
+	}
+	@include respond-desktop {
+		margin-bottom: $grid * 4;
+		margin-top: $grid * 4;
+	}
+}
+
+.col-stat {
+	@include respond-mobile {
+		display: block;
+		margin: 0;
+		padding: $grid 0;
+		border-top: 1px solid $color-blue;
+	}
+	@include respond-tablet {
+		display: inline-block;
+		margin: $grid 0;
+		padding: 0 $grid * 4;
+	}
+	& + .col-stat {
+		@include respond-tablet {
+			border-left: 1px solid $color-blue;
+		}
+	}
+}
+
+.stat-number {
+	font-size: 40px;
+	font-weight: 900;
+	font-family: $font-hed-alt;
+	letter-spacing: 1px;
+	line-height: 1;
+	@include respond-tablet {
+		font-size: 48px;
+	}
+	@include respond-desktop {
+		font-size: 80px;
+	}
+}
+
+.stat-label {
+	font-family: $font-hed-alt;
+	font-size: 16px;
+	font-weight: 900;
+	margin-top: $grid;
+	color: $color-blue;
+}
+
+@-webkit-keyframes healthy {
+    0% {
+		    background-image: url('../img/link-rot-healthy.gif'); 
+	}
+    25% {
+	    	background-image: url('../img/link-rot-healthy-1.gif'); 
+	}
+    50% {
+	    	background-image: url('../img/link-rot-healthy-2.gif'); 
+	}
+    75% {
+	    	background-image: url('../img/link-rot-healthy-3.gif'); 
+	}
+    100% {
+	    	background-image: url('../img/link-rot-healthy.gif'); 
+	}
+}
+@-moz-keyframes healthy {
+    0% {
+		    background-image: url('../img/link-rot-healthy.gif'); 
+	}
+    25% {
+	    	background-image: url('../img/link-rot-healthy-1.gif'); 
+	}
+    50% {
+	    	background-image: url('../img/link-rot-healthy-2.gif'); 
+	}
+    75% {
+	    	background-image: url('../img/link-rot-healthy-3.gif'); 
+	}
+    100% {
+	    	background-image: url('../img/link-rot-healthy.gif'); 
+	}
+}
+@keyframes healthy {
+    0% {
+		    background-image: url('../img/link-rot-healthy.gif'); 
+	}
+    25% {
+	    	background-image: url('../img/link-rot-healthy-1.gif'); 
+	}
+    50% {
+	    	background-image: url('../img/link-rot-healthy-2.gif'); 
+	}
+    75% {
+	    	background-image: url('../img/link-rot-healthy-3.gif'); 
+	}
+    100% {
+	    	background-image: url('../img/link-rot-healthy.gif'); 
+	}
+}
+
+.container-square-display {
+	height: auto;
+	.inner {
+		padding-bottom: 0;
+		@include respond-tablet {
+			top: $grid * 35;
+			border-bottom: 1px solid rgba(0,0,0,.07);
+			padding-bottom: 32px;
+		}
+		@include respond-desktop {
+			top: $grid * 51;
+		}
+		@include respond-wide {
+			top: $grid * 53;
+		}
+	}
+	@include respond-tablet {
+		background-image: url('../img/link-rot-healthy.gif');
+		-webkit-animation: healthy 1s linear infinite;
+		-moz-animation: healthy 1s linear infinite;
+		-o-animation: healthy 1s linear infinite;
+		animation: healthy 1s linear infinite;
+		background-repeat: no-repeat;
+		background-position: center center;
+		background-size: 768px 768px !important;
+		height: 768px;
+	}
+	@include respond-desktop {
+		background-size: 1120px 1120px !important;
+		height: 1120px;
+	}
+	@include respond-wide {
+		background-size: 1200px 1200px !important;
+		height: 1200px;
+	}
+}
+
+img#healthylinks {
+	width: 100%;
+	max-width: none;
+	height: auto;
+	background-image: url('../img/link-rot-healthy.gif');
+	-webkit-animation: healthy 1s linear infinite;
+	-moz-animation: healthy 1s linear infinite;
+	-o-animation: healthy 1s linear infinite;
+	animation: healthy 1s linear infinite;
+	background-repeat: no-repeat;
+	background-position: center center;
+	background-size: contain !important;
+}
+
+section .row .col-sm-6 + .col-sm-6 {
+	padding-left: 16px;
+}
+
+section .caption {
+	max-width: none;
+	padding-bottom: $grid * 2;
+	margin-top: $grid * 2;
+	@include respond-tablet {
+		margin-top: $grid * 3;
+		padding-bottom: $grid * 4;
+	}
+}
+
+.signup-module {
+	@include respond-mobile {
+		border-top: 1px solid $color-blue;
+		padding: $grid * 2 $double 0;
+		margin-top: $grid * 2;
+	}
+}
+
 
 #examples {
 	padding: $grid * 7 0;
@@ -4021,219 +4761,4 @@ span.action {
 	position: absolute;
 	background-color: #ffff00;
 	@include opacity(.3);
-}
-
-.capsule {
-	display: inline-block;
-	height: auto;
-	max-width: 100%;
-	padding: $half;
-	line-height: 1.4;
-	background-color: $color-background;
-	text-align: left;
-	border-radius: 4px;
-	h4 {
-	font-family: $font-hed-alt;
-	font-weight: 900;
-	font-size: 24px;
-	color: $color-black;
-	margin-bottom: 0;
-	margin-top: $double;
-	}
-	p {
-	margin-top: $grid;
-	font-size: 16px;
-	line-height: 1.6;
-	margin-bottom: $double;
-	}
-}
-
-.welcome2 {
-	padding: $grid * 3 0;
-	margin: $grid * 3 auto 0;
-	background-color: $color-background;
-	@include respond-tablet {
-		margin-top: $grid * 7;
-		padding: $grid * 7 0;
-		.col-sm-6 {
-			float: right;
-			padding-left: $grid * 4;
-			& + .col-sm-6 {
-				float: left;
-				padding-left: 0;
-			}
-		}
-	}
-}
-
-img[usemap] {
-		border: none;
-		height: auto;
-		max-width: 100%;
-		width: auto;
-	}
-
-.welcome, 
-.welcome2 {
-	text-align: left;
-}
-
-.welcome {
-	padding-top: $grid * 3;
-	.mega {
-		font-weight: 300;
-		font-size: 40px;
-		@include respond-tablet {
-			font-size: 36px;
-		}
-	}
-	img {
-		max-height: 27em;
-		padding-top: 0;
-		margin-top: 0;
-	}
-}
-
-div.buttons {
-	margin-left: -$grid;
-	margin-right: -$grid;
-	.btn {
-		margin-right: $grid;
-		margin-left: $grid;
-	}
-}
-
-.mega {
-	color: $color-black;
-	line-height: 1.2;
-	font-weight: 900;
-	margin-top: 0px;
-	text-align: left;
-	font-size: 24px;
-	font-family: $font-hed-alt;
-	@include respond-tablet {
-		font-size: 36px;
-		font-family: $font-body;
-		font-weight: 200;
-	}
-	& + p {
-		margin-top: $double;
-	}
-}
-
-.title {
-	text-align: center;
-}
-a.mega {
-	text-align: center;
-}
-
-a.mega:hover, a.mega:active {
-	color: #06a;
-}
-a.orange, .orange {
-	color: $color-orange;
-}
-
-a.orange:hover, .orange:active {
-	color: #e9322d;
-}
-
-#how-it-works {
-	padding-top: $grid * 4;
-	.row {
-		margin-top: $grid * 3;
-		border-top: 1px solid $color-blue;
-		padding-top: $grid * 3;
-		@include respond-tablet {
-			margin-top: $grid * 4;
-			padding-top: $grid * 4;
-			&:nth-child(2n + 1) {
-				._image {
-					float: left;
-				}
-				._text {
-					float: right;
-				}
-			}
-		}
-	}
-	@include respond-tablet {
-		padding-top: $grid * 7;
-		border-top: 1px solid $color-trans-lightgray;
-	}
-}
-
-h4.how-point-title {
-	font-size: 22px;
-	font-family: $font-hed-alt;
-	font-weight: 900;
-	color: $color-orange;
-	margin-top: 0;
-	margin-bottom: 0;
-	line-height: 1.2;
-	.num {
-		color: $color-black;
-	}
-	@include respond-tablet {
-		font-size: 32px;
-	}
-}
-
-p.display {
-	font-size: 15px;
-	line-height: 1.5;
-	margin-bottom: 1em;
-	padding: 0;
-	@include respond-tablet {
-		font-size: 16px;
-		margin-bottom: $double;
-	}
-	@include respond-desktop {
-		font-size: 20px;
-		margin-bottom: $grid * 4;
-	}
-}
-.caption p {
-	@extend p.caption;
-}
-
-#home-description {
-	padding: 0;
-	p#subtext {
-		font-size: 16px;
-		margin: 0;
-	}
-	p#home-share-buttons {
-		background-color: #fc6;
-		margin: 20px 0 0 0;
-	}
-	p.how-point-subtitle {
-		font-family: $font-hed-alt;
-		font-weight: 300;
-		color: $color-black;
-		font-size: 22px;
-		margin-top: 0;
-		line-height: 1.2;
-		margin-bottom: $grid;
-		@include respond-tablet {
-			font-size: 28px;
-			margin-bottom: $grid * 4;
-		}
-	}
-	.capsule {
-		@extend .capsule;
-		display: table-cell;
-	}
-	.btn {
-		background-color: $color-blue;
-		@extend .style-button-hover;
-		&._primary {
-			background-color: $color-orange;
-			@extend .style-button-hover;
-		}
-	}
-	.welcome2 p.mega {
-		margin-top: 10px;
-	}
 }

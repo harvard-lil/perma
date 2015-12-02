@@ -257,15 +257,17 @@ class FunctionalTest(BaseTestCase):
 
         info("Loading homepage from %s." % self.server_url)
         self.driver.get(self.server_url)
-        assert_text_displayed("Perma.cc prevents link rot.") # new text on landing now
+        assert_text_displayed("Perma.cc is simple") # new text on landing now
 
-        info("Checking Perma In Action section.")
-        try:
-            get_xpath("//a[@data-img='MSC_1']").click()
-            self.assertTrue(is_displayed(get_id('example-title')))
-            get_xpath("//div[@id='example-image-wrapper']/img").click()  # click on random element to trigger Sauce screenshot
-        except ElementNotVisibleException:
-            pass  # this section is hidden for mobile browsers, so just skip this test
+        ##### cut this since it no longer exists
+        
+        # info("Checking Perma In Action section.")
+        #try:
+        #    get_xpath("//a[@data-img='MSC_1']").click()
+        #    self.assertTrue(is_displayed(get_id('example-title')))
+        #    get_xpath("//div[@id='example-image-wrapper']/img").click()  # click on random element to trigger Sauce screenshot
+        #except ElementNotVisibleException:
+        #    pass  # this section is hidden for mobile browsers, so just skip this test
 
         info("Loading docs.")
         try:
