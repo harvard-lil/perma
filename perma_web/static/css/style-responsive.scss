@@ -4559,53 +4559,53 @@ section .caption {
 
 @-webkit-keyframes healthy {
     0% {
-		    background-image: url('../img/link-rot-healthy.png'); 
+		    background-image: url('../img/link-rot-healthy.gif'); 
 	}
     25% {
-	    	background-image: url('../img/link-rot-healthy-1.png'); 
+	    	background-image: url('../img/link-rot-healthy-1.gif'); 
 	}
     50% {
-	    	background-image: url('../img/link-rot-healthy-2.png'); 
+	    	background-image: url('../img/link-rot-healthy-2.gif'); 
 	}
     75% {
-	    	background-image: url('../img/link-rot-healthy-3.png'); 
+	    	background-image: url('../img/link-rot-healthy-3.gif'); 
 	}
     100% {
-	    	background-image: url('../img/link-rot-healthy.png'); 
+	    	background-image: url('../img/link-rot-healthy.gif'); 
 	}
 }
 @-moz-keyframes healthy {
     0% {
-		    background-image: url('../img/link-rot-healthy.png'); 
+		    background-image: url('../img/link-rot-healthy.gif'); 
 	}
     25% {
-	    	background-image: url('../img/link-rot-healthy-1.png'); 
+	    	background-image: url('../img/link-rot-healthy-1.gif'); 
 	}
     50% {
-	    	background-image: url('../img/link-rot-healthy-2.png'); 
+	    	background-image: url('../img/link-rot-healthy-2.gif'); 
 	}
     75% {
-	    	background-image: url('../img/link-rot-healthy-3.png'); 
+	    	background-image: url('../img/link-rot-healthy-3.gif'); 
 	}
     100% {
-	    	background-image: url('../img/link-rot-healthy.png'); 
+	    	background-image: url('../img/link-rot-healthy.gif'); 
 	}
 }
 @keyframes healthy {
     0% {
-		    background-image: url('../img/link-rot-healthy.png'); 
+		    background-image: url('../img/link-rot-healthy.gif'); 
 	}
     25% {
-	    	background-image: url('../img/link-rot-healthy-1.png'); 
+	    	background-image: url('../img/link-rot-healthy-1.gif'); 
 	}
     50% {
-	    	background-image: url('../img/link-rot-healthy-2.png'); 
+	    	background-image: url('../img/link-rot-healthy-2.gif'); 
 	}
     75% {
-	    	background-image: url('../img/link-rot-healthy-3.png'); 
+	    	background-image: url('../img/link-rot-healthy-3.gif'); 
 	}
     100% {
-	    	background-image: url('../img/link-rot-healthy.png'); 
+	    	background-image: url('../img/link-rot-healthy.gif'); 
 	}
 }
 
@@ -4626,7 +4626,7 @@ section .caption {
 		}
 	}
 	@include respond-tablet {
-		background-image: url('../img/link-rot-healthy.png');
+		background-image: url('../img/link-rot-healthy.gif');
 		-webkit-animation: healthy 1s linear infinite;
 		-moz-animation: healthy 1s linear infinite;
 		-o-animation: healthy 1s linear infinite;
@@ -4650,7 +4650,7 @@ img#healthylinks {
 	width: 100%;
 	max-width: none;
 	height: auto;
-	background-image: url('../img/link-rot-healthy.png');
+	background-image: url('../img/link-rot-healthy.gif');
 	-webkit-animation: healthy 1s linear infinite;
 	-moz-animation: healthy 1s linear infinite;
 	-o-animation: healthy 1s linear infinite;
