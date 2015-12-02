@@ -2219,6 +2219,12 @@ p.caption {
 			border-radius: 4px;
 			margin: 0 2px;
 		}
+		&._isWorking {
+			color:$color-trans-darkgray;
+			.links-remaining {
+				background-color:$color-trans-darkgray;
+			}
+		}
 	}
 	#organization_select_form {
 		.selector-affil:disabled {
