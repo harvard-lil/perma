@@ -273,7 +273,6 @@ $(function() {
         if (!confirm("Really delete folder '" + node.text.trim() + "'?"))
             return false;
         folderTree.delete_node(node);
-        folderTree.select_node();
         return false;
     });
 
@@ -339,7 +338,7 @@ $(function() {
                             deleteFolder(node.data.folder_id).done(function () {
                                 allowedEventsCount++;
                                 folderTree.delete_node(node);
-                                folderTree.select_node();
+                                folderTree.select_node(node.parent);
                             });
                         } else if (operation == 'create_node') {
                             var newName = node.text;
