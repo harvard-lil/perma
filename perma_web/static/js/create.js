@@ -137,12 +137,12 @@ function toggleCreateAvailable() {
     if ($addlink.hasClass('_isWorking')) {
         $addlink.html('Create Perma Link').removeAttr('disabled').removeClass('_isWorking');
         spinner.stop();
-        $('#rawUrl').removeAttr('disabled');
+        $('#rawUrl, #organization_select_form button').removeAttr('disabled');
     } else {
         $addlink.html('<div id="capture-status">Creating your Perma Link</div>').attr('disabled', 'disabled').addClass('_isWorking');
         spinner = new Spinner(opts);
         spinner.spin($addlink[0]);
-        $('#rawUrl').attr('disabled', 'disabled');
+        $('#rawUrl, #organization_select_form button').attr('disabled', 'disabled');
     }
 }
 

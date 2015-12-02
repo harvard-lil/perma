@@ -2498,6 +2498,13 @@ p.caption {
 		}
 	}
 	#organization_select_form {
+		.selector-affil:disabled {
+			color:$color-trans-darkgray;
+			
+			.links-remaining {
+				background-color:$color-trans-darkgray;
+			}
+		}
 		.label-affil, 
 		.dropdown-affil {
 			float: left;
@@ -2851,6 +2858,23 @@ button#addlink,
 	}
 }
 
+.list-user {
+    &._isPrivate {
+		    span.ui-private {
+			    overflow: hidden;
+			    display: inline-block;
+			    text-indent: -10000px;
+			    position: relative;
+			    height: 16px;
+			    width: 18px;
+			    background-image: url('../img/ui/perma-ui-private.png');
+			    background-repeat: no-repeat;
+			    background-size: cover;
+			    margin-right: 4px;
+			    bottom: -2px;
+		    }
+	}
+}
 /////////////////////////////////////////
 
 // Header & global nav
