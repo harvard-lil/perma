@@ -380,6 +380,13 @@ p {
 	}
 }
 
+._showMobile {
+	display: none;
+	@include respond-mobile {
+		display: block;
+	}
+}
+
 ._soleContent {
 	margin-bottom: $double;
 }
@@ -4338,7 +4345,10 @@ h3.section-ah {
 }
 
 .row-subsection {
-	padding-top: $grid * 3;
+	padding-top: 0;
+	@include respond-tablet {
+		padding-top: $grid * 3;
+	}
 }
 
 .caption-title,
@@ -4375,18 +4385,30 @@ section .caption {
 	margin-top: $grid * 3;
 }
 
+#landing-product {
+	padding-bottom: 0;
+}
+
 #landing-problem {
 	padding-bottom: $grid * 3;
 }
 
 #landing-signup {
-	padding-bottom: 104px;
+	padding-bottom: $grid * 4;
+	@include respond-tablet {
+		padding-bottom: 104px;
+	}
 }
 
 #landing-developers {
 	background-color: $color-black;
-	font-size: 20px;
+	font-size: 16px;
 	text-align: center;
+	@include respond-mobile {
+		strong {
+			display: block;
+		}
+	}
 	p { 
 		color: white; 
 		max-width: none;
@@ -4404,11 +4426,14 @@ section .caption {
 }
 
 .row-modules {
-	margin-top: $grid * 4;
+	margin-top: $grid * 2;
+	@include respond-tablet {
+		margin-top: $grid * 4;
+	}
 }
 
 #supporting-partners {
-	margin-top: $grid * 4;
+	margin-top: 0;
 	padding: $grid * 4 0;
 	text-align: center;
 	@include respond-tablet {
@@ -4456,7 +4481,7 @@ section .caption {
 
 .row-stats {
 	margin-bottom: $grid;
-	margin-top: $grid;
+	margin-top: $grid * 3;
 	@include respond-tablet {
 		margin-bottom: $grid;
 		margin-top: $grid;
@@ -4468,19 +4493,30 @@ section .caption {
 }
 
 .col-stat {
-	display: inline-block;
-	margin: $grid 0;
-	padding: 0 $grid * 4;
+	@include respond-mobile {
+		display: block;
+		margin: 0;
+		padding: $grid 0;
+		border-top: 1px solid $color-blue;
+	}
+	@include respond-tablet {
+		display: inline-block;
+		margin: $grid 0;
+		padding: 0 $grid * 4;
+	}
 	& + .col-stat {
-		border-left: 1px solid $color-blue;
+		@include respond-tablet {
+			border-left: 1px solid $color-blue;
+		}
 	}
 }
 
 .stat-number {
-	font-size: 80px;
+	font-size: 40px;
 	font-weight: 900;
 	font-family: $font-hed-alt;
 	letter-spacing: 1px;
+	line-height: 1;
 	@include respond-tablet {
 		font-size: 48px;
 	}
@@ -4521,20 +4557,12 @@ section .caption {
 
 .container-square-display {
 	height: auto;
-	background-image: url('../img/link-rot-healthy-1.svg');
-	-webkit-animation: healthy 1s linear infinite;
-	-moz-animation: healthy 1s linear infinite;
-	-o-animation: healthy 1s linear infinite;
-	animation: healthy 1s linear infinite;
-	background-size: contain;
-	background-repeat: no-repeat;
-	background-position: center center;
 	.inner {
-		top: $grid * 51;
-		border-bottom: 1px solid rgba(0,0,0,.07);
-		padding-bottom: 32px;
+		padding-bottom: 0;
 		@include respond-tablet {
 			top: $grid * 35;
+			border-bottom: 1px solid rgba(0,0,0,.07);
+			padding-bottom: 32px;
 		}
 		@include respond-desktop {
 			top: $grid * 51;
@@ -4544,6 +4572,13 @@ section .caption {
 		}
 	}
 	@include respond-tablet {
+		background-image: url('../img/link-rot-healthy-1.svg');
+		-webkit-animation: healthy 1s linear infinite;
+		-moz-animation: healthy 1s linear infinite;
+		-o-animation: healthy 1s linear infinite;
+		animation: healthy 1s linear infinite;
+		background-repeat: no-repeat;
+		background-position: center center;
 		background-size: 768px auto;
 		height: 768px;
 	}
@@ -4557,6 +4592,19 @@ section .caption {
 	}
 }
 
+img#healthylinks {
+	width: 100%;
+	max-width: none;
+	height: auto;
+	background-image: url('../img/link-rot-healthy-1.svg');
+	-webkit-animation: healthy 1s linear infinite;
+	-moz-animation: healthy 1s linear infinite;
+	-o-animation: healthy 1s linear infinite;
+	animation: healthy 1s linear infinite;
+	background-repeat: no-repeat;
+	background-position: center center;
+	background-size: contain;
+}
 
 section .row .col-sm-6 + .col-sm-6 {
 	padding-left: 16px;
@@ -4564,7 +4612,20 @@ section .row .col-sm-6 + .col-sm-6 {
 
 section .caption {
 	max-width: none;
-	padding-bottom: 32px;
+	padding-bottom: $grid * 2;
+	margin-top: $grid * 2;
+	@include respond-tablet {
+		margin-top: $grid * 3;
+		padding-bottom: $grid * 4;
+	}
+}
+
+.signup-module {
+	@include respond-mobile {
+		border-top: 1px solid $color-blue;
+		padding: $grid * 2 $double 0;
+		margin-top: $grid * 2;
+	}
 }
 
 
