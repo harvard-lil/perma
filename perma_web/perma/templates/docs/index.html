@@ -55,7 +55,7 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 			<p class="body-text">Suppose you're a law professor working on an article and you want to cite to the FBI's <a href="http://www.fbi.gov/wanted/topten">Top Ten Most Wanted List</a>. Because that list changes over time, your citation is going to rot and your future readers won't be able to access your actual source at the original URL. That's bad for you and your readers.</p>
 			<p class="body-text">But if you give Perma.cc the web address - e.g. <a href="http://www.fbi.gov/wanted/topten">http://www.fbi.gov/wanted/topten</a> - our software will visit the page, make a record of it and give you a unique URL that points to the preserved record - e.g. <a class="perma" href="https://perma.cc/T8U2-994F?type=source">perma.cc/T8U2-994F</a>.</p>
 			<p class="body-text">If you have vesting privileges, you can vest the link yourself. Or, when you submit your article for publication, the publishing journal can vest the link. At that point, the link can be added to your citation, and your future readers will be able to access the intended source no matter what happens to the original web page.</p>
-			<p class="body-text">Please <a href="{% url 'register' %}">sign up</a> and give it try, or read on to learn more.
+			<p class="body-text">Please <a href="{% url 'sign_up' %}">sign up</a> and give it try, or read on to learn more.
 		</div>
 	</div>
 </div>
@@ -105,7 +105,7 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 			</table>     
 	
 		<h3 id="create-account" class="body-bh">Creating an account</h3>
-			<p class="body-text">To use Perma.cc to preserve online sources, you'll need to create an account. It's easy. Just <a href="{% url 'register' %}">click here</a> or find the <kbd>Create An Account</kbd> button on the home page:</p>
+			<p class="body-text">To use Perma.cc to preserve online sources, you'll need to create an account. It's easy. Just <a href="{% url 'sign_up' %}">click here</a> or find the <kbd>Create An Account</kbd> button on the home page:</p>
 			
 			<img src="{{ STATIC_URL }}img/docs/screenshot_home.png" class="img-resdponsive screen-shot" alt="A screenshot of the landing page."/>
 	
@@ -208,7 +208,7 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 		<div class="col col-sm-8 col-right docs reading-body">
 			<h2 class="body-ah">Creating an Account</h2>
 			
-			<p class="body-text">To use Perma to archive web pages, you need a Perma account. To create an account, <a href="{% url 'register' %}">click here</a> or find <kbd>Create An Account</kbd> on the home page</p>
+			<p class="body-text">To use Perma to archive web pages, you need a Perma account. To create an account, <a href="{% url 'sign_up' %}">click here</a> or find <kbd>Create An Account</kbd> on the home page</p>
 			
 			<img src="{{ STATIC_URL }}img/docs/create-account.gif" class="img-responsive screen-shot" alt="A screenshot of the landing page."/>
 	
