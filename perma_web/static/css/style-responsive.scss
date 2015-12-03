@@ -4545,15 +4545,15 @@ div.row-sxs {
     margin-bottom: 0;
     padding-top: 0;
     background-color: $color-background;
-    @include repond-tablet {
+    @include respond-tablet {
 	    padding-top: $grid * 4;
     }
     & + .row-sxs {
 	    padding-top: 0;
-	    @include repond-tablet {
+	    @include respond-tablet {
 		    padding-top: $grid * 7;
 	    }
-	    @include repond-desktop {
+	    @include respond-desktop {
 		    padding-top: $grid * 10;
 	    }
     }
@@ -4561,16 +4561,16 @@ div.row-sxs {
 
 img.img-sxs {
 	max-width: 100%;
-    @include repond-tablet {
+    @include respond-tablet {
 	    max-width: $grid * 74;
     }
 	&.right {
-	    @include repond-tablet {
+	    @include respond-tablet {
 		    margin: 0 0 0 auto;
 	    }
 	}
 	&.left {
-	    @include repond-tablet {
+	    @include respond-tablet {
 		    margin: 0 auto 0 0;
 	    }
 	}
