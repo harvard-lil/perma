@@ -14,8 +14,8 @@
     <div class="container cont-fixed">
 		<div class="row">
 			<div class="col-xs-12 col-sm-9 col-lg-8">
-				<h1 class="_hide">Perma.cc prevents link rot.</h1>
-				<p class="primary-intro"><strong>Perma.cc</strong> helps <a href="#">journals</a>, <a href="#">lawyers</a>, <a href="#">courts</a>, and <a href="#">others</a> prevent <a href="#">link rot</a> and preserve web citations by creating <a href="#">permanent records</a> of their cited links.</p>
+				<h1 class="section-title">Perma.cc prevents link rot.</h1>
+				<p class="primary-intro"><strong>Perma.cc</strong> helps <a href="#">journals</a>, <a href="#">lawyers</a>, <a href="#">courts</a>, and <a href="#">others</a>  preserve web citations by creating <a href="#">permanent archives</a> of their cited links.</p>
 				<p class="primary-intro">Perma.cc is simple, <a href="#">free to use</a>, and is built and <a href="#">supported by libraries</a>.</p>
 			</div>
 			<div class="col-xs-12 col-sm-3 col-lg-4">
@@ -42,11 +42,16 @@
 			</div>
 		</div>
     </div>
+    <div class="container-fluid">
+		<div class="figure figure-hero">
+            <img src="{{ STATIC_URL }}img/perma-hero.png" height="400" width="800" class="img-responsive" alt="Perma.cc prevents link rot" />
+		</div>
+    </div>
 </section>
 
 <section id="landing-problem" class="container-fluid cont-bg">
     <div class="container cont-fixed">
-		<h2 class="section-title">One good reason to use Perma.cc? How about 404?</h2>
+		<h2 class="section-title">One good reason to use Perma.cc? <span class="_noWrap">How about 404?</span></h2>
 		<p class="section-subtitle">Websites change, go away, and get taken down. When linked citations lead to broken, blank, unintentional, or even malicious pages, that’s called link rot.</p>
 		<div class="row">
 			<div class="col-xs-12 col-sm-6">
@@ -78,7 +83,7 @@
 					<div class="row">
 						<div class="figure col-xs-6">
 		                    <img src="{{ STATIC_URL }}img/link-rot-0.svg" height="400" width="400" class="img-responsive" alt="1. A graph of citations before link rot" />
-							<p class="caption"><strong>At the beginning.</strong> New references to websites usually start healthy and unaffected.</p>
+							<p class="caption"><strong>At the beginning.</strong> New links start active and healthy.</p>
 						</div>
 						<div class="figure col-xs-6">
 		                    <img src="{{ STATIC_URL }}img/link-rot-20.svg" height="400" width="400" class="img-responsive" alt="1. A graph of citations before link rot" />
@@ -117,25 +122,25 @@
 
 <section id="landing-product" class="container-fluid">
     <div class="container cont-fixed">
-		<h2 class="section-title">Perma.cc prevents link rot.</h2>
-		<p class="section-subtitle">We provide permanent, reliable, unalterable links.</p>
+		<h2 class="section-title">Meet the Perma Link.</h2>
+		<p class="section-subtitle">A Perma Link is a reliable, unbreakable link to an unalterable copy of the page <span class="_noWrap">you’ve cited.</span></p>
 		<div class="row">
 			<div class="col-xs-12 col-sm-6">
 				<h3 class="section-ah">Unbreakable links</h3>
 				<p class="section-body">Websites change, go away, and get taken down. When they do, linked citations can lead to broken, blank, unintentional, or even malicious pages. This decay is called “link rot.” Perma.cc helps scholars, journals and courts prevent link rot by creating permanent, reliable, unalterable links to the online sources cited in their work.</p>
 				<ul class="section-list">
-					<li class="section-list-item"><a href="#"><strong>Link rot is real</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>The New Yorker</cite>, 2014</li>
-					<li class="section-list-item"><a href="#"><strong>Link rot in academic citations</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>The Harvard Law Review</cite>, 2013</li>
-					<li class="section-list-item"><a href="#"><strong>Menace to the courts</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>Wired</cite>, 2015</li>
-					<li class="section-list-item"><a href="#"><strong>Our fragile web</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>First Look LegalTech</cite>, 2014</li>
+					<li class="section-list-item"><a class="outside" href="#"><strong>What is a Perma archive?</strong></a></li>
+					<li class="section-list-item"><a class="outside" href="#"><strong>How long do Perma Links last?</strong></a></li>
+					<li class="section-list-item"><a class="outside" href="#"><strong>What about protected content?</strong></a></li>
+					<li class="section-list-item"><a class="outside" href="#"><strong>What are Perma.cc’s long-term plans for these links?</strong></a></li>
+					<li class="section-list-item"><a class="outside" href="#"><strong>What’s you privacy policy?</strong></a></li>
 				</ul>
 			    <a href="{% url 'docs_perma_link_creation' %}" class="btn btn-small">More about Perma Links</a>
 			    <a href="{% url 'docs_faq' %}" class="btn btn-small">Frequently asked questions</a>
 			</div>
 			<div class="col-xs-12 col-sm-6">
 				<h3 class="section-ah">Library-strength reliability</h3>
-					<p class="section-strong">Perma.cc was built by Harvard’s <a href="http://librarylab.law.harvard.edu">Library Innovation Lab</a> and is backed by the power of libraries. We’re both in the forever business: libraries already look after physical and digital materials — now we can do the same for links.</p>
-					<p class="section-body">If you’re a librarian or are affiliated with a library, we can make using Perma.cc free and simple for you and the scholars that depend on you. We’ve answered many common questions and prepared a special library signup at the link below.</p>
+					<p class="section-body">Perma.cc was built by Harvard’s <a href="http://librarylab.law.harvard.edu">Library Innovation Lab</a> and is backed by the power of libraries. We’re both in the forever business: libraries already look after physical and digital materials — now we can do the same for links.</p>
 					<a href="{% url 'libraries' %}" class="btn btn-small">More about our partners</a>
 					<a href="{% url 'libraries' %}" class="btn btn-small">Sign up your library</a>
 			</div>

@@ -4195,6 +4195,7 @@ section {
 	@include respond-desktop {
 		padding-top: $grid * 4;
 	}
+	padding-bottom: 0;
 }
 
 .cont-subsection {
@@ -4206,9 +4207,19 @@ section {
 	}
 }
 
+.figure-hero {
+	padding: $grid * 6 $double 0;
+	img {
+		width: 100%;
+		max-width: 1800px;
+	}
+}
+
 .primary-intro {
 	font-family: $font-hed-alt;
 	font-size: 18px;
+	margin-top: .25em;
+	margin-bottom: .75em;
 	strong {
 		font-weight: 300;
 		color: $color-blue;
@@ -4244,6 +4255,7 @@ section {
 	font-size: 20px;
 	@include respond-tablet {
 		font-weight: 900;
+	    font-size: 32px
 	}
 	@include respond-desktop {
 		font-size: 36px;
@@ -4267,6 +4279,7 @@ section {
     margin-bottom: 0;
 	@include respond-tablet {
 	    line-height: 1.5;
+	    font-size: 24px
 	}
 	@include respond-desktop {
 		font-size: 32px;
@@ -4280,7 +4293,7 @@ section {
 
 .section-ah, 
 h3.section-ah {
-	font-size: 16px;
+	font-size: 18px;
     font-family: $font-hed-alt;
 	float: left;
     padding: $half 0;
@@ -4297,8 +4310,12 @@ h3.section-ah {
     font-family: $font-hed-alt;
 	font-weight: 400;
 	clear: both;
-	@include respond-desktop {
+	@include respond-tablet {
 		font-size: 16px;
+		font-weight: 300;
+	}
+	@include respond-desktop {
+		font-size: 18px;
 	}
 	&.small {
 		font-size: 85%;
