@@ -107,7 +107,6 @@ def screenshots(base_url='http://perma.dev:8000'):
 
     browser = webdriver.Firefox()
     browser.set_window_size(1300, 800)
-    browser.get(base_url)
 
     base_path = os.path.join(settings.PROJECT_ROOT, 'static/img/docs')
 
@@ -130,11 +129,15 @@ def screenshots(base_url='http://perma.dev:8000'):
         ))
         im.save(os.path.join(base_path, output_path))
 
+    # home page
+    browser.get(base_url)
     screenshot('header', '#landing-introduction', 'screenshot_home.png')
 
+    # login screen
     browser.get(base_url+'/login')
     screenshot('header', '#main-content', 'screenshot_create_account.png')
 
+    # logged in user - drop-down menu
     browser.find_element_by_css_selector('#id_username').send_keys('test_user@example.com')
     browser.find_element_by_css_selector('#id_password').send_keys('pass')
     browser.find_element_by_css_selector("button.btn.login").click()
