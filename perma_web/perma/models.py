@@ -594,6 +594,9 @@ class Link(models.Model):
                     raise Exception("No valid GUID found in 100 attempts.")
                 self.guid = guid
 
+        if self.is_private and not self.private_reason:
+            self.private_reason = 'user'
+
         super(Link, self).save(*args, **kwargs)
 
         if not self.folders.count():
