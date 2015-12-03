@@ -35,7 +35,7 @@ class CommonViewsTestCase(PermaTestCase):
         for user in self.users:
             self.log_in_user(user)
             response = self.get('single_linky', reverse_kwargs={'kwargs': {'guid': 'ABCD-0001'}})
-            self.assertIn("only visible to libraries and your Archiving Organization.", response.content)
+            self.assertIn("This record is private.", response.content)
 
     def test_deleted(self):
         response = self.get('single_linky', reverse_kwargs={'kwargs': {'guid': 'ABCD-0003'}})
