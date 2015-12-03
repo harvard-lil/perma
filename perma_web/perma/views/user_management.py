@@ -1350,32 +1350,6 @@ def libraries(request):
     return render_to_response("libraries.html",
         {'user_form':user_form, 'registrar_form':registrar_form, 'registrar_count': registrar_count},
         RequestContext(request))
-
-
-@ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block=True, ip=False,
-           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
-def register(request):
-    """
-    Register a new user
-    """
-    if request.method == 'POST':
-        form = UserRegForm(request.POST)
-        if form.is_valid():
-            new_user = form.save(commit=False)
-            new_user.backend='django.contrib.auth.backends.ModelBackend'
-            new_user.is_active = False
-            new_user.save()
-            
-            email_new_user(request, new_user)
-
-            return HttpResponseRedirect(reverse('register_email_instructions'))
-    else:
-        form = UserRegForm()
-
-    return render_to_response("registration/register.html",
-        {'form':form},
-        RequestContext(request))
-        
         
 @ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block=True, ip=False,
            keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))

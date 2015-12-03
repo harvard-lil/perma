@@ -107,14 +107,14 @@ class UserManagementViewsTestCase(PermaTestCase):
     def test_account_creation_views(self):
         # user registration
         new_user_email = "new_email@test.com"
-        self.submit_form('register', {'email': new_user_email, 'first_name': 'Test', 'last_name': 'Test'},
+        self.submit_form('sign_up', {'email': new_user_email, 'first_name': 'Test', 'last_name': 'Test'},
                        success_url=reverse('register_email_instructions'),
                        success_query=LinkUser.objects.filter(email=new_user_email))
 
         confirmation_code = LinkUser.objects.get(email=new_user_email).confirmation_code
 
         # check duplicate email
-        self.submit_form('register', {'email': new_user_email, 'first_name': 'Test', 'last_name': 'Test'},
+        self.submit_form('sign_up', {'email': new_user_email, 'first_name': 'Test', 'last_name': 'Test'},
                               error_keys=['email'])
 
         # reg confirm - bad confirmation code
