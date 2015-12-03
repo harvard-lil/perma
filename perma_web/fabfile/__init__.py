@@ -4,7 +4,10 @@ from fabric.api import env
 
 import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'perma.settings')
-django.setup()
+try:
+    django.setup()
+except Exception as e:
+    print "WARNING: Can't configure Django. %s" % e
 from django.conf import settings
 
 # import sub-tasks
