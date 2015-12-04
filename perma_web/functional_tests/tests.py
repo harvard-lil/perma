@@ -249,6 +249,8 @@ class FunctionalTest(BaseTestCase):
                     time.sleep(sleep_time)
 
         def fix_host(url):
+            if REMOTE_SERVER_URL:
+                return url
             o = urlparse(url)
             o = o._replace(scheme='http',
                            netloc="{0}:{1}".format(self.server_thread.host,
@@ -312,7 +314,7 @@ class FunctionalTest(BaseTestCase):
         # My Links
 
         # show links
-        self.driver.get(self.server_url + '/manage/links')
+        self.driver.get(self.server_url + '/manage/create')
         # create folder
         get_css_selector('.new-folder').click()
         # find link
