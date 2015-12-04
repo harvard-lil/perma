@@ -78,7 +78,7 @@
     }
   },
   "addons":[
-    "cleardb",
+    "jawsdb",
     "cloudamqp",
     "newrelic",
     "papertrail",
