@@ -29,10 +29,10 @@ LOGGING['handlers']['rollbar'] = {
 LOGGING['loggers']['']['handlers'] += ['rollbar']
 
 # Parse database configuration from env DATABASE_URL
-if os.environ.get('CLEARDB_DATABASE_URL', False):
-    # ClearDB
+if os.environ.get('JAWSDB_URL', False):
+    # JawsDB
     import dj_database_url
-    DATABASES['default'] =  dj_database_url.config('CLEARDB_DATABASE_URL')
+    DATABASES['default'] =  dj_database_url.config('JAWSDB_URL')
 else:
     # Amazon RDS
     DATABASES['default']['OPTIONS'] = {'ssl': {'ca': os.path.join(PROJECT_ROOT, 'amazon-rds-combined-ca-bundle.pem')}}
