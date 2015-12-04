@@ -4182,7 +4182,7 @@ section {
 			padding-top: $grid * 6;
 		}
 		@include respond-desktop {
-			padding-top: $grid * 8;
+			padding-top: $grid * 9;
 			padding-bottom: $grid * 10;
 		}
 	}
@@ -4321,7 +4321,7 @@ h3.section-ah {
 	float: left;
     padding: $half 0;
     border-bottom: 1px solid #222;
-    margin: 1.5em 0 .75em;
+    margin: 2em 0 1em;
     font-weight: 400;
     clear: both;
 	@include respond-desktop {
@@ -4338,7 +4338,8 @@ h3.section-ah {
 		font-weight: 300;
 	}
 	@include respond-desktop {
-		font-size: 18px;
+		font-size: 20px;
+		line-height: 1.55;
 	}
 	&.small {
 		font-size: 85%;
@@ -4359,6 +4360,9 @@ h3.section-ah {
 .section-strong {
 	@extend .section-body;
 	font-weight: 700;
+	@include respond-desktop {
+		font-weight: 400;
+	}
 }
 
 .section-list {
@@ -4408,8 +4412,8 @@ h3.section-ah {
 		padding-top: $grid * 3;
 	}
 	@include respond-desktop {
-		margin-top: $grid * 6;
-		padding-top: $grid * 6;
+		margin-top: $grid * 8;
+		padding-top: $grid * 2;
 	}
 }
 
@@ -4494,8 +4498,13 @@ section .caption {
 	}
 }
 
+.pad-top {
+	padding-top: $grid * 1;
+}
+
 .row-modules {
 	margin-top: $grid * 2;
+	clear: both;
 	@include respond-tablet {
 		margin-top: $grid * 4;
 	}
