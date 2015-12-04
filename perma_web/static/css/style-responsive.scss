@@ -3138,7 +3138,7 @@ li.dropdown {
 		height: $height-nav-mobile;
 		font-size: 24px;
 		padding-left: $double;
-		min-width: 0;
+		min-width: 7em;
 		@include respond-tablet {
 			font-size: 28px;
 		}
