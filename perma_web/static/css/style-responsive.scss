@@ -4207,11 +4207,34 @@ section {
 	}
 }
 
-.figure-hero {
-	padding: $grid * 6 $double 0;
-	img {
-		width: 100%;
-		max-width: 1800px;
+.container-hero {
+	@extend .style-container;
+	max-width: 1800px;
+	margin: 0 auto;
+	padding: $grid * 8 $grid * 8 0;
+}
+
+p.caption-hero {
+	font-family: $font-hed-alt;
+	color: $color-blue;
+	font-weight: 700;
+	font-size: 13px;
+	padding-bottom: $grid;
+	margin-bottom: 0;
+	position: relative;
+	span.num {
+		display: inline-block;
+	    padding: 0;
+	    border: 1px solid;
+	    position: relative;
+	    bottom: 0;
+	    border-radius: 3em;
+	    width: 1.5em;
+	    height: 1.5em;
+	    text-align: center;
+	    vertical-align: text-bottom;
+	    font-size: 11px;
+	    margin-right: .2em;
 	}
 }
 
