@@ -162,8 +162,9 @@ i {
 }
 
 img {
-	width: auto;
+	width: 100%;
 	max-width: 100%;
+	height: auto;
 	display: block;
 	margin: 0 auto;
 }
@@ -3144,10 +3145,11 @@ li.dropdown {
 	}
 }
 
-.infinity-logo {
+img.infinity-logo {
 	margin: 0 0 0 $half;
 	display: inline-block;
 	height: 13px;
+	width: auto;
 	@include respond-tablet {
 		height: 15px;
 		margin-left: $grid
@@ -4542,6 +4544,7 @@ section .caption {
 #supporting-partners a img {
 	display: inline-block;
 	height: $grid * 5;
+	width: auto;
 	padding: $half;
 	margin-right: $grid * 3;
 	margin-bottom: $grid;
