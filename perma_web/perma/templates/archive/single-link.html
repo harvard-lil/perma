@@ -139,7 +139,7 @@
 		                        <li><a href="{% url 'sign_up' %}" class="btn _nav{% if this_page == 'sign_up' %} this-page{% endif %}">Sign up</a></li>
 		                        <li><a href="{% url 'user_management_limited_login' %}" class="navbar-link _login">Log in</a></li>
 		                        {% comment %}
-		                        <li><a href="{% url 'register' %}" id="nav-button" class="btn btn-large">Sign Up</a></li>
+		                        <li><a href="{% url 'sign_up' %}" id="nav-button" class="btn btn-large">Sign Up</a></li>
 		                        {% endcomment %}
 							{% endif %}
 						  </ul>
@@ -211,7 +211,7 @@
 		{% if can_view and link.is_private %}
 	        <div class="banner banner-status row _isDarchive">
 		        <strong>This record is private{% if link.private_reason == 'policy' %} by Perma.cc policy{% elif link.private_reason == 'takedown' %} at the content owner's request{% endif %}.</strong>
-                It’s only visible to libraries and your Archiving Organization.
+                It’s only visible to {% if link.organization %}members of {{ link.organization }} and the {{ link.organization.registrar }} registrar{% else %}you{% endif %}.
                 {% if link.private_reason == 'user' %}You can make this link public under 'Show record details.'{% endif %}
 	        </div>
         {% endif %}
@@ -219,7 +219,7 @@
         {% if new_record %}
 	        <div class="banner banner-status row _isNewRecord">
 		        <strong>Success!</strong>
-		        <span class="message verbose">Your new Perma Link is <input class="perma" type="text" value="{{ request.get_host }}{% url 'single_linky' link.guid %}"></input></span>
+		        <span class="message verbose">Your new Perma Link is <input class="perma" type="text" value="{{ request.get_host }}{% url 'single_linky' link.guid %}"></span>
 		        <span class="link-options verbose"><a href="{% url 'user_delete_link' link.guid %}">Delete</a><span class="_verbose _toDesktop"> (Perma Links are permanent after 24 hours)</span></span>
 		        <a class="action new-link" href="{% url 'create_link' %}">Make a new Perma Link</a>
 	        </div>

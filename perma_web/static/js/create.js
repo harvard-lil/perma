@@ -16,7 +16,7 @@ var spinner;
 
 $(function() {
 
-	$organization_select = $("#organization_select"),
+	$organization_select = $("#organization_select");
 
     $('#archive-upload-confirm').modal({show: false});
     $('#archive-upload').modal({show: false});

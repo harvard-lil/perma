@@ -140,9 +140,9 @@ def single_linky(request, guid):
     context = {
         'link': link,
         'can_view': request.user.can_view(link),
-        'can_edit': request.user.is_authenticated() and request.user.can_view(link),
-        'can_delete': request.user.is_authenticated() and request.user.can_delete(link),
-        'can_toggle_private': request.user.is_authenticated() and request.user.can_toggle_private(link),
+        'can_edit': request.user.can_view(link),
+        'can_delete': request.user.can_delete(link),
+        'can_toggle_private': request.user.can_toggle_private(link),
         'capture': capture,
         'next': request.get_full_path(),
         'serve_type': serve_type,

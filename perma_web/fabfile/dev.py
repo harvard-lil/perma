@@ -97,3 +97,49 @@ def export_warcs(start_guid=''):
             continue
         link.export_warc()
         print "-- Exported."
+        
+        
+@task
+def screenshots(base_url='http://perma.dev:8000'):
+    import StringIO
+    from PIL import Image
+    from selenium import webdriver
+
+    browser = webdriver.Firefox()
+    browser.set_window_size(1300, 800)
+
+    base_path = os.path.join(settings.PROJECT_ROOT, 'static/img/docs')
+
+    def screenshot(upper_left_selector, lower_right_selector, output_path, upper_left_offset=(0,0), lower_right_offset=(0,0)):
+        print "Capturing %s" % output_path
+
+        upper_left_el = browser.find_element_by_css_selector(upper_left_selector)
+        lower_right_el = browser.find_element_by_css_selector(lower_right_selector)
+
+        upper_left_loc = upper_left_el.location
+        lower_right_loc = lower_right_el.location
+        lower_right_size = lower_right_el.size
+
+        im = Image.open(StringIO.StringIO(browser.get_screenshot_as_png()))
+        im = im.crop((
+            upper_left_loc['x']+upper_left_offset[0],
+            upper_left_loc['y']+upper_left_offset[1],
+            lower_right_loc['x'] + lower_right_size['width'] + lower_right_offset[0],
+            lower_right_loc['y'] + lower_right_size['height'] + lower_right_offset[1]
+        ))
+        im.save(os.path.join(base_path, output_path))
+
+    # home page
+    browser.get(base_url)
+    screenshot('header', '#landing-introduction', 'screenshot_home.png')
+
+    # login screen
+    browser.get(base_url+'/login')
+    screenshot('header', '#main-content', 'screenshot_create_account.png')
+
+    # logged in user - drop-down menu
+    browser.find_element_by_css_selector('#id_username').send_keys('test_user@example.com')
+    browser.find_element_by_css_selector('#id_password').send_keys('pass')
+    browser.find_element_by_css_selector("button.btn.login").click()
+    browser.find_element_by_css_selector("a.navbar-link").click()
+    screenshot('header', 'ul.dropdown-menu', 'screenshot_dropdown.png', lower_right_offset=(15,15))
