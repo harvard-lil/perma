@@ -77,7 +77,7 @@ $(function() {
         .success(function(data) {
             var sorted = [];
             Object.keys(data.objects).sort(function(a,b){
-                return data.objects[a].registrar < data.objects[b].registrar ? -1 : 1
+                return data.objects[a].registrar < data.objects[b].registrar ? -1 : 1;
             }).forEach(function(key){
                 sorted.push(data.objects[key]);
             });
