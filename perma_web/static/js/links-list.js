@@ -57,7 +57,7 @@ $(function() {
         $.vakata.dnd.stop(e);
 
         // don't treat this as a click if the mouse has moved more than 5 pixels -- it's probably an aborted drag'n'drop or touch scroll
-        if(Math.sqrt(Math.pow(e.pageX-dragStartPosition[0], 2)*Math.pow(e.pageY-dragStartPosition[1], 2))>5)
+        if(dragStartPosition && Math.sqrt(Math.pow(e.pageX-dragStartPosition[0], 2)*Math.pow(e.pageY-dragStartPosition[1], 2))>5)
             return;
 
         // don't toggle faster than twice a second (in case we get both mouseup and touchend events)
