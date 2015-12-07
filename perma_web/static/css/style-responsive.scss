@@ -388,6 +388,14 @@ p {
 	}
 }
 
+._showDesktop {
+	display: none;
+	@include respond-desktop {
+		display: block;
+	}
+}
+
+
 ._soleContent {
 	margin-bottom: $double;
 }
@@ -4196,8 +4204,37 @@ section {
 #landing-introduction {
 	@include respond-desktop {
 		padding-top: $grid * 4;
+		//padding-bottom: $grid * 10;
+		padding-bottom: 0;
 	}
-	padding-bottom: 0;
+	padding-bottom: $grid * 5;
+	.row-modules {
+		@include respond-desktop {
+			margin-top: $grid * 7;
+		}
+	}
+}
+
+h6.image-hed {
+	padding-bottom: $half;
+    font-size: 24px;
+    display: inline-block;
+    border-bottom: 2px solid $color-blue;
+    margin-bottom: $grid * 5;
+    padding-top: 0;
+    color: $color-blue;
+    font-weight: 900;
+    font-family: $font-hed-alt;
+}
+
+.primary-img {
+	@include respond-tablet {
+	    padding-top: $half;
+	    padding-right: $double;
+	}
+	@include respond-tablet {
+	    padding-top: 0;
+	}
 }
 
 .cont-subsection {
@@ -4213,17 +4250,22 @@ section {
 	@extend .style-container;
 	max-width: 1800px;
 	margin: 0 auto;
-	padding: $grid * 8 $grid * 8 0;
+	padding: $grid * 4 $grid * 8 0;
+	border-top: 1px solid $color-blue;
+    margin-top: $grid * 8;
+    border-bottom: 1px solid $color-blue;
+    text-align: center;
 }
 
 p.caption-hero {
 	font-family: $font-hed-alt;
 	color: $color-blue;
-	font-weight: 700;
-	font-size: 13px;
+	font-weight: 300;
+	font-size: 21px;
 	padding-bottom: $grid;
 	margin-bottom: 0;
 	position: relative;
+	text-align: center;
 	span.num {
 		display: inline-block;
 	    padding: 0;
@@ -4237,6 +4279,13 @@ p.caption-hero {
 	    vertical-align: text-bottom;
 	    font-size: 11px;
 	    margin-right: .2em;
+	}
+}
+
+a:hover {
+	p.caption-hero {
+		//color: $color-black;
+		//font-weight: 700;
 	}
 }
 
@@ -4262,9 +4311,13 @@ p.caption-hero {
 	}
 	@include respond-tablet {
 		font-size: 28px;
+		line-height: 1.6;
 		&:last-child {
 			padding-bottom: $grid * 4;
 		}
+	}
+	@include respond-desktop {
+		line-height: 1.5;
 	}
 	@include respond-wide {
 		font-size: 32px;
@@ -4273,6 +4326,18 @@ p.caption-hero {
 
 .section-hed {
 	overflow: auto;
+}
+
+h1.section-title {
+	@include respond-tablet {
+		line-height: 1.2;
+	    font-size: 40px;
+	    padding-bottom: 12px;
+	}
+	@include respond-desktop {
+		font-size: 36px;
+		padding-bottom: 0;
+	}
 }
 
 .section-title {
