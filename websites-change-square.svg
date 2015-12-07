@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="416px" height="416px" viewBox="0 0 416 416" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.4.2 (15855) - http://www.bohemiancoding.com/sketch -->
+    <title>websites-change-square</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <rect id="path-1" x="0" y="0" width="76" height="76" rx="2"></rect>
+        <rect id="path-3" x="33" y="18" width="38" height="25"></rect>
+        <rect id="path-5" x="0" y="0" width="76" height="76" rx="2"></rect>
+        <rect id="path-7" x="0" y="0" width="76" height="76" rx="2"></rect>
+        <rect id="path-9" x="33" y="18" width="38" height="25"></rect>
+        <rect id="path-11" x="0" y="0" width="76" height="76" rx="2"></rect>
+        <rect id="path-13" x="0" y="0" width="76" height="76" rx="2"></rect>
+        <rect id="path-15" x="0" y="0" width="76" height="76" rx="2"></rect>
+        <rect id="path-17" x="0" y="0" width="76" height="76" rx="2"></rect>
+        <rect id="path-19" x="0" y="0" width="76" height="76" rx="2"></rect>
+        <rect id="path-21" x="0" y="0" width="76" height="76" rx="2"></rect>
+        <rect id="path-23" x="0" y="0" width="76" height="76" rx="2"></rect>
+        <rect id="path-25" x="33" y="18" width="38" height="25"></rect>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <g id="websites-change-square" sketch:type="MSArtboardGroup">
+            <g id="Group-Copy-10" sketch:type="MSLayerGroup" transform="translate(2.000000, 338.000000)">
+                <mask id="mask-2" sketch:name="Mask" fill="white">
+                    <use xlink:href="#path-1"></use>
+                </mask>
+                <use id="Mask" stroke="#2672F2" stroke-width="2" fill="#FFFFFF" sketch:type="MSShapeGroup" xlink:href="#path-1"></use>
+                <rect id="Rectangle-323" fill="#2672F2" sketch:type="MSShapeGroup" mask="url(#mask-2)" x="5" y="5" width="66" height="10"></rect>
+                <rect id="Rectangle-323-Copy-6" fill="#2672F2" sketch:type="MSShapeGroup" mask="url(#mask-2)" x="5" y="54" width="38" height="33"></rect>
+                <g id="Group" mask="url(#mask-2)" fill="#2672F2" sketch:type="MSShapeGroup">
+                    <g transform="translate(5.000000, 18.000000)">
+                        <rect id="Rectangle-323-Copy-2" x="0" y="0" width="25" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-3" x="0" y="7" width="25" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-4" x="0" y="14" width="25" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-5" x="0" y="21" width="25" height="4"></rect>
+                    </g>
+                </g>
+                <path d="M5.5,48.5 L70.5,48.5" id="Line" stroke="#2672F2" stroke-linecap="square" sketch:type="MSShapeGroup" mask="url(#mask-2)"></path>
+                <g id="Group-Copy-2" mask="url(#mask-2)" fill="#2672F2" sketch:type="MSShapeGroup">
+                    <g transform="translate(46.000000, 54.000000)">
+                        <rect id="Rectangle-323-Copy-2" x="0" y="0" width="25" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-3" x="0" y="7" width="25" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-4" x="0" y="14" width="25" height="4"></rect>
+                    </g>
+                </g>
+                <mask id="mask-4" sketch:name="Mask" fill="white">
+                    <use xlink:href="#path-3"></use>
+                </mask>
+                <use id="Mask" fill="#2672F2" sketch:type="MSShapeGroup" xlink:href="#path-3"></use>
+                <g id="Oval-197-Copy-+-Oval-197-Copy-2-+-Oval-197" mask="url(#mask-4)" stroke="#FFFFFF" fill="#2672F2" sketch:type="MSShapeGroup">
+                    <g transform="translate(34.000000, 22.000000)">
+                        <path d="M10.1280595,12.3470985 C11.1455116,11.47606 11.7894737,10.1876129 11.7894737,8.75 C11.7894737,6.12664744 9.64515328,4 7,4 C4.35484672,4 2.21052632,6.12664744 2.21052632,8.75 C2.21052632,10.1876129 2.85448839,11.47606 3.87194052,12.3470985 C0,15.1568952 0,23 0,23 L14,23 C14,23 14,15.1568952 10.1280595,12.3470985 Z" id="Oval-197-Copy"></path>
+                        <path d="M31.6811938,13.4684566 C32.5532957,12.6891063 33.1052632,11.5362852 33.1052632,10.25 C33.1052632,7.90278981 31.2672742,6 29,6 C26.7327258,6 24.8947368,7.90278981 24.8947368,10.25 C24.8947368,11.5362852 25.4467043,12.6891063 26.3188062,13.4684566 C23,15.9824852 23,23 23,23 L35,23 C35,23 35,15.9824852 31.6811938,13.4684566 Z" id="Oval-197-Copy-2"></path>
+                        <path d="M24.7452236,11.4223453 C26.1260515,10.2303979 27,8.46725978 27,6.5 C27,2.91014913 24.0898509,0 20.5,0 C16.9101491,0 14,2.91014913 14,6.5 C14,8.46725978 14.8739485,10.2303979 16.2547764,11.4223453 C11,15.2673303 11,26 11,26 L30,26 C30,26 30,15.2673303 24.7452236,11.4223453 Z" id="Oval-197"></path>
+                    </g>
+                </g>
+                <mask id="mask-6" sketch:name="Mask Copy 2" fill="white">
+                    <use xlink:href="#path-5"></use>
+                </mask>
+                <use id="Mask-Copy-2" stroke="#2672F2" stroke-width="2" sketch:type="MSShapeGroup" xlink:href="#path-5"></use>
+            </g>
+            <g id="Group-Copy-11" sketch:type="MSLayerGroup" transform="translate(339.000000, 340.000000)">
+                <mask id="mask-8" sketch:name="Mask" fill="white">
+                    <use xlink:href="#path-7"></use>
+                </mask>
+                <use id="Mask" stroke="#2672F2" stroke-width="2" fill="#FFFFFF" sketch:type="MSShapeGroup" xlink:href="#path-7"></use>
+                <rect id="Rectangle-323" fill="#2672F2" sketch:type="MSShapeGroup" mask="url(#mask-8)" x="5" y="5" width="66" height="10"></rect>
+                <rect id="Rectangle-323-Copy-6" fill="#2672F2" sketch:type="MSShapeGroup" mask="url(#mask-8)" x="5" y="54" width="38" height="33"></rect>
+                <g id="Group" mask="url(#mask-8)" fill="#2672F2" sketch:type="MSShapeGroup">
+                    <g transform="translate(5.000000, 18.000000)">
+                        <rect id="Rectangle-323-Copy-2" x="0" y="0" width="25" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-3" x="0" y="7" width="25" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-4" x="0" y="14" width="25" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-5" x="0" y="21" width="25" height="4"></rect>
+                    </g>
+                </g>
+                <path d="M5.5,48.5 L70.5,48.5" id="Line" stroke="#2672F2" stroke-linecap="square" sketch:type="MSShapeGroup" mask="url(#mask-8)"></path>
+                <g id="Group-Copy-2" mask="url(#mask-8)" fill="#2672F2" sketch:type="MSShapeGroup">
+                    <g transform="translate(46.000000, 54.000000)">
+                        <rect id="Rectangle-323-Copy-2" x="0" y="0" width="25" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-3" x="0" y="7" width="25" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-4" x="0" y="14" width="25" height="4"></rect>
+                    </g>
+                </g>
+                <mask id="mask-10" sketch:name="Mask" fill="white">
+                    <use xlink:href="#path-9"></use>
+                </mask>
+                <use id="Mask" fill="#2672F2" sketch:type="MSShapeGroup" xlink:href="#path-9"></use>
+                <g id="Oval-197-Copy-+-Oval-197-Copy-2-+-Oval-197" mask="url(#mask-10)" stroke="#FFFFFF" fill="#2672F2" sketch:type="MSShapeGroup">
+                    <g transform="translate(34.000000, 22.000000)">
+                        <path d="M10.1280595,12.3470985 C11.1455116,11.47606 11.7894737,10.1876129 11.7894737,8.75 C11.7894737,6.12664744 9.64515328,4 7,4 C4.35484672,4 2.21052632,6.12664744 2.21052632,8.75 C2.21052632,10.1876129 2.85448839,11.47606 3.87194052,12.3470985 C0,15.1568952 0,23 0,23 L14,23 C14,23 14,15.1568952 10.1280595,12.3470985 Z" id="Oval-197-Copy"></path>
+                        <path d="M31.6811938,13.4684566 C32.5532957,12.6891063 33.1052632,11.5362852 33.1052632,10.25 C33.1052632,7.90278981 31.2672742,6 29,6 C26.7327258,6 24.8947368,7.90278981 24.8947368,10.25 C24.8947368,11.5362852 25.4467043,12.6891063 26.3188062,13.4684566 C23,15.9824852 23,23 23,23 L35,23 C35,23 35,15.9824852 31.6811938,13.4684566 Z" id="Oval-197-Copy-2"></path>
+                        <path d="M24.7452236,11.4223453 C26.1260515,10.2303979 27,8.46725978 27,6.5 C27,2.91014913 24.0898509,0 20.5,0 C16.9101491,0 14,2.91014913 14,6.5 C14,8.46725978 14.8739485,10.2303979 16.2547764,11.4223453 C11,15.2673303 11,26 11,26 L30,26 C30,26 30,15.2673303 24.7452236,11.4223453 Z" id="Oval-197"></path>
+                    </g>
+                </g>
+                <mask id="mask-12" sketch:name="Mask Copy 2" fill="white">
+                    <use xlink:href="#path-11"></use>
+                </mask>
+                <use id="Mask-Copy-2" stroke="#2672F2" stroke-width="2" sketch:type="MSShapeGroup" xlink:href="#path-11"></use>
+            </g>
+            <g id="Group-Copy-7" sketch:type="MSLayerGroup" transform="translate(226.000000, 2.000000)">
+                <mask id="mask-14" sketch:name="Mask" fill="white">
+                    <use xlink:href="#path-13"></use>
+                </mask>
+                <use id="Mask" stroke="#DE6400" stroke-width="2" fill="#FFFFFF" sketch:type="MSShapeGroup" xlink:href="#path-13"></use>
+                <g id="Group-Copy-2" mask="url(#mask-14)">
+                    <g transform="translate(5.000000, 16.000000)">
+                        <g id="Group" stroke="none" fill-rule="evenodd" sketch:type="MSLayerGroup" transform="translate(0.000000, 7.000000)">
+                            <rect id="Rectangle-323-Copy-2" fill="#222222" sketch:type="MSShapeGroup" x="0" y="7" width="25" height="4"></rect>
+                            <rect id="Rectangle-323-Copy-7" fill="#222222" sketch:type="MSShapeGroup" x="0" y="0" width="36" height="4"></rect>
+                            <rect id="Rectangle-323-Copy-3" fill="#222222" sketch:type="MSShapeGroup" x="0" y="14" width="25" height="4"></rect>
+                            <rect id="Rectangle-323-Copy-4" fill="#222222" sketch:type="MSShapeGroup" x="0" y="21" width="25" height="4"></rect>
+                        </g>
+                        <path d="M0.5,39.5 L65.5,39.5" id="Line" stroke="#222222" stroke-linecap="square" sketch:type="MSShapeGroup"></path>
+                        <path d="M0.5,1.5 L65.5,1.5" id="Line-Copy-33" stroke="#222222" stroke-linecap="square" sketch:type="MSShapeGroup"></path>
+                    </g>
+                </g>
+                <g id="Group-Copy-9" mask="url(#mask-14)" sketch:type="MSShapeGroup">
+                    <g transform="translate(5.000000, 60.000000)">
+                        <rect id="Rectangle-323-Copy-2" fill="#222222" x="0" y="0" width="15" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-3" fill="#222222" x="0" y="7" width="15" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-4" fill="#DE6400" x="0" y="14" width="15" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-5" fill="#DE6400" x="0" y="21" width="15" height="4"></rect>
+                    </g>
+                </g>
+                <rect id="Rectangle-323" fill="#222222" sketch:type="MSShapeGroup" mask="url(#mask-14)" x="5" y="5" width="56" height="8"></rect>
+                <rect id="Rectangle-323-Copy-9" fill="#222222" sketch:type="MSShapeGroup" mask="url(#mask-14)" x="64" y="5" width="8" height="8"></rect>
+                <rect id="Rectangle-323-Copy-8" fill="#222222" sketch:type="MSShapeGroup" mask="url(#mask-14)" x="26" y="60" width="45" height="22"></rect>
+                <g id="Oval-197-Copy-+-Oval-197-Copy-2-+-Oval-197" mask="url(#mask-14)" stroke="#FFFFFF" fill="#222222" sketch:type="MSShapeGroup">
+                    <g transform="translate(33.000000, 66.000000)">
+                        <path d="M8.97056697,10.9224333 C9.87173886,10.1518993 10.4421053,9.01211912 10.4421053,7.74038462 C10.4421053,5.41972658 8.54285004,3.53846154 6.2,3.53846154 C3.85714996,3.53846154 1.95789474,5.41972658 1.95789474,7.74038462 C1.95789474,9.01211912 2.52826114,10.1518993 3.42943303,10.9224333 C0,13.4080227 0,20.3461538 0,20.3461538 L12.4,20.3461538 C12.4,20.3461538 12.4,13.4080227 8.97056697,10.9224333 Z" id="Oval-197-Copy"></path>
+                        <path d="M28.060486,11.9144039 C28.832919,11.2249787 29.3218045,10.2051754 29.3218045,9.06730769 C29.3218045,6.99092945 27.6938715,5.30769231 25.6857143,5.30769231 C23.6775571,5.30769231 22.0496241,6.99092945 22.0496241,9.06730769 C22.0496241,10.2051754 22.5385096,11.2249787 23.3109426,11.9144039 C20.3714286,14.1383523 20.3714286,20.3461538 20.3714286,20.3461538 L31,20.3461538 C31,20.3461538 31,14.1383523 28.060486,11.9144039 Z" id="Oval-197-Copy-2"></path>
+                        <path d="M21.917198,10.1043824 C23.140217,9.04996741 23.9142857,7.49026827 23.9142857,5.75 C23.9142857,2.57436269 21.3367251,0 18.1571429,0 C14.9775607,0 12.4,2.57436269 12.4,5.75 C12.4,7.49026827 13.1740687,9.04996741 14.3970877,10.1043824 C9.74285714,13.5057153 9.74285714,23 9.74285714,23 L26.5714286,23 C26.5714286,23 26.5714286,13.5057153 21.917198,10.1043824 Z" id="Oval-197"></path>
+                    </g>
+                </g>
+                <mask id="mask-16" sketch:name="Mask" fill="white">
+                    <use xlink:href="#path-15"></use>
+                </mask>
+                <use id="Mask" stroke="#222222" stroke-width="2" sketch:type="MSShapeGroup" xlink:href="#path-15"></use>
+                <polygon id="Star-5" fill="#222222" sketch:type="MSShapeGroup" mask="url(#mask-16)" points="58.5 46.1104452 56.061371 48.759816 54.8222418 45.3788936 51.5553721 46.8933702 51.704389 43.295611 48.1066298 43.4446279 49.6211064 40.1777582 46.240184 38.938629 48.8895548 36.5 46.240184 34.061371 49.6211064 32.8222418 48.1066298 29.5553721 51.704389 29.704389 51.5553721 26.1066298 54.8222418 27.6211064 56.061371 24.240184 58.5 26.8895548 60.938629 24.240184 62.1777582 27.6211064 65.4446279 26.1066298 65.295611 29.704389 68.8933702 29.5553721 67.3788936 32.8222418 70.759816 34.061371 68.1104452 36.5 70.759816 38.938629 67.3788936 40.1777582 68.8933702 43.4446279 65.295611 43.295611 65.4446279 46.8933702 62.1777582 45.3788936 60.938629 48.759816 "></polygon>
+            </g>
+            <g id="Group-Copy-8" sketch:type="MSLayerGroup" transform="translate(339.000000, 2.000000)">
+                <mask id="mask-18" sketch:name="Mask" fill="white">
+                    <use xlink:href="#path-17"></use>
+                </mask>
+                <use id="Mask" stroke="#222222" stroke-width="2" fill="#FFFFFF" sketch:type="MSShapeGroup" xlink:href="#path-17"></use>
+                <text id="404" sketch:type="MSTextLayer" mask="url(#mask-18)" font-family="Roboto" font-size="28" font-weight="260" fill="#222222">
+                    <tspan x="14" y="46">404</tspan>
+                </text>
+                <rect id="Rectangle-323-Copy-2" fill="#222222" sketch:type="MSShapeGroup" mask="url(#mask-18)" x="26" y="58" width="25" height="4"></rect>
+            </g>
+            <g id="Shape-Copy-7" sketch:type="MSLayerGroup" transform="translate(39.500000, 99.000000) rotate(-90.000000) translate(-39.500000, -99.000000) translate(29.500000, 90.500000)" fill="#DE6400">
+                <path d="M10.6234388,16.8164063 L19.8425293,8.40820313 L10.6234384,7.10542736e-15 L10.6234384,4.16577844 L13.5195313,6.98133919 L1.75692794e-14,6.98133926 L1.77635684e-14,10.0439453 L13.5195316,10.0439455 L10.6234384,12.6030367 L10.6234388,16.8164063 Z" id="Path-241" sketch:type="MSShapeGroup"></path>
+            </g>
+            <g id="Shape-Copy-11" sketch:type="MSLayerGroup" transform="translate(87.000000, 32.000000)" fill="#DE6400">
+                <path d="M10.6234388,16.8164063 L19.8425293,8.40820313 L10.6234384,7.10542736e-15 L10.6234384,4.16577844 L13.5195313,6.98133919 L1.75692794e-14,6.98133926 L1.77635684e-14,10.0439453 L13.5195316,10.0439455 L10.6234384,12.6030367 L10.6234388,16.8164063 Z" id="Path-241" sketch:type="MSShapeGroup"></path>
+            </g>
+            <g id="Shape-Copy-12" sketch:type="MSLayerGroup" transform="translate(199.000000, 32.000000)" fill="#DE6400">
+                <path d="M10.6234388,16.8164063 L19.8425293,8.40820313 L10.6234384,7.10542736e-15 L10.6234384,4.16577844 L13.5195313,6.98133919 L1.75692794e-14,6.98133926 L1.77635684e-14,10.0439453 L13.5195316,10.0439455 L10.6234384,12.6030367 L10.6234388,16.8164063 Z" id="Path-241" sketch:type="MSShapeGroup"></path>
+            </g>
+            <g id="Shape-Copy-13" sketch:type="MSLayerGroup" transform="translate(312.000000, 32.000000)" fill="#DE6400">
+                <path d="M10.6234388,16.8164063 L19.8425293,8.40820313 L10.6234384,7.10542736e-15 L10.6234384,4.16577844 L13.5195313,6.98133919 L1.75692794e-14,6.98133926 L1.77635684e-14,10.0439453 L13.5195316,10.0439455 L10.6234384,12.6030367 L10.6234388,16.8164063 Z" id="Path-241" sketch:type="MSShapeGroup"></path>
+            </g>
+            <g id="Group-Copy-4" sketch:type="MSLayerGroup" transform="translate(114.000000, 2.000000)">
+                <mask id="mask-20" sketch:name="Mask" fill="white">
+                    <use xlink:href="#path-19"></use>
+                </mask>
+                <use id="Mask" stroke="#DE6400" stroke-width="2" fill="#FFFFFF" sketch:type="MSShapeGroup" xlink:href="#path-19"></use>
+                <rect id="Rectangle-323" fill="#222222" sketch:type="MSShapeGroup" mask="url(#mask-20)" x="29.4527958" y="10.8002525" width="76" height="7.30508653">
+                    <g transform="translate(67.452796, 14.452796) rotate(-315.000000) translate(-67.452796, -14.452796) "></g>
+                </rect>
+                <rect id="Rectangle-323-Copy" fill="#222222" sketch:type="MSShapeGroup" mask="url(#mask-20)" x="5" y="52" width="66" height="44"></rect>
+                <g id="Group-Copy-5" mask="url(#mask-20)" fill="#222222" sketch:type="MSShapeGroup">
+                    <g transform="translate(5.000000, 11.000000)">
+                        <rect id="Rectangle-323-Copy-2" x="0" y="13" width="32" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-10" x="17" y="0" width="32" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-3" x="0" y="20" width="32" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-4" x="0" y="27" width="32" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-5" x="0" y="34" width="32" height="4"></rect>
+                    </g>
+                </g>
+                <g id="Group-Copy-6" mask="url(#mask-20)" fill="#222222" sketch:type="MSShapeGroup">
+                    <g transform="translate(40.000000, 24.000000)">
+                        <rect id="Rectangle-323-Copy-2" x="0" y="0" width="31" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-3" x="0" y="7" width="31" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-4" x="0" y="14" width="31" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-5" x="0" y="21" width="31" height="4"></rect>
+                    </g>
+                </g>
+                <g id="Oval-197-Copy-+-Oval-197-Copy-2-+-Oval-197" mask="url(#mask-20)" stroke="#FFFFFF" fill="#222222" sketch:type="MSShapeGroup">
+                    <g transform="translate(23.000000, 57.000000)">
+                        <path d="M8.97056697,10.9224333 C9.87173886,10.1518993 10.4421053,9.01211912 10.4421053,7.74038462 C10.4421053,5.41972658 8.54285004,3.53846154 6.2,3.53846154 C3.85714996,3.53846154 1.95789474,5.41972658 1.95789474,7.74038462 C1.95789474,9.01211912 2.52826114,10.1518993 3.42943303,10.9224333 C0,13.4080227 0,20.3461538 0,20.3461538 L12.4,20.3461538 C12.4,20.3461538 12.4,13.4080227 8.97056697,10.9224333 Z" id="Oval-197-Copy"></path>
+                        <path d="M28.060486,11.9144039 C28.832919,11.2249787 29.3218045,10.2051754 29.3218045,9.06730769 C29.3218045,6.99092945 27.6938715,5.30769231 25.6857143,5.30769231 C23.6775571,5.30769231 22.0496241,6.99092945 22.0496241,9.06730769 C22.0496241,10.2051754 22.5385096,11.2249787 23.3109426,11.9144039 C20.3714286,14.1383523 20.3714286,20.3461538 20.3714286,20.3461538 L31,20.3461538 C31,20.3461538 31,14.1383523 28.060486,11.9144039 Z" id="Oval-197-Copy-2"></path>
+                        <path d="M21.917198,10.1043824 C23.140217,9.04996741 23.9142857,7.49026827 23.9142857,5.75 C23.9142857,2.57436269 21.3367251,0 18.1571429,0 C14.9775607,0 12.4,2.57436269 12.4,5.75 C12.4,7.49026827 13.1740687,9.04996741 14.3970877,10.1043824 C9.74285714,13.5057153 9.74285714,23 9.74285714,23 L26.5714286,23 C26.5714286,23 26.5714286,13.5057153 21.917198,10.1043824 Z" id="Oval-197"></path>
+                    </g>
+                </g>
+                <mask id="mask-22" sketch:name="Mask" fill="white">
+                    <use xlink:href="#path-21"></use>
+                </mask>
+                <use id="Mask" stroke="#222222" stroke-width="2" sketch:type="MSShapeGroup" xlink:href="#path-21"></use>
+                <polygon id="Star-5" fill="#222222" sketch:type="MSShapeGroup" mask="url(#mask-22)" points="11 18.3818493 9.0278721 19.7164508 8.09035259 17.5274997 5.70975298 17.5840251 6.10449767 15.235701 4.07124991 13.9962039 5.67293015 12.234083 4.63257603 10.0920949 6.93266967 9.47563821 7.21551428 7.11122527 9.48375783 7.8361534 11 6 12.5162422 7.8361534 14.7844857 7.11122527 15.0673303 9.47563821 17.367424 10.0920949 16.3270698 12.234083 17.9287501 13.9962039 15.8955023 15.235701 16.290247 17.5840251 13.9096474 17.5274997 12.9721279 19.7164508 "></polygon>
+            </g>
+            <g id="Mask-+-Mask-+-Mask-+-Group-+-Group-Copy-2" sketch:type="MSLayerGroup" transform="translate(2.000000, 120.000000)">
+                <g id="Mask-+-Mask-+-Mask" stroke="#222222" stroke-width="2" fill="#FFFFFF" sketch:type="MSShapeGroup">
+                    <rect id="Mask" x="6" y="6" width="132" height="170" rx="2"></rect>
+                    <rect id="Mask" x="3" y="3" width="132" height="170" rx="2"></rect>
+                    <rect id="Mask" x="0" y="0" width="132" height="170" rx="2"></rect>
+                </g>
+                <g id="Group" transform="translate(18.000000, 19.000000)" sketch:type="MSShapeGroup">
+                    <rect id="Rectangle-323-Copy-3" fill="#222222" x="0" y="0" width="98" height="4"></rect>
+                    <rect id="Rectangle-323-Copy-4" fill="#222222" x="0" y="7" width="98" height="4"></rect>
+                    <rect id="Rectangle-323-Copy-5" fill="#222222" x="0" y="14" width="98" height="4"></rect>
+                    <rect id="Rectangle-323-Copy-2" fill="#222222" x="0" y="21" width="98" height="4"></rect>
+                    <rect id="Rectangle-323-Copy-3" fill="#222222" x="0" y="28" width="98" height="4"></rect>
+                    <rect id="Rectangle-323-Copy-4" fill="#222222" x="0" y="35" width="66" height="4"></rect>
+                    <rect id="Rectangle-323-Copy-14" fill="#DE6400" x="0" y="43" width="37" height="8"></rect>
+                    <rect id="Rectangle-323-Copy-15" fill="#2672F2" x="0" y="55" width="37" height="8"></rect>
+                </g>
+                <g id="Group-Copy" transform="translate(19.000000, 96.000000)" fill="#222222" sketch:type="MSShapeGroup">
+                    <rect id="Rectangle-323-Copy-2" x="0" y="7" width="98" height="4"></rect>
+                    <rect id="Rectangle-323-Copy-11" x="0" y="0" width="98" height="4"></rect>
+                    <rect id="Rectangle-323-Copy-3" x="0" y="14" width="98" height="4"></rect>
+                    <rect id="Rectangle-323-Copy-4" x="0" y="21" width="98" height="4"></rect>
+                    <rect id="Rectangle-323-Copy-5" x="0" y="28" width="98" height="4"></rect>
+                    <rect id="Rectangle-323-Copy-2" x="0" y="35" width="98" height="4"></rect>
+                    <rect id="Rectangle-323-Copy-3" x="0" y="42" width="98" height="4"></rect>
+                    <rect id="Rectangle-323-Copy-4" x="0" y="49" width="98" height="4"></rect>
+                    <rect id="Rectangle-323-Copy-5" x="0" y="56" width="76" height="4"></rect>
+                </g>
+            </g>
+            <g id="Shape-Copy-8" sketch:type="MSLayerGroup" transform="translate(39.500000, 316.000000) rotate(-270.000000) translate(-39.500000, -316.000000) translate(29.500000, 307.500000)" fill="#2672F2">
+                <path d="M10.7733412,16.8164063 L19.9924316,8.40820313 L10.7733407,7.10542736e-15 L10.7733407,4.16577844 L13.6694336,6.98133919 L0.149902344,6.98133926 L0.149902344,10.0439453 L13.6694339,10.0439455 L10.7733407,12.6030367 L10.7733412,16.8164063 Z" id="Path-241" sketch:type="MSShapeGroup"></path>
+            </g>
+            <path d="M94.5896788,379 L82,379" id="Line-Copy-10" stroke="#2672F2" stroke-width="3" stroke-linecap="round" stroke-dasharray="1,5" sketch:type="MSShapeGroup"></path>
+            <path d="M335.589679,379 L323,379" id="Line-Copy-11" stroke="#2672F2" stroke-width="3" stroke-linecap="round" stroke-dasharray="1,5" sketch:type="MSShapeGroup"></path>
+            <g id="Group" sketch:type="MSLayerGroup" transform="translate(2.000000, 2.000000)">
+                <mask id="mask-24" sketch:name="Mask" fill="white">
+                    <use xlink:href="#path-23"></use>
+                </mask>
+                <use id="Mask" stroke="#222222" stroke-width="2" fill="#FFFFFF" sketch:type="MSShapeGroup" xlink:href="#path-23"></use>
+                <rect id="Rectangle-323" fill="#222222" sketch:type="MSShapeGroup" mask="url(#mask-24)" x="5" y="5" width="66" height="10"></rect>
+                <rect id="Rectangle-323-Copy-6" fill="#222222" sketch:type="MSShapeGroup" mask="url(#mask-24)" x="5" y="54" width="38" height="33"></rect>
+                <g mask="url(#mask-24)" fill="#222222" sketch:type="MSShapeGroup">
+                    <g transform="translate(5.000000, 18.000000)">
+                        <rect id="Rectangle-323-Copy-2" x="0" y="0" width="25" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-3" x="0" y="7" width="25" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-4" x="0" y="14" width="25" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-5" x="0" y="21" width="25" height="4"></rect>
+                    </g>
+                </g>
+                <path d="M5.5,48.5 L70.5,48.5" id="Line" stroke="#222222" stroke-linecap="square" sketch:type="MSShapeGroup" mask="url(#mask-24)"></path>
+                <g id="Group-Copy-2" mask="url(#mask-24)" fill="#222222" sketch:type="MSShapeGroup">
+                    <g transform="translate(46.000000, 54.000000)">
+                        <rect id="Rectangle-323-Copy-2" x="0" y="0" width="25" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-3" x="0" y="7" width="25" height="4"></rect>
+                        <rect id="Rectangle-323-Copy-4" x="0" y="14" width="25" height="4"></rect>
+                    </g>
+                </g>
+                <mask id="mask-26" sketch:name="Mask" fill="white">
+                    <use xlink:href="#path-25"></use>
+                </mask>
+                <use id="Mask" fill="#222222" sketch:type="MSShapeGroup" xlink:href="#path-25"></use>
+                <g id="Oval-197-Copy-+-Oval-197-Copy-2-+-Oval-197" mask="url(#mask-26)" stroke="#FFFFFF" fill="#222222" sketch:type="MSShapeGroup">
+                    <g transform="translate(34.000000, 22.000000)">
+                        <path d="M10.1280595,12.3470985 C11.1455116,11.47606 11.7894737,10.1876129 11.7894737,8.75 C11.7894737,6.12664744 9.64515328,4 7,4 C4.35484672,4 2.21052632,6.12664744 2.21052632,8.75 C2.21052632,10.1876129 2.85448839,11.47606 3.87194052,12.3470985 C0,15.1568952 0,23 0,23 L14,23 C14,23 14,15.1568952 10.1280595,12.3470985 Z" id="Oval-197-Copy"></path>
+                        <path d="M31.6811938,13.4684566 C32.5532957,12.6891063 33.1052632,11.5362852 33.1052632,10.25 C33.1052632,7.90278981 31.2672742,6 29,6 C26.7327258,6 24.8947368,7.90278981 24.8947368,10.25 C24.8947368,11.5362852 25.4467043,12.6891063 26.3188062,13.4684566 C23,15.9824852 23,23 23,23 L35,23 C35,23 35,15.9824852 31.6811938,13.4684566 Z" id="Oval-197-Copy-2"></path>
+                        <path d="M24.7452236,11.4223453 C26.1260515,10.2303979 27,8.46725978 27,6.5 C27,2.91014913 24.0898509,0 20.5,0 C16.9101491,0 14,2.91014913 14,6.5 C14,8.46725978 14.8739485,10.2303979 16.2547764,11.4223453 C11,15.2673303 11,26 11,26 L30,26 C30,26 30,15.2673303 24.7452236,11.4223453 Z" id="Oval-197"></path>
+                    </g>
+                </g>
+            </g>
+            <g id="Rectangle-368-+-perma-logo-orange-copy-10-+-Rectangle-423-+-perma.cc/NG87-3RTY-Copy" sketch:type="MSLayerGroup" transform="translate(99.000000, 364.000000)">
+                <g id="Rectangle-368-+-perma-logo-orange-copy-10" transform="translate(8.000000, 8.000000)" fill="#2D76EE" sketch:type="MSShapeGroup">
+                    <path d="M23.9449876,13.4762531 C22.4326305,13.4762531 20.9108626,12.9574221 19.2927734,11.8900978 C17.7286573,10.8610223 16.257818,9.43879044 14.8351394,8.06339393 C13.2881841,6.56752662 11.6886394,5.02092108 10.0334609,4.0480479 C9.00630907,3.44465318 8.08046085,3.15115199 7.20360371,3.15115199 C5.54759478,3.15115199 4.29430907,3.83937064 3.67430907,5.08961284 C3.40444299,5.63810619 3.26079121,6.28677504 3.26079121,6.96250428 C3.26079121,7.50345195 3.34438049,8.00797216 3.50879121,8.46201433 C4.03136264,9.92197458 5.30402335,10.6911142 7.19031799,10.6911142 C8.06025549,10.6911142 8.99606799,10.3507777 10.0508984,9.65059006 C10.7508894,9.18405847 11.526443,8.54553728 12.4888269,7.64317724 L14.5810501,9.61520339 C13.4838716,10.6440187 12.6144876,11.3561754 11.7622644,11.9241835 C10.1879073,12.969131 8.69326442,13.4762531 7.19031799,13.4762531 C4.05156799,13.4762531 1.62637157,11.9356321 0.702737637,9.3552675 C0.434809066,8.61631061 0.298076923,7.80970274 0.298076923,6.96250428 C0.298076923,5.8704613 0.530023352,4.84554891 0.987273352,3.91638868 C2.10687157,1.65892743 4.37180907,0.366013072 7.20360371,0.366013072 C8.65202335,0.366013072 10.0915859,0.797938577 11.603943,1.68650822 C13.5630323,2.8381361 15.2896216,4.5075542 16.9594698,6.12181072 C18.3467198,7.46338175 19.6570234,8.7302765 20.993068,9.60921888 C22.0971662,10.3375077 23.062318,10.6911142 23.9449876,10.6911142 C25.8722466,10.6911142 27.1565323,9.92249497 27.6591751,8.46825904 C27.8075323,8.03763451 27.8830948,7.55757273 27.8830948,7.04316507 C27.8830948,6.31539661 27.7303091,5.62821874 27.4413448,5.05552716 C26.8138716,3.8091879 25.6051484,3.15115199 23.9449876,3.15115199 C22.969318,3.15115199 21.9684609,3.45844357 20.8859519,4.09045987 C20.2047823,4.48908027 19.477943,5.02430362 18.6650234,5.72631267 C18.6129876,5.77132659 18.5626126,5.81529973 18.5119609,5.85953307 L16.490318,3.82349868 C16.5473359,3.77354103 16.6046305,3.72358338 16.6619251,3.67440632 C17.6107466,2.85478865 18.4812376,2.21704804 19.3218359,1.72527743 C20.888443,0.810427989 22.4005234,0.366013072 23.9449876,0.366013072 C26.7496573,0.366013072 28.9999251,1.64045351 30.118693,3.86304849 C30.5942109,4.80547872 30.8458091,5.90532758 30.8458091,7.04316507 C30.8458091,7.84899235 30.7218091,8.61761159 30.4774073,9.32742652 C29.5792376,11.9260048 27.1374341,13.4762531 23.9449876,13.4762531" id="perma-logo-orange-copy-8"></path>
+                </g>
+                <rect id="Rectangle-423" stroke="#2672F2" stroke-width="2" sketch:type="MSShapeGroup" x="0" y="0" width="220" height="30" rx="3"></rect>
+                <text id="perma.cc/NG87-3RTY" sketch:type="MSTextLayer" font-family="Roboto" font-size="16.9200001" font-weight="420" fill="#2672F2">
+                    <tspan x="44" y="20">perma.cc/NG87-3RTY</tspan>
+                </text>
+            </g>
+        </g>
+    </g>
+</svg>
