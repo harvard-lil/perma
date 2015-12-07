@@ -42,7 +42,7 @@ $(function() {
         }
         
         // Start our spinner and disable our input field with just a tiny delay
-        window.setTimeout(toggleCreateAvailable(), 150);
+        window.setTimeout(toggleCreateAvailable, 150);
 
         $.ajax($this.attr('action'), {
             method: $this.attr('method'),
