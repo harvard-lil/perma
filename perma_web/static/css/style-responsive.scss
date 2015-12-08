@@ -3285,6 +3285,11 @@ footer {
 	}
 	#footer-nav {
 		padding-left: 0;
+		li:last-child a {
+			@include respond-tablet {
+				margin-right: 0;
+			}
+		}
 	}
 	#footer-nav, #boilerplate {
 		a {
@@ -4215,7 +4220,7 @@ section {
 	}
 	@include respond-desktop {
 		padding-top: $grid * 4;
-		padding-bottom: 0;
+		padding-bottom: $grid * 8;
 	}
 	.row-modules {
 		@include respond-desktop {
@@ -4237,12 +4242,18 @@ h6.image-hed {
 }
 
 .primary-img {
+	padding-top: $double;
 	@include respond-tablet {
-	    padding-top: $half;
+	    padding-top: $grid * 3;
 	    padding-left: $double;
 	}
-	@include respond-tablet {
-	    padding-top: 0;
+	@include respond-desktop {
+	    padding-top: $grid * 3;
+	    padding-left: $grid * 0;
+	}
+	@include respond-wide {
+	    padding-top: $grid;
+	    padding-left: $grid * 6
 	}
 }
 
@@ -4257,21 +4268,36 @@ h6.image-hed {
 
 #minisxs {
 	border-top: 1px solid $color-blue;
-    border-bottom: 1px solid $color-blue;
     margin-top: $grid * 8;
 	padding: $grid * 4 $grid * 2 0;
 	@include respond-tablet {
-		padding: $grid * 4 $grid * 6 0;
+		padding: $grid * 4 $grid * 4 0;
 	}
 	@include respond-desktop {
-		padding: $grid * 4 $grid * 8 0;
+		padding: $grid * 6 $grid * 8 0;
+		border-bottom: 1px solid $color-blue;
+	}
+	.row.outer {
+		@include respond-tablet {
+			margin: 0 -$grid * 4;
+		}
+	}
+	.col-xs-12 {
+		border-bottom: 1px solid $color-blue;
+		@include respond-tablet {
+			padding: 0 $grid * 4;
+		}
+		@include respond-desktop {
+			border-bottom: none;
+			padding: 0;
+		}
 	}
 }
 
 
 .container-hero {
 	@extend .style-container;
-	max-width: 1800px;
+	max-width: $grid * 200;
 	margin: 0 auto;
     text-align: center;
     
@@ -4286,7 +4312,7 @@ p.caption-hero {
 	margin-bottom: 0;
 	position: relative;
 	text-align: center;
-	margin-top: $grid * 5;
+	margin-top: $grid * 6;
 	span.num {
 		display: inline-block;
 	    padding: 0;
@@ -4350,14 +4376,21 @@ a:hover {
 }
 
 h1.section-title {
+	font-weight: 300;
+    font-size: 32px;
+    padding-bottom: 24px;
 	@include respond-tablet {
+		font-weight: 900;
 		line-height: 1.2;
 	    font-size: 40px;
 	    padding-bottom: 12px;
 	}
 	@include respond-desktop {
-		font-size: 36px;
+		font-size: 54px;
 		padding-bottom: 0;
+	}
+	@include respond-wide {
+		font-size: 64px;
 	}
 }
 
