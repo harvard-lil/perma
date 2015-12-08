@@ -777,9 +777,11 @@ a.cc {
 .cont-sm-fixed-bleed {
 	@include respond-tablet {
 		max-width: $width-tablet; 
+		padding: 0 $grid * 2;
 	}
 	@include respond-desktop {
 		max-width: $width-desktop; 
+		padding: 0;
 	}
 	@include respond-wide {
 		max-width: $width-wide; 
@@ -788,10 +790,11 @@ a.cc {
 
 .cont-sm-fixed {
 	@include respond-tablet {
-		padding: 0 $page-margin;
+		padding: 0 $page-margin * 2;
 		max-width: $width-tablet; 
 	}
 	@include respond-desktop {
+		padding: 0 $page-margin;
 		max-width: $width-desktop; 
 	}
 	@include respond-wide {
@@ -2402,7 +2405,7 @@ p.caption {
 		font-size: 16px;
 		@include respond-tablet {
 			margin: 0;
-			width: $grid * 61;
+			width: $grid * 57;
 			float: left;
 			padding: 14px;
 			height: auto;
@@ -2451,7 +2454,7 @@ p.caption {
 		}
 		input.form-priority-input {
 			@include respond-tablet {
-				width: $grid * 54;
+				width: $grid * 50;
 			}
 			@include respond-desktop {
 				width: $grid * 80;
@@ -2577,7 +2580,7 @@ p.caption {
 			width: 100%;
 		}
 		@include respond-tablet {
-			@include link-dropdown-widths(688px, $grid * 41);
+			@include link-dropdown-widths(656px, $grid * 41);
 			.dropdown-affil {
 				margin-top: 0;
 			}
