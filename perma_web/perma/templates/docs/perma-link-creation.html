@@ -13,7 +13,7 @@ This section of the user guide covers how to create new archives and organize yo
 <div class="container cont-fixed">
 	<div class="row">
 		<div class="col-sm-12">
-			<h1>Perma.cc user guide <span class="subsection">About Links &amp; Records</span></h1>
+			<h1>Perma.cc user guide <span class="subsection">Perma Records &amp; Links</span></h1>
 		</div>
 	</div>
 </div>
@@ -24,47 +24,98 @@ This section of the user guide covers how to create new archives and organize yo
 	<div class="row">
 		<div class="col-sm-4 reading-toc" >
 			<ul>
-				<li class="reading-toc-chapter"><a href="#organize-links">Making Links</a></li>
-				<li class="reading-toc-section"><a href="#organize-links">Web page capture</a></li>
-				<li class="reading-toc-section"><a href="#organize-links">Upload option</a></li>
-				<li class="reading-toc-chapter"><a href="#organize-links">Using Links</a></li>
-				<li class="reading-toc-section"><a href="#organize-links">Citation style</a></li>
-				<li class="reading-toc-section"><a href="#organize-links">Viewing links</a></li>
-				<li class="reading-toc-chapter"><a href="#organize-links">Managing Links</a></li>
-				<li class="reading-toc-section"><a href="#organize-links">Organizing links</a></li>
-				<li class="reading-toc-section"><a href="#organize-links">Annotating links</a></li>
-				<li class="reading-toc-section"><a href="#organize-links">Deleting links</a></li>
-				<li class="reading-toc-section"><a href="#organize-links">Adopting links</a></li>
-				<li class="reading-toc-chapter"><a href="#organize-links">About Perma Records</a></li>
-				<li class="reading-toc-section"><a href="#organize-links">Formats</a></li>
-				<li class="reading-toc-section"><a href="#organize-links">Public / Private Records</a></li>
-				<li class="reading-toc-section"><a href="#organize-links">Dark Archive</a></li>
-				<li class="reading-toc-section"><a href="#organize-links">Preservation</a></li>
+				<li class="reading-toc-chapter"><a href="#creating-records">Creating Perma Records and Links</a></li>
+				<li class="reading-toc-section"><a href="#web-page-preservation">Preservation methods</a></li>
+				<li class="reading-toc-section"><a href="#preservation-limits">Preservation limits</a></li>
+				<li class="reading-toc-chapter"><a href="#using-perma-links">Using Perma Links</a></li>
+				<li class="reading-toc-section"><a href="#citing-perma-links">Citing Perma Links</a></li>
+				<li class="reading-toc-section"><a href="#what-readers-see">VWhat readers see</a></li>
+				<li class="reading-toc-chapter"><a href="#managing-links">Managing Perma Links</a></li>
+				<li class="reading-toc-section"><a href="#organizing-links">Organizing Perma Links</a></li>
+				<li class="reading-toc-section"><a href="#annotating-links">Annotating Perma Links</a></li>
+				<li class="reading-toc-chapter"><a href="#about-perma-records">About Perma Records</a></li>
+				<li class="reading-toc-section"><a href="#preservation-formats">Preservation formats</a></li>
+				<li class="reading-toc-section"><a href="#private-records">Private Records</a></li>
+				<li class="reading-toc-section"><a href="#visibility">Dark Archive</a></li>
 			<ul>
 		</div>
 
 		<div class="col col-sm-8 docs reading-body">
-			<h2 class="body-ah">Organizing Perma Links</h2>
-		
-			<p class="body-text">Perma provides many useful ways to view, organize and annotate the Perma Links and archives you’ve created. If you're a vesting user, you also have access to the Perma Links and archives vested by other members of your Vesting Organization.</p>
+			<h2 class="body-ah" id="creating-records">Creating Perma Records and Links</h2>
+			<p class="body-text">A Perma Record is the preserved copy of a web page you intend to cite. A Perma Link is the unique URL you can use to direct readers to a Perma Record.</p>
+			<p class="body-test">For example, this Perma Link - <a href="http://perma.cc/9265-T4NB" target="blank">http://perma.cc/9265-T4NB</a> - points to a Perma Record of the White House homepage on November 18, 2015.</p>
+
+			<h3 class="body-bh" id="preservation-methods">Preservation Methods</h3>
+			<p class="body-text">To preserve a web page automatically, paste the URL into the form and click "Create Perma Link."</p>
+			<img src="{{ STATIC_URL }}img/docs/create_link.png" class="img-responsive screen-shot" alt="A screenshot of the Create an Archive page with the URL of a potential archive."/>
+			<p class="body-text">Perma visits the URL, fetches the contents of the page, makes a record of those contents - a Perma Record - and deposits that record into the permanent collection. Perma also gives you a unique URL - a Perma Link - that's associated with the new Perma Record. </p>
+			<p class="body-text">When the capture process is done, Perma shows you the Perma Record so you can verify it. </p>
+			<img src="{{ STATIC_URL }}/img/docs/perma_record_external.png" class="img-responsive screen-shot" alt="a screenshot of record view page" />
+			<p class="body-text">All Perma Records are permanent by default, and we give you a 24-hour period to delete records if need be.</p>
+			<p class="body-text">If the preservation process fails you'll get an error notification like this: </p>
+			<img src="{{ STATIC_URL }}img/docs/capture_fail.png" class="img-responsive screen-shot" alt="A screenshot of a Create an Archive page with a newly created archive. Includes the URL and the thumbnail preview."/>
+			<p class="body-text">You can retry the capture or, if it continues to fail, use the direct upload option that allows you to upload your own archived image or PDF file.</p>
+			<img src="{{ STATIC_URL }}img/docs/direct_upload.png" class="img-responsive screen-shot" alt="A screenshot of the Direct Upload form."/>
+
+			<h3 class="body-bh" id="preservation-limits">Preservation limits</h3>
+			<p class="body-text">Anyone can create an account, and each account lets you preserve up to 10 records per month for free. Perma.cc also offers unlimited free accounts to academic journals and faculty members affiliated with any registrar library. Courts and other government organizations also can qualify for unlimited free accounts.</p>
+			<p class="body-text">Your remaining record count is displayed on the record creation page.</p>
+
+			<h2 class="body-ah" id="using-perma-links">Using Perma Links</h2>
+
+			<h3 class="body-bh" id="citing-perma-links">Citing Perma Links</h3>
+			<p class="body-text">Give your readers access to the Perma Records you create by adding the relevant Perma Link to your citation.</p>
+			<img src="{{ STATIC_URL }}/img/docs/citation_example.png" class="img-responsive screen-shot" alt="An example from the Harvard Law Review" />
+			<p class="body-text">If you don't publish the Perma Link, your readers won't be able to find the record.</p>
+			<p class="body-text">For users in the legal community, <em>The Bluebook</em> encourages use of a reliable web archiving source like Perma.cc and recommends appending the Perma Link to the citation.</p>
+
+			<h3 class="body-bh" id="what-readers-see">What readers see</h3>
+			<p class="body-text">When a reader visits a Perma Link, she'll first see an interactive, web archive version of the record. She'll also have access to a screenshot version and a link to the live version at the original URL.</p>
+
+			<img src="{{ STATIC_URL }}/img/docs/perma_record_external.png" class="img-responsive screen-shot" alt="a screenshot of record view page" />
+
+			<p class="body-text">If you'd like to direct your readers to the screenshot view first, just add "?type=image" to the Perma Link, like this: <a href="https://perma.cc/9265-T4NB?type=image" target="blank">https://perma.cc/9265-T4NB?type=image</a>.</p>
+
+			<h2 class="body-ah" id="managing-links">Managing Perma Links</h2>
+			<p class="body-text">Perma has tools that let you view, organize and annotate the Perma Links and archives you and your organization(s) have created.</p>
+
+			<h3 class="body-bh" id="organizing-links">Organizing Perma Links</h3>
+			<p class="body-text">To manage your Perma Links, click the "Create and manage Perma Links" button.</p>
 			
-			<p class="body-text">To see these Perma Links, click on Links in the navigation menu on the left.</p>
-			
-			<img src="{{ STATIC_URL }}img/docs/link-folders.png" class="img-responsive screen-shot" alt="A screen shot of the Perma links page. This lists all the archives you've created and the shared folders to which you have access. "/>
+			<img src="{{ STATIC_URL }}img/docs/header-create-and-manage.png" class="img-responsive screen-shot" alt="A screen shot of the header with create and manage button."/>
 		
-			<p class="body-text">All users have a "My Links" folder containing links that you created and which have not been vested. Within your "My Links" folder you can create sub-folders and organize your unvested links to suit your preferences.<p class="body-text">
+			<p class="body-text">Below the Perma Link creation form is the link management area, which lists your folders and Perma Links. You also can search or sort your Perma Links.</p>
+
+			<img src="{{ STATIC_URL }}img/docs/folders-and-links.png" class="img-responsive screen-shot" alt="A screen shot of the header with create and manage button."/>
 	
-			<p class="body-text">Vesting users also see, in addition to their "My Links" folders, a folder bearing the name of any Vesting Organization (such as a law journal) to which they belong. These are shared folders, and all members of the Vesting Organization have access to the folder and its contents.</p>
+			<p class="body-text">Each user gets a My Links folder, and you can add as many sub-folders as you need. Each organization also gets a folder, and the organization's members can add sub-folders to organize links however they like. Note that all of an organization's members can access all of the organization's links.<p>
+
+			<h3 class="body-bh" id="annotating-links">Annotating Perma Links</h3>
+			<p class="body-text">You can annotate any link accessible to you. Click on the item you want to annotate. It'll expand to display more detail, and you can edit the title, add notes, move the link to another folder and view other metadata about the link:</p>
 	
-			<p class="body-text">In addition to organizing links in folders, you can change the titles of your links and add notes to each link. The notes are visible to you and to anyone with vesting authority with whom you share the Perma Link. .</p>
+			<img src="{{ STATIC_URL }}/img/docs/annotate_link.png" class="img-responsive screen-shot" alt="A screenshot of the link metadata view."/>
+
+			<h2 class="body-ah" id="about-perma-records">About Perma Records</h2>
+
+			<h3 class="body-bh" id="preservation-formats">Preservation formats</h3>
+			<p class="body-text">Perma provides two formats for each preserved web page: (1) capture and (2) screenshot.The capture uses the Web ARChive (or "warc") file format. The screenshot is a .png file.</p>
 		
-			<img src="{{ STATIC_URL }}img/docs/more-item-details.png" class="img-responsive screen-shot" alt="A screenshot of the more button on each Perma archive in your Perma Links page."/>
-			
-			<img src="{{ STATIC_URL }}img/docs/expanded-item-details.png" class="img-responsive screen-shot" alt="A screenshot of your Perma links page showing the editable details of the archive."/>
-			
-			<p class="body-text">You also can search or sort your links using the search bar above the link list or by clicking the column headings.</p>
-			
-			<img src="{{ STATIC_URL }}img/docs/search.png" class="img-responsive screen-shot" alt="Responsive image"/>
+			<h3 class="body-bh" id="private-records">Private Records</h3>
+			<p class="body-text">In general, Perma Records are public by default and accessible by anyone at the corresponding Perma Link. In some cases, however, Perma Records are not publicly accessible.</p>
+
+			<p class="body-text">When a reader encounters something that is private for any reason, she'll see this screen:</p>
+	
+			<img src="{{ STATIC_URL }}img/docs/dark_archive.png" class="img-responsive screen-shot" alt="A screenshot a Perma dark archive page."/></p>
+	
+
+			<p class="body-text">The private or public status of individual Perma Records can be changed on a record-by-record basis through the "Record Details" section of each Perma Record. In addition, archiving organizations can make their Perma Records private by default by adjusting their organization settings.</p>
+
+			<p class="body-text">Some Perma Records become private automatically upon creation, and their status cannot be changed. This applies to pages with a “noarchive” metatag or a Perma-specific exclusion in the site's robots.txt file. Each of these Perma Records is preserved in a dark archive and is accessible only to the individual account, organization and registrar responsible for the Perma Record.</p>
+			<p class="body-text">Finally, any pages that have been the subject of a valid DMCA takedown notice are placed into the dark archive.</p>
+
+			<h3 class="body-bh" id="memento">Memento</h3>
+			<p class="body-text"><a href="http://mementoweb.org/about/">Memento</a> is a framework for accessing archived versions of web resources. Like many other web archiving services, Perma has implemented Memento. As a result, all public Perma Records are available via the Memento framework.</p>
+
 		</div>
 	</div>
 </div>	
