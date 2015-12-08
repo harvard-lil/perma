@@ -726,6 +726,12 @@ a.cc {
 
 .style-container-padding {
 	padding: 0 $page-margin;
+	@include respond-tablet {
+		padding: 0 $page-margin * 2;
+	}
+	@include respond-desktop {
+		padding: 0 $page-margin;
+	}
 }
 
 .container {
@@ -2941,6 +2947,7 @@ button#addlink,
 			@include link-highlight($color-hover, $color-orange);
 			font-family: $font-hed-alt;
 			font-weight: 700;
+			padding-right: 0;
 		}
 	}
 }
@@ -4202,12 +4209,14 @@ section {
 }
 
 #landing-introduction {
+	padding-bottom: $grid * 5;
+	@include respond-tablet {
+		padding-bottom: $grid * 4;
+	}
 	@include respond-desktop {
 		padding-top: $grid * 4;
-		//padding-bottom: $grid * 10;
 		padding-bottom: 0;
 	}
-	padding-bottom: $grid * 5;
 	.row-modules {
 		@include respond-desktop {
 			margin-top: $grid * 7;
@@ -4220,7 +4229,7 @@ h6.image-hed {
     font-size: 24px;
     display: inline-block;
     border-bottom: 2px solid $color-blue;
-    margin-bottom: $grid * 5;
+    margin-bottom: $grid * 0;
     padding-top: 0;
     color: $color-blue;
     font-weight: 900;
@@ -4230,7 +4239,7 @@ h6.image-hed {
 .primary-img {
 	@include respond-tablet {
 	    padding-top: $half;
-	    padding-right: $double;
+	    padding-left: $double;
 	}
 	@include respond-tablet {
 	    padding-top: 0;
@@ -4246,15 +4255,26 @@ h6.image-hed {
 	}
 }
 
+#minisxs {
+	border-top: 1px solid $color-blue;
+    border-bottom: 1px solid $color-blue;
+    margin-top: $grid * 8;
+	padding: $grid * 4 $grid * 2 0;
+	@include respond-tablet {
+		padding: $grid * 4 $grid * 6 0;
+	}
+	@include respond-desktop {
+		padding: $grid * 4 $grid * 8 0;
+	}
+}
+
+
 .container-hero {
 	@extend .style-container;
 	max-width: 1800px;
 	margin: 0 auto;
-	padding: $grid * 4 $grid * 8 0;
-	border-top: 1px solid $color-blue;
-    margin-top: $grid * 8;
-    border-bottom: 1px solid $color-blue;
     text-align: center;
+    
 }
 
 p.caption-hero {
@@ -4266,6 +4286,7 @@ p.caption-hero {
 	margin-bottom: 0;
 	position: relative;
 	text-align: center;
+	margin-top: $grid * 5;
 	span.num {
 		display: inline-block;
 	    padding: 0;
@@ -4296,7 +4317,7 @@ a:hover {
 	margin-bottom: .75em;
 	strong {
 		font-weight: 300;
-		color: $color-blue;
+		//color: $color-blue;
 	}
 	a {
 		font-weight: inherit;
