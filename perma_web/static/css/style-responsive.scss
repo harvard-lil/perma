@@ -4214,7 +4214,7 @@ section {
 }
 
 #landing-introduction {
-	padding-bottom: $grid * 5;
+	padding-bottom: $grid * 0;
 	@include respond-tablet {
 		padding-bottom: $grid * 4;
 	}
@@ -4231,7 +4231,7 @@ section {
 
 h6.image-hed {
 	padding-bottom: $half;
-    font-size: 24px;
+    font-size: 16px;
     display: inline-block;
     border-bottom: 2px solid $color-blue;
     margin-bottom: $grid * 0;
@@ -4239,13 +4239,22 @@ h6.image-hed {
     color: $color-blue;
     font-weight: 900;
     font-family: $font-hed-alt;
+    line-height: 1.4;
+    @include respond-tablet {
+	    font-size: 22px;
+    }
+    @include respond-desktop {
+	    font-size: 24px;
+    }
 }
 
 .primary-img {
 	padding-top: $double;
+	padding-bottom: $grid * 3;
 	@include respond-tablet {
-	    padding-top: $grid * 3;
-	    padding-left: $double;
+	    padding-top: 11px;
+	    padding-left: $grid;
+	    padding-bottom: 0;
 	}
 	@include respond-desktop {
 	    padding-top: $grid * 3;
@@ -4268,9 +4277,12 @@ h6.image-hed {
 
 #minisxs {
 	border-top: 1px solid $color-blue;
-    margin-top: $grid * 8;
-	padding: $grid * 4 $grid * 2 0;
+    margin-top: $grid * 3;
+	padding: $grid * 2 $grid * 2 0;
+	padding-bottom: $grid * 2;
+	overflow: hidden;
 	@include respond-tablet {
+	    margin-top: $grid * 8;
 		padding: $grid * 4 $grid * 4 0;
 	}
 	@include respond-desktop {
@@ -4278,9 +4290,7 @@ h6.image-hed {
 		border-bottom: 1px solid $color-blue;
 	}
 	.row.outer {
-		@include respond-tablet {
-			margin: 0 -$grid * 4;
-		}
+		margin: 0 -$grid * 4;
 	}
 	.col-xs-12 {
 		border-bottom: 1px solid $color-blue;
@@ -4307,12 +4317,12 @@ p.caption-hero {
 	font-family: $font-hed-alt;
 	color: $color-blue;
 	font-weight: 300;
-	font-size: 21px;
+	font-size: 18px;
 	padding-bottom: $grid;
 	margin-bottom: 0;
 	position: relative;
 	text-align: center;
-	margin-top: $grid * 6;
+	margin-top: $grid * 3;
 	span.num {
 		display: inline-block;
 	    padding: 0;
@@ -4326,6 +4336,10 @@ p.caption-hero {
 	    vertical-align: text-bottom;
 	    font-size: 11px;
 	    margin-right: .2em;
+	}
+	@include respond-tablet {
+		font-size: 21px;
+		margin-top: $grid * 6;
 	}
 }
 
@@ -4357,13 +4371,14 @@ a:hover {
 		font-size: 24px;
 	}
 	@include respond-tablet {
-		font-size: 28px;
+		font-size: 27px;
 		line-height: 1.6;
 		&:last-child {
 			padding-bottom: $grid * 4;
 		}
 	}
 	@include respond-desktop {
+		font-size: 28px;
 		line-height: 1.5;
 	}
 	@include respond-wide {
@@ -4445,6 +4460,7 @@ h3.section-ah {
     margin: 2em 0 1em;
     font-weight: 400;
     clear: both;
+    line-height: 1.35;
 	@include respond-desktop {
 		font-size: 19px;
 	}
@@ -4589,6 +4605,21 @@ section .caption {
 
 #landing-signup {
 	padding-bottom: $grid * 4;
+	p.caption {
+		font-size: 16px;
+		strong {
+			display: block;
+			@include respond-tablet {
+				display: inline;
+			}
+		}
+		@include respond-tablet {
+			font-size: 12px;
+		}
+		@include respond-desktop {
+			font-size: 14px;
+		}
+	}
 	@include respond-tablet {
 		padding-bottom: 104px;
 	}
