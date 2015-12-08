@@ -4408,8 +4408,9 @@ h1.section-title {
 		padding-bottom: 0;
 	}
 	@include respond-wide {
-		font-size: 64px;
-	}
+	    font-size: 56px;
+	    padding-bottom: $grid;
+   	}
 }
 
 .section-title {
