@@ -31,7 +31,9 @@ class CommonViewsTestCase(PermaTestCase):
 
     def test_dark_archive(self):
         response = self.get('single_linky', reverse_kwargs={'kwargs':{'guid': 'ABCD-0001'}})
-        self.assertIn("Dark Archive and cannot be displayed.", response.content)
+        self.assertIn("This record is private and cannot be displayed.", response.content)
+
+        # check that top bar is displayed to logged-in users
         for user in self.users:
             self.log_in_user(user)
             response = self.get('single_linky', reverse_kwargs={'kwargs': {'guid': 'ABCD-0001'}})
