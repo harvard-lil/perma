@@ -4404,12 +4404,11 @@ h1.section-title {
 	    padding-bottom: 12px;
 	}
 	@include respond-desktop {
-		font-size: 54px;
-		padding-bottom: 0;
+		font-size: 48px;
+		padding-bottom: $grid;
 	}
 	@include respond-wide {
 	    font-size: 56px;
-	    padding-bottom: $grid;
    	}
 }
 
