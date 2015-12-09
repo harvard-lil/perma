@@ -686,12 +686,12 @@ a.action {
 p a.perma { @extend a.perma }
 
 a.cc {
+	@extend .style-button-hover;
 	display: inline-block;
 	width: 21px;
 	height: 16px;
 	overflow: hidden;
 	text-indent: -10000px;
-	@extend style-button-hover;
 	background-color: $color-blue;
 	background-image: url('../img/ui/perma-ui-8-small.png');
 	background-size: 90px 7px;
@@ -3175,6 +3175,7 @@ img.infinity-logo {
 }
 
 .navbar-toggle {
+	@extend .style-button-hover;
 	display: block;
 	position: absolute;
 	top: $grid;
@@ -3200,7 +3201,6 @@ img.infinity-logo {
 			margin-top: $half;
 		}
 	}
-	@extend .style-button-hover;
 	&:hover {
 		.icon-bar {
 			background-color: $color-white;
@@ -4309,7 +4309,7 @@ h6.image-hed {
 
 
 .container-hero {
-	@extend .style-container;
+	@extend .container;
 	max-width: $grid * 200;
 	margin: 0 auto;
     text-align: center;
