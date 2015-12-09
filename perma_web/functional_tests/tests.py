@@ -277,7 +277,7 @@ class FunctionalTest(BaseTestCase):
         except ElementNotVisibleException:
             pass  # not in mobile view
         get_xpath("//a[@href='/docs']").click()
-        assert_text_displayed('Introducing Perma.cc', 'h2')  # new text -- wait for load
+        assert_text_displayed('Perma.cc user guide')  # new text -- wait for load
 
         info("Logging in.")
         try:
