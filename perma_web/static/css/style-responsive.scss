@@ -686,12 +686,12 @@ a.action {
 p a.perma { @extend a.perma }
 
 a.cc {
+	@extend .style-button-hover;
 	display: inline-block;
 	width: 21px;
 	height: 16px;
 	overflow: hidden;
 	text-indent: -10000px;
-	@extend style-button-hover;
 	background-color: $color-blue;
 	background-image: url('../img/ui/perma-ui-8-small.png');
 	background-size: 90px 7px;
@@ -726,6 +726,12 @@ a.cc {
 
 .style-container-padding {
 	padding: 0 $page-margin;
+	@include respond-tablet {
+		padding: 0 $page-margin * 2;
+	}
+	@include respond-desktop {
+		padding: 0 $page-margin;
+	}
 }
 
 .container {
@@ -771,9 +777,11 @@ a.cc {
 .cont-sm-fixed-bleed {
 	@include respond-tablet {
 		max-width: $width-tablet; 
+		padding: 0 $grid * 2;
 	}
 	@include respond-desktop {
 		max-width: $width-desktop; 
+		padding: 0;
 	}
 	@include respond-wide {
 		max-width: $width-wide; 
@@ -782,10 +790,11 @@ a.cc {
 
 .cont-sm-fixed {
 	@include respond-tablet {
-		padding: 0 $page-margin;
+		padding: 0 $page-margin * 2;
 		max-width: $width-tablet; 
 	}
 	@include respond-desktop {
+		padding: 0 $page-margin;
 		max-width: $width-desktop; 
 	}
 	@include respond-wide {
@@ -1660,7 +1669,7 @@ body.modal-open {
     margin-bottom: 10px;
 	display: inline;
 	list-style-type: none;
-
+	width: auto;
 	-webkit-filter: grayscale(100%);
 	filter: gray;
 	filter: grayscale(100%);
@@ -2396,7 +2405,7 @@ p.caption {
 		font-size: 16px;
 		@include respond-tablet {
 			margin: 0;
-			width: $grid * 61;
+			width: $grid * 57;
 			float: left;
 			padding: 14px;
 			height: auto;
@@ -2445,7 +2454,7 @@ p.caption {
 		}
 		input.form-priority-input {
 			@include respond-tablet {
-				width: $grid * 54;
+				width: $grid * 50;
 			}
 			@include respond-desktop {
 				width: $grid * 80;
@@ -2571,7 +2580,7 @@ p.caption {
 			width: 100%;
 		}
 		@include respond-tablet {
-			@include link-dropdown-widths(688px, $grid * 41);
+			@include link-dropdown-widths(656px, $grid * 41);
 			.dropdown-affil {
 				margin-top: 0;
 			}
@@ -2941,6 +2950,7 @@ button#addlink,
 			@include link-highlight($color-hover, $color-orange);
 			font-family: $font-hed-alt;
 			font-weight: 700;
+			padding-right: 0;
 		}
 	}
 }
@@ -3165,6 +3175,7 @@ img.infinity-logo {
 }
 
 .navbar-toggle {
+	@extend .style-button-hover;
 	display: block;
 	position: absolute;
 	top: $grid;
@@ -3190,7 +3201,6 @@ img.infinity-logo {
 			margin-top: $half;
 		}
 	}
-	@extend .style-button-hover;
 	&:hover {
 		.icon-bar {
 			background-color: $color-white;
@@ -3278,6 +3288,11 @@ footer {
 	}
 	#footer-nav {
 		padding-left: 0;
+		li:last-child a {
+			@include respond-tablet {
+				margin-right: 0;
+			}
+		}
 	}
 	#footer-nav, #boilerplate {
 		a {
@@ -4202,12 +4217,14 @@ section {
 }
 
 #landing-introduction {
+	padding-bottom: $grid * 0;
+	@include respond-tablet {
+		padding-bottom: $grid * 4;
+	}
 	@include respond-desktop {
 		padding-top: $grid * 4;
-		//padding-bottom: $grid * 10;
-		padding-bottom: 0;
+		padding-bottom: $grid * 8;
 	}
-	padding-bottom: $grid * 5;
 	.row-modules {
 		@include respond-desktop {
 			margin-top: $grid * 7;
@@ -4217,23 +4234,38 @@ section {
 
 h6.image-hed {
 	padding-bottom: $half;
-    font-size: 24px;
+    font-size: 16px;
     display: inline-block;
     border-bottom: 2px solid $color-blue;
-    margin-bottom: $grid * 5;
+    margin-bottom: $grid * 0;
     padding-top: 0;
     color: $color-blue;
     font-weight: 900;
     font-family: $font-hed-alt;
+    line-height: 1.4;
+    @include respond-tablet {
+	    font-size: 22px;
+    }
+    @include respond-desktop {
+	    font-size: 24px;
+    }
 }
 
 .primary-img {
+	padding-top: $double;
+	padding-bottom: $grid * 3;
 	@include respond-tablet {
-	    padding-top: $half;
-	    padding-right: $double;
+	    padding-top: 11px;
+	    padding-left: $grid;
+	    padding-bottom: 0;
 	}
-	@include respond-tablet {
-	    padding-top: 0;
+	@include respond-desktop {
+	    padding-top: $grid * 3;
+	    padding-left: $grid * 0;
+	}
+	@include respond-wide {
+	    padding-top: $grid;
+	    padding-left: $grid * 6
 	}
 }
 
@@ -4246,26 +4278,54 @@ h6.image-hed {
 	}
 }
 
-.container-hero {
-	@extend .style-container;
-	max-width: 1800px;
-	margin: 0 auto;
-	padding: $grid * 4 $grid * 8 0;
+#minisxs {
 	border-top: 1px solid $color-blue;
-    margin-top: $grid * 8;
-    border-bottom: 1px solid $color-blue;
+    margin-top: $grid * 3;
+	padding: $grid * 2 $grid * 2 0;
+	padding-bottom: $grid * 2;
+	overflow: hidden;
+	@include respond-tablet {
+	    margin-top: $grid * 8;
+		padding: $grid * 4 $grid * 4 0;
+	}
+	@include respond-desktop {
+		padding: $grid * 6 $grid * 8 0;
+		border-bottom: 1px solid $color-blue;
+	}
+	.row.outer {
+		margin: 0 -$grid * 4;
+	}
+	.col-xs-12 {
+		border-bottom: 1px solid $color-blue;
+		@include respond-tablet {
+			padding: 0 $grid * 4;
+		}
+		@include respond-desktop {
+			border-bottom: none;
+			padding: 0;
+		}
+	}
+}
+
+
+.container-hero {
+	@extend .container;
+	max-width: $grid * 200;
+	margin: 0 auto;
     text-align: center;
+    
 }
 
 p.caption-hero {
 	font-family: $font-hed-alt;
 	color: $color-blue;
 	font-weight: 300;
-	font-size: 21px;
+	font-size: 18px;
 	padding-bottom: $grid;
 	margin-bottom: 0;
 	position: relative;
 	text-align: center;
+	margin-top: $grid * 3;
 	span.num {
 		display: inline-block;
 	    padding: 0;
@@ -4279,6 +4339,10 @@ p.caption-hero {
 	    vertical-align: text-bottom;
 	    font-size: 11px;
 	    margin-right: .2em;
+	}
+	@include respond-tablet {
+		font-size: 21px;
+		margin-top: $grid * 6;
 	}
 }
 
@@ -4296,7 +4360,7 @@ a:hover {
 	margin-bottom: .75em;
 	strong {
 		font-weight: 300;
-		color: $color-blue;
+		//color: $color-blue;
 	}
 	a {
 		font-weight: inherit;
@@ -4310,13 +4374,14 @@ a:hover {
 		font-size: 24px;
 	}
 	@include respond-tablet {
-		font-size: 28px;
+		font-size: 27px;
 		line-height: 1.6;
 		&:last-child {
 			padding-bottom: $grid * 4;
 		}
 	}
 	@include respond-desktop {
+		font-size: 28px;
 		line-height: 1.5;
 	}
 	@include respond-wide {
@@ -4329,15 +4394,22 @@ a:hover {
 }
 
 h1.section-title {
+	font-weight: 300;
+    font-size: 32px;
+    padding-bottom: 24px;
 	@include respond-tablet {
+		font-weight: 900;
 		line-height: 1.2;
 	    font-size: 40px;
 	    padding-bottom: 12px;
 	}
 	@include respond-desktop {
-		font-size: 36px;
-		padding-bottom: 0;
+		font-size: 48px;
+		padding-bottom: $grid;
 	}
+	@include respond-wide {
+	    font-size: 56px;
+   	}
 }
 
 .section-title {
@@ -4391,6 +4463,7 @@ h3.section-ah {
     margin: 2em 0 1em;
     font-weight: 400;
     clear: both;
+    line-height: 1.35;
 	@include respond-desktop {
 		font-size: 19px;
 	}
@@ -4535,6 +4608,21 @@ section .caption {
 
 #landing-signup {
 	padding-bottom: $grid * 4;
+	p.caption {
+		font-size: 16px;
+		strong {
+			display: block;
+			@include respond-tablet {
+				display: inline;
+			}
+		}
+		@include respond-tablet {
+			font-size: 12px;
+		}
+		@include respond-desktop {
+			font-size: 14px;
+		}
+	}
 	@include respond-tablet {
 		padding-bottom: 104px;
 	}
