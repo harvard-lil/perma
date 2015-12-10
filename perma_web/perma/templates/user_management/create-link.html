@@ -113,12 +113,12 @@
 
 <!-- Your Perma Links -->
 {% if messages %}
-<div class="row no-wide">
-    <div class="col-sm-12">
-	        {% for message in messages %}
-	            <div class="alert alert-{% if message.level >= 30 %}danger{% else %}success{% endif %}" style="clear:both; margin:1em">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
-	        {% endfor %}
-    </div>
+<div class="container cont-fixed">
+	<div class="row">
+        {% for message in messages %}
+            <div class="alert alert-{% if message.level >= 30 %}danger{% else %}success{% endif %}" style="clear:both; margin:1em">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
+        {% endfor %}
+	</div>
 </div>
 {% endif %}
 <div class="container cont-fixed manage-links">
@@ -236,7 +236,9 @@
             contact_url = "{% url 'contact' %}",
             links_remaining = "{{links_remaining}}",
             thumbnail_service_url = "{% url 'service_get_thumbnail' guid='GUID' %}",
-            current_user = {% as_json request.user %};
+            current_user = {% as_json request.user %},
+            url_docs_perma_link_vesting = "{% url 'docs_perma_link_vesting' %}",
+            host = "{{ request.get_host }}";
     </script>
 
     {% javascript 'admin' %}
@@ -302,7 +304,7 @@
 	            </div>
 	            <div class="col col-sm-6 col-md-40 align-right item-permalink">
 	                {{#if delete_available}}<a class="delete no-drag" href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}
-	                <a class="perma no-drag" href="{{local_url}}" target="_blank">{{local_url}}</a>
+	                <a class="perma no-drag" href="http://{{local_url}}" target="_blank">{{local_url}}</a>
 	            </div>
             </div>
             <div class="row item-secondary">

@@ -23,8 +23,12 @@ $color-yellow: #d0a60f;
     100% {background-color: white;}
 }
 
-body, html {
+html {
 	overflow: visible;
+}
+
+body {
+	overflow: hidden;
 }
 
 a {
@@ -1078,7 +1082,7 @@ p.fp {
 	}
 }
 
-a.btn-ui-small.btn-dashboard {
+.btn-ui-small.btn-dashboard {
 	border-color: $color-blue;
 	color: $color-blue;
 	margin-left: -2px;

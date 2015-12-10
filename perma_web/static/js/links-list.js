@@ -197,7 +197,7 @@ $(function() {
                         if (capture.role == 'favicon' && capture.status == 'success')
                             obj.favicon_url = capture.playback_url;
                     });
-                    obj.local_url = '/' + obj.guid;
+                    obj.local_url = host + '/' + obj.guid;
                     obj.can_vest = true;
                     obj.search_query_in_notes = (query && obj.notes.indexOf(query) > -1);
                     obj.expiration_date_formatted = new Date(obj.expiration_date).format("F j, Y");
