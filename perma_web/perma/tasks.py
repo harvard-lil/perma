@@ -450,10 +450,10 @@ def get_nightly_stats():
         latest_day_usage = latest_day_usage + sum(os.path.getsize(os.path.join(root, name)) for name in files)
         
     # Get the total disk usage (that we calculated yesterday)
-    stat = Stat.objects.all().order_by('-creation_timestamp')[:1]
+    last_stat = Stat.objects.all().order_by('-creation_timestamp').first()
     
     # Sum total usage with yesterday's usage
-    new_total_disk_usage = stat[0].disk_usage + latest_day_usage
+    new_total_disk_usage = latest_day_usage + (last_stat.disk_usage if last_stat else 0)
     
     # We've now gathered all of our data. Let's write it to the model
     stat = Stat(
