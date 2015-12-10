@@ -62,7 +62,7 @@
                     <span class="muted notes-save-status"></span>
                     <textarea id="link-notes-{{ link.pk }}" class="form-control link-notes">{{ link.notes }}</textarea>
                 </div>
-                <span class="muted">Notes are visible to users who create or vest a link, but not to visitors.</span>
+                <span class="muted">Notes are visible to users who create or share within an organization, but not to visitors.</span>
 
                 <div class="form-group">
                     <label for="move-to-folder-{{ link.pk }}">Move to folder:</label>
@@ -73,9 +73,6 @@
             <div class="col-sm-6">
                 <div><strong>Views:</strong> {{ link.view_count }}</div>
                 <div><strong>Created by:</strong> {{ link.created_by.get_full_name }}</div>
-                {% if link.vested %}
-                    <div><strong>Vested by:</strong> {{ link.vested_by_editor.get_full_name }}</div>
-                {% endif %}
             </div>
         </div>
 

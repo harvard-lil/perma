@@ -23,7 +23,7 @@
                             	<span class="sponsor-email">{{registrar.email}}</span>
                     {% endwith %}
                     	</div>
-                <h4 class="body-bh">Your vesting organization</h4>
+                <h4 class="body-bh">Your organization</h4>
                     	<div class="settings-block">
                             <p>{{ vo }} <a href="{% url 'user_management_manage_single_organization' vo.id %}" class="action edit-org-link">Edit organization</a></p>
                             <a href="{% url 'user_management_organization_user_leave_organization' vo.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Leave</a> 

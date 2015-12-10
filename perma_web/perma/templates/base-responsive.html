@@ -80,7 +80,7 @@
 	                                <li class="divider"></li>
                                 {% endif %}
                                 
-                                <!-- Vesting users -->
+                                <!-- Org users -->
                                 {% if request.user.is_organization_member %}
 	                                <li><a href="{% url 'user_management_manage_organization_user' %}">Manage users</a></li>
 	                                <li class="divider"></li>

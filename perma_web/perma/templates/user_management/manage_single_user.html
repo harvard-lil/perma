@@ -3,9 +3,9 @@
 
 {% block dashboardContent %}
 	{% if orgs %}
-        <div class="vesting-orgs-list-container">
-            <h3 class="body-bh">Remove from vesting organization</h3>
-            <p class="page-dek"><strong>{{ target_user.email }}</strong> is a member of the following vesting organization{{ orgs|pluralize }}:</p>
+        <div class="orgs-list-container">
+            <h3 class="body-bh">Remove from organization</h3>
+            <p class="page-dek"><strong>{{ target_user.email }}</strong> is a member of the following organization{{ orgs|pluralize }}:</p>
             <form action="{% url 'user_management_manage_single_organization_user_remove' user_id=target_user.id %}" method="POST">
                 {% csrf_token %}
                 {% for org in orgs %}
