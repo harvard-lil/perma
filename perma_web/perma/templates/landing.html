@@ -15,7 +15,7 @@
 		<div class="row">
 			<div class="col-xs-12 col-sm-7">
 				<h1 class="section-title">Websites change. <span class="_noWrap">Perma Links don’t.</span></h1>
-				<p class="primary-intro"><strong>Perma.cc</strong> helps <a href="#">journals</a>, <a href="#">lawyers</a>, <a href="#">courts</a>, and <a href="#">others</a>  preserve web citations by creating <a href="#">permanent archives</a> of their <span class="_noWrap">cited links.</span></p>
+				<p class="primary-intro"><strong>Perma.cc</strong> helps <a href="#">scholars</a>, <a href="#">journals</a>, <a href="#">courts</a>, and <a href="#">others</a> create permanent records of the web sources <span class="_noWrap">they cite.</span></p>
 				<p class="primary-intro _showDesktop">Perma.cc is simple, <a href="#">free to use</a>, and is built and <a href="#">supported by libraries</a>.</p>
 			</div>
 			<div class="col-xs-12 col-sm-5">
@@ -44,7 +44,7 @@
 		            <a href="{% url 'create_link' %}" class="btn btn-large">Create and manage your Perma Links</a>
 		        {% else %}
 			    	<a href="{% url 'sign_up' %}" class="btn btn-large">Sign up and use Perma.cc for free</a>
-			    	<a href="{% url 'libraries' %}" class="btn btn-large-alt">How can my library power Perma.cc?</a>
+			    	<a href="{% url 'libraries' %}" class="btn btn-large-alt">How can my library get involved?</a>
 		        {% endif %}
 			</div>
 		</div>
@@ -114,21 +114,20 @@
 <section id="landing-problem" class="container-fluid cont-bg">
     <div class="container cont-fixed">
 		<h2 class="section-title">One good reason to use Perma.cc? <span class="_noWrap">How about 404?</span></h2>
-		<p class="section-subtitle">Websites change, go away, and get taken down. When linked citations lead to broken, blank, unintentional, or even malicious pages, that’s called link rot.</p>
+		<p class="section-subtitle">Websites change, go away, and get taken down. When linked citations lead to broken, blank, altered, or even malicious pages, that’s called link rot.</p>
 		<div class="row">
 			<div class="col-xs-12 col-sm-6">
-				<h3 class="section-ah">Link rot affects everybody</h3>
-				<p class="section-strong">Over 50% of cited links in Spreme Court decisions no longer point to the proper page. If you link to the Web, link rot affects you too.</p>
-				<p class="section-body">Websites change, go away, and get taken down. When they do, linked citations can lead to broken, blank, unintentional, or even malicious pages. This decay is called “link rot.” Perma.cc helps scholars, journals and courts prevent link rot by creating permanent, reliable, unalterable links to the online sources cited in their work.</p>
+				<h3 class="section-ah">Link rot affects everyone who cites links</h3>
+				<p class="section-body">Over 50% of cited links in Supreme Court opinions no longer point to the intended page. Roughly 70% of cited links in academic legal journals and 20% of all science, technology and medicine articles suffer from link rot.</p>
 			</div>
 			<div class="col-xs-12 col-sm-6">
 				<h3 class="section-ah">Articles and studies</h3>
-				<p class="section-strong">Over 50% of cited links in Spreme Court decisions no longer point to the proper page. If you link to the Web, link rot affects you too.</p>
+				<!--<p class="section-strong">Over 50% of cited links in Spreme Court decisions no longer point to the proper page. If you link to the Web, link rot affects you too.</p>-->
 				<ul class="section-list">
-					<li class="section-list-item"><a href="#" class="outside"><strong>Link rot is real</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>The New Yorker</cite>, 2014</li>
-					<li class="section-list-item"><a href="#" class="outside"><strong>Link rot in academic citations</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>The Harvard Law Review</cite>, 2013</li>
-					<li class="section-list-item"><a href="#" class="outside"><strong>Menace to the courts</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>Wired</cite>, 2015</li>
-					<li class="section-list-item"><a href="#" class="outside"><strong>Our fragile web</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>First Look LegalTech</cite>, 2014</li>
+					<li class="section-list-item"><a href="http://www.nytimes.com/2013/09/24/us/politics/in-supreme-court-opinions-clicks-that-lead-nowhere.html" class="outside"><strong>NNN</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>The New York Times</cite>, NNNN</li>
+					<li class="section-list-item"><a href="http://harvardlawreview.org/2014/03/perma-scoping-and-addressing-the-problem-of-link-and-reference-rot-in-legal-citations/" class="outside"><strong>NNNN</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>The Harvard Law Review</cite>, NNNN</li>
+					<li class="section-list-item"><a href="http://www.newyorker.com/magazine/2015/01/26/cobweb" class="outside"><strong>NNNNN</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>The New Yorker</cite>, NNNN</li>
+					<li class="section-list-item"><a href="http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0115253#s4" class="outside"><strong>NNNNN</strong></a> <a class="cc" href="http://perma.cc/3333-3333">(Perma.cc archive)</a> <cite>PLOS One</cite>, NNNN</li>
 				</ul>
 			</div>
 		</div>
@@ -185,7 +184,7 @@
 <section id="landing-product" class="container-fluid">
     <div class="container cont-fixed">
 		<h2 class="section-title">Meet the Perma Link.</h2>
-		<p class="section-subtitle">A Perma Link is a reliable, unbreakable link to an unalterable copy of any page you’ve cited. It’s both a time capsule for a webpage and a way to always <span class="_noWrap">find it.</span></p>
+		<p class="section-subtitle">A Perma Link is a reliable, unbreakable link to an unalterable record of any page you’ve cited. It’s a time capsule for a web page, which your readers can <span class="_noWrap">easily access.</span></p>
 		<div class="row">
 			<div class="col-xs-12 col-sm-6">
 				<h3 class="section-ah">We’re committed to preservation</h3>
