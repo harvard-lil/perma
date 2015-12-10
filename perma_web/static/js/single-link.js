@@ -4,19 +4,16 @@ $(document).ready(function() {
         $('header').toggleClass('_activeDetails');
     });    
 
-    adjustHeight();
-    $('#collapse-refresh').on('shown.bs.collapse', function () {
-        adjustHeight();
-    });
-    $('#collapse-refresh').on('hidden.bs.collapse', function () {
-        adjustHeight();
-    });
-
 	function adjustHeight() {
-	    var	headerHeight = $('header').height(),
-	    	windowHeight = $(window).height();
-	    $('iframe').height(windowHeight - headerHeight - 0);
+        var $iframe = $('iframe');
+        if($iframe.length)
+    	    $iframe.height($(window).height() - $iframe.offset().top);
 	}
+
+    adjustHeight();
+    $(window).on('resize', function () {
+        adjustHeight();
+    });
 
     $("button.darchive").click(function(){
         var $this = $(this);

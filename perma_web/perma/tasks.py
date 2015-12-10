@@ -127,6 +127,9 @@ def proxy_capture(self, link_guid, user_agent=''):
     link = Link.objects.get(guid=link_guid)
     target_url = link.submitted_url
 
+    # allow pending tasks to be canceled outside celery by updating capture status
+    if link.primary_capture.status != "pending":
+        return
 
     # Override user_agent for now, since PhantomJS doesn't like some user agents.
     # This user agent is the Chrome on Linux that's most like PhantomJS 1.9.8.
@@ -447,10 +450,10 @@ def get_nightly_stats():
         latest_day_usage = latest_day_usage + sum(os.path.getsize(os.path.join(root, name)) for name in files)
         
     # Get the total disk usage (that we calculated yesterday)
-    stat = Stat.objects.all().order_by('-creation_timestamp')[:1]
+    last_stat = Stat.objects.all().order_by('-creation_timestamp').first()
     
     # Sum total usage with yesterday's usage
-    new_total_disk_usage = stat[0].disk_usage + latest_day_usage
+    new_total_disk_usage = latest_day_usage + (last_stat.disk_usage if last_stat else 0)
     
     # We've now gathered all of our data. Let's write it to the model
     stat = Stat(
