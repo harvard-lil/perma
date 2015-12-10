@@ -4,12 +4,12 @@
 
 {% block dashboardContent %}
 
-	<h2 class="body-ah">Vesting Organizations {% if request.user.is_staff or request.user.is_registrar_member %}<span class="action"><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add<span class="_verbose"> vesting organization</span></a></span></h2>
+	<h2 class="body-ah">Organizations {% if request.user.is_staff or request.user.is_registrar_member %}<span class="action"><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add<span class="_verbose"> organization</span></a></span></h2>
 		
 	<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
       <form method="post">
         {% csrf_token %}
-        <h4 class="body-ch">Add a Vesting Organization</h4>
+        <h4 class="body-ch">Add an Organization</h4>
 				<fieldset>
 					{% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
 					{% for field in form %}
@@ -54,7 +54,7 @@
 
 	<div class="row">
 		<div class="col-sm-12">
-			{% include "user_management/includes/search_form.html" with search_placeholder="Search Vesting Organizations" %}
+			{% include "user_management/includes/search_form.html" with search_placeholder="Search Organizations" %}
 		</div>
 	</div><!-- search -->
 
@@ -90,8 +90,8 @@
                         <a {% if sort == 'date_created' %}class="selected" {% endif %} href="?{% current_query_string sort="date_created" %}"><i class="icon-ok"></i> Oldest</a>
                         <a {% if sort == '-last_active' %}class="selected" {% endif %} href="?{% current_query_string sort="-last_active" %}"><i class="icon-ok"></i> Recently active</a>
                         <a {% if sort == 'last_active' %}class="selected" {% endif %} href="?{% current_query_string sort="=last_active" %}"><i class="icon-ok"></i> Least recently active</a>
-                        <a {% if sort == '-vested_links' %}class="selected" {% endif %} href="?{% current_query_string sort="-vested_links" %}"><i class="icon-ok"></i> Most vested links</a>
-                        <a {% if sort == 'vested_links' %}class="selected" {% endif %} href="?{% current_query_string sort="vested_links" %}"><i class="icon-ok"></i> Least vested links</a><a {% if sort == '-vesting_users' %}class="selected" {% endif %} href="?sort=-vesting_users{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Most users</a>
+                        <a {% if sort == '-vested_links' %}class="selected" {% endif %} href="?{% current_query_string sort="-vested_links" %}"><i class="icon-ok"></i> Most links</a>
+                        <a {% if sort == 'vested_links' %}class="selected" {% endif %} href="?{% current_query_string sort="vested_links" %}"><i class="icon-ok"></i> Least links</a><a {% if sort == '-vesting_users' %}class="selected" {% endif %} href="?sort=-vesting_users{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Most users</a>
                         <a {% if sort == 'vesting_users' %}class="selected" {% endif %} href="?{% current_query_string sort="vesting_users" %}"><i class="icon-ok"></i> Least users</a>
                     </li>
                   </ul>
@@ -139,12 +139,6 @@
 				                <div class="item-count-group">
 									<strong class="list-count-number">{{ org.org_links|intcomma }}</strong>
 									<span class="item-count-label">links</span>
-					                {% comment %}
-					                    <div class="item-count-group">
-						                    <p class="list-count-number{% if group_name == 'user'%} vesting_user-list{% endif %}">{{ org.created_links_count }}</p>
-						                    <p class="item-count-label">created links</p>
-					                    </div>
-				                    {% endcomment %}
 				                </div>
 							</div>
 							<div class="col col-xs-12 col-md-4 col-half-gutter">
@@ -153,16 +147,6 @@
 					                <span class="item-count-label">users <a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">View</a></span>
 				                </div>
 			                </div>
-				                {% comment %}
-					                <div class="item-count-group"><a href="{% url 'user_management_manage_organization_user' %}?vesting_org={{org.name.split|join:'+'|lower}}&status=deactivated">
-					                <p class="list-count-number">{{ org.deactivated_count|default_if_none:"0" }}</p>
-					                <p class="item-count-label">deactivated users</p></a>
-					                </div>
-					                <div class="item-count-group"><a href="{% url 'user_management_manage_organization_user' %}?vesting_org={{org.name.split|join:'+'|lower}}&status=unactivated">
-					                <p class="list-count-number">{{ org.unactivated_count|default_if_none:"0" }}</p>
-					                <p class="item-count-label">unactivated users</p></a>
-					                </div>
-				                {% endcomment %}
 						</div>
 		            </div>
 

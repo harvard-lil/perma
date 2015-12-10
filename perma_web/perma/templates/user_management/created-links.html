@@ -6,9 +6,7 @@
 {% block scripts %}
     {{ block.super }}
     <script>
-        var current_user = {% as_json request.user %},
-            url_docs_perma_link_vesting = "{% url 'docs_perma_link_vesting' %}",
-            can_vest = {% if request.user.can_vest %}true{% else %}false{% endif %};
+        var current_user = {% as_json request.user %};
     </script>
     {% javascript 'links_list' %}
 {% endblock %}
@@ -69,11 +67,6 @@
                     <h3 class="link-header body-ah">Perma Links</h3>
                 </div>
             </div>
-            {% comment %}
-            <th class="linky-abbr-title"><a href="?sort={% if sort == 'submitted_title' %}-{% endif %}submitted_title{% if search_query %}&q={{ search_query }}{% endif %}">Title</a></th>
-            <th class="linky-abbr-date-time"><a href="?sort={% if sort == 'creation_timestamp' %}-{% endif %}creation_timestamp{% if search_query %}&q={{ search_query }}{% endif %}">Created</a></th>
-            <th class="linky-abbr-date-time"><a href="?sort={% if sort == 'vested_timestamp' %}-{% endif %}vested_timestamp{% if search_query %}&q={{ search_query }}{% endif %}">Vested</a></th>
-            {% endcomment %}
         </div>
         <div class="container item-rows">
             <noscript>
@@ -174,9 +167,6 @@
                 <div>
                 	<span class="z-top"><strong>Views:</strong> {{view_count}}</span></div>
                 <div><span class="z-top"><strong>Created by:</strong> {{created_by.full_name}}</span></div>
-                {{#if vested}}
-                    <div><span class="z-top"><strong>Vested by:</strong> {{vested_by_editor.full_name}}</span></div>
-                {{/if}}
             </div>
         </div>
 

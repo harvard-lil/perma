@@ -87,7 +87,7 @@
 		</div>
 
 		<div class="col {% if request.user.is_staff and group_name == 'user' %}col-xs-3{% else %}col-xs-4{% endif %} col col-no-gutter admin-data-point">
-			<p class="count-label">Vested Links</p>
+			<p class="count-label">Links</p>
 			<p class="count-number">{{ total_vested_links_count.count|default:0|intcomma }}</p>
 		</div>
 	</div><!-- admin data -->
@@ -105,7 +105,7 @@
 				<div class="remove-search-filters">
 					<span class="filters-title">Filters: </span>
 					{% if registrar_filter %}<span class="filter-label">Registrar</span> <strong>{{registrar_filter}}</strong> {% endif %}
-					{% if org_filter %}<span class="filter-label">Vesting organization</span> <strong>{{org_filter}}</strong> {% endif %}
+					{% if org_filter %}<span class="filter-label">Organization</span> <strong>{{org_filter}}</strong> {% endif %}
 					{% if status %}<span class="filter-label">Status</span> <strong>{{status}}</strong> {% endif %}
 					{% if upgrade %}<span class="filter-label">Upgrade interest</span> <strong>{{upgrade}}</strong> {% endif %}
 					{% if search_query %}<span class="filter-label">Search</span> <strong>{{search_query}}</strong>{% endif %}
@@ -131,8 +131,8 @@
 							<a {% if sort == '-last_login' %}class="selected" {% endif %} href="?{% current_query_string sort="-last_login" %}"><i class="icon-ok"></i> Recently active</a>
 							<a {% if sort == 'last_login' %}class="selected" {% endif %} href="?{% current_query_string sort="last_login" %}"><i class="icon-ok"></i> Least recently active</a>
 							{% if group_name == 'organization_user' %}
-								<a {% if sort == '-vested_links_count' %}class="selected" {% endif %} href="?{% current_query_string sort="-vested_links_count" %}"><i class="icon-ok"></i> Most vested links</a>
-								<a {% if sort == 'vested_links_count' %}class="selected" {% endif %} href="?{% current_query_string sort="vested_links_count" %}"><i class="icon-ok"></i> Least vested links</a>
+								<a {% if sort == '-vested_links_count' %}class="selected" {% endif %} href="?{% current_query_string sort="-vested_links_count" %}"><i class="icon-ok"></i> Most links</a>
+								<a {% if sort == 'vested_links_count' %}class="selected" {% endif %} href="?{% current_query_string sort="vested_links_count" %}"><i class="icon-ok"></i> Least links</a>
 							{% endif %}
 						</li>
 					</ul>
@@ -167,7 +167,7 @@
 				{% if request.user.is_staff or request.user.is_registrar_member %}
 					{% if group_name == 'organization_user' %}
 						<div class="dropdown">
-							<a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Vesting organization <span class="caret"></span></a>
+							<a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Organization <span class="caret"></span></a>
 							<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
 								<li>
 								{% if orgs %}
@@ -243,7 +243,7 @@
 					{% endif %}
 					
 					{% if request.user.is_staff and listed_user.requested_account_type %}
-					<p class="item-vesting-org">Interested in a {{listed_user.requested_account_type}} account with {{listed_user.requested_account_note}}</p>
+					<p class="item-org">Interested in a {{listed_user.requested_account_type}} account with {{listed_user.requested_account_note}}</p>
 					{% endif %}
 					
 					{% if group_name == 'registrar_user' and request.user.is_staff %}
@@ -255,17 +255,7 @@
 							<div class="col col-xs-12 col-md-4 col-half-gutter">
 								<div class="item-count-group">
 									<strong class="list-count-number{% if request.user.is_organization_member%} vesting_user-list{% endif %}">{{ listed_user.vested_links_count }}</strong>
-									<span class="item-count-label">vested links</span>
-									{% comment %}
-										{% if group_name == 'organization_user' or group_name == 'user' %}
-											{% if request.user.is_staff %}
-												<div class="item-count-group">
-												<p class="list-count-number{% if group_name == 'user'%} vesting_user-list{% endif %}">{{ listed_user.created_links_count }}</p>
-												<p class="item-count-label">created links</p>
-												</div>
-											{% endif %}
-										{% endif %}
-									{% endcomment %}
+									<span class="item-count-label">links</span>
 								</div>
 							</div>
 			            </div>

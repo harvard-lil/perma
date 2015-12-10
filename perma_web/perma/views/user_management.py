@@ -1009,7 +1009,7 @@ def user_add_organization(request, user_id):
     
     context = RequestContext(request, context)
 
-    return render_to_response('user_management/user_add_organization.html', context)
+    return render_to_response('user_management/user_add_org.html', context)
 
 
 @login_required

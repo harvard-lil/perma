@@ -169,12 +169,6 @@ PIPELINE_JS = {
         ),
         'output_filename': 'js/link-delete-confirm-bundle.js',
     },
-    'link-vest-confirm': {
-        'source_filenames': (
-            'js/link-vest-confirm.js',
-        ),
-        'output_filename': 'js/link-vest-confirm-bundle.js',
-    },
     'single-link': {
         'source_filenames': (
             'js/single-link.js',

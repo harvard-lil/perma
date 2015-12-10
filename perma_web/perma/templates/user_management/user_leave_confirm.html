@@ -1,11 +1,11 @@
 {% extends "admin-layout.html" %}
-{% block title %} | Leave vesting organization{% endblock %}
+{% block title %} | Leave organization{% endblock %}
 
 {% block adminContent %}
 
 <h3 class="body-bh">Leave {{ org.name }}</h3>
 	<p class="page-dek">Yahowza! Do you really want to leave <strong>{{ org.name }}</strong> forever?</p>
-<div class="alert alert-danger">You will lose vesting privileges for <strong>{{ org.name }}</strong>.</div>
+<div class="alert alert-danger">You will lose your sharing privileges <strong>{{ org.name }}</strong>.</div>
 <form action="" method="POST">
     {% csrf_token %}
     <a class="btn cancel" href="{% url 'user_management_settings_organizations' %}">Cancel</a>
