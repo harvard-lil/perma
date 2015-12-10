@@ -23,8 +23,12 @@ $color-yellow: #d0a60f;
     100% {background-color: white;}
 }
 
-body, html {
+html {
 	overflow: visible;
+}
+
+body {
+	overflow: hidden;
 }
 
 a {
