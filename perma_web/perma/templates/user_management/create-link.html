@@ -230,10 +230,7 @@
     {{ block.super }}
 
     <script>
-        var userguide_url = "{% url 'docs_perma_link_vesting' %}",
-            vest_link_url = "{% url 'vest_link' 'GUID' %}",
-            vesting_privs = {% if request.user.can_vest %}true{% else %}false{% endif %},
-            selected_organization = "{{selected_org.id}}",
+        var selected_organization = "{{selected_org.id}}",
             shared_folder = "{{selected_org.shared_folder_id}}",
             create_url = "{% url 'create_link' %}",
             contact_url = "{% url 'contact' %}",
@@ -241,7 +238,7 @@
             thumbnail_service_url = "{% url 'service_get_thumbnail' guid='GUID' %}",
             current_user = {% as_json request.user %},
             url_docs_perma_link_vesting = "{% url 'docs_perma_link_vesting' %}",
-            can_vest = {% if request.user.can_vest %}true{% else %}false{% endif %};
+            host = "{{ request.get_host }}";
     </script>
 
     {% javascript 'admin' %}
@@ -307,7 +304,7 @@
 	            </div>
 	            <div class="col col-sm-6 col-md-40 align-right item-permalink">
 	                {{#if delete_available}}<a class="delete no-drag" href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}
-	                <a class="perma no-drag" href="{{local_url}}" target="_blank">{{local_url}}</a>
+	                <a class="perma no-drag" href="http://{{local_url}}" target="_blank">{{local_url}}</a>
 	            </div>
             </div>
             <div class="row item-secondary">
@@ -352,9 +349,6 @@
                 <div>
                 	<span><strong>Views:</strong> {{view_count}}</span></div>
                 <div><span><strong>Created by:</strong> {{created_by.full_name}}</span></div>
-                {{#if vested}}
-                    <div><span><strong>Vested by:</strong> {{vested_by_editor.full_name}}</span></div>
-                {{/if}}
             </div>
         </div>
     </div>

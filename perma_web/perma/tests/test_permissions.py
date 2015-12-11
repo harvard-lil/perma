@@ -50,7 +50,6 @@ class PermissionsTestCase(PermaTestCase):
                 'urls': [
                     ['user_management_manage_single_organization_user', {'kwargs':{'user_id': 3}}],
                     ['user_management_manage_organization_user'],
-                    ['vest_link', {'kwargs': {'guid': '1234'}, 'success_status': 404}],
                     ['user_management_manage_organization'],
                     ['user_management_manage_single_organization', {'kwargs':{'org_id':1}}],
                     ['user_management_manage_single_organization_delete', {'kwargs':{'org_id':1}}],

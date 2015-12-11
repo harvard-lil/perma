@@ -95,8 +95,8 @@
                         <a {% if sort == 'date_created' %}class="selected" {% endif %} href="?{% current_query_string sort="date_created" %}"><i class="icon-ok"></i> Oldest</a>
                         <a {% if sort == '-last_active' %}class="selected" {% endif %} href="?{% current_query_string sort="-last_active" %}"><i class="icon-ok"></i> Recently active</a>
                         <a {% if sort == 'last_active' %}class="selected" {% endif %} href="?{% current_query_string sort="last_active" %}"><i class="icon-ok"></i> Least recently active</a>
-                        <a {% if sort == '-vested_links' %}class="selected" {% endif %} href="?{% current_query_string sort="-vested_links" %}"><i class="icon-ok"></i> Most vested links</a>
-                        <a {% if sort == 'vested_links' %}class="selected" {% endif %} href="?{% current_query_string sort="vested_links" %}"><i class="icon-ok"></i> Least vested links</a>
+                        <a {% if sort == '-vested_links' %}class="selected" {% endif %} href="?{% current_query_string sort="-vested_links" %}"><i class="icon-ok"></i> Most links</a>
+                        <a {% if sort == 'vested_links' %}class="selected" {% endif %} href="?{% current_query_string sort="vested_links" %}"><i class="icon-ok"></i> Least links</a>
                     </li>
                   </ul>
                 </div>
@@ -119,7 +119,7 @@
 					<div class="col col-xs-12 col-md-4 col-half-gutter">
 			            <div class="item-count-group">
 							<strong class="list-count-number">{{ registrar.vested_links|intcomma }}</strong>
-							<span class="item-count-label">vested links</span>
+							<span class="item-count-label">links</span>
 			            </div>
 					</div>
 						{% comment %}

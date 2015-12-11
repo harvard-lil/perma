@@ -90,7 +90,11 @@ function FormatJSON(oData, sIndent) {
 
 $( document ).ready(function() {
     $(".prettyprint").each(function() {
-		str = jQuery.parseJSON($(this).text());
-		$(this).html(FormatJSON(str));
+        try{
+            str = jQuery.parseJSON($(this).text());
+            $(this).html(FormatJSON(str));
+        }catch(e){
+            // invalid JSON
+        }
 	});
   });
