@@ -17,9 +17,8 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
 
         self.registry_member = LinkUser.objects.get(pk=1)
         self.registrar_member = LinkUser.objects.get(pk=2)
-        self.vesting_member = LinkUser.objects.get(pk=3)
+        self.org_member = LinkUser.objects.get(pk=3)
         self.regular_user = LinkUser.objects.get(pk=4)
-        self.vesting_manager = LinkUser.objects.get(pk=5)
 
         self.empty_root_folder = Folder.objects.get(pk=22)
         self.nonempty_root_folder = Folder.objects.get(pk=25)
@@ -29,8 +28,8 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
         self.third_journal_shared_folder = Folder.objects.get(pk=31)
 
         self.test_journal_shared_folder = Folder.objects.get(pk=27)
-        self.test_journal_subfolder_with_vested_link = Folder.objects.get(pk=34)
-        self.test_journal_subfolder_with_unvested_link = Folder.objects.get(pk=35)
+        self.test_journal_subfolder_with_link_a = Folder.objects.get(pk=34)
+        self.test_journal_subfolder_with_link_b = Folder.objects.get(pk=35)
 
 
         # self.list_url = self.url_base + '/user/folders'
@@ -64,7 +63,7 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
 
     def test_should_reject_create_from_user_without_access_to_parent(self):
         self.rejected_post(self.nested_url(self.regular_user.root_folder),
-                           user=self.vesting_member,
+                           user=self.org_member,
                            data={'name': 'Test Folder'})
 
     ###########
@@ -78,7 +77,7 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
         self.successful_get(self.detail_url(self.test_journal_shared_folder), user=self.registrar_member)
 
     def test_should_allow_member_of_folders_org_to_view(self):
-        self.successful_get(self.detail_url(self.test_journal_shared_folder), user=self.vesting_member)
+        self.successful_get(self.detail_url(self.test_journal_shared_folder), user=self.org_member)
 
     def test_should_reject_view_from_user_lacking_owner_and_registrar_and_org_access(self):
         self.rejected_get(self.detail_url(self.test_journal_shared_folder), user=self.regular_user)
@@ -103,7 +102,6 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
 
         self.rejected_patch(url, user=self.registry_member, data=data, expected_status_code=400)
         self.rejected_patch(url, user=self.registrar_member, data=data, expected_status_code=400)
-        self.rejected_patch(url, user=self.vesting_manager, data=data, expected_status_code=400)
 
     def test_should_reject_rename_of_root_folder_from_all_users(self):
         data = {'name': 'A new name'}
@@ -114,10 +112,6 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
         self.rejected_patch(self.detail_url(self.registrar_member.root_folder),
                             expected_status_code=400,
                             user=self.registrar_member, data=data)
-
-        self.rejected_patch(self.detail_url(self.vesting_manager.root_folder),
-                            expected_status_code=400,
-                            user=self.vesting_manager, data=data)
 
         self.rejected_patch(self.detail_url(self.regular_user.root_folder),
                             expected_status_code=400,
@@ -154,36 +148,36 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
         self.successful_folder_move(self.regular_user_empty_child_folder.owned_by, self.regular_user_nonempty_child_folder, self.regular_user_empty_child_folder)
 
     def test_should_allow_member_of_folders_registrar_to_move_to_new_parent(self):
-        self.successful_folder_move(self.registrar_member, self.registrar_member.root_folder, self.test_journal_subfolder_with_unvested_link)
+        self.successful_folder_move(self.registrar_member, self.registrar_member.root_folder, self.test_journal_subfolder_with_link_b)
 
     def test_should_allow_member_of_folders_org_to_move_to_new_parent(self):
-        self.successful_folder_move(self.vesting_member, self.vesting_member.root_folder, self.test_journal_subfolder_with_unvested_link)
+        self.successful_folder_move(self.org_member, self.org_member.root_folder, self.test_journal_subfolder_with_link_b)
 
     def test_should_reject_move_to_parent_to_which_user_lacks_access(self):
-        self.rejected_folder_move(self.regular_user, self.vesting_member.root_folder, self.regular_user_empty_child_folder)
+        self.rejected_folder_move(self.regular_user, self.org_member.root_folder, self.regular_user_empty_child_folder)
 
     def test_should_reject_move_from_user_lacking_owner_and_registrar_and_org_access(self):
-        self.rejected_folder_move(self.regular_user, self.regular_user.root_folder, self.test_journal_subfolder_with_unvested_link)
+        self.rejected_folder_move(self.regular_user, self.regular_user.root_folder, self.test_journal_subfolder_with_link_b)
 
     def test_should_reject_move_of_folder_into_its_own_subfolder(self):
         # move A into B ...
-        self.successful_patch(self.detail_url(self.test_journal_subfolder_with_vested_link),
-                              data={"parent": self.test_journal_subfolder_with_unvested_link.pk},
-                              user=self.vesting_member)
+        self.successful_patch(self.detail_url(self.test_journal_subfolder_with_link_a),
+                              data={"parent": self.test_journal_subfolder_with_link_b.pk},
+                              user=self.org_member)
 
         # ... then try to move B into A
-        self.rejected_patch(self.detail_url(self.test_journal_subfolder_with_unvested_link),
-                            data={"parent": self.test_journal_subfolder_with_vested_link.pk},
+        self.rejected_patch(self.detail_url(self.test_journal_subfolder_with_link_b),
+                            data={"parent": self.test_journal_subfolder_with_link_a.pk},
                             expected_status_code=400,
                             expected_data={"parent": "A node may not be made a child of any of its descendants."},
-                            user=self.vesting_member)
+                            user=self.org_member)
 
     def test_should_reject_move_of_folder_into_itself(self):
-        self.rejected_patch(self.detail_url(self.test_journal_subfolder_with_unvested_link),
-                            data={"parent": self.test_journal_subfolder_with_unvested_link.pk},
+        self.rejected_patch(self.detail_url(self.test_journal_subfolder_with_link_b),
+                            data={"parent": self.test_journal_subfolder_with_link_b.pk},
                             expected_status_code=400,
                             expected_data={"parent":"A node may not be made a child of itself."},
-                            user=self.vesting_member)
+                            user=self.org_member)
 
     def test_should_reject_move_of_org_shared_folder(self):
         self.rejected_folder_move(self.registrar_member, self.registrar_member.root_folder,
@@ -195,10 +189,6 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
                                   self.registrar_member.root_folder,
                                   expected_status_code=400)
 
-    #def test_should_reject_move_of_folder_with_vested_links_outside_org_shared_folder(self):
-        #self.rejected_folder_move(self.registrar_member, self.registrar_member.root_folder,
-                                  #self.test_journal_subfolder_with_vested_link,
-                                  #expected_status_code=400)
 
     ############
     # Deleting #
@@ -210,22 +200,22 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
 
     def test_should_reject_delete_from_user_lacking_owner_and_registrar_and_org_access(self):
         self.rejected_delete(self.detail_url(self.regular_user_empty_child_folder),
-                             user=self.vesting_member)
+                             user=self.org_member)
 
     def test_reject_delete_of_shared_folder(self):
         self.rejected_delete(self.detail_url(self.test_journal_shared_folder),
                              expected_status_code=400,
                              expected_data={"error": "Shared folders cannot be deleted."},
-                             user=self.vesting_member)
+                             user=self.org_member)
 
     def test_reject_delete_of_root_folder(self):
-        self.rejected_delete(self.detail_url(self.vesting_member.root_folder),
+        self.rejected_delete(self.detail_url(self.org_member.root_folder),
                              expected_status_code=400,
                              expected_data={"error": "Root folders cannot be deleted."},
-                             user=self.vesting_member)
+                             user=self.org_member)
 
     def test_reject_delete_of_nonempty_folder(self):
-        self.rejected_delete(self.detail_url(self.test_journal_subfolder_with_unvested_link),
+        self.rejected_delete(self.detail_url(self.test_journal_subfolder_with_link_b),
                              expected_status_code=400,
                              expected_data={"error": "Folders can only be deleted if they are empty."},
-                             user=self.vesting_member)
+                             user=self.org_member)

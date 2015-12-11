@@ -18,15 +18,15 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
 
         self.registry_member = LinkUser.objects.get(pk=1)
         self.registrar_member = LinkUser.objects.get(pk=2)
-        self.vesting_member = LinkUser.objects.get(pk=3)
+        self.org_member = LinkUser.objects.get(pk=3)
         self.regular_user = LinkUser.objects.get(pk=4)
-        self.vesting_manager = LinkUser.objects.get(pk=5)
-        self.unrelated_vesting_member = LinkUser.objects.get(pk=6)  # belongs to a different vesting org than the one vesting this link
+        self.related_org_member = LinkUser.objects.get(pk=5) # belongs to the same org as the one that created the link
+        self.unrelated_org_member = LinkUser.objects.get(pk=6)  # belongs to a different org than the one that created the link
 
         self.regular_user_empty_child_folder = Folder.objects.get(pk=29)
 
-        self.vested_link = Link.objects.get(pk="3SLN-JHX9")
-        self.unvested_link = Link.objects.get(pk="7CF8-SS4G")
+        self.link = Link.objects.get(pk="3SLN-JHX9")
+        self.unrelated_link = Link.objects.get(pk="7CF8-SS4G")
         self.private_link_by_user = Link.objects.get(pk="ABCD-0001")
         self.private_link_by_takedown = Link.objects.get(pk="ABCD-0004")
         self.unlisted_link = Link.objects.get(pk="ABCD-0005")
@@ -34,8 +34,8 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
         self.public_list_url = "{0}/{1}".format(self.url_base, PublicLinkResource.Meta.resource_name)
 
         self.list_url = "{0}/{1}".format(self.url_base, LinkResource.Meta.resource_name)
-        self.vested_url = self.get_link_url(self.vested_link)
-        self.unvested_url = self.get_link_url(self.unvested_link)
+        self.link_url = self.get_link_url(self.link)
+        self.unrelated_link_url = self.get_link_url(self.unrelated_link)
 
         self.post_data = {'url': self.server_url + "/test.html",
                           'title': 'This is a test page'}
@@ -56,8 +56,8 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
     def test_should_allow_logged_out_users_to_get_list(self):
         self.successful_get(self.public_list_url)
 
-    def test_should_allow_logged_out_users_to_get_vested_detail(self):
-        self.successful_get(self.get_public_link_url(self.vested_link))
+    def test_should_allow_logged_out_users_to_get_link_detail(self):
+        self.successful_get(self.get_public_link_url(self.link))
 
     def test_should_reject_logged_out_users_getting_private_detail(self):
         self.rejected_get(self.get_public_link_url(self.private_link_by_user))
@@ -66,17 +66,17 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
         self.successful_get(self.list_url, user=self.regular_user)
 
     def test_should_allow_logged_in_users_to_get_detail_of_own_links(self):
-        self.successful_get(self.unvested_url, user=self.vesting_member)
+        self.successful_get(self.unrelated_link_url, user=self.org_member)
 
     def test_should_reject_logged_in_users_getting_detail_of_unowned_links(self):
-        self.rejected_get(self.unvested_url, user=self.regular_user)
-        self.rejected_get(self.unvested_url, user=self.registrar_member)
+        self.rejected_get(self.unrelated_link_url, user=self.regular_user)
+        self.rejected_get(self.unrelated_link_url, user=self.registrar_member)
 
     def test_should_reject_logged_out_users_getting_logged_in_list(self):
         self.rejected_get(self.list_url)
 
     def test_should_reject_logged_out_users_getting_logged_in_detail(self):
-        self.rejected_get(self.vested_url)
+        self.rejected_get(self.link_url)
 
     ############
     # Creating #
@@ -94,62 +94,62 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
     # Editing #
     ###########
 
-    def test_should_allow_unvested_link_owner_to_patch_notes_and_title(self):
-        self.successful_patch(self.unvested_url, user=self.vesting_member, data=self.patch_data)
+    def test_should_allow_link_owner_to_patch_notes_and_title(self):
+        self.successful_patch(self.unrelated_link_url, user=self.org_member, data=self.patch_data)
 
-    def test_should_reject_patch_from_users_who_dont_own_unvested_link(self):
-        self.rejected_patch(self.unvested_url, user=self.registrar_member, data=self.patch_data)
-        self.rejected_patch(self.unvested_url, user=self.vesting_manager, data=self.patch_data)
-        self.rejected_patch(self.unvested_url, user=self.regular_user, data=self.patch_data)
+    def test_should_reject_patch_from_users_who_dont_own_unrelated_link(self):
+        self.rejected_patch(self.unrelated_link_url, user=self.registrar_member, data=self.patch_data)
+        self.rejected_patch(self.unrelated_link_url, user=self.related_org_member, data=self.patch_data)
+        self.rejected_patch(self.unrelated_link_url, user=self.regular_user, data=self.patch_data)
 
     def test_should_allow_patch_from_staff(self):
-        self.successful_patch(self.unvested_url, user=self.registry_member, data=self.patch_data)
+        self.successful_patch(self.unrelated_link_url, user=self.registry_member, data=self.patch_data)
 
-    def test_should_allow_vested_link_owner_to_patch_notes_and_title(self):
-        self.successful_patch(self.vested_url, user=self.vested_link.created_by, data=self.patch_data)
+    def test_should_allow_link_owner_to_patch_notes_and_title(self):
+        self.successful_patch(self.link_url, user=self.link.created_by, data=self.patch_data)
 
     def test_should_allow_member_of_links_org_to_patch_notes_and_title(self):
-        user = LinkUser.objects.filter(organizations=self.vested_link.organization).first()
-        self.successful_patch(self.vested_url, user=user, data=self.patch_data)
+        user = LinkUser.objects.filter(organizations=self.link.organization).first()
+        self.successful_patch(self.link_url, user=user, data=self.patch_data)
 
-    def test_should_allow_member_of_links_vesting_registrar_to_patch_notes_and_title(self):
-        registrar = self.vested_link.organization.registrar
+    def test_should_allow_member_of_links_org_registrar_to_patch_notes_and_title(self):
+        registrar = self.link.organization.registrar
         user = LinkUser.objects.filter(registrar=registrar.pk).first()
-        self.successful_patch(self.vested_url, user=user, data=self.patch_data)
+        self.successful_patch(self.link_url, user=user, data=self.patch_data)
 
     def test_should_reject_patch_from_user_lacking_owner_and_folder_access(self):
-        self.rejected_patch(self.vested_url, user=self.unrelated_vesting_member, data=self.patch_data)
+        self.rejected_patch(self.link_url, user=self.unrelated_org_member, data=self.patch_data)
 
     ######################
     # Private / Unlisted #
     ######################
 
     def test_should_allow_link_owner_to_toggle_private(self):
-        user = self.vested_link.created_by
-        self.successful_patch(self.vested_url, user=user, data={'is_private': True, 'private_reason': 'user'})
-        self.successful_patch(self.vested_url, user=user, data={'is_private': False, 'private_reason': None})
+        user = self.link.created_by
+        self.successful_patch(self.link_url, user=user, data={'is_private': True, 'private_reason': 'user'})
+        self.successful_patch(self.link_url, user=user, data={'is_private': False, 'private_reason': None})
 
     def test_should_allow_member_of_links_org_to_toggle_private(self):
-        users_in_org = LinkUser.objects.filter(organizations=self.vested_link.organization)
-        self.successful_patch(self.vested_url, user=users_in_org[0], data={'is_private': True, 'private_reason':'user'})
-        self.successful_patch(self.vested_url, user=users_in_org[0], data={'is_private': False, 'private_reason':None})
+        users_in_org = LinkUser.objects.filter(organizations=self.link.organization)
+        self.successful_patch(self.link_url, user=users_in_org[0], data={'is_private': True, 'private_reason':'user'})
+        self.successful_patch(self.link_url, user=users_in_org[0], data={'is_private': False, 'private_reason':None})
 
-    def test_should_allow_member_of_links_vesting_registrar_to_toggle_private(self):
-        user = self.vested_link.organization.registrar.users.first()
-        self.successful_patch(self.vested_url, user=user, data={'is_private': True, 'private_reason': 'user'})
-        self.successful_patch(self.vested_url, user=user, data={'is_private': False, 'private_reason': None})
+    def test_should_allow_member_of_links_org_registrar_to_toggle_private(self):
+        user = self.link.organization.registrar.users.first()
+        self.successful_patch(self.link_url, user=user, data={'is_private': True, 'private_reason': 'user'})
+        self.successful_patch(self.link_url, user=user, data={'is_private': False, 'private_reason': None})
 
     def test_should_reject_private_toggle_from_user_lacking_owner_and_folder_access(self):
-        self.rejected_patch(self.vested_url, user=self.unrelated_vesting_member, data={'is_private': True, 'private_reason':'user'})
-        self.rejected_patch(self.get_link_url(self.private_link_by_user), user=self.unrelated_vesting_member, data={'is_private': False, 'private_reason':None})
+        self.rejected_patch(self.link_url, user=self.unrelated_org_member, data={'is_private': True, 'private_reason':'user'})
+        self.rejected_patch(self.get_link_url(self.private_link_by_user), user=self.unrelated_org_member, data={'is_private': False, 'private_reason':None})
 
     def test_should_allow_registry_member_to_toggle_takedown(self):
-        self.successful_patch(self.vested_url, user=self.registry_member, data={'is_private': True, 'private_reason': 'takedown'})
-        self.successful_patch(self.vested_url, user=self.registry_member, data={'is_private': False, 'private_reason': None})
+        self.successful_patch(self.link_url, user=self.registry_member, data={'is_private': True, 'private_reason': 'takedown'})
+        self.successful_patch(self.link_url, user=self.registry_member, data={'is_private': False, 'private_reason': None})
 
     def test_should_reject_takedown_toggle_from_nonregistry_member(self):
-        user = self.vested_link.organization.registrar.users.first()
-        self.rejected_patch(self.vested_url, user=user, data={'is_private': True, 'private_reason': 'takedown'})
+        user = self.link.organization.registrar.users.first()
+        self.rejected_patch(self.link_url, user=user, data={'is_private': True, 'private_reason': 'takedown'})
         self.rejected_patch(self.get_link_url(self.private_link_by_takedown), user=user, data={'is_private': False, 'private_reason': None})
 
     ##########
@@ -180,13 +180,13 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
             self.assertNotIn(obj, data['objects'])
 
     def test_should_allow_link_owner_to_move_to_new_folder(self):
-        self.successful_link_move(self.vesting_member, self.vested_link, self.vested_link.organization.shared_folder.children.first())
+        self.successful_link_move(self.org_member, self.link, self.link.organization.shared_folder.children.first())
 
     def test_should_reject_move_to_parent_to_which_user_lacks_access(self):
-        self.rejected_link_move(self.regular_user, self.vested_link, self.vesting_member.root_folder)
+        self.rejected_link_move(self.regular_user, self.link, self.org_member.root_folder)
 
     def test_should_reject_move_from_user_lacking_link_owner_access(self):
-        self.rejected_link_move(self.regular_user, self.unvested_link, self.regular_user.root_folder)
+        self.rejected_link_move(self.regular_user, self.unrelated_link, self.regular_user.root_folder)
 
     ############
     # Deleting #
@@ -203,11 +203,11 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
             self.rejected_get(new_link_url, user=self.regular_user, expected_status_code=404)
 
     def test_should_reject_delete_for_out_of_window_link(self):        
-        self.rejected_delete(self.vested_url, user=self.vesting_member)
-        self.successful_get(self.vested_url, user=self.vesting_member)
+        self.rejected_delete(self.link_url, user=self.org_member)
+        self.successful_get(self.link_url, user=self.org_member)
 
     def test_should_reject_delete_from_users_who_dont_own_link(self):
-        self.rejected_delete(self.unvested_url, user=self.regular_user)
-        self.rejected_delete(self.unvested_url, user=self.registrar_member)
-        self.rejected_delete(self.unvested_url, user=self.vesting_manager)
-        self.successful_get(self.vested_url, user=self.vesting_member)
+        self.rejected_delete(self.unrelated_link_url, user=self.regular_user)
+        self.rejected_delete(self.unrelated_link_url, user=self.registrar_member)
+        self.rejected_delete(self.unrelated_link_url, user=self.related_org_member)
+        self.successful_get(self.link_url, user=self.org_member)
