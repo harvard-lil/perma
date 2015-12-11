@@ -30,30 +30,27 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     def setUp(self):
         super(LinkResourceTestCase, self).setUp()
 
-        self.vesting_member = LinkUser.objects.get(pk=3)
+        self.org_member = LinkUser.objects.get(pk=3)
         self.regular_user = LinkUser.objects.get(pk=4)
 
-        self.unvested_link = Link.objects.get(pk="7CF8-SS4G")
-        self.vested_link = Link.objects.get(pk="3SLN-JHX9")
+        self.unrelated_link = Link.objects.get(pk="7CF8-SS4G")
+        self.link = Link.objects.get(pk="3SLN-JHX9")
 
         self.list_url = "{0}/{1}".format(self.url_base, LinkResource.Meta.resource_name)
-        self.unvested_link_detail_url = "{0}/{1}".format(self.list_url, self.unvested_link.pk)
-        self.vested_link_detail_url = "{0}/{1}".format(self.list_url, self.vested_link.pk)
+        self.unrelated_link_detail_url = "{0}/{1}".format(self.list_url, self.unrelated_link.pk)
+        self.link_detail_url = "{0}/{1}".format(self.list_url, self.link.pk)
 
         self.logged_in_list_url = "{0}/{1}".format(self.url_base, CurrentUserLinkResource.Meta.resource_name)
-        self.logged_in_unvested_link_detail_url = "{0}/{1}".format(self.logged_in_list_url, self.unvested_link.pk)
+        self.logged_in_unrelated_link_detail_url = "{0}/{1}".format(self.logged_in_list_url, self.unrelated_link.pk)
 
         self.public_list_url = "{0}/{1}".format(self.url_base, PublicLinkResource.Meta.resource_name)
-        self.public_vested_link_detail_url = "{0}/{1}".format(self.public_list_url, self.vested_link.pk)
+        self.public_link_detail_url = "{0}/{1}".format(self.public_list_url, self.link.pk)
 
         self.logged_out_fields = [
-            'vested',
-            'vested_timestamp',
             'title',
             'url',
             'guid',
             'creation_timestamp',
-            'expiration_date',
             'captures',
             'view_count'
         ]
@@ -64,7 +61,6 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             'archive_timestamp',
             'is_private',
             'private_reason',
-            'vested_by_editor',
         ]
 
         self.post_data = {
@@ -88,16 +84,16 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     #######
 
     def test_get_schema_json(self):
-        self.successful_get(self.list_url + '/schema', user=self.vesting_member)
+        self.successful_get(self.list_url + '/schema', user=self.org_member)
 
     def test_get_public_schema_json(self):
-        self.successful_get(self.public_list_url + '/schema', user=self.vesting_member)
+        self.successful_get(self.public_list_url + '/schema', user=self.org_member)
 
     def test_get_list_json(self):
         self.successful_get(self.public_list_url, count=2)
 
     def test_get_detail_json(self):
-        self.successful_get(self.public_vested_link_detail_url, fields=self.logged_out_fields)
+        self.successful_get(self.public_link_detail_url, fields=self.logged_out_fields)
 
     ########################
     # URL Archive Creation #
@@ -106,7 +102,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     def test_should_create_archive_from_html_url(self):
         obj = self.successful_post(self.list_url,
                                    data={'url': self.server_url + "/test.html"},
-                                   user=self.vesting_member)
+                                   user=self.org_member)
 
         link = Link.objects.get(guid=obj['guid'])
         self.assertValidCapture(link.screenshot_capture)
@@ -122,7 +118,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     def test_should_create_archive_from_pdf_url(self):
         obj = self.successful_post(self.list_url,
                                    data={'url': self.server_url + "/test.pdf"},
-                                   user=self.vesting_member)
+                                   user=self.org_member)
 
         link = Link.objects.get(guid=obj['guid'])
         self.assertValidCapture(link.primary_capture)
@@ -130,12 +126,12 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     def test_should_add_http_to_url(self):
         self.successful_post(self.list_url,
                              data={'url': self.server_url.split("//")[1] + "/test.html"},
-                             user=self.vesting_member)
+                             user=self.org_member)
 
     def test_should_dark_archive_when_noarchive_in_html(self):
         obj = self.successful_post(self.list_url,
                                    data={'url': self.server_url + "/noarchive.html"},
-                                   user=self.vesting_member)
+                                   user=self.org_member)
 
         link = Link.objects.get(guid=obj['guid'])
         self.assertTrue(link.is_private)
@@ -148,7 +144,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         with self.serve_file(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/robots.txt')):
             obj = self.successful_post(self.list_url,
                                        data={'url': self.server_url + "/subdir/test.html"},
-                                       user=self.vesting_member)
+                                       user=self.org_member)
 
         link = Link.objects.get(guid=obj['guid'])
         self.assertTrue(link.is_private)
@@ -157,7 +153,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     def test_should_accept_spaces_in_url(self):
         obj = self.successful_post(self.list_url,
                                    data={'url': self.server_url + "/test page.html?a b=c d#e f"},
-                                   user=self.vesting_member)
+                                   user=self.org_member)
 
         link = Link.objects.get(guid=obj['guid'])
         self.assertValidCapture(link.primary_capture)
@@ -171,7 +167,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             obj = self.successful_post(self.list_url,
                                        format='multipart',
                                        data=dict(self.post_data.copy(), file=test_file),
-                                       user=self.vesting_member)
+                                       user=self.org_member)
 
             link = Link.objects.get(guid=obj['guid'])
             self.assertValidCapture(link.primary_capture)
@@ -182,7 +178,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             obj = self.successful_post(self.list_url,
                                        format='multipart',
                                        data=dict(self.post_data.copy(), file=test_file),
-                                       user=self.vesting_member)
+                                       user=self.org_member)
 
             link = Link.objects.get(guid=obj['guid'])
             self.assertValidCapture(link.primary_capture)
@@ -193,7 +189,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             obj = self.rejected_post(self.list_url,
                                      format='multipart',
                                      data=dict(self.post_data.copy(), file=test_file),
-                                     user=self.vesting_member)
+                                     user=self.org_member)
             self.assertIn('Invalid file', obj.content)
 
     ############
@@ -201,53 +197,34 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     ############
 
     def test_patch_detail(self):
-        self.successful_patch(self.unvested_link_detail_url,
-                              user=self.unvested_link.created_by,
+        self.successful_patch(self.unrelated_link_detail_url,
+                              user=self.unrelated_link.created_by,
                               data={'notes': 'These are new notes',
                                     'title': 'This is a new title'})
 
     ##################
-    # Dark Archiving #
+    # Private/public #
     ##################
 
     def test_dark_archive(self):
-        self.successful_patch(self.unvested_link_detail_url,
-                              user=self.unvested_link.created_by,
+        self.successful_patch(self.unrelated_link_detail_url,
+                              user=self.unrelated_link.created_by,
                               data={'is_private': True, 'private_reason':'user'})
-
-    ###########
-    # Vesting #
-    ###########
-
-    def test_vesting(self):
-        folder = self.vesting_member.organizations.first().folders.first()
-        folder_url = "{0}/folders/{1}".format(self.url_base, folder.pk)
-
-        self.successful_put("{0}/archives/{1}".format(folder_url, self.unvested_link.pk),
-                            user=self.vesting_member,
-                            data={'vested': True})
-
-        obj = self.successful_get(self.unvested_link_detail_url, user=self.vesting_member)
-        self.assertTrue(obj['vested'])
-
-        # Make sure it's listed in the folder
-        data = self.successful_get(folder_url+"/archives", user=self.vesting_member)
-        self.assertIn(obj, data['objects'])
 
     ##########
     # Moving #
     ##########
 
     def test_moving(self):
-        folder = self.vesting_member.organizations.first().folders.first()
+        folder = self.org_member.organizations.first().folders.first()
         folder_url = "{0}/folders/{1}".format(self.url_base, folder.pk)
 
-        self.successful_put("{0}/archives/{1}".format(folder_url, self.unvested_link.pk),
-                            user=self.vesting_member)
+        self.successful_put("{0}/archives/{1}".format(folder_url, self.unrelated_link.pk),
+                            user=self.org_member)
 
         # Make sure it's listed in the folder
-        obj = self.successful_get(self.unvested_link_detail_url, user=self.vesting_member)
-        data = self.successful_get(folder_url+"/archives", user=self.vesting_member)
+        obj = self.successful_get(self.unrelated_link_detail_url, user=self.org_member)
+        data = self.successful_get(folder_url+"/archives", user=self.org_member)
         self.assertIn(obj, data['objects'])
 
     ############
@@ -258,11 +235,11 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         with self.serve_file(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/robots.txt')):
             obj = self.successful_post(self.list_url,
                                        data={'url': self.server_url + "/subdir/test.html"},
-                                       user=self.vesting_member)
+                                       user=self.org_member)
 
             new_link = Link.objects.get(guid=obj['guid'])
             new_link_url = "{0}/{1}".format(self.list_url, new_link.pk)
-            self.successful_delete(new_link_url, user=self.vesting_member)
+            self.successful_delete(new_link_url, user=self.org_member)
 
     ############
     # Ordering #

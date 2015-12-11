@@ -38,9 +38,9 @@ from perma.models import Registrar, LinkUser, Organization, Link
 from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_contact_email
 
 logger = logging.getLogger(__name__)
-valid_member_sorts = ['last_name', '-last_name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'vested_links_count', '-vested_links_count']
-valid_registrar_sorts = ['name', '-name', 'vested_links', '-vested_links', '-date_created', 'date_created', 'last_active', '-last_active']
-valid_org_sorts = ['name', '-name', 'vested_links', '-vested_links', '-date_created', 'date_created', 'last_active', '-last_active', 'organization_users', 'organization_users']
+valid_member_sorts = ['last_name', '-last_name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'created_links_count', '-created_links_count']
+valid_registrar_sorts = ['name', '-name', 'created_links', '-created_links', '-date_created', 'date_created', 'last_active', '-last_active']
+valid_org_sorts = ['name', '-name', 'created_links', '-created_links', '-date_created', 'date_created', 'last_active', '-last_active', 'organization_users', 'organization_users']
 
 
 @login_required
@@ -69,7 +69,7 @@ def manage_registrar(request):
 
     # handle annotations
     registrars = registrars.annotate(
-        vested_links=Count('organizations__link',distinct=True),
+        created_links=Count('organizations__link',distinct=True),
         registrar_users=Count('users', distinct=True),
         last_active=Max('users__last_login'),
         orgs_count=Count('organizations',distinct=True),
@@ -413,7 +413,7 @@ def list_users_in_group(request, group_name):
     users, search_query = apply_search_query(request, users, ['email', 'first_name', 'last_name', 'organizations__name'])
 
     # apply annotations
-    users = users.annotate(vested_links_count=Count('vested_links', distinct=True))
+    users = users.annotate(created_links_count=Count('created_links', distinct=True))
 
     registrar_filter = request.GET.get('registrar', '')
 
@@ -487,7 +487,7 @@ def list_users_in_group(request, group_name):
     if is_registry:
         deactivated_users = users.filter(is_confirmed=True, is_active=False).count()
     unactivated_users = users.filter(is_confirmed=False, is_active=False).count()
-    total_vested_links_count = users.aggregate(count=Sum('vested_links_count'))
+    total_created_links_count = users.aggregate(count=Sum('created_links_count'))
 
     # handle pagination
     users = apply_pagination(request, users)
@@ -499,7 +499,7 @@ def list_users_in_group(request, group_name):
         'deactivated_users': deactivated_users,
         'unactivated_users': unactivated_users,
         'orgs': orgs,
-        'total_vested_links_count': total_vested_links_count,
+        'total_created_links_count': total_created_links_count,
         'registrars': registrars,
         'added_user': added_user,
         'group_name':group_name,
@@ -706,8 +706,6 @@ def registrar_user_add_user(request):
         else:
             form = CreateUserFormWithRegistrar(form_data, prefix = "a", initial={'email': user_email})
     else:
-        if not target_user.can_vest():
-            cannot_add = False
         if request.user.is_registrar_member():
         	form = None
         else:

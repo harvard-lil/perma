@@ -92,7 +92,7 @@ def stats(request):
            keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
 def single_linky(request, guid):
     """
-    Given a Perma ID, serve it up. Vesting also takes place here.
+    Given a Perma ID, serve it up.
     """
 
     # Create a canonical version of guid (non-alphanumerics removed, hyphens every 4 characters, uppercase),
