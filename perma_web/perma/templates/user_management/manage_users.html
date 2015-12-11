@@ -254,7 +254,7 @@
 			            <div class="row row-half-bleed item-count-groups">
 							<div class="col col-xs-12 col-md-4 col-half-gutter">
 								<div class="item-count-group">
-									<strong class="list-count-number{% if request.user.is_organization_member%} vesting_user-list{% endif %}">{{ listed_user.created_links_count }}</strong>
+									<strong class="list-count-number">{{ listed_user.created_links_count }}</strong>
 									<span class="item-count-label">links</span>
 								</div>
 							</div>
@@ -298,7 +298,7 @@
 					{% if request.user.is_staff %}
 						<p class="item-status"><a class="action" href="{% url "admin:perma_linkuser_change" listed_user.id %}">edit in admin console</a></p>
 					{% endif %}
-					<p class="item-activity{% if request.user.is_organization_member or group_name == 'user' %} vesting_user-list{% endif %}">
+					<p class="item-activity">
 						created {{ listed_user.date_joined|date:'F j, Y' }}
 						{% if listed_user.is_confirmed %}
 							<br>
