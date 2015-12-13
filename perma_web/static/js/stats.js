@@ -130,7 +130,7 @@ var draw_organizations_vis = function(){
 	    .x(function(d) { return x(d.date); })
 	    .y(function(d) { return y(d.close); });
 
-	var svg = d3.select("#vestings-org-vis").append("svg")
+	var svg = d3.select("#org-vis").append("svg")
 	    .attr("width", "100%")
         .attr('viewBox', '0 0 ' + String(width + margin.left + margin.right) + ' ' + String(height + margin.top + margin.bottom))
         .attr('perserveAspectRatio', 'none')
@@ -165,7 +165,7 @@ var draw_organizations_vis = function(){
 	      .attr("y", 6)
 	      .attr("dy", ".71em")
 	      .style("text-anchor", "end")
-	      .text("Vesting Orgs");
+	      .text("Orgs");
 
 	  svg.append("path")
 	      .datum(data)

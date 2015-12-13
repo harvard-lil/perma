@@ -1090,8 +1090,6 @@ p.fp {
 	&:active {
 		color: white;
 	}
-	&.vest {
-	}
 	&.darchive {
 	}
 	&.user-delete {
@@ -1433,7 +1431,7 @@ img.watermark-image {
     margin: 4px 4px;
 }
 
-a.btn.vest, a.btn.dashboard, a.btn.user-delete {
+a.btn.dashboard, a.btn.user-delete {
 	width:100px;
 	padding:2px 0px;
 	color:#666;
@@ -1442,22 +1440,6 @@ a.btn.vest, a.btn.dashboard, a.btn.user-delete {
 	border-radius: 3px;
 	background:#fff;
 	margin-left:10px;
-}
-
-input.btn.vest {
-	width:100px;
-	padding:2px 0px;
-	color:#666;
-	font-size:14px;
-	border:1px solid #666;
-	border-radius: 3px;
-	background:#fff;
-	margin-left:10px;
-}
-
-input.btn.vest:hover, input.btn.vest:focus, a.btn.vest:hover, a.btn.vest:focus {
-	color:#222;
-	border:1px solid #222;
 }
 
 a.btn.user-delete {

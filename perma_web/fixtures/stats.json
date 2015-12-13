@@ -9,9 +9,8 @@
         "org_manager_count": 0, 
         "registrar_count": 0, 
         "registrar_member_count": 0, 
-        "vested_count": 0, 
         "registry_member_count": 0, 
-        "unvested_count": 0, 
+        "link_count": 0, 
         "org_member_count": 0, 
         "regular_user_count": 0
     }
@@ -26,9 +25,8 @@
         "org_manager_count": 43, 
         "registrar_count": 0, 
         "registrar_member_count": 19, 
-        "vested_count": 49, 
         "registry_member_count": 6, 
-        "unvested_count": 483, 
+        "link_count": 483, 
         "org_member_count": 46, 
         "regular_user_count": 96
     }
@@ -43,9 +41,8 @@
         "org_manager_count": 49, 
         "registrar_count": 0, 
         "registrar_member_count": 20, 
-        "vested_count": 66, 
         "registry_member_count": 6, 
-        "unvested_count": 896, 
+        "link_count": 896, 
         "org_member_count": 156, 
         "regular_user_count": 97
     }
@@ -60,9 +57,8 @@
         "org_manager_count": 63, 
         "registrar_count": 25, 
         "registrar_member_count": 25, 
-        "vested_count": 628, 
         "registry_member_count": 6, 
-        "unvested_count": 2245, 
+        "link_count": 2245, 
         "org_member_count": 317, 
         "regular_user_count": 928
     }

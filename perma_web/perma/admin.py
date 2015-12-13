@@ -17,8 +17,8 @@ from .admin_utils import new_class, InlineEditLinkMixin
 class LinkInline(admin.TabularInline):
     model = Link
     can_delete = False
-    fields = ['guid', 'submitted_url', 'creation_timestamp', 'vested']
-    readonly_fields = ['guid', 'submitted_url', 'creation_timestamp', 'vested']
+    fields = ['guid', 'submitted_url', 'creation_timestamp']
+    readonly_fields = ['guid', 'submitted_url', 'creation_timestamp']
 
 
 ### admin models ###
@@ -26,7 +26,7 @@ class LinkInline(admin.TabularInline):
 
 class RegistrarAdmin(SimpleHistoryAdmin):
     search_fields = ['name', 'email', 'website']
-    list_display = ['name', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'latitude', 'longitude', 'vested_links', 'registrar_users', 'last_active', 'orgs_count']
+    list_display = ['name', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'latitude', 'longitude', 'registrar_users', 'last_active', 'orgs_count']
     list_editable = ['show_partner_status', 'partner_display_name', 'latitude', 'longitude']
     fieldsets = (
         (None, {'fields': ('name', 'email', 'website', 'default_organization', 'is_approved')}),
@@ -44,13 +44,10 @@ class RegistrarAdmin(SimpleHistoryAdmin):
     # statistics
     def get_queryset(self, request):
         return super(RegistrarAdmin, self).get_queryset(request).annotate(
-            vested_links=Count('organizations__link',distinct=True),
             registrar_users=Count('users', distinct=True),
             last_active=Max('users__last_login', distinct=True),
             orgs_count=Count('organizations',distinct=True)
         )
-    def vested_links(self, obj):
-        return obj.vested_links
     def registrar_users(self, obj):
         return obj.registrar_users
     def last_active(self, obj):
@@ -62,7 +59,7 @@ class RegistrarAdmin(SimpleHistoryAdmin):
 class OrganizationAdmin(SimpleHistoryAdmin):
     fields = ['name', 'registrar']
     search_fields = ['name']
-    list_display = ['name', 'registrar', 'org_users', 'last_active', 'first_active', 'vested_links']
+    list_display = ['name', 'registrar', 'org_users', 'last_active', 'first_active']
     list_filter = ['registrar']
     
     # statistics
@@ -74,8 +71,6 @@ class OrganizationAdmin(SimpleHistoryAdmin):
         return max(u.last_login for u in obj.users.all()) if obj.users.count() else '-'
     def first_active(self, obj):
         return min(u.date_joined for u in obj.users.all()) if obj.users.count() else '-'
-    def vested_links(self, obj):
-        return obj.link_set.count()
 
 
 class LinkUserAddForm(UserCreationForm):
@@ -122,32 +117,28 @@ class LinkUserAdmin(UserAdmin):
             'fields': ('email', 'password1', 'password2'),
         }),
     )
-    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'date_joined', 'last_login', 'created_links_count', 'vested_links_count', 'registrar')
+    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'date_joined', 'last_login', 'created_links_count', 'registrar')
     search_fields = ('first_name', 'last_name', 'email')
     list_filter = ('is_staff', 'is_active')
     ordering = None
     readonly_fields = ['date_joined']
     inlines = [
         new_class("CreatedLinksInline", InlineEditLinkMixin, LinkInline, fk_name='created_by', verbose_name_plural="Created Links"),
-        new_class("VestedLinksInline", InlineEditLinkMixin, LinkInline, fk_name='vested_by_editor', verbose_name_plural="Vested Links"),
     ]
     filter_horizontal = ['organizations']
 
     # statistics
     def get_queryset(self, request):
-        return super(LinkUserAdmin, self).get_queryset(request).prefetch_related('vested_links', 'created_links')
-    def vested_links_count(self, obj):
-        return obj.vested_links.count()
+        return super(LinkUserAdmin, self).get_queryset(request).prefetch_related('created_links')
     def created_links_count(self, obj):
         return obj.created_links.count()
 
 
 class LinkAdmin(SimpleHistoryAdmin):
-    list_display = ['guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp', 'vested', 'vested_by_editor', 'vested_timestamp']
+    list_display = ['guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp',]
     search_fields = ['guid', 'submitted_url', 'submitted_title']
     fieldsets = (
         (None, {'fields': ('guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp', 'view_count')}),
-        ('Vesting', {'fields': ('vested', 'vested_by_editor', 'organization', 'vested_timestamp')}),
         ('Visibility', {'fields': ('is_private', 'private_reason', 'is_unlisted',)}),
         ('User Delete', {'fields': ('user_deleted', 'user_deleted_timestamp',)}),
         ('Organization', {'fields': ('folders', 'notes')}),
@@ -162,10 +153,10 @@ class LinkAdmin(SimpleHistoryAdmin):
                   fields=['raw'],
                   can_delete=False),
     ]
-    raw_id_fields = ['created_by','vested_by_editor',]
+    raw_id_fields = ['created_by',]
 
     def get_queryset(self, request):
-        return super(LinkAdmin, self).get_queryset(request).select_related('created_by', 'vested_by_editor')
+        return super(LinkAdmin, self).get_queryset(request).select_related('created_by',)
 
 
 class FolderAdmin(MPTTModelAdmin):

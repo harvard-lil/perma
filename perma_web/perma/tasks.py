@@ -428,13 +428,8 @@ def get_nightly_stats():
     # Journal account
     total_orgs = Organization.objects.all().count()
     
-    # Two types of links
-    total_count_unvested_links = Link.objects.filter(vested=False).count()
-    total_count_vested_links = Link.objects.filter(vested=True).count()
-    
-    # Get things in the darchive
-    total_count_darchive_takedown_links = Link.objects.filter(is_private=True, private_reason='takedown').count()
-    total_count_darchive_robots_links = Link.objects.filter(is_private=True, private_reason='policy').count()
+    # Our links
+    total_count_links = Link.objects.filter(is_private=False).count()
     
     # Get the path of yesterday's file storage tree
     now = datetime.datetime.now() - datetime.timedelta(days=1)
@@ -443,7 +438,7 @@ def get_nightly_stats():
     disk_path = settings.MEDIA_ROOT + '/' + os.path.sep.join(path_elements)
     
     # Get disk usage total
-    # If we start deleting unvested archives, we'll have to do some periodic corrrections here (this is only additive)
+    # We'll likley get a sum wrong at some point here and we should have some logic for corrections
     # Get the sum of the diskspace of all files in yesterday's tree
     latest_day_usage = 0
     for root, dirs, files in os.walk(disk_path):
@@ -463,10 +458,7 @@ def get_nightly_stats():
         registry_member_count=total_count_registry_members,
         registrar_count=total_count_registrars,
         org_count=total_orgs,
-        unvested_count=total_count_unvested_links,
-        darchive_takedown_count = total_count_darchive_takedown_links,
-        darchive_robots_count = total_count_darchive_robots_links,
-        vested_count=total_count_vested_links,
+        link_count=total_count_links,
         disk_usage = new_total_disk_usage,
         )
 
@@ -493,7 +485,7 @@ def upload_to_internet_archive(self, link_guid):
         'mediatype':'web',
         'date':link.creation_timestamp,
         'title':'%s: %s' % (link_guid, truncatechars(link.submitted_title, 50)),
-        'description': 'Perma.cc archive of %s created on %s and vested on %s by %s.' % (link.submitted_url, link.creation_timestamp, link.vested_timestamp, link.organization),
+        'description': 'Perma.cc archive of %s created on %s.' % (link.submitted_url, link.creation_timestamp,),
         'contributor':'Perma.cc',
         'sponsor':"%s - %s" % (link.organization, link.organization.registrar),
 
@@ -561,13 +553,10 @@ def email_weekly_stats():
         'prev_registrars_count': previous_stats['registrar_count'],
         'current_registrars_count': current_stats['registrar_count'],
 
-        'num_unvested_links_added': current_stats['unvested_count'] - previous_stats['unvested_count'],
-        'prev_unvested_links_count': previous_stats['unvested_count'],
-        'current_unvested_links_count': current_stats['unvested_count'],
+        'num_links_added': current_stats['link_count'] - previous_stats['link_count'],
+        'prev_link_count': previous_stats['link_count'],
+        'current_link_count': current_stats['link_count'],
 
-        'num_vested_links_added': current_stats['vested_count'] - previous_stats['vested_count'],
-        'prev_vested_links_count': previous_stats['vested_count'],
-        'current_vested_links_count': current_stats['vested_count'],
 
         'num_darchive_takedown_added': current_stats['darchive_takedown_count'] - previous_stats['darchive_takedown_count'],
         'prev_darchive_takedown_count': previous_stats['darchive_takedown_count'],

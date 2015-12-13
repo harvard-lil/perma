@@ -293,10 +293,6 @@ class LinkUser(AbstractBaseUser):
             This is only used by the django admin for is_staff=True users.
         """
         return True
-
-    def can_vest(self):
-        """ Can the user vest links? """
-        return bool(self.is_staff or self.is_registrar_member() or self.is_organization_member)
         
     def has_limit(self):
         """ Does the user have a link creation limit? """
@@ -510,9 +506,6 @@ class Link(models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='created_links',)
     user_deleted = models.BooleanField(default=False)
     user_deleted_timestamp = models.DateTimeField(null=True, blank=True)
-    vested = models.BooleanField(default=False)
-    vested_by_editor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='vested_links')
-    vested_timestamp = models.DateTimeField(null=True, blank=True)
     organization = models.ForeignKey(Organization, null=True, blank=True)
     folders = models.ManyToManyField(Folder, related_name='links', blank=True, null=True)
     notes = models.TextField(blank=True)
@@ -645,13 +638,9 @@ class Link(models.Model):
                 self.organization = folder.organization
             self.save(update_fields=['organization'])
 
-    def get_expiration_date(self):
-        """ Return date when this link will theoretically be deleted. """
-        return self.creation_timestamp + settings.LINK_EXPIRATION_TIME
-
     def can_upload_to_internet_archive(self):
         """ Return True if this link is appropriate for upload to IA. """
-        return self.vested and self.is_discoverable()
+        return self.is_discoverable()
 
     def as_json(self, request=None):
         from api.resources import LinkResource
@@ -1046,10 +1035,7 @@ class Stat(models.Model):
     registrar_count = models.IntegerField(default=1)
 
     # Our link counts
-    unvested_count = models.IntegerField(default=1)
-    vested_count = models.IntegerField(default=1)
-    darchive_takedown_count = models.IntegerField(default=0)
-    darchive_robots_count = models.IntegerField(default=0)    
+    link_count = models.IntegerField(default=1)
 
     # Our google analytics counts
     global_uniques = models.IntegerField(default=1)
