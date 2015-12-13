@@ -429,11 +429,7 @@ def get_nightly_stats():
     total_orgs = Organization.objects.all().count()
     
     # Our links
-    total_count_links = Link.objects.filter().count(is_private=False)
-    
-    # Get things in the darchive
-    total_count_darchive_takedown_links = Link.objects.filter(is_private=True, private_reason='takedown').count()
-    total_count_darchive_robots_links = Link.objects.filter(is_private=True, private_reason='policy').count()
+    total_count_links = Link.objects.filter(is_private=False).count()
     
     # Get the path of yesterday's file storage tree
     now = datetime.datetime.now() - datetime.timedelta(days=1)
@@ -462,8 +458,6 @@ def get_nightly_stats():
         registry_member_count=total_count_registry_members,
         registrar_count=total_count_registrars,
         org_count=total_orgs,
-        darchive_takedown_count = total_count_darchive_takedown_links,
-        darchive_robots_count = total_count_darchive_robots_links,
         link_count=total_count_links,
         disk_usage = new_total_disk_usage,
         )
