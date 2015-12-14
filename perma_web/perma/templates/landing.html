@@ -15,8 +15,8 @@
 		<div class="row">
 			<div class="col-xs-12 col-sm-7">
 				<h1 class="section-title">Websites change. <span class="_noWrap">Perma Links don’t.</span></h1>
-				<p class="primary-intro"><strong>Perma.cc</strong> helps <a href="#">scholars</a>, <a href="#">journals</a>, <a href="#">courts</a>, and <a href="#">others</a> create permanent records of the web sources <span class="_noWrap">they cite.</span></p>
-				<p class="primary-intro _showDesktop">Perma.cc is simple, <a href="#">free to use</a>, and is built and <a href="#">supported by libraries</a>.</p>
+				<p class="primary-intro"><strong>Perma.cc</strong> helps scholars, journals, courts, and others create permanent records of the web sources <span class="_noWrap">they cite.</span></p>
+				<p class="primary-intro _showDesktop">Perma.cc is simple, free to use, and is built and supported by libraries</a>.</p>
 			</div>
 			<div class="col-xs-12 col-sm-5">
                 <img 	src="{{ STATIC_URL }}img/websites-change-square.svg"
@@ -58,7 +58,7 @@
 	    		<div class="container cont-fixed">
 		    		<div class="row">
 			    		<div class="col-xs-6">
-			    			<a href="#" class="link-block hero-module">
+			    			<a href="#step-one" class="link-block hero-module">
 				    			<p class="caption-hero">Find<span class="_verbose"> any URL</span>.</p>
 				                <img 	src="{{ STATIC_URL }}img/create-step-1.png"
 				                		height="400" 
@@ -68,7 +68,7 @@
 			    			</a>
 			    		</div>
 			    		<div class="col-xs-6">
-			    			<a href="#" class="link-block hero-module">
+			    			<a href="#step-two" class="link-block hero-module">
 				    			<p class="caption-hero">Add<span class="_verbose"> it to Perma.cc</span>.</p>
 				                <img 	src="{{ STATIC_URL }}img/create-step-2.png"
 				                		height="400" 
@@ -84,7 +84,7 @@
 	    		<div class="container cont-fixed">
 		    		<div class="row">
 			    		<div class="col-xs-6">
-			    			<a href="#" class="link-block hero-module">
+			    			<a href="#step-three" class="link-block hero-module">
 				    			<p class="caption-hero">Create<span class="_verbose"> a Perma Link</span>.</p>
 				                <img 	src="{{ STATIC_URL }}img/create-step-3.png"
 				                		height="400" 
@@ -94,7 +94,7 @@
 			    			</a>
 			    		</div>
 			    		<div class="col-xs-6">
-			    			<a href="#" class="link-block hero-module">
+			    			<a href="#step-four" class="link-block hero-module">
 				    			<p class="caption-hero">Cite<span class="_verbose"> safely</span>.</p>
 				                <img 	src="{{ STATIC_URL }}img/create-step-4.png"
 				                		height="400" 
@@ -195,11 +195,11 @@
 					<h3 class="section-ah">Frequently asked questions</h3>
 					<p class="section-body">Once you capture a Perma Link, neither its content nor its address will change, no matter what happens to the original link.</p>
 					<ul class="section-list">
-						<li class="section-list-item"><a class="outside" href="#"><strong>What is a Perma archive?</strong></a></li>
-						<li class="section-list-item"><a class="outside" href="#"><strong>How long do Perma Links last?</strong></a></li>
-						<li class="section-list-item"><a class="outside" href="#"><strong>What about protected content?</strong></a></li>
-						<li class="section-list-item"><a class="outside" href="#"><strong>What are Perma.cc’s long-term plans for these links?</strong></a></li>
-						<li class="section-list-item"><a class="outside" href="#"><strong>What’s your privacy policy?</strong></a></li>
+						<li class="section-list-item"><a class="outside" href="{% url 'docs_faq' %}#general"><strong>Who runs Perma.cc?</strong></a></li>
+						<li class="section-list-item"><a class="outside" href="{% url 'docs_faq' %}#general"><strong>How long do Perma links last?</strong></a></li>
+						<li class="section-list-item"><a class="outside" href="{% url 'docs_faq' %}#general"><strong>Can I delete a Perma link?</strong></a></li>
+						<li class="section-list-item"><a class="outside" href="{% url 'docs_faq' %}#technical"><strong>Is Perma.cc open source?</strong></a></li>
+						<li class="section-list-item"><a class="outside" href="{% url 'privacy_policy' %}"><strong>What’s your privacy policy?</strong></a></li>
 					</ul>
 				    <a href="{% url 'docs_faq' %}" class="btn btn-small">More questions? Get more answers.</a>
 			</div>
@@ -213,7 +213,7 @@
 		<p class="section-subtitle">Copy. Paste. Perma.</p>
     </div>
     <div class="container-fluid row-sxs">
-	    <div class="container cont-fixed">
+	    <div class="container cont-fixed" id="step-one">
 			<div class="row row-modules">
 				<div class="col-xs-12 col-sm-5 first">
 					<p class="caption caption-sxs right"><strong class="num">Step 1 </strong><strong>Find the page you want to preserve.</strong> Copy its URL and open Perma.cc.</p>
@@ -225,7 +225,7 @@
 	    </div>
     </div>
     <div class="container-fluid row-sxs">
-	    <div class="container cont-fixed">
+	    <div class="container cont-fixed" id="step-two">
 			<div class="row row-modules">
 				<div class="col-xs-12 col-sm-7">
                     <img src="{{ STATIC_URL }}img/create-step-2.png" height="400" width="400" class="img-responsive img-sxs right" alt="Responsive image" alt="1. A graph of citations before link rot" />
@@ -237,10 +237,10 @@
 	    </div>
 	</div>
     <div class="container-fluid row-sxs">
-	    <div class="container cont-fixed">
+	    <div class="container cont-fixed" id="step-three">
 			<div class="row row-modules">
 				<div class="col-xs-12 col-sm-5 first">
-					<p class="caption caption-sxs right"><strong class="num">Step 3 </strong><strong>Get your Perma Link.</strong> Perma.cc builds your new record in a matter of moments. When it’s finished, you have a chance to <a href="#">delete</a> or <a href="#">annotate</a> it.</p>
+					<p class="caption caption-sxs right"><strong class="num">Step 3 </strong><strong>Get your Perma Link.</strong> Perma.cc builds your new record in a matter of moments. When it’s finished, you have a chance to delete or annotate it.</p>
 				</div>
 				<div class="col-xs-12 col-sm-7">
                     <img src="{{ STATIC_URL }}img/create-step-3.png" height="400" width="400" class="img-responsive img-sxs left" alt="Responsive image" alt="2. A graph of citations at the start of link rot" />
@@ -249,7 +249,7 @@
 	    </div>
 	</div>
     <div class="container-fluid row-sxs">
-	    <div class="container cont-fixed">
+	    <div class="container cont-fixed" id="step-four">
 			<div class="row row-modules">
 				<div class="col-xs-12 col-sm-7">
                     <img src="{{ STATIC_URL }}img/create-step-4.png" height="400" width="400" class="img-responsive img-sxs right" alt="Responsive image" alt="3. A graph of citations with typical link rot" />
