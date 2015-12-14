@@ -120,7 +120,7 @@ def stats_links(request):
     
     # Get the 1000 most recent.
     # TODO: if we make it more than a 1000 days, implement some better interface.
-    stats = Stat.objects.only('creation_timestamp', 'vested_count', 'unvested_count')[:1000]
+    stats = Stat.objects.only('creation_timestamp', 'link_count')[:1000]
 
     response = HttpResponse()
     response['Content-Disposition'] = 'attachment; filename="data.tsv"'
@@ -131,8 +131,7 @@ def stats_links(request):
     writer.writerow(headers)
 
     for stat in stats:
-        writer.writerow(['Vested', stat.vested_count, stat.creation_timestamp.strftime('%d-%b-%y')])
-        writer.writerow(['Unvested', stat.unvested_count, stat.creation_timestamp.strftime('%d-%b-%y')])
+        writer.writerow(['links', stat.link_count, stat.creation_timestamp.strftime('%d-%b-%y')])
 
 
     return response

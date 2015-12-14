@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404, render
 from ..models import Link, Folder, Organization
 
 logger = logging.getLogger(__name__)
-valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp', 'submitted_title', '-submitted_title']
+valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'submitted_title', '-submitted_title']
 
 
 ###### LINK CREATION ######
@@ -74,7 +74,7 @@ def folder_contents(request, folder_id):
     current_folder = get_object_or_404(Folder, folder_access_filter, pk=folder_id)
 
     # start with all links belonging to user
-    links = Link.objects.accessible_to(user).select_related('vested_by_editor', 'created_by')
+    links = Link.objects.accessible_to(user).select_related('created_by')
 
     # limit links to current folder
     links = links.filter(folders=current_folder)
