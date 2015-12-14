@@ -1,5 +1,5 @@
 {% extends "base-responsive.html" %}
-{% load file_exists %}
+{% load file_exists humanize %}
 {% block title %} | Docs{% endblock %}
 
 {% block meta_description %}
@@ -58,7 +58,7 @@ This section of the user guide provides answers to common questions about Perma.
 
 				  <div class="body-bh" data-href="how-many-links">How many links has Perma.cc helped save from rot?</div>
 				  <div class="faq-answer">
-				  	<p class="body-text">A bunch, and counting. Take a look at our <a href="{% url 'global_stats' %}">stats page</a> for more details.</p>
+				  	<p class="body-text">{{ users_count|intcomma }} people, across {{ orgs_count|intcomma }} organizations, attached to {{ registrars_count }} libraries have archived {{ links_count|intcomma }} links. Whew!</p>
 				  </div>
 							  
 			  <h2 class="body-ah" id="librarian">Libraries</h2>
