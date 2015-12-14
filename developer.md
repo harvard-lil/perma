@@ -105,7 +105,7 @@ The most straight forward data migration might be the addition of a new model or
 
 This will create a migration file for you on disk, something like,
 
-    $ cat perma_web/perma/migrations/0003_auto__add_vestingorg__add_field_linkuser_vesting_org.py
+    $ cat perma_web/perma/migrations/0003_auto__add_org__add_field_linkuser_org.py
 
 Even though you've changed your models file and created a migration (just a python file on disk), your database remains unchanged. You'll need to apply the migration to update your database,
 
@@ -122,7 +122,7 @@ Data migrations follow the same flow, but add a step in the middle. See the [Dja
 
 You should commit your migrations to your repository and push to GitHub.
 
-    $ git add perma_web/perma/migrations/0003_auto__add_vestingorg__add_field_linkuser_vesting_org.py
+    $ git add perma_web/perma/migrations/0003_auto__add_org__add_field_linkuser_org.py
     $ git commit -m "Added migration"
 
 

@@ -106,18 +106,6 @@ class LinkValidation(Validation):
             elif uploaded_file.size > settings.MAX_ARCHIVE_FILE_SIZE:
                 errors['file'] = "File is too large."
        
-        # Vesting
-        if bundle.data.get('vested', None) and bundle.obj.tracker.has_changed('vested'):
-            if not bundle.obj.organization:
-                errors['organization'] = "organization can't be blank"
-            elif not bundle.obj.folders.filter(organization=bundle.obj.organization):
-                # if not currently in the org's folder, the folder needs to be supplied
-                if not bundle.data.get("folder", None):
-                    errors['folder'] = "This archive is not currently in the org's folder. Please specify a folder belonging to the org when vesting."
-                else:
-                    if bundle.data['folder'].organization != bundle.obj.organization:
-                        errors['folder'] = "the folder must belong to the organization"
-
         # Moving folder when not organization
         #elif bundle.data.get("folder", None):
             #if bundle.obj.organization_id and bundle.obj.organization_id != bundle.data['folder'].organization_id:
@@ -145,7 +133,5 @@ class FolderValidation(Validation):
                 errors['parent'] = "Can't move organization's shared folder."
             elif bundle.obj.is_root_folder:
                 errors['parent'] = "Can't move user's main folder."
-            #elif bundle.obj.organization_id and bundle.obj.organization_id != bundle.obj.parent.organization_id:
-                #errors['parent'] = "Can't move folder with vested links out of organization's shared folder."
 
         return errors

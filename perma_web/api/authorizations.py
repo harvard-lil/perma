@@ -94,10 +94,10 @@ class AuthenticatedLinkAuthorization(ReadOnlyAuthorization):
         if not bundle.request.user.is_authenticated():
             raise Unauthorized()
 
-        # It is possible to vest a link you can't (yet) read.
-        # If patching an unvested link, we skip the read permissions check and rely on patch authorization.
-        if bundle.request.method == 'PATCH' and not bundle.obj.vested and bundle.request.user.can_vest():
-            return True
+        # If we want to patch title or another field in the future, 
+        # we might want to uncomment this (?).
+        #if bundle.request.method == 'PATCH':
+        #    return True
 
         if bundle.request.user.is_staff:
             return True
@@ -154,25 +154,7 @@ class LinkAuthorization(AuthenticatedLinkAuthorization):
 
         return True
 
-    def can_vest_to_org(self, user, org):
-        if user.is_registrar_member():
-            # user must be registrar for this org ...
-            return user.registrar == org.registrar
-        elif user.is_staff:
-            # ... or staff ...
-            return True
-        else:
-            # ... or belong to this org
-            return user.organizations.filter(pk=org.pk).exists()
-
     def update_detail(self, object_list, bundle):
-        # For vesting
-        if bundle.obj.tracker.has_changed("vested"):
-            if not bundle.request.user.can_vest() or not self.can_vest_to_org(bundle.request.user, bundle.obj.organization):
-                raise Unauthorized()
-
-            return True
-
         # public/private
         # If you aren't staff, you're only allowed to toggle is_private if private_reason is 'user'.
         if bundle.obj.tracker.has_changed("is_private") and not bundle.request.user.is_staff:

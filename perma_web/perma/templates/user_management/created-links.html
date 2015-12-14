@@ -79,22 +79,6 @@
 {% endblock %}
 
 {% block templates %}
-    {% comment %}
-        {# this needs to be translated for the API and added to created-link-items-template #}
-        {% if current_folder.vesting_org %}
-            <div class="shared-folder-label alert-info">
-                {% if shared_with_count %}
-                    This folder is shared with {{ shared_with_count }} other member{{ shared_with_count|pluralize }} of {{ current_folder.vesting_org }}.
-                {% else %}
-                    This folder will be shared with members of {{ current_folder.vesting_org }}.
-                {% endif %}
-            </div>
-        {% elif request.user.can_vest %}
-            <div class="shared-folder-label alert-info">
-                This folder is not shared.
-            </div>
-        {% endif %}
-    {% endcomment %}
 {% verbatim %}
 <script id="created-link-items-template" type="text/x-handlebars-template">
 {{#if query }}
