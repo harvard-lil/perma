@@ -2,66 +2,81 @@
 {% load local_datetime humanize current_query_string %}
 {% block title %} | Organizations{% endblock %}
 
-{% block content %}
+{% block dashboardContent %}
 
-	<h3>Existing organizations {% if request.user.is_staff or request.user.is_registrar_member %}<small><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add new</a></small></h3>
+	<h2 class="body-ah">Organizations {% if request.user.is_staff or request.user.is_registrar_member %}<span class="action"><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add<span class="_verbose"> organization</span></a></span></h2>
 		
 	<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
       <form method="post">
         {% csrf_token %}
-        <h4>Add a new organization</h4>
-        <fieldset>
-        <span class="text-error">{{ form.non_field_errors }}</span>
-          {% for field in form %}
-            <label for="id_{{ field.name }}">{{ field.label }}</label><br/>
-            {{ field }}<br/>
-            {% if field.errors %}
-              {% for error in field.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
-            {%elif field.help_text %}
-              <span class="help-inline">{{ field.help_text }}</span>
-            {% endif %}
-          {% endfor %}  
-        </fieldset>
-        <button type="submit" class="btn-success">Create new organization</button>
+        <h4 class="body-ch">Add an Organization</h4>
+				<fieldset>
+					{% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
+					{% for field in form %}
+						<div class="form-group{% if field.errors %} _error{% endif %}">
+							<label for="id_{{ field.name }}">{{ field.label }}</label>
+							{{ field }}
+							{% if field.errors %}
+								{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+							{%elif field.help_text %}
+								<span class="field-error">{{ field.help_text }}</span>
+							{% endif %}
+						</div>
+					{% endfor %}
+				</fieldset>
+        <button type="submit" class="btn">Create new organization</button>
       </form>
     </div>
     {% else %}
-    </h3>
+    </h2>
     {% endif %}
 
-    <div class="row">
-        <div class="col-sm-3">
+    <div class="row row-no-bleed admin-data">
+        <div class="col col-xs-6 col-no-gutter admin-data-point">
                 <p class="count-label">Users</p>
                 <p class="count-number">{{ users_count }}</p>
             </div>
             {% comment %}
-            <div class="col-sm-3">
+            <div class="col col-no-gutter admin-data-point">
                 <p class="count-label">Deactivated Users</p>
                 <p class="count-number">{{ deactivated_users }}</p>
             </div>
-            <div class="col-sm-3">
+            <div class="col col-no-gutter admin-data-point">
                 <p class="count-label">Unactivated Users</p>
                 <p class="count-number">{{ unactivated_users }}</p>
             </div>
             {% endcomment %}
-        <div class="col-sm-3">
+        <div class="col col-xs-6 col-no-gutter admin-data-point">
             <p class="count-label">Organizations</p>
             <p class="count-number">{{ orgs.paginator.count }}</p>
         </div>
     </div>
 
+	<div class="row">
+		<div class="col-sm-12">
+			{% include "user_management/includes/search_form.html" with search_placeholder="Search Organizations" %}
+		</div>
+	</div><!-- search -->
+
+
      {% if search_query or registrar_filter %}
         <div class="row">
             <div class="col-sm-12">
-                <a class="remove-search-filters" href="?sort=name"><i class="icon-remove-sign"></i> Clear{% if registrar_filter %} registrar:<strong>{{registrar_filter.name}}</strong>{% endif %}{% if search_query %} search:<strong>{{search_query}}</strong>{% endif %}</a>
+				<div class="remove-search-filters">
+					<span class="filters-title">Filters: </span>
+	                {% if registrar_filter %}<span class="filter-label">Registrar</span> <strong>{{registrar_filter.name}}</strong> {% endif %}
+	                {% if search_query %}<span class="filter-label">Search</span> <strong>{{search_query}}</strong>{% endif %}
+					<a class="action remove-filters" href="?sort=name"><i class="icon-remove-sign"></i> Clear all filters</a>
+				</div>
             </div>
         </div>
         {% endif %}
-        <div class="row">
-            <div class="col-sm-12">
-                <p class="sort-filter-count">{{ orgs.paginator.count }} organization{{ orgs.paginator.count|pluralize }}</p>
+
+        <div class="row row-no-bleed">
+            <div class="col admin-found col-no-gutter">
+                <p class="sort-filter-count"><strong>Found:</strong> {{ orgs.paginator.count }} organization{{ orgs.paginator.count|pluralize }}</p>
                 <div class="sort-filter-bar">
-                {% include "user_management/includes/search_form_simple.html" %}
+				<strong>Filter &amp; Sort:</strong>
                 <div class="dropdown">
                   <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
                     Sort <span class="caret"></span>
@@ -75,8 +90,8 @@
                         <a {% if sort == 'date_created' %}class="selected" {% endif %} href="?{% current_query_string sort="date_created" %}"><i class="icon-ok"></i> Oldest</a>
                         <a {% if sort == '-last_active' %}class="selected" {% endif %} href="?{% current_query_string sort="-last_active" %}"><i class="icon-ok"></i> Recently active</a>
                         <a {% if sort == 'last_active' %}class="selected" {% endif %} href="?{% current_query_string sort="=last_active" %}"><i class="icon-ok"></i> Least recently active</a>
-                        <a {% if sort == '-vested_links' %}class="selected" {% endif %} href="?{% current_query_string sort="-vested_links" %}"><i class="icon-ok"></i> Most vested links</a>
-                        <a {% if sort == 'vested_links' %}class="selected" {% endif %} href="?{% current_query_string sort="vested_links" %}"><i class="icon-ok"></i> Least vested links</a><a {% if sort == '-vesting_users' %}class="selected" {% endif %} href="?sort=-vesting_users{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Most users</a>
+                        <a {% if sort == '-vested_links' %}class="selected" {% endif %} href="?{% current_query_string sort="-vested_links" %}"><i class="icon-ok"></i> Most links</a>
+                        <a {% if sort == 'vested_links' %}class="selected" {% endif %} href="?{% current_query_string sort="vested_links" %}"><i class="icon-ok"></i> Least links</a><a {% if sort == '-vesting_users' %}class="selected" {% endif %} href="?sort=-vesting_users{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Most users</a>
                         <a {% if sort == 'vesting_users' %}class="selected" {% endif %} href="?{% current_query_string sort="vesting_users" %}"><i class="icon-ok"></i> Least users</a>
                     </li>
                   </ul>
@@ -110,62 +125,54 @@
         </div>
         {% if orgs %}
           {% for org in orgs %}
-            <div class="row list-user list-user-registrar">
-            <div class="col-sm-12">
-            <a class="pull-right" href="{% url 'user_management_manage_single_organization' org.id %}">edit</a>
-            {% if request.user.is_staff %}
-                <br><a class="pull-right" href="{% url 'admin:perma_organization_change' org.id %}">edit in admin console</a>
-            {% endif %}
-            <p class="list-name"><a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">{{ org.name }}</a></p>
-            </div>
-              <div class="col-sm-5">
-              <div class="list-count-group">
-                <p class="list-count-number">{{ org.vested_links|intcomma }}</p>
-                <p class="list-count-label">vested links</p>
-                </div>
-                {% comment %}
-                    <div class="list-count-group">
-                    <p class="list-count-number{% if group_name == 'user'%} vesting_user-list{% endif %}">{{ org.created_links_count }}</p>
-                    <p class="list-count-label">created links</p>
-                    </div>
-                    {% endcomment %}
-              </div>
-              <div class="col-sm-7 center-list-count">
-                <div class="list-count-group"><a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">
-                <p class="list-count-number">{{ org.organization_users|default_if_none:"0" }}</p>
-                <p class="list-count-label">users</p></a>
-                </div>
-                {% comment %}
-                <div class="list-count-group"><a href="{% url 'user_management_manage_organization_user' %}?vesting_org={{org.name.split|join:'+'|lower}}&status=deactivated">
-                <p class="list-count-number">{{ org.deactivated_count|default_if_none:"0" }}</p>
-                <p class="list-count-label">deactivated users</p></a>
-                </div>
-                <div class="list-count-group"><a href="{% url 'user_management_manage_organization_user' %}?vesting_org={{org.name.split|join:'+'|lower}}&status=unactivated">
-                <p class="list-count-number">{{ org.unactivated_count|default_if_none:"0" }}</p>
-                <p class="list-count-label">unactivated users</p></a>
-                </div>
-                {% endcomment %}
-            </div>
-            <div class="col-sm-7">
-            {% if request.user.is_staff %}
-            <p class="list-registrar"><a href="{% url 'user_management_manage_registrar' %}?q={{org.registrar.name.split|join:'+'|lower}}">{{ org.registrar }}</a></p>
-            {% endif %}
-            </div>
-            <div class="col-sm-5">
-                <p class="list-date">
-              created {{ org.date_created|date:'N j, Y' }}
-            <br>
-              {% if org.organization_users %}
-              last active {{ org.last_active|date:'N j, Y'}}
-              {% else %}
-              <span class="text-warning">no existing users</span>
-              {% endif %}
-              </p>
-            </div>
-            </div>
+
+            <div class="item-container">
+		        <div class="row row-no-bleed">
+		            <div class="col col-sm-8 col-no-gutter">
+			            <div class="item-title"><a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">{% if org.default_to_private %}<span class="ui-private">[private]</span> {% endif %}{{ org.name }}</a></div>
+						{% if request.user.is_staff %}
+							<div class="item-affil"><a href="{% url 'user_management_manage_registrar' %}?q={{org.registrar.name.split|join:'+'|lower}}">{{ org.registrar }}</a></div>
+						{% endif %}
+
+			            <div class="row row-half-bleed item-count-groups">
+							<div class="col col-xs-12 col-md-4 col-half-gutter">
+				                <div class="item-count-group">
+									<strong class="list-count-number">{{ org.org_links|intcomma }}</strong>
+									<span class="item-count-label">links</span>
+				                </div>
+							</div>
+							<div class="col col-xs-12 col-md-4 col-half-gutter">
+				                <div class="item-count-group">
+					                <strong class="list-count-number">{{ org.organization_users|default_if_none:"0" }}</strong>
+					                <span class="item-count-label">users <a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">View</a></span>
+				                </div>
+			                </div>
+						</div>
+		            </div>
+
+		            <div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
+						{% if org.org_links < 1 %}
+		            		<a class="action" href="{% url 'user_management_manage_single_organization_delete' org.id %}">delete</a>
+		            	{% endif %}
+			            <a class="action" href="{% url 'user_management_manage_single_organization' org.id %}">edit</a>
+			            {% if request.user.is_staff %}
+			                <a class="action" href="{% url 'admin:perma_organization_change' org.id %}">edit in admin console</a>
+			            {% endif %}
+						<p class="item-activity">
+						created {{ org.date_created|date:'N j, Y' }}
+						<br>
+						{% if org.organization_users %}
+						last active {{ org.last_active|date:'N j, Y'}}
+						{% else %}
+						<span class="text-warning">no existing users</span>
+						{% endif %}
+						</p>
+		            </div>
+	            </div>
+			</div>	
           {% endfor %}
     {% else %}
-        <p class="no-users-found">No organizations found.</p>
+        <p class="item-notification">No organizations found.</p>
     {% endif %}
 
     {% include "user_management/includes/paginator.html" with page=orgs %}

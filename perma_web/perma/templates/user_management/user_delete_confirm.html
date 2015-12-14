@@ -1,19 +1,16 @@
 {% extends "admin-layout.html" %}
 {% block title %} | Delete user{% endblock %}
 
-{% block content %}
+{% block adminContent %}
 
-	<h3>Delete {{ target_member.email }}</h3>
-	<br/>
-	<br/>
-	<p>Yahowza! Do you really want to {% if target_member.is_confirmed %}deactivate {{ target_member.email }}{% else %}delete {{ target_member.email }} forever{% endif %}?</p>
-	<br/>
-	<form action="" method="POST">
-	    {% csrf_token %}
-        <a href="../">Cancel</a>
-        <button type="submit" class="btn-success delete-confirm">
-            {% if target_member.is_confirmed %}Deactivate{% else %}Delete {{ target_member.email }} forever{% endif %}
-        </button>
-    </form>
+<h3 class="body-bh">Delete {{ target_member.email }}</h3>
+<p class="page-dek">Yahowza! Do you really want to {% if target_member.is_confirmed %}deactivate {{ target_member.email }}{% else %}delete {{ target_member.email }} forever{% endif %}?</p>
+<form action="" method="POST">
+	{% csrf_token %}
+	<a class="btn cancel" href="../">Cancel</a>
+	<button type="submit" class="btn delete-confirm">
+	    {% if target_member.is_confirmed %}Deactivate{% else %}Delete {{ target_member.email }} forever{% endif %}
+	</button>
+</form>
 
 {% endblock %}

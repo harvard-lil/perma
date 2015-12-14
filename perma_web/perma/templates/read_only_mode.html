@@ -1,11 +1,14 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% block title %} | Read-only mode{% endblock %}
 
-{% block content %}
-	<div class="col-sm-12 column">
-		<div class="center-block">
-			<h2>Read-only mode.</h2>
-			<p>Perma is in read-only mode for scheduled maintenance. Please check back shortly.</p>
+{% block mainContent %}
+<div class="container cont-fixed">
+	<div class="row">
+		<div class="col-xs-12">
+			<h1 class="page-title">Read-only mode</h1>
+			<p class="page-dek">Perma is in read-only mode for scheduled maintenance. Please check back shortly.</p>
 		</div>
 	</div>
+</div>
+
 {% endblock %}

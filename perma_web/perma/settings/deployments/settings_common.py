@@ -18,7 +18,6 @@ DATABASES = {
         'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
         'PORT': '3306',                      # Set to empty string for default.
         'OPTIONS': {
-            "init_command": "SET storage_engine=INNODB; SET foreign_key_checks = 0; SET NAMES 'utf8';",
             "charset": "utf8",
         },
     }
@@ -56,9 +55,9 @@ MONITOR_ROOT = '/tmp/perma/monitor'
 MONITOR_URL = '/monitor/media/'
 
 # static files
-STATIC_ROOT = ''                # where to store collected static files
+STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static-collected')                # where to store collected static files
 STATIC_URL = '/static/'         # URL to serve static files
-STATICFILES_DIRS = ('static',)  # where to look for static files (in addition to app/static/)
+STATICFILES_DIRS = (os.path.join(PROJECT_ROOT, 'static'),)  # where to look for static files (in addition to app/static/)
 STATICFILES_FINDERS = (         # how to look for static files
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
@@ -67,10 +66,10 @@ STATICFILES_FINDERS = (         # how to look for static files
 )
 
 # Django Pipeline config
-STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
+STATICFILES_STORAGE = 'perma.storage_backends.StaticStorage'
 
 # media storage -- default_storage config
-DEFAULT_FILE_STORAGE = 'perma.storage_backends.FileSystemStorage'
+DEFAULT_FILE_STORAGE = 'perma.storage_backends.FileSystemMediaStorage'
 
 # We likely want to do something like this:
 # PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.jsmin.JSMinCompressor'
@@ -90,6 +89,7 @@ PIPELINE_JS = {
         'source_filenames': (
             'js/jquery.js',
             'js/bootstrap3.js',
+            'js/fastclick.min.js',
             'js/global.js',
         ),
         'output_filename': 'js/global-bundle.js',
@@ -130,29 +130,31 @@ PIPELINE_JS = {
             'js/lib/spin.js',
             'js/jquery.form.min.js',
             'js/create.js',
+
+            'js/jquery-ui-1.10.3.custom.min.js',
+            'js/lib/jstree.min.js',
+            'js/lib/jquery.splendid.textchange.js',
+            'js/lib/jquery.waypoints.js',
+            'js/links-list.js',
         ),
         'output_filename': 'js/create-bundle.js',
     },
-    'links_list': {
-        'source_filenames': (
-            'js/jquery-ui-1.10.3.custom.min.js',
-            'js/jquery.dotdotdot-1.5.9.min.js',
-            'js/lib/jstree.min.js',
-            'js/lib/jquery.splendid.textchange.js',
-            'js/links-list.js',
-        ),
-        'output_filename': 'js/links-list-bundle.js',
-    },
     'landing': {
+        'source_filenames': (
+            'js/landing.js',
+        ),
+        'output_filename': 'js/landing-bundle.js',
+    },
+    'map': {
         'source_filenames': (
             'js/raphael.js',
             'js/raphael.scale.js',
             'js/g.raphael.js',
             'js/usmap.js',
             'js/rwdImageMaps.js',
-            'js/landing.js',
+            'js/map.js',
         ),
-        'output_filename': 'js/landing-bundle.js',
+        'output_filename': 'js/map-bundle.js',
     },
     'stats': {
         'source_filenames': (
@@ -161,27 +163,14 @@ PIPELINE_JS = {
         ),
         'output_filename': 'js/stats-bundle.js',
     },
-    'dark-archive-link': {
-        'source_filenames': (
-            'js/dark-archive-link.js',
-        ),
-        'output_filename': 'js/dark-archive-link-bundle.js',
-    },
     'link-delete-confirm': {
         'source_filenames': (
             'js/link-delete-confirm.js',
         ),
         'output_filename': 'js/link-delete-confirm-bundle.js',
     },
-    'link-vest-confirm': {
-        'source_filenames': (
-            'js/link-vest-confirm.js',
-        ),
-        'output_filename': 'js/link-vest-confirm-bundle.js',
-    },
     'single-link': {
         'source_filenames': (
-            'js/lib/spin.js',
             'js/single-link.js',
 
         ),
@@ -209,7 +198,6 @@ PIPELINE_CSS = {
         'source_filenames': (
             'css/bootstrap3.css',
             'css/style-responsive-archive.scss',
-            'css/font-awesome.min.css',
         ),
         'output_filename': 'css/base-archive-bundle.css',
     },
@@ -243,6 +231,7 @@ MIDDLEWARE_CLASSES = (
     'perma.middleware.AdminAuthMiddleware',
     'ratelimit.middleware.RatelimitMiddleware',
     'perma.middleware.ReadOnlyMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',  # record request.user for model history
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
@@ -277,6 +266,7 @@ INSTALLED_APPS = (
     'perma',
     'api',
     'monitor',
+    'lockss',
 
     # third party apps
     'ratelimit',
@@ -286,6 +276,7 @@ INSTALLED_APPS = (
     'django_forms_bootstrap',
     'djangosecure',  # force SSL -- this can be removed in Django 1.8
     'settings_context_processor',
+    'simple_history',  # record model changes
 
     # django admin -- has to come after our apps for our admin template overrides to work
     'django.contrib.admin',
@@ -299,6 +290,9 @@ LOGIN_URL = '/login'
 
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
+
+# Monthly limit for regular users
+MONTHLY_CREATE_LIMIT = 10
 
 # When getting the source with wget, let's set some details
 ARCHIVE_QUOTA = '20m' # Maximum filesize
@@ -373,7 +367,7 @@ LOGGING = {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
-        }
+        },
     },
     'loggers': {
         '': {
@@ -470,7 +464,6 @@ API_VERSION = 1
 TEMPLATE_VISIBLE_SETTINGS = (
     'API_VERSION',
     'SECURE_SSL_REDIRECT',
-    'HOST',
     'DEBUG'
 )
 
@@ -502,3 +495,12 @@ SAUCE_USERNAME = None
 SAUCE_ACCESS_KEY = None
 
 WARC_STORAGE_DIR = 'warcs'  # relative to MEDIA_ROOT
+
+
+### LOCKSS ###
+
+from datetime import timedelta
+ARCHIVE_DELAY = timedelta(hours=24)
+
+USE_LOCKSS_REPLAY = False  # whether to replay captures from LOCKSS, if servers are available
+LOCKSS_CONTENT_IPS = ""  # IPs of Perma servers allowed to play back LOCKSS content -- e.g. "10.1.146.0/24;140.247.209.64"

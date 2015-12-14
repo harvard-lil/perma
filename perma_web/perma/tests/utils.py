@@ -10,13 +10,6 @@ class PermaTestCase(TransactionTestCase):
                 'fixtures/folders.json',
                 'fixtures/archive.json']
 
-    def setUp(self):
-        # create test registrar and an org
-        # TODO: move these to fixtures
-        registrar = Registrar(name='Test Registrar', email='registrar@test.com', website='http://testregistrar.com')
-        registrar.save()
-        Organization(name='Test Org', registrar=registrar).save()
-
     def log_in_user(self, username, password='pass'):
         # TODO: check resp to see if login actually worked
         self.client.logout()

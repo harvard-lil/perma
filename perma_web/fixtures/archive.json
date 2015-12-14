@@ -7,16 +7,15 @@
                 24
             ],
             "view_count": 3,
-            "vested": false,
+            "is_unlisted": true,
             "vested_timestamp": null,
             "notes": "",
-            "dark_archived_robots_txt_blocked": false,
             "created_by": 3,
-            "dark_archived": false,
             "submitted_title": "arxiv.org",
             "submitted_url": "http://arxiv.org/pdf/1406.3611.pdf",
             "vested_by_editor": null,
             "creation_timestamp": "2014-06-16T19:23:24Z",
+            "archive_timestamp": "2014-06-17T19:23:24Z",
             "organization": null
         }
     },
@@ -28,16 +27,15 @@
                 25
             ],
             "view_count": 1,
-            "vested": false,
+            "is_unlisted": true,
             "vested_timestamp": null,
             "notes": "",
-            "dark_archived_robots_txt_blocked": false,
             "created_by": 4,
-            "dark_archived": false,
             "submitted_title": "Dole Kemp 96 Web Site",
             "submitted_url": "http://dolekemp96.org",
             "vested_by_editor": null,
             "creation_timestamp": "2014-06-16T19:22:51Z",
+            "archive_timestamp": "2014-06-17T19:22:51Z",
             "organization": null
         }
     },
@@ -53,15 +51,14 @@
             "vested": true,
             "vested_timestamp": "2014-12-07T18:56:33Z",
             "user_deleted": false,
-            "dark_archived_robots_txt_blocked": false,
+            
             "created_by": 4,
-            "dark_archived_by": null,
             "user_deleted_timestamp": null,
-            "dark_archived": false,
             "submitted_title": "MetaFilter | Community Weblog",
             "submitted_url": "http://metafilter.com",
             "vested_by_editor": 3,
             "creation_timestamp": "2014-12-07T18:55:37Z",
+            "archive_timestamp": "2014-12-08T18:55:37Z",
             "notes": "Maybe the source of all cool things on the internet.",
             "organization": 1
         }
@@ -78,15 +75,13 @@
             "vested": true,
             "vested_timestamp": "2014-12-08T18:56:33Z",
             "user_deleted": false,
-            "dark_archived_robots_txt_blocked": false,
             "created_by": 4,
-            "dark_archived_by": null,
             "user_deleted_timestamp": null,
-            "dark_archived": false,
             "submitted_title": "Google",
             "submitted_url": "http://google.com",
             "vested_by_editor": 3,
             "creation_timestamp": "2014-12-08T18:55:37Z",
+            "archive_timestamp": "2014-12-09T18:55:37Z",
             "notes": "In an org subfolder, vested.",
             "organization": 1
         }
@@ -100,18 +95,16 @@
                 35
             ],
             "view_count": 2,
-            "vested": false,
+            "is_unlisted": true,
             "vested_timestamp": null,
             "user_deleted": false,
-            "dark_archived_robots_txt_blocked": false,
-            "created_by": 4,
-            "dark_archived_by": null,
             "user_deleted_timestamp": null,
-            "dark_archived": false,
+            "created_by": 4,
             "submitted_title": "Google",
             "submitted_url": "http://google.com",
             "vested_by_editor": null,
             "creation_timestamp": "2014-12-09T18:55:37Z",
+            "archive_timestamp": "2014-12-10T18:55:37Z",
             "notes": "In an org subfolder, unvested.",
             "organization": null
         }
@@ -124,17 +117,125 @@
                 30
             ],
             "view_count": 1,
-            "vested": false,
+            "is_unlisted": true,
             "vested_timestamp": null,
             "notes": "",
-            "dark_archived_robots_txt_blocked": false,
             "created_by": 4,
-            "dark_archived": false,
             "submitted_title": "Wikipedia",
             "submitted_url": "https://www.wikipedia.org/",
             "vested_by_editor": null,
             "creation_timestamp": "2014-07-19T20:21:31Z",
+            "archive_timestamp": "2014-07-20T20:21:31Z",
             "organization": null
+        }
+    },
+    {
+        "pk": "ABCD-0001",
+        "model": "perma.link",
+        "fields": {
+            "folders": [
+                30,
+                34
+            ],
+            "view_count": 1,
+            "vested_timestamp": null,
+            "notes": "Dark archived by user.",
+            "created_by": 4,
+            "is_private": true,
+            "private_reason": "user",
+            "submitted_title": "Wikipedia",
+            "submitted_url": "https://www.wikipedia.org/",
+            "vested_by_editor": null,
+            "creation_timestamp": "2014-07-19T20:21:31Z",
+            "archive_timestamp": "2014-07-20T20:21:31Z",
+            "organization": 1
+        }
+    },
+    {
+        "pk": "ABCD-0002",
+        "model": "perma.link",
+        "fields": {
+            "folders": [
+                30,
+                34
+            ],
+            "view_count": 1,
+            "vested_timestamp": null,
+            "notes": "Dark archived - robots.txt.",
+            "created_by": 4,
+            "is_private": true,
+            "private_reason": "policy",
+            "submitted_title": "Wikipedia",
+            "submitted_url": "https://www.wikipedia.org/",
+            "vested_by_editor": null,
+            "creation_timestamp": "2014-07-19T20:21:31Z",
+            "archive_timestamp": "2014-07-20T20:21:31Z",
+            "organization": 1
+        }
+    },
+    {
+        "pk": "ABCD-0003",
+        "model": "perma.link",
+        "fields": {
+            "folders": [
+                30,
+                34
+            ],
+            "view_count": 1,
+            "vested_timestamp": null,
+            "notes": "Deleted.",
+            "created_by": 4,
+            "user_deleted": true,
+            "user_deleted_timestamp": "2014-07-19T20:22:31Z",
+            "submitted_title": "Wikipedia",
+            "submitted_url": "https://www.wikipedia.org/",
+            "vested_by_editor": null,
+            "creation_timestamp": "2014-07-19T20:21:31Z",
+            "archive_timestamp": "2014-07-20T20:21:31Z",
+            "organization": 1
+        }
+    },
+    {
+        "pk": "ABCD-0004",
+        "model": "perma.link",
+        "fields": {
+            "folders": [
+                30,
+                34
+            ],
+            "view_count": 1,
+            "vested_timestamp": null,
+            "notes": "Dark archived - takedown.",
+            "created_by": 4,
+            "is_private": true,
+            "private_reason": "takedown",
+            "submitted_title": "Wikipedia",
+            "submitted_url": "https://www.wikipedia.org/",
+            "vested_by_editor": null,
+            "creation_timestamp": "2014-07-19T20:21:31Z",
+            "archive_timestamp": "2014-07-20T20:21:31Z",
+            "organization": 1
+        }
+    },
+    {
+        "pk": "ABCD-0005",
+        "model": "perma.link",
+        "fields": {
+            "folders": [
+                30,
+                34
+            ],
+            "view_count": 1,
+            "vested_timestamp": null,
+            "notes": "Unlisted (legacy unvested archive).",
+            "created_by": 4,
+            "is_unlisted": true,
+            "submitted_title": "Wikipedia",
+            "submitted_url": "https://www.wikipedia.org/",
+            "vested_by_editor": null,
+            "creation_timestamp": "2014-07-19T20:21:31Z",
+            "archive_timestamp": "2014-07-20T20:21:31Z",
+            "organization": 1
         }
     },
   {
@@ -227,5 +328,70 @@
     },
     "model": "perma.capture",
     "pk": 7
+  },
+  {
+    "fields": {
+      "status": "success",
+      "url": "file:///ABCD-0001/cap.png",
+      "user_upload": false,
+      "record_type": "resource",
+      "role": "screenshot",
+      "content_type": "image/png",
+      "link": "ABCD-0001"
+    },
+    "model": "perma.capture",
+    "pk": 8
+  },
+  {
+    "fields": {
+      "status": "success",
+      "url": "file:///ABCD-0002/cap.png",
+      "user_upload": false,
+      "record_type": "resource",
+      "role": "screenshot",
+      "content_type": "image/png",
+      "link": "ABCD-0002"
+    },
+    "model": "perma.capture",
+    "pk": 9
+  },
+  {
+    "fields": {
+      "status": "success",
+      "url": "file:///ABCD-0003/cap.png",
+      "user_upload": false,
+      "record_type": "resource",
+      "role": "screenshot",
+      "content_type": "image/png",
+      "link": "ABCD-0003"
+    },
+    "model": "perma.capture",
+    "pk": 10
+  },
+  {
+    "fields": {
+      "status": "success",
+      "url": "file:///ABCD-0004/cap.png",
+      "user_upload": false,
+      "record_type": "resource",
+      "role": "screenshot",
+      "content_type": "image/png",
+      "link": "ABCD-0004"
+    },
+    "model": "perma.capture",
+    "pk": 10
+  },
+  {
+    "fields": {
+      "status": "success",
+      "url": "file:///ABCD-0005/cap.png",
+      "user_upload": false,
+      "record_type": "resource",
+      "role": "screenshot",
+      "content_type": "image/png",
+      "link": "ABCD-0005"
+    },
+    "model": "perma.capture",
+    "pk": 10
   }
 ]

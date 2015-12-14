@@ -2,16 +2,18 @@
 {% load bootstrap_tags %}
 {% block title %} | Edit registrar{% endblock %}
 
-{% block content %}
+{% block dashboardContent %}
 
-	<h3>Edit registrar</h3>
+<div class="container cont-fixed">
+	<h3 class="body-bh">Edit registrar</h3>
 	<div class="row">
 		<div class="col-sm-6">
     	<form method="post">
       		{% csrf_token %}
 			{{ form|as_bootstrap }}
-      		<button type="submit" class="btn-success">Save changes</button>
+      		<button type="submit" class="btn">Save changes</button>
     	</form>
 		</div>
 	</div>
+</div>
 {% endblock %}

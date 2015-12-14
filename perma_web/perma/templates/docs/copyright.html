@@ -1,4 +1,4 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% load file_exists %}
 {% block title %} | Docs{% endblock %}
 
@@ -6,14 +6,12 @@
 The Perma.cc Copyright Policy.
 {% endblock %}
 
-{% block content %}
-<div class="container">
+{% block mainContent %}
+<div class="container cont-fixed">
 	<div class="col-sm-8 docs">
-		<h2>Copyright</h2>
-		<br/>
-		<br/>
+		<h2 class="body-ah">Copyright</h2>
 		<h4><a href="#">Copyright Policy</a></h4>
-		<p>Consistent with the Digital Millennium Copyright Act (DMCA), if you believe that your copyrighted materials have been copied in a way that constitutes copyright infringement, please send an email or written notice to our designated agent for notices of infringement and provide the following information:</p>
+		<p class="body-text">Consistent with the Digital Millennium Copyright Act (DMCA), if you believe that your copyrighted materials have been copied in a way that constitutes copyright infringement, please send an email or written notice to our designated agent for notices of infringement and provide the following information:</p>
 		
 		<ol>
 			<li>a physical or electronic signature of person authorized to act on behalf of the owner of an exclusive right that is allegedly infringed;</li>
@@ -24,7 +22,7 @@ The Perma.cc Copyright Policy.
 			<li>a statement that the information in the notification is accurate, and under penalty of perjury, that the complaining party is authorized to act on behalf of the owner of an exclusive right that is allegedly infringed.</li>
 		</ol>
 		
-		<p>Perma.cc’s designated agent for notice for claims of copyright infringement is Kyle K. Courtney, who can be reached as follows:</p>
+		<p class="body-text">Perma.cc’s designated agent for notice for claims of copyright infringement is Kyle K. Courtney, who can be reached as follows:</p>
 		
 		<ol>
 			<li>By mail: Harvard Law Library, Langdell 263, 1545 Massachusetts Ave. Cambridge, MA 02138</li>
@@ -32,7 +30,7 @@ The Perma.cc Copyright Policy.
 			<li>By email: <a href="mailto:kcourtney@law.harvard.edu">kcourtney(@)law.harvard.edu</a></li>
 		</ol>
 		
-		<p><strong>Note:</strong> the above contact information is provided exclusively for notifying Perma.cc that your copyrighted material may have been infringed. All other inquiries, (e.g., requests for technical assistance or customer service, reports of email abuse, and piracy reports), will not receive a response through this process and should be directed to the appropriate entity via email or by phone</p>
+		<p class="body-text"><strong>Note:</strong> the above contact information is provided exclusively for notifying Perma.cc that your copyrighted material may have been infringed. All other inquiries, (e.g., requests for technical assistance or customer service, reports of email abuse, and piracy reports), will not receive a response through this process and should be directed to the appropriate entity via email or by phone</p>
 		
 		
 	
@@ -42,7 +40,6 @@ The Perma.cc Copyright Policy.
 <ul class="nav nav-pills nav-stacked">
   <li><a href="{% url 'docs' %}">Overview</a></li>
   <li><a href="{% url 'docs_perma_link_creation' %}">Perma Link Creation</a></li>
-  <li><a href="{% url 'docs_perma_link_vesting' %}">Perma Link Vesting</a></li>
   <li><a href="{% url 'docs_perma_archive' %}">Perma Archive</a></li>
   <li><a href="{% url 'docs_perma_user_roles' %}">Perma User Roles</a></li>
 <li><a href="{% url 'docs_robustness' %}">Under the Hood</a></li>

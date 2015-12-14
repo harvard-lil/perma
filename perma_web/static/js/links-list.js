@@ -1,80 +1,77 @@
 $(function() {
-    var linkTable = $('.link-rows');
+    var linkTable = $('.item-rows'),
+        dragStartPosition,
+        lastRowToggleTime = 0;
 
     function getLinkIDForFormElement(element){
-        return element.closest('.link-container').find('.link-row').attr('link_id');
+        return element.closest('.item-container').find('.item-row').attr('link_id');
     }
 
-    function showError(jqXHR){
-        var message;
-
-        if(jqXHR.status == 400 && jqXHR.responseText){
-            try{
-                var parsedResponse = JSON.parse(jqXHR.responseText);
-                while(typeof parsedResponse == 'object'){
-                    for(var key in parsedResponse){
-                        if (parsedResponse.hasOwnProperty(key)){
-                            parsedResponse = parsedResponse[key];
-                            break;
-                        }
-                    }
-                }
-                message = parsedResponse;
-            }catch(SyntaxError){}
-        }
-
-        if(!message){
-            message = "Error " + jqXHR.status;
-        }
-
-        informUser(message, 'danger');
-    }
-
-    // save changes to a given text box to the server
-    var saveNeeded = false,
-        lastSaveTime = 0,
-        saveBufferSeconds = 3;
+    // save changes in a given text box to the server
+    var saveBufferSeconds = .5,
+        timeouts = {};
     function saveInput(inputElement, statusElement, name, callback) {
-        if(inputElement.val()==inputElement.attr('last_value_saved'))
-            return;
-
-        statusElement.html('saving ...');
-        saveNeeded = true;
+        statusElement.html('Saving...');
 
         var guid = inputElement.attr('id').match(/.+-(.+-.+)/)[1],
-            data = {};
+            timeoutKey = guid+name;
 
-        data[name] = inputElement.val();
+        if(timeouts[timeoutKey])
+            clearTimeout(timeouts[timeoutKey]);
 
         // use a setTimeout so notes are only saved once every few seconds
-        setTimeout(function () {
-            if (saveNeeded) {
-                saveNeeded = false;
-                lastSaveTime = new Date().getTime();
-                var saveValue = inputElement.val();
-
-                var request = apiRequest("PATCH", '/archives/' + guid + '/', data);
-
-                request.done(function(data){
-                    if(!saveNeeded)
-                        statusElement.html('saved.');
-                        inputElement.attr('last_value_saved', saveValue);
-                });
-
-                if (callback) request.done(callback);
-            }
-        }, Math.max(saveBufferSeconds * 1000 - (new Date().getTime() - lastSaveTime), 0));
+        timeouts[timeoutKey] = setTimeout(function () {
+            var data = {};
+            data[name] = inputElement.val();
+            var request = apiRequest("PATCH", '/archives/' + guid + '/', data).done(function(data){
+                statusElement.html('Saved!');
+            });
+            if (callback) request.done(callback);
+        }, saveBufferSeconds*1000);
     }
 
-    // hide and show link details
-    linkTable.on('mousedown', '.link-expand', function () {
-        // handle details link to hide/show link details
-        var button = $(this),
-            details = button.closest('.link-container').find('.link-details');
+    /*
+        Link rows respond to both a *click* to hide/show details, and a *drag* to move to different folders.
+        So we start the drag on mousedown, and then check on mouseup whether it's more like a click or drag.
+     */
+
+    // .item-row mousedown -- start drag event
+    linkTable.on('mousedown touchstart', '.item-row', function (e) {
+        if ($(e.target).hasClass('no-drag'))
+            return;
+
+        $.vakata.dnd.start(e, {
+            jstree: true,
+            obj: $(this),
+            nodes: [
+                {id: $(this).attr('link_id')}
+            ]
+        }, '<div id="jstree-dnd" class="jstree-default"><i class="jstree-icon jstree-er"></i>[link]</div>');
+
+        // record drag start position so we can check how far we were dragged on mouseup
+        dragStartPosition = [e.pageX || e.originalEvent.touches[0].pageX, e.pageY || e.originalEvent.touches[0].pageY];
+
+    // .item-row mouseup -- hide and show link details, if not dragging
+    }).on('mouseup touchend', '.item-row', function (e) {
+        // prevent JSTree's tap-to-drag behavior
+        $.vakata.dnd.stop(e);
+
+        // don't treat this as a click if the mouse has moved more than 5 pixels -- it's probably an aborted drag'n'drop or touch scroll
+        if(dragStartPosition && Math.sqrt(Math.pow(e.pageX-dragStartPosition[0], 2)*Math.pow(e.pageY-dragStartPosition[1], 2))>5)
+            return;
+
+        // don't toggle faster than twice a second (in case we get both mouseup and touchend events)
+        if(new Date().getTime() - lastRowToggleTime < 500)
+            return;
+        lastRowToggleTime = new Date().getTime();
+
+        // hide/show link details
+        var linkContainer = $(this).closest('.item-container'),
+            details = linkContainer.find('.item-details');
         if(details.is(":visible")){
             details.hide();
-            button.text('More');
-        }else{
+            linkContainer.toggleClass( '_active' )
+        }else {
             // when showing link details, update the move-to-folder select input
             // based on the current folderTree structure
 
@@ -83,10 +80,9 @@ $(function() {
                 moveSelect = details.find('.move-to-folder');
             moveSelect.find('option').remove();
 
-
             // recursively populate select ...
-            function addChildren(node, depth){
-                for(var i=0;i<node.children.length;i++){
+            function addChildren(node, depth) {
+                for (var i = 0; i < node.children.length; i++) {
                     var childNode = folderTree.get_node(node.children[i]);
 
                     // For each node, we create an <option> using text() for the folder name,
@@ -98,19 +94,20 @@ $(function() {
                             text: childNode.text.trim(),
                             selected: childNode.data.folder_id == currentFolderID
                         }).prepend(
-                            new Array(depth).join('&nbsp;&nbsp;')+'- '
+                            new Array(depth).join('&nbsp;&nbsp;') + '- '
                         )
                     );
 
                     // recurse
-                    if(childNode.children && childNode.children.length)
-                        addChildren(childNode, depth+1);
+                    if (childNode.children && childNode.children.length)
+                        addChildren(childNode, depth + 1);
                 }
             }
+
             addChildren(folderTree.get_node('#'), 1);
 
             details.show();
-            button.text('Hide');
+            linkContainer.toggleClass('_active')
         }
 
     // save changes to notes field
@@ -123,35 +120,19 @@ $(function() {
         var textarea = $(this);
         saveInput(textarea, textarea.prevAll('.title-save-status'), 'title', function () {
             // update display title when saved
-            textarea.closest('.link-container').find('.link-title-display').text(textarea.val());
+            textarea.closest('.item-container').find('.item-title-display span').text(textarea.val());
         });
 
     // handle move-to-folder dropdown
     }).on('change', '.move-to-folder', function () {
-        moveSelect = $(this);
+        var moveSelect = $(this);
         moveLink(
             moveSelect.val(), // selected folder_id to move link to
             getLinkIDForFormElement(moveSelect) // link id to move
-        ).done(function () {
-            showFolderContents(getSelectedFolderID());
-        });
+        );
     });
 
-    // make links draggable
-    linkTable.on('mousedown', '.link-row', function (e) {
-        if ($(e.target).hasClass('no-drag'))
-            return;
-
-        $.vakata.dnd.start(e, {
-            jstree: true,
-            obj: $(this),
-            nodes: [
-                { id: $(this).attr('link_id') }
-            ]
-        }, '<div id="jstree-dnd" class="jstree-default"><i class="jstree-icon jstree-er"></i>[link]</div>');
-    }).on('click', '.link-row td', function (e) {
-        $(this).closest('tr').next('.link-details').toggle();
-    });
+    // set body class during drag'n'drop
     $(document).on('dnd_start.vakata', function (e, data) {
         $('body').addClass("dragging");
 
@@ -190,39 +171,67 @@ $(function() {
         showLoadingMessage = true;
         setTimeout(function(){
             if(showLoadingMessage)
-                linkTable.html("Loading folder contents ...");
+                linkTable.empty().html('<div class="alert-info">Loading folder contents...</div>');
         }, 500);
 
-        var data = {limit: 0},
+        var requestCount = 20,
+            requestData = {limit: requestCount, offset:0},
             endpoint;
 
         if (query) {
-            data.q = query;
+            requestData.q = query;
             endpoint = '/archives/';
         }else{
             endpoint = '/folders/' + folderID + '/archives/';
         }
 
-        // fetch contents
-        apiRequest("GET", endpoint, data)
-            .always(function (data) {
+        // Content fetcher.
+        // This is wrapped in a function so it can be called repeatedly for infinite scrolling.
+        function getNextContents() {
+            apiRequest("GET", endpoint, requestData).always(function (response) {
                 // same thing runs on success or error, since we get back success or error-displaying HTML
                 showLoadingMessage = false;
-                data.objects.map(function(obj){
-                    $.each(obj.captures, function(i, capture){
-                        if(capture.role == 'favicon' && capture.status == 'success')
+                var links = response.objects;
+                $.each(links, function (i, obj) {
+                    $.each(obj.captures, function (i, capture) {
+                        if (capture.role == 'favicon' && capture.status == 'success')
                             obj.favicon_url = capture.playback_url;
                     });
-                    obj.local_url = 'http://' + settings.HOST + '/' + obj.guid;
-                    obj.can_vest = can_vest;
+                    obj.local_url = host + '/' + obj.guid;
+                    obj.can_vest = true;
                     obj.search_query_in_notes = (query && obj.notes.indexOf(query) > -1);
-                    obj.url_docs_perma_link_vesting = url_docs_perma_link_vesting;
-                    obj.expiration_date_formatted = new Date(obj.expiration_date).format("M. j, Y");
-                    obj.creation_timestamp_formatted = new Date(obj.creation_timestamp).format("M. j, Y");
-                    if (obj.vested_timestamp) obj.vested_timestamp_formatted = new Date(obj.vested_timestamp).format("M. j, Y");
+                    obj.expiration_date_formatted = new Date(obj.expiration_date).format("F j, Y");
+                    obj.creation_timestamp_formatted = new Date(obj.creation_timestamp).format("F j, Y");
+                    if (obj.vested_timestamp) {
+                        obj.vested_timestamp_formatted = new Date(obj.vested_timestamp).format("F j, Y");
+                    }
+                    if (Date.now() < Date.parse(obj.archive_timestamp) && obj.organization == null) {
+                        obj.delete_available = true;
+                    }
                 });
-                linkTable.html(templates.created_link_items({objects:data.objects, query:query}));
+
+                // append HTML
+                if(requestData.offset==0)
+                    linkTable.empty();
+                linkTable.find('.links-loading-more').remove();
+                linkTable.append(templates.created_link_items({links: links, query: query}));
+
+                // If we received exactly `requestCount` number of links, there may be more to fetch from the server.
+                // Set a waypoint event to trigger when the last link comes into view.
+                if(links.length == requestCount){
+                    requestData.offset += requestCount;
+                    linkTable.find('.item-container:last').waypoint(function(direction) {
+                        this.destroy();  // cancel waypoint
+                        linkTable.append('<div class="links-loading-more">Loading more ...</div>');
+                        getNextContents();
+                    }, {
+                        offset:'100%'  // trigger waypoint when element hits bottom of window
+                    });
+                }
+
             });
+        }
+        getNextContents();
     }
 
     function createFolder(parentFolderID, newName) {
@@ -242,7 +251,10 @@ $(function() {
     }
 
     function moveLink(folderID, linkID) {
-        return apiRequest("PUT", "/folders/" + folderID + "/archives/" + linkID + "/");
+        return apiRequest("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function(){
+            // once we're done moving the link, hide it from the current folder
+            $('.item-row[link_id="'+linkID+'"]').closest('.item-container').remove();
+        });
     }
 
 
@@ -260,7 +272,6 @@ $(function() {
         if (!confirm("Really delete folder '" + node.text.trim() + "'?"))
             return false;
         folderTree.delete_node(node);
-        folderTree.select_node();
         return false;
     });
 
@@ -306,9 +317,7 @@ $(function() {
                         // link dragged onto folder
                         if (operation == 'copy_node') {
                             var targetNode = getDropTarget();
-                            moveLink(targetNode.data.folder_id, node.id).done(function () {
-                                showFolderContents(getSelectedFolderID());
-                            });
+                            moveLink(targetNode.data.folder_id, node.id);
                         }
                     } else {
                         // internal folder action
@@ -328,7 +337,7 @@ $(function() {
                             deleteFolder(node.data.folder_id).done(function () {
                                 allowedEventsCount++;
                                 folderTree.delete_node(node);
-                                folderTree.select_node();
+                                folderTree.select_node(node.parent);
                             });
                         } else if (operation == 'create_node') {
                             var newName = node.text;
@@ -348,9 +357,8 @@ $(function() {
             plugins: ['contextmenu', 'dnd', 'unique', 'types'],
             dnd: {
                 check_while_dragging: false,
-                drag_target: '.link-row',
+                drag_target: '.item-row',
                 drag_finish: function (data) {
-                    console.log(data);
                 }
             },
             types: {

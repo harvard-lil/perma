@@ -1,124 +1,28 @@
-<div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
-    <div class="carousel-inner">
-        <div class="item active">
-            <a href="http://www.wcl.american.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/AU-WCL-bw.png" alt="American University Washington University Law Library"></a>
-            <a href="http://www.bu.edu/lawlibrary/"><img src="{{ STATIC_URL }}img/participating-institutions/BU-bw.png" alt="Boston University Law School"></a>
-            <a href="https://www.law.upenn.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/Biddle-bw.png" alt="Biddle Law Library, University of Pennsylvania"></a>
-            <a href="http://www.charlestonlaw.edu/Library.aspx"><img src="{{ STATIC_URL }}img/participating-institutions/Charleston-bw.png" alt="Charleston School of Law"></a>
-            <a href="http://lawlibrary.colorado.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/Colorado-bw.png" alt="Colorado Law"></a>
-            <a href="http://web.law.columbia.edu/library"><img src="{{ STATIC_URL }}img/participating-institutions/Columbia-bw.png" alt="Columbia Law School"></a>
-            <a href="http://www.lawschool.cornell.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/Cornell-bw.png" alt="Cornell University Law School"></a>
-            <a href="http://law.duke.edu/lib/"><img src="{{ STATIC_URL }}img/participating-institutions/Duke-bw.png" alt="Duke Law School"></a>
-            <a href="http://www.law.ttu.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/tt-bw.png" alt="Texas Tech University School of Law"></a>
-        </div>
-        <div class="item">
-            <a href="http://www.bc.edu/schools/law/library.html" class="square"><img src="{{ STATIC_URL }}img/participating-institutions/BC-bw.png" alt="Law Library At Boston College"></a>
-            <a href="http://www.law.fsu.edu/library/" class="square"><img src="{{ STATIC_URL }}img/participating-institutions/FSU-bw.png" alt="Florida State Law Research Center"></a>
-            <a href="http://www.valpo.edu/law/current-students/law-library" class="square"><img src="{{ STATIC_URL }}img/participating-institutions/valparaiso-bw.png" alt="Valparaiso University School of Law Library"></a>
-            <a href="http://library.law.yale.edu/" class="square"><img src="{{ STATIC_URL }}img/participating-institutions/YLS-bw.png" alt="Yale Law Library"></a>
-            <a href="http://www.bodleian.ox.ac.uk/law" class="square"><img src="{{ STATIC_URL }}img/participating-institutions/Oxford-bw.png" alt="University of Oxford"></a>
-            <a href="http://mckinneylaw.iu.edu/library/" class="square"><img src="{{ STATIC_URL }}img/participating-institutions/Indiana-bw.png" alt="Robert H. McKinney School of Law, Indiana University"></a>
-        </div>
-        <div class="item">
-            <a href="http://www.law.ufl.edu/library"><img src="{{ STATIC_URL }}img/participating-institutions/Florida-bw.png" alt="University of Florida Levin College of Law"></a>
-            <a href="http://lawlib1.lawnet.fordham.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/Fordham-bw.png" alt="Fordham law school"></a>
-            <a href="http://www.law.georgetown.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/Georgetown-bw.png" alt="Georgetown law library"></a>
-            <a href="http://www.law.harvard.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/HLS-bw.png" alt="Harvard Law School Library"></a>
-            <a href="http://library.jmls.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/Jmls-bw.png" alt="John Marshall Law School"></a>
-            <a href="http://lawlibrary.laverne.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/LaVerne-bw.png" alt="College of Law Library, University of La Verne"></a>
-            <a href="http://lawlib.lclark.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/LC-bw.png" alt="Paul L. Boley Law Library, Lewis &amp; Clark Law School"></a>
+{% load carousel cache thumbnail %}
+{% cache 3600 carousel %}
+    {% set_carousel_partners %} {# sets carousel_logo_groups #}
+    <div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+        <div class="carousel-inner">
+            {% for logo_group in carousel_logo_groups %}
+                <div class="item{% if forloop.first %} active{% endif %}">
+                    {% for partner in logo_group %}
+                        <a href="{{ partner.website }}" class="{{ partner.logo_class }}">
+                            {% thumbnail partner.logo partner.thumbnail_geometry upscale=False quality=60 as logo %}
+                                <img src="{{ logo.url }}" alt="{{ partner.partner_display_name|default:partner.name }}">
+                            {% endthumbnail %}
+                        </a>
+                    {% endfor %}
+                </div>
+            {% endfor %}
         </div>
 
-        <div class="item">
-            <a href="http://www1.law.lsu.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/LSU-bw.png" alt="Lousiana State University Law School Library"></a>
-            <a href="http://www.luc.edu/law/library/"><img src="{{ STATIC_URL }}img/participating-institutions/Loyola-bw.png" alt="Loyola University School of Law"></a>
-            <a href="http://www.law.umaryland.edu/marshall/"><img src="{{ STATIC_URL }}img/participating-institutions/Maryland-bw.png" alt="University of Maryland Francis King Carey School of Law"></a>
-            <a href="http://www.law.unimelb.edu.au/lawlib"><img src="{{ STATIC_URL }}img/participating-institutions/Melbourne-bw.png" alt="Melbourne Law School Library, The University of Melbourne"></a>
-            <a href="http://www.law.miami.edu/library"><img src="{{ STATIC_URL }}img/participating-institutions/Miami-bw.png" alt="University of Miami School of Law"></a>
-            <a href="http://law.unl.edu/library"><img src="{{ STATIC_URL }}img/participating-institutions/Nebraska-bw.png" alt="University of Nebraska College of Law"></a>
-            <a href="http://www.law.northwestern.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/northwestern-bw.png" alt="Northwestern Law"></a>
-            <a href="http://moritzlaw.osu.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/Ohio-State-bw.png" alt="Ohio State University"></a>
-            <a href="http://law.pepperdine.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/Pepperdine-bw.png" alt="Pepperdine University Law School"></a>
-        </div>
+        <a class="left carousel-control" href="#carousel-example-generic" data-slide="prev"><span class="ui-chev-left"></span></a>
+        <a class="right carousel-control" href="#carousel-example-generic" data-slide="next"><span class="ui-chev-right"></span></a>
 
-        <div class="item">
-            <a href="http://law.richmond.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/richmond-bw.png" alt="Richmond School of Law"></a>
-            <a href="http://www.law.stanford.edu/organizations/offices/robert-crown-law-library"><img src="{{ STATIC_URL }}img/participating-institutions/Stanford-bw.png" alt="Stanford Law Library"></a>
-            <a href="http://www.law.ucla.edu/library/Pages/default.aspx"><img src="{{ STATIC_URL }}img/participating-institutions/UCLA-bw.png" alt="UCLA Law Library"></a>
-            <a href="http://library.law.olemiss.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/UMiss-bw.png" alt="University of Mississippi School of Law"></a>
-            <a href="http://www.law.unlv.edu/law-library/home.html"><img src="{{ STATIC_URL }}img/participating-institutions/UNLV-bw.png" alt="University of Nevada, Las Vegas, School of Law"></a>
-            <a href="http://www.sandiego.edu/law/library/"><img src="{{ STATIC_URL }}img/participating-institutions/SanDiego-bw.png" alt="Pardee Legal Research Center, University of San Diego "></a>
-            <a href="http://tarlton.law.utexas.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/UT-Austin-bw.png" alt="University of Texas, Austin, Law School"></a>
-            <a href="http://www.law.utah.edu/library//"><img src="{{ STATIC_URL }}img/participating-institutions/U-Utah-bw.png" alt="S.J. Quinney Law Library, University of Utah"></a>
-            <a href="http://www.library.vanderbilt.edu/law/"><img src="{{ STATIC_URL }}img/participating-institutions/Vanderbilt-bw.png" alt="Vanderbilt Law School"></a>
-            <a href="http://library.law.uiowa.edu"><img src="{{ STATIC_URL }}img/participating-institutions/ui-bw.png" alt="University of Iowa College of Law"></a>
-            <a href="http://www.law.pace.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/pace-bw.png" alt="Pace Law School"></a>
-        </div>
-
-        <div class="item">
-            <a href="http://courts.mi.gov/courts/michigansupremecourt/about-supreme-court/pages/directory-of-offices-and-programs.aspx"><img src="{{ STATIC_URL }}img/participating-institutions/michigan-courts-bw.png" alt="Michigan Reporter of Decisions, Michigan Supreme Court"></a>
-            <a href="http://law.indiana.edu/lawlibrary/index.shtml"><img src="{{ STATIC_URL }}img/participating-institutions/Indiana-Bloomington-bw.png" alt="Law Library, Indiana University Bloomington, Maurer School of Law"></a>
-            <a href="http://library.law.tulane.edu/screens/index.html"><img src="{{ STATIC_URL }}img/participating-institutions/tulane-bw.png" alt="Tulane Law Library, Tulane University Law School"></a>
-            <a href="http://www.law.uga.edu/library"><img src="{{ STATIC_URL }}img/participating-institutions/georgia-bw.png" alt="Alexander Campbell King Law Library, University of Georgia School of Law"></a>
-            <a href="http://www.stu.edu/law/AlexHannaLibrary/tabid/668/Default.aspx"><img src="{{ STATIC_URL }}img/participating-institutions/st-thomas-bw.png" alt="Alex A. Hanna Law Library, St. Thomas University School of Law"></a>
-            <a href="http://law.shu.edu/library/index-media.cfm"><img src="{{ STATIC_URL }}img/participating-institutions/seton-bw.png" alt="The Peter Rodino Law Library, Seton Hall Law School"></a>
-            <a href="http://www.brooklaw.edu/en/intellectuallife/library.aspx"><img src="{{ STATIC_URL }}img/participating-institutions/brooklyn-bw.png" alt="Brooklyn Law School Library"></a>
-            <a href="http://law.ggu.edu/law-library"><img src="{{ STATIC_URL }}img/participating-institutions/ggu-bw.png" alt="Golden Gate University Law Library"></a>
-            <a href="http://www.law.msu.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/michigan-state-bw.png" alt="John F. Schaefer Law Library, Michigan State University College of Law"></a>
-            <a href="http://www.law.uci.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/uci-bw.png" alt="University of California, Irvine School of Law"></a>
-        </div>
-
-        <div class="item">
-            <a href="http://www.law.virginia.edu/html/librarysite/library.htm"><img src="{{ STATIC_URL }}img/participating-institutions/uvalaw-bw.png" alt="University of Virginia School of Law"></a>
-            <a href="http://www.law.washington.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/U-Washington-bw.png" alt="University of Washington School of Law"></a>
-            <a href="http://law.wustl.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/WashU-bw.png" alt="Washington University Law"></a>
-            <a href="http://law.wm.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/William-Mary-bw.png" alt="William & Mary Law School"></a>
-            <a href="http://library.law.wisc.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/UWisc-bw.png" alt="University of Wisconsin Law Library"></a>
-            <a href="http://library.law.unc.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/unc-bw.png" alt="Kathrine R. Everett Law Library, University of North Carolina"></a>
-            <a href="http://law.widener.edu/lawlibrary.aspx"><img src="{{ STATIC_URL }}img/participating-institutions/widener-univ-bw.png" alt="Widener University School of Law"></a>
-            <a href="http://library.law.smu.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/smu-bw.png" alt="SMU Dedman School of Law"></a>
-            <a href="http://law.marquette.edu/law-library/eckstein-law-library/"><img src="{{ STATIC_URL }}img/participating-institutions/marquette-bw.png" alt="Ray & Kay Eckstein Law Library, Marquette University"></a>
-        </div>
-
-        <div class="item">
-            <a href="http://www.law.berkeley.edu/library.htm"><img src="{{ STATIC_URL }}img/participating-institutions/berkeleylaw_library2-bw.png" alt="Berkeley Law Library"></a>
-            <a href="http://law.wvu.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/wvu-logo-bw.png" alt="George R. Farmer Jr. Law Library"></a>
-            <a href="http://law.okcu.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/ocu_main_logonew_bw.png" alt="OKCU Law School"></a>
-            <a href="http://www.cst.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/CST_logo_bw.png" alt="Claremont School of Theology Library"></a>
-            <a href="http://library.princeton.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/pu_logo_trans_bw.png"></a>
-            <a href="http://www.vermontlaw.edu/academics/library"><img src="{{ STATIC_URL }}img/participating-institutions/vt_bw.png"></a>
-            <a href="http://www.kentlaw.iit.edu/library/"><img src="{{ STATIC_URL }}img/participating-institutions/ck_logo_bw.png"></a>
-            <a href="http://www.law.cuny.edu/library.html"><img src="{{ STATIC_URL }}img/participating-institutions/cuny_law_bw.png"></a>
-            <a href="http://www.suffolk.edu/law/library.php"><img src="{{ STATIC_URL }}img/participating-institutions/suffolk-law-lib.png"></a>
-        </div>
-
-        <div class="item">
-            <a href="http://law.pitt.edu/library"><img src="{{ STATIC_URL }}img/participating-institutions/pitt_law_bw.png" alt="Pitt Law Library" /></a>
-            <a href="http://law.utk.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/utenn_law_bw.png" alt="Univerisity of Tennessee at Knoxville" /></a>
-            <a href="http://law.slu.edu/library" /><img src="{{ STATIC_URL }}img/participating-institutions/slu_law_bw.png" alt="Saint Louis University Law Library" /></a>
-            <a href="http://www.willamette.edu/wucl/longlib/index.html"><img src="{{ STATIC_URL }}img/participating-institutions/williamette_bw.png" alt="Willamette University College of Law"></a>
-            <a href="http://fletcher.tufts.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/fletcher_bw.png" alt="Fletcher School"></a>
-            <a href="http://www.lls.edu/"><img src="{{ STATIC_URL }}img/participating-institutions/loyolalaw_bw.png" alt="Loyola Law School, LA"></a>
-            <a href="http://www.belmont.edu/law/"><img src="{{ STATIC_URL}}img/participating-institutions/belmont-logo-bw.png" alt="Belmont University College of Law"></a>
-            <a href="http://www.law.seattleu.edu/"><img src="{{ STATIC_URL}}img/participating-institutions/seattle-bw.png" alt="Seattle University School of Law"></a>
-            <a href="http://www.usd.edu/law/law-library"><img src="{{ STATIC_URL}}img/participating-institutions/sd-bw.png" alt="University of South Dakota School of Law, Law Library"></a>
-            <a href="http://www1.villanova.edu/content/villanova/law/library.html"><img src="{{ STATIC_URL}}img/participating-institutions/villanova-bw.png" alt="Villanova Unversity School of Law, Library"></a>
-        </div>
-        
-    </div>
-
-    <a class="left carousel-control" href="#carousel-example-generic" data-slide="prev"><span class="ui-chev-left"></span></a>
-    <a class="right carousel-control" href="#carousel-example-generic" data-slide="next"><span class="ui-chev-right"></span></a>
-
-    <ol class="carousel-indicators">
-        <li data-target="#carousel-example-generic" data-slide-to="0" class="active"></li>
-        <li data-target="#carousel-example-generic" data-slide-to="1"></li>
-        <li data-target="#carousel-example-generic" data-slide-to="2"></li>
-        <li data-target="#carousel-example-generic" data-slide-to="3"></li>
-        <li data-target="#carousel-example-generic" data-slide-to="4"></li>
-        <li data-target="#carousel-example-generic" data-slide-to="5"></li>
-        <li data-target="#carousel-example-generic" data-slide-to="6"></li>
-        <li data-target="#carousel-example-generic" data-slide-to="7"></li>
-        <li data-target="#carousel-example-generic" data-slide-to="8"></li>
-    </ol>
-</div><!--carousel slide-->
+        <ol class="carousel-indicators">
+            {% for logo_group in carousel_logo_groups %}
+                <li data-target="#carousel-example-generic" data-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %}></li>
+            {% endfor %}
+        </ol>
+    </div><!--carousel slide-->
+{% endcache %}

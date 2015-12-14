@@ -1,78 +1,43 @@
-var refreshIntervalId = 0;
-
-var check_status = function() {
-
-    // Check our status service to see if we have archiving jobs pending
-    apiRequest("GET", "/archives/" + archive.guid + "/", null, {
-        error: null, // cancel out the default error handling provided by apiRequest,
-        xhrFields: {
-            withCredentials: true
-        }
-
-    }).done(function(data) {
-        $.each(data.captures, function(i, capture) {
-            if ($('#image_cap_container_loading').is(":visible") && capture.role == 'screenshot' && capture.status != 'pending') {
-                $('#image_cap_container_loading').hide();
-                if (capture.status == 'success')
-                    $('#image_cap_container_complete').show();
-            }
-
-            if ($('#warc_cap_container_loading').is(":visible") && capture.role == 'primary' && capture.status != 'pending') {
-                $('#warc_cap_container_loading').hide();
-                if (capture.status != 'failed')
-                    $('#warc_cap_container_complete').show();
-            }
-        });
-
-        // if no status is pending
-        if (!$('.container-loading').is(":visible")) {
-            clearInterval(refreshIntervalId);
-        }
-    });
-};
-
 $(document).ready(function() {
+    $("#details-button").click(function () {
+        $(this).text($(this).text() == "Show record details" ? "Hide record details" : "Show record details");
+        $('header').toggleClass('_activeDetails');
+    });    
 
-    if ($('.container-loading').is(":visible")) {
-        refreshIntervalId = setInterval(check_status, 2000);
-        $('.container-loading').each(function(){
-            new Spinner({
-                lines: 10, // The number of lines to draw
-                length: 4, // The length of each line
-                width: 3, // The line thickness
-                radius: 3, // The radius of the inner circle
-                corners: 1, // Corner roundness (0..1)
-                rotate: 0, // The rotation offset
-                direction: 1, // 1: clockwise, -1: counterclockwise
-                color: '#fff', // #rgb or #rrggbb or array of colors
-                speed: 0.7, // Rounds per second
-                trail: 60, // Afterglow percentage
-                shadow: false, // Whether to render a shadow
-                hwaccel: false, // Whether to use hardware acceleration
-                className: 'spinner', // The CSS class to assign to the spinner
-                zIndex: 2e9, // The z-index (defaults to 2000000000)
-                top: 'auto', // Top position relative to parent in px
-                left: 'auto' // Left position relative to parent in px
-            }).spin(this);
-        });
-    }
+	function adjustHeight() {
+        var $iframe = $('iframe');
+        if($iframe.length)
+    	    $iframe.height($(window).height() - $iframe.offset().top);
+	}
 
     adjustHeight();
-    $('#collapse-refresh').on('shown.bs.collapse', function () {
+    $(window).on('resize', function () {
         adjustHeight();
     });
-    $('#collapse-refresh').on('hidden.bs.collapse', function () {
-        adjustHeight();
-    });
-    function adjustHeight() {
-        var headerHeight = $('header').height(),
-        windowHeight = $(window).height();
-        $('iframe').height(windowHeight - headerHeight - 0);
-    }
 
-    /* Hide our "needs to be vested" notice if the user clicks the "x" link */
-    $(".glyphicon-remove").click(function() {
-        $( ".watermark-container" ).fadeOut(250, function() {
-        });
+    $("button.darchive").click(function(){
+        var $this = $(this);
+
+        if (!$this.hasClass("disabled")){
+            var prev_text = $this.text(),
+                currently_private = prev_text.indexOf("Public") > -1,
+                private_reason = currently_private ? null : $('select[name="private_reason"]').val() || 'user';
+
+            $this.addClass("disabled");
+            $this.text("Updating ...");
+
+            apiRequest("PATCH", "/archives/" + archive.guid + "/", {is_private: !currently_private, private_reason: private_reason}, {
+                success: function(){
+                    window.location.reload(true);
+                },
+                error: function(jqXHR){
+                    $this.removeClass("disabled");
+                    $this.text(prev_text);
+                    showAPIError(jqXHR);
+                }
+            });
+        }
+
+        return false;
     });
 });

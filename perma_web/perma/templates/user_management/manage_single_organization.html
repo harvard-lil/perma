@@ -2,17 +2,40 @@
 {% load bootstrap_tags %}
 {% block title %} | Edit organization{% endblock %}
 
-{% block content %}
+{% block dashboardContent %}
 
-	<h3>Edit organization</h3>
+<div class="container cont-fixed">
+	<h3 class="body-bh">Edit organization</h3>
 	<div class="row">
-		<div class="col-sm-6">
-    		<form method="post">
-      			{% csrf_token %}
-				{{ form|as_bootstrap }}
-      			<button type="submit" class="btn-success">Save changes</button>
-    		</form>
+		<div class="col-sm-12">
+			<div class="settings-block">
+	        	{% if target_org.default_to_private %}
+					<p>Links are <strong>Private</strong> by default</p>
+					<a href="{% url 'user_management_settings_organizations_change_privacy' target_org.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Set to public</a>
+				{% else %}
+					<p>Links are <strong>Public</strong> by default</p>
+					<a href="{% url 'user_management_settings_organizations_change_privacy' target_org.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Set to private</a>
+				{% endif %}
+			</div>
+    		<form method="post" action="">
+				{% csrf_token %}
+				<fieldset>
+				{% for field in form %}
+					<div class="form-group fg-100{% if field.errors %} _error{% endif %}">
+					<label for="id_{{ field.name }}">{{ field.label }}</label>
+					{{ field }}
+					{% if field.errors %}
+						{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+					{%elif field.help_text %}
+						<span class="help-inline">{{ field.help_text }}</span>
+					{% endif %}
+					</div>
+				{% endfor %}
+				{% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
+				</fieldset>
+				<button type="submit" class="btn">Save changes</button>
+			</form>
     	</div>
     </div>
-
+</div>
 {% endblock %}

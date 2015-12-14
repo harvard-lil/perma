@@ -1,7 +1,7 @@
 {% load pipeline %}<!DOCTYPE html>
 <html lang="en-us">
     <head>
-        <title>Perma.cc | Preventing Link Rot{% block title %}{% endblock %}</title>
+        <title>Perma.cc{% block title %}{% endblock %}</title>
 
         {# currently 'edge' or nothing seems to be the best IE mode for modern sites -- see http://stackoverflow.com/a/8942455 #}
         <meta http-equiv="x-ua-compatible" content="IE=edge">
@@ -9,9 +9,13 @@
         <meta charset="utf-8" />
         <meta name="google" value="notranslate" />
         <meta name="description" content="{% block meta_description %} Broken links are everywhere. Perma helps authors and journals create permanent links for citations in their published work.{% endblock %}">
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <!--<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">-->
+        <!-- iOS9 viewport bug hack -->
+        <meta name="viewport" content="initial-scale=1.0001, minimum-scale=1.0001, maximum-scale=1.0001"/>
+        <!-- -->
         {% block meta %}{% endblock %}  
 
+		<link href='https://fonts.googleapis.com/css?family=Roboto+Mono' rel='stylesheet' type='text/css'>
         <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
         {% stylesheet 'base' %}
 
@@ -29,9 +33,9 @@
     </head>
     <body class="{% block bodyFlags %}{% endblock bodyFlags %}">
 
-    	<header class="_default __permaNew">
+    	<header class="_default">
     	    <div class="navbar navbar-default navbar-static-top">
-				<div class="container">
+				<div class="container cont-fixed">
 					<div class="navbar-header">
 						<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
 							<span class="icon-bar"></span>
@@ -46,17 +50,19 @@
 					<div class="navbar-collapse collapse">
 					  <ul class="nav navbar-nav navbar-right">
 					  	{% if request.user.is_authenticated %}
-					  	    {% if not this_page == 'create_link' %}
-                            <li><a href="{% url 'create_link' %}" role="button" class="btn btn-large btn-info navbar-create navbar-btn" data-toggle="tooltip" title="Create new Perma archive">Create new Perma Link</a></li>
+                            {% if not this_page == 'create_link' %}
+                                <li class="navbar-create-button"><a href="{% url 'create_link' %}" role="button" class="btn btn-large btn-info navbar-create navbar-btn" data-toggle="tooltip" title="Create new Perma archive">Create and manage Perma Links</a></li>
                             {% endif %}
-                            {% comment %}<li><a href="{% url 'logout' %}" style="color: #aaa;">Log out</a></li>{% endcomment %}
                             <li class="dropdown">
-                              <a href="#" class="dropdown-toggle navbar-link" data-toggle="dropdown" role="button" aria-expanded="false">{{ request.user.get_short_name }}</a>
+                              <a href="#" class="dropdown-toggle navbar-link needsclick" data-toggle="dropdown" role="button" aria-expanded="false">{{ request.user.get_short_name }}</a>
                               <ul class="dropdown-menu" role="menu">
-                                <li><a href="{% url 'link_browser' %}">My links</a></li>
+                                {% if not this_page == 'create_link' %}
+                                <li><a href="{% url 'create_link' %}">Create and manage Perma Links</a></li>
+                                <li class="divider"></li>
+                                {% endif %}
+                                
                                 
                                 {% if request.user.is_staff or request.user.is_registrar_member %}
-                                    <li class="divider"></li>
                                     <li role="presentation" class="dropdown-header">Manage users</li>
 
                                     {% if request.user.is_staff %}
@@ -65,24 +71,31 @@
                                     {% endif %}
 
                                     <li><a href="{% url 'user_management_manage_registrar_user' %}">Registrar users</a></li>
-                                    <li><a href="{% url 'user_management_manage_organization' %}">Vesting organizations</a></li>
-                                    <li><a href="{% url 'user_management_manage_organization_user' %}">Vesting users</a></li>
+                                    <li><a href="{% url 'user_management_manage_organization' %}">Organizations</a></li>
+                                    <li><a href="{% url 'user_management_manage_organization_user' %}">Organization users</a></li>
 
                                     {% if request.user.is_staff %}
                                         <li><a href="{% url 'user_management_manage_user' %}">Users</a></li>
                                     {% endif %}
-                                    <li class="divider"></li>
+	                                <li class="divider"></li>
                                 {% endif %}
                                 
-                                <!-- Vesting users -->
+                                <!-- Org users -->
                                 {% if request.user.is_organization_member %}
-                                <li><a href="{% url 'user_management_manage_organization_user' %}">Manage users</a></li>
+	                                <li><a href="{% url 'user_management_manage_organization_user' %}">Manage users</a></li>
+	                                <li class="divider"></li>
                                 {% endif %}
                                 {% if request.user.is_staff %}
-                                    <li><a href="{% url 'admin:index' %}">Admin console</a></li>
+									<li><a href="{% url 'admin:index' %}">Admin console</a></li>
+	                                <li class="divider"></li>
                                 {% endif %}
+                                <li role="presentation" class="dropdown-header">Settings</li>
+                                <li><a href="{% url 'user_management_settings_profile' %}">Profile</a></li>
+                                <li><a href="{% url 'user_management_settings_password' %}">Password</a></li>
                                 <li><a href="{% url 'user_management_settings_tools' %}">Tools</a></li>
-                                <li><a href="{% url 'user_management_settings_profile' %}">Settings</a></li>
+                                {% if request.user.is_organization_member or request.user.is_registrar_member or request.user.has_registrar_pending %}
+	                                <li><a href="{% url 'user_management_settings_organizations' %}">Your organization</a></li>
+								{% endif %}
                                 <li class="divider"></li>
                                 <li><a href="{% url 'logout' %}">Log out</a></li>
                               </ul>
@@ -93,9 +106,9 @@
                             <li><a href="{% url 'docs' %}" class="navbar-link">Guide</a></li>
                             <li><a href="https://blogs.law.harvard.edu/perma/" class="navbar-link">Blog</a></li>
                             <li><a href="{% url 'sign_up' %}" class="btn _nav{% if this_page == 'sign_up' %} this-page{% endif %}">Sign up</a></li>
-                            <li><a href="{% url 'user_management_limited_login' %}" class="navbar-link">Log in</a></li>
+                            <li><a href="{% url 'user_management_limited_login' %}" class="navbar-link _login">Log in</a></li>
                             {% comment %}
-                            <li><a href="{% url 'register' %}" id="nav-button" class="btn btn-large btn-success">Sign Up</a></li>
+                            <li><a href="{% url 'sign_up' %}" id="nav-button" class="btn btn-large">Sign Up</a></li>
                             {% endcomment %}
 						{% endif %}
 					  </ul>
@@ -107,99 +120,45 @@
 		  
 		<section id="main" class="{% block mainFlags %}{% endblock mainFlags %}">
 			{% if this_page != 'landing' and this_page != 'manage' %}
-			<div class="container" id="main-content">
-				<div class="row">
-					{% endif %}
-					{% block row %}{% endblock row %}
-					{% if this_page != 'landing' %}
-				</div><!--/.row-fluid-->
-			</div><!--/.main-container #main-content"-->
+				<div id="main-content" class="container cont-full-bleed">
+			{% endif %}
+
+			{% block mainContent %}{% endblock mainContent %}
+
+			{% if this_page != 'landing' %}
+				</div><!--/ #main-content"-->
 			{% endif %}
 		</section><!--/#main-->
 		
 		{% block footer %}
-		
-		
-		<footer>
-			<div class="container">
-				<div class="row">
-					<div class="col-sm-12">
-						<p class="built-by">Built & Run by Libraries</p>
-						<p id="footer-nav">
-						<a href="{% url 'landing' %}">Home</a>
-						&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-                        			<a href="https://blogs.law.harvard.edu/perma/">Blog</a>
-                        			&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-						<a href="{% url 'about' %}">About</a>
-						&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-						<a href="{% url 'docs' %}">User Guide</a>
-						&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-						<a href="{% url 'dev_docs' %}">Developer Guide</a>
-						&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-						<a href="{% url 'contact' %}">Contact</a>
-						</p><!--/#footer-nav-->
+			<footer>
+				<div class="container cont-fixed">
+					<div class="row">
+						<div class="col col-sm-6">
+							<ul id="footer-nav">
+					            <!--<li class="footer-nav-item"><a class="home" href="{% url 'landing' %}">Perma.cc</a></li>-->
+					            <li class="footer-nav-item"><a href="{% url 'about' %}">About</a></li>
+					            <li class="footer-nav-item"><a href="{% url 'docs' %}">Guide</a></li>
+					            <li class="footer-nav-item"><a href="{% url 'dev_docs' %}">Developers</a></li>
+					            <li class="footer-nav-item"><a href="{% url 'contact' %}">Contact</a></li>
+					            <li class="footer-nav-item"><a href="https://blogs.law.harvard.edu/perma/">Blog</a></li>
+					            <li class="footer-nav-item"><a href="https://github.com/harvard-lil/perma">Github</a></li>
+							</ul>
+						</div>
+						<div class="col col-sm-6">
+							<ul id="boilerplate">
+								<li class="boilerplate-item"><a href="{% url 'terms_of_service' %}">Terms of Service</a></li>
+								<li class="boilerplate-item"><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
+								<li class="boilerplate-item"><a href="{% url 'copyright_policy' %}">Copyright Policy</a></li>
+							</ul>
+						</div>
+					</div>
+				</div><!--/container-->
+			</footer>
+		{% endblock %}
 
-						{% include "includes/participating_institutions.html" %}
-
-						<p id="boilerplate">
-							<a href="{% url 'terms_of_service' %}">terms of service</a>
-							&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-							<a href="{% url 'privacy_policy' %}">privacy policy</a>
-							&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-						   <a href="{% url 'copyright_policy' %}">copyright policy</a>
-						</p>
-					</div><!--/col-->
-				</div><!--/row-->
-			</div><!--/container-->
-		</footer>
-		
-	{% endblock %}
-		
-		
-            </div><!--/.row-fluid-->
-        </div><!--/.container-fluid-->
-
-
-    <div class="modal" id="feedbackModal" tabindex="-1" role="dialog" aria-labelledby="feedbackModal" aria-hidden="true">
-	    <div class="modal-dialog modal-sm">
-		<div class="modal-content">
-    		<div class="modal-header">
-        		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-				<div class="logo-condensed-header">
-					<a href="{% url 'landing' %}">perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/infinity-logo2.png"></a>
-				</div>
-    		</div>
-			<div class="center feedback-form-inputs">
-			    <form class="feedback" name="feedback">
-				<h4>Feedback</h4>
-				<p id="broken-link-report"></p>
-                <label for="user_email">Your email</label><br>
-                <input type="email" name="user_email" id="user_email" class="input-xlarge">
-                <br>
-                <label for="feedback_text">Comments</label><br>
-                <textarea name="feedback_text" class="input-xlarge"></textarea>
-                </form>
-			</div>
-			<div class="modal-footer feedback-form-inputs">
-                <input class="btn btn-primary btn-large pull-right" value="Send" id="submit-feedback">
-           <a href="#" data-dismiss="modal" id="cancel-feedback" class="pull-right">cancel</a>
-            </div>
-            <div class="center feedback-form-submitted">
-                <h4>Your feedback has been sent.</h4>
-            </div>
-            <div class="modal-footer feedback-form-submitted">
-           <!--<a href="#" data-dismiss="modal" id="cancel-feedback" class="pull-right">close</a>-->
-           <input data-dismiss="modal" class="btn btn-primary btn-large pull-right" value="Close">
-            </div>
-	    </div>		
-	</div>
-</div><!--/feedback modal-->
     {% javascript 'global' %}
-
-    {% block scripts %}
-    {% endblock %}
-    
-    {% block templates %}
-    {% endblock %}
+    {% block scripts %}{% endblock %}
+    {% block templates %}{% endblock %}
   </body>
 </html>

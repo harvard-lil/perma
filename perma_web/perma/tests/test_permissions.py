@@ -50,9 +50,9 @@ class PermissionsTestCase(PermaTestCase):
                 'urls': [
                     ['user_management_manage_single_organization_user', {'kwargs':{'user_id': 3}}],
                     ['user_management_manage_organization_user'],
-                    ['vest_link', {'kwargs': {'guid': '1234'}, 'success_status': 404}],
                     ['user_management_manage_organization'],
                     ['user_management_manage_single_organization', {'kwargs':{'org_id':1}}],
+                    ['user_management_manage_single_organization_delete', {'kwargs':{'org_id':1}}],
                     ['user_management_organization_user_add_user'],
                     ['user_management_manage_single_organization_user_remove', {'kwargs':{'user_id': 3},
                      'success_status': 302}],
@@ -80,10 +80,10 @@ class PermissionsTestCase(PermaTestCase):
                     ['user_management_settings_password'],
                     ['user_management_settings_tools'],
                     ['create_link'],
-                    ['link_browser'],
+                    ['create_link_with_org', {'kwargs': {'org_id': 'None'}}],
+
                     ['folder_contents', {'kwargs': {'folder_id': '12345'}, 'success_status': 404}],
                     ['user_delete_link', {'kwargs':{'guid':'1234'},'success_status':404}],
-                    ['dark_archive_link', {'kwargs': {'guid': '1234'}, 'success_status': 404}],
                 ],
                 'allowed': {'test_user@example.com'},
                 'disallowed': set(),
@@ -124,6 +124,10 @@ class PermissionsTestCase(PermaTestCase):
 
         # make sure that all ^manage/ views were tested
         for urlpattern in urlpatterns:
-            if urlpattern._regex.startswith(r'^manage/') and urlpattern._regex != '^manage/?$':
+
+            # Things that are no longer needed and have become redirects or other speical cases
+            excluded_names = ['link_browser']
+            
+            if urlpattern._regex.startswith(r'^manage/') and urlpattern._regex != '^manage/?$' and urlpattern.name not in excluded_names:
                 self.assertTrue(urlpattern.name in views_tested,
                                 "Permissions not checked for view '%s' -- add to 'views' or 'any_user_allowed'." % urlpattern.name)

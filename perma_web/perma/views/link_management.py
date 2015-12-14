@@ -1,11 +1,14 @@
 import logging
+from django.utils import timezone
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 
-from ..models import Link, Folder
+from ..models import Link, Folder, Organization
 
 logger = logging.getLogger(__name__)
 valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timestamp', '-vested_timestamp', 'submitted_title', '-submitted_title']
@@ -15,21 +18,52 @@ valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'vested_timesta
 
 @login_required
 def create_link(request):
-    return render(request, 'user_management/create-link.html', {
-        'this_page': 'create_link',
-    })
+	try:
+		selected_org = Link.objects.filter(created_by_id=request.user.id).latest('creation_timestamp').organization
+	except:
+		selected_org = Organization.objects.accessible_to(request.user).first()
+		
+	if not selected_org:
+		org_id = None
+	else:
+		org_id = selected_org.id
+		
+	return create_link_with_org(request, org_id)
+
+@login_required
+def create_link_with_org(request, org_id):
+	try:
+		org = get_object_or_404(Organization, id=org_id)
+	except:
+		org = None
+		
+	folder_id = request.user.root_folder_id
+	if org:
+		folder_id = org.shared_folder_id
+	folder = Folder.objects.get(id=folder_id)
+	
+	deleted = request.GET.get('deleted', '')
+	if deleted:
+		try:
+			link = Link.objects.all_with_deleted().get(guid=deleted)
+		except Link.DoesNotExist:
+			link = None
+		if link:
+			messages.add_message(request, messages.INFO, 'Deleted - ' + link.submitted_title)
+
+	links_remaining = request.user.get_links_remaining()
+	if links_remaining < 0:
+		links_remaining = 0
+	
+	return render(request, 'user_management/create-link.html', {
+		'this_page': 'create_link',
+		'links_remaining': links_remaining,
+		'selected_org': org,
+		'folder': folder,
+	})
 
 
 ###### LINK BROWSING ######
-
-@login_required
-def link_browser(request, path):
-    """ Display links created by or vested by user, or attached to user's vesting org. """
-
-    return render(request, 'user_management/created-links.html', {
-        'this_page': 'link_browser',
-    })
-
 
 @login_required
 def folder_contents(request, folder_id):
@@ -63,44 +97,11 @@ def folder_contents(request, folder_id):
         'in_iframe': request.GET.get('iframe'),
     })
 
-
-###### link editing ######
-@login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
-def vest_link(request, guid):
-    link = get_object_or_404(Link, guid=guid)
-    folder = None
-    try:
-        latest = Link.objects.filter(vested_by_editor_id=request.user.id).latest('vested_timestamp')
-    except:
-        latest = None
-        
-    if latest:
-        folder = latest.folders.exclude(organization_id__isnull=True)[0]
-
-    if link.vested:
-        return HttpResponseRedirect(reverse('single_linky', args=[guid]))
-
-    return render(request, 'link-vest-confirm.html', {
-        'link': link,
-        'latest': latest,
-        'folder': folder,
-    })
-
-
 @login_required
 def user_delete_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
 
-    return render(request, 'link-delete-confirm.html', {
+    return render(request, 'archive/confirm/link-delete-confirm.html', {
         'link': link,
     })
 
-
-@login_required
-def dark_archive_link(request, guid):
-    link = get_object_or_404(Link, guid=guid)
-
-    return render(request, 'dark-archive-link.html', {
-        'link': link,
-    })

@@ -51,19 +51,19 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             'vested_timestamp',
             'title',
             'url',
-            'dark_archived',
-            'dark_archived_robots_txt_blocked',
             'guid',
             'creation_timestamp',
             'expiration_date',
-            'organization',
             'captures',
             'view_count'
         ]
         self.logged_in_fields = self.logged_out_fields + [
+            'organization',
             'notes',
             'created_by',
-            'dark_archived_by',
+            'archive_timestamp',
+            'is_private',
+            'private_reason',
             'vested_by_editor',
         ]
 
@@ -116,7 +116,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertIn("favicon_meta.ico", link.favicon_capture.url)
 
         self.assertTrue(link.cdx_lines.count() > 0)
-        self.assertFalse(link.dark_archived_robots_txt_blocked)
+        self.assertFalse(link.is_private)
         self.assertEqual(link.submitted_title, "Test title.")
 
     def test_should_create_archive_from_pdf_url(self):
@@ -138,7 +138,8 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
                                    user=self.vesting_member)
 
         link = Link.objects.get(guid=obj['guid'])
-        self.assertTrue(link.dark_archived_robots_txt_blocked)
+        self.assertTrue(link.is_private)
+        self.assertEqual(link.private_reason, "policy")
 
         # test favicon captured via favicon.ico well-known URL
         self.assertIn("favicon.ico", link.favicon_capture.url)
@@ -150,7 +151,8 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
                                        user=self.vesting_member)
 
         link = Link.objects.get(guid=obj['guid'])
-        self.assertTrue(link.dark_archived_robots_txt_blocked)
+        self.assertTrue(link.is_private)
+        self.assertEqual(link.private_reason, "policy")
 
     def test_should_accept_spaces_in_url(self):
         obj = self.successful_post(self.list_url,
@@ -211,7 +213,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     def test_dark_archive(self):
         self.successful_patch(self.unvested_link_detail_url,
                               user=self.unvested_link.created_by,
-                              data={'dark_archived': True})
+                              data={'is_private': True, 'private_reason':'user'})
 
     ###########
     # Vesting #
@@ -253,7 +255,14 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     ############
 
     def test_delete_detail(self):
-        self.successful_delete(self.unvested_link_detail_url, user=self.vesting_member)
+        with self.serve_file(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/robots.txt')):
+            obj = self.successful_post(self.list_url,
+                                       data={'url': self.server_url + "/subdir/test.html"},
+                                       user=self.vesting_member)
+
+            new_link = Link.objects.get(guid=obj['guid'])
+            new_link_url = "{0}/{1}".format(self.list_url, new_link.pk)
+            self.successful_delete(new_link_url, user=self.vesting_member)
 
     ############
     # Ordering #

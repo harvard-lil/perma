@@ -1,18 +1,12 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% load pipeline %}
 
-{% block row %}
+{% block mainContent %}
 
-<div id="dashboard-container">
-   <!-- Dashboard tab content -->
-    <div class="tab-content col-sm-12">
-        <div class="tab-pane active">
-        {% block content %}{% endblock content %}
-        </div><!--/.tab-pane-->
-    </div><!--/.tab-content-->
+<div id="dashboard-container" class="container cont-fixed">
+{% block adminContent %}{% endblock adminContent %}
+</div>
 
-</div><!--/#dashboard-container-->
-</div> <!--row-->
 {% endblock %}
 
 {% block scripts %}

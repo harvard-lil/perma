@@ -1,19 +1,18 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 {% block title %} | Account not active{% endblock %}
 
-{% block content %}
-<div class="row">
-<h2>Login</h2>
-
-  <h4>Your account has not been activated</h4>
-  <p>You should have received an email with an activation link.  Follow that link to activate your account.</p>
-  <form action="" method="post">
-    {% csrf_token %}
-    <input type="submit" value="Resend activation email" name="resend" class="btn btn-success">
-  </form>
-  <br/>
-  <br/>
-  <br/>
-  <br/>
+{% block mainContent %}
+<div class="container cont-fixed">
+	<div class="row">
+		<div class="col-xs-12">
+			<h1 class="page-title">Login</h1>
+			<p class="page-dek">Your account has not been activated</p>
+			<p class="page-dek">You should have received an email with an activation link. Follow that link to activate your account.</p>
+			<form action="" method="post">
+				{% csrf_token %}
+				<input type="submit" value="Resend activation email" name="resend" class="btn">
+			</form>
+		</div>
+	</div>
 </div>
-{% endblock content %}
+{% endblock mainContent %}

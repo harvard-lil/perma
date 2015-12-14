@@ -34,7 +34,7 @@ from perma.forms import (
     UserFormSelfEdit, 
     SetPasswordForm, 
 )
-from perma.models import Registrar, LinkUser, Organization
+from perma.models import Registrar, LinkUser, Organization, Link
 from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_contact_email
 
 logger = logging.getLogger(__name__)
@@ -206,7 +206,7 @@ def manage_organization(request):
     orgs = orgs.annotate(
         organization_users=Count('users', distinct=True),
         last_active=Max('users__last_login'),
-        vested_links=Count('link', distinct=True)
+        org_links=Count('link', distinct=True)
     )
 
     # get total user count
@@ -289,6 +289,35 @@ def manage_single_organization(request, org_id):
 
     return render_to_response('user_management/manage_single_organization.html', context)
 
+
+@login_required
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
+def manage_single_organization_delete(request, org_id):
+    """
+        Delete an empty org
+    """
+
+    target_org = get_object_or_404(Organization, id=org_id)
+    links = Link.objects.filter(organization = target_org)
+    users = LinkUser.objects.filter(organizations=target_org)
+        
+    context = {'target_org': target_org,
+               'this_page': 'users_orgs',
+               }
+
+    if request.method == 'POST':
+        if links.count() > 0:
+            raise Http404
+        else:
+        	for user in users:
+        		user.organizations.remove(target_org)
+        	target_org.delete()
+
+        return HttpResponseRedirect(reverse('user_management_manage_organization'))
+
+    context = RequestContext(request, context)
+
+    return render_to_response('user_management/organization_delete_confirm.html', context)
 
 
 @login_required
@@ -780,7 +809,12 @@ def organization_user_leave_organization(request, org_id):
         request.user.organizations.remove(org)
         request.user.save()
 
-        return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+        messages.add_message(request, messages.SUCCESS, '<h4>Success.</h4> You are no longer a member of <strong>%s</strong>.' % org.name, extra_tags='safe')
+
+        if request.user.organizations.exists():
+            return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+        else:
+            return HttpResponseRedirect(reverse('create_link'))        
 
     context = RequestContext(request, context)
 
@@ -975,7 +1009,7 @@ def user_add_organization(request, user_id):
     
     context = RequestContext(request, context)
 
-    return render_to_response('user_management/user_add_organization.html', context)
+    return render_to_response('user_management/user_add_org.html', context)
 
 
 @login_required
@@ -1034,12 +1068,40 @@ def settings_organizations(request):
         messages.add_message(request, messages.INFO, "Thank you for requesting an account for your library. Perma.cc will review your request as soon as possible.")
     else:
         pending_registrar = None
+        
+    if request.method == 'POST':
+        org = get_object_or_404(Organization, pk=request.POST.get('org'))
+        org.default_to_private = request.POST.get('default_to_private')
+        org.save()
+
+        return HttpResponseRedirect(reverse('user_management_settings_organizations'))
     
     context = {'next': request.get_full_path(), 'this_page': 'settings_organizations', 'pending_registrar': pending_registrar}
 
     context = RequestContext(request, context)
     
     return render_to_response('user_management/settings-organizations.html', context)
+    
+    
+@login_required
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
+def settings_organizations_change_privacy(request, org_id):
+
+    org = get_object_or_404(Organization, id=org_id)
+    context = {'this_page': 'settings', 'user': request.user, 'org': org}
+
+    if request.method == 'POST':
+        org.default_to_private = not org.default_to_private
+        org.save()
+
+        if request.user.is_registrar_member() or request.user.is_staff:
+        	return HttpResponseRedirect(reverse('user_management_manage_organization'))
+        else:
+        	return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+
+    context = RequestContext(request, context)
+
+    return render_to_response('user_management/settings-organizations-change-privacy.html', context)
     
     
 @login_required
@@ -1124,7 +1186,7 @@ def account_is_deactivated(request):
 
 
 def get_sitewide_cookie_domain(request):
-    return '.' + settings.HOST.split(':')[0]  # remove port
+    return '.' + request.get_host().split(':')[0]  # remove port
 
 
 def logout(request):
@@ -1164,7 +1226,7 @@ def limited_login(request, template_name='registration/login.html',
           
         if form.is_valid():
 
-            host = request.get_host() if settings.DEBUG else settings.HOST
+            host = request.get_host()
 
             # Ensure the user-originating redirection url is safe.
             if not is_safe_url(url=redirect_to, host=host):
@@ -1288,32 +1350,6 @@ def libraries(request):
     return render_to_response("libraries.html",
         {'user_form':user_form, 'registrar_form':registrar_form, 'registrar_count': registrar_count},
         RequestContext(request))
-
-
-@ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block=True, ip=False,
-           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
-def register(request):
-    """
-    Register a new user
-    """
-    if request.method == 'POST':
-        form = UserRegForm(request.POST)
-        if form.is_valid():
-            new_user = form.save(commit=False)
-            new_user.backend='django.contrib.auth.backends.ModelBackend'
-            new_user.is_active = False
-            new_user.save()
-            
-            email_new_user(request, new_user)
-
-            return HttpResponseRedirect(reverse('register_email_instructions'))
-    else:
-        form = UserRegForm()
-
-    return render_to_response("registration/register.html",
-        {'form':form},
-        RequestContext(request))
-        
         
 @ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block=True, ip=False,
            keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
@@ -1510,7 +1546,7 @@ def email_new_user(request, user):
             random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(30))
         user.save()
       
-    host = request.get_host() if settings.DEBUG else settings.HOST
+    host = request.get_host()
 
     content = '''To activate your account, please click the link below or copy it to your web browser.  You will need to create a new password.
 
@@ -1533,7 +1569,7 @@ def email_new_organization_user(request, user, org):
     Send email to newly created organization accounts
     """
 
-    host = request.get_host() if settings.DEBUG else settings.HOST
+    host = request.get_host()
 
     content = '''Your Perma.cc account has been associated with %s.  You now manage archives and peers within the organization.  If this is a mistake, visit your account settings page to leave %s.
 
@@ -1554,7 +1590,7 @@ def email_new_registrar_user(request, user):
     Send email to newly created registrar accounts
     """
 
-    host = request.get_host() if settings.DEBUG else settings.HOST
+    host = request.get_host()
 
     content = '''Your Perma.cc account has been associated with %s.  If this is a mistake, visit your account settings page to leave %s.
 
@@ -1579,7 +1615,7 @@ def email_pending_registrar_user(request, user):
             random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(30))
         user.save()
       
-    host = request.get_host() if settings.DEBUG else settings.HOST
+    host = request.get_host()
 
     content = '''We will review your library account request as soon as possible. A personal account has been created for you and will be linked to your library once that account is approved. 
     
@@ -1604,7 +1640,7 @@ def email_registrar_request(request, pending_registrar):
     Send email to Perma.cc admins when a library requests an account
     """
       
-    host = request.get_host() if settings.DEBUG else settings.HOST
+    host = request.get_host()
 
     content = '''A new library account request from %s is awaiting review and approval. 
 
@@ -1627,7 +1663,7 @@ def email_approved_registrar_user(request, user):
     Send email to newly approved registrar accounts for folks requesting library accounts
     """
       
-    host = request.get_host() if settings.DEBUG else settings.HOST
+    host = request.get_host()
 
     content = '''Your request for a Perma.cc library account has been approved and your personal account has been linked. 
     
@@ -1652,7 +1688,7 @@ def email_court_request(request, court):
     Send email to Perma.cc admins when a library requests an account
     """
       
-    host = request.get_host() if settings.DEBUG else settings.HOST
+    host = request.get_host()
     try:
         target_user = LinkUser.objects.get(email=court.email)
     except LinkUser.DoesNotExist:

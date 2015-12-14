@@ -1,12 +1,12 @@
-{% extends "layout-responsive.html" %}
-{% load bootstrap_tags %}
+{% extends "base-responsive.html" %}
+
 {% block meta_description %}
 Log in to your Perma.cc account. Welcome back.
 {% endblock %}
 
-{% block content %}
+{% block mainContent %}
 
-<div class="container">
+<div class="container cont-fixed">
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-success account-confirmed-message">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
@@ -14,28 +14,32 @@ Log in to your Perma.cc account. Welcome back.
     {% endif %}
 
     <div class="row">
-        <div class="col-sm-4">
-            <h2>Login</h2>
-
+        <div class="col-sm-12">
+            <h1 class="page-title">Log in to your Perma.cc account</h1>
                 <form method="post" action="{% url 'user_management_limited_login' %}{% if next %}?next={{ next }}{% endif %}" class="temp-form-css">
                 {% csrf_token %}
-
-                     {{ form|as_bootstrap }}
-                    <button type="submit" class="btn-success login">Login</button>
-                    <br /><br />
-                    <p>Forgot your password?<br /> No problem, we can help you <a href="{% url 'password_reset' %}">create a new one.</a></p>
-                    <p><a href="{% url 'register' %}">Create an account</a></p>
+                     <fieldset>
+							{% for field in form %}
+								<div class="form-group{% if field.errors %} _error{% endif %}">
+									<label for="id_{{ field.name }}">{{ field.label }}</label>
+									{{ field }}
+									{% if field.errors %}
+										{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+									{%elif field.help_text %}
+										<span class="help-inline">{{ field.help_text }}</span>
+									{% endif %}
+								</div>
+							{% endfor %}
+                        	{% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
+                    </fieldset>
+                    <button type="submit" class="btn login">Log in to Perma.cc</button>
+                    <p class="form-helper">Forgot your password? No problem! <a class="_noWrap" href="{% url 'password_reset' %}">Create a new password.</a></p>
+                    <p class="form-helper">Don’t have an account? <a class="_noWrap" href="{% url 'sign_up' %}">Sign up with Perma.cc.</a></p>
                 </form>
-
-                <br />
-                <br />
-                <br />
-                <br />
-                <br />
             </div><!-- end span -->
         </div><!-- end row -->
 </div><!-- end container -->
-{% endblock content %}
+{% endblock mainContent %}
 
 {% block scripts %}
 <script>

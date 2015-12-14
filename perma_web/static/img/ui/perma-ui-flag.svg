@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="84px" height="16px" viewBox="0 0 84 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.3.3 (12072) - http://www.bohemiancoding.com/sketch -->
+    <title>perma-ui-flag</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <g id="perma-ui-flag" sketch:type="MSArtboardGroup">
+            <g id="Line-+-Path-605" sketch:type="MSLayerGroup" transform="translate(1.000000, 1.000000)">
+                <path d="M5.31005859,2.17712402 L0.352941176,13.65" id="Line" stroke="#DA681E" stroke-linecap="square" sketch:type="MSShapeGroup"></path>
+                <path d="M5.64705882,0 L12,7 L2.82352941,7 L5.64705882,0 Z" id="Path-605" fill="#DA681E" sketch:type="MSShapeGroup"></path>
+            </g>
+            <g id="Line-+-Path-605-Copy-2" sketch:type="MSLayerGroup" transform="translate(29.000000, 1.000000)">
+                <path d="M5.46630859,1.76904297 L0.352941176,13.65" id="Line" stroke="#0083FF" stroke-linecap="square" sketch:type="MSShapeGroup"></path>
+                <path d="M5.64705882,0 L12,7 L2.82352941,7 L5.64705882,0 Z" id="Path-605" fill="#0083FF" sketch:type="MSShapeGroup"></path>
+            </g>
+            <g id="Line-+-Path-605-Copy-4" sketch:type="MSLayerGroup" transform="translate(57.000000, 1.000000)">
+                <path d="M5.27209473,2.27685547 L0.352941176,13.65" id="Line" stroke="#BBBBBB" stroke-linecap="square" sketch:type="MSShapeGroup"></path>
+                <path d="M5.64705882,0 L12,7 L2.82352941,7 L5.64705882,0 Z" id="Path-605" fill="#BBBBBB" sketch:type="MSShapeGroup"></path>
+            </g>
+            <g id="Line-+-Path-605-Copy" sketch:type="MSLayerGroup" transform="translate(15.000000, 1.000000)">
+                <path d="M5.70056152,1.25927734 L0.352941176,13.65" id="Line" stroke="#222222" stroke-linecap="square" sketch:type="MSShapeGroup"></path>
+                <path d="M5.64705882,0 L12,7 L2.82352941,7 L5.64705882,0 Z" id="Path-605" fill="#222222" sketch:type="MSShapeGroup"></path>
+            </g>
+            <g id="Line-+-Path-605-Copy-3" sketch:type="MSLayerGroup" transform="translate(43.000000, 1.000000)">
+                <path d="M5.29760742,2.16174316 L0.352941176,13.65" id="Line" stroke="#2D76EE" stroke-linecap="square" sketch:type="MSShapeGroup"></path>
+                <path d="M5.64705882,0 L12,7 L2.82352941,7 L5.64705882,0 Z" id="Path-605" fill="#2D76EE" sketch:type="MSShapeGroup"></path>
+            </g>
+            <g id="Line-+-Path-605-Copy-5" sketch:type="MSLayerGroup" transform="translate(71.000000, 1.000000)">
+                <path d="M5.53320312,1.69091797 L0.352941176,13.65" id="Line" stroke="#FFFFFF" stroke-linecap="square" sketch:type="MSShapeGroup"></path>
+                <path d="M5.64705882,0 L12,7 L2.82352941,7 L5.64705882,0 Z" id="Path-605" fill="#FFFFFF" sketch:type="MSShapeGroup"></path>
+            </g>
+        </g>
+    </g>
+</svg>

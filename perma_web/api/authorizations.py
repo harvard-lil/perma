@@ -2,7 +2,6 @@ from perma.models import Link
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.exceptions import Unauthorized, BadRequest
 
-
 class FolderAuthorization(ReadOnlyAuthorization):
 
     def can_access(self, user, obj):
@@ -70,14 +69,14 @@ class FolderAuthorization(ReadOnlyAuthorization):
 class PublicLinkAuthorization(ReadOnlyAuthorization):
 
     def read_list(self, object_list, bundle):
-        return object_list.filter(vested=True)
+        return object_list.discoverable()
 
     def read_detail(self, object_list, bundle):
         # It's a /schema request
         if bundle.obj.pk is u'':
             return True
 
-        return bundle.obj.vested
+        return bundle.obj.is_discoverable()
 
 
 class AuthenticatedLinkAuthorization(ReadOnlyAuthorization):
@@ -174,6 +173,16 @@ class LinkAuthorization(AuthenticatedLinkAuthorization):
 
             return True
 
+        # public/private
+        # If you aren't staff, you're only allowed to toggle is_private if private_reason is 'user'.
+        if bundle.obj.tracker.has_changed("is_private") and not bundle.request.user.is_staff:
+            if bundle.obj.is_private:
+                if bundle.obj.private_reason != 'user':
+                    raise Unauthorized()
+            else:
+                if bundle.obj.tracker.previous('private_reason') != 'user':
+                    raise Unauthorized()
+
         # For editing
         if not self.can_access(bundle.request.user, bundle.obj):
             raise Unauthorized()
@@ -181,7 +190,8 @@ class LinkAuthorization(AuthenticatedLinkAuthorization):
         return True
 
     def delete_detail(self, object_list, bundle):
-        if bundle.obj.vested or not self.can_access(bundle.request.user, bundle.obj):
+
+        if not bundle.request.user.can_delete(bundle.obj):
             raise Unauthorized()
 
         return True

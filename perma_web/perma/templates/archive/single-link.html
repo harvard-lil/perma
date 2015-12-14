@@ -1,0 +1,255 @@
+{% extends "archive/base-archive-responsive.html" %}
+{% load file_exists  truncatesmart local_datetime pipeline as_json %}
+
+{% block title %} | {{link.submitted_title}}{% endblock %}
+
+{% block meta-head %}
+    <meta name="robots" content="noindex, noarchive, noodp, noimageindex">
+{% endblock %}
+
+{% block header %}
+
+{% comment %}
+
+
+    Our header is built using three segments.
+    +------------------------------------+
+    | Primary segment                   					|
+    |                                   					|
+    | This segment is always displayed  				|
+    --------------------------------------
+    | Details segment                   					|
+    |                                   					|
+    | This segment is displayed         					|
+    | if the user clicks the show       					|
+    | details button                    					|
+    --------------------------------------
+    | Status banner segment                   			|
+    |                                   					|
+    | If we have a message to share     				|
+    | we display it here. Things like   					|
+    | "Things archive is dark, but you  					|
+    | can see it because you're part of 					|
+    | org that owns the archive" or     					|
+    | "Archive created successfully,    					|
+    | here's the perma.cc address of  				  	|
+    | the archive"                      					|
+    +------------------------------------+
+ 
+ {% endcomment %}
+
+
+    <header{% if link.is_private %} class="_isPrivate"{% endif %}>
+        {% if request.user.is_authenticated %}
+			<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+		{% endif %}
+
+        <div class="primary-segment row">
+            <div class="col col-sm-2 _details">
+            	<div class="content">
+	                <button id="details-button" class="btn btn-ui-small details" type="button" data-toggle="collapse" data-target="#collapse-details" aria-expanded="false" aria-controls="collapse-details"><span>Show record details</span></button>
+            	</div>
+            </div>
+            <div class="col col-sm-6 _main {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
+            	<div class="content">
+	                <p class="title"><span class="_verbose">This is a </span>{% if link.is_private %}Private {% endif %}<span class="logo">Perma.cc</span> record</p>
+	                <p class="creation"><span class="cat">Created</span> {{ link.creation_timestamp|local_datetime:"F j, Y" }}
+	
+	                    {% if serve_type != 'image' %}
+	                        {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
+	                            <span class="action"><span class="_verbose">Looks wrong?  </span><a href="{% url 'single_linky' link.guid %}?type=image">See the Screenshot View</a></span>
+	                        {% endif %}
+	                    {% else %}
+	                        <span class="action"><span class="_verbose">This is a screenshot. </span><a href="{% url 'single_linky' link.guid %}?type=source">See the Capture View</a></span>
+	                    {% endif %}                   
+						{% if request.user.is_authenticated %}
+						{% else %}
+							<a class="about" href="{% url 'about' %}" target="_blank">What is Perma.cc?</a>
+						{% endif %}
+	                </p>
+            	</div>
+            </div>
+            <div class="col col-sm-2 _livepage">
+            	<div class="content">
+	                <a class="btn btn-outside" href="{{link.submitted_url}}" target="_blank"><span>View the live page</span></a>
+            	</div>
+            </div>
+            <div class="col col-sm-2 _user {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
+            	<div class="content">
+	                {% if request.user.is_authenticated %}
+					<div class="navbar-collapse collapse">
+					  <ul class="nav navbar-nav navbar-right">
+					  	{% if request.user.is_authenticated %}
+                            <li class="dropdown">
+                              <a href="#" class="dropdown-toggle navbar-link needsclick" data-toggle="dropdown" role="button" aria-expanded="false">{{ request.user.get_short_name }}</a>
+                              <ul class="dropdown-menu" role="menu">
+                                {% if not this_page == 'create_link' %}
+                                <li><a href="{% url 'create_link' %}">Create and manage Perma Links</a></li>
+                                <li class="divider"></li>
+                                {% endif %}
+                                
+                                
+                                {% if request.user.is_staff or request.user.is_registrar_member %}
+                                    <li role="presentation" class="dropdown-header">Manage users</li>
+
+                                    {% if request.user.is_staff %}
+                                        <li><a href="{% url 'user_management_manage_registry_user' %}">Registry users</a></li>
+                                        <li><a href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>
+                                    {% endif %}
+
+                                    <li><a href="{% url 'user_management_manage_registrar_user' %}">Registrar users</a></li>
+                                    <li><a href="{% url 'user_management_manage_organization' %}">Organizations</a></li>
+                                    <li><a href="{% url 'user_management_manage_organization_user' %}">Organization users</a></li>
+
+                                    {% if request.user.is_staff %}
+                                        <li><a href="{% url 'user_management_manage_user' %}">Users</a></li>
+                                    {% endif %}
+	                                <li class="divider"></li>
+                                {% endif %}
+
+                                <!-- Org users -->
+                                {% if request.user.is_organization_member %}
+	                                <li><a href="{% url 'user_management_manage_organization_user' %}">Manage users</a></li>
+	                                <li class="divider"></li>
+                                {% endif %}
+                                {% if request.user.is_staff %}
+									<li><a href="{% url 'admin:index' %}">Admin console</a></li>
+	                                <li class="divider"></li>
+                                {% endif %}
+                                <li role="presentation" class="dropdown-header">Settings</li>
+                                <li><a href="{% url 'user_management_settings_profile' %}">Profile</a></li>
+                                <li><a href="{% url 'user_management_settings_password' %}">Password</a></li>
+                                <li><a href="{% url 'user_management_settings_tools' %}">Tools</a></li>
+                                {% if request.user.is_organization_member or request.user.is_registrar_member or request.user.has_registrar_pending %}
+	                                <li><a href="{% url 'user_management_settings_organizations' %}">Your organization</a></li>
+								{% endif %}
+                                <li class="divider"></li>
+                                <li><a href="{% url 'logout' %}">Log out</a></li>
+                              </ul>
+                            </li>
+							{% else %}
+		                        <!--<li><a href="#" class="navbar-link">How it Works</a></li>-->
+		                        <li><a href="{% url 'about' %}" class="navbar-link">About Perma.cc</a></li>
+		                        <li><a href="{% url 'docs' %}" class="navbar-link">Guide</a></li>
+		                        <li><a href="https://blogs.law.harvard.edu/perma/" class="navbar-link">Blog</a></li>
+		                        <li><a href="{% url 'sign_up' %}" class="btn _nav{% if this_page == 'sign_up' %} this-page{% endif %}">Sign up</a></li>
+		                        <li><a href="{% url 'user_management_limited_login' %}" class="navbar-link _login">Log in</a></li>
+		                        {% comment %}
+		                        <li><a href="{% url 'sign_up' %}" id="nav-button" class="btn btn-large">Sign Up</a></li>
+		                        {% endcomment %}
+							{% endif %}
+						  </ul>
+	                    </div><!--/.nav-collapse -->
+	                {% else %}
+	                    <a class="about" href="{% url 'about' %}" target="_blank">What is Perma.cc?</a>
+	                {% endif %}
+            	</div>
+            </div>
+        </div>
+
+        <div id="collapse-details" class="details-segment ui-tray row collapse">
+            <div class="tray-details">
+            	<dl class="tray-detail-group">
+            		<dt class="tray-detail-title">Original page URL</dt>
+            		<dd class="tray-detail-entry">{{link.submitted_url}}</dd>
+				</dl>
+            	<dl class="tray-detail-group">
+					<dt class="tray-detail-title">Original page title</dt>
+            		<dd class="tray-detail-entry">{{link.submitted_title}}</dd>
+            	</dl>
+            	<dl class="tray-detail-group">
+            		<dt class="tray-detail-title">Record creation date</dt>
+            		<dd class="tray-detail-entry">{{ link.creation_timestamp|local_datetime }}</dd>
+				</dl>
+
+                {% comment %}
+                    {% if link.organization %}
+                    <dl class="tray-detail-group">
+                        <dt class="tray-detail-title">Archiving Organization</dt>
+                        <dd class="tray-detail-entry">{{ link.organization }}</dd>
+                    </dl>
+                    {% endif %}
+                {% endcomment %}
+
+                <!--
+                <p class="fp">Perma.cc is a web archiving service developed by the Library Innovation Lab at Harvard University. The data captured in the archived Perma.cc record is the copyright of its original creators. Neither Harvard University nor the archiving individual are responsible for its content. <a href="http://perma.cc/about">More about Perma.cc.</a></p>
+                -->
+
+            </div>
+            <div class="tray-actions">
+
+                {# user edit buttons #}
+                {% if can_toggle_private %}
+                    <button class="btn btn-ui-small btn-dashboard darchive"><span class="_verbose">Mark as </span>{% if link.is_private %}Public{% else %}Private{% endif %}</button>
+                    {% if request.user.is_staff %}
+                        {% if link.is_private %}
+                            (Private reason: {{ link.get_private_reason_display }})
+                        {% else %}
+                            <select name="private_reason">
+                                <option value="user"> At user direction</option>
+                                <option value="policy"> robots.txt or noarchive meta tag</option>
+                                <option value="takedown"> At content owner's request</option>
+                            </select>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+
+                {% if can_delete %}
+                    <a class="btn btn-ui-small btn-dashboard user-delete" href="{% url 'user_delete_link' link.guid %}">Delete<span class="_verbose"> record</span></a>
+                {% endif %}
+
+                {# if not request.user.is_authenticated or request.user.pk != link.created_by_id #}
+                <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-ui-small btn-dashboard flag" title="Flag as inappropriate">Flag<span class="_verbose"> as inappropriate</span></a>
+                {# endif #}
+            </div>
+        </div>
+		
+		{% if can_view and link.is_private %}
+	        <div class="banner banner-status row _isDarchive">
+		        <strong>This record is private{% if link.private_reason == 'policy' %} by Perma.cc policy{% elif link.private_reason == 'takedown' %} at the content owner's request{% endif %}.</strong>
+                It’s only visible to {% if link.organization %}members of {{ link.organization }} and the {{ link.organization.registrar }} registrar{% else %}you{% endif %}.
+                {% if link.private_reason == 'user' %}You can make this link public under 'Show record details.'{% endif %}
+	        </div>
+        {% endif %}
+       
+        {% if new_record %}
+	        <div class="banner banner-status row _isNewRecord">
+		        <strong>Success!</strong>
+		        <span class="message verbose">Your new Perma Link is <input class="perma" type="text" value="{{ request.get_host }}{% url 'single_linky' link.guid %}"></span>
+		        <span class="link-options verbose"><a href="{% url 'user_delete_link' link.guid %}">Delete</a><span class="_verbose _toDesktop"> (Perma Links are permanent after 24 hours)</span></span>
+		        <a class="action new-link" href="{% url 'create_link' %}">Make a new Perma Link</a>
+	        </div>
+        {% endif %}
+
+    </header>
+{% endblock %}
+
+{% block mainContent %}
+
+    {% if link.user_deleted %}
+        {% include "archive/deleted.html" %}
+    {% elif can_view %}
+        {% include "archive/iframe.html" %}
+    {% elif link.is_private %}
+        {% include "archive/dark-archive.html" %}
+    {% endif %}
+
+<!-- Modals -->
+
+<!-- delete -->
+<!-- darchive -->
+<!-- flag -->
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        var archive = {% as_json link %};
+    </script>
+
+    {% javascript 'single-link' %}
+{% endblock %}

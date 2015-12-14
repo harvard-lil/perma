@@ -3,6 +3,7 @@ import logging
 from urlparse import urlparse
 import requests
 from ratelimit.decorators import ratelimit
+from datetime import timedelta
 
 from django.core.files.storage import default_storage
 from django.template import RequestContext
@@ -13,6 +14,7 @@ from django.shortcuts import render_to_response, render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, Http404, HttpResponse, HttpResponseNotFound, HttpResponseServerError, StreamingHttpResponse
 from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.views.decorators.csrf import csrf_exempt
@@ -25,13 +27,12 @@ from urlparse import urlparse
 import requests
 from ratelimit.decorators import ratelimit
 
-from ..models import Link, Asset, Registrar
+from ..models import Link, Asset, Registrar, Organization, LinkUser
 from perma.forms import ContactForm
-from perma.middleware import ssl_optional
 from perma.utils import if_anonymous, send_contact_email
 
 logger = logging.getLogger(__name__)
-valid_serve_types = ['image', 'pdf', 'source', 'warc_download']
+valid_serve_types = ['image', 'warc_download']
 
 
 class DirectTemplateView(TemplateView):
@@ -53,11 +54,18 @@ def landing(request):
     """
     The landing page
     """
-    if request.user.is_authenticated() and settings.HOST not in request.META.get('HTTP_REFERER',''):
+    if request.user.is_authenticated() and request.get_host() not in request.META.get('HTTP_REFERER',''):
         return HttpResponseRedirect(reverse('create_link'))
         
     else:
-        return render(request, 'landing.html', {'this_page': 'landing'})
+        orgs_count = Organization.objects.all().count()
+        users_count = LinkUser.objects.all().count()
+        links_count = Link.objects.filter(is_private=False).count()
+
+        return render(request, 'landing.html', {
+            'this_page': 'landing',
+            'orgs_count': orgs_count, 'users_count': users_count, 'links_count': links_count,
+        })
 
 def about(request):
     """
@@ -65,6 +73,17 @@ def about(request):
     """
     partners = sorted(Registrar.objects.filter(show_partner_status=True), key=lambda r: r.partner_display_name or r.name)
     return render(request, 'about.html', {'partners': partners})
+
+def faq(request):
+    """
+    The faq page
+    """
+    registrars_count = Registrar.objects.all().count()
+    orgs_count = Organization.objects.all().count()
+    users_count = LinkUser.objects.all().count()
+    links_count = Link.objects.filter(is_private=False).count()
+    return render(request, 'docs/faq.html', {'registrars_count': registrars_count,
+        'orgs_count': orgs_count, 'users_count': users_count, 'links_count': links_count,})
 
 def stats(request):
     """
@@ -79,7 +98,6 @@ def stats(request):
     return render_to_response('stats.html', context)
 
 
-@ssl_optional
 @if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['single_linky']))
 @ratelimit(method='GET', rate=settings.MINUTE_LIMIT, block=True, ip=False,
            keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
@@ -95,40 +113,24 @@ def single_linky(request, guid):
     # Create a canonical version of guid (non-alphanumerics removed, hyphens every 4 characters, uppercase),
     # and forward to that if it's different from current guid.
     canonical_guid = Link.get_canonical_guid(guid)
-    link = get_object_or_404(Link, guid=canonical_guid)
+    link = get_object_or_404(Link.objects.all_with_deleted(), guid=canonical_guid)
 
     if canonical_guid != guid:
         return HttpResponsePermanentRedirect(reverse('single_linky', args=[canonical_guid]))
 
-    # User requested archive type
-    serve_type = request.GET.get('type', 'live')
-    if not serve_type in valid_serve_types:
-        serve_type = 'live'
-
-    # SSL check
-    # This helper func will return a redirect if we are trying to view a live http link from an https frame
-    # (which will fail because of the mixed content policy),
-    # or if we are using an http frame and could be using https.
-    def ssl_redirect(link):
-        if not settings.SECURE_SSL_REDIRECT:
-            return
-        if serve_type == 'live' and not link.startswith('https'):
-            if request.is_secure():
-                return HttpResponseRedirect("http://%s%s" % (request.get_host(), request.get_full_path()))
-        elif not request.is_secure():
-            return HttpResponseRedirect("https://%s%s" % (request.get_host(), request.get_full_path()))
-
-    # make sure frame and content ssl match (see helper func above)
-    redirect = ssl_redirect(link.submitted_url)
-    if redirect:
-        return redirect
+    # If we get an unrecognized archive type (which could be an old type like 'live' or 'pdf'), forward to default version
+    serve_type = request.GET.get('type')
+    if serve_type is None:
+        serve_type = 'source'
+    elif serve_type not in valid_serve_types:
+        return HttpResponsePermanentRedirect(reverse('single_linky', args=[canonical_guid]))
 
     # Increment the view count if we're not the referrer
     parsed_url = urlparse(request.META.get('HTTP_REFERER', ''))
-
     if not request.get_host() in parsed_url.netloc and not settings.READ_ONLY_MODE:
         link.view_count += 1
         link.save()
+
     # serve raw WARC
     if serve_type == 'warc_download':
         # TEMP: remove this line after all legacy warcs have been exported
@@ -139,36 +141,30 @@ def single_linky(request, guid):
                                          content_type="application/gzip")
         response['Content-Disposition'] = "attachment; filename=%s.warc.gz" % link.guid
         return response
-        
-    display_iframe = False
-    capture = None
-    if serve_type == 'live':
-        # If we are going to serve up the live version of the site, let's make sure it's iframe-able
-        try:
-            response = requests.head(link.submitted_url,
-                                     headers={'User-Agent': request.META['HTTP_USER_AGENT'], 'Accept-Encoding': '*'},
-                                     timeout=5)
-            display_iframe = 'X-Frame-Options' not in response.headers and 'attachment' not in response.headers.get('Content-Disposition')
-            # TODO actually check if X-Frame-Options specifically allows requests from us
-        except:
-            # Something is broken with the site, so we might as well display it in an iFrame so the user knows
-            display_iframe = True
-        
-    elif serve_type == 'source' or serve_type == 'pdf':
+
+    if serve_type == 'image':
+        capture = link.screenshot_capture
+    else:
         capture = link.primary_capture
 
-    elif serve_type == 'image':
-        capture = link.screenshot_capture
+    new_record = False
+    if request.user.is_authenticated() and link.created_by_id == request.user.id and not link.user_deleted:
+        # If this record was just created by the current user, show them a new record message
+        new_record = link.creation_timestamp > timezone.now() - timedelta(seconds=300)
 
     context = {
         'link': link,
+        'can_view': request.user.can_view(link),
+        'can_edit': request.user.can_view(link),
+        'can_delete': request.user.can_delete(link),
+        'can_toggle_private': request.user.can_toggle_private(link),
         'capture': capture,
         'next': request.get_full_path(),
-        'display_iframe': display_iframe,
-        'serve_type': serve_type
+        'serve_type': serve_type,
+        'new_record': new_record,
     }
 
-    return render(request, 'single-link.html', context)
+    return render(request, 'archive/single-link.html', context)
 
 
 def rate_limit(request, exception):
@@ -225,19 +221,24 @@ Message from user
             return render_to_response('contact.html', context)
 
     else:
-        form = ContactForm(initial={'message': request.GET.get('message', '')})
+
+        # Our contact form serves a couple of purposes
+        # If we get a message parameter, we're getting a message from the create form
+        # about a failed archive
+        #
+        # If we get a flagged parameter, we're getting the guid of an archive from the
+        # Flag as inappropriate button on an archive page
+        #
+        # We likely want to clean up this contact for logic if we tack much else on
+        
+        message = request.GET.get('message', '')
+        flagged_archive_guid = request.GET.get('flag', '')
+
+        if flagged_archive_guid:
+            message = 'http://perma.cc/%s contains material that is inappropriate.' % flagged_archive_guid
+
+
+        form = ContactForm(initial={'message': message})
 
         context = RequestContext(request, {'form': form})
         return render_to_response('contact.html', context)
-
-
-def debug_media_view(request, *args, **kwargs):
-    """
-        Override Django's built-in dev-server view for serving media files,
-        in order to NOT set content-encoding for gzip files.
-        This stops the dev server from messing up delivery of archive.warc.gz files.
-    """
-    response = media_view(request, *args, **kwargs)
-    if response.get("Content-Encoding") == "gzip":
-        del response["Content-Encoding"]
-    return response

@@ -1,48 +1,60 @@
 {% extends "settings-layout.html" %}
 
-{% block title %} | Settings Password{% endblock %}
+{% block title %} | Settings | Your Organization{% endblock %}
 
-{% block content %}
-	  <h3>Organizations</h3>
+{% block dashboardContent %}
+	  <h3 class="body-ah _hideMobile">Your Organization</h3>
 	  {% if messages %}
         {% for message in messages %}
-            <div class="alert alert-{{ message.level_tag }} alert-block">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
+            <div class="alert-{{ message.level_tag }} alert-block">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
         {% endfor %}
         {% endif %}
-		<div class="sponsoring-library-info">
+		<div class="org-settings">
             {% with request.user.organizations as organization %}
-                <h5>Your sponsoring library and organization(s)</h5>
+                <h4 class="body-bh">Your sponsor organization(s)</h4>
                     {% for vo in organization.all %}
                     {% with vo.registrar as registrar %}
-                        <p>
+                    	<div class="settings-block">
                             {% if registrar.website %}
-                                <strong><a href="{{registrar.website}}" target="_blank">{{registrar}}</a></strong>
+                                <strong class="sponsor-name"><a href="{{registrar.website}}" target="_blank">{{registrar}}</a></strong>
                             {% else %}
-                                <strong>{{registrar}}</strong>
+                                <strong class="sponsor-name">{{registrar}}</strong>
                             {% endif %}
-                            <br>{{registrar.email}}
+                            	<span class="sponsor-email">{{registrar.email}}</span>
                     {% endwith %}
-                            <p>{{ vo }} <a href="{% url 'user_management_organization_user_leave_organization' vo.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Leave</a> <a href="{% url 'user_management_manage_single_organization' vo.id %}" class="edit-org-link">Edit organization</a></p>
-                        </p>
-                    
+                    	</div>
+                <h4 class="body-bh">Your organization</h4>
+                    	<div class="settings-block">
+                            <p>{{ vo }} <a href="{% url 'user_management_manage_single_organization' vo.id %}" class="action edit-org-link">Edit organization</a></p>
+                            <a href="{% url 'user_management_organization_user_leave_organization' vo.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Leave</a> 
+                            
+                    	</div>
+                <h4 class="body-bh">Organizational privacy settings</h4>
+                    	<div class="settings-block">
+	              			{% if vo.default_to_private %}
+		              			<p>Links are <strong>Private</strong> by default</p>
+		          				<a href="{% url 'user_management_settings_organizations_change_privacy' vo.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Set to public</a>
+		                    {% else %}
+			          			<p>Links are <strong>Public</strong> by default</p>
+			          			<a href="{% url 'user_management_settings_organizations_change_privacy' vo.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Set to private</a>
+		                    {% endif %}
+						</div>
                     {% endfor %}
-            {% endwith %}
-            {% if pending_registrar %}
-                <p><strong>Pending registrar</strong> {{pending_registrar.name}}</p>
-            {% endif %}
+		    {% endwith %}
+				            {% if pending_registrar %}
+				                <p class="body-text"><strong>Pending registrar</strong> {{pending_registrar.name}}</p>
+				            {% endif %}
             
-            {% if request.user.registrar %}
-                <p class="registrar-info">
-                {% if request.user.registrar.website %}
-                    <strong><a href="{{request.user.registrar.website}}" target="_blank">{{request.user.registrar}}</a></strong>
-                {% else %}
-                    <strong>{{request.user.registrar}}</strong>
-                {% endif %}
-                <br>{{request.user.registrar.email}}
-                </p>
-                <a href="{% url 'user_management_manage_single_registrar' request.user.registrar.id %}" class="btn btn-default btn-xs edit-registrar-btn" role="button">Edit</a>
-            {% endif %}
+				            {% if request.user.registrar %}
+								<div class="admin-sponsor">
+				                {% if request.user.registrar.website %}
+				                    <strong><a href="{{request.user.registrar.website}}" target="_blank">{{request.user.registrar}}</a></strong>
+				                {% else %}
+				                    <strong>{{request.user.registrar}}</strong>
+				                {% endif %}
+				                <span class="sponsor-email">{{request.user.registrar.email}}</span>
+				                <a href="{% url 'user_management_manage_single_registrar' request.user.registrar.id %}" class="btn btn-default btn-xs edit-registrar-btn" role="button">Edit</a>
+								</div>
+							{% endif %}
         </div>
-    <br/><br/>
-
 {% endblock %}

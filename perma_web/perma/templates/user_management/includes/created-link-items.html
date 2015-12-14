@@ -26,30 +26,29 @@
 {% endif %}
 
 {% for link in links %}
-    <div class="link-container">
+    <div class="item-container">
 
-        <div class="row link-row" link_id="{{ link.pk }}">
-            <div class="col-sm-6">
-                <a href="http://{{HOST}}/{{link.guid}}" target="_blank">http://{{HOST}}/{{link.guid}}</a><br/>
-                <a href="{{ link.submitted_url }}" target="_blank" class="original-link">{{ link.submitted_url|truncatechars:200 }}</a><br/>
-                {% if link.vested %}
-                    <span class="vested-date">Vested on {{ link.vested_timestamp|local_datetime:"M. j, Y" }}</span>
-                {% else %}
-                    <span class="alert-danger">
-                        Expires on {{ link.get_expiration_date|local_datetime:"M. j, Y" }} unless
-                        <a href="{% if request.user.can_vest %}http://{{HOST}}/{{link.guid}}{% else %}{% url 'docs_perma_link_vesting' %}{% endif %}">vested</a>
-                    </span>
-                {% endif %}
+        <div class="row item-row" link_id="{{ link.pk }}">
+            <div class="row">
+	            <div class="col-sm-6">
+	                <strong class="item-title">{{ link.submitted_title }}</strong>
+	                <a href="{{ link.submitted_url }}" target="_blank" class="item-link-original">{{ link.submitted_url|truncatechars:200 }}</a><br/>
+	            </div>
+	            <div class="col-sm-6">
+	                <a class="perma" href="/{{link.guid}}" target="_blank">https://{{request.get_host}}/{{link.guid}}</a><br/>
+	            </div>
             </div>
-            <div class="col-sm-4">
-                <span class="link-title-display">{{ link.submitted_title }}</span>
-            </div>
-            <div class="col-sm-2">
-                {{ link.creation_timestamp|local_datetime:"M. j, Y" }}
+            <div class="row">
+	            <div class="col-sm-6">
+	            	<div class="item-affil">Record Affiliation</div>
+	            </div>
+	            <div class="col-sm-6">
+		            {{ link.creation_timestamp|local_datetime:"M j, Y" }}
+	            </div>
             </div>
         </div>
 
-        <div class="row link-details" {% if search_query in link.notes %}style="display:block"{% endif %}>
+        <div class="row item-details" {% if search_query in link.notes %}style="display:block"{% endif %}>
             <div class="col-sm-6">
 
                 <div class="form-group">
@@ -63,7 +62,7 @@
                     <span class="muted notes-save-status"></span>
                     <textarea id="link-notes-{{ link.pk }}" class="form-control link-notes">{{ link.notes }}</textarea>
                 </div>
-                <span class="muted">Notes are visible to users who create or vest a link, but not to visitors.</span>
+                <span class="muted">Notes are visible to users who create or share within an organization, but not to visitors.</span>
 
                 <div class="form-group">
                     <label for="move-to-folder-{{ link.pk }}">Move to folder:</label>
@@ -74,16 +73,13 @@
             <div class="col-sm-6">
                 <div><strong>Views:</strong> {{ link.view_count }}</div>
                 <div><strong>Created by:</strong> {{ link.created_by.get_full_name }}</div>
-                {% if link.vested %}
-                    <div><strong>Vested by:</strong> {{ link.vested_by_editor.get_full_name }}</div>
-                {% endif %}
             </div>
         </div>
 
         <a href="#" class="link-expand">More</a>
     </div>
 {% empty %}
-    <div class="link-container" style="padding-left: 1.5em">
+    <div class="item-container" style="padding-left: 1.5em">
         <em>{% if search_query %}No results.{% else %}Empty folder.{% endif %}</em>
     </div>
 {% endfor %}

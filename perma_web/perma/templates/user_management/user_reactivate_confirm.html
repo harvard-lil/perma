@@ -1,16 +1,13 @@
 {% extends "admin-layout.html" %}
 {% block title %} | Reactivate user{% endblock %}
 
-{% block content %}
+{% block adminContent %}
 
-	<h3>Reactivate {{ target_member.email }}</h3>
-	<br/>
-	<br/>
-	<p>Do you really want to reactivate {{ target_member.email }}?</p>
-	<br/>
+<h3 class="body-bh">Reactivate <strong>{{ target_member.email }}</strong></h3>
+<p class="page-dek">Do you really want to reactivate <strong>{{ target_member.email }}</strong>?</p>
 	<form action="" method="POST">
-	      {% csrf_token %}
-        <a href="../">Cancel</a> <button type="submit" class="btn-success delete-confirm">Reactivate {{ target_member.email }}</button>
-    </form>
+      {% csrf_token %}
+    <a class="btn cancel" href="../">Cancel</a> <button type="submit" class="btn delete-confirm">Reactivate {{ target_member.email }}</button>
+</form>
 
 {% endblock %}

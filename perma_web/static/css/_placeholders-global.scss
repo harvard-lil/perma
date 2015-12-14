@@ -23,19 +23,6 @@
 	margin-right: auto;
 }
 
-%style-container {
-	@extend %style-block-centered;
-	@extend %style-clears-floats;
-	padding-left: $grid;
-	padding-right: $grid;
-	max-width: $width-max;
-	overflow: hidden;
-	@include respond-tablet {
-		padding-left: $double;
-		padding-right: $double;
-	}
-}
-
 %style-vcenter-parent {
 	display: table;
 }
@@ -45,10 +32,15 @@
 	vertical-align: middle;
 }
 
+/*
 %style-pageLede {
 	font-family: $font-hed-alt;
     font-weight: 300;
-    font-size: 22px;
+    font-size: 16px;
+    margin-top: $double;
+    @include respond-tablet {
+	    font-size: 22px;
+    }
 }
 
 %style-body-text {
@@ -58,9 +50,9 @@
 	line-height: 1.5;
 }
 
-%style-docs-ah {
+%style-body-ah {
     font-size: 24px;
-    border-top: 1px solid $color-blue;
+    border-top: 2px solid $color-blue;
     padding-top: $grid;
     margin-top: $grid * 8;
     font-family: $font-hed-alt;
@@ -71,43 +63,74 @@
     }
 }
 
-%style-docs-bh {
+%style-body-bh {
     font-size: 18px;
-    border-top: 1px solid $color-black;
+    border-top: 1px solid $color-orange;
     padding-top: $grid;
     margin-top: $grid * 6;
     font-family: $font-hed-alt;
-    font-weight: 700;
-    color: $color-black;
+    font-weight: 300;
+    color: $color-orange;
 }
+*/
 
+/*
 %style-overview-container {
-	margin: $grid * 6 0 0 0;
+	margin: $grid 0 0 0;
 	background-color: $color-background;
-	border-radius: 2px;
 	@extend %style-clears-floats;
-	& + div {
-		padding-top: $grid * 3;
-		margin-top: $grid * 4;
+	@include respond-tablet {
+		margin: $grid * 6 0 0 0;
+	}
+	@include respond-desktop {
 	}
 }
 
 %style-overview-module {
-	float: left;
-	width: 20%;
+	border-bottom: 1px solid white;
+	@include respond-desktop {
+		border-right: 1px solid white;
+		border-bottom: none;
+	}
+	&:last-child {
+		@include respond-tablet {
+			border-bottom: none;
+		}
+		@include respond-desktop {
+			border-right: 3px solid white;
+		}
+	}
 	&:first-child {
-		a {
-			border-left: 2px solid white;
+		@include respond-desktop {
+			border-left: 1px solid white;
+		}
+	}
+	.overview-module-content {
+		height: auto;
+		display: block;
+		margin: 0;
+		padding: $grid $double;
+		border-radius: 0;
+		@include respond-tablet {
+			border-left: 3px solid white;
+			border-right: 3px solid white;
+			padding: 12px $double;
+		}
+		@include respond-desktop {
+			height: 15em;
+			border-right: none;
+			border-bottom: none;
+			padding: $double;
+		}
+		@include respond-wide {
+			height: 13em;
 		}
 	}
 	a {
-		border-right: 2px solid white;
-		height: 11.5em;
-		display: block;
-		margin: 0;
-		padding: $double;
 		&:hover {
 			background-color: $color-blue !important;
+			border-left-color: $color-blue !important;
+			border-right-color: $color-blue !important;
 			color: white;
 			p, strong {
 				color: white !important;
@@ -118,16 +141,16 @@
 		}
 		&:active {
 			background-color: $color-black !important;
+			border-left-color: $color-black !important;
+			border-right-color: $color-black !important;
 		}
 	}
 	a._jump {
-		height: 5.75em;
-		background-color: $color-trans-whispergray;
-		padding-top: 19px;
-		+ a {
-			border-top: 2px solid white;
-		}
-		strong {
+		display: inline-block;
+		height: auto;
+		padding-left: 0;
+	    padding-right: 30px;
+    		strong {
 			font-weight: 300;
 			color: $color-orange;
 			&:after {
@@ -135,14 +158,74 @@
 				top: 3px;
 			}
 		}
+		&:hover {
+			background-color: transparent !important;
+			color: $color-blue;
+			p, strong {
+				color: $color-blue !important;
+			}
+			strong:after {
+			    background-position: -9px * 2 !important;
+			}
+		}
+		&:active {
+			background-color: transparent !important;
+			p, strong {
+				color: $color-black !important;
+			}
+			strong:after {
+			    background-position: -9px * 1 !important;
+			}
+		}
+		@include respond-desktop {
+			padding-top: $grid * 3;
+		}
 	}
-	&._active a {
+	
+	div.overview-module-content {
 		background-color: $color-white;
+		color: $color-blue;
+		padding: 10px 14px;
+		border: 3px solid transparent !important;
+		margin-right: 1px;
+		margin-left: 1px;
+		p {
+			color: $color-blue;
+		}
+		@include respond-tablet {
+			border: 3px solid $color-blue !important;
+			padding: 12px 17px 10px 17px;
+			margin-right: 0;
+			margin-left: 0;
+		}
+		@include respond-desktop {
+			padding: 16px;
+		}
+		strong {
+			font-size: 24px;
+			font-weight: 200;
+			line-height: 1.2;
+			@include respond-tablet {
+				font-size: 15px;
+				font-weight: 700;
+			}
+			@include respond-desktop {
+				font-size: 18px;
+			}
+			@include respond-wide {
+				font-size: 20px;
+			}
+		}
+		strong:after {
+			display: none;
+		}
 	}
+
 	strong {
 		display: block;
-		font-weight: 800;
-		font-size: 20px;
+		font-weight: 700;
+		font-size: 14px;
+		line-height: 1.3;
 		&:after {
 		    content: '';
 		    height: 17px;
@@ -152,16 +235,36 @@
 		    background-repeat: no-repeat;
 		    background-size: 54px 17px;
 		    background-position: -9px * 2;
-		    top: 2px;
+		    top: 3px;
 			margin-left: $grid;
 			margin-right: -17px;
+			@include respond-desktop {
+				top: 2px;
+			}
+		}
+		@include respond-tablet {
+			font-size: 15px;
+		}
+		@include respond-desktop {
+			font-size: 18px;
+		}
+		@include respond-wide {
+			font-size: 20px;
 		}
 	}
 	p {
 		font-family: $font-hed-alt;
 		font-weight: 300;
-		margin-top: $grid;
 		font-size: 14px;
 		padding-right: $grid;
+		display: none; 
+		@include respond-tablet {
+			display: block;
+			margin-top: $half;
+		}
+		@include respond-desktop {
+			margin-top: $grid;
+		}
 	}
 }
+*/

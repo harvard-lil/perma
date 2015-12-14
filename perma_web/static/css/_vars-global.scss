@@ -6,6 +6,10 @@ $grid: 8px;
 $double: $grid * 2;
 $half: $grid / 2;
 
+$col-gutter: $grid * 4;
+$bleed: -1 * ($col-gutter / 2);
+$page-margin: $grid * 2;
+
 /////////////////////////
 
 //	width (breakpoints)
@@ -13,9 +17,9 @@ $half: $grid / 2;
 
 $width-mobile: $grid * 40; 		// 320px;
 $width-xmobile: $grid * 48; 	// 376px;
-$width-tablet: 767px; 		// 640px;
-$width-desktop: 991px; 	// 1048px;
-$width-wide: 1202px; 		// 1168px;
+$width-tablet: 768px; 		// 640px;
+$width-desktop: 990px; 	// 1048px;
+$width-wide: 1200px; 		// 1168px;
 $width-max: $width-wide; 		// 1168px;
 
 $width-column: $width-mobile;
@@ -51,12 +55,15 @@ $color-trans-black: rgba(0,0,0,.95);
 $color-trans-darkgray: rgba(0,0,0,.5);
 $color-trans-gray: rgba(0,0,0,.4);
 $color-trans-lightgray: rgba(0,0,0,.1);
-$color-trans-whispergray: rgba(100,100,0,.07);
+$color-trans-whispergray: rgba(100,100,100,.07);
 $color-white: white;
 $color-trans-textwhite: rgba(254,254,254,.4);
 $color-trans-darkwhite: rgba(254,254,254,.9);
 $color-trans-white: rgba(254,254,254,.5);
 $color-trans-lightwhite: rgba(254,254,254,.25);
+
+//$color-hover: $color-green;
+
 
 /////////////////////////
 
@@ -66,7 +73,7 @@ $color-trans-lightwhite: rgba(254,254,254,.25);
 $font-body: 'Roboto Slab', sans-serif;
 $font-hed:  "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
 $font-hed-alt:  "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
-$font-mono: 'Inconsolata', 'Courier', monospace;
+$font-mono: 'Roboto Mono', 'Courier', monospace;
 
 
 //	$font-name

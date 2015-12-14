@@ -1,21 +1,17 @@
-{% extends "layout-responsive.html" %}
+{% extends "base-responsive.html" %}
 
 
 {% block meta_description %}
-Log out of your Perma.cc account.
+You have been logged out.
 {% endblock %}
 
-{% block content %}
-<div class="container">
+{% block mainContent %}
+<div class="container cont-fixed">
 	<div class="row">
 		<div class="col-sm-12">	
-			<h2>You have been logged out.</h2>
-		
-			<p>Logged out a bit too soon? No worries, <a href="{% url 'user_management_limited_login' %}">sign back in</a></p>
+            <h1 class="page-title">You have been logged out.</h1>
+			<p class="page-dek">Logged out a bit too soon? No worries, <a href="{% url 'user_management_limited_login' %}">sign back in</a></p>
 		</div>
 	</div>
 </div>
-<br />
-<br />
-<br />
-{% endblock content %}
+{% endblock mainContent %}

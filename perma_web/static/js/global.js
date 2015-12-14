@@ -18,7 +18,7 @@ $(document).ready(function() {
     // Select the input text when the user clicks the element
     $('.select-on-click').click(function() { $(this).select(); });
     
-    $('.preview-row').on('click', '#report-error', function() {
+    $('.error-row').on('click', '#report-error', function() {
         var brokenLink = $('#rawUrl').val();
         $('#broken-link-report').html('<strong id="broken-link">' + brokenLink + '</strong> is causing an error.');
     });
@@ -172,9 +172,9 @@ function showAPIError(jqXHR){
             }
             message = parsedResponse;
         }catch(SyntaxError){}
-    }
-
-    if(!message){
+    }else if(jqXHR.status == 401){
+        message = "<a href='/login'>You appear to be logged out. Please click here to log back in</a>.";
+    }else{
         message = "Error " + jqXHR.status;
     }
 
@@ -296,7 +296,7 @@ if ( typeof define === 'function' && define.amd ) {
 // set margins for modal windows
 // currently set to hit only special elements
 
-$(function() {
+$(document).ready(function() {
 	var windowHeight = $(window).height();
 	var windowWidth = $(window).width();
 	$('.modal-new').each(function() {
@@ -310,4 +310,9 @@ $(function() {
 			$(this).addClass('_overflow');
 		}
 	});	
+});
+
+// initialize fastclick
+$(function() {
+    FastClick.attach(document.body);
 });

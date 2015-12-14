@@ -1,0 +1,35 @@
+{# called from pywb when a requested asset doesn't exist in the warc #}
+{% extends "archive/base-archive-responsive.html" %}
+
+{% block styles %}
+{% endblock %}
+
+{% block mainContent %}
+
+<div class="record-message">
+   {% if status == '404 Not Found' %}
+		<p class="record-message-primary">Link not found</p>
+		<p class="record-message-secondary">You are probably seeing this page because you clicked a link in one of our records. We don’t capture secondary links, but you could check <a href="https://web.archive.org/web/*/{{ err_url }}" target="_top">the Internet Archive</a> or <a href="{{ err_url }}" target="_top">view the link as it exists on the live site</a>.</p>
+   {% else %}
+		<p class="record-message-primary">Playback Unavailable</p>
+		<p class="record-message-secondary">We’re having trouble playing back this record’s Capture View. If this problem persists, please let us know. In the meantime, you could try the Screenshot View above.</p>
+       {% if DEBUG %}
+       		<div>
+           Error details (you are seeing this because DEBUG mode is on):<br><br>
+
+           exc_type: {{ exc_type }}<br/>
+           err_msg: {{ err_msg }}<br/>
+           err_details: {{ err_details }}<br/>
+           status: {{ status }}<br/>
+           env: {{ env }}<br/>
+           err_url: {{ err_url }}<br/>
+           </div>
+       {% else %}
+           Error message: {{ err_msg }}
+           </div>
+       {% endif %}
+   {% endif %}
+<div>
+
+
+{% endblock %}

@@ -1,10 +1,10 @@
 from django.conf import settings
-from django.conf.urls.static import static
 from django.conf.urls import patterns, url
+from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
 
-from .views.common import DirectTemplateView, debug_media_view
+from .views.common import DirectTemplateView
 
 
 guid_pattern = r'(?P<guid>[a-zA-Z0-9\-]+)'
@@ -16,7 +16,6 @@ urlpatterns = patterns('perma.views',
     url(r'^tools/?$', DirectTemplateView.as_view(template_name='tools.html'), name='tools'),
     url(r'^about/?$', 'common.about', name='about'),
     url(r'^additional-resources/?$', DirectTemplateView.as_view(template_name='additional-resources.html'), name='additional_resources'),
-    url(r'^faq/?$', DirectTemplateView.as_view(template_name='faq.html'), name='faq'),
     url(r'^copyright-policy/?$', DirectTemplateView.as_view(template_name='copyright_policy.html'), name='copyright_policy'),
     url(r'^terms-of-service/?$', DirectTemplateView.as_view(template_name='terms_of_service.html'), name='terms_of_service'),
     url(r'^privacy-policy/?$', DirectTemplateView.as_view(template_name='privacy_policy.html'), name='privacy_policy'),
@@ -24,7 +23,10 @@ urlpatterns = patterns('perma.views',
     url(r'^contingency-plan/?$', DirectTemplateView.as_view(template_name='contingency_plan.html'), name='contingency_plan'),
     url(r'^contact/?$', 'common.contact', name='contact'),
     url(r'^contact/thanks/?$', DirectTemplateView.as_view(template_name='contact-thanks.html'), name='contact_thanks'),
-    
+#   url(r'^is500/?$', DirectTemplateView.as_view(template_name='500.html'), name='is500'),
+#	url(r'^is404/?$', DirectTemplateView.as_view(template_name='404.html'), name='is404'),
+	url(r'^landing-new/?$', DirectTemplateView.as_view(template_name='landing-new.html'), name='landing-new'),
+   
     #Docs 
     url(r'^docs/?$', DirectTemplateView.as_view(template_name='docs/index.html'), name='docs'),
     url(r'^docs/perma-link-creation/?$', DirectTemplateView.as_view(template_name='docs/perma-link-creation.html'), name='docs_perma_link_creation'),
@@ -37,7 +39,8 @@ urlpatterns = patterns('perma.views',
     url(r'^docs/mirrors/?$', DirectTemplateView.as_view(template_name='docs/mirrors.html'), name='docs_mirrors'),
     url(r'^docs/robustness/?$', DirectTemplateView.as_view(template_name='docs/robustness.html'), name='docs_robustness'),
     url(r'^docs/perma-user-roles/?$', DirectTemplateView.as_view(template_name='docs/perma-user-roles.html'), name='docs_perma_user_roles'),
-    url(r'^docs/faq/?$', DirectTemplateView.as_view(template_name='docs/faq.html'), name='docs_faq'),
+    url(r'^docs/faq/?$', 'common.faq', name='docs_faq'),
+    url(r'^docs/organizations/?$', DirectTemplateView.as_view(template_name='docs/organizations.html'), name='docs_organizations'),
     
     #Developer docs
     url(r'^docs/developer/?$', DirectTemplateView.as_view(template_name='docs/developer/index.html'), name='dev_docs'),
@@ -68,7 +71,8 @@ urlpatterns = patterns('perma.views',
     url(r'^login/not-active/?$', 'user_management.not_active', name='user_management_not_active'),
     url(r'^login/account-is-deactivated/?$', 'user_management.account_is_deactivated', name='user_management_account_is_deactivated'),
     url(r'^logout/?$', 'user_management.logout', name='logout'),
-    url(r'^register/?$', 'user_management.register', name='register'),
+    url(r'^register/?$', RedirectView.as_view(url='/sign-up/', permanent=True)),
+
     url(r'^sign-up/?$', 'user_management.sign_up', name='sign_up'),
     url(r'^sign-up/courts/?$', 'user_management.sign_up_courts', name='sign_up_courts'),
     url(r'^sign-up/faculty/?$', 'user_management.sign_up_faculty', name='sign_up_faculty'),
@@ -91,16 +95,16 @@ urlpatterns = patterns('perma.views',
     url(r'^settings/profile/?$', 'user_management.settings_profile', name='user_management_settings_profile'),
     url(r'^settings/password/?$', 'user_management.settings_password', name='user_management_settings_password'),
     url(r'^settings/organizations/?$', 'user_management.settings_organizations', name='user_management_settings_organizations'),
+    url(r'^settings/organizations-change-privacy/(?P<org_id>[a-zA-Z0-9]+)/', 'user_management.settings_organizations_change_privacy', name='user_management_settings_organizations_change_privacy'),
     url(r'^settings/tools/?$', 'user_management.settings_tools', name='user_management_settings_tools'),
 
     # Link management
     url(r'^manage/?$', RedirectView.as_view(url='/manage/create/', permanent=False)),
     url(r'^manage/create/?$', 'link_management.create_link', name='create_link'),
-    url(r'^manage/dark-archive/%s/?$' % guid_pattern, 'link_management.dark_archive_link', name='dark_archive_link'),
-    url(r'^manage/vest/%s/?$' % guid_pattern, 'link_management.vest_link', name='vest_link'),
+    url(r'^manage/create/(?P<org_id>[a-zA-Z0-9]+)/?$', 'link_management.create_link_with_org', name='create_link_with_org'),
     url(r'^manage/delete-link/%s/?$' % guid_pattern, 'link_management.user_delete_link', name='user_delete_link'),
     url(r'^manage/links/folder/(?P<folder_id>.+?)/?$', 'link_management.folder_contents', name='folder_contents'),
-    url(r'^manage/links(?P<path>/.*)?$', 'link_management.link_browser', name='link_browser'),
+    url(r'^manage/links(?P<path>/.*)?$', RedirectView.as_view(url='/manage/create/', permanent=False), name='link_browser'), # we used to serve an important page here. No longer. Redirect in case anyone has this bookmakred.
 
     # user management
     url(r'^manage/registrars/?$', 'user_management.manage_registrar', name='user_management_manage_registrar'),
@@ -108,6 +112,7 @@ urlpatterns = patterns('perma.views',
     url(r'^manage/registrars/approve/(?P<registrar_id>[a-zA-Z0-9]+)/?$', 'user_management.approve_pending_registrar', name='user_management_approve_pending_registrar'),
     url(r'^manage/organizations/?$', 'user_management.manage_organization', name='user_management_manage_organization'),
     url(r'^manage/organizations/(?P<org_id>[a-zA-Z0-9]+)/?$', 'user_management.manage_single_organization', name='user_management_manage_single_organization'),
+    url(r'^manage/organization/(?P<org_id>[a-zA-Z0-9]+)/delete/?$', 'user_management.manage_single_organization_delete', name='user_management_manage_single_organization_delete'),
     url(r'^manage/registry-users/add-user/?$', 'user_management.registry_user_add_user', name='user_management_registry_user_add_user'),
     url(r'^manage/registry-users/?$', 'user_management.manage_registry_user', name='user_management_manage_registry_user'),
     url(r'^manage/registry-user/(?P<user_id>[a-zA-Z0-9]+)/delete/?$', 'user_management.manage_single_registry_user_delete', name='user_management_manage_single_registry_user_delete'),
@@ -128,12 +133,8 @@ urlpatterns = patterns('perma.views',
     url(r'^manage/organization-users/(?P<user_id>[a-zA-Z0-9]+)/reactivate/?$', 'user_management.manage_single_organization_user_reactivate', name='user_management_manage_single_organization_user_reactivate'),
     url(r'^manage/organization-users/(?P<user_id>[a-zA-Z0-9]+)/remove/?$', 'user_management.manage_single_organization_user_remove', name='user_management_manage_single_organization_user_remove'),
     url(r'^manage/users/(?P<user_id>[a-zA-Z0-9]+)/add-registrar/?$', 'user_management.user_add_registrar', name='user_management_user_add_registrar'),
-    #url(r'^manage/users/(?P<user_id>[a-zA-Z0-9]+)/add-vesting-org/?$', 'user_management.user_add_vesting_org', name='user_management_user_add_vesting_org'),
     url(r'^manage/organization-users/add-user/?$', 'user_management.organization_user_add_user', name='user_management_organization_user_add_user'),
     url(r'^manage/account/leave-organization/(?P<org_id>[a-zA-Z0-9]+)/?$', 'user_management.organization_user_leave_organization', name='user_management_organization_user_leave_organization'),
-#    url(r'^manage/batch-convert/?$', 'user_management.batch_convert', name='user_management_batch_convert'),
-#    url(r'^manage/export/?$', 'user_management.export', name='user_management_export'),
-#    url(r'^manage/custom-domain/?$', 'user_management.custom_domain', name='user_management_custom_domain'),
 #    url(r'^manage/users/?$', 'manage.users', name='manage_users'),
 #    url(r'^manage/activity/?$', 'manage.activity', name='manage_activity'),
 
@@ -142,11 +143,9 @@ urlpatterns = patterns('perma.views',
 
 )
 
-# debug-only serving of static and media assets
+# debug-only serving of media assets
 if settings.DEBUG:
-    from django.contrib.staticfiles.views import serve as static_view
-    urlpatterns += static(settings.STATIC_URL, static_view) + \
-                   static(getattr(settings, 'DEBUG_MEDIA_URL', settings.MEDIA_URL), debug_media_view, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler404 = 'perma.views.common.server_error_404'
 handler500 = 'perma.views.common.server_error_500'

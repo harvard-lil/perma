@@ -1,10 +1,18 @@
 import StringIO
+from collections import defaultdict
+from contextlib import contextmanager
 import os
+import random
+import threading
 import re
+from urlparse import urljoin
 from pywb.rewrite.header_rewriter import HeaderRewriter
+import requests
 from surt import surt
 
 # configure Django
+from lockss.models import Mirror
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "perma.settings")
 import django
 django.setup()
@@ -33,10 +41,28 @@ from pywb.utils.wbexception import NotFoundException
 from perma.models import CDXLine, Link
 
 
+import logging
+logger = logging.getLogger(__name__)
+
+
 newstyle_guid_regex = r'[A-Z0-9]{1,4}(-[A-Z0-9]{4})+'  # post Nov. 2013
 oldstyle_guid_regex = r'0[a-zA-Z0-9]{9,10}'  # pre Nov. 2013
 GUID_REGEX = r'(%s|%s)' % (oldstyle_guid_regex, newstyle_guid_regex)
+WARC_STORAGE_PATH = os.path.join(settings.MEDIA_ROOT, settings.WARC_STORAGE_DIR)
+thread_local_data = threading.local()
 
+@contextmanager
+def close_database_connection():
+    """
+        Normally Django closes its connections at the end of the request.
+        Here there's no Django request, so if we use the DB we close it manually.
+        See http://stackoverflow.com/a/1346401/307769
+    """
+    try:
+        yield
+    finally:
+        from django.db import connection
+        connection.close()
 
 def get_archive_path():
     # Get root storage location for warcs, based on default_storage.
@@ -53,6 +79,8 @@ def get_archive_path():
     # 'unicode' object has no attribute 'get'
     return archive_path.encode('ascii', 'ignore')
 
+def raise_not_found(url):
+    raise NotFoundException('No Captures found for: %s' % url, url=url)
 
 # include guid in CDX requests
 class PermaRoute(archivalrouter.Route):
@@ -60,49 +88,67 @@ class PermaRoute(archivalrouter.Route):
         """Parse the GUID and find the CDXLine in the DB"""
 
         guid = matcher.group(1)
-        try:
-            # This will filter out links that have user_deleted=True
-            link = Link.objects.get(guid=guid)
-        except Link.DoesNotExist:
-            raise NotFoundException()
+        cache_key = guid+'-cdx'
+        cached_cdx = django_cache.get(cache_key)
+        redirect_matcher = re.compile(r' 30[1-7] ')
+        if cached_cdx is None or not wbrequest.wb_url:
+            with close_database_connection():
+                try:
+                    # This will filter out links that have user_deleted=True
+                    link = Link.objects.get(guid=guid)
+                except Link.DoesNotExist:
+                    raise_not_found(wbrequest.wb_url)
 
-        if not wbrequest.wb_url:
-            # This is a bare request to /warc/1234-5678/ -- return so we can send a forward to submitted_url in PermaGUIDHandler.
-            wbrequest.custom_params['guid'] = guid
-            wbrequest.custom_params['url'] = link.submitted_url
-            return
+                if not wbrequest.wb_url:
+                    # This is a bare request to /warc/1234-5678/ -- return so we can send a forward to submitted_url in PermaGUIDHandler.
+                    wbrequest.custom_params['guid'] = guid
+                    wbrequest.custom_params['url'] = link.submitted_url
+                    return
+
+                # Legacy archives didn't generate CDXLines during
+                # capture so generate them on demand if not found, unless
+                # A: the warc capture hasn't been generated OR
+                # B: we know other cdx lines have already been generated
+                #    and the requested line is simply missing
+                lines = list(link.cdx_lines.all())
+                if not lines:
+
+                    # TEMP: remove after all legacy warcs have been exported
+                    if not default_storage.exists(link.warc_storage_file()):
+                        link.export_warc()
+
+                    lines = CDXLine.objects.create_all_from_link(link)
+
+                # build a lookup of all cdx lines for this link indexed by urlkey, like:
+                # cached_cdx = {'urlkey1':['raw1','raw2'], 'urlkey2':['raw3','raw4']}
+                cached_cdx = defaultdict(list)
+                for line in lines:
+                    cached_cdx[line.urlkey].append(str(line.raw))
+
+                # remove any redirects if we also have a non-redirect capture for the same URL, to prevent redirect loops
+                for urlkey, lines in cached_cdx.iteritems():
+                    if len(lines) > 1:
+                        lines_without_redirects = [line for line in lines if not redirect_matcher.search(line)]
+                        if lines_without_redirects:
+                            cached_cdx[urlkey] = lines_without_redirects
+
+                django_cache.set(cache_key, cached_cdx)
 
         urlkey = surt(wbrequest.wb_url.url)
-        lines = CDXLine.objects.filter(urlkey=urlkey, link_id=guid)
-
-        # Legacy archives didn't generate CDXLines during
-        # capture so generate them on demand if not found, unless
-        # A: the warc capture hasn't been generated OR
-        # B: we know other cdx lines have already been generated
-        #    and the requested line is simply missing
-        if lines.count() == 0:
-            if link.cdx_lines.count() > 0:
-                raise NotFoundException()
-
-            # TEMP: remove after all legacy warcs have been exported
-            if not default_storage.exists(link.warc_storage_file()):
-                link.export_warc()
-
-            CDXLine.objects.create_all_from_link(link)
-            lines = CDXLine.objects.filter(urlkey=urlkey, link_id=guid)
-            if not len(lines):
-                raise NotFoundException()
+        cdx_lines = cached_cdx.get(urlkey)
+        if not cdx_lines:
+            raise_not_found(wbrequest.wb_url)
 
         # Store the line for use in PermaCDXSource
         # so we don't need to hit the DB again
-        wbrequest.custom_params['lines'] = lines
+        wbrequest.custom_params['lines'] = cdx_lines
         wbrequest.custom_params['guid'] = guid
 
         # Adds the Memento-Datetime header
         # Normally this is done in MementoReqMixin#_parse_extra
         # but we need the GUID to make the DB query and that
         # isn't parsed from the url until this point
-        wbrequest.wb_url.set_replay_timestamp(lines.first().timestamp)
+        wbrequest.wb_url.set_replay_timestamp(CDXLine(raw=cdx_lines[0]).timestamp)
 
 
 # prevent mod getting added to rewritten urls
@@ -160,6 +206,12 @@ class PermaHandler(WBHandler):
         replay_view = super(PermaHandler, self)._init_replay_view(config)
         replay_view.response_class = PermaMementoResponse
         return replay_view
+
+    def handle_request(self, wbrequest):
+        # include wbrequest in thread locals for later access
+        wbrequest.mirror_name = None
+        thread_local_data.wbrequest = wbrequest
+        return super(PermaHandler, self).handle_request(wbrequest)
 
 
 class PermaGUIDHandler(PermaHandler):
@@ -247,13 +299,17 @@ class PermaCDXSource(CDXSource):
         # When a GUID is in the url, we'll have already queried for the lines
         # in order to grab the timestamp for Memento-Datetime header
         if query.params.get('lines'):
-            return query.params.get('lines').values_list('raw', flat=True)
+            return query.params['lines']
 
-        filters = {'urlkey': query.key}
+        filters = {
+            'urlkey': query.key,
+            'link__is_unlisted': False,
+            'link__is_private': False,
+        }
         if query.params.get('guid'):
-            filters['link_id'] = query.params.get('guid')
+            filters['link_id'] = query.params['guid']
 
-        return CDXLine.objects.filter(**filters).values_list('raw', flat=True)
+        return [str(i) for i in CDXLine.objects.filter(**filters).values_list('raw', flat=True)]
 
 
 class CachedLoader(BlockLoader):
@@ -261,13 +317,50 @@ class CachedLoader(BlockLoader):
         File loader that stores requested file in key-value cache for quick retrieval.
     """
     def load(self, url, offset=0, length=-1):
+
         # first try to fetch url contents from cache
         cache_key = 'warc-'+re.sub('[^\w-]', '', url)
+        mirror_name_cache_key = cache_key+'-mirror-name'
+        mirror_name = ''
+
         file_contents = django_cache.get(cache_key)
-        if not file_contents:
-            # url wasn't in cache -- fetch entire contents of url from super() and put in cache
-            file_contents = super(CachedLoader, self).load(url).read()
-            django_cache.set(cache_key, file_contents, timeout=60)  # use a short timeout so large warcs don't evict everything else in the cache
+        if file_contents is None:
+            # url wasn't in cache -- load contents
+
+            # try fetching from each mirror in the LOCKSS network, in random order
+            if settings.USE_LOCKSS_REPLAY:
+                mirrors = Mirror.get_cached_mirrors()
+                random.shuffle(mirrors)
+
+                for mirror in mirrors:
+                    lockss_key = url.replace('file://', '').replace(WARC_STORAGE_PATH, 'https://' + settings.HOST + '/lockss/fetch')
+                    lockss_url = urljoin(mirror['content_url'], 'ServeContent')
+                    try:
+                        logging.info("Fetching from %s?url=%s" % (lockss_url, lockss_key))
+                        response = requests.get(lockss_url, params={'url': lockss_key})
+                        assert response.ok
+                        file_contents = response.content
+                        mirror_name = mirror['name']
+                        logging.info("Got content from lockss")
+                    except (requests.ConnectionError, requests.Timeout, AssertionError) as e:
+                        logging.info("Couldn't get from lockss: %s" % e)
+
+            # If url wasn't in LOCKSS yet or LOCKSS is disabled, fetch from local storage using super()
+            if file_contents is None:
+                file_contents = super(CachedLoader, self).load(url).read()
+                logging.info("Got content from local disk")
+
+            # cache file contents
+            # use a short timeout so large warcs don't evict everything else in the cache
+            django_cache.set(cache_key, file_contents, timeout=60)
+            django_cache.set(mirror_name_cache_key, mirror_name, timeout=60)
+
+        else:
+            mirror_name = django_cache.get(mirror_name_cache_key)
+            logging.info("Got content from cache")
+
+        # set wbrequest.mirror_name so it can be displayed in template later
+        thread_local_data.wbrequest.mirror_name = mirror_name
 
         # turn string contents of url into file-like object
         afile = StringIO.StringIO(file_contents)
@@ -320,6 +413,6 @@ def create_perma_wb_router(config={}):
     router.routes.insert(0, route)
 
     # use our Django error view
-    router.error_view = PermaTemplateView('archive-error.html')
+    router.error_view = PermaTemplateView('archive/archive-error.html')
 
     return router

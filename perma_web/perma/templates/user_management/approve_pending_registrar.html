@@ -1,37 +1,34 @@
 {% extends "manage-layout.html" %}
 {% block title %} | Approve pending registrar{% endblock %}
 
-{% block content %}
+{% block dashboardContent %}
 	
 	{% if target_registrar.is_approved %}
-	<h3>Already approved!</h3>
-	<p>This organization has already been approved as a registrar.</p>
+	<h3 class="body-bh">Already approved!</h3>
+	<p class="body-text">This organization has already been approved as a registrar.</p>
 	{% else %}
-	<h3>Approve this registrar?</h3>
-	<p>The following organization requested a registrar account on <strong>{{ target_registrar.date_created|date:'N j, Y'}}</strong> .</p>
+	<h3 class="body-bh">Approve this registrar?</h3>
+	<p class="body-text">The following organization requested a registrar account on <strong>{{ target_registrar.date_created|date:'N j, Y'}}</strong> .</p>
 	
-	<h4>Registrar information</h4>
-	<ul>
+	<h4 class="body-ch">Registrar information</h4>
+	<ul class="data-list">
         <li>{{target_registrar.name}}</li>
         <li>{{target_registrar.email}}</li>
         <li><a href="{{target_registrar.website}}" target="_blank">{{target_registrar.website}}</a></li>
 	</ul>
-	<br>
-	<h4>Requested by</h4>
-	<ul>
+
+	<h4 class="body-ch">Requested by</h4>
+	<ul class="data-list">
 	    {% if target_registrar_member.first_name and target_registrar_member.last_name %}
 	    <li>{{target_registrar_member.first_name}} {{target_registrar_member.last_name}}</li>
 	    {% endif %}
 	    <li>{{target_registrar_member.email}}</li>
 	</ul>
 
-    <br>
     <form action="" method="POST">
 	    {% csrf_token %}
-        <a href="../">Cancel</a>
-        <button type="submit" class="btn-success delete-confirm">
-            Approve
-        </button>
+        <a class="btn cancel" href="../">Cancel</a>
+        <button type="submit" class="btn delete-confirm">Approve</button>
     </form>
     {% endif %}
 

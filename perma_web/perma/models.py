@@ -9,10 +9,14 @@ import re
 import socket
 import tempfile
 from urlparse import urlparse
+
+import simple_history
 from hanzo import warctools
 import requests
+from simple_history.models import HistoricalRecords
 from wand.image import Image
 
+import django.contrib.auth.models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
 from django.core.files.storage import default_storage
@@ -25,7 +29,10 @@ from mptt.models import MPTTModel, TreeForeignKey
 from model_utils import FieldTracker
 from pywb.cdx.cdxobject import CDXObject
 from pywb.warc.cdxindexer import write_cdx_index
+
 from api.validations import get_mime_type
+from .utils import copy_file_data
+
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +51,11 @@ class Registrar(models.Model):
     show_partner_status = models.BooleanField(default=False, help_text="Whether to show this registrar in our list of partners.")
     partner_display_name = models.CharField(max_length=400, blank=True, null=True, help_text="Optional. Use this to override 'name' for the partner list.")
     logo = models.ImageField(upload_to='registrar_logos', blank=True, null=True)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
 
     tracker = FieldTracker()
+    history = HistoricalRecords()
 
     class Meta:
         ordering = ['name']
@@ -111,9 +121,11 @@ class Organization(models.Model):
     registrar = models.ForeignKey(Registrar, null=True, related_name="organizations")
     shared_folder = models.OneToOneField('Folder', blank=True, null=True, related_name="organization_")  # related_name isn't used, just set to avoid name collision with Folder.organization
     date_created = models.DateField(auto_now_add=True, null=True)
+    default_to_private = models.BooleanField(default=False)
 
     objects = OrganizationManager()
     tracker = FieldTracker()
+    history = HistoricalRecords()
 
     def save(self, *args, **kwargs):
         name_has_changed = self.tracker.has_changed('name')
@@ -241,6 +253,11 @@ class LinkUser(AbstractBaseUser):
             return Organization.objects.all()
             
         return []
+        
+    def get_links_remaining(self):
+        today = timezone.now()
+        link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month=today.month, created_by_id=self.id, organization_id=None).count()
+        return settings.MONTHLY_CREATE_LIMIT - link_count
 
     def create_root_folder(self):
         if self.root_folder:
@@ -280,6 +297,10 @@ class LinkUser(AbstractBaseUser):
     def can_vest(self):
         """ Can the user vest links? """
         return bool(self.is_staff or self.is_registrar_member() or self.is_organization_member)
+        
+    def has_limit(self):
+        """ Does the user have a link creation limit? """
+        return bool(not self.is_staff and not self.is_registrar_member() and not self.is_organization_member)
 
     def is_registrar_member(self):
         """ Is the user a member of a registrar? """
@@ -293,6 +314,48 @@ class LinkUser(AbstractBaseUser):
     def is_organization_member(self):
         """ Is the user a member of an org? """
         return self.organizations.exists()
+
+    ### link permissions ###
+
+    def can_view(self, link):
+        """
+            Not all links are viewable by all users -- some users
+            have privileged access to view private links. For example,
+            a user can view their own private links.
+        """
+        if not link.is_private:
+            return True
+        return self.can_edit(link)
+
+    def can_edit(self, link):
+        """ Link is editable if it is in a folder accessible to this user. """
+        if self.is_anonymous():
+            return False
+        if self.is_staff:
+            return True
+        return Folder.objects.accessible_to(self).filter(links=link).exists()
+
+    def can_delete(self, link):
+        """
+            An archive can be deleted if it is less than 24 hours old-style
+            and it was created by a user or someone in the org.
+        """
+        return timezone.now() < link.archive_timestamp and self.can_edit(link)
+
+    def can_toggle_private(self, link):
+        if not self.can_edit(link):
+            return False
+        if link.is_private and not self.is_staff and link.private_reason != 'user':
+            return False
+        return True
+
+# special history tracking for custom user object -- see http://django-simple-history.readthedocs.org/en/latest/reference.html
+simple_history.register(LinkUser)
+
+# This ugly business makes these functions available on logged-out users as well as logged-in,
+# by monkeypatching Django's AnonymousUser object.
+for func_name in ['can_view', 'can_edit', 'can_delete', 'can_toggle_private']:
+    setattr(django.contrib.auth.models.AnonymousUser, func_name, getattr(LinkUser, func_name).__func__)
 
 
 class FolderQuerySet(QuerySet):
@@ -391,6 +454,10 @@ class LinkQuerySet(QuerySet):
     def accessible_to(self, user):
         return self.filter(Link.objects.user_access_filter(user))
 
+    def discoverable(self):
+        """ Limit queryset to Links that can be publicly found by searching. """
+        return self.filter(is_unlisted=False, is_private=False)
+
 
 class LinkManager(models.Manager):
     """
@@ -401,10 +468,10 @@ class LinkManager(models.Manager):
         return LinkQuerySet(self.model, using=self._db).filter(user_deleted=False)
 
     def all_with_deleted(self):
-        return super(LinkManager, self).get_query_set()
+        return super(LinkManager, self).get_queryset()
 
     def deleted_set(self):
-        return super(LinkManager, self).get_query_set().filter(user_deleted=True)
+        return super(LinkManager, self).get_queryset().filter(user_deleted=True)
 
     def user_access_filter(self, user):
         """
@@ -423,6 +490,10 @@ class LinkManager(models.Manager):
     def accessible_to(self, user):
         return self.get_queryset().accessible_to(user)
 
+    def discoverable(self):
+        """ Limit queryset to Links that can be publicly found by searching. """
+        return self.get_queryset().discoverable()
+
 HEADER_CHECK_TIMEOUT = 10
 # This is the PhantomJS default agent
 USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X) AppleWebKit/534.34 (KHTML, like Gecko) PhantomJS/1.9.0 (development) Safari/534.34"
@@ -437,9 +508,6 @@ class Link(models.Model):
     creation_timestamp = models.DateTimeField(default=timezone.now, editable=False)
     submitted_title = models.CharField(max_length=2100, null=False, blank=False)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='created_links',)
-    dark_archived = models.BooleanField(default=False)
-    dark_archived_robots_txt_blocked = models.BooleanField(default=False)
-    dark_archived_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='darchived_links')
     user_deleted = models.BooleanField(default=False)
     user_deleted_timestamp = models.DateTimeField(null=True, blank=True)
     vested = models.BooleanField(default=False)
@@ -449,11 +517,18 @@ class Link(models.Model):
     folders = models.ManyToManyField(Folder, related_name='links', blank=True, null=True)
     notes = models.TextField(blank=True)
 
+    is_private = models.BooleanField(default=False)
+    private_reason = models.CharField(max_length=10, blank=True, null=True, choices=(('policy','Robots.txt or meta tag'),('user','At user direction'),('takedown','At request of content owner')))
+    is_unlisted = models.BooleanField(default=False)
+
+    archive_timestamp = models.DateTimeField(blank=True, null=True, help_text="Date after which this link is eligible to be copied by the mirror network.")
+
     thumbnail_status = models.CharField(max_length=10, null=True, blank=True, choices=(
         ('generating', 'generating'), ('generated', 'generated'), ('failed', 'failed')))
 
     objects = LinkManager()
     tracker = FieldTracker()
+    history = HistoricalRecords()
 
     @cached_property
     def url_details(self):
@@ -494,29 +569,33 @@ class Link(models.Model):
 
         initial_folder = kwargs.pop('initial_folder', None)
 
-        if not self.pk and not kwargs.get("pregenerated_guid", False):
-            # not self.pk => not created yet
-            # only try 100 attempts at finding an unused GUID
-            # (100 attempts should never be necessary, since we'll expand the keyspace long before
-            # there are frequent collisions)
-            guid_character_set = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
-            for i in range(100):
-                # Generate an 8-character random string like "1A2B3C4D"
-                guid = ''.join(random.choice(guid_character_set) for _ in range(8))
+        if not self.pk:
+            if not self.archive_timestamp:
+                self.archive_timestamp = self.creation_timestamp + settings.ARCHIVE_DELAY
+            if not kwargs.pop("pregenerated_guid", False):
+                # not self.pk => not created yet
+                # only try 100 attempts at finding an unused GUID
+                # (100 attempts should never be necessary, since we'll expand the keyspace long before
+                # there are frequent collisions)
+                guid_character_set = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
+                for i in range(100):
+                    # Generate an 8-character random string like "1A2B3C4D"
+                    guid = ''.join(random.choice(guid_character_set) for _ in range(8))
 
-                # apply standard formatting (hyphens)
-                guid = Link.get_canonical_guid(guid)
-                
-                # Avoid GUIDs starting with four letters (in case we need those later)
-                match = re.search(r'^[A-Z]{4}', guid)
-                
-                if not match and not Link.objects.filter(guid=guid).exists():
-                    break
-            else:
-                raise Exception("No valid GUID found in 100 attempts.")
-            self.guid = guid
-        if "pregenerated_guid" in kwargs:
-            del kwargs["pregenerated_guid"]
+                    # apply standard formatting (hyphens)
+                    guid = Link.get_canonical_guid(guid)
+
+                    # Avoid GUIDs starting with four letters (in case we need those later)
+                    match = re.search(r'^[A-Z]{4}', guid)
+
+                    if not match and not Link.objects.filter(guid=guid).exists():
+                        break
+                else:
+                    raise Exception("No valid GUID found in 100 attempts.")
+                self.guid = guid
+
+        if self.is_private and not self.private_reason:
+            self.private_reason = 'user'
 
         super(Link, self).save(*args, **kwargs)
 
@@ -560,6 +639,11 @@ class Link(models.Model):
         # add it back to the given folder
         if folder:
             self.folders.add(folder)
+            if not folder.organization:
+                self.organization = None
+            else:
+                self.organization = folder.organization
+            self.save(update_fields=['organization'])
 
     def get_expiration_date(self):
         """ Return date when this link will theoretically be deleted. """
@@ -567,8 +651,7 @@ class Link(models.Model):
 
     def can_upload_to_internet_archive(self):
         """ Return True if this link is appropriate for upload to IA. """
-        return self.vested \
-               and not self.dark_archived and not self.dark_archived_robots_txt_blocked
+        return self.vested and self.is_discoverable()
 
     def as_json(self, request=None):
         from api.resources import LinkResource
@@ -815,6 +898,9 @@ class Link(models.Model):
         host = host or settings.WARC_HOST
         return u"%s/warc/%s/" % (("//" + host if host else ''), self.guid)
 
+    def is_discoverable(self):
+        return not self.is_private and not self.is_unlisted
+
 
 class Capture(models.Model):
     link = models.ForeignKey(Link, null=False, related_name='captures')
@@ -1016,30 +1102,3 @@ class CDXLine(models.Model):
         return self.__parsed.is_revisit()
 
 
-### read only mode ###
-
-# install signals to prevent database writes if settings.READ_ONLY_MODE is set
-
-### this is in models for now because it's annoying to put it in signals.py and resolve circular imports with models.py
-### in Django 1.8 we can avoid that issue by putting this in signals.py and importing it from ready()
-### https://docs.djangoproject.com/en/dev/topics/signals/
-
-from django.contrib.sessions.models import Session
-from django.db.models.signals import pre_save
-
-from .utils import ReadOnlyException, copy_file_data, imagemagick_temp_dir
-
-write_whitelist = (
-    (Session, None),
-    (LinkUser, {'password'}),
-    (LinkUser, {'last_login'}),
-)
-
-def read_only_mode(sender, instance, **kwargs):
-    for whitelist_sender, whitelist_fields in write_whitelist:
-        if whitelist_sender==sender and (whitelist_fields is None or whitelist_fields==kwargs['update_fields']):
-            return
-    raise ReadOnlyException("Read only mode enabled.")
-
-if settings.READ_ONLY_MODE:
-    pre_save.connect(read_only_mode)

@@ -1,8 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-indent() {
-  sed "s/^/       /"
-}
+source bin/utils
 
 # Run Django migrations.
 echo "-----> Migrating database"

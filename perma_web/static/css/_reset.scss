@@ -1,6 +1,5 @@
-////////////////////////////////
-
 // normalize
+
 //	normalize.css v3.0.2 | MIT License | git.io/normalize
 
 
@@ -345,61 +344,4 @@ table {
 td,
 th {
   padding: 0;
-}
-
-
-
-////////////////////////////////
-
-//	defaults
-
-html {
-	box-sizing: border-box;
-}
-
-html, body {
-	overflow: auto;
-}
-
-*, *:before, *:after {
-	box-sizing: border-box;
-	text-rendering: optimizeLegibility;
-	-webkit-font-variant-ligatures: common-ligatures;
-	font-variant-ligatures: common-ligatures;
-	-moz-font-feature-settings: "kern=1";
-	-webkit-font-feature-settings: "kern";
-	-moz-font-feature-settings: "kern";
-	font-feature-settings: "kern";
-	font-kerning: normal;
-	overflow: visible;
-	position: relative;
-}
-
-cite, em , i {
-	font-style: italic;
-	cite, em, i { font-style: inherit; }
-}
-
-img {
-	width: auto;
-	max-width: 100%;
-	display: block;
-	margin: 0 auto;
-}
-
-a {
-	text-decoration: none;
-	&:link { color: inherit; }
-	&:visited { color: inherit; }
-	&:hover { color: inherit; }
-	&:active { color: inherit; }
-}
-
-input[type="text"],
-input[type="password"],
-input[type="email"],
-input[type="button"],
-input[type="submit"],
-textarea {
-    -webkit-appearance: none;
 }

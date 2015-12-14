@@ -6,6 +6,8 @@ var new_archive = {};
 // Where we queue up our archive guids for polling
 var refreshIntervalIds = [];
 
+var spinner;
+
 /* Our globals. Look out interwebs - end */
 
 
@@ -14,18 +16,38 @@ var refreshIntervalIds = [];
 
 $(function() {
 
+	$organization_select = $("#organization_select");
+
     $('#archive-upload-confirm').modal({show: false});
     $('#archive-upload').modal({show: false});
+    
+    $('#organization_select_form').find('.dropdown-toggle').html("Yourself <span class='links-remaining'>" + links_remaining + "<span>");
 
     // When a new url is entered into our form
     $('#linker').submit(function() {
         var $this = $(this);
+        var linker_data = {};
+
+        if(selected_organization){
+        	linker_data = {
+                url: $this.find("input[name=url]").val(),
+                organization: selected_organization,
+                folder: shared_folder
+            };
+        }
+        else {
+        	linker_data = {
+        		url: $this.find("input[name=url]").val()
+        	};
+        }
+        
+        // Start our spinner and disable our input field with just a tiny delay
+        window.setTimeout(toggleCreateAvailable, 150);
+
         $.ajax($this.attr('action'), {
             method: $this.attr('method'),
             contentType: 'application/json',
-            data: JSON.stringify({
-                url: $this.find("input[name=url]").val()
-            }),
+            data: JSON.stringify(linker_data),
             success: linkIt,
             error: linkNot
         });
@@ -43,11 +65,51 @@ $(function() {
         return false;
     });
 
+
+    /* Org affiliation dropdown logic */
+
     // Toggle users dropdown
     $('#dashboard-users').click(function(){
         $('.users-secondary').toggle();
     });
+    
+    apiRequest("GET", "/user/organizations/", {limit: 300, order_by:'registrar'})
+        .success(function(data) {
+            var sorted = [];
+            Object.keys(data.objects).sort(function(a,b){
+                return data.objects[a].registrar < data.objects[b].registrar ? -1 : 1;
+            }).forEach(function(key){
+                sorted.push(data.objects[key]);
+            });
+            data.objects = sorted;
+            if (data.objects.length > 0) {
+            	var optgroup = data.objects[0].registrar;
+            	var select_yourself = true;
+                data.objects.map(function (organization) {
+                    if(organization.registrar !== optgroup) {
+                    	$organization_select.prepend("<li class='dropdown-header'>" + optgroup + "</li>");
+                        optgroup = organization.registrar;
+                        $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
+                    }
+                    var opt_text = organization.name;
+                    if (organization.default_to_private) {
+                    	opt_text += ' <span class="ui-private">(Private)</span>';	
+                    }
+                    if(selected_organization == organization.id) {
+                    	select_yourself = false;
+                    	$('#organization_select_form').find('.dropdown-toggle').html(opt_text);
+                    }
+                    else {
+                    	$organization_select.append("<li><a href='" + create_url + "/" + organization.id + "' onClick='appendURL(this)'>" + opt_text + "</a></li>");
+                    }
+                });
+                if (!select_yourself) {
+                	$organization_select.append("<li><a href='" + create_url + "/0" + "' onClick='appendURL(this)'>Yourself <span class='links-remaining'>" + links_remaining + "<span></a></li>");
+                }
+            }
+        });        
 
+    /* Org affiliation dropdown logic - end */
 });
 
 /* Everything that needs to happen at page load - end */
@@ -57,39 +119,69 @@ $(function() {
 /* Handle the the main action (enter url, hit the button) button - start */
 
 function linkIt(data){
-    new_archive.url = 'http://' + settings.HOST  + '/' + data.guid;
+    // Success message from API. We should have a GUID now (but the
+    // archive is still be generated)
+
+
+    // Clear any error messages out
+    $('.error-row').remove();
+
     new_archive.guid = data.guid;
-    new_archive.title = data.title;
-    new_archive.static_prefix = settings.STATIC_URL;
-
-    $('#preview-container').html(templates.success(new_archive));
-
-    // Get our spinner going now that we're drawing it
-    var target = document.getElementById('spinner');
-    var spinner = new Spinner(opts).spin(target);
-
-    $('#steps-container').html('');
-    $('.preview-row').removeClass('hide _error _success _wait').addClass('_wait').hide().fadeIn(500);
 
     refreshIntervalIds.push(setInterval(check_status, 2000));
 }
 
-function linkNot(jqXHR){
-    $('#preview-container').html(templates.preview_failure({static_prefix:settings.STATIC_URL}));
+function toggleCreateAvailable() {
+    // Get our spinner going and display a "we're working" message
+    $addlink = $('#addlink');
+    if ($addlink.hasClass('_isWorking')) {
+        $addlink.html('Create Perma Link').removeAttr('disabled').removeClass('_isWorking');
+        spinner.stop();
+        $('#rawUrl, #organization_select_form button').removeAttr('disabled');
+        $('#links-remaining-message').removeClass('_isWorking');
+    } else {
+        $addlink.html('<div id="capture-status">Creating your Perma Link</div>').attr('disabled', 'disabled').addClass('_isWorking');
+        spinner = new Spinner(opts);
+        spinner.spin($addlink[0]);
+        $('#rawUrl, #organization_select_form button').attr('disabled', 'disabled');
+        $('#links-remaining-message').addClass('_isWorking');
+    }
+}
 
-    var message = "";
-    if (jqXHR.status == 400 && jqXHR.responseText){
-        var errors = JSON.parse(jqXHR.responseText).archives;
-        for (var prop in errors) {
-            message += errors[prop] + " ";
+
+function linkNot(jqXHR){
+    // The API told us something went wrong.
+
+    if(jqXHR.status == 401){
+    // special handling if user becomes unexpectedly logged out
+        showAPIError(jqXHR);
+    }else {
+
+        var message = "";
+        if (jqXHR.status == 400 && jqXHR.responseText) {
+            var errors = JSON.parse(jqXHR.responseText).archives;
+            for (var prop in errors) {
+                message += errors[prop] + " ";
+            }
         }
+
+        var upload_allowed = true;
+        if (message.indexOf("limit") > -1) {
+            $('.links-remaining').text('0');
+            upload_allowed = false;
+        }
+
+        $('#error-container').html(templates.error({
+            message: message || "Error " + jqXHR.status,
+            upload_allowed: upload_allowed,
+            contact_url: contact_url
+        }));
+
+        $('.create-errors').addClass('_active');
+        $('#error-container').hide().fadeIn(0);
     }
 
-    $('#steps-container').html(templates.error({
-        message: message || "Error " + jqXHR.status
-    }));
-
-    $('.preview-row').removeClass('hide _error _success _wait').addClass('_error').hide().fadeIn(0);
+    toggleCreateAvailable();
 }
 
 /* Handle the the main action (enter url, hit the button) button - start */
@@ -99,9 +191,16 @@ function linkNot(jqXHR){
 
 /* Handle an upload - start */
 
-function uploadNot(data) {
+function uploadNot(jqXHR) {
     // Display an error message in our upload modal
-    var response = jQuery.parseJSON( data.responseText),
+
+    // special handling if user becomes unexpectedly logged out
+    if(jqXHR.status == 401){
+        showAPIError(jqXHR);
+        return;
+    }
+
+    var response = jQuery.parseJSON( jqXHR.responseText),
         reasons = [];
     $('.js-warning').remove();
     $('.has-error').removeClass('has-error');
@@ -135,16 +234,7 @@ function uploadIt(data) {
     $('#archive-upload').modal('hide');
 
     var upload_image_url = settings.STATIC_URL + '/img/upload-preview.jpg';
-    new_archive.url = 'http://' + settings.HOST  + '/' + data.guid;
-
-    $('#preview-container').html(templates.preview_available_no_upload_option({image_url: upload_image_url, archive_url: new_archive.url}));
-
-    // Get our spinner going now that we're drawing it
-    var target = document.getElementById('spinner');
-    var spinner = new Spinner(opts).spin(target);
-
-    $('#steps-container').html(templates.success_steps({url: new_archive.url,
-                                                        userguide_url: userguide_url, vesting_privs: vesting_privs})).removeClass('hide');
+    window.location.href = '/' + data.guid;
 }
 
 function upload_form() {
@@ -156,22 +246,6 @@ function upload_form() {
 }
 
 /* Handle an upload - end */
-
-
-
-
-/* Handle the thumbnail fetching - start */
-
-function get_thumbnail() {
-    $('#preview-container').html(templates.preview_available({
-        image_url: thumbnail_service_url.replace('GUID', new_archive.guid),
-        archive_url: new_archive.url
-    })).removeClass('hide');
-}
-
-/* Handle the thumbnail fetching - end */
-
-
 
 
 /* Our polling function for the thumbnail completion - start */
@@ -205,45 +279,27 @@ function check_status() {
         });
 
         // We're done checking status when nothing is pending.
-        if(capturesSucceeded || !capturesPending){
+        if(!capturesPending){
 
             // Clear out our pending jobs
             $.each(refreshIntervalIds, function(ndx, id) {
                 clearInterval(id);
             });
 
-            // If we have at least one success, show success message.
+            // If we have at least one success, forward to the new archive
             if(capturesSucceeded){
-                $('.preview-row').removeClass('hide _error _success _wait').addClass('_success');
-                
-                $('#steps-container').html(templates.success_steps({
-                    url: new_archive.url,
-                    userguide_url: userguide_url,
-                    vesting_privs: vesting_privs
-                })).removeClass('hide');
 
-                $('#preview-container').html(templates.preview_available({
-                    image_url: thumbnail_service_url.replace('GUID', new_archive.guid),
-                    archive_url: new_archive.url
-                })).removeClass('hide');
-
-                // Catch failure to load thumbnail, and show thumbnail-not-available message
-                $('.library-thumbnail img').on('error', function() {
-                    $('#preview-container').html(templates.preview_available({
-                        image_url: null,
-                        archive_url: new_archive.url
-                    }));
-                });
-                
-                
+                window.location.href = "/" + new_archive.guid;
 
             // Else show failure message/upload form.
-            }else {
-                $('#preview-container').html(templates.preview_failure({static_prefix: settings.STATIC_URL}));
-                $('#steps-container').html(templates.error({
+            } else {
+                $('#error-container').html(templates.error({
                     message: "Error: URL capture failed."
                 }));
-                $('.preview-row').removeClass('hide _error _success _wait').addClass('_error');
+                $('.error-row').removeClass('hide _error _success _wait').addClass('_error');
+
+                // Toggle our create button
+                toggleCreateAvailable();
             }
         }
     });
@@ -252,28 +308,71 @@ function check_status() {
 /* Our polling function for the thumbnail completion - end */
 
 
+/* URL appending */
+
+/* Org selection is link based, so if the user selects an org from
+   the dropdown, we link to that page (reloading and losing state on the
+    create page). Here, let's grab the URL from the form field and append
+it to the org's href (in the org selection dropdown) */
+
+function appendURL(elem) {       
+    if ($('#rawUrl').val().length > 0) {
+        var link_to_create = $(elem).attr("href") + "?url=" + $('#rawUrl').val();
+        $(elem).attr("href", link_to_create);
+    }
+}
+
+/* URL appending - end */
+
+/* Catch incoming URLs as param values. Both from the bookmarklet or from the create page */
+
+// Get parameter by name
+// from https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+// Populate the URL field and submit the "create link" form
+$(document).ready(function() {
+    var bookmarklet_url = getParameterByName('url');
+    if (bookmarklet_url) {
+        $('.bookmarklet-button').hide();
+        $('#rawUrl').val(bookmarklet_url);
+    }
+});
+
+
+/* Catch incoming URLs as param values. Both from the bookmarklet or from the create page - end */
+
+
+
 
 /* Our spinner controller - start */
 
 var opts = {
-    lines: 17, // The number of lines to draw
+    lines: 15, // The number of lines to draw
     length: 2, // The length of each line
-    width: 1.5, // The line thickness
-    radius: 10, // The radius of the inner circle
-    scale: 1.7, // Scales overall size of the spinner
+    width: 2, // The line thickness
+    radius: 9, // The radius of the inner circle
+    scale: 1, // Scales overall size of the spinner
     corners: 0, // Corner roundness (0..1)
-    rotate: 0, // The rotation offset
-    direction: 1, // 1: clockwise, -1: counterclockwise
     color: '#2D76EE', // #rgb or #rrggbb or array of colors
     opacity: 0.25, // Opacity of the lines
-    speed: 0.7, // Rounds per second
-    trail: 100, // Afterglow percentage
+    rotate: 0, // The rotation offset
+    direction: 1, // 1: clockwise, -1: counterclockwise
+    speed: 1, // Rounds per second
+    trail: 50, // Afterglow percentage
+    fps: 20, // Frames per second when using setTimeout() as a fallback for CSS
+    zIndex: 2e9, // The z-index (defaults to 2000000000)
+    className: 'spinner', // The CSS class to assign to the spinner
+    top: '12px', // Top position relative to parent
+    left: '50%', // Left position relative to parent
     shadow: false, // Whether to render a shadow
     hwaccel: false, // Whether to use hardware acceleration
-    className: 'spinner', // The CSS class to assign to the spinner
-    zIndex: 2e9, // The z-index (defaults to 2000000000)
-    top: 'auto', // Top position relative to parent in px
-    left: 'auto' // Left position relative to parent in px
+    position: 'absolute' // Element positioning
 };
 
 /* Our spinner controller - end */

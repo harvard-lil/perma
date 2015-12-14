@@ -2,6 +2,7 @@ import os
 import subprocess
 import sys
 from django.conf import settings
+from fabric.context_managers import shell_env
 from fabric.decorators import task
 from fabric.operations import local
 
@@ -43,6 +44,24 @@ def test(apps="perma api functional_tests"):
 
 
 @task
+def test_sauce(server_url=None, test_flags=''):
+    """
+        Run functional_tests through Sauce rather than local phantomjs.
+    """
+    shell_envs = {
+        'DJANGO_LIVE_TEST_SERVER_ADDRESS': "0.0.0.0:8000",  # tell Django to make the live test server visible outside vagrant (this is unrelated to server_url)
+        'DJANGO__USE_SAUCE': "True"
+    }
+    if server_url:
+        shell_envs['SERVER_URL'] = server_url
+    else:
+        print "\n\nLaunching local live server. Be sure Sauce tunnel is running! (fab dev.sauce_tunnel)\n\n"
+
+    with shell_env(**shell_envs):
+        test("functional_tests "+test_flags)
+
+
+@task
 def sauce_tunnel():
     """
         Set up Sauce tunnel before running functional tests targeted at localhost.
@@ -78,3 +97,49 @@ def export_warcs(start_guid=''):
             continue
         link.export_warc()
         print "-- Exported."
+        
+        
+@task
+def screenshots(base_url='http://perma.dev:8000'):
+    import StringIO
+    from PIL import Image
+    from selenium import webdriver
+
+    browser = webdriver.Firefox()
+    browser.set_window_size(1300, 800)
+
+    base_path = os.path.join(settings.PROJECT_ROOT, 'static/img/docs')
+
+    def screenshot(upper_left_selector, lower_right_selector, output_path, upper_left_offset=(0,0), lower_right_offset=(0,0)):
+        print "Capturing %s" % output_path
+
+        upper_left_el = browser.find_element_by_css_selector(upper_left_selector)
+        lower_right_el = browser.find_element_by_css_selector(lower_right_selector)
+
+        upper_left_loc = upper_left_el.location
+        lower_right_loc = lower_right_el.location
+        lower_right_size = lower_right_el.size
+
+        im = Image.open(StringIO.StringIO(browser.get_screenshot_as_png()))
+        im = im.crop((
+            upper_left_loc['x']+upper_left_offset[0],
+            upper_left_loc['y']+upper_left_offset[1],
+            lower_right_loc['x'] + lower_right_size['width'] + lower_right_offset[0],
+            lower_right_loc['y'] + lower_right_size['height'] + lower_right_offset[1]
+        ))
+        im.save(os.path.join(base_path, output_path))
+
+    # home page
+    browser.get(base_url)
+    screenshot('header', '#landing-introduction', 'screenshot_home.png')
+
+    # login screen
+    browser.get(base_url+'/login')
+    screenshot('header', '#main-content', 'screenshot_create_account.png')
+
+    # logged in user - drop-down menu
+    browser.find_element_by_css_selector('#id_username').send_keys('test_user@example.com')
+    browser.find_element_by_css_selector('#id_password').send_keys('pass')
+    browser.find_element_by_css_selector("button.btn.login").click()
+    browser.find_element_by_css_selector("a.navbar-link").click()
+    screenshot('header', 'ul.dropdown-menu', 'screenshot_dropdown.png', lower_right_offset=(15,15))
