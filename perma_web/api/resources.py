@@ -291,9 +291,6 @@ class BaseLinkResource(MultipartResource, DefaultResource):
     creation_timestamp = fields.DateTimeField(attribute='creation_timestamp', readonly=True)
     url = fields.CharField(attribute='submitted_url')
     title = fields.CharField(attribute='submitted_title', blank=True)
-    vested = fields.BooleanField(attribute='vested', blank=True, default=False)
-    vested_timestamp = fields.DateTimeField(attribute='vested_timestamp', readonly=True, null=True)
-    expiration_date = fields.DateTimeField(attribute='get_expiration_date', readonly=True)
     captures = fields.ToManyField(CaptureResource, 'captures', readonly=True, full=True)
 
     class Meta(DefaultResource.Meta):
@@ -326,7 +323,7 @@ class PublicLinkResource(BaseLinkResource):
         serializer = DefaultSerializer(formats=['json', 'jsonp'])  # enable jsonp
 
     def dehydrate_organization(self, bundle):
-        # The vesting org for a given link may or may not be public.
+        # The org for a given link may or may not be public.
         # For now, just mark all as private.
         return None
 
@@ -334,8 +331,7 @@ class PublicLinkResource(BaseLinkResource):
 class AuthenticatedLinkResource(BaseLinkResource):
     notes = fields.CharField(attribute='notes', blank=True)
     created_by = fields.ForeignKey(LinkUserResource, 'created_by', full=True, null=True, blank=True, readonly=True)
-    vested_by_editor = fields.ForeignKey(LinkUserResource, 'vested_by_editor', full=True, null=True, blank=True,
-                                         readonly=True)
+
     is_private = fields.BooleanField(attribute='is_private')
     private_reason = fields.CharField(attribute='private_reason', blank=True, null=True)
     archive_timestamp = fields.DateTimeField(attribute='archive_timestamp', readonly=True)
@@ -343,7 +339,7 @@ class AuthenticatedLinkResource(BaseLinkResource):
 
     class Meta(BaseLinkResource.Meta):
         authorization = AuthenticatedLinkAuthorization()
-        queryset = BaseLinkResource.Meta.queryset.select_related('created_by', 'vested_by_editor',)
+        queryset = BaseLinkResource.Meta.queryset.select_related('created_by',)
 
     def get_search_filters(self, search_query):
         return (super(AuthenticatedLinkResource, self).get_search_filters(search_query) |
@@ -382,23 +378,16 @@ class LinkResource(AuthenticatedLinkResource):
 
         return bundle
 
-    def hydrate_vested(self, bundle):
-        if not bundle.obj.vested and bundle.data.get('vested', None):
-            bundle.obj.vested_by_editor = bundle.request.user
-            bundle.obj.vested_timestamp = timezone.now()
-
-        return bundle
-
     def hydrate_organization(self, bundle):
         if not bundle.obj.organization:
-            # If the user passed a vesting org id, grab the object.
+            # If the user passed an org id, grab the object.
             # Permissions will be checked later.
             if bundle.data.get('organization', None):
                 try:
                     bundle.data['organization'] = Organization.objects.get(pk=bundle.data['organization'])
                 except Organization.DoesNotExist:
-                    self.raise_error_response(bundle, {'organization':"Vesting org not found."})
-            # A folder was passed in via URL during vest i.e. /folders/123/archives/ABC-EFG
+                    self.raise_error_response(bundle, {'organization':"Organization not found."})
+            # A folder was passed in via URL i.e. /folders/123/archives/ABC-EFG
             elif bundle.data.get('folder', None):
                 bundle.data['organization'] = bundle.data['folder'].organization
         else:
@@ -494,16 +483,11 @@ class LinkResource(AuthenticatedLinkResource):
         return bundle
 
     def obj_update(self, bundle, skip_errors=False, **kwargs):
-        was_vested = bundle.obj.vested
 
         bundle = super(LinkResource, self).obj_update(bundle, skip_errors, **kwargs)
 
         if bundle.data.get('folder', None):
             bundle.obj.move_to_folder_for_user(bundle.data['folder'], bundle.request.user)
-
-        if not was_vested and bundle.obj.vested:
-            if settings.UPLOAD_TO_INTERNET_ARCHIVE and bundle.obj.can_upload_to_internet_archive():
-                run_task(upload_to_internet_archive, link_guid=bundle.obj.guid)
 
         return bundle
 

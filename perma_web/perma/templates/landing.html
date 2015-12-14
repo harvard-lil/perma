@@ -1,6 +1,6 @@
 {% extends "base-responsive.html" %}
 
-{% load pipeline %}
+{% load pipeline humanize %}
 
 {% block styles %}
 {% endblock %}
@@ -273,15 +273,15 @@
 				<h2 class="section-title-alt light">Perma.cc has already preserved thousands of links for users all over the world.</h2>
 				<div class="row-stats  _isCentered">
 					<div class="col-stat stat-10p5">
-						<div class="stat-number">120,234</div>
+						<div class="stat-number">{{ links_count|intcomma }}</div>
 						<div class="stat-label">Links preserved</div>
 					</div>
 					<div class="col-stat stat-10p3">
-						<div class="stat-number">6,236</div>
+						<div class="stat-number">{{ users_count|intcomma }}</div>
 						<div class="stat-label">Users</div>
 					</div>
 					<div class="col-stat stat-10p2">
-						<div class="stat-number">441</div>
+						<div class="stat-number">{{ orgs_count|intcomma }}</div>
 						<div class="stat-label">Archiving organizations</div>
 					</div>
 				</div>

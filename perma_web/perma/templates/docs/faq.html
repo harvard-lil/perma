@@ -1,5 +1,5 @@
 {% extends "base-responsive.html" %}
-{% load file_exists %}
+{% load file_exists humanize %}
 {% block title %} | Docs{% endblock %}
 
 {% block meta_description %}
@@ -58,7 +58,7 @@ This section of the user guide provides answers to common questions about Perma.
 
 				  <div class="body-bh" data-href="how-many-links">How many links has Perma.cc helped save from rot?</div>
 				  <div class="faq-answer">
-				  	<p class="body-text">A bunch, and counting. Take a look at our <a href="{% url 'global_stats' %}">stats page</a> for more details.</p>
+				  	<p class="body-text">{{ users_count|intcomma }} people, across {{ orgs_count|intcomma }} organizations, attached to {{ registrars_count }} libraries have archived {{ links_count|intcomma }} links. Whew!</p>
 				  </div>
 							  
 			  <h2 class="body-ah" id="librarian">Libraries</h2>
@@ -87,7 +87,7 @@ This section of the user guide provides answers to common questions about Perma.
 
 			  <h2 class="body-ah" id="journals">Academic journals</h2>
 
-				<div class="body-bh" data-href="who-vesting-users">Which journal members should be affiliated users?</div>
+				<div class="body-bh" data-href="who-users">Which journal members should be affiliated users?</div>
 				<div class="faq-answer">
 					<p class="body-text">That's up to you to decide, in consultation with your registrar. Different journals do it differently. Some journals affiliate all journal members with the organization. Some do so only for senior editorial staff.</p>
 				</div>
@@ -98,7 +98,7 @@ This section of the user guide provides answers to common questions about Perma.
 					<p class="body-text">Review our <a href="{% url 'docs_organizations' %}">user guide</a> to learn more about adding and removing users.</p>
 				</div>
 
-				<div class="body-bh" data-href="multiple-vesting-orgs">Can users be affiliated with multiple organizations?</div>
+				<div class="body-bh" data-href="multiple-orgs">Can users be affiliated with multiple organizations?</div>
 				<div class="faq-answer">
 					<p class="body-text">Yes.</p>
 				</div>

@@ -14,7 +14,7 @@ class FolderResourceTestCase(ApiResourceTestCase):
     def setUp(self):
         super(FolderResourceTestCase, self).setUp()
 
-        self.vesting_member = LinkUser.objects.get(pk=3)
+        self.org_member = LinkUser.objects.get(pk=3)
         self.empty_child_folder = Folder.objects.get(pk=29)
         self.nonempty_child_folder = Folder.objects.get(pk=30)
 
@@ -22,13 +22,13 @@ class FolderResourceTestCase(ApiResourceTestCase):
         return self.detail_url(obj) + "/folders"
 
     def test_get_schema_json(self):
-        self.successful_get(self.list_url + '/schema', user=self.vesting_member)
+        self.successful_get(self.list_url + '/schema', user=self.org_member)
 
     def test_should_strip_whitespace_from_name(self):
         name = 'This is a folder name'
-        obj = self.successful_post(self.nested_url(self.vesting_member.root_folder),
+        obj = self.successful_post(self.nested_url(self.org_member.root_folder),
                                    data={'name': ' '+name+'  '},
-                                   user=self.vesting_member)
+                                   user=self.org_member)
 
         self.assertEqual(obj['name'], name)
 
