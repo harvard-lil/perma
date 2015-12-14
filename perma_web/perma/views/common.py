@@ -27,7 +27,7 @@ from urlparse import urlparse
 import requests
 from ratelimit.decorators import ratelimit
 
-from ..models import Link, Asset, Registrar
+from ..models import Link, Asset, Registrar, Organization, LinkUser
 from perma.forms import ContactForm
 from perma.utils import if_anonymous, send_contact_email
 
@@ -58,9 +58,13 @@ def landing(request):
         return HttpResponseRedirect(reverse('create_link'))
         
     else:
+        orgs_count = Organization.objects.all().count()
+        users_count = LinkUser.objects.all().count()
+        links_count = Link.objects.filter(is_private=False).count()
+
         return render(request, 'landing.html', {
             'this_page': 'landing',
-            'partners': Registrar.objects.filter(show_partner_status=True),
+            'orgs_count': orgs_count, 'users_count': users_count, 'links_count': links_count,
         })
 
 def about(request):
@@ -69,6 +73,17 @@ def about(request):
     """
     partners = sorted(Registrar.objects.filter(show_partner_status=True), key=lambda r: r.partner_display_name or r.name)
     return render(request, 'about.html', {'partners': partners})
+
+def faq(request):
+    """
+    The faq page
+    """
+    registrars_count = Registrar.objects.all().count()
+    orgs_count = Organization.objects.all().count()
+    users_count = LinkUser.objects.all().count()
+    links_count = Link.objects.filter(is_private=False).count()
+    return render(request, 'docs/faq.html', {'registrars_count': registrars_count,
+        'orgs_count': orgs_count, 'users_count': users_count, 'links_count': links_count,})
 
 def stats(request):
     """

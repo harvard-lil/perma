@@ -30,7 +30,7 @@ urlpatterns = patterns('perma.views',
     url(r'^docs/perma-link-creation/?$', DirectTemplateView.as_view(template_name='docs/perma-link-creation.html'), name='docs_perma_link_creation'),
     url(r'^docs/libraries/?$', DirectTemplateView.as_view(template_name='docs/libraries.html'), name='docs_libraries'),
     url(r'^docs/copyright/?$', DirectTemplateView.as_view(template_name='docs/copyright.html'), name='docs_copyright'),
-    url(r'^docs/faq/?$', DirectTemplateView.as_view(template_name='docs/faq.html'), name='docs_faq'),
+    url(r'^docs/faq/?$', 'common.faq', name='docs_faq'),
     url(r'^docs/organizations/?$', DirectTemplateView.as_view(template_name='docs/organizations.html'), name='docs_organizations'),
     
     #Developer docs
