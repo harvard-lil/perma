@@ -173,7 +173,7 @@ $(function() {
     }
 
     function updatePathWithSelected(node) {
-      var nodePath  = folderTree.get_path(node).join(" > ");
+      var nodePath  = folderTree.get_path(node).join(" &gt; ");
       $('#organization_select_form').find('.dropdown-toggle').html(nodePath);
     }
 
