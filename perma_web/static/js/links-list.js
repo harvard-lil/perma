@@ -145,6 +145,13 @@ $(function() {
     // *** helpers ***
 
     function getSelectedNode() {
+        var savedSelection = localStorage.getItem("perma_selected_folder");
+        if (savedSelection) {
+          folderTree.deselect_all()
+          var parsedSelected = JSON.parse(savedSelection);
+          folderTree.select_node(parsedSelected);
+          return parsedSelected
+        }
         return folderTree.get_selected(true)[0];
     }
 
