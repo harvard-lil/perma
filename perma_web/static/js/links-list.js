@@ -165,6 +165,16 @@ $(function() {
         }, 0);
     }
 
+    function updateLocalStorageWithSelected(node) {
+      var jsonNode = JSON.stringify(node);
+      localStorage.setItem("perma_selected_folder", jsonNode);
+    }
+
+    function updatePathWithSelected(node) {
+      var nodePath  = folderTree.get_path(node).join(" > ");
+      $('#organization_select_form').find('.dropdown-toggle').html(nodePath);
+    }
+
     // *** actions ***
 
     var showLoadingMessage = false;
@@ -387,7 +397,10 @@ $(function() {
                 if(!data.node.state.opened || data.node==lastSelectedFolder)
                     data.instance.toggle_node(data.node);
             }
+
             lastSelectedFolder = data.node;
+            updatePathWithSelected(lastSelectedFolder);
+            updateLocalStorageWithSelected(lastSelectedFolder);
 
         // handle open/close folder icon
         }).on('open_node.jstree', function (e, data) {
@@ -404,5 +417,6 @@ $(function() {
         firstNode = getSelectedNode(folderTree);
 
     folderTree.toggle_node(firstNode);
+    updatePathWithSelected(firstNode);
     showFolderContents(firstNode.data.folder_id);
 });
