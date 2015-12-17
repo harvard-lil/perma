@@ -152,7 +152,9 @@ $(function() {
           folderTree.select_node(parsedSelected);
           return parsedSelected
         }
-        return folderTree.get_selected(true)[0];
+        var firstNode = folderTree.get_selected(true)[0];
+        folderTree.toggle_node(firstNode);
+        return firstNode;
     }
 
     function getSelectedFolderID() {
@@ -416,7 +418,6 @@ $(function() {
     var folderTree = $.jstree.reference('#folder-tree'),
         firstNode = getSelectedNode(folderTree);
 
-    folderTree.toggle_node(firstNode);
     updatePathWithSelected(firstNode);
     showFolderContents(firstNode.data.folder_id);
 });
