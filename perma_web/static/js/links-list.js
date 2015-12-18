@@ -145,7 +145,17 @@ $(function() {
     // *** helpers ***
 
     function getSelectedNode() {
-        return folderTree.get_selected(true)[0];
+
+        var savedSelection = localStorage.getItem("perma_selected_node");
+        if (savedSelection) {
+          folderTree.deselect_all()
+          var node = JSON.parse(savedSelection);
+          folderTree.select_node(node);
+          return node;
+        }
+        var firstNode = folderTree.get_selected(true)[0];
+        folderTree.toggle_node(firstNode);
+        return firstNode;
     }
 
     function getSelectedFolderID() {
@@ -156,6 +166,59 @@ $(function() {
         setTimeout(function () {
             folderTree.edit(node);
         }, 0);
+    }
+
+    function findNodeBySavedFolder () {
+      var folder = localStorage.getItem("perma_selected_folder"),
+        parsedFolder = JSON.parse(folder),
+        node;
+
+      var searchAttrs = "";
+
+      if (parsedFolder.orgID) {
+        searchAttrs += "[data-organization_id="+parsedFolder['orgID']+"]"
+      }
+
+      if (parsedFolder.folderID) {
+        searchAttrs += "[data-folder_id="+parsedFolder['folderID']+"]"
+      }
+
+      node = folderTree.get_node(searchAttrs);
+      // if no node exists,
+      // we're looking at "My Links", not an organization
+      if (!node) {
+        node = folderTree.get_node('ul > li:first');
+      }
+
+      folderTree.select_node(node);
+
+      return node;
+    }
+    function getFolderByNode(node) {
+      var orgID  = node.data.organization_id,
+        folderID = node.data.folder_id,
+        folder   = {'orgID':orgID,'folderID':folderID};
+      return folder;
+    }
+
+    function updateLocalStorage(node) {
+      var folder = getFolderByNode(node)
+      localStorage.setItem("perma_selected_node", JSON.stringify(node));
+      localStorage.setItem("perma_selected_folder", JSON.stringify(folder));
+    }
+
+    function updatePathWithSelected(node) {
+      var path = folderTree.get_path(node)
+      if (!path) {
+        return;
+      }
+      
+      var stringPath = path.join(" &gt; ");
+      if (!node.data.organization_id) {
+        stringPath += "<span class='links-remaining'>" + links_remaining + "<span></a></li>";
+      }
+
+      $('#organization_select_form').find('.dropdown-toggle').html(stringPath);
     }
 
     // *** actions ***
@@ -257,6 +320,12 @@ $(function() {
         });
     }
 
+    // *** events ***
+    $(window).on('dropdown.selectionChange', function () {
+      folderTree.close_all()
+      folderTree.deselect_all()
+      findNodeBySavedFolder()
+    });
 
     // folder buttons
     $('a.new-folder').on('click', function () {
@@ -380,7 +449,10 @@ $(function() {
                 if(!data.node.state.opened || data.node==lastSelectedFolder)
                     data.instance.toggle_node(data.node);
             }
-            lastSelectedFolder = data.node;
+
+            var lastSelectedNode = data.node;
+            updateLocalStorage(lastSelectedNode);
+            updatePathWithSelected(lastSelectedNode);
 
         // handle open/close folder icon
         }).on('open_node.jstree', function (e, data) {
@@ -393,9 +465,9 @@ $(function() {
 
         });
 
-    var folderTree = $.jstree.reference('#folder-tree'),
-        firstNode = getSelectedNode(folderTree);
+      var folderTree = $.jstree.reference('#folder-tree'),
+          firstNode = getSelectedNode();
 
-    folderTree.toggle_node(firstNode);
+    updatePathWithSelected(firstNode);
     showFolderContents(firstNode.data.folder_id);
 });

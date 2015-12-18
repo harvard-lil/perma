@@ -35,3 +35,6 @@ perma_web/static-collected
 /perma_web/src/
 
 ghostdriver.log
+
+
+*.todo

@@ -20,27 +20,26 @@ $(function() {
 
     $('#archive-upload-confirm').modal({show: false});
     $('#archive-upload').modal({show: false});
-    
-    $('#organization_select_form').find('.dropdown-toggle').html("Yourself <span class='links-remaining'>" + links_remaining + "<span>");
+
 
     // When a new url is entered into our form
     $('#linker').submit(function() {
         var $this = $(this);
         var linker_data = {};
 
-        if(selected_organization){
-        	linker_data = {
-                url: $this.find("input[name=url]").val(),
-                organization: selected_organization,
-                folder: shared_folder
-            };
-        }
-        else {
-        	linker_data = {
-        		url: $this.find("input[name=url]").val()
-        	};
-        }
-        
+				var selectedFolder = getSelectedFolder();
+
+        if(selectedFolder){
+		    	linker_data = {
+		          url: $this.find("input[name=url]").val(),
+		          organization: selectedFolder.orgID,
+		          folder: selectedFolder.folderID
+					}
+		    } else {
+	        	linker_data = {
+	        		url: $this.find("input[name=url]").val()
+	        	};
+	      }
         // Start our spinner and disable our input field with just a tiny delay
         window.setTimeout(toggleCreateAvailable, 150);
 
@@ -82,39 +81,39 @@ $(function() {
                 sorted.push(data.objects[key]);
             });
             data.objects = sorted;
+						var selectedFolder = getSelectedFolder();
+
             if (data.objects.length > 0) {
             	var optgroup = data.objects[0].registrar;
-            	var select_yourself = true;
                 data.objects.map(function (organization) {
-                    if(organization.registrar !== optgroup) {
-                    	$organization_select.prepend("<li class='dropdown-header'>" + optgroup + "</li>");
-                        optgroup = organization.registrar;
-                        $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
-                    }
-                    var opt_text = organization.name;
-                    if (organization.default_to_private) {
-                    	opt_text += ' <span class="ui-private">(Private)</span>';	
-                    }
-                    if(selected_organization == organization.id) {
-                    	select_yourself = false;
-                    	$('#organization_select_form').find('.dropdown-toggle').html(opt_text);
-                    }
-                    else {
-                    	$organization_select.append("<li><a href='" + create_url + "/" + organization.id + "' onClick='appendURL(this)'>" + opt_text + "</a></li>");
-                    }
+                  if(organization.registrar !== optgroup) {
+                  	$organization_select.prepend("<li class='dropdown-header'>" + optgroup + "</li>");
+                      optgroup = organization.registrar;
+                      $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
+                  }
+                  var opt_text = organization.name;
+                  if (organization.default_to_private) {
+                  	opt_text += ' <span class="ui-private">(Private)</span>';
+                  }
+                	$organization_select.append("<li><a onClick='appendURL("+organization.id+")'>" + opt_text + "</a></li>");
                 });
-                if (!select_yourself) {
-                	$organization_select.append("<li><a href='" + create_url + "/0" + "' onClick='appendURL(this)'>Yourself <span class='links-remaining'>" + links_remaining + "<span></a></li>");
-                }
+								$organization_select.append("<li><a onClick='appendURL()'> My Links <span class='links-remaining'>" + links_remaining + "<span></a></li>");
             }
-        });        
+        });
 
     /* Org affiliation dropdown logic - end */
 });
 
 /* Everything that needs to happen at page load - end */
 
+function getSelectedFolder () {
+	var selectedFolder = localStorage.getItem("perma_selected_folder");
 
+	if(selectedFolder){
+		var folderObj = JSON.parse(selectedFolder);
+	}
+	return folderObj
+}
 
 /* Handle the the main action (enter url, hit the button) button - start */
 
@@ -315,11 +314,17 @@ function check_status() {
     create page). Here, let's grab the URL from the form field and append
 it to the org's href (in the org selection dropdown) */
 
-function appendURL(elem) {       
-    if ($('#rawUrl').val().length > 0) {
-        var link_to_create = $(elem).attr("href") + "?url=" + $('#rawUrl').val();
-        $(elem).attr("href", link_to_create);
-    }
+function setNewSelectedPath (orgID) {
+	var folder = {'orgID':orgID}
+	localStorage.setItem("perma_selected_folder",JSON.stringify(folder));
+	$(window).trigger("dropdown.selectionChange");
+}
+function appendURL(elem) {
+	setNewSelectedPath(elem);
+  if ($('#rawUrl').val().length > 0) {
+      var link_to_create = $(elem).attr("href") + "?url=" + $('#rawUrl').val();
+      $(elem).attr("href", link_to_create);
+  }
 }
 
 /* URL appending - end */
