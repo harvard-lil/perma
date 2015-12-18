@@ -101,11 +101,11 @@ $(function() {
                     	$('#organization_select_form').find('.dropdown-toggle').html(opt_text);
                     }
                     else {
-                    	$organization_select.append("<li><a href='" + create_url + "/" + organization.id + "' onClick='appendURL(this)'>" + opt_text + "</a></li>");
+                    	$organization_select.append("<li><a onClick='appendURL("+organization.id+")'>" + opt_text + "</a></li>");
                     }
                 });
                 if (!select_yourself) {
-                	$organization_select.append("<li><a href='" + create_url + "/0" + "' onClick='appendURL(this)'>Yourself <span class='links-remaining'>" + links_remaining + "<span></a></li>");
+                	$organization_select.append("<li><a onClick='appendURL("+organization.id+")'> Yourself <span class='links-remaining'>" + links_remaining + "<span></a></li>");
                 }
             }
         });        
