@@ -416,8 +416,8 @@ $(function() {
 
         });
 
-    var folderTree = $.jstree.reference('#folder-tree'),
-        firstNode = getSelectedNode(folderTree);
+      var folderTree = $.jstree.reference('#folder-tree'),
+          firstNode = getSelectedNode();
 
     updatePathWithSelected(firstNode);
     showFolderContents(firstNode.data.folder_id);
