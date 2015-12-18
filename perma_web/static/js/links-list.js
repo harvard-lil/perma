@@ -401,9 +401,9 @@ $(function() {
                     data.instance.toggle_node(data.node);
             }
 
-            lastSelectedFolder = data.node;
-            updatePathWithSelected(lastSelectedFolder);
-            updateLocalStorageWithSelected(lastSelectedFolder);
+            var lastSelectedNode = data.node;
+            updateLocalStorage(lastSelectedNode);
+            updatePathWithSelected(lastSelectedNode);
 
         // handle open/close folder icon
         }).on('open_node.jstree', function (e, data) {
