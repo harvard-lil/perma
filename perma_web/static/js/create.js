@@ -88,21 +88,19 @@ $(function() {
             if (data.objects.length > 0) {
             	var optgroup = data.objects[0].registrar;
                 data.objects.map(function (organization) {
-                    if(organization.registrar !== optgroup) {
-                    	$organization_select.prepend("<li class='dropdown-header'>" + optgroup + "</li>");
-                        optgroup = organization.registrar;
-                        $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
-                    }
-                    var opt_text = organization.name;
-                    if (organization.default_to_private) {
-                    	opt_text += ' <span class="ui-private">(Private)</span>';	
-                    }
-                    if(selected_organization == organization.id) {
-                    	$('#organization_select_form').find('.dropdown-toggle').html(opt_text);
-                    }
-                    else {
-                    	$organization_select.append("<li><a onClick='appendURL("+organization.id+")'>" + opt_text + "</a></li>");
-                    }
+                  if(organization.registrar !== optgroup) {
+                  	$organization_select.prepend("<li class='dropdown-header'>" + optgroup + "</li>");
+                      optgroup = organization.registrar;
+                      $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
+                  }
+                  var opt_text = organization.name;
+                  if (organization.default_to_private) {
+                  	opt_text += ' <span class="ui-private">(Private)</span>';
+                  }
+                  if(selected_organization == organization.id) {
+                  	$('#organization_select_form').find('.dropdown-toggle').html(opt_text);
+                  }
+                	$organization_select.append("<li><a onClick='appendURL("+organization.id+")'>" + opt_text + "</a></li>");
                 });
 								$organization_select.append("<li><a onClick='appendURL()'> My Links <span class='links-remaining'>" + links_remaining + "<span></a></li>");
             }
