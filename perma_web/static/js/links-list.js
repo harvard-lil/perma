@@ -208,14 +208,14 @@ $(function() {
     }
 
     function updatePathWithSelected(node) {
-      var nodePath = folderTree.get_path(node).join(" &gt; ");
-      var myLinks = nodePath.includes("My Links");
-      if (myLinks) {
-        nodePath += "<span class='links-remaining'>" + links_remaining + "<span></a></li>"
+      var path = folderTree.get_path(node)
+      if (!path) return
+      var stringPath = path.join(" &gt; ");
+      if (stringPath.indexOf("My Links") > -1) {
+        stringPath += "<span class='links-remaining'>" + links_remaining + "<span></a></li>"
       }
 
-      $('#organization_select_form').find('.dropdown-toggle').html(nodePath);
-
+      $('#organization_select_form').find('.dropdown-toggle').html(stringPath);
     }
 
     // *** actions ***
