@@ -20,8 +20,7 @@ $(function() {
 
     $('#archive-upload-confirm').modal({show: false});
     $('#archive-upload').modal({show: false});
-    
-    $('#organization_select_form').find('.dropdown-toggle').html("Yourself <span class='links-remaining'>" + links_remaining + "<span>");
+
 
     // When a new url is entered into our form
     $('#linker').submit(function() {
@@ -104,11 +103,9 @@ $(function() {
                     	$organization_select.append("<li><a onClick='appendURL("+organization.id+")'>" + opt_text + "</a></li>");
                     }
                 });
-                if (!select_yourself) {
-                	$organization_select.append("<li><a onClick='appendURL("+organization.id+")'> Yourself <span class='links-remaining'>" + links_remaining + "<span></a></li>");
-                }
+								$organization_select.append("<li><a onClick='appendURL()'> My Links <span class='links-remaining'>" + links_remaining + "<span></a></li>");
             }
-        });        
+        });
 
     /* Org affiliation dropdown logic - end */
 });
