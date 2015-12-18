@@ -215,7 +215,7 @@ $(function() {
       
       var stringPath = path.join(" &gt; ");
       if (!node.data.organization_id) {
-        stringPath += "<span class='links-remaining'>" + links_remaining + "<span></a></li>"
+        stringPath += "<span class='links-remaining'>" + links_remaining + "<span></a></li>";
       }
 
       $('#organization_select_form').find('.dropdown-toggle').html(stringPath);
