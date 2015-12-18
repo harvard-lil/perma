@@ -82,9 +82,7 @@ $(function() {
             });
             data.objects = sorted;
 						var selectedFolder = getSelectedFolder();
-						if (selectedFolder) {
-							selected_organization = selectedFolder.orgID
-						}
+
             if (data.objects.length > 0) {
             	var optgroup = data.objects[0].registrar;
                 data.objects.map(function (organization) {
@@ -96,9 +94,6 @@ $(function() {
                   var opt_text = organization.name;
                   if (organization.default_to_private) {
                   	opt_text += ' <span class="ui-private">(Private)</span>';
-                  }
-                  if(selected_organization == organization.id) {
-                  	$('#organization_select_form').find('.dropdown-toggle').html(opt_text);
                   }
                 	$organization_select.append("<li><a onClick='appendURL("+organization.id+")'>" + opt_text + "</a></li>");
                 });
