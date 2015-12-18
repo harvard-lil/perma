@@ -189,10 +189,8 @@ $(function() {
       if (!node) {
         node = folderTree.get_node('ul > li:first');
       }
-      
-      if (node) {
-        folderTree.select_node(node);
-      }
+
+      folderTree.select_node(node);
 
       return node;
     }
