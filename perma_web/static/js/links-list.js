@@ -209,9 +209,12 @@ $(function() {
 
     function updatePathWithSelected(node) {
       var path = folderTree.get_path(node)
-      if (!path) return
+      if (!path) {
+        return;
+      }
+      
       var stringPath = path.join(" &gt; ");
-      if (stringPath.indexOf("My Links") > -1) {
+      if (!node.data.organization_id) {
         stringPath += "<span class='links-remaining'>" + links_remaining + "<span></a></li>"
       }
 
