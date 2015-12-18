@@ -167,13 +167,14 @@ $(function() {
         }, 0);
     }
 
-    function updateLocalStorageWithSelected(node) {
-      var jsonNode = JSON.stringify(node);
-      localStorage.setItem("perma_selected_folder", jsonNode);
+    function updateLocalStorage(node) {
+      var folder = getFolderByNode(node)
+      localStorage.setItem("perma_selected_node", JSON.stringify(node));
+      localStorage.setItem("perma_selected_folder", JSON.stringify(folder));
     }
 
     function updatePathWithSelected(node) {
-      var nodePath  = folderTree.get_path(node).join(" &gt; ");
+      var nodePath = folderTree.get_path(node).join(" &gt; ");
       $('#organization_select_form').find('.dropdown-toggle').html(nodePath);
     }
 
