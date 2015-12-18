@@ -96,9 +96,6 @@ $(function() {
                   if (organization.default_to_private) {
                   	opt_text += ' <span class="ui-private">(Private)</span>';
                   }
-                  if(selected_organization == organization.id) {
-                  	$('#organization_select_form').find('.dropdown-toggle').html(opt_text);
-                  }
                 	$organization_select.append("<li><a onClick='appendURL("+organization.id+")'>" + opt_text + "</a></li>");
                 });
 								$organization_select.append("<li><a onClick='appendURL()'> My Links <span class='links-remaining'>" + links_remaining + "<span></a></li>");
