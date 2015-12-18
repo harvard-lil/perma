@@ -167,6 +167,12 @@ $(function() {
             folderTree.edit(node);
         }, 0);
     }
+    function getFolderByNode(node) {
+      var orgID  = node.data.organization_id,
+        folderID = node.data.folder_id,
+        folder   = {'orgID':orgID,'folderID':folderID};
+      return folder;
+    }
 
     function updateLocalStorage(node) {
       var folder = getFolderByNode(node)
