@@ -27,14 +27,13 @@ $(function() {
         var $this = $(this);
         var linker_data = {};
 
-				var selectedFolder = localStorage.getItem("perma_selected_folder");
+				var selectedFolder = getSelectedFolder();
 
         if(selectedFolder){
-					var folderObj = JSON.parse(selectedFolder);
 		    	linker_data = {
 		          url: $this.find("input[name=url]").val(),
-		          organization: folderObj.orgID,
-		          folder: folderObj.folderID
+		          organization: selectedFolder.orgID,
+		          folder: selectedFolder.folderID
 					}
 		    } else {
 	        	linker_data = {
@@ -110,7 +109,14 @@ $(function() {
 
 /* Everything that needs to happen at page load - end */
 
+function getSelectedFolder () {
+	var selectedFolder = localStorage.getItem("perma_selected_folder");
 
+	if(selectedFolder){
+		var folderObj = JSON.parse(selectedFolder);
+	}
+	return folderObj
+}
 
 /* Handle the the main action (enter url, hit the button) button - start */
 
