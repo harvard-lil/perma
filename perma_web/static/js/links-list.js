@@ -284,6 +284,12 @@ $(function() {
         });
     }
 
+    // *** events ***
+    $(window).on('dropdown.selectionChange', function () {
+      folderTree.close_all()
+      folderTree.deselect_all()
+      findNodeBySavedFolder()
+    });
 
     // folder buttons
     $('a.new-folder').on('click', function () {

@@ -316,11 +316,17 @@ function check_status() {
     create page). Here, let's grab the URL from the form field and append
 it to the org's href (in the org selection dropdown) */
 
-function appendURL(elem) {       
-    if ($('#rawUrl').val().length > 0) {
-        var link_to_create = $(elem).attr("href") + "?url=" + $('#rawUrl').val();
-        $(elem).attr("href", link_to_create);
-    }
+function setNewSelectedPath (orgID) {
+	var folder = {'orgID':orgID}
+	localStorage.setItem("perma_selected_folder",JSON.stringify(folder));
+	$(window).trigger("dropdown.selectionChange");
+}
+function appendURL(elem) {
+	setNewSelectedPath(elem)
+  if ($('#rawUrl').val().length > 0) {
+      var link_to_create = $(elem).attr("href") + "?url=" + $('#rawUrl').val();
+      $(elem).attr("href", link_to_create);
+  }
 }
 
 /* URL appending - end */
