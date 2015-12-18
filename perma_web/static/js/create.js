@@ -84,7 +84,6 @@ $(function() {
             data.objects = sorted;
             if (data.objects.length > 0) {
             	var optgroup = data.objects[0].registrar;
-            	var select_yourself = true;
                 data.objects.map(function (organization) {
                     if(organization.registrar !== optgroup) {
                     	$organization_select.prepend("<li class='dropdown-header'>" + optgroup + "</li>");
@@ -96,7 +95,6 @@ $(function() {
                     	opt_text += ' <span class="ui-private">(Private)</span>';	
                     }
                     if(selected_organization == organization.id) {
-                    	select_yourself = false;
                     	$('#organization_select_form').find('.dropdown-toggle').html(opt_text);
                     }
                     else {
