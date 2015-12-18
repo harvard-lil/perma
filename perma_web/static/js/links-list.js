@@ -214,8 +214,13 @@ $(function() {
       }
       
       var stringPath = path.join(" &gt; ");
-      if (!node.data.organization_id) {
-        stringPath += "<span class='links-remaining'>" + links_remaining + "<span></a></li>"
+      // if node doesn't have an organization id
+      // and its parent doesn't have organization id
+      // that means it's inside "My Links"
+      var parentNode = folderTree.get_node(node.parent)
+
+      if (!node.data.organization_id && !parentNode.data.organization_id) {
+        stringPath += "<span class='links-remaining'>" + links_remaining + "<span></a></li>";
       }
 
       $('#organization_select_form').find('.dropdown-toggle').html(stringPath);
