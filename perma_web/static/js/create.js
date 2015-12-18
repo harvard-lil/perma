@@ -80,10 +80,7 @@ $(function() {
                 sorted.push(data.objects[key]);
             });
             data.objects = sorted;
-						var selectedFolder = getSelectedFolder();
-						if (selectedFolder) {
-							selected_organization = selectedFolder.orgID
-						}
+
             if (data.objects.length > 0) {
             	var optgroup = data.objects[0].registrar;
                 data.objects.map(function (organization) {
