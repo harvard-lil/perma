@@ -167,6 +167,27 @@ $(function() {
             folderTree.edit(node);
         }, 0);
     }
+
+    function findNodeBySavedFolder () {
+      var folder = localStorage.getItem("perma_selected_folder"),
+        parsedFolder = JSON.parse(folder),
+        node;
+
+      var searchAttrs = "";
+
+      if (parsedFolder.orgID) {
+        searchAttrs += "[data-organization_id="+parsedFolder['orgID']+"]"
+      }
+
+      if (parsedFolder.folderID) {
+        searchAttrs += "[data-folder_id="+parsedFolder['folderID']+"]"
+      }
+
+      node = folderTree.get_node(searchAttrs);
+      folderTree.select_node(node);
+
+      return node;
+    }
     function getFolderByNode(node) {
       var orgID  = node.data.organization_id,
         folderID = node.data.folder_id,
