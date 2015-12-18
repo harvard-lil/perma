@@ -28,19 +28,20 @@ $(function() {
         var $this = $(this);
         var linker_data = {};
 
-        if(selected_organization){
-        	linker_data = {
-                url: $this.find("input[name=url]").val(),
-                organization: selected_organization,
-                folder: shared_folder
-            };
-        }
-        else {
-        	linker_data = {
-        		url: $this.find("input[name=url]").val()
-        	};
-        }
-        
+				var selectedFolder = localStorage.getItem("perma_selected_folder");
+
+        if(selectedFolder){
+					var folderObj = JSON.parse(selectedFolder);
+		    	linker_data = {
+		          url: $this.find("input[name=url]").val(),
+		          organization: folderObj.orgID,
+		          folder: folderObj.folderID
+					}
+		    } else {
+	        	linker_data = {
+	        		url: $this.find("input[name=url]").val()
+	        	};
+	      }
         // Start our spinner and disable our input field with just a tiny delay
         window.setTimeout(toggleCreateAvailable, 150);
 
