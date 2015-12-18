@@ -104,8 +104,12 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     ########################
 
     def test_should_create_archive_from_html_url(self):
+        target_folder = self.vesting_member.root_folder
         obj = self.successful_post(self.list_url,
-                                   data={'url': self.server_url + "/test.html"},
+                                   data={
+                                       'url': self.server_url + "/test.html",
+                                       'folder': target_folder.pk,
+                                   },
                                    user=self.vesting_member)
 
         link = Link.objects.get(guid=obj['guid'])
@@ -119,13 +123,24 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertFalse(link.is_private)
         self.assertEqual(link.submitted_title, "Test title.")
 
+        # check folder
+        self.assertTrue(link.folders.filter(pk=target_folder.pk).exists())
+
     def test_should_create_archive_from_pdf_url(self):
+        target_org = self.vesting_member.organizations.first()
         obj = self.successful_post(self.list_url,
-                                   data={'url': self.server_url + "/test.pdf"},
+                                   data={
+                                       'url': self.server_url + "/test.pdf",
+                                       'folder': target_org.shared_folder.pk,
+                                   },
                                    user=self.vesting_member)
 
         link = Link.objects.get(guid=obj['guid'])
         self.assertValidCapture(link.primary_capture)
+
+        # check folder
+        self.assertTrue(link.folders.filter(pk=target_org.shared_folder.pk).exists())
+        self.assertEqual(link.organization, target_org)
 
     def test_should_add_http_to_url(self):
         self.successful_post(self.list_url,
@@ -214,25 +229,6 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.successful_patch(self.unvested_link_detail_url,
                               user=self.unvested_link.created_by,
                               data={'is_private': True, 'private_reason':'user'})
-
-    ###########
-    # Vesting #
-    ###########
-
-    def test_vesting(self):
-        folder = self.vesting_member.organizations.first().folders.first()
-        folder_url = "{0}/folders/{1}".format(self.url_base, folder.pk)
-
-        self.successful_put("{0}/archives/{1}".format(folder_url, self.unvested_link.pk),
-                            user=self.vesting_member,
-                            data={'vested': True})
-
-        obj = self.successful_get(self.unvested_link_detail_url, user=self.vesting_member)
-        self.assertTrue(obj['vested'])
-
-        # Make sure it's listed in the folder
-        data = self.successful_get(folder_url+"/archives", user=self.vesting_member)
-        self.assertIn(obj, data['objects'])
 
     ##########
     # Moving #

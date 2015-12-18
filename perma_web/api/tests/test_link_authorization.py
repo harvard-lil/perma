@@ -82,9 +82,10 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
     # Creating #
     ############
 
-    def test_should_allow_logged_in_user_to_create(self):
-        with self.serve_file(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.html')):
-            self.successful_post(self.list_url, user=self.regular_user, data=self.post_data)
+    def test_should_reject_create_to_inaccessible_folder(self):
+        inaccessible_folder = self.registry_member.root_folder
+        response = self.rejected_post(self.list_url, expected_status_code=400, user=self.regular_user, data=dict(self.post_data, folder=inaccessible_folder.pk))
+        self.assertIn("Folder not found.", response.content)
 
     def test_should_reject_create_from_logged_out_user(self):
         self.rejected_post(self.list_url, data=self.post_data)
@@ -118,55 +119,6 @@ class LinkAuthorizationTestCase(ApiResourceTestCase):
 
     def test_should_reject_patch_from_user_lacking_owner_and_folder_access(self):
         self.rejected_patch(self.vested_url, user=self.unrelated_vesting_member, data=self.patch_data)
-
-    ###########
-    # Vesting #
-    ###########
-
-    def test_should_allow_member_of_org_to_vest(self):
-        self.successful_patch(self.unvested_url,
-                              user=self.vesting_member,
-                              data={'vested': True,
-                                    'organization': 1,
-                                    'folder': 27})
-
-        data = self.successful_get(self.unvested_url, user=self.vesting_member)
-        self.assertEqual(data['vested_by_editor']['id'], self.vesting_member.id)
-
-    def test_should_allow_member_of_registrar_to_vest(self):
-        self.successful_patch(self.unvested_url,
-                              user=self.registrar_member,
-                              check_results=False,  # Not checking results because registrar lacks permission to GET pre-patch state of link before it's vested.
-                              data={'vested': True,
-                                    'organization': 2,
-                                    'folder': 28})
-
-        data = self.successful_get(self.unvested_url, user=self.registrar_member)
-        self.assertEqual(data['vested_by_editor']['id'], self.registrar_member.id)
-
-    def test_should_allow_member_of_registry_to_vest(self):
-        self.successful_patch(self.unvested_url,
-                                     user=self.registry_member,
-                                     data={'vested': True,
-                                           'organization': 2,
-                                           'folder': 28})
-
-        data = self.successful_get(self.unvested_url, user=self.registry_member)
-        self.assertEqual(data['vested_by_editor']['id'], self.registry_member.id)
-
-    def test_should_reject_vest_from_user_lacking_vesting_privileges(self):
-        self.rejected_patch(self.unvested_url,
-                            user=self.regular_user,
-                            data={'vested': True,
-                                  'organization': 1,
-                                  'folder': 27})
-
-    def test_should_reject_vest_when_user_doesnt_belong_to_org(self):
-        self.rejected_patch(self.unvested_url,
-                            user=self.vesting_member,
-                            data={'vested': True,
-                                  'organization': 2,
-                                  'folder': 28})
 
     ######################
     # Private / Unlisted #

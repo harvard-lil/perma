@@ -32,7 +32,6 @@ $(function() {
         if(selectedFolder){
 		    	linker_data = {
 		          url: $this.find("input[name=url]").val(),
-		          organization: selectedFolder.orgID,
 		          folder: selectedFolder.folderID
 					}
 		    } else {

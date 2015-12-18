@@ -339,7 +339,7 @@ class AuthenticatedLinkResource(BaseLinkResource):
     is_private = fields.BooleanField(attribute='is_private')
     private_reason = fields.CharField(attribute='private_reason', blank=True, null=True)
     archive_timestamp = fields.DateTimeField(attribute='archive_timestamp', readonly=True)
-    organization = fields.ForeignKey(OrganizationResource, 'organization', full=True, blank=True, null=True)
+    organization = fields.ForeignKey(OrganizationResource, 'organization', full=True, blank=True, null=True, readonly=True)
 
     class Meta(BaseLinkResource.Meta):
         authorization = AuthenticatedLinkAuthorization()
@@ -389,28 +389,10 @@ class LinkResource(AuthenticatedLinkResource):
 
         return bundle
 
-    def hydrate_organization(self, bundle):
-        if not bundle.obj.organization:
-            # If the user passed a vesting org id, grab the object.
-            # Permissions will be checked later.
-            if bundle.data.get('organization', None):
-                try:
-                    bundle.data['organization'] = Organization.objects.get(pk=bundle.data['organization'])
-                except Organization.DoesNotExist:
-                    self.raise_error_response(bundle, {'organization':"Vesting org not found."})
-            # A folder was passed in via URL during vest i.e. /folders/123/archives/ABC-EFG
-            elif bundle.data.get('folder', None):
-                bundle.data['organization'] = bundle.data['folder'].organization
-        else:
-            # Clear out the organization so it's not updated otherwise
-            bundle.data.pop('organization', None)
-
-        return bundle
-
     def hydrate(self, bundle):
         if bundle.data.get('folder', None):
             try:
-                bundle.data['folder'] = Folder.objects.get(pk=bundle.data['folder'])
+                bundle.data['folder'] = Folder.objects.accessible_to(bundle.request.user).get(pk=bundle.data['folder'])
             except Folder.DoesNotExist:
                 self.raise_error_response(bundle, {'folder': "Folder not found."})
         return bundle
@@ -441,13 +423,16 @@ class LinkResource(AuthenticatedLinkResource):
             bundle.data['links_remaining'] = 'unlimited'
         
         # Runs validation (exception thrown if invalid), sets properties and saves the object
-        if bundle.data.get('organization'):
-            is_private = Organization.objects.get(pk=bundle.data['organization']).default_to_private
-            bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user, organization_id=bundle.data['organization'], is_private=is_private)
-            bundle.obj.move_to_folder_for_user(bundle.data['folder'], bundle.request.user)
-        else:
-            bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user)
+        bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user)
         link = bundle.obj
+
+        # put link in folder and handle Org settings based on folder
+        folder = bundle.data.get('folder')
+        if folder:
+            if folder.organization and folder.organization.default_to_private:
+                link.is_private = True
+                link.save()
+            link.move_to_folder_for_user(folder, bundle.request.user)  # also sets link.organization
 
         uploaded_file = bundle.data.get('file')
         if uploaded_file:
