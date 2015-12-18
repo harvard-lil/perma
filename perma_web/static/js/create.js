@@ -319,7 +319,7 @@ function setNewSelectedPath (orgID) {
 	$(window).trigger("dropdown.selectionChange");
 }
 function appendURL(elem) {
-	setNewSelectedPath(elem)
+	setNewSelectedPath(elem);
   if ($('#rawUrl').val().length > 0) {
       var link_to_create = $(elem).attr("href") + "?url=" + $('#rawUrl').val();
       $(elem).attr("href", link_to_create);

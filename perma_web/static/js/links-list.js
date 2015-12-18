@@ -184,6 +184,12 @@ $(function() {
       }
 
       node = folderTree.get_node(searchAttrs);
+      // if no node exists,
+      // we're looking at "My Links", not an organization
+      if (!node) {
+        node = folderTree.get_node('ul > li:first');
+      }
+
       folderTree.select_node(node);
 
       return node;
@@ -203,7 +209,13 @@ $(function() {
 
     function updatePathWithSelected(node) {
       var nodePath = folderTree.get_path(node).join(" &gt; ");
+      var myLinks = nodePath.includes("My Links");
+      if (myLinks) {
+        nodePath += "<span class='links-remaining'>" + links_remaining + "<span></a></li>"
+      }
+
       $('#organization_select_form').find('.dropdown-toggle').html(nodePath);
+
     }
 
     // *** actions ***
