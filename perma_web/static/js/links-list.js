@@ -145,12 +145,13 @@ $(function() {
     // *** helpers ***
 
     function getSelectedNode() {
-        var savedSelection = localStorage.getItem("perma_selected_folder");
+
+        var savedSelection = localStorage.getItem("perma_selected_node");
         if (savedSelection) {
           folderTree.deselect_all()
-          var parsedSelected = JSON.parse(savedSelection);
-          folderTree.select_node(parsedSelected);
-          return parsedSelected
+          var node = JSON.parse(savedSelection);
+          folderTree.select_node(node);
+          return node;
         }
         var firstNode = folderTree.get_selected(true)[0];
         folderTree.toggle_node(firstNode);
