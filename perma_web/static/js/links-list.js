@@ -194,12 +194,10 @@ $(function() {
       }
 
       node = folderTree.get_node(searchAttrs);
-      // if no node exists,
-      // we're looking at "My Links", not an organization
-      if (!node) {
-        node = folderTree.get_node('ul > li:first');
-      }
+      // if no node exists, we're looking at "My Links", not an organization
+      node = node || folderTree.get_node('ul > li:first');
 
+      folderTree.deselect_all()
       folderTree.select_node(node);
 
       return node;
