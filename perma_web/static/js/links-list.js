@@ -509,6 +509,7 @@ $(function() {
 
       var folderTree = $.jstree.reference('#folder-tree'),
           firstNode = getSelectedNode();
+      folderTree.select_node(firstNode);
 
     updatePathWithSelected(firstNode);
     showFolderContents(firstNode.data.folder_id);
