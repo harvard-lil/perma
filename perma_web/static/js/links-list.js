@@ -144,35 +144,20 @@ $(function() {
 
     // *** helpers ***
 
-    function getNodeFromSavedPath(path) {
-      /*
-        jsTree weirdness: newly created node can't be found:
-        .get_node will return `false` each time.
-        Therefore we have to return new node's its parent.
-      */
-      for (var i = path.length - 1; i >= 1; i--) {
-        var node = folderTree.get_node(path[i]);
-        folderTree.open_node(node);
-        if (i === 1) {
-          return node;
-        }
-      }
-    }
-
     function getSelectedNode() {
         var savedSelection = localStorage.getItem("perma_selected_node");
         if (savedSelection) {
           folderTree.deselect_all();
-          var savedPath = JSON.parse(localStorage.getItem("perma_new_folder_path"));
+          var nodeIsNew = JSON.parse(localStorage.getItem("perma_new_folder"));
           var savedNode = JSON.parse(savedSelection);
           /*
-          this will only happen once in these circumstances:
-          if new node (folder) is created, then page is refreshed
-          otherwise, it will skip if statement
+            this will only happen once in these circumstances:
+            if new node (folder) is created and selected, and then page is refreshed
+            otherwise, it will skip if statement
           */
-          if (savedPath && savedNode.id === savedPath[0]) {
-            savedNode = getNodeFromSavedPath(savedPath);
-            localStorage.removeItem("perma_new_folder_path");
+          if (nodeIsNew) {
+            savedNode = folderTree.get_node(savedNode.parent);
+            removeNewFolderFlag();
           }
           return savedNode;
         } else {
@@ -251,15 +236,12 @@ $(function() {
       $('#organization_select_form').find('.dropdown-toggle').html(stringPath);
     }
 
-    function saveNewFolderPath(node, path) {
-      path.push(node.id);
-      if (node.parent !== "#") {
-        node = folderTree.get_node(node.parent);
-        saveNewFolderPath(node, path);
-      } else {
-        localStorage.setItem("perma_new_folder_path", JSON.stringify(path));
-        return
-      }
+    function setNewFolderFlag () {
+      localStorage.setItem("perma_new_folder", true)
+    }
+
+    function removeNewFolderFlag () {
+      localStorage.removeItem("perma_new_folder")
     }
 
     // *** actions ***
@@ -457,7 +439,7 @@ $(function() {
                                 folderTree.create_node(node_parent, node, "last", function (new_folder_node) {
                                     new_folder_node.data = {folder_id: server_response.id};
                                     editNodeName(new_folder_node);
-                                    saveNewFolderPath(new_folder_node, []);
+                                    setNewFolderFlag();
                                 });
                             });
                         }
