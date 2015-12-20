@@ -398,7 +398,8 @@ $(function() {
     });
 
     var allowedEventsCount = 0,
-        lastSelectedFolder = null;
+        lastSelectedFolder = null,
+        initialized = false;
     $('#folder-tree')
         .jstree({
             core: {
@@ -491,7 +492,15 @@ $(function() {
                 if(!data.node.state.opened || data.node==lastSelectedFolder)
                     data.instance.toggle_node(data.node);
             }
-
+            if (!initialized) {
+              initialized = true;
+              return
+            }
+            /*
+              only update path and localStorage if
+              this is an actual event that's firing
+              not on initialization
+            */
             var lastSelectedNode = data.node;
             updateLocalStorage(lastSelectedNode);
             updatePathWithSelected(lastSelectedNode);
