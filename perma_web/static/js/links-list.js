@@ -145,27 +145,8 @@ $(function() {
     // *** helpers ***
 
     function getSelectedNode() {
-        var savedSelection = localStorage.getItem("perma_selected_node");
-        if (savedSelection) {
-          folderTree.deselect_all();
-          var nodeIsNew = JSON.parse(localStorage.getItem("perma_new_folder"));
-          var savedNode = JSON.parse(savedSelection);
-          /*
-            this will only happen once in these circumstances:
-            if new node (folder) is created and selected, and then page is refreshed
-            otherwise, it will skip if statement
-          */
-          if (nodeIsNew) {
-            savedNode = folderTree.get_node(savedNode.parent);
-            removeNewFolderFlag();
-          }
-          return savedNode;
-        } else {
-          var firstNode = folderTree.get_selected(true)[0];
-          folderTree.toggle_node(firstNode);
-          return firstNode;
-        }
-
+      var node = findNodeBySavedFolder();
+      return node;
     }
 
     function getSelectedFolderID() {
@@ -179,39 +160,35 @@ $(function() {
     }
 
     function findNodeBySavedFolder () {
-      var folder = localStorage.getItem("perma_selected_folder"),
+      var folder     = localStorage.getItem("perma_selected_folder"),
         parsedFolder = JSON.parse(folder),
+        folderData   = folderTree._model.data,
         node;
 
-      var searchAttrs = "";
-
-      if (parsedFolder.orgID) {
-        searchAttrs += "[data-organization_id="+parsedFolder['orgID']+"]"
+      if (parsedFolder.folderID === "default") {
+        node = folderTree.get_node('ul > li:first');
+        return node;
       }
 
-      if (parsedFolder.folderID) {
-        searchAttrs += "[data-folder_id="+parsedFolder['folderID']+"]"
+      for(var i in folderData) {
+        if(folderData.hasOwnProperty(i) && folderData[i].data && folderData[i].data.folder_id === parsedFolder.folderID) {
+          break;
+        }
       }
 
-      node = folderTree.get_node(searchAttrs);
-      // if no node exists, we're looking at "My Links", not an organization
+      node = folderTree.get_node(i);
       node = node || folderTree.get_node('ul > li:first');
-
-      folderTree.deselect_all()
-      folderTree.select_node(node);
-
       return node;
     }
+
     function getFolderByNode(node) {
-      var orgID  = node.data.organization_id,
-        folderID = node.data.folder_id,
-        folder   = {'orgID':orgID,'folderID':folderID};
+      var folderID = node.data.folder_id,
+        folder = { 'folderID' : folderID };
       return folder;
     }
 
     function updateLocalStorage(node) {
-      var folder = getFolderByNode(node)
-      localStorage.setItem("perma_selected_node", JSON.stringify(node));
+      var folder = getFolderByNode(node);
       localStorage.setItem("perma_selected_folder", JSON.stringify(folder));
     }
 
@@ -234,14 +211,6 @@ $(function() {
       }
 
       $('#organization_select_form').find('.dropdown-toggle').html(stringPath);
-    }
-
-    function setNewFolderFlag () {
-      localStorage.setItem("perma_new_folder", true)
-    }
-
-    function removeNewFolderFlag () {
-      localStorage.removeItem("perma_new_folder")
     }
 
     // *** actions ***
@@ -345,9 +314,12 @@ $(function() {
 
     // *** events ***
     $(window).on('dropdown.selectionChange', function () {
+      var saved = localStorage.getItem("perma_selected_folder");
       folderTree.close_all();
       folderTree.deselect_all();
-      findNodeBySavedFolder();
+      var node = findNodeBySavedFolder();
+      folderTree.select_node(node);
+
     });
 
     // folder buttons
@@ -439,7 +411,6 @@ $(function() {
                                 folderTree.create_node(node_parent, node, "last", function (new_folder_node) {
                                     new_folder_node.data = {folder_id: server_response.id};
                                     editNodeName(new_folder_node);
-                                    setNewFolderFlag();
                                 });
                             });
                         }
@@ -495,11 +466,11 @@ $(function() {
         }).on('close_node.jstree', function (e, data) {
             if(data.node.type=="default")
                 data.instance.set_icon(data.node, "icon-folder-close-alt");
-
         });
 
       var folderTree = $.jstree.reference('#folder-tree'),
-          firstNode = getSelectedNode();
+          firstNode = findNodeBySavedFolder();
+      folderTree.deselect_all();
       folderTree.select_node(firstNode);
 
     updatePathWithSelected(firstNode);
