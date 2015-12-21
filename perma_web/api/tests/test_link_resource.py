@@ -100,7 +100,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     ########################
 
     def test_should_create_archive_from_html_url(self):
-        target_folder = self.vesting_member.root_folder
+        target_folder = self.org_member.root_folder
         obj = self.successful_post(self.list_url,
                                    data={
                                        'url': self.server_url + "/test.html",
@@ -123,7 +123,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertTrue(link.folders.filter(pk=target_folder.pk).exists())
 
     def test_should_create_archive_from_pdf_url(self):
-        target_org = self.vesting_member.organizations.first()
+        target_org = self.org_member.organizations.first()
         obj = self.successful_post(self.list_url,
                                    data={
                                        'url': self.server_url + "/test.pdf",
