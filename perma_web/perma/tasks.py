@@ -149,7 +149,6 @@ def proxy_capture(self, link_guid, user_agent=''):
     successful_favicon_urls = []
 
     try:
-
         # create a request handler class that counts unique requests and responses
         unique_requests = set()
         unique_responses = set()
@@ -325,6 +324,7 @@ def proxy_capture(self, link_guid, user_agent=''):
 
             # get page size to decide whether to take a screenshot
             capture_screenshot = False
+            pixel_count = 0
             try:
                 root_element = browser.find_element_by_tag_name('body')
             except NoSuchElementException:
@@ -344,7 +344,7 @@ def proxy_capture(self, link_guid, user_agent=''):
                 link.screenshot_capture.write_warc_resource_record(screenshot_data)
                 save_fields(link.screenshot_capture, status='success')
             else:
-                print "Not saving screenshots! Page size is %s pixels." % pixel_count
+                print "Not saving screenshots! %s" % ("Page size is %s pixels." % pixel_count if pixel_count else "")
                 save_fields(link.screenshot_capture, status='failed')
         else:
             # no screenshot if not HTML
