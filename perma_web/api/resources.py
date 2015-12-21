@@ -161,6 +161,7 @@ class OrganizationResource(DefaultResource):
     name = fields.CharField(attribute='name')
     registrar = fields.CharField(attribute='registrar__name')
     default_to_private = fields.BooleanField(attribute='default_to_private', null=True, blank=True)
+    shared_folder = fields.ForeignKey('api.resources.FolderResource', 'shared_folder', null=True, blank=True, full=True)
 
     class Meta(DefaultResource.Meta):
         resource_name = 'organizations'

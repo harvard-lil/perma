@@ -80,10 +80,7 @@ $(function() {
                 sorted.push(data.objects[key]);
             });
             data.objects = sorted;
-						var selectedFolder = getSelectedFolder();
-						if (selectedFolder) {
-							selected_organization = selectedFolder.orgID
-						}
+
             if (data.objects.length > 0) {
             	var optgroup = data.objects[0].registrar;
                 data.objects.map(function (organization) {
@@ -96,10 +93,7 @@ $(function() {
                   if (organization.default_to_private) {
                   	opt_text += ' <span class="ui-private">(Private)</span>';
                   }
-                  if(selected_organization == organization.id) {
-                  	$('#organization_select_form').find('.dropdown-toggle').html(opt_text);
-                  }
-                	$organization_select.append("<li><a onClick='appendURL("+organization.id+")'>" + opt_text + "</a></li>");
+                	$organization_select.append("<li><a onClick='appendURL("+organization.shared_folder.id+")'>" + opt_text + "</a></li>");
                 });
 								$organization_select.append("<li><a onClick='appendURL()'> My Links <span class='links-remaining'>" + links_remaining + "<span></a></li>");
             }
@@ -318,11 +312,13 @@ function check_status() {
     create page). Here, let's grab the URL from the form field and append
 it to the org's href (in the org selection dropdown) */
 
-function setNewSelectedPath (orgID) {
-	var folder = {'orgID':orgID}
+function setNewSelectedPath (folderID) {
+	folderID = folderID ? folderID : 'default';
+	var folder = {'folderID':folderID}
 	localStorage.setItem("perma_selected_folder",JSON.stringify(folder));
 	$(window).trigger("dropdown.selectionChange");
 }
+
 function appendURL(elem) {
 	setNewSelectedPath(elem);
   if ($('#rawUrl').val().length > 0) {

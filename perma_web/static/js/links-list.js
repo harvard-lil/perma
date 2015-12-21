@@ -145,17 +145,8 @@ $(function() {
     // *** helpers ***
 
     function getSelectedNode() {
-
-        var savedSelection = localStorage.getItem("perma_selected_node");
-        if (savedSelection) {
-          folderTree.deselect_all()
-          var node = JSON.parse(savedSelection);
-          folderTree.select_node(node);
-          return node;
-        }
-        var firstNode = folderTree.get_selected(true)[0];
-        folderTree.toggle_node(firstNode);
-        return firstNode;
+      var node = findNodeBySavedFolder();
+      return node;
     }
 
     function getSelectedFolderID() {
@@ -169,53 +160,53 @@ $(function() {
     }
 
     function findNodeBySavedFolder () {
-      var folder = localStorage.getItem("perma_selected_folder"),
+      var folder     = localStorage.getItem("perma_selected_folder"),
         parsedFolder = JSON.parse(folder),
+        folderData   = folderTree._model.data,
         node;
 
-      var searchAttrs = "";
-
-      if (parsedFolder.orgID) {
-        searchAttrs += "[data-organization_id="+parsedFolder['orgID']+"]"
-      }
-
-      if (parsedFolder.folderID) {
-        searchAttrs += "[data-folder_id="+parsedFolder['folderID']+"]"
-      }
-
-      node = folderTree.get_node(searchAttrs);
-      // if no node exists,
-      // we're looking at "My Links", not an organization
-      if (!node) {
+      if (parsedFolder.folderID === "default") {
         node = folderTree.get_node('ul > li:first');
+        return node;
       }
 
-      folderTree.select_node(node);
+      for(var i in folderData) {
+        if(folderData.hasOwnProperty(i) && folderData[i].data && folderData[i].data.folder_id === parsedFolder.folderID) {
+          break;
+        }
+      }
 
+      node = folderTree.get_node(i);
+      node = node || folderTree.get_node('ul > li:first');
       return node;
     }
+
     function getFolderByNode(node) {
-      var orgID  = node.data.organization_id,
-        folderID = node.data.folder_id,
-        folder   = {'orgID':orgID,'folderID':folderID};
+      var folderID = node.data.folder_id,
+        folder = { 'folderID' : folderID };
       return folder;
     }
 
     function updateLocalStorage(node) {
-      var folder = getFolderByNode(node)
-      localStorage.setItem("perma_selected_node", JSON.stringify(node));
+      var folder = getFolderByNode(node);
       localStorage.setItem("perma_selected_folder", JSON.stringify(folder));
     }
 
     function updatePathWithSelected(node) {
-      var path = folderTree.get_path(node)
+      var path = folderTree.get_path(node);
       if (!path) {
         return;
       }
-      
+
       var stringPath = path.join(" &gt; ");
-      if (!node.data.organization_id) {
-        stringPath += "<span class='links-remaining'>" + links_remaining + "<span></a></li>"
+      /*
+        if node doesn't have an organization id and its parent doesn't have organization id
+        that means it's inside "My Links" we have to check because newly created
+        folders don't have orgIDs in their data
+      */
+      var parentNode = folderTree.get_node(node.parent);
+      if ((parentNode.data && !parentNode.data.organization_id) || (!node.data.organization_id && !parentNode.data)) {
+        stringPath += "<span class='links-remaining'>" + links_remaining + "<span></a></li>";
       }
 
       $('#organization_select_form').find('.dropdown-toggle').html(stringPath);
@@ -322,9 +313,12 @@ $(function() {
 
     // *** events ***
     $(window).on('dropdown.selectionChange', function () {
-      folderTree.close_all()
-      folderTree.deselect_all()
-      findNodeBySavedFolder()
+      var saved = localStorage.getItem("perma_selected_folder");
+      folderTree.close_all();
+      folderTree.deselect_all();
+      var node = findNodeBySavedFolder();
+      folderTree.select_node(node);
+
     });
 
     // folder buttons
@@ -357,7 +351,8 @@ $(function() {
     });
 
     var allowedEventsCount = 0,
-        lastSelectedFolder = null;
+        lastSelectedFolder = null,
+        initialized = false;
     $('#folder-tree')
         .jstree({
             core: {
@@ -449,7 +444,15 @@ $(function() {
                 if(!data.node.state.opened || data.node==lastSelectedFolder)
                     data.instance.toggle_node(data.node);
             }
-
+            if (!initialized) {
+              initialized = true;
+              return
+            }
+            /*
+              only update path and localStorage if
+              this is an actual event that's firing
+              not on initialization
+            */
             var lastSelectedNode = data.node;
             updateLocalStorage(lastSelectedNode);
             updatePathWithSelected(lastSelectedNode);
@@ -462,11 +465,12 @@ $(function() {
         }).on('close_node.jstree', function (e, data) {
             if(data.node.type=="default")
                 data.instance.set_icon(data.node, "icon-folder-close-alt");
-
         });
 
       var folderTree = $.jstree.reference('#folder-tree'),
-          firstNode = getSelectedNode();
+          firstNode = findNodeBySavedFolder();
+      folderTree.deselect_all();
+      folderTree.select_node(firstNode);
 
     updatePathWithSelected(firstNode);
     showFolderContents(firstNode.data.folder_id);
