@@ -1,4 +1,18 @@
-{% if capture.show_interstitial %}
+{% if capture.status == 'failed' %}
+	<div class="record-message">
+		<p class="record-message-primary">Capture failed.</p>
+		<p class="record-message-secondary">Perma was unable to archive the contents of this link.</p>
+        {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
+            <p class="record-message-secondary"><a href="?type=image">See the Screenshot View</a></p>
+        {% endif %}
+        <p class="record-message-secondary"><a href="{{link.submitted_url}}">View the live page</a></p>
+	<div>
+{% elif capture.status == 'pending' %}
+	<div class="record-message">
+		<p class="record-message-primary">Capture pending.</p>
+		<p class="record-message-secondary">Perma has not yet finished archiving the contents of this link.<br/>Please try again later.</p>
+	<div>
+{% elif capture.show_interstitial %}
 	<div class="record-message">
 		<p class="record-message-primary">Perma.cc can’t display this file type.</p>
 		<p class="record-message-secondary">Click below to view or download this archived file (file type {{ capture.mime_type }})</p>
