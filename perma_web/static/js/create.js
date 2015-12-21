@@ -93,7 +93,7 @@ $(function() {
                   if (organization.default_to_private) {
                   	opt_text += ' <span class="ui-private">(Private)</span>';
                   }
-                	$organization_select.append("<li><a onClick='appendURL("+organization.id+")'>" + opt_text + "</a></li>");
+                	$organization_select.append("<li><a onClick='appendURL("+organization.shared_folder.id+")'>" + opt_text + "</a></li>");
                 });
 								$organization_select.append("<li><a onClick='appendURL()'> My Links <span class='links-remaining'>" + links_remaining + "<span></a></li>");
             }
