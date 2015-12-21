@@ -61,6 +61,7 @@ def tag_new_release(tag):
     local("git push --tags")
     local("git push")
     local("git push upstream master:master")
+    local("git push upstream --tags")
     local("git checkout develop")
 
 
