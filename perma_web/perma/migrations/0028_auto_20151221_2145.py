@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('perma', '0026_historicallinkuser_historicalorganization_historicalregistrar'),
+        ('perma', '0027_auto_20151210_2328'),
     ]
 
     operations = [
