@@ -193,20 +193,19 @@ $(function() {
     }
 
     function updatePathWithSelected(node) {
-      var path = folderTree.get_path(node)
+      var path = folderTree.get_path(node);
       if (!path) {
         return;
       }
-      
-      var stringPath = path.join(" &gt; ");
-      // if node doesn't have an organization id
-      // and its parent doesn't have organization id
-      // that means it's inside "My Links"
-      // we have to check because newly created folders don't have orgIDs
-      // in their data
-      var parentNode = folderTree.get_node(node.parent)
 
-      if (!node.data.organization_id && !parentNode.data) {
+      var stringPath = path.join(" &gt; ");
+      /*
+        if node doesn't have an organization id and its parent doesn't have organization id
+        that means it's inside "My Links" we have to check because newly created
+        folders don't have orgIDs in their data
+      */
+      var parentNode = folderTree.get_node(node.parent);
+      if ((parentNode.data && !parentNode.data.organization_id) || (!node.data.organization_id && !parentNode.data)) {
         stringPath += "<span class='links-remaining'>" + links_remaining + "<span></a></li>";
       }
 
