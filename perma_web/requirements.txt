@@ -1,6 +1,6 @@
 # Package:                      # Used for:
 
-Django==1.7.10
+Django==1.8.7
 MySQL-python==1.2.5
 lxml==3.2.1
 PyPDF2==1.20                    # check integrity of uploaded PDFs
@@ -12,7 +12,7 @@ simplejson==3.3.0
 oauth2==1.5.211
 smhasher==0.150.1
 pytz==2013b
-django-mptt==0.6.1
+django-mptt==0.7.4
 Werkzeug==0.9.4
 Fabric==1.10.2
 pexpect==3.1
@@ -29,7 +29,7 @@ python-dateutil==2.2            # calculate link expiration date
 Wand==0.4           			# ImageMagick bindings to help with thumbnail creation and PDF -> PNG conversions
 django-tastypie==0.12.2         # API framework
 -e git://github.com/leppert/django-tastypie-extendedmodelresource.git@caf08005699d8e5616f93726bd8c1c5a51f74b07#egg=django-tastypie-extendedmodelresource
-sorl-thumbnail==12.2			# Used to create our thumbnails
+sorl-thumbnail==12.3			# Used to create our thumbnails
 redis==2.10.1					# Needed to bind with Redis. Supports our sorl thumbnails in production
 django-redis==3.7.2             # use redis as django's cache backend
 django-forms-bootstrap==3.0.1   # produce Bootstrap compatable forms

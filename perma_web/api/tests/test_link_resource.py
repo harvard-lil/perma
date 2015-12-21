@@ -4,8 +4,6 @@ from .utils import ApiResourceTransactionTestCase, TEST_ASSETS_DIR
 from api.resources import LinkResource, CurrentUserLinkResource, PublicLinkResource
 from perma.models import Link, LinkUser
 
-from django.core.files.storage import default_storage
-
 
 # Use a TransactionTestCase here because archive capture is threaded
 class LinkResourceTestCase(ApiResourceTransactionTestCase):

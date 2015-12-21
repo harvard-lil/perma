@@ -30,6 +30,8 @@ PIPELINE_ENABLED = False
 
 SUBDOMAIN_URLCONFS = {}
 
+TESTING = True
+
 ###############
 # Speed Hacks #
 ###############

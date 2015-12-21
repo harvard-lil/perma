@@ -1,10 +1,10 @@
 import os
-from .utils import ApiResourceTestCase, TEST_ASSETS_DIR
+from .utils import TEST_ASSETS_DIR, ApiResourceTransactionTestCase
 from api.resources import LinkResource, PublicLinkResource
 from perma.models import Link, LinkUser, Folder
 
 
-class LinkAuthorizationTestCase(ApiResourceTestCase):
+class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
 
     resource = LinkResource
 
