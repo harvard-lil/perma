@@ -165,14 +165,16 @@ $(function() {
         folderData   = folderTree._model.data,
         node;
 
-      if (parsedFolder.folderID === "default") {
+      if (parsedFolder && parsedFolder.folderID === "default") {
         node = folderTree.get_node('ul > li:first');
         return node;
       }
 
-      for(var i in folderData) {
-        if(folderData.hasOwnProperty(i) && folderData[i].data && folderData[i].data.folder_id === parsedFolder.folderID) {
-          break;
+      if (parsedFolder) {
+        for(var i in folderData) {
+          if(folderData.hasOwnProperty(i) && folderData[i].data && folderData[i].data.folder_id === parsedFolder.folderID) {
+            break;
+          }
         }
       }
 
