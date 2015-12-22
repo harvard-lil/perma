@@ -71,8 +71,18 @@ class LinkValidation(Validation):
     def is_valid(self, bundle, request=None):
         if not bundle.data:
             return {'__all__': 'No data provided.'}
-        errors = {}
 
+        # Make sure a limited user has links left to create
+        if not bundle.obj.pk:  # if it's a new entry
+            if not bundle.data.get('folder').organization:
+                links_remaining = bundle.request.user.get_links_remaining()
+                if links_remaining < 1:
+                    return {'__all__': "You've already reached your limit."}
+                bundle.data['links_remaining'] = links_remaining - 1
+            else:
+                bundle.data['links_remaining'] = 'unlimited'
+
+        errors = {}
         if bundle.data.get('url', '') == '':
             if not bundle.obj.pk:  # if it's a new entry
                 errors['url'] = "URL cannot be empty."
