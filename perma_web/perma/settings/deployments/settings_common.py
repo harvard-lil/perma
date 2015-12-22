@@ -87,9 +87,10 @@ PIPELINE_JS = {
     # scripts included at the foot of all pages
     'global': {
         'source_filenames': (
-            'js/jquery.js',
-            'js/bootstrap3.js',
-            'js/fastclick.min.js',
+            'vendors/jquery/jquery.js',
+            'vendors/bootstrap/bootstrap3.js',
+            'vendors/fastclick/fastclick.min.js',
+            'vendors/jquery/jquery.actual.js',
             'js/global.js',
         ),
         'output_filename': 'js/global-bundle.js',
@@ -98,9 +99,9 @@ PIPELINE_JS = {
     # scripts included in the head of all pages (not counting archive pages)
     'global_head': {
         'source_filenames': (
-            'js/modernizr.js',
-            'js/holder.js',
-            'js/local-datetime.js',
+            'vendors/modernizr/modernizr.js',
+            'vendors/holder/holder.js',
+            'js/helpers/local-datetime.js',
         ),
         'output_filename': 'js/global-head-bundle.js',
     },
@@ -116,8 +117,8 @@ PIPELINE_JS = {
     # scripts included in all user dashboard pages
     'admin': {
         'source_filenames': (
-            'js/handlebars.js',
-            'js/handlebars_helpers.js',
+            'vendors/handlebars/handlebars.js',
+            'js/helpers/handlebars_helpers.js',
             'js/admin.js',
         ),
         'output_filename': 'js/admin-bundle.js',
@@ -127,14 +128,14 @@ PIPELINE_JS = {
 
     'create': {
         'source_filenames': (
-            'js/lib/spin.js',
-            'js/jquery.form.min.js',
+            'vendors/spinjs/spin.js',
+            'vendors/jquery/jquery.form.min.js',
             'js/create.js',
 
-            'js/jquery-ui-1.10.3.custom.min.js',
-            'js/lib/jstree.min.js',
-            'js/lib/jquery.splendid.textchange.js',
-            'js/lib/jquery.waypoints.js',
+            'vendors/jquery/jquery-ui-1.10.3.custom.min.js',
+            'vendors/jstree/jstree.min.js',
+            'vendors/jquery/jquery.splendid.textchange.js',
+            'vendors/jquery/jquery.waypoints.js',
             'js/links-list.js',
         ),
         'output_filename': 'js/create-bundle.js',
@@ -147,18 +148,18 @@ PIPELINE_JS = {
     },
     'map': {
         'source_filenames': (
-            'js/raphael.js',
-            'js/raphael.scale.js',
-            'js/g.raphael.js',
-            'js/usmap.js',
-            'js/rwdImageMaps.js',
-            'js/map.js',
+            'vendors/raphael/raphael.js',
+            'vendors/raphael/raphael.scale.js',
+            'vendors/raphael/g.raphael.js',
+            'js/helpers/mapping/usmap.js',
+            'vendors/jquery/rwdImageMaps.js',
+            'js/helpers/mapping/map.js',
         ),
         'output_filename': 'js/map-bundle.js',
     },
     'stats': {
         'source_filenames': (
-            'js/d3.v3.js',
+            'vendors/d3/d3.v3.js',
             'js/stats.js',
         ),
         'output_filename': 'js/stats-bundle.js',
@@ -178,7 +179,7 @@ PIPELINE_JS = {
     },
     'doc-developer': {
         'source_filenames': (
-            'js/pretty-print-json.js',
+            'js/helpers/pretty-print-json.js',
         ),
         'output_filename': 'js/pretty-print-json.js',
     },
@@ -187,16 +188,16 @@ PIPELINE_JS = {
 PIPELINE_CSS = {
     'base': {
         'source_filenames': (
-            'css/bootstrap3.css',
-            'css/bootstrap-glyphicons.css',
+            'vendors/bootstrap/bootstrap3.css',
+            'vendors/bootstrap/bootstrap-glyphicons.css',
             'css/style-responsive.scss',
-            'css/font-awesome.min.css',
+            'vendors/font-awesome/font-awesome.min.css',
         ),
         'output_filename': 'css/base-bundle.css',
     },
     'base-archive': {
         'source_filenames': (
-            'css/bootstrap3.css',
+            'vendors/bootstrap/bootstrap3.css',
             'css/style-responsive-archive.scss',
         ),
         'output_filename': 'css/base-archive-bundle.css',
