@@ -55,7 +55,12 @@ $(function() {
 
     // When a user uploads their own capture
     $('#archive_upload_form').submit(function() {
+        var extraUploadData = {},
+            selectedFolder = getSelectedFolder();
+        if(selectedFolder)
+            extraUploadData.folder = selectedFolder.folderID;
         $(this).ajaxSubmit({
+            data: extraUploadData,
             success: uploadIt,
             error: uploadNot
         });
