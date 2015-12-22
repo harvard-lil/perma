@@ -385,6 +385,8 @@ class LinkResource(AuthenticatedLinkResource):
                 bundle.data['folder'] = Folder.objects.accessible_to(bundle.request.user).get(pk=bundle.data['folder'])
             except Folder.DoesNotExist:
                 self.raise_error_response(bundle, {'folder': "Folder not found."})
+        else:
+            bundle.data['folder'] = bundle.request.user.root_folder
         return bundle
 
     def obj_create(self, bundle, **kwargs):
@@ -397,20 +399,6 @@ class LinkResource(AuthenticatedLinkResource):
                 'archives': {'__all__': "Perma has paused archive creation for scheduled maintenance. Please try again shortly."},
                 'reason': "Perma has paused archive creation for scheduled maintenance. Please try again shortly.",
             }))
-
-        # Make sure a limited user has links left to create
-        links_remaining = bundle.request.user.get_links_remaining()
-        if (bundle.request.user.has_limit() or not bundle.data.get('organization')) and links_remaining < 1:
-            raise ImmediateHttpResponse(response=self.error_response(bundle.request, {
-                'archives': {'__all__': "You've already reached your limit."},
-                'reason': "You've already reached your limit.",
-            }))
-            
-        # Return the number remaining links after this one is created
-        if bundle.request.user.has_limit() or not bundle.data.get('organization'):
-            bundle.data['links_remaining'] = links_remaining - 1
-        else:
-            bundle.data['links_remaining'] = 'unlimited'
         
         # Runs validation (exception thrown if invalid), sets properties and saves the object
         bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user)
@@ -418,11 +406,10 @@ class LinkResource(AuthenticatedLinkResource):
 
         # put link in folder and handle Org settings based on folder
         folder = bundle.data.get('folder')
-        if folder:
-            if folder.organization and folder.organization.default_to_private:
-                link.is_private = True
-                link.save()
-            link.move_to_folder_for_user(folder, bundle.request.user)  # also sets link.organization
+        if folder.organization and folder.organization.default_to_private:
+            link.is_private = True
+            link.save()
+        link.move_to_folder_for_user(folder, bundle.request.user)  # also sets link.organization
 
         uploaded_file = bundle.data.get('file')
         if uploaded_file:
