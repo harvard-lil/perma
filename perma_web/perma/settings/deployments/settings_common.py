@@ -90,6 +90,7 @@ PIPELINE_JS = {
             'vendors/jquery/jquery.js',
             'vendors/bootstrap/bootstrap3.js',
             'vendors/fastclick/fastclick.min.js',
+            'vendors/jquery/jquery.actual.js',
             'js/global.js',
         ),
         'output_filename': 'js/global-bundle.js',
@@ -99,8 +100,8 @@ PIPELINE_JS = {
     'global_head': {
         'source_filenames': (
             'vendors/modernizr/modernizr.js',
-            'js/holder.js',
-            'js/local-datetime.js',
+            'vendors/holder/holder.js',
+            'js/helpers/local-datetime.js',
         ),
         'output_filename': 'js/global-head-bundle.js',
     },
@@ -147,18 +148,18 @@ PIPELINE_JS = {
     },
     'map': {
         'source_filenames': (
-            'vendor/raphael/raphael.js',
-            'vendor/raphael/raphael.scale.js',
-            'vendor/raphael/g.raphael.js',
-            'js/usmap.js',
-            'js/rwdImageMaps.js',
-            'js/map.js',
+            'vendors/raphael/raphael.js',
+            'vendors/raphael/raphael.scale.js',
+            'vendors/raphael/g.raphael.js',
+            'js/helpers/mapping/usmap.js',
+            'vendors/jquery/rwdImageMaps.js',
+            'js/helpers/mapping/map.js',
         ),
         'output_filename': 'js/map-bundle.js',
     },
     'stats': {
         'source_filenames': (
-            'vendor/d3/d3.v3.js',
+            'vendors/d3/d3.v3.js',
             'js/stats.js',
         ),
         'output_filename': 'js/stats-bundle.js',
@@ -190,7 +191,7 @@ PIPELINE_CSS = {
             'vendors/bootstrap/bootstrap3.css',
             'vendors/bootstrap/bootstrap-glyphicons.css',
             'css/style-responsive.scss',
-            'css/font-awesome.min.css',
+            'vendors/font-awesome/font-awesome.min.css',
         ),
         'output_filename': 'css/base-bundle.css',
     },
