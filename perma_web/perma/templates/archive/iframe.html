@@ -19,7 +19,7 @@
 	        <div><a href="{{ capture.playback_url }}" class="btn btn-primary">View/Download File</a></div>
 	<div>
 {% else %}
-		{% if link.role == 'screenshot' %}
+		{% if capture.role == 'screenshot' %}
 			<img src="{{ capture.playback_url }}" style="display:block; margin: 0 auto;"/>
 		{% else %}
 	    <iframe src="{{ capture.playback_url }}" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}>
