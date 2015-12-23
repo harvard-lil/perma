@@ -57,7 +57,7 @@
             <div class="col col-sm-6 _main {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
             	<div class="content">
 	                <p class="title"><span class="_verbose">This is a </span>{% if link.is_private %}Private {% endif %}<span class="logo">Perma.cc</span> record</p>
-	                <p class="creation"><span class="cat">Created</span> {{ link.creation_timestamp|local_datetime:"F j, Y" }}
+	                <p class="creation"><span class="cat">{% if capture.user_upload %}Uploaded{% else %}Captured{% endif %}</span> {{ link.creation_timestamp|local_datetime:"F j, Y" }}
 	
 	                    {% if serve_type != 'image' %}
 	                        {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
@@ -154,7 +154,7 @@
         <div id="collapse-details" class="details-segment ui-tray row collapse">
             <div class="tray-details">
             	<dl class="tray-detail-group">
-            		<dt class="tray-detail-title">Original page URL</dt>
+            		<dt class="tray-detail-title">Original page URL {% if capture.user_upload %}(unverified){% endif %}</dt>
             		<dd class="tray-detail-entry">{{link.submitted_url}}</dd>
 				</dl>
             	<dl class="tray-detail-group">
