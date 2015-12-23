@@ -186,7 +186,7 @@ class ProxyCaptureTask(Task):
 
 @shared_task(bind=True,
              default_retry_delay=30,  # seconds
-             max_retries=0,
+             max_retries=2,
              base=ProxyCaptureTask)
 @retry_on_error
 @tempdir.run_in_tempdir()
