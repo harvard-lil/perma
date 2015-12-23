@@ -41,6 +41,7 @@ django-admin-smoke-tests==0.1.11    # basic tests for the Django admin
 Pillow==2.9.0                   # Used by the Django admin for ImageField display
 whitenoise==2.0.4               # serve static assets
 django-simple-history==1.6.3    # track changes to certain models
+PyVirtualDisplay==0.1.5         # for capturing with non-headless browsers
 
 # deployment
 gunicorn==19.3.0
@@ -49,7 +50,7 @@ gevent==1.0.2
 # PyWB-related stuff
 surt==0.2                       # our simple CDX server to canonicalize URL
 pywb==0.11.0
--e git://github.com/internetarchive/warcprox.git@67f2ceb717c158771a18e040e062f7aff20e95dd#egg=warcprox  # use 7/17/15 version of warcprox, which has SNI support not yet in warcprox==1.4
+-e git://github.com/jcushman/warcprox.git@proxy-request#egg=warcprox  # use fork that includes https://github.com/internetarchive/warcprox/pull/16
 
 # alternate storages
 django-storages==1.1.8
