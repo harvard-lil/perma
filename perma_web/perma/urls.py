@@ -91,7 +91,7 @@ urlpatterns = patterns('perma.views',
     # Link management
     url(r'^manage/?$', RedirectView.as_view(url='/manage/create/', permanent=False)),
     url(r'^manage/create/?$', 'link_management.create_link', name='create_link'),
-    url(r'^manage/create/(?P<org_id>[a-zA-Z0-9]+)/?$', 'link_management.create_link_with_org', name='create_link_with_org'),
+    url(r'^manage/create/(?P<org_id>[a-zA-Z0-9]+)/?$', RedirectView.as_view(url='/manage/create/', permanent=False)),
     url(r'^manage/delete-link/%s/?$' % guid_pattern, 'link_management.user_delete_link', name='user_delete_link'),
     url(r'^manage/links/folder/(?P<folder_id>.+?)/?$', 'link_management.folder_contents', name='folder_contents'),
     url(r'^manage/links(?P<path>/.*)?$', RedirectView.as_view(url='/manage/create/', permanent=False), name='link_browser'), # we used to serve an important page here. No longer. Redirect in case anyone has this bookmakred.
