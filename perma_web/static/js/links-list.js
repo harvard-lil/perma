@@ -120,7 +120,7 @@ $(function() {
         var textarea = $(this);
         saveInput(textarea, textarea.prevAll('.title-save-status'), 'title', function () {
             // update display title when saved
-            textarea.closest('.item-container').find('.item-title-display span').text(textarea.val());
+            textarea.closest('.item-container').find('.item-title span').text(textarea.val());
         });
 
     // handle move-to-folder dropdown
