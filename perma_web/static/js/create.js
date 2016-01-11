@@ -114,10 +114,7 @@ $(function() {
 function getSelectedFolder () {
 	var selectedFolder = localStorage.getItem("perma_selected_folder");
 
-	if(selectedFolder){
-		var folderObj = JSON.parse(selectedFolder);
-	}
-	return folderObj
+	if(selectedFolder){ return JSON.parse(selectedFolder);	}
 }
 
 /* Handle the the main action (enter url, hit the button) button - start */
