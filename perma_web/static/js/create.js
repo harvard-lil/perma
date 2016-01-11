@@ -27,7 +27,7 @@ $(function() {
         var $this = $(this);
         var linker_data = {};
 
-				var selectedFolder = getSelectedFolder();
+		var selectedFolder = getSelectedFolder();
 
         if(selectedFolder){
 		    	linker_data = {
@@ -89,18 +89,20 @@ $(function() {
             if (data.objects.length > 0) {
             	var optgroup = data.objects[0].registrar;
                 data.objects.map(function (organization) {
-                  if(organization.registrar !== optgroup) {
-                  	$organization_select.prepend("<li class='dropdown-header'>" + optgroup + "</li>");
-                      optgroup = organization.registrar;
-                      $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
-                  }
-                  var opt_text = organization.name;
-                  if (organization.default_to_private) {
-                  	opt_text += ' <span class="ui-private">(Private)</span>';
-                  }
+                    organizations[organization.id] = organization;
+
+                    if(organization.registrar !== optgroup) {
+                         $organization_select.prepend("<li class='dropdown-header'>" + optgroup + "</li>");
+                         optgroup = organization.registrar;
+                         $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
+                    }
+                    var opt_text = organization.name;
+                    if (organization.default_to_private) {
+                    	opt_text += ' <span class="ui-private">(Private)</span>';
+                    }
                 	$organization_select.append("<li><a onClick='appendURL("+organization.shared_folder.id+")'>" + opt_text + "</a></li>");
                 });
-								$organization_select.append("<li><a onClick='appendURL()'> My Links <span class='links-remaining'>" + links_remaining + "<span></a></li>");
+				$organization_select.append("<li><a onClick='appendURL()'> My Links <span class='links-remaining'>" + links_remaining + "<span></a></li>");
             }
         });
 
@@ -325,7 +327,7 @@ function setNewSelectedPath (folderID) {
 }
 
 function appendURL(elem) {
-	setNewSelectedPath(elem);
+  setNewSelectedPath(elem);
   if ($('#rawUrl').val().length > 0) {
       var link_to_create = $(elem).attr("href") + "?url=" + $('#rawUrl').val();
       $(elem).attr("href", link_to_create);
