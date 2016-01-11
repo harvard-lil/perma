@@ -27,11 +27,7 @@ def create_link(request):
 		org_id = None
 	else:
 		org_id = selected_org.id
-		
-	return create_link_with_org(request, org_id)
 
-@login_required
-def create_link_with_org(request, org_id):
 	try:
 		org = get_object_or_404(Organization, id=org_id)
 	except:
