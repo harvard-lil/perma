@@ -95,8 +95,13 @@ Perma.cc prevents link rot.
 		</div>
 	</div>
 	<div class="row partner-list">
-	    {% for partner in partners %}
-	        <div class="col col-sm-8 docs reading-body col-right column">
+	    {% for partner in partners_first_col %}
+	        <div class="col col-sm-6 docs reading-body col-left column">
+	            <a href="{{ partner.website }}">{{ partner.partner_display_name|default:partner.name }}</a>
+	        </div>
+	    {% endfor %}
+	    {% for partner in partners_last_col %}
+	        <div class="col col-sm-6 docs reading-body col-right column">
 	            <a href="{{ partner.website }}">{{ partner.partner_display_name|default:partner.name }}</a>
 	        </div>
 	    {% endfor %}
