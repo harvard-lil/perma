@@ -73,14 +73,18 @@ def about(request):
     """
 
     partners = sorted(Registrar.objects.filter(show_partner_status=True), key=lambda r: r.partner_display_name or r.name)
-    partner_num = len(partners)
-    if partner_num > 0:
-        return render(request, 'about.html', {
-            'partners_first_col': partners[:partner_num/2],
-            'partners_last_col': partners[(partner_num/2 + 1):]
-        })
-    else:
-        return render(request, 'about.html', {'partners_first_col': [], 'partners_last_col': []})
+    halfway_point = len(partners)/2
+
+    # sending two sets of arrays so that we can separate them
+    # into two columns alphabetically, the right way
+
+    partners_first_col = partners[:halfway_point] if len(partners) > 0 else []
+    partners_last_col = partners[halfway_point:] if len(partners) > 0 else []
+
+    return render(request, 'about.html', {
+        'partners_first_col': partners_first_col,
+        'partners_last_col': partners_last_col
+    })
 
 def faq(request):
     """
