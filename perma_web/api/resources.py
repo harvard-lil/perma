@@ -385,7 +385,8 @@ class LinkResource(AuthenticatedLinkResource):
                 bundle.data['folder'] = Folder.objects.accessible_to(bundle.request.user).get(pk=bundle.data['folder'])
             except Folder.DoesNotExist:
                 self.raise_error_response(bundle, {'folder': "Folder not found."})
-        else:
+        elif not bundle.obj.pk:
+            # If this is a newly created link and no folder was provided, default to user's My Links folder.
             bundle.data['folder'] = bundle.request.user.root_folder
         return bundle
 
