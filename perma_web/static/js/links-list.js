@@ -169,7 +169,7 @@ $(function() {
 
       if (selections && selections[current_user.id]) {
         for(var i in folderData) {
-          if(folderData.hasOwnProperty(i) && folderData[i].data && folderData[i].data.folder_id === selections && selections[current_user.id].folderId) {
+          if(folderData.hasOwnProperty(i) && folderData[i].data && folderData[i].data.folder_id === selections[current_user.id].folderId) {
             break;
           }
         }
