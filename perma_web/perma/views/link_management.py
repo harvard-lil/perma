@@ -54,7 +54,6 @@ def create_link(request):
 	return render(request, 'user_management/create-link.html', {
 		'this_page': 'create_link',
 		'links_remaining': links_remaining,
-		'selected_org': org,
 		'folder': folder,
 	})
 
