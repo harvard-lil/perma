@@ -160,18 +160,16 @@ $(function() {
 
     function findNodeBySavedFolder () {
       var selections = JSON.parse(localStorage.getItem("perma_selection")),
-        folder = selections[current_user.id],
         folderData = folderTree._model.data,
         node;
-
-      if (folder && folder.folderId === "default") {
+      if (selections && selections[current_user.id] && selections[current_user.id].folderId === "default") {
         node = folderTree.get_node('ul > li:first');
         return node;
       }
 
-      if (folder) {
+      if (selections && selections[current_user.id]) {
         for(var i in folderData) {
-          if(folderData.hasOwnProperty(i) && folderData[i].data && folderData[i].data.folder_id === folder.folderId) {
+          if(folderData.hasOwnProperty(i) && folderData[i].data && folderData[i].data.folder_id === selections && selections[current_user.id].folderId) {
             break;
           }
         }

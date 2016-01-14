@@ -8,6 +8,8 @@ var refreshIntervalIds = [];
 
 var spinner;
 
+var organizations = {};
+
 /* Our globals. Look out interwebs - end */
 
 
@@ -26,13 +28,12 @@ $(function() {
     $('#linker').submit(function() {
         var $this = $(this);
         var linker_data = {};
-
-		var selectedFolder = getSelectedFolder();
+		var selectedFolder = getUserSelectionSettings();
 
         if(selectedFolder){
 		    	linker_data = {
 		          url: $this.find("input[name=url]").val(),
-		          folder: selectedFolder.folderID
+		          folder: selectedFolder.folderId || null
 					}
 		    } else {
 	        	linker_data = {
@@ -56,9 +57,9 @@ $(function() {
     // When a user uploads their own capture
     $('#archive_upload_form').submit(function() {
         var extraUploadData = {},
-            selectedFolder = getSelectedFolder();
+            selectedFolder = getLocallyStoredSelectionSettings();
         if(selectedFolder)
-            extraUploadData.folder = selectedFolder.folderID;
+            extraUploadData.folder = selectedFolder.folderId;
         $(this).ajaxSubmit({
             data: extraUploadData,
             success: uploadIt,
@@ -75,7 +76,7 @@ $(function() {
     $('#dashboard-users').click(function(){
         $('.users-secondary').toggle();
     });
-    
+
     apiRequest("GET", "/user/organizations/", {limit: 300, order_by:'registrar'})
         .success(function(data) {
             var sorted = [];
@@ -100,10 +101,13 @@ $(function() {
                     if (organization.default_to_private) {
                     	opt_text += ' <span class="ui-private">(Private)</span>';
                     }
-                	$organization_select.append("<li><a onClick='appendURL("+organization.shared_folder.id+")'>" + opt_text + "</a></li>");
+                	$organization_select.append("<li><a onClick='setSelectedFolder("+organization.id+", "+organization.shared_folder.id+")'>" + opt_text + "</a></li>");
                 });
-				$organization_select.append("<li><a onClick='appendURL()'> My Links <span class='links-remaining'>" + links_remaining + "<span></a></li>");
+				$organization_select.append("<li><a onClick='setSelectedFolder()'> My Links <span class='links-remaining'>" + links_remaining + "<span></a></li>");
+                updateLinker();
             }
+
+
         });
 
     /* Org affiliation dropdown logic - end */
@@ -111,11 +115,43 @@ $(function() {
 
 /* Everything that needs to happen at page load - end */
 
-function getSelectedFolder () {
-	var selectedFolder = localStorage.getItem("perma_selected_folder");
 
-	if(selectedFolder){ return JSON.parse(selectedFolder);	}
+/*
+    start - localStorage related helper methods
+*/
+
+
+function getLocallyStoredSelectionSettings () {
+    var folders = JSON.parse(localStorage.getItem("perma_selection"));
+    return folders || {};
 }
+
+function getUserSelectionSettings () {
+    var folders = getLocallyStoredSelectionSettings();
+    return folders[current_user.id] || {};
+}
+
+function setSelectedFolder (orgId, folderId) {
+	folderId = folderId ? folderId : 'default';
+
+	var selectedFolders = getLocallyStoredSelectionSettings();
+	selectedFolders[current_user.id] = {'folderId' : folderId, 'orgId' : orgId };
+
+	localStorage.setItem("perma_selection",JSON.stringify(selectedFolders));
+
+    updateLinker();
+	$(window).trigger("dropdown.selectionChange");
+}
+
+function getCurrentOrg () {
+    var userSavedFolder = getUserSelectionSettings();
+    return userSavedFolder.orgId;
+}
+
+/*
+    end - localStorage related helper methods
+*/
+
 
 /* Handle the the main action (enter url, hit the button) button - start */
 
@@ -147,6 +183,7 @@ function toggleCreateAvailable() {
         $('#rawUrl, #organization_select_form button').attr('disabled', 'disabled');
         $('#links-remaining-message').addClass('_isWorking');
     }
+    updateLinker();
 }
 
 
@@ -308,30 +345,62 @@ function check_status() {
 
 /* Our polling function for the thumbnail completion - end */
 
+function updateLinker () {
 
-/* URL appending */
+    var currentOrg = getCurrentOrg();
 
-/* Org selection is link based, so if the user selects an org from
-   the dropdown, we link to that page (reloading and losing state on the
-    create page). Here, let's grab the URL from the form field and append
-it to the org's href (in the org selection dropdown) */
+    if (!currentOrg && links_remaining < 1) {
+        $('#addlink').attr('disabled', 'disabled');
+    } else {
+        $('#addlink').removeAttr('disabled');
+    }
 
-function setNewSelectedPath (folderID) {
-	folderID = folderID ? folderID : 'default';
-	var folder = {'folderID':folderID}
-	localStorage.setItem("perma_selected_folder",JSON.stringify(folder));
-	$(window).trigger("dropdown.selectionChange");
+    if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
+        $('#addlink').text("Create Private Perma Link");
+    } else {
+        $('#addlink').text("Create Perma Link");
+    }
+
+    if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
+        $('#linker').addClass('_isPrivate')
+
+        // add the little eye icon if org is private
+        $('#organization_select_form')
+            .find('.dropdown-toggle > span')
+            .addClass('ui-private');
+
+    } else {
+        $('#linker').removeClass('_isPrivate')
+    }
+
 }
 
-function appendURL(elem) {
-  setNewSelectedPath(elem);
-  if ($('#rawUrl').val().length > 0) {
-      var link_to_create = $(elem).attr("href") + "?url=" + $('#rawUrl').val();
-      $(elem).attr("href", link_to_create);
-  }
+function updateAffiliationPath(currentOrg, path) {
+    var stringPath = path.join(" &gt; ");
+    stringPath += "<span></span>";
+
+    $('#organization_select_form')
+        .find('.dropdown-toggle')
+        .html(stringPath);
+
+    if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
+        $('#organization_select_form')
+            .find('.dropdown-toggle > span')
+            .addClass('ui-private');
+
+    }
+
+    if (!currentOrg) {
+        $('#organization_select_form')
+            .find('.dropdown-toggle > span')
+            .addClass('links-remaining')
+            .text(links_remaining);
+    }
+
 }
 
-/* URL appending - end */
+
+/* Selecting a folder - end */
 
 /* Catch incoming URLs as param values. Both from the bookmarklet or from the create page */
 
@@ -351,6 +420,14 @@ $(document).ready(function() {
         $('.bookmarklet-button').hide();
         $('#rawUrl').val(bookmarklet_url);
     }
+});
+
+$(document).ready(function() {
+    $(window).on("folderTree.selectionChange", function(evt, data){
+        var data = JSON.parse(data);
+        updateLinker();
+        updateAffiliationPath(data.orgId, data.path);
+    });
 });
 
 
