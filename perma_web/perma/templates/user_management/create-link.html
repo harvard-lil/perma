@@ -235,9 +235,7 @@
     {{ block.super }}
 
     <script>
-        var selected_organization = "{{selected_org.id}}",
-            shared_folder = "{{selected_org.shared_folder_id}}",
-            create_url = "{% url 'create_link' %}",
+        var create_url = "{% url 'create_link' %}",
             contact_url = "{% url 'contact' %}",
             links_remaining = "{{links_remaining}}",
             thumbnail_service_url = "{% url 'service_get_thumbnail' guid='GUID' %}",
