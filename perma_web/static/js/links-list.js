@@ -182,35 +182,18 @@ $(function() {
       return node;
     }
 
-    function getFolderByNode(node) {
-      var folderID = node.data.folder_id,
-        folder = { 'folderID' : folderID };
-      return folder;
-    }
 
-    function updateLocalStorage(node) {
-      var folder = getFolderByNode(node);
-      localStorage.setItem("perma_selected_folder", JSON.stringify(folder));
-    }
+    function setSelectedFolder(node) {
+        var folderPath = folderTree.get_path(node),
+            folderId = node.data.folder_id,
+            orgId = node.data.organization_id,
+            data = JSON.stringify({path: folderPath, orgId:orgId, folderId:folderId});
 
-    function updatePathWithSelected(node) {
-      var path = folderTree.get_path(node);
-      if (!path) {
-        return;
-      }
+        var savedSelections = JSON.parse(localStorage.getItem("perma_selection")) || {};
+    	savedSelections[current_user.id] = {'folderId' : folderId, 'orgId' : orgId };
 
-      var stringPath = path.join(" &gt; ");
-      /*
-        if node doesn't have an organization id and its parent doesn't have organization id
-        that means it's inside "My Links" we have to check because newly created
-        folders don't have orgIDs in their data
-      */
-      var parentNode = folderTree.get_node(node.parent);
-      if ((parentNode.data && !parentNode.data.organization_id) || (!node.data.organization_id && !parentNode.data)) {
-        stringPath += "<span class='links-remaining'>" + links_remaining + "<span></a></li>";
-      }
-
-      $('#organization_select_form').find('.dropdown-toggle').html(stringPath);
+        localStorage.setItem("perma_selection",JSON.stringify(savedSelections));
+        $(window).trigger("folderTree.selectionChange", data );
     }
 
     // *** actions ***
@@ -449,8 +432,7 @@ $(function() {
               not on initialization
             */
             var lastSelectedNode = data.node;
-            updateLocalStorage(lastSelectedNode);
-            updatePathWithSelected(lastSelectedNode);
+            setSelectedFolder(lastSelectedNode);
 
         // handle open/close folder icon
         }).on('open_node.jstree', function (e, data) {
@@ -462,11 +444,12 @@ $(function() {
                 data.instance.set_icon(data.node, "icon-folder-close-alt");
         });
 
-      var folderTree = $.jstree.reference('#folder-tree'),
-          firstNode = findNodeBySavedFolder();
-      folderTree.deselect_all();
-      folderTree.select_node(firstNode);
+    var folderTree = $.jstree.reference('#folder-tree'),
+        firstNode = getSelectedNode(),
+        folderPath = folderTree.get_path(firstNode);
+    folderTree.deselect_all();
+    folderTree.select_node(firstNode);
 
-    updatePathWithSelected(firstNode);
+    setSelectedFolder(firstNode);
     showFolderContents(firstNode.data.folder_id);
 });
