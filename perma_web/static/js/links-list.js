@@ -145,8 +145,7 @@ $(function() {
     // *** helpers ***
 
     function getSelectedNode() {
-      var node = findNodeBySavedFolder();
-      return node;
+        return findNodeBySavedFolder();
     }
 
     function getSelectedFolderID() {
@@ -160,19 +159,19 @@ $(function() {
     }
 
     function findNodeBySavedFolder () {
-      var folder     = localStorage.getItem("perma_selected_folder"),
-        parsedFolder = JSON.parse(folder),
-        folderData   = folderTree._model.data,
+      var selections = JSON.parse(localStorage.getItem("perma_selection")),
+        folder = selections[current_user.id],
+        folderData = folderTree._model.data,
         node;
 
-      if (parsedFolder && parsedFolder.folderID === "default") {
+      if (folder && folder.folderId === "default") {
         node = folderTree.get_node('ul > li:first');
         return node;
       }
 
-      if (parsedFolder) {
+      if (folder) {
         for(var i in folderData) {
-          if(folderData.hasOwnProperty(i) && folderData[i].data && folderData[i].data.folder_id === parsedFolder.folderID) {
+          if(folderData.hasOwnProperty(i) && folderData[i].data && folderData[i].data.folder_id === folder.folderId) {
             break;
           }
         }
@@ -311,12 +310,10 @@ $(function() {
 
     // *** events ***
     $(window).on('dropdown.selectionChange', function () {
-      var saved = localStorage.getItem("perma_selected_folder");
-      folderTree.close_all();
-      folderTree.deselect_all();
-      var node = findNodeBySavedFolder();
-      folderTree.select_node(node);
-
+        folderTree.close_all();
+        folderTree.deselect_all();
+        var node = findNodeBySavedFolder();
+        folderTree.select_node(node);
     });
 
     // folder buttons
