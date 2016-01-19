@@ -124,9 +124,10 @@ class PermissionsTestCase(PermaTestCase):
         # make sure that all ^manage/ views were tested
         for urlpattern in urlpatterns:
 
-            # Things that are no longer needed and have become redirects or other speical cases
-            excluded_names = ['link_browser']
-            
+            # Things that are no longer needed and have become redirects or other special cases
+            excluded_names = ['create_link_with_org',
+                              'link_browser',]
+
             if urlpattern._regex.startswith(r'^manage/') and urlpattern._regex != '^manage/?$' and urlpattern.name not in excluded_names:
                 self.assertTrue(urlpattern.name in views_tested,
                                 "Permissions not checked for view '%s' -- add to 'views' or 'any_user_allowed'." % urlpattern.name)
