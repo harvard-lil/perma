@@ -170,6 +170,7 @@ function linkIt(data){
 
 function toggleCreateAvailable() {
     // Get our spinner going and display a "we're working" message
+
     $addlink = $('#addlink');
     if ($addlink.hasClass('_isWorking')) {
         $addlink.html('Create Perma Link').removeAttr('disabled').removeClass('_isWorking');
