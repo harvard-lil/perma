@@ -183,7 +183,6 @@ function toggleCreateAvailable() {
         $('#rawUrl, #organization_select_form button').attr('disabled', 'disabled');
         $('#links-remaining-message').addClass('_isWorking');
     }
-    updateLinker();
 }
 
 
