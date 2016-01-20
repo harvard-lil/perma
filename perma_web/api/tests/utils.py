@@ -1,7 +1,8 @@
 from django.utils.encoding import force_text
 from django.test.utils import override_settings
 from django.conf import settings
-from django.test import TransactionTestCase
+from django.test import TransactionTestCase, TestCase, SimpleTestCase
+from tastypie.serializers import Serializer
 from tastypie.test import ResourceTestCase, TestApiClient
 from api.serializers import MultipartSerializer
 from perma import models
@@ -54,7 +55,7 @@ class TestHTTPServer(HTTPServer):
 
 @override_settings(# ROOT_URLCONF='api.urls',
                    BANNED_IP_RANGES=[])
-class ApiResourceTestCase(ResourceTestCase):
+class ApiResourceTestCaseMixin(SimpleTestCase):
 
     # TODO: Using the regular ROOT_URLCONF avoids a problem where failing tests print useless error messages,
     # because the 500.html error template includes a {% url %} lookup that isn't included in api.urls.
@@ -72,6 +73,7 @@ class ApiResourceTestCase(ResourceTestCase):
 
     @classmethod
     def setUpClass(cls):
+        super(ApiResourceTestCaseMixin, cls).setUpClass()
         if len(cls.serve_files):
             cls.start_server()
 
@@ -81,7 +83,8 @@ class ApiResourceTestCase(ResourceTestCase):
             cls.kill_server()
 
     def setUp(self):
-        super(ApiResourceTestCase, self).setUp()
+        super(ApiResourceTestCaseMixin, self).setUp()
+
         self.api_client = TestApiClient(serializer=MultipartSerializer())
 
         self._media_org = settings.MEDIA_ROOT
@@ -383,14 +386,21 @@ class ApiResourceTestCase(ResourceTestCase):
         return delete_resp
 
 
-class ApiResourceTransactionTestCase(ApiResourceTestCase):
+class ResourceTransactionTestCase(TransactionTestCase):
+    def setUp(self):
+        super(ResourceTransactionTestCase, self).setUp()
+        self.serializer = Serializer()
+        self.api_client = TestApiClient()
+for key, val in ResourceTestCase.__dict__.iteritems():
+    if key not in ['setUp', '__doc__']:
+        setattr(ResourceTransactionTestCase, key, val)
+
+
+class ApiResourceTestCase(ApiResourceTestCaseMixin, ResourceTestCase):
+    pass
+
+class ApiResourceTransactionTestCase(ApiResourceTestCaseMixin, ResourceTransactionTestCase):
     """
     For use with threaded tests like archive creation
-    See https://github.com/toastdriven/django-tastypie/issues/684#issuecomment-65910589
-    Remove when upgraded to Django 1.7?
     """
-    _fixture_setup = TransactionTestCase._fixture_setup
-    _fixture_teardown = TransactionTestCase._fixture_teardown
-
-
-
+    pass

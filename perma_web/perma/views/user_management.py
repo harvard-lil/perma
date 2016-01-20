@@ -7,7 +7,7 @@ from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import views as auth_views
-from django.contrib.sites.models import get_current_site
+from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.db.models import Count, Max, Sum
 from django.utils.http import is_safe_url, cookie_date
@@ -403,7 +403,6 @@ def list_users_in_group(request, group_name):
 
     is_registry = False
     is_registrar = False
-    added_user = request.REQUEST.get('added_user')
     users = LinkUser.objects.prefetch_related('organizations')  # .exclude(id=request.user.id)
 
     # handle sorting
@@ -501,7 +500,6 @@ def list_users_in_group(request, group_name):
         'orgs': orgs,
         'total_created_links_count': total_created_links_count,
         'registrars': registrars,
-        'added_user': added_user,
         'group_name':group_name,
         'pretty_group_name':group_name.replace('_', ' ').capitalize(),
         'user_list_url':'user_management_manage_{group_name}'.format(group_name=group_name),
@@ -1205,7 +1203,7 @@ def limited_login(request, template_name='registration/login.html',
     """
     Displays the login form and handles the login action.
     """
-    redirect_to = request.REQUEST.get(redirect_field_name, '')
+    redirect_to = request.GET.get(redirect_field_name, '')
     request.session.set_test_cookie()
 
     if request.method == "POST":

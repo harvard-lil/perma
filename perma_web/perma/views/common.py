@@ -58,8 +58,8 @@ def landing(request):
         return HttpResponseRedirect(reverse('create_link'))
         
     else:
-        orgs_count = Organization.objects.all().count()
-        users_count = LinkUser.objects.all().count()
+        orgs_count = Organization.objects.count()
+        users_count = LinkUser.objects.count()
         links_count = Link.objects.filter(is_private=False).count()
 
         return render(request, 'landing.html', {

@@ -1,11 +1,13 @@
-from django.test import TestCase
 from perma.forms import ContactForm
 
-class FormsTestCase(TestCase):
+from .utils import PermaTestCase
+
+
+class FormsTestCase(PermaTestCase):
 
     def test_contact_form(self):
         """
-        Cruedely test that we're requiring a message in our
+        Crudely test that we're requiring a message in our
         contact form.
         """
         form_data = {'email': 'test@example.com', 'message': 'some message'}

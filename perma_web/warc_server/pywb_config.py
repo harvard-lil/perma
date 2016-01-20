@@ -61,6 +61,8 @@ def close_database_connection():
     try:
         yield
     finally:
+        if settings.TESTING:
+            return
         from django.db import connection
         connection.close()
 

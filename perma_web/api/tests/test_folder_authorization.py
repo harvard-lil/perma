@@ -1,9 +1,9 @@
-from .utils import ApiResourceTestCase
+from .utils import ApiResourceTransactionTestCase
 from api.resources import FolderResource
 from perma.models import LinkUser, Folder
 
 
-class FolderAuthorizationTestCase(ApiResourceTestCase):
+class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
 
     resource = FolderResource
 

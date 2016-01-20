@@ -1,12 +1,9 @@
-from django.test import TestCase, Client
 from django.core.urlresolvers import reverse
 
+from .utils import PermaTestCase
 
-class AuthViewsTestCase(TestCase):
-    fixtures = ['fixtures/users.json', 'fixtures/folders.json']
 
-    def setUp(self):
-        self.client = Client()
+class AuthViewsTestCase(PermaTestCase):
 
     def test_login(self):
         """

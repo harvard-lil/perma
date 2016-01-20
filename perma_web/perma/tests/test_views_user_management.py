@@ -1,7 +1,6 @@
 from django.core.urlresolvers import reverse
 
 from perma.models import *
-from perma.urls import urlpatterns
 
 from .utils import PermaTestCase
 
@@ -24,7 +23,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                        data={
                             'a-name': 'test_views_registrar2',
                             'a-email': 'test@test.com2',
-                            'a-website': 'http://test.com2'},
+                            'a-website': 'http://test.com'},
                        success_url=reverse('user_management_manage_registrar'),
                        success_query=Registrar.objects.filter(name='test_views_registrar2'))
 

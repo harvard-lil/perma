@@ -11,10 +11,6 @@
 			<div class="alert-{{ message.level_tag }} alert-block" >{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
 		{% endfor %}
 	{% endif %}
-	
-	{% if added_user %}
-		<div class="alert-success alert-block">Account created! <strong>{{ added_user }}</strong> will receive an email with instructions on how to activate the account and create a password.</div>
-	{% endif %}
 
 	<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
 		{% if group_name == 'organization_user' %}

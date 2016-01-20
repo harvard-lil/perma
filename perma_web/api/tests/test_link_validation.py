@@ -1,11 +1,11 @@
 import os
-from .utils import ApiResourceTestCase, TEST_ASSETS_DIR
+from .utils import TEST_ASSETS_DIR, ApiResourceTransactionTestCase
 from api.resources import LinkResource
 from perma.models import Link, LinkUser
 from django.test.utils import override_settings
 
 
-class LinkValidationTestCase(ApiResourceTestCase):
+class LinkValidationTestCase(ApiResourceTransactionTestCase):
 
     resource = LinkResource
     rejected_status_code = 400  # Bad Request

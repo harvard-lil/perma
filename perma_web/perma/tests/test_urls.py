@@ -1,13 +1,10 @@
-from django.test import TestCase, Client
 from django.core.urlresolvers import reverse
 
 from perma.urls import urlpatterns
+from .utils import PermaTestCase
 
-class UrlsTestCase(TestCase):
+class UrlsTestCase(PermaTestCase):
 
-    def setUp(self):
-        self.client = Client()
-        
     def test_url_status_codes(self):
         """
         A really simple test for 500 errors. We test all views that don't
