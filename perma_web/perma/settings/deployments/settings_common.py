@@ -494,6 +494,7 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'  # In Django 1.7, including th
 USE_SAUCE = False  # Default to local functional tests
 SAUCE_USERNAME = None
 SAUCE_ACCESS_KEY = None
+TESTING = False
 
 WARC_STORAGE_DIR = 'warcs'  # relative to MEDIA_ROOT
 
