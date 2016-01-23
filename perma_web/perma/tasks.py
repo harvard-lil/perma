@@ -53,6 +53,17 @@ VALID_FAVICON_MIME_TYPES = {'image/png', 'image/gif', 'image/jpg', 'image/jpeg',
 
 ### HELPERS ###
 
+# monkeypatch ProxyingRecorder to grab headers of proxied response
+_orig_update_payload_digest = ProxyingRecorder._update_payload_digest
+def _update_payload_digest(self, hunk):
+    if self.payload_digest is None:
+        if not hasattr(self, 'headers'):
+            self.headers = ""
+        self.headers += hunk
+        self.headers = re.sub(br'(\r?\n\r?\n).*', r'\1', self.headers)  # remove any part of hunk that came after headers
+    return _orig_update_payload_digest(self, hunk)
+ProxyingRecorder._update_payload_digest = _update_payload_digest
+
 def get_browser(user_agent, proxy_address, cert_path):
     """ Set up a Selenium browser with given user agent, proxy and SSL cert. """
     # PhantomJS
@@ -226,17 +237,6 @@ def proxy_capture(self, link_guid, user_agent=''):
     have_warc = False
     thread_list = []
     successful_favicon_urls = []
-
-    # monkeypatch ProxyingRecorder to grab headers of proxied response
-    _orig_update_payload_digest = ProxyingRecorder._update_payload_digest
-    def _update_payload_digest(self, hunk):
-        if self.payload_digest is None:
-            if not hasattr(self, 'headers'):
-                self.headers = ""
-            self.headers += hunk
-            self.headers = re.sub(br'(\r?\n\r?\n).*', r'$1', self.headers)
-        return _orig_update_payload_digest(self, hunk)
-    ProxyingRecorder._update_payload_digest = _update_payload_digest
 
     try:
 

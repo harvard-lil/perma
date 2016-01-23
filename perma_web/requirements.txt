@@ -50,7 +50,7 @@ gevent==1.0.2
 # PyWB-related stuff
 surt==0.2                       # our simple CDX server to canonicalize URL
 pywb==0.11.0
--e git://github.com/jcushman/warcprox.git@proxy-request#egg=warcprox  # use fork that includes https://github.com/internetarchive/warcprox/pull/16
+-e git://github.com/internetarchive/warcprox.git@f79e74482339f8c06880b28e889be694b30d4575#egg=warcprox  # unreleased 1/4/16 version of warcprox
 
 # alternate storages
 django-storages==1.1.8
