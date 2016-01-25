@@ -329,6 +329,11 @@ class FunctionalTest(BaseTestCase):
         # type_to_element(get_css_selector('input.link-notes'), 'test')
         # repeat_while_exception(get_xpath("//span[contains(@class,'notes-save-status') and contains(text(),'saved.')]"), NoSuchElementException)
 
+        # Redirect from org-specific url to general /create url
+        self.driver.get(self.server_url + '/manage/create/27')
+        current_url = self.driver.current_url
+        self.assertEquals(self.server_url + '/manage/create/', current_url)
+
         # Timemap
 
         info("Checking timemap.")

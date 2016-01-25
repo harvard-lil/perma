@@ -2449,9 +2449,7 @@ p.caption {
 		}
 	}
 	&._isPrivate {
-		fieldset {
-			background-color: black;
-		}
+
 		input.form-priority-input {
 			@include respond-tablet {
 				width: $grid * 50;
@@ -2470,15 +2468,8 @@ p.caption {
 			}
 		}
 		#organization_select_form {
-			.label-affil {
-				color: white;
-				&:before {
-					background-image: url('../img/ui/perma-ui-affil-isPrivate.svg');
-				}
-			}
 			.selector {
 				background-color: transparent;
-				color: white;
 			}
 			.dropdown.open {
 				.selector {

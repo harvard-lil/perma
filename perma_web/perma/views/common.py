@@ -71,8 +71,20 @@ def about(request):
     """
     The about page
     """
+
     partners = sorted(Registrar.objects.filter(show_partner_status=True), key=lambda r: r.partner_display_name or r.name)
-    return render(request, 'about.html', {'partners': partners})
+    halfway_point = len(partners)/2
+
+    # sending two sets of arrays so that we can separate them
+    # into two columns alphabetically, the right way
+
+    partners_first_col = partners[:halfway_point] if len(partners) > 0 else []
+    partners_last_col = partners[halfway_point:] if len(partners) > 0 else []
+
+    return render(request, 'about.html', {
+        'partners_first_col': partners_first_col,
+        'partners_last_col': partners_last_col
+    })
 
 def faq(request):
     """
