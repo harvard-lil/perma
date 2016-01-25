@@ -469,6 +469,9 @@ TEMPLATE_VISIBLE_SETTINGS = (
 )
 
 
+CAPTURE_BROWSER = 'PhantomJS'  # or 'Chrome' or 'Firefox'
+
+
 ### Tastypie
 # http://django-tastypie.readthedocs.org/en/latest/settings.html
 

@@ -1,16 +1,20 @@
 from __future__ import absolute_import # to avoid importing local .celery instead of celery package
+from cStringIO import StringIO
 
 from functools import wraps
-import json
+from httplib import HTTPResponse
 import os
 import os.path
 import threading
 import urlparse
 from celery import shared_task, Task
+from pyvirtualdisplay import Display
+import re
+from requests.structures import CaseInsensitiveDict
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException, NoSuchElementException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from selenium.webdriver.common.proxy import ProxyType
+from selenium.webdriver.common.proxy import ProxyType, Proxy
 import datetime
 import logging
 import robotparser
@@ -22,7 +26,7 @@ from socket import error as socket_error
 import internetarchive
 import Queue as queue
 from warcprox.controller import WarcproxController
-from warcprox.warcprox import WarcProxyHandler, WarcProxy
+from warcprox.warcprox import WarcProxyHandler, WarcProxy, ProxyingRecorder
 from warcprox.warcwriter import WarcWriter, WarcWriterThread
 
 from django.core.files.storage import default_storage
@@ -44,26 +48,82 @@ ROBOTS_TXT_TIMEOUT = 30 # seconds to wait before giving up on robots.txt
 ONLOAD_EVENT_TIMEOUT = 60 # seconds to wait before giving up on the onLoad event and proceeding as though it fired
 RESOURCE_LOAD_TIMEOUT = 180 # seconds to wait for at least one resource to load before giving up on capture
 ELEMENT_DISCOVERY_TIMEOUT = 2 # seconds before PhantomJS gives up running a DOM request (should be instant, assuming page is loaded)
-AFTER_LOAD_TIMEOUT = 30 # seconds to allow page to keep loading additional resources after onLoad event fires
+AFTER_LOAD_TIMEOUT = 180 # seconds to allow page to keep loading additional resources after onLoad event fires
 VALID_FAVICON_MIME_TYPES = {'image/png', 'image/gif', 'image/jpg', 'image/jpeg', 'image/x-icon', 'image/vnd.microsoft.icon', 'image/ico'}
 
 ### HELPERS ###
 
+# monkeypatch ProxyingRecorder to grab headers of proxied response
+_orig_update_payload_digest = ProxyingRecorder._update_payload_digest
+def _update_payload_digest(self, hunk):
+    if self.payload_digest is None:
+        if not hasattr(self, 'headers'):
+            self.headers = ""
+        self.headers += hunk
+        self.headers = re.sub(br'(\r?\n\r?\n).*', r'\1', self.headers)  # remove any part of hunk that came after headers
+    return _orig_update_payload_digest(self, hunk)
+ProxyingRecorder._update_payload_digest = _update_payload_digest
+
 def get_browser(user_agent, proxy_address, cert_path):
     """ Set up a Selenium browser with given user agent, proxy and SSL cert. """
-    desired_capabilities = dict(DesiredCapabilities.PHANTOMJS)
-    desired_capabilities["phantomjs.page.settings.userAgent"] = user_agent
-    desired_capabilities["proxy"] = {"proxyType":ProxyType.MANUAL,"sslProxy":proxy_address,"httpProxy":proxy_address}
-    browser = webdriver.PhantomJS(
-        executable_path=getattr(settings, 'PHANTOMJS_BINARY', 'phantomjs'),
-        desired_capabilities=desired_capabilities,
-        service_args=[
-            "--proxy=%s" % proxy_address,
-            "--ssl-certificates-path=%s" % cert_path,
-            "--ignore-ssl-errors=true",],
-        service_log_path=settings.PHANTOMJS_LOG)
+    # PhantomJS
+    if settings.CAPTURE_BROWSER == 'PhantomJS':
+        desired_capabilities = dict(DesiredCapabilities.PHANTOMJS)
+        desired_capabilities["phantomjs.page.settings.userAgent"] = user_agent
+        desired_capabilities["proxy"] = {"proxyType":ProxyType.MANUAL,"sslProxy":proxy_address,"httpProxy":proxy_address}
+        browser = webdriver.PhantomJS(
+            executable_path=getattr(settings, 'PHANTOMJS_BINARY', 'phantomjs'),
+            desired_capabilities=desired_capabilities,
+            service_args=[
+                "--proxy=%s" % proxy_address,
+                "--ssl-certificates-path=%s" % cert_path,
+                "--ignore-ssl-errors=true",],
+            service_log_path=settings.PHANTOMJS_LOG)
+
+    # Firefox
+    elif settings.CAPTURE_BROWSER == 'Firefox':
+        desired_capabilities = dict(DesiredCapabilities.FIREFOX)
+        proxy = Proxy({
+            'proxyType': ProxyType.MANUAL,
+            'httpProxy': proxy_address,
+            'ftpProxy': proxy_address,
+            'sslProxy': proxy_address,
+        })
+        proxy.add_to_capabilities(desired_capabilities)
+        profile = webdriver.FirefoxProfile()
+        profile.accept_untrusted_certs = True
+        profile.assume_untrusted_cert_issuer = True
+        browser = webdriver.Firefox(
+            capabilities=desired_capabilities,
+            firefox_profile=profile)
+
+    # Chrome
+    elif settings.CAPTURE_BROWSER == 'Chrome':
+        # http://blog.likewise.org/2015/01/setting-up-chromedriver-and-the-selenium-webdriver-python-bindings-on-ubuntu-14-dot-04/
+        download_dir = os.path.abspath('./downloads')
+        os.mkdir(download_dir)
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument('--proxy-server=%s' % proxy_address)
+        chrome_options.add_argument('--test-type')
+        chrome_options.add_experimental_option("prefs", {"profile.default_content_settings.popups": "0",
+                                                         "download.default_directory": download_dir,
+                                                         "download.prompt_for_download": "false"})
+        desired_capabilities = chrome_options.to_capabilities()
+        desired_capabilities["acceptSslCerts"] = True
+
+        # for more detailed progress updates
+        # desired_capabilities["loggingPrefs"] = {'performance': 'INFO'}
+        # then:
+        # performance_log = browser.get_log('performance')
+
+        browser = webdriver.Chrome(desired_capabilities=desired_capabilities)
+
+    else:
+        assert False, "Invalid value for CAPTURE_BROWSER."
+
     browser.implicitly_wait(ELEMENT_DISCOVERY_TIMEOUT)
     browser.set_page_load_timeout(ROBOTS_TXT_TIMEOUT)
+
     return browser
 
 def retry_on_error(func):
@@ -92,6 +152,35 @@ def add_thread(thread_list, func):
     new_thread = threading.Thread(target=func)
     new_thread.start()
     thread_list.append(new_thread)
+
+def repeat_while_exception(func, exception=Exception, timeout=10, sleep_time=.1):
+    end_time = time.time() + timeout
+    while True:
+        try:
+            return func()
+        except exception as e:
+            if time.time() > end_time:
+                raise
+            time.sleep(sleep_time)
+
+def parse_response(response_text):
+    """
+        Given an HTTP response line and headers, return a requests.Response object.
+    """
+    class FakeSocket():
+        def __init__(self, response_str):
+            self._file = StringIO(response_str)
+
+        def makefile(self, *args, **kwargs):
+            return self._file
+
+    source = FakeSocket(response_text)
+    response = HTTPResponse(source)
+    response.begin()
+    requests_response = requests.Response()
+    requests_response.status_code = response.status
+    requests_response.headers = CaseInsensitiveDict(response.getheaders())
+    return requests_response
 
 
 ### TASKS ##
@@ -143,23 +232,25 @@ def proxy_capture(self, link_guid, user_agent=''):
     # Set up an exception we can trigger to halt capture and release all the resources involved.
     class HaltCaptureException(Exception):
         pass
-    browser = warcprox_controller = warcprox_thread = None
+
+    browser = warcprox_controller = warcprox_thread = display = have_html = None
     have_warc = False
     thread_list = []
     successful_favicon_urls = []
 
     try:
-        # create a request handler class that counts unique requests and responses
-        unique_requests = set()
-        unique_responses = set()
+
+        # create a request handler class that counts requests and responses
+        proxied_requests = []
+        proxied_responses = []
         count_lock = threading.Lock()
         class CountingRequestHandler(WarcProxyHandler):
             def _proxy_request(self):
                 with count_lock:
-                    unique_requests.add(self.url)
-                WarcProxyHandler._proxy_request(self)
+                    proxied_requests.append(self.url)
+                response = WarcProxyHandler._proxy_request(self)
                 with count_lock:
-                    unique_responses.add(self.url)
+                    proxied_responses.append(response)
 
         # connect warcprox to an open port
         warcprox_port = 27500
@@ -196,33 +287,43 @@ def proxy_capture(self, link_guid, user_agent=''):
 
         print "WarcProx opened."
 
+        # start virtual display
+        if settings.CAPTURE_BROWSER != "PhantomJS":
+            display = Display(visible=0, size=(1024, 800))
+            display.start()
+
         # fetch page in the background
         print "Fetching url."
         browser = get_browser(user_agent, proxy_address, proxy.ca.ca_file)
         browser.set_window_size(1024, 800)
+
         start_time = time.time()
         page_load_thread = threading.Thread(target=browser.get, args=(target_url,))  # returns after onload
         page_load_thread.start()
         page_load_thread.join(ONLOAD_EVENT_TIMEOUT)
 
-        # wait for the HAR log to report that at least one resource has successfully loaded
-        while True:
-            har_log_entries = json.loads(browser.get_log('har')[0]['message'])['log']['entries']
-            if har_log_entries:
-                break
+        # wait until warcprox records a response that isn't a forward
+        have_response = False
+        while not have_response:
+            if proxied_responses:
+                for response in proxied_responses:
+                    if response.url.endswith('/favicon.ico') and response.url != target_url:
+                        continue
+                    if not hasattr(response, 'parsed_response'):
+                        response.parsed_response = parse_response(response.response_recorder.headers)
+                    if response.parsed_response.is_redirect or response.parsed_response.status_code == 206:  # partial content
+                        continue
+
+                    content_url = response.url
+                    content_type = response.parsed_response.headers.get('content-type')
+                    have_html = content_type and content_type.startswith('text/html')
+                    have_response = True
+                    break
+
             if time.time() - start_time > RESOURCE_LOAD_TIMEOUT:
                 raise HaltCaptureException
             time.sleep(1)
 
-        # use the HAR log to retrieve the URL we ended up, after any forwards,
-        # and the content type.
-        content_type = ''
-        for header in har_log_entries[0]['response']['headers']:
-            if header['name'].lower() == 'content-type':
-                content_type = header['value'].lower()
-                break
-        content_url = har_log_entries[0]['request']['url']
-        have_html = content_type and content_type.startswith('text/html')
         print "Finished fetching url."
 
         # get favicon urls
@@ -231,7 +332,8 @@ def proxy_capture(self, link_guid, user_agent=''):
         def favicon_thread():
             favicon_urls = []
             if have_html:
-                favicons = browser.find_elements_by_css_selector('link[rel="shortcut icon"],link[rel="icon"]')
+                favicons = repeat_while_exception(lambda: browser.find_elements_by_css_selector('link[rel="shortcut icon"],link[rel="icon"]'),
+                                                  timeout=10)
                 for candidate_favicon in favicons:
                     if candidate_favicon.get_attribute('href'):
                         candidate_favicon_url = urlparse.urljoin(content_url, candidate_favicon.get_attribute('href'))
@@ -284,15 +386,17 @@ def proxy_capture(self, link_guid, user_agent=''):
         if have_html:
             # get page title
             print "Getting title."
-            if browser.title:
-                save_fields(link, submitted_title=browser.title)
+            def get_title():
+                if browser.title:
+                    save_fields(link, submitted_title=browser.title)
+            repeat_while_exception(get_title, timeout=10)
 
             # check meta tags
-            # (run this in a thread and give it long enough to find the tags, but then let other stuff proceed)
             print "Checking meta tags."
             def meta_thread():
                 # get all meta tags
-                meta_tags = browser.find_elements_by_tag_name('meta')
+                meta_tags = repeat_while_exception(lambda: browser.find_elements_by_tag_name('meta'),
+                                                   timeout=10)
                 # first look for <meta name='perma'>
                 meta_tag = next((tag for tag in meta_tags if tag.get_attribute('name').lower()=='perma'), None)
                 # else look for <meta name='robots'>
@@ -305,23 +409,29 @@ def proxy_capture(self, link_guid, user_agent=''):
             add_thread(thread_list, meta_thread)
 
             # scroll to bottom of page and back up, in case that prompts anything else to load
-            try:
-                browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                browser.execute_script("window.scrollTo(0, 0);")
-            except WebDriverException:
-                pass
+            def scroll_browser():
+                try:
+                    browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    browser.execute_script("window.scrollTo(0, 0);")
+                except WebDriverException:
+                    pass
+            repeat_while_exception(scroll_browser)
 
-            # make sure all requests are finished
-            print "Waiting for post-load requests."
-            start_time = time.time()
-            time.sleep(min(AFTER_LOAD_TIMEOUT, 1.5))
-            while len(unique_responses) < len(unique_requests):
-                print "%s/%s finished" % (len(unique_responses), len(unique_requests))
-                if time.time() - start_time > AFTER_LOAD_TIMEOUT:
-                    print "Waited %s seconds to finish post-load requests -- giving up." % AFTER_LOAD_TIMEOUT
-                    break
-                time.sleep(.5)
+        # make sure all requests are finished
+        print "Waiting for post-load requests."
+        start_time = time.time()
+        time.sleep(1)
+        while True:
+            print "%s/%s finished" % (len(proxied_responses), len(proxied_requests))
+            response_count = len(proxied_responses)
+            if time.time() - start_time > AFTER_LOAD_TIMEOUT:
+                print "Waited %s seconds to finish post-load requests -- giving up." % AFTER_LOAD_TIMEOUT
+                break
+            time.sleep(.5)
+            if response_count == len(proxied_requests):
+                break
 
+        if have_html:
             # get page size to decide whether to take a screenshot
             capture_screenshot = False
             pixel_count = 0
@@ -367,6 +477,8 @@ def proxy_capture(self, link_guid, user_agent=''):
             thread.join()  # wait until threads are done (have to do this before closing phantomjs)
         if browser:
             browser.quit()  # shut down phantomjs
+        if display:
+            display.stop()  # shut down virtual display
         if warcprox_controller:
             warcprox_controller.stop.set()  # send signal to shut down warc thread
         if warcprox_thread:
