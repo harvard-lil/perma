@@ -346,8 +346,13 @@ function check_status() {
 /* Our polling function for the thumbnail completion - end */
 
 function updateLinker () {
+    var userSettings = getUserSelectionSettings();
+		var currentOrg = settings.orgId;
 
-    var currentOrg = getCurrentOrg();
+		if (!userSettings.folderId) {
+			$('#addlink').attr('disabled', 'disabled');
+			return;
+		}
 
     if (!currentOrg && links_remaining < 1) {
         $('#addlink').attr('disabled', 'disabled');
@@ -376,19 +381,20 @@ function updateLinker () {
 }
 
 function updateAffiliationPath(currentOrg, path) {
-    var stringPath = path.join(" &gt; ");
-    stringPath += "<span></span>";
+		if (!path) { return; }
 
-    $('#organization_select_form')
-        .find('.dropdown-toggle')
-        .html(stringPath);
+		var stringPath = path.join(" &gt; ");
+		stringPath += "<span></span>";
 
-    if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
-        $('#organization_select_form')
-            .find('.dropdown-toggle > span')
-            .addClass('ui-private');
+		$('#organization_select_form')
+			.find('.dropdown-toggle')
+			.html(stringPath);
 
-    }
+		if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
+			$('#organization_select_form')
+			.find('.dropdown-toggle > span')
+			.addClass('ui-private');
+		}
 
     if (!currentOrg) {
         $('#organization_select_form')
@@ -424,10 +430,20 @@ $(document).ready(function() {
 
 $(document).ready(function() {
     $(window).on("folderTree.selectionChange", function(evt, data){
-        var data = JSON.parse(data);
+				var parsedData,
+						orgId = null,
+						path = null;
+
+				parsedData = JSON.parse(data);
+
+				if (parsedData) {
+					orgId = parsedData.orgId;
+					path = parsedData.path;
+				}
+
         updateLinker();
-        updateAffiliationPath(data.orgId, data.path);
-    });
+        updateAffiliationPath(orgId, path);
+		});
 });
 
 

@@ -175,22 +175,26 @@ $(function() {
         }
       }
 
-      node = folderTree.get_node(i);
-      node = node || folderTree.get_node('ul > li:first');
-      return node;
+      return folderTree.get_node(i);
     }
 
 
     function setSelectedFolder(node) {
         var folderPath = folderTree.get_path(node),
-            folderId = node.data.folder_id,
-            orgId = node.data.organization_id,
-            data = JSON.stringify({path: folderPath, orgId:orgId, folderId:folderId});
+            data = "null";
+
+        if (node.data) {
+          var folderId = node.data.folder_id;
+          var orgId = node.data.organization_id;
+          data = JSON.stringify({path: folderPath, orgId:orgId, folderId:folderId});
+        }
 
         var savedSelections = JSON.parse(localStorage.getItem("perma_selection")) || {};
-    	savedSelections[current_user.id] = {'folderId' : folderId, 'orgId' : orgId };
 
-        localStorage.setItem("perma_selection",JSON.stringify(savedSelections));
+        if (folderId || orgId) {
+          savedSelections[current_user.id] = {'folderId' : folderId, 'orgId' : orgId };
+          localStorage.setItem("perma_selection",JSON.stringify(savedSelections));
+        }
         $(window).trigger("folderTree.selectionChange", data );
     }
 
@@ -420,15 +424,7 @@ $(function() {
                 if(!data.node.state.opened || data.node==lastSelectedFolder)
                     data.instance.toggle_node(data.node);
             }
-            if (!initialized) {
-              initialized = true;
-              return
-            }
-            /*
-              only update path and localStorage if
-              this is an actual event that's firing
-              not on initialization
-            */
+
             var lastSelectedNode = data.node;
             setSelectedFolder(lastSelectedNode);
 
@@ -446,8 +442,10 @@ $(function() {
         firstNode = getSelectedNode(),
         folderPath = folderTree.get_path(firstNode);
     folderTree.deselect_all();
-    folderTree.select_node(firstNode);
 
-    setSelectedFolder(firstNode);
-    showFolderContents(firstNode.data.folder_id);
+    if (firstNode) {
+      folderTree.select_node(firstNode);
+      setSelectedFolder(firstNode);
+      showFolderContents(firstNode.data.folder_id);
+    }
 });
