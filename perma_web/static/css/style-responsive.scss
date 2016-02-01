@@ -5053,3 +5053,9 @@ section .caption {
 	background-color: #ffff00;
 	@include opacity(.3);
 }
+
+canvas {
+	display: inline;
+	width: 100% !important;
+	height: auto !important;
+}
