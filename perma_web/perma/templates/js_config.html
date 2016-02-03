@@ -6,6 +6,5 @@
         ROLLBAR_ACCESS_TOKEN: "{{ ROLLBAR_CLIENT_ACCESS_TOKEN }}",
         DEBUG: {{ DEBUG|lower }}
     },
-    api_path = "/api/v" + settings.API_VERSION,
-    feedback_url = "{% url 'service_receive_feedback' %}";
+    api_path = "/api/v" + settings.API_VERSION
 </script>

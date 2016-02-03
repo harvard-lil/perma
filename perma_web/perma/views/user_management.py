@@ -297,6 +297,9 @@ def manage_single_organization_delete(request, org_id):
         Delete an empty org
     """
 
+    # temporarily disable route while we fix org deletion
+    raise Http404
+
     target_org = get_object_or_404(Organization, id=org_id)
     links = Link.objects.filter(organization = target_org)
     users = LinkUser.objects.filter(organizations=target_org)
