@@ -114,7 +114,6 @@ $(function() {
 					setSelectedFolder();
 				}
 			}
-
         });
 
     /* Org affiliation dropdown logic - end */
