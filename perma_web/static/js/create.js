@@ -103,10 +103,17 @@ $(function() {
                     }
                 	$organization_select.append("<li><a onClick='setSelectedFolder("+organization.id+", "+organization.shared_folder.id+")'>" + opt_text + "</a></li>");
                 });
+
 				$organization_select.append("<li><a onClick='setSelectedFolder()'> My Links <span class='links-remaining'>" + links_remaining + "<span></a></li>");
                 updateLinker();
-            }
 
+            } else {
+				// select My Folder for users with no orgs and no saved selections
+				var selectedFolders = getLocallyStoredSelectionSettings();
+				if (!selectedFolders[current_user.id]) {
+					setSelectedFolder();
+				}
+			}
 
         });
 
