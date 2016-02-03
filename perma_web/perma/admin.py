@@ -89,7 +89,6 @@ class LinkUserChangeForm(UserChangeForm):
         model = LinkUser
 
     def __init__(self, *args, **kwargs):
-        del self.base_fields['username']
         super(LinkUserChangeForm, self).__init__(*args, **kwargs)
 
     def clean(self):
