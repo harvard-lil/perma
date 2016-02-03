@@ -39,46 +39,6 @@ def email_confirm(request):
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=200)
 
-
-def receive_feedback(request):
-    """
-    Take feedback data and send it off in an email
-    """
-
-    visited_page = request.POST.get('visited_page')
-    feedback_text = request.POST.get('feedback_text')
-    broken_link = request.POST.get('broken_link')
-    broken_text = ""
-    if(broken_link):
-        broken_text = '''There was a problem creating the following Perma
-    %s
-        
-    ''' %(broken_link)
-    
-    from_address = request.POST.get('user_email')
-    content = '''
-Visited page: %s
-
-COMMENTS
---------
-%s
-
-
-%s
-''' % (visited_page, feedback_text, broken_text)
-    logger.debug(content)
-    
-    send_contact_email(
-        "New Perma feedback",
-        content,
-        from_address,
-        request
-    )
-        
-    response_object = {'submitted': 'true', 'content': content}
-
-    return HttpResponse(json.dumps(response_object), content_type="application/json", status=201)
-
 def stats_users(request):
     """
     Retrieve nightly stats for users in the DB, dump them out here so that our D3 vis can render them, real-purty-like
