@@ -45,7 +45,6 @@ class Registrar(models.Model):
     email = models.EmailField(max_length=254)
     website = models.URLField(max_length=500)
     date_created = models.DateField(auto_now_add=True, null=True)
-    default_organization = models.OneToOneField('Organization', blank=True, null=True, related_name='default_for_registrars') # each registrar gets a default org
     is_approved = models.BooleanField(default=False)
 
     show_partner_status = models.BooleanField(default=False, help_text="Whether to show this registrar in our list of partners.")
@@ -60,27 +59,8 @@ class Registrar(models.Model):
     class Meta:
         ordering = ['name']
 
-    def save(self, *args, **kwargs):
-        super(Registrar, self).save(*args, **kwargs)
-        self.create_default_org()
-
     def __unicode__(self):
         return self.name
-        
-    def create_default_org(self):
-        """
-            Create a default org for this registrar, if there isn't
-            one. (When registrar member creates an archive, we
-            associate that archive with this org by default.)
-        """
-        
-        if hasattr(self, 'default_organization') and self.default_organization is not None:
-            return
-        else:
-            org = Organization(registrar=self, name="Default Organization")
-            org.save()
-            self.default_organization = org
-            self.save()
 
 
 class OrganizationQuerySet(QuerySet):
