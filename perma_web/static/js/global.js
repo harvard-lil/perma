@@ -18,47 +18,6 @@ $(document).ready(function() {
     // Select the input text when the user clicks the element
     $('.select-on-click').click(function() { $(this).select(); });
     
-    $('.error-row').on('click', '#report-error', function() {
-        var brokenLink = $('#rawUrl').val();
-        $('#broken-link-report').html('<strong id="broken-link">' + brokenLink + '</strong> is causing an error.');
-    });
-    
-    $('#feedbackModal').on('hidden.bs.modal', function (e) {
-        $('.feedback-form-inputs').show();
-        $('.feedback-form-submitted').hide();
-        $('#broken-link-report').html('');
-        $('form.feedback').find("input[type=email], textarea").val("");
-        $('#user_email').val(user_email);
-    });
-
-    
-    $("input#submit-feedback").click(function(){
-      var data = $('form.feedback').serializeArray();
-
-      // todo -- is this necessary with our global csrf cookie js?
-      var csrftoken = getCookie('csrftoken');
-      data.push({name: 'csrfmiddlewaretoken', value: csrftoken});
-
-      data.push({name: 'visited_page', value: $(location).attr('href')});
-      var brokenLink = $('#broken-link').text();
-      if(brokenLink)
-        data.push({name: 'broken_link', value: brokenLink});
-        $.ajax({
-            type: "POST",
-            url: feedback_url, //process to mail
-            data: data,
-            success: function(msg){
-                //$("#feedbackModal").modal('hide'); //hide popup 
-                $('.feedback-form-inputs').slideUp();
-                $('.feedback-form-submitted').fadeIn();
-            },
-            error: function(){
-                alert("failure");
-            }
-        });
-      return false;
-    });
-
     // clear popup alerts with a click
     $(document).on('click', '.popup-alert', function(){
         $(this).remove();
