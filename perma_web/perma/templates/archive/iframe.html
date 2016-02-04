@@ -19,11 +19,17 @@
 	        <div><a href="{{ capture.playback_url }}" class="btn btn-primary">View/Download File</a></div>
 	<div>
 {% else %}
-		{% if capture.role == 'screenshot' %}
-			<img src="{{ capture.playback_url }}" style="display:block; margin: 0 auto;"/>
-		{% else %}
-	    <iframe src="{{ capture.playback_url }}" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}>
-	        <p>Unable to create a live view of <a class="submitted_url" href="{{link.submitted_url}}">{{link.submitted_url}}</a></p>
-	    </iframe>
+		<div class="capture-wrapper">
+			<div class="h_iframe">
+				{% if capture.role == 'screenshot' %}
+					<img src="{{ capture.playback_url }}" style="display:block; margin: 0 auto;"/>
+				{% else %}
+				<img class="ratio" src="http://placehold.it/16x9"/>
+
+		    <iframe class="archive-iframe" src="{{ capture.playback_url }}" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}>
+		        <p>Unable to create a live view of <a class="submitted_url" href="{{link.submitted_url}}">{{link.submitted_url}}</a></p>
+		    </iframe>
+			</div>
+		</div>
 		{% endif %}
 {% endif %}

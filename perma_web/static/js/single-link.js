@@ -2,17 +2,17 @@ $(document).ready(function() {
     $("#details-button").click(function () {
         $(this).text($(this).text() == "Show record details" ? "Hide record details" : "Show record details");
         $('header').toggleClass('_activeDetails');
-    });    
+    });
 
-	function adjustHeight() {
-        var $iframe = $('iframe');
-        if($iframe.length)
-    	    $iframe.height($(window).height() - $iframe.offset().top);
-	}
+  	function adjustTopMargin() {
+      var $wrapper = $('.capture-wrapper');
+      $wrapper.css('margin-top', $('header').height());
+  	}
 
-    adjustHeight();
+    adjustTopMargin();
+
     $(window).on('resize', function () {
-        adjustHeight();
+        adjustTopMargin();
     });
 
     $("button.darchive").click(function(){
