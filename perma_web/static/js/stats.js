@@ -252,174 +252,138 @@ new p5(users_vis);
 
 
 
-
-
-
-
-
-
-
-
-
 var today_vis = function( p ) {
 
+	var height, width;
+	var yestrday_archives, today_archives = [];
+	var yestrday_users, today_users = [];
+	var yestrday_archives, archives, users, orgs, libraries = [];
 
+	var perma_api_archive_url = 'https://api.perma.cc/v1/public/archives/';
 
-var left_margin;
-var height, width;
-var yestrday_archives, today_archives = [];
-var yestrday_users, today_users = [];
-var yestrday_archives, archives, users, orgs, libraries = [];
-var minute, hour, last_minute_of_day, padding, ratio;
+	p.setup = function() {
 
-var perma_api_archive_url = 'https://api.perma.cc/v1/public/archives/';
+		width = 1200;
+		height = 400;
 
+		// Our timestamps are the second of the day. 1440 seconds per day.
+		var canvas = p.createCanvas(width, height);
+		canvas.parent('today-vis-container');
+		p.background('#f7f7f7');
 
+		p.stroke(255);
+	  
+	  	p.strokeWeight(1);
+		p.strokeCap(p.SQUARE);
 
-	  p.setup = function() {
-		
-	padding = 6;
+		yesterday_archives = [1334, 1020, 943, 852, 1324, 750, 735, 21, 821, 1118, 953, 916, 1328, 119, 672, 1270, 9, 790, 1097, 1362, 703, 720, 972, 822, 549, 974, 774, 1141, 294, 1077, 1103, 283, 622, 577, 695, 1242, 61, 955, 392, 1355, 1157, 1344, 968, 1135, 551, 1206, 4, 1350, 158, 806, 555, 687, 1242, 802, 1082, 550, 1135, 487, 308, 1167, 1013, 776, 525, 877, 513, 425, 1062, 1135, 941, 957, 52, 779, 1330, 451, 53, 629, 766, 1085, 543, 796, 1289, 575, 1130, 770, 282, 800, 62, 669, 881, 1058, 29, 415, 1135, 870, 721, 1015, 137, 1195, 38, 1082, 1001, 1366, 141, 1057, 925, 1069, 1037, 913, 1366, 1369, 1008, 874, 720, 1225, 619, 939, 1171, 894, 568, 1130, 1335, 905, 1032, 1360, 802, 861, 743, 122, 71, 1127, 1223, 50, 1262, 1055, 127, 804, 219, 150, 100, 1307, 979, 811, 708, 128, 736, 919, 924, 1295, 763, 1183, 1300, 1253, 68, 4, 860, 849, 747, 1338, 649, 1002, 1439, 1324, 248, 1001, 1039, 1229, 1356, 1433, 1281, 1038, 1267, 872, 1324, 1, 1297, 1315, 1274, 98, 528, 980, 1099, 1004, 999, 1350, 883, 944, 748, 1290, 12, 435, 566, 559, 715, 897, 1257, 1360, 32, 662, 1400, 499, 659, 617, 1163, 123, 24, 1304, 803, 586, 982, 968, 1277, 984, 1435, 779, 15, 1310, 741, 982, 1291, 1034, 729, 1024, 1183, 1146, 575, 772, 1328, 840, 492, 1326, 999, 1340, 1135, 1144, 425, 1195, 1439, 123, 1052, 1331, 1317, 771, 928, 56, 825, 1079, 133, 955, 1052, 1402, 870, 1422, 1042, 818, 111, 1039, 1366, 646, 1048, 1268, 1344, 1431, 614, 649, 1278, 106, 236, 983, 1186, 1327, 1334, 292, 184, 1355, 515, 987, 942, 711, 1239, 797, 705, 1035, 761, 761, 1041, 430, 909, 1135, 651, 1031, 1271, 1024, 469, 141, 904, 1290, 821, 1378, 1062, 1025, 31, 887, 79, 952, 65, 1098, 1109, 581, 1038, 790, 929, 646, 122, 969, 877, 1324, 866, 768, 10, 1029, 721, 848, 951, 1036, 13, 924, 1035, 686, 983, 1101, 783, 1319, 1077, 877, 492, 1018, 798, 1341, 913, 1103, 1291, 1398, 970, 1437, 1300, 1138, 566, 918, 995, 125, 1331, 1303, 979, 1259, 1234, 963, 1265, 906, 1307, 943, 982, 760, 1382, 816, 160, 979, 1322, 1302, 911, 147, 1288, 1314, 1083, 1209, 987, 1302, 1295, 1355, 1339, 1438, 1425, 1180, 1246, 1277, 951, 1395, 849, 117, 1085, 705, 114, 518, 1428, 731, 50, 688, 1357, 99, 1340, 1, 1095, 19, 1389, 37, 732, 1290, 1367, 568, 842, 757, 805, 931, 1118, 620, 68, 52, 857, 1077, 92, 200, 993, 207, 875, 918, 1199, 565, 1264, 1272, 553, 563, 544, 1073, 1274, 1245, 553, 874, 861, 910, 1314, 642, 889, 1127, 552, 786, 1378, 44, 844, 943, 546, 119, 772, 1428, 930, 1322, 241, 126, 1024, 581, 1338, 540, 149, 1136, 1327, 1055, 1045, 1079, 776, 1435, 506, 1319, 1161, 934, 1419, 590, 1134, 665, 1268, 5, 844, 939, 585, 83, 639, 272, 1409, 1353, 86, 1236, 1022, 593, 1342, 1096, 1218, 1153, 600, 1432, 23, 1239, 520, 128, 585, 1432, 963, 868, 584, 48, 0, 38, 957, 588, 1379, 55, 1277, 1344, 1351, 646, 1349, 854, 1114, 1046, 1289, 1116, 18, 667, 1296, 1368, 1278, 849, 1035, 56, 1310, 399, 148, 538, 1340, 1327, 1250, 855, 1128, 1391, 1036, 919, 15, 1253, 936, 610, 22, 1333, 283, 1436, 787, 1135, 1356, 74, 122, 865, 940, 1295, 253, 1250, 730, 884, 46, 1336, 911, 16, 562, 876, 33, 1333, 1337, 559, 1267, 1352, 1389, 1295, 970, 874, 330, 1089, 728, 762, 1114, 1302, 543, 1336, 725, 138, 167, 107, 1073, 1313, 1127, 1051, 1103, 1319, 1181, 986, 655, 1005, 1160, 860, 38, 1047, 981, 1280];
+		today_archives = [294, 577, 551, 630, 158, 555, 550, 487, 525, 513, 425, 282, 137, 38, 141, 127, 219, 150, 128, 68, 649, 248, 98, 528, 12, 435, 559, 32, 659, 617, 586, 15, 575, 492, 123, 56, 614, 236, 292, 184, 651, 608, 469, 141, 31, 646, 122, 624, 566, 125, 160, 147, 117, 518, 50, 1, 37, 68, 200, 565, 563, 552, 633, 119, 241, 126, 506, 5, 83, 639, 272, 128, 585, 48, 0, 38, 588, 55, 18, 399, 538, 15, 610, 22, 283, 122, 253, 46, 16, 33, 543, 138, 167, 655, 38];
+		archives = [];
+		archives = archives.concat(today_archives);
 
-	width = window.innerWidth * .8 + 2 * padding;
-	height = window.innerHeight * .4;
+		users = [];
+		yesterday_users = [630, 502, 700, 201, 100, 470, 890, 933, 1102];
+		today_users = [201, 100, 470, 508];
+		users = users.concat(today_users);
 
-	// Our timestamps are the second of the day. 1440 seconds per day.
-	ratio =  width/1440;
+		orgs = [572];
+		libraries = [];
 
-	var canvas = p.createCanvas(width, height);
-	canvas.parent('today-vis-container');
-	p.background('#f7f7f7');
-
-	p.stroke(255);
-  
-  	p.strokeWeight(1);
-	p.strokeCap(p.SQUARE);
-
-	left_margin = 20;
-
-	yesterday_archives = [1334, 1020, 943, 852, 1324, 750, 735, 21, 821, 1118, 953, 916, 1328, 119, 672, 1270, 9, 790, 1097, 1362, 703, 720, 972, 822, 549, 974, 774, 1141, 294, 1077, 1103, 283, 622, 577, 695, 1242, 61, 955, 392, 1355, 1157, 1344, 968, 1135, 551, 1206, 4, 1350, 158, 806, 555, 687, 1242, 802, 1082, 550, 1135, 487, 308, 1167, 1013, 776, 525, 877, 513, 425, 1062, 1135, 941, 957, 52, 779, 1330, 451, 53, 629, 766, 1085, 543, 796, 1289, 575, 1130, 770, 282, 800, 62, 669, 881, 1058, 29, 415, 1135, 870, 721, 1015, 137, 1195, 38, 1082, 1001, 1366, 141, 1057, 925, 1069, 1037, 913, 1366, 1369, 1008, 874, 720, 1225, 619, 939, 1171, 894, 568, 1130, 1335, 905, 1032, 1360, 802, 861, 743, 122, 71, 1127, 1223, 50, 1262, 1055, 127, 804, 219, 150, 100, 1307, 979, 811, 708, 128, 736, 919, 924, 1295, 763, 1183, 1300, 1253, 68, 4, 860, 849, 747, 1338, 649, 1002, 1439, 1324, 248, 1001, 1039, 1229, 1356, 1433, 1281, 1038, 1267, 872, 1324, 1, 1297, 1315, 1274, 98, 528, 980, 1099, 1004, 999, 1350, 883, 944, 748, 1290, 12, 435, 566, 559, 715, 897, 1257, 1360, 32, 662, 1400, 499, 659, 617, 1163, 123, 24, 1304, 803, 586, 982, 968, 1277, 984, 1435, 779, 15, 1310, 741, 982, 1291, 1034, 729, 1024, 1183, 1146, 575, 772, 1328, 840, 492, 1326, 999, 1340, 1135, 1144, 425, 1195, 1439, 123, 1052, 1331, 1317, 771, 928, 56, 825, 1079, 133, 955, 1052, 1402, 870, 1422, 1042, 818, 111, 1039, 1366, 646, 1048, 1268, 1344, 1431, 614, 649, 1278, 106, 236, 983, 1186, 1327, 1334, 292, 184, 1355, 515, 987, 942, 711, 1239, 797, 705, 1035, 761, 761, 1041, 430, 909, 1135, 651, 1031, 1271, 1024, 469, 141, 904, 1290, 821, 1378, 1062, 1025, 31, 887, 79, 952, 65, 1098, 1109, 581, 1038, 790, 929, 646, 122, 969, 877, 1324, 866, 768, 10, 1029, 721, 848, 951, 1036, 13, 924, 1035, 686, 983, 1101, 783, 1319, 1077, 877, 492, 1018, 798, 1341, 913, 1103, 1291, 1398, 970, 1437, 1300, 1138, 566, 918, 995, 125, 1331, 1303, 979, 1259, 1234, 963, 1265, 906, 1307, 943, 982, 760, 1382, 816, 160, 979, 1322, 1302, 911, 147, 1288, 1314, 1083, 1209, 987, 1302, 1295, 1355, 1339, 1438, 1425, 1180, 1246, 1277, 951, 1395, 849, 117, 1085, 705, 114, 518, 1428, 731, 50, 688, 1357, 99, 1340, 1, 1095, 19, 1389, 37, 732, 1290, 1367, 568, 842, 757, 805, 931, 1118, 620, 68, 52, 857, 1077, 92, 200, 993, 207, 875, 918, 1199, 565, 1264, 1272, 553, 563, 544, 1073, 1274, 1245, 553, 874, 861, 910, 1314, 642, 889, 1127, 552, 786, 1378, 44, 844, 943, 546, 119, 772, 1428, 930, 1322, 241, 126, 1024, 581, 1338, 540, 149, 1136, 1327, 1055, 1045, 1079, 776, 1435, 506, 1319, 1161, 934, 1419, 590, 1134, 665, 1268, 5, 844, 939, 585, 83, 639, 272, 1409, 1353, 86, 1236, 1022, 593, 1342, 1096, 1218, 1153, 600, 1432, 23, 1239, 520, 128, 585, 1432, 963, 868, 584, 48, 0, 38, 957, 588, 1379, 55, 1277, 1344, 1351, 646, 1349, 854, 1114, 1046, 1289, 1116, 18, 667, 1296, 1368, 1278, 849, 1035, 56, 1310, 399, 148, 538, 1340, 1327, 1250, 855, 1128, 1391, 1036, 919, 15, 1253, 936, 610, 22, 1333, 283, 1436, 787, 1135, 1356, 74, 122, 865, 940, 1295, 253, 1250, 730, 884, 46, 1336, 911, 16, 562, 876, 33, 1333, 1337, 559, 1267, 1352, 1389, 1295, 970, 874, 330, 1089, 728, 762, 1114, 1302, 543, 1336, 725, 138, 167, 107, 1073, 1313, 1127, 1051, 1103, 1319, 1181, 986, 655, 1005, 1160, 860, 38, 1047, 981, 1280];
-	today_archives = [294, 577, 551, 630, 158, 555, 550, 487, 525, 513, 425, 282, 137, 38, 141, 127, 219, 150, 128, 68, 649, 248, 98, 528, 12, 435, 559, 32, 659, 617, 586, 15, 575, 492, 123, 56, 614, 236, 292, 184, 651, 608, 469, 141, 31, 646, 122, 624, 566, 125, 160, 147, 117, 518, 50, 1, 37, 68, 200, 565, 563, 552, 633, 119, 241, 126, 506, 5, 83, 639, 272, 128, 585, 48, 0, 38, 588, 55, 18, 399, 538, 15, 610, 22, 283, 122, 253, 46, 16, 33, 543, 138, 167, 655, 38];
-	archives = [];
-	//archives = archives.concat(yesterday_archives);
-	archives = archives.concat(today_archives);
-
-	users = [];
-	yesterday_users = [630, 502, 700, 201, 100, 470, 890, 933, 1102];
-	today_users = [201, 100, 470, 508];
-	users = users.concat(today_users);
-
-	orgs = [572];
-	libraries = [];
-
-	var now = new Date();
-	last_minute_of_day = now.getHours() * 60 + now.getMinutes();
-
-
-
-	draw_scaffolding();
-	draw_archive();
+		p.noLoop();
 	};
 
-	  p.draw = function() {
+	p.draw = function() {
+		draw_events();
+		window.setInterval(draw_events, 5000);
+	};
 
-			var now = new Date();
-	current_minute = now.getHours() * 60 + now.getMinutes();
+	function draw_events() {
+		$.ajax({
+			type: 'GET',
+	    	crossDomain: true,
+			dataType: "jsonp",
+		    url: perma_api_archive_url,
+		    success: function(data) {
 
-	if (last_minute_of_day !== current_minute) {
-		last_minute_of_day = current_minute;
+				$(data['objects']).each(function(i, val) {			
+					var m = moment(val["creation_timestamp"]);
+					var minute_of_day_of_archive = m.hour() * 60 + m.minute();
 
-		draw_archive();
+					// We've converted our archive into a minute. Add it to the list.
+					if (archives.indexOf(minute_of_day_of_archive) === -1) {
+						archives.push(minute_of_day_of_archive);
+					}
+				});
+
+				p.clear();
+				p.background('#f7f7f7');
+
+				var relative_x = 0;
+
+				// Draw archives
+				p.stroke('#2D76EE');
+				p.strokeWeight(1);
+
+			    $(archives).each(function(i, time_of_creation) {
+					relative_x = p.map(time_of_creation, 0, 1440, 0, width);
+			      	p.line(relative_x, .05 * height, relative_x, .90 * height);
+			    });
+
+			    // Draw users
+			    p.stroke('#28e91a');
+			    p.strokeWeight(2);
+			    $(users).each(function(i, time_of_creation) {
+			      // Draw a line for each user in our list
+					relative_x = p.map(time_of_creation, 0, 1440, 0, width);
+			      	p.line(relative_x, .05 * height, relative_x, .90 * height);
+			    });
+
+			    // Draw orgs
+			    p.stroke('#fe52b6');
+			    $(orgs).each(function(i, time_of_creation) {
+			      // Draw a line for each user in our list
+			      	relative_x = p.map(time_of_creation, 0, 1440, 0, width);
+			      	p.line(relative_x, .05 * height, relative_x, .90 * height);
+			    });
+
+			    // Draw libs
+			    p.stroke('#ef4923');
+			    $(libraries).each(function(i, time_of_creation) {
+			      // Draw a line for each user in our list
+			      	relative_x = p.map(time_of_creation, 0, 1440, 0, width);
+			      	p.line(relative_x, .05 * height, relative_x, .90 * height);
+			    });
+
+			    draw_scaffolding();
+			}
+		}); // End of ajax get
+}
+
+	function draw_scaffolding() {
+		p.strokeWeight(1);
+		p.stroke(150);
+		p.line(0, height - 20, 0, height - 40); // left tick
+		p.line(width - 2, height - 20, width-2, height - 40);  // right tick
+		p.line(0, height -20, width - 1, height-20); // long, base line
+
+
+		var m = moment();
+		current_minute = m.hour() * 60 + m.minute();
+		var x_of_current_time = p.map(current_minute, 0, 1440, 0, width);
+
+		p.line(x_of_current_time, height-20, x_of_current_time, height-40);  // clock tick
+		
+		$('.new_day').css('left', 6);
+		$('.six_am').css('left', width * .25);
+		$('.noon').css('left', width * .5);
+		$('.six_pm').css('left', width * .75);
+		$('.midnight').css('left', width * .95);
+
+		$('.today .users').html(users.length + ' users');
+		$('.today .orgs').html(orgs.length + ' organizations');
+		$('.today .libraries').html(libraries.length + ' libraries');
+		$('.today .archives').html(archives.length + ' archives');
 	}
-
-	  };
-
-	function draw_archive() {
-
-
-	$.ajax({
-		type: 'GET',
-    	crossDomain: true,
-		dataType: "jsonp",
-	    url: perma_api_archive_url,
-	    success: function(data) {
-
-			$(data['objects']).each(function(i, val) {
-				// Let's draw our archives
-
-				// Some nastiness to turn the timestamp into a Date object
-				var t = val["creation_timestamp"].replace(/T/g , " ").split(/[- :]/);
-				var d = new Date(t[0], t[1]-1, t[2], t[3], t[4], t[5]);
-				var minute_of_day_of_archive = d.getMinutes();
-				minute_of_day_of_archive += d.getHours() * 60;
-
-				// We've converted our archive into a minute. add it to the list.
-				if (archives.indexOf(minute_of_day_of_archive) === -1){
-					archives.push(minute_of_day_of_archive);
-				}
-			});
-
-			// Draw archives
-			p.stroke('#2D76EE');
-			p.strokeWeight(1);
-		    $(archives).each(function(i, time_of_creation) {
-		      p.line(ratio * time_of_creation + padding, .05 * height, ratio * time_of_creation + padding, .90 * height);
-		    });
-
-		    // Draw users
-		    p.stroke('#28e91a');
-		    p.strokeWeight(2);
-		    $(users).each(function(i, time_of_creation) {
-		      // Draw a line for each user in our list
-		      p.line(ratio * time_of_creation + padding, .05 * height, ratio * time_of_creation + padding, .90 * height);
-		    });
-
-		    // Draw orgs
-		    p.stroke('#fe52b6');
-		    $(orgs).each(function(i, time_of_creation) {
-		      // Draw a line for each user in our list
-		      p.line(ratio * time_of_creation + padding, .05 * height, ratio * time_of_creation + padding, .90 * height);
-		    });
-
-		    // Draw libs
-		    p.stroke('#ef4923');
-		    $(libraries).each(function(i, time_of_creation) {
-		      // Draw a line for each user in our list
-		      p.line(ratio * time_of_creation + padding, .05 * height, ratio * time_of_creation + padding, .90 * height);
-		    });
-
-		    draw_scaffolding();
-
-		}
-
-	});
-
-
-}
-
-function draw_scaffolding() {
-
-	p.strokeWeight(1);
-	p.stroke(150);
-	p.line(padding, .93 * height + padding, padding, .93 * height - padding); // left tick
-	p.line(width - 1, .93 * height + padding, width - 1, .93 * height - padding);  // right tick
-	p.line(padding, .93 * height, width - 1, .93 * height); // long, base line
-
-	p.line(ratio * last_minute_of_day, .93 * height + padding, ratio * last_minute_of_day, .93 * height - padding);  // clock tick
-	
-	$('.new_day').css('left', 6);
-	$('.six_am').css('left', width * .25);
-	$('.noon').css('left', width * .5);
-	$('.six_pm').css('left', width * .75);
-	$('.midnight').css('left', width * .95);
-
-	$('.today .users').html(users.length + ' users');
-	$('.today .orgs').html(orgs.length + ' organizations');
-	$('.today .libraries').html(libraries.length + ' libraries');
-	$('.today .archives').html(archives.length + ' archives');
-
-}
-
-
 };
 
 new p5(today_vis);
