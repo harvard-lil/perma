@@ -53,16 +53,25 @@ def git(*args):
 @task
 def tag_new_release(tag):
     """
-        Roll develop into master and tag it
+        Roll develop into master and tag it.
     """
-    local("git checkout master")
-    local("git merge develop -m 'Tagging %s. Merging develop into master'" % tag)
-    local("git tag -a %s -m '%s'" % (tag, tag))
-    local("git push --tags")
-    local("git push")
-    local("git push upstream master:master")
-    local("git push upstream --tags")
-    local("git checkout develop")
+    current_branch = local("git rev-parse --abbrev-ref HEAD", capture=True)
+    try:
+        # check out upstream/master
+        local("git fetch")
+        local("git checkout upstream/master")
+
+        # merge upstream/develop and push changes to master
+        local("git merge upstream/develop -m 'Tagging %s. Merging develop into master'" % tag)
+        local("git push upstream HEAD:master")
+
+        # tag release and push tag
+        local("git tag -a %s -m '%s'" % (tag, tag))
+        local("git push upstream --tags")
+
+    finally:
+        # switch back to the branch you were on
+        local("git checkout %s" % current_branch)
 
 
 @task
