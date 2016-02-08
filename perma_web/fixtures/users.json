@@ -7,7 +7,6 @@
             "name": "Test Library",
             "email": "library@university.edu",
             "website": "http://university.edu/library",
-            "default_organization": 1,
             "date_created": "2013-06-26"
         }
     },
@@ -19,7 +18,6 @@
             "name": "Another Library",
             "email": "library@university2.edu",
             "website": "http://university2.edu/library",
-            "default_organization": 4,
             "date_created": "2014-07-27"
         }
     },
