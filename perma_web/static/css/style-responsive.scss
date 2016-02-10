@@ -5054,8 +5054,25 @@ section .caption {
 	@include opacity(.3);
 }
 
-canvas {
-	display: inline;
-	width: 100% !important;
-	height: auto !important;
+
+#stats {
+	canvas {
+		display: inline;
+		width: 100% !important;
+		height: auto !important;
+	}
+
+	.archives-label {
+		color: #2D76EE;
+	}
+
+	.users-label {
+		color: #28e91a;
+	}
+
+	.orgs-label {
+		color: #fe52b6;
+	}
+
+
 }

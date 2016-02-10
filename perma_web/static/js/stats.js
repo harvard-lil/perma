@@ -6,183 +6,34 @@ var archives_vis = function( p ) {
 	var vis_width = 1200;
 	var vis_height = 600;
 
-	  var x = 100; 
-	  var y = 100;
-
-	  p.setup = function() {
+	p.setup = function() {
 		var archives_canvas = p.createCanvas(vis_width, vis_height);
 		archives_canvas.parent('archives-vis-container');
-		p.strokeCap(p.ROUND);
+		p.strokeCap(p.SQUARE);
 		p.fill('#2D76EE');
 		p.stroke('#2D76EE');
 		p.noLoop();
 	};
 
-	  p.draw = function() {
+	p.draw = function() {
 
 		var total = 0;
-		var x = 0;
-		var y, size;
+		var x, y, size;
 		var sum_of_all_sums = get_sum();
 
-		for (i = 0; i < link_data.length; i++) {
-			p.strokeWeight(2);
-			x = p.map(i, 0, link_data.length, 0, vis_width);
-			x2 = p.map(i + p.floor(p.random(1,22)), 0, link_data.length, 0, vis_width);
-			x3 = p.map(i + p.floor(p.random(1,22)), 0, link_data.length, 0, vis_width);
-			x4 = p.map(i - p.floor(p.random(1,22)), 0, link_data.length, 0, vis_width);
-			x5 = p.map(i + p.floor(p.random(1,22)), 0, link_data.length, 0, vis_width);
-			
-			y = p.map(total, 0, sum_of_all_sums, 0, vis_height);
-
-			/* Draw a hevier line for each sub */
-			p.line(x, vis_height - y, x2, vis_height);
-
-			/* And a few lighter ones */
-			p.strokeWeight(1);
-			p.line(x, vis_height - y, x3, vis_height);
-			p.line(x, vis_height - y, x4, vis_height);
-			p.line(x, vis_height - y, x5, vis_height);
-			
-			total += link_data[i].sum;
+		p.strokeWeight(1);
+		for (i = 0; i < vis_width; i+=4) {
+			var x_t_1 = p.random(i-200, i+200);
+			var x_t_2 = p.random(i-200, i+200);
+			x = p.line(x_t_1, 0, x_t_2, vis_height);
 		}
 
-		/* Draw the top line of the area chart */
-		total = 0;
-		
-		p.noFill();
-		p.beginShape();
-		for (i = 0; i < link_data.length; i++) {
-			x = p.map(i, 0, link_data.length, 0, vis_width);
-			y = p.map(total, 0, sum_of_all_sums, 0, vis_height);
-			p.vertex(x, vis_height - y);
-			total += link_data[i].sum;
+		p.strokeWeight(2);
+		for (i = 0; i < vis_width; i+=8) {
+			var x_t_1 = p.random(i-500, i+500);
+			var x_t_2 = p.random(i-500, i+500);
+			x = p.line(x_t_1, 0, x_t_2, vis_height);
 		}
-		p.vertex(vis_width, vis_height - y);
-		p.endShape();
-
-
-		/* Draw a solid line at the bottom and right */
-		p.stroke('#88cfff');
-		p.strokeWeight(3);
-		p.line(vis_width-1, vis_height - y, vis_width-1, vis_height);
-		p.line(0, vis_height-1, vis_width, vis_height-1);
-
-
-
-		/*p.noStroke();
-		p.fill(90);
-		p.textSize(20);
-		p.text(sum_of_all_sums, 0, 30);
-		p.text(sum_of_all_sums/2, 0, vis_height/2);
-		p.text(0, 0, vis_height-20);
-
-		p.text('May 2013', 30, vis_height-10);
-		p.text('this week', vis_width - 160, vis_height-10);*/
-	  };
-
-	function get_sum () {
-		var sum = 0;
-		for (i = 0; i < link_data.length; i++) {
-			sum+=link_data[i].sum;
-		}
-
-		return sum;
-	}
-};
-
-new p5(archives_vis);
-
-
-
-var users_vis = function( p ) {
-
-	var link_data = [{"start": "2016-01-19", "sum": 87, "end": "2016-01-26"}, {"start": "2016-01-12", "sum": 64, "end": "2016-01-19"}, {"start": "2016-01-05", "sum": 133, "end": "2016-01-12"}, {"start": "2015-12-29", "sum": 50, "end": "2016-01-05"}, {"start": "2015-12-22", "sum": 24, "end": "2015-12-29"}, {"start": "2015-12-15", "sum": 111, "end": "2015-12-22"}, {"start": "2015-12-08", "sum": 18, "end": "2015-12-15"}, {"start": "2015-12-01", "sum": 37, "end": "2015-12-08"}, {"start": "2015-11-24", "sum": 71, "end": "2015-12-01"}, {"start": "2015-11-17", "sum": 61, "end": "2015-11-24"}, {"start": "2015-11-10", "sum": 99, "end": "2015-11-17"}, {"start": "2015-11-03", "sum": 55, "end": "2015-11-10"}, {"start": "2015-10-27", "sum": 93, "end": "2015-11-03"}, {"start": "2015-10-20", "sum": 122, "end": "2015-10-27"}, {"start": "2015-10-13", "sum": 106, "end": "2015-10-20"}, {"start": "2015-10-06", "sum": 88, "end": "2015-10-13"}, {"start": "2015-09-29", "sum": 173, "end": "2015-10-06"}, {"start": "2015-09-22", "sum": 113, "end": "2015-09-29"}, {"start": "2015-09-15", "sum": 199, "end": "2015-09-22"}, {"start": "2015-09-08", "sum": 153, "end": "2015-09-15"}, {"start": "2015-09-01", "sum": 234, "end": "2015-09-08"}, {"start": "2015-08-25", "sum": 233, "end": "2015-09-01"}, {"start": "2015-08-18", "sum": 237, "end": "2015-08-25"}, {"start": "2015-08-11", "sum": 155, "end": "2015-08-18"}, {"start": "2015-08-04", "sum": 29, "end": "2015-08-11"}, {"start": "2015-07-28", "sum": 53, "end": "2015-08-04"}, {"start": "2015-07-21", "sum": 44, "end": "2015-07-28"}, {"start": "2015-07-14", "sum": 51, "end": "2015-07-21"}, {"start": "2015-07-07", "sum": 97, "end": "2015-07-14"}, {"start": "2015-06-30", "sum": 17, "end": "2015-07-07"}, {"start": "2015-06-23", "sum": 30, "end": "2015-06-30"}, {"start": "2015-06-16", "sum": 37, "end": "2015-06-23"}, {"start": "2015-06-09", "sum": 22, "end": "2015-06-16"}, {"start": "2015-06-02", "sum": 38, "end": "2015-06-09"}, {"start": "2015-05-26", "sum": 43, "end": "2015-06-02"}, {"start": "2015-05-19", "sum": 33, "end": "2015-05-26"}, {"start": "2015-05-12", "sum": 48, "end": "2015-05-19"}, {"start": "2015-05-05", "sum": 57, "end": "2015-05-12"}, {"start": "2015-04-28", "sum": 50, "end": "2015-05-05"}, {"start": "2015-04-21", "sum": 52, "end": "2015-04-28"}, {"start": "2015-04-14", "sum": 29, "end": "2015-04-21"}, {"start": "2015-04-07", "sum": 50, "end": "2015-04-14"}, {"start": "2015-03-31", "sum": 25, "end": "2015-04-07"}, {"start": "2015-03-24", "sum": 50, "end": "2015-03-31"}, {"start": "2015-03-17", "sum": 75, "end": "2015-03-24"}, {"start": "2015-03-10", "sum": 61, "end": "2015-03-17"}, {"start": "2015-03-03", "sum": 47, "end": "2015-03-10"}, {"start": "2015-02-24", "sum": 59, "end": "2015-03-03"}, {"start": "2015-02-17", "sum": 61, "end": "2015-02-24"}, {"start": "2015-02-10", "sum": 75, "end": "2015-02-17"}, {"start": "2015-02-03", "sum": 112, "end": "2015-02-10"}, {"start": "2015-01-27", "sum": 124, "end": "2015-02-03"}, {"start": "2015-01-20", "sum": 161, "end": "2015-01-27"}, {"start": "2015-01-13", "sum": 22, "end": "2015-01-20"}, {"start": "2015-01-06", "sum": 28, "end": "2015-01-13"}, {"start": "2014-12-30", "sum": 26, "end": "2015-01-06"}, {"start": "2014-12-23", "sum": 3, "end": "2014-12-30"}, {"start": "2014-12-16", "sum": 14, "end": "2014-12-23"}, {"start": "2014-12-09", "sum": 22, "end": "2014-12-16"}, {"start": "2014-12-02", "sum": 18, "end": "2014-12-09"}, {"start": "2014-11-25", "sum": 20, "end": "2014-12-02"}, {"start": "2014-11-18", "sum": 37, "end": "2014-11-25"}, {"start": "2014-11-11", "sum": 26, "end": "2014-11-18"}, {"start": "2014-11-04", "sum": 55, "end": "2014-11-11"}, {"start": "2014-10-28", "sum": 138, "end": "2014-11-04"}, {"start": "2014-10-21", "sum": 67, "end": "2014-10-28"}, {"start": "2014-10-14", "sum": 129, "end": "2014-10-21"}, {"start": "2014-10-07", "sum": 51, "end": "2014-10-14"}, {"start": "2014-09-30", "sum": 37, "end": "2014-10-07"}, {"start": "2014-09-23", "sum": 65, "end": "2014-09-30"}, {"start": "2014-09-16", "sum": 64, "end": "2014-09-23"}, {"start": "2014-09-09", "sum": 45, "end": "2014-09-16"}, {"start": "2014-09-02", "sum": 51, "end": "2014-09-09"}, {"start": "2014-08-26", "sum": 38, "end": "2014-09-02"}, {"start": "2014-08-19", "sum": 173, "end": "2014-08-26"}, {"start": "2014-08-12", "sum": 80, "end": "2014-08-19"}, {"start": "2014-08-05", "sum": 14, "end": "2014-08-12"}, {"start": "2014-07-29", "sum": 5, "end": "2014-08-05"}, {"start": "2014-07-22", "sum": 8, "end": "2014-07-29"}, {"start": "2014-07-15", "sum": 10, "end": "2014-07-22"}, {"start": "2014-07-08", "sum": 6, "end": "2014-07-15"}, {"start": "2014-07-01", "sum": 9, "end": "2014-07-08"}, {"start": "2014-06-24", "sum": 10, "end": "2014-07-01"}, {"start": "2014-06-17", "sum": 10, "end": "2014-06-24"}, {"start": "2014-06-10", "sum": 14, "end": "2014-06-17"}, {"start": "2014-06-03", "sum": 11, "end": "2014-06-10"}, {"start": "2014-05-27", "sum": 21, "end": "2014-06-03"}, {"start": "2014-05-20", "sum": 15, "end": "2014-05-27"}, {"start": "2014-05-13", "sum": 15, "end": "2014-05-20"}, {"start": "2014-05-06", "sum": 17, "end": "2014-05-13"}, {"start": "2014-04-29", "sum": 23, "end": "2014-05-06"}, {"start": "2014-04-22", "sum": 26, "end": "2014-04-29"}, {"start": "2014-04-15", "sum": 19, "end": "2014-04-22"}, {"start": "2014-04-08", "sum": 27, "end": "2014-04-15"}, {"start": "2014-04-01", "sum": 40, "end": "2014-04-08"}, {"start": "2014-03-25", "sum": 57, "end": "2014-04-01"}, {"start": "2014-03-18", "sum": 23, "end": "2014-03-25"}, {"start": "2014-03-11", "sum": 14, "end": "2014-03-18"}, {"start": "2014-03-04", "sum": 26, "end": "2014-03-11"}, {"start": "2014-02-25", "sum": 16, "end": "2014-03-04"}, {"start": "2014-02-18", "sum": 20, "end": "2014-02-25"}, {"start": "2014-02-11", "sum": 35, "end": "2014-02-18"}, {"start": "2014-02-04", "sum": 31, "end": "2014-02-11"}, {"start": "2014-01-28", "sum": 32, "end": "2014-02-04"}, {"start": "2014-01-21", "sum": 19, "end": "2014-01-28"}, {"start": "2014-01-14", "sum": 29, "end": "2014-01-21"}, {"start": "2014-01-07", "sum": 34, "end": "2014-01-14"}, {"start": "2013-12-31", "sum": 6, "end": "2014-01-07"}, {"start": "2013-12-24", "sum": 10, "end": "2013-12-31"}, {"start": "2013-12-17", "sum": 18, "end": "2013-12-24"}, {"start": "2013-12-10", "sum": 14, "end": "2013-12-17"}, {"start": "2013-12-03", "sum": 25, "end": "2013-12-10"}, {"start": "2013-11-26", "sum": 29, "end": "2013-12-03"}, {"start": "2013-11-19", "sum": 34, "end": "2013-11-26"}, {"start": "2013-11-12", "sum": 44, "end": "2013-11-19"}, {"start": "2013-11-05", "sum": 75, "end": "2013-11-12"}, {"start": "2013-10-29", "sum": 177, "end": "2013-11-05"}, {"start": "2013-10-22", "sum": 512, "end": "2013-10-29"}, {"start": "2013-10-15", "sum": 183, "end": "2013-10-22"}, {"start": "2013-10-08", "sum": 289, "end": "2013-10-15"}, {"start": "2013-10-01", "sum": 167, "end": "2013-10-08"}, {"start": "2013-09-24", "sum": 33, "end": "2013-10-01"}, {"start": "2013-09-17", "sum": 51, "end": "2013-09-24"}, {"start": "2013-09-10", "sum": 36, "end": "2013-09-17"}, {"start": "2013-09-03", "sum": 22, "end": "2013-09-10"}, {"start": "2013-08-27", "sum": 0, "end": "2013-09-03"}, {"start": "2013-08-20", "sum": 0, "end": "2013-08-27"}];
-	link_data.reverse();
-
-	var vis_width = 1200;
-	var vis_height = 600;
-
-	  p.setup = function() {
-		var archives_canvas = p.createCanvas(vis_width, vis_height);
-		archives_canvas.parent('users-vis-container');
-		p.background('#f7f7f7');
-		p.strokeCap(p.ROUND);
-		p.fill('#2D76EE');
-		p.stroke('#2D76EE');
-		p.noLoop();
-	};
-
-	  p.draw = function() {
-
-		var total = 0;
-		var x = 0;
-		var y, size;
-		var sum_of_all_sums = get_sum();
-
-		function get_min(start_num) {
-
-			var l = start_num - 44;
-			var u = start_num + 44;
-
-			if (l < 0) {
-				l = 0;
-			}
-
-			if (u > link_data) {
-				u = link_data;
-			}
-
-			return p.floor(p.random(l, u));
-		}
-
-		for (i = 0; i < link_data.length; i++) {
-			p.strokeWeight(2);
-			x = p.map(i, 0, link_data.length, 0, vis_width);
-			y = p.map(total, 0, sum_of_all_sums-60, 0, vis_height);
-			x2 = p.map(get_min(i), 0, link_data.length, 0, vis_width);
-
-			/* Draw a hevier line for each sub */
-			p.line(x, vis_height - y, x2, vis_height);
-
-			/* And a few lighter ones */
-			p.strokeWeight(1);
-
-			for (light_line_index = 0; light_line_index < 3; light_line_index++) {
-				var x_light = p.map(get_min(i), 0, link_data.length, 0, vis_width);
-				p.line(x, vis_height - y, x_light, vis_height);
-			}
-
-			
-			total += link_data[i].sum;
-		}
-
-
-		//for (i = 0; i < link_data.length; i++) {
-		//	p.strokeWeight(2);
-		//	x = p.map(i, 0, link_data.length, 0, vis_width);
-		//	y = p.map(total, 0, sum_of_all_sums-60, 0, vis_height);
-		//	var x2 = p.map(get_min(i), 0, link_data.length, 0, vis_width);
-
-			/* Draw a hevier line for each point*/
-		//	p.line(x, vis_height - y, x2, vis_height);
-
-			/* And a few lighter ones */
-		//	p.strokeWeight(1);
-		//	for (light_line_index = 10; light_line_index < 10; light_line_index++) {
-		//		var x_light = p.map(get_min(i), 0, link_data.length, 0, vis_width);
-		//		p.line(x, vis_height - y, x_light, vis_height);
-		//	}
-
-		//	total += link_data[i].sum;
-		//}
-
-
-
-
-
-
-
 
 		/* Draw the top line of the area chart */
 		total = 0;
@@ -207,9 +58,8 @@ var users_vis = function( p ) {
 		p.line(0, vis_height-1, vis_width, vis_height-1);
 
 
-		/* Some of our lines in our graph go a little wild
-		   let's draw a big mask over the top of the graph
-		   to hide any weirdness */
+		/* Let's draw a big mask over the top of the graph 
+		   so that the shape of the curve is obvious */
 		p.fill(255);
 
 		p.strokeWeight(0);
@@ -229,13 +79,183 @@ var users_vis = function( p ) {
 		/* Draw our labels */
 		p.noStroke();
 		p.fill(90);
-		p.textSize(20);
+		p.textSize(24);
 
-		p.text(total, vis_width - 80, 20);
-		p.text(0, 0, vis_height-5);
+		//p.text(number_with_commas(total), vis_width - 130, 20);
+		//p.text(0, 0, vis_height-5);
+	};
+
+	function get_sum () {
+		var sum = 0;
+		for (i = 0; i < link_data.length; i++) {
+			sum+=link_data[i].sum;
+		}
+
+		return sum;
+	}
+
+};
+
+
+new p5(archives_vis);
+
+
+
+var users_vis = function( p ) {
+
+	var link_data = [{"start": "2016-01-19", "sum": 87, "end": "2016-01-26"}, {"start": "2016-01-12", "sum": 64, "end": "2016-01-19"}, {"start": "2016-01-05", "sum": 133, "end": "2016-01-12"}, {"start": "2015-12-29", "sum": 50, "end": "2016-01-05"}, {"start": "2015-12-22", "sum": 24, "end": "2015-12-29"}, {"start": "2015-12-15", "sum": 111, "end": "2015-12-22"}, {"start": "2015-12-08", "sum": 18, "end": "2015-12-15"}, {"start": "2015-12-01", "sum": 37, "end": "2015-12-08"}, {"start": "2015-11-24", "sum": 71, "end": "2015-12-01"}, {"start": "2015-11-17", "sum": 61, "end": "2015-11-24"}, {"start": "2015-11-10", "sum": 99, "end": "2015-11-17"}, {"start": "2015-11-03", "sum": 55, "end": "2015-11-10"}, {"start": "2015-10-27", "sum": 93, "end": "2015-11-03"}, {"start": "2015-10-20", "sum": 122, "end": "2015-10-27"}, {"start": "2015-10-13", "sum": 106, "end": "2015-10-20"}, {"start": "2015-10-06", "sum": 88, "end": "2015-10-13"}, {"start": "2015-09-29", "sum": 173, "end": "2015-10-06"}, {"start": "2015-09-22", "sum": 113, "end": "2015-09-29"}, {"start": "2015-09-15", "sum": 199, "end": "2015-09-22"}, {"start": "2015-09-08", "sum": 153, "end": "2015-09-15"}, {"start": "2015-09-01", "sum": 234, "end": "2015-09-08"}, {"start": "2015-08-25", "sum": 233, "end": "2015-09-01"}, {"start": "2015-08-18", "sum": 237, "end": "2015-08-25"}, {"start": "2015-08-11", "sum": 155, "end": "2015-08-18"}, {"start": "2015-08-04", "sum": 29, "end": "2015-08-11"}, {"start": "2015-07-28", "sum": 53, "end": "2015-08-04"}, {"start": "2015-07-21", "sum": 44, "end": "2015-07-28"}, {"start": "2015-07-14", "sum": 51, "end": "2015-07-21"}, {"start": "2015-07-07", "sum": 97, "end": "2015-07-14"}, {"start": "2015-06-30", "sum": 17, "end": "2015-07-07"}, {"start": "2015-06-23", "sum": 30, "end": "2015-06-30"}, {"start": "2015-06-16", "sum": 37, "end": "2015-06-23"}, {"start": "2015-06-09", "sum": 22, "end": "2015-06-16"}, {"start": "2015-06-02", "sum": 38, "end": "2015-06-09"}, {"start": "2015-05-26", "sum": 43, "end": "2015-06-02"}, {"start": "2015-05-19", "sum": 33, "end": "2015-05-26"}, {"start": "2015-05-12", "sum": 48, "end": "2015-05-19"}, {"start": "2015-05-05", "sum": 57, "end": "2015-05-12"}, {"start": "2015-04-28", "sum": 50, "end": "2015-05-05"}, {"start": "2015-04-21", "sum": 52, "end": "2015-04-28"}, {"start": "2015-04-14", "sum": 29, "end": "2015-04-21"}, {"start": "2015-04-07", "sum": 50, "end": "2015-04-14"}, {"start": "2015-03-31", "sum": 25, "end": "2015-04-07"}, {"start": "2015-03-24", "sum": 50, "end": "2015-03-31"}, {"start": "2015-03-17", "sum": 75, "end": "2015-03-24"}, {"start": "2015-03-10", "sum": 61, "end": "2015-03-17"}, {"start": "2015-03-03", "sum": 47, "end": "2015-03-10"}, {"start": "2015-02-24", "sum": 59, "end": "2015-03-03"}, {"start": "2015-02-17", "sum": 61, "end": "2015-02-24"}, {"start": "2015-02-10", "sum": 75, "end": "2015-02-17"}, {"start": "2015-02-03", "sum": 112, "end": "2015-02-10"}, {"start": "2015-01-27", "sum": 124, "end": "2015-02-03"}, {"start": "2015-01-20", "sum": 161, "end": "2015-01-27"}, {"start": "2015-01-13", "sum": 22, "end": "2015-01-20"}, {"start": "2015-01-06", "sum": 28, "end": "2015-01-13"}, {"start": "2014-12-30", "sum": 26, "end": "2015-01-06"}, {"start": "2014-12-23", "sum": 3, "end": "2014-12-30"}, {"start": "2014-12-16", "sum": 14, "end": "2014-12-23"}, {"start": "2014-12-09", "sum": 22, "end": "2014-12-16"}, {"start": "2014-12-02", "sum": 18, "end": "2014-12-09"}, {"start": "2014-11-25", "sum": 20, "end": "2014-12-02"}, {"start": "2014-11-18", "sum": 37, "end": "2014-11-25"}, {"start": "2014-11-11", "sum": 26, "end": "2014-11-18"}, {"start": "2014-11-04", "sum": 55, "end": "2014-11-11"}, {"start": "2014-10-28", "sum": 138, "end": "2014-11-04"}, {"start": "2014-10-21", "sum": 67, "end": "2014-10-28"}, {"start": "2014-10-14", "sum": 129, "end": "2014-10-21"}, {"start": "2014-10-07", "sum": 51, "end": "2014-10-14"}, {"start": "2014-09-30", "sum": 37, "end": "2014-10-07"}, {"start": "2014-09-23", "sum": 65, "end": "2014-09-30"}, {"start": "2014-09-16", "sum": 64, "end": "2014-09-23"}, {"start": "2014-09-09", "sum": 45, "end": "2014-09-16"}, {"start": "2014-09-02", "sum": 51, "end": "2014-09-09"}, {"start": "2014-08-26", "sum": 38, "end": "2014-09-02"}, {"start": "2014-08-19", "sum": 173, "end": "2014-08-26"}, {"start": "2014-08-12", "sum": 80, "end": "2014-08-19"}, {"start": "2014-08-05", "sum": 14, "end": "2014-08-12"}, {"start": "2014-07-29", "sum": 5, "end": "2014-08-05"}, {"start": "2014-07-22", "sum": 8, "end": "2014-07-29"}, {"start": "2014-07-15", "sum": 10, "end": "2014-07-22"}, {"start": "2014-07-08", "sum": 6, "end": "2014-07-15"}, {"start": "2014-07-01", "sum": 9, "end": "2014-07-08"}, {"start": "2014-06-24", "sum": 10, "end": "2014-07-01"}, {"start": "2014-06-17", "sum": 10, "end": "2014-06-24"}, {"start": "2014-06-10", "sum": 14, "end": "2014-06-17"}, {"start": "2014-06-03", "sum": 11, "end": "2014-06-10"}, {"start": "2014-05-27", "sum": 21, "end": "2014-06-03"}, {"start": "2014-05-20", "sum": 15, "end": "2014-05-27"}, {"start": "2014-05-13", "sum": 15, "end": "2014-05-20"}, {"start": "2014-05-06", "sum": 17, "end": "2014-05-13"}, {"start": "2014-04-29", "sum": 23, "end": "2014-05-06"}, {"start": "2014-04-22", "sum": 26, "end": "2014-04-29"}, {"start": "2014-04-15", "sum": 19, "end": "2014-04-22"}, {"start": "2014-04-08", "sum": 27, "end": "2014-04-15"}, {"start": "2014-04-01", "sum": 40, "end": "2014-04-08"}, {"start": "2014-03-25", "sum": 57, "end": "2014-04-01"}, {"start": "2014-03-18", "sum": 23, "end": "2014-03-25"}, {"start": "2014-03-11", "sum": 14, "end": "2014-03-18"}, {"start": "2014-03-04", "sum": 26, "end": "2014-03-11"}, {"start": "2014-02-25", "sum": 16, "end": "2014-03-04"}, {"start": "2014-02-18", "sum": 20, "end": "2014-02-25"}, {"start": "2014-02-11", "sum": 35, "end": "2014-02-18"}, {"start": "2014-02-04", "sum": 31, "end": "2014-02-11"}, {"start": "2014-01-28", "sum": 32, "end": "2014-02-04"}, {"start": "2014-01-21", "sum": 19, "end": "2014-01-28"}, {"start": "2014-01-14", "sum": 29, "end": "2014-01-21"}, {"start": "2014-01-07", "sum": 34, "end": "2014-01-14"}, {"start": "2013-12-31", "sum": 6, "end": "2014-01-07"}, {"start": "2013-12-24", "sum": 10, "end": "2013-12-31"}, {"start": "2013-12-17", "sum": 18, "end": "2013-12-24"}, {"start": "2013-12-10", "sum": 14, "end": "2013-12-17"}, {"start": "2013-12-03", "sum": 25, "end": "2013-12-10"}, {"start": "2013-11-26", "sum": 29, "end": "2013-12-03"}, {"start": "2013-11-19", "sum": 34, "end": "2013-11-26"}, {"start": "2013-11-12", "sum": 44, "end": "2013-11-19"}, {"start": "2013-11-05", "sum": 75, "end": "2013-11-12"}, {"start": "2013-10-29", "sum": 177, "end": "2013-11-05"}, {"start": "2013-10-22", "sum": 512, "end": "2013-10-29"}, {"start": "2013-10-15", "sum": 183, "end": "2013-10-22"}, {"start": "2013-10-08", "sum": 289, "end": "2013-10-15"}, {"start": "2013-10-01", "sum": 167, "end": "2013-10-08"}, {"start": "2013-09-24", "sum": 33, "end": "2013-10-01"}, {"start": "2013-09-17", "sum": 51, "end": "2013-09-24"}, {"start": "2013-09-10", "sum": 36, "end": "2013-09-17"}, {"start": "2013-09-03", "sum": 22, "end": "2013-09-10"}, {"start": "2013-08-27", "sum": 0, "end": "2013-09-03"}, {"start": "2013-08-20", "sum": 0, "end": "2013-08-27"}];
+	link_data.reverse();
+
+	var vis_width = 1200;
+	var vis_height = 600;
+
+	  p.setup = function() {
+		var archives_canvas = p.createCanvas(vis_width, vis_height);
+		archives_canvas.parent('users-vis-container');
+		p.strokeCap(p.SQUARE);
+		p.fill('#2D76EE');
+		p.stroke('#2D76EE');
+		p.background(220);
+		p.noLoop();
+	};
+
+	  p.draw = function() {
+
+		var total = 0;
+		var x = 0;
+		var y, size;
+		var sum_of_all_sums = get_sum();
+
+		/*p.strokeWeight(1);
+		for (i = 0; i < vis_width; i+=4) {
+			var x_t_1 = p.random(i-200, i+200);
+			var x_t_2 = p.random(i-200, i+200);
+			x = p.line(x_t_1, 0, x_t_2, vis_height);
+		}
+
+		p.strokeWeight(2);
+		for (i = 0; i < vis_width; i+=8) {
+			var x_t_1 = p.random(i-500, i+500);
+			var x_t_2 = p.random(i-500, i+500);
+			x = p.line(x_t_1, 0, x_t_2, vis_height);
+		}*/
+
+
+
+
+		p.stroke('#2D76EE');
+		for (i = 0; i < 175; i+=1) {
+			//p.strokeWeight(Math.floor(p.random(4, 12)));
+			var height = Math.floor(p.random(2, 9));
+			var edge_length = Math.floor(p.random(4, 16));
+			p.beginShape();
+				var x = Math.floor(p.random(10, vis_width - 100));
+				var y = Math.floor(p.random(0, vis_height));
+				var length = Math.floor(p.random(100, 500));
+				//p.line(x, y, x + length, y);
+				p.vertex(x, y);
+				p.vertex(x+length, y);
+				p.vertex(x+length+edge_length, y-height);
+				p.vertex(x+edge_length, y-height);
+			p.endShape(p.CLOSE);
+		}
+
+
+		p.stroke(255);
+		p.fill(255);
+		for (i = 0; i < 150; i+=1) {
+			var height = Math.floor(p.random(4, 12));
+			var edge_length = Math.floor(p.random(4, 16));
+			p.beginShape();
+				var x = Math.floor(p.random(10, vis_width - 100));
+				var y = Math.floor(p.random(0, vis_height));
+				var length = Math.floor(p.random(100, 300));
+				p.vertex(x, y);
+				p.vertex(x+length, y);
+				p.vertex(x+length+edge_length, y-height);
+				p.vertex(x+edge_length, y-height);
+			p.endShape(p.CLOSE);
+		}
+
+		p.stroke('#DD671A');
+		p.fill('#DD671A');
+		for (i = 0; i < 7; i+=1) {
+			var height = Math.floor(p.random(1, 3));
+			var edge_length = Math.floor(p.random(4, 16));
+			p.beginShape();
+				var x = Math.floor(p.random(10, vis_width - 100));
+				var y = Math.floor(p.random(0, vis_height));
+				var length = Math.floor(p.random(100, 500));
+				p.vertex(x, y);
+				p.vertex(x+length, y);
+				p.vertex(x+length+edge_length, y-height);
+				p.vertex(x+edge_length, y-height);
+			p.endShape(p.CLOSE);
+		}
+
 		
 
-	  };
+		p.stroke(100);
+		for (i = 0; i < 125; i+=1) {
+			p.strokeWeight(Math.floor(p.random(1, 4)));
+			var x = Math.floor(p.random(10, vis_width - 100));
+			var y = Math.floor(p.random(0, vis_height));
+			var length = Math.floor(p.random(100, 500));
+			p.line(x, y, x + length, y);
+		}
+
+
+		/* Draw the top line of the area chart */
+		p.stroke('#6c9ff3');
+		p.strokeWeight(2);
+		total = 0;
+		
+		p.noFill();
+		p.beginShape();
+		for (i = 0; i < link_data.length; i++) {
+			x = p.map(i, 0, link_data.length, 0, vis_width);
+			y = p.map(total, 0, sum_of_all_sums, 0, vis_height);
+			p.vertex(x, vis_height - y);
+			total += link_data[i].sum;
+		}
+		p.vertex(vis_width, vis_height - y);
+		p.endShape();
+
+		total = 0;
+		
+		/* Draw a solid line at the bottom and right */
+		//p.stroke('#6c9ff3');
+		p.strokeWeight(1);
+		p.line(vis_width-1, vis_height - y, vis_width-1, vis_height);
+		p.line(0, vis_height-1, vis_width, vis_height-1);
+
+
+		/* Let's draw a big mask over the top of the graph 
+		   so that the shape of the curve is obvious */
+		p.fill(255);
+
+		p.strokeWeight(0);
+		p.beginShape();
+		for (i = 0; i < link_data.length; i++) {
+			x = p.map(i, 0, link_data.length, 0, vis_width);
+			y = p.map(total, 0, sum_of_all_sums, 0, vis_height);
+			p.vertex(x, vis_height - y);
+			total += link_data[i].sum;
+		}
+		p.vertex(vis_width, vis_height - y);
+		p.vertex(vis_width, 0);
+		p.vertex(0, 0);
+		
+		p.endShape(p.CLOSE);
+
+		/* Draw our labels */
+		p.noStroke();
+		p.fill(90);
+		p.textSize(24);
+
+		//p.text(number_with_commas(total), vis_width - 100, 20);
+		//p.text(0, 0, vis_height-5);
+	};
 
 	function get_sum () {
 		var sum = 0;
@@ -250,8 +270,6 @@ var users_vis = function( p ) {
 new p5(users_vis);
 
 
-
-
 var today_vis = function( p ) {
 
 	var height, width;
@@ -264,7 +282,7 @@ var today_vis = function( p ) {
 	p.setup = function() {
 
 		width = 1200;
-		height = 400;
+		height = 270;
 
 		// Our timestamps are the second of the day. 1440 seconds per day.
 		var canvas = p.createCanvas(width, height);
@@ -316,17 +334,16 @@ var today_vis = function( p ) {
 				});
 
 				p.clear();
-				p.background('#f7f7f7');
+				p.background(255);
 
 				var relative_x = 0;
 
 				// Draw archives
 				p.stroke('#2D76EE');
 				p.strokeWeight(1);
-
 			    $(archives).each(function(i, time_of_creation) {
-					relative_x = p.map(time_of_creation, 0, 1440, 0, width);
-			      	p.line(relative_x, .05 * height, relative_x, .90 * height);
+					relative_x = p.map(time_of_creation, 0, 1440, 4, width - 4);
+			      	p.line(relative_x, 8, relative_x, height - 42);
 			    });
 
 			    // Draw users
@@ -334,24 +351,24 @@ var today_vis = function( p ) {
 			    p.strokeWeight(2);
 			    $(users).each(function(i, time_of_creation) {
 			      // Draw a line for each user in our list
-					relative_x = p.map(time_of_creation, 0, 1440, 0, width);
-			      	p.line(relative_x, .05 * height, relative_x, .90 * height);
+					relative_x = p.map(time_of_creation, 0, 1440, 4, width - 4);
+			      	p.line(relative_x, 8, relative_x, height - 42);
 			    });
 
 			    // Draw orgs
 			    p.stroke('#fe52b6');
 			    $(orgs).each(function(i, time_of_creation) {
 			      // Draw a line for each user in our list
-			      	relative_x = p.map(time_of_creation, 0, 1440, 0, width);
-			      	p.line(relative_x, .05 * height, relative_x, .90 * height);
+			      	relative_x = p.map(time_of_creation, 0, 1440, 4, width - 4);
+			      	p.line(relative_x, 8, relative_x, height - 42);
 			    });
 
 			    // Draw libs
 			    p.stroke('#ef4923');
 			    $(libraries).each(function(i, time_of_creation) {
 			      // Draw a line for each user in our list
-			      	relative_x = p.map(time_of_creation, 0, 1440, 0, width);
-			      	p.line(relative_x, .05 * height, relative_x, .90 * height);
+			      	relative_x = p.map(time_of_creation, 0, 1440, 4, width - 4);
+			      	p.line(relative_x, 8, relative_x, height - 42);
 			    });
 
 			    draw_scaffolding();
@@ -362,29 +379,29 @@ var today_vis = function( p ) {
 	function draw_scaffolding() {
 		p.strokeWeight(1);
 		p.stroke(150);
-		p.line(0, height - 20, 0, height - 40); // left tick
-		p.line(width - 2, height - 20, width-2, height - 40);  // right tick
-		p.line(0, height -20, width - 1, height-20); // long, base line
-
+		p.line(4, height - 20, 4, height - 36); // left tick
+		p.line(width - 4, height - 20, width - 4, height - 36);  // right tick
+		p.line(4, height - 28, width - 4, height - 28); // long, base line
 
 		var m = moment();
 		current_minute = m.hour() * 60 + m.minute();
 		var x_of_current_time = p.map(current_minute, 0, 1440, 0, width);
+		p.line(x_of_current_time, height - 20, x_of_current_time, height - 36);  // clock tick
 
-		p.line(x_of_current_time, height-20, x_of_current_time, height-40);  // clock tick
-		
-		$('.new_day').css('left', 6);
-		$('.six_am').css('left', width * .25);
-		$('.noon').css('left', width * .5);
-		$('.six_pm').css('left', width * .75);
-		$('.midnight').css('left', width * .95);
-
-		$('.today .users').html(users.length + ' users');
-		$('.today .orgs').html(orgs.length + ' organizations');
-		$('.today .libraries').html(libraries.length + ' libraries');
-		$('.today .archives').html(archives.length + ' archives');
+		p.textSize(16);
+		p.fill(90);
+		p.strokeWeight(0);
+		p.text('new day', 6, height - 7);
+		p.text('now', x_of_current_time - 13 , height - 7);
+		p.text('midnight', width - 65, height - 7);
 	}
 };
 
 new p5(today_vis);
 
+
+
+function number_with_commas(x) {
+	// Thanks, http://stackoverflow.com/a/2901298
+	return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
