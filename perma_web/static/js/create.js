@@ -353,7 +353,7 @@ function check_status() {
 
 function updateLinker () {
     var userSettings = getUserSelectionSettings();
-		var currentOrg = settings.orgId;
+		var currentOrg = userSettings.orgId;
 
 		if (!userSettings.folderId) {
 			$('#addlink').attr('disabled', 'disabled');
