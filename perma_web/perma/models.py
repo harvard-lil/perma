@@ -214,8 +214,8 @@ class LinkUser(AbstractBaseUser):
         """
             Get all folders for this user, including shared folders
         """
-        
-        orgs = self.get_orgs()
+
+        orgs = self.get_orgs().select_related('shared_folder')
 
         return [self.root_folder.get_descendants(include_self=True)] + \
             ([org.shared_folder.get_descendants(include_self=True) for org in orgs if org])
