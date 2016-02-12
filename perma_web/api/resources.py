@@ -454,6 +454,9 @@ class LinkResource(AuthenticatedLinkResource):
             # kick off capture task
             run_task(proxy_capture.s(link.guid, bundle.request.META.get('HTTP_USER_AGENT', '')))
 
+            if settings.UPLOAD_TO_INTERNET_ARCHIVE:
+                run_task(upload_to_internet_archive, link_guid=link.guid)
+
         return bundle
 
     def obj_update(self, bundle, skip_errors=False, **kwargs):
