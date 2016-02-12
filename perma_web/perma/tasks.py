@@ -597,9 +597,41 @@ def get_nightly_stats():
 
     stat.save()
 
-@shared_task(
-    bind=True,
-    default_retry_delay=10*60) # 10 minute delay between retries
+@shared_task(bind=True)
+def delete_from_internet_archive(self, link_guid):
+    identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link_guid
+
+    try:
+        item = internetarchive.get_item(identifier)
+        for f in item.files:
+            file = item.get_file(f["name"])
+            deleted = file.delete(
+                verbose=True,
+                cascade_delete=True,
+                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+            )
+            print "deleted: %s, %s" % (f["name"], deleted)
+
+        metadata = {
+            "description":"",
+            "contributor":"",
+            "sponsor":"",
+            "submitted_url":"",
+            "perma_url":"",
+        }
+
+        item.modify_metadata(
+                metadata,
+                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+            )
+
+    except Exception as e:
+        print "getting error:",e
+
+
+@shared_task(bind=True)
 def upload_to_internet_archive(self, link_guid):
     # setup
     link = Link.objects.get(guid=link_guid)
