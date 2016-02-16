@@ -115,7 +115,7 @@ def local_backup_database(backup_dir):
     temp_password_file = tempfile.NamedTemporaryFile()
     temp_password_file.write("[client]\nuser=%s\npassword=%s\n" % (LOCAL_DB_SETTINGS['USER'], LOCAL_DB_SETTINGS['PASSWORD']))
     temp_password_file.flush()
-    local("mysqldump --defaults-extra-file=%s -h%s %s | gzip > %s" % (
+    local("mysqldump --defaults-extra-file=%s -h%s --ignore-table=perma.perma_cdxline %s | gzip > %s" % (
         temp_password_file.name,
         LOCAL_DB_SETTINGS['HOST'],
         LOCAL_DB_SETTINGS['NAME'],
