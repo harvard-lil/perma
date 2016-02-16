@@ -113,7 +113,7 @@ def manage_single_registrar(request, registrar_id):
 
     target_registrar = get_object_or_404(Registrar, id=registrar_id)
     if request.user.is_registrar_member():	
-    	if not target_registrar == request.user.registrar:
+        if not target_registrar == request.user.registrar:
             raise Http404
 
     context = {'target_registrar': target_registrar,
@@ -127,9 +127,9 @@ def manage_single_registrar(request, registrar_id):
             new_user = form.save()
             
             if request.user.is_staff:
-            	return HttpResponseRedirect(reverse('user_management_manage_registrar'))
+                return HttpResponseRedirect(reverse('user_management_manage_registrar'))
             else:
-            	return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+                return HttpResponseRedirect(reverse('user_management_settings_organizations'))
 
         else:
             context.update({'form': form,})
@@ -191,10 +191,10 @@ def manage_organization(request):
 
     # If not registry member, return just those orgs that belong to the registrar member's registrar
     if not is_registry:
-    	if request.user.is_registrar_member():
-        	orgs = orgs.filter(registrar__id=request.user.registrar_id)
+        if request.user.is_registrar_member():
+            orgs = orgs.filter(registrar__id=request.user.registrar_id)
         else:
-        	orgs = orgs.filter(pk__in=request.user.organizations.all())
+            orgs = orgs.filter(pk__in=request.user.organizations.all())
 
     # handle registrar filter
     registrar_filter = request.GET.get('registrar', '')
@@ -312,9 +312,9 @@ def manage_single_organization_delete(request, org_id):
         if links.count() > 0:
             raise Http404
         else:
-        	for user in users:
-        		user.organizations.remove(target_org)
-        	target_org.delete()
+            for user in users:
+                user.organizations.remove(target_org)
+            target_org.delete()
 
         return HttpResponseRedirect(reverse('user_management_manage_organization'))
 
@@ -708,9 +708,9 @@ def registrar_user_add_user(request):
             form = CreateUserFormWithRegistrar(form_data, prefix = "a", initial={'email': user_email})
     else:
         if request.user.is_registrar_member():
-        	form = None
+            form = None
         else:
-        	form = UserAddRegistrarForm(form_data, prefix = "a")
+            form = UserAddRegistrarForm(form_data, prefix = "a")
             
     context = {'this_page': 'users_registrar_users', 'user_email': user_email, 'form': form, 'target_user': target_user, 'cannot_add': cannot_add}
 
@@ -723,7 +723,7 @@ def registrar_user_add_user(request):
             if request.user.is_registrar_member():
                 target_user.registrar = request.user.registrar
             else:
-            	target_user.registrar = form.cleaned_data['registrar']
+                target_user.registrar = form.cleaned_data['registrar']
     
             if is_new_user:
                 target_user.is_active = False
@@ -1094,9 +1094,9 @@ def settings_organizations_change_privacy(request, org_id):
         org.save()
 
         if request.user.is_registrar_member() or request.user.is_staff:
-        	return HttpResponseRedirect(reverse('user_management_manage_organization'))
+            return HttpResponseRedirect(reverse('user_management_manage_organization'))
         else:
-        	return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+            return HttpResponseRedirect(reverse('user_management_settings_organizations'))
 
     context = RequestContext(request, context)
 

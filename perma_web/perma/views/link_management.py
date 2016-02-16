@@ -18,44 +18,44 @@ valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'submitted_titl
 
 @login_required
 def create_link(request):
-	try:
-		selected_org = Link.objects.filter(created_by_id=request.user.id).latest('creation_timestamp').organization
-	except:
-		selected_org = Organization.objects.accessible_to(request.user).first()
-		
-	if not selected_org:
-		org_id = None
-	else:
-		org_id = selected_org.id
+    try:
+        selected_org = Link.objects.filter(created_by_id=request.user.id).latest('creation_timestamp').organization
+    except:
+        selected_org = Organization.objects.accessible_to(request.user).first()
 
-	try:
-		org = get_object_or_404(Organization, id=org_id)
-	except:
-		org = None
-		
-	folder_id = request.user.root_folder_id
-	if org:
-		folder_id = org.shared_folder_id
-	folder = Folder.objects.get(id=folder_id)
-	
-	deleted = request.GET.get('deleted', '')
-	if deleted:
-		try:
-			link = Link.objects.all_with_deleted().get(guid=deleted)
-		except Link.DoesNotExist:
-			link = None
-		if link:
-			messages.add_message(request, messages.INFO, 'Deleted - ' + link.submitted_title)
+    if not selected_org:
+        org_id = None
+    else:
+        org_id = selected_org.id
 
-	links_remaining = request.user.get_links_remaining()
-	if links_remaining < 0:
-		links_remaining = 0
-	
-	return render(request, 'user_management/create-link.html', {
-		'this_page': 'create_link',
-		'links_remaining': links_remaining,
-		'folder': folder,
-	})
+    try:
+        org = get_object_or_404(Organization, id=org_id)
+    except:
+        org = None
+
+    folder_id = request.user.root_folder_id
+    if org:
+        folder_id = org.shared_folder_id
+    folder = Folder.objects.get(id=folder_id)
+
+    deleted = request.GET.get('deleted', '')
+    if deleted:
+        try:
+            link = Link.objects.all_with_deleted().get(guid=deleted)
+        except Link.DoesNotExist:
+            link = None
+        if link:
+            messages.add_message(request, messages.INFO, 'Deleted - ' + link.submitted_title)
+
+    links_remaining = request.user.get_links_remaining()
+    if links_remaining < 0:
+        links_remaining = 0
+
+    return render(request, 'user_management/create-link.html', {
+        'this_page': 'create_link',
+        'links_remaining': links_remaining,
+        'folder': folder,
+    })
 
 
 ###### LINK BROWSING ######
