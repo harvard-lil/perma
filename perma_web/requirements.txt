@@ -4,7 +4,7 @@ Django==1.8.7
 MySQL-python==1.2.5
 lxml==3.2.1
 PyPDF2==1.20                    # check integrity of uploaded PDFs
-celery==3.1.12
+celery==3.1.20
 requests[security]==2.7.0
 wsgiref==0.1.2
 django-ratelimit==0.3.0
