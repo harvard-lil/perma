@@ -605,6 +605,8 @@ def delete_from_internet_archive(self, link_guid):
 
     try:
         item = internetarchive.get_item(identifier)
+        if not item.exists:
+            return False
         for f in item.files:
             file = item.get_file(f["name"])
             deleted = file.delete(
