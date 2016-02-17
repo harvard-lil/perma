@@ -39,6 +39,7 @@ from django.conf import settings
 
 from perma.models import Asset, Stat, Registrar, LinkUser, Link, Organization, CDXLine, Capture
 
+from perma.utils import run_task
 
 logger = logging.getLogger(__name__)
 
@@ -531,6 +532,7 @@ def proxy_capture(self, link_guid, user_agent=''):
                 ).save()
                 print "Saved favicon at %s" % successful_favicon_urls
 
+            run_task(upload_to_internet_archive.s(link_guid=link.guid))
             print "Writing CDX lines to the DB"
             CDXLine.objects.create_all_from_link(link)
 
@@ -635,6 +637,8 @@ def delete_from_internet_archive(self, link_guid):
 def upload_to_internet_archive(self, link_guid):
     # setup
     link = Link.objects.get(guid=link_guid)
+    if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
+        return
 
     # make sure link should be uploaded
     if not link.can_upload_to_internet_archive():

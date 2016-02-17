@@ -451,11 +451,11 @@ class LinkResource(AuthenticatedLinkResource):
                 content_type='image/png',
             ).save()
 
-            # kick off capture task
-            run_task(proxy_capture.s(link.guid, bundle.request.META.get('HTTP_USER_AGENT', '')))
-
-            if settings.UPLOAD_TO_INTERNET_ARCHIVE:
-                run_task(upload_to_internet_archive, link_guid=link.guid)
+            try:
+                # proxy_capture.apply_async((link.guid, bundle.request.META.get('HTTP_USER_AGENT', '')), link=upload_to_internet_archive(link_guid=link.guid))
+                run_task(proxy_capture.s(link.guid, bundle.request.META.get('HTTP_USER_AGENT', '')))
+            except Exception as e:
+                print "Getting error:",e
 
         return bundle
 
