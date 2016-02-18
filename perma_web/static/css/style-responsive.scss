@@ -5062,17 +5062,51 @@ section .caption {
 		height: auto !important;
 	}
 
-	.archives-label {
-		color: #2D76EE;
+	.number-header {
+		font-size: 60px;
+		margin-bottom: 0;
+		text-align: center;
+		color: $color-orange;
 	}
 
-	.users-label {
-		color: #28e91a;
+	.graph-numbers-container {
+		border: 1px solid $color-orange;
+		height: 130px;
+
+		.mega {
+			text-align: center;
+			background-color: $color-orange;
+			color: $color-white;
+			font-size: 22px;
+			padding: 3px 0;
+		}
+
+		.sub-number-container {
+			div {
+				text-align: center;
+				float: left;
+				width: 50%;
+
+				p:first-of-type {
+					padding-top: 10px;
+					font-size: 30px;
+					margin-bottom: 0;
+				}
+			}
+		}
 	}
 
-	.orgs-label {
-		color: #fe52b6;
+	.no-graph .graph-numbers-container {
+		overflow: hidden; 
 	}
 
-
+	.vert-number-container {
+		float:left;
+		width:80px;
+		.vert-number {
+			transform: rotateZ(-90deg);
+			font-size: 60px;
+			color: $color-orange;
+		}
+	}
 }

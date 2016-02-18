@@ -207,7 +207,7 @@ var users_vis = function( p ) {
 
 		/* Draw the top line of the area chart */
 		p.stroke('#6c9ff3');
-		p.strokeWeight(2);
+		p.strokeWeight(3);
 		total = 0;
 		
 		p.noFill();
