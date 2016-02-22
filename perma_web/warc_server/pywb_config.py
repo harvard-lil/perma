@@ -114,11 +114,6 @@ class PermaRoute(archivalrouter.Route):
                 #    and the requested line is simply missing
                 lines = list(link.cdx_lines.all())
                 if not lines:
-
-                    # TEMP: remove after all legacy warcs have been exported
-                    if not default_storage.exists(link.warc_storage_file()):
-                        link.export_warc()
-
                     lines = CDXLine.objects.create_all_from_link(link)
 
                 # build a lookup of all cdx lines for this link indexed by urlkey, like:
