@@ -232,7 +232,7 @@ class LinkUser(AbstractBaseUser):
         if self.is_staff:
             return Organization.objects.all()
             
-        return []
+        return Organization.objects.none()
         
     def get_links_remaining(self):
         today = timezone.now()
