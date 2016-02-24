@@ -52,6 +52,12 @@ a {
   margin: 0 auto;
 }
 
+.capture-wrapper {
+  .screenshot-error {
+    text-align : center;
+  }
+}
+
 #main-archive, #main-content, #main-content > .row, .capture-wrapper, .h_iframe {
   height : 100%;
 }
