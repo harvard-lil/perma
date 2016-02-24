@@ -56,17 +56,17 @@ $(function() {
 
     // When a user uploads their own capture
     $('#archive_upload_form').submit(function() {
-        var extraUploadData = {},
-            selectedFolder = getLocallyStoredSelectionSettings();
-        if(selectedFolder)
-            extraUploadData.folder = selectedFolder.folderId;
-        $(this).ajaxSubmit({
-            data: extraUploadData,
-            success: uploadIt,
-            error: uploadNot
-        });
+      var extraUploadData = {},
+          selectedFolder = getUserSelectionSettings();
+      if(selectedFolder)
+          extraUploadData.folder = selectedFolder.folderId;
+      $(this).ajaxSubmit({
+          data: extraUploadData,
+          success: uploadIt,
+          error: uploadNot
+      });
 
-        return false;
+      return false;
     });
 
 
