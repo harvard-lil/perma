@@ -44,7 +44,7 @@ class Registrar(models.Model):
     name = models.CharField(max_length=400)
     email = models.EmailField(max_length=254)
     website = models.URLField(max_length=500)
-    date_created = models.DateField(auto_now_add=True, null=True)
+    date_created = models.DateTimeField(auto_now_add=True, null=True)
     is_approved = models.BooleanField(default=False)
 
     show_partner_status = models.BooleanField(default=False, help_text="Whether to show this registrar in our list of partners.")
@@ -100,7 +100,7 @@ class Organization(models.Model):
     name = models.CharField(max_length=400)
     registrar = models.ForeignKey(Registrar, null=True, related_name="organizations")
     shared_folder = models.OneToOneField('Folder', blank=True, null=True, related_name="organization_")  # related_name isn't used, just set to avoid name collision with Folder.organization
-    date_created = models.DateField(auto_now_add=True, null=True)
+    date_created = models.DateTimeField(auto_now_add=True, null=True)
     default_to_private = models.BooleanField(default=False)
 
     objects = OrganizationManager()
@@ -173,7 +173,7 @@ class LinkUser(AbstractBaseUser):
     is_active = models.BooleanField(default=True)
     is_confirmed = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
-    date_joined = models.DateField(auto_now_add=True)
+    date_joined = models.DateTimeField(auto_now_add=True)
     first_name = models.CharField(max_length=45, blank=True)
     last_name = models.CharField(max_length=45, blank=True)
     confirmation_code = models.CharField(max_length=45, blank=True)
@@ -991,41 +991,32 @@ class Asset(models.Model):
 # Stats related models
 #########################
 
-class Stat(models.Model):
+class WeekStats(models.Model):
     """
-    We have a stats page. A sort of dashboard that displays aggregate counts on users
-    and storage space and whatever the heck else might be fun to look at.
-
-    We compute an aggregate count nightly (or whenever we set our celery periodic task to run)
+    Our stats dashboard displays weekly stats. Let's house those here.
     """
 
-    # The time of this stats entry
+    start_date = models.DateTimeField(auto_now_add=True)
+    end_date = models.DateTimeField(auto_now_add=True)
+
+    links_sum = models.IntegerField(default=0)
+    users_sum = models.IntegerField(default=0)
+    organizations_sum = models.IntegerField(default=0)
+    registrars_sum = models.IntegerField(default=0)
+
+
+class MinuteStats(models.Model):
+    """
+    To see how the flag is blowing in Perma land, we log sums
+    for key points activity each minute
+    """
+
     creation_timestamp = models.DateTimeField(auto_now_add=True)
-
-    # Our user counts
-    regular_user_count = models.IntegerField(default=1)
-    org_member_count = models.IntegerField(default=1)
-    org_manager_count = models.IntegerField(default=1)  # keeping this for legacy counts, doesn't mean anything
-    registrar_member_count = models.IntegerField(default=1)
-    registry_member_count = models.IntegerField(default=1)
-
-    # Our org count
-    org_count = models.IntegerField(default=1)
-
-    # Our registrar count
-    registrar_count = models.IntegerField(default=1)
-
-    # Our link counts
-    link_count = models.IntegerField(default=1)
-
-    # Our google analytics counts
-    global_uniques = models.IntegerField(default=1)
-
-    # Our size count
-    disk_usage = models.FloatField(default=0.0)
-
-    # TODO, we also display the top 10 perma links in the stats view
-    # we should probably generate these here or put them in memcache or something
+    
+    links_sum = models.IntegerField(default=0)
+    users_sum = models.IntegerField(default=0)
+    organizations_sum = models.IntegerField(default=0)
+    registrars_sum = models.IntegerField(default=0)
 
 
 class CDXLineManager(models.Manager):

@@ -5088,7 +5088,7 @@ section .caption {
 				width: 50%;
 
 				p:first-of-type {
-					padding-top: 10px;
+					padding-top: 20px;
 					font-size: 30px;
 					margin-bottom: 0;
 				}
@@ -5107,6 +5107,22 @@ section .caption {
 			transform: rotateZ(-90deg);
 			font-size: 60px;
 			color: $color-orange;
+		}
+	}
+
+	.daily-num-container {
+		border: 2px solid $color-green;
+		margin-top: 5px;
+		
+		p {
+			display: inline;
+			padding: 2px 10px;
+		}
+		
+		.num-value {
+
+			color: $color-white;
+			background-color: $color-green;
 		}
 	}
 }

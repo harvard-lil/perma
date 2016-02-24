@@ -143,3 +143,53 @@ def screenshots(base_url='http://perma.dev:8000'):
     browser.find_element_by_css_selector("button.btn.login").click()
     browser.find_element_by_css_selector("a.navbar-link").click()
     screenshot('header', 'ul.dropdown-menu', 'screenshot_dropdown.png', lower_right_offset=(15,15))
+
+@task
+def build_week_stats():
+    """
+        A temporary helper to populate our weekly stats
+    """
+    from perma.models import Link, LinkUser, Organization, Registrar, WeekStats
+    from datetime import datetime, timedelta
+    from django.utils import timezone
+
+    oldest_link = Link.objects.all().order_by('creation_timestamp')[0]
+
+    # this is always the end date in our range, usually a saturday
+    date_of_stats = oldest_link.creation_timestamp
+
+    # this is the start date in our range, always a sunday
+    start_date = date_of_stats
+
+    links_this_week = 0
+    users_this_week = 0
+    orgs_this_week = 0
+    registrars_this_week = 0
+
+    while date_of_stats < timezone.now():
+        links_this_week += Link.objects.filter(creation_timestamp__year=date_of_stats.year,
+            creation_timestamp__month=date_of_stats.month, creation_timestamp__day=date_of_stats.day).count()
+
+        users_this_week += LinkUser.objects.filter(date_joined__year=date_of_stats.year,
+            date_joined__month=date_of_stats.month, date_joined__day=date_of_stats.day).count()
+
+        orgs_this_week += Organization.objects.filter(date_created__year=date_of_stats.year,
+            date_created__month=date_of_stats.month, date_created__day=date_of_stats.day).count()
+
+        registrars_this_week += Registrar.objects.filter(date_created__year=date_of_stats.year,
+            date_created__month=date_of_stats.month, date_created__day=date_of_stats.day).count()
+
+        # if this is a saturday, write our sums and reset our counts
+        if date_of_stats.weekday() == 5:
+            week_of_stats = WeekStats(start_date=start_date,  end_date=date_of_stats, links_sum=links_this_week,
+                users_sum=users_this_week, organizations_sum=orgs_this_week, registrars_sum=registrars_this_week)
+            week_of_stats.save()
+
+            links_this_week = 0
+            users_this_week = 0
+            orgs_this_week = 0
+            registrars_this_week = 0
+
+            start_date = date_of_stats + timedelta(days=1)
+        
+        date_of_stats += timedelta(days=1)

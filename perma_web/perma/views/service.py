@@ -10,7 +10,7 @@ from django.shortcuts import redirect, render_to_response
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
 
-from perma.models import Link, Stat
+from perma.models import Link, WeekStats, MinuteStats
 from perma.utils import send_contact_email
 
 
@@ -70,119 +70,21 @@ def stats_users(request):
         writer.writerow(['Registry member', stat.registry_member_count, stat.creation_timestamp.strftime('%d-%b-%y')])
     
     return response
-    
-def stats_links(request):
-    """
-    Retrieve nightly stats for links in the DB, dump them out here so that our D3 vis can render them, real-purty-like
 
-    #TODO: rework this and its partnering D3 code. Writing CSV is gross. Serialize to JSON and update our D3 method in stats.html
+def stats_sums(request):
     """
     
-    # Get the 1000 most recent.
-    # TODO: if we make it more than a 1000 days, implement some better interface.
-    stats = Stat.objects.only('creation_timestamp', 'link_count')[:1000]
-
-    response = HttpResponse()
-    response['Content-Disposition'] = 'attachment; filename="data.tsv"'
-
-    headers = ['key', 'value', 'date']
-
-    writer = csv.writer(response, delimiter='\t')
-    writer.writerow(headers)
-
-    for stat in stats:
-        writer.writerow(['links', stat.link_count, stat.creation_timestamp.strftime('%d-%b-%y')])
+    """   
 
 
-    return response
-    
-def stats_darchive_links(request):
+def stats_now(request):
     """
-    Retrieve nightly stats for darchived links, dump them out here so that our D3 vis can render them, real-purty-like
-
-    #TODO: rework this and its partnering D3 code. Writing CSV is gross. Serialize to JSON and update our D3 method in stats.html
+    Serve up 
     """
 
     # Get the 1000 most recent.
     # TODO: if we make it more than a 1000 days, implement some better interface.
-    stats = Stat.objects.only('creation_timestamp', 'darchive_takedown_count', 'darchive_robots_count')[:1000]
-
-    response = HttpResponse()
-    response['Content-Disposition'] = 'attachment; filename="data.tsv"'
-
-    headers = ['key', 'value', 'date']
-
-    writer = csv.writer(response, delimiter='\t')
-    writer.writerow(headers)
-
-    for stat in stats:
-        writer.writerow(['Darchive due to takedown', stat.darchive_takedown_count, stat.creation_timestamp.strftime('%d-%b-%y')])
-        writer.writerow(['Darchive due to robots.txt', stat.darchive_robots_count, stat.creation_timestamp.strftime('%d-%b-%y')])
-
-
-    return response
-    
-    
-def stats_storage(request):
-    """
-    Retrieve nightly stats for storage totals in the DB, dump them out here so that our D3 vis can render them, real-purty-like
-
-    #TODO: rework this and its partnering D3 code. Writing CSV is gross. Serialize to JSON and update our D3 method in stats.html
-    """
-
-    # Get the 1000 most recent.
-    # TODO: if we make it more than a 1000 days, implement some better interface.
-    stats = Stat.objects.only('disk_usage')[:1000]
-
-    response = HttpResponse()
-    response['Content-Disposition'] = 'attachment; filename="data.tsv"'
-
-    headers = ['date', 'close']
-
-    writer = csv.writer(response, delimiter='\t')
-    writer.writerow(headers)
-
-    for stat in stats:
-        in_gb = stat.disk_usage / 1024 / 1024 / 1024
-        writer.writerow([stat.creation_timestamp.strftime('%d-%b-%y'), in_gb])
-
-
-    return response
-    
-def stats_org(request):
-    """
-    Retrieve nightly stats for total number of orgs, dump them out here so that our D3 vis can render them, real-purty-like
-
-    #TODO: rework this and its partnering D3 code. Writing CSV is gross. Serialize to JSON and update our D3 method in stats.html
-    """
-
-    # Get the 1000 most recent.
-    # TODO: if we make it more than a 1000 days, implement some better interface.
-    stats = Stat.objects.only('org_count')[:1000]
-
-    response = HttpResponse()
-    response['Content-Disposition'] = 'attachment; filename="data.tsv"'
-
-    headers = ['date', 'close']
-
-    writer = csv.writer(response, delimiter='\t')
-    writer.writerow(headers)
-
-    for stat in stats:
-        writer.writerow([stat.creation_timestamp.strftime('%d-%b-%y'), stat.org_count])
-
-    return response
-    
-def stats_registrar(request):
-    """
-    Retrieve nightly stats for total number of registrars (libraries), dump them out here so that our D3 vis can render them, real-purty-like
-
-    #TODO: rework this and its partnering D3 code. Writing CSV is gross. Serialize to JSON and update our D3 method in stats.html
-    """
-
-    # Get the 1000 most recent.
-    # TODO: if we make it more than a 1000 days, implement some better interface.
-    stats = Stat.objects.only('registrar_count')[:1000]
+    """stats = Stat.objects.only('registrar_count')[:1000]
 
     response = HttpResponse()
     response['Content-Disposition'] = 'attachment; filename="data.tsv"'
@@ -197,6 +99,7 @@ def stats_registrar(request):
 
 
     return response
+    """
 
 def bookmarklet_create(request):
     '''Handle incoming requests from the bookmarklet.

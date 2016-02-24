@@ -37,7 +37,7 @@ from django.template.defaultfilters import truncatechars
 from django.forms.models import model_to_dict
 from django.conf import settings
 
-from perma.models import Asset, Stat, Registrar, LinkUser, Link, Organization, CDXLine, Capture
+from perma.models import Asset, WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture
 
 
 logger = logging.getLogger(__name__)
@@ -541,14 +541,39 @@ def proxy_capture(self, link_guid, user_agent=''):
 
     print "%s capture done." % link_guid
 
+@shared_task()
+def update_stats():
+    """
+    run once per minute by celerybeat
 
-@shared_task
-def get_nightly_stats():
+    if midnight, remove all MinuteStats
+    if sunday at midnight, close the open week, and open a new week
+
+    count all archives, users, orgs, and registrars created in the last minute
+    if we have non-zeros, log in perma.models.MinuteStats and update this weeks
+    sums in perma.models.WeeklyStats
     """
-    A periodic task (probably running nightly) to get counts of user types, disk usage.
-    Write them into a DB for our stats view
+
+    if MinuteStats.objects.all().count() == 1560:
+        MinuteStats.objects.all()[1560].delete()
+
+
+            num_links = models.IntegerField(default=1)
+    num_users = models.IntegerField(default=1)
+    num_organizations = models.IntegerField(default=1)
+    num_registrars = models.IntegerField(default=1)
+
+
+    total_count_regular_users = LinkUser.objects.filter().count()
+
+
+    MinuteStats(num_links)
+
+
+
+
+
     """
-    
     # Five types user accounts
     total_count_regular_users = LinkUser.objects.filter(is_staff=False, organizations=None, registrar_id=None).count()
     total_count_org_members = LinkUser.objects.exclude(organizations=None).count()
@@ -596,6 +621,7 @@ def get_nightly_stats():
         )
 
     stat.save()
+    """
 
 @shared_task(
     bind=True,
@@ -639,79 +665,3 @@ def upload_to_internet_archive(self, link_guid):
     if not success:
         self.retry(exc=Exception("Internet Archive reported upload failure."))
         print "Failed."
-
-@shared_task
-def email_weekly_stats():
-    """
-    We bundle up our stats weekly and email them to a developer and then
-    onto our interested mailing lists
-    """
-
-    previous_stats_query_set = Stat.objects.order_by('-creation_timestamp')[:8][7]
-    current_stats_query_set = Stat.objects.filter().latest('creation_timestamp')
-
-    format = '%b %d, %Y, %H:%M %p'
-
-    context = {
-        'start_time': previous_stats_query_set.creation_timestamp.strftime(format),
-        'end_time': current_stats_query_set.creation_timestamp.strftime(format),
-    }
-
-    # Convert querysets to dicts so that we can access them easily in our print_stats_line util
-    previous_stats = model_to_dict(previous_stats_query_set)
-    current_stats = model_to_dict(current_stats_query_set)
-
-    context.update({
-        'num_regular_users_added': current_stats['regular_user_count'] - previous_stats['regular_user_count'],
-        'prev_regular_users_count': previous_stats['regular_user_count'],
-        'current_regular_users_count': current_stats['regular_user_count'],
-
-        'num_org_members_added': current_stats['org_member_count'] - previous_stats['org_member_count'],
-        'prev_org_members_count': previous_stats['org_member_count'],
-        'current_org_members_count': current_stats['org_member_count'],
-
-        'num_registar_members_added': current_stats['registrar_member_count'] - previous_stats['registrar_member_count'],
-        'prev_registrar_members_count': previous_stats['registrar_member_count'],
-        'current_registrar_members_count': current_stats['registrar_member_count'],
-
-        'num_registry_members_added': current_stats['registry_member_count'] - previous_stats['registry_member_count'],
-        'prev_registry_members_count': previous_stats['registry_member_count'],
-        'current_registry_members_count': current_stats['registry_member_count'],
-
-        'num_orgs_added': current_stats['org_count'] - previous_stats['org_count'],
-        'prev_orgs_count': previous_stats['org_count'],
-        'current_orgs_count': current_stats['org_count'],
-
-        'num_registrars_added': current_stats['registrar_count'] - previous_stats['registrar_count'],
-        'prev_registrars_count': previous_stats['registrar_count'],
-        'current_registrars_count': current_stats['registrar_count'],
-
-        'num_links_added': current_stats['link_count'] - previous_stats['link_count'],
-        'prev_link_count': previous_stats['link_count'],
-        'current_link_count': current_stats['link_count'],
-
-
-        'num_darchive_takedown_added': current_stats['darchive_takedown_count'] - previous_stats['darchive_takedown_count'],
-        'prev_darchive_takedown_count': previous_stats['darchive_takedown_count'],
-        'current_darchive_takedown_count': current_stats['darchive_takedown_count'],
-
-        'num_darchive_robots_added': current_stats['darchive_robots_count'] - previous_stats['darchive_robots_count'],
-        'prev_darchive_robots_count': previous_stats['darchive_robots_count'],
-        'current_darchive_robots_count': current_stats['darchive_robots_count'],
-
-        'disk_added': float(current_stats['disk_usage'] - previous_stats['disk_usage'])/1024/1024/1024,
-        'prev_disk': float(previous_stats['disk_usage'])/1024/1024/1024,
-        'current_disk': float(current_stats['disk_usage'])/1024/1024/1024,
-    })
-
-    send_mail(
-        'This week in Perma.cc -- the numbers',
-        get_template('email/stats.html').render(
-            Context(context)
-        ),
-        settings.DEFAULT_FROM_EMAIL,
-        [settings.DEVELOPER_EMAIL],
-        fail_silently = False
-    )
-
-
