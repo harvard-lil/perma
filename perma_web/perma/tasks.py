@@ -39,6 +39,7 @@ from django.conf import settings
 
 from perma.models import Asset, Stat, Registrar, LinkUser, Link, Organization, CDXLine, Capture
 
+from perma.utils import run_task
 
 logger = logging.getLogger(__name__)
 
@@ -531,6 +532,7 @@ def proxy_capture(self, link_guid, user_agent=''):
                 ).save()
                 print "Saved favicon at %s" % successful_favicon_urls
 
+            run_task(upload_to_internet_archive.s(link_guid=link.guid))
             print "Writing CDX lines to the DB"
             CDXLine.objects.create_all_from_link(link)
 
@@ -597,48 +599,90 @@ def get_nightly_stats():
 
     stat.save()
 
-@shared_task(
-    bind=True,
-    default_retry_delay=10*60) # 10 minute delay between retries
+@shared_task(bind=True)
+def delete_from_internet_archive(self, link_guid):
+    identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link_guid
+
+    try:
+        item = internetarchive.get_item(identifier)
+        if not item.exists:
+            return False
+        for f in item.files:
+            file = item.get_file(f["name"])
+            deleted = file.delete(
+                verbose=True,
+                cascade_delete=True,
+                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+            )
+            print "deleted: %s, %s" % (f["name"], deleted)
+
+        metadata = {
+            "description":"",
+            "contributor":"",
+            "sponsor":"",
+            "submitted_url":"",
+            "perma_url":"",
+        }
+
+        item.modify_metadata(
+                metadata,
+                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+            )
+
+    except Exception as e:
+        print "getting error:",e
+
+
+@shared_task(bind=True)
 def upload_to_internet_archive(self, link_guid):
     # setup
     link = Link.objects.get(guid=link_guid)
+    if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
+        return
 
     # make sure link should be uploaded
     if not link.can_upload_to_internet_archive():
         print "Not eligible for upload."
         return
 
-    identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX+link_guid
+    try:
+        metadata = {
+            "collection":settings.INTERNET_ARCHIVE_COLLECTION,
+            "title":'%s: %s' % (link_guid, truncatechars(link.submitted_title, 50)),
+            "mediatype":'web',
+            "description":'Perma.cc archive of %s created on %s.' % (link.submitted_url, link.creation_timestamp,),
+            "contributor":'Perma.cc',
+            "sponsor":"%s - %s" % (link.organization, link.organization.registrar),
+            "submitted_url":link.submitted_url,
+            "perma_url":"http://%s/%s" % (settings.HOST, link_guid),
+            "external-identifier":'urn:X-perma:%s' % link_guid,
+            }
 
-    # create IA item for this capture
-    item = internetarchive.get_item(identifier)
-    metadata = {
-        'collection':settings.INTERNET_ARCHIVE_COLLECTION,
-        'mediatype':'web',
-        'date':link.creation_timestamp,
-        'title':'%s: %s' % (link_guid, truncatechars(link.submitted_title, 50)),
-        'description': 'Perma.cc archive of %s created on %s.' % (link.submitted_url, link.creation_timestamp,),
-        'contributor':'Perma.cc',
-        'sponsor':"%s - %s" % (link.organization, link.organization.registrar),
+        identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link_guid
+        with default_storage.open(link.warc_storage_file(), 'rb') as warc_file:
+            success = internetarchive.upload(
+                            identifier,
+                            warc_file,
+                            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+                            metadata=metadata,
+                            retries=10,
+                            retries_sleep=60,
+                            verbose=True,
+                            )
 
-        # custom metadata
-        'submitted_url':link.submitted_url,
-        'perma_url':"http://%s/%s" % (settings.HOST, link_guid),
-        'external-identifier':'urn:X-perma:%s' % link_guid,
-    }
+            if not success:
+                self.retry(exc=Exception("Internet Archive reported upload failure."))
+                print "Failed."
 
-    # upload
-    with default_storage.open(link.warc_storage_file(), 'rb') as warc_file:
-        success = item.upload(warc_file,
-                              metadata=metadata,
-                              access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-                              secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-                              verbose=True,
-                              debug=True)
-    if not success:
-        self.retry(exc=Exception("Internet Archive reported upload failure."))
-        print "Failed."
+            print "Success:", success
+
+
+    except Exception as e:
+        print "getting error:",e
+
 
 @shared_task
 def email_weekly_stats():

@@ -41,7 +41,7 @@ from serializers import DefaultSerializer
 
 # LinkResource
 from perma.utils import run_task
-from perma.tasks import proxy_capture, upload_to_internet_archive
+from perma.tasks import proxy_capture, delete_from_internet_archive
 
 
 
@@ -451,8 +451,11 @@ class LinkResource(AuthenticatedLinkResource):
                 content_type='image/png',
             ).save()
 
-            # kick off capture task
-            run_task(proxy_capture.s(link.guid, bundle.request.META.get('HTTP_USER_AGENT', '')))
+            try:
+                # proxy_capture.apply_async((link.guid, bundle.request.META.get('HTTP_USER_AGENT', '')), link=upload_to_internet_archive(link_guid=link.guid))
+                run_task(proxy_capture.s(link.guid, bundle.request.META.get('HTTP_USER_AGENT', '')))
+            except Exception as e:
+                print "Getting error:",e
 
         return bundle
 
@@ -478,6 +481,10 @@ class LinkResource(AuthenticatedLinkResource):
         bundle.obj.user_deleted = True
         bundle.obj.user_deleted_timestamp = timezone.now()
         bundle.obj.save()
+        try:
+            run_task(delete_from_internet_archive.s(link_guid=bundle.obj.guid))
+        except Exception as e:
+            print "getting error in delete:",e
 
     ###
     # Allow cross-domain requests from insecure site to secure site.
