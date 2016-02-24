@@ -7,7 +7,7 @@ $(document).ready(function() {
     function adjustTopMargin() {
       var $wrapper = $('.capture-wrapper');
       var $screenshoterror = $('.screenshot-error');
-      var headerHeight = $('header').height()
+      var headerHeight = $('header').height();
       $wrapper.css('margin-top', headerHeight);
       $screenshoterror.css('margin-top', headerHeight + 30)
     }
