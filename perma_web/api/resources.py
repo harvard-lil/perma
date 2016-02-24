@@ -165,7 +165,7 @@ class OrganizationResource(DefaultResource):
 
     class Meta(DefaultResource.Meta):
         resource_name = 'organizations'
-        queryset = Organization.objects.all()
+        queryset = Organization.objects.select_related('registrar', 'shared_folder')
         ordering = ['name', 'registrar']
 
     class Nested:

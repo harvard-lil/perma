@@ -2,17 +2,17 @@ $(document).ready(function() {
     $("#details-button").click(function () {
         $(this).text($(this).text() == "Show record details" ? "Hide record details" : "Show record details");
         $('header').toggleClass('_activeDetails');
-    });    
+    });
 
-	function adjustHeight() {
-        var $iframe = $('iframe');
-        if($iframe.length)
-    	    $iframe.height($(window).height() - $iframe.offset().top);
-	}
+  	function adjustTopMargin() {
+      var $wrapper = $('.capture-wrapper');
+      $wrapper.css('margin-top', $('header').height());
+  	}
 
-    adjustHeight();
+    adjustTopMargin();
+
     $(window).on('resize', function () {
-        adjustHeight();
+        adjustTopMargin();
     });
 
     $("button.darchive").click(function(){
@@ -40,4 +40,15 @@ $(document).ready(function() {
 
         return false;
     });
+
+    // On the new-record bar, update the width of the URL input to match its contents,
+    // by copying the contents into a temporary span with the same class and measuring its width.
+    if($('._isNewRecord')){
+        var linkField = $('input.link-field');
+        linkField.after("<span class='link-field'></span>");
+        var linkSpan = $('span.link-field');
+        linkSpan.text(linkField.val());
+        linkField.width(linkSpan.width());
+        linkSpan.remove();
+    }
 });

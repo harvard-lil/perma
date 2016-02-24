@@ -23,12 +23,9 @@ $color-yellow: #d0a60f;
     100% {background-color: white;}
 }
 
-html {
+html,body {
 	overflow: visible;
-}
-
-body {
-	overflow: hidden;
+  height: 100%;
 }
 
 a {
@@ -48,24 +45,46 @@ a {
 	}
 }
 
-iframe {
-    border-width: 0px 0px;
+.capture-wrapper {
+  position: relative;
+  height: 100%;
+  width : 100%;
+  margin: 0 auto;
+}
+
+#main-archive, #main-content, #main-content > .row, .capture-wrapper, .h_iframe {
+  height : 100%;
+}
+
+.h_iframe {
+  position: relative;
+}
+
+.h_iframe .ratio {
+  display:block;
+  width:100%;
+  height:auto;
+}
+
+iframe.archive-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-width: 0px 0px;
 	border-style: solid;
 	border-color: #999;
-    text-align:auto;
-    background:#ffffff;
-    margin:0px auto;
-    padding:auto;
-    display:block;
-    overflow-x:scroll;
-    overflow-y: scroll;
-    height:100%;
-    width:100%;
-
+  text-align:auto;
+  background:#ffffff;
+  margin:0px auto;
 }
 
 
 header {
+  position: fixed;
+  z-index: 99;
+  width: 100%;
 	background-color: $color-blue;
 	color: $color-white;
 	overflow: visible;
@@ -226,7 +245,7 @@ header {
 				}
 			}
 		}
-		input.perma {
+		.link-field {
 		    display: inline-block;
 		    border: 1px solid $color-blue;
 		    padding: 4px 8px;
@@ -234,7 +253,6 @@ header {
 		    font-weight: 700;
 		    color: $color-blue;
 		    width: auto;
-		    width: 11.25em;
 		    text-align: center;
 		    &:focus {
 			    outline: none;

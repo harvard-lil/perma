@@ -408,11 +408,32 @@ def proxy_capture(self, link_guid, user_agent=''):
                     print "Meta found, darchiving"
             add_thread(thread_list, meta_thread)
 
-            # scroll to bottom of page and back up, in case that prompts anything else to load
+            # scroll to bottom of page, in case that prompts anything else to load
+            # TODO: This doesn't scroll horizontally or scroll frames
             def scroll_browser():
                 try:
-                    browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                    browser.execute_script("window.scrollTo(0, 0);")
+                    scroll_delay = browser.execute_script("""
+                        // Scroll down the page in a series of jumps the size of the window height.
+                        // The actual scrolling is done in a setTimeout with a 50ms delay so the browser has
+                        // time to render at each position.
+                        var delay=50,
+                            height=document.body.scrollHeight,
+                            jump=window.innerHeight,
+                            scrollTo=function(scrollY){ window.scrollTo(0, scrollY) },
+                            i=1;
+                        for(;i*jump<height;i++){
+                            setTimeout(scrollTo, i*delay, i*jump);
+                        }
+
+                        // Scroll back to top before taking screenshot.
+                        setTimeout(scrollTo, i*delay, 0);
+
+                        // Return how long all this scrolling will take.
+                        return (i*delay)/1000;
+                    """)
+
+                    # In python, wait for javascript background scrolling to finish.
+                    time.sleep(min(scroll_delay,1))
                 except WebDriverException:
                     pass
             repeat_while_exception(scroll_browser)

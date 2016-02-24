@@ -53,16 +53,25 @@ def git(*args):
 @task
 def tag_new_release(tag):
     """
-        Roll develop into master and tag it
+        Roll develop into master and tag it.
     """
-    local("git checkout master")
-    local("git merge develop -m 'Tagging %s. Merging develop into master'" % tag)
-    local("git tag -a %s -m '%s'" % (tag, tag))
-    local("git push --tags")
-    local("git push")
-    local("git push upstream master:master")
-    local("git push upstream --tags")
-    local("git checkout develop")
+    current_branch = local("git rev-parse --abbrev-ref HEAD", capture=True)
+    try:
+        # check out upstream/master
+        local("git fetch")
+        local("git checkout upstream/master")
+
+        # merge upstream/develop and push changes to master
+        local("git merge upstream/develop -m 'Tagging %s. Merging develop into master'" % tag)
+        local("git push upstream HEAD:master")
+
+        # tag release and push tag
+        local("git tag -a %s -m '%s'" % (tag, tag))
+        local("git push upstream --tags")
+
+    finally:
+        # switch back to the branch you were on
+        local("git checkout %s" % current_branch)
 
 
 @task
@@ -106,7 +115,7 @@ def local_backup_database(backup_dir):
     temp_password_file = tempfile.NamedTemporaryFile()
     temp_password_file.write("[client]\nuser=%s\npassword=%s\n" % (LOCAL_DB_SETTINGS['USER'], LOCAL_DB_SETTINGS['PASSWORD']))
     temp_password_file.flush()
-    local("mysqldump --defaults-extra-file=%s -h%s %s | gzip > %s" % (
+    local("mysqldump --defaults-extra-file=%s -h%s --ignore-table=perma.perma_cdxline %s | gzip > %s" % (
         temp_password_file.name,
         LOCAL_DB_SETTINGS['HOST'],
         LOCAL_DB_SETTINGS['NAME'],

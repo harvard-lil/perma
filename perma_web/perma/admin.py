@@ -29,7 +29,7 @@ class RegistrarAdmin(SimpleHistoryAdmin):
     list_display = ['name', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'latitude', 'longitude', 'registrar_users', 'last_active', 'orgs_count']
     list_editable = ['show_partner_status', 'partner_display_name', 'latitude', 'longitude']
     fieldsets = (
-        (None, {'fields': ('name', 'email', 'website', 'default_organization', 'is_approved')}),
+        (None, {'fields': ('name', 'email', 'website', 'is_approved')}),
         ("Partner Display", {'fields': ('show_partner_status', 'partner_display_name', 'logo', 'latitude', 'longitude')}),
     )
     inlines = [
@@ -89,7 +89,6 @@ class LinkUserChangeForm(UserChangeForm):
         model = LinkUser
 
     def __init__(self, *args, **kwargs):
-        del self.base_fields['username']
         super(LinkUserChangeForm, self).__init__(*args, **kwargs)
 
     def clean(self):

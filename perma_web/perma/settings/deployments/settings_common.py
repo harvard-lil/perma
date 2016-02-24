@@ -109,7 +109,7 @@ PIPELINE_JS = {
     # scripts included in the head of archive pages
     'global_archive_head': {
         'source_filenames': (
-            'js/local-datetime.js',
+            'js/helpers/local-datetime.js',
         ),
         'output_filename': 'js/global-archive-head.js',
     },
