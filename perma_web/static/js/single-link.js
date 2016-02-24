@@ -4,10 +4,13 @@ $(document).ready(function() {
         $('header').toggleClass('_activeDetails');
     });
 
-  	function adjustTopMargin() {
+    function adjustTopMargin() {
       var $wrapper = $('.capture-wrapper');
-      $wrapper.css('margin-top', $('header').height());
-  	}
+      var $screenshoterror = $('.screenshot-error');
+      var headerHeight = $('header').height()
+      $wrapper.css('margin-top', headerHeight);
+      $screenshoterror.css('margin-top', headerHeight + 30)
+    }
 
     adjustTopMargin();
 
