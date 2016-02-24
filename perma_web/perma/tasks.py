@@ -15,7 +15,7 @@ from selenium import webdriver
 from selenium.common.exceptions import WebDriverException, NoSuchElementException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.proxy import ProxyType, Proxy
-import datetime
+from datetime import datetime, timedelta
 import logging
 import robotparser
 import time
@@ -29,6 +29,8 @@ from warcprox.controller import WarcproxController
 from warcprox.warcprox import WarcProxyHandler, WarcProxy, ProxyingRecorder
 from warcprox.warcwriter import WarcWriter, WarcWriterThread
 
+
+from django.utils import timezone
 from django.core.files.storage import default_storage
 from django.core.mail import send_mail
 from django.template.loader import get_template
@@ -541,87 +543,54 @@ def proxy_capture(self, link_guid, user_agent=''):
 
     print "%s capture done." % link_guid
 
+
 @shared_task()
 def update_stats():
     """
-    run once per minute by celerybeat
-
-    if midnight, remove all MinuteStats
-    if sunday at midnight, close the open week, and open a new week
-
-    count all archives, users, orgs, and registrars created in the last minute
-    if we have non-zeros, log in perma.models.MinuteStats and update this weeks
-    sums in perma.models.WeeklyStats
+    run once per minute by celerybeat. logs our minute-by-minute activity,
+    and also rolls our weekly stats (perma.models.WeekStats)
     """
 
+    # On the first minute of the new week, roll our weekly stats entry
+    now = timezone.now()
+    if now.weekday() == 6 and now.hour == 0 and now.minute == 0:
+        week_to_close = WeekStats.objects.latest('start_date')
+        week_to_close(end_date=now)
+        new_week = WeekStats(start_date=now)
+        new_week.save()
+
+
+    # We only need to keep a day of data for our visualization.
+    # TODO: this is 1560 minutes is 26 hours, that likely doesn't
+    # cover everyone outside of the east coast. Our vis should
+    # be timezone aware. Fix this.
     if MinuteStats.objects.all().count() == 1560:
-        MinuteStats.objects.all()[1560].delete()
+        MinuteStats.objects.all()[1559].delete()
 
 
-            num_links = models.IntegerField(default=1)
-    num_users = models.IntegerField(default=1)
-    num_organizations = models.IntegerField(default=1)
-    num_registrars = models.IntegerField(default=1)
+    # Add our new minute measurements
+    a_minute_ago = now - timedelta(seconds=60)
+
+    links_sum = Link.objects.filter(creation_timestamp__gt=a_minute_ago).count()
+    users_sum = LinkUser.objects.filter(date_joined__gt=a_minute_ago).count()
+    organizations_sum = Organization.objects.filter(date_created__gt=a_minute_ago).count()
+    registrars_sum = Registrar.objects.filter(date_created__gt=a_minute_ago).count()
+
+    new_minute_stat = MinuteStats(links_sum=links_sum, users_sum=users_sum,
+        organizations_sum=organizations_sum, registrars_sum=registrars_sum)
+    new_minute_stat.save()
 
 
-    total_count_regular_users = LinkUser.objects.filter().count()
+    # Add our minute activity to our current weekly sum
+    if links_sum or users_sum or organizations_sum or registrars_sum:
+        current_week = WeekStats.objects.latest('start_date')
+        current_week.end_date = now
+        current_week.links_sum += links_sum
+        current_week.users_sum += users_sum
+        current_week.organizations_sum += organizations_sum
+        current_week.registrars_sum += registrars_sum
+        current_week.save()
 
-
-    MinuteStats(num_links)
-
-
-
-
-
-    """
-    # Five types user accounts
-    total_count_regular_users = LinkUser.objects.filter(is_staff=False, organizations=None, registrar_id=None).count()
-    total_count_org_members = LinkUser.objects.exclude(organizations=None).count()
-    total_count_registrar_members = LinkUser.objects.exclude(registrar_id=None).count()
-    total_count_registry_members = LinkUser.objects.filter(is_staff=True).count()
-    
-    # Registrar count
-    total_count_registrars = Registrar.objects.all().count()
-    
-    # Journal account
-    total_orgs = Organization.objects.all().count()
-    
-    # Our links
-    total_count_links = Link.objects.filter(is_private=False).count()
-    
-    # Get the path of yesterday's file storage tree
-    now = datetime.datetime.now() - datetime.timedelta(days=1)
-    time_tuple = now.timetuple()
-    path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday)]
-    disk_path = settings.MEDIA_ROOT + '/' + os.path.sep.join(path_elements)
-    
-    # Get disk usage total
-    # We'll likley get a sum wrong at some point here and we should have some logic for corrections
-    # Get the sum of the diskspace of all files in yesterday's tree
-    latest_day_usage = 0
-    for root, dirs, files in os.walk(disk_path):
-        latest_day_usage = latest_day_usage + sum(os.path.getsize(os.path.join(root, name)) for name in files)
-        
-    # Get the total disk usage (that we calculated yesterday)
-    last_stat = Stat.objects.all().order_by('-creation_timestamp').first()
-    
-    # Sum total usage with yesterday's usage
-    new_total_disk_usage = latest_day_usage + (last_stat.disk_usage if last_stat else 0)
-    
-    # We've now gathered all of our data. Let's write it to the model
-    stat = Stat(
-        regular_user_count=total_count_regular_users,
-        org_member_count=total_count_org_members,
-        registrar_member_count=total_count_registrar_members,
-        registry_member_count=total_count_registry_members,
-        registrar_count=total_count_registrars,
-        org_count=total_orgs,
-        link_count=total_count_links,
-        disk_usage = new_total_disk_usage,
-        )
-
-    stat.save()
-    """
 
 @shared_task(
     bind=True,

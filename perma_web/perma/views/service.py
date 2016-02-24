@@ -1,7 +1,9 @@
-import json, logging, csv
+import json, logging, csv, pytz
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.core.mail import send_mail
+from django.core import serializers
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 from django.http import HttpResponse
@@ -9,9 +11,10 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import redirect, render_to_response
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 
 from perma.models import Link, WeekStats, MinuteStats
-from perma.utils import send_contact_email
+from perma.utils import send_contact_email, json_serial
 
 
 logger = logging.getLogger(__name__)
@@ -39,67 +42,58 @@ def email_confirm(request):
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=200)
 
-def stats_users(request):
-    """
-    Retrieve nightly stats for users in the DB, dump them out here so that our D3 vis can render them, real-purty-like
-    
-    #TODO: rework this and its partnering D3 code. Writing CSV is gross. Serialize to JSON and update our D3 method in stats.html
-    """
-    
-    # Get the 1000 most recent.
-    # TODO: if we make it more than a 1000 days, implement some better interface.
-    stats = Stat.objects.only(
-        'creation_timestamp',
-        'regular_user_count',
-        'org_member_count',
-        'registrar_member_count',
-        'registry_member_count')[:1000]
-    
-    response = HttpResponse()
-    response['Content-Disposition'] = 'attachment; filename="data.tsv"'
-    
-    headers = ['key', 'value', 'date']
-
-    writer = csv.writer(response, delimiter='\t')
-    writer.writerow(headers)
-    
-    for stat in stats:
-        writer.writerow(['Regular user', stat.regular_user_count, stat.creation_timestamp.strftime('%d-%b-%y')])
-        writer.writerow(['Organization member', stat.org_member_count, stat.creation_timestamp.strftime('%d-%b-%y')])
-        writer.writerow(['Registrar member', stat.registrar_member_count, stat.creation_timestamp.strftime('%d-%b-%y')])
-        writer.writerow(['Registry member', stat.registry_member_count, stat.creation_timestamp.strftime('%d-%b-%y')])
-    
-    return response
-
 def stats_sums(request):
     """
-    
-    """   
+    Get all of our weekly stats and serve them up here. The visualizations
+    in our stats dashboard consume these.
+    """
+
+    raw_data = serializers.serialize('python', WeekStats.objects.all().order_by('start_date'))
+
+    # serializers.serialize wraps our key/value pairs in a 'fields' key. extract.
+    extracted_fields = [d['fields'] for d in raw_data]
+
+    return HttpResponse(json.dumps(extracted_fields, default=json_serial), content_type="application/json", status=200)
 
 
 def stats_now(request):
     """
-    Serve up 
+    Serve up our up-to-the-minute stats. 
+    Todo: make this time-zone friendly.
     """
 
-    # Get the 1000 most recent.
-    # TODO: if we make it more than a 1000 days, implement some better interface.
-    """stats = Stat.objects.only('registrar_count')[:1000]
+    # Get all events since minute one of this day in NY
+    # this is where we should get the timezone from the client's browser (JS post on stats page load)
+    ny = pytz.timezone('America/New_York')
+    ny_now = timezone.now().astimezone(ny)
 
-    response = HttpResponse()
-    response['Content-Disposition'] = 'attachment; filename="data.tsv"'
-
-    headers = ['date', 'close']
-
-    writer = csv.writer(response, delimiter='\t')
-    writer.writerow(headers)
-
-    for stat in stats:
-        writer.writerow([stat.creation_timestamp.strftime('%d-%b-%y'), stat.registrar_count])
+    todays_events = MinuteStats.objects.filter(creation_timestamp__year=ny_now.year,
+            creation_timestamp__month=ny_now.month, creation_timestamp__day=ny_now.day)
 
 
-    return response
-    """
+    # Package our data in a way that's easy to parse in our JS visualization
+    links = []
+    users = []
+    organizations = []
+    registrars = []
+
+    for event in todays_events:
+        if event.links_sum:
+            links.append(event.creation_timestamp.hour * event.creation_timestamp.minute)
+
+        if event.users_sum:
+            users.append(event.creation_timestamp.hour * event.creation_timestamp.minute)
+
+        if event.organizations_sum:
+            organizations.append(event.creation_timestamp.hour * event.creation_timestamp.minute)
+
+        if event.registrars_sum:
+            registrars.append(event.creation_timestamp.hour * event.creation_timestamp.minute)
+
+        #do the same for users, orgs, libraries
+
+    return HttpResponse(json.dumps({'links': links, 'users': users, 'organizations': organizations, 'registrars': registrars}), content_type="application/json", status=200)
+
 
 def bookmarklet_create(request):
     '''Handle incoming requests from the bookmarklet.

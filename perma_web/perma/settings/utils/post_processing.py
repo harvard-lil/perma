@@ -25,7 +25,7 @@ def post_process_settings(settings):
     # add the named celerybeat jobs
     celerybeat_job_options = {
         # primary server
-        'get-nightly-stats': {
+        'update-stats': {
             'task': 'perma.tasks.update_stats',
             'schedule': crontab(minute='*'),
         },

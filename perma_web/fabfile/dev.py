@@ -181,7 +181,7 @@ def build_week_stats():
 
         # if this is a saturday, write our sums and reset our counts
         if date_of_stats.weekday() == 5:
-            week_of_stats = WeekStats(start_date=start_date,  end_date=date_of_stats, links_sum=links_this_week,
+            week_of_stats = WeekStats(start_date=start_date, end_date=date_of_stats, links_sum=links_this_week,
                 users_sum=users_this_week, organizations_sum=orgs_this_week, registrars_sum=registrars_this_week)
             week_of_stats.save()
 

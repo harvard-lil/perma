@@ -996,8 +996,8 @@ class WeekStats(models.Model):
     Our stats dashboard displays weekly stats. Let's house those here.
     """
 
-    start_date = models.DateTimeField(auto_now_add=True)
-    end_date = models.DateTimeField(auto_now_add=True)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
 
     links_sum = models.IntegerField(default=0)
     users_sum = models.IntegerField(default=0)

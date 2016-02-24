@@ -46,7 +46,6 @@ urlpatterns = patterns('perma.views',
     
     #Services
     url(r'^service/email-confirm/?$', 'service.email_confirm', name='service_email_confirm'),
-    url(r'^service/receive-feedback/?$', 'service.receive_feedback', name='service_receive_feedback'),
     url(r'^service/stats/sums/?$', 'service.stats_sums', name='service_stats_sums'),
     url(r'^service/stats/now/?$', 'service.stats_now', name='service_stats_now'),
     url(r'^service/bookmarklet-create/$', 'service.bookmarklet_create', name='service.bookmarklet_create'),

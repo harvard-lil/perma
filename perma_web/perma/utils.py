@@ -3,6 +3,7 @@ import operator
 import os
 import struct
 import tempdir
+from datetime import datetime
 
 from django.core.mail import EmailMessage
 from django.core.paginator import Paginator
@@ -170,3 +171,15 @@ User agent: %s
         [settings.DEFAULT_FROM_EMAIL],
         headers={'Reply-To': from_address}
     ).send(fail_silently=False)
+
+def json_serial(obj):
+        """
+        JSON serializer for objects not serializable by default json code
+
+        Thanks, http://stackoverflow.com/a/22238613
+        """
+
+        if isinstance(obj, datetime):
+            serial = obj.isoformat()
+            return serial
+        raise TypeError ("Type not serializable")
