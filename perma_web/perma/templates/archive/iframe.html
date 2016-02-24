@@ -24,12 +24,10 @@
         {% if capture.role == 'screenshot' %}
           <img src="{{ capture.playback_url }}" style="display:block; margin: 0 auto;"/>
         {% else %}
-          <p class="screenshot-error">Unable to create a screenshot of <a class="submitted_url" href="{{link.submitted_url}}">{{link.submitted_url}}</a></p>
-
-		    <iframe class="archive-iframe" src="{{ capture.playback_url }}" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}>
-		        <p>Unable to create a live view of <a class="submitted_url" href="{{link.submitted_url}}">{{link.submitted_url}}</a></p>
-		    </iframe>
-			</div>
-		</div>
-		{% endif %}
+          <iframe class="archive-iframe" src="{{ capture.playback_url }}" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}>
+              <p>Unable to create a live view of <a class="submitted_url" href="{{link.submitted_url}}">{{link.submitted_url}}</a></p>
+          </iframe>
+      </div>
+    </div>
+    {% endif %}
 {% endif %}
