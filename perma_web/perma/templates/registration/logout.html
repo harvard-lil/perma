@@ -15,3 +15,12 @@ You have been logged out.
 	</div>
 </div>
 {% endblock mainContent %}
+
+{% block scripts %}
+    {{ block.super }}
+
+    {# wipe javascript-based logged-in user data #}
+    <script>
+        localStorage.clear();
+    </script>
+{% endblock %}
