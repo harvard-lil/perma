@@ -285,7 +285,9 @@ $(function() {
   }
 
   function moveLink(folderID, linkID) {
-    return apiRequest("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function(){
+
+    return apiRequest("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function(data){
+      $(window).trigger("updateLinksRemaining", data.links_remaining);
       // once we're done moving the link, hide it from the current folder
       $('.item-row[link_id="'+linkID+'"]').closest('.item-container').remove();
     });
