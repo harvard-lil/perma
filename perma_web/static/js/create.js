@@ -450,7 +450,6 @@ $(document).ready(function() {
 
         updateLinker();
         updateAffiliationPath(orgId, path);
-		});
     });
     $(window).on("updateLinksRemaining", function(evt, data){
       links_remaining = data
