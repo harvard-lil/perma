@@ -27,7 +27,7 @@ from urlparse import urlparse
 import requests
 from ratelimit.decorators import ratelimit
 
-from ..models import Link, Asset, Registrar, Organization, LinkUser
+from ..models import Link, Registrar, Organization, LinkUser
 from perma.forms import ContactForm
 from perma.utils import if_anonymous, send_contact_email
 
@@ -145,9 +145,6 @@ def single_linky(request, guid):
 
     # serve raw WARC
     if serve_type == 'warc_download':
-        # TEMP: remove this line after all legacy warcs have been exported
-        if not default_storage.exists(link.warc_storage_file()):
-            link.export_warc()
 
         response = StreamingHttpResponse(FileWrapper(default_storage.open(link.warc_storage_file()), 1024 * 8),
                                          content_type="application/gzip")
