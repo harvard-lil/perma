@@ -153,7 +153,7 @@ def build_week_stats():
     from datetime import datetime, timedelta
     from django.utils import timezone
 
-    oldest_link = Link.objects.all().order_by('creation_timestamp')[0]
+    oldest_link = Link.objects.earliest('creation_timestamp')
 
     # this is always the end date in our range, usually a saturday
     date_of_stats = oldest_link.creation_timestamp

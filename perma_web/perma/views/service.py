@@ -70,7 +70,6 @@ def stats_now(request):
     todays_events = MinuteStats.objects.filter(creation_timestamp__year=ny_now.year,
             creation_timestamp__month=ny_now.month, creation_timestamp__day=ny_now.day)
 
-
     # Package our data in a way that's easy to parse in our JS visualization
     links = []
     users = []
@@ -79,20 +78,20 @@ def stats_now(request):
 
     for event in todays_events:
         if event.links_sum:
-            links.append(event.creation_timestamp.hour * event.creation_timestamp.minute)
+            tz_adjusted = event.creation_timestamp.astimezone(ny)
+            links.append(tz_adjusted.hour * 60 + tz_adjusted.minute)
 
         if event.users_sum:
-            users.append(event.creation_timestamp.hour * event.creation_timestamp.minute)
+            users.append(tz_adjusted.hour * 60 + tz_adjusted.minute)
 
         if event.organizations_sum:
-            organizations.append(event.creation_timestamp.hour * event.creation_timestamp.minute)
+            organizations.append(tz_adjusted.hour * 60 + tz_adjusted.minute)
 
         if event.registrars_sum:
-            registrars.append(event.creation_timestamp.hour * event.creation_timestamp.minute)
+            registrars.append(tz_adjusted.hour * 60 + tz_adjusted.minute)
 
-        #do the same for users, orgs, libraries
-
-    return HttpResponse(json.dumps({'links': links, 'users': users, 'organizations': organizations, 'registrars': registrars}), content_type="application/json", status=200)
+    return HttpResponse(json.dumps({'links': links, 'users': users, 'organizations': organizations,
+        'registrars': registrars}), content_type="application/json", status=200)
 
 
 def bookmarklet_create(request):
