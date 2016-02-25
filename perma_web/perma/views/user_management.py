@@ -34,7 +34,7 @@ from perma.forms import (
     UserFormSelfEdit, 
     SetPasswordForm, 
 )
-from perma.models import Registrar, LinkUser, Organization, Link
+from perma.models import Registrar, LinkUser, Organization
 from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_contact_email
 
 logger = logging.getLogger(__name__)
@@ -69,7 +69,7 @@ def manage_registrar(request):
 
     # handle annotations
     registrars = registrars.annotate(
-        created_links=Count('organizations__link',distinct=True),
+        created_links=Count('organizations__links',distinct=True),
         registrar_users=Count('users', distinct=True),
         last_active=Max('users__last_login'),
         orgs_count=Count('organizations',distinct=True),
@@ -181,20 +181,13 @@ def manage_organization(request):
     """
 
     is_registry = request.user.is_staff
-    orgs = Organization.objects.select_related('registrar')
+    orgs = Organization.objects.accessible_to(request.user).select_related('registrar')
 
     # handle sorting
     orgs, sort = apply_sort_order(request, orgs, valid_org_sorts)
 
     # handle search
     orgs, search_query = apply_search_query(request, orgs, ['name', 'registrar__name'])
-
-    # If not registry member, return just those orgs that belong to the registrar member's registrar
-    if not is_registry:
-        if request.user.is_registrar_member():
-            orgs = orgs.filter(registrar__id=request.user.registrar_id)
-        else:
-            orgs = orgs.filter(pk__in=request.user.organizations.all())
 
     # handle registrar filter
     registrar_filter = request.GET.get('registrar', '')
@@ -206,7 +199,7 @@ def manage_organization(request):
     orgs = orgs.annotate(
         organization_users=Count('users', distinct=True),
         last_active=Max('users__last_login'),
-        org_links=Count('link', distinct=True)
+        org_links=Count('links', distinct=True)
     )
 
     # get total user count
@@ -255,11 +248,10 @@ def manage_single_organization(request, org_id):
     """ Registry and registrar members can manage organizations (journals)
         in this view, we allow for edit/delete """
 
-    target_org = get_object_or_404(Organization, id=org_id)
-    
-    if request.user.is_organization_member:
-        if target_org not in request.user.organizations.all():
-            raise Http404
+    try:
+        target_org = Organization.objects.accessible_to(request.user).get(pk=org_id)
+    except Organization.DoesNotExist:
+        raise Http404
 
     context = {'target_org': target_org,
         'this_page': 'users_orgs'}
@@ -296,31 +288,24 @@ def manage_single_organization_delete(request, org_id):
     """
         Delete an empty org
     """
-
-    # temporarily disable route while we fix org deletion
-    raise Http404
-
-    target_org = get_object_or_404(Organization, id=org_id)
-    links = Link.objects.filter(organization = target_org)
-    users = LinkUser.objects.filter(organizations=target_org)
-        
-    context = {'target_org': target_org,
-               'this_page': 'users_orgs',
-               }
+    try:
+        target_org = Organization.objects.accessible_to(request.user).get(pk=org_id)
+    except Organization.DoesNotExist:
+        raise Http404
 
     if request.method == 'POST':
-        if links.count() > 0:
+        if target_org.links.count() > 0:
             raise Http404
-        else:
-            for user in users:
-                user.organizations.remove(target_org)
-            target_org.delete()
+
+        target_org.safe_delete()
+        target_org.save()
 
         return HttpResponseRedirect(reverse('user_management_manage_organization'))
 
-    context = RequestContext(request, context)
-
-    return render_to_response('user_management/organization_delete_confirm.html', context)
+    return render(request, 'user_management/organization_delete_confirm.html', {
+        'target_org': target_org,
+        'this_page': 'users_orgs',
+    })
 
 
 @login_required
@@ -800,8 +785,11 @@ def registry_user_add_user(request):
 @login_required
 @user_passes_test(lambda user: user.is_organization_member)
 def organization_user_leave_organization(request, org_id):
+    try:
+        org = Organization.objects.accessible_to(request.user).get(pk=org_id)
+    except Organization.DoesNotExist:
+        raise Http404
 
-    org = get_object_or_404(Organization, id=org_id)
     context = {'this_page': 'settings', 'user': request.user, 'org': org}
 
     if request.method == 'POST':
@@ -852,24 +840,17 @@ def delete_user_in_group(request, user_id, group_name):
 @user_passes_test(lambda user: user.is_registrar_member() or user.is_organization_member or user.is_staff)
 def manage_single_organization_user_remove(request, user_id):
     """
-        Basically demote an organization user to a regular user.
+        Remove an organization user from an org.
     """
 
     if request.method == 'POST':
 
-        print "post"
+        try:
+            org = Organization.objects.accessible_to(request.user).get(pk=request.POST.get('org'))
+        except Organization.DoesNotExist:
+            raise Http404
 
-        org = get_object_or_404(Organization, pk=request.POST.get('org'))
         target_user = get_object_or_404(LinkUser, id=user_id)
-
-        if request.user.is_organization_member and org not in request.user.organizations.all():
-            # An organization user should only be able to remove an organization user if they're in the org
-            raise Http404
-
-        elif request.user.is_registrar_member() and org.registrar != request.user.registrar:
-            # A registrar user should only be able to remove a organization user if they're the registrar for that org
-            raise Http404
-
         target_user.organizations.remove(org)
 
 
@@ -880,7 +861,7 @@ def manage_single_organization_user_remove(request, user_id):
 @user_passes_test(lambda user: user.is_registrar_member())
 def manage_single_registrar_user_remove(request, user_id):
     """
-        Basically demote a organization user to a regular user.
+        Remove a registrar user from a registrar.
     """
 
     target_member = get_object_or_404(LinkUser, id=user_id)
@@ -1069,7 +1050,10 @@ def settings_organizations(request):
         pending_registrar = None
         
     if request.method == 'POST':
-        org = get_object_or_404(Organization, pk=request.POST.get('org'))
+        try:
+            org = Organization.objects.accessible_to(request.user).get(pk=request.POST.get('org'))
+        except Organization.DoesNotExist:
+            raise Http404
         org.default_to_private = request.POST.get('default_to_private')
         org.save()
 
@@ -1085,8 +1069,10 @@ def settings_organizations(request):
 @login_required
 @user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
 def settings_organizations_change_privacy(request, org_id):
-
-    org = get_object_or_404(Organization, id=org_id)
+    try:
+        org = Organization.objects.accessible_to(request.user).get(pk=org_id)
+    except Organization.DoesNotExist:
+        raise Http404
     context = {'this_page': 'settings', 'user': request.user, 'org': org}
 
     if request.method == 'POST':

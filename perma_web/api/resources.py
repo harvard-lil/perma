@@ -475,8 +475,7 @@ class LinkResource(AuthenticatedLinkResource):
 
         self.authorized_delete_detail(self.get_object_list(bundle.request), bundle)
 
-        bundle.obj.user_deleted = True
-        bundle.obj.user_deleted_timestamp = timezone.now()
+        bundle.obj.safe_delete()
         bundle.obj.save()
 
     ###
