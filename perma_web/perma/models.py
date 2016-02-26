@@ -1,7 +1,6 @@
 import hashlib
 import io
 import json
-from mimetypes import MimeTypes
 import os
 import logging
 import random
@@ -20,7 +19,7 @@ import django.contrib.auth.models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
 from django.core.files.storage import default_storage
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.utils import timezone
@@ -30,12 +29,41 @@ from model_utils import FieldTracker
 from pywb.cdx.cdxobject import CDXObject
 from pywb.warc.cdxindexer import write_cdx_index
 
-from api.validations import get_mime_type
 from .utils import copy_file_data
 
 
 logger = logging.getLogger(__name__)
 
+
+### HELPERS ###
+
+class DeletableManager(models.Manager):
+    """
+        Manager that excludes results where user_deleted=True by default.
+    """
+    def get_queryset(self):
+        # exclude deleted entries by default
+        return super(DeletableManager, self).get_queryset().filter(user_deleted=False)
+
+    def all_with_deleted(self):
+        return super(DeletableManager, self).get_queryset()
+
+
+class DeletableModel(models.Model):
+    """
+        Abstract base class that lets a model track deletion.
+    """
+    user_deleted = models.BooleanField(default=False, verbose_name="Deleted by user")
+    user_deleted_timestamp = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        abstract = True
+
+    def safe_delete(self):
+        self.user_deleted = True
+        self.user_deleted_timestamp = timezone.now()
+
+### MODELS ###
 
 class Registrar(models.Model):
     """
@@ -65,19 +93,11 @@ class Registrar(models.Model):
 
 class OrganizationQuerySet(QuerySet):
     def accessible_to(self, user):
-        qset = Organization.objects.user_access_filter(user)
+        qset = self.user_access_filter(user)
         if qset is None:
             return self.none()
         else:
             return self.filter(qset)
-
-
-class OrganizationManager(models.Manager):
-    """
-        Org manager that can enforce user access perms.
-    """
-    def get_queryset(self):
-        return OrganizationQuerySet(self.model, using=self._db)
 
     def user_access_filter(self, user):
         if user.is_organization_member:
@@ -89,11 +109,11 @@ class OrganizationManager(models.Manager):
         else:
             return None
 
-    def accessible_to(self, user):
-        return self.get_queryset().accessible_to(user)
+
+OrganizationManager = DeletableManager.from_queryset(OrganizationQuerySet)
 
 
-class Organization(models.Model):
+class Organization(DeletableModel):
     """
     This is generally a journal.
     """
@@ -232,7 +252,7 @@ class LinkUser(AbstractBaseUser):
         if self.is_staff:
             return Organization.objects.all()
             
-        return []
+        return Organization.objects.none()
         
     def get_links_remaining(self):
         today = timezone.now()
@@ -336,17 +356,6 @@ for func_name in ['can_view', 'can_edit', 'can_delete', 'can_toggle_private']:
 
 
 class FolderQuerySet(QuerySet):
-    def accessible_to(self, user):
-        return self.filter(Folder.objects.user_access_filter(user))
-
-
-class FolderManager(models.Manager):
-    """
-        Folder manager that can enforce user access perms.
-    """
-    def get_queryset(self):
-        return FolderQuerySet(self.model, using=self._db)
-
     def user_access_filter(self, user):
         # personal folders
         filter = Q(owned_by=user)
@@ -359,7 +368,10 @@ class FolderManager(models.Manager):
         return filter
 
     def accessible_to(self, user):
-        return self.get_queryset().accessible_to(user)
+        return self.filter(self.user_access_filter(user))
+
+
+FolderManager = models.Manager.from_queryset(FolderQuerySet)
 
 
 class Folder(MPTTModel):
@@ -428,28 +440,6 @@ class Folder(MPTTModel):
 
 
 class LinkQuerySet(QuerySet):
-    def accessible_to(self, user):
-        return self.filter(Link.objects.user_access_filter(user))
-
-    def discoverable(self):
-        """ Limit queryset to Links that can be publicly found by searching. """
-        return self.filter(is_unlisted=False, is_private=False)
-
-
-class LinkManager(models.Manager):
-    """
-        Link manager that can enforce user access perms.
-    """
-    def get_queryset(self):
-        # exclude deleted entries by default
-        return LinkQuerySet(self.model, using=self._db).filter(user_deleted=False)
-
-    def all_with_deleted(self):
-        return super(LinkManager, self).get_queryset()
-
-    def deleted_set(self):
-        return super(LinkManager, self).get_queryset().filter(user_deleted=True)
-
     def user_access_filter(self, user):
         """
             User can see/modify a link if they created it or it is in an org folder they belong to.
@@ -465,17 +455,21 @@ class LinkManager(models.Manager):
         return filter
 
     def accessible_to(self, user):
-        return self.get_queryset().accessible_to(user)
+        return self.filter(self.user_access_filter(user))
 
     def discoverable(self):
         """ Limit queryset to Links that can be publicly found by searching. """
-        return self.get_queryset().discoverable()
+        return self.filter(is_unlisted=False, is_private=False)
+
+
+LinkManager = DeletableManager.from_queryset(LinkQuerySet)
+
 
 HEADER_CHECK_TIMEOUT = 10
 # This is the PhantomJS default agent
 USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X) AppleWebKit/534.34 (KHTML, like Gecko) PhantomJS/1.9.0 (development) Safari/534.34"
 
-class Link(models.Model):
+class Link(DeletableModel):
     """
     This is the core of the Perma link.
     """
@@ -485,9 +479,7 @@ class Link(models.Model):
     creation_timestamp = models.DateTimeField(default=timezone.now, editable=False)
     submitted_title = models.CharField(max_length=2100, null=False, blank=False)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='created_links',)
-    user_deleted = models.BooleanField(default=False)
-    user_deleted_timestamp = models.DateTimeField(null=True, blank=True)
-    organization = models.ForeignKey(Organization, null=True, blank=True)
+    organization = models.ForeignKey(Organization, null=True, blank=True, related_name='links')
     folders = models.ManyToManyField(Folder, related_name='links', blank=True)
     notes = models.TextField(blank=True)
 
@@ -781,67 +773,6 @@ class Link(models.Model):
         default_storage.store_file(out, self.warc_storage_file(), overwrite=True)
         out.close()
 
-    @transaction.atomic
-    def export_warc(self):
-        # by using select_for_update and checking for existence of this file,
-        # we make sure that we won't accidentally try to create the file multiple
-        # times in parallel.
-        asset = self.assets.select_for_update().first()
-        if not asset:
-            return  # this is not an old-style Link
-        if default_storage.exists(self.warc_storage_file()):
-            return
-
-        guid = self.guid
-        out = self.open_warc_for_writing()
-
-        def write_resource_record(file_path, url, content_type):
-            self.write_warc_resource_record(
-                default_storage.open(file_path),
-                url.encode('utf8'),
-                content_type,
-                default_storage.created_time(file_path),
-                out)
-
-        def write_metadata_record(metadata, target_headers):
-            concurrent_to = (v for k, v in target_headers if k == warctools.WarcRecord.ID).next()
-            warc_date = (v for k, v in target_headers if k == warctools.WarcRecord.DATE).next()
-            url = (v for k, v in target_headers if k == warctools.WarcRecord.URL).next()
-            self.write_warc_metadata_record(metadata, url, concurrent_to, warc_date, out)
-
-        # write PDF capture
-        if asset.pdf_capture and ('cap' in asset.pdf_capture or 'upload' in asset.pdf_capture):
-            file_path = os.path.join(asset.base_storage_path, asset.pdf_capture)
-            headers = write_resource_record(file_path, "file:///%s/%s" % (guid, asset.pdf_capture), 'application/pdf')
-            #write_metadata_record({'role':'primary', 'user_upload':asset.user_upload}, headers)
-
-        # write image capture (if it's not a PDF thumbnail)
-        elif (asset.image_capture and ('cap' in asset.image_capture or 'upload' in asset.image_capture)):
-            file_path = os.path.join(asset.base_storage_path, asset.image_capture)
-            mime_type = get_mime_type(asset.image_capture)
-            write_resource_record(file_path, "file:///%s/%s" % (guid, asset.image_capture), mime_type)
-
-        if asset.warc_capture:
-            # write WARC capture
-            if asset.warc_capture == 'archive.warc.gz':
-                file_path = os.path.join(asset.base_storage_path, asset.warc_capture)
-                self.write_warc_raw_data(default_storage.open(file_path), out)
-
-            # write wget capture
-            elif asset.warc_capture == 'source/index.html':
-                mime = MimeTypes()
-                for root, dirs, files in default_storage.walk(os.path.join(asset.base_storage_path, 'source')):
-                    rel_path = root.split(asset.base_storage_path, 1)[-1]
-                    for file_name in files:
-                        mime_type = mime.guess_type(file_name)[0]
-                        write_resource_record(os.path.join(root, file_name),
-                                              "file:///%s%s/%s" % (guid, rel_path, file_name), mime_type)
-
-        self.close_warc_after_writing(out)
-
-        # regenerate CDX index
-        self.cdx_lines.all().delete()
-
     def replay_url(self, url):
         """
             Given a URL contained in this WARC, return the headers and data as played back by pywb.
@@ -934,59 +865,6 @@ class Capture(models.Model):
         return u"%s%s%s" % (self.link.base_playback_url(), "id_/" if self.record_type == 'resource' else "", self.url)
 
 
-class Asset(models.Model):
-    """
-    Our archiving logic generates a bunch of different assets. We store those on disk. We use
-    this class to track those locations.
-    """
-    link = models.ForeignKey(Link, null=False, related_name='assets')
-    base_storage_path = models.CharField(max_length=2100, null=True, blank=True)  # where we store these assets, relative to some base in our settings
-    favicon = models.CharField(max_length=2100, null=True, blank=True)  # Retrieved favicon
-    image_capture = models.CharField(max_length=2100, null=True, blank=True)  # Headless browser image capture
-    warc_capture = models.CharField(max_length=2100, null=True, blank=True)  # source capture
-    pdf_capture = models.CharField(max_length=2100, null=True, blank=True)  # We capture a PDF version (through a user upload or through our capture)
-
-    user_upload = models.BooleanField(
-        default=False)  # whether the user uploaded this file or we fetched it from the web
-    user_upload_file_name = models.CharField(max_length=2100, null=True, blank=True)  # if user upload, the original file name of the upload
-
-    tracker = FieldTracker()
-
-    CAPTURE_STATUS_PENDING = 'pending'
-    CAPTURE_STATUS_FAILED = 'failed'
-
-    def __init__(self, *args, **kwargs):
-        super(Asset, self).__init__(*args, **kwargs)
-        if self.link_id and not self.base_storage_path:
-            self.base_storage_path = self.link.generate_storage_path()
-
-    def base_url(self, extra=u""):
-        return "%s/%s" % (self.base_storage_path, extra)
-
-    def favicon_url(self):
-        return self.base_url(self.favicon)
-
-    def resource_url(self, url):
-        return "id_/file:///%s/%s" % (self.link_id, url)
-
-    def image_url(self):
-        return self.resource_url(self.image_capture)
-
-    def pdf_url(self):
-        return self.resource_url(self.pdf_capture)
-
-    def warc_url(self):
-        if self.warc_capture and self.warc_capture=='archive.warc.gz':
-            return self.link.submitted_url
-        else:
-            return self.resource_url(self.warc_capture)
-
-    def warc_download_url(self):
-        if '.warc' in self.warc_capture:
-            return self.base_url(self.warc_capture)
-        return None
-
-
 #########################
 # Stats related models
 #########################
@@ -1033,7 +911,6 @@ class CDXLineManager(models.Manager):
 
 class CDXLine(models.Model):
     link = models.ForeignKey(Link, null=True, related_name='cdx_lines')
-    asset = models.ForeignKey(Asset, null=True, related_name='cdx_lines')
     urlkey = models.CharField(max_length=2100, null=False, blank=False)
     raw = models.TextField(null=False, blank=False)
 

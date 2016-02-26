@@ -39,7 +39,7 @@ from django.template.defaultfilters import truncatechars
 from django.forms.models import model_to_dict
 from django.conf import settings
 
-from perma.models import Asset, WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture
+from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture
 
 
 logger = logging.getLogger(__name__)

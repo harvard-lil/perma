@@ -56,17 +56,17 @@ $(function() {
 
     // When a user uploads their own capture
     $('#archive_upload_form').submit(function() {
-        var extraUploadData = {},
-            selectedFolder = getLocallyStoredSelectionSettings();
-        if(selectedFolder)
-            extraUploadData.folder = selectedFolder.folderId;
-        $(this).ajaxSubmit({
-            data: extraUploadData,
-            success: uploadIt,
-            error: uploadNot
-        });
+      var extraUploadData = {},
+          selectedFolder = getUserSelectionSettings();
+      if(selectedFolder)
+          extraUploadData.folder = selectedFolder.folderId;
+      $(this).ajaxSubmit({
+          data: extraUploadData,
+          success: uploadIt,
+          error: uploadNot
+      });
 
-        return false;
+      return false;
     });
 
 
@@ -387,30 +387,31 @@ function updateLinker () {
 }
 
 function updateAffiliationPath(currentOrg, path) {
-		if (!path) { return; }
+  if (!path) { return; }
 
-		var stringPath = path.join(" &gt; ");
-		stringPath += "<span></span>";
+  var stringPath = path.join(" &gt; ");
+  stringPath += "<span></span>";
 
-		$('#organization_select_form')
-			.find('.dropdown-toggle')
-			.html(stringPath);
+  $('#organization_select_form')
+    .find('.dropdown-toggle')
+    .html(stringPath);
 
-		if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
-			$('#organization_select_form')
-			.find('.dropdown-toggle > span')
-			.addClass('ui-private');
-		}
+  if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
+    $('#organization_select_form')
+    .find('.dropdown-toggle > span')
+    .addClass('ui-private');
+  }
 
-    if (!currentOrg) {
-        $('#organization_select_form')
-            .find('.dropdown-toggle > span')
-            .addClass('links-remaining')
-            .text(links_remaining);
-    }
-
+  if (!currentOrg || currentOrg === "None") {
+    $('#organization_select_form')
+      .find('.dropdown-toggle > span')
+      .addClass('links-remaining')
+      .text(links_remaining);
+  }
 }
-
+function updateLinksRemaining (links_remaining) {
+  $('.links-remaining').text(links_remaining);
+}
 
 /* Selecting a folder - end */
 
@@ -449,7 +450,11 @@ $(document).ready(function() {
 
         updateLinker();
         updateAffiliationPath(orgId, path);
-		});
+    });
+    $(window).on("updateLinksRemaining", function(evt, data){
+      links_remaining = data
+      updateLinksRemaining(links_remaining)
+    })
 });
 
 

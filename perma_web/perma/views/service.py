@@ -114,24 +114,6 @@ def bookmarklet_create(request):
     add_url = add_url + querystring
     return redirect(add_url)
 
-def image_wrapper(request, guid):
-    """
-    When we display an image, our display logic is greatly simplified if we
-    display our archived image in an iframe. That's all we do here, take
-    an archived image and wrap it in a page that we server through an iframe
-    """
-
-    asset = Asset.objects.get(link__guid=guid)
-
-    # find requested link and url
-    try:
-        asset = Asset.objects.get(link__guid=guid)
-    except Link.DoesNotExist:
-        print "COULDN'T FIND LINK"
-        raise Http404
-
-    return render_to_response('archive/image_wrapper.html', {'asset': asset}, RequestContext(request))
-
 @login_required
 def get_thumbnail(request, guid):
     """
