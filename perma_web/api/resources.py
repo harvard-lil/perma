@@ -462,7 +462,8 @@ class LinkResource(AuthenticatedLinkResource):
 
         if bundle.data.get('folder', None):
             bundle.obj.move_to_folder_for_user(bundle.data['folder'], bundle.request.user)
-
+        links_remaining = bundle.request.user.get_links_remaining()
+        bundle.data['links_remaining'] = links_remaining
         return bundle
 
     # https://github.com/toastdriven/django-tastypie/blob/ec16d5fc7592efb5ea86321862ec0b5962efba1b/tastypie/resources.py#L2194

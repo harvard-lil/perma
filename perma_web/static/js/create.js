@@ -409,7 +409,9 @@ function updateAffiliationPath(currentOrg, path) {
       .text(links_remaining);
   }
 }
-
+function updateLinksRemaining (links_remaining) {
+  $('.links-remaining').text(links_remaining);
+}
 
 /* Selecting a folder - end */
 
@@ -448,7 +450,11 @@ $(document).ready(function() {
 
         updateLinker();
         updateAffiliationPath(orgId, path);
-		});
+    });
+    $(window).on("updateLinksRemaining", function(evt, data){
+      links_remaining = data
+      updateLinksRemaining(links_remaining)
+    })
 });
 
 

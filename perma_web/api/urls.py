@@ -30,11 +30,11 @@ v1_api = Api(api_name='v1')
 v1_api.register(PublicLinkResource())
 
 # /archives
+# /folders/<id>/archives
 v1_api.register(LinkResource())
 
 # /folders
 # /folders/<id>/folders
-# /folders/<id>/archives
 v1_api.register(FolderResource())
 
 # /user
