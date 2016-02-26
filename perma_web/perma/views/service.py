@@ -66,9 +66,9 @@ def stats_now(request):
     # this is where we should get the timezone from the client's browser (JS post on stats page load)
     ny = pytz.timezone('America/New_York')
     ny_now = timezone.now().astimezone(ny)
+    midnight_ny = ny_now.replace(hour=0, minute=0, second=0)
 
-    todays_events = MinuteStats.objects.filter(creation_timestamp__year=ny_now.year,
-            creation_timestamp__month=ny_now.month, creation_timestamp__day=ny_now.day)
+    todays_events = MinuteStats.objects.filter(creation_timestamp__gte=midnight_ny)
 
     # Package our data in a way that's easy to parse in our JS visualization
     links = []
@@ -77,8 +77,8 @@ def stats_now(request):
     registrars = []
 
     for event in todays_events:
+        tz_adjusted = event.creation_timestamp.astimezone(ny)
         if event.links_sum:
-            tz_adjusted = event.creation_timestamp.astimezone(ny)
             links.append(tz_adjusted.hour * 60 + tz_adjusted.minute)
 
         if event.users_sum:
