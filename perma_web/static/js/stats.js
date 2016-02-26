@@ -1,510 +1,325 @@
-var margin = {top: 20, right: 20, bottom: 30, left: 50},
-                            width = 960 - margin.left - margin.right,
-                            height = 500 - margin.top - margin.bottom;
+// House our sum data here. We should refactor this.
+var sum_data;
+var initial = true;
 
-var parseDate = d3.time.format("%y-%b-%d").parse,
-    formatPercent = d3.format(".0%");
+function get_numbers(field_key) {
+	// Here we compute the sum, average, and latest week for the given field_key
+	var sum = 0;
+	for (i = 0; i < sum_data.length; i++) {
+		sum+=sum_data[i][field_key];
+	}
 
-var x = d3.time.scale()
-    .range([0, width]);
+	var numbers = {'sum': sum,
+		'average': Math.floor(sum/sum_data.length),
+		'this_week': sum_data[sum_data.length-1][field_key]
+	}
 
-var y = d3.scale.linear()
-    .range([height, 0]);
-
-var draw_folks_vis = function(){
-
-	var parseDate = d3.time.format("%d-%b-%y").parse;
-
-	var x = d3.time.scale()
-	    .range([0, width]);
-
-	var y = d3.scale.linear()
-	    .range([height, 0]);
-
-	var z = d3.scale.category20();
-
-	var xAxis = d3.svg.axis()
-	    .scale(x)
-	    .orient("bottom")
-	    .ticks(d3.time.months);
-
-	var yAxis = d3.svg.axis()
-	    .scale(y)
-	    .orient("left");
-
-	var stack = d3.layout.stack()
-	    .offset("zero")
-	    .values(function(d) { return d.values; })
-	    .x(function(d) { return d.date; })
-	    .y(function(d) { return d.value; });
-
-	var nest = d3.nest()
-	    .key(function(d) { return d.key; });
-
-	var area = d3.svg.area()
-	    .interpolate("cardinal")
-	    .x(function(d) { return x(d.date); })
-	    .y0(function(d) { return y(d.y0); })
-	    .y1(function(d) { return y(d.y0 + d.y); });
-
-	var svg = d3.select("#folks-vis").append("svg")
-        .attr("width", "100%")
-        .attr('viewBox', '0 0 ' + String(width + margin.left + margin.right) + ' ' + String(height + margin.top + margin.bottom))
-        .attr('perserveAspectRatio', 'none')
-        .append("g")
-	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-	d3.tsv(stats_users_url, function(data) {
-	  data.forEach(function(d) {
-	    d.date = parseDate(d.date);
-		d.name= 'some name here';
-	    d.value = +d.value;
-	  });
-
-	  var layers = stack(nest.entries(data));
-
-	  x.domain(d3.extent(data, function(d) { return d.date; }));
-	  y.domain([0, d3.max(data, function(d) { return d.y0 + d.y; })]);
-
-	  svg.selectAll(".layer")
-	      .data(layers)
-	    .enter().append("path")
-	      .attr("class", "layer")
-	      .attr("d", function(d) { return area(d.values); })
-	      .style("fill", function(d, i) { return z(i); });
-	
-	var total_users = 0;
-	
-	svg.selectAll("text")
-        .data(layers)
-        .enter()
-        .append("text")
-      .datum(function(d) { return {name: d.key, value: d.values[d.values.length - 1]}; })
-		.attr("y", function(d) {return y(d.value.y0 + d.value.y / 2); })
-		.attr("x", 885)
-		.attr("font-size", "14px")
-		.attr("style", "text-anchor: end")
-		.text( function (d) { total_users = total_users+ d.value.y; return d.name + ", " + d.value.y; });
-
-	  // Set the total link count in our text description of hte vis
-	  d3.select('#user_count').text(total_users);
-	
-	  svg.append("g")
-	      .attr("class", "x axis")
-	      .attr("transform", "translate(0," + height + ")")
-	      .call(xAxis);
-
-	  svg.append("g")
-	      .attr("class", "y axis")
-	      .call(yAxis)
-	    .append("text")
-	      .attr("transform", "rotate(-90)")
-	      .attr("y", 6)
-	      .attr("dy", ".71em")
-	      .style("text-anchor", "end")
-	      .text("Users");
-	
-	});
+	return numbers;
 }
 
-var draw_organizations_vis = function(){
-	
-	var parseDate = d3.time.format("%d-%b-%y").parse;
-	
-	var x = d3.time.scale()
-	    .range([0, width]);
+function draw_graph(p, field_key, vis_width, vis_height) {
+	// Our users and archives graph use the same logic we've gathered here.
+	var total = 0;
+	var x, y, size;
+	var sum_of_all_sums = get_numbers(field_key).sum;
+	var bottom_padding = 30;
 
-	var y = d3.scale.linear()
-	    .range([height, 0]);
+	p.strokeWeight(1);
+	for (i = 0; i < vis_width; i+=4) {
+		var x_t_1 = p.random(i-200, i+200);
+		var x_t_2 = p.random(i-200, i+200);
+		x = p.line(x_t_1, 0, x_t_2, vis_height - bottom_padding);
+	}
 
-	var xAxis = d3.svg.axis()
-	    .scale(x)
-	    .orient("bottom")
-	    .ticks(d3.time.months);
+	p.strokeWeight(2);
+	for (i = 0; i < vis_width; i+=8) {
+		var x_t_1 = p.random(i-500, i+500);
+		var x_t_2 = p.random(i-500, i+500);
+		x = p.line(x_t_1, 0, x_t_2, vis_height - bottom_padding);
+	}
 
-	var yAxis = d3.svg.axis()
-	    .scale(y)
-	    .orient("left");
+	/* Draw the top line of the area chart */
+	total = 0;
 
-	var line = d3.svg.line()
-	    .x(function(d) { return x(d.date); })
-	    .y(function(d) { return y(d.close); });
+	p.noFill();
+	p.beginShape();
+	for (i = 0; i < sum_data.length; i++) {
+		x = p.map(i, 0, sum_data.length, 0, vis_width);
+		y = p.map(total, 0, sum_of_all_sums, 0, vis_height - bottom_padding);
+		p.vertex(x, vis_height - y);
+		total += sum_data[i][field_key];
+	}
+	p.vertex(vis_width, vis_height - y);
+	p.endShape();
 
-	var svg = d3.select("#org-vis").append("svg")
-	    .attr("width", "100%")
-        .attr('viewBox', '0 0 ' + String(width + margin.left + margin.right) + ' ' + String(height + margin.top + margin.bottom))
-        .attr('perserveAspectRatio', 'none')
-        .append("g")
-	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+	total = 0;
 
-	d3.tsv(stats_organizations_url, function(error, data) {
-	  data.forEach(function(d) {
-	    d.date = parseDate(d.date);
-	    d.close = +d.close;
-	  });
+	/* Draw a solid line at the bottom and right */
+	p.strokeWeight(1);
+	p.line(vis_width-1, vis_height - y, vis_width-1, vis_height - bottom_padding);
+	p.line(0, vis_height-1 - bottom_padding, vis_width, vis_height-1 - bottom_padding);
 
-	  // Super kludgy way to get latest size. TODO: improve.
-	  var latest_size = 0;
 
-	  x.domain(d3.extent(data, function(d) { return d.date; }));
-	  y.domain(d3.extent(data, function(d) { latest_size = d.close; return d.close; }));
+	/* Let's draw a big mask over the top of the graph 
+	so that the shape of the curve is obvious */
+	p.fill(255);
 
-	  // Set the total size of store in our text description of the vis
-	  d3.select('#organization_count').text(latest_size);
+	p.strokeWeight(0);
+	p.beginShape();
+	for (i = 0; i < sum_data.length; i++) {
+		x = p.map(i, 0, sum_data.length, 0, vis_width);
+		y = p.map(total, 0, sum_of_all_sums, 0, vis_height - bottom_padding);
+		p.vertex(x, vis_height - y);
+		total += sum_data[i][field_key];
+	}
+	p.vertex(vis_width, vis_height - y);
+	p.vertex(vis_width, 0);
+	p.vertex(0, 0);
 
-	  svg.append("g")
-	      .attr("class", "x axis")
-	      .attr("transform", "translate(0," + height + ")")
-	      .call(xAxis);
+	p.endShape(p.CLOSE);
 
-	  svg.append("g")
-	      .attr("class", "y axis")
-	      .call(yAxis)
-	    .append("text")
-	      .attr("transform", "rotate(-90)")
-	      .attr("y", 6)
-	      .attr("dy", ".71em")
-	      .style("text-anchor", "end")
-	      .text("Orgs");
+	/* Draw our labels */
+	p.noStroke();
+	p.fill(90);
+	p.textSize(24);
 
-	  svg.append("path")
-	      .datum(data)
-	      .attr("class", "line")
-	      .attr("d", line);
-	});
-}
-
-var draw_registrar_vis = function(){
-	
-	var parseDate = d3.time.format("%d-%b-%y").parse;
-	
-	var x = d3.time.scale()
-	    .range([0, width]);
-
-	var y = d3.scale.linear()
-	    .range([height, 0]);
-
-	var xAxis = d3.svg.axis()
-	    .scale(x)
-	    .orient("bottom")
-	    .ticks(d3.time.months);
-
-	var yAxis = d3.svg.axis()
-	    .scale(y)
-	    .orient("left");
-
-	var line = d3.svg.line()
-	    .x(function(d) { return x(d.date); })
-	    .y(function(d) { return y(d.close); });
-
-	var svg = d3.select("#registrars-vis").append("svg")
-        .attr("width", "100%")
-        .attr('viewBox', '0 0 ' + String(width + margin.left + margin.right) + ' ' + String(height + margin.top + margin.bottom))
-        .attr('perserveAspectRatio', 'none')
-        .append("g")
-	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-	d3.tsv(stats_registrars_url, function(error, data) {
-	  data.forEach(function(d) {
-	    d.date = parseDate(d.date);
-	    d.close = +d.close;
-	  });
-
-	  // Super kludgy way to get latest size. TODO: improve.
-	  var latest_size = 0;
-
-	  x.domain(d3.extent(data, function(d) { return d.date; }));
-	  y.domain(d3.extent(data, function(d) { latest_size = d.close; return d.close; }));
-
-	  // Set the total size of store in our text description of the vis
-	  d3.select('#library_count').text(latest_size);
-
-	  svg.append("g")
-	      .attr("class", "x axis")
-	      .attr("transform", "translate(0," + height + ")")
-	      .call(xAxis);
-
-	  svg.append("g")
-	      .attr("class", "y axis")
-	      .call(yAxis)
-	    .append("text")
-	      .attr("transform", "rotate(-90)")
-	      .attr("y", 6)
-	      .attr("dy", ".71em")
-	      .style("text-anchor", "end")
-	      .text("Libraries");
-
-	  svg.append("path")
-	      .datum(data)
-	      .attr("class", "line")
-	      .attr("d", line);
-	});
-}
-
-var draw_links_vis = function(){
-
-	var parseDate = d3.time.format("%d-%b-%y").parse;
-
-	var x = d3.time.scale()
-	    .range([0, width]);
-
-	var y = d3.scale.linear()
-	    .range([height, 0]);
-
-	var z = d3.scale.category20();
-
-	var xAxis = d3.svg.axis()
-	    .scale(x)
-	    .orient("bottom")
-	    .ticks(d3.time.months);
-
-	var yAxis = d3.svg.axis()
-	    .scale(y)
-	    .orient("left");
-
-	var stack = d3.layout.stack()
-	    .offset("zero")
-	    .values(function(d) { return d.values; })
-	    .x(function(d) { return d.date; })
-	    .y(function(d) { return d.value; });
-
-	var nest = d3.nest()
-	    .key(function(d) { return d.key; });
-
-	var area = d3.svg.area()
-	    .interpolate("cardinal")
-	    .x(function(d) { return x(d.date); })
-	    .y0(function(d) { return y(d.y0); })
-	    .y1(function(d) { return y(d.y0 + d.y); });
-
-	var svg = d3.select("#links-vis").append("svg")
-        .attr("width", "100%")
-        .attr('viewBox', '0 0 ' + String(width + margin.left + margin.right) + ' ' + String(height + margin.top + margin.bottom))
-        .attr('perserveAspectRatio', 'none')
-        .append("g")
-	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-	d3.tsv(stats_links_url, function(data) {
-	  data.forEach(function(d) {
-	    d.date = parseDate(d.date);
-		d.name= 'some name here';
-	    d.value = +d.value;
-	  });
-
-	  var layers = stack(nest.entries(data));
-
-	  x.domain(d3.extent(data, function(d) { return d.date; }));
-	  y.domain([0, d3.max(data, function(d) { return d.y0 + d.y; })]);
-
-	  svg.selectAll(".layer")
-	      .data(layers)
-	    .enter().append("path")
-	      .attr("class", "layer")
-	      .attr("d", function(d) { return area(d.values); })
-	      .style("fill", function(d, i) { return z(i); });
-	
-	var total_links = 0;
-	
-	svg.selectAll("text")
-        .data(layers)
-        .enter()
-        .append("text")
-      .datum(function(d) { return {name: d.key, value: d.values[d.values.length - 1]}; })
-		.attr("y", function(d) { return y(d.value.y0 + d.value.y / 2); })
-		.attr("x", 885)
-		.attr("font-size", "13px")
-		.attr("style", "text-anchor: end")
-		.text( function (d) { total_links = total_links + d.value.y;  return d.name + ", " + d.value.y; });
-
-	  // Set the total link count in our text description of hte vis
-	  d3.select('#link_count').text(total_links);
-		
-	  svg.append("g")
-	      .attr("class", "x axis")
-	      .attr("transform", "translate(0," + height + ")")
-	      .call(xAxis);
-
-	  svg.append("g")
-	      .attr("class", "y axis")
-	      .call(yAxis)
-	    .append("text")
-	      .attr("transform", "rotate(-90)")
-	      .attr("y", 6)
-	      .attr("dy", ".71em")
-	      .style("text-anchor", "end")
-	      .text("Links");
-	
-	});
-}
-
-var draw_darchive_vis = function(){
-
-	var parseDate = d3.time.format("%d-%b-%y").parse;
-	
-	var x = d3.time.scale()
-	    .range([0, width]);
-
-	var y = d3.scale.linear()
-	    .range([height, 0]);
-
-	var z = d3.scale.category20();
-
-	var xAxis = d3.svg.axis()
-	    .scale(x)
-	    .orient("bottom")
-	    .ticks(d3.time.months);
-
-	var yAxis = d3.svg.axis()
-	    .scale(y)
-	    .orient("left");
-
-	var stack = d3.layout.stack()
-	    .offset("zero")
-	    .values(function(d) { return d.values; })
-	    .x(function(d) { return d.date; })
-	    .y(function(d) { return d.value; });
-
-	var nest = d3.nest()
-	    .key(function(d) { return d.key; });
-
-	var area = d3.svg.area()
-	    .interpolate("cardinal")
-	    .x(function(d) { return x(d.date); })
-	    .y0(function(d) { return y(d.y0); })
-	    .y1(function(d) { return y(d.y0 + d.y); });
-
-	var svg = d3.select("#darchive-vis").append("svg")
-        .attr("width", "100%")
-        .attr('viewBox', '0 0 ' + String(width + margin.left + margin.right) + ' ' + String(height + margin.top + margin.bottom))
-        .attr('perserveAspectRatio', 'none')
-        .append("g")
-	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-	d3.tsv(stats_darchived_links_url, function(data) {
-	  data.forEach(function(d) {
-	    d.date = parseDate(d.date);
-		d.name= 'some name here';
-	    d.value = +d.value;
-	  });
-
-	  var layers = stack(nest.entries(data));
-
-	  x.domain(d3.extent(data, function(d) { return d.date; }));
-	  y.domain([0, d3.max(data, function(d) { if (d.y0 + d.y <=10){ return 10;} else {return d.y0 + d.y; }})]);
-
-	  svg.selectAll(".layer")
-	      .data(layers)
-	    .enter().append("path")
-	      .attr("class", "layer")
-	      .attr("d", function(d) { return area(d.values); })
-	      .style("fill", function(d, i) { return z(i); });
-	
-	var total_links = 0;
-	
-	svg.selectAll("text")
-        .data(layers)
-        .enter()
-        .append("text")
-      .datum(function(d) { return {name: d.key, value: d.values[d.values.length - 1]}; })
-		.attr("y", function(d) { return y(d.value.y0 + d.value.y / 2); })
-		.attr("x", 885)
-		.attr("font-size", "13px")
-		.attr("style", "text-anchor: end")
-		.text( function (d) { total_links = total_links + d.value.y;  return d.name + ", " + d.value.y; });
-
-	  // Set the total link count in our text description of hte vis
-	  d3.select('#darchive_count').text(total_links);
-		
-	  svg.append("g")
-	      .attr("class", "x axis")
-	      .attr("transform", "translate(0," + height + ")")
-	      .call(xAxis);
-
-	  svg.append("g")
-	      .attr("class", "y axis")
-	      .call(yAxis)
-	    .append("text")
-	      .attr("transform", "rotate(-90)")
-	      .attr("y", 6)
-	      .attr("dy", ".71em")
-	      .style("text-anchor", "end")
-	      .text("Links");
-	
-	});
+	p.text('June 2013', 0, vis_height-5);
+	p.text('today', vis_width-60, vis_height-5);
 }
 
 
+var archives_vis = function(p) {
+	// Create the archives vis here
+	var vis_width = 1200;
+	var vis_height = 600;
 
-var draw_storage_vis = function(){
-    
-	var parseDate = d3.time.format("%d-%b-%y").parse;
-	
-	var x = d3.time.scale()
-	    .range([0, width]);
+	p.setup = function() {
+		var archives_canvas = p.createCanvas(vis_width, vis_height);
+		archives_canvas.parent('archives-vis-container');
+		p.strokeCap(p.SQUARE);
+		p.fill('#2D76EE');
+		p.stroke('#2D76EE');
+		p.noLoop();
+	};
 
-	var y = d3.scale.linear()
-	    .range([height, 0]);
-
-	var xAxis = d3.svg.axis()
-	    .scale(x)
-	    .orient("bottom")
-	    .ticks(d3.time.months);
-
-	var yAxis = d3.svg.axis()
-	    .scale(y)
-	    .orient("left");
-
-	var line = d3.svg.line()
-	    .x(function(d) { return x(d.date); })
-	    .y(function(d) { return y(d.close); });
-
-	var svg = d3.select("#storage-vis").append("svg")
-        .attr("width", "100%")
-        .attr('viewBox', '0 0 ' + String(width + margin.left + margin.right) + ' ' + String(height + margin.top + margin.bottom))
-        .attr('perserveAspectRatio', 'none')
-        .append("g")
-	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-	d3.tsv(stats_storage_url, function(error, data) {
-	  data.forEach(function(d) {
-	    d.date = parseDate(d.date);
-	    d.close = +d.close;
-	  });
+	p.draw = function() {
+		draw_graph(p, 'links_sum', vis_width, vis_height);
+	};
+};
 
 
-	  // Super kludgy way to get latest size. TODO: improve.
-	  var latest_size = 0;
-	  x.domain(d3.extent(data, function(d) { return d.date; }));
-	  y.domain(d3.extent(data, function(d) { latest_size = d.close; return d.close; }));
+var users_vis = function( p ) {
+	// Create the users vis here
+	var vis_width = 1200;
+	var vis_height = 600;
 
-	  // Set the total size of store in our text description of the vis
-	  d3.select('#total_size').text(latest_size.toFixed(2));
+	p.setup = function() {
+		var archives_canvas = p.createCanvas(vis_width, vis_height);
+		archives_canvas.parent('users-vis-container');
+		p.strokeCap(p.SQUARE);
+		p.fill('#2D76EE');
+		p.stroke('#2D76EE');
+		p.noLoop();
+};
 
-	  svg.append("g")
-	      .attr("class", "x axis")
-	      .attr("transform", "translate(0," + height + ")")
-	      .call(xAxis);
+	p.draw = function() {
+		draw_graph(p, 'users_sum', vis_width, vis_height);
+	};
+};
 
-	  svg.append("g")
-	      .attr("class", "y axis")
-	      .call(yAxis)
-	    .append("text")
-	      .attr("transform", "rotate(-90)")
-	      .attr("y", 6)
-	      .attr("dy", ".71em")
-	      .style("text-anchor", "end")
-	      .text("GB of storage");
 
-	  svg.append("path")
-	      .datum(data)
-	      .attr("class", "line")
-	      .attr("d", line);
-	});
+var draw_weekly = function(initial) {
+	// Create graphs and update counts
+	var url = '/service/stats/sums/';
+	$.ajax({
+		type: 'GET',
+		dataType: "json",
+		url: url,
+		success: function(response_data) {
+			// Draw our two sum-based visualizations
+			// Oh, this is so klunky (yes, with a k)
+			if (initial) {
+				sum_data = response_data;
+				var uv = new p5(users_vis);
+				var av = new p5(archives_vis);
+			}
+
+			// Update our counts
+			$('#archives_sum_container').html(get_numbers('links_sum').sum);
+			$('#archives_average_container').html(get_numbers('links_sum').average);
+			$('#archives_latest_container').html(get_numbers('links_sum').this_week);
+
+			$('#users_sum_container').html(get_numbers('users_sum').sum);
+			$('#users_average_container').html(get_numbers('users_sum').average);
+			$('#users_latest_container').html(get_numbers('users_sum').this_week);
+
+			$('#org_sum_container').html(get_numbers('organizations_sum').sum);
+			$('#orgs_average_container').html(get_numbers('organizations_sum').average);
+			$('#orgs_latest_container').html(get_numbers('organizations_sum').this_week);
+
+			$('#libraries_sum_container').html(get_numbers('registrars_sum').sum);
+			$('#libraries_average_container').html(get_numbers('registrars_sum').average);
+			$('#libraries_latest_container').html(get_numbers('registrars_sum').this_week);
+		}
+	}); // End of ajax get
 }
 
-draw_folks_vis();
-draw_organizations_vis();
-draw_registrar_vis();
-draw_links_vis();
-draw_darchive_vis();
-draw_storage_vis();
+
+var today_vis = function( p ) {
+	var height, width;
+	var url = '/service/stats/now/';
+
+	p.setup = function() {
+		width = 1200;
+		height = 270;
+
+		// Our timestamps are the second of the day. 1440 seconds per day.
+		var canvas = p.createCanvas(width, height);
+		canvas.parent('today-vis-container');
+		p.background('#f7f7f7');
+
+		p.stroke(255);
+
+		p.strokeWeight(1);
+		p.strokeCap(p.SQUARE);
+		p.noLoop();
+	};
+
+	p.draw = function() {
+		draw_events();
+		window.setInterval(draw_events, 60000);
+	};
+
+	function draw_events() {
+		$.ajax({
+			type: 'GET',
+			dataType: "json",
+			url: url,
+			success: function(data) {
+
+			p.clear();
+			p.background(255);
+
+			var relative_x = 0;
+
+			// Draw links
+			p.stroke('#2D76EE');
+			p.strokeWeight(1);
+			$(data['links']).each(function(i, time_of_creation) {
+				relative_x = p.map(time_of_creation, 0, 1440, 4, width - 4);
+				p.line(relative_x, 8, relative_x, height - 42);
+			});
+
+			// Draw users
+			p.stroke('#77AE3A');
+			p.strokeWeight(2);
+			$(data['users']).each(function(i, time_of_creation) {
+				// Draw a line for each user in our list
+				relative_x = p.map(time_of_creation, 0, 1440, 4, width - 4);
+				p.line(relative_x, 8, relative_x, height - 42);
+			});
+
+			// Draw orgs
+			p.stroke('#DD671A');
+			$(data['organizations']).each(function(i, time_of_creation) {
+				// Draw a line for each user in our list
+				relative_x = p.map(time_of_creation, 0, 1440, 4, width - 4);
+				p.line(relative_x, 8, relative_x, height - 42);
+			});
+
+			// Draw libs
+			p.stroke('#F14FBC');
+			$(data['registrars']).each(function(i, time_of_creation) {
+				// Draw a line for each user in our list
+				relative_x = p.map(time_of_creation, 0, 1440, 4, width - 4);
+				p.line(relative_x, 8, relative_x, height - 42);
+			});
+
+			draw_scaffolding();
+
+			// update legend
+			if ($('#legend_archives .num_value').length === 0 ||
+				data['links'].length != $('.legend-archives .num_value').html() ||
+				data['users'].length != $('.legend-users .num_value').html() ||
+				data['organizations'].length != $('.legend-orgs .num_value').html() ||
+				data['registrars'].length != $('.legend-libraries .num_value').html()) {
+
+					// Such a kludge. fix.
+					draw_weekly(initial);
+					initial = false;
+
+					$('.legend-archives .num-value').html(data['links'].length);
+					$('.legend-users .num-value').html(data['users'].length);
+					$('.legend-orgs .num-value').html(data['organizations'].length);
+					$('.legend-libraries .num-value').html(data['registrars'].length);
+
+
+					// Hide our legend bits if they have 0 events today
+					// This whole thing is kludgy. refactor.
+					if (data['links'].length === 0) {
+						$('.legend-archives').hide();
+					} else if (data['links'].length === 1) {
+						$('.legend-archives .num-label').html('archive');
+						$('.legend-archives').show();
+					} else {
+						$('.legend-archives .num-label').html('archives');
+						$('.legend-archives').show();
+					}
+
+					if (data['users'].length === 0) {
+						$('.legend-users').hide();
+					} else if (data['users'].length === 1) {
+						$('.legend-users .num-label').html('user');
+						$('.legend-users').show();
+					} else {
+						$('.legend-users .num-label').html('users');
+						$('.legend-users').show();
+					}
+
+					if (data['organizations'].length === 0) {
+						$('.legend-orgs').hide();
+					} else if (data['organizations'].length === 1) {
+						$('.legend-orgs .num-label').html('organization');
+						$('.legend-orgs').show();
+					} else {
+						$('.legend-orgs .num-label').html('organizations');
+						$('.legend-orgs').show();
+					}
+
+					if (data['registrars'].length === 0) {
+						$('.legend-libraries').hide();
+					} else if (data['registrars'].length === 1) {
+						$('.legend-libraries .num-label').html('library');
+						$('.legend-libraries').show();
+					} else {
+						$('.legend-libraries .num-label').html('libraries');
+						$('.legend-libraries').show();
+					}
+				}
+			} // end if we notice a change in stats
+		}); // End of ajax get
+	}
+
+	function draw_scaffolding() {
+		// Draw our ticks and and our labels
+		p.strokeWeight(1);
+		p.stroke(150);
+		p.line(4, height - 20, 4, height - 36); // left tick
+		p.line(width - 4, height - 20, width - 4, height - 36);  // right tick
+		p.line(4, height - 28, width - 4, height - 28); // long, base line
+
+		var m = moment();
+		current_minute = m.hour() * 60 + m.minute();
+		var x_of_current_time = p.map(current_minute, 0, 1440, 0, width);
+		p.line(x_of_current_time, height - 20, x_of_current_time, height - 36);  // clock tick
+
+		p.textSize(18);
+		p.fill(90);
+		p.strokeWeight(0);
+		p.text('new day', 6, height - 7);
+		p.text('now', x_of_current_time - 13 , height - 7);
+		p.text('midnight', width - 75, height - 7);
+	}
+};
+
+new p5(today_vis);

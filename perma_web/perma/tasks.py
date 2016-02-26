@@ -15,7 +15,7 @@ from selenium import webdriver
 from selenium.common.exceptions import WebDriverException, NoSuchElementException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.proxy import ProxyType, Proxy
-import datetime
+from datetime import datetime, timedelta
 import logging
 import robotparser
 import time
@@ -29,6 +29,8 @@ from warcprox.controller import WarcproxController
 from warcprox.warcprox import WarcProxyHandler, WarcProxy, ProxyingRecorder
 from warcprox.warcwriter import WarcWriter, WarcWriterThread
 
+
+from django.utils import timezone
 from django.core.files.storage import default_storage
 from django.core.mail import send_mail
 from django.template.loader import get_template
@@ -37,7 +39,7 @@ from django.template.defaultfilters import truncatechars
 from django.forms.models import model_to_dict
 from django.conf import settings
 
-from perma.models import Stat, Registrar, LinkUser, Link, Organization, CDXLine, Capture
+from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture
 
 
 logger = logging.getLogger(__name__)
@@ -542,60 +544,53 @@ def proxy_capture(self, link_guid, user_agent=''):
     print "%s capture done." % link_guid
 
 
-@shared_task
-def get_nightly_stats():
+@shared_task()
+def update_stats():
     """
-    A periodic task (probably running nightly) to get counts of user types, disk usage.
-    Write them into a DB for our stats view
+    run once per minute by celerybeat. logs our minute-by-minute activity,
+    and also rolls our weekly stats (perma.models.WeekStats)
     """
-    
-    # Five types user accounts
-    total_count_regular_users = LinkUser.objects.filter(is_staff=False, organizations=None, registrar_id=None).count()
-    total_count_org_members = LinkUser.objects.exclude(organizations=None).count()
-    total_count_registrar_members = LinkUser.objects.exclude(registrar_id=None).count()
-    total_count_registry_members = LinkUser.objects.filter(is_staff=True).count()
-    
-    # Registrar count
-    total_count_registrars = Registrar.objects.all().count()
-    
-    # Journal account
-    total_orgs = Organization.objects.all().count()
-    
-    # Our links
-    total_count_links = Link.objects.filter(is_private=False).count()
-    
-    # Get the path of yesterday's file storage tree
-    now = datetime.datetime.now() - datetime.timedelta(days=1)
-    time_tuple = now.timetuple()
-    path_elements = [str(time_tuple.tm_year), str(time_tuple.tm_mon), str(time_tuple.tm_mday)]
-    disk_path = settings.MEDIA_ROOT + '/' + os.path.sep.join(path_elements)
-    
-    # Get disk usage total
-    # We'll likley get a sum wrong at some point here and we should have some logic for corrections
-    # Get the sum of the diskspace of all files in yesterday's tree
-    latest_day_usage = 0
-    for root, dirs, files in os.walk(disk_path):
-        latest_day_usage = latest_day_usage + sum(os.path.getsize(os.path.join(root, name)) for name in files)
-        
-    # Get the total disk usage (that we calculated yesterday)
-    last_stat = Stat.objects.all().order_by('-creation_timestamp').first()
-    
-    # Sum total usage with yesterday's usage
-    new_total_disk_usage = latest_day_usage + (last_stat.disk_usage if last_stat else 0)
-    
-    # We've now gathered all of our data. Let's write it to the model
-    stat = Stat(
-        regular_user_count=total_count_regular_users,
-        org_member_count=total_count_org_members,
-        registrar_member_count=total_count_registrar_members,
-        registry_member_count=total_count_registry_members,
-        registrar_count=total_count_registrars,
-        org_count=total_orgs,
-        link_count=total_count_links,
-        disk_usage = new_total_disk_usage,
-        )
 
-    stat.save()
+    # On the first minute of the new week, roll our weekly stats entry
+    now = timezone.now()
+    if now.weekday() == 6 and now.hour == 0 and now.minute == 0:
+        week_to_close = WeekStats.objects.latest('start_date')
+        week_to_close(end_date=now)
+        new_week = WeekStats(start_date=now)
+        new_week.save()
+
+
+    # We only need to keep a day of data for our visualization.
+    # TODO: this is 1560 minutes is 26 hours, that likely doesn't
+    # cover everyone outside of the east coast. Our vis should
+    # be timezone aware. Fix this.
+    if MinuteStats.objects.all().count() == 1560:
+        MinuteStats.objects.all()[1559].delete()
+
+
+    # Add our new minute measurements
+    a_minute_ago = now - timedelta(seconds=60)
+
+    links_sum = Link.objects.filter(creation_timestamp__gt=a_minute_ago).count()
+    users_sum = LinkUser.objects.filter(date_joined__gt=a_minute_ago).count()
+    organizations_sum = Organization.objects.filter(date_created__gt=a_minute_ago).count()
+    registrars_sum = Registrar.objects.filter(date_created__gt=a_minute_ago).count()
+
+    new_minute_stat = MinuteStats(links_sum=links_sum, users_sum=users_sum,
+        organizations_sum=organizations_sum, registrars_sum=registrars_sum)
+    new_minute_stat.save()
+
+
+    # Add our minute activity to our current weekly sum
+    if links_sum or users_sum or organizations_sum or registrars_sum:
+        current_week = WeekStats.objects.latest('start_date')
+        current_week.end_date = now
+        current_week.links_sum += links_sum
+        current_week.users_sum += users_sum
+        current_week.organizations_sum += organizations_sum
+        current_week.registrars_sum += registrars_sum
+        current_week.save()
+
 
 @shared_task(
     bind=True,
@@ -639,79 +634,3 @@ def upload_to_internet_archive(self, link_guid):
     if not success:
         self.retry(exc=Exception("Internet Archive reported upload failure."))
         print "Failed."
-
-@shared_task
-def email_weekly_stats():
-    """
-    We bundle up our stats weekly and email them to a developer and then
-    onto our interested mailing lists
-    """
-
-    previous_stats_query_set = Stat.objects.order_by('-creation_timestamp')[:8][7]
-    current_stats_query_set = Stat.objects.filter().latest('creation_timestamp')
-
-    format = '%b %d, %Y, %H:%M %p'
-
-    context = {
-        'start_time': previous_stats_query_set.creation_timestamp.strftime(format),
-        'end_time': current_stats_query_set.creation_timestamp.strftime(format),
-    }
-
-    # Convert querysets to dicts so that we can access them easily in our print_stats_line util
-    previous_stats = model_to_dict(previous_stats_query_set)
-    current_stats = model_to_dict(current_stats_query_set)
-
-    context.update({
-        'num_regular_users_added': current_stats['regular_user_count'] - previous_stats['regular_user_count'],
-        'prev_regular_users_count': previous_stats['regular_user_count'],
-        'current_regular_users_count': current_stats['regular_user_count'],
-
-        'num_org_members_added': current_stats['org_member_count'] - previous_stats['org_member_count'],
-        'prev_org_members_count': previous_stats['org_member_count'],
-        'current_org_members_count': current_stats['org_member_count'],
-
-        'num_registar_members_added': current_stats['registrar_member_count'] - previous_stats['registrar_member_count'],
-        'prev_registrar_members_count': previous_stats['registrar_member_count'],
-        'current_registrar_members_count': current_stats['registrar_member_count'],
-
-        'num_registry_members_added': current_stats['registry_member_count'] - previous_stats['registry_member_count'],
-        'prev_registry_members_count': previous_stats['registry_member_count'],
-        'current_registry_members_count': current_stats['registry_member_count'],
-
-        'num_orgs_added': current_stats['org_count'] - previous_stats['org_count'],
-        'prev_orgs_count': previous_stats['org_count'],
-        'current_orgs_count': current_stats['org_count'],
-
-        'num_registrars_added': current_stats['registrar_count'] - previous_stats['registrar_count'],
-        'prev_registrars_count': previous_stats['registrar_count'],
-        'current_registrars_count': current_stats['registrar_count'],
-
-        'num_links_added': current_stats['link_count'] - previous_stats['link_count'],
-        'prev_link_count': previous_stats['link_count'],
-        'current_link_count': current_stats['link_count'],
-
-
-        'num_darchive_takedown_added': current_stats['darchive_takedown_count'] - previous_stats['darchive_takedown_count'],
-        'prev_darchive_takedown_count': previous_stats['darchive_takedown_count'],
-        'current_darchive_takedown_count': current_stats['darchive_takedown_count'],
-
-        'num_darchive_robots_added': current_stats['darchive_robots_count'] - previous_stats['darchive_robots_count'],
-        'prev_darchive_robots_count': previous_stats['darchive_robots_count'],
-        'current_darchive_robots_count': current_stats['darchive_robots_count'],
-
-        'disk_added': float(current_stats['disk_usage'] - previous_stats['disk_usage'])/1024/1024/1024,
-        'prev_disk': float(previous_stats['disk_usage'])/1024/1024/1024,
-        'current_disk': float(current_stats['disk_usage'])/1024/1024/1024,
-    })
-
-    send_mail(
-        'This week in Perma.cc -- the numbers',
-        get_template('email/stats.html').render(
-            Context(context)
-        ),
-        settings.DEFAULT_FROM_EMAIL,
-        [settings.DEVELOPER_EMAIL],
-        fail_silently = False
-    )
-
-
