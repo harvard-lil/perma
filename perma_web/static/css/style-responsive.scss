@@ -5111,7 +5111,6 @@ section .caption {
 	}
 
 	.daily-num-container {
-		border: 2px solid $color-green;
 		margin-top: 5px;
 		
 		p {
@@ -5120,9 +5119,41 @@ section .caption {
 		}
 		
 		.num-value {
-
 			color: $color-white;
+		}
+	}
+
+	.daily-num-container.legend_archives {
+		border: 2px solid $color-blue;
+
+		.num-value {
+			color: $color-white;
+			background-color: $color-blue;
+		}
+	}
+
+	.daily-num-container.legend_users {
+		border: 2px solid $color-green;
+
+		.num-value {
 			background-color: $color-green;
 		}
 	}
+
+	.daily-num-container.legend_orgs {
+		border: 2px solid $color-orange;
+
+		.num-value {
+			background-color: $color-orange;
+		}
+	}
+
+	.daily-num-container.legend_libraries {
+		border: 2px solid #F14FBC;
+
+		.num-value {
+			background-color: #F14FBC;
+		}
+	}
+	
 }

@@ -26,16 +26,16 @@ Perma.cc prevents link rot.
 				<div id='archives-vis-container'></div>
 			</div>
 			<div class="col-sm-4" >
-				<p class="number-header">266,577</p>
+				<p id="archives_sum_container" class="number-header"></p>
 				<div class="graph-numbers-container">
 					<h2 class="mega">archives</h2>
 					<div class="sub-number-container">
 						<div>
-							<p>1,798</p>
+							<p id="archives_latest_container"></p>
 							<p>this week</p>
 						</div>
 						<div>
-							<p>5,642</p>
+							<p id="archives_average_container"></p>
 							<p>avg week</p>
 						</div>
 					</div>
@@ -50,16 +50,16 @@ Perma.cc prevents link rot.
 				<div id='users-vis-container'></div>
 			</div>
 			<div class="col-sm-4">
-				<p class="number-header">6,387</p>
+				<p id="users_sum_container" class="number-header"></p>
 				<div class="graph-numbers-container">
 					<h2 class="mega">users</h2>
 					<div class="sub-number-container">
 						<div>
-							<p>5</p>
+							<p id="users_latest_container"></p>
 							<p>this week</p>
 						</div>
 						<div>
-							<p>33</p>
+							<p id="users_average_container"></p>
 							<p>avg week</p>
 						</div>
 					</div>
@@ -73,17 +73,17 @@ Perma.cc prevents link rot.
 			<div class="col-sm-6">
 				<div class="no-graph">
 					<div class="vert-number-container">
-						<p class="vert-number">502</p>
+						<p id="orgs_sum_container" class="vert-number">0</p>
 					</div>
 					<div class="graph-numbers-container">
 						<h2 class="mega">organizations</h2>
 						<div class="sub-number-container">
 							<div>
-								<p>2</p>
+								<p id="orgs_latest_container"></p>
 								<p>this week</p>
 							</div>
 							<div>
-								<p>3</p>
+								<p id="orgs_average_container"></p>
 								<p>avg week</p>
 							</div>
 						</div>
@@ -93,17 +93,17 @@ Perma.cc prevents link rot.
 			<div class="col-sm-6">
 				<div class="no-graph">
 					<div class="vert-number-container">
-						<p class="vert-number">148</p>
+						<p id="libraries_sum_container" class="vert-number">0</p>
 					</div>
 					<div class="graph-numbers-container">
 						<h2 class="mega">libraries</h2>
 						<div class="sub-number-container">
 							<div>
-								<p>1</p>
+								<p id="libraries_latest_container"></p>
 								<p>this week</p>
 							</div>
 							<div>
-								<p>3</p>
+								<p id="libraries_average_container"></p>
 								<p>avg week</p>
 							</div>
 						</div>
@@ -122,17 +122,21 @@ Perma.cc prevents link rot.
 			</div>
 			<div class="col-md-2">
 				<p>Since the start of the day we've added</p>
-				<div class="daily-num-container">
-					<p class="num-value">488</p>
-					<p class="num-label">archives</p>
+				<div class="daily-num-container legend_archives">
+					<p class="num-value"></p>
+					<p class="num-label"></p>
 				</div>
-				<div class="daily-num-container">
-					<p class="num-value">4</p>
-					<p class="num-label">users</p>
+				<div class="daily-num-container legend_users">
+					<p class="num-value"></p>
+					<p class="num-label"></p>
 				</div>
-				<div class="daily-num-container">
-					<p class="num-value">1</p>
-					<p class="num-label">library</p>
+				<div class="daily-num-container legend_orgs">
+					<p class="num-value"></p>
+					<p class="num-label"></p>
+				</div>
+				<div class="daily-num-container legend_libraries">
+					<p class="num-value"></p>
+					<p class="num-label"></p>
 				</div>
 			</div>
 		</div> <!-- row -->
