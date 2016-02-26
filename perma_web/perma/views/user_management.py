@@ -1,4 +1,5 @@
 import random, string, logging, time
+
 from ratelimit.decorators import ratelimit
 from tastypie.models import ApiKey
 
@@ -35,7 +36,7 @@ from perma.forms import (
     SetPasswordForm, 
 )
 from perma.models import Registrar, LinkUser, Organization
-from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_contact_email
+from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_contact_email, filter_or_null_join
 
 logger = logging.getLogger(__name__)
 valid_member_sorts = ['last_name', '-last_name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'created_links_count', '-created_links_count']
@@ -68,7 +69,10 @@ def manage_registrar(request):
             registrars = registrars.filter(is_approved=False)
 
     # handle annotations
-    registrars = registrars.annotate(
+    registrars = registrars.filter(
+        # Before annotating with link count, filter out links with user_deleted=True.
+        *filter_or_null_join(organizations__links__user_deleted=False)
+    ).annotate(
         created_links=Count('organizations__links',distinct=True),
         registrar_users=Count('users', distinct=True),
         last_active=Max('users__last_login'),
@@ -196,10 +200,13 @@ def manage_organization(request):
         registrar_filter = Registrar.objects.get(pk=registrar_filter)
 
     # add annotations
-    orgs = orgs.annotate(
+    orgs = orgs.filter(
+            # Before annotating with link count, filter out links with user_deleted=True.
+            *filter_or_null_join(links__user_deleted=False)
+    ).annotate(
         organization_users=Count('users', distinct=True),
         last_active=Max('users__last_login'),
-        org_links=Count('links', distinct=True)
+        org_links=Count('links', distinct=True),
     )
 
     # get total user count
@@ -400,7 +407,10 @@ def list_users_in_group(request, group_name):
     users, search_query = apply_search_query(request, users, ['email', 'first_name', 'last_name', 'organizations__name'])
 
     # apply annotations
-    users = users.annotate(created_links_count=Count('created_links', distinct=True))
+    users = users.filter(
+            # Before annotating with link count, filter out links with user_deleted=True.
+            *filter_or_null_join(created_links__user_deleted=False)
+    ).annotate(created_links_count=Count('created_links', distinct=True))
 
     registrar_filter = request.GET.get('registrar', '')
 
@@ -459,7 +469,7 @@ def list_users_in_group(request, group_name):
     if org_filter:
         users = users.filter(organizations__id=org_filter)
         org_filter = Organization.objects.get(pk=org_filter)
-        
+
     # handle registrar filter
     if registrar_filter:
         if group_name == 'organization_user':
