@@ -119,7 +119,6 @@ var users_vis = function( p ) {
 		p.strokeCap(p.SQUARE);
 		p.fill('#2D76EE');
 		p.stroke('#2D76EE');
-		p.background(250);
 		p.noLoop();
 };
 
