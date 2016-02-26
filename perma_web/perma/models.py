@@ -35,6 +35,36 @@ from .utils import copy_file_data
 logger = logging.getLogger(__name__)
 
 
+### HELPERS ###
+
+class DeletableManager(models.Manager):
+    """
+        Manager that excludes results where user_deleted=True by default.
+    """
+    def get_queryset(self):
+        # exclude deleted entries by default
+        return super(DeletableManager, self).get_queryset().filter(user_deleted=False)
+
+    def all_with_deleted(self):
+        return super(DeletableManager, self).get_queryset()
+
+
+class DeletableModel(models.Model):
+    """
+        Abstract base class that lets a model track deletion.
+    """
+    user_deleted = models.BooleanField(default=False, verbose_name="Deleted by user")
+    user_deleted_timestamp = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        abstract = True
+
+    def safe_delete(self):
+        self.user_deleted = True
+        self.user_deleted_timestamp = timezone.now()
+
+### MODELS ###
+
 class Registrar(models.Model):
     """
     This is generally a library.
@@ -63,19 +93,11 @@ class Registrar(models.Model):
 
 class OrganizationQuerySet(QuerySet):
     def accessible_to(self, user):
-        qset = Organization.objects.user_access_filter(user)
+        qset = self.user_access_filter(user)
         if qset is None:
             return self.none()
         else:
             return self.filter(qset)
-
-
-class OrganizationManager(models.Manager):
-    """
-        Org manager that can enforce user access perms.
-    """
-    def get_queryset(self):
-        return OrganizationQuerySet(self.model, using=self._db)
 
     def user_access_filter(self, user):
         if user.is_organization_member:
@@ -87,11 +109,11 @@ class OrganizationManager(models.Manager):
         else:
             return None
 
-    def accessible_to(self, user):
-        return self.get_queryset().accessible_to(user)
+
+OrganizationManager = DeletableManager.from_queryset(OrganizationQuerySet)
 
 
-class Organization(models.Model):
+class Organization(DeletableModel):
     """
     This is generally a journal.
     """
@@ -334,17 +356,6 @@ for func_name in ['can_view', 'can_edit', 'can_delete', 'can_toggle_private']:
 
 
 class FolderQuerySet(QuerySet):
-    def accessible_to(self, user):
-        return self.filter(Folder.objects.user_access_filter(user))
-
-
-class FolderManager(models.Manager):
-    """
-        Folder manager that can enforce user access perms.
-    """
-    def get_queryset(self):
-        return FolderQuerySet(self.model, using=self._db)
-
     def user_access_filter(self, user):
         # personal folders
         filter = Q(owned_by=user)
@@ -357,7 +368,10 @@ class FolderManager(models.Manager):
         return filter
 
     def accessible_to(self, user):
-        return self.get_queryset().accessible_to(user)
+        return self.filter(self.user_access_filter(user))
+
+
+FolderManager = models.Manager.from_queryset(FolderQuerySet)
 
 
 class Folder(MPTTModel):
@@ -426,28 +440,6 @@ class Folder(MPTTModel):
 
 
 class LinkQuerySet(QuerySet):
-    def accessible_to(self, user):
-        return self.filter(Link.objects.user_access_filter(user))
-
-    def discoverable(self):
-        """ Limit queryset to Links that can be publicly found by searching. """
-        return self.filter(is_unlisted=False, is_private=False)
-
-
-class LinkManager(models.Manager):
-    """
-        Link manager that can enforce user access perms.
-    """
-    def get_queryset(self):
-        # exclude deleted entries by default
-        return LinkQuerySet(self.model, using=self._db).filter(user_deleted=False)
-
-    def all_with_deleted(self):
-        return super(LinkManager, self).get_queryset()
-
-    def deleted_set(self):
-        return super(LinkManager, self).get_queryset().filter(user_deleted=True)
-
     def user_access_filter(self, user):
         """
             User can see/modify a link if they created it or it is in an org folder they belong to.
@@ -463,17 +455,21 @@ class LinkManager(models.Manager):
         return filter
 
     def accessible_to(self, user):
-        return self.get_queryset().accessible_to(user)
+        return self.filter(self.user_access_filter(user))
 
     def discoverable(self):
         """ Limit queryset to Links that can be publicly found by searching. """
-        return self.get_queryset().discoverable()
+        return self.filter(is_unlisted=False, is_private=False)
+
+
+LinkManager = DeletableManager.from_queryset(LinkQuerySet)
+
 
 HEADER_CHECK_TIMEOUT = 10
 # This is the PhantomJS default agent
 USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X) AppleWebKit/534.34 (KHTML, like Gecko) PhantomJS/1.9.0 (development) Safari/534.34"
 
-class Link(models.Model):
+class Link(DeletableModel):
     """
     This is the core of the Perma link.
     """
@@ -483,9 +479,7 @@ class Link(models.Model):
     creation_timestamp = models.DateTimeField(default=timezone.now, editable=False)
     submitted_title = models.CharField(max_length=2100, null=False, blank=False)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='created_links',)
-    user_deleted = models.BooleanField(default=False)
-    user_deleted_timestamp = models.DateTimeField(null=True, blank=True)
-    organization = models.ForeignKey(Organization, null=True, blank=True)
+    organization = models.ForeignKey(Organization, null=True, blank=True, related_name='links')
     folders = models.ManyToManyField(Folder, related_name='links', blank=True)
     notes = models.TextField(blank=True)
 
