@@ -29,7 +29,9 @@
         {% block meta %}{% endblock %}
 
 		<link href='https://fonts.googleapis.com/css?family=Roboto+Mono' rel='stylesheet' type='text/css'>
-        <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
+
+        {% include 'includes/favicon-markup.html' %}
+
         {% stylesheet 'base' %}
 
         {# Python variables for use in Javascript #}
