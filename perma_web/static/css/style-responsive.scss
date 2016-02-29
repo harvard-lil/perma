@@ -5059,10 +5059,56 @@ section .caption {
 	font-family: $font-hed;
 	font-size: 15px;
 
+	.cont-reading {
+		padding-top: 0;
+		margin-top: 0;
+		@include respond-tablet {
+			padding-top: 30px;
+		}
+		@include respond-desktop {
+			padding-top: 60px;
+		}
+		@include respond-wide {
+			padding-top: 90px;
+		}
+		
+	}
+
+	h2 {
+		font-weight: 300;
+	}
+
+	.page-dek {
+		margin-bottom: 0;
+		@include respond-tablet {
+			margin-bottom: -20px;
+		}
+
+		@include respond-wide {
+			margin-bottom: -40px;
+		}
+		
+	}
+
 	canvas {
 		display: inline;
 		width: 100% !important;
 		height: auto !important;
+	}
+
+	.graph-numbers-wrapper {
+		padding-top: 0px;
+
+		// do some vertical centering.
+		// this can't be the best way.
+		@include respond-desktop {
+			padding-top: 30px;
+		}
+
+		@include respond-wide {
+			padding-top: 60px;
+		}
+		
 	}
 
 	.number-header {
@@ -5083,6 +5129,7 @@ section .caption {
 			color: $color-white;
 			font-size: 22px;
 			padding: 3px 0;
+			font-weight: 300;
 		}
 
 		.sub-number-container {
@@ -5105,12 +5152,37 @@ section .caption {
 	}
 
 	.vert-number-container {
-		float:left;
-		width:80px;
+		@include respond-tablet {
+			float:left;
+			width:80px;
+			.vert-number {
+				transform: rotateZ(-90deg);
+				font-size: 60px;
+				color: $color-orange;
+			}
+		}
+
 		.vert-number {
-			transform: rotateZ(-90deg);
-			font-size: 60px;
-			color: $color-orange;
+			@include respond-mobile {
+				text-align: center;
+				color: $color-orange;
+				font-size: 60px;
+				padding: 3px 0;
+				font-weight: 300;
+			}
+		}
+	}
+
+	.now-title {
+		padding-bottom: 10px;
+		@include respond-mobile {
+			margin-top: 20px;
+		}
+	}
+
+	.legend-wrapper {
+		@include respond-mobile {
+			margin-bottom: 10px;
 		}
 	}
 
