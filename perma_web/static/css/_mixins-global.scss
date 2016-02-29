@@ -29,7 +29,7 @@
 	}
 }
 
-//	these old respond()s are here becouse the new one seems to be broken with the django-pipeline compiler
+//	these old respond()s are here because the new one seems to be broken with the django-pipeline compiler
 
 $width-xmobile-respond: $width-mobile; 	// 320px;
 $width-tablet-respond: $width-xmobile; 	// 384px;
