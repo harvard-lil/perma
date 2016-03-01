@@ -70,11 +70,11 @@ LinksListModule.setupLinksTableEventHandlers = function () {
       LinksListModule.showFolderContents(LinksListModule.selectedFolderID);
     })
     .on('mousedown touchstart', '.item-row', function (e) {
-      LinksListModule.handleMouseDown();
+      LinksListModule.handleMouseDown(e);
       // .item-row mouseup -- hide and show link details, if not dragging
     })
     .on('mouseup touchend', '.item-row', function (e) {
-      LinksListModule.handleMouseUp();
+      LinksListModule.handleMouseUp(e);
     // save changes to notes field
     })
     .on('input propertychange change', '.link-notes', function () {
@@ -171,7 +171,7 @@ LinksListModule.showFolderContents = function (folderID, query) {
   getNextContents();
 }
 
-LinksListModule.handleMouseDown = function () {
+LinksListModule.handleMouseDown = function (e) {
   if ($(e.target).hasClass('no-drag'))
     return;
 
@@ -187,7 +187,7 @@ LinksListModule.handleMouseDown = function () {
   this.dragStartPosition = [e.pageX || e.originalEvent.touches[0].pageX, e.pageY || e.originalEvent.touches[0].pageY];
 }
 
-LinksListModule.handleMouseUp = function () {
+LinksListModule.handleMouseUp = function (e) {
   // prevent JSTree's tap-to-drag behavior
   $.vakata.dnd.stop(e);
 
