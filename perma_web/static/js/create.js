@@ -15,6 +15,20 @@ var organizations = {};
 var CreateModule = CreateModule || {};
 var ls = ls || {};
 
+/* Everything that needs to happen at page load - start */
+
+$(document).ready(function() {
+  CreateModule.init()
+  CreateModule.setupEventHandlers()
+
+  var bookmarklet_url = CreateModule.getParameterByName('url');
+  if (bookmarklet_url) {
+    $('.bookmarklet-button').hide();
+    $('#rawUrl').val(bookmarklet_url);
+  }
+});
+
+
 ls.getAll = function () {
   var folders = JSON.parse(localStorage.getItem("perma_selection"));
   return folders || {};
@@ -290,17 +304,12 @@ CreateModule.updateLinksRemaining = function (links_num) {
 }
 
 CreateModule.handleSelectionChange = function (data) {
-  var parsedData,
-    orgId = null,
-    path = null;
+  var orgId = path = null;
 
-  parsedData = JSON.parse(data);
-
-  if (parsedData) {
-    orgId = parsedData.orgId;
-    path = parsedData.path;
+  if (data) {
+    orgId = data.orgId;
+    path  = data.path;
   }
-
   this.updateLinker();
   this.updateAffiliationPath(orgId, path);
 }
@@ -320,13 +329,23 @@ CreateModule.uploadOwnCapture = function (context) {
 
 CreateModule.setupEventHandlers = function () {
   var self = this;
-  $(window).on("folderTree.selectionChange", function(evt, data){
-    self.handleSelectionChange(data)
-  });
+  $(window)
+    .off("FolderTreeModule.selectionChange")
+    .off("updateLinksRemaining")
+    .on("FolderTreeModule.selectionChange", function(evt, data){
+      if (typeof data !== "object" ) data = JSON.parse(data);
+      self.handleSelectionChange(data);
+    })
+    .on("updateLinksRemaining", function(evt, data){
+      self.updateLinksRemaining(data)
+    });
+    // When a user uploads their own capture
+  $('#archive_upload_form')
+    .submit(function() { CreateModule.uploadOwnCapture(this) });
 
-  $(window).on("updateLinksRemaining", function(evt, data){
-    self.updateLinksRemaining(data)
-  })
+  // Toggle users dropdown
+  $('#dashboard-users')
+    .click(function(){ $('.users-secondary').toggle(); });
 }
 
 
@@ -374,18 +393,7 @@ CreateModule.init = function () {
 
 
 
-/* Everything that needs to happen at page load - start */
 
-$(document).ready(function() {
-  CreateModule.init()
-  CreateModule.setupEventHandlers()
-
-  var bookmarklet_url = CreateModule.getParameterByName('url');
-  if (bookmarklet_url) {
-    $('.bookmarklet-button').hide();
-    $('#rawUrl').val(bookmarklet_url);
-  }
-});
 
 /* Catch incoming URLs as param values. Both from the bookmarklet or from the create page - end */
 
@@ -422,12 +430,6 @@ $('#linker').submit(function() {
 
   return false;
 });
-
-// When a user uploads their own capture
-$('#archive_upload_form').submit(function() { CreateModule.uploadOwnCapture(this) });
-
-// Toggle users dropdown
-$('#dashboard-users').click(function(){ $('.users-secondary').toggle(); });
 
 /* Our spinner controller - start */
 
