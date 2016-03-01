@@ -201,12 +201,13 @@ LinksListModule.handleMouseUp = function (e) {
   this.lastRowToggleTime = new Date().getTime();
 
   // hide/show link details
-  var linkContainer = $(this).closest('.item-container'),
+  var linkContainer = $(e.target).closest('.item-container'),
     details = linkContainer.find('.item-details');
 
   if (details.is(':visible')) {
     details.hide();
     linkContainer.toggleClass( '_active' )
+
   } else {
     // when showing link details, update the move-to-folder select input
     // based on the current folderTree structure
