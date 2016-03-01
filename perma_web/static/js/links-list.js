@@ -38,14 +38,14 @@ LinksListModule.setupEventHandlers = function () {
   });
 }
 
-function getLinkIDForFormElement(element){
+LinksListModule.getLinkIDForFormElement = function (element) {
   return element.closest('.item-container').find('.item-row').attr('link_id');
 }
 
 var saveBufferSeconds = 0.5,
   timeouts = {};
   // save changes in a given text box to the server
-function saveInput(inputElement, statusElement, name, callback) {
+LinksListModule.saveInput = function(inputElement, statusElement, name, callback) {
   statusElement.html('Saving...');
 
   var guid = inputElement.attr('id').match(/.+-(.+-.+)/)[1],
@@ -79,13 +79,13 @@ LinksListModule.setupLinksTableEventHandlers = function () {
     })
     .on('input propertychange change', '.link-notes', function () {
       var textarea = $(this);
-      saveInput(textarea, textarea.prevAll('.notes-save-status'), 'notes');
+      LinksListModule.saveInput(textarea, textarea.prevAll('.notes-save-status'), 'notes');
 
     // save changes to title field
     })
     .on('textchange', '.link-title', function () {
       var textarea = $(this);
-      saveInput(textarea, textarea.prevAll('.title-save-status'), 'title', function () {
+      LinksListModule.saveInput(textarea, textarea.prevAll('.title-save-status'), 'title', function () {
         // update display title when saved
         textarea.closest('.item-container').find('.item-title span').text(textarea.val());
       });
@@ -94,7 +94,7 @@ LinksListModule.setupLinksTableEventHandlers = function () {
     })
     .on('change', '.move-to-folder', function () {
       var moveSelect = $(this);
-      var data = JSON.stringify({ folderId: moveSelect.val(), linkId: getLinkIDForFormElement(moveSelect) })
+      var data = JSON.stringify({ folderId: moveSelect.val(), linkId: LinksListModule.getLinkIDForFormElement(moveSelect) })
       $(window).trigger("LinksListModule.moveLink", data)
     });
 }

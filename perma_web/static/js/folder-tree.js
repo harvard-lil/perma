@@ -147,8 +147,6 @@ FolderTreeModule.moveLink = function (folderID, linkID) {
   });
 }
 
-
-
 FolderTreeModule.domTreeInit = function () {
   $('#folder-tree')
     .jstree({
