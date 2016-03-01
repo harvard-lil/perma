@@ -203,7 +203,8 @@ LinksListModule.handleMouseUp = function (e) {
   // hide/show link details
   var linkContainer = $(this).closest('.item-container'),
     details = linkContainer.find('.item-details');
-  if(details.is(":visible")){
+
+  if (details.is(':visible')) {
     details.hide();
     linkContainer.toggleClass( '_active' )
   } else {
