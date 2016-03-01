@@ -1,9 +1,9 @@
 var FolderTreeModule = FolderTreeModule || {};
 
 $(document).ready(function() {
-  FolderTreeModule.domTreeInit()
-  FolderTreeModule.init()
-  FolderTreeModule.setupEventHandlers()
+  FolderTreeModule.domTreeInit();
+  FolderTreeModule.init();
+  FolderTreeModule.setupEventHandlers();
 })
 
 FolderTreeModule.init = function () {

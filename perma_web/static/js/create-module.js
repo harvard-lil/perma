@@ -18,8 +18,8 @@ var ls = ls || {};
 /* Everything that needs to happen at page load - start */
 
 $(document).ready(function() {
-  CreateModule.init()
-  CreateModule.setupEventHandlers()
+  CreateModule.init();
+  CreateModule.setupEventHandlers();
 
   var bookmarklet_url = CreateModule.getParameterByName('url');
   if (bookmarklet_url) {

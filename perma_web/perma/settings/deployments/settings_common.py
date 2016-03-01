@@ -135,9 +135,9 @@ PIPELINE_JS = {
             'vendors/jquery/jquery.splendid.textchange.js',
             'vendors/jquery/jquery.waypoints.js',
 
-            'js/create.js',
-            'js/folder-tree.js',
-            'js/links-list.js',
+            'js/create-module.js',
+            'js/folder-tree-module.js',
+            'js/links-list-module.js',
         ),
         'output_filename': 'js/create-bundle.js',
     },
