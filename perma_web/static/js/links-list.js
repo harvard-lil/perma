@@ -94,10 +94,8 @@ LinksListModule.setupLinksTableEventHandlers = function () {
     })
     .on('change', '.move-to-folder', function () {
       var moveSelect = $(this);
-      moveLink(
-        moveSelect.val(), // selected folder_id to move link to
-        getLinkIDForFormElement(moveSelect) // link id to move
-      );
+      var data = JSON.stringify({ folderId: moveSelect.val(), linkId: getLinkIDForFormElement(moveSelect) })
+      $(window).trigger("LinksListModule.moveLink", data)
     });
 }
 

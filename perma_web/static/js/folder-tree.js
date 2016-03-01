@@ -28,12 +28,17 @@ FolderTreeModule.init = function () {
 
 FolderTreeModule.setupEventHandlers = function () {
   var self = this;
-  $(window).on('dropdown.selectionChange', function () {
-    self.folderTree.close_all();
-    self.folderTree.deselect_all();
-    var node = self.findNodeBySavedFolder();
-    self.folderTree.select_node(node);
-  });
+  $(window)
+    .on('dropdown.selectionChange', function () {
+      self.folderTree.close_all();
+      self.folderTree.deselect_all();
+      var node = self.findNodeBySavedFolder();
+      self.folderTree.select_node(node);
+    })
+    .on('LinksListModule.moveLink', function(evt, data) {
+      data = JSON.parse(data);
+      FolderTreeModule.moveLink(data.folderId, data.linkId);
+    });
 
   // set body class during drag'n'drop
   $(document).on('dnd_start.vakata', function (e, data) {
