@@ -220,7 +220,7 @@ LinksListModule.handleMouseUp = function (e) {
     // recursively populate select ...
     function addChildren(node, depth) {
       for (var i = 0; i < node.children.length; i++) {
-        var childNode = folderTree.get_node(node.children[i]);
+        var childNode = FolderTreeModule.folderTree.get_node(node.children[i]);
 
         // For each node, we create an <option> using text() for the folder name,
         // and then prepend some &nbsp; to show the tree structure using html().
