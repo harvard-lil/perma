@@ -318,8 +318,21 @@ CreateModule.uploadOwnCapture = function (context) {
   return false;
 }
 
+CreateModule.setupEventHandlers = function () {
+  var self = this;
+  $(window).on("folderTree.selectionChange", function(evt, data){
+    self.handleSelectionChange(data)
+  });
+
+  $(window).on("updateLinksRemaining", function(evt, data){
+    self.updateLinksRemaining(data)
+  })
+}
+
+
 CreateModule.init = function () {
   var self = this;
+
   apiRequest("GET", "/user/organizations/", {limit: 300, order_by:'registrar'})
     .success(function(data) {
       var $organization_select = $("#organization_select");
@@ -365,22 +378,14 @@ CreateModule.init = function () {
 
 $(document).ready(function() {
   CreateModule.init()
+  CreateModule.setupEventHandlers()
 
   var bookmarklet_url = CreateModule.getParameterByName('url');
   if (bookmarklet_url) {
     $('.bookmarklet-button').hide();
     $('#rawUrl').val(bookmarklet_url);
   }
-  // Populate the URL field and submit the "create link" form
 });
-
-$(window).on("folderTree.selectionChange", function(evt, data){
-  CreateModule.handleSelectionChange(data)
-});
-
-$(window).on("updateLinksRemaining", function(evt, data){
-  CreateModule.updateLinksRemaining(data)
-})
 
 /* Catch incoming URLs as param values. Both from the bookmarklet or from the create page - end */
 
