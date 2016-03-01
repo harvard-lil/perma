@@ -13,22 +13,22 @@ var organizations = {};
 /* Our globals. Look out interwebs - end */
 
 var CreateModule = CreateModule || {};
+var ls = ls || {};
 
-
-CreateModule.getAllSelectionSettings = function () {
+ls.getAll = function () {
   var folders = JSON.parse(localStorage.getItem("perma_selection"));
   return folders || {};
 }
 
-CreateModule.getSelectionSettings = function () {
-  var folders = this.getAllSelectionSettings();
+ls.getCurrent = function () {
+  var folders = this.getAll();
   return folders[current_user.id] || {};
 }
 
-CreateModule.setSelectedFolder = function (orgId, folderId) {
+ls.setCurrent = function (orgId, folderId) {
   folderId = folderId ? folderId : 'default';
 
-  var selectedFolders = CreateModule.getAllSelectionSettings();
+  var selectedFolders = this.getAll();
   selectedFolders[current_user.id] = {'folderId' : folderId, 'orgId' : orgId };
 
   localStorage.setItem("perma_selection",JSON.stringify(selectedFolders));
@@ -36,6 +36,11 @@ CreateModule.setSelectedFolder = function (orgId, folderId) {
 
   $(window).trigger("dropdown.selectionChange");
 }
+
+
+// localStorage settings
+CreateModule.ls = ls
+
 
 // Get parameter by name
 // from https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
@@ -45,7 +50,6 @@ CreateModule.getParameterByName = function (name) {
     results = regex.exec(location.search);
   return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
-
 
 CreateModule.linkIt = function (data) {
   // Success message from API. We should have a GUID now (but the
@@ -67,10 +71,10 @@ CreateModule.linkNot = function (jqXHR) {
   } else {
     var message = "";
     if (jqXHR.status == 400 && jqXHR.responseText) {
-        var errors = JSON.parse(jqXHR.responseText).archives;
-        for (var prop in errors) {
-            message += errors[prop] + " ";
-        }
+      var errors = JSON.parse(jqXHR.responseText).archives;
+      for (var prop in errors) {
+          message += errors[prop] + " ";
+      }
     }
 
     var upload_allowed = true;
@@ -88,7 +92,7 @@ CreateModule.linkNot = function (jqXHR) {
     $('.create-errors').addClass('_active');
     $('#error-container').hide().fadeIn(0);
   }
-  CreateModule.toggleCreateAvailable();
+  this.toggleCreateAvailable();
 }
 
 
@@ -184,7 +188,7 @@ CreateModule.check_status = function () {
 
   // Check our status service to see if we have archiving jobs pending
   var request = apiRequest("GET", "/archives/" + new_archive.guid + "/", {'cache': false});
-
+  var self = this;
   request.done(function(data) {
     var capturesPending = false,
       capturesSucceeded = false;
@@ -216,7 +220,7 @@ CreateModule.check_status = function () {
         $('.error-row').removeClass('hide _error _success _wait').addClass('_error');
 
         // Toggle our create button
-        CreateModule.toggleCreateAvailable();
+        self.toggleCreateAvailable();
       }
     }
   });
@@ -225,7 +229,7 @@ CreateModule.check_status = function () {
 /* Our polling function for the thumbnail completion - end */
 
 CreateModule.updateLinker = function () {
-  var userSettings = CreateModule.getSelectionSettings();
+  var userSettings = this.ls.getCurrent();
   var currentOrg = userSettings.orgId;
 
   if (!userSettings.folderId) {
@@ -234,27 +238,26 @@ CreateModule.updateLinker = function () {
   }
 
   if (!currentOrg && links_remaining < 1) {
-      $('#addlink').attr('disabled', 'disabled');
+    $('#addlink').attr('disabled', 'disabled');
   } else {
-      $('#addlink').removeAttr('disabled');
+    $('#addlink').removeAttr('disabled');
   }
 
   if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
-      $('#addlink').text("Create Private Perma Link");
+    $('#addlink').text("Create Private Perma Link");
   } else {
-      $('#addlink').text("Create Perma Link");
+    $('#addlink').text("Create Perma Link");
   }
 
   if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
-      $('#linker').addClass('_isPrivate')
-      // add the little eye icon if org is private
-      $('#organization_select_form')
-          .find('.dropdown-toggle > span')
-          .addClass('ui-private');
+    $('#linker').addClass('_isPrivate')
+    // add the little eye icon if org is private
+    $('#organization_select_form')
+        .find('.dropdown-toggle > span')
+        .addClass('ui-private');
   } else {
-      $('#linker').removeClass('_isPrivate')
+    $('#linker').removeClass('_isPrivate')
   }
-
 }
 
 CreateModule.updateAffiliationPath = function (currentOrg, path) {
@@ -281,73 +284,46 @@ CreateModule.updateAffiliationPath = function (currentOrg, path) {
   }
 }
 
-CreateModule.updateLinksRemaining = function (links_remaining) {
+CreateModule.updateLinksRemaining = function (links_num) {
+  links_remaining = links_num;
   $('.links-remaining').text(links_remaining);
 }
 
-/* Everything that needs to happen at page load - start */
+CreateModule.handleSelectionChange = function (data) {
+  var parsedData,
+    orgId = null,
+    path = null;
 
-$(function() {
+  parsedData = JSON.parse(data);
 
-  $organization_select = $("#organization_select");
+  if (parsedData) {
+    orgId = parsedData.orgId;
+    path = parsedData.path;
+  }
 
-  $('#archive-upload-confirm').modal({show: false});
-  $('#archive-upload').modal({show: false});
+  this.updateLinker();
+  this.updateAffiliationPath(orgId, path);
+}
 
-
-  // When a new url is entered into our form
-  $('#linker').submit(function() {
-    var $this = $(this);
-    var linker_data = {};
-    var selectedFolder = CreateModule.getSelectionSettings();
-
-    if(selectedFolder){
-      linker_data = {
-        url: $this.find("input[name=url]").val(),
-        folder: selectedFolder.folderId || null
-      }
-    } else {
-      linker_data = {
-        url: $this.find("input[name=url]").val()
-      };
-    }
-    // Start our spinner and disable our input field with just a tiny delay
-    window.setTimeout(CreateModule.toggleCreateAvailable, 150);
-
-    $.ajax($this.attr('action'), {
-      method: $this.attr('method'),
-      contentType: 'application/json',
-      data: JSON.stringify(linker_data),
-      success: CreateModule.linkIt,
-      error: CreateModule.linkNot
-    });
-
-    return false;
+CreateModule.uploadOwnCapture = function (context) {
+  var extraUploadData = {},
+    selectedFolder = this.ls.getCurrent();
+  if(selectedFolder)
+    extraUploadData.folder = selectedFolder.folderId;
+  $(context).ajaxSubmit({
+    data: extraUploadData,
+    success: this.uploadIt,
+    error: this.uploadNot
   });
+  return false;
+}
 
-  // When a user uploads their own capture
-  $('#archive_upload_form').submit(function() {
-    // CreateLink.uploadOwnCapture()
-    var extraUploadData = {},
-      selectedFolder = CreateModule.getSelectionSettings();
-    if(selectedFolder)
-      extraUploadData.folder = selectedFolder.folderId;
-    $(this).ajaxSubmit({
-      data: extraUploadData,
-      success: CreateModule.uploadIt,
-      error: CreateModule.uploadNot
-    });
-    return false;
-  });
-
-
-  // Toggle users dropdown
-  $('#dashboard-users').click(function(){
-    $('.users-secondary').toggle();
-  });
-
+CreateModule.init = function () {
+  var self = this;
   apiRequest("GET", "/user/organizations/", {limit: 300, order_by:'registrar'})
     .success(function(data) {
+      var $organization_select = $("#organization_select");
+
       var sorted = [];
       Object.keys(data.objects).sort(function(a,b){
         return data.objects[a].registrar < data.objects[b].registrar ? -1 : 1;
@@ -359,69 +335,94 @@ $(function() {
       if (data.objects.length > 0) {
         var optgroup = data.objects[0].registrar;
         data.objects.map(function (organization) {
-        organizations[organization.id] = organization;
+          organizations[organization.id] = organization;
 
-        if(organization.registrar !== optgroup) {
-          $organization_select.prepend("<li class='dropdown-header'>" + optgroup + "</li>");
-          optgroup = organization.registrar;
-          $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
-        }
-        var opt_text = organization.name;
-        if (organization.default_to_private) {
-          opt_text += ' <span class="ui-private">(Private)</span>';
-        }
-        $organization_select.append("<li><a onClick='CreateModule.setSelectedFolder("+organization.id+", "+organization.shared_folder.id+")'>" + opt_text + "</a></li>");
-      });
+          if(organization.registrar !== optgroup) {
+            $organization_select.prepend("<li class='dropdown-header'>" + optgroup + "</li>");
+            optgroup = organization.registrar;
+            $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
+          }
+          var opt_text = organization.name;
+          if (organization.default_to_private) {
+            opt_text += ' <span class="ui-private">(Private)</span>';
+          }
+          $organization_select.append("<li><a onClick='CreateModule.ls.setCurrent("+organization.id+", "+organization.shared_folder.id+")'>" + opt_text + "</a></li>");
+        });
 
-      $organization_select.append("<li><a onClick='CreateModule.setSelectedFolder()'> My Links <span class='links-remaining'>" + links_remaining + "<span></a></li>");
-      CreateModule.updateLinker();
-    } else {
-      // select My Folder for users with no orgs and no saved selections
-      var selectedFolder = CreateModule.getSelectionSettings();
-      if (!selectedFolder) {
-        CreateModule.setSelectedFolder();
+        $organization_select.append("<li><a onClick='CreateModule.ls.setCurrent()'> My Links <span class='links-remaining'>" + links_remaining + "<span></a></li>");
+        self.updateLinker();
+      } else {
+        // select My Folder for users with no orgs and no saved selections
+        var selectedFolder = self.ls.getCurrent();
+        if (!selectedFolder) { self.ls.setCurrent(); }
       }
-    }
   });
-  /* Org affiliation dropdown logic - end */
-});
+}
 
-// Populate the URL field and submit the "create link" form
-$(document).ready(function() {
-    var bookmarklet_url = CreateModule.getParameterByName('url');
-    if (bookmarklet_url) {
-      $('.bookmarklet-button').hide();
-      $('#rawUrl').val(bookmarklet_url);
-    }
-});
+
+
+/* Everything that needs to happen at page load - start */
 
 $(document).ready(function() {
-  $(window).on("folderTree.selectionChange", function(evt, data){
-    var parsedData,
-      orgId = null,
-      path = null;
+  CreateModule.init()
 
-    parsedData = JSON.parse(data);
-
-    if (parsedData) {
-      orgId = parsedData.orgId;
-      path = parsedData.path;
-    }
-
-    $(window).on("updateLinksRemaining", function(evt, data){
-      links_remaining = data
-      CreateModule.updateLinksRemaining(links_remaining)
-    })
-    CreateModule.updateLinker();
-    CreateModule.updateAffiliationPath(orgId, path);
-  });
+  var bookmarklet_url = CreateModule.getParameterByName('url');
+  if (bookmarklet_url) {
+    $('.bookmarklet-button').hide();
+    $('#rawUrl').val(bookmarklet_url);
+  }
+  // Populate the URL field and submit the "create link" form
 });
 
+$(window).on("folderTree.selectionChange", function(evt, data){
+  CreateModule.handleSelectionChange(data)
+});
+
+$(window).on("updateLinksRemaining", function(evt, data){
+  CreateModule.updateLinksRemaining(data)
+})
 
 /* Catch incoming URLs as param values. Both from the bookmarklet or from the create page - end */
 
+$('#archive-upload-confirm').modal({show: false});
+$('#archive-upload').modal({show: false});
 
 
+// When a new url is entered into our form
+$('#linker').submit(function() {
+  var $this = $(this);
+  var linker_data = {};
+  var selectedFolder = CreateModule.ls.getCurrent();
+
+  if(selectedFolder){
+    linker_data = {
+      url: $this.find("input[name=url]").val(),
+      folder: selectedFolder.folderId || null
+    }
+  } else {
+    linker_data = {
+      url: $this.find("input[name=url]").val()
+    };
+  }
+  // Start our spinner and disable our input field with just a tiny delay
+  window.setTimeout(CreateModule.toggleCreateAvailable, 150);
+
+  $.ajax($this.attr('action'), {
+    method: $this.attr('method'),
+    contentType: 'application/json',
+    data: JSON.stringify(linker_data),
+    success: CreateModule.linkIt,
+    error: CreateModule.linkNot
+  });
+
+  return false;
+});
+
+// When a user uploads their own capture
+$('#archive_upload_form').submit(function() { CreateModule.uploadOwnCapture(this) });
+
+// Toggle users dropdown
+$('#dashboard-users').click(function(){ $('.users-secondary').toggle(); });
 
 /* Our spinner controller - start */
 
