@@ -330,13 +330,13 @@ CreateModule.uploadOwnCapture = function (context) {
 CreateModule.setupEventHandlers = function () {
   var self = this;
   $(window)
-    .off("FolderTreeModule.selectionChange")
-    .off("updateLinksRemaining")
-    .on("FolderTreeModule.selectionChange", function(evt, data){
-      if (typeof data !== "object" ) data = JSON.parse(data);
+    .off('FolderTreeModule.selectionChange')
+    .off('FolderTreeModule.updateLinksRemaining')
+    .on('FolderTreeModule.selectionChange', function(evt, data){
+      if (typeof data !== 'object') data = JSON.parse(data);
       self.handleSelectionChange(data);
     })
-    .on("updateLinksRemaining", function(evt, data){
+    .on('FolderTreeModule.updateLinksRemaining', function(evt, data){
       self.updateLinksRemaining(data)
     });
     // When a user uploads their own capture
