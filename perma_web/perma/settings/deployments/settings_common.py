@@ -130,12 +130,13 @@ PIPELINE_JS = {
         'source_filenames': (
             'vendors/spinjs/spin.js',
             'vendors/jquery/jquery.form.min.js',
-            'js/create.js',
-
             'vendors/jquery/jquery-ui-1.10.3.custom.min.js',
             'vendors/jstree/jstree.min.js',
             'vendors/jquery/jquery.splendid.textchange.js',
             'vendors/jquery/jquery.waypoints.js',
+
+            'js/create.js',
+            'js/folder-tree.js',
             'js/links-list.js',
         ),
         'output_filename': 'js/create-bundle.js',
