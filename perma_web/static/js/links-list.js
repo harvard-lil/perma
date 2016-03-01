@@ -1,12 +1,4 @@
 var LinksListModule = LinksListModule || {};
-/*
-TODO: separate folderTree nad linkTable functionality into separate modules
-LinksListModule.linkTable
-is the table of created links
-
-LinksListModule.folderTree
-
-*/
 
 $(document).ready(function() {
   LinksListModule.init();
