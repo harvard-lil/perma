@@ -20,12 +20,6 @@ var ls = ls || {};
 $(document).ready(function() {
   CreateModule.init();
   CreateModule.setupEventHandlers();
-
-  var bookmarklet_url = CreateModule.getParameterByName('url');
-  if (bookmarklet_url) {
-    $('.bookmarklet-button').hide();
-    $('#rawUrl').val(bookmarklet_url);
-  }
 });
 
 
