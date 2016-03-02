@@ -20,6 +20,8 @@ var ls = ls || {};
 $(document).ready(function() {
   CreateModule.init();
   CreateModule.setupEventHandlers();
+  $('#archive-upload-confirm').modal({show: false});
+  $('#archive-upload').modal({show: false});
 });
 
 
@@ -340,6 +342,35 @@ CreateModule.setupEventHandlers = function () {
   // Toggle users dropdown
   $('#dashboard-users')
     .click(function(){ $('.users-secondary').toggle(); });
+    // When a new url is entered into our form
+  $('#linker').submit(function() {
+    var $this = $(this);
+    var linker_data = {};
+    var selectedFolder = self.ls.getCurrent();
+
+    if(selectedFolder){
+      linker_data = {
+        url: $this.find("input[name=url]").val(),
+        folder: selectedFolder.folderId || null
+      }
+    } else {
+      linker_data = {
+        url: $this.find("input[name=url]").val()
+      };
+    }
+    // Start our spinner and disable our input field with just a tiny delay
+    window.setTimeout(self.toggleCreateAvailable, 150);
+
+    $.ajax($this.attr('action'), {
+      method: $this.attr('method'),
+      contentType: 'application/json',
+      data: JSON.stringify(linker_data),
+      success: self.linkIt,
+      error: self.linkNot
+    });
+
+    return false;
+  });
 }
 
 
@@ -385,45 +416,6 @@ CreateModule.init = function () {
   });
 }
 
-
-
-
-
-/* Catch incoming URLs as param values. Both from the bookmarklet or from the create page - end */
-
-$('#archive-upload-confirm').modal({show: false});
-$('#archive-upload').modal({show: false});
-
-
-// When a new url is entered into our form
-$('#linker').submit(function() {
-  var $this = $(this);
-  var linker_data = {};
-  var selectedFolder = CreateModule.ls.getCurrent();
-
-  if(selectedFolder){
-    linker_data = {
-      url: $this.find("input[name=url]").val(),
-      folder: selectedFolder.folderId || null
-    }
-  } else {
-    linker_data = {
-      url: $this.find("input[name=url]").val()
-    };
-  }
-  // Start our spinner and disable our input field with just a tiny delay
-  window.setTimeout(CreateModule.toggleCreateAvailable, 150);
-
-  $.ajax($this.attr('action'), {
-    method: $this.attr('method'),
-    contentType: 'application/json',
-    data: JSON.stringify(linker_data),
-    success: CreateModule.linkIt,
-    error: CreateModule.linkNot
-  });
-
-  return false;
-});
 
 /* Our spinner controller - start */
 
