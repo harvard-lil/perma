@@ -75,10 +75,6 @@ def fetch_warc(request, path, guid):
     if path.rstrip('/') != link.guid_as_path() or link.archive_timestamp is None or link.archive_timestamp > timezone.now():
         raise Http404
 
-    # TEMP: remove this line after all legacy warcs have been exported
-    if not default_storage.exists(link.warc_storage_file()):
-        link.export_warc()
-
     # deliver warc file
     response = StreamingHttpResponse(FileWrapper(default_storage.open(link.warc_storage_file()), 1024 * 8),
                                      content_type="application/gzip")

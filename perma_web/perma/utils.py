@@ -3,6 +3,7 @@ import operator
 import os
 import struct
 import tempdir
+from datetime import datetime
 
 from django.core.mail import EmailMessage
 from django.core.paginator import Paginator
@@ -23,6 +24,21 @@ def run_task(task, *args, **kwargs):
         return task.apply(args, kwargs, **options)
 
 ### list view helpers ###
+
+def filter_or_null_join(**queries):
+    """
+        This is for use in complex queries before doing an .annotate(Count()) on a join field. See user_management.py for examples.
+
+        Example:
+            orgs.filter(*filter_or_null_join(links__user_deleted=False))
+        Is equivalent to:
+            orgs.filter(Q(links__pk__isnull=True)|Q(links__pk__isnull=False, links__user_deleted=False))
+    """
+    filter_args = []
+    for key, val in queries.items():
+        key_id_isnull = "__".join(key.split("__")[:-1]+["pk"])+"__isnull"
+        filter_args.append(Q(**{key_id_isnull: True}) | Q(**{key_id_isnull: False, key: val}))
+    return filter_args
 
 def apply_search_query(request, queryset, fields):
     """
@@ -170,3 +186,15 @@ User agent: %s
         [settings.DEFAULT_FROM_EMAIL],
         headers={'Reply-To': from_address}
     ).send(fail_silently=False)
+
+def json_serial(obj):
+        """
+        JSON serializer for objects not serializable by default json code
+
+        Thanks, http://stackoverflow.com/a/22238613
+        """
+
+        if isinstance(obj, datetime):
+            serial = obj.isoformat()
+            return serial
+        raise TypeError ("Type not serializable")

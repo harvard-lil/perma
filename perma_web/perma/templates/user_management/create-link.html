@@ -90,7 +90,7 @@
 	            <ul>
 	                {% for tree in request.user.all_folder_trees %}
 	                    {% recursetree tree %}
-							<li data-folder_id="{{ node.pk }}" data-organization_id="{{ node.organization.id }}" data-jstree='{ {% if node.pk == folder.id %}"selected":true{% elif node.is_shared_folder %}"type":"shared_folder"{% endif %} }'>
+							<li data-folder_id="{{ node.pk }}" data-organization_id="{{ node.organization_id }}" data-jstree='{ {% if node.pk == folder.id %}"selected":true{% elif node.is_shared_folder %}"type":"shared_folder"{% endif %} }'>
 								<a href="{% url "folder_contents" folder_id=node.pk %}?iframe=1" target="folder-contents">{{ node.name }}</a>
 	                            {% if not node.is_leaf_node %}
 	                                <ul>
@@ -100,6 +100,7 @@
 	                        </li>
 	                    {% endrecursetree %}
 	                {% endfor %}
+
 	            </ul>
 	        </div>
 	    </div>
@@ -179,7 +180,6 @@
         <a href="#" class="btn" data-dismiss="modal" aria-hidden="true">Close</a>
     </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
@@ -196,132 +196,118 @@
 
     {% javascript 'admin' %}
     {% javascript 'create' %}
+
 {% endblock %}
 
 {% block templates %}
 
-{% verbatim %}
-<script id="upload-confirm-template" type="text/x-handlebars-template">
-	  <p class="message-large">Upload successful!</p>
-	  <p><a href="{{url}}">{{url}}</a></p>
-</script>
-{% endverbatim %}
+    {% verbatim %}
+        <script id="upload-confirm-template" type="text/x-handlebars-template">
+              <p class="message-large">Upload successful!</p>
+              <p><a href="{{url}}">{{url}}</a></p>
+        </script>
 
-{% verbatim %}
-<script id="error-template" type="text/x-handlebars-template">
-    <p class="message-large">{{ message }}</p>
-    <p class="message">We’re unable to create your Perma Link.</p>
-     {{#if upload_allowed}}
-    <p>You can <a href="" onclick="return upload_form();">upload your own archive</a> or <a href="{{contact_url}}">contact us about this error.</a></p>
-    {{/if}}
-</script>
-{% endverbatim %}
+        <script id="error-template" type="text/x-handlebars-template">
+            <p class="message-large">{{ message }}</p>
+            <p class="message">We’re unable to create your Perma Link.</p>
+             {{#if upload_allowed}}
+            <p>You can <a href="" onclick="return upload_form();">upload your own archive</a> or <a href="{{contact_url}}">contact us about this error.</a></p>
+            {{/if}}
+        </script>
 
-{% verbatim %}
-<script id="preview-failure-template" type="text/x-handlebars-template">
-    <!--<div class="screenshot-thumbnail">
-        <img src="{{static_prefix}}img/sorry-preview.jpg" class="img-responsive">
-    </div>-->
-</script>
-{% endverbatim %}
+        <script id="preview-failure-template" type="text/x-handlebars-template">
+            <!--<div class="screenshot-thumbnail">
+                <img src="{{static_prefix}}img/sorry-preview.jpg" class="img-responsive">
+            </div>-->
+        </script>
 
-
-<!-- Your Perma Links -->
-
-{% verbatim %}
-
-
-<script id="created-link-items-template" type="text/x-handlebars-template">
-{{#if query }}
-    <div class="shared-folder-label alert-success">
-        Search results for "{{ query }}".
-        <a href="#" class="clear-search">Clear search.</a>
-    </div>
-{{else}}
-    <!-- TODO: insert template from comment above -->
-{{/if}}
-
-
-{{#each links}}
-    <div class="item-container _isExpandable{{#if is_private }} _isPrivate{{/if}}">
-
-        <div class="row item-row row-no-bleed _isDraggable" link_id="{{ guid }}">
-            <div class="row">
-	            <div class="col col-sm-6 col-md-60">
-	            	<div class="item-title">
-		            	{{#if is_private }}<span class="ui-private">[private] </span>{{/if}}<span>{{ title }}</span>
-	            	</div>
-	                <div class="item-subtitle">
-	                	<a href="{{ url }}" target="_blank" class="item-link-original no-drag">{{ truncatechars url 200 }}</a>
-	                </div>
-	            </div>
-	            <div class="col col-sm-6 col-md-40 align-right item-permalink">
-	                {{#if delete_available}}<a class="delete no-drag" href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}
-	                <a class="perma no-drag" href="http://{{local_url}}" target="_blank">{{local_url}}</a>
-	            </div>
-            </div>
-            <div class="row item-secondary">
-	            <div class="col col-sm-7">
-	            	{{#if organization }}
-	                <div class="item-affil">
-		                <span>{{organization.name}}</span>
-		            </div>
-		            {{/if}}
-	            </div>
-	            <div class="col col-sm-5 sm-align-right">
-		            <span class="item-date"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
-	            </div>
-            </div>
-        </div>
-
-        <div class="row item-details" {{#if search_query_in_notes}}style="display:block"{{/if}}>
-            <div class="col-sm-7">
-
-                <div class="form-group">
-                    <label for="link-title-{{guid}}">Display title</label>
-                    <span class="title-save-status"></span>
-                    <input type="text" class="link-title" name="input" id="link-title-{{guid}}" value="{{title}}">
+        <script id="created-link-items-template" type="text/x-handlebars-template">
+            {{#if query }}
+                <div class="shared-folder-label alert-success">
+                    Search results for "{{ query }}".
+                    <a href="#" class="clear-search">Clear search.</a>
                 </div>
+            {{else}}
+                <!-- TODO: insert template from comment above -->
+            {{/if}}
 
-                <div class="form-group">
-                    <label for="link-notes-{{guid}}">Notes</label>
-                    <span class="notes-save-status"></span>
-                    <textarea id="link-notes-{{guid}}" class="link-notes" rows="6">{{notes}}</textarea>
-	                <span class="muted">
-	                    Notes are private to you and your oganizations(s)
-	                </span>
+
+            {{#each links}}
+                <div class="item-container _isExpandable{{#if is_private }} _isPrivate{{/if}}">
+
+                    <div class="row item-row row-no-bleed _isDraggable" link_id="{{ guid }}">
+                        <div class="row">
+                            <div class="col col-sm-6 col-md-60">
+                                <div class="item-title">
+                                    {{#if is_private }}<span class="ui-private">[private] </span>{{/if}}<span>{{ title }}</span>
+                                </div>
+                                <div class="item-subtitle">
+                                    <a href="{{ url }}" target="_blank" class="item-link-original no-drag">{{ truncatechars url 200 }}</a>
+                                </div>
+                            </div>
+                            <div class="col col-sm-6 col-md-40 align-right item-permalink">
+                                {{#if delete_available}}<a class="delete no-drag" href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}
+                                <a class="perma no-drag" href="http://{{local_url}}" target="_blank">{{local_url}}</a>
+                            </div>
+                        </div>
+                        <div class="row item-secondary">
+                            <div class="col col-sm-7">
+                                {{#if organization }}
+                                <div class="item-affil">
+                                    <span>{{organization.name}}</span>
+                                </div>
+                                {{/if}}
+                            </div>
+                            <div class="col col-sm-5 sm-align-right">
+                                <span class="item-date"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row item-details" {{#if search_query_in_notes}}style="display:block"{{/if}}>
+                        <div class="col-sm-7">
+
+                            <div class="form-group">
+                                <label for="link-title-{{guid}}">Display title</label>
+                                <span class="title-save-status"></span>
+                                <input type="text" class="link-title" name="input" id="link-title-{{guid}}" value="{{title}}">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="link-notes-{{guid}}">Notes</label>
+                                <span class="notes-save-status"></span>
+                                <textarea id="link-notes-{{guid}}" class="link-notes" rows="6">{{notes}}</textarea>
+                                <span class="muted">
+                                    Notes are private to you and your oganizations(s)
+                                </span>
+                            </div>
+
+                            <div class="form-group">
+                               <label for="move-to-folder-{{guid}}">Move to folder</label>
+                                <select id="move-to-folder-{{guid}}" class="move-to-folder form-control"></select>
+                            </div>
+
+                        </div>
+                        <div class="col-sm-5 link-stats">
+                            <div>
+                                <span><strong>Views:</strong> {{view_count}}</span></div>
+                            <div><span><strong>Created by:</strong> {{created_by.full_name}}</span></div>
+                        </div>
+                    </div>
                 </div>
-
-                <div class="form-group">
-                   <label for="move-to-folder-{{guid}}">Move to folder</label>
-                    <select id="move-to-folder-{{guid}}" class="move-to-folder form-control"></select>
+            {{else}}
+                <div class="row item-row row-no-bleed">
+                    <div class="row">
+                        <div class="col col-xs-12">
+                            <div class="item-title">
+                                <p class="item-notification">This is an empty folder</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            {{/each}}
+        </script>
 
-            </div>
-            <div class="col-sm-5 link-stats">
-                <div>
-                	<span><strong>Views:</strong> {{view_count}}</span></div>
-                <div><span><strong>Created by:</strong> {{created_by.full_name}}</span></div>
-            </div>
-        </div>
-    </div>
-{{else}}
-    <div class="row item-row row-no-bleed">
-        <div class="row">
-            <div class="col col-xs-12">
-                <div class="item-title">
-                    <p class="item-notification">This is an empty folder</p>
-                </div>
-            </div>
-        </div>
-    </div>
-{{/each}}
-
-
-
-
-{% endverbatim %}
-
-<!-- / Your Perma Links -->
+    {% endverbatim %}
 
 {% endblock templates %}

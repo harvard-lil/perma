@@ -5053,3 +5053,189 @@ section .caption {
 	background-color: #ffff00;
 	@include opacity(.3);
 }
+
+
+#stats {
+	font-family: $font-hed;
+	font-size: 15px;
+
+	.cont-reading {
+		padding-top: 0;
+		margin-top: 0;
+		@include respond-tablet {
+			padding-top: 30px;
+		}
+		@include respond-desktop {
+			padding-top: 60px;
+		}
+		@include respond-wide {
+			padding-top: 90px;
+		}
+		
+	}
+
+	h2 {
+		font-weight: 300;
+	}
+
+	.page-dek {
+		margin-bottom: 0;
+		@include respond-tablet {
+			margin-bottom: -20px;
+		}
+
+		@include respond-wide {
+			margin-bottom: -40px;
+		}
+		
+	}
+
+	canvas {
+		display: inline;
+		width: 100% !important;
+		height: auto !important;
+	}
+
+	.graph-numbers-wrapper {
+		padding-top: 0px;
+
+		// do some vertical centering.
+		// this can't be the best way.
+		@include respond-desktop {
+			padding-top: 30px;
+		}
+
+		@include respond-wide {
+			padding-top: 60px;
+		}
+		
+	}
+
+	.number-header {
+		font-size: 60px;
+		margin-bottom: 0;
+		text-align: center;
+		color: $color-orange;
+	}
+
+	.graph-numbers-container {
+		border: 1px solid $color-orange;
+		height: 130px;
+		font-size: 15px;
+
+		.mega {
+			text-align: center;
+			background-color: $color-orange;
+			color: $color-white;
+			font-size: 22px;
+			padding: 3px 0;
+			font-weight: 300;
+		}
+
+		.sub-number-container {
+			div {
+				text-align: center;
+				float: left;
+				width: 50%;
+
+				p:first-of-type {
+					padding-top: 20px;
+					font-size: 30px;
+					margin-bottom: 0;
+				}
+			}
+		}
+	}
+
+	.no-graph .graph-numbers-container {
+		overflow: hidden; 
+	}
+
+	.vert-number-container {
+		@include respond-tablet {
+			float:left;
+			width:80px;
+			.vert-number {
+				transform: rotateZ(-90deg);
+				font-size: 60px;
+				color: $color-orange;
+			}
+		}
+
+		.vert-number {
+			@include respond-mobile {
+				text-align: center;
+				color: $color-orange;
+				font-size: 60px;
+				padding: 3px 0;
+				font-weight: 300;
+			}
+		}
+	}
+
+	.now-title {
+		padding-bottom: 10px;
+		@include respond-mobile {
+			margin-top: 20px;
+		}
+	}
+
+	.legend-wrapper {
+		@include respond-mobile {
+			margin-bottom: 10px;
+		}
+	}
+
+	.daily-num-container {
+		clear: both;
+		margin-top: 6px;
+
+		p {
+			padding: 1px 0;
+			text-align: center;
+			line-height: none;
+			margin: 0;
+		}
+		
+		.num-value {
+		    width: 55px;
+			color: $color-white;
+			float: left;
+		}
+	}
+
+	.daily-num-container.legend-archives {
+		border: 1px solid $color-blue;
+		height: 25px;
+
+		.num-value {
+			color: $color-white;
+			background-color: $color-blue;
+		}
+	}
+
+	.daily-num-container.legend-users {
+		border: 1px solid $color-green;
+
+		.num-value {
+			background-color: $color-green;
+		}
+	}
+
+	.daily-num-container.legend-orgs {
+		border: 1px solid $color-orange;
+
+		.num-value {
+			background-color: $color-orange;
+		}
+	}
+
+	.daily-num-container.legend-libraries {
+		border: 1px solid #F14FBC;
+
+		.num-value {
+			background-color: #F14FBC;
+		}
+	}
+	
+}

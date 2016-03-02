@@ -165,7 +165,7 @@ class OrganizationResource(DefaultResource):
 
     class Meta(DefaultResource.Meta):
         resource_name = 'organizations'
-        queryset = Organization.objects.all()
+        queryset = Organization.objects.select_related('registrar', 'shared_folder')
         ordering = ['name', 'registrar']
 
     class Nested:
@@ -465,7 +465,8 @@ class LinkResource(AuthenticatedLinkResource):
 
         if bundle.data.get('folder', None):
             bundle.obj.move_to_folder_for_user(bundle.data['folder'], bundle.request.user)
-
+        links_remaining = bundle.request.user.get_links_remaining()
+        bundle.data['links_remaining'] = links_remaining
         return bundle
 
     # https://github.com/toastdriven/django-tastypie/blob/ec16d5fc7592efb5ea86321862ec0b5962efba1b/tastypie/resources.py#L2194
@@ -478,8 +479,7 @@ class LinkResource(AuthenticatedLinkResource):
 
         self.authorized_delete_detail(self.get_object_list(bundle.request), bundle)
 
-        bundle.obj.user_deleted = True
-        bundle.obj.user_deleted_timestamp = timezone.now()
+        bundle.obj.safe_delete()
         bundle.obj.save()
         try:
             run_task(delete_from_internet_archive.s(link_guid=bundle.obj.guid))

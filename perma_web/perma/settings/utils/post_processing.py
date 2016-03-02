@@ -25,13 +25,9 @@ def post_process_settings(settings):
     # add the named celerybeat jobs
     celerybeat_job_options = {
         # primary server
-        'get-nightly-stats': {
-            'task': 'perma.tasks.get_nightly_stats',
-            'schedule': crontab(minute='05', hour='02', day_of_week='*'),
-        },
-        'email-weekly-stats': {
-            'task': 'perma.tasks.email_weekly_stats',
-            'schedule': crontab(minute='05', hour='06', day_of_week='tuesday'),
+        'update-stats': {
+            'task': 'perma.tasks.update_stats',
+            'schedule': crontab(minute='*'),
         },
         'cleanup-screencap-monitoring': {
             'task': 'monitor.tasks.delete_screencaps',

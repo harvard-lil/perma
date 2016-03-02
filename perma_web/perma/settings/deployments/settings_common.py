@@ -159,7 +159,8 @@ PIPELINE_JS = {
     },
     'stats': {
         'source_filenames': (
-            'vendors/d3/d3.v3.js',
+            'vendors/p5/p5.min.js',
+            'vendors/moment/moment.min.js',
             'js/stats.js',
         ),
         'output_filename': 'js/stats-bundle.js',

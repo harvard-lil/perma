@@ -5,6 +5,7 @@ from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Max
+from django.db.models.sql.where import WhereNode
 
 from mptt.admin import MPTTModelAdmin
 from simple_history.admin import SimpleHistoryAdmin
@@ -59,19 +60,23 @@ class RegistrarAdmin(SimpleHistoryAdmin):
 class OrganizationAdmin(SimpleHistoryAdmin):
     fields = ['name', 'registrar']
     search_fields = ['name']
-    list_display = ['name', 'registrar', 'org_users', 'last_active', 'first_active']
-    list_filter = ['registrar']
+    list_display = ['name', 'registrar', 'org_users', 'last_active', 'first_active', 'user_deleted']
+    list_filter = ['registrar', 'user_deleted']
     
     # statistics
     def get_queryset(self, request):
-        return super(OrganizationAdmin, self).get_queryset(request).select_related('registrar').prefetch_related('users')
+        qs = super(OrganizationAdmin, self).get_queryset(request).select_related('registrar').prefetch_related('users')
+        qs.query.where = WhereNode()  # reset filters to include "deleted" objs
+        return qs
+
     def org_users(self, obj):
         return obj.users.count()
     def last_active(self, obj):
-        return max(u.last_login for u in obj.users.all()) if obj.users.count() else '-'
+        users = obj.users.exclude(last_login=None)
+        return max(u.last_login for u in users) if users.count() else '-'
     def first_active(self, obj):
-        return min(u.date_joined for u in obj.users.all()) if obj.users.count() else '-'
-
+        users = obj.users.exclude(date_joined=None)
+        return min(u.date_joined for u in users) if users.count() else '-'
 
 class LinkUserAddForm(UserCreationForm):
     username = None
@@ -134,7 +139,7 @@ class LinkUserAdmin(UserAdmin):
 
 
 class LinkAdmin(SimpleHistoryAdmin):
-    list_display = ['guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp',]
+    list_display = ['guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp','user_deleted']
     search_fields = ['guid', 'submitted_url', 'submitted_title']
     fieldsets = (
         (None, {'fields': ('guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp', 'view_count')}),
@@ -155,7 +160,9 @@ class LinkAdmin(SimpleHistoryAdmin):
     raw_id_fields = ['created_by',]
 
     def get_queryset(self, request):
-        return super(LinkAdmin, self).get_queryset(request).select_related('created_by',)
+        qs = super(LinkAdmin, self).get_queryset(request).select_related('created_by',)
+        qs.query.where = WhereNode()  # reset filters to include "deleted" objs
+        return qs
 
 
 class FolderAdmin(MPTTModelAdmin):
