@@ -21,8 +21,7 @@ FolderTreeModule.init = function () {
 
     data = JSON.stringify({path: folderPath, folderId:folderId});
 
-    $(window)
-      .trigger("FolderTreeModule.selectionChange", data);
+    $(window).trigger("FolderTreeModule.selectionChange", data);
   }
 }
 
