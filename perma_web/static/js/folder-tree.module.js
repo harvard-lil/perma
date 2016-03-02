@@ -4,7 +4,7 @@ $(document).ready(function() {
   FolderTreeModule.domTreeInit();
   FolderTreeModule.init();
   FolderTreeModule.setupEventHandlers();
-})
+});
 
 FolderTreeModule.init = function () {
   var firstNode = this.getSelectedNode(),
@@ -29,10 +29,7 @@ FolderTreeModule.setupEventHandlers = function () {
   var self = this;
   $(window)
     .on('dropdown.selectionChange', function () {
-      self.folderTree.close_all();
-      self.folderTree.deselect_all();
-      var node = self.findNodeBySavedFolder();
-      self.folderTree.select_node(node);
+      FolderTreeModule.handleSelectionChange();
     })
     .on('LinksListModule.moveLink', function(evt, data) {
       data = JSON.parse(data);
@@ -58,11 +55,17 @@ FolderTreeModule.setupEventHandlers = function () {
   });
   $('a.delete-folder').on('click', function () {
     var node = self.getSelectedNode();
-    if (!confirm("Really delete folder '" + node.text.trim() + "'?"))
-      return false;
+    if (!confirm("Really delete folder '" + node.text.trim() + "'?")) return false;
     self.folderTree.delete_node(node);
     return false;
   });
+}
+
+FolderTreeModule.handleSelectionChange = function () {
+  this.folderTree.close_all();
+  this.folderTree.deselect_all();
+  var node = this.findNodeBySavedFolder();
+  this.folderTree.select_node(node);
 }
 
 FolderTreeModule.findNodeBySavedFolder = function () {
@@ -81,7 +84,6 @@ FolderTreeModule.findNodeBySavedFolder = function () {
       }
     }
   }
-
   return this.folderTree.get_node(i);
 }
 
@@ -119,9 +121,6 @@ FolderTreeModule.setSelectedFolder = function (node) {
 }
 
 
-
-
-
 FolderTreeModule.createFolder = function (parentFolderID, newName) {
   return apiRequest("POST", "/folders/" + parentFolderID + "/folders/", {name: newName});
 }
@@ -147,6 +146,7 @@ FolderTreeModule.moveLink = function (folderID, linkID) {
 }
 
 FolderTreeModule.domTreeInit = function () {
+  var self = this;
   $('#folder-tree')
     .jstree({
       core: {
@@ -162,48 +162,49 @@ FolderTreeModule.domTreeInit = function () {
           // Since we can't tell in this event handler whether an event was triggered by the user
           // (step 1) or by us (step 2), we increment allowedEventsCount when triggering
           // an event and decrement when the event is received:
-          if (this.allowedEventsCount) {
-            this.allowedEventsCount--;
+          if (self.allowedEventsCount) {
+            self.allowedEventsCount--;
             return true;
           }
 
           function getDropTarget(){
-            return FolderTreeModule.folderTree.get_node($('.jstree-hovered').parent());
+            return self.folderTree.get_node($('.jstree-hovered').parent());
           }
 
           if (more && more.is_foreign) {
             // link dragged onto folder
             if (operation == 'copy_node') {
               var targetNode = getDropTarget();
-              FolderTreeModule.moveLink(targetNode.data.folder_id, node.id);
+              self.moveLink(targetNode.data.folder_id, node.id);
             }
           } else {
               // internal folder action
             if (operation == 'rename_node') {
               var newName = node_position;
-              FolderTreeModule.renameFolder(node.data.folder_id, newName).done(function () {
-                FolderTreeModule.allowedEventsCount++;
-                FolderTreeModule.folderTree.rename_node(node, newName);
-              });
+              self.renameFolder(node.data.folder_id, newName)
+                .done(function () {
+                  self.allowedEventsCount++;
+                  self.folderTree.rename_node(node, newName);
+                });
             } else if (operation == 'move_node') {
               var targetNode = getDropTarget();
-              FolderTreeModule.moveFolder(targetNode.data.folder_id, node.data.folder_id).done(function () {
-                FolderTreeModule.allowedEventsCount++;
-                FolderTreeModule.folderTree.move_node(node, targetNode);
+              self.moveFolder(targetNode.data.folder_id, node.data.folder_id).done(function () {
+                self.allowedEventsCount++;
+                self.folderTree.move_node(node, targetNode);
               });
             } else if (operation == 'delete_node') {
-              FolderTreeModule.deleteFolder(node.data.folder_id).done(function () {
-                FolderTreeModule.allowedEventsCount++;
-                FolderTreeModule.folderTree.delete_node(node);
-                FolderTreeModule.folderTree.select_node(node.parent);
+              self.deleteFolder(node.data.folder_id).done(function () {
+                self.allowedEventsCount++;
+                self.folderTree.delete_node(node);
+                self.folderTree.select_node(node.parent);
               });
             } else if (operation == 'create_node') {
               var newName = node.text;
-              FolderTreeModule.createFolder(node_parent.data.folder_id, newName).done(function (server_response) {
-                FolderTreeModule.allowedEventsCount++;
-                FolderTreeModule.folderTree.create_node(node_parent, node, "last", function (new_folder_node) {
+              self.createFolder(node_parent.data.folder_id, newName).done(function (server_response) {
+                self.allowedEventsCount++;
+                self.folderTree.create_node(node_parent, node, "last", function (new_folder_node) {
                   new_folder_node.data = {folder_id: server_response.id};
-                  FolderTreeModule.editNodeName(new_folder_node);
+                  self.editNodeName(new_folder_node);
                 });
               });
             }
@@ -239,7 +240,7 @@ FolderTreeModule.domTreeInit = function () {
       }
 
       var lastSelectedNode = data.node;
-      FolderTreeModule.setSelectedFolder(lastSelectedNode);
+      self.setSelectedFolder(lastSelectedNode);
 
     // handle open/close folder icon
     }).on('open_node.jstree', function (e, data) {
@@ -250,7 +251,5 @@ FolderTreeModule.domTreeInit = function () {
       if(data.node.type=="default")
         data.instance.set_icon(data.node, "icon-folder-close-alt");
     });
-
-  this.folderTree = $.jstree.reference('#folder-tree');
-
+  self.folderTree = $.jstree.reference('#folder-tree');
 }
