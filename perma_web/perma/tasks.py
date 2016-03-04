@@ -618,6 +618,9 @@ def delete_from_internet_archive(self, link_guid):
             "sponsor":"",
             "submitted_url":"",
             "perma_url":"",
+            "title":"Removed",
+            "external-identifier":"",
+            "imagecount":"",
         }
 
         item.modify_metadata(
@@ -666,7 +669,10 @@ def upload_to_internet_archive(self, link_guid):
                             retries=10,
                             retries_sleep=60,
                             verbose=True,
-                            )
+                        )
+            if success:
+                link.uploaded_to_internet_archive = True
+                link.save()
 
             if not success:
                 self.retry(exc=Exception("Internet Archive reported upload failure."))
