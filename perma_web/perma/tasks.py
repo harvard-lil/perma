@@ -633,7 +633,7 @@ def delete_from_internet_archive(self, link_guid):
 
 @shared_task()
 def upload_all_to_internet_archive():
-    # find all links created 48–24 hours ago
+    # find all links created 48-24 hours ago
     # include timezone
     today      = datetime.today()
     start_date = today - timedelta(days=2)
