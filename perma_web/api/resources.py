@@ -452,7 +452,6 @@ class LinkResource(AuthenticatedLinkResource):
             ).save()
 
             try:
-                # proxy_capture.apply_async((link.guid, bundle.request.META.get('HTTP_USER_AGENT', '')), link=upload_to_internet_archive(link_guid=link.guid))
                 run_task(proxy_capture.s(link.guid, bundle.request.META.get('HTTP_USER_AGENT', '')))
             except Exception as e:
                 print "Getting error:",e
