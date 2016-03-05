@@ -534,7 +534,6 @@ def proxy_capture(self, link_guid, user_agent=''):
                 ).save()
                 print "Saved favicon at %s" % successful_favicon_urls
 
-            run_task(upload_to_internet_archive.s(link_guid=link.guid))
             print "Writing CDX lines to the DB"
             CDXLine.objects.create_all_from_link(link)
 
