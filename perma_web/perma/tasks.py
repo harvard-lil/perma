@@ -632,6 +632,21 @@ def delete_from_internet_archive(self, link_guid):
     except Exception as e:
         print "getting error:",e
 
+@shared_task()
+def upload_all_to_internet_archive():
+    # find all links created 48–24 hours ago
+    # include timezone
+    today      = datetime.today()
+    start_date = today - timedelta(days=2)
+    end_date   = today - timedelta(days=1)
+    start_date = timezone.make_aware(start_date)
+    end_date   = timezone.make_aware(end_date)
+
+    links = Link.objects.filter(uploaded_to_internet_archive=False, creation_timestamp__range=(start_date, end_date))
+    for link in links:
+        if link.can_upload_to_internet_archive():
+            run_task(upload_to_internet_archive.s(link_guid=link.guid))
+
 
 @shared_task(bind=True)
 def upload_to_internet_archive(self, link_guid):
