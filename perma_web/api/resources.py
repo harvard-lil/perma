@@ -376,7 +376,8 @@ class LinkResource(AuthenticatedLinkResource):
                     bundle.data['private_reason'] = None
                 elif not bundle.obj.is_private and bundle.data['is_private']:
                     bundle.data['private_reason'] = 'user'
-
+            if bundle.obj.uploaded_to_internet_archive:
+                run_task(delete_from_internet_archive.s(link_guid=bundle.obj.guid))
         return bundle
 
     def hydrate(self, bundle):

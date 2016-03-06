@@ -596,7 +596,7 @@ def update_stats():
 @shared_task(bind=True)
 def delete_from_internet_archive(self, link_guid):
     identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link_guid
-
+    link = Link.objects.get(guid=link_guid)
     try:
         item = internetarchive.get_item(identifier)
         if not item.exists:
@@ -627,6 +627,9 @@ def delete_from_internet_archive(self, link_guid):
                 access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
                 secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
             )
+
+        link.uploaded_to_internet_archive = False
+        link.save()
 
     except Exception as e:
         print "getting error:",e
