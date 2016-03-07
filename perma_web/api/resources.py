@@ -7,6 +7,8 @@ from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 
+from datetime import datetime, timedelta
+
 from extendedmodelresource import ExtendedModelResource
 from mptt.exceptions import InvalidMove
 from tastypie import fields
@@ -41,7 +43,7 @@ from serializers import DefaultSerializer
 
 # LinkResource
 from perma.utils import run_task
-from perma.tasks import proxy_capture, delete_from_internet_archive
+from perma.tasks import proxy_capture, upload_to_internet_archive, delete_from_internet_archive
 
 
 
@@ -376,8 +378,7 @@ class LinkResource(AuthenticatedLinkResource):
                     bundle.data['private_reason'] = None
                 elif not bundle.obj.is_private and bundle.data['is_private']:
                     bundle.data['private_reason'] = 'user'
-            if bundle.obj.uploaded_to_internet_archive:
-                run_task(delete_from_internet_archive.s(link_guid=bundle.obj.guid))
+
         return bundle
 
     def hydrate(self, bundle):
@@ -460,11 +461,27 @@ class LinkResource(AuthenticatedLinkResource):
         return bundle
 
     def obj_update(self, bundle, skip_errors=False, **kwargs):
-
+        is_private = bundle.obj.is_private
         bundle = super(LinkResource, self).obj_update(bundle, skip_errors, **kwargs)
 
         if bundle.data.get('folder', None):
             bundle.obj.move_to_folder_for_user(bundle.data['folder'], bundle.request.user)
+
+        if 'is_private' in bundle.data:
+            today = datetime.today()
+            newest_date = today - timedelta(days=1)
+            newest_date = timezone.make_aware(newest_date)
+            if bundle.obj.creation_timestamp < newest_date:
+                going_private = bundle.data.get("is_private")
+                print "this should not print"
+                # if link was private but has been marked public
+                if is_private and not going_private:
+                    run_task(upload_to_internet_archive.s(link_guid=bundle.obj.guid))
+
+                # if link was public but has been marked private
+                elif not is_private and going_private:
+                    run_task(delete_from_internet_archive.s(link_guid=bundle.obj.guid))
+
         links_remaining = bundle.request.user.get_links_remaining()
         bundle.data['links_remaining'] = links_remaining
         return bundle
@@ -482,7 +499,8 @@ class LinkResource(AuthenticatedLinkResource):
         bundle.obj.safe_delete()
         bundle.obj.save()
         try:
-            run_task(delete_from_internet_archive.s(link_guid=bundle.obj.guid))
+            if bundle.obj.uploaded_to_internet_archive:
+                run_task(delete_from_internet_archive.s(link_guid=bundle.obj.guid))
         except Exception as e:
             print "getting error in delete:",e
 
