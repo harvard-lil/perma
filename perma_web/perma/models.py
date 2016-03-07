@@ -687,6 +687,9 @@ class Link(DeletableModel):
         self.save(update_fields=['thumbnail_status'])
 
     def is_archive_eligible(self):
+        """
+            True if it's older than 24 hours
+        """
         return self.archive_timestamp < timezone.now()
 
     @cached_property
