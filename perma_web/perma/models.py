@@ -337,7 +337,7 @@ class LinkUser(AbstractBaseUser):
             An archive can be deleted if it is less than 24 hours old-style
             and it was created by a user or someone in the org.
         """
-        return timezone.now() < link.archive_timestamp and self.can_edit(link)
+        return not link.is_archive_eligible() and self.can_edit(link)
 
     def can_toggle_private(self, link):
         if not self.can_edit(link):
