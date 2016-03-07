@@ -612,7 +612,6 @@ def delete_from_internet_archive(self, link_guid):
             access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
             secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
         )
-        print "deleted: %s, %s" % (f["name"], deleted)
 
     metadata = {
         "description":"",
