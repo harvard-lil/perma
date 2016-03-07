@@ -473,7 +473,6 @@ class LinkResource(AuthenticatedLinkResource):
             newest_date = timezone.make_aware(newest_date)
             if bundle.obj.creation_timestamp < newest_date:
                 going_private = bundle.data.get("is_private")
-                print "this should not print"
                 # if link was private but has been marked public
                 if is_private and not going_private:
                     run_task(upload_to_internet_archive.s(link_guid=bundle.obj.guid))
