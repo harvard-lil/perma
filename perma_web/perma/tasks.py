@@ -648,7 +648,6 @@ def upload_all_to_internet_archive():
 
 @shared_task(bind=True)
 def upload_to_internet_archive(self, link_guid):
-
     link = Link.objects.get(guid=link_guid)
 
     if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
@@ -692,7 +691,7 @@ def upload_to_internet_archive(self, link_guid):
             link.uploaded_to_internet_archive = True
             link.save()
 
-        if not success:
+        else:
             self.retry(exc=Exception("Internet Archive reported upload failure."))
             print "Failed."
 
