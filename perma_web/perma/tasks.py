@@ -597,42 +597,38 @@ def update_stats():
 def delete_from_internet_archive(self, link_guid):
     identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link_guid
     link = Link.objects.get(guid=link_guid)
-    try:
-        item = internetarchive.get_item(identifier)
-        if not item.exists:
-            return False
-        for f in item.files:
-            file = item.get_file(f["name"])
-            deleted = file.delete(
-                verbose=True,
-                cascade_delete=True,
-                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-                secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-            )
-            print "deleted: %s, %s" % (f["name"], deleted)
+    item = internetarchive.get_item(identifier)
+    if not item.exists:
+        return False
+    for f in item.files:
+        file = item.get_file(f["name"])
+        deleted = file.delete(
+            verbose=True,
+            cascade_delete=True,
+            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+        )
+        print "deleted: %s, %s" % (f["name"], deleted)
 
-        metadata = {
-            "description":"",
-            "contributor":"",
-            "sponsor":"",
-            "submitted_url":"",
-            "perma_url":"",
-            "title":"Removed",
-            "external-identifier":"",
-            "imagecount":"",
-        }
+    metadata = {
+        "description":"",
+        "contributor":"",
+        "sponsor":"",
+        "submitted_url":"",
+        "perma_url":"",
+        "title":"Removed",
+        "external-identifier":"",
+        "imagecount":"",
+    }
 
-        item.modify_metadata(
-                metadata,
-                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-                secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-            )
+    item.modify_metadata(
+            metadata,
+            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+        )
 
-        link.uploaded_to_internet_archive = False
-        link.save()
-
-    except Exception as e:
-        print "getting error:",e
+    link.uploaded_to_internet_archive = False
+    link.save()
 
 @shared_task()
 def upload_all_to_internet_archive():

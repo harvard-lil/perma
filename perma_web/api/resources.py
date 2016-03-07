@@ -453,10 +453,7 @@ class LinkResource(AuthenticatedLinkResource):
                 content_type='image/png',
             ).save()
 
-            try:
-                run_task(proxy_capture.s(link.guid, bundle.request.META.get('HTTP_USER_AGENT', '')))
-            except Exception as e:
-                print "Getting error:",e
+            run_task(proxy_capture.s(link.guid, bundle.request.META.get('HTTP_USER_AGENT', '')))
 
         return bundle
 
