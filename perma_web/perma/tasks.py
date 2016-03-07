@@ -595,9 +595,13 @@ def update_stats():
 
 @shared_task(bind=True)
 def delete_from_internet_archive(self, link_guid):
+    if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
+        return
+
     identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link_guid
     link = Link.objects.get(guid=link_guid)
     item = internetarchive.get_item(identifier)
+
     if not item.exists:
         return False
     for f in item.files:
