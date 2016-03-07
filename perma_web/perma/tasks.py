@@ -648,12 +648,12 @@ def upload_all_to_internet_archive():
 
 @shared_task(bind=True)
 def upload_to_internet_archive(self, link_guid):
-    # setup
+
     link = Link.objects.get(guid=link_guid)
+
     if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
         return
 
-    # make sure link should be uploaded
     if not link.can_upload_to_internet_archive():
         print "Not eligible for upload."
         return
