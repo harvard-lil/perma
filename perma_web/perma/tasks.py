@@ -658,46 +658,42 @@ def upload_to_internet_archive(self, link_guid):
         print "Not eligible for upload."
         return
 
-    try:
-        metadata = {
-            "collection":settings.INTERNET_ARCHIVE_COLLECTION,
-            "title":'%s: %s' % (link_guid, truncatechars(link.submitted_title, 50)),
-            "mediatype":'web',
-            "description":'Perma.cc archive of %s created on %s.' % (link.submitted_url, link.creation_timestamp,),
-            "contributor":'Perma.cc',
-            "sponsor":"%s - %s" % (link.organization, link.organization.registrar),
-            "submitted_url":link.submitted_url,
-            "perma_url":"http://%s/%s" % (settings.HOST, link_guid),
-            "external-identifier":'urn:X-perma:%s' % link_guid,
-            }
 
-        identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link_guid
-        with default_storage.open(link.warc_storage_file(), 'rb') as warc_file:
-            success = internetarchive.upload(
-                            identifier,
-                            warc_file,
-                            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-                            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-                            retries=10,
-                            retries_sleep=60,
-                            verbose=True,
-                        )
+    metadata = {
+        "collection":settings.INTERNET_ARCHIVE_COLLECTION,
+        "title":'%s: %s' % (link_guid, truncatechars(link.submitted_title, 50)),
+        "mediatype":'web',
+        "description":'Perma.cc archive of %s created on %s.' % (link.submitted_url, link.creation_timestamp,),
+        "contributor":'Perma.cc',
+        "sponsor":"%s - %s" % (link.organization, link.organization.registrar),
+        "submitted_url":link.submitted_url,
+        "perma_url":"http://%s/%s" % (settings.HOST, link_guid),
+        "external-identifier":'urn:X-perma:%s' % link_guid,
+        }
 
-            if success:
-                internetarchive.modify_metadata(
-                    identifier,
-                    metadata=metadata,
-                )
+    identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link_guid
+    with default_storage.open(link.warc_storage_file(), 'rb') as warc_file:
+        success = internetarchive.upload(
+                        identifier,
+                        warc_file,
+                        access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                        secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+                        retries=10,
+                        retries_sleep=60,
+                        verbose=True,
+                    )
 
-                link.uploaded_to_internet_archive = True
-                link.save()
+        if success:
+            internetarchive.modify_metadata(
+                identifier,
+                metadata=metadata,
+            )
 
-            if not success:
-                self.retry(exc=Exception("Internet Archive reported upload failure."))
-                print "Failed."
+            link.uploaded_to_internet_archive = True
+            link.save()
 
-            print "Success:", success
+        if not success:
+            self.retry(exc=Exception("Internet Archive reported upload failure."))
+            print "Failed."
 
-
-    except Exception as e:
-        print "getting error:",e
+        return success

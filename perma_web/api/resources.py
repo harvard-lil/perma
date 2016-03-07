@@ -491,11 +491,8 @@ class LinkResource(AuthenticatedLinkResource):
 
         bundle.obj.safe_delete()
         bundle.obj.save()
-        try:
-            if bundle.obj.uploaded_to_internet_archive:
-                run_task(delete_from_internet_archive.s(link_guid=bundle.obj.guid))
-        except Exception as e:
-            print "getting error in delete:",e
+        if bundle.obj.uploaded_to_internet_archive:
+            run_task(delete_from_internet_archive.s(link_guid=bundle.obj.guid))
 
     ###
     # Allow cross-domain requests from insecure site to secure site.
