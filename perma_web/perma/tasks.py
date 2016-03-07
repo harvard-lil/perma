@@ -682,12 +682,17 @@ def upload_to_internet_archive(self, link_guid):
                             warc_file,
                             access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
                             secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-                            metadata=metadata,
                             retries=10,
                             retries_sleep=60,
                             verbose=True,
                         )
+
             if success:
+                internetarchive.modify_metadata(
+                    identifier,
+                    metadata=metadata,
+                )
+
                 link.uploaded_to_internet_archive = True
                 link.save()
 
