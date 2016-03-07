@@ -686,6 +686,9 @@ class Link(DeletableModel):
         self.thumbnail_status = 'failed'
         self.save(update_fields=['thumbnail_status'])
 
+    def is_archive_eligible(self):
+        return self.archive_timestamp < timezone.now()
+
     @cached_property
     def screenshot_capture(self):
         return self.captures.filter(role='screenshot').first()

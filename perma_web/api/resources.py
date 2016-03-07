@@ -465,10 +465,7 @@ class LinkResource(AuthenticatedLinkResource):
             bundle.obj.move_to_folder_for_user(bundle.data['folder'], bundle.request.user)
 
         if 'is_private' in bundle.data:
-            today = datetime.today()
-            newest_date = today - timedelta(days=1)
-            newest_date = timezone.make_aware(newest_date)
-            if bundle.obj.creation_timestamp < newest_date:
+            if bundle.obj.is_archive_eligible():
                 going_private = bundle.data.get("is_private")
                 # if link was private but has been marked public
                 if is_private and not going_private:
