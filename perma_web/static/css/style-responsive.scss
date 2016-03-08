@@ -5179,6 +5179,10 @@ section .caption {
 		@include respond-mobile {
 			margin-bottom: 10px;
 		}
+
+		@include respond-desktop {
+			margin-top: 92px;
+		}
 	}
 
 	.daily-num-container {
