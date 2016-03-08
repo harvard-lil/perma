@@ -5074,6 +5074,13 @@ section .caption {
 		
 	}
 
+	.row.no-graphs {
+		@include respond-desktop {
+			margin-top: -35px;
+		}
+		
+	}
+
 	h2 {
 		font-weight: 300;
 	}
@@ -5116,6 +5123,20 @@ section .caption {
 		margin-bottom: 0;
 		text-align: center;
 		color: $color-orange;
+
+		@include respond-xmobile {
+			margin-top: 30px;
+		}
+
+		@include respond-tablet {
+			margin-top: 0;
+			line-height: inherit;
+		}
+		
+
+		@include respond-desktop {
+			line-height: 1.5;			
+		}
 	}
 
 	.graph-numbers-container {
@@ -5147,36 +5168,10 @@ section .caption {
 		}
 	}
 
-	.no-graph .graph-numbers-container {
-		overflow: hidden; 
-	}
-
-	.vert-number-container {
-		@include respond-tablet {
-			float:left;
-			width:80px;
-			.vert-number {
-				transform: rotateZ(-90deg);
-				font-size: 60px;
-				color: $color-orange;
-			}
-		}
-
-		.vert-number {
-			@include respond-mobile {
-				text-align: center;
-				color: $color-orange;
-				font-size: 60px;
-				padding: 3px 0;
-				font-weight: 300;
-			}
-		}
-	}
-
 	.now-title {
 		padding-bottom: 10px;
-		@include respond-mobile {
-			margin-top: 20px;
+		@include respond-xmobile {
+			margin-top: 50px;
 		}
 	}
 
@@ -5216,6 +5211,7 @@ section .caption {
 
 	.daily-num-container.legend-users {
 		border: 1px solid $color-green;
+		height: 25px;
 
 		.num-value {
 			background-color: $color-green;
@@ -5224,6 +5220,7 @@ section .caption {
 
 	.daily-num-container.legend-orgs {
 		border: 1px solid $color-orange;
+		height: 25px;
 
 		.num-value {
 			background-color: $color-orange;
@@ -5232,6 +5229,7 @@ section .caption {
 
 	.daily-num-container.legend-libraries {
 		border: 1px solid #F14FBC;
+		height: 25px;
 
 		.num-value {
 			background-color: #F14FBC;

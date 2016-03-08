@@ -565,7 +565,7 @@ def update_stats():
     # cover everyone outside of the east coast. Our vis should
     # be timezone aware. Fix this.
     if MinuteStats.objects.all().count() == 1560:
-        MinuteStats.objects.all()[1559].delete()
+        MinuteStats.objects.all()[0].delete()
 
 
     # Add our new minute measurements

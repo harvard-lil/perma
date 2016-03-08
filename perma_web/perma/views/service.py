@@ -90,6 +90,26 @@ def stats_now(request):
         if event.registrars_sum:
             registrars.append(tz_adjusted.hour * 60 + tz_adjusted.minute)
 
+
+
+
+
+
+
+    """j = {'links': [], 'users': [], 'registrars': [], 'organizations': []}
+    from random import randint
+    for i in range(500):
+        j['links'].append(randint(0, 1000))
+    for i in range(30):
+        j['users'].append(randint(0, 1000))
+    for i in range(10):
+        j['registrars'].append(randint(0, 1000))
+    for i in range(20):
+        j['organizations'].append(randint(0, 1000))
+
+    return HttpResponse(json.dumps(j), content_type="application/json", status=200)
+    """
+
     return HttpResponse(json.dumps({'links': links, 'users': users, 'organizations': organizations,
         'registrars': registrars}), content_type="application/json", status=200)
 
