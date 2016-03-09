@@ -36,6 +36,7 @@ def post_process_settings(settings):
         'send-links-to-internet-archives': {
             'task': 'perma.tasks.upload_all_to_internet_archive',
             'schedule': crontab(minute='0', hour='*'),
+            'queue': 'background',
         },
 
     }
