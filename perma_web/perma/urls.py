@@ -13,7 +13,6 @@ urlpatterns = patterns('perma.views',
 
     # Common Pages
     url(r'^$', 'common.landing', name='landing'),
-    url(r'^tools/?$', DirectTemplateView.as_view(template_name='tools.html'), name='tools'),
     url(r'^about/?$', 'common.about', name='about'),
     url(r'^stats/?$', DirectTemplateView.as_view(template_name='stats.html'), name='stats'),
     url(r'^copyright-policy/?$', DirectTemplateView.as_view(template_name='copyright_policy.html'), name='copyright_policy'),
