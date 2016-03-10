@@ -22,6 +22,7 @@ def deploy(skip_backup=False):
     """
         Full deployment: back up database, pull code, install requirements, sync db, run migrations, collect static files, restart server.
     """
+    maintenance_mode_on()
     if not skip_backup:
         backup_database()
         backup_code()
@@ -30,7 +31,7 @@ def deploy(skip_backup=False):
     run_as_web_user("%s manage.py migrate" % env.PYTHON_BIN)
     run_as_web_user("%s manage.py collectstatic --noinput --clear" % env.PYTHON_BIN)
     restart_server()
-
+    maintenance_mode_off()
 
 @task
 def deploy_code(restart=True):
@@ -98,6 +99,22 @@ def start_server():
         Start the services
     """
     sudo("start celery", shell=False)
+
+@task
+def maintenance_mode_on():
+    """
+        Enable maintenance mode.
+
+        (Nginx sees maintenance_on.html and routes all requests to that file.)
+    """
+    run_as_web_user("cp static/maintenance/maintenance.html static/maintenance/maintenance_on.html ")
+
+@task
+def maintenance_mode_off():
+    """
+        Disable maintenance mode.
+    """
+    run_as_web_user("rm static/maintenance/maintenance_on.html ")
 
 @task
 def backup_database():
