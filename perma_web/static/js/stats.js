@@ -142,8 +142,11 @@ var draw_weekly = function(initial) {
 		success: function(response_data) {
 			// Draw our two sum-based visualizations
 			// Oh, this is so klunky (yes, with a k)
+			
+			//remove the last entry. it's the current week.
+			response_data.splice(response_data.length-1, 1);
+			sum_data = response_data;
 			if (initial) {
-				sum_data = response_data;
 				var uv = new p5(users_vis);
 				var av = new p5(archives_vis);
 			}
@@ -157,7 +160,7 @@ var draw_weekly = function(initial) {
 			$('#users_average_container').html(add_commas(get_numbers('users_sum').average));
 			$('#users_latest_container').html(add_commas(get_numbers('users_sum').this_week));
 
-			$('#org_sum_container').html(add_commas(get_numbers('organizations_sum').sum));
+			$('#orgs_sum_container').html(add_commas(get_numbers('organizations_sum').sum));
 			$('#orgs_average_container').html(add_commas(get_numbers('organizations_sum').average));
 			$('#orgs_latest_container').html(add_commas(get_numbers('organizations_sum').this_week));
 
@@ -283,10 +286,10 @@ var today_vis = function( p ) {
 					if (data['organizations'].length === 0) {
 						$('.legend-orgs').hide();
 					} else if (data['organizations'].length === 1) {
-						$('.legend-orgs .num-label').html('organization');
+						$('.legend-orgs .num-label').html('org');
 						$('.legend-orgs').show();
 					} else {
-						$('.legend-orgs .num-label').html('organizations');
+						$('.legend-orgs .num-label').html('orgs');
 						$('.legend-orgs').show();
 					}
 
