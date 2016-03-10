@@ -1,0 +1,53 @@
+{% extends "base-responsive.html" %}
+{% block title %} | Admin Stats{% endblock %}
+
+{% block mainContent %}
+  <div class="container cont-fixed">
+
+    <div class="row">
+      <h3 class="body-ah">Random:</h3>
+
+      <div class="row"><div class="col-sm-2">Total links:</div><div class="col-sm-4">{{ total_link_count }}</div></div>
+      <div class="row"><div class="col-sm-2">Private links:</div><div class="col-sm-4">{{ private_link_count }} ({{ private_link_percentage }}%)</div></div>
+      <div class="row"><div class="col-sm-2">Total users:</div><div class="col-sm-4">{{ total_user_count }}</div></div>
+      <div class="row"><div class="col-sm-2">Unconfirmed users:</div><div class="col-sm-4">{{ unconfirmed_user_count }} ({{ unconfirmed_user_percentage }}%)</div></div>
+    </div>
+
+    <div class="row">
+      <h3 class="body-ah">Links from the past month:</h3>
+      <table class="table">
+        <tr>
+          <th>Days<br>Ago</th>
+          <th>Count</th>
+          <th>Success</th>
+          <th>Pending</th>
+          <th>Failed</th>
+          <th colspan="6">Top Users</th>
+        </tr>
+        {% for day in days %}
+          <tr>
+            <td title="{{ day.start_date }}-{{ day.end_date }}">{{ forloop.counter0 }}</td>
+            <td>{{ day.link_count }}</td>
+            <td>{{ day.statuses.success }}</td>
+            <td>{{ day.statuses.pending }}</td>
+            <td>{{ day.statuses.failed }}</td>
+            {% for top_user in day.top_users %}
+              <td>{{ top_user }}</td>
+              <td>{{ top_user.links_count }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <div class="row">
+      <h3 class="body-ah">Users by email domain:</h3>
+      <div class="body-text" style="-webkit-column-count: 4; -moz-column-count: 4; column-count: 4;">
+        {% for domain in users_by_domain %}
+            .{{ domain.domain }}: {{ domain.count }}<br/>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+{% endblock %}

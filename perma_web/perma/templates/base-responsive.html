@@ -99,7 +99,8 @@
 	                                <li class="divider"></li>
                                 {% endif %}
                                 {% if request.user.is_staff %}
-									<li><a href="{% url 'admin:index' %}">Admin console</a></li>
+									                <li><a href="{% url 'admin:index' %}">Admin console</a></li>
+									                <li><a href="{% url 'user_management_stats' %}">Site stats</a></li>
 	                                <li class="divider"></li>
                                 {% endif %}
                                 <li role="presentation" class="dropdown-header">Settings</li>
