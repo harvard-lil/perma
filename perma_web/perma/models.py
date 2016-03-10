@@ -337,7 +337,7 @@ class LinkUser(AbstractBaseUser):
             An archive can be deleted if it is less than 24 hours old-style
             and it was created by a user or someone in the org.
         """
-        return timezone.now() < link.archive_timestamp and self.can_edit(link)
+        return not link.is_archive_eligible() and self.can_edit(link)
 
     def can_toggle_private(self, link):
         if not self.can_edit(link):
@@ -482,6 +482,7 @@ class Link(DeletableModel):
     organization = models.ForeignKey(Organization, null=True, blank=True, related_name='links')
     folders = models.ManyToManyField(Folder, related_name='links', blank=True)
     notes = models.TextField(blank=True)
+    uploaded_to_internet_archive = models.BooleanField(default=False)
 
     is_private = models.BooleanField(default=False)
     private_reason = models.CharField(max_length=10, blank=True, null=True, choices=(('policy','Robots.txt or meta tag'),('user','At user direction'),('takedown','At request of content owner')))
@@ -684,6 +685,12 @@ class Link(DeletableModel):
 
         self.thumbnail_status = 'failed'
         self.save(update_fields=['thumbnail_status'])
+
+    def is_archive_eligible(self):
+        """
+            True if it's older than 24 hours
+        """
+        return self.archive_timestamp < timezone.now()
 
     @cached_property
     def screenshot_capture(self):

@@ -13,7 +13,11 @@ MEDIA_ROOT = '/perma/assets/generated'
 
 # Schedule celerybeat jobs.
 # These will be added to CELERYBEAT_SCHEDULE in settings.utils.post_processing
-CELERYBEAT_JOB_NAMES = ['update-stats', 'cleanup-screencap-monitoring']
+CELERYBEAT_JOB_NAMES = [
+    'update-stats',
+    'cleanup-screencap-monitoring',
+    'send-links-to-internet-archives',
+    ]
 
 # If a task is running longer than five minutes, kill it
 CELERYD_TASK_TIME_LIMIT = 300

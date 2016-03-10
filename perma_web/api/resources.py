@@ -7,6 +7,8 @@ from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 
+from datetime import datetime, timedelta
+
 from extendedmodelresource import ExtendedModelResource
 from mptt.exceptions import InvalidMove
 from tastypie import fields
@@ -41,7 +43,7 @@ from serializers import DefaultSerializer
 
 # LinkResource
 from perma.utils import run_task
-from perma.tasks import proxy_capture, upload_to_internet_archive
+from perma.tasks import proxy_capture, upload_to_internet_archive, delete_from_internet_archive
 
 
 
@@ -451,17 +453,28 @@ class LinkResource(AuthenticatedLinkResource):
                 content_type='image/png',
             ).save()
 
-            # kick off capture task
             run_task(proxy_capture.s(link.guid, bundle.request.META.get('HTTP_USER_AGENT', '')))
 
         return bundle
 
     def obj_update(self, bundle, skip_errors=False, **kwargs):
-
+        is_private = bundle.obj.is_private
         bundle = super(LinkResource, self).obj_update(bundle, skip_errors, **kwargs)
 
         if bundle.data.get('folder', None):
             bundle.obj.move_to_folder_for_user(bundle.data['folder'], bundle.request.user)
+
+        if 'is_private' in bundle.data:
+            if bundle.obj.is_archive_eligible():
+                going_private = bundle.data.get("is_private")
+                # if link was private but has been marked public
+                if is_private and not going_private:
+                    run_task(upload_to_internet_archive.s(link_guid=bundle.obj.guid))
+
+                # if link was public but has been marked private
+                elif not is_private and going_private:
+                    run_task(delete_from_internet_archive.s(link_guid=bundle.obj.guid))
+
         links_remaining = bundle.request.user.get_links_remaining()
         bundle.data['links_remaining'] = links_remaining
         return bundle
@@ -478,6 +491,8 @@ class LinkResource(AuthenticatedLinkResource):
 
         bundle.obj.safe_delete()
         bundle.obj.save()
+        if bundle.obj.uploaded_to_internet_archive:
+            run_task(delete_from_internet_archive.s(link_guid=bundle.obj.guid))
 
     ###
     # Allow cross-domain requests from insecure site to secure site.
