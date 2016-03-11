@@ -5,13 +5,10 @@ var new_archive = {};
 
 // Where we queue up our archive guids for polling
 var refreshIntervalIds = [];
-
 var spinner;
-
 var organizations = {};
 
 /* Our globals. Look out interwebs - end */
-
 var CreateModule = CreateModule || {};
 var ls = ls || {};
 
