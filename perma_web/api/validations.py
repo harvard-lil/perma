@@ -18,6 +18,12 @@ file_extension_lookup = {
     'gif':'image/gif',
 }
 
+def validate_pdf(f):
+    try:
+        return PdfFileReader(f).numPages >= 0
+    except Exception:
+        return False
+
 # Map allowed mime types to new file extensions and validation functions.
 # We manually pick the new extension instead of using MimeTypes().guess_extension,
 # because that varies between systems.
@@ -36,7 +42,7 @@ mime_type_lookup = {
     },
     'application/pdf': {
         'new_extension': 'pdf',
-        'valid_file': lambda f: PdfFileReader(f).numPages >= 0,
+        'valid_file': validate_pdf,
     }
 }
 
