@@ -299,17 +299,17 @@ class FunctionalTest(BaseTestCase):
 
         info("Viewing playback.")
         # wait 60 seconds to be forwarded to archive page
-        # repeat_while_exception(lambda: get_element_with_text('See the Screenshot View', 'a'), NoSuchElementException, 60)
-        # # Get the guid of the created archive
-        # display_guid = fix_host(self.driver.current_url)[-9:]
-        # # Grab the WARC url for later.
-        # warc_url = fix_host(self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src'))
-        # # Check out the screeshot.
-        # get_element_with_text('See the Screenshot View', 'a').click()
-        # assert_text_displayed('This is a screenshot.')
-        # # Load the WARC URL separately, because Safari driver doesn't let us inspect it as an iframe
-        # self.driver.get(warc_url)
-        # assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
+        repeat_while_exception(lambda: get_element_with_text('See the Screenshot View', 'a'), NoSuchElementException, 60)
+        # Get the guid of the created archive
+        display_guid = fix_host(self.driver.current_url)[-9:]
+        # Grab the WARC url for later.
+        warc_url = fix_host(self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src'))
+        # Check out the screeshot.
+        get_element_with_text('See the Screenshot View', 'a').click()
+        assert_text_displayed('This is a screenshot.')
+        # Load the WARC URL separately, because Safari driver doesn't let us inspect it as an iframe
+        self.driver.get(warc_url)
+        assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
 
         # My Links
 
