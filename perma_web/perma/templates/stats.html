@@ -14,98 +14,95 @@ Perma.cc prevents link rot.
 	<div class="container cont-fixed">
 		<div class="row">
 			<div class="col-sm-12">
-				<h1 class="page-title">Perma.cc engagement</h1>
+				<h1 class="page-title">Engagement</h1>
 				<p class="page-dek">Perma.cc is constantly growing. Every minute of every day we're making the web better.</p>
 			</div>
 		</div>
 	</div>
 
-	<div class="container cont-reading cont-fixed" id="what-is-perma">
+	<div class="container cont-reading cont-fixed">
 		<div class="row">
 			<div class="col-sm-8">
-				<div id='archives-vis-container'></div>
+				<div id="archives-vis-container" class="hidden-xs"></div>
 			</div>
 			<div class="col-sm-4" >
-				<p id="archives_sum_container" class="number-header"></p>
-				<div class="graph-numbers-container">
-					<h2 class="mega">archives</h2>
-					<div class="sub-number-container">
-						<div>
-							<p id="archives_latest_container"></p>
-							<p>this week</p>
-						</div>
-						<div>
-							<p id="archives_average_container"></p>
-							<p>avg week</p>
+				<div class="graph-numbers-wrapper">
+					<p id="archives_sum_container" class="number-header"></p>
+					<div class="graph-numbers-container">
+						<h2 class="mega">archives</h2>
+						<div class="sub-number-container">
+							<div>
+								<p id="archives_latest_container"></p>
+								<p>this week</p>
+							</div>
+							<div>
+								<p id="archives_average_container"></p>
+								<p>avg week</p>
+							</div>
 						</div>
 					</div>
-				</div>
+				</div><!-- wrapper -->
 			</div> <!-- / col -->
-		</div> <!-- row -->
-	</div>
-
-	<div class="container cont-reading cont-fixed" id="what-is-perma">
-		<div class="row">
-			<div class="col-sm-8" >
-				<div id='users-vis-container'></div>
-			</div>
-			<div class="col-sm-4">
-				<p id="users_sum_container" class="number-header"></p>
-				<div class="graph-numbers-container">
-					<h2 class="mega">users</h2>
-					<div class="sub-number-container">
-						<div>
-							<p id="users_latest_container"></p>
-							<p>this week</p>
-						</div>
-						<div>
-							<p id="users_average_container"></p>
-							<p>avg week</p>
-						</div>
-					</div>
-				</div>
-			</div>
 		</div> <!-- row -->
 	</div>
 
 	<div class="container cont-reading cont-fixed">
 		<div class="row">
-			<div class="col-sm-6">
-				<div class="no-graph">
-					<div class="vert-number-container">
-						<p id="orgs_sum_container" class="vert-number">0</p>
-					</div>
+			<div class="col-sm-8" >
+				<div id="users-vis-container" class="hidden-xs"></div>
+			</div>
+			<div class="col-sm-4">
+				<div class="graph-numbers-wrapper">
+					<p id="users_sum_container" class="number-header"></p>
 					<div class="graph-numbers-container">
-						<h2 class="mega">organizations</h2>
+						<h2 class="mega">users</h2>
 						<div class="sub-number-container">
 							<div>
-								<p id="orgs_latest_container"></p>
+								<p id="users_latest_container"></p>
 								<p>this week</p>
 							</div>
 							<div>
-								<p id="orgs_average_container"></p>
+								<p id="users_average_container"></p>
 								<p>avg week</p>
 							</div>
 						</div>
 					</div>
-				</div>
-			</div>
+				</div> <!-- wrapper -->
+			</div> <!-- / col -->
+		</div> <!-- row -->
+	</div>
+
+	<div class="container cont-reading cont-fixed">
+		<div class="row no-graphs">
 			<div class="col-sm-6">
-				<div class="no-graph">
-					<div class="vert-number-container">
-						<p id="libraries_sum_container" class="vert-number">0</p>
+				<p id="orgs_sum_container" class="number-header"></p>
+				<div class="graph-numbers-container">
+					<h2 class="mega">organizations</h2>
+					<div class="sub-number-container">
+						<div>
+							<p id="orgs_latest_container"></p>
+							<p>this week</p>
+						</div>
+						<div>
+							<p id="orgs_average_container"></p>
+							<p>avg week</p>
+						</div>
 					</div>
-					<div class="graph-numbers-container">
-						<h2 class="mega">libraries</h2>
-						<div class="sub-number-container">
-							<div>
-								<p id="libraries_latest_container"></p>
-								<p>this week</p>
-							</div>
-							<div>
-								<p id="libraries_average_container"></p>
-								<p>avg week</p>
-							</div>
+				</div>
+			</div> <!-- / col -->
+
+			<div class="col-sm-6">
+				<p id="libraries_sum_container" class="number-header"></p>
+				<div class="graph-numbers-container">
+					<h2 class="mega">libraries</h2>
+					<div class="sub-number-container">
+						<div>
+							<p id="libraries_latest_container"></p>
+							<p>this week</p>
+						</div>
+						<div>
+							<p id="libraries_average_container"></p>
+							<p>avg week</p>
 						</div>
 					</div>
 				</div>
@@ -116,28 +113,30 @@ Perma.cc prevents link rot.
 	<div class="container cont-reading cont-fixed">
 		<div class="row">
 			<div class="col-md-10">
-				<h2 class="mega">Happening right now in Perma.cc</h2>
+				<h2 class="mega now-title">Happening right now in Perma.cc</h2>
 
 				<div id='today-vis-container'></div>
 			</div>
 			<div class="col-md-2">
-				<p>Since the start of the day we've added</p>
-				<div class="daily-num-container legend-archives">
-					<p class="num-value"></p>
-					<p class="num-label"></p>
-				</div>
-				<div class="daily-num-container legend-users">
-					<p class="num-value"></p>
-					<p class="num-label"></p>
-				</div>
-				<div class="daily-num-container legend-orgs">
-					<p class="num-value"></p>
-					<p class="num-label"></p>
-				</div>
-				<div class="daily-num-container legend-libraries">
-					<p class="num-value"></p>
-					<p class="num-label"></p>
-				</div>
+				<div class="legend-wrapper">
+					<p>Since the start of the day we've added</p>
+					<div class="daily-num-container legend-archives">
+						<p class="num-value"></p>
+						<p class="num-label"></p>
+					</div>
+					<div class="daily-num-container legend-users">
+						<p class="num-value"></p>
+						<p class="num-label"></p>
+					</div>
+					<div class="daily-num-container legend-orgs">
+						<p class="num-value"></p>
+						<p class="num-label"></p>
+					</div>
+					<div class="daily-num-container legend-libraries">
+						<p class="num-value"></p>
+						<p class="num-label"></p>
+					</div>
+				</div> <!-- legend-wrapper -->
 			</div>
 		</div> <!-- row -->
 	</div>

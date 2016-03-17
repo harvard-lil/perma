@@ -33,6 +33,11 @@ def post_process_settings(settings):
             'task': 'monitor.tasks.delete_screencaps',
             'schedule': crontab(minute='35', hour='*/2'),  # every other hour
         },
+        'send-links-to-internet-archives': {
+            'task': 'perma.tasks.upload_all_to_internet_archive',
+            'schedule': crontab(minute='0', hour='*'),
+        },
+
     }
     settings['CELERYBEAT_SCHEDULE'] = dict(((job, celerybeat_job_options[job]) for job in settings.get('CELERYBEAT_JOB_NAMES', [])),
                                            **settings.get('CELERYBEAT_SCHEDULE', {}))

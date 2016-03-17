@@ -17,12 +17,17 @@ function get_numbers(field_key) {
 	return numbers;
 }
 
+function add_commas(x) {
+	// thanks, http://stackoverflow.com/a/2901298
+	return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 function draw_graph(p, field_key, vis_width, vis_height) {
 	// Our users and archives graph use the same logic we've gathered here.
 	var total = 0;
 	var x, y, size;
 	var sum_of_all_sums = get_numbers(field_key).sum;
-	var bottom_padding = 30;
+	var bottom_padding = 35;
 
 	p.strokeWeight(1);
 	for (i = 0; i < vis_width; i+=4) {
@@ -46,10 +51,10 @@ function draw_graph(p, field_key, vis_width, vis_height) {
 	for (i = 0; i < sum_data.length; i++) {
 		x = p.map(i, 0, sum_data.length, 0, vis_width);
 		y = p.map(total, 0, sum_of_all_sums, 0, vis_height - bottom_padding);
-		p.vertex(x, vis_height - y);
+		p.vertex(x, vis_height - y  - bottom_padding);
 		total += sum_data[i][field_key];
 	}
-	p.vertex(vis_width, vis_height - y);
+	p.vertex(vis_width, vis_height - y );
 	p.endShape();
 
 	total = 0;
@@ -57,7 +62,7 @@ function draw_graph(p, field_key, vis_width, vis_height) {
 	/* Draw a solid line at the bottom and right */
 	p.strokeWeight(1);
 	p.line(vis_width-1, vis_height - y, vis_width-1, vis_height - bottom_padding);
-	p.line(0, vis_height-1 - bottom_padding, vis_width, vis_height-1 - bottom_padding);
+	p.line(0, vis_height - bottom_padding, vis_width, vis_height - bottom_padding);
 
 
 	/* Let's draw a big mask over the top of the graph 
@@ -69,7 +74,7 @@ function draw_graph(p, field_key, vis_width, vis_height) {
 	for (i = 0; i < sum_data.length; i++) {
 		x = p.map(i, 0, sum_data.length, 0, vis_width);
 		y = p.map(total, 0, sum_of_all_sums, 0, vis_height - bottom_padding);
-		p.vertex(x, vis_height - y);
+		p.vertex(x, vis_height - y- bottom_padding);
 		total += sum_data[i][field_key];
 	}
 	p.vertex(vis_width, vis_height - y);
@@ -79,12 +84,11 @@ function draw_graph(p, field_key, vis_width, vis_height) {
 	p.endShape(p.CLOSE);
 
 	/* Draw our labels */
-	p.noStroke();
-	p.fill(90);
-	p.textSize(24);
-
+	p.strokeWeight(0);
+	p.fill(50);
+	p.textSize(22);
 	p.text('June 2013', 0, vis_height-5);
-	p.text('today', vis_width-60, vis_height-5);
+	p.text('today', vis_width - p.textWidth('today'), vis_height-5);
 }
 
 
@@ -138,28 +142,31 @@ var draw_weekly = function(initial) {
 		success: function(response_data) {
 			// Draw our two sum-based visualizations
 			// Oh, this is so klunky (yes, with a k)
+			
+			//remove the last entry. it's the current week.
+			response_data.splice(response_data.length-1, 1);
+			sum_data = response_data;
 			if (initial) {
-				sum_data = response_data;
 				var uv = new p5(users_vis);
 				var av = new p5(archives_vis);
 			}
 
 			// Update our counts
-			$('#archives_sum_container').html(get_numbers('links_sum').sum);
-			$('#archives_average_container').html(get_numbers('links_sum').average);
-			$('#archives_latest_container').html(get_numbers('links_sum').this_week);
+			$('#archives_sum_container').html(add_commas(get_numbers('links_sum').sum));
+			$('#archives_average_container').html(add_commas(get_numbers('links_sum').average));
+			$('#archives_latest_container').html(add_commas(get_numbers('links_sum').this_week));
 
-			$('#users_sum_container').html(get_numbers('users_sum').sum);
-			$('#users_average_container').html(get_numbers('users_sum').average);
-			$('#users_latest_container').html(get_numbers('users_sum').this_week);
+			$('#users_sum_container').html(add_commas(get_numbers('users_sum').sum));
+			$('#users_average_container').html(add_commas(get_numbers('users_sum').average));
+			$('#users_latest_container').html(add_commas(get_numbers('users_sum').this_week));
 
-			$('#org_sum_container').html(get_numbers('organizations_sum').sum);
-			$('#orgs_average_container').html(get_numbers('organizations_sum').average);
-			$('#orgs_latest_container').html(get_numbers('organizations_sum').this_week);
+			$('#orgs_sum_container').html(add_commas(get_numbers('organizations_sum').sum));
+			$('#orgs_average_container').html(add_commas(get_numbers('organizations_sum').average));
+			$('#orgs_latest_container').html(add_commas(get_numbers('organizations_sum').this_week));
 
-			$('#libraries_sum_container').html(get_numbers('registrars_sum').sum);
-			$('#libraries_average_container').html(get_numbers('registrars_sum').average);
-			$('#libraries_latest_container').html(get_numbers('registrars_sum').this_week);
+			$('#libraries_sum_container').html(add_commas(get_numbers('registrars_sum').sum));
+			$('#libraries_average_container').html(add_commas(get_numbers('registrars_sum').average));
+			$('#libraries_latest_container').html(add_commas(get_numbers('registrars_sum').this_week));
 		}
 	}); // End of ajax get
 }
@@ -176,12 +183,13 @@ var today_vis = function( p ) {
 		// Our timestamps are the second of the day. 1440 seconds per day.
 		var canvas = p.createCanvas(width, height);
 		canvas.parent('today-vis-container');
-		p.background('#f7f7f7');
 
 		p.stroke(255);
-
 		p.strokeWeight(1);
 		p.strokeCap(p.SQUARE);
+
+		p.textFont("Roboto");
+
 		p.noLoop();
 	};
 
@@ -196,7 +204,6 @@ var today_vis = function( p ) {
 			dataType: "json",
 			url: url,
 			success: function(data) {
-
 			p.clear();
 			p.background(255);
 
@@ -239,19 +246,19 @@ var today_vis = function( p ) {
 
 			// update legend
 			if ($('#legend_archives .num_value').length === 0 ||
-				data['links'].length != $('.legend-archives .num_value').html() ||
-				data['users'].length != $('.legend-users .num_value').html() ||
-				data['organizations'].length != $('.legend-orgs .num_value').html() ||
-				data['registrars'].length != $('.legend-libraries .num_value').html()) {
+				add_commas(data['links'].length) != $('.legend-archives .num_value').html() ||
+				add_commas(data['users'].length) != $('.legend-users .num_value').html() ||
+				add_commas(data['organizations'].length) != $('.legend-orgs .num_value').html() ||
+				add_commas(data['registrars'].length) != $('.legend-libraries .num_value').html()) {
 
 					// Such a kludge. fix.
 					draw_weekly(initial);
 					initial = false;
 
-					$('.legend-archives .num-value').html(data['links'].length);
-					$('.legend-users .num-value').html(data['users'].length);
-					$('.legend-orgs .num-value').html(data['organizations'].length);
-					$('.legend-libraries .num-value').html(data['registrars'].length);
+					$('.legend-archives .num-value').html(add_commas(data['links'].length));
+					$('.legend-users .num-value').html(add_commas(data['users'].length));
+					$('.legend-orgs .num-value').html(add_commas(data['organizations'].length));
+					$('.legend-libraries .num-value').html(add_commas(data['registrars'].length));
 
 
 					// Hide our legend bits if they have 0 events today
@@ -279,10 +286,10 @@ var today_vis = function( p ) {
 					if (data['organizations'].length === 0) {
 						$('.legend-orgs').hide();
 					} else if (data['organizations'].length === 1) {
-						$('.legend-orgs .num-label').html('organization');
+						$('.legend-orgs .num-label').html('org');
 						$('.legend-orgs').show();
 					} else {
-						$('.legend-orgs .num-label').html('organizations');
+						$('.legend-orgs .num-label').html('orgs');
 						$('.legend-orgs').show();
 					}
 
@@ -316,10 +323,11 @@ var today_vis = function( p ) {
 		p.textSize(18);
 		p.fill(90);
 		p.strokeWeight(0);
-		p.text('new day', 6, height - 7);
-		p.text('now', x_of_current_time - 13 , height - 7);
-		p.text('midnight', width - 75, height - 7);
+		p.text('new day', 6, height - 4);
+		p.text('now', x_of_current_time - 15 , height - 4);
+		p.text('midnight', width - p.textWidth('midnight') - 5, height - 4);
 	}
 };
 
 new p5(today_vis);
+

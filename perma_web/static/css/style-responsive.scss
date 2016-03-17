@@ -5056,10 +5056,66 @@ section .caption {
 
 
 #stats {
+	font-family: $font-hed;
+	font-size: 15px;
+
+	.cont-reading {
+		padding-top: 0;
+		margin-top: 0;
+		@include respond-tablet {
+			padding-top: 30px;
+		}
+		@include respond-desktop {
+			padding-top: 60px;
+		}
+		@include respond-wide {
+			padding-top: 90px;
+		}
+		
+	}
+
+	.row.no-graphs {
+		@include respond-desktop {
+			margin-top: -35px;
+		}
+		
+	}
+
+	h2 {
+		font-weight: 300;
+	}
+
+	.page-dek {
+		margin-bottom: 0;
+		@include respond-tablet {
+			margin-bottom: -20px;
+		}
+
+		@include respond-wide {
+			margin-bottom: -40px;
+		}
+		
+	}
+
 	canvas {
 		display: inline;
 		width: 100% !important;
 		height: auto !important;
+	}
+
+	.graph-numbers-wrapper {
+		padding-top: 0px;
+
+		// do some vertical centering.
+		// this can't be the best way.
+		@include respond-desktop {
+			padding-top: 30px;
+		}
+
+		@include respond-wide {
+			padding-top: 60px;
+		}
+		
 	}
 
 	.number-header {
@@ -5067,11 +5123,26 @@ section .caption {
 		margin-bottom: 0;
 		text-align: center;
 		color: $color-orange;
+
+		@include respond-xmobile {
+			margin-top: 30px;
+		}
+
+		@include respond-tablet {
+			margin-top: 0;
+			line-height: inherit;
+		}
+		
+
+		@include respond-desktop {
+			line-height: 1.5;			
+		}
 	}
 
 	.graph-numbers-container {
 		border: 1px solid $color-orange;
 		height: 130px;
+		font-size: 15px;
 
 		.mega {
 			text-align: center;
@@ -5079,6 +5150,7 @@ section .caption {
 			color: $color-white;
 			font-size: 22px;
 			padding: 3px 0;
+			font-weight: 300;
 		}
 
 		.sub-number-container {
@@ -5096,35 +5168,44 @@ section .caption {
 		}
 	}
 
-	.no-graph .graph-numbers-container {
-		overflow: hidden; 
+	.now-title {
+		padding-bottom: 10px;
+		@include respond-xmobile {
+			margin-top: 50px;
+		}
 	}
 
-	.vert-number-container {
-		float:left;
-		width:80px;
-		.vert-number {
-			transform: rotateZ(-90deg);
-			font-size: 60px;
-			color: $color-orange;
+	.legend-wrapper {
+		@include respond-mobile {
+			margin-bottom: 10px;
+		}
+
+		@include respond-desktop {
+			margin-top: 92px;
 		}
 	}
 
 	.daily-num-container {
-		margin-top: 5px;
-		
+		clear: both;
+		margin-top: 6px;
+
 		p {
-			display: inline;
-			padding: 2px 10px;
+			padding: 1px 0;
+			text-align: center;
+			line-height: none;
+			margin: 0;
 		}
 		
 		.num-value {
+		    width: 55px;
 			color: $color-white;
+			float: left;
 		}
 	}
 
 	.daily-num-container.legend-archives {
-		border: 2px solid $color-blue;
+		border: 1px solid $color-blue;
+		height: 25px;
 
 		.num-value {
 			color: $color-white;
@@ -5133,7 +5214,8 @@ section .caption {
 	}
 
 	.daily-num-container.legend-users {
-		border: 2px solid $color-green;
+		border: 1px solid $color-green;
+		height: 25px;
 
 		.num-value {
 			background-color: $color-green;
@@ -5141,7 +5223,8 @@ section .caption {
 	}
 
 	.daily-num-container.legend-orgs {
-		border: 2px solid $color-orange;
+		border: 1px solid $color-orange;
+		height: 25px;
 
 		.num-value {
 			background-color: $color-orange;
@@ -5149,7 +5232,8 @@ section .caption {
 	}
 
 	.daily-num-container.legend-libraries {
-		border: 2px solid #F14FBC;
+		border: 1px solid #F14FBC;
+		height: 25px;
 
 		.num-value {
 			background-color: #F14FBC;
