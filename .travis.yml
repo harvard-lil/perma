@@ -15,6 +15,7 @@ cache:
 before_install:
   - cp services/travis/settings.py perma_web/perma/settings/
   - cd perma_web
+  - chmod u+s /usr/bin/sudo
   - wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-1.9.8-linux-i686.tar.bz2
   - tar -xf phantomjs-1.9.8-linux-i686.tar.bz2
   - sudo rm -rf /usr/local/phantomjs
