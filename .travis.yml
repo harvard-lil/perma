@@ -38,4 +38,4 @@ after_success:
   - coveralls
 
 # See: http://docs.travis-ci.com/user/migrating-from-legacy/?utm_source=legacy-notice&utm_medium=banner&utm_campaign=legacy-upgrade#tl%3Bdr
-sudo: false
+sudo: required
