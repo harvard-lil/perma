@@ -13,15 +13,18 @@ cache:
     - $HOME/.cache/pip
 
 before_install:
-  - wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-1.9.8-linux-i686.tar.bz2
-  - tar -xf phantomjs-1.9.8-linux-i686.tar.bz2
-  - sudo rm -rf /usr/local/phantomjs/bin/phantomjs
-  - sudo mv phantomjs-1.9.8-linux-i686 /usr/local/phantomjs/bin/phantomjs
-  - export PATH=$PATH:$PWD/usr/local/phantomjs/bin/
+  # - wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-1.9.8-linux-i686.tar.bz2
+  # - tar -xf phantomjs-1.9.8-linux-i686.tar.bz2
+  # - sudo rm -rf /usr/local/phantomjs/bin/phantomjs
+  # - sudo mv phantomjs-1.9.8-linux-i686 /usr/local/phantomjs/bin/phantomjs
+  # - export PATH=$PATH:$PWD/usr/local/phantomjs/bin/
   - cp services/travis/settings.py perma_web/perma/settings/
   - cd perma_web
 
 install:
+  # - trying something really stupid
+  - npm -g install phantomjs@1.9.8
+  - phantomjs --version
   - pip install -r requirements.txt
   - pip install coveralls
 before_script:
