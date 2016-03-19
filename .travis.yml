@@ -15,6 +15,7 @@ cache:
 before_install:
   - cp services/travis/settings.py perma_web/perma/settings/
   - cd perma_web
+  - phantomjs --version
 install:
   - pip install -r requirements.txt
   - pip install coveralls
