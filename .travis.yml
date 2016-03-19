@@ -13,30 +13,28 @@ cache:
     - $HOME/.cache/pip
 
 before_install:
-  # - wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-1.9.8-linux-i686.tar.bz2
-  # - tar -xf phantomjs-1.9.8-linux-i686.tar.bz2
-  # - sudo rm -rf /usr/local/phantomjs/bin/phantomjs
-  # - sudo mv phantomjs-1.9.8-linux-i686 /usr/local/phantomjs/bin/phantomjs
-  # - export PATH=$PATH:$PWD/usr/local/phantomjs/bin/
+  - wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-1.9.8-linux-i686.tar.bz2
+  - tar -xf phantomjs-1.9.8-linux-i686.tar.bz2
+  - sudo rm -rf /usr/local/phantomjs/bin/phantomjs
+  - sudo mv phantomjs-1.9.8-linux-i686 $HOME
+
   - cp services/travis/settings.py perma_web/perma/settings/
   - cd perma_web
 
 install:
-  # - trying something really stupid
-  - npm -g install phantomjs@1.9.8
-  - phantomjs --version
   - pip install -r requirements.txt
   - pip install coveralls
+
 before_script:
   - mysql -e 'CREATE DATABASE perma;'
 
   # try to avoid mysql has gone away errors
   - mysql -e 'SET GLOBAL max_allowed_packet = 64*1024*1024;'
   - mysql -e 'SET GLOBAL wait_timeout = 36000;'
-
   - python manage.py collectstatic --noinput
-script:
-  fab test
+
+script: $HOME/phantomjs-1.9.8-linux-i686/bin/phantomjs ./functional_tests/tests.py
+
 after_success:
   - coveralls
 
