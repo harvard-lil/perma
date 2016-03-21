@@ -99,7 +99,7 @@ CreateModule.linkNot = function (jqXHR) {
     $('.create-errors').addClass('_active');
     $('#error-container').hide().fadeIn(0);
   }
-  this.toggleCreateAvailable();
+  CreateModule.toggleCreateAvailable();
 }
 
 
@@ -114,9 +114,15 @@ CreateModule.uploadNot = function (jqXHR) {
     showAPIError(jqXHR);
     return;
   }
+  var reasons = [],
+    response;
 
-  var response = jQuery.parseJSON(jqXHR.responseText),
-    reasons = [];
+  try {
+    response = jQuery.parseJSON(jqXHR.responseText);
+  } catch (e) {
+    response = jqXHR.responseText;
+  }
+
   $('.js-warning').remove();
   $('.has-error').removeClass('has-error');
   if (response.archives) {
@@ -238,8 +244,8 @@ CreateModule.check_status = function () {
 CreateModule.updateLinker = function () {
   var userSettings = this.ls.getCurrent();
   var currentOrg = userSettings.orgId;
-
-  if (!userSettings.folderId) {
+  var organizationsExist = Object.keys(organizations).length;
+  if (!userSettings.folderId && organizationsExist) {
     $('#addlink').attr('disabled', 'disabled');
     return;
   }
@@ -307,18 +313,6 @@ CreateModule.handleSelectionChange = function (data) {
   this.updateAffiliationPath(orgId, path);
 }
 
-CreateModule.uploadOwnCapture = function (context) {
-  var extraUploadData = {},
-    selectedFolder = this.ls.getCurrent();
-  if(selectedFolder)
-    extraUploadData.folder = selectedFolder.folderId;
-  $(context).ajaxSubmit({
-    data: extraUploadData,
-    success: this.uploadIt,
-    error: this.uploadNot
-  });
-  return false;
-}
 
 CreateModule.setupEventHandlers = function () {
   var self = this;
@@ -333,8 +327,22 @@ CreateModule.setupEventHandlers = function () {
       self.updateLinksRemaining(data)
     });
     // When a user uploads their own capture
+
   $('#archive_upload_form')
-    .submit(function() { CreateModule.uploadOwnCapture(this) });
+    .submit(function() {
+
+      var extraUploadData = {},
+        selectedFolder = CreateModule.ls.getCurrent().folderId;
+      if(selectedFolder)
+        extraUploadData.folder = selectedFolder;
+      $(this).ajaxSubmit({
+        data: extraUploadData,
+        success: CreateModule.uploadIt,
+        error: CreateModule.uploadNot
+      });
+      return false;
+
+    });
 
   // Toggle users dropdown
   $('#dashboard-users')
@@ -343,12 +351,12 @@ CreateModule.setupEventHandlers = function () {
   $('#linker').submit(function() {
     var $this = $(this);
     var linker_data = {};
-    var selectedFolder = self.ls.getCurrent();
+    var selectedFolder = CreateModule.ls.getCurrent().folderId;
 
     if(selectedFolder){
       linker_data = {
         url: $this.find("input[name=url]").val(),
-        folder: selectedFolder.folderId || null
+        folder: selectedFolder || null
       }
     } else {
       linker_data = {
@@ -356,14 +364,14 @@ CreateModule.setupEventHandlers = function () {
       };
     }
     // Start our spinner and disable our input field with just a tiny delay
-    window.setTimeout(self.toggleCreateAvailable, 150);
+    window.setTimeout(CreateModule.toggleCreateAvailable, 150);
 
     $.ajax($this.attr('action'), {
       method: $this.attr('method'),
       contentType: 'application/json',
       data: JSON.stringify(linker_data),
-      success: self.linkIt,
-      error: self.linkNot
+      success: CreateModule.linkIt,
+      error: CreateModule.linkNot
     });
 
     return false;
@@ -407,7 +415,7 @@ CreateModule.init = function () {
         self.updateLinker();
       } else {
         // select My Folder for users with no orgs and no saved selections
-        var selectedFolder = self.ls.getCurrent();
+        var selectedFolder = self.ls.getCurrent().folderId;
         if (!selectedFolder) { self.ls.setCurrent(); }
       }
   });
