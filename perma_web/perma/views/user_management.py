@@ -1,5 +1,8 @@
 import random, string, logging, time
 
+from datetime import timedelta
+
+from django.db.models.expressions import RawSQL
 from ratelimit.decorators import ratelimit
 from tastypie.models import ApiKey
 
@@ -11,6 +14,7 @@ from django.contrib.auth import views as auth_views
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.db.models import Count, Max, Sum
+from django.utils import timezone
 from django.utils.http import is_safe_url, cookie_date
 from django.http import HttpResponseRedirect, Http404
 from django.template import RequestContext
@@ -35,7 +39,7 @@ from perma.forms import (
     UserFormSelfEdit, 
     SetPasswordForm, 
 )
-from perma.models import Registrar, LinkUser, Organization
+from perma.models import Registrar, LinkUser, Organization, Link, Capture
 from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_contact_email, filter_or_null_join
 
 logger = logging.getLogger(__name__)
@@ -43,6 +47,47 @@ valid_member_sorts = ['last_name', '-last_name', 'date_joined', '-date_joined', 
 valid_registrar_sorts = ['name', '-name', 'created_links', '-created_links', '-date_created', 'date_created', 'last_active', '-last_active']
 valid_org_sorts = ['name', '-name', 'created_links', '-created_links', '-date_created', 'date_created', 'last_active', '-last_active', 'organization_users', 'organization_users']
 
+
+@login_required
+@user_passes_test(lambda user: user.is_staff)
+def stats(request):
+    # get link counts for each day
+    days = []
+    for days_ago in range(30):
+        end_date = timezone.now() - timedelta(days=days_ago)
+        start_date = end_date - timedelta(days=1)
+        day = {
+            'start_date': start_date,
+            'end_date': end_date,
+            'top_users': LinkUser.objects
+                .filter(created_links__creation_timestamp__gt=start_date,created_links__creation_timestamp__lt=end_date)
+                .annotate(links_count=Count('created_links'))
+                .order_by('-links_count')[:3],
+            'statuses': Capture.objects
+                .filter(role='primary', link__creation_timestamp__gt=start_date, link__creation_timestamp__lt=end_date)
+                .values('status')
+                .annotate(count=Count('status'))
+        }
+        day['statuses'] = dict((x['status'], x['count']) for x in day['statuses'])
+        day['link_count'] = sum(day['statuses'].values())
+        days.append(day)
+
+    # get users by email top-level domain
+    users_by_domain = LinkUser.objects\
+        .annotate(domain=RawSQL("SUBSTRING_INDEX(email, '.', -1)",[]))\
+        .values('domain')\
+        .annotate(count=Count('domain'))\
+        .order_by('-count')
+
+    # random
+    total_link_count = Link.objects.count()
+    private_link_count = Link.objects.filter(is_private=True).count()
+    private_link_percentage = round(100.0*private_link_count/total_link_count, 1)
+    total_user_count = LinkUser.objects.count()
+    unconfirmed_user_count = LinkUser.objects.filter(is_confirmed=False).count()
+    unconfirmed_user_percentage = round(100.0*unconfirmed_user_count/total_user_count, 1)
+
+    return render(request, 'user_management/stats.html', locals())
 
 @login_required
 @user_passes_test(lambda user: user.is_staff)
