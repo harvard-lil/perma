@@ -8,8 +8,15 @@ $(document).ready(function() {
 
 FolderTreeModule.init = function () {
   var firstNode = this.getSelectedNode(),
-    folderPath = this.folderTree.get_path(firstNode)
+    folderPath = this.folderTree.get_path(firstNode),
+    folderId;
+
+  if (firstNode && firstNode.data) {
     folderId = firstNode.data.folder_id;
+  } else {
+    folderId = null;
+  }
+
   this.allowedEventsCount = 0;
   this.lastSelectedFolder = null;
 
