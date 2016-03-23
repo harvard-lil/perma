@@ -104,7 +104,7 @@ FolderTreeModule.getSelectedFolderID = function () {
 
 FolderTreeModule.editNodeName = function (node) {
   setTimeout(function () {
-    this.folderTree.edit(node);
+    FolderTreeModule.folderTree.edit(node);
   }, 0);
 }
 
