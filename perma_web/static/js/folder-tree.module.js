@@ -24,11 +24,6 @@ FolderTreeModule.init = function () {
 
   if (firstNode) {
     this.folderTree.select_node(firstNode);
-    this.setSelectedFolder(firstNode);
-
-    data = JSON.stringify({path: folderPath, folderId:folderId});
-
-    $(window).trigger("FolderTreeModule.selectionChange", data);
   }
 }
 
@@ -104,7 +99,7 @@ FolderTreeModule.getSelectedFolderID = function () {
 
 FolderTreeModule.editNodeName = function (node) {
   setTimeout(function () {
-    this.folderTree.edit(node);
+    FolderTreeModule.folderTree.edit(node);
   }, 0);
 }
 

@@ -230,10 +230,10 @@ CreateModule.check_status = function () {
           message: "Error: URL capture failed."
         }));
 
-        $('.error-row').removeClass('hide _error _success _wait').addClass('_error');
+        $('#error-container').removeClass('_hide _error _success _wait').addClass('_error');
 
         // Toggle our create button
-        self.toggleCreateAvailable();
+        CreateModule.toggleCreateAvailable();
       }
     }
   });
