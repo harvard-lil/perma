@@ -169,7 +169,7 @@ class FunctionalTest(BaseTestCase):
         self.driver = webdriver.PhantomJS(
             desired_capabilities=self.base_desired_capabilities,
         )
-        socket.setdefaulttimeout(30)
+        socket.setdefaulttimeout(60)
         self.driver.set_window_size(1024, 800)
 
     def tearDownLocal(self):
