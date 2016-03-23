@@ -24,11 +24,6 @@ FolderTreeModule.init = function () {
 
   if (firstNode) {
     this.folderTree.select_node(firstNode);
-    this.setSelectedFolder(firstNode);
-
-    data = JSON.stringify({path: folderPath, folderId:folderId});
-
-    $(window).trigger("FolderTreeModule.selectionChange", data);
   }
 }
 
