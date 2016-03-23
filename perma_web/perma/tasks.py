@@ -1,4 +1,6 @@
 from __future__ import absolute_import # to avoid importing local .celery instead of celery package
+
+import traceback
 from cStringIO import StringIO
 
 from functools import wraps
@@ -73,14 +75,16 @@ def get_browser(user_agent, proxy_address, cert_path):
     if settings.CAPTURE_BROWSER == 'PhantomJS':
         desired_capabilities = dict(DesiredCapabilities.PHANTOMJS)
         desired_capabilities["phantomjs.page.settings.userAgent"] = user_agent
-        desired_capabilities["proxy"] = {"proxyType":ProxyType.MANUAL,"sslProxy":proxy_address,"httpProxy":proxy_address}
         browser = webdriver.PhantomJS(
             executable_path=getattr(settings, 'PHANTOMJS_BINARY', 'phantomjs'),
             desired_capabilities=desired_capabilities,
             service_args=[
                 "--proxy=%s" % proxy_address,
                 "--ssl-certificates-path=%s" % cert_path,
-                "--ignore-ssl-errors=true",],
+                "--ignore-ssl-errors=true",
+                "--local-url-access=false",
+                "--local-storage-path=.",
+            ],
             service_log_path=settings.PHANTOMJS_LOG)
 
     # Firefox
@@ -224,8 +228,8 @@ def proxy_capture(self, link_guid, user_agent=''):
         return
 
     # Override user_agent for now, since PhantomJS doesn't like some user agents.
-    # This user agent is the Chrome on Linux that's most like PhantomJS 1.9.8.
-    user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/534.36 (KHTML, like Gecko) Chrome/13.0.766.0 Safari/534.36"
+    # This user agent is the Chrome on Linux that's most like PhantomJS 2.1.1.
+    user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.37 Safari/537.36"
 
     print "%s: Fetching %s" % (link_guid, target_url)
 
@@ -490,7 +494,7 @@ def proxy_capture(self, link_guid, user_agent=''):
         pass
 
     except Exception as e:
-        print e
+        traceback.print_exc()
         raise
 
     finally:

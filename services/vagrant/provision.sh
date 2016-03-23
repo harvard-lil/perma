@@ -53,13 +53,13 @@ cp /vagrant/services/uwsgi/uwsgi.conf /etc/init/uwsgi.conf
 #service uwsgi start
 
 ### install phantomjs ###
-# have to download manually since the apt-get phantomjs is currently back at version 1.4
+# have to download manually since the apt-get phantomjs is currently back at version 1.9
 apt-get install -y fontconfig
 cd /usr/local/share
-wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-1.9.8-linux-x86_64.tar.bz2
-tar xjf phantomjs-1.9.8-linux-x86_64.tar.bz2
-ln -s /usr/local/share/phantomjs-1.9.8-linux-x86_64/bin/phantomjs /usr/bin/
-rm phantomjs-1.9.8-linux-x86_64.tar.bz2
+wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2
+tar xjf phantomjs-2.1.1-linux-x86_64.tar.bz2
+ln -s /usr/local/share/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/bin/
+rm phantomjs-2.1.1-linux-x86_64.tar.bz2
 
 ### clean up permissions ###
 chown -R vagrant /home/vagrant/.virtualenvs
