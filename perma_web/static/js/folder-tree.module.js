@@ -28,7 +28,6 @@ FolderTreeModule.init = function () {
 }
 
 FolderTreeModule.setupEventHandlers = function () {
-  var self = this;
   $(window)
     .on('dropdown.selectionChange', function () {
       FolderTreeModule.handleSelectionChange();
