@@ -167,9 +167,9 @@ LinksListModule.handleMouseDown = function (e) {
 
   $.vakata.dnd.start(e, {
     jstree: true,
-    obj: $(this),
+    obj: $(e.currentTarget),
     nodes: [
-        {id: $(this).attr('link_id')}
+        {id: $(e.currentTarget).attr('link_id')}
     ]
   }, '<div id="jstree-dnd" class="jstree-default"><i class="jstree-icon jstree-er"></i>[link]</div>');
 
