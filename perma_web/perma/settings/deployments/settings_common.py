@@ -91,6 +91,7 @@ PIPELINE_JS = {
             'vendors/bootstrap/bootstrap3.js',
             'vendors/fastclick/fastclick.min.js',
             'vendors/jquery/jquery.actual.js',
+            'js/error-handler.js',
             'js/global.js',
         ),
         'output_filename': 'js/global-bundle.js',
