@@ -1,0 +1,63 @@
+<div class="navbar-collapse collapse">
+  <ul class="nav navbar-nav navbar-right">
+    {% if request.user.is_authenticated %}
+      {% if this_page != 'create_link' and this_page != 'single_link' %}
+        <li class="navbar-create-button"><a href="{% url 'create_link' %}" role="button" class="btn btn-large btn-info navbar-create navbar-btn" data-toggle="tooltip" title="Create new Perma archive">Create and manage Perma Links</a></li>
+      {% endif %}
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle navbar-link needsclick" data-toggle="dropdown" role="button" aria-expanded="false">{{ request.user.get_short_name }}</a>
+        <ul class="dropdown-menu" role="menu">
+          {% if not this_page == 'create_link' %}
+            <li><a href="{% url 'create_link' %}">Create and manage Perma Links</a></li>
+            <li class="divider"></li>
+          {% endif %}
+
+
+          {% if request.user.is_staff or request.user.is_registrar_member %}
+            <li role="presentation" class="dropdown-header">Manage users</li>
+
+            {% if request.user.is_staff %}
+              <li><a href="{% url 'user_management_manage_registry_user' %}">Registry users</a></li>
+              <li><a href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>
+            {% endif %}
+
+            <li><a href="{% url 'user_management_manage_registrar_user' %}">Registrar users</a></li>
+            <li><a href="{% url 'user_management_manage_organization' %}">Organizations</a></li>
+            <li><a href="{% url 'user_management_manage_organization_user' %}">Organization users</a></li>
+
+            {% if request.user.is_staff %}
+              <li><a href="{% url 'user_management_manage_user' %}">Users</a></li>
+            {% endif %}
+            <li class="divider"></li>
+          {% endif %}
+
+          <!-- Org users -->
+          {% if request.user.is_organization_member %}
+            <li><a href="{% url 'user_management_manage_organization_user' %}">Manage users</a></li>
+            <li class="divider"></li>
+          {% endif %}
+          {% if request.user.is_staff %}
+            <li><a href="{% url 'admin:index' %}">Admin console</a></li>
+            <li><a href="{% url 'user_management_stats' %}">Site stats</a></li>
+            <li class="divider"></li>
+          {% endif %}
+          <li role="presentation" class="dropdown-header">Settings</li>
+          <li><a href="{% url 'user_management_settings_profile' %}">Profile</a></li>
+          <li><a href="{% url 'user_management_settings_password' %}">Password</a></li>
+          <li><a href="{% url 'user_management_settings_tools' %}">Tools</a></li>
+          {% if request.user.is_organization_member or request.user.is_registrar_member or request.user.has_registrar_pending %}
+            <li><a href="{% url 'user_management_settings_organizations' %}">Your organization</a></li>
+          {% endif %}
+          <li class="divider"></li>
+          <li><a href="{% url 'logout' %}">Log out</a></li>
+        </ul>
+      </li>
+    {% else %}
+      <li><a href="{% url 'about' %}" class="navbar-link">About Perma.cc</a></li>
+      <li><a href="{% url 'docs' %}" class="navbar-link">Guide</a></li>
+      <li><a href="https://blogs.law.harvard.edu/perma/" class="navbar-link">Blog</a></li>
+      <li><a href="{% url 'sign_up' %}" class="btn _nav{% if this_page == 'sign_up' %} this-page{% endif %}">Sign up</a></li>
+      <li><a href="{% url 'user_management_limited_login' %}" class="navbar-link _login">Log in</a></li>
+    {% endif %}
+  </ul>
+</div><!--/.nav-collapse -->
