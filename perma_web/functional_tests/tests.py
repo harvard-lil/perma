@@ -291,11 +291,6 @@ class FunctionalTest(BaseTestCase):
         get_xpath("//button[@class='btn login']").click() # new design button, no more 'btn-success'
         assert_text_displayed('Create a new', 'h1')  # wait for load
 
-        info("Clearing localStorage")
-        self.driver.get('javascript:localStorage.clear();')
-        self.driver.get(self.server_url + '/manage/create')
-
-
         info("Creating archive.")
         url_to_capture = 'example.com'
         create_page_url = fix_host(self.driver.current_url)
