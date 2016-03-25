@@ -7,6 +7,7 @@
     {{ block.super }}
     <script>
         var current_user = {% as_json request.user %};
+        ErrorHandler.setupUser(current_user);
     </script>
     {% javascript 'links_list' %}
 {% endblock %}
@@ -19,12 +20,12 @@
 {% block adminContent %}
 <div class="row no-wide">
     <div class="col-sm-12">
-		<h1 class="page-title">Your Perma Links</h1>
-	    {% if messages %}
-	        {% for message in messages %}
-	            <div class="alert alert-{% if message.level >= 30 %}danger{% else %}success{% endif %}" style="clear:both; margin:1em">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
-	        {% endfor %}
-	    {% endif %}
+    <h1 class="page-title">Your Perma Links</h1>
+      {% if messages %}
+          {% for message in messages %}
+              <div class="alert alert-{% if message.level >= 30 %}danger{% else %}success{% endif %}" style="clear:both; margin:1em">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
+          {% endfor %}
+      {% endif %}
     </div>
 </div>
 
@@ -96,30 +97,30 @@
 
         <div class="row item-row row-no-bleed" link_id="{{ guid }}">
             <div class="row">
-	            <div class="col col-sm-7">
-	            	<div class="item-title">
-		            	{{#if is_private }}<span class="z-top ui-private">[private] </span>{{/if}}<span class="z-top">{{ title }}</span>
-	            	</div>
-	                <div class="record-url">
-	                	<a href="{{ url }}" target="_blank" class="item-link-original z-top">{{ truncatechars url 200 }}</a>
-	                </div>
-	            </div>
-	            <div class="col col-sm-5 sm-align-right perma-link">
-	                {{#if delete_available}}<a class="delete z-top" href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}
-	                <a class="perma z-top" href="{{local_url}}" target="_blank">{{local_url}}</a>
-	            </div>
+              <div class="col col-sm-7">
+                <div class="item-title">
+                  {{#if is_private }}<span class="z-top ui-private">[private] </span>{{/if}}<span class="z-top">{{ title }}</span>
+                </div>
+                  <div class="record-url">
+                    <a href="{{ url }}" target="_blank" class="item-link-original z-top">{{ truncatechars url 200 }}</a>
+                  </div>
+              </div>
+              <div class="col col-sm-5 sm-align-right perma-link">
+                  {{#if delete_available}}<a class="delete z-top" href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}
+                  <a class="perma z-top" href="{{local_url}}" target="_blank">{{local_url}}</a>
+              </div>
             </div>
             <div class="row item-secondary">
-	            <div class="col col-sm-7">
-	            	{{#if organization }}
-	                <div class="item-affil">
-		                {{organization.name}}
-		            </div>
-		            {{/if}}
-	            </div>
-	            <div class="col col-sm-5 sm-align-right">
-		            <span class="item-date z-top"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
-	            </div>
+              <div class="col col-sm-7">
+                {{#if organization }}
+                  <div class="item-affil">
+                    {{organization.name}}
+                </div>
+                {{/if}}
+              </div>
+              <div class="col col-sm-5 sm-align-right">
+                <span class="item-date z-top"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
+              </div>
             </div>
         </div>
 
@@ -136,9 +137,9 @@
                     <label for="link-notes-{{guid}}">Notes</label>
                     <span class="notes-save-status"></span>
                     <textarea id="link-notes-{{guid}}" class="link-notes" rows="6">{{notes}}</textarea>
-	                <span class="muted">
-	                    Notes are private to you and your oganizations(s)
-	                </span>
+                  <span class="muted">
+                      Notes are private to you and your oganizations(s)
+                  </span>
                 </div>
 
                 <div class="form-group z-top">
@@ -149,7 +150,7 @@
             </div>
             <div class="col-sm-5">
                 <div>
-                	<span class="z-top"><strong>Views:</strong> {{view_count}}</span></div>
+                  <span class="z-top"><strong>Views:</strong> {{view_count}}</span></div>
                 <div><span class="z-top"><strong>Created by:</strong> {{created_by.full_name}}</span></div>
             </div>
         </div>

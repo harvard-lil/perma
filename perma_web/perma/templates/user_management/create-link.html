@@ -192,6 +192,7 @@
             thumbnail_service_url = "{% url 'service_get_thumbnail' guid='GUID' %}",
             current_user = {% as_json request.user %},
             host = "{{ request.get_host }}";
+            ErrorHandler.setupUser(current_user);
     </script>
 
     {% javascript 'admin' %}
