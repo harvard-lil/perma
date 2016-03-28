@@ -27,9 +27,6 @@ from urlparse import urlparse
 import requests
 from ratelimit.decorators import ratelimit
 
-from pywb.framework.memento import MementoResponse, MementoReqMixin
-import link_header
-
 from ..models import Link, Registrar, Organization, LinkUser
 from perma.forms import ContactForm
 from perma.utils import if_anonymous, send_contact_email
@@ -177,19 +174,14 @@ def single_linky(request, guid):
         'this_page': 'single_link',
     }
 
-    response = render(request, 'archive/single-link.html', context)
-    response['Memento-Datetime'] = link.headers['date']
-    response['Link'] = str(link_header.LinkHeader([
-                            link_header.Link(link.submitted_url, rel="original", datetime=link.headers['date'])
-                        ]))
-    return response
+    return render(request, 'archive/single-link.html', context)
 
 
 def rate_limit(request, exception):
     """
     When a user hits a rate limit, send them here.
     """
-
+    
     return render_to_response("rate_limit.html")
 
 ## We need custom views for server errors because otherwise Django
