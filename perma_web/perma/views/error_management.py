@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 
-# from ..models import Link, Folder, Organization
+from ..models import UncaughtError
 
 # logger = logging.getLogger(__name__)
 # valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'submitted_title', '-submitted_title']
