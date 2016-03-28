@@ -86,3 +86,25 @@ class FileSystemMediaStorage(BaseMediaStorage, DjangoFileSystemStorage):
 
 class S3MediaStorage(BaseMediaStorage, S3BotoStorage):
     location = settings.MEDIA_ROOT
+    
+    
+class S3BackedUpFileSystemMediaStorage(FileSystemMediaStorage):
+    """
+        Storage backend that reads and writes from the local filesystem, but also puts a copy up on S3 for every save.
+        Before using, be sure to set BACKUP_MEDIA_ROOT, AWS_STORAGE_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY.
+    """
+    def __init__(self, *args, **kwargs):
+        # on init, create a second storage for writing to S3
+        class BackupS3MediaStorage(S3MediaStorage):
+            location = settings.BACKUP_MEDIA_ROOT
+        self.backup_s3_storage = BackupS3MediaStorage(*args, **kwargs)
+
+        # otherwise act normally
+        super(S3BackedUpFileSystemMediaStorage, self).__init__()
+        
+    def save(self, *args, **kwargs):
+        # on save, write a copy to S3
+        self.backup_s3_storage.save(*args, **kwargs)
+
+        # otherwise act normally
+        return super(S3BackedUpFileSystemMediaStorage, self).save(*args, **kwargs)

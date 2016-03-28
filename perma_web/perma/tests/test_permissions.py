@@ -19,6 +19,7 @@ class PermissionsTestCase(PermaTestCase):
         views = [
             {
                 'urls': [
+                    ['user_management_stats'],
                     ['user_management_manage_registry_user'],
                     ['user_management_registry_user_add_user'],
                     ['user_management_manage_single_registry_user_delete', {'kwargs':{'user_id': 1}}],
