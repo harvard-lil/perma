@@ -171,6 +171,7 @@ def single_linky(request, guid):
         'next': request.get_full_path(),
         'serve_type': serve_type,
         'new_record': new_record,
+        'this_page': 'single_link',
     }
 
     return render(request, 'archive/single-link.html', context)
