@@ -11,9 +11,6 @@ ErrorHandler.notify = function(message, error) {
   });
 }
 
-ErrorHandler.setupUser = function(user) {
-  this.user = this.user || user;
-}
 
 ErrorHandler.init = function () {
   window.onerror = function (e){

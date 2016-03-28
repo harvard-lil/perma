@@ -7,7 +7,6 @@
     {{ block.super }}
     <script>
         var current_user = {% as_json request.user %};
-        ErrorHandler.setupUser(current_user);
     </script>
     {% javascript 'links_list' %}
 {% endblock %}
