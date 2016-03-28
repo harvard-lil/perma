@@ -23,4 +23,20 @@ def get_all(request):
 
 def post_new(request):
     print "posting new error"
+    data = request.POST
+    created_at = timezone.now()
+    error.error = UncaughtError.objects.create(created_at=created_at)
+    error.save()
+
+    error.current_url=data['current_url']
+    error.user_agent=data['user_agent']
+    error.error_stack=data['error_stack']
+    error.error_name=data['error_name']
+    error.error_message=data['error_message']
+    error.error_custom_message=data['error_custom_message']
+    error.save()
+
+    response = HttpResponse()
+    return response
+
     return

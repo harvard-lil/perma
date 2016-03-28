@@ -2,19 +2,26 @@ var ErrorHandler = {};
 
 ErrorHandler.notify = function(message, error) {
   var err = new Error(error);
-  user = this.user || 'anonymous';
-  errorObj = {}
+
+  error_object = {
+    'current_url': window.location.href,
+    'user_agent': navigator.userAgent,
+    'error_stack': JSON.stringify(err.stack),
+    'error_name': err.name,
+    'error_message': err.message,
+    'error_custom_message': message
+  }
   $.ajax({
     type: 'POST',
     url: '/manage/errors/new',
-    data: errorObj
+    data: error_object
   });
 }
 
 
 ErrorHandler.init = function () {
   window.onerror = function (e){
-    ErrorHandler.notify("dskjfh", {error:'yes'});
+    ErrorHandler.notify('Caught exception:', {error:e});
     return false;
   }
 }

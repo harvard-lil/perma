@@ -944,3 +944,13 @@ class CDXLine(models.Model):
         return self.__parsed.is_revisit()
 
 
+class UncaughtError(models.Model):
+    current_url = models.TextField()
+    user_agent = models.TextField()
+    error_stack = models.TextField()
+    error_name = models.TextField()
+    error_message = models.TextField()
+    error_custom_message = models.TextField()
+    user_id = models.CharField(max_length=767)
+    created_at = models.DateTimeField()
+    resolved = models.BooleanField(default=False)
