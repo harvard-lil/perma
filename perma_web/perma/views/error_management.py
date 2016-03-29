@@ -23,20 +23,18 @@ def resolve(request):
     error.resolved_by_user = request.user.id
     error.save()
 
-    return HttpResponse("ok")
+    return HttpResponse(status=200)
 
 def post_new(request):
-    data = request.POST
     created_at = timezone.now()
     error = UncaughtError.objects.create(created_at=created_at)
 
-    error.current_url=data['current_url']
-    error.user_agent=data['user_agent']
-    error.stack=data['stack']
-    error.name=data['name']
-    error.message=data['message']
-    error.custom_message=data['custom_message']
-    error.user_id=request.user.id
+    error.current_url=request.POST.get('current_url')
+    error.user_agent=request.POST.get('user_agent')
+    error.stack=request.POST.get('stack')
+    error.name=request.POST.get('name')
+    error.message=request.POST.get('message')
+    error.custom_message=request.POST.get('custom_message')
     error.save()
 
     return HttpResponse(status=200)
