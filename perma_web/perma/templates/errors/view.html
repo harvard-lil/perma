@@ -1,1 +1,35 @@
-<div>HELLO ERRORS</div>
+{% extends "base-responsive.html" %}
+{% block mainContent %}
+<div class="col-md-12">
+  <table class="table table-hover">
+    <tbody>
+      <thead>
+        <th>User ID</th>
+        <th>Resolve?</th>
+        <th>Path</th>
+        <th>Stack Trace</th>
+        <th>UserAgent</th>
+      </thead>
+      {% for error in errors %}
+      <tr>
+        <td>
+          {{ error.user_id }}
+        </td>
+        <td>
+          <input type="checkbox" onclick="return ErrorHandler.resolve({{ error.id }})">
+        </td>
+        <td>
+          {{ error.current_url }}
+        </td>
+        <td>
+          {{ error.stack }}
+        </td>
+        <td>
+          {{ error.user_agent }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

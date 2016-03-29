@@ -126,6 +126,7 @@ urlpatterns = patterns('perma.views',
     # error management
     url(r'^manage/errors/?$', 'error_management.get_all', name='error_management_get_all'),
     url(r'^manage/errors/new?$', 'error_management.post_new', name='error_management_post_new'),
+    url(r'^manage/errors/resolve?$', 'error_management.resolve', name='error_management_resolve'),
 
     # Our Perma ID catchall
     url(r'^%s/?$' % r'(?P<guid>[^\./]+)', 'common.single_linky', name='single_linky'),
