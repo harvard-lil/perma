@@ -23,7 +23,7 @@ def resolve(request):
     error.resolved_by_user = request.user.id
     error.save()
 
-    return HttpResponse("ok")
+    return HttpResponse(status=200)
 
 def post_new(request):
     data = request.POST
