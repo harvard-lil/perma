@@ -13,7 +13,7 @@
       {% for error in errors %}
       <tr>
         <td>
-          {{ error.user_id }}
+          {{ error.user.id }}
         </td>
         <td>
           <input type="checkbox" onclick="return ErrorHandler.resolve({{ error.id }})">

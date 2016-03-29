@@ -951,7 +951,8 @@ class UncaughtError(models.Model):
     name = models.TextField()
     message = models.TextField()
     custom_message = models.TextField()
-    user_id = models.CharField(max_length=767)
-    created_at = models.DateTimeField()
+    user = models.ForeignKey(LinkUser, null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
     resolved = models.BooleanField(default=False)
     resolved_by_user = models.CharField(null=True, max_length=767)

@@ -39,5 +39,4 @@ def post_new(request):
     error.user_id=request.user.id
     error.save()
 
-    response = HttpResponse(status=200)
-    return response
+    return HttpResponse(status=200)

@@ -32,15 +32,4 @@ ErrorHandler.init = function () {
   }
 }
 
-
 ErrorHandler.init();
-
-/*
-on backend
-[title_key] =
-  stack_trace: error.stack
-  user: user_id
-  extra_data: extra data
-  useragent string
-  url: url
-*/
