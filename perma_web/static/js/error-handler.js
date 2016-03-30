@@ -12,7 +12,7 @@ ErrorHandler.notify = function(message, error) {
   }
   $.ajax({
     type: 'POST',
-    url: '/manage/errors/new',
+    url: '/errors/new',
     data: error_object
   });
 }

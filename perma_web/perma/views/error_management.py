@@ -17,12 +17,14 @@ def get_all(request):
 @login_required
 @user_passes_test(lambda user: user.is_staff)
 def resolve(request):
-    error_id = request.POST['error_id']
-    error = UncaughtError.objects.get(id=error_id)
-    error.resolved = True
-    error.resolved_by_user = request.user.id
-    error.save()
-
+    error_id = request.POST.get('error_id')
+    try:
+        error = UncaughtError.objects.get(id=error_id)
+        error.resolved = True
+        error.resolved_by_user = request.user.id
+        error.save()
+    except:
+        pass
     return HttpResponse(status=200)
 
 def post_new(request):
