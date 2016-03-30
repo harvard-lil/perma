@@ -22,6 +22,8 @@ from django.views.decorators.cache import cache_control
 from django.core.mail import EmailMessage
 from django.views.static import serve as media_view
 
+import link_header
+
 import logging
 from urlparse import urlparse
 import requests
@@ -174,7 +176,13 @@ def single_linky(request, guid):
         'this_page': 'single_link',
     }
 
-    return render(request, 'archive/single-link.html', context)
+    # return render(request, 'archive/single-link.html', context)
+    response = render(request, 'archive/single-link.html', context)
+    response['Memento-Datetime'] = link.headers['date']
+    response['Link'] = str(link_header.LinkHeader([
+                            link_header.Link(link.submitted_url, rel="original", datetime=link.headers['date'])
+                        ]))
+    return response
 
 
 def rate_limit(request, exception):
