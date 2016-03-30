@@ -18,7 +18,7 @@ class ErrorManagementViewsTestCase(unittest.TestCase):
             'user_agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36',
         }
 
-        response = c.post('/manage/errors/new', error_obj)
+        response = c.post('/errors/new', error_obj)
         self.assertEqual(response.status_code, 200)
 
         # testing that we're creating error on post
