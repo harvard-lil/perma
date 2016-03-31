@@ -543,7 +543,7 @@ def proxy_capture(self, link_guid, user_agent=''):
 
         except Exception as e:
             print "Web Archive File creation failed for %s: %s" % (target_url, e)
-            save_fields(link.primary_capture, warc_capture='failed')
+            save_fields(link.primary_capture, status='failed')
 
 
     print "%s capture done." % link_guid
