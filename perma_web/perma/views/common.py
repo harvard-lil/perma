@@ -58,7 +58,7 @@ def landing(request):
     """
     if request.user.is_authenticated() and request.get_host() not in request.META.get('HTTP_REFERER',''):
         return HttpResponseRedirect(reverse('create_link'))
-        
+
     else:
         orgs_count = Organization.objects.count()
         users_count = LinkUser.objects.count()
@@ -103,7 +103,7 @@ def stats(request):
     """
     The global stats
     """
-    
+
     # TODO: generate these nightly. we shouldn't be doing this for every request
     top_links_all_time = list(Link.objects.all().order_by('-view_count')[:10])
 
@@ -179,14 +179,13 @@ def single_linky(request, guid):
     # return render(request, 'archive/single-link.html', context)
     response = render(request, 'archive/single-link.html', context)
     response['Memento-Datetime'] = link.headers['date']
-    link_memento = settings.WARC_HOST + '/warc/' + link.guid + '/' + link.submitted_url
+    link_memento = settings.WARC_HOST + '/' + link.guid
     response['Link'] = str(link_header.LinkHeader([
-                            link_header.Link(
-                                link.submitted_url, rel="original",
-                            ),
-                            link_header.Link(
-                                link_memento, rel="memento",
-                            )
+                            [link.submitted_url, [['rel', "original"]]],
+                            [link_memento, [['rel', "memento"]]],
+                            [['rel', "timegate"]],
+                            [['rel', "timemap"]],
+                            [['datetime', link.headers['date']]]
                         ]))
     return response
 
@@ -195,7 +194,7 @@ def rate_limit(request, exception):
     """
     When a user hits a rate limit, send them here.
     """
-    
+
     return render_to_response("rate_limit.html")
 
 ## We need custom views for server errors because otherwise Django
@@ -254,7 +253,7 @@ Message from user
         # Flag as inappropriate button on an archive page
         #
         # We likely want to clean up this contact for logic if we tack much else on
-        
+
         message = request.GET.get('message', '')
         flagged_archive_guid = request.GET.get('flag', '')
 
