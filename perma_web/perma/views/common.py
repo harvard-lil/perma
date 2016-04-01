@@ -188,11 +188,11 @@ def single_linky(request, guid):
                                 link.submitted_url, rel="original", datetime=link.headers['date'],
                             ),
                             link_header.Link(
-                                link_memento, rel="memento"),
-                            ]),
+                                link_memento, rel="memento"
+                            ),
                             link_header.Link(
-                                link_timegate, rel="timegate"),
-                            ]),
+                                link_timegate, rel="timegate"
+                            ),
                             link_header.Link(
                                 link_timemap, rel="timemap"),
                             ])
