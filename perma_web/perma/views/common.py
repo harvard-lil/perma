@@ -185,10 +185,10 @@ def single_linky(request, guid):
 
     response['Link'] = str(link_header.LinkHeader([
                             link_header.Link(
-                                link.submitted_url, rel="original", datetime=link.headers['date'],
+                                link.submitted_url, rel="original", datetime=link.headers['date'], type="application/link-format",
                             ),
                             link_header.Link(
-                                link_memento, rel="memento"
+                                link_memento, rel="memento", type="application/link-format",
                             ),
                             link_header.Link(
                                 link_timegate, rel="timegate"
