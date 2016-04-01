@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+import django.utils.timezone
+from django.conf import settings
 
 
 class Migration(migrations.Migration):
@@ -15,15 +17,16 @@ class Migration(migrations.Migration):
             name='UncaughtError',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('current_url', models.CharField(max_length=2100)),
+                ('current_url', models.TextField()),
                 ('user_agent', models.TextField()),
-                ('error_stack', models.TextField()),
-                ('error_name', models.TextField()),
-                ('error_message', models.TextField()),
-                ('error_custom_message', models.TextField()),
-                ('user_id', models.CharField(max_length=767)),
-                ('error_date', models.DateTimeField()),
+                ('stack', models.TextField()),
+                ('name', models.TextField()),
+                ('message', models.TextField()),
+                ('custom_message', models.TextField()),
+                ('created_at', models.DateTimeField(default=django.utils.timezone.now)),
                 ('resolved', models.BooleanField(default=False)),
+                ('resolved_by_user', models.CharField(max_length=767, null=True)),
+                ('user', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True)),
             ],
         ),
     ]
