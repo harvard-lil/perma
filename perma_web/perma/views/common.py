@@ -180,7 +180,14 @@ def single_linky(request, guid):
     response = render(request, 'archive/single-link.html', context)
     response['Memento-Datetime'] = link.headers['date']
     link_memento = settings.WARC_HOST + '/' + link.guid
-    response['Link'] = str(link_header.LinkHeader([]))
+    response['Link'] = str(link_header.LinkHeader([
+                            link_header.Link(
+                                link.submitted_url, rel="original", datetime=link.headers['date'],
+                            ),
+                            link_header.Link(
+                                link_memento, rel="memento"),
+                            ])
+                        )
     return response
 
     # [link.submitted_url, [['rel', "original"]]],
