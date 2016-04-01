@@ -2,6 +2,7 @@ import random, string, logging, time
 
 from datetime import timedelta
 
+from celery.task.control import inspect as celery_inspect
 from django.db.models.expressions import RawSQL
 from ratelimit.decorators import ratelimit
 from tastypie.models import ApiKey
@@ -54,27 +55,29 @@ def stats(request, stat_type=None):
 
     out = None
 
-    if stat_type == "day":
-        # get link counts for given day
-        days_ago = int(request.GET.get('days_ago'))
-        end_date = timezone.now() - timedelta(days=days_ago)
-        start_date = end_date - timedelta(days=1)
-        out = {
-            'days_ago': days_ago,
-            'start_date': start_date,
-            'end_date': end_date,
-            'top_users': list(LinkUser.objects
-                .filter(created_links__creation_timestamp__gt=start_date,created_links__creation_timestamp__lt=end_date)
-                .annotate(links_count=Count('created_links'))
-                .order_by('-links_count')[:3]
-                .values('email','links_count')),
-            'statuses': Capture.objects
-                .filter(role='primary', link__creation_timestamp__gt=start_date, link__creation_timestamp__lt=end_date)
-                .values('status')
-                .annotate(count=Count('status'))
-        }
-        out['statuses'] = dict((x['status'], x['count']) for x in out['statuses'])
-        out['link_count'] = sum(out['statuses'].values())
+    if stat_type == "days":
+        # get link counts for last 30 days
+        out = {'days':[]}
+        for days_ago in range(30):
+            end_date = timezone.now() - timedelta(days=days_ago)
+            start_date = end_date - timedelta(days=1)
+            day = {
+                'days_ago': days_ago,
+                'start_date': start_date,
+                'end_date': end_date,
+                'top_users': list(LinkUser.objects
+                    .filter(created_links__creation_timestamp__gt=start_date,created_links__creation_timestamp__lt=end_date)
+                    .annotate(links_count=Count('created_links'))
+                    .order_by('-links_count')[:3]
+                    .values('email','links_count')),
+                'statuses': Capture.objects
+                    .filter(role='primary', link__creation_timestamp__gt=start_date, link__creation_timestamp__lt=end_date)
+                    .values('status')
+                    .annotate(count=Count('status'))
+            }
+            day['statuses'] = dict((x['status'], x['count']) for x in day['statuses'])
+            day['link_count'] = sum(day['statuses'].values())
+            out['days'].append(day)
 
     elif stat_type == "emails":
         # get users by email top-level domain
@@ -97,6 +100,21 @@ def stats(request, stat_type=None):
         }
         out['private_link_percentage'] = round(100.0*out['private_link_count']/out['total_link_count'], 1)
         out['unconfirmed_user_percentage'] = round(100.0*out['unconfirmed_user_count']/out['total_user_count'], 1)
+
+    elif stat_type == "celery":
+        inspector = celery_inspect()
+        active = inspector.active()
+        reserved = inspector.reserved()
+        stats = inspector.stats()
+        queues = []
+        for queue in active.keys():
+            queues.append({
+                'name': queue,
+                'active': active[queue],
+                'reserved': reserved[queue],
+                'stats': stats[queue],
+            })
+        out = {'queues':queues}
 
     if out:
         return JsonResponse(out)
