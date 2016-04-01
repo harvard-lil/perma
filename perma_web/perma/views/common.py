@@ -179,10 +179,10 @@ def single_linky(request, guid):
     # return render(request, 'archive/single-link.html', context)
     response = render(request, 'archive/single-link.html', context)
     response['Memento-Datetime'] = link.headers['date']
-    link_memento     = settings.WARC_HOST + '/' + link.guid
-    link_timegate    = settings.WARC_HOST + '/warc/' + link.submitted_url
-    link_timemap     = settings.WARC_HOST + '/warc/timemap/*/' + link.submitted_url
-
+    protocol = "https://" if settings.SECURE_SSL_REDIRECT else "http://"
+    link_memento     = protocol + settings.WARC_HOST + '/' + link.guid
+    link_timegate    = protocol + settings.WARC_HOST + '/warc/' + link.submitted_url
+    link_timemap     = protocol + settings.WARC_HOST + '/warc/timemap/*/' + link.submitted_url
     response['Link'] = str(link_header.LinkHeader([
                             link_header.Link(
                                 link.submitted_url, rel="original", datetime=link.headers['date'],
