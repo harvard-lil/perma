@@ -16,7 +16,7 @@ from django.core.mail import send_mail
 from django.db.models import Count, Max, Sum
 from django.utils import timezone
 from django.utils.http import is_safe_url, cookie_date
-from django.http import HttpResponseRedirect, Http404
+from django.http import HttpResponseRedirect, Http404, JsonResponse
 from django.template import RequestContext
 from django.template.response import TemplateResponse
 from django.shortcuts import render_to_response, get_object_or_404, resolve_url, render
@@ -50,44 +50,59 @@ valid_org_sorts = ['name', '-name', 'created_links', '-created_links', '-date_cr
 
 @login_required
 @user_passes_test(lambda user: user.is_staff)
-def stats(request):
-    # get link counts for each day
-    days = []
-    for days_ago in range(30):
+def stats(request, stat_type=None):
+
+    out = None
+
+    if stat_type == "day":
+        # get link counts for given day
+        days_ago = int(request.GET.get('days_ago'))
         end_date = timezone.now() - timedelta(days=days_ago)
         start_date = end_date - timedelta(days=1)
-        day = {
+        out = {
+            'days_ago': days_ago,
             'start_date': start_date,
             'end_date': end_date,
-            'top_users': LinkUser.objects
+            'top_users': list(LinkUser.objects
                 .filter(created_links__creation_timestamp__gt=start_date,created_links__creation_timestamp__lt=end_date)
                 .annotate(links_count=Count('created_links'))
-                .order_by('-links_count')[:3],
+                .order_by('-links_count')[:3]
+                .values('email','links_count')),
             'statuses': Capture.objects
                 .filter(role='primary', link__creation_timestamp__gt=start_date, link__creation_timestamp__lt=end_date)
                 .values('status')
                 .annotate(count=Count('status'))
         }
-        day['statuses'] = dict((x['status'], x['count']) for x in day['statuses'])
-        day['link_count'] = sum(day['statuses'].values())
-        days.append(day)
+        out['statuses'] = dict((x['status'], x['count']) for x in out['statuses'])
+        out['link_count'] = sum(out['statuses'].values())
 
-    # get users by email top-level domain
-    users_by_domain = LinkUser.objects\
-        .annotate(domain=RawSQL("SUBSTRING_INDEX(email, '.', -1)",[]))\
-        .values('domain')\
-        .annotate(count=Count('domain'))\
-        .order_by('-count')
+    elif stat_type == "emails":
+        # get users by email top-level domain
+        out = {
+            'users_by_domain': list(LinkUser.objects
+                .annotate(domain=RawSQL("SUBSTRING_INDEX(email, '.', -1)",[]))
+                .values('domain')
+                .annotate(count=Count('domain'))
+                .order_by('-count')
+                .values('domain', 'count'))
+       }
 
-    # random
-    total_link_count = Link.objects.count()
-    private_link_count = Link.objects.filter(is_private=True).count()
-    private_link_percentage = round(100.0*private_link_count/total_link_count, 1)
-    total_user_count = LinkUser.objects.count()
-    unconfirmed_user_count = LinkUser.objects.filter(is_confirmed=False).count()
-    unconfirmed_user_percentage = round(100.0*unconfirmed_user_count/total_user_count, 1)
+    elif stat_type == "random":
+        # random
+        out = {
+            'total_link_count': Link.objects.count(),
+            'private_link_count': Link.objects.filter(is_private=True).count(),
+            'total_user_count': LinkUser.objects.count(),
+            'unconfirmed_user_count': LinkUser.objects.filter(is_confirmed=False).count()
+        }
+        out['private_link_percentage'] = round(100.0*out['private_link_count']/out['total_link_count'], 1)
+        out['unconfirmed_user_percentage'] = round(100.0*out['unconfirmed_user_count']/out['total_user_count'], 1)
 
-    return render(request, 'user_management/stats.html', locals())
+    if out:
+        return JsonResponse(out)
+
+    else:
+        return render(request, 'user_management/stats.html', locals())
 
 @login_required
 @user_passes_test(lambda user: user.is_staff)

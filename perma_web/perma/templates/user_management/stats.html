@@ -1,53 +1,93 @@
 {% extends "base-responsive.html" %}
+{% load pipeline %}
 {% block title %} | Admin Stats{% endblock %}
 
 {% block mainContent %}
   <div class="container cont-fixed">
 
-    <div class="row">
+    <div class="row" id="random"></div>
+
+    <div class="row" id="days"></div>
+
+    <div class="row" id="emails"></div>
+
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ block.super }}
+
+  {% javascript 'admin' %}
+
+  <script>
+    $(function(){
+      function addSection(name, args){
+        return function() {
+          console.log(name, args);
+          args = args || {};
+          return $.getJSON(document.location + '/' + name, args).then(function (data) {
+            console.log("THEN", name, args);
+            $('#' + name).append(templates[name](data));
+          });
+        };
+      }
+      chain = $.when(addSection("random")());
+      chain = chain.then(function(){$('#days').append(templates.days())});
+      for(var i=0;i<30;i++)
+        chain = chain.then(addSection("day", {days_ago:i}));
+      chain = chain.then(addSection("emails"));
+    });
+  </script>
+{% endblock %}
+
+{% block templates %}
+  {% verbatim %}
+    <script id="random-template" type="text/x-handlebars-template">
       <h3 class="body-ah">Random:</h3>
 
       <div class="row"><div class="col-sm-2">Total links:</div><div class="col-sm-4">{{ total_link_count }}</div></div>
       <div class="row"><div class="col-sm-2">Private links:</div><div class="col-sm-4">{{ private_link_count }} ({{ private_link_percentage }}%)</div></div>
       <div class="row"><div class="col-sm-2">Total users:</div><div class="col-sm-4">{{ total_user_count }}</div></div>
       <div class="row"><div class="col-sm-2">Unconfirmed users:</div><div class="col-sm-4">{{ unconfirmed_user_count }} ({{ unconfirmed_user_percentage }}%)</div></div>
-    </div>
+    </script>
 
-    <div class="row">
+    <script id="days-template" type="text/x-handlebars-template">
       <h3 class="body-ah">Links from the past month:</h3>
       <table class="table">
-        <tr>
-          <th>Days<br>Ago</th>
-          <th>Count</th>
-          <th>Success</th>
-          <th>Pending</th>
-          <th>Failed</th>
-          <th colspan="6">Top Users</th>
-        </tr>
-        {% for day in days %}
+        <tbody id="day">
           <tr>
-            <td title="{{ day.start_date }}-{{ day.end_date }}">{{ forloop.counter0 }}</td>
-            <td>{{ day.link_count }}</td>
-            <td>{{ day.statuses.success }}</td>
-            <td>{{ day.statuses.pending }}</td>
-            <td>{{ day.statuses.failed }}</td>
-            {% for top_user in day.top_users %}
-              <td>{{ top_user }}</td>
-              <td>{{ top_user.links_count }}</td>
-            {% endfor %}
+            <th>Days<br>Ago</th>
+            <th>Count</th>
+            <th>Success</th>
+            <th>Pending</th>
+            <th>Failed</th>
+            <th colspan="6">Top Users</th>
           </tr>
-        {% endfor %}
+        </tbody>
       </table>
-    </div>
+    </script>
 
-    <div class="row">
+    <script id="day-template" type="text/x-handlebars-template">
+      <tr>
+        <td title="{{ start_date }}-{{ end_date }}">{{ days_ago }}</td>
+        <td>{{ link_count }}</td>
+        <td>{{ statuses.success }}</td>
+        <td>{{ statuses.pending }}</td>
+        <td>{{ statuses.failed }}</td>
+        {{#each top_users}}
+          <td>{{ email }}</td>
+          <td>{{ links_count }}</td>
+        {{/each}}
+      </tr>
+    </script>
+
+    <script id="emails-template" type="text/x-handlebars-template">
       <h3 class="body-ah">Users by email domain:</h3>
       <div class="body-text" style="-webkit-column-count: 4; -moz-column-count: 4; column-count: 4;">
-        {% for domain in users_by_domain %}
-            .{{ domain.domain }}: {{ domain.count }}<br/>
-        {% endfor %}
+        {{#each users_by_domain}}
+          .{{ domain }}: {{ count }}<br/>
+        {{/each}}
       </div>
-    </div>
-
-  </div>
+    </script>
+  {% endverbatim %}
 {% endblock %}
