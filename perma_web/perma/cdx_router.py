@@ -5,18 +5,18 @@ class CDXRouter(object):
 
     def db_for_read(self, model, **hints):
         """
-        Attempts to read cdx models go to cdx_db.
+        Attempts to read cdx models go to perma-cdxline.
         """
         if model.__name__ == 'CDXLine':
-            return 'cdx_db'
+            return 'perma-cdxline'
         return None
 
     def db_for_write(self, model, **hints):
         """
-        Attempts to write cdx models go to cdx_db.
+        Attempts to write cdx models go to perma-cdxline.
         """
         if model.__name__ == 'CDXLine':
-            return 'cdx_db'
+            return 'perma-cdxline'
         return None
 
     def allow_relation(self, obj1, obj2, **hints):
@@ -34,9 +34,9 @@ class CDXRouter(object):
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
         """
-        Make sure only cdx models appear in the 'cdx_db'
+        Make sure only cdx models appear in the 'perma-cdxline'
         database.
         """
         if model_name == 'cdxline':
-            return db == 'cdx_db'
+            return db == 'perma-cdxline'
         return None
