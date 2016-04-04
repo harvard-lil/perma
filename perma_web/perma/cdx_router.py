@@ -19,15 +19,18 @@ class CDXRouter(object):
             return 'cdx_db'
         return None
 
-    # def allow_relation(self, obj1, obj2, **hints):
-    #     """
-    #     Allow relations if a model in the cdx app is involved.
-    #     """
-    #     print "allow_relation: getting model?", obj1, obj2, hints
-    #     if obj1._meta.app_label == 'cdx' or \
-    #        obj2._meta.app_label == 'cdx':
-    #        return True
-    #     return None
+    def allow_relation(self, obj1, obj2, **hints):
+        """
+        Return True if a relation between obj1 and obj2 should be allowed
+        False if the relation should be prevented
+        or None if the router has no opinion.
+        This is purely a validation operation, used by foreign key
+        and many to many operations to determine
+        if a relation should be allowed between two objects.
+        """
+        if 'target_db' in hints:
+            return db == hints['target_db']
+        return None
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
         """
