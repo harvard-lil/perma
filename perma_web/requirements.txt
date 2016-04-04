@@ -42,6 +42,7 @@ Pillow==2.9.0                   # Used by the Django admin for ImageField displa
 whitenoise==2.0.4               # serve static assets
 django-simple-history==1.6.3    # track changes to certain models
 PyVirtualDisplay==0.1.5         # for capturing with non-headless browsers
+LinkHeader==0.4.3
 
 # deployment
 gunicorn==19.3.0

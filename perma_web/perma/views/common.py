@@ -22,6 +22,8 @@ from django.views.decorators.cache import cache_control
 from django.core.mail import EmailMessage
 from django.views.static import serve as media_view
 
+import link_header
+
 import logging
 from urlparse import urlparse
 import requests
@@ -56,7 +58,7 @@ def landing(request):
     """
     if request.user.is_authenticated() and request.get_host() not in request.META.get('HTTP_REFERER',''):
         return HttpResponseRedirect(reverse('create_link'))
-        
+
     else:
         orgs_count = Organization.objects.count()
         users_count = LinkUser.objects.count()
@@ -101,7 +103,7 @@ def stats(request):
     """
     The global stats
     """
-    
+
     # TODO: generate these nightly. we shouldn't be doing this for every request
     top_links_all_time = list(Link.objects.all().order_by('-view_count')[:10])
 
@@ -174,14 +176,34 @@ def single_linky(request, guid):
         'this_page': 'single_link',
     }
 
-    return render(request, 'archive/single-link.html', context)
-
+    # return render(request, 'archive/single-link.html', context)
+    response = render(request, 'archive/single-link.html', context)
+    response['Memento-Datetime'] = link.headers['date']
+    protocol = "https://" if settings.SECURE_SSL_REDIRECT else "http://"
+    link_memento     = protocol + settings.WARC_HOST + '/' + link.guid
+    link_timegate    = protocol + settings.WARC_HOST + '/warc/' + link.submitted_url
+    link_timemap     = protocol + settings.WARC_HOST + '/warc/timemap/*/' + link.submitted_url
+    response['Link'] = str(link_header.LinkHeader([
+                            link_header.Link(
+                                link.submitted_url, rel="original", datetime=link.headers['date'],
+                            ),
+                            link_header.Link(
+                                link_memento, rel="memento", datetime=link.headers['date'],
+                            ),
+                            link_header.Link(
+                                link_timegate, rel="timegate"
+                            ),
+                            link_header.Link(
+                                link_timemap, rel="timemap", type="application/link-format"),
+                            ])
+                        )
+    return response
 
 def rate_limit(request, exception):
     """
     When a user hits a rate limit, send them here.
     """
-    
+
     return render_to_response("rate_limit.html")
 
 ## We need custom views for server errors because otherwise Django
@@ -240,7 +262,7 @@ Message from user
         # Flag as inappropriate button on an archive page
         #
         # We likely want to clean up this contact for logic if we tack much else on
-        
+
         message = request.GET.get('message', '')
         flagged_archive_guid = request.GET.get('flag', '')
 

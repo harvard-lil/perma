@@ -27,8 +27,8 @@ LOGGING['handlers']['default']['filename'] = '/var/log/perma/perma.log'
 PHANTOMJS_LOG = '/var/log/perma/phantom.log'
 
 # use separate subdomain for user content
-MEDIA_URL = '//user-content.perma.cc/media/'
-WARC_HOST = 'user-content.perma.cc'
+MEDIA_URL = '//perma-archives.org/media/'
+WARC_HOST = 'perma-archives.org'
 
 # Our sorl thumbnail settings
 # We only use this redis config in prod. dev envs use the local db.
