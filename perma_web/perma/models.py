@@ -913,11 +913,11 @@ class CDXLineManager(models.Manager):
             next(cdx_io) # first line is a header so skip it
             results = []
             for line in cdx_io:
-                cdxline = CDXLine.objects.get_or_create(raw=line)[0]
+                cdxline = CDXLine.objects.using('perma-cdxline').get_or_create(raw=line)[0]
                 cdxline.link_reference = link.guid
                 cdxline.is_unlisted = link.is_unlisted
                 cdxline.is_private = link.is_private
-                cdxline.save()
+                cdxline.save(using='perma-cdxline')
                 results.append(cdxline)
 
         return results

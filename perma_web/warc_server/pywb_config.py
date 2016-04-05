@@ -112,9 +112,10 @@ class PermaRoute(archivalrouter.Route):
                 # A: the warc capture hasn't been generated OR
                 # B: we know other cdx lines have already been generated
                 #    and the requested line is simply missing
-                lines = list(link.cdx_lines.all())
+                lines = CDXLine.objects.using('perma-cdxline').filter(link_reference=link.guid)
+
                 if not lines:
-                    lines = CDXLine.objects.create_all_from_link(link)
+                    lines = CDXLine.objects.using('perma-cdxline').create_all_from_link(link)
 
                 # build a lookup of all cdx lines for this link indexed by urlkey, like:
                 # cached_cdx = {'urlkey1':['raw1','raw2'], 'urlkey2':['raw3','raw4']}
