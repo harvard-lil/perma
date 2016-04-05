@@ -25,8 +25,8 @@ class Migration(migrations.Migration):
                 ('custom_message', models.TextField()),
                 ('created_at', models.DateTimeField(default=django.utils.timezone.now)),
                 ('resolved', models.BooleanField(default=False)),
-                ('resolved_by_user', models.CharField(max_length=767, null=True)),
-                ('user', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('resolved_by_user', models.ForeignKey(related_name='errors_resolved', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('user', models.ForeignKey(related_name='errors_triggered', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
             ],
         ),
     ]
