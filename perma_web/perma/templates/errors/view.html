@@ -11,29 +11,36 @@
         <th>Stack Trace</th>
         <th>UserAgent</th>
       </thead>
-      {% for error in errors %}
-      <tr>
-        <td>
-          {{ error.user }}
-        </td>
-        <td>
-          {{ error.created_at }}
-        </td>
+      {% if errors %}
+        {% for error in errors %}
+        <tr>
+          <td>
 
-        <td>
-          <input type="checkbox" onclick="return ErrorHandler.resolve({{ error.id }})">
-        </td>
-        <td>
-          {{ error.current_url }}
-        </td>
-        <td>
-          {{ error.stack }}
-        </td>
-        <td>
-          {{ error.user_agent }}
-        </td>
-      </tr>
-      {% endfor %}
+            {% if error.user %}
+              {{ error.user }}
+            {% else %}
+              anonymous
+            {% endif %}
+          </td>
+          <td>
+            {{ error.created_at }}
+          </td>
+
+          <td>
+            <input type="checkbox" onclick="return ErrorHandler.resolve({{ error.id }})">
+          </td>
+          <td>
+            {{ error.current_url }}
+          </td>
+          <td>
+            {{ error.stack }}
+          </td>
+          <td>
+            {{ error.user_agent }}
+          </td>
+        </tr>
+        {% endfor %}
+      {% endif %}
     </tbody>
   </table>
 </div>
