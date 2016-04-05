@@ -37,7 +37,12 @@ def post_new(request):
     error.name=request.POST.get('name')
     error.message=request.POST.get('message')
     error.custom_message=request.POST.get('custom_message')
-    error.user = request.user
+
+    try:
+        error.user = request.user
+    except ValueError as e:
+        pass
+
     error.save()
 
     return HttpResponse(status=200)
