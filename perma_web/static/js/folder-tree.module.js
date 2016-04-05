@@ -187,6 +187,11 @@ FolderTreeModule.domTreeInit = function () {
                 .done(function () {
                   self.allowedEventsCount++;
                   self.folderTree.rename_node(node, newName);
+                  var folderPath = self.folderTree.get_path(node)
+                  var folderId = node.data.folder_id;
+                  var orgId = node.data.organization_id;
+                  data = JSON.stringify({path: folderPath, orgId:orgId, folderId:folderId});
+                  $(window).trigger("FolderTreeModule.selectionChange", data );
                 });
             } else if (operation == 'move_node') {
               var targetNode = getDropTarget();
