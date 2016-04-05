@@ -4,7 +4,7 @@ import os
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
-
+WARC_HOST = "perma.dev:8000"
 SERVICES_DIR = os.path.abspath(os.path.join(PROJECT_ROOT, '../services'))
 
 # logging
