@@ -11,7 +11,7 @@ from ..models import UncaughtError
 @login_required
 @user_passes_test(lambda user: user.is_staff)
 def get_all(request):
-    errors = UncaughtError.objects.filter(resolved=False).all().order_by('-created_at')
+    errors = UncaughtError.objects.filter(resolved=False).order_by('-created_at')
     return render(request, 'errors/view.html', {'errors': errors})
 
 @login_required
@@ -21,7 +21,7 @@ def resolve(request):
     try:
         error = UncaughtError.objects.get(id=error_id)
         error.resolved = True
-        error.resolved_by_user = request.user.id
+        error.resolved_by_user = request.user
         error.save()
     except:
         pass
