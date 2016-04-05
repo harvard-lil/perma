@@ -911,15 +911,27 @@ class CDXLineManager(models.Manager):
             write_cdx_index(cdx_io, warc_file, warc_path)
             cdx_io.seek(0)
             next(cdx_io) # first line is a header so skip it
-            results = [CDXLine.objects.get_or_create(link=link, raw=line)[0] for line in cdx_io]
+            results = []
+            for line in cdx_io:
+                cdxline = CDXLine.objects.get_or_create(raw=line)[0]
+                cdxline.link_reference = link.guid
+                cdxline.is_unlisted = link.is_unlisted
+                cdxline.is_private = link.is_private
+                cdxline.save()
+                results.append(cdxline)
 
         return results
 
 
 class CDXLine(models.Model):
     link = models.ForeignKey(Link, null=True, related_name='cdx_lines')
+
+    link_reference = models.CharField(max_length=2100, null=True)
+
     urlkey = models.CharField(max_length=2100, null=False, blank=False)
     raw = models.TextField(null=False, blank=False)
+    is_unlisted = models.BooleanField(default=False)
+    is_private = models.BooleanField(default=False)
 
     objects = CDXLineManager()
 
