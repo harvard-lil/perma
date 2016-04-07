@@ -3,15 +3,7 @@
 {% block title %} | Admin Stats{% endblock %}
 
 {% block mainContent %}
-  <div class="container cont-fixed">
-
-    <div class="row" id="random"></div>
-
-    <div class="row" id="days"></div>
-
-    <div class="row" id="emails"></div>
-
-  </div>
+  <div class="container cont-fixed stats-container"></div>
 {% endblock %}
 
 {% block scripts %}
@@ -22,20 +14,20 @@
   <script>
     $(function(){
       function addSection(name, args){
+        $('.stats-container').append('<div class="row" id="'+name+'">Loading '+name+' ...</div>');
         return function() {
           console.log(name, args);
           args = args || {};
           return $.getJSON(document.location + '/' + name, args).then(function (data) {
-            console.log("THEN", name, args);
-            $('#' + name).append(templates[name](data));
+            $('#' + name).html(templates[name](data));
           });
         };
       }
+
       chain = $.when(addSection("random")());
-      chain = chain.then(function(){$('#days').append(templates.days())});
-      for(var i=0;i<30;i++)
-        chain = chain.then(addSection("day", {days_ago:i}));
+      chain = chain.then(addSection("days"));
       chain = chain.then(addSection("emails"));
+      chain = chain.then(addSection("celery"));
     });
   </script>
 {% endblock %}
@@ -63,22 +55,21 @@
             <th>Failed</th>
             <th colspan="6">Top Users</th>
           </tr>
+          {{#each days}}
+            <tr>
+              <td title="{{ start_date }}-{{ end_date }}">{{ days_ago }}</td>
+              <td>{{ link_count }}</td>
+              <td>{{ statuses.success }}</td>
+              <td>{{ statuses.pending }}</td>
+              <td>{{ statuses.failed }}</td>
+              {{#each top_users}}
+                <td>{{ email }}</td>
+                <td>{{ links_count }}</td>
+              {{/each}}
+            </tr>
+          {{/each}}
         </tbody>
       </table>
-    </script>
-
-    <script id="day-template" type="text/x-handlebars-template">
-      <tr>
-        <td title="{{ start_date }}-{{ end_date }}">{{ days_ago }}</td>
-        <td>{{ link_count }}</td>
-        <td>{{ statuses.success }}</td>
-        <td>{{ statuses.pending }}</td>
-        <td>{{ statuses.failed }}</td>
-        {{#each top_users}}
-          <td>{{ email }}</td>
-          <td>{{ links_count }}</td>
-        {{/each}}
-      </tr>
     </script>
 
     <script id="emails-template" type="text/x-handlebars-template">
@@ -86,6 +77,36 @@
       <div class="body-text" style="-webkit-column-count: 4; -moz-column-count: 4; column-count: 4;">
         {{#each users_by_domain}}
           .{{ domain }}: {{ count }}<br/>
+        {{/each}}
+      </div>
+    </script>
+
+    <script id="celery-template" type="text/x-handlebars-template">
+      <h3 class="body-ah">Celery queues:</h3>
+      <div class="row">
+        {{#each queues}}
+          <div class="col-sm-6">
+            <h4>{{ name }}</h4>
+            <div>
+              <h5>Active jobs:</h5>
+              {{#each active}}
+                {{name}}: {{kwargs}}<br/>
+              {{/each}}
+            </div>
+            <div>
+              <h5>Next jobs (not a complete list):</h5>
+              {{#each reserved}}
+                {{name}}: {{kwargs}}<br/>
+              {{/each}}
+            </div>
+            <div>{{ reserved }}</div>
+            <div>
+              <h5>Finished task count:</h5>
+              {{#each stats.total}}
+                {{@key}}: {{this}}<br/>
+              {{/each}}
+            </div>
+          </div>
         {{/each}}
       </div>
     </script>
