@@ -49,7 +49,6 @@ class DirectTemplateView(TemplateView):
                     context[key] = value
         return context
 
-@csrf_exempt
 def landing(request):
     """
     The landing page

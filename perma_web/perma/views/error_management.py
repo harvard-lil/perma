@@ -27,6 +27,7 @@ def resolve(request):
         pass
     return HttpResponse(status=200)
 
+@csrf_exempt
 def post_new(request):
     created_at = timezone.now()
     error = UncaughtError.objects.create(created_at=created_at)
