@@ -153,9 +153,6 @@ class LinkAdmin(SimpleHistoryAdmin):
         new_class("CaptureInline", admin.TabularInline, model=Capture,
                   fields=['url', 'content_type', 'record_type', 'user_upload'],
                   can_delete=False),
-        new_class("CDXLineInline", admin.TabularInline, model=CDXLine,
-                  fields=['raw'],
-                  can_delete=False),
     ]
     raw_id_fields = ['created_by',]
 

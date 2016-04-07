@@ -924,10 +924,8 @@ class CDXLineManager(models.Manager):
 
 
 class CDXLine(models.Model):
-    link = models.ForeignKey(Link, null=True, related_name='cdx_lines')
-
+    link_id = models.CharField(null=True, max_length=2100)
     link_reference = models.CharField(max_length=2100, null=True)
-
     urlkey = models.CharField(max_length=2100, null=False, blank=False)
     raw = models.TextField(null=False, blank=False)
     is_unlisted = models.BooleanField(default=False)
