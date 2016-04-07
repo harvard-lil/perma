@@ -104,8 +104,8 @@ FolderTreeModule.editNodeName = function (node) {
 }
 
 FolderTreeModule.getNodeData = function (node) {
+  var data = {};
   if (node.data) {
-    var data = {};
     data.folderId = node.data.folder_id;
     data.orgId = node.data.organization_id;
     data.path = folderPath = this.folderTree.get_path(node);

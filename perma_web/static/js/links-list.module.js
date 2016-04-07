@@ -15,9 +15,9 @@ LinksListModule.init = function () {
 LinksListModule.setupEventHandlers = function () {
   $(window)
     .on("FolderTreeModule.selectionChange", function(evt, data) {
-      var jsonData = JSON.parse(data)
-      LinksListModule.selectedFolderID = jsonData.folderId;
-      LinksListModule.showFolderContents(jsonData.folderId);
+      if (typeof data !== 'object') data = JSON.parse(data);
+      LinksListModule.selectedFolderID = data.folderId;
+      LinksListModule.showFolderContents(data.folderId);
     });
     // search form
   $('.search-query-form').on('submit', function (e) {
