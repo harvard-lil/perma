@@ -21,6 +21,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_control
 from django.core.mail import EmailMessage
 from django.views.static import serve as media_view
+from wsgiref.handlers import format_date_time
+from time import mktime
 
 import link_header
 
@@ -176,7 +178,7 @@ def single_linky(request, guid):
     }
 
     response = render(request, 'archive/single-link.html', context)
-    date_header = link.creation_timestamp.strftime("%a, %d %b %Y %I:%M:%S %Z")
+    date_header = format_date_time(mktime(link.creation_timestamp.timetuple()))
     protocol = "https://" if settings.SECURE_SSL_REDIRECT else "http://"
     link_memento  = protocol + settings.WARC_HOST + '/' + link.guid
     link_timegate = protocol + settings.WARC_HOST + '/warc/' + link.submitted_url
