@@ -51,7 +51,6 @@ class DirectTemplateView(TemplateView):
                     context[key] = value
         return context
 
-
 def landing(request):
     """
     The landing page

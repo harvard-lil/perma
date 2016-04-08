@@ -123,6 +123,11 @@ urlpatterns = patterns('perma.views',
 #    url(r'^manage/users/?$', 'manage.users', name='manage_users'),
 #    url(r'^manage/activity/?$', 'manage.activity', name='manage_activity'),
 
+    # error management
+    url(r'^manage/errors/resolve?$', 'error_management.resolve', name='error_management_resolve'),
+    url(r'^manage/errors/?$', 'error_management.get_all', name='error_management_get_all'),
+
+    url(r'^errors/new?$', 'error_management.post_new', name='error_management_post_new'),
     # Our Perma ID catchall
     url(r'^%s/?$' % r'(?P<guid>[^\./]+)', 'common.single_linky', name='single_linky'),
 
