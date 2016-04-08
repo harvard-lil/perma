@@ -305,7 +305,7 @@ CreateModule.updateLinksRemaining = function (links_num) {
 CreateModule.handleSelectionChange = function (data) {
   var orgId = path = null;
 
-  if (data) {
+  if (data && (data.orgId || data.path)) {
     orgId = data.orgId;
     path  = data.path;
   }

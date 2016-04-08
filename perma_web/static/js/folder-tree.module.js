@@ -103,23 +103,25 @@ FolderTreeModule.editNodeName = function (node) {
   }, 0);
 }
 
-FolderTreeModule.setSelectedFolder = function (node) {
-  var folderPath = this.folderTree.get_path(node),
-    data = "null";
-
+FolderTreeModule.getNodeData = function (node) {
+  var data = {};
   if (node.data) {
-    var folderId = node.data.folder_id;
-    var orgId = node.data.organization_id;
-    data = JSON.stringify({path: folderPath, orgId:orgId, folderId:folderId});
+    data.folderId = node.data.folder_id;
+    data.orgId = node.data.organization_id;
+    data.path = folderPath = this.folderTree.get_path(node);
   }
+  return data;
+}
 
+FolderTreeModule.setSelectedFolder = function (node) {
+  var data = this.getNodeData(node);
   var savedSelections = JSON.parse(localStorage.getItem("perma_selection")) || {};
 
-  if (folderId || orgId) {
-    savedSelections[current_user.id] = {'folderId' : folderId, 'orgId' : orgId };
+  if (data.folderId || data.orgId) {
+    savedSelections[current_user.id] = {'folderId' : data.folderId, 'orgId' : data.orgId };
     localStorage.setItem("perma_selection",JSON.stringify(savedSelections));
   }
-  $(window).trigger("FolderTreeModule.selectionChange", data );
+  $(window).trigger("FolderTreeModule.selectionChange", JSON.stringify(data) );
 }
 
 
@@ -187,6 +189,9 @@ FolderTreeModule.domTreeInit = function () {
                 .done(function () {
                   self.allowedEventsCount++;
                   self.folderTree.rename_node(node, newName);
+                  var data = self.getNodeData(node);
+                  data = JSON.stringify(data);
+                  $(window).trigger("FolderTreeModule.selectionChange", data );
                 });
             } else if (operation == 'move_node') {
               var targetNode = getDropTarget();
