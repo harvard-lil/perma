@@ -354,7 +354,7 @@ class CachedLoader(BlockLoader):
 
         else:
             mirror_name = django_cache.get(mirror_name_cache_key)
-            logging.info("Got content from cache")
+            #logging.info("Got content from cache")
 
         # set wbrequest.mirror_name so it can be displayed in template later
         thread_local_data.wbrequest.mirror_name = mirror_name
