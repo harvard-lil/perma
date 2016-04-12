@@ -156,9 +156,13 @@ convenient to change to that directory and run `python run_tests.py`, rather tha
 kicked off by `fab test_sauce`.
 
 
-## Debugging email-related issues
+## Sending email
 
-If you're working on an email related task, the contents of emails should be dumped to the standard out courtesy of EMAIL_BACKEND in settings_dev.py.
+*All emails* should be sent using `perma.utils.send_user_email` (for an email from us to a user) or 
+`perma.utils.send_admin_email` (for an email "from" a user to us). This makes sure that `from` and `reply-to` fields
+are configured so our MTA will actually transmit the email.
+
+On the development server, emails are dumped to the standard out courtesy of EMAIL_BACKEND in settings_dev.py.
 
 
 ## Working with Celery
