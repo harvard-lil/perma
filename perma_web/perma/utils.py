@@ -5,7 +5,7 @@ import struct
 import tempdir
 from datetime import datetime
 
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage, send_mail
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.conf import settings
@@ -161,7 +161,15 @@ def copy_file_data(from_file_handle, to_file_handle, chunk_size=1024*100):
 
 ### email ###
 
-def send_contact_email(title, content, from_address, request):
+def send_user_email(title, content, to_address):
+    send_mail(
+        title,
+        content,
+        settings.DEFAULT_FROM_EMAIL,
+        [to_address], fail_silently=False
+    )
+
+def send_admin_email(title, content, from_address, request):
     """
         Send a message on behalf of a user to the admins.
         Use reply-to for the user address so we can use email services that require authenticated from addresses.

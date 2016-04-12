@@ -1,21 +1,16 @@
-import json, logging, csv, pytz
-from datetime import datetime, timedelta
+import json, logging, pytz
 
-from django.conf import settings
-from django.core.mail import send_mail
 from django.core import serializers
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse
-from django.shortcuts import redirect, render_to_response
-from django.template import RequestContext
+from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 
 from perma.models import Link, WeekStats, MinuteStats
-from perma.utils import send_contact_email, json_serial
-
+from perma.utils import json_serial, send_user_email
 
 logger = logging.getLogger(__name__)
 
@@ -31,11 +26,10 @@ def email_confirm(request):
     if not email_address or not link_url:
         return HttpResponse(status=400)
 
-    send_mail(
+    send_user_email(
         "The Perma link you requested",
         "%s \n\n(This link is the Perma link)" % link_url,
-        settings.DEFAULT_FROM_EMAIL,
-        [email_address]
+        email_address
     )
 
     response_object = {"sent": True}

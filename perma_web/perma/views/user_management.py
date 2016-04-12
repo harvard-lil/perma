@@ -13,7 +13,6 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import views as auth_views
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import send_mail
 from django.db.models import Count, Max, Sum
 from django.utils import timezone
 from django.utils.http import is_safe_url, cookie_date
@@ -41,7 +40,8 @@ from perma.forms import (
     SetPasswordForm, 
 )
 from perma.models import Registrar, LinkUser, Organization, Link, Capture
-from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_contact_email, filter_or_null_join
+from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_admin_email, filter_or_null_join, \
+    send_user_email
 
 logger = logging.getLogger(__name__)
 valid_member_sorts = ['last_name', '-last_name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'created_links_count', '-created_links_count']
@@ -1629,11 +1629,10 @@ http://%s%s
 
     logger.debug(content)
 
-    send_mail(
+    send_user_email(
         "A Perma.cc account has been created for you",
         content,
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email], fail_silently=False
+        user.email
     )
     
 
@@ -1650,11 +1649,10 @@ http://%s%s
 
 ''' % (org.name, org.name, host, reverse('user_management_settings_organizations'))
 
-    send_mail(
+    send_user_email(
         "Your Perma.cc account is now associated with {org}".format(org=org.name),
         content,
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email], fail_silently=False
+        user.email
     )
 
 
@@ -1671,11 +1669,10 @@ http://%s%s
 
 ''' % (user.registrar.name, user.registrar.name, host, reverse('user_management_settings_organizations'))
 
-    send_mail(
+    send_user_email(
         "Your Perma.cc account is now associated with {registrar}".format(registrar=user.registrar.name),
         content,
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email], fail_silently=False
+        user.email
     )
     
     
@@ -1700,11 +1697,10 @@ http://%s%s
 
     logger.debug(content)
 
-    send_mail(
+    send_user_email(
         "A Perma.cc account has been created for you",
         content,
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email], fail_silently=False
+        user.email
     )
     
     
@@ -1723,7 +1719,7 @@ http://%s%s
 
     logger.debug(content)
 
-    send_contact_email(
+    send_admin_email(
         "Perma.cc new library registrar account request",
         content,
         pending_registrar.email,
@@ -1748,11 +1744,10 @@ http://%s%s
 
     logger.debug(content)
 
-    send_mail(
+    send_user_email(
         "Your Perma.cc library account is approved",
         content,
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email], fail_silently=False
+        user.email
     )
 
 
@@ -1778,9 +1773,9 @@ This user %s
 
     logger.debug(content)
 
-    send_mail(
+    send_admin_email(
         "Perma.cc new library court account information request",
         content,
         court.email,
-        [settings.DEFAULT_FROM_EMAIL], fail_silently=False
+        request
     )
