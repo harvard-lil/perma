@@ -21,6 +21,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_control
 from django.core.mail import EmailMessage
 from django.views.static import serve as media_view
+from wsgiref.handlers import format_date_time
+from time import mktime
 
 import link_header
 
@@ -175,19 +177,20 @@ def single_linky(request, guid):
         'this_page': 'single_link',
     }
 
-    # return render(request, 'archive/single-link.html', context)
     response = render(request, 'archive/single-link.html', context)
-    response['Memento-Datetime'] = link.headers['date']
+    date_header = format_date_time(mktime(link.creation_timestamp.timetuple()))
     protocol = "https://" if settings.SECURE_SSL_REDIRECT else "http://"
-    link_memento     = protocol + settings.WARC_HOST + '/' + link.guid
-    link_timegate    = protocol + settings.WARC_HOST + '/warc/' + link.submitted_url
-    link_timemap     = protocol + settings.WARC_HOST + '/warc/timemap/*/' + link.submitted_url
+    link_memento  = protocol + settings.WARC_HOST + '/' + link.guid
+    link_timegate = protocol + settings.WARC_HOST + '/warc/' + link.submitted_url
+    link_timemap  = protocol + settings.WARC_HOST + '/warc/timemap/*/' + link.submitted_url
+    response['Memento-Datetime'] = date_header
+
     response['Link'] = str(link_header.LinkHeader([
                             link_header.Link(
-                                link.submitted_url, rel="original", datetime=link.headers['date'],
+                                link.submitted_url, rel="original", datetime=date_header,
                             ),
                             link_header.Link(
-                                link_memento, rel="memento", datetime=link.headers['date'],
+                                link_memento, rel="memento", datetime=date_header,
                             ),
                             link_header.Link(
                                 link_timegate, rel="timegate"
