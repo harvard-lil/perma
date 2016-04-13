@@ -33,7 +33,7 @@ from ratelimit.decorators import ratelimit
 
 from ..models import Link, Registrar, Organization, LinkUser
 from perma.forms import ContactForm
-from perma.utils import if_anonymous, send_contact_email
+from perma.utils import if_anonymous, send_admin_email
 
 logger = logging.getLogger(__name__)
 valid_serve_types = ['image', 'warc_download']
@@ -241,7 +241,7 @@ Message from user
 %s
 ''' % (form.cleaned_data['message'])
 
-            send_contact_email(
+            send_admin_email(
                 "New message from Perma contact form",
                 content,
                 from_address,
