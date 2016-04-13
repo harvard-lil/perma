@@ -39,10 +39,6 @@ urlpatterns = patterns('perma.views',
     url(r'^docs/developer/archives/?$', DirectTemplateView.as_view(template_name='docs/developer/archives.html'), name='docs_developer_archives'),
     url(r'^docs/developer/folders/?$', DirectTemplateView.as_view(template_name='docs/developer/folders.html'), name='docs_developer_folders'),
 
-    #API routes
-    url(r'^api/linky/urldump/?$', 'api.urldump', name='urldump'),
-    url(r'^api/linky/urldump/(?P<since>\d{4}-\d{2}-\d{2})/?', 'api.urldump', name='urldump_with_since'),
-    
     #Services
     url(r'^service/email-confirm/?$', 'service.email_confirm', name='service_email_confirm'),
     url(r'^service/stats/sums/?$', 'service.stats_sums', name='service_stats_sums'),

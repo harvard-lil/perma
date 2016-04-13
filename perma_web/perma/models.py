@@ -521,14 +521,6 @@ class Link(DeletableModel):
         except (requests.ConnectionError, requests.Timeout):
             return False
 
-    # media_type is a file extension-ish normalized mimemedia_type
-    @cached_property
-    def media_type(self):
-        if self.headers.get('content-type', '').lower() in ['application/pdf', 'application/x-pdf'] or self.submitted_url.endswith('.pdf'):
-            return 'pdf'
-        else:
-            return False
-
     def save(self, *args, **kwargs):
         # Set a default title if one is missing
         if not self.submitted_title:
