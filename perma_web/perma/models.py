@@ -7,13 +7,14 @@ import random
 import re
 import socket
 import tempfile
-from urlparse import urlparse
 
+from urlparse import urlparse
 import simple_history
 from hanzo import warctools
 import requests
 from simple_history.models import HistoricalRecords
 from wand.image import Image
+from werkzeug.urls import iri_to_uri
 
 import django.contrib.auth.models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
@@ -498,8 +499,13 @@ class Link(DeletableModel):
     history = HistoricalRecords()
 
     @cached_property
+    def safe_url(self):
+        """ Encoded URL as string rather than unicode. """
+        return iri_to_uri(self.submitted_url)
+
+    @cached_property
     def url_details(self):
-        return urlparse(self.submitted_url)
+        return urlparse(self.safe_url)
 
     @cached_property
     def ip(self):
@@ -512,7 +518,7 @@ class Link(DeletableModel):
     def headers(self):
         try:
             return requests.get(
-                self.submitted_url,
+                self.safe_url,
                 verify=False,  # don't check SSL cert?
                 headers={'User-Agent': USER_AGENT, 'Accept-Encoding': '*'},
                 timeout=HEADER_CHECK_TIMEOUT,

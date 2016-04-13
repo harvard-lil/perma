@@ -104,7 +104,7 @@ class PermaRoute(archivalrouter.Route):
                 if not wbrequest.wb_url:
                     # This is a bare request to /warc/1234-5678/ -- return so we can send a forward to submitted_url in PermaGUIDHandler.
                     wbrequest.custom_params['guid'] = guid
-                    wbrequest.custom_params['url'] = link.submitted_url
+                    wbrequest.custom_params['url'] = link.safe_url
                     return
 
                 # Legacy archives didn't generate CDXLines during
