@@ -2,7 +2,6 @@
 <h3 class="body-ah">API</h3>
   {{ api_form.non_field_errors }}
   {% if request.user.api_key.key %}
-  <form>
   	<fieldset>
 	    {% if api_form.api_key.errors %}{{ api_form.api_key.errors }}{% endif %}
 	    <div class="form-group fg-100">
@@ -10,7 +9,6 @@
 		    <input type="text" class="input-medium" name="api_key" id="id_api_key" value="{{ request.user.api_key.key }}" />
 		</div>
     </fieldset>
-  </form>
   {% endif %}
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     <input type="submit" class="btn" value="{% if request.user.api_key.key %}Regenerate{% else %}Generate an{% endif %} API key">
