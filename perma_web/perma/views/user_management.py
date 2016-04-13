@@ -1195,6 +1195,7 @@ def api_key_create(request):
     """
     Generate or regenerate an API key for the user
     """
+
     if request.method == "POST":
         try:
             # Clear key so a new one is generated on save()
@@ -1204,36 +1205,7 @@ def api_key_create(request):
             ApiKey.objects.create(user=request.user)
         return HttpResponseRedirect(reverse('user_management_settings_tools'))
 
-# @login_required
-# def batch_convert(request):
-#     """
-#     Detect and archive URLs from user input.
-#     """
-#     context = {'this_page': 'batch_convert'}
-#     context.update(csrf(request))
-#     return render_to_response('user_management/batch_convert.html', context, RequestContext(request))
-
-
-# @login_required
-# def export(request):
-#     """
-#     Export a CSV of a user's library/
-#     """
-#
-#     context = {'this_page': 'export'}
-#     context.update(csrf(request))
-#     return render_to_response('user_management/export.html', context, RequestContext(request))
-
-
-# @login_required
-# def custom_domain(request):
-#     """
-#     Instructions for a user to configure a custom domain.
-#     """
-#     context = {'this_page': 'custom_domain'}
-#     context.update(csrf(request))
-#     return render_to_response('user_management/custom_domain.html', context, RequestContext(request))
-
+        
 def not_active(request):
     """
     Informing a user that their account is not active.
