@@ -257,6 +257,7 @@ class FunctionalTest(BaseTestCase):
                                                    self.server_thread.port))
             return o.geturl()
 
+        from datetime import datetime; info("TIME", datetime.utcnow())
         info("Loading homepage from %s." % self.server_url)
         self.driver.get(self.server_url)
         assert_text_displayed("Perma.cc is simple") # new text on landing now
