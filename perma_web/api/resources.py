@@ -5,9 +5,6 @@ from django.conf.urls import url
 from django.core.urlresolvers import NoReverseMatch
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
-from django.utils import timezone
-
-from datetime import datetime, timedelta
 
 from extendedmodelresource import ExtendedModelResource
 from mptt.exceptions import InvalidMove
@@ -16,12 +13,13 @@ from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.utils import trailing_slash
 from tastypie import http
 from tastypie.resources import ModelResource
-from tastypie.exceptions import NotFound, ImmediateHttpResponse
+from tastypie.exceptions import NotFound, ImmediateHttpResponse, BadRequest
 
 from validations import (LinkValidation,
                          FolderValidation,
                          mime_type_lookup,
-                         get_mime_type)
+                         get_mime_type,
+                         DefaultValidation)
 
 from perma.models import (LinkUser,
                           Link,
@@ -54,6 +52,8 @@ class DefaultResource(ExtendedModelResource):
         always_return_data = True
         include_resource_uri = False
         serializer = DefaultSerializer()
+        validation = DefaultValidation()
+        allowed_update_fields = []
 
     @classmethod
     # Hack to prevent ModelResource from auto-including additional fields
@@ -130,6 +130,16 @@ class DefaultResource(ExtendedModelResource):
             })
         return super(DefaultResource, self)._handle_500(request, exception)
 
+    def update_in_place(self, request, original_bundle, new_data):
+        """
+            Make sure that only allowed fields are updated.
+            Via http://stackoverflow.com/a/17111959
+        """
+        if set(new_data.keys()) - set(self._meta.allowed_update_fields):
+            raise BadRequest('Only updates on these fields are allowed: %s' % ', '.join(self._meta.allowed_update_fields))
+
+        return super(DefaultResource, self).update_in_place(request, original_bundle, new_data)
+
 
 # via: http://stackoverflow.com/a/14134853/313561
 # also: https://github.com/toastdriven/django-tastypie/issues/42#issuecomment-5485666
@@ -198,6 +208,7 @@ class FolderResource(DefaultResource):
         validation = FolderValidation()
         limit = 300
         max_limit = 300
+        allowed_update_fields = ['name', 'parent']
 
     class Nested:
         folders = fields.ToManyField('api.resources.FolderResource', 'children', full=True, readonly=True)
@@ -290,7 +301,7 @@ class BaseLinkResource(MultipartResource, DefaultResource):
 
     always_return_data = True
     guid = fields.CharField(attribute='guid', readonly=True)
-    view_count = fields.IntegerField(attribute='view_count', default=1)
+    view_count = fields.IntegerField(attribute='view_count', default=1, readonly=True)
     creation_timestamp = fields.DateTimeField(attribute='creation_timestamp', readonly=True)
     url = fields.CharField(attribute='submitted_url')
     title = fields.CharField(attribute='submitted_title', blank=True)
@@ -343,6 +354,7 @@ class AuthenticatedLinkResource(BaseLinkResource):
     class Meta(BaseLinkResource.Meta):
         authorization = AuthenticatedLinkAuthorization()
         queryset = BaseLinkResource.Meta.queryset.select_related('created_by',)
+        allowed_update_fields = ['title', 'notes', 'is_private', 'private_reason', 'folder']
 
     def get_search_filters(self, search_query):
         return (super(AuthenticatedLinkResource, self).get_search_filters(search_query) |
