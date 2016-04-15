@@ -166,10 +166,13 @@ class FunctionalTest(BaseTestCase):
         socket.setdefaulttimeout(300)  # spinning up iOS browser can take a few minutes
 
     def setUpLocal(self):
-        self.driver = webdriver.PhantomJS(
-            desired_capabilities=self.base_desired_capabilities,
-        )
-        socket.setdefaulttimeout(120)
+        try:
+            # use Firefox if available on local system
+            self.driver = webdriver.Firefox(capabilities=self.base_desired_capabilities)
+        except RuntimeError:
+            self.driver = webdriver.PhantomJS(desired_capabilities=self.base_desired_capabilities)
+        print("Using %s for integration tests." % (type(self.driver)))
+        socket.setdefaulttimeout(30)
         self.driver.set_window_size(1024, 800)
 
     def tearDownLocal(self):
