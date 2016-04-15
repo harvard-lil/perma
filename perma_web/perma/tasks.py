@@ -31,7 +31,6 @@ from warcprox.controller import WarcproxController
 from warcprox.warcprox import WarcProxyHandler, WarcProxy, ProxyingRecorder
 from warcprox.warcwriter import WarcWriter, WarcWriterThread
 
-
 from django.utils import timezone
 from django.core.files.storage import default_storage
 from django.template.defaultfilters import truncatechars
