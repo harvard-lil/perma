@@ -8,7 +8,9 @@ from .utils import PermaTestCase
 class UserManagementViewsTestCase(PermaTestCase):
 
     fixtures = ['fixtures/users.json',
-                'fixtures/folders.json',]
+                'fixtures/folders.json',
+                'fixtures/archive.json',
+                ]
 
     def setUp(self):
         super(UserManagementViewsTestCase, self).setUpClass()
@@ -18,6 +20,9 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.registrar = self.registrar_member.registrar
         self.unrelated_registrar = Registrar.objects.exclude(pk=self.registrar.pk).first()
         self.organization = self.registrar.organizations.first()
+        self.organization_member = self.organization.users.first()
+        self.unrelated_organization = self.unrelated_registrar.organizations.first()
+        self.deletable_organization = Organization.objects.get(pk=3)
 
     ### REGISTRAR A/E/D VIEWS ###
 
@@ -65,7 +70,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                          success_url=reverse('user_management_settings_organizations'),
                          success_query=Registrar.objects.filter(name='new_name'))
 
-    def test_registrar_update_unrelated_registrar_rejected(self):
+    def test_registrar_cannot_update_unrelated_registrar(self):
         self.get('user_management_manage_single_registrar',
                  user=self.registrar_member,
                  reverse_kwargs={'args': [self.unrelated_registrar.pk]},
@@ -114,6 +119,49 @@ class UserManagementViewsTestCase(PermaTestCase):
                              'a-name': 'new_name'},
                          success_url=reverse('user_management_manage_organization'),
                          success_query=Organization.objects.filter(name='new_name'))
+
+    def test_org_user_can_update_organization(self):
+        self.submit_form('user_management_manage_single_organization',
+                         user=self.organization_member,
+                         reverse_kwargs={'args': [self.organization.pk]},
+                         data={
+                             'a-name': 'new_name'},
+                         success_url=reverse('user_management_manage_organization'),
+                         success_query=Organization.objects.filter(name='new_name'))
+
+    def test_registrar_cannot_update_unrelated_organization(self):
+        self.get('user_management_manage_single_organization',
+                 user=self.registrar_member,
+                 reverse_kwargs={'args': [self.unrelated_organization.pk]},
+                 require_status_code=404)
+
+    def test_org_user_cannot_update_unrelated_organization(self):
+        self.get('user_management_manage_single_organization',
+                 user=self.organization_member,
+                 reverse_kwargs={'args': [self.unrelated_organization.pk]},
+                 require_status_code=404)
+
+    def _delete_organization(self, user):
+        self.submit_form('user_management_manage_single_organization_delete',
+                         user=user,
+                         reverse_kwargs={'args': [self.deletable_organization.pk]},
+                         success_url=reverse('user_management_manage_organization'),
+                         success_query=Organization.objects.filter(user_deleted=True, pk=self.deletable_organization.pk))
+
+    def test_admin_user_can_delete_empty_organization(self):
+        self._delete_organization(self.admin_user)
+
+    def test_registrar_user_can_delete_empty_organization(self):
+        self._delete_organization(self.deletable_organization.registrar.users.first())
+
+    def test_org_user_can_delete_empty_organization(self):
+        self._delete_organization(self.deletable_organization.users.first())
+
+    def test_cannot_delete_nonempty_organization(self):
+        self.submit_form('user_management_manage_single_organization_delete',
+                         user=self.admin_user,
+                         reverse_kwargs={'args': [self.organization.pk]},
+                         require_status_code=404)
 
     ### USER A/E/D VIEWS ###
 
