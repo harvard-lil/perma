@@ -8,6 +8,8 @@ import re
 import datetime
 import sys
 from urlparse import urlparse
+
+from pyvirtualdisplay import Display
 from selenium import webdriver
 from selenium.common.exceptions import ElementNotVisibleException, NoSuchElementException
 import time
@@ -168,8 +170,11 @@ class FunctionalTest(BaseTestCase):
     def setUpLocal(self):
         try:
             # use Firefox if available on local system
+            self.virtual_display = Display(visible=0, size=(1024, 800))
+            self.virtual_display.start()
             self.driver = webdriver.Firefox(capabilities=self.base_desired_capabilities)
         except RuntimeError:
+            self.virtual_display = None
             self.driver = webdriver.PhantomJS(desired_capabilities=self.base_desired_capabilities)
         print("Using %s for integration tests." % (type(self.driver)))
         socket.setdefaulttimeout(30)
@@ -177,6 +182,8 @@ class FunctionalTest(BaseTestCase):
 
     def tearDownLocal(self):
         self.driver.quit()
+        if self.virtual_display:
+            self.virtual_display.stop()
 
     def tearDownSauce(self):
         print("Link to your job: https://saucelabs.com/jobs/%s" % self.driver.session_id)
