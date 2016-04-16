@@ -346,6 +346,9 @@ class LinkUser(AbstractBaseUser):
             return False
         return True
 
+    def can_edit_registrar(self, registrar):
+        return self.is_staff or self.registrar == registrar
+
 # special history tracking for custom user object -- see http://django-simple-history.readthedocs.org/en/latest/reference.html
 simple_history.register(LinkUser)
 

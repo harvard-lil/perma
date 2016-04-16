@@ -7,54 +7,118 @@ from .utils import PermaTestCase
 
 class UserManagementViewsTestCase(PermaTestCase):
 
-    def test_management_views(self):
-        self.log_in_user('test_registry_member@example.com')
+    fixtures = ['fixtures/users.json',
+                'fixtures/folders.json',]
 
-        # manage_registrar
-        self.submit_form('user_management_manage_registrar', {
+    def setUp(self):
+        super(UserManagementViewsTestCase, self).setUpClass()
+
+        self.admin_user = LinkUser.objects.get(pk=1)
+        self.registrar_member = LinkUser.objects.get(pk=2)
+        self.registrar = self.registrar_member.registrar
+        self.unrelated_registrar = Registrar.objects.exclude(pk=self.registrar.pk).first()
+        self.organization = self.registrar.organizations.first()
+
+    ### REGISTRAR A/E/D VIEWS ###
+
+    def test_registrar_list_filters(self):
+        # get just approved registrars
+        self.get('user_management_manage_registrar',
+                 user=self.admin_user,
+                 request_kwargs={'data':{'status':'approved'}})
+
+        # get just pending registrars
+        self.get('user_management_manage_registrar',
+                 user=self.admin_user,
+                 request_kwargs={'data': {'status': 'pending'}})
+
+    def test_admin_can_create_registrar(self):
+        self.submit_form(
+            'user_management_manage_registrar', {
                 'a-name':'test_views_registrar',
                 'a-email':'test@test.com',
-                'a-website':'http://test.com'},
+                'a-website':'http://test.com'
+            },
+            user=self.admin_user,
             success_url=reverse('user_management_manage_registrar'),
             success_query=Registrar.objects.filter(name='test_views_registrar'))
 
-        # manage_single_registrar
-        self.submit_form('user_management_manage_single_registrar', reverse_kwargs={'args':[1]},
-                       data={
-                            'a-name': 'test_views_registrar2',
-                            'a-email': 'test@test.com2',
-                            'a-website': 'http://test.com'},
-                       success_url=reverse('user_management_manage_registrar'),
-                       success_query=Registrar.objects.filter(name='test_views_registrar2'))
+    def test_admin_can_update_registrar(self):
+        self.submit_form('user_management_manage_single_registrar',
+                         user=self.admin_user,
+                         reverse_kwargs={'args':[self.unrelated_registrar.pk]},
+                         data={
+                              'a-name': 'new_name',
+                              'a-email': 'test@test.com2',
+                              'a-website': 'http://test.com'},
+                         success_url=reverse('user_management_manage_registrar'),
+                         success_query=Registrar.objects.filter(name='new_name'))
 
-        # manage_organization
-        self.submit_form('user_management_manage_organization',
-                       data={
-                           'a-name': 'test_views_organization',
-                           'a-registrar': 1},
-                       success_url=reverse('user_management_manage_organization'),
-                       success_query=Organization.objects.filter(name='test_views_organization'))
-        self.log_in_user('test_registrar_member@example.com')
-        self.submit_form('user_management_manage_organization',
-                       data={
-                           'a-name': 'test_views_organization2'},
-                       success_url=reverse('user_management_manage_organization'),
-                       success_query=Organization.objects.filter(name='test_views_organization2'))
-        
+    def test_registrar_can_update_registrar(self):
+        self.submit_form('user_management_manage_single_registrar',
+                         user=self.registrar_member,
+                         reverse_kwargs={'args': [self.registrar.pk]},
+                         data={
+                             'a-name': 'new_name',
+                             'a-email': 'test@test.com2',
+                             'a-website': 'http://test.com'},
+                         success_url=reverse('user_management_settings_organizations'),
+                         success_query=Registrar.objects.filter(name='new_name'))
 
-        # manage user views
-        self.submit_form('user_management_manage_single_organization', reverse_kwargs={'args':[1]},
-                       data={
-                           'a-name': 'test_views_organization3'},
-                       success_url=reverse('user_management_manage_organization'),
-                       success_query=Organization.objects.filter(name='test_views_organization3'))
-        self.log_in_user('test_registry_member@example.com')
-        self.submit_form('user_management_manage_single_organization', reverse_kwargs={'args':[1]},
-                       data={
-                           'a-name': 'test_views_organization3',
-                           'a-registrar': 1},
-                       success_url=reverse('user_management_manage_organization'),
-                       success_query=Organization.objects.filter(name='test_views_organization3'))
+    def test_registrar_update_unrelated_registrar_rejected(self):
+        self.get('user_management_manage_single_registrar',
+                 user=self.registrar_member,
+                 reverse_kwargs={'args': [self.unrelated_registrar.pk]},
+                 require_status_code=404)
+
+    ### ORGANIZATION A/E/D VIEWS ###
+
+    def test_organization_list_filters(self):
+        # get orgs for a single registrar
+        self.get('user_management_manage_organization',
+                 user=self.admin_user,
+                 request_kwargs={'data': {'registrar': self.registrar.pk}})
+
+    def test_admin_can_create_organization(self):
+        self.submit_form('user_management_manage_organization',
+                         user=self.admin_user,
+                         data={
+                             'a-name': 'new_name',
+                             'a-registrar': self.registrar.pk},
+                         success_url=reverse('user_management_manage_organization'),
+                         success_query=Organization.objects.filter(name='new_name'))
+
+    def test_registrar_can_create_organization(self):
+        self.submit_form('user_management_manage_organization',
+                         user=self.registrar_member,
+                         data={
+                             'a-name': 'new_name'},
+                         success_url=reverse('user_management_manage_organization'),
+                         success_query=Organization.objects.filter(name='new_name'))
+
+    def test_admin_can_update_organization(self):
+        self.submit_form('user_management_manage_single_organization',
+                         user=self.admin_user,
+                         reverse_kwargs={'args':[self.organization.pk]},
+                         data={
+                             'a-name': 'new_name',
+                             'a-registrar': self.registrar.pk},
+                         success_url=reverse('user_management_manage_organization'),
+                         success_query=Organization.objects.filter(name='new_name'))
+
+    def test_registrar_can_update_organization(self):
+        self.submit_form('user_management_manage_single_organization',
+                         user=self.registrar_member,
+                         reverse_kwargs={'args':[self.organization.pk]},
+                         data={
+                             'a-name': 'new_name'},
+                         success_url=reverse('user_management_manage_organization'),
+                         success_query=Organization.objects.filter(name='new_name'))
+
+    ### USER A/E/D VIEWS ###
+
+    def test_create_and_delete_user(self):
+        self.log_in_user(self.admin_user)
 
         base_user = {
             'a-first_name':'First',
@@ -94,14 +158,20 @@ class UserManagementViewsTestCase(PermaTestCase):
                            reverse_kwargs={'args': [new_user.pk]},
                            success_url=reverse('user_management_manage_' + view_name))
 
-        # manage_account
+    ### SETTINGS ###
+
+    def test_user_can_change_own_settings(self):
         self.submit_form('user_management_settings_profile',
-                       data={
-                           'a-first_name': 'First',
-                           'a-last_name': 'Last',
-                           'a-email': 'test_registry_member@example.com'
-                       },
-                       success_url=reverse('user_management_settings_profile'))
+                         user=self.admin_user,
+                         data={
+                             'a-first_name': 'Newfirst',
+                             'a-last_name': 'Newlast',
+                             'a-email': 'test_registry_member@example.com'
+                         },
+                         success_url=reverse('user_management_settings_profile'),
+                         success_query=LinkUser.objects.filter(first_name='Newfirst'))
+
+    ### SIGNUP ###
 
     def test_account_creation_views(self):
         # user registration
@@ -111,14 +181,6 @@ class UserManagementViewsTestCase(PermaTestCase):
                        success_query=LinkUser.objects.filter(email=new_user_email))
 
         confirmation_code = LinkUser.objects.get(email=new_user_email).confirmation_code
-
-        # check duplicate email
-        self.submit_form('sign_up', {'email': new_user_email, 'first_name': 'Test', 'last_name': 'Test'},
-                              error_keys=['email'])
-
-        # reg confirm - bad confirmation code
-        response = self.submit_form('register_password', reverse_kwargs={'args':['bad_confirmation_code']})
-        self.assertTrue('no_code' in response.context)
 
         # reg confirm - non-matching passwords
         response = self.submit_form('register_password', reverse_kwargs={'args': [confirmation_code]},
@@ -130,3 +192,20 @@ class UserManagementViewsTestCase(PermaTestCase):
                                     data={'new_password1': 'a', 'new_password2': 'a'},
                                     success_url=reverse('user_management_limited_login'))
 
+    def test_signup_with_existing_email_rejected(self):
+        self.submit_form('sign_up',
+                         {'email': self.registrar_member.email, 'first_name': 'Test', 'last_name': 'Test'},
+                         error_keys=['email'])
+
+    def test_registration_confirmation_with_bad_code_rejected(self):
+        response = self.submit_form('register_password', reverse_kwargs={'args':['bad_confirmation_code']})
+        self.assertTrue('no_code' in response.context)
+
+    ### ADMIN STATS ###
+
+    def test_admin_stats(self):
+        self.log_in_user(self.admin_user)
+        self.get('user_management_stats', reverse_kwargs={'args':['days']})
+        self.get('user_management_stats', reverse_kwargs={'args':['celery']})
+        self.get('user_management_stats', reverse_kwargs={'args':['random']})
+        self.get('user_management_stats', reverse_kwargs={'args':['emails']})
