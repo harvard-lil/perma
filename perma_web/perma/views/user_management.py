@@ -98,8 +98,8 @@ def stats(request, stat_type=None):
             'total_user_count': LinkUser.objects.count(),
             'unconfirmed_user_count': LinkUser.objects.filter(is_confirmed=False).count()
         }
-        out['private_link_percentage'] = round(100.0*out['private_link_count']/out['total_link_count'], 1)
-        out['unconfirmed_user_percentage'] = round(100.0*out['unconfirmed_user_count']/out['total_user_count'], 1)
+        out['private_link_percentage'] = round(100.0*out['private_link_count']/out['total_link_count'], 1) if out['total_link_count'] else 0
+        out['unconfirmed_user_percentage'] = round(100.0*out['unconfirmed_user_count']/out['total_user_count'], 1) if out['total_user_count'] else 0
 
     elif stat_type == "celery":
         inspector = celery_inspect()
@@ -107,13 +107,14 @@ def stats(request, stat_type=None):
         reserved = inspector.reserved()
         stats = inspector.stats()
         queues = []
-        for queue in active.keys():
-            queues.append({
-                'name': queue,
-                'active': active[queue],
-                'reserved': reserved[queue],
-                'stats': stats[queue],
-            })
+        if active is not None:
+            for queue in active.keys():
+                queues.append({
+                    'name': queue,
+                    'active': active[queue],
+                    'reserved': reserved[queue],
+                    'stats': stats[queue],
+                })
         out = {'queues':queues}
 
     if out:
@@ -190,38 +191,26 @@ def manage_registrar(request):
 @login_required
 @user_passes_test(lambda user: user.is_staff or user.is_registrar_member())
 def manage_single_registrar(request, registrar_id):
-    """ Linky admins can manage registrars (libraries)
-        in this view, we allow for edit/delete """
+    """ Edit details for a registrar. """
 
     target_registrar = get_object_or_404(Registrar, id=registrar_id)
-    if request.user.is_registrar_member():	
-        if not target_registrar == request.user.registrar:
-            raise Http404
+    if not request.user.can_edit_registrar(target_registrar):
+        raise Http404
 
-    context = {'target_registrar': target_registrar,
-        'this_page': 'users_registrars'}
-
+    form = RegistrarForm(request.POST, prefix = "a", instance=target_registrar)
     if request.method == 'POST':
-
-        form = RegistrarForm(request.POST, prefix = "a", instance=target_registrar)
-
         if form.is_valid():
-            new_user = form.save()
-            
+            new_registrar = form.save()
             if request.user.is_staff:
                 return HttpResponseRedirect(reverse('user_management_manage_registrar'))
             else:
                 return HttpResponseRedirect(reverse('user_management_settings_organizations'))
 
-        else:
-            context.update({'form': form,})
-    else:
-        form = RegistrarForm(prefix = "a", instance=target_registrar)
-        context.update({'form': form,})
-    
-    context = RequestContext(request, context)
-
-    return render_to_response('user_management/manage_single_registrar.html', context)
+    return render(request, 'user_management/manage_single_registrar.html', {
+        'target_registrar': target_registrar,
+        'this_page': 'users_registrars',
+        'form': form,
+    })
     
     
 @login_required
