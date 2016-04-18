@@ -215,6 +215,17 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
                               data={'notes': 'These are new notes',
                                     'title': 'This is a new title'})
 
+    def test_should_reject_updates_to_disallowed_fields(self):
+        result = self.rejected_patch(self.unrelated_link_detail_url,
+                                     user=self.unrelated_link.created_by,
+                                     data={'nonexistent_field':'foo'})
+        self.assertIn("Only updates on these fields are allowed", result.content)
+
+        result = self.rejected_patch(self.unrelated_link_detail_url,
+                                     user=self.unrelated_link.created_by,
+                                     data={'url': 'foo'})
+        self.assertIn("Only updates on these fields are allowed", result.content)
+
     ##################
     # Private/public #
     ##################
