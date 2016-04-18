@@ -411,5 +411,6 @@ def create_perma_wb_router(config={}):
 
     # use our Django error view
     router.error_view = PermaTemplateView('archive/archive-error.html')
+    wb_handler.not_found_view = router.error_view
 
     return router
