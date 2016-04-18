@@ -216,7 +216,7 @@ def proxy_capture(self, link_guid, user_agent=''):
     """
     # basic setup
     link = Link.objects.get(guid=link_guid)
-    target_url = link.submitted_url
+    target_url = link.safe_url
 
     # allow pending tasks to be canceled outside celery by updating capture status
     if link.primary_capture.status != "pending":
