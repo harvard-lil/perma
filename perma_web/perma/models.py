@@ -953,3 +953,15 @@ class CDXLine(models.Model):
         return self.__parsed.is_revisit()
 
 
+class UncaughtError(models.Model):
+    current_url = models.TextField()
+    user_agent = models.TextField()
+    stack = models.TextField()
+    name = models.TextField()
+    message = models.TextField()
+    custom_message = models.TextField()
+    user = models.ForeignKey(LinkUser, null=True, blank=True, related_name="errors_triggered")
+    created_at = models.DateTimeField(default=timezone.now)
+
+    resolved = models.BooleanField(default=False)
+    resolved_by_user = models.ForeignKey(LinkUser, null=True, blank=True, related_name="errors_resolved")

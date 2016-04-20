@@ -103,6 +103,7 @@ PIPELINE_JS = {
             'vendors/bootstrap/bootstrap3.js',
             'vendors/fastclick/fastclick.min.js',
             'vendors/jquery/jquery.actual.js',
+            'js/error-handler.js',
             'js/global.js',
         ),
         'output_filename': 'js/global-bundle.js',
@@ -432,7 +433,6 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_SEND_TASK_ERROR_EMAILS = True
-CELERYD_HIJACK_ROOT_LOGGER = False
 
 # Control whether Celery tasks should be run in the background or during a request.
 # This should normally be True, but it's handy to not require rabbitmq and celery sometimes.

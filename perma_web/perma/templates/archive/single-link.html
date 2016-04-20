@@ -186,7 +186,7 @@
 
 {% block scripts %}
     <script>
-        var archive = {% as_json link %};
+        var archive = { guid: "{{ link.guid }}" };
     </script>
 
     {% javascript 'single-link' %}

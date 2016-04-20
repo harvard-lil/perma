@@ -1,16 +1,10 @@
-import logging
-from django.utils import timezone
-
-from django.conf import settings
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 
 from ..models import Link, Folder, Organization
 
-logger = logging.getLogger(__name__)
 valid_link_sorts = ['-creation_timestamp', 'creation_timestamp', 'submitted_title', '-submitted_title']
 
 
@@ -95,6 +89,8 @@ def folder_contents(request, folder_id):
 @login_required
 def user_delete_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
+    if not request.user.can_delete(link):
+        raise Http404
 
     return render(request, 'archive/confirm/link-delete-confirm.html', {
         'link': link,

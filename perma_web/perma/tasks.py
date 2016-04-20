@@ -543,7 +543,7 @@ def proxy_capture(self, link_guid, user_agent=''):
 
         except Exception as e:
             print "Web Archive File creation failed for %s: %s" % (target_url, e)
-            save_fields(link.primary_capture, warc_capture='failed')
+            save_fields(link.primary_capture, status='failed')
 
 
     print "%s capture done." % link_guid
@@ -668,11 +668,14 @@ def upload_to_internet_archive(self, link_guid):
         "mediatype":'web',
         "description":'Perma.cc archive of %s created on %s.' % (link.submitted_url, link.creation_timestamp,),
         "contributor":'Perma.cc',
-        "sponsor":"%s - %s" % (link.organization, link.organization.registrar),
         "submitted_url":link.submitted_url,
         "perma_url":"http://%s/%s" % (settings.HOST, link_guid),
         "external-identifier":'urn:X-perma:%s' % link_guid,
         }
+
+    # set sponsor if organization exists
+    if link.organization:
+        metadata["sponsor"] = "%s - %s" % (link.organization, link.organization.registrar)
 
     identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link_guid
     with default_storage.open(link.warc_storage_file(), 'rb') as warc_file:

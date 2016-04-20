@@ -59,7 +59,7 @@ def tag_new_release(tag):
     current_branch = local("git rev-parse --abbrev-ref HEAD", capture=True)
     try:
         # check out upstream/master
-        local("git fetch")
+        local("git fetch upstream")
         local("git checkout upstream/master")
 
         # merge upstream/develop and push changes to master

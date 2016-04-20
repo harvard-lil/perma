@@ -51,6 +51,7 @@ BROKER_CONNECTION_TIMEOUT = 30
 BROKER_HEARTBEAT = 30
 CELERY_SEND_EVENTS = False  # on the free CloudAMQP plan, celery events rapidly eat up our monthly message quota
 CELERY_RESULT_BACKEND = os.environ.get('REDISCLOUD_URL')
+CELERYD_HIJACK_ROOT_LOGGER = False
 
 # logging
 LOGGING['handlers']['default'] = {
