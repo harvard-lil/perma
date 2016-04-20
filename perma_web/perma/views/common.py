@@ -33,7 +33,7 @@ from ratelimit.decorators import ratelimit
 
 from ..models import Link, Registrar, Organization, LinkUser
 from perma.forms import ContactForm
-from perma.utils import if_anonymous, send_contact_email
+from perma.utils import if_anonymous, send_admin_email
 
 logger = logging.getLogger(__name__)
 valid_serve_types = ['image', 'warc_download']
@@ -181,13 +181,13 @@ def single_linky(request, guid):
     date_header = format_date_time(mktime(link.creation_timestamp.timetuple()))
     protocol = "https://" if settings.SECURE_SSL_REDIRECT else "http://"
     link_memento  = protocol + settings.WARC_HOST + '/' + link.guid
-    link_timegate = protocol + settings.WARC_HOST + '/warc/' + link.submitted_url
-    link_timemap  = protocol + settings.WARC_HOST + '/warc/timemap/*/' + link.submitted_url
+    link_timegate = protocol + settings.WARC_HOST + '/warc/' + link.safe_url
+    link_timemap  = protocol + settings.WARC_HOST + '/warc/timemap/*/' + link.safe_url
     response['Memento-Datetime'] = date_header
 
     response['Link'] = str(link_header.LinkHeader([
                             link_header.Link(
-                                link.submitted_url, rel="original", datetime=date_header,
+                                link.safe_url, rel="original", datetime=date_header,
                             ),
                             link_header.Link(
                                 link_memento, rel="memento", datetime=date_header,
@@ -241,7 +241,7 @@ Message from user
 %s
 ''' % (form.cleaned_data['message'])
 
-            send_contact_email(
+            send_admin_email(
                 "New message from Perma contact form",
                 content,
                 from_address,

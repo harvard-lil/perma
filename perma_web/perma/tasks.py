@@ -31,14 +31,9 @@ from warcprox.controller import WarcproxController
 from warcprox.warcprox import WarcProxyHandler, WarcProxy, ProxyingRecorder
 from warcprox.warcwriter import WarcWriter, WarcWriterThread
 
-
 from django.utils import timezone
 from django.core.files.storage import default_storage
-from django.core.mail import send_mail
-from django.template.loader import get_template
-from django.template import Context
 from django.template.defaultfilters import truncatechars
-from django.forms.models import model_to_dict
 from django.conf import settings
 
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture
@@ -221,7 +216,7 @@ def proxy_capture(self, link_guid, user_agent=''):
     """
     # basic setup
     link = Link.objects.get(guid=link_guid)
-    target_url = link.submitted_url
+    target_url = link.safe_url
 
     # allow pending tasks to be canceled outside celery by updating capture status
     if link.primary_capture.status != "pending":

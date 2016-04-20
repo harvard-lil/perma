@@ -13,7 +13,6 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import views as auth_views
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import send_mail
 from django.db.models import Count, Max, Sum
 from django.utils import timezone
 from django.utils.http import is_safe_url, cookie_date
@@ -41,7 +40,8 @@ from perma.forms import (
     SetPasswordForm, 
 )
 from perma.models import Registrar, LinkUser, Organization, Link, Capture
-from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_contact_email, filter_or_null_join
+from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_admin_email, filter_or_null_join, \
+    send_user_email
 
 logger = logging.getLogger(__name__)
 valid_member_sorts = ['last_name', '-last_name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'created_links_count', '-created_links_count']
@@ -98,8 +98,8 @@ def stats(request, stat_type=None):
             'total_user_count': LinkUser.objects.count(),
             'unconfirmed_user_count': LinkUser.objects.filter(is_confirmed=False).count()
         }
-        out['private_link_percentage'] = round(100.0*out['private_link_count']/out['total_link_count'], 1)
-        out['unconfirmed_user_percentage'] = round(100.0*out['unconfirmed_user_count']/out['total_user_count'], 1)
+        out['private_link_percentage'] = round(100.0*out['private_link_count']/out['total_link_count'], 1) if out['total_link_count'] else 0
+        out['unconfirmed_user_percentage'] = round(100.0*out['unconfirmed_user_count']/out['total_user_count'], 1) if out['total_user_count'] else 0
 
     elif stat_type == "celery":
         inspector = celery_inspect()
@@ -107,13 +107,14 @@ def stats(request, stat_type=None):
         reserved = inspector.reserved()
         stats = inspector.stats()
         queues = []
-        for queue in active.keys():
-            queues.append({
-                'name': queue,
-                'active': active[queue],
-                'reserved': reserved[queue],
-                'stats': stats[queue],
-            })
+        if active is not None:
+            for queue in active.keys():
+                queues.append({
+                    'name': queue,
+                    'active': active[queue],
+                    'reserved': reserved[queue],
+                    'stats': stats[queue],
+                })
         out = {'queues':queues}
 
     if out:
@@ -190,38 +191,26 @@ def manage_registrar(request):
 @login_required
 @user_passes_test(lambda user: user.is_staff or user.is_registrar_member())
 def manage_single_registrar(request, registrar_id):
-    """ Linky admins can manage registrars (libraries)
-        in this view, we allow for edit/delete """
+    """ Edit details for a registrar. """
 
     target_registrar = get_object_or_404(Registrar, id=registrar_id)
-    if request.user.is_registrar_member():	
-        if not target_registrar == request.user.registrar:
-            raise Http404
+    if not request.user.can_edit_registrar(target_registrar):
+        raise Http404
 
-    context = {'target_registrar': target_registrar,
-        'this_page': 'users_registrars'}
-
+    form = RegistrarForm(request.POST, prefix = "a", instance=target_registrar)
     if request.method == 'POST':
-
-        form = RegistrarForm(request.POST, prefix = "a", instance=target_registrar)
-
         if form.is_valid():
-            new_user = form.save()
-            
+            new_registrar = form.save()
             if request.user.is_staff:
                 return HttpResponseRedirect(reverse('user_management_manage_registrar'))
             else:
                 return HttpResponseRedirect(reverse('user_management_settings_organizations'))
 
-        else:
-            context.update({'form': form,})
-    else:
-        form = RegistrarForm(prefix = "a", instance=target_registrar)
-        context.update({'form': form,})
-    
-    context = RequestContext(request, context)
-
-    return render_to_response('user_management/manage_single_registrar.html', context)
+    return render(request, 'user_management/manage_single_registrar.html', {
+        'target_registrar': target_registrar,
+        'this_page': 'users_registrars',
+        'form': form,
+    })
     
     
 @login_required
@@ -330,41 +319,27 @@ def manage_organization(request):
 @login_required
 @user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
 def manage_single_organization(request, org_id):
-    """ Registry and registrar members can manage organizations (journals)
-        in this view, we allow for edit/delete """
-
+    """ Edit organization details. """
     try:
         target_org = Organization.objects.accessible_to(request.user).get(pk=org_id)
     except Organization.DoesNotExist:
         raise Http404
 
-    context = {'target_org': target_org,
-        'this_page': 'users_orgs'}
+    if request.user.is_staff:
+        form = OrganizationWithRegistrarForm(request.POST, prefix = "a", instance=target_org)
+    else:
+        form = OrganizationForm(request.POST, prefix = "a", instance=target_org)
 
     if request.method == 'POST':
-
-        if request.user.is_staff:
-            form = OrganizationWithRegistrarForm(request.POST, prefix = "a", instance=target_org)
-        else:
-            form = OrganizationForm(request.POST, prefix = "a", instance=target_org)
-
         if form.is_valid():
-            new_user = form.save()
-            
+            form.save()
             return HttpResponseRedirect(reverse('user_management_manage_organization'))
 
-        else:
-            context.update({'form': form,})
-    else:
-        if request.user.is_staff:
-            form = OrganizationWithRegistrarForm(prefix = "a", instance=target_org)
-        else:
-            form = OrganizationForm(prefix = "a", instance=target_org)
-        context.update({'form': form,})
-    
-    context = RequestContext(request, context)
-
-    return render_to_response('user_management/manage_single_organization.html', context)
+    return render(request, 'user_management/manage_single_organization.html', {
+        'target_org': target_org,
+        'this_page': 'users_orgs',
+        'form': form,
+    })
 
 
 @login_required
@@ -468,7 +443,7 @@ def manage_single_organization_user_reactivate(request, user_id):
     return reactive_user_in_group(request, user_id, 'organization_user')
 
 
-
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
 def list_users_in_group(request, group_name):
     """
         Show list of users with given group name.
@@ -512,8 +487,6 @@ def list_users_in_group(request, group_name):
         is_registrar = True
     elif request.user.is_organization_member:
         users = users.filter(organizations__in=request.user.organizations.all())
-    else:
-        raise Http404  # this shouldn't happen
 
     # apply group filter
     if group_name == 'registry_user':
@@ -522,10 +495,8 @@ def list_users_in_group(request, group_name):
         users = users.exclude(registrar_id=None).prefetch_related('registrar')
     elif group_name == 'organization_user':
         users = users.exclude(organizations=None)
-    elif group_name == 'user':
-        users = users.filter(registrar_id=None, is_staff=False, organizations=None)
     else:
-        raise NotImplementedError("Unknown group name: %s" % group_name)
+        users = users.filter(registrar_id=None, is_staff=False, organizations=None)
         
     # handle status filter
     status = request.GET.get('status', '')
@@ -1195,6 +1166,7 @@ def api_key_create(request):
     """
     Generate or regenerate an API key for the user
     """
+
     if request.method == "POST":
         try:
             # Clear key so a new one is generated on save()
@@ -1204,36 +1176,7 @@ def api_key_create(request):
             ApiKey.objects.create(user=request.user)
         return HttpResponseRedirect(reverse('user_management_settings_tools'))
 
-# @login_required
-# def batch_convert(request):
-#     """
-#     Detect and archive URLs from user input.
-#     """
-#     context = {'this_page': 'batch_convert'}
-#     context.update(csrf(request))
-#     return render_to_response('user_management/batch_convert.html', context, RequestContext(request))
-
-
-# @login_required
-# def export(request):
-#     """
-#     Export a CSV of a user's library/
-#     """
-#
-#     context = {'this_page': 'export'}
-#     context.update(csrf(request))
-#     return render_to_response('user_management/export.html', context, RequestContext(request))
-
-
-# @login_required
-# def custom_domain(request):
-#     """
-#     Instructions for a user to configure a custom domain.
-#     """
-#     context = {'this_page': 'custom_domain'}
-#     context.update(csrf(request))
-#     return render_to_response('user_management/custom_domain.html', context, RequestContext(request))
-
+        
 def not_active(request):
     """
     Informing a user that their account is not active.
@@ -1629,11 +1572,10 @@ http://%s%s
 
     logger.debug(content)
 
-    send_mail(
+    send_user_email(
         "A Perma.cc account has been created for you",
         content,
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email], fail_silently=False
+        user.email
     )
     
 
@@ -1650,11 +1592,10 @@ http://%s%s
 
 ''' % (org.name, org.name, host, reverse('user_management_settings_organizations'))
 
-    send_mail(
+    send_user_email(
         "Your Perma.cc account is now associated with {org}".format(org=org.name),
         content,
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email], fail_silently=False
+        user.email
     )
 
 
@@ -1671,11 +1612,10 @@ http://%s%s
 
 ''' % (user.registrar.name, user.registrar.name, host, reverse('user_management_settings_organizations'))
 
-    send_mail(
+    send_user_email(
         "Your Perma.cc account is now associated with {registrar}".format(registrar=user.registrar.name),
         content,
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email], fail_silently=False
+        user.email
     )
     
     
@@ -1700,11 +1640,10 @@ http://%s%s
 
     logger.debug(content)
 
-    send_mail(
+    send_user_email(
         "A Perma.cc account has been created for you",
         content,
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email], fail_silently=False
+        user.email
     )
     
     
@@ -1723,7 +1662,7 @@ http://%s%s
 
     logger.debug(content)
 
-    send_contact_email(
+    send_admin_email(
         "Perma.cc new library registrar account request",
         content,
         pending_registrar.email,
@@ -1748,11 +1687,10 @@ http://%s%s
 
     logger.debug(content)
 
-    send_mail(
+    send_user_email(
         "Your Perma.cc library account is approved",
         content,
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email], fail_silently=False
+        user.email
     )
 
 
@@ -1778,9 +1716,9 @@ This user %s
 
     logger.debug(content)
 
-    send_mail(
+    send_admin_email(
         "Perma.cc new library court account information request",
         content,
         court.email,
-        [settings.DEFAULT_FROM_EMAIL], fail_silently=False
+        request
     )

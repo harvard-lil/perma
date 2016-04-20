@@ -18,7 +18,7 @@ This file is part of pywb, https://github.com/ikreymer/pywb
  */
 
 //============================================
-// Wombat JS-Rewriting Library v2.9
+// Wombat JS-Rewriting Library v2.11
 //============================================
 
 
@@ -209,7 +209,7 @@ var wombat_internal = function($wbwindow) {
             }
 
             // relative collection 
-            if ((url.indexOf(wb_info.coll) == 1) && (url.indexOf("http") > 1)) {
+            if ((url.indexOf(wb_rel_prefix) == 1) && (url.indexOf("http") > 1)) {
                 var scheme_sep = url.indexOf(":/");
                 if (scheme_sep > 0 && url[scheme_sep + 2] != '/') {
                     url = url.substring(0, scheme_sep + 2) + "/" + url.substring(scheme_sep + 2);
@@ -328,7 +328,7 @@ var wombat_internal = function($wbwindow) {
         }
 
         // if no coll, start from beginning, otherwise could be part of coll..
-        var start = wbinfo.coll ? 1 : 0;
+        var start = wb_rel_prefix ? 1 : 0;
 
         var index = href.indexOf("/http", start);
         if (index < 0) {
@@ -363,26 +363,37 @@ var wombat_internal = function($wbwindow) {
     }
 
     //============================================
-    // Define custom property
-    function def_prop(obj, prop, set_func, get_func) {
+    // Override a DOM property
+    function def_prop(obj, prop, set_func, get_func, enumerable) {
+        // if the property is marked as non-configurable in the current
+        // browser, skip the override
+        var existingDescriptor = Object.getOwnPropertyDescriptor(obj, prop);
+        if (existingDescriptor && !existingDescriptor.configurable) {
+            return;
+        }
+
+        // if no getter function was supplied, skip the override.
+        // See https://github.com/ikreymer/pywb/issues/147 for context
+        if (!get_func) {
+            return;
+        }
+
         try {
-            Object.defineProperty(obj, prop, {
-                configurable: false,
-//                enumerable: true,
-                set: set_func,
-                get: get_func
-            });
+            var descriptor = {
+                configurable: true,
+                enumerable: enumerable || false,
+                get: get_func,
+            };
+
+            if (set_func) {
+                descriptor.set = set_func;
+            }
+
+            Object.defineProperty(obj, prop, descriptor);
 
             return true;
         } catch (e) {
-            var info = "Can't redefine prop " + prop;
-            console.warn(info);
-            //f (obj && obj.tagName) {
-            //    info += " on " + obj.tagName;
-            //}
-            //if (value != obj[prop]) {
-            //    obj[prop] = value;
-            //}
+            console.warn('Failed to redefine property %s', prop, e.message);
             return false;
         }
     }
@@ -509,7 +520,7 @@ var wombat_internal = function($wbwindow) {
         }
 
         function add_loc_prop(loc, prop) {
-            def_prop(loc, prop, make_set_loc_prop(prop), make_get_loc_prop(prop));
+            def_prop(loc, prop, make_set_loc_prop(prop), make_get_loc_prop(prop), true);
         }
 
         if (Object.defineProperty) {
@@ -545,7 +556,9 @@ var wombat_internal = function($wbwindow) {
             return this._orig_loc.assign(new_url);
         }
 
-        this.reload = orig_loc.reload;
+        this.reload = function() {
+            return this._orig_loc.reload();
+        }
        
         this.orig_getter = function(prop) {
             return this._orig_loc[prop];
@@ -665,6 +678,24 @@ var wombat_internal = function($wbwindow) {
         Math.random = seeded_random;
     }
 
+    function init_crypto_random() {
+        if (!$wbwindow.crypto || !$wbwindow.Crypto) {
+            return;
+        }
+
+        var orig_getrandom = $wbwindow.Crypto.prototype.getRandomValues;
+
+        var new_getrandom = function(array) {
+            for (i = 0; i < array.length; i++) {
+                array[i] = parseInt(Math.random() * 4294967296);
+            }
+            return array;
+        }
+
+        $wbwindow.Crypto.prototype.getRandomValues = new_getrandom;
+        $wbwindow.crypto.getRandomValues = new_getrandom;
+    } 
+
     //============================================
     function override_history_func(func_name) {
         if (!$wbwindow.history) {
@@ -757,15 +788,15 @@ var wombat_internal = function($wbwindow) {
         def_prop($wbwindow.HTMLBaseElement.prototype, "href", undefined, base_href_get);
 
         // Shared baseURI
-        var orig_getter = $wbwindow.document.__lookupGetter__("baseURI");
+        var orig_getter = get_orig_getter($wbwindow.Node.prototype, "baseURI");
+        if (orig_getter) {
+            var get_baseURI = function() {
+                var res = orig_getter.call(this);
+                return extract_orig(res);
+            }
 
-        var get_baseURI = function() {
-            var res = orig_getter.call(this);
-            return extract_orig(res);
+            def_prop($wbwindow.Node.prototype, "baseURI", undefined, get_baseURI);
         }
-
-        def_prop($wbwindow.HTMLElement.prototype, "baseURI", undefined, get_baseURI);
-        def_prop($wbwindow.HTMLDocument.prototype, "baseURI", undefined, get_baseURI);
     }
 
     //============================================
@@ -1053,7 +1084,7 @@ var wombat_internal = function($wbwindow) {
     }
 */
     //============================================
-    function rewrite_attr(elem, name, full_url_only) {
+    function rewrite_attr(elem, name, abs_url_only) {
         if (!elem || !elem.getAttribute) {
             return;
         }
@@ -1073,15 +1104,16 @@ var wombat_internal = function($wbwindow) {
             return;
         }
 
-        if (full_url_only && !starts_with(value, VALID_PREFIXES)) {
-            return;
-        }
-
         var new_value;
 
         if (name == "style") {
             new_value = rewrite_style(value);
         } else {
+            // Only rewrite if absolute url
+            if (abs_url_only && !starts_with(value, VALID_PREFIXES)) {
+                return;
+            }
+
             var mod = undefined;
 
             if (elem.tagName == "SCRIPT") {
@@ -1132,7 +1164,7 @@ var wombat_internal = function($wbwindow) {
         } else {
             changed = rewrite_attr(elem, "src");
             changed = rewrite_attr(elem, "href") || changed;
-            changed = rewrite_attr(elem, "style", rewrite_style) || changed;
+            changed = rewrite_attr(elem, "style") || changed;
         }
 
         if (elem.getAttribute) {
@@ -1320,6 +1352,7 @@ var wombat_internal = function($wbwindow) {
     //============================================
     function init_attr_overrides($wbwindow) {
         override_attr($wbwindow.HTMLLinkElement.prototype, "href", "cs_");
+        override_attr($wbwindow.CSSStyleSheet.prototype, "href", "cs_");
         override_attr($wbwindow.HTMLImageElement.prototype, "src", "im_");
         override_attr($wbwindow.HTMLIFrameElement.prototype, "src", "if_");
         override_attr($wbwindow.HTMLScriptElement.prototype, "src", "js_");
@@ -1386,6 +1419,9 @@ var wombat_internal = function($wbwindow) {
         }
 
         init_loc_override($wbwindow.HTMLAnchorElement.prototype, anchor_setter, anchor_getter);
+        $wbwindow.HTMLAnchorElement.prototype.toString = function () {
+            return this.href;
+        };
     }
 
 
@@ -1890,7 +1926,6 @@ var wombat_internal = function($wbwindow) {
             if (!new_buff) {
                 return;
             }
-            console.log(string, " -> ", new_buff)
             var res = orig_doc_writeln.call(this, new_buff);
             check_wombat(this.defaultView);
             return res;
@@ -2160,6 +2195,9 @@ var wombat_internal = function($wbwindow) {
         // Random
         init_seeded_random(wbinfo.wombat_sec);
 
+        // Crypto Random
+        init_crypto_random();
+
         // Date
         init_date_override(wbinfo.wombat_sec);
 
@@ -2210,22 +2248,28 @@ var wombat_internal = function($wbwindow) {
 
         var real_parent = replay_top.__WB_orig_parent || replay_top.parent;
 
+        // Check to ensure top frame is different window and directly accessible (later refactor to support postMessage)
         try {
-            if (real_parent != $wbwindow && real_parent && real_parent.wbinfo && real_parent.wbinfo.is_frame) {
-                $wbwindow.__WB_top_frame = real_parent;
-
-                // Disable frameElement also as this should be top frame
-                if (replay_top == $wbwindow && Object.defineProperty) {
-                    try {
-                        Object.defineProperty($wbwindow, "frameElement", {value: undefined, configurable: false});
-                    } catch (e) {
-                    }
-                }
-
-            } else {
-                $wbwindow.__WB_top_frame = undefined;
+            if ((real_parent == $wbwindow) || !real_parent.wbinfo || !real_parent.wbinfo.is_frame) {
+                real_parent = undefined;
             }
-        }catch(e){}
+        } catch (e) {
+            real_parent = undefined;
+        }
+
+        if (real_parent) {
+            $wbwindow.__WB_top_frame = real_parent;
+
+            // Disable frameElement also as this should be top frame
+            if (replay_top == $wbwindow && Object.defineProperty) {
+                try {
+                    Object.defineProperty($wbwindow, "frameElement", {value: undefined, configurable: false});
+                } catch (e) {}
+            }
+
+        } else {
+            $wbwindow.__WB_top_frame = undefined;
+        }
 
         // Fix .parent only if not embeddable, otherwise leave for accessing embedding window
         if (!wb_opts.embedded && (replay_top == $wbwindow)) {

@@ -279,16 +279,13 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
     def successful_patch(self, url, check_results=True, **kwargs):
         req_kwargs = self.get_req_kwargs(kwargs)
 
+        new_data = kwargs['data']
         if check_results:
         # Fetch the existing data for comparison.
             resp = self.api_client.get(url, **req_kwargs)
             self.assertHttpOK(resp)
             self.assertValidJSONResponse(resp)
             old_data = self.deserialize(resp)
-            new_data = dict(old_data, **kwargs['data'])
-
-        else:
-            new_data = kwargs['data']
 
         count = self.resource._meta.queryset.count()
         patch_resp = self.api_client.patch(url, data=new_data, **req_kwargs)
@@ -325,13 +322,7 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
 
         old_data = self.deserialize(self.api_client.get(url, **req_kwargs))
 
-        # User might not have GET access to grab initial data
-        if old_data:
-            new_data = old_data.copy()
-            new_data.update(kwargs['data'])
-        else:
-            new_data = kwargs['data']
-
+        new_data = kwargs['data']
         count = self.resource._meta.queryset.count()
         resp = self.api_client.patch(url, data=new_data, **req_kwargs)
         self.assertEqual(resp.status_code, expected_status_code or self.rejected_status_code)

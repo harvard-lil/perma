@@ -21,6 +21,9 @@ before_install:
   - cd perma_web
 
 install:
+  # faster installs, per https://github.com/nickstenning/travis-pip-cache
+  - pip install -U pip wheel
+
   - pip install -r requirements.txt
   - pip install coveralls
 before_script:
@@ -31,9 +34,13 @@ before_script:
   - mysql -e 'SET GLOBAL wait_timeout = 36000;'
 
   - python manage.py collectstatic --noinput
+  - date
 script:
   fab test
+after_failure:
+  - date
 after_success:
+  - date
   - coveralls
 
 # See: http://docs.travis-ci.com/user/migrating-from-legacy/?utm_source=legacy-notice&utm_medium=banner&utm_campaign=legacy-upgrade#tl%3Bdr

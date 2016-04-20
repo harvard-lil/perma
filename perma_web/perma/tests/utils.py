@@ -10,11 +10,14 @@ class PermaTestCase(TransactionTestCase):
                 'fixtures/folders.json',
                 'fixtures/archive.json']
 
-    def log_in_user(self, username, password='pass'):
-        # TODO: check resp to see if login actually worked
+    def log_in_user(self, user, password='pass'):
         self.client.logout()
-        self.client.post(reverse('user_management_limited_login'), {'username': username, 'password': password})
-        self.logged_in_user = LinkUser.objects.get(email=username)
+        if hasattr(user, 'email'):
+            self.logged_in_user = user
+            user = user.email
+        else:
+            self.logged_in_user = LinkUser.objects.get(email=user)
+        self.client.post(reverse('user_management_limited_login'), {'username': user, 'password': password})
 
     def do_request(self,
                    view_name,
@@ -23,10 +26,13 @@ class PermaTestCase(TransactionTestCase):
                    reverse_kwargs={},
                    request_args=[],
                    request_kwargs={},
-                   require_status_code=200):
+                   require_status_code=200,
+                   user=None):
         """
             Given view name, get url and fetch url contents.
         """
+        if user:
+            self.log_in_user(user)
         url = reverse(view_name, *reverse_args, **reverse_kwargs)
         resp = getattr(self.client, method.lower())(url, *request_args, **request_kwargs)
         if require_status_code:

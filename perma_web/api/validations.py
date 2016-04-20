@@ -51,7 +51,12 @@ def get_mime_type(file_name):
     file_extension = file_name.rsplit('.', 1)[-1].lower()
     return file_extension_lookup.get(file_extension)
 
-class LinkValidation(Validation):
+
+class DefaultValidation(Validation):
+    pass
+
+
+class LinkValidation(DefaultValidation):
 
     def is_valid_ip(self, ip):
         for banned_ip_range in settings.BANNED_IP_RANGES:
@@ -75,15 +80,19 @@ class LinkValidation(Validation):
         return True
 
     def is_valid(self, bundle, request=None):
+        errors = super(LinkValidation, self).is_valid(bundle, request)
+
         if not bundle.data:
-            return {'__all__': 'No data provided.'}
+            errors['__all__'] = 'No data provided.'
+            return errors
 
         # Make sure a limited user has links left to create
         if not bundle.obj.pk:  # if it's a new entry
             if not bundle.data.get('folder').organization:
                 links_remaining = bundle.request.user.get_links_remaining()
                 if links_remaining < 1:
-                    return {'__all__': "You've already reached your limit."}
+                    errors['__all__'] = "You've already reached your limit."
+                    return errors
                 bundle.data['links_remaining'] = links_remaining - 1
             else:
                 bundle.data['links_remaining'] = 'unlimited'
@@ -95,7 +104,7 @@ class LinkValidation(Validation):
         elif bundle.obj.tracker.has_changed('submitted_url'):  # url is aliased to submitted_url in the API
             try:
                 validate = URLValidator()
-                validate(bundle.data.get('url').replace(' ', '%20'))
+                validate(bundle.obj.safe_url)
 
                 # Don't force URL resolution validation if a file is provided
                 if not bundle.data.get('file', None):
@@ -130,9 +139,9 @@ class LinkValidation(Validation):
         return errors
 
 
-class FolderValidation(Validation):
+class FolderValidation(DefaultValidation):
     def is_valid(self, bundle, request=None):
-        errors = {}
+        errors = super(FolderValidation, self).is_valid(bundle, request)
 
         # For renaming
         if bundle.obj.tracker.has_changed("name"):

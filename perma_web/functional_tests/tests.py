@@ -8,6 +8,8 @@ import re
 import datetime
 import sys
 from urlparse import urlparse
+
+from pyvirtualdisplay import Display
 from selenium import webdriver
 from selenium.common.exceptions import ElementNotVisibleException, NoSuchElementException
 import time
@@ -166,14 +168,22 @@ class FunctionalTest(BaseTestCase):
         socket.setdefaulttimeout(300)  # spinning up iOS browser can take a few minutes
 
     def setUpLocal(self):
-        self.driver = webdriver.PhantomJS(
-            desired_capabilities=self.base_desired_capabilities,
-        )
-        socket.setdefaulttimeout(60)
+        try:
+            # use Firefox if available on local system
+            self.virtual_display = Display(visible=0, size=(1024, 800))
+            self.virtual_display.start()
+            self.driver = webdriver.Firefox(capabilities=self.base_desired_capabilities)
+        except RuntimeError:
+            self.virtual_display = None
+            self.driver = webdriver.PhantomJS(desired_capabilities=self.base_desired_capabilities)
+        print("Using %s for integration tests." % (type(self.driver)))
+        socket.setdefaulttimeout(30)
         self.driver.set_window_size(1024, 800)
 
     def tearDownLocal(self):
         self.driver.quit()
+        if self.virtual_display:
+            self.virtual_display.stop()
 
     def tearDownSauce(self):
         print("Link to your job: https://saucelabs.com/jobs/%s" % self.driver.session_id)
@@ -257,6 +267,8 @@ class FunctionalTest(BaseTestCase):
                                                    self.server_thread.port))
             return o.geturl()
 
+        info("Starting functional tests at time:", datetime.datetime.utcnow())
+        
         info("Loading homepage from %s." % self.server_url)
         self.driver.get(self.server_url)
         assert_text_displayed("Perma.cc is simple") # new text on landing now
