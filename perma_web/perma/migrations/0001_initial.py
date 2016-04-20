@@ -256,6 +256,22 @@ class Migration(migrations.Migration):
                 ('registrars_sum', models.IntegerField(default=0)),
             ],
         ),
+        migrations.CreateModel(
+            name='UncaughtError',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('current_url', models.TextField()),
+                ('user_agent', models.TextField()),
+                ('stack', models.TextField()),
+                ('name', models.TextField()),
+                ('message', models.TextField()),
+                ('custom_message', models.TextField()),
+                ('created_at', models.DateTimeField(default=django.utils.timezone.now)),
+                ('resolved', models.BooleanField(default=False)),
+                ('resolved_by_user', models.ForeignKey(related_name='errors_resolved', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('user', models.ForeignKey(related_name='errors_triggered', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+            ],
+        ),
         migrations.AddField(
             model_name='organization',
             name='registrar',
