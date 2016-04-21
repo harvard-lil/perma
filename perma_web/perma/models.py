@@ -915,7 +915,6 @@ class CDXLineManager(models.Manager):
             results = []
             for line in cdx_io:
                 cdxline = CDXLine.objects.using('perma-cdxline').get_or_create(raw=line)[0]
-                cdxline.link_reference = link.guid
                 cdxline.is_unlisted = link.is_unlisted
                 cdxline.is_private = link.is_private
                 cdxline.save(using='perma-cdxline')
