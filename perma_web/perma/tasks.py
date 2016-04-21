@@ -391,6 +391,8 @@ def proxy_capture(self, link_guid, user_agent=''):
             def get_title():
                 if browser.title:
                     save_fields(link, submitted_title=browser.title)
+                else:
+                    raise KeyError('No title')
             repeat_while_exception(get_title, timeout=10)
 
             # check meta tags
