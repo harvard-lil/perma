@@ -17,6 +17,7 @@ var ls = ls || {};
 $(document).ready(function() {
   CreateModule.init();
   CreateModule.setupEventHandlers();
+  CreateModule.populateWithUrl();
   $('#archive-upload-confirm').modal({show: false});
   $('#archive-upload').modal({show: false});
 });
@@ -240,6 +241,13 @@ CreateModule.check_status = function () {
 }
 
 /* Our polling function for the thumbnail completion - end */
+CreateModule.populateWithUrl = function () {
+  var url = location.search.split("url=")[1];
+  if (url) {
+    url = decodeURIComponent(url);
+    $("#rawUrl").val(url);
+  }
+}
 
 CreateModule.updateLinker = function () {
   var userSettings = this.ls.getCurrent();
