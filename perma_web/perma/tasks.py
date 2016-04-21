@@ -555,7 +555,7 @@ def update_stats():
     now = timezone.now()
     if now.weekday() == 6 and now.hour == 0 and now.minute == 0:
         week_to_close = WeekStats.objects.latest('start_date')
-        week_to_close(end_date=now)
+        week_to_close.end_date = now
         new_week = WeekStats(start_date=now)
         new_week.save()
 
