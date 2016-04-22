@@ -393,7 +393,7 @@ def proxy_capture(self, link_guid, user_agent=''):
                     save_fields(link, submitted_title=browser.title)
                 else:
                     title_element = browser.find_element_by_tag_name("title")
-                    save_fields(link, submitted_title=title_element.text)
+                    save_fields(link, submitted_title=title_element.get_attribute("text"))
             repeat_while_exception(get_title, timeout=10)
 
             # check meta tags
