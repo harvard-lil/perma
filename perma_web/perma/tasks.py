@@ -155,14 +155,16 @@ def add_thread(thread_list, func):
     new_thread.start()
     thread_list.append(new_thread)
 
-def repeat_while_exception(func, exception=Exception, timeout=10, sleep_time=.1):
+def repeat_while_exception(func, exception=Exception, timeout=10, sleep_time=.1, raise_after_timeout=True):
     end_time = time.time() + timeout
     while True:
         try:
             return func()
         except exception as e:
             if time.time() > end_time:
-                raise
+                if raise_after_timeout:
+                    raise
+                return
             time.sleep(sleep_time)
 
 def parse_response(response_text):
@@ -394,7 +396,7 @@ def proxy_capture(self, link_guid, user_agent=''):
                 else:
                     title_element = browser.find_element_by_tag_name("title")
                     save_fields(link, submitted_title=title_element.get_attribute("text"))
-            repeat_while_exception(get_title, timeout=10)
+            repeat_while_exception(get_title, timeout=10, raise_after_timeout=False)
 
             # check meta tags
             print "Checking meta tags."
