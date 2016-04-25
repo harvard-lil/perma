@@ -172,7 +172,7 @@ PIPELINE_JS = {
     },
     'single-link': {
         'source_filenames': (
-            'js/single-link.js',
+            'js/single-link.module.js',
 
         ),
         'output_filename': 'js/single-link-bundle.js',
