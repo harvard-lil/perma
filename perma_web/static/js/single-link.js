@@ -27,14 +27,14 @@ $(document).ready(function() {
             $this.addClass("disabled");
             $this.text("Updating ...");
 
-            apiRequest("PATCH", "/archives/" + archive.guid + "/", {is_private: !currently_private, private_reason: private_reason}, {
+            Helpers.apiRequest("PATCH", "/archives/" + archive.guid + "/", {is_private: !currently_private, private_reason: private_reason}, {
                 success: function(){
                     window.location.reload(true);
                 },
                 error: function(jqXHR){
                     $this.removeClass("disabled");
                     $this.text(prev_text);
-                    showAPIError(jqXHR);
+                    Helpers.showAPIError(jqXHR);
                 }
             });
         }
