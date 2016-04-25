@@ -144,12 +144,7 @@ PIPELINE_JS = {
         ),
         'output_filename': 'js/create-bundle.js',
     },
-    'landing': {
-        'source_filenames': (
-            'js/landing.js',
-        ),
-        'output_filename': 'js/landing-bundle.js',
-    },
+
     'map': {
         'source_filenames': (
             'vendors/raphael/raphael.js',
