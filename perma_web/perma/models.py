@@ -583,8 +583,11 @@ class Link(DeletableModel):
         Given a GUID, return the canonical version, with hyphens every 4 chars and all caps.
         So "a2b3c4d5" becomes "A2B3-C4D5".
         """
-        # handle legacy 10/11-char GUIDs
-        if '-' not in guid and (len(guid) == 10 or len(guid) == 11):
+        # handle legacy 9/10/11-char GUIDs
+        if '-' not in guid and len(guid) >= 9:
+            # handle common typo because legacy URLs start with zero
+            if guid[0] == 'O':
+                guid = guid.replace('O', '0', 1)
             return guid
 
         # uppercase and remove non-alphanumerics
