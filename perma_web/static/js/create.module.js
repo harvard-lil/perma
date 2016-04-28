@@ -75,7 +75,7 @@ CreateModule.linkNot = function (jqXHR) {
 
   if (jqXHR.status == 401) {
   // special handling if user becomes unexpectedly logged out
-    showAPIError(jqXHR);
+    Helpers.showAPIError(jqXHR);
   } else {
     var message = "";
     if (jqXHR.status == 400 && jqXHR.responseText) {
@@ -112,7 +112,7 @@ CreateModule.uploadNot = function (jqXHR) {
 
   // special handling if user becomes unexpectedly logged out
   if(jqXHR.status == 401){
-    showAPIError(jqXHR);
+    Helpers.showAPIError(jqXHR);
     return;
   }
   var reasons = [],
@@ -201,7 +201,7 @@ succeeds. */
 CreateModule.check_status = function () {
 
   // Check our status service to see if we have archiving jobs pending
-  var request = apiRequest("GET", "/archives/" + new_archive.guid + "/", {'cache': false});
+  var request = Helpers.apiRequest("GET", "/archives/" + new_archive.guid + "/", {'cache': false});
   var self = this;
   request.done(function(data) {
     var capturesPending = false,
@@ -390,7 +390,7 @@ CreateModule.setupEventHandlers = function () {
 CreateModule.init = function () {
   var self = this;
 
-  apiRequest("GET", "/user/organizations/", {limit: 300, order_by:'registrar'})
+  Helpers.apiRequest("GET", "/user/organizations/", {limit: 300, order_by:'registrar'})
     .success(function(data) {
       var $organization_select = $("#organization_select");
 

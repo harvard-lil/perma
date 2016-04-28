@@ -92,7 +92,9 @@ PIPELINE_JS = {
             'vendors/fastclick/fastclick.min.js',
             'vendors/jquery/jquery.actual.js',
             'js/error-handler.js',
-            'js/global.js',
+            'js/helpers/polyfill/string.trim.js',
+            'js/helpers/general.helpers.js',
+            'js/global.setup.js',
         ),
         'output_filename': 'js/global-bundle.js',
     },
@@ -142,12 +144,7 @@ PIPELINE_JS = {
         ),
         'output_filename': 'js/create-bundle.js',
     },
-    'landing': {
-        'source_filenames': (
-            'js/landing.js',
-        ),
-        'output_filename': 'js/landing-bundle.js',
-    },
+
     'map': {
         'source_filenames': (
             'vendors/raphael/raphael.js',
@@ -175,7 +172,7 @@ PIPELINE_JS = {
     },
     'single-link': {
         'source_filenames': (
-            'js/single-link.js',
+            'js/single-link.module.js',
 
         ),
         'output_filename': 'js/single-link-bundle.js',

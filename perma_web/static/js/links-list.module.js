@@ -50,7 +50,7 @@ LinksListModule.saveInput = function(inputElement, statusElement, name, callback
   timeouts[timeoutKey] = setTimeout(function () {
     var data = {};
     data[name] = inputElement.val();
-    var request = apiRequest("PATCH", '/archives/' + guid + '/', data).done(function(data){
+    var request = Helpers.apiRequest("PATCH", '/archives/' + guid + '/', data).done(function(data){
       statusElement.html('Saved!');
     });
     if (callback) request.done(callback);
@@ -120,7 +120,7 @@ LinksListModule.showFolderContents = function (folderID, query) {
   // Content fetcher.
   // This is wrapped in a function so it can be called repeatedly for infinite scrolling.
   function getNextContents() {
-    apiRequest("GET", endpoint, requestData).always(function (response) {
+    Helpers.apiRequest("GET", endpoint, requestData).always(function (response) {
         // same thing runs on success or error, since we get back success or error-displaying HTML
       showLoadingMessage = false;
       var links = response.objects;
