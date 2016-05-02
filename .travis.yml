@@ -28,6 +28,7 @@ install:
   - pip install coveralls
 before_script:
   - mysql -e 'CREATE DATABASE perma;'
+  - mysql -e 'CREATE DATABASE perma_cdxline;'
 
   # try to avoid mysql has gone away errors
   - mysql -e 'SET GLOBAL max_allowed_packet = 64*1024*1024;'
