@@ -301,8 +301,8 @@ class PermaCDXSource(CDXSource):
 
         filters = {
             'urlkey': query.key,
-            'link__is_unlisted': False,
-            'link__is_private': False,
+            'is_unlisted': False,
+            'is_private': False,
         }
         if query.params.get('guid'):
             filters['link_id'] = query.params['guid']
