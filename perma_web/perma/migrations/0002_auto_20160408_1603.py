@@ -11,10 +11,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='cdxline',
-            name='link',
-        ),
         migrations.AddField(
             model_name='cdxline',
             name='is_private',
@@ -24,10 +20,5 @@ class Migration(migrations.Migration):
             model_name='cdxline',
             name='is_unlisted',
             field=models.BooleanField(default=False),
-        ),
-        migrations.AddField(
-            model_name='cdxline',
-            name='link_id',
-            field=models.CharField(max_length=2100, null=True),
         ),
     ]
