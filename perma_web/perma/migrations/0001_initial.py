@@ -54,6 +54,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('urlkey', models.CharField(max_length=2100)),
                 ('raw', models.TextField()),
+                ('link_id', models.CharField(max_length=2100, null=True, db_index=True)),
+
             ],
         ),
         migrations.CreateModel(
@@ -326,11 +328,6 @@ class Migration(migrations.Migration):
             model_name='folder',
             name='parent',
             field=mptt.fields.TreeForeignKey(related_name='children', blank=True, to='perma.Folder', null=True),
-        ),
-        migrations.AddField(
-            model_name='cdxline',
-            name='link',
-            field=models.ForeignKey(related_name='cdx_lines', to='perma.Link', null=True),
         ),
         migrations.AddField(
             model_name='capture',
