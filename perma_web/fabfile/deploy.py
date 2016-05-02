@@ -29,6 +29,7 @@ def deploy(skip_backup=False):
     deploy_code(restart=False)
     pip_install()
     run_as_web_user("%s manage.py migrate" % env.PYTHON_BIN)
+    run_as_web_user("%s manage.py migrate --database=perma-cdxline" % env.PYTHON_BIN)
     run_as_web_user("%s manage.py collectstatic --noinput --clear" % env.PYTHON_BIN)
     restart_server()
     maintenance_mode_off()

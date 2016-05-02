@@ -24,6 +24,7 @@ class CDXRouter(object):
         Make sure only cdx models appear in the 'perma-cdxline'
         database.
         """
-        if model_name == 'cdxline':
-            return db == 'perma-cdxline'
-        return None
+        if db == 'perma-cdxline':
+           return model_name == 'cdxline'
+        else:
+           return model_name != 'cdxline'
