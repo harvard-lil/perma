@@ -252,9 +252,9 @@ class LinkUser(AbstractBaseUser):
             return self.registrar.organizations.all()
         if self.is_staff:
             return Organization.objects.all()
-            
+
         return Organization.objects.none()
-        
+
     def get_links_remaining(self):
         today = timezone.now()
 
@@ -295,7 +295,7 @@ class LinkUser(AbstractBaseUser):
             This is only used by the django admin for is_staff=True users.
         """
         return True
-        
+
     def has_limit(self):
         """ Does the user have a link creation limit? """
         return bool(not self.is_staff and not self.is_registrar_member() and not self.is_organization_member)
@@ -303,7 +303,7 @@ class LinkUser(AbstractBaseUser):
     def is_registrar_member(self):
         """ Is the user a member of a registrar? """
         return bool(self.registrar_id)
-        
+
     def has_registrar_pending(self):
         """ Has requested creation of registrar """
         return bool(self.pending_registrar)
@@ -536,6 +536,9 @@ class Link(DeletableModel):
             self.submitted_title = self.url_details.netloc
 
         initial_folder = kwargs.pop('initial_folder', None)
+
+        if self.tracker.has_changed('is_unlisted') or  self.tracker.has_changed('is_private')
+            cdxlines = CDXLine.objects.filter(link_id=self.pk).update(is_unlisted=self.is_unlisted, is_private=self.is_private)
 
         if not self.pk:
             if not self.archive_timestamp:
@@ -898,7 +901,7 @@ class MinuteStats(models.Model):
     """
 
     creation_timestamp = models.DateTimeField(auto_now_add=True)
-    
+
     links_sum = models.IntegerField(default=0)
     users_sum = models.IntegerField(default=0)
     organizations_sum = models.IntegerField(default=0)
