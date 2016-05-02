@@ -537,7 +537,7 @@ class Link(DeletableModel):
 
         initial_folder = kwargs.pop('initial_folder', None)
 
-        if self.tracker.has_changed('is_unlisted') or  self.tracker.has_changed('is_private')
+        if self.tracker.has_changed('is_unlisted') or self.tracker.has_changed('is_private'):
             cdxlines = CDXLine.objects.filter(link_id=self.pk).update(is_unlisted=self.is_unlisted, is_private=self.is_private)
 
         if not self.pk:
