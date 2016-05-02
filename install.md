@@ -102,9 +102,11 @@ You'll need a Django friendly database. SQLite is not currently supported. We re
 
 If you want to use MySQL, something like the following can be used to create a new user and a new database:
 
-	mysql -u root -psomepasshere
-	mysql> create database perma character set utf8; grant all on perma.* to perma@'localhost' identified by 'perma';
-	mysql -u perma -pperma perma
+    mysql -u root -psomepasshere
+    mysql> create database perma character set utf8; grant all on perma.* to perma@'localhost' identified by 'perma';
+    mysql> create database perma_cdxline character set utf8; grant all on perma.* to perma@'localhost' identified by 'perma';
+    mysql -u perma -pperma
+    mysql> show databases;
 
 ### Settings
 
