@@ -33,7 +33,7 @@ if os.environ.get('JAWSDB_URL', False):
     # JawsDB
     import dj_database_url
     DATABASES['default'] = dj_database_url.config('JAWSDB_URL')
-    DATABASES['perma-cdxline'] = dj_database_url.config('JAWSDB_URL_CDXLINE')
+    DATABASES['perma-cdxline'] = dj_database_url.config('JAWSDB_BROWN_URL')
 else:
     # Amazon RDS
     DATABASES['default']['OPTIONS'] = {'ssl': {'ca': os.path.join(PROJECT_ROOT, 'amazon-rds-combined-ca-bundle.pem')}}
