@@ -83,6 +83,7 @@ def init_db():
         Run syncdb, apply migrations, and import fixtures for new dev database.
     """
     local("python manage.py migrate")
+    local("python manage.py migrate --database=perma-cdxline")
     local("python manage.py loaddata fixtures/sites.json fixtures/users.json fixtures/folders.json")
         
         
