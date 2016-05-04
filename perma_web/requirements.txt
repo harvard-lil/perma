@@ -13,7 +13,7 @@ smhasher==0.150.1
 pytz==2013b
 django-mptt==0.8.0
 Werkzeug==0.9.4
-Fabric==1.10.2
+Fabric==1.11.1
 pexpect==3.1
 coverage==3.7.1
 selenium==2.47.3
