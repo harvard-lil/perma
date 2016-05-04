@@ -35,6 +35,15 @@ If you are using Vagrant, all of your logs will end up in /vagrant/services/logs
 
 ## Code style and techniques
 
+### Python requirements
+
+Top-level requirements should go in `requirements.in`. If you change that file, you should then regenerate the
+`requirements.txt` file with:
+
+    pip-compile --output-file requirements.txt requirements.in
+
+This ensures that our sub-requirements are always pinned to fixed versions.
+
 ### User roles and permissions tests
 
 We have several types of users:
@@ -397,6 +406,6 @@ If you're on OS X you might need to adjust an [environment variable](http://docs
 
 Use [Handlebars](http://handlebarsjs.com/) when injecting markup using JavaScript.
 
-Track issues using [GitHub Issues](https://github.com/harvard-lil/perma/issues?milestone=15&state=open).
+Track issues using [GitHub Issues](https://github.com/harvard-lil/perma/issues).
 
 Issue pull requests when you've got a commit ready.
