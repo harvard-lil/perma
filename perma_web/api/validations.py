@@ -3,7 +3,6 @@ from tastypie.validation import Validation
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from netaddr import IPAddress, IPNetwork
-from PyPDF2 import PdfFileReader
 import imghdr
 
 from django.conf import settings
@@ -19,10 +18,7 @@ file_extension_lookup = {
 }
 
 def validate_pdf(f):
-    try:
-        return PdfFileReader(f).numPages >= 0
-    except Exception:
-        return False
+    return '%PDF-' in f.read(10)
 
 # Map allowed mime types to new file extensions and validation functions.
 # We manually pick the new extension instead of using MimeTypes().guess_extension,

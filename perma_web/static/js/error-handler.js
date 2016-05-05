@@ -1,6 +1,7 @@
 var ErrorHandler = {};
 
 ErrorHandler.notify = function(message, error) {
+  error = error || "ErrorHandler notified, error not found";
   var err = new Error(error);
   error_object = {
     'current_url': window.location.pathname,

@@ -126,23 +126,23 @@ FolderTreeModule.setSelectedFolder = function (node) {
 
 
 FolderTreeModule.createFolder = function (parentFolderID, newName) {
-  return apiRequest("POST", "/folders/" + parentFolderID + "/folders/", {name: newName});
+  return Helpers.apiRequest("POST", "/folders/" + parentFolderID + "/folders/", {name: newName});
 }
 
 FolderTreeModule.renameFolder = function (folderID, newName) {
-  return apiRequest("PATCH", "/folders/" + folderID + "/", {name: newName});
+  return Helpers.apiRequest("PATCH", "/folders/" + folderID + "/", {name: newName});
 }
 
 FolderTreeModule.moveFolder = function (parentID, childID) {
-  return apiRequest("PUT", "/folders/" + parentID + "/folders/" + childID + "/");
+  return Helpers.apiRequest("PUT", "/folders/" + parentID + "/folders/" + childID + "/");
 }
 
 FolderTreeModule.deleteFolder = function (folderID) {
-  return apiRequest("DELETE", "/folders/" + folderID + "/");
+  return Helpers.apiRequest("DELETE", "/folders/" + folderID + "/");
 }
 
 FolderTreeModule.moveLink = function (folderID, linkID) {
-  return apiRequest("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function(data){
+  return Helpers.apiRequest("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function(data){
     $(window).trigger("FolderTreeModule.updateLinksRemaining", data.links_remaining);
     // once we're done moving the link, hide it from the current folder
     $('.item-row[link_id="'+linkID+'"]').closest('.item-container').remove();
