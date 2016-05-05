@@ -7,18 +7,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('perma', '0032_auto_20160226_1946'),
+        ('perma', '0001_initial'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='historicallink',
-            name='uploaded_to_internet_archive',
+            model_name='cdxline',
+            name='is_private',
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='link',
-            name='uploaded_to_internet_archive',
+            model_name='cdxline',
+            name='is_unlisted',
             field=models.BooleanField(default=False),
         ),
     ]

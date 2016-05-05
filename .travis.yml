@@ -17,7 +17,7 @@ before_install:
   - wget https://s3.amazonaws.com/perma/phantomjs-2.1.1-linux-x86_64.tar.bz2 -O $PWD/travis-phantomjs/phantomjs-2.1.1-linux-x86_64.tar.bz2
   - tar -xvf $PWD/travis-phantomjs/phantomjs-2.1.1-linux-x86_64.tar.bz2 -C $PWD/travis-phantomjs
   - export PATH=$PWD/travis-phantomjs/phantomjs-2.1.1-linux-x86_64/bin:$PATH
-  - cp services/travis/settings.py perma_web/perma/settings/
+  - cp perma_web/perma/settings/deployments/settings_travis.py perma_web/perma/settings/settings.py
   - cd perma_web
 
 install:
@@ -28,6 +28,7 @@ install:
   - pip install coveralls
 before_script:
   - mysql -e 'CREATE DATABASE perma;'
+  - mysql -e 'CREATE DATABASE perma_cdxline;'
 
   # try to avoid mysql has gone away errors
   - mysql -e 'SET GLOBAL max_allowed_packet = 64*1024*1024;'

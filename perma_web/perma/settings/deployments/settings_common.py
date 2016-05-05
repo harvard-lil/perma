@@ -19,9 +19,21 @@ DATABASES = {
         'PORT': '3306',                      # Set to empty string for default.
         'OPTIONS': {
             "charset": "utf8",
-        },
-    }
+        }
+
+    },
+    'perma-cdxline': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'perma_cdxline',
+        'USER': 'perma',
+        'PASSWORD': 'perma',
+        'HOST': '',
+        'PORT': '3306',
+    },
 }
+
+# https://docs.djangoproject.com/en/1.9/topics/db/multi-db/#using-routers
+DATABASE_ROUTERS = ['perma.cdx_router.CDXRouter']
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name

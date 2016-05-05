@@ -2,7 +2,7 @@ import os
 import dateutil.parser
 from .utils import ApiResourceTransactionTestCase, TEST_ASSETS_DIR
 from api.resources import LinkResource, CurrentUserLinkResource, PublicLinkResource
-from perma.models import Link, LinkUser
+from perma.models import Link, LinkUser, CDXLine
 
 
 # Use a TransactionTestCase here because archive capture is threaded
@@ -107,13 +107,14 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
                                    user=self.org_member)
 
         link = Link.objects.get(guid=obj['guid'])
+        cdxlines = CDXLine.objects.filter(link_id=obj['guid'])
         self.assertValidCapture(link.screenshot_capture)
         self.assertValidCapture(link.primary_capture)
 
         # test favicon captured via meta tag
         self.assertIn("favicon_meta.ico", link.favicon_capture.url)
 
-        self.assertTrue(link.cdx_lines.count() > 0)
+        self.assertTrue(len(cdxlines) > 0)
         self.assertFalse(link.is_private)
         self.assertEqual(link.submitted_title, "Test title.")
 

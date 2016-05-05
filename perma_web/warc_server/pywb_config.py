@@ -112,7 +112,8 @@ class PermaRoute(archivalrouter.Route):
                 # A: the warc capture hasn't been generated OR
                 # B: we know other cdx lines have already been generated
                 #    and the requested line is simply missing
-                lines = list(link.cdx_lines.all())
+                lines = CDXLine.objects.filter(link_id=link.guid)
+
                 if not lines:
                     lines = CDXLine.objects.create_all_from_link(link)
 
@@ -300,8 +301,8 @@ class PermaCDXSource(CDXSource):
 
         filters = {
             'urlkey': query.key,
-            'link__is_unlisted': False,
-            'link__is_private': False,
+            'is_unlisted': False,
+            'is_private': False,
         }
         if query.params.get('guid'):
             filters['link_id'] = query.params['guid']
