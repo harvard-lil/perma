@@ -110,6 +110,7 @@ This will create a migration file for you on disk, something like,
 Even though you've changed your models file and created a migration (just a python file on disk), your database remains unchanged. You'll need to apply the migration to update your database,
 
     $ ./manage.py migrate
+    $ ./manage.py migrate --database=perma-cdxline
 
 Now, your database, your model, and your migration should all be at the same point. You can list your migrations using the list command,
 

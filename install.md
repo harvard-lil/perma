@@ -131,6 +131,11 @@ You should have the pieces in place. Let's create the tables in your database us
 Then apply migrations:
 
     $ python manage.py migrate
+    $ python manage.py migrate --database=perma-cdxline
+
+For deployments, you should set an index on the urlkey field in the perma_cdxline table (this will make cdxline lookups faster):
+    mysql -u perma -pperma perma_cdxline
+    mysql> alter table perma_cdxline add key perma_cdxline_urlkey (urlkey(255));
 
 If you want to play with the admin views, load the user data fixtures:
 
