@@ -7,9 +7,12 @@ DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 DATABASES['default']['HOST'] = '127.0.0.1'
-DATABASES['default']['NAME'] = 'perma'
 DATABASES['default']['USER'] = 'root'
 DATABASES['default']['PASSWORD'] = ''
+
+DATABASES['perma-cdxline']['HOST'] = '127.0.0.1'
+DATABASES['perma-cdxline']['USER'] = 'root'
+DATABASES['perma-cdxline']['PASSWORD'] = ''
 
 # To populate the from field of emails sent from Perma
 DEFAULT_FROM_EMAIL = 'email@example.com'
