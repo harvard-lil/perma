@@ -1,4 +1,5 @@
-from .settings_prod import *
+# this file will be moved by heroku-buildpack-perma to ../settings.py
+from .deployments.settings_prod import *
 
 ###########
 # ROLLBAR #
