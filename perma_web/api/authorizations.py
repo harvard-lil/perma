@@ -2,6 +2,7 @@ from perma.models import Link
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.exceptions import Unauthorized, BadRequest
 
+
 class FolderAuthorization(ReadOnlyAuthorization):
 
     def can_access(self, user, obj):
@@ -94,7 +95,7 @@ class AuthenticatedLinkAuthorization(ReadOnlyAuthorization):
         if not bundle.request.user.is_authenticated():
             raise Unauthorized()
 
-        # If we want to patch title or another field in the future, 
+        # If we want to patch title or another field in the future,
         # we might want to uncomment this (?).
         #if bundle.request.method == 'PATCH':
         #    return True
@@ -106,38 +107,35 @@ class AuthenticatedLinkAuthorization(ReadOnlyAuthorization):
 
 class CurrentUserAuthorization(ReadOnlyAuthorization):
 
-    def all_detail(self, object_list, bundle):
+    def read_list(self, object_list, bundle):
         if not bundle.request.user.is_authenticated():
             raise Unauthorized()
-
-        return True
-
-    def all_list(self, object_list, bundle):
-        if not bundle.request.user.is_authenticated():
-            raise Unauthorized()
-
         return object_list.filter(created_by=bundle.request.user)
 
     def read_detail(self, object_list, bundle):
         # It's a /schema request
         if bundle.obj.pk is u'':
             return True
-
-        return self.all_detail(object_list, bundle)
-
-    create_detail = update_detail = delete_detail = all_detail
-    read_list = all_list  # create_list = update_list = delete_list = disallowed system wide
+        if not bundle.request.user.is_authenticated():
+            raise Unauthorized()
+        return bundle.obj.created_by == bundle.request.user
 
 
 class CurrentUserOrganizationAuthorization(CurrentUserAuthorization):
 
-    def all_list(self, object_list, bundle):
+    def read_list(self, object_list, bundle):
         if not bundle.request.user.is_authenticated():
             raise Unauthorized()
-
         return object_list.accessible_to(bundle.request.user)
 
-    read_list = all_list  # create_list = update_list = delete_list = disallowed system wide
+    def read_detail(self, object_list, bundle):
+        # It's a /schema request
+        if bundle.obj.pk is u'':
+            return True
+        if not bundle.request.user.is_authenticated():
+            raise Unauthorized()
+        return bundle.request.user.can_edit_organization(bundle.obj)
+
 
 class LinkAuthorization(AuthenticatedLinkAuthorization):
 
