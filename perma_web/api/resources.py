@@ -26,7 +26,8 @@ from perma.models import (LinkUser,
                           Folder,
                           Organization,
                           Registrar,
-                          Capture)
+                          Capture,
+                          CaptureJob)
 
 from authentication import (DefaultAuthentication,
                             CurrentUserAuthentication)
@@ -34,8 +35,11 @@ from authentication import (DefaultAuthentication,
 from authorizations import (FolderAuthorization,
                             LinkAuthorization,
                             CurrentUserAuthorization,
-                            CurrentUserOrganizationAuthorization, PublicLinkAuthorization,
-                            AuthenticatedLinkAuthorization, CurrentUserNestedAuthorization)
+                            CurrentUserOrganizationAuthorization,
+                            PublicLinkAuthorization,
+                            AuthenticatedLinkAuthorization,
+                            CurrentUserNestedAuthorization,
+                            CurrentUserCaptureJobAuthorization)
 
 from serializers import DefaultSerializer
 
@@ -260,6 +264,31 @@ class FolderResource(DefaultResource):
             super(FolderResource, self).obj_update(bundle, skip_errors, **kwargs)
         except InvalidMove as e:
             self.raise_error_response(bundle, {"parent":e.args[0]})
+
+
+class CaptureJobResource(DefaultResource):
+    guid = fields.CharField(attribute='link_id')
+    status = fields.CharField(attribute='status')
+    attempt = fields.IntegerField(attribute='attempt')
+    step_count = fields.FloatField(attribute='step_count')
+    step_description = fields.CharField(attribute='step_description', blank=True, null=True)
+    capture_start_time = fields.DateTimeField(attribute='capture_start_time', blank=True, null=True)
+    capture_end_time = fields.DateTimeField(attribute='capture_end_time', blank=True, null=True)
+
+    # calculated fields
+    queue_position = fields.DateTimeField(attribute='queue_position')
+
+    class Meta(DefaultResource.Meta):
+        resource_name = 'capture_jobs'
+        queryset = CaptureJob.objects.all()
+        detail_uri_name = 'link_id'
+
+    def prepend_urls(self):
+        """ URLs should match on CaptureJob.link_id as well as CaptureJob.id. """
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<link_id>[\w\d-]+)/?$" % self._meta.resource_name,
+                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+        ]
 
 
 class CaptureResource(DefaultResource):
@@ -596,3 +625,9 @@ class CurrentUserOrganizationResource(CurrentUserNestedResource, OrganizationRes
     class Meta(CurrentUserNestedResource.Meta, OrganizationResource.Meta):
         resource_name = 'user/' + OrganizationResource.Meta.resource_name
         authorization = CurrentUserOrganizationAuthorization()
+
+
+class CurrentUserCaptureJobResource(CurrentUserNestedResource, CaptureJobResource):
+    class Meta(CurrentUserNestedResource.Meta, CaptureJobResource.Meta):
+        resource_name = 'user/' + CaptureJobResource.Meta.resource_name
+        authorization = CurrentUserCaptureJobAuthorization()

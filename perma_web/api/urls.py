@@ -9,7 +9,9 @@ from api.resources import (LinkResource,
                            CurrentUserResource,
                            CurrentUserLinkResource,
                            CurrentUserFolderResource,
-                           CurrentUserOrganizationResource, PublicLinkResource)
+                           CurrentUserOrganizationResource,
+                           PublicLinkResource,
+                           CurrentUserCaptureJobResource)
 
 ### collateral ###
 
@@ -41,10 +43,12 @@ v1_api.register(FolderResource())
 # /user/archives
 # /user/folders
 # /user/organizations
+# /user/capture_jobs
 v1_api.register(CurrentUserResource())
 v1_api.register(CurrentUserLinkResource())
 v1_api.register(CurrentUserFolderResource())
 v1_api.register(CurrentUserOrganizationResource())
+v1_api.register(CurrentUserCaptureJobResource())
 
 ### v1a ###
 

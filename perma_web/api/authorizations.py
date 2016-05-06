@@ -150,6 +150,22 @@ class CurrentUserOrganizationAuthorization(CurrentUserNestedAuthorization):
         return bundle.request.user.can_edit_organization(bundle.obj)
 
 
+class CurrentUserCaptureJobAuthorization(CurrentUserNestedAuthorization):
+
+    def read_list(self, object_list, bundle):
+        if not bundle.request.user.is_authenticated():
+            raise Unauthorized()
+        return object_list.filter(link__created_by_id=bundle.request.user.pk, status__in=['pending', 'in_progress'])
+
+    def read_detail(self, object_list, bundle):
+        # It's a /schema request
+        if bundle.obj.pk is None:
+            return True
+        if not bundle.request.user.is_authenticated():
+            raise Unauthorized()
+        return bundle.obj.link.created_by == bundle.request.user
+
+
 class LinkAuthorization(AuthenticatedLinkAuthorization):
 
     def can_access(self, user, obj):
