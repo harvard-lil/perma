@@ -35,7 +35,7 @@ from authorizations import (FolderAuthorization,
                             LinkAuthorization,
                             CurrentUserAuthorization,
                             CurrentUserOrganizationAuthorization, PublicLinkAuthorization,
-                            AuthenticatedLinkAuthorization)
+                            AuthenticatedLinkAuthorization, CurrentUserNestedAuthorization)
 
 from serializers import DefaultSerializer
 
@@ -572,7 +572,7 @@ class CurrentUserResource(LinkUserResource):
 class CurrentUserNestedResource(object):
     class Meta(DefaultResource.Meta):
         authentication = CurrentUserAuthentication()
-        authorization = CurrentUserAuthorization()
+        authorization = CurrentUserNestedAuthorization()
 
     def obj_create(self, bundle, **kwargs):
         """

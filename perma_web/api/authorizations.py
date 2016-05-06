@@ -74,7 +74,7 @@ class PublicLinkAuthorization(ReadOnlyAuthorization):
 
     def read_detail(self, object_list, bundle):
         # It's a /schema request
-        if bundle.obj.pk is u'':
+        if bundle.obj.pk is None:
             return True
 
         return bundle.obj.is_discoverable()
@@ -89,7 +89,7 @@ class AuthenticatedLinkAuthorization(ReadOnlyAuthorization):
 
     def read_detail(self, object_list, bundle):
         # It's a /schema request
-        if bundle.obj.pk is u'':
+        if bundle.obj.pk is None:
             return True
 
         if not bundle.request.user.is_authenticated():
@@ -110,18 +110,31 @@ class CurrentUserAuthorization(ReadOnlyAuthorization):
     def read_list(self, object_list, bundle):
         if not bundle.request.user.is_authenticated():
             raise Unauthorized()
+        return object_list.empty()
+
+    def read_detail(self, object_list, bundle):
+        # It's a /schema request
+        if bundle.obj.pk is None:
+            return True
+        return bundle.obj == bundle.request.user
+
+class CurrentUserNestedAuthorization(ReadOnlyAuthorization):
+
+    def read_list(self, object_list, bundle):
+        if not bundle.request.user.is_authenticated():
+            raise Unauthorized()
         return object_list.filter(created_by=bundle.request.user)
 
     def read_detail(self, object_list, bundle):
         # It's a /schema request
-        if bundle.obj.pk is u'':
+        if bundle.obj.pk is None:
             return True
         if not bundle.request.user.is_authenticated():
             raise Unauthorized()
         return bundle.obj.created_by == bundle.request.user
 
 
-class CurrentUserOrganizationAuthorization(CurrentUserAuthorization):
+class CurrentUserOrganizationAuthorization(CurrentUserNestedAuthorization):
 
     def read_list(self, object_list, bundle):
         if not bundle.request.user.is_authenticated():
@@ -130,7 +143,7 @@ class CurrentUserOrganizationAuthorization(CurrentUserAuthorization):
 
     def read_detail(self, object_list, bundle):
         # It's a /schema request
-        if bundle.obj.pk is u'':
+        if bundle.obj.pk is None:
             return True
         if not bundle.request.user.is_authenticated():
             raise Unauthorized()
