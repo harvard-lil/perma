@@ -13,7 +13,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                 ]
 
     def setUp(self):
-        super(UserManagementViewsTestCase, self).setUpClass()
+        super(UserManagementViewsTestCase, self).setUp()
 
         self.admin_user = LinkUser.objects.get(pk=1)
         self.registrar_member = LinkUser.objects.get(pk=2)
