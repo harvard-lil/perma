@@ -33,10 +33,6 @@ urlpatterns = patterns('perma.views',
     
     #Developer docs
     url(r'^docs/developer/?$', DirectTemplateView.as_view(template_name='docs/developer/index.html'), name='dev_docs'),
-    url(r'^docs/developer/public/?$', DirectTemplateView.as_view(template_name='docs/developer/public.html'), name='docs_developer_public'),
-    url(r'^docs/developer/user-profile/?$', DirectTemplateView.as_view(template_name='docs/developer/user-profile.html'), name='docs_developer_user_profile'),
-    url(r'^docs/developer/archives/?$', DirectTemplateView.as_view(template_name='docs/developer/archives.html'), name='docs_developer_archives'),
-    url(r'^docs/developer/folders/?$', DirectTemplateView.as_view(template_name='docs/developer/folders.html'), name='docs_developer_folders'),
 
     #Services
     url(r'^service/email-confirm/?$', 'service.email_confirm', name='service_email_confirm'),
