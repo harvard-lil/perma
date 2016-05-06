@@ -481,7 +481,8 @@ TEMPLATE_VISIBLE_SETTINGS = (
 
 
 CAPTURE_BROWSER = 'PhantomJS'  # or 'Chrome' or 'Firefox'
-
+# Default user agent is the Chrome on Linux that's most like PhantomJS 2.1.1.
+CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.37 Safari/537.36"
 
 ### Tastypie
 # http://django-tastypie.readthedocs.org/en/latest/settings.html

@@ -477,9 +477,7 @@ class LinkQuerySet(QuerySet):
 LinkManager = DeletableManager.from_queryset(LinkQuerySet)
 
 
-HEADER_CHECK_TIMEOUT = 10
-# This is the PhantomJS default agent
-USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X) AppleWebKit/534.34 (KHTML, like Gecko) PhantomJS/1.9.0 (development) Safari/534.34"
+HEADER_CHECK_TIMEOUT = 10  # keeping this setting out here allows tests to override it for speed
 
 class Link(DeletableModel):
     """
@@ -531,7 +529,7 @@ class Link(DeletableModel):
             return requests.get(
                 self.safe_url,
                 verify=False,  # don't check SSL cert?
-                headers={'User-Agent': USER_AGENT, 'Accept-Encoding': '*'},
+                headers={'User-Agent': settings.CAPTURE_USER_AGENT, 'Accept-Encoding': '*'},
                 timeout=HEADER_CHECK_TIMEOUT,
                 stream=True  # we're only looking at the headers
             ).headers
