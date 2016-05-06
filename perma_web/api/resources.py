@@ -333,6 +333,7 @@ class BaseLinkResource(MultipartResource, DefaultResource):
     creation_timestamp = fields.DateTimeField(attribute='creation_timestamp', readonly=True)
     url = fields.CharField(attribute='submitted_url')
     title = fields.CharField(attribute='submitted_title', blank=True)
+    warc_size = fields.IntegerField(attribute='warc_size', blank=True, null=True)
     captures = fields.ToManyField(CaptureResource, 'captures', readonly=True, full=True)
 
     class Meta(DefaultResource.Meta):

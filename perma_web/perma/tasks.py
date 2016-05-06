@@ -566,6 +566,10 @@ def proxy_capture(self, link_guid):
                 status='success',
                 content_type=content_type,
             )
+            save_fields(
+                link,
+                warc_size=default_storage.size(link.warc_storage_file())
+            )
             capture_job.mark_completed()
 
             # We only save the Capture for the favicon once the warc is stored,

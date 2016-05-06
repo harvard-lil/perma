@@ -493,6 +493,7 @@ class Link(DeletableModel):
     folders = models.ManyToManyField(Folder, related_name='links', blank=True)
     notes = models.TextField(blank=True)
     uploaded_to_internet_archive = models.BooleanField(default=False)
+    warc_size = models.IntegerField(blank=True, null=True)
 
     is_private = models.BooleanField(default=False)
     private_reason = models.CharField(max_length=10, blank=True, null=True, choices=(('policy','Robots.txt or meta tag'),('user','At user direction'),('takedown','At request of content owner')))
