@@ -350,6 +350,10 @@ class LinkUser(AbstractBaseUser):
     def can_edit_registrar(self, registrar):
         return self.is_staff or self.registrar == registrar
 
+    def can_edit_organization(self, organization):
+        return self.organizations.filter(pk=organization.pk).exists()
+
+
 # special history tracking for custom user object -- see http://django-simple-history.readthedocs.org/en/latest/reference.html
 simple_history.register(LinkUser)
 
