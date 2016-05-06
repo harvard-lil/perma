@@ -74,7 +74,7 @@ class PublicLinkAuthorization(ReadOnlyAuthorization):
 
     def read_detail(self, object_list, bundle):
         # It's a /schema request
-        if bundle.obj.pk is None:
+        if bundle.obj.pk == u'':
             return True
 
         return bundle.obj.is_discoverable()
@@ -89,7 +89,7 @@ class AuthenticatedLinkAuthorization(ReadOnlyAuthorization):
 
     def read_detail(self, object_list, bundle):
         # It's a /schema request
-        if bundle.obj.pk is None:
+        if bundle.obj.pk == u'':
             return True
 
         if not bundle.request.user.is_authenticated():
