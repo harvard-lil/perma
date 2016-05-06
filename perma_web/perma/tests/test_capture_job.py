@@ -27,7 +27,10 @@ class CaptureJobTestCase(PermaTestCase):
 
         self.user_one = LinkUser.objects.get(pk=1)
         self.user_two = LinkUser.objects.get(pk=2)
-        self.maxDiff = None
+
+        self.maxDiff = None  # let assertListEqual compare large lists
+
+        CaptureJob.clear_cache()  # reset cache (test cases don't reset cache keys automatically)
 
     ### HELPERS ###
 
@@ -43,6 +46,7 @@ class CaptureJobTestCase(PermaTestCase):
 
     def test_job_queue_order(self):
         """ Jobs should be processed round-robin, one per user. """
+
         jobs = [
             create_capture_job(self.user_one),
             create_capture_job(self.user_one),

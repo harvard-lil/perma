@@ -207,7 +207,7 @@ class ProxyCaptureTask(Task):
     """
     abstract = True
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
-        if self.request.retries == 0:
+        if self.request.retries == 0 and status != 'SUCCESS':
             link_guid = args[0] if args else kwargs['link_guid']
             Capture.objects.filter(link_id=link_guid, status='pending').update(status='failed')
             CaptureJob.objects.get(link_id=link_guid).mark_completed('failed')

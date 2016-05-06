@@ -928,6 +928,11 @@ class CaptureJob(models.Model):
                 self.add_to_queue(job_queues)
 
     @classmethod
+    def clear_cache(cls):
+        """ Wipe the queue cache -- mostly useful for tests. """
+        cache.delete(cls.CACHE_KEY)
+
+    @classmethod
     @contextmanager
     def get_job_queues(cls):
         """
