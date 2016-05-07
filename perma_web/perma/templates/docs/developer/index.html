@@ -258,27 +258,6 @@ Welcome to the Perma.cc developer guide.
 	</div>
 </div>
 
-<div class="container cont-reading cont-fixed" id="developer-capture-jobs">
-  <div class="row">
-    {% include "docs/developer/toc.html" with section="capture-jobs" %}
-
-		<div class="col-sm-8 docs reading-body">
-			<h2 class="body-ah">Capture Jobs</h2>
-
-      <p class="body-text">The Capture Jobs API helps you monitor the capture progress of recently submitted links.</p>
-      <p class="body-text">The base resource for this API is <code>https://api.{{ request.get_host }}/v1/capture_jobs/</code></p>
-
-      <h3 id="list-pending-jobs" class="body-bh">List pending jobs</h3>
-      <p class="body-text">List all of your pending or in_progress capture jobs using a GET</p>
-      <pre>curl -v https://api.{{ request.get_host }}/v1/capture_jobs/?api_key=your-api-key</pre>
-
-			<h3 id="view-capture-details" class="body-bh">View capture job details</h3>
-			<p class="body-text">View capture status for a particular link by GUID using a GET.</p>
-		  <pre>curl -v https://api.{{ request.get_host }}/v1/capture_jobs/ABCD-1234/?api_key=your-api-key</pre>
-		</div>
-	</div>
-</div>
-
 {% endblock %}
 
 {% block scripts %}
