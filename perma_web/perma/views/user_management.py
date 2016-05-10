@@ -10,7 +10,7 @@ from tastypie.models import ApiKey
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
 from django.contrib.auth import views as auth_views
 from django.contrib.sites.shortcuts import get_current_site
 from django.db.models import Count, Max, Sum
@@ -25,19 +25,16 @@ from django.core.context_processors import csrf
 from django.contrib import messages
 
 from perma.forms import (
-    RegistrarForm, 
-    OrganizationWithRegistrarForm, 
+    RegistrarForm,
+    OrganizationWithRegistrarForm,
     OrganizationForm,
-    CreateUserForm,
+    UserForm,
     CreateUserFormWithRegistrar,
     CreateUserFormWithOrganization,
     CreateUserFormWithCourt,
     CreateUserFormWithUniversity,
     UserAddRegistrarForm,
     UserAddOrganizationForm,
-    UserRegForm,
-    UserFormSelfEdit, 
-    SetPasswordForm, 
 )
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob
 from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_admin_email, filter_or_null_join, \
@@ -587,12 +584,9 @@ def list_users_in_group(request, group_name):
     if group_name == 'registrar_user':
         form = CreateUserFormWithRegistrar(form_data, prefix="a")
     elif group_name == 'organization_user':
-        if is_registry:
-            form = CreateUserFormWithOrganization(form_data, prefix="a")
-        elif is_registrar:
-            form = CreateUserFormWithOrganization(form_data, prefix="a", registrar_id=request.user.registrar_id)
+        CreateUserFormWithOrganization(form_data, current_user=request.user, prefix="a")
     if not form:
-        form = CreateUserForm(form_data, prefix = "a")
+        form = UserForm(form_data, prefix ="a")
     if request.method == 'POST':
         if form.is_valid():
             new_user = form.save()
@@ -662,85 +656,48 @@ def organization_user_add_user(request):
         target_user = LinkUser.objects.get(email=user_email)
     except LinkUser.DoesNotExist:
         target_user = None
-        
+
     form = None
-    form_data = request.POST or None
-    if target_user == None:
-        if request.user.is_registrar_member():
-            form = CreateUserFormWithOrganization(form_data, prefix = "a", initial={'email': user_email}, registrar_id=request.user.registrar_id)
-        elif request.user.is_organization_member:
-            form = CreateUserFormWithOrganization(form_data, prefix = "a", initial={'email': user_email}, org_member_id=request.user.pk)
+
+    # make sure that admin/registrar users aren't added to individual orgs
+    if not target_user or (not target_user.is_staff and not target_user.is_registrar_member()):
+
+        form_data = request.POST if request.method == 'POST' else None
+        if target_user is None:
+            form = CreateUserFormWithOrganization(form_data, current_user=request.user, prefix = "a", initial={'email': user_email})
         else:
-            form = CreateUserFormWithOrganization(form_data, prefix = "a", initial={'email': user_email})
-    else:
-        if request.user.is_registrar_member():
+            form = UserAddOrganizationForm(form_data, current_user=request.user, prefix = "a", instance=target_user)
 
-            # First, do a little error checking. This target user might already
-            # be in each org admined by the user
-            orgs = Organization.objects.filter(registrar=request.user.registrar).exclude(pk__in=target_user.organizations.all())
+        is_new_user = False
 
-            if len(orgs) > 0:
-                form = UserAddOrganizationForm(form_data, prefix = "a", registrar_id=request.user.registrar_id, target_user_id=target_user.pk)
-            else:
-                messages.add_message(request, messages.ERROR, '<h4>Not added.</h4> <strong>%s</strong> is already a member of all your organizations.' % target_user.email, extra_tags='safe')
+        if request.method == 'POST':
+            if form.is_valid():
+
+                if target_user == None:
+                    target_user = form.save()
+                    is_new_user = True
+
+                org = form.cleaned_data['organizations'][0]
+                target_user.organizations.add(org)
+                target_user.save()
+
+                if is_new_user:
+                    target_user.is_active = False
+                    email_new_user(request, target_user)
+                    messages.add_message(request, messages.SUCCESS, '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % target_user.email, extra_tags='safe')
+                else:
+                    email_new_organization_user(request, target_user, org)
+                    messages.add_message(request, messages.SUCCESS, '<h4>Success!</h4> <strong>%s</strong> is now a member of %s.' % (target_user.email, org), extra_tags='safe')
+
                 return HttpResponseRedirect(reverse('user_management_manage_organization_user'))
 
-        elif request.user.is_organization_member:
-
-            # First, do a little error checking. This target user might already
-            # be in each org admined by the user
-            orgs = request.user.organizations.all() | target_user.organizations.all()
-            orgs = orgs.exclude(pk__in=target_user.organizations.all())
-
-            if len(orgs) > 0:
-                form = UserAddOrganizationForm(form_data, prefix = "a", org_member_id=request.user.pk, target_user_id=target_user.pk)
-            else:
-                messages.add_message(request, messages.ERROR, '<h4>Not added.</h4> <strong>%s</strong> is already a member of all your organizations.' % target_user.email, extra_tags='safe')
-                return HttpResponseRedirect(reverse('user_management_manage_organization_user'))
-        else:
-            # User is registry member
-            # and we're not going to bother to check if the user is already a
-            # member of all orgs. That's a crazy corner case.
-
-            form = UserAddOrganizationForm(form_data, prefix = "a", target_user_id=target_user.pk)
-
-
-            
-    context = {'this_page': 'users_organization_users', 'user_email': user_email, 'form': form, 'target_user': target_user}
-
-    is_new_user = False
-
-    if request.method == 'POST':
-        if ((form and form.is_valid()) or form == None):
-
-            if target_user == None:
-                target_user = form.save()
-                is_new_user = True
-        
-            if is_new_user:
-                target_user.is_active = False
-                email_new_user(request, target_user)
-                messages.add_message(request, messages.SUCCESS, '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % target_user.email, extra_tags='safe')
-            else:
-                messages.add_message(request, messages.SUCCESS, '<h4>Success!</h4> <strong>%s</strong> is now a member of an organization.' % target_user.email, extra_tags='safe')
-
-            org = form.cleaned_data['organizations'][0]
-            target_user.organizations.add(org)
-            target_user.requested_account_note = None
-            target_user.requested_account_type = None
-
-            target_user.save()
-
-            if not is_new_user:
-                # Drop the newly added user a friendly note
-                email_new_organization_user(request, target_user, org)
-
-
-            return HttpResponseRedirect(reverse('user_management_manage_organization_user'))
-
-    context = RequestContext(request, context)
-
-    return render_to_response('user_management/user_add_to_organization_confirm.html', context)
+    return render(request, 'user_management/user_add_to_organization_confirm.html', {
+        'this_page': 'users_organization_users',
+        'user_email': user_email,
+        'form': form,
+        'target_user': target_user,
+        'target_user_orgs': list(target_user.organizations.all()) if target_user else [],
+    })
     
 
 @login_required
@@ -764,7 +721,7 @@ def registrar_user_add_user(request):
     if target_user == None:
         cannot_add = False
         if request.user.is_registrar_member():
-            form = CreateUserForm(form_data, prefix = "a", initial={'email': user_email})
+            form = UserForm(form_data, prefix ="a", initial={'email': user_email})
         else:
             form = CreateUserFormWithRegistrar(form_data, prefix = "a", initial={'email': user_email})
     else:
@@ -825,7 +782,7 @@ def registry_user_add_user(request):
     form_data = request.POST or None
     if target_user == None:
         cannot_add = False
-        form = CreateUserForm(form_data, prefix = "a", initial={'email': user_email})
+        form = UserForm(form_data, prefix ="a", initial={'email': user_email})
     else:
         if not target_user.is_staff:
             cannot_add = False
@@ -1074,29 +1031,19 @@ def settings_profile(request):
     Settings profile, change name, change email, ...
     """
 
-    context = {'next': request.get_full_path(), 'this_page': 'settings_profile'}
-    context.update(csrf(request))
+    form = UserForm(request.POST or None, prefix = "a", instance=request.user)
 
     if request.method == 'POST':
-
-        form = UserFormSelfEdit(request.POST, prefix = "a", instance=request.user)
-
         if form.is_valid():
             form.save()
-            
             messages.add_message(request, messages.SUCCESS, 'Profile saved!', extra_tags='safe')
-
             return HttpResponseRedirect(reverse('user_management_settings_profile'))
-
-        else:
-            context.update({'form': form,})
-    else:
-        form = UserFormSelfEdit(prefix = "a", instance=request.user)
-        context.update({'form': form,})
-
-    context = RequestContext(request, context)
     
-    return render_to_response('user_management/settings-profile.html', context)
+    return render(request, 'user_management/settings-profile.html', {
+        'next': request.get_full_path(),
+        'this_page': 'settings_profile',
+        'form': form,
+    })
     
 
 @login_required
@@ -1327,7 +1274,7 @@ def libraries(request):
         if request.user.is_authenticated():
             user_form = None
         else:
-            user_form = UserRegForm(request.POST, prefix = "a")
+            user_form = UserForm(request.POST, prefix = "a")
             user_form.fields['email'].label = "Your email"
         user_email = request.POST.get('a-email', None)
         try:
@@ -1370,7 +1317,7 @@ def libraries(request):
         request_data = request.session.get('request_data','')
         user_form = None
         if not request.user.is_authenticated():
-            user_form = UserRegForm(prefix = "a")
+            user_form = UserForm(prefix = "a")
             user_form.fields['email'].label = "Your email"
         if request_data:
             registrar_form = RegistrarForm(request_data, prefix = "b")
@@ -1391,7 +1338,7 @@ def sign_up(request):
     Register a new user
     """
     if request.method == 'POST':
-        form = UserRegForm(request.POST)
+        form = UserForm(request.POST)
         if form.is_valid():
             new_user = form.save(commit=False)
             new_user.backend='django.contrib.auth.backends.ModelBackend'
@@ -1402,7 +1349,7 @@ def sign_up(request):
 
             return HttpResponseRedirect(reverse('register_email_instructions'))
     else:
-        form = UserRegForm()
+        form = UserForm()
 
     return render_to_response("registration/sign-up.html",
         {'form':form},
@@ -1507,21 +1454,6 @@ def sign_up_journals(request):
         {'form':form},
         RequestContext(request))
 
-
-# def register_email_code_confirmation(request, code):
-#     """
-#     Confirm a user's account when the user follows the email confirmation link.
-#     """
-#     user = get_object_or_404(LinkUser, confirmation_code=code)
-#     user.is_active = True
-#     user.is_confirmed = True
-#     user.save()
-#     messages.add_message(request, messages.INFO, 'Your account is activated.  Log in below.')
-#     #redirect_url = reverse('user_management_limited_login')
-#     #extra_params = '?confirmed=true'
-#     #full_redirect_url = '%s%s' % (redirect_url, extra_params)
-#     return HttpResponseRedirect(reverse('user_management_limited_login'))
-    
 
 def register_email_code_password(request, code):
     """

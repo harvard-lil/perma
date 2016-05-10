@@ -2,22 +2,58 @@ import logging
 
 from django import forms
 from django.forms import ModelForm
-from django.forms.widgets import flatatt
 from django.utils.html import mark_safe
 
 from perma.models import Registrar, Organization, LinkUser
 
 logger = logging.getLogger(__name__)
 
+### HELPERS ###
+
+class OrganizationField(forms.ModelMultipleChoiceField):
+    def __init__(self,
+                 queryset=Organization.objects.order_by('name'),
+                 label="Organization",
+                 **kwargs
+                 ):
+        super(OrganizationField, self).__init__(queryset, label=label, **kwargs)
+
+class SelectMultipleWithSingleWidget(forms.SelectMultiple):
+    """
+        Form widget that shows a single dropdown, but works with many-to-many fields.
+        Thank you, http://stackoverflow.com/a/14971139
+    """
+    def render(self, *args, **kwargs):
+        html = super(SelectMultipleWithSingleWidget, self).render(*args, **kwargs)
+        return mark_safe(html.replace(' multiple="multiple"', '', 1))
+
+class OrgMembershipWidget(SelectMultipleWithSingleWidget):
+    """
+        This is a select widget for organizations that disables organizations where the target user is already a
+        member. Requires `instance=some_user` to be passed to the form.
+    """
+    def render_option(self, selected_choices, option_value, option_label):
+        if not hasattr(self, 'current_orgs'):
+            self.current_orgs = [o.pk for o in self.form_instance.instance.organizations.all()] if self.form_instance.instance else []
+        if option_value in self.current_orgs:
+            option_label += " - already a member"
+        html = super(OrgMembershipWidget, self).render_option(selected_choices, option_value, option_label)
+        if option_value in self.current_orgs:
+            html = html.replace('>', ' disabled="disabled">', 1)
+        return html
+
+### REGISTRAR FORMS ###
+
 class RegistrarForm(ModelForm):
     class Meta:
         model = Registrar
         fields = ['name', 'email', 'website']
         
-        
+### ORGANIZATION FORMS ###
+
 class OrganizationWithRegistrarForm(ModelForm):
 
-    registrar = forms.ModelChoiceField(queryset=Registrar.objects.all().order_by('name'), empty_label=None)
+    registrar = forms.ModelChoiceField(queryset=Registrar.objects.order_by('name'), empty_label=None)
     
     class Meta:
         model = Organization
@@ -29,39 +65,19 @@ class OrganizationForm(ModelForm):
     class Meta:
         model = Organization
         fields = ['name']
-        
-        
-class CreateUserForm(forms.ModelForm):
 
-    """
-    stripped down user reg form
-    This is mostly a django.contrib.auth.forms.UserCreationForm
-    """
+### USER CREATION FORMS ###
 
+class UserForm(forms.ModelForm):
+    """
+    User add/edit form.
+    """
     class Meta:
         model = LinkUser
         fields = ["first_name", "last_name", "email"]
 
-
-    error_messages = {
-        'duplicate_email': "A user with that email address already exists.",
-    }
-
-    email = forms.EmailField()
-
-    def clean_email(self):
-        # Since User.email is unique, this check is redundant,
-        # but it sets a nicer error message than the ORM.
-
-        email = self.cleaned_data["email"]
-        try:
-            LinkUser.objects.get(email=email)
-        except LinkUser.DoesNotExist:
-            return email
-        raise forms.ValidationError(self.error_messages['duplicate_email'])
-
         
-class CreateUserFormWithRegistrar(CreateUserForm):
+class CreateUserFormWithRegistrar(UserForm):
     """
     add registrar to the create user form
     """
@@ -71,13 +87,9 @@ class CreateUserFormWithRegistrar(CreateUserForm):
     class Meta:
         model = LinkUser
         fields = ["first_name", "last_name", "email", "registrar"]
-
-    def clean_registrar(self):
-        registrar = self.cleaned_data["registrar"]
-        return registrar
         
         
-class CreateUserFormWithCourt(CreateUserForm):
+class CreateUserFormWithCourt(UserForm):
     """
     add court to the create user form
     """
@@ -96,9 +108,9 @@ class CreateUserFormWithCourt(CreateUserForm):
         self.fields['email'].label = "Your email"
         
         
-class CreateUserFormWithUniversity(CreateUserForm):
+class CreateUserFormWithUniversity(UserForm):
     """
-    add court to the create user form
+    add university to the create user form
     """
 
     requested_account_note = forms.CharField(required=True)
@@ -112,311 +124,59 @@ class CreateUserFormWithUniversity(CreateUserForm):
         self.fields['requested_account_note'].label = "Your university"
 
 
-class CustomSelectSingleAsList(forms.SelectMultiple):
-    # Thank you, http://stackoverflow.com/a/14971139
-    def render(self, name, value, attrs=None, choices=()):
-        if value is None: value = []
-        final_attrs = self.build_attrs(attrs, name=name)
-        output = [u'<select %s>' % flatatt(final_attrs)] # NOTE removed the multiple attribute
-        options = self.render_options(choices, value)
-        if options:
-            output.append(options)
-        output.append('</select>')
-        return mark_safe(u'\n'.join(output))
-
-
-class CreateUserFormWithOrganization(CreateUserForm):
+class CreateUserFormWithOrganization(UserForm):
     """
-    stripped down user reg form
-    This is mostly a django.contrib.auth.forms.UserCreationForm
+    add organization to the create user form
     """
-    def __init__(self, *args, **kwargs):
-        registrar_id = False
-        org_member_id = False
+    def __init__(self, data, current_user, **kwargs):
+        super(CreateUserFormWithOrganization, self).__init__(data, **kwargs)
 
-        if 'registrar_id' in kwargs:
-            registrar_id = kwargs.pop('registrar_id')
-
-        if 'org_member_id' in kwargs:
-            org_member_id = kwargs.pop('org_member_id')
-
-        super(CreateUserFormWithOrganization, self).__init__(*args, **kwargs)
-
-        if registrar_id:
-            self.fields['organizations'].queryset = Organization.objects.filter(registrar_id=registrar_id).order_by('name')
-        elif org_member_id:
-            user = LinkUser.objects.get(id=org_member_id)
-            self.fields['organizations'].queryset = user.organizations.all()
-        else:
-            self.fields['organizations'].queryset = Organization.objects.all().order_by('name')
-
+        # filter available organizations based on current user
+        query = self.fields['organizations'].queryset
+        if current_user.is_registrar_member():
+            query = query.filter(registrar_id=current_user.registrar_id)
+        elif current_user.is_organization_member:
+            query = query.filter(users=current_user.pk)
+        self.fields['organizations'].queryset = query
     
     class Meta:
         model = LinkUser
         fields = ["first_name", "last_name", "email", "organizations"]
 
-    organizations = forms.ModelMultipleChoiceField(queryset=Organization.objects.all().order_by('name'),label="Organization", widget=CustomSelectSingleAsList)
+    organizations = OrganizationField(widget=SelectMultipleWithSingleWidget)
 
-
-    def clean_organization(self):
-        organizations = self.cleaned_data["organizations"]
-        return organizations
-
-
-class UserFormEdit(forms.ModelForm):
-    """
-    stripped down user reg form
-    This is mostly a django.contrib.auth.forms.UserCreationForm
-
-    This is the edit form, so we strip it down even more
-    """
-    error_messages = {
-
-    }
-
-    email = forms.EmailField()
-
-    class Meta:
-        model = LinkUser
-        fields = ["first_name", "last_name", "email"]
-        
-
-class RegistrarMemberFormEdit(UserFormEdit):
-    """
-    stripped down user reg form
-    This is mostly a django.contrib.auth.forms.UserCreationForm
-
-    This is the edit form, so we strip it down even more
-    """
-
-    registrar = forms.ModelChoiceField(queryset=Registrar.objects.all().order_by('name'), empty_label=None)
-
-    class Meta:
-        model = LinkUser
-        fields = ["first_name", "last_name", "email", "registrar"]
-    
-
-class OrganizationMemberWithOrganizationFormEdit(forms.ModelForm):
-    """
-    stripped down user reg form
-    This is mostly a django.contrib.auth.forms.UserCreationForm
-
-    This is stripped down even further to match out editing needs
-    """
-    
-    def __init__(self, *args, **kwargs):
-        registrar_id = False
-        if 'registrar_id' in kwargs:
-            registrar_id = kwargs.pop('registrar_id')
-        super(OrganizationMemberWithOrganizationFormEdit, self).__init__(*args, **kwargs)
-        if registrar_id:
-            self.fields['organizations'].queryset = Organization.objects.filter(registrar_id=registrar_id).order_by('name')
-
-    class Meta:
-        model = LinkUser
-        fields = ["organizations"]
-
-    org = forms.ModelMultipleChoiceField(queryset=Organization.objects.all().order_by('name'),label="Organization", required=False,)
-    
-
-class OrganizationMemberWithOrganizationOrgAsOrganizationMemberFormEdit(forms.ModelForm):
-    """
-    TODO: this form has a gross name. rename it.
-    """
-    
-    def __init__(self, *args, **kwargs):
-        user_id = False
-        if 'organization_user_id' in kwargs:
-            organization_user_id = kwargs.pop('organization_user_id')
-        super(OrganizationMemberWithOrganizationOrgAsOrganizationMemberFormEdit, self).__init__(*args, **kwargs)
-        if organization_user_id:
-            editing_user = LinkUser.objects.get(pk=organization_user_id)
-            self.fields['organizations'].queryset = editing_user.organizations.all().order_by('name')
-
-    class Meta:
-        model = LinkUser
-        fields = ["organizations"]
-
-    org = forms.ModelMultipleChoiceField(queryset=Organization.objects.all().order_by('name'),label="Organization", required=False,)
-
-        
-class OrganizationMemberWithGroupFormEdit(UserFormEdit):
-    """
-    stripped down user reg form
-    This is mostly a django.contrib.auth.forms.UserCreationForm
-
-    This is stripped down even further to match out editing needs
-    """
-                         
-    def __init__(self, *args, **kwargs):
-        registrar_id = False
-        if 'registrar_id' in kwargs:
-            registrar_id = kwargs.pop('registrar_id')
-        super(OrganizationMemberWithGroupFormEdit, self).__init__(*args, **kwargs)
-        if registrar_id:
-            self.fields['organizations'].queryset = Organization.objects.filter(registrar_id=registrar_id).order_by('name')
-        
-    class Meta:
-        model = LinkUser
-        fields = ("first_name", "last_name", "email", "organizations",)
-
-    org = forms.ModelChoiceField(queryset=Organization.objects.all().order_by('name'), empty_label=None, label="Organization", required=False,)
-
+### USER EDIT FORMS ###
         
 class UserAddRegistrarForm(forms.ModelForm):
     """
-    stripped down user reg form
-    This is mostly a django.contrib.auth.forms.UserCreationForm
-
-    This is stripped down even further to match out editing needs
+    User form that just lets you change the registrar.
     """
 
     class Meta:
         model = LinkUser
         fields = ("registrar",)         
 
-    registrar = forms.ModelChoiceField(queryset=Registrar.objects.all().order_by('name'), empty_label=None)
+    registrar = forms.ModelChoiceField(queryset=Registrar.objects.order_by('name'), empty_label=None)
         
-        
-class UserAddOrganizationForm(forms.ModelForm):
+class UserAddOrganizationForm(CreateUserFormWithOrganization):
     """
-    add an org when a regular user is promoted to an org user
+        User form that just lets you add an organization.
+        This is based on CreateUserFormWithOrganization, but only shows the org field, and uses a widget that
+        disables organizations where the user is already a member.
     """
+    email = None  # hide inherited email field
 
     def __init__(self, *args, **kwargs):
-        registrar_id = False
-        org_member_id = False
-        target_user_id = False
-
-        if 'registrar_id' in kwargs:
-            registrar_id = kwargs.pop('registrar_id')
-
-        if 'org_member_id' in kwargs:
-            org_member_id = kwargs.pop('org_member_id')
-
-        if 'target_user_id' in kwargs:
-            target_user_id = kwargs.pop('target_user_id')
-
+        """ Let orgs widget access target user so we can disable orgs they already belong to. """
         super(UserAddOrganizationForm, self).__init__(*args, **kwargs)
+        self.fields['organizations'].widget.form_instance = self
 
-        target_user = LinkUser.objects.get(pk=target_user_id)
+    class Meta(CreateUserFormWithOrganization.Meta):
+        fields = ("organizations",)
 
-        # Registrars can only edit their own organization members
-        if registrar_id:
-            # Get the orgs the logged in user admins. Exclude the ones
-            # the target user is already in
-            orgs = Organization.objects.filter(registrar_id=registrar_id).exclude(pk__in=target_user.organizations.all())
-        elif org_member_id:
-            # Get the orgs the logged in user admins. Exclude the ones
-            # the target user is already in
-            org_member = LinkUser.objects.get(pk=org_member_id)
-            orgs = org_member.organizations.all().exclude(pk__in=target_user.organizations.all())
+    organizations = OrganizationField(widget=OrgMembershipWidget)
 
-        else:
-            # Must be registry member.
-            orgs = Organization.objects.all().exclude(pk__in=target_user.organizations.all())
-
-        self.fields['organizations'] = forms.ModelMultipleChoiceField(queryset=orgs.order_by('name'), label="Organization", widget=CustomSelectSingleAsList)
-
-
-    class Meta:
-        model = LinkUser
-        fields = ("organizations",)         
-
-    
-    
-    def save(self, commit=True):
-        user = super(UserAddOrganizationForm, self).save(commit=False)
-
-        if commit:
-            user.save()
-
-        return user
-
-
-class UserRegForm(forms.ModelForm):
-    """
-    stripped down user reg form
-    This is mostly a django.contrib.auth.forms.UserCreationForm
-    """
-    error_messages = {
-        'duplicate_email': "A user with that email address already exists.",
-    }
-
-    email = forms.EmailField()
-
-    #password = forms.CharField(label="Password", widget=forms.PasswordInput)
-
-    class Meta:
-        model = LinkUser
-        fields = ("email", "first_name", "last_name")
-
-    def clean_email(self):
-        # Since User.email is unique, this check is redundant,
-        # but it sets a nicer error message than the ORM.
-
-        email = self.cleaned_data["email"]
-        try:
-            LinkUser.objects.get(email=email)
-        except LinkUser.DoesNotExist:
-            return email
-        raise forms.ValidationError(self.error_messages['duplicate_email'])
-
-
-class UserFormSelfEdit(forms.ModelForm):
-    """
-    stripped down user reg form
-    This is mostly a django.contrib.auth.forms.UserCreationForm
-
-    This is stripped down even further to match our editing needs
-    """
-
-    class Meta:
-        model = LinkUser
-        fields = ("first_name", "last_name", "email")
-
-    email = forms.EmailField()
-
-
-class SetPasswordForm(forms.Form):
-    """
-A form that lets a user change set his/her password without entering the
-old password
-"""
-    error_messages = {
-        'password_mismatch': "The two password fields didn't match.",
-    }
-
-    new_password1 = forms.CharField(label="New password",
-                                    widget=forms.PasswordInput)
-    new_password2 = forms.CharField(label="New password confirmation",
-                                    widget=forms.PasswordInput)
-
-    def __init__(self, user, *args, **kwargs):
-        self.user = user
-        super(SetPasswordForm, self).__init__(*args, **kwargs)
-
-    def clean_new_password2(self):
-        password1 = self.cleaned_data.get('new_password1')
-        password2 = self.cleaned_data.get('new_password2')
-        if password1 and password2:
-            if password1 != password2:
-                logger.debug('mismatch')
-                raise forms.ValidationError(self.error_messages['password_mismatch'])
-        return password2
-
-    def save(self, commit=True):
-        self.user.set_password(self.cleaned_data['new_password1'])
-        if commit:
-            self.user.save()
-        return self.user
-
-
-class UploadFileForm(forms.Form):
-    title = forms.CharField(required=True)
-    url = forms.URLField(required=True)
-    file  = forms.FileField(required=True)
-
+### CONTACT FORMS ###
 
 class ContactForm(forms.Form):
     """

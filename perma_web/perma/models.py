@@ -191,6 +191,7 @@ class LinkUser(AbstractBaseUser):
         max_length=255,
         unique=True,
         db_index=True,
+        error_messages={'unique': u"A user with that email address already exists.",}
     )
     registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar member. This should not be set if org is set!")
     pending_registrar = models.IntegerField(blank=True, null=True)
