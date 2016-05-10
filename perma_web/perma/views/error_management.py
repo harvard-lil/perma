@@ -31,23 +31,19 @@ def resolve(request):
 
 @csrf_exempt
 def post_new(request):
-    body = json.loads(request.body)
-
     created_at = timezone.now()
     error = UncaughtError.objects.create(created_at=created_at)
-
-    e = body["errors"][0]
-    context = body["context"]
-    error.user_agent=context["userAgent"]
-    error.current_url=body["context"]["url"]
-    error.message=e["message"]
-    error.stack=e["backtrace"]
-
     try:
+        body = json.loads(request.body)
+
+        e = body["errors"][0]
+        context = body["context"]
+        error.user_agent=context["userAgent"]
+        error.current_url=body["context"]["url"]
+        error.message=e["message"]
+        error.stack=e["backtrace"]
         error.user = request.user
+        error.save()
     except ValueError as e:
         pass
-
-    error.save()
-
     return HttpResponse(status=200)
