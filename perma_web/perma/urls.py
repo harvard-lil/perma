@@ -83,33 +83,40 @@ urlpatterns = patterns('perma.views',
 
     # user management
     url(r'^manage/stats/?(?P<stat_type>.*?)?/?$', 'user_management.stats', name='user_management_stats'),
+
     url(r'^manage/registrars/?$', 'user_management.manage_registrar', name='user_management_manage_registrar'),
     url(r'^manage/registrars/(?P<registrar_id>\d+)/?$', 'user_management.manage_single_registrar', name='user_management_manage_single_registrar'),
     url(r'^manage/registrars/approve/(?P<registrar_id>\d+)/?$', 'user_management.approve_pending_registrar', name='user_management_approve_pending_registrar'),
+
     url(r'^manage/organizations/?$', 'user_management.manage_organization', name='user_management_manage_organization'),
     url(r'^manage/organizations/(?P<org_id>\d+)/?$', 'user_management.manage_single_organization', name='user_management_manage_single_organization'),
     url(r'^manage/organization/(?P<org_id>\d+)/delete/?$', 'user_management.manage_single_organization_delete', name='user_management_manage_single_organization_delete'),
-    url(r'^manage/registry-users/add-user/?$', 'user_management.registry_user_add_user', name='user_management_registry_user_add_user'),
+
     url(r'^manage/registry-users/?$', 'user_management.manage_registry_user', name='user_management_manage_registry_user'),
+    url(r'^manage/registry-users/add-user/?$', 'user_management.registry_user_add_user', name='user_management_registry_user_add_user'),
     url(r'^manage/registry-user/(?P<user_id>\d+)/delete/?$', 'user_management.manage_single_registry_user_delete', name='user_management_manage_single_registry_user_delete'),
     url(r'^manage/registry-users/(?P<user_id>\d+)/remove/?$', 'user_management.manage_single_registry_user_remove', name='user_management_manage_single_registry_user_remove'),
+
     url(r'^manage/registrar-users/?$', 'user_management.manage_registrar_user', name='user_management_manage_registrar_user'),
+    url(r'^manage/registrar-users/add-user/?$', 'user_management.registrar_user_add_user', name='user_management_registrar_user_add_user'),
     url(r'^manage/registrar-users/(?P<user_id>\d+)/?$', 'user_management.manage_single_registrar_user', name='user_management_manage_single_registrar_user'),
     url(r'^manage/registrar-user/(?P<user_id>\d+)/delete/?$', 'user_management.manage_single_registrar_user_delete', name='user_management_manage_single_registrar_user_delete'),
     url(r'^manage/registrar-users/(?P<user_id>\d+)/reactivate/?$', 'user_management.manage_single_registrar_user_reactivate', name='user_management_manage_single_registrar_user_reactivate'),
-    url(r'^manage/registrar-users/add-user/?$', 'user_management.registrar_user_add_user', name='user_management_registrar_user_add_user'),
     url(r'^manage/registrar-users/(?P<user_id>\d+)/remove/?$', 'user_management.manage_single_registrar_user_remove', name='user_management_manage_single_registrar_user_remove'),
+
     url(r'^manage/users/?$', 'user_management.manage_user', name='user_management_manage_user'),
     url(r'^manage/users/(?P<user_id>\d+)/?$', 'user_management.manage_single_user', name='user_management_manage_single_user'),
     url(r'^manage/users/(?P<user_id>\d+)/delete/?$', 'user_management.manage_single_user_delete', name='user_management_manage_single_user_delete'),
     url(r'^manage/users/(?P<user_id>\d+)/reactivate/?$', 'user_management.manage_single_user_reactivate', name='user_management_manage_single_user_reactivate'),
+
     url(r'^manage/organization-users/?$', 'user_management.manage_organization_user', name='user_management_manage_organization_user'),
+    url(r'^manage/organization-users/add-user/?$', 'user_management.organization_user_add_user', name='user_management_organization_user_add_user'),
     url(r'^manage/organization-users/(?P<user_id>\d+)/?$', 'user_management.manage_single_organization_user', name='user_management_manage_single_organization_user'),
     url(r'^manage/organization-users/(?P<user_id>\d+)/delete/?$', 'user_management.manage_single_organization_user_delete', name='user_management_manage_single_organization_user_delete'),
     url(r'^manage/organization-users/(?P<user_id>\d+)/reactivate/?$', 'user_management.manage_single_organization_user_reactivate', name='user_management_manage_single_organization_user_reactivate'),
     url(r'^manage/organization-users/(?P<user_id>\d+)/remove/?$', 'user_management.manage_single_organization_user_remove', name='user_management_manage_single_organization_user_remove'),
+
     url(r'^manage/users/(?P<user_id>\d+)/add-registrar/?$', 'user_management.user_add_registrar', name='user_management_user_add_registrar'),
-    url(r'^manage/organization-users/add-user/?$', 'user_management.organization_user_add_user', name='user_management_organization_user_add_user'),
     url(r'^manage/account/leave-organization/(?P<org_id>\d+)/?$', 'user_management.organization_user_leave_organization', name='user_management_organization_user_leave_organization'),
 #    url(r'^manage/users/?$', 'manage.users', name='manage_users'),
 #    url(r'^manage/activity/?$', 'manage.activity', name='manage_activity'),
