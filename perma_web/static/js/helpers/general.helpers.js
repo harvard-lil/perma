@@ -39,7 +39,7 @@ Helpers.showAPIError = function (jqXHR) {
       }
       message = parsedResponse;
     } catch (SyntaxError) {
-      ErrorHandler.notify('api_helpers.showAPIError, SyntaxError', SyntaxError);
+      airbrake.notify(SyntaxError);
     }
   } else if (jqXHR.status == 401) {
     message = "<a href='/login'>You appear to be logged out. Please click here to log back in</a>.";

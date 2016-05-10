@@ -103,6 +103,8 @@ PIPELINE_JS = {
             'vendors/bootstrap/bootstrap3.js',
             'vendors/fastclick/fastclick.min.js',
             'vendors/jquery/jquery.actual.js',
+            'vendors/airbrakejs/client.min.js',
+            'vendors/airbrakejs/instrumentation/jquery.js',
             'js/error-handler.js',
             'js/helpers/polyfill/string.trim.js',
             'js/helpers/general.helpers.js',
