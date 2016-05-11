@@ -30,7 +30,7 @@ class PermissionsTestCase(PermaTestCase):
                     ['user_management_manage_single_registrar_user_reactivate', {'kwargs':{'user_id': 2}}],
                     ['user_management_approve_pending_registrar', {'kwargs':{'registrar_id': 2}}],
                     ['user_management_manage_user'],
-                    ['user_management_user_add_registrar', {'kwargs': {'user_id': 4}}],
+                    ['user_management_user_add_user'],
                     ['user_management_manage_single_user', {'kwargs':{'user_id': 4}}],
                     ['user_management_manage_single_user_delete', {'kwargs':{'user_id': 4}}],
                     ['user_management_manage_single_organization_user_delete', {'kwargs':{'user_id': 3}}],

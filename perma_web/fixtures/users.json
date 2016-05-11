@@ -186,5 +186,21 @@
             "last_name": "Registrar",
             "pending_registrar": 2
         }
+    },
+    {
+        "pk": 9,
+        "model": "perma.LinkUser",
+        "fields": {
+            "registrar": 2,
+            "is_active": true,
+            "is_confirmed": true,
+            "last_login": "2013-07-23T18:56:14Z",
+            "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
+            "email": "another_library_member@example.com",
+            "date_joined": "2013-06-26",
+            "first_name": "AnotherLibrary",
+            "last_name": "Member",
+            "root_folder": 42
+        }
     }
 ]
