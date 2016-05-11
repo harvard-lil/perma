@@ -693,6 +693,10 @@ class Link(DeletableModel):
         self.thumbnail_status = 'failed'
         self.save(update_fields=['thumbnail_status'])
 
+    def delete_related(self):
+        CDXLine.objects.filter(link_id=self.pk).delete()
+        Capture.objects.filter(link_id=self.pk).delete()
+
     def is_archive_eligible(self):
         """
             True if it's older than 24 hours
@@ -786,6 +790,13 @@ class Link(DeletableModel):
         out.seek(0)
         default_storage.store_file(out, self.warc_storage_file(), overwrite=True)
         out.close()
+
+    def safe_delete_warc(self):
+        WARC_STORAGE_PATH = os.path.join(settings.MEDIA_ROOT, settings.WARC_STORAGE_DIR)
+        guid_path = self.guid_as_path()
+        old_name = os.path.join(WARC_STORAGE_PATH, guid_path, '%s.warc.gz' % self.guid)
+        new_name = os.path.join(WARC_STORAGE_PATH, guid_path, '%s_replaced.warc.gz' % self.guid)
+        os.rename(old_name, new_name)
 
     def replay_url(self, url):
         """
