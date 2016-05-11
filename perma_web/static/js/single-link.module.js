@@ -3,11 +3,12 @@ var SingleLinkModule = {};
 $(document).ready(function(){
   SingleLinkModule.init();
   SingleLinkModule.setupEventHandlers();
-})
+});
 
 SingleLinkModule.init = function () {
   SingleLinkModule.adjustTopMargin();
   if($('._isNewRecord')) { SingleLinkModule.handleNewRecord(); }
+  SingleLinkModule.setCurrentFolder();
 };
 
 SingleLinkModule.handleNewRecord = function () {
@@ -34,7 +35,29 @@ SingleLinkModule.setupEventHandlers = function () {
     return false;
   });
 
+  $('#archive_upload_form')
+    .submit(function() {
+      $(this).ajaxSubmit({
+        type: "PUT",
+        url: api_path+"/archives/"+archive.guid,
+        data: {'folder' : SingleLinkModule.currentFolder['folderId'] },
+        contentType: 'multipart/form-data',
+        processData: false,
+        success: function(res){
+          location.reload();
+        },
+        error: function(res){console.log("error~!",res);}
+      });
+      return false;
+
+    });
+
   $(window).on('resize', function () { SingleLinkModule.adjustTopMargin(); });
+}
+
+SingleLinkModule.setCurrentFolder = function () {
+  var folders = JSON.parse(localStorage.getItem("perma_selection"));
+  SingleLinkModule.currentFolder = folders[current_user.id] || {};
 }
 
 SingleLinkModule.handleShowDetails = function (context) {
@@ -75,4 +98,12 @@ SingleLinkModule.handleDarchiving = function (context) {
       }
     });
   }
+}
+
+SingleLinkModule.upload_form = function () {
+  $('#linky-confirm').modal('hide');
+  $('#upload-error').text('');
+  $('#archive-upload').modal('show');
+  $('.modal-dialog').css('margin',0);
+  return false;
 }

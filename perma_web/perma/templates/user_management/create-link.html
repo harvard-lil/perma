@@ -129,57 +129,7 @@
 
 
 <!-- Modals -->
-<!-- Upload file modal -->
-<div  class="modal" id="archive-upload" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-	  <div class="modal-dialog modal-sm modal-new">
-		    <div class="modal-content">
-    		    <div class="modal-header">
-					<h3 class="modal-title">Upload a file to Perma.cc</h3>
-					<p class="modal-description">This will create a new Perma Link.</p>
-    		    </div>
 
-                <form id="archive_upload_form" action="{% url 'api_dispatch_list' resource_name='archives' api_name='v1' %}" method="post">
-                    <div class="form-group">
-                        <label class="control-label" for="title">New Perma Link title <span class="label-instruction">The page title associated with this upload</span></label>
-                        <input id="title" name="title" class="" type="text" placeholder="Example Page Title">
-                    </div>
-                    <div class="form-group">
-                        <label class="control-label" for="url">New Perma Link URL <span class="label-instruction">The URL associated with this upload</span></label>
-                        <input id="url" name="url" class="" type="text" placeholder="www.example.com">
-                    </div>
-                    <div class="form-group">
-                        <label class="control-label" for="file">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed</span></label>
-                        <input id="file" name="file" class="" type="file" placeholder="example.png" accept=".png,.jpg,.jpeg,.gif,.pdf">
-                    </div>
-                    <div class="modal-actions">
-	                    <button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Upload and create Perma Link</button>
-	        		    <button type="button" class="btn cancel" data-dismiss="modal" aria-hidden="false">Cancel</button>
-                    </div>
-                    {% csrf_token %}
-                    <p id="upload-error" class="field-error"></p>
-                </form>
-		    </div>
-	  </div>
-</div><!--/.archive-upload-->
-
-
-<!-- Upload complete modal -->
-<div id="archive-upload-confirm" class="modal _hide fade center">
-    <div class="modal-header">
-		<h3 class="modal-title">Upload a file to Perma.cc</h3>
-		<p class="modal-description">This will create a new Perma Link.</p>
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">close window</button>
-    </div>
-    <div class="modal-body">
-        <div class="center">
-            <h4 id="archive_upload_success">Uploading your file...</h4>
-            <p id="uploadedLinkyUrl"><a href=""></a></p>
-        </div>
-    </div>
-    <div class="modal-footer upload-footer">
-        <a href="#" class="btn" data-dismiss="modal" aria-hidden="true">Close</a>
-    </div>
-</div>
 {% endblock %}
 
 {% block scripts %}
@@ -308,5 +258,5 @@
         </script>
 
     {% endverbatim %}
-
+  {% include "archive/includes/upload_your_own.html" %}
 {% endblock templates %}

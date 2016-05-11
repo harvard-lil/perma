@@ -184,6 +184,7 @@ PIPELINE_JS = {
     },
     'single-link': {
         'source_filenames': (
+            'vendors/jquery/jquery.form.min.js',
             'js/single-link.module.js',
 
         ),
