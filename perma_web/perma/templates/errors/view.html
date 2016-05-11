@@ -4,16 +4,20 @@
   <table class="table table-hover">
     <tbody>
       <thead>
-        <th>User ID</th>
         <th>Date</th>
+        <th>User ID</th>
         <th>Resolve?</th>
         <th>Path</th>
+        <th>Message</th>
         <th>Stack Trace</th>
         <th>UserAgent</th>
       </thead>
       {% if errors %}
         {% for error in errors %}
         <tr>
+          <td>
+            {{ error.created_at }}
+          </td>
           <td>
 
             {% if error.user %}
@@ -23,17 +27,16 @@
             {% endif %}
           </td>
           <td>
-            {{ error.created_at }}
-          </td>
-
-          <td>
-            <input type="checkbox" onclick="return ErrorHandler.resolve({{ error.id }})">
+            <input style="margin-left:15px" type="checkbox" onclick="return ErrorHandler.resolve({{ error.id }})">
           </td>
           <td>
             {{ error.current_url }}
           </td>
           <td>
-            {{ error.stack }}
+            {{ error.message }}
+          </td>
+          <td>
+            <pre><code style="font-size:11px;">{{ error.stack }}</code></pre>
           </td>
           <td>
             {{ error.user_agent }}
