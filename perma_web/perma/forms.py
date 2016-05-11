@@ -34,7 +34,8 @@ class OrgMembershipWidget(SelectMultipleWithSingleWidget):
     """
     def render_option(self, selected_choices, option_value, option_label):
         if not hasattr(self, 'current_orgs'):
-            self.current_orgs = [o.pk for o in self.form_instance.instance.organizations.all()] if self.form_instance.instance else []
+            target_user = self.form_instance.instance
+            self.current_orgs = [o.pk for o in target_user.organizations.all()] if target_user and target_user.id else []
         if option_value in self.current_orgs:
             option_label += " - already a member"
         html = super(OrgMembershipWidget, self).render_option(selected_choices, option_value, option_label)
@@ -76,13 +77,28 @@ class UserForm(forms.ModelForm):
         model = LinkUser
         fields = ["first_name", "last_name", "email"]
 
+class UserFormWithAdmin(UserForm):
+    """
+        User form that causes the created user to be an admin.
+    """
+    def save(self, commit=True):
+        self.instance.is_staff = True
+        return super(UserFormWithAdmin, self).save(commit)
         
-class CreateUserFormWithRegistrar(UserForm):
+class UserFormWithRegistrar(UserForm):
     """
     add registrar to the create user form
     """
+    registrar = forms.ModelChoiceField(queryset=Registrar.objects.order_by('name'), empty_label=None)
 
-    registrar = forms.ModelChoiceField(queryset=Registrar.objects.all().order_by('name'), empty_label=None)
+    def __init__(self, data=None, current_user=None, **kwargs):
+        super(UserFormWithRegistrar, self).__init__(data, **kwargs)
+
+        # filter available registrars based on current user
+        query = self.fields['registrar'].queryset
+        if current_user.is_registrar_member():
+            query = query.filter(pk=current_user.registrar_id)
+        self.fields['registrar'].queryset = query
 
     class Meta:
         model = LinkUser
@@ -124,12 +140,14 @@ class CreateUserFormWithUniversity(UserForm):
         self.fields['requested_account_note'].label = "Your university"
 
 
-class CreateUserFormWithOrganization(UserForm):
+class UserFormWithOrganization(UserForm):
     """
     add organization to the create user form
     """
-    def __init__(self, data, current_user, **kwargs):
-        super(CreateUserFormWithOrganization, self).__init__(data, **kwargs)
+    organizations = OrganizationField(widget=SelectMultipleWithSingleWidget)
+
+    def __init__(self, data=None, current_user=None, **kwargs):
+        super(UserFormWithOrganization, self).__init__(data, **kwargs)
 
         # filter available organizations based on current user
         query = self.fields['organizations'].queryset
@@ -138,43 +156,61 @@ class CreateUserFormWithOrganization(UserForm):
         elif current_user.is_organization_member:
             query = query.filter(users=current_user.pk)
         self.fields['organizations'].queryset = query
-    
+
     class Meta:
         model = LinkUser
         fields = ["first_name", "last_name", "email", "organizations"]
 
-    organizations = OrganizationField(widget=SelectMultipleWithSingleWidget)
 
 ### USER EDIT FORMS ###
         
-class UserAddRegistrarForm(forms.ModelForm):
+class UserAddRegistrarForm(UserFormWithRegistrar):
     """
     User form that just lets you change the registrar.
     """
 
     class Meta:
         model = LinkUser
-        fields = ("registrar",)         
-
-    registrar = forms.ModelChoiceField(queryset=Registrar.objects.order_by('name'), empty_label=None)
+        fields = ("registrar",)
         
-class UserAddOrganizationForm(CreateUserFormWithOrganization):
+class UserAddOrganizationForm(UserFormWithOrganization):
     """
         User form that just lets you add an organization.
         This is based on CreateUserFormWithOrganization, but only shows the org field, and uses a widget that
         disables organizations where the user is already a member.
     """
     email = None  # hide inherited email field
+    organizations = OrganizationField(widget=OrgMembershipWidget)
 
     def __init__(self, *args, **kwargs):
         """ Let orgs widget access target user so we can disable orgs they already belong to. """
         super(UserAddOrganizationForm, self).__init__(*args, **kwargs)
         self.fields['organizations'].widget.form_instance = self
 
-    class Meta(CreateUserFormWithOrganization.Meta):
+    class Meta(UserFormWithOrganization.Meta):
         fields = ("organizations",)
 
-    organizations = OrganizationField(widget=OrgMembershipWidget)
+    def save(self, commit=True):
+        """ Override save so we *add* the new organization rather than replacing all existing orgs for this user. """
+        self.instance.organizations.add(self.cleaned_data['organizations'][0])
+        return self.instance
+
+class UserAddAdminForm(forms.ModelForm):
+    """
+        Form that just upgrades user to staff on submit.
+    """
+    class Meta:
+        model = LinkUser
+        fields = []
+
+    def save(self, commit=True):
+        self.instance.is_staff = True
+        self.instance.registrar = None
+        self.instance.organizations.clear()
+        if commit:
+            self.instance.save()
+        return self.instance
+
 
 ### CONTACT FORMS ###
 

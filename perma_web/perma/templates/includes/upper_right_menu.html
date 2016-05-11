@@ -17,7 +17,7 @@
             <li role="presentation" class="dropdown-header">Manage users</li>
 
             {% if request.user.is_staff %}
-              <li><a href="{% url 'user_management_manage_registry_user' %}">Registry users</a></li>
+              <li><a href="{% url 'user_management_manage_registry_user' %}">Admin users</a></li>
               <li><a href="{% url 'user_management_manage_registrar' %}">Registrars</a></li>
             {% endif %}
 

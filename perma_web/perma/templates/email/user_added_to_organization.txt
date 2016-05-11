@@ -1,0 +1,6 @@
+{% with form.cleaned_data.organizations.0 as org %}TITLE: Your Perma.cc account is now associated with {{ org }}
+
+Your Perma.cc account has been associated with {{ org }}.  You now manage archives and peers within the organization.  If this is a mistake, visit your account settings page to leave {{ org }}.
+
+{{ account_settings_page }}
+{% endwith %}
