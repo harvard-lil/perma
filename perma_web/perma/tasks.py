@@ -682,25 +682,30 @@ def upload_to_internet_archive(self, link_guid):
     if link.organization:
         metadata["sponsor"] = "%s - %s" % (link.organization, link.organization.registrar)
 
+
     identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link_guid
-    with default_storage.open(link.warc_storage_file(), 'rb') as warc_file:
-        success = internetarchive.upload(
-                        identifier,
-                        warc_file,
-                        metadata=metadata,
-                        access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-                        secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-                        retries=10,
-                        retries_sleep=60,
-                        verbose=True,
-                    )
+    try:
+        with default_storage.open(link.warc_storage_file(), 'rb') as warc_file:
+            success = internetarchive.upload(
+                            identifier,
+                            warc_file,
+                            metadata=metadata,
+                            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+                            retries=10,
+                            retries_sleep=60,
+                            verbose=True,
+                        )
+            if success:
+                link.uploaded_to_internet_archive = True
+                link.save()
 
-        if success:
-            link.uploaded_to_internet_archive = True
-            link.save()
+            else:
+                self.retry(exc=Exception("Internet Archive reported upload failure."))
+                print "Failed."
 
-        else:
-            self.retry(exc=Exception("Internet Archive reported upload failure."))
-            print "Failed."
+            return success
 
-        return success
+    except IOError, e:
+        print e.errno
+        return
