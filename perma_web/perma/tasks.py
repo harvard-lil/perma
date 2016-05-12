@@ -653,7 +653,11 @@ def upload_all_to_internet_archive():
 
 @shared_task(bind=True)
 def upload_to_internet_archive(self, link_guid):
-    link = Link.objects.get(guid=link_guid)
+    try:
+        link = Link.objects.get(guid=link_guid)
+    except:
+        print "Link %s does not exist" % link_guid
+        return
 
     if not settings.UPLOAD_TO_INTERNET_ARCHIVE:
         return
@@ -683,6 +687,7 @@ def upload_to_internet_archive(self, link_guid):
         success = internetarchive.upload(
                         identifier,
                         warc_file,
+                        metadata=metadata,
                         access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
                         secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
                         retries=10,
@@ -691,11 +696,6 @@ def upload_to_internet_archive(self, link_guid):
                     )
 
         if success:
-            internetarchive.modify_metadata(
-                identifier,
-                metadata=metadata,
-            )
-
             link.uploaded_to_internet_archive = True
             link.save()
 

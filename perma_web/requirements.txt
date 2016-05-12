@@ -23,7 +23,7 @@ django-pipeline-compass==0.1.5  # lets us compile .scss to .css
 pyScss==1.3.4  					# dependency of d-p-compass. included here to avoid wonkiness found in older versions
 tempdir==0.6                    # create temp dirs to be deleted at end of function -- handy for archive creation
 netaddr==0.7.12                 # to check archive IPs against banned ranges
-internetarchive==0.9.8          # upload warcs to internet archive
+internetarchive==1.0.2        # upload warcs to internet archive
 python-dateutil==2.2            # calculate link expiration date
 Wand==0.4           			# ImageMagick bindings to help with thumbnail creation and PDF -> PNG conversions
 django-tastypie==0.12.2         # API framework
