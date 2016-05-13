@@ -347,6 +347,9 @@ def proxy_capture(self, link_guid):
                     have_response = True
                     break
 
+            if have_response:
+                break
+
             wait_time = time.time() - start_time
             if wait_time > RESOURCE_LOAD_TIMEOUT:
                 raise HaltCaptureException
