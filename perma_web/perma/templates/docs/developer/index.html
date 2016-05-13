@@ -1,5 +1,5 @@
 {% extends "base-responsive.html" %}
-{% load file_exists pipeline %}
+{% load pipeline %}
 {% block title %} | Developer Docs{% endblock %}
 
 {% block meta_description %}
@@ -19,25 +19,9 @@ Welcome to the Perma.cc developer guide.
 
 <div class="container cont-reading cont-fixed" id="developer-overview">
 	<div class="row">
-		<div class="col-sm-4 reading-toc" >
-			<ul>
-				<li class="reading-toc-chapter _active"><a href="#developer-overview">Overview</a></li>
-					<li class="reading-toc-section"><a href="#api-key">API Key</a></li>
-					<li class="reading-toc-section"><a href="#pagination">Pagination</a></li>
-					<li class="reading-toc-section"><a href="#jsonp">JSONP</a></li>
-					<li class="reading-toc-section"><a href="#examples-in-curl">Examples in cURL</a></li>
-				<li class="reading-toc-chapter"><a href="#developer-public-archives">Public Archives</a></li>
-				<li class="reading-toc-chapter"><a href="#developer-users">Users</a></li>
-				<li class="reading-toc-chapter"><a href="#developer-archives">Archives</a></li>
-				<li class="reading-toc-chapter"><a href="#developer-folders">Folders</a></li>
-			<ul>
-		</div>
+		{% include "docs/developer/toc.html" with section="overview" %}
 
 		<div class="col-sm-8 docs reading-body">
-			<div class="warning">
-				<i class="icon-exclamation-sign"></i>
-				<p class="body-text">The Perma.cc API is new and its behavior is in flux. We are currently seeking partners that want to build applications using this API. If you’re interested, <a href="{% url 'contact' %}">let’s chat</a>.</p>
-			</div>
 		
 			<h2 class="body-ah">API Overview</h2>
 			<p class="body-text">The Perma.cc API helps you create and manage archives without using your web browser.</p>
@@ -106,17 +90,7 @@ Welcome to the Perma.cc developer guide.
 
 <div class="container cont-reading cont-fixed" id="developer-public-archives">
 	<div class="row">
-		<div class="col-sm-4 reading-toc" >
-			<ul>
-				<li class="reading-toc-chapter"><a href="#developer-overview">Overview</a></li>
-				<li class="reading-toc-chapter _active"><a href="#developer-public-archives">Public Archives</a></li>
-					<li class="reading-toc-section"><a href="#get-all-public-archives">Get all public archives</a></li>
-					<li class="reading-toc-section"><a href="#get-one-archive">Get one archive</a></li>
-				<li class="reading-toc-chapter"><a href="#developer-users">Users</a></li>
-				<li class="reading-toc-chapter"><a href="#developer-archives">Archives</a></li>
-				<li class="reading-toc-chapter"><a href="#developer-folders">Folders</a></li>
-			<ul>
-		</div>
+		{% include "docs/developer/toc.html" with section="public-archives" %}
 
 		<div class="col-sm-8 docs reading-body">
 		<h2 class="body-ah">Public Archives</h2>
@@ -141,20 +115,7 @@ Welcome to the Perma.cc developer guide.
 
 <div class="container cont-reading cont-fixed" id="developer-users">
 	<div class="row">
-		<div class="col-sm-4 reading-toc" >
-			<ul>
-				<li class="reading-toc-chapter"><a href="#developer-overview">Overview</a></li>
-				<li class="reading-toc-chapter"><a href="#developer-public-archives">Public Archives</a></li>
-				<li class="reading-toc-chapter _active"><a href="#developer-users">Users</a></li>
-					<li class="reading-toc-section"><a href="#get-user-account-details">Get a user's account details</a></li>
-					<li class="reading-toc-section"><a href="#get-user-archives">Get a user's archives</a></li>
-					<li class="reading-toc-section"><a href="#get-user-folders">Get a user's folders</a></li>
-					<li class="reading-toc-section"><a href="#get-user-orgs">Get a user's organizations</a></li>
-					<li class="reading-toc-section"><a href="#get-user-shared-folders">Get a user's shared folders inside an organization</a></li>
-				<li class="reading-toc-chapter"><a href="#developer-archives">Archives</a></li>
-				<li class="reading-toc-chapter"><a href="#developer-folders">Folders</a></li>
-			<ul>
-		</div>
+		{% include "docs/developer/toc.html" with section="users" %}
 
 		<div class="col-sm-8 docs reading-body">
 			<h2 class="body-ah">Users</h2>
@@ -190,28 +151,20 @@ Welcome to the Perma.cc developer guide.
 			<pre>curl https://api.{{ request.get_host }}/v1/user/organizations/1/folders/?limit=1&api_key=your-api-key</pre>
 			<p class="body-text">Response.</p>
 			<pre class="prettyprint">{"meta": {"limit": 20, "next": null, "offset": 0, "previous": null, "total_count": 1}, "objects": [{"id": 27, "name": "Test Journal", "parent": null}]}</pre>
+
+      <h3 id="get-user-capture-jobs" class="body-bh">Get a user's ongoing capture jobs</h3>
+      <p class="body-text">List all of a user's pending or in_progress capture jobs.</p>
+      <pre>curl -v https://api.{{ request.get_host }}/v1/capture_jobs/?api_key=your-api-key</pre>
+
+			<p class="body-text">View capture status for a particular archive by GUID.</p>
+		  <pre>curl -v https://api.{{ request.get_host }}/v1/capture_jobs/ABCD-1234/?api_key=your-api-key</pre>
 		</div>
 	</div>
 </div>
 
 <div class="container cont-reading cont-fixed" id="developer-archives">
 	<div class="row">
-		<div class="col-sm-4 reading-toc" >
-			<ul>
-				<li class="reading-toc-chapter"><a href="#developer-overview">Overview</a></li>
-				<li class="reading-toc-chapter"><a href="#developer-public-archives">Public Archives</a></li>
-				<li class="reading-toc-chapter"><a href="#developer-users">Users</a></li>
-				<li class="reading-toc-chapter _active"><a href="#developer-archives">Archives</a></li>
-						<li class="reading-toc-section"><a href="#create-an-archive">Create an archive</a></li>
-						<li class="reading-toc-section"><a href="#view-details-of-one-archive">View the details of one archive</a></li>
-						<li class="reading-toc-section"><a href="#view-all-archives-of-one-user">View all archives associated with one user</a></li>
-						<li class="reading-toc-section"><a href="#move-to-dark-archive">Place an archive in the dark archive</a></li>
-						<li class="reading-toc-section"><a href="#edit-title-and-notes">Edit the title and notes fields of an archive</a></li>
-						<li class="reading-toc-section"><a href="#move-archive">Move an archive</a></li>
-						<li class="reading-toc-section"><a href="#delete-archive">Delete an archive</a></li>
-				<li class="reading-toc-chapter"><a href="#developer-folders">Folders</a></li>
-			<ul>
-		</div>
+		{% include "docs/developer/toc.html" with section="archives" %}
 
 		<div class="col-sm-8 docs reading-body">
 			<h2 class="body-ah">Archives</h2>
@@ -264,20 +217,7 @@ Welcome to the Perma.cc developer guide.
 
 <div class="container cont-reading cont-fixed" id="developer-folders">
 	<div class="row">
-		<div class="col-sm-4 reading-toc" >
-			<ul>
-				<li class="reading-toc-chapter"><a href="#developer-overview">Overview</a></li>
-				<li class="reading-toc-chapter"><a href="#developer-public-archives">Public Archives</a></li>
-				<li class="reading-toc-chapter"><a href="#developer-users">Users</a></li>
-				<li class="reading-toc-chapter"><a href="#developer-archives">Archives</a></li>
-				<li class="reading-toc-chapter _active"><a href="#developer-folders">Folders</a></li>
-						<li class="reading-toc-section"><a href="#create-folder">Create a folder</a></li>
-						<li class="reading-toc-section"><a href="#view-folder-details">View a folder's details</a></li>
-						<li class="reading-toc-section"><a href="#rename-folder">Rename a folder</a></li>
-						<li class="reading-toc-section"><a href="#move-folder">Move a folder</a></li>
-						<li class="reading-toc-section"><a href="#delete-folder">Delete a folder</a></li>
-			<ul>
-		</div>
+		{% include "docs/developer/toc.html" with section="folders" %}
 
 		<div class="col-sm-8 docs reading-body">
 			<h2 class="body-ah">Folders</h2>

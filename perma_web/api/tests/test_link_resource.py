@@ -2,7 +2,7 @@ import os
 import dateutil.parser
 from .utils import ApiResourceTransactionTestCase, TEST_ASSETS_DIR
 from api.resources import LinkResource, CurrentUserLinkResource, PublicLinkResource
-from perma.models import Link, LinkUser, CDXLine
+from perma.models import Link, LinkUser, CDXLine, CaptureJob
 
 
 # Use a TransactionTestCase here because archive capture is threaded
@@ -50,7 +50,8 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             'guid',
             'creation_timestamp',
             'captures',
-            'view_count'
+            'view_count',
+            'warc_size',
         ]
         self.logged_in_fields = self.logged_out_fields + [
             'organization',
@@ -65,6 +66,8 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             'url': self.server_url + "/test.html",
             'title': 'This is a test page'
         }
+
+        CaptureJob.clear_cache()  # reset cache (test cases don't reset cache keys automatically)
 
     def assertValidCapture(self, capture):
         """

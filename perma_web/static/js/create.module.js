@@ -201,37 +201,49 @@ succeeds. */
 CreateModule.check_status = function () {
 
   // Check our status service to see if we have archiving jobs pending
-  var request = Helpers.apiRequest("GET", "/archives/" + new_archive.guid + "/", {'cache': false});
-  var self = this;
+  var request = Helpers.apiRequest("GET", "/user/capture_jobs/" + new_archive.guid + "/");
   request.done(function(data) {
-    var capturesPending = false,
-      capturesSucceeded = false;
-    $.each(data.captures, function(i, capture){
-      if(capture.role != 'favicon') {
-        if (capture.status == 'pending') capturesPending = true;
-        if (capture.status == 'success') capturesSucceeded = true;
-      }
-    });
+    // While status is pending or in progress, update progress display
+    if (data.status == "pending") {
+      // todo -- could display data.queue_position here
 
-    // We're done checking status when nothing is pending.
-    if (!capturesPending) {
-      // Clear out our pending jobs
+    } else if (data.status == "in_progress") {
+
+      // add progress bar if doesn't exist
+      if (!$('#capture-progress-bar').length) {
+        $('#addlink').append(
+          '<div style="position: relative; width: 100%; height: 0">'+
+          '  <div id="capture-progress-bar" class="progress" style="width: 100%; height: 0.3em; position:absolute; margin-bottom: 0">' +
+          '    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0; background-color: #2D76EE">' +
+          '      <span class="sr-only">0% Complete</span>' +
+          '    </div>' +
+          '  </div>' +
+          '</div>');
+      }
+
+      // update progress
+      var progress = data.step_count/5*100;
+      $('#capture-progress-bar .progress-bar').attr('aria-valuenow', progress).css('width', progress+'%').find('span').text(progress+'% Complete');
+
+    } else {
+
+      // Capture is done (one way or another) -- clear out our pending jobs
       $.each(refreshIntervalIds, function(ndx, id) {
         clearInterval(id);
       });
 
-      // If we have at least one success, forward to the new archive
-      if (capturesSucceeded) {
+      // If we succeeded, forward to the new archive
+      if (data.status == "completed") {
         window.location.href = "/" + new_archive.guid;
 
-      // Else show failure message/upload form.
+      // Else show failure message and reset form.
       } else {
 
         $('#error-container').html(templates.error({
           message: "Error: URL capture failed."
         }));
 
-        $('#error-container').removeClass('_hide _error _success _wait').addClass('_error');
+        $('#error-container').removeClass('_hide _success _wait').addClass('_error');
 
         // Toggle our create button
         CreateModule.toggleCreateAvailable();
@@ -358,19 +370,15 @@ CreateModule.setupEventHandlers = function () {
     // When a new url is entered into our form
   $('#linker').submit(function() {
     var $this = $(this);
-    var linker_data = {};
+    var linker_data = {
+      url: $this.find("input[name=url]").val(),
+      human: true
+    };
     var selectedFolder = CreateModule.ls.getCurrent().folderId;
 
-    if(selectedFolder){
-      linker_data = {
-        url: $this.find("input[name=url]").val(),
-        folder: selectedFolder || null
-      }
-    } else {
-      linker_data = {
-        url: $this.find("input[name=url]").val()
-      };
-    }
+    if(selectedFolder)
+      linker_data.folder = selectedFolder;
+
     // Start our spinner and disable our input field with just a tiny delay
     window.setTimeout(CreateModule.toggleCreateAvailable, 150);
 

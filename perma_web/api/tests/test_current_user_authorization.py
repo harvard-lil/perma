@@ -1,4 +1,5 @@
 from .utils import ApiResourceTransactionTestCase
+from perma.tests.test_capture_job import create_capture_job
 from perma.models import LinkUser, Link
 
 
@@ -72,3 +73,24 @@ class CurrentUserAuthorizationTestCase(ApiResourceTransactionTestCase):
 
     def test_should_reject_org_detail_for_other_user(self):
         self.rejected_get(self.detail_url + 'organizations/%s/' % (self.org_member.organizations.first().pk,), user=self.regular_user)
+
+    # capture jobs
+
+    def test_should_provide_different_capture_jobs_data_relative_to_user(self):
+        create_capture_job(self.org_member)
+        create_capture_job(self.regular_user)
+
+        vm_data = self.successful_get(self.detail_url + 'capture_jobs/', user=self.org_member)
+        reg_data = self.successful_get(self.detail_url + 'capture_jobs/', user=self.regular_user)
+
+        self.assertEqual(vm_data.keys(), reg_data.keys())
+        self.assertNotEqual(vm_data['objects'], reg_data['objects'])
+
+    def test_should_allow_capture_job_detail(self):
+        job = create_capture_job(self.org_member)
+        self.successful_get(self.detail_url + 'capture_jobs/%s/' % (job.link_id,), user=self.org_member)
+
+    def test_should_reject_capture_job_detail_for_other_user(self):
+        job = create_capture_job(self.org_member)
+        self.rejected_get(self.detail_url + 'capture_jobs/%s/' % (job.link_id,), user=self.regular_user)
+

@@ -39,7 +39,7 @@ from perma.forms import (
     UserFormSelfEdit, 
     SetPasswordForm, 
 )
-from perma.models import Registrar, LinkUser, Organization, Link, Capture
+from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob
 from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_admin_email, filter_or_null_join, \
     send_user_email
 
@@ -116,6 +116,23 @@ def stats(request, stat_type=None):
                     'stats': stats[queue],
                 })
         out = {'queues':queues}
+
+    elif stat_type == "job_queue":
+        with CaptureJob.get_job_queues() as job_queues:
+            pass
+        for queue_key, queue in job_queues.iteritems():
+            job_queues[queue_key] = [{'email':LinkUser.objects.get(id=user_id).email, 'count':len(jobs['next_jobs'])} for user_id, jobs in queue.iteritems()]
+        out = {
+            'job_queues': job_queues,
+            'active_jobs': [{
+                'link_id': j.link_id,
+                'email': j.link.created_by.email,
+                'attempt': j.attempt,
+                'step_count': round(j.step_count, 2),
+                'step_description': j.step_description,
+                'capture_start_time': j.capture_start_time
+            } for j in CaptureJob.objects.filter(status='in_progress')]
+        }
 
     if out:
         return JsonResponse(out)
