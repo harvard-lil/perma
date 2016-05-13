@@ -1,4 +1,6 @@
 import json
+from urllib import urlencode
+
 from django.test import TransactionTestCase
 from django.core.urlresolvers import reverse
 
@@ -24,6 +26,7 @@ class PermaTestCase(TransactionTestCase):
                    method='get',
                    reverse_args=[],
                    reverse_kwargs={},
+                   query_params={},
                    request_args=[],
                    request_kwargs={},
                    require_status_code=200,
@@ -34,6 +37,8 @@ class PermaTestCase(TransactionTestCase):
         if user:
             self.log_in_user(user)
         url = reverse(view_name, *reverse_args, **reverse_kwargs)
+        if query_params:
+            url += '?' + urlencode(query_params)
         resp = getattr(self.client, method.lower())(url, *request_args, **request_kwargs)
         if require_status_code:
             self.assertEqual(resp.status_code, require_status_code)
@@ -62,16 +67,19 @@ class PermaTestCase(TransactionTestCase):
         return self.do_request(view_name, 'post', *args, **kwargs)
 
 
-    def submit_form(self, view_name, data={}, *args, **kwargs):
+    def submit_form(self,
+                    view_name,
+                    data={},
+                    success_url=None,
+                    success_query=None,
+                    form_key='form',  # name of form object in RequestContext returned with response
+                    error_keys=[],  # keys that must appear in form error list
+                    *args, **kwargs):
         """
             Post to a view.
             success_url = url form should forward to after success
             success_query = query that should return one object if form worked
         """
-        success_url = kwargs.pop('success_url', None)
-        success_query = kwargs.pop('success_query', None)
-        form_key = kwargs.pop('form_key', 'form')           # name of form object in RequestContext returned with response
-        error_keys = set(kwargs.pop('error_keys', []))      # keys that must appear in form error list
 
         kwargs['require_status_code'] = None
         resp = self.post(view_name, data, *args, **kwargs)

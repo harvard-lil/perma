@@ -4,6 +4,7 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
 
+from perma.views.user_management import AddUserToOrganization, AddUserToRegistrar, AddUserToAdmin, AddRegularUser
 from .views.common import DirectTemplateView
 
 
@@ -21,16 +22,16 @@ urlpatterns = patterns('perma.views',
     url(r'^contingency-plan/?$', DirectTemplateView.as_view(template_name='contingency_plan.html'), name='contingency_plan'),
     url(r'^contact/?$', 'common.contact', name='contact'),
     url(r'^contact/thanks/?$', DirectTemplateView.as_view(template_name='contact-thanks.html'), name='contact_thanks'),
-#   url(r'^is500/?$', DirectTemplateView.as_view(template_name='500.html'), name='is500'),
-#	url(r'^is404/?$', DirectTemplateView.as_view(template_name='404.html'), name='is404'),
-   
-    #Docs 
+    #   url(r'^is500/?$', DirectTemplateView.as_view(template_name='500.html'), name='is500'),
+    #	url(r'^is404/?$', DirectTemplateView.as_view(template_name='404.html'), name='is404'),
+
+    #Docs
     url(r'^docs/?$', DirectTemplateView.as_view(template_name='docs/index.html'), name='docs'),
     url(r'^docs/perma-link-creation/?$', DirectTemplateView.as_view(template_name='docs/perma-link-creation.html'), name='docs_perma_link_creation'),
     url(r'^docs/libraries/?$', DirectTemplateView.as_view(template_name='docs/libraries.html'), name='docs_libraries'),
     url(r'^docs/faq/?$', 'common.faq', name='docs_faq'),
     url(r'^docs/organizations/?$', DirectTemplateView.as_view(template_name='docs/organizations.html'), name='docs_organizations'),
-    
+
     #Developer docs
     url(r'^docs/developer/?$', DirectTemplateView.as_view(template_name='docs/developer/index.html'), name='dev_docs'),
 
@@ -79,40 +80,47 @@ urlpatterns = patterns('perma.views',
     url(r'^manage/create/(?P<org_id>\d+)/?$', RedirectView.as_view(url='/manage/create/', permanent=False), name='create_link_with_org'),
     url(r'^manage/delete-link/%s/?$' % guid_pattern, 'link_management.user_delete_link', name='user_delete_link'),
     url(r'^manage/links/folder/(?P<folder_id>.+?)/?$', 'link_management.folder_contents', name='folder_contents'),
-    url(r'^manage/links(?P<path>/.*)?$', RedirectView.as_view(url='/manage/create/', permanent=False), name='link_browser'), # we used to serve an important page here. No longer. Redirect in case anyone has this bookmakred.
+    url(r'^manage/links(?P<path>/.*)?$', RedirectView.as_view(url='/manage/create/', permanent=False), name='link_browser'),  # we used to serve an important page here. No longer. Redirect in case anyone has this bookmakred.
 
     # user management
     url(r'^manage/stats/?(?P<stat_type>.*?)?/?$', 'user_management.stats', name='user_management_stats'),
+
     url(r'^manage/registrars/?$', 'user_management.manage_registrar', name='user_management_manage_registrar'),
     url(r'^manage/registrars/(?P<registrar_id>\d+)/?$', 'user_management.manage_single_registrar', name='user_management_manage_single_registrar'),
     url(r'^manage/registrars/approve/(?P<registrar_id>\d+)/?$', 'user_management.approve_pending_registrar', name='user_management_approve_pending_registrar'),
+
     url(r'^manage/organizations/?$', 'user_management.manage_organization', name='user_management_manage_organization'),
     url(r'^manage/organizations/(?P<org_id>\d+)/?$', 'user_management.manage_single_organization', name='user_management_manage_single_organization'),
     url(r'^manage/organization/(?P<org_id>\d+)/delete/?$', 'user_management.manage_single_organization_delete', name='user_management_manage_single_organization_delete'),
-    url(r'^manage/registry-users/add-user/?$', 'user_management.registry_user_add_user', name='user_management_registry_user_add_user'),
+
     url(r'^manage/registry-users/?$', 'user_management.manage_registry_user', name='user_management_manage_registry_user'),
+    url(r'^manage/registry-users/add-user/?$', AddUserToAdmin.as_view(), name='user_management_registry_user_add_user'),
     url(r'^manage/registry-user/(?P<user_id>\d+)/delete/?$', 'user_management.manage_single_registry_user_delete', name='user_management_manage_single_registry_user_delete'),
     url(r'^manage/registry-users/(?P<user_id>\d+)/remove/?$', 'user_management.manage_single_registry_user_remove', name='user_management_manage_single_registry_user_remove'),
+
     url(r'^manage/registrar-users/?$', 'user_management.manage_registrar_user', name='user_management_manage_registrar_user'),
+    url(r'^manage/registrar-users/add-user/?$', AddUserToRegistrar.as_view(), name='user_management_registrar_user_add_user'),
     url(r'^manage/registrar-users/(?P<user_id>\d+)/?$', 'user_management.manage_single_registrar_user', name='user_management_manage_single_registrar_user'),
     url(r'^manage/registrar-user/(?P<user_id>\d+)/delete/?$', 'user_management.manage_single_registrar_user_delete', name='user_management_manage_single_registrar_user_delete'),
     url(r'^manage/registrar-users/(?P<user_id>\d+)/reactivate/?$', 'user_management.manage_single_registrar_user_reactivate', name='user_management_manage_single_registrar_user_reactivate'),
-    url(r'^manage/registrar-users/add-user/?$', 'user_management.registrar_user_add_user', name='user_management_registrar_user_add_user'),
     url(r'^manage/registrar-users/(?P<user_id>\d+)/remove/?$', 'user_management.manage_single_registrar_user_remove', name='user_management_manage_single_registrar_user_remove'),
+
     url(r'^manage/users/?$', 'user_management.manage_user', name='user_management_manage_user'),
+    url(r'^manage/users/add-user/?$', AddRegularUser.as_view(), name='user_management_user_add_user'),
     url(r'^manage/users/(?P<user_id>\d+)/?$', 'user_management.manage_single_user', name='user_management_manage_single_user'),
     url(r'^manage/users/(?P<user_id>\d+)/delete/?$', 'user_management.manage_single_user_delete', name='user_management_manage_single_user_delete'),
     url(r'^manage/users/(?P<user_id>\d+)/reactivate/?$', 'user_management.manage_single_user_reactivate', name='user_management_manage_single_user_reactivate'),
+
     url(r'^manage/organization-users/?$', 'user_management.manage_organization_user', name='user_management_manage_organization_user'),
+    url(r'^manage/organization-users/add-user/?$', AddUserToOrganization.as_view(), name='user_management_organization_user_add_user'),
     url(r'^manage/organization-users/(?P<user_id>\d+)/?$', 'user_management.manage_single_organization_user', name='user_management_manage_single_organization_user'),
     url(r'^manage/organization-users/(?P<user_id>\d+)/delete/?$', 'user_management.manage_single_organization_user_delete', name='user_management_manage_single_organization_user_delete'),
     url(r'^manage/organization-users/(?P<user_id>\d+)/reactivate/?$', 'user_management.manage_single_organization_user_reactivate', name='user_management_manage_single_organization_user_reactivate'),
     url(r'^manage/organization-users/(?P<user_id>\d+)/remove/?$', 'user_management.manage_single_organization_user_remove', name='user_management_manage_single_organization_user_remove'),
-    url(r'^manage/users/(?P<user_id>\d+)/add-registrar/?$', 'user_management.user_add_registrar', name='user_management_user_add_registrar'),
-    url(r'^manage/organization-users/add-user/?$', 'user_management.organization_user_add_user', name='user_management_organization_user_add_user'),
+
     url(r'^manage/account/leave-organization/(?P<org_id>\d+)/?$', 'user_management.organization_user_leave_organization', name='user_management_organization_user_leave_organization'),
-#    url(r'^manage/users/?$', 'manage.users', name='manage_users'),
-#    url(r'^manage/activity/?$', 'manage.activity', name='manage_activity'),
+    #    url(r'^manage/users/?$', 'manage.users', name='manage_users'),
+    #    url(r'^manage/activity/?$', 'manage.activity', name='manage_activity'),
 
     # error management
     url(r'^manage/errors/resolve?$', 'error_management.resolve', name='error_management_resolve'),

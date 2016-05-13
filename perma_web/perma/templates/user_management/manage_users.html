@@ -13,54 +13,14 @@
 	{% endif %}
 
 	<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
-		{% if group_name == 'organization_user' %}
-			<form method="get" action="{% url 'user_management_organization_user_add_user' %}" class="form-inline" role="form">
-				<fieldset>
-					<div class="form-group fg-100">
-						<input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
-					</div>
-					<button type="submit" class="btn btn-default btn-inline">Add {{ pretty_group_name }}</button>
-				</fieldset>
-			</form>
-			{% elif group_name == 'registrar_user' %}
-			<form method="get" action="{% url 'user_management_registrar_user_add_user' %}" class="form-inline" role="form">
-				<fieldset>
-					<div class="form-group fg-100">
-						<input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
-					</div>
-					<button type="submit" class="btn btn-default btn-inline">Add {{ pretty_group_name }}</button>
-				</fieldset>
-			</form>
-			{% elif group_name == 'registry_user' %}
-			<form method="get" action="{% url 'user_management_registry_user_add_user' %}" class="form-inline" role="form">
-				<fieldset>
-					<div class="form-group fg-100">
-						<input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
-					</div>
-					<button type="submit" class="btn btn-default btn-inline">Add {{ pretty_group_name }}</button>
-				</fieldset>
-			</form>
-		{% else %}
-			<form method="post">
-				{% csrf_token %}
-				<h4 class="body-ch">Add a {{ pretty_group_name|lower }}</h4>
-				<fieldset>
-					{% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
-					{% for field in form %}
-						<div class="form-group fg-100{% if field.errors %} _error{% endif %}">
-							<label for="id_{{ field.name }}">{{ field.label }}</label>
-							{{ field }}
-							{% if field.errors %}
-								{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
-							{%elif field.help_text %}
-								<span class="field-error">{{ field.help_text }}</span>
-							{% endif %}
-						</div>
-					{% endfor %}
-				</fieldset>
-				<button type="submit" class="btn">Add {{ pretty_group_name|lower }}</button>
-			</form>
-		{% endif %}
+    <form method="get" action="{% url add_user_url %}" class="form-inline" role="form">
+      <fieldset>
+        <div class="form-group fg-100">
+          <input type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
+        </div>
+        <button type="submit" class="btn btn-default btn-inline">Add {{ pretty_group_name }}</button>
+      </fieldset>
+    </form>
 	</div><!-- add member -->
 		
 		

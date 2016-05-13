@@ -191,11 +191,12 @@ class LinkUser(AbstractBaseUser):
         max_length=255,
         unique=True,
         db_index=True,
+        error_messages={'unique': u"A user with that email address already exists.",}
     )
     registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar member. This should not be set if org is set!")
     pending_registrar = models.IntegerField(blank=True, null=True)
     organizations = models.ManyToManyField(Organization, blank=True, related_name='users', help_text="If set, this user is an org member. This should not be set if registrar is set!")
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     is_confirmed = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)

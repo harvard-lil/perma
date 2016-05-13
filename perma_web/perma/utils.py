@@ -12,6 +12,8 @@ from django.conf import settings
 
 
 ### celery helpers ###
+from django.template.loader import render_to_string
+
 
 def run_task(task, *args, **kwargs):
     """
@@ -160,6 +162,12 @@ def copy_file_data(from_file_handle, to_file_handle, chunk_size=1024*100):
         to_file_handle.write(data)
 
 ### email ###
+
+def send_user_template_email(template, to_address, context):
+    email_text = render_to_string(template, context)
+    title, email_text = email_text.split("\n\n", 1)
+    title = title.split("TITLE: ")[-1]
+    send_user_email(title, email_text, to_address)
 
 def send_user_email(title, content, to_address):
     send_mail(
