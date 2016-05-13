@@ -483,7 +483,7 @@ def proxy_capture(self, link_guid):
         progress = int(progress) + 1
         display_progress(progress, "Waiting for post-load requests")
         start_time = time.time()
-        time.sleep(1)
+        time.sleep(.1)
         while True:
             print "%s/%s finished" % (len(proxied_responses), len(proxied_requests))
             response_count = len(proxied_responses)
