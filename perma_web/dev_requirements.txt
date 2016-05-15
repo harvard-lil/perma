@@ -4,3 +4,4 @@ django-debug-toolbar==1.4     # if installed, debug-toolbar will be included in 
 django-extensions==1.6.1        # if installed, `fab run` will use `python manage.py runserver_plus`
 django-nose==1.4.3              # an alternative test runner; enable in settings_testing.py
 pysqlite==2.6.3                 # for use with in memory testing set in settings_testing.py
+pipdeptree                      # show full pip dependency tree with the 'pipdeptree' command line tool

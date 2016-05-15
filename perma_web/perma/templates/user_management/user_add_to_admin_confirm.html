@@ -1,0 +1,24 @@
+{% extends "admin-layout.html" %}
+
+{% block title %} | Add user as admin{% endblock %}
+
+{% block adminContent %}
+  <h3 class="body-bh">Add {{ form.initial.email }} as admin</h3>
+
+  {% if object.id %}
+    <p>{{ user_email }} already has an account.  Would you like to make them an admin?</p>
+    <p><b>NOTE: any existing organization or registrar affiliation will be removed.</b></p>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    {% include "includes/fieldset.html" %}
+    {% if object.id %}
+      <button type="submit" class="btn">Make user an admin</button>
+    {% else %}
+      <button type="submit" class="btn">Add admin user</button>
+    {% endif %}
+    <a href="{% url 'user_management_manage_registry_user' %}" class="btn cancel">Cancel</a>
+  </form>
+
+{% endblock %}

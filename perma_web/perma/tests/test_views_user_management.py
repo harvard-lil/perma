@@ -13,14 +13,17 @@ class UserManagementViewsTestCase(PermaTestCase):
                 ]
 
     def setUp(self):
-        super(UserManagementViewsTestCase, self).setUpClass()
+        super(UserManagementViewsTestCase, self).setUp()
 
         self.admin_user = LinkUser.objects.get(pk=1)
         self.registrar_member = LinkUser.objects.get(pk=2)
+        self.regular_user = LinkUser.objects.get(pk=4)
         self.registrar = self.registrar_member.registrar
         self.unrelated_registrar = Registrar.objects.exclude(pk=self.registrar.pk).first()
-        self.organization = self.registrar.organizations.first()
+        self.unrelated_registrar_member = self.unrelated_registrar.users.first()
+        self.organization = Organization.objects.get(pk=1)
         self.organization_member = self.organization.users.first()
+        self.another_organization = Organization.objects.get(pk=2)
         self.unrelated_organization = self.unrelated_registrar.organizations.first()
         self.deletable_organization = Organization.objects.get(pk=3)
 
@@ -181,7 +184,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         ]:
             # create user
             email += '1'
-            self.submit_form('user_management_manage_' + view_name,
+            self.submit_form('user_management_' + view_name + '_add_user',
                            data=dict(base_user.items() + form_extras.items() + [['a-email', email]]),
                            success_url=reverse('user_management_manage_' + view_name),
                            success_query=LinkUser.objects.filter(email=email))
@@ -205,6 +208,239 @@ class UserManagementViewsTestCase(PermaTestCase):
             self.submit_form('user_management_manage_single_' + view_name + '_delete',
                            reverse_kwargs={'args': [new_user.pk]},
                            success_url=reverse('user_management_manage_' + view_name))
+
+    ### ADDING NEW USERS TO ORGANIZATIONS ###
+
+    def test_admin_user_can_add_new_user_to_org(self):
+        self.log_in_user(self.admin_user)
+        self.submit_form('user_management_organization_user_add_user',
+                         data={'a-organizations': self.organization.pk,
+                               'a-first_name': 'First',
+                               'a-last_name': 'Last',
+                               'a-email': 'doesnotexist@example.com'},
+                         query_params={'email': 'doesnotexist@example.com'},
+                         success_url=reverse('user_management_manage_organization_user'),
+                         success_query=LinkUser.objects.filter(email='doesnotexist@example.com',
+                                                               organizations=self.organization).exists())
+
+
+    def test_registrar_user_can_add_new_user_to_org(self):
+        self.log_in_user(self.registrar_member)
+        self.submit_form('user_management_organization_user_add_user',
+                         data={'a-organizations': self.organization.pk,
+                               'a-first_name': 'First',
+                               'a-last_name': 'Last',
+                               'a-email': 'doesnotexist@example.com'},
+                         query_params={'email': 'doesnotexist@example.com'},
+                         success_url=reverse('user_management_manage_organization_user'),
+                         success_query=LinkUser.objects.filter(email='doesnotexist@example.com',
+                                                               organizations=self.organization).exists())
+
+
+    def test_org_user_can_add_new_user_to_org(self):
+        self.log_in_user(self.organization_member)
+        self.submit_form('user_management_organization_user_add_user',
+                         data={'a-organizations': self.organization.pk,
+                               'a-first_name': 'First',
+                               'a-last_name': 'Last',
+                               'a-email': 'doesnotexist@example.com'},
+                         query_params={'email': 'doesnotexist@example.com'},
+                         success_url=reverse('user_management_manage_organization_user'),
+                         success_query=LinkUser.objects.filter(email='doesnotexist@example.com',
+                                                               organizations=self.organization).exists())
+
+    def test_registrar_user_cannot_add_new_user_to_inaccessible_org(self):
+        self.log_in_user(self.registrar_member)
+        self.submit_form('user_management_organization_user_add_user',
+                         data={'a-organizations': self.unrelated_organization.pk,
+                               'a-first_name': 'First',
+                               'a-last_name': 'Last',
+                               'a-email': 'doesnotexist@example.com'},
+                         query_params={'email': 'doesnotexist@example.com'},
+                         error_keys=['organizations'])
+        self.assertFalse(LinkUser.objects.filter(email='doesnotexist@example.com',
+                                                 organizations=self.unrelated_organization).exists())
+
+    def test_org_user_cannot_add_new_user_to_inaccessible_org(self):
+        self.log_in_user(self.organization_member)
+        self.submit_form('user_management_organization_user_add_user',
+                         data={'a-organizations': self.unrelated_organization.pk,
+                               'a-first_name': 'First',
+                               'a-last_name': 'Last',
+                               'a-email': 'doesnotexist@example.com'},
+                         query_params={'email': 'doesnotexist@example.com'},
+                         error_keys=['organizations'])
+        self.assertFalse(LinkUser.objects.filter(email='doesnotexist@example.com',
+                                                 organizations=self.unrelated_organization).exists())
+
+    ### ADDING EXISTING USERS TO ORGANIZATIONS ###
+
+    def test_admin_user_can_add_existing_user_to_org(self):
+        self.log_in_user(self.admin_user)
+        self.submit_form('user_management_organization_user_add_user',
+                         data={'a-organizations': self.organization.pk},
+                         query_params={'email': self.regular_user.email},
+                         success_url=reverse('user_management_manage_organization_user'),
+                         success_query=self.regular_user.organizations.filter(pk=self.organization.pk))
+
+    def test_registrar_user_can_add_existing_user_to_org(self):
+        self.log_in_user(self.registrar_member)
+        self.submit_form('user_management_organization_user_add_user',
+                         data={'a-organizations': self.organization.pk},
+                         query_params={'email': self.regular_user.email},
+                         success_url=reverse('user_management_manage_organization_user'),
+                         success_query=self.regular_user.organizations.filter(pk=self.organization.pk))
+
+    def test_org_user_can_add_existing_user_to_org(self):
+        self.log_in_user(self.organization_member)
+        self.submit_form('user_management_organization_user_add_user',
+                         data={'a-organizations': self.organization.pk},
+                         query_params={'email': self.regular_user.email},
+                         success_url=reverse('user_management_manage_organization_user'),
+                         success_query=self.regular_user.organizations.filter(pk=self.organization.pk))
+
+    def test_registrar_user_cannot_add_existing_user_to_inaccessible_org(self):
+        self.log_in_user(self.registrar_member)
+        self.submit_form('user_management_organization_user_add_user',
+                         data={'a-organizations': self.unrelated_organization.pk},
+                         query_params={'email': self.regular_user.email},
+                         error_keys=['organizations'])
+        self.assertFalse(self.regular_user.organizations.filter(pk=self.unrelated_organization.pk).exists())
+
+    def test_org_user_cannot_add_existing_user_to_inaccessible_org(self):
+        self.log_in_user(self.organization_member)
+        self.submit_form('user_management_organization_user_add_user',
+                         data={'a-organizations': self.another_organization.pk},
+                         query_params={'email': self.regular_user.email},
+                         error_keys=['organizations'])
+        self.assertFalse(self.regular_user.organizations.filter(pk=self.another_organization.pk).exists())
+
+    def test_cannot_add_admin_user_to_org(self):
+        self.log_in_user(self.organization_member)
+        resp = self.submit_form('user_management_organization_user_add_user',
+                         data={'a-organizations': self.organization.pk},
+                         query_params={'email': self.admin_user.email})
+        self.assertIn("is an admin user", resp.content)
+        self.assertFalse(self.admin_user.organizations.exists())
+
+    def test_cannot_add_registrar_user_to_org(self):
+        self.log_in_user(self.organization_member)
+        resp = self.submit_form('user_management_organization_user_add_user',
+                                data={'a-organizations': self.organization.pk},
+                                query_params={'email': self.registrar_member.email})
+        self.assertIn("is a registrar member", resp.content)
+        self.assertFalse(self.registrar_member.organizations.exists())
+
+    ### ADDING NEW USERS TO REGISTRARS ###
+
+    def test_admin_user_can_add_new_user_to_registrar(self):
+        self.log_in_user(self.admin_user)
+        self.submit_form('user_management_registrar_user_add_user',
+                         data={'a-registrar': self.registrar.pk,
+                               'a-first_name': 'First',
+                               'a-last_name': 'Last',
+                               'a-email': 'doesnotexist@example.com'},
+                         query_params={'email': 'doesnotexist@example.com'},
+                         success_url=reverse('user_management_manage_registrar_user'),
+                         success_query=LinkUser.objects.filter(email='doesnotexist@example.com',
+                                                               registrar=self.registrar).exists())
+
+
+    def test_registrar_user_can_add_new_user_to_registrar(self):
+        self.log_in_user(self.registrar_member)
+        self.submit_form('user_management_registrar_user_add_user',
+                         data={'a-registrar': self.registrar.pk,
+                               'a-first_name': 'First',
+                               'a-last_name': 'Last',
+                               'a-email': 'doesnotexist@example.com'},
+                         query_params={'email': 'doesnotexist@example.com'},
+                         success_url=reverse('user_management_manage_registrar_user'),
+                         success_query=LinkUser.objects.filter(email='doesnotexist@example.com',
+                                                               registrar=self.registrar).exists())
+
+    def test_registrar_user_cannot_add_new_user_to_inaccessible_registrar(self):
+        self.log_in_user(self.registrar_member)
+        self.submit_form('user_management_registrar_user_add_user',
+                         data={'a-registrar': self.unrelated_registrar.pk,
+                               'a-first_name': 'First',
+                               'a-last_name': 'Last',
+                               'a-email': 'doesnotexist@example.com'},
+                         query_params={'email': 'doesnotexist@example.com'},
+                         error_keys=['registrar'])
+        self.assertFalse(LinkUser.objects.filter(email='doesnotexist@example.com',
+                                                 registrar=self.unrelated_registrar).exists())
+
+    ### ADDING EXISTING USERS TO REGISTRARS ###
+
+    def test_admin_user_can_add_existing_user_to_registrar(self):
+        self.log_in_user(self.admin_user)
+        self.submit_form('user_management_registrar_user_add_user',
+                         data={'a-registrar': self.registrar.pk},
+                         query_params={'email': self.regular_user.email},
+                         success_url=reverse('user_management_manage_registrar_user'),
+                         success_query=LinkUser.objects.filter(pk=self.regular_user.pk, registrar=self.registrar))
+
+    def test_registrar_user_can_add_existing_user_to_registrar(self):
+        self.log_in_user(self.registrar_member)
+        self.submit_form('user_management_registrar_user_add_user',
+                         data={'a-registrar': self.registrar.pk},
+                         query_params={'email': self.regular_user.email},
+                         success_url=reverse('user_management_manage_registrar_user'),
+                         success_query=LinkUser.objects.filter(pk=self.regular_user.pk, registrar=self.registrar))
+
+    def test_registrar_user_cannot_add_existing_user_to_inaccessible_registrar(self):
+        self.log_in_user(self.registrar_member)
+        self.submit_form('user_management_registrar_user_add_user',
+                         data={'a-registrar': self.unrelated_registrar.pk},
+                         query_params={'email': self.regular_user.email},
+                         error_keys=['registrar'])
+        self.assertFalse(LinkUser.objects.filter(pk=self.regular_user.pk, registrar=self.unrelated_registrar).exists())
+
+    def test_cannot_add_admin_user_to_registrar(self):
+        self.log_in_user(self.registrar_member)
+        resp = self.submit_form('user_management_registrar_user_add_user',
+                         data={'a-registrar': self.registrar.pk},
+                         query_params={'email': self.admin_user.email})
+        self.assertIn("is an admin user", resp.content)
+        self.assertFalse(LinkUser.objects.filter(pk=self.admin_user.pk, registrar=self.registrar).exists())
+
+    def test_cannot_add_registrar_user_to_registrar(self):
+        self.log_in_user(self.registrar_member)
+        resp = self.submit_form('user_management_registrar_user_add_user',
+                                data={'a-registrar': self.registrar.pk},
+                                query_params={'email': self.unrelated_registrar_member.email})
+        self.assertIn("is already a member of a registrar", resp.content)
+        self.assertFalse(LinkUser.objects.filter(pk=self.unrelated_registrar_member.pk, registrar=self.registrar).exists())
+
+    def test_cannot_add_org_user_to_registrar(self):
+        self.log_in_user(self.registrar_member)
+        resp = self.submit_form('user_management_registrar_user_add_user',
+                                data={'a-registrar': self.registrar.pk},
+                                query_params={'email': self.organization_member.email})
+        self.assertIn("is an organization member", resp.content)
+        self.assertFalse(LinkUser.objects.filter(pk=self.organization_member.pk, registrar=self.registrar).exists())
+
+    ### ADDING NEW USERS AS ADMINS ###
+
+    def test_admin_user_can_add_new_user_as_admin(self):
+        self.log_in_user(self.admin_user)
+        self.submit_form('user_management_registry_user_add_user',
+                         data={'a-first_name': 'First',
+                               'a-last_name': 'Last',
+                               'a-email': 'doesnotexist@example.com'},
+                         query_params={'email': 'doesnotexist@example.com'},
+                         success_url=reverse('user_management_manage_registry_user'),
+                         success_query=LinkUser.objects.filter(email='doesnotexist@example.com',
+                                                               is_staff=True).exists())
+
+    ### ADDING EXISTING USERS AS ADMINS ###
+
+    def test_admin_user_can_add_existing_user_as_admin(self):
+        self.log_in_user(self.admin_user)
+        self.submit_form('user_management_registry_user_add_user',
+                         query_params={'email': self.regular_user.email},
+                         success_url=reverse('user_management_manage_registry_user'),
+                         success_query=LinkUser.objects.filter(pk=self.regular_user.pk, is_staff=True))
 
     ### SETTINGS ###
 

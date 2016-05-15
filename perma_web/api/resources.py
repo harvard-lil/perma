@@ -27,7 +27,8 @@ from perma.models import (LinkUser,
                           Organization,
                           Registrar,
                           CDXLine,
-                          Capture)
+                          Capture,
+                          CaptureJob)
 
 from authentication import (DefaultAuthentication,
                             CurrentUserAuthentication)
@@ -35,15 +36,17 @@ from authentication import (DefaultAuthentication,
 from authorizations import (FolderAuthorization,
                             LinkAuthorization,
                             CurrentUserAuthorization,
-                            CurrentUserOrganizationAuthorization, PublicLinkAuthorization,
-                            AuthenticatedLinkAuthorization)
+                            CurrentUserOrganizationAuthorization,
+                            PublicLinkAuthorization,
+                            AuthenticatedLinkAuthorization,
+                            CurrentUserNestedAuthorization,
+                            CurrentUserCaptureJobAuthorization)
 
 from serializers import DefaultSerializer
 
 # LinkResource
 from perma.utils import run_task
-from perma.tasks import proxy_capture, upload_to_internet_archive, delete_from_internet_archive
-
+from perma.tasks import proxy_capture, upload_to_internet_archive, delete_from_internet_archive, run_next_capture
 
 
 class DefaultResource(ExtendedModelResource):
@@ -268,6 +271,31 @@ class FolderResource(DefaultResource):
             self.raise_error_response(bundle, {"parent":e.args[0]})
 
 
+class CaptureJobResource(DefaultResource):
+    guid = fields.CharField(attribute='link_id')
+    status = fields.CharField(attribute='status')
+    attempt = fields.IntegerField(attribute='attempt')
+    step_count = fields.FloatField(attribute='step_count')
+    step_description = fields.CharField(attribute='step_description', blank=True, null=True)
+    capture_start_time = fields.DateTimeField(attribute='capture_start_time', blank=True, null=True)
+    capture_end_time = fields.DateTimeField(attribute='capture_end_time', blank=True, null=True)
+
+    # calculated fields
+    queue_position = fields.DateTimeField(attribute='queue_position')
+
+    class Meta(DefaultResource.Meta):
+        resource_name = 'capture_jobs'
+        queryset = CaptureJob.objects.all()
+        detail_uri_name = 'link_id'
+
+    def prepend_urls(self):
+        """ URLs should match on CaptureJob.link_id as well as CaptureJob.id. """
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<link_id>[\w\d-]+)/?$" % self._meta.resource_name,
+                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+        ]
+
+
 class CaptureResource(DefaultResource):
     role = fields.CharField(attribute='role', null=True, blank=True)
     status = fields.CharField(attribute='status', null=True, blank=True)
@@ -311,6 +339,7 @@ class BaseLinkResource(MultipartResource, DefaultResource):
     creation_timestamp = fields.DateTimeField(attribute='creation_timestamp', readonly=True)
     url = fields.CharField(attribute='submitted_url')
     title = fields.CharField(attribute='submitted_title', blank=True)
+    warc_size = fields.IntegerField(attribute='warc_size', blank=True, null=True)
     captures = fields.ToManyField(CaptureResource, 'captures', readonly=True, full=True)
 
     class Meta(DefaultResource.Meta):
@@ -399,6 +428,11 @@ class LinkResource(AuthenticatedLinkResource):
 
         return bundle
 
+    def hydrate_human(self, bundle):
+        if 'human' in bundle.data:
+            bundle.data['human'] = bool(bundle.data['human'])
+        return bundle
+
     def hydrate(self, bundle):
         if bundle.data.get('folder', None):
             try:
@@ -420,7 +454,7 @@ class LinkResource(AuthenticatedLinkResource):
                 'archives': {'__all__': "Perma has paused archive creation for scheduled maintenance. Please try again shortly."},
                 'reason': "Perma has paused archive creation for scheduled maintenance. Please try again shortly.",
             }))
-        
+
         # Runs validation (exception thrown if invalid), sets properties and saves the object
         if bundle.data.get('replace'):
             bundle.data['folder'] = bundle.data['folder_id']
@@ -480,7 +514,11 @@ class LinkResource(AuthenticatedLinkResource):
                 content_type='image/png',
             ).save()
 
-            run_task(proxy_capture.s(link.guid, bundle.request.META.get('HTTP_USER_AGENT', '')))
+            # create CaptureJob
+            CaptureJob(link=link, human=bundle.data.get('human', False)).save()
+
+            # kick off capture tasks -- no need for guid since it'll work through the queue
+            run_task(run_next_capture.s())
 
         return bundle
 
@@ -608,7 +646,7 @@ class CurrentUserResource(LinkUserResource):
 class CurrentUserNestedResource(object):
     class Meta(DefaultResource.Meta):
         authentication = CurrentUserAuthentication()
-        authorization = CurrentUserAuthorization()
+        authorization = CurrentUserNestedAuthorization()
 
     def obj_create(self, bundle, **kwargs):
         """
@@ -632,3 +670,9 @@ class CurrentUserOrganizationResource(CurrentUserNestedResource, OrganizationRes
     class Meta(CurrentUserNestedResource.Meta, OrganizationResource.Meta):
         resource_name = 'user/' + OrganizationResource.Meta.resource_name
         authorization = CurrentUserOrganizationAuthorization()
+
+
+class CurrentUserCaptureJobResource(CurrentUserNestedResource, CaptureJobResource):
+    class Meta(CurrentUserNestedResource.Meta, CaptureJobResource.Meta):
+        resource_name = 'user/' + CaptureJobResource.Meta.resource_name
+        authorization = CurrentUserCaptureJobAuthorization()

@@ -1,3 +1,4 @@
+import calendar
 import hashlib
 import io
 import json
@@ -7,11 +8,13 @@ import random
 import re
 import socket
 import tempfile
-
+import time
+from contextlib import contextmanager
 from urlparse import urlparse
 import simple_history
-from hanzo import warctools
 import requests
+
+from hanzo import warctools
 from simple_history.models import HistoricalRecords
 from wand.image import Image
 from werkzeug.urls import iri_to_uri
@@ -19,8 +22,9 @@ from werkzeug.urls import iri_to_uri
 import django.contrib.auth.models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
+from django.core.cache import cache
 from django.core.files.storage import default_storage
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.utils import timezone
@@ -187,11 +191,12 @@ class LinkUser(AbstractBaseUser):
         max_length=255,
         unique=True,
         db_index=True,
+        error_messages={'unique': u"A user with that email address already exists.",}
     )
     registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar member. This should not be set if org is set!")
     pending_registrar = models.IntegerField(blank=True, null=True)
     organizations = models.ManyToManyField(Organization, blank=True, related_name='users', help_text="If set, this user is an org member. This should not be set if registrar is set!")
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     is_confirmed = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
@@ -350,6 +355,10 @@ class LinkUser(AbstractBaseUser):
     def can_edit_registrar(self, registrar):
         return self.is_staff or self.registrar == registrar
 
+    def can_edit_organization(self, organization):
+        return self.organizations.filter(pk=organization.pk).exists()
+
+
 # special history tracking for custom user object -- see http://django-simple-history.readthedocs.org/en/latest/reference.html
 simple_history.register(LinkUser)
 
@@ -469,9 +478,7 @@ class LinkQuerySet(QuerySet):
 LinkManager = DeletableManager.from_queryset(LinkQuerySet)
 
 
-HEADER_CHECK_TIMEOUT = 10
-# This is the PhantomJS default agent
-USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X) AppleWebKit/534.34 (KHTML, like Gecko) PhantomJS/1.9.0 (development) Safari/534.34"
+HEADER_CHECK_TIMEOUT = 10  # keeping this setting out here allows tests to override it for speed
 
 class Link(DeletableModel):
     """
@@ -487,6 +494,7 @@ class Link(DeletableModel):
     folders = models.ManyToManyField(Folder, related_name='links', blank=True)
     notes = models.TextField(blank=True)
     uploaded_to_internet_archive = models.BooleanField(default=False)
+    warc_size = models.IntegerField(blank=True, null=True)
 
     is_private = models.BooleanField(default=False)
     private_reason = models.CharField(max_length=10, blank=True, null=True, choices=(('policy','Robots.txt or meta tag'),('user','At user direction'),('takedown','At request of content owner')))
@@ -523,7 +531,7 @@ class Link(DeletableModel):
             return requests.get(
                 self.safe_url,
                 verify=False,  # don't check SSL cert?
-                headers={'User-Agent': USER_AGENT, 'Accept-Encoding': '*'},
+                headers={'User-Agent': settings.CAPTURE_USER_AGENT, 'Accept-Encoding': '*'},
                 timeout=HEADER_CHECK_TIMEOUT,
                 stream=True  # we're only looking at the headers
             ).headers
@@ -890,6 +898,226 @@ class Capture(models.Model):
         return u"%s%s%s" % (self.link.base_playback_url(), "id_/" if self.record_type == 'resource' else "", self.url)
 
 
+class CaptureJob(models.Model):
+    """
+        This class tracks capture jobs for purposes of:
+            (1) sorting the capture queue fairly and
+            (2) reporting status during a capture.
+    """
+    link = models.OneToOneField(Link, related_name='capture_job')
+    status = models.CharField(max_length=15,
+                              default='pending',
+                              choices=(('pending','pending'),('in_progress','in_progress'),('completed','completed'),('deleted','deleted'),('failed','failed')))
+    human = models.BooleanField(default=False)
+
+    # reporting
+    attempt = models.SmallIntegerField(default=0)
+    step_count = models.FloatField(default=0)
+    step_description = models.CharField(max_length=255, blank=True, null=True)
+    capture_start_time = models.DateTimeField(blank=True, null=True)
+    capture_end_time = models.DateTimeField(blank=True, null=True)
+
+    CACHE_KEY = 'capture_job_queue'
+
+    # Don't use the cache if we're using background celery processes and the local memory cache (presumably in the dev
+    # environment) -- caching the queue only works if all threads see the same cache.
+    USE_CACHE = settings.RUN_TASKS_ASYNC is False or 'LocMemCache' not in settings.CACHES['default']['BACKEND']
+
+    # used for testing, to find concurrency errors
+    CACHE_DELAY = 0
+    USE_LOCK = True
+
+    def __unicode__(self):
+        return u"CaptureJob %s: %s" % (self.pk, self.link_id)
+
+    def save(self, *args, **kwargs):
+        is_new = not self.pk
+        super(CaptureJob, self).save(*args, **kwargs)
+
+        # add new jobs to the job queue
+        if is_new:
+            with self.get_job_queues() as job_queues:
+                self.add_to_queue(job_queues)
+
+    @classmethod
+    def clear_cache(cls):
+        """ Wipe the queue cache -- mostly useful for tests. """
+        cache.delete(cls.CACHE_KEY)
+
+    @classmethod
+    @contextmanager
+    def get_job_queues(cls):
+        """
+            This is a context manager we can use to get LOCKED access to a dictionary of all pending CaptureJobs. The
+            dictionary is generated from the database the first time but then stored in the cache for faster access.
+            If a caller updates pending CaptureJobs in the database, it should also update the cache.
+            Any changes to the dictionary made by the caller will be saved back to the cache.
+
+            Example usage:
+
+                with CaptureJob.get_job_queues() as job_queues:
+                    # do atomic-access stuff with job_queues
+
+            job_queues format:
+
+                  {'human': {
+                      <user_id>: {
+                          'last_job_time':<CaptureJob.capture_start_time as integer>,
+                          'next_jobs':[<CaptureJob.pk>,<CaptureJob.pk>]
+                      },
+                      <user_id>: { ... },
+                   'robot':{ ... }
+                  }
+
+        """
+
+        with transaction.atomic():
+
+            # Use select_for_update on the first CaptureJob to claim a lock on the cache.
+            if cls.USE_LOCK:
+                lock_row = cls.objects.order_by('pk').select_for_update().first()
+
+            # try fetching queue from cache
+            job_queues = cache.get(CaptureJob.CACHE_KEY) if cls.USE_CACHE else None
+
+            # if not, regenerate cache
+            if job_queues is None:
+
+                # mark any captures as deleted where link has been deleted before capture
+                CaptureJob.objects.filter(link__user_deleted=True, status='pending').update(status='deleted')
+
+                # Grab all pending jobs in a dict by job type (human or robot) and user ID.
+                job_queues = {'human': {}, 'robot': {}}
+                pending_jobs = cls.objects.filter(status='pending').order_by('pk').select_related('link')
+                for job in pending_jobs:
+                    job.add_to_queue(job_queues)
+
+            yield job_queues
+
+            # optional delay, used solely for our concurrency tests
+            if cls.CACHE_DELAY:
+                time.sleep(cls.CACHE_DELAY)
+
+            # save any changes made by caller
+            if cls.USE_CACHE:
+                cache.set(CaptureJob.CACHE_KEY, job_queues)
+
+    def add_to_queue(self, job_queues):
+        """
+            Insert a single job in the appropriate queue.
+        """
+        job_type = 'human' if self.human else 'robot'
+        job_queue = job_queues[job_type]
+        user_id = self.link.created_by_id
+        if user_id not in job_queue:
+            last_job = CaptureJob.objects.filter(link__created_by_id=user_id).exclude(status='pending').order_by('-pk').first()
+            job_queue[user_id] = {
+                'next_jobs': [],
+                'last_job_time': last_job.capture_start_time.isoformat() if last_job else '0'
+            }
+        if self.pk not in job_queue[user_id]['next_jobs']:
+            job_queue[user_id]['next_jobs'].append(self.pk)
+
+    @classmethod
+    def sort_job_queue(cls, job_queue):
+        """
+            Sort users in a job queue by preference.
+        """
+        return sorted(
+            job_queue.iteritems(),
+            key=lambda x: (
+                x[1]['last_job_time'],  # whose previous job is oldest?
+                x[1]['next_jobs'][0])  # whose next job is oldest?
+        )
+
+    @classmethod
+    def get_next_job(cls, reserve=False):
+        """
+            Return the next job to work on, looking first at the human queue and then at the robot queue.
+
+            If `reserve=True`, mark the returned job with `status=in_progress` and remove from queue so the
+            same job can't be returned twice. Caller must make sure the job is actually processed once returned.
+        """
+        with cls.get_job_queues() as job_queues:
+
+            # look first at the human queue, or if that's empty at the robot queue
+            job_queue = job_queues['human'] or job_queues['robot']
+
+            if not job_queue:
+                return  # no jobs to process
+
+            next_user_id, next_user = cls.sort_job_queue(job_queue)[0]
+            next_job = cls.objects.get(pk=next_user['next_jobs'][0])
+
+            # mark the job as in_progress so we won't return it the next time this is called
+            if reserve:
+                # update db
+                next_job.status = 'in_progress'
+                next_job.capture_start_time = timezone.now()
+                next_job.save()
+
+                # update cache
+                next_user['next_jobs'].pop(0)
+                if next_user['next_jobs']:
+                    next_user['last_job_time'] = next_job.capture_start_time.isoformat()
+                else:
+                    del job_queue[next_user_id]
+
+            return next_job
+
+    def queue_position(self):
+        """
+            Search job_queues to calculate the queue position for this job -- how many pending jobs have to be processed
+            before this one?
+
+            Returns:
+                0 if job is not pending
+                -1 if job is pending but not in queue.
+        """
+        if self.status != 'pending':
+            return 0
+
+        # Grab the job queues and figure out which queue we're looking at -- human or robot
+        with self.get_job_queues() as job_queues:
+            pass
+        queue_position = 1
+        if self.human:
+            queue = job_queues['human']
+        else:
+            queue = job_queues['robot']
+
+            # if robot, count all of the human jobs that will have to be processed first
+            queue_position += sum(len(i['next_jobs']) for i in job_queues['human'].itervalues())
+
+        # make sure job is in queue
+        user_id = self.link.created_by_id
+        if user_id not in queue or self.pk not in queue[user_id]['next_jobs']:
+            # job isn't in queue
+            return -1
+
+        # Jobs are processed round-robin. First figure out which round this job will be in.
+        job_round = queue[user_id]['next_jobs'].index(self.pk)
+
+        # Next add all of the jobs that will be processed in previous rounds.
+        queue_position += sum(len(i['next_jobs'][:job_round]) for i in queue.itervalues())
+
+        # For the last round, this job will be reached partway through. Sort the jobs to find out which users will go
+        # first, and then add 1 for each user who will have jobs left in the final round and comes before this user.
+        sorted_jobs = self.sort_job_queue(queue)
+        sorted_user_ids = [i[0] for i in sorted_jobs]
+        queue_position += sum(1 for j in sorted_jobs[:sorted_user_ids.index(user_id)] if len(j[1]['next_jobs'])>job_round)
+
+        return queue_position
+
+    def mark_completed(self, status='completed'):
+        """
+            Record completion time and status for this job.
+        """
+        self.status = status
+        self.capture_end_time = timezone.now()
+        self.save(update_fields=['status', 'capture_end_time'])
+
+
 #########################
 # Stats related models
 #########################
@@ -931,11 +1159,10 @@ class CDXLineManager(models.Manager):
             next(cdx_io) # first line is a header so skip it
             results = []
             for line in cdx_io:
-                cdxline = CDXLine.objects.using('perma-cdxline').get_or_create(raw=line)[0]
+                cdxline = CDXLine.objects.get_or_create(raw=line, link_id=link.guid)[0]
                 cdxline.is_unlisted = link.is_unlisted
                 cdxline.is_private = link.is_private
-                cdxline.link_id = link.guid
-                cdxline.save(using='perma-cdxline')
+                cdxline.save()
                 results.append(cdxline)
 
         return results

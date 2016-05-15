@@ -103,6 +103,8 @@ PIPELINE_JS = {
             'vendors/bootstrap/bootstrap3.js',
             'vendors/fastclick/fastclick.min.js',
             'vendors/jquery/jquery.actual.js',
+            'vendors/airbrakejs/client.min.js',
+            'vendors/airbrakejs/instrumentation/jquery.js',
             'js/error-handler.js',
             'js/helpers/polyfill/string.trim.js',
             'js/helpers/general.helpers.js',
@@ -482,7 +484,8 @@ TEMPLATE_VISIBLE_SETTINGS = (
 
 
 CAPTURE_BROWSER = 'PhantomJS'  # or 'Chrome' or 'Firefox'
-
+# Default user agent is the Chrome on Linux that's most like PhantomJS 2.1.1.
+CAPTURE_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.37 Safari/537.36"
 
 ### Tastypie
 # http://django-tastypie.readthedocs.org/en/latest/settings.html

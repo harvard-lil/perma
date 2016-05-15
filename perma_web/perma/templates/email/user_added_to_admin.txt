@@ -1,0 +1,5 @@
+TITLE: Your Perma.cc account is now an administrator
+
+Your Perma.cc account has been upgraded to administrator. You can view your account here:
+
+{{ account_settings_page }}

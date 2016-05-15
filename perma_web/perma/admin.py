@@ -142,7 +142,7 @@ class LinkAdmin(SimpleHistoryAdmin):
     list_display = ['guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp','user_deleted']
     search_fields = ['guid', 'submitted_url', 'submitted_title']
     fieldsets = (
-        (None, {'fields': ('guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp', 'view_count')}),
+        (None, {'fields': ('guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp', 'view_count', 'warc_size')}),
         ('Visibility', {'fields': ('is_private', 'private_reason', 'is_unlisted',)}),
         ('User Delete', {'fields': ('user_deleted', 'user_deleted_timestamp',)}),
         ('Organization', {'fields': ('folders', 'notes')}),
@@ -167,6 +167,18 @@ class FolderAdmin(MPTTModelAdmin):
     list_filter = ['owned_by', 'organization']
 
 
+class CaptureJobAdmin(admin.ModelAdmin):
+    list_display = ['id', 'status', 'link_id', 'created_by', 'creation_timestamp', 'human']
+    list_filter = ['status']
+    raw_id_fields = ['link']
+
+    def get_queryset(self, request):
+        return super(CaptureJobAdmin, self).get_queryset(request).filter(link__user_deleted=False).select_related('link','link__created_by')
+
+    def created_by(self, obj):
+        return obj.link.created_by
+    def creation_timestamp(self, obj):
+        return obj.link.creation_timestamp
 
 # change Django defaults, because 'extra' isn't helpful anymore now you can add more with javascript
 admin.TabularInline.extra = 0
@@ -178,6 +190,7 @@ admin.site.unregister(Group)
 
 # add our models
 admin.site.register(Link, LinkAdmin)
+admin.site.register(CaptureJob, CaptureJobAdmin)
 admin.site.register(LinkUser, LinkUserAdmin)
 admin.site.register(Organization, OrganizationAdmin)
 admin.site.register(Registrar, RegistrarAdmin)

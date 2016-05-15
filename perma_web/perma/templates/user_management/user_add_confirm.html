@@ -1,0 +1,21 @@
+{% extends "admin-layout.html" %}
+
+{% block title %} | Add user{% endblock %}
+
+{% block adminContent %}
+  <h3 class="body-bh">Add {{ user_email }}</h3>
+  {% if not form %}
+
+    User already exists.
+
+  {% else %}
+
+    <form method="post">
+      {% csrf_token %}
+      {% include "includes/fieldset.html" %}
+      <button type="submit" class="btn">Add user</button>
+      <a href="{% url 'user_management_manage_user' %}" class="btn cancel">Cancel</a>
+    </form>
+
+  {% endif %}
+{% endblock %}

@@ -1,59 +1,33 @@
 {% extends "admin-layout.html" %}
 
-{% block title %} | Add user{% endblock %}
+{% block title %} | Add user to organization{% endblock %}
 
 {% block adminContent %}
-	<h3 class="body-bh">Add {{ user_email }}</h3>
-	{% if not target_user %}
-	    <form method="post">
-            {% csrf_token %}
-          <fieldset>
-				<div class="form-group{% if field.errors %} _error{% endif %}">
-		            {% for field in form %}
-						<label for="id_{{ field.name }}">{{ field.label }}</label>              
-						{{ field }}
-						{% if field.errors %}                
-							{% for error in field.errors %}
-								<span class="field-error">{{ error }}</span>
-							{% endfor %}
-							{%elif field.help_text %}
-							<span class="help-inline">{{ field.help_text }}</span>
-						{% endif %}            
-					{% endfor %}
-				</div>
-				{% if field.errors %}
-					<span class="field-error">{{ form.non_field_errors }}</span>
-				{% endif %} 
-			</fieldset>
-            <button type="submit" class="btn">Add organization user</button>
-            <a href="{% url 'user_management_manage_organization_user' %}" class="btn cancel">Cancel</a>
-        </form>
-    {% else %}
+  <h3 class="body-bh">Add {{ user_email }} to Organization</h3>
+  {% if not form %}
 
-        <p>{{ user_email }} already has an account.  Would you like to add them to an organization?</p>
-
-        <form method="post">
-            {% csrf_token %}
-          <fieldset>
-				<div class="form-group{% if field.errors %} _error{% endif %}">
-		            {% for field in form %}
-						<label for="id_{{ field.name }}">{{ field.label }}</label>              
-						{{ field }}
-						{% if field.errors %}                
-							{% for error in field.errors %}
-								<span class="field-error">{{ error }}</span>
-							{% endfor %}
-							{%elif field.help_text %}
-							<span class="help-inline">{{ field.help_text }}</span>
-						{% endif %}            
-					{% endfor %}
-				</div>
-				{% if field.errors %}
-					<span class="field-error">{{ form.non_field_errors }}</span>
-				{% endif %} 
-			</fieldset>
-            <button type="submit" class="btn">Add to organization</button>
-            <a href="{% url 'user_management_manage_organization_user' %}" class="btn cancel">Cancel</a>
-        </form>
+    {% if object.is_staff %}
+      <p>{{ user_email }} is an admin user and cannot be added to individual organizations.</p>
+    {% elif object.is_registrar_member %}
+      <p>{{ user_email }} is a registrar member and cannot be added to individual organizations.</p>
     {% endif %}
+
+  {% else %}
+
+    {% if object.id %}
+      <p>{{ user_email }} already has an account.  Would you like to add them to an organization?</p>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      {% include "includes/fieldset.html" %}
+      {% if object.id %}
+        <button type="submit" class="btn">Add to organization</button>
+      {% else %}
+        <button type="submit" class="btn">Add organization user</button>
+      {% endif %}
+      <a href="{% url 'user_management_manage_organization_user' %}" class="btn cancel">Cancel</a>
+    </form>
+
+  {% endif %}
 {% endblock %}
