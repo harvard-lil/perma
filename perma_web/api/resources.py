@@ -459,9 +459,8 @@ class LinkResource(AuthenticatedLinkResource):
         if bundle.data.get('replace'):
             bundle.data['folder'] = bundle.data['folder_id']
             bundle.data['url'] = bundle.obj.submitted_url
-            new_bundle = super(LinkResource, self).obj_create(bundle, guid=bundle.obj.guid, archive_timestamp=bundle.obj.archive_timestamp, created_by=bundle.request.user)
+            new_bundle = super(LinkResource, self).obj_create(bundle, guid=bundle.obj.guid, submitted_url=bundle.obj.submitted_url, submitted_title=bundle.obj.submitted_title, is_private=bundle.obj.is_private, is_unlisted=bundle.obj.is_unlisted, notes=bundle.obj.notes, archive_timestamp=bundle.obj.archive_timestamp, created_by=bundle.request.user)
             link = new_bundle.obj
-            link.submitted_title=bundle.obj.submitted_title
             link.save()
 
         else:
@@ -530,10 +529,6 @@ class LinkResource(AuthenticatedLinkResource):
                 folder_id=bundle.data.get("folder")
                 bundle.obj = self.obj_get(bundle=bundle, **kwargs)
                 self.obj_delete(bundle=bundle, **kwargs)
-                kwargs['guid'] = link.guid
-                kwargs['submitted_url'] = link.submitted_url
-                kwargs['url'] = link.submitted_url
-                kwargs['submitted_title'] = link.submitted_title
                 bundle.data["replace"]=True
                 bundle.data["folder_id"] = folder_id
                 new_archive = self.obj_create(bundle=bundle, **kwargs)
