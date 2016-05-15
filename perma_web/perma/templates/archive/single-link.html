@@ -212,6 +212,7 @@
 {% block scripts %}
     <script>
         var archive = { guid: "{{ link.guid }}" };
+        var current_user = "{{request.user.id}}"
     </script>
 
     {% javascript 'single-link' %}

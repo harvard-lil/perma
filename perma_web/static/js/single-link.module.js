@@ -8,7 +8,7 @@ $(document).ready(function(){
 SingleLinkModule.init = function () {
   SingleLinkModule.adjustTopMargin();
   if($('._isNewRecord')) { SingleLinkModule.handleNewRecord(); }
-  SingleLinkModule.setCurrentFolder();
+  SingleLinkModule.getCurrentFolder();
 };
 
 SingleLinkModule.handleNewRecord = function () {
@@ -55,7 +55,7 @@ SingleLinkModule.setupEventHandlers = function () {
   $(window).on('resize', function () { SingleLinkModule.adjustTopMargin(); });
 }
 
-SingleLinkModule.setCurrentFolder = function () {
+SingleLinkModule.getCurrentFolder = function () {
   var folders = JSON.parse(localStorage.getItem("perma_selection"));
   SingleLinkModule.currentFolder = folders[current_user.id] || {};
 }
