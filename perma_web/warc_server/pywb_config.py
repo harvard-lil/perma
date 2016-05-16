@@ -348,7 +348,7 @@ class CachedLoader(BlockLoader):
                         logging.info("Couldn't get from lockss: %s" % e)
 
             # If url wasn't in LOCKSS yet or LOCKSS is disabled, fetch from local storage using super()
-            if file_contents is None:
+            if file_contents is None or replace_warc_cache is True:
                 file_contents = super(CachedLoader, self).load(url).read()
                 logging.info("Got content from local disk")
 
