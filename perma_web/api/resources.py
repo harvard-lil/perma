@@ -14,6 +14,7 @@ from tastypie.utils import trailing_slash
 from tastypie import http
 from tastypie.resources import ModelResource
 from tastypie.exceptions import NotFound, ImmediateHttpResponse, BadRequest
+from django.core.cache import cache as django_cache
 
 from validations import (LinkValidation,
                          FolderValidation,
