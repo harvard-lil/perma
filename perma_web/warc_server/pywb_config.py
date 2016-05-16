@@ -93,7 +93,8 @@ class PermaRoute(archivalrouter.Route):
         cache_key = guid+'-cdx'
         cached_cdx = django_cache.get(cache_key)
         redirect_matcher = re.compile(r' 30[1-7] ')
-        if cached_cdx is None or not wbrequest.wb_url:
+        replace_cached_cdx = django_cache.get(guid+'-replace-cdx')
+        if cached_cdx is None or replace_cached_cdx is True or not wbrequest.wb_url:
             with close_database_connection():
                 try:
                     # This will filter out links that have user_deleted=True
@@ -321,8 +322,11 @@ class CachedLoader(BlockLoader):
         mirror_name_cache_key = cache_key+'-mirror-name'
         mirror_name = ''
 
+        warc_file_name = url + '-replace-file'
+        replace_warc_cache = django_cache.get(warc_file_name)
         file_contents = django_cache.get(cache_key)
-        if file_contents is None:
+
+        if file_contents is None or replace_warc_cache is True:
             # url wasn't in cache -- load contents
 
             # try fetching from each mirror in the LOCKSS network, in random order
