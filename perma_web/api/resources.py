@@ -540,7 +540,8 @@ class LinkResource(AuthenticatedLinkResource):
                 bundle = self.obj_create(bundle=bundle, **kwargs)
 
             except Exception as e:
-                print "getting exception:", e
+                self.raise_error_response(bundle, {'error': "patching archive error", 'error_body':e})
+
         else:
             is_private = bundle.obj.is_private
             bundle = super(LinkResource, self).obj_update(bundle, skip_errors, **kwargs)
@@ -572,11 +573,15 @@ class LinkResource(AuthenticatedLinkResource):
 
         self.authorized_delete_detail(self.get_object_list(bundle.request), bundle)
 
-        # rename warc
-        bundle.obj.safe_delete_warc()
-        bundle.obj.delete_related()
-        bundle.obj.safe_delete()
-        bundle.obj.save()
+        try:
+            bundle.obj.safe_delete_warc()
+            bundle.obj.delete_related()
+            bundle.obj.safe_delete()
+            bundle.obj.save()
+
+        except Exception as e:
+             self.raise_error_response(bundle, {"error":"deleting error","error_body":e})
+
         if bundle.obj.uploaded_to_internet_archive:
             run_task(delete_from_internet_archive.s(link_guid=bundle.obj.guid))
 
