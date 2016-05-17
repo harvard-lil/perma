@@ -457,12 +457,7 @@ class LinkResource(AuthenticatedLinkResource):
             }))
 
         # Runs validation (exception thrown if invalid), sets properties and saves the object
-        if bundle.data.get('replace'):
-            bundle.data['folder'] = bundle.data['folder_id']
-            bundle.data['url'] = bundle.obj.submitted_url
-            bundle = super(LinkResource, self).obj_create(bundle, guid=bundle.obj.guid, submitted_url=bundle.obj.submitted_url, submitted_title=bundle.obj.submitted_title, is_private=bundle.obj.is_private, is_unlisted=bundle.obj.is_unlisted, notes=bundle.obj.notes, archive_timestamp=bundle.obj.archive_timestamp, created_by=bundle.request.user)
-
-        else:
+        if not bundle.data.get('replace'):
             bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user)
 
         link = bundle.obj
@@ -525,18 +520,19 @@ class LinkResource(AuthenticatedLinkResource):
     def obj_update(self, bundle, skip_errors=False, **kwargs):
         uploaded_file = bundle.data.get('file')
         if uploaded_file and bundle.request.method == 'PUT':
-            try:
-                link = Link.objects.get(pk=kwargs['pk'])
-                django_cache.set((link.guid + '-replace-cdx'), True, timeout=60)
-                WARC_STORAGE_PATH = os.path.join(settings.MEDIA_ROOT, settings.WARC_STORAGE_DIR)
-                warc_file_name = os.path.join(WARC_STORAGE_PATH, link.guid_as_path(), '%s.warc.gz' % link.guid)
-                django_cache.set((warc_file_name + '-replace-file'), True, timeout=60)
+            link = Link.objects.get(pk=kwargs['pk'])
+            django_cache.set((link.guid + '-replace-cdx'), True, timeout=60)
+            WARC_STORAGE_PATH = os.path.join(settings.MEDIA_ROOT, settings.WARC_STORAGE_DIR)
+            warc_file_name = os.path.join(WARC_STORAGE_PATH, link.guid_as_path(), '%s.warc.gz' % link.guid)
+            django_cache.set((warc_file_name + '-replace-file'), True, timeout=60)
 
+            try:
                 folder_id=bundle.data.get("folder")
                 bundle.obj = self.obj_get(bundle=bundle, **kwargs)
-                self.obj_delete(bundle=bundle, **kwargs)
                 bundle.data["replace"]=True
-                bundle.data["folder_id"] = folder_id
+                self.obj_delete(bundle=bundle, **kwargs)
+                bundle.data["folder"] = folder_id
+                bundle = super(LinkResource, self).obj_update(bundle, guid=bundle.obj.guid, submitted_url=bundle.obj.submitted_url, submitted_title=bundle.obj.submitted_title, is_private=bundle.obj.is_private, is_unlisted=bundle.obj.is_unlisted, notes=bundle.obj.notes, archive_timestamp=bundle.obj.archive_timestamp, created_by=bundle.request.user)
                 bundle = self.obj_create(bundle=bundle, **kwargs)
 
             except Exception as e:
@@ -576,7 +572,10 @@ class LinkResource(AuthenticatedLinkResource):
         try:
             bundle.obj.safe_delete_warc()
             bundle.obj.delete_related()
-            bundle.obj.safe_delete()
+
+            if not bundle.data.get("replace"):
+                bundle.obj.safe_delete()
+
             bundle.obj.save()
 
         except Exception as e:
