@@ -25,6 +25,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.organization_member = self.organization.users.first()
         self.another_organization = Organization.objects.get(pk=2)
         self.unrelated_organization = self.unrelated_registrar.organizations.first()
+        self.unrelated_organization_user = self.unrelated_organization.users.first()
         self.deletable_organization = Organization.objects.get(pk=3)
 
     ### REGISTRAR A/E/D VIEWS ###
@@ -331,6 +332,38 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertIn("is a registrar member", resp.content)
         self.assertFalse(self.registrar_member.organizations.exists())
 
+    ### REMOVING USERS FROM ORGANIZATIONS ###
+
+    def test_can_remove_user_from_organization(self):
+        self.log_in_user(self.registrar_member)
+        self.submit_form('user_management_manage_single_organization_user_remove',
+                         data={'org': self.organization.pk},
+                         reverse_kwargs={'args': [self.organization_member.pk]},
+                         success_url=reverse('user_management_manage_organization_user'))
+        self.assertFalse(self.organization_member.organizations.filter(pk=self.organization.pk).exists())
+
+    def test_registrar_cannot_remove_unrelated_user_from_organization(self):
+        self.log_in_user(self.registrar_member)
+        self.submit_form('user_management_manage_single_organization_user_remove',
+                         data={'org': self.unrelated_organization.pk},
+                         reverse_kwargs={'args': [self.unrelated_organization_user.pk]},
+                         require_status_code=404)
+
+    def test_org_user_cannot_remove_unrelated_user_from_organization(self):
+        self.log_in_user(self.organization_member)
+        self.submit_form('user_management_manage_single_organization_user_remove',
+                         data={'org': self.unrelated_organization.pk},
+                         reverse_kwargs={'args': [self.unrelated_organization_user.pk]},
+                         require_status_code=404)
+
+    def test_can_remove_self_from_organization(self):
+        self.log_in_user(self.organization_member)
+        self.submit_form('user_management_manage_single_organization_user_remove',
+                         data={'org': self.organization.pk},
+                         reverse_kwargs={'args': [self.organization_member.pk]},
+                         success_url=reverse('create_link'))
+        self.assertFalse(self.organization_member.organizations.filter(pk=self.organization.pk).exists())
+
     ### ADDING NEW USERS TO REGISTRARS ###
 
     def test_admin_user_can_add_new_user_to_registrar(self):
@@ -420,6 +453,31 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertIn("is an organization member", resp.content)
         self.assertFalse(LinkUser.objects.filter(pk=self.organization_member.pk, registrar=self.registrar).exists())
 
+
+    ### REMOVING USERS FROM REGISTRARS ###
+
+    def test_can_remove_user_from_registrar(self):
+        self.log_in_user(self.registrar_member)
+        self.regular_user.registrar = self.registrar
+        self.regular_user.save()
+        self.submit_form('user_management_manage_single_registrar_user_remove',
+                         reverse_kwargs={'args': [self.regular_user.pk]},
+                         success_url=reverse('user_management_manage_registrar_user'))
+        self.assertFalse(LinkUser.objects.filter(pk=self.regular_user.pk, registrar=self.registrar).exists())
+
+    def test_registrar_cannot_remove_unrelated_user_from_registrar(self):
+        self.log_in_user(self.registrar_member)
+        self.submit_form('user_management_manage_single_registrar_user_remove',
+                         reverse_kwargs={'args': [self.unrelated_registrar_member.pk]},
+                         require_status_code=404)
+
+    def test_can_remove_self_from_registrar(self):
+        self.log_in_user(self.registrar_member)
+        self.submit_form('user_management_manage_single_registrar_user_remove',
+                         reverse_kwargs={'args': [self.registrar_member.pk]},
+                         success_url=reverse('create_link'))
+        self.assertFalse(LinkUser.objects.filter(pk=self.registrar_member.pk, registrar=self.registrar).exists())
+
     ### ADDING NEW USERS AS ADMINS ###
 
     def test_admin_user_can_add_new_user_as_admin(self):
@@ -432,7 +490,6 @@ class UserManagementViewsTestCase(PermaTestCase):
                          success_url=reverse('user_management_manage_registry_user'),
                          success_query=LinkUser.objects.filter(email='doesnotexist@example.com',
                                                                is_staff=True).exists())
-
     ### ADDING EXISTING USERS AS ADMINS ###
 
     def test_admin_user_can_add_existing_user_as_admin(self):
@@ -441,6 +498,24 @@ class UserManagementViewsTestCase(PermaTestCase):
                          query_params={'email': self.regular_user.email},
                          success_url=reverse('user_management_manage_registry_user'),
                          success_query=LinkUser.objects.filter(pk=self.regular_user.pk, is_staff=True))
+
+    ### REMOVING USERS AS ADMINS ###
+
+    def test_can_remove_user_from_admin(self):
+        self.log_in_user(self.admin_user)
+        self.regular_user.is_staff = True
+        self.regular_user.save()
+        self.submit_form('user_management_manage_single_registry_user_remove',
+                         reverse_kwargs={'args': [self.regular_user.pk]},
+                         success_url=reverse('user_management_manage_registry_user'))
+        self.assertFalse(LinkUser.objects.filter(pk=self.regular_user.pk, is_staff=True).exists())
+
+    def test_can_remove_self_from_admin(self):
+        self.log_in_user(self.admin_user)
+        self.submit_form('user_management_manage_single_registry_user_remove',
+                         reverse_kwargs={'args': [self.admin_user.pk]},
+                         success_url=reverse('create_link'))
+        self.assertFalse(LinkUser.objects.filter(pk=self.admin_user.pk, is_staff=True).exists())
 
     ### SETTINGS ###
 
