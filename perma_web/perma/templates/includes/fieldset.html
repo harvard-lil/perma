@@ -1,12 +1,8 @@
 <fieldset>
   {% for field in form %}
-    <div class="form-group {{ form_classes }}">
+    <div class="form-group {{ form_classes }} {% if field.errors %} _error{% endif %}">
       <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {% if field.errors %}
-        <div class="_error">{{ field }}</div>
-      {% else %}
-        {{ field }}
-      {% endif %}
+      {{ field }}
       {% if field.errors %}
         {% for error in field.errors %}
           <span class="field-error">{{ error }}</span>
