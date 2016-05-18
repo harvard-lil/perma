@@ -89,6 +89,11 @@ def apply_pagination(request, queryset):
     paginator = Paginator(queryset, settings.MAX_USER_LIST_SIZE)
     return paginator.page(page)
 
+### form view helpers ###
+
+def get_form_data(request):
+    return request.POST if request.method == 'POST' else None
+
 ### debug toolbar ###
 
 def show_debug_toolbar(request):
