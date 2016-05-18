@@ -124,11 +124,7 @@ A lot of the settings you need won't change much, so we keep them in a module an
 
 ### Create your tables and fire up Django
 
-You should have the pieces in place. Let's create the tables in your database using the syncdb command:
-
-    $ python manage.py syncdb --noinput
-
-Then apply migrations:
+You should have the pieces in place. Let's apply migrations:
 
     $ python manage.py migrate
     $ python manage.py migrate --database=perma-cdxline
