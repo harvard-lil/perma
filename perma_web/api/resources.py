@@ -521,10 +521,7 @@ class LinkResource(AuthenticatedLinkResource):
         uploaded_file = bundle.data.get('file')
         if uploaded_file and bundle.request.method == 'PUT':
             link = Link.objects.get(pk=kwargs['pk'])
-            django_cache.set((link.guid + '-replace-cdx'), True, timeout=60)
-            WARC_STORAGE_PATH = os.path.join(settings.MEDIA_ROOT, settings.WARC_STORAGE_DIR)
-            warc_file_name = os.path.join(WARC_STORAGE_PATH, link.guid_as_path(), '%s.warc.gz' % link.guid)
-            django_cache.set((warc_file_name + '-replace-file'), True, timeout=60)
+            django_cache.set((link.guid + '-replace'), True, timeout=60)
 
             try:
                 folder_id=bundle.data.get("folder")

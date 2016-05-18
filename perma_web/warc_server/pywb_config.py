@@ -93,7 +93,7 @@ class PermaRoute(archivalrouter.Route):
         cache_key = guid+'-cdx'
         cached_cdx = django_cache.get(cache_key)
         redirect_matcher = re.compile(r' 30[1-7] ')
-        replace_cached_cdx = django_cache.get(guid+'-replace-cdx')
+        replace_cached_cdx = django_cache.get(guid+'-replace')
         if cached_cdx is None or replace_cached_cdx is True or not wbrequest.wb_url:
             with close_database_connection():
                 try:
@@ -322,8 +322,11 @@ class CachedLoader(BlockLoader):
         mirror_name_cache_key = cache_key+'-mirror-name'
         mirror_name = ''
 
-        warc_file_name = url + '-replace-file'
-        replace_warc_cache = django_cache.get(warc_file_name)
+        # get guid
+        guid = url.split('/')
+        guid = guid[len(guid) - 1].split('.')[0]
+
+        replace_warc_cache = django_cache.get(guid + '-replace')
         file_contents = django_cache.get(cache_key)
 
         if file_contents is None or replace_warc_cache is True:
