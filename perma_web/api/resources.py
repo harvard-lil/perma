@@ -569,17 +569,16 @@ class LinkResource(AuthenticatedLinkResource):
 
         self.authorized_delete_detail(self.get_object_list(bundle.request), bundle)
 
-        try:
+        # deleting related captures and cdxlines
+        bundle.obj.delete_related()
+
+        # if replacing file, only "delete" warc by renaming
+        if bundle.data.get("replace"):
             bundle.obj.safe_delete_warc()
-            bundle.obj.delete_related()
+        else:
+            bundle.obj.safe_delete()
 
-            if not bundle.data.get("replace"):
-                bundle.obj.safe_delete()
-
-            bundle.obj.save()
-
-        except Exception as e:
-             self.raise_error_response(bundle, {"error":"deleting error","error_body":e})
+        bundle.obj.save()
 
         if bundle.obj.uploaded_to_internet_archive:
             run_task(delete_from_internet_archive.s(link_guid=bundle.obj.guid))

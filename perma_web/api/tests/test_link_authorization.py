@@ -1,7 +1,7 @@
 import os
 from .utils import TEST_ASSETS_DIR, ApiResourceTransactionTestCase
 from api.resources import LinkResource, PublicLinkResource
-from perma.models import Link, LinkUser, Folder, CaptureJob
+from perma.models import Link, LinkUser, Folder, CaptureJob, Capture, CDXLine
 
 
 class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
@@ -200,8 +200,16 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
             new_link = Link.objects.get(pk=successful_response['guid'])
             new_link_url = "{0}/{1}".format(self.list_url, new_link.pk)
             count = Link.objects.count()
-            self.successful_delete(new_link_url, user=self.regular_user)
+            captures = Capture.objects.filter(link_id=new_link.guid)
+            cdxlines = CDXLine.objects.filter(link_id=new_link.guid)
+            self.assertGreaterEqual(len(captures), 1)
+            self.assertGreaterEqual(len(cdxlines), 1)
+            response = self.successful_delete(new_link_url, user=self.regular_user)
             self.assertEqual(Link.objects.count(), count-1)
+            new_captures = Capture.objects.filter(link_id=new_link.guid)
+            new_cdxlines = CDXLine.objects.filter(link_id=new_link.guid)
+            self.assertEqual(len(new_captures), 0)
+            self.assertEqual(len(new_cdxlines), 0)
             self.rejected_get(new_link_url, user=self.regular_user, expected_status_code=404)
 
     def test_should_reject_delete_for_out_of_window_link(self):        
