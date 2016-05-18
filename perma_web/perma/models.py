@@ -805,7 +805,6 @@ class Link(DeletableModel):
         try:
             old_name = os.path.join(WARC_STORAGE_PATH, guid_path, '%s.warc.gz' % self.guid)
             new_name = os.path.join(WARC_STORAGE_PATH, guid_path, '%s_replaced.warc.gz' % self.guid)
-            print "new_name:",new_name, "old_name:",old_name
             os.rename(old_name, new_name)
         except OSError:
             return

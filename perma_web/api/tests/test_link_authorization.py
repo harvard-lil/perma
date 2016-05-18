@@ -122,6 +122,15 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
     def test_should_reject_patch_from_user_lacking_owner_and_folder_access(self):
         self.rejected_patch(self.link_url, user=self.unrelated_org_member, data=self.patch_data)
 
+    def test_should_allow_user_to_patch_with_file(self):
+        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.jpg')) as test_file:
+            obj = self.successful_patch(self.link_url,
+                                        format='multipart',
+                                        user=self.org_member,
+                                        data={},
+                                        file=test_file)
+
+
     ######################
     # Private / Unlisted #
     ######################
