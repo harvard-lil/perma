@@ -521,19 +521,18 @@ class LinkResource(AuthenticatedLinkResource):
         uploaded_file = bundle.data.get('file')
         if uploaded_file and bundle.request.method == 'PUT':
             link = Link.objects.get(pk=kwargs['pk'])
+
+            # don't use cached cdxlines or warc for 60 seconds after updating
             django_cache.set((link.guid + '-replace'), True, timeout=60)
 
-            try:
-                folder_id=bundle.data.get("folder")
-                bundle.obj = self.obj_get(bundle=bundle, **kwargs)
-                bundle.data["replace"]=True
-                self.obj_delete(bundle=bundle, **kwargs)
-                bundle.data["folder"] = folder_id
-                bundle = super(LinkResource, self).obj_update(bundle, guid=bundle.obj.guid, submitted_url=bundle.obj.submitted_url, submitted_title=bundle.obj.submitted_title, is_private=bundle.obj.is_private, is_unlisted=bundle.obj.is_unlisted, notes=bundle.obj.notes, archive_timestamp=bundle.obj.archive_timestamp, created_by=bundle.request.user)
-                bundle = self.obj_create(bundle=bundle, **kwargs)
+            bundle.obj = self.obj_get(bundle=bundle, **kwargs)
+            bundle.data["replace"]=True
 
-            except Exception as e:
-                self.raise_error_response(bundle, {'error': "patching archive error", 'error_body':e})
+            # delete related cdxlines and captures, delete warc (rename)
+            self.obj_delete(bundle=bundle, **kwargs)
+
+            bundle = super(LinkResource, self).obj_update(bundle, archive_timestamp=bundle.obj.archive_timestamp)
+            bundle = self.obj_create(bundle=bundle, **kwargs)
 
         else:
             is_private = bundle.obj.is_private
