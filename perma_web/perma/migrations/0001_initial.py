@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('urlkey', models.CharField(max_length=2100)),
                 ('raw', models.TextField()),
-                ('link_id', models.CharField(max_length=2100, null=True, db_index=True)),
+                ('link_id', models.CharField(max_length=255, null=True, db_index=True)),
 
             ],
         ),
