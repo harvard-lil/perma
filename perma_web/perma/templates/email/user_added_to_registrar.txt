@@ -1,5 +1,5 @@
-TITLE: Your Perma.cc account is now associated with {{ registrar }}
+TITLE: Your Perma.cc account is now associated with {{ form.cleaned_data.registrar }}
 
-Your Perma.cc account has been associated with {{ registrar }}.  You now manage all organizations under your registrar.  If this is a mistake, visit your account settings page to leave this registrar.
+Your Perma.cc account has been associated with {{ form.cleaned_data.registrar }}.  You now manage all organizations under your registrar.  If this is a mistake, visit your account settings page to leave this registrar.
 
 {{ account_settings_page }}

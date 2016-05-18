@@ -845,6 +845,9 @@ def manage_single_organization_user_remove(request, user_id):
         target_user = get_object_or_404(LinkUser, id=user_id)
         target_user.organizations.remove(org)
 
+        # special case -- user demoted themselves, can't see page anymore
+        if request.user == target_user and not target_user.organizations.exists():
+            return HttpResponseRedirect(reverse('create_link'))
 
     return HttpResponseRedirect(reverse('user_management_manage_organization_user'))
 
@@ -869,6 +872,10 @@ def manage_single_registrar_user_remove(request, user_id):
         target_member.registrar = None
         target_member.save()
 
+        # special case -- user demoted themselves, can't see page anymore
+        if request.user == target_member:
+            return HttpResponseRedirect(reverse('create_link'))
+
         return HttpResponseRedirect(reverse('user_management_manage_registrar_user'))
 
     context = RequestContext(request, context)
@@ -891,6 +898,10 @@ def manage_single_registry_user_remove(request, user_id):
     if request.method == 'POST':
         target_member.is_staff = False
         target_member.save()
+
+        # special case -- user demoted themselves, can't see page anymore
+        if request.user == target_member:
+            return HttpResponseRedirect(reverse('create_link'))
 
         return HttpResponseRedirect(reverse('user_management_manage_registry_user'))
 
