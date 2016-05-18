@@ -5,44 +5,46 @@
       <div class="modal-header">
         <h3 class="modal-title">Upload a file to Perma.cc</h3>
       </div>
-      GUID: {{ link.guid }}
-      current_user: {{ current_user }}
-      {{ link }}
-      {% if link.guid %}
-        <p class="modal-description">This will edit the Perma Link you have created.</p>
-      {% else %}
-        <p class="modal-description">This will create a new Perma Link.</p>
-      {% endif %}
-        <form id="archive_upload_form">
-          <!-- action="/api/v1/archives/LU96-6LND"
-          method="POST"> -->
-          <!-- <input type="hidden" name="_method" value="put" /> -->
 
-          <!-- action="{% url 'api_dispatch_list' resource_name='archives' api_name='v1' %}" -->
-          <!-- <div class="form-group">
-            <label class="control-label" for="title">New Perma Link title <span class="label-instruction">The page title associated with this upload</span></label>
-            <input class="title" name="title" type="text" placeholder="Example Page Title">
-          </div> -->
-          <!-- <div class="form-group">
-            <label class="control-label" for="url">New Perma Link URL <span class="label-instruction">The URL associated with this upload</span></label>
-            <input class="url" name="url" type="text" placeholder="www.example.com">
-          </div> -->
-          <div class="form-group">
-            <label class="control-label" for="file">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed</span></label>
-            <input id="upload_own_file" class="file" name="file" type="file" placeholder="example.png" accept=".png,.jpg,.jpeg,.gif,.pdf">
-          </div>
-
-          <div class="modal-actions">
-            {% if link.guid %}
+      <p class="modal-description">
+        {% if link.guid %}
+          This will update the Perma Link you have created.
+        {% else %}
+          This will create a new Perma Link.
+        {% endif %}
+      </p>
+      <div class="modal-body">
+        <form id="archive_upload_form" action="{% url 'api_dispatch_list' resource_name='archives' api_name='v1' %}" method="post">
+          {% if link.guid %}
+            <div class="modal-actions">
+              <div class="form-group">
+                <label class="control-label" for="file">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed</span></label>
+                <input class="file" name="file" type="file" placeholder="example.png" accept=".png,.jpg,.jpeg,.gif,.pdf">
+              </div>
               <button type="submit" id="updateLinky" class="btn btn-primary btn-large">Update your Perma Link</button>
-            {% else %}
-              <button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Create a Perma Link</button>
-            {% endif %}
+              <button type="button" class="btn cancel" data-dismiss="modal" aria-hidden="false">Cancel</button>
+            </div>
+          {% else %}
+            <div class="form-group">
+              <label class="control-label" for="title">New Perma Link title <span class="label-instruction">The page title associated with this upload</span></label>
+              <input class="title" name="title" type="text" placeholder="Example Page Title">
+            </div>
+            <div class="form-group">
+                <label class="control-label" for="url">New Perma Link URL <span class="label-instruction">The URL associated with this upload</span></label>
+                <input id="url" name="url" class="" type="text" placeholder="www.example.com">
+            </div>
+            <div class="form-group">
+              <label class="control-label" for="file">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed</span></label>
+              <input class="file" name="file" type="file" placeholder="example.png" accept=".png,.jpg,.jpeg,.gif,.pdf">
+            </div>
+            <button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Create a Perma Link</button>
             <button type="button" class="btn cancel" data-dismiss="modal" aria-hidden="false">Cancel</button>
+          {% endif %}
           </div>
           {% csrf_token %}
           <p id="upload-error" class="field-error"></p>
         </form>
+      </div>
     </div>
   </div>
 </div><!--/.archive-upload-->

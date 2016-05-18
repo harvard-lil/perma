@@ -103,6 +103,7 @@ SingleLinkModule.handleDarchiving = function (context) {
 SingleLinkModule.upload_form = function () {
   $('#linky-confirm').modal('hide');
   $('#upload-error').text('');
+  $('#archive_upload_form').removeAttr('action').removeAttr('method');
   $('#archive-upload').modal('show');
   $('.modal-dialog').css('margin',0);
   return false;
