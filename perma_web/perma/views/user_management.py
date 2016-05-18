@@ -41,7 +41,7 @@ from perma.forms import (
     UserAddAdminForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob
 from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_admin_email, filter_or_null_join, \
-    send_user_email, send_user_template_email
+    send_user_email, send_user_template_email, get_form_data
 
 logger = logging.getLogger(__name__)
 valid_member_sorts = ['last_name', '-last_name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'created_links_count', '-created_links_count']
@@ -240,7 +240,7 @@ def manage_single_registrar(request, registrar_id):
     if not request.user.can_edit_registrar(target_registrar):
         raise Http404
 
-    form = RegistrarForm(request.POST, prefix = "a", instance=target_registrar)
+    form = RegistrarForm(get_form_data(request), prefix = "a", instance=target_registrar)
     if request.method == 'POST':
         if form.is_valid():
             new_registrar = form.save()
@@ -325,12 +325,12 @@ def manage_organization(request):
     # handle pagination
     orgs = apply_pagination(request, orgs)
 
-    if request.method == 'POST':
-        if is_registry:
-            form = OrganizationWithRegistrarForm(request.POST, prefix = "a")
-        else:
-            form = OrganizationForm(request.POST, prefix = "a")
+    if is_registry:
+        form = OrganizationWithRegistrarForm(get_form_data(request), prefix = "a")
+    else:
+        form = OrganizationForm(get_form_data(request), prefix = "a")
 
+    if request.method == 'POST':
         if form.is_valid():
             new_user = form.save()
             if not is_registry:
@@ -338,11 +338,6 @@ def manage_organization(request):
                 new_user.save()
 
             return HttpResponseRedirect(reverse('user_management_manage_organization'))
-    else:
-        if is_registry:
-            form = OrganizationWithRegistrarForm(prefix = "a")
-        else:
-            form = OrganizationForm(prefix = "a")
 
     return render(request, 'user_management/manage_orgs.html', {
         'orgs': orgs,
@@ -369,9 +364,9 @@ def manage_single_organization(request, org_id):
         raise Http404
 
     if request.user.is_staff:
-        form = OrganizationWithRegistrarForm(request.POST, prefix = "a", instance=target_org)
+        form = OrganizationWithRegistrarForm(get_form_data(request), prefix = "a", instance=target_org)
     else:
-        form = OrganizationForm(request.POST, prefix = "a", instance=target_org)
+        form = OrganizationForm(get_form_data(request), prefix = "a", instance=target_org)
 
     if request.method == 'POST':
         if form.is_valid():
@@ -939,7 +934,7 @@ def settings_profile(request):
     Settings profile, change name, change email, ...
     """
 
-    form = UserForm(request.POST or None, prefix = "a", instance=request.user)
+    form = UserForm(get_form_data(request), prefix = "a", instance=request.user)
 
     if request.method == 'POST':
         if form.is_valid():
