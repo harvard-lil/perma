@@ -104,7 +104,7 @@ If you want to use MySQL, something like the following can be used to create a n
 
     mysql -u root -psomepasshere
     mysql> create database perma character set utf8; grant all on perma.* to perma@'localhost' identified by 'perma';
-    mysql> create database perma_cdxline character set utf8; grant all on perma.* to perma@'localhost' identified by 'perma';
+    mysql> create database perma_cdxline character set utf8; grant all on perma_cdxline.* to perma@'localhost' identified by 'perma';
     mysql -u perma -pperma
     mysql> show databases;
 
@@ -134,6 +134,7 @@ Then apply migrations:
     $ python manage.py migrate --database=perma-cdxline
 
 For deployments, you should set an index on the urlkey field in the perma_cdxline table (this will make cdxline lookups faster):
+
     mysql -u perma -pperma perma_cdxline
     mysql> alter table perma_cdxline add key perma_cdxline_urlkey (urlkey(255));
 
