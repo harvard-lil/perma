@@ -329,7 +329,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         resp = self.submit_form('user_management_organization_user_add_user',
                                 data={'a-organizations': self.organization.pk},
                                 query_params={'email': self.registrar_member.email})
-        self.assertIn("is a registrar member", resp.content)
+        self.assertIn("is already a registrar member", resp.content)
         self.assertFalse(self.registrar_member.organizations.exists())
 
     ### REMOVING USERS FROM ORGANIZATIONS ###
@@ -421,6 +421,23 @@ class UserManagementViewsTestCase(PermaTestCase):
                          success_url=reverse('user_management_manage_registrar_user'),
                          success_query=LinkUser.objects.filter(pk=self.regular_user.pk, registrar=self.registrar))
 
+    def test_registrar_user_can_upgrade_org_user_to_registrar(self):
+        self.log_in_user(self.registrar_member)
+        self.submit_form('user_management_registrar_user_add_user',
+                         data={'a-registrar': self.registrar.pk},
+                         query_params={'email': self.organization_member.email},
+                         success_url=reverse('user_management_manage_registrar_user'),
+                         success_query=LinkUser.objects.filter(pk=self.organization_member.pk, registrar=self.registrar))
+        self.assertFalse(LinkUser.objects.filter(pk=self.organization_member.pk, organizations=self.organization).exists())
+
+    def test_registrar_user_cannot_upgrade_unrelated_org_user_to_registrar(self):
+        self.log_in_user(self.registrar_member)
+        resp = self.submit_form('user_management_registrar_user_add_user',
+                                data={'a-registrar': self.registrar.pk},
+                                query_params={'email': self.unrelated_organization_user.email})
+        self.assertIn("belongs to organizations that are not controlled by your registrar", resp.content)
+        self.assertFalse(LinkUser.objects.filter(pk=self.unrelated_organization_user.pk, registrar=self.registrar).exists())
+
     def test_registrar_user_cannot_add_existing_user_to_inaccessible_registrar(self):
         self.log_in_user(self.registrar_member)
         self.submit_form('user_management_registrar_user_add_user',
@@ -442,17 +459,8 @@ class UserManagementViewsTestCase(PermaTestCase):
         resp = self.submit_form('user_management_registrar_user_add_user',
                                 data={'a-registrar': self.registrar.pk},
                                 query_params={'email': self.unrelated_registrar_member.email})
-        self.assertIn("is already a member of a registrar", resp.content)
+        self.assertIn("is already a member of another registrar", resp.content)
         self.assertFalse(LinkUser.objects.filter(pk=self.unrelated_registrar_member.pk, registrar=self.registrar).exists())
-
-    def test_cannot_add_org_user_to_registrar(self):
-        self.log_in_user(self.registrar_member)
-        resp = self.submit_form('user_management_registrar_user_add_user',
-                                data={'a-registrar': self.registrar.pk},
-                                query_params={'email': self.organization_member.email})
-        self.assertIn("is an organization member", resp.content)
-        self.assertFalse(LinkUser.objects.filter(pk=self.organization_member.pk, registrar=self.registrar).exists())
-
 
     ### REMOVING USERS FROM REGISTRARS ###
 
