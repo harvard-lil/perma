@@ -25,7 +25,7 @@ SingleLinkModule.handleNewRecord = function () {
 }
 
 SingleLinkModule.setupEventHandlers = function () {
-  $("#details-button").click( function () {
+  $("#details-button, .edit-link").click( function () {
     SingleLinkModule.handleShowDetails($(this));
     return false;
   });
@@ -60,9 +60,10 @@ SingleLinkModule.getCurrentFolder = function () {
   SingleLinkModule.currentFolder = folders[current_user.id] || {};
 }
 
-SingleLinkModule.handleShowDetails = function (context) {
-  $this = context;
-  $this.text($this.text() == "Show record details" ? "Hide record details" : "Show record details");
+SingleLinkModule.handleShowDetails = function () {
+  $this = $("#details-button");
+  var showingDetails = $this.text().match("Show");
+  $this.text(showingDetails && showingDetails.length > 0 ? "Hide record details" : "Show record details");
   $('header').toggleClass('_activeDetails');
 }
 
