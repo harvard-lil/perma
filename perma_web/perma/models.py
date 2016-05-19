@@ -838,6 +838,20 @@ class Link(DeletableModel):
     def is_discoverable(self):
         return not self.is_private and not self.is_unlisted
 
+    ### functions to deal with link-specific caches ###
+
+    @classmethod
+    def get_cdx_cache_key(cls, guid):
+        return "cdx-"+guid
+
+    @classmethod
+    def get_warc_cache_key(cls, warc_storage_file):
+        return "warc-"+re.sub('[^\w-]', '', warc_storage_file)
+
+    def clear_cache(self):
+        cache.delete(Link.get_cdx_cache_key(self.guid))
+        cache.delete(Link.get_warc_cache_key(self.warc_storage_file()))
+
 
 class Capture(models.Model):
     link = models.ForeignKey(Link, null=False, related_name='captures')

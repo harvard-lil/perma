@@ -522,9 +522,6 @@ class LinkResource(AuthenticatedLinkResource):
         if uploaded_file and bundle.request.method == 'PUT':
             link = Link.objects.get(pk=kwargs['pk'])
 
-            # don't use cached cdxlines or warc for 60 seconds after updating
-            django_cache.set((link.guid + '-replace'), True, timeout=60)
-
             bundle.obj = self.obj_get(bundle=bundle, **kwargs)
             bundle.data["replace"]=True
 
@@ -533,6 +530,8 @@ class LinkResource(AuthenticatedLinkResource):
 
             bundle = super(LinkResource, self).obj_update(bundle, archive_timestamp=bundle.obj.archive_timestamp)
             bundle = self.obj_create(bundle=bundle, **kwargs)
+
+            bundle.obj.clear_cache()
 
         else:
             is_private = bundle.obj.is_private

@@ -90,11 +90,10 @@ class PermaRoute(archivalrouter.Route):
         """Parse the GUID and find the CDXLine in the DB"""
 
         guid = matcher.group(1)
-        cache_key = guid+'-cdx'
+        cache_key = Link.get_cdx_cache_key(guid)
         cached_cdx = django_cache.get(cache_key)
         redirect_matcher = re.compile(r' 30[1-7] ')
-        replace_cached_cdx = django_cache.get(guid+'-replace')
-        if cached_cdx is None or replace_cached_cdx is True or not wbrequest.wb_url:
+        if cached_cdx is None or not wbrequest.wb_url:
             with close_database_connection():
                 try:
                     # This will filter out links that have user_deleted=True
@@ -318,18 +317,13 @@ class CachedLoader(BlockLoader):
     def load(self, url, offset=0, length=-1):
 
         # first try to fetch url contents from cache
-        cache_key = 'warc-'+re.sub('[^\w-]', '', url)
+        cache_key = Link.get_warc_cache_key(url.split(settings.MEDIA_ROOT,1)[1])
         mirror_name_cache_key = cache_key+'-mirror-name'
         mirror_name = ''
 
-        # get guid
-        guid = url.split('/')
-        guid = guid[len(guid) - 1].split('.')[0]
-
-        replace_warc_cache = django_cache.get(guid + '-replace')
         file_contents = django_cache.get(cache_key)
 
-        if file_contents is None or replace_warc_cache is True:
+        if file_contents is None:
             # url wasn't in cache -- load contents
 
             # try fetching from each mirror in the LOCKSS network, in random order
@@ -351,7 +345,7 @@ class CachedLoader(BlockLoader):
                         logging.info("Couldn't get from lockss: %s" % e)
 
             # If url wasn't in LOCKSS yet or LOCKSS is disabled, fetch from local storage using super()
-            if file_contents is None or replace_warc_cache is True:
+            if file_contents is None:
                 file_contents = super(CachedLoader, self).load(url).read()
                 logging.info("Got content from local disk")
 
@@ -362,7 +356,6 @@ class CachedLoader(BlockLoader):
 
         else:
             mirror_name = django_cache.get(mirror_name_cache_key)
-            #logging.info("Got content from cache")
 
         # set wbrequest.mirror_name so it can be displayed in template later
         thread_local_data.wbrequest.mirror_name = mirror_name
