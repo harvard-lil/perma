@@ -1,5 +1,5 @@
 import json
-
+import os
 from django.conf import settings
 from django.conf.urls import url
 from django.core.urlresolvers import NoReverseMatch
@@ -14,6 +14,7 @@ from tastypie.utils import trailing_slash
 from tastypie import http
 from tastypie.resources import ModelResource
 from tastypie.exceptions import NotFound, ImmediateHttpResponse, BadRequest
+from django.core.cache import cache as django_cache
 
 from validations import (LinkValidation,
                          FolderValidation,
@@ -26,6 +27,7 @@ from perma.models import (LinkUser,
                           Folder,
                           Organization,
                           Registrar,
+                          CDXLine,
                           Capture,
                           CaptureJob)
 
@@ -158,6 +160,11 @@ class MultipartResource(object):
             return data
         return super(MultipartResource, self).deserialize(request, data, format)
 
+    # https://stackoverflow.com/questions/25182131/multipart-form-data-post-put-patch-in-django-tastypie
+    def put_detail(self, request, **kwargs):
+        if request.META.get('CONTENT_TYPE', '').startswith('multipart/form-data') and not hasattr(request, '_body'):
+            request._body = ''
+        return super(MultipartResource, self).put_detail(request, **kwargs)
 
 class LinkUserResource(DefaultResource):
     id = fields.IntegerField(attribute='id')
@@ -448,10 +455,13 @@ class LinkResource(AuthenticatedLinkResource):
                 'archives': {'__all__': "Perma has paused archive creation for scheduled maintenance. Please try again shortly."},
                 'reason': "Perma has paused archive creation for scheduled maintenance. Please try again shortly.",
             }))
-        
+
         # Runs validation (exception thrown if invalid), sets properties and saves the object
-        bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user)
+        if not bundle.data.get('replace'):
+            bundle = super(LinkResource, self).obj_create(bundle, created_by=bundle.request.user)
+
         link = bundle.obj
+        link.save()
 
         # put link in folder and handle Org settings based on folder
         folder = bundle.data.get('folder')
@@ -508,25 +518,40 @@ class LinkResource(AuthenticatedLinkResource):
         return bundle
 
     def obj_update(self, bundle, skip_errors=False, **kwargs):
-        is_private = bundle.obj.is_private
-        bundle = super(LinkResource, self).obj_update(bundle, skip_errors, **kwargs)
+        uploaded_file = bundle.data.get('file')
+        if uploaded_file and bundle.request.method == 'PUT':
+            link = Link.objects.get(pk=kwargs['pk'])
 
-        if bundle.data.get('folder', None):
-            bundle.obj.move_to_folder_for_user(bundle.data['folder'], bundle.request.user)
+            bundle.obj = self.obj_get(bundle=bundle, **kwargs)
+            bundle.data["replace"]=True
 
-        if 'is_private' in bundle.data:
-            if bundle.obj.is_archive_eligible():
-                going_private = bundle.data.get("is_private")
-                # if link was private but has been marked public
-                if is_private and not going_private:
-                    run_task(upload_to_internet_archive.s(link_guid=bundle.obj.guid))
+            # delete related cdxlines and captures, delete warc (rename)
+            self.obj_delete(bundle=bundle, **kwargs)
 
-                # if link was public but has been marked private
-                elif not is_private and going_private:
-                    run_task(delete_from_internet_archive.s(link_guid=bundle.obj.guid))
+            bundle = super(LinkResource, self).obj_update(bundle, archive_timestamp=bundle.obj.archive_timestamp)
+            bundle = self.obj_create(bundle=bundle, **kwargs)
 
-        links_remaining = bundle.request.user.get_links_remaining()
-        bundle.data['links_remaining'] = links_remaining
+            bundle.obj.clear_cache()
+
+        else:
+            is_private = bundle.obj.is_private
+            bundle = super(LinkResource, self).obj_update(bundle, skip_errors, **kwargs)
+
+            if bundle.data.get('folder', None):
+                bundle.obj.move_to_folder_for_user(bundle.data['folder'], bundle.request.user)
+
+            if 'is_private' in bundle.data:
+                if bundle.obj.is_archive_eligible():
+                    going_private = bundle.data.get("is_private")
+                    # if link was private but has been marked public
+                    if is_private and not going_private:
+                        run_task(upload_to_internet_archive.s(link_guid=bundle.obj.guid))
+
+                    # if link was public but has been marked private
+                    elif not is_private and going_private:
+                        run_task(delete_from_internet_archive.s(link_guid=bundle.obj.guid))
+            links_remaining = bundle.request.user.get_links_remaining()
+            bundle.data['links_remaining'] = links_remaining
         return bundle
 
     # https://github.com/toastdriven/django-tastypie/blob/ec16d5fc7592efb5ea86321862ec0b5962efba1b/tastypie/resources.py#L2194
@@ -539,8 +564,17 @@ class LinkResource(AuthenticatedLinkResource):
 
         self.authorized_delete_detail(self.get_object_list(bundle.request), bundle)
 
-        bundle.obj.safe_delete()
+        # deleting related captures and cdxlines
+        bundle.obj.delete_related()
+
+        # if replacing file, only "delete" warc by renaming
+        if bundle.data.get("replace"):
+            bundle.obj.safe_delete_warc()
+        else:
+            bundle.obj.safe_delete()
+
         bundle.obj.save()
+
         if bundle.obj.uploaded_to_internet_archive:
             run_task(delete_from_internet_archive.s(link_guid=bundle.obj.guid))
 

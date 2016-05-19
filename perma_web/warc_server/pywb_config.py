@@ -90,7 +90,7 @@ class PermaRoute(archivalrouter.Route):
         """Parse the GUID and find the CDXLine in the DB"""
 
         guid = matcher.group(1)
-        cache_key = guid+'-cdx'
+        cache_key = Link.get_cdx_cache_key(guid)
         cached_cdx = django_cache.get(cache_key)
         redirect_matcher = re.compile(r' 30[1-7] ')
         if cached_cdx is None or not wbrequest.wb_url:
@@ -317,11 +317,12 @@ class CachedLoader(BlockLoader):
     def load(self, url, offset=0, length=-1):
 
         # first try to fetch url contents from cache
-        cache_key = 'warc-'+re.sub('[^\w-]', '', url)
+        cache_key = Link.get_warc_cache_key(url.split(settings.MEDIA_ROOT,1)[1])
         mirror_name_cache_key = cache_key+'-mirror-name'
         mirror_name = ''
 
         file_contents = django_cache.get(cache_key)
+
         if file_contents is None:
             # url wasn't in cache -- load contents
 
@@ -355,7 +356,6 @@ class CachedLoader(BlockLoader):
 
         else:
             mirror_name = django_cache.get(mirror_name_cache_key)
-            #logging.info("Got content from cache")
 
         # set wbrequest.mirror_name so it can be displayed in template later
         thread_local_data.wbrequest.mirror_name = mirror_name
