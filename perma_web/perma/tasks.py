@@ -741,6 +741,17 @@ def upload_to_internet_archive(self, link_guid):
 
     identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link_guid
     if default_storage.exists(link.warc_storage_file()):
+        item = internetarchive.get_item(identifier)
+
+        # if item already exists (but has been removed),
+        # ia won't update its metadata in upload function
+        if item.exists and item.metadata['title'] == 'Removed':
+            item.modify_metadata(metadata,
+                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+            )
+
+
         with default_storage.open(link.warc_storage_file(), 'rb') as warc_file:
             success = internetarchive.upload(
                             identifier,
