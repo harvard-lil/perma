@@ -44,7 +44,9 @@ SingleLinkModule.setupEventHandlers = function () {
         contentType: 'multipart/form-data',
         processData: false,
         success: function(res){
-          location.reload();
+          // refresh page with location=location rather than location.reload() to work around Firefox bug with iframes:
+          // https://bugzilla.mozilla.org/show_bug.cgi?id=363840
+          location=location;
         },
         error: function(res){console.log("error~!",res);}
       });
