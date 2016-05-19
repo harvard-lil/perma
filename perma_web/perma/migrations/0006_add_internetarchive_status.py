@@ -31,6 +31,14 @@ def reverse_update_upload_to_ia_field(apps, schema_editor):
         else:
             link.uploaded_to_internet_archive = False
     link.save()
+    HistoricalLink = apps.get_model('perma', 'Link')
+    for hlink in HistoricalLink.objects.all():
+        if hlink.internet_archive_upload_status == 'completed':
+            hlink.uploaded_to_internet_archive = True
+        else:
+            hlink.uploaded_to_internet_archive = False
+    hlink.save()
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -61,29 +69,3 @@ class Migration(migrations.Migration):
         ),
 
      ]
-# class Migration(migrations.Migration):
-#
-#     dependencies = [
-#         ('perma', '0006_add_internetarchive_status'),
-#     ]
-#
-#     operations = [
-#         migrations.RemoveField(
-#             model_name='historicallink',
-#             name='uploaded_to_internet_archive',
-#         ),
-#         migrations.RemoveField(
-#             model_name='link',
-#             name='uploaded_to_internet_archive',
-#         ),
-#         migrations.AddField(
-#             model_name='historicallink',
-#             name='internet_archive_upload_status',
-#             field=models.CharField(default=b'not_started', max_length=15, choices=[(b'not_started', b'not_started'), (b'completed', b'completed'), (b'failed', b'failed'), (b'failed_permanently', b'failed_permanently'), (b'deleted', b'deleted')]),
-#         ),
-#         migrations.AddField(
-#             model_name='link',
-#             name='internet_archive_upload_status',
-#             field=models.CharField(default=b'not_started', max_length=15, choices=[(b'not_started', b'not_started'), (b'completed', b'completed'), (b'failed', b'failed'), (b'failed_permanently', b'failed_permanently'), (b'deleted', b'deleted')]),
-#         ),
-#     ]
