@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='link',
-            name='internet_arc\hive_upload_status',
+            name='internet_archive_upload_status',
             field=models.CharField(default=b'not_started', max_length=20, choices=[(b'not_started', b'not_started'), (b'completed', b'completed'), (b'failed', b'failed'), (b'failed_permanently', b'failed_permanently'), (b'deleted', b'deleted')]),
         ),
 
