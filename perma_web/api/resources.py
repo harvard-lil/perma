@@ -541,7 +541,7 @@ class LinkResource(AuthenticatedLinkResource):
 
         bundle.obj.safe_delete()
         bundle.obj.save()
-        if bundle.obj.uploaded_to_internet_archive:
+        if bundle.obj.internet_archive_upload_status == 'completed':
             run_task(delete_from_internet_archive.s(link_guid=bundle.obj.guid))
 
     ###

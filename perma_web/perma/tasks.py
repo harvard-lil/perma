@@ -35,6 +35,7 @@ from django.core.files.storage import default_storage
 from django.template.defaultfilters import truncatechars
 from django.conf import settings
 from django.utils import timezone
+from django.db.models import Q
 
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture, CaptureJob
 
@@ -686,7 +687,7 @@ def delete_from_internet_archive(self, link_guid):
             secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
         )
 
-    link.uploaded_to_internet_archive = False
+    link.internet_archive_upload_status = 'deleted'
     link.save()
 
 @shared_task()
@@ -696,7 +697,7 @@ def upload_all_to_internet_archive():
     start_date = timezone.now() - timedelta(days=2)
     end_date   = timezone.now() - timedelta(days=1)
 
-    links = Link.objects.filter(uploaded_to_internet_archive=False, creation_timestamp__range=(start_date, end_date))
+    links = Link.objects.filter(Q(internet_archive_upload_status='not_started') | Q(internet_archive_upload_status='failed'), creation_timestamp__range=(start_date, end_date))
     for link in links:
         if link.can_upload_to_internet_archive():
             run_task(upload_to_internet_archive.s(link_guid=link.guid))
@@ -706,6 +707,10 @@ def upload_all_to_internet_archive():
 def upload_to_internet_archive(self, link_guid):
     try:
         link = Link.objects.get(guid=link_guid)
+
+        if link.internet_archive_upload_status == 'failed_permanently':
+            return
+
     except:
         print "Link %s does not exist" % link_guid
         return
@@ -735,7 +740,18 @@ def upload_to_internet_archive(self, link_guid):
 
 
     identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link_guid
-    try:
+    if default_storage.exists(link.warc_storage_file()):
+        item = internetarchive.get_item(identifier)
+
+        # if item already exists (but has been removed),
+        # ia won't update its metadata in upload function
+        if item.exists and item.metadata['title'] == 'Removed':
+            item.modify_metadata(metadata,
+                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+            )
+
+
         with default_storage.open(link.warc_storage_file(), 'rb') as warc_file:
             success = internetarchive.upload(
                             identifier,
@@ -748,15 +764,14 @@ def upload_to_internet_archive(self, link_guid):
                             verbose=True,
                         )
             if success:
-                link.uploaded_to_internet_archive = True
+                link.internet_archive_upload_status = 'completed'
                 link.save()
 
             else:
+                link.internet_archive_upload_status = 'failed'
                 self.retry(exc=Exception("Internet Archive reported upload failure."))
-                print "Failed."
 
             return success
-
-    except IOError, e:
-        print e.errno
-        return
+    else:
+        link.internet_archive_upload_status = 'failed_permanently'
+        link.save()

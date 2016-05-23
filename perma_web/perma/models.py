@@ -493,7 +493,10 @@ class Link(DeletableModel):
     organization = models.ForeignKey(Organization, null=True, blank=True, related_name='links')
     folders = models.ManyToManyField(Folder, related_name='links', blank=True)
     notes = models.TextField(blank=True)
-    uploaded_to_internet_archive = models.BooleanField(default=False)
+    internet_archive_upload_status = models.CharField(max_length=20,
+                                                      default='not_started',
+                                                      choices=(('not_started','not_started'),('completed','completed'),('failed','failed'),('failed_permanently','failed_permanently'),('deleted','deleted')))
+
     warc_size = models.IntegerField(blank=True, null=True)
 
     is_private = models.BooleanField(default=False)
