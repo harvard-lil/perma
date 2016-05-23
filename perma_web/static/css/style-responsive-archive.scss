@@ -140,13 +140,16 @@ header {
 }
 
 .record-message {
-	text-align: center;
-    margin: 64px 0 24px;
-    font-family: $font-hed-alt;
-    padding: 0 $double;
-    @include respond-tablet {
-      margin: 200px 0 48px;
-    }
+  text-align: center;
+  margin: 64px 0 24px;
+  font-family: $font-hed-alt;
+  padding: 0 $double;
+  @include respond-mobile {
+    margin: 200px 0 48px;
+  }
+  @include respond-tablet {
+    margin: 155px 0 48px;
+  }
 }
 
 .record-message-primary {
