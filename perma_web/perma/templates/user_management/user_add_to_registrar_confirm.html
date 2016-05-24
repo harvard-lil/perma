@@ -6,18 +6,25 @@
   <h3 class="body-bh">Add {{ user_email }} to registrar</h3>
   {% if not form %}
 
-    {% if object.is_staff %}
-      <p>{{ user_email }} is an admin user and cannot be added to individual registrars.</p>
-    {% elif object.is_registrar_member %}
-      <p>{{ user_email }} is already a member of a registrar and cannot be added.</p>
-    {% elif object.is_organization_member %}
-      <p>{{ user_email }} is an organization member and must be removed from all organizations before adding as a registrar member.</p>
-    {% endif %}
+    <p>{{ error_message }}</p>
 
   {% else %}
 
     {% if object.id %}
       <p>{{ user_email }} already has an account.  Would you like to add them to a registrar?</p>
+
+      {% if request.user.is_staff %}
+        {% if object.is_organization_member %}
+          <p><b>WARNING:</b> This user is currently a member of the following organizations. Upgrading them to a registrar will REPLACE these affiliations:</p>
+          <ul>
+          {% for org in object.organizations.all %}
+            <li>{{ org }} (registrar: {{ org.registrar }})</li>
+          {% endfor %}
+          </ul>
+        {% elif object.is_registrar_member %}
+          <p><b>WARNING:</b> This user is already a member of <b>{{ object.registrar }}</b>. Submitting this form will REPLACE that affiliation.</p>
+        {% endif %}
+      {% endif %}
     {% endif %}
 
     <form method="post">
