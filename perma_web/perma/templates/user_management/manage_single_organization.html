@@ -19,20 +19,7 @@
 			</div>
     		<form method="post" action="">
 				{% csrf_token %}
-				<fieldset>
-				{% for field in form %}
-					<div class="form-group fg-100{% if field.errors %} _error{% endif %}">
-					<label for="id_{{ field.name }}">{{ field.label }}</label>
-					{{ field }}
-					{% if field.errors %}
-						{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
-					{%elif field.help_text %}
-						<span class="help-inline">{{ field.help_text }}</span>
-					{% endif %}
-					</div>
-				{% endfor %}
-				{% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
-				</fieldset>
+        {% include "includes/fieldset.html" with form_classes="fg-100" %}
 				<button type="submit" class="btn">Save changes</button>
 			</form>
     	</div>

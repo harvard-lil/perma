@@ -2760,12 +2760,15 @@ input[type="submit"] {
 	margin-bottom: 0;
 	text-align: left;
 	@include respond-tablet {
-		float: left;
 		width: 50%;
 		margin-top: $double;
 		padding-right: $double;
 	}
-	&.fg-inline {}
+	&.fg-inline {
+		@include respond-tablet {
+			float: left;
+		}
+	}
 	&.fg-100 {
 		@include respond-tablet {
 			width: 100%;
@@ -2830,7 +2833,7 @@ textarea {
 	font-size: 12px;
 	clear: both;
 	display: block;
-	padding-top: $double;
+	padding-bottom: $double;
 }
 
 .errorlist {

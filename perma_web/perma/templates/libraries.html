@@ -63,37 +63,12 @@ Perma.cc for libraries
 	            <form method="post" role="form">
 	                {% csrf_token %}
 	                <h3 class="body-bh">Your library information</h3>
-	                <fieldset>
-						{% for field in registrar_form %}
-							<div class="form-group{% if field.errors %} _error{% endif %}">
-								<label for="id_{{ field.name }}">{{ field.label }}</label>
-								{{ field }}
-								{% if field.errors %}
-									{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
-								{%elif field.help_text %}
-									<span class="help-inline">{{ field.help_text }}</span>
-								{% endif %}
-							</div>
-						{% endfor %}
-	                	{% if registrar_form.non_field_errors %}<span class="field-error">{{ registrar_form.non_field_errors }}</span>{% endif %}
-	                </fieldset>
+
+          				{% include "includes/fieldset.html" with form=registrar_form %}
 	                {% if user_form %}
-	                <h3 class="body-bh">Your information</h3>
-	                <fieldset>
-						{% for field in user_form %}
-							<div class="form-group{% if field.errors %} _error{% endif %}">
-								<label for="id_{{ field.name }}">{{ field.label }}</label>
-								{{ field }}
-								{% if field.errors %}
-									{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
-								{%elif field.help_text %}
-									<span class="help-inline">{{ field.help_text }}</span>
-								{% endif %}
-							</div>
-						{% endfor %}
-	                	{% if user_.non_field_errors %}<span class="field-error">{{ user_.non_field_errors }}</span>{% endif %}
-						<p class="terms-statement"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
-	                </fieldset>
+	                  <h3 class="body-bh">Your information</h3>
+          				  {% include "includes/fieldset.html" with form=user_form %}
+						        <p class="terms-statement"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
 	                {% endif %}
 	                <button type="submit" class="btn">Request account</button>
 	            </form>
