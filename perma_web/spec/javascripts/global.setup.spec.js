@@ -1,4 +1,4 @@
-describe("Test create.module.js", function() {
+describe("Test global.setup.js", function() {
   it("expects jquery to exist", function () {
     expect($).toBeDefined();
   });
