@@ -1,0 +1,26 @@
+src_files:
+  - "vendors/jquery/jquery.js"
+  - "vendors/p5/p5.min.js"
+  - "helpers/**/*.js"
+  - "js/*.js"
+
+# stylesheets
+#
+# Return an array of stylesheet filepaths relative to src_dir to include before jasmine specs.
+# Default: []
+#
+# EXAMPLE:
+#
+# stylesheets:
+#   - css/style.css
+#   - stylesheets/*.css
+#
+helpers:
+  - "helpers/**/*.js"
+
+spec_files:
+  - "**/*[Ss]pec.js"
+
+src_dir: "static"
+
+spec_dir: "spec/javascripts"
