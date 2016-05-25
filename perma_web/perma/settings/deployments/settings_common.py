@@ -117,6 +117,7 @@ PIPELINE_JS = {
     'global_head': {
         'source_filenames': (
             'vendors/modernizr/modernizr.js',
+            'js/helpers/modernizr.extension.js',
             'vendors/holder/holder.js',
             'js/helpers/local-datetime.js',
         ),
