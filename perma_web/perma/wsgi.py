@@ -12,7 +12,7 @@ import os
 import newrelic
 from werkzeug.wsgi import DispatcherMiddleware
 
-newrelic.agent.initialize('/srv/www/perma/services/newrelic/newrelic.ini')
+newrelic.agent.initialize('/srv/www/perma/services/newrelic.ini')
 
 
 # We defer to a DJANGO_SETTINGS_MODULE already in the environment. This breaks
