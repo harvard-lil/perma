@@ -1,5 +1,15 @@
 var Helpers = {};
 
+Helpers.sendFormData = function (method, url, data, requestArgs) {
+  requestArgs = requestArgs || {};
+  var formData = new FormData();
+  for (key in data) { formData.append(key, data[key]); }
+  requestArgs.data = formData;
+  requestArgs.url = api_path + url;
+  requestArgs.method = method;
+  return $.ajax(requestArgs);
+}
+
 Helpers.apiRequest = function (method, url, data, requestArgs){
   // set up arguments for API request
   requestArgs = typeof requestArgs !== 'undefined' ? requestArgs : {};

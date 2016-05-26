@@ -36,22 +36,21 @@ SingleLinkModule.setupEventHandlers = function () {
   });
 
   $('#archive_upload_form')
-    .submit(function() {
-      $(this).ajaxSubmit({
-        type: "PUT",
-        url: api_path+"/archives/"+archive.guid,
-        data: {'folder' : SingleLinkModule.currentFolder['folderId'] },
-        contentType: 'multipart/form-data',
-        processData: false,
-        success: function(res){
-          // refresh page with location=location rather than location.reload() to work around Firefox bug with iframes:
-          // https://bugzilla.mozilla.org/show_bug.cgi?id=363840
-          location=location;
-        },
-        error: function(res){console.log("error~!",res);}
-      });
-      return false;
+    .submit(function(e) {
+      e.preventDefault();
+      var url = "/archives/"+archive.guid+"/";
+      var data = {'folder': SingleLinkModule.currentFolder.folderId };
+      data['file'] = $('#archive_upload_form').find('.file')[0].files[0];
 
+      var requestArgs = {
+        contentType: false,
+        processData: false
+      };
+
+      Helpers.sendFormData("PATCH", url, data, requestArgs)
+        .done(function(data){
+          location=location;
+        });
     });
 
   $(window).on('resize', function () { SingleLinkModule.adjustTopMargin(); });
