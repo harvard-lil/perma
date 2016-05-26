@@ -99,4 +99,31 @@ Helpers.isHighDensity = function() {
 
 Helpers.getWindowLocationSearch = function() {
   return window.location.search;
+};
+
+Helpers.variables = {
+  localStorageKey:"perma_selection"
+};
+
+Helpers.localStorage = {
+  getItem: function (key) {
+    var result = localStorage.getItem(key);
+    try {
+      result = JSON.parse(result);
+    } catch (e) {
+      result
+    }
+    return result;
+  },
+  setItem: function(key, value) {
+    if(typeof value !== "string") {
+      value = JSON.stringify(value);
+    }
+    localStorage.setItem(key, value);
+  }
+}
+
+
+Helpers.triggerOnWindow = function(message, data) {
+  $(window).trigger(message, data);
 }

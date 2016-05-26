@@ -10,45 +10,39 @@ var organizations = {};
 
 /* Our globals. Look out interwebs - end */
 var CreateModule = CreateModule || {};
-var ls = ls || {};
 
+CreateModule.ls = CreateModule.ls || {};
+
+var localStorageKey = Helpers.variables.localStorageKey;
 /* Everything that needs to happen at page load - start */
 
 $(document).ready(function() {
   CreateModule.init();
   CreateModule.setupEventHandlers();
   CreateModule.populateWithUrl();
-  $('#archive-upload-confirm').modal({show: false});
-  $('#archive-upload').modal({show: false});
 });
 
 
-ls.getAll = function () {
-  var folders = JSON.parse(localStorage.getItem("perma_selection"));
+CreateModule.ls.getAll = function () {
+  var folders = Helpers.localStorage.getItem(localStorageKey);
   return folders || {};
 }
 
-ls.getCurrent = function () {
+CreateModule.ls.getCurrent = function () {
   var folders = this.getAll();
   return folders[current_user.id] || {};
 }
 
-ls.setCurrent = function (orgId, folderId) {
+CreateModule.ls.setCurrent = function (orgId, folderId) {
   folderId = folderId ? folderId : 'default';
 
   var selectedFolders = this.getAll();
   selectedFolders[current_user.id] = {'folderId' : folderId, 'orgId' : orgId };
 
-  localStorage.setItem("perma_selection",JSON.stringify(selectedFolders));
+  Helpers.localStorage.setItem(localStorageKey, selectedFolders);
   CreateModule.updateLinker();
-
-  $(window).trigger("dropdown.selectionChange");
+  Helpers.triggerOnWindow("dropdown.selectionChange");
 }
-
-
-// localStorage settings
-CreateModule.ls = ls
-
 
 // Get parameter by name
 // from https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
