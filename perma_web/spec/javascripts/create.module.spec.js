@@ -2,12 +2,6 @@ var localStorage;
 var current_user;
 
 describe("Test create.module.js", function() {
-  beforeEach(function(){
-    localStorage = {
-      setItem: function (key, val) { this[key] = val; },
-      getItem: function (key) { return this[key]; }
-    }
-  });
   it("defines CreateModule", function(){
     expect(CreateModule).toBeDefined();
   });
@@ -28,8 +22,7 @@ describe("Test create.module.js", function() {
       var url = CreateModule.populateWithUrl();
       expect(url).not.toBeDefined();
       expect(DOMHelpers.setInputValue).not.toHaveBeenCalled();
-
-    })
+    });
   });
   describe("localStorage", function(){
     /* ls related methods */
@@ -94,6 +87,15 @@ describe("Test create.module.js", function() {
         expect(CreateModule.updateLinker).toHaveBeenCalled();
         expect(Helpers.triggerOnWindow).toHaveBeenCalledWith("dropdown.selectionChange");
       });
+    });
+  });
+  describe("updateLinksRemaining", function(){
+    it("changes links_remaining", function(){
+      spyOn(DOMHelpers, "changeText");
+      window.links_remaining = 10;
+      CreateModule.updateLinksRemaining(8);
+      expect(window.links_remaining).toEqual(8);
+      expect(DOMHelpers.changeText).toHaveBeenCalledWith('.links-remaining', 8);
     });
   });
 });

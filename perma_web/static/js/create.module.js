@@ -314,7 +314,7 @@ CreateModule.updateAffiliationPath = function (currentOrg, path) {
 
 CreateModule.updateLinksRemaining = function (links_num) {
   links_remaining = links_num;
-  $('.links-remaining').text(links_remaining);
+  DOMHelpers.changeText('.links-remaining', links_remaining);
 }
 
 CreateModule.handleSelectionChange = function (data) {
