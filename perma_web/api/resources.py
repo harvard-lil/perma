@@ -160,9 +160,11 @@ class MultipartResource(object):
             return data
         return super(MultipartResource, self).deserialize(request, data, format)
 
-    # https://stackoverflow.com/questions/25182131/multipart-form-data-post-put-patch-in-django-tastypie
     def patch_detail(self, request, **kwargs):
         if request.META.get('CONTENT_TYPE', '').startswith('multipart/form-data') and not hasattr(request, '_body'):
+            # hack to pass file data through, otherwise it gets forgotten / erased
+            # https://stackoverflow.com/questions/25182131/multipart-form-data-post-put-patch-in-django-tastypie#comment47673901_27429925
+
             request.body
         return super(MultipartResource, self).patch_detail(request, **kwargs)
 
