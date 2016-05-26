@@ -254,10 +254,11 @@ CreateModule.check_status = function () {
 
 /* Our polling function for the thumbnail completion - end */
 CreateModule.populateWithUrl = function () {
-  var url = location.search.split("url=")[1];
+  var url = Helpers.getWindowLocationSearch().split("url=")[1];
   if (url) {
     url = decodeURIComponent(url);
     DOMHelpers.setInputValue("#rawUrl", url)
+    return url;
   }
 }
 
