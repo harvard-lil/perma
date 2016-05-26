@@ -1,4 +1,4 @@
-import random, string, logging, time
+import random, string, logging
 
 from datetime import timedelta
 
@@ -1100,7 +1100,7 @@ def get_sitewide_cookie_domain(request):
 
 
 def logout(request):
-    if request.POST:
+    if request.method == 'POST':
         return auth_views.logout(request, template_name='registration/logout_success.html')
     return render(request, "registration/logout.html")
 
