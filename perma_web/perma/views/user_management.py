@@ -16,7 +16,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.db.models import Count, Max, Sum
 from django.db.models.expressions import RawSQL
 from django.utils import timezone
-from django.utils.http import is_safe_url, cookie_date
+from django.utils.http import is_safe_url
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect, Http404, JsonResponse
 from django.template import RequestContext
@@ -1100,12 +1100,9 @@ def get_sitewide_cookie_domain(request):
 
 
 def logout(request):
-    response = auth_views.logout(request, template_name='registration/logout.html')
-    # on logout, delete the cache bypass cookie
-    cookie_kwargs = {'domain': get_sitewide_cookie_domain(request),
-                     'path': settings.SESSION_COOKIE_PATH}
-    response.delete_cookie(settings.CACHE_BYPASS_COOKIE_NAME, **cookie_kwargs)
-    return response
+    if request.POST:
+        return auth_views.logout(request, template_name='registration/logout_success.html')
+    return render(request, "registration/logout.html")
 
 
 @ratelimit(field='email', method='POST', rate=settings.LOGIN_MINUTE_LIMIT, block=True, ip=False,
@@ -1145,30 +1142,7 @@ def limited_login(request, template_name='registration/login.html',
             # Okay, security check complete. Log the user in.
             auth_login(request, form.get_user())
 
-            response = HttpResponseRedirect(redirect_to)
-
-            # set cache bypass cookie
-            # The cookie should last as long as the login cookie, so cookie logic is copied from SessionMiddleware.
-            if request.session.get_expire_at_browser_close():
-                max_age = None
-                expires = None
-            else:
-                max_age = request.session.get_expiry_age()
-                expires_time = time.time() + max_age
-                expires = cookie_date(expires_time)
-
-            cookie_kwargs = {'max_age': max_age,
-                             'expires': expires,
-                             'domain' : get_sitewide_cookie_domain(request),
-                             'path'   : settings.SESSION_COOKIE_PATH}
-
-            # Allows cache to be bypass in Cloudflare page rules
-            response.set_cookie(settings.CACHE_BYPASS_COOKIE_NAME,
-                                1,
-                                httponly=False,
-                                **cookie_kwargs)
-
-            return response
+            return HttpResponseRedirect(redirect_to)
     else:
         form = authentication_form(request)
 

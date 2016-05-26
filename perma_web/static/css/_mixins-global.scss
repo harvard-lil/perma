@@ -426,8 +426,7 @@ $width-max-respond: $width-wide; 			// 1200px;
 	& > li {
 	    list-style: none;
 	}
-	& > li > a {
-	    font-size: 14px;
+	& > li > a, & > li button {
 		font-family: $font-hed-alt;
 		padding: $half 12px $half $grid * 3;
 		font-size: $size-body;
@@ -436,6 +435,19 @@ $width-max-respond: $width-wide; 			// 1200px;
 			background-color: $color-hover;
 			color: white;
 		}
+	}
+
+	// styles for using form buttons instead of links in menu
+	& > li form {
+		margin: 0;
+        text-align: right;
+	}
+	& > li button {
+		font-weight: 400;
+		border: none;
+		background-color: transparent;
+        width: 100%;
+        border-radius: 0;
 	}
 }
 
