@@ -1,3 +1,4 @@
+import Cookie
 import StringIO
 from collections import defaultdict
 from contextlib import contextmanager
@@ -130,8 +131,21 @@ class PermaRoute(archivalrouter.Route):
                         if lines_without_redirects:
                             cached_cdx[urlkey] = lines_without_redirects
 
+                # record whether link is private so we can enforce permissions
+                cached_cdx['is_private'] = link.is_private
+
                 django_cache.set(cache_key, cached_cdx)
 
+        # enforce permissions
+        if cached_cdx.get('is_private'):
+            # if user is allowed to access this private link, they will have a cookie like GUID=<token>,
+            # which can be validated with link.validate_access_token()
+            cookie = Cookie.SimpleCookie(wbrequest.env.get('HTTP_COOKIE')).get(guid)
+            valid_token = cookie and Link(pk=guid).validate_access_token(cookie.value, 3600)
+            if not valid_token:
+                raise_not_found(wbrequest.wb_url)
+
+        # check whether archive contains the requested URL
         urlkey = surt(wbrequest.wb_url.url)
         cdx_lines = cached_cdx.get(urlkey)
         if not cdx_lines:

@@ -1186,6 +1186,35 @@ def limited_login(request, template_name='registration/login.html',
                             current_app=current_app)
 
 
+def set_access_token_cookie(request):
+    """
+        This function is designed to run on the warc playback domain. It will set an access token cookie and then
+        redirect to the target warc playback.
+    """
+    token = request.GET.get('token', '')
+    link_guid = request.GET.get('guid')
+    next = request.GET.get('next')
+
+    redirect_url = '/warc/%s/%s' % (link_guid, next)
+    response = HttpResponseRedirect(redirect_url)
+
+    if token and Link(pk=link_guid).validate_access_token(token):
+        # set token cookie
+        response.set_cookie(link_guid,
+                            token,
+                            httponly=True,
+                            secure=settings.SESSION_COOKIE_SECURE,
+                            path='/warc/%s/' % link_guid)
+
+        # set nocache cookie so CloudFlare doesn't cache authenticated results
+        response.set_cookie('nocache',
+                            '1',
+                            httponly=True,
+                            secure=settings.SESSION_COOKIE_SECURE)
+
+    return response
+
+
 @ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block=True, ip=False,
            keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
 def libraries(request):

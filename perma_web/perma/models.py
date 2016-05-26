@@ -1,4 +1,3 @@
-import calendar
 import hashlib
 import io
 import json
@@ -10,9 +9,13 @@ import socket
 import tempfile
 import time
 from contextlib import contextmanager
+from urllib import urlencode
 from urlparse import urlparse
 import simple_history
 import requests
+from django.core.signing import TimestampSigner, BadSignature
+from django.core.urlresolvers import reverse
+from django.utils.safestring import mark_safe
 
 from hanzo import warctools
 from simple_history.models import HistoricalRecords
@@ -798,6 +801,8 @@ class Link(DeletableModel):
         default_storage.store_file(out, self.warc_storage_file(), overwrite=True)
         out.close()
 
+    ### functions to deal with playback ###
+
     def replay_url(self, url):
         """
             Given a URL contained in this WARC, return the headers and data as played back by pywb.
@@ -823,6 +828,23 @@ class Link(DeletableModel):
     def base_playback_url(self, host=None):
         host = host or settings.WARC_HOST
         return u"%s/warc/%s/" % (("//" + host if host else ''), self.guid)
+
+    def create_access_token(self):
+        """
+            Return an access token for accessing this link.
+            Access token consists of the link GUID, signed by Django with the current timestamp.
+        """
+        return TimestampSigner().sign(self.pk)
+
+    def validate_access_token(self, token, max_age=60):
+        """
+            Validate an access token for this link.
+            Access token should be the link GUID, signed by Django no more than max_age seconds ago.
+        """
+        try:
+            return TimestampSigner().unsign(token, max_age=max_age) == self.pk
+        except BadSignature:
+            return False
 
     def is_discoverable(self):
         return not self.is_private and not self.is_unlisted
@@ -884,10 +906,32 @@ class Capture(models.Model):
         """
         return self.content_type.split(";", 1)[0].lower().replace('/x-', '/')
 
+    def url_fragment(self):
+        return ("id_/" if self.record_type == 'resource' else "") + self.url
+
     def playback_url(self):
         if not self.url:
             return None
-        return u"%s%s%s" % (self.link.base_playback_url(), "id_/" if self.record_type == 'resource' else "", self.url)
+        return self.link.base_playback_url() + self.url_fragment()
+
+    def playback_url_with_access_token(self):
+        """
+            Return a URL that will allow playback of a private link.
+            If link is not private, returns regular playback URL.
+
+            IMPORTANT: Links returned by this function should only be displayed to authorized users.
+        """
+        if not self.link.is_private:
+            return self.playback_url()
+        return mark_safe("//%s%s?%s" % (
+            settings.WARC_HOST,
+            reverse('user_management_set_access_token_cookie'),
+            urlencode({
+                'token': self.link.create_access_token(),
+                'guid': self.link_id,
+                'next': self.url_fragment(),
+            })
+        ))
 
 
 class CaptureJob(models.Model):
