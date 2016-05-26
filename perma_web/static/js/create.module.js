@@ -257,7 +257,7 @@ CreateModule.populateWithUrl = function () {
   var url = location.search.split("url=")[1];
   if (url) {
     url = decodeURIComponent(url);
-    $("#rawUrl").val(url);
+    DOMHelpers.setInputValue("#rawUrl", url)
   }
 }
 
