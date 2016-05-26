@@ -188,6 +188,8 @@ PIPELINE_JS = {
     'single-link': {
         'source_filenames': (
             'vendors/jquery/jquery.form.min.js',
+            'js/error-handler.js',
+            'js/helpers/general.helpers.js',
             'js/single-link.module.js',
 
         ),
