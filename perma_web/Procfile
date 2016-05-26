@@ -1,3 +1,3 @@
-web: newrelic-admin run-program gunicorn --log-level debug --access-logfile - -w 1 -b 0.0.0.0:$PORT -k gevent --forwarded-allow-ips '*' perma.wsgi
-worker: newrelic-admin run-program celery -A perma worker --loglevel=info --concurrency=1 --without-gossip --without-mingle --without-heartbeat
-beat: newrelic-admin run-program celery -A perma beat --loglevel=info
+web: gunicorn --log-level debug --access-logfile - -w 1 -b 0.0.0.0:$PORT -k gevent --forwarded-allow-ips '*' perma.wsgi
+worker: celery -A perma worker --loglevel=info --concurrency=1 --without-gossip --without-mingle --without-heartbeat
+beat: celery -A perma beat --loglevel=info
