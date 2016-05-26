@@ -9,7 +9,8 @@ from django.core.files.storage import default_storage
 from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.shortcuts import render_to_response, render, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, HttpResponseNotFound, HttpResponseServerError
+from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, HttpResponseNotFound, HttpResponseServerError, \
+    HttpResponseForbidden
 from django.shortcuts import render_to_response, render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, Http404, HttpResponse, HttpResponseNotFound, HttpResponseServerError, StreamingHttpResponse
 from django.core.urlresolvers import reverse
@@ -148,11 +149,13 @@ def single_linky(request, guid):
 
     # serve raw WARC
     if serve_type == 'warc_download':
-
-        response = StreamingHttpResponse(FileWrapper(default_storage.open(link.warc_storage_file()), 1024 * 8),
-                                         content_type="application/gzip")
-        response['Content-Disposition'] = "attachment; filename=%s.warc.gz" % link.guid
-        return response
+        if request.user.can_view(link):
+            response = StreamingHttpResponse(FileWrapper(default_storage.open(link.warc_storage_file()), 1024 * 8),
+                                             content_type="application/gzip")
+            response['Content-Disposition'] = "attachment; filename=%s.warc.gz" % link.guid
+            return response
+        else:
+            return HttpResponseForbidden('Private archive.')
 
     if serve_type == 'image':
         capture = link.screenshot_capture
