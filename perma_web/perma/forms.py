@@ -172,7 +172,13 @@ class UserAddRegistrarForm(UserFormWithRegistrar):
     class Meta:
         model = LinkUser
         fields = ("registrar",)
-        
+
+    def save(self, commit=True):
+        """ Override save to remove any organizations before upgrading to registrar. """
+        self.instance.organizations.clear()
+        return super(UserAddRegistrarForm, self).save(commit)
+
+
 class UserAddOrganizationForm(UserFormWithOrganization):
     """
         User form that just lets you add an organization.
@@ -220,5 +226,5 @@ class ContactForm(forms.Form):
     and a message
     """
 
-    email = forms.EmailField()
+    email = forms.EmailField(label="Your email address")
     message = forms.CharField(widget=forms.Textarea)

@@ -10,20 +10,7 @@
       <form method="post">
         {% csrf_token %}
         <h4 class="body-ch">Add an Organization</h4>
-				<fieldset>
-					{% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
-					{% for field in form %}
-						<div class="form-group{% if field.errors %} _error{% endif %}">
-							<label for="id_{{ field.name }}">{{ field.label }}</label>
-							{{ field }}
-							{% if field.errors %}
-								{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
-							{%elif field.help_text %}
-								<span class="field-error">{{ field.help_text }}</span>
-							{% endif %}
-						</div>
-					{% endfor %}
-				</fieldset>
+				{% include "includes/fieldset.html" with form_classes="fg-inline" %}
         <button type="submit" class="btn">Create new organization</button>
       </form>
     </div>

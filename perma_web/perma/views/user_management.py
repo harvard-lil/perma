@@ -652,11 +652,17 @@ class BaseAddUserToGroup(UpdateView):
         a given group if they already exist.
     """
 
+    def __init__(self, **kwargs):
+        super(BaseAddUserToGroup, self).__init__(**kwargs)
+        self.extra_context = {}
+
     def dispatch(self, request, *args, **kwargs):
         """ Before handling a post or get request, make sure that the target user is allowed to be added to the given group. """
         self.object = self.get_object()
         self.is_new = self.object is None
-        if not self.target_user_valid():
+        valid, error_message = self.target_user_valid()
+        if not valid:
+            self.extra_context['error_message'] = error_message
             return self.form_invalid(None)
         return super(BaseAddUserToGroup, self).dispatch(request, *args, **kwargs)
 
@@ -688,7 +694,8 @@ class BaseAddUserToGroup(UpdateView):
         """ Populate template context with supplied email address. """
         return dict(
             super(BaseAddUserToGroup, self).get_context_data(**kwargs),
-            user_email=self.request.GET.get('email'))
+            user_email=self.request.GET.get('email'),
+            **self.extra_context)
 
     def form_valid(self, form):
         """ If form is submitted successfully, show success message and send email to target user. """
@@ -726,7 +733,13 @@ class AddUserToOrganization(RequireOrgOrRegOrAdminUser, BaseAddUserToGroup):
 
     def target_user_valid(self):
         """ User can only be added to org if they aren't admin or registrar. """
-        return self.is_new or (not self.object.is_staff and not self.object.is_registrar_member())
+        if self.is_new:
+            return True, ""
+        if self.object.is_staff:
+            return False, "%s is an admin user and cannot be added to individual organizations." % self.object
+        if self.object.is_registrar_member():
+            return False, "%s is already a registrar member and cannot be added to individual organizations." % self.object
+        return True, ""
 
 
 class AddUserToRegistrar(RequireRegOrAdminUser, BaseAddUserToGroup):
@@ -744,7 +757,21 @@ class AddUserToRegistrar(RequireRegOrAdminUser, BaseAddUserToGroup):
 
     def target_user_valid(self):
         """ User can only be added to registrar if they aren't admin or registrar or org member. """
-        return self.is_new or (not self.object.is_staff and not self.object.is_registrar_member() and not self.object.is_organization_member)
+        if self.is_new:
+            return True, ""
+        if self.object.is_staff:
+            return False, "%s is an admin user and cannot be added to individual registrars." % self.object
+
+        # limits that apply just if the current user is a registrar rather than staff
+        if self.request.user.is_registrar_member():
+            if self.object.is_registrar_member():
+                if self.object.registrar == self.request.user.registrar:
+                    return False, "%s is already a registrar user for your registrar." % self.object
+                else:
+                    return False, "%s is already a member of another registrar and cannot be added to your registrar." % self.object
+            if self.object.organizations.exclude(registrar=self.request.user.registrar).exists():
+                return False, "%s belongs to organizations that are not controlled by your registrar. You cannot make them a registrar unless they leave those organizations." % self.object
+        return True, ""
 
 
 class AddUserToAdmin(RequireAdminUser, BaseAddUserToGroup):
@@ -756,7 +783,7 @@ class AddUserToAdmin(RequireAdminUser, BaseAddUserToGroup):
 
     def target_user_valid(self):
         """ Any user can be made into an admin. """
-        return True
+        return True, ""
 
 
 class AddRegularUser(RequireAdminUser, BaseAddUserToGroup):
@@ -767,7 +794,7 @@ class AddRegularUser(RequireAdminUser, BaseAddUserToGroup):
 
     def target_user_valid(self):
         """ Existing users cannot be added as regular users. """
-        return self.is_new
+        return self.is_new, "User already exists."
 
 
 @login_required

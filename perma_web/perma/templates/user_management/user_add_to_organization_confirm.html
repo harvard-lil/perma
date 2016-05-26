@@ -6,11 +6,7 @@
   <h3 class="body-bh">Add {{ user_email }} to Organization</h3>
   {% if not form %}
 
-    {% if object.is_staff %}
-      <p>{{ user_email }} is an admin user and cannot be added to individual organizations.</p>
-    {% elif object.is_registrar_member %}
-      <p>{{ user_email }} is a registrar member and cannot be added to individual organizations.</p>
-    {% endif %}
+    <p>{{ error_message }}</p>
 
   {% else %}
 

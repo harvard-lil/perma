@@ -17,20 +17,7 @@
 			<form method="post" novalidate>
 				{% csrf_token %}
 				<h4 class="body-ch">Add a Registrar</h4>
-						<fieldset>
-							{% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
-							{% for field in form %}
-								<div class="form-group fg-100{% if field.errors %} _error{% endif %}">
-									<label for="id_{{ field.name }}">{{ field.label }}</label>
-									{{ field }}
-									{% if field.errors %}
-										{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
-									{%elif field.help_text %}
-										<span class="field-error">{{ field.help_text }}</span>
-									{% endif %}
-								</div>
-							{% endfor %}
-						</fieldset>
+        {% include "includes/fieldset.html" with form_classes="fg-100" %}
 				<button type="submit" class="btn">Create new registrar</button>
 			</form>
 		</div>

@@ -106,3 +106,34 @@ Helpers.isHighDensity = function() {
        window.matchMedia('only screen and (-webkit-min-device-pixel-ratio: 1.3), only screen and (-o-min-device-pixel-ratio: 2.6/2), only screen and (min--moz-device-pixel-ratio: 1.3), only screen and (min-device-pixel-ratio: 1.3)').matches
     )) || (window.devicePixelRatio && window.devicePixelRatio > 1.3));
 }
+
+Helpers.getWindowLocationSearch = function() {
+  return window.location.search;
+};
+
+Helpers.variables = {
+  localStorageKey:"perma_selection"
+};
+
+Helpers.localStorage = {
+  getItem: function (key) {
+    var result = localStorage.getItem(key);
+    try {
+      result = JSON.parse(result);
+    } catch (e) {
+      result
+    }
+    return result;
+  },
+  setItem: function(key, value) {
+    if(typeof value !== "string") {
+      value = JSON.stringify(value);
+    }
+    localStorage.setItem(key, value);
+  }
+}
+
+
+Helpers.triggerOnWindow = function(message, data) {
+  $(window).trigger(message, data);
+}

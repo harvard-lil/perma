@@ -6,7 +6,7 @@
   <h3 class="body-bh">Add {{ user_email }}</h3>
   {% if not form %}
 
-    User already exists.
+    <p>{{ error_message }}</p>
 
   {% else %}
 
