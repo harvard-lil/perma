@@ -161,10 +161,10 @@ class MultipartResource(object):
         return super(MultipartResource, self).deserialize(request, data, format)
 
     # https://stackoverflow.com/questions/25182131/multipart-form-data-post-put-patch-in-django-tastypie
-    def put_detail(self, request, **kwargs):
+    def patch_detail(self, request, **kwargs):
         if request.META.get('CONTENT_TYPE', '').startswith('multipart/form-data') and not hasattr(request, '_body'):
-            request._body = ''
-        return super(MultipartResource, self).put_detail(request, **kwargs)
+            request.body
+        return super(MultipartResource, self).patch_detail(request, **kwargs)
 
 class LinkUserResource(DefaultResource):
     id = fields.IntegerField(attribute='id')
@@ -390,7 +390,7 @@ class AuthenticatedLinkResource(BaseLinkResource):
     class Meta(BaseLinkResource.Meta):
         authorization = AuthenticatedLinkAuthorization()
         queryset = BaseLinkResource.Meta.queryset.select_related('created_by',)
-        allowed_update_fields = ['title', 'notes', 'is_private', 'private_reason', 'folder']
+        allowed_update_fields = ['title', 'notes', 'is_private', 'private_reason', 'folder', 'file']
 
     def get_search_filters(self, search_query):
         return (super(AuthenticatedLinkResource, self).get_search_filters(search_query) |
@@ -519,7 +519,10 @@ class LinkResource(AuthenticatedLinkResource):
 
     def obj_update(self, bundle, skip_errors=False, **kwargs):
         uploaded_file = bundle.data.get('file')
-        if uploaded_file and bundle.request.method == 'PUT':
+        if uploaded_file and bundle.request.method == 'PATCH':
+            if kwargs['request']:
+                del kwargs['request']
+
             link = Link.objects.get(pk=kwargs['pk'])
 
             bundle.obj = self.obj_get(bundle=bundle, **kwargs)
