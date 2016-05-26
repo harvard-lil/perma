@@ -76,6 +76,13 @@ def logs(log_dir=os.path.join(settings.PROJECT_ROOT, '../services/logs/')):
     """ Tail all logs. """
     local("tail -f %s/*" % log_dir)
 
+@task
+def jasmine():
+    """
+        Run frontend unit tests.
+        Go to 0.0.0.0:8888 in your browser to see the output.
+    """
+    local("jasmine -o 0.0.0.0 -p 8888")
 
 @task
 def init_db():

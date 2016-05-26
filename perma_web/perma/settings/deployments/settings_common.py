@@ -108,6 +108,7 @@ PIPELINE_JS = {
             'js/error-handler.js',
             'js/helpers/polyfill/string.trim.js',
             'js/helpers/general.helpers.js',
+            'js/helpers/dom.helpers.js',
             'js/global.setup.js',
         ),
         'output_filename': 'js/global-bundle.js',

@@ -10,45 +10,39 @@ var organizations = {};
 
 /* Our globals. Look out interwebs - end */
 var CreateModule = CreateModule || {};
-var ls = ls || {};
 
+CreateModule.ls = CreateModule.ls || {};
+
+var localStorageKey = Helpers.variables.localStorageKey;
 /* Everything that needs to happen at page load - start */
 
 $(document).ready(function() {
   CreateModule.init();
   CreateModule.setupEventHandlers();
   CreateModule.populateWithUrl();
-  $('#archive-upload-confirm').modal({show: false});
-  $('#archive-upload').modal({show: false});
 });
 
 
-ls.getAll = function () {
-  var folders = JSON.parse(localStorage.getItem("perma_selection"));
+CreateModule.ls.getAll = function () {
+  var folders = Helpers.localStorage.getItem(localStorageKey);
   return folders || {};
 }
 
-ls.getCurrent = function () {
+CreateModule.ls.getCurrent = function () {
   var folders = this.getAll();
   return folders[current_user.id] || {};
 }
 
-ls.setCurrent = function (orgId, folderId) {
+CreateModule.ls.setCurrent = function (orgId, folderId) {
   folderId = folderId ? folderId : 'default';
 
   var selectedFolders = this.getAll();
   selectedFolders[current_user.id] = {'folderId' : folderId, 'orgId' : orgId };
 
-  localStorage.setItem("perma_selection",JSON.stringify(selectedFolders));
+  Helpers.localStorage.setItem(localStorageKey, selectedFolders);
   CreateModule.updateLinker();
-
-  $(window).trigger("dropdown.selectionChange");
+  Helpers.triggerOnWindow("dropdown.selectionChange");
 }
-
-
-// localStorage settings
-CreateModule.ls = ls
-
 
 // Get parameter by name
 // from https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
@@ -63,7 +57,7 @@ CreateModule.linkIt = function (data) {
   // Success message from API. We should have a GUID now (but the
   // archive is still be generated)
   // Clear any error messages out
-  $('.error-row').remove();
+  DOMHelpers.removeElement('.error-row');
 
   new_archive.guid = data.guid;
 
@@ -254,10 +248,11 @@ CreateModule.check_status = function () {
 
 /* Our polling function for the thumbnail completion - end */
 CreateModule.populateWithUrl = function () {
-  var url = location.search.split("url=")[1];
+  var url = Helpers.getWindowLocationSearch().split("url=")[1];
   if (url) {
     url = decodeURIComponent(url);
-    $("#rawUrl").val(url);
+    DOMHelpers.setInputValue("#rawUrl", url)
+    return url;
   }
 }
 
@@ -319,7 +314,7 @@ CreateModule.updateAffiliationPath = function (currentOrg, path) {
 
 CreateModule.updateLinksRemaining = function (links_num) {
   links_remaining = links_num;
-  $('.links-remaining').text(links_remaining);
+  DOMHelpers.changeText('.links-remaining', links_remaining);
 }
 
 CreateModule.handleSelectionChange = function (data) {
