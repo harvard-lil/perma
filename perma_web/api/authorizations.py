@@ -196,6 +196,9 @@ class LinkAuthorization(AuthenticatedLinkAuthorization):
         if not self.can_access(bundle.request.user, bundle.obj):
             raise Unauthorized()
 
+        if bundle.data.get('file') and bundle.obj.is_archive_eligible():
+            raise Unauthorized()
+
         return True
 
     def delete_detail(self, object_list, bundle):

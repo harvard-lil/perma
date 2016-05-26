@@ -2,7 +2,9 @@ import os
 from .utils import TEST_ASSETS_DIR, ApiResourceTransactionTestCase
 from api.resources import LinkResource, PublicLinkResource
 from perma.models import Link, LinkUser, Folder, CaptureJob, Capture, CDXLine
-
+from django.utils import timezone
+from datetime import datetime, timedelta
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
 
@@ -123,13 +125,23 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.rejected_patch(self.link_url, user=self.unrelated_org_member, data=self.patch_data)
 
     def test_should_allow_user_to_patch_with_file(self):
-        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.jpg')) as test_file:
+        self.link.archive_timestamp = timezone.now() + timedelta(1)
+        self.link.save()
+        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf')) as test_file:
+            data=test_file.read()
+            file_content = SimpleUploadedFile("test.pdf", data, content_type="application/pdf", name="application/pdf")
             obj = self.successful_patch(self.link_url,
-                                        format='multipart',
-                                        user=self.org_member,
-                                        data={},
-                                        file=test_file)
+                                        user=self.registrar_member,
+                                        data={'file':file_content})
 
+    def test_should_reject_patch_with_file_for_out_of_window_link(self):
+        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf')) as test_file:
+            data=test_file.read()
+            file_content = SimpleUploadedFile("test.pdf", data, content_type="application/pdf", name="application/pdf")
+            obj = self.successful_patch(self.link_url,
+                                        user=self.registrar_member,
+                                        data={'file':file_content})
+        self.successful_get(self.link_url, user=self.org_member)
 
     ######################
     # Private / Unlisted #
