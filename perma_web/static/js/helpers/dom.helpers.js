@@ -1,5 +1,9 @@
 DOMHelpers = {}
 
-DOMHelpers.setInputValue = function(domSelector, url) {
-  $(domSelector).val(url);
+DOMHelpers.setInputValue = function(domSelector, value) {
+  $(domSelector).val(value);
+}
+
+DOMHelpers.removeElement = function(domSelector) {
+  $(domSelector).remove();
 }

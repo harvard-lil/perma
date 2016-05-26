@@ -57,7 +57,7 @@ CreateModule.linkIt = function (data) {
   // Success message from API. We should have a GUID now (but the
   // archive is still be generated)
   // Clear any error messages out
-  $('.error-row').remove();
+  DOMHelpers.removeElement('.error-row');
 
   new_archive.guid = data.guid;
 
