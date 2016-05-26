@@ -13,7 +13,9 @@ import os
 use_newrelic = os.environ.get("USE_NEW_RELIC", False)
 if use_newrelic:
     import newrelic.agent
-    newrelic.agent.initialize(os.path.join(os.path.dirname(__file__), '../../services/newrelic/newrelic.ini'))
+    newrelic_config_file = os.environ.get('NEW_RELIC_CONFIG_FILE',
+                                          os.path.join(os.path.dirname(__file__), '../../services/newrelic/newrelic.ini'))
+    newrelic.agent.initialize(newrelic_config_file)
 
 # env setup
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "perma.settings")
