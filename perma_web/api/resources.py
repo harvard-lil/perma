@@ -534,6 +534,11 @@ class LinkResource(AuthenticatedLinkResource):
             self.obj_delete(bundle=bundle, **kwargs)
 
             bundle = super(LinkResource, self).obj_update(bundle, archive_timestamp=bundle.obj.archive_timestamp)
+
+            # if no 'folder' was supplied for this patch, set folder to current folder before calling obj_create,
+            # since obj_create requires a folder to be included
+            bundle.data.setdefault('folder', Folder.objects.accessible_to(bundle.request.user).filter(links=bundle.obj).first())
+
             bundle = self.obj_create(bundle=bundle, **kwargs)
 
             bundle.obj.clear_cache()
