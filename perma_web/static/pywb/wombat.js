@@ -18,7 +18,7 @@ This file is part of pywb, https://github.com/ikreymer/pywb
  */
 
 //============================================
-// Wombat JS-Rewriting Library v2.11
+// Wombat JS-Rewriting Library v2.12
 //============================================
 
 
@@ -756,7 +756,7 @@ var wombat_internal = function($wbwindow) {
             }
 
             result = orig.call(this, method, url, async, user, password);
-            //this.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            this.setRequestHeader('X-Pywb-Requested-With', 'XMLHttpRequest');
         }
 
         $wbwindow.XMLHttpRequest.prototype.open = open_rewritten;
@@ -1161,6 +1161,10 @@ var wombat_internal = function($wbwindow) {
             }
         } else if (elem.tagName == "OBJECT") {
             changed = rewrite_attr(elem, "data", true);
+        } else if (elem.tagName == "FORM") {
+            changed = rewrite_attr(elem, "action", true);
+        } else if (elem.tagName == "INPUT") {
+            changed = rewrite_attr(elem, "value", true);
         } else {
             changed = rewrite_attr(elem, "src");
             changed = rewrite_attr(elem, "href") || changed;
@@ -1820,6 +1824,7 @@ var wombat_internal = function($wbwindow) {
         }
 
         function rewrite_cookie(cookie) {
+            var IP_RX = /^(\d)+\.(\d)+\.(\d)+\.(\d)+$/;
 
             cookie = cookie.replace(wb_abs_prefix, '');
             cookie = cookie.replace(wb_rel_prefix, '');
@@ -1838,7 +1843,7 @@ var wombat_internal = function($wbwindow) {
             // rewrite domain
             cookie = cookie.replace(cookie_domain_regex, function(m, m1) {
                 // if no subdomain, eg. "localhost", just remove domain altogether
-                if ($wbwindow.location.hostname.indexOf(".") >= 0) {
+                if ($wbwindow.location.hostname.indexOf(".") >= 0 && !IP_RX.test($wbwindow.location.hostname)) {
                     return "Domain=." + $wbwindow.location.hostname;
                 } else {
                     return "";
@@ -1995,8 +2000,28 @@ var wombat_internal = function($wbwindow) {
 
         var orig_referrer = extract_orig($wbwindow.document.referrer);
 
+        var domain_info;
+
+        if ($wbwindow.wbinfo) {
+            domain_info = $wbwindow.wbinfo;
+        } else {
+            domain_info = wbinfo;
+        }
+
+        domain_info.domain = domain_info.wombat_host;
+
+        var domain_setter = function(val) {
+            if (ends_with(domain_info.wombat_host, val)) {
+                domain_info.domain = val;
+            }
+        }
+
+        var domain_getter = function() {
+            return domain_info.domain;
+        }
+
         // changing domain disallowed, but set as no-op to avoid errors
-        def_prop($wbwindow.document, "domain", function() {}, function() { return wbinfo.wombat_host });
+        def_prop($wbwindow.document, "domain", domain_setter, domain_getter);
 
         def_prop($wbwindow.document, "referrer", undefined, function() { return orig_referrer; });
 
@@ -2260,12 +2285,7 @@ var wombat_internal = function($wbwindow) {
         if (real_parent) {
             $wbwindow.__WB_top_frame = real_parent;
 
-            // Disable frameElement also as this should be top frame
-            if (replay_top == $wbwindow && Object.defineProperty) {
-                try {
-                    Object.defineProperty($wbwindow, "frameElement", {value: undefined, configurable: false});
-                } catch (e) {}
-            }
+            init_frameElement_override($wbwindow);
 
         } else {
             $wbwindow.__WB_top_frame = undefined;
@@ -2278,6 +2298,30 @@ var wombat_internal = function($wbwindow) {
         }
     }
 
+    function init_frameElement_override($wbwindow) {
+        if (!Object.defineProperty) {
+            return;
+        }
+
+        var getter = function() {
+            var res = this.frameElement;
+
+            if (this.__WB_replay_top == this) {
+                return null;
+            }
+
+            return res;
+        }
+
+        def_prop($wbwindow.Object.prototype, "WB_wombat_frameElement", undefined, getter);
+
+        // Also try disabling frameElement directly, though may no longer be supported in all browsers
+        if ($wbwindow.__WB_replay_top == $wbwindow) {
+            try {
+                Object.defineProperty($wbwindow, "frameElement", {value: undefined, configurable: false});
+            } catch (e) {}
+        }
+    }
 
     function init_wombat_top($wbwindow) {
         if (!Object.defineProperty) {
