@@ -21,6 +21,7 @@ from SimpleHTTPServer import SimpleHTTPRequestHandler
 import multiprocessing
 from multiprocessing import Process
 from contextlib import contextmanager
+from django.test.client import MULTIPART_CONTENT
 
 TEST_ASSETS_DIR = os.path.join(settings.PROJECT_ROOT, "perma/tests/assets")
 
@@ -55,25 +56,11 @@ class TestHTTPServer(HTTPServer):
 
 class PermaTestApiClient(TestApiClient):
     def patch(self, uri, format='json', data=None, authentication=None, **kwargs):
-        """
-            Override Tastypie's patch method to encode multipart data. This is copied from super() except where noted.
-        """
-        content_type = self.get_content_type(format)
-        kwargs['content_type'] = content_type
-
-        if data is not None:
-            kwargs['data'] = self.serializer.serialize(data, format=content_type)
-
-            # Encode multipart data if format is 'multipart'. This is copied from django.test.client.RequestFactory.post()
-            if format == 'multipart':
-                from django.test.client import MULTIPART_CONTENT
-                kwargs['data'] = self.client._encode_data(kwargs['data'], MULTIPART_CONTENT)
-
-        if authentication is not None:
-            kwargs['HTTP_AUTHORIZATION'] = authentication
-
-        # since Django's test client now supports patch, use that instead of the remainder of what Tastypie does
-        return self.client.patch(uri, **kwargs)
+        """ Override Tastypie's patch method to encode multipart data. """
+        if format == 'multipart':
+            # same as django.test.client.RequestFactory.post()
+            data = self.client._encode_data(data, MULTIPART_CONTENT)
+        return super(PermaTestApiClient, self).patch(uri, format, data, authentication, **kwargs)
 
 
 @override_settings(# ROOT_URLCONF='api.urls',
