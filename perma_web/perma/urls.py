@@ -49,6 +49,9 @@ urlpatterns = patterns('perma.views',
     url(r'^logout/?$', 'user_management.logout', name='logout'),
     url(r'^register/?$', RedirectView.as_view(url='/sign-up/', permanent=True)),
 
+    # session handling for the separate warc playback domain
+    url(r'^login/set-access-token/?$', 'user_management.set_access_token_cookie', name='user_management_set_access_token_cookie'),
+
     url(r'^sign-up/?$', 'user_management.sign_up', name='sign_up'),
     url(r'^sign-up/courts/?$', 'user_management.sign_up_courts', name='sign_up_courts'),
     url(r'^sign-up/faculty/?$', 'user_management.sign_up_faculty', name='sign_up_faculty'),

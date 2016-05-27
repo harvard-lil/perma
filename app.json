@@ -80,7 +80,6 @@
   "addons":[
     "jawsdb",
     "cloudamqp",
-    "newrelic",
     "papertrail",
     "rediscloud",
     "rollbar"
