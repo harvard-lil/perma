@@ -46,11 +46,14 @@ SingleLinkModule.setupEventHandlers = function () {
         contentType: false,
         processData: false
       };
-
-      Helpers.sendFormData("PATCH", url, data, requestArgs)
+      if (window.FormData) {
+        Helpers.sendFormData("PATCH", url, data, requestArgs)
         .done(function(data){
           location=location;
         });
+      } else {
+        $('#upload-error').text('Your browser version does not allow for this action. Please use a more modern browser.');
+      }
     });
 
   $(window).on('resize', function () { SingleLinkModule.adjustTopMargin(); });
