@@ -8,7 +8,6 @@ $(document).ready(function(){
 SingleLinkModule.init = function () {
   SingleLinkModule.adjustTopMargin();
   if($('._isNewRecord')) { SingleLinkModule.handleNewRecord(); }
-  SingleLinkModule.getCurrentFolder();
 };
 
 SingleLinkModule.handleNewRecord = function () {
@@ -39,7 +38,7 @@ SingleLinkModule.setupEventHandlers = function () {
     .submit(function(e) {
       e.preventDefault();
       var url = "/archives/"+archive.guid+"/";
-      var data = {'folder': SingleLinkModule.currentFolder.folderId };
+      var data = {};
       data['file'] = $('#archive_upload_form').find('.file')[0].files[0];
 
       var requestArgs = {
@@ -57,11 +56,6 @@ SingleLinkModule.setupEventHandlers = function () {
     });
 
   $(window).on('resize', function () { SingleLinkModule.adjustTopMargin(); });
-}
-
-SingleLinkModule.getCurrentFolder = function () {
-  var folders = JSON.parse(localStorage.getItem("perma_selection"));
-  SingleLinkModule.currentFolder = folders[current_user.id] || {};
 }
 
 SingleLinkModule.handleShowDetails = function () {

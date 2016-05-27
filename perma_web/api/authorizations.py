@@ -197,7 +197,7 @@ class LinkAuthorization(AuthenticatedLinkAuthorization):
             raise Unauthorized()
 
         if bundle.data.get('file') and bundle.obj.is_archive_eligible():
-            raise Unauthorized()
+            raise Unauthorized("Archive cannot be updated after 24 hours")
 
         return True
 

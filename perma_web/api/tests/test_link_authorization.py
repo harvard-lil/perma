@@ -124,23 +124,29 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
     def test_should_reject_patch_from_user_lacking_owner_and_folder_access(self):
         self.rejected_patch(self.link_url, user=self.unrelated_org_member, data=self.patch_data)
 
+
     def test_should_allow_user_to_patch_with_file(self):
-        self.link.archive_timestamp = timezone.now() + timedelta(1)
-        self.link.save()
-        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf')) as test_file:
-            data=test_file.read()
-            file_content = SimpleUploadedFile("test.pdf", data, content_type="application/pdf", name="application/pdf")
-            obj = self.successful_patch(self.link_url,
-                                        user=self.registrar_member,
-                                        data={'file':file_content})
+       self.link.archive_timestamp = timezone.now() + timedelta(1)
+       self.link.save()
+       old_primary_capture = self.link.primary_capture
+       with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf')) as test_file:
+           data=test_file.read()
+           file_content = SimpleUploadedFile("test.pdf", data, content_type="application/pdf")
+           obj = self.successful_patch(self.link_url,
+                                       user=self.registrar_member,
+                                       format="multipart",
+                                       data={'file':file_content})
+
+       self.assertTrue(Capture.objects.filter(link_id=self.link.pk, role='primary').exclude(pk=old_primary_capture.pk).exists())
 
     def test_should_reject_patch_with_file_for_out_of_window_link(self):
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf')) as test_file:
             data=test_file.read()
-            file_content = SimpleUploadedFile("test.pdf", data, content_type="application/pdf", name="application/pdf")
-            obj = self.successful_patch(self.link_url,
-                                        user=self.registrar_member,
-                                        data={'file':file_content})
+            file_content = SimpleUploadedFile("test.pdf", data, content_type="application/pdf")
+            obj = self.rejected_patch(self.link_url,
+                                       user=self.registrar_member,
+                                       format="multipart",
+                                       data={'file':file_content})
         self.successful_get(self.link_url, user=self.org_member)
 
     ######################
@@ -233,7 +239,7 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
             self.assertEqual(len(new_cdxlines), 0)
             self.rejected_get(new_link_url, user=self.regular_user, expected_status_code=404)
 
-    def test_should_reject_delete_for_out_of_window_link(self):        
+    def test_should_reject_delete_for_out_of_window_link(self):
         self.rejected_delete(self.link_url, user=self.org_member)
         self.successful_get(self.link_url, user=self.org_member)
 
