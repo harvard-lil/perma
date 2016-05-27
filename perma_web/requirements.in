@@ -7,7 +7,7 @@
 
 # Package:                      # Used for:
 
-Django==1.8.11
+Django==1.8.13
 MySQL-python==1.2.5
 lxml==3.2.1
 celery==3.1.20
