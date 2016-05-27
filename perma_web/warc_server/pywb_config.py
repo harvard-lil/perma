@@ -317,7 +317,9 @@ class CachedLoader(BlockLoader):
     def load(self, url, offset=0, length=-1):
 
         # first try to fetch url contents from cache
-        cache_key = Link.get_warc_cache_key(url.split(settings.MEDIA_ROOT,1)[1])
+        cache_key = Link.get_warc_cache_key(url.split(settings.MEDIA_ROOT,1)[-1])
+
+
         mirror_name_cache_key = cache_key+'-mirror-name'
         mirror_name = ''
 
