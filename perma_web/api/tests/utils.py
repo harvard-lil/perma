@@ -53,6 +53,29 @@ class TestHTTPServer(HTTPServer):
         self.socket.close()
 
 
+class PermaTestApiClient(TestApiClient):
+    def patch(self, uri, format='json', data=None, authentication=None, **kwargs):
+        """
+            Override Tastypie's patch method to encode multipart data. This is copied from super() except where noted.
+        """
+        content_type = self.get_content_type(format)
+        kwargs['content_type'] = content_type
+
+        if data is not None:
+            kwargs['data'] = self.serializer.serialize(data, format=content_type)
+
+            # Encode multipart data if format is 'multipart'. This is copied from django.test.client.RequestFactory.post()
+            if format == 'multipart':
+                from django.test.client import MULTIPART_CONTENT
+                kwargs['data'] = self.client._encode_data(kwargs['data'], MULTIPART_CONTENT)
+
+        if authentication is not None:
+            kwargs['HTTP_AUTHORIZATION'] = authentication
+
+        # since Django's test client now supports patch, use that instead of the remainder of what Tastypie does
+        return self.client.patch(uri, **kwargs)
+
+
 @override_settings(# ROOT_URLCONF='api.urls',
                    BANNED_IP_RANGES=[])
 class ApiResourceTestCaseMixin(SimpleTestCase):
@@ -85,7 +108,7 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
     def setUp(self):
         super(ApiResourceTestCaseMixin, self).setUp()
 
-        self.api_client = TestApiClient(serializer=MultipartSerializer())
+        self.api_client = PermaTestApiClient(serializer=MultipartSerializer())
 
         self._media_org = settings.MEDIA_ROOT
         self._media_tmp = settings.MEDIA_ROOT = tempfile.mkdtemp()
@@ -381,7 +404,6 @@ class ResourceTransactionTestCase(TransactionTestCase):
     def setUp(self):
         super(ResourceTransactionTestCase, self).setUp()
         self.serializer = Serializer()
-        self.api_client = TestApiClient()
 for key, val in ResourceTestCase.__dict__.iteritems():
     if key not in ['setUp', '__doc__']:
         setattr(ResourceTransactionTestCase, key, val)
