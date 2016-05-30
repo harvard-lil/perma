@@ -489,7 +489,7 @@ def list_users_in_group(request, group_name):
 
     is_registry = False
     is_registrar = False
-    users = LinkUser.objects.prefetch_related('organizations')  # .exclude(id=request.user.id)
+    users = LinkUser.objects.distinct().prefetch_related('organizations')  # .exclude(id=request.user.id)
 
     # handle sorting
     users, sort = apply_sort_order(request, users, valid_member_sorts)
@@ -501,20 +501,21 @@ def list_users_in_group(request, group_name):
     users = users.filter(
             # Before annotating with link count, filter out links with user_deleted=True.
             *filter_or_null_join(created_links__user_deleted=False)
-    ).annotate(created_links_count=Count('created_links', distinct=True))
+    )
 
     registrar_filter = request.GET.get('registrar', '')
 
     registrars = None
     orgs = None
 
-    # apply permissions limits
+    # apply permissions limits and get counts
     if request.user.is_staff:
         if registrar_filter:
             orgs = Organization.objects.filter(registrar__id=registrar_filter).order_by('name')
         else:
             orgs = Organization.objects.all().order_by('name')
-        registrars = Registrar.objects.all().order_by('name')
+        registrars = Registrar.objects.all().order_by('name').aggregate(count=Sum('link_count'))
+        total_created_links_count = registrars['count']
         is_registry = True
     elif request.user.is_registrar_member():
         if group_name == 'organization_user':
@@ -522,9 +523,11 @@ def list_users_in_group(request, group_name):
             orgs = Organization.objects.filter(registrar_id=request.user.registrar_id).order_by('name')
         else:
             users = users.filter(registrar=request.user.registrar)
+        total_created_links_count = request.user.registrar.link_count
         is_registrar = True
     elif request.user.is_organization_member:
         users = users.filter(organizations__in=request.user.organizations.all())
+        total_created_links_count = request.user.organizations.aggregate(count=Sum('link_count'))['count']
 
     # apply group filter
     if group_name == 'registry_user':
@@ -571,7 +574,6 @@ def list_users_in_group(request, group_name):
     if is_registry:
         deactivated_users = users.filter(is_confirmed=True, is_active=False).count()
     unactivated_users = users.filter(is_confirmed=False, is_active=False).count()
-    total_created_links_count = users.aggregate(count=Sum('created_links_count'))
 
     # handle pagination
     users = apply_pagination(request, users)

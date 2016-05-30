@@ -41,13 +41,13 @@ def update_link_count(sender, instance, **kwargs):
                 loaded_link.created_by.link_count -= 1
                 loaded_link.created_by.save()
 
-            if loaded_link.organization.link_count > 0:
+            if loaded_link.organization and loaded_link.organization.link_count > 0:
                 loaded_link.organization.link_count -= 1
                 loaded_link.organization.save()
 
-            if loaded_link.organization.registrar.link_count > 0:
-                loaded_link.organization.registrar.link_count -= 1
-                loaded_link.organization.registrar.save()
+                if loaded_link.organization.registrar.link_count > 0:
+                    loaded_link.organization.registrar.link_count -= 1
+                    loaded_link.organization.registrar.save()
 
         # subtract from org and registrar if org has changed
         if loaded_link.organization and loaded_link.organization != instance.organization:
@@ -57,14 +57,19 @@ def update_link_count(sender, instance, **kwargs):
         if instance.user_deleted and loaded_link.user_deleted != instance.user_deleted:
             decrement_link_count(loaded_link)    
 
+        # if org changed or we have a new link with an associated org, increment
+        if instance.organization and loaded_link.organization != instance.organization:
+            instance.organization.link_count += 1
+            instance.organization.save()
+            instance.organization.registrar.link_count += 1
+            instance.organization.registrar.save()
+
     except sender.DoesNotExist:
         # new link. let's add it to the user's sum
         instance.created_by.link_count += 1
         instance.created_by.save()
 
-    finally:
-        # if org changed or we have a new link with an associated org, increment
-        if instance.organization and loaded_link.organization != instance.organization:
+        if instance.organization:
             instance.organization.link_count += 1
             instance.organization.save()
             instance.organization.registrar.link_count += 1

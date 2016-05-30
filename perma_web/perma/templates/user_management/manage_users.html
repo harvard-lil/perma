@@ -44,7 +44,7 @@
 
 		<div class="col {% if request.user.is_staff and group_name == 'user' %}col-xs-3{% else %}col-xs-4{% endif %} col col-no-gutter admin-data-point">
 			<p class="count-label">Links</p>
-			<p class="count-number">{{ total_created_links_count.count|default:0|intcomma }}</p>
+			<p class="count-number">{{ total_created_links_count|default:0|intcomma }}</p>
 		</div>
 	</div><!-- admin data -->
 	
@@ -210,7 +210,7 @@
 			            <div class="row row-half-bleed item-count-groups">
 							<div class="col col-xs-12 col-md-4 col-half-gutter">
 								<div class="item-count-group">
-									<strong class="list-count-number">{{ listed_user.created_links_count }}</strong>
+									<strong class="list-count-number">{{ listed_user.link_count }}</strong>
 									<span class="item-count-label">links</span>
 								</div>
 							</div>
