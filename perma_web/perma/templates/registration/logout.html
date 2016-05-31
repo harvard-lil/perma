@@ -1,26 +1,25 @@
 {% extends "base-responsive.html" %}
 
+{% comment %}
+  This page should never actually need to be used.
+  It's designed to give people a fallback if they somehow
+  GET the logout view instead of POSTing to it.
+{% endcomment %}
 
 {% block meta_description %}
-You have been logged out.
+  Log out of Perma.
 {% endblock %}
 
 {% block mainContent %}
-<div class="container cont-fixed">
-	<div class="row">
-		<div class="col-sm-12">	
-            <h1 class="page-title">You have been logged out.</h1>
-			<p class="page-dek">Logged out a bit too soon? No worries, <a href="{% url 'user_management_limited_login' %}">sign back in</a></p>
-		</div>
-	</div>
-</div>
+  <div class="container cont-fixed">
+    <div class="row">
+      <div class="col-sm-12">
+        <h1 class="page-title">Log out of Perma</h1>
+        <form method="POST">
+          {% csrf_token %}
+          <button class="btn">Click here to log out</button>
+        </form>
+      </div>
+    </div>
+  </div>
 {% endblock mainContent %}
-
-{% block scripts %}
-    {{ block.super }}
-
-    {# wipe javascript-based logged-in user data #}
-    <script>
-        localStorage.clear();
-    </script>
-{% endblock %}

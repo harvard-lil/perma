@@ -24,12 +24,11 @@ class AuthViewsTestCase(PermaTestCase):
         Test our logout link
         """
 
-        self.assertNotIn('_auth_user_id', self.client.session)
-
         # Login with our client and logout with our view
         self.client.login(username='test_user@example.com', password='pass')
         self.assertIn('_auth_user_id', self.client.session)
-        self.client.get(reverse('logout'))
+        self.get('logout')
+        self.submit_form('logout')
         self.assertNotIn('_auth_user_id', self.client.session)
 
     def test_password_change(self):

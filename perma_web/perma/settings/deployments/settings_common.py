@@ -443,8 +443,6 @@ RUN_TASKS_ASYNC = True
 
 API_SUBDOMAIN = 'api'
 
-CACHE_BYPASS_COOKIE_NAME = 'bypass_cache'
-
 # internet archive stuff
 UPLOAD_TO_INTERNET_ARCHIVE = False
 INTERNET_ARCHIVE_COLLECTION = 'perma_cc'

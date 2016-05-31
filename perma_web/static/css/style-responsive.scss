@@ -3043,7 +3043,6 @@ li.dropdown {
 	display: none;
 	padding: 0;
 	margin: 0;
-	margin-right: 0;
 	background-color: transparent;
 	background-clip: padding-box;
 	border-radius: 0;
@@ -3059,7 +3058,6 @@ li.dropdown {
 		min-width: $grid * 27;
 		position: absolute;
 		top: 77px;
-		margin-right: 0;
 	}
 	@include respond-desktop {
 		top: 85px;
