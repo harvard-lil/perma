@@ -16,7 +16,7 @@ class FolderAuthorization(ReadOnlyAuthorization):
 
         # shared folders
         elif obj.organization_id:
-            if user.is_registrar_member():
+            if user.is_registrar_user():
                 # if user is registrar, must be registrar for this org
                 return user.registrar_id == obj.organization.registrar_id
             else:

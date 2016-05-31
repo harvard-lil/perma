@@ -70,10 +70,10 @@
             "is_confirmed": true,
             "last_login": "2013-07-23T18:55:41Z",
             "password": "pbkdf2_sha256$10000$BK8BC1FXesBM$I+R1mquCsp5PWrHsHfv+6xuUNO560YEPqdbzWZFNzlo=",
-            "email": "test_registry_member@example.com",
+            "email": "test_registry_user@example.com",
             "date_joined": "2013-06-26",
             "first_name": "Registry",
-            "last_name": "Member",
+            "last_name": "User",
             "root_folder": 22
         }
     },
@@ -86,10 +86,10 @@
             "is_confirmed": true,
             "last_login": "2013-07-23T18:56:14Z",
             "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
-            "email": "test_registrar_member@example.com",
+            "email": "test_registrar_user@example.com",
             "date_joined": "2013-06-26",
             "first_name": "Registrar",
-            "last_name": "Member",
+            "last_name": "User",
             "root_folder": 23
         }
     },
@@ -105,7 +105,7 @@
             "email": "test_org_user@example.com",
             "date_joined": "2013-06-26",
             "first_name": "Organization",
-            "last_name": "Member",
+            "last_name": "User",
             "root_folder": 24
         }
     },
@@ -133,10 +133,10 @@
             "is_confirmed": true,
             "last_login": "2013-07-23T18:38:27Z",
             "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
-            "email": "test_org_manager@example.com",
+            "email": "test_org_rando_user@example.com",
             "date_joined": "2013-06-26",
-            "first_name": "Organization",
-            "last_name": "Manager",
+            "first_name": "Org-Rando",
+            "last_name": "User",
             "root_folder": 26
         }
     },
@@ -149,10 +149,10 @@
             "is_confirmed": true,
             "last_login": "2013-07-23T18:38:27Z",
             "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
-            "email": "test_another_org_member@example.com",
+            "email": "test_another_org_user@example.com",
             "date_joined": "2013-06-26",
             "first_name": "Another-Org",
-            "last_name": "Member",
+            "last_name": "User",
             "root_folder": 32
         }
     },
@@ -165,10 +165,10 @@
             "is_confirmed": true,
             "last_login": "2013-07-23T18:38:27Z",
             "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
-            "email": "test_another_library_org_member@example.com",
+            "email": "test_another_library_org_user@example.com",
             "date_joined": "2013-06-26",
             "first_name": "Another-Library",
-            "last_name": "Organization-Member",
+            "last_name": "Organization-User",
             "root_folder": 41
         }
     },
@@ -196,10 +196,10 @@
             "is_confirmed": true,
             "last_login": "2013-07-23T18:56:14Z",
             "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
-            "email": "another_library_member@example.com",
+            "email": "another_library_user@example.com",
             "date_joined": "2013-06-26",
             "first_name": "AnotherLibrary",
-            "last_name": "Member",
+            "last_name": "User",
             "root_folder": 42
         }
     }

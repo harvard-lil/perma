@@ -15,8 +15,8 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
     def setUp(self):
         super(FolderAuthorizationTestCase, self).setUp()
 
-        self.registry_member = LinkUser.objects.get(pk=1)
-        self.registrar_member = LinkUser.objects.get(pk=2)
+        self.registry_user = LinkUser.objects.get(pk=1)
+        self.registrar_user = LinkUser.objects.get(pk=2)
         self.org_member = LinkUser.objects.get(pk=3)
         self.regular_user = LinkUser.objects.get(pk=4)
 
@@ -74,7 +74,7 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.successful_get(self.detail_url(self.nonempty_root_folder), user=self.regular_user)
 
     def test_should_allow_member_of_folders_registrar_to_view(self):
-        self.successful_get(self.detail_url(self.test_journal_shared_folder), user=self.registrar_member)
+        self.successful_get(self.detail_url(self.test_journal_shared_folder), user=self.registrar_user)
 
     def test_should_allow_member_of_folders_org_to_view(self):
         self.successful_get(self.detail_url(self.test_journal_shared_folder), user=self.org_member)
@@ -93,25 +93,25 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
 
     def test_should_reject_rename_from_user_lacking_owner_access(self):
         self.rejected_patch(self.detail_url(self.regular_user_nonempty_child_folder),
-                            user=self.registrar_member,
+                            user=self.registrar_user,
                             data={'name': 'A new name'})
 
     def test_should_reject_rename_of_shared_folder_from_all_users(self):
         data = {'name': 'A new name'}
         url = self.detail_url(self.test_journal_shared_folder)
 
-        self.rejected_patch(url, user=self.registry_member, data=data, expected_status_code=400)
-        self.rejected_patch(url, user=self.registrar_member, data=data, expected_status_code=400)
+        self.rejected_patch(url, user=self.registry_user, data=data, expected_status_code=400)
+        self.rejected_patch(url, user=self.registrar_user, data=data, expected_status_code=400)
 
     def test_should_reject_rename_of_root_folder_from_all_users(self):
         data = {'name': 'A new name'}
-        self.rejected_patch(self.detail_url(self.registry_member.root_folder),
+        self.rejected_patch(self.detail_url(self.registry_user.root_folder),
                             expected_status_code=400,
-                            user=self.registry_member, data=data)
+                            user=self.registry_user, data=data)
 
-        self.rejected_patch(self.detail_url(self.registrar_member.root_folder),
+        self.rejected_patch(self.detail_url(self.registrar_user.root_folder),
                             expected_status_code=400,
-                            user=self.registrar_member, data=data)
+                            user=self.registrar_user, data=data)
 
         self.rejected_patch(self.detail_url(self.regular_user.root_folder),
                             expected_status_code=400,
@@ -148,7 +148,7 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.successful_folder_move(self.regular_user_empty_child_folder.owned_by, self.regular_user_nonempty_child_folder, self.regular_user_empty_child_folder)
 
     def test_should_allow_member_of_folders_registrar_to_move_to_new_parent(self):
-        self.successful_folder_move(self.registrar_member, self.registrar_member.root_folder, self.test_journal_subfolder_with_link_b)
+        self.successful_folder_move(self.registrar_user, self.registrar_user.root_folder, self.test_journal_subfolder_with_link_b)
 
     def test_should_allow_member_of_folders_org_to_move_to_new_parent(self):
         self.successful_folder_move(self.org_member, self.org_member.root_folder, self.test_journal_subfolder_with_link_b)
@@ -180,13 +180,13 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
                             user=self.org_member)
 
     def test_should_reject_move_of_org_shared_folder(self):
-        self.rejected_folder_move(self.registrar_member, self.registrar_member.root_folder,
+        self.rejected_folder_move(self.registrar_user, self.registrar_user.root_folder,
                                   self.test_journal_shared_folder,
                                   expected_status_code=400)
 
     def test_should_reject_move_of_user_root_folder(self):
-        self.rejected_folder_move(self.registrar_member, self.test_journal_shared_folder,
-                                  self.registrar_member.root_folder,
+        self.rejected_folder_move(self.registrar_user, self.test_journal_shared_folder,
+                                  self.registrar_user.root_folder,
                                   expected_status_code=400)
 
 

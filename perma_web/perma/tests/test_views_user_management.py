@@ -16,13 +16,13 @@ class UserManagementViewsTestCase(PermaTestCase):
         super(UserManagementViewsTestCase, self).setUp()
 
         self.admin_user = LinkUser.objects.get(pk=1)
-        self.registrar_member = LinkUser.objects.get(pk=2)
+        self.registrar_user = LinkUser.objects.get(pk=2)
         self.regular_user = LinkUser.objects.get(pk=4)
-        self.registrar = self.registrar_member.registrar
+        self.registrar = self.registrar_user.registrar
         self.unrelated_registrar = Registrar.objects.exclude(pk=self.registrar.pk).first()
-        self.unrelated_registrar_member = self.unrelated_registrar.users.first()
+        self.unrelated_registrar_user = self.unrelated_registrar.users.first()
         self.organization = Organization.objects.get(pk=1)
-        self.organization_member = self.organization.users.first()
+        self.organization_user = self.organization.users.first()
         self.another_organization = Organization.objects.get(pk=2)
         self.unrelated_organization = self.unrelated_registrar.organizations.first()
         self.unrelated_organization_user = self.unrelated_organization.users.first()
@@ -65,7 +65,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def test_registrar_can_update_registrar(self):
         self.submit_form('user_management_manage_single_registrar',
-                         user=self.registrar_member,
+                         user=self.registrar_user,
                          reverse_kwargs={'args': [self.registrar.pk]},
                          data={
                              'a-name': 'new_name',
@@ -76,7 +76,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def test_registrar_cannot_update_unrelated_registrar(self):
         self.get('user_management_manage_single_registrar',
-                 user=self.registrar_member,
+                 user=self.registrar_user,
                  reverse_kwargs={'args': [self.unrelated_registrar.pk]},
                  require_status_code=404)
 
@@ -99,7 +99,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def test_registrar_can_create_organization(self):
         self.submit_form('user_management_manage_organization',
-                         user=self.registrar_member,
+                         user=self.registrar_user,
                          data={
                              'a-name': 'new_name'},
                          success_url=reverse('user_management_manage_organization'),
@@ -117,7 +117,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def test_registrar_can_update_organization(self):
         self.submit_form('user_management_manage_single_organization',
-                         user=self.registrar_member,
+                         user=self.registrar_user,
                          reverse_kwargs={'args':[self.organization.pk]},
                          data={
                              'a-name': 'new_name'},
@@ -126,7 +126,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def test_org_user_can_update_organization(self):
         self.submit_form('user_management_manage_single_organization',
-                         user=self.organization_member,
+                         user=self.organization_user,
                          reverse_kwargs={'args': [self.organization.pk]},
                          data={
                              'a-name': 'new_name'},
@@ -135,13 +135,13 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def test_registrar_cannot_update_unrelated_organization(self):
         self.get('user_management_manage_single_organization',
-                 user=self.registrar_member,
+                 user=self.registrar_user,
                  reverse_kwargs={'args': [self.unrelated_organization.pk]},
                  require_status_code=404)
 
     def test_org_user_cannot_update_unrelated_organization(self):
         self.get('user_management_manage_single_organization',
-                 user=self.organization_member,
+                 user=self.organization_user,
                  reverse_kwargs={'args': [self.unrelated_organization.pk]},
                  require_status_code=404)
 
@@ -226,7 +226,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
 
     def test_registrar_user_can_add_new_user_to_org(self):
-        self.log_in_user(self.registrar_member)
+        self.log_in_user(self.registrar_user)
         self.submit_form('user_management_organization_user_add_user',
                          data={'a-organizations': self.organization.pk,
                                'a-first_name': 'First',
@@ -239,7 +239,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
 
     def test_org_user_can_add_new_user_to_org(self):
-        self.log_in_user(self.organization_member)
+        self.log_in_user(self.organization_user)
         self.submit_form('user_management_organization_user_add_user',
                          data={'a-organizations': self.organization.pk,
                                'a-first_name': 'First',
@@ -251,7 +251,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                                                                organizations=self.organization).exists())
 
     def test_registrar_user_cannot_add_new_user_to_inaccessible_org(self):
-        self.log_in_user(self.registrar_member)
+        self.log_in_user(self.registrar_user)
         self.submit_form('user_management_organization_user_add_user',
                          data={'a-organizations': self.unrelated_organization.pk,
                                'a-first_name': 'First',
@@ -263,7 +263,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                                                  organizations=self.unrelated_organization).exists())
 
     def test_org_user_cannot_add_new_user_to_inaccessible_org(self):
-        self.log_in_user(self.organization_member)
+        self.log_in_user(self.organization_user)
         self.submit_form('user_management_organization_user_add_user',
                          data={'a-organizations': self.unrelated_organization.pk,
                                'a-first_name': 'First',
@@ -285,7 +285,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                          success_query=self.regular_user.organizations.filter(pk=self.organization.pk))
 
     def test_registrar_user_can_add_existing_user_to_org(self):
-        self.log_in_user(self.registrar_member)
+        self.log_in_user(self.registrar_user)
         self.submit_form('user_management_organization_user_add_user',
                          data={'a-organizations': self.organization.pk},
                          query_params={'email': self.regular_user.email},
@@ -293,7 +293,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                          success_query=self.regular_user.organizations.filter(pk=self.organization.pk))
 
     def test_org_user_can_add_existing_user_to_org(self):
-        self.log_in_user(self.organization_member)
+        self.log_in_user(self.organization_user)
         self.submit_form('user_management_organization_user_add_user',
                          data={'a-organizations': self.organization.pk},
                          query_params={'email': self.regular_user.email},
@@ -301,7 +301,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                          success_query=self.regular_user.organizations.filter(pk=self.organization.pk))
 
     def test_registrar_user_cannot_add_existing_user_to_inaccessible_org(self):
-        self.log_in_user(self.registrar_member)
+        self.log_in_user(self.registrar_user)
         self.submit_form('user_management_organization_user_add_user',
                          data={'a-organizations': self.unrelated_organization.pk},
                          query_params={'email': self.regular_user.email},
@@ -309,7 +309,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertFalse(self.regular_user.organizations.filter(pk=self.unrelated_organization.pk).exists())
 
     def test_org_user_cannot_add_existing_user_to_inaccessible_org(self):
-        self.log_in_user(self.organization_member)
+        self.log_in_user(self.organization_user)
         self.submit_form('user_management_organization_user_add_user',
                          data={'a-organizations': self.another_organization.pk},
                          query_params={'email': self.regular_user.email},
@@ -317,7 +317,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertFalse(self.regular_user.organizations.filter(pk=self.another_organization.pk).exists())
 
     def test_cannot_add_admin_user_to_org(self):
-        self.log_in_user(self.organization_member)
+        self.log_in_user(self.organization_user)
         resp = self.submit_form('user_management_organization_user_add_user',
                          data={'a-organizations': self.organization.pk},
                          query_params={'email': self.admin_user.email})
@@ -325,44 +325,44 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertFalse(self.admin_user.organizations.exists())
 
     def test_cannot_add_registrar_user_to_org(self):
-        self.log_in_user(self.organization_member)
+        self.log_in_user(self.organization_user)
         resp = self.submit_form('user_management_organization_user_add_user',
                                 data={'a-organizations': self.organization.pk},
-                                query_params={'email': self.registrar_member.email})
+                                query_params={'email': self.registrar_user.email})
         self.assertIn("is already a registrar member", resp.content)
-        self.assertFalse(self.registrar_member.organizations.exists())
+        self.assertFalse(self.registrar_user.organizations.exists())
 
     ### REMOVING USERS FROM ORGANIZATIONS ###
 
     def test_can_remove_user_from_organization(self):
-        self.log_in_user(self.registrar_member)
+        self.log_in_user(self.registrar_user)
         self.submit_form('user_management_manage_single_organization_user_remove',
                          data={'org': self.organization.pk},
-                         reverse_kwargs={'args': [self.organization_member.pk]},
+                         reverse_kwargs={'args': [self.organization_user.pk]},
                          success_url=reverse('user_management_manage_organization_user'))
-        self.assertFalse(self.organization_member.organizations.filter(pk=self.organization.pk).exists())
+        self.assertFalse(self.organization_user.organizations.filter(pk=self.organization.pk).exists())
 
     def test_registrar_cannot_remove_unrelated_user_from_organization(self):
-        self.log_in_user(self.registrar_member)
+        self.log_in_user(self.registrar_user)
         self.submit_form('user_management_manage_single_organization_user_remove',
                          data={'org': self.unrelated_organization.pk},
                          reverse_kwargs={'args': [self.unrelated_organization_user.pk]},
                          require_status_code=404)
 
     def test_org_user_cannot_remove_unrelated_user_from_organization(self):
-        self.log_in_user(self.organization_member)
+        self.log_in_user(self.organization_user)
         self.submit_form('user_management_manage_single_organization_user_remove',
                          data={'org': self.unrelated_organization.pk},
                          reverse_kwargs={'args': [self.unrelated_organization_user.pk]},
                          require_status_code=404)
 
     def test_can_remove_self_from_organization(self):
-        self.log_in_user(self.organization_member)
+        self.log_in_user(self.organization_user)
         self.submit_form('user_management_manage_single_organization_user_remove',
                          data={'org': self.organization.pk},
-                         reverse_kwargs={'args': [self.organization_member.pk]},
+                         reverse_kwargs={'args': [self.organization_user.pk]},
                          success_url=reverse('create_link'))
-        self.assertFalse(self.organization_member.organizations.filter(pk=self.organization.pk).exists())
+        self.assertFalse(self.organization_user.organizations.filter(pk=self.organization.pk).exists())
 
     ### ADDING NEW USERS TO REGISTRARS ###
 
@@ -380,7 +380,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
 
     def test_registrar_user_can_add_new_user_to_registrar(self):
-        self.log_in_user(self.registrar_member)
+        self.log_in_user(self.registrar_user)
         self.submit_form('user_management_registrar_user_add_user',
                          data={'a-registrar': self.registrar.pk,
                                'a-first_name': 'First',
@@ -392,7 +392,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                                                                registrar=self.registrar).exists())
 
     def test_registrar_user_cannot_add_new_user_to_inaccessible_registrar(self):
-        self.log_in_user(self.registrar_member)
+        self.log_in_user(self.registrar_user)
         self.submit_form('user_management_registrar_user_add_user',
                          data={'a-registrar': self.unrelated_registrar.pk,
                                'a-first_name': 'First',
@@ -414,7 +414,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                          success_query=LinkUser.objects.filter(pk=self.regular_user.pk, registrar=self.registrar))
 
     def test_registrar_user_can_add_existing_user_to_registrar(self):
-        self.log_in_user(self.registrar_member)
+        self.log_in_user(self.registrar_user)
         self.submit_form('user_management_registrar_user_add_user',
                          data={'a-registrar': self.registrar.pk},
                          query_params={'email': self.regular_user.email},
@@ -422,16 +422,16 @@ class UserManagementViewsTestCase(PermaTestCase):
                          success_query=LinkUser.objects.filter(pk=self.regular_user.pk, registrar=self.registrar))
 
     def test_registrar_user_can_upgrade_org_user_to_registrar(self):
-        self.log_in_user(self.registrar_member)
+        self.log_in_user(self.registrar_user)
         self.submit_form('user_management_registrar_user_add_user',
                          data={'a-registrar': self.registrar.pk},
-                         query_params={'email': self.organization_member.email},
+                         query_params={'email': self.organization_user.email},
                          success_url=reverse('user_management_manage_registrar_user'),
-                         success_query=LinkUser.objects.filter(pk=self.organization_member.pk, registrar=self.registrar))
-        self.assertFalse(LinkUser.objects.filter(pk=self.organization_member.pk, organizations=self.organization).exists())
+                         success_query=LinkUser.objects.filter(pk=self.organization_user.pk, registrar=self.registrar))
+        self.assertFalse(LinkUser.objects.filter(pk=self.organization_user.pk, organizations=self.organization).exists())
 
     def test_registrar_user_cannot_upgrade_unrelated_org_user_to_registrar(self):
-        self.log_in_user(self.registrar_member)
+        self.log_in_user(self.registrar_user)
         resp = self.submit_form('user_management_registrar_user_add_user',
                                 data={'a-registrar': self.registrar.pk},
                                 query_params={'email': self.unrelated_organization_user.email})
@@ -439,7 +439,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertFalse(LinkUser.objects.filter(pk=self.unrelated_organization_user.pk, registrar=self.registrar).exists())
 
     def test_registrar_user_cannot_add_existing_user_to_inaccessible_registrar(self):
-        self.log_in_user(self.registrar_member)
+        self.log_in_user(self.registrar_user)
         self.submit_form('user_management_registrar_user_add_user',
                          data={'a-registrar': self.unrelated_registrar.pk},
                          query_params={'email': self.regular_user.email},
@@ -447,7 +447,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertFalse(LinkUser.objects.filter(pk=self.regular_user.pk, registrar=self.unrelated_registrar).exists())
 
     def test_cannot_add_admin_user_to_registrar(self):
-        self.log_in_user(self.registrar_member)
+        self.log_in_user(self.registrar_user)
         resp = self.submit_form('user_management_registrar_user_add_user',
                          data={'a-registrar': self.registrar.pk},
                          query_params={'email': self.admin_user.email})
@@ -455,17 +455,17 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertFalse(LinkUser.objects.filter(pk=self.admin_user.pk, registrar=self.registrar).exists())
 
     def test_cannot_add_registrar_user_to_registrar(self):
-        self.log_in_user(self.registrar_member)
+        self.log_in_user(self.registrar_user)
         resp = self.submit_form('user_management_registrar_user_add_user',
                                 data={'a-registrar': self.registrar.pk},
-                                query_params={'email': self.unrelated_registrar_member.email})
+                                query_params={'email': self.unrelated_registrar_user.email})
         self.assertIn("is already a member of another registrar", resp.content)
-        self.assertFalse(LinkUser.objects.filter(pk=self.unrelated_registrar_member.pk, registrar=self.registrar).exists())
+        self.assertFalse(LinkUser.objects.filter(pk=self.unrelated_registrar_user.pk, registrar=self.registrar).exists())
 
     ### REMOVING USERS FROM REGISTRARS ###
 
     def test_can_remove_user_from_registrar(self):
-        self.log_in_user(self.registrar_member)
+        self.log_in_user(self.registrar_user)
         self.regular_user.registrar = self.registrar
         self.regular_user.save()
         self.submit_form('user_management_manage_single_registrar_user_remove',
@@ -474,17 +474,17 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertFalse(LinkUser.objects.filter(pk=self.regular_user.pk, registrar=self.registrar).exists())
 
     def test_registrar_cannot_remove_unrelated_user_from_registrar(self):
-        self.log_in_user(self.registrar_member)
+        self.log_in_user(self.registrar_user)
         self.submit_form('user_management_manage_single_registrar_user_remove',
-                         reverse_kwargs={'args': [self.unrelated_registrar_member.pk]},
+                         reverse_kwargs={'args': [self.unrelated_registrar_user.pk]},
                          require_status_code=404)
 
     def test_can_remove_self_from_registrar(self):
-        self.log_in_user(self.registrar_member)
+        self.log_in_user(self.registrar_user)
         self.submit_form('user_management_manage_single_registrar_user_remove',
-                         reverse_kwargs={'args': [self.registrar_member.pk]},
+                         reverse_kwargs={'args': [self.registrar_user.pk]},
                          success_url=reverse('create_link'))
-        self.assertFalse(LinkUser.objects.filter(pk=self.registrar_member.pk, registrar=self.registrar).exists())
+        self.assertFalse(LinkUser.objects.filter(pk=self.registrar_user.pk, registrar=self.registrar).exists())
 
     ### ADDING NEW USERS AS ADMINS ###
 
@@ -533,7 +533,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                          data={
                              'a-first_name': 'Newfirst',
                              'a-last_name': 'Newlast',
-                             'a-email': 'test_registry_member@example.com'
+                             'a-email': 'test_registry_user@example.com'
                          },
                          success_url=reverse('user_management_settings_profile'),
                          success_query=LinkUser.objects.filter(first_name='Newfirst'))
@@ -561,7 +561,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def test_signup_with_existing_email_rejected(self):
         self.submit_form('sign_up',
-                         {'email': self.registrar_member.email, 'first_name': 'Test', 'last_name': 'Test'},
+                         {'email': self.registrar_user.email, 'first_name': 'Test', 'last_name': 'Test'},
                          error_keys=['email'])
 
     def test_registration_confirmation_with_bad_code_rejected(self):

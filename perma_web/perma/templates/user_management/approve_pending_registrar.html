@@ -19,10 +19,10 @@
 
 	<h4 class="body-ch">Requested by</h4>
 	<ul class="data-list">
-	    {% if target_registrar_member.first_name and target_registrar_member.last_name %}
-	    <li>{{target_registrar_member.first_name}} {{target_registrar_member.last_name}}</li>
+	    {% if target_registrar_user.first_name and target_registrar_user.last_name %}
+	    <li>{{target_registrar_user.first_name}} {{target_registrar_user.last_name}}</li>
 	    {% endif %}
-	    <li>{{target_registrar_member.email}}</li>
+	    <li>{{target_registrar_user.email}}</li>
 	</ul>
 
     <form action="" method="POST">

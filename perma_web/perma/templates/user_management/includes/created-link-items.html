@@ -18,7 +18,7 @@
                 This folder will be shared with members of {{ current_folder.organization }}.
             {% endif %}
         </div>
-    {% elif request.user.is_organization_member %}
+    {% elif request.user.is_organization_user %}
         <div class="shared-folder-label alert-info" style="background-color: #F5F5F5">
             This folder is not shared.
         </div>

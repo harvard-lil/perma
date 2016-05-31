@@ -18,8 +18,8 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
     def setUp(self):
         super(LinkAuthorizationTestCase, self).setUp()
 
-        self.registry_member = LinkUser.objects.get(pk=1)
-        self.registrar_member = LinkUser.objects.get(pk=2)
+        self.registry_user = LinkUser.objects.get(pk=1)
+        self.registrar_user = LinkUser.objects.get(pk=2)
         self.org_member = LinkUser.objects.get(pk=3)
         self.regular_user = LinkUser.objects.get(pk=4)
         self.related_org_member = LinkUser.objects.get(pk=5) # belongs to the same org as the one that created the link
@@ -74,7 +74,7 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
 
     def test_should_reject_logged_in_users_getting_detail_of_unowned_links(self):
         self.rejected_get(self.unrelated_link_url, user=self.regular_user)
-        self.rejected_get(self.unrelated_link_url, user=self.registrar_member)
+        self.rejected_get(self.unrelated_link_url, user=self.registrar_user)
 
     def test_should_reject_logged_out_users_getting_logged_in_list(self):
         self.rejected_get(self.list_url)
@@ -87,7 +87,7 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
     ############
 
     def test_should_reject_create_to_inaccessible_folder(self):
-        inaccessible_folder = self.registry_member.root_folder
+        inaccessible_folder = self.registry_user.root_folder
         response = self.rejected_post(self.list_url, expected_status_code=400, user=self.regular_user, data=dict(self.post_data, folder=inaccessible_folder.pk))
         self.assertIn("Folder not found.", response.content)
 
@@ -102,12 +102,12 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.successful_patch(self.unrelated_link_url, user=self.org_member, data=self.patch_data)
 
     def test_should_reject_patch_from_users_who_dont_own_unrelated_link(self):
-        self.rejected_patch(self.unrelated_link_url, user=self.registrar_member, data=self.patch_data)
+        self.rejected_patch(self.unrelated_link_url, user=self.registrar_user, data=self.patch_data)
         self.rejected_patch(self.unrelated_link_url, user=self.related_org_member, data=self.patch_data)
         self.rejected_patch(self.unrelated_link_url, user=self.regular_user, data=self.patch_data)
 
     def test_should_allow_patch_from_staff(self):
-        self.successful_patch(self.unrelated_link_url, user=self.registry_member, data=self.patch_data)
+        self.successful_patch(self.unrelated_link_url, user=self.registry_user, data=self.patch_data)
 
     def test_should_allow_link_owner_to_patch_notes_and_title(self):
         self.successful_patch(self.link_url, user=self.link.created_by, data=self.patch_data)
@@ -133,7 +133,7 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
            data=test_file.read()
            file_content = SimpleUploadedFile("test.pdf", data, content_type="application/pdf")
            obj = self.successful_patch(self.link_url,
-                                       user=self.registrar_member,
+                                       user=self.registrar_user,
                                        format="multipart",
                                        data={'file':file_content})
 
@@ -144,7 +144,7 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
             data=test_file.read()
             file_content = SimpleUploadedFile("test.pdf", data, content_type="application/pdf")
             obj = self.rejected_patch(self.link_url,
-                                       user=self.registrar_member,
+                                       user=self.registrar_user,
                                        format="multipart",
                                        data={'file':file_content})
         self.successful_get(self.link_url, user=self.org_member)
@@ -172,11 +172,11 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.rejected_patch(self.link_url, user=self.unrelated_org_member, data={'is_private': True, 'private_reason':'user'})
         self.rejected_patch(self.get_link_url(self.private_link_by_user), user=self.unrelated_org_member, data={'is_private': False, 'private_reason':None})
 
-    def test_should_allow_registry_member_to_toggle_takedown(self):
-        self.successful_patch(self.link_url, user=self.registry_member, data={'is_private': True, 'private_reason': 'takedown'})
-        self.successful_patch(self.link_url, user=self.registry_member, data={'is_private': False, 'private_reason': None})
+    def test_should_allow_registry_user_to_toggle_takedown(self):
+        self.successful_patch(self.link_url, user=self.registry_user, data={'is_private': True, 'private_reason': 'takedown'})
+        self.successful_patch(self.link_url, user=self.registry_user, data={'is_private': False, 'private_reason': None})
 
-    def test_should_reject_takedown_toggle_from_nonregistry_member(self):
+    def test_should_reject_takedown_toggle_from_nonregistry_user(self):
         user = self.link.organization.registrar.users.first()
         self.rejected_patch(self.link_url, user=user, data={'is_private': True, 'private_reason': 'takedown'})
         self.rejected_patch(self.get_link_url(self.private_link_by_takedown), user=user, data={'is_private': False, 'private_reason': None})
@@ -245,6 +245,6 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
 
     def test_should_reject_delete_from_users_who_dont_own_link(self):
         self.rejected_delete(self.unrelated_link_url, user=self.regular_user)
-        self.rejected_delete(self.unrelated_link_url, user=self.registrar_member)
+        self.rejected_delete(self.unrelated_link_url, user=self.registrar_user)
         self.rejected_delete(self.unrelated_link_url, user=self.related_org_member)
         self.successful_get(self.link_url, user=self.org_member)

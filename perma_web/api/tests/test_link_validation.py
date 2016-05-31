@@ -21,7 +21,7 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
     def setUp(self):
         super(LinkValidationTestCase, self).setUp()
 
-        self.registry_member = LinkUser.objects.get(pk=1)
+        self.registry_user = LinkUser.objects.get(pk=1)
         self.org_member = LinkUser.objects.get(pk=3)
 
         self.link = Link.objects.get(pk="3SLN-JHX9")

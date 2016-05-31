@@ -11,8 +11,8 @@ class PermissionsTestCase(PermaTestCase):
     def test_permissions(self):
         """Test who can log into restricted pages."""
         all_users = {
-            'test_registry_member@example.com',
-            'test_registrar_member@example.com',
+            'test_registry_user@example.com',
+            'test_registrar_user@example.com',
             'test_org_user@example.com',
             'test_user@example.com'
         }
@@ -39,7 +39,7 @@ class PermissionsTestCase(PermaTestCase):
                     ['error_management_get_all'],
                     ['error_management_resolve'],
                 ],
-                'allowed': {'test_registry_member@example.com'},
+                'allowed': {'test_registry_user@example.com'},
             },
             {
                 'urls': [
@@ -47,7 +47,7 @@ class PermissionsTestCase(PermaTestCase):
                     ['user_management_registrar_user_add_user'],
                     ['user_management_manage_single_registrar', {'kwargs':{'registrar_id': 1}}],
                 ],
-                'allowed': {'test_registry_member@example.com', 'test_registrar_member@example.com'},
+                'allowed': {'test_registry_user@example.com', 'test_registrar_user@example.com'},
             },
             {
                 'urls': [
@@ -60,14 +60,14 @@ class PermissionsTestCase(PermaTestCase):
                     ['user_management_manage_single_organization_user_remove', {'kwargs':{'user_id': 3},
                      'success_status': 302}],
                 ],
-                'allowed': {'test_registry_member@example.com', 'test_registrar_member@example.com',
+                'allowed': {'test_registry_user@example.com', 'test_registrar_user@example.com',
                         'test_org_user@example.com'},
             },
             {
                 'urls': [
                     ['user_management_manage_single_registrar_user_remove', {'kwargs':{'user_id': 2}}],
                 ],
-                'allowed': {'test_registrar_member@example.com'}
+                'allowed': {'test_registrar_user@example.com'}
             },
 
             {

@@ -109,9 +109,9 @@ class OrganizationQuerySet(QuerySet):
             return self.filter(qset)
 
     def user_access_filter(self, user):
-        if user.is_organization_member:
+        if user.is_organization_user:
             return Q(id__in=user.organizations.all())
-        elif user.is_registrar_member():
+        elif user.is_registrar_user():
             return Q(registrar_id=user.registrar_id)
         elif user.is_staff:
             return Q()  # all
@@ -257,9 +257,9 @@ class LinkUser(AbstractBaseUser):
             Get organizations in which this user is a member
         """
 
-        if self.is_organization_member:
+        if self.is_organization_user:
             return self.organizations.all()
-        if self.is_registrar_member():
+        if self.is_registrar_user():
             return self.registrar.organizations.all()
         if self.is_staff:
             return Organization.objects.all()
@@ -309,9 +309,9 @@ class LinkUser(AbstractBaseUser):
 
     def has_limit(self):
         """ Does the user have a link creation limit? """
-        return bool(not self.is_staff and not self.is_registrar_member() and not self.is_organization_member)
+        return bool(not self.is_staff and not self.is_registrar_user() and not self.is_organization_user)
 
-    def is_registrar_member(self):
+    def is_registrar_user(self):
         """ Is the user a member of a registrar? """
         return bool(self.registrar_id)
 
@@ -320,7 +320,7 @@ class LinkUser(AbstractBaseUser):
         return bool(self.pending_registrar)
 
     @cached_property
-    def is_organization_member(self):
+    def is_organization_user(self):
         """ Is the user a member of an org? """
         return self.organizations.exists()
 

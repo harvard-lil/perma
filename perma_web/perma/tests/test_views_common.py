@@ -9,7 +9,7 @@ from .utils import PermaTestCase
 class CommonViewsTestCase(PermaTestCase):
 
     def setUp(self):
-        self.users = ['test_user@example.com', 'test_org_user@example.com', 'test_registrar_member@example.com', 'test_registry_member@example.com']
+        self.users = ['test_user@example.com', 'test_org_user@example.com', 'test_registrar_user@example.com', 'test_registry_user@example.com']
 
     def test_public_views(self):
         # test static template views
