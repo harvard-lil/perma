@@ -29,7 +29,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     def setUp(self):
         super(LinkResourceTestCase, self).setUp()
 
-        self.org_member = LinkUser.objects.get(pk=3)
+        self.org_user = LinkUser.objects.get(pk=3)
         self.regular_user = LinkUser.objects.get(pk=4)
 
         self.unrelated_link = Link.objects.get(pk="7CF8-SS4G")
@@ -87,10 +87,10 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     #######
 
     def test_get_schema_json(self):
-        self.successful_get(self.list_url + '/schema', user=self.org_member)
+        self.successful_get(self.list_url + '/schema', user=self.org_user)
 
     def test_get_public_schema_json(self):
-        self.successful_get(self.public_list_url + '/schema', user=self.org_member)
+        self.successful_get(self.public_list_url + '/schema', user=self.org_user)
 
     def test_get_list_json(self):
         self.successful_get(self.public_list_url, count=2)
@@ -103,13 +103,13 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     ########################
 
     def test_should_create_archive_from_html_url(self):
-        target_folder = self.org_member.root_folder
+        target_folder = self.org_user.root_folder
         obj = self.successful_post(self.list_url,
                                    data={
                                        'url': self.server_url + "/test.html",
                                        'folder': target_folder.pk,
                                    },
-                                   user=self.org_member)
+                                   user=self.org_user)
 
         link = Link.objects.get(guid=obj['guid'])
         cdxlines = CDXLine.objects.filter(link_id=obj['guid'])
@@ -127,13 +127,13 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertTrue(link.folders.filter(pk=target_folder.pk).exists())
 
     def test_should_create_archive_from_pdf_url(self):
-        target_org = self.org_member.organizations.first()
+        target_org = self.org_user.organizations.first()
         obj = self.successful_post(self.list_url,
                                    data={
                                        'url': self.server_url + "/test.pdf",
                                        'folder': target_org.shared_folder.pk,
                                    },
-                                   user=self.org_member)
+                                   user=self.org_user)
 
         link = Link.objects.get(guid=obj['guid'])
         self.assertValidCapture(link.primary_capture)
@@ -145,12 +145,12 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     def test_should_add_http_to_url(self):
         self.successful_post(self.list_url,
                              data={'url': self.server_url.split("//")[1] + "/test.html"},
-                             user=self.org_member)
+                             user=self.org_user)
 
     def test_should_dark_archive_when_noarchive_in_html(self):
         obj = self.successful_post(self.list_url,
                                    data={'url': self.server_url + "/noarchive.html"},
-                                   user=self.org_member)
+                                   user=self.org_user)
 
         link = Link.objects.get(guid=obj['guid'])
         self.assertTrue(link.is_private)
@@ -163,7 +163,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         with self.serve_file(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/robots.txt')):
             obj = self.successful_post(self.list_url,
                                        data={'url': self.server_url + "/subdir/test.html"},
-                                       user=self.org_member)
+                                       user=self.org_user)
 
         link = Link.objects.get(guid=obj['guid'])
         self.assertTrue(link.is_private)
@@ -172,7 +172,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     def test_should_accept_spaces_in_url(self):
         obj = self.successful_post(self.list_url,
                                    data={'url': self.server_url + "/test page.html?a b=c d#e f"},
-                                   user=self.org_member)
+                                   user=self.org_user)
 
         link = Link.objects.get(guid=obj['guid'])
         self.assertValidCapture(link.primary_capture)
@@ -186,7 +186,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             obj = self.successful_post(self.list_url,
                                        format='multipart',
                                        data=dict(self.post_data.copy(), file=test_file),
-                                       user=self.org_member)
+                                       user=self.org_user)
 
             link = Link.objects.get(guid=obj['guid'])
             self.assertValidCapture(link.primary_capture)
@@ -197,7 +197,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             obj = self.successful_post(self.list_url,
                                        format='multipart',
                                        data=dict(self.post_data.copy(), file=test_file),
-                                       user=self.org_member)
+                                       user=self.org_user)
 
             link = Link.objects.get(guid=obj['guid'])
             self.assertValidCapture(link.primary_capture)
@@ -208,7 +208,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             obj = self.rejected_post(self.list_url,
                                      format='multipart',
                                      data=dict(self.post_data.copy(), file=test_file),
-                                     user=self.org_member)
+                                     user=self.org_user)
             self.assertIn('Invalid file', obj.content)
 
     ############
@@ -246,15 +246,15 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     ##########
 
     def test_moving(self):
-        folder = self.org_member.organizations.first().folders.first()
+        folder = self.org_user.organizations.first().folders.first()
         folder_url = "{0}/folders/{1}".format(self.url_base, folder.pk)
 
         self.successful_put("{0}/archives/{1}".format(folder_url, self.unrelated_link.pk),
-                            user=self.org_member)
+                            user=self.org_user)
 
         # Make sure it's listed in the folder
-        obj = self.successful_get(self.unrelated_link_detail_url, user=self.org_member)
-        data = self.successful_get(folder_url+"/archives", user=self.org_member)
+        obj = self.successful_get(self.unrelated_link_detail_url, user=self.org_user)
+        data = self.successful_get(folder_url+"/archives", user=self.org_user)
         self.assertIn(obj, data['objects'])
 
     ############
@@ -265,11 +265,11 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         with self.serve_file(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/robots.txt')):
             obj = self.successful_post(self.list_url,
                                        data={'url': self.server_url + "/subdir/test.html"},
-                                       user=self.org_member)
+                                       user=self.org_user)
 
             new_link = Link.objects.get(guid=obj['guid'])
             new_link_url = "{0}/{1}".format(self.list_url, new_link.pk)
-            self.successful_delete(new_link_url, user=self.org_member)
+            self.successful_delete(new_link_url, user=self.org_user)
 
     ############
     # Ordering #

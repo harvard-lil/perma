@@ -52,14 +52,14 @@ valid_org_sorts = ['name', '-name', 'link_count', '-link_count', '-date_created'
 ### HELPERS ###
 
 class RequireOrgOrRegOrAdminUser(object):
-    """ Mixin for class-based views that requires user to be an org member, registrar member, or admin. """
+    """ Mixin for class-based views that requires user to be an org user, registrar user, or admin. """
     @method_decorator(login_required)
     @method_decorator(user_passes_test(lambda user: user.is_registrar_user() or user.is_organization_user or user.is_staff))
     def dispatch(self, request, *args, **kwargs):
         return super(RequireOrgOrRegOrAdminUser, self).dispatch(request, *args, **kwargs)
 
 class RequireRegOrAdminUser(object):
-    """ Mixin for class-based views that requires user to be a registrar member or admin. """
+    """ Mixin for class-based views that requires user to be a registrar user or admin. """
     @method_decorator(login_required)
     @method_decorator(user_passes_test(lambda user: user.is_registrar_user() or user.is_staff))
     def dispatch(self, request, *args, **kwargs):
@@ -287,7 +287,7 @@ def approve_pending_registrar(request, registrar_id):
 @user_passes_test(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def manage_organization(request):
     """
-    Registry and registrar members can manage organizations (journals)
+    Registry and registrar users can manage organizations (journals)
     """
 
     is_registry = request.user.is_staff
@@ -596,9 +596,9 @@ def edit_user_in_group(request, user_id, group_name):
 
     target_user = get_object_or_404(LinkUser, id=user_id)
 
-    # Org members can only edit their members in the same orgs
+    # org users can only edit their members in the same orgs
     if request.user.is_registrar_user():
-        # Get the intersection of the user's and the registrar member's orgs
+        # Get the intersection of the user's and the registrar user's orgs
         orgs = target_user.organizations.all() & Organization.objects.filter(registrar=request.user.registrar)
 
         if len(orgs) == 0:
@@ -611,7 +611,7 @@ def edit_user_in_group(request, user_id, group_name):
             raise Http404
 
     else:
-        # Must be registry member
+        # Must be registry user
         orgs = target_user.organizations.all()
 
     context = {
@@ -723,7 +723,7 @@ class AddUserToOrganization(RequireOrgOrRegOrAdminUser, BaseAddUserToGroup):
         if self.object.is_staff:
             return False, "%s is an admin user and cannot be added to individual organizations." % self.object
         if self.object.is_registrar_user():
-            return False, "%s is already a registrar member and cannot be added to individual organizations." % self.object
+            return False, "%s is already a registrar user and cannot be added to individual organizations." % self.object
         return True, ""
 
 
@@ -741,7 +741,7 @@ class AddUserToRegistrar(RequireRegOrAdminUser, BaseAddUserToGroup):
             current_user=self.request.user)
 
     def target_user_valid(self):
-        """ User can only be added to registrar if they aren't admin or registrar or org member. """
+        """ User can only be added to registrar if they aren't admin or registrar or org user. """
         if self.is_new:
             return True, ""
         if self.object.is_staff:
@@ -815,19 +815,19 @@ def delete_user_in_group(request, user_id, group_name):
         Delete particular user with given group name.
     """
 
-    target_member = get_object_or_404(LinkUser, id=user_id)
+    target_user = get_object_or_404(LinkUser, id=user_id)
 
-    context = {'target_member': target_member,
+    context = {'target_user': target_user,
                'this_page': 'users_{group_name}s'.format(group_name=group_name)}
 
     if request.method == 'POST':
-        if target_member.is_confirmed:
-            target_member.is_active = False
-            target_member.organizations.clear()
-            target_member.registrar = None
-            target_member.save()
+        if target_user.is_confirmed:
+            target_user.is_active = False
+            target_user.organizations.clear()
+            target_user.registrar = None
+            target_user.save()
         else:
-            target_member.delete()
+            target_user.delete()
 
         return HttpResponseRedirect(reverse('user_management_manage_{group_name}'.format(group_name=group_name)))
 
@@ -866,21 +866,21 @@ def manage_single_registrar_user_remove(request, user_id):
         Remove a registrar user from a registrar.
     """
 
-    target_member = get_object_or_404(LinkUser, id=user_id)
+    target_user = get_object_or_404(LinkUser, id=user_id)
 
-    # Registrar users can only edit their own registrar members
-    if request.user.registrar_id != target_member.registrar_id:
+    # Registrar users can only edit their own registrar users
+    if request.user.registrar_id != target_user.registrar_id:
         raise Http404
 
-    context = {'target_member': target_member,
+    context = {'target_user': target_user,
                'this_page': 'organization_user'}
 
     if request.method == 'POST':
-        target_member.registrar = None
-        target_member.save()
+        target_user.registrar = None
+        target_user.save()
 
         # special case -- user demoted themselves, can't see page anymore
-        if request.user == target_member:
+        if request.user == target_user:
             return HttpResponseRedirect(reverse('create_link'))
 
         return HttpResponseRedirect(reverse('user_management_manage_registrar_user'))
@@ -897,17 +897,17 @@ def manage_single_registry_user_remove(request, user_id):
         Basically demote a registry to a regular user.
     """
 
-    target_member = get_object_or_404(LinkUser, id=user_id)
+    target_user = get_object_or_404(LinkUser, id=user_id)
 
-    context = {'target_member': target_member,
+    context = {'target_user': target_user,
                'this_page': 'users_registry_user'}
 
     if request.method == 'POST':
-        target_member.is_staff = False
-        target_member.save()
+        target_user.is_staff = False
+        target_user.save()
 
         # special case -- user demoted themselves, can't see page anymore
-        if request.user == target_member:
+        if request.user == target_user:
             return HttpResponseRedirect(reverse('create_link'))
 
         return HttpResponseRedirect(reverse('user_management_manage_registry_user'))
@@ -924,14 +924,14 @@ def reactive_user_in_group(request, user_id, group_name):
         Reactivate particular user with given group name.
     """
 
-    target_member = get_object_or_404(LinkUser, id=user_id)
+    target_user = get_object_or_404(LinkUser, id=user_id)
 
-    context = {'target_member': target_member,
+    context = {'target_user': target_user,
                'this_page': 'users_{group_name}s'.format(group_name=group_name)}
 
     if request.method == 'POST':
-        target_member.is_active = True
-        target_member.save()
+        target_user.is_active = True
+        target_user.save()
 
         return HttpResponseRedirect(reverse('user_management_manage_{group_name}'.format(group_name=group_name)))
 

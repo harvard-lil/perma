@@ -2,11 +2,11 @@
 {% block title %} | Remove user{% endblock %}
 
 {% block adminContent %}
-<h3 class="body-bh">Remove <strong>{{ target_member.email }}</strong> from <strong>{{target_member.registrar.name}}</strong>?</h3>
-<p class="page-dek">This user will no longer be able to create organizations and users on behalf of {{target_member.registrar.name}}.</p>
-<p>Do you really want to remove <strong>{{ target_member.email }}</strong> forever?</p>
+<h3 class="body-bh">Remove <strong>{{ target_user.email }}</strong> from <strong>{{target_user.registrar.name}}</strong>?</h3>
+<p class="page-dek">This user will no longer be able to create organizations and users on behalf of {{target_user.registrar.name}}.</p>
+<p>Do you really want to remove <strong>{{ target_user.email }}</strong> forever?</p>
 	<form action="" method="POST">
       {% csrf_token %}
-    <a class="btn cancel" href="../">Cancel</a> <button type="submit" class="btn delete-confirm">Remove {{ target_member.email }} forever</button>
+    <a class="btn cancel" href="../">Cancel</a> <button type="submit" class="btn delete-confirm">Remove {{ target_user.email }} forever</button>
 </form>
 {% endblock %}

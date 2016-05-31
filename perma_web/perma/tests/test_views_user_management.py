@@ -329,7 +329,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         resp = self.submit_form('user_management_organization_user_add_user',
                                 data={'a-organizations': self.organization.pk},
                                 query_params={'email': self.registrar_user.email})
-        self.assertIn("is already a registrar member", resp.content)
+        self.assertIn("is already a registrar user", resp.content)
         self.assertFalse(self.registrar_user.organizations.exists())
 
     ### REMOVING USERS FROM ORGANIZATIONS ###

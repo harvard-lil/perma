@@ -17,7 +17,7 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
 
         self.registry_user = LinkUser.objects.get(pk=1)
         self.registrar_user = LinkUser.objects.get(pk=2)
-        self.org_member = LinkUser.objects.get(pk=3)
+        self.org_user = LinkUser.objects.get(pk=3)
         self.regular_user = LinkUser.objects.get(pk=4)
 
         self.empty_root_folder = Folder.objects.get(pk=22)
@@ -63,7 +63,7 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
 
     def test_should_reject_create_from_user_without_access_to_parent(self):
         self.rejected_post(self.nested_url(self.regular_user.root_folder),
-                           user=self.org_member,
+                           user=self.org_user,
                            data={'name': 'Test Folder'})
 
     ###########
@@ -77,7 +77,7 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.successful_get(self.detail_url(self.test_journal_shared_folder), user=self.registrar_user)
 
     def test_should_allow_member_of_folders_org_to_view(self):
-        self.successful_get(self.detail_url(self.test_journal_shared_folder), user=self.org_member)
+        self.successful_get(self.detail_url(self.test_journal_shared_folder), user=self.org_user)
 
     def test_should_reject_view_from_user_lacking_owner_and_registrar_and_org_access(self):
         self.rejected_get(self.detail_url(self.test_journal_shared_folder), user=self.regular_user)
@@ -151,10 +151,10 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.successful_folder_move(self.registrar_user, self.registrar_user.root_folder, self.test_journal_subfolder_with_link_b)
 
     def test_should_allow_member_of_folders_org_to_move_to_new_parent(self):
-        self.successful_folder_move(self.org_member, self.org_member.root_folder, self.test_journal_subfolder_with_link_b)
+        self.successful_folder_move(self.org_user, self.org_user.root_folder, self.test_journal_subfolder_with_link_b)
 
     def test_should_reject_move_to_parent_to_which_user_lacks_access(self):
-        self.rejected_folder_move(self.regular_user, self.org_member.root_folder, self.regular_user_empty_child_folder)
+        self.rejected_folder_move(self.regular_user, self.org_user.root_folder, self.regular_user_empty_child_folder)
 
     def test_should_reject_move_from_user_lacking_owner_and_registrar_and_org_access(self):
         self.rejected_folder_move(self.regular_user, self.regular_user.root_folder, self.test_journal_subfolder_with_link_b)
@@ -163,21 +163,21 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
         # move A into B ...
         self.successful_patch(self.detail_url(self.test_journal_subfolder_with_link_a),
                               data={"parent": self.test_journal_subfolder_with_link_b.pk},
-                              user=self.org_member)
+                              user=self.org_user)
 
         # ... then try to move B into A
         self.rejected_patch(self.detail_url(self.test_journal_subfolder_with_link_b),
                             data={"parent": self.test_journal_subfolder_with_link_a.pk},
                             expected_status_code=400,
                             expected_data={"parent": "A node may not be made a child of any of its descendants."},
-                            user=self.org_member)
+                            user=self.org_user)
 
     def test_should_reject_move_of_folder_into_itself(self):
         self.rejected_patch(self.detail_url(self.test_journal_subfolder_with_link_b),
                             data={"parent": self.test_journal_subfolder_with_link_b.pk},
                             expected_status_code=400,
                             expected_data={"parent":"A node may not be made a child of itself."},
-                            user=self.org_member)
+                            user=self.org_user)
 
     def test_should_reject_move_of_org_shared_folder(self):
         self.rejected_folder_move(self.registrar_user, self.registrar_user.root_folder,
@@ -200,22 +200,22 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
 
     def test_should_reject_delete_from_user_lacking_owner_and_registrar_and_org_access(self):
         self.rejected_delete(self.detail_url(self.regular_user_empty_child_folder),
-                             user=self.org_member)
+                             user=self.org_user)
 
     def test_reject_delete_of_shared_folder(self):
         self.rejected_delete(self.detail_url(self.test_journal_shared_folder),
                              expected_status_code=400,
                              expected_data={"error": "Shared folders cannot be deleted."},
-                             user=self.org_member)
+                             user=self.org_user)
 
     def test_reject_delete_of_root_folder(self):
-        self.rejected_delete(self.detail_url(self.org_member.root_folder),
+        self.rejected_delete(self.detail_url(self.org_user.root_folder),
                              expected_status_code=400,
                              expected_data={"error": "Root folders cannot be deleted."},
-                             user=self.org_member)
+                             user=self.org_user)
 
     def test_reject_delete_of_nonempty_folder(self):
         self.rejected_delete(self.detail_url(self.test_journal_subfolder_with_link_b),
                              expected_status_code=400,
                              expected_data={"error": "Folders can only be deleted if they are empty."},
-                             user=self.org_member)
+                             user=self.org_user)

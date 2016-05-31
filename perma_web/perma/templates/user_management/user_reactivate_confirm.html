@@ -3,11 +3,11 @@
 
 {% block adminContent %}
 
-<h3 class="body-bh">Reactivate <strong>{{ target_member.email }}</strong></h3>
-<p class="page-dek">Do you really want to reactivate <strong>{{ target_member.email }}</strong>?</p>
+<h3 class="body-bh">Reactivate <strong>{{ target_user.email }}</strong></h3>
+<p class="page-dek">Do you really want to reactivate <strong>{{ target_user.email }}</strong>?</p>
 	<form action="" method="POST">
       {% csrf_token %}
-    <a class="btn cancel" href="../">Cancel</a> <button type="submit" class="btn delete-confirm">Reactivate {{ target_member.email }}</button>
+    <a class="btn cancel" href="../">Cancel</a> <button type="submit" class="btn delete-confirm">Reactivate {{ target_user.email }}</button>
 </form>
 
 {% endblock %}
