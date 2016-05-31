@@ -170,7 +170,7 @@ def single_linky(request, guid):
     context = {
         'link': link,
         'can_view': request.user.can_view(link),
-        'can_edit': request.user.can_view(link),
+        'can_edit': request.user.can_edit(link),
         'can_delete': request.user.can_delete(link),
         'can_toggle_private': request.user.can_toggle_private(link),
         'capture': capture,

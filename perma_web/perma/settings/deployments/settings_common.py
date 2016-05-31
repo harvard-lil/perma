@@ -196,10 +196,10 @@ PIPELINE_JS = {
     'single-link-with-permissions': {
         'source_filenames': (
             'vendors/jquery/jquery.form.min.js',
-            'js/single-link.module.js',
+            'js/single-link-with-permissions.module.js',
 
         ),
-        'output_filename': 'js/single-link-bundle.js',
+        'output_filename': 'js/single-link-with-permissions-bundle.js',
     },
 
     'doc-developer': {
