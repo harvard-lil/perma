@@ -77,8 +77,8 @@
                         <a {% if sort == 'date_created' %}class="selected" {% endif %} href="?{% current_query_string sort="date_created" %}"><i class="icon-ok"></i> Oldest</a>
                         <a {% if sort == '-last_active' %}class="selected" {% endif %} href="?{% current_query_string sort="-last_active" %}"><i class="icon-ok"></i> Recently active</a>
                         <a {% if sort == 'last_active' %}class="selected" {% endif %} href="?{% current_query_string sort="=last_active" %}"><i class="icon-ok"></i> Least recently active</a>
-                        <a {% if sort == '-created_links' %}class="selected" {% endif %} href="?{% current_query_string sort="-created_links" %}"><i class="icon-ok"></i> Most links</a>
-                        <a {% if sort == 'created_links' %}class="selected" {% endif %} href="?{% current_query_string sort="created_links" %}"><i class="icon-ok"></i> Least links</a><a {% if sort == '-org_users' %}class="selected" {% endif %} href="?sort=-org_users{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Most users</a>
+                        <a {% if sort == '-link_count' %}class="selected" {% endif %} href="?{% current_query_string sort="-link_count" %}"><i class="icon-ok"></i> Most links</a>
+                        <a {% if sort == 'link_count' %}class="selected" {% endif %} href="?{% current_query_string sort="link_count" %}"><i class="icon-ok"></i> Least links</a><a {% if sort == '-org_users' %}class="selected" {% endif %} href="?sort=-org_users{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Most users</a>
                         <a {% if sort == 'org_users' %}class="selected" {% endif %} href="?{% current_query_string sort="org_users" %}"><i class="icon-ok"></i> Least users</a>
                     </li>
                   </ul>
@@ -124,7 +124,7 @@
 			            <div class="row row-half-bleed item-count-groups">
 							<div class="col col-xs-12 col-md-4 col-half-gutter">
 				                <div class="item-count-group">
-									<strong class="list-count-number">{{ org.org_links|intcomma }}</strong>
+									<strong class="list-count-number">{{ org.link_count|intcomma }}</strong>
 									<span class="item-count-label">links</span>
 				                </div>
 							</div>
@@ -138,7 +138,7 @@
 		            </div>
 
 		            <div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
-                        {% if org.org_links < 1 %}
+                        {% if org.link_count < 1 %}
                             <a class="action" href="{% url 'user_management_manage_single_organization_delete' org.id %}">delete</a>
                         {% endif %}
 			            <a class="action" href="{% url 'user_management_manage_single_organization' org.id %}">edit</a>
