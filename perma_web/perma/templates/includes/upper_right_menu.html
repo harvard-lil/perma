@@ -49,7 +49,14 @@
             <li><a href="{% url 'user_management_settings_organizations' %}">Your organization</a></li>
           {% endif %}
           <li class="divider"></li>
-          <li><a href="{% url 'logout' %}">Log out</a></li>
+
+          {# use a <button> instead of a link for logout to pass CSRF protection #}
+          <li>
+            <form method="POST" action="{% url 'logout' %}">
+              {% csrf_token %}
+              <button>Log out</button>
+            </form>
+          </li>
         </ul>
       </li>
     {% else %}
