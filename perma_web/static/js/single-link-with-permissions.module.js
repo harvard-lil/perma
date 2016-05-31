@@ -71,7 +71,6 @@ SingleLinkModule.adjustTopMargin = function () {
   $wrapper.css('margin-top', headerHeight);
 }
 
-
 SingleLinkModule.handleDarchiving = function (context) {
   var $this = context;
   if (!$this.hasClass('disabled')){
