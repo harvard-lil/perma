@@ -1497,3 +1497,162 @@ img.dark-bulb {
 
 // Dark archive end
 */
+
+/////////////////////////////////////////
+
+// Modals
+
+$modalWidth: 600px;
+
+body.modal-open {
+  margin-right: 0;
+}
+
+.modal-backdrop.in {
+  opacity: 0.95;
+  filter: alpha(opacity=95);
+  background-color: white;
+}
+
+.modal {
+  @include fill-screen;
+  display: none;
+  z-index: 9999;
+}
+
+.modal-dialog {
+  @include respond-mobile {
+    padding: 0;
+    @include fill-screen;
+  }
+  @include respond-tablet {
+    position: relative;
+    left: 50%;
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    margin-left: $modalWidth * -.5;
+  }
+}
+
+.modal-content {
+  width: auto;
+  padding: $double;
+  margin: 0 auto;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  height: 100%;
+  overflow-y: scroll;
+  @include respond-tablet {
+    @include style-card(black);
+    width: $modalWidth;
+    padding: $grid * 4 $grid * 4 $double;
+    height: auto;
+  }
+  form {
+    margin-top: $double;
+    overflow: visible;
+    @include respond-tablet {
+      margin-top: $grid * 3;
+    }
+  }
+  .form-group {
+    float: none;
+    width: auto;
+    border-bottom: 1px solid $color-trans-lightgray;
+    padding-top: 18px;
+    padding-bottom: 20px;
+    margin-left: -$double;
+    padding-left: $double;
+    margin-right: -$double;
+    padding-right: $double;
+    margin-top: 0;
+    background-color: $color-background;
+    &:first-child {
+      border-top: 1px solid $color-trans-lightgray;
+    }
+    & + .form-group {
+      margin-top: 0;
+    }
+    @include respond-tablet {
+      margin-left: -$grid * 4;
+      padding-left: $grid * 4;
+      margin-right: -$grid * 4;
+      padding-right: $grid * 4;
+    }
+  }
+  label {
+    font-weight: 700;
+  }
+  .modal-actions {
+    margin-top: $double;
+    @include respond-tablet {
+      margin-top: $grid * 4;
+    }
+  }
+  input {
+    font-size: 16px;
+    font-weight: 400;
+    height: auto;
+    padding: $grid;
+    margin-bottom: $half;
+  }
+  input#file {
+    padding-left: $grid;
+    border: 1px solid $color-trans-lightgray;
+    &:focus {
+      border-color: $color-blue;
+    }
+  }
+  .field-error {
+    padding-top: 0;
+  }
+}
+
+.modal-header {
+  overflow: visible;
+  .close {
+    @include hide-text;
+    position: absolute;
+    top: 0;
+    right: -$grid * 5;
+    width: $grid * 5;
+    height: $grid * 5;
+    background-color: gray;
+  }
+  .modal-title, .modal-description {
+    font-family: $font-hed-alt;
+  }
+  .modal-title {
+    color: $color-black;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 1.3;
+    @include respond-tablet {
+      font-size: 24px;
+    }
+  }
+  .modal-description {
+    font-weight: 300;
+    color: $color-blue;
+    margin-bottom: 0;
+    font-size: 18px;
+    line-height: 1.3;
+    @include respond-tablet {
+      font-size: 24px;
+    }
+  }
+}
+
+.label-instruction {
+  font-size: 13px;
+  font-family: $font-hed-alt;
+  font-weight: 400;
+  color: $color-trans-gray;
+  display: block;
+  @include respond-tablet {
+    float: right;
+    display: inline-block;
+  }
+}

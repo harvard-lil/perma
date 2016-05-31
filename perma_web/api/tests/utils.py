@@ -21,6 +21,7 @@ from SimpleHTTPServer import SimpleHTTPRequestHandler
 import multiprocessing
 from multiprocessing import Process
 from contextlib import contextmanager
+from django.test.client import MULTIPART_CONTENT
 
 TEST_ASSETS_DIR = os.path.join(settings.PROJECT_ROOT, "perma/tests/assets")
 
@@ -51,6 +52,15 @@ class TestHTTPServer(HTTPServer):
         except socket.error:
             pass
         self.socket.close()
+
+
+class PermaTestApiClient(TestApiClient):
+    def patch(self, uri, format='json', data=None, authentication=None, **kwargs):
+        """ Override Tastypie's patch method to encode multipart data. """
+        if format == 'multipart':
+            # same as django.test.client.RequestFactory.post()
+            data = self.client._encode_data(data, MULTIPART_CONTENT)
+        return super(PermaTestApiClient, self).patch(uri, format, data, authentication, **kwargs)
 
 
 @override_settings(# ROOT_URLCONF='api.urls',
@@ -85,7 +95,7 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
     def setUp(self):
         super(ApiResourceTestCaseMixin, self).setUp()
 
-        self.api_client = TestApiClient(serializer=MultipartSerializer())
+        self.api_client = PermaTestApiClient(serializer=MultipartSerializer())
 
         self._media_org = settings.MEDIA_ROOT
         self._media_tmp = settings.MEDIA_ROOT = tempfile.mkdtemp()
@@ -381,7 +391,6 @@ class ResourceTransactionTestCase(TransactionTestCase):
     def setUp(self):
         super(ResourceTransactionTestCase, self).setUp()
         self.serializer = Serializer()
-        self.api_client = TestApiClient()
 for key, val in ResourceTestCase.__dict__.iteritems():
     if key not in ['setUp', '__doc__']:
         setattr(ResourceTransactionTestCase, key, val)

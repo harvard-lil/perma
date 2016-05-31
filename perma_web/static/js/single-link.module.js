@@ -3,7 +3,7 @@ var SingleLinkModule = {};
 $(document).ready(function(){
   SingleLinkModule.init();
   SingleLinkModule.setupEventHandlers();
-})
+});
 
 SingleLinkModule.init = function () {
   SingleLinkModule.adjustTopMargin();
@@ -24,7 +24,7 @@ SingleLinkModule.handleNewRecord = function () {
 }
 
 SingleLinkModule.setupEventHandlers = function () {
-  $("#details-button").click( function () {
+  $("#details-button, .edit-link").click( function () {
     SingleLinkModule.handleShowDetails($(this));
     return false;
   });
@@ -34,12 +34,34 @@ SingleLinkModule.setupEventHandlers = function () {
     return false;
   });
 
+  $('#archive_upload_form')
+    .submit(function(e) {
+      e.preventDefault();
+      var url = "/archives/"+archive.guid+"/";
+      var data = {};
+      data['file'] = $('#archive_upload_form').find('.file')[0].files[0];
+
+      var requestArgs = {
+        contentType: false,
+        processData: false
+      };
+      if (window.FormData) {
+        Helpers.sendFormData("PATCH", url, data, requestArgs)
+        .done(function(data){
+          location=location;
+        });
+      } else {
+        $('#upload-error').text('Your browser version does not allow for this action. Please use a more modern browser.');
+      }
+    });
+
   $(window).on('resize', function () { SingleLinkModule.adjustTopMargin(); });
 }
 
-SingleLinkModule.handleShowDetails = function (context) {
-  $this = context;
-  $this.text($this.text() == "Show record details" ? "Hide record details" : "Show record details");
+SingleLinkModule.handleShowDetails = function () {
+  $this = $("#details-button");
+  var showingDetails = $this.text().match("Show");
+  $this.text(showingDetails && showingDetails.length > 0 ? "Hide record details" : "Show record details");
   $('header').toggleClass('_activeDetails');
 }
 
@@ -75,4 +97,12 @@ SingleLinkModule.handleDarchiving = function (context) {
       }
     });
   }
+}
+
+SingleLinkModule.upload_form = function () {
+  $('#linky-confirm').modal('hide');
+  $('#upload-error').text('');
+  $('#archive_upload_form').removeAttr('action').removeAttr('method');
+  $('#archive-upload').modal('show');
+  return false;
 }
