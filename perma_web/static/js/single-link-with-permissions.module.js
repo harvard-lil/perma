@@ -1,4 +1,6 @@
 var SingleLinkModule = {};
+var saveBufferSeconds = 0.5,
+  timeouts = {};
 
 $(document).ready(function(){
   SingleLinkModule.init();
@@ -55,6 +57,20 @@ SingleLinkModule.setupEventHandlers = function () {
       }
     });
 
+  $('#collapse-details')
+    .find('input')
+    .on('input propertychange change', function () {
+      var inputarea = $(this);
+      SingleLinkModule.saveInput(inputarea);
+    });
+
+  $('#collapse-details')
+    .find('textarea')
+    .on('textchange', function () {
+      var textarea = $(this);
+      SingleLinkModule.saveInput(textarea);
+    });
+
   $(window).on('resize', function () { SingleLinkModule.adjustTopMargin(); });
 }
 
@@ -99,4 +115,16 @@ SingleLinkModule.upload_form = function () {
   $('#archive_upload_form').removeAttr('action').removeAttr('method');
   $('#archive-upload').modal('show');
   return false;
+}
+
+SingleLinkModule.saveInput = function (inputElement) {
+  var statusElement = $('.save-status')[0];
+  $(statusElement).html('Saving...');
+
+  var data = {};
+  data["title"] = $(inputElement[0]).val();
+  Helpers.apiRequest("PATCH", '/archives/' + archive.guid + '/', data)
+    .done(function(data){
+      $(statusElement).html('Saved!');
+    });
 }

@@ -104,10 +104,26 @@
               <dt class="tray-detail-title">Original page URL {% if capture.user_upload %}(unverified){% endif %}</dt>
               <dd class="tray-detail-entry">{{link.submitted_url}}</dd>
             </dl>
-            <dl class="tray-detail-group">
-              <dt class="tray-detail-title">Original page title</dt>
-              <dd class="tray-detail-entry">{{link.submitted_title}}</dd>
-            </dl>
+            {% if can_edit %}
+            <span class="save-status"></span>
+              <dl class="tray-detail-group">
+                <div class="form-group">
+                  <label class="tray-detail-title">Original page title</label>
+                  <input name="title" class="link-submitted-title" value="{{link.submitted_title}}">
+                </div>
+              </dl>
+              <dl class="tray-detail-group">
+                <div class="form-group">
+                  <label class="tray-detail-title">Notes</label>
+                  <textarea name="notes" class="link-notes" rows="6" value="{{link.notes}}"></textarea>
+                </div>
+              </dl>
+            {% else %}
+              <dl class="tray-detail-group">
+                <dt class="tray-detail-title">Original page title</dt>
+                <dd class="tray-detail-entry">{{link.submitted_title}}</dd>
+              </dl>
+            {% endif %}
             <dl class="tray-detail-group">
               <dt class="tray-detail-title">Record creation date</dt>
               <dd class="tray-detail-entry">{{ link.creation_timestamp|local_datetime }}</dd>
@@ -122,6 +138,20 @@
             {% endcomment %}
           </div>
           <div class="tray-actions">
+            {% if can_delete %}
+              <a class="btn btn-ui-small btn-dashboard user-delete"
+                href="{% url 'user_delete_link' link.guid %}">
+                Delete<span class="_verbose"> record</span>
+              </a>
+              <a class="btn btn-ui-small btn-dashboard btn-warning user-edit"
+                onclick="return SingleLinkModule.upload_form();">
+                Edit<span class="_verbose"> record
+              </a>
+            {% endif %}
+
+            {# if not request.user.is_authenticated or request.user.pk != link.created_by_id #}
+              <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-ui-small btn-dashboard flag" title="Flag as inappropriate">Flag<span class="_verbose"> as inappropriate</span></a>
+            {# endif #}
             {# user edit buttons #}
             {% if can_toggle_private %}
               <button class="btn btn-ui-small btn-dashboard darchive"><span class="_verbose">Mark as </span>{% if link.is_private %}Public{% else %}Private{% endif %}</button>
@@ -138,20 +168,6 @@
               {% endif %}
             {% endif %}
 
-            {% if can_delete %}
-              <a class="btn btn-ui-small btn-dashboard user-delete"
-                href="{% url 'user_delete_link' link.guid %}">
-                Delete<span class="_verbose"> record</span>
-              </a>
-              <a class="btn btn-ui-small btn-dashboard user-edit"
-                onclick="return SingleLinkModule.upload_form();">
-                Edit<span class="_verbose"> record
-              </a>
-            {% endif %}
-
-            {# if not request.user.is_authenticated or request.user.pk != link.created_by_id #}
-            <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-ui-small btn-dashboard flag" title="Flag as inappropriate">Flag<span class="_verbose"> as inappropriate</span></a>
-            {# endif #}
           </div>
         </div>
 
