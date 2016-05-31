@@ -187,14 +187,21 @@ PIPELINE_JS = {
     },
     'single-link': {
         'source_filenames': (
-            'vendors/jquery/jquery.form.min.js',
-            'js/error-handler.js',
-            'js/helpers/general.helpers.js',
+            'js/helpers/local-datetime.js',
             'js/single-link.module.js',
 
         ),
         'output_filename': 'js/single-link-bundle.js',
     },
+    'single-link-with-permissions': {
+        'source_filenames': (
+            'vendors/jquery/jquery.form.min.js',
+            'js/single-link.module.js',
+
+        ),
+        'output_filename': 'js/single-link-bundle.js',
+    },
+
     'doc-developer': {
         'source_filenames': (
             'js/helpers/pretty-print-json.js',

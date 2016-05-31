@@ -41,6 +41,9 @@
 		</section><!--/#main-->
 
         {% javascript 'global' %}
+        {% if can_delete %}
+          {% javascript 'global' %}
+        {% endif %}
 
         {% block scripts %}
         {% endblock %}
