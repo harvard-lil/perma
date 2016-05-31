@@ -2,7 +2,7 @@ from perma.models import *
 
 from .utils import PermaTestCase
 
-class CaptureJobTestCase(PermaTestCase):
+class LinkCountCachingTestCase(PermaTestCase):
 
     fixtures = [
         'fixtures/users.json',
@@ -10,7 +10,7 @@ class CaptureJobTestCase(PermaTestCase):
     ]
 
     def setUp(self):
-        super(CaptureJobTestCase, self).setUp()
+        super(LinkCountCachingTestCase, self).setUp()
 
         self.regular_user = LinkUser.objects.get(pk=4)
         self.org_user = LinkUser.objects.get(pk=3)
@@ -47,6 +47,12 @@ class CaptureJobTestCase(PermaTestCase):
         org_to_which_user_belongs.refresh_from_db()
         self.assertEqual(link_count + 1, org_to_which_user_belongs.link_count)
 
+        link.safe_delete()
+        link.save()
+
+        org_to_which_user_belongs.refresh_from_db()
+        self.assertEqual(link_count, org_to_which_user_belongs.link_count)
+
     def test_link_count_for_registrars(self):
         """ We do some link count tallying on save. Let's make sure
         we're adjusting the counts on the registrars """
@@ -59,3 +65,9 @@ class CaptureJobTestCase(PermaTestCase):
 
         registrar_to_which_user_belongs.refresh_from_db()
         self.assertEqual(link_count + 1, registrar_to_which_user_belongs.link_count)
+
+        link.safe_delete()
+        link.save()
+
+        registrar_to_which_user_belongs.refresh_from_db()
+        self.assertEqual(link_count, registrar_to_which_user_belongs.link_count)

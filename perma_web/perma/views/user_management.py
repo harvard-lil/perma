@@ -40,13 +40,13 @@ from perma.forms import (
     UserFormWithAdmin,
     UserAddAdminForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob
-from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_admin_email, filter_or_null_join, \
+from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_admin_email, \
     send_user_email, send_user_template_email, get_form_data
 
 logger = logging.getLogger(__name__)
-valid_member_sorts = ['last_name', '-last_name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'created_links_count', '-created_links_count']
-valid_registrar_sorts = ['name', '-name', 'created_links', '-created_links', '-date_created', 'date_created', 'last_active', '-last_active']
-valid_org_sorts = ['name', '-name', 'created_links', '-created_links', '-date_created', 'date_created', 'last_active', '-last_active', 'organization_users', 'organization_users']
+valid_member_sorts = ['last_name', '-last_name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'link_count', '-link_count']
+valid_registrar_sorts = ['name', '-name', 'link_count', '-link_count', '-date_created', 'date_created', 'last_active', '-last_active']
+valid_org_sorts = ['name', '-name', 'link_count', '-link_count', '-date_created', 'date_created', 'last_active', '-last_active', 'organization_users', 'organization_users']
 
 
 ### HELPERS ###
@@ -191,11 +191,7 @@ def manage_registrar(request):
             registrars = registrars.filter(is_approved=False)
 
     # handle annotations
-    registrars = registrars.filter(
-        # Before annotating with link count, filter out links with user_deleted=True.
-        *filter_or_null_join(organizations__links__user_deleted=False)
-    ).annotate(
-        created_links=Count('organizations__links',distinct=True),
+    registrars = registrars.annotate(
         registrar_users=Count('users', distinct=True),
         last_active=Max('users__last_login'),
         orgs_count=Count('organizations',distinct=True),
@@ -310,13 +306,9 @@ def manage_organization(request):
         registrar_filter = Registrar.objects.get(pk=registrar_filter)
 
     # add annotations
-    orgs = orgs.filter(
-            # Before annotating with link count, filter out links with user_deleted=True.
-            *filter_or_null_join(links__user_deleted=False)
-    ).annotate(
+    orgs = orgs.annotate(
         organization_users=Count('users', distinct=True),
         last_active=Max('users__last_login'),
-        org_links=Count('links', distinct=True),
     )
 
     # get total user count
@@ -488,7 +480,6 @@ def list_users_in_group(request, group_name):
     """
 
     is_registry = False
-    is_registrar = False
     users = LinkUser.objects.distinct().prefetch_related('organizations')  # .exclude(id=request.user.id)
 
     # handle sorting
@@ -497,25 +488,18 @@ def list_users_in_group(request, group_name):
     # handle search
     users, search_query = apply_search_query(request, users, ['email', 'first_name', 'last_name', 'organizations__name'])
 
-    # apply annotations
-    users = users.filter(
-            # Before annotating with link count, filter out links with user_deleted=True.
-            *filter_or_null_join(created_links__user_deleted=False)
-    )
-
     registrar_filter = request.GET.get('registrar', '')
 
     registrars = None
     orgs = None
 
-    # apply permissions limits and get counts
+    # apply permissions limits
     if request.user.is_staff:
         if registrar_filter:
             orgs = Organization.objects.filter(registrar__id=registrar_filter).order_by('name')
         else:
             orgs = Organization.objects.all().order_by('name')
-        registrars = Registrar.objects.all().order_by('name').aggregate(count=Sum('link_count'))
-        total_created_links_count = registrars['count']
+        registrars = Registrar.objects.all().order_by('name')
         is_registry = True
     elif request.user.is_registrar_member():
         if group_name == 'organization_user':
@@ -523,11 +507,9 @@ def list_users_in_group(request, group_name):
             orgs = Organization.objects.filter(registrar_id=request.user.registrar_id).order_by('name')
         else:
             users = users.filter(registrar=request.user.registrar)
-        total_created_links_count = request.user.registrar.link_count
         is_registrar = True
     elif request.user.is_organization_member:
         users = users.filter(organizations__in=request.user.organizations.all())
-        total_created_links_count = request.user.organizations.aggregate(count=Sum('link_count'))['count']
 
     # apply group filter
     if group_name == 'registry_user':
@@ -574,6 +556,7 @@ def list_users_in_group(request, group_name):
     if is_registry:
         deactivated_users = users.filter(is_confirmed=True, is_active=False).count()
     unactivated_users = users.filter(is_confirmed=False, is_active=False).count()
+    total_created_links_count = users.aggregate(count=Sum('link_count'))['count']
 
     # handle pagination
     users = apply_pagination(request, users)

@@ -27,21 +27,6 @@ def run_task(task, *args, **kwargs):
 
 ### list view helpers ###
 
-def filter_or_null_join(**queries):
-    """
-        This is for use in complex queries before doing an .annotate(Count()) on a join field. See user_management.py for examples.
-
-        Example:
-            orgs.filter(*filter_or_null_join(links__user_deleted=False))
-        Is equivalent to:
-            orgs.filter(Q(links__pk__isnull=True)|Q(links__pk__isnull=False, links__user_deleted=False))
-    """
-    filter_args = []
-    for key, val in queries.items():
-        key_id_isnull = "__".join(key.split("__")[:-1]+["pk"])+"__isnull"
-        filter_args.append(Q(**{key_id_isnull: True}) | Q(**{key_id_isnull: False, key: val}))
-    return filter_args
-
 def apply_search_query(request, queryset, fields):
     """
         For the given `queryset`,

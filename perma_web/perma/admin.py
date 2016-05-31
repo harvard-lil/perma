@@ -27,7 +27,7 @@ class LinkInline(admin.TabularInline):
 
 class RegistrarAdmin(SimpleHistoryAdmin):
     search_fields = ['name', 'email', 'website']
-    list_display = ['name', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'latitude', 'longitude', 'registrar_users', 'last_active', 'orgs_count']
+    list_display = ['name', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'latitude', 'longitude', 'registrar_users', 'last_active', 'orgs_count', 'link_count',]
     list_editable = ['show_partner_status', 'partner_display_name', 'latitude', 'longitude']
     fieldsets = (
         (None, {'fields': ('name', 'email', 'website', 'is_approved')}),
@@ -60,7 +60,7 @@ class RegistrarAdmin(SimpleHistoryAdmin):
 class OrganizationAdmin(SimpleHistoryAdmin):
     fields = ['name', 'registrar']
     search_fields = ['name']
-    list_display = ['name', 'registrar', 'org_users', 'last_active', 'first_active', 'user_deleted']
+    list_display = ['name', 'registrar', 'org_users', 'last_active', 'first_active', 'user_deleted', 'link_count',]
     list_filter = ['registrar', 'user_deleted']
     
     # statistics
@@ -121,7 +121,7 @@ class LinkUserAdmin(UserAdmin):
             'fields': ('email', 'password1', 'password2'),
         }),
     )
-    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'date_joined', 'last_login', 'created_links_count', 'registrar')
+    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_confirmed', 'date_joined', 'last_login', 'link_count', 'registrar')
     search_fields = ('first_name', 'last_name', 'email')
     list_filter = ('is_staff', 'is_active')
     ordering = None
@@ -130,12 +130,6 @@ class LinkUserAdmin(UserAdmin):
         new_class("CreatedLinksInline", InlineEditLinkMixin, LinkInline, fk_name='created_by', verbose_name_plural="Created Links"),
     ]
     filter_horizontal = ['organizations']
-
-    # statistics
-    def get_queryset(self, request):
-        return super(LinkUserAdmin, self).get_queryset(request).prefetch_related('created_links')
-    def created_links_count(self, obj):
-        return obj.created_links.count()
 
 
 class LinkAdmin(SimpleHistoryAdmin):
