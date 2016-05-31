@@ -99,69 +99,68 @@
         </div>
 
         <div id="collapse-details" class="details-segment ui-tray row collapse">
-            <div class="tray-details">
-            	<dl class="tray-detail-group">
-            		<dt class="tray-detail-title">Original page URL {% if capture.user_upload %}(unverified){% endif %}</dt>
-            		<dd class="tray-detail-entry">{{link.submitted_url}}</dd>
-				</dl>
-            	<dl class="tray-detail-group">
-					<dt class="tray-detail-title">Original page title</dt>
-            		<dd class="tray-detail-entry">{{link.submitted_title}}</dd>
-            	</dl>
-            	<dl class="tray-detail-group">
-            		<dt class="tray-detail-title">Record creation date</dt>
-            		<dd class="tray-detail-entry">{{ link.creation_timestamp|local_datetime }}</dd>
-				</dl>
-
-                {% comment %}
-                    {% if link.organization %}
-                    <dl class="tray-detail-group">
-                        <dt class="tray-detail-title">Archiving Organization</dt>
-                        <dd class="tray-detail-entry">{{ link.organization }}</dd>
-                    </dl>
-                    {% endif %}
-                {% endcomment %}
-
-                <!--
-                <p class="fp">Perma.cc is a web archiving service developed by the Library Innovation Lab at Harvard University. The data captured in the archived Perma.cc record is the copyright of its original creators. Neither Harvard University nor the archiving individual are responsible for its content. <a href="http://perma.cc/about">More about Perma.cc.</a></p>
-                -->
-
-            </div>
-            <div class="tray-actions">
-
-                {# user edit buttons #}
-                {% if can_toggle_private %}
-                    <button class="btn btn-ui-small btn-dashboard darchive"><span class="_verbose">Mark as </span>{% if link.is_private %}Public{% else %}Private{% endif %}</button>
-                    {% if request.user.is_staff %}
-                        {% if link.is_private %}
-                            (Private reason: {{ link.get_private_reason_display }})
-                        {% else %}
-                            <select name="private_reason">
-                                <option value="user"> At user direction</option>
-                                <option value="policy"> robots.txt or noarchive meta tag</option>
-                                <option value="takedown"> At content owner's request</option>
-                            </select>
-                        {% endif %}
-                    {% endif %}
+          <div class="tray-details">
+            <dl class="tray-detail-group">
+              <dt class="tray-detail-title">Original page URL {% if capture.user_upload %}(unverified){% endif %}</dt>
+              <dd class="tray-detail-entry">{{link.submitted_url}}</dd>
+            </dl>
+            <dl class="tray-detail-group">
+              <dt class="tray-detail-title">Original page title</dt>
+              <dd class="tray-detail-entry">{{link.submitted_title}}</dd>
+            </dl>
+            <dl class="tray-detail-group">
+              <dt class="tray-detail-title">Record creation date</dt>
+              <dd class="tray-detail-entry">{{ link.creation_timestamp|local_datetime }}</dd>
+            </dl>
+            {% comment %}
+              {% if link.organization %}
+                <dl class="tray-detail-group">
+                  <dt class="tray-detail-title">Archiving Organization</dt>
+                  <dd class="tray-detail-entry">{{ link.organization }}</dd>
+                </dl>
+              {% endif %}
+            {% endcomment %}
+          </div>
+          <div class="tray-actions">
+            {# user edit buttons #}
+            {% if can_toggle_private %}
+              <button class="btn btn-ui-small btn-dashboard darchive"><span class="_verbose">Mark as </span>{% if link.is_private %}Public{% else %}Private{% endif %}</button>
+              {% if request.user.is_staff %}
+                {% if link.is_private %}
+                  (Private reason: {{ link.get_private_reason_display }})
+                {% else %}
+                  <select name="private_reason">
+                    <option value="user"> At user direction</option>
+                    <option value="policy"> robots.txt or noarchive meta tag</option>
+                    <option value="takedown"> At content owner's request</option>
+                  </select>
                 {% endif %}
+              {% endif %}
+            {% endif %}
 
-                {% if can_delete %}
-                    <a class="btn btn-ui-small btn-dashboard user-delete" href="{% url 'user_delete_link' link.guid %}">Delete<span class="_verbose"> record</span></a>
-                    <a class="btn btn-ui-small btn-dashboard user-edit" onclick="return SingleLinkModule.upload_form();">Edit<span class="_verbose"> record</a>
-                {% endif %}
+            {% if can_delete %}
+              <a class="btn btn-ui-small btn-dashboard user-delete"
+                href="{% url 'user_delete_link' link.guid %}">
+                Delete<span class="_verbose"> record</span>
+              </a>
+              <a class="btn btn-ui-small btn-dashboard user-edit"
+                onclick="return SingleLinkModule.upload_form();">
+                Edit<span class="_verbose"> record
+              </a>
+            {% endif %}
 
-                {# if not request.user.is_authenticated or request.user.pk != link.created_by_id #}
-                <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-ui-small btn-dashboard flag" title="Flag as inappropriate">Flag<span class="_verbose"> as inappropriate</span></a>
-                {# endif #}
-            </div>
+            {# if not request.user.is_authenticated or request.user.pk != link.created_by_id #}
+            <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-ui-small btn-dashboard flag" title="Flag as inappropriate">Flag<span class="_verbose"> as inappropriate</span></a>
+            {# endif #}
+          </div>
         </div>
-		
-		{% if can_view and link.is_private %}
-	        <div class="banner banner-status row _isDarchive">
-		        <strong>This record is private{% if link.private_reason == 'policy' %} by Perma.cc policy{% elif link.private_reason == 'takedown' %} at the content owner's request{% endif %}.</strong>
+
+        {% if can_view and link.is_private %}
+          <div class="banner banner-status row _isDarchive">
+            <strong>This record is private{% if link.private_reason == 'policy' %} by Perma.cc policy{% elif link.private_reason == 'takedown' %} at the content owner's request{% endif %}.</strong>
                 It’s only visible to {% if link.organization %}members of {{ link.organization }} and the {{ link.organization.registrar }} registrar{% else %}you{% endif %}.
                 {% if link.private_reason == 'user' %}You can make this link public under 'Show record details.'{% endif %}
-	        </div>
+          </div>
         {% endif %}
        
         {% if new_record %}
