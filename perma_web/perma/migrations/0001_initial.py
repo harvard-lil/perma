@@ -337,12 +337,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='linkuser',
             name='organizations',
-            field=models.ManyToManyField(help_text=b'If set, this user is an org member. This should not be set if registrar is set!', related_name='users', to='perma.Organization', blank=True),
+            field=models.ManyToManyField(help_text=b'If set, this user is an org user. This should not be set if registrar is set!', related_name='users', to='perma.Organization', blank=True),
         ),
         migrations.AddField(
             model_name='linkuser',
             name='registrar',
-            field=models.ForeignKey(related_name='users', blank=True, to='perma.Registrar', help_text=b'If set, this user is a registrar member. This should not be set if org is set!', null=True),
+            field=models.ForeignKey(related_name='users', blank=True, to='perma.Registrar', help_text=b'If set, this user is a registrar user. This should not be set if org is set!', null=True),
         ),
         migrations.AddField(
             model_name='linkuser',
