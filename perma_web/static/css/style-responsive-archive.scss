@@ -1651,8 +1651,35 @@ body.modal-open {
   font-weight: 400;
   color: $color-trans-gray;
   display: block;
-  @include respond-tablet {
+  @include respond-mobile {
     float: right;
     display: inline-block;
+  }
+}
+
+#collapse-details {
+  .tray-detail-title {
+    margin-bottom: 5px;
+  }
+  input {
+    padding-left: 6px;
+  }
+  .save-status {
+    color: $color-orange;
+    margin-top: 0;
+    margin-left: .7em;
+    font-weight: 700;
+  }
+  .btn-file-upload-container {
+    margin-left: 5px;
+  }
+  .btn-file-upload {
+    padding: 7px;
+    border: 0px;
+    background-color: $color-trans-lightgray;
+  }
+  #updateLinky {
+    background: $color-blue;
+    color: white;
   }
 }

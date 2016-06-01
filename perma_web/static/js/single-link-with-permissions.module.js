@@ -39,39 +39,41 @@ SingleLinkModule.setupEventHandlers = function () {
   $('#archive_upload_form')
     .submit(function(e) {
       e.preventDefault();
-      var url = "/archives/"+archive.guid+"/";
-      var data = {};
-      data['file'] = $('#archive_upload_form').find('.file')[0].files[0];
-
-      var requestArgs = {
-        contentType: false,
-        processData: false
-      };
-      if (window.FormData) {
-        Helpers.sendFormData("PATCH", url, data, requestArgs)
-        .done(function(data){
-          location=location;
-        });
-      } else {
-        $('#upload-error').text('Your browser version does not allow for this action. Please use a more modern browser.');
-      }
+      SingleLinkModule.submitFile();
     });
 
   $('#collapse-details')
     .find('input')
     .on('input propertychange change', function () {
       var inputarea = $(this);
-      SingleLinkModule.saveInput(inputarea);
-    });
+      var name = inputarea.attr("name");
+      if (name == "file") return
+      var statusElement = inputarea.parent().find(".save-status");
 
-  $('#collapse-details')
-    .find('textarea')
-    .on('textchange', function () {
-      var textarea = $(this);
-      SingleLinkModule.saveInput(textarea);
+      SingleLinkModule.saveInput(inputarea, name, statusElement);
     });
 
   $(window).on('resize', function () { SingleLinkModule.adjustTopMargin(); });
+}
+
+SingleLinkModule.submitFile = function () {
+  $('#updateLinky').prop('disabled', true);
+  var url = "/archives/"+archive.guid+"/";
+  var data = {};
+  data['file'] = $('#archive_upload_form').find('.file')[0].files[0];
+
+  var requestArgs = {
+    contentType: false,
+    processData: false
+  };
+  if (window.FormData) {
+    Helpers.sendFormData("PATCH", url, data, requestArgs)
+    .done(function(data){
+      location=location;
+    });
+  } else {
+    $('#upload-error').text('Your browser version does not allow for this action. Please use a more modern browser.');
+  }
 }
 
 SingleLinkModule.handleShowDetails = function () {
@@ -109,22 +111,17 @@ SingleLinkModule.handleDarchiving = function (context) {
   }
 }
 
-SingleLinkModule.upload_form = function () {
-  $('#linky-confirm').modal('hide');
-  $('#upload-error').text('');
-  $('#archive_upload_form').removeAttr('action').removeAttr('method');
-  $('#archive-upload').modal('show');
-  return false;
-}
-
-SingleLinkModule.saveInput = function (inputElement) {
-  var statusElement = $('.save-status')[0];
+SingleLinkModule.saveInput = function (inputElement, name, statusElement) {
   $(statusElement).html('Saving...');
-
   var data = {};
-  data["title"] = $(inputElement[0]).val();
-  Helpers.apiRequest("PATCH", '/archives/' + archive.guid + '/', data)
-    .done(function(data){
-      $(statusElement).html('Saved!');
-    });
+  data[name] = inputElement.val();
+  if(timeouts[archive.guid])
+    clearTimeout(timeouts[archive.guid]);
+
+  timeouts[archive.guid] = setTimeout(function () {
+    Helpers.apiRequest("PATCH", '/archives/' + archive.guid + '/', data)
+      .done(function(data){
+        $(statusElement).html('Saved!');
+      });
+  }, 500)
 }
