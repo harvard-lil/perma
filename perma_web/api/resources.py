@@ -525,8 +525,6 @@ class LinkResource(AuthenticatedLinkResource):
             if kwargs['request']:
                 del kwargs['request']
 
-            link = Link.objects.get(pk=kwargs['pk'])
-
             bundle.obj = self.obj_get(bundle=bundle, **kwargs)
             bundle.data["replace"]=True
 
@@ -540,8 +538,6 @@ class LinkResource(AuthenticatedLinkResource):
             bundle.data.setdefault('folder', Folder.objects.accessible_to(bundle.request.user).filter(links=bundle.obj).first())
 
             bundle = self.obj_create(bundle=bundle, **kwargs)
-
-            bundle.obj.clear_cache()
 
         else:
             is_private = bundle.obj.is_private
@@ -562,6 +558,9 @@ class LinkResource(AuthenticatedLinkResource):
                         run_task(delete_from_internet_archive.s(link_guid=bundle.obj.guid))
             links_remaining = bundle.request.user.get_links_remaining()
             bundle.data['links_remaining'] = links_remaining
+
+        bundle.obj.clear_cache()
+        
         return bundle
 
     # https://github.com/toastdriven/django-tastypie/blob/ec16d5fc7592efb5ea86321862ec0b5962efba1b/tastypie/resources.py#L2194

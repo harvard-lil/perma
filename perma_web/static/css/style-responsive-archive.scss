@@ -866,6 +866,7 @@ li.dropdown {
 */
 
 .dropdown-menu   { // review
+	@include style-dropdown-items;
 	position: relative;
     float: none;
     width: auto;
@@ -892,15 +893,7 @@ li.dropdown {
 	@include respond-desktop {
 		top: 64px;
 	}
-	& > li > a {
-		font-family: $font-hed-alt;
-		padding: $half 12px $half $grid * 3;
-		font-size: $size-body;
-		text-align: right;
-		&:hover, &:focus {
-			background-color: $color-hover;
-			color: white;
-		}
+	& > li > a, & > li button {
 		@include respond-tablet {
 			padding-right: 20px;
 		}

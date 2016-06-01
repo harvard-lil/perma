@@ -88,6 +88,7 @@ class Registrar(models.Model):
     logo = models.ImageField(upload_to='registrar_logos', blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
+    link_count = models.IntegerField(default=0) # A cache of the number of links under this registrars's purview (sum of all associated org links)
 
     tracker = FieldTracker()
     history = HistoricalRecords()
@@ -130,6 +131,7 @@ class Organization(DeletableModel):
     shared_folder = models.OneToOneField('Folder', blank=True, null=True, related_name="organization_")  # related_name isn't used, just set to avoid name collision with Folder.organization
     date_created = models.DateTimeField(auto_now_add=True, null=True)
     default_to_private = models.BooleanField(default=False)
+    link_count = models.IntegerField(default=0) # A cache of the number of links under this org's purview
 
     objects = OrganizationManager()
     tracker = FieldTracker()
@@ -209,6 +211,7 @@ class LinkUser(AbstractBaseUser):
     root_folder = models.OneToOneField('Folder', blank=True, null=True)
     requested_account_type = models.CharField(max_length=45, blank=True, null=True)
     requested_account_note = models.CharField(max_length=45, blank=True, null=True)
+    link_count = models.IntegerField(default=0) # A cache of the number of links created by this user
 
     objects = LinkUserManager()
     tracker = FieldTracker()

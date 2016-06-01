@@ -3062,7 +3062,7 @@ li.dropdown {
 	@include respond-desktop {
 		top: 85px;
 	}
-	& > li > a {
+	& > li > a, & > li button {
 		@include respond-tablet {
 			padding-right: 20px;
 		}

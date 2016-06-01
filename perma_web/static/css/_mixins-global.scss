@@ -427,6 +427,7 @@ $width-max-respond: $width-wide; 			// 1200px;
 	    list-style: none;
 	}
 	& > li > a, & > li button {
+		color: black;
 		font-family: $font-hed-alt;
 		padding: $half 12px $half $grid * 3;
 		font-size: $size-body;
