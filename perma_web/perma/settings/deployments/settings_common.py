@@ -187,7 +187,6 @@ PIPELINE_JS = {
     },
     'single-link': {
         'source_filenames': (
-            'js/helpers/local-datetime.js',
             'js/single-link.module.js',
 
         ),
