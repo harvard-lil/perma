@@ -202,7 +202,7 @@ class RegistrarResource(DefaultResource):
 
     class Meta(DefaultResource.Meta):
         resource_name = 'registrars'
-        queryset = Registrar.objects.all()
+        queryset = Registrar.objects.approved()
 
     class Nested:
         organizations = fields.ToManyField('api.resources.OrganizationResource', 'organizations', null=True)

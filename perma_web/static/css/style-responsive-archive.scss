@@ -1056,18 +1056,18 @@ p.fp {
 }
 
 .tray-actions {
-	padding-top: $double;
-    padding-bottom: $double;
-    background-color: $color-background;
-    text-align: left;
-    padding-left: $double;
-    padding-right: $grid;
-	margin-top: $half;
-	overflow: auto;
-	@include respond-desktop {
-	    padding-left: $grid * 3;
-	    padding-right: $double;
-	}
+  padding-top: $double;
+  padding-bottom: $double;
+  background-color: $color-background;
+  text-align: left;
+  padding-left: $double;
+  padding-right: $grid;
+  margin-top: -1px;
+  overflow: auto;
+  @include respond-desktop {
+    padding-left: $grid * 3;
+    padding-right: $double;
+  }
 }
 
 ._verbose, 
@@ -1643,9 +1643,48 @@ body.modal-open {
   font-family: $font-hed-alt;
   font-weight: 400;
   color: $color-trans-gray;
-  display: block;
-  @include respond-tablet {
+  @include respond-mobile {
     float: right;
     display: inline-block;
+  }
+}
+.label-asterisk {
+  font-size: 13px;
+  margin-left: 3px;
+  color: $color-orange;
+}
+#collapse-details {
+  .tray-detail-title {
+    margin-bottom: 5px;
+  }
+  .temporary-options {
+    background-color: $color-trans-whispergray;
+  }
+  input {
+    padding-left: 6px;
+  }
+  .save-status {
+    color: $color-orange;
+    margin-top: 0;
+    margin-left: .7em;
+    font-weight: 700;
+  }
+  .btn-file-upload-container {
+    margin-left: 5px;
+  }
+  .btn-file-upload {
+    background-color: $color-trans-lightgray;
+  }
+  .blue-button {
+    background: $color-blue;
+    color: white;
+    font-size: 12px;
+    padding: 7px;
+    border: 0px;
+    font-weight: 300;
+  }
+  .temporary-instructions {
+    position: relative;
+    top: -6px;
   }
 }

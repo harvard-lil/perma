@@ -171,7 +171,7 @@ def build_week_stats():
         orgs_this_week += Organization.objects.filter(date_created__year=date_of_stats.year,
             date_created__month=date_of_stats.month, date_created__day=date_of_stats.day).count()
 
-        registrars_this_week += Registrar.objects.filter(date_created__year=date_of_stats.year,
+        registrars_this_week += Registrar.objects.approved().filter(date_created__year=date_of_stats.year,
             date_created__month=date_of_stats.month, date_created__day=date_of_stats.day).count()
 
         # if this is a saturday, write our sums and reset our counts

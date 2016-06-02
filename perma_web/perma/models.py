@@ -73,6 +73,10 @@ class DeletableModel(models.Model):
 
 ### MODELS ###
 
+class RegistrarQuerySet(QuerySet):
+    def approved(self):
+        return self.filter(status="approved")
+
 class Registrar(models.Model):
     """
     This is generally a library.
@@ -81,7 +85,7 @@ class Registrar(models.Model):
     email = models.EmailField(max_length=254)
     website = models.URLField(max_length=500)
     date_created = models.DateTimeField(auto_now_add=True, null=True)
-    is_approved = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, default='pending', choices=(('pending','pending'),('approved','approved'),('denied','denied')))
 
     show_partner_status = models.BooleanField(default=False, help_text="Whether to show this registrar in our list of partners.")
     partner_display_name = models.CharField(max_length=400, blank=True, null=True, help_text="Optional. Use this to override 'name' for the partner list.")
@@ -90,6 +94,7 @@ class Registrar(models.Model):
     longitude = models.FloatField(blank=True, null=True)
     link_count = models.IntegerField(default=0) # A cache of the number of links under this registrars's purview (sum of all associated org links)
 
+    objects = RegistrarQuerySet.as_manager()
     tracker = FieldTracker()
     history = HistoricalRecords()
 
@@ -198,8 +203,9 @@ class LinkUser(AbstractBaseUser):
         db_index=True,
         error_messages={'unique': u"A user with that email address already exists.",}
     )
+    
     registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar user. This should not be set if org is set!")
-    pending_registrar = models.IntegerField(blank=True, null=True)
+    pending_registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='pending_users')
     organizations = models.ManyToManyField(Organization, blank=True, related_name='users', help_text="If set, this user is an org user. This should not be set if registrar is set!")
     is_active = models.BooleanField(default=False)
     is_confirmed = models.BooleanField(default=False)
@@ -1234,7 +1240,7 @@ class CDXLineManager(models.Manager):
 
 
 class CDXLine(models.Model):
-    link_id = models.CharField(null=True, max_length=2100, db_index=True)
+    link_id = models.CharField(null=True, max_length=255, db_index=True)
     urlkey = models.CharField(max_length=2100, null=False, blank=False)
     raw = models.TextField(null=False, blank=False)
     is_unlisted = models.BooleanField(default=False)

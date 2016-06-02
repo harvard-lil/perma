@@ -40,7 +40,9 @@
 			</div><!--/#main-content"-->
 		</section><!--/#main-->
 
-        {% javascript 'global' %}
+        {% if can_edit %}
+          {% javascript 'global' %}
+        {% endif %}
 
         {% block scripts %}
         {% endblock %}

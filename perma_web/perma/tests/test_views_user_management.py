@@ -19,6 +19,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.registrar_user = LinkUser.objects.get(pk=2)
         self.regular_user = LinkUser.objects.get(pk=4)
         self.registrar = self.registrar_user.registrar
+        self.pending_registrar = Registrar.objects.get(pk=2)
         self.unrelated_registrar = Registrar.objects.exclude(pk=self.registrar.pk).first()
         self.unrelated_registrar_user = self.unrelated_registrar.users.first()
         self.organization = Organization.objects.get(pk=1)
@@ -79,6 +80,22 @@ class UserManagementViewsTestCase(PermaTestCase):
                  user=self.registrar_user,
                  reverse_kwargs={'args': [self.unrelated_registrar.pk]},
                  require_status_code=404)
+
+    def test_admin_can_approve_pending_registrar(self):
+        self.submit_form('user_management_approve_pending_registrar',
+                         user=self.admin_user,
+                         data={'status':'approved'},
+                         reverse_kwargs={'args': [self.pending_registrar.pk]},
+                         success_query=Registrar.objects.filter(pk=self.pending_registrar.pk,
+                                                                status="approved").exists())
+
+    def test_admin_can_deny_pending_registrar(self):
+        self.submit_form('user_management_approve_pending_registrar',
+                         user=self.admin_user,
+                         data={'status': 'denied'},
+                         reverse_kwargs={'args': [self.pending_registrar.pk]},
+                         success_query=Registrar.objects.filter(pk=self.pending_registrar.pk,
+                                                                status="denied").exists())
 
     ### ORGANIZATION A/E/D VIEWS ###
 

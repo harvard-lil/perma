@@ -2,34 +2,39 @@
 {% block title %} | Approve pending registrar{% endblock %}
 
 {% block dashboardContent %}
-	
-	{% if target_registrar.is_approved %}
-	<h3 class="body-bh">Already approved!</h3>
-	<p class="body-text">This organization has already been approved as a registrar.</p>
-	{% else %}
-	<h3 class="body-bh">Approve this registrar?</h3>
-	<p class="body-text">The following organization requested a registrar account on <strong>{{ target_registrar.date_created|date:'N j, Y'}}</strong> .</p>
-	
-	<h4 class="body-ch">Registrar information</h4>
-	<ul class="data-list">
-        <li>{{target_registrar.name}}</li>
-        <li>{{target_registrar.email}}</li>
-        <li><a href="{{target_registrar.website}}" target="_blank">{{target_registrar.website}}</a></li>
-	</ul>
 
-	<h4 class="body-ch">Requested by</h4>
-	<ul class="data-list">
-	    {% if target_registrar_user.first_name and target_registrar_user.last_name %}
-	    <li>{{target_registrar_user.first_name}} {{target_registrar_user.last_name}}</li>
-	    {% endif %}
-	    <li>{{target_registrar_user.email}}</li>
-	</ul>
+  {% if target_registrar.status == "approved" %}
+    <h3 class="body-bh">Already approved!</h3>
+    <p class="body-text">This organization has already been approved as a registrar.</p>
+  {% else %}
+    <h3 class="body-bh">Approve this registrar?</h3>
+    <p class="body-text">The following organization requested a registrar account on <strong>{{ target_registrar.date_created|date:'N j, Y'}}</strong>.</p>
+
+    {% if target_registrar.status == "denied" %}
+      <p class="body-text"><strong>This registrar request has previously been marked denied. Clicking "Approve" will change it to approved.</strong></p>
+    {% endif %}
+
+    <h4 class="body-ch">Registrar information</h4>
+    <ul class="data-list">
+      <li>{{target_registrar.name}}</li>
+      <li>{{target_registrar.email}}</li>
+      <li><a href="{{target_registrar.website}}" target="_blank">{{target_registrar.website}}</a></li>
+    </ul>
+
+    <h4 class="body-ch">Requested by</h4>
+    <ul class="data-list">
+      {% if target_registrar_user.first_name and target_registrar_user.last_name %}
+        <li>{{target_registrar_user.first_name}} {{target_registrar_user.last_name}}</li>
+      {% endif %}
+      <li>{{target_registrar_user.email}}</li>
+    </ul>
 
     <form action="" method="POST">
-	    {% csrf_token %}
-        <a class="btn cancel" href="../">Cancel</a>
-        <button type="submit" class="btn delete-confirm">Approve</button>
+      {% csrf_token %}
+      <a class="btn cancel" href="../">Cancel</a>
+      <button type="submit" name="status" value="approved" class="btn delete-confirm">Approve</button>
+      <button type="submit" name="status" value="denied" class="btn delete-confirm">Deny</button>
     </form>
-    {% endif %}
+  {% endif %}
 
 {% endblock %}

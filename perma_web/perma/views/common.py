@@ -94,7 +94,7 @@ def faq(request):
     """
     The faq page
     """
-    registrars_count = Registrar.objects.all().count()
+    registrars_count = Registrar.objects.approved().count()
     orgs_count = Organization.objects.all().count()
     users_count = LinkUser.objects.all().count()
     links_count = Link.objects.filter(is_private=False).count()
@@ -170,7 +170,7 @@ def single_linky(request, guid):
     context = {
         'link': link,
         'can_view': request.user.can_view(link),
-        'can_edit': request.user.can_view(link),
+        'can_edit': request.user.can_edit(link),
         'can_delete': request.user.can_delete(link),
         'can_toggle_private': request.user.can_toggle_private(link),
         'capture': capture,

@@ -6,159 +6,171 @@
 
 {% block dashboardContent %}
 
-	<h2 class="body-ah">Registrars <span class="action"><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add<span class="_verbose"> registrar</span></a></span></h2>
+  <h2 class="body-ah">Registrars <span class="action"><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add<span class="_verbose"> registrar</span></a></span></h2>
 
-	{% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.level_tag }} alert-block">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
-        {% endfor %}
-    {% endif %}
-		<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
-			<form method="post" novalidate>
-				{% csrf_token %}
-				<h4 class="body-ch">Add a Registrar</h4>
-        {% include "includes/fieldset.html" with form_classes="fg-100" %}
-				<button type="submit" class="btn">Create new registrar</button>
-			</form>
-		</div>
-    
-    <div class="row row-no-bleed admin-data">
-        <div class="col col-xs-6 col-no-gutter admin-data-point">
-            <p class="count-label">Organizations</p>
-            <p class="count-number">{{ orgs_count.count }}</p>
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.level_tag }} alert-block">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
+    {% endfor %}
+  {% endif %}
+  <div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <h4 class="body-ch">Add a Registrar</h4>
+      {% include "includes/fieldset.html" with form_classes="fg-100" %}
+      <button type="submit" class="btn">Create new registrar</button>
+    </form>
+  </div>
+
+  <div class="row row-no-bleed admin-data">
+    <div class="col col-xs-6 col-no-gutter admin-data-point">
+      <p class="count-label">Organizations</p>
+      <p class="count-number">{{ orgs_count.count }}</p>
+    </div>
+    <div class="col col-xs-6 col-no-gutter admin-data-point">
+      <p class="count-label">Registrars</p>
+      <p class="count-number">{{ registrars.paginator.count }}</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-12">
+      {% include "user_management/includes/search_form.html" with search_placeholder="Search Registrars" %}
+    </div>
+  </div><!-- search -->
+
+  {% if search_query %}
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="remove-search-filters">
+          <span class="filters-title">Filters: </span>
+          <span class="filter-label">Search</span> <strong>{{search_query}}</strong>
+          <a class="action remove-filters" href="?sort=name"><i class="icon-remove-sign"></i> Clear all filters</a>
         </div>
-        <div class="col col-xs-6 col-no-gutter admin-data-point">
-            <p class="count-label">Registrars</p>
-            <p class="count-number">{{ registrars.paginator.count }}</p>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="row row-no-bleed">
+    <div class="col admin-found col-no-gutter">
+      <p class="sort-filter-count"><strong>Found:</strong> {{ registrars.paginator.count }} registrar{{ registrars.paginator.count|pluralize }}</p>
+      <div class="sort-filter-bar">
+        <strong>Filter &amp; Sort:</strong>
+        <div class="dropdown">
+          <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
+            Status <span class="caret"></span>
+          </a>
+
+
+          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+            <li>
+              <a {% if status == 'approved' %}class="selected" {% endif %}href="?{% current_query_string status="approve" %}"><i class="icon-ok"></i> Approved</a>
+              <a {% if status == 'pending' %}class="selected" {% endif %}href="?{% current_query_string status="pending" %}"><i class="icon-ok"></i> Needs approval</a>
+              <a {% if status == 'denied' %}class="selected" {% endif %}href="?{% current_query_string status="denied" %}"><i class="icon-ok"></i> Denied</a>
+            </li>
+          </ul>
         </div>
+        <div class="dropdown">
+          <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
+            Sort <span class="caret"></span>
+          </a>
+
+          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+            <li>
+              <a {% if sort == 'name' %}class="selected" {% endif %}href="?{% current_query_string sort="name" %}"><i class="icon-ok"></i> Name A - Z</a>
+              <a {% if sort == '-name' %}class="selected" {% endif %} href="?{% current_query_string sort="-name" %}"><i class="icon-ok"></i> Name Z - A</a>
+              <a {% if sort == '-date_created' %}class="selected" {% endif %} href="?{% current_query_string sort="-date_created" %}"><i class="icon-ok"></i> Newest</a>
+              <a {% if sort == 'date_created' %}class="selected" {% endif %} href="?{% current_query_string sort="date_created" %}"><i class="icon-ok"></i> Oldest</a>
+              <a {% if sort == '-last_active' %}class="selected" {% endif %} href="?{% current_query_string sort="-last_active" %}"><i class="icon-ok"></i> Recently active</a>
+              <a {% if sort == 'last_active' %}class="selected" {% endif %} href="?{% current_query_string sort="last_active" %}"><i class="icon-ok"></i> Least recently active</a>
+              <a {% if sort == '-link_count' %}class="selected" {% endif %} href="?{% current_query_string sort="-link_count" %}"><i class="icon-ok"></i> Most links</a>
+              <a {% if sort == 'link_count' %}class="selected" {% endif %} href="?{% current_query_string sort="link_count" %}"><i class="icon-ok"></i> Least links</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% if registrars %}
+    {% for registrar in registrars %}
+      {% if registrar.status != "approved" %}
+        <div class="item-container muted ">
+      {% else %}
+        <div class="item-container">
+      {% endif %}
+
+    <div class="col col-sm-8 col-no-gutter">
+      <div class="item-title">
+        {{ registrar.name }}
+        {% if registrar.status == "pending" %}
+          <a class="text-warning" href="{% url 'user_management_approve_pending_registrar' registrar.id %}"> needs approval</a>
+        {% endif %}
+      </div>
+      <div class="item-subtitle">{{ registrar.email }}</div>
+      <div class="item-subtitle"><a href="{{ registrar.website }}">{{registrar.website}}</a></div>
+      <div class="row row-half-bleed item-count-groups">
+        <div class="col col-xs-12 col-md-4 col-half-gutter">
+          <div class="item-count-group">
+            <strong class="list-count-number">{{ registrar.link_count|intcomma }}</strong>
+            <span class="item-count-label">links</span>
+          </div>
+        </div>
+        <div class="col col-xs-12 col-md-4 col-half-gutter">
+          <div class="item-count-group">
+            <strong class="list-count-number">{{ registrar.orgs_count }}</strong>
+            <span class="item-count-label">org{{ registrar.orgs_count|pluralize }} <a href="{% url 'user_management_manage_organization' %}?registrar={{registrar.id}}">View</a></span>
+          </div>
+        </div>
+        <div class="col col-xs-12 col-md-4 col-half-gutter">
+          <div class="item-count-group">
+            <strong class="list-count-number right">{{ registrar.registrar_users }}</strong>
+            <span class="item-count-label">registrar users <a href="{% url 'user_management_manage_registrar_user' %}?registrar={{registrar.id}}">View</a></span>
+          </div>
+        </div>
+      </div>
     </div>
 
-	<div class="row">
-		<div class="col-sm-12">
-			{% include "user_management/includes/search_form.html" with search_placeholder="Search Registrars" %}
-		</div>
-	</div><!-- search -->
-
-    {% if search_query %}
-        <div class="row">
-            <div class="col-sm-12">
-				<div class="remove-search-filters">
-					<span class="filters-title">Filters: </span>
-					<span class="filter-label">Search</span> <strong>{{search_query}}</strong>
-					<a class="action remove-filters" href="?sort=name"><i class="icon-remove-sign"></i> Clear all filters</a>
-				</div>
-            </div>
-        </div>
-    {% endif %}
-
-        <div class="row row-no-bleed">
-            <div class="col admin-found col-no-gutter">
-                <p class="sort-filter-count"><strong>Found:</strong> {{ registrars.paginator.count }} registrar{{ registrars.paginator.count|pluralize }}</p>
-                <div class="sort-filter-bar">
-				<strong>Filter &amp; Sort:</strong>
-                <div class="dropdown">
-                  <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
-                    Status <span class="caret"></span>
-                  </a>
-                
-                
-                  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                    <li>
-                        <a {% if status == 'approved' %}class="selected" {% endif %}href="?status=approved&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}"><i class="icon-ok"></i> Approved</a>
-                        <a {% if status == 'pending' %}class="selected" {% endif %}href="?status=pending&page={{ registrars.number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}"><i class="icon-ok"></i> Needs approval</a>
-                    </li>
-                  </ul>
-                </div>
-                <div class="dropdown">
-                  <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
-                    Sort <span class="caret"></span>
-                  </a>
-                
-                  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                    <li>
-                        <a {% if sort == 'name' %}class="selected" {% endif %}href="?{% current_query_string sort="name" %}"><i class="icon-ok"></i> Name A - Z</a>
-                        <a {% if sort == '-name' %}class="selected" {% endif %} href="?{% current_query_string sort="-name" %}"><i class="icon-ok"></i> Name Z - A</a>
-                        <a {% if sort == '-date_created' %}class="selected" {% endif %} href="?{% current_query_string sort="-date_created" %}"><i class="icon-ok"></i> Newest</a>
-                        <a {% if sort == 'date_created' %}class="selected" {% endif %} href="?{% current_query_string sort="date_created" %}"><i class="icon-ok"></i> Oldest</a>
-                        <a {% if sort == '-last_active' %}class="selected" {% endif %} href="?{% current_query_string sort="-last_active" %}"><i class="icon-ok"></i> Recently active</a>
-                        <a {% if sort == 'last_active' %}class="selected" {% endif %} href="?{% current_query_string sort="last_active" %}"><i class="icon-ok"></i> Least recently active</a>
-                        <a {% if sort == '-link_count' %}class="selected" {% endif %} href="?{% current_query_string sort="-link_count" %}"><i class="icon-ok"></i> Most links</a>
-                        <a {% if sort == 'link_count' %}class="selected" {% endif %} href="?{% current_query_string sort="link_count" %}"><i class="icon-ok"></i> Least links</a>
-                    </li>
-                  </ul>
-                </div>
-            </div>
-            </div>
-        </div>
-        {% if registrars %}
-          {% for registrar in registrars %}
-            {% if not registrar.is_approved %}
-            <div class="item-container muted ">
-            {% else %}
-            <div class="item-container">
-            {% endif %}
-
-            <div class="col col-sm-8 col-no-gutter">
-	            <div class="item-title">{{ registrar.name }}{% if not registrar.is_approved %} <a class="text-warning" href="{% url 'user_management_approve_pending_registrar' registrar.id %}"> needs approval</a>{% endif %}</div>
-				<div class="item-subtitle">{{ registrar.email }}</div>
-				<div class="item-subtitle"><a href="{{ registrar.website }}">{{registrar.website}}</a></div>
-			    <div class="row row-half-bleed item-count-groups">
-					<div class="col col-xs-12 col-md-4 col-half-gutter">
-            <div class="item-count-group">
-							<strong class="list-count-number">{{ registrar.link_count|intcomma }}</strong>
-							<span class="item-count-label">links</span>
-            </div>
-					</div>
-					<div class="col col-xs-12 col-md-4 col-half-gutter">
-				        <div class="item-count-group">
-							<strong class="list-count-number">{{ registrar.orgs_count }}</strong>
-							<span class="item-count-label">org{{ registrar.orgs_count|pluralize }} <a href="{% url 'user_management_manage_organization' %}?registrar={{registrar.id}}">View</a></span>
-				        </div>
-					</div>
-					<div class="col col-xs-12 col-md-4 col-half-gutter">
-				        <div class="item-count-group">
-							<strong class="list-count-number right">{{ registrar.registrar_users }}</strong>
-							<span class="item-count-label">registrar users <a href="{% url 'user_management_manage_registrar_user' %}?registrar={{registrar.id}}">View</a></span>
-						</div>
-					</div>
-			    </div>
-            </div>
-
-            <div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
-	            {% if not registrar.is_approved %}
-	            <a class="action action-approve" href="{% url 'user_management_approve_pending_registrar' registrar.id %}">Review and approve</a>
-	            {% else %}
-	            <a class="action" href="{% url 'user_management_manage_single_registrar' registrar.id %}">edit</a>
-	            {% if request.user.is_staff %}
-	            <a class="action" href="{% url "admin:perma_registrar_change" registrar.id %}">edit in admin console</a>
-	            {% endif %}
-	            {% endif %}
-                <p class="item-activity">
-		              {% if not registrar.is_approved %}requested{% else %}created{% endif %} {{ registrar.date_created|date:'N j, Y'}}
-		              <br>
-		              {% if registrar.last_active %}
-		                last active {{ registrar.last_active|date:'N j, Y'}}
-		              {% else %}
-		                no activity
-		              {% endif %}
-	            </p>
-            </div>
-		</div>
+    <div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
+      {% if registrar.status != "approved" %}
+        <a class="action action-approve" href="{% url 'user_management_approve_pending_registrar' registrar.id %}">
+          {% if registrar.status == "pending" %}
+            Review and approve
+          {% else %}
+            Denied
+          {% endif %}
+        </a>
+      {% else %}
+        <a class="action" href="{% url 'user_management_manage_single_registrar' registrar.id %}">edit</a>
+        {% if request.user.is_staff %}
+          <a class="action" href="{% url "admin:perma_registrar_change" registrar.id %}">edit in admin console</a>
+        {% endif %}
+      {% endif %}
+      <p class="item-activity">
+        {% if registrar.status == "pending" %}requested{% else %}created{% endif %} {{ registrar.date_created|date:'N j, Y'}}
+        <br>
+        {% if registrar.last_active %}
+          last active {{ registrar.last_active|date:'N j, Y'}}
+        {% else %}
+          no activity
+        {% endif %}
+      </p>
+    </div>
+    </div>
     {% endfor %}
-    {% else %}
-        <p class="item-notification">No registrars found.</p>
-    {% endif %}
+  {% else %}
+    <p class="item-notification">No registrars found.</p>
+  {% endif %}
 
 
-    {% include "user_management/includes/paginator.html" with page=registrars %}
+  {% include "user_management/includes/paginator.html" with page=registrars %}
 
 {% endblock %}
 {% block scripts %}
-<script>
-$(document).ready(function(){
-    $('#add-member').on('shown.bs.collapse', function () {
+  <script>
+    $(document).ready(function(){
+      $('#add-member').on('shown.bs.collapse', function () {
         $('#add-member input[type=text]:first').focus();
+      });
     });
-});
-</script>
+  </script>
 {% endblock scripts %}
