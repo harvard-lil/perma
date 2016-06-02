@@ -54,7 +54,7 @@ class RegistrarForm(ModelForm):
 
 class OrganizationWithRegistrarForm(ModelForm):
 
-    registrar = forms.ModelChoiceField(queryset=Registrar.objects.order_by('name'), empty_label=None)
+    registrar = forms.ModelChoiceField(queryset=Registrar.objects.approved().order_by('name'), empty_label=None)
     
     class Meta:
         model = Organization
@@ -89,7 +89,7 @@ class UserFormWithRegistrar(UserForm):
     """
     add registrar to the create user form
     """
-    registrar = forms.ModelChoiceField(queryset=Registrar.objects.order_by('name'), empty_label=None)
+    registrar = forms.ModelChoiceField(queryset=Registrar.objects.approved().order_by('name'), empty_label=None)
 
     def __init__(self, data=None, current_user=None, **kwargs):
         super(UserFormWithRegistrar, self).__init__(data, **kwargs)
