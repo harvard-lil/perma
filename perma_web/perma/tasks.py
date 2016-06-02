@@ -632,7 +632,7 @@ def update_stats():
     links_sum = Link.objects.filter(creation_timestamp__gt=a_minute_ago).count()
     users_sum = LinkUser.objects.filter(date_joined__gt=a_minute_ago).count()
     organizations_sum = Organization.objects.filter(date_created__gt=a_minute_ago).count()
-    registrars_sum = Registrar.objects.filter(date_created__gt=a_minute_ago).count()
+    registrars_sum = Registrar.objects.approved().filter(date_created__gt=a_minute_ago).count()
 
     new_minute_stat = MinuteStats(links_sum=links_sum, users_sum=users_sum,
         organizations_sum=organizations_sum, registrars_sum=registrars_sum)

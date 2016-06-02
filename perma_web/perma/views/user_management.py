@@ -173,6 +173,16 @@ def manage_registrar(request):
     Linky admins can manage registrars (libraries)
     """
 
+    # handle creation of new registrars
+    form = RegistrarForm(get_form_data(request), prefix = "a")
+    if request.method == 'POST':
+        if form.is_valid():
+            new_registrar = form.save(commit=False)
+            new_registrar.status = "approved"
+            new_registrar.save()
+
+            return HttpResponseRedirect(reverse('user_management_manage_registrar'))
+
     registrars = Registrar.objects.all()
 
     # handle sorting
@@ -184,11 +194,7 @@ def manage_registrar(request):
     # handle status filter
     status = request.GET.get('status', '')
     if status:
-        #sort_url = '{sort_url}&status={status}'.format(sort_url=sort_url, status=status)
-        if status == 'approved':
-            registrars = registrars.filter(is_approved=True)
-        elif status == 'pending':
-            registrars = registrars.filter(is_approved=False)
+        registrars = registrars.filter(status=status)
 
     # handle annotations
     registrars = registrars.annotate(
@@ -202,19 +208,6 @@ def manage_registrar(request):
 
     # handle pagination
     registrars = apply_pagination(request, registrars)
-
-    # handle creation of new registrars
-    if request.method == 'POST':
-        form = RegistrarForm(request.POST, prefix = "a")
-
-        if form.is_valid():
-            new_user = form.save(commit=False)
-            new_user.is_approved = True
-            new_user.save()
-
-            return HttpResponseRedirect(reverse('user_management_manage_registrar'))
-    else:
-        form = RegistrarForm(prefix = "a")
 
     return render(request, 'user_management/manage_registrars.html', {
         'registrars': registrars,
@@ -258,29 +251,30 @@ def approve_pending_registrar(request, registrar_id):
     """ Perma admins can approve account requests from libraries """
 
     target_registrar = get_object_or_404(Registrar, id=registrar_id)
-    try:
-        target_registrar_member = LinkUser.objects.get(pending_registrar=registrar_id)
-    except LinkUser.DoesNotExist:
-        target_registrar_member = None
-
-    context = {'target_registrar': target_registrar, 'target_registrar_member': target_registrar_member,
-        'this_page': 'users_registrars'}
+    target_registrar_member = target_registrar.pending_users.first()
 
     if request.method == 'POST':
-        target_registrar.is_approved = True
-        target_registrar.save()
+        new_status = request.POST.get("status")
+        if new_status in ["approved", "denied"]:
+            target_registrar.status = new_status
+            target_registrar.save()
 
-        target_registrar_member.registrar = target_registrar
-        target_registrar_member.pending_registrar = None
-        target_registrar_member.save()
-        email_approved_registrar_user(request, target_registrar_member)
+            if new_status == "approved":
+                target_registrar_member.registrar = target_registrar
+                target_registrar_member.pending_registrar = None
+                target_registrar_member.save()
+                email_approved_registrar_user(request, target_registrar_member)
 
-        messages.add_message(request, messages.SUCCESS, '<h4>Registrar approved!</h4> <strong>%s</strong> will receive a notification email with further instructions.' % target_registrar_member.email, extra_tags='safe')
-        return HttpResponseRedirect(reverse('user_management_manage_registrar'))
+                messages.add_message(request, messages.SUCCESS, '<h4>Registrar approved!</h4> <strong>%s</strong> will receive a notification email with further instructions.' % target_registrar_member.email, extra_tags='safe')
+            else:
+                messages.add_message(request, messages.SUCCESS, 'Registrar request for <strong>%s</strong> denied. Please inform %s if appropriate.' % (target_registrar, target_registrar_member.email), extra_tags='safe')
 
-    context = RequestContext(request, context)
+            return HttpResponseRedirect(reverse('user_management_manage_registrar'))
 
-    return render_to_response('user_management/approve_pending_registrar.html', context)
+    return render(request, 'user_management/approve_pending_registrar.html', {
+        'target_registrar': target_registrar,
+        'target_registrar_member': target_registrar_member,
+        'this_page': 'users_registrars'})
 
 
 @login_required
@@ -981,11 +975,9 @@ def settings_organizations(request):
     Settings view organizations, leave organizations ...
     """
 
-    if request.user.has_registrar_pending():
-        pending_registrar = get_object_or_404(Registrar, id=request.user.pending_registrar)
+    pending_registrar = request.user.pending_registrar
+    if pending_registrar:
         messages.add_message(request, messages.INFO, "Thank you for requesting an account for your library. Perma.cc will review your request as soon as possible.")
-    else:
-        pending_registrar = None
 
     if request.method == 'POST':
         try:
@@ -997,11 +989,10 @@ def settings_organizations(request):
 
         return HttpResponseRedirect(reverse('user_management_settings_organizations'))
 
-    context = {'next': request.get_full_path(), 'this_page': 'settings_organizations', 'pending_registrar': pending_registrar}
-
-    context = RequestContext(request, context)
-
-    return render_to_response('user_management/settings-organizations.html', context)
+    return render(request, 'user_management/settings-organizations.html', {
+        'next': request.get_full_path(),
+        'this_page': 'settings_organizations',
+        'pending_registrar': pending_registrar})
 
 
 @login_required
@@ -1182,7 +1173,7 @@ def libraries(request):
     """
 
     context = {}
-    registrar_count = Registrar.objects.all().count()
+    registrar_count = Registrar.objects.approved().count()
 
     if request.method == 'POST':
         registrar_form = RegistrarForm(request.POST, prefix = "b")
@@ -1205,17 +1196,14 @@ def libraries(request):
             return HttpResponseRedirect('/login?next=/libraries/')
 
         if registrar_form.is_valid():
-            new_registrar = registrar_form.save(commit=False)
-            new_registrar.is_approved = False
-            new_registrar.save()
+            new_registrar = registrar_form.save()
             email_registrar_request(request, new_registrar)
-
 
             if not request.user.is_authenticated():
                 if user_form.is_valid():
                     new_user = user_form.save(commit=False)
                     new_user.backend='django.contrib.auth.backends.ModelBackend'
-                    new_user.pending_registrar = new_registrar.id
+                    new_user.pending_registrar = new_registrar
                     new_user.save()
 
                     email_pending_registrar_user(request, new_user)
@@ -1223,7 +1211,7 @@ def libraries(request):
                 else:
                     context.update({'user_form':user_form, 'registrar_form':registrar_form})
             else:
-                request.user.pending_registrar= new_registrar.id
+                request.user.pending_registrar = new_registrar
                 request.user.save()
 
                 return HttpResponseRedirect(reverse('user_management_settings_organizations'))

@@ -94,7 +94,7 @@ def faq(request):
     """
     The faq page
     """
-    registrars_count = Registrar.objects.all().count()
+    registrars_count = Registrar.objects.approved().count()
     orgs_count = Organization.objects.all().count()
     users_count = LinkUser.objects.all().count()
     links_count = Link.objects.filter(is_private=False).count()
