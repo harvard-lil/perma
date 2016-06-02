@@ -148,6 +148,9 @@ def build_week_stats():
     from datetime import datetime, timedelta
     from django.utils import timezone
 
+    # regenerate all weekly stats
+    WeekStats.objects.all().delete()
+
     oldest_link = Link.objects.earliest('creation_timestamp')
 
     # this is always the end date in our range, usually a saturday
