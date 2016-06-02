@@ -99,10 +99,17 @@ def stats(request, stat_type=None):
                 'statuses': Capture.objects
                     .filter(role='primary', link__creation_timestamp__gt=start_date, link__creation_timestamp__lt=end_date)
                     .values('status')
-                    .annotate(count=Count('status'))
+                    .annotate(count=Count('status')),
+                'capture_times': list(CaptureJob.objects
+                    .filter(link__creation_timestamp__gt=start_date, link__creation_timestamp__lt=end_date)
+                    .annotate(average_wait_time=RawSQL("avg(capture_start_time-creation_timestamp)", []))
+                    .annotate(average_capture_time=RawSQL("avg(capture_end_time-capture_start_time)", []))[:1]
+                    .values('average_capture_time', 'average_wait_time'))[0]
             }
             day['statuses'] = dict((x['status'], x['count']) for x in day['statuses'])
             day['link_count'] = sum(day['statuses'].values())
+            for k, v in day['capture_times'].items():
+                day['capture_times'][k] = round(float(v) if v else 0, 1)
             out['days'].append(day)
 
     elif stat_type == "emails":
