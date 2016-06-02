@@ -58,7 +58,7 @@
             <div class="col col-sm-4 _main {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
               <div class="content">
                 <p class="title"><span class="_verbose">This is a </span>{% if link.is_private %}Private {% endif %}<span class="logo">Perma.cc</span> record</p>
-                <p class="creation"><span class="cat">{% if capture.user_upload %}Created{% else %}Captured{% endif %}</span> {{ link.creation_timestamp|local_datetime }}
+                <p class="creation"><span class="cat">{% if capture.user_upload %}Uploaded{% else %}Captured{% endif %}</span> {{ link.creation_timestamp|local_datetime }}
                   {% if serve_type != 'image' %}
                     {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
                       <span class="action">
@@ -101,30 +101,41 @@
         <div id="collapse-details" class="details-segment ui-tray row collapse">
           <div class="tray-details">
             <dl class="tray-detail-group">
-              <dt class="tray-detail-title">Original page URL {% if capture.user_upload %}(unverified){% endif %}</dt>
+              <dt class="tray-detail-title">Source page URL {% if capture.user_upload %}(unverified){% endif %}</dt>
               <dd class="tray-detail-entry">{{link.submitted_url}}</dd>
             </dl>
 
             {% if can_edit %}
               <dl class="tray-detail-group">
-                <dt class="tray-detail-title">Original page title <span class="save-status"></span></dt>
+                <dt class="tray-detail-title">Archive title <span class="save-status"></span></dt>
                 <input name="title" class="col-sm-12 link-submitted-title" value="{{link.submitted_title}}">
               </dl>
               <dl class="tray-detail-group">
-                <dt class="tray-detail-title">Notes <span class="save-status"></span></dt>
+                <dt class="tray-detail-title">Notes <span class="label-instruction _verbose"> (only visible to you)</span><span class="save-status"></span></dt>
                 <input name="notes" class="col-sm-12 link-notes" rows="2" value="{{link.notes}}"/>
               </dl>
               {% if can_delete %}
-                <dl class="tray-detail-group">
+                <dl class="tray-detail-group temporary-options">
                   <form id="archive_upload_form">
-                    <dt class="tray-detail-title" for="file">Upload file <span class="label-instruction"> If the capture looks wrong, you can re-submit your own image in the following formats: .gif, .jpg, .pdf, and .png</span></dt>
+                    <dt class="tray-detail-title" for="file">Upload file<span class="label-asterisk">*</span> <span class="label-instruction _verbose" style="display:block;"> This will replace the existing capture. The following formats are allowed: .gif, .jpg, .pdf, and .png</span></dt>
                     <input class="col-sm-10 file" name="file" type="file" placeholder="example.png" accept=".png,.jpg,.jpeg,.gif,.pdf">
                     <span class="btn-file-upload-container">
-                      <button id="updateLinky" type="submit" class="btn-sm btn-file-upload">Upload</button>
+                      <button id="updateLinky" type="submit" class="blue-button btn-sm btn-file-upload">Upload</button>
                       <button type="reset" class="btn-sm btn-file-upload">Cancel</button>
                     </span>
                   </form>
                 </dl>
+                <dl class="tray-detail-group temporary-options">
+                  <dt class="tray-detail-title">
+                    <button class="btn-delete btn-sm blue-button"><a
+                      href="{% url 'user_delete_link' link.guid %}">
+                      Delete<span class="_verbose"> record</span>
+                    </a></button>
+                    <span class="label-asterisk">*</span>
+                  </dt>
+                  <div class="label-instruction pull-right"><span class="label-asterisk">*</span> These options are only available for the first twenty-four hours.</div>
+                </dl>
+
               {% endif %}
             {% else %}
               <dl class="tray-detail-group">
@@ -142,12 +153,6 @@
             {% endcomment %}
           </div>
           <div class="tray-actions col-sm-12">
-            {% if can_delete %}
-              <a class="btn btn-ui-small btn-dashboard user-delete"
-                href="{% url 'user_delete_link' link.guid %}">
-                Delete<span class="_verbose"> record</span>
-              </a>
-            {% endif %}
 
             {# if not request.user.is_authenticated or request.user.pk != link.created_by_id #}
               <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-ui-small btn-dashboard flag" title="Flag as inappropriate">Flag<span class="_verbose"> as inappropriate</span></a>
@@ -183,7 +188,7 @@
           <div class="banner banner-status row _isNewRecord">
             <strong>Success!</strong>
             <span class="message verbose">Your new Perma Link is <input class="link-field" type="text" value="https://{{ request.get_host }}{% url 'single_linky' link.guid %}"></span>
-            <span class="link-options edit-link verbose">Edit<span class="_verbose _toDesktop"> (Perma Links are permanent after 24 hours)</span></span>
+            <span class="link-options edit-link verbose"><a style="cursor:pointer;">Edit</a><span class="_verbose _toDesktop"> (Perma Links are permanent after 24 hours)</span></span>
             <a class="action new-link" href="{% url 'create_link' %}">Make a new Perma Link</a>
           </div>
         {% endif %}

@@ -1643,16 +1643,22 @@ body.modal-open {
   font-family: $font-hed-alt;
   font-weight: 400;
   color: $color-trans-gray;
-  display: block;
   @include respond-mobile {
     float: right;
     display: inline-block;
   }
 }
-
+.label-asterisk {
+  font-size: 13px;
+  margin-left: 3px;
+  color: $color-orange;
+}
 #collapse-details {
   .tray-detail-title {
     margin-bottom: 5px;
+  }
+  .temporary-options {
+    background-color: $color-trans-whispergray;
   }
   input {
     padding-left: 6px;
@@ -1667,12 +1673,14 @@ body.modal-open {
     margin-left: 5px;
   }
   .btn-file-upload {
-    padding: 7px;
-    border: 0px;
     background-color: $color-trans-lightgray;
   }
-  #updateLinky {
+  .blue-button {
     background: $color-blue;
     color: white;
+    font-size: 12px;
+    padding: 7px;
+    border: 0px;
+    font-weight: 300;
   }
 }
