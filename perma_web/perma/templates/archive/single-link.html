@@ -107,11 +107,11 @@
 
             {% if can_edit %}
               <dl class="tray-detail-group">
-                <dt class="tray-detail-title">Archive title <span class="save-status"></span></dt>
+                <dt class="tray-detail-title">Title <span class="save-status"></span></dt>
                 <input name="title" class="col-sm-12 link-submitted-title" value="{{link.submitted_title}}">
               </dl>
               <dl class="tray-detail-group">
-                <dt class="tray-detail-title">Notes <span class="label-instruction _verbose"> (only visible to you)</span><span class="save-status"></span></dt>
+                <dt class="tray-detail-title">Notes <span class="label-instruction _verbose"> (only visible to you{% if link.organization%} and your organization{% endif %})</span><span class="save-status"></span></dt>
                 <input name="notes" class="col-sm-12 link-notes" rows="2" value="{{link.notes}}"/>
               </dl>
               {% if can_delete %}
@@ -133,13 +133,13 @@
                     </a></button>
                     <span class="label-asterisk">*</span>
                   </dt>
-                  <div class="label-instruction pull-right"><span class="label-asterisk">*</span> These options are only available for the first twenty-four hours.</div>
+                  <div class="label-instruction pull-right temporary-instructions"><span class="label-asterisk">*</span> These options are only available for the first twenty-four hours.</div>
                 </dl>
 
               {% endif %}
             {% else %}
               <dl class="tray-detail-group">
-                <dt class="tray-detail-title">Original page title</dt>
+                <dt class="tray-detail-title">Title</dt>
                 <dd class="tray-detail-entry">{{link.submitted_title}}</dd>
               </dl>
             {% endif %}
@@ -154,9 +154,9 @@
           </div>
           <div class="tray-actions col-sm-12">
 
-            {# if not request.user.is_authenticated or request.user.pk != link.created_by_id #}
+            {% if not can_edit %}
               <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-ui-small btn-dashboard flag" title="Flag as inappropriate">Flag<span class="_verbose"> as inappropriate</span></a>
-            {# endif #}
+            {% endif %}
             {# user edit buttons #}
             {% if can_toggle_private %}
               <button class="btn btn-ui-small btn-dashboard darchive"><span class="_verbose">Mark as </span>{% if link.is_private %}Public{% else %}Private{% endif %}</button>

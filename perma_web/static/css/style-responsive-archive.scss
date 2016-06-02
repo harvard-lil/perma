@@ -1056,18 +1056,18 @@ p.fp {
 }
 
 .tray-actions {
-	padding-top: $double;
-    padding-bottom: $double;
-    background-color: $color-background;
-    text-align: left;
-    padding-left: $double;
-    padding-right: $grid;
-	margin-top: $half;
-	overflow: auto;
-	@include respond-desktop {
-	    padding-left: $grid * 3;
-	    padding-right: $double;
-	}
+  padding-top: $double;
+  padding-bottom: $double;
+  background-color: $color-background;
+  text-align: left;
+  padding-left: $double;
+  padding-right: $grid;
+  margin-top: -1px;
+  overflow: auto;
+  @include respond-desktop {
+    padding-left: $grid * 3;
+    padding-right: $double;
+  }
 }
 
 ._verbose, 
@@ -1682,5 +1682,9 @@ body.modal-open {
     padding: 7px;
     border: 0px;
     font-weight: 300;
+  }
+  .temporary-instructions {
+    position: relative;
+    top: -6px;
   }
 }
