@@ -12,8 +12,8 @@ def rename_test_accounts(apps, schema_editor):
     LinkUser = apps.get_model("perma", "LinkUser")
 
     try:
-        lu = LinkUser.objects.get(email='test_registry_member@example.com')
-        lu.email = 'test_registry_user@example.com'
+        lu = LinkUser.objects.get(email='test_admin_member@example.com')
+        lu.email = 'test_admin_user@example.com'
         lu.last_name = 'User'
         lu.save()
     except ObjectDoesNotExist:
@@ -72,7 +72,7 @@ def rename_test_accounts(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('perma', '0008_auto_20160531_1432'),
+        ('perma', '0009_auto_20160602_1937'),
     ]
 
     operations = [

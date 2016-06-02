@@ -15,7 +15,7 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
     def setUp(self):
         super(FolderAuthorizationTestCase, self).setUp()
 
-        self.registry_user = LinkUser.objects.get(pk=1)
+        self.admin_user = LinkUser.objects.get(pk=1)
         self.registrar_user = LinkUser.objects.get(pk=2)
         self.org_user = LinkUser.objects.get(pk=3)
         self.regular_user = LinkUser.objects.get(pk=4)
@@ -100,14 +100,14 @@ class FolderAuthorizationTestCase(ApiResourceTransactionTestCase):
         data = {'name': 'A new name'}
         url = self.detail_url(self.test_journal_shared_folder)
 
-        self.rejected_patch(url, user=self.registry_user, data=data, expected_status_code=400)
+        self.rejected_patch(url, user=self.admin_user, data=data, expected_status_code=400)
         self.rejected_patch(url, user=self.registrar_user, data=data, expected_status_code=400)
 
     def test_should_reject_rename_of_root_folder_from_all_users(self):
         data = {'name': 'A new name'}
-        self.rejected_patch(self.detail_url(self.registry_user.root_folder),
+        self.rejected_patch(self.detail_url(self.admin_user.root_folder),
                             expected_status_code=400,
-                            user=self.registry_user, data=data)
+                            user=self.admin_user, data=data)
 
         self.rejected_patch(self.detail_url(self.registrar_user.root_folder),
                             expected_status_code=400,

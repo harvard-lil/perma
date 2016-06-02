@@ -70,9 +70,9 @@
             "is_confirmed": true,
             "last_login": "2013-07-23T18:55:41Z",
             "password": "pbkdf2_sha256$10000$BK8BC1FXesBM$I+R1mquCsp5PWrHsHfv+6xuUNO560YEPqdbzWZFNzlo=",
-            "email": "test_registry_user@example.com",
+            "email": "test_admin_user@example.com",
             "date_joined": "2013-06-26",
-            "first_name": "Registry",
+            "first_name": "Admin",
             "last_name": "User",
             "root_folder": 22
         }

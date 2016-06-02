@@ -507,21 +507,21 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def test_admin_user_can_add_new_user_as_admin(self):
         self.log_in_user(self.admin_user)
-        self.submit_form('user_management_registry_user_add_user',
+        self.submit_form('user_management_admin_user_add_user',
                          data={'a-first_name': 'First',
                                'a-last_name': 'Last',
                                'a-email': 'doesnotexist@example.com'},
                          query_params={'email': 'doesnotexist@example.com'},
-                         success_url=reverse('user_management_manage_registry_user'),
+                         success_url=reverse('user_management_manage_admin_user'),
                          success_query=LinkUser.objects.filter(email='doesnotexist@example.com',
                                                                is_staff=True).exists())
     ### ADDING EXISTING USERS AS ADMINS ###
 
     def test_admin_user_can_add_existing_user_as_admin(self):
         self.log_in_user(self.admin_user)
-        self.submit_form('user_management_registry_user_add_user',
+        self.submit_form('user_management_admin_user_add_user',
                          query_params={'email': self.regular_user.email},
-                         success_url=reverse('user_management_manage_registry_user'),
+                         success_url=reverse('user_management_manage_admin_user'),
                          success_query=LinkUser.objects.filter(pk=self.regular_user.pk, is_staff=True))
 
     ### REMOVING USERS AS ADMINS ###
@@ -530,14 +530,14 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.log_in_user(self.admin_user)
         self.regular_user.is_staff = True
         self.regular_user.save()
-        self.submit_form('user_management_manage_single_registry_user_remove',
+        self.submit_form('user_management_manage_single_admin_user_remove',
                          reverse_kwargs={'args': [self.regular_user.pk]},
-                         success_url=reverse('user_management_manage_registry_user'))
+                         success_url=reverse('user_management_manage_admin_user'))
         self.assertFalse(LinkUser.objects.filter(pk=self.regular_user.pk, is_staff=True).exists())
 
     def test_can_remove_self_from_admin(self):
         self.log_in_user(self.admin_user)
-        self.submit_form('user_management_manage_single_registry_user_remove',
+        self.submit_form('user_management_manage_single_admin_user_remove',
                          reverse_kwargs={'args': [self.admin_user.pk]},
                          success_url=reverse('create_link'))
         self.assertFalse(LinkUser.objects.filter(pk=self.admin_user.pk, is_staff=True).exists())
@@ -550,7 +550,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                          data={
                              'a-first_name': 'Newfirst',
                              'a-last_name': 'Newlast',
-                             'a-email': 'test_registry_user@example.com'
+                             'a-email': 'test_admin_user@example.com'
                          },
                          success_url=reverse('user_management_settings_profile'),
                          success_query=LinkUser.objects.filter(first_name='Newfirst'))

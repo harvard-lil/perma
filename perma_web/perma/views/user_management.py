@@ -288,10 +288,10 @@ def approve_pending_registrar(request, registrar_id):
 @user_passes_test(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def manage_organization(request):
     """
-    Registry and registrar users can manage organizations (journals)
+    Admin and registrar users can manage organizations (journals)
     """
 
-    is_registry = request.user.is_staff
+    is_admin = request.user.is_staff
     orgs = Organization.objects.accessible_to(request.user).select_related('registrar')
 
     # handle sorting
@@ -318,7 +318,7 @@ def manage_organization(request):
     # handle pagination
     orgs = apply_pagination(request, orgs)
 
-    if is_registry:
+    if is_admin:
         form = OrganizationWithRegistrarForm(get_form_data(request), prefix = "a")
     else:
         form = OrganizationForm(get_form_data(request), prefix = "a")
@@ -326,7 +326,7 @@ def manage_organization(request):
     if request.method == 'POST':
         if form.is_valid():
             new_user = form.save()
-            if not is_registry:
+            if not is_admin:
                 new_user.registrar_id = request.user.registrar_id
                 new_user.save()
 
@@ -401,13 +401,13 @@ def manage_single_organization_delete(request, org_id):
 
 @login_required
 @user_passes_test(lambda user: user.is_staff)
-def manage_registry_user(request):
-    return list_users_in_group(request, 'registry_user')
+def manage_admin_user(request):
+    return list_users_in_group(request, 'admin_user')
 
 @login_required
 @user_passes_test(lambda user: user.is_staff)
-def manage_single_registry_user_delete(request, user_id):
-    return delete_user_in_group(request, user_id, 'registry_user')
+def manage_single_admin_user_delete(request, user_id):
+    return delete_user_in_group(request, user_id, 'admin_user')
 
 @login_required
 @user_passes_test(lambda user: user.is_staff or user.is_registrar_user())
@@ -480,7 +480,7 @@ def list_users_in_group(request, group_name):
         Show list of users with given group name.
     """
 
-    is_registry = False
+    is_admin = False
     users = LinkUser.objects.distinct().prefetch_related('organizations')  # .exclude(id=request.user.id)
 
     # handle sorting
@@ -501,7 +501,7 @@ def list_users_in_group(request, group_name):
         else:
             orgs = Organization.objects.all().order_by('name')
         registrars = Registrar.objects.all().order_by('name')
-        is_registry = True
+        is_admin = True
     elif request.user.is_registrar_user():
         if group_name == 'organization_user':
             users = users.filter(organizations__registrar=request.user.registrar)
@@ -513,7 +513,7 @@ def list_users_in_group(request, group_name):
         users = users.filter(organizations__in=request.user.organizations.all())
 
     # apply group filter
-    if group_name == 'registry_user':
+    if group_name == 'admin_user':
         users = users.exclude(is_staff=False)
     elif group_name == 'registrar_user':
         users = users.exclude(registrar_id=None).prefetch_related('registrar')
@@ -554,7 +554,7 @@ def list_users_in_group(request, group_name):
     # get total counts
     active_users = users.filter(is_active=True, is_confirmed=True).count()
     deactivated_users = None
-    if is_registry:
+    if is_admin:
         deactivated_users = users.filter(is_confirmed=True, is_active=False).count()
     unactivated_users = users.filter(is_confirmed=False, is_active=False).count()
     total_created_links_count = users.aggregate(count=Sum('link_count'))['count']
@@ -612,7 +612,7 @@ def edit_user_in_group(request, user_id, group_name):
             raise Http404
 
     else:
-        # Must be registry user
+        # Must be admin user
         orgs = target_user.organizations.all()
 
     context = {
@@ -762,7 +762,7 @@ class AddUserToRegistrar(RequireRegOrAdminUser, BaseAddUserToGroup):
 
 class AddUserToAdmin(RequireAdminUser, BaseAddUserToGroup):
     template_name = 'user_management/user_add_to_admin_confirm.html'
-    success_url = reverse_lazy('user_management_manage_registry_user')
+    success_url = reverse_lazy('user_management_manage_admin_user')
     confirmation_email_template = 'email/user_added_to_admin.txt'
     new_user_form = UserFormWithAdmin
     existing_user_form = UserAddAdminForm
@@ -893,15 +893,15 @@ def manage_single_registrar_user_remove(request, user_id):
 
 @login_required
 @user_passes_test(lambda user: user.is_staff)
-def manage_single_registry_user_remove(request, user_id):
+def manage_single_admin_user_remove(request, user_id):
     """
-        Basically demote a registry to a regular user.
+        Basically demote a admin to a regular user.
     """
 
     target_user = get_object_or_404(LinkUser, id=user_id)
 
     context = {'target_user': target_user,
-               'this_page': 'users_registry_user'}
+               'this_page': 'users_admin_user'}
 
     if request.method == 'POST':
         target_user.is_staff = False
@@ -911,11 +911,11 @@ def manage_single_registry_user_remove(request, user_id):
         if request.user == target_user:
             return HttpResponseRedirect(reverse('create_link'))
 
-        return HttpResponseRedirect(reverse('user_management_manage_registry_user'))
+        return HttpResponseRedirect(reverse('user_management_manage_admin_user'))
 
     context = RequestContext(request, context)
 
-    return render_to_response('user_management/user_remove_registry_confirm.html', context)
+    return render_to_response('user_management/user_remove_admin_confirm.html', context)
 
 
 @login_required

@@ -22,7 +22,7 @@
 			
 			            <!-- Manage users -->
 			            {% if request.user.is_staff %}
-			                <li {% if this_page == "users_registry_users" %}class="active" {% endif %}><a href="{% url 'user_management_manage_registry_user' %}"><span>Admin users</span></a></li>
+			                <li {% if this_page == "users_admin_users" %}class="active" {% endif %}><a href="{% url 'user_management_manage_admin_user' %}"><span>Admin users</span></a></li>
 			                <li {% if this_page == "users_registrars" %}class="active" {% endif %}><a href="{% url 'user_management_manage_registrar' %}"><span>Registrars</span></a></li>
 			            {% endif %}
 			
