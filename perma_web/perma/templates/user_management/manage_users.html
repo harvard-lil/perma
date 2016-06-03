@@ -120,7 +120,7 @@
 					</ul>
 				</div>
 				
-				{% if request.user.is_staff or request.user.is_registrar_member %}
+				{% if request.user.is_staff or request.user.is_registrar_user %}
 					{% if group_name == 'organization_user' %}
 						<div class="dropdown">
 							<a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Organization <span class="caret"></span></a>
@@ -144,7 +144,7 @@
 				{% endif %}
 
 				{% if request.user.is_staff %}
-					{% if not group_name == 'user' and not group_name == 'registry_user' %}
+					{% if not group_name == 'user' and not group_name == 'admin_user' %}
 					<div class="dropdown">
 							<a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Registrar <span class="caret"></span></a>
 							<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
@@ -222,14 +222,14 @@
 					<p class="item-status">
 						{% if listed_user.is_active %}
 							{% if request.user.is_staff %}
-								{% if group_name != 'registry_user' %}
+								{% if group_name != 'admin_user' %}
 									<a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove/delete</a>
 								{% else %}
-									<a class="action action-delete" href="{% url 'user_management_manage_single_registry_user_remove' listed_user.id %}">remove</a>
+									<a class="action action-delete" href="{% url 'user_management_manage_single_admin_user_remove' listed_user.id %}">remove</a>
 								{% endif %}
-							{% elif request.user.is_registrar_member and group_name == 'organization_user' %}
+							{% elif request.user.is_registrar_user and group_name == 'organization_user' %}
 								<a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove</a>
-							{% elif request.user.is_registrar_member and group_name == 'registrar_user' %}
+							{% elif request.user.is_registrar_user and group_name == 'registrar_user' %}
 								<a class="action action-delete" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove</a>
 							{% else %}
 								<a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove</a>

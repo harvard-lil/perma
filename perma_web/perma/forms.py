@@ -96,7 +96,7 @@ class UserFormWithRegistrar(UserForm):
 
         # filter available registrars based on current user
         query = self.fields['registrar'].queryset
-        if current_user.is_registrar_member():
+        if current_user.is_registrar_user():
             query = query.filter(pk=current_user.registrar_id)
         self.fields['registrar'].queryset = query
 
@@ -151,9 +151,9 @@ class UserFormWithOrganization(UserForm):
 
         # filter available organizations based on current user
         query = self.fields['organizations'].queryset
-        if current_user.is_registrar_member():
+        if current_user.is_registrar_user():
             query = query.filter(registrar_id=current_user.registrar_id)
-        elif current_user.is_organization_member:
+        elif current_user.is_organization_user:
             query = query.filter(users=current_user.pk)
         self.fields['organizations'].queryset = query
 

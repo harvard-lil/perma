@@ -52,16 +52,16 @@ valid_org_sorts = ['name', '-name', 'link_count', '-link_count', '-date_created'
 ### HELPERS ###
 
 class RequireOrgOrRegOrAdminUser(object):
-    """ Mixin for class-based views that requires user to be an org member, registrar member, or admin. """
+    """ Mixin for class-based views that requires user to be an org user, registrar user, or admin. """
     @method_decorator(login_required)
-    @method_decorator(user_passes_test(lambda user: user.is_registrar_member() or user.is_organization_member or user.is_staff))
+    @method_decorator(user_passes_test(lambda user: user.is_registrar_user() or user.is_organization_user or user.is_staff))
     def dispatch(self, request, *args, **kwargs):
         return super(RequireOrgOrRegOrAdminUser, self).dispatch(request, *args, **kwargs)
 
 class RequireRegOrAdminUser(object):
-    """ Mixin for class-based views that requires user to be a registrar member or admin. """
+    """ Mixin for class-based views that requires user to be a registrar user or admin. """
     @method_decorator(login_required)
-    @method_decorator(user_passes_test(lambda user: user.is_registrar_member() or user.is_staff))
+    @method_decorator(user_passes_test(lambda user: user.is_registrar_user() or user.is_staff))
     def dispatch(self, request, *args, **kwargs):
         return super(RequireRegOrAdminUser, self).dispatch(request, *args, **kwargs)
 
@@ -228,7 +228,7 @@ def manage_registrar(request):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_member())
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_user())
 def manage_single_registrar(request, registrar_id):
     """ Edit details for a registrar. """
 
@@ -258,7 +258,7 @@ def approve_pending_registrar(request, registrar_id):
     """ Perma admins can approve account requests from libraries """
 
     target_registrar = get_object_or_404(Registrar, id=registrar_id)
-    target_registrar_member = target_registrar.pending_users.first()
+    target_registrar_user = target_registrar.pending_users.first()
 
     if request.method == 'POST':
         new_status = request.POST.get("status")
@@ -267,31 +267,31 @@ def approve_pending_registrar(request, registrar_id):
             target_registrar.save()
 
             if new_status == "approved":
-                target_registrar_member.registrar = target_registrar
-                target_registrar_member.pending_registrar = None
-                target_registrar_member.save()
-                email_approved_registrar_user(request, target_registrar_member)
+                target_registrar_user.registrar = target_registrar
+                target_registrar_user.pending_registrar = None
+                target_registrar_user.save()
+                email_approved_registrar_user(request, target_registrar_user)
 
-                messages.add_message(request, messages.SUCCESS, '<h4>Registrar approved!</h4> <strong>%s</strong> will receive a notification email with further instructions.' % target_registrar_member.email, extra_tags='safe')
+                messages.add_message(request, messages.SUCCESS, '<h4>Registrar approved!</h4> <strong>%s</strong> will receive a notification email with further instructions.' % target_registrar_user.email, extra_tags='safe')
             else:
-                messages.add_message(request, messages.SUCCESS, 'Registrar request for <strong>%s</strong> denied. Please inform %s if appropriate.' % (target_registrar, target_registrar_member.email), extra_tags='safe')
+                messages.add_message(request, messages.SUCCESS, 'Registrar request for <strong>%s</strong> denied. Please inform %s if appropriate.' % (target_registrar, target_registrar_user.email), extra_tags='safe')
 
             return HttpResponseRedirect(reverse('user_management_manage_registrar'))
 
     return render(request, 'user_management/approve_pending_registrar.html', {
         'target_registrar': target_registrar,
-        'target_registrar_member': target_registrar_member,
+        'target_registrar_user': target_registrar_user,
         'this_page': 'users_registrars'})
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def manage_organization(request):
     """
-    Registry and registrar members can manage organizations (journals)
+    Admin and registrar users can manage organizations (journals)
     """
 
-    is_registry = request.user.is_staff
+    is_admin = request.user.is_staff
     orgs = Organization.objects.accessible_to(request.user).select_related('registrar')
 
     # handle sorting
@@ -318,7 +318,7 @@ def manage_organization(request):
     # handle pagination
     orgs = apply_pagination(request, orgs)
 
-    if is_registry:
+    if is_admin:
         form = OrganizationWithRegistrarForm(get_form_data(request), prefix = "a")
     else:
         form = OrganizationForm(get_form_data(request), prefix = "a")
@@ -326,7 +326,7 @@ def manage_organization(request):
     if request.method == 'POST':
         if form.is_valid():
             new_user = form.save()
-            if not is_registry:
+            if not is_admin:
                 new_user.registrar_id = request.user.registrar_id
                 new_user.save()
 
@@ -348,7 +348,7 @@ def manage_organization(request):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def manage_single_organization(request, org_id):
     """ Edit organization details. """
     try:
@@ -374,7 +374,7 @@ def manage_single_organization(request, org_id):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def manage_single_organization_delete(request, org_id):
     """
         Delete an empty org
@@ -401,16 +401,16 @@ def manage_single_organization_delete(request, org_id):
 
 @login_required
 @user_passes_test(lambda user: user.is_staff)
-def manage_registry_user(request):
-    return list_users_in_group(request, 'registry_user')
+def manage_admin_user(request):
+    return list_users_in_group(request, 'admin_user')
 
 @login_required
 @user_passes_test(lambda user: user.is_staff)
-def manage_single_registry_user_delete(request, user_id):
-    return delete_user_in_group(request, user_id, 'registry_user')
+def manage_single_admin_user_delete(request, user_id):
+    return delete_user_in_group(request, user_id, 'admin_user')
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_member())
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_user())
 def manage_registrar_user(request):
     return list_users_in_group(request, 'registrar_user')
 
@@ -454,12 +454,12 @@ def manage_single_user_reactivate(request, user_id):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def manage_organization_user(request):
     return list_users_in_group(request, 'organization_user')
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def manage_single_organization_user(request, user_id):
     return edit_user_in_group(request, user_id, 'organization_user')
 
@@ -474,13 +474,13 @@ def manage_single_organization_user_reactivate(request, user_id):
     return reactive_user_in_group(request, user_id, 'organization_user')
 
 
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def list_users_in_group(request, group_name):
     """
         Show list of users with given group name.
     """
 
-    is_registry = False
+    is_admin = False
     users = LinkUser.objects.distinct().prefetch_related('organizations')  # .exclude(id=request.user.id)
 
     # handle sorting
@@ -501,19 +501,19 @@ def list_users_in_group(request, group_name):
         else:
             orgs = Organization.objects.all().order_by('name')
         registrars = Registrar.objects.all().order_by('name')
-        is_registry = True
-    elif request.user.is_registrar_member():
+        is_admin = True
+    elif request.user.is_registrar_user():
         if group_name == 'organization_user':
             users = users.filter(organizations__registrar=request.user.registrar)
             orgs = Organization.objects.filter(registrar_id=request.user.registrar_id).order_by('name')
         else:
             users = users.filter(registrar=request.user.registrar)
         is_registrar = True
-    elif request.user.is_organization_member:
+    elif request.user.is_organization_user:
         users = users.filter(organizations__in=request.user.organizations.all())
 
     # apply group filter
-    if group_name == 'registry_user':
+    if group_name == 'admin_user':
         users = users.exclude(is_staff=False)
     elif group_name == 'registrar_user':
         users = users.exclude(registrar_id=None).prefetch_related('registrar')
@@ -554,7 +554,7 @@ def list_users_in_group(request, group_name):
     # get total counts
     active_users = users.filter(is_active=True, is_confirmed=True).count()
     deactivated_users = None
-    if is_registry:
+    if is_admin:
         deactivated_users = users.filter(is_confirmed=True, is_active=False).count()
     unactivated_users = users.filter(is_confirmed=False, is_active=False).count()
     total_created_links_count = users.aggregate(count=Sum('link_count'))['count']
@@ -597,22 +597,22 @@ def edit_user_in_group(request, user_id, group_name):
 
     target_user = get_object_or_404(LinkUser, id=user_id)
 
-    # Org members can only edit their members in the same orgs
-    if request.user.is_registrar_member():
-        # Get the intersection of the user's and the registrar member's orgs
+    # org users can only edit their members in the same orgs
+    if request.user.is_registrar_user():
+        # Get the intersection of the user's and the registrar user's orgs
         orgs = target_user.organizations.all() & Organization.objects.filter(registrar=request.user.registrar)
 
         if len(orgs) == 0:
             raise Http404
 
-    elif request.user.is_organization_member:
+    elif request.user.is_organization_user:
         orgs = target_user.organizations.all() & request.user.organizations.all()
 
         if len(orgs) == 0:
             raise Http404
 
     else:
-        # Must be registry member
+        # Must be admin user
         orgs = target_user.organizations.all()
 
     context = {
@@ -723,8 +723,8 @@ class AddUserToOrganization(RequireOrgOrRegOrAdminUser, BaseAddUserToGroup):
             return True, ""
         if self.object.is_staff:
             return False, "%s is an admin user and cannot be added to individual organizations." % self.object
-        if self.object.is_registrar_member():
-            return False, "%s is already a registrar member and cannot be added to individual organizations." % self.object
+        if self.object.is_registrar_user():
+            return False, "%s is already a registrar user and cannot be added to individual organizations." % self.object
         return True, ""
 
 
@@ -742,15 +742,15 @@ class AddUserToRegistrar(RequireRegOrAdminUser, BaseAddUserToGroup):
             current_user=self.request.user)
 
     def target_user_valid(self):
-        """ User can only be added to registrar if they aren't admin or registrar or org member. """
+        """ User can only be added to registrar if they aren't admin or registrar or org user. """
         if self.is_new:
             return True, ""
         if self.object.is_staff:
             return False, "%s is an admin user and cannot be added to individual registrars." % self.object
 
         # limits that apply just if the current user is a registrar rather than staff
-        if self.request.user.is_registrar_member():
-            if self.object.is_registrar_member():
+        if self.request.user.is_registrar_user():
+            if self.object.is_registrar_user():
                 if self.object.registrar == self.request.user.registrar:
                     return False, "%s is already a registrar user for your registrar." % self.object
                 else:
@@ -762,7 +762,7 @@ class AddUserToRegistrar(RequireRegOrAdminUser, BaseAddUserToGroup):
 
 class AddUserToAdmin(RequireAdminUser, BaseAddUserToGroup):
     template_name = 'user_management/user_add_to_admin_confirm.html'
-    success_url = reverse_lazy('user_management_manage_registry_user')
+    success_url = reverse_lazy('user_management_manage_admin_user')
     confirmation_email_template = 'email/user_added_to_admin.txt'
     new_user_form = UserFormWithAdmin
     existing_user_form = UserAddAdminForm
@@ -784,7 +784,7 @@ class AddRegularUser(RequireAdminUser, BaseAddUserToGroup):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_organization_member)
+@user_passes_test(lambda user: user.is_organization_user)
 def organization_user_leave_organization(request, org_id):
     try:
         org = Organization.objects.accessible_to(request.user).get(pk=org_id)
@@ -816,19 +816,19 @@ def delete_user_in_group(request, user_id, group_name):
         Delete particular user with given group name.
     """
 
-    target_member = get_object_or_404(LinkUser, id=user_id)
+    target_user = get_object_or_404(LinkUser, id=user_id)
 
-    context = {'target_member': target_member,
+    context = {'target_user': target_user,
                'this_page': 'users_{group_name}s'.format(group_name=group_name)}
 
     if request.method == 'POST':
-        if target_member.is_confirmed:
-            target_member.is_active = False
-            target_member.organizations.clear()
-            target_member.registrar = None
-            target_member.save()
+        if target_user.is_confirmed:
+            target_user.is_active = False
+            target_user.organizations.clear()
+            target_user.registrar = None
+            target_user.save()
         else:
-            target_member.delete()
+            target_user.delete()
 
         return HttpResponseRedirect(reverse('user_management_manage_{group_name}'.format(group_name=group_name)))
 
@@ -838,7 +838,7 @@ def delete_user_in_group(request, user_id, group_name):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_registrar_member() or user.is_organization_member or user.is_staff)
+@user_passes_test(lambda user: user.is_registrar_user() or user.is_organization_user or user.is_staff)
 def manage_single_organization_user_remove(request, user_id):
     """
         Remove an organization user from an org.
@@ -861,27 +861,27 @@ def manage_single_organization_user_remove(request, user_id):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_registrar_member())
+@user_passes_test(lambda user: user.is_registrar_user())
 def manage_single_registrar_user_remove(request, user_id):
     """
         Remove a registrar user from a registrar.
     """
 
-    target_member = get_object_or_404(LinkUser, id=user_id)
+    target_user = get_object_or_404(LinkUser, id=user_id)
 
-    # Registrar users can only edit their own registrar members
-    if request.user.registrar_id != target_member.registrar_id:
+    # Registrar users can only edit their own registrar users
+    if request.user.registrar_id != target_user.registrar_id:
         raise Http404
 
-    context = {'target_member': target_member,
+    context = {'target_user': target_user,
                'this_page': 'organization_user'}
 
     if request.method == 'POST':
-        target_member.registrar = None
-        target_member.save()
+        target_user.registrar = None
+        target_user.save()
 
         # special case -- user demoted themselves, can't see page anymore
-        if request.user == target_member:
+        if request.user == target_user:
             return HttpResponseRedirect(reverse('create_link'))
 
         return HttpResponseRedirect(reverse('user_management_manage_registrar_user'))
@@ -893,29 +893,29 @@ def manage_single_registrar_user_remove(request, user_id):
 
 @login_required
 @user_passes_test(lambda user: user.is_staff)
-def manage_single_registry_user_remove(request, user_id):
+def manage_single_admin_user_remove(request, user_id):
     """
-        Basically demote a registry to a regular user.
+        Basically demote a admin to a regular user.
     """
 
-    target_member = get_object_or_404(LinkUser, id=user_id)
+    target_user = get_object_or_404(LinkUser, id=user_id)
 
-    context = {'target_member': target_member,
-               'this_page': 'users_registry_user'}
+    context = {'target_user': target_user,
+               'this_page': 'users_admin_user'}
 
     if request.method == 'POST':
-        target_member.is_staff = False
-        target_member.save()
+        target_user.is_staff = False
+        target_user.save()
 
         # special case -- user demoted themselves, can't see page anymore
-        if request.user == target_member:
+        if request.user == target_user:
             return HttpResponseRedirect(reverse('create_link'))
 
-        return HttpResponseRedirect(reverse('user_management_manage_registry_user'))
+        return HttpResponseRedirect(reverse('user_management_manage_admin_user'))
 
     context = RequestContext(request, context)
 
-    return render_to_response('user_management/user_remove_registry_confirm.html', context)
+    return render_to_response('user_management/user_remove_admin_confirm.html', context)
 
 
 @login_required
@@ -925,14 +925,14 @@ def reactive_user_in_group(request, user_id, group_name):
         Reactivate particular user with given group name.
     """
 
-    target_member = get_object_or_404(LinkUser, id=user_id)
+    target_user = get_object_or_404(LinkUser, id=user_id)
 
-    context = {'target_member': target_member,
+    context = {'target_user': target_user,
                'this_page': 'users_{group_name}s'.format(group_name=group_name)}
 
     if request.method == 'POST':
-        target_member.is_active = True
-        target_member.save()
+        target_user.is_active = True
+        target_user.save()
 
         return HttpResponseRedirect(reverse('user_management_manage_{group_name}'.format(group_name=group_name)))
 
@@ -976,7 +976,7 @@ def settings_password(request):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_registrar_member() or user.is_organization_member or user.has_registrar_pending())
+@user_passes_test(lambda user: user.is_registrar_user() or user.is_organization_user or user.has_registrar_pending())
 def settings_organizations(request):
     """
     Settings view organizations, leave organizations ...
@@ -1003,7 +1003,7 @@ def settings_organizations(request):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_member() or user.is_organization_member)
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def settings_organizations_change_privacy(request, org_id):
     try:
         org = Organization.objects.accessible_to(request.user).get(pk=org_id)
@@ -1015,7 +1015,7 @@ def settings_organizations_change_privacy(request, org_id):
         org.default_to_private = not org.default_to_private
         org.save()
 
-        if request.user.is_registrar_member() or request.user.is_staff:
+        if request.user.is_registrar_user() or request.user.is_staff:
             return HttpResponseRedirect(reverse('user_management_manage_organization'))
         else:
             return HttpResponseRedirect(reverse('user_management_settings_organizations'))

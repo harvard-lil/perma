@@ -21,8 +21,8 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
     def setUp(self):
         super(LinkValidationTestCase, self).setUp()
 
-        self.registry_member = LinkUser.objects.get(pk=1)
-        self.org_member = LinkUser.objects.get(pk=3)
+        self.admin_user = LinkUser.objects.get(pk=1)
+        self.org_user = LinkUser.objects.get(pk=3)
 
         self.link = Link.objects.get(pk="3SLN-JHX9")
         self.unrelated_link = Link.objects.get(pk="7CF8-SS4G")
@@ -38,30 +38,30 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
     @override_settings(BANNED_IP_RANGES=["0.0.0.0/8", "127.0.0.0/8"])
     def test_should_reject_invalid_ip(self):
         self.rejected_post(self.list_url,
-                           user=self.org_member,
+                           user=self.org_user,
                            data={'url': self.server_url})
 
     def test_should_reject_malformed_url(self):
         self.rejected_post(self.list_url,
-                           user=self.org_member,
+                           user=self.org_user,
                            data={'url': 'httpexamplecom'})
 
     def test_should_reject_unresolvable_domain_url(self):
         with self.header_timeout(0.25):  # only wait 1/4 second before giving up
             self.rejected_post(self.list_url,
-                               user=self.org_member,
+                               user=self.org_user,
                                data={'url': 'http://this-is-not-a-functioning-url.com'})
 
     def test_should_reject_unloadable_url(self):
         self.rejected_post(self.list_url,
-                           user=self.org_member,
+                           user=self.org_user,
                            # http://stackoverflow.com/a/10456069/313561
                            data={'url': 'http://0.42.42.42/'})
 
     @override_settings(MAX_HTTP_FETCH_SIZE=1024)
     def test_should_reject_large_url(self):
         self.rejected_post(self.list_url,
-                           user=self.org_member,
+                           user=self.org_user,
                            data={'url': self.server_url + '/test.jpg'})
 
     #########
@@ -72,7 +72,7 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.html')) as test_file:
             self.rejected_post(self.list_url,
                                format='multipart',
-                               user=self.org_member,
+                               user=self.org_user,
                                data={'url': self.server_url + '/test.html',
                                      'file': test_file})
 
@@ -81,6 +81,6 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.jpg')) as test_file:
             self.rejected_post(self.list_url,
                                format='multipart',
-                               user=self.org_member,
+                               user=self.org_user,
                                data={'url': self.server_url + '/test.html',
                                      'file': test_file})

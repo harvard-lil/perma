@@ -14,14 +14,14 @@
       <p>{{ user_email }} already has an account.  Would you like to add them to a registrar?</p>
 
       {% if request.user.is_staff %}
-        {% if object.is_organization_member %}
+        {% if object.is_organization_user %}
           <p><b>WARNING:</b> This user is currently a member of the following organizations. Upgrading them to a registrar will REPLACE these affiliations:</p>
           <ul>
           {% for org in object.organizations.all %}
             <li>{{ org }} (registrar: {{ org.registrar }})</li>
           {% endfor %}
           </ul>
-        {% elif object.is_registrar_member %}
+        {% elif object.is_registrar_user %}
           <p><b>WARNING:</b> This user is already a member of <b>{{ object.registrar }}</b>. Submitting this form will REPLACE that affiliation.</p>
         {% endif %}
       {% endif %}
