@@ -1198,7 +1198,8 @@ class WeekStats(models.Model):
     """
 
     start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
+    end_date = models.DateTimeField(null=True)
+
 
     links_sum = models.IntegerField(default=0)
     users_sum = models.IntegerField(default=0)
