@@ -183,7 +183,7 @@
                 {% if link.private_reason == 'user' %}You can make this link public under 'Show record details.'{% endif %}
           </div>
         {% endif %}
-       
+
         {% if new_record %}
           <div class="banner banner-status row _isNewRecord">
             <strong>Success!</strong>
@@ -206,11 +206,6 @@
         {% include "archive/dark-archive.html" %}
     {% endif %}
 
-<!-- Modals -->
-
-<!-- delete -->
-<!-- darchive -->
-<!-- flag -->
 
   {% if can_delete %}
     {% include "archive/includes/upload_your_own.html" with current_user=request.user.id link=link %}
