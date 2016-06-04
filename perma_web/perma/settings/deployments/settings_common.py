@@ -69,7 +69,18 @@ MONITOR_URL = '/monitor/media/'
 # static files
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static-collected')                # where to store collected static files
 STATIC_URL = '/static/'         # URL to serve static files
-STATICFILES_DIRS = (os.path.join(PROJECT_ROOT, 'static'),)  # where to look for static files (in addition to app/static/)
+
+def _pywb_static_dir_location():
+    # helper to return absolute path of pywb's static directory
+    import pywb
+    return os.path.join(os.path.dirname(pywb.__file__), 'static')
+
+# where to look for static files (in addition to app/static/)
+STATICFILES_DIRS = (
+    os.path.join(PROJECT_ROOT, 'static'),
+    ('pywb', _pywb_static_dir_location())  # include pywb's static files at /static/pywb
+)
+
 STATICFILES_FINDERS = (         # how to look for static files
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
