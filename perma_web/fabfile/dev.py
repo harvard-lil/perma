@@ -14,7 +14,7 @@ def run_django(port="0.0.0.0:8000"):
     """
     try:
         # use runserver_plus if installed
-        import django_extensions
+        import django_extensions  # noqa
         local("python manage.py runserver_plus %s --threaded" % port)
     except ImportError:
         local("python manage.py runserver %s" % port)
@@ -145,7 +145,7 @@ def build_week_stats():
         A temporary helper to populate our weekly stats
     """
     from perma.models import Link, LinkUser, Organization, Registrar, WeekStats
-    from datetime import datetime, timedelta
+    from datetime import timedelta
     from django.utils import timezone
 
     # regenerate all weekly stats

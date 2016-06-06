@@ -56,6 +56,7 @@ pip-tools==1.6.4                # generating requirements.txt from requirements.
 gunicorn==19.3.0
 gevent==1.0.2
 newrelic==2.66.0.49
+flake8==2.5.4                   # code linting
 
 # PyWB-related stuff
 surt==0.2                       # our simple CDX server to canonicalize URL

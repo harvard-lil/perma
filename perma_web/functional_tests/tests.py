@@ -305,7 +305,6 @@ class FunctionalTest(BaseTestCase):
 
         info("Creating archive.")
         url_to_capture = 'example.com'
-        create_page_url = fix_host(self.driver.current_url)
         type_to_element(get_id('rawUrl'), url_to_capture)  # type url
         # choose folder from dropdown
         get_css_selector('#folder-tree > .jstree-container-ul > li:last-child > a').click()
@@ -316,7 +315,7 @@ class FunctionalTest(BaseTestCase):
         # wait 60 seconds to be forwarded to archive page
         repeat_while_exception(lambda: get_element_with_text('See the Screenshot View', 'a'), NoSuchElementException, 60)
         # Get the guid of the created archive
-        display_guid = fix_host(self.driver.current_url)[-9:]
+        # display_guid = fix_host(self.driver.current_url)[-9:]
         # Grab the WARC url for later.
         warc_url = fix_host(self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src'))
         # Check out the screeshot.
@@ -359,4 +358,3 @@ class FunctionalTest(BaseTestCase):
         # Displays playback by timestamp
         get_xpath("//a[contains(@href, '%s')]" % url_to_capture).click()
         assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
-        playback_url = self.driver.current_url

@@ -59,7 +59,7 @@ def apply_sort_order(request, queryset, valid_sorts, default_sort=None):
         default_sort = valid_sorts[0]
     sort = request.GET.get('sort', default_sort)
     if sort not in valid_sorts:
-      sort = default_sort
+        sort = default_sort
     return queryset.order_by(sort), sort
 
 def apply_pagination(request, queryset):

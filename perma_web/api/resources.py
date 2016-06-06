@@ -1,5 +1,4 @@
 import json
-import os
 from django.conf import settings
 from django.conf.urls import url
 from django.core.urlresolvers import NoReverseMatch
@@ -14,7 +13,6 @@ from tastypie.utils import trailing_slash
 from tastypie import http
 from tastypie.resources import ModelResource
 from tastypie.exceptions import NotFound, ImmediateHttpResponse, BadRequest
-from django.core.cache import cache as django_cache
 
 from validations import (LinkValidation,
                          FolderValidation,
@@ -27,7 +25,6 @@ from perma.models import (LinkUser,
                           Folder,
                           Organization,
                           Registrar,
-                          CDXLine,
                           Capture,
                           CaptureJob)
 
@@ -47,7 +44,7 @@ from serializers import DefaultSerializer
 
 # LinkResource
 from perma.utils import run_task
-from perma.tasks import proxy_capture, upload_to_internet_archive, delete_from_internet_archive, run_next_capture
+from perma.tasks import upload_to_internet_archive, delete_from_internet_archive, run_next_capture
 
 
 class DefaultResource(ExtendedModelResource):

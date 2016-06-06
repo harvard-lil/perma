@@ -3,7 +3,7 @@ from .utils import TEST_ASSETS_DIR, ApiResourceTransactionTestCase
 from api.resources import LinkResource, PublicLinkResource
 from perma.models import Link, LinkUser, Folder, CaptureJob, Capture, CDXLine
 from django.utils import timezone
-from datetime import datetime, timedelta
+from datetime import timedelta
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
@@ -109,7 +109,7 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
     def test_should_allow_patch_from_staff(self):
         self.successful_patch(self.unrelated_link_url, user=self.admin_user, data=self.patch_data)
 
-    def test_should_allow_link_owner_to_patch_notes_and_title(self):
+    def test_should_allow_link_creator_to_patch_notes_and_title(self):
         self.successful_patch(self.link_url, user=self.link.created_by, data=self.patch_data)
 
     def test_should_allow_member_of_links_org_to_patch_notes_and_title(self):
@@ -126,27 +126,27 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
 
 
     def test_should_allow_user_to_patch_with_file(self):
-       self.link.archive_timestamp = timezone.now() + timedelta(1)
-       self.link.save()
-       old_primary_capture = self.link.primary_capture
-       with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf')) as test_file:
-           data=test_file.read()
-           file_content = SimpleUploadedFile("test.pdf", data, content_type="application/pdf")
-           obj = self.successful_patch(self.link_url,
-                                       user=self.registrar_user,
-                                       format="multipart",
-                                       data={'file':file_content})
+        self.link.archive_timestamp = timezone.now() + timedelta(1)
+        self.link.save()
+        old_primary_capture = self.link.primary_capture
+        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf')) as test_file:
+            data=test_file.read()
+            file_content = SimpleUploadedFile("test.pdf", data, content_type="application/pdf")
+            self.successful_patch(self.link_url,
+                                  user=self.registrar_user,
+                                  format="multipart",
+                                  data={'file':file_content})
 
-       self.assertTrue(Capture.objects.filter(link_id=self.link.pk, role='primary').exclude(pk=old_primary_capture.pk).exists())
+        self.assertTrue(Capture.objects.filter(link_id=self.link.pk, role='primary').exclude(pk=old_primary_capture.pk).exists())
 
     def test_should_reject_patch_with_file_for_out_of_window_link(self):
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.pdf')) as test_file:
             data=test_file.read()
             file_content = SimpleUploadedFile("test.pdf", data, content_type="application/pdf")
-            obj = self.rejected_patch(self.link_url,
-                                       user=self.registrar_user,
-                                       format="multipart",
-                                       data={'file':file_content})
+            self.rejected_patch(self.link_url,
+                                user=self.registrar_user,
+                                format="multipart",
+                                data={'file':file_content})
         self.successful_get(self.link_url, user=self.org_user)
 
     ######################
@@ -231,7 +231,7 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
             cdxlines = CDXLine.objects.filter(link_id=new_link.guid)
             self.assertGreaterEqual(len(captures), 1)
             self.assertGreaterEqual(len(cdxlines), 1)
-            response = self.successful_delete(new_link_url, user=self.regular_user)
+            self.successful_delete(new_link_url, user=self.regular_user)
             self.assertEqual(Link.objects.count(), count-1)
             new_captures = Capture.objects.filter(link_id=new_link.guid)
             new_cdxlines = CDXLine.objects.filter(link_id=new_link.guid)

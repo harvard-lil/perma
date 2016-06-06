@@ -44,7 +44,7 @@ INSTALLED_APPS += ("sslserver",)
 
 # django-debug-toolbar
 try:
-    import debug_toolbar
+    import debug_toolbar  # noqa
     INSTALLED_APPS += (
         'debug_toolbar',
     )
@@ -56,7 +56,7 @@ except ImportError:
 
 # django_extensions
 try:
-    import django_extensions
+    import django_extensions  # noqa
     INSTALLED_APPS += (
         # Switch to this when we upgrade to Django 1.7.x:
         #'debug_toolbar.apps.DebugToolbarConfig',

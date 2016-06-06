@@ -40,7 +40,7 @@ urlpatterns = patterns('perma.views',
     url(r'^service/stats/sums/?$', 'service.stats_sums', name='service_stats_sums'),
     url(r'^service/stats/now/?$', 'service.stats_now', name='service_stats_now'),
     url(r'^service/bookmarklet-create/$', 'service.bookmarklet_create', name='service.bookmarklet_create'),
-    url(r'^service/thumbnail/%s/thumbnail.png$' % guid_pattern, 'service.get_thumbnail', name='service_get_thumbnail'),
+    #url(r'^service/thumbnail/%s/thumbnail.png$' % guid_pattern, 'service.get_thumbnail', name='service_get_thumbnail'),
 
     # Session/account management
     url(r'^login/?$', 'user_management.limited_login', {'template_name': 'registration/login.html'}, name='user_management_limited_login'),

@@ -1,19 +1,15 @@
 from django.conf import settings
-from django.db.models.signals import pre_save
 from django.dispatch import receiver
+from django.contrib.sessions.models import Session
+from django.db.models.signals import pre_save
 
 from .models import LinkUser, Link
+from .utils import ReadOnlyException
 
 
 ### read only mode ###
 
 # install signals to prevent database writes if settings.READ_ONLY_MODE is set
-
-from django.contrib.sessions.models import Session
-from django.db.models.signals import pre_save
-
-from .utils import ReadOnlyException
-
 write_whitelist = (
     (Session, None),
     (LinkUser, {'password'}),
@@ -32,7 +28,7 @@ if settings.READ_ONLY_MODE:
 @receiver(pre_save, sender=Link)
 def update_link_count(sender, instance, **kwargs):
     try:
-    # get an existing link
+        # get an existing link
         loaded_link = sender.objects.get(pk=instance.pk)
 
         def decrement_link_count(loaded_link):

@@ -1,15 +1,12 @@
 import json, logging, pytz
 
 from django.core import serializers
-from django.shortcuts import get_object_or_404
-from django.http import Http404
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
-from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 
-from perma.models import Link, WeekStats, MinuteStats
+from perma.models import WeekStats, MinuteStats
 from perma.utils import json_serial, send_user_email
 
 logger = logging.getLogger(__name__)
@@ -108,19 +105,19 @@ def bookmarklet_create(request):
     add_url = add_url + querystring
     return redirect(add_url)
 
-@login_required
-def get_thumbnail(request, guid):
-    """
-        This is our thumbnailing service. Pass it the guid of an archive and get back the thumbnail.
-    """
-
-    link = get_object_or_404(Link, guid=guid)
-
-    if link.thumbnail_status == 'generating':
-        return HttpResponse(status=202)
-
-    thumbnail_contents = link.get_thumbnail()
-    if not thumbnail_contents:
-        raise Http404
-
-    return HttpResponse(thumbnail_contents.read(), content_type='image/png')
+# @login_required
+# def get_thumbnail(request, guid):
+#     """
+#         This is our thumbnailing service. Pass it the guid of an archive and get back the thumbnail.
+#     """
+#
+#     link = get_object_or_404(Link, guid=guid)
+#
+#     if link.thumbnail_status == 'generating':
+#         return HttpResponse(status=202)
+#
+#     thumbnail_contents = link.get_thumbnail()
+#     if not thumbnail_contents:
+#         raise Http404
+#
+#     return HttpResponse(thumbnail_contents.read(), content_type='image/png')

@@ -92,19 +92,19 @@ def stats(request, stat_type=None):
                 'start_date': start_date,
                 'end_date': end_date,
                 'top_users': list(LinkUser.objects
-                    .filter(created_links__creation_timestamp__gt=start_date,created_links__creation_timestamp__lt=end_date)
-                    .annotate(links_count=Count('created_links'))
-                    .order_by('-links_count')[:3]
-                    .values('email','links_count')),
+                                          .filter(created_links__creation_timestamp__gt=start_date,created_links__creation_timestamp__lt=end_date)
+                                          .annotate(links_count=Count('created_links'))
+                                          .order_by('-links_count')[:3]
+                                          .values('email','links_count')),
                 'statuses': Capture.objects
-                    .filter(role='primary', link__creation_timestamp__gt=start_date, link__creation_timestamp__lt=end_date)
-                    .values('status')
-                    .annotate(count=Count('status')),
+                                   .filter(role='primary', link__creation_timestamp__gt=start_date, link__creation_timestamp__lt=end_date)
+                                   .values('status')
+                                   .annotate(count=Count('status')),
                 'capture_times': list(CaptureJob.objects
-                    .filter(link__creation_timestamp__gt=start_date, link__creation_timestamp__lt=end_date)
-                    .annotate(average_wait_time=RawSQL("avg(capture_start_time-creation_timestamp)", []))
-                    .annotate(average_capture_time=RawSQL("avg(capture_end_time-capture_start_time)", []))[:1]
-                    .values('average_capture_time', 'average_wait_time'))[0]
+                                                .filter(link__creation_timestamp__gt=start_date, link__creation_timestamp__lt=end_date)
+                                                .annotate(average_wait_time=RawSQL("avg(capture_start_time-creation_timestamp)", []))
+                                                .annotate(average_capture_time=RawSQL("avg(capture_end_time-capture_start_time)", []))[:1]
+                                                .values('average_capture_time', 'average_wait_time'))[0]
             }
             day['statuses'] = dict((x['status'], x['count']) for x in day['statuses'])
             day['link_count'] = sum(day['statuses'].values())
@@ -239,7 +239,7 @@ def manage_single_registrar(request, registrar_id):
     form = RegistrarForm(get_form_data(request), prefix = "a", instance=target_registrar)
     if request.method == 'POST':
         if form.is_valid():
-            new_registrar = form.save()
+            form.save()
             if request.user.is_staff:
                 return HttpResponseRedirect(reverse('user_management_manage_registrar'))
             else:
@@ -480,7 +480,6 @@ def list_users_in_group(request, group_name):
         Show list of users with given group name.
     """
 
-    is_admin = False
     users = LinkUser.objects.distinct().prefetch_related('organizations')  # .exclude(id=request.user.id)
 
     # handle sorting
@@ -501,14 +500,12 @@ def list_users_in_group(request, group_name):
         else:
             orgs = Organization.objects.all().order_by('name')
         registrars = Registrar.objects.all().order_by('name')
-        is_admin = True
     elif request.user.is_registrar_user():
         if group_name == 'organization_user':
             users = users.filter(organizations__registrar=request.user.registrar)
             orgs = Organization.objects.filter(registrar_id=request.user.registrar_id).order_by('name')
         else:
             users = users.filter(registrar=request.user.registrar)
-        is_registrar = True
     elif request.user.is_organization_user:
         users = users.filter(organizations__in=request.user.organizations.all())
 
@@ -554,7 +551,7 @@ def list_users_in_group(request, group_name):
     # get total counts
     active_users = users.filter(is_active=True, is_confirmed=True).count()
     deactivated_users = None
-    if is_admin:
+    if request.user.is_staff:
         deactivated_users = users.filter(is_confirmed=True, is_active=False).count()
     unactivated_users = users.filter(is_confirmed=False, is_active=False).count()
     total_created_links_count = users.aggregate(count=Sum('link_count'))['count']
@@ -1513,7 +1510,6 @@ def email_court_request(request, court):
     Send email to Perma.cc admins when a library requests an account
     """
 
-    host = request.get_host()
     try:
         target_user = LinkUser.objects.get(email=court.email)
     except LinkUser.DoesNotExist:
