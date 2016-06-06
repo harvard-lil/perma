@@ -13,7 +13,7 @@ lxml==3.2.1
 celery==3.1.20
 requests[security]==2.10.0
 wsgiref==0.1.2
-django-ratelimit==0.3.0
+django-ratelimit==1.0.0
 simplejson==3.3.0
 oauth2==1.5.211
 smhasher==0.150.1

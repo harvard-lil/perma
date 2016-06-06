@@ -204,3 +204,8 @@ def json_serial(obj):
             serial = obj.isoformat()
             return serial
         raise TypeError ("Type not serializable")
+
+### rate limiting ###
+
+def ratelimit_ip_key(group, request):
+    return request.META.get('HTTP_X_FORWARDED_FOR', request.META['REMOTE_ADDR'])
