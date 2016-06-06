@@ -1,1 +1,0 @@
-Files in this dir are copied verbatim from the pywb package's static dir.

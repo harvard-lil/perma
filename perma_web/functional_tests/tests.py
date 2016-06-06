@@ -131,6 +131,8 @@ class FunctionalTest(BaseTestCase):
         'loggingPrefs': {'browser': 'ALL'}
     }
 
+    virtual_display = None
+
     def setUp(self):
         if REMOTE_SERVER_URL:
             self.server_url = REMOTE_SERVER_URL
@@ -174,7 +176,6 @@ class FunctionalTest(BaseTestCase):
             self.virtual_display.start()
             self.driver = webdriver.Firefox(capabilities=self.base_desired_capabilities)
         except RuntimeError:
-            self.virtual_display = None
             self.driver = webdriver.PhantomJS(desired_capabilities=self.base_desired_capabilities)
         print("Using %s for integration tests." % (type(self.driver)))
         socket.setdefaulttimeout(30)

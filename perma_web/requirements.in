@@ -37,7 +37,7 @@ Wand==0.4           			# ImageMagick bindings to help with thumbnail creation an
 django-tastypie==0.12.2         # API framework
 -e git://github.com/leppert/django-tastypie-extendedmodelresource.git@caf08005699d8e5616f93726bd8c1c5a51f74b07#egg=django-tastypie-extendedmodelresource
 sorl-thumbnail==12.3			# Used to create our thumbnails
-redis==2.10.1					# Needed to bind with Redis. Supports our sorl thumbnails in production
+redis==2.10.5					# Needed to bind with Redis. Supports our sorl thumbnails in production
 django-redis==3.7.2             # use redis as django's cache backend
 django-forms-bootstrap==3.0.1   # produce Bootstrap compatable forms
 django-secure==1.0.1            # Force SSL -- this can be removed in Django 1.8
@@ -50,7 +50,7 @@ whitenoise==2.0.4               # serve static assets
 django-simple-history==1.6.3    # track changes to certain models
 PyVirtualDisplay==0.1.5         # for capturing with non-headless browsers
 LinkHeader==0.4.3               # memento headers for single-link pages
-pip-tools==1.6.4                # generating requirements.txt from requirements.in
+pip-tools==1.6.5                # generating requirements.txt from requirements.in
 
 # deployment
 gunicorn==19.3.0
@@ -58,8 +58,8 @@ gevent==1.0.2
 newrelic==2.66.0.49
 
 # PyWB-related stuff
-surt==0.2                       # our simple CDX server to canonicalize URL
-pywb==0.11.5
+-e git://github.com/ikreymer/pywb.git@e28f29430219b4a26374bf2a18d0128de91607cd#egg=pywb  # pywb v0.31
+#surt==0.2                       # our simple CDX server to canonicalize URL -- use whatever version pywb wants
 -e git://github.com/internetarchive/warcprox.git@f79e74482339f8c06880b28e889be694b30d4575#egg=warcprox  # unreleased 1/4/16 version of warcprox
 
 # alternate storages

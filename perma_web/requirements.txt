@@ -6,6 +6,7 @@
 #
 
 -e git+git://github.com/leppert/django-tastypie-extendedmodelresource.git@caf08005699d8e5616f93726bd8c1c5a51f74b07#egg=django-tastypie-extendedmodelresource
+-e git+git://github.com/ikreymer/pywb.git@e28f29430219b4a26374bf2a18d0128de91607cd#egg=pywb
 -e git+git://github.com/internetarchive/warcprox.git@f79e74482339f8c06880b28e889be694b30d4575#egg=warcprox
 amqp==1.4.9               # via kombu
 anyjson==0.3.3            # via kombu
@@ -18,12 +19,13 @@ boto==2.29.1
 celery==3.1.20
 certauth==1.1.3
 cffi==1.6.0               # via cryptography
-chardet==2.3              # via jasmine, pywb
+chardet==2.3              # via jasmine
 CherryPy==3.8.2           # via jasmine
 click==6.6                # via pip-tools
 clint==0.5.1              # via internetarchive
 coverage==3.7.1
 cryptography==1.3.2       # via pyopenssl
+defusedxml==0.4.1         # via pyamf
 django-admin-smoke-tests==0.1.11
 django-forms-bootstrap==3.0.1
 django-model-utils==2.2
@@ -59,7 +61,7 @@ ipaddress==1.0.16         # via cryptography
 itsdangerous==0.24        # via flask
 jasmine-core==2.4.0       # via jasmine
 jasmine==2.4.0
-jinja2==2.8               # via flask, jasmine, pywb
+jinja2==2.8               # via flask, jasmine
 jsmin==2.0.9
 jsonpatch==0.4            # via internetarchive
 kombu==3.0.35             # via celery
@@ -77,8 +79,9 @@ pathlib==1.0.1            # via pyscss
 pathtools==0.1.2          # via watchdog
 pexpect==3.1
 Pillow==2.9.0
-pip-tools==1.6.4
+pip-tools==1.6.5
 py==1.4.31                # via pytest
+pyamf==0.8.0
 pyasn1==0.1.9             # via cryptography, requests
 pycparser==2.14           # via cffi
 pycrypto==2.6.1           # via paramiko
@@ -90,25 +93,24 @@ python-dateutil==2.2
 python-mimeparse==1.5.2   # via django-tastypie
 pytz==2013b0
 PyVirtualDisplay==0.1.5
-pywb==0.11.5
-PyYAML==3.10              # via jasmine, pywb, watchdog
-redis==2.10.1
+PyYAML==3.10              # via jasmine, watchdog
+redis==2.10.5
 requests-file==1.4        # via tldextract
 requests[security]==2.10.0
 sauceclient==0.1.0
 schema==0.4.0             # via internetarchive
 selenium==2.47.3
 simplejson==3.3.0
-six==1.10.0               # via cryptography, django-admin-smoke-tests, internetarchive, jasmine, pip-tools, pyopenssl, pyscss, python-dateutil, requests-file
+six==1.10.0               # via cryptography, django-admin-smoke-tests, internetarchive, jasmine, pip-tools, pyopenssl, pyscss, python-dateutil, requests-file, surt
 smhasher==0.150.1
 sorl-thumbnail==12.3
-surt==0.2
+surt==0.3b4
 tempdir==0.6
 tldextract==2.0.1         # via surt
 Wand==0.4
 warctools==4.9.0
-watchdog==0.8.3           # via pywb
-webencodings==0.4         # via pywb
+watchdog==0.8.3
+webencodings==0.4
 Werkzeug==0.11.1          # via flask, jasmine
 whitenoise==2.0.4
 wsgiref==0.1.2
