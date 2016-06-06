@@ -4,7 +4,7 @@ from urllib import urlencode
 from django.test import TransactionTestCase
 from django.core.urlresolvers import reverse
 
-from perma.models import Registrar, Organization, LinkUser
+from perma.models import LinkUser
 
 
 class PermaTestCase(TransactionTestCase):

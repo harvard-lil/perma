@@ -62,8 +62,10 @@ urlpatterns = v1_api.urls + v1a_api.urls + collateral_urls
 
 ### error handlers ###
 
-handler404 = lambda (request): HttpResponse(status=404)
-handler500 = lambda (request): HttpResponse(status=500)
+def handler404(request):
+    HttpResponse(status=404)
+def handler500(request):
+    HttpResponse(status=500)
 
 ### django debug toolbar ###
 

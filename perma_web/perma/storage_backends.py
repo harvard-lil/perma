@@ -2,7 +2,7 @@
 import cStringIO as StringIO
 import os
 
-from django.contrib.staticfiles.storage import CachedFilesMixin, ManifestStaticFilesStorage
+from django.contrib.staticfiles.storage import ManifestStaticFilesStorage
 from django.core.files.storage import FileSystemStorage as DjangoFileSystemStorage
 from django.core.files import File
 from django.conf import settings

@@ -1,4 +1,3 @@
-import sys
 import os
 from fabric.api import env
 
@@ -8,11 +7,10 @@ try:
     django.setup()
 except Exception as e:
     print "WARNING: Can't configure Django. %s" % e
-from django.conf import settings
 
 # import sub-tasks
-from . import dev, deploy, heroku
-from .dev import run_django, test
+from . import dev, deploy, heroku  # noqa
+from .dev import run_django, test  # noqa
 
 # optionally import fab_targets
 try:

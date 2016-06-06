@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+from django.db.models import Q
+
 
 def update_upload_to_ia_field(apps, schema_editor):
     Link = apps.get_model('perma', 'Link')

@@ -561,20 +561,20 @@ class UserManagementViewsTestCase(PermaTestCase):
         # user registration
         new_user_email = "new_email@test.com"
         self.submit_form('sign_up', {'email': new_user_email, 'first_name': 'Test', 'last_name': 'Test'},
-                       success_url=reverse('register_email_instructions'),
-                       success_query=LinkUser.objects.filter(email=new_user_email))
+                         success_url=reverse('register_email_instructions'),
+                         success_query=LinkUser.objects.filter(email=new_user_email))
 
         confirmation_code = LinkUser.objects.get(email=new_user_email).confirmation_code
 
         # reg confirm - non-matching passwords
-        response = self.submit_form('register_password', reverse_kwargs={'args': [confirmation_code]},
-                                    data={'new_password1':'a', 'new_password2':'b'},
-                                    error_keys=['new_password2'])
+        self.submit_form('register_password', reverse_kwargs={'args': [confirmation_code]},
+                         data={'new_password1':'a', 'new_password2':'b'},
+                         error_keys=['new_password2'])
 
         # reg confirm - correct
-        response = self.submit_form('register_password', reverse_kwargs={'args': [confirmation_code]},
-                                    data={'new_password1': 'a', 'new_password2': 'a'},
-                                    success_url=reverse('user_management_limited_login'))
+        self.submit_form('register_password', reverse_kwargs={'args': [confirmation_code]},
+                         data={'new_password1': 'a', 'new_password2': 'a'},
+                         success_url=reverse('user_management_limited_login'))
 
     def test_signup_with_existing_email_rejected(self):
         self.submit_form('sign_up',

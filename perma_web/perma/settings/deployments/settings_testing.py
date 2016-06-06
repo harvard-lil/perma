@@ -1,4 +1,3 @@
-import os
 from settings_dev import PROJECT_ROOT
 
 #########

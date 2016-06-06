@@ -25,6 +25,6 @@ class CDXRouter(object):
         database.
         """
         if db == 'perma-cdxline':
-           return model_name == 'cdxline'
+            return model_name == 'cdxline'
         else:
-           return model_name != 'cdxline'
+            return model_name != 'cdxline'

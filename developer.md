@@ -146,6 +146,11 @@ You should always run the tests before committing code.
 
 The `fab test` command also generates handy coverage information. You can access it with the `coverage` command.
 
+### Linting with flake8
+
+All code committed must show zero warnings or errors when running `flake8 .` in perma_web/.
+
+Flake8 settings are configured in `perma_web/.pep8`
 
 ### Sauce Browser Tests
 
