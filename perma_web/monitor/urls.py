@@ -1,5 +1,6 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
+import views
 
-urlpatterns = patterns('monitor.views',
-    url(r'^archive/?$', 'monitor_archive', name='monitor_archive'),
-)
+urlpatterns = [
+    url(r'^archive/?$', views.monitor_archive, name='monitor_archive'),
+]

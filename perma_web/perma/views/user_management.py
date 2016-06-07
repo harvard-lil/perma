@@ -23,7 +23,7 @@ from django.template import RequestContext
 from django.template.response import TemplateResponse
 from django.shortcuts import render_to_response, get_object_or_404, resolve_url, render
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.core.context_processors import csrf
+from django.template.context_processors import csrf
 from django.contrib import messages
 
 from perma.forms import (

@@ -2,8 +2,7 @@ from django.utils.encoding import force_text
 from django.test.utils import override_settings
 from django.conf import settings
 from django.test import TransactionTestCase, SimpleTestCase
-from tastypie.serializers import Serializer
-from tastypie.test import ResourceTestCase, TestApiClient
+from tastypie.test import TestApiClient, ResourceTestCaseMixin
 from api.serializers import MultipartSerializer
 from perma import models
 
@@ -65,7 +64,7 @@ class PermaTestApiClient(TestApiClient):
 
 @override_settings(# ROOT_URLCONF='api.urls',
                    BANNED_IP_RANGES=[])
-class ApiResourceTestCaseMixin(SimpleTestCase):
+class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
 
     # TODO: Using the regular ROOT_URLCONF avoids a problem where failing tests print useless error messages,
     # because the 500.html error template includes a {% url %} lookup that isn't included in api.urls.
@@ -330,7 +329,8 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
     def rejected_patch(self, url, expected_status_code=None, expected_data=None, **kwargs):
         req_kwargs = self.get_req_kwargs(kwargs)
 
-        old_data = self.deserialize(self.api_client.get(url, **req_kwargs))
+        get_response = self.api_client.get(url, **req_kwargs)
+        old_data = None if get_response.status_code == 401 else self.deserialize(get_response)
 
         new_data = kwargs['data']
         count = self.resource._meta.queryset.count()
@@ -341,7 +341,8 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
             self.assertDictEqual(self.deserialize(resp), expected_data)
 
         self.assertEqual(self.resource._meta.queryset.count(), count)
-        self.assertEqual(self.deserialize(self.api_client.get(url, **req_kwargs)), old_data)
+        if old_data:
+            self.assertEqual(self.deserialize(self.api_client.get(url, **req_kwargs)), old_data)
 
         return resp
 
@@ -387,19 +388,10 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
         return delete_resp
 
 
-class ResourceTransactionTestCase(TransactionTestCase):
-    def setUp(self):
-        super(ResourceTransactionTestCase, self).setUp()
-        self.serializer = Serializer()
-for key, val in ResourceTestCase.__dict__.iteritems():
-    if key not in ['setUp', '__doc__']:
-        setattr(ResourceTransactionTestCase, key, val)
-
-
-class ApiResourceTestCase(ApiResourceTestCaseMixin, ResourceTestCase):
+class ApiResourceTestCase(ApiResourceTestCaseMixin):
     pass
 
-class ApiResourceTransactionTestCase(ApiResourceTestCaseMixin, ResourceTransactionTestCase):
+class ApiResourceTransactionTestCase(ApiResourceTestCaseMixin, TransactionTestCase):
     """
     For use with threaded tests like archive creation
     """

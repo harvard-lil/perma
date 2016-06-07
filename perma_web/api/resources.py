@@ -111,10 +111,10 @@ class DefaultResource(ExtendedModelResource):
         field_id = getattr(field, 'id', None)
         return field_id
 
-    def build_bundle(self, obj=None, data=None, request=None, objects_saved=None):
+    def build_bundle(self, **kwargs):
         """ Inject parent_object into bundle (this assumes it was already injected into the request object. """
-        bundle = super(DefaultResource, self).build_bundle(obj, data, request, objects_saved)
-        bundle.parent_object = getattr(request, 'parent_object', None)
+        bundle = super(DefaultResource, self).build_bundle(**kwargs)
+        bundle.parent_object = getattr(kwargs['request'], 'parent_object', None)
         return bundle
 
     def dispatch(self, request_type, request, **kwargs):
@@ -259,7 +259,7 @@ class FolderResource(DefaultResource):
     def obj_create(self, bundle, **kwargs):
         # Assign the parent folder on nested post_list
         if 'parent_object' in kwargs:
-            kwargs = {'parent': kwargs['parent_object']}
+            bundle.data['parent'] = kwargs['parent_object'].pk
 
         kwargs['created_by'] = bundle.request.user
         return super(FolderResource, self).obj_create(bundle, **kwargs)

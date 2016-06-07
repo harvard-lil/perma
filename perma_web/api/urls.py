@@ -20,9 +20,9 @@ class RedirectWithRootDomain(RedirectView):
         url = super(RedirectWithRootDomain, self).get_redirect_url(*args, **kwargs)
         return self.request.scheme + '://' + settings.HOST + url
 
-collateral_urls = patterns('',
-  url(r'^/?$', RedirectWithRootDomain.as_view(url='/docs/developer', permanent=True))
-)
+collateral_urls = [
+  url(r'^$', RedirectWithRootDomain.as_view(url='/docs/developer', permanent=True))
+]
 
 ### v1 ###
 
@@ -71,6 +71,4 @@ def handler500(request):
 
 if settings.DEBUG and hasattr(settings, 'DEBUG_TOOLBAR_CONFIG'):
     import debug_toolbar
-    urlpatterns += patterns('',
-                            url(r'^__debug__/', include(debug_toolbar.urls)),
-                            )
+    urlpatterns += [url(r'^__debug__/', include(debug_toolbar.urls))]
