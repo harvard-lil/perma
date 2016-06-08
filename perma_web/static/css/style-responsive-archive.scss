@@ -1662,7 +1662,11 @@ body.modal-open {
   }
   input {
     padding-left: 6px;
+    &.file {
+      cursor: pointer;
+    }
   }
+
   .save-status {
     color: $color-orange;
     margin-top: 0;
@@ -1672,19 +1676,42 @@ body.modal-open {
   .btn-file-upload-container {
     margin-left: 5px;
   }
+  .btn-sm {
+    border: 0px;
+    padding: 7px;
+    font-weight: 300;
+    font-size: 12px;
+    letter-spacing: .2px;
+  }
   .btn-file-upload {
     background-color: $color-trans-lightgray;
+    &:hover {
+      background-color: $color-trans-darkgray;
+    }
+    &:hover:disabled {
+      background-color: $color-trans-lightgray;
+    }
   }
   .blue-button {
     background: $color-blue;
     color: white;
-    font-size: 12px;
-    padding: 7px;
     border: 0px;
-    font-weight: 300;
+    &:hover {
+      background-color: $color-hover;
+    }
+    &:hover:disabled {
+      background-color: $color-blue;
+    }
   }
   .temporary-instructions {
     position: relative;
     top: -6px;
+  }
+  .btn-delete {
+    background-color: $color-error;
+    color: white;
+    &:hover {
+      background-color: black;
+    }
   }
 }
