@@ -1,23 +1,22 @@
-var SingleLinkModule = {},
+var SingleLinkPermissionsModule = {},
   saveBufferSeconds = 0.5,
   updateBtnID = '#updateLinky',
   cancelBtnID = '#cancelUpdateLinky',
   timeouts = {};
 
 $(document).ready(function(){
-  SingleLinkModule.init();
-  SingleLinkModule.setupEventHandlers();
+  SingleLinkPermissionsModule.init();
+  SingleLinkPermissionsModule.setupEventHandlers();
 });
 
-SingleLinkModule.init = function () {
-  SingleLinkModule.adjustTopMargin();
+SingleLinkPermissionsModule.init = function () {
   DOMHelpers.toggleBtnDisable(updateBtnID, true);
-  DOMHelpers.toggleBtnDisable(cancelUpdateLinky, true);
+  DOMHelpers.toggleBtnDisable(cancelBtnID, true);
 
-  if($('._isNewRecord')) { SingleLinkModule.handleNewRecord(); }
+  if($('._isNewRecord')) { SingleLinkPermissionsModule.handleNewRecord(); }
 };
 
-SingleLinkModule.handleNewRecord = function () {
+SingleLinkPermissionsModule.handleNewRecord = function () {
   // On the new-record bar, update the width of the URL input to match its contents,
   // by copying the contents into a temporary span with the same class and measuring its width.
 
@@ -29,14 +28,14 @@ SingleLinkModule.handleNewRecord = function () {
   linkSpan.remove();
 }
 
-SingleLinkModule.setupEventHandlers = function () {
-  $("#details-button, .edit-link").click( function () {
-    SingleLinkModule.handleShowDetails($(this));
+SingleLinkPermissionsModule.setupEventHandlers = function () {
+  $(".edit-link").click( function () {
+    SingleLinkModule.handleShowDetails();
     return false;
   });
 
   $("button.darchive").click( function(){
-    SingleLinkModule.handleDarchiving($(this));
+    SingleLinkPermissionsModule.handleDarchiving($(this));
     return false;
   });
 
@@ -55,7 +54,7 @@ SingleLinkModule.setupEventHandlers = function () {
   $('#archive_upload_form')
     .submit(function(e) {
       e.preventDefault();
-      SingleLinkModule.submitFile();
+      SingleLinkPermissionsModule.submitFile();
     });
 
   $('#collapse-details')
@@ -66,13 +65,13 @@ SingleLinkModule.setupEventHandlers = function () {
       if (name == "file") return
       var statusElement = inputarea.parent().find(".save-status");
 
-      SingleLinkModule.saveInput(inputarea, name, statusElement);
+      SingleLinkPermissionsModule.saveInput(inputarea, name, statusElement);
     });
 
-  $(window).on('resize', function () { SingleLinkModule.adjustTopMargin(); });
+  $(window).on('resize', function () { SingleLinkPermissionsModule.adjustTopMargin(); });
 }
 
-SingleLinkModule.submitFile = function () {
+SingleLinkPermissionsModule.submitFile = function () {
   DOMHelpers.toggleBtnDisable(updateBtnID,true);
   DOMHelpers.toggleBtnDisable(cancelBtnID, true);
   var url = "/archives/"+archive.guid+"/";
@@ -93,20 +92,7 @@ SingleLinkModule.submitFile = function () {
   }
 }
 
-SingleLinkModule.handleShowDetails = function () {
-  $this = $("#details-button");
-  var showingDetails = $this.text().match("Show");
-  $this.text(showingDetails && showingDetails.length > 0 ? "Hide record details" : "Show record details");
-  $('header').toggleClass('_activeDetails');
-}
-
-SingleLinkModule.adjustTopMargin = function () {
-  var $wrapper = $('.capture-wrapper');
-  var headerHeight = $('header').height();
-  $wrapper.css('margin-top', headerHeight);
-}
-
-SingleLinkModule.handleDarchiving = function (context) {
+SingleLinkPermissionsModule.handleDarchiving = function (context) {
   var $this = context;
   if (!$this.hasClass('disabled')){
     var prev_text = $this.text(),
@@ -128,7 +114,7 @@ SingleLinkModule.handleDarchiving = function (context) {
   }
 }
 
-SingleLinkModule.saveInput = function (inputElement, name, statusElement) {
+SingleLinkPermissionsModule.saveInput = function (inputElement, name, statusElement) {
   $(statusElement).html('Saving...');
   var data = {};
   data[name] = inputElement.val();
