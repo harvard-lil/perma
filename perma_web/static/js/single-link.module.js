@@ -1,4 +1,5 @@
-var SingleLinkModule = {};
+var SingleLinkModule = {},
+  resizeTimeout = null;
 
 SingleLinkModule.init = function () {
   SingleLinkModule.adjustTopMargin();
@@ -21,7 +22,15 @@ SingleLinkModule.adjustTopMargin = function () {
   var button = document.getElementById("details-button");
   var wrapper = document.getElementsByClassName("capture-wrapper")[0];
   var headerHeight = document.getElementsByTagName('header')[0].clientHeight;
-  wrapper.style.marginTop = headerHeight;
+  wrapper.style.marginTop = headerHeight + "px";
 }
 
 SingleLinkModule.init();
+
+window.onresize = function(){
+  if (resizeTimeout != null)
+    clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout( function () {
+    SingleLinkModule.adjustTopMargin();
+  }, 200);
+};
