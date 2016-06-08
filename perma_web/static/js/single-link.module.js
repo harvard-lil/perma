@@ -19,9 +19,9 @@ SingleLinkModule.handleShowDetails = function () {
 
 SingleLinkModule.adjustTopMargin = function () {
   var wrapper = document.getElementsByClassName("capture-wrapper")[0];
-  var headerHeight = document.getElementsByTagName('header')[0].offsetHeight;
-  wrapper.style.marginTop = headerHeight + "px";
-}
+  var header = document.getElementsByTagName('header')[0];
+  wrapper.style.marginTop = header.offsetHeight+"px";
+};
 
 SingleLinkModule.init();
 
