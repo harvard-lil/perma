@@ -121,13 +121,13 @@
                     <input class="col-sm-10 file" name="file" type="file" placeholder="example.png" accept=".png,.jpg,.jpeg,.gif,.pdf">
                     <span class="btn-file-upload-container">
                       <button id="updateLinky" type="submit" class="blue-button btn-sm btn-file-upload">Upload</button>
-                      <button type="reset" class="btn-sm btn-file-upload">Cancel</button>
+                      <button id="cancelUpdateLinky" type="reset" class="btn-sm btn-file-upload">Cancel</button>
                     </span>
                   </form>
                 </dl>
                 <dl class="tray-detail-group temporary-options">
                   <dt class="tray-detail-title">
-                    <button class="btn-delete btn-sm blue-button"><a
+                    <button class="btn-delete btn-sm"><a
                       href="{% url 'user_delete_link' link.guid %}">
                       Delete<span class="_verbose"> record</span>
                     </a></button>

@@ -1,5 +1,7 @@
-var SingleLinkModule = {};
-var saveBufferSeconds = 0.5,
+var SingleLinkModule = {},
+  saveBufferSeconds = 0.5,
+  updateBtnID = '#updateLinky',
+  cancelBtnID = '#cancelUpdateLinky',
   timeouts = {};
 
 $(document).ready(function(){
@@ -9,7 +11,9 @@ $(document).ready(function(){
 
 SingleLinkModule.init = function () {
   SingleLinkModule.adjustTopMargin();
-  SingleLinkModule.changeUploadBtnStatus(true);
+  DOMHelpers.toggleBtnDisable(updateBtnID, true);
+  DOMHelpers.toggleBtnDisable(cancelUpdateLinky, true);
+
   if($('._isNewRecord')) { SingleLinkModule.handleNewRecord(); }
 };
 
@@ -23,12 +27,6 @@ SingleLinkModule.handleNewRecord = function () {
   linkSpan.text(linkField.val());
   linkField.width(linkSpan.width());
   linkSpan.remove();
-}
-
-SingleLinkModule.changeUploadBtnStatus = function(disableStatus) {
-  // if disableStatus is false, enable.
-  // if disableStatus is true, disable.
-  $('#updateLinky').prop('disabled', disableStatus);
 }
 
 SingleLinkModule.setupEventHandlers = function () {
@@ -45,10 +43,14 @@ SingleLinkModule.setupEventHandlers = function () {
   $("input:file").change(function (){
     var fileName = $(this).val();
     var disableStatus = fileName ? false : true;
-    SingleLinkModule.changeUploadBtnStatus(disableStatus);
+    DOMHelpers.toggleBtnDisable(cancelBtnID,disableStatus);
+    DOMHelpers.toggleBtnDisable(updateBtnID,disableStatus);
   });
 
-  $("button:reset").click(function(){ SingleLinkModule.changeUploadBtnStatus(true); });
+  $("button:reset").click(function(){
+    DOMHelpers.toggleBtnDisable(cancelBtnID, true);
+    DOMHelpers.toggleBtnDisable(updateBtnID, true);
+  });
 
   $('#archive_upload_form')
     .submit(function(e) {
@@ -71,7 +73,8 @@ SingleLinkModule.setupEventHandlers = function () {
 }
 
 SingleLinkModule.submitFile = function () {
-  SingleLinkModule.changeUploadBtnStatus(true);
+  DOMHelpers.toggleBtnDisable(updateBtnID,true);
+  DOMHelpers.toggleBtnDisable(cancelBtnID, true);
   var url = "/archives/"+archive.guid+"/";
   var data = {};
   data['file'] = $('#archive_upload_form').find('.file')[0].files[0];
