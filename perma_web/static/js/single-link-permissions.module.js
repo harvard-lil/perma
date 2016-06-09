@@ -59,7 +59,7 @@ SingleLinkPermissionsModule.setupEventHandlers = function () {
   var inputValues = {};
   $('#collapse-details')
     .find('input')
-    .on('input textchange change', function () {
+    .on('input propertychange change', function () {
       var inputarea = $(this);
       var name = inputarea.attr("name");
       if (name == "file") return
