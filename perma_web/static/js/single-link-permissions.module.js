@@ -56,13 +56,15 @@ SingleLinkPermissionsModule.setupEventHandlers = function () {
       e.preventDefault();
       SingleLinkPermissionsModule.submitFile();
     });
-
+  var inputValues = {};
   $('#collapse-details')
     .find('input')
     .on('input propertychange change', function () {
       var inputarea = $(this);
       var name = inputarea.attr("name");
       if (name == "file") return
+      if (inputarea.val() == inputValues[name]) return
+      inputValues[name] = inputarea.val();
       var statusElement = inputarea.parent().find(".save-status");
 
       SingleLinkPermissionsModule.saveInput(inputarea, name, statusElement);
@@ -118,13 +120,16 @@ SingleLinkPermissionsModule.saveInput = function (inputElement, name, statusElem
   $(statusElement).html('Saving...');
   var data = {};
   data[name] = inputElement.val();
-  if(timeouts[archive.guid])
-    clearTimeout(timeouts[archive.guid]);
+  if(timeouts[name])
+    clearTimeout(timeouts[name]);
 
-  timeouts[archive.guid] = setTimeout(function () {
+  timeouts[name] = setTimeout(function () {
     Helpers.apiRequest("PATCH", '/archives/' + archive.guid + '/', data)
       .done(function(data){
         $(statusElement).html('Saved!');
+        setTimeout(function() {
+          $(statusElement).html('');
+        }, 1000)
       });
   }, 500)
 }
