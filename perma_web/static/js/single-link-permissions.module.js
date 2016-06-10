@@ -70,7 +70,7 @@ SingleLinkPermissionsModule.setupEventHandlers = function () {
       SingleLinkPermissionsModule.saveInput(inputarea, name, statusElement);
     });
 
-  $(window).on('resize', function () { SingleLinkPermissionsModule.adjustTopMargin(); });
+  $(window).on('resize', function () { SingleLinkModule.adjustTopMargin(); });
 }
 
 SingleLinkPermissionsModule.submitFile = function () {
