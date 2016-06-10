@@ -1,7 +1,4 @@
-import unittest
 from django.core.urlresolvers import reverse
-from perma.models import UncaughtError
-from perma.models import LinkUser
 
 from .utils import PermaTestCase
 

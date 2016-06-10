@@ -19,7 +19,6 @@ from django.utils.safestring import mark_safe
 
 from hanzo import warctools
 from simple_history.models import HistoricalRecords
-from wand.image import Image
 from werkzeug.urls import iri_to_uri
 
 import django.contrib.auth.models
@@ -561,7 +560,7 @@ class Link(DeletableModel):
         initial_folder = kwargs.pop('initial_folder', None)
 
         if self.tracker.has_changed('is_unlisted') or self.tracker.has_changed('is_private'):
-            cdxlines = CDXLine.objects.filter(link_id=self.pk).update(is_unlisted=self.is_unlisted, is_private=self.is_private)
+            CDXLine.objects.filter(link_id=self.pk).update(is_unlisted=self.is_unlisted, is_private=self.is_private)
 
         if not self.pk:
             if not self.archive_timestamp:
@@ -659,62 +658,62 @@ class Link(DeletableModel):
     def warc_storage_file(self):
         return os.path.join(settings.WARC_STORAGE_DIR, self.guid_as_path(), '%s.warc.gz' % self.guid)
 
-    def get_thumbnail(self, image_data=None):
-        if self.thumbnail_status == 'failed' or self.thumbnail_status == 'generating':
-            return None
-
-        thumbnail_path = os.path.join(settings.THUMBNAIL_STORAGE_PATH, self.guid_as_path(), 'thumbnail.png')
-
-        if self.thumbnail_status == 'generated' and default_storage.exists(thumbnail_path):
-            return default_storage.open(thumbnail_path)
-
-        try:
-
-            warc_url = None
-            image = None
-
-            if image_data:
-                image = Image(blob=image_data)
-            else:
-
-                if self.screenshot_capture and self.screenshot_capture.status == 'success':
-                    warc_url = self.screenshot_capture.url
-                else:
-                    pdf_capture = self.captures.filter(content_type__startswith='application/pdf').first()
-                    if pdf_capture:
-                        warc_url = pdf_capture.url
-
-                if warc_url:
-                    self.thumbnail_status = 'generating'
-                    self.save(update_fields=['thumbnail_status'])
-
-                    headers, data = self.replay_url(warc_url)
-                    temp_file = tempfile.NamedTemporaryFile(suffix='.' + warc_url.rsplit('.', 1)[-1])
-                    for chunk in data:
-                        temp_file.write(chunk)
-                    temp_file.flush()
-                    image = Image(filename=temp_file.name + "[0]")  # [0] limits ImageMagick to first page of PDF
-
-            if image:
-                with imagemagick_temp_dir():
-                    with image as opened_img:
-                        opened_img.transform(resize='600')
-                        # opened_img.resize(600,600)
-                        with Image(width=600, height=600) as dst_image:
-                            dst_image.composite(opened_img, 0, 0)
-                            dst_image.compression_quality = 60
-                            default_storage.store_data_to_file(dst_image.make_blob('png'), thumbnail_path, overwrite=True)
-
-                self.thumbnail_status = 'generated'
-                self.save(update_fields=['thumbnail_status'])
-
-                return default_storage.open(thumbnail_path)
-
-        except Exception as e:
-            print "Thumbnail generation failed for %s: %s" % (self.guid, e)
-
-        self.thumbnail_status = 'failed'
-        self.save(update_fields=['thumbnail_status'])
+    # def get_thumbnail(self, image_data=None):
+    #     if self.thumbnail_status == 'failed' or self.thumbnail_status == 'generating':
+    #         return None
+    #
+    #     thumbnail_path = os.path.join(settings.THUMBNAIL_STORAGE_PATH, self.guid_as_path(), 'thumbnail.png')
+    #
+    #     if self.thumbnail_status == 'generated' and default_storage.exists(thumbnail_path):
+    #         return default_storage.open(thumbnail_path)
+    #
+    #     try:
+    #
+    #         warc_url = None
+    #         image = None
+    #
+    #         if image_data:
+    #             image = Image(blob=image_data)
+    #         else:
+    #
+    #             if self.screenshot_capture and self.screenshot_capture.status == 'success':
+    #                 warc_url = self.screenshot_capture.url
+    #             else:
+    #                 pdf_capture = self.captures.filter(content_type__startswith='application/pdf').first()
+    #                 if pdf_capture:
+    #                     warc_url = pdf_capture.url
+    #
+    #             if warc_url:
+    #                 self.thumbnail_status = 'generating'
+    #                 self.save(update_fields=['thumbnail_status'])
+    #
+    #                 headers, data = self.replay_url(warc_url)
+    #                 temp_file = tempfile.NamedTemporaryFile(suffix='.' + warc_url.rsplit('.', 1)[-1])
+    #                 for chunk in data:
+    #                     temp_file.write(chunk)
+    #                 temp_file.flush()
+    #                 image = Image(filename=temp_file.name + "[0]")  # [0] limits ImageMagick to first page of PDF
+    #
+    #         if image:
+    #             with imagemagick_temp_dir():
+    #                 with image as opened_img:
+    #                     opened_img.transform(resize='600')
+    #                     # opened_img.resize(600,600)
+    #                     with Image(width=600, height=600) as dst_image:
+    #                         dst_image.composite(opened_img, 0, 0)
+    #                         dst_image.compression_quality = 60
+    #                         default_storage.store_data_to_file(dst_image.make_blob('png'), thumbnail_path, overwrite=True)
+    #
+    #             self.thumbnail_status = 'generated'
+    #             self.save(update_fields=['thumbnail_status'])
+    #
+    #             return default_storage.open(thumbnail_path)
+    #
+    #     except Exception as e:
+    #         print "Thumbnail generation failed for %s: %s" % (self.guid, e)
+    #
+    #     self.thumbnail_status = 'failed'
+    #     self.save(update_fields=['thumbnail_status'])
 
     def delete_related(self):
         CDXLine.objects.filter(link_id=self.pk).delete()
@@ -1046,7 +1045,7 @@ class CaptureJob(models.Model):
 
             # Use select_for_update on the first CaptureJob to claim a lock on the cache.
             if cls.USE_LOCK:
-                lock_row = cls.objects.order_by('pk').select_for_update().first()
+                lock_row = cls.objects.order_by('pk').select_for_update().first()  # noqa
 
             # try fetching queue from cache
             job_queues = cache.get(CaptureJob.CACHE_KEY) if cls.USE_CACHE else None

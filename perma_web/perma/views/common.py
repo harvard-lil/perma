@@ -1,40 +1,28 @@
 from wsgiref.util import FileWrapper
 import logging
 from urlparse import urlparse
-import requests
+from time import mktime
 from ratelimit.decorators import ratelimit
 from datetime import timedelta
+import link_header
+from wsgiref.handlers import format_date_time
 
 from django.core.files.storage import default_storage
 from django.template import RequestContext
 from django.template.loader import render_to_string
+from django.http import HttpResponseForbidden
 from django.shortcuts import render_to_response, render, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, HttpResponseNotFound, HttpResponseServerError, \
-    HttpResponseForbidden
-from django.shortcuts import render_to_response, render, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, Http404, HttpResponse, HttpResponseNotFound, HttpResponseServerError, StreamingHttpResponse
+from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, HttpResponseNotFound, HttpResponseServerError, StreamingHttpResponse
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.utils import timezone
-from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_control
-from django.core.mail import EmailMessage
-from django.views.static import serve as media_view
-from wsgiref.handlers import format_date_time
-from time import mktime
-
-import link_header
-
-import logging
-from urlparse import urlparse
-import requests
-from ratelimit.decorators import ratelimit
 
 from ..models import Link, Registrar, Organization, LinkUser
-from perma.forms import ContactForm
-from perma.utils import if_anonymous, send_admin_email
+from ..forms import ContactForm
+from ..utils import if_anonymous, send_admin_email
 
 logger = logging.getLogger(__name__)
 valid_serve_types = ['image', 'warc_download']

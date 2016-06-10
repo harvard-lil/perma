@@ -2,11 +2,10 @@ import json
 from django.utils import timezone
 
 from django.views.decorators.csrf import csrf_exempt
-from django.conf import settings
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse
 
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import render
 
 from ..models import UncaughtError
 

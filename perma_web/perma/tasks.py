@@ -17,7 +17,7 @@ from selenium import webdriver
 from selenium.common.exceptions import WebDriverException, NoSuchElementException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.proxy import ProxyType, Proxy
-from datetime import datetime, timedelta
+from datetime import timedelta
 import logging
 import robotparser
 import time
@@ -162,7 +162,7 @@ def repeat_while_exception(func, exception=Exception, timeout=10, sleep_time=.1,
     while True:
         try:
             return func()
-        except exception as e:
+        except exception:
             if time.time() > end_time:
                 if raise_after_timeout:
                     raise
@@ -389,7 +389,7 @@ def proxy_capture(self, link_guid):
 
                 # apply mime type whitelist
                 mime_type = favicon_response.headers.get('content-type', '').split(';')[0]
-                if not mime_type in VALID_FAVICON_MIME_TYPES:
+                if mime_type not in VALID_FAVICON_MIME_TYPES:
                     continue
 
                 successful_favicon_urls.append((favicon_url, mime_type))
@@ -663,7 +663,7 @@ def delete_from_internet_archive(self, link_guid):
         return False
     for f in item.files:
         file = item.get_file(f["name"])
-        deleted = file.delete(
+        file.delete(
             verbose=True,
             cascade_delete=True,
             access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,

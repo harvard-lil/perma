@@ -15,7 +15,7 @@ class CommonViewsTestCase(PermaTestCase):
         # test static template views
         for urlpattern in urlpatterns:
             if urlpattern.callback.func_name == 'DirectTemplateView':
-                resp = self.get(urlpattern.name)
+                self.get(urlpattern.name)
 
     # Record page
 

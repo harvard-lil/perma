@@ -11,7 +11,7 @@ class PermaConfig(AppConfig):
 
     def ready(self):
         # register our signals
-        from . import signals
+        from . import signals  # noqa
 
         # check timezone config
         from django.db import connection

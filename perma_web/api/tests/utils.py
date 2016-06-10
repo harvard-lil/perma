@@ -1,7 +1,7 @@
 from django.utils.encoding import force_text
 from django.test.utils import override_settings
 from django.conf import settings
-from django.test import TransactionTestCase, TestCase, SimpleTestCase
+from django.test import TransactionTestCase, SimpleTestCase
 from tastypie.serializers import Serializer
 from tastypie.test import ResourceTestCase, TestApiClient
 from api.serializers import MultipartSerializer
@@ -291,7 +291,7 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
 
         new_data = kwargs['data']
         if check_results:
-        # Fetch the existing data for comparison.
+            # Fetch the existing data for comparison.
             resp = self.api_client.get(url, **req_kwargs)
             self.assertHttpOK(resp)
             self.assertValidJSONResponse(resp)
