@@ -40,7 +40,7 @@
 			</div><!--/#main-content"-->
 		</section><!--/#main-->
 
-        {% if can_edit %}
+        {% if request.user.is_authenticated %}
           {% javascript 'global' %}
         {% endif %}
 
