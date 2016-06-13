@@ -47,6 +47,7 @@ ecdsa==0.13               # via paramiko
 enum34==1.1.4             # via cryptography, pyscss
 execnet==1.4.1            # via pytest-xdist
 Fabric==1.11.1
+fakeredis==0.7.0
 first==2.0.1              # via pip-tools
 flake8==2.5.4
 Flask==0.10.1             # via jasmine
