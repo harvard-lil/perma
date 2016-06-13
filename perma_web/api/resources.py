@@ -1,4 +1,3 @@
-import re
 import random
 import json
 from django.conf import settings
@@ -480,7 +479,7 @@ class LinkResource(AuthenticatedLinkResource):
             base_warc_url = "file:///%s/%s" % (link.guid, file_name)
 
             # only append a random number to warc_url if we're replacing a file
-            warc_url = base_warc_url if not bundle.data.get('replace') else  "%s?version=%s" % (base_warc_url, re.sub('[.]','',str(random.random())))
+            warc_url = base_warc_url if not bundle.data.get('replace') else  "%s?version=%s" % (base_warc_url, str(random.random()).replace('.',''))
 
             capture = Capture(link=link,
                               role='primary',
