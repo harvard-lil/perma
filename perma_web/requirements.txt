@@ -33,7 +33,7 @@ django-mptt==0.8.0
 django-pipeline-compass==0.1.5
 django-pipeline==1.5.4
 django-ratelimit==1.0.0
-django-redis==3.7.2
+django-redis==4.4.3
 django-secure==1.0.1
 django-settings-context-processor==0.2
 django-simple-history==1.8.1
@@ -47,6 +47,7 @@ ecdsa==0.13               # via paramiko
 enum34==1.1.4             # via cryptography, pyscss
 execnet==1.4.1            # via pytest-xdist
 Fabric==1.11.1
+fakeredis==0.7.0
 first==2.0.1              # via pip-tools
 flake8==2.5.4
 Flask==0.10.1             # via jasmine

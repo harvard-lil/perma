@@ -1,7 +1,7 @@
 import os
 from .utils import TEST_ASSETS_DIR, ApiResourceTransactionTestCase
 from api.resources import LinkResource, PublicLinkResource
-from perma.models import Link, LinkUser, Folder, CaptureJob, Capture, CDXLine
+from perma.models import Link, LinkUser, Folder, Capture, CDXLine
 from django.utils import timezone
 from datetime import timedelta
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -44,8 +44,6 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
 
         self.patch_data = {'notes': 'These are new notes',
                            'title': 'This is a new title'}
-
-        CaptureJob.clear_cache()  # reset cache (test cases don't reset cache keys automatically)
 
     def get_public_link_url(self, link):
         return "{0}/{1}".format(self.public_list_url, link.pk)

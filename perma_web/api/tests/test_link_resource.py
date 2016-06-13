@@ -2,8 +2,7 @@ import os
 import dateutil.parser
 from .utils import ApiResourceTransactionTestCase, TEST_ASSETS_DIR
 from api.resources import LinkResource, CurrentUserLinkResource, PublicLinkResource
-from perma.models import Link, LinkUser, CDXLine, CaptureJob
-from django.core.cache import cache
+from perma.models import Link, LinkUser, CDXLine
 
 
 # Use a TransactionTestCase here because archive capture is threaded
@@ -67,9 +66,6 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             'url': self.server_url + "/test.html",
             'title': 'This is a test page'
         }
-
-        CaptureJob.clear_cache()  # reset cache (test cases don't reset cache keys automatically)
-        cache.clear()
 
     def assertValidCapture(self, capture):
         """

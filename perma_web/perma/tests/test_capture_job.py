@@ -30,8 +30,6 @@ class CaptureJobTestCase(PermaTestCase):
 
         self.maxDiff = None  # let assertListEqual compare large lists
 
-        CaptureJob.clear_cache()  # reset cache (test cases don't reset cache keys automatically)
-
     ### HELPERS ###
 
     def assertNextJobsMatch(self, expected_next_jobs, expected_order):
