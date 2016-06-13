@@ -12,7 +12,6 @@ import requests
 from surt import surt
 
 # configure Django
-from lockss.models import Mirror
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "perma.settings")
 import django
@@ -24,6 +23,7 @@ from django.template.loader import get_template
 from django.core.files.storage import default_storage
 from django.core.exceptions import DisallowedHost
 from django.core.cache import cache as django_cache
+from django.apps import apps
 
 from pywb.cdx.cdxserver import CDXServer
 from pywb.cdx.cdxsource import CDXSource
@@ -39,8 +39,10 @@ from pywb.webapp.views import MementoTimemapView
 from pywb.webapp.pywb_init import create_wb_router
 from pywb.utils.wbexception import NotFoundException
 
-from perma.models import CDXLine, Link
-
+# Use lazy model imports because Django models aren't ready yet when this file is loaded by wsgi.py
+CDXLine = apps.get_model('perma', 'CDXLine')
+Link = apps.get_model('perma', 'Link')
+Mirror = apps.get_model('lockss', 'Mirror')
 
 import logging
 logger = logging.getLogger(__name__)
@@ -344,6 +346,7 @@ class CachedLoader(BlockLoader):
 
             # try fetching from each mirror in the LOCKSS network, in random order
             if settings.USE_LOCKSS_REPLAY:
+
                 mirrors = Mirror.get_cached_mirrors()
                 random.shuffle(mirrors)
 
