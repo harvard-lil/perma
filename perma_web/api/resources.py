@@ -1,5 +1,5 @@
-import hashlib
-import time
+import re
+import random
 import json
 from django.conf import settings
 from django.conf.urls import url
@@ -477,15 +477,10 @@ class LinkResource(AuthenticatedLinkResource):
             mime_type = get_mime_type(uploaded_file.name)
             file_name = 'upload.%s' % mime_type_lookup[mime_type]['new_extension']
 
-            # add hash with timestamp, because reuploaded files might have
-            # the same name and extension
-            uploaded_file_hash = hashlib.sha1(uploaded_file.name)
-            uploaded_file_hash.update(str(time.time()))
-
             base_warc_url = "file:///%s/%s" % (link.guid, file_name)
 
-            # only append a hash to warc_url if we're replacing a file
-            warc_url = base_warc_url if not bundle.data.get('replace') else  "%s?hash=%s" % (base_warc_url, uploaded_file_hash.hexdigest()[:10])
+            # only append a random number to warc_url if we're replacing a file
+            warc_url = base_warc_url if not bundle.data.get('replace') else  "%s?version=%s" % (base_warc_url, re.sub('[.]','',str(random.random())))
 
             capture = Capture(link=link,
                               role='primary',
