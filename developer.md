@@ -148,9 +148,17 @@ The `fab test` command also generates handy coverage information. You can access
 
 ### Linting with flake8
 
-All code committed must show zero warnings or errors when running `flake8 .` in perma_web/.
+All code must show zero warnings or errors when running `flake8 .` in `perma_web/`.
 
 Flake8 settings are configured in `perma_web/.pep8`
+
+If you want to automatically run flake8 before pushing your code, you can add something like this to `.git/hooks/pre-push`:
+ 
+    #!/bin/sh
+    /path/to/.virtualenvs/perma/bin/flake8 /path/to/perma/perma_web
+    exit $?
+
+Be sure to mark the hook as executable: `chmod u+x .git/hooks/pre-push`.
 
 ### Sauce Browser Tests
 
