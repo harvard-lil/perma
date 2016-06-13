@@ -1,3 +1,5 @@
+import hashlib
+import time
 import json
 from django.conf import settings
 from django.conf.urls import url
@@ -474,7 +476,16 @@ class LinkResource(AuthenticatedLinkResource):
             # normalize file name to upload.jpg, upload.png, upload.gif, or upload.pdf
             mime_type = get_mime_type(uploaded_file.name)
             file_name = 'upload.%s' % mime_type_lookup[mime_type]['new_extension']
-            warc_url = "file:///%s/%s" % (link.guid, file_name)
+
+            # add hash with timestamp, because reuploaded files might have
+            # the same name and extension
+            uploaded_file_hash = hashlib.sha1(uploaded_file.name)
+            uploaded_file_hash.update(str(time.time()))
+
+            base_warc_url = "file:///%s/%s" % (link.guid, file_name)
+
+            # only append a hash to warc_url if we're replacing a file
+            warc_url = base_warc_url if not bundle.data.get('replace') else  "%s?hash=%s" % (base_warc_url, uploaded_file_hash.hexdigest()[:10])
 
             capture = Capture(link=link,
                               role='primary',
@@ -557,7 +568,7 @@ class LinkResource(AuthenticatedLinkResource):
             bundle.data['links_remaining'] = links_remaining
 
         bundle.obj.clear_cache()
-        
+
         return bundle
 
     # https://github.com/toastdriven/django-tastypie/blob/ec16d5fc7592efb5ea86321862ec0b5962efba1b/tastypie/resources.py#L2194
