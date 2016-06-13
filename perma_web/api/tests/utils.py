@@ -112,7 +112,7 @@ class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
         from django_redis import get_redis_connection
         get_redis_connection("default").flushall()
 
-        return super(PermaTestCase, self).tearDown()
+        return super(ApiResourceTestCaseMixin, self).tearDown()
 
     def get_credentials(self, user=None):
         user = user or self.user

@@ -2,8 +2,7 @@ import os
 import dateutil.parser
 from .utils import ApiResourceTransactionTestCase, TEST_ASSETS_DIR
 from api.resources import LinkResource, CurrentUserLinkResource, PublicLinkResource
-from perma.models import Link, LinkUser, CDXLine, CaptureJob
-from django.core.cache import cache
+from perma.models import Link, LinkUser, CDXLine
 
 
 # Use a TransactionTestCase here because archive capture is threaded

@@ -1,7 +1,7 @@
 import os
 from .utils import TEST_ASSETS_DIR, ApiResourceTransactionTestCase
 from api.resources import LinkResource, PublicLinkResource
-from perma.models import Link, LinkUser, Folder, CaptureJob, Capture, CDXLine
+from perma.models import Link, LinkUser, Folder, Capture, CDXLine
 from django.utils import timezone
 from datetime import timedelta
 from django.core.files.uploadedfile import SimpleUploadedFile
