@@ -23,12 +23,15 @@ SingleLinkModule.adjustTopMargin = function () {
   wrapper.style.marginTop = header.offsetHeight+"px";
 };
 
-SingleLinkModule.init();
 
-window.onresize = function(){
-  if (resizeTimeout != null)
-    clearTimeout(resizeTimeout);
-  resizeTimeout = setTimeout( function () {
-    SingleLinkModule.adjustTopMargin();
-  }, 200);
-};
+(function() {
+  SingleLinkModule.init();
+  window.onresize = function(){
+    if (resizeTimeout != null)
+      clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout( function () {
+      SingleLinkModule.adjustTopMargin();
+    }, 200);
+  };
+
+})();

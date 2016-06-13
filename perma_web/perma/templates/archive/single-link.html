@@ -223,7 +223,7 @@
         var current_user = {id:"{{request.user.id}}"};
     </script>
 
-    {% if can_edit %}
+    {% if request.user.is_authenticated %}
       {% javascript 'single-link-with-permissions' %}
     {% else %}
       {% javascript 'single-link' %}
