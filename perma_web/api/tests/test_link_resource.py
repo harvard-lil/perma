@@ -68,9 +68,6 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             'title': 'This is a test page'
         }
 
-        CaptureJob.clear_cache()  # reset cache (test cases don't reset cache keys automatically)
-        cache.clear()
-
     def assertValidCapture(self, capture):
         """
             Make sure capture matches WARC contents.

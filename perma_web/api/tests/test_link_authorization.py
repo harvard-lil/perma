@@ -45,8 +45,6 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
         self.patch_data = {'notes': 'These are new notes',
                            'title': 'This is a new title'}
 
-        CaptureJob.clear_cache()  # reset cache (test cases don't reset cache keys automatically)
-
     def get_public_link_url(self, link):
         return "{0}/{1}".format(self.public_list_url, link.pk)
 

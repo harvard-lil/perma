@@ -33,7 +33,7 @@ django-mptt==0.8.0
 django-pipeline-compass==0.1.5
 django-pipeline==1.5.4
 django-ratelimit==1.0.0
-django-redis==3.7.2
+django-redis==4.4.3
 django-secure==1.0.1
 django-settings-context-processor==0.2
 django-simple-history==1.8.1

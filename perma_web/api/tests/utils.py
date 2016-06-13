@@ -108,6 +108,12 @@ class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
         settings.MEDIA_ROOT = self._media_org
         shutil.rmtree(self._media_tmp)
 
+        # wipe cache -- see https://niwinz.github.io/django-redis/latest/#_testing_with_django_redis
+        from django_redis import get_redis_connection
+        get_redis_connection("default").flushall()
+
+        return super(PermaTestCase, self).tearDown()
+
     def get_credentials(self, user=None):
         user = user or self.user
         return "ApiKey %s" % user.api_key.key
