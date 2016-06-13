@@ -387,7 +387,7 @@ class FolderQuerySet(QuerySet):
         # folders owned by orgs in which the user a member
         orgs = user.get_orgs()
         if orgs:
-            filter |= Q(organization=orgs)
+            filter |= Q(organization__in=orgs)
 
         return filter
 
@@ -474,7 +474,7 @@ class LinkQuerySet(QuerySet):
         # links owned by orgs in which the user a member
         orgs = user.get_orgs()
         if orgs:
-            filter |= Q(folders__organization=orgs)
+            filter |= Q(folders__organization__in=orgs)
 
         return filter
 

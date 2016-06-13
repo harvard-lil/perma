@@ -23,7 +23,7 @@ from django.template import RequestContext
 from django.template.response import TemplateResponse
 from django.shortcuts import render_to_response, get_object_or_404, resolve_url, render
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.core.context_processors import csrf
+from django.template.context_processors import csrf
 from django.contrib import messages
 
 from perma.forms import (
@@ -41,7 +41,7 @@ from perma.forms import (
     UserAddAdminForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob
 from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_admin_email, \
-    send_user_email, send_user_template_email, get_form_data
+    send_user_email, send_user_template_email, get_form_data, ratelimit_ip_key
 
 logger = logging.getLogger(__name__)
 valid_member_sorts = ['last_name', '-last_name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'link_count', '-link_count']
@@ -1085,8 +1085,7 @@ def logout(request):
     return render(request, "registration/logout.html")
 
 
-@ratelimit(field='email', method='POST', rate=settings.LOGIN_MINUTE_LIMIT, block=True, ip=False,
-           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
+@ratelimit(rate=settings.LOGIN_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def limited_login(request, template_name='registration/login.html',
           redirect_field_name=REDIRECT_FIELD_NAME,
           authentication_form=AuthenticationForm,
@@ -1169,8 +1168,7 @@ def set_access_token_cookie(request):
     return response
 
 
-@ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block=True, ip=False,
-           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
+@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def libraries(request):
     """
     Info for libraries, allow them to request accounts
@@ -1240,8 +1238,7 @@ def libraries(request):
         {'user_form':user_form, 'registrar_form':registrar_form, 'registrar_count': registrar_count},
         RequestContext(request))
 
-@ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block=True, ip=False,
-           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
+@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def sign_up(request):
     """
     Register a new user
@@ -1264,8 +1261,7 @@ def sign_up(request):
         RequestContext(request))
 
 
-@ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block=True, ip=False,
-           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
+@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def sign_up_courts(request):
     """
     Register a new court user
@@ -1307,8 +1303,7 @@ def sign_up_courts(request):
         RequestContext(request))
 
 
-@ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block=True, ip=False,
-           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
+@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def sign_up_faculty(request):
     """
     Register a new user
@@ -1332,8 +1327,7 @@ def sign_up_faculty(request):
         RequestContext(request))
 
 
-@ratelimit(method='POST', rate=settings.REGISTER_MINUTE_LIMIT, block=True, ip=False,
-           keys=lambda req: req.META.get('HTTP_X_FORWARDED_FOR', req.META['REMOTE_ADDR']))
+@ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def sign_up_journals(request):
     """
     Register a new user

@@ -4,7 +4,6 @@
 from .deployments.settings_dev import *
 
 DEBUG = False
-TEMPLATE_DEBUG = DEBUG
 
 DATABASES['default']['HOST'] = '127.0.0.1'
 DATABASES['default']['USER'] = 'root'

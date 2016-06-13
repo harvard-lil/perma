@@ -249,12 +249,30 @@ PIPELINE_MIMETYPES = (
   (b'text/x-scss', '.scss')
 )
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            # insert your TEMPLATE_DIRS here
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
+                # list if you haven't customized them:
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'django.template.context_processors.request',
+                'django.contrib.messages.context_processors.messages',
+                'settings_context_processor.context_processors.settings',  # to easily use settings in templates
+            ],
+        },
+    },
+]
 
 MIDDLEWARE_CLASSES = (
     'perma.middleware.SecurityMiddleware',
@@ -279,14 +297,7 @@ ROOT_URLCONF = 'urls'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'perma.wsgi.application'
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.contrib.messages.context_processors.messages',
-    'django.core.context_processors.request',   # include `request` in templates
-    'django.core.context_processors.static',    # include `STATIC_URL` in templates
-    'django.core.context_processors.media',     # include `MEDIA_URL` in templates
-    'django.contrib.auth.context_processors.auth',  # for Django admin
-    'settings_context_processor.context_processors.settings',  # to easily use settings in templates
-)
+
 
 INSTALLED_APPS = (
     # built in apps

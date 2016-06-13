@@ -1,7 +1,6 @@
 from settings_common import *
 
 DEBUG = False
-TEMPLATE_DEBUG = DEBUG
 
 # This is handy for debugging problems that *only* happen when Debug = False,
 # because exceptions are printed directly to the log/console when they happen.

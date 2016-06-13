@@ -5,7 +5,7 @@
 #    pip-compile --output-file requirements.txt requirements.in
 #
 
--e git+git://github.com/leppert/django-tastypie-extendedmodelresource.git@caf08005699d8e5616f93726bd8c1c5a51f74b07#egg=django-tastypie-extendedmodelresource
+-e git+git://github.com/harvard-lil/django-tastypie-extendedmodelresource.git@a1586e4e34079dafda77be279f4ad4b8eaca10c3#egg=django-tastypie-extendedmodelresource
 -e git+git://github.com/ikreymer/pywb.git@e28f29430219b4a26374bf2a18d0128de91607cd#egg=pywb
 -e git+git://github.com/internetarchive/warcprox.git@f79e74482339f8c06880b28e889be694b30d4575#egg=warcprox
 amqp==1.4.9               # via kombu
@@ -32,15 +32,15 @@ django-model-utils==2.2
 django-mptt==0.8.0
 django-pipeline-compass==0.1.5
 django-pipeline==1.5.4
-django-ratelimit==0.3.0
+django-ratelimit==1.0.0
 django-redis==3.7.2
 django-secure==1.0.1
 django-settings-context-processor==0.2
-django-simple-history==1.6.3
+django-simple-history==1.8.1
 django-sslserver==0.14
 django-storages==1.1.8
-django-tastypie==0.12.2
-django==1.8.13
+django-tastypie==0.13.3
+Django==1.9.7             # via django-admin-smoke-tests, django-model-utils, django-mptt, django-secure, django-sslserver
 docopt==0.6.2             # via internetarchive
 EasyProcess==0.2.2        # via pyvirtualdisplay
 ecdsa==0.13               # via paramiko
