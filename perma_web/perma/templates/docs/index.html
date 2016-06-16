@@ -25,15 +25,15 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 		<div class="col-sm-4 reading-toc" >
 			<ul>
 				<li class="reading-toc-chapter"><a href="#overview">Overview</a></li>
-				<li class="reading-toc-section"><a href="#what-is-perma">Why does Perma.cc exist?</a></li>
-				<li class="reading-toc-section"><a href="#what-does-perma-do">What does Perma.cc do?</a></li>
+				<li class="reading-toc-section"><a href="#what-is-perma">What is Perma.cc?</a></li>
+				<li class="reading-toc-section"><a href="#what-is-link-rot">What is link rot?</a></li>
 				<li class="reading-toc-section"><a href="#how-does-perma-work">How does Perma.cc work?</a></li>
 				<li class="reading-toc-section"><a href="#example-perma">Perma.cc example</a></li>
 
 				<li class="reading-toc-chapter"><a href="#perma-basics">Perma.cc Basics</a></li>
 				<li class="reading-toc-section"><a href="#create-account">Accounts</a></li>
 				<li class="reading-toc-section"><a href="#creating-links">Preserving records</a></li>			
-				<li class="reading-toc-section"><a href="#creating-links">Viewing records</a></li>
+				<li class="reading-toc-section"><a href="#viewing-records">Viewing records</a></li>
 			<ul>
 		</div>
 
@@ -46,7 +46,7 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 			<h3 id="what-is-link-rot" class="body-bh">What is link rot?</h3>
 			<p class="body-text">Link rot (and “reference rot”) happens when you cite to an online source that later disappears or changes. It's a big problem, especially for academic scholarship and judicial opinions, which depend heavily on citations to stable sources that readers can access. For example, a <a href="http://perma.cc/48QZ-DT6L">study</a> conducted by researchers at Harvard Law School found that more than 70% of the links in a sample of law journals and 50% of the links in Supreme Court opinions no longer work.</p>
 			
-			<p class="body-text">Perma.cc and its <a href="{% url 'about' %}">consortium of participating libraries</a> are working to solve this problem.</p>
+			<p class="body-text">Perma.cc and its <a href="{% url 'about' %}/#perma-partners">consortium of participating libraries</a> are working to solve this problem.</p>
 
 			<h3 class="body-bh" id="how-does-perma-work">How does Perma.cc work?</h3>
 			
@@ -65,7 +65,7 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 <div id="create-account" class="container cont-reading cont-fixed">
 	<div class="row">
 		<div class="col-sm-8 col-right docs reading-body">
-			<h2 class="body-ah">Perma.cc Basics</h2>
+			<h2 class="body-ah" id="perma-basics">Perma.cc Basics</h2>
 
 			<h3 id="accounts" class="body-bh">Creating an account</h3>
 			<p class="body-text">To preserve web pages with Perma.cc, you need an account. Anyone can create an account, and each account lets you preserve up to 10 records per month for free.</p>
@@ -74,7 +74,7 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 
 			<p class="body-text">To create an account or to learn more about accounts, please visit our <a href="{% url 'sign_up' %}">signup page</a>.</p>
 
-			<h3 id="creating-links" class="body-bh">Preserving pages</h3>
+			<h3 id="creating-links" class="body-bh">Preserving records</h3>
 			<p class="body-text">To preserve a web page, login to your account, enter the URL of the page you want to preserve and click the "Create Perma Link" button. Perma will visit the web page at your direction and create a record of the contents of that page.</p>	
 					
 			<img src="{{ STATIC_URL }}img/docs/create_link.png" class="img-responsive screen-shot" alt="A screenshot of the Create an Archive page with the URL of a potential archive."/>
