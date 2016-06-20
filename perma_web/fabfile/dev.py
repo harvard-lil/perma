@@ -191,3 +191,55 @@ def build_week_stats():
             start_date = date_of_stats + timedelta(days=1)
         
         date_of_stats += timedelta(days=1)
+
+@task
+def test_internet_archive():
+    import json
+    from datetime import timedelta
+    from django.utils import timezone
+    import internetarchive
+    from perma.models import Link
+    from django.template.defaultfilters import truncatechars
+
+    start_date = timezone.now() - timedelta(days=3)
+    end_date   = timezone.now() - timedelta(days=2)
+
+    links = Link.objects.filter(internet_archive_upload_status="completed", creation_timestamp__range=(start_date, end_date))
+
+    guid_results = dict()
+    all_results = dict()
+
+    for link in links:
+        c = {"s3":{"access":settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret":settings.INTERNET_ARCHIVE_SECRET_KEY}}
+        internetarchive.get_session(config=c)
+        identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link.guid
+        item = internetarchive.get_item(identifier)
+        warc_name = "%s.warc.gz" % link.guid
+
+        try:
+            fnames = [f.name for f in internetarchive.get_files(identifier, glob_pattern="*gz")]
+            guid_results["uploaded_file"] = warc_name in fnames
+            if settings.INTERNET_ARCHIVE_COLLECTION == 'test_collection':
+                guid_results["collection"] = item.metadata["collection"] == settings.INTERNET_ARCHIVE_COLLECTION
+            else:
+                guid_results["collection"] = item.metadata["collection"][0] == settings.INTERNET_ARCHIVE_COLLECTION
+            guid_results["title"] = item.metadata["title"] == "%s: %s" % (link.guid, truncatechars(link.submitted_title, 50))
+            guid_results["mediatype"] = item.metadata["mediatype"]=="web"
+            guid_results["description"] = item.metadata["description"]=="Perma.cc archive of %s created on %s." % (link.submitted_url, link.creation_timestamp,)
+            guid_results["contributor"] = item.metadata["contributor"]=="Perma.cc"
+            guid_results["submitted_url"] = item.metadata["submitted_url"]==link.submitted_url
+            guid_results["perma_url"] = item.metadata["perma_url"]=="http://%s/%s" % (settings.HOST, link.guid)
+            guid_results["external-identifier"] = item.metadata["external-identifier"]=="urn:X-perma:%s" % link.guid
+            if link.organization:
+                guid_results["organization"] = item.metadata["sponsor"] == "%s - %s" % (link.organization, link.organization.registrar)
+
+        except Exception as e:
+            guid_results["error"] = e
+            pass
+
+        all_results[link.guid] = guid_results
+
+    json_results = json.dumps(all_results, default=lambda o: o.__dict__)
+
+    with open('internet_archive_results.json', 'w+') as outfile:
+        json.dump(json_results, outfile)
