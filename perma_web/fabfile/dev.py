@@ -210,7 +210,7 @@ def test_internet_archive():
 
     c = {"s3":{"access":settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret":settings.INTERNET_ARCHIVE_SECRET_KEY}}
     internetarchive.get_session(config=c)
-    
+
     for link in links:
         identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link.guid
         item = internetarchive.get_item(identifier)
@@ -240,3 +240,29 @@ def test_internet_archive():
         all_results[link.guid] = guid_results
 
     print all_results
+
+@task
+def regenerate_urlkeys(urlkey_prefix='file'):
+    """
+        Rewrite CDXLine urlkeys using the current version of the surt library.
+    """
+
+    from perma.models import CDXLine
+    from surt import surt
+
+    target_cdxlines = CDXLine.objects.all()
+    if urlkey_prefix:
+        target_cdxlines = target_cdxlines.filter(urlkey__startswith=urlkey_prefix)
+
+    for i, cdxline in enumerate(target_cdxlines):
+        if not (i%1000):
+            print "%s records done -- next is %s." % (i, cdxline.link_id)
+        new_surt = surt(cdxline._CDXLine__parsed['url'])
+        if new_surt != cdxline.urlkey:
+            try:
+                cdxline.raw = cdxline.raw.replace(cdxline.urlkey, new_surt, 1)
+            except UnicodeDecodeError:
+                print "Skipping unicode for %s" % cdxline.link_id
+                continue
+            cdxline.urlkey = new_surt
+            cdxline.save()
