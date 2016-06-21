@@ -778,3 +778,4 @@ def upload_to_internet_archive(self, link_guid):
 
     except requests.ConnectionError as e:
         logger.exception("Upload to Internet Archive task failed because of a connection error. \nLink GUID: %s\nError: %s" % (link.pk, e))
+        return
