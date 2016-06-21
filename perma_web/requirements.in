@@ -58,8 +58,8 @@ gevent==1.0.2
 newrelic==2.66.0.49
 
 # PyWB-related stuff
--e git://github.com/ikreymer/pywb.git@e28f29430219b4a26374bf2a18d0128de91607cd#egg=pywb  # pywb v0.31
-#surt==0.2                       # our simple CDX server to canonicalize URL -- use whatever version pywb wants
+pywb==0.31
+#surt==0.2                       # to canonicalize URLs for the cdxline index -- use whatever version pywb wants
 -e git://github.com/internetarchive/warcprox.git@f79e74482339f8c06880b28e889be694b30d4575#egg=warcprox  # unreleased 1/4/16 version of warcprox
 
 # alternate storages
