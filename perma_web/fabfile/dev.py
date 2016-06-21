@@ -209,9 +209,10 @@ def test_internet_archive():
     guid_results = dict()
     all_results = dict()
 
+    c = {"s3":{"access":settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret":settings.INTERNET_ARCHIVE_SECRET_KEY}}
+    internetarchive.get_session(config=c)
+    
     for link in links:
-        c = {"s3":{"access":settings.INTERNET_ARCHIVE_ACCESS_KEY, "secret":settings.INTERNET_ARCHIVE_SECRET_KEY}}
-        internetarchive.get_session(config=c)
         identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link.guid
         item = internetarchive.get_item(identifier)
         warc_name = "%s.warc.gz" % link.guid
