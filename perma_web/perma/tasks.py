@@ -740,38 +740,41 @@ def upload_to_internet_archive(self, link_guid):
 
 
     identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link_guid
-    if default_storage.exists(link.warc_storage_file()):
-        item = internetarchive.get_item(identifier)
+    try:
+        if default_storage.exists(link.warc_storage_file()):
+            item = internetarchive.get_item(identifier)
 
-        # if item already exists (but has been removed),
-        # ia won't update its metadata in upload function
-        if item.exists and item.metadata['title'] == 'Removed':
-            item.modify_metadata(metadata,
-                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-                secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-            )
+            # if item already exists (but has been removed),
+            # ia won't update its metadata in upload function
+            if item.exists and item.metadata['title'] == 'Removed':
+                item.modify_metadata(metadata,
+                    access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                    secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+                )
 
+            with default_storage.open(link.warc_storage_file(), 'rb') as warc_file:
+                success = internetarchive.upload(
+                                identifier,
+                                warc_file,
+                                metadata=metadata,
+                                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                                secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+                                retries=10,
+                                retries_sleep=60,
+                                verbose=True,
+                            )
+                if success:
+                    link.internet_archive_upload_status = 'completed'
+                    link.save()
 
-        with default_storage.open(link.warc_storage_file(), 'rb') as warc_file:
-            success = internetarchive.upload(
-                            identifier,
-                            warc_file,
-                            metadata=metadata,
-                            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-                            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-                            retries=10,
-                            retries_sleep=60,
-                            verbose=True,
-                        )
-            if success:
-                link.internet_archive_upload_status = 'completed'
-                link.save()
+                else:
+                    link.internet_archive_upload_status = 'failed'
+                    self.retry(exc=Exception("Internet Archive reported upload failure."))
 
-            else:
-                link.internet_archive_upload_status = 'failed'
-                self.retry(exc=Exception("Internet Archive reported upload failure."))
+                return success
+        else:
+            link.internet_archive_upload_status = 'failed_permanently'
+            link.save()
 
-            return success
-    else:
-        link.internet_archive_upload_status = 'failed_permanently'
-        link.save()
+    except ConnectionError as e:
+        logger.exception("Upload to Internet Archive task failed because of a connection error. \nLink GUID: %s\nError: %s" % (link.pk, e))
