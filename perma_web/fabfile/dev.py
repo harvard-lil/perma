@@ -194,7 +194,6 @@ def build_week_stats():
 
 @task
 def test_internet_archive():
-    import json
     from datetime import timedelta
     from django.utils import timezone
     import internetarchive
@@ -240,7 +239,4 @@ def test_internet_archive():
 
         all_results[link.guid] = guid_results
 
-    json_results = json.dumps(all_results, default=lambda o: o.__dict__)
-
-    with open('internet_archive_results.json', 'w+') as outfile:
-        json.dump(json_results, outfile)
+    print all_results
