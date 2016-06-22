@@ -559,3 +559,11 @@ CELERY_ROUTES = {
     'perma.tasks.delete_from_internet_archive': {'queue': 'background'},
     'perma.tasks.upload_all_to_internet_archive': {'queue': 'background'},
 }
+
+# Optional opbeat integration
+USE_OPBEAT = False
+OPBEAT = {
+    'ORGANIZATION_ID': '',
+    'APP_ID': '',
+    'SECRET_TOKEN': '',
+}

@@ -75,6 +75,7 @@ ndg-httpsclient==0.4.0    # via requests
 netaddr==0.7.12
 newrelic==2.66.0.49
 oauth2==1.5.211
+opbeat==3.3.3
 ordereddict==1.1          # via jasmine-core
 paramiko==1.17.0          # via fabric
 pathlib==1.0.1            # via pyscss

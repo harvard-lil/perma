@@ -1,6 +1,6 @@
 from datetime import date
 import os
-
+from django.conf import settings
 from fabric.api import *
 
 ### HELPERS ###
@@ -32,6 +32,22 @@ def deploy(skip_backup=False):
     run_as_web_user("%s manage.py collectstatic --noinput --clear" % env.PYTHON_BIN)
     restart_server()
     maintenance_mode_off()
+    notify_opbeat()
+
+@task
+def notify_opbeat():
+    """
+        Tell opbeat that deploy has completed.
+        Via https://opbeat.com/docs/articles/get-started-with-release-tracking/
+    """
+    if settings.USE_OPBEAT:
+        run_as_web_user("""
+            curl https://opbeat.com/api/v1/organizations/{ORGANIZATION_ID}/apps/{APP_ID}/releases/
+                -H "Authorization: Bearer {SECRET_TOKEN}"
+                -d rev=`git log -n 1 --pretty=format:%H`
+                -d branch=`git rev-parse --abbrev-ref HEAD`
+                -d status=completed
+            """.format(**settings.OPBEAT).replace("\n", ""))
 
 @task
 def deploy_code(restart=True):
