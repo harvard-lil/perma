@@ -18,3 +18,17 @@ app = Celery('perma')
 # pickle the object when using Windows.
 app.config_from_object('django.conf:settings')
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
+
+# configure opbeat
+# Imports have to come after DJANGO_SETTINGS_MODULE
+
+if settings.USE_OPBEAT:
+    from opbeat.contrib.django.models import client, logger, register_handlers
+    from opbeat.contrib.celery import register_signal
+
+    try:
+        register_signal(client)
+    except Exception as e:
+        logger.exception('Failed installing celery hook: %s' % e)
+
+    register_handlers()

@@ -8,6 +8,7 @@ this application via the ``WSGI_APPLICATION`` setting.
 
 """
 import os
+import perma.settings
 
 # Newrelic setup
 use_newrelic = os.environ.get("USE_NEW_RELIC", False)
@@ -44,3 +45,16 @@ application = DispatcherMiddleware(
 # add newrelic app wrapper
 if use_newrelic:
     application = newrelic.agent.WSGIApplicationWrapper(application)
+
+
+if perma.settings.USE_OPBEAT:
+    from opbeat import Client
+    from opbeat.middleware import Opbeat
+    application = Opbeat(
+        application,
+        Client(
+            organization_id=perma.settings.OPBEAT['ORGANIZATION_ID'],
+            app_id=perma.settings.OPBEAT['APP_ID'],
+            secret_token=perma.settings.OPBEAT['SECRET_TOKEN'],
+        )
+    )
