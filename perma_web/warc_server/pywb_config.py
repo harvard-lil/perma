@@ -187,7 +187,7 @@ class PermaMementoResponse(MementoResponse):
         is_timegate = (wbrequest.options.get('is_timegate', False) and not is_top_frame)
 
         # set cache time
-        cache_time = settings.CACHE_MAX_AGES["timegate"] if is_timegate else settings.CACHE_MAX_AGES["memento"]
+        cache_time = 0 if is_timegate else settings.CACHE_MAX_AGES["memento"]
         self.status_headers.headers.append(('Cache-Control', 'max-age={}'.format(cache_time)))
 
         return super(PermaMementoResponse, self)._init_derived(params)
