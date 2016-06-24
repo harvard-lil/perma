@@ -4,7 +4,6 @@ from urlparse import urlparse
 from time import mktime
 from ratelimit.decorators import ratelimit
 from datetime import timedelta
-import link_header
 from wsgiref.handlers import format_date_time
 
 from django.core.files.storage import default_storage
@@ -168,25 +167,14 @@ def single_linky(request, guid):
     response = render(request, 'archive/single-link.html', context)
     date_header = format_date_time(mktime(link.creation_timestamp.timetuple()))
     protocol = "https://" if settings.SECURE_SSL_REDIRECT else "http://"
-    link_memento  = protocol + settings.WARC_HOST + '/' + link.guid
+    link_memento  = protocol + settings.HOST + '/' + link.guid
     link_timegate = protocol + settings.WARC_HOST + '/warc/' + link.safe_url
     link_timemap  = protocol + settings.WARC_HOST + '/warc/timemap/*/' + link.safe_url
     response['Memento-Datetime'] = date_header
 
-    response['Link'] = str(link_header.LinkHeader([
-                            link_header.Link(
-                                link.safe_url, rel="original", datetime=date_header,
-                            ),
-                            link_header.Link(
-                                link_memento, rel="memento", datetime=date_header,
-                            ),
-                            link_header.Link(
-                                link_timegate, rel="timegate"
-                            ),
-                            link_header.Link(
-                                link_timemap, rel="timemap", type="application/link-format"),
-                            ])
-                        )
+    link_memento_headers = '<{0}>; rel="original"; datetime="{1}",<{2}>; rel="memento"; datetime="{1}",<{3}>; rel="timegate",<{4}>; rel="timemap"; type="application/link-format"'
+    response['Link'] = link_memento_headers.format(link.safe_url, date_header, link_memento, link_timegate, link_timemap)
+
     return response
 
 def rate_limit(request, exception):
