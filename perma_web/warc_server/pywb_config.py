@@ -424,7 +424,7 @@ def create_perma_wb_router(config={}):
                                         buffer_response=True,
                                         # head_insert_html=os.path.join(os.path.dirname(__file__), 'head_insert.html'),
                                         enable_memento=True,
-                                        redir_to_exact=False))
+                                        redir_to_exact=True))
     wb_handler.replay.content_loader.record_loader.loader = CachedLoader()
     route = PermaRoute(GUID_REGEX, wb_handler)
     router.routes.insert(0, route)
