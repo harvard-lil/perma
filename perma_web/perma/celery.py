@@ -21,8 +21,8 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 # configure opbeat
 # Imports have to come after DJANGO_SETTINGS_MODULE
-
 if settings.USE_OPBEAT:
+    from celery.signals import task_prerun, task_postrun
     from opbeat.contrib.django.models import client, logger, register_handlers
     from opbeat.contrib.celery import register_signal
 
@@ -32,3 +32,11 @@ if settings.USE_OPBEAT:
         logger.exception('Failed installing celery hook: %s' % e)
 
     register_handlers()
+
+    @task_prerun.connect
+    def task_prerun_handler(task_id, task, *args, **kwargs):
+        client.begin_transaction("task.celery")
+
+    @task_postrun.connect
+    def task_postrun_handler(task_id, task, *args, **kwargs):
+        client.end_transaction('celery:'+task.__name__, 200 if kwargs.get('state') == 'SUCCESS' else 500)

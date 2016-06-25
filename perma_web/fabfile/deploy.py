@@ -1,7 +1,7 @@
 from datetime import date
 import os
-from django.conf import settings
 from fabric.api import *
+from django.conf import settings
 
 ### HELPERS ###
 

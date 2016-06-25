@@ -209,3 +209,22 @@ def json_serial(obj):
 
 def ratelimit_ip_key(group, request):
     return request.META.get('HTTP_X_FORWARDED_FOR', request.META['REMOTE_ADDR'])
+
+### monitoring ###
+
+import opbeat
+
+class opbeat_trace(opbeat.trace):
+    """ Subclass of opbeat.trace that does nothing if settings.USE_OPBEAT is false. """
+    def __call__(self, func):
+        if settings.USE_OPBEAT:
+            return super(opbeat_trace, self).__call__(func)
+        return func
+
+    def __enter__(self):
+        if settings.USE_OPBEAT:
+            return super(opbeat_trace, self).__enter__()
+
+    def __exit__(self, *args, **kwargs):
+        if settings.USE_OPBEAT:
+            return super(opbeat_trace, self).__exit__(*args, **kwargs)

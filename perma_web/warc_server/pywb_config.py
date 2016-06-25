@@ -2,6 +2,7 @@ import Cookie
 import StringIO
 from collections import defaultdict
 from contextlib import contextmanager
+
 import os
 import random
 import threading
@@ -12,13 +13,11 @@ import requests
 from surt import surt
 
 # configure Django
-
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "perma.settings")
 import django
 django.setup()
 
 from django.conf import settings
-from django.template import Context
 from django.template.loader import get_template
 from django.core.files.storage import default_storage
 from django.core.exceptions import DisallowedHost
@@ -38,6 +37,8 @@ from pywb.webapp.pywb_init import create_wb_handler
 from pywb.webapp.views import MementoTimemapView
 from pywb.webapp.pywb_init import create_wb_router
 from pywb.utils.wbexception import NotFoundException
+
+from perma.utils import opbeat_trace
 
 # Use lazy model imports because Django models aren't ready yet when this file is loaded by wsgi.py
 CDXLine = apps.get_model('perma', 'CDXLine')
@@ -89,6 +90,7 @@ def raise_not_found(url):
 
 # include guid in CDX requests
 class PermaRoute(archivalrouter.Route):
+    @opbeat_trace()
     def apply_filters(self, wbrequest, matcher):
         """Parse the GUID and find the CDXLine in the DB"""
 
@@ -97,7 +99,7 @@ class PermaRoute(archivalrouter.Route):
         cached_cdx = django_cache.get(cache_key)
         redirect_matcher = re.compile(r' 30[1-7] ')
         if cached_cdx is None or not wbrequest.wb_url:
-            with close_database_connection():
+            with opbeat_trace('cdx-cache-miss'), close_database_connection():
                 try:
                     # This will filter out links that have user_deleted=True
                     link = Link.objects.get(guid=guid)
@@ -263,7 +265,7 @@ class PermaTemplateView(object):
         self.template = get_template(filename)
 
     def render_to_string(self, **kwargs):
-        return unicode(self.template.render(Context(kwargs)))
+        return unicode(self.template.render(kwargs))
 
     def render_response(self, **kwargs):
         template_result = self.render_to_string(**dict(kwargs,
@@ -330,6 +332,7 @@ class CachedLoader(BlockLoader):
     """
         File loader that stores requested file in key-value cache for quick retrieval.
     """
+    @opbeat_trace()
     def load(self, url, offset=0, length=-1):
 
         # first try to fetch url contents from cache
@@ -344,34 +347,36 @@ class CachedLoader(BlockLoader):
         if file_contents is None:
             # url wasn't in cache -- load contents
 
-            # try fetching from each mirror in the LOCKSS network, in random order
-            if settings.USE_LOCKSS_REPLAY:
+            with opbeat_trace('file-loader-cache-miss'):
 
-                mirrors = Mirror.get_cached_mirrors()
-                random.shuffle(mirrors)
+                # try fetching from each mirror in the LOCKSS network, in random order
+                if settings.USE_LOCKSS_REPLAY:
 
-                for mirror in mirrors:
-                    lockss_key = url.replace('file://', '').replace(WARC_STORAGE_PATH, 'https://' + settings.HOST + '/lockss/fetch')
-                    lockss_url = urljoin(mirror['content_url'], 'ServeContent')
-                    try:
-                        logging.info("Fetching from %s?url=%s" % (lockss_url, lockss_key))
-                        response = requests.get(lockss_url, params={'url': lockss_key})
-                        assert response.ok
-                        file_contents = response.content
-                        mirror_name = mirror['name']
-                        logging.info("Got content from lockss")
-                    except (requests.ConnectionError, requests.Timeout, AssertionError) as e:
-                        logging.info("Couldn't get from lockss: %s" % e)
+                    mirrors = Mirror.get_cached_mirrors()
+                    random.shuffle(mirrors)
 
-            # If url wasn't in LOCKSS yet or LOCKSS is disabled, fetch from local storage using super()
-            if file_contents is None:
-                file_contents = super(CachedLoader, self).load(url).read()
-                logging.info("Got content from local disk")
+                    for mirror in mirrors:
+                        lockss_key = url.replace('file://', '').replace(WARC_STORAGE_PATH, 'https://' + settings.HOST + '/lockss/fetch')
+                        lockss_url = urljoin(mirror['content_url'], 'ServeContent')
+                        try:
+                            logging.info("Fetching from %s?url=%s" % (lockss_url, lockss_key))
+                            response = requests.get(lockss_url, params={'url': lockss_key})
+                            assert response.ok
+                            file_contents = response.content
+                            mirror_name = mirror['name']
+                            logging.info("Got content from lockss")
+                        except (requests.ConnectionError, requests.Timeout, AssertionError) as e:
+                            logging.info("Couldn't get from lockss: %s" % e)
 
-            # cache file contents
-            # use a short timeout so large warcs don't evict everything else in the cache
-            django_cache.set(cache_key, file_contents, timeout=60)
-            django_cache.set(mirror_name_cache_key, mirror_name, timeout=60)
+                # If url wasn't in LOCKSS yet or LOCKSS is disabled, fetch from local storage using super()
+                if file_contents is None:
+                    file_contents = super(CachedLoader, self).load(url).read()
+                    logging.info("Got content from local disk")
+
+                # cache file contents
+                # use a short timeout so large warcs don't evict everything else in the cache
+                django_cache.set(cache_key, file_contents, timeout=60)
+                django_cache.set(mirror_name_cache_key, mirror_name, timeout=60)
 
         else:
             mirror_name = django_cache.get(mirror_name_cache_key)

@@ -34,6 +34,20 @@ class PermaWhiteNoise(DjangoWhiteNoise):
         self.EXTRA_MIMETYPES += (('image/svg+xml', '.svg'),)
         super(PermaWhiteNoise, self).__init__(*args, **kwargs)
 
+# Opbeat setup
+if perma.settings.USE_OPBEAT:
+    from opbeat import Client
+    from warc_server.opbeat_wrapper import PywbOpbeatMiddleware
+
+    warc_application = PywbOpbeatMiddleware(
+        warc_application,
+        Client(
+            organization_id=perma.settings.OPBEAT['ORGANIZATION_ID'],
+            app_id=perma.settings.OPBEAT['APP_ID'],
+            secret_token=perma.settings.OPBEAT['SECRET_TOKEN'],
+        )
+    )
+
 # set up application
 application = DispatcherMiddleware(
     PermaWhiteNoise(get_wsgi_application()),  # Django app wrapped with whitenoise to serve static assets
@@ -47,14 +61,3 @@ if use_newrelic:
     application = newrelic.agent.WSGIApplicationWrapper(application)
 
 
-if perma.settings.USE_OPBEAT:
-    from opbeat import Client
-    from opbeat.middleware import Opbeat
-    application = Opbeat(
-        application,
-        Client(
-            organization_id=perma.settings.OPBEAT['ORGANIZATION_ID'],
-            app_id=perma.settings.OPBEAT['APP_ID'],
-            secret_token=perma.settings.OPBEAT['SECRET_TOKEN'],
-        )
-    )
