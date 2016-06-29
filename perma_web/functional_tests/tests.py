@@ -8,7 +8,6 @@ import re
 import datetime
 import sys
 from urlparse import urlparse
-
 from pyvirtualdisplay import Display
 from selenium import webdriver
 from selenium.common.exceptions import ElementNotVisibleException, NoSuchElementException
@@ -102,9 +101,6 @@ if USE_SAUCE:
 else:
     browsers = [{}]  # single PhantomJS test case with empty dict -- no special desired_capabilities
 
-
-## helpers
-
 def on_platforms(platforms):
     """
         Generate a version of the test case class for each platform.
@@ -120,7 +116,6 @@ def on_platforms(platforms):
 
 
 ## the actual tests!
-
 @on_platforms(browsers)
 class FunctionalTest(BaseTestCase):
     fixtures = ['fixtures/sites.json',
@@ -134,22 +129,24 @@ class FunctionalTest(BaseTestCase):
     virtual_display = None
 
     def setUp(self):
-        if REMOTE_SERVER_URL:
-            self.server_url = REMOTE_SERVER_URL
-        else:
-            # By default, the test server only mounts the django app,
-            # which will leave out the warc app, so mount them both here
-            self.server_thread.httpd.set_app(self.server_thread.static_handler(wsgi_app))
-            self.server_thread.host = LOCAL_SERVER_DOMAIN
+            if REMOTE_SERVER_URL:
+                self.server_url = REMOTE_SERVER_URL
+            else:
+                # By default, the test server only mounts the django app,
+                # which will leave out the warc app, so mount them both here
+                self.server_thread.httpd.set_app(self.server_thread.static_handler(wsgi_app))
+                self.server_thread.host = LOCAL_SERVER_DOMAIN
 
-            self.server_url = self.live_server_url
+                self.server_url = self.live_server_url
 
-        if USE_SAUCE:
-            self.setUpSauce()
-        else:
-            self.setUpLocal()
+            if USE_SAUCE:
+                self.setUpSauce()
+            else:
+                self.setUpLocal()
 
-        self.driver.implicitly_wait(5)
+            self.driver.get(self.server_url)
+            self.driver.implicitly_wait(5)
+            self.assert_text_displayed("Perma.cc is simple") # every test should begin by checking if on frontpage
 
     def tearDown(self):
         if USE_SAUCE:
@@ -196,142 +193,145 @@ class FunctionalTest(BaseTestCase):
         finally:
             self.driver.quit()
 
-    def test_all(self):
+    # helpers
+    def click_link(self, link_text):
+        self.get_element_with_text(link_text, 'a').click()
 
-        # helpers
-        def click_link(link_text):
-            get_element_with_text(link_text, 'a').click()
+    def get_xpath(self, xpath):
+        return self.driver.find_element_by_xpath(xpath)
 
-        def get_xpath(xpath):
-            return self.driver.find_element_by_xpath(xpath)
+    def get_css_selector(self, selector):
+        return self.driver.find_element_by_css_selector(selector)
 
-        def get_css_selector(selector):
-            return self.driver.find_element_by_css_selector(selector)
+    def get_id(self, id):
+        return self.driver.find_element_by_id(id)
 
-        def get_id(id):
-            return self.driver.find_element_by_id(id)
+    def get_element_with_text(self, text, element_type='*'):
+        return self.get_xpath("//%s[contains(text(),'%s')]" % (element_type, text))
 
-        def get_element_with_text(text, element_type='*'):
-            return get_xpath("//%s[contains(text(),'%s')]" % (element_type, text))
+    def is_displayed(self, element, repeat=True):
+        """ Check if element is displayed, by default retrying for 10 seconds if false. """
+        if repeat:
+            def repeater():
+                assert element.is_displayed()
+                return True
+            try:
+                self.repeat_while_exception(repeater, AssertionError)
+            except AssertionError:
+                return False
+        return element.is_displayed()
 
-        def is_displayed(element, repeat=True):
-            """ Check if element is displayed, by default retrying for 10 seconds if false. """
-            if repeat:
-                def repeater():
-                    assert element.is_displayed()
-                    return True
-                try:
-                    repeat_while_exception(repeater, AssertionError)
-                except AssertionError:
-                    return False
-            return element.is_displayed()
+    def assert_text_displayed(self, text, element_type='*'):
+        self.assertTrue(self.is_displayed(self.get_element_with_text(text, element_type)))
 
-        def assert_text_displayed(text, element_type='*'):
-            self.assertTrue(is_displayed(get_element_with_text(text, element_type)))
+    def type_to_element(self, element, text):
+        element.click()
+        element.send_keys(text)
 
-        def type_to_element(element, text):
-            element.click()
-            element.send_keys(text)
+    def info(self, *args):
+        if USE_SAUCE:
+            self.infoSauce(*args)
+        else:
+            self.infoLocal(*args)
 
-        def info(*args):
-            if USE_SAUCE:
-                infoSauce(*args)
-            else:
-                infoLocal(*args)
+    def infoSauce(self, *args):
+        print("%s %s %s:" % (
+            self.desired_capabilities['platform'],
+            self.desired_capabilities['browserName'],
+            self.desired_capabilities['version'],
+        ), *args)
 
-        def infoSauce(*args):
-            print("%s %s %s:" % (
-                self.desired_capabilities['platform'],
-                self.desired_capabilities['browserName'],
-                self.desired_capabilities['version'],
-            ), *args)
+    def infoLocal(self, *args):
+        print(*args)
 
-        def infoLocal(*args):
-            print(*args)
+    def repeat_while_exception(self, func, exception=Exception, timeout=10, sleep_time=.1):
+        end_time = time.time()+timeout
+        while True:
+            try:
+                return func()
+            except exception:
+                if time.time()>end_time:
+                    raise
+                time.sleep(sleep_time)
 
-        def repeat_while_exception(func, exception=Exception, timeout=10, sleep_time=.1):
-            end_time = time.time()+timeout
-            while True:
-                try:
-                    return func()
-                except exception:
-                    if time.time()>end_time:
-                        raise
-                    time.sleep(sleep_time)
+    def fix_host(self, url):
+        if REMOTE_SERVER_URL:
+            return url
+        o = urlparse(url)
+        o = o._replace(scheme='http',
+                       netloc="{0}:{1}".format(self.server_thread.host,
+                                               self.server_thread.port))
+        return o.geturl()
 
-        def fix_host(url):
-            if REMOTE_SERVER_URL:
-                return url
-            o = urlparse(url)
-            o = o._replace(scheme='http',
-                           netloc="{0}:{1}".format(self.server_thread.host,
-                                                   self.server_thread.port))
-            return o.geturl()
-
-        info("Starting functional tests at time:", datetime.datetime.utcnow())
-        
-        info("Loading homepage from %s." % self.server_url)
-        self.driver.get(self.server_url)
-        assert_text_displayed("Perma.cc is simple") # new text on landing now
-
-        ##### cut this since it no longer exists
-
-        # info("Checking Perma In Action section.")
-        #try:
-        #    get_xpath("//a[@data-img='MSC_1']").click()
-        #    self.assertTrue(is_displayed(get_id('example-title')))
-        #    get_xpath("//div[@id='example-image-wrapper']/img").click()  # click on random element to trigger Sauce screenshot
-        #except ElementNotVisibleException:
-        #    pass  # this section is hidden for mobile browsers, so just skip this test
-
-        info("Loading docs.")
+    def click_nav_bar(self):
         try:
-            get_css_selector('.navbar-toggle').click()  # show navbar in mobile view
+            self.get_css_selector('.navbar-toggle').click()  # show navbar in mobile view
         except ElementNotVisibleException:
             pass  # not in mobile view
-        get_xpath("//a[@href='/docs']").click()
-        assert_text_displayed('Perma.cc user guide')  # new text -- wait for load
 
-        info("Logging in.")
+    # logs in user, and checks that appropriate text is present post login.
+    def login_user(self, user_email="test_user@example.com"):
+        #
+        self.click_nav_bar()
+        self.repeat_while_exception(lambda: self.click_link("Log in"))
+        self.assert_text_displayed("Email address", 'label')
+        self.get_id('id_username').send_keys(user_email)
+        self.get_id('id_password').send_keys('pass')
+        self.get_xpath("//button[@class='btn login']").click() # new design button, no more 'btn-success'
+        self.assert_text_displayed('Create a new', 'h1')  # wait for load
+
+    # TESTS
+    # 'dumb' test to check for presence of certain phrases when docs are loaded
+    def test_load_docs(self):
+        self.info("Loading docs.")
         try:
-            get_css_selector('.navbar-toggle').click()  # show navbar in mobile view
+            self.get_css_selector('.navbar-toggle').click()  # show navbar in mobile view
         except ElementNotVisibleException:
             pass  # not in mobile view
-        repeat_while_exception(lambda: click_link("Log in"))
-        assert_text_displayed("Email address", 'label')
-        get_id('id_username').send_keys('test_user@example.com')
-        get_id('id_password').send_keys('pass')
-        get_xpath("//button[@class='btn login']").click() # new design button, no more 'btn-success'
-        assert_text_displayed('Create a new', 'h1')  # wait for load
+        self.get_xpath("//a[@href='/docs']").click()
+        self.assert_text_displayed('Perma.cc user guide')  # new text -- wait for load
 
-        info("Creating archive.")
+        self.get_xpath("//a[@href='/docs/perma-link-creation']").click()
+        self.assert_text_displayed('Creating Perma Records and Links')
+
+        self.get_xpath("//a[@href='/docs/libraries']").click()
+        self.assert_text_displayed('For Libraries and Other Registrars')
+
+        self.get_xpath("//a[@href='/docs/organizations']").click()
+        self.assert_text_displayed("Perma Organizations")
+
+        self.get_xpath("//a[@href='/docs/faq']").click()
+        self.assert_text_displayed("Who runs Perma.cc?")
+
+
+    def test_login_submit_link(self):
+        self.login_user() # login the user
+        self.info("Creating archive.")
         url_to_capture = 'example.com'
-        type_to_element(get_id('rawUrl'), url_to_capture)  # type url
+        self.type_to_element(self.get_id('rawUrl'), url_to_capture)  # type url
         # choose folder from dropdown
-        get_css_selector('#folder-tree > .jstree-container-ul > li:last-child > a').click()
+        self.get_css_selector('#folder-tree > .jstree-container-ul > li:last-child > a').click()
 
-        get_id('addlink').click() # submit
+        self.get_id('addlink').click() # submit
 
-        info("Viewing playback.")
+        self.info("Viewing playback.")
         # wait 60 seconds to be forwarded to archive page
-        repeat_while_exception(lambda: get_element_with_text('See the Screenshot View', 'a'), NoSuchElementException, 60)
+        self.repeat_while_exception(lambda: self.get_element_with_text('See the Screenshot View', 'a'), NoSuchElementException, 60)
         # Get the guid of the created archive
         # display_guid = fix_host(self.driver.current_url)[-9:]
         # Grab the WARC url for later.
-        warc_url = fix_host(self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src'))
+        warc_url = self.fix_host(self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src'))
         # Check out the screeshot.
-        get_element_with_text('See the Screenshot View', 'a').click()
-        assert_text_displayed('This is a screenshot.')
+        self.get_element_with_text('See the Screenshot View', 'a').click()
+        self.assert_text_displayed('This is a screenshot.')
         # Load the WARC URL separately, because Safari driver doesn't let us inspect it as an iframe
         self.driver.get(warc_url)
-        assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
-
-        # My Links
+        self.assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
 
         # show links
         self.driver.get(self.server_url + '/manage/create')
         # create folder
-        get_css_selector('.new-folder').click()
+        self.get_css_selector('.new-folder').click()
         # find link
         # assert_text_displayed(display_guid)
         # show details
@@ -350,12 +350,11 @@ class FunctionalTest(BaseTestCase):
         self.assertEquals(self.server_url + '/manage/create/', current_url)
 
         # Timemap
-
-        info("Checking timemap.")
+        self.info("Checking timemap.")
         self.driver.get(self.server_url + '/warc/pywb/*/' + url_to_capture)
         self.assertIsNotNone(re.search(r'<b>[1-9]\d*</b> captures?', self.driver.page_source))  # Make sure that `<b>foo</b> captures` shows a positive number of captures
-        assert_text_displayed('http://' + url_to_capture, 'b')
+        self.assert_text_displayed('http://' + url_to_capture, 'b')
 
         # Displays playback by timestamp
-        get_xpath("//a[contains(@href, '%s')]" % url_to_capture).click()
-        assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
+        self.get_xpath("//a[contains(@href, '%s')]" % url_to_capture).click()
+        self.assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
