@@ -2,4 +2,4 @@
 # these will get added onto the end of requirements.txt by heroku-buildpack-perma
 
 dj_database_url==0.3.0
-rollbar==0.9.14
+#rollbar==0.9.14
