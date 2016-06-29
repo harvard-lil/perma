@@ -4,15 +4,19 @@ import os
 import struct
 import tempdir
 from datetime import datetime
+import logging
 
 from django.core.mail import EmailMessage, send_mail
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.conf import settings
+from django.template.loader import render_to_string
+
+
+logger = logging.getLogger(__name__)
 
 
 ### celery helpers ###
-from django.template.loader import render_to_string
 
 
 def run_task(task, *args, **kwargs):
@@ -223,8 +227,14 @@ class opbeat_trace(opbeat.trace):
 
     def __enter__(self):
         if settings.USE_OPBEAT:
-            return super(opbeat_trace, self).__enter__()
+            try:
+                return super(opbeat_trace, self).__enter__()
+            except Exception as e:
+                logger.exception("Error entering opbeat_trace context manager: %s" % e)
 
     def __exit__(self, *args, **kwargs):
         if settings.USE_OPBEAT:
-            return super(opbeat_trace, self).__exit__(*args, **kwargs)
+            try:
+                return super(opbeat_trace, self).__exit__(*args, **kwargs)
+            except Exception as e:
+                logger.exception("Error exiting opbeat_trace context manager: %s" % e)
