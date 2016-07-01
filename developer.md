@@ -49,7 +49,7 @@ This ensures that our sub-requirements are always pinned to fixed versions.
 We have several types of users:
 
 * Logged in users are identified the standard Django way: `user.is_authenticated`
-* Users may belong to an organization. You should test this with `user.is_organization_member`.
+* Users may belong to an organization. You should test this with `user.is_organization_user`.
 * Users may belong to a registrar (`user.registrar is not None`). You should test this with `user.is_registrar_member()`. 
 * Admin users are identified the standard Django way: `user.is_staff`
 
