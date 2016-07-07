@@ -55,7 +55,7 @@ html {
   font-family: sans-serif;
   -webkit-text-size-adjust: 100%;
       -ms-text-size-adjust: 100%;
-	margin:0px;
+  margin:0px;
 }
 
 body {
@@ -2605,7 +2605,7 @@ input[type="button"].btn-block {
   float: left;
   background:#09f;
   color:#fff;
-  
+
 }
 
 .btn-group > .btn:hover,
@@ -3355,9 +3355,9 @@ textarea.input-group-sm > .input-group-btn > .btn {
   .navbar-collapse .navbar-text:last-child {
     margin-right: 0;
   }
-  
-  
-  
+
+
+
 }
 
 .container > .navbar-header,
@@ -3460,7 +3460,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
 
 tr.item-details
 {
-	display:none;
+  display:none;
 }
 @media (min-width: 768px) {
   .navbar-toggle {
@@ -5740,7 +5740,7 @@ td.visible-lg {
     display: table-cell !important;
   }
   .carousel-indicators {
-	visibility: hidden;
+  visibility: hidden;
    }
 }
 
@@ -5756,7 +5756,7 @@ td.visible-lg {
     display: table-cell !important;
   }
   .carousel-indicators {
-	visibility: hidden;
+  visibility: hidden;
    }
 }
 
@@ -6066,7 +6066,7 @@ td.visible-print {
   a[href]:after {
     content: none;
   }
-  
+
   tr.visible-print {
     display: table-row !important;
   }
