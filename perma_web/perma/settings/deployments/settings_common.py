@@ -110,8 +110,8 @@ PIPELINE_JS = {
     # scripts included at the foot of all pages
     'global': {
         'source_filenames': (
-            'vendors/jquery/jquery.js',
-            'vendors/bootstrap/bootstrap3.js',
+            'vendors/jquery/jquery.min.js',
+            'vendors/bootstrap/bootstrap.min.js',
             'vendors/fastclick/fastclick.min.js',
             'vendors/jquery/jquery.actual.js',
             'vendors/airbrakejs/client.min.js',
@@ -159,7 +159,7 @@ PIPELINE_JS = {
         'source_filenames': (
             'vendors/spinjs/spin.js',
             'vendors/jquery/jquery.form.min.js',
-            'vendors/jquery/jquery-ui-1.10.3.custom.min.js',
+            'vendors/jquery/jquery-ui.custom.min.js',
             'vendors/jstree/jstree.min.js',
             'vendors/jquery/jquery.splendid.textchange.js',
             'vendors/jquery/jquery.waypoints.js',
@@ -223,7 +223,7 @@ PIPELINE_JS = {
 PIPELINE_CSS = {
     'base': {
         'source_filenames': (
-            'vendors/bootstrap/bootstrap3.css',
+            'vendors/bootstrap/bootstrap.min.css',
             'vendors/bootstrap/bootstrap-glyphicons.css',
             'css/style-responsive.scss',
             'vendors/font-awesome/font-awesome.min.css',
@@ -232,7 +232,7 @@ PIPELINE_CSS = {
     },
     'base-archive': {
         'source_filenames': (
-            'vendors/bootstrap/bootstrap3.css',
+            'vendors/bootstrap/bootstrap.min.css',
             'css/style-responsive-archive.scss',
         ),
         'output_filename': 'css/base-archive-bundle.css',
