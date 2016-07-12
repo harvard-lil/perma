@@ -28,6 +28,19 @@ from django.core.wsgi import get_wsgi_application
 from warc_server.app import application as warc_application
 from whitenoise.django import DjangoWhiteNoise
 
+class PywbRedirectMiddleware(object):
+    def __init__(self, pywb):
+        self.pywb = pywb
+
+    def __call__(self, environ, start_response):
+        # this makes sure everything is served from the /warc route.
+        # /timegate route was created to circumvent cloudflare's caching + header resetting issue
+
+        environ['SCRIPT_NAME'] = environ['SCRIPT_NAME'].replace(perma.settings.TIMEGATE_WARC_ROUTE, perma.settings.WARC_ROUTE)
+
+        return self.pywb(environ, start_response)
+
+
 # subclass WhiteNoise to add missing mime types
 class PermaWhiteNoise(DjangoWhiteNoise):
     def __init__(self, *args, **kwargs):
@@ -52,12 +65,11 @@ if perma.settings.USE_OPBEAT:
 application = DispatcherMiddleware(
     PermaWhiteNoise(get_wsgi_application()),  # Django app wrapped with whitenoise to serve static assets
     {
-        '/warc': warc_application,  # pywb for record playback
+        perma.settings.TIMEGATE_WARC_ROUTE: PywbRedirectMiddleware(warc_application),
+        perma.settings.WARC_ROUTE: warc_application,  # pywb for record playback
     }
 )
 
 # add newrelic app wrapper
 if use_newrelic:
     application = newrelic.agent.WSGIApplicationWrapper(application)
-
-

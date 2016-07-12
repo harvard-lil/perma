@@ -8,6 +8,7 @@ import re
 import datetime
 import sys
 from urlparse import urlparse
+import requests
 
 from pyvirtualdisplay import Display
 from selenium import webdriver
@@ -17,7 +18,7 @@ import time
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
 from perma.wsgi import application as wsgi_app
-from perma.settings import SAUCE_USERNAME, SAUCE_ACCESS_KEY, USE_SAUCE
+from perma.settings import SAUCE_USERNAME, SAUCE_ACCESS_KEY, USE_SAUCE, TIMEGATE_WARC_ROUTE, WARC_ROUTE
 
 
 # In this file we point a browser at a test server and navigate the site.
@@ -359,3 +360,31 @@ class FunctionalTest(BaseTestCase):
         # Displays playback by timestamp
         get_xpath("//a[contains(@href, '%s')]" % url_to_capture).click()
         assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
+
+        info("Checking timegate")
+        self.driver.get(self.server_url + TIMEGATE_WARC_ROUTE  + "/" + url_to_capture)
+
+        assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
+
+        # timegate redirects to a memento (timestamped) url
+        str_to_match = "%s%s/\d+/http://%s" % (self.server_url, WARC_ROUTE, url_to_capture)
+        reg = re.compile(str_to_match)
+        self.assertIsNotNone(reg.search(self.driver.current_url))
+        # checking that we don't see /warc/timegate in url because of redirect
+        reg = re.compile(TIMEGATE_WARC_ROUTE)
+        self.assertFalse(reg.match(self.driver.current_url))
+
+
+        # taking advantage of running server to check headers
+        response = requests.get(self.server_url + TIMEGATE_WARC_ROUTE + '/' + url_to_capture)
+
+        # response is memento response that's a redirect from the timegate url
+        link_headers = response.headers['Link'].split(', ')
+        for header in link_headers:
+            if 'rel="timemap"' in header:
+                reg = re.compile('%s/timemap/*/' % WARC_ROUTE)
+                self.assertIsNotNone(reg.search(header))
+
+            if 'rel="memento"' in header:
+                reg = re.compile('%s%s/\d+/http://%s' % (self.server_url, WARC_ROUTE, url_to_capture))
+                self.assertIsNotNone(reg.search(header))
