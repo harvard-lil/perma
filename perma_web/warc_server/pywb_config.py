@@ -201,11 +201,16 @@ class PermaGUIDMementoResponse(PermaMementoResponse):
             # Remove the GUID from the url using regex since
             # we don't have access to the request or params here
             url = re.compile(GUID_REGEX+'/').sub('', url, 1)
+            url = url.replace('/warc', '/no_cache')
+            print 'timegate', url
         return '<{0}>; rel="{1}"'.format(url, type)
 
     def make_timemap_link(self, wbrequest):
         url = super(PermaMementoResponse, self).make_timemap_link(wbrequest)
-        return url.replace(wbrequest.custom_params['guid']+'/', '', 1)
+        url = url.replace(wbrequest.custom_params['guid']+'/', '', 1)
+        url = url.replace('/no_cache', '/warc')
+        print 'timemap', url
+        return url
 
 
 class PermaHandler(WBHandler):
