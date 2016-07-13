@@ -33,10 +33,7 @@ class PywbRedirectMiddleware(object):
         self.pywb = pywb
 
     def __call__(self, environ, start_response):
-        print "environ script name before:", environ["SCRIPT_NAME"]
-        print start_response
         environ['SCRIPT_NAME'] = environ['SCRIPT_NAME'].replace('/timegate', '/warc')
-        print "environ script name after:", environ["SCRIPT_NAME"]
 
         return self.pywb(environ, start_response)
 
