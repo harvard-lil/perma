@@ -208,8 +208,6 @@ class PermaGUIDMementoResponse(PermaMementoResponse):
     def make_timemap_link(self, wbrequest):
         url = super(PermaMementoResponse, self).make_timemap_link(wbrequest)
         url = url.replace(wbrequest.custom_params['guid']+'/', '', 1)
-        url = url.replace(settings.TIMEGATE_WARC_ROUTE, settings.WARC_ROUTE)
-        print 'timemap', url
         return url
 
 
