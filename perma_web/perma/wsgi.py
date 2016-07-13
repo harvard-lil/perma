@@ -28,6 +28,19 @@ from django.core.wsgi import get_wsgi_application
 from warc_server.app import application as warc_application
 from whitenoise.django import DjangoWhiteNoise
 
+class PywbRedirectMiddleware(object):
+    def __init__(self, pywb):
+        self.pywb = pywb
+
+    def __call__(self, environ, start_response):
+        print "environ script name before:", environ["SCRIPT_NAME"]
+        print start_response
+        environ['SCRIPT_NAME'] = environ['SCRIPT_NAME'].replace('/timegate', '/warc')
+        print "environ script name after:", environ["SCRIPT_NAME"]
+
+        return self.pywb(environ, start_response)
+
+
 # subclass WhiteNoise to add missing mime types
 class PermaWhiteNoise(DjangoWhiteNoise):
     def __init__(self, *args, **kwargs):
@@ -53,12 +66,10 @@ application = DispatcherMiddleware(
     PermaWhiteNoise(get_wsgi_application()),  # Django app wrapped with whitenoise to serve static assets
     {
         '/warc': warc_application,  # pywb for record playback
-        '/timegate':warc_application,
+        '/timegate': PywbRedirectMiddleware(warc_application),
     }
 )
 
 # add newrelic app wrapper
 if use_newrelic:
     application = newrelic.agent.WSGIApplicationWrapper(application)
-
-

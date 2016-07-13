@@ -28,7 +28,7 @@ from pywb.cdx.cdxserver import CDXServer
 from pywb.cdx.cdxsource import CDXSource
 from pywb.framework import archivalrouter
 from pywb.framework.wbrequestresponse import WbResponse
-from pywb.framework.memento import MementoResponse
+from pywb.framework.memento import MementoResponse, make_timemap, LINK_FORMAT
 from pywb.rewrite.wburl import WbUrl
 from pywb.utils.loaders import BlockLoader, LimitReader
 from pywb.webapp.handlers import WBHandler
@@ -202,7 +202,6 @@ class PermaGUIDMementoResponse(PermaMementoResponse):
             # we don't have access to the request or params here
             url = re.compile(GUID_REGEX+'/').sub('', url, 1)
             url = url.replace(settings.WARC_ROUTE, settings.TIMEGATE_WARC_ROUTE)
-            print 'timegate', url
         return '<{0}>; rel="{1}"'.format(url, type)
 
     def make_timemap_link(self, wbrequest):
@@ -256,10 +255,21 @@ class PermaGUIDHandler(PermaHandler):
 
 
 class PermaMementoTimemapView(MementoTimemapView):
+    def fix_timegate(self, memento_lines):
+        for line in memento_lines:
+            if 'rel="timegate"' in line:
+                line = line.replace(settings.WARC_ROUTE, settings.TIMEGATE_WARC_ROUTE)
+            yield line
+
     def render_response(self, wbrequest, cdx_lines, **kwargs):
-        response = super(PermaMementoTimemapView, self).render_response(wbrequest, cdx_lines, **kwargs)
+        memento_lines = make_timemap(wbrequest, cdx_lines)
+
+        new_memento_lines = self.fix_timegate(memento_lines)
+
+        response = WbResponse.text_stream(new_memento_lines, content_type=LINK_FORMAT, )
         response.status_headers.headers.append(('Cache-Control',
                                                 'max-age={}'.format(settings.CACHE_MAX_AGES['timemap'])))
+
         return response
 
 
