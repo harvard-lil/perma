@@ -255,7 +255,12 @@ class PermaGUIDHandler(PermaHandler):
 
 
 class PermaMementoTimemapView(MementoTimemapView):
-    def fix_timegate(self, memento_lines):
+    """
+        Returns a timemap response, basically a list of links.
+        One of the links is type timegate, so we have to rewrite the '/timegate' route by hand, as pywb only expects
+        one wb_prefix (in our case, '/warc') for timegate, memento, and timemap.
+    """
+    def fix_timegate_line(self, memento_lines):
         for line in memento_lines:
             if 'rel="timegate"' in line:
                 line = line.replace(settings.WARC_ROUTE, settings.TIMEGATE_WARC_ROUTE)
@@ -264,7 +269,7 @@ class PermaMementoTimemapView(MementoTimemapView):
     def render_response(self, wbrequest, cdx_lines, **kwargs):
         memento_lines = make_timemap(wbrequest, cdx_lines)
 
-        new_memento_lines = self.fix_timegate(memento_lines)
+        new_memento_lines = self.fix_timegate_line(memento_lines)
 
         response = WbResponse.text_stream(new_memento_lines, content_type=LINK_FORMAT, )
         response.status_headers.headers.append(('Cache-Control',

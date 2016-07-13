@@ -33,6 +33,9 @@ class PywbRedirectMiddleware(object):
         self.pywb = pywb
 
     def __call__(self, environ, start_response):
+        # this makes sure everything is served from the /warc route.
+        # /timegate route was created to circumvent cloudflare's caching + header resetting issue
+        
         environ['SCRIPT_NAME'] = environ['SCRIPT_NAME'].replace('/timegate', '/warc')
 
         return self.pywb(environ, start_response)
