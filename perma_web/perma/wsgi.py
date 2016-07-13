@@ -53,6 +53,7 @@ application = DispatcherMiddleware(
     PermaWhiteNoise(get_wsgi_application()),  # Django app wrapped with whitenoise to serve static assets
     {
         '/warc': warc_application,  # pywb for record playback
+        '/timegate':warc_application,
     }
 )
 

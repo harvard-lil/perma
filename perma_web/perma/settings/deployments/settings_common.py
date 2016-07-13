@@ -487,6 +487,11 @@ LINK_EXPIRATION_TIME = relativedelta(years=2)
 # On production, this is highly recommended to be different from hosts in ALLOWED_HOSTS.
 WARC_HOST = None
 
+# circumventing cloudflare's caching policy
+# using different route for timegate
+TIMEGATE_WARC_ROUTE = '/timegate'
+WARC_ROUTE = '/warc'
+
 # Sorl settings. This relates to our thumbnail creation.
 # The prod and dev configs are considerably different. See those configs for details.
 THUMBNAIL_ENGINE = 'sorl.thumbnail.engines.wand_engine.Engine'

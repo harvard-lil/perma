@@ -168,8 +168,8 @@ def single_linky(request, guid):
     date_header = format_date_time(mktime(link.creation_timestamp.timetuple()))
     protocol = "https://" if settings.SECURE_SSL_REDIRECT else "http://"
     link_memento  = protocol + settings.HOST + '/' + link.guid
-    link_timegate = protocol + settings.WARC_HOST + '/warc/' + link.safe_url
-    link_timemap  = protocol + settings.WARC_HOST + '/warc/timemap/*/' + link.safe_url
+    link_timegate = protocol + settings.WARC_HOST + settings.TIMEGATE_WARC_ROUTE + link.safe_url
+    link_timemap  = protocol + settings.WARC_HOST + settings.WARC_ROUTE + '/timemap/*/' + link.safe_url
     response['Memento-Datetime'] = date_header
 
     link_memento_headers = '<{0}>; rel="original"; datetime="{1}",<{2}>; rel="memento"; datetime="{1}",<{3}>; rel="timegate",<{4}>; rel="timemap"; type="application/link-format"'
