@@ -489,7 +489,7 @@ WARC_HOST = None
 
 # circumventing cloudflare's caching policy
 # using different route for timegate
-TIMEGATE_WARC_ROUTE = '/no_cache'
+TIMEGATE_WARC_ROUTE = '/timegate'
 WARC_ROUTE = '/warc'
 
 # Sorl settings. This relates to our thumbnail creation.
