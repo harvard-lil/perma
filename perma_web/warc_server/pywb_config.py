@@ -264,9 +264,6 @@ class PermaMementoTimemapView(MementoTimemapView):
         for line in memento_lines:
             if 'rel="timegate"' in line:
                 line = line.replace(settings.WARC_ROUTE, settings.TIMEGATE_WARC_ROUTE)
-                print "new line:", line
-            else:
-                print "old line:", line
             yield line
 
     def render_response(self, wbrequest, cdx_lines, **kwargs):
