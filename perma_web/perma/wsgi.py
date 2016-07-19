@@ -36,7 +36,7 @@ class PywbRedirectMiddleware(object):
         # this makes sure everything is served from the /warc route.
         # /timegate route was created to circumvent cloudflare's caching + header resetting issue
 
-        environ['SCRIPT_NAME'] = environ['SCRIPT_NAME'].replace('/timegate', '/warc')
+        environ['SCRIPT_NAME'] = environ['SCRIPT_NAME'].replace(perma.settings.TIMEGATE_WARC_ROUTE, perma.settings.WARC_ROUTE)
 
         return self.pywb(environ, start_response)
 
@@ -65,7 +65,7 @@ if perma.settings.USE_OPBEAT:
 application = DispatcherMiddleware(
     PermaWhiteNoise(get_wsgi_application()),  # Django app wrapped with whitenoise to serve static assets
     {
-        perma.settings.TIMEGATE_WARC_ROUTE: warc_application,
+        perma.settings.TIMEGATE_WARC_ROUTE: PywbRedirectMiddleware(warc_application),
         perma.settings.WARC_ROUTE: warc_application,  # pywb for record playback
     }
 )
