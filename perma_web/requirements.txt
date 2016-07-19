@@ -39,7 +39,7 @@ django-simple-history==1.8.1
 django-sslserver==0.14
 django-storages==1.1.8
 django-tastypie==0.13.3
-Django==1.9.7             # via django-admin-smoke-tests, django-model-utils, django-mptt, django-secure, django-sslserver
+Django==1.9.8             # via django-admin-smoke-tests, django-model-utils, django-mptt, django-secure, django-sslserver
 docopt==0.6.2             # via internetarchive
 EasyProcess==0.2.2        # via pyvirtualdisplay
 ecdsa==0.13               # via paramiko
