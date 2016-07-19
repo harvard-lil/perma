@@ -271,7 +271,7 @@ class PermaMementoTimemapView(MementoTimemapView):
 
         new_memento_lines = self.fix_timegate_line(memento_lines)
 
-        response = WbResponse.text_stream(memento_lines, content_type=LINK_FORMAT, )
+        response = WbResponse.text_stream(new_memento_lines, content_type=LINK_FORMAT, )
         response.status_headers.headers.append(('Cache-Control',
                                                 'max-age={}'.format(settings.CACHE_MAX_AGES['timemap'])))
 
