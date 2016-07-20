@@ -216,7 +216,7 @@ In our production environment we use Redis as a cache for our thumbnail data. If
 
 ## Working with RabbitMQ
 
-RabbitMQ is the message broker. In Perma.cc's case, it accepts message from Celery, tosses them in a queue, and dolls them out to Celery worker tasks as needed.
+RabbitMQ is the message broker. In Perma.cc's case, it accepts message from Celery, tosses them in a queue, and doles them out to Celery worker tasks as needed.
 
 If you've installed RabbitMQ through something like MacPorts (sudo port install), you can start RabbitMQ using something like, 
 
