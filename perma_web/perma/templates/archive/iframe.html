@@ -14,8 +14,8 @@
 	<div>
 {% elif capture.show_interstitial %}
 	<div class="record-message">
-		<p class="record-message-primary">Perma.cc can’t display this file type.</p>
-		<p class="record-message-secondary">Click below to view or download this archived file (file type {{ capture.mime_type }})</p>
+		<p class="record-message-primary">Perma.cc can’t display this file type but you can view or download the archived file by clicking below.</p>
+		<p class="record-message-secondary">File type {{ capture.mime_type }}</p>
 	        <div><a href="{{ capture.playback_url_with_access_token }}" class="btn btn-primary">View/Download File</a></div>
 	<div>
 {% else %}
