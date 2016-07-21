@@ -1148,7 +1148,7 @@ def set_access_token_cookie(request):
     link_guid = request.GET.get('guid')
     next = request.GET.get('next')
 
-    redirect_url = '/%s/%s/%s' % (settings.WARC_ROUTE, link_guid, next)
+    redirect_url = '%s/%s/%s' % (settings.WARC_ROUTE, link_guid, next)
     response = HttpResponseRedirect(redirect_url)
 
     if token and Link(pk=link_guid).validate_access_token(token):

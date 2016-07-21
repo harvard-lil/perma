@@ -242,7 +242,7 @@ class PermaGUIDHandler(PermaHandler):
             If someone requests a bare GUID url like /warc/1234-5678/, forward them to the submitted_url playback for that GUID.
         """
         if wbrequest.wb_url_str == '/':
-            return WbResponse.redir_response("/%s/%s/%s" % (settings.WARC_ROUTE, wbrequest.custom_params['guid'], wbrequest.custom_params['url']), status='301 Moved Permanently')
+            return WbResponse.redir_response("%s/%s/%s" % (settings.WARC_ROUTE, wbrequest.custom_params['guid'], wbrequest.custom_params['url']), status='301 Moved Permanently')
         return super(PermaGUIDHandler, self).__call__(wbrequest)
 
     def _init_replay_view(self, config):
