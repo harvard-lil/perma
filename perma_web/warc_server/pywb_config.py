@@ -28,7 +28,7 @@ from pywb.cdx.cdxserver import CDXServer
 from pywb.cdx.cdxsource import CDXSource
 from pywb.framework import archivalrouter
 from pywb.framework.wbrequestresponse import WbResponse
-from pywb.framework.memento import MementoResponse
+from pywb.framework.memento import MementoResponse, make_timemap, LINK_FORMAT
 from pywb.rewrite.wburl import WbUrl
 from pywb.utils.loaders import BlockLoader, LimitReader
 from pywb.webapp.handlers import WBHandler
@@ -201,11 +201,13 @@ class PermaGUIDMementoResponse(PermaMementoResponse):
             # Remove the GUID from the url using regex since
             # we don't have access to the request or params here
             url = re.compile(GUID_REGEX+'/').sub('', url, 1)
+            url = url.replace(settings.WARC_ROUTE, settings.TIMEGATE_WARC_ROUTE)
         return '<{0}>; rel="{1}"'.format(url, type)
 
     def make_timemap_link(self, wbrequest):
         url = super(PermaMementoResponse, self).make_timemap_link(wbrequest)
-        return url.replace(wbrequest.custom_params['guid']+'/', '', 1)
+        url = url.replace(wbrequest.custom_params['guid']+'/', '', 1)
+        return url
 
 
 class PermaHandler(WBHandler):
@@ -240,7 +242,7 @@ class PermaGUIDHandler(PermaHandler):
             If someone requests a bare GUID url like /warc/1234-5678/, forward them to the submitted_url playback for that GUID.
         """
         if wbrequest.wb_url_str == '/':
-            return WbResponse.redir_response("/warc/%s/%s" % (wbrequest.custom_params['guid'], wbrequest.custom_params['url']), status='301 Moved Permanently')
+            return WbResponse.redir_response("%s/%s/%s" % (settings.WARC_ROUTE, wbrequest.custom_params['guid'], wbrequest.custom_params['url']), status='301 Moved Permanently')
         return super(PermaGUIDHandler, self).__call__(wbrequest)
 
     def _init_replay_view(self, config):
@@ -253,10 +255,26 @@ class PermaGUIDHandler(PermaHandler):
 
 
 class PermaMementoTimemapView(MementoTimemapView):
+    """
+        Returns a timemap response, basically a list of links.
+        One of the links is type timegate, so we have to rewrite the '/timegate' route by hand, as pywb only expects
+        one wb_prefix (in our case, '/warc') for timegate, memento, and timemap.
+    """
+    def fix_timegate_line(self, memento_lines):
+        for line in memento_lines:
+            if 'rel="timegate"' in line:
+                line = line.replace(settings.WARC_ROUTE, settings.TIMEGATE_WARC_ROUTE)
+            yield line
+
     def render_response(self, wbrequest, cdx_lines, **kwargs):
-        response = super(PermaMementoTimemapView, self).render_response(wbrequest, cdx_lines, **kwargs)
+        memento_lines = make_timemap(wbrequest, cdx_lines)
+
+        new_memento_lines = self.fix_timegate_line(memento_lines)
+
+        response = WbResponse.text_stream(new_memento_lines, content_type=LINK_FORMAT, )
         response.status_headers.headers.append(('Cache-Control',
                                                 'max-age={}'.format(settings.CACHE_MAX_AGES['timemap'])))
+
         return response
 
 
