@@ -752,6 +752,9 @@ def upload_to_internet_archive(self, link_guid):
                     secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
                 )
 
+            if item.exists:
+                link.internet_archive_upload_status = 'completed'
+
             with default_storage.open(link.warc_storage_file(), 'rb') as warc_file:
                 success = internetarchive.upload(
                                 identifier,
