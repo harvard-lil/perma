@@ -536,8 +536,8 @@ def proxy_capture(self, link_guid):
                             codebase_url = tag.get_attribute('codebase') or base_url
                             urls = [
                                 urlparse.urljoin(codebase_url, url) for url in
-                                    [tag.get_attribute('data')]+
-                                    (tag.get_attribute('archive') or '').split()
+                                [tag.get_attribute('data')] +
+                                (tag.get_attribute('archive') or '').split()
                             ]+[
                                 param.get_attribute('value') for param in tag.find_elements_by_css_selector('param[name="movie"]')
                             ]
