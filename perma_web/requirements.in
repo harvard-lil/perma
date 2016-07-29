@@ -51,6 +51,7 @@ django-simple-history==1.8.1    # track changes to certain models
 PyVirtualDisplay==0.1.5         # for capturing with non-headless browsers
 LinkHeader==0.4.3               # memento headers for single-link pages
 pip-tools==1.6.5                # generating requirements.txt from requirements.in
+django-taggit==0.20.2           # tagging registrars
 
 # deployment
 gunicorn==19.3.0

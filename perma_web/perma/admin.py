@@ -27,10 +27,10 @@ class LinkInline(admin.TabularInline):
 
 class RegistrarAdmin(SimpleHistoryAdmin):
     search_fields = ['name', 'email', 'website']
-    list_display = ['name', 'status', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'latitude', 'longitude', 'registrar_users', 'last_active', 'orgs_count', 'link_count',]
+    list_display = ['name', 'status', 'email', 'website', 'show_partner_status', 'partner_display_name', 'logo', 'latitude', 'longitude', 'registrar_users', 'last_active', 'orgs_count', 'link_count', 'tag_list']
     list_editable = ['show_partner_status', 'partner_display_name', 'latitude', 'longitude', 'status']
     fieldsets = (
-        (None, {'fields': ('name', 'email', 'website', 'status')}),
+        (None, {'fields': ('name', 'email', 'website', 'status', 'tags')}),
         ("Partner Display", {'fields': ('show_partner_status', 'partner_display_name', 'logo', 'latitude', 'longitude')}),
     )
     inlines = [
@@ -49,7 +49,7 @@ class RegistrarAdmin(SimpleHistoryAdmin):
             registrar_users=Count('users', distinct=True),
             last_active=Max('users__last_login', distinct=True),
             orgs_count=Count('organizations',distinct=True)
-        )
+        ).prefetch_related('tags')
     def registrar_users(self, obj):
         return obj.registrar_users
     def last_active(self, obj):
@@ -57,6 +57,8 @@ class RegistrarAdmin(SimpleHistoryAdmin):
     def orgs_count(self, obj):
         return obj.orgs_count
 
+    def tag_list(self, obj):
+        return u", ".join(o.name for o in obj.tags.all())
 
 class OrganizationAdmin(SimpleHistoryAdmin):
     fields = ['name', 'registrar']

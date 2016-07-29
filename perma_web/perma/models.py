@@ -35,6 +35,7 @@ from mptt.models import MPTTModel, TreeForeignKey
 from model_utils import FieldTracker
 from pywb.cdx.cdxobject import CDXObject
 from pywb.warc.cdxindexer import write_cdx_index
+from taggit.managers import TaggableManager
 
 from .utils import copy_file_data
 
@@ -96,6 +97,7 @@ class Registrar(models.Model):
     objects = RegistrarQuerySet.as_manager()
     tracker = FieldTracker()
     history = HistoricalRecords()
+    tags = TaggableManager()
 
     class Meta:
         ordering = ['name']
