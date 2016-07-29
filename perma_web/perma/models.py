@@ -1257,19 +1257,19 @@ class CDXLine(models.Model):
             self.__set_defaults()
 
     @cached_property
-    def __parsed(self):
+    def parsed(self):
         return CDXObject(self.raw)
 
     def __set_defaults(self):
         if not self.urlkey:
-            self.urlkey = self.__parsed['urlkey']
+            self.urlkey = self.parsed['urlkey']
 
     @cached_property
     def timestamp(self):
-        return self.__parsed['timestamp']
+        return self.parsed['timestamp']
 
     def is_revisit(self):
-        return self.__parsed.is_revisit()
+        return self.parsed.is_revisit()
 
 
 class UncaughtError(models.Model):

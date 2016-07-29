@@ -2,6 +2,7 @@ from __future__ import absolute_import # to avoid importing local .celery instea
 
 import traceback
 from cStringIO import StringIO
+from contextlib import contextmanager
 
 from functools import wraps
 from httplib import HTTPResponse
@@ -152,8 +153,8 @@ def save_fields(instance, **kwargs):
         setattr(instance, key, val)
     instance.save(update_fields=kwargs.keys())
 
-def add_thread(thread_list, func):
-    new_thread = threading.Thread(target=func)
+def add_thread(thread_list, target, **kwargs):
+    new_thread = threading.Thread(target=target, **kwargs)
     new_thread.start()
     thread_list.append(new_thread)
 
@@ -187,6 +188,38 @@ def parse_response(response_text):
     requests_response.status_code = response.status
     requests_response.headers = CaseInsensitiveDict(response.getheaders())
     return requests_response
+
+def run_in_frames(browser, func, output_collector=None):
+    # setup
+    browser.implicitly_wait(0)
+    if output_collector is None:
+        output_collector = []
+
+    run_in_frames_recursive(browser, func, output_collector)
+
+    # reset
+    browser.implicitly_wait(ELEMENT_DISCOVERY_TIMEOUT)
+    browser.switch_to.default_content()
+
+    return output_collector
+
+def run_in_frames_recursive(browser, func, output, frame_path=None):
+    if frame_path is None:
+        frame_path = []
+    output += func(browser)
+    for child_frame in browser.find_elements_by_tag_name('frame') + browser.find_elements_by_tag_name('iframe'):
+        browser.switch_to.default_content()
+        for frame in frame_path:
+            browser.switch_to.frame(frame)
+        browser.switch_to.frame(child_frame)
+        run_in_frames_recursive(browser, func, output, frame_path + [child_frame])
+
+@contextmanager
+def warn_on_exception(message="Exception in block:", exception_type=Exception):
+    try:
+        yield
+    except exception_type as e:
+        print message, e
 
 
 ### TASKS ##
@@ -479,6 +512,48 @@ def proxy_capture(self, link_guid):
                 except WebDriverException:
                     pass
             repeat_while_exception(scroll_browser)
+
+            # load audio/video/objects
+            progress = int(progress) + 1
+            display_progress(progress, "Fetching audio/video objects")
+            with warn_on_exception("Error fetching audio/video objects"):
+                # running in each frame ...
+                def get_media_tags(browser):
+
+                    # fetch each audio/video/object/embed element
+                    media_tags = sum((browser.find_elements_by_tag_name(tag_name) for tag_name in ('video', 'audio', 'object', 'embed')), [])
+                    if not media_tags:
+                        return []
+
+                    url_set = []
+                    base_url = browser.current_url
+                    for tag in media_tags:
+
+                        # for each tag, extract all resource urls
+                        if tag.tag_name == 'object':
+                            # for <object>, get the data and archive attributes, prepended with codebase attribute if it exists,
+                            # as well as any <param name="movie" value="url"> elements
+                            codebase_url = tag.get_attribute('codebase') or base_url
+                            urls = [
+                                urlparse.urljoin(codebase_url, url) for url in
+                                    [tag.get_attribute('data')]+
+                                    (tag.get_attribute('archive') or '').split()
+                            ]+[
+                                param.get_attribute('value') for param in tag.find_elements_by_css_selector('param[name="movie"]')
+                            ]
+                        else:
+                            # for <audio>, <video>, and <embed>, get src attribute and any <source src="url"> elements
+                            urls = [tag.get_attribute('src')] + [source.get_attribute('src') for source in tag.find_elements_by_tag_name('source')]
+
+                        # collect resource urls, converted to absolute urls relative to current browser frame
+                        url_set.extend(urlparse.urljoin(base_url, url) for url in urls if url)
+
+                    return url_set
+                media_urls = run_in_frames(browser, get_media_tags)
+
+                # grab all media urls that aren't already being grabbed
+                for media_url in set(media_urls) - set(proxied_requests):
+                    add_thread(thread_list, proxied_get_request, args=(media_url,))
 
         # make sure all requests are finished
         progress = int(progress) + 1
