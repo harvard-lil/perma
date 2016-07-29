@@ -38,6 +38,7 @@ django-settings-context-processor==0.2
 django-simple-history==1.8.1
 django-sslserver==0.14
 django-storages==1.1.8
+django-taggit==0.20.2
 django-tastypie==0.13.3
 Django==1.9.8             # via django-admin-smoke-tests, django-model-utils, django-mptt, django-secure, django-sslserver
 docopt==0.6.2             # via internetarchive
