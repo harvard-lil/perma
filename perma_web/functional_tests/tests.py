@@ -381,7 +381,7 @@ class FunctionalTest(BaseTestCase):
                     reg = re.compile('%s%s/\d+/http://%s' % (self.server_url, WARC_ROUTE, url_to_capture))
                     self.assertIsNotNone(reg.search(header))
 
-        except Exception as e:
+        except Exception:
             try:
                 print("Attempting to capture screenshot of failed functional test ...")
                 self.driver.save_screenshot("failed_functional_test.png")
