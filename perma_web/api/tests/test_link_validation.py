@@ -15,8 +15,8 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
                 'fixtures/api_keys.json',
                 'fixtures/archive.json']
 
-    serve_files = [os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.html'),
-                   os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.jpg')]
+    serve_files = ['target_capture_files/test.html',
+                   'target_capture_files/test.jpg']
 
     def setUp(self):
         super(LinkValidationTestCase, self).setUp()
