@@ -270,121 +270,122 @@ class FunctionalTest(BaseTestCase):
             return o.geturl()
 
         info("Starting functional tests at time:", datetime.datetime.utcnow())
-        
-        info("Loading homepage from %s." % self.server_url)
-        self.driver.get(self.server_url)
-        assert_text_displayed("Perma.cc is simple") # new text on landing now
 
-        ##### cut this since it no longer exists
-
-        # info("Checking Perma In Action section.")
-        #try:
-        #    get_xpath("//a[@data-img='MSC_1']").click()
-        #    self.assertTrue(is_displayed(get_id('example-title')))
-        #    get_xpath("//div[@id='example-image-wrapper']/img").click()  # click on random element to trigger Sauce screenshot
-        #except ElementNotVisibleException:
-        #    pass  # this section is hidden for mobile browsers, so just skip this test
-
-        info("Loading docs.")
         try:
-            get_css_selector('.navbar-toggle').click()  # show navbar in mobile view
-        except ElementNotVisibleException:
-            pass  # not in mobile view
-        get_xpath("//a[@href='/docs']").click()
-        assert_text_displayed('Perma.cc user guide')  # new text -- wait for load
 
-        info("Logging in.")
-        try:
-            get_css_selector('.navbar-toggle').click()  # show navbar in mobile view
-        except ElementNotVisibleException:
-            pass  # not in mobile view
-        repeat_while_exception(lambda: click_link("Log in"))
-        assert_text_displayed("Email address", 'label')
-        get_id('id_username').send_keys('test_user@example.com')
-        get_id('id_password').send_keys('pass')
-        get_xpath("//button[@class='btn login']").click() # new design button, no more 'btn-success'
-        assert_text_displayed('Create a new', 'h1')  # wait for load
+            info("Loading homepage from %s." % self.server_url)
+            self.driver.get(self.server_url)
+            assert_text_displayed("Perma.cc is simple") # new text on landing now
 
-        info("Creating archive.")
-        url_to_capture = 'example.com'
-        type_to_element(get_id('rawUrl'), url_to_capture)  # type url
-        # choose folder from dropdown
-        get_css_selector('#folder-tree > .jstree-container-ul > li:last-child > a').click()
+            info("Loading docs.")
+            try:
+                get_css_selector('.navbar-toggle').click()  # show navbar in mobile view
+            except ElementNotVisibleException:
+                pass  # not in mobile view
+            get_xpath("//a[@href='/docs']").click()
+            assert_text_displayed('Perma.cc user guide')  # new text -- wait for load
 
-        get_id('addlink').click() # submit
+            info("Logging in.")
+            try:
+                get_css_selector('.navbar-toggle').click()  # show navbar in mobile view
+            except ElementNotVisibleException:
+                pass  # not in mobile view
+            repeat_while_exception(lambda: click_link("Log in"))
+            assert_text_displayed("Email address", 'label')
+            get_id('id_username').send_keys('test_user@example.com')
+            get_id('id_password').send_keys('pass')
+            get_xpath("//button[@class='btn login']").click() # new design button, no more 'btn-success'
+            assert_text_displayed('Create a new', 'h1')  # wait for load
 
-        info("Viewing playback.")
-        # wait 60 seconds to be forwarded to archive page
-        repeat_while_exception(lambda: get_element_with_text('See the Screenshot View', 'a'), NoSuchElementException, 60)
-        # Get the guid of the created archive
-        # display_guid = fix_host(self.driver.current_url)[-9:]
-        # Grab the WARC url for later.
-        warc_url = fix_host(self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src'))
-        # Check out the screeshot.
-        get_element_with_text('See the Screenshot View', 'a').click()
-        assert_text_displayed('This is a screenshot.')
-        # Load the WARC URL separately, because Safari driver doesn't let us inspect it as an iframe
-        self.driver.get(warc_url)
-        assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
+            info("Creating archive.")
+            url_to_capture = 'example.com'
+            type_to_element(get_id('rawUrl'), url_to_capture)  # type url
+            # choose folder from dropdown
+            get_css_selector('#folder-tree > .jstree-container-ul > li:last-child > a').click()
 
-        # My Links
+            get_id('addlink').click() # submit
 
-        # show links
-        self.driver.get(self.server_url + '/manage/create')
-        # create folder
-        get_css_selector('.new-folder').click()
-        # find link
-        # assert_text_displayed(display_guid)
-        # show details
-        # get_css_selector('.item-row').click()
-        # for some reason these are throwing 500 errors on PATCH:
-        # # change title
-        # type_to_element(get_css_selector('input.link-title'), 'test')
-        # repeat_while_exception(get_xpath("//span[contains(@class,'title-save-status') and contains(text(),'saved.')]"), NoSuchElementException)
-        # # change notes
-        # type_to_element(get_css_selector('input.link-notes'), 'test')
-        # repeat_while_exception(get_xpath("//span[contains(@class,'notes-save-status') and contains(text(),'saved.')]"), NoSuchElementException)
+            info("Viewing playback.")
+            # wait 60 seconds to be forwarded to archive page
+            repeat_while_exception(lambda: get_element_with_text('See the Screenshot View', 'a'), NoSuchElementException, 60)
+            # Get the guid of the created archive
+            # display_guid = fix_host(self.driver.current_url)[-9:]
+            # Grab the WARC url for later.
+            warc_url = fix_host(self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src'))
+            # Check out the screeshot.
+            get_element_with_text('See the Screenshot View', 'a').click()
+            assert_text_displayed('This is a screenshot.')
+            # Load the WARC URL separately, because Safari driver doesn't let us inspect it as an iframe
+            self.driver.get(warc_url)
+            assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
 
-        # Redirect from org-specific url to general /create url
-        self.driver.get(self.server_url + '/manage/create/27')
-        current_url = self.driver.current_url
-        self.assertEquals(self.server_url + '/manage/create/', current_url)
+            # My Links
 
-        # Timemap
+            # show links
+            self.driver.get(self.server_url + '/manage/create')
+            # create folder
+            get_css_selector('.new-folder').click()
+            # find link
+            # assert_text_displayed(display_guid)
+            # show details
+            # get_css_selector('.item-row').click()
+            # for some reason these are throwing 500 errors on PATCH:
+            # # change title
+            # type_to_element(get_css_selector('input.link-title'), 'test')
+            # repeat_while_exception(get_xpath("//span[contains(@class,'title-save-status') and contains(text(),'saved.')]"), NoSuchElementException)
+            # # change notes
+            # type_to_element(get_css_selector('input.link-notes'), 'test')
+            # repeat_while_exception(get_xpath("//span[contains(@class,'notes-save-status') and contains(text(),'saved.')]"), NoSuchElementException)
 
-        info("Checking timemap.")
-        self.driver.get(self.server_url + '/warc/pywb/*/' + url_to_capture)
-        self.assertIsNotNone(re.search(r'<b>[1-9]\d*</b> captures?', self.driver.page_source))  # Make sure that `<b>foo</b> captures` shows a positive number of captures
-        assert_text_displayed('http://' + url_to_capture, 'b')
+            # Redirect from org-specific url to general /create url
+            self.driver.get(self.server_url + '/manage/create/27')
+            current_url = self.driver.current_url
+            self.assertEquals(self.server_url + '/manage/create/', current_url)
 
-        # Displays playback by timestamp
-        get_xpath("//a[contains(@href, '%s')]" % url_to_capture).click()
-        assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
+            # Timemap
 
-        info("Checking timegate")
-        self.driver.get(self.server_url + TIMEGATE_WARC_ROUTE  + "/" + url_to_capture)
+            info("Checking timemap.")
+            self.driver.get(self.server_url + '/warc/pywb/*/' + url_to_capture)
+            self.assertIsNotNone(re.search(r'<b>[1-9]\d*</b> captures?', self.driver.page_source))  # Make sure that `<b>foo</b> captures` shows a positive number of captures
+            assert_text_displayed('http://' + url_to_capture, 'b')
 
-        assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
+            # Displays playback by timestamp
+            get_xpath("//a[contains(@href, '%s')]" % url_to_capture).click()
+            assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
 
-        # timegate redirects to a memento (timestamped) url
-        str_to_match = "%s%s/\d+/http://%s" % (self.server_url, WARC_ROUTE, url_to_capture)
-        reg = re.compile(str_to_match)
-        self.assertIsNotNone(reg.search(self.driver.current_url))
-        # checking that we don't see /warc/timegate in url because of redirect
-        reg = re.compile(TIMEGATE_WARC_ROUTE)
-        self.assertFalse(reg.match(self.driver.current_url))
+            info("Checking timegate")
+            self.driver.get(self.server_url + TIMEGATE_WARC_ROUTE  + "/" + url_to_capture)
+
+            assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
+
+            # timegate redirects to a memento (timestamped) url
+            str_to_match = "%s%s/\d+/http://%s" % (self.server_url, WARC_ROUTE, url_to_capture)
+            reg = re.compile(str_to_match)
+            self.assertIsNotNone(reg.search(self.driver.current_url))
+            # checking that we don't see /warc/timegate in url because of redirect
+            reg = re.compile(TIMEGATE_WARC_ROUTE)
+            self.assertFalse(reg.match(self.driver.current_url))
 
 
-        # taking advantage of running server to check headers
-        response = requests.get(self.server_url + TIMEGATE_WARC_ROUTE + '/' + url_to_capture)
+            # taking advantage of running server to check headers
+            response = requests.get(self.server_url + TIMEGATE_WARC_ROUTE + '/' + url_to_capture)
 
-        # response is memento response that's a redirect from the timegate url
-        link_headers = response.headers['Link'].split(', ')
-        for header in link_headers:
-            if 'rel="timemap"' in header:
-                reg = re.compile('%s/timemap/*/' % WARC_ROUTE)
-                self.assertIsNotNone(reg.search(header))
+            # response is memento response that's a redirect from the timegate url
+            link_headers = response.headers['Link'].split(', ')
+            for header in link_headers:
+                if 'rel="timemap"' in header:
+                    reg = re.compile('%s/timemap/*/' % WARC_ROUTE)
+                    self.assertIsNotNone(reg.search(header))
 
-            if 'rel="memento"' in header:
-                reg = re.compile('%s%s/\d+/http://%s' % (self.server_url, WARC_ROUTE, url_to_capture))
-                self.assertIsNotNone(reg.search(header))
+                if 'rel="memento"' in header:
+                    reg = re.compile('%s%s/\d+/http://%s' % (self.server_url, WARC_ROUTE, url_to_capture))
+                    self.assertIsNotNone(reg.search(header))
+
+        except Exception:
+            try:
+                print("Attempting to capture screenshot of failed functional test ...")
+                self.driver.save_screenshot("failed_functional_test.png")
+                print("Sreenshot of failed functional test is at failed_functional_test.png")
+            except Exception as e2:
+                print("Screenshot failed: %s" % e2)
+            raise

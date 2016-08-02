@@ -257,7 +257,7 @@ def regenerate_urlkeys(urlkey_prefix='file'):
     for i, cdxline in enumerate(target_cdxlines):
         if not (i%1000):
             print "%s records done -- next is %s." % (i, cdxline.link_id)
-        new_surt = surt(cdxline._CDXLine__parsed['url'])
+        new_surt = surt(cdxline.parsed['url'])
         if new_surt != cdxline.urlkey:
             try:
                 cdxline.raw = cdxline.raw.replace(cdxline.urlkey, new_surt, 1)
