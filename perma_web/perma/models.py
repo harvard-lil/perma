@@ -399,8 +399,7 @@ class FolderQuerySet(QuerySet):
         return self.filter(self.user_access_filter(user))
 
 
-class FolderManager(TreeManager, models.Manager.from_queryset(FolderQuerySet)):
-    pass
+FolderManager = TreeManager.from_queryset(FolderQuerySet)
 
 
 class Folder(MPTTModel):

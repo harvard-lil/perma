@@ -275,9 +275,9 @@ def rebuild_folder_trees():
     for o in Organization.objects.all():
         if set(o.folders.all()) != set(o.shared_folder.get_descendants(include_self=True)):
             print "Tree corruption found for org: %s" % o
-            Folder.objects.partial_rebuild(o.shared_folder.tree_id)
+            Folder._tree_manager.partial_rebuild(o.shared_folder.tree_id)
 
     for u in LinkUser.objects.all():
         if u.root_folder and set(u.folders.all()) != set(u.root_folder.get_descendants(include_self=True)):
             print "Tree corruption found for user: %s" % u
-            Folder.objects.partial_rebuild(u.root_folder.tree_id)
+            Folder._tree_manager.partial_rebuild(u.root_folder.tree_id)
