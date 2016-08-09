@@ -217,6 +217,7 @@ class LinkUser(AbstractBaseUser):
     requested_account_type = models.CharField(max_length=45, blank=True, null=True)
     requested_account_note = models.CharField(max_length=45, blank=True, null=True)
     link_count = models.IntegerField(default=0) # A cache of the number of links created by this user
+    monthly_link_limit = models.IntegerField(default=settings.MONTHLY_CREATE_LIMIT)
 
     objects = LinkUserManager()
     tracker = FieldTracker()
@@ -275,7 +276,7 @@ class LinkUser(AbstractBaseUser):
         today = timezone.now()
 
         link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month=today.month, created_by_id=self.id, organization_id=None).count()
-        return settings.MONTHLY_CREATE_LIMIT - link_count
+        return self.monthly_link_limit - link_count
 
     def create_root_folder(self):
         if self.root_folder:

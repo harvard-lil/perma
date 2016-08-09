@@ -113,7 +113,7 @@ class LinkUserAdmin(UserAdmin):
     fieldsets = (
         ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
         (None, {'fields': ('password',)}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'registrar', 'organizations')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_confirmed', 'registrar', 'organizations', 'monthly_link_limit')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
     add_fieldsets = (
