@@ -824,14 +824,16 @@ def upload_to_internet_archive(self, link_guid):
 
             # if item already exists (but has been removed),
             # ia won't update its metadata in upload function
-            if item.exists and item.metadata['title'] == 'Removed':
-                item.modify_metadata(metadata,
-                    access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-                    secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-                )
+            if item.exists
+                title = item.metadata.get('title')
+                if title and title == 'Removed':
+                    item.modify_metadata(metadata,
+                        access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                        secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+                    )
 
-            if item.exists:
-                link.internet_archive_upload_status = 'completed'
+                else:
+                    link.internet_archive_upload_status = 'completed'
 
             with default_storage.open(link.warc_storage_file(), 'rb') as warc_file:
                 success = internetarchive.upload(
