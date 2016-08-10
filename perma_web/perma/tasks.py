@@ -870,6 +870,7 @@ def audit_internet_archive(start_days_ago=None, end_days_ago=None):
     """
     now = timezone.now()
     internet_archive_audit_file = "internet_archive_audit_%s.json" % str(now.now())
+    print internet_archive_audit_file
 
     if not start_days_ago: start_days_ago = 10
     if end_days_ago != 0 and not end_days_ago: end_days_ago = 1
@@ -900,6 +901,7 @@ def audit_internet_archive(start_days_ago=None, end_days_ago=None):
 
     with open(internet_archive_audit_file, "w+") as ia_audit:
         json.dump(result, ia_audit)
+    print 'result:', result
     email = EmailMessage(
         'Internet Archive Audit',
         'Here are the results',
