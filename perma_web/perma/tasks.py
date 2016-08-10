@@ -824,7 +824,7 @@ def upload_to_internet_archive(self, link_guid):
 
             # if item already exists (but has been removed),
             # ia won't update its metadata in upload function
-            if item.exists
+            if item.exists:
                 title = item.metadata.get('title')
                 if title and title == 'Removed':
                     item.modify_metadata(metadata,
