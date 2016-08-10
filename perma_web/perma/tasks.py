@@ -21,6 +21,8 @@ from datetime import timedelta
 import logging
 import robotparser
 import time
+import hashlib
+import json
 import requests
 import errno
 import tempdir
@@ -32,6 +34,7 @@ from warcprox.warcprox import WarcProxyHandler, WarcProxy, ProxyingRecorder
 from warcprox.warcwriter import WarcWriter, WarcWriterThread
 
 from django.core.files.storage import default_storage
+from django.core.mail import EmailMessage
 from django.template.defaultfilters import truncatechars
 from django.conf import settings
 from django.utils import timezone
@@ -782,3 +785,47 @@ def upload_to_internet_archive(self, link_guid):
     except requests.ConnectionError as e:
         logger.exception("Upload to Internet Archive task failed because of a connection error. \nLink GUID: %s\nError: %s" % (link.pk, e))
         return
+
+def audit_internet_archive(start_days_ago=None, end_days_ago=None):
+    """
+    end_days_ago must be larger than zero to accurately represent IA success
+    (links only sent to IA after 24 hours) but can be zero for debugging purposes
+    """
+    now = timezone.now()
+    internet_archive_audit_file = "internet_archive_audit_%s.json" % str(now.now())
+
+    if not start_days_ago: start_days_ago = 10
+    if end_days_ago != 0 and not end_days_ago: end_days_ago = 1
+
+    start_date = now - timedelta(days=start_days_ago)
+    end_date = now - timedelta(days=end_days_ago)
+
+    links = Link.objects.filter(Q(is_private=False)| Q(is_unlisted=False), creation_timestamp__range=(start_date, end_date))
+    result = {}
+    # TODO: threads?!
+    result['percent_correct'], num_correct = 0
+
+    for link in links:
+        sha = hashlib.sha1()
+        identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link.guid
+        item = internetarchive.get_item(identifier)
+        archive = item.get_file("%s.warc.gz" % link.guid)
+        archive_buffer = default_storage.open(link.warc_storage_file(), 'rb').read()
+        sha.update(archive_buffer)
+        correct = archive.sha1 == str(sha.hexdigest())
+        result[link.guid] = correct
+
+        if correct: num_correct += 1
+
+    if num_correct > 0:
+        result['percent_correct'] = (num_correct / len(links)) * 100
+
+    with open(internet_archive_audit_file, "w+") as ia_audit:
+        json.dump(result, ia_audit)
+    email = EmailMessage(
+        'Internet Archive Audit',
+        'Here are the results',
+        'info@perma.cc',
+        ['info@perma.cc'],
+        attachments=(internet_archive_audit_file, result, 'application/javascript')
+    )
