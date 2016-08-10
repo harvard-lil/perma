@@ -880,7 +880,8 @@ def audit_internet_archive(start_days_ago=None, end_days_ago=None):
     links = Link.objects.filter(Q(is_private=False)| Q(is_unlisted=False), creation_timestamp__range=(start_date, end_date))
     result = {}
     # TODO: threads?!
-    result['percent_correct'], num_correct = 0
+    num_correct = 0
+    result['percent_correct'] = num_correct
 
     for link in links:
         sha = hashlib.sha1()
