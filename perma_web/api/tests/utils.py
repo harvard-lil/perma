@@ -149,7 +149,7 @@ class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
             else:
                 source_file, target_url = source_file
 
-            copy_file_or_dir(os.path.join(cwd, source_file), target_url)
+            copy_file_or_dir(os.path.join(settings.PROJECT_ROOT, TEST_ASSETS_DIR, source_file), target_url)
 
         # start server
         cls._httpd = TestHTTPServer(('', cls.server_port), SimpleHTTPRequestHandler)
@@ -173,12 +173,15 @@ class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
 
     @contextmanager
     def serve_file(self, src):
+        """
+            Serve file relative to TEST_ASSETS_DIR.
+        """
         if not getattr(self.__class__, "_server_process", None):
             self.__class__.start_server()
 
         dst = os.path.join(self._server_tmp, os.path.basename(src))
         try:
-            copy_file_or_dir(src, dst)
+            copy_file_or_dir(os.path.join(settings.PROJECT_ROOT, TEST_ASSETS_DIR, src), dst)
             yield
         finally:
             os.remove(dst)

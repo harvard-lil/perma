@@ -24,7 +24,7 @@ Werkzeug==0.11.1
 Fabric==1.11.1
 pexpect==3.1
 coverage==3.7.1
-selenium==2.47.3
+selenium==2.53.6
 jsmin==2.0.9
 django-pipeline==1.5.4          # manages our css and js assets
 django-pipeline-compass==0.1.5  # lets us compile .scss to .css
@@ -52,6 +52,7 @@ django-simple-history==1.8.1    # track changes to certain models
 PyVirtualDisplay==0.1.5         # for capturing with non-headless browsers
 LinkHeader==0.4.3               # memento headers for single-link pages
 pip-tools==1.6.5                # generating requirements.txt from requirements.in
+django-taggit==0.20.2           # tagging registrars
 
 # deployment
 gunicorn==19.3.0

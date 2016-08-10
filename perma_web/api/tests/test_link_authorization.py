@@ -220,7 +220,7 @@ class LinkAuthorizationTestCase(ApiResourceTransactionTestCase):
     ############
 
     def test_should_allow_owner_to_delete_link(self):
-        with self.serve_file(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.html')):
+        with self.serve_file('target_capture_files/test.html'):
             successful_response = self.successful_post(self.list_url, user=self.regular_user, data=self.post_data)
             new_link = Link.objects.get(pk=successful_response['guid'])
             new_link_url = "{0}/{1}".format(self.list_url, new_link.pk)

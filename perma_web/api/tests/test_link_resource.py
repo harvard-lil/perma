@@ -1,5 +1,10 @@
+from glob import glob
+
 import os
 import dateutil.parser
+from django.conf import settings
+from surt import surt
+
 from .utils import ApiResourceTransactionTestCase, TEST_ASSETS_DIR
 from api.resources import LinkResource, CurrentUserLinkResource, PublicLinkResource
 from perma.models import Link, LinkUser, CDXLine
@@ -14,14 +19,15 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
                 'fixtures/archive.json',
                 'fixtures/api_keys.json']
 
-    serve_files = [os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.html'),
-                   [os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.html'), 'test page.html'],
-                   [os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.html'), 'subdir/test.html'],
-                   os.path.join(TEST_ASSETS_DIR, 'target_capture_files/noarchive.html'),
-                   os.path.join(TEST_ASSETS_DIR, 'target_capture_files/test.pdf'),
-                   os.path.join(TEST_ASSETS_DIR, 'target_capture_files/favicon.ico'),
-                   os.path.join(TEST_ASSETS_DIR, 'target_capture_files/favicon_meta.ico')
-                   ]
+    serve_files = glob(os.path.join(settings.PROJECT_ROOT, TEST_ASSETS_DIR, 'target_capture_files/*')) + [
+        ['target_capture_files/test.html', 'test page.html'],
+        ['target_capture_files/test.html', 'subdir/test.html'],
+
+        ['target_capture_files/test.wav', 'test2.wav'],
+        ['target_capture_files/test.mp4', 'test2.mp4'],
+        ['target_capture_files/test.swf', 'test2.swf'],
+        ['target_capture_files/test.swf', 'test3.swf'],
+    ]
 
     rejected_status_code = 400  # Bad Request
 
@@ -156,7 +162,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertIn("favicon.ico", link.favicon_capture.url)
 
     def test_should_dark_archive_when_disallowed_in_robots_txt(self):
-        with self.serve_file(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/robots.txt')):
+        with self.serve_file('target_capture_files/robots.txt'):
             obj = self.successful_post(self.list_url,
                                        data={'url': self.server_url + "/subdir/test.html"},
                                        user=self.org_user)
@@ -172,6 +178,20 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
         link = Link.objects.get(guid=obj['guid'])
         self.assertValidCapture(link.primary_capture)
+
+    def test_should_capture_nested_audio_file(self):
+        target_folder = self.org_user.root_folder
+        obj = self.successful_post(self.list_url,
+                                   data={
+                                       'url': self.server_url + "/test_wav_outer.html",
+                                       'folder': target_folder.pk,
+                                   },
+                                   user=self.org_user)
+
+        # verify that embedded /test.* files in iframe were found and captured
+        expected_captures = ("test.wav", "test2.wav", "test.mp4", "test2.mp4", "test.swf", "test2.swf", "test3.swf")
+        for expected_capture in expected_captures:
+            self.assertEqual('200', CDXLine.objects.get(urlkey=surt(self.server_url + "/" + expected_capture), link_id=obj['guid']).parsed['status'])
 
     #########################
     # File Archive Creation #
@@ -258,7 +278,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
     ############
 
     def test_delete_detail(self):
-        with self.serve_file(os.path.join(TEST_ASSETS_DIR, 'target_capture_files/robots.txt')):
+        with self.serve_file('target_capture_files/robots.txt'):
             obj = self.successful_post(self.list_url,
                                        data={'url': self.server_url + "/subdir/test.html"},
                                        user=self.org_user)

@@ -324,6 +324,7 @@ INSTALLED_APPS = (
     'djangosecure',  # force SSL -- this can be removed in Django 1.8
     'settings_context_processor',
     'simple_history',  # record model changes
+    'taggit',  # model tagging
 
     # django admin -- has to come after our apps for our admin template overrides to work
     'django.contrib.admin',
