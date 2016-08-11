@@ -869,7 +869,7 @@ def audit_internet_archive(start_days_ago=None, end_days_ago=None):
     (links only sent to IA after 24 hours) but can be zero for debugging purposes
     """
     now = timezone.now()
-    internet_archive_audit_file = "internet_archive_audit_%s.json" % str(now.now())
+    internet_archive_audit_file = "internet_archive_audit_%s.json" % str(now.now()).replace(' ', '_')
     print internet_archive_audit_file
 
     if not start_days_ago: start_days_ago = 10
@@ -878,7 +878,7 @@ def audit_internet_archive(start_days_ago=None, end_days_ago=None):
     start_date = now - timedelta(days=start_days_ago)
     end_date = now - timedelta(days=end_days_ago)
 
-    links = Link.objects.filter(Q(is_private=False)| Q(is_unlisted=False), creation_timestamp__range=(start_date, end_date))
+    links = Link.objects.filter(is_private=False, is_unlisted=False, creation_timestamp__range=(start_date, end_date))
     result = {}
     # TODO: threads?!
     num_correct = 0
