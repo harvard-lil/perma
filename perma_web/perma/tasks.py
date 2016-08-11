@@ -514,46 +514,47 @@ def proxy_capture(self, link_guid):
             repeat_while_exception(scroll_browser)
 
             # load audio/video/objects
-            progress = int(progress) + 1
-            display_progress(progress, "Fetching audio/video objects")
-            with warn_on_exception("Error fetching audio/video objects"):
-                # running in each frame ...
-                def get_media_tags(browser):
+            if settings.ENABLE_AV_CAPTURE:
+                progress = int(progress) + 1
+                display_progress(progress, "Fetching audio/video objects")
+                with warn_on_exception("Error fetching audio/video objects"):
+                    # running in each frame ...
+                    def get_media_tags(browser):
 
-                    # fetch each audio/video/object/embed element
-                    media_tags = sum((browser.find_elements_by_tag_name(tag_name) for tag_name in ('video', 'audio', 'object', 'embed')), [])
-                    if not media_tags:
-                        return []
+                        # fetch each audio/video/object/embed element
+                        media_tags = sum((browser.find_elements_by_tag_name(tag_name) for tag_name in ('video', 'audio', 'object', 'embed')), [])
+                        if not media_tags:
+                            return []
 
-                    url_set = []
-                    base_url = browser.current_url
-                    for tag in media_tags:
+                        url_set = []
+                        base_url = browser.current_url
+                        for tag in media_tags:
+    
+                            # for each tag, extract all resource urls
+                            if tag.tag_name == 'object':
+                                # for <object>, get the data and archive attributes, prepended with codebase attribute if it exists,
+                                # as well as any <param name="movie" value="url"> elements
+                                codebase_url = tag.get_attribute('codebase') or base_url
+                                urls = [
+                                    urlparse.urljoin(codebase_url, url) for url in
+                                    [tag.get_attribute('data')] +
+                                    (tag.get_attribute('archive') or '').split()
+                                ]+[
+                                    param.get_attribute('value') for param in tag.find_elements_by_css_selector('param[name="movie"]')
+                                ]
+                            else:
+                                # for <audio>, <video>, and <embed>, get src attribute and any <source src="url"> elements
+                                urls = [tag.get_attribute('src')] + [source.get_attribute('src') for source in tag.find_elements_by_tag_name('source')]
 
-                        # for each tag, extract all resource urls
-                        if tag.tag_name == 'object':
-                            # for <object>, get the data and archive attributes, prepended with codebase attribute if it exists,
-                            # as well as any <param name="movie" value="url"> elements
-                            codebase_url = tag.get_attribute('codebase') or base_url
-                            urls = [
-                                urlparse.urljoin(codebase_url, url) for url in
-                                [tag.get_attribute('data')] +
-                                (tag.get_attribute('archive') or '').split()
-                            ]+[
-                                param.get_attribute('value') for param in tag.find_elements_by_css_selector('param[name="movie"]')
-                            ]
-                        else:
-                            # for <audio>, <video>, and <embed>, get src attribute and any <source src="url"> elements
-                            urls = [tag.get_attribute('src')] + [source.get_attribute('src') for source in tag.find_elements_by_tag_name('source')]
+                            # collect resource urls, converted to absolute urls relative to current browser frame
+                            url_set.extend(urlparse.urljoin(base_url, url) for url in urls if url)
 
-                        # collect resource urls, converted to absolute urls relative to current browser frame
-                        url_set.extend(urlparse.urljoin(base_url, url) for url in urls if url)
+                        return url_set
+                    media_urls = run_in_frames(browser, get_media_tags)
 
-                    return url_set
-                media_urls = run_in_frames(browser, get_media_tags)
-
-                # grab all media urls that aren't already being grabbed
-                for media_url in set(media_urls) - set(proxied_requests):
-                    add_thread(thread_list, proxied_get_request, args=(media_url,))
+                    # grab all media urls that aren't already being grabbed
+                    for media_url in set(media_urls) - set(proxied_requests):
+                        add_thread(thread_list, proxied_get_request, args=(media_url,))
 
         # make sure all requests are finished
         progress = int(progress) + 1
