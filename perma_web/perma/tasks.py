@@ -43,7 +43,7 @@ from django.db.models import Q
 
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture, CaptureJob
 
-from perma.utils import run_task
+from perma.utils import run_task, send_admin_email
 
 logger = logging.getLogger(__name__)
 
@@ -877,35 +877,30 @@ def audit_internet_archive(start_days_ago=None, end_days_ago=None):
 
     start_date = now - timedelta(days=start_days_ago)
     end_date = now - timedelta(days=end_days_ago)
-
+    # the equivalent
     links = Link.objects.filter(is_private=False, is_unlisted=False, creation_timestamp__range=(start_date, end_date))
-    result = {}
     # TODO: threads?!
     num_correct = 0
-    result['percent_correct'] = num_correct
+    result = { 'percent_correct' : num_correct }
 
     for link in links:
-        sha = hashlib.sha1()
-        identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link.guid
-        item = internetarchive.get_item(identifier)
-        archive = item.get_file("%s.warc.gz" % link.guid)
-        archive_buffer = default_storage.open(link.warc_storage_file(), 'rb').read()
-        sha.update(archive_buffer)
-        correct = archive.sha1 == str(sha.hexdigest())
-        result[link.guid] = correct
+        try:
+            if link.primary_capture.status = 'success':
+                sha = hashlib.sha1()
+                identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link.guid
+                item = internetarchive.get_item(identifier)
+                archive = item.get_file("%s.warc.gz" % link.guid)
+                archive_buffer = default_storage.open(link.warc_storage_file(), 'rb').read()
+                sha.update(archive_buffer)
+                correct = archive.sha1 == str(sha.hexdigest())
+                if not correct:
+                    result[link.guid] = correct
 
-        if correct: num_correct += 1
+                if correct: num_correct += 1
+        except Exception as e:
+            print 'EXCEPTION:', link.guid, e
 
     if num_correct > 0:
         result['percent_correct'] = (num_correct / len(links)) * 100
 
-    with open(internet_archive_audit_file, "w+") as ia_audit:
-        json.dump(result, ia_audit)
-    print 'result:', result
-    email = EmailMessage(
-        'Internet Archive Audit',
-        'Here are the results',
-        'info@perma.cc',
-        ['info@perma.cc'],
-        attachments=(internet_archive_audit_file, result, 'application/javascript')
-    )
+    send_admin_email('Internet Archive Audit', str(result), settings.PERMA_DEV_EMAIL, {})
