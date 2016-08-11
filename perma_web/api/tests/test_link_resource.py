@@ -180,6 +180,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertValidCapture(link.primary_capture)
 
     def test_should_capture_nested_audio_file(self):
+        settings.ENABLE_AV_CAPTURE = True
         target_folder = self.org_user.root_folder
         obj = self.successful_post(self.list_url,
                                    data={

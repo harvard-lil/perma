@@ -573,3 +573,6 @@ OPBEAT = {
     'APP_ID': '',
     'SECRET_TOKEN': '',
 }
+
+
+ENABLE_AV_CAPTURE = False 
