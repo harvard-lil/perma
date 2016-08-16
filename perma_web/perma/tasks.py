@@ -893,11 +893,14 @@ def audit_internet_archive(start_days_ago=None, end_days_ago=None):
                 archive_buffer = default_storage.open(link.warc_storage_file(), 'rb').read()
                 sha.update(archive_buffer)
                 correct = archive.sha1 == str(sha.hexdigest())
-                if not correct:
+
+                if correct:
+                    num_correct += 1
+                else:
                     result[link.guid] = correct
 
-                if correct: num_correct += 1
         except Exception as e:
+            result[link.guid] = e
             print 'EXCEPTION:', link.guid, e
 
     if num_correct > 0:
