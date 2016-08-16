@@ -22,6 +22,7 @@ from datetime import timedelta
 import logging
 import robotparser
 import time
+import hashlib
 import requests
 import errno
 import tempdir
@@ -40,7 +41,7 @@ from django.db.models import Q
 
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture, CaptureJob
 
-from perma.utils import run_task
+from perma.utils import run_task, send_admin_email
 
 logger = logging.getLogger(__name__)
 
@@ -864,8 +865,10 @@ def audit_internet_archive(start_days_ago=None, end_days_ago=None):
     """
     now = timezone.now()
 
-    if not start_days_ago: start_days_ago = 10
-    if end_days_ago != 0 and not end_days_ago: end_days_ago = 1
+    if not start_days_ago:
+        start_days_ago = 10
+    if end_days_ago != 0 and not end_days_ago:
+        end_days_ago = 1
 
     start_date = now - timedelta(days=start_days_ago)
     end_date = now - timedelta(days=end_days_ago)
