@@ -856,6 +856,7 @@ def upload_to_internet_archive(self, link_guid):
         logger.exception("Upload to Internet Archive task failed because of a connection error. \nLink GUID: %s\nError: %s" % (link.pk, e))
         return
 
+@shared_task()
 def audit_internet_archive(start_days_ago=None, end_days_ago=None):
     """
     end_days_ago must be larger than zero to accurately represent IA success
