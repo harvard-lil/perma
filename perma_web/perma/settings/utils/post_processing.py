@@ -38,7 +38,7 @@ def post_process_settings(settings):
             'schedule': crontab(minute='0', hour='*'),
         },
         'audit-internet-archive': {
-            'task': 'perma.tasks.audit-internet_archive',
+            'task': 'perma.tasks.audit_internet_archive',
             'schedule': crontab(minute='0', hour='0', day_of_week=0),
         },
 

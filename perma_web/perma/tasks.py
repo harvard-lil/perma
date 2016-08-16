@@ -876,7 +876,7 @@ def audit_internet_archive(start_days_ago=None, end_days_ago=None):
 
     for link in links:
         try:
-            if link.primary_capture.status = 'success':
+            if link.primary_capture.status == 'success':
                 sha = hashlib.sha1()
                 identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link.guid
                 item = internetarchive.get_item(identifier)
