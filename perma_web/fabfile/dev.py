@@ -266,3 +266,18 @@ def regenerate_urlkeys(urlkey_prefix='file'):
                 continue
             cdxline.urlkey = new_surt
             cdxline.save()
+
+@task
+def rebuild_folder_trees():
+    from perma.models import Organization, LinkUser, Folder
+    print "Checking for broken folder trees ..."
+
+    for o in Organization.objects.all():
+        if set(o.folders.all()) != set(o.shared_folder.get_descendants(include_self=True)):
+            print "Tree corruption found for org: %s" % o
+            Folder._tree_manager.partial_rebuild(o.shared_folder.tree_id)
+
+    for u in LinkUser.objects.all():
+        if u.root_folder and set(u.folders.all()) != set(u.root_folder.get_descendants(include_self=True)):
+            print "Tree corruption found for user: %s" % u
+            Folder._tree_manager.partial_rebuild(u.root_folder.tree_id)

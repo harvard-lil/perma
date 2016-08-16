@@ -18,6 +18,7 @@ from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 
 from hanzo import warctools
+from mptt.managers import TreeManager
 from simple_history.models import HistoricalRecords
 from werkzeug.urls import iri_to_uri
 
@@ -398,7 +399,7 @@ class FolderQuerySet(QuerySet):
         return self.filter(self.user_access_filter(user))
 
 
-FolderManager = models.Manager.from_queryset(FolderQuerySet)
+FolderManager = TreeManager.from_queryset(FolderQuerySet)
 
 
 class Folder(MPTTModel):

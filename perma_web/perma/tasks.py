@@ -22,8 +22,6 @@ from datetime import timedelta
 import logging
 import robotparser
 import time
-import hashlib
-import json
 import requests
 import errno
 import tempdir
@@ -35,7 +33,6 @@ from warcprox.warcprox import WarcProxyHandler, WarcProxy, ProxyingRecorder
 from warcprox.warcwriter import WarcWriter, WarcWriterThread
 
 from django.core.files.storage import default_storage
-from django.core.mail import EmailMessage
 from django.template.defaultfilters import truncatechars
 from django.conf import settings
 from django.utils import timezone
@@ -43,7 +40,7 @@ from django.db.models import Q
 
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture, CaptureJob
 
-from perma.utils import run_task, send_admin_email
+from perma.utils import run_task
 
 logger = logging.getLogger(__name__)
 
@@ -517,46 +514,47 @@ def proxy_capture(self, link_guid):
             repeat_while_exception(scroll_browser)
 
             # load audio/video/objects
-            progress = int(progress) + 1
-            display_progress(progress, "Fetching audio/video objects")
-            with warn_on_exception("Error fetching audio/video objects"):
-                # running in each frame ...
-                def get_media_tags(browser):
+            if settings.ENABLE_AV_CAPTURE:
+                progress = int(progress) + 1
+                display_progress(progress, "Fetching audio/video objects")
+                with warn_on_exception("Error fetching audio/video objects"):
+                    # running in each frame ...
+                    def get_media_tags(browser):
 
-                    # fetch each audio/video/object/embed element
-                    media_tags = sum((browser.find_elements_by_tag_name(tag_name) for tag_name in ('video', 'audio', 'object', 'embed')), [])
-                    if not media_tags:
-                        return []
+                        # fetch each audio/video/object/embed element
+                        media_tags = sum((browser.find_elements_by_tag_name(tag_name) for tag_name in ('video', 'audio', 'object', 'embed')), [])
+                        if not media_tags:
+                            return []
 
-                    url_set = []
-                    base_url = browser.current_url
-                    for tag in media_tags:
+                        url_set = []
+                        base_url = browser.current_url
+                        for tag in media_tags:
 
-                        # for each tag, extract all resource urls
-                        if tag.tag_name == 'object':
-                            # for <object>, get the data and archive attributes, prepended with codebase attribute if it exists,
-                            # as well as any <param name="movie" value="url"> elements
-                            codebase_url = tag.get_attribute('codebase') or base_url
-                            urls = [
-                                urlparse.urljoin(codebase_url, url) for url in
-                                [tag.get_attribute('data')] +
-                                (tag.get_attribute('archive') or '').split()
-                            ]+[
-                                param.get_attribute('value') for param in tag.find_elements_by_css_selector('param[name="movie"]')
-                            ]
-                        else:
-                            # for <audio>, <video>, and <embed>, get src attribute and any <source src="url"> elements
-                            urls = [tag.get_attribute('src')] + [source.get_attribute('src') for source in tag.find_elements_by_tag_name('source')]
+                            # for each tag, extract all resource urls
+                            if tag.tag_name == 'object':
+                                # for <object>, get the data and archive attributes, prepended with codebase attribute if it exists,
+                                # as well as any <param name="movie" value="url"> elements
+                                codebase_url = tag.get_attribute('codebase') or base_url
+                                urls = [
+                                    urlparse.urljoin(codebase_url, url) for url in
+                                    [tag.get_attribute('data')] +
+                                    (tag.get_attribute('archive') or '').split()
+                                ]+[
+                                    param.get_attribute('value') for param in tag.find_elements_by_css_selector('param[name="movie"]')
+                                ]
+                            else:
+                                # for <audio>, <video>, and <embed>, get src attribute and any <source src="url"> elements
+                                urls = [tag.get_attribute('src')] + [source.get_attribute('src') for source in tag.find_elements_by_tag_name('source')]
 
-                        # collect resource urls, converted to absolute urls relative to current browser frame
-                        url_set.extend(urlparse.urljoin(base_url, url) for url in urls if url)
+                            # collect resource urls, converted to absolute urls relative to current browser frame
+                            url_set.extend(urlparse.urljoin(base_url, url) for url in urls if url)
 
-                    return url_set
-                media_urls = run_in_frames(browser, get_media_tags)
+                        return url_set
+                    media_urls = run_in_frames(browser, get_media_tags)
 
-                # grab all media urls that aren't already being grabbed
-                for media_url in set(media_urls) - set(proxied_requests):
-                    add_thread(thread_list, proxied_get_request, args=(media_url,))
+                    # grab all media urls that aren't already being grabbed
+                    for media_url in set(media_urls) - set(proxied_requests):
+                        add_thread(thread_list, proxied_get_request, args=(media_url,))
 
         # make sure all requests are finished
         progress = int(progress) + 1
@@ -824,16 +822,11 @@ def upload_to_internet_archive(self, link_guid):
 
             # if item already exists (but has been removed),
             # ia won't update its metadata in upload function
-            if item.exists:
-                title = item.metadata.get('title')
-                if title and title == 'Removed':
-                    item.modify_metadata(metadata,
-                        access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-                        secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-                    )
-
-                else:
-                    link.internet_archive_upload_status = 'completed'
+            if item.exists and item.metadata['title'] == 'Removed':
+                item.modify_metadata(metadata,
+                    access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                    secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+                )
 
             with default_storage.open(link.warc_storage_file(), 'rb') as warc_file:
                 success = internetarchive.upload(
@@ -862,48 +855,3 @@ def upload_to_internet_archive(self, link_guid):
     except requests.ConnectionError as e:
         logger.exception("Upload to Internet Archive task failed because of a connection error. \nLink GUID: %s\nError: %s" % (link.pk, e))
         return
-
-def audit_internet_archive(start_days_ago=None, end_days_ago=None):
-    """
-    end_days_ago must be larger than zero to accurately represent IA success
-    (links only sent to IA after 24 hours) but can be zero for debugging purposes
-    """
-    now = timezone.now()
-    internet_archive_audit_file = "internet_archive_audit_%s.json" % str(now.now()).replace(' ', '_')
-    print internet_archive_audit_file
-
-    if not start_days_ago: start_days_ago = 10
-    if end_days_ago != 0 and not end_days_ago: end_days_ago = 1
-
-    start_date = now - timedelta(days=start_days_ago)
-    end_date = now - timedelta(days=end_days_ago)
-    # the equivalent
-    links = Link.objects.filter(is_private=False, is_unlisted=False, creation_timestamp__range=(start_date, end_date))
-    # TODO: threads?!
-    num_correct = 0
-    result = { 'percent_correct' : num_correct }
-
-    for link in links:
-        try:
-            if link.primary_capture.status = 'success':
-                sha = hashlib.sha1()
-                identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link.guid
-                item = internetarchive.get_item(identifier)
-                archive = item.get_file("%s.warc.gz" % link.guid)
-                archive_buffer = default_storage.open(link.warc_storage_file(), 'rb').read()
-                sha.update(archive_buffer)
-                correct = archive.sha1 == str(sha.hexdigest())
-
-                if correct:
-                    num_correct += 1
-                else:
-                    result[link.guid] = correct
-
-        except Exception as e:
-            result[link.guid] = e
-            print 'EXCEPTION:', link.guid, e
-
-    if num_correct > 0:
-        result['percent_correct'] = (num_correct / len(links)) * 100
-
-    send_admin_email('Internet Archive Audit', str(result), settings.PERMA_DEV_EMAIL, {})

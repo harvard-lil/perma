@@ -19,7 +19,7 @@ oauth2==1.5.211
 smhasher==0.150.1
 jasmine==2.4.0
 pytz==2013b
-django-mptt==0.8.0
+django-mptt==0.8.5
 Werkzeug==0.11.1
 Fabric==1.11.1
 pexpect==3.1

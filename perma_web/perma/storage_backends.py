@@ -7,6 +7,7 @@ from django.core.files.storage import FileSystemStorage as DjangoFileSystemStora
 from django.core.files import File
 from django.conf import settings
 import django.dispatch
+from django.utils.module_loading import import_string
 
 from pipeline.storage import PipelineMixin
 from storages.backends.s3boto import S3BotoStorage
@@ -86,25 +87,35 @@ class FileSystemMediaStorage(BaseMediaStorage, DjangoFileSystemStorage):
 
 class S3MediaStorage(BaseMediaStorage, S3BotoStorage):
     location = settings.MEDIA_ROOT
-    
-    
-class S3BackedUpFileSystemMediaStorage(FileSystemMediaStorage):
-    """
-        Storage backend that reads and writes from the local filesystem, but also puts a copy up on S3 for every save.
-        Before using, be sure to set BACKUP_MEDIA_ROOT, AWS_STORAGE_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY.
-    """
-    def __init__(self, *args, **kwargs):
-        # on init, create a second storage for writing to S3
-        class BackupS3MediaStorage(S3MediaStorage):
-            location = settings.BACKUP_MEDIA_ROOT
-        self.backup_s3_storage = BackupS3MediaStorage(*args, **kwargs)
 
-        # otherwise act normally
-        super(S3BackedUpFileSystemMediaStorage, self).__init__()
-        
-    def save(self, *args, **kwargs):
-        # on save, write a copy to S3
-        self.backup_s3_storage.save(*args, **kwargs)
+if settings.DEFAULT_FILE_STORAGE.endswith('RedundantMediaStorage'):
+    PrimaryStorageClass = import_string(settings.PRIMARY_FILE_STORAGE)
+    SecondaryStorageClass = import_string(settings.SECONDARY_FILE_STORAGE)
+    class RedundantMediaStorage(PrimaryStorageClass):
+        """
+            Storage backend that reads and writes to a primary storage class, but also performs redundant writes
+            to a secondary storage class.
 
-        # otherwise act normally
-        return super(S3BackedUpFileSystemMediaStorage, self).save(*args, **kwargs)
+            Required settings:
+                - PRIMARY_FILE_STORAGE
+                - SECONDARY_FILE_STORAGE
+
+            Optional settings:
+                - SECONDARY_MEDIA_ROOT (defaults to MEDIA_ROOT)
+        """
+        def __init__(self, *args, **kwargs):
+            # on init, create a secondary storage
+            kwargs['location'] = getattr(settings, 'SECONDARY_MEDIA_ROOT', settings.MEDIA_ROOT)
+            self.secondary_storage = SecondaryStorageClass(*args, **kwargs)
+
+            # otherwise act normally
+            super(RedundantMediaStorage, self).__init__()
+
+        def save(self, file_path, *args, **kwargs):
+            # on save, write a copy to secondary storage
+            if self.secondary_storage.exists(file_path):
+                self.secondary_storage.delete(file_path)
+            self.secondary_storage.save(file_path, *args, **kwargs)
+
+            # otherwise act normally
+            return super(RedundantMediaStorage, self).save(file_path, *args, **kwargs)
