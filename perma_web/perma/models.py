@@ -1084,7 +1084,7 @@ class CaptureJob(models.Model):
         job_queue = job_queues[job_type]
         user_id = self.link.created_by_id
         if user_id not in job_queue:
-            last_job = CaptureJob.objects.filter(link__created_by_id=user_id).exclude(status='pending').order_by('-pk').first()
+            last_job = CaptureJob.objects.filter(link__created_by_id=user_id).exclude(status='pending').exclude(capture_start_time=None).order_by('-pk').first()
             job_queue[user_id] = {
                 'next_jobs': [],
                 'last_job_time': last_job.capture_start_time.isoformat() if last_job else '0'
