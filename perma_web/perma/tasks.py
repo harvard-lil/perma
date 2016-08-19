@@ -641,6 +641,9 @@ def proxy_capture(self, link_guid):
             with open(temp_warc_path, 'rb') as warc_file:
                 link.write_warc_raw_data(warc_file)
 
+            print "Writing CDX lines to the DB"
+            CDXLine.objects.create_all_from_link(link)
+
             save_fields(
                 link.primary_capture,
                 status='success',
@@ -664,9 +667,6 @@ def proxy_capture(self, link_guid):
                     content_type=successful_favicon_urls[0][1]
                 ).save()
                 print "Saved favicon at %s" % successful_favicon_urls
-
-            print "Writing CDX lines to the DB"
-            CDXLine.objects.create_all_from_link(link)
 
         except Exception as e:
             print "Web Archive File creation failed for %s: %s" % (target_url, e)
