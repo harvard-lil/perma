@@ -80,15 +80,15 @@
 					<a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Sort <span class="caret"></span></a>
 					<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
 						<li>
-							<a {% if sort == 'last_name' %}class="selected" {% endif %}href="?{% current_query_string sort="last_name" %}"><i class="icon-ok"></i> Last name A - Z</a>
-							<a {% if sort == '-last_name' %}class="selected" {% endif %} href="?{% current_query_string sort="-last_name" %}"><i class="icon-ok"></i> Last name Z - A</a>
-							<a {% if sort == '-date_joined' %}class="selected" {% endif %} href="?{% current_query_string sort="-date_joined" %}"><i class="icon-ok"></i> Newest</a>
-							<a {% if sort == 'date_joined' %}class="selected" {% endif %} href="?{% current_query_string sort="date_joined" %}"><i class="icon-ok"></i> Oldest</a>
-							<a {% if sort == '-last_login' %}class="selected" {% endif %} href="?{% current_query_string sort="-last_login" %}"><i class="icon-ok"></i> Recently active</a>
-							<a {% if sort == 'last_login' %}class="selected" {% endif %} href="?{% current_query_string sort="last_login" %}"><i class="icon-ok"></i> Least recently active</a>
+							<a {% if sort == 'last_name' %}class="selected" {% endif %}href="?{% current_query_string page='' sort="last_name" %}"><i class="icon-ok"></i> Last name A - Z</a>
+							<a {% if sort == '-last_name' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-last_name" %}"><i class="icon-ok"></i> Last name Z - A</a>
+							<a {% if sort == '-date_joined' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-date_joined" %}"><i class="icon-ok"></i> Newest</a>
+							<a {% if sort == 'date_joined' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="date_joined" %}"><i class="icon-ok"></i> Oldest</a>
+							<a {% if sort == '-last_login' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-last_login" %}"><i class="icon-ok"></i> Recently active</a>
+							<a {% if sort == 'last_login' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="last_login" %}"><i class="icon-ok"></i> Least recently active</a>
 							{% if group_name == 'organization_user' %}
-								<a {% if sort == '-created_links_count' %}class="selected" {% endif %} href="?{% current_query_string sort="-created_links_count" %}"><i class="icon-ok"></i> Most links</a>
-								<a {% if sort == 'created_links_count' %}class="selected" {% endif %} href="?{% current_query_string sort="created_links_count" %}"><i class="icon-ok"></i> Least links</a>
+								<a {% if sort == '-created_links_count' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-created_links_count" %}"><i class="icon-ok"></i> Most links</a>
+								<a {% if sort == 'created_links_count' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="created_links_count" %}"><i class="icon-ok"></i> Least links</a>
 							{% endif %}
 						</li>
 					</ul>
@@ -99,9 +99,9 @@
 						<a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Upgrade interest <span class="caret"></span></a>
 						<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
 							<li>
-								<a {% if upgrade == 'court' %}class="selected" {% endif %}href="?{% current_query_string upgrade="court" %}"><i class="icon-ok"></i> Court</a>
-								<a {% if upgrade == 'faculty' %}class="selected" {% endif %}href="?{% current_query_string upgrade="faculty" %}"><i class="icon-ok"></i> Faculty</a>
-								<a {% if upgrade == 'journal' %}class="selected" {% endif %}href="?{% current_query_string upgrade="journal" %}"><i class="icon-ok"></i> Journal</a>
+								<a {% if upgrade == 'court' %}class="selected" {% endif %}href="?{% current_query_string page='' upgrade="court" %}"><i class="icon-ok"></i> Court</a>
+								<a {% if upgrade == 'faculty' %}class="selected" {% endif %}href="?{% current_query_string page='' upgrade="faculty" %}"><i class="icon-ok"></i> Faculty</a>
+								<a {% if upgrade == 'journal' %}class="selected" {% endif %}href="?{% current_query_string page='' upgrade="journal" %}"><i class="icon-ok"></i> Journal</a>
 							</li>
 						</ul>
 					</div>
@@ -111,11 +111,11 @@
 					<a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Status <span class="caret"></span></a>
 					<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
 						<li>
-							<a {% if status == 'active' %}class="selected" {% endif %}href="?{% current_query_string status="active" %}"><i class="icon-ok"></i> Active</a>
+							<a {% if status == 'active' %}class="selected" {% endif %}href="?{% current_query_string page='' status="active" %}"><i class="icon-ok"></i> Active</a>
 							{% if request.user.is_staff and group_name == 'user' %}
-							<a {% if status == 'deactivated' %}class="selected" {% endif %}href="?{% current_query_string status="deactivated" %}"><i class="icon-ok"></i> Deactivated</a>
+							<a {% if status == 'deactivated' %}class="selected" {% endif %}href="?{% current_query_string page='' status="deactivated" %}"><i class="icon-ok"></i> Deactivated</a>
 							{% endif %}
-							<a {% if status == 'unactivated' %}class="selected" {% endif %}href="?{% current_query_string status="unactivated" %}"><i class="icon-ok"></i> Unactivated</a>
+							<a {% if status == 'unactivated' %}class="selected" {% endif %}href="?{% current_query_string page='' status="unactivated" %}"><i class="icon-ok"></i> Unactivated</a>
 						</li>
 					</ul>
 				</div>
@@ -129,9 +129,9 @@
 								{% if orgs %}
 									{% for org in orgs %}
 										{% if organization_filter == org %}
-											<a class="selected" href="?{% current_query_string org='' %}"><i class="icon-ok"></i> {{org.name}}</a>
+											<a class="selected" href="?{% current_query_string page='' org='' %}"><i class="icon-ok"></i> {{org.name}}</a>
 										{% else %}
-											<a href="?{% current_query_string org=org.id %}"><i class="icon-ok"></i> {{org.name}}</a>
+											<a href="?{% current_query_string page='' org=org.id %}"><i class="icon-ok"></i> {{org.name}}</a>
 										{% endif %}
 									{% endfor %}
 								{% else %}
@@ -152,9 +152,9 @@
 								{% if registrars %}
 									{% for registrar in registrars %}
 										{% if registrar_filter == registrar %}
-											<a class="selected" href="?{% current_query_string registrar='' organization='' %}"><i class="icon-ok"></i> {{registrar.name}}</a>
+											<a class="selected" href="?{% current_query_string page='' registrar='' organization='' %}"><i class="icon-ok"></i> {{registrar.name}}</a>
 										{% else %}
-											<a href="?{% current_query_string registrar=registrar.id organization='' %}"><i class="icon-ok"></i> {{registrar.name}}</a>
+											<a href="?{% current_query_string page='' registrar=registrar.id organization='' %}"><i class="icon-ok"></i> {{registrar.name}}</a>
 										{% endif %}
 									{% endfor %}
 								{% else %}
