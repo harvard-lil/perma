@@ -57,7 +57,8 @@ LinksListModule.saveInput = function(inputElement, statusElement, name, callback
 }
 LinksListModule.setupLinksTableEventHandlers = function () {
   LinksListModule.linkTable
-    .on('click', 'a.clear-search', function () {
+    .on('click', 'a.clear-search', function (e) {
+      e.preventDefault();
       LinksListModule.showFolderContents(LinksListModule.selectedFolderID);
     })
     .on('mousedown touchstart', '.item-row', function (e) {
