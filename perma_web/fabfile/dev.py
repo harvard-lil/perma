@@ -86,7 +86,11 @@ def jasmine_test():
 
 @task
 def jasmine_travis_test():
-    local("jasmine-ci --browser phantomjs")
+    local("pwd")
+    local("env")
+    local("which phantomjs")
+    # local("sh -e /etc/init.d/xvfb start")
+    local("export JASMINE_BROWSER=phantomjs; jasmine-ci --browser phantomjs")
 
 @task
 def init_db():
