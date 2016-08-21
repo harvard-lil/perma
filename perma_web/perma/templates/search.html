@@ -1,0 +1,92 @@
+{% extends "base-responsive.html" %}
+{% load file_exists pipeline %}
+{% block title %} | Stats{% endblock %}
+
+{% block meta_description %}
+Perma.cc prevents link rot.
+{% endblock %}
+
+{% block bodyFlags %}_about{% endblock %}
+{% block mainFlags %}{% endblock %}
+
+{% block mainContent %}
+<div id="search-perma">
+  <div class="container cont-fixed">
+    <div class="row">
+      <div class="col-sm-12">
+        <h1 class="page-title">
+          Search Perma.cc
+        </h1>
+      </div>
+      <div class="row no-wide">
+        <div class="col-sm-12">
+          {% include "user_management/includes/search_form.html" with search_placeholder="Search Perma Links" %}
+          <div class="container item-rows"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+
+    <script>
+        var create_url = "{% url 'create_link' %}",
+            contact_url = "{% url 'contact' %}",
+            links_remaining = "{{links_remaining}}",
+            host = "{{ request.get_host }}";
+    </script>
+
+    {% javascript 'admin' %}
+    {% javascript 'search' %}
+
+{% endblock %}
+
+
+
+{% block templates %}
+{% verbatim %}
+
+  <script id="search-links-template" type="text/x-handlebars-template">
+    {{#if query }}
+      <div class="shared-folder-label alert-success">
+          Search results for "{{ query }}".
+          <a href="#" class="clear-search">Clear search.</a>
+      </div>
+    {{/if}}
+
+    {{#each links}}
+      <div class="item-container">
+        <div class="row item-row row-no-bleed" link_id="{{ guid }}">
+          <div class="row">
+            <div class="col col-sm-6 col-md-60">
+              <div class="item-title">
+                <span>{{ title }}</span>
+              </div>
+              <div class="item-subtitle">
+                <a href="http://localhost:8000/{{ guid }}" target="_blank" class="item-link-original no-drag">
+                  {{ truncatechars guid 200 }}
+                </a>
+              </div>
+            </div>
+            <div class="col col-sm-6 col-md-40 align-right item-permalink">
+              <a class="perma no-drag" href="http://{{local_url}}" target="_blank">
+                {{local_url}}
+              </a>
+            </div>
+          </div>
+          <div class="row item-secondary">
+            <div class="col col-sm-5 sm-align-right">
+                <span class="item-date"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
+            </div>
+          </div>
+        </div>
+
+      {{/each}}
+    </script>
+
+
+    {% endverbatim %}
+{% endblock templates %}
