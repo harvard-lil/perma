@@ -22,8 +22,7 @@ LinksListModule.setupEventHandlers = function () {
     // search form
   $('.search-query-form').on('submit', function (e) {
     e.preventDefault();
-    var query = $('.search-query').val();
-
+    var query = DOMHelpers.getValue('.search-query');
     if(query && query.trim()){
       LinksListModule.showFolderContents(LinksListModule.selectedFolderID, query);
     }
@@ -38,7 +37,7 @@ var saveBufferSeconds = 0.5,
   timeouts = {};
   // save changes in a given text box to the server
 LinksListModule.saveInput = function(inputElement, statusElement, name, callback) {
-  statusElement.html('Saving...');
+  DOMHelpers.changeHTML(statusElement, 'Saving...');
 
   var guid = inputElement.attr('id').match(/.+-(.+-.+)/)[1],
     timeoutKey = guid+name;
@@ -49,9 +48,9 @@ LinksListModule.saveInput = function(inputElement, statusElement, name, callback
   // use a setTimeout so notes are only saved once every few seconds
   timeouts[timeoutKey] = setTimeout(function () {
     var data = {};
-    data[name] = inputElement.val();
+    data[name] = DOMHelpers.getValue(inputElement);
     var request = Helpers.apiRequest("PATCH", '/archives/' + guid + '/', data).done(function(data){
-      statusElement.html('Saved!');
+      DOMHelpers.changeHTML(statusElement, 'Saved!');
     });
     if (callback) request.done(callback);
   }, saveBufferSeconds*1000);
@@ -97,14 +96,16 @@ var showLoadingMessage = false;
 LinksListModule.showFolderContents = function (folderID, query) {
   if(!query || !query.trim()){
     query = null;
-    $('.search-query').val('');  // clear query after user clicks a folder
+    DOMHelpers.setInputValue('.search-query', '');
   }
 
   // if fetching folder contents takes more than 500ms, show a loading message
   showLoadingMessage = true;
   setTimeout(function(){
-    if(showLoadingMessage)
-      LinksListModule.linkTable.empty().html('<div class="alert-info">Loading folder contents...</div>');
+    if(showLoadingMessage) {
+      DOMHelpers.emptyElement(LinksListModule.linkTable);
+      DOMHelpers.changeHTML(LinksListModule.linkTable, '<div class="alert-info">Loading folder contents...</div>');
+    }
   }, 500);
 
   var requestCount = 20,
@@ -139,9 +140,11 @@ LinksListModule.showFolderContents = function (folderID, query) {
       });
 
       // append HTML
-      if(requestData.offset==0)
-        LinksListModule.linkTable.empty();
-      LinksListModule.linkTable.find('.links-loading-more').remove();
+      if(requestData.offset === 0) {
+        DOMHelpers.emptyElement(LinksListModule.linkTable);
+      }
+      var linksLoadingMore = LinksListModule.linkTable.find('.links-loading-more');
+      DOMHelpers.removeElement(linksLoadingMore);
       LinksListModule.linkTable.append(templates.created_link_items({links: links, query: query}));
 
       // If we received exactly `requestCount` number of links, there may be more to fetch from the server.
