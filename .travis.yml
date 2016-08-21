@@ -42,6 +42,8 @@ before_script:
   - date
 script:
   fab test
+  fab jasmine_travis_test
+
 after_failure:
   - date
 after_success:
