@@ -41,8 +41,8 @@ before_script:
   - python manage.py collectstatic --noinput
   - date
 script:
-  fab test
-  fab dev.jasmine_travis_test
+  - fab test
+  - fab dev.jasmine_travis_test
 
 after_failure:
   - date
