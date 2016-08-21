@@ -42,6 +42,7 @@ before_script:
   - date
 script:
   # - fab test
+  - pwd
   - fab dev.jasmine_travis_test
 
 after_failure:
