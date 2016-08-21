@@ -93,9 +93,10 @@ LinksListModule.setupLinksTableEventHandlers = function () {
 // *** actions ***
 
 var showLoadingMessage = false;
-LinksListModule.showFolderContents = function (folderID, query) {
+LinksListModule.initShowFolderDOM = function (query) {
   if(!query || !query.trim()){
-    query = null;
+    // clear query after user clicks a folder
+    delete query;
     DOMHelpers.setInputValue('.search-query', '');
   }
 
@@ -107,6 +108,32 @@ LinksListModule.showFolderContents = function (folderID, query) {
       DOMHelpers.changeHTML(LinksListModule.linkTable, '<div class="alert-info">Loading folder contents...</div>');
     }
   }, 500);
+}
+
+LinksListModule.generateLinkFields = function(query, link) {
+  link.favicon_url = LinksListModule.findFaviconURL(link);
+  link.local_url = host + '/' + link.guid;
+  link.search_query_in_notes = (query && link.notes.indexOf(query) > -1);
+  link.expiration_date_formatted = new Date(link.expiration_date).format("F j, Y");
+  link.creation_timestamp_formatted = new Date(link.creation_timestamp).format("F j, Y");
+  if (Date.now() < Date.parse(link.archive_timestamp)) {
+    link.delete_available = true;
+  }
+  return link;
+};
+
+LinksListModule.findFaviconURL = function(link) {
+  if (!link.captures) return '';
+
+  var favCapture = link.captures.filter(function(capture){
+    capture.role == 'favicon' && capture.status == 'success'
+  });
+
+  return favCapture[0] ? favCapture[0].playback_url : '';
+}
+
+LinksListModule.showFolderContents = function (folderID, query) {
+  this.initShowFolderDOM(query);
 
   var requestCount = 20,
     requestData = {limit: requestCount, offset:0},
@@ -124,20 +151,7 @@ LinksListModule.showFolderContents = function (folderID, query) {
     Helpers.apiRequest("GET", endpoint, requestData).always(function (response) {
         // same thing runs on success or error, since we get back success or error-displaying HTML
       showLoadingMessage = false;
-      var links = response.objects;
-      $.each(links, function (i, obj) {
-        $.each(obj.captures, function (i, capture) {
-          if (capture.role == 'favicon' && capture.status == 'success')
-            obj.favicon_url = capture.playback_url;
-        });
-        obj.local_url = host + '/' + obj.guid;
-        obj.search_query_in_notes = (query && obj.notes.indexOf(query) > -1);
-        obj.expiration_date_formatted = new Date(obj.expiration_date).format("F j, Y");
-        obj.creation_timestamp_formatted = new Date(obj.creation_timestamp).format("F j, Y");
-        if (Date.now() < Date.parse(obj.archive_timestamp)) {
-          obj.delete_available = true;
-        }
-      });
+      var links = response.objects.map(LinksListModule.generateLinkFields.bind(this, query));
 
       // append HTML
       if(requestData.offset === 0) {
