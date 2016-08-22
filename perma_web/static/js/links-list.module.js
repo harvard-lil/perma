@@ -112,15 +112,7 @@ LinksListModule.initShowFolderDOM = function (query) {
 }
 
 LinksListModule.generateLinkFields = function(query, link) {
-  link.favicon_url = LinkHelpers.findFaviconURL(link);
-  link.local_url = host + '/' + link.guid;
-  link.search_query_in_notes = (query && link.notes.indexOf(query) > -1);
-  link.expiration_date_formatted = new Date(link.expiration_date).format("F j, Y");
-  link.creation_timestamp_formatted = new Date(link.creation_timestamp).format("F j, Y");
-  if (Date.now() < Date.parse(link.archive_timestamp)) {
-    link.delete_available = true;
-  }
-  return link;
+  return LinkHelpers.generateLinkFields(link, query);
 };
 
 LinksListModule.showFolderContents = function (folderID, query) {

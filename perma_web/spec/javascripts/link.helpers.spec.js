@@ -53,6 +53,27 @@ describe("Test link.helpers.js", function() {
       linkObjCopy.captures = [window.linkObj.captures[0], window.linkObj.captures[1]];
       var url = LinkHelpers.findFaviconURL(linkObjCopy);
       expect(url).toEqual("")
-    })
-  })
+    });
+  });
+  describe("Test generateLinkFields", function(){
+    it("returns a more robust link object", function(){
+      var linkObjCopy = window.linkObj;
+      var newLink = LinkHelpers.generateLinkFields(linkObjCopy);
+      expect(newLink.expiration_date_formatted).toBeDefined();
+      expect(newLink.creation_timestamp_formatted).toBeDefined();
+
+    });
+    it("calls findFaviconURL", function(){
+      spyOn(LinkHelpers, "findFaviconURL");
+      var linkObjCopy = window.linkObj;
+      LinkHelpers.generateLinkFields(linkObjCopy);
+      expect(LinkHelpers.findFaviconURL).toHaveBeenCalled();
+    });
+    it("adds local_url if host is available", function(){
+      window.host = "perma-stage.org"
+      var linkObjCopy = window.linkObj;
+      LinkHelpers.generateLinkFields(linkObjCopy);
+      expect(linkObjCopy.local_url).toBe("perma-stage.org/"+linkObjCopy.guid);
+    });
+  });
 });
