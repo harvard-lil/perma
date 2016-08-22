@@ -186,6 +186,7 @@ PIPELINE_JS = {
     },
     'search': {
         'source_filenames': (
+            'vendors/jquery/jquery.waypoints.js',
             'js/search.module.js',
         ),
         'output_filename': 'js/search-bundle.js',

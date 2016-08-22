@@ -85,11 +85,13 @@ CreateModule.linkNot = function (jqXHR) {
       upload_allowed = false;
     }
 
-    $('#error-container').html(templates.error({
+    var templateArgs = {
       message: message || "Error " + jqXHR.status,
       upload_allowed: upload_allowed,
       contact_url: contact_url
-    }));
+    };
+
+    CreateModule.changeTemplate('#error-template', templateArgs, '#error-container');
 
     $('.create-errors').addClass('_active');
     $('#error-container').hide().fadeIn(0);
@@ -97,10 +99,7 @@ CreateModule.linkNot = function (jqXHR) {
   CreateModule.toggleCreateAvailable();
 }
 
-
-
 /* Handle an upload - start */
-
 CreateModule.uploadNot = function (jqXHR) {
   // Display an error message in our upload modal
 
@@ -232,10 +231,8 @@ CreateModule.check_status = function () {
 
       // Else show failure message and reset form.
       } else {
-
-        $('#error-container').html(templates.error({
-          message: "Error: URL capture failed."
-        }));
+        var templateArgs = {message: "Error: URL capture failed."};
+        CreateModule.changeTemplate('#error-template', templateArgs, '#error-container');
 
         $('#error-container').removeClass('_hide _success _wait').addClass('_error');
 
@@ -389,6 +386,11 @@ CreateModule.setupEventHandlers = function () {
   });
 }
 
+/* templateContainer: DOM selector, where the newly rendered template will live */
+CreateModule.changeTemplate = function(template, args, templateContainer) {
+  var renderedTemplate = HandlebarsHelpers.renderTemplate(template, args)
+  DOMHelpers.changeHTML(templateContainer, renderedTemplate);
+}
 
 CreateModule.init = function () {
   var self = this;

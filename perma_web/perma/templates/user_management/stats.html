@@ -15,7 +15,7 @@
     $(function(){
       function fillSection(name){
         return $.getJSON(document.location + '/' + name).then(function (data) {
-          $('#' + name).html(templates[name](data));
+          DOMHelpers.changeHTML('#' + name, HandlebarsHelpers.renderTemplate('#' + name, data));
         });
       }
 
