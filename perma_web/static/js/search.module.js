@@ -44,7 +44,7 @@ SearchModule.getLinks = function(query) {
   SearchModule.clearLinks();
   endpoint = this.getSubmittedUrlEndpoint();
   requestData = SearchModule.generateRequestData(query);
-  request = Helpers.apiRequest("GET", endpoint, requestData);
+  request = APIModule.request("GET", endpoint, requestData);
   // Content fetcher.
   // This is wrapped in a function so it can be called repeatedly for infinite scrolling.
   function getNextContents() {

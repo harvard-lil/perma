@@ -69,7 +69,7 @@ CreateModule.linkNot = function (jqXHR) {
 
   if (jqXHR.status == 401) {
   // special handling if user becomes unexpectedly logged out
-    Helpers.showAPIError(jqXHR);
+    APIModule.showError(jqXHR);
   } else {
     var message = "";
     if (jqXHR.status == 400 && jqXHR.responseText) {
@@ -106,7 +106,7 @@ CreateModule.uploadNot = function (jqXHR) {
 
   // special handling if user becomes unexpectedly logged out
   if(jqXHR.status == 401){
-    Helpers.showAPIError(jqXHR);
+    APIModule.showError(jqXHR);
     return;
   }
   var reasons = [],
@@ -195,7 +195,7 @@ succeeds. */
 CreateModule.check_status = function () {
 
   // Check our status service to see if we have archiving jobs pending
-  var request = Helpers.apiRequest("GET", "/user/capture_jobs/" + new_archive.guid + "/");
+  var request = APIModule.request("GET", "/user/capture_jobs/" + new_archive.guid + "/");
   request.done(function(data) {
     // While status is pending or in progress, update progress display
     if (data.status == "pending") {
@@ -393,7 +393,7 @@ CreateModule.setupEventHandlers = function () {
 CreateModule.init = function () {
   var self = this;
 
-  Helpers.apiRequest("GET", "/user/organizations/", {limit: 300, order_by:'registrar'})
+  APIModule.request("GET", "/user/organizations/", {limit: 300, order_by:'registrar'})
     .success(function(data) {
       var $organization_select = $("#organization_select");
 
