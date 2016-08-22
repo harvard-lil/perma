@@ -66,8 +66,8 @@ Perma.cc prevents link rot.
                 <span>{{ title }}</span>
               </div>
               <div class="item-subtitle">
-                <a href="http://localhost:8000/{{ guid }}" target="_blank" class="item-link-original no-drag">
-                  {{ truncatechars guid 200 }}
+                <a href="{{local_url}}" target="_blank" class="item-link-original no-drag">
+                  {{ truncatechars url 100 }}
                 </a>
               </div>
             </div>
@@ -78,7 +78,7 @@ Perma.cc prevents link rot.
             </div>
           </div>
           <div class="row item-secondary">
-            <div class="col col-sm-5 sm-align-right">
+            <div class="col col-sm-5 sm-align-right pull-right">
                 <span class="item-date"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
             </div>
           </div>

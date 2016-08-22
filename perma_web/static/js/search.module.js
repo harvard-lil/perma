@@ -10,6 +10,14 @@ SearchModule.init = function(){
 }
 
 SearchModule.setupEventHandlers = function() {
+  this.linkRows.on('click', function(e){
+    e.preventDefault();
+    if (e.target.className == 'clear-search') {
+      SearchModule.clearLinks();
+      DOMHelpers.setInputValue('.search-query', '');
+    }
+  });
+
   this.searchSubmit.on('submit', function (e) {
     e.preventDefault();
     var query = SearchModule.getQuery();
@@ -27,8 +35,13 @@ SearchModule.getQuery = function() {
   return query.trim();
 }
 
+SearchModule.clearLinks = function() {
+  DOMHelpers.emptyElement(this.linkRows);
+}
+
 SearchModule.getLinks = function(query) {
   var endpoint, request, requestData;
+  SearchModule.clearLinks();
   endpoint = this.getSubmittedUrlEndpoint();
   requestData = SearchModule.generateRequestData(query);
   request = Helpers.apiRequest("GET", endpoint, requestData);
@@ -36,10 +49,9 @@ SearchModule.getLinks = function(query) {
   // This is wrapped in a function so it can be called repeatedly for infinite scrolling.
   function getNextContents() {
     request.always(function (response) {
-        // same thing runs on success or error, since we get back success or error-displaying HTML
+      // same thing runs on success or error, since we get back success or error-displaying HTML
       showLoadingMessage = false;
       var links = response.objects.map(SearchModule.generateLinkFields);
-      console.log("links:", links);
       if(requestData.offset === 0) { DOMHelpers.emptyElement(this.linkRows); }
 
       DOMHelpers.removeElement(SearchModule.linkRows.find('.links-loading-more'));
@@ -51,7 +63,7 @@ SearchModule.getLinks = function(query) {
         requestData.offset += requestData.limit;
         this.linkRows.find('.item-container:last').waypoint(function(direction) {
           this.destroy();  // cancel waypoint
-          this.linkRows.append('<div class="links-loading-more">Loading more ...</div>');
+          SearchModule.linkRows.append('<div class="links-loading-more">Loading more ...</div>');
           getNextContents();
         }, {
           offset:'100%'  // trigger waypoint when element hits bottom of window
