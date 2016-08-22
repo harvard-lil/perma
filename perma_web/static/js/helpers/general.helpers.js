@@ -1,4 +1,4 @@
-var Helpers = {};
+window.Helpers = window.Helpers || {};
 
 Helpers.sendFormData = function (method, url, data, requestArgs) {
   requestArgs = requestArgs || {};
