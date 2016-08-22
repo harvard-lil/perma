@@ -120,6 +120,8 @@ PIPELINE_JS = {
             'js/helpers/polyfill/string.trim.js',
             'js/helpers/general.helpers.js',
             'js/helpers/dom.helpers.js',
+            'js/helpers/api.module.js',
+            'js/helpers/link.helpers.js',
             'js/global.setup.js',
         ),
         'output_filename': 'js/global-bundle.js',
@@ -181,6 +183,12 @@ PIPELINE_JS = {
             'js/helpers/mapping/map.js',
         ),
         'output_filename': 'js/map-bundle.js',
+    },
+    'search': {
+        'source_filenames': (
+            'js/search.module.js',
+        ),
+        'output_filename': 'js/search-bundle.js',
     },
     'stats': {
         'source_filenames': (

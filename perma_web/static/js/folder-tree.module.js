@@ -126,23 +126,23 @@ FolderTreeModule.setSelectedFolder = function (node) {
 
 
 FolderTreeModule.createFolder = function (parentFolderID, newName) {
-  return Helpers.apiRequest("POST", "/folders/" + parentFolderID + "/folders/", {name: newName});
+  return APIModule.request("POST", "/folders/" + parentFolderID + "/folders/", {name: newName});
 }
 
 FolderTreeModule.renameFolder = function (folderID, newName) {
-  return Helpers.apiRequest("PATCH", "/folders/" + folderID + "/", {name: newName});
+  return APIModule.request("PATCH", "/folders/" + folderID + "/", {name: newName});
 }
 
 FolderTreeModule.moveFolder = function (parentID, childID) {
-  return Helpers.apiRequest("PUT", "/folders/" + parentID + "/folders/" + childID + "/");
+  return APIModule.request("PUT", "/folders/" + parentID + "/folders/" + childID + "/");
 }
 
 FolderTreeModule.deleteFolder = function (folderID) {
-  return Helpers.apiRequest("DELETE", "/folders/" + folderID + "/");
+  return APIModule.request("DELETE", "/folders/" + folderID + "/");
 }
 
 FolderTreeModule.moveLink = function (folderID, linkID) {
-  return Helpers.apiRequest("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function(data){
+  return APIModule.request("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function(data){
     $(window).trigger("FolderTreeModule.updateLinksRemaining", data.links_remaining);
     // once we're done moving the link, hide it from the current folder
     $('.item-row[link_id="'+linkID+'"]').closest('.item-container').remove();

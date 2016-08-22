@@ -1,7 +1,11 @@
 src_files:
-  - "vendors/jquery/jquery.js"
+  - "vendors/jquery/jquery.min.js"
+  - "vendors/raphael/raphael.js"
+  - "vendors/raphael/raphael.scale.js"
+  - "vendors/raphael/g.raphael.js"
+  - "vendors/handlebars/handlebars.js"
   - "vendors/p5/p5.min.js"
-  - "vendors/airbrakejs/client.min.js"
+  - "vendors/airbrakejs/*.js"
   - "vendors/airbrakejs/instrumentation/jquery.js"
   - "js/helpers/**/*.js"
   - "js/*.js"

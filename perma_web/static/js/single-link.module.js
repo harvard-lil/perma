@@ -1,13 +1,16 @@
 var SingleLinkModule = {},
-  resizeTimeout = null;
+  resizeTimeout = null,
+  wrapper;
 
 SingleLinkModule.init = function () {
   SingleLinkModule.adjustTopMargin();
   var button = document.getElementById("details-button");
-  button.onclick = function () {
-    SingleLinkModule.handleShowDetails();
-    return false;
-  };
+  if (button) {    
+    button.onclick = function () {
+      SingleLinkModule.handleShowDetails();
+      return false;
+    };
+  }
 };
 
 SingleLinkModule.handleShowDetails = function () {
@@ -18,8 +21,9 @@ SingleLinkModule.handleShowDetails = function () {
 };
 
 SingleLinkModule.adjustTopMargin = function () {
-  var wrapper = document.getElementsByClassName("capture-wrapper")[0];
+  wrapper = document.getElementsByClassName("capture-wrapper")[0];
   var header = document.getElementsByTagName('header')[0];
+  if (!wrapper) return;
   wrapper.style.marginTop = header.offsetHeight+"px";
 };
 

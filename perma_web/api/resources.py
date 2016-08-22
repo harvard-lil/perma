@@ -347,6 +347,9 @@ class BaseLinkResource(MultipartResource, DefaultResource):
         resource_name = 'archives'
         queryset = Link.objects.order_by('-creation_timestamp').select_related('organization', 'organization__registrar').prefetch_related('captures')
         validation = LinkValidation()
+        filters = {
+            'submitted_url':'icontains'
+        }
 
     # class Nested:
     #     captures = fields.ToManyField(CaptureResource, 'captures')
@@ -355,8 +358,12 @@ class BaseLinkResource(MultipartResource, DefaultResource):
         base_object_list = super(BaseLinkResource, self).apply_filters(request, applicable_filters)
 
         search_query = request.GET.get('q', None)
+        search_url = request.GET.get('submitted_url', None)
+
         if search_query:
             return base_object_list.filter(self.get_search_filters(search_query))
+        elif search_url:
+            return base_object_list.filter((Q(submitted_url__icontains=search_url)))
         else:
             return base_object_list
 
