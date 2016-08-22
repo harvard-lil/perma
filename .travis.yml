@@ -38,12 +38,11 @@ before_script:
   - mysql -e 'SET GLOBAL max_allowed_packet = 64*1024*1024;'
   - mysql -e 'SET GLOBAL wait_timeout = 36000;'
   #
-  # - python manage.py collectstatic --noinput
+  - python manage.py collectstatic --noinput
   - date
 script:
-  # - fab test
-  - pwd
-  - fab dev.jasmine_travis_test
+  - fab test
+  # - fab dev.jasmine_travis_test
 
 after_failure:
   - date
