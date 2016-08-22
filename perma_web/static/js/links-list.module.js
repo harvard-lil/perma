@@ -112,7 +112,7 @@ LinksListModule.initShowFolderDOM = function (query) {
 }
 
 LinksListModule.generateLinkFields = function(query, link) {
-  link.favicon_url = LinksListModule.findFaviconURL(link);
+  link.favicon_url = LinkHelpers.findFaviconURL(link);
   link.local_url = host + '/' + link.guid;
   link.search_query_in_notes = (query && link.notes.indexOf(query) > -1);
   link.expiration_date_formatted = new Date(link.expiration_date).format("F j, Y");
@@ -122,16 +122,6 @@ LinksListModule.generateLinkFields = function(query, link) {
   }
   return link;
 };
-
-LinksListModule.findFaviconURL = function(link) {
-  if (!link.captures) return '';
-
-  var favCapture = link.captures.filter(function(capture){
-    capture.role == 'favicon' && capture.status == 'success'
-  });
-
-  return favCapture[0] ? favCapture[0].playback_url : '';
-}
 
 LinksListModule.showFolderContents = function (folderID, query) {
   this.initShowFolderDOM(query);
