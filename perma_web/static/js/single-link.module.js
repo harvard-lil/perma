@@ -1,13 +1,16 @@
 var SingleLinkModule = {},
-  resizeTimeout = null;
+  resizeTimeout = null,
+  wrapper;
 
 SingleLinkModule.init = function () {
   SingleLinkModule.adjustTopMargin();
   var button = document.getElementById("details-button");
-  button.onclick = function () {
-    SingleLinkModule.handleShowDetails();
-    return false;
-  };
+  if (button) {    
+    button.onclick = function () {
+      SingleLinkModule.handleShowDetails();
+      return false;
+    };
+  }
 };
 
 SingleLinkModule.handleShowDetails = function () {
