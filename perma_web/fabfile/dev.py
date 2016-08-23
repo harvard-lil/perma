@@ -77,12 +77,16 @@ def logs(log_dir=os.path.join(settings.PROJECT_ROOT, '../services/logs/')):
     local("tail -f %s/*" % log_dir)
 
 @task
-def jasmine():
+def jasmine_test():
     """
         Run frontend unit tests.
         Go to 0.0.0.0:8888 in your browser to see the output.
     """
-    local("jasmine -o 0.0.0.0 -p 8888")
+    local("jasmine -o 0.0.0.0 -p 8080")
+
+@task
+def jasmine_travis_test():
+    local("jasmine-ci --browser phantomjs")
 
 @task
 def init_db():
@@ -281,3 +285,58 @@ def rebuild_folder_trees():
         if u.root_folder and set(u.folders.all()) != set(u.root_folder.get_descendants(include_self=True)):
             print "Tree corruption found for user: %s" % u
             Folder._tree_manager.partial_rebuild(u.root_folder.tree_id)
+
+
+@task
+def test_playbacks():
+    """
+        Test all primary captures and report any that throw errors when playing back in pywb.
+    """
+    from perma.models import Capture
+    import traceback
+    import sys
+    import types
+    from warc_server.app import application
+
+    # monkey patch the pywb application to raise all exceptions instead of catching them
+    def handle_exception(self, env, exc, print_trace):
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        raise exc_type, exc_value, exc_traceback
+    application.handle_exception = types.MethodType(handle_exception, application)
+
+    # this function is based on Link.replay_url(), but it uses our monkeypatched pywb application to throw all errors,
+    # and adds an access token cookie to play back private links.
+    def replay_url_raise_errors(link, url):
+        fake_environ = {'HTTP_COOKIE': {}, 'QUERY_STRING': '', 'REQUEST_METHOD': 'GET', 'SCRIPT_NAME': '',
+                        'SERVER_NAME': 'fake', 'SERVER_PORT': '80', 'SERVER_PROTOCOL': 'HTTP/1.1',
+                        'wsgi.errors': sys.stderr, 'wsgi.input': sys.stdin}
+
+        fake_environ['PATH_INFO'] = '/%s/%s' % (link.guid, url)
+
+        if link.is_private:
+            fake_environ['HTTP_COOKIE'] = {str(link.guid): link.create_access_token()}
+
+        headers = {}
+
+        def fake_start_response(status, response_headers, exc_info=None):
+            headers.update(response_headers)
+
+        data = application(fake_environ, fake_start_response)
+
+        return headers, data
+
+    # check each playback
+    for capture in Capture.objects.filter(role='primary', status='success').select_related('link'):
+        try:
+            headers, data = replay_url_raise_errors(capture.link, capture.url)
+        except Exception as e:
+            print "\n----------\n%s\tEXCEPTION\t%s" % (capture.link_id, e)
+            traceback.print_exc()
+            continue
+
+        if 'Link' not in headers:
+            print "\n----------\n%s\tWARNING\t%s" % (capture.link_id, "Link header not found")
+            print headers, data
+            continue
+
+        print "%s\tOK" % capture.link_id

@@ -102,7 +102,7 @@ SingleLinkPermissionsModule.handleDarchiving = function (context) {
     $this.addClass('disabled');
     $this.text('Updating ...');
 
-    Helpers.apiRequest('PATCH', '/archives/' + archive.guid + '/', {is_private: !currently_private, private_reason: private_reason}, {
+    APIModule.request('PATCH', '/archives/' + archive.guid + '/', {is_private: !currently_private, private_reason: private_reason}, {
       success: function(){
         window.location.reload(true);
       },
@@ -122,7 +122,7 @@ SingleLinkPermissionsModule.saveInput = function (inputElement, name, statusElem
     clearTimeout(timeouts[name]);
 
   timeouts[name] = setTimeout(function () {
-    Helpers.apiRequest("PATCH", '/archives/' + archive.guid + '/', data)
+    APIModule.request("PATCH", '/archives/' + archive.guid + '/', data)
       .done(function(data){
         $(statusElement).html('Saved!');
         setTimeout(function() {

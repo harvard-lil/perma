@@ -16,9 +16,11 @@ For additional information on modifying your hosts file,
 
 ## Quick Start
 
-If you are running Perma locally for development, we recommend using our pre-built
-[Vagrant](http://docs.vagrantup.com/v2/getting-started/) virtual machine. This will take more disk space (~700MB),
-but will let you jump into coding instead of trying to get all the services running on your machine.
+If you are running Perma locally for development, we recommend using
+our pre-built [Vagrant](http://docs.vagrantup.com/v2/getting-started/)
+virtual machine. This will take more disk space (~1.4GB), but will let
+you jump into coding instead of trying to get all the services running
+on your machine.
 
 First you'll need some dependencies:
 
@@ -35,40 +37,56 @@ Start up the vagrant virtual machine in the background:
 
     $ vagrant up
 
-The first time this runs it will have to download the ~700MB disk image.
+The first time this runs it will have to download the ~1.4GB disk image.
 
 Connect to the virtual machine:
 
     $ vagrant ssh
-    Welcome to Ubuntu 12.04 LTS (GNU/Linux 3.2.0-23-generic x86_64)
     ...
-    (perma)vagrant@perma_0.1:/vagrant/perma_web$
+    (perma)vagrant@perma:/vagrant/perma_web$
 
-You are now logged into the VM. The prompt you see means you have the `(perma)` virtualenv activated,
-you are logged in as the user `vagrant`, you are using the `perma_0.1` VM, and you are in the `/vagrant/perma_web` folder.
+You are now logged into the VM. The prompt you see means you have the
+`(perma)` virtualenv activated, you are logged in as the user
+`vagrant`, you are using the `perma` VM, and you are in the
+`/vagrant/perma_web` folder.
 
-`/vagrant` is a shared folder in the guest machine that maps to the `perma` repo you just checked out on your host machine,
-so any changes you make on your local computer will appear inside `/vagrant` and vice versa.
+`/vagrant` is a shared folder in the guest machine that maps to the
+`perma` repo you just checked out on your host machine, so any changes
+you make on your local computer will appear inside `/vagrant` and vice
+versa.
 
-Now you're in the Django project folder and can develop like normal. First let's install the Python
-pacakges we depend on (you'll have to do this every time requirements.txt changes):
+Now you're in the Django project folder and can develop like
+normal. Although the requirements are already installed in the image,
+you may have to update them if there have been subsequent changes:
 
-    (perma)vagrant@perma_0.1:/vagrant/perma_web$ pip install -r requirements.txt
+    (perma)vagrant@perma:/vagrant/perma_web$ pip install -r requirements.txt
 
-Initialize the database (this will call `syncdb`, apply migrations, and load fixtures):
+The database has also been installed, but if you drop it and want to
+start over, run this, which will call `syncdb`, apply migrations, and
+load fixtures:
 
-    (perma)vagrant@perma_0.1:/vagrant/perma_web$ fab dev.init_db
+    (perma)vagrant@perma:/vagrant/perma_web$ fab dev.init_db
 
-Then you can run the test server:
+Then you can run the server:
 
-    (perma)vagrant@perma_0.1:/vagrant/perma_web$ fab run
-    ...
-    local: python manage.py runserver 0.0.0.0:8000
+    (perma)vagrant@perma:/vagrant/perma_web$ fab run
+    [localhost] local: python manage.py runserver 0.0.0.0:8000
     ...
     Starting development server at http://0.0.0.0:8000/
     Quit the server with CONTROL-C.
 
-That's it! You should now be able to load Perma in your browser at `http://perma.dev:8000/`.
+That's it! You should now be able to load Perma in your browser at `http://perma.dev:8000/`. The celery workers should already be running, but if you need to stop or start them, try
+
+    (perma)vagrant@perma:/vagrant/perma_web$ sudo systemctl stop celery
+    (perma)vagrant@perma:/vagrant/perma_web$ sudo systemctl start celery
+
+You can do the same thing for `celerybeat` and `celery_background`, but these are not started by default.
+
+Finally, you can run the tests like this:
+
+    (perma)vagrant@perma:/vagrant/perma_web$ fab test
+
+(You may have to answer "yes" to two questions about deleting the test database the first time you run the tests.)
 
 ## Install
 
@@ -78,12 +96,12 @@ If you want to set up a server from scratch instead of using our VM, here's how 
 
 To develop Perma, install Python and the Python package manager, `pip`.
 
-The required modules are found in `requirements.txt. Install them using `pip`:
+The required modules are found in `requirements.txt`. Install them using `pip`:
 
     $ pip install -r requirements.txt
 
-If you're running OS X Mountain Lion, you may need to add the MySQL binaries 
-to your PATH:
+If you're running OS X Mountain Lion, you may need to add the MySQL
+binaries to your PATH:
 
     $ export PATH=$PATH:/usr/local/mysql/bin
 
@@ -145,7 +163,8 @@ The password for all test users is "pass".
 Perma manages the indexing workload by passing off the indexing tasks to workers. Celery manages the messages and RabbitMQ acts as the broker.
 
 RabbitMQ can be installed on Ubuntu with:
-    $ sudo apt-get install rabbitmq-server`
+
+    $ sudo apt-get install rabbitmq-server
 
 You should have already installed the Celery requirements (they were in the requirements.txt). You'll need to install [RabbitMQ](http://www.rabbitmq.com/).
 
@@ -155,7 +174,7 @@ Once you've installed RabbitMQ, start it:
 
 (You'll probably want to start RabbitMQ as a service on your prod instance)
 
-You'll need to start Celery. If you're working a development env, do something like:
+You'll need to start Celery. If you're working in a development environment, do something like:
 
     $ celery -A perma worker --loglevel=info
 
@@ -177,7 +196,7 @@ We use ImageMagick (through [Wand](http://docs.wand-py.org/)) to create thumbnai
 
     yum install ImageMagick-devel
 
-If you're on OS X you might need to adjust an [environment variable](http://docs.wand-py.org/en/0.3.8/guide/install.html#install-imagemagick-on-mac)
+If you're on OS X you might need to adjust an [environment variable](http://docs.wand-py.org/en/0.3.8/guide/install.html#install-imagemagick-on-mac):
 
 	export MAGICK_HOME=/opt/local
 

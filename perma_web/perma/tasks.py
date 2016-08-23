@@ -304,14 +304,18 @@ def proxy_capture(self, link_guid):
         # create a request handler class that counts requests and responses
         proxied_requests = []
         proxied_responses = []
+        proxied_pairs = []
         count_lock = threading.Lock()
         class CountingRequestHandler(WarcProxyHandler):
             def _proxy_request(self):
                 with count_lock:
-                    proxied_requests.append(self.url)
+                    proxied_pair = [self.url, None]
+                    proxied_requests.append(proxied_pair[0])
+                    proxied_pairs.append(proxied_pair)
                 response = WarcProxyHandler._proxy_request(self)
                 with count_lock:
                     proxied_responses.append(response)
+                    proxied_pair[1] = response
 
         # connect warcprox to an open port
         warcprox_port = 27500
@@ -368,7 +372,12 @@ def proxy_capture(self, link_guid):
         have_response = False
         while not have_response:
             if proxied_responses:
-                for response in proxied_responses:
+                for request, response in proxied_pairs:
+                    if response is None:
+                        # Response hasn't finished yet -- we might get here because subsequent
+                        # responses have finished, but we have to go in order to find the correct content_type,
+                        # so let's wait for this one.
+                        break
                     if response.url.endswith('/favicon.ico') and response.url != target_url:
                         continue
                     if not hasattr(response, 'parsed_response'):
@@ -642,6 +651,9 @@ def proxy_capture(self, link_guid):
             with open(temp_warc_path, 'rb') as warc_file:
                 link.write_warc_raw_data(warc_file)
 
+            print "Writing CDX lines to the DB"
+            CDXLine.objects.create_all_from_link(link)
+
             save_fields(
                 link.primary_capture,
                 status='success',
@@ -665,9 +677,6 @@ def proxy_capture(self, link_guid):
                     content_type=successful_favicon_urls[0][1]
                 ).save()
                 print "Saved favicon at %s" % successful_favicon_urls
-
-            print "Writing CDX lines to the DB"
-            CDXLine.objects.create_all_from_link(link)
 
         except Exception as e:
             print "Web Archive File creation failed for %s: %s" % (target_url, e)

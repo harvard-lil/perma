@@ -22,8 +22,7 @@ LinksListModule.setupEventHandlers = function () {
     // search form
   $('.search-query-form').on('submit', function (e) {
     e.preventDefault();
-    var query = $('.search-query').val();
-
+    var query = DOMHelpers.getValue('.search-query');
     if(query && query.trim()){
       LinksListModule.showFolderContents(LinksListModule.selectedFolderID, query);
     }
@@ -38,7 +37,7 @@ var saveBufferSeconds = 0.5,
   timeouts = {};
   // save changes in a given text box to the server
 LinksListModule.saveInput = function(inputElement, statusElement, name, callback) {
-  statusElement.html('Saving...');
+  DOMHelpers.changeHTML(statusElement, 'Saving...');
 
   var guid = inputElement.attr('id').match(/.+-(.+-.+)/)[1],
     timeoutKey = guid+name;
@@ -49,16 +48,17 @@ LinksListModule.saveInput = function(inputElement, statusElement, name, callback
   // use a setTimeout so notes are only saved once every few seconds
   timeouts[timeoutKey] = setTimeout(function () {
     var data = {};
-    data[name] = inputElement.val();
-    var request = Helpers.apiRequest("PATCH", '/archives/' + guid + '/', data).done(function(data){
-      statusElement.html('Saved!');
+    data[name] = DOMHelpers.getValue(inputElement);
+    var request = APIModule.request("PATCH", '/archives/' + guid + '/', data).done(function(data){
+      DOMHelpers.changeHTML(statusElement, 'Saved!');
     });
     if (callback) request.done(callback);
   }, saveBufferSeconds*1000);
 }
 LinksListModule.setupLinksTableEventHandlers = function () {
   LinksListModule.linkTable
-    .on('click', 'a.clear-search', function () {
+    .on('click', 'a.clear-search', function (e) {
+      e.preventDefault();
       LinksListModule.showFolderContents(LinksListModule.selectedFolderID);
     })
     .on('mousedown touchstart', '.item-row', function (e) {
@@ -94,18 +94,29 @@ LinksListModule.setupLinksTableEventHandlers = function () {
 // *** actions ***
 
 var showLoadingMessage = false;
-LinksListModule.showFolderContents = function (folderID, query) {
+LinksListModule.initShowFolderDOM = function (query) {
   if(!query || !query.trim()){
-    query = null;
-    $('.search-query').val('');  // clear query after user clicks a folder
+    // clear query after user clicks a folder
+    delete query;
+    DOMHelpers.setInputValue('.search-query', '');
   }
 
   // if fetching folder contents takes more than 500ms, show a loading message
   showLoadingMessage = true;
   setTimeout(function(){
-    if(showLoadingMessage)
-      LinksListModule.linkTable.empty().html('<div class="alert-info">Loading folder contents...</div>');
+    if(showLoadingMessage) {
+      DOMHelpers.emptyElement(LinksListModule.linkTable);
+      DOMHelpers.changeHTML(LinksListModule.linkTable, '<div class="alert-info">Loading folder contents...</div>');
+    }
   }, 500);
+}
+
+LinksListModule.generateLinkFields = function(query, link) {
+  return LinkHelpers.generateLinkFields(link, query);
+};
+
+LinksListModule.showFolderContents = function (folderID, query) {
+  this.initShowFolderDOM(query);
 
   var requestCount = 20,
     requestData = {limit: requestCount, offset:0},
@@ -120,28 +131,17 @@ LinksListModule.showFolderContents = function (folderID, query) {
   // Content fetcher.
   // This is wrapped in a function so it can be called repeatedly for infinite scrolling.
   function getNextContents() {
-    Helpers.apiRequest("GET", endpoint, requestData).always(function (response) {
+    APIModule.request("GET", endpoint, requestData).always(function (response) {
         // same thing runs on success or error, since we get back success or error-displaying HTML
       showLoadingMessage = false;
-      var links = response.objects;
-      $.each(links, function (i, obj) {
-        $.each(obj.captures, function (i, capture) {
-          if (capture.role == 'favicon' && capture.status == 'success')
-            obj.favicon_url = capture.playback_url;
-        });
-        obj.local_url = host + '/' + obj.guid;
-        obj.search_query_in_notes = (query && obj.notes.indexOf(query) > -1);
-        obj.expiration_date_formatted = new Date(obj.expiration_date).format("F j, Y");
-        obj.creation_timestamp_formatted = new Date(obj.creation_timestamp).format("F j, Y");
-        if (Date.now() < Date.parse(obj.archive_timestamp)) {
-          obj.delete_available = true;
-        }
-      });
+      var links = response.objects.map(LinksListModule.generateLinkFields.bind(this, query));
 
       // append HTML
-      if(requestData.offset==0)
-        LinksListModule.linkTable.empty();
-      LinksListModule.linkTable.find('.links-loading-more').remove();
+      if(requestData.offset === 0) {
+        DOMHelpers.emptyElement(LinksListModule.linkTable);
+      }
+      var linksLoadingMore = LinksListModule.linkTable.find('.links-loading-more');
+      DOMHelpers.removeElement(linksLoadingMore);
       LinksListModule.linkTable.append(templates.created_link_items({links: links, query: query}));
 
       // If we received exactly `requestCount` number of links, there may be more to fetch from the server.

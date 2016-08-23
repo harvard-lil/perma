@@ -16,6 +16,7 @@ urlpatterns = [
     url(r'^$', common.landing, name='landing'),
     url(r'^about/?$', common.about, name='about'),
     url(r'^stats/?$', DirectTemplateView.as_view(template_name='stats.html'), name='stats'),
+    url(r'^search/?$', DirectTemplateView.as_view(template_name='search.html'), name='search'),
     url(r'^copyright-policy/?$', DirectTemplateView.as_view(template_name='copyright_policy.html'), name='copyright_policy'),
     url(r'^terms-of-service/?$', DirectTemplateView.as_view(template_name='terms_of_service.html'), name='terms_of_service'),
     url(r'^privacy-policy/?$', DirectTemplateView.as_view(template_name='privacy_policy.html'), name='privacy_policy'),

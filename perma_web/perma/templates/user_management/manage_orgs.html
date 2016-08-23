@@ -71,15 +71,15 @@
                 
                   <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                     <li>
-                        <a {% if sort == 'name' %}class="selected" {% endif %}href="?{% current_query_string sort="name" %}"><i class="icon-ok"></i> Name A - Z</a>
-                        <a {% if sort == '-name' %}class="selected" {% endif %} href="?{% current_query_string sort="-name" %}"><i class="icon-ok"></i> Name Z - A</a>
-                        <a {% if sort == '-date_created' %}class="selected" {% endif %} href="?{% current_query_string sort="-date_created" %}"><i class="icon-ok"></i> Newest</a>
-                        <a {% if sort == 'date_created' %}class="selected" {% endif %} href="?{% current_query_string sort="date_created" %}"><i class="icon-ok"></i> Oldest</a>
-                        <a {% if sort == '-last_active' %}class="selected" {% endif %} href="?{% current_query_string sort="-last_active" %}"><i class="icon-ok"></i> Recently active</a>
-                        <a {% if sort == 'last_active' %}class="selected" {% endif %} href="?{% current_query_string sort="=last_active" %}"><i class="icon-ok"></i> Least recently active</a>
-                        <a {% if sort == '-link_count' %}class="selected" {% endif %} href="?{% current_query_string sort="-link_count" %}"><i class="icon-ok"></i> Most links</a>
-                        <a {% if sort == 'link_count' %}class="selected" {% endif %} href="?{% current_query_string sort="link_count" %}"><i class="icon-ok"></i> Least links</a><a {% if sort == '-org_users' %}class="selected" {% endif %} href="?sort=-org_users{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Most users</a>
-                        <a {% if sort == 'org_users' %}class="selected" {% endif %} href="?{% current_query_string sort="org_users" %}"><i class="icon-ok"></i> Least users</a>
+                        <a {% if sort == 'name' %}class="selected" {% endif %}href="?{% current_query_string page='' sort="name" %}"><i class="icon-ok"></i> Name A - Z</a>
+                        <a {% if sort == '-name' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-name" %}"><i class="icon-ok"></i> Name Z - A</a>
+                        <a {% if sort == '-date_created' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-date_created" %}"><i class="icon-ok"></i> Newest</a>
+                        <a {% if sort == 'date_created' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="date_created" %}"><i class="icon-ok"></i> Oldest</a>
+                        <a {% if sort == '-last_active' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-last_active" %}"><i class="icon-ok"></i> Recently active</a>
+                        <a {% if sort == 'last_active' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="=last_active" %}"><i class="icon-ok"></i> Least recently active</a>
+                        <a {% if sort == '-link_count' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-link_count" %}"><i class="icon-ok"></i> Most links</a>
+                        <a {% if sort == 'link_count' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="link_count" %}"><i class="icon-ok"></i> Least links</a><a {% if sort == '-org_users' %}class="selected" {% endif %} href="?sort=-org_users{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Most users</a>
+                        <a {% if sort == 'org_users' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="org_users" %}"><i class="icon-ok"></i> Least users</a>
                     </li>
                   </ul>
                 </div>

@@ -1,6 +1,5 @@
 // stuff used in user dashboard pages
-
-var templates = {};
+window.templates = window.templates || {};
 $(function(){
     // compile handlebars templates
     $("script[type='text/x-handlebars-template']").each(function(){
