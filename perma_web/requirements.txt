@@ -105,7 +105,7 @@ requests-file==1.4        # via tldextract
 requests[security]==2.10.0
 sauceclient==0.1.0
 schema==0.4.0             # via internetarchive
-selenium==2.53.6
+selenium==2.47.3
 simplejson==3.3.0
 six==1.10.0               # via cryptography, django-admin-smoke-tests, internetarchive, jasmine, pip-tools, pyopenssl, pyscss, python-dateutil, pywb, requests-file, surt
 smhasher==0.150.1
