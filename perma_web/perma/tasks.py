@@ -905,7 +905,6 @@ def audit_internet_archive(start_days_ago=None, end_days_ago=None):
 
         except Exception as e:
             result[link.guid] = e
-            print 'EXCEPTION:', link.guid, e
 
     if num_correct > 0:
         result['percent_correct'] = (num_correct / len(links)) * 100
