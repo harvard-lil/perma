@@ -875,7 +875,7 @@ def audit_internet_archive(start_days_ago=None, end_days_ago=None):
     now = timezone.now()
 
     if not start_days_ago:
-        start_days_ago = 10
+        start_days_ago = 8
     if end_days_ago != 0 and not end_days_ago:
         end_days_ago = 1
 
