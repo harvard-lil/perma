@@ -883,7 +883,7 @@ def audit_internet_archive(start_days_ago=None, end_days_ago=None):
     end_date = now - timedelta(days=end_days_ago)
 
     links = Link.objects.filter(is_private=False, is_unlisted=False, creation_timestamp__range=(start_date, end_date))
-    # TODO: threads?
+
     num_correct = 0
     result = { 'percent_correct' : num_correct }
 
