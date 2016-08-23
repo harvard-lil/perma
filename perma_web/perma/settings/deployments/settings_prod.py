@@ -16,6 +16,7 @@ CELERYBEAT_JOB_NAMES = [
     'update-stats',
     'cleanup-screencap-monitoring',
     'send-links-to-internet-archives',
+    'audit-internet-archive',
     ]
 
 # If a task is running longer than five minutes, kill it

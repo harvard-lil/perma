@@ -22,6 +22,7 @@ from datetime import timedelta
 import logging
 import robotparser
 import time
+import hashlib
 import requests
 import errno
 import tempdir
@@ -40,7 +41,7 @@ from django.db.models import Q
 
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture, CaptureJob
 
-from perma.utils import run_task
+from perma.utils import run_task, send_admin_email
 
 logger = logging.getLogger(__name__)
 
@@ -864,3 +865,48 @@ def upload_to_internet_archive(self, link_guid):
     except requests.ConnectionError as e:
         logger.exception("Upload to Internet Archive task failed because of a connection error. \nLink GUID: %s\nError: %s" % (link.pk, e))
         return
+
+@shared_task()
+def audit_internet_archive(start_days_ago=None, end_days_ago=None):
+    """
+    end_days_ago must be larger than zero to accurately represent IA success
+    (links only sent to IA after 24 hours) but can be zero for debugging purposes
+    """
+    now = timezone.now()
+
+    if not start_days_ago:
+        start_days_ago = 8
+    if end_days_ago != 0 and not end_days_ago:
+        end_days_ago = 1
+
+    start_date = now - timedelta(days=start_days_ago)
+    end_date = now - timedelta(days=end_days_ago)
+
+    links = Link.objects.filter(is_private=False, is_unlisted=False, creation_timestamp__range=(start_date, end_date))
+
+    num_correct = 0
+    result = { 'percent_correct' : num_correct }
+
+    for link in links:
+        try:
+            if link.primary_capture.status == 'success':
+                sha = hashlib.sha1()
+                identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link.guid
+                item = internetarchive.get_item(identifier)
+                archive = item.get_file("%s.warc.gz" % link.guid)
+                archive_buffer = default_storage.open(link.warc_storage_file(), 'rb').read()
+                sha.update(archive_buffer)
+                correct = archive.sha1 == str(sha.hexdigest())
+
+                if correct:
+                    num_correct += 1
+                else:
+                    result[link.guid] = correct
+
+        except Exception as e:
+            result[link.guid] = e
+
+    if num_correct > 0:
+        result['percent_correct'] = (num_correct / len(links)) * 100
+
+    send_admin_email('Internet Archive Audit', str(result), settings.PERMA_DEV_EMAIL, {})

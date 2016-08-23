@@ -572,6 +572,7 @@ CELERY_ROUTES = {
     'perma.tasks.upload_to_internet_archive': {'queue': 'background'},
     'perma.tasks.delete_from_internet_archive': {'queue': 'background'},
     'perma.tasks.upload_all_to_internet_archive': {'queue': 'background'},
+    'perma.tasks.audit_internet_archive': {'queue': 'audit'},
 }
 
 # Optional opbeat integration

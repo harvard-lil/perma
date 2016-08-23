@@ -37,6 +37,10 @@ def post_process_settings(settings):
             'task': 'perma.tasks.upload_all_to_internet_archive',
             'schedule': crontab(minute='0', hour='*'),
         },
+        'audit-internet-archive': {
+            'task': 'perma.tasks.audit_internet_archive',
+            'schedule': crontab(minute='0', hour='0', day_of_week=0),
+        },
 
     }
     settings['CELERYBEAT_SCHEDULE'] = dict(((job, celerybeat_job_options[job]) for job in settings.get('CELERYBEAT_JOB_NAMES', [])),
