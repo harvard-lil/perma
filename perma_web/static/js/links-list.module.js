@@ -142,7 +142,8 @@ LinksListModule.showFolderContents = function (folderID, query) {
       }
       var linksLoadingMore = LinksListModule.linkTable.find('.links-loading-more');
       DOMHelpers.removeElement(linksLoadingMore);
-      LinksListModule.linkTable.append(templates.created_link_items({links: links, query: query}));
+
+      LinksListModule.displayLinks(links, query);
 
       // If we received exactly `requestCount` number of links, there may be more to fetch from the server.
       // Set a waypoint event to trigger when the last link comes into view.
@@ -159,6 +160,13 @@ LinksListModule.showFolderContents = function (folderID, query) {
     });
   }
   getNextContents();
+}
+
+LinksListModule.displayLinks = function(links, query) {
+  var templateId = '#created-link-items-template';
+  var templateArgs = {links: links, query: query};
+  var template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
+  this.linkTable.append(template);
 }
 
 LinksListModule.handleMouseDown = function (e) {

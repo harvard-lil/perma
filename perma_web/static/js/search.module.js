@@ -11,7 +11,6 @@ SearchModule.init = function(){
 
 SearchModule.setupEventHandlers = function() {
   this.linkRows.on('click', function(e){
-    e.preventDefault();
     if (e.target.className == 'clear-search') {
       SearchModule.clearLinks();
       DOMHelpers.setInputValue('.search-query', '');
@@ -26,7 +25,10 @@ SearchModule.setupEventHandlers = function() {
 }
 
 SearchModule.displayLinks = function(links, query) {
-  this.linkRows.append(templates.search_links({ links: links, query: query }));
+  var templateId = '#search-links-template';
+  var templateArgs = { links: links, query: query };
+  var template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
+  this.linkRows.append(template);
 }
 
 SearchModule.getQuery = function() {
@@ -44,13 +46,12 @@ SearchModule.getLinks = function(query) {
   SearchModule.clearLinks();
   endpoint = this.getSubmittedUrlEndpoint();
   requestData = SearchModule.generateRequestData(query);
-  request = APIModule.request("GET", endpoint, requestData);
+
   // Content fetcher.
   // This is wrapped in a function so it can be called repeatedly for infinite scrolling.
   function getNextContents() {
-    request.always(function (response) {
+    APIModule.request("GET", endpoint, requestData).always(function (response) {
       // same thing runs on success or error, since we get back success or error-displaying HTML
-      showLoadingMessage = false;
       var links = response.objects.map(SearchModule.generateLinkFields);
       if(requestData.offset === 0) { DOMHelpers.emptyElement(this.linkRows); }
 
@@ -61,13 +62,14 @@ SearchModule.getLinks = function(query) {
       // Set a waypoint event to trigger when the last link comes into view.
       if(links.length == requestData.limit){
         requestData.offset += requestData.limit;
-        this.linkRows.find('.item-container:last').waypoint(function(direction) {
-          this.destroy();  // cancel waypoint
-          SearchModule.linkRows.append('<div class="links-loading-more">Loading more ...</div>');
-          getNextContents();
-        }, {
-          offset:'100%'  // trigger waypoint when element hits bottom of window
-        });
+        SearchModule.linkRows.find('.item-container:last')
+          .waypoint(function(direction) {
+            this.destroy();  // cancel waypoint
+            SearchModule.linkRows.append('<div class="links-loading-more">Loading more ...</div>');
+            getNextContents();
+          }, {
+            offset:'100%'  // trigger waypoint when element hits bottom of window
+          });
       }
     });
   }

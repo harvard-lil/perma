@@ -1,3 +1,6 @@
+window.HandlebarsHelpers = window.HandlebarsHelpers || {};
+HandlebarsHelpers.templateCache = [];
+
 Handlebars.registerHelper ('truncatechars', function (str, len) {
     if (str.length > len) {
         var new_str = str.substr (0, len+1);
@@ -14,3 +17,16 @@ Handlebars.registerHelper ('truncatechars', function (str, len) {
     }
     return str;
 });
+
+/*
+Using handlebar's compile method to generate templates on the fly
+*/
+
+HandlebarsHelpers.renderTemplate = function(templateId, args) {
+  var args = args || {};
+  var $this = $(templateId);
+  if (!HandlebarsHelpers.templateCache[templateId]) {
+    HandlebarsHelpers.templateCache[templateId] = Handlebars.compile($this.html());
+  }
+  return HandlebarsHelpers.templateCache[templateId](args);
+}
