@@ -1,12 +1,13 @@
-var SingleLinkModule = {},
-  resizeTimeout = null,
-  wrapper;
+window.SingleLinkModule = window.SingleLinkModule || {};
+var resizeTimeout, wrapper;
+
+SingleLinkModule.detailsButton = document.getElementById("details-button");
 
 SingleLinkModule.init = function () {
   SingleLinkModule.adjustTopMargin();
-  var button = document.getElementById("details-button");
-  if (button) {    
-    button.onclick = function () {
+
+  if (SingleLinkModule.detailsButton) {
+    SingleLinkModule.detailsButton.onclick = function () {
       SingleLinkModule.handleShowDetails();
       return false;
     };
@@ -14,9 +15,9 @@ SingleLinkModule.init = function () {
 };
 
 SingleLinkModule.handleShowDetails = function () {
-  var button = document.getElementById("details-button");
-  button.textContent = button.textContent.indexOf("Show record details") !== -1 ? "Hide record details" : "Show record details";
-  var header = document.getElementsByTagName('header')[0];
+  SingleLinkModule.detailsButton.textContent = SingleLinkModule.detailsButton.textContent.indexOf("Show") > -1 ? "Hide record details":"Show record details";
+  /* jquery does the heavy lifting for us here, return if it exists */
+  if (typeof($) != 'undefined') return;
   header.classList.toggle('_activeDetails');
 };
 
