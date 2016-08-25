@@ -2,23 +2,21 @@ window.SingleLinkModule = window.SingleLinkModule || {};
 var resizeTimeout, wrapper;
 
 SingleLinkModule.detailsButton = document.getElementById("details-button");
-
+SingleLinkModule.detailsTray = document.getElementById("collapse-details");
 SingleLinkModule.init = function () {
   SingleLinkModule.adjustTopMargin();
-
+  var clicked = false;
   if (SingleLinkModule.detailsButton) {
     SingleLinkModule.detailsButton.onclick = function () {
-      SingleLinkModule.handleShowDetails();
-      return false;
+      clicked = !clicked;
+      SingleLinkModule.handleShowDetails(clicked);
     };
   }
 };
 
-SingleLinkModule.handleShowDetails = function () {
-  SingleLinkModule.detailsButton.textContent = SingleLinkModule.detailsButton.textContent.indexOf("Show") > -1 ? "Hide record details":"Show record details";
-  /* jquery does the heavy lifting for us here, return if it exists */
-  if (typeof($) != 'undefined') return;
-  header.classList.toggle('_activeDetails');
+SingleLinkModule.handleShowDetails = function (open) {
+  SingleLinkModule.detailsButton.textContent = open ? "Hide record details":"Show record details";
+  SingleLinkModule.detailsTray.style.display = open ? "block" : "none";
 };
 
 SingleLinkModule.adjustTopMargin = function () {
