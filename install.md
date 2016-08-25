@@ -18,7 +18,7 @@ For additional information on modifying your hosts file,
 
 If you are running Perma locally for development, we recommend using
 our pre-built [Vagrant](http://docs.vagrantup.com/v2/getting-started/)
-virtual machine. This will take more disk space (~1.4GB), but will let
+virtual machine. This will take more disk space (~986MB), but will let
 you jump into coding instead of trying to get all the services running
 on your machine.
 
@@ -37,7 +37,7 @@ Start up the vagrant virtual machine in the background:
 
     $ vagrant up
 
-The first time this runs it will have to download the ~1.4GB disk image.
+The first time this runs it will have to download the 986MB disk image.
 
 Connect to the virtual machine:
 
@@ -80,7 +80,7 @@ That's it! You should now be able to load Perma in your browser at `http://perma
     (perma)vagrant@perma:/vagrant/perma_web$ sudo systemctl stop celery
     (perma)vagrant@perma:/vagrant/perma_web$ sudo systemctl start celery
 
-You can do the same thing for `celerybeat` and `celery_background`, but these are not started by default.
+You can do the same thing for `celerybeat` and `celery_background`.
 
 Finally, you can run the tests like this:
 
