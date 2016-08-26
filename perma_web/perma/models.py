@@ -13,15 +13,17 @@ from urllib import urlencode
 from urlparse import urlparse
 import simple_history
 import requests
-from django.core.signing import TimestampSigner, BadSignature
-from django.core.urlresolvers import reverse
-from django.utils.safestring import mark_safe
 
 from hanzo import warctools
 from mptt.managers import TreeManager
 from simple_history.models import HistoricalRecords
+from werkzeug.test import Client
 from werkzeug.urls import iri_to_uri
+from werkzeug.wrappers import BaseResponse
 
+from django.core.signing import TimestampSigner, BadSignature
+from django.core.urlresolvers import reverse
+from django.utils.safestring import mark_safe
 import django.contrib.auth.models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
@@ -827,27 +829,25 @@ class Link(DeletableModel):
         except OSError:
             return
 
-    def replay_url(self, url):
+    def replay_url(self, url, wsgi_application=None, follow_redirects=True):
         """
-            Given a URL contained in this WARC, return the headers and data as played back by pywb.
+            Given a URL contained in this WARC, return a werkzeug BaseResponse for the URL as played back by pywb.
         """
-        import sys
-        from warc_server.app import application
+        # By default, play back from our pywb wsgi app.
+        if not wsgi_application:
+            from warc_server.app import application as pywb_application  # local to avoid circular imports
+            wsgi_application = pywb_application
 
-        fake_environ = {'HTTP_COOKIE': {}, 'QUERY_STRING': '', 'REQUEST_METHOD': 'GET', 'SCRIPT_NAME': '',
-                        'SERVER_NAME': 'fake', 'SERVER_PORT': '80', 'SERVER_PROTOCOL': 'HTTP/1.1',
-                        'wsgi.errors': sys.stderr, 'wsgi.input': sys.stdin}
+        # Set up a werkzeug wsgi client.
+        client = Client(wsgi_application, BaseResponse)
 
-        fake_environ['PATH_INFO'] = '/%s/%s' % (self.guid, url)
+        # Set a cookie to allow replay of private links.
+        if self.is_private:
+            client.set_cookie('localhost', self.guid, self.create_access_token())
 
-        headers = {}
-
-        def fake_start_response(status, response_headers, exc_info=None):
-            headers.update(response_headers)
-
-        data = application(fake_environ, fake_start_response)
-
-        return headers, data
+        # Return pywb's response as a BaseResponse.
+        full_url = '/%s/%s' % (self.guid, url)
+        return client.get(full_url, follow_redirects=follow_redirects)
 
     def base_playback_url(self, host=None):
         host = host or settings.WARC_HOST
@@ -905,19 +905,9 @@ class Capture(models.Model):
     def write_warc_resource_record(self, in_file, warc_date=None, out_file=None):
         return self.link.write_warc_resource_record(in_file, self.url, self.content_type, warc_date, out_file)
 
-    def get_headers(self):
-        headers, data = self.link.replay_url(self.url)
-        return headers
-
-    def read_content_type(self):
-        """
-            Read content-type from warc file.
-            TODO: This does NOT work if the capture starts with a redirect to a different URL.
-        """
-        for key, val in self.get_headers().iteritems():
-            if key.lower() == 'content-type':
-                return val
-        return ''
+    def replay(self):
+        """ Replay this capture through pywb. Returns a werkzeug BaseResponse object. """
+        return self.link.replay_url(self.url)
 
     def use_sandbox(self):
         """
