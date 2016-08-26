@@ -1,23 +1,22 @@
-var SingleLinkModule = {},
-  resizeTimeout = null,
-  wrapper;
+window.SingleLinkModule = window.SingleLinkModule || {};
+var resizeTimeout, wrapper;
 
+SingleLinkModule.detailsButton = document.getElementById("details-button");
+SingleLinkModule.detailsTray = document.getElementById("collapse-details");
 SingleLinkModule.init = function () {
   SingleLinkModule.adjustTopMargin();
-  var button = document.getElementById("details-button");
-  if (button) {    
-    button.onclick = function () {
-      SingleLinkModule.handleShowDetails();
-      return false;
+  var clicked = false;
+  if (SingleLinkModule.detailsButton) {
+    SingleLinkModule.detailsButton.onclick = function () {
+      clicked = !clicked;
+      SingleLinkModule.handleShowDetails(clicked);
     };
   }
 };
 
-SingleLinkModule.handleShowDetails = function () {
-  var button = document.getElementById("details-button");
-  button.textContent = button.textContent.indexOf("Show record details") !== -1 ? "Hide record details" : "Show record details";
-  var header = document.getElementsByTagName('header')[0];
-  header.classList.toggle('_activeDetails');
+SingleLinkModule.handleShowDetails = function (open) {
+  SingleLinkModule.detailsButton.textContent = open ? "Hide record details":"Show record details";
+  SingleLinkModule.detailsTray.style.display = open ? "block" : "none";
 };
 
 SingleLinkModule.adjustTopMargin = function () {
