@@ -774,7 +774,7 @@ class Link(DeletableModel):
         # set default date and convert to string if necessary
         warc_date = warc_date or timezone.now()
         if hasattr(warc_date, 'isoformat'):
-            warc_date = warctools.warc.warc_datetime_str(warc_date)
+            warc_date = warctools.warc.warc_datetime_str(warc_date).replace('+00:00Z', 'Z')
 
         close_file = not out_file
         out_file = out_file or self.open_warc_for_writing()
