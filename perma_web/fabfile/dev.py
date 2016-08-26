@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+
 from django.conf import settings
 from fabric.context_managers import shell_env
 from fabric.decorators import task
@@ -288,7 +289,7 @@ def rebuild_folder_trees():
 
 
 @task
-def test_playbacks():
+def test_playbacks(guid_list_file=None, min_guid=None, created_by=None):
     """
         Test all primary captures and report any that throw errors when playing back in pywb.
     """
@@ -304,39 +305,77 @@ def test_playbacks():
         raise exc_type, exc_value, exc_traceback
     application.handle_exception = types.MethodType(handle_exception, application)
 
-    # this function is based on Link.replay_url(), but it uses our monkeypatched pywb application to throw all errors,
-    # and adds an access token cookie to play back private links.
-    def replay_url_raise_errors(link, url):
-        fake_environ = {'HTTP_COOKIE': {}, 'QUERY_STRING': '', 'REQUEST_METHOD': 'GET', 'SCRIPT_NAME': '',
-                        'SERVER_NAME': 'fake', 'SERVER_PORT': '80', 'SERVER_PROTOCOL': 'HTTP/1.1',
-                        'wsgi.errors': sys.stderr, 'wsgi.input': sys.stdin}
+    # either check links by guid, one per line in the supplied file ...
+    if guid_list_file:
+        def capture_iterator():
+            for guid in open(guid_list_file):
+                if guid.strip():
+                    capture = Capture.objects.select_related('link').get(link_id=guid.strip(), role='primary')
+                    # in rechecks, skip deleted links
+                    if capture.link.user_deleted:
+                        continue
+                    yield capture
+        captures = capture_iterator()
 
-        fake_environ['PATH_INFO'] = '/%s/%s' % (link.guid, url)
-
-        if link.is_private:
-            fake_environ['HTTP_COOKIE'] = {str(link.guid): link.create_access_token()}
-
-        headers = {}
-
-        def fake_start_response(status, response_headers, exc_info=None):
-            headers.update(response_headers)
-
-        data = application(fake_environ, fake_start_response)
-
-        return headers, data
+    # ... or just check everything.
+    else:
+        captures = Capture.objects.filter(role='primary', status='success', link__user_deleted=False).select_related('link')
+        if min_guid:
+            captures = captures.filter(link_id__gt=min_guid)
+        if created_by:
+            captures = captures.filter(link__created_by_id=created_by)
 
     # check each playback
-    for capture in Capture.objects.filter(role='primary', status='success').select_related('link'):
+    for capture in captures:
         try:
-            headers, data = replay_url_raise_errors(capture.link, capture.url)
+            replay_response = capture.link.replay_url(capture.url, wsgi_application=application)
+        except RuntimeError as e:
+            if 'does not support redirect to external targets' in e.message:
+                # skip these for now -- relative redirects will be fixed in Werkzeug 0.12
+                continue
+            raise
         except Exception as e:
-            print "\n----------\n%s\tEXCEPTION\t%s" % (capture.link_id, e)
+            print "%s\t%s\tEXCEPTION\t" % (capture.link_id, capture.link.creation_timestamp), e.message
             traceback.print_exc()
             continue
 
-        if 'Link' not in headers:
-            print "\n----------\n%s\tWARNING\t%s" % (capture.link_id, "Link header not found")
-            print headers, data
+        if 'Link' not in replay_response.headers:
+            print "%s\t%s\tWARNING\t%s" % (capture.link_id, capture.link.creation_timestamp, "Link header not found")
             continue
 
-        print "%s\tOK" % capture.link_id
+        print "%s\t%s\tOK" % (capture.link_id, capture.link.creation_timestamp)
+
+@task
+def read_playback_tests(*filepaths):
+    """
+        Aggregate files from the test_playbacks() task and report count for each type of error.
+    """
+    from collections import defaultdict
+    errs = defaultdict(list)
+    prefixes = [
+        "'ascii' codec can't encode character",
+        "No Captures found for:",
+        "'ascii' codec can't decode byte",
+        "Self Redirect:",
+        "No such file or directory:",
+        "u'",
+        "Skipping Already Failed",
+        "cdx format"
+    ]
+    for filepath in filepaths:
+        for line in open(filepath):
+            parts = line.strip().split("\t", 2)
+            if len(parts) < 3:
+                continue
+            key = parts[2]
+            for prefix in prefixes:
+                if prefix in key:
+                    key = prefix
+                    break
+            errs[key].append(parts)
+
+    err_count = 0
+    for err_type, sub_errs in errs.iteritems():
+        err_count += len(sub_errs)
+        print "%s: %s" % (err_type, len(sub_errs))
+    print "Total:", err_count
