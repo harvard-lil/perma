@@ -308,11 +308,11 @@
   {
     "fields": {
       "status": "success",
-      "url": "file:///ABCD-0001/cap.png",
+      "url": "file:///ABCD-0001/cap.pdf",
       "user_upload": false,
       "record_type": "resource",
-      "role": "screenshot",
-      "content_type": "image/png",
+      "role": "primary",
+      "content_type": "application/pdf",
       "link": "ABCD-0001"
     },
     "model": "perma.capture",
