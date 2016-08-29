@@ -146,6 +146,10 @@ def single_linky(request, guid):
     else:
         capture = link.primary_capture
 
+        # if primary capture did not work, but screenshot did work, forward to screenshot
+        if (not capture or capture.status != 'success') and link.screenshot_capture and link.screenshot_capture.status == 'success':
+            return HttpResponseRedirect(reverse('single_linky', args=[guid])+"?type=image")
+
     new_record = False
     if request.user.is_authenticated() and link.created_by_id == request.user.id and not link.user_deleted:
         # If this record was just created by the current user, show them a new record message

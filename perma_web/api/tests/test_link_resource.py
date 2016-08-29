@@ -78,11 +78,10 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             Make sure capture matches WARC contents.
         """
         self.assertEqual(capture.status, 'success')
-        headers, data = capture.link.replay_url(capture.url)
+        replay_response = capture.replay()
         self.assertTrue(capture.content_type, "Capture is missing a content type.")
-        self.assertEqual(capture.content_type.split(';',1)[0], capture.read_content_type().split(';',1)[0])
-        data = "".join(data)
-        self.assertTrue(data, "Capture data is missing.")
+        self.assertEqual(capture.content_type.split(';',1)[0], replay_response.headers.get('content-type', '').split(';',1)[0])
+        self.assertTrue(replay_response.data, "Capture data is missing.")
 
     #######
     # GET #

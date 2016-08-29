@@ -71,7 +71,12 @@
                       </span>
                     {% endif %}
                   {% else %}
-                      <span class="action"><span class="_verbose">This is a screenshot. </span><a href="{% url 'single_linky' link.guid %}?type=source">See the Capture View</a></span>
+                      <span class="action">
+                        <span class="_verbose">This is a screenshot. </span>
+                        {% if link.primary_capture and link.primary_capture.status == 'success' %}
+                          <a href="{% url 'single_linky' link.guid %}">See the Capture View</a>
+                        {% endif %}
+                      </span>
                   {% endif %}
                   {% if request.user.is_authenticated %}
                   {% else %}
