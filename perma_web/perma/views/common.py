@@ -113,10 +113,13 @@ def single_linky(request, guid):
     # Create a canonical version of guid (non-alphanumerics removed, hyphens every 4 characters, uppercase),
     # and forward to that if it's different from current guid.
     canonical_guid = Link.get_canonical_guid(guid)
-    link = get_object_or_404(Link.objects.all_with_deleted(), guid=canonical_guid)
-
     if canonical_guid != guid:
         return HttpResponsePermanentRedirect(reverse('single_linky', args=[canonical_guid]))
+    link = get_object_or_404(Link.objects.all_with_deleted(), guid=canonical_guid)
+
+    # Forward to replacement link if replacement_link is set.
+    if link.replacement_link_id:
+        return HttpResponseRedirect(reverse('single_linky', args=[link.replacement_link_id]))
 
     # If we get an unrecognized archive type (which could be an old type like 'live' or 'pdf'), forward to default version
     serve_type = request.GET.get('type')

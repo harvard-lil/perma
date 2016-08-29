@@ -214,6 +214,25 @@
             "organization": 1
         }
     },
+    {
+        "pk": "ABCD-0006",
+        "model": "perma.link",
+        "fields": {
+            "folders": [
+                30,
+                34
+            ],
+            "view_count": 1,
+            "notes": "Replaced link.",
+            "created_by": 4,
+            "submitted_title": "Wikipedia",
+            "submitted_url": "https://www.wikipedia.org/",
+            "creation_timestamp": "2014-07-19T20:21:31Z",
+            "archive_timestamp": "2014-07-20T20:21:31Z",
+            "organization": 1,
+            "replacement_link_id": "3SLN-JHX9"
+        }
+    },
   {
     "fields": {
       "status": "pending",

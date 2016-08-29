@@ -139,19 +139,19 @@ class LinkAdmin(SimpleHistoryAdmin):
     list_display = ['guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp','user_deleted']
     search_fields = ['guid', 'submitted_url', 'submitted_title']
     fieldsets = (
-        (None, {'fields': ('guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp', 'view_count', 'warc_size')}),
+        (None, {'fields': ('guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp', 'view_count', 'warc_size', 'replacement_link')}),
         ('Visibility', {'fields': ('is_private', 'private_reason', 'is_unlisted',)}),
         ('User Delete', {'fields': ('user_deleted', 'user_deleted_timestamp',)}),
         ('Organization', {'fields': ('folders', 'notes')}),
-        ('Mirroring', {'fields': ('archive_timestamp',)})
+        ('Mirroring', {'fields': ('archive_timestamp',)}),
     )
-    readonly_fields = ['guid', 'view_count', 'folders', 'creation_timestamp']  #, 'archive_timestamp']
+    readonly_fields = ['guid', 'view_count', 'folders', 'creation_timestamp', 'warc_size']  #, 'archive_timestamp']
     inlines = [
         new_class("CaptureInline", admin.TabularInline, model=Capture,
-                  fields=['url', 'content_type', 'record_type', 'user_upload'],
+                  fields=['role', 'status', 'url', 'content_type', 'record_type', 'user_upload'],
                   can_delete=False),
     ]
-    raw_id_fields = ['created_by',]
+    raw_id_fields = ['created_by','replacement_link']
 
     def get_queryset(self, request):
         qs = super(LinkAdmin, self).get_queryset(request).select_related('created_by',)
