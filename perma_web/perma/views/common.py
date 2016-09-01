@@ -73,6 +73,7 @@ def about(request):
     partners_last_col = partners[halfway_point:] if len(partners) > 0 else []
 
     return render(request, 'about.html', {
+        'partners': partners,
         'partners_first_col': partners_first_col,
         'partners_last_col': partners_last_col
     })
