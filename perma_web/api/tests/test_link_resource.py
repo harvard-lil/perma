@@ -94,7 +94,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.successful_get(self.public_list_url + '/schema', user=self.org_user)
 
     def test_get_list_json(self):
-        self.successful_get(self.public_list_url, count=2)
+        self.successful_get(self.public_list_url, count=3)
 
     def test_get_detail_json(self):
         self.successful_get(self.public_link_detail_url, fields=self.logged_out_fields)

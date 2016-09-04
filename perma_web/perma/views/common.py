@@ -113,9 +113,13 @@ def single_linky(request, guid):
     # Create a canonical version of guid (non-alphanumerics removed, hyphens every 4 characters, uppercase),
     # and forward to that if it's different from current guid.
     canonical_guid = Link.get_canonical_guid(guid)
+
+    # We only do the redirect if the correctly-formatted GUID actually exists --
+    # this prevents actual 404s from redirecting with weird formatting.
+    link = get_object_or_404(Link.objects.all_with_deleted(), guid=canonical_guid)
+
     if canonical_guid != guid:
         return HttpResponsePermanentRedirect(reverse('single_linky', args=[canonical_guid]))
-    link = get_object_or_404(Link.objects.all_with_deleted(), guid=canonical_guid)
 
     # Forward to replacement link if replacement_link is set.
     if link.replacement_link_id:
