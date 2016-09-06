@@ -525,6 +525,8 @@ class Link(DeletableModel):
     thumbnail_status = models.CharField(max_length=10, null=True, blank=True, choices=(
         ('generating', 'generating'), ('generated', 'generated'), ('failed', 'failed')))
 
+    replacement_link = models.ForeignKey("Link", blank=True, null=True, help_text="New link to which readers should be forwarded when trying to view this link.")
+
     objects = LinkManager()
     tracker = FieldTracker()
     history = HistoricalRecords()

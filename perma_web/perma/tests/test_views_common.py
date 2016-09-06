@@ -58,6 +58,10 @@ class CommonViewsTestCase(PermaTestCase):
         response = self.client.get(reverse('single_linky', kwargs={'guid': '0J6pkzDeQwT'}))
         self.assertEqual(response.status_code, 404)
 
+    def test_replacement_link(self):
+        response = self.client.get(reverse('single_linky', kwargs={'guid': 'ABCD-0006'}))
+        self.assertRedirects(response, reverse('single_linky', kwargs={'guid': '3SLN-JHX9'}))
+
     # Misc
 
     def test_contact(self):
