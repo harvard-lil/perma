@@ -98,11 +98,8 @@ def bookmarklet_create(request):
 
     ...and passes the query string values to /manage/create/
     '''
-    path = request.get_full_path()
-    # Strip '/service/bookmarklet-create/
-    querystring = path[28:]
-    add_url = reverse('create_link')
-    add_url = add_url + querystring
+    tocapture = request.GET.get('url', '')
+    add_url = "{}?url={}".format(reverse('create_link'), tocapture)
     return redirect(add_url)
 
 # @login_required
