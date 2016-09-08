@@ -3,16 +3,17 @@ import random, string, logging
 from datetime import timedelta
 
 from celery.task.control import inspect as celery_inspect
+from django.views.decorators.cache import never_cache
+from django.views.decorators.debug import sensitive_post_parameters
 from ratelimit.decorators import ratelimit
 from tastypie.models import ApiKey
 
 from django.views.generic import UpdateView
 from django.conf import settings
-from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login
+from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
 from django.contrib.auth import views as auth_views
-from django.contrib.sites.shortcuts import get_current_site
 from django.db.models import Count, Max, Sum
 from django.db.models.expressions import RawSQL
 from django.utils import timezone
@@ -20,7 +21,6 @@ from django.utils.http import is_safe_url
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect, Http404, JsonResponse
 from django.template import RequestContext
-from django.template.response import TemplateResponse
 from django.shortcuts import render_to_response, get_object_or_404, resolve_url, render
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.template.context_processors import csrf
@@ -1086,57 +1086,39 @@ def logout(request):
 
 
 @ratelimit(rate=settings.LOGIN_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
+@sensitive_post_parameters()
+@never_cache
 def limited_login(request, template_name='registration/login.html',
           redirect_field_name=REDIRECT_FIELD_NAME,
           authentication_form=AuthenticationForm,
-          current_app=None, extra_context=None):
+          extra_context=None):
     """
     Displays the login form and handles the login action.
-    """
-    redirect_to = request.GET.get(redirect_field_name, '')
-    request.session.set_test_cookie()
 
-    if request.method == "POST":
-        form = authentication_form(request, data=request.POST)
+    We wrap the default Django view to add some custom redirects for different user statuses.
+    """
+
+    if request.method == "POST" and not request.user.is_authenticated():
         username = request.POST.get('username')
         try:
             target_user = LinkUser.objects.get(email=username)
         except LinkUser.DoesNotExist:
             target_user = None
-        if target_user and not target_user.is_confirmed:
-            request.session['email'] = target_user.email
-            return HttpResponseRedirect(reverse('user_management_not_active'))
-        elif target_user and not target_user.is_active:
-            return HttpResponseRedirect(reverse('user_management_account_is_deactivated'))
+        if target_user:
+            if not target_user.is_confirmed:
+                request.session['email'] = target_user.email
+                return HttpResponseRedirect(reverse('user_management_not_active'))
+            if not target_user.is_active:
+                return HttpResponseRedirect(reverse('user_management_account_is_deactivated'))
 
+    # This can be removed in Django 1.10 and replaced with redirect_authenticated_user=True
+    if request.user.is_authenticated():
+        redirect_to = request.POST.get(redirect_field_name, request.GET.get(redirect_field_name, ''))
+        if not is_safe_url(url=redirect_to, host=request.get_host()):
+            redirect_to = resolve_url(settings.LOGIN_REDIRECT_URL)
+        return HttpResponseRedirect(redirect_to)
 
-        if form.is_valid():
-
-            host = request.get_host()
-
-            # Ensure the user-originating redirection url is safe.
-            if not is_safe_url(url=redirect_to, host=host):
-                redirect_to = resolve_url(settings.LOGIN_REDIRECT_URL)
-
-            # Okay, security check complete. Log the user in.
-            auth_login(request, form.get_user())
-
-            return HttpResponseRedirect(redirect_to)
-    else:
-        form = authentication_form(request)
-
-    current_site = get_current_site(request)
-
-    context = {
-        'form': form,
-        redirect_field_name: redirect_to,
-        'site': current_site,
-        'site_name': current_site.name,
-    }
-    if extra_context is not None:
-        context.update(extra_context)
-    return TemplateResponse(request, template_name, context,
-                            current_app=current_app)
+    return auth_views.login(request, template_name, redirect_field_name, authentication_form, extra_context)
 
 
 def set_access_token_cookie(request):
