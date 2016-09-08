@@ -8,6 +8,10 @@ import random
 import threading
 import re
 from urlparse import urljoin
+
+import traceback
+from django.core.handlers.wsgi import WSGIRequest
+from pywb.framework.wsgi_wrappers import WSGIApp
 from pywb.rewrite.header_rewriter import HeaderRewriter
 import requests
 from surt import surt
@@ -36,7 +40,7 @@ from pywb.webapp.query_handler import QueryHandler
 from pywb.webapp.pywb_init import create_wb_handler
 from pywb.webapp.views import MementoTimemapView
 from pywb.webapp.pywb_init import create_wb_router
-from pywb.utils.wbexception import NotFoundException
+from pywb.utils.wbexception import NotFoundException, BadRequestException, WbException
 
 from perma.utils import opbeat_trace
 
@@ -87,6 +91,42 @@ def get_archive_path():
 
 def raise_not_found(url):
     raise NotFoundException('No Captures found for: %s' % url, url=url)
+
+
+class CustomTemplateException(WbException):
+    def __init__(self, msg=None, url=None, status='500 Internal Server Error', template_path=None, template_kwargs=None):
+        if not template_kwargs:
+            template_kwargs = {}
+        self.status_string = status
+        self.template_path = template_path
+        self.template_kwargs = template_kwargs
+        super(CustomTemplateException, self).__init__(msg, url)
+
+    def status(self):
+        return self.status_string
+
+    def render_response(self):
+        return PermaTemplateView(self.template_path).render_response(status=self.status(), **self.template_kwargs)
+
+# monkey-patch WSGIApp.handle_exception to add custom exception handling
+real_handle_exception = WSGIApp.handle_exception
+def handle_exception(self, env, exc, print_trace):
+    # log exceptions as errors
+    if print_trace:
+        try:
+            extra = {'request':WSGIRequest(env)}
+        except:
+            extra = {}
+        logging.error(traceback.format_exc(exc), extra=extra)
+
+    # handle custom errors
+    if isinstance(exc, CustomTemplateException):
+        return exc.render_response()
+
+    # special templates for exception types we define
+    return real_handle_exception(self, env, exc, print_trace)
+WSGIApp.handle_exception = handle_exception
+
 
 # include guid in CDX requests
 class PermaRoute(archivalrouter.Route):
@@ -145,8 +185,13 @@ class PermaRoute(archivalrouter.Route):
             # if user is allowed to access this private link, they will have a cookie like GUID=<token>,
             # which can be validated with link.validate_access_token()
             cookie = Cookie.SimpleCookie(wbrequest.env.get('HTTP_COOKIE')).get(guid)
-            valid_token = cookie and Link(pk=guid).validate_access_token(cookie.value, 3600)
-            if not valid_token:
+            if not cookie:
+                raise CustomTemplateException(status='400 Bad Request',
+                                              template_path='archive/missing-cookie.html',
+                                              template_kwargs={
+                                                  'content_host': settings.WARC_HOST,
+                                              })
+            if not Link(pk=guid).validate_access_token(cookie.value, 3600):
                 raise_not_found(wbrequest.wb_url)
 
         # check whether archive contains the requested URL
@@ -285,12 +330,12 @@ class PermaTemplateView(object):
     def render_to_string(self, **kwargs):
         return unicode(self.template.render(kwargs))
 
-    def render_response(self, **kwargs):
-        template_result = self.render_to_string(**dict(kwargs,
+    def render_response(self, status='200 OK', content_type='text/html; charset=utf-8', **template_kwargs):
+        template_result = self.render_to_string(**dict(template_kwargs,
+                                                       status=status,
+                                                       content_type=content_type,
                                                        STATIC_URL=settings.STATIC_URL,
                                                        DEBUG=settings.DEBUG))
-        status = kwargs.get('status', '200 OK')
-        content_type = kwargs.get('content_type', 'text/html; charset=utf-8')
         return WbResponse.text_response(template_result, status=status, content_type=content_type)
 
 

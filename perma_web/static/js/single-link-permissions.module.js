@@ -10,6 +10,26 @@ $(document).ready(function(){
 });
 
 SingleLinkPermissionsModule.init = function () {
+  /*
+    For private links, we need to be able to set an authorization link on the WARC_HOST domain, in the iframe.
+    But Safari won't let us do that unless the user already has a cookie set outside the iframe. So if we're
+    in Safari with a private link, forward to a special endpoint to get a random cookie set.
+   */
+  if (archive.is_private) {
+
+    // safari browser ID via http://stackoverflow.com/a/31732310
+    var isSafari = navigator.vendor && navigator.vendor.indexOf('Apple') > -1 &&
+      navigator.userAgent && !navigator.userAgent.match('CriOS');
+    
+    if (isSafari) {
+      if (window.location.href.indexOf('safari=1') == -1) {
+        window.location = safariRedirectURL;
+      } else {
+        history.replaceState({}, "", window.location.href.replace(/\??safari=1/, ''));
+      }
+    }
+  }
+
   DOMHelpers.toggleBtnDisable(updateBtnID, true);
   DOMHelpers.toggleBtnDisable(cancelBtnID, true);
 

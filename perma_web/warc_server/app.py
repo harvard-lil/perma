@@ -4,26 +4,12 @@ import logging
 import traceback
 
 from django.conf import settings
-from django.core.handlers.wsgi import WSGIRequest
 
-from pywb.framework.wsgi_wrappers import init_app, WSGIApp
+from pywb.framework.wsgi_wrappers import init_app
 from pywb_config import (PermaCDXServer,
                          PermaHandler,
                          create_perma_wb_router,
                          get_archive_path)
-
-
-# monkey-patch WSGIApp.handle_exception to log exceptions as errors
-real_handle_exception = WSGIApp.handle_exception
-def handle_exception(self, env, exc, print_trace):
-    if print_trace:
-        try:
-            extra = {'request':WSGIRequest(env)}
-        except:
-            extra = {}
-        logging.error(traceback.format_exc(exc), extra=extra)
-    return real_handle_exception(self, env, exc, print_trace)
-WSGIApp.handle_exception = handle_exception
 
 
 application = init_app(create_perma_wb_router,
