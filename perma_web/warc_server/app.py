@@ -1,7 +1,5 @@
 # this is a wsgi application that gets included with its own url prefix
 # alongside the main Django app in wsgi.py
-import logging
-import traceback
 
 from django.conf import settings
 

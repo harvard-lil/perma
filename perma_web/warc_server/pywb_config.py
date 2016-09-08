@@ -2,17 +2,12 @@ import Cookie
 import StringIO
 from collections import defaultdict
 from contextlib import contextmanager
-
 import os
 import random
 import threading
 import re
 from urlparse import urljoin
-
 import traceback
-from django.core.handlers.wsgi import WSGIRequest
-from pywb.framework.wsgi_wrappers import WSGIApp
-from pywb.rewrite.header_rewriter import HeaderRewriter
 import requests
 from surt import surt
 
@@ -23,11 +18,14 @@ django.setup()
 
 from django.conf import settings
 from django.template.loader import get_template
+from django.core.handlers.wsgi import WSGIRequest
 from django.core.files.storage import default_storage
 from django.core.exceptions import DisallowedHost
 from django.core.cache import cache as django_cache
 from django.apps import apps
 
+from pywb.framework.wsgi_wrappers import WSGIApp
+from pywb.rewrite.header_rewriter import HeaderRewriter
 from pywb.cdx.cdxserver import CDXServer
 from pywb.cdx.cdxsource import CDXSource
 from pywb.framework import archivalrouter
@@ -40,7 +38,7 @@ from pywb.webapp.query_handler import QueryHandler
 from pywb.webapp.pywb_init import create_wb_handler
 from pywb.webapp.views import MementoTimemapView
 from pywb.webapp.pywb_init import create_wb_router
-from pywb.utils.wbexception import NotFoundException, BadRequestException, WbException
+from pywb.utils.wbexception import NotFoundException, WbException
 
 from perma.utils import opbeat_trace
 
