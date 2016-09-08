@@ -16,7 +16,7 @@ def email_confirm(request):
     """
     A service that sends a message to a user about a perma link.
     """
-    
+
     email_address = request.POST.get('email_address')
     link_url = request.POST.get('link_url')
 
@@ -49,7 +49,7 @@ def stats_sums(request):
 
 def stats_now(request):
     """
-    Serve up our up-to-the-minute stats. 
+    Serve up our up-to-the-minute stats.
     Todo: make this time-zone friendly.
     """
 
@@ -98,11 +98,8 @@ def bookmarklet_create(request):
 
     ...and passes the query string values to /manage/create/
     '''
-    path = request.get_full_path()
-    # Strip '/service/bookmarklet-create/
-    querystring = path[28:]
-    add_url = reverse('create_link')
-    add_url = add_url + querystring
+    tocapture = request.GET.get('url', '')
+    add_url = "{}?url={}".format(reverse('create_link'), tocapture)
     return redirect(add_url)
 
 # @login_required
