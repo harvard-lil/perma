@@ -224,8 +224,14 @@
 
 {% block scripts %}
     <script>
-        var archive = { guid: "{{ link.guid }}" };
+        var archive = {
+          guid: "{{ link.guid }}",
+          is_private: {% if link.is_private %}true{% else %}false{% endif %}
+        };
         var current_user = {id:"{{request.user.id}}"};
+        {% if link.is_private %}
+          var safariRedirectURL = "//{{ WARC_HOST }}{% url 'user_management_set_safari_cookie' %}";
+        {% endif %}
     </script>
 
     {% if request.user.is_authenticated %}

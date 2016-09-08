@@ -174,6 +174,7 @@ def single_linky(request, guid):
         'serve_type': serve_type,
         'new_record': new_record,
         'this_page': 'single_link',
+        'WARC_HOST': settings.WARC_HOST,
     }
 
     response = render(request, 'archive/single-link.html', context)
