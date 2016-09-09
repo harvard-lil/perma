@@ -52,6 +52,7 @@ urlpatterns = [
 
     # session handling for the separate warc playback domain
     url(r'^login/set-access-token/?$', user_management.set_access_token_cookie, name='user_management_set_access_token_cookie'),
+    url(r'^login/set-safari-cookie/?$', user_management.set_safari_cookie, name='user_management_set_safari_cookie'),
 
     url(r'^sign-up/?$', user_management.sign_up, name='sign_up'),
     url(r'^sign-up/courts/?$', user_management.sign_up_courts, name='sign_up_courts'),

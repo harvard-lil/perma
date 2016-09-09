@@ -10,6 +10,11 @@ $(document).ready(function(){
 });
 
 SingleLinkPermissionsModule.init = function () {
+  // Hide query parameter from the special Safari redirect
+  if (window.location.href.indexOf('safari=1') > -1) {
+    history.replaceState({}, "", window.location.href.replace(/\??safari=1/, ''));
+  }
+
   DOMHelpers.toggleBtnDisable(updateBtnID, true);
   DOMHelpers.toggleBtnDisable(cancelBtnID, true);
 
