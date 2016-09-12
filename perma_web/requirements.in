@@ -49,6 +49,7 @@ PyVirtualDisplay==0.1.5         # for capturing with non-headless browsers
 LinkHeader==0.4.3               # memento headers for single-link pages
 pip-tools==1.7                  # generating requirements.txt from requirements.in
 django-taggit==0.20.2           # tagging registrars
+ua-parser==0.7.1                # user agent parsing to detect Safari browser for playbacks
 
 # deployment
 gunicorn==19.3.0

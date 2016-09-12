@@ -2,9 +2,12 @@ from wsgiref.util import FileWrapper
 import logging
 from urlparse import urlparse
 from time import mktime
+
+from django.contrib.auth.views import redirect_to_login
 from ratelimit.decorators import ratelimit
 from datetime import timedelta
 from wsgiref.handlers import format_date_time
+from ua_parser import user_agent_parser
 
 from django.core.files.storage import default_storage
 from django.template import RequestContext
@@ -149,6 +152,18 @@ def single_linky(request, guid):
         else:
             return HttpResponseForbidden('Private archive.')
 
+    # Special handling for private links on Safari:
+    # Safari won't let us set the auth cookie for the WARC_HOST domain inside the iframe, unless we've already set a
+    # cookie on that domain outside the iframe. So do a redirect to WARC_HOST to set a cookie and then come back.
+    # safari=1 in the query string indicates that the redirect has already happened.
+    # See http://labs.fundbox.com/third-party-cookies-with-ie-at-2am/
+    if link.is_private and not request.GET.get('safari'):
+        user_agent = user_agent_parser.ParseUserAgent(request.META.get('HTTP_USER_AGENT', ''))
+        if user_agent.get('family') == 'Safari':
+            return redirect_to_login(request.build_absolute_uri(),
+                                     "//%s%s" % (settings.WARC_HOST, reverse('user_management_set_safari_cookie')))
+
+    # handle requested capture type
     if serve_type == 'image':
         capture = link.screenshot_capture
     else:
@@ -158,10 +173,9 @@ def single_linky(request, guid):
         if (not capture or capture.status != 'success') and link.screenshot_capture and link.screenshot_capture.status == 'success':
             return HttpResponseRedirect(reverse('single_linky', args=[guid])+"?type=image")
 
-    new_record = False
-    if request.user.is_authenticated() and link.created_by_id == request.user.id and not link.user_deleted:
-        # If this record was just created by the current user, show them a new record message
-        new_record = link.creation_timestamp > timezone.now() - timedelta(seconds=300)
+    # If this record was just created by the current user, show them a new record message
+    new_record = request.user.is_authenticated() and link.created_by_id == request.user.id and not link.user_deleted \
+                 and link.creation_timestamp > timezone.now() - timedelta(seconds=300)
 
     context = {
         'link': link,

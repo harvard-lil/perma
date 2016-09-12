@@ -1,0 +1,15 @@
+{# called from pywb when a user tries to view a private link without an auth cookie #}
+{% extends "archive/base-archive-responsive.html" %}
+
+{% block styles %}
+{% endblock %}
+
+{% block mainContent %}
+
+  <div class="record-message">
+    <p class="record-message-primary">Missing authorization cookie</p>
+    <p class="record-message-secondary">You do not have the cookie needed to view this private link.</p>
+    <p class="record-message-secondary">To avoid this message, please make sure your browser accepts cookies from {{ content_host }}.</p>
+  </div>
+
+{% endblock %}

@@ -108,6 +108,7 @@ sorl-thumbnail==12.3
 surt==0.3.0               # via pywb
 tempdir==0.6
 tldextract==2.0.1         # via surt
+ua-parser==0.7.1
 Wand==0.4
 warctools==4.9.0
 watchdog==0.8.3           # via pywb
