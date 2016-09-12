@@ -7,7 +7,7 @@
 
 # Package:                      # Used for:
 
-Django==1.9.8
+Django==1.10.1
 MySQL-python==1.2.5
 celery==3.1.20
 requests[security]==2.11.1
@@ -16,7 +16,7 @@ django-ratelimit==1.0.0
 smhasher==0.150.1
 jasmine==2.4.0
 pytz==2013b
-django-mptt==0.8.5
+django-mptt==0.8.6
 Werkzeug==0.11.1
 Fabric==1.11.1
 pexpect==3.1
@@ -31,7 +31,10 @@ netaddr==0.7.12                 # to check archive IPs against banned ranges
 internetarchive==1.0.2          # upload warcs to internet archive
 python-dateutil==2.2            # calculate link expiration date
 Wand==0.4           			# ImageMagick bindings to help with thumbnail creation and PDF -> PNG conversions
-django-tastypie==0.13.3         # API framework
+
+#django-tastypie==0.13.3         # API framework
+-e git://github.com/django-tastypie/django-tastypie.git@604e4ac97046773625c99ae43dd1c1df1b4d39af#egg=django-tastypie  # switch back after next release
+
 -e git://github.com/harvard-lil/django-tastypie-extendedmodelresource.git@a1586e4e34079dafda77be279f4ad4b8eaca10c3#egg=django-tastypie-extendedmodelresource
 sorl-thumbnail==12.3			# Used to create our thumbnails
 redis==2.10.5					# Needed to bind with Redis. Supports our sorl thumbnails in production
@@ -39,9 +42,15 @@ django-redis==4.4.3             # use redis as django's cache backend
 django-forms-bootstrap==3.0.1   # produce Bootstrap compatable forms
 django-secure==1.0.1            # Force SSL -- this can be removed in Django 1.8
 django-sslserver==0.14          # For testing SSL locally.
-django-model-utils==2.2         # for tracking dirty models
+
+#django-model-utils==2.5.2         # for tracking dirty models
+-e git://github.com/carljm/django-model-utils.git@9231617d39f4bdf648e50bd6c2a28be03985e842#egg=django-model-utils  # switch back after next release
+
 django-settings-context-processor==0.2 # make settings available in templates
-django-admin-smoke-tests==0.1.11    # basic tests for the Django admin
+
+#django-admin-smoke-tests==0.1.11    # basic tests for the Django admin
+-e git://github.com/PetrDlouhy/django-admin-smoke-tests.git@9b92f9e0890b45527aa1de41788ee39bef9aca28#egg=django-admin-smoke-tests  # can switch back when django-admin-smoke-tests > 0.1.11 supports Django 1.10
+
 Pillow==3.3.1                   # Used by the Django admin for ImageField display
 whitenoise==2.0.4               # serve static assets
 django-simple-history==1.8.1    # track changes to certain models
