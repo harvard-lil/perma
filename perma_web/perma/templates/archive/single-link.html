@@ -183,7 +183,7 @@
 
         {% if can_view and link.is_private %}
           <div class="banner banner-status row _isDarchive">
-            <strong>This record is private{% if link.private_reason == 'policy' %} by Perma.cc policy{% elif link.private_reason == 'takedown' %} at the content owner's request{% endif %}.</strong>
+            <strong>This record is private{% if link.private_reason == 'policy' %} by Perma.cc policy{% elif link.private_reason == 'takedown' %} at the content owner's request, and it cannot be made public on Perma.cc{% endif %}.</strong>
                 It’s only visible to {% if link.organization %}members of {{ link.organization }} and the {{ link.organization.registrar }} registrar{% else %}you{% endif %}.
                 {% if link.private_reason == 'user' %}You can make this link public under 'Show record details.'{% endif %}
           </div>
