@@ -9,6 +9,12 @@ this_module = unicode(
     sys.getfilesystemencoding())
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(this_module))))
 
+# make sure mysql uses innodb and utf8
+_mysql_connection_options = {
+    "init_command": "SET storage_engine=INNODB; SET NAMES 'utf8';",
+    "charset": "utf8",
+}
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -17,9 +23,7 @@ DATABASES = {
         'PASSWORD': 'perma',
         'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
         'PORT': '3306',                      # Set to empty string for default.
-        'OPTIONS': {
-            "charset": "utf8",
-        }
+        'OPTIONS': _mysql_connection_options
 
     },
     'perma-cdxline': {
@@ -29,6 +33,7 @@ DATABASES = {
         'PASSWORD': 'perma',
         'HOST': '',
         'PORT': '3306',
+        'OPTIONS': _mysql_connection_options
     },
 }
 
