@@ -4,7 +4,7 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
--e git+git://github.com/PetrDlouhy/django-admin-smoke-tests.git@9b92f9e0890b45527aa1de41788ee39bef9aca28#egg=django-admin-smoke-tests
+-e git+git://github.com/jcushman/django-admin-smoke-tests.git@eae2e9135287a39d690db6e0cf68159fa547d4d1#egg=django-admin-smoke-tests
 -e git+git://github.com/carljm/django-model-utils.git@9231617d39f4bdf648e50bd6c2a28be03985e842#egg=django-model-utils
 -e git+git://github.com/django-tastypie/django-tastypie.git@604e4ac97046773625c99ae43dd1c1df1b4d39af#egg=django-tastypie
 -e git+git://github.com/harvard-lil/django-tastypie-extendedmodelresource.git@a1586e4e34079dafda77be279f4ad4b8eaca10c3#egg=django-tastypie-extendedmodelresource
