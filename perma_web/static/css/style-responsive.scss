@@ -1371,11 +1371,14 @@ button {
   &:first-child {
     margin-top: 0;
   }
-  form &:first-child {
-    margin-top: $grid * 8;
+  .body-text ~ form &:first-child {
+    margin-top: $grid * 6;
   }
   @include respond-tablet {
     margin-top: $grid * 8;
+    .body-text ~ form &:first-child {
+      margin-top: $grid * 8;
+    }
   }
   & + p {
     margin-top: $double;
