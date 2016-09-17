@@ -12,6 +12,7 @@ from urlparse import urlparse
 import simple_history
 import requests
 import itertools
+import time
 
 from hanzo import warctools
 from mptt.managers import TreeManager
@@ -28,7 +29,7 @@ from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
 from django.core.cache import cache
 from django.core.files.storage import default_storage
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Q, Max
 from django.db.models.query import QuerySet
 from django.utils import timezone
@@ -984,6 +985,10 @@ class CaptureJob(models.Model):
     capture_start_time = models.DateTimeField(blank=True, null=True)
     capture_end_time = models.DateTimeField(blank=True, null=True)
 
+    # settings to allow our tests to draw out race conditions
+    TEST_PAUSE_TIME = 0
+    TEST_ALLOW_RACE = False
+
     def __unicode__(self):
         return u"CaptureJob %s: %s" % (self.pk, self.link_id)
 
@@ -1037,18 +1042,23 @@ class CaptureJob(models.Model):
         # cleanup: mark any captures as deleted where link has been deleted before capture
         CaptureJob.objects.filter(link__user_deleted=True, status='pending').update(status='deleted')
 
-        query = cls.objects.filter(status='pending').order_by('-human', 'order', 'pk')
-        if reserve:
-            with transaction.atomic():
-                next_job = query.select_for_update().first()
-                if next_job:
-                    # mark the job as in_progress so we won't return it the next time this is called
-                    next_job.status = 'in_progress'
-                    next_job.capture_start_time = timezone.now()
-                    next_job.save()
-        else:
-            next_job = query.first()
-        return next_job
+        while True:
+            next_job = cls.objects.filter(status='pending').order_by('-human', 'order', 'pk').first()
+
+            if reserve and next_job:
+                if cls.TEST_PAUSE_TIME:
+                    time.sleep(cls.TEST_PAUSE_TIME)
+
+                # update the returned job to be in_progress instead of pending, so it won't be returned again
+                next_job.status = 'in_progress'
+                next_job.capture_start_time = timezone.now()
+                update_count = CaptureJob.objects.filter(status='pending', pk=next_job.pk).update(status=next_job.status, capture_start_time=next_job.capture_start_time)
+
+                # if no rows were updated, another worker claimed this job already -- try again
+                if not update_count and not cls.TEST_ALLOW_RACE:
+                    continue
+
+            return next_job
 
     def queue_position(self):
         """
