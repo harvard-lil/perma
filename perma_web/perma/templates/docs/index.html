@@ -11,97 +11,97 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 
 {% block mainContent %}
 <div class="container cont-fixed">
-	<div class="row">
-		<div class="col-sm-12">
-			<h1>Perma.cc user guide <span class="subsection">Getting Started</span></h1>
-		</div>
-	</div>
+  <div class="row">
+    <div class="col-sm-12">
+      <h1>Perma.cc user guide <span class="subsection">Getting Started</span></h1>
+    </div>
+  </div>
 </div>
-	
+
 {% include 'docs/docs_menu.html' %}
 
 <div class="container cont-reading cont-fixed" id="overview">
-	<div class="row">
-		<div class="col-sm-4 reading-toc" >
-			<ul>
-				<li class="reading-toc-chapter"><a href="#overview">Overview</a></li>
-				<li class="reading-toc-section"><a href="#what-is-perma">What is Perma.cc?</a></li>
-				<li class="reading-toc-section"><a href="#what-is-link-rot">What is link rot?</a></li>
-				<li class="reading-toc-section"><a href="#how-does-perma-work">How does Perma.cc work?</a></li>
-				<li class="reading-toc-section"><a href="#example-perma">Perma.cc example</a></li>
+  <div class="row">
+    <div class="col-sm-4 reading-toc" >
+      <ul>
+        <li class="reading-toc-chapter"><a href="#overview">Overview</a></li>
+        <li class="reading-toc-section"><a href="#what-is-perma">What is Perma.cc?</a></li>
+        <li class="reading-toc-section"><a href="#what-is-link-rot">What is link rot?</a></li>
+        <li class="reading-toc-section"><a href="#how-does-perma-work">How does Perma.cc work?</a></li>
+        <li class="reading-toc-section"><a href="#example-perma">Perma.cc example</a></li>
 
-				<li class="reading-toc-chapter"><a href="#perma-basics">Perma.cc Basics</a></li>
-				<li class="reading-toc-section"><a href="#create-account">Accounts</a></li>
-				<li class="reading-toc-section"><a href="#creating-links">Preserving records</a></li>			
-				<li class="reading-toc-section"><a href="#viewing-records">Viewing records</a></li>
-			<ul>
-		</div>
+        <li class="reading-toc-chapter"><a href="#perma-basics">Perma.cc Basics</a></li>
+        <li class="reading-toc-section"><a href="#create-account">Accounts</a></li>
+        <li class="reading-toc-section"><a href="#creating-links">Preserving records</a></li>
+        <li class="reading-toc-section"><a href="#viewing-records">Viewing records</a></li>
+      <ul>
+    </div>
 
-		<div class="col-sm-8 docs reading-body">
-			<h2 class="body-ah" id="overview">Overview</h2>
-			<h3 id="what-is-perma" class="body-bh">What is Perma.cc?</h3>
-			
-			<p class="body-text">Perma.cc is a service that helps prevent link rot. Use it to preserve the online sources you cite and to make those records accessible to your readers.</p>
+    <div class="col-sm-8 docs reading-body">
+      <h2 class="body-ah" id="overview">Overview</h2>
+      <h3 id="what-is-perma" class="body-bh">What is Perma.cc?</h3>
 
-			<h3 id="what-is-link-rot" class="body-bh">What is link rot?</h3>
-			<p class="body-text">Link rot (and “reference rot”) happens when you cite to an online source that later disappears or changes. It's a big problem, especially for academic scholarship and judicial opinions, which depend heavily on citations to stable sources that readers can access. For example, a <a href="http://perma.cc/48QZ-DT6L">study</a> conducted by researchers at Harvard Law School found that more than 70% of the links in a sample of law journals and 50% of the links in Supreme Court opinions no longer work.</p>
-			
-			<p class="body-text">Perma.cc and its <a href="{% url 'about' %}/#perma-partners">consortium of participating libraries</a> are working to solve this problem.</p>
+      <p class="body-text">Perma.cc is a service that helps prevent link rot. Use it to preserve the online sources you cite and to make those records accessible to your readers.</p>
 
-			<h3 class="body-bh" id="how-does-perma-work">How does Perma.cc work?</h3>
-			
-			<p class="body-text">You give Perma.cc the URL of the page you want to preserve and cite. Our software visits that URL, preserves what's there, deposits it into our collection, and gives you a unique URL (e.g. "perma.cc/ABCD-1234") - a "Perma Link" - that points to the record in our collection.</p>
-			<p>You then can use that Perma Link in your citation to give readers access to a stable, accurate record of the source you referenced, even if the original disappears from the web.</p>
-			
-			<h3 id="example-perma" class="body-bh">Perma.cc example</h3>
-			<p class="body-text">Suppose you're a professor working on an article and you want to link to the FBI's <a href="http://www.fbi.gov/wanted/topten">Top Ten Most Wanted List</a>. Because that list changes over time, your link is going to rot and your future readers won't be able to access your actual source at the original URL. That's bad for you and your readers.</p>
-			<p class="body-text">But if you give Perma.cc the web address - e.g. <a href="http://www.fbi.gov/wanted/topten">http://www.fbi.gov/wanted/topten</a> - our software will visit the page, make a record of it and give you a unique URL that points to the preserved record - e.g. <a class="perma" href="https://perma.cc/T8U2-994F?type=source">perma.cc/T8U2-994F</a>.</p>
-			<p class="body-text">You can add the new Perma Link to your citation, and your future readers will be able to access the intended source no matter what happens to the original page.</p>
-			<p class="body-text">Sound useful? <a href="{% url 'sign_up' %}">Sign up for free</a> to give it try, or read on to learn more.
-		</div>
-	</div>
+      <h3 id="what-is-link-rot" class="body-bh">What is link rot?</h3>
+      <p class="body-text">Link rot (and “reference rot”) happens when you cite to an online source that later disappears or changes. It's a big problem, especially for academic scholarship and judicial opinions, which depend heavily on citations to stable sources that readers can access. For example, a <a href="http://perma.cc/48QZ-DT6L">study</a> conducted by researchers at Harvard Law School found that more than 70% of the links in a sample of law journals and 50% of the links in Supreme Court opinions no longer work.</p>
+
+      <p class="body-text">Perma.cc and its <a href="{% url 'about' %}/#perma-partners">consortium of participating libraries</a> are working to solve this problem.</p>
+
+      <h3 class="body-bh" id="how-does-perma-work">How does Perma.cc work?</h3>
+
+      <p class="body-text">You give Perma.cc the URL of the page you want to preserve and cite. Our software visits that URL, preserves what's there, deposits it into our collection, and gives you a unique URL (e.g. "perma.cc/ABCD-1234") - a "Perma Link" - that points to the record in our collection.</p>
+      <p>You then can use that Perma Link in your citation to give readers access to a stable, accurate record of the source you referenced, even if the original disappears from the web.</p>
+
+      <h3 id="example-perma" class="body-bh">Perma.cc example</h3>
+      <p class="body-text">Suppose you're a professor working on an article and you want to link to the FBI's <a href="http://www.fbi.gov/wanted/topten">Top Ten Most Wanted List</a>. Because that list changes over time, your link is going to rot and your future readers won't be able to access your actual source at the original URL. That's bad for you and your readers.</p>
+      <p class="body-text">But if you give Perma.cc the web address - e.g. <a href="http://www.fbi.gov/wanted/topten">http://www.fbi.gov/wanted/topten</a> - our software will visit the page, make a record of it and give you a unique URL that points to the preserved record - e.g. <a class="perma" href="https://perma.cc/T8U2-994F?type=source">perma.cc/T8U2-994F</a>.</p>
+      <p class="body-text">You can add the new Perma Link to your citation, and your future readers will be able to access the intended source no matter what happens to the original page.</p>
+      <p class="body-text">Sound useful? <a href="{% url 'sign_up' %}">Sign up for free</a> to give it try, or read on to learn more.
+    </div>
+  </div>
 </div>
 
 <div id="create-account" class="container cont-reading cont-fixed">
-	<div class="row">
-		<div class="col-sm-8 col-right docs reading-body">
-			<h2 class="body-ah" id="perma-basics">Perma.cc Basics</h2>
+  <div class="row">
+    <div class="col-sm-8 col-right docs reading-body">
+      <h2 class="body-ah" id="perma-basics">Perma.cc Basics</h2>
 
-			<h3 id="accounts" class="body-bh">Creating an account</h3>
-			<p class="body-text">To preserve web pages with Perma.cc, you need an account. Anyone can create an account, and each account lets you preserve up to 10 records per month for free.</p>
+      <h3 id="accounts" class="body-bh">Creating an account</h3>
+      <p class="body-text">To preserve web pages with Perma.cc, you need an account. Anyone can create an account, and each account lets you preserve up to 10 records per month for free.</p>
 
-			<p class="body-text">Perma.cc also offers unlimited free accounts to academic journals and faculty members affiliated with any registrar library. Courts and other government organizations also can qualify for unlimited free accounts.</p>
+      <p class="body-text">Perma.cc also offers unlimited free accounts to academic journals and faculty members affiliated with any registrar library. Courts and other government organizations also can qualify for unlimited free accounts.</p>
 
-			<p class="body-text">To create an account or to learn more about accounts, please visit our <a href="{% url 'sign_up' %}">signup page</a>.</p>
+      <p class="body-text">To create an account or to learn more about accounts, please visit our <a href="{% url 'sign_up' %}">signup page</a>.</p>
 
-			<h3 id="creating-links" class="body-bh">Preserving records</h3>
-			<p class="body-text">To preserve a web page, login to your account, enter the URL of the page you want to preserve and click the "Create Perma Link" button. Perma will visit the web page at your direction and create a record of the contents of that page.</p>	
-					
-			<img src="{{ STATIC_URL }}img/docs/create_link.png" class="img-responsive screen-shot" alt="A screenshot of the Create an Archive page with the URL of a potential archive."/>
+      <h3 id="creating-links" class="body-bh">Preserving records</h3>
+      <p class="body-text">To preserve a web page, login to your account, enter the URL of the page you want to preserve and click the "Create Perma Link" button. Perma will visit the web page at your direction and create a record of the contents of that page.</p>
 
-			<p class="body-text">When Perma finishes processing your request, it'll direct you to the Perma Record, where you can see the preserved page and the associated Perma Link. You should review the Perma Record to confirm that it displays correctly.</p> 
+      <img src="{{ STATIC_URL }}img/docs/create_link.png" class="img-responsive screen-shot" alt="A screenshot of the Create an Archive page with the URL of a potential archive."/>
 
-			<img src="{{ STATIC_URL }}img/docs/record_page.png" class="img-responsive screen-shot" alt="A screenshot of a Create an Archive page with a newly created archive. Includes the URL and the thumbnail preview."/>
-	
-			<p>If preservation fails for some reason, Perma.cc will display a "Failure" message and give you the option to upload your own image (.png, .jpg) or PDF file.</p>
+      <p class="body-text">When Perma finishes processing your request, it'll direct you to the Perma Record, where you can see the preserved page and the associated Perma Link. You should review the Perma Record to confirm that it displays correctly.</p>
 
-			<img src="{{ STATIC_URL }}img/docs/capture_fail.png" class="img-responsive screen-shot" alt="A screenshot of a Create an Archive page with a newly created archive. Includes the URL and the thumbnail preview."/>
+      <img src="{{ STATIC_URL }}img/docs/record_page.png" class="img-responsive screen-shot" alt="A screenshot of a Create an Archive page with a newly created archive. Includes the URL and the thumbnail preview."/>
 
-			<p>Learn more about Perma links and records <a href="{% url 'docs_perma_link_creation' %}#perma-link-creation">here</a>.</p>
+      <p>If preservation fails for some reason, Perma.cc will display a "Failure" message and give you the option to upload your own image (.png, .jpg) or PDF file.</p>
 
-			<h3 id="using-links" class="body-bh">Using links</h3>
-			<p class="body-text">How you use a Perma Link in a citation is up to you. One common method, encouraged by <a href="https://www.legalbluebook.com/">The Bluebook</a>, is to include both the Perma Link and the original URL in the citation, like this:</p>
-	
-			<img src="{{ STATIC_URL }}img/docs/citation_example.png" class="img-responsive screen-shot" alt="An example from the Harvard Law Review" />
+      <img src="{{ STATIC_URL }}img/docs/capture_fail.png" class="img-responsive screen-shot" alt="A screenshot of a Create an Archive page with a newly created archive. Includes the URL and the thumbnail preview."/>
 
-			<h3 id="viewing-records" class="body-bh">Viewing records</h3>
+      <p>Learn more about Perma links and records <a href="{% url 'docs_perma_link_creation' %}#perma-link-creation">here</a>.</p>
 
-			<p class="body-text">When someone visits a Perma Link on the web, they'll see an interactive, web archive version of the record. They'll also have access to a screenshot version and a link to the live version of the original URL.</p>
-	
-			<img src="{{ STATIC_URL }}img/docs/perma_record_external.png" class="img-responsive screen-shot" alt="a screenshot of record view page" />
-	
-		</div>
-	</div>
+      <h3 id="using-links" class="body-bh">Using links</h3>
+      <p class="body-text">How you use a Perma Link in a citation is up to you. One common method, encouraged by <a href="https://www.legalbluebook.com/">The Bluebook</a>, is to include both the Perma Link and the original URL in the citation, like this:</p>
+
+      <img src="{{ STATIC_URL }}img/docs/citation_example.png" class="img-responsive screen-shot" alt="An example from the Harvard Law Review" />
+
+      <h3 id="viewing-records" class="body-bh">Viewing records</h3>
+
+      <p class="body-text">When someone visits a Perma Link on the web, they'll see an interactive, web archive version of the record. They'll also have access to a screenshot version and a link to the live version of the original URL.</p>
+
+      <img src="{{ STATIC_URL }}img/docs/perma_record_external.png" class="img-responsive screen-shot" alt="a screenshot of record view page" />
+
+    </div>
+  </div>
 </div>
 
 {% include 'docs/docs_menu.html' %}
