@@ -1,4 +1,3 @@
-import time
 from multiprocessing.pool import ThreadPool
 
 from perma.models import *
@@ -8,6 +7,7 @@ from .utils import PermaTestCase
 # TODO:
 # - check retry behavior
 
+# lives outside CaptureJobTestCase so it can be used by other tests
 def create_capture_job(user, human=True):
     link = Link(created_by=user, submitted_url="http://example.com")
     link.save()
@@ -29,16 +29,6 @@ class CaptureJobTestCase(PermaTestCase):
         self.user_two = LinkUser.objects.get(pk=2)
 
         self.maxDiff = None  # let assertListEqual compare large lists
-
-    ### HELPERS ###
-
-    def assertNextJobsMatch(self, expected_next_jobs, expected_order):
-        expected_next_jobs = [expected_next_jobs[i] for i in expected_order]
-        def get_next_job(i):
-            time.sleep(i*.1)  # make sure tasks go into queue in order, so we can check results
-            return CaptureJob.get_next_job(reserve=True)
-        next_jobs = ThreadPool(len(expected_next_jobs)).map(get_next_job, range(len(expected_next_jobs)))
-        self.assertListEqual(next_jobs, expected_next_jobs)
 
     ### TESTS ###
 
@@ -66,21 +56,38 @@ class CaptureJobTestCase(PermaTestCase):
             4  # robots queue
         ]
 
+        # test CaptureJob.queue_position
         for i, job in enumerate(jobs):
             queue_position = job.queue_position()
             expected_queue_position = expected_order.index(i)+1
             self.assertEqual(queue_position, expected_queue_position, "Job %s has queue position %s, should be %s." % (i, queue_position, expected_queue_position))
 
-        CaptureJob.CACHE_DELAY = .2  # add delay to smoke out concurrency issues
-        self.assertNextJobsMatch(jobs, expected_order)
+        # test CaptureJob.get_next_job
+        expected_next_jobs = [jobs[i] for i in expected_order]
+        next_jobs = [CaptureJob.get_next_job(reserve=True) for i in range(len(jobs))]
+        self.assertListEqual(next_jobs, expected_next_jobs)
 
-    def test_job_queue_order_fails_without_lock(self):
-        """
-            If locking is disabled, our job_queue_order test should fail -- this makes sure our concurrency protection
-            is actually working.
-        """
-        temp = CaptureJob.USE_LOCK
-        CaptureJob.USE_LOCK = False
-        self.assertRaisesRegexp(AssertionError, r'^Lists differ', self.test_job_queue_order)
-        CaptureJob.USE_LOCK = temp
+    def test_race_condition_prevented(self):
+        """ Fetch two jobs at the same time in threads and make sure same job isn't returned to both. """
+        jobs = [
+            create_capture_job(self.user_one),
+            create_capture_job(self.user_one)
+        ]
 
+        def get_next_job(i):
+            return CaptureJob.get_next_job(reserve=True)
+
+        CaptureJob.TEST_PAUSE_TIME = .1
+        fetched_jobs = ThreadPool(2).map(get_next_job, range(2))
+        CaptureJob.TEST_PAUSE_TIME = 0
+
+        self.assertSetEqual(set(jobs), set(fetched_jobs))
+
+    def test_race_condition_not_prevented(self):
+        """
+            Make sure that test_race_condition_prevented is passing for the right reason --
+            should fail if race condition protection is disabled.
+        """
+        CaptureJob.TEST_ALLOW_RACE = True
+        self.assertRaisesRegexp(AssertionError, r'^Items in the', self.test_race_condition_prevented)
+        CaptureJob.TEST_ALLOW_RACE = False

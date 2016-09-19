@@ -7,12 +7,12 @@ import random
 import re
 import socket
 import tempfile
-import time
-from contextlib import contextmanager
 from urllib import urlencode
 from urlparse import urlparse
 import simple_history
 import requests
+import itertools
+import time
 
 from hanzo import warctools
 from mptt.managers import TreeManager
@@ -29,8 +29,8 @@ from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
 from django.core.cache import cache
 from django.core.files.storage import default_storage
-from django.db import models, transaction
-from django.db.models import Q
+from django.db import models
+from django.db.models import Q, Max
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -973,8 +973,10 @@ class CaptureJob(models.Model):
     link = models.OneToOneField(Link, related_name='capture_job')
     status = models.CharField(max_length=15,
                               default='pending',
-                              choices=(('pending','pending'),('in_progress','in_progress'),('completed','completed'),('deleted','deleted'),('failed','failed')))
+                              choices=(('pending','pending'),('in_progress','in_progress'),('completed','completed'),('deleted','deleted'),('failed','failed')),
+                              db_index=True)
     human = models.BooleanField(default=False)
+    order = models.FloatField(db_index=True)
 
     # reporting
     attempt = models.SmallIntegerField(default=0)
@@ -983,118 +985,50 @@ class CaptureJob(models.Model):
     capture_start_time = models.DateTimeField(blank=True, null=True)
     capture_end_time = models.DateTimeField(blank=True, null=True)
 
-    CACHE_KEY = 'capture_job_queue'
-
-    # Don't use the cache if we're using background celery processes and the local memory cache (presumably in the dev
-    # environment) -- caching the queue only works if all threads see the same cache.
-    USE_CACHE = settings.RUN_TASKS_ASYNC is False or 'LocMemCache' not in settings.CACHES['default']['BACKEND']
-
-    # used for testing, to find concurrency errors
-    CACHE_DELAY = 0
-    USE_LOCK = True
+    # settings to allow our tests to draw out race conditions
+    TEST_PAUSE_TIME = 0
+    TEST_ALLOW_RACE = False
 
     def __unicode__(self):
         return u"CaptureJob %s: %s" % (self.pk, self.link_id)
 
     def save(self, *args, **kwargs):
-        is_new = not self.pk
+
+        # If this job does not have an order yet (just created),
+        # examine all pending jobs to place this one in a fair position in the queue.
+        # "Fair" means round robin: this job will be processed after every other job submitted by this user,
+        # and then after every other user waiting in line has had at least one job done.
+        if not self.order:
+
+            # get all pending jobs, in reverse priority order
+            pending_jobs = CaptureJob.objects.filter(status='pending', human=self.human).order_by('-order').select_related('link')
+            # narrow down to just the jobs that come *after* the most recent job submitted by this user
+            pending_jobs = list(itertools.takewhile(lambda x: x.link.created_by_id != self.link.created_by_id, pending_jobs))
+            # flip the list of jobs back around to the order they'll be processed in
+            pending_jobs = list(reversed(pending_jobs))
+
+            # Go through pending jobs until we find two jobs submitted by the same user.
+            # It's not fair for another user to run two jobs after all of ours are done,
+            # so this new job should come right before that user's second job.
+            next_jobs = {}
+            last_job = None
+            for pending_job in pending_jobs:
+                pending_job_created_by_id = pending_job.link.created_by_id
+                if pending_job_created_by_id in next_jobs:
+                    # pending_job is the other user's second job, so this one goes in between that and last_job
+                    self.order = last_job.order + (pending_job.order - last_job.order)/2
+                    break
+                next_jobs[pending_job_created_by_id] = pending_job
+                last_job = pending_job
+
+            # If order isn't set yet, that means we should go last. Find the highest current order and add 1.
+            if not self.order:
+                if pending_jobs:
+                    self.order = pending_jobs[-1].order + 1
+                else:
+                    self.order = (CaptureJob.objects.filter(human=self.human).aggregate(Max('order'))['order__max'] or 0) + 1
+
         super(CaptureJob, self).save(*args, **kwargs)
-
-        # add new jobs to the job queue
-        if is_new:
-            with self.get_job_queues() as job_queues:
-                self.add_to_queue(job_queues)
-
-    @classmethod
-    def clear_cache(cls):
-        """ Wipe the queue cache -- mostly useful for tests. """
-        cache.delete(cls.CACHE_KEY)
-
-    @classmethod
-    @contextmanager
-    def get_job_queues(cls):
-        """
-            This is a context manager we can use to get LOCKED access to a dictionary of all pending CaptureJobs. The
-            dictionary is generated from the database the first time but then stored in the cache for faster access.
-            If a caller updates pending CaptureJobs in the database, it should also update the cache.
-            Any changes to the dictionary made by the caller will be saved back to the cache.
-
-            Example usage:
-
-                with CaptureJob.get_job_queues() as job_queues:
-                    # do atomic-access stuff with job_queues
-
-            job_queues format:
-
-                  {'human': {
-                      <user_id>: {
-                          'last_job_time':<CaptureJob.capture_start_time as integer>,
-                          'next_jobs':[<CaptureJob.pk>,<CaptureJob.pk>]
-                      },
-                      <user_id>: { ... },
-                   'robot':{ ... }
-                  }
-
-        """
-
-        with transaction.atomic():
-
-            # Use select_for_update on the first CaptureJob to claim a lock on the cache.
-            if cls.USE_LOCK:
-                lock_row = cls.objects.order_by('pk').select_for_update().first()  # noqa
-
-            # try fetching queue from cache
-            job_queues = cache.get(CaptureJob.CACHE_KEY) if cls.USE_CACHE else None
-
-            # if not, regenerate cache
-            if job_queues is None:
-
-                # mark any captures as deleted where link has been deleted before capture
-                CaptureJob.objects.filter(link__user_deleted=True, status='pending').update(status='deleted')
-
-                # Grab all pending jobs in a dict by job type (human or robot) and user ID.
-                job_queues = {'human': {}, 'robot': {}}
-                pending_jobs = cls.objects.filter(status='pending').order_by('pk').select_related('link')
-                for job in pending_jobs:
-                    job.add_to_queue(job_queues)
-
-            yield job_queues
-
-            # optional delay, used solely for our concurrency tests
-            if cls.CACHE_DELAY:
-                time.sleep(cls.CACHE_DELAY)
-
-            # save any changes made by caller
-            if cls.USE_CACHE:
-                cache.set(CaptureJob.CACHE_KEY, job_queues)
-
-    def add_to_queue(self, job_queues):
-        """
-            Insert a single job in the appropriate queue.
-        """
-        job_type = 'human' if self.human else 'robot'
-        job_queue = job_queues[job_type]
-        user_id = self.link.created_by_id
-        if user_id not in job_queue:
-            last_job = CaptureJob.objects.filter(link__created_by_id=user_id).exclude(status='pending').exclude(capture_start_time=None).order_by('-pk').first()
-            job_queue[user_id] = {
-                'next_jobs': [],
-                'last_job_time': last_job.capture_start_time.isoformat() if last_job else '0'
-            }
-        if self.pk not in job_queue[user_id]['next_jobs']:
-            job_queue[user_id]['next_jobs'].append(self.pk)
-
-    @classmethod
-    def sort_job_queue(cls, job_queue):
-        """
-            Sort users in a job queue by preference.
-        """
-        return sorted(
-            job_queue.iteritems(),
-            key=lambda x: (
-                x[1]['last_job_time'],  # whose previous job is oldest?
-                x[1]['next_jobs'][0])  # whose next job is oldest?
-        )
 
     @classmethod
     def get_next_job(cls, reserve=False):
@@ -1104,30 +1038,25 @@ class CaptureJob(models.Model):
             If `reserve=True`, mark the returned job with `status=in_progress` and remove from queue so the
             same job can't be returned twice. Caller must make sure the job is actually processed once returned.
         """
-        with cls.get_job_queues() as job_queues:
 
-            # look first at the human queue, or if that's empty at the robot queue
-            job_queue = job_queues['human'] or job_queues['robot']
+        # cleanup: mark any captures as deleted where link has been deleted before capture
+        CaptureJob.objects.filter(link__user_deleted=True, status='pending').update(status='deleted')
 
-            if not job_queue:
-                return  # no jobs to process
+        while True:
+            next_job = cls.objects.filter(status='pending').order_by('-human', 'order', 'pk').first()
 
-            next_user_id, next_user = cls.sort_job_queue(job_queue)[0]
-            next_job = cls.objects.get(pk=next_user['next_jobs'][0])
+            if reserve and next_job:
+                if cls.TEST_PAUSE_TIME:
+                    time.sleep(cls.TEST_PAUSE_TIME)
 
-            # mark the job as in_progress so we won't return it the next time this is called
-            if reserve:
-                # update db
+                # update the returned job to be in_progress instead of pending, so it won't be returned again
                 next_job.status = 'in_progress'
                 next_job.capture_start_time = timezone.now()
-                next_job.save()
+                update_count = CaptureJob.objects.filter(status='pending', pk=next_job.pk).update(status=next_job.status, capture_start_time=next_job.capture_start_time)
 
-                # update cache
-                next_user['next_jobs'].pop(0)
-                if next_user['next_jobs']:
-                    next_user['last_job_time'] = next_job.capture_start_time.isoformat()
-                else:
-                    del job_queue[next_user_id]
+                # if no rows were updated, another worker claimed this job already -- try again
+                if not update_count and not cls.TEST_ALLOW_RACE:
+                    continue
 
             return next_job
 
@@ -1136,42 +1065,14 @@ class CaptureJob(models.Model):
             Search job_queues to calculate the queue position for this job -- how many pending jobs have to be processed
             before this one?
 
-            Returns:
-                0 if job is not pending
-                -1 if job is pending but not in queue.
+            Returns 0 if job is not pending.
         """
         if self.status != 'pending':
             return 0
 
-        # Grab the job queues and figure out which queue we're looking at -- human or robot
-        with self.get_job_queues() as job_queues:
-            pass
-        queue_position = 1
-        if self.human:
-            queue = job_queues['human']
-        else:
-            queue = job_queues['robot']
-
-            # if robot, count all of the human jobs that will have to be processed first
-            queue_position += sum(len(i['next_jobs']) for i in job_queues['human'].itervalues())
-
-        # make sure job is in queue
-        user_id = self.link.created_by_id
-        if user_id not in queue or self.pk not in queue[user_id]['next_jobs']:
-            # job isn't in queue
-            return -1
-
-        # Jobs are processed round-robin. First figure out which round this job will be in.
-        job_round = queue[user_id]['next_jobs'].index(self.pk)
-
-        # Next add all of the jobs that will be processed in previous rounds.
-        queue_position += sum(len(i['next_jobs'][:job_round]) for i in queue.itervalues())
-
-        # For the last round, this job will be reached partway through. Sort the jobs to find out which users will go
-        # first, and then add 1 for each user who will have jobs left in the final round and comes before this user.
-        sorted_jobs = self.sort_job_queue(queue)
-        sorted_user_ids = [i[0] for i in sorted_jobs]
-        queue_position += sum(1 for j in sorted_jobs[:sorted_user_ids.index(user_id)] if len(j[1]['next_jobs'])>job_round)
+        queue_position = CaptureJob.objects.filter(status='pending', order__lte=self.order, human=self.human).count()
+        if not self.human:
+            queue_position += CaptureJob.objects.filter(status='pending', human=True).count()
 
         return queue_position
 

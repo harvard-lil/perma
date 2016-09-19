@@ -1,4 +1,5 @@
 import random, string, logging
+import itertools
 
 from datetime import timedelta
 
@@ -152,10 +153,10 @@ def stats(request, stat_type=None):
         out = {'queues':queues}
 
     elif stat_type == "job_queue":
-        with CaptureJob.get_job_queues() as job_queues:
-            pass
+        job_queues = CaptureJob.objects.filter(status='pending').order_by('order', 'pk').select_related('link', 'link__created_by')
+        job_queues = dict(itertools.groupby(job_queues, lambda x: 'human' if x.human else 'robot'))
         for queue_key, queue in job_queues.iteritems():
-            job_queues[queue_key] = [{'email':LinkUser.objects.get(id=user_id).email, 'count':len(jobs['next_jobs'])} for user_id, jobs in queue.iteritems()]
+            job_queues[queue_key] = [{'email':email, 'count':len(list(jobs))} for email, jobs in itertools.groupby(queue, lambda x: x.link.created_by.email)]
         out = {
             'job_queues': job_queues,
             'active_jobs': [{
@@ -165,7 +166,7 @@ def stats(request, stat_type=None):
                 'step_count': round(j.step_count, 2),
                 'step_description': j.step_description,
                 'capture_start_time': j.capture_start_time
-            } for j in CaptureJob.objects.filter(status='in_progress')]
+            } for j in CaptureJob.objects.filter(status='in_progress').select_related('link', 'link__created_by')]
         }
 
     if out:
