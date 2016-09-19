@@ -4,6 +4,9 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
+-e git+git://github.com/jcushman/django-admin-smoke-tests.git@eae2e9135287a39d690db6e0cf68159fa547d4d1#egg=django-admin-smoke-tests
+-e git+git://github.com/carljm/django-model-utils.git@9231617d39f4bdf648e50bd6c2a28be03985e842#egg=django-model-utils
+-e git+git://github.com/django-tastypie/django-tastypie.git@604e4ac97046773625c99ae43dd1c1df1b4d39af#egg=django-tastypie
 -e git+git://github.com/harvard-lil/django-tastypie-extendedmodelresource.git@a1586e4e34079dafda77be279f4ad4b8eaca10c3#egg=django-tastypie-extendedmodelresource
 -e git+git://github.com/internetarchive/warcprox.git@f79e74482339f8c06880b28e889be694b30d4575#egg=warcprox
 amqp==1.4.9               # via kombu
@@ -24,10 +27,8 @@ click==6.6                # via pip-tools
 clint==0.5.1              # via internetarchive
 coverage==3.7.1
 cryptography==1.3.2       # via pyopenssl
-django-admin-smoke-tests==0.1.11
 django-forms-bootstrap==3.0.1
-django-model-utils==2.2
-django-mptt==0.8.5
+django-mptt==0.8.6
 django-pipeline-compass==0.1.5
 django-pipeline==1.5.4
 django-ratelimit==1.0.0
@@ -38,8 +39,7 @@ django-simple-history==1.8.1
 django-sslserver==0.14
 django-storages==1.1.8
 django-taggit==0.20.2
-django-tastypie==0.13.3
-Django==1.9.8             # via django-admin-smoke-tests, django-model-utils, django-secure, django-sslserver
+Django==1.10.1            # via django-secure, django-sslserver
 docopt==0.6.2             # via internetarchive
 EasyProcess==0.2.2        # via pyvirtualdisplay
 ecdsa==0.13               # via paramiko
@@ -91,7 +91,7 @@ pyScss==1.3.4             # via django-pipeline-compass
 pytest-xdist==1.10
 pytest==2.9.1             # via pytest-xdist
 python-dateutil==2.2
-python-mimeparse==1.5.2   # via django-tastypie
+python-mimeparse==1.5.2
 pytz==2013b0
 PyVirtualDisplay==0.1.5
 pywb==0.31
@@ -102,7 +102,7 @@ requests[security]==2.11.1
 sauceclient==0.1.0
 schema==0.4.0             # via internetarchive
 selenium==2.47.3
-six==1.10.0               # via cryptography, django-admin-smoke-tests, internetarchive, jasmine, pip-tools, pyopenssl, pyscss, python-dateutil, pywb, requests-file, surt
+six==1.10.0               # via cryptography, internetarchive, jasmine, pip-tools, pyopenssl, pyscss, python-dateutil, pywb, requests-file, surt
 smhasher==0.150.1
 sorl-thumbnail==12.3
 surt==0.3.0               # via pywb

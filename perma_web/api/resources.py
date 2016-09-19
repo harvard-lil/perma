@@ -57,6 +57,7 @@ class DefaultResource(ExtendedModelResource):
         serializer = DefaultSerializer()
         validation = DefaultValidation()
         allowed_update_fields = []
+        object_class = None  # will be overridden by subclasses that set queryset
 
     @classmethod
     # Hack to prevent ModelResource from auto-including additional fields
