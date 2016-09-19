@@ -1170,6 +1170,14 @@ button {
   }
 }
 
+.extension-btn {
+  font-size: 12px;
+  border-radius: 2px;
+  padding: 4px 3px 4px 6px;
+  margin: 0px 0.3em 0px 0px;
+  background-color: $color-trans-lightgray;
+}
+
 /////////////////////////////////////////
 
 // UI
@@ -1363,8 +1371,14 @@ button {
   &:first-child {
     margin-top: 0;
   }
+  .body-text ~ form &:first-child {
+    margin-top: $grid * 6;
+  }
   @include respond-tablet {
     margin-top: $grid * 8;
+    .body-text ~ form &:first-child {
+      margin-top: $grid * 8;
+    }
   }
   & + p {
     margin-top: $double;

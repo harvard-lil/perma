@@ -1,0 +1,32 @@
+{
+  "manifest_version": 2,
+
+  "name": "Perma.cc",
+  "description": "Enter any URL to preserve it forever.",
+  "version": "1.0.0",
+  "applications": {
+    "gecko": {
+      "id": "firefox@perma.cc"
+      }
+  },
+  "permissions": [
+    "activeTab"
+  ],
+
+  "icons": {
+    "16": "infinity16.png",
+    "48": "infinity48.png",
+    "128": "infinity128.png"
+  },
+  "background": {
+    "persistent": false,
+    "scripts": ["bg.js"]
+  },
+  "browser_action": {
+    "default_title": "Create Perma link",
+    "default_icon": {
+      "19": "infinity19.png",
+      "38": "infinity38.png"
+    }
+  }
+}
