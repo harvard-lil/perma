@@ -49,6 +49,7 @@ def create_link(request):
         'this_page': 'create_link',
         'links_remaining': links_remaining,
         'folder': folder,
+        'suppress_reminder': request.COOKIES.get('suppress_reminder')
     })
 
 
