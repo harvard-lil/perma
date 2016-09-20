@@ -25,7 +25,7 @@
 
             {% if request.user.is_organization_user or request.user.is_registrar_user or request.user.has_registrar_pending %}
             <!-- Settings -->
-            <li{% if this_page == 'settings_organizations' %} class="active"{% endif %}><a href="{% url 'user_management_settings_organizations' %}" id="dashboard-settings"><span>Your Organization</span></a></li>
+            <li{% if this_page == 'settings_organizations' %} class="active"{% endif %}><a href="{% url 'user_management_settings_organizations' %}" id="dashboard-settings"><span>Your Affiliations</span></a></li>
             {% endif %}
 
 
