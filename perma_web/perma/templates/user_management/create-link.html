@@ -57,6 +57,13 @@
             </div>
           {% endif %}
         </fieldset>
+        <p id="browser-tools-message" class="limit-{% if request.user.has_limit %}true{% else %}false{% endif %}">
+          To make Perma links more quickly, try our <a href="{% url 'user_management_settings_tools' %}"">browser tools</a>.
+          <button type="button" class="close-browser-tools btn-link">
+            <span aria-hidden="true">&times;</span>
+            <span class="sr-only">Close</span>
+          </button>
+        </p>
       </form><!--/#linker-->
     </div><!-- cont-full-bleed cont-sm-fixed -->
   </div><!-- container cont-full-bleed -->

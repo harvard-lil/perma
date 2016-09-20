@@ -5,4 +5,8 @@ $(function(){
     $('.manage-users-button').click(function(){
         $('.users-secondary').toggle();
     });
+    // Dismiss browser tools message
+    $('.close-browser-tools').click(function(){
+         $('#browser-tools-message').hide();
+    });
 });
