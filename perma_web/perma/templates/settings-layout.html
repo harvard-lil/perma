@@ -3,41 +3,41 @@
 
 {% block mainContent %}
 
-	<div id="dashboard-container" class="container cont-full-bleed cont-sm-fixed-bleed">
-	    <div class="col-sm-12">
-			<div class="row">
-			    <div class="col-sm-12">
-					<h1 class="page-title">Settings</h1>
-			    </div>
-			</div> <!-- end row -->
+  <div id="dashboard-container" class="container cont-full-bleed cont-sm-fixed-bleed">
+    <div class="col-sm-12">
+      <div class="row">
+        <div class="col-sm-12">
+          <h1 class="page-title">Settings</h1>
+        </div>
+      </div> <!-- end row -->
 
-			<div class="row admin-content">
-			    <div class="col-sm-3">
-			
-			        <!-- Dashboard tabs -->
-			        <ul class="nav nav-pills nav-stacked">
-			
-			            <li{% if this_page == 'settings_profile' %} class="active"{% endif %}><a href="{% url 'user_management_settings_profile' %}"><span>Profile</span></a></li>
-			
-			            <li{% if this_page == 'settings_password' %} class="active"{% endif %}><a href="{% url 'user_management_settings_password' %}"><span>Password</span></a></li>
-			            
-			            <li{% if this_page == 'settings_tools' %} class="active"{% endif %}><a href="{% url 'user_management_settings_tools' %}"><span>Tools</span></a></li>
-			
-			            {% if request.user.is_organization_user or request.user.is_registrar_user or request.user.has_registrar_pending %}
-			            <!-- Settings -->
-			            <li{% if this_page == 'settings_organizations' %} class="active"{% endif %}><a href="{% url 'user_management_settings_organizations' %}" id="dashboard-settings"><span>Your Organization</span></a></li>
-			            {% endif %}
-			
-			           
-			        </ul><!--/#dashboard-tabs-->
-			    </div><!--/col-sm-3-->
+      <div class="row admin-content">
+        <div class="col-sm-3">
 
-				<!-- Dashboard tab content -->
-			    <div class="col-sm-9">
-			        {% block dashboardContent %}{% endblock dashboardContent %}
-			    </div><!--/.tab-content-->
-			</div>
-		</div>
-	</div><!--/#dashboard-container-->
+          <!-- Dashboard tabs -->
+          <ul class="nav nav-pills nav-stacked">
+
+            <li{% if this_page == 'settings_profile' %} class="active"{% endif %}><a href="{% url 'user_management_settings_profile' %}"><span>Profile</span></a></li>
+
+            <li{% if this_page == 'settings_password' %} class="active"{% endif %}><a href="{% url 'user_management_settings_password' %}"><span>Password</span></a></li>
+
+            <li{% if this_page == 'settings_tools' %} class="active"{% endif %}><a href="{% url 'user_management_settings_tools' %}"><span>Tools</span></a></li>
+
+            {% if request.user.is_organization_user or request.user.is_registrar_user or request.user.has_registrar_pending %}
+            <!-- Settings -->
+            <li{% if this_page == 'settings_organizations' %} class="active"{% endif %}><a href="{% url 'user_management_settings_organizations' %}" id="dashboard-settings"><span>Your Organization</span></a></li>
+            {% endif %}
+
+
+          </ul><!--/#dashboard-tabs-->
+        </div><!--/col-sm-3-->
+
+        <!-- Dashboard tab content -->
+        <div class="col-sm-9">
+          {% block dashboardContent %}{% endblock dashboardContent %}
+        </div><!--/.tab-content-->
+      </div>
+    </div>
+  </div><!--/#dashboard-container-->
 {% endblock %}
 
