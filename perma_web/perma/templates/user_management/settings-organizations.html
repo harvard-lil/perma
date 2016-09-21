@@ -18,11 +18,13 @@
           <div class="settings-block">
             <p>
               {{ org }}
-              {% if org.default_to_private %}
-                (Links are <strong>Private</strong> by default)
-              {% else %}
-                (Links are <strong>Public</strong> by default)
-              {% endif %}
+              <span class="_hideMobile">
+                {% if org.default_to_private %}
+                  (Links are <strong>Private</strong> by default)
+                {% else %}
+                  (Links are <strong>Public</strong> by default)
+                {% endif %}
+              </span>
             </p>
             <div class="button-wrapper">
               <a href="{% url 'user_management_manage_single_organization' org.id %}" class="btn btn-default btn-xs" role="button">Edit</a>
