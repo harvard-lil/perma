@@ -24,8 +24,10 @@
                 (Links are <strong>Public</strong> by default)
               {% endif %}
             </p>
-            <a href="{% url 'user_management_manage_single_organization' org.id %}" class="btn btn-default btn-xs" role="button">Edit</a>
-            <a href="{% url 'user_management_organization_user_leave_organization' org.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Leave</a>
+            <div class="button-wrapper">
+              <a href="{% url 'user_management_manage_single_organization' org.id %}" class="btn btn-default btn-xs" role="button">Edit</a>
+              <a href="{% url 'user_management_organization_user_leave_organization' org.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Leave</a>
+            </div>
           </div>
         {% endfor%}
       {% endfor %}
