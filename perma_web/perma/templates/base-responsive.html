@@ -1,109 +1,105 @@
 {% load pipeline %}<!DOCTYPE html>
 <html lang="en-us">
-    <head>
-        <title>Perma.cc{% block title %}{% endblock %}</title>
+  <head>
+      <title>Perma.cc{% block title %}{% endblock %}</title>
 
-        {# currently 'edge' or nothing seems to be the best IE mode for modern sites -- see http://stackoverflow.com/a/8942455 #}
-        <meta http-equiv="x-ua-compatible" content="IE=edge">
+      {# currently 'edge' or nothing seems to be the best IE mode for modern sites -- see http://stackoverflow.com/a/8942455 #}
+      <meta http-equiv="x-ua-compatible" content="IE=edge">
 
-        <meta charset="utf-8" />
-        <meta name="google" value="notranslate" />
-        <meta name="description" content="{% block meta_description %} Broken links are everywhere. Perma helps authors and journals create permanent links for citations in their published work.{% endblock %}">
-        <!--<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">-->
-        <!-- iOS9 viewport bug hack -->
-        <meta name="viewport" content="initial-scale=1.0001, minimum-scale=1.0001, maximum-scale=1.0001"/>
-        <!-- -->
+      <meta charset="utf-8" />
+      <meta name="google" value="notranslate" />
+      <meta name="description" content="{% block meta_description %} Broken links are everywhere. Perma helps authors and journals create permanent links for citations in their published work.{% endblock %}">
+      <!--<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">-->
+      <!-- iOS9 viewport bug hack -->
+      <meta name="viewport" content="initial-scale=1.0001, minimum-scale=1.0001, maximum-scale=1.0001"/>
+      <!-- -->
 
-        <meta name="twitter:card" content="summary" />
-        <meta name="twitter:site" content="@HarvardLIL" />
-        <meta name="twitter:title" content="Websites change. Perma Links don’t." />
-        <meta name="twitter:description" content="Perma.cc helps scholars, journals, courts, and others create permanent records of the web sources they cite." />
-        <meta name="twitter:image" content="{{ STATIC_URL }}img/create-step-4.png" />
+      <meta name="twitter:card" content="summary" />
+      <meta name="twitter:site" content="@HarvardLIL" />
+      <meta name="twitter:title" content="Websites change. Perma Links don’t." />
+      <meta name="twitter:description" content="Perma.cc helps scholars, journals, courts, and others create permanent records of the web sources they cite." />
+      <meta name="twitter:image" content="{{ STATIC_URL }}img/create-step-4.png" />
 
-        <meta property="og:title" content="Websites change. Perma Links don’t." />
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="Perma" />
-        <meta property="og:url" content="https:perma.cc/" />
-        <meta property="og:image" content="{{ STATIC_URL }}img/perma-infinity-landing.png" />
+      <meta property="og:title" content="Websites change. Perma Links don’t." />
+      <meta property="og:type" content="website" />
+      <meta property="og:site_name" content="Perma" />
+      <meta property="og:url" content="https:perma.cc/" />
+      <meta property="og:image" content="{{ STATIC_URL }}img/perma-infinity-landing.png" />
 
-        {% block meta %}{% endblock %}
-        <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
-        {% stylesheet 'base' %}
+      {% block meta %}{% endblock %}
+      <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
+      {% stylesheet 'base' %}
 
-        {# Python variables for use in Javascript #}
-        {% include 'js_config.html' %}
+      {# Python variables for use in Javascript #}
+      {% include 'js_config.html' %}
 
-        {% javascript 'global_head' %}
-        {% block styles %}{% endblock %}
-        
-        <!--[if lt IE 9]>
-			<script src="{{ STATIC_URL }}js/html5shiv.js"></script>
-		  	<script src="{{ STATIC_URL }}js/respond.js"></script>
-		<![endif]-->
+      {% javascript 'global_head' %}
+      {% block styles %}{% endblock %}
 
-    </head>
-    <body class="{% block bodyFlags %}{% endblock bodyFlags %}">
+      <!--[if lt IE 9]>
+        <script src="{{ STATIC_URL }}js/html5shiv.js"></script>
+        <script src="{{ STATIC_URL }}js/respond.js"></script>
+      <![endif]-->
 
-    	<header class="_default">
-    	    <div class="navbar navbar-default navbar-static-top">
-				<div class="container cont-fixed">
-					<div class="navbar-header">
-						<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-							<span class="icon-bar"></span>
-							<span class="icon-bar"></span>
-							<span class="icon-bar"></span>
-						</button>
-					  
-						<div class="navbar-brand logo">
-							<a href="{% url 'landing' %}">Perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/perma-logo-orange.svg"></a>
-						</div>
-					</div>
+  </head>
+  <body class="{% block bodyFlags %}{% endblock bodyFlags %}">
+    <header class="_default">
+      <div class="navbar navbar-default navbar-static-top">
+        <div class="container cont-fixed">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <div class="navbar-brand logo">
+              <a href="{% url 'landing' %}">Perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/perma-logo-orange.svg"></a>
+            </div>
+          </div>
           {% include 'includes/upper_right_menu.html' %}
-				</div><!--/container -->
-			</div><!--/navbar -->	
-		</header>
+        </div><!--/container -->
+      </div><!--/navbar -->
+    </header>
 
-		  
-		<section id="main" class="{% block mainFlags %}{% endblock mainFlags %}">
-			{% if this_page != 'landing' and this_page != 'manage' %}
-				<div id="main-content" class="container cont-full-bleed">
-			{% endif %}
+    <section id="main" class="{% block mainFlags %}{% endblock mainFlags %}">
+      {% if this_page != 'landing' and this_page != 'manage' %}
+        <div id="main-content" class="container cont-full-bleed">
+      {% endif %}
 
-			{% block mainContent %}{% endblock mainContent %}
+      {% block mainContent %}{% endblock mainContent %}
 
-			{% if this_page != 'landing' %}
-				</div><!--/ #main-content"-->
-			{% endif %}
-		</section><!--/#main-->
-		
-		{% block footer %}
-			<footer>
-				<div class="container cont-fixed">
-					<div class="row">
-						<div class="col col-sm-6">
-							<ul id="footer-nav">
-					            <!--<li class="footer-nav-item"><a class="home" href="{% url 'landing' %}">Perma.cc</a></li>-->
-					            <li class="footer-nav-item"><a href="{% url 'about' %}">About</a></li>
-					            <li class="footer-nav-item"><a href="{% url 'docs' %}">Guide</a></li>
-					            <li class="footer-nav-item"><a href="{% url 'dev_docs' %}">Developers</a></li>
-					            <li class="footer-nav-item"><a href="{% url 'stats' %}">Stats</a></li>
-					            <li class="footer-nav-item"><a href="{% url 'contact' %}">Contact</a></li>
-					            <li class="footer-nav-item"><a href="https://blogs.law.harvard.edu/perma/">Blog</a></li>
-					            <li class="footer-nav-item"><a href="https://github.com/harvard-lil/perma">GitHub</a></li>
-							</ul>
-						</div>
-						<div class="col col-sm-6">
-							<ul id="boilerplate">
-								<li class="boilerplate-item"><a href="{% url 'terms_of_service' %}">Terms of Service</a></li>
-								<li class="boilerplate-item"><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
-								<li class="boilerplate-item"><a href="{% url 'copyright_policy' %}">Copyright Policy</a></li>
-							</ul>
-						</div>
-					</div>
-				</div><!--/container-->
-			</footer>
-		{% endblock %}
+      {% if this_page != 'landing' %}
+        </div><!--/ #main-content"-->
+      {% endif %}
+    </section><!--/#main-->
 
+    {% block footer %}
+      <footer>
+        <div class="container cont-fixed">
+          <div class="row">
+            <div class="col col-sm-6">
+              <ul id="footer-nav">
+                <li class="footer-nav-item"><a href="{% url 'about' %}">About</a></li>
+                <li class="footer-nav-item"><a href="{% url 'docs' %}">Guide</a></li>
+                <li class="footer-nav-item"><a href="{% url 'dev_docs' %}">Developers</a></li>
+                <li class="footer-nav-item"><a href="{% url 'stats' %}">Stats</a></li>
+                <li class="footer-nav-item"><a href="{% url 'contact' %}">Contact</a></li>
+                <li class="footer-nav-item"><a href="https://blogs.law.harvard.edu/perma/">Blog</a></li>
+                <li class="footer-nav-item"><a href="https://twitter.com/permacc">Twitter</a></li>
+                <li class="footer-nav-item"><a href="https://github.com/harvard-lil/perma">GitHub</a></li>
+              </ul>
+            </div>
+            <div class="col col-sm-6">
+              <ul id="boilerplate">
+                <li class="boilerplate-item"><a href="{% url 'terms_of_service' %}">Terms of Service</a></li>
+                <li class="boilerplate-item"><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
+                <li class="boilerplate-item"><a href="{% url 'copyright_policy' %}">Copyright Policy</a></li>
+              </ul>
+            </div>
+          </div>
+        </div><!--/container-->
+      </footer>
+    {% endblock %}
     {% javascript 'global' %}
     {% block scripts %}{% endblock %}
     {% block templates %}{% endblock %}
