@@ -245,7 +245,7 @@ def manage_single_registrar(request, registrar_id):
             if request.user.is_staff:
                 return HttpResponseRedirect(reverse('user_management_manage_registrar'))
             else:
-                return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+                return HttpResponseRedirect(reverse('user_management_settings_affiliations'))
 
     return render(request, 'user_management/manage_single_registrar.html', {
         'target_registrar': target_registrar,
@@ -799,7 +799,7 @@ def organization_user_leave_organization(request, org_id):
         messages.add_message(request, messages.SUCCESS, '<h4>Success.</h4> You are no longer a member of <strong>%s</strong>.' % org.name, extra_tags='safe')
 
         if request.user.organizations.exists():
-            return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+            return HttpResponseRedirect(reverse('user_management_settings_affiliations'))
         else:
             return HttpResponseRedirect(reverse('create_link'))
 
@@ -976,7 +976,7 @@ def settings_password(request):
 
 @login_required
 @user_passes_test(lambda user: user.is_registrar_user() or user.is_organization_user or user.has_registrar_pending())
-def settings_organizations(request):
+def settings_affiliations(request):
     """
     Settings view organizations, leave organizations ...
     """
@@ -996,11 +996,11 @@ def settings_organizations(request):
         org.default_to_private = request.POST.get('default_to_private')
         org.save()
 
-        return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+        return HttpResponseRedirect(reverse('user_management_settings_affiliations'))
 
-    return render(request, 'user_management/settings-organizations.html', {
+    return render(request, 'user_management/settings-affiliations.html', {
         'next': request.get_full_path(),
-        'this_page': 'settings_organizations',
+        'this_page': 'settings_affiliations',
         'pending_registrar': pending_registrar,
         'orgs_by_registrar': orgs_by_registrar})
 
@@ -1021,7 +1021,7 @@ def settings_organizations_change_privacy(request, org_id):
         if request.user.is_registrar_user() or request.user.is_staff:
             return HttpResponseRedirect(reverse('user_management_manage_organization'))
         else:
-            return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+            return HttpResponseRedirect(reverse('user_management_settings_affiliations'))
 
     context = RequestContext(request, context)
 
@@ -1222,7 +1222,7 @@ def libraries(request):
                 request.user.pending_registrar = new_registrar
                 request.user.save()
 
-                return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+                return HttpResponseRedirect(reverse('user_management_settings_affiliations'))
 
         else:
             context.update({'user_form':user_form, 'registrar_form':registrar_form})

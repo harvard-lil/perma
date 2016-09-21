@@ -46,7 +46,7 @@
           <li><a href="{% url 'user_management_settings_password' %}">Password</a></li>
           <li><a href="{% url 'user_management_settings_tools' %}">Tools</a></li>
           {% if request.user.is_organization_user or request.user.is_registrar_user or request.user.has_registrar_pending %}
-            <li><a href="{% url 'user_management_settings_organizations' %}">Your affiliations</a></li>
+            <li><a href="{% url 'user_management_settings_affiliations' %}">Your affiliations</a></li>
           {% endif %}
           <li class="divider"></li>
 

@@ -8,7 +8,7 @@
 <div class="alert alert-danger">You will lose your sharing privileges <strong>{{ org.name }}</strong>.</div>
 <form action="" method="POST">
     {% csrf_token %}
-    <a class="btn cancel" href="{% url 'user_management_settings_organizations' %}">Cancel</a>
+    <a class="btn cancel" href="{% url 'user_management_settings_affiliations' %}">Cancel</a>
     <button type="submit" class="btn delete-confirm">Leave {{ org.name }} forever</button>
 </form>
 

@@ -75,7 +75,7 @@ urlpatterns = [
     # Settings
     url(r'^settings/profile/?$', user_management.settings_profile, name='user_management_settings_profile'),
     url(r'^settings/password/?$', user_management.settings_password, name='user_management_settings_password'),
-    url(r'^settings/organizations/?$', user_management.settings_organizations, name='user_management_settings_organizations'),
+    url(r'^settings/affiliations/?$', user_management.settings_affiliations, name='user_management_settings_affiliations'),
     url(r'^settings/organizations-change-privacy/(?P<org_id>\d+)/', user_management.settings_organizations_change_privacy, name='user_management_settings_organizations_change_privacy'),
     url(r'^settings/tools/?$', user_management.settings_tools, name='user_management_settings_tools'),
 
