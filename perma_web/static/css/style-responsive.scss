@@ -2296,6 +2296,21 @@ p.caption {
   }
 }
 
+.close-browser-tools {
+  font-size: 22px;
+  font-weight: normal;
+  color: $color-blue;
+  display: inline-block;
+  top: 3px;
+  padding: 0px;
+  margin-left: 5px;
+  &:hover, &:focus {
+    color: $color-black;
+    cursor: pointer;
+    text-decoration: none;
+  }
+}
+
 .popup-alert {
   @include affix-to-top;
   padding: $grid * 3 $double;
@@ -2494,6 +2509,7 @@ p.caption {
     }
   }
   #links-remaining-message,
+  #browser-tools-message,
   #organization_select_form {
     margin-top: $grid * 3;
     text-align: center;
@@ -2502,7 +2518,8 @@ p.caption {
     max-width: none;
     font-family: $font-hed-alt;
   }
-  #links-remaining-message {
+  #links-remaining-message,
+  #browser-tools-message, {
     color: $color-blue;
     font-weight: 700;
     a {
@@ -2596,6 +2613,9 @@ p.caption {
     @include respond-wide {
       @include link-dropdown-widths(1104px, $grid * 46);
     }
+  }
+  #browser-tools-message.limit-true {
+    margin-top: -45px;
   }
   .dropdown {
     border: 1px solid $color-trans-lightgray;

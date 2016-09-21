@@ -6,8 +6,8 @@
 {% block mainFlags %}_create{% if selected_org.default_to_private %} _isPrivate{% else %} _isPublic{% endif %}{% endblock mainFlags %}
 
 {% block styles %}
-    {{ block.super }}
-    <link rel="stylesheet" href="{{ STATIC_URL }}vendors/jstree/jstree-theme/style.min.css" />
+  {{ block.super }}
+  <link rel="stylesheet" href="{{ STATIC_URL }}vendors/jstree/jstree-theme/style.min.css" />
 {% endblock %}
 
 {% block mainContent %}
@@ -15,54 +15,64 @@
 
   <div id="create-item-container" class="container cont-full-bleed">
     <div class="container cont-fixed">
-        <h1 class="create-title">Create a new <span class="nobreak">Perma Link</span></h1>
+      <h1 class="create-title">Create a new <span class="nobreak">Perma Link</span></h1>
       <p class="create-lede">Enter any URL to preserve it forever.</p>
     </div>
     <div class="container cont-full-bleed cont-sm-fixed">
-        <form 	class="form-priority"
+      <form class="form-priority"
             id="linker"
             action="{% url 'api_dispatch_list' resource_name='archives' api_name='v1' %}"
             method="post">
         <fieldset class="form-priority-fieldset">
-              <input 	id="rawUrl"
-                  name="url"
-                  class="text-input select-on-click form-priority-input"
-                  type="text"
-                  placeholder="Paste your URL here."
-                  data-placement="bottom"
-                  data-content="To save a link, enter its URL and click the <strong>Create Perma Link</strong> button. To see the links you've saved, click <strong>Library</strong> in the menu to the left."
-                  data-original-title="Start building your library"
-                  data-html="true"
-                  data-trigger="manual"
-                  />
-              <button disabled="disabled"
-                      class="btn btn-large btn-info _active-when-valid"
-                            id="addlink"
-                            type="submit"
-                    >Create Perma Link</button>
+          <input id="rawUrl"
+                 name="url"
+                 class="text-input select-on-click form-priority-input"
+                 type="text"
+                 placeholder="Paste your URL here."
+                 data-placement="bottom"
+                 data-content="To save a link, enter its URL and click the <strong>Create Perma Link</strong> button. To see the links you've saved, click <strong>Library</strong> in the menu to the left."
+                 data-original-title="Start building your library"
+                 data-html="true"
+                 data-trigger="manual"
+                 />
+          <button disabled="disabled"
+                  class="btn btn-large btn-info _active-when-valid"
+                  id="addlink"
+                  type="submit">
+              Create Perma Link
+          </button>
 
-              {% if request.user.has_limit %}
-          <p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account this month. <a href="{% url 'docs' %}#create-account">Learn more about accounts</a>.</p>
+          {% if request.user.has_limit %}
+            <p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account this month. <a href="{% url 'docs' %}#create-account">Learn more about accounts</a>.</p>
           {% else %}
-          <div id="organization_select_form">
-            <span class="label-affil">This Perma Link will be affiliated with</span>
-            <div class="dropdown dropdown-affil">
+            <div id="organization_select_form">
+              <span class="label-affil">This Perma Link will be affiliated with</span>
+              <div class="dropdown dropdown-affil">
                 <button class="dropdown-toggle selector selector-affil needsclick" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                   Please select a folder
                   <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu selector-menu" aria-labelledby="dropdownMenu1" id="organization_select"></ul>
+              </div>
             </div>
-          </div>
           {% endif %}
         </fieldset>
-        </form><!--/#linker-->
+        {% if suppress_reminder != 'true' %}
+          <p id="browser-tools-message" class="limit-{% if request.user.has_limit %}true{% else %}false{% endif %}">
+            To make Perma links more quickly, try our <a href="{% url 'user_management_settings_tools' %}"">browser tools</a>.
+            <button type="button" class="close-browser-tools btn-link">
+              <span aria-hidden="true">&times;</span>
+              <span class="sr-only">Close</span>
+            </button>
+          </p>
+        {% endif %}
+      </form><!--/#linker-->
     </div><!-- cont-full-bleed cont-sm-fixed -->
   </div><!-- container cont-full-bleed -->
 
 <!-- our container for error messages -->
 <div class="create-errors container cont-fixed">
-    <div id="error-container" class="_hide"></div>
+  <div id="error-container" class="_hide"></div>
 </div>
 <!-- / our container for error messages -->
 
@@ -70,58 +80,58 @@
 <!-- Your Perma Links -->
 {% if messages %}
 <div class="container cont-fixed">
-	<div class="row">
-        {% for message in messages %}
-            <div class="alert alert-{% if message.level >= 30 %}danger{% else %}success{% endif %}" style="clear:both; margin:1em">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
-        {% endfor %}
-	</div>
+  <div class="row">
+    {% for message in messages %}
+      <div class="alert alert-{% if message.level >= 30 %}danger{% else %}success{% endif %}" style="clear:both; margin:1em">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
+    {% endfor %}
+  </div>
 </div>
 {% endif %}
 <div class="container cont-fixed manage-links">
-	<div class="row">
-	    <div class="col-md-3 col-folders">
-	        <div class="panel-heading">
-	            Folders
-	            <a href="#" class="pull-right delete-folder icon-trash" title="Delete Selected Folder"></a>
-	            <a href="#" class="pull-right edit-folder icon-edit" title="Rename Selected Folder"></a>
-	            <a href="#" class="pull-right new-folder icon-plus" title="New Folder"></a>
-	        </div>
-	        <div id="folder-tree">
-	            <ul>
-	                {% for tree in request.user.all_folder_trees %}
-	                    {% recursetree tree %}
-							<li data-folder_id="{{ node.pk }}" data-organization_id="{{ node.organization_id }}" data-jstree='{ {% if node.pk == folder.id %}"selected":true{% elif node.is_shared_folder %}"type":"shared_folder"{% endif %} }'>
-								<a href="{% url "folder_contents" folder_id=node.pk %}?iframe=1" target="folder-contents">{{ node.name }}</a>
-	                            {% if not node.is_leaf_node %}
-	                                <ul>
-	                                    {{ children }}
-	                                </ul>
-	                            {% endif %}
-	                        </li>
-	                    {% endrecursetree %}
-	                {% endfor %}
+  <div class="row">
+    <div class="col-md-3 col-folders">
+      <div class="panel-heading">
+        Folders
+        <a href="#" class="pull-right delete-folder icon-trash" title="Delete Selected Folder"></a>
+        <a href="#" class="pull-right edit-folder icon-edit" title="Rename Selected Folder"></a>
+        <a href="#" class="pull-right new-folder icon-plus" title="New Folder"></a>
+      </div>
+      <div id="folder-tree">
+        <ul>
+          {% for tree in request.user.all_folder_trees %}
+            {% recursetree tree %}
+              <li data-folder_id="{{ node.pk }}" data-organization_id="{{ node.organization_id }}" data-jstree='{ {% if node.pk == folder.id %}"selected":true{% elif node.is_shared_folder %}"type":"shared_folder"{% endif %} }'>
+                <a href="{% url "folder_contents" folder_id=node.pk %}?iframe=1" target="folder-contents">{{ node.name }}</a>
+                {% if not node.is_leaf_node %}
+                  <ul>
+                    {{ children }}
+                  </ul>
+                {% endif %}
+              </li>
+            {% endrecursetree %}
+          {% endfor %}
 
-	            </ul>
-	        </div>
-	    </div>
-	
-	    <div class="col-md-9 col-links">
-	        <div class="container link-headers">
-	            <div class="row">
-	                <div class="col-xs-12">
-	                    <h3 class="link-header body-ah">Your Perma Links</h3>
-	                </div>
-	            </div>
-	        </div>
-	        {% include "user_management/includes/search_form.html" with search_placeholder="Search Your Perma Links" %}
-	        <div class="container item-rows">
-	
-	            <noscript>
-	                <iframe src="{% url "folder_contents" folder_id=folder.id %}?iframe=1" name="folder-contents"></iframe>
-	            </noscript>
-	        </div>
-	    </div>
-	</div>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-md-9 col-links">
+      <div class="container link-headers">
+        <div class="row">
+          <div class="col-xs-12">
+            <h3 class="link-header body-ah">Your Perma Links</h3>
+          </div>
+        </div>
+      </div>
+      {% include "user_management/includes/search_form.html" with search_placeholder="Search Your Perma Links" %}
+      <div class="container item-rows">
+
+        <noscript>
+          <iframe src="{% url "folder_contents" folder_id=folder.id %}?iframe=1" name="folder-contents"></iframe>
+        </noscript>
+      </div>
+    </div>
+  </div>
 </div>
 <!-- / Your Perma Links -->
 
@@ -133,130 +143,130 @@
 {% endblock %}
 
 {% block scripts %}
-    {{ block.super }}
+  {{ block.super }}
 
-    <script>
-        var create_url = "{% url 'create_link' %}",
-            contact_url = "{% url 'contact' %}",
-            links_remaining = "{{links_remaining}}",
-            current_user = {% as_json request.user %},
-            host = "{{ request.get_host }}";
-    </script>
+  <script>
+    var create_url = "{% url 'create_link' %}",
+        contact_url = "{% url 'contact' %}",
+        links_remaining = "{{links_remaining}}",
+        current_user = {% as_json request.user %},
+        host = "{{ request.get_host }}";
+  </script>
 
-    {% javascript 'admin' %}
-    {% javascript 'create' %}
+  {% javascript 'admin' %}
+  {% javascript 'create' %}
 
 {% endblock %}
 
 {% block templates %}
 
-    {% verbatim %}
-        <script id="upload-confirm-template" type="text/x-handlebars-template">
-              <p class="message-large">Upload successful!</p>
-              <p><a href="{{url}}">{{url}}</a></p>
-        </script>
+  {% verbatim %}
+    <script id="upload-confirm-template" type="text/x-handlebars-template">
+      <p class="message-large">Upload successful!</p>
+      <p><a href="{{url}}">{{url}}</a></p>
+    </script>
 
-        <script id="error-template" type="text/x-handlebars-template">
-            <p class="message-large">{{ message }}</p>
-            <p class="message">We’re unable to create your Perma Link.</p>
-             {{#if upload_allowed}}
-            <p>You can <a href="" onclick="return CreateModule.upload_form();">upload your own archive</a> or <a href="{{contact_url}}">contact us about this error.</a></p>
-            {{/if}}
-        </script>
+    <script id="error-template" type="text/x-handlebars-template">
+      <p class="message-large">{{ message }}</p>
+      <p class="message">We’re unable to create your Perma Link.</p>
+      {{#if upload_allowed}}
+      <p>You can <a href="" onclick="return CreateModule.upload_form();">upload your own archive</a> or <a href="{{contact_url}}">contact us about this error.</a></p>
+      {{/if}}
+    </script>
 
-        <script id="preview-failure-template" type="text/x-handlebars-template">
-            <!--<div class="screenshot-thumbnail">
-                <img src="{{static_prefix}}img/sorry-preview.jpg" class="img-responsive">
-            </div>-->
-        </script>
+    <script id="preview-failure-template" type="text/x-handlebars-template">
+      <!--<div class="screenshot-thumbnail">
+        <img src="{{static_prefix}}img/sorry-preview.jpg" class="img-responsive">
+      </div>-->
+    </script>
 
-        <script id="created-link-items-template" type="text/x-handlebars-template">
-            {{#if query }}
-                <div class="shared-folder-label alert-success">
-                    Search results for "{{ query }}".
-                    <a href="#" class="clear-search">Clear search.</a>
+    <script id="created-link-items-template" type="text/x-handlebars-template">
+      {{#if query }}
+        <div class="shared-folder-label alert-success">
+          Search results for "{{ query }}".
+          <a href="#" class="clear-search">Clear search.</a>
+        </div>
+      {{else}}
+        <!-- TODO: insert template from comment above -->
+      {{/if}}
+
+
+      {{#each links}}
+        <div class="item-container _isExpandable{{#if is_private }} _isPrivate{{/if}}">
+
+          <div class="row item-row row-no-bleed _isDraggable" link_id="{{ guid }}">
+            <div class="row">
+              <div class="col col-sm-6 col-md-60">
+                <div class="item-title">
+                  {{#if is_private }}<span class="ui-private">[private] </span>{{/if}}<span>{{ title }}</span>
                 </div>
-            {{else}}
-                <!-- TODO: insert template from comment above -->
-            {{/if}}
-
-
-            {{#each links}}
-                <div class="item-container _isExpandable{{#if is_private }} _isPrivate{{/if}}">
-
-                    <div class="row item-row row-no-bleed _isDraggable" link_id="{{ guid }}">
-                        <div class="row">
-                            <div class="col col-sm-6 col-md-60">
-                                <div class="item-title">
-                                    {{#if is_private }}<span class="ui-private">[private] </span>{{/if}}<span>{{ title }}</span>
-                                </div>
-                                <div class="item-subtitle">
-                                    <a href="{{ url }}" target="_blank" class="item-link-original no-drag">{{ truncatechars url 200 }}</a>
-                                </div>
-                            </div>
-                            <div class="col col-sm-6 col-md-40 align-right item-permalink">
-                                {{#if delete_available}}<a class="delete no-drag" href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}
-                                <a class="perma no-drag" href="http://{{local_url}}" target="_blank">{{local_url}}</a>
-                            </div>
-                        </div>
-                        <div class="row item-secondary">
-                            <div class="col col-sm-7">
-                                {{#if organization }}
-                                <div class="item-affil">
-                                    <span>{{organization.name}}</span>
-                                </div>
-                                {{/if}}
-                            </div>
-                            <div class="col col-sm-5 sm-align-right">
-                                <span class="item-date"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row item-details" {{#if search_query_in_notes}}style="display:block"{{/if}}>
-                        <div class="col-sm-7">
-
-                            <div class="form-group">
-                                <label for="link-title-{{guid}}">Display title</label>
-                                <span class="title-save-status"></span>
-                                <input type="text" class="link-title" name="input" id="link-title-{{guid}}" value="{{title}}">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="link-notes-{{guid}}">Notes</label>
-                                <span class="notes-save-status"></span>
-                                <textarea id="link-notes-{{guid}}" class="link-notes" rows="6">{{notes}}</textarea>
-                                <span class="muted">
-                                    Notes are private to you and your oganization(s)
-                                </span>
-                            </div>
-
-                            <div class="form-group">
-                               <label for="move-to-folder-{{guid}}">Move to folder</label>
-                                <select id="move-to-folder-{{guid}}" class="move-to-folder form-control"></select>
-                            </div>
-
-                        </div>
-                        <div class="col-sm-5 link-stats">
-                            <div>
-                                <span><strong>Views:</strong> {{view_count}}</span></div>
-                            <div><span><strong>Created by:</strong> {{created_by.full_name}}</span></div>
-                        </div>
-                    </div>
+                <div class="item-subtitle">
+                  <a href="{{ url }}" target="_blank" class="item-link-original no-drag">{{ truncatechars url 200 }}</a>
                 </div>
-            {{else}}
-                <div class="row item-row row-no-bleed">
-                    <div class="row">
-                        <div class="col col-xs-12">
-                            <div class="item-title">
-                                <p class="item-notification">This is an empty folder</p>
-                            </div>
-                        </div>
-                    </div>
+              </div>
+              <div class="col col-sm-6 col-md-40 align-right item-permalink">
+                {{#if delete_available}}<a class="delete no-drag" href="/manage/delete-link/{{guid}}">Delete</a>{{/if}}
+                <a class="perma no-drag" href="http://{{local_url}}" target="_blank">{{local_url}}</a>
+              </div>
+            </div>
+            <div class="row item-secondary">
+              <div class="col col-sm-7">
+                {{#if organization }}
+                <div class="item-affil">
+                  <span>{{organization.name}}</span>
                 </div>
-            {{/each}}
-        </script>
+                {{/if}}
+              </div>
+              <div class="col col-sm-5 sm-align-right">
+                <span class="item-date"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
+              </div>
+            </div>
+          </div>
 
-    {% endverbatim %}
+          <div class="row item-details" {{#if search_query_in_notes}}style="display:block"{{/if}}>
+            <div class="col-sm-7">
+
+              <div class="form-group">
+                <label for="link-title-{{guid}}">Display title</label>
+                <span class="title-save-status"></span>
+                <input type="text" class="link-title" name="input" id="link-title-{{guid}}" value="{{title}}">
+              </div>
+
+              <div class="form-group">
+                <label for="link-notes-{{guid}}">Notes</label>
+                <span class="notes-save-status"></span>
+                <textarea id="link-notes-{{guid}}" class="link-notes" rows="6">{{notes}}</textarea>
+                <span class="muted">
+                  Notes are private to you and your organization(s)
+                </span>
+              </div>
+
+              <div class="form-group">
+                <label for="move-to-folder-{{guid}}">Move to folder</label>
+                <select id="move-to-folder-{{guid}}" class="move-to-folder form-control"></select>
+              </div>
+
+            </div>
+            <div class="col-sm-5 link-stats">
+              <div>
+                <span><strong>Views:</strong> {{view_count}}</span></div>
+              <div><span><strong>Created by:</strong> {{created_by.full_name}}</span></div>
+            </div>
+          </div>
+        </div>
+      {{else}}
+        <div class="row item-row row-no-bleed">
+          <div class="row">
+            <div class="col col-xs-12">
+              <div class="item-title">
+                <p class="item-notification">This is an empty folder</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      {{/each}}
+    </script>
+
+  {% endverbatim %}
   {% include "archive/includes/upload_your_own.html" %}
 {% endblock templates %}

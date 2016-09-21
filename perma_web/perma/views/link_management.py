@@ -45,10 +45,16 @@ def create_link(request):
     if links_remaining < 0:
         links_remaining = 0
 
+    if 'url' in request.GET:
+        suppress_reminder = 'true'
+    else:
+        suppress_reminder = request.COOKIES.get('suppress_reminder')
+
     return render(request, 'user_management/create-link.html', {
         'this_page': 'create_link',
         'links_remaining': links_remaining,
         'folder': folder,
+        'suppress_reminder': suppress_reminder
     })
 
 
