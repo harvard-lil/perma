@@ -985,6 +985,9 @@ def settings_organizations(request):
     if pending_registrar:
         messages.add_message(request, messages.INFO, "Thank you for requesting an account for your library. Perma.cc will review your request as soon as possible.")
 
+    organizations = request.user.organizations.all().order_by('registrar')
+    orgs_by_registrar = {registrar : [org for org in orgs] for registrar, orgs in itertools.groupby(organizations, lambda x: x.registrar)}
+
     if request.method == 'POST':
         try:
             org = Organization.objects.accessible_to(request.user).get(pk=request.POST.get('org'))
@@ -998,7 +1001,8 @@ def settings_organizations(request):
     return render(request, 'user_management/settings-organizations.html', {
         'next': request.get_full_path(),
         'this_page': 'settings_organizations',
-        'pending_registrar': pending_registrar})
+        'pending_registrar': pending_registrar,
+        'orgs_by_registrar': orgs_by_registrar})
 
 
 @login_required

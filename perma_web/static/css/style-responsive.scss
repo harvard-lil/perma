@@ -1410,6 +1410,9 @@ button {
     margin-bottom: $double;
     font-size: 18px;
   }
+  a:hover {
+    text-decoration: underline;
+  }
 }
 
 .body-ch {
@@ -3963,18 +3966,15 @@ span.action {
   .sponsor-name,
   .sponsor-email,
   p {
-    display: block;
+    display: inline-block;
     padding-right: 72px;
   }
   .btn-xs {
     padding: 4px 8px;
     font-size: 12px;
     margin: 0;
-    position: absolute;
-    top: 50%;
-    right: $grid;
-    margin-top: -15px;
-    width: auto;
+    float: right;
+    margin-left: 5px;
   }
 }
 
