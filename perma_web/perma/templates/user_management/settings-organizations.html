@@ -29,20 +29,20 @@
           </div>
         {% endfor%}
       {% endfor %}
-              {% if pending_registrar %}
-                <p class="body-text"><strong>Pending registrar</strong> {{pending_registrar.name}}</p>
-              {% endif %}
+      {% if pending_registrar %}
+        <p class="body-text"><strong>Pending registrar</strong> {{pending_registrar.name}}</p>
+      {% endif %}
 
-              {% if request.user.registrar %}
-                <div class="admin-sponsor">
-                {% if request.user.registrar.website %}
-                  <strong><a href="{{request.user.registrar.website}}" target="_blank">{{request.user.registrar}}</a></strong>
-                {% else %}
-                  <strong>{{request.user.registrar}}</strong>
-                {% endif %}
-                <span class="sponsor-email">{{request.user.registrar.email}}</span>
-                <a href="{% url 'user_management_manage_single_registrar' request.user.registrar.id %}" class="btn btn-default btn-xs edit-registrar-btn" role="button">Edit</a>
-                </div>
-              {% endif %}
+      {% if request.user.registrar %}
+        <div class="admin-sponsor">
+        {% if request.user.registrar.website %}
+          <strong><a href="{{request.user.registrar.website}}" target="_blank">{{request.user.registrar}}</a></strong>
+        {% else %}
+          <strong>{{request.user.registrar}}</strong>
+        {% endif %}
+        <span class="sponsor-email">{{request.user.registrar.email}}</span>
+        <a href="{% url 'user_management_manage_single_registrar' request.user.registrar.id %}" class="btn btn-default btn-xs edit-registrar-btn" role="button">Edit</a>
+        </div>
+      {% endif %}
     </div>
 {% endblock %}
