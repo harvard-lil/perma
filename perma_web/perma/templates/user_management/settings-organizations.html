@@ -34,18 +34,52 @@
         {% endfor%}
       {% endfor %}
       {% if pending_registrar %}
-        <p class="body-text"><strong>Pending registrar</strong> {{pending_registrar.name}}</p>
+        <p class="body-text"><strong>Pending Registrar</strong></p>
+        <div class="settings-block">
+          <p class="sponsor-name">{{pending_registrar.name}}</p>
+          <dl class="dl-horizontal">
+            <dt>Website</dt>
+            <dd>
+              {% if request.user.registrar.website %}
+                <a href="{{request.user.registrar.website}}" target="_blank">{{request.user.registrar.website}}</a>
+              {% else %}
+                (none listed)
+              {% endif %}
+            </dd>
+            <dt>Email</dt>
+            <dd>
+              {% if request.user.registrar.email %}
+                <a href="mailto:{{request.user.registrar.email}}" target="_blank">{{request.user.registrar.email}}</a>
+              {% else %}
+                (none listed)
+              {% endif %}
+            </dd>
+          </dl>
+        </div>
       {% endif %}
 
       {% if request.user.registrar %}
-        <div class="admin-sponsor">
-        {% if request.user.registrar.website %}
-          <strong><a href="{{request.user.registrar.website}}" target="_blank">{{request.user.registrar}}</a></strong>
-        {% else %}
-          <strong>{{request.user.registrar}}</strong>
-        {% endif %}
-        <span class="sponsor-email">{{request.user.registrar.email}}</span>
-        <a href="{% url 'user_management_manage_single_registrar' request.user.registrar.id %}" class="btn btn-default btn-xs edit-registrar-btn" role="button">Edit</a>
+        <h4 class="body-bh">{{request.user.registrar}}</h4>
+        <div class="settings-block">
+          <dl class="dl-horizontal">
+            <dt>Website</dt>
+            <dd>
+              {% if request.user.registrar.website %}
+                <a href="{{request.user.registrar.website}}" target="_blank">{{request.user.registrar.website}}</a>
+              {% else %}
+                (none listed)
+              {% endif %}
+            </dd>
+            <dt>Email</dt>
+            <dd>
+              {% if request.user.registrar.email %}
+                <a href="mailto:{{request.user.registrar.email}}" target="_blank">{{request.user.registrar.email}}</a>
+              {% else %}
+                (none listed)
+              {% endif %}
+            </dd>
+          </dl>
+          <a href="{% url 'user_management_manage_single_registrar' request.user.registrar.id %}" class="btn btn-default btn-xs edit-registrar-btn" role="button">Edit</a>
         </div>
       {% endif %}
     </div>
