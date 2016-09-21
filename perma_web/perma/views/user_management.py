@@ -1441,8 +1441,8 @@ def email_pending_registrar_user(request, user):
 
     host = request.get_host()
 
-    content = '''We will review your library account request as soon as possible. A personal account has been created for you and will be linked to your library once that account is approved. 
-    
+    content = '''We will review your library account request as soon as possible. A personal account has been created for you and will be linked to your library once that account is approved.
+
 To activate this personal account, please click the link below or copy it to your web browser.  You will need to create a new password.
 
 http://%s%s
@@ -1465,7 +1465,7 @@ def email_registrar_request(request, pending_registrar):
 
     host = request.get_host()
 
-    content = '''A new library account request from %s is awaiting review and approval. 
+    content = '''A new library account request from %s is awaiting review and approval.
 
 http://%s%s
 
@@ -1488,8 +1488,8 @@ def email_approved_registrar_user(request, user):
 
     host = request.get_host()
 
-    content = '''Your request for a Perma.cc library account has been approved and your personal account has been linked. 
-    
+    content = '''Your request for a Perma.cc library account has been approved and your personal account has been linked.
+
 To start creating organizations and users, please click the link below or copy it to your web browser.
 
 http://%s%s
@@ -1518,8 +1518,8 @@ def email_court_request(request, court):
     if target_user:
         account_status = "has a personal account."
 
-    content = '''%s %s has requested more information about creating a court account for %s. 
-    
+    content = '''%s %s has requested more information about creating a court account for %s.
+
 This user %s
 
 ''' % (court.first_name, court.last_name, court.requested_account_note, account_status)
