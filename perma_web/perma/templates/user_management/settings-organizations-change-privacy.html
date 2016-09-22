@@ -4,16 +4,16 @@
 {% block adminContent %}
 
 		<h3 class="body-bh">Change default privacy settings for all links in <strong>{{ org.name }}</strong>?</h3>
-	
+
 	    <form method="post">
 	    	{% csrf_token %}
 	    	{% if org.default_to_private %}
 	    		<p class="page-dek">Your Perma Links are currently <strong>Private</strong> by default.</p>
-	        	<a class="btn cancel" href="{% url 'user_management_settings_organizations' %}">Cancel</a>
+	        	<a class="btn cancel" href="{% url 'user_management_settings_affiliations' %}">Cancel</a>
 	        	<button type="submit" class="btn">Set to Public</button></p>
 	        {% else %}
-	        	<p class="page-dek">Your Perma Links are currently <strong>Public</strong> by default.</p> 
-	        	<a class="btn cancel" href="{% url 'user_management_settings_organizations' %}">Cancel</a>
+	        	<p class="page-dek">Your Perma Links are currently <strong>Public</strong> by default.</p>
+	        	<a class="btn cancel" href="{% url 'user_management_settings_affiliations' %}">Cancel</a>
 	        	<button type="submit" class="btn">Set to Private</button></p>
 	        {% endif %}
 	    </form>

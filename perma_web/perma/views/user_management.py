@@ -245,7 +245,7 @@ def manage_single_registrar(request, registrar_id):
             if request.user.is_staff:
                 return HttpResponseRedirect(reverse('user_management_manage_registrar'))
             else:
-                return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+                return HttpResponseRedirect(reverse('user_management_settings_affiliations'))
 
     return render(request, 'user_management/manage_single_registrar.html', {
         'target_registrar': target_registrar,
@@ -799,7 +799,7 @@ def organization_user_leave_organization(request, org_id):
         messages.add_message(request, messages.SUCCESS, '<h4>Success.</h4> You are no longer a member of <strong>%s</strong>.' % org.name, extra_tags='safe')
 
         if request.user.organizations.exists():
-            return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+            return HttpResponseRedirect(reverse('user_management_settings_affiliations'))
         else:
             return HttpResponseRedirect(reverse('create_link'))
 
@@ -976,7 +976,7 @@ def settings_password(request):
 
 @login_required
 @user_passes_test(lambda user: user.is_registrar_user() or user.is_organization_user or user.has_registrar_pending())
-def settings_organizations(request):
+def settings_affiliations(request):
     """
     Settings view organizations, leave organizations ...
     """
@@ -984,6 +984,9 @@ def settings_organizations(request):
     pending_registrar = request.user.pending_registrar
     if pending_registrar:
         messages.add_message(request, messages.INFO, "Thank you for requesting an account for your library. Perma.cc will review your request as soon as possible.")
+
+    organizations = request.user.organizations.all().order_by('registrar')
+    orgs_by_registrar = {registrar : [org for org in orgs] for registrar, orgs in itertools.groupby(organizations, lambda x: x.registrar)}
 
     if request.method == 'POST':
         try:
@@ -993,12 +996,13 @@ def settings_organizations(request):
         org.default_to_private = request.POST.get('default_to_private')
         org.save()
 
-        return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+        return HttpResponseRedirect(reverse('user_management_settings_affiliations'))
 
-    return render(request, 'user_management/settings-organizations.html', {
+    return render(request, 'user_management/settings-affiliations.html', {
         'next': request.get_full_path(),
-        'this_page': 'settings_organizations',
-        'pending_registrar': pending_registrar})
+        'this_page': 'settings_affiliations',
+        'pending_registrar': pending_registrar,
+        'orgs_by_registrar': orgs_by_registrar})
 
 
 @login_required
@@ -1017,7 +1021,7 @@ def settings_organizations_change_privacy(request, org_id):
         if request.user.is_registrar_user() or request.user.is_staff:
             return HttpResponseRedirect(reverse('user_management_manage_organization'))
         else:
-            return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+            return HttpResponseRedirect(reverse('user_management_settings_affiliations'))
 
     context = RequestContext(request, context)
 
@@ -1218,7 +1222,7 @@ def libraries(request):
                 request.user.pending_registrar = new_registrar
                 request.user.save()
 
-                return HttpResponseRedirect(reverse('user_management_settings_organizations'))
+                return HttpResponseRedirect(reverse('user_management_settings_affiliations'))
 
         else:
             context.update({'user_form':user_form, 'registrar_form':registrar_form})
@@ -1437,8 +1441,8 @@ def email_pending_registrar_user(request, user):
 
     host = request.get_host()
 
-    content = '''We will review your library account request as soon as possible. A personal account has been created for you and will be linked to your library once that account is approved. 
-    
+    content = '''We will review your library account request as soon as possible. A personal account has been created for you and will be linked to your library once that account is approved.
+
 To activate this personal account, please click the link below or copy it to your web browser.  You will need to create a new password.
 
 http://%s%s
@@ -1461,7 +1465,7 @@ def email_registrar_request(request, pending_registrar):
 
     host = request.get_host()
 
-    content = '''A new library account request from %s is awaiting review and approval. 
+    content = '''A new library account request from %s is awaiting review and approval.
 
 http://%s%s
 
@@ -1484,8 +1488,8 @@ def email_approved_registrar_user(request, user):
 
     host = request.get_host()
 
-    content = '''Your request for a Perma.cc library account has been approved and your personal account has been linked. 
-    
+    content = '''Your request for a Perma.cc library account has been approved and your personal account has been linked.
+
 To start creating organizations and users, please click the link below or copy it to your web browser.
 
 http://%s%s
@@ -1514,8 +1518,8 @@ def email_court_request(request, court):
     if target_user:
         account_status = "has a personal account."
 
-    content = '''%s %s has requested more information about creating a court account for %s. 
-    
+    content = '''%s %s has requested more information about creating a court account for %s.
+
 This user %s
 
 ''' % (court.first_name, court.last_name, court.requested_account_note, account_status)

@@ -1,0 +1,84 @@
+{% extends "settings-layout.html" %}
+
+{% block title %} | Settings | Your Affiliations{% endblock %}
+
+{% block dashboardContent %}
+    <h3 class="body-ah _hideMobile">Your Affiliations</h3>
+    {% if messages %}
+    {% for message in messages %}
+      <div class="alert-{{ message.level_tag }} alert-block">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
+    {% endfor %}
+    {% endif %}
+    <div class="org-settings">
+      {% for registrar, orgs in orgs_by_registrar.items %}
+        <h4 class="body-bh">
+          <a href="mailto:{{registrar.email}}">{{registrar.name}}</a>
+        </h4>
+        {% for org in orgs %}
+          <div class="settings-block">
+            <p>
+              {{ org }}
+              <span class="_hideMobile">
+                {% if org.default_to_private %}
+                  (Links are <strong>Private</strong> by default)
+                {% endif %}
+              </span>
+            </p>
+            <div class="button-wrapper">
+              <a href="{% url 'user_management_manage_single_organization' org.id %}" class="btn btn-default btn-xs" role="button">Edit</a>
+              <a href="{% url 'user_management_organization_user_leave_organization' org.id %}" class="btn btn-default btn-xs leave-org-btn" role="button">Leave</a>
+            </div>
+          </div>
+        {% endfor%}
+      {% endfor %}
+      {% if pending_registrar %}
+        <p class="body-text"><strong>Pending Registrar</strong></p>
+        <div class="settings-block">
+          <p class="sponsor-name">{{pending_registrar.name}}</p>
+          <dl class="dl-horizontal">
+            <dt>Website</dt>
+            <dd>
+              {% if request.user.registrar.website %}
+                <a href="{{request.user.registrar.website}}" target="_blank">{{request.user.registrar.website}}</a>
+              {% else %}
+                (none listed)
+              {% endif %}
+            </dd>
+            <dt>Email</dt>
+            <dd>
+              {% if request.user.registrar.email %}
+                <a href="mailto:{{request.user.registrar.email}}" target="_blank">{{request.user.registrar.email}}</a>
+              {% else %}
+                (none listed)
+              {% endif %}
+            </dd>
+          </dl>
+        </div>
+      {% endif %}
+
+      {% if request.user.registrar %}
+        <h4 class="body-bh">{{request.user.registrar}}</h4>
+        <div class="settings-block">
+          <dl class="dl-horizontal">
+            <dt>Website</dt>
+            <dd>
+              {% if request.user.registrar.website %}
+                <a href="{{request.user.registrar.website}}" target="_blank">{{request.user.registrar.website}}</a>
+              {% else %}
+                (none listed)
+              {% endif %}
+            </dd>
+            <dt>Email</dt>
+            <dd>
+              {% if request.user.registrar.email %}
+                <a href="mailto:{{request.user.registrar.email}}" target="_blank">{{request.user.registrar.email}}</a>
+              {% else %}
+                (none listed)
+              {% endif %}
+            </dd>
+          </dl>
+          <a href="{% url 'user_management_manage_single_registrar' request.user.registrar.id %}" class="btn btn-default btn-xs edit-registrar-btn" role="button">Edit</a>
+        </div>
+      {% endif %}
+    </div>
+{% endblock %}

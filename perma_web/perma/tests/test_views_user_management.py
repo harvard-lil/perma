@@ -72,7 +72,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                              'a-name': 'new_name',
                              'a-email': 'test@test.com2',
                              'a-website': 'http://test.com'},
-                         success_url=reverse('user_management_settings_organizations'),
+                         success_url=reverse('user_management_settings_affiliations'),
                          success_query=Registrar.objects.filter(name='new_name'))
 
     def test_registrar_cannot_update_unrelated_registrar(self):
