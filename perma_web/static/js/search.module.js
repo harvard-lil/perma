@@ -17,9 +17,11 @@ SearchModule.setupEventHandlers = function() {
     }
   });
 
-  this.searchSubmit.on('submit', function (e) {
+  this.searchSubmit.submit(function (e) {
     e.preventDefault();
     SearchModule.clearLinks();
+    SearchModule.clearCalendar();
+
     SearchModule
       .getAllLinks()
       .then(function(response){
@@ -51,6 +53,11 @@ SearchModule.getQuery = function() {
 
 SearchModule.clearLinks = function() {
   DOMHelpers.emptyElement(this.linkRows);
+}
+
+SearchModule.clearCalendar = function() {
+  DOMHelpers.removeClass('#calendar', 'hasDatepicker');
+  DOMHelpers.emptyElement('#calendar');
 }
 
 SearchModule.displayCalendar = function(links) {
