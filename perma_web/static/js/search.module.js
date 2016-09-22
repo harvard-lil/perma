@@ -10,7 +10,7 @@ SearchModule.init = function(){
 }
 
 SearchModule.setupEventHandlers = function() {
-  this.linkRows.on('click', function(e){
+  this.linkRows.click(function(e){
     if (e.target.className == 'clear-search') {
       SearchModule.clearLinks();
       DOMHelpers.setInputValue('.search-query', '');
@@ -19,9 +19,21 @@ SearchModule.setupEventHandlers = function() {
 
   this.searchSubmit.on('submit', function (e) {
     e.preventDefault();
-    var query = SearchModule.getQuery();
-    SearchModule.getLinks(query);
+    SearchModule.clearLinks();
+    SearchModule
+      .getAllLinks()
+      .then(function(response){
+        var latestDate = SearchModule.formatDate(response.objects[0].creation_timestamp)
+        SearchModule.displayCalendar(response.objects);
+        SearchModule.getLinksForDate(latestDate);
+      });
   });
+}
+
+SearchModule.formatDate = function(date) {
+  var newDate = new Date(date);
+  newDate.setHours(0,0,0,0);
+  return '' + (newDate.getMonth() + 1)  + '-'  + newDate.getDate() + '-' + newDate.getFullYear();
 }
 
 SearchModule.displayLinks = function(links, query) {
@@ -41,47 +53,61 @@ SearchModule.clearLinks = function() {
   DOMHelpers.emptyElement(this.linkRows);
 }
 
-SearchModule.getLinks = function(query) {
+SearchModule.displayCalendar = function(links) {
+  var dates = {}
+  links.map(function(link){
+    var newDate = new Date(link.creation_timestamp);
+    newDate.setHours(0,0,0,0);
+    dates[newDate] = true})
+
+  $('#calendar').datepicker({
+    maxDate: "+1d",
+    beforeShowDay: function(day) {
+      if (dates[day]) {
+        return [true, 'active-date']
+      } else {return [false]}
+    }
+  });
+}
+
+SearchModule.initCalSearch = function() {
+  $('.active-date').click(function(e){
+    var el = e.currentTarget;
+    var pickedDate = '' + (parseInt(el.dataset.month) + 1)  + '-'  + el.innerText + '-' + el.dataset.year
+    SearchModule.getLinksForDate(pickedDate);
+  });
+}
+
+SearchModule.getAllLinks = function() {
+  var query = SearchModule.getQuery();
+  var endpoint, request, requestData;
+  endpoint = this.getSubmittedUrlEndpoint();
+  requestData = {submitted_url:query}
+  return APIModule.request("GET", endpoint, requestData).always(function (response) {
+    return response.objects;
+  });
+}
+
+SearchModule.getLinksForDate = function(date) {
+  var query = SearchModule.getQuery();
   var endpoint, request, requestData;
   SearchModule.clearLinks();
   endpoint = this.getSubmittedUrlEndpoint();
-  requestData = SearchModule.generateRequestData(query);
-
-  // Content fetcher.
-  // This is wrapped in a function so it can be called repeatedly for infinite scrolling.
-  function getNextContents() {
-    APIModule.request("GET", endpoint, requestData).always(function (response) {
-      // same thing runs on success or error, since we get back success or error-displaying HTML
-      var links = response.objects.map(SearchModule.generateLinkFields);
-      if(requestData.offset === 0) { DOMHelpers.emptyElement(this.linkRows); }
-
-      DOMHelpers.removeElement(SearchModule.linkRows.find('.links-loading-more'));
-      SearchModule.displayLinks(links, query);
-
-      // If we received exactly `requestData.limit` number of links, there may be more to fetch from the server.
-      // Set a waypoint event to trigger when the last link comes into view.
-      if(links.length == requestData.limit){
-        requestData.offset += requestData.limit;
-        SearchModule.linkRows.find('.item-container:last')
-          .waypoint(function(direction) {
-            this.destroy();  // cancel waypoint
-            SearchModule.linkRows.append('<div class="links-loading-more">Loading more ...</div>');
-            getNextContents();
-          }, {
-            offset:'100%'  // trigger waypoint when element hits bottom of window
-          });
-      }
-    });
-  }
-  getNextContents();
+  requestData = SearchModule.generateRequestData(query, date);
+  APIModule.request("GET", endpoint, requestData).always(function (response) {
+    var links = response.objects.map(SearchModule.generateLinkFields);
+    DOMHelpers.emptyElement(this.linkRows);
+    SearchModule.displayLinks(links, query);
+    SearchModule.initCalSearch();
+  });
 }
 
 SearchModule.getSubmittedUrlEndpoint = function () {
   return "/public/archives";
 }
 
-SearchModule.generateRequestData = function(query) {
-  return {submitted_url:query, limit: 20, offset:0}
+SearchModule.generateRequestData = function(query, date) {
+  return {submitted_url:query, offset:0, date:date};
 }
 
 SearchModule.generateLinkFields = function(link) {

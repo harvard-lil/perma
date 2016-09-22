@@ -359,11 +359,21 @@ class BaseLinkResource(MultipartResource, DefaultResource):
 
         search_query = request.GET.get('q', None)
         search_url = request.GET.get('submitted_url', None)
+        search_date = request.GET.get('date', None)
 
         if search_query:
             return base_object_list.filter(self.get_search_filters(search_query))
         elif search_url:
-            return base_object_list.filter((Q(submitted_url__icontains=search_url)))
+            if search_date:
+                date = search_date.split('-')
+                return base_object_list.filter((Q(submitted_url__icontains=search_url) &
+                    Q(
+                    creation_timestamp__month=int(date[0]),
+                    creation_timestamp__day=int(date[1]),
+                    creation_timestamp__year=int(date[2])
+                    )))
+            else:
+                return base_object_list.filter((Q(submitted_url__icontains=search_url))).order_by('-creation_timestamp')
         else:
             return base_object_list
 

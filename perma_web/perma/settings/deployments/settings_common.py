@@ -191,6 +191,7 @@ PIPELINE_JS = {
     },
     'search': {
         'source_filenames': (
+            'vendors/jquery/jquery-ui.custom.min.js',
             'vendors/jquery/jquery.waypoints.js',
             'js/search.module.js',
         ),

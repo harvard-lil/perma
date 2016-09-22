@@ -5280,3 +5280,20 @@ section .caption {
   }
 
 }
+
+
+/////////////////////////
+// calender
+////////////////////////
+.ui-datepicker-calendar {
+  td {
+    padding: 10px;
+  }
+  a {
+    cursor: pointer;
+  }
+  .active-date {
+    background-color: $color-blue;
+    color: white;
+  }
+}
