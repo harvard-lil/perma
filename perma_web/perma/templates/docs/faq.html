@@ -182,12 +182,6 @@ This section of the user guide provides answers to common questions about Perma.
 {% block scripts %}
 
 <script type="text/javascript">
-  $("div.faq div.question").click(function(event) {
-  var href = $(this).data('href');
-  window.location.hash = href;
-  $(this).next('div.answer').slideToggle();
-  });
-
   var hashVal = window.location.hash.split("#")[1];
   $("*[data-href='" + hashVal +"']").next('div.answer').slideToggle();
 </script>
