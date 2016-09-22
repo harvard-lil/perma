@@ -12,167 +12,168 @@ This section of the user guide provides answers to common questions about Perma.
 {% block mainContent %}
 
 <div class="container cont-fixed">
-	<div class="row">
-		<div class="col-sm-12">
-			<h1>Perma.cc user guide <span class="subsection">FAQ</span></h1>
-		</div>
-	</div>
+  <div class="row">
+    <div class="col-sm-12">
+      <h1>Perma.cc user guide <span class="subsection">FAQ</span></h1>
+    </div>
+  </div>
 </div>
 
 {% include 'docs/docs_menu.html' %}
 
 <div class="container cont-reading cont-fixed">
-	<div class="row">
-		<div class="col-sm-4 reading-toc">
-			<ul>
-		    	<li class="reading-toc-section"><a href="#general">General</a></li>
-		    	<li class="reading-toc-section"><a href="#librarian">Librarians</a></li>
-		    	<li class="reading-toc-section"><a href="#journals">Academic journals</a></li>
-		    	<li class="reading-toc-section"><a href="#faculty">Academic faculty</a></li>
-		    	<li class="reading-toc-section"><a href="#technical">Technical questions</a></li>
-			</ul>
-		</div>
-	    <div class="col-sm-8 reading-body">
-			  <h2 class="body-ah" id="general">General</h2>
+  <div class="row">
+    <div class="col-sm-4 reading-toc">
+      <ul>
+        <li class="reading-toc-section"><a href="#general">General</a></li>
+        <li class="reading-toc-section"><a href="#librarian">Librarians</a></li>
+        <li class="reading-toc-section"><a href="#journals">Academic journals</a></li>
+        <li class="reading-toc-section"><a href="#faculty">Academic faculty</a></li>
+        <li class="reading-toc-section"><a href="#technical">Technical questions</a></li>
+      </ul>
+    </div>
+    <div class="col-sm-8 reading-body">
+      <h2 class="body-ah" id="general">General</h2>
 
-			 	<div class="body-bh" data-href="who-is">Who runs Perma.cc?</div>
-			 	<div class="faq-answer">
-			 		<p class="body-text">Perma.cc is developed and maintained by the <a href="http://lil.law.harvard.edu">Harvard Library Innovation Lab</a> at the Harvard Law School Library. Perma.cc is administered by a <a href="{% url 'about' %}#partners">consortium</a> of libraries, with each library assisting its local journals and faculty users.
-			 		</p>
-			 	</div>	
+      <div class="body-bh" data-href="who-is">Who runs Perma.cc?</div>
+      <div class="faq-answer">
+        <p class="body-text">Perma.cc is developed and maintained by the <a href="http://lil.law.harvard.edu">Harvard Library Innovation Lab</a> at the Harvard Law School Library. Perma.cc is administered by a <a href="{% url 'about' %}#partners">consortium</a> of libraries, with each library assisting its local journals and faculty users.
+        </p>
+      </div>
 
-				  <div class="body-bh" data-href="what-is">Who can use Perma.cc?</div>
-				  <div class="faq-answer">
-					<p class="body-text">Anyone can sign up for a free Perma.cc <a href="{% url 'docs' %}#accounts">account</a>, which you can use to preserve up to 10 records per month. To preserve unlimited records, you have to be a member of an archiving organization sponsored by a registrar.</p>
-				  </div>
-						 		
-				  <div class="body-bh" data-href="forever">How long will you keep my Perma.cc Links?</div>
-				  <div class="faq-answer">
-	                <p class="body-text">Links will be preserved as a part of the permanent collection of participating libraries. While we can't guarantee that these records will be preserved forever, we are hosted by university libraries that have endured for centuries, and we are planning to be around for the long term. If we ever <i>do</i> need to shut down, we have laid out a detailed <a href="{% url 'contingency_plan' %}">contingency plan</a> for preserving existing data.</p>
-	              </div>
-				
-				  <div class="body-bh" data-href="delete-links">Can I delete a Perma.cc Link?</div>
-				  <div class="faq-answer">
-				  	<p class="body-text">You can delete links within 24 hours after you create them.</p>
-				  </div>
+      <div class="body-bh" data-href="what-is">Who can use Perma.cc?</div>
+      <div class="faq-answer">
+        <p class="body-text">Anyone can sign up for a free Perma.cc <a href="{% url 'docs' %}#accounts">account</a>, which you can use to preserve up to 10 records per month. To preserve unlimited records, you have to be a member of an archiving organization sponsored by a registrar.</p>
+      </div>
 
-				  <div class="body-bh" data-href="how-many-links">How many links has Perma.cc helped save from rot?</div>
-				  <div class="faq-answer">
-				  	<p class="body-text">{{ users_count|intcomma }} people, across {{ orgs_count|intcomma }} organizations, attached to {{ registrars_count }} libraries have archived {{ links_count|intcomma }} links. Whew!</p>
-				  </div>
-							  
-			  <h2 class="body-ah" id="librarian">Libraries</h2>
-				<div class="body-bh" data-href="library-partner">What is a Perma.cc partner library?</div>
-				<div class="faq-answer">
-					<p class="body-text">Perma.cc is administered by a community of partner libraries, also called "registrars." Each of these libraries is responsible for helping its affiliated journals and scholars use Perma.cc. Each of these libraries has special authority and oversight privileges, including the ability to create and remove archiving organizations and to monitor Perma.cc usage by associated users.</p>
-					<p class="body-text">To learn more about the role of libraries in Perma.cc, take a look at our <a href="{% url 'docs_libraries' %}">user guide</a>.</p> 
-				</div>
+      <div class="body-bh" data-href="forever">How long will you keep my Perma.cc Links?</div>
+      <div class="faq-answer">
+        <p class="body-text">Links will be preserved as a part of the permanent collection of participating libraries. While we can't guarantee that these records will be preserved forever, we are hosted by university libraries that have endured for centuries, and we are planning to be around for the long term. If we ever <i>do</i> need to shut down, we have laid out a detailed <a href="{% url 'contingency_plan' %}">contingency plan</a> for preserving existing data.</p>
+      </div>
 
-				<div class="body-bh" data-href="become-partner">Can my library become a Perma.cc partner library?</div>
-				<div class="faq-answer">
-					<p class="body-text">Any academic or government library can become a Perma.cc partner library. If you're interested, please let us know via this <a href="{% url 'libraries' %}">signup form</a>.
-					<p class="body-text">Other libraries should <a href="mailto:info@perma.cc">contact us</a> to learn more about the options currently available for your patrons and staff.</p> 
-				</div>
-			
-				<div class="body-bh" data-href="sponsor-journal">What are the fees to become a Perma.cc registrar?</div>
-				<div class="faq-answer">
-					<p class="body-text">Becoming a registrar is free for academic libraries and courts.</p>
-				</div>
-			
-				<div class="body-bh" data-href="registrar-responsibilities">What are the responsibilities of a Perma.cc registrar?</div>
-				<div class="faq-answer">
-					<p class="body-text">Your main responsibility is help the journals and scholars within your community use Perma.cc. This means setting up archiving organizations, helping to train new users and acting as a resource for those at your institution who want to use Perma.cc.</p>
-					<p class="body-text">Check out our user guide for more information on the <a href="{% url 'docs_libraries' %}">authority and responsibilities</a> of registrars.</p> 
-				</div>
+      <div class="body-bh" data-href="delete-links">Can I delete a Perma.cc Link?</div>
+      <div class="faq-answer">
+      <p class="body-text">You can delete links within 24 hours after you create them.</p>
+      </div>
 
-			  <h2 class="body-ah" id="journals">Academic journals</h2>
+      <div class="body-bh" data-href="how-many-links">How many links has Perma.cc helped save from rot?</div>
+      <div class="faq-answer">
+      <p class="body-text">{{ users_count|intcomma }} people, across {{ orgs_count|intcomma }} organizations, attached to {{ registrars_count }} libraries have archived {{ links_count|intcomma }} links. Whew!</p>
+      </div>
 
-				<div class="body-bh" data-href="who-users">Which journal members should be affiliated users?</div>
-				<div class="faq-answer">
-					<p class="body-text">That's up to you to decide, in consultation with your registrar. Different journals do it differently. Some journals affiliate all journal members with the organization. Some do so only for senior editorial staff.</p>
-				</div>
+      <h2 class="body-ah" id="librarian">Libraries</h2>
+      <div class="body-bh" data-href="library-partner">What is a Perma.cc partner library?</div>
+      <div class="faq-answer">
+        <p class="body-text">Perma.cc is administered by a community of partner libraries, also called "registrars." Each of these libraries is responsible for helping its affiliated journals and scholars use Perma.cc. Each of these libraries has special authority and oversight privileges, including the ability to create and remove archiving organizations and to monitor Perma.cc usage by associated users.</p>
+        <p class="body-text">To learn more about the role of libraries in Perma.cc, take a look at our <a href="{% url 'docs_libraries' %}">user guide</a>.</p>
+      </div>
 
-				<div class="body-bh" data-href="upon-graduation">What happens when journal members graduate?</div>
-				<div class="faq-answer">
-					<p class="body-text">That's up to you to decide, in consultation with your registrar. Different journals do it differently. Some journals remove affiliated users upon graduation. Others don't. Bear in mind that if you keep affiliated users on after graduation, any links they create will be associated with your journal's organization and visible to all of the users for your organization. Likewise, they will be able to access (and potentially modify) any links others on your journal create.</p>
-					<p class="body-text">Review our <a href="{% url 'docs_organizations' %}">user guide</a> to learn more about adding and removing users.</p>
-				</div>
+      <div class="body-bh" data-href="become-partner">Can my library become a Perma.cc partner library?</div>
+      <div class="faq-answer">
+        <p class="body-text">Any academic or government library can become a Perma.cc partner library. If you're interested, please let us know via this <a href="{% url 'libraries' %}">signup form</a>.
+        <p class="body-text">Other libraries should <a href="mailto:info@perma.cc">contact us</a> to learn more about the options currently available for your patrons and staff.</p>
+      </div>
 
-				<div class="body-bh" data-href="multiple-orgs">Can users be affiliated with multiple organizations?</div>
-				<div class="faq-answer">
-					<p class="body-text">Yes.</p>
-				</div>
+      <div class="body-bh" data-href="sponsor-journal">What are the fees to become a Perma.cc registrar?</div>
+      <div class="faq-answer">
+        <p class="body-text">Becoming a registrar is free for academic libraries and courts.</p>
+      </div>
 
-				<div class="body-bh" data-href="bluebook">What does the Bluebook say about using Perma.cc?</div>
-				<div class="faq-answer">
-					<p class="body-text">Rule 18.2.1(d) in the 20th Edition of <a href="https://www.legalbluebook.com/">The Bluebook</a> says: "Archiving of Internet sources is encouraged, but only when a reliable archival tool is available.  For citations to Internet sources, append the archive URL to the full citation in brackets."</p>
-					<p class="body-text">The Bluebook uses Perma.cc as an example of a reliable archival tool.</p>
-				</div>
-			  			
-			  <h2 class="body-ah" id="technical">Technical</h2>
-		  	<div class="body-bh" data-href="which-browsers">Which web browsers does Perma.cc support?</div>
-		  	<div class="faq-answer">
-		  		<p class="body-text">
-		  			Perma.cc works on Chrome, Firefox, Safari and IE8+.
-		  		</p>
-		  	</div>
+      <div class="body-bh" data-href="registrar-responsibilities">What are the responsibilities of a Perma.cc registrar?</div>
+      <div class="faq-answer">
+        <p class="body-text">Your main responsibility is help the journals and scholars within your community use Perma.cc. This means setting up archiving organizations, helping to train new users and acting as a resource for those at your institution who want to use Perma.cc.</p>
+        <p class="body-text">Check out our user guide for more information on the <a href="{% url 'docs_libraries' %}">authority and responsibilities</a> of registrars.</p>
+      </div>
 
-		  	<div class="body-bh" data-href="perma-code">Is Perma.cc open source?</div>
-		  	<div class="faq-answer">
-		  		<p class="body-text">
-		  			Why yes, it is. The Perma.cc code is <a href="https://github.com/harvard-lil/perma">accessible on Github</a> and dual licensed under the MIT and GPL licenses. Contributions are most welcome.
-		  		</p>
-		  	</div>
+      <h2 class="body-ah" id="journals">Academic journals</h2>
 
-		  	<div class="body-bh" data-href="perma-api">Does Perma.cc have an API?</div>
-		  	<div class="faq-answer">
-		  		<p class="body-text">
-		  			Why yes, we do. It's still in its infancy, but if you're interested in learning more please check our <a href="{% url 'dev_docs' %}">developer guide</a> for the details.
-		  		</p>
-		  	</div>
+      <div class="body-bh" data-href="who-users">Which journal members should be affiliated users?</div>
+      <div class="faq-answer">
+        <p class="body-text">That's up to you to decide, in consultation with your registrar. Different journals do it differently. Some journals affiliate all journal members with the organization. Some do so only for senior editorial staff.</p>
+      </div>
 
-		  	<div class="body-bh" data-href="no-indexing">Are Perma.cc archives available in search engines?</div>
-		  	<div class="faq-answer">
-		  		<p class="body-text">We don't make archived pages available to search engines.</p>
-		  	</div>
+      <div class="body-bh" data-href="upon-graduation">What happens when journal members graduate?</div>
+      <div class="faq-answer">
+        <p class="body-text">That's up to you to decide, in consultation with your registrar. Different journals do it differently. Some journals remove affiliated users upon graduation. Others don't. Bear in mind that if you keep affiliated users on after graduation, any links they create will be associated with your journal's organization and visible to all of the users for your organization. Likewise, they will be able to access (and potentially modify) any links others on your journal create.</p>
+        <p class="body-text">Review our <a href="{% url 'docs_organizations' %}">user guide</a> to learn more about adding and removing users.</p>
+      </div>
 
-			<div class="body-bh" data-href="deep-links">Does Perma.cc preserve embedded links (sometimes also called "deep links" or "secondary links")?</div>
-		  	<div class="faq-answer">
-		  		<p class="body-text">No. Perma.cc preserves only the targeted page. It does not drill down to capture pages that are linked on the targeted page. So for example, if you use Perma.cc to preserve a page that has 10 links on it, you would preserve that page but not the pages available at the 10 links.</p>
-		  	</div>
+      <div class="body-bh" data-href="multiple-orgs">Can users be affiliated with multiple organizations?</div>
+      <div class="faq-answer">
+        <p class="body-text">Yes.</p>
+      </div>
 
-			<div class="body-bh" data-href="robots-text">Can I prevent Perma.cc from publicly displaying archives of pages from my site?</div>
-			<div class="faq-answer">
-				 <p class="body-text">
-                     It's important to note that Perma.cc does not crawl your site like a search engine might,
-                     and it does not make its archives available in search engines. It simply saves a copy of a single page at the direction of a user, as though the user visited your page and used the "Save as ..." function of their browser.
-                 </p>
-				 <p class="body-text">
-                     If you don't want Perma.cc to make archives of your site available online to future readers of scholarly work, we're happy to respect your wishes.
-                 </p>
-				 <p class="body-text">
-                     To prevent online archives for entire sections of your site,
-                     use a configuration in your robots.txt file like the one below:
-                </p>
-				<div class="code-block">
-					<p class="body-text">User-agent: Perma</p>
-					<p class="body-text">Disallow: /private-stuff/</p>
-				</div>
-				<p class="body-text">
-                     To prevent online archives for a single page, use one of the following meta tags:
-                 </p>
-				 <div class="code-block">
-				 	<p class="body-text">&lt;meta name="Perma" content="noarchive" /&gt;</p>
-				 	<p class="body-text">&lt;meta name="robots" content="noarchive" /&gt;</p>
-				 </div>
-				 <p class="body-text">
-                     With either or both of these rules in place, Perma.cc will still allow the user to store
-                     the requested page in library archives, but will not display it at the perma.cc website.
-                 </p>
-			</div>
-		</div>
+      <div class="body-bh" data-href="bluebook">What does the Bluebook say about using Perma.cc?</div>
+      <div class="faq-answer">
+        <p class="body-text">Rule 18.2.1(d) in the 20th Edition of <a href="https://www.legalbluebook.com/">The Bluebook</a> says: "Archiving of Internet sources is encouraged, but only when a reliable archival tool is available.  For citations to Internet sources, append the archive URL to the full citation in brackets."</p>
+        <p class="body-text">The Bluebook uses Perma.cc as an example of a reliable archival tool.</p>
+      </div>
 
-	</div>
+      <h2 class="body-ah" id="technical">Technical</h2>
+
+      <div class="body-bh" data-href="which-browsers">Which web browsers does Perma.cc support?</div>
+      <div class="faq-answer">
+        <p class="body-text">
+          Perma.cc works on Chrome, Firefox, Safari and IE8+.
+        </p>
+      </div>
+
+      <div class="body-bh" data-href="perma-code">Is Perma.cc open source?</div>
+      <div class="faq-answer">
+        <p class="body-text">
+          Why yes, it is. The Perma.cc code is <a href="https://github.com/harvard-lil/perma">accessible on Github</a> and dual licensed under the MIT and GPL licenses. Contributions are most welcome.
+        </p>
+      </div>
+
+      <div class="body-bh" data-href="perma-api">Does Perma.cc have an API?</div>
+      <div class="faq-answer">
+        <p class="body-text">
+          Why yes, we do. It's still in its infancy, but if you're interested in learning more please check our <a href="{% url 'dev_docs' %}">developer guide</a> for the details.
+        </p>
+      </div>
+
+      <div class="body-bh" data-href="no-indexing">Are Perma.cc archives available in search engines?</div>
+      <div class="faq-answer">
+        <p class="body-text">We don't make archived pages available to search engines.</p>
+      </div>
+
+      <div class="body-bh" data-href="deep-links">Does Perma.cc preserve embedded links (sometimes also called "deep links" or "secondary links")?</div>
+      <div class="faq-answer">
+        <p class="body-text">No. Perma.cc preserves only the targeted page. It does not drill down to capture pages that are linked on the targeted page. So for example, if you use Perma.cc to preserve a page that has 10 links on it, you would preserve that page but not the pages available at the 10 links.</p>
+      </div>
+
+      <div class="body-bh" data-href="robots-text">Can I prevent Perma.cc from publicly displaying archives of pages from my site?</div>
+      <div class="faq-answer">
+        <p class="body-text">
+          It's important to note that Perma.cc does not crawl your site like a search engine might,
+          and it does not make its archives available in search engines. It simply saves a copy of a single page at the direction of a user, as though the user visited your page and used the "Save as ..." function of their browser.
+        </p>
+        <p class="body-text">
+          If you don't want Perma.cc to make archives of your site available online to future readers of scholarly work, we're happy to respect your wishes.
+        </p>
+        <p class="body-text">
+          To prevent online archives for entire sections of your site,
+          use a configuration in your robots.txt file like the one below:
+        </p>
+        <div class="code-block">
+          <p class="body-text">User-agent: Perma</p>
+          <p class="body-text">Disallow: /private-stuff/</p>
+        </div>
+        <p class="body-text">
+          To prevent online archives for a single page, use one of the following meta tags:
+         </p>
+        <div class="code-block">
+          <p class="body-text">&lt;meta name="Perma" content="noarchive" /&gt;</p>
+          <p class="body-text">&lt;meta name="robots" content="noarchive" /&gt;</p>
+        </div>
+        <p class="body-text">
+          With either or both of these rules in place, Perma.cc will still allow the user to store
+          the requested page in library archives, but will not display it at the perma.cc website.
+        </p>
+      </div>
+    </div>
+
+  </div>
 </div><!--container-->
 {% include 'docs/docs_menu.html' %}
 
@@ -181,13 +182,13 @@ This section of the user guide provides answers to common questions about Perma.
 
 <script type="text/javascript">
   $("div.faq div.question").click(function(event) {
-    var href = $(this).data('href');
-    window.location.hash = href;
-	$(this).next('div.answer').slideToggle();
+  var href = $(this).data('href');
+  window.location.hash = href;
+  $(this).next('div.answer').slideToggle();
   });
-  
+
   var hashVal = window.location.hash.split("#")[1];
-    $("*[data-href='" + hashVal +"']").next('div.answer').slideToggle();
+  $("*[data-href='" + hashVal +"']").next('div.answer').slideToggle();
 </script>
 
 
