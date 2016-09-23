@@ -5281,19 +5281,63 @@ section .caption {
 
 }
 
+.col-centered {
+  position: relative;
+}
 
 /////////////////////////
 // calender
 ////////////////////////
-.ui-datepicker-calendar {
-  td {
-    padding: 10px;
+.calendar-container {
+  background: $color-khaki;
+}
+
+#calendar {
+  display: table;
+  position: relative;
+  margin: 0 auto;
+  min-height: 300px;
+
+  .ui-datepicker-inline.ui-datepicker.ui-datepicker-multi {
+    width: 100% !important;
   }
-  a {
-    cursor: pointer;
+
+  span.ui-state-default {
+    display: block;
+    text-align: center;
   }
-  .active-date {
-    background-color: $color-blue;
-    color: white;
+
+  .ui-datepicker-group {
+    float: left;
+    margin: 10px;
+  }
+  .ui-datepicker-calendar {
+    td {
+      padding: 10px;
+    }
+    a {
+      cursor: pointer;
+    }
+    .active-date {
+      background-color: $color-blue;
+      color: white;
+
+    }
+    .active-date.selected-date {
+      background-color: $color-orange;
+    }
+  }
+  .ui-datepicker-prev, .ui-datepicker-next {
+    display: inline-block;
+    position: absolute;
+    margin-top: 50%;
+  }
+  .ui-datepicker-prev {
+    float: left;
+    margin-left: -50px;
+  }
+  .ui-datepicker-next {
+    right: -50px;
+    float: right;
   }
 }

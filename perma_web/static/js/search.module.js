@@ -58,10 +58,13 @@ SearchModule.clearLinks = function() {
 SearchModule.clearCalendar = function() {
   DOMHelpers.removeClass('#calendar', 'hasDatepicker');
   DOMHelpers.emptyElement('#calendar');
+  DOMHelpers.hideElement('#calendar');
 }
 
 SearchModule.displayCalendar = function(links) {
   var dates = {}
+  DOMHelpers.addCSS('#calendar', 'display', 'table');
+
   links.map(function(link){
     var newDate = new Date(link.creation_timestamp);
     newDate.setHours(0,0,0,0);
@@ -69,6 +72,8 @@ SearchModule.displayCalendar = function(links) {
 
   $('#calendar').datepicker({
     maxDate: "+1d",
+    numberOfMonths: 3,
+    stepMonths: 3,
     beforeShowDay: function(day) {
       if (dates[day]) {
         return [true, 'active-date']
@@ -79,6 +84,8 @@ SearchModule.displayCalendar = function(links) {
 
 SearchModule.initCalSearch = function() {
   $('.active-date').click(function(e){
+    $('.active-date').removeClass('selected-date');
+    $(this).addClass('selected-date');
     var el = e.currentTarget;
     var pickedDate = '' + (parseInt(el.dataset.month) + 1)  + '-'  + el.innerText + '-' + el.dataset.year
     SearchModule.getLinksForDate(pickedDate);
