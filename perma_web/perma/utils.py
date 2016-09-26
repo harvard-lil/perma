@@ -182,7 +182,7 @@ def send_admin_email(title, content, from_address, referer, request):
     affiliation_string = ''
     if request:
         user_agent = request.META.get('HTTP_USER_AGENT', '')
-        if request.user.is_authenticated:
+        if request.user.is_authenticated():
             if request.user.registrar:
                 affiliation_string = "{} (Registrar)".format(request.user.registrar.name)
             else:
