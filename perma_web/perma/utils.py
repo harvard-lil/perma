@@ -177,16 +177,27 @@ def send_admin_email(title, content, from_address, request):
         Use reply-to for the user address so we can use email services that require authenticated from addresses.
     """
 
-    # append user agent and from email
+    # append user information
     user_agent = ''
+    affiliation_string = ''
     if request:
         user_agent = request.META.get('HTTP_USER_AGENT', '')
+        if request.user.is_authenticated:
+            if request.user.registrar:
+                affiliation_string = "{} (Registrar)".format(request.user.registrar.name)
+            else:
+                affiliations = ["{} ({})".format(org.name, org.registrar.name) for org in request.user.organizations.all().order_by('registrar')]
+                if affiliations:
+                    affiliation_string = ', '.join(affiliations)
+                else:
+                    affiliation_string = '(none)'
     content += """
 
 ----
 User email: %s
+Affiliations: %s
 User agent: %s
-""" % (from_address, user_agent)
+""" % (from_address, affiliation_string, user_agent)
 
     # send message
     EmailMessage(
