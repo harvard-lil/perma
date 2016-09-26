@@ -856,7 +856,7 @@ def upload_to_internet_archive(self, link_guid):
                     link.internet_archive_upload_status = 'failed'
                     self.retry(exc=Exception("Internet Archive reported upload failure."))
 
-                return success
+                return
         else:
             link.internet_archive_upload_status = 'failed_permanently'
             link.save()
