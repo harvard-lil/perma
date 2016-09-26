@@ -368,35 +368,37 @@ class BaseLinkResource(MultipartResource, DefaultResource):
         search_date = request.GET.get('date', None)
         search_range = request.GET.get('date_range', None)
 
+        query = Q()
+
         if search_query:
             query_list = ['guid__icontains', 'submitted_url__icontains', 'submitted_title__icontains']
             query_dict = self.create_single_val_query(query_list, search_query)
-            qs = self.dict_to_search_queries(query_dict, 'OR')
-            return base_object_list.filter(qs).order_by('-creation_timestamp')
+            query = self.dict_to_search_queries(query_dict, 'OR')
 
         elif search_url:
-            # search for specific date
-            # search for date range with max date
-            query_dict = {'submitted_url__icontains':search_url}
+            query = Q(submitted_url__icontains=search_url)
 
-            if search_date:
-                if search_range:
-                    min_date = datetime.strptime(search_date, '%m-%d-%Y')
-                    min_date = timezone.make_aware(min_date, timezone.get_current_timezone())
-                    max_date = min_date + dateutil.relativedelta.relativedelta(months=int(search_range))
+        if search_date:
+            date_query = self.make_date_range_query(search_range,search_date) if search_range else self.make_date_query(search_date)
+            query = self.merge_filters([query, date_query],'AND')
 
-                    query_dict['creation_timestamp__range']=[min_date, max_date]
+        return base_object_list.filter(query).order_by('-creation_timestamp')
 
-                else:
-                    date = search_date.split('-')
-                    query_dict['creation_timestamp__month']=int(date[0])
-                    query_dict['creation_timestamp__day']=int(date[1])
-                    query_dict['creation_timestamp__year']=int(date[2])
+    def make_date_range_query(self, date_range, search_date):
+        min_date = datetime.strptime(search_date, '%m-%d-%Y')
+        min_date = timezone.make_aware(min_date, timezone.get_current_timezone())
+        max_date = min_date + dateutil.relativedelta.relativedelta(months=int(date_range))
+        return Q(creation_timestamp__range=[min_date, max_date])
 
-            qs = self.dict_to_search_queries(query_dict, 'AND')
-            return base_object_list.filter(qs).order_by('-creation_timestamp')
-        else:
-            return base_object_list
+    def make_date_query(self, search_date):
+        date = search_date.split('-')
+        date_query_dict = {
+            'creation_timestamp__month':int(date[0]),
+            'creation_timestamp__day':int(date[1]),
+            'creation_timestamp__year':int(date[2])
+        }
+
+        return self.dict_to_search_queries(date_query_dict, 'AND')
 
     def dict_to_search_queries(self, query_dict, operation):
         q_list = self.set_dict_to_Qs(query_dict)
