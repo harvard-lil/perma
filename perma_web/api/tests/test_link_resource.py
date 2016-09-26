@@ -339,7 +339,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
 
     def test_should_allow_filtering_by_date_and_query(self):
-        data = self.successful_get(self.logged_in_list_url, data={'submitted_url': 'metafilter','date':"2016-12-07"}, user=self.regular_user)
+        data = self.successful_get(self.logged_in_list_url, data={'submitted_url': 'metafilter','date':"2016-12-07T18:55:37Z"}, user=self.regular_user)
         objs = data['objects']
 
         self.assertEqual(len(objs), 1)
