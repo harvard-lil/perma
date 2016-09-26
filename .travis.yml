@@ -37,7 +37,7 @@ before_script:
   # try to avoid mysql has gone away errors
   - mysql -e 'SET GLOBAL max_allowed_packet = 64*1024*1024;'
   - mysql -e 'SET GLOBAL wait_timeout = 36000;'
-  #
+  - mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
   - python manage.py collectstatic --noinput
   - date
 script:
