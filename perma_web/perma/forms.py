@@ -228,3 +228,4 @@ class ContactForm(forms.Form):
 
     email = forms.EmailField(label="Your email address")
     message = forms.CharField(widget=forms.Textarea)
+    referer = forms.URLField(widget=forms.HiddenInput, required=False)
