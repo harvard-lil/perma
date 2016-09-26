@@ -273,6 +273,7 @@ Message from user
         flagged_archive_guid = request.GET.get('flag', '')
 
         if flagged_archive_guid:
+            subject = 'Reporting Inappropriate Content'
             message = 'http://perma.cc/%s contains material that is inappropriate.' % flagged_archive_guid
 
 
