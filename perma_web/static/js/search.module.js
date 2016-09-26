@@ -136,6 +136,8 @@ SearchModule.getLinksForDate = function(date) {
   SearchModule.clearLinks();
   endpoint = this.getSubmittedUrlEndpoint();
   requestData = SearchModule.generateRequestData(query, date);
+  delete requestData.date_range;
+
   APIModule.request("GET", endpoint, requestData).always(function (response) {
     var links = response.objects.map(SearchModule.generateLinkFields);
     DOMHelpers.emptyElement(this.linkRows);
