@@ -371,7 +371,7 @@ class BaseLinkResource(MultipartResource, DefaultResource):
         query = Q()
 
         if search_query:
-            query_list = ['guid__icontains', 'submitted_url__icontains', 'submitted_title__icontains']
+            query_list = ['guid__icontains', 'submitted_url__icontains', 'submitted_title__icontains', 'notes__icontains']
             query_dict = self.create_single_val_query(query_list, search_query)
             query = self.dict_to_search_queries(query_dict, 'OR')
 
