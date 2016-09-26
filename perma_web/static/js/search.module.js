@@ -32,12 +32,6 @@ SearchModule.setupEventHandlers = function() {
   });
 }
 
-SearchModule.formatDate = function(date) {
-  var newDate = new Date(date);
-  newDate.setHours(0,0,0,0);
-  return '' + (newDate.getMonth() + 1)  + '-'  + newDate.getDate() + '-' + newDate.getFullYear();
-}
-
 SearchModule.displayLinks = function(links, query) {
   var templateId = '#search-links-template';
   var templateArgs = { links: links, query: query };

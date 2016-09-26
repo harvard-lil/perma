@@ -16,7 +16,6 @@ from tastypie import http
 from tastypie.resources import ModelResource
 from tastypie.exceptions import NotFound, ImmediateHttpResponse, BadRequest
 
-from datetime import datetime
 import dateutil
 import operator
 
@@ -396,8 +395,6 @@ class BaseLinkResource(MultipartResource, DefaultResource):
         return base_object_list.filter(query).order_by('-creation_timestamp')
 
     def make_date_range_query(self, date_range, search_date, reverse=False):
-        # min_date = datetime.strptime(search_date, '%m-%d-%Y')
-        # import ipdb; ipdb.set_trace()
         try:
             search_date = timezone.make_aware(search_date, timezone.get_current_timezone())
         except ValueError:
