@@ -366,6 +366,9 @@ class BaseLinkResource(MultipartResource, DefaultResource):
         search_url = request.GET.get('submitted_url', None)
 
         search_date = request.GET.get('date', None)
+        if search_date:
+            search_date = dateutil.parser.parse(search_date)
+            
         search_range = request.GET.get('date_range', None)
 
         query = Q()
@@ -382,20 +385,35 @@ class BaseLinkResource(MultipartResource, DefaultResource):
             date_query = self.make_date_range_query(search_range,search_date) if search_range else self.make_date_query(search_date)
             query = self.merge_filters([query, date_query],'AND')
 
+        elif search_range:
+            # if range exists without date, find latest date and return range
+            last_created_el = base_object_list.filter(query).first()
+            if last_created_el:
+                last_created_at = last_created_el.creation_timestamp
+                date_query = self.make_date_range_query(search_range,last_created_at, reverse=True)
+                query = self.merge_filters([query, date_query],'AND')
+
         return base_object_list.filter(query).order_by('-creation_timestamp')
 
-    def make_date_range_query(self, date_range, search_date):
-        min_date = datetime.strptime(search_date, '%m-%d-%Y')
-        min_date = timezone.make_aware(min_date, timezone.get_current_timezone())
-        max_date = min_date + dateutil.relativedelta.relativedelta(months=int(date_range))
-        return Q(creation_timestamp__range=[min_date, max_date])
+    def make_date_range_query(self, date_range, search_date, reverse=False):
+        # min_date = datetime.strptime(search_date, '%m-%d-%Y')
+        # import ipdb; ipdb.set_trace()
+        try:
+            search_date = timezone.make_aware(search_date, timezone.get_current_timezone())
+        except ValueError:
+            pass
+
+        date_range = (int(date_range) * -1) if reverse else int(date_range)
+        end_date = search_date + dateutil.relativedelta.relativedelta(months=date_range)
+
+        query = Q(creation_timestamp__range=[end_date, search_date]) if reverse else Q(creation_timestamp__range=[search_date, end_date])
+        return query
 
     def make_date_query(self, search_date):
-        date = search_date.split('-')
         date_query_dict = {
-            'creation_timestamp__month':int(date[0]),
-            'creation_timestamp__day':int(date[1]),
-            'creation_timestamp__year':int(date[2])
+            'creation_timestamp__month':search_date.month,
+            'creation_timestamp__day':search_date.day,
+            'creation_timestamp__year':search_date.year,
         }
 
         return self.dict_to_search_queries(date_query_dict, 'AND')
