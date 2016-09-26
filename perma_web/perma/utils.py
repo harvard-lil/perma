@@ -179,7 +179,7 @@ def send_admin_email(title, content, from_address, referer, request):
 
     # append user information
     user_agent = ''
-    affiliation_string = ''
+    affiliation_string = '(none)'
     if request:
         user_agent = request.META.get('HTTP_USER_AGENT', '')
         if request.user.is_authenticated():
@@ -189,8 +189,6 @@ def send_admin_email(title, content, from_address, referer, request):
                 affiliations = ["{} ({})".format(org.name, org.registrar.name) for org in request.user.organizations.all().order_by('registrar')]
                 if affiliations:
                     affiliation_string = ', '.join(affiliations)
-                else:
-                    affiliation_string = '(none)'
     content += """
 
 ----
