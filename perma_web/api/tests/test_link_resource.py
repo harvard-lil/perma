@@ -94,7 +94,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.successful_get(self.public_list_url + '/schema', user=self.org_user)
 
     def test_get_list_json(self):
-        self.successful_get(self.public_list_url, count=3)
+        self.successful_get(self.public_list_url, count=4)
 
     def test_get_detail_json(self):
         self.successful_get(self.public_link_detail_url, fields=self.logged_out_fields)
@@ -314,19 +314,49 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         data = self.successful_get(self.logged_in_list_url, data={'q': 'metafilter.com'}, user=self.regular_user)
         objs = data['objects']
 
-        self.assertEqual(len(objs), 1)
+        self.assertEqual(len(objs), 2)
         self.assertEqual(objs[0]['url'], 'http://metafilter.com')
 
     def test_should_allow_filtering_title_by_query_string(self):
         data = self.successful_get(self.logged_in_list_url, data={'q': 'Community Weblog'}, user=self.regular_user)
         objs = data['objects']
 
-        self.assertEqual(len(objs), 1)
+        self.assertEqual(len(objs), 2)
         self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
 
     def test_should_allow_filtering_notes_by_query_string(self):
         data = self.successful_get(self.logged_in_list_url, data={'q': 'all cool things'}, user=self.regular_user)
         objs = data['objects']
 
+        self.assertEqual(len(objs), 2)
+        self.assertEqual(objs[1]['notes'], 'Maybe the source of all cool things on the internet.')
+
+    def test_should_allow_filtering_submitted_url(self):
+        data = self.successful_get(self.logged_in_list_url, data={'submitted_url': 'metafilter'}, user=self.regular_user)
+        objs = data['objects']
+
+        self.assertEqual(len(objs), 2)
+        self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
+
+    def test_should_allow_filtering_by_date_and_query(self):
+        data = self.successful_get(self.logged_in_list_url, data={'submitted_url': 'metafilter','date':"2016-12-07"}, user=self.regular_user)
+        objs = data['objects']
+
         self.assertEqual(len(objs), 1)
-        self.assertEqual(objs[0]['notes'], 'Maybe the source of all cool things on the internet.')
+        self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
+        self.assertEqual(objs[0]['notes'], 'Maybe the source of all cool things on the internet. Second instance.')
+
+    def test_should_allow_filtering_by_date_range_and_query(self):
+        data = self.successful_get(self.logged_in_list_url, data={'submitted_url': 'metafilter','date_range':"2"}, user=self.regular_user)
+        objs = data['objects']
+
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
+        self.assertEqual(objs[0]['notes'], 'Maybe the source of all cool things on the internet. Second instance.')
+
+        data = self.successful_get(self.logged_in_list_url, data={'submitted_url': 'metafilter','date_range':"40"}, user=self.regular_user)
+        objs = data['objects']
+
+        self.assertEqual(len(objs), 2)
+        self.assertEqual(objs[0]['title'], 'MetaFilter | Community Weblog')
+        self.assertEqual(objs[1]['title'], 'MetaFilter | Community Weblog')
