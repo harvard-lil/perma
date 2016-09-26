@@ -100,7 +100,7 @@ SearchModule.displayCalendar = function(links) {
 }
 
 SearchModule.initCalSearch = function() {
-  $('.active-date');
+  $('.active-date')
     .off('click')
     .on('click', function(e){
       $('.active-date').removeClass('selected-date');
