@@ -5,6 +5,7 @@ from django.conf.urls import url
 from django.core.urlresolvers import NoReverseMatch
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 
 from extendedmodelresource import ExtendedModelResource
 from mptt.exceptions import InvalidMove
@@ -14,6 +15,9 @@ from tastypie.utils import trailing_slash
 from tastypie import http
 from tastypie.resources import ModelResource
 from tastypie.exceptions import NotFound, ImmediateHttpResponse, BadRequest
+
+from datetime import datetime
+import dateutil
 
 from validations import (LinkValidation,
                          FolderValidation,
@@ -359,19 +363,35 @@ class BaseLinkResource(MultipartResource, DefaultResource):
 
         search_query = request.GET.get('q', None)
         search_url = request.GET.get('submitted_url', None)
+
         search_date = request.GET.get('date', None)
+        search_range = request.GET.get('date_range', None)
 
         if search_query:
             return base_object_list.filter(self.get_search_filters(search_query))
+
         elif search_url:
+            # search for specific date
+            # search for date range with max date
             if search_date:
-                date = search_date.split('-')
-                return base_object_list.filter((Q(submitted_url__icontains=search_url) &
-                    Q(
-                    creation_timestamp__month=int(date[0]),
-                    creation_timestamp__day=int(date[1]),
-                    creation_timestamp__year=int(date[2])
-                    )))
+                if search_range:
+                    min_date = datetime.strptime(search_date, '%m-%d-%Y')
+                    min_date = timezone.make_aware(min_date, timezone.get_current_timezone())
+
+                    max_date = min_date + dateutil.relativedelta.relativedelta(months=int(search_range))
+
+                    return base_object_list.filter((
+                        Q(submitted_url__icontains=search_url) &
+                        Q(creation_timestamp__range=[min_date, max_date])))
+
+                else:
+                    date = search_date.split('-')
+                    return base_object_list.filter((
+                        Q(submitted_url__icontains=search_url) &
+                        Q(creation_timestamp__month=int(date[0]),
+                        creation_timestamp__day=int(date[1]),
+                        creation_timestamp__year=int(date[2]))))
+
             else:
                 return base_object_list.filter((Q(submitted_url__icontains=search_url))).order_by('-creation_timestamp')
         else:

@@ -1,4 +1,5 @@
 window.SearchModule = window.SearchModule || {};
+
 $(document).ready(function (){
   SearchModule.init();
   SearchModule.setupEventHandlers();
@@ -64,31 +65,50 @@ SearchModule.clearCalendar = function() {
 SearchModule.displayCalendar = function(links) {
   var dates = {}
   DOMHelpers.addCSS('#calendar', 'display', 'table');
-
-  links.map(function(link){
-    var newDate = new Date(link.creation_timestamp);
-    newDate.setHours(0,0,0,0);
-    dates[newDate] = true})
+  if (links) {
+    links.map(function(link){
+      var newDate = new Date(link.creation_timestamp);
+      newDate.setHours(0,0,0,0);
+      dates[newDate] = true});
+  }
 
   $('#calendar').datepicker({
     maxDate: "+1d",
     numberOfMonths: 3,
     stepMonths: 3,
+    onChangeMonthYear: function(year, minMonth){
+      var query = SearchModule.getQuery();
+      var endpoint, request, requestData;
+      endpoint = SearchModule.getSubmittedUrlEndpoint();
+      minMonth = minMonth < 10 ? '0' + minMonth : minMonth.toString();
+      var date =  minMonth + "-01-" + year;
+      requestData = SearchModule.generateRequestData(query, date);
+      requestData.date_range = 2;
+      APIModule.request("GET", endpoint, requestData).always(function (response) {
+        SearchModule.displayCalendar(response.objects);
+        SearchModule.initCalSearch();
+      });
+    },
     beforeShowDay: function(day) {
       if (dates[day]) {
-        return [true, 'active-date']
-      } else {return [false]}
+        return [true, 'active-date'];
+      } else {
+        return [false];
+      }
     }
   });
 }
 
 SearchModule.initCalSearch = function() {
-  $('.active-date').click(function(e){
-    $('.active-date').removeClass('selected-date');
-    $(this).addClass('selected-date');
-    var el = e.currentTarget;
-    var pickedDate = '' + (parseInt(el.dataset.month) + 1)  + '-'  + el.innerText + '-' + el.dataset.year
-    SearchModule.getLinksForDate(pickedDate);
+  $('.active-date');
+    .off('click')
+    .on('click', function(e){
+      $('.active-date').removeClass('selected-date');
+      $(this).addClass('selected-date');
+      var el = e.currentTarget;
+      // JS zero-indexes months for some crazy reason, python doesn't. We have to increment it here.
+      var pickedDate = '' + (parseInt(el.dataset.month) + 1)  + '-'  + el.innerText + '-' + el.dataset.year
+      SearchModule.getLinksForDate(pickedDate);
   });
 }
 
