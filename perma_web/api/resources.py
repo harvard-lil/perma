@@ -392,7 +392,7 @@ class BaseLinkResource(MultipartResource, DefaultResource):
                 date_query = self.make_date_range_query(search_range,last_created_at, reverse=True)
                 query = self.merge_filters([query, date_query],'AND')
 
-        return base_object_list.filter(query).order_by('-creation_timestamp')
+        return base_object_list.filter(query)
 
     def make_date_range_query(self, date_range, search_date, reverse=False):
         try:
