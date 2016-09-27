@@ -78,7 +78,7 @@ class CommonViewsTestCase(PermaTestCase):
         # check contents of sent email
         message = mail.outbox[0]
         self.assertIn(message_body, message.body)
-        self.assertEqual(message.subject, 'New message from Perma contact form')
+        self.assertEqual(message.subject, '[perma-contact] New message from Perma contact form')
         self.assertEqual(message.from_email, settings.DEFAULT_FROM_EMAIL)
         self.assertEqual(message.recipients(), [settings.DEFAULT_FROM_EMAIL])
         self.assertDictEqual(message.extra_headers, {'Reply-To': from_email})
