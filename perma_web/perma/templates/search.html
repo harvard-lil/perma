@@ -1,6 +1,6 @@
 {% extends "base-responsive.html" %}
 {% load file_exists pipeline %}
-{% block title %} | Stats{% endblock %}
+{% block title %} | Search{% endblock %}
 
 {% block meta_description %}
 Perma.cc prevents link rot.
@@ -18,11 +18,19 @@ Perma.cc prevents link rot.
           Search Perma.cc
         </h1>
       </div>
-      <div class="row no-wide">
+      <div class="row no-wide" style="min-height: 500px;">
         <div class="col-sm-12">
           {% include "user_management/includes/search_form.html" with search_placeholder="Search Perma Links" %}
+        </div>
+        <div class="col-sm-12">
+          <div class="calendar-container col-centered">
+            <div id="calendar"></div>
+          </div>
+        </div>
+        <div class="col-sm-12">
           <div class="container item-rows"></div>
         </div>
+
       </div>
     </div>
   </div>
@@ -50,12 +58,12 @@ Perma.cc prevents link rot.
 {% verbatim %}
 
   <script id="search-links-template" type="text/x-handlebars-template">
-    {{#if query }}
+    <!-- {{#if query }}
       <div class="shared-folder-label alert-success">
           Search results for "{{ query }}".
           <a href="#" class="clear-search">Clear search.</a>
       </div>
-    {{/if}}
+    {{/if}} -->
 
     {{#each links}}
       <div class="item-container">

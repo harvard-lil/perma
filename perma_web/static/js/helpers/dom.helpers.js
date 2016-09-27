@@ -29,3 +29,19 @@ DOMHelpers.emptyElement = function(domSelector) {
 DOMHelpers.getValue = function (domSelector) {
   return $(domSelector).val();
 }
+
+DOMHelpers.removeClass = function (domSelector, className) {
+  $(domSelector).removeClass(className);
+}
+
+DOMHelpers.showElement = function (domSelector) {
+  $(domSelector).show();
+}
+
+DOMHelpers.hideElement = function (domSelector) {
+  $(domSelector).hide();
+}
+
+DOMHelpers.addCSS = function (domSelector, propertyName, propertyValue) {
+  $(domSelector).css(propertyName, propertyValue);
+}

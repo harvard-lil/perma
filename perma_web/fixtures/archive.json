@@ -57,6 +57,27 @@
         }
     },
     {
+        "pk": "TE73-AKWM",
+        "model": "perma.link",
+        "fields": {
+            "folders": [
+                25,
+                27
+            ],
+            "view_count": 2,
+            "user_deleted": false,
+
+            "created_by": 4,
+            "user_deleted_timestamp": null,
+            "submitted_title": "MetaFilter | Community Weblog",
+            "submitted_url": "http://metafilter.com",
+            "creation_timestamp": "2016-12-07T18:55:37Z",
+            "archive_timestamp": "2016-12-08T18:55:37Z",
+            "notes": "Maybe the source of all cool things on the internet. Second instance.",
+            "organization": 1
+        }
+    },
+    {
         "pk": "ABCD-1234",
         "model": "perma.link",
         "fields": {

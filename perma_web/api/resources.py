@@ -5,6 +5,7 @@ from django.conf.urls import url
 from django.core.urlresolvers import NoReverseMatch
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 
 from extendedmodelresource import ExtendedModelResource
 from mptt.exceptions import InvalidMove
@@ -14,6 +15,9 @@ from tastypie.utils import trailing_slash
 from tastypie import http
 from tastypie.resources import ModelResource
 from tastypie.exceptions import NotFound, ImmediateHttpResponse, BadRequest
+
+import dateutil
+import operator
 
 from validations import (LinkValidation,
                          FolderValidation,
@@ -360,17 +364,78 @@ class BaseLinkResource(MultipartResource, DefaultResource):
         search_query = request.GET.get('q', None)
         search_url = request.GET.get('submitted_url', None)
 
-        if search_query:
-            return base_object_list.filter(self.get_search_filters(search_query))
-        elif search_url:
-            return base_object_list.filter((Q(submitted_url__icontains=search_url)))
-        else:
-            return base_object_list
+        search_date = request.GET.get('date', None)
+        if search_date:
+            search_date = dateutil.parser.parse(search_date)
+            
+        search_range = request.GET.get('date_range', None)
 
-    def get_search_filters(self, search_query):
-        return (Q(guid__icontains=search_query) |
-                Q(submitted_url__icontains=search_query) |
-                Q(submitted_title__icontains=search_query))
+        query = Q()
+
+        if search_query:
+            query_list = ['guid__icontains', 'submitted_url__icontains', 'submitted_title__icontains', 'notes__icontains']
+            query_dict = self.create_single_val_query(query_list, search_query)
+            query = self.dict_to_search_queries(query_dict, 'OR')
+
+        elif search_url:
+            query = Q(submitted_url__icontains=search_url)
+
+        if search_date:
+            date_query = self.make_date_range_query(search_range,search_date) if search_range else self.make_date_query(search_date)
+            query = self.merge_filters([query, date_query],'AND')
+
+        elif search_range:
+            # if range exists without date, find latest date and return range
+            last_created_el = base_object_list.filter(query).first()
+            if last_created_el:
+                last_created_at = last_created_el.creation_timestamp
+                date_query = self.make_date_range_query(search_range,last_created_at, reverse=True)
+                query = self.merge_filters([query, date_query],'AND')
+
+        return base_object_list.filter(query)
+
+    def make_date_range_query(self, date_range, search_date, reverse=False):
+        try:
+            search_date = timezone.make_aware(search_date, timezone.get_current_timezone())
+        except ValueError:
+            pass
+
+        date_range = (int(date_range) * -1) if reverse else int(date_range)
+        end_date = search_date + dateutil.relativedelta.relativedelta(months=date_range)
+
+        query = Q(creation_timestamp__range=[end_date, search_date]) if reverse else Q(creation_timestamp__range=[search_date, end_date])
+        return query
+
+    def make_date_query(self, search_date):
+        date_query_dict = {
+            'creation_timestamp__month':search_date.month,
+            'creation_timestamp__day':search_date.day,
+            'creation_timestamp__year':search_date.year,
+        }
+
+        return self.dict_to_search_queries(date_query_dict, 'AND')
+
+    def dict_to_search_queries(self, query_dict, operation):
+        q_list = self.set_dict_to_Qs(query_dict)
+        return self.merge_filters(q_list,operation)
+
+    def merge_filters(self, q_list, operation):
+        reducer_operation = operator.or_ if operation == 'OR' else operator.and_
+        return reduce(reducer_operation, q_list)
+
+    def set_dict_to_Qs(self, query_dict):
+        def make_q((key,val)):
+            qwarg={}
+            qwarg[key]=val
+            return Q(**qwarg)
+
+        return map(make_q, query_dict.items())
+
+    def create_single_val_query(self, query_list, query_value):
+        def assign_val(acc,val):
+            acc[val] = query_value
+            return acc
+        return reduce(assign_val, query_list, dict())
 
 
 class PublicLinkResource(BaseLinkResource):
