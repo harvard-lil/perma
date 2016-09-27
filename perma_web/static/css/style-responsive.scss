@@ -5297,7 +5297,9 @@ section .caption {
   position: relative;
   margin: 0 auto;
   min-height: 300px;
-
+  thead > tr > thead {
+    text-align: center;
+  }
   .ui-datepicker-inline.ui-datepicker.ui-datepicker-multi {
     width: 100% !important;
   }
@@ -5314,17 +5316,24 @@ section .caption {
   .ui-datepicker-calendar {
     td {
       padding: 10px;
+      width: 27px;
     }
     a {
       cursor: pointer;
     }
     .active-date {
+      cursor: pointer;
       background-color: $color-blue;
+      text-align: center;
       color: white;
+      &:hover, &:focus {
+        outline: none !important;
+        background-color: $color-hover;
+      }
 
     }
     .active-date.selected-date {
-      background-color: $color-orange;
+      background-color: $color-active;
     }
   }
   .ui-datepicker-prev, .ui-datepicker-next {
