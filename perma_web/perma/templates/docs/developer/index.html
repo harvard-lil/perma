@@ -22,25 +22,25 @@ Welcome to the Perma.cc developer guide.
 		{% include "docs/developer/toc.html" with section="overview" %}
 
 		<div class="col-sm-8 docs reading-body">
-		
+
 			<h2 class="body-ah">API Overview</h2>
 			<p class="body-text">The Perma.cc API helps you create and manage archives without using your web browser.</p>
 			<p class="body-text">The API is simple, but powerful. There are four endpoints available to you in the API, but you really only manipulate two "things," archives and folders. You can create and manage archives with the <a href="#developer-archives">Archive endpoint</a>, and you can organize your archives with <a href="#developer-folders">Folders endpoint</a>. </p>
 			<p class="body-text">The other two endpoints, <a href="#developer-public-archives">Public Archives</a> and <a href="#developer-users">Users</a>, are lenses into Archives and folders, limiting your views to Public archives, and archives and folders as managed by one user.
 			<p class="body-text">The API is <a href="http://en.wikipedia.org/wiki/Representational_state_transfer">RESTful</a> and leverages the HTTP GET, POST, PUT, PATCH, and DELETE verbs.</p>
-			<p class="body-text">Please <a href="{% url 'contact' %}">let us know</a> if you have suggestions or run into bugs in the API.</p>
-			
-			<h3 id="api-key" class="body-bh">API Key</h3>		
+			<p class="body-text">Please <a href="{% url 'contact' %}/?subject=Perma%20API">let us know</a> if you have suggestions or run into bugs in the API.</p>
+
+			<h3 id="api-key" class="body-bh">API Key</h3>
 			<p class="body-text">Many of the API endpoints will require you to use an API key. Find your API key <a href="{% url 'user_management_settings_tools' %}">in your Dashboard under the Settings, Tools section</a>. Click on the <i>Generate an API key</i> button.</p>
-			
+
 			<img src="{{ STATIC_URL }}img/docs/create-api-key.png" class="img-responsive" alt="Create an API key "/>
-	
+
 			<h3 id="pagination" class="body-bh">Pagination</h3>
 			<p class="body-text">The API will return 20 items per response. If you have more than 20 items returned, you can page through the items using the <i>offset</i> parameter. For example, if you want to start at the 101st result, set the offset value to 4 (we start counting at 0, of course).</p>
 			<pre>curl https://api.{{ request.get_host }}/v1/public/archives/?offset=4</pre>
 			<p class="body-text">If you'd prefer to get a smaller result set, specify the number of returned items using the limit parameter. In this example, we'll see just one item returned.</p>
 			<pre>curl https://api.{{ request.get_host }}/v1/public/archives/?limit=1</pre>
-		
+
 			<h3 id="jsonp" class="body-bh">JSONP</h3>
 			<p class="body-text">When building applications in JavaScript you often have to be mindful of the browser's <a href="http://en.wikipedia.org/wiki/Same-origin_policy">same origin policy</a>. JSONP is a technique that is commonly used to communicate when a same origin policy is in place. Perma.cc API offers full supports for JSONP, just add a callback argument to your query string.</p>
 			<pre>curl https://api.{{ request.get_host }}/v1/public/archives/?api_key=your-api-key&callback=name-of-your-callback</pre>
@@ -94,10 +94,10 @@ Welcome to the Perma.cc developer guide.
 
 		<div class="col-sm-8 docs reading-body">
 		<h2 class="body-ah">Public Archives</h2>
-		
+
 		<p class="body-text">The Public Archives API endpoint helps you find all archives in publicly available Perma.cc archives. You do not need an API Key to use this portion of the API.</p>
 		<p class="body-text">The base endpoint for this API is <code>https://api.{{ request.get_host }}/v1/public/archives/</code></p>
-		
+
 		<h3 id="get-all-public-archives" class="body-bh">Get all public archives</h3>
 		<p class="body-text">Use an HTTP GET to retrieve a every public archive in Perma.cc. (In order to keep this example short, we limit our number of returned items to one.)</p>
 		<pre>curl https://api.{{ request.get_host }}/v1/public/archives/?limit=1</pre>
@@ -121,31 +121,31 @@ Welcome to the Perma.cc developer guide.
 			<h2 class="body-ah">Users</h2>
 			<p class="body-text">The Users API endpoint helps you gather information about one user's resources in Perma.cc. It's an easy way to see the breadth of Perma.cc, through the lens of a single user.</p>
 			<p class="body-text">The base endpoint for this API is <code>https://api.{{ request.get_host }}/v1/user/</code></p>
-			
+
 			<h3 id="get-user-account-details" class="body-bh">Get a user's account details</h3>
 			<p class="body-text">Use an HTTP GET to retrieve a user's profile</p>
 			<pre>curl https://api.{{ request.get_host }}/v1/user/?api_key=your-api-key</pre>
 			<p class="body-text">Response</p>
 			<pre class="prettyprint">{"first_name": "Jane", "full_name": "Jane Doe", "id": 4, "last_name": "Doe", "short_name": "Jane"}</pre>
-			
+
 			<h3 id="get-user-archives" class="body-bh">Get a user's archives</h3>
 			<p class="body-text">GET all of the user's archives.</p>
 			<pre>curl https://api.{{ request.get_host }}/v1/user/archives/?limit=1&api_key=your-api-key</pre>
 			<p class="body-text">Response. (In order to keep this example short, we limit our number of returned items to one.)</p>
 			<pre class="prettyprint">{"meta": {"limit": 1, "next": "/v1/user/archives/?api_key=api_key=your-api-key&limit=1", "offset": 0, "previous": null, "total_count": 6}, "objects": [{"assets": [{"base_storage_path": "2015/1/21/22/39/Y6JJ-TDUJ", "favicon": null, "image_capture": "cap.png", "pdf_capture": null, "warc_capture": "archive.warc.gz"}], "created_by": {"first_name": "Regular", "full_name": "Regular User", "id": 4, "last_name": "User", "short_name": "Regular"}, "creation_timestamp": "2015-01-21T17:39:44Z", "is_private": true, "expiration_date": "2017-01-21T17:39:44Z", "guid": "Y6JJ-TDUJ", "notes": "", "title": "Example.com. yo.", "url": "http://example.com", "last_name": "User", "short_name": "Org"}, "organization": {"id": 1, "name": "Test Journal"}, "view_count": 1}]}</pre>
-			
+
 			<h3 id="get-user-folders" class="body-bh">Get a user's folders</h3>
 			<p class="body-text">GET all of the user's folders.</p>
 			<pre>curl https://api.{{ request.get_host }}/v1/user/folders/?limit=1&api_key=your-api-key</pre>
 			<p class="body-text">Response.</p>
 			<pre class="prettyprint">{"meta": {"limit": 1, "next": "v1/user/folders/?api_key=your-api-key&limit=1", "offset": 0, "previous": null, "total_count": 8}, "objects": [{"id": 25, "name": "My Links", "parent": null}]}</pre>
-	
+
 			<h3 id="get-user-orgs" class="body-bh">Get a user's organizations</h3>
 			<p class="body-text">GET all of the orgs in which a user is a member.</p>
 			<pre>curl https://api.{{ request.get_host }}/v1/user/organizations/?limit=1&api_key=your-api-key</pre>
 			<p class="body-text">Response.</p>
 			<pre class="prettyprint">{"meta": {"limit": 20, "next": null, "offset": 0, "previous": null, "total_count": 1}, "objects": [{"id": 1, "name": "Test Journal"}]}</pre>
-			
+
 			<h3 id="get-user-shared-folders" class="body-bh">Get a user's shared folders inside an organization</h3>
 			<p class="body-text">Orgs allow members to share folders. GET the org's list of shared folders.</p>
 			<pre>curl https://api.{{ request.get_host }}/v1/user/organizations/1/folders/?limit=1&api_key=your-api-key</pre>
@@ -170,42 +170,42 @@ Welcome to the Perma.cc developer guide.
 			<h2 class="body-ah">Archives</h2>
 			<p class="body-text">The Archives API helps you create and manage archives.</p>
 			<p class="body-text">The base resource for this API is <code>https://api.{{ request.get_host }}/v1/archives/</code></p>
-			
+
 			<h3 id="create-an-archive" class="body-bh">Create an archive</h3>
 			<p class="body-text">Create a new archive by POSTing (as JSON) the URL and the Title.</p>
 			<pre>curl -H 'Content-Type: application/json' -X POST -d '{"url": "http://example.com", "title": "This is an example site"}' https://api.{{ request.get_host }}/v1/archives/?api_key=your-api-key</pre>
 			<p class="body-text">Response includes detailed information about the newly created archive</p>
 			<pre class="prettyprint">{"assets": [{"base_storage_path": "2015/1/21/21/41/8H4S-TNRA", "favicon": null, "image_capture": "pending", "pdf_capture": null, "warc_capture": "pending"}], "created_by": {"first_name": "Regular", "full_name": "Regular User", "id": 4, "last_name": "User", "short_name": "Regular"}, "creation_timestamp": "2015-01-21T16:41:15Z", "is_private": false, "expiration_date": "2017-01-21T16:41:15Z", "folders": ["/v1/folders/25/"], "guid": "8H4S-TNRA", "notes": "", "title": "This is a test page", "url": "http://example.com", "organization": null, "view_count": 1}</pre>
-			
+
 			<h3 id="view-details-of-one-archive" class="body-bh">View the details of one archive</h3>
 			<pre>curl https://api.{{ request.get_host }}/v1/archives/Y6JJ-TDUJ/</pre>
 			<p class="body-text">This will show you details of an archive. Pass in the archive's globally unique ID using a GET request.</p>
 			<pre class="prettyprint">{"assets": [{"base_storage_path": "2015/1/21/22/39/Y6JJ-TDUJ", "favicon": null, "image_capture": "cap.png", "pdf_capture": null, "warc_capture": "archive.warc.gz"}], "created_by": {"first_name": "Regular", "full_name": "Regular User", "id": 4, "last_name": "User", "short_name": "Regular"}, "creation_timestamp": "2015-01-21T17:39:44Z", "is_private": false, "expiration_date": "2017-01-21T17:39:44Z", "folders": ["/v1/folders/25/"], "guid": "Y6JJ-TDUJ", "notes": "", "title": "Example Domain", "url": "http://example.com", "organization": null, "view_count": 1}</pre>
-	
+
 			<h3 id="view-all-archives-of-one-user" class="body-bh">View all archives associated with one user</h3>
 			<p class="body-text">If you want to list all the archives associated with one user, route through the User endpoint. (The result set will contain a list of all the user's archives. We're limiting ourseleves to just 1 result to keep this example short.)</p>
 			<pre>curl https://api.{{ request.get_host }}/v1/user/archives/?api_key=your-api-key&limit=1</pre>
 			<p class="body-text">Pass in your API key using a GET.</p>
 			<pre class="prettyprint">{"meta": {"limit": 1, "next": "/v1/user/archives/?api_key=your-api-key&limit=1", "offset": 0, "previous": null, "total_count": 11}, "objects": [{"assets": [{"base_storage_path": "2015/1/21/22/39/Y6JJ-TDUJ", "favicon": null, "image_capture": "cap.png", "pdf_capture": null, "warc_capture": "archive.warc.gz"}], "created_by": {"first_name": "Regular", "full_name": "Regular User", "id": 4, "last_name": "User", "short_name": "Regular"}, "creation_timestamp": "2015-01-21T17:39:44Z", "is_private": true, "expiration_date": "2017-01-21T17:39:44Z", "folders": ["/v1/folders/25/", "/v1/folders/27/"], "guid": "Y6JJ-TDUJ", "notes": "", "title": "Example.com. yo.", "url": "http://example.com", "organization": {"id": 1, "name": "Test Journal"}, "view_count": 1}]}</pre>
-	
+
 			<h3 id="move-to-dark-archive" class="body-bh">Place an archive in the dark archive</h3>
 			<p class="body-text">You can dark archive an archive using by PATCHing it. Be sure to include the JSON object and the guid of archive in your request.</p>
 			<pre>curl -H 'Content-Type: application/json' -X PATCH -d '{"is_private": "True"}' https://api.{{ request.get_host }}/v1/archives/7J9R-2QM5/?api_key=your-api-key</pre>
 			<p class="body-text">Place an archive in the dark archive by setting the "is_private" field to "True". Pass in a JSON data object using PATCH, and the guid of archive.</p>
 			<pre class="prettyprint">{"assets": [{"base_storage_path": "2015/1/21/22/39/Y6JJ-TDUJ", "favicon": null, "image_capture": "cap.png", "pdf_capture": null, "warc_capture": "archive.warc.gz"}], "created_by": {"first_name": "Regular", "full_name": "Regular User", "id": 4, "last_name": "User", "short_name": "Regular"}, "creation_timestamp": "2015-01-21T17:39:44Z", "is_private": true, "expiration_date": "2017-01-21T17:39:44Z", "folders": ["/v1/folders/25/", "/v1/folders/27/"], "guid": "Y6JJ-TDUJ", "notes": "", "title": "Example.com. yo.", "url": "http://example.com", "organization": {"id": 1, "name": "Test Journal"}, "view_count": 1}</pre>
-	
+
 			<h3 id="edit-title-and-notes" class="body-bh">Edit the title and notes fields of an archive</h3>
 			<p class="body-text">Change the notes or title field by PATCHing the archive. Be sure to include the JSON object and the guid of archive in your request.</p>
 			<pre>curl -H 'Content-Type: application/json' -X PATCH -d '{"title": "My updated title"}' https://api.{{ request.get_host }}/v1/archives/Y6JJ-TDUJ/?api_key=your-api-key </pre>
 			<p class="body-text">Title and notes are the two editable fields. Here, we're just updating the notes field. Pass in a JSON data object using PATCH, and the guid of archive.</p>
 			<pre class="prettyprint">{"assets": [{"base_storage_path": "2015/1/21/22/39/Y6JJ-TDUJ", "favicon": null, "image_capture": "cap.png", "pdf_capture": null, "warc_capture": "archive.warc.gz"}], "created_by": {"first_name": "Regular", "full_name": "Regular User", "id": 4, "last_name": "User", "short_name": "Regular"}, "creation_timestamp": "2015-01-21T17:39:44Z", "is_private": false, "expiration_date": "2017-01-21T17:39:44Z", "folders": ["/v1/folders/25/"], "guid": "Y6JJ-TDUJ", "notes": "", "title": "Example.com. yo.", "url": "http://example.com", "organization": null, "view_count": 1}</pre>
-			
+
 			<h3 id="move-archive" class="body-bh">Move an archive</h3>
 			<p class="body-text">Move an archive into a different folder using a PUT command</p>
 			<pre>curl -X PUT https://api.{{ request.get_host }}/v1/folders/33/archives/Y6JJ-TDUJ/?api_key=your-api-key -v</pre>
 			<p class="body-text">The response tells you that you've placed moved the archive into folder 33.</p>
 			<pre class="prettyprint">{"assets": [{"base_storage_path": "2015/1/21/22/39/Y6JJ-TDUJ", "favicon": null, "image_capture": "cap.png", "pdf_capture": null, "warc_capture": "archive.warc.gz"}], "created_by": {"first_name": "Regular", "full_name": "Regular User", "id": 4, "last_name": "User", "short_name": "Regular"}, "creation_timestamp": "2015-01-21T17:39:44Z", "is_private": true, "expiration_date": "2017-01-21T17:39:44Z", "folder": "33", "folders": ["/v1/folders/25/", "/v1/folders/33/"], "guid": "Y6JJ-TDUJ", "notes": "", "title": "Example.com. yo.", "url": "http://example.com", "organization": {"id": 1, "name": "Test Journal"}, "view_count": 1}</pre>
-			
+
 			<h3 id="delete-archive" class="body-bh">Delete an archive</h3>
 			<p class="body-text">Delete an archive using a DELETE.</p>
 			<pre>curl -X DELETE https://api.{{ request.get_host }}/v1/archives/7J9R-2QM5/?api_key=your-api-key</pre>
@@ -221,34 +221,34 @@ Welcome to the Perma.cc developer guide.
 
 		<div class="col-sm-8 docs reading-body">
 			<h2 class="body-ah">Folders</h2>
-			
+
 			<p class="body-text">The Folders API helps you create and manage folders.</p>
 			<p class="body-text">The base resource for this API is <code>https://api.{{ request.get_host }}/v1/folders/</code></p>
-			
+
 			<h3 id="create-folder" class="body-bh">Create a folder</h3>
 			<p class="body-text">Create a new folder using a POST</p>
 			<pre>curl -H 'Content-Type: application/json' -X POST -d '{"name": "a new folder"}' https://api.{{ request.get_host }}/v1/folders/25/folders/?api_key=your-api-key</pre>
 			<p class="body-text">The response will include the id of the new folder and the folder's parent ID.</p>
 			<pre class="prettyprint">{"id": 35, "name": "a new folder", "parent": "/v1/folders/25/"}</pre>
-	
+
 			<h3 id="view-folder-details" class="body-bh">View a folder's details</h3>
 			<p class="body-text">Use a GET to retrieve details of an existing folder.</p>
 			<pre>curl -v "https://api.{{ request.get_host }}/v1/folders/28/?api_key=your-api-key"</pre>
 			<p class="body-text">The response will include the id of the new folder and the folder's parent ID (the same response that you get when you create a new folder).</p>
 			<pre class="prettyprint">{"id": 35, "name": "a new folder", "parent": "/v1/folders/25/"}</pre>
-			
+
 			<h3 id="rename-folder" class="body-bh">Rename a folder</h3>
 			<p class="body-text">Use a PATCH to change a folder's name.</p>
 			<pre>curl -H 'Content-Type: application/json' -X PATCH -d '{"name": "a new folder name"}' 'https://api.{{ request.get_host }}/v1/folders/28/?api_key=your-api-key'</pre>
 			<p class="body-text">The response will include the new folder name.</p>
 			<pre class="prettyprint">{"id": 28, "name": "a new folder name", "parent": "/v1/folders/25/"}</pre>
-			
+
 			<h3 id="move-folder" class="body-bh">Move a folder</h3>
 			<p class="body-text">Use a PUT to move a folder into another folder.</p>
 			<pre>curl -H 'Content-Type: application/json' -X PUT https://api.{{ request.get_host }}/v1/folders/35/folders/36/?api_key=your-api-key</pre>
 			<p class="body-text">This command moved folder 36 into folder 35. The response will include the folder's new parent id.</p>
 			<pre class="prettyprint">{"id": 36, "name": "just another folder", "parent": "/v1/folders/35/"}</pre>
-			
+
 			<h3 id="delete-folder" class="body-bh">Delete a folder</h3>
 			<p class="body-text">Use a DELETE to delete a folder.</p>
 			<pre>curl -X DELETE https://api.{{ request.get_host }}/v1/folders/36/?api_key=your-api-key</pre>

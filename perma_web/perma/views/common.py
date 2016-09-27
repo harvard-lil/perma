@@ -230,6 +230,8 @@ def contact(request):
             # If our form is valid, let's generate and email to our contact folks
 
             from_address = form.cleaned_data['email']
+            subject = form.cleaned_data['subject']
+            referer = form.cleaned_data['referer']
 
             content = '''
 This is a message from the Perma.cc contact form, http://perma.cc/contact
@@ -242,9 +244,10 @@ Message from user
 ''' % (form.cleaned_data['message'])
 
             send_admin_email(
-                "New message from Perma contact form",
+                subject,
                 content,
                 from_address,
+                referer,
                 request
             )
 
@@ -265,14 +268,19 @@ Message from user
         #
         # We likely want to clean up this contact for logic if we tack much else on
 
+        subject = request.GET.get('subject', '')
         message = request.GET.get('message', '')
         flagged_archive_guid = request.GET.get('flag', '')
 
         if flagged_archive_guid:
+            subject = 'Reporting Inappropriate Content'
             message = 'http://perma.cc/%s contains material that is inappropriate.' % flagged_archive_guid
 
 
-        form = ContactForm(initial={'message': message})
+        form = ContactForm(initial={'message': message,
+                                    'subject': subject,
+                                    'referer': request.META.get('HTTP_REFERER', ''),
+                                    })
 
         context = RequestContext(request, {'form': form})
         return render_to_response('contact.html', context)

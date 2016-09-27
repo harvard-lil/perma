@@ -1,4 +1,6 @@
-<div class="record-message">
-	<p class="record-message-primary">This record is private and cannot be displayed.</p>
-	<p class="record-message-secondary">For more information on private records, see Perma.cc’s <a href="{% url 'docs' %}">documentation</a>. If you feel you’ve reached this page in error, please <a href="{% url 'contact' %}">contact Perma.cc</a>.</p>
-<div>
+{% with request.META.HTTP_REFERER as referer %}
+  <div class="record-message">
+    <p class="record-message-primary">This record is private and cannot be displayed.</p>
+    <p class="record-message-secondary">For more information on private records, see Perma.cc’s <a href="{% url 'docs' %}">documentation</a>. If you feel you’ve reached this page in error, please <a href="{% url 'contact' %}/?subject=Why%20Is%20{{request.path}}%20Private%3F{% if referer %}%20(linked%20at%20{{referer}}){% endif %}">contact Perma.cc</a>.</p>
+  <div>
+{% endwith %}

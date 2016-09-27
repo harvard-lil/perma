@@ -49,20 +49,20 @@ class RegistrarForm(ModelForm):
     class Meta:
         model = Registrar
         fields = ['name', 'email', 'website']
-        
+
 ### ORGANIZATION FORMS ###
 
 class OrganizationWithRegistrarForm(ModelForm):
 
     registrar = forms.ModelChoiceField(queryset=Registrar.objects.approved().order_by('name'), empty_label=None)
-    
+
     class Meta:
         model = Organization
         fields = ['name', 'registrar']
 
-        
+
 class OrganizationForm(ModelForm):
-    
+
     class Meta:
         model = Organization
         fields = ['name']
@@ -84,7 +84,7 @@ class UserFormWithAdmin(UserForm):
     def save(self, commit=True):
         self.instance.is_staff = True
         return super(UserFormWithAdmin, self).save(commit)
-        
+
 class UserFormWithRegistrar(UserForm):
     """
     add registrar to the create user form
@@ -103,15 +103,15 @@ class UserFormWithRegistrar(UserForm):
     class Meta:
         model = LinkUser
         fields = ["first_name", "last_name", "email", "registrar"]
-        
-        
+
+
 class CreateUserFormWithCourt(UserForm):
     """
     add court to the create user form
     """
 
     requested_account_note = forms.CharField(required=True)
-    
+
     class Meta:
         model = LinkUser
         fields = ["first_name", "last_name", "email", "requested_account_note"]
@@ -122,15 +122,15 @@ class CreateUserFormWithCourt(UserForm):
         self.fields['first_name'].label = "Your first name"
         self.fields['last_name'].label = "Your last name"
         self.fields['email'].label = "Your email"
-        
-        
+
+
 class CreateUserFormWithUniversity(UserForm):
     """
     add university to the create user form
     """
 
     requested_account_note = forms.CharField(required=True)
-    
+
     class Meta:
         model = LinkUser
         fields = ["first_name", "last_name", "email", "requested_account_note"]
@@ -163,7 +163,7 @@ class UserFormWithOrganization(UserForm):
 
 
 ### USER EDIT FORMS ###
-        
+
 class UserAddRegistrarForm(UserFormWithRegistrar):
     """
     User form that just lets you change the registrar.
@@ -226,5 +226,10 @@ class ContactForm(forms.Form):
     and a message
     """
 
+    def clean_subject(self):
+        return self.cleaned_data['subject'] or "New message from Perma contact form"
+
     email = forms.EmailField(label="Your email address")
+    subject = forms.CharField(required=False)
     message = forms.CharField(widget=forms.Textarea)
+    referer = forms.URLField(widget=forms.HiddenInput, required=False)

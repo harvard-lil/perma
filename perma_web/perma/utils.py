@@ -171,22 +171,32 @@ def send_user_email(title, content, to_address):
         [to_address], fail_silently=False
     )
 
-def send_admin_email(title, content, from_address, request):
+def send_admin_email(title, content, from_address, referer, request):
     """
         Send a message on behalf of a user to the admins.
         Use reply-to for the user address so we can use email services that require authenticated from addresses.
     """
 
-    # append user agent and from email
+    # append user information
     user_agent = ''
+    affiliation_string = '(none)'
     if request:
         user_agent = request.META.get('HTTP_USER_AGENT', '')
+        if request.user.is_authenticated():
+            if request.user.registrar:
+                affiliation_string = "{} (Registrar)".format(request.user.registrar.name)
+            else:
+                affiliations = ["{} ({})".format(org.name, org.registrar.name) for org in request.user.organizations.all().order_by('registrar')]
+                if affiliations:
+                    affiliation_string = ', '.join(affiliations)
     content += """
 
 ----
 User email: %s
+Affiliations: %s
+Referring Page: %s
 User agent: %s
-""" % (from_address, user_agent)
+""" % (from_address, affiliation_string, referer, user_agent)
 
     # send message
     EmailMessage(
