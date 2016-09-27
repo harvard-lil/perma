@@ -5326,27 +5326,22 @@ section .caption {
       background-color: $color-blue;
       text-align: center;
       color: white;
-      &:hover, &:focus {
+      &:hover {
         outline: none !important;
         background-color: $color-hover;
       }
     }
     .active-date > a {
       &:hover, &:focus {
-        text-decoration: none;
-        border-color: #ccc;
-        border-color: rgba(82,168,236,.8);
-        outline: 0;
-        outline: thin dotted \9;
-        -webkit-box-shadow: 0 0 14px rgba(82,168,236,.6);
-        box-shadow: 0 0 14px rgba(82,168,236,.6);
+        color: $color-black;
       }
     }
-    
+
     .active-date.selected-date {
-      background-color: $color-active;
+      background-color: $color-orange;
     }
   }
+  
   .ui-datepicker-prev, .ui-datepicker-next {
     display: inline-block;
     position: absolute;
