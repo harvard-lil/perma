@@ -1240,7 +1240,7 @@ def libraries(request):
         registrar_form.fields['email'].label = "Library email"
         registrar_form.fields['website'].label = "Library website"
 
-    return render_to_response("libraries.html",
+    return render_to_response("registration/sign-up-libraries.html",
         {'user_form':user_form, 'registrar_form':registrar_form, 'registrar_count': registrar_count},
         RequestContext(request))
 

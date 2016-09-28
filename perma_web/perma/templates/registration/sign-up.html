@@ -18,47 +18,12 @@ Create a Perma.cc account.
 	</div>
 </div>
 
-<div class="container cont-full-bleed overview">
-	<div class="container cont-full-bleed cont-sm-fixed">
-		<div class="row row-no-bleed">
-			<div class="col col-sm-by5 overview-module col-no-gutter _active">
-				<div class="overview-module-content" href="{% url 'sign_up' %}">
-					<strong class="overview-module-title">Individual</strong>
-					<p class="overview-module-description">Anyone can create a free account and start creating Perma Links.</p>
-				</div>
-			</div>
-			<div class="col col-sm-by5 overview-module col-no-gutter">
-				<a class="overview-module-content" href="{% url 'libraries' %}">
-					<strong class="overview-module-title">Libraries</strong>
-					<p class="overview-module-description">Libraries play a critical role in powering and supporting Perma.cc.</p>
-				</a>
-			</div>
-			<div class="col col-sm-by5 overview-module col-no-gutter">
-				<a class="overview-module-content" href="{% url 'sign_up_journals' %}">
-					<strong class="overview-module-title">Journals</strong>
-					<p class="overview-module-description">Over 150 academic law journals prevent link rot with Perma.cc.</p>
-				</a>
-			</div>
-			<div class="col col-sm-by5 overview-module col-no-gutter">
-				<a class="overview-module-content" href="{% url 'sign_up_courts' %}">
-					<strong class="overview-module-title">Courts</strong>
-					<p class="overview-module-description">Courts care deeply about the long-term accuracy, integrity and reliability of the citations in their opinions.</p>
-				</a>
-			</div>
-			<div class="col col-sm-by5 overview-module col-no-gutter">
-				<a class="overview-module-content" href="{% url 'sign_up_faculty' %}">
-					<strong class="overview-module-title">Faculty</strong>
-					<p class="overview-module-description">Faculty use Perma.cc to prevent link rot in their scholarship.</p>
-				</a>
-			</div>
-		</div>
-	</div>
-</div>
+{% include "registration/includes/sign-up-navigation.html" with this_page="individual" %}
 
 <div class="container cont-reading cont-fixed">
 	<div class="row signup-info">
-	    <div class="col-sm-4 signup-learnMore-form">	
-	        <h2 class="body-ah">Create an individual account</h2>	
+	    <div class="col-sm-4 signup-learnMore-form">
+	        <h2 class="body-ah">Create an individual account</h2>
 			<form method="post" action="">
 				{% csrf_token %}
         {% include "includes/fieldset.html" %}
