@@ -230,7 +230,7 @@ def contact(request):
             # If our form is valid, let's generate and email to our contact folks
 
             from_address = form.cleaned_data['email']
-            subject = form.cleaned_data['subject']
+            subject = "[perma-contact] " + form.cleaned_data['subject']
             referer = form.cleaned_data['referer']
 
             content = '''
