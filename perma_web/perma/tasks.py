@@ -837,25 +837,28 @@ def upload_to_internet_archive(self, link_guid):
                     secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
                 )
 
-            warc_file_path = os.path.join(default_storage.location, link.warc_storage_file())
-            success = internetarchive.upload(identifier,
-                                warc_file_path,
+            warc_name = os.path.basename(link.warc_storage_file())
+
+            with default_storage.open(link.warc_storage_file(), 'rb') as warc_file:
+                success = internetarchive.upload(
+                                identifier,
+                                {warc_name:warc_file},
                                 metadata=metadata,
                                 access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
                                 secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
                                 retries=10,
                                 retries_sleep=60,
                                 verbose=True,
-                                )
-            if success:
-                link.internet_archive_upload_status = 'completed'
-                link.save()
+                            )
+                if success:
+                    link.internet_archive_upload_status = 'completed'
+                    link.save()
 
-            else:
-                link.internet_archive_upload_status = 'failed'
-                self.retry(exc=Exception("Internet Archive reported upload failure."))
+                else:
+                    link.internet_archive_upload_status = 'failed'
+                    self.retry(exc=Exception("Internet Archive reported upload failure."))
 
-            return
+                return
         else:
             link.internet_archive_upload_status = 'failed_permanently'
             link.save()
