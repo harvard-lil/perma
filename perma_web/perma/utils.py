@@ -171,7 +171,7 @@ def send_user_email(title, content, to_address):
         [to_address], fail_silently=False
     )
 
-def send_admin_email(title, content, from_address, referer, request):
+def send_admin_email(title, content, from_address, request, referer=''):
     """
         Send a message on behalf of a user to the admins.
         Use reply-to for the user address so we can use email services that require authenticated from addresses.
