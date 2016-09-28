@@ -1,66 +1,56 @@
 {% extends "base-responsive.html" %}
 
-{% block meta_description %}
-Perma.cc for libraries
-{% endblock %}
+{% block meta_description %}Perma.cc for libraries{% endblock %}
 
 {% block bodyFlags %}_signup _libraries{% endblock %}
 {% block mainFlags %}{% endblock %}
 
-
 {% block mainContent %}
 <div class="container cont-fixed">
-	<div class="row">
-		<div class="col-sm-12">
-			<h1 class="page-title">Perma.cc for libraries</h1>
-			<p class="page-dek">For centuries, libraries have worked together to preserve print sources and to make those sources accessible to the public. Today they do the same for online sources through Perma’s active network of library partners.</p>
-		</div>
-	</div>
+  <div class="row">
+    <div class="col-sm-12">
+      <h1 class="page-title">Perma.cc for libraries</h1>
+      <p class="page-dek">For centuries, libraries have worked together to preserve print sources and to make those sources accessible to the public. Today they do the same for online sources through Perma’s active network of library partners.</p>
+    </div>
+  </div>
 </div>
 
 {% include "registration/includes/sign-up-navigation.html" with this_page="libraries" %}
 
 <div class="container cont-reading cont-fixed">
-	<div class="row signup-info">
-	    {% if not request.user.pending_registrar and not request.user.is_registrar_user %}
-			<div class="col-sm-4 signup-learnMore-form">
-			    <h2 class="body-ah">Request library account</h2>
-	            <form method="post" role="form">
-	                {% csrf_token %}
-	                <h3 class="body-bh">Your library information</h3>
+  <div class="row signup-info">
+    {% if not request.user.pending_registrar and not request.user.is_registrar_user %}
+      <div class="col-sm-4 signup-learnMore-form">
+        <h2 class="body-ah">Request library account</h2>
+        <form method="post" role="form">
+          {% csrf_token %}
+          <h3 class="body-bh">Your library information</h3>
+          {% include "includes/fieldset.html" with form=registrar_form %}
+          {% if user_form %}
+            <h3 class="body-bh">Your information</h3>
+              {% include "includes/fieldset.html" with form=user_form %}
+              <p class="terms-statement"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
+          {% endif %}
+          <button type="submit" class="btn">Request account</button>
+        </form>
+      </div><!--col -->
+    {% endif %}
+    <div class="col-sm-8 reading-body">
+      <h2 class="body-ah">Libraries power Perma.cc</h2>
+      <p class="body-text">For centuries, libraries have worked together to preserve print sources and to make those sources accessible to the public. Today they do the same for online sources through Perma.cc’s active network of library partners.</p>
+      <h3 class="body-bh">Network of registrars</h3>
+      <p class="body-text">We call our library partners “registrars,” and our <a href="{% url 'about' %}#partners">network of registrars</a> is now <strong>{{registrar_count}}</strong> institutions strong. Each registrar sponsors and administers Perma for its local community of scholars and journals.</p>
 
-          				{% include "includes/fieldset.html" with form=registrar_form %}
-                        <div class="checkbox">
-                        <label>
-                          <input id="id_create_account" name="create_account" type="checkbox" checked /> Create a free personal account to try Perma.cc
-                        </label>
-                    </div>
-	                {% if user_form %}
-	                  <h3 class="body-bh">Your information</h3>
-          				  {% include "includes/fieldset.html" with form=user_form %}
-						        <p class="terms-statement"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
-	                {% endif %}
-	                <button type="submit" class="btn">Request account</button>
-	            </form>
-			</div><!--col -->
-		{% endif %}
-	    <div class="col-sm-8 reading-body">
-	        <h2 class="body-ah">Libraries power Perma.cc</h2>
-	        <p class="body-text">For centuries, libraries have worked together to preserve print sources and to make those sources accessible to the public. Today they do the same for online sources through Perma.cc’s active network of library partners.</p>
-	        <h3 class="body-bh">Network of registrars</h3>
-	        <p class="body-text">We call our library partners “registrars,” and our <a href="{% url 'about' %}#partners">network of registrars</a> is now <strong>{{registrar_count}}</strong> institutions strong. Each registrar sponsors and administers Perma for its local community of scholars and journals.</p>
-
-	        <h3 class="body-bh">Free and easy to use</h3>
-	        <p class="body-text">Perma.cc is free for academic libraries and the journals and faculty they support, and it's easy to use and administer. Please review our <a href="{% url 'docs' %}#libraries-and-registrars">user guide</a> to learn more about how libraries use Perma.cc.</p>
-			{% if not request.user.pending_registrar and not request.user.is_registrar_user %}
-		        <h3 class="body-bh">Join our library network</h3>
-		        <p class="body-text">If your library isn’t a member yet and would like to join, please fill out the form on this page to request a registrar account.</p>
-		    {% endif %}
-		</div>
-	</div>
+      <h3 class="body-bh">Free and easy to use</h3>
+      <p class="body-text">Perma.cc is free for academic libraries and the journals and faculty they support, and it's easy to use and administer. Please review our <a href="{% url 'docs' %}#libraries-and-registrars">user guide</a> to learn more about how libraries use Perma.cc.</p>
+      {% if not request.user.pending_registrar and not request.user.is_registrar_user %}
+        <h3 class="body-bh">Join our library network</h3>
+        <p class="body-text">If your library isn’t a member yet and would like to join, please fill out the form on this page to request a registrar account.</p>
+      {% endif %}
+    </div>
+  </div>
 </div>
 {% endblock mainContent %}
+
 {% block scripts %}
-<script>
-</script>
 {% endblock scripts %}

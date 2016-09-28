@@ -1,49 +1,47 @@
 {% extends "base-responsive.html" %}
 
-{% block meta_description %}
-Create a Perma.cc account.
-{% endblock %}
+{% block meta_description %}Create a Perma.cc account.{% endblock %}
 
 {% block bodyFlags %}_signup _unaffiliated{% endblock %}
 {% block mainFlags %}{% endblock %}
 
-
 {% block mainContent %}
 <div class="container cont-fixed">
-	<div class="row">
-		<div class="col-sm-12">
-			<h1 class="page-title">Sign up with Perma.cc</h1>
-			<p class="page-dek">Perma.cc is free to use for anyone. However, some types of users and organizations have special privileges and responsibilities. Select the affiliation that best describes you or your organization to learn more and get started creating an account. See <a href="{% url 'docs' %}">our documentation</a> for more about Perma.cc’s affiliations and roles.</p>
-		</div>
-	</div>
+  <div class="row">
+    <div class="col-sm-12">
+      <h1 class="page-title">Sign up with Perma.cc</h1>
+      <p class="page-dek">Perma.cc is free to use for anyone. However, some types of users and organizations have special privileges and responsibilities. Select the affiliation that best describes you or your organization to learn more and get started creating an account. See <a href="{% url 'docs' %}">our documentation</a> for more about Perma.cc’s affiliations and roles.</p>
+    </div>
+  </div>
 </div>
 
 {% include "registration/includes/sign-up-navigation.html" with this_page="individual" %}
 
 <div class="container cont-reading cont-fixed">
-	<div class="row signup-info">
-	    <div class="col-sm-4 signup-learnMore-form">
-	        <h2 class="body-ah">Create an individual account</h2>
-			<form method="post" action="">
-				{% csrf_token %}
+  <div class="row signup-info">
+    <div class="col-sm-4 signup-learnMore-form">
+      <h2 class="body-ah">Create an individual account</h2>
+      <form method="post" action="">
+        {% csrf_token %}
         {% include "includes/fieldset.html" %}
         <p class="body-text"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
-				<button type="submit" class="btn">Create account</button>
-			</form>
-		</div>
-	    <div class="col-sm-8 reading-body">
-            <h2 class="body-ah">Perma.cc for individual users</h2>
-            <p class="body-text">Anyone can create a free, individual Perma.cc account, which will allow you to create ten links per month. Just complete this form to get started.</p>
-			<p class="body-text">Please note that if you need more than ten links per month you should work with a journal or a library that uses Perma.cc. To learn more about how Perma.cc works, please review our <a href="{% url 'docs' %}">user guide</a>.
-		</div>
-	</div>
+        <button type="submit" class="btn">Create account</button>
+      </form>
+    </div>
+    <div class="col-sm-8 reading-body">
+      <h2 class="body-ah">Perma.cc for individual users</h2>
+      <p class="body-text">Anyone can create a free, individual Perma.cc account, which will allow you to create ten links per month. Just complete this form to get started.</p>
+      <p class="body-text">Please note that if you need more than ten links per month you should work with a journal or a library that uses Perma.cc. To learn more about how Perma.cc works, please review our <a href="{% url 'docs' %}">user guide</a>.
+    </div>
+  </div>
 </div>
 {% endblock mainContent %}
+
 {% block scripts %}
-<script>
-$(document).ready(function(){
-    $('input[type=email]:first').focus();
-    $('body').scrollTop(0);
-});
-</script>
+  <script>
+    $(document).ready(function(){
+      $('input[type=email]:first').focus();
+      $('body').scrollTop(0);
+    });
+  </script>
 {% endblock scripts %}

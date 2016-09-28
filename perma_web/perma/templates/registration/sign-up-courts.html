@@ -1,81 +1,79 @@
 {% extends "base-responsive.html" %}
 
-{% block meta_description %}
-Perma.cc for courts
-{% endblock %}
+{% block meta_description %}Perma.cc for courts{% endblock %}
 
 {% block bodyFlags %}_signup _courts{% endblock %}
 {% block mainFlags %}{% endblock %}
 
-
 {% block mainContent %}
 <div class="container cont-fixed">
-	<div class="row">
-		<div class="col-sm-12">
-			<h1 class="page-title">Perma.cc for courts</h1>
-			<p class="page-dek">Courts in Michigan, Colorado, Massachusetts, Maryland and elsewhere use Perma.cc to prevent link rot in their opinions. If your court is interested in Perma.cc, please use the form to contact us, and we’ll be in touch shortly to set up an informational call to introduce you and your colleagues to Perma.cc and to answer your questions.</p>
-		</div>
-	</div>
+  <div class="row">
+    <div class="col-sm-12">
+      <h1 class="page-title">Perma.cc for courts</h1>
+      <p class="page-dek">Courts in Michigan, Colorado, Massachusetts, Maryland and elsewhere use Perma.cc to prevent link rot in their opinions. If your court is interested in Perma.cc, please use the form to contact us, and we’ll be in touch shortly to set up an informational call to introduce you and your colleagues to Perma.cc and to answer your questions.</p>
+    </div>
+  </div>
 </div>
 
 {% include "registration/includes/sign-up-navigation.html" with this_page="courts" %}
 
 <div class="container cont-reading cont-fixed">
-	<div class="row signup-info">
-	    <div class="col-sm-4 signup-learnMore-form">
-	        <h2 class="body-ah">Request information for courts</h2>
-			<form method="post" action="">
-				{% csrf_token %}
-				 <fieldset>
-					{% for field in form %}
-						<div class="form-group{% if field.errors %} _error{% endif %}">
-							<label for="id_{{ field.name }}">{{ field.label }}</label>
-							{{ field }}
-							{% if field.errors %}
-								{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
-							{%elif field.help_text %}
-								<span class="help-inline">{{ field.help_text }}</span>
-							{% endif %}
-						</div>
-					{% endfor %}
-					<div class="checkbox">
-	                    <label>
-	                      <input id="id_create_account" name="create_account" type="checkbox" checked /> Create a free personal account to try Perma.cc
-	                    </label>
-	                </div>
-                	{% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
-                <p class="terms-statement"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
-			  </fieldset>
-				<button type="submit" class="btn">Send request</button>
-			</form>
-		</div>
-	    <div class="col-sm-8 reading-body">
-            <h2 class="body-ah">Why should courts use Perma.cc?</h2>
-            <p class="body-text">Courts in Michigan, Colorado, Massachusetts, Maryland and elsewhere use Perma.cc to prevent link rot in their opinions.</p>
+  <div class="row signup-info">
+    <div class="col-sm-4 signup-learnMore-form">
+      <h2 class="body-ah">Request information for courts</h2>
+      <form method="post" action="">
+        {% csrf_token %}
+        <fieldset>
+          {% for field in form %}
+            <div class="form-group{% if field.errors %} _error{% endif %}">
+              <label for="id_{{ field.name }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}
+                {% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+              {%elif field.help_text %}
+                <span class="help-inline">{{ field.help_text }}</span>
+              {% endif %}
+            </div>
+          {% endfor %}
+          <div class="checkbox">
+            <label>
+              <input id="id_create_account" name="create_account" type="checkbox" checked /> Create a free personal account to try Perma.cc
+            </label>
+          </div>
+          {% if form.non_field_errors %}<span class="field-error">{{ form.non_field_errors }}</span>{% endif %}
+          <p class="terms-statement"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
+        </fieldset>
+        <button type="submit" class="btn">Send request</button>
+      </form>
+    </div>
+    <div class="col-sm-8 reading-body">
+      <h2 class="body-ah">Why should courts use Perma.cc?</h2>
+      <p class="body-text">Courts in Michigan, Colorado, Massachusetts, Maryland and elsewhere use Perma.cc to prevent link rot in their opinions.</p>
 
-			<h3 class="body-bh">Free and easy</h3>
-			<p class="body-text">Perma.cc is free for courts and extremely easy to use.<p class="body-text">
+      <h3 class="body-bh">Free and easy</h3>
+      <p class="body-text">Perma.cc is free for courts and extremely easy to use.<p class="body-text">
 
-			<h3 class="body-bh">Bluebook compliant</h3>
-			<p class="body-text">In addition, the Bluebook now encourages archiving online sources when a reliable service such as Perma.cc is available.<p class="body-text">
+      <h3 class="body-bh">Bluebook compliant</h3>
+      <p class="body-text">In addition, the Bluebook now encourages archiving online sources when a reliable service such as Perma.cc is available.<p class="body-text">
 
-			<h3 class="body-bh">Request more information</h3>
-			<p class="body-text">If you’d like to learn more about how Perma.cc could help your court, please fill out this form and we’ll follow up shortly to set up an informational call.<p class="body-text">
+      <h3 class="body-bh">Request more information</h3>
+      <p class="body-text">If you’d like to learn more about how Perma.cc could help your court, please fill out this form and we’ll follow up shortly to set up an informational call.<p class="body-text">
 
-			<h3 class="body-bh">Try it now</h3>
-			<p class="body-text">Create a free individual account now by leaving the “Create a free personal account” box checked.<p class="body-text">
-		</div>
-	</div>
+      <h3 class="body-bh">Try it now</h3>
+      <p class="body-text">Create a free individual account now by leaving the “Create a free personal account” box checked.<p class="body-text">
+    </div>
+  </div>
 </div>
 {% endblock mainContent %}
+
 {% block scripts %}
-<script>
-$(document).ready(function(){
-    $('input[type=text]:first').focus();
-    $('#id_create_account').change(function() {
+  <script>
+    $(document).ready(function(){
+      $('input[type=text]:first').focus();
+      $('#id_create_account').change(function() {
         $('.terms-statement').slideToggle();
+      });
+      $('body').scrollTop(0);
     });
-    $('body').scrollTop(0);
-});
-</script>
+  </script>
 {% endblock scripts %}

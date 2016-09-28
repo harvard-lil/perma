@@ -1,63 +1,61 @@
 {% extends "base-responsive.html" %}
 
-{% block meta_description %}
-Perma.cc for journals
-{% endblock %}
+{% block meta_description %}Perma.cc for journals{% endblock %}
 
 {% block bodyFlags %}_signup _journals{% endblock %}
 {% block mainFlags %}{% endblock %}
 
-
 {% block mainContent %}
 <div class="container cont-fixed">
-	<div class="row">
-		<div class="col-sm-12">
-			<h1 class="page-title">Perma.cc for journals</h1>
-			<p class="page-dek">Over 150 academic law journals prevent link rot with Perma.cc.</p>
-		</div>
-	</div>
+  <div class="row">
+    <div class="col-sm-12">
+      <h1 class="page-title">Perma.cc for journals</h1>
+      <p class="page-dek">Over 150 academic law journals prevent link rot with Perma.cc.</p>
+    </div>
+  </div>
 </div>
 
 {% include "registration/includes/sign-up-navigation.html" with this_page="journals" %}
 
 <div class="container cont-reading cont-fixed">
-	<div class="row signup-info">
-	    <div class="col-sm-4 signup-learnMore-form">
-	        <h2 class="body-ah">Create an account</h2>
-			<form method="post" action="">
-				{% csrf_token %}
+  <div class="row signup-info">
+    <div class="col-sm-4 signup-learnMore-form">
+      <h2 class="body-ah">Create an account</h2>
+      <form method="post" action="">
+        {% csrf_token %}
         {% include "includes/fieldset.html" %}
-				<p class="body-text"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
-				<button type="submit" class="btn">Create account</button>
-			</form>
-		</div>
-	    <div class="col-sm-8 reading-body">
-            <h2 class="body-ah">Perma.cc for journals</h2>
-            <p class="body-text">Over 150 academic law journals prevent link rot with Perma.cc.</p>
+        <p class="body-text"><small>By registering, you agree to the <a href="{% url 'terms_of_service' %}">terms of service</a>.</small></p>
+        <button type="submit" class="btn">Create account</button>
+      </form>
+    </div>
+    <div class="col-sm-8 reading-body">
+      <h2 class="body-ah">Perma.cc for journals</h2>
+      <p class="body-text">Over 150 academic law journals prevent link rot with Perma.cc.</p>
 
-			<h3 class="body-bh">Free and easy to use</h3>
-			<p class="body-text">Perma.cc is easy to use and free for any academic journal that is authorized by its library. Our <a href="{% url 'docs' %}">user guide</a> has more details on how Perma.cc works for journals.<p class="body-text">
+      <h3 class="body-bh">Free and easy to use</h3>
+      <p class="body-text">Perma.cc is easy to use and free for any academic journal that is authorized by its library. Our <a href="{% url 'docs' %}">user guide</a> has more details on how Perma.cc works for journals.<p class="body-text">
 
-			<h3 class="body-bh">Bluebook compliant</h3>
-			<p class="body-text">The Bluebook now encourages archiving online sources when a reliable service such as Perma.cc is available.<p class="body-text">
+      <h3 class="body-bh">Bluebook compliant</h3>
+      <p class="body-text">The Bluebook now encourages archiving online sources when a reliable service such as Perma.cc is available.<p class="body-text">
 
-			<h3 class="body-bh">Contact your library for a journal account</h3>
-			<p class="body-text">If your library is already registered with us (see the full list <a href="{% url 'about' %}#partners">here</a>), contact them for setup. If not, invite your library to visit our <a href="{% url 'libraries' %}">library resource page</a> to request membership, and we’ll help them get started.<p class="body-text">
+      <h3 class="body-bh">Contact your library for a journal account</h3>
+      <p class="body-text">If your library is already registered with us (see the full list <a href="{% url 'about' %}#partners">here</a>), contact them for setup. If not, invite your library to visit our <a href="{% url 'libraries' %}">library resource page</a> to request membership, and we’ll help them get started.<p class="body-text">
 
-			<h3 class="body-bh">Try it now</h3>
-			<p class="body-text">If you’d like to create a free, individual account now, please fill out this form. Your library will be able to connect this account to your journal’s account at a later date.<p class="body-text">
-		</div>
-	</div>
+      <h3 class="body-bh">Try it now</h3>
+      <p class="body-text">If you’d like to create a free, individual account now, please fill out this form. Your library will be able to connect this account to your journal’s account at a later date.<p class="body-text">
+    </div>
+  </div>
 </div>
 {% endblock mainContent %}
+
 {% block scripts %}
-<script>
-$(document).ready(function(){
-    $('input[type=text]:first').focus();
-    $('#id_create_account').change(function() {
+  <script>
+    $(document).ready(function(){
+      $('input[type=text]:first').focus();
+      $('#id_create_account').change(function() {
         $('.terms-statement').slideToggle();
+      });
+      $('body').scrollTop(0);
     });
-    $('body').scrollTop(0);
-});
-</script>
+  </script>
 {% endblock scripts %}
