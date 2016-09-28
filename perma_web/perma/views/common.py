@@ -247,8 +247,8 @@ Message from user
                 subject,
                 content,
                 from_address,
-                referer,
-                request
+                request,
+                referer
             )
 
             # redirect to a new URL:
