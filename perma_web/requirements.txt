@@ -56,7 +56,7 @@ glob2==0.4.1              # via jasmine-core
 greenlet==0.4.9           # via gevent
 gunicorn==19.3.0
 idna==2.1                 # via cryptography, tldextract
-internetarchive==1.0.2
+internetarchive==1.0.10
 ipaddress==1.0.16         # via cryptography
 itsdangerous==0.24        # via flask
 jasmine-core==2.4.0       # via jasmine
