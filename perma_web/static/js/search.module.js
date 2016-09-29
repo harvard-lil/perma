@@ -151,7 +151,7 @@ SearchModule.getSubmittedUrlEndpoint = function () {
 }
 
 SearchModule.generateRequestData = function(query, date) {
-  var data = { submitted_url:query, offset:0, date_range:3}
+  var data = { submitted_url:query, offset:0, date_range:3, limit:0};
   if (date) {
     date = new Date(date);
     date = date.toISOString();
