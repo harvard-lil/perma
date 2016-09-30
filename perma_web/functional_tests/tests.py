@@ -385,7 +385,7 @@ class FunctionalTest(BaseTestCase):
             try:
                 print("Attempting to capture screenshot of failed functional test ...")
                 self.driver.save_screenshot("failed_functional_test.png")
-                print("Sreenshot of failed functional test is at failed_functional_test.png")
+                print("Screenshot of failed functional test is at failed_functional_test.png")
             except Exception as e2:
                 print("Screenshot failed: %s" % e2)
             raise
