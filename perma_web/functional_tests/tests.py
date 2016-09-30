@@ -18,6 +18,7 @@ import time
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
 from perma.wsgi import application as wsgi_app
+from perma.models import UncaughtError
 from perma.settings import SAUCE_USERNAME, SAUCE_ACCESS_KEY, USE_SAUCE, TIMEGATE_WARC_ROUTE, WARC_ROUTE
 
 
@@ -269,6 +270,13 @@ class FunctionalTest(BaseTestCase):
                                                    self.server_thread.port))
             return o.geturl()
 
+        def test_js_error_handling():
+            # helper to throw a javascript error and confirm it was recorded on the backend
+            err_count = UncaughtError.objects.count()
+            self.driver.execute_script("setTimeout(function(){doesNotExist()})")
+            repeat_while_exception(lambda: self.assertEqual(err_count+1, UncaughtError.objects.count()), timeout=5)  # give time for background thread to create exception
+            self.assertIn('doesNotExist', UncaughtError.objects.last().message)
+
         info("Starting functional tests at time:", datetime.datetime.utcnow())
 
         try:
@@ -276,6 +284,9 @@ class FunctionalTest(BaseTestCase):
             info("Loading homepage from %s." % self.server_url)
             self.driver.get(self.server_url)
             assert_text_displayed("Perma.cc is simple") # new text on landing now
+
+            info("Testing javascript error reporting -- logged out user")
+            test_js_error_handling()
 
             info("Loading docs.")
             try:
@@ -296,6 +307,9 @@ class FunctionalTest(BaseTestCase):
             get_id('id_password').send_keys('pass')
             get_xpath("//button[@class='btn login']").click() # new design button, no more 'btn-success'
             assert_text_displayed('Create a new', 'h1')  # wait for load
+
+            info("Testing javascript error reporting -- logged in user")
+            test_js_error_handling()
 
             info("Creating archive.")
             url_to_capture = 'example.com'
@@ -380,6 +394,13 @@ class FunctionalTest(BaseTestCase):
                 if 'rel="memento"' in header:
                     reg = re.compile('%s%s/\d+/http://%s' % (self.server_url, WARC_ROUTE, url_to_capture))
                     self.assertIsNotNone(reg.search(header))
+
+            info("Checking for unexpected javascript errors")
+            unexpected_errors = list(UncaughtError.objects.exclude(message__contains="doesNotExist"))
+            if unexpected_errors:
+                for err in unexpected_errors:
+                    info("Unexpected javascript error:", err.current_url, err.message, err.stack)
+                self.assertTrue(False, "Unexpected javascript errors (see log for details)")
 
         except Exception:
             try:
