@@ -40,6 +40,7 @@ def test(apps="perma api functional_tests"):
         "*/tests/*",
         "fabfile/*",
         "functional_tests/*",
+        "*/settings/*",
     ]
     local("coverage run --source='.' --omit='%s' manage.py test %s" % (",".join(excluded_files), apps))
 
