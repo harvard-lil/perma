@@ -15,11 +15,19 @@ ErrorHandler.init = function () {
     host: '/errors/new?'
   });
 
-  window.onerror = airbrake.onerror;
+  // in debug mode, monkey-patch airbrake.notify() to log the error to the console
+  if (settings.DEBUG) {
+    airbrake.notify = function (err) {
+      console.error(err.error ? err.error.stack : err);
+      return this.__proto__.notify.apply(this, arguments);  // call real notify() method
+    };
+  }
 
+  // add listener for jquery errors
   if (window.jQuery) {
     airbrakeJs.instrumentation.jquery(airbrake, jQuery);
   }
-}
+
+};
 
 ErrorHandler.init();
