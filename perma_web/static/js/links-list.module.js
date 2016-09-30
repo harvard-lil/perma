@@ -131,17 +131,21 @@ LinksListModule.showFolderContents = function (folderID, query) {
   // Content fetcher.
   // This is wrapped in a function so it can be called repeatedly for infinite scrolling.
   function getNextContents() {
-    APIModule.request("GET", endpoint, requestData).always(function (response) {
-        // same thing runs on success or error, since we get back success or error-displaying HTML
+    APIModule.request("GET", endpoint, requestData).success(function (response) {
       showLoadingMessage = false;
       var links = response.objects.map(LinksListModule.generateLinkFields.bind(this, query));
 
       // append HTML
       if(requestData.offset === 0) {
+        // first run -- initialize folder
         DOMHelpers.emptyElement(LinksListModule.linkTable);
+      }else{
+        // subsequent run -- appending to folder
+        var linksLoadingMore = LinksListModule.linkTable.find('.links-loading-more');
+        DOMHelpers.removeElement(linksLoadingMore);
+        if(!links.length)
+          return;
       }
-      var linksLoadingMore = LinksListModule.linkTable.find('.links-loading-more');
-      DOMHelpers.removeElement(linksLoadingMore);
 
       LinksListModule.displayLinks(links, query);
 
