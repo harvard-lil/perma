@@ -1,17 +1,19 @@
+import socket
 from contextlib import contextmanager
 import operator
+from urlparse import urlparse
 import os
 import struct
 import tempdir
 from datetime import datetime
 import logging
+from netaddr import IPAddress, IPNetwork
 
 from django.core.mail import EmailMessage, send_mail
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.conf import settings
 from django.template.loader import render_to_string
-
 
 logger = logging.getLogger(__name__)
 
@@ -248,3 +250,24 @@ class opbeat_trace(opbeat.trace):
                 return super(opbeat_trace, self).__exit__(*args, **kwargs)
             except Exception as e:
                 logger.exception("Error exiting opbeat_trace context manager: %s" % e)
+
+### security ###
+
+def ip_in_allowed_ip_range(ip):
+    """ Return False if ip is blocked. """
+    if not ip:
+        return False
+    ip = IPAddress(ip)
+    for banned_ip_range in settings.BANNED_IP_RANGES:
+        if IPAddress(ip) in IPNetwork(banned_ip_range):
+            return False
+    return True
+
+def url_in_allowed_ip_range(url):
+    """ Return False if url resolves to a blocked IP. """
+    hostname = urlparse(url).netloc.split(':')[0]
+    try:
+        ip = socket.gethostbyname(hostname)
+    except socket.gaierror:
+        return False
+    return ip_in_allowed_ip_range(ip)
