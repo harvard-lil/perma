@@ -49,6 +49,19 @@ class ErrorManagementViewsTestCase(PermaTestCase):
         latest_error = UncaughtError.objects.last()
         self.assertEqual(latest_error.current_url, self.error_contents['context']['url'])
 
+    def test_invalid_post(self):
+        # if a post is sent without a valid json error report for some reason, just record user and referer
+        user_email = 'test_user@example.com'
+        referer_url = 'http://example.com'
+        response = self.post_json('error_management_post_new', 'invalid json', user=user_email,
+                                  request_kwargs={'HTTP_REFERER':referer_url})
+        self.assertEqual(response.status_code, 200)
+
+        # check created error
+        latest_error = UncaughtError.objects.last()
+        self.assertEqual(latest_error.current_url, referer_url)
+        self.assertEqual(latest_error.user.email, user_email)
+
     def test_can_resolve_errors(self):
         admin_email = 'test_admin_user@example.com'
 
