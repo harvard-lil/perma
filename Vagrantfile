@@ -16,26 +16,33 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder ".", "/vagrant"
 
   # configure CPU/RAM
-  # via https://stefanwrobel.com/how-to-make-vagrant-performance-not-suck
   config.vm.provider "virtualbox" do |v|
-    host = RbConfig::CONFIG['host_os']
-
-    # Give VM 1/4 system memory & access to all cpu cores on the host
-    if host =~ /darwin/
-      cpus = `sysctl -n hw.ncpu`.to_i
-      # sysctl returns Bytes and we need to convert to MB
-      mem = `sysctl -n hw.memsize`.to_i / 1024 / 1024 / 4
-    elsif host =~ /linux/
-      cpus = `nproc`.to_i
-      # meminfo shows KB and we need to convert to MB
-      mem = `grep 'MemTotal' /proc/meminfo | sed -e 's/MemTotal://' -e 's/ kB//'`.to_i / 1024 / 4
-    else # TODO: cpu/ram detection for Windows
-      cpus = 2
-      mem = 1024
+    # lazy way to make sure this only runs for "vagrant up"
+    if ARGV[0] != "up"
+      next
     end
 
+    # default values
+    host_cpus = 2
+    host_mem = 2048
+
+    # try to get the actual host cpu and ram counts from the vboxmanage command
+    begin
+      host_info = `vboxmanage list hostinfo`
+      host_cpus = /Processor core count: (\d+)/.match(host_info)[1].to_i
+      host_mem = /Memory size: (\d+) MByte/.match(host_info)[1].to_i
+    rescue Errno::ENOENT
+      puts("Warning: vboxmanage command not found. Cannot set optimal ram/cpu.")
+    rescue NoMethodError
+      puts("Warning: failed to extract ram/cpu counts from `vboxmanage list hostinfo` output. Cannot set optimal ram/cpu.")
+    end
+
+    # give guest box 1/4 of memory and cpu count of 1/2 of physical processor cores (as recommended by VirtualBox)
+    mem = host_mem/4
+    cpus = [1, host_cpus/2].max
     v.memory = mem
     v.cpus = cpus
+    
     puts("Using #{mem}MB RAM and #{cpus} CPUs.")
   end
 end
