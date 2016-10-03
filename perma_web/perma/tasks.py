@@ -15,7 +15,7 @@ from pyvirtualdisplay import Display
 import re
 from requests.structures import CaseInsensitiveDict
 from selenium import webdriver
-from selenium.common.exceptions import WebDriverException, NoSuchElementException
+from selenium.common.exceptions import WebDriverException, NoSuchElementException, NoSuchFrameException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.proxy import ProxyType, Proxy
 from datetime import timedelta
@@ -248,8 +248,13 @@ def run_in_frames_recursive(browser, func, output, frame_path=None):
         browser.switch_to.default_content()
         for frame in frame_path:
             browser.switch_to.frame(frame)
-        browser.switch_to.frame(child_frame)
-        run_in_frames_recursive(browser, func, output, frame_path + [child_frame])
+        try:
+            browser.switch_to.frame(child_frame)
+            run_in_frames_recursive(browser, func, output, frame_path + [child_frame])
+        except (ValueError, NoSuchFrameException):
+            # switching to frame failed for some reason
+            print "run_in_frames_recursive caught exception switching to iframe:"
+            traceback.print_exc()
 
 @contextmanager
 def warn_on_exception(message="Exception in block:", exception_type=Exception):
