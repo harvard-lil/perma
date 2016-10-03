@@ -182,7 +182,8 @@ class ProxiedRequestThread(threading.Thread):
                                          headers={'User-Agent': settings.CAPTURE_USER_AGENT},
                                          proxies={'http': 'http://' + self.proxy_address, 'https': 'http://' + self.proxy_address},
                                          verify=False,
-                                         stream=True)
+                                         stream=True,
+                                         timeout=1)
             self.response._content = bytes()
             for chunk in self.response.iter_content(8192):
                 self.pending_data += len(chunk)
