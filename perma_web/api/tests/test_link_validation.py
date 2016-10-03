@@ -58,7 +58,7 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
                            # http://stackoverflow.com/a/10456069/313561
                            data={'url': 'http://0.42.42.42/'})
 
-    @override_settings(MAX_HTTP_FETCH_SIZE=1024)
+    @override_settings(MAX_ARCHIVE_FILE_SIZE=1024)
     def test_should_reject_large_url(self):
         self.rejected_post(self.list_url,
                            user=self.org_user,

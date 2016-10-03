@@ -40,17 +40,17 @@ from django.db.models import Q
 
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture, CaptureJob
 
-from perma.utils import run_task
+from perma.utils import run_task, url_in_allowed_ip_range
 
 logger = logging.getLogger(__name__)
 
 ### CONSTANTS ###
 
 ROBOTS_TXT_TIMEOUT = 30 # seconds to wait before giving up on robots.txt
-ONLOAD_EVENT_TIMEOUT = 60 # seconds to wait before giving up on the onLoad event and proceeding as though it fired
-RESOURCE_LOAD_TIMEOUT = 180 # seconds to wait for at least one resource to load before giving up on capture
+ONLOAD_EVENT_TIMEOUT = 30 # seconds to wait before giving up on the onLoad event and proceeding as though it fired
+RESOURCE_LOAD_TIMEOUT = 45 # seconds to wait for at least one resource to load before giving up on capture
 ELEMENT_DISCOVERY_TIMEOUT = 2 # seconds before PhantomJS gives up running a DOM request (should be instant, assuming page is loaded)
-AFTER_LOAD_TIMEOUT = 180 # seconds to allow page to keep loading additional resources after onLoad event fires
+AFTER_LOAD_TIMEOUT = 30 # seconds to allow page to keep loading additional resources after onLoad event fires
 VALID_FAVICON_MIME_TYPES = {'image/png', 'image/gif', 'image/jpg', 'image/jpeg', 'image/x-icon', 'image/vnd.microsoft.icon', 'image/ico'}
 
 ### HELPERS ###
@@ -154,9 +154,45 @@ def save_fields(instance, **kwargs):
     instance.save(update_fields=kwargs.keys())
 
 def add_thread(thread_list, target, **kwargs):
-    new_thread = threading.Thread(target=target, **kwargs)
-    new_thread.start()
-    thread_list.append(new_thread)
+    if not isinstance(target, threading.Thread):
+        target = threading.Thread(target=target, **kwargs)
+    target.start()
+    thread_list.append(target)
+    return target
+
+class ProxiedRequestThread(threading.Thread):
+    """
+        Run request.get() in a thread, loading data in chunks.
+        Listen for self.stop to be set, allowing requests to be halted by other threads.
+        While the thread is running, see `self.pending_data` for how much has been downloaded so far.
+        Once the thread is done, see `self.response` and `self.response_exception` for the results.
+    """
+    def __init__(self, proxy_address, url, *args, **kwargs):
+        self.url = url
+        self.proxy_address = proxy_address
+        self.pending_data = 0
+        self.stop = threading.Event()
+        self.response = None
+        self.response_exception = None
+        super(ProxiedRequestThread, self).__init__(*args, **kwargs)
+
+    def run(self):
+        try:
+            self.response = requests.get(self.url,
+                                         headers={'User-Agent': settings.CAPTURE_USER_AGENT},
+                                         proxies={'http': 'http://' + self.proxy_address, 'https': 'http://' + self.proxy_address},
+                                         verify=False,
+                                         stream=True)
+            self.response._content = bytes()
+            for chunk in self.response.iter_content(8192):
+                self.pending_data += len(chunk)
+                self.response._content += chunk
+                if self.stop.is_set():
+                    return
+        except requests.RequestException as e:
+            self.response_exception = e
+        finally:
+            self.pending_data = 0
 
 def repeat_while_exception(func, exception=Exception, timeout=10, sleep_time=.1, raise_after_timeout=True):
     end_time = time.time() + timeout
@@ -307,6 +343,11 @@ def proxy_capture(self, link_guid):
         count_lock = threading.Lock()
         class CountingRequestHandler(WarcProxyHandler):
             def _proxy_request(self):
+
+                # make sure we don't capture anything in a banned IP range
+                if not url_in_allowed_ip_range(self.url):
+                    return
+
                 with count_lock:
                     proxied_pair = [self.url, None]
                     proxied_requests.append(proxied_pair[0])
@@ -335,13 +376,6 @@ def proxy_capture(self, link_guid):
             raise self.retry(exc=Exception("WarcProx couldn't find an open port."))
         proxy_address = "127.0.0.1:%s" % warcprox_port
 
-        # set up requests getter for one-off requests outside of selenium
-        def proxied_get_request(url):
-            return requests.get(url,
-                                headers={'User-Agent': settings.CAPTURE_USER_AGENT},
-                                proxies={'http': 'http://' + proxy_address, 'https': 'http://' + proxy_address},
-                                verify=False)
-
         # start warcprox in the background
         warc_writer = WarcWriter(gzip=True, port=warcprox_port)
         warc_writer_thread = WarcWriterThread(recorded_url_q=recorded_url_queue, warc_writer=warc_writer)
@@ -350,6 +384,13 @@ def proxy_capture(self, link_guid):
         warcprox_thread.start()
 
         print "WarcProx opened."
+
+        # Helper function to get a url, via proxied requests.get(), in a way that is interruptable from other threads.
+        # This should only be run from sub-threads.
+        def get_url(url):
+            request_thread = add_thread(thread_list, ProxiedRequestThread(proxy_address, url))
+            request_thread.join()
+            return request_thread.response, request_thread.response_exception
 
         # start virtual display
         if settings.CAPTURE_BROWSER != "PhantomJS":
@@ -391,6 +432,7 @@ def proxy_capture(self, link_guid):
                     break
 
             if have_response:
+                have_warc = True  # at this point we have something that's worth showing to the user
                 break
 
             wait_time = time.time() - start_time
@@ -422,11 +464,9 @@ def proxy_capture(self, link_guid):
 
             for favicon_url in favicon_urls:
                 print "Fetching favicon from %s ..." % favicon_url
-                try:
-                    favicon_response = proxied_get_request(favicon_url)
-                    assert favicon_response.ok
-                except (requests.ConnectionError, requests.Timeout, AssertionError) as e:
-                    print "Failed:", e
+                favicon_response, e = get_url(favicon_url)
+                if e or not favicon_response or not favicon_response.ok:
+                    print "Favicon failed:", e, favicon_response
                     continue
 
                 # apply mime type whitelist
@@ -444,10 +484,8 @@ def proxy_capture(self, link_guid):
         def robots_txt_thread():
             print "Fetching robots.txt ..."
             robots_txt_location = urlparse.urljoin(content_url, '/robots.txt')
-            try:
-                robots_txt_response = proxied_get_request(robots_txt_location)
-                assert robots_txt_response.ok
-            except (requests.ConnectionError, requests.Timeout, AssertionError):
+            robots_txt_response, e = get_url(robots_txt_location)
+            if e or not robots_txt_response or not robots_txt_response.ok:
                 print "Couldn't reach robots.txt"
                 return
 
@@ -563,25 +601,40 @@ def proxy_capture(self, link_guid):
 
                     # grab all media urls that aren't already being grabbed
                     for media_url in set(media_urls) - set(proxied_requests):
-                        add_thread(thread_list, proxied_get_request, args=(media_url,))
+                        add_thread(thread_list, ProxiedRequestThread(proxy_address, media_url))
 
-        # make sure all requests are finished
+        # Wait AFTER_LOAD_TIMEOUT seconds for any requests to finish that are started within the next .5 seconds.
         progress = int(progress) + 1
         display_progress(progress, "Waiting for post-load requests")
+        time.sleep(.5)
+        unfinished_proxied_pairs = [pair for pair in proxied_pairs if not pair[1]]
         start_time = time.time()
-        time.sleep(.1)
-        while True:
-            print "%s/%s finished" % (len(proxied_responses), len(proxied_requests))
-            response_count = len(proxied_responses)
+        while unfinished_proxied_pairs:
+
+            print "Waiting for %s pending requests" % len(unfinished_proxied_pairs)
+
+            # give up after AFTER_LOAD_TIMEOUT seconds
             wait_time = time.time() - start_time
             if wait_time > AFTER_LOAD_TIMEOUT:
                 print "Waited %s seconds to finish post-load requests -- giving up." % AFTER_LOAD_TIMEOUT
                 break
+
+            # Give up if downloaded size exceeds MAX_ARCHIVE_FILE_SIZE.
+            # Amount captured so far is the sum of the bytes recorded by warcprox,
+            # and the bytes pending in our background threads.
+            capture_size = sum(getattr(thread, 'pending_data', 0) for thread in thread_list) + \
+                           sum(proxied_response.response_recorder.len for proxied_response in proxied_responses)
+            if capture_size > settings.MAX_ARCHIVE_FILE_SIZE:
+                print "Halting for size"
+                break
+
+            # Show progress to user
             progress = int(progress) + wait_time/AFTER_LOAD_TIMEOUT
             display_progress(progress, "Waiting for post-load requests")
+
+            # Sleep and update our list
             time.sleep(.5)
-            if response_count == len(proxied_requests):
-                break
+            unfinished_proxied_pairs = [pair for pair in unfinished_proxied_pairs if not pair[1]]
 
         if have_html:
             # get page size to decide whether to take a screenshot
@@ -613,8 +666,6 @@ def proxy_capture(self, link_guid):
             # no screenshot if not HTML
             save_fields(link.screenshot_capture, status='failed')
 
-        have_warc = True
-
     except HaltCaptureException:
         pass
 
@@ -627,7 +678,10 @@ def proxy_capture(self, link_guid):
         print "Shutting down browser and proxies."
 
         for thread in thread_list:
-            thread.join()  # wait until threads are done (have to do this before closing phantomjs)
+            # wait until threads are done (have to do this before closing phantomjs)
+            if hasattr(thread, 'stop'):
+                thread.stop.set()
+            thread.join()
         if browser:
             browser.quit()  # shut down phantomjs
         if display:

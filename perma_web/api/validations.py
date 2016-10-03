@@ -1,8 +1,8 @@
+from perma.utils import ip_in_allowed_ip_range
 from requests import TooManyRedirects
 from tastypie.validation import Validation
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from netaddr import IPAddress, IPNetwork
 import imghdr
 
 from django.conf import settings
@@ -54,21 +54,10 @@ class DefaultValidation(Validation):
 
 class LinkValidation(DefaultValidation):
 
-    def is_valid_ip(self, ip):
-        for banned_ip_range in settings.BANNED_IP_RANGES:
-            if IPAddress(ip) in IPNetwork(banned_ip_range):
-                return False
-        return True
-
     def is_valid_size(self, headers):
-        # If we get a PDF, check its file size as we download it
-        # and don't worry about what the header tells us about size
-        if headers.get('content-type', '').lower() == 'application/pdf':
-            return True
-
+        # preemptively reject URLs that report a size over settings.MAX_ARCHIVE_FILE_SIZE
         try:
-            # If it's not a PDF trust the value in the header
-            if int(headers.get('content-length', 0)) > settings.MAX_HTTP_FETCH_SIZE:
+            if int(headers.get('content-length', 0)) > settings.MAX_ARCHIVE_FILE_SIZE:
                 return False
         except ValueError:
             # Weird -- content-length header wasn't an integer. Carry on.
@@ -106,7 +95,7 @@ class LinkValidation(DefaultValidation):
                 if not bundle.data.get('file', None):
                     if not bundle.obj.ip:
                         errors['url'] = "Couldn't resolve domain."
-                    elif not self.is_valid_ip(bundle.obj.ip):
+                    elif not ip_in_allowed_ip_range(bundle.obj.ip):
                         errors['url'] = "Not a valid IP."
                     elif not bundle.obj.headers:
                         errors['url'] = "Couldn't load URL."

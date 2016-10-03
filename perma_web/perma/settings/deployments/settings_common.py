@@ -371,7 +371,6 @@ WAIT_BETWEEN_TRIES = .5 # wait between .5 and this many seconds between http req
 
 # Max file size (for our downloads)
 MAX_ARCHIVE_FILE_SIZE = 1024 * 1024 * 100  # 100 MB
-MAX_HTTP_FETCH_SIZE = 1024 * 1024  # 1 MB
 
 # Max image size for screenshots and thumbnails
 MAX_IMAGE_SIZE = 1024*1024*50  # 50 megapixels
