@@ -2771,6 +2771,14 @@ input[type="checkbox"] {
   width: auto;
 }
 
+input[type="file"] {
+  background: inherit;
+  border: none;
+  padding-top: 0px;
+  font-size: 14px;
+  line-height: 1ex;
+}
+
 div.checkbox {
   padding: $grid;
   background-color: $color-highlight;
@@ -5347,7 +5355,7 @@ section .caption {
       background-color: $color-orange;
     }
   }
-  
+
   .ui-datepicker-prev, .ui-datepicker-next {
     display: inline-block;
     position: absolute;
