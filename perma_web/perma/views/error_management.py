@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse
 
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 
 from ..models import UncaughtError
 
@@ -18,31 +18,30 @@ def get_all(request):
 @login_required
 @user_passes_test(lambda user: user.is_staff)
 def resolve(request):
-    error_id = request.POST.get('error_id')
-    try:
-        error = UncaughtError.objects.get(id=error_id)
-        error.resolved = True
-        error.resolved_by_user = request.user
-        error.save()
-    except:
-        pass
+    error = get_object_or_404(UncaughtError, pk=request.POST.get('error_id'))
+    error.resolved = True
+    error.resolved_by_user = request.user
+    error.save()
     return HttpResponse(status=200)
 
 @csrf_exempt
 def post_new(request):
     created_at = timezone.now()
     error = UncaughtError.objects.create(created_at=created_at)
+
     try:
         body = json.loads(request.body)
-
         e = body["errors"][0]
         context = body["context"]
-        error.user_agent=context["userAgent"]
-        error.current_url=body["context"]["url"]
-        error.message=e["message"]
-        error.stack=e["backtrace"]
+    except:
+        e = {}
+        context = {}
+
+    error.user_agent=context.get("userAgent")
+    error.current_url=context.get("url", request.META.get('HTTP_REFERER'))
+    error.message=e.get("message")
+    error.stack=e.get("backtrace")
+    if not request.user.is_anonymous():
         error.user = request.user
-        error.save()
-    except ValueError as e:
-        pass
+    error.save()
     return HttpResponse(status=200)

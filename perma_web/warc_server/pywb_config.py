@@ -9,6 +9,8 @@ import re
 from urlparse import urljoin
 import traceback
 import requests
+from django.template import loader
+from django.test import RequestFactory
 from surt import surt
 
 # configure Django
@@ -17,7 +19,6 @@ import django
 django.setup()
 
 from django.conf import settings
-from django.template.loader import get_template
 from django.core.handlers.wsgi import WSGIRequest
 from django.core.files.storage import default_storage
 from django.core.exceptions import DisallowedHost
@@ -323,18 +324,16 @@ class PermaMementoTimemapView(MementoTimemapView):
 
 class PermaTemplateView(object):
     def __init__(self, filename):
-        self.template = get_template(filename)
-
-    def render_to_string(self, **kwargs):
-        return unicode(self.template.render(kwargs))
+        self.filename = filename
+        self.fake_request = RequestFactory().get('/fake')
 
     def render_response(self, status='200 OK', content_type='text/html; charset=utf-8', **template_kwargs):
-        template_result = self.render_to_string(**dict(template_kwargs,
-                                                       status=status,
-                                                       content_type=content_type,
-                                                       STATIC_URL=settings.STATIC_URL,
-                                                       DEBUG=settings.DEBUG))
-        return WbResponse.text_response(template_result, status=status, content_type=content_type)
+        template_context = dict(
+            template_kwargs,
+            status=status,
+            content_type=content_type)
+        template_result = loader.render_to_string(self.filename, template_context, request=self.fake_request)
+        return WbResponse.text_response(unicode(template_result), status=status, content_type=content_type)
 
 
 class PermaCapturesView(PermaTemplateView):

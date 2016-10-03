@@ -37,7 +37,7 @@ class PermissionsTestCase(PermaTestCase):
                     ['user_management_manage_single_organization_user_reactivate', {'kwargs':{'user_id': 3}}],
                     ['user_management_manage_single_user_reactivate', {'kwargs':{'user_id': 4}}],
                     ['error_management_get_all'],
-                    ['error_management_resolve'],
+                    ['error_management_resolve', {'success_status': 404}],
                 ],
                 'allowed': {'test_admin_user@example.com'},
             },

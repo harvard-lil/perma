@@ -61,17 +61,22 @@ class PermaTestCase(TransactionTestCase):
         """
             Convenience method to call do_request with method='post'
         """
-        kwargs['request_kwargs'] = {'data': data}
+        # set defaults for kwargs['request_kwargs']
+        kwargs['request_kwargs'] = dict({
+            'data': data,
+        }, **kwargs.get('request_kwargs', {}))
         return self.do_request(view_name, 'post', *args, **kwargs)
 
     def post_json(self, view_name, data={}, *args, **kwargs):
         """
-            Convenience method to call do_request with necessary headers for JSON requests.
+            Convenience method to call post() with necessary headers for JSON requests.
         """
-        kwargs['request_kwargs'] = {'data': json.dumps(data),
-                                    'content_type': 'application/x-www-form-urlencoded',
-                                    'HTTP_X_REQUESTED_WITH':'XMLHttpRequest'}
-        return self.do_request(view_name, 'post', *args, **kwargs)
+        # set defaults for kwargs['request_kwargs']
+        kwargs['request_kwargs'] = dict({
+            'content_type': 'application/x-www-form-urlencoded',
+            'HTTP_X_REQUESTED_WITH':'XMLHttpRequest'
+        }, **kwargs.get('request_kwargs', {}))
+        return self.post(view_name, json.dumps(data), *args, **kwargs)
 
 
     def submit_form(self,
