@@ -29,6 +29,7 @@ from django.contrib import messages
 
 from perma.forms import (
     RegistrarForm,
+    ExpandedRegistrarForm,
     OrganizationWithRegistrarForm,
     OrganizationForm,
     UserForm,
@@ -202,7 +203,7 @@ def stats(request, stat_type=None):
 @user_passes_test_or_403(lambda user: user.is_staff)
 def manage_registrar(request):
     """
-    Linky admins can manage registrars (libraries)
+    Perma admins can manage registrars (libraries)
     """
 
     # handle creation of new registrars
@@ -1187,10 +1188,7 @@ def libraries(request):
     Info for libraries, allow them to request accounts
     """
     if request.method == 'POST':
-        registrar_form = RegistrarForm(request.POST, prefix = "b")
-        registrar_form.fields['name'].label = "Library name"
-        registrar_form.fields['email'].label = "Library email"
-        registrar_form.fields['website'].label = "Library website"
+        registrar_form = ExpandedRegistrarForm(request.POST, request.FILES, prefix = "b")
         if request.user.is_authenticated():
             user_form = None
         else:
@@ -1233,12 +1231,9 @@ def libraries(request):
             user_form = UserForm(prefix = "a")
             user_form.fields['email'].label = "Your email"
         if request_data:
-            registrar_form = RegistrarForm(request_data, prefix = "b")
+            registrar_form = ExpandedRegistrarForm(request_data, prefix = "b")
         else:
-            registrar_form = RegistrarForm(prefix = "b")
-        registrar_form.fields['name'].label = "Library name"
-        registrar_form.fields['email'].label = "Library email"
-        registrar_form.fields['website'].label = "Library website"
+            registrar_form = ExpandedRegistrarForm(prefix = "b")
 
     return render(request, "registration/sign-up-libraries.html",
         {'user_form':user_form, 'registrar_form':registrar_form})
