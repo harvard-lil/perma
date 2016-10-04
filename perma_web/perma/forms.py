@@ -63,13 +63,14 @@ class RegistrarForm(ModelForm):
 class ExpandedRegistrarForm(ModelForm):
     class Meta:
         model = Registrar
-        fields = ['name', 'email', 'website', 'logo', 'show_partner_status']
+        fields = ['name', 'email', 'website', 'address', 'logo', 'show_partner_status']
 
     def __init__(self, *args, **kwargs):
         super(ExpandedRegistrarForm, self).__init__(*args, **kwargs)
         self.fields['name'].label = "Library name"
         self.fields['email'].label = "Library email"
         self.fields['website'].label = "Library website"
+        self.fields['address'].label = "Library address"
         self.fields['logo'].label = "Library/University logo"
         # If you change here, please also change in clean_logo below
         self.fields['logo'].widget.attrs['accept'] = ".png,.jpg,.jpeg,.gif"
