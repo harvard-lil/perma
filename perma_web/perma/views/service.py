@@ -5,9 +5,11 @@ from django.core import serializers
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.utils import timezone
+from django.utils.http import urlencode
+from django.contrib.auth.decorators import login_required, user_passes_test
 
 from perma.models import WeekStats, MinuteStats
-from perma.utils import json_serial
+from perma.utils import json_serial, get_lat_long
 from django.http import HttpResponse
 
 def stats_sums(request):
@@ -28,13 +30,13 @@ def stats_now(request):
     """
     Serve up our up-to-the-minute stats.
     """
-    
+
     # Get all events since minute one of this day
 
-    # if our request comes with a utcoffset, use that 
+    # if our request comes with a utcoffset, use that
     offset_param = request.GET.get('offset', '')
     offset_value = 0
-    
+
     if offset_param:
         offset_value = int(offset_param)
         offset_time = datetime.utcnow() + timedelta(minutes=offset_value)
@@ -89,3 +91,27 @@ def bookmarklet_create(request):
     tocapture = request.GET.get('url', '')
     add_url = "{}?url={}".format(reverse('create_link'), tocapture)
     return redirect(add_url)
+
+@login_required
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_user())
+def coordinates_from_address(request):
+    """ Return {lat:#, lng:#, success: True} of any address or {success: False} if lookup fails."""
+    address = urlencode({"address": request.GET.get('address', '')})
+    if address:
+        print address
+        try:
+            thing = get_lat_long(address)
+            print thing
+            (lat, lng) = get_lat_long(address)
+            return HttpResponse(
+                json.dumps({'lat': lat, 'lng': lng, 'success': True}),
+                content_type = 'application/javascript; charset=utf8',
+                status=200
+            )
+        except TypeError:
+            pass
+    return HttpResponse(
+                json.dumps({'success': False}),
+                content_type = 'application/javascript; charset=utf8',
+                status=200
+            )
