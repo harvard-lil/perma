@@ -1167,12 +1167,10 @@ class CDXLine(models.Model):
 
 
 class UncaughtError(models.Model):
-    current_url = models.TextField()
-    user_agent = models.TextField()
-    stack = models.TextField()
-    name = models.TextField()
-    message = models.TextField()
-    custom_message = models.TextField()
+    current_url = models.TextField(blank=True, null=True)
+    user_agent = models.TextField(blank=True, null=True)
+    stack = models.TextField(blank=True, null=True)
+    message = models.TextField(blank=True, null=True)
     user = models.ForeignKey(LinkUser, null=True, blank=True, related_name="errors_triggered")
     created_at = models.DateTimeField(default=timezone.now)
 
