@@ -10,12 +10,12 @@ import os
 import os.path
 import threading
 import urlparse
-from celery import shared_task, Task
+from celery import shared_task
 from pyvirtualdisplay import Display
 import re
 from requests.structures import CaseInsensitiveDict
 from selenium import webdriver
-from selenium.common.exceptions import WebDriverException, NoSuchElementException
+from selenium.common.exceptions import WebDriverException, NoSuchElementException, NoSuchFrameException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.proxy import ProxyType, Proxy
 from datetime import timedelta
@@ -182,7 +182,8 @@ class ProxiedRequestThread(threading.Thread):
                                          headers={'User-Agent': settings.CAPTURE_USER_AGENT},
                                          proxies={'http': 'http://' + self.proxy_address, 'https': 'http://' + self.proxy_address},
                                          verify=False,
-                                         stream=True)
+                                         stream=True,
+                                         timeout=1)
             self.response._content = bytes()
             for chunk in self.response.iter_content(8192):
                 self.pending_data += len(chunk)
@@ -247,8 +248,13 @@ def run_in_frames_recursive(browser, func, output, frame_path=None):
         browser.switch_to.default_content()
         for frame in frame_path:
             browser.switch_to.frame(frame)
-        browser.switch_to.frame(child_frame)
-        run_in_frames_recursive(browser, func, output, frame_path + [child_frame])
+        try:
+            browser.switch_to.frame(child_frame)
+            run_in_frames_recursive(browser, func, output, frame_path + [child_frame])
+        except (ValueError, NoSuchFrameException):
+            # switching to frame failed for some reason
+            print "run_in_frames_recursive caught exception switching to iframe:"
+            traceback.print_exc()
 
 @contextmanager
 def warn_on_exception(message="Exception in block:", exception_type=Exception):
@@ -266,31 +272,20 @@ def run_next_capture():
     capture_job = CaptureJob.get_next_job(reserve=True)
     if not capture_job:
         return  # no jobs waiting
-    proxy_capture.apply([capture_job.link_id])
+    try:
+        proxy_capture(capture_job)
+    except:
+        print "Exception while processing capture job %s:" % capture_job.link_id
+        traceback.print_exc()
+    finally:
+        capture_job.link.captures.filter(status='pending').update(status='failed')
+        if capture_job.status == 'pending':
+            capture_job.mark_completed('failed')
     run_task(run_next_capture.s())
 
 
-class ProxyCaptureTask(Task):
-    """
-        After each call to proxy_capture, we check if it has failed all of its retries,
-        and if so mark pending captures as failed permanently.
-    """
-    abstract = True
-    def after_return(self, status, retval, task_id, args, kwargs, einfo):
-        if self.request.retries == 0 and status != 'SUCCESS':
-            link_guid = args[0] if args else kwargs['link_guid']
-            Capture.objects.filter(link_id=link_guid, status='pending').update(status='failed')
-            CaptureJob.objects.get(link_id=link_guid).mark_completed('failed')
-
-@shared_task(bind=True,
-             base=ProxyCaptureTask,
-             # these have no effect, since this task is called synchronously via .apply()
-             #default_retry_delay=30,  # seconds
-             #max_retries=2,
-             )
-@retry_on_error
 @tempdir.run_in_tempdir()
-def proxy_capture(self, link_guid):
+def proxy_capture(capture_job):
     """
     Start warcprox process. Warcprox is a MITM proxy server and needs to be running
     before, during and after the headless browser.
@@ -302,9 +297,8 @@ def proxy_capture(self, link_guid):
     """
 
     # basic setup
-    link = Link.objects.get(guid=link_guid)
+    link = capture_job.link
     target_url = link.safe_url
-    capture_job = link.capture_job
 
     if link.user_deleted or link.primary_capture.status != "pending":
         capture_job.mark_completed('deleted')
@@ -316,9 +310,9 @@ def proxy_capture(self, link_guid):
     # Helper function to update capture_job's progress
     def display_progress(step_count, step_description):
         save_fields(capture_job, step_count=step_count, step_description=step_description)
-        print "%s step %s: %s" % (link_guid, step_count, step_description)
+        print "%s step %s: %s" % (link.guid, step_count, step_description)
 
-    print "%s: Fetching %s" % (link_guid, target_url)
+    print "%s: Fetching %s" % (link.guid, target_url)
     progress = 0
     display_progress(progress, "Starting capture")
 
@@ -373,7 +367,7 @@ def proxy_capture(self, link_guid):
                     raise
             warcprox_port += 1
         else:
-            raise self.retry(exc=Exception("WarcProx couldn't find an open port."))
+            raise Exception("WarcProx couldn't find an open port.")
         proxy_address = "127.0.0.1:%s" % warcprox_port
 
         # start warcprox in the background
@@ -669,10 +663,6 @@ def proxy_capture(self, link_guid):
     except HaltCaptureException:
         pass
 
-    except Exception as e:
-        traceback.print_exc()
-        raise
-
     finally:
         # teardown (have to do this before save to make sure WARC is done writing):
         print "Shutting down browser and proxies."
@@ -698,46 +688,40 @@ def proxy_capture(self, link_guid):
     if have_warc:
         progress += 1
         display_progress(progress, "Saving web archive file")
-        try:
-            temp_warc_path = os.path.join(warc_writer.directory,
-                                          warc_writer._f_finalname)
-            with open(temp_warc_path, 'rb') as warc_file:
-                link.write_warc_raw_data(warc_file)
 
-            print "Writing CDX lines to the DB"
-            CDXLine.objects.create_all_from_link(link)
+        temp_warc_path = os.path.join(warc_writer.directory,
+                                      warc_writer._f_finalname)
+        with open(temp_warc_path, 'rb') as warc_file:
+            link.write_warc_raw_data(warc_file)
 
-            save_fields(
-                link.primary_capture,
+        print "Writing CDX lines to the DB"
+        CDXLine.objects.create_all_from_link(link)
+
+        save_fields(
+            link.primary_capture,
+            status='success',
+            content_type=content_type,
+        )
+        save_fields(
+            link,
+            warc_size=default_storage.size(link.warc_storage_file())
+        )
+        capture_job.mark_completed()
+
+        # We only save the Capture for the favicon once the warc is stored,
+        # since the data for the favicon lives in the warc.
+        if successful_favicon_urls:
+            Capture(
+                link=link,
+                role='favicon',
                 status='success',
-                content_type=content_type,
-            )
-            save_fields(
-                link,
-                warc_size=default_storage.size(link.warc_storage_file())
-            )
-            capture_job.mark_completed()
+                record_type='response',
+                url=successful_favicon_urls[0][0],
+                content_type=successful_favicon_urls[0][1]
+            ).save()
+            print "Saved favicon at %s" % successful_favicon_urls
 
-            # We only save the Capture for the favicon once the warc is stored,
-            # since the data for the favicon lives in the warc.
-            if successful_favicon_urls:
-                Capture(
-                    link=link,
-                    role='favicon',
-                    status='success',
-                    record_type='response',
-                    url=successful_favicon_urls[0][0],
-                    content_type=successful_favicon_urls[0][1]
-                ).save()
-                print "Saved favicon at %s" % successful_favicon_urls
-
-        except Exception as e:
-            print "Web Archive File creation failed for %s: %s" % (target_url, e)
-            save_fields(link.primary_capture, status='failed')
-            capture_job.mark_completed('failed')
-
-
-    print "%s capture done." % link_guid
+        print "%s capture succeeded." % link.guid
 
 
 @shared_task()
