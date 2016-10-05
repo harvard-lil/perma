@@ -124,7 +124,11 @@ CreateModule.uploadNot = function (jqXHR) {
     // show appropriate error message next to each field.
     for(var key in response.archives) {
       if(response.archives.hasOwnProperty(key)) {
-        var input = $('#'+key);
+        if (key == "file") {
+            var input = $('#file_input');
+        } else {
+            var input = $('#'+key);
+        }
         if(input.length){
           input.after('<span class="help-block js-warning">'+response.archives[key]+'</span>');
           input.closest('div').addClass('has-error');
