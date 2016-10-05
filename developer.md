@@ -20,7 +20,7 @@ Leverage [feature branches](http://nvie.com/posts/a-successful-git-branching-mod
 You can install some handy developer packages with `pip install -r dev_requirements.txt`:
 
 * `ipdb` is a nice drop-in replacement for `pdb`.
-* `django-extensions` adds [a bunch of useful manage.py commands](http://django-extensions.readthedocs.org/en/latest/command_extensions.html). 
+* `django-extensions` adds [a bunch of useful manage.py commands](http://django-extensions.readthedocs.org/en/latest/command_extensions.html).
   Particularly useful are `runserver_plus` and `shell_plus`. If installed, this will be automatically enabled by `settings_dev.py`,
   and`fab run` will use `runserver_plus` instead of `runserver`.
 * `django-debug-toolbar` includes a handy debug toolbar in frontend pages. If installed, this will be automatically enabled by `settings_dev.py`.
@@ -50,7 +50,7 @@ We have several types of users:
 
 * Logged in users are identified the standard Django way: `user.is_authenticated`
 * Users may belong to an organization. You should test this with `user.is_organization_user`.
-* Users may belong to a registrar (`user.registrar is not None`). You should test this with `user.is_registrar_member()`. 
+* Users may belong to a registrar (`user.registrar is not None`). You should test this with `user.is_registrar_member()`.
 * Admin users are identified the standard Django way: `user.is_staff`
 
 Currently a user can be either a member of a single organization or a single registrar. In the future we may allow multiple relationships.
@@ -136,6 +136,16 @@ You should commit your migrations to your repository and push to GitHub.
     $ git commit -m "Added migration"
 
 
+## Running with debug=False locally
+
+If you are running Perma locally for development using the default settings_dev.py, [DEBUG](https://docs.djangoproject.com/en/1.10/ref/settings/#std:setting-DEBUG) is set to true. This is in general a big help, because Django displays a detailed error page any time your code raises an exception. However, it makes it impossible to test your app's error handing, see your custom 404 or 500 pages, etc.
+
+To run with DEBUG=False locally, first stop the webserver, if it's running. Add ```DEBUG=False``` to settings.py or (to alter settings\_dev.py). Then, run ``` ./manage.py collectstatic```, which creates ```/vagrant/services/django/static_assets``` (necessary for the css and other static assets to be served properly). Then, run ```fab run``` as usual to start the web server.
+
+__NB__: With DEBUG=False, the server will not automatically restart each time you save changes.
+
+__NB__: If you make changes to static files, like css, while running with DEBUG=False, you must rerun  ``` ./manage.py collectstatic``` and restart the server to see your changes.
+
 ## Testing and Test Coverage
 
 If you add or change a feature, be sure to add a test for it in perma/tests/. Tests are run like this:
@@ -153,7 +163,7 @@ All code must show zero warnings or errors when running `flake8 .` in `perma_web
 Flake8 settings are configured in `perma_web/.pep8`
 
 If you want to automatically run flake8 before pushing your code, you can add something like this to `.git/hooks/pre-push`:
- 
+
     #!/bin/sh
     /path/to/.virtualenvs/perma/bin/flake8 /path/to/perma/perma_web
     exit $?
@@ -164,14 +174,14 @@ Be sure to mark the hook as executable: `chmod u+x .git/hooks/pre-push`.
 
 We also use Sauce Labs to do functional testing of the site in common browsers before deploying. If you have a Sauce account,
 you can set SAUCE_USERNAME and SAUCE_ACCESS_KEY in settings.py, and then run our Sauce tests with
- 
+
     $ fab test_sauce
-    
+
 By default `fab test_sauce` is pointed at 127.0.0.1:8000, which Sauce can't reach from outside, so you'll have to set
 up a tunnel first by running
 
     $ fab dev.sauce_tunnel
-    
+
 in the background or in another terminal window.
 
 The Sauce tests live in services/sauce/run_tests.py. If you are developing new tests in that file, it may be more
@@ -181,7 +191,7 @@ kicked off by `fab test_sauce`.
 
 ## Sending email
 
-*All emails* should be sent using `perma.utils.send_user_email` (for an email from us to a user) or 
+*All emails* should be sent using `perma.utils.send_user_email` (for an email from us to a user) or
 `perma.utils.send_admin_email` (for an email "from" a user to us). This makes sure that `from` and `reply-to` fields
 are configured so our MTA will actually transmit the email.
 
@@ -205,7 +215,7 @@ This is the script that is used to run the daemon for Vagrant.
 
 Once installed in /etc/init/, you can start and stop Celery as a service. Something like,
 
-    $ sudo stop celery; sudo start celery 
+    $ sudo stop celery; sudo start celery
 
 Find more about daemonizing Celery in the [in the Celery docs](http://docs.celeryproject.org/en/latest/tutorials/daemonizing.html#daemonizing).
 
@@ -218,7 +228,7 @@ In our production environment we use Redis as a cache for our thumbnail data. If
 
 RabbitMQ is the message broker. In Perma.cc's case, it accepts message from Celery, tosses them in a queue, and doles them out to Celery worker tasks as needed.
 
-If you've installed RabbitMQ through something like MacPorts (sudo port install), you can start RabbitMQ using something like, 
+If you've installed RabbitMQ through something like MacPorts (sudo port install), you can start RabbitMQ using something like,
 
     $ sudo rabbitmq-server -detached
 

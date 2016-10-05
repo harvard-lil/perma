@@ -11,10 +11,9 @@ from ua_parser import user_agent_parser
 
 from django.core.files.storage import default_storage
 from django.template import RequestContext
-from django.template.loader import render_to_string
 from django.http import HttpResponseForbidden
 from django.shortcuts import render_to_response, render, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, HttpResponseNotFound, HttpResponseServerError, StreamingHttpResponse
+from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, StreamingHttpResponse
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.utils import timezone
@@ -209,13 +208,6 @@ def rate_limit(request, exception):
     """
     return render(request, "rate_limit.html")
 
-## We need custom views for server errors because otherwise Django
-## doesn't send a RequestContext (meaning we don't get STATIC_ROOT).
-def server_error_404(request):
-    return HttpResponseNotFound(render_to_string('404.html', context_instance=RequestContext(request)))
-
-def server_error_500(request):
-    return HttpResponseServerError(render_to_string('500.html', context_instance=RequestContext(request)))
 
 @csrf_exempt
 @ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
