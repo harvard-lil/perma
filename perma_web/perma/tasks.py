@@ -845,7 +845,6 @@ def upload_to_internet_archive(self, link_guid):
         print "Not eligible for upload."
         return
 
-
     metadata = {
         "collection":settings.INTERNET_ARCHIVE_COLLECTION,
         "title":'%s: %s' % (link_guid, truncatechars(link.submitted_title, 50)),
@@ -855,12 +854,7 @@ def upload_to_internet_archive(self, link_guid):
         "submitted_url":link.submitted_url,
         "perma_url":"http://%s/%s" % (settings.HOST, link_guid),
         "external-identifier":'urn:X-perma:%s' % link_guid,
-        }
-
-    # set sponsor if organization exists
-    if link.organization:
-        metadata["sponsor"] = "%s - %s" % (link.organization, link.organization.registrar)
-
+    }
 
     identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link_guid
     try:
