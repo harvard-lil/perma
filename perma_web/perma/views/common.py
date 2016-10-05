@@ -11,10 +11,9 @@ from ua_parser import user_agent_parser
 
 from django.core.files.storage import default_storage
 from django.template import RequestContext
-from django.template.loader import render_to_string
 from django.http import HttpResponseForbidden
 from django.shortcuts import render_to_response, render, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, HttpResponseNotFound, HttpResponseServerError, StreamingHttpResponse
+from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, StreamingHttpResponse
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.utils import timezone
