@@ -136,6 +136,16 @@ You should commit your migrations to your repository and push to GitHub.
     $ git commit -m "Added migration"
 
 
+## Running with debug=False locally
+
+If you are running Perma locally for development using the default settings_dev.py, [DEBUG](https://docs.djangoproject.com/en/1.10/ref/settings/#std:setting-DEBUG) is set to true. This is in general a big help, because Django displays a detailed error page any time your code raises an exception. However, it makes it impossible to test your app's error handing, see your custom 404 or 500 pages, etc.
+
+To run with DEBUG=False locally, first stop the webserver, if it's running. Add ```DEBUG=False``` to settings.py or (to alter settings\_dev.py). Then, run ``` ./manage.py collectstatic```, which creates ```/vagrant/services/django/static_assets``` (necessary for the css and other static assets to be served properly). Then, run ```fab run``` as usual to start the web server.
+
+__NB__: With DEBUG=False, the server will not automatically restart each time you save changes.
+
+__NB__: If you make changes to static files, like css, while running with DEBUG=False, you must rerun  ``` ./manage.py collectstatic``` and restart the server to see your changes.
+
 ## Testing and Test Coverage
 
 If you add or change a feature, be sure to add a test for it in perma/tests/. Tests are run like this:
