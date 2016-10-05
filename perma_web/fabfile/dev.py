@@ -380,3 +380,25 @@ def read_playback_tests(*filepaths):
         err_count += len(sub_errs)
         print "%s: %s" % (err_type, len(sub_errs))
     print "Total:", err_count
+
+@task
+def fix_ia_metadata():
+    """
+        One-off helper function, kept for example purposes. Update all existing IA uploads to remove `sponsor` metadata.
+    """
+    from django.conf import settings
+    import internetarchive
+    from perma.models import Link
+
+    for link in Link.objects.filter(internet_archive_upload_status='completed').order_by('guid').values('guid'):
+        result = 'success'
+        identifier = settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + link['guid']
+        try:
+            item = internetarchive.get_item(identifier)
+            if item.exists and item.metadata.get('sponsor'):
+                item.modify_metadata({"sponsor": "REMOVE_TAG"},
+                                     access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                                     secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY)
+        except Exception as e:
+            result = str(e)
+        print "%s\t%s" % (link['guid'], result)
