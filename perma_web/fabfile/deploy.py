@@ -68,18 +68,27 @@ def git(*args):
     run_as_web_user("git %s" % " ".join(args))
 
 @task
-def tag_new_release(tag):
+def tag_new_release(tag=None):
     """
-        Roll develop into master and tag it.
+        Roll stage into master and tag it.
     """
+    local("git fetch upstream")
+
+    # figure out tag based on previous tags
+    if not tag:
+        last_release = max(int(tag.split('.')[1]) for tag in local("git tag", capture=True).split("\n") if tag.startswith("v0."))
+        this_release = raw_input("Enter release number (default %s): " % (last_release+1))
+        if not this_release:
+            this_release = last_release+1
+        tag = "v0.%s" % this_release
+
     current_branch = local("git rev-parse --abbrev-ref HEAD", capture=True)
     try:
         # check out upstream/master
-        local("git fetch upstream")
         local("git checkout upstream/master")
 
-        # merge upstream/develop and push changes to master
-        local("git merge upstream/develop -m 'Tagging %s. Merging develop into master'" % tag)
+        # merge upstream/stage and push changes to master
+        local("git merge upstream/stage -m 'Tagging %s. Merging stage into master'" % tag)
         local("git push upstream HEAD:master")
 
         # tag release and push tag
@@ -89,6 +98,17 @@ def tag_new_release(tag):
     finally:
         # switch back to the branch you were on
         local("git checkout %s" % current_branch)
+
+
+@task
+def release_to_stage():
+    """
+        Roll develop into stage.
+    """
+    # re-create stage from develop and force push
+    local("git fetch upstream")
+    local("git branch -f stage upstream/develop")
+    local("git push upstream stage -f")
 
 
 @task
