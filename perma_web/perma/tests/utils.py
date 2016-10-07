@@ -111,6 +111,7 @@ class PermaTestCase(TransactionTestCase):
             self.assertEqual(success_query.count(), 1)
 
         if error_keys:
-            self.assertTrue(error_keys <= set(form_errors().keys()), "Couldn't find expected error keys. Expected: %s. Found: %s" % (error_keys, form_errors()))
+            keys = set(form_errors().keys())
+            self.assertTrue(set(error_keys) == keys, "Error keys don't match expectations. Expected: %s. Found: %s" % (set(error_keys), keys))
 
         return resp
