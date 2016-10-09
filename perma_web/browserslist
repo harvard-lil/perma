@@ -1,0 +1,3 @@
+# Browsers that we support (used by autoprefixer)
+last 3 versions
+not ie < 10

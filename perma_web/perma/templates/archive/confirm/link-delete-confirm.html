@@ -1,5 +1,6 @@
 {% extends "archive/confirm/base-archive-confirm.html" %}
-{% load pipeline as_json %}
+{% load as_json %}
+{% load render_bundle from webpack_loader %}
 
 {% block confirm %}
     <h1 class="body-bh">Delete Perma Link</h1>
@@ -16,5 +17,5 @@
         	refer_url = "{{ request.META.HTTP_REFERER }}";
     </script>
 
-    {% javascript 'link-delete-confirm' %}
+  	{% render_bundle 'link-delete-confirm' %}
 {% endblock %}

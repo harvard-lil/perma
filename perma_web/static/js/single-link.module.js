@@ -1,40 +1,35 @@
-window.SingleLinkModule = window.SingleLinkModule || {};
 var resizeTimeout, wrapper;
 
-SingleLinkModule.detailsButton = document.getElementById("details-button");
-SingleLinkModule.detailsTray = document.getElementById("collapse-details");
-SingleLinkModule.init = function () {
-  SingleLinkModule.adjustTopMargin();
+var detailsButton = document.getElementById("details-button");
+var detailsTray = document.getElementById("collapse-details");
+
+function init () {
+  adjustTopMargin();
   var clicked = false;
-  if (SingleLinkModule.detailsButton) {
-    SingleLinkModule.detailsButton.onclick = function () {
+  if (detailsButton) {
+    detailsButton.onclick = function () {
       clicked = !clicked;
-      SingleLinkModule.handleShowDetails(clicked);
+      handleShowDetails(clicked);
     };
   }
-};
 
-SingleLinkModule.handleShowDetails = function (open) {
-  SingleLinkModule.detailsButton.textContent = open ? "Hide record details":"Show record details";
-  SingleLinkModule.detailsTray.style.display = open ? "block" : "none";
-};
+  window.onresize = function(){
+    if (resizeTimeout != null)
+      clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(adjustTopMargin, 200);
+  };
+}
 
-SingleLinkModule.adjustTopMargin = function () {
+export function handleShowDetails (open) {
+  detailsButton.textContent = open ? "Hide record details":"Show record details";
+  detailsTray.style.display = open ? "block" : "none";
+}
+
+function adjustTopMargin () {
   wrapper = document.getElementsByClassName("capture-wrapper")[0];
   var header = document.getElementsByTagName('header')[0];
   if (!wrapper) return;
   wrapper.style.marginTop = header.offsetHeight+"px";
-};
+}
 
-
-(function() {
-  SingleLinkModule.init();
-  window.onresize = function(){
-    if (resizeTimeout != null)
-      clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout( function () {
-      SingleLinkModule.adjustTopMargin();
-    }, 200);
-  };
-
-})();
+init();

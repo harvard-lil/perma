@@ -1,0 +1,227 @@
+/*
+  Overrides of bootstrap's default css.
+  Comments indicate changes relative to Bootstrap 3.0.0.
+
+  TODO: Consider merging this with general styles.
+*/
+
+// added:
+html {
+  margin:0;
+}
+
+// added:
+input,
+button,
+select,
+textarea {
+  border:1px solid #ccc;
+  padding:6px 12px;
+  border-radius: 4px;
+}
+
+a {
+  color: #09f; // #428bca;
+}
+
+a:hover,
+a:focus {
+  color: #06a; // #2a6496;
+  text-decoration: none; // underline;
+}
+
+.container {
+  padding-right: inherit; //15px;
+  padding-left: inherit; //15px;
+}
+
+.row {
+  margin-right: inherit; //-15px;
+  margin-left: inherit; //-15px;
+
+  // added:
+  @media (min-width: 768px) {
+    margin-right: -16px;
+    margin-left: -16px;
+  }
+
+  // added:
+  .row {
+    margin-right: -16px;
+    margin-left: -16px;
+  }
+}
+
+label {
+  margin-bottom: 2px; //5px;
+  margin-top:7px;  //added
+}
+
+.btn.disabled,
+.btn[disabled],
+fieldset[disabled] .btn {
+  opacity: 0.35; //0.65;
+  filter: alpha(opacity=35); //alpha(opacity=65);
+}
+
+.btn-success {
+  font-size:20px; //added
+}
+
+.btn-more {
+  // added:
+  color: #ffffff;
+  background-color: #ccc;
+  border-color: #bbb;
+  font-size:20px;
+}
+
+.btn-info {
+  background-color: #0099ff; //#5bc0de;
+}
+
+.btn-info:hover,
+.btn-info:focus {
+  background-color: #007acc; //#39b3d7;
+}
+
+.btn-info:active,
+.btn-info.active,
+.open .dropdown-toggle.btn-info {
+  background-color: #005c99; //added
+}
+
+.caret {
+  border-top: 4px solid #fff; //4px solid #000000;
+}
+
+.btn-group > .btn,
+.btn-group-vertical > .btn {
+  // added:
+  background:#09f;
+  color:#fff;
+}
+
+.navbar-default{
+  border: none;
+}
+
+.navbar-default .navbar-nav > li > a.btn{
+  color: white;
+}
+
+.navbar-toggle {
+  background-color: #09f; //transparent;
+  :hover, :focus {
+    background-color: #06a;
+    border: 1px solid transparent;
+  }
+}
+
+.pagination {
+  font-weight:bold; //added
+}
+
+.pagination > .active > a,
+.pagination > .active > span,
+.pagination > .active > a:hover,
+.pagination > .active > span:hover,
+.pagination > .active > a:focus,
+.pagination > .active > span:focus {
+  background-color: #ff4100;  //#428bca;
+  border-color: #ff4100;  //#428bca;
+}
+
+.alert {
+  margin-bottom: 0; //20px;
+}
+
+.modal {
+  z-index: 104000;  //1040;
+  overflow-y: hidden;  //scroll;
+}
+
+.modal-header {
+  padding: 3px 0;  //15px;
+  border-bottom: none;  //1px solid #e5e5e5;
+}
+
+.carousel-inner > .item {
+  -webkit-transition: 1s ease-in-out left;  //0.6s ease-in-out left;
+          transition: 1s ease-in-out left;  //0.6s ease-in-out left;
+}
+
+.carousel-control {
+  bottom: 40px; //0;
+  color: #ee5f5b; //#ffffff;
+  opacity: 0.75; //0.5;
+  filter: alpha(opacity=75); //alpha(opacity=50);
+
+  //added:
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.carousel-control.left {
+  // gradient removed
+  background-image: none;
+  filter: none;
+}
+
+.carousel-control.right {
+  // gradient removed
+  background-image: none;
+  filter: none;
+}
+
+.carousel-control:hover,
+.carousel-control:focus {
+  color: #ee5f5b; //#ffffff;
+}
+
+.carousel-indicators {
+  top: 115px; //added
+  bottom: 0; //10px;
+}
+
+.carousel-indicators li {
+  border: 1px solid #cfcfcf;  //1px solid #ffffff;
+  // added:
+  background-color: #ee5f5b;
+  opacity: 0.65;
+  filter: alpha(opacity=65);
+}
+
+.carousel-indicators .active {
+  background-color: #ee5f5b;  //#ffffff;
+  // added:
+  opacity: 1;
+  filter: alpha(opacity=100);
+}
+
+// added:
+@media (max-width: 991px) {
+  .carousel-indicators {
+    visibility: hidden;
+  }
+}
+
+// added:
+img {
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+}
+
+// added:
+@media print {
+  a[href]:after {
+    content: none;
+  }
+}

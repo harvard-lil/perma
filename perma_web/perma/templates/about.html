@@ -1,5 +1,6 @@
 {% extends "base-responsive.html" %}
-{% load file_exists pipeline %}
+{% load file_exists %}
+{% load render_bundle from webpack_loader %}
 {% block title %} | About{% endblock %}
 
 {% block meta_description %}
@@ -115,5 +116,5 @@ Perma.cc prevents link rot.
 {% endblock %}
 
 {% block scripts %}
-	{% javascript 'map' %}
+	{% render_bundle 'map' %}
 {% endblock %}

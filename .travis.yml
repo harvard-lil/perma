@@ -7,11 +7,16 @@ env: CFLAGS="-O0"
 addons:
   hosts:
     - perma.dev
-  artifacts: true
+
+  # anything we might want to see from a failed build
+  artifacts:
+    paths:
+      - perma_web/failed_functional_test.png
 
 cache:
+  pip: true
   directories:
-    - $HOME/.cache/pip
+    - perma_web/node_modules
 
 before_install:
   - mkdir travis-phantomjs
@@ -25,8 +30,14 @@ install:
   # faster installs, per https://github.com/nickstenning/travis-pip-cache
   - pip install -U pip wheel
 
+  # python reqs
   - pip install -r requirements.txt
   - pip install coveralls
+
+  # node reqs
+  - nvm install 6
+  - npm install
+
 before_script:
   # linting
   - flake8 .
@@ -38,11 +49,12 @@ before_script:
   - mysql -e 'SET GLOBAL max_allowed_packet = 64*1024*1024;'
   - mysql -e 'SET GLOBAL wait_timeout = 36000;'
   - mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
-  - python manage.py collectstatic --noinput
+
   - date
+  
 script:
-  - fab test
-  # - fab dev.jasmine_travis_test
+  - fab dev.test_python
+  - fab dev.test_js
 
 after_failure:
   - date

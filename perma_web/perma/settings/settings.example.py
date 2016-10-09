@@ -31,7 +31,7 @@ ALLOWED_HOSTS = []
 # If the phantomjs binary isn't in your path, you can set the location here
 # PHANTOMJS_BINARY = os.path.join(PROJECT_ROOT, 'lib/phantomjs')
 
-# Dump our django-pipelined collected assets here
+# Dump our collected assets here
 # STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static-collected')
 
 # This is where we dump the generated WARCs, PNGs, and so on. If you're running

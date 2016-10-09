@@ -1,5 +1,6 @@
 {% extends "archive/base-archive-responsive.html" %}
-{% load file_exists  truncatesmart local_datetime pipeline as_json %}
+{% load file_exists  truncatesmart local_datetime as_json %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %} | {{link.submitted_title}}{% endblock %}
 
@@ -113,11 +114,11 @@
             {% if can_edit %}
               <dl class="tray-detail-group">
                 <dt class="tray-detail-title">Title <span class="save-status"></span></dt>
-                <input name="title" class="col-sm-12 link-submitted-title" value="{{link.submitted_title}}">
+                <input name="title" class="form-control link-submitted-title" value="{{link.submitted_title}}">
               </dl>
               <dl class="tray-detail-group">
                 <dt class="tray-detail-title">Notes <span class="label-instruction _verbose"> (only visible to you{% if link.organization%} and your organization{% endif %})</span><span class="save-status"></span></dt>
-                <input name="notes" class="col-sm-12 link-notes" rows="2" value="{{link.notes}}"/>
+                <input name="notes" class="form-control link-notes" rows="2" value="{{link.notes}}"/>
               </dl>
               {% if can_delete %}
                 <dl class="tray-detail-group temporary-options">
@@ -157,7 +158,7 @@
               {% endif %}
             {% endcomment %}
           </div>
-          <div class="tray-actions col-sm-12">
+          <div class="tray-actions col-xs-12">
 
             {% if not can_edit %}
               <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-ui-small btn-dashboard flag" title="Flag as inappropriate">Flag<span class="_verbose"> as inappropriate</span></a>
@@ -229,9 +230,10 @@
     </script>
 
     {% if request.user.is_authenticated %}
-      {% javascript 'single-link-with-permissions' %}
+	    {% render_bundle 'global' 'js' %}
+	    {% render_bundle 'single-link-permissions' 'js' %}
     {% else %}
-      {% javascript 'single-link' %}
+	    {% render_bundle 'single-link' 'js' %}
     {% endif %}
 
 {% endblock %}

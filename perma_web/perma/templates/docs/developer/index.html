@@ -1,5 +1,5 @@
 {% extends "base-responsive.html" %}
-{% load pipeline %}
+{% load render_bundle from webpack_loader %}
 {% block title %} | Developer Docs{% endblock %}
 
 {% block meta_description %}
@@ -261,6 +261,6 @@ Welcome to the Perma.cc developer guide.
 {% endblock %}
 
 {% block scripts %}
-    {% javascript 'doc-developer' %}
+	{% render_bundle 'developer-docs' %}
 {% endblock %}
 

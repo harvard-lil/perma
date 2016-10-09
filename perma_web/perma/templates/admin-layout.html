@@ -1,5 +1,4 @@
 {% extends "base-responsive.html" %}
-{% load pipeline %}
 
 {% block mainContent %}
 
@@ -8,8 +7,3 @@
 </div>
 
 {% endblock %}
-
-{% block scripts %}
-    {{ block.super }}
-    {% javascript 'admin' %}
-{% endblock scripts %}

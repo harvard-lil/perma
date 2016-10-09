@@ -1,3 +1,5 @@
+var APIModule = require('./helpers/api.module.js');
+
 $(document).ready(function(){
   $('button.delete-confirm').click(function(){
     var $this = $(this),

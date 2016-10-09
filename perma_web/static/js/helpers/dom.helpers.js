@@ -1,47 +1,45 @@
-window.DOMHelpers = window.DOMHelpers || {};
-
-DOMHelpers.setInputValue = function(domSelector, value) {
+export function setInputValue(domSelector, value) {
   $(domSelector).val(value);
-};
+}
 
-DOMHelpers.removeElement = function(domSelector) {
+export function removeElement(domSelector) {
   $(domSelector).remove();
-};
+}
 
-DOMHelpers.changeText = function(domSelector, text) {
+export function changeText(domSelector, text) {
   $(domSelector).text(text);
-};
+}
 
-DOMHelpers.toggleBtnDisable = function(domSelector, disableStatus) {
+export function toggleBtnDisable(domSelector, disableStatus) {
   // if disableStatus is false, enable.
   // if disableStatus is true, disable.
   $(domSelector).prop('disabled', disableStatus);
-};
+}
 
-DOMHelpers.changeHTML = function(domSelector, value) {
+export function changeHTML(domSelector, value) {
   $(domSelector).html(value);
 }
 
-DOMHelpers.emptyElement = function(domSelector) {
+export function emptyElement(domSelector) {
   $(domSelector).empty();
 }
 
-DOMHelpers.getValue = function (domSelector) {
+export function getValue (domSelector) {
   return $(domSelector).val();
 }
 
-DOMHelpers.removeClass = function (domSelector, className) {
+export function removeClass (domSelector, className) {
   $(domSelector).removeClass(className);
 }
 
-DOMHelpers.showElement = function (domSelector) {
+export function showElement (domSelector) {
   $(domSelector).show();
 }
 
-DOMHelpers.hideElement = function (domSelector) {
+export function hideElement (domSelector) {
   $(domSelector).hide();
 }
 
-DOMHelpers.addCSS = function (domSelector, propertyName, propertyValue) {
+export function addCSS (domSelector, propertyName, propertyValue) {
   $(domSelector).css(propertyName, propertyValue);
 }

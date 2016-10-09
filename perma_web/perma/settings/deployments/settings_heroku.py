@@ -17,7 +17,6 @@ from .deployments.settings_prod import *
 # # Frontend
 # ROLLBAR_CLIENT_ACCESS_TOKEN = os.environ.get('ROLLBAR_CLIENT_ACCESS_TOKEN')
 # TEMPLATE_VISIBLE_SETTINGS += ('ROLLBAR_CLIENT_ACCESS_TOKEN',)
-# PIPELINE_JS['global']['source_filenames'] += ('vendors/rollbar/rollbar.js',)
 #
 # # Logging - enables celery error reporting
 # LOGGING['handlers']['rollbar'] = {

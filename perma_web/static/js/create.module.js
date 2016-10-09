@@ -1,87 +1,72 @@
-/* Our globals. Look out interwebs - start */
+var Spinner = require('spin.js');
+require('jquery-form');  // add jquery support for ajaxSubmit/ajaxForm
+require('bootstrap-js/modal');  // add .modal to jquery
 
-// Where we store our successfully created new archive data
-var new_archive = {};
+var Helpers = require('./helpers/general.helpers.js');
+var DOMHelpers = require('./helpers/dom.helpers.js');
+var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
+var APIModule = require('./helpers/api.module.js');
 
-// Where we queue up our archive guids for polling
+var newGUID = null;
 var refreshIntervalIds = [];
 var spinner;
 var organizations = {};
-
-/* Our globals. Look out interwebs - end */
-var CreateModule = CreateModule || {};
-
-CreateModule.ls = CreateModule.ls || {};
-
 var localStorageKey = Helpers.variables.localStorageKey;
-/* Everything that needs to happen at page load - start */
 
-$(document).ready(function() {
-  CreateModule.init();
-  CreateModule.setupEventHandlers();
-  CreateModule.populateWithUrl();
 
-  if (is_org_user == "True" && links_remaining == 3){
-    var message = "Your personal links for the month are almost used up! Create more links in 'unlimited' folders."
-    Helpers.informUser(message, 'danger');
+export var ls = {
+  getAll: function () {
+    var folders = Helpers.jsonLocalStorage.getItem(localStorageKey);
+    return folders || {};
+  },
+  getCurrent: function () {
+    var folders = ls.getAll();
+    return folders[current_user.id] || {};
+  },
+  setCurrent: function (orgId, folderId) {
+    folderId = folderId ? folderId : 'default';
+
+    var selectedFolders = ls.getAll();
+    selectedFolders[current_user.id] = {'folderId': folderId, 'orgId': orgId};
+
+    Helpers.jsonLocalStorage.setItem(localStorageKey, selectedFolders);
+    exports.updateLinker();  // call via exports to enable Jasmine spyOn
+    Helpers.triggerOnWindow("dropdown.selectionChange");
   }
-
-});
-
-
-CreateModule.ls.getAll = function () {
-  var folders = Helpers.localStorage.getItem(localStorageKey);
-  return folders || {};
-}
-
-CreateModule.ls.getCurrent = function () {
-  var folders = this.getAll();
-  return folders[current_user.id] || {};
-}
-
-CreateModule.ls.setCurrent = function (orgId, folderId) {
-  folderId = folderId ? folderId : 'default';
-
-  var selectedFolders = this.getAll();
-  selectedFolders[current_user.id] = {'folderId' : folderId, 'orgId' : orgId };
-
-  Helpers.localStorage.setItem(localStorageKey, selectedFolders);
-  CreateModule.updateLinker();
-  Helpers.triggerOnWindow("dropdown.selectionChange");
-}
+};
 
 // Get parameter by name
 // from https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
-CreateModule.getParameterByName = function (name) {
+function getParameterByName (name) {
   name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
   var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
     results = regex.exec(location.search);
   return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
-CreateModule.linkIt = function (data) {
+function linkIt (data) {
   // Success message from API. We should have a GUID now (but the
   // archive is still be generated)
   // Clear any error messages out
   DOMHelpers.removeElement('.error-row');
 
-  new_archive.guid = data.guid;
+  newGUID = data.guid;
 
-  refreshIntervalIds.push(setInterval(CreateModule.check_status, 2000));
+  refreshIntervalIds.push(setInterval(check_status, 2000));
 }
 
-CreateModule.linkNot = function (jqXHR) {
+function linkNot (jqXHR) {
   // The API told us something went wrong.
 
   if (jqXHR.status == 401) {
-  // special handling if user becomes unexpectedly logged out
+    // special handling if user becomes unexpectedly logged out
     APIModule.showError(jqXHR);
   } else {
     var message = "";
     if (jqXHR.status == 400 && jqXHR.responseText) {
       var errors = JSON.parse(jqXHR.responseText).archives;
-      for (var prop in errors) {
-          message += errors[prop] + " ";
+      for (var prop of Object.keys(errors)) {
+        message += errors[prop] + " ";
       }
     }
 
@@ -97,16 +82,16 @@ CreateModule.linkNot = function (jqXHR) {
       contact_url: contact_url
     };
 
-    CreateModule.changeTemplate('#error-template', templateArgs, '#error-container');
+    changeTemplate('#error-template', templateArgs, '#error-container');
 
     $('.create-errors').addClass('_active');
     $('#error-container').hide().fadeIn(0);
   }
-  CreateModule.toggleCreateAvailable();
+  toggleCreateAvailable();
 }
 
 /* Handle an upload - start */
-CreateModule.uploadNot = function (jqXHR) {
+function uploadNot (jqXHR) {
   // Display an error message in our upload modal
 
   // special handling if user becomes unexpectedly logged out
@@ -130,11 +115,7 @@ CreateModule.uploadNot = function (jqXHR) {
     // show appropriate error message next to each field.
     for(var key in response.archives) {
       if(response.archives.hasOwnProperty(key)) {
-        if (key == "file") {
-            var input = $('#file_input');
-        } else {
-            var input = $('#'+key);
-        }
+        var input = $('#'+key);
         if(input.length){
           input.after('<span class="help-block js-warning">'+response.archives[key]+'</span>');
           input.closest('div').addClass('has-error');
@@ -152,17 +133,15 @@ CreateModule.uploadNot = function (jqXHR) {
   $('#upload-error').text('Upload failed. ' + reasons.join(". "));
 }
 
-CreateModule.uploadIt = function (data) {
+function uploadIt (data) {
   // If a user wants to upload their own screen capture, we display
   // a modal and the form in that modal is handled here
   $('#archive-upload').modal('hide');
 
-  var upload_image_url = settings.STATIC_URL + '/img/upload-preview.jpg';
   window.location.href = '/' + data.guid;
 }
 
-CreateModule.upload_form = function () {
-  $('#linky-confirm').modal('hide');
+function upload_form () {
   $('#upload-error').text('');
   $('#archive_upload_form input[name="url"]').val($('#rawUrl').val());
   $('#archive-upload').modal('show');
@@ -171,9 +150,9 @@ CreateModule.upload_form = function () {
 
 /* Handle the the main action (enter url, hit the button) button - start */
 
-CreateModule.toggleCreateAvailable = function() {
+function toggleCreateAvailable() {
   // Get our spinner going and display a "we're working" message
-  $addlink = $('#addlink');
+  var $addlink = $('#addlink');
   if ($addlink.hasClass('_isWorking')) {
     $addlink.html('Create Perma Link').removeAttr('disabled').removeClass('_isWorking');
     spinner.stop();
@@ -181,7 +160,8 @@ CreateModule.toggleCreateAvailable = function() {
     $('#links-remaining-message').removeClass('_isWorking');
   } else {
     $addlink.html('<div id="capture-status">Creating your Perma Link</div>').attr('disabled', 'disabled').addClass('_isWorking');
-    spinner = new Spinner(opts);
+    // spinner opts -- see http://spin.js.org/
+    spinner = new Spinner({lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '12px'});
     spinner.spin($addlink[0]);
     $('#rawUrl, #organization_select_form button').attr('disabled', 'disabled');
     $('#links-remaining-message').addClass('_isWorking');
@@ -189,22 +169,22 @@ CreateModule.toggleCreateAvailable = function() {
 }
 
 /* The plan is to set a timer to periodically check if the thumbnail
-exists. Once it does, we append it to the page and clear the
-thumbnail. The reason we're keeping a list of interval IDs rather
-than just one is as a hacky solution to the problem of a user
-creating a Perma link for some URL and then immediately clicking
-the button again for the same URL. Since all these requests are
-done with AJAX, that results in two different interval IDs getting
-created. Both requests will end up completing but the old interval
-ID will be overwritten and never cleared, causing a bunch of copies
-of the screenshot to get appended to the page. We thus just append
-them to the list and then clear the whole list once the request
-succeeds. */
+ exists. Once it does, we append it to the page and clear the
+ thumbnail. The reason we're keeping a list of interval IDs rather
+ than just one is as a hacky solution to the problem of a user
+ creating a Perma link for some URL and then immediately clicking
+ the button again for the same URL. Since all these requests are
+ done with AJAX, that results in two different interval IDs getting
+ created. Both requests will end up completing but the old interval
+ ID will be overwritten and never cleared, causing a bunch of copies
+ of the screenshot to get appended to the page. We thus just append
+ them to the list and then clear the whole list once the request
+ succeeds. */
 
-CreateModule.check_status = function () {
+function check_status () {
 
   // Check our status service to see if we have archiving jobs pending
-  var request = APIModule.request("GET", "/user/capture_jobs/" + new_archive.guid + "/");
+  var request = APIModule.request("GET", "/user/capture_jobs/" + newGUID + "/");
   request.done(function(data) {
     // While status is pending or in progress, update progress display
     if (data.status == "pending") {
@@ -237,34 +217,34 @@ CreateModule.check_status = function () {
 
       // If we succeeded, forward to the new archive
       if (data.status == "completed") {
-        window.location.href = "/" + new_archive.guid;
+        window.location.href = "/" + newGUID;
 
-      // Else show failure message and reset form.
+        // Else show failure message and reset form.
       } else {
         var templateArgs = {message: "Error: URL capture failed."};
-        CreateModule.changeTemplate('#error-template', templateArgs, '#error-container');
+        changeTemplate('#error-template', templateArgs, '#error-container');
 
         $('#error-container').removeClass('_hide _success _wait').addClass('_error');
 
         // Toggle our create button
-        CreateModule.toggleCreateAvailable();
+        toggleCreateAvailable();
       }
     }
   });
 }
 
 /* Our polling function for the thumbnail completion - end */
-CreateModule.populateWithUrl = function () {
+export function populateWithUrl () {
   var url = Helpers.getWindowLocationSearch().split("url=")[1];
   if (url) {
     url = decodeURIComponent(url);
-    DOMHelpers.setInputValue("#rawUrl", url)
+    DOMHelpers.setInputValue("#rawUrl", url);
     return url;
   }
 }
 
-CreateModule.updateLinker = function () {
-  var userSettings = this.ls.getCurrent();
+export function updateLinker () {
+  var userSettings = ls.getCurrent();
   var currentOrg = userSettings.orgId;
   var organizationsExist = Object.keys(organizations).length;
   if (!userSettings.folderId && organizationsExist) {
@@ -285,18 +265,17 @@ CreateModule.updateLinker = function () {
   }
 
   if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
-    $('#linker').addClass('_isPrivate')
+    $('#linker').addClass('_isPrivate');
     // add the little eye icon if org is private
     $('#organization_select_form')
-        .find('.dropdown-toggle > span')
-        .addClass('ui-private');
+      .find('.dropdown-toggle > span')
+      .addClass('ui-private');
   } else {
     $('#linker').removeClass('_isPrivate')
   }
 }
 
-CreateModule.updateAffiliationPath = function (currentOrg, path) {
-  if (!path) { return; }
+function updateAffiliationPath (currentOrg, path) {
 
   var stringPath = path.join(" &gt; ");
   stringPath += "<span></span>";
@@ -319,77 +298,71 @@ CreateModule.updateAffiliationPath = function (currentOrg, path) {
   }
 }
 
-CreateModule.updateLinksRemaining = function (links_num) {
+export function updateLinksRemaining (links_num) {
   links_remaining = links_num;
   DOMHelpers.changeText('.links-remaining', links_remaining);
 }
 
-CreateModule.handleSelectionChange = function (data) {
-  var orgId = path = null;
+function handleSelectionChange (data) {
+  updateLinker();
 
-  if (data && (data.orgId || data.path)) {
-    orgId = data.orgId;
-    path  = data.path;
+  if (data && data.path) {
+    updateAffiliationPath(data.orgId, data.path);
   }
-  this.updateLinker();
-  this.updateAffiliationPath(orgId, path);
 }
 
 
-CreateModule.setupEventHandlers = function () {
-  var self = this;
+function setupEventHandlers () {
   $(window)
     .off('FolderTreeModule.selectionChange')
     .off('FolderTreeModule.updateLinksRemaining')
     .on('FolderTreeModule.selectionChange', function(evt, data){
       if (typeof data !== 'object') data = JSON.parse(data);
-      self.handleSelectionChange(data);
+      handleSelectionChange(data);
     })
     .on('FolderTreeModule.updateLinksRemaining', function(evt, data){
-      self.updateLinksRemaining(data)
+      updateLinksRemaining(data)
     });
-    // When a user uploads their own capture
 
-  $('#archive_upload_form')
-    .submit(function() {
-
-      var extraUploadData = {},
-        selectedFolder = CreateModule.ls.getCurrent().folderId;
-      if(selectedFolder)
-        extraUploadData.folder = selectedFolder;
-      $(this).ajaxSubmit({
-        data: extraUploadData,
-        success: CreateModule.uploadIt,
-        error: CreateModule.uploadNot
-      });
-      return false;
-
-    });
+  // When a user uploads their own capture
+  $(document).on('submit', '#archive_upload_form', function() {
+    var extraUploadData = {},
+      selectedFolder = ls.getCurrent().folderId;
+    if(selectedFolder)
+      extraUploadData.folder = selectedFolder;
+    $(this).ajaxSubmit({
+                         data: extraUploadData,
+                         success: uploadIt,
+                         error: uploadNot
+                       });
+    return false;
+  });
 
   // Toggle users dropdown
   $('#dashboard-users')
     .click(function(){ $('.users-secondary').toggle(); });
-    // When a new url is entered into our form
+
+  // When a new url is entered into our form
   $('#linker').submit(function() {
     var $this = $(this);
     var linker_data = {
       url: $this.find("input[name=url]").val(),
       human: true
     };
-    var selectedFolder = CreateModule.ls.getCurrent().folderId;
+    var selectedFolder = ls.getCurrent().folderId;
 
     if(selectedFolder)
       linker_data.folder = selectedFolder;
 
     // Start our spinner and disable our input field with just a tiny delay
-    window.setTimeout(CreateModule.toggleCreateAvailable, 150);
+    window.setTimeout(toggleCreateAvailable, 150);
 
     $.ajax($this.attr('action'), {
       method: $this.attr('method'),
       contentType: 'application/json',
       data: JSON.stringify(linker_data),
-      success: CreateModule.linkIt,
-      error: CreateModule.linkNot
+      success: linkIt,
+      error: linkNot
     });
 
     return false;
@@ -397,17 +370,23 @@ CreateModule.setupEventHandlers = function () {
 }
 
 /* templateContainer: DOM selector, where the newly rendered template will live */
-CreateModule.changeTemplate = function(template, args, templateContainer) {
+function changeTemplate(template, args, templateContainer) {
   var renderedTemplate = HandlebarsHelpers.renderTemplate(template, args)
   DOMHelpers.changeHTML(templateContainer, renderedTemplate);
 }
 
-CreateModule.init = function () {
-  var self = this;
+export function init () {
+  // Dismiss browser tools message
+  $('.close-browser-tools').click(function(){
+    $('#browser-tools-message').hide();
+    Helpers.setCookie("suppress_reminder", "true", 120);
+  });
 
+  var $organization_select = $("#organization_select");
+
+  // populate organization dropdown
   APIModule.request("GET", "/user/organizations/", {limit: 300, order_by:'registrar'})
     .success(function(data) {
-      var $organization_select = $("#organization_select");
 
       var sorted = [];
       Object.keys(data.objects).sort(function(a,b){
@@ -431,43 +410,31 @@ CreateModule.init = function () {
           if (organization.default_to_private) {
             opt_text += ' <span class="ui-private">(Private)</span>';
           }
-          $organization_select.append("<li><a href='#' onClick='CreateModule.ls.setCurrent("+organization.id+", "+organization.shared_folder.id+")'>" + opt_text + " <span class='links-unlimited'>unlimited</span></a></li>");
+          $organization_select.append("<li><a href='#' data-orgid='"+organization.id+"' data-orgfolderid='"+organization.shared_folder.id+"'>" + opt_text + " <span class='links-unlimited'>unlimited</span></a></li>");
         });
 
-        $organization_select.append("<li class='personal-links'><a href='#'' onClick='CreateModule.ls.setCurrent()'> Personal Links <span class='links-remaining'>" + links_remaining + "</span></a></li>");
-        self.updateLinker();
+        $organization_select.append("<li class='personal-links'><a href='#'> Personal Links <span class='links-remaining'>" + links_remaining + "</span></a></li>");
+        updateLinker();
       } else {
         // select My Folder for users with no orgs and no saved selections
-        var selectedFolder = self.ls.getCurrent().folderId;
-        if (!selectedFolder) { self.ls.setCurrent(); }
+        var selectedFolder = ls.getCurrent().folderId;
+        if (!selectedFolder) { ls.setCurrent(); }
       }
+    });
+
+  // handle dropdown changes
+  $organization_select.on('click', 'a', function(){
+    ls.setCurrent(+$(this).attr('data-orgid'), +$(this).attr('data-orgfolderid'));
   });
+
+  // handle upload form button
+  $(document.body).on('click', '#upload-form-button', upload_form);
+
+  setupEventHandlers();
+  populateWithUrl();
+
+  if (is_org_user == "True" && links_remaining == 3){
+    var message = "Your personal links for the month are almost used up! Create more links in 'unlimited' folders."
+    Helpers.informUser(message, 'danger');
+  }
 }
-
-
-/* Our spinner controller - start */
-
-var opts = {
-  lines: 15, // The number of lines to draw
-  length: 2, // The length of each line
-  width: 2, // The line thickness
-  radius: 9, // The radius of the inner circle
-  scale: 1, // Scales overall size of the spinner
-  corners: 0, // Corner roundness (0..1)
-  color: '#2D76EE', // #rgb or #rrggbb or array of colors
-  opacity: 0.25, // Opacity of the lines
-  rotate: 0, // The rotation offset
-  direction: 1, // 1: clockwise, -1: counterclockwise
-  speed: 1, // Rounds per second
-  trail: 50, // Afterglow percentage
-  fps: 20, // Frames per second when using setTimeout() as a fallback for CSS
-  zIndex: 2e9, // The z-index (defaults to 2000000000)
-  className: 'spinner', // The CSS class to assign to the spinner
-  top: '12px', // Top position relative to parent
-  left: '50%', // Left position relative to parent
-  shadow: false, // Whether to render a shadow
-  hwaccel: false, // Whether to use hardware acceleration
-  position: 'absolute' // Element positioning
-};
-
-/* Our spinner controller - end */

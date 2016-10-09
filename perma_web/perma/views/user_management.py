@@ -1114,7 +1114,13 @@ def limited_login(request, template_name='registration/login.html',
             redirect_to = resolve_url(settings.LOGIN_REDIRECT_URL)
         return HttpResponseRedirect(redirect_to)
 
-    return auth_views.login(request, template_name, redirect_field_name, authentication_form, extra_context)
+    # subclass authentication_form to add autofocus attribute to username field
+    class LoginForm(authentication_form):
+        def __init__(self, *args, **kwargs):
+            super(LoginForm, self).__init__(*args, **kwargs)
+            self.fields['username'].widget.attrs['autofocus'] = ''
+
+    return auth_views.login(request, template_name, redirect_field_name, LoginForm, extra_context)
 
 
 def set_access_token_cookie(request):

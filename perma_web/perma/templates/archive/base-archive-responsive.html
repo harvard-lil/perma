@@ -1,53 +1,51 @@
-{% load pipeline %}<!DOCTYPE html>
+{% load render_bundle from webpack_loader %}<!DOCTYPE html>
 <html lang="en-us">
-    <head>
-        <title>Perma{% block title %}{% endblock %}</title>
-        <meta charset="utf-8" />
-        <meta http-equiv="x-ua-compatible" content="IE=edge">
-        <meta name="google" value="notranslate" />
-        <!-- TODO add default meta description -->
-        <meta name="description" content="{% block meta_description %} Broken links are everywhere. Perma helps authors and journals create permanent links for citations in their published work.{% endblock %}">
-        {% block meta-head %}{% endblock %}
-        <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
-        <!--<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">-->
-        <!-- iOS9 viewport bug hack -->
-        <meta name="viewport" content="initial-scale=1.0001, minimum-scale=1.0001, maximum-scale=1.0001"/>
-        <!-- -->
+  <head>
+    <title>Perma{% block title %}{% endblock %}</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
+    <meta name="google" value="notranslate" />
+    <!-- TODO add default meta description -->
+    <meta name="description" content="{% block meta_description %} Broken links are everywhere. Perma helps authors and journals create permanent links for citations in their published work.{% endblock %}">
+    {% block meta-head %}{% endblock %}
+    <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
+    <!--<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">-->
+    <!-- iOS9 viewport bug hack -->
+    <meta name="viewport" content="initial-scale=1.0001, minimum-scale=1.0001, maximum-scale=1.0001"/>
+    <!-- -->
 
-        {# Python variables for use in Javascript #}
-        {% include 'js_config.html' %}
+    {# Python variables for use in Javascript #}
+    {% include 'js_config.html' %}
 
-        {% stylesheet 'base-archive' %}
-        {% javascript 'global_archive_head' %}
+    {% render_bundle 'single-link-styles' 'css' %}
 
+    {# inline header JS #}
+    <script>
+      {% include "includes/local-datetime.js" %}
+    </script>
 
+    {% block styles %}{% endblock %}
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+          <script src="{{ STATIC_URL }}vendor/html5shiv/html5shiv.js"></script>
+          <script src="{{ STATIC_URL }}vendor/respond/respond.js"></script>
+      <![endif]-->
+  </head>
+  <body>
+  {% block header %}{% endblock header %}
+  <section id="main-archive">
+    <div id="main-content" class="container-fluid">
+      <div class="row">
+        {% block mainContent %}
+        {% endblock mainContent %}
+      </div><!--/.row-->
+    </div><!--/#main-content"-->
+  </section><!--/#main-->
 
-        {% block styles %}{% endblock %}
-        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
-		<!--[if lt IE 9]>
-  			<script src="{{ STATIC_URL }}vendor/html5shiv/html5shiv.js"></script>
-  			<script src="{{ STATIC_URL }}vendor/respond/respond.js"></script>
-		<![endif]-->
-    </head>
-    <body>
-		{% block header %}{% endblock header %}
-		<section id="main-archive">
-			<div id="main-content" class="container-fluid">
-				<div class="row">
-                    {% block mainContent %}
-                    {% endblock mainContent %}
-				</div><!--/.row-->
-			</div><!--/#main-content"-->
-		</section><!--/#main-->
+  {% block scripts %}
+  {% endblock %}
 
-        {% if request.user.is_authenticated %}
-          {% javascript 'global' %}
-        {% endif %}
-
-        {% block scripts %}
-        {% endblock %}
-
-        {% block templates %}
-        {% endblock %}
-    </body>
+  {% block templates %}
+  {% endblock %}
+  </body>
 </html>

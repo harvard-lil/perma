@@ -1,15 +1,14 @@
-var SingleLinkPermissionsModule = {},
-  saveBufferSeconds = 0.5,
-  updateBtnID = '#updateLinky',
-  cancelBtnID = '#cancelUpdateLinky',
-  timeouts = {};
+var SingleLinkModule = require('./single-link.module');
+var DOMHelpers = require('./helpers/dom.helpers.js');
+var APIModule = require('./helpers/api.module.js');
+var Helpers = require('./helpers/general.helpers.js');
+var LinkHelpers = require('./helpers/link.helpers.js');
 
-$(document).ready(function(){
-  SingleLinkPermissionsModule.init();
-  SingleLinkPermissionsModule.setupEventHandlers();
-});
 
-SingleLinkPermissionsModule.init = function () {
+var updateBtnID = '#updateLinky',
+    cancelBtnID = '#cancelUpdateLinky';
+
+function init () {
   // Hide query parameter from the special Safari redirect
   if (window.location.href.indexOf('safari=1') > -1) {
     history.replaceState({}, "", window.location.href.replace(/\??safari=1/, ''));
@@ -18,10 +17,12 @@ SingleLinkPermissionsModule.init = function () {
   DOMHelpers.toggleBtnDisable(updateBtnID, true);
   DOMHelpers.toggleBtnDisable(cancelBtnID, true);
 
-  if($('._isNewRecord')) { SingleLinkPermissionsModule.handleNewRecord(); }
-};
+  if($('._isNewRecord')) { handleNewRecord(); }
 
-SingleLinkPermissionsModule.handleNewRecord = function () {
+  setupEventHandlers();
+}
+
+function handleNewRecord () {
   // On the new-record bar, update the width of the URL input to match its contents,
   // by copying the contents into a temporary span with the same class and measuring its width.
 
@@ -33,14 +34,14 @@ SingleLinkPermissionsModule.handleNewRecord = function () {
   linkSpan.remove();
 }
 
-SingleLinkPermissionsModule.setupEventHandlers = function () {
+function setupEventHandlers () {
   $(".edit-link").click( function () {
     SingleLinkModule.handleShowDetails();
     return false;
   });
 
   $("button.darchive").click( function(){
-    SingleLinkPermissionsModule.handleDarchiving($(this));
+    handleDarchiving($(this));
     return false;
   });
 
@@ -59,7 +60,7 @@ SingleLinkPermissionsModule.setupEventHandlers = function () {
   $('#archive_upload_form')
     .submit(function(e) {
       e.preventDefault();
-      SingleLinkPermissionsModule.submitFile();
+      submitFile();
     });
   var inputValues = {};
   $('#collapse-details')
@@ -67,16 +68,20 @@ SingleLinkPermissionsModule.setupEventHandlers = function () {
     .on('input propertychange change', function () {
       var inputarea = $(this);
       var name = inputarea.attr("name");
-      if (name == "file") return
-      if (inputarea.val() == inputValues[name]) return
+      if (name == "file") return;
+      if (inputarea.val() == inputValues[name]) return;
       inputValues[name] = inputarea.val();
       var statusElement = inputarea.parent().find(".save-status");
 
-      SingleLinkPermissionsModule.saveInput(inputarea, name, statusElement);
+      LinkHelpers.saveInput(archive.guid, inputarea, statusElement, name, ()=>{
+        setTimeout(function() {
+          $(statusElement).html('');
+        }, 1000);
+      });
     });
 }
 
-SingleLinkPermissionsModule.submitFile = function () {
+function submitFile () {
   DOMHelpers.toggleBtnDisable(updateBtnID,true);
   DOMHelpers.toggleBtnDisable(cancelBtnID, true);
   var url = "/archives/"+archive.guid+"/";
@@ -97,7 +102,7 @@ SingleLinkPermissionsModule.submitFile = function () {
   }
 }
 
-SingleLinkPermissionsModule.handleDarchiving = function (context) {
+function handleDarchiving (context) {
   var $this = context;
   if (!$this.hasClass('disabled')){
     var prev_text = $this.text(),
@@ -119,20 +124,4 @@ SingleLinkPermissionsModule.handleDarchiving = function (context) {
   }
 }
 
-SingleLinkPermissionsModule.saveInput = function (inputElement, name, statusElement) {
-  $(statusElement).html('Saving...');
-  var data = {};
-  data[name] = inputElement.val();
-  if(timeouts[name])
-    clearTimeout(timeouts[name]);
-
-  timeouts[name] = setTimeout(function () {
-    APIModule.request("PATCH", '/archives/' + archive.guid + '/', data)
-      .done(function(data){
-        $(statusElement).html('Saved!');
-        setTimeout(function() {
-          $(statusElement).html('');
-        }, 1000)
-      });
-  }, 500)
-}
+init();

@@ -1,92 +1,81 @@
-var LinksListModule = LinksListModule || {};
+require('waypoints/lib/jquery.waypoints.js');  // add .waypoint to jquery
 
-$(document).ready(function() {
-  LinksListModule.init();
-  LinksListModule.setupEventHandlers();
-  LinksListModule.setupLinksTableEventHandlers();
-})
+var DOMHelpers = require('./helpers/dom.helpers.js');
+var LinkHelpers = require('./helpers/link.helpers.js');
+var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
+var APIModule = require('./helpers/api.module.js');
 
-LinksListModule.init = function () {
-  this.linkTable = $('.item-rows');
-  this.dragStartPosition = null;
-  this.lastRowToggleTime = 0;
+var FolderTreeModule = require('./folder-tree.module.js');
+
+
+var linkTable = null;
+var dragStartPosition = null;
+var lastRowToggleTime = 0;
+var selectedFolderID = null;
+
+export function init () {
+  linkTable = $('.item-rows');
+  setupEventHandlers();
+  setupLinksTableEventHandlers();
 }
 
-LinksListModule.setupEventHandlers = function () {
+function setupEventHandlers () {
   $(window)
     .on("FolderTreeModule.selectionChange", function(evt, data) {
       if (typeof data !== 'object') data = JSON.parse(data);
-      LinksListModule.selectedFolderID = data.folderId;
-      LinksListModule.showFolderContents(data.folderId);
+      selectedFolderID = data.folderId;
+      showFolderContents(data.folderId);
     });
     // search form
   $('.search-query-form').on('submit', function (e) {
     e.preventDefault();
     var query = DOMHelpers.getValue('.search-query');
     if(query && query.trim()){
-      LinksListModule.showFolderContents(LinksListModule.selectedFolderID, query);
+      showFolderContents(selectedFolderID, query);
     }
   });
 }
 
-LinksListModule.getLinkIDForFormElement = function (element) {
+function getLinkIDForFormElement (element) {
   return element.closest('.item-container').find('.item-row').attr('link_id');
 }
 
-var saveBufferSeconds = 0.5,
-  timeouts = {};
-  // save changes in a given text box to the server
-LinksListModule.saveInput = function(inputElement, statusElement, name, callback) {
-  DOMHelpers.changeHTML(statusElement, 'Saving...');
-
-  var guid = inputElement.attr('id').match(/.+-(.+-.+)/)[1],
-    timeoutKey = guid+name;
-
-  if(timeouts[timeoutKey])
-    clearTimeout(timeouts[timeoutKey]);
-
-  // use a setTimeout so notes are only saved once every few seconds
-  timeouts[timeoutKey] = setTimeout(function () {
-    var data = {};
-    data[name] = DOMHelpers.getValue(inputElement);
-    var request = APIModule.request("PATCH", '/archives/' + guid + '/', data).done(function(data){
-      DOMHelpers.changeHTML(statusElement, 'Saved!');
-    });
-    if (callback) request.done(callback);
-  }, saveBufferSeconds*1000);
-}
-LinksListModule.setupLinksTableEventHandlers = function () {
-  LinksListModule.linkTable
+function setupLinksTableEventHandlers () {
+  linkTable
     .on('click', 'a.clear-search', function (e) {
       e.preventDefault();
-      LinksListModule.showFolderContents(LinksListModule.selectedFolderID);
+      showFolderContents(selectedFolderID);
     })
     .on('mousedown touchstart', '.item-row', function (e) {
-      LinksListModule.handleMouseDown(e);
-      // .item-row mouseup -- hide and show link details, if not dragging
+      handleMouseDown(e);
     })
+
+    // .item-row mouseup -- hide and show link details, if not dragging
     .on('mouseup touchend', '.item-row', function (e) {
-      LinksListModule.handleMouseUp(e);
-    // save changes to notes field
+      handleMouseUp(e);
     })
+
+    // save changes to notes field
     .on('input propertychange change', '.link-notes', function () {
       var textarea = $(this);
-      LinksListModule.saveInput(textarea, textarea.prevAll('.notes-save-status'), 'notes');
+      var guid = getLinkIDForFormElement(textarea);
+      LinkHelpers.saveInput(guid, textarea, textarea.prevAll('.notes-save-status'), 'notes');
+    })
 
     // save changes to title field
-    })
-    .on('textchange', '.link-title', function () {
+    .on('input', '.link-title', function () {
       var textarea = $(this);
-      LinksListModule.saveInput(textarea, textarea.prevAll('.title-save-status'), 'title', function () {
+      var guid = getLinkIDForFormElement(textarea);
+      LinkHelpers.saveInput(guid, textarea, textarea.prevAll('.title-save-status'), 'title', function (data) {
         // update display title when saved
-        textarea.closest('.item-container').find('.item-title span').text(textarea.val());
+        textarea.closest('.item-container').find('.item-title span').text(data.title);
       });
+    })
 
     // handle move-to-folder dropdown
-    })
     .on('change', '.move-to-folder', function () {
       var moveSelect = $(this);
-      var data = JSON.stringify({ folderId: moveSelect.val(), linkId: LinksListModule.getLinkIDForFormElement(moveSelect) })
+      var data = JSON.stringify({ folderId: moveSelect.val(), linkId: getLinkIDForFormElement(moveSelect) })
       $(window).trigger("LinksListModule.moveLink", data)
     });
 }
@@ -94,10 +83,9 @@ LinksListModule.setupLinksTableEventHandlers = function () {
 // *** actions ***
 
 var showLoadingMessage = false;
-LinksListModule.initShowFolderDOM = function (query) {
+function initShowFolderDOM (query) {
   if(!query || !query.trim()){
     // clear query after user clicks a folder
-    delete query;
     DOMHelpers.setInputValue('.search-query', '');
   }
 
@@ -105,18 +93,18 @@ LinksListModule.initShowFolderDOM = function (query) {
   showLoadingMessage = true;
   setTimeout(function(){
     if(showLoadingMessage) {
-      DOMHelpers.emptyElement(LinksListModule.linkTable);
-      DOMHelpers.changeHTML(LinksListModule.linkTable, '<div class="alert-info">Loading folder contents...</div>');
+      DOMHelpers.emptyElement(linkTable);
+      DOMHelpers.changeHTML(linkTable, '<div class="alert-info">Loading folder contents...</div>');
     }
   }, 500);
 }
 
-LinksListModule.generateLinkFields = function(query, link) {
+function generateLinkFields(query, link) {
   return LinkHelpers.generateLinkFields(link, query);
 };
 
-LinksListModule.showFolderContents = function (folderID, query) {
-  this.initShowFolderDOM(query);
+function showFolderContents (folderID, query) {
+  initShowFolderDOM(query);
 
   var requestCount = 20,
     requestData = {limit: requestCount, offset:0},
@@ -133,29 +121,29 @@ LinksListModule.showFolderContents = function (folderID, query) {
   function getNextContents() {
     APIModule.request("GET", endpoint, requestData).success(function (response) {
       showLoadingMessage = false;
-      var links = response.objects.map(LinksListModule.generateLinkFields.bind(this, query));
+      var links = response.objects.map(generateLinkFields.bind(this, query));
 
       // append HTML
       if(requestData.offset === 0) {
         // first run -- initialize folder
-        DOMHelpers.emptyElement(LinksListModule.linkTable);
+        DOMHelpers.emptyElement(linkTable);
       }else{
         // subsequent run -- appending to folder
-        var linksLoadingMore = LinksListModule.linkTable.find('.links-loading-more');
+        var linksLoadingMore = linkTable.find('.links-loading-more');
         DOMHelpers.removeElement(linksLoadingMore);
         if(!links.length)
           return;
       }
 
-      LinksListModule.displayLinks(links, query);
+      displayLinks(links, query);
 
       // If we received exactly `requestCount` number of links, there may be more to fetch from the server.
       // Set a waypoint event to trigger when the last link comes into view.
       if(links.length == requestCount){
         requestData.offset += requestCount;
-        LinksListModule.linkTable.find('.item-container:last').waypoint(function(direction) {
-          this.destroy();  // cancel waypoint
-          LinksListModule.linkTable.append('<div class="links-loading-more">Loading more ...</div>');
+        linkTable.find('.item-container:last').waypoint(function(direction) {
+          destroy();  // cancel waypoint
+          linkTable.append('<div class="links-loading-more">Loading more ...</div>');
           getNextContents();
         }, {
           offset:'100%'  // trigger waypoint when element hits bottom of window
@@ -166,14 +154,14 @@ LinksListModule.showFolderContents = function (folderID, query) {
   getNextContents();
 }
 
-LinksListModule.displayLinks = function(links, query) {
+function displayLinks(links, query) {
   var templateId = '#created-link-items-template';
   var templateArgs = {links: links, query: query};
   var template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
-  this.linkTable.append(template);
+  linkTable.append(template);
 }
 
-LinksListModule.handleMouseDown = function (e) {
+function handleMouseDown (e) {
   if ($(e.target).hasClass('no-drag'))
     return;
 
@@ -186,21 +174,21 @@ LinksListModule.handleMouseDown = function (e) {
   }, '<div id="jstree-dnd" class="jstree-default"><i class="jstree-icon jstree-er"></i>[link]</div>');
 
   // record drag start position so we can check how far we were dragged on mouseup
-  this.dragStartPosition = [e.pageX || e.originalEvent.touches[0].pageX, e.pageY || e.originalEvent.touches[0].pageY];
+  dragStartPosition = [e.pageX || e.originalEvent.touches[0].pageX, e.pageY || e.originalEvent.touches[0].pageY];
 }
 
-LinksListModule.handleMouseUp = function (e) {
+function handleMouseUp (e) {
   // prevent JSTree's tap-to-drag behavior
   $.vakata.dnd.stop(e);
 
   // don't treat this as a click if the mouse has moved more than 5 pixels -- it's probably an aborted drag'n'drop or touch scroll
-  if(this.dragStartPosition && Math.sqrt(Math.pow(e.pageX-this.dragStartPosition[0], 2)*Math.pow(e.pageY-this.dragStartPosition[1], 2))>5)
+  if(dragStartPosition && Math.sqrt(Math.pow(e.pageX-dragStartPosition[0], 2)*Math.pow(e.pageY-dragStartPosition[1], 2))>5)
     return;
 
   // don't toggle faster than twice a second (in case we get both mouseup and touchend events)
-  if(new Date().getTime() - this.lastRowToggleTime < 500)
+  if(new Date().getTime() - lastRowToggleTime < 500)
     return;
-  this.lastRowToggleTime = new Date().getTime();
+  lastRowToggleTime = new Date().getTime();
 
   // hide/show link details
   var linkContainer = $(e.target).closest('.item-container'),
@@ -215,7 +203,7 @@ LinksListModule.handleMouseUp = function (e) {
     // based on the current folderTree structure
 
     // first clear the select ...
-    var currentFolderID = this.selectedFolderID,
+    var currentFolderID = selectedFolderID,
       moveSelect = details.find('.move-to-folder');
     moveSelect.find('option').remove();
 

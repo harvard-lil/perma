@@ -5,3 +5,4 @@ ignore = E12,
          E4,
          E501,
          F403
+exclude = node_modules,static

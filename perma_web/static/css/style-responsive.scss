@@ -1,13 +1,12 @@
-//	This .scss file will automatically be compiled by django-pipeline into a .css file
-
 /////////////////////////////////////////
 
 //	Global imports
 
+@import "bootstrap-custom";
+@import "bootstrap-mod";
+
 @import "_perma-imports.scss";
 @import "_animation.scss";
-
-@include normalize;
 
 /////////////////////////////////////////
 
@@ -1459,12 +1458,10 @@ body.modal-open {
 
 .modal-backdrop.in {
   opacity: 0.95;
-  filter: alpha(opacity=95);
   background-color: white;
 }
 
 .modal {
-  @include fill-screen;
   display: none;
   z-index: 9999;
 }
@@ -1693,7 +1690,7 @@ body.modal-open {
 
 .carousel-inner > .item > a > img {
   height: 37px;
-  @include opacity(.6);
+  opacity: 0.6;
   padding: 5px;
   background: #fff;
   border: 1px solid #ccc;
@@ -1719,8 +1716,8 @@ body.modal-open {
 .carousel-control {
   position: absolute;
   background-color: transparent;
-  @include opacity(.9);
-  bottom: 0px;
+  opacity: 0.9;
+  bottom: 0;
   &:focus {
     outline: none;
   }
@@ -2489,7 +2486,6 @@ p.caption {
       color: $color-blue;
       border-color: transparent !important;
       opacity: 1;
-      filter: alpha(opacity=100);
       .spinner {
         left: 50%;
         top: 10px;
@@ -2542,7 +2538,7 @@ p.caption {
     font-family: $font-hed-alt;
   }
   #links-remaining-message,
-  #browser-tools-message, {
+  #browser-tools-message {
     color: $color-blue;
     font-weight: 700;
     a {
@@ -3066,7 +3062,7 @@ li.dropdown {
 }
 
 @include respond-mobile {
-  .navbar-nav {
+  .navbar-default .navbar-nav {
     @include style-dropdown-items;
     @include style-dropdown-structure;
     &.navbar-link._login {
@@ -5123,7 +5119,7 @@ section .caption {
 .example-link {
   position: absolute;
   background-color: #ffff00;
-  @include opacity(.3);
+  opacity: 0.3;
 }
 
 

@@ -1,16 +1,16 @@
-window.Helpers = window.Helpers || {};
-
-Helpers.sendFormData = function (method, url, data, requestArgs) {
+export function sendFormData (method, url, data, requestArgs) {
   requestArgs = requestArgs || {};
   var formData = new FormData();
-  for (key in data) { formData.append(key, data[key]); }
+  for (var key of Object.keys(data)) {
+    formData.append(key, data[key]);
+  }
   requestArgs.data = formData;
   requestArgs.url = api_path + url;
   requestArgs.method = method;
   return $.ajax(requestArgs);
 }
 
-Helpers.informUser = function (message, alertClass) {
+export function informUser (message, alertClass) {
   /*
       Show user some information at top of screen.
       alertClass options are 'success', 'info', 'warning', 'danger'
@@ -24,7 +24,7 @@ Helpers.informUser = function (message, alertClass) {
 }
 
 // via http://www.w3schools.com/js/js_cookies.asp
-Helpers.setCookie = function (cname, cvalue, exdays) {
+export function setCookie (cname, cvalue, exdays) {
     var d = new Date();
     d.setTime(d.getTime() + (exdays*24*60*60*1000));
     var expires = "expires="+ d.toUTCString();
@@ -32,10 +32,8 @@ Helpers.setCookie = function (cname, cvalue, exdays) {
 }
 
 
-// set up jquery to properly set CSRF header on AJAX post
-// via https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax
 
-Helpers.getCookie = function (name) {
+export function getCookie (name) {
   var cookieValue;
   if (document.cookie) {
     var cookies = document.cookie.split(';');
@@ -51,14 +49,14 @@ Helpers.getCookie = function (name) {
   return cookieValue;
 }
 
-Helpers.csrfSafeMethod = function (method) {
+export function csrfSafeMethod (method) {
   // these HTTP methods do not require CSRF protection
   return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
 
 // check if this is a retina-style display
 // via http://stackoverflow.com/a/20413768
-Helpers.isHighDensity = function() {
+export function isHighDensity() {
   return (
     (window.matchMedia &&
       (window.matchMedia('only screen and (min-resolution: 124dpi), only screen and (min-resolution: 1.3dppx), only screen and (min-resolution: 48.8dpcm)').matches ||
@@ -66,15 +64,15 @@ Helpers.isHighDensity = function() {
     )) || (window.devicePixelRatio && window.devicePixelRatio > 1.3));
 }
 
-Helpers.getWindowLocationSearch = function() {
+export function getWindowLocationSearch() {
   return window.location.search;
-};
+}
 
-Helpers.variables = {
+export var variables = {
   localStorageKey:"perma_selection"
 };
 
-Helpers.localStorage = {
+export var jsonLocalStorage = {
   getItem: function (key) {
     var result = localStorage.getItem(key);
     try {
@@ -93,6 +91,6 @@ Helpers.localStorage = {
 }
 
 
-Helpers.triggerOnWindow = function(message, data) {
+export function triggerOnWindow(message, data) {
   $(window).trigger(message, data);
 }

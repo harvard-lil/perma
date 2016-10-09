@@ -1,110 +1,112 @@
-window.SearchModule = window.SearchModule || {};
+require('jquery-ui/ui/widgets/datepicker'); // add .datepicker to jquery
 
-$(document).ready(function (){
-  SearchModule.init();
-  SearchModule.setupEventHandlers();
-});
+var DOMHelpers = require('./helpers/dom.helpers.js');
+var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
+var APIModule = require('./helpers/api.module.js');
+var LinkHelpers = require('./helpers/link.helpers.js');
 
-SearchModule.init = function(){
-  this.linkRows = $('.item-rows');
-  this.searchSubmit = $('.search-query-form');
+var linkRows;
+var searchSubmit;
+var dates;
+
+function init(){
+  linkRows = $('.item-rows');
+  searchSubmit = $('.search-query-form');
+
+  setupEventHandlers();
 }
 
-SearchModule.setupEventHandlers = function() {
-  this.linkRows.click(function(e){
+function setupEventHandlers() {
+  linkRows.click(function(e){
     if (e.target.className == 'clear-search') {
-      SearchModule.clearLinks();
+      clearLinks();
       DOMHelpers.setInputValue('.search-query', '');
     }
   });
 
-  this.searchSubmit.submit(function (e) {
+  searchSubmit.submit(function (e) {
     e.preventDefault();
-    SearchModule.clearLinks();
-    SearchModule.clearCalendar();
+    clearLinks();
+    clearCalendar();
 
-    SearchModule
-      .getAllLinks()
-      .then(function(response){
-        SearchModule.setDates(response.objects);
-        SearchModule.displayCalendar(response.objects);
+    getAllLinks().then(function(response){
+        setDates(response.objects);
+        displayCalendar(response.objects);
       });
   });
 }
 
-SearchModule.displayLinks = function(links, query) {
+function displayLinks(links, query) {
   var templateId = '#search-links-template';
   var templateArgs = { links: links, query: query };
   var template = HandlebarsHelpers.renderTemplate(templateId, templateArgs);
-  this.linkRows.append(template);
+  linkRows.append(template);
 }
 
-SearchModule.getQuery = function() {
+function getQuery() {
   var query = DOMHelpers.getValue('.search-query');
   if (!query) return '';
   return query.trim();
 }
 
-SearchModule.clearLinks = function() {
-  DOMHelpers.emptyElement(this.linkRows);
+function clearLinks() {
+  DOMHelpers.emptyElement(linkRows);
 }
 
-SearchModule.clearCalendar = function() {
+function clearCalendar() {
   DOMHelpers.removeClass('#calendar', 'hasDatepicker');
   DOMHelpers.emptyElement('#calendar');
   DOMHelpers.hideElement('#calendar');
 }
 
-SearchModule.displayCalendar = function() {
+function displayCalendar() {
 
   $('#calendar').datepicker({
     maxDate: "+1d",
     numberOfMonths: 3,
     stepMonths: 3,
     onChangeMonthYear: function(year, minMonth){
-      var query = SearchModule.getQuery();
-      var endpoint, request, requestData;
-      endpoint = SearchModule.getSubmittedUrlEndpoint();
+      var query = getQuery();
+      var endpoint, requestData;
+      endpoint = getSubmittedUrlEndpoint();
       minMonth = minMonth < 10 ? '0' + minMonth : minMonth.toString();
       var date =  minMonth + "-01-" + year;
-      requestData = SearchModule.generateRequestData(query, date);
+      requestData = generateRequestData(query, date);
       APIModule.request("GET", endpoint, requestData).always(function (response) {
-        SearchModule.setDates(response.objects);
-        SearchModule.displayCalendar();
-        SearchModule.initCalSearch();
+        setDates(response.objects);
+        displayCalendar();
+        initCalSearch();
       });
     },
     beforeShowDay: function(day) {
-      var dates = SearchModule.getDates();
+      var dates = getDates();
       if (dates[day]) {
         return [true, 'active-date'];
       } else {
         return [false];
       }
     }
-  });
-
-  $('#calendar').datepicker('refresh');
-  SearchModule.initCalSearch();
+  }).datepicker('refresh');
+  initCalSearch();
   DOMHelpers.addCSS('#calendar', 'display', 'table');
 }
 
-SearchModule.setDates = function(links) {
-  SearchModule.dates = {}
+function setDates(links) {
+  dates = {};
   if (links) {
     links.map(function(link){
       var newDate = new Date(link.creation_timestamp);
       newDate.setHours(0,0,0,0);
-      SearchModule.dates[newDate] = true});
+      dates[newDate] = true});
   }
-  return SearchModule.dates
+  return dates
 }
 
-SearchModule.getDates = function(){
-  return SearchModule.dates
+function getDates(){
+  return dates
 }
 
-SearchModule.initCalSearch = function() {
+function initCalSearch() {
   $('td')
     .off('click')
     .on('click', function(e){
@@ -116,41 +118,39 @@ SearchModule.initCalSearch = function() {
       var el = e.currentTarget;
       // JS zero-indexes months for some crazy reason, python doesn't. We have to increment it here.
       var pickedDate = '' + (parseInt(el.dataset.month) + 1)  + '-'  + el.innerText + '-' + el.dataset.year
-      SearchModule.getLinksForDate(pickedDate);
+      getLinksForDate(pickedDate);
   });
 }
 
-SearchModule.getAllLinks = function() {
-  var query = SearchModule.getQuery();
-  var endpoint, request, requestData;
-  endpoint = this.getSubmittedUrlEndpoint();
-  requestData = SearchModule.generateRequestData(query)
-  return APIModule.request("GET", endpoint, requestData).always(function (response) {
-    return response.objects;
-  });
+function getAllLinks() {
+  var query = getQuery();
+  var endpoint, requestData;
+  endpoint = getSubmittedUrlEndpoint();
+  requestData = generateRequestData(query)
+  return APIModule.request("GET", endpoint, requestData);
 }
 
-SearchModule.getLinksForDate = function(date) {
-  var query = SearchModule.getQuery();
-  var endpoint, request, requestData;
-  SearchModule.clearLinks();
-  endpoint = this.getSubmittedUrlEndpoint();
-  requestData = SearchModule.generateRequestData(query, date);
+function getLinksForDate(date) {
+  var query = getQuery();
+  var endpoint, requestData;
+  clearLinks();
+  endpoint = getSubmittedUrlEndpoint();
+  requestData = generateRequestData(query, date);
   delete requestData.date_range;
 
   APIModule.request("GET", endpoint, requestData).always(function (response) {
-    var links = response.objects.map(SearchModule.generateLinkFields);
-    DOMHelpers.emptyElement(this.linkRows);
-    SearchModule.displayLinks(links, query);
-    SearchModule.initCalSearch();
+    var links = response.objects.map(generateLinkFields);
+    DOMHelpers.emptyElement(linkRows);
+    displayLinks(links, query);
+    initCalSearch();
   });
 }
 
-SearchModule.getSubmittedUrlEndpoint = function () {
+function getSubmittedUrlEndpoint () {
   return "/public/archives";
 }
 
-SearchModule.generateRequestData = function(query, date) {
+function generateRequestData(query, date) {
   var data = { submitted_url:query, offset:0, date_range:3, limit:0};
   if (date) {
     date = new Date(date);
@@ -160,6 +160,8 @@ SearchModule.generateRequestData = function(query, date) {
   return data;
 }
 
-SearchModule.generateLinkFields = function(link) {
+function generateLinkFields(link) {
   return LinkHelpers.generateLinkFields(link);
 }
+
+init();
