@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.core.urlresolvers import reverse
+from django.core import mail
+from django.conf import settings
 
 from perma.models import *
 
@@ -589,6 +591,29 @@ class UserManagementViewsTestCase(PermaTestCase):
         email_label = soup.find('label', {'for': 'id_a-email'})
         self.assertEqual(email_label.text, "Your email")
 
+    def check_lib_email(self, message, new_lib):
+        our_address = settings.DEFAULT_FROM_EMAIL
+
+        self.assertIn(new_lib['name'], message.body)
+        self.assertIn(new_lib['email'], message.body)
+        id = Registrar.objects.get(email=new_lib['email']).id
+        approve_url = "http://testserver{}".format(reverse('user_management_approve_pending_registrar', args=[id]))
+        self.assertIn(approve_url, message.body)
+        self.assertEqual(message.subject, "Perma.cc new library registrar account request")
+        self.assertEqual(message.from_email, our_address)
+        self.assertEqual(message.recipients(), [our_address])
+        self.assertDictEqual(message.extra_headers, {'Reply-To': new_lib['email']})
+
+    def check_lib_user_email(self, message, new_lib_user):
+        our_address = settings.DEFAULT_FROM_EMAIL
+
+        confirmation_code = LinkUser.objects.get(email=new_lib_user['email']).confirmation_code
+        confirm_url = "http://testserver{}".format(reverse('register_password', args=[confirmation_code]))
+        self.assertIn(confirm_url, message.body)
+        self.assertEqual(message.subject, "A Perma.cc account has been created for you")
+        self.assertEqual(message.from_email, our_address)
+        self.assertEqual(message.recipients(), [new_lib_user['email']])
+
     def test_new_library_render(self):
         '''
            Does the library signup form display as expected?
@@ -659,8 +684,58 @@ class UserManagementViewsTestCase(PermaTestCase):
             else:
                 self.assertFalse(input.get('value', ''))
 
+    def test_new_library_submit_success(self):
+        '''
+           Does the library signup form submit as expected? Success cases.
+        '''
+        expected_emails_sent = 0
 
-    ### Individual User ###
+        # Not logged in, submit all fields sans first and last name
+        new_lib = self.new_lib()
+        new_lib_user = self.new_lib_user()
+        self.submit_form('libraries',
+                          data = { u'b-email': [new_lib['email']],
+                                   u'b-website': [new_lib['website']],
+                                   u'b-name': [new_lib['name']],
+                                   u'a-email': [new_lib_user['email']] },
+                          success_url=reverse('register_library_instructions'))
+        expected_emails_sent += 2
+        self.assertEqual(len(mail.outbox), expected_emails_sent)
+        self.check_lib_email(mail.outbox[expected_emails_sent - 2], new_lib)
+        self.check_lib_user_email(mail.outbox[expected_emails_sent - 1], new_lib_user)
+
+        # Not logged in, submit all fields including first and last name
+        new_lib = self.new_lib()
+        new_lib_user = self.new_lib_user()
+        self.submit_form('libraries',
+                          data = { u'b-email': [new_lib['email']],
+                                   u'b-website': [new_lib['website']],
+                                   u'b-name': [new_lib['name']],
+                                   u'a-email': [new_lib_user['email']],
+                                   u'a-first_name': [new_lib_user['first']],
+                                   u'a-last_name': [new_lib_user['last']]},
+                          success_url=reverse('register_library_instructions'))
+        expected_emails_sent += 2
+        self.assertEqual(len(mail.outbox), expected_emails_sent)
+        self.check_lib_email(mail.outbox[expected_emails_sent - 2], new_lib)
+        self.check_lib_user_email(mail.outbox[expected_emails_sent - 1], new_lib_user)
+
+        # Logged in
+        new_lib = self.new_lib()
+        existing_lib_user = { 'email': 'test_user@example.com'}
+        self.submit_form('libraries',
+                          data = { u'b-email': [new_lib['email']],
+                                   u'b-website': [new_lib['website']],
+                                   u'b-name': [new_lib['name']] },
+                          success_url=reverse('user_management_settings_affiliations'),
+                          user=existing_lib_user['email'])
+        expected_emails_sent += 1
+        self.assertEqual(len(mail.outbox), expected_emails_sent)
+        self.check_lib_email(mail.outbox[expected_emails_sent - 1], new_lib)
+
+
+    ### Individual Users ###
+
     def test_account_creation_views(self):
         # user registration
         new_user_email = "new_email@test.com"
