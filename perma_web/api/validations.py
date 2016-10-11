@@ -107,6 +107,8 @@ class LinkValidation(DefaultValidation):
                 errors['url'] = "URL caused a redirect loop."
 
         uploaded_file = bundle.data.get('file')
+        if bundle.data.get('file_required', '') and not uploaded_file:
+            errors['file'] = "You must upload a file."
         if uploaded_file:
             mime_type = get_mime_type(uploaded_file.name)
 
@@ -115,7 +117,7 @@ class LinkValidation(DefaultValidation):
                 errors['file'] = "Invalid file."
             elif uploaded_file.size > settings.MAX_ARCHIVE_FILE_SIZE:
                 errors['file'] = "File is too large."
-       
+
         # Moving folder when not organization
         #elif bundle.data.get("folder", None):
             #if bundle.obj.organization_id and bundle.obj.organization_id != bundle.data['folder'].organization_id:

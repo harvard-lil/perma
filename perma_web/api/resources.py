@@ -154,7 +154,8 @@ class MultipartResource(object):
     def deserialize(self, request, data, format=None):
         if not format:
             format = request.META.get('CONTENT_TYPE', 'application/json')
-        if format == 'application/x-www-form-urlencoded':
+        if format == 'application/x-www-form-urlencoded' or \
+           format == 'application/x-www-form-urlencoded; charset=UTF-8':
             return request.POST
         if format.startswith('multipart'):
             data = request.POST.copy()
@@ -367,7 +368,7 @@ class BaseLinkResource(MultipartResource, DefaultResource):
         search_date = request.GET.get('date', None)
         if search_date:
             search_date = dateutil.parser.parse(search_date)
-            
+
         search_range = request.GET.get('date_range', None)
 
         query = Q()

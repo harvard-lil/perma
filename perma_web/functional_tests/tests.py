@@ -311,7 +311,20 @@ class FunctionalTest(BaseTestCase):
             info("Testing javascript error reporting -- logged in user")
             test_js_error_handling()
 
+            info("Failing to create an archive.")
+            # choose folder from dropdown
+            get_css_selector('#folder-tree > .jstree-container-ul > li:last-child > a').click()
+            # don't provide a URL
+            get_id('addlink').click() # submit
+            assert_text_displayed('URL cannot be empty. ', 'p')
+            # don't provide a URL or a file on the Upload a file form
+            click_link("upload your own archive")
+            get_id('uploadLinky').click()
+            assert_text_displayed('URL cannot be empty.')
+            assert_text_displayed('You must upload a file.')
+
             info("Creating archive.")
+            self.driver.get(self.server_url + '/manage/create')
             url_to_capture = 'example.com'
             type_to_element(get_id('rawUrl'), url_to_capture)  # type url
             # choose folder from dropdown
