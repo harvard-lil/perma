@@ -5,6 +5,7 @@ from perma.models import *
 
 from .utils import PermaTestCase
 
+from random import random
 from bs4 import BeautifulSoup
 
 
@@ -31,15 +32,6 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.unrelated_organization = self.unrelated_registrar.organizations.first()
         self.unrelated_organization_user = self.unrelated_organization.users.first()
         self.deletable_organization = Organization.objects.get(pk=3)
-
-        self.new_lib = { 'email': u'library@university.org',
-                     'name': u'University Library',
-                     'website': u'http://website.org' }
-
-        self.new_lib_user = { 'email': u'user@university.org',
-                          'first': u'Joe',
-                          'last': u'Yacobówski' }
-
 
     ### REGISTRAR A/E/D VIEWS ###
 
@@ -573,6 +565,18 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     ### Libraries ###
 
+    def new_lib(self):
+        rand = random()
+        return { 'email': u'library{}@university.org'.format(rand),
+                 'name': u'University Library {}'.format(rand),
+                 'website': u'http://website{}.org'.format(rand) }
+
+    def new_lib_user(self):
+        rand = random()
+        return { 'email': u'user{}@university.org'.format(rand),
+                 'first': u'Joe',
+                 'last': u'Yacobówski' }
+
     def check_library_labels(self, soup):
         name_label = soup.find('label', {'for': 'id_b-name'})
         self.assertEqual(name_label.text, "Library name")
@@ -609,12 +613,14 @@ class UserManagementViewsTestCase(PermaTestCase):
         # If request_data is present in session, registrar form is prepopulated,
         # and labels are still customized as expected
         session = self.client.session
-        session['request_data'] = { u'b-email': [self.new_lib['email']],
-                                    u'b-website': [self.new_lib['website']],
-                                    u'b-name': [self.new_lib['name']],
-                                    u'a-email': [self.new_lib_user['email']],
-                                    u'a-first_name': [self.new_lib_user['first']],
-                                    u'a-last_name': [self.new_lib_user['last']],
+        new_lib = self.new_lib()
+        new_lib_user = self.new_lib_user()
+        session['request_data'] = { u'b-email': [new_lib['email']],
+                                    u'b-website': [new_lib['website']],
+                                    u'b-name': [new_lib['name']],
+                                    u'a-email': [new_lib_user['email']],
+                                    u'a-first_name': [new_lib_user['first']],
+                                    u'a-last_name': [new_lib_user['last']],
                                     u'csrfmiddlewaretoken': [u'11YY3S2DgOw2DHoWVEbBArnBMdEA2svu'] }
         session.save()
         response = self.get('libraries').content
