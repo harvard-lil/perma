@@ -1,8 +1,11 @@
+# -*- coding: utf-8 -*-
 from django.core.urlresolvers import reverse
 
 from perma.models import *
 
 from .utils import PermaTestCase
+
+from bs4 import BeautifulSoup
 
 
 class UserManagementViewsTestCase(PermaTestCase):
@@ -28,6 +31,15 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.unrelated_organization = self.unrelated_registrar.organizations.first()
         self.unrelated_organization_user = self.unrelated_organization.users.first()
         self.deletable_organization = Organization.objects.get(pk=3)
+
+        self.new_lib = { 'email': u'library@university.org',
+                     'name': u'University Library',
+                     'website': u'http://website.org' }
+
+        self.new_lib_user = { 'email': u'user@university.org',
+                          'first': u'Joe',
+                          'last': u'Yacobówski' }
+
 
     ### REGISTRAR A/E/D VIEWS ###
 
@@ -555,8 +567,94 @@ class UserManagementViewsTestCase(PermaTestCase):
                          success_url=reverse('user_management_settings_profile'),
                          success_query=LinkUser.objects.filter(first_name='Newfirst'))
 
-    ### SIGNUP ###
+    ###
+    ### SIGNUP
+    ###
 
+    ### Libraries ###
+
+    def check_library_labels(self, soup):
+        name_label = soup.find('label', {'for': 'id_b-name'})
+        self.assertEqual(name_label.text, "Library name")
+        email_label = soup.find('label', {'for': 'id_b-email'})
+        self.assertEqual(email_label.text, "Library email")
+        website_label = soup.find('label', {'for': 'id_b-website'})
+        self.assertEqual(website_label.text, "Library website")
+
+    def check_lib_user_labels(self, soup):
+        email_label = soup.find('label', {'for': 'id_a-email'})
+        self.assertEqual(email_label.text, "Your email")
+
+    def test_new_library_render(self):
+        '''
+           Does the library signup form display as expected?
+        '''
+
+        # NOT LOGGED IN
+
+        # Registrar and user forms are displayed,
+        # inputs are blank, and labels are customized as expected
+        response = self.get('libraries').content
+        soup = BeautifulSoup(response, 'html.parser')
+        self.check_library_labels(soup)
+        self.check_lib_user_labels(soup)
+        inputs = soup.select('input')
+        self.assertEqual(len(inputs), 7)
+        for input in inputs:
+            if input['name'] == 'csrfmiddlewaretoken':
+                self.assertTrue(input.get('value', ''))
+            else:
+                self.assertFalse(input.get('value', ''))
+
+        # If request_data is present in session, registrar form is prepopulated,
+        # and labels are still customized as expected
+        session = self.client.session
+        session['request_data'] = { u'b-email': [self.new_lib['email']],
+                                    u'b-website': [self.new_lib['website']],
+                                    u'b-name': [self.new_lib['name']],
+                                    u'a-email': [self.new_lib_user['email']],
+                                    u'a-first_name': [self.new_lib_user['first']],
+                                    u'a-last_name': [self.new_lib_user['last']],
+                                    u'csrfmiddlewaretoken': [u'11YY3S2DgOw2DHoWVEbBArnBMdEA2svu'] }
+        session.save()
+        response = self.get('libraries').content
+        soup = BeautifulSoup(response, 'html.parser')
+        self.check_library_labels(soup)
+        self.check_lib_user_labels(soup)
+        inputs = soup.select('input')
+        self.assertEqual(len(inputs), 7)
+        for input in inputs:
+            if input['name'] == 'csrfmiddlewaretoken':
+                self.assertTrue(input.get('value', ''))
+            elif input['name'][:2] == "b-":
+                self.assertTrue(input.get('value', ''))
+            else:
+                self.assertFalse(input.get('value', ''))
+
+        # If there's an unsuccessful submission, field labels are still as expected.
+        response = self.post('libraries').content
+        soup = BeautifulSoup(response, 'html.parser')
+        self.check_library_labels(soup)
+        self.check_lib_user_labels(soup)
+
+        # LOGGED IN
+
+        # Registrar form is displayed, but user form is not,
+        # inputs are blank, and labels are still customized as expected
+        response = self.get('libraries', user="test_user@example.com").content
+        soup = BeautifulSoup(response, 'html.parser')
+        self.check_library_labels(soup)
+        inputs = soup.select('input')
+        self.assertEqual(len(inputs), 5) # 5 because csrf is here and in the logout form
+        for input in inputs:
+            self.assertIn(input['name'],['csrfmiddlewaretoken', 'b-name', 'b-email', 'b-website'])
+            if input['name'] == 'csrfmiddlewaretoken':
+                self.assertTrue(input.get('value', ''))
+            else:
+                self.assertFalse(input.get('value', ''))
+
+
+    ### Individual User ###
     def test_account_creation_views(self):
         # user registration
         new_user_email = "new_email@test.com"
