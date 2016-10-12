@@ -733,6 +733,57 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(len(mail.outbox), expected_emails_sent)
         self.check_lib_email(mail.outbox[expected_emails_sent - 1], new_lib)
 
+    def test_new_library_submit_failure(self):
+        '''
+           Does the library signup form submit as expected? Failures.
+        '''
+        new_lib = self.new_lib()
+        new_lib_user = self.new_lib_user()
+        existing_lib_user = { 'email': 'test_user@example.com'}
+
+        # Not logged in, blank submission reports correct fields required
+        # ('email' catches both registrar and user email errors, unavoidably,
+        # so test with just that missing separately)
+        self.submit_form('libraries',
+                          data = {},
+                          form_keys = ['registrar_form', 'user_form'],
+                          error_keys = ['website', 'name', 'email'])
+        self.assertEqual(len(mail.outbox), 0)
+
+        # (checking user email missing separately)
+        self.submit_form('libraries',
+                          data = {u'b-email': new_lib['email'],
+                                  u'b-website': new_lib['website'],
+                                  u'b-name': new_lib['name']},
+                          form_keys = ['registrar_form', 'user_form'],
+                          error_keys = ['email'])
+        self.assertEqual(len(mail.outbox), 0)
+
+        # Not logged in, user appears to have already registered
+        data = {u'b-email': new_lib['email'],
+                u'b-website': new_lib['website'],
+                u'b-name': new_lib['name'],
+                u'a-email': existing_lib_user['email']}
+        self.submit_form('libraries',
+                          data = data,
+                          form_keys = ['registrar_form', 'user_form'],
+                          success_url = '/login?next=/libraries/')
+        self.assertDictEqual(self.client.session['request_data'], data)
+        self.assertEqual(len(mail.outbox), 0)
+
+        # Not logged in, registrar apepars to exist already
+        # (actually, this doesn't currently fail)
+
+        # Logged in, blank submission reports all fields required
+        self.submit_form('libraries',
+                          data = {},
+                          user = existing_lib_user['email'],
+                          error_keys = ['website', 'name', 'email'])
+        self.assertEqual(len(mail.outbox), 0)
+
+        # Logged in, registrar appears to exist already
+        # (actually, this doesn't currently fail)
+
 
     ### Individual Users ###
 
