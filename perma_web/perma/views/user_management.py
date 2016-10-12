@@ -1203,9 +1203,9 @@ def libraries(request):
 
         # test if both form objects that comprise the signup form are valid
         if user_form:
-           form_is_valid = user_form.is_valid() and registrar_form.is_valid()
+            form_is_valid = user_form.is_valid() and registrar_form.is_valid()
         else:
-           form_is_valid = registrar_form.is_valid()
+            form_is_valid = registrar_form.is_valid()
 
         if form_is_valid:
             new_registrar = registrar_form.save()
