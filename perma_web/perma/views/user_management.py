@@ -1201,27 +1201,26 @@ def libraries(request):
             request.session['request_data'] = registrar_form.data
             return HttpResponseRedirect('/login?next=/libraries/')
 
-        if registrar_form.is_valid():
+        # test if both form objects that comprise the signup form are valid
+        if user_form:
+           form_is_valid = user_form.is_valid() and registrar_form.is_valid()
+        else:
+           form_is_valid = registrar_form.is_valid()
+
+        if form_is_valid:
             new_registrar = registrar_form.save()
             email_registrar_request(request, new_registrar)
-
-            if not request.user.is_authenticated():
-                if user_form.is_valid():
-                    new_user = user_form.save(commit=False)
-                    new_user.backend='django.contrib.auth.backends.ModelBackend'
-                    new_user.pending_registrar = new_registrar
-                    new_user.save()
-
-                    email_pending_registrar_user(request, new_user)
-                    return HttpResponseRedirect(reverse('register_library_instructions'))
-                else:
-                    context.update({'user_form':user_form, 'registrar_form':registrar_form})
+            if user_form:
+                new_user = user_form.save(commit=False)
+                new_user.backend='django.contrib.auth.backends.ModelBackend'
+                new_user.pending_registrar = new_registrar
+                new_user.save()
+                email_pending_registrar_user(request, new_user)
+                return HttpResponseRedirect(reverse('register_library_instructions'))
             else:
                 request.user.pending_registrar = new_registrar
                 request.user.save()
-
                 return HttpResponseRedirect(reverse('user_management_settings_affiliations'))
-
         else:
             context.update({'user_form':user_form, 'registrar_form':registrar_form})
     else:
