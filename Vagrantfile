@@ -13,7 +13,8 @@ Vagrant.configure("2") do |config|
   config.vm.network :forwarded_port, guest: 8000, host: 8000 # django dev server
   config.vm.network :forwarded_port, guest: 9000, host: 9000 # nginx server (not started by default)
   config.vm.network :forwarded_port, guest: 8080, host: 8080 # jasmine
-  config.vm.synced_folder ".", "/vagrant"
+  config.vm.network :private_network, type: :dhcp
+  config.vm.synced_folder ".", "/vagrant", type: "nfs"
 
   # configure CPU/RAM
   config.vm.provider "virtualbox" do |v|
