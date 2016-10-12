@@ -640,13 +640,13 @@ class UserManagementViewsTestCase(PermaTestCase):
         session = self.client.session
         new_lib = self.new_lib()
         new_lib_user = self.new_lib_user()
-        session['request_data'] = { u'b-email': [new_lib['email']],
-                                    u'b-website': [new_lib['website']],
-                                    u'b-name': [new_lib['name']],
-                                    u'a-email': [new_lib_user['email']],
-                                    u'a-first_name': [new_lib_user['first']],
-                                    u'a-last_name': [new_lib_user['last']],
-                                    u'csrfmiddlewaretoken': [u'11YY3S2DgOw2DHoWVEbBArnBMdEA2svu'] }
+        session['request_data'] = { u'b-email': new_lib['email'],
+                                    u'b-website': new_lib['website'],
+                                    u'b-name': new_lib['name'],
+                                    u'a-email': new_lib_user['email'],
+                                    u'a-first_name': new_lib_user['first'],
+                                    u'a-last_name': new_lib_user['last'],
+                                    u'csrfmiddlewaretoken': u'11YY3S2DgOw2DHoWVEbBArnBMdEA2svu' }
         session.save()
         response = self.get('libraries').content
         soup = BeautifulSoup(response, 'html.parser')
@@ -694,10 +694,10 @@ class UserManagementViewsTestCase(PermaTestCase):
         new_lib = self.new_lib()
         new_lib_user = self.new_lib_user()
         self.submit_form('libraries',
-                          data = { u'b-email': [new_lib['email']],
-                                   u'b-website': [new_lib['website']],
-                                   u'b-name': [new_lib['name']],
-                                   u'a-email': [new_lib_user['email']] },
+                          data = { u'b-email': new_lib['email'],
+                                   u'b-website': new_lib['website'],
+                                   u'b-name': new_lib['name'],
+                                   u'a-email': new_lib_user['email'] },
                           success_url=reverse('register_library_instructions'))
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
@@ -708,12 +708,12 @@ class UserManagementViewsTestCase(PermaTestCase):
         new_lib = self.new_lib()
         new_lib_user = self.new_lib_user()
         self.submit_form('libraries',
-                          data = { u'b-email': [new_lib['email']],
-                                   u'b-website': [new_lib['website']],
-                                   u'b-name': [new_lib['name']],
-                                   u'a-email': [new_lib_user['email']],
-                                   u'a-first_name': [new_lib_user['first']],
-                                   u'a-last_name': [new_lib_user['last']]},
+                          data = { u'b-email': new_lib['email'],
+                                   u'b-website': new_lib['website'],
+                                   u'b-name': new_lib['name'],
+                                   u'a-email': new_lib_user['email'],
+                                   u'a-first_name': new_lib_user['first'],
+                                   u'a-last_name': new_lib_user['last']},
                           success_url=reverse('register_library_instructions'))
         expected_emails_sent += 2
         self.assertEqual(len(mail.outbox), expected_emails_sent)
@@ -724,9 +724,9 @@ class UserManagementViewsTestCase(PermaTestCase):
         new_lib = self.new_lib()
         existing_lib_user = { 'email': 'test_user@example.com'}
         self.submit_form('libraries',
-                          data = { u'b-email': [new_lib['email']],
-                                   u'b-website': [new_lib['website']],
-                                   u'b-name': [new_lib['name']] },
+                          data = { u'b-email': new_lib['email'],
+                                   u'b-website': new_lib['website'],
+                                   u'b-name': new_lib['name'] },
                           success_url=reverse('user_management_settings_affiliations'),
                           user=existing_lib_user['email'])
         expected_emails_sent += 1
