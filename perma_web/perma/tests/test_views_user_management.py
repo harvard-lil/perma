@@ -1,8 +1,14 @@
+# -*- coding: utf-8 -*-
 from django.core.urlresolvers import reverse
+from django.core import mail
+from django.conf import settings
 
 from perma.models import *
 
 from .utils import PermaTestCase
+
+from random import random
+from bs4 import BeautifulSoup
 
 
 class UserManagementViewsTestCase(PermaTestCase):
@@ -555,7 +561,230 @@ class UserManagementViewsTestCase(PermaTestCase):
                          success_url=reverse('user_management_settings_profile'),
                          success_query=LinkUser.objects.filter(first_name='Newfirst'))
 
-    ### SIGNUP ###
+    ###
+    ### SIGNUP
+    ###
+
+    ### Libraries ###
+
+    def new_lib(self):
+        rand = random()
+        return { 'email': u'library{}@university.org'.format(rand),
+                 'name': u'University Library {}'.format(rand),
+                 'website': u'http://website{}.org'.format(rand) }
+
+    def new_lib_user(self):
+        rand = random()
+        return { 'email': u'user{}@university.org'.format(rand),
+                 'first': u'Joe',
+                 'last': u'Yacobówski' }
+
+    def check_library_labels(self, soup):
+        name_label = soup.find('label', {'for': 'id_b-name'})
+        self.assertEqual(name_label.text, "Library name")
+        email_label = soup.find('label', {'for': 'id_b-email'})
+        self.assertEqual(email_label.text, "Library email")
+        website_label = soup.find('label', {'for': 'id_b-website'})
+        self.assertEqual(website_label.text, "Library website")
+
+    def check_lib_user_labels(self, soup):
+        email_label = soup.find('label', {'for': 'id_a-email'})
+        self.assertEqual(email_label.text, "Your email")
+
+    def check_lib_email(self, message, new_lib):
+        our_address = settings.DEFAULT_FROM_EMAIL
+
+        self.assertIn(new_lib['name'], message.body)
+        self.assertIn(new_lib['email'], message.body)
+        id = Registrar.objects.get(email=new_lib['email']).id
+        approve_url = "http://testserver{}".format(reverse('user_management_approve_pending_registrar', args=[id]))
+        self.assertIn(approve_url, message.body)
+        self.assertEqual(message.subject, "Perma.cc new library registrar account request")
+        self.assertEqual(message.from_email, our_address)
+        self.assertEqual(message.recipients(), [our_address])
+        self.assertDictEqual(message.extra_headers, {'Reply-To': new_lib['email']})
+
+    def check_lib_user_email(self, message, new_lib_user):
+        our_address = settings.DEFAULT_FROM_EMAIL
+
+        confirmation_code = LinkUser.objects.get(email=new_lib_user['email']).confirmation_code
+        confirm_url = "http://testserver{}".format(reverse('register_password', args=[confirmation_code]))
+        self.assertIn(confirm_url, message.body)
+        self.assertEqual(message.subject, "A Perma.cc account has been created for you")
+        self.assertEqual(message.from_email, our_address)
+        self.assertEqual(message.recipients(), [new_lib_user['email']])
+
+    def test_new_library_render(self):
+        '''
+           Does the library signup form display as expected?
+        '''
+
+        # NOT LOGGED IN
+
+        # Registrar and user forms are displayed,
+        # inputs are blank, and labels are customized as expected
+        response = self.get('libraries').content
+        soup = BeautifulSoup(response, 'html.parser')
+        self.check_library_labels(soup)
+        self.check_lib_user_labels(soup)
+        inputs = soup.select('input')
+        self.assertEqual(len(inputs), 7)
+        for input in inputs:
+            if input['name'] == 'csrfmiddlewaretoken':
+                self.assertTrue(input.get('value', ''))
+            else:
+                self.assertFalse(input.get('value', ''))
+
+        # If request_data is present in session, registrar form is prepopulated,
+        # and labels are still customized as expected
+        session = self.client.session
+        new_lib = self.new_lib()
+        new_lib_user = self.new_lib_user()
+        session['request_data'] = { u'b-email': new_lib['email'],
+                                    u'b-website': new_lib['website'],
+                                    u'b-name': new_lib['name'],
+                                    u'a-email': new_lib_user['email'],
+                                    u'a-first_name': new_lib_user['first'],
+                                    u'a-last_name': new_lib_user['last'],
+                                    u'csrfmiddlewaretoken': u'11YY3S2DgOw2DHoWVEbBArnBMdEA2svu' }
+        session.save()
+        response = self.get('libraries').content
+        soup = BeautifulSoup(response, 'html.parser')
+        self.check_library_labels(soup)
+        self.check_lib_user_labels(soup)
+        inputs = soup.select('input')
+        self.assertEqual(len(inputs), 7)
+        for input in inputs:
+            if input['name'] == 'csrfmiddlewaretoken':
+                self.assertTrue(input.get('value', ''))
+            elif input['name'][:2] == "b-":
+                self.assertTrue(input.get('value', ''))
+            else:
+                self.assertFalse(input.get('value', ''))
+
+        # If there's an unsuccessful submission, field labels are still as expected.
+        response = self.post('libraries').content
+        soup = BeautifulSoup(response, 'html.parser')
+        self.check_library_labels(soup)
+        self.check_lib_user_labels(soup)
+
+        # LOGGED IN
+
+        # Registrar form is displayed, but user form is not,
+        # inputs are blank, and labels are still customized as expected
+        response = self.get('libraries', user="test_user@example.com").content
+        soup = BeautifulSoup(response, 'html.parser')
+        self.check_library_labels(soup)
+        inputs = soup.select('input')
+        self.assertEqual(len(inputs), 5) # 5 because csrf is here and in the logout form
+        for input in inputs:
+            self.assertIn(input['name'],['csrfmiddlewaretoken', 'b-name', 'b-email', 'b-website'])
+            if input['name'] == 'csrfmiddlewaretoken':
+                self.assertTrue(input.get('value', ''))
+            else:
+                self.assertFalse(input.get('value', ''))
+
+    def test_new_library_submit_success(self):
+        '''
+           Does the library signup form submit as expected? Success cases.
+        '''
+        expected_emails_sent = 0
+
+        # Not logged in, submit all fields sans first and last name
+        new_lib = self.new_lib()
+        new_lib_user = self.new_lib_user()
+        self.submit_form('libraries',
+                          data = { u'b-email': new_lib['email'],
+                                   u'b-website': new_lib['website'],
+                                   u'b-name': new_lib['name'],
+                                   u'a-email': new_lib_user['email'] },
+                          success_url=reverse('register_library_instructions'))
+        expected_emails_sent += 2
+        self.assertEqual(len(mail.outbox), expected_emails_sent)
+        self.check_lib_email(mail.outbox[expected_emails_sent - 2], new_lib)
+        self.check_lib_user_email(mail.outbox[expected_emails_sent - 1], new_lib_user)
+
+        # Not logged in, submit all fields including first and last name
+        new_lib = self.new_lib()
+        new_lib_user = self.new_lib_user()
+        self.submit_form('libraries',
+                          data = { u'b-email': new_lib['email'],
+                                   u'b-website': new_lib['website'],
+                                   u'b-name': new_lib['name'],
+                                   u'a-email': new_lib_user['email'],
+                                   u'a-first_name': new_lib_user['first'],
+                                   u'a-last_name': new_lib_user['last']},
+                          success_url=reverse('register_library_instructions'))
+        expected_emails_sent += 2
+        self.assertEqual(len(mail.outbox), expected_emails_sent)
+        self.check_lib_email(mail.outbox[expected_emails_sent - 2], new_lib)
+        self.check_lib_user_email(mail.outbox[expected_emails_sent - 1], new_lib_user)
+
+        # Logged in
+        new_lib = self.new_lib()
+        existing_lib_user = { 'email': 'test_user@example.com'}
+        self.submit_form('libraries',
+                          data = { u'b-email': new_lib['email'],
+                                   u'b-website': new_lib['website'],
+                                   u'b-name': new_lib['name'] },
+                          success_url=reverse('user_management_settings_affiliations'),
+                          user=existing_lib_user['email'])
+        expected_emails_sent += 1
+        self.assertEqual(len(mail.outbox), expected_emails_sent)
+        self.check_lib_email(mail.outbox[expected_emails_sent - 1], new_lib)
+
+    def test_new_library_submit_failure(self):
+        '''
+           Does the library signup form submit as expected? Failures.
+        '''
+        new_lib = self.new_lib()
+        existing_lib_user = { 'email': 'test_user@example.com'}
+
+        # Not logged in, blank submission reports correct fields required
+        # ('email' catches both registrar and user email errors, unavoidably,
+        # so test with just that missing separately)
+        self.submit_form('libraries',
+                          data = {},
+                          form_keys = ['registrar_form', 'user_form'],
+                          error_keys = ['website', 'name', 'email'])
+        self.assertEqual(len(mail.outbox), 0)
+
+        # (checking user email missing separately)
+        self.submit_form('libraries',
+                          data = {u'b-email': new_lib['email'],
+                                  u'b-website': new_lib['website'],
+                                  u'b-name': new_lib['name']},
+                          form_keys = ['registrar_form', 'user_form'],
+                          error_keys = ['email'])
+        self.assertEqual(len(mail.outbox), 0)
+
+        # Not logged in, user appears to have already registered
+        data = {u'b-email': new_lib['email'],
+                u'b-website': new_lib['website'],
+                u'b-name': new_lib['name'],
+                u'a-email': existing_lib_user['email']}
+        self.submit_form('libraries',
+                          data = data,
+                          form_keys = ['registrar_form', 'user_form'],
+                          success_url = '/login?next=/libraries/')
+        self.assertDictEqual(self.client.session['request_data'], data)
+        self.assertEqual(len(mail.outbox), 0)
+
+        # Not logged in, registrar apepars to exist already
+        # (actually, this doesn't currently fail)
+
+        # Logged in, blank submission reports all fields required
+        self.submit_form('libraries',
+                          data = {},
+                          user = existing_lib_user['email'],
+                          error_keys = ['website', 'name', 'email'])
+        self.assertEqual(len(mail.outbox), 0)
+
+        # Logged in, registrar appears to exist already
+        # (actually, this doesn't currently fail)
+
+
+    ### Individual Users ###
 
     def test_account_creation_views(self):
         # user registration

@@ -84,7 +84,7 @@ class PermaTestCase(TransactionTestCase):
                     data={},
                     success_url=None,
                     success_query=None,
-                    form_key='form',  # name of form object in RequestContext returned with response
+                    form_keys=['form'],  # name of form objects in RequestContext returned with response
                     error_keys=[],  # keys that must appear in form error list
                     *args, **kwargs):
         """
@@ -97,10 +97,13 @@ class PermaTestCase(TransactionTestCase):
         resp = self.post(view_name, data, *args, **kwargs)
 
         def form_errors():
+            errors = {}
             try:
-                return resp.context[form_key]._errors
-            except:
-                return {}
+                for form in form_keys:
+                    errors.update(resp.context[form]._errors)
+            except TypeError:
+                pass
+            return errors
 
         if success_url:
             self.assertEqual(resp.status_code, 302,
