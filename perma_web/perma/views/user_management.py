@@ -1179,9 +1179,7 @@ def libraries(request):
     """
     Info for libraries, allow them to request accounts
     """
-
     context = {}
-    registrar_count = Registrar.objects.approved().count()
 
     if request.method == 'POST':
         registrar_form = RegistrarForm(request.POST, prefix = "b")
@@ -1241,7 +1239,7 @@ def libraries(request):
         registrar_form.fields['website'].label = "Library website"
 
     return render_to_response("registration/sign-up-libraries.html",
-        {'user_form':user_form, 'registrar_form':registrar_form, 'registrar_count': registrar_count},
+        {'user_form':user_form, 'registrar_form':registrar_form},
         RequestContext(request))
 
 @ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
