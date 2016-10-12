@@ -15,6 +15,8 @@ ErrorHandler.init = function () {
     host: '/errors/new?'
   });
 
+  window.onerror = airbrake.onerror;
+
   // in debug mode, monkey-patch airbrake.notify() to log the error to the console
   if (settings.DEBUG) {
     airbrake.notify = function (err) {
