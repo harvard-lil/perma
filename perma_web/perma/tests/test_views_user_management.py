@@ -738,7 +738,6 @@ class UserManagementViewsTestCase(PermaTestCase):
            Does the library signup form submit as expected? Failures.
         '''
         new_lib = self.new_lib()
-        new_lib_user = self.new_lib_user()
         existing_lib_user = { 'email': 'test_user@example.com'}
 
         # Not logged in, blank submission reports correct fields required
