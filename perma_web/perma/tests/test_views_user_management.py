@@ -561,6 +561,46 @@ class UserManagementViewsTestCase(PermaTestCase):
                          success_url=reverse('user_management_settings_profile'),
                          success_query=LinkUser.objects.filter(first_name='Newfirst'))
 
+    def test_edit_org_privacy(self):
+        '''
+            Can an authorized user change the privacy setting of an org?
+        '''
+
+        # Toggle as an org user
+        response = self.get('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
+                             user='test_org_user@example.com').content
+        self.assertIn("Your Perma Links are currently <strong>Public</strong> by default.", response)
+        self.submit_form('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
+                          user='test_org_user@example.com',
+                          data={},
+                          success_url=reverse('user_management_settings_affiliations'))
+        response = self.get('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
+                             user='test_org_user@example.com').content
+        self.assertIn("Your Perma Links are currently <strong>Private</strong> by default.", response)
+
+        # Toggle as a registrar user
+        self.submit_form('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
+                  user='test_registrar_user@example.com',
+                  data={},
+                  success_url=reverse('user_management_manage_organization'))
+        response = self.get('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
+                             user='test_registrar_user@example.com').content
+        self.assertIn("Your Perma Links are currently <strong>Public</strong> by default.", response)
+
+        # Toggle as a staff user
+        self.submit_form('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
+                  user='test_admin_user@example.com',
+                  data={},
+                  success_url=reverse('user_management_manage_organization'))
+        response = self.get('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[1]},
+                             user='test_admin_user@example.com').content
+        self.assertIn("Your Perma Links are currently <strong>Private</strong> by default.", response)
+
+        # As staff, try to access non-existent org
+        self.get('user_management_settings_organizations_change_privacy', reverse_kwargs={'args':[99999]},
+                  user='test_admin_user@example.com',
+                  require_status_code=404)
+
     ###
     ### SIGNUP
     ###
