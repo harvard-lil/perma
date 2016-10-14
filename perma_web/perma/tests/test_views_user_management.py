@@ -786,6 +786,60 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     ### Journals ###
 
+    def new_journal(self):
+        rand = random()
+        return { 'requested_account_note': u'Journal {}'.format(rand)}
+
+    def new_journal_user(self):
+        rand = random()
+        return { 'email': u'user{}@university.org'.format(rand),
+                 'first': u'Joe',
+                 'last': u'Yacobówski' }
+
+    def check_journal_user_email(self, message, new_user_email):
+        our_address = settings.DEFAULT_FROM_EMAIL
+
+        confirmation_code = LinkUser.objects.get(email=new_user_email).confirmation_code
+        confirm_url = "http://testserver{}".format(reverse('register_password', args=[confirmation_code]))
+        self.assertIn(confirm_url, message.body)
+        self.assertEqual(message.subject, "A Perma.cc account has been created for you")
+        self.assertEqual(message.from_email, our_address)
+        self.assertEqual(message.recipients(), [new_user_email])
+
+    def test_new_journal_success(self):
+        '''
+            Does the journal signup form submit as expected? Success cases.
+        '''
+        new_journal = self.new_journal()
+        new_user = self.new_journal_user()
+        existing_user = {'email': 'test_user@example.com'}
+        expected_emails_sent = 0
+
+        # NOT LOGGED IN
+
+        # New user email address + journal info
+        self.submit_form('sign_up_journals',
+                          data = { 'email': new_user['email'],
+                                   'requested_account_note': new_journal['requested_account_note']},
+                          success_url = reverse('register_email_instructions'))
+        expected_emails_sent += 1
+        self.assertEqual(len(mail.outbox), expected_emails_sent)
+        self.check_journal_user_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
+
+        # LOGGED IN
+
+        # New user email address + journal info
+        # (This succeeds and creates a new account; see issue 1749)
+        new_user = self.new_journal_user()
+        self.submit_form('sign_up_journals',
+                          data = { 'email': new_user['email'],
+                                   'requested_account_note': new_journal['requested_account_note']},
+                          user = existing_user['email'],
+                          success_url = reverse('register_email_instructions'))
+        expected_emails_sent += 1
+        self.assertEqual(len(mail.outbox), expected_emails_sent)
+        self.check_journal_user_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
+
     def test_new_journal_failure(self):
         '''
             Does the journal signup form submit as expected? Failure cases.
