@@ -787,8 +787,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def new_court(self):
         rand = random()
-        return { 'requested_account_note': u'Court {}'.format(rand),
-                 }
+        return { 'requested_account_note': u'Court {}'.format(rand) }
 
     def new_court_user(self):
         rand = random()
