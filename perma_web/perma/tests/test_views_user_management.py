@@ -784,6 +784,96 @@ class UserManagementViewsTestCase(PermaTestCase):
         # (actually, this doesn't currently fail)
 
 
+    ### Faculty ###
+
+    def new_faculty_user(self):
+        rand = random()
+        return { 'email': u'user{}@university.org'.format(rand),
+                 'first': u'Joe',
+                 'last': u'Yacobówski',
+                 'requested_account_note': u'Journal {}'.format(rand) }
+
+    def check_faculty_user_email(self, message, new_user_email):
+        our_address = settings.DEFAULT_FROM_EMAIL
+
+        confirmation_code = LinkUser.objects.get(email=new_user_email).confirmation_code
+        confirm_url = "http://testserver{}".format(reverse('register_password', args=[confirmation_code]))
+        self.assertIn(confirm_url, message.body)
+        self.assertEqual(message.subject, "A Perma.cc account has been created for you")
+        self.assertEqual(message.from_email, our_address)
+        self.assertEqual(message.recipients(), [new_user_email])
+
+    def test_new_faculty_success(self):
+        '''
+            Does the faculty signup form submit as expected? Success cases.
+        '''
+        new_user = self.new_faculty_user()
+        existing_user = {'email': 'test_user@example.com'}
+        expected_emails_sent = 0
+
+        # NOT LOGGED IN
+
+        # New user email address + journal info
+        self.submit_form('sign_up_faculty',
+                          data = { 'email': new_user['email'],
+                                   'requested_account_note': new_user['requested_account_note']},
+                          success_url = reverse('register_email_instructions'))
+        expected_emails_sent += 1
+        self.assertEqual(len(mail.outbox), expected_emails_sent)
+        self.check_faculty_user_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
+
+        # LOGGED IN
+
+        # New user email address + journal info
+        # (This succeeds and creates a new account; see issue 1749)
+        new_user = self.new_faculty_user()
+        self.submit_form('sign_up_faculty',
+                          data = { 'email': new_user['email'],
+                                   'requested_account_note': new_user['requested_account_note']},
+                          user = existing_user['email'],
+                          success_url = reverse('register_email_instructions'))
+        expected_emails_sent += 1
+        self.assertEqual(len(mail.outbox), expected_emails_sent)
+        self.check_faculty_user_email(mail.outbox[expected_emails_sent - 1], new_user['email'])
+
+    def test_new_faculty_failure(self):
+        '''
+            Does the faculty signup form submit as expected? Failure cases.
+        '''
+
+        # NOT LOGGED IN
+
+        # Blank submission reports correct fields required
+        self.submit_form('sign_up_faculty',
+                          data = {},
+                          error_keys = ['email', 'requested_account_note'])
+        self.assertEqual(len(mail.outbox), 0)
+
+        # If email address already belongs to an account, validation fails
+        self.submit_form('sign_up_faculty',
+                          data = { 'email': 'test_user@example.com',
+                                   'requested_account_note': 'Here'},
+                          error_keys = ['email'])
+        self.assertEqual(len(mail.outbox), 0)
+
+        # LOGGED IN
+        # (This is odd; see issue 1749)
+
+        # Blank submission reports correct fields required
+        self.submit_form('sign_up_faculty',
+                          data = {},
+                          user = 'test_user@example.com',
+                          error_keys = ['email', 'requested_account_note'])
+        self.assertEqual(len(mail.outbox), 0)
+
+        # If email address already belongs to an account, validation fails
+        self.submit_form('sign_up_faculty',
+                          data = { 'email': 'test_user@example.com',
+                                   'requested_account_note': 'Here'},
+                          user = 'test_user@example.com',
+                          error_keys = ['email'])
+        self.assertEqual(len(mail.outbox), 0)
+
     ### Individual Users ###
 
     def test_account_creation_views(self):
