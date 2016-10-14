@@ -784,6 +784,47 @@ class UserManagementViewsTestCase(PermaTestCase):
         # (actually, this doesn't currently fail)
 
 
+    ### Journals ###
+
+    def test_new_journal_failure(self):
+        '''
+            Does the journal signup form submit as expected? Failure cases.
+        '''
+
+        # NOT LOGGED IN
+
+        # Blank submission reports correct fields required
+        self.submit_form('sign_up_journals',
+                          data = {},
+                          error_keys = ['email', 'requested_account_note'])
+        self.assertEqual(len(mail.outbox), 0)
+
+        # If email address already belongs to an account, validation fails
+        self.submit_form('sign_up_journals',
+                          data = { 'email': 'test_user@example.com',
+                                   'requested_account_note': 'Here'},
+                          error_keys = ['email'])
+        self.assertEqual(len(mail.outbox), 0)
+
+        # LOGGED IN
+        # (This is odd; see issue 1749)
+
+        # Blank submission reports correct fields required
+        self.submit_form('sign_up_journals',
+                          data = {},
+                          user = 'test_user@example.com',
+                          error_keys = ['email', 'requested_account_note'])
+        self.assertEqual(len(mail.outbox), 0)
+
+        # If email address already belongs to an account, validation fails
+        self.submit_form('sign_up_journals',
+                          data = { 'email': 'test_user@example.com',
+                                   'requested_account_note': 'Here'},
+                          user = 'test_user@example.com',
+                          error_keys = ['email'])
+        self.assertEqual(len(mail.outbox), 0)
+
+
     ### Individual Users ###
 
     def test_account_creation_views(self):
