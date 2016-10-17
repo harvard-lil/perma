@@ -601,6 +601,36 @@ class UserManagementViewsTestCase(PermaTestCase):
                   user='test_admin_user@example.com',
                   require_status_code=404)
 
+    # Tools
+
+    def test_api_key(self):
+        response = self.get('user_management_settings_tools',
+                             user='test_user@example.com').content
+        self.assertNotIn('id="id_api_key"', response)
+        self.submit_form('api_key_create',
+                          user='test_user@example.com',
+                          data={},
+                          success_url=reverse('user_management_settings_tools'))
+        response = self.get('user_management_settings_tools',
+                             user='test_user@example.com').content
+        soup = BeautifulSoup(response, 'html.parser')
+        key = soup.find('input', {'id': 'id_api_key'})
+        val = key.get('value', '')
+        self.assertTrue(val)
+        # do it again, and make sure the key changes
+        self.submit_form('api_key_create',
+                          user='test_user@example.com',
+                          data={},
+                          success_url=reverse('user_management_settings_tools'))
+        response = self.get('user_management_settings_tools',
+                             user='test_user@example.com').content
+        soup = BeautifulSoup(response, 'html.parser')
+        key = soup.find('input', {'id': 'id_api_key'})
+        new_val = key.get('value', '')
+        self.assertTrue(new_val)
+        self.assertFalse(val == new_val)
+
+
     ###
     ### SIGNUP
     ###
