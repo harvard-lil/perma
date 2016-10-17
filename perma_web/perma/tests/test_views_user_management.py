@@ -630,6 +630,53 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertTrue(new_val)
         self.assertFalse(val == new_val)
 
+    # Affiliations
+    def test_affiliations(self):
+        '''
+            Does the expected information show up on the affliations page?
+            (Tries not to be overly picky about the page design and markup.)
+        '''
+        # As an org user
+        response = self.get('user_management_settings_affiliations',
+                             user='multi_registrar_org_user@example.com').content
+        soup = BeautifulSoup(response, 'html.parser')
+        registrars = soup.select('h4 a')
+        self.assertEqual(len(registrars), 2)
+        for registrar in registrars:
+            self.assertTrue(registrar.text.strip())
+        orgs = soup.select('.settings-block p')
+        self.assertEqual(len(orgs), 4)
+        for org in orgs:
+            self.assertTrue(org.text.strip())
+
+        # As a registrar user
+        response = self.get('user_management_settings_affiliations',
+                             user='test_registrar_user@example.com').content
+        soup = BeautifulSoup(response, 'html.parser')
+        registrars = soup.select('h4')
+        self.assertEqual(len(registrars), 1)
+        for registrar in registrars:
+            self.assertTrue(registrar.text.strip())
+        settings = soup.select('dt')
+        self.assertEqual(len(settings), 2)
+        for setting in settings:
+            self.assertTrue(org.text.strip())
+
+        # As a pending registrar user
+        response = self.get('user_management_settings_affiliations',
+                             user='test_requested_registrar_account@example.com').content
+        self.assertIn('Pending Registrar', response)
+        self.assertIn('Thank you for requesting an account for your library. Perma.cc will review your request as soon as possible.', response)
+        soup = BeautifulSoup(response, 'html.parser')
+        registrars = soup.select('.sponsor-name')
+        self.assertEqual(len(registrars), 1)
+        for registrar in registrars:
+            self.assertTrue(registrar.text.strip())
+        settings = soup.select('dt')
+        self.assertEqual(len(settings), 2)
+        for setting in settings:
+            self.assertTrue(org.text.strip())
+
 
     ###
     ### SIGNUP
