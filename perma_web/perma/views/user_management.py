@@ -988,16 +988,6 @@ def settings_affiliations(request):
     organizations = request.user.organizations.all().order_by('registrar')
     orgs_by_registrar = {registrar : [org for org in orgs] for registrar, orgs in itertools.groupby(organizations, lambda x: x.registrar)}
 
-    if request.method == 'POST':
-        try:
-            org = Organization.objects.accessible_to(request.user).get(pk=request.POST.get('org'))
-        except Organization.DoesNotExist:
-            raise Http404
-        org.default_to_private = request.POST.get('default_to_private')
-        org.save()
-
-        return HttpResponseRedirect(reverse('user_management_settings_affiliations'))
-
     return render(request, 'user_management/settings-affiliations.html', {
         'next': request.get_full_path(),
         'this_page': 'settings_affiliations',
