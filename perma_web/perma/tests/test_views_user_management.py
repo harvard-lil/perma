@@ -36,6 +36,10 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.another_unrelated_organization_user = self.unrelated_organization.users.get(pk=11)
         self.deletable_organization = Organization.objects.get(pk=3)
 
+    ### Helpers ###
+    def pk_from_email(self, email):
+        return LinkUser.objects.get(email=email).pk
+
     ### REGISTRAR A/E/D VIEWS ###
 
     def test_registrar_list_filters(self):
@@ -365,6 +369,44 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertIn("is already a registrar user", resp.content)
         self.assertFalse(self.registrar_user.organizations.exists())
 
+    ### VOLUNTARILY LEAVING ORGANIZATIONS ###
+
+    def test_org_user_can_leave_org(self):
+        u = LinkUser.objects.get(email='test_another_library_org_user@example.com')
+        orgs = u.organizations.all()
+
+        # check assumptions
+        self.assertEqual(len(orgs), 2)
+
+        # 404 if tries to leave non-existent org
+        self.submit_form('user_management_organization_user_leave_organization',
+                          user=u,
+                          data={},
+                          reverse_kwargs={'args': [999]},
+                          require_status_code=404)
+
+        # returns to affiliations page if still a member of at least one org
+        self.submit_form('user_management_organization_user_leave_organization',
+                          user=u,
+                          data={},
+                          reverse_kwargs={'args': [orgs[0].pk]},
+                          success_url=reverse('user_management_settings_affiliations'))
+
+        # returns to create/manage page if no longer a member of any orgs
+        self.submit_form('user_management_organization_user_leave_organization',
+                          user=u,
+                          data={},
+                          reverse_kwargs={'args': [orgs[1].pk]},
+                          success_url=reverse('create_link'))
+
+        # 404 if tries to leave an org they are not a member of
+        self.submit_form('user_management_organization_user_leave_organization',
+                          user=u,
+                          data={},
+                          reverse_kwargs={'args': [orgs[1].pk]},
+                          require_status_code=404)
+
+
     ### REMOVING USERS FROM ORGANIZATIONS ###
 
     # Just try to access the page with remove/deactivate links
@@ -387,9 +429,6 @@ class UserManagementViewsTestCase(PermaTestCase):
                   require_status_code=404)
         self.get('user_management_manage_single_organization_user',
                   reverse_kwargs={'args': [self.another_unrelated_organization_user.pk]})
-
-    def pk_from_email(self, email):
-        return LinkUser.objects.get(email=email).pk
 
     def test_org_can_edit_org_user(self):
         # User from own org succeeds
