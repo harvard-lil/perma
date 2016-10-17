@@ -462,16 +462,25 @@ class UserManagementViewsTestCase(PermaTestCase):
                                                                 registrar=self.registrar).exists())
 
     def test_registrar_user_can_add_new_user_to_registrar(self):
+        address = 'doesnotexist@example.com'
         self.log_in_user(self.registrar_user)
         self.submit_form('user_management_registrar_user_add_user',
                          data={'a-registrar': self.registrar.pk,
                                'a-first_name': 'First',
                                'a-last_name': 'Last',
-                               'a-email': 'doesnotexist@example.com'},
-                         query_params={'email': 'doesnotexist@example.com'},
+                               'a-email': address},
+                         query_params={'email': address},
                          success_url=reverse('user_management_manage_registrar_user'),
-                         success_query=LinkUser.objects.filter(email='doesnotexist@example.com',
+                         success_query=LinkUser.objects.filter(email=address,
                                                                registrar=self.registrar).exists())
+        # Try to add the same person again; should fail
+        response = self.submit_form('user_management_registrar_user_add_user',
+                                     data={'a-registrar': self.registrar.pk,
+                                           'a-first_name': 'First',
+                                           'a-last_name': 'Last',
+                                           'a-email': address},
+                                     query_params={'email': address}).content
+        self.assertIn("{} is already a registrar user for your registrar.".format(address), response)
 
     def test_registrar_user_cannot_add_new_user_to_inaccessible_registrar(self):
         self.log_in_user(self.registrar_user)
