@@ -168,21 +168,30 @@ class UserManagementViewsTestCase(PermaTestCase):
                  reverse_kwargs={'args': [self.unrelated_organization.pk]},
                  require_status_code=404)
 
-    def _delete_organization(self, user):
-        self.submit_form('user_management_manage_single_organization_delete',
-                         user=user,
-                         reverse_kwargs={'args': [self.deletable_organization.pk]},
-                         success_url=reverse('user_management_manage_organization'),
-                         success_query=Organization.objects.filter(user_deleted=True, pk=self.deletable_organization.pk))
+    def _delete_organization(self, user, should_succeed=True):
+        if should_succeed:
+            self.submit_form('user_management_manage_single_organization_delete',
+                              user=user,
+                              reverse_kwargs={'args': [self.deletable_organization.pk]},
+                              success_url=reverse('user_management_manage_organization'),
+                              success_query=Organization.objects.filter(user_deleted=True, pk=self.deletable_organization.pk))
+        else:
+            self.submit_form('user_management_manage_single_organization_delete',
+                              user=user,
+                              reverse_kwargs={'args': [self.deletable_organization.pk]},
+                              require_status_code=404)
 
     def test_admin_user_can_delete_empty_organization(self):
         self._delete_organization(self.admin_user)
+        self._delete_organization(self.admin_user, False)
 
     def test_registrar_user_can_delete_empty_organization(self):
         self._delete_organization(self.deletable_organization.registrar.users.first())
+        self._delete_organization(self.deletable_organization.registrar.users.first(), False)
 
     def test_org_user_can_delete_empty_organization(self):
         self._delete_organization(self.deletable_organization.users.first())
+        self._delete_organization(self.deletable_organization.users.first(), False)
 
     def test_cannot_delete_nonempty_organization(self):
         self.submit_form('user_management_manage_single_organization_delete',
