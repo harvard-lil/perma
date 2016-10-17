@@ -394,5 +394,23 @@
         "creation_timestamp": "2016-10-17T16:57:03Z",
         "organization": null
     }
+},
+{
+    "pk": 44,
+    "model": "perma.folder",
+    "fields": {
+        "rght": 2,
+        "name": "My Links",
+        "parent": null,
+        "level": 0,
+        "created_by": 9,
+        "lft": 1,
+        "is_root_folder": true,
+        "tree_id": 12,
+        "owned_by": 9,
+        "is_shared_folder": false,
+        "creation_timestamp": "2016-10-17T16:57:03Z",
+        "organization": null
+    }
 }
 ]
