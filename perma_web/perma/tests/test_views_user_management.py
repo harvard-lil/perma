@@ -43,15 +43,87 @@ class UserManagementViewsTestCase(PermaTestCase):
     ### REGISTRAR A/E/D VIEWS ###
 
     def test_registrar_list_filters(self):
+        # test assumptions: two registrars, one pending, one approved
+        response = self.get('user_management_manage_registrar',
+                             user=self.admin_user).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 2 registrars", count)
+        self.assertEqual(response.count('needs approval'), 1)
+
         # get just approved registrars
-        self.get('user_management_manage_registrar',
-                 user=self.admin_user,
-                 request_kwargs={'data':{'status':'approved'}})
+        response = self.get('user_management_manage_registrar',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'status':'approved'}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 registrar", count)
+        self.assertEqual(response.count('needs approval'), 0)
 
         # get just pending registrars
-        self.get('user_management_manage_registrar',
-                 user=self.admin_user,
-                 request_kwargs={'data': {'status': 'pending'}})
+        response = self.get('user_management_manage_registrar',
+                             user=self.admin_user,
+                             request_kwargs={'data': {'status': 'pending'}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 registrar", count)
+        self.assertEqual(response.count('needs approval'), 1)
+
+    def test_registrar_user_list_filters(self):
+        # test assumptions: four users
+        # - one deactivated
+        # - one unactivated
+        # - one from Test Library, three from Another Library
+        response = self.get('user_management_manage_registrar_user',
+                             user=self.admin_user).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 4 users", count)
+        self.assertEqual(response.count('deactivated account'), 1)
+        self.assertEqual(response.count('User must activate account'), 1)
+        # registrar name appears by each user, and once in the filter dropdown
+        self.assertEqual(response.count('Test Library'), 2)
+        self.assertEqual(response.count('Another Library'), 4)
+
+        # filter by registrar
+        response = self.get('user_management_manage_registrar_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'registrar': 1}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 user", count)
+        response = self.get('user_management_manage_registrar_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'registrar': 2}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 3 users", count)
+
+        # filter by status
+        response = self.get('user_management_manage_registrar_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'status': 'active'}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 2 users", count)
+        self.assertEqual(response.count('deactivated account'), 0)
+        self.assertEqual(response.count('User must activate account'), 0)
+        response = self.get('user_management_manage_registrar_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'status': 'deactivated'}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 user", count)
+        self.assertEqual(response.count('deactivated account'), 1)
+        self.assertEqual(response.count('User must activate account'), 0)
+        response = self.get('user_management_manage_registrar_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'status': 'unactivated'}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 user", count)
+        self.assertEqual(response.count('deactivated account'), 0)
+        self.assertEqual(response.count('User must activate account'), 1)
 
     def test_admin_can_create_registrar(self):
         self.submit_form(
@@ -111,10 +183,74 @@ class UserManagementViewsTestCase(PermaTestCase):
     ### ORGANIZATION A/E/D VIEWS ###
 
     def test_organization_list_filters(self):
+        # test assumptions: four orgs, three for Test Library and one for Another Library
+        response = self.get('user_management_manage_organization',
+                             user=self.admin_user).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 4 organizations", count)
+        # registrar name appears by each org, once in the filter dropdown, once in the "add an org" markup
+        self.assertEqual(response.count('Test Library'), 3 + 2)
+        self.assertEqual(response.count('Another Library'), 1 + 2)
+
         # get orgs for a single registrar
-        self.get('user_management_manage_organization',
-                 user=self.admin_user,
-                 request_kwargs={'data': {'registrar': self.registrar.pk}})
+        response = self.get('user_management_manage_organization',
+                             user=self.admin_user,
+                             request_kwargs={'data': {'registrar': 1}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 3 organizations", count)
+        response = self.get('user_management_manage_organization',
+                             user=self.admin_user,
+                             request_kwargs={'data': {'registrar': 2}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 organization", count)
+
+    def test_org_user_list_filters(self):
+        # test assumptions: six users
+        # - three from Test Journal
+        # - one from Another Journal
+        # - three from A Third Journal
+        # - three from Another Library's Journal
+        response = self.get('user_management_manage_organization_user',
+                             user=self.admin_user).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 6 users", count)
+        # registrar name appears by each user, and once in the filter dropdown
+        self.assertEqual(response.count('Test Journal'), 3 + 1)
+        self.assertEqual(response.count('Another Journal'), 1 + 1)
+        self.assertEqual(response.count("A Third Journal"), 3 + 1)
+        self.assertEqual(response.count("Another Library&#39;s Journal"), 3 + 1)
+
+        # filter by org
+        response = self.get('user_management_manage_organization_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'org': 1}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 3 users", count)
+        response = self.get('user_management_manage_organization_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'org': 2}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 user", count)
+        response = self.get('user_management_manage_organization_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'org': 3}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 3 users", count)
+        response = self.get('user_management_manage_organization_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'org': 4}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 3 users", count)
+
+        # registrar and status filters tested in test_registrar_user_list_filters
 
     def test_admin_can_create_organization(self):
         self.submit_form('user_management_manage_organization',
@@ -205,6 +341,49 @@ class UserManagementViewsTestCase(PermaTestCase):
                          require_status_code=404)
 
     ### USER A/E/D VIEWS ###
+
+    def test_user_list_filters(self):
+        # test assumptions: five users
+        # - one aspiring court user, faculty user, journal user
+        response = self.get('user_management_manage_user',
+                             user=self.admin_user).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 5 users", count)
+        self.assertEqual(response.count('Interested in a court account'), 1)
+        self.assertEqual(response.count('Interested in a journal account'), 1)
+        self.assertEqual(response.count('Interested in a faculty account'), 1)
+
+        # filter by requested_account_type ("upgrade")
+        response = self.get('user_management_manage_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'upgrade': 'court'}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 user", count)
+        self.assertEqual(response.count('Interested in a court account'), 1)
+        self.assertEqual(response.count('Interested in a journal account'), 0)
+        self.assertEqual(response.count('Interested in a faculty account'), 0)
+        response = self.get('user_management_manage_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'upgrade': 'journal'}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 user", count)
+        self.assertEqual(response.count('Interested in a court account'), 0)
+        self.assertEqual(response.count('Interested in a journal account'), 1)
+        self.assertEqual(response.count('Interested in a faculty account'), 0)
+        response = self.get('user_management_manage_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'upgrade': 'faculty'}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 user", count)
+        self.assertEqual(response.count('Interested in a court account'), 0)
+        self.assertEqual(response.count('Interested in a journal account'), 0)
+        self.assertEqual(response.count('Interested in a faculty account'), 1)
+
+        # status filter tested in test_registrar_user_list_filters
 
     def test_create_and_delete_user(self):
         self.log_in_user(self.admin_user)
