@@ -112,7 +112,7 @@
 					<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
 						<li>
 							<a {% if status == 'active' %}class="selected" {% endif %}href="?{% current_query_string page='' status="active" %}"><i class="icon-ok"></i> Active</a>
-							{% if request.user.is_staff and group_name == 'user' %}
+							{% if request.user.is_staff and group_name|slice:"-4:" == 'user' %}
 							<a {% if status == 'deactivated' %}class="selected" {% endif %}href="?{% current_query_string page='' status="deactivated" %}"><i class="icon-ok"></i> Deactivated</a>
 							{% endif %}
 							<a {% if status == 'unactivated' %}class="selected" {% endif %}href="?{% current_query_string page='' status="unactivated" %}"><i class="icon-ok"></i> Unactivated</a>
