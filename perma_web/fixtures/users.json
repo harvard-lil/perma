@@ -202,5 +202,21 @@
             "last_name": "User",
             "root_folder": 42
         }
+    },
+    {
+        "pk": 10,
+        "model": "perma.LinkUser",
+        "fields": {
+            "organizations": [1,2,3,4],
+            "is_active": true,
+            "is_confirmed": true,
+            "last_login": "2013-07-23T18:38:27Z",
+            "password": "pbkdf2_sha256$10000$gtsGKyK7FARJ$MdCKh7SZhd6uDz1enPxcNAn3fM0L7o5OAKd1/VjXiqk=",
+            "email": "multi_registrar_org_user@example.com",
+            "date_joined": "2016-10-17",
+            "first_name": "Multi-Registrar",
+            "last_name": "Organization-User",
+            "root_folder": 43
+        }
     }
 ]
