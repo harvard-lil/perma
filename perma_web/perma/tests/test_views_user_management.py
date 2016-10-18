@@ -33,7 +33,12 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.another_organization = Organization.objects.get(pk=2)
         self.unrelated_organization = self.unrelated_registrar.organizations.first()
         self.unrelated_organization_user = self.unrelated_organization.users.first()
+        self.another_unrelated_organization_user = self.unrelated_organization.users.get(pk=11)
         self.deletable_organization = Organization.objects.get(pk=3)
+
+    ### Helpers ###
+    def pk_from_email(self, email):
+        return LinkUser.objects.get(email=email).pk
 
     ### REGISTRAR A/E/D VIEWS ###
 
@@ -168,21 +173,30 @@ class UserManagementViewsTestCase(PermaTestCase):
                  reverse_kwargs={'args': [self.unrelated_organization.pk]},
                  require_status_code=404)
 
-    def _delete_organization(self, user):
-        self.submit_form('user_management_manage_single_organization_delete',
-                         user=user,
-                         reverse_kwargs={'args': [self.deletable_organization.pk]},
-                         success_url=reverse('user_management_manage_organization'),
-                         success_query=Organization.objects.filter(user_deleted=True, pk=self.deletable_organization.pk))
+    def _delete_organization(self, user, should_succeed=True):
+        if should_succeed:
+            self.submit_form('user_management_manage_single_organization_delete',
+                              user=user,
+                              reverse_kwargs={'args': [self.deletable_organization.pk]},
+                              success_url=reverse('user_management_manage_organization'),
+                              success_query=Organization.objects.filter(user_deleted=True, pk=self.deletable_organization.pk))
+        else:
+            self.submit_form('user_management_manage_single_organization_delete',
+                              user=user,
+                              reverse_kwargs={'args': [self.deletable_organization.pk]},
+                              require_status_code=404)
 
     def test_admin_user_can_delete_empty_organization(self):
         self._delete_organization(self.admin_user)
+        self._delete_organization(self.admin_user, False)
 
     def test_registrar_user_can_delete_empty_organization(self):
         self._delete_organization(self.deletable_organization.registrar.users.first())
+        self._delete_organization(self.deletable_organization.registrar.users.first(), False)
 
     def test_org_user_can_delete_empty_organization(self):
         self._delete_organization(self.deletable_organization.users.first())
+        self._delete_organization(self.deletable_organization.users.first(), False)
 
     def test_cannot_delete_nonempty_organization(self):
         self.submit_form('user_management_manage_single_organization_delete',
@@ -355,7 +369,91 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertIn("is already a registrar user", resp.content)
         self.assertFalse(self.registrar_user.organizations.exists())
 
+    ### VOLUNTARILY LEAVING ORGANIZATIONS ###
+
+    def test_org_user_can_leave_org(self):
+        u = LinkUser.objects.get(email='test_another_library_org_user@example.com')
+        orgs = u.organizations.all()
+
+        # check assumptions
+        self.assertEqual(len(orgs), 2)
+
+        # 404 if tries to leave non-existent org
+        self.submit_form('user_management_organization_user_leave_organization',
+                          user=u,
+                          data={},
+                          reverse_kwargs={'args': [999]},
+                          require_status_code=404)
+
+        # returns to affiliations page if still a member of at least one org
+        self.submit_form('user_management_organization_user_leave_organization',
+                          user=u,
+                          data={},
+                          reverse_kwargs={'args': [orgs[0].pk]},
+                          success_url=reverse('user_management_settings_affiliations'))
+
+        # returns to create/manage page if no longer a member of any orgs
+        self.submit_form('user_management_organization_user_leave_organization',
+                          user=u,
+                          data={},
+                          reverse_kwargs={'args': [orgs[1].pk]},
+                          success_url=reverse('create_link'))
+
+        # 404 if tries to leave an org they are not a member of
+        self.submit_form('user_management_organization_user_leave_organization',
+                          user=u,
+                          data={},
+                          reverse_kwargs={'args': [orgs[1].pk]},
+                          require_status_code=404)
+
+
     ### REMOVING USERS FROM ORGANIZATIONS ###
+
+    # Just try to access the page with remove/deactivate links
+
+    def test_registrar_can_edit_org_user(self):
+        # User from one of registrar's own orgs succeeds
+        self.log_in_user(self.registrar_user)
+        self.get('user_management_manage_single_organization_user',
+                  reverse_kwargs={'args': [self.organization_user.pk]})
+        # User from another registrar's org fails
+        self.get('user_management_manage_single_organization_user',
+                  reverse_kwargs={'args': [self.another_unrelated_organization_user.pk]},
+                  require_status_code=404)
+        # Repeat with the other registrar, to confirm we're
+        # getting 404s because of permission reasons, not because the
+        # test fixtures are broken.
+        self.log_in_user(self.unrelated_registrar_user)
+        self.get('user_management_manage_single_organization_user',
+                  reverse_kwargs={'args': [self.organization_user.pk]},
+                  require_status_code=404)
+        self.get('user_management_manage_single_organization_user',
+                  reverse_kwargs={'args': [self.another_unrelated_organization_user.pk]})
+
+    def test_org_can_edit_org_user(self):
+        # User from own org succeeds
+        org_one_users = ['test_org_user@example.com', 'test_org_rando_user@example.com']
+        org_two_users = ['test_another_library_org_user@example.com', 'test_another_org_user@example.com']
+
+        self.log_in_user(org_one_users[0])
+        self.get('user_management_manage_single_organization_user',
+                  reverse_kwargs={'args': [self.pk_from_email(org_one_users[1])]})
+        # User from another org fails
+        self.get('user_management_manage_single_organization_user',
+                  reverse_kwargs={'args': [self.pk_from_email(org_two_users[0])]},
+                  require_status_code=404)
+        # Repeat in reverse, to confirm we're
+        # getting 404s because of permission reasons, not because the
+        # test fixtures are broken.
+        self.log_in_user(org_two_users[1])
+        self.get('user_management_manage_single_organization_user',
+                  reverse_kwargs={'args': [self.pk_from_email(org_one_users[1])]},
+                  require_status_code=404)
+        # User from another org fails
+        self.get('user_management_manage_single_organization_user',
+                  reverse_kwargs={'args': [self.pk_from_email(org_two_users[0])]})
+
+    # Actually try removing them
 
     def test_can_remove_user_from_organization(self):
         self.log_in_user(self.registrar_user)
@@ -390,29 +488,38 @@ class UserManagementViewsTestCase(PermaTestCase):
     ### ADDING NEW USERS TO REGISTRARS ###
 
     def test_admin_user_can_add_new_user_to_registrar(self):
+        address = 'doesnotexist@example.com'
         self.log_in_user(self.admin_user)
         self.submit_form('user_management_registrar_user_add_user',
-                         data={'a-registrar': self.registrar.pk,
-                               'a-first_name': 'First',
-                               'a-last_name': 'Last',
-                               'a-email': 'doesnotexist@example.com'},
-                         query_params={'email': 'doesnotexist@example.com'},
-                         success_url=reverse('user_management_manage_registrar_user'),
-                         success_query=LinkUser.objects.filter(email='doesnotexist@example.com',
-                                                               registrar=self.registrar).exists())
-
+                          data={'a-registrar': self.registrar.pk,
+                                'a-first_name': 'First',
+                                'a-last_name': 'Last',
+                                'a-email': address},
+                          query_params={'email': address},
+                          success_url=reverse('user_management_manage_registrar_user'),
+                          success_query=LinkUser.objects.filter(email=address,
+                                                                registrar=self.registrar).exists())
 
     def test_registrar_user_can_add_new_user_to_registrar(self):
+        address = 'doesnotexist@example.com'
         self.log_in_user(self.registrar_user)
         self.submit_form('user_management_registrar_user_add_user',
                          data={'a-registrar': self.registrar.pk,
                                'a-first_name': 'First',
                                'a-last_name': 'Last',
-                               'a-email': 'doesnotexist@example.com'},
-                         query_params={'email': 'doesnotexist@example.com'},
+                               'a-email': address},
+                         query_params={'email': address},
                          success_url=reverse('user_management_manage_registrar_user'),
-                         success_query=LinkUser.objects.filter(email='doesnotexist@example.com',
+                         success_query=LinkUser.objects.filter(email=address,
                                                                registrar=self.registrar).exists())
+        # Try to add the same person again; should fail
+        response = self.submit_form('user_management_registrar_user_add_user',
+                                     data={'a-registrar': self.registrar.pk,
+                                           'a-first_name': 'First',
+                                           'a-last_name': 'Last',
+                                           'a-email': address},
+                                     query_params={'email': address}).content
+        self.assertIn("{} is already a registrar user for your registrar.".format(address), response)
 
     def test_registrar_user_cannot_add_new_user_to_inaccessible_registrar(self):
         self.log_in_user(self.registrar_user)
