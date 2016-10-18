@@ -43,15 +43,31 @@ class UserManagementViewsTestCase(PermaTestCase):
     ### REGISTRAR A/E/D VIEWS ###
 
     def test_registrar_list_filters(self):
+        # test assumptions: two registrars, one pending, one approved
+        response = self.get('user_management_manage_registrar',
+                             user=self.admin_user).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 2 registrars", count)
+        self.assertEqual(response.count('needs approval'), 1)
+
         # get just approved registrars
-        self.get('user_management_manage_registrar',
-                 user=self.admin_user,
-                 request_kwargs={'data':{'status':'approved'}})
+        response = self.get('user_management_manage_registrar',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'status':'approved'}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 registrar", count)
+        self.assertEqual(response.count('needs approval'), 0)
 
         # get just pending registrars
-        self.get('user_management_manage_registrar',
-                 user=self.admin_user,
-                 request_kwargs={'data': {'status': 'pending'}})
+        response = self.get('user_management_manage_registrar',
+                             user=self.admin_user,
+                             request_kwargs={'data': {'status': 'pending'}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 registrar", count)
+        self.assertEqual(response.count('needs approval'), 1)
 
     def test_admin_can_create_registrar(self):
         self.submit_form(
