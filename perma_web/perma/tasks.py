@@ -6,6 +6,8 @@ from contextlib import contextmanager
 
 from functools import wraps
 from httplib import HTTPResponse
+from urllib2 import URLError
+
 import os
 import os.path
 import threading
@@ -550,7 +552,10 @@ def proxy_capture(capture_job):
 
                     # In python, wait for javascript background scrolling to finish.
                     time.sleep(min(scroll_delay,1))
-                except WebDriverException:
+                except (WebDriverException, URLError):
+                    # Don't panic if we can't scroll -- we've already captured something useful anyway.
+                    # WebDriverException: the page can't execute JS for some reason.
+                    # URLError: the headless browser has gone away for some reason.
                     pass
             repeat_while_exception(scroll_browser)
 
@@ -636,10 +641,13 @@ def proxy_capture(capture_job):
             pixel_count = 0
             try:
                 root_element = browser.find_element_by_tag_name('body')
-            except NoSuchElementException:
+            except (NoSuchElementException, URLError):
                 try:
                     root_element = browser.find_element_by_tag_name('frameset')
-                except NoSuchElementException:
+                except (NoSuchElementException, URLError):
+                    # If we can't find the root element, we just won't capture a screenshot.
+                    # NoSuchElementException: HTML structure is weird somehow.
+                    # URLError: the headless browser has gone away for some reason.
                     root_element = None
             if root_element:
                 page_size = root_element.size
