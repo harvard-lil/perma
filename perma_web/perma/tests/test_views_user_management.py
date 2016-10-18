@@ -342,6 +342,49 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     ### USER A/E/D VIEWS ###
 
+    def test_user_list_filters(self):
+        # test assumptions: five users
+        # - one aspiring court user, faculty user, journal user
+        response = self.get('user_management_manage_user',
+                             user=self.admin_user).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 5 users", count)
+        self.assertEqual(response.count('Interested in a court account'), 1)
+        self.assertEqual(response.count('Interested in a journal account'), 1)
+        self.assertEqual(response.count('Interested in a faculty account'), 1)
+
+        # filter by requested_account_type ("upgrade")
+        response = self.get('user_management_manage_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'upgrade': 'court'}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 user", count)
+        self.assertEqual(response.count('Interested in a court account'), 1)
+        self.assertEqual(response.count('Interested in a journal account'), 0)
+        self.assertEqual(response.count('Interested in a faculty account'), 0)
+        response = self.get('user_management_manage_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'upgrade': 'journal'}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 user", count)
+        self.assertEqual(response.count('Interested in a court account'), 0)
+        self.assertEqual(response.count('Interested in a journal account'), 1)
+        self.assertEqual(response.count('Interested in a faculty account'), 0)
+        response = self.get('user_management_manage_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'upgrade': 'faculty'}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 user", count)
+        self.assertEqual(response.count('Interested in a court account'), 0)
+        self.assertEqual(response.count('Interested in a journal account'), 0)
+        self.assertEqual(response.count('Interested in a faculty account'), 1)
+
+        # status filter tested in test_registrar_user_list_filters
+
     def test_create_and_delete_user(self):
         self.log_in_user(self.admin_user)
 
