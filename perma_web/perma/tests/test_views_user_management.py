@@ -69,6 +69,62 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual("Found: 1 registrar", count)
         self.assertEqual(response.count('needs approval'), 1)
 
+    def test_registrar_user_list_filters(self):
+        # test assumptions: four users
+        # - one deactivated
+        # - one unactivated
+        # - one from Test Library, three from Another Library
+        response = self.get('user_management_manage_registrar_user',
+                             user=self.admin_user).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 4 users", count)
+        self.assertEqual(response.count('deactivated account'), 1)
+        self.assertEqual(response.count('User must activate account'), 1)
+        # registrar name appears by each user, and once in the filter dropdown
+        self.assertEqual(response.count('Test Library'), 2)
+        self.assertEqual(response.count('Another Library'), 4)
+
+        # filter by registrar
+        response = self.get('user_management_manage_registrar_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'registrar': 1}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 user", count)
+        response = self.get('user_management_manage_registrar_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'registrar': 2}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 3 users", count)
+
+        # filter by status
+        response = self.get('user_management_manage_registrar_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'status': 'active'}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 2 users", count)
+        self.assertEqual(response.count('deactivated account'), 0)
+        self.assertEqual(response.count('User must activate account'), 0)
+        response = self.get('user_management_manage_registrar_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'status': 'deactivated'}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 user", count)
+        self.assertEqual(response.count('deactivated account'), 1)
+        self.assertEqual(response.count('User must activate account'), 0)
+        response = self.get('user_management_manage_registrar_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'status': 'unactivated'}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 user", count)
+        self.assertEqual(response.count('deactivated account'), 0)
+        self.assertEqual(response.count('User must activate account'), 1)
+
     def test_admin_can_create_registrar(self):
         self.submit_form(
             'user_management_manage_registrar', {
