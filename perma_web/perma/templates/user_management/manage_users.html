@@ -4,15 +4,15 @@
 
 {% block dashboardContent %}
 
-	<h2 class="body-ah">{{ pretty_group_name_plural|title }} <span class="action"><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add<span class="_verbose"> {{ pretty_group_name|lower }}</a></a></span></h2>
+  <h2 class="body-ah">{{ pretty_group_name_plural|title }} <span class="action"><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add<span class="_verbose"> {{ pretty_group_name|lower }}</a></a></span></h2>
 
-	{% if messages %}
-		{% for message in messages %}
-			<div class="alert-{{ message.level_tag }} alert-block" >{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
-		{% endfor %}
-	{% endif %}
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert-{{ message.level_tag }} alert-block" >{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
+    {% endfor %}
+  {% endif %}
 
-	<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
+  <div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
     <form method="get" action="{% url add_user_url %}" class="form-inline" role="form">
       <fieldset>
         <div class="form-group fg-100">
@@ -21,262 +21,261 @@
         <button type="submit" class="btn btn-default btn-inline">Add {{ pretty_group_name }}</button>
       </fieldset>
     </form>
-	</div><!-- add member -->
-		
-		
-	<div class="row row-no-bleed admin-data">
-		<div class="col {% if request.user.is_staff and group_name == 'user' %}col-xs-3{% else %}col-xs-4{% endif %} col col-no-gutter admin-data-point">
-			<p class="count-label">Users</p>
-			<p class="count-number">{{ users.paginator.count|intcomma }}</p>
-		</div>
+  </div><!-- add member -->
 
-		{% if request.user.is_staff and group_name == 'user' %}
-		<div class="col col-sm-3 col-no-gutter admin-data-point">
-				<p class="count-label">Deactivated Users</p>
-				<p class="count-number">{{ deactivated_users }}</p>
-			</div>
-		{% endif %}
+  <div class="row row-no-bleed admin-data">
+    <div class="col {% if request.user.is_staff and group_name == 'user' %}col-xs-3{% else %}col-xs-4{% endif %} col col-no-gutter admin-data-point">
+      <p class="count-label">Users</p>
+      <p class="count-number">{{ users.paginator.count|intcomma }}</p>
+    </div>
 
-		<div class="col {% if request.user.is_staff and group_name == 'user' %}col-xs-3{% else %}col-xs-4{% endif %} col col-no-gutter admin-data-point">
-			<p class="count-label">Unactivated Users</p>
-			<p class="count-number">{{ unactivated_users }}</p>
-		</div>
+    {% if request.user.is_staff and group_name == 'user' %}
+    <div class="col col-sm-3 col-no-gutter admin-data-point">
+        <p class="count-label">Deactivated Users</p>
+        <p class="count-number">{{ deactivated_users }}</p>
+    </div>
+    {% endif %}
 
-		<div class="col {% if request.user.is_staff and group_name == 'user' %}col-xs-3{% else %}col-xs-4{% endif %} col col-no-gutter admin-data-point">
-			<p class="count-label">Links</p>
-			<p class="count-number">{{ total_created_links_count|default:0|intcomma }}</p>
-		</div>
-	</div><!-- admin data -->
-	
+    <div class="col {% if request.user.is_staff and group_name == 'user' %}col-xs-3{% else %}col-xs-4{% endif %} col col-no-gutter admin-data-point">
+      <p class="count-label">Unactivated Users</p>
+      <p class="count-number">{{ unactivated_users }}</p>
+    </div>
 
-	<div class="row">
-		<div class="col col-xs-12">
-			{% include "user_management/includes/search_form.html" with search_placeholder="Search Users" %}
-		</div>
-	</div><!-- search -->
+    <div class="col {% if request.user.is_staff and group_name == 'user' %}col-xs-3{% else %}col-xs-4{% endif %} col col-no-gutter admin-data-point">
+      <p class="count-label">Links</p>
+      <p class="count-number">{{ total_created_links_count|default:0|intcomma }}</p>
+    </div>
+  </div><!-- admin data -->
 
-	{% if registrar_filter.name or org_filter.name or status or upgrade or search_query %}
-		<div class="row">
-			<div class="col-sm-12">
-				<div class="remove-search-filters">
-					<span class="filters-title">Filters: </span>
-					{% if registrar_filter %}<span class="filter-label">Registrar</span> <strong>{{registrar_filter}}</strong> {% endif %}
-					{% if org_filter %}<span class="filter-label">Organization</span> <strong>{{org_filter}}</strong> {% endif %}
-					{% if status %}<span class="filter-label">Status</span> <strong>{{status}}</strong> {% endif %}
-					{% if upgrade %}<span class="filter-label">Upgrade interest</span> <strong>{{upgrade}}</strong> {% endif %}
-					{% if search_query %}<span class="filter-label">Search</span> <strong>{{search_query}}</strong>{% endif %}
-					<a class="action remove-filters" href="?sort=last_name"><i class="icon-remove-sign"></i> Clear all filters</a>
-				 </div>
-			</div>
-		</div>
-	{% endif %}
 
-	<div class="row row-no-bleed">
-		<div class="col admin-found col-no-gutter">
-			<p class="sort-filter-count"><strong>Found:</strong> {{ users.paginator.count }} user{{ users.paginator.count|pluralize }}</p>
-			<div class="sort-filter-bar">
-				<strong>Filter &amp; Sort:</strong>
-				<div class="dropdown">
-					<a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Sort <span class="caret"></span></a>
-					<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-						<li>
-							<a {% if sort == 'last_name' %}class="selected" {% endif %}href="?{% current_query_string page='' sort="last_name" %}"><i class="icon-ok"></i> Last name A - Z</a>
-							<a {% if sort == '-last_name' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-last_name" %}"><i class="icon-ok"></i> Last name Z - A</a>
-							<a {% if sort == '-date_joined' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-date_joined" %}"><i class="icon-ok"></i> Newest</a>
-							<a {% if sort == 'date_joined' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="date_joined" %}"><i class="icon-ok"></i> Oldest</a>
-							<a {% if sort == '-last_login' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-last_login" %}"><i class="icon-ok"></i> Recently active</a>
-							<a {% if sort == 'last_login' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="last_login" %}"><i class="icon-ok"></i> Least recently active</a>
-							{% if group_name == 'organization_user' %}
-								<a {% if sort == '-created_links_count' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-created_links_count" %}"><i class="icon-ok"></i> Most links</a>
-								<a {% if sort == 'created_links_count' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="created_links_count" %}"><i class="icon-ok"></i> Least links</a>
-							{% endif %}
-						</li>
-					</ul>
-				</div>
-				
-				{% if request.user.is_staff and group_name == 'user' %}
-					<div class="dropdown">
-						<a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Upgrade interest <span class="caret"></span></a>
-						<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-							<li>
-								<a {% if upgrade == 'court' %}class="selected" {% endif %}href="?{% current_query_string page='' upgrade="court" %}"><i class="icon-ok"></i> Court</a>
-								<a {% if upgrade == 'faculty' %}class="selected" {% endif %}href="?{% current_query_string page='' upgrade="faculty" %}"><i class="icon-ok"></i> Faculty</a>
-								<a {% if upgrade == 'journal' %}class="selected" {% endif %}href="?{% current_query_string page='' upgrade="journal" %}"><i class="icon-ok"></i> Journal</a>
-							</li>
-						</ul>
-					</div>
-				{% endif %}
-				
-				<div class="dropdown">
-					<a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Status <span class="caret"></span></a>
-					<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-						<li>
-							<a {% if status == 'active' %}class="selected" {% endif %}href="?{% current_query_string page='' status="active" %}"><i class="icon-ok"></i> Active</a>
-							{% if request.user.is_staff and group_name|slice:"-4:" == 'user' %}
-							<a {% if status == 'deactivated' %}class="selected" {% endif %}href="?{% current_query_string page='' status="deactivated" %}"><i class="icon-ok"></i> Deactivated</a>
-							{% endif %}
-							<a {% if status == 'unactivated' %}class="selected" {% endif %}href="?{% current_query_string page='' status="unactivated" %}"><i class="icon-ok"></i> Unactivated</a>
-						</li>
-					</ul>
-				</div>
-				
-				{% if request.user.is_staff or request.user.is_registrar_user %}
-					{% if group_name == 'organization_user' %}
-						<div class="dropdown">
-							<a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Organization <span class="caret"></span></a>
-							<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-								<li>
-								{% if orgs %}
-									{% for org in orgs %}
-										{% if organization_filter == org %}
-											<a class="selected" href="?{% current_query_string page='' org='' %}"><i class="icon-ok"></i> {{org.name}}</a>
-										{% else %}
-											<a href="?{% current_query_string page='' org=org.id %}"><i class="icon-ok"></i> {{org.name}}</a>
-										{% endif %}
-									{% endfor %}
-								{% else %}
-									<a href="">None</a>
-								{% endif %}
-								</li>
-							</ul>
-						</div>
-					{% endif %}
-				{% endif %}
+  <div class="row">
+    <div class="col col-xs-12">
+      {% include "user_management/includes/search_form.html" with search_placeholder="Search Users" %}
+    </div>
+  </div><!-- search -->
 
-				{% if request.user.is_staff %}
-					{% if not group_name == 'user' and not group_name == 'admin_user' %}
-					<div class="dropdown">
-							<a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Registrar <span class="caret"></span></a>
-							<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-							<li>
-								{% if registrars %}
-									{% for registrar in registrars %}
-										{% if registrar_filter == registrar %}
-											<a class="selected" href="?{% current_query_string page='' registrar='' organization='' %}"><i class="icon-ok"></i> {{registrar.name}}</a>
-										{% else %}
-											<a href="?{% current_query_string page='' registrar=registrar.id organization='' %}"><i class="icon-ok"></i> {{registrar.name}}</a>
-										{% endif %}
-									{% endfor %}
-								{% else %}
-									<a href="">None</a>
-								{% endif %}
-							</li>
-							</ul>
-						</div>
-					{% endif %}
-				{% endif %}
-			</div><!-- sort filter bar -->
-		</div><!-- admin found -->
-	</div><!-- row -->
-		{% if users %}
-			{% for listed_user in users %}
-				{% if not listed_user.is_active %}
-					<div class="item-container muted">
-				{% else %}
-					<div class="item-container">
-				{% endif %}
-				<div class="col col-sm-8 col-no-gutter">
-					<div class="item-title">
-					{% if not listed_user.first_name and not listed_user.last_name %}
-						{{ listed_user.email }}
-					{% else %}
-						{{ listed_user.first_name }} {{ listed_user.last_name }}
-					{% endif %}
-					{% if listed_user == request.user %}(you){% endif %}
-					</div>
-					<div class="item-subtitle">{{ listed_user.email }}</div>
-					{% if not listed_user.is_confirmed %}
-						<p class="warning">User must activate account</p>
-					{% endif %}
-					
-					{% if listed_user|visible_organizations:request.user %}
-						<div class="item-affil">
-						{% for organization in listed_user|visible_organizations:request.user %}
-							<a href="{% url 'user_management_manage_organization' %}?q={{organization.name.split|join:'+'|lower}}">{{organization.name.strip}}</a>
-							{% include "user_management/includes/comma.html" %}
-						{% endfor %}
-						</div>
-					{% endif %}
-					
-					{% if request.user.is_staff and listed_user.requested_account_type %}
-					<p class="item-org">Interested in a {{listed_user.requested_account_type}} account with {{listed_user.requested_account_note}}</p>
-					{% endif %}
-					
-					{% if group_name == 'registrar_user' and request.user.is_staff %}
-						<div class="item-affil"><a href="{% url 'user_management_manage_registrar' %}?q={{listed_user.registrar.name.split|join:'+'|lower}}">{{ listed_user.registrar.name }}</a></div>
-					{% endif %}
+  {% if registrar_filter.name or org_filter.name or status or upgrade or search_query %}
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="remove-search-filters">
+          <span class="filters-title">Filters: </span>
+          {% if registrar_filter %}<span class="filter-label">Registrar</span> <strong>{{registrar_filter}}</strong> {% endif %}
+          {% if org_filter %}<span class="filter-label">Organization</span> <strong>{{org_filter}}</strong> {% endif %}
+          {% if status %}<span class="filter-label">Status</span> <strong>{{status}}</strong> {% endif %}
+          {% if upgrade %}<span class="filter-label">Upgrade interest</span> <strong>{{upgrade}}</strong> {% endif %}
+          {% if search_query %}<span class="filter-label">Search</span> <strong>{{search_query}}</strong>{% endif %}
+          <a class="action remove-filters" href="?sort=last_name"><i class="icon-remove-sign"></i> Clear all filters</a>
+         </div>
+      </div>
+    </div>
+  {% endif %}
 
-					{% if group_name == 'organization_user' %}
-			            <div class="row row-half-bleed item-count-groups">
-							<div class="col col-xs-12 col-md-4 col-half-gutter">
-								<div class="item-count-group">
-									<strong class="list-count-number">{{ listed_user.link_count }}</strong>
-									<span class="item-count-label">links</span>
-								</div>
-							</div>
-			            </div>
-					{% endif %}
-				</div>
+  <div class="row row-no-bleed">
+    <div class="col admin-found col-no-gutter">
+      <p class="sort-filter-count"><strong>Found:</strong> {{ users.paginator.count }} user{{ users.paginator.count|pluralize }}</p>
+      <div class="sort-filter-bar">
+        <strong>Filter &amp; Sort:</strong>
+        <div class="dropdown">
+          <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Sort <span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+            <li>
+              <a {% if sort == 'last_name' %}class="selected" {% endif %}href="?{% current_query_string page='' sort="last_name" %}"><i class="icon-ok"></i> Last name A - Z</a>
+              <a {% if sort == '-last_name' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-last_name" %}"><i class="icon-ok"></i> Last name Z - A</a>
+              <a {% if sort == '-date_joined' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-date_joined" %}"><i class="icon-ok"></i> Newest</a>
+              <a {% if sort == 'date_joined' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="date_joined" %}"><i class="icon-ok"></i> Oldest</a>
+              <a {% if sort == '-last_login' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-last_login" %}"><i class="icon-ok"></i> Recently active</a>
+              <a {% if sort == 'last_login' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="last_login" %}"><i class="icon-ok"></i> Least recently active</a>
+              {% if group_name == 'organization_user' %}
+                <a {% if sort == '-created_links_count' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-created_links_count" %}"><i class="icon-ok"></i> Most links</a>
+                <a {% if sort == 'created_links_count' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="created_links_count" %}"><i class="icon-ok"></i> Least links</a>
+              {% endif %}
+            </li>
+          </ul>
+        </div>
 
-				<div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
-					<p class="item-status">
-						{% if listed_user.is_active %}
-							{% if request.user.is_staff %}
-								{% if group_name != 'admin_user' %}
-									<a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove/delete</a>
-								{% else %}
-									<a class="action action-delete" href="{% url 'user_management_manage_single_admin_user_remove' listed_user.id %}">remove</a>
-								{% endif %}
-							{% elif request.user.is_registrar_user and group_name == 'organization_user' %}
-								<a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove</a>
-							{% elif request.user.is_registrar_user and group_name == 'registrar_user' %}
-								<a class="action action-delete" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove</a>
-							{% else %}
-								<a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove</a>
-							{% endif %}
-						{% elif listed_user.is_confirmed %}
-							<span class="text-warning">deactivated account</span>
-							{% if request.user.is_staff %}
-								<a class="action" href="{% url reactivate_user_url listed_user.id %}">reactivate</a>
-							{% endif %}
-						{% else %}
-							{% if request.user.is_staff %}
-								<a class="action action-delete" href="{% url delete_user_url listed_user.id %}">delete</a>
-							{% else %}
-								{% if group_name == 'organization_user' %}
-									<a class="action action-delete" href="{% url 'user_management_manage_single_organization_user' listed_user.id %}">remove</a>
-								{% elif group_name == 'registrar_user' %}
-									<a class="action action-delete" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove</a>
-								{% endif %}
-							{% endif %}
-						{% endif %}
-					</p>
-					{% if request.user.is_staff %}
-						<p class="item-status"><a class="action" href="{% url "admin:perma_linkuser_change" listed_user.id %}">edit in admin console</a></p>
-					{% endif %}
-					<p class="item-activity">
-						created {{ listed_user.date_joined|date:'F j, Y' }}
-						{% if listed_user.is_confirmed %}
-							<br>
-							last active {{ listed_user.last_login|date:'F j, Y' }}
-						{% endif %}
-					</p>
-				</div>
-			</div>
-			{% endfor %}
-	{% else %}
-		<p class="item-notification">No {{ pretty_group_name_plural|lower }} found.</p>
-	{% endif %}
+        {% if request.user.is_staff and group_name == 'user' %}
+          <div class="dropdown">
+            <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Upgrade interest <span class="caret"></span></a>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+              <li>
+                <a {% if upgrade == 'court' %}class="selected" {% endif %}href="?{% current_query_string page='' upgrade="court" %}"><i class="icon-ok"></i> Court</a>
+                <a {% if upgrade == 'faculty' %}class="selected" {% endif %}href="?{% current_query_string page='' upgrade="faculty" %}"><i class="icon-ok"></i> Faculty</a>
+                <a {% if upgrade == 'journal' %}class="selected" {% endif %}href="?{% current_query_string page='' upgrade="journal" %}"><i class="icon-ok"></i> Journal</a>
+              </li>
+            </ul>
+          </div>
+        {% endif %}
 
-	{% include "user_management/includes/paginator.html" with page=users %}
+        <div class="dropdown">
+          <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Status <span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+            <li>
+              <a {% if status == 'active' %}class="selected" {% endif %}href="?{% current_query_string page='' status="active" %}"><i class="icon-ok"></i> Active</a>
+              {% if request.user.is_staff and group_name|slice:"-4:" == 'user' %}
+              <a {% if status == 'deactivated' %}class="selected" {% endif %}href="?{% current_query_string page='' status="deactivated" %}"><i class="icon-ok"></i> Deactivated</a>
+              {% endif %}
+              <a {% if status == 'unactivated' %}class="selected" {% endif %}href="?{% current_query_string page='' status="unactivated" %}"><i class="icon-ok"></i> Unactivated</a>
+            </li>
+          </ul>
+        </div>
+
+        {% if request.user.is_staff or request.user.is_registrar_user %}
+          {% if group_name == 'organization_user' %}
+            <div class="dropdown">
+              <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Organization <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                <li>
+                {% if orgs %}
+                  {% for org in orgs %}
+                    {% if organization_filter == org %}
+                      <a class="selected" href="?{% current_query_string page='' org='' %}"><i class="icon-ok"></i> {{org.name}}</a>
+                    {% else %}
+                      <a href="?{% current_query_string page='' org=org.id %}"><i class="icon-ok"></i> {{org.name}}</a>
+                    {% endif %}
+                  {% endfor %}
+                {% else %}
+                  <a href="">None</a>
+                {% endif %}
+                </li>
+              </ul>
+            </div>
+          {% endif %}
+        {% endif %}
+
+        {% if request.user.is_staff %}
+          {% if not group_name == 'user' and not group_name == 'admin_user' %}
+          <div class="dropdown">
+            <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">Registrar <span class="caret"></span></a>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+              <li>
+                {% if registrars %}
+                  {% for registrar in registrars %}
+                    {% if registrar_filter == registrar %}
+                      <a class="selected" href="?{% current_query_string page='' registrar='' organization='' %}"><i class="icon-ok"></i> {{registrar.name}}</a>
+                    {% else %}
+                      <a href="?{% current_query_string page='' registrar=registrar.id organization='' %}"><i class="icon-ok"></i> {{registrar.name}}</a>
+                    {% endif %}
+                  {% endfor %}
+                {% else %}
+                  <a href="">None</a>
+                {% endif %}
+              </li>
+            </ul>
+          </div>
+          {% endif %}
+        {% endif %}
+      </div><!-- sort filter bar -->
+    </div><!-- admin found -->
+  </div><!-- row -->
+    {% if users %}
+      {% for listed_user in users %}
+        {% if not listed_user.is_active %}
+          <div class="item-container muted">
+        {% else %}
+          <div class="item-container">
+        {% endif %}
+        <div class="col col-sm-8 col-no-gutter">
+          <div class="item-title">
+          {% if not listed_user.first_name and not listed_user.last_name %}
+            {{ listed_user.email }}
+          {% else %}
+            {{ listed_user.first_name }} {{ listed_user.last_name }}
+          {% endif %}
+          {% if listed_user == request.user %}(you){% endif %}
+          </div>
+          <div class="item-subtitle">{{ listed_user.email }}</div>
+          {% if not listed_user.is_confirmed %}
+            <p class="warning">User must activate account</p>
+          {% endif %}
+
+          {% if listed_user|visible_organizations:request.user %}
+            <div class="item-affil">
+            {% for organization in listed_user|visible_organizations:request.user %}
+              <a href="{% url 'user_management_manage_organization' %}?q={{organization.name.split|join:'+'|lower}}">{{organization.name.strip}}</a>
+              {% include "user_management/includes/comma.html" %}
+            {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if request.user.is_staff and listed_user.requested_account_type %}
+          <p class="item-org">Interested in a {{listed_user.requested_account_type}} account with {{listed_user.requested_account_note}}</p>
+          {% endif %}
+
+          {% if group_name == 'registrar_user' and request.user.is_staff %}
+            <div class="item-affil"><a href="{% url 'user_management_manage_registrar' %}?q={{listed_user.registrar.name.split|join:'+'|lower}}">{{ listed_user.registrar.name }}</a></div>
+          {% endif %}
+
+          {% if group_name == 'organization_user' %}
+            <div class="row row-half-bleed item-count-groups">
+              <div class="col col-xs-12 col-md-4 col-half-gutter">
+                <div class="item-count-group">
+                  <strong class="list-count-number">{{ listed_user.link_count }}</strong>
+                  <span class="item-count-label">links</span>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
+          <p class="item-status">
+            {% if listed_user.is_active %}
+              {% if request.user.is_staff %}
+                {% if group_name != 'admin_user' %}
+                  <a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove/delete</a>
+                {% else %}
+                  <a class="action action-delete" href="{% url 'user_management_manage_single_admin_user_remove' listed_user.id %}">remove</a>
+                {% endif %}
+              {% elif request.user.is_registrar_user and group_name == 'organization_user' %}
+                <a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove</a>
+              {% elif request.user.is_registrar_user and group_name == 'registrar_user' %}
+                <a class="action action-delete" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove</a>
+              {% else %}
+                <a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove</a>
+              {% endif %}
+            {% elif listed_user.is_confirmed %}
+              <span class="text-warning">deactivated account</span>
+              {% if request.user.is_staff %}
+                <a class="action" href="{% url reactivate_user_url listed_user.id %}">reactivate</a>
+              {% endif %}
+            {% else %}
+              {% if request.user.is_staff %}
+                <a class="action action-delete" href="{% url delete_user_url listed_user.id %}">delete</a>
+              {% else %}
+                {% if group_name == 'organization_user' %}
+                  <a class="action action-delete" href="{% url 'user_management_manage_single_organization_user' listed_user.id %}">remove</a>
+                {% elif group_name == 'registrar_user' %}
+                  <a class="action action-delete" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove</a>
+                {% endif %}
+              {% endif %}
+            {% endif %}
+          </p>
+          {% if request.user.is_staff %}
+            <p class="item-status"><a class="action" href="{% url "admin:perma_linkuser_change" listed_user.id %}">edit in admin console</a></p>
+          {% endif %}
+          <p class="item-activity">
+            created {{ listed_user.date_joined|date:'F j, Y' }}
+            {% if listed_user.is_confirmed %}
+              <br>
+              last active {{ listed_user.last_login|date:'F j, Y' }}
+            {% endif %}
+          </p>
+        </div>
+      </div>
+      {% endfor %}
+  {% else %}
+    <p class="item-notification">No {{ pretty_group_name_plural|lower }} found.</p>
+  {% endif %}
+
+  {% include "user_management/includes/paginator.html" with page=users %}
 
 {% endblock %}
 {% block scripts %}
-<script>
-$(document).ready(function(){
-	$('#add-member').on('shown.bs.collapse', function () {
-		$('input[type=text]:first').focus();
-	});
-});
-</script>
+  <script>
+  $(document).ready(function(){
+    $('#add-member').on('shown.bs.collapse', function () {
+      $('input[type=text]:first').focus();
+    });
+  });
+  </script>
 {% endblock scripts %}
