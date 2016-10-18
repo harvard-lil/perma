@@ -207,6 +207,51 @@ class UserManagementViewsTestCase(PermaTestCase):
         count = soup.select('.sort-filter-count')[0].text
         self.assertEqual("Found: 1 organization", count)
 
+    def test_org_user_list_filters(self):
+        # test assumptions: five users
+        # - three from Test Journal
+        # - one from Another Journal
+        # - three from A Third Journal
+        # - two from Another Library's Journal
+        response = self.get('user_management_manage_organization_user',
+                             user=self.admin_user).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 5 users", count)
+        # registrar name appears by each user, and once in the filter dropdown
+        self.assertEqual(response.count('Test Journal'), 3 + 1)
+        self.assertEqual(response.count('Another Journal'), 1 + 1)
+        self.assertEqual(response.count("A Third Journal"), 3 + 1)
+        self.assertEqual(response.count("Another Library&#39;s Journal"), 2 + 1)
+
+        # filter by org
+        response = self.get('user_management_manage_organization_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'org': 1}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 3 users", count)
+        response = self.get('user_management_manage_organization_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'org': 2}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 user", count)
+        response = self.get('user_management_manage_organization_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'org': 3}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 3 users", count)
+        response = self.get('user_management_manage_organization_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'org': 4}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 2 users", count)
+
+        # registrar and status filters tested in test_registrar_user_list_filters
+
     def test_admin_can_create_organization(self):
         self.submit_form('user_management_manage_organization',
                          user=self.admin_user,
