@@ -234,5 +234,86 @@
             "last_name": "Organization-User",
             "root_folder": 44
         }
+    },
+    {
+
+        "pk": 12,
+        "model": "perma.LinkUser",
+        "fields": {
+            "registrar": 2,
+            "is_active": false,
+            "is_confirmed": true,
+            "last_login": "2016-10-18T18:56:14Z",
+            "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
+            "email": "deactivated_registrar_user@example.com",
+            "date_joined": "2016-10-18",
+            "first_name": "DeactivatedRegistrar",
+            "last_name": "User",
+            "root_folder": 45
+        }
+    },
+    {
+        "pk": 13,
+        "model": "perma.LinkUser",
+        "fields": {
+            "registrar": 2,
+            "is_active": false,
+            "is_confirmed": false,
+            "last_login": "2016-10-18T18:56:14Z",
+            "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
+            "email": "unactivated_registrar_user@example.com",
+            "date_joined": "2016-10-18",
+            "first_name": "UnactivatedRegistrar",
+            "last_name": "User",
+            "root_folder": 46
+        }
+    },
+    {
+        "pk": 14,
+        "model": "perma.LinkUser",
+        "fields": {
+            "requested_account_type": "court",
+            "is_active": false,
+            "is_confirmed": false,
+            "last_login": "2016-10-18T18:56:14Z",
+            "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
+            "email": "unactivated_court_user@example.com",
+            "date_joined": "2016-10-18",
+            "first_name": "UnactivatedCourt",
+            "last_name": "User",
+            "root_folder": 47
+        }
+    },
+    {
+        "pk": 15,
+        "model": "perma.LinkUser",
+        "fields": {
+            "requested_account_type": "journal",
+            "is_active": false,
+            "is_confirmed": false,
+            "last_login": "2016-10-18T18:56:14Z",
+            "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
+            "email": "unactivated_journal_user@example.com",
+            "date_joined": "2016-10-18",
+            "first_name": "UnactivatedJournal",
+            "last_name": "User",
+            "root_folder": 48
+        }
+    },
+    {
+        "pk": 16,
+        "model": "perma.LinkUser",
+        "fields": {
+            "requested_account_type": "faculty",
+            "is_active": false,
+            "is_confirmed": false,
+            "last_login": "2016-10-18T18:56:14Z",
+            "password": "pbkdf2_sha256$10000$56cl09Msiau4$IoOlZ+P/I3MJJG+ZxYtH9mb6c+B+VQELqwWyb3ubdWE=",
+            "email": "unactivated_faculty_user@example.com",
+            "date_joined": "2016-10-18",
+            "first_name": "UnactivatedFaculty",
+            "last_name": "User",
+            "root_folder": 49
+        }
     }
 ]
