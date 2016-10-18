@@ -183,10 +183,29 @@ class UserManagementViewsTestCase(PermaTestCase):
     ### ORGANIZATION A/E/D VIEWS ###
 
     def test_organization_list_filters(self):
+        # test assumptions: four orgs, three for Test Library and one for Another Library
+        response = self.get('user_management_manage_organization',
+                             user=self.admin_user).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 4 organizations", count)
+        # registrar name appears by each org, once in the filter dropdown, once in the "add an org" markup
+        self.assertEqual(response.count('Test Library'), 3 + 2)
+        self.assertEqual(response.count('Another Library'), 1 + 2)
+
         # get orgs for a single registrar
-        self.get('user_management_manage_organization',
-                 user=self.admin_user,
-                 request_kwargs={'data': {'registrar': self.registrar.pk}})
+        response = self.get('user_management_manage_organization',
+                             user=self.admin_user,
+                             request_kwargs={'data': {'registrar': 1}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 3 organizations", count)
+        response = self.get('user_management_manage_organization',
+                             user=self.admin_user,
+                             request_kwargs={'data': {'registrar': 2}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 1 organization", count)
 
     def test_admin_can_create_organization(self):
         self.submit_form('user_management_manage_organization',
