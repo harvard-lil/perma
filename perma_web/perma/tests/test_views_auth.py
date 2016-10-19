@@ -19,6 +19,18 @@ class AuthViewsTestCase(PermaTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('_auth_user_id', self.client.session)
 
+    def test_deactived_user_login(self):
+        self.submit_form('user_management_limited_login',
+                          data = {'username': 'deactivated_registrar_user@example.com',
+                                  'password': 'pass'},
+                          success_url=reverse('user_management_account_is_deactivated'))
+
+    def test_unactived_user_login(self):
+        self.submit_form('user_management_limited_login',
+                          data = {'username': 'unactivated_faculty_user@example.com',
+                                  'password': 'pass'},
+                          success_url=reverse('user_management_not_active'))
+
     def test_logout(self):
         """
         Test our logout link
