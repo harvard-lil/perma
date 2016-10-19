@@ -1543,6 +1543,24 @@ class UserManagementViewsTestCase(PermaTestCase):
         response = self.submit_form('register_password', reverse_kwargs={'args':['bad_confirmation_code']})
         self.assertTrue('no_code' in response.context)
 
+    def check_new_activation_email(self, message, user_email):
+        our_address = settings.DEFAULT_FROM_EMAIL
+
+        confirmation_code = LinkUser.objects.get(email=user_email).confirmation_code
+        confirm_url = "http://testserver{}".format(reverse('register_password', args=[confirmation_code]))
+        self.assertIn(confirm_url, message.body)
+        self.assertEqual(message.subject, "A Perma.cc account has been created for you")
+        self.assertEqual(message.from_email, our_address)
+        self.assertEqual(message.recipients(), [user_email])
+
+    def test_get_new_activation_code(self):
+        self.submit_form('user_management_not_active',
+                          user = 'unactivated_faculty_user@example.com',
+                          data = {},
+                          success_url=reverse('user_management_limited_login'))
+        self.assertEqual(len(mail.outbox), 1)
+        self.check_new_activation_email(mail.outbox[0], 'unactivated_faculty_user@example.com')
+
     ### ADMIN STATS ###
 
     def test_admin_stats(self):
