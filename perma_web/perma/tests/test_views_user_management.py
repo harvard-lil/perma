@@ -250,7 +250,21 @@ class UserManagementViewsTestCase(PermaTestCase):
         count = soup.select('.sort-filter-count')[0].text
         self.assertEqual("Found: 3 users", count)
 
-        # registrar and status filters tested in test_registrar_user_list_filters
+        # filter by registrar
+        response = self.get('user_management_manage_organization_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'registrar': 1}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 5 users", count)
+        response = self.get('user_management_manage_organization_user',
+                             user=self.admin_user,
+                             request_kwargs={'data':{'registrar': 2}}).content
+        soup = BeautifulSoup(response, 'html.parser')
+        count = soup.select('.sort-filter-count')[0].text
+        self.assertEqual("Found: 3 users", count)
+
+        # status filter tested in test_registrar_user_list_filters
 
     def test_admin_can_create_organization(self):
         self.submit_form('user_management_manage_organization',
