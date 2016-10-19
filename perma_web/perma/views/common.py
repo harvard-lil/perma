@@ -176,6 +176,9 @@ def single_linky(request, guid):
     new_record = request.user.is_authenticated() and link.created_by_id == request.user.id and not link.user_deleted \
                  and link.creation_timestamp > timezone.now() - timedelta(seconds=300)
 
+    # Provide the max upload size, in case the upload form is used
+    max_size = settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024
+
     context = {
         'link': link,
         'can_view': request.user.can_view(link),
@@ -187,6 +190,7 @@ def single_linky(request, guid):
         'serve_type': serve_type,
         'new_record': new_record,
         'this_page': 'single_link',
+        'max_size': max_size
     }
 
     response = render(request, 'archive/single-link.html', context)

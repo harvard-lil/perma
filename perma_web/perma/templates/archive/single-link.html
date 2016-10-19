@@ -122,7 +122,7 @@
               {% if can_delete %}
                 <dl class="tray-detail-group temporary-options">
                   <form id="archive_upload_form">
-                    <dt class="tray-detail-title" for="file">Upload file<span class="label-asterisk">*</span> <span class="label-instruction _verbose" style="display:block;"> This will replace the existing capture. The following formats are allowed: .gif, .jpg, .pdf, and .png</span></dt>
+                    <dt class="tray-detail-title" for="file">Upload file<span class="label-asterisk">*</span> <span class="label-instruction _verbose" style="display:block;"> This will replace the existing capture. GIF, JPG, PDF, and PNG up to {{max_size}} MB are allowed.</span></dt>
                     <input class="col-sm-10 file" name="file" type="file" placeholder="example.png" accept=".png,.jpg,.jpeg,.gif,.pdf">
                     <span class="btn-file-upload-container">
                       <button id="updateLinky" type="submit" class="blue-button btn-sm btn-file-upload">Upload</button>
