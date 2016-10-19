@@ -402,3 +402,62 @@ def fix_ia_metadata():
         except Exception as e:
             result = str(e)
         print "%s\t%s" % (link['guid'], result)
+
+
+@task
+def check_s3_hashes():
+    """
+        Confirm that files in primary (disk) storage are also in secondary (s3) storage.
+
+        One-off helper function, kept for example purposes.
+    """
+    from django.core.files.storage import default_storage
+    from tqdm import tqdm
+    import hashlib
+
+    local_cache_path = '/tmp/perma_local_file_list'
+    remote_cache_path = '/tmp/perma_remote_file_list'
+    remote_paths = {}
+
+    if not os.path.exists(local_cache_path):
+        print "Building local state ..."
+        local_warc_path = os.path.join(settings.MEDIA_ROOT, settings.WARC_STORAGE_DIR)
+        remove_char_count = len(settings.MEDIA_ROOT+1)
+        with open(local_cache_path, 'w') as tmp_file:
+            for root, subdirs, files in tqdm(os.walk(local_warc_path)):
+                for f in files:
+                    tmp_file.write(os.path.join(root, f)[remove_char_count:]+"\n")
+    else:
+        print "Using cached local state from %s" % local_cache_path
+
+    if not os.path.exists(remote_cache_path):
+        print "Building remote state ..."
+        remove_char_count = len(settings.SECONDARY_MEDIA_ROOT)
+        with open(remote_cache_path, 'w') as tmp_file:
+            for f in tqdm(default_storage.secondary_storage.bucket.list('generated/warcs/')):
+                key = f.key[remove_char_count:]
+                val = f.etag[1:-1]
+                tmp_file.write("%s\t%s\n" % (key, val))
+                remote_paths[key] = val
+    else:
+        print "Using cached remote state from %s" % remote_cache_path
+        for line in open(remote_cache_path):
+            key, val = line[:-1].split("\t")
+            remote_paths[key] = val
+
+    print "Comparing local and remote ..."
+    blocksize = 2 ** 20
+    for local_path in tqdm(open(local_cache_path)):
+        local_path = local_path[:-1]
+        if local_path not in remote_paths:
+            print "Missing from remote:", local_path
+            continue
+        m = hashlib.md5()
+        with open(os.path.join(settings.MEDIA_ROOT, local_path), "rb") as f:
+            while True:
+                buf = f.read(blocksize)
+                if not buf:
+                    break
+                m.update(buf)
+        if m.hexdigest() != remote_paths[local_path]:
+            print "Hash mismatch! Local: %s Remote: %s" % (m.hexdigest(), remote_paths[local_path])
