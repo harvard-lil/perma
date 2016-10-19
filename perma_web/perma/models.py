@@ -822,14 +822,11 @@ class Link(DeletableModel):
         out.close()
 
     def safe_delete_warc(self):
-        WARC_STORAGE_PATH = os.path.join(settings.MEDIA_ROOT, settings.WARC_STORAGE_DIR)
-        guid_path = self.guid_as_path()
-        try:
-            old_name = os.path.join(WARC_STORAGE_PATH, guid_path, '%s.warc.gz' % self.guid)
-            new_name = os.path.join(WARC_STORAGE_PATH, guid_path, '%s_replaced.warc.gz' % self.guid)
-            os.rename(old_name, new_name)
-        except OSError:
-            return
+        old_name = self.warc_storage_file()
+        if default_storage.exists(old_name):
+            new_name = old_name.replace('.warc.gz', '_replaced.warc.gz')
+            default_storage.store_file(default_storage.open(old_name), new_name)
+            default_storage.delete(old_name)
 
     def replay_url(self, url, wsgi_application=None, follow_redirects=True):
         """
