@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
-from django.core.urlresolvers import reverse
-from django.core import mail
-from django.conf import settings
-
 from .utils import PermaTestCase
 
-from random import random
 from bs4 import BeautifulSoup
 from perma.views.link_management import Link
 
