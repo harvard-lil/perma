@@ -11,6 +11,8 @@ from perma.views.link_management import Link
 
 from mock import patch
 
+# TODO: the template for displaying links/folders should probably be tested
+# more thoroughly, since it includes a fair bit of logic
 
 class LinkManagementViewsTestCase(PermaTestCase):
 
