@@ -70,5 +70,73 @@ class LinkManagementViewsTestCase(PermaTestCase):
                   reverse_kwargs={'args':['JJ3S-2Q5N']},
                   user = 'test_user@example.com')
 
+    ### folder_contents function ###
+
+    def test_folder(self):
+        # with current fixures, expect 5
+        response = self.get('folder_contents',
+                             reverse_kwargs={'args':['25']},
+                             user = 'test_user@example.com').content
+        soup = BeautifulSoup(response, 'html.parser')
+        links = soup.select('a.perma')
+        self.assertEqual(len(links), 5)
+
+    def test_folder_sort(self):
+        # default sort = -creation_timestamp
+        response = self.get('folder_contents',
+                             reverse_kwargs={'args':['25']},
+                             user = 'test_user@example.com').content
+        soup = BeautifulSoup(response, 'html.parser')
+        links = soup.select('a.perma')
+        self.assertGreater(len(links), 1)
+        first, last = links[0], links[-1]
+        # get with reverse order
+        response = self.get('folder_contents',
+                             reverse_kwargs={'args':['25']},
+                             request_kwargs={'data':{'sort':'creation_timestamp'}},
+                             user = 'test_user@example.com').content
+        soup = BeautifulSoup(response, 'html.parser')
+        links = soup.select('a.perma')
+        self.assertEqual(first, links[-1])
+        self.assertEqual(last, links[0])
+        # get with bogus sort, and it's the same as default
+        response = self.get('folder_contents',
+                             reverse_kwargs={'args':['25']},
+                             request_kwargs={'data':{'sort':'bogus_sort'}},
+                             user = 'test_user@example.com').content
+        soup = BeautifulSoup(response, 'html.parser')
+        links = soup.select('a.perma')
+        self.assertEqual(first, links[0])
+        self.assertEqual(last, links[-1])
+
+    def test_folder_with_deleted(self):
+        # with current fixtures, expect 6 in 30 (7th, deleted should not display)
+        response = self.get('folder_contents',
+                             reverse_kwargs={'args':['30']},
+                             user = 'test_user@example.com').content
+        soup = BeautifulSoup(response, 'html.parser')
+        links = soup.select('a.perma')
+        self.assertEqual(len(links), 6)
+
+    def test_folder_with_revoked_access(self):
+        # though Regular User (test_user@example.com) once
+        # _created a link in 35, can't see it now
+        self.get('folder_contents',
+                  reverse_kwargs={'args':['35']},
+                  user = 'test_user@example.com',
+                  require_status_code = 404)
+
+        # but an org user can
+        response = self.get('folder_contents',
+                             reverse_kwargs={'args':['35']},
+                             user = 'test_org_user@example.com').content
+        soup = BeautifulSoup(response, 'html.parser')
+        links = soup.select('a.perma')
+        self.assertEqual(len(links), 1)
+        self.assertIn("Created by:</strong> Regular User", response)
+
+
+
+
 
 
