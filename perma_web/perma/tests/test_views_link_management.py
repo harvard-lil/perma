@@ -7,11 +7,14 @@ from .utils import PermaTestCase
 
 from random import random
 from bs4 import BeautifulSoup
+from perma.views.link_management import Link
+
+from mock import patch
 
 
 class LinkManagementViewsTestCase(PermaTestCase):
 
-    ### /manage/create ###
+    ### create_link function ###
 
     def test_display_after_delete_real_link(self):
         response = self.get('create_link',
@@ -44,4 +47,28 @@ class LinkManagementViewsTestCase(PermaTestCase):
         response = self.get('create_link',
                              user = 'test_user@example.com')
         self.assertNotIn("browser-tools-message", response)
+
+    ### user_delete_link function ###
+
+    def test_confirm_delete_unpermitted_link(self):
+        self.get('user_delete_link',
+                  reverse_kwargs={'args':['7CF8-SS4G']},
+                  user = 'test_user@example.com',
+                  require_status_code = 404)
+
+    def test_confirm_delete_nonexistent_link(self):
+        self.get('user_delete_link',
+                  reverse_kwargs={'args':['ZZZZ-ZZZZ']},
+                  user = 'test_user@example.com',
+                  require_status_code = 404)
+
+    # only brand new links can be deleted (they aren't "archive eligible"),
+    # so we have to mock Link.is_archive_eligible to always return false
+    @patch.object(Link, 'is_archive_eligible', lambda x: False)
+    def test_confirm_delete_permitted_link(self):
+        self.get('user_delete_link',
+                  reverse_kwargs={'args':['JJ3S-2Q5N']},
+                  user = 'test_user@example.com')
+
+
 
