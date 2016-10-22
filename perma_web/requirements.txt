@@ -51,6 +51,7 @@ fakeredis==0.7.0
 first==2.0.1              # via pip-tools
 flake8==2.5.4
 Flask==0.10.1             # via jasmine
+funcsigs==1.0.2           # via mock
 futures==3.0.5            # via django-pipeline
 gevent==1.0.2
 glob2==0.4.1              # via jasmine-core
@@ -69,6 +70,7 @@ kombu==3.0.35             # via celery
 LinkHeader==0.4.3
 MarkupSafe==0.23          # via jinja2
 mccabe==0.4.0             # via flake8
+mock==2.0.0
 MySQL-python==1.2.5
 ndg-httpsclient==0.4.0    # via requests
 netaddr==0.7.12
@@ -78,6 +80,7 @@ ordereddict==1.1          # via jasmine-core
 paramiko==1.17.0          # via fabric
 pathlib==1.0.1            # via pyscss
 pathtools==0.1.2          # via watchdog
+pbr==1.10.0               # via mock
 pep8==1.7.0               # via flake8
 pexpect==3.1
 Pillow==3.3.1
@@ -103,7 +106,7 @@ requests[security]==2.11.1
 sauceclient==0.1.0
 schema==0.4.0             # via internetarchive
 selenium==2.47.3
-six==1.10.0               # via cryptography, django-admin-smoke-tests, internetarchive, jasmine, pip-tools, pyopenssl, pyscss, python-dateutil, pywb, requests-file, surt
+six==1.10.0               # via cryptography, django-admin-smoke-tests, internetarchive, jasmine, mock, pip-tools, pyopenssl, pyscss, python-dateutil, pywb, requests-file, surt
 smhasher==0.150.1
 sorl-thumbnail==12.3
 surt==0.3.0               # via pywb

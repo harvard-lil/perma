@@ -311,6 +311,11 @@ class FunctionalTest(BaseTestCase):
             info("Testing javascript error reporting -- logged in user")
             test_js_error_handling()
 
+            info("Dismissing browser tool reminder.")
+            self.assertNotIn('supress_reminder', self.driver.get_cookies())
+            get_css_selector('.close-browser-tools.btn-link').click()
+            self.assertTrue(any(cookie['name'] == 'suppress_reminder' and cookie['value'] == 'true' for cookie in self.driver.get_cookies()))
+
             info("Failing to create an archive.")
             # choose folder from dropdown
             get_css_selector('#folder-tree > .jstree-container-ul > li:last-child > a').click()

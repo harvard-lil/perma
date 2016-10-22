@@ -87,6 +87,10 @@ def folder_contents(request, folder_id):
 
     shared_with_count = 0
     if current_folder.organization:
+        # If you are an org user, don't see yourself in the count;
+        # ... if you are a registrar, admin etc.
+        # ... and happen to view an org folder with no org users,
+        # ... don't see a negative number.
         shared_with_count = max(current_folder.organization.users.count()-1, 0)
 
     return render(request, 'user_management/includes/created-link-items.html', {
