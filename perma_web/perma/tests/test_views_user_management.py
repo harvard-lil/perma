@@ -1524,6 +1524,10 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         confirmation_code = LinkUser.objects.get(email=new_user_email).confirmation_code
 
+        # reg confirm - form loads
+        self.get('register_password',
+                  reverse_kwargs={'args': [confirmation_code]})
+
         # reg confirm - non-matching passwords
         self.submit_form('register_password', reverse_kwargs={'args': [confirmation_code]},
                          data={'new_password1':'a', 'new_password2':'b'},
