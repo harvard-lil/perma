@@ -428,7 +428,7 @@ CreateModule.init = function () {
           $organization_select.append("<li><a href='#' onClick='CreateModule.ls.setCurrent("+organization.id+", "+organization.shared_folder.id+")'>" + opt_text + " <span class='links-unlimited'>unlimited</span></a></li>");
         });
 
-        $organization_select.append("<li class='my-links'><a href='#'' onClick='CreateModule.ls.setCurrent()'> My Links <span class='links-remaining'>" + links_remaining + "</span></a></li>");
+        $organization_select.append("<li class='personal-links'><a href='#'' onClick='CreateModule.ls.setCurrent()'> Personal Links <span class='links-remaining'>" + links_remaining + "</span></a></li>");
         self.updateLinker();
       } else {
         // select My Folder for users with no orgs and no saved selections
