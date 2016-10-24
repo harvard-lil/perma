@@ -67,10 +67,6 @@ USE_TZ = True
 MEDIA_ROOT = ''
 MEDIA_URL = '/media/'
 
-# Monitor app generated files
-MONITOR_ROOT = '/tmp/perma/monitor'
-MONITOR_URL = '/monitor/media/'
-
 # static files
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static-collected')                # where to store collected static files
 STATIC_URL = '/static/'         # URL to serve static files
@@ -327,7 +323,6 @@ INSTALLED_APPS = (
     # our apps
     'perma',
     'api',
-    'monitor',
     'lockss',
 
     # third party apps

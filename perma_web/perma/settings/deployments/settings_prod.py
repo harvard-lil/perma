@@ -14,7 +14,6 @@ MEDIA_ROOT = '/perma/assets/generated'
 # These will be added to CELERYBEAT_SCHEDULE in settings.utils.post_processing
 CELERYBEAT_JOB_NAMES = [
     'update-stats',
-    'cleanup-screencap-monitoring',
     'send-links-to-internet-archives',
     ]
 

@@ -58,11 +58,6 @@ server {
     }
 
 
-    # path for generated assets created by the Perma monitoring app
-    location /monitor/media/ {
-                alias {{ assets_dir }}/monitor/$1;
-    }
-
     # path for static folder
     location /static/ {
                 alias {{ assets_dir }}/static/$1;

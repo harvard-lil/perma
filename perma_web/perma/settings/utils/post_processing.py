@@ -29,10 +29,6 @@ def post_process_settings(settings):
             'task': 'perma.tasks.update_stats',
             'schedule': crontab(minute='*'),
         },
-        'cleanup-screencap-monitoring': {
-            'task': 'monitor.tasks.delete_screencaps',
-            'schedule': crontab(minute='35', hour='*/2'),  # every other hour
-        },
         'send-links-to-internet-archives': {
             'task': 'perma.tasks.upload_all_to_internet_archive',
             'schedule': crontab(minute='0', hour='*'),
