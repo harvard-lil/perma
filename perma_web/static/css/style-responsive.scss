@@ -1204,7 +1204,7 @@ button {
 .custom-badge {
   display: inline-block;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: normal;
   padding: 2px 8px 0;
   vertical-align: middle;
   bottom: 2px;
@@ -1312,6 +1312,7 @@ button {
     .my-links {
         background-color: $color-trans-lightgray;
         a {
+          margin-top: 4px;
           border-top: none;
         }
     }
