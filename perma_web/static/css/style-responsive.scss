@@ -1201,17 +1201,28 @@ button {
   bottom: -1px;
 }
 
-.links-remaining {
+.custom-badge {
   display: inline-block;
   font-size: 12px;
   font-weight: 700;
-  color: white;
-  background-color: $color-blue;
   padding: 2px 8px 0;
   vertical-align: middle;
   bottom: 2px;
   margin-left: $half;
   border-radius: 4px;
+
+}
+
+.links-remaining {
+  @extend .custom-badge;
+  color: white;
+  background-color: $color-trans-darkgray;
+}
+
+.links-unlimited {
+  @extend .custom-badge;
+  color: white;
+  background-color: $color-blue;
 }
 
 @mixin style-ui-after {
@@ -1289,6 +1300,7 @@ button {
   }
   .selector-menu {
     @include style-dropdown;
+    padding-bottom: 0px;
     a {
       font-size: 18px;
       font-weight: 200;
@@ -1296,6 +1308,12 @@ button {
         font-size: 20px;
         font-weight: 200;
       }
+    }
+    .my-links {
+        background-color: $color-trans-lightgray;
+        a {
+          border-top: none;
+        }
     }
   }
   &.open {
