@@ -21,10 +21,11 @@ $(document).ready(function() {
   CreateModule.setupEventHandlers();
   CreateModule.populateWithUrl();
 
-      if (is_org_user == "True" && links_remaining == 3){
-        var message = "Your personal links for the month are almost used up! Create more links in 'unlimited' folders."
-        Helpers.informUser(message, 'danger');
-      }
+  if (is_org_user == "True" && links_remaining == 3){
+    var message = "Your personal links for the month are almost used up! Create more links in 'unlimited' folders."
+    Helpers.informUser(message, 'danger');
+  }
+
 });
 
 
