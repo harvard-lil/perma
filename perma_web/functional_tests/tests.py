@@ -288,6 +288,11 @@ class FunctionalTest(BaseTestCase):
             info("Testing javascript error reporting -- logged out user")
             test_js_error_handling()
 
+            info("Loading about page.")
+            self.driver.get(self.server_url + "/about")
+            partners = self.driver.execute_script("return partnerPoints")
+            self.assertEqual(len(partners), 2)
+
             info("Loading docs.")
             try:
                 get_css_selector('.navbar-toggle').click()  # show navbar in mobile view

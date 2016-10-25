@@ -214,3 +214,18 @@ class CommonViewsTestCase(PermaTestCase):
                                      error_keys = ['email', 'message'])
         self.assertEqual(response.request['PATH_INFO'], reverse('contact'))
 
+    def test_about_partner_list(self):
+        '''
+            Is the partner list populated, and split evenly into 2 columns?
+        '''
+        response = self.get('about').content
+        soup = BeautifulSoup(response, 'html.parser')
+        partner_columns = soup.find('div', {'class':'partner-list'}).find_all('div', recursive=False)
+        self.assertEqual(len(partner_columns), 2)
+        first_partners = partner_columns[0].select('.perma-partner')
+        self.assertTrue(partner.text for partner in first_partners)
+        second_partners = partner_columns[1].select('.perma-partner')
+        self.assertTrue(partner.text for partner in second_partners)
+        first_partners = partner_columns[0].select('.perma-partner')
+        self.assertTrue(len(first_partners) == len(second_partners) or
+                        len(first_partners) == len(second_partners) + 1)

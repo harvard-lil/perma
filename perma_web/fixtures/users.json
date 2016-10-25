@@ -7,7 +7,10 @@
             "name": "Test Library",
             "email": "library@university.edu",
             "website": "http://university.edu/library",
-            "date_created": "2013-06-26"
+            "date_created": "2013-06-26",
+            "show_partner_status": true,
+            "latitude": "42.3770",
+            "longitude": "-71.1167"
         }
     },
     {
@@ -19,6 +22,20 @@
             "email": "library@university2.edu",
             "website": "http://university2.edu/library",
             "date_created": "2014-07-27"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "perma.registrar",
+        "fields": {
+            "status": "approved",
+            "name": "A Third Library",
+            "email": "library@university3.edu",
+            "website": "http://university3.edu/library",
+            "date_created": "2016-10-25",
+            "show_partner_status": true,
+            "latitude": "41.3163",
+            "longitude": "-72.9223"
         }
     },
     {
