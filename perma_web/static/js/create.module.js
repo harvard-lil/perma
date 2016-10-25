@@ -20,6 +20,12 @@ $(document).ready(function() {
   CreateModule.init();
   CreateModule.setupEventHandlers();
   CreateModule.populateWithUrl();
+
+  if (is_org_user == "True" && links_remaining == 3){
+    var message = "Your personal links for the month are almost used up! Create more links in 'unlimited' folders."
+    Helpers.informUser(message, 'danger');
+  }
+
 });
 
 
@@ -425,10 +431,10 @@ CreateModule.init = function () {
           if (organization.default_to_private) {
             opt_text += ' <span class="ui-private">(Private)</span>';
           }
-          $organization_select.append("<li><a onClick='CreateModule.ls.setCurrent("+organization.id+", "+organization.shared_folder.id+")'>" + opt_text + "</a></li>");
+          $organization_select.append("<li><a href='#' onClick='CreateModule.ls.setCurrent("+organization.id+", "+organization.shared_folder.id+")'>" + opt_text + " <span class='links-unlimited'>unlimited</span></a></li>");
         });
 
-        $organization_select.append("<li><a onClick='CreateModule.ls.setCurrent()'> My Links <span class='links-remaining'>" + links_remaining + "<span></a></li>");
+        $organization_select.append("<li class='personal-links'><a href='#'' onClick='CreateModule.ls.setCurrent()'> Personal Links <span class='links-remaining'>" + links_remaining + "</span></a></li>");
         self.updateLinker();
       } else {
         // select My Folder for users with no orgs and no saved selections

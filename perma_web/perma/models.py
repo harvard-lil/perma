@@ -288,10 +288,10 @@ class LinkUser(AbstractBaseUser):
             return
         try:
             # this branch only used during transition to root folders -- should be removed eventually
-            root_folder = Folder.objects.filter(created_by=self, name=u"My Links", parent=None)[0]
+            root_folder = Folder.objects.filter(created_by=self, name=u"Personal Links", parent=None)[0]
             root_folder.is_root_folder = True
         except IndexError:
-            root_folder = Folder(name=u'My Links', created_by=self, is_root_folder=True)
+            root_folder = Folder(name=u'Personal Links', created_by=self, is_root_folder=True)
         root_folder.save()
         self.root_folder = root_folder
         self.save()

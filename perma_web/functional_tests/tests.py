@@ -351,7 +351,7 @@ class FunctionalTest(BaseTestCase):
             self.driver.get(warc_url)
             assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
 
-            # My Links
+            # Personal Links
 
             # show links
             self.driver.get(self.server_url + '/manage/create')

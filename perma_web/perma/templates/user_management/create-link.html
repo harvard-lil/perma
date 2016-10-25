@@ -150,6 +150,7 @@
         contact_url = "{% url 'contact' %}",
         links_remaining = "{{links_remaining}}",
         current_user = {% as_json request.user %},
+        is_org_user = "{{ request.user.is_organization_user }}",
         host = "{{ request.get_host }}";
   </script>
 
