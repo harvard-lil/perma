@@ -26,7 +26,7 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.regular_user = LinkUser.objects.get(pk=4)
         self.registrar = self.registrar_user.registrar
         self.pending_registrar = Registrar.objects.get(pk=2)
-        self.unrelated_registrar = Registrar.objects.exclude(pk=self.registrar.pk).first()
+        self.unrelated_registrar = Registrar.objects.get(pk=2)
         self.unrelated_registrar_user = self.unrelated_registrar.users.first()
         self.organization = Organization.objects.get(pk=1)
         self.organization_user = self.organization.users.first()
@@ -48,7 +48,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                              user=self.admin_user).content
         soup = BeautifulSoup(response, 'html.parser')
         count = soup.select('.sort-filter-count')[0].text
-        self.assertEqual("Found: 2 registrars", count)
+        self.assertEqual("Found: 3 registrars", count)
         self.assertEqual(response.count('needs approval'), 1)
 
         # get just approved registrars
@@ -57,7 +57,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                              request_kwargs={'data':{'status':'approved'}}).content
         soup = BeautifulSoup(response, 'html.parser')
         count = soup.select('.sort-filter-count')[0].text
-        self.assertEqual("Found: 1 registrar", count)
+        self.assertEqual("Found: 2 registrars", count)
         self.assertEqual(response.count('needs approval'), 0)
 
         # get just pending registrars
