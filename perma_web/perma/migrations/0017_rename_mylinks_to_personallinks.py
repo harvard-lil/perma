@@ -8,7 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 def rename_folders_helper(apps, schema_editor, old, new):
     Folder = apps.get_model("perma", "Folder")
     try:
-        folders = Folder.objects.filter(name=old)
+        folders = Folder.objects.filter(name=old, is_root_folder=True)
         folders.update(name=new)
     except ObjectDoesNotExist:
         pass

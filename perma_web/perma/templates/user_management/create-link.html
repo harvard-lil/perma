@@ -150,17 +150,9 @@
         contact_url = "{% url 'contact' %}",
         links_remaining = "{{links_remaining}}",
         current_user = {% as_json request.user %},
+        is_org_user = "{{ request.user.is_organization_user }}",
         host = "{{ request.get_host }}";
   </script>
-
-  {% if org_user %}
-    <script>
-      if (links_remaining == 10){
-        var message = "Your personal links for the month are almost used up! Create more links in 'unlimited' folders."
-        Helpers.informUser(message, 'danger');
-      }
-    </script>
-  {% endif %}
 
   {% javascript 'admin' %}
   {% javascript 'create' %}

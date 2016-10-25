@@ -58,8 +58,7 @@ def create_link(request):
         'links_remaining': links_remaining,
         'folder': folder,
         'suppress_reminder': suppress_reminder,
-        'max_size': max_size,
-        'org_user': request.user.is_organization_user
+        'max_size': max_size
     })
 
 
