@@ -1,7 +1,6 @@
 {% extends "archive/base-archive-responsive.html" %}
-{% load file_exists  truncatesmart local_datetime as_json %}
+{% truncatesmart local_datetime as_json %}
 {% load render_bundle from webpack_loader %}
-
 {% block title %} | {{link.submitted_title}}{% endblock %}
 
 {% block meta-head %}
@@ -189,7 +188,7 @@
                 {% if link.private_reason == 'user' %}You can make this link public under 'Show record details.'{% endif %}
           </div>
         {% endif %}
-       
+
         {% if new_record %}
           <div class="banner banner-status row _isNewRecord">
             <strong>Success!</strong>
