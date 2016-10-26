@@ -8,44 +8,44 @@ This section of the user guide describes the way organizations, like journals an
 {% block mainContent %}
 
 <div class="container cont-fixed">
-	<div class="row">
-		<div class="col-sm-12">
-			<h1>Perma.cc user guide <span class="subsection">For Organizations</span></h1>
-		</div>
-	</div>
+  <div class="row">
+    <div class="col-sm-12">
+      <h1>Perma.cc user guide <span class="subsection">For Organizations</span></h1>
+    </div>
+  </div>
 </div>
 
 {% include 'docs/docs_menu.html' %}
 
 <div class="container cont-reading cont-fixed" id="overview">
-	<div class="row">
-		<div class="col-sm-4 reading-toc" >
-			<ul>
-				<li class="reading-toc-chapter"><a href="#orgs">Perma Organizations</a></li>
-				<li class="reading-toc-section"><a href="#becoming-org">Becoming a Perma org</a></li>
-				<li class="reading-toc-section"><a href="#journals-authority">Authority and responsibilities</a></li>
-				<li class="reading-toc-section"><a href="#adding-org-users">Affiliated users</a></li>
-			<ul>
-		</div>
+  <div class="row">
+    <div class="col-sm-4 reading-toc" >
+      <ul>
+        <li class="reading-toc-chapter"><a href="#orgs">Perma Organizations</a></li>
+        <li class="reading-toc-section"><a href="#becoming-org">Becoming a Perma org</a></li>
+        <li class="reading-toc-section"><a href="#journals-authority">Authority and responsibilities</a></li>
+        <li class="reading-toc-section"><a href="#adding-org-users">Affiliated users</a></li>
+      <ul>
+    </div>
 
-		<div class="col-sm-8 reading-body">
-			<h2 class="body-ah">Perma Organizations</h2>
-			<p class="body-text">Journals, courts, faculty member offices and others can qualify as archiving organizations. Organizations enable groups of individual Perma users to affiliate together and to share access to Perma Records and Links.</p> 
-			
-			<h3 id="becoming-org" class="body-bh">Becoming a Perma org</h3>
-			<p class="body-text">If you're with an academic institution, simply contact your library and ask if it is a Perma.cc registrar. If your library isn't already a registrar, invite it to visit our <a href="{% url 'libraries' %}">library resource page</a> to request membership, and we'll help them get started. If you're part of a court, please contact us directly using <a href="{% url 'sign_up_courts' %}">this form</a> and we'll help you get started.</p>  
-			
-			<h3 id="journals-authority" class="body-bh">Authority and responsibilities</h3>
-			<p class="body-text">The members of an archiving org can create Perma Records on behalf of the organization. They also can affiliate Perma users with the organization or remove users from the organization.</p>
-			<p>Typically an archiving org is a collection of Perma users working together on a journal, for a faculty member or for a court. The organization is responsible for ensuring that its users do not abuse their  authority. Every link created by anyone on behalf of the organization becomes automatically associated with the entire organization, so it's important that you exercise judgment about who can be affiliated and what kinds of activities on behalf of the organization are appropriate. If you like, you can adopt policies and best practices for Perma.cc usage by those in your organization.<p class="body-text">
-			<p class="body-text">Within an archiving org, every user has access to all of the links created on behalf of the org. This lets organization users work collaboratively and manage links across the organization.</p> 
-			
-			<h3 id="adding-org-users" class="body-bh">Adding and removing users</h3>
-			<p class="body-text">Every user within an archiving org has the ability to add or remove users on behalf of the organization. Each organization should decide for itself, in consultation with its registrar, how it wants to manage the addition and removal of users.</p>
-			<p class="body-text">To assign users to the organization, just select "Manage users" in the main dropdown menu. Then click "add organization user," enter the user's email address and submit. If the user already has a Perma account, you'll be asked to confirm her addition to your organization. If the person doesn't have a Perma account, you'll be asked to create one for her, and we'll send her a verification email so she can get up and running with Perma.</p>
-			<p class="body-text">To remove a user from an archiving org, click on "Manage users" in the main dropdown menu and enter the user's email address. Find the user's account and click the "remove" button.</p>
-		</div>
-	</div>
+    <div class="col-sm-8 reading-body">
+      <h2 class="body-ah">Perma Organizations</h2>
+      <p class="body-text">Journals, courts, faculty member offices and others can qualify as archiving organizations. Organizations enable groups of individual Perma users to affiliate together and to share access to Perma Records and Links.</p>
+
+      <h3 id="becoming-org" class="body-bh">Becoming a Perma org</h3>
+      <p class="body-text">If you're with an academic institution, simply contact your library and ask if it is a Perma.cc registrar. If your library isn't already a registrar, invite it to visit our <a href="{% url 'libraries' %}">library resource page</a> to request membership, and we'll help them get started. If you're part of a court, please contact us directly using <a href="{% url 'sign_up_courts' %}">this form</a> and we'll help you get started.</p>
+
+      <h3 id="journals-authority" class="body-bh">Authority and responsibilities</h3>
+      <p class="body-text">The members of an archiving org can create Perma Records on behalf of the organization. They also can affiliate Perma users with the organization or remove users from the organization.</p>
+      <p>Typically an archiving org is a collection of Perma users working together on a journal, for a faculty member or for a court. The organization is responsible for ensuring that its users do not abuse their  authority. Every link created by anyone on behalf of the organization becomes automatically associated with the entire organization, so it's important that you exercise judgment about who can be affiliated and what kinds of activities on behalf of the organization are appropriate. If you like, you can adopt policies and best practices for Perma.cc usage by those in your organization.<p class="body-text">
+      <p class="body-text">Within an archiving org, every user has access to all of the links created on behalf of the org. This lets organization users work collaboratively and manage links across the organization.</p>
+
+      <h3 id="adding-org-users" class="body-bh">Adding and removing users</h3>
+      <p class="body-text">Every user within an archiving org has the ability to add or remove users on behalf of the organization. Each organization should decide for itself, in consultation with its registrar, how it wants to manage the addition and removal of users.</p>
+      <p class="body-text">To assign users to the organization, just select "Manage users" in the main dropdown menu. Then click "add organization user," enter the user's email address and submit. If the user already has a Perma account, you'll be asked to confirm her addition to your organization. If the person doesn't have a Perma account, you'll be asked to create one for her, and we'll send her a verification email so she can get up and running with Perma.</p>
+      <p class="body-text">To remove a user from an archiving org, click on "Manage users" in the main dropdown menu and enter the user's email address. Find the user's account and click the "remove" button.</p>
+    </div>
+  </div>
 </div>
 
 {% include 'docs/docs_menu.html' %}

@@ -1,10 +1,10 @@
 {% extends "archive/base-archive-responsive.html" %}
-{% truncatesmart local_datetime as_json %}
-{% load render_bundle from webpack_loader %}
+{% load truncatesmart local_datetime pipeline as_json %}
+
 {% block title %} | {{link.submitted_title}}{% endblock %}
 
 {% block meta-head %}
-    <meta name="robots" content="noindex, noimageindex">
+  <meta name="robots" content="noindex, noimageindex">
 {% endblock %}
 
 {% block header %}
@@ -12,35 +12,35 @@
 {% comment %}
 
 
-    Our header is built using three segments.
-    +------------------------------------+
-    | Primary segment                     |
-    |                                     |
-    | This segment is always displayed    |
-    --------------------------------------
-    | Details segment                     |
-    |                                     |
-    | This segment is displayed           |
-    | if the user clicks the show         |
-    | details button                      |
-    --------------------------------------
-    | Status banner segment               |
-    |                                     |
-    | If we have a message to share       |
-    | we display it here. Things like     |
-    | "Things archive is dark, but you    |
-    | can see it because you're part of   |
-    | org that owns the archive" or       |
-    | "Archive created successfully,      |
-    | here's the perma.cc address of      |
-    | the archive"                        |
-    +------------------------------------+
+  Our header is built using three segments.
+  +------------------------------------+
+  | Primary segment                     |
+  |                                     |
+  | This segment is always displayed    |
+  --------------------------------------
+  | Details segment                     |
+  |                                     |
+  | This segment is displayed           |
+  | if the user clicks the show         |
+  | details button                      |
+  --------------------------------------
+  | Status banner segment               |
+  |                                     |
+  | If we have a message to share       |
+  | we display it here. Things like     |
+  | "Things archive is dark, but you    |
+  | can see it because you're part of   |
+  | org that owns the archive" or       |
+  | "Archive created successfully,      |
+  | here's the perma.cc address of      |
+  | the archive"                        |
+  +------------------------------------+
 
  {% endcomment %}
 
 
-    <header{% if link.is_private %} class="_isPrivate"{% endif %}>
-        {% if request.user.is_authenticated %}
+  <header{% if link.is_private %} class="_isPrivate"{% endif %}>
+    {% if request.user.is_authenticated %}
       <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
@@ -48,168 +48,167 @@
       </button>
     {% endif %}
 
-        <div class="primary-segment row">
-            <div class="col col-sm-2 _details">
-              <div class="content">
-                  <button id="details-button" class="btn btn-ui-small details" type="button">
-                    <span>Show record details</span></button>
-              </div>
-            </div>
-            <div class="col col-sm-4 _main {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
-              <div class="content">
-                <p class="title"><span class="_verbose">This is a </span>{% if link.is_private %}Private {% endif %}<span class="logo">Perma.cc</span> record</p>
-                <p class="creation"><span class="cat">{% if capture.user_upload %}Uploaded{% else %}Captured{% endif %}</span> {{ link.creation_timestamp|local_datetime }}
-                  {% if serve_type != 'image' %}
-                    {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
-                      <span class="action">
-                        <span class="_verbose">
-                          Looks wrong?
-                          <a href="{% url 'single_linky' link.guid %}?type=image">
-                            See the Screenshot View
-                          </a>
-                        </span>
-                      </span>
-                    {% endif %}
-                  {% else %}
-                      <span class="action">
-                        <span class="_verbose">This is a screenshot. </span>
-                        {% if link.primary_capture and link.primary_capture.status == 'success' %}
-                          <a href="{% url 'single_linky' link.guid %}">See the Capture View</a>
-                        {% endif %}
-                      </span>
-                  {% endif %}
-                  {% if request.user.is_authenticated %}
-                  {% else %}
-                    <a class="about" href="{% url 'about' %}" target="_blank">What is Perma.cc?</a>
-                  {% endif %}
-
-                </p>
-              </div>
-            </div>
-            <div class="col col-sm-2 _livepage">
-              <div class="content">
-                  <a class="btn btn-outside" href="{{link.submitted_url}}" target="_blank">
-                    <span>View the live page</span></a>
-              </div>
-            </div>
-            <div class="col col-sm-2 _user {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
-              <div class="content">
-                  {% if request.user.is_authenticated %}
-                      {% include 'includes/upper_right_menu.html' %}
-                  {% else %}
-                      <a class="about" href="{% url 'about' %}" target="_blank">What is Perma.cc?</a>
-                  {% endif %}
-              </div>
-            </div>
+    <div class="primary-segment row">
+      <div class="col col-sm-2 _details">
+        <div class="content">
+          <button id="details-button" class="btn btn-ui-small details" type="button">
+          <span>Show record details</span></button>
         </div>
-
-        <div id="collapse-details" class="details-segment ui-tray row collapse">
-          <div class="tray-details">
-            <dl class="tray-detail-group">
-              <dt class="tray-detail-title">Source page URL {% if capture.user_upload %}(unverified){% endif %}</dt>
-              <dd class="tray-detail-entry">{{link.submitted_url}}</dd>
-            </dl>
-
-            {% if can_edit %}
-              <dl class="tray-detail-group">
-                <dt class="tray-detail-title">Title <span class="save-status"></span></dt>
-                <input name="title" class="form-control link-submitted-title" value="{{link.submitted_title}}">
-              </dl>
-              <dl class="tray-detail-group">
-                <dt class="tray-detail-title">Notes <span class="label-instruction _verbose"> (only visible to you{% if link.organization%} and your organization{% endif %})</span><span class="save-status"></span></dt>
-                <input name="notes" class="form-control link-notes" rows="2" value="{{link.notes}}"/>
-              </dl>
-              {% if can_delete %}
-                <dl class="tray-detail-group temporary-options">
-                  <form id="archive_upload_form">
-                    <dt class="tray-detail-title" for="file">Upload file<span class="label-asterisk">*</span> <span class="label-instruction _verbose" style="display:block;"> This will replace the existing capture. GIF, JPG, PDF, and PNG up to {{max_size}} MB are allowed.</span></dt>
-                    <input class="col-sm-10 file" name="file" type="file" placeholder="example.png" accept=".png,.jpg,.jpeg,.gif,.pdf">
-                    <span class="btn-file-upload-container">
-                      <button id="updateLinky" type="submit" class="blue-button btn-sm btn-file-upload">Upload</button>
-                      <button id="cancelUpdateLinky" type="reset" class="btn-sm btn-file-upload">Cancel</button>
-                    </span>
-                  </form>
-                </dl>
-                <dl class="tray-detail-group temporary-options">
-                  <dt class="tray-detail-title">
-                    <a class="btn-delete btn-sm"
-                      href="{% url 'user_delete_link' link.guid %}">
-                      Delete<span class="_verbose"> record</span>
+      </div>
+      <div class="col col-sm-4 _main {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
+        <div class="content">
+          <p class="title"><span class="_verbose">This is a </span>{% if link.is_private %}Private {% endif %}<span class="logo">Perma.cc</span> record</p>
+          <p class="creation"><span class="cat">{% if capture.user_upload %}Uploaded{% else %}Captured{% endif %}</span> {{ link.creation_timestamp|local_datetime }}
+            {% if serve_type != 'image' %}
+              {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
+                <span class="action">
+                  <span class="_verbose">
+                    Looks wrong?
+                    <a href="{% url 'single_linky' link.guid %}?type=image">
+                    See the Screenshot View
                     </a>
-                    <span class="label-asterisk">*</span>
-                  </dt>
-                  <div class="label-instruction pull-right temporary-instructions"><span class="label-asterisk">*</span> These options are only available for the first twenty-four hours.</div>
-                </dl>
-
+                  </span>
+                </span>
               {% endif %}
             {% else %}
-              <dl class="tray-detail-group">
-                <dt class="tray-detail-title">Title</dt>
-                <dd class="tray-detail-entry">{{link.submitted_title}}</dd>
-              </dl>
-            {% endif %}
-            {% comment %}
-              {% if link.organization %}
-                <dl class="tray-detail-group">
-                  <dt class="tray-detail-title">Archiving Organization</dt>
-                  <dd class="tray-detail-entry">{{ link.organization }}</dd>
-                </dl>
-              {% endif %}
-            {% endcomment %}
-          </div>
-          <div class="tray-actions col-xs-12">
-
-            {% if not can_edit %}
-              <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-ui-small btn-dashboard flag" title="Flag as inappropriate">Flag<span class="_verbose"> as inappropriate</span></a>
-            {% endif %}
-            {# user edit buttons #}
-            {% if can_toggle_private %}
-              <button class="btn btn-ui-small btn-dashboard darchive"><span class="_verbose">Mark as </span>{% if link.is_private %}Public{% else %}Private{% endif %}</button>
-              {% if request.user.is_staff %}
-                {% if link.is_private %}
-                  (Private reason: {{ link.get_private_reason_display }})
-                {% else %}
-                  <select name="private_reason">
-                    <option value="user"> At user direction</option>
-                    <option value="policy"> robots.txt or noarchive meta tag</option>
-                    <option value="takedown"> At content owner's request</option>
-                  </select>
+              <span class="action">
+                <span class="_verbose">
+                  This is a screenshot.
+                </span>
+                {% if link.primary_capture and link.primary_capture.status == 'success' %}
+                  <a href="{% url 'single_linky' link.guid %}">See the Capture View</a>
                 {% endif %}
-              {% endif %}
+              </span>
             {% endif %}
-
-          </div>
+            {% if request.user.is_authenticated %}
+            {% else %}
+              <a class="about" href="{% url 'about' %}" target="_blank">What is Perma.cc?</a>
+            {% endif %}
+          </p>
         </div>
+      </div>
+      <div class="col col-sm-2 _livepage">
+        <div class="content">
+          <a class="btn btn-outside" href="{{link.submitted_url}}" target="_blank">
+            <span>View the live page</span>
+          </a>
+        </div>
+      </div>
+      <div class="col col-sm-2 _user {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
+        <div class="content">
+          {% if request.user.is_authenticated %}
+            {% include 'includes/upper_right_menu.html' %}
+          {% else %}
+            <a class="about" href="{% url 'about' %}" target="_blank">What is Perma.cc?</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
 
-        {% if can_view and link.is_private %}
-          <div class="banner banner-status row _isDarchive">
-            <strong>This record is private{% if link.private_reason == 'policy' %} by Perma.cc policy{% elif link.private_reason == 'takedown' %} at the content owner's request, and it cannot be made public on Perma.cc{% endif %}.</strong>
-                It’s only visible to {% if link.organization %}members of {{ link.organization }} and the {{ link.organization.registrar }} registrar{% else %}you{% endif %}.
-                {% if link.private_reason == 'user' %}You can make this link public under 'Show record details.'{% endif %}
-          </div>
+    <div id="collapse-details" class="details-segment ui-tray row collapse">
+      <div class="tray-details">
+      <dl class="tray-detail-group">
+        <dt class="tray-detail-title">Source page URL {% if capture.user_upload %}(unverified){% endif %}</dt>
+        <dd class="tray-detail-entry">{{link.submitted_url}}</dd>
+      </dl>
+
+      {% if can_edit %}
+        <dl class="tray-detail-group">
+          <dt class="tray-detail-title">Title <span class="save-status"></span></dt>
+          <input name="title" class="col-sm-12 link-submitted-title" value="{{link.submitted_title}}">
+        </dl>
+        <dl class="tray-detail-group">
+          <dt class="tray-detail-title">Notes <span class="label-instruction _verbose"> (only visible to you{% if link.organization%} and your organization{% endif %})</span><span class="save-status"></span></dt>
+          <input name="notes" class="col-sm-12 link-notes" rows="2" value="{{link.notes}}"/>
+        </dl>
+        {% if can_delete %}
+          <dl class="tray-detail-group temporary-options">
+            <form id="archive_upload_form">
+            <dt class="tray-detail-title" for="file">Upload file<span class="label-asterisk">*</span> <span class="label-instruction _verbose" style="display:block;"> This will replace the existing capture. GIF, JPG, PDF, and PNG up to {{max_size}} MB are allowed.</span></dt>
+            <input class="col-sm-10 file" name="file" type="file" placeholder="example.png" accept=".png,.jpg,.jpeg,.gif,.pdf">
+            <span class="btn-file-upload-container">
+              <button id="updateLinky" type="submit" class="blue-button btn-sm btn-file-upload">Upload</button>
+              <button id="cancelUpdateLinky" type="reset" class="btn-sm btn-file-upload">Cancel</button>
+            </span>
+            </form>
+          </dl>
+          <dl class="tray-detail-group temporary-options">
+            <dt class="tray-detail-title">
+            <a class="btn-delete btn-sm"
+              href="{% url 'user_delete_link' link.guid %}">
+              Delete<span class="_verbose"> record</span>
+            </a>
+            <span class="label-asterisk">*</span>
+            </dt>
+            <div class="label-instruction pull-right temporary-instructions"><span class="label-asterisk">*</span> These options are only available for the first twenty-four hours.</div>
+          </dl>
         {% endif %}
-
-        {% if new_record %}
-          <div class="banner banner-status row _isNewRecord">
-            <strong>Success!</strong>
-            <span class="message verbose">Your new Perma Link is <input class="link-field" type="text" value="https://{{ request.get_host }}{% url 'single_linky' link.guid %}"></span>
-            <span class="link-options edit-link verbose"><a style="cursor:pointer;">Edit</a><span class="_verbose _toDesktop"> (Perma Links are permanent after 24 hours)</span></span>
-            <a class="action new-link" href="{% url 'create_link' %}">Make a new Perma Link</a>
-          </div>
+      {% else %}
+        <dl class="tray-detail-group">
+          <dt class="tray-detail-title">Title</dt>
+          <dd class="tray-detail-entry">{{link.submitted_title}}</dd>
+        </dl>
+      {% endif %}
+      {% comment %}
+        {% if link.organization %}
+          <dl class="tray-detail-group">
+            <dt class="tray-detail-title">Archiving Organization</dt>
+            <dd class="tray-detail-entry">{{ link.organization }}</dd>
+          </dl>
         {% endif %}
+      {% endcomment %}
+      </div>
+      <div class="tray-actions col-sm-12">
+        {% if not can_edit %}
+          <a href="{% url 'contact' %}?flag={{link.guid}}" role="button" class="btn btn-ui-small btn-dashboard flag" title="Flag as inappropriate">Flag<span class="_verbose"> as inappropriate</span></a>
+        {% endif %}
+        {# user edit buttons #}
+        {% if can_toggle_private %}
+          <button class="btn btn-ui-small btn-dashboard darchive"><span class="_verbose">Mark as </span>{% if link.is_private %}Public{% else %}Private{% endif %}</button>
+          {% if request.user.is_staff %}
+            {% if link.is_private %}
+              (Private reason: {{ link.get_private_reason_display }})
+            {% else %}
+              <select name="private_reason">
+              <option value="user"> At user direction</option>
+              <option value="policy"> robots.txt or noarchive meta tag</option>
+              <option value="takedown"> At content owner's request</option>
+              </select>
+            {% endif %}
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
 
-    </header>
+    {% if can_view and link.is_private %}
+      <div class="banner banner-status row _isDarchive">
+        <strong>This record is private{% if link.private_reason == 'policy' %} by Perma.cc policy{% elif link.private_reason == 'takedown' %} at the content owner's request, and it cannot be made public on Perma.cc{% endif %}.</strong>
+          It’s only visible to {% if link.organization %}members of {{ link.organization }} and the {{ link.organization.registrar }} registrar{% else %}you{% endif %}.
+          {% if link.private_reason == 'user' %}You can make this link public under 'Show record details.'{% endif %}
+      </div>
+    {% endif %}
+
+    {% if new_record %}
+      <div class="banner banner-status row _isNewRecord">
+        <strong>Success!</strong>
+        <span class="message verbose">Your new Perma Link is <input class="link-field" type="text" value="https://{{ request.get_host }}{% url 'single_linky' link.guid %}"></span>
+        <span class="link-options edit-link verbose"><a style="cursor:pointer;">Edit</a><span class="_verbose _toDesktop"> (Perma Links are permanent after 24 hours)</span></span>
+        <a class="action new-link" href="{% url 'create_link' %}">Make a new Perma Link</a>
+      </div>
+    {% endif %}
+
+  </header>
 {% endblock %}
 
 {% block mainContent %}
 
-    {% if link.user_deleted %}
-        {% include "archive/deleted.html" %}
-    {% elif can_view %}
-        {% include "archive/iframe.html" %}
-    {% elif link.is_private %}
-        {% include "archive/dark-archive.html" %}
-    {% endif %}
+  {% if link.user_deleted %}
+    {% include "archive/deleted.html" %}
+  {% elif can_view %}
+    {% include "archive/iframe.html" %}
+  {% elif link.is_private %}
+    {% include "archive/dark-archive.html" %}
+  {% endif %}
 
 <!-- Modals -->
 
@@ -223,16 +222,15 @@
 {% endblock %}
 
 {% block scripts %}
-    <script>
-        var archive = { guid: "{{ link.guid }}" };
-        var current_user = {id:"{{request.user.id}}"};
-    </script>
+  <script>
+    var archive = { guid: "{{ link.guid }}" };
+    var current_user = {id:"{{request.user.id}}"};
+  </script>
 
-    {% if request.user.is_authenticated %}
-	    {% render_bundle 'global' 'js' %}
-	    {% render_bundle 'single-link-permissions' 'js' %}
-    {% else %}
-	    {% render_bundle 'single-link' 'js' %}
-    {% endif %}
+  {% if request.user.is_authenticated %}
+    {% javascript 'single-link-with-permissions' %}
+  {% else %}
+    {% javascript 'single-link' %}
+  {% endif %}
 
 {% endblock %}

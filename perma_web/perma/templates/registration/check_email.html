@@ -3,17 +3,17 @@
 
 {% block mainContent %}
 <div class="container cont-fixed">
-	<div class="row">
-		<div class="col-sm-12">	
-			<h1 class="page-title">We created your Perma.cc account</h1>
-			
-			<p class="page-dek">Look for an email from Perma.cc and click on the link to activate your new account. See you soon!</p>
-			    {% if messages %}
+  <div class="row">
+    <div class="col-sm-12">
+      <h1 class="page-title">We created your Perma.cc account</h1>
+
+      <p class="page-dek">Look for an email from Perma.cc and click on the link to activate your new account. See you soon!</p>
+      {% if messages %}
         {% for message in messages %}
-            <p class="page-dek">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</p>
+          <p class="page-dek">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</p>
         {% endfor %}
-    {% endif %}
-		</div>
-	</div>
+      {% endif %}
+    </div>
+  </div>
 </div>
 {% endblock mainContent %}
