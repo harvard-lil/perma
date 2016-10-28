@@ -1,44 +1,43 @@
 {% extends "base-responsive.html" %}
-{% load file_exists %}
 {% block title %} | Contingency Plan{% endblock %}
 
 {% block mainContent %}
-    <div class="container cont-fixed">
-        <div class="row">
-	        <div class="col-xs-12">
-	            <h1>Perma.cc Contingency Plan</h1>
-	
-	            <p>Perma.cc is built on a solid foundation of technological and institutional support, and is designed to endure for decades to come. But we cannot guarantee what will happen in the future. If the site ever needs to shut down, these are the steps that will be taken to preserve existing links.</p>
-	
-	            <h2>Normal operation</h2>
-	
-	            <p>During normal operation, Perma.cc will:</p>
-	
-	            <ol>
-	                <li><b>Work with redundant third party services.</b> Every link stored by Perma.cc results in an archive file, using the industry-standard WARC format. Perma.cc will replicate these archives to available third party services. For example, we plan to automatically submit archives to the Internet Archive. Most Permalinks will therefore have a corresponding address at one or more third-party servers.</li>
-	            </ol>
-	
-	            <h2>Two-year phaseout period</h2>
+  <div class="container cont-fixed">
+    <div class="row">
+      <div class="col-xs-12">
+        <h1>Perma.cc Contingency Plan</h1>
 
-            <p>If Perma.cc ever needs to shut down, it will freeze creation of new links but continue to serve existing links for at least two years. During this time, Perma.cc will:</p>
+        <p>Perma.cc is built on a solid foundation of technological and institutional support, and is designed to endure for decades to come. But we cannot guarantee what will happen in the future. If the site ever needs to shut down, these are the steps that will be taken to preserve existing links.</p>
 
-            <ol>
-                <li><b>Provide tools for users to move to new hosts.</b> Users will be contacted by email and offered tools to export the links they created, either in database or static file form. They can then run their own full-featured server using the Perma.cc codebase, which is open source, or they can upload the static files to any ordinary web host. Users will be asked to provide the web address of their new host so links to http://perma.cc/ can be automatically redirected.</li>
-                <li><b>Seek a new host for existing links.</b> Perma.cc will seek a new host, such as the Internet Archive, for a static file export of all of its links. Failing that, Perma.cc will seek a host for links that have not been claimed and re-hosted by their creator or affiliated organization.</li>
-                <li><b>Publish a map file.</b> Perma.cc will publish to third-party websites a text file mapping each Permalink back to the original archived link. The file will also map Permalinks to the corresponding third-party archives, and to any new locations where the archive has been moved during the phaseout period.</li>
-            </ol>
+        <h2>Normal operation</h2>
 
-            <h2>Ten-year phaseout period</h2>
+        <p>During normal operation, Perma.cc will:</p>
 
-            <p>After the two-year phaseout period, for as long as practical but for at least ten years, Perma.cc will:</p>
+        <ol>
+          <li><b>Work with redundant third party services.</b> Every link stored by Perma.cc results in an archive file, using the industry-standard WARC format. Perma.cc will replicate these archives to available third party services. For example, we plan to automatically submit archives to the Internet Archive. Most Permalinks will therefore have a corresponding address at one or more third-party servers.</li>
+        </ol>
 
-            <ol>
-                <li><b>Maintain a low-cost redirect server.</b> If no suitable host has been found to serve a static version of the entire http://perma.cc/ domain, Perma.cc will maintain a simple redirect server. When a user requests a perma.cc URL, they will be automatically redirected to the best available alternative at the close of the two-year phaseout. Alternatives might be: a new host that has agreed to serve a static version of Perma.cc's archive; a new host identified by the affiliated organization; the corresponding Wayback Machine link; or the original archived website.</li>
-                <li><b>Offer local access to the Perma.cc database.</b> A copy of the entire Perma.cc database will be preserved at the Harvard Law Library. At their own expense, users may obtain a copy of their own links from the Library. Other researchers or archivists may view or duplicate the database at the Library's discretion.</li>
-            </ol>
+        <h2>Two-year phaseout period</h2>
 
-            <p>Perma.cc respects copyright and other law. It is always possible that future laws or court decisions will affect our operation. If a legal restriction or court order interferes with this contingency plan, Perma.cc will follow the spirit of the plan within the bounds of the law.</p>
-	        </div>
-        </div>
+        <p>If Perma.cc ever needs to shut down, it will freeze creation of new links but continue to serve existing links for at least two years. During this time, Perma.cc will:</p>
+
+        <ol>
+          <li><b>Provide tools for users to move to new hosts.</b> Users will be contacted by email and offered tools to export the links they created, either in database or static file form. They can then run their own full-featured server using the Perma.cc codebase, which is open source, or they can upload the static files to any ordinary web host. Users will be asked to provide the web address of their new host so links to http://perma.cc/ can be automatically redirected.</li>
+          <li><b>Seek a new host for existing links.</b> Perma.cc will seek a new host, such as the Internet Archive, for a static file export of all of its links. Failing that, Perma.cc will seek a host for links that have not been claimed and re-hosted by their creator or affiliated organization.</li>
+          <li><b>Publish a map file.</b> Perma.cc will publish to third-party websites a text file mapping each Permalink back to the original archived link. The file will also map Permalinks to the corresponding third-party archives, and to any new locations where the archive has been moved during the phaseout period.</li>
+        </ol>
+
+        <h2>Ten-year phaseout period</h2>
+
+        <p>After the two-year phaseout period, for as long as practical but for at least ten years, Perma.cc will:</p>
+
+        <ol>
+          <li><b>Maintain a low-cost redirect server.</b> If no suitable host has been found to serve a static version of the entire http://perma.cc/ domain, Perma.cc will maintain a simple redirect server. When a user requests a perma.cc URL, they will be automatically redirected to the best available alternative at the close of the two-year phaseout. Alternatives might be: a new host that has agreed to serve a static version of Perma.cc's archive; a new host identified by the affiliated organization; the corresponding Wayback Machine link; or the original archived website.</li>
+          <li><b>Offer local access to the Perma.cc database.</b> A copy of the entire Perma.cc database will be preserved at the Harvard Law Library. At their own expense, users may obtain a copy of their own links from the Library. Other researchers or archivists may view or duplicate the database at the Library's discretion.</li>
+        </ol>
+
+        <p>Perma.cc respects copyright and other law. It is always possible that future laws or court decisions will affect our operation. If a legal restriction or court order interferes with this contingency plan, Perma.cc will follow the spirit of the plan within the bounds of the law.</p>
+      </div>
     </div>
+  </div>
 {% endblock %}

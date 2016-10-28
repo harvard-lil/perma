@@ -1,5 +1,4 @@
 {% extends "base-responsive.html" %}
-{% load file_exists %}
 {% block title %} | Additional Resources{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ STATIC_URL }}vendors/font-awesome/font-awesome.min.css">
@@ -10,15 +9,15 @@
 <h1 class="page-title">Additional Resources</h1>
 
 <div class="row">
-	<div class="col-sm-6 column">
-		<ul>
-		    <li><a target="_blank" href="https://archive.org/">Internet Archive</a></li>
-            <li><a target="_blank" href="http://foreverdata.org/">ForeverData</a></li>
-            <li><a target="_blank" href="http://archive.is/">Archive.is</a></li>
-            <li><a target="_blank" href="https://permamarks.com/">Permamarks</a></li>
-            <li><a target="_blank" href="http://www.webcitation.org/">WebCite</a></li>
-            <li><a target="_blank" href="http://www.mementoweb.org/">Memento</a></li>
-		</ul>
-	</div>
+  <div class="col-sm-6 column">
+    <ul>
+      <li><a target="_blank" href="https://archive.org/">Internet Archive</a></li>
+      <li><a target="_blank" href="http://foreverdata.org/">ForeverData</a></li>
+      <li><a target="_blank" href="http://archive.is/">Archive.is</a></li>
+      <li><a target="_blank" href="https://permamarks.com/">Permamarks</a></li>
+      <li><a target="_blank" href="http://www.webcitation.org/">WebCite</a></li>
+      <li><a target="_blank" href="http://www.mementoweb.org/">Memento</a></li>
+    </ul>
+  </div>
 </div>
 {% endblock %}

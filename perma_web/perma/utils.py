@@ -3,7 +3,6 @@ from contextlib import contextmanager
 import operator
 from urlparse import urlparse
 import os
-import struct
 import tempdir
 from datetime import datetime
 import logging
@@ -114,15 +113,6 @@ def imagemagick_temp_dir():
         os.environ.clear()
         os.environ.update(old_environ)
         temp_dir.dissolve()
-
-def get_png_size(fh):
-    data = fh.read(24)
-    if len(data) < 24:
-        raise IOError
-    if data[:8] != '\211PNG\r\n\032\n' or data[12:16] != 'IHDR':
-        raise ValueError("File is not a png.")
-    w, h = struct.unpack('>LL', data[16:24])
-    return int(w), int(h)
 
 ### caching ###
 

@@ -1,5 +1,4 @@
 {% extends "base-responsive.html" %}
-{% load file_exists %}
 {% load render_bundle from webpack_loader %}
 {% block title %} | Search{% endblock %}
 
@@ -25,13 +24,12 @@ Perma.cc prevents link rot.
         </div>
         <div class="col-sm-12">
           <div class="calendar-container col-centered">
-            <div id="calendar"></div>
+          <div id="calendar"></div>
           </div>
         </div>
         <div class="col-sm-12">
           <div class="container item-rows"></div>
         </div>
-
       </div>
     </div>
   </div>
@@ -48,49 +46,47 @@ Perma.cc prevents link rot.
   {% render_bundle 'search' %}
 {% endblock %}
 
-
-
 {% block templates %}
 {% verbatim %}
 
   <script id="search-links-template" type="text/x-handlebars-template">
-    <!-- {{#if query }}
-      <div class="shared-folder-label alert-success">
-          Search results for "{{ query }}".
-          <a href="#" class="clear-search">Clear search.</a>
-      </div>
-    {{/if}} -->
+  <!-- {{#if query }}
+    <div class="shared-folder-label alert-success">
+      Search results for "{{ query }}".
+      <a href="#" class="clear-search">Clear search.</a>
+    </div>
+  {{/if}} -->
 
     {{#each links}}
-      <div class="item-container">
-        <div class="row item-row row-no-bleed" link_id="{{ guid }}">
-          <div class="row">
-            <div class="col col-sm-6 col-md-60">
-              <div class="item-title">
-                <span>{{ title }}</span>
-              </div>
-              <div class="item-subtitle">
-                <a href="{{url}}" target="_blank" class="item-link-original no-drag">
-                  {{ truncatechars url 100 }}
-                </a>
-              </div>
+    <div class="item-container">
+      <div class="row item-row row-no-bleed" link_id="{{ guid }}">
+        <div class="row">
+          <div class="col col-sm-6 col-md-60">
+            <div class="item-title">
+              <span>{{ title }}</span>
             </div>
-            <div class="col col-sm-6 col-md-40 align-right item-permalink">
-              <a class="perma no-drag" href="http://{{local_url}}" target="_blank">
-                {{local_url}}
+            <div class="item-subtitle">
+              <a href="{{url}}" target="_blank" class="item-link-original no-drag">
+                {{ truncatechars url 100 }}
               </a>
             </div>
           </div>
-          <div class="row item-secondary">
-            <div class="col col-sm-5 sm-align-right pull-right">
-                <span class="item-date"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
-            </div>
+          <div class="col col-sm-6 col-md-40 align-right item-permalink">
+            <a class="perma no-drag" href="http://{{local_url}}" target="_blank">
+            {{local_url}}
+            </a>
           </div>
         </div>
+        <div class="row item-secondary">
+          <div class="col col-sm-5 sm-align-right pull-right">
+            <span class="item-date"><span class="label">Created </span>{{creation_timestamp_formatted}}</span>
+          </div>
+        </div>
+    </div>
 
-      {{/each}}
-    </script>
+    {{/each}}
+  </script>
 
 
-    {% endverbatim %}
+  {% endverbatim %}
 {% endblock templates %}
