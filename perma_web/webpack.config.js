@@ -37,17 +37,17 @@ module.exports = {
     // write out a list of generated files, so Django can find them
     new BundleTracker({filename: './webpack-stats.json'}),
 
-		new webpack.ProvidePlugin({
-			// Automatically detect jQuery and $ as free var in modules and inject the jquery library
-			jQuery: "jquery", $: "jquery", "window.jQuery": "jquery"
-		}),
+    new webpack.ProvidePlugin({
+      // Automatically detect jQuery and $ as free var in modules and inject the jquery library
+      jQuery: "jquery", $: "jquery", "window.jQuery": "jquery"
+    }),
 
     /*
-       We want to include global.js on just about every page, and then some pages have a second js file included as well.
-       We don't want a redundant webpack runtime added to the second js files.
-       Using CommonsChunkPlugin with `minChunks: Infinity` does what we want -- the runtime just goes into the first file,
-       but nothing gets moved around.
-    */
+     We want to include global.js on just about every page, and then some pages have a second js file included as well.
+     We don't want a redundant webpack runtime added to the second js files.
+     Using CommonsChunkPlugin with `minChunks: Infinity` does what we want -- the runtime just goes into the first file,
+     but nothing gets moved around.
+     */
     new webpack.optimize.CommonsChunkPlugin({
       name: "global",
       chunks: ["global", "create", "single-link-permissions", "map", "create", "link-delete-confirm", "developer-docs", "search", "stats", "admin-stats"],
@@ -76,16 +76,16 @@ module.exports = {
       },
 
       // inline css
-			{
-				test: /\.css$/,
-				loader: ExtractTextPlugin.extract("style", "css?sourceMap"),
-			},
+      {
+        test: /\.css$/,
+        loader: ExtractTextPlugin.extract("style", "css?sourceMap"),
+      },
 
       // image files (likely included by css)
-			{
-				test: /\.(jpg|jpeg|png|gif)$/,
-				loader: 'url-loader?limit=10000'
-			},
+      {
+        test: /\.(jpg|jpeg|png|gif)$/,
+        loader: 'url-loader?limit=10000'
+      },
 
       // scss
       {
