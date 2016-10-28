@@ -328,7 +328,7 @@ class FunctionalTest(BaseTestCase):
             get_id('addlink').click() # submit
             assert_text_displayed('URL cannot be empty. ', 'p')
             # don't provide a URL or a file on the Upload a file form
-            click_link("upload your own archive")
+            get_element_with_text("upload your own archive", 'button').click()
             get_id('uploadLinky').click()
             assert_text_displayed('URL cannot be empty.')
             assert_text_displayed('You must upload a file.')
@@ -419,13 +419,14 @@ class FunctionalTest(BaseTestCase):
                     self.assertIsNotNone(reg.search(header))
 
             info("Checking for unexpected javascript errors")
-            unexpected_errors = list(UncaughtError.objects.exclude(message__contains="doesNotExist"))
-            if unexpected_errors:
-                for err in unexpected_errors:
-                    info("Unexpected javascript error:", err.current_url, err.message, err.stack)
+            if UncaughtError.objects.exclude(message__contains="doesNotExist").count():
                 self.assertTrue(False, "Unexpected javascript errors (see log for details)")
 
         except Exception:
+            # print unexpected JS errors
+            for err in UncaughtError.objects.exclude(message__contains="doesNotExist"):
+                info("\n-----\nUnexpected javascript error:", err.current_url, err.message, err.stack)
+
             try:
                 print("Attempting to capture screenshot of failed functional test ...")
                 self.driver.save_screenshot("failed_functional_test.png")

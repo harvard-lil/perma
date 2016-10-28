@@ -1,5 +1,6 @@
 {% extends "base-responsive.html" %}
-{% load file_exists pipeline %}
+{% load file_exists %}
+{% load render_bundle from webpack_loader %}
 {% block title %} | Search{% endblock %}
 
 {% block meta_description %}
@@ -38,18 +39,13 @@ Perma.cc prevents link rot.
 {% endblock %}
 
 {% block scripts %}
-    {{ block.super }}
+  {{ block.super }}
 
-    <script>
-        var create_url = "{% url 'create_link' %}",
-            contact_url = "{% url 'contact' %}",
-            links_remaining = "{{links_remaining}}",
-            host = "{{ request.get_host }}";
-    </script>
+  <script>
+    var host = "{{ request.get_host }}";
+  </script>
 
-    {% javascript 'admin' %}
-    {% javascript 'search' %}
-
+  {% render_bundle 'search' %}
 {% endblock %}
 
 

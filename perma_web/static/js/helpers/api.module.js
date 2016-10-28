@@ -1,6 +1,7 @@
-window.APIModule = window.APIModule || {};
+var ErrorHandler = require('../error-handler.js');
+var Helpers = require('./general.helpers.js');
 
-APIModule.request = function (method, url, data, requestArgs){
+export function request (method, url, data, requestArgs){
   // set up arguments for API request
   requestArgs = typeof requestArgs !== 'undefined' ? requestArgs : {};
 
@@ -17,13 +18,13 @@ APIModule.request = function (method, url, data, requestArgs){
   requestArgs.method = method;
 
   if(!('error' in requestArgs))
-    requestArgs.error = APIModule.showError;
+    requestArgs.error = showError;
 
   return $.ajax(requestArgs);
 }
 
 // parse and display error results from API
-APIModule.showError = function (jqXHR) {
+export function showError (jqXHR) {
   var message;
 
   if (jqXHR.status == 400 && jqXHR.responseText) {
@@ -39,7 +40,7 @@ APIModule.showError = function (jqXHR) {
       }
       message = parsedResponse;
     } catch (SyntaxError) {
-      airbrake.notify(SyntaxError);
+      ErrorHandler.airbrake.notify(SyntaxError);
     }
   } else if (jqXHR.status == 401) {
     message = "<a href='/login'>You appear to be logged out. Please click here to log back in</a>.";

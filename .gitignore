@@ -42,7 +42,10 @@ perma_web/static-collected
 
 ghostdriver.log
 
+
 *.todo
 
 # node
 node_modules
+# ignore sourcemaps
+*.map

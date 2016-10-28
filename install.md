@@ -56,7 +56,7 @@ you make on your local computer will appear inside `/vagrant` and vice
 versa.
 
 Now you're in the Django project folder and can develop like
-normal. Although the requirements are already installed in the image,
+normal. Although the Python requirements are already installed in the image,
 you may have to update them if there have been subsequent changes:
 
     (perma)vagrant@perma:/vagrant/perma_web$ pip install -r requirements.txt
@@ -66,6 +66,10 @@ start over, run this, which will call `syncdb`, apply migrations, and
 load fixtures:
 
     (perma)vagrant@perma:/vagrant/perma_web$ fab dev.init_db
+
+You will also need the node requirements to compile frontend assets:
+
+    (perma)vagrant@perma:/vagrant/perma_web$ npm install
 
 Then you can run the server:
 
@@ -113,6 +117,15 @@ Sometimes LXML can be a little difficult to install. Using static dependencies c
 
     $ STATIC_DEPS=true pip install lxml
 
+### Node and npm
+
+Frontend assets are compiled with webpack, which depends on Node and npm.
+
+First [install Node and npm](https://nodejs.org/en/download/).
+
+Then install the npm packages for perma:
+
+    $ npm install
 
 ### Database installation
 

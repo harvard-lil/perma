@@ -1,4 +1,4 @@
-{% load pipeline %}<!DOCTYPE html>
+{% load render_bundle from webpack_loader %}<!DOCTYPE html>
 <html lang="en-us">
   <head>
       <title>Perma.cc{% block title %}{% endblock %}</title>
@@ -28,18 +28,17 @@
 
       {% block meta %}{% endblock %}
       <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
-      {% stylesheet 'base' %}
+      {% render_bundle 'global-styles' 'css' %}
 
       {# Python variables for use in Javascript #}
       {% include 'js_config.html' %}
 
-      {% javascript 'global_head' %}
-      {% block styles %}{% endblock %}
+      {# inline header JS #}
+      <script>
+        {% include "includes/local-datetime.js" %}
+      </script>
 
-      <!--[if lt IE 9]>
-        <script src="{{ STATIC_URL }}js/html5shiv.js"></script>
-        <script src="{{ STATIC_URL }}js/respond.js"></script>
-      <![endif]-->
+      {% block styles %}{% endblock %}
 
   </head>
   <body class="{% block bodyFlags %}{% endblock bodyFlags %}">
@@ -100,7 +99,7 @@
         </div><!--/container-->
       </footer>
     {% endblock %}
-    {% javascript 'global' %}
+    {% render_bundle 'global' 'js' %}
     {% block scripts %}{% endblock %}
     {% block templates %}{% endblock %}
   </body>

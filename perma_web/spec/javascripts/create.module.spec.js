@@ -1,5 +1,10 @@
+var DOMHelpers = require('../../static/js/helpers/dom.helpers');
+var Helpers = require('../../static/js/helpers/general.helpers');
+var CreateModule = require('../../static/js/create.module');
+
 var localStorage;
 var current_user;
+
 
 describe("Test create.module.js", function() {
   it("defines CreateModule", function(){
@@ -32,13 +37,13 @@ describe("Test create.module.js", function() {
     describe("getAll", function(){
       it("returns set folders on getAll", function(){
         var setFolders = {1:{"folderId":27, "orgId":4}};
-        spyOn(Helpers.localStorage, "getItem").and.returnValue(setFolders);
+        spyOn(Helpers.jsonLocalStorage, "getItem").and.returnValue(setFolders);
         var folders = CreateModule.ls.getAll();
         expect(folders).toEqual(setFolders);
-        expect(Helpers.localStorage.getItem).toHaveBeenCalled();
+        expect(Helpers.jsonLocalStorage.getItem).toHaveBeenCalled();
       });
       it("returns empty object if nothing is set", function(){
-        spyOn(Helpers.localStorage, "getItem").and.returnValue("");
+        spyOn(Helpers.jsonLocalStorage, "getItem").and.returnValue("");
         var folders = CreateModule.ls.getAll();
         expect(folders).toEqual({});
       });
@@ -48,18 +53,18 @@ describe("Test create.module.js", function() {
       it("returns current user folder settings when they exist", function(){
         window.current_user = {id:1};
         var setFolders = {1:{"folderId":27, "orgId":4}};
-        spyOn(Helpers.localStorage, "getItem").and.returnValue(setFolders);
+        spyOn(Helpers.jsonLocalStorage, "getItem").and.returnValue(setFolders);
         var folders = CreateModule.ls.getCurrent();
         expect(folders).toEqual(setFolders[1]);
-        expect(Helpers.localStorage.getItem).toHaveBeenCalled();
+        expect(Helpers.jsonLocalStorage.getItem).toHaveBeenCalled();
       });
       it("returns empty object when current user settings don't exist", function(){
         window.current_user = {id:1};
         var setFolders = {2:{"folderId":27, "orgId":4}};
-        spyOn(Helpers.localStorage, "getItem").and.returnValue(setFolders);
+        spyOn(Helpers.jsonLocalStorage, "getItem").and.returnValue(setFolders);
         var folders = CreateModule.ls.getCurrent();
         expect(folders).toEqual({});
-        expect(Helpers.localStorage.getItem).toHaveBeenCalled();
+        expect(Helpers.jsonLocalStorage.getItem).toHaveBeenCalled();
       });
     });
     describe("setCurrent", function(){
@@ -67,23 +72,23 @@ describe("Test create.module.js", function() {
         spyOn(Helpers, "triggerOnWindow");
         window.current_user = {id:1};
         spyOn(CreateModule, "updateLinker");
-        spyOn(Helpers.localStorage, "setItem");
+        spyOn(Helpers.jsonLocalStorage, "setItem");
       });
       afterEach(function(){
         delete window.current_user;
       });
       it("sets current user folderId and orgId when they exist", function(){
         var orgId = 2, folderId = 37;
-
         CreateModule.ls.setCurrent(orgId, folderId);
-        expect(Helpers.localStorage.setItem).toHaveBeenCalledWith("perma_selection",{1:{"folderId":folderId,"orgId":orgId}});
+        expect(Helpers.jsonLocalStorage.setItem).toHaveBeenCalledWith("perma_selection",{1:{"folderId":folderId,"orgId":orgId}});
+        CreateModule.updateLinker();
         expect(CreateModule.updateLinker).toHaveBeenCalled();
         expect(Helpers.triggerOnWindow).toHaveBeenCalledWith("dropdown.selectionChange");
       });
       it("sets current user folderId to default if none is provided", function(){
         var orgId = 2;
         CreateModule.ls.setCurrent(orgId);
-        expect(Helpers.localStorage.setItem).toHaveBeenCalledWith("perma_selection",{1:{"folderId":"default","orgId":orgId}});
+        expect(Helpers.jsonLocalStorage.setItem).toHaveBeenCalledWith("perma_selection",{1:{"folderId":"default","orgId":orgId}});
         expect(CreateModule.updateLinker).toHaveBeenCalled();
         expect(Helpers.triggerOnWindow).toHaveBeenCalledWith("dropdown.selectionChange");
       });

@@ -1,6 +1,7 @@
-window.LinkHelpers = window.LinkHelpers || {};
+var DOMHelpers = require('./dom.helpers.js');
+var APIModule = require('./api.module.js');
 
-LinkHelpers.findFaviconURL = function(linkObj) {
+export function findFaviconURL(linkObj) {
   if (!linkObj.captures) return '';
 
   var favCapture = linkObj.captures.filter(function(capture){
@@ -10,7 +11,7 @@ LinkHelpers.findFaviconURL = function(linkObj) {
   return favCapture[0] ? favCapture[0].playback_url : '';
 }
 
-LinkHelpers.generateLinkFields = function(link, query) {
+export function generateLinkFields(link, query) {
   link.favicon_url = this.findFaviconURL(link);
   if (window.host) {
     link.local_url = window.host + '/' + link.guid;
@@ -24,4 +25,25 @@ LinkHelpers.generateLinkFields = function(link, query) {
     link.delete_available = true;
   }
   return link;
+}
+
+var timeouts = {};
+// save changes in a given text box to the server
+export function saveInput(guid, inputElement, statusElement, name, callback) {
+  DOMHelpers.changeHTML(statusElement, 'Saving...');
+
+  var timeoutKey = guid+name;
+  if(timeouts[timeoutKey])
+    clearTimeout(timeouts[timeoutKey]);
+
+  // use a setTimeout so notes are only saved once every half second
+  timeouts[timeoutKey] = setTimeout(function () {
+    var data = {};
+    data[name] = DOMHelpers.getValue(inputElement);
+    APIModule.request("PATCH", '/archives/' + guid + '/', data).done(function(data){
+      DOMHelpers.changeHTML(statusElement, 'Saved!');
+      if (callback)
+        callback(data);
+    });
+  }, 500);
 }

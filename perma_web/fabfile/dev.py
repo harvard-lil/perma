@@ -2,6 +2,7 @@ import os
 import subprocess
 import sys
 
+import signal
 from django.conf import settings
 from fabric.context_managers import shell_env
 from fabric.decorators import task
@@ -13,13 +14,23 @@ def run_django(port="0.0.0.0:8000"):
     """
         Run django test server on open port, so it's accessible outside Vagrant.
     """
-    try:
-        # use runserver_plus if installed
-        import django_extensions  # noqa
-        local("python manage.py runserver_plus %s --threaded" % port)
-    except ImportError:
-        local("python manage.py runserver %s" % port)
+    commands = [
+        './node_modules/.bin/webpack --config webpack.config.js --watch',
+        #'celery -A perma worker --loglevel=info -B'
+    ]
 
+    proc_list = [subprocess.Popen(command, shell=True, stdout=sys.stdout, stderr=sys.stderr) for command in commands]
+
+    try:
+        try:
+            # use runserver_plus if installed
+            import django_extensions  # noqa
+            local("python manage.py runserver_plus %s --threaded" % port)
+        except ImportError:
+            local("python manage.py runserver %s" % port)
+    finally:
+        for proc in proc_list:
+            os.kill(proc.pid, signal.SIGKILL)
 
 @task
 def run_ssl(port="0.0.0.0:8000"):
@@ -28,12 +39,18 @@ def run_ssl(port="0.0.0.0:8000"):
     """
     local("python manage.py runsslserver %s" % port)
 
+_default_tests = "perma api functional_tests"
 
 @task
-def test(apps="perma api functional_tests"):
-    """
-        Run perma tests. (For coverage, run `coverage report` after tests pass.)
-    """
+def test(apps=_default_tests):
+    """ Run perma tests. (For coverage, run `coverage report` after tests pass.) """
+    test_python(apps)
+    if apps == _default_tests:
+        test_js()
+
+@task
+def test_python(apps=_default_tests):
+    """ Run Python tests. """
     excluded_files = [
         "*/migrations/*",
         "*/management/*",
@@ -42,8 +59,18 @@ def test(apps="perma api functional_tests"):
         "functional_tests/*",
         "*/settings/*",
     ]
+
+    # In order to run functional_tests, we have to run collectstatic, since functional tests use DEBUG=False
+    # For speed we use the default Django STATICFILES_STORAGE setting here, which also has to be set in settings_testing.py
+    if "functional_tests" in apps:
+        local("DJANGO__STATICFILES_STORAGE=django.contrib.staticfiles.storage.StaticFilesStorage python manage.py collectstatic --noinput")
+
     local("coverage run --source='.' --omit='%s' manage.py test %s" % (",".join(excluded_files), apps))
 
+@task
+def test_js():
+    """ Run Javascript tests. """
+    local("npm test")
 
 @task
 def test_sauce(server_url=None, test_flags=''):
@@ -79,18 +106,6 @@ def logs(log_dir=os.path.join(settings.PROJECT_ROOT, '../services/logs/')):
     local("tail -f %s/*" % log_dir)
 
 @task
-def jasmine_test():
-    """
-        Run frontend unit tests.
-        Go to 0.0.0.0:8888 in your browser to see the output.
-    """
-    local("jasmine -o 0.0.0.0 -p 8080")
-
-@task
-def jasmine_travis_test():
-    local("jasmine-ci --browser phantomjs")
-
-@task
 def init_db():
     """
         Run syncdb, apply migrations, and import fixtures for new dev database.
@@ -98,8 +113,8 @@ def init_db():
     local("python manage.py migrate")
     local("python manage.py migrate --database=perma-cdxline")
     local("python manage.py loaddata fixtures/sites.json fixtures/users.json fixtures/folders.json")
-        
-        
+
+
 @task
 def screenshots(base_url='http://perma.dev:8000'):
     import StringIO
@@ -195,7 +210,7 @@ def build_week_stats():
             registrars_this_week = 0
 
             start_date = date_of_stats + timedelta(days=1)
-        
+
         date_of_stats += timedelta(days=1)
 
 @task

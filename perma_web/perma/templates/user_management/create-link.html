@@ -1,13 +1,13 @@
 {% extends "base-responsive.html" %}
-{% load mptt_tags pipeline as_json %}
+{% load mptt_tags as_json %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %} | Create a Perma link{% endblock %}
 {% block bodyFlags %}{% endblock bodyFlags %}
 {% block mainFlags %}_create{% if selected_org.default_to_private %} _isPrivate{% else %} _isPublic{% endif %}{% endblock mainFlags %}
 
 {% block styles %}
-  {{ block.super }}
-  <link rel="stylesheet" href="{{ STATIC_URL }}vendors/jstree/jstree-theme/style.min.css" />
+  {% render_bundle 'create' 'css' %}
 {% endblock %}
 
 {% block mainContent %}
@@ -146,16 +146,14 @@
   {{ block.super }}
 
   <script>
-    var create_url = "{% url 'create_link' %}",
-        contact_url = "{% url 'contact' %}",
+    var contact_url = "{% url 'contact' %}",
         links_remaining = "{{links_remaining}}",
         current_user = {% as_json request.user %},
         is_org_user = "{{ request.user.is_organization_user }}",
         host = "{{ request.get_host }}";
   </script>
 
-  {% javascript 'admin' %}
-  {% javascript 'create' %}
+	{% render_bundle 'create' 'js' %}
 
 {% endblock %}
 
@@ -171,7 +169,7 @@
       <p class="message-large">{{ message }}</p>
       <p class="message">We’re unable to create your Perma Link.</p>
       {{#if upload_allowed}}
-      <p>You can <a href="" onclick="return CreateModule.upload_form();">upload your own archive</a> or <a href="{{contact_url}}">contact us about this error.</a></p>
+      <p>You can <button id="upload-form-button">upload your own archive</button> or <a href="{{contact_url}}">contact us about this error.</a></p>
       {{/if}}
     </script>
 

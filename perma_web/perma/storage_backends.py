@@ -2,16 +2,14 @@
 import cStringIO as StringIO
 import os
 
-from django.contrib.staticfiles.storage import ManifestStaticFilesStorage
 from django.core.files.storage import FileSystemStorage as DjangoFileSystemStorage
 from django.core.files import File
 from django.conf import settings
 import django.dispatch
 from django.utils.module_loading import import_string
 
-from pipeline.storage import PipelineMixin
 from storages.backends.s3boto import S3BotoStorage
-from whitenoise.django import GzipStaticFilesMixin
+from whitenoise.storage import CompressedManifestStaticFilesStorage
 
 from perma.utils import ReadOnlyException
 
@@ -20,7 +18,7 @@ file_saved = django.dispatch.Signal(providing_args=["instance", "path", "overwri
 
 ### Static files config
 
-class StaticStorage(GzipStaticFilesMixin, PipelineMixin, ManifestStaticFilesStorage):
+class StaticStorage(CompressedManifestStaticFilesStorage):
     pass
 
 

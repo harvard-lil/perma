@@ -1,5 +1,5 @@
 {% extends "base-responsive.html" %}
-{% load pipeline %}
+{% load render_bundle from webpack_loader %}
 {% block title %} | Admin Stats{% endblock %}
 
 {% block mainContent %}
@@ -8,31 +8,7 @@
 
 {% block scripts %}
   {{ block.super }}
-
-  {% javascript 'admin' %}
-
-  <script>
-    $(function(){
-      function fillSection(name){
-        return $.getJSON(document.location + '/' + name).then(function (data) {
-          DOMHelpers.changeHTML('#' + name, HandlebarsHelpers.renderTemplate('#' + name + '-template', data));
-        });
-      }
-
-      function addSection(name){
-        $('.stats-container').append('<div class="row" id="'+name+'">Loading '+name+' ...</div>');
-        return function() { fillSection(name) };
-      }
-
-      chain = $.when(addSection("random")());
-      chain = chain.then(addSection("days"));
-      chain = chain.then(addSection("emails"));
-      chain = chain.then(addSection("job_queue"));
-      chain = chain.then(addSection("celery"));
-
-      setInterval(function(){ fillSection("job_queue")}, 2000);
-    });
-  </script>
+	{% render_bundle 'admin-stats' %}
 {% endblock %}
 
 {% block templates %}

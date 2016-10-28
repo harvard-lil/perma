@@ -85,180 +85,14 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (         # how to look for static files
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'pipeline.finders.PipelineFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
-# Django Pipeline config
+# static files config
 STATICFILES_STORAGE = 'perma.storage_backends.StaticStorage'
 
 # media storage -- default_storage config
 DEFAULT_FILE_STORAGE = 'perma.storage_backends.FileSystemMediaStorage'
-
-# We likely want to do something like this:
-# PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.jsmin.JSMinCompressor'
-PIPELINE_JS_COMPRESSOR = None
-PIPELINE_CSS_COMPRESSOR = None
-
-PIPELINE_COMPILERS = (
-    'pipeline_compass.compiler.CompassCompiler',
-)
-
-# We likely want to remove this disable in the future
-PIPELINE_DISABLE_WRAPPER = True
-
-PIPELINE_JS = {
-    # scripts included at the foot of all pages
-    'global': {
-        'source_filenames': (
-            'vendors/jquery/jquery.min.js',
-            'vendors/bootstrap/bootstrap.min.js',
-            'vendors/fastclick/fastclick.min.js',
-            'vendors/jquery/jquery.actual.js',
-            'vendors/airbrakejs/client.js',
-            'vendors/airbrakejs/instrumentation/jquery.js',
-            'js/error-handler.js',
-            'js/helpers/polyfill/string.trim.js',
-            'js/helpers/general.helpers.js',
-            'js/helpers/dom.helpers.js',
-            'js/helpers/api.module.js',
-            'js/helpers/link.helpers.js',
-            'js/global.setup.js',
-        ),
-        'output_filename': 'js/global-bundle.js',
-    },
-
-    # scripts included in the head of all pages (not counting archive pages)
-    'global_head': {
-        'source_filenames': (
-            'vendors/modernizr/modernizr.js',
-            'vendors/holder/holder.js',
-            'js/helpers/local-datetime.js',
-        ),
-        'output_filename': 'js/global-head-bundle.js',
-    },
-
-    # scripts included in the head of archive pages
-    'global_archive_head': {
-        'source_filenames': (
-            'js/helpers/local-datetime.js',
-        ),
-        'output_filename': 'js/global-archive-head.js',
-    },
-
-    # scripts included in all user dashboard pages
-    'admin': {
-        'source_filenames': (
-            'vendors/handlebars/handlebars.js',
-            'js/helpers/handlebars_helpers.js',
-            'js/admin.js',
-        ),
-        'output_filename': 'js/admin-bundle.js',
-    },
-
-    ## scripts for individual pages ##
-
-    'create': {
-        'source_filenames': (
-            'vendors/spinjs/spin.js',
-            'vendors/jquery/jquery.form.min.js',
-            'vendors/jquery/jquery-ui.custom.min.js',
-            'vendors/jstree/jstree.min.js',
-            'vendors/jquery/jquery.splendid.textchange.js',
-            'vendors/jquery/jquery.waypoints.js',
-
-            'js/create.module.js',
-            'js/links-list.module.js',
-            'js/folder-tree.module.js',
-        ),
-        'output_filename': 'js/create-bundle.js',
-    },
-
-    'map': {
-        'source_filenames': (
-            'vendors/raphael/raphael.js',
-            'vendors/raphael/raphael.scale.js',
-            'vendors/raphael/g.raphael.js',
-            'js/helpers/mapping/usmap.js',
-            'vendors/jquery/rwdImageMaps.js',
-            'js/helpers/mapping/map.js',
-        ),
-        'output_filename': 'js/map-bundle.js',
-    },
-    'search': {
-        'source_filenames': (
-            'vendors/jquery/jquery-ui.custom.min.js',
-            'vendors/jquery/jquery.waypoints.js',
-            'js/search.module.js',
-        ),
-        'output_filename': 'js/search-bundle.js',
-    },
-    'stats': {
-        'source_filenames': (
-            'vendors/p5/p5.min.js',
-            'vendors/moment/moment.min.js',
-            'js/stats.js',
-        ),
-        'output_filename': 'js/stats-bundle.js',
-    },
-    'link-delete-confirm': {
-        'source_filenames': (
-            'js/link-delete-confirm.js',
-        ),
-        'output_filename': 'js/link-delete-confirm-bundle.js',
-    },
-    'single-link': {
-        'source_filenames': (
-            'js/single-link.module.js',
-
-        ),
-        'output_filename': 'js/single-link-bundle.js',
-    },
-    'single-link-with-permissions': {
-        'source_filenames': (
-            'vendors/jquery/jquery.form.min.js',
-            'js/single-link.module.js',
-            'js/single-link-permissions.module.js',
-        ),
-        'output_filename': 'js/single-link-with-permissions-bundle.js',
-    },
-
-    'doc-developer': {
-        'source_filenames': (
-            'js/helpers/pretty-print-json.js',
-        ),
-        'output_filename': 'js/pretty-print-json.js',
-    },
-}
-
-PIPELINE_CSS = {
-    'base': {
-        'source_filenames': (
-            'vendors/bootstrap/bootstrap.min.css',
-            'vendors/bootstrap/bootstrap-glyphicons.css',
-            'css/style-responsive.scss',
-            'vendors/font-awesome/font-awesome.min.css',
-        ),
-        'output_filename': 'css/base-bundle.css',
-    },
-    'base-archive': {
-        'source_filenames': (
-            'vendors/bootstrap/bootstrap.min.css',
-            'css/style-responsive-archive.scss',
-        ),
-        'output_filename': 'css/base-archive-bundle.css',
-    },
-}
-
-# override to change .js mimetype from application/javascript for ie8 and below
-# see http://django-pipeline.readthedocs.org/en/latest/configuration.html#pipeline-mimetypes
-PIPELINE_MIMETYPES = (
-  (b'text/coffeescript', '.coffee'),
-  (b'text/less', '.less'),
-  (b'text/javascript', '.js'),
-  (b'text/x-sass', '.sass'),
-  (b'text/x-scss', '.scss')
-)
 
 TEMPLATES = [
     {
@@ -287,6 +121,7 @@ TEMPLATES = [
 
 MIDDLEWARE_CLASSES = (
     'perma.middleware.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'api.middleware.APISubdomainMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -317,6 +152,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic',  # override staticfiles
     'django.contrib.staticfiles',
     'django.contrib.humanize',
 
@@ -328,13 +164,13 @@ INSTALLED_APPS = (
     # third party apps
     'ratelimit',
     'mptt',
-    'pipeline',
     'sorl.thumbnail',
     'django_forms_bootstrap',
     'djangosecure',  # force SSL -- this can be removed in Django 1.8
     'settings_context_processor',
     'simple_history',  # record model changes
     'taggit',  # model tagging
+    'webpack_loader',  # track frontend assets
 
     # django admin -- has to come after our apps for our admin template overrides to work
     'django.contrib.admin',
@@ -585,3 +421,11 @@ OPBEAT = {
 
 
 ENABLE_AV_CAPTURE = False 
+
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': 'bundles/',
+        'STATS_FILE': os.path.join(PROJECT_ROOT, 'webpack-stats.json'),
+    }
+}

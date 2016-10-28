@@ -1,41 +1,30 @@
-var FolderTreeModule = FolderTreeModule || {};
+require('jstree');  // add jquery support for .tree
+require('jstree-css/default/style.min.css');
 
-$(document).ready(function() {
-  FolderTreeModule.domTreeInit();
-  FolderTreeModule.init();
-  FolderTreeModule.setupEventHandlers();
-});
+var APIModule = require('./helpers/api.module.js');
 
-FolderTreeModule.init = function () {
-  var firstNode = this.getSelectedNode(),
-    folderPath = this.folderTree.get_path(firstNode),
-    folderId;
 
-  if (firstNode && firstNode.data) {
-    folderId = firstNode.data.folder_id;
-  } else {
-    folderId = null;
-  }
+var allowedEventsCount = 0;
+var lastSelectedFolder = null;
+export var folderTree = null;
 
-  this.allowedEventsCount = 0;
-  this.lastSelectedFolder = null;
+export function init () {
+  domTreeInit();
+  setupEventHandlers ();
 
-  this.folderTree.deselect_all();
+  folderTree.deselect_all();
 
-  if (firstNode) {
-    this.folderTree.select_node(firstNode);
-  }
+  var firstNode = getSelectedNode();
+  if (firstNode)
+    folderTree.select_node(firstNode);
 }
 
-FolderTreeModule.setupEventHandlers = function () {
-  var self = this;
+function setupEventHandlers () {
   $(window)
-    .on('dropdown.selectionChange', function () {
-      FolderTreeModule.handleSelectionChange();
-    })
+    .on('dropdown.selectionChange', handleSelectionChange)
     .on('LinksListModule.moveLink', function(evt, data) {
       data = JSON.parse(data);
-      FolderTreeModule.moveLink(data.folderId, data.linkId);
+      moveLink(data.folderId, data.linkId);
     });
 
   // set body class during drag'n'drop
@@ -48,34 +37,34 @@ FolderTreeModule.setupEventHandlers = function () {
 
   // folder buttons
   $('a.new-folder').on('click', function () {
-    self.folderTree.create_node(self.getSelectedNode(), {}, "last");
+    folderTree.create_node(getSelectedNode(), {}, "last");
     return false;
   });
   $('a.edit-folder').on('click', function () {
-    self.editNodeName(self.getSelectedNode());
+    editNodeName(getSelectedNode());
     return false;
   });
   $('a.delete-folder').on('click', function () {
-    var node = self.getSelectedNode();
+    var node = getSelectedNode();
     if (!confirm("Really delete folder '" + node.text.trim() + "'?")) return false;
-    self.folderTree.delete_node(node);
+    folderTree.delete_node(node);
     return false;
   });
 }
 
-FolderTreeModule.handleSelectionChange = function () {
-  this.folderTree.close_all();
-  this.folderTree.deselect_all();
-  var node = this.findNodeBySavedFolder();
-  this.folderTree.select_node(node);
+function handleSelectionChange () {
+  folderTree.close_all();
+  folderTree.deselect_all();
+  var node = findNodeBySavedFolder();
+  folderTree.select_node(node);
 }
 
-FolderTreeModule.findNodeBySavedFolder = function () {
+function findNodeBySavedFolder () {
   var selections = JSON.parse(localStorage.getItem("perma_selection")),
-    folderData = this.folderTree._model.data,
+    folderData = folderTree._model.data,
     node;
   if (selections && selections[current_user.id] && selections[current_user.id].folderId === "default") {
-    node = this.folderTree.get_node('ul > li:first');
+    node = folderTree.get_node('ul > li:first');
     return node;
   }
 
@@ -86,35 +75,35 @@ FolderTreeModule.findNodeBySavedFolder = function () {
       }
     }
   }
-  return this.folderTree.get_node(i);
+  return folderTree.get_node(i);
 }
 
-FolderTreeModule.getSelectedNode = function () {
-  return this.findNodeBySavedFolder();
+function getSelectedNode () {
+  return findNodeBySavedFolder();
 }
 
-FolderTreeModule.getSelectedFolderID = function () {
-  return this.getSelectedNode().data.folder_id;
+function getSelectedFolderID () {
+  return getSelectedNode().data.folder_id;
 }
 
-FolderTreeModule.editNodeName = function (node) {
+function editNodeName (node) {
   setTimeout(function () {
-    FolderTreeModule.folderTree.edit(node);
+    folderTree.edit(node);
   }, 0);
 }
 
-FolderTreeModule.getNodeData = function (node) {
+function getNodeData (node) {
   var data = {};
   if (node.data) {
     data.folderId = node.data.folder_id;
     data.orgId = node.data.organization_id;
-    data.path = folderPath = this.folderTree.get_path(node);
+    data.path = folderTree.get_path(node);
   }
   return data;
 }
 
-FolderTreeModule.setSelectedFolder = function (node) {
-  var data = this.getNodeData(node);
+function setSelectedFolder (node) {
+  var data = getNodeData(node);
   var savedSelections = JSON.parse(localStorage.getItem("perma_selection")) || {};
 
   if (data.folderId || data.orgId) {
@@ -125,23 +114,23 @@ FolderTreeModule.setSelectedFolder = function (node) {
 }
 
 
-FolderTreeModule.createFolder = function (parentFolderID, newName) {
+function createFolder (parentFolderID, newName) {
   return APIModule.request("POST", "/folders/" + parentFolderID + "/folders/", {name: newName});
 }
 
-FolderTreeModule.renameFolder = function (folderID, newName) {
+function renameFolder (folderID, newName) {
   return APIModule.request("PATCH", "/folders/" + folderID + "/", {name: newName});
 }
 
-FolderTreeModule.moveFolder = function (parentID, childID) {
+function moveFolder (parentID, childID) {
   return APIModule.request("PUT", "/folders/" + parentID + "/folders/" + childID + "/");
 }
 
-FolderTreeModule.deleteFolder = function (folderID) {
+function deleteFolder (folderID) {
   return APIModule.request("DELETE", "/folders/" + folderID + "/");
 }
 
-FolderTreeModule.moveLink = function (folderID, linkID) {
+function moveLink (folderID, linkID) {
   return APIModule.request("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function(data){
     $(window).trigger("FolderTreeModule.updateLinksRemaining", data.links_remaining);
     // once we're done moving the link, hide it from the current folder
@@ -149,8 +138,7 @@ FolderTreeModule.moveLink = function (folderID, linkID) {
   });
 }
 
-FolderTreeModule.domTreeInit = function () {
-  var self = this;
+function domTreeInit () {
   $('#folder-tree')
     .jstree({
       core: {
@@ -166,52 +154,52 @@ FolderTreeModule.domTreeInit = function () {
           // Since we can't tell in this event handler whether an event was triggered by the user
           // (step 1) or by us (step 2), we increment allowedEventsCount when triggering
           // an event and decrement when the event is received:
-          if (self.allowedEventsCount) {
-            self.allowedEventsCount--;
+          if (allowedEventsCount) {
+            allowedEventsCount--;
             return true;
           }
 
           function getDropTarget(){
-            return self.folderTree.get_node($('.jstree-hovered').parent());
+            return folderTree.get_node($('.jstree-hovered').parent());
           }
 
           if (more && more.is_foreign) {
             // link dragged onto folder
             if (operation == 'copy_node') {
               var targetNode = getDropTarget();
-              self.moveLink(targetNode.data.folder_id, node.id);
+              moveLink(targetNode.data.folder_id, node.id);
             }
           } else {
               // internal folder action
             if (operation == 'rename_node') {
               var newName = node_position;
-              self.renameFolder(node.data.folder_id, newName)
+              renameFolder(node.data.folder_id, newName)
                 .done(function () {
-                  self.allowedEventsCount++;
-                  self.folderTree.rename_node(node, newName);
-                  var data = self.getNodeData(node);
+                  allowedEventsCount++;
+                  folderTree.rename_node(node, newName);
+                  var data = getNodeData(node);
                   data = JSON.stringify(data);
                   $(window).trigger("FolderTreeModule.selectionChange", data );
                 });
             } else if (operation == 'move_node') {
               var targetNode = getDropTarget();
-              self.moveFolder(targetNode.data.folder_id, node.data.folder_id).done(function () {
-                self.allowedEventsCount++;
-                self.folderTree.move_node(node, targetNode);
+              moveFolder(targetNode.data.folder_id, node.data.folder_id).done(function () {
+                allowedEventsCount++;
+                folderTree.move_node(node, targetNode);
               });
             } else if (operation == 'delete_node') {
-              self.deleteFolder(node.data.folder_id).done(function () {
-                self.allowedEventsCount++;
-                self.folderTree.delete_node(node);
-                self.folderTree.select_node(node.parent);
+              deleteFolder(node.data.folder_id).done(function () {
+                allowedEventsCount++;
+                folderTree.delete_node(node);
+                folderTree.select_node(node.parent);
               });
             } else if (operation == 'create_node') {
               var newName = node.text;
-              self.createFolder(node_parent.data.folder_id, newName).done(function (server_response) {
-                self.allowedEventsCount++;
-                self.folderTree.create_node(node_parent, node, "last", function (new_folder_node) {
+              createFolder(node_parent.data.folder_id, newName).done(function (server_response) {
+                allowedEventsCount++;
+                folderTree.create_node(node_parent, node, "last", function (new_folder_node) {
                   new_folder_node.data = {folder_id: server_response.id};
-                  self.editNodeName(new_folder_node);
+                  editNodeName(new_folder_node);
                 });
               });
             }
@@ -242,12 +230,12 @@ FolderTreeModule.domTreeInit = function () {
 
         // The intuitive interaction seems to be, any time you click on a closed folder we toggle it open,
         // but we only toggle to closed if you click again on the folder that was already selected.
-        if(!data.node.state.opened || data.node==this.lastSelectedFolder)
+        if(!data.node.state.opened || data.node==lastSelectedFolder)
           data.instance.toggle_node(data.node);
       }
 
       var lastSelectedNode = data.node;
-      self.setSelectedFolder(lastSelectedNode);
+      setSelectedFolder(lastSelectedNode);
 
     // handle open/close folder icon
     }).on('open_node.jstree', function (e, data) {
@@ -258,5 +246,7 @@ FolderTreeModule.domTreeInit = function () {
       if(data.node.type=="default")
         data.instance.set_icon(data.node, "icon-folder-close-alt");
     });
-  self.folderTree = $.jstree.reference('#folder-tree');
+  folderTree = $.jstree.reference('#folder-tree');
 }
+
+
