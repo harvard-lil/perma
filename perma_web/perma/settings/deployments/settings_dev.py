@@ -3,7 +3,7 @@ from settings_common import *
 import os
 
 DEBUG = True
-WARC_HOST = "perma.dev:8000"
+WARC_HOST = 'perma-archives.dev:8000'
 SERVICES_DIR = os.path.abspath(os.path.join(PROJECT_ROOT, '../services'))
 
 # logging
