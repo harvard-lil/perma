@@ -15,7 +15,7 @@ def run_django(port="0.0.0.0:8000"):
         Run django test server on open port, so it's accessible outside Vagrant.
     """
     commands = [
-        './node_modules/.bin/webpack --config webpack.config.js --watch',
+        'npm start',
         #'celery -A perma worker --loglevel=info -B'
     ]
 
