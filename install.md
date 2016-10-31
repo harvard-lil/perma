@@ -9,7 +9,7 @@ To get up and running, read through the [Quick Start](#quick-start) or
 [Manual Install](#install) instructions, but first you'll need add the
 following domains to your hosts file:
 
-    127.0.0.1 perma.dev api.perma.dev dashboard.perma.dev user-content.perma.dev
+    127.0.0.1 perma.dev api.perma.dev perma-archives.dev
 
 For additional information on modifying your hosts file,
 [try this help doc](http://www.rackspace.com/knowledge_center/article/how-do-i-modify-my-hosts-file).
