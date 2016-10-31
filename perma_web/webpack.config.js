@@ -35,7 +35,8 @@ module.exports = {
 
   plugins: [
     // write out a list of generated files, so Django can find them
-    new BundleTracker({filename: './webpack-stats.json'}),
+    // Allow overriding via env var for tests.
+    new BundleTracker({filename: process.env.BUNDLE_TRACKER_PATH || './webpack-stats.json'}),
 
     new webpack.ProvidePlugin({
       // Automatically detect jQuery and $ as free var in modules and inject the jquery library
