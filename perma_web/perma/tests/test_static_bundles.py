@@ -1,3 +1,4 @@
+import re
 import tempfile
 from distutils.dir_util import copy_tree
 from glob import glob
@@ -56,8 +57,12 @@ class StaticBundlesTestCase(unittest.TestCase):
         if not os.path.exists(real_bundle_tracker_file):
             errors.append("File missing: %s" % real_bundle_tracker_file)
         else:
-            test_tracker_contents = open(test_bundle_tracker_file.name).read().replace(temp_dir.name,'')
-            real_tracker_contents = open(real_bundle_tracker_file).read().replace(real_dir,'')
+            # Use a regex to remove substrings like "path":"somestuff",
+            # so we can compare webpack stats files generated on different systems.
+            # This is fine since "path" isn't used on production.
+            remove_path_re = re.compile(r'"path":"[^"]*?"')
+            test_tracker_contents = remove_path_re.sub('', open(test_bundle_tracker_file.name).read())
+            real_tracker_contents = remove_path_re.sub('', open(real_bundle_tracker_file).read())
             if test_tracker_contents != real_tracker_contents:
                 errors.append("File needs to be regenerated: %s" % real_bundle_tracker_file)
 
