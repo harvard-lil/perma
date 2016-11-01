@@ -1,5 +1,6 @@
 from __future__ import absolute_import # to avoid importing local .celery instead of celery package
 
+import tempfile
 import traceback
 from cStringIO import StringIO
 from contextlib import contextmanager
@@ -42,7 +43,7 @@ from django.db.models import Q
 
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture, CaptureJob
 
-from perma.utils import run_task, url_in_allowed_ip_range
+from perma.utils import run_task, url_in_allowed_ip_range, copy_file_data
 
 logger = logging.getLogger(__name__)
 
@@ -879,26 +880,31 @@ def upload_to_internet_archive(self, link_guid):
 
             warc_name = os.path.basename(link.warc_storage_file())
 
-            with default_storage.open(link.warc_storage_file(), 'rb') as warc_file:
-                success = internetarchive.upload(
-                                identifier,
-                                {warc_name:warc_file},
-                                metadata=metadata,
-                                access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
-                                secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
-                                retries=10,
-                                retries_sleep=60,
-                                verbose=True,
-                            )
-                if success:
-                    link.internet_archive_upload_status = 'completed'
-                    link.save()
+            # copy warc to local disk storage for upload
+            temp_warc_file = tempfile.TemporaryFile()
+            copy_file_data(default_storage.open(link.warc_storage_file()), temp_warc_file)
+            temp_warc_file.seek(0)
 
-                else:
-                    link.internet_archive_upload_status = 'failed'
-                    self.retry(exc=Exception("Internet Archive reported upload failure."))
+            success = internetarchive.upload(
+                            identifier,
+                            {warc_name:temp_warc_file},
+                            metadata=metadata,
+                            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
+                            secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
+                            retries=10,
+                            retries_sleep=60,
+                            verbose=True,
+                        )
 
-                return
+            if success:
+                link.internet_archive_upload_status = 'completed'
+                link.save()
+
+            else:
+                link.internet_archive_upload_status = 'failed'
+                self.retry(exc=Exception("Internet Archive reported upload failure."))
+
+            return
         else:
             link.internet_archive_upload_status = 'failed_permanently'
             link.save()
