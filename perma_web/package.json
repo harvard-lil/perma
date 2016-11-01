@@ -4,10 +4,12 @@
   "description": "Perma frontend modules",
   "main": "index.js",
   "scripts": {
-    "test": "node_modules/.bin/karma start karma.config.js --single-run"
+    "build": "webpack --config webpack.config.js",
+    "start": "webpack --config webpack.config.js --watch",
+    "test": "karma start karma.config.js --single-run"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "airbrake-js": "^0.5.9",
     "autoprefixer": "^6.5.1",

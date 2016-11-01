@@ -9,7 +9,6 @@ import datetime
 import sys
 from urlparse import urlparse
 import requests
-
 from pyvirtualdisplay import Display
 from selenium import webdriver
 from selenium.common.exceptions import ElementNotVisibleException, NoSuchElementException
@@ -20,6 +19,7 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from perma.wsgi import application as wsgi_app
 from perma.models import UncaughtError
 from perma.settings import SAUCE_USERNAME, SAUCE_ACCESS_KEY, USE_SAUCE, TIMEGATE_WARC_ROUTE, WARC_ROUTE
+from perma.tests.utils import failed_test_files_path
 
 
 # In this file we point a browser at a test server and navigate the site.
@@ -427,10 +427,13 @@ class FunctionalTest(BaseTestCase):
             for err in UncaughtError.objects.exclude(message__contains="doesNotExist"):
                 info("\n-----\nUnexpected javascript error:", err.current_url, err.message, err.stack)
 
+            # save screenshot
             try:
-                print("Attempting to capture screenshot of failed functional test ...")
-                self.driver.save_screenshot("failed_functional_test.png")
-                print("Screenshot of failed functional test is at failed_functional_test.png")
+                info("Attempting to capture screenshot of failed functional test ...")
+                screenshot_path = os.path.join(failed_test_files_path, "failed_functional_test.png")
+                self.driver.save_screenshot(screenshot_path)
+                info("Screenshot of failed functional test is at %s" % screenshot_path)
             except Exception as e2:
-                print("Screenshot failed: %s" % e2)
+                info("Screenshot failed: %s" % e2)
+
             raise

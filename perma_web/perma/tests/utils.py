@@ -1,10 +1,22 @@
 import json
+import shutil
+
+import os
 from urllib import urlencode
 
+from django.conf import settings
 from django.test import TransactionTestCase
 from django.core.urlresolvers import reverse
 
 from perma.models import LinkUser
+
+
+failed_test_files_path = os.path.join(settings.PROJECT_ROOT, "failed_test_files")
+
+def reset_failed_test_files_folder():
+    if os.path.exists(failed_test_files_path):
+        shutil.rmtree(failed_test_files_path)
+    os.mkdir(failed_test_files_path)
 
 
 class PermaTestCase(TransactionTestCase):

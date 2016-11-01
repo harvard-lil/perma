@@ -109,9 +109,10 @@
 	__webpack_require__(117); // make menu toggle for small screen work
 	__webpack_require__(118); // make carousels work
 	
-	
-	// modernizr in footer -- see https://github.com/Modernizr/Modernizr/issues/878#issuecomment-41448059
-	// https://www.npmjs.com/package/modernizr-webpack-plugin ???
+	// We used to use modernizr but have currently dropped it.
+	// If we want to include it again this is where to put it --
+	//    see https://github.com/Modernizr/Modernizr/issues/878#issuecomment-41448059
+	// https://www.npmjs.com/package/modernizr-webpack-plugin
 	
 	// initialize fastclick
 	FastClick.attach(document.body);
@@ -11085,7 +11086,7 @@
 	  window.onerror = airbrake.onerror;
 	
 	  // in debug mode, monkey-patch airbrake.notify() to log the error to the console
-	  if (typeof variable !== 'undefined' && settings.DEBUG) {
+	  if (typeof settings !== 'undefined' && settings.DEBUG) {
 	    airbrake.notify = function (err) {
 	      console.error(err.error ? err.error.stack : err);
 	      return this.__proto__.notify.apply(this, arguments); // call real notify() method

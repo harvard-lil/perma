@@ -1,12 +1,14 @@
 import os
 import subprocess
 import sys
-
 import signal
+
 from django.conf import settings
 from fabric.context_managers import shell_env
 from fabric.decorators import task
 from fabric.operations import local
+
+from perma.tests.utils import reset_failed_test_files_folder
 
 
 @task(name='run')
@@ -15,7 +17,7 @@ def run_django(port="0.0.0.0:8000"):
         Run django test server on open port, so it's accessible outside Vagrant.
     """
     commands = [
-        './node_modules/.bin/webpack --config webpack.config.js --watch',
+        'npm start',
         #'celery -A perma worker --loglevel=info -B'
     ]
 
@@ -44,6 +46,7 @@ _default_tests = "perma api functional_tests"
 @task
 def test(apps=_default_tests):
     """ Run perma tests. (For coverage, run `coverage report` after tests pass.) """
+    reset_failed_test_files_folder()
     test_python(apps)
     if apps == _default_tests:
         test_js()
