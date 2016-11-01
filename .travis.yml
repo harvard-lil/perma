@@ -11,7 +11,7 @@ addons:
   # anything we might want to see from a failed build
   artifacts:
     paths:
-      - perma_web/failed_functional_test.png
+      - perma_web/failed_test_files
 
 cache:
   pip: true

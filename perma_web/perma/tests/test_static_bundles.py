@@ -1,11 +1,16 @@
 import tempfile
+from distutils.dir_util import copy_tree
 from glob import glob
+from shutil import copy
+
 import os
 import subprocess
 import unittest
 from tempdir import TempDir
 
 from django.conf import settings
+
+from perma.tests.utils import failed_test_files_path
 
 
 class StaticBundlesTestCase(unittest.TestCase):
@@ -15,6 +20,7 @@ class StaticBundlesTestCase(unittest.TestCase):
         """
         temp_dir = TempDir()
         test_bundle_tracker_file = tempfile.NamedTemporaryFile(dir=settings.PROJECT_ROOT)
+        real_bundle_tracker_file = settings.WEBPACK_LOADER['DEFAULT']['STATS_FILE']
 
         # compile static assets with webpack
         try:
@@ -47,7 +53,6 @@ class StaticBundlesTestCase(unittest.TestCase):
             errors.append("Unexpected file in static/bundles: %s" % extra_file)
 
         # check webpack-stats.json
-        real_bundle_tracker_file = os.path.join(settings.PROJECT_ROOT, 'webpack-stats.json')
         if not os.path.exists(real_bundle_tracker_file):
             errors.append("File missing: %s" % real_bundle_tracker_file)
         else:
@@ -58,5 +63,15 @@ class StaticBundlesTestCase(unittest.TestCase):
 
         # report errors
         if errors:
-            print "Errors checking webpack output:\n- %s\nTry running `npm run build` to fix." % "\n- ".join(errors)
-            self.assertTrue(False, "Errors in compiled webpack output -- check log for details.")
+            # write generated files to failed_test_files_path
+            copy_tree(temp_dir.name, os.path.join(failed_test_files_path, 'bundles'))
+            copy(test_bundle_tracker_file.name, os.path.join(failed_test_files_path, os.path.basename(real_bundle_tracker_file)))
+
+            message = """
+Errors checking webpack output:\n- %s
+Try running `npm run build` to update the static/bundles/ folder.
+See failed_test_files folder for generated files.
+""" % "\n- ".join(errors)
+            self.assertTrue(False, message)
+
+
