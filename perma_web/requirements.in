@@ -48,6 +48,7 @@ pip-tools==1.7                  # generating requirements.txt from requirements.
 django-taggit==0.20.2           # tagging registrars
 ua-parser==0.7.1                # user agent parsing to detect Safari browser for playbacks
 django_webpack_loader==0.3.3    # frontend assets building
+createsend==4.2.0               # wrapper for the Campaign Monitor API
 
 # deployment
 gunicorn==19.3.0

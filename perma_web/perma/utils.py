@@ -163,6 +163,10 @@ def send_user_email(title, content, to_address):
         [to_address], fail_silently=False
     )
 
+def send_admin_template_email(template, context, subject, from_address, request, referer=''):
+    email_text = render_to_string(template, context=context, request=request)
+    send_admin_email(subject, email_text, from_address, request, referer)
+
 def send_admin_email(title, content, from_address, request, referer=''):
     """
         Send a message on behalf of a user to the admins.

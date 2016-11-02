@@ -1,13 +1,19 @@
 import json, logging, pytz
+from werkzeug.security import safe_str_cmp
 
 from django.core import serializers
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.utils import timezone
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
 from perma.models import WeekStats, MinuteStats
-from perma.utils import json_serial, send_user_email
+from perma.utils import json_serial, send_user_email, send_admin_template_email
+from perma.email import sync_cm_list, registrar_users_plus_stats
+
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +38,31 @@ def email_confirm(request):
     response_object = {"sent": True}
 
     return HttpResponse(json.dumps(response_object), content_type="application/json", status=200)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def cm_sync(request):
+    '''
+       Sync our current list of registrar users plus some associated metadata
+       to Campaign Monitor.
+    '''
+
+    # Use something like this:
+    # curl -i -X POST --data "key=<INTERNAL_SERVICES_KEY>" http://perma.dev:8000/service/cm-sync/
+    if safe_str_cmp(request.POST.get('key',""), settings.INTERNAL_SERVICES_KEY):
+        reports = sync_cm_list(settings.CAMPAIGN_MONITOR_REGISTRAR_LIST,
+                               registrar_users_plus_stats(destination='cm'))
+        if reports["import"]["duplicates_in_import_list"]:
+            logger.error("Duplicate reigstrar users sent to Campaign Monitor. Check sync logic.")
+        send_admin_template_email('email/sync_to_cm.txt',
+                                  {"reports": reports},
+                                  'Registrar Users Synced to Campaign Monitor',
+                                   settings.DEFAULT_FROM_EMAIL,
+                                   request)
+        return HttpResponse(json.dumps(reports), content_type="application/json", status=200)
+    else:
+        return HttpResponseForbidden("<h1>Forbidden</h1>")
+
 
 def stats_sums(request):
     """

@@ -24,6 +24,7 @@ cherrypy==3.8.2           # via jasmine
 click==6.6                # via flask, pip-tools
 clint==0.5.1              # via internetarchive
 coverage==3.7.1
+createsend==4.2.0
 cryptography==1.5.2       # via pyopenssl
 django-admin-smoke-tests==0.1.11
 django-forms-bootstrap==3.0.1
