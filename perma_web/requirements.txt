@@ -38,8 +38,8 @@ django-sslserver==0.14
 django-storages==1.1.8
 django-taggit==0.20.2
 django-tastypie==0.13.3
-django-webpack-loader==0.3.3
-django==1.9.8
+Django==1.9.11            # via django-admin-smoke-tests, django-model-utils, django-secure, django-sslserver
+django_webpack_loader==0.3.3
 docopt==0.6.2             # via internetarchive
 easyprocess==0.2.3        # via pyvirtualdisplay
 ecdsa==0.13               # via paramiko
