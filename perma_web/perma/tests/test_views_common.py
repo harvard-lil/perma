@@ -137,7 +137,7 @@ class CommonViewsTestCase(PermaTestCase):
                                    'message': message_text,
                                    'subject': custom_subject,
                                    'referer': refering_page },
-                          success_url=reverse('contact_thanks'))
+                                    success_url=reverse('contact_thanks'))
         expected_emails_sent += 1
 
         # check contents of sent email
@@ -182,8 +182,8 @@ class CommonViewsTestCase(PermaTestCase):
         # check contents of sent email
         self.assertEqual(len(mail.outbox), expected_emails_sent)
         message = mail.outbox[expected_emails_sent -1]
-        self.assertIn("Affiliations: Another Library's Journal (Another Library), A Third Journal (Test Library)", message.body)
-        subbed = message.body.replace("Another Library's Journal (Another Library), A Third Journal (Test Library)", "(none)")
+        self.assertIn("Affiliations: Another Library&#39;s Journal (Another Library), A Third Journal (Test Library)", message.body)
+        subbed = message.body.replace("Another Library&#39;s Journal (Another Library), A Third Journal (Test Library)", "(none)")
         self.assertEqual(subbed, mail.outbox[expected_emails_sent - 2].body)
 
         ## Repeat while logged in as registrar user; verify email only differs by listing affiliations

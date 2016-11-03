@@ -44,7 +44,7 @@ from perma.forms import (
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob
 from perma.utils import apply_search_query, apply_pagination, apply_sort_order, \
    get_form_data, ratelimit_ip_key
-from perma.email import send_admin_email, send_user_email, send_user_template_email
+from perma.email import send_admin_email, send_user_email
 
 
 logger = logging.getLogger(__name__)
@@ -694,10 +694,12 @@ class BaseAddUserToGroup(UpdateView):
                                  '<h4>Account created!</h4> <strong>%s</strong> will receive an email with instructions on how to activate the account and create a password.' % self.object.email,
                                  extra_tags='safe')
         else:
-            send_user_template_email(self.confirmation_email_template, self.object.email, {
-                'account_settings_page': "https://%s%s" % (self.request.get_host(), reverse('user_management_settings_profile')),
-                'form': form
-            })
+            send_user_email(
+                self.object.email,
+                self.confirmation_email_template,
+                { 'account_settings_page': "https://%s%s" % (self.request.get_host(), reverse('user_management_settings_profile')),
+                  'form': form }
+            )
             messages.add_message(self.request, messages.SUCCESS,
                                  '<h4>Success!</h4> <strong>%s</strong> added.' % (self.object.email,),
                                  extra_tags='safe')
@@ -1423,19 +1425,13 @@ def email_new_user(request, user):
         user.save()
 
     host = request.get_host()
-
-    content = '''To activate your account, please click the link below or copy it to your web browser.  You will need to create a new password.
-
-http://%s%s
-
-''' % (host, reverse('register_password', args=[user.confirmation_code]))
-
-    logger.debug(content)
-
     send_user_email(
-        "A Perma.cc account has been created for you",
-        content,
-        user.email
+        user.email,
+        "email/new_user.txt",
+        {
+            "host": host,
+            "activation_route": reverse('register_password', args=[user.confirmation_code])
+        }
     )
 
 
@@ -1450,20 +1446,13 @@ def email_pending_registrar_user(request, user):
 
     host = request.get_host()
 
-    content = '''We will review your library account request as soon as possible. A personal account has been created for you and will be linked to your library once that account is approved.
-
-To activate this personal account, please click the link below or copy it to your web browser.  You will need to create a new password.
-
-http://%s%s
-
-''' % (host, reverse('register_password', args=[user.confirmation_code]))
-
-    logger.debug(content)
-
     send_user_email(
-        "A Perma.cc account has been created for you",
-        content,
-        user.email
+        user.email,
+        'email/pending_registrar.txt',
+        {
+            "host": host,
+            "activation_route": reverse('register_password', args=[user.confirmation_code])
+        }
     )
 
 
@@ -1471,22 +1460,18 @@ def email_registrar_request(request, pending_registrar):
     """
     Send email to Perma.cc admins when a library requests an account
     """
-
     host = request.get_host()
-
-    content = '''A new library account request from %s is awaiting review and approval.
-
-http://%s%s
-
-''' % (pending_registrar.name, host, reverse('user_management_approve_pending_registrar', args=[pending_registrar.id]))
-
-    logger.debug(content)
-
     send_admin_email(
         "Perma.cc new library registrar account request",
-        content,
         pending_registrar.email,
-        request
+        request,
+        'email/admin/registrar_request.txt',
+        {
+            "name": pending_registrar.name,
+            "email": pending_registrar.email,
+            "host": host,
+            "confirmation_route": reverse('user_management_approve_pending_registrar', args=[pending_registrar.id])
+        }
     )
 
 
@@ -1494,50 +1479,34 @@ def email_approved_registrar_user(request, user):
     """
     Send email to newly approved registrar accounts for folks requesting library accounts
     """
-
     host = request.get_host()
-
-    content = '''Your request for a Perma.cc library account has been approved and your personal account has been linked.
-
-To start creating organizations and users, please click the link below or copy it to your web browser.
-
-http://%s%s
-
-''' % (host, reverse('user_management_manage_organization'))
-
-    logger.debug(content)
-
     send_user_email(
-        "Your Perma.cc library account is approved",
-        content,
-        user.email
+        user.email,
+        "email/library_approved.txt",
+        {
+            "host": host,
+            "account_route": reverse('user_management_manage_organization')
+        }
     )
 
 
 def email_court_request(request, court):
     """
-    Send email to Perma.cc admins when a library requests an account
+    Send email to Perma.cc admins when a court requests an account
     """
-
     try:
         target_user = LinkUser.objects.get(email=court.email)
     except LinkUser.DoesNotExist:
         target_user = None
-    account_status = "does not have a personal account."
-    if target_user:
-        account_status = "has a personal account."
-
-    content = '''%s %s has requested more information about creating a court account for %s.
-
-This user %s
-
-''' % (court.first_name, court.last_name, court.requested_account_note, account_status)
-
-    logger.debug(content)
-
     send_admin_email(
         "Perma.cc new library court account information request",
-        content,
         court.email,
-        request
+        request,
+        "email/admin/court_request.txt",
+        {
+            "first_name": court.first_name,
+            "last_name": court.last_name,
+            "court_name": court.requested_account_note,
+            "has_account": target_user
+        }
     )

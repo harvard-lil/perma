@@ -1,0 +1,17 @@
+{% block content %}
+This is a message from the Perma.cc contact form, http://perma.cc/contact
+
+
+
+Message from user
+--------
+{{ message }}
+{% endblock%}
+{% block footer %}
+----
+User email: {{ from_address }}
+Affiliations: {{ affiliation_string | default:"(none)" }}
+Referring Page: {{ referer }}
+User agent: {{ request.META.HTTP_USER_AGENT | default:"(unknown)"}}
+{% endblock footer %}
+

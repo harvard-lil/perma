@@ -1,0 +1,7 @@
+TITLE: Your Perma.cc library account is approved
+
+Your request for a Perma.cc library account has been approved and your personal account has been linked.
+
+To start creating organizations and users, please click the link below or copy it to your web browser.
+
+http://{{ host }}{{ account_route }}

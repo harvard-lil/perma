@@ -12,33 +12,10 @@ from django.views.decorators.http import require_http_methods
 
 from perma.models import WeekStats, MinuteStats
 from perma.utils import json_serial
-from perma.email import send_user_email, send_admin_template_email, \
-    sync_cm_list, registrar_users_plus_stats
+from perma.email import sync_cm_list, send_admin_email, registrar_users_plus_stats
 
 
 logger = logging.getLogger(__name__)
-
-
-def email_confirm(request):
-    """
-    A service that sends a message to a user about a perma link.
-    """
-
-    email_address = request.POST.get('email_address')
-    link_url = request.POST.get('link_url')
-
-    if not email_address or not link_url:
-        return HttpResponse(status=400)
-
-    send_user_email(
-        "The Perma link you requested",
-        "%s \n\n(This link is the Perma link)" % link_url,
-        email_address
-    )
-
-    response_object = {"sent": True}
-
-    return HttpResponse(json.dumps(response_object), content_type="application/json", status=200)
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -55,11 +32,11 @@ def cm_sync(request):
                                registrar_users_plus_stats(destination='cm'))
         if reports["import"]["duplicates_in_import_list"]:
             logger.error("Duplicate reigstrar users sent to Campaign Monitor. Check sync logic.")
-        send_admin_template_email('email/sync_to_cm.txt',
-                                  {"reports": reports},
-                                  'Registrar Users Synced to Campaign Monitor',
-                                   settings.DEFAULT_FROM_EMAIL,
-                                   request)
+        send_admin_email("Registrar Users Synced to Campaign Monitor",
+                          settings.DEFAULT_FROM_EMAIL,
+                          request,
+                          'email/admin/sync_to_cm.txt',
+                          {"reports": reports})
         return HttpResponse(json.dumps(reports), content_type="application/json", status=200)
     else:
         return HttpResponseForbidden("<h1>Forbidden</h1>")

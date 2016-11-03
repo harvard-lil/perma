@@ -15,55 +15,26 @@ logger = logging.getLogger(__name__)
 ### Send email
 ###
 
-def send_user_template_email(template, to_address, context):
+def send_user_email(to_address, template, context):
     email_text = render_to_string(template, context)
     title, email_text = email_text.split("\n\n", 1)
     title = title.split("TITLE: ")[-1]
-    send_user_email(title, email_text, to_address)
-
-def send_user_email(title, content, to_address):
     send_mail(
         title,
-        content,
+        email_text,
         settings.DEFAULT_FROM_EMAIL,
-        [to_address], fail_silently=False
+        [to_address],
+        fail_silently=False
     )
 
-def send_admin_template_email(template, context, subject, from_address, request, referer=''):
-    email_text = render_to_string(template, context=context, request=request)
-    send_admin_email(subject, email_text, from_address, request, referer)
-
-def send_admin_email(title, content, from_address, request, referer=''):
+def send_admin_email(title, from_address, request, template="email/default.txt", context={}, referer=''):
     """
         Send a message on behalf of a user to the admins.
         Use reply-to for the user address so we can use email services that require authenticated from addresses.
     """
-
-    # append user information
-    user_agent = ''
-    affiliation_string = '(none)'
-    if request:
-        user_agent = request.META.get('HTTP_USER_AGENT', '')
-        if request.user.is_authenticated():
-            if request.user.registrar:
-                affiliation_string = "{} (Registrar)".format(request.user.registrar.name)
-            else:
-                affiliations = ["{} ({})".format(org.name, org.registrar.name) for org in request.user.organizations.all().order_by('registrar')]
-                if affiliations:
-                    affiliation_string = ', '.join(affiliations)
-    content += """
-
-----
-User email: %s
-Affiliations: %s
-Referring Page: %s
-User agent: %s
-""" % (from_address, affiliation_string, referer, user_agent)
-
-    # send message
     EmailMessage(
         title,
-        content,
+        render_to_string(template, context=context, request=request),
         settings.DEFAULT_FROM_EMAIL,
         [settings.DEFAULT_FROM_EMAIL],
         headers={'Reply-To': from_address}
