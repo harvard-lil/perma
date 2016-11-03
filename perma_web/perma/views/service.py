@@ -11,8 +11,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from perma.models import WeekStats, MinuteStats
-from perma.utils import json_serial, send_user_email, send_admin_template_email
-from perma.email import sync_cm_list, registrar_users_plus_stats
+from perma.utils import json_serial
+from perma.email import send_user_email, send_admin_template_email, \
+    sync_cm_list, registrar_users_plus_stats
 
 
 logger = logging.getLogger(__name__)

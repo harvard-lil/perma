@@ -23,7 +23,8 @@ from django.views.decorators.cache import cache_control
 
 from ..models import Link, Registrar, Organization, LinkUser
 from ..forms import ContactForm
-from ..utils import if_anonymous, send_admin_email, ratelimit_ip_key
+from ..utils import if_anonymous, ratelimit_ip_key
+from ..email import send_admin_email
 
 logger = logging.getLogger(__name__)
 valid_serve_types = ['image', 'warc_download']

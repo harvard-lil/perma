@@ -42,8 +42,10 @@ from perma.forms import (
     UserFormWithAdmin,
     UserAddAdminForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob
-from perma.utils import apply_search_query, apply_pagination, apply_sort_order, send_admin_email, \
-    send_user_email, send_user_template_email, get_form_data, ratelimit_ip_key
+from perma.utils import apply_search_query, apply_pagination, apply_sort_order, \
+   get_form_data, ratelimit_ip_key
+from perma.email import send_admin_email, send_user_email, send_user_template_email
+
 
 logger = logging.getLogger(__name__)
 valid_member_sorts = ['last_name', '-last_name', 'date_joined', '-date_joined', 'last_login', '-last_login', 'link_count', '-link_count']
