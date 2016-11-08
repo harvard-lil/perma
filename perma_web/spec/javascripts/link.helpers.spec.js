@@ -1,7 +1,5 @@
 var LinkHelpers = require('../../static/js/helpers/link.helpers');
 
-require('../../perma/templates/includes/local-datetime');
-
 
 describe("Test link.helpers.js", function() {
   beforeEach(function(){
