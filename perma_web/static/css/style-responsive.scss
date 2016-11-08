@@ -1474,9 +1474,7 @@ body.modal-open {
   @include respond-tablet {
     position: relative;
     left: 50%;
-    top: 50%;
     right: auto;
-    bottom: auto;
     margin-left: $modalWidth * -.5;
   }
 }
