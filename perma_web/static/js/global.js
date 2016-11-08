@@ -45,4 +45,12 @@ $('.clear-on-focus')
 $('.select-on-click').click(function() { $(this).select(); });
 
 // clear popup alerts with a click
-$(document).on('click', '.popup-alert', function(){ $(this).remove(); });
+$(document).on('click', '.popup-alert', function() {
+  $(this).remove();
+});
+
+// put focus on first form input element when a form is revealed by bootstrap UI
+$('.collapse').on('shown.bs.collapse', function () {
+  $(this).find('input[type="text"]').focus();
+});
+

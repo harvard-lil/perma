@@ -160,6 +160,11 @@
 	$(document).on('click', '.popup-alert', function () {
 	  $(this).remove();
 	});
+	
+	// put focus on first form input element when a form is revealed by bootstrap UI
+	$('.collapse').on('shown.bs.collapse', function () {
+	  $(this).find('input[type="text"]').focus();
+	});
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
