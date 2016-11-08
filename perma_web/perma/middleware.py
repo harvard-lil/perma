@@ -1,10 +1,6 @@
-from functools import wraps
-
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import render
-from django.utils.decorators import available_attrs
-import djangosecure.middleware
 
 
 class AdminAuthMiddleware(object):

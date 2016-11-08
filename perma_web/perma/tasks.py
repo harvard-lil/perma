@@ -5,7 +5,6 @@ import traceback
 from cStringIO import StringIO
 from contextlib import contextmanager
 
-from functools import wraps
 from httplib import HTTPResponse
 from urllib2 import URLError
 
