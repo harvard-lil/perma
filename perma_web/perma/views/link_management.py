@@ -43,8 +43,6 @@ def create_link(request):
             messages.add_message(request, messages.INFO, 'Deleted - ' + link.submitted_title)
 
     links_remaining = request.user.get_links_remaining()
-    if links_remaining < 0:
-        links_remaining = 0
 
     if 'url' in request.GET:
         suppress_reminder = 'true'
