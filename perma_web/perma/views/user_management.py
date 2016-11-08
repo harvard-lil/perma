@@ -14,7 +14,7 @@ from django.views.generic import UpdateView
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
+from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm, PasswordResetForm
 from django.contrib.auth import views as auth_views
 from django.db.models import Count, Max, Sum
 from django.db.models.expressions import RawSQL
@@ -1121,6 +1121,20 @@ def limited_login(request, template_name='registration/login.html',
             self.fields['username'].widget.attrs['autofocus'] = ''
 
     return auth_views.login(request, template_name, redirect_field_name, LoginForm, extra_context)
+
+
+def reset_password(request):
+    """
+        Displays the reset password form.
+
+        We wrap the default Django view to add autofocus to the email field.
+    """
+    class OurPasswordResetForm(PasswordResetForm):
+        def __init__(self, *args, **kwargs):
+            super(PasswordResetForm, self).__init__(*args, **kwargs)
+            self.fields['email'].widget.attrs['autofocus'] = ''
+
+    return auth_views.password_reset(request, password_reset_form=OurPasswordResetForm)
 
 
 def set_access_token_cookie(request):

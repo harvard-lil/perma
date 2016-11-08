@@ -178,11 +178,3 @@ This section of the user guide provides answers to common questions about Perma.
 {% include 'docs/docs_menu.html' %}
 
 {% endblock %}
-{% block scripts %}
-
-<script type="text/javascript">
-  var hashVal = window.location.hash.split("#")[1];
-  $("*[data-href='" + hashVal +"']").next('div.answer').slideToggle();
-</script>
-
-{% endblock %}

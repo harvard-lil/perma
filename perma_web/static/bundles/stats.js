@@ -14,14 +14,20 @@ webpackJsonp([11],[
 	function get_numbers(field_key) {
 	  // Here we compute the sum, average, and latest week for the given field_key
 	  var sum = 0;
-	  for (var i = 0; i < sum_data.length; i++) {
-	    sum += sum_data[i][field_key];
+	  if (sum_data.length) {
+	    for (var i = 0; i < sum_data.length; i++) {
+	      sum += sum_data[i][field_key];
+	    }
+	    return { 'sum': sum,
+	      'average': Math.floor(sum / sum_data.length),
+	      'this_week': sum_data[sum_data.length - 1][field_key]
+	    };
+	  } else {
+	    return { 'sum': 0,
+	      'average': 0,
+	      'this_week': 0
+	    };
 	  }
-	
-	  return { 'sum': sum,
-	    'average': Math.floor(sum / sum_data.length),
-	    'this_week': sum_data[sum_data.length - 1][field_key]
-	  };
 	}
 	
 	function add_commas(x) {

@@ -65,15 +65,3 @@
   </div>
 </div>
 {% endblock mainContent %}
-
-{% block scripts %}
-  <script>
-    $(document).ready(function(){
-      $('input[type=text]:first').focus();
-      $('#id_create_account').change(function() {
-        $('.terms-statement').slideToggle();
-      });
-      $('body').scrollTop(0);
-    });
-  </script>
-{% endblock scripts %}
