@@ -65,42 +65,6 @@ def create_link(request):
 ###### LINK BROWSING ######
 
 @login_required
-def folder_contents(request, folder_id):
-    # helper vars
-    user = request.user
-    folder_access_filter = Folder.objects.user_access_filter(user)
-
-    current_folder = get_object_or_404(Folder, folder_access_filter, pk=folder_id)
-
-    # start with all links belonging to user
-    links = Link.objects.accessible_to(user).select_related('created_by')
-
-    # limit links to current folder
-    links = links.filter(folders=current_folder)
-
-    # handle sorting
-    DEFAULT_SORT = '-creation_timestamp'
-    sort = request.GET.get('sort', DEFAULT_SORT)
-    if sort not in valid_link_sorts:
-        sort = DEFAULT_SORT
-    links = links.order_by(sort)
-
-    shared_with_count = 0
-    if current_folder.organization:
-        # If you are an org user, don't see yourself in the count;
-        # ... if you are a registrar, admin etc.
-        # ... and happen to view an org folder with no org users,
-        # ... don't see a negative number.
-        shared_with_count = max(current_folder.organization.users.count()-1, 0)
-
-    return render(request, 'user_management/includes/created-link-items.html', {
-        'links': links,
-        'current_folder': current_folder,
-        'shared_with_count': shared_with_count,
-        'in_iframe': request.GET.get('iframe'),
-    })
-
-@login_required
 def user_delete_link(request, guid):
     link = get_object_or_404(Link, guid=guid)
     if not request.user.can_delete(link):
