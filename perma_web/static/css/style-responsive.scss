@@ -17,7 +17,7 @@
 .style-clears-floats {
   &:after {
     display: table;
-    content: " ";
+    content: "\00a0";
     clear: both;
   }
 }
@@ -3410,7 +3410,6 @@ footer {
     }
   }
   @include respond-mobile {
-    margin: 0 -$double $grid * 3;
     display: flex;
     flex-wrap: wrap;
     li {

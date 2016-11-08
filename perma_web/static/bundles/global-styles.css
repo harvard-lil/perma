@@ -7588,7 +7588,7 @@ img {
 .row:after,
 .item-container:after {
   display: table;
-  content: " ";
+  content: "\A0";
   clear: both;
 }
 
@@ -11869,7 +11869,6 @@ footer #boilerplate a {
 
 @media only screen and (max-width: 767px) {
   .nav-pills {
-    margin: -16px 24px;
     display: -ms-flexbox;
     display: flex;
     -ms-flex-wrap: wrap;
