@@ -23,28 +23,12 @@ webpackJsonp([9],{
 	  DOMHelpers.toggleBtnDisable(updateBtnID, true);
 	  DOMHelpers.toggleBtnDisable(cancelBtnID, true);
 	
-	  if ($('._isNewRecord')) {
-	    handleNewRecord();
-	  }
-	
 	  setupEventHandlers();
-	}
-	
-	function handleNewRecord() {
-	  // On the new-record bar, update the width of the URL input to match its contents,
-	  // by copying the contents into a temporary span with the same class and measuring its width.
-	
-	  var linkField = $('input.link-field');
-	  linkField.after("<span class='link-field'></span>");
-	  var linkSpan = $('span.link-field');
-	  linkSpan.text(linkField.val());
-	  linkField.width(linkSpan.width());
-	  linkSpan.remove();
 	}
 	
 	function setupEventHandlers() {
 	  $(".edit-link").click(function () {
-	    SingleLinkModule.handleShowDetails();
+	    $(SingleLinkModule.detailsButton).click();
 	    return false;
 	  });
 	
@@ -876,7 +860,7 @@ webpackJsonp([9],{
 	exports.handleShowDetails = handleShowDetails;
 	var resizeTimeout, wrapper;
 	
-	var detailsButton = document.getElementById("details-button");
+	var detailsButton = exports.detailsButton = document.getElementById("details-button");
 	var detailsTray = document.getElementById("collapse-details");
 	
 	function init() {

@@ -193,7 +193,9 @@ header {
     animation: success-bg .7s linear;
     padding-top: 10px;
     padding-bottom: 10px;
-    strong {
+    .success {
+      position: relative;
+      font-weight: bold;
       padding-top: $half;
       float: left;
       padding-left: $grid * 3;
@@ -245,19 +247,6 @@ header {
           color: $color-blue;
         }
       }
-    }
-    .link-field {
-        display: inline-block;
-        border: 1px solid $color-blue;
-        padding: 4px 8px;
-        border-radius: 2px;
-        font-weight: 700;
-        color: $color-blue;
-        width: auto;
-        text-align: center;
-        &:focus {
-          outline: none;
-        }
     }
     }
   strong {

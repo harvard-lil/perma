@@ -189,9 +189,12 @@
 
     {% if new_record %}
       <div class="banner banner-status row _isNewRecord">
-        <strong>Success!</strong>
-        <span class="message verbose">Your new Perma Link is <input class="link-field" type="text" value="https://{{ request.get_host }}{% url 'single_linky' link.guid %}"></span>
-        <span class="link-options edit-link verbose"><a style="cursor:pointer;">Edit</a><span class="_verbose _toDesktop"> (Perma Links are permanent after 24 hours)</span></span>
+        <span class="success">Success!</span>
+        <span class="message verbose">Your new Perma Link is <strong>https://{{ request.get_host }}{% url 'single_linky' link.guid %}</strong></span>
+        <span class="link-options verbose">
+          <a class="edit-link" style="cursor:pointer;">Edit<span class="_verbose _toDesktop"> link details</span></a>
+          <span class="_verbose _toDesktop"> (Perma Links are permanent after 24 hours)</span>
+        </span>
         <a class="action new-link" href="{% url 'create_link' %}">Make a new Perma Link</a>
       </div>
     {% endif %}

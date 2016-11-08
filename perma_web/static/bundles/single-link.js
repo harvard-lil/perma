@@ -61,7 +61,7 @@
 	exports.handleShowDetails = handleShowDetails;
 	var resizeTimeout, wrapper;
 	
-	var detailsButton = document.getElementById("details-button");
+	var detailsButton = exports.detailsButton = document.getElementById("details-button");
 	var detailsTray = document.getElementById("collapse-details");
 	
 	function init() {

@@ -1,6 +1,6 @@
 var resizeTimeout, wrapper;
 
-var detailsButton = document.getElementById("details-button");
+export var detailsButton = document.getElementById("details-button");
 var detailsTray = document.getElementById("collapse-details");
 
 function init () {

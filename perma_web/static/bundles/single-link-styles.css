@@ -4621,13 +4621,15 @@ header._isPrivate .ui-tray {
   padding-bottom: 10px;
 }
 
-.banner-status._isNewRecord strong {
+.banner-status._isNewRecord .success {
+  position: relative;
+  font-weight: bold;
   padding-top: 4px;
   float: left;
   padding-left: 24px;
 }
 
-.banner-status._isNewRecord strong:before {
+.banner-status._isNewRecord .success:before {
   content: '';
   background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+Cjxzdmcgd2lkdGg9IjI2cHgiIGhlaWdodD0iMjdweCIgdmlld0JveD0iMCAwIDI2IDI3IiB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbG5zOnNrZXRjaD0iaHR0cDovL3d3dy5ib2hlbWlhbmNvZGluZy5jb20vc2tldGNoL25zIj4KICAgIDwhLS0gR2VuZXJhdG9yOiBTa2V0Y2ggMy4zLjMgKDEyMDcyKSAtIGh0dHA6Ly93d3cuYm9oZW1pYW5jb2RpbmcuY29tL3NrZXRjaCAtLT4KICAgIDx0aXRsZT5wZXJtYS11aS1zdWNjZXNzPC90aXRsZT4KICAgIDxkZXNjPkNyZWF0ZWQgd2l0aCBTa2V0Y2guPC9kZXNjPgogICAgPGRlZnM+PC9kZWZzPgogICAgPGcgaWQ9IlBhZ2UtMSIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCIgc2tldGNoOnR5cGU9Ik1TUGFnZSI+CiAgICAgICAgPGcgaWQ9InBlcm1hLXVpLXN1Y2Nlc3MiIHNrZXRjaDp0eXBlPSJNU0xheWVyR3JvdXAiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEuMDAwMDAwLCAxLjAwMDAwMCkiIHN0cm9rZS13aWR0aD0iMiI+CiAgICAgICAgICAgIDxlbGxpcHNlIGlkPSJPdmFsLTIiIHN0cm9rZT0iIzJENzZFRSIgZmlsbD0iIzJENzZFRSIgc2tldGNoOnR5cGU9Ik1TU2hhcGVHcm91cCIgY3g9IjExLjk5MDYzMjMiIGN5PSIxMi43NDQxNDA2IiByeD0iMTEuOTkwNjMyMyIgcnk9IjEyIj48L2VsbGlwc2U+CiAgICAgICAgICAgIDxwYXRoIGQ9Ik02Ljk5NDUzNTUyLDEzLjAxMjcxNzYgTDExLjU1NDkwNjYsMTcuNDg4MjgxMiBMMTcuOTg1OTQ4NSw3LjQ4ODI4MTI1IiBpZD0iUGF0aC00OCIgc3Ryb2tlPSIjRkZGRkZGIiBza2V0Y2g6dHlwZT0iTVNTaGFwZUdyb3VwIj48L3BhdGg+CiAgICAgICAgPC9nPgogICAgPC9nPgo8L3N2Zz4=);
   background-size: contain;
@@ -4643,7 +4645,7 @@ header._isPrivate .ui-tray {
 }
 
 @media only screen and (min-width: 768px) {
-  .banner-status._isNewRecord strong:before {
+  .banner-status._isNewRecord .success:before {
     top: -6px;
     height: 27px;
     width: 27px;
@@ -4651,7 +4653,7 @@ header._isPrivate .ui-tray {
 }
 
 @media only screen and (min-width: 990px) {
-  .banner-status._isNewRecord strong:before {
+  .banner-status._isNewRecord .success:before {
     height: 32px;
     width: 32px;
     top: -6px;
@@ -4660,7 +4662,7 @@ header._isPrivate .ui-tray {
 }
 
 @media only screen and (min-width: 768px) {
-  .banner-status._isNewRecord strong {
+  .banner-status._isNewRecord .success {
     padding-left: 32px;
     padding-top: 0;
     float: none;
@@ -4668,7 +4670,7 @@ header._isPrivate .ui-tray {
 }
 
 @media only screen and (min-width: 990px) {
-  .banner-status._isNewRecord strong {
+  .banner-status._isNewRecord .success {
     padding-left: 40px;
   }
 }
@@ -4690,21 +4692,6 @@ header._isPrivate .ui-tray {
 
 .banner-status._isNewRecord .link-options a:active {
   color: #2D76EE;
-}
-
-.banner-status._isNewRecord .link-field {
-  display: inline-block;
-  border: 1px solid #2D76EE;
-  padding: 4px 8px;
-  border-radius: 2px;
-  font-weight: 700;
-  color: #2D76EE;
-  width: auto;
-  text-align: center;
-}
-
-.banner-status._isNewRecord .link-field:focus {
-  outline: none;
 }
 
 .banner-status strong {
