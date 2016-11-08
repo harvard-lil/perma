@@ -1,5 +1,6 @@
 {% extends "manage-layout.html" %}
-{% load local_datetime humanize current_query_string visible_organizations %}
+{% load current_query_string visible_organizations %}
+{% load intcomma from humanize %}
 {% block title %} | {{ pretty_group_name_plural }}{% endblock %}
 
 {% block dashboardContent %}

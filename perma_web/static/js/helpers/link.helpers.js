@@ -1,5 +1,7 @@
 var DOMHelpers = require('./dom.helpers.js');
 var APIModule = require('./api.module.js');
+require('./local-datetime.js');  // add .format() to Date object
+
 
 export function findFaviconURL(linkObj) {
   if (!linkObj.captures) return '';

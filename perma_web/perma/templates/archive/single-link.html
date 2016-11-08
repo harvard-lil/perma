@@ -2,6 +2,10 @@
 {% load local_datetime as_json %}
 {% load render_bundle from webpack_loader %}
 
+{% block header_scripts %}
+  {% local_datetime_js %}{# allow local_datetime filter to work #}
+{% endblock %}
+
 {% block title %} | {{link.submitted_title}}{% endblock %}
 
 {% block meta-head %}

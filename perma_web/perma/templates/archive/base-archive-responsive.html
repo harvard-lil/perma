@@ -19,11 +19,7 @@
 
     {% render_bundle 'single-link-styles' 'css' %}
 
-    {# inline header JS #}
-    <script>
-      {% include "includes/local-datetime.js" %}
-    </script>
-
+    {% block header_scripts %}{% endblock %}
     {% block styles %}{% endblock %}
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
