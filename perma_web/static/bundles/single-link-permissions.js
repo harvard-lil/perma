@@ -5,7 +5,7 @@ webpackJsonp([9],{
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
 	
-	var SingleLinkModule = __webpack_require__(184);
+	var SingleLinkModule = __webpack_require__(185);
 	var DOMHelpers = __webpack_require__(2);
 	var APIModule = __webpack_require__(89);
 	var Helpers = __webpack_require__(88);
@@ -801,6 +801,8 @@ webpackJsonp([9],{
 	exports.saveInput = saveInput;
 	var DOMHelpers = __webpack_require__(2);
 	var APIModule = __webpack_require__(89);
+	__webpack_require__(106); // add .format() to Date object
+	
 	
 	function findFaviconURL(linkObj) {
 	  if (!linkObj.captures) return '';
@@ -849,7 +851,116 @@ webpackJsonp([9],{
 
 /***/ },
 
-/***/ 184:
+/***/ 106:
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	// JS file used as Django template -- gets included inline in our headers
+	
+	// given seconds since UTC epoch and a Django date filter/PHP date format string,
+	// return formatted date in user's local time.
+	function insertLocalDateTime(elementID, epochSeconds, formatString) {
+	  var dateString = new Date(epochSeconds * 1000).format(formatString),
+	      targetElement = document.getElementById(elementID);
+	  targetElement.parentNode.insertBefore(document.createTextNode(dateString), targetElement);
+	}
+	
+	// via http://jacwright.com/projects/javascript/date_format/
+	// Simulates PHP's date function, which is similar to Django's date format filter
+	Date.prototype.format = function (e) {
+	  var t = "";var n = Date.replaceChars;for (var r = 0; r < e.length; r++) {
+	    var i = e.charAt(r);if (r - 1 >= 0 && e.charAt(r - 1) == "\\") {
+	      t += i;
+	    } else if (n[i]) {
+	      t += n[i].call(this);
+	    } else if (i != "\\") {
+	      t += i;
+	    }
+	  }return t;
+	};Date.replaceChars = { shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], longMonths: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], longDays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], d: function d() {
+	    return (this.getDate() < 10 ? "0" : "") + this.getDate();
+	  }, D: function D() {
+	    return Date.replaceChars.shortDays[this.getDay()];
+	  }, j: function j() {
+	    return this.getDate();
+	  }, l: function l() {
+	    return Date.replaceChars.longDays[this.getDay()];
+	  }, N: function N() {
+	    return this.getDay() + 1;
+	  }, S: function S() {
+	    return this.getDate() % 10 == 1 && this.getDate() != 11 ? "st" : this.getDate() % 10 == 2 && this.getDate() != 12 ? "nd" : this.getDate() % 10 == 3 && this.getDate() != 13 ? "rd" : "th";
+	  }, w: function w() {
+	    return this.getDay();
+	  }, z: function z() {
+	    var e = new Date(this.getFullYear(), 0, 1);return Math.ceil((this - e) / 864e5);
+	  }, W: function W() {
+	    var e = new Date(this.getFullYear(), 0, 1);return Math.ceil(((this - e) / 864e5 + e.getDay() + 1) / 7);
+	  }, F: function F() {
+	    return Date.replaceChars.longMonths[this.getMonth()];
+	  }, m: function m() {
+	    return (this.getMonth() < 9 ? "0" : "") + (this.getMonth() + 1);
+	  }, M: function M() {
+	    return Date.replaceChars.shortMonths[this.getMonth()];
+	  }, n: function n() {
+	    return this.getMonth() + 1;
+	  }, t: function t() {
+	    var e = new Date();return new Date(e.getFullYear(), e.getMonth(), 0).getDate();
+	  }, L: function L() {
+	    var e = this.getFullYear();return e % 400 == 0 || e % 100 != 0 && e % 4 == 0;
+	  }, o: function o() {
+	    var e = new Date(this.valueOf());e.setDate(e.getDate() - (this.getDay() + 6) % 7 + 3);return e.getFullYear();
+	  }, Y: function Y() {
+	    return this.getFullYear();
+	  }, y: function y() {
+	    return ("" + this.getFullYear()).substr(2);
+	  }, a: function a() {
+	    return this.getHours() < 12 ? "am" : "pm";
+	  }, A: function A() {
+	    return this.getHours() < 12 ? "AM" : "PM";
+	  }, B: function B() {
+	    return Math.floor(((this.getUTCHours() + 1) % 24 + this.getUTCMinutes() / 60 + this.getUTCSeconds() / 3600) * 1e3 / 24);
+	  }, g: function g() {
+	    return this.getHours() % 12 || 12;
+	  }, G: function G() {
+	    return this.getHours();
+	  }, h: function h() {
+	    return ((this.getHours() % 12 || 12) < 10 ? "0" : "") + (this.getHours() % 12 || 12);
+	  }, H: function H() {
+	    return (this.getHours() < 10 ? "0" : "") + this.getHours();
+	  }, i: function i() {
+	    return (this.getMinutes() < 10 ? "0" : "") + this.getMinutes();
+	  }, s: function s() {
+	    return (this.getSeconds() < 10 ? "0" : "") + this.getSeconds();
+	  }, u: function u() {
+	    var e = this.getMilliseconds();return (e < 10 ? "00" : e < 100 ? "0" : "") + e;
+	  }, e: function e() {
+	    return "Not Yet Supported";
+	  }, I: function I() {
+	    var e = null;for (var t = 0; t < 12; ++t) {
+	      var n = new Date(this.getFullYear(), t, 1);var r = n.getTimezoneOffset();if (e === null) e = r;else if (r < e) {
+	        e = r;break;
+	      } else if (r > e) break;
+	    }return this.getTimezoneOffset() == e | 0;
+	  }, O: function O() {
+	    return (-this.getTimezoneOffset() < 0 ? "-" : "+") + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? "0" : "") + Math.abs(this.getTimezoneOffset() / 60) + "00";
+	  }, P: function P() {
+	    return (-this.getTimezoneOffset() < 0 ? "-" : "+") + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? "0" : "") + Math.abs(this.getTimezoneOffset() / 60) + ":00";
+	  }, T: function T() {
+	    var e = this.getMonth();this.setMonth(0);var t = this.toTimeString().replace(/^.+ \(?([^\)]+)\)?$/, "$1");this.setMonth(e);return t;
+	  }, Z: function Z() {
+	    return -this.getTimezoneOffset() * 60;
+	  }, c: function c() {
+	    return this.format("Y-m-d\\TH:i:sP");
+	  }, r: function r() {
+	    return this.toString();
+	  }, U: function U() {
+	    return this.getTime() / 1e3;
+	  } };
+
+/***/ },
+
+/***/ 185:
 /***/ function(module, exports) {
 
 	"use strict";

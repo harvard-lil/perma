@@ -33,11 +33,7 @@
       {# Python variables for use in Javascript #}
       {% include 'js_config.html' %}
 
-      {# inline header JS #}
-      <script>
-        {% include "includes/local-datetime.js" %}
-      </script>
-
+      {% block header_scripts %}{% endblock %}
       {% block styles %}{% endblock %}
 
   </head>
