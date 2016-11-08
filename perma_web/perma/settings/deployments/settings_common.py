@@ -120,7 +120,7 @@ TEMPLATES = [
 ]
 
 MIDDLEWARE_CLASSES = (
-    'perma.middleware.SecurityMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'api.middleware.APISubdomainMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -166,7 +166,6 @@ INSTALLED_APPS = (
     'mptt',
     'sorl.thumbnail',
     'django_forms_bootstrap',
-    'djangosecure',  # force SSL -- this can be removed in Django 1.8
     'settings_context_processor',
     'simple_history',  # record model changes
     'taggit',  # model tagging
