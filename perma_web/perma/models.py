@@ -281,7 +281,7 @@ class LinkUser(AbstractBaseUser):
         today = timezone.now()
 
         link_count = Link.objects.filter(creation_timestamp__year=today.year, creation_timestamp__month=today.month, created_by_id=self.id, organization_id=None).count()
-        return self.monthly_link_limit - link_count
+        return max(self.monthly_link_limit - link_count, 0)
 
     def create_root_folder(self):
         if self.root_folder:

@@ -5,7 +5,6 @@ import traceback
 from cStringIO import StringIO
 from contextlib import contextmanager
 
-from functools import wraps
 from httplib import HTTPResponse
 from urllib2 import URLError
 
@@ -132,20 +131,6 @@ def get_browser(user_agent, proxy_address, cert_path):
     browser.set_page_load_timeout(ROBOTS_TXT_TIMEOUT)
 
     return browser
-
-def retry_on_error(func):
-    """
-        Decorator to catch any exceptions thrown by the given task and call retry().
-        Task must use bind=True.
-    """
-    @wraps(func)
-    def with_retry(task, *args, **kwargs):
-        try:
-            return func(task, *args, **kwargs)
-        except Exception as e:
-            logger.exception("Task failed, calling retry.\nArgs: %s\nKwargs: %s\nError: %s" % (args, kwargs, e))
-            task.retry(exc=e)
-    return with_retry
 
 def save_fields(instance, **kwargs):
     """
