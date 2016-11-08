@@ -15,7 +15,9 @@ from selenium.common.exceptions import ElementNotVisibleException, NoSuchElement
 import time
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.core.urlresolvers import reverse
 
+from perma.urls import urlpatterns
 from perma.wsgi import application as wsgi_app
 from perma.models import UncaughtError
 from perma.settings import SAUCE_USERNAME, SAUCE_ACCESS_KEY, USE_SAUCE, TIMEGATE_WARC_ROUTE, WARC_ROUTE
@@ -419,6 +421,11 @@ class FunctionalTest(BaseTestCase):
                     self.assertIsNotNone(reg.search(header))
 
             info("Checking for unexpected javascript errors")
+            # Visit every test every view that doesn't take parameters,
+            # except the route for posting new js errors
+            for urlpattern in urlpatterns:
+                if '?P<' not in urlpattern.regex.pattern and urlpattern.name and urlpattern.name != "error_management_post_new":
+                    self.driver.get(self.server_url + reverse(urlpattern.name))
             if UncaughtError.objects.exclude(message__contains="doesNotExist").count():
                 self.assertTrue(False, "Unexpected javascript errors (see log for details)")
 
