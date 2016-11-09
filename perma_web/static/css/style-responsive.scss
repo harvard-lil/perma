@@ -17,7 +17,7 @@
 .style-clears-floats {
   &:after {
     display: table;
-    content: "\00a0";
+    content: " ";
     clear: both;
   }
 }

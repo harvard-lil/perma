@@ -7588,7 +7588,7 @@ img {
 .row:after,
 .item-container:after {
   display: table;
-  content: "\A0";
+  content: " ";
   clear: both;
 }
 
