@@ -80,11 +80,11 @@ def format_for_cm_registrar_users(users):
         by Campaign Monitor.
     '''
     def format_name(user):
-        return "{} {}".format(user["first_name"], user["last_name"])
+        return u"{} {}".format(user["first_name"], user["last_name"])
 
     def format_registrar_users(registrar_users):
-        string_list = ["{} {} ({})".format(user.first_name, user.last_name, user.email) for user in registrar_users]
-        return "<br> ".join(string_list)
+        string_list = [u"{} {} ({})".format(user.first_name, user.last_name, user.email) for user in registrar_users]
+        return u"<br> ".join(string_list)
 
     formatted_users = []
     for user in users:
@@ -94,7 +94,7 @@ def format_for_cm_registrar_users(users):
         formatted['CustomFields'] = [
             {"Key": "RegistrarEmail", "Value":  user["registrar_email"]},
             {"Key": "RegistrarName", "Value": user["registrar_name"]},
-            {"Key": "TotalLinks", "Value": user["total_links"]},
+            {"Key": "TotalLinks", "Value": unicode(user["total_links"])},
             {"Key": "RegistrarUsers", "Value": format_registrar_users(user['registrar_users'])}
         ]
         formatted_users.append(formatted)
