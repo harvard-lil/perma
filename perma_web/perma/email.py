@@ -84,6 +84,7 @@ def registrar_users_plus_stats(destination=None):
                            "registrar_email": registrar.email,
                            "registrar_name": registrar.name,
                            "total_links": registrar.link_count,
+                           "this_year_links": registrar.link_count_this_year(),
                            "registrar_users": registrar_users })
     if destination == 'cm':
         return format_for_cm_registrar_users(users)
@@ -116,6 +117,7 @@ def format_for_cm_registrar_users(users):
             {"Key": "RegistrarEmail", "Value":  user["registrar_email"]},
             {"Key": "RegistrarName", "Value": user["registrar_name"]},
             {"Key": "TotalLinks", "Value": unicode(user["total_links"])},
+            {"Key": "ThisYearLinks", "Value": unicode(user["this_year_links"])},
             {"Key": "RegistrarUsers", "Value": format_registrar_users(user['registrar_users'])}
         ]
         formatted_users.append(formatted)

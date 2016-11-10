@@ -13,6 +13,7 @@ import simple_history
 import requests
 import itertools
 import time
+from datetime import datetime
 
 from hanzo import warctools
 from mptt.managers import TreeManager
@@ -107,6 +108,17 @@ class Registrar(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def link_count_in_time_period(self, start_time=None, end_time=None):
+        links = Link.objects.filter(organization__registrar=self)
+        if start_time:
+            links = links.filter(creation_timestamp__gte=start_time)
+        if end_time:
+            links = links.filter(creation_timestamp__lte=end_time)
+        return links.count()
+
+    def link_count_this_year(self):
+        return self.link_count_in_time_period(datetime(datetime.now().year, 1, 1))
 
 
 class OrganizationQuerySet(QuerySet):
