@@ -57,21 +57,28 @@ def ping_registrar_users(request):
     if safe_str_cmp(request.POST.get('key',""), settings.INTERNAL_SERVICES_KEY):
         users = registrar_users_plus_stats()
         logger.info("Begin emailing registrar users.")
-        # TODO: discuss with Jack and Ben, and decide which is better
-        # # Option 1: Use the regular Django send_email
-        # send_count = 0
-        # for user in users:
-        #     result = send_user_email(user['email'],
-        #                              'email/registrar_user_ping.txt',
-        #                              user)
-        #     send_count += result
-        # Option 2: Use Django's send_mass_email
-        send_count = send_mass_user_email('email/registrar_user_ping.txt',
-                                          [(user['email'], user) for user in users])
-        # ENDTODO
+        send_count = 0
+        failed_list = []
+        for user in users:
+            succeeded = send_user_email(user['email'],
+                                        'email/registrar_user_ping.txt',
+                                         user)
+            if succeeded:
+                send_count += 1
+            else:
+                failed_list.append(user.id)
+
+        # Another option is to use Django's send_mass_email.
+        # It's unclear which would be more performant in real life.
+        # send_count = send_mass_user_email('email/registrar_user_ping.txt',
+        #                                   [(user['email'], user) for user in users])
         logger.info("Done emailing registrar users.")
         if len(users) != send_count:
-            logger.error("Some registrar users were not emailed. Check log for fatal SMTP errors.")
+            if failed_list:
+                msg = "Some registrar users were not emailed: {}. Check log for fatal SMTP errors.".format(str(failed_list))
+            else:
+                msg = "Some registrar users were not emailed. Check log for fatal SMTP errors."
+            logger.error(msg)
             result = "incomplete"
         else:
             result = "ok"
