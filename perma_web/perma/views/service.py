@@ -9,15 +9,19 @@ from django.utils import timezone
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.debug import sensitive_post_parameters
 
 from perma.models import WeekStats, MinuteStats
 from perma.utils import json_serial
-from perma.email import sync_cm_list, send_user_email, send_mass_user_email, send_admin_email, registrar_users_plus_stats
+from perma.email import sync_cm_list, send_user_email, \
+     send_admin_email, registrar_users_plus_stats \
+     # send_user_bulk_email
 
 
 logger = logging.getLogger(__name__)
 
 @csrf_exempt
+@sensitive_post_parameters()
 @require_http_methods(["POST"])
 def cm_sync(request):
     '''
@@ -42,6 +46,7 @@ def cm_sync(request):
         return HttpResponseForbidden("<h1>Forbidden</h1>")
 
 @csrf_exempt
+@sensitive_post_parameters()
 @require_http_methods(["POST"])
 def ping_registrar_users(request):
     '''
