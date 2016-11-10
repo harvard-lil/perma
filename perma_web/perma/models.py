@@ -14,6 +14,7 @@ import requests
 import itertools
 import time
 from datetime import datetime
+from operator import attrgetter
 
 from hanzo import warctools
 from mptt.managers import TreeManager
@@ -120,6 +121,16 @@ class Registrar(models.Model):
     def link_count_this_year(self):
         return self.link_count_in_time_period(datetime(datetime.now().year, 1, 1))
 
+    def most_active_org(self):
+        orgs = list(Organization.objects.filter(registrar=self))
+        if orgs:
+            orgs.sort(key=attrgetter('link_count_this_year'), reverse=False)
+            if orgs[0].link_count_this_year():
+                return orgs[0]
+            else:
+                return None
+        else:
+            return None
 
 class OrganizationQuerySet(QuerySet):
     def accessible_to(self, user):
@@ -180,6 +191,16 @@ class Organization(DeletableModel):
         self.shared_folder = shared_folder
         self.save()
 
+    def link_count_in_time_period(self, start_time=None, end_time=None):
+        links = Link.objects.filter(organization=self)
+        if start_time:
+            links = links.filter(creation_timestamp__gte=start_time)
+        if end_time:
+            links = links.filter(creation_timestamp__lte=end_time)
+        return links.count()
+
+    def link_count_this_year(self):
+        return self.link_count_in_time_period(datetime(datetime.now().year, 1, 1))
 
 class LinkUserManager(BaseUserManager):
     def create_user(self, email, registrar, organization, date_joined, first_name, last_name, authorized_by, confirmation_code, password=None):
