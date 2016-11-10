@@ -40,6 +40,7 @@ urlpatterns = [
     url(r'^service/stats/sums/?$', service.stats_sums, name='service_stats_sums'),
     url(r'^service/stats/now/?$', service.stats_now, name='service_stats_now'),
     url(r'^service/cm-sync?$', service.cm_sync, name='service_cm_sync'),
+    url(r'^service/ping-registrar-users?$', service.ping_registrar_users, name='service_ping_registrar_users'),
     url(r'^service/bookmarklet-create/$', service.bookmarklet_create, name='service_bookmarklet_create'),
     #url(r'^service/thumbnail/%s/thumbnail.png$' % guid_pattern, service.get_thumbnail, name='service_get_thumbnail'),
 

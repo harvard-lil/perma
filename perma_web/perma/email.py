@@ -3,7 +3,7 @@ from createsend import Subscriber, List
 from collections import defaultdict
 
 from django.conf import settings
-from django.core.mail import EmailMessage, send_mail
+from django.core.mail import EmailMessage, send_mail, send_mass_mail
 from django.template.loader import render_to_string
 
 from .models import Registrar, LinkUser
@@ -19,13 +19,34 @@ def send_user_email(to_address, template, context):
     email_text = render_to_string(template, context)
     title, email_text = email_text.split("\n\n", 1)
     title = title.split("TITLE: ")[-1]
-    send_mail(
+    success_count = send_mail(
         title,
         email_text,
         settings.DEFAULT_FROM_EMAIL,
         [to_address],
         fail_silently=False
     )
+    return success_count
+
+def send_mass_user_email(template, recipients):
+    '''
+        Opens a single connection to the mail server and sends many emails.
+        Pass in recipients as a list of tuples (email, context):
+        [('recipient@example.com', {'first_name': 'Joe', 'last_name': 'Yacoboski' }), (), ...]
+    '''
+    to_send = []
+    for recipient in recipients:
+        to_address, context = recipient
+        email_text = render_to_string(template, context)
+        title, email_text = email_text.split("\n\n", 1)
+        title = title.split("TITLE: ")[-1]
+        to_send.append(( title,
+                         email_text,
+                         settings.DEFAULT_FROM_EMAIL,
+                         [to_address]))
+
+    success_count = send_mass_mail(tuple(to_send), fail_silently=False)
+    return success_count
 
 def send_admin_email(title, from_address, request, template="email/default.txt", context={}, referer=''):
     """

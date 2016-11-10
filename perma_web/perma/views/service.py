@@ -12,7 +12,7 @@ from django.views.decorators.http import require_http_methods
 
 from perma.models import WeekStats, MinuteStats
 from perma.utils import json_serial
-from perma.email import sync_cm_list, send_admin_email, registrar_users_plus_stats
+from perma.email import sync_cm_list, send_user_email, send_mass_user_email, send_admin_email, registrar_users_plus_stats
 
 
 logger = logging.getLogger(__name__)
@@ -41,6 +41,43 @@ def cm_sync(request):
     else:
         return HttpResponseForbidden("<h1>Forbidden</h1>")
 
+@csrf_exempt
+@require_http_methods(["POST"])
+def ping_registrar_users(request):
+    '''
+       Sends an email to our current registrar users. See templates/email/registrar_user_ping.txt
+    '''
+    # Use something like this:
+    # curl -i -X POST --data "key=<INTERNAL_SERVICES_KEY>" http://perma.dev:8000/service/ping-registrar-users
+    if safe_str_cmp(request.POST.get('key',""), settings.INTERNAL_SERVICES_KEY):
+        users = registrar_users_plus_stats()
+        logger.info("Begin emailing registrar users.")
+        # TODO: discuss with Jack and Ben, and decide which is better
+        # # Option 1: Use the regular Django send_email
+        # send_count = 0
+        # for user in users:
+        #     result = send_user_email(user['email'],
+        #                              'email/registrar_user_ping.txt',
+        #                              user)
+        #     send_count += result
+        # Option 2: Use Django's send_mass_email
+        send_count = send_mass_user_email('email/registrar_user_ping.txt',
+                                          [(user['email'], user) for user in users])
+        # ENDTODO
+        logger.info("Done emailing registrar users.")
+        if len(users) != send_count:
+            logger.error("Some registrar users were not emailed. Check log for fatal SMTP errors.")
+            result = "incomplete"
+        else:
+            result = "ok"
+        send_admin_email("Registar Users Emailed",
+                         settings.DEFAULT_FROM_EMAIL,
+                         request,
+                         'email/admin/pinged_registrar_users.txt',
+                         {"users": users, "result": result})
+        return HttpResponse(json.dumps({"result": result, "send_count": send_count}), content_type="application/json", status=200)
+    else:
+        return HttpResponseForbidden("<h1>Forbidden</h1>")
 
 def stats_sums(request):
     """
