@@ -80,7 +80,7 @@ pathtools==0.1.2          # via watchdog
 pbr==1.10.0               # via mock
 pep8==1.7.0               # via flake8
 pexpect==3.1
-Pillow==3.3.1
+Pillow==3.3.2
 pip-tools==1.7
 py==1.4.31                # via pytest
 pyasn1==0.1.9             # via cryptography, requests
