@@ -641,6 +641,7 @@ a.about {
       display: inline-block;
       &:hover {
         border-color: $color-hover;
+        text-decoration: none;
       }
       &:active {
         border-color: $color-active;

@@ -5205,6 +5205,7 @@ a.about:active {
 
 .creation .action a:hover {
   border-color: #0092FF;
+  text-decoration: none;
 }
 
 .creation .action a:active {
