@@ -641,6 +641,7 @@ a.about {
       display: inline-block;
       &:hover {
         border-color: $color-hover;
+        text-decoration: none;
       }
       &:active {
         border-color: $color-active;
@@ -1074,7 +1075,7 @@ p.fp {
     @include respond-tablet {
         display: none;
     }
-    @include respond-desktop {
+    @include respond-wide {
         display: inline;
         width: auto;
         height: auto;

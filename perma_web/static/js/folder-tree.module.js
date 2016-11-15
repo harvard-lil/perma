@@ -198,7 +198,7 @@ function domTreeInit () {
               createFolder(node_parent.data.folder_id, newName).done(function (server_response) {
                 allowedEventsCount++;
                 folderTree.create_node(node_parent, node, "last", function (new_folder_node) {
-                  new_folder_node.data = {folder_id: server_response.id};
+                  new_folder_node.data = { folder_id: server_response.id, organization_id: node_parent.data.organization_id };
                   editNodeName(new_folder_node);
                 });
               });
