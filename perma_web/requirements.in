@@ -39,7 +39,7 @@ django-sslserver==0.14          # For testing SSL locally.
 django-model-utils==2.2         # for tracking dirty models
 django-settings-context-processor==0.2 # make settings available in templates
 django-admin-smoke-tests==0.1.11    # basic tests for the Django admin
-Pillow==3.3.1                   # Used by the Django admin for ImageField display
+Pillow==3.3.2                   # Used by the Django admin for ImageField display
 whitenoise==3.2.2               # serve static assets
 django-simple-history==1.8.1    # track changes to certain models
 PyVirtualDisplay==0.1.5         # for capturing with non-headless browsers
