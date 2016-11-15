@@ -1075,7 +1075,7 @@ p.fp {
     @include respond-tablet {
         display: none;
     }
-    @include respond-desktop {
+    @include respond-wide {
         display: inline;
         width: auto;
         height: auto;

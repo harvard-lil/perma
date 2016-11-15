@@ -5715,7 +5715,7 @@ p.fp a:hover {
   }
 }
 
-@media only screen and (min-width: 990px) {
+@media only screen and (min-width: 1200px) {
   ._verbose._toDesktop,
   .verbose._toDesktop {
     display: inline;
