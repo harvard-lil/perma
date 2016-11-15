@@ -14,7 +14,7 @@ import requests
 import itertools
 import time
 from datetime import datetime
-from operator import attrgetter
+from operator import methodcaller
 
 from hanzo import warctools
 from mptt.managers import TreeManager
@@ -49,6 +49,21 @@ logger = logging.getLogger(__name__)
 
 
 ### HELPERS ###
+
+# functions
+def link_count_in_time_period(links, start_time=None, end_time=None):
+    if start_time and end_time and (start_time > end_time):
+        raise ValueError("specified end time is earlier than specified start time")
+    elif start_time and end_time and (start_time == end_time):
+        links = links.filter(creation_timestamp=start_time)
+    else:
+        if start_time:
+            links = links.filter(creation_timestamp__gte=start_time)
+        if end_time:
+            links = links.filter(creation_timestamp__lte=end_time)
+    return links.count()
+
+# classes
 
 class DeletableManager(models.Manager):
     """
@@ -112,11 +127,7 @@ class Registrar(models.Model):
 
     def link_count_in_time_period(self, start_time=None, end_time=None):
         links = Link.objects.filter(organization__registrar=self)
-        if start_time:
-            links = links.filter(creation_timestamp__gte=start_time)
-        if end_time:
-            links = links.filter(creation_timestamp__lte=end_time)
-        return links.count()
+        return link_count_in_time_period(links, start_time, end_time)
 
     def link_count_this_year(self):
         return self.link_count_in_time_period(datetime(datetime.now().year, 1, 1))
@@ -124,7 +135,7 @@ class Registrar(models.Model):
     def most_active_org(self):
         orgs = list(Organization.objects.filter(registrar=self))
         if orgs:
-            orgs.sort(key=attrgetter('link_count_this_year'), reverse=False)
+            orgs.sort(key=methodcaller('link_count_this_year'), reverse=True)
             if orgs[0].link_count_this_year():
                 return orgs[0]
             else:
@@ -193,11 +204,7 @@ class Organization(DeletableModel):
 
     def link_count_in_time_period(self, start_time=None, end_time=None):
         links = Link.objects.filter(organization=self)
-        if start_time:
-            links = links.filter(creation_timestamp__gte=start_time)
-        if end_time:
-            links = links.filter(creation_timestamp__lte=end_time)
-        return links.count()
+        return link_count_in_time_period(links, start_time, end_time)
 
     def link_count_this_year(self):
         return self.link_count_in_time_period(datetime(datetime.now().year, 1, 1))
