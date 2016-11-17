@@ -22,6 +22,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'secret'
+INTERNAL_SERVICES_KEY = 'fake'
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
@@ -72,3 +73,8 @@ THUMBNAIL_KVSTORE = 'sorl.thumbnail.kvstores.cached_db_kvstore.KVStore'
 # If running testing, import setting overrides
 if 'test' in sys.argv:
     from settings_testing import *
+
+# Campaign Monitor (override in settings.py if you want to actually
+# interact with to campaign monitor)
+CAMPAIGN_MONITOR_AUTH = {'api_key':'fake'}
+CAMPAIGN_MONITOR_REGISTRAR_LIST = 'fake'
