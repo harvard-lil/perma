@@ -34,7 +34,6 @@ django-tastypie==0.13.3         # API framework
 sorl-thumbnail==12.3			# Used to create our thumbnails
 redis==2.10.5					# Needed to bind with Redis. Supports our sorl thumbnails in production
 django-redis==4.4.3             # use redis as django's cache backend
-django-forms-bootstrap==3.0.1   # produce Bootstrap compatable forms
 django-sslserver==0.14          # For testing SSL locally.
 django-model-utils==2.2         # for tracking dirty models
 django-settings-context-processor==0.2 # make settings available in templates

@@ -27,7 +27,6 @@ clint==0.5.1              # via internetarchive
 coverage==3.7.1
 cryptography==1.5.3       # via pyopenssl
 django-admin-smoke-tests==0.1.11
-django-forms-bootstrap==3.0.1
 django-model-utils==2.2
 django-mptt==0.8.5
 django-ratelimit==1.0.0
