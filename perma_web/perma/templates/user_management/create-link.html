@@ -43,7 +43,7 @@
           </button>
 
           {% if request.user.has_limit %}
-            <p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account this month. <a href="{% url 'docs' %}#create-account">Learn more about accounts</a>.</p>
+            <p id="links-remaining-message">You have <span class="links-remaining">{{links_remaining}}</span> remaining Perma Links on your free account this month. <a href="{% url 'docs_perma_link_creation' %}#preservation-limits">Learn more about accounts</a>.</p>
           {% else %}
             <div id="organization_select_form">
               <span class="label-affil">This Perma Link will be affiliated with</span>

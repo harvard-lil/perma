@@ -273,6 +273,16 @@ export function updateLinker () {
   } else {
     $('#linker').removeClass('_isPrivate')
   }
+
+  var already_warned = Helpers.getCookie("suppress_link_warning");
+  if (already_warned != "true" &&
+      currentOrg == 'None' &&
+      is_org_user == "True" &&
+      links_remaining == 3){
+    var message = "Your personal links for the month are almost used up! Create more links in 'unlimited' folders."
+    Helpers.informUser(message, 'danger');
+    Helpers.setCookie("suppress_link_warning", "true", 120);
+  }
 }
 
 function updateAffiliationPath (currentOrg, path) {
@@ -433,8 +443,4 @@ export function init () {
   setupEventHandlers();
   populateWithUrl();
 
-  if (is_org_user == "True" && links_remaining == 3){
-    var message = "Your personal links for the month are almost used up! Create more links in 'unlimited' folders."
-    Helpers.informUser(message, 'danger');
-  }
 }
