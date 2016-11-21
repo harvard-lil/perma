@@ -8,7 +8,7 @@ webpackJsonp([0],[
 	var HandlebarsHelpers = __webpack_require__(3);
 	
 	function fillSection(name) {
-	  return $.getJSON(document.location + '/' + name).then(function (data) {
+	  return $.getJSON(document.location.href.replace(/\/$/, "") + "/" + name).then(function (data) {
 	    DOMHelpers.changeHTML('#' + name, HandlebarsHelpers.renderTemplate('#' + name + '-template', data));
 	  });
 	}
