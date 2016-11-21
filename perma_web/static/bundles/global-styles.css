@@ -7845,13 +7845,13 @@ section#main {
 @media only screen and (min-width: 768px) {
   section#main {
     padding-top: 32px;
-    padding-bottom: 200px;
   }
 }
 
 @media only screen and (min-width: 990px) {
   section#main {
     padding-top: 16px;
+    padding-bottom: 200px;
   }
 }
 
@@ -11712,14 +11712,14 @@ img.infinity-logo {
 
 footer {
   text-align: left;
-  padding: 16px 0 40px;
+  padding: 0 0 12px;
   background: #2D76EE;
   font-family: "Roboto", Helvetica, Arial, "Lucida Grande", sans-serif;
   color: white;
   font-weight: 700;
 }
 
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 990px) {
   footer {
     position: absolute;
     bottom: 0;
@@ -11732,7 +11732,7 @@ footer {
   }
 }
 
-@media only screen and (min-width: 990px) {
+@media only screen and (min-width: 1200px) {
   footer {
     font-size: 14px;
   }
@@ -11790,6 +11790,10 @@ footer a.home:after {
   margin-left: 8px;
 }
 
+footer div.col:first-child li:first-child {
+  border-top: none;
+}
+
 footer #footer-nav {
   padding-left: 0;
 }
@@ -11809,7 +11813,7 @@ footer #boilerplate a {
   padding-bottom: 0;
 }
 
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 990px) {
   footer {
     padding: 16px 0 40px;
   }

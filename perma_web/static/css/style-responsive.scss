@@ -235,10 +235,10 @@ section#main {
   padding-bottom: $grid * 3;
   @include respond-tablet {
     padding-top: $grid * 4;
-    padding-bottom: $grid * 25;
   }
   @include respond-desktop {
     padding-top: $grid * 2;
+    padding-bottom: $grid * 25;
   }
   @include respond-wide {
   }
@@ -3287,19 +3287,19 @@ img.infinity-logo {
 
 footer {
   text-align: left;
-  padding: $double 0 $grid * 5;
+  padding: 0 0 $grid * 1.5;
   background: $color-blue;
   font-family: $font-hed-alt;
   color: $color-white;
   font-weight: 700;
-  @include respond-tablet {
+  @include respond-desktop {
     @include affix-to-bottom;
     padding-top: 0;
     background: $color-white;
     color: $color-blue;
     font-size: 12px;
   }
-  @include respond-desktop {
+  @include respond-wide {
     font-size: 14px;
   }
   .container {
@@ -3342,6 +3342,9 @@ footer {
       margin-left: $grid;
     }
   }
+  div.col:first-child li:first-child{
+    border-top: none;
+  }
   #footer-nav {
     padding-left: 0;
     li:last-child a {
@@ -3359,7 +3362,7 @@ footer {
       padding-bottom: 0;
     }
   }
-  @include respond-tablet {
+  @include respond-desktop {
     padding: $double 0 $grid * 5;
     a:hover {
       border-color: $color-orange;
