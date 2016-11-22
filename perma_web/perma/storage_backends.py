@@ -9,6 +9,7 @@ import django.dispatch
 from django.utils.module_loading import import_string
 
 from storages.backends.s3boto import S3BotoStorage
+from storages.backends.sftpstorage import SFTPStorage
 from whitenoise.storage import CompressedManifestStaticFilesStorage
 
 from perma.utils import ReadOnlyException
@@ -85,6 +86,11 @@ class FileSystemMediaStorage(BaseMediaStorage, DjangoFileSystemStorage):
 
 class S3MediaStorage(BaseMediaStorage, S3BotoStorage):
     location = settings.MEDIA_ROOT
+
+
+class SFTPMediaStorage(BaseMediaStorage, SFTPStorage):
+    pass
+
 
 if settings.DEFAULT_FILE_STORAGE.endswith('RedundantMediaStorage'):
     PrimaryStorageClass = import_string(settings.PRIMARY_FILE_STORAGE)
