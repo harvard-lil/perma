@@ -133,27 +133,22 @@ def users_to_unsubscribe(cm_list_id, current_perma_user_emails):
     '''
         Returns a list of any email addresses marked as active in
         a given Campaign Monitor subscriber list, but not appearing in
-        a passed-in list of currely active Perma user email addresses.
+        a passed-in iterable of currely active Perma user email addresses.
     '''
-    def retrieve_subscribers(cm_list, page=1, page_size=1000, results = []):
-        result = cm_list.active(page=page, page_size=page_size)
-        if result.NumberOfPages <= 0:
-            return results
-        if result.PageNumber == result.NumberOfPages:
-            results.extend(result.Results)
-            return results
-        else:
-            results.extend(result.Results)
-            return retrieve_subscribers(cm_list, page+1, page_size, results)
-
+    page = 0
+    to_unsubscribe = []
+    current_users = set(current_perma_user_emails)
     cm_list = List(settings.CAMPAIGN_MONITOR_AUTH, cm_list_id)
-    subscribers = retrieve_subscribers(cm_list)
-
-    unsubscribers = []
-    for subscriber in subscribers:
-        if subscriber.EmailAddress not in current_perma_user_emails:
-            unsubscribers.append(subscriber.EmailAddress)
-    return unsubscribers
+    while True:
+        page += 1
+        result = cm_list.active(page=page, page_size=1000)
+        if result.NumberOfPages <= 0:
+            return []
+        for subscriber in result.Results:
+                if subscriber.EmailAddress not in current_users:
+                    to_unsubscribe.append(subscriber.EmailAddress)
+        if result.PageNumber == result.NumberOfPages:
+            return to_unsubscribe
 
 def add_and_update_cm_subscribers(list_id, subscribers):
     '''

@@ -14,7 +14,6 @@ import requests
 import itertools
 import time
 from datetime import datetime
-from operator import methodcaller
 
 from hanzo import warctools
 from mptt.managers import TreeManager
@@ -32,7 +31,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.core.files.storage import default_storage
 from django.db import models
-from django.db.models import Q, Max
+from django.db.models import Q, Max, Count
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -133,15 +132,11 @@ class Registrar(models.Model):
         return self.link_count_in_time_period(datetime(datetime.now().year, 1, 1))
 
     def most_active_org(self):
-        orgs = list(Organization.objects.filter(registrar=self))
-        if orgs:
-            orgs.sort(key=methodcaller('link_count_this_year'), reverse=True)
-            if orgs[0].link_count_this_year():
-                return orgs[0]
-            else:
-                return None
-        else:
-            return None
+        return self.organizations\
+            .filter(links__creation_timestamp__gte=datetime(datetime.now().year, 1, 1))\
+            .annotate(num_links=Count('links'))\
+            .order_by('-num_links')\
+            .first()
 
 class OrganizationQuerySet(QuerySet):
     def accessible_to(self, user):

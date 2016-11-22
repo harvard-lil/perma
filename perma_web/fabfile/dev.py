@@ -17,8 +17,8 @@ def run_django(port="0.0.0.0:8000"):
         Run django test server on open port, so it's accessible outside Vagrant.
     """
     commands = [
-        'npm start',
-        #'celery -A perma worker --loglevel=info -B'
+        'celery -A perma worker --loglevel=info -B',
+        'npm start'
     ]
 
     proc_list = [subprocess.Popen(command, shell=True, stdout=sys.stdout, stderr=sys.stderr) for command in commands]
@@ -398,6 +398,51 @@ def read_playback_tests(*filepaths):
         err_count += len(sub_errs)
         print "%s: %s" % (err_type, len(sub_errs))
     print "Total:", err_count
+
+@task
+def ping_registrar_users():
+    '''
+       Sends an email to our current registrar users. See templates/email/registrar_user_ping.txt
+    '''
+    import json, logging
+    from django.http import HttpRequest
+    from perma.email import send_user_email, send_admin_email, registrar_users_plus_stats
+
+    logger = logging.getLogger(__name__)
+    users = registrar_users_plus_stats()
+    logger.info("Begin emailing registrar users.")
+    send_count = 0
+    failed_list = []
+    for user in users:
+        succeeded = send_user_email(user['email'],
+                                    'email/registrar_user_ping.txt',
+                                     user)
+        if succeeded:
+            send_count += 1
+        else:
+            failed_list.append(user.id)
+
+    # Another option is to use Django's send_mass_email.
+    # It's unclear which would be more performant in real life.
+    # send_count = send_mass_user_email('email/registrar_user_ping.txt',
+    #                                   [(user['email'], user) for user in users])
+    logger.info("Done emailing registrar users.")
+    if len(users) != send_count:
+        if failed_list:
+            msg = "Some registrar users were not emailed: {}. Check log for fatal SMTP errors.".format(str(failed_list))
+        else:
+            msg = "Some registrar users were not emailed. Check log for fatal SMTP errors."
+        logger.error(msg)
+        result = "incomplete"
+    else:
+        result = "ok"
+    send_admin_email("Registrar Users Emailed",
+                     settings.DEFAULT_FROM_EMAIL,
+                     HttpRequest(),
+                     'email/admin/pinged_registrar_users.txt',
+                     {"users": users, "result": result})
+    return json.dumps({"result": result, "send_count": send_count})
+
 
 @task
 def fix_ia_metadata():

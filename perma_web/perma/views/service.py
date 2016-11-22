@@ -1,95 +1,13 @@
-import json, logging, pytz
-from werkzeug.security import safe_str_cmp
+import json, pytz
 
 from django.core import serializers
-from django.http import HttpResponse, HttpResponseForbidden
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.utils import timezone
-from django.conf import settings
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-from django.views.decorators.debug import sensitive_post_parameters
 
 from perma.models import WeekStats, MinuteStats
 from perma.utils import json_serial
-from perma.email import sync_cm_list, send_user_email, \
-     send_admin_email, registrar_users_plus_stats \
-     # send_user_bulk_email
-
-
-logger = logging.getLogger(__name__)
-
-@csrf_exempt
-@sensitive_post_parameters()
-@require_http_methods(["POST"])
-def cm_sync(request):
-    '''
-       Sync our current list of registrar users plus some associated metadata
-       to Campaign Monitor.
-    '''
-
-    # Use something like this:
-    # curl -i -X POST --data "key=<INTERNAL_SERVICES_KEY>" http://perma.dev:8000/service/cm-sync/
-    if safe_str_cmp(request.POST.get('key',""), settings.INTERNAL_SERVICES_KEY):
-        reports = sync_cm_list(settings.CAMPAIGN_MONITOR_REGISTRAR_LIST,
-                               registrar_users_plus_stats(destination='cm'))
-        if reports["import"]["duplicates_in_import_list"]:
-            logger.error("Duplicate reigstrar users sent to Campaign Monitor. Check sync logic.")
-        send_admin_email("Registrar Users Synced to Campaign Monitor",
-                          settings.DEFAULT_FROM_EMAIL,
-                          request,
-                          'email/admin/sync_to_cm.txt',
-                          {"reports": reports})
-        return HttpResponse(json.dumps(reports), content_type="application/json", status=200)
-    else:
-        return HttpResponseForbidden("<h1>Forbidden</h1>")
-
-@csrf_exempt
-@sensitive_post_parameters()
-@require_http_methods(["POST"])
-def ping_registrar_users(request):
-    '''
-       Sends an email to our current registrar users. See templates/email/registrar_user_ping.txt
-    '''
-    # Use something like this:
-    # curl -i -X POST --data "key=<INTERNAL_SERVICES_KEY>" http://perma.dev:8000/service/ping-registrar-users
-    if safe_str_cmp(request.POST.get('key',""), settings.INTERNAL_SERVICES_KEY):
-        users = registrar_users_plus_stats()
-        logger.info("Begin emailing registrar users.")
-        send_count = 0
-        failed_list = []
-        for user in users:
-            succeeded = send_user_email(user['email'],
-                                        'email/registrar_user_ping.txt',
-                                         user)
-            if succeeded:
-                send_count += 1
-            else:
-                failed_list.append(user.id)
-
-        # Another option is to use Django's send_mass_email.
-        # It's unclear which would be more performant in real life.
-        # send_count = send_mass_user_email('email/registrar_user_ping.txt',
-        #                                   [(user['email'], user) for user in users])
-        logger.info("Done emailing registrar users.")
-        if len(users) != send_count:
-            if failed_list:
-                msg = "Some registrar users were not emailed: {}. Check log for fatal SMTP errors.".format(str(failed_list))
-            else:
-                msg = "Some registrar users were not emailed. Check log for fatal SMTP errors."
-            logger.error(msg)
-            result = "incomplete"
-        else:
-            result = "ok"
-        send_admin_email("Registar Users Emailed",
-                         settings.DEFAULT_FROM_EMAIL,
-                         request,
-                         'email/admin/pinged_registrar_users.txt',
-                         {"users": users, "result": result})
-        return HttpResponse(json.dumps({"result": result, "send_count": send_count}), content_type="application/json", status=200)
-    else:
-        return HttpResponseForbidden("<h1>Forbidden</h1>")
+from django.http import HttpResponse
 
 def stats_sums(request):
     """

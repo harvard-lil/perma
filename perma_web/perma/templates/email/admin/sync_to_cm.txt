@@ -1,6 +1,6 @@
 Results of Import
 -----------------
-Registrar Users Sent: {{ reports.import.uniques_in_import_list }}
+Total Registrar Users Synced: {{ reports.import.uniques_in_import_list }}
 New Subscribers: {{ reports.import.new_subscribers }}
 Updated: {{ reports.import.existing_subscribers }}
 {% with errors_type=reports.import.errors %}

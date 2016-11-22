@@ -40,24 +40,24 @@ class ModelsTestCase(PermaTestCase):
 
     def test_link_count_valid_period(self):
         '''
-            Should include links created this year and exclude links
-            older than that.
+            Should include links created only in the target year
         '''
         now = datetime(datetime.now().year, 1, 1)
         two_years_ago = datetime(now.year - 2, 1, 1)
+        three_years_ago = datetime(now.year - 3, 1, 1)
         user = LinkUser()
         user.save()
         link_pks = ["AAAA-AAAA", "BBBB-BBBB", "CCCC-CCCC"]
-        too_early = Link(creation_timestamp=two_years_ago, guid=link_pks[0], created_by=user)
+        too_early = Link(creation_timestamp=three_years_ago, guid=link_pks[0], created_by=user)
         too_early.save()
         now1 = Link(creation_timestamp=now, guid=link_pks[1], created_by=user)
         now1.save()
-        now2 = Link(creation_timestamp=now, guid=link_pks[2], created_by=user)
-        now2.save()
+        last_year1 = Link(creation_timestamp=two_years_ago, guid=link_pks[2], created_by=user)
+        last_year1.save()
 
         links = Link.objects.filter(pk__in=link_pks)
         self.assertEqual(len(links), 3)
-        self.assertEqual(link_count_in_time_period(links, now, now), 2)
+        self.assertEqual(link_count_in_time_period(links, three_years_ago, two_years_ago), 2)
 
     def test_org_link_count_this_year(self):
         '''
