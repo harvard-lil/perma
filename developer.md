@@ -217,7 +217,7 @@ kicked off by `fab test_sauce`.
 
 ## Sending email
 
-*All emails* should be sent using `perma.utils.send_user_email` (for an email from us to a user) or
+*All emails* should be sent using `perma.email.send_user_email` (for an email from us to a user) or
 `perma.utils.send_admin_email` (for an email "from" a user to us). This makes sure that `from` and `reply-to` fields
 are configured so our MTA will actually transmit the email.
 

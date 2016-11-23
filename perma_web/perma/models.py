@@ -13,6 +13,7 @@ import simple_history
 import requests
 import itertools
 import time
+from datetime import datetime
 
 from hanzo import warctools
 from mptt.managers import TreeManager
@@ -30,7 +31,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.core.files.storage import default_storage
 from django.db import models
-from django.db.models import Q, Max
+from django.db.models import Q, Max, Count
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -47,6 +48,21 @@ logger = logging.getLogger(__name__)
 
 
 ### HELPERS ###
+
+# functions
+def link_count_in_time_period(links, start_time=None, end_time=None):
+    if start_time and end_time and (start_time > end_time):
+        raise ValueError("specified end time is earlier than specified start time")
+    elif start_time and end_time and (start_time == end_time):
+        links = links.filter(creation_timestamp=start_time)
+    else:
+        if start_time:
+            links = links.filter(creation_timestamp__gte=start_time)
+        if end_time:
+            links = links.filter(creation_timestamp__lte=end_time)
+    return links.count()
+
+# classes
 
 class DeletableManager(models.Manager):
     """
@@ -108,6 +124,19 @@ class Registrar(models.Model):
     def __unicode__(self):
         return self.name
 
+    def link_count_in_time_period(self, start_time=None, end_time=None):
+        links = Link.objects.filter(organization__registrar=self)
+        return link_count_in_time_period(links, start_time, end_time)
+
+    def link_count_this_year(self):
+        return self.link_count_in_time_period(datetime(datetime.now().year, 1, 1))
+
+    def most_active_org(self):
+        return self.organizations\
+            .filter(links__creation_timestamp__gte=datetime(datetime.now().year, 1, 1))\
+            .annotate(num_links=Count('links'))\
+            .order_by('-num_links')\
+            .first()
 
 class OrganizationQuerySet(QuerySet):
     def accessible_to(self, user):
@@ -168,6 +197,12 @@ class Organization(DeletableModel):
         self.shared_folder = shared_folder
         self.save()
 
+    def link_count_in_time_period(self, start_time=None, end_time=None):
+        links = Link.objects.filter(organization=self)
+        return link_count_in_time_period(links, start_time, end_time)
+
+    def link_count_this_year(self):
+        return self.link_count_in_time_period(datetime(datetime.now().year, 1, 1))
 
 class LinkUserManager(BaseUserManager):
     def create_user(self, email, registrar, organization, date_joined, first_name, last_name, authorized_by, confirmation_code, password=None):

@@ -1,0 +1,19 @@
+Results of Import
+-----------------
+Total Registrar Users Synced: {{ reports.import.uniques_in_import_list }}
+New Subscribers: {{ reports.import.new_subscribers }}
+Updated: {{ reports.import.existing_subscribers }}
+{% with errors_type=reports.import.errors %}
+Errors:{% if not errors %} (none){% else %}
+  {% for error_type in errors_type  %}
+    {{ error_type }}:
+    {% for error in error_type  %}
+      {{ error }}
+    {% endfor %}
+  {% endfor %}
+{% endif %}
+{% endwith %}
+
+Unsubscribed
+------------
+{{ reports.unsubscribe | default:"(none)" }}

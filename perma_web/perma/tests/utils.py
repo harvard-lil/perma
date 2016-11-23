@@ -113,13 +113,12 @@ class PermaTestCase(TransactionTestCase):
             try:
                 for form in form_keys:
                     errors.update(resp.context[form]._errors)
-            except TypeError:
+            except (TypeError, KeyError):
                 pass
             return errors
 
         if success_url:
-            self.assertEqual(resp.status_code, 302,
-                             "Form failed to forward to success url. Status: %s. Content: %s. Errors: %s." % (resp.status_code, resp.content, form_errors()))
+            self.assertEqual(resp.status_code, 302, "Form failed to forward to success url. Status: %s. Content: %s. Errors: %s." % (resp.status_code, resp.content, form_errors()))
             self.assertTrue(resp['Location'].endswith(success_url), "Form failed to forward to %s. Instead forwarded to: %s." % (success_url, resp['Location']))
 
         if success_query:

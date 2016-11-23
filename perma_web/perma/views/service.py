@@ -1,37 +1,13 @@
-import json, logging, pytz
+import json, pytz
 
 from django.core import serializers
-from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.utils import timezone
 
 from perma.models import WeekStats, MinuteStats
-from perma.utils import json_serial, send_user_email
-
-logger = logging.getLogger(__name__)
-
-
-def email_confirm(request):
-    """
-    A service that sends a message to a user about a perma link.
-    """
-
-    email_address = request.POST.get('email_address')
-    link_url = request.POST.get('link_url')
-
-    if not email_address or not link_url:
-        return HttpResponse(status=400)
-
-    send_user_email(
-        "The Perma link you requested",
-        "%s \n\n(This link is the Perma link)" % link_url,
-        email_address
-    )
-
-    response_object = {"sent": True}
-
-    return HttpResponse(json.dumps(response_object), content_type="application/json", status=200)
+from perma.utils import json_serial
+from django.http import HttpResponse
 
 def stats_sums(request):
     """

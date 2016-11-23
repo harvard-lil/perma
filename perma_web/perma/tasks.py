@@ -22,6 +22,7 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.proxy import ProxyType, Proxy
 from datetime import timedelta
 import logging
+import json
 import robotparser
 import time
 import requests
@@ -39,8 +40,12 @@ from django.template.defaultfilters import truncatechars
 from django.conf import settings
 from django.utils import timezone
 from django.db.models import Q
+from django.http import HttpRequest
+
 
 from perma.models import WeekStats, MinuteStats, Registrar, LinkUser, Link, Organization, CDXLine, Capture, CaptureJob
+from perma.email import sync_cm_list, send_admin_email, registrar_users_plus_stats
+
 
 from perma.utils import run_task, url_in_allowed_ip_range, copy_file_data
 
@@ -897,3 +902,23 @@ def upload_to_internet_archive(self, link_guid):
     except requests.ConnectionError as e:
         logger.exception("Upload to Internet Archive task failed because of a connection error. \nLink GUID: %s\nError: %s" % (link.pk, e))
         return
+
+@shared_task()
+def cm_sync():
+    '''
+       Sync our current list of registrar users plus some associated metadata
+       to Campaign Monitor.
+
+       Run daily at 3am by celerybeat
+    '''
+
+    reports = sync_cm_list(settings.CAMPAIGN_MONITOR_REGISTRAR_LIST,
+                           registrar_users_plus_stats(destination='cm'))
+    if reports["import"]["duplicates_in_import_list"]:
+        logger.error("Duplicate reigstrar users sent to Campaign Monitor. Check sync logic.")
+    send_admin_email("Registrar Users Synced to Campaign Monitor",
+                      settings.DEFAULT_FROM_EMAIL,
+                      HttpRequest(),
+                      'email/admin/sync_to_cm.txt',
+                      {"reports": reports})
+    return json.dumps(reports)

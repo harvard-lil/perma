@@ -4,6 +4,7 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
+-e git+git://github.com/rebeccacremona/createsend-python.git@7cd8be21f89fa7bb61dafb31da9ad4a64058bf5b#egg=createsend-python
 -e git+git://github.com/harvard-lil/django-tastypie-extendedmodelresource.git@a1586e4e34079dafda77be279f4ad4b8eaca10c3#egg=django-tastypie-extendedmodelresource
 -e git+git://github.com/internetarchive/warcprox.git@f79e74482339f8c06880b28e889be694b30d4575#egg=warcprox
 amqp==1.4.9               # via kombu
@@ -18,13 +19,13 @@ boto==2.42.0
 brotlipy==0.6.0           # via pywb
 celery==3.1.20
 certauth==1.1.3
-cffi==1.8.3               # via brotlipy, cryptography
+cffi==1.9.1               # via brotlipy, cryptography
 chardet==2.3              # via jasmine, pywb
-cherrypy==3.8.2           # via jasmine
+CherryPy==3.8.2           # via jasmine
 click==6.6                # via flask, pip-tools
 clint==0.5.1              # via internetarchive
 coverage==3.7.1
-cryptography==1.5.2       # via pyopenssl
+cryptography==1.5.3       # via pyopenssl
 django-admin-smoke-tests==0.1.11
 django-forms-bootstrap==3.0.1
 django-model-utils==2.2
@@ -40,7 +41,7 @@ django-tastypie==0.13.3
 Django==1.9.11            # via django-admin-smoke-tests, django-model-utils, django-sslserver
 django_webpack_loader==0.3.3
 docopt==0.6.2             # via internetarchive
-easyprocess==0.2.3        # via pyvirtualdisplay
+EasyProcess==0.2.3        # via pyvirtualdisplay
 ecdsa==0.13               # via paramiko
 enum34==1.1.6             # via brotlipy, cryptography, pyscss
 execnet==1.4.1            # via pytest-xdist
@@ -48,10 +49,10 @@ Fabric==1.11.1
 fakeredis==0.7.0
 first==2.0.1              # via pip-tools
 flake8==2.5.4
-flask==0.11.1             # via jasmine
+Flask==0.11.1             # via jasmine
 funcsigs==1.0.2           # via mock
 gevent==1.0.2
-glob2==0.4.1              # via jasmine-core
+glob2==0.5                # via jasmine-core
 greenlet==0.4.10          # via gevent
 gunicorn==19.3.0
 idna==2.1                 # via cryptography, tldextract
@@ -60,12 +61,12 @@ ipaddress==1.0.17         # via cryptography
 itsdangerous==0.24        # via flask
 jasmine-core==2.5.2       # via jasmine
 jasmine==2.4.0
-jinja2==2.8               # via flask, jasmine, pywb
+Jinja2==2.8               # via flask, jasmine, pywb
 jsmin==2.0.9
 jsonpatch==0.4            # via internetarchive
 kombu==3.0.37             # via celery
 LinkHeader==0.4.3
-markupsafe==0.23          # via jinja2
+MarkupSafe==0.23          # via jinja2
 mccabe==0.4.0             # via flake8
 mock==2.0.0
 MySQL-python==1.2.5
@@ -84,19 +85,19 @@ Pillow==3.3.2
 pip-tools==1.7
 py==1.4.31                # via pytest
 pyasn1==0.1.9             # via cryptography, requests
-pycparser==2.16           # via cffi
+pycparser==2.17           # via cffi
 pycrypto==2.6.1           # via paramiko
 pyflakes==1.0.0           # via flake8
-pyopenssl==16.2.0         # via certauth, ndg-httpsclient, requests
+PyOpenSSL==16.2.0         # via certauth, ndg-httpsclient, requests
 pyScss==1.3.4
 pytest-xdist==1.10
-pytest==3.0.3             # via pytest-xdist
+pytest==3.0.4             # via pytest-xdist
 python-dateutil==2.2
 python-mimeparse==1.6.0   # via django-tastypie
 pytz==2013b0
 PyVirtualDisplay==0.1.5
 pywb==0.31
-pyyaml==3.10              # via jasmine, pywb, watchdog
+PyYAML==3.10              # via jasmine, pywb, watchdog
 redis==2.10.5
 requests-file==1.4.1      # via tldextract
 requests[security]==2.11.1
@@ -114,7 +115,7 @@ Wand==0.4
 warctools==4.10.0
 watchdog==0.8.3           # via pywb
 webencodings==0.5         # via pywb
-werkzeug==0.11.1
+Werkzeug==0.11.1          # via flask, jasmine
 whitenoise==3.2.2
 wsgiref==0.1.2
 

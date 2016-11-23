@@ -1,0 +1,3 @@
+A new library account request from {{ name }} ({{ email }}) is awaiting review and approval.
+
+http://{{ host }}{{ confirmation_route}}

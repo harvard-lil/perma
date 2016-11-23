@@ -428,3 +428,8 @@ WEBPACK_LOADER = {
         'STATS_FILE': os.path.join(PROJECT_ROOT, 'webpack-stats.json'),
     }
 }
+
+# Campaign Monitor (override if you want to actually interact with to
+# campaign monitor)
+CAMPAIGN_MONITOR_AUTH = {'api_key':'fake'}
+CAMPAIGN_MONITOR_REGISTRAR_LIST = 'fake'

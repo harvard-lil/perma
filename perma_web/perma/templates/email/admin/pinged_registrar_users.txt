@@ -1,0 +1,5 @@
+{% if result == 'incomplete' %}WARNING: some emails failed. See the logs for more details.{% endif %}
+Registrar Users Emailed
+-----------------------{% for user in users %}
+{{user.email}}
+{% endfor %}

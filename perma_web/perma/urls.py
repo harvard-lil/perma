@@ -37,7 +37,6 @@ urlpatterns = [
     url(r'^docs/developer/?$', DirectTemplateView.as_view(template_name='docs/developer/index.html'), name='dev_docs'),
 
     #Services
-    url(r'^service/email-confirm/?$', service.email_confirm, name='service_email_confirm'),
     url(r'^service/stats/sums/?$', service.stats_sums, name='service_stats_sums'),
     url(r'^service/stats/now/?$', service.stats_now, name='service_stats_now'),
     url(r'^service/bookmarklet-create/$', service.bookmarklet_create, name='service_bookmarklet_create'),

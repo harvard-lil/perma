@@ -1,0 +1,7 @@
+TITLE: A Perma.cc account has been created for you
+
+We will review your library account request as soon as possible. A personal account has been created for you and will be linked to your library once that account is approved.
+
+To activate this personal account, please click the link below or copy it to your web browser.  You will need to create a new password.
+
+http://{{ host }}{{ activation_route }}

@@ -23,7 +23,8 @@ from django.views.decorators.cache import cache_control
 
 from ..models import Link, Registrar, Organization, LinkUser
 from ..forms import ContactForm
-from ..utils import if_anonymous, send_admin_email, ratelimit_ip_key
+from ..utils import if_anonymous, ratelimit_ip_key
+from ..email import send_admin_email
 
 logger = logging.getLogger(__name__)
 valid_serve_types = ['image', 'warc_download']
@@ -229,24 +230,28 @@ def contact(request):
             subject = "[perma-contact] " + form.cleaned_data['subject']
             referer = form.cleaned_data['referer']
 
-            content = '''
-This is a message from the Perma.cc contact form, http://perma.cc/contact
-
-
-
-Message from user
---------
-%s
-''' % (form.cleaned_data['message'])
+            affiliation_string = ''
+            if request.user.is_authenticated():
+                if request.user.registrar:
+                    affiliation_string = "{} (Registrar)".format(request.user.registrar.name)
+                else:
+                    affiliations = ["{} ({})".format(org.name, org.registrar.name) for org in request.user.organizations.all().order_by('registrar')]
+                    if affiliations:
+                        affiliation_string = ', '.join(affiliations)
 
             send_admin_email(
                 subject,
-                content,
                 from_address,
                 request,
+                'email/admin/contact.txt',
+                {
+                    "message": form.cleaned_data['message'],
+                    "from_address": from_address,
+                    "referer": referer,
+                    "affiliation_string": affiliation_string
+                },
                 referer
             )
-
             # redirect to a new URL:
             return HttpResponseRedirect(reverse('contact_thanks'))
         else:

@@ -8,11 +8,9 @@ from datetime import datetime
 import logging
 from netaddr import IPAddress, IPNetwork
 
-from django.core.mail import EmailMessage, send_mail
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.conf import settings
-from django.template.loader import render_to_string
 
 logger = logging.getLogger(__name__)
 
@@ -146,58 +144,6 @@ def copy_file_data(from_file_handle, to_file_handle, chunk_size=1024*100):
         if not data:
             break
         to_file_handle.write(data)
-
-### email ###
-
-def send_user_template_email(template, to_address, context):
-    email_text = render_to_string(template, context)
-    title, email_text = email_text.split("\n\n", 1)
-    title = title.split("TITLE: ")[-1]
-    send_user_email(title, email_text, to_address)
-
-def send_user_email(title, content, to_address):
-    send_mail(
-        title,
-        content,
-        settings.DEFAULT_FROM_EMAIL,
-        [to_address], fail_silently=False
-    )
-
-def send_admin_email(title, content, from_address, request, referer=''):
-    """
-        Send a message on behalf of a user to the admins.
-        Use reply-to for the user address so we can use email services that require authenticated from addresses.
-    """
-
-    # append user information
-    user_agent = ''
-    affiliation_string = '(none)'
-    if request:
-        user_agent = request.META.get('HTTP_USER_AGENT', '')
-        if request.user.is_authenticated():
-            if request.user.registrar:
-                affiliation_string = "{} (Registrar)".format(request.user.registrar.name)
-            else:
-                affiliations = ["{} ({})".format(org.name, org.registrar.name) for org in request.user.organizations.all().order_by('registrar')]
-                if affiliations:
-                    affiliation_string = ', '.join(affiliations)
-    content += """
-
-----
-User email: %s
-Affiliations: %s
-Referring Page: %s
-User agent: %s
-""" % (from_address, affiliation_string, referer, user_agent)
-
-    # send message
-    EmailMessage(
-        title,
-        content,
-        settings.DEFAULT_FROM_EMAIL,
-        [settings.DEFAULT_FROM_EMAIL],
-        headers={'Reply-To': from_address}
-    ).send(fail_silently=False)
 
 def json_serial(obj):
         """

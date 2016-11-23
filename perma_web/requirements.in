@@ -48,6 +48,7 @@ pip-tools==1.7                  # generating requirements.txt from requirements.
 django-taggit==0.20.2           # tagging registrars
 ua-parser==0.7.1                # user agent parsing to detect Safari browser for playbacks
 django_webpack_loader==0.3.3    # frontend assets building
+-e git://github.com/rebeccacremona/createsend-python.git@7cd8be21f89fa7bb61dafb31da9ad4a64058bf5b#egg=createsend-python
 
 # deployment
 gunicorn==19.3.0

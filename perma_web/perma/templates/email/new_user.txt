@@ -1,0 +1,5 @@
+TITLE: A Perma.cc account has been created for you
+
+To activate your account, please click the link below or copy it to your web browser.  You will need to create a new password.
+
+http://{{ host }}{{ activation_route }}
