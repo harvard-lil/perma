@@ -100,7 +100,8 @@
         <ul>
           {% for tree in request.user.all_folder_trees %}
             {% recursetree tree %}
-              <li data-folder_id="{{ node.pk }}" data-organization_id="{{ node.organization_id }}" data-jstree='{ {% if node.pk == folder.id %}"selected":true{% elif node.is_shared_folder %}"type":"shared_folder"{% endif %} }'>
+              <script> console.log("{{node}}, {{node.is_shared_folder}}")</script>
+              <li data-folder_id="{{ node.pk }}" data-organization_id="{{ node.organization_id }}" data-jstree='{ {% if node.pk == folder.id %}"selected":true,{% endif %}{% if node.is_shared_folder %}"type":"shared_folder"{% endif %} }'>
                 <a href="#" target="folder-contents">{{ node.name }}</a>
                 {% if not node.is_leaf_node %}
                   <ul>
