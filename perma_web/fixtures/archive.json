@@ -6,7 +6,6 @@
             "folders": [
                 24
             ],
-            "view_count": 3,
             "is_unlisted": true,
             "notes": "",
             "created_by": 3,
@@ -24,7 +23,6 @@
             "folders": [
                 25
             ],
-            "view_count": 1,
             "is_unlisted": true,
             "notes": "",
             "created_by": 4,
@@ -43,9 +41,8 @@
                 25,
                 27
             ],
-            "view_count": 2,
             "user_deleted": false,
-            
+
             "created_by": 4,
             "user_deleted_timestamp": null,
             "submitted_title": "MetaFilter | Community Weblog",
@@ -64,7 +61,6 @@
                 25,
                 27
             ],
-            "view_count": 2,
             "user_deleted": false,
 
             "created_by": 4,
@@ -85,7 +81,6 @@
                 25,
                 34
             ],
-            "view_count": 2,
             "user_deleted": false,
             "created_by": 4,
             "user_deleted_timestamp": null,
@@ -105,7 +100,6 @@
                 25,
                 35
             ],
-            "view_count": 2,
             "is_unlisted": true,
             "user_deleted": false,
             "user_deleted_timestamp": null,
@@ -125,7 +119,6 @@
             "folders": [
                 30
             ],
-            "view_count": 1,
             "is_unlisted": true,
             "notes": "",
             "created_by": 4,
@@ -144,7 +137,6 @@
                 30,
                 34
             ],
-            "view_count": 1,
             "notes": "Dark archived by user.",
             "created_by": 4,
             "is_private": true,
@@ -164,7 +156,6 @@
                 30,
                 34
             ],
-            "view_count": 1,
             "notes": "Dark archived - robots.txt.",
             "created_by": 4,
             "is_private": true,
@@ -184,7 +175,6 @@
                 30,
                 34
             ],
-            "view_count": 1,
             "notes": "Deleted.",
             "created_by": 4,
             "user_deleted": true,
@@ -204,7 +194,6 @@
                 30,
                 34
             ],
-            "view_count": 1,
             "notes": "Dark archived - takedown.",
             "created_by": 4,
             "is_private": true,
@@ -224,7 +213,6 @@
                 30,
                 34
             ],
-            "view_count": 1,
             "notes": "Unlisted (legacy vested archive).",
             "created_by": 4,
             "is_unlisted": true,
@@ -243,7 +231,6 @@
                 30,
                 34
             ],
-            "view_count": 1,
             "notes": "Replaced link.",
             "created_by": 4,
             "submitted_title": "Wikipedia",

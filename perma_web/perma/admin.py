@@ -65,7 +65,7 @@ class OrganizationAdmin(SimpleHistoryAdmin):
     search_fields = ['name']
     list_display = ['name', 'registrar', 'org_users', 'last_active', 'first_active', 'user_deleted', 'link_count',]
     list_filter = ['registrar', 'user_deleted']
-    
+
     # statistics
     def get_queryset(self, request):
         qs = super(OrganizationAdmin, self).get_queryset(request).select_related('registrar').prefetch_related('users')
@@ -139,13 +139,13 @@ class LinkAdmin(SimpleHistoryAdmin):
     list_display = ['guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp','user_deleted']
     search_fields = ['guid', 'submitted_url', 'submitted_title']
     fieldsets = (
-        (None, {'fields': ('guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp', 'view_count', 'warc_size', 'replacement_link')}),
+        (None, {'fields': ('guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp', 'warc_size', 'replacement_link')}),
         ('Visibility', {'fields': ('is_private', 'private_reason', 'is_unlisted',)}),
         ('User Delete', {'fields': ('user_deleted', 'user_deleted_timestamp',)}),
         ('Organization', {'fields': ('folders', 'notes')}),
         ('Mirroring', {'fields': ('archive_timestamp',)}),
     )
-    readonly_fields = ['guid', 'view_count', 'folders', 'creation_timestamp', 'warc_size']  #, 'archive_timestamp']
+    readonly_fields = ['guid', 'folders', 'creation_timestamp', 'warc_size']  #, 'archive_timestamp']
     inlines = [
         new_class("CaptureInline", admin.TabularInline, model=Capture,
                   fields=['role', 'status', 'url', 'content_type', 'record_type', 'user_upload'],
