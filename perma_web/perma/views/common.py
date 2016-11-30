@@ -1,6 +1,5 @@
 from wsgiref.util import FileWrapper
 import logging
-from urlparse import urlparse
 from time import mktime
 
 from django.contrib.auth.views import redirect_to_login
