@@ -4741,12 +4741,15 @@ header._isPrivate .ui-tray {
     overflow: hidden;
     text-indent: -1000px;
   }
+
+  .banner-status .success {
+    line-height: 29px;
+  }
 }
 
 @media only screen and (min-width: 990px) {
   .banner-status {
     padding: 12px 48px;
-    font-size: 18px;
     font-weight: 200;
   }
 }
