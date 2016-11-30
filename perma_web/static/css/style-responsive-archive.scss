@@ -505,7 +505,8 @@ header .primary-segment {
   height: auto;
   @include respond-tablet {
     height: $height-record-hed;
-    width: 70%;
+    // 70% should work, but oddly sometimes forces undesired wrapping
+    width: 69%;
     padding-right: $double;
     border-bottom: 1px solid $color-trans-white;
     .content {
