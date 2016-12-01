@@ -110,7 +110,12 @@ if settings.DEFAULT_FILE_STORAGE.endswith('RedundantMediaStorage'):
         def __init__(self, *args, **kwargs):
             # on init, create a secondary storage
             kwargs['location'] = getattr(settings, 'SECONDARY_MEDIA_ROOT', settings.MEDIA_ROOT)
-            self.secondary_storage = SecondaryStorageClass(*args, **kwargs)
+            # SFTP storage won't accept the location argument, so:
+            try:
+                self.secondary_storage = SecondaryStorageClass(*args, **kwargs)
+            except TypeError:
+                del kwargs['location']
+                self.secondary_storage = SecondaryStorageClass(*args, **kwargs)
 
             # otherwise act normally
             super(RedundantMediaStorage, self).__init__()
