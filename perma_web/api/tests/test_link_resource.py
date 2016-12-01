@@ -56,7 +56,6 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
             'guid',
             'creation_timestamp',
             'captures',
-            'view_count',
             'warc_size',
         ]
         self.logged_in_fields = self.logged_out_fields + [

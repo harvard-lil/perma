@@ -1,6 +1,5 @@
 from wsgiref.util import FileWrapper
 import logging
-from urlparse import urlparse
 from time import mktime
 
 from django.contrib.auth.views import redirect_to_login
@@ -96,14 +95,7 @@ def stats(request):
     """
     The global stats
     """
-
-    # TODO: generate these nightly. we shouldn't be doing this for every request
-    top_links_all_time = list(Link.objects.all().order_by('-view_count')[:10])
-
-    context = RequestContext(request, {'top_links_all_time': top_links_all_time})
-
-    return render_to_response('stats.html', context)
-
+    return render(request, 'stats.html')
 
 @if_anonymous(cache_control(max_age=settings.CACHE_MAX_AGES['single_linky']))
 @ratelimit(rate=settings.MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
@@ -135,12 +127,6 @@ def single_linky(request, guid):
         serve_type = 'source'
     elif serve_type not in valid_serve_types:
         return HttpResponsePermanentRedirect(reverse('single_linky', args=[canonical_guid]))
-
-    # Increment the view count if we're not the referrer
-    parsed_url = urlparse(request.META.get('HTTP_REFERER', ''))
-    if not request.get_host() in parsed_url.netloc and not settings.READ_ONLY_MODE:
-        link.view_count += 1
-        link.save()
 
     # serve raw WARC
     if serve_type == 'warc_download':

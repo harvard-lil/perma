@@ -39,7 +39,6 @@ describe("Test link.helpers.js", function() {
           local_url:"localhost:8000/ZFK8-B42T",
           title:"Example Domain",
           url:"http://example.com",
-          view_count:1,
           warc_size:21030
       }
   });

@@ -182,7 +182,7 @@ header {
 
 
 .banner-status {
-  padding: 12px $grid * 2;
+    padding: 12px $grid * 2;
     font-size: 14px;
     font-weight: 400;
     background-color: white;
@@ -286,10 +286,12 @@ header {
         overflow: hidden;
         text-indent: -1000px;
     }
+    .success {
+      line-height: 29px;
+    }
   }
   @include respond-desktop {
-    padding: 12px $grid * 6;
-      font-size: 18px;
+      padding: 12px $grid * 6;
       font-weight: 200;
   }
   @include respond-wide {
@@ -503,7 +505,8 @@ header .primary-segment {
   height: auto;
   @include respond-tablet {
     height: $height-record-hed;
-    width: 70%;
+    // 70% should work, but oddly sometimes forces undesired wrapping
+    width: 69%;
     padding-right: $double;
     border-bottom: 1px solid $color-trans-white;
     .content {

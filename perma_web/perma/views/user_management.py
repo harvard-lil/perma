@@ -132,10 +132,21 @@ def stats(request, stat_type=None):
         out = {
             'total_link_count': Link.objects.count(),
             'private_link_count': Link.objects.filter(is_private=True).count(),
+            'private_user_direction': Link.objects.filter(is_private=True, private_reason='user').count(),
+            'private_policy': Link.objects.filter(is_private=True, private_reason='policy').count(),
+            'private_takedown': Link.objects.filter(is_private=True, private_reason='takedown').count(),
             'total_user_count': LinkUser.objects.count(),
             'unconfirmed_user_count': LinkUser.objects.filter(is_confirmed=False).count()
         }
         out['private_link_percentage'] = round(100.0*out['private_link_count']/out['total_link_count'], 1) if out['total_link_count'] else 0
+        out['private_user_percentage_of_total'] = round(100.0*out['private_user_direction']/out['total_link_count'], 1) if out['total_link_count'] else 0
+        out['private_user_percentage_of_private'] = round(100.0*out['private_user_direction']/out['private_link_count'], 1) if out['private_link_count'] else 0
+        out['private_policy_percentage_of_total'] = round(100.0*out['private_policy']/out['total_link_count'], 1) if out['total_link_count'] else 0
+        out['private_policy_percentage_of_private'] = round(100.0*out['private_policy']/out['private_link_count'], 1) if out['private_link_count'] else 0
+        out['private_takedown_percentage_of_total'] = round(100.0*out['private_takedown']/out['total_link_count'], 1) if out['total_link_count'] else 0
+        out['private_takedown_percentage_of_private'] = round(100.0*out['private_takedown']/out['private_link_count'], 1) if out['private_link_count'] else 0
+
+
         out['unconfirmed_user_percentage'] = round(100.0*out['unconfirmed_user_count']/out['total_user_count'], 1) if out['total_user_count'] else 0
 
     elif stat_type == "celery":

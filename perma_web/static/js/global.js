@@ -36,11 +36,6 @@ $('.text-input')
   .focus(function() { $(this).addClass('text-input-active'); })
   .blur(function() { $(this).removeClass('text-input-active'); });
 
-// Clear fields on focus
-$('.clear-on-focus')
-  .focus(function() { if (this.value === this.defaultValue) { this.value = ''; } })
-  .blur(function() { if (this.value === '') { this.value = this.defaultValue; } });
-
 // Select the input text when the user clicks the element
 $('.select-on-click').click(function() { $(this).select(); });
 

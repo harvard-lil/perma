@@ -165,7 +165,6 @@ INSTALLED_APPS = (
     'ratelimit',
     'mptt',
     'sorl.thumbnail',
-    'django_forms_bootstrap',
     'settings_context_processor',
     'simple_history',  # record model changes
     'taggit',  # model tagging
@@ -419,7 +418,7 @@ OPBEAT = {
 }
 
 
-ENABLE_AV_CAPTURE = False 
+ENABLE_AV_CAPTURE = False
 
 
 WEBPACK_LOADER = {

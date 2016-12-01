@@ -2,7 +2,7 @@ var DOMHelpers = require('./helpers/dom.helpers.js');
 var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
 
 function fillSection(name){
-  return $.getJSON(document.location + '/' + name).then(function (data) {
+  return $.getJSON(document.location.href.replace(/\/$/, "") + "/" + name).then(function (data) {
     DOMHelpers.changeHTML('#' + name, HandlebarsHelpers.renderTemplate('#' + name + '-template', data));
   });
 }

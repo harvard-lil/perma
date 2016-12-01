@@ -16,10 +16,40 @@
     <script id="random-template" type="text/x-handlebars-template">
       <h3 class="body-ah">Random:</h3>
 
-      <div class="row"><div class="col-sm-2">Total links:</div><div class="col-sm-4">{{ total_link_count }}</div></div>
-      <div class="row"><div class="col-sm-2">Private links:</div><div class="col-sm-4">{{ private_link_count }} ({{ private_link_percentage }}%)</div></div>
-      <div class="row"><div class="col-sm-2">Total users:</div><div class="col-sm-4">{{ total_user_count }}</div></div>
-      <div class="row"><div class="col-sm-2">Unconfirmed users:</div><div class="col-sm-4">{{ unconfirmed_user_count }} ({{ unconfirmed_user_percentage }}%)</div></div>
+      <div class="row">
+        <div class="col-sm-3">Total links:</div>
+        <div class="col-sm-9">{{ total_link_count }}</div>
+      </div>
+
+      <div class="row">
+         <div class="col-sm-3">Private links (user directed):</div>
+         <div class="col-sm-9">{{ private_user_direction }} ({{ private_user_percentage_of_private }}% of private, {{ private_user_percentage_of_total }}% of total)</div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-3">Private links (by policy):</div>
+        <div class="col-sm-9">{{ private_policy }} ({{ private_policy_percentage_of_private }}% of private, {{ private_policy_percentage_of_total }}% of total)</div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-3">Private links (takedowns):</div>
+        <div class="col-sm-9">{{ private_takedown }} ({{ private_takedown_percentage_of_private }}% of private, {{ private_takedown_percentage_of_total }}% of total)</div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-3">Private links (total):</div>
+        <div class="col-sm-9">{{ private_link_count }} ({{ private_link_percentage }}%)</div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-3">Total users:</div>
+        <div class="col-sm-1">{{ total_user_count }}</div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-3">Unconfirmed users:</div>
+        <div class="col-sm-9">{{ unconfirmed_user_count }} ({{ unconfirmed_user_percentage }}%)</div>
+      </div>
     </script>
 
     <script id="days-template" type="text/x-handlebars-template">
