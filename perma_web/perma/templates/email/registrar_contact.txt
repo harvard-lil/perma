@@ -1,0 +1,12 @@
+{% extends "email/admin/contact.txt" %}
+{% block content %}
+One of your users sent you the following message using the Perma.cc contact form, http://perma.cc/contact.
+
+If you need help addressing their concerns, please contact info@perma.cc for assistance.
+
+
+
+Message from user
+--------
+{{ message }}
+{% endblock%}

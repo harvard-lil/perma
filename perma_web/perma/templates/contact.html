@@ -8,22 +8,22 @@
 {% block mainContent %}
 
 <div class="container cont-fixed">
-
-    <div class="row">
-		<div class="col-sm-12">
-			<h1 class="page-title">Contact</h1>
-            <p class="page-dek">This form is the easiest way to start a dialog with Perma.cc. If you prefer email, you can write to us at <a href="mailto:info@perma.cc">info@perma.cc</a>.</p>
-            <p class="page-dek">Save yourself some time. Is your question one of our <a href="{% url 'docs_faq' %}">Frequently Asked Questions?</a> Do you have questions about <a href="{% url 'sign_up' %}">setting up a Perma.cc account?</a> Have you looked at our <a href="{% url 'docs' %}">Perma.cc Guide</a>? The answer may be right at your fingertips!</p>
-        </div>
+  <div class="row">
+    <div class="col-sm-12">
+      <h1 class="page-title">Contact</h1>
+        {% if request.user.is_organization_user %}<p class="page-dek">This form is the easiest way to start a dialog with Perma.cc support at your library.</p>
+        {% else %}<p class="page-dek">This form is the easiest way to start a dialog with Perma.cc.</p>{% endif %}
+        <p class="page-dek">Save yourself some time. Is your question one of our <a href="{% url 'docs_faq' %}">Frequently Asked Questions?</a> Do you have questions about <a href="{% url 'sign_up' %}">setting up a Perma.cc account?</a> Have you looked at our <a href="{% url 'docs' %}">Perma.cc Guide</a>? The answer may be right at your fingertips!</p>
+      </div>
     </div> <!-- row -->
-    <div class="row">
-		<div class="col-sm-6 contact-form">
-            <form action="{% url 'contact' %}" method="post" role="form">
-                {% csrf_token %}
-                {% include "includes/fieldset.html" with form_classes="fg-100" %}
-                <button type="submit" class="btn">Send</button>
-            </form>
-		</div><!--col -->
-	</div><!--row-->
+  <div class="row">
+    <div class="col-sm-6 contact-form">
+      <form action="{% url 'contact' %}" method="post" role="form">
+        {% csrf_token %}
+        {% include "includes/fieldset.html" with form_classes="fg-100" %}
+        <button type="submit" class="btn">Send</button>
+      </form>
+    </div><!--col -->
+  </div><!--row-->
 </div><!--container-->
 {% endblock mainContent %}

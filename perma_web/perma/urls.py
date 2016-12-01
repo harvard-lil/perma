@@ -22,7 +22,7 @@ urlpatterns = [
     url(r'^privacy-policy/?$', DirectTemplateView.as_view(template_name='privacy_policy.html'), name='privacy_policy'),
     url(r'^contingency-plan/?$', DirectTemplateView.as_view(template_name='contingency_plan.html'), name='contingency_plan'),
     url(r'^contact/?$', common.contact, name='contact'),
-    url(r'^contact/thanks/?$', DirectTemplateView.as_view(template_name='contact-thanks.html'), name='contact_thanks'),
+    url(r'^contact/thanks/?$', common.contact_thanks, name='contact_thanks'),
     #   url(r'^is500/?$', DirectTemplateView.as_view(template_name='500.html'), name='is500'),
     #	url(r'^is404/?$', DirectTemplateView.as_view(template_name='404.html'), name='is404'),
 

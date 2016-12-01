@@ -3,7 +3,7 @@ from createsend import Subscriber, List
 from collections import defaultdict
 
 from django.conf import settings
-from django.core.mail import EmailMessage, send_mail, send_mass_mail
+from django.core.mail import EmailMessage, send_mail
 from django.template.loader import render_to_string
 
 from .models import Registrar, LinkUser
@@ -28,27 +28,27 @@ def send_user_email(to_address, template, context):
     )
     return success_count
 
-def send_mass_user_email(template, recipients):
+# def send_mass_user_email(template, recipients):
     '''
         Opens a single connection to the mail server and sends many emails.
         Pass in recipients as a list of tuples (email, context):
         [('recipient@example.com', {'first_name': 'Joe', 'last_name': 'Yacoboski' }), (), ...]
     '''
-    to_send = []
-    for recipient in recipients:
-        to_address, context = recipient
-        email_text = render_to_string(template, context)
-        title, email_text = email_text.split("\n\n", 1)
-        title = title.split("TITLE: ")[-1]
-        to_send.append(( title,
-                         email_text,
-                         settings.DEFAULT_FROM_EMAIL,
-                         [to_address]))
+    # to_send = []
+    # for recipient in recipients:
+    #     to_address, context = recipient
+    #     email_text = render_to_string(template, context)
+    #     title, email_text = email_text.split("\n\n", 1)
+    #     title = title.split("TITLE: ")[-1]
+    #     to_send.append(( title,
+    #                      email_text,
+    #                      settings.DEFAULT_FROM_EMAIL,
+    #                      [to_address]))
 
-    success_count = send_mass_mail(tuple(to_send), fail_silently=False)
-    return success_count
+    # success_count = send_mass_mail(tuple(to_send), fail_silently=False)
+    # return success_count
 
-def send_admin_email(title, from_address, request, template="email/default.txt", context={}, referer=''):
+def send_admin_email(title, from_address, request, template="email/default.txt", context={}):
     """
         Send a message on behalf of a user to the admins.
         Use reply-to for the user address so we can use email services that require authenticated from addresses.
@@ -59,6 +59,21 @@ def send_admin_email(title, from_address, request, template="email/default.txt",
         settings.DEFAULT_FROM_EMAIL,
         [settings.DEFAULT_FROM_EMAIL],
         headers={'Reply-To': from_address}
+    ).send(fail_silently=False)
+
+def send_user_email_copy_admins(title, from_address, to_addresses, request, template="email/default.txt", context={}):
+    """
+        Send a message on behalf of a user to another user, cc'ing
+        the sender and the Perma admins.
+        Use reply-to for the user address so we can use email services that require authenticated from addresses.
+    """
+    EmailMessage(
+        title,
+        render_to_string(template, context=context, request=request),
+        settings.DEFAULT_FROM_EMAIL,
+        to_addresses,
+        cc=[settings.DEFAULT_FROM_EMAIL, from_address],
+        reply_to=[from_address]
     ).send(fail_silently=False)
 
 ###
