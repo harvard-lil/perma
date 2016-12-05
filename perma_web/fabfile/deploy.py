@@ -113,7 +113,7 @@ def release_to_stage():
 
 @task
 def pip_install():
-    run_as_web_user("pip install -r requirements.txt")
+    run_as_web_user("pip-sync")
 
 @task
 def restart_server():
