@@ -12034,7 +12034,8 @@ footer #boilerplate a {
   border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.col-folders #folder-tree .jstree-clicked {
+.col-folders #folder-tree .jstree-clicked,
+.col-folders #folder-tree .jstree-clicked.jstree-hovered {
   border: 1px solid #2D76EE;
   color: white;
   background-color: #2D76EE;
@@ -12054,6 +12055,26 @@ footer #boilerplate a {
 
 .col-folders li {
   margin-left: 1em;
+}
+
+.col-folders .jstree-rename-input {
+  position: relative;
+  top: -1px;
+  width: 100% !important;
+  z-index: 1000;
+  background: white;
+  margin-top: 0px;
+  padding-left: 5px !important;
+}
+
+.col-folders .jstree-rename-input:focus,
+.col-folders .jstree-rename-input::-moz-selection {
+  background: white;
+}
+
+.col-folders .jstree-rename-input:focus,
+.col-folders .jstree-rename-input::selection {
+  background: white;
 }
 
 .col-links {
