@@ -7,8 +7,10 @@ from ratelimit.decorators import ratelimit
 from datetime import timedelta
 from wsgiref.handlers import format_date_time
 from ua_parser import user_agent_parser
+from urllib import urlencode
 
 from django.core.files.storage import default_storage
+from django.forms import widgets
 from django.template import RequestContext
 from django.http import HttpResponseForbidden
 from django.shortcuts import render_to_response, render, get_object_or_404
@@ -23,7 +25,7 @@ from django.views.decorators.cache import cache_control
 from ..models import Link, Registrar, Organization, LinkUser
 from ..forms import ContactForm
 from ..utils import if_anonymous, ratelimit_ip_key
-from ..email import send_admin_email
+from ..email import send_admin_email, send_user_email_copy_admins
 
 logger = logging.getLogger(__name__)
 valid_serve_types = ['image', 'warc_download']
@@ -206,40 +208,69 @@ def contact(request):
     """
     Our contact form page
     """
+    def affiliation_string():
+        affiliation_string = ''
+        if request.user.is_authenticated():
+            if request.user.registrar:
+                affiliation_string = "{} (Registrar)".format(request.user.registrar.name)
+            else:
+                affiliations = ["{} ({})".format(org.name, org.registrar.name) for org in request.user.organizations.all().order_by('registrar')]
+                if affiliations:
+                    affiliation_string = ', '.join(affiliations)
+        return affiliation_string
+
+    def handle_registrar_fields(form):
+        if request.user.is_supported_by_registrar():
+            registrars = set(org.registrar for org in request.user.organizations.all())
+            if len(registrars) > 1:
+                form.fields['registrar'].choices = [(registrar.id, registrar.name) for registrar in registrars]
+            if len(registrars) == 1:
+                form.fields['registrar'].widget = widgets.HiddenInput()
+                registrar = registrars.pop()
+                form.fields['registrar'].initial = registrar.id
+                form.fields['registrar'].choices = [(registrar.id, registrar.email)]
+        else:
+            del form.fields['registrar']
+        return form
 
     if request.method == 'POST':
-        form = ContactForm(request.POST)
+        form = handle_registrar_fields(ContactForm(request.POST))
         if form.is_valid():
-            # If our form is valid, let's generate and email to our contact folks
-
+            # Assemble info for email
             from_address = form.cleaned_data['email']
             subject = "[perma-contact] " + form.cleaned_data['subject']
-            referer = form.cleaned_data['referer']
-
-            affiliation_string = ''
-            if request.user.is_authenticated():
-                if request.user.registrar:
-                    affiliation_string = "{} (Registrar)".format(request.user.registrar.name)
-                else:
-                    affiliations = ["{} ({})".format(org.name, org.registrar.name) for org in request.user.organizations.all().order_by('registrar')]
-                    if affiliations:
-                        affiliation_string = ', '.join(affiliations)
-
-            send_admin_email(
-                subject,
-                from_address,
-                request,
-                'email/admin/contact.txt',
-                {
-                    "message": form.cleaned_data['message'],
-                    "from_address": from_address,
-                    "referer": referer,
-                    "affiliation_string": affiliation_string
-                },
-                referer
-            )
-            # redirect to a new URL:
-            return HttpResponseRedirect(reverse('contact_thanks'))
+            context = {
+                "message": form.cleaned_data['message'],
+                "from_address": from_address,
+                "referer": form.cleaned_data['referer'],
+                "affiliation_string": affiliation_string()
+            }
+            if request.user.is_supported_by_registrar():
+                # Send to all active registar users for registrar and cc Perma
+                reg_id = form.cleaned_data['registrar']
+                send_user_email_copy_admins(
+                    subject,
+                    from_address,
+                    [user.email for user in Registrar.objects.get(id=reg_id).active_registrar_users()],
+                    request,
+                    'email/registrar_contact.txt',
+                    context
+                )
+                # redirect to a new URL:
+                return HttpResponseRedirect(
+                    reverse('contact_thanks') + "?{}".format(urlencode({'registrar': reg_id}))
+                )
+            else:
+                # Send only to the admins
+                send_admin_email(
+                    subject,
+                    from_address,
+                    request,
+                    'email/admin/contact.txt',
+                    context
+                )
+                # redirect to a new URL:
+                return HttpResponseRedirect(reverse('contact_thanks'))
         else:
             context = RequestContext(request, {'form': form})
             return render_to_response('contact.html', context)
@@ -257,17 +288,29 @@ def contact(request):
 
         subject = request.GET.get('subject', '')
         message = request.GET.get('message', '')
-        flagged_archive_guid = request.GET.get('flag', '')
 
+        flagged_archive_guid = request.GET.get('flag', '')
         if flagged_archive_guid:
             subject = 'Reporting Inappropriate Content'
             message = 'http://perma.cc/%s contains material that is inappropriate.' % flagged_archive_guid
 
-
-        form = ContactForm(initial={'message': message,
-                                    'subject': subject,
-                                    'referer': request.META.get('HTTP_REFERER', ''),
-                                    })
+        form = handle_registrar_fields(
+            ContactForm(
+                initial={
+                    'message': message,
+                    'subject': subject,
+                    'referer': request.META.get('HTTP_REFERER', ''),
+                    'email': getattr(request.user, 'email', '')
+                }
+            )
+        )
 
         context = RequestContext(request, {'form': form})
         return render_to_response('contact.html', context)
+
+def contact_thanks(request):
+    """
+    The page users are delivered at after submitting the contact form.
+    """
+    registrar = Registrar.objects.filter(pk=request.GET.get('registrar', '-1')).first()
+    return render(request, 'contact-thanks.html', {'registrar': registrar})

@@ -2,14 +2,33 @@ import random
 from createsend import Subscriber
 from mock import patch, Mock
 
+from django.conf import settings
+from django.core import mail
 from django.db.models.query import QuerySet
+from django.http import HttpRequest
 
-from perma.email import registrar_users_plus_stats, users_to_unsubscribe
+from perma.email import registrar_users_plus_stats, users_to_unsubscribe, send_user_email_copy_admins
 from perma.models import LinkUser, Organization
 
 from .utils import PermaTestCase
 
 class EmailTestCase(PermaTestCase):
+
+    def test_send_user_email_copy_admins(self):
+        send_user_email_copy_admins(
+            "title",
+            "from@example.com",
+            ["to@example.com"],
+            HttpRequest(),
+            "email/default.txt",
+            {"message": "test message"}
+        )
+        self.assertEqual(len(mail.outbox),1)
+        message = mail.outbox[0]
+        self.assertEqual(message.from_email, settings.DEFAULT_FROM_EMAIL)
+        self.assertEqual(message.cc, [settings.DEFAULT_FROM_EMAIL, "from@example.com"])
+        self.assertEqual(message.to, ["to@example.com"])
+        self.assertEqual(message.reply_to, ["from@example.com"])
 
     def test_registrar_users_plus_stats(self):
         '''

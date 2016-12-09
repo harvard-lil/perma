@@ -138,6 +138,9 @@ class Registrar(models.Model):
             .order_by('-num_links')\
             .first()
 
+    def active_registrar_users(self):
+        return self.users.filter(is_active=True)
+
 class OrganizationQuerySet(QuerySet):
     def accessible_to(self, user):
         qset = self.user_access_filter(user)
@@ -368,7 +371,16 @@ class LinkUser(AbstractBaseUser):
     @cached_property
     def is_organization_user(self):
         """ Is the user a member of an org? """
+        if self.is_anonymous():
+            return False
         return self.organizations.exists()
+
+    def is_supported_by_registrar(self):
+        """ Should the user's support requests be forwarded to their registrar?"""
+        if self.is_anonymous():
+            return False
+        return settings.CONTACT_REGISTRARS and \
+               self.is_organization_user
 
     ### link permissions ###
 
@@ -416,9 +428,11 @@ simple_history.register(LinkUser)
 
 # This ugly business makes these functions available on logged-out users as well as logged-in,
 # by monkeypatching Django's AnonymousUser object.
-for func_name in ['can_view', 'can_edit', 'can_delete', 'can_toggle_private']:
+# See https://code.djangoproject.com/ticket/20313
+for func_name in ['can_view', 'can_edit', 'can_delete', 'can_toggle_private', 'is_supported_by_registrar']:
     setattr(django.contrib.auth.models.AnonymousUser, func_name, getattr(LinkUser, func_name).__func__)
-
+for prop_name in ['is_organization_user']:
+    setattr(django.contrib.auth.models.AnonymousUser, prop_name, getattr(LinkUser, prop_name))
 
 class FolderQuerySet(QuerySet):
     def user_access_filter(self, user):

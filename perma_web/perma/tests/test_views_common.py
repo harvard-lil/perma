@@ -1,17 +1,30 @@
 from django.conf import settings
 from django.core import mail
 from django.core.urlresolvers import reverse
+from django.test import override_settings
 
 from perma.urls import urlpatterns
+from perma.models import Registrar
 
 from .utils import PermaTestCase
 
 from bs4 import BeautifulSoup
+from urllib import urlencode
 
+@override_settings(CONTACT_REGISTRARS=True)
 class CommonViewsTestCase(PermaTestCase):
 
     def setUp(self):
-        self.users = ['test_user@example.com', 'test_org_user@example.com', 'test_registrar_user@example.com', 'test_admin_user@example.com']
+        self.users = ['test_user@example.com', 'test_org_user@example.com', 'multi_registrar_org_user@example.com', 'test_registrar_user@example.com', 'test_admin_user@example.com']
+        self.from_email = 'example@example.com'
+        self.custom_subject = 'Just some subject here'
+        self.message_text = 'Just some message here.'
+        self.refering_page = 'http://elsewhere.com'
+        self.our_address = settings.DEFAULT_FROM_EMAIL
+        self.subject_prefix = '[perma-contact] '
+        self.flag = "zzzz-zzzz"
+        self.flag_message = "http://perma.cc/{} contains material that is inappropriate.".format(self.flag)
+        self.flag_subject = "Reporting Inappropriate Content"
 
     def test_public_views(self):
         # test static template views
@@ -64,19 +77,15 @@ class CommonViewsTestCase(PermaTestCase):
         response = self.client.get(reverse('single_linky', kwargs={'guid': 'ABCD-0006'}))
         self.assertRedirects(response, reverse('single_linky', kwargs={'guid': '3SLN-JHX9'}))
 
-    # Contact Form
 
-    def test_contact_render(self):
-        '''
-            Does the contact form render as expected?
-        '''
-        message = "Just a little message"
-        subject = "A subject in the GET params"
-        flag = "zzzz-zzzz"
-        flag_message = "http://perma.cc/{} contains material that is inappropriate.".format(flag)
-        flag_subject = "Reporting Inappropriate Content"
+    ###
+    ###   Does the contact form render as expected?
+    ###
 
-        ## check all fields are blank with normal access
+    def test_contact_blank_when_logged_out(self):
+        '''
+            Check correct fields are blank for logged out user
+        '''
         response = self.get('contact').content
         soup = BeautifulSoup(response, 'html.parser')
         inputs = soup.select('input')
@@ -93,126 +102,259 @@ class CommonViewsTestCase(PermaTestCase):
             self.assertIn(textarea['name'],['message'])
             self.assertEqual(textarea.text, "\r\n")
 
-        ## check subject line, message, read in from GET params
-        response = self.get('contact', query_params={ 'message': message,
-                                                      'subject': subject }).content
-        soup = BeautifulSoup(response, 'html.parser')
-        subject_field = soup.find('input', {'name': 'subject'})
-        self.assertEqual(subject_field.get('value', ''), subject)
-        message_field = soup.find('textarea', {'name': 'message'})
-        self.assertEqual(message_field.text, "\r\n" + message)
-
-        ## check flag read in from GET params, and that it's subject/message override other GET params
-        response = self.get('contact', query_params={ 'flag': flag,
-                                                      'message': message,
-                                                      'subject': subject }).content
-        soup = BeautifulSoup(response, 'html.parser')
-        subject_field = soup.find('input', {'name': 'subject'})
-        self.assertEqual(subject_field.get('value', ''), flag_subject)
-        message_field = soup.find('textarea', {'name': 'message'})
-        self.assertEqual(message_field.text, "\r\n" + flag_message)
-
-
-    def test_contact_submit(self):
+    def test_contact_blank_regular(self):
         '''
-            Does the contact form submit as expected?
+            Check correct fields are blank for regular user
         '''
-        from_email = 'example@example.com'
-        custom_subject = 'Just some subject here'
-        message_text = 'Just some message here.'
-        refering_page = 'http://elsewhere.com'
+        response = self.get('contact', user="test_user@example.com").content
+        soup = BeautifulSoup(response, 'html.parser')
+        inputs = soup.select('input')
+        # Two csrf inputs: one by logout button, one in this form
+        self.assertEqual(len(inputs), 4 + 1)
+        for input in inputs:
+            self.assertIn(input['name'],['csrfmiddlewaretoken', 'referer', 'email', 'subject'])
+            if input['name'] in ['csrfmiddlewaretoken', 'email']:
+                self.assertTrue(input.get('value', ''))
+            else:
+                self.assertFalse(input.get('value', ''))
+        textareas = soup.select('textarea')
+        self.assertEqual(len(textareas), 1)
+        for textarea in textareas:
+            self.assertIn(textarea['name'],['message'])
+            self.assertEqual(textarea.text, "\r\n")
 
-        our_address = settings.DEFAULT_FROM_EMAIL
-        subject_prefix = '[perma-contact] '
-        expected_emails_sent = 0
+    def test_contact_blank_registrar(self):
+        '''
+            Check correct fields are blank for registrar user
+        '''
+        response = self.get('contact', user="test_registrar_user@example.com").content
+        soup = BeautifulSoup(response, 'html.parser')
+        inputs = soup.select('input')
+        # Two csrf inputs: one by logout button, one in this form
+        self.assertEqual(len(inputs), 4 + 1)
+        for input in inputs:
+            self.assertIn(input['name'],['csrfmiddlewaretoken', 'referer', 'email', 'subject'])
+            if input['name'] in ['csrfmiddlewaretoken', 'email']:
+                self.assertTrue(input.get('value', ''))
+            else:
+                self.assertFalse(input.get('value', ''))
+        textareas = soup.select('textarea')
+        self.assertEqual(len(textareas), 1)
+        for textarea in textareas:
+            self.assertIn(textarea['name'],['message'])
+            self.assertEqual(textarea.text, "\r\n")
 
-        ###
-        ### Success expected
-        ###
+    def test_contact_blank_single_reg_org_user(self):
+        '''
+            Check correct fields are blank for a single-registrar org user
+        '''
+        response = self.get('contact', user="test_org_user@example.com").content
+        soup = BeautifulSoup(response, 'html.parser')
+        inputs = soup.select('input')
+        # Two csrf inputs: one by logout button, one in this form
+        self.assertEqual(len(inputs), 5 + 1)
+        for input in inputs:
+            self.assertIn(input['name'],['csrfmiddlewaretoken', 'referer', 'email', 'subject', 'registrar'])
+            if input['name'] in ['csrfmiddlewaretoken', 'email', 'registrar']:
+                self.assertTrue(input.get('value', ''))
+            else:
+                self.assertFalse(input.get('value', ''))
+        textareas = soup.select('textarea')
+        self.assertEqual(len(textareas), 1)
+        for textarea in textareas:
+            self.assertIn(textarea['name'],['message'])
+            self.assertEqual(textarea.text, "\r\n")
 
-        ## All fields, including custom subject and referer
-        # submit
-        self.submit_form('contact',
-                          data = { 'email': from_email,
-                                   'message': message_text,
-                                   'subject': custom_subject,
-                                   'referer': refering_page },
-                                    success_url=reverse('contact_thanks'))
-        expected_emails_sent += 1
+    def test_contact_blank_multi_reg_org_user(self):
+        '''
+            Check correct fields are blank for a multi-registrar org user
+        '''
+        response = self.get('contact', user="multi_registrar_org_user@example.com").content
+        soup = BeautifulSoup(response, 'html.parser')
+        inputs = soup.select('input')
+        # Two csrf inputs: one by logout button, one in this form
+        self.assertEqual(len(inputs), 4 + 1)
+        for input in inputs:
+            self.assertIn(input['name'],['csrfmiddlewaretoken', 'referer', 'email', 'subject'])
+            if input['name'] in ['csrfmiddlewaretoken', 'email']:
+                self.assertTrue(input.get('value', ''))
+            else:
+                self.assertFalse(input.get('value', ''))
+        textareas = soup.select('textarea')
+        self.assertEqual(len(textareas), 1)
+        for textarea in textareas:
+            self.assertIn(textarea['name'],['message'])
+            self.assertEqual(textarea.text, "\r\n")
+        selects = soup.select('select')
+        self.assertEqual(len(selects), 1)
+        for select in selects:
+            self.assertIn(select['name'],['registrar'])
+            self.assertGreaterEqual(len(select.find_all("option")), 2)
 
-        # check contents of sent email
-        self.assertEqual(len(mail.outbox), expected_emails_sent)
-        message = mail.outbox[expected_emails_sent - 1]
-        self.assertIn(message_text, message.body)
-        self.assertIn("Referring Page: " + refering_page, message.body)
-        self.assertIn("Affiliations: (none)", message.body)
-        self.assertEqual(message.subject, subject_prefix + custom_subject)
-        self.assertEqual(message.from_email, our_address)
-        self.assertEqual(message.recipients(), [our_address])
-        self.assertDictEqual(message.extra_headers, {'Reply-To': from_email})
+    def check_contact_params(self, soup):
+        subject_field = soup.find('input', {'name': 'subject'})
+        self.assertEqual(subject_field.get('value', ''), self.custom_subject)
+        message_field = soup.find('textarea', {'name': 'message'})
+        self.assertEqual(message_field.text, "\r\n" + self.message_text)
 
-        ## All fields except custom subject and referer
-        # submit
-        self.submit_form('contact',
-                          data = { 'email': from_email,
-                                   'message': message_text },
-                          success_url=reverse('contact_thanks'))
-        expected_emails_sent += 1
+    def test_contact_params_regular(self):
+        '''
+            Check subject line, message, read in from GET params
+        '''
+        for user in self.users + [None]:
+            response = self.get('contact', query_params={ 'message': self.message_text,
+                                                          'subject': self.custom_subject, },
+                                           user=user).content
+            self.check_contact_params(BeautifulSoup(response, 'html.parser'))
 
-        # check contents of sent email
-        self.assertEqual(len(mail.outbox), expected_emails_sent)
-        message = mail.outbox[expected_emails_sent - 1]
-        self.assertIn(message_text, message.body)
-        self.assertIn("Referring Page: ", message.body)
-        self.assertIn("Affiliations: (none)", message.body)
-        self.assertEqual(message.subject, subject_prefix + 'New message from Perma contact form')
-        self.assertEqual(message.from_email, our_address )
-        self.assertEqual(message.recipients(), [our_address])
-        self.assertDictEqual(message.extra_headers, {'Reply-To': from_email})
+    def check_contact_flags(self, soup):
+        subject_field = soup.find('input', {'name': 'subject'})
+        self.assertEqual(subject_field.get('value', ''), self.flag_subject)
+        message_field = soup.find('textarea', {'name': 'message'})
+        self.assertEqual(message_field.text, "\r\n" + self.flag_message)
 
-        ## Repeat while logged in as org user; verify email only differs by listing affiliations
-        # submit
-        self.submit_form('contact',
-                          data = { 'email': from_email,
-                                   'message': message_text },
-                          success_url=reverse('contact_thanks'),
-                          user='test_another_library_org_user@example.com')
-        expected_emails_sent += 1
+    def test_contact_flags(self):
+        '''
+            Check flag read in from GET params, and that its subject/message override other GET params
+        '''
+        for user in self.users + [None]:
+            response = self.get('contact', query_params={ 'flag': self.flag,
+                                                          'message': self.message_text,
+                                                          'subject': self.custom_subject },
+                                           user=user).content
+            self.check_contact_flags(BeautifulSoup(response, 'html.parser'))
 
-        # check contents of sent email
-        self.assertEqual(len(mail.outbox), expected_emails_sent)
-        message = mail.outbox[expected_emails_sent -1]
-        self.assertIn("Affiliations: Another Library&#39;s Journal (Another Library), A Third Journal (Test Library)", message.body)
-        subbed = message.body.replace("Another Library&#39;s Journal (Another Library), A Third Journal (Test Library)", "(none)")
-        self.assertEqual(subbed, mail.outbox[expected_emails_sent - 2].body)
 
-        ## Repeat while logged in as registrar user; verify email only differs by listing affiliations
-        # submit
-        self.submit_form('contact',
-                          data = { 'email': from_email,
-                                   'message': message_text },
-                          success_url=reverse('contact_thanks'),
-                          user='test_registrar_user@example.com')
-        expected_emails_sent += 1
+    ###
+    ###   Does the contact form submit as expected?
+    ###
 
-        # check contents of sent email
-        self.assertEqual(len(mail.outbox), expected_emails_sent)
-        message = mail.outbox[expected_emails_sent -1]
-        self.assertIn("Affiliations: Test Library (Registrar)", message.body)
-        subbed = message.body.replace("Test Library (Registrar)", "(none)")
-        self.assertEqual(subbed, mail.outbox[expected_emails_sent - 3].body)
-
-        ###
-        ### Failure expected
-        ###
-
-        # Blank submission should fail and request email address and message.
-        # We should get the contact page back.
+    def test_contact_standard_submit_fail(self):
+        '''
+            Blank submission should fail and, for most users, request
+            email address and message.
+            We should get the contact page back.
+        '''
         response = self.submit_form('contact',
                                      data = { 'email': '',
                                               'message': '' },
                                      error_keys = ['email', 'message'])
         self.assertEqual(response.request['PATH_INFO'], reverse('contact'))
+
+    def test_contact_org_user_submit_fail(self):
+        '''
+            Org users are special. Blank submission should fail
+            and request email address, message, and registrar.
+            We should get the contact page back.
+        '''
+        response = self.submit_form('contact',
+                                     data = { 'email': '',
+                                              'message': '' },
+                                     user='test_org_user@example.com',
+                                     error_keys = ['email', 'message', 'registrar'])
+        self.assertEqual(response.request['PATH_INFO'], reverse('contact'))
+
+    def test_contact_standard_submit_required(self):
+        '''
+            All fields, including custom subject and referer
+        '''
+        self.submit_form('contact',
+                          data = { 'email': self.from_email,
+                                   'message': self.message_text,
+                                   'subject': self.custom_subject,
+                                   'referer': self.refering_page },
+                          success_url=reverse('contact_thanks'))
+
+        self.assertEqual(len(mail.outbox), 1)
+        message = mail.outbox[0]
+        self.assertIn(self.message_text, message.body)
+        self.assertIn("Referring Page: " + self.refering_page, message.body)
+        self.assertIn("Affiliations: (none)", message.body)
+        self.assertEqual(message.subject, self.subject_prefix + self.custom_subject)
+        self.assertEqual(message.from_email, self.our_address)
+        self.assertEqual(message.recipients(), [self.our_address])
+        self.assertDictEqual(message.extra_headers, {'Reply-To': self.from_email})
+
+    def test_contact_standard_submit_no_optional(self):
+        '''
+            All fields except custom subject and referer
+        '''
+        self.submit_form('contact',
+                          data = { 'email': self.from_email,
+                                   'message': self.message_text },
+                          success_url=reverse('contact_thanks'))
+        self.assertEqual(len(mail.outbox), 1)
+        message = mail.outbox[0]
+        self.assertIn(self.message_text, message.body)
+        self.assertIn("Referring Page: ", message.body)
+        self.assertIn("Affiliations: (none)", message.body)
+        self.assertEqual(message.subject, self.subject_prefix + 'New message from Perma contact form')
+        self.assertEqual(message.from_email, self.our_address )
+        self.assertEqual(message.recipients(), [self.our_address])
+        self.assertDictEqual(message.extra_headers, {'Reply-To': self.from_email})
+
+    def test_contact_org_user_submit_invalid(self):
+        '''
+            Org users get extra fields. Registrar must be a valid choice.
+            We should get the contact page back.
+        '''
+        response = self.submit_form('contact',
+                                     data = { 'email': self.from_email,
+                                              'message': self.message_text,
+                                              'registrar': 'not_a_licit_registrar_id'},
+                                     user='test_org_user@example.com',
+                                     error_keys = ['registrar'])
+        self.assertEqual(response.request['PATH_INFO'], reverse('contact'))
+
+    def test_contact_org_user_submit(self):
+        '''
+            Should be sent to registrar users.
+        '''
+        registrar = Registrar.objects.get(email='library@university.edu')
+        registrar_users = registrar.active_registrar_users()
+        success = reverse('contact_thanks') + "?{}".format(urlencode({'registrar': registrar.id}))
+        expected_emails = 0
+        for user in ['test_org_user@example.com', 'multi_registrar_org_user@example.com']:
+            self.submit_form('contact',
+                              data = { 'email': self.from_email,
+                                       'message': self.message_text,
+                                       'registrar': registrar.id },
+                              user=user,
+                              success_url=success)
+
+            expected_emails +=1
+            self.assertEqual(len(mail.outbox), expected_emails)
+            message = mail.outbox[expected_emails -1]
+            self.assertIn(self.message_text, message.body)
+            self.assertEqual(message.from_email, self.our_address )
+            self.assertEqual(message.to, [user.email for user in registrar_users])
+            self.assertEqual(message.cc, [self.our_address, self.from_email] )
+            self.assertEqual(message.reply_to, [self.from_email])
+
+    def test_contact_org_user_affiliation_string(self):
+        '''
+            Verify org affiliations are printed correctly
+        '''
+        self.submit_form('contact',
+                          data = { 'email': self.from_email,
+                                   'message': self.message_text,
+                                   'registrar': 2 },
+                          user='test_another_library_org_user@example.com')
+        self.assertEqual(len(mail.outbox), 1)
+        message = mail.outbox[0]
+        self.assertIn("Affiliations: Another Library&#39;s Journal (Another Library), A Third Journal (Test Library)", message.body)
+
+    def test_contact_reg_user_affiliation_string(self):
+        '''
+            Verify registrar affiliations are printed correctly
+        '''
+        self.submit_form('contact',
+                          data = { 'email': self.from_email,
+                                   'message': self.message_text },
+                          user='test_registrar_user@example.com')
+        self.assertEqual(len(mail.outbox), 1)
+        message = mail.outbox[0]
+        self.assertIn("Affiliations: Test Library (Registrar)", message.body)
 
     def test_about_partner_list(self):
         '''

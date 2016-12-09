@@ -230,6 +230,7 @@ class ContactForm(forms.Form):
         return self.cleaned_data['subject'] or "New message from Perma contact form"
 
     email = forms.EmailField(label="Your email address")
-    subject = forms.CharField(required=False)
+    registrar = forms.ChoiceField(choices = (), label = 'Your library')
+    subject = forms.CharField(widget=forms.HiddenInput, required=False)
     message = forms.CharField(widget=forms.Textarea)
     referer = forms.URLField(widget=forms.HiddenInput, required=False)
