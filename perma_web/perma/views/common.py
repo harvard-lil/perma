@@ -220,22 +220,18 @@ def contact(request):
         return affiliation_string
 
     def handle_registrar_fields(form):
-        if getattr(request.user, 'is_organization_user', ''):
+        if request.user.is_supported_by_registrar():
             registrars = set(org.registrar for org in request.user.organizations.all())
             if len(registrars) > 1:
-                form.fields['registrar'].choices = [(registrar.email, registrar.name) for registrar in registrars]
+                form.fields['registrar'].choices = [(registrar.id, registrar.name) for registrar in registrars]
             if len(registrars) == 1:
                 form.fields['registrar'].widget = widgets.HiddenInput()
-                email = registrars.pop().email
-                form.fields['registrar'].initial = email
-                form.fields['registrar'].choices = [(email,email)]
+                registrar = registrars.pop()
+                form.fields['registrar'].initial = registrar.id
+                form.fields['registrar'].choices = [(registrar.id, registrar.email)]
         else:
             del form.fields['registrar']
         return form
-
-    def should_send_to_registrar():
-        return settings.CONTACT_REGISTRARS and \
-               getattr(request.user, 'is_organization_user', '')
 
     if request.method == 'POST':
         form = handle_registrar_fields(ContactForm(request.POST))
@@ -249,24 +245,20 @@ def contact(request):
                 "referer": form.cleaned_data['referer'],
                 "affiliation_string": affiliation_string()
             }
-            if should_send_to_registrar():
+            if request.user.is_supported_by_registrar():
                 # Send to all active registar users for registrar and cc Perma
-                reg_email = form.cleaned_data['registrar']
-                registrar_users = LinkUser.objects.filter(
-                  registrar__email=reg_email,
-                  is_active=True
-                )
+                reg_id = form.cleaned_data['registrar']
                 send_user_email_copy_admins(
                     subject,
                     from_address,
-                    [user.email for user in registrar_users],
+                    [user.email for user in Registrar.objects.get(id=reg_id).active_registrar_users()],
                     request,
                     'email/registrar_contact.txt',
                     context
                 )
                 # redirect to a new URL:
                 return HttpResponseRedirect(
-                    reverse('contact_thanks') + "?{}".format(urlencode({'registrar': Registrar.objects.get(email=reg_email).pk}))
+                    reverse('contact_thanks') + "?{}".format(urlencode({'registrar': reg_id}))
                 )
             else:
                 # Send only to the admins
@@ -318,8 +310,7 @@ def contact(request):
 
 def contact_thanks(request):
     """
-    When a user hits a rate limit, send them here.
+    The page users are delivered at after submitting the contact form.
     """
     registrar = Registrar.objects.filter(pk=request.GET.get('registrar', '-1')).first()
-    registrar_users = LinkUser.objects.filter(registrar=registrar, is_active=True)
-    return render(request, 'contact-thanks.html', {'registrar': registrar, 'registrar_users': registrar_users})
+    return render(request, 'contact-thanks.html', {'registrar': registrar})

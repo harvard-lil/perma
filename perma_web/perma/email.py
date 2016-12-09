@@ -29,11 +29,11 @@ def send_user_email(to_address, template, context):
     return success_count
 
 # def send_mass_user_email(template, recipients):
-    '''
-        Opens a single connection to the mail server and sends many emails.
-        Pass in recipients as a list of tuples (email, context):
-        [('recipient@example.com', {'first_name': 'Joe', 'last_name': 'Yacoboski' }), (), ...]
-    '''
+    # '''
+    #     Opens a single connection to the mail server and sends many emails.
+    #     Pass in recipients as a list of tuples (email, context):
+    #     [('recipient@example.com', {'first_name': 'Joe', 'last_name': 'Yacoboski' }), (), ...]
+    # '''
     # to_send = []
     # for recipient in recipients:
     #     to_address, context = recipient

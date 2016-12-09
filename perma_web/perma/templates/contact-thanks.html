@@ -13,7 +13,7 @@
       <h1 class="page-title">Thanks!</h1>
       {% if registrar %}
         <p class="page-dek">Your message was successfully sent to {{registrar.name}} and the Perma.cc team:</p>
-        <ul class="page-dek">{% for user in registrar_users %}
+        <ul class="page-dek">{% for user in registrar.active_registrar_users %}
          <li>{{user.get_full_name}} ({{user.email}})</li>{% endfor %}
          <li>info@perma.cc</li>
         </ul>

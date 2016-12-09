@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.test import override_settings
 
 from perma.urls import urlpatterns
-from perma.models import LinkUser, Registrar
+from perma.models import Registrar
 
 from .utils import PermaTestCase
 
@@ -301,7 +301,7 @@ class CommonViewsTestCase(PermaTestCase):
         response = self.submit_form('contact',
                                      data = { 'email': self.from_email,
                                               'message': self.message_text,
-                                              'registrar': 'not_a_real_registrar@example.com'},
+                                              'registrar': 'not_a_licit_registrar_id'},
                                      user='test_org_user@example.com',
                                      error_keys = ['registrar'])
         self.assertEqual(response.request['PATH_INFO'], reverse('contact'))
@@ -310,18 +310,15 @@ class CommonViewsTestCase(PermaTestCase):
         '''
             Should be sent to registrar users.
         '''
-        registrar = 'library@university.edu'
-        registrar_users = LinkUser.objects.filter(
-            registrar__email=registrar,
-            is_active=True
-        )
-        success = reverse('contact_thanks') + "?{}".format(urlencode({'registrar': Registrar.objects.get(email=registrar).pk}))
+        registrar = Registrar.objects.get(email='library@university.edu')
+        registrar_users = registrar.active_registrar_users()
+        success = reverse('contact_thanks') + "?{}".format(urlencode({'registrar': registrar.id}))
         expected_emails = 0
         for user in ['test_org_user@example.com', 'multi_registrar_org_user@example.com']:
             self.submit_form('contact',
                               data = { 'email': self.from_email,
                                        'message': self.message_text,
-                                       'registrar': registrar },
+                                       'registrar': registrar.id },
                               user=user,
                               success_url=success)
 
@@ -341,7 +338,7 @@ class CommonViewsTestCase(PermaTestCase):
         self.submit_form('contact',
                           data = { 'email': self.from_email,
                                    'message': self.message_text,
-                                   'registrar': 'library@university2.edu' },
+                                   'registrar': 2 },
                           user='test_another_library_org_user@example.com')
         self.assertEqual(len(mail.outbox), 1)
         message = mail.outbox[0]
