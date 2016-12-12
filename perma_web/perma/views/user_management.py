@@ -1142,12 +1142,25 @@ def reset_password(request):
     """
         Displays the reset password form.
 
-        We wrap the default Django view to add autofocus to the email field.
+        We wrap the default Django view to add autofocus to the email field,
+        and a custom redirect if unconfirmed users try to reset their password.
     """
     class OurPasswordResetForm(PasswordResetForm):
         def __init__(self, *args, **kwargs):
             super(PasswordResetForm, self).__init__(*args, **kwargs)
             self.fields['email'].widget.attrs['autofocus'] = ''
+
+    if request.method == "POST":
+        try:
+            target_user = LinkUser.objects.get(email=request.POST.get('email'))
+        except LinkUser.DoesNotExist:
+            target_user = None
+        if target_user:
+            if not target_user.is_confirmed:
+                request.session['email'] = target_user.email
+                return HttpResponseRedirect(reverse('user_management_not_active'))
+            if not target_user.is_active:
+                return HttpResponseRedirect(reverse('user_management_account_is_deactivated'))
 
     return auth_views.password_reset(request, password_reset_form=OurPasswordResetForm)
 
