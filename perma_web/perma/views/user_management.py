@@ -4,6 +4,7 @@ import itertools
 from datetime import timedelta
 
 from celery.task.control import inspect as celery_inspect
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseBadRequest
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
@@ -1078,6 +1079,18 @@ def not_active(request):
         context.update(csrf(request))
         return render_to_response('registration/not_active.html', context, RequestContext(request))
 
+
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
+@login_required()
+def resend_activation(request, user_id):
+    """
+    Sends a user another account activation email.
+    """
+    target_user = get_object_or_404(LinkUser, id=user_id)
+    if not request.user.shares_scope_with_user(target_user):
+        raise PermissionDenied
+    email_new_user(request, target_user)
+    return render(request, 'user_management/activation-email.html', {"email": target_user.email})
 
 def account_is_deactivated(request):
     """

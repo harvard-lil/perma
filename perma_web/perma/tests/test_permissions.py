@@ -127,7 +127,8 @@ class PermissionsTestCase(PermaTestCase):
 
             # Things that are no longer needed and have become redirects or other special cases
             excluded_names = ['create_link_with_org',
-                              'link_browser',]
+                              'link_browser',
+                              'user_management_resend_activation']
 
             if urlpattern._regex.startswith(r'^manage/') and urlpattern._regex != '^manage/?$' and urlpattern.name not in excluded_names:
                 self.assertTrue(urlpattern.name in views_tested,

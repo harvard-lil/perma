@@ -356,6 +356,27 @@ class LinkUser(AbstractBaseUser):
         """
         return True
 
+    def shares_scope_with_user(self, other_user):
+        """
+            Does the user share a scope with another user?
+
+            Org users share scope with other members of their orgs.
+            Registrar users share scope with others registrar users from
+               the same registrar, as well as all members of the registrar's orgs.
+            Admins share scope with all users.
+        """
+        if self.is_organization_user:
+            orgs = other_user.organizations.all() & self.organizations.all()
+            return len(orgs) > 0
+        elif self.is_registrar_user():
+            if self.registrar == other_user.registrar:
+                return True
+            orgs = other_user.organizations.all() & Organization.objects.filter(registrar=self.registrar)
+            return len(orgs) > 0
+        elif self.is_staff:
+            return True
+        return False
+
     def has_limit(self):
         """ Does the user have a link creation limit? """
         return bool(not self.is_staff and not self.is_registrar_user() and not self.is_organization_user)

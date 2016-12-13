@@ -254,6 +254,9 @@
           {% if request.user.is_staff %}
             <p class="item-status"><a class="action" href="{% url "admin:perma_linkuser_change" listed_user.id %}">edit in admin console</a></p>
           {% endif %}
+          {% if not listed_user.is_confirmed %}
+            <p class="item-status"><a class="action" href="{% url 'user_management_resend_activation' listed_user.id %}">resend activation email</a></p>
+          {% endif %}
           <p class="item-activity">
             created {{ listed_user.date_joined|date:'F j, Y' }}
             {% if listed_user.is_confirmed %}
