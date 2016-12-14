@@ -119,8 +119,10 @@ class PermissionsTestCase(PermaTestCase):
                 for user in view.get('disallowed', all_users - view['allowed']):
                     self.log_in_user(user)
                     resp = self.client.get(url)
-                    self.assertRedirects(resp, settings.LOGIN_URL+"?next="+url, target_status_code=302,
-                                         msg_prefix="Error while confirming that %s can't view %s: " % (user, view_name))
+                    self.assertEqual(resp.status_code, 403,
+                                         "View %s returned status %s for user %s; expected %s." % (view_name, resp.status_code, user, success_status))
+                    # self.assertRedirects(resp, settings.LOGIN_URL+"?next="+url, target_status_code=302,
+                    #                      msg_prefix="Error while confirming that %s can't view %s: " % (user, view_name))
 
         # make sure that all ^manage/ views were tested
         for urlpattern in urlpatterns:

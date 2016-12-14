@@ -1,21 +1,23 @@
 import json
 
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
+
+from perma.utils import user_passes_test_or_403
 
 from ..models import UncaughtError
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_staff)
 def get_all(request):
     errors = UncaughtError.objects.filter(resolved=False).order_by('-created_at')[:40]
     return render(request, 'errors/view.html', {'errors': errors})
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_staff)
 def resolve(request):
     error = get_object_or_404(UncaughtError, pk=request.POST.get('error_id'))
     error.resolved = True

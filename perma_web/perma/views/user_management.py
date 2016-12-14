@@ -14,7 +14,7 @@ from tastypie.models import ApiKey
 from django.views.generic import UpdateView
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm, PasswordResetForm
 from django.contrib.auth import views as auth_views
 from django.db.models import Count, Max, Sum
@@ -44,7 +44,7 @@ from perma.forms import (
     UserAddAdminForm)
 from perma.models import Registrar, LinkUser, Organization, Link, Capture, CaptureJob
 from perma.utils import apply_search_query, apply_pagination, apply_sort_order, \
-   get_form_data, ratelimit_ip_key
+   get_form_data, ratelimit_ip_key, user_passes_test_or_403
 from perma.email import send_admin_email, send_user_email
 
 
@@ -59,21 +59,21 @@ valid_org_sorts = ['name', '-name', 'link_count', '-link_count', '-date_created'
 class RequireOrgOrRegOrAdminUser(object):
     """ Mixin for class-based views that requires user to be an org user, registrar user, or admin. """
     @method_decorator(login_required)
-    @method_decorator(user_passes_test(lambda user: user.is_registrar_user() or user.is_organization_user or user.is_staff))
+    @method_decorator(user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_organization_user or user.is_staff))
     def dispatch(self, request, *args, **kwargs):
         return super(RequireOrgOrRegOrAdminUser, self).dispatch(request, *args, **kwargs)
 
 class RequireRegOrAdminUser(object):
     """ Mixin for class-based views that requires user to be a registrar user or admin. """
     @method_decorator(login_required)
-    @method_decorator(user_passes_test(lambda user: user.is_registrar_user() or user.is_staff))
+    @method_decorator(user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_staff))
     def dispatch(self, request, *args, **kwargs):
         return super(RequireRegOrAdminUser, self).dispatch(request, *args, **kwargs)
 
 class RequireAdminUser(object):
     """ Mixin for class-based views that requires user to be an admin. """
     @method_decorator(login_required)
-    @method_decorator(user_passes_test(lambda user: user.is_staff))
+    @method_decorator(user_passes_test_or_403(lambda user: user.is_staff))
     def dispatch(self, request, *args, **kwargs):
         return super(RequireAdminUser, self).dispatch(request, *args, **kwargs)
 
@@ -81,7 +81,7 @@ class RequireAdminUser(object):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_staff)
 def stats(request, stat_type=None):
 
     out = None
@@ -190,7 +190,7 @@ def stats(request, stat_type=None):
         return render(request, 'user_management/stats.html', locals())
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_staff)
 def manage_registrar(request):
     """
     Linky admins can manage registrars (libraries)
@@ -244,7 +244,7 @@ def manage_registrar(request):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_user())
+@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
 def manage_single_registrar(request, registrar_id):
     """ Edit details for a registrar. """
 
@@ -269,7 +269,7 @@ def manage_single_registrar(request, registrar_id):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_staff)
 def approve_pending_registrar(request, registrar_id):
     """ Perma admins can approve account requests from libraries """
 
@@ -301,7 +301,7 @@ def approve_pending_registrar(request, registrar_id):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
+@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def manage_organization(request):
     """
     Admin and registrar users can manage organizations (journals)
@@ -364,7 +364,7 @@ def manage_organization(request):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
+@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def manage_single_organization(request, org_id):
     """ Edit organization details. """
     try:
@@ -390,7 +390,7 @@ def manage_single_organization(request, org_id):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
+@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def manage_single_organization_delete(request, org_id):
     """
         Delete an empty org
@@ -416,81 +416,81 @@ def manage_single_organization_delete(request, org_id):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_staff)
 def manage_admin_user(request):
     return list_users_in_group(request, 'admin_user')
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_admin_user_delete(request, user_id):
     return delete_user_in_group(request, user_id, 'admin_user')
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_user())
+@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
 def manage_registrar_user(request):
     return list_users_in_group(request, 'registrar_user')
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_registrar_user(request, user_id):
     return edit_user_in_group(request, user_id, 'registrar_user')
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_registrar_user_delete(request, user_id):
     return delete_user_in_group(request, user_id, 'registrar_user')
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_registrar_user_reactivate(request, user_id):
     return reactive_user_in_group(request, user_id, 'registrar_user')
 
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_staff)
 def manage_user(request):
     return list_users_in_group(request, 'user')
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_user(request, user_id):
     return edit_user_in_group(request, user_id, 'user')
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_user_delete(request, user_id):
     return delete_user_in_group(request, user_id, 'user')
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_user_reactivate(request, user_id):
     return reactive_user_in_group(request, user_id, 'user')
 
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
+@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def manage_organization_user(request):
     return list_users_in_group(request, 'organization_user')
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
+@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def manage_single_organization_user(request, user_id):
     return edit_user_in_group(request, user_id, 'organization_user')
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_organization_user_delete(request, user_id):
     return delete_user_in_group(request, user_id, 'organization_user')
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_organization_user_reactivate(request, user_id):
     return reactive_user_in_group(request, user_id, 'organization_user')
 
 
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
+@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def list_users_in_group(request, group_name):
     """
         Show list of users with given group name.
@@ -799,7 +799,7 @@ class AddRegularUser(RequireAdminUser, BaseAddUserToGroup):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_organization_user)
+@user_passes_test_or_403(lambda user: user.is_organization_user)
 def organization_user_leave_organization(request, org_id):
     try:
         org = Organization.objects.accessible_to(request.user).get(pk=org_id)
@@ -825,7 +825,7 @@ def organization_user_leave_organization(request, org_id):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_staff)
 def delete_user_in_group(request, user_id, group_name):
     """
         Delete particular user with given group name.
@@ -853,7 +853,7 @@ def delete_user_in_group(request, user_id, group_name):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_registrar_user() or user.is_organization_user or user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_organization_user or user.is_staff)
 def manage_single_organization_user_remove(request, user_id):
     """
         Remove an organization user from an org.
@@ -876,7 +876,7 @@ def manage_single_organization_user_remove(request, user_id):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_registrar_user())
+@user_passes_test_or_403(lambda user: user.is_registrar_user())
 def manage_single_registrar_user_remove(request, user_id):
     """
         Remove a registrar user from a registrar.
@@ -907,7 +907,7 @@ def manage_single_registrar_user_remove(request, user_id):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_admin_user_remove(request, user_id):
     """
         Basically demote a admin to a regular user.
@@ -934,7 +934,7 @@ def manage_single_admin_user_remove(request, user_id):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@user_passes_test_or_403(lambda user: user.is_staff)
 def reactive_user_in_group(request, user_id, group_name):
     """
         Reactivate particular user with given group name.
@@ -991,7 +991,7 @@ def settings_password(request):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_registrar_user() or user.is_organization_user or user.has_registrar_pending())
+@user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_organization_user or user.has_registrar_pending())
 def settings_affiliations(request):
     """
     Settings view organizations, leave organizations ...
@@ -1012,7 +1012,7 @@ def settings_affiliations(request):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
+@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def settings_organizations_change_privacy(request, org_id):
     try:
         org = Organization.objects.accessible_to(request.user).get(pk=org_id)
@@ -1080,7 +1080,7 @@ def not_active(request):
         return render_to_response('registration/not_active.html', context, RequestContext(request))
 
 
-@user_passes_test(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
+@user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 @login_required()
 def resend_activation(request, user_id):
     """

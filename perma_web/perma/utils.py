@@ -7,10 +7,14 @@ import tempdir
 from datetime import datetime
 import logging
 from netaddr import IPAddress, IPNetwork
+from functools import wraps
 
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
+from django.utils.decorators import available_attrs
+
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +31,24 @@ def run_task(task, *args, **kwargs):
         return task.apply_async(args, kwargs, **options)
     else:
         return task.apply(args, kwargs, **options)
+
+### login helper ###
+def user_passes_test_or_403(test_func):
+    """
+    Decorator for views that checks that the user passes the given test,
+    raising PermissionDenied if not. Based on Django's user_passes_test.
+    The test should be a callable that takes the user object and
+    returns True if the user passes.
+    """
+    def decorator(view_func):
+        @wraps(view_func, assigned=available_attrs(view_func))
+        def _wrapped_view(request, *args, **kwargs):
+            if not test_func(request.user):
+                raise PermissionDenied
+            return view_func(request, *args, **kwargs)
+        return _wrapped_view
+    return decorator
+
 
 ### list view helpers ###
 
