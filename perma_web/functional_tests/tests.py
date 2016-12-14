@@ -279,6 +279,14 @@ class FunctionalTest(BaseTestCase):
             repeat_while_exception(lambda: self.assertEqual(err_count+1, UncaughtError.objects.count()), timeout=5)  # give time for background thread to create exception
             self.assertIn('doesNotExist', UncaughtError.objects.last().message)
 
+        def test_playback(capture_url, warc_url):
+            self.driver.get(capture_url)
+            get_element_with_text('See the Screenshot View', 'a').click()
+            assert_text_displayed('This is a screenshot.')
+            # Load the WARC URL separately, because Safari driver doesn't let us inspect it as an iframe
+            self.driver.get(warc_url)
+            assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
+
         info("Starting functional tests at time:", datetime.datetime.utcnow())
 
         try:
@@ -287,21 +295,9 @@ class FunctionalTest(BaseTestCase):
             self.driver.get(self.server_url)
             assert_text_displayed("Perma.cc is simple") # new text on landing now
 
-            info("Testing javascript error reporting -- logged out user")
-            test_js_error_handling()
-
-            info("Loading about page.")
-            self.driver.get(self.server_url + "/about")
-            partners = self.driver.execute_script("return partnerPoints")
-            self.assertEqual(len(partners), 2)
-
-            info("Loading docs.")
-            try:
-                get_css_selector('.navbar-toggle').click()  # show navbar in mobile view
-            except ElementNotVisibleException:
-                pass  # not in mobile view
-            get_xpath("//a[@href='/docs']").click()
-            assert_text_displayed('Perma.cc user guide')  # new text -- wait for load
+            #
+            # First, tests logged in as test_user@example.com
+            #
 
             info("Logging in.")
             try:
@@ -344,19 +340,16 @@ class FunctionalTest(BaseTestCase):
 
             get_id('addlink').click() # submit
 
-            info("Viewing playback.")
+            info("Viewing playback (logged in).")
             # wait 60 seconds to be forwarded to archive page
             repeat_while_exception(lambda: get_element_with_text('See the Screenshot View', 'a'), NoSuchElementException, 60)
             # Get the guid of the created archive
             # display_guid = fix_host(self.driver.current_url)[-9:]
             # Grab the WARC url for later.
+            capture_url = self.driver.current_url
             warc_url = fix_host(self.driver.find_elements_by_tag_name("iframe")[0].get_attribute('src'))
             # Check out the screeshot.
-            get_element_with_text('See the Screenshot View', 'a').click()
-            assert_text_displayed('This is a screenshot.')
-            # Load the WARC URL separately, because Safari driver doesn't let us inspect it as an iframe
-            self.driver.get(warc_url)
-            assert_text_displayed('This domain is established to be used for illustrative examples', 'p')
+            test_playback(capture_url, warc_url)
 
             # Personal Links
 
@@ -428,6 +421,39 @@ class FunctionalTest(BaseTestCase):
                     self.driver.get(self.server_url + reverse(urlpattern.name))
             if UncaughtError.objects.exclude(message__contains="doesNotExist").count():
                 self.assertTrue(False, "Unexpected javascript errors (see log for details)")
+
+            #
+            # Next, tests while logged out (tested last so that the newly created Capture is available)
+            #
+            info("Logging out")
+            # Start at homepage.
+            self.driver.get(self.server_url)
+            try:
+                get_css_selector('.navbar-toggle').click()  # show navbar in mobile view
+            except (ElementNotVisibleException, NoSuchElementException):
+                get_css_selector('.navbar-link').click()
+            log_out_button = repeat_while_exception(lambda: get_element_with_text("Log out", element_type='button'))
+            log_out_button.click()
+            assert_text_displayed("You have been logged out.", 'h1')
+
+            info("Testing javascript error reporting -- logged out user")
+            test_js_error_handling()
+
+            info("Loading about page.")
+            self.driver.get(self.server_url + "/about")
+            partners = self.driver.execute_script("return partnerPoints")
+            self.assertEqual(len(partners), 2)
+
+            info("Loading docs.")
+            try:
+                get_css_selector('.navbar-toggle').click()  # show navbar in mobile view
+            except ElementNotVisibleException:
+                pass  # not in mobile view
+            get_xpath("//a[@href='/docs']").click()
+            assert_text_displayed('Perma.cc user guide')  # new text -- wait for load
+
+            info("Viewing playback (logged out).")
+            test_playback(capture_url, warc_url)
 
         except Exception:
             # print unexpected JS errors
