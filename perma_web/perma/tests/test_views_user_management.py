@@ -1565,6 +1565,61 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.check_new_activation_email(mail.outbox[0], 'unactivated_faculty_user@example.com')
 
+    ### RESENDING ACTIVATION EMAILS ###
+
+    def check_activation_resent(self, user, other_user):
+        self.get('user_management_resend_activation',
+                  reverse_kwargs={'args':[LinkUser.objects.get(email=other_user).id]},
+                  user = user)
+        self.assertEqual(len(mail.outbox), 1)
+        self.check_new_activation_email(mail.outbox[0], other_user)
+
+    def check_activation_not_resent(self, user, other_user):
+        self.get('user_management_resend_activation',
+                  reverse_kwargs={'args':[LinkUser.objects.get(email=other_user).id]},
+                  user = user,
+                  require_status_code = 403)
+        self.assertEqual(len(mail.outbox), 0)
+
+    # Registrar Users
+    def test_registrar_can_resend_activation_to_org_user(self):
+        self.check_activation_resent('test_registrar_user@example.com','test_org_user@example.com')
+
+    def test_registrar_can_resend_activation_to_registrar_user(self):
+        self.check_activation_resent('another_library_user@example.com','unactivated_registrar_user@example.com')
+
+    def test_registrar_cannot_resend_activation_to_unrelated_org_user(self):
+        self.check_activation_not_resent('test_registrar_user@example.com','test_yet_another_library_org_user@example.com')
+
+    def test_registrar_cannot_resend_activation_to_regular_user(self):
+        self.check_activation_not_resent('test_registrar_user@example.com','test_user@example.com')
+
+    def test_registrar_cannot_resend_activation_to_unrelated_registrar_user(self):
+        self.check_activation_not_resent('test_registrar_user@example.com','another_library_user@example.com')
+
+    # Org Users
+    def test_org_user_can_resend_activation_to_org_user(self):
+        self.check_activation_resent('test_org_user@example.com','multi_registrar_org_user@example.com')
+
+    def test_org_user_cannot_resend_activation_to_unrelated_org_user(self):
+        self.check_activation_not_resent('test_org_user@example.com','test_yet_another_library_org_user@example.com')
+
+    def test_org_user_cannot_resend_activation_to_regular_user(self):
+        self.check_activation_not_resent('test_org_user@example.com','test_user@example.com')
+
+    def test_org_user_cannot_resend_activation_to_registrar_user(self):
+        self.check_activation_not_resent('test_org_user@example.com','test_registrar_user@example.com')
+
+    # Admin Users
+    def test_admin_can_resend_activation_to_regular_user(self):
+        self.check_activation_resent('test_admin_user@example.com','test_user@example.com')
+
+    def test_admin_can_resend_activation_to_org_user(self):
+        self.check_activation_resent('test_admin_user@example.com','test_org_user@example.com')
+
+    def test_admin_can_resend_activation_to_registrar_user(self):
+        self.check_activation_resent('test_admin_user@example.com','test_registrar_user@example.com')
+
     ### ADMIN STATS ###
 
     def test_admin_stats(self):

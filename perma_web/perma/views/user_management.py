@@ -4,6 +4,7 @@ import itertools
 from datetime import timedelta
 
 from celery.task.control import inspect as celery_inspect
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseBadRequest
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
@@ -1079,6 +1080,18 @@ def not_active(request):
         return render_to_response('registration/not_active.html', context, RequestContext(request))
 
 
+@user_passes_test(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
+@login_required()
+def resend_activation(request, user_id):
+    """
+    Sends a user another account activation email.
+    """
+    target_user = get_object_or_404(LinkUser, id=user_id)
+    if not request.user.shares_scope_with_user(target_user):
+        raise PermissionDenied
+    email_new_user(request, target_user)
+    return render(request, 'user_management/activation-email.html', {"email": target_user.email})
+
 def account_is_deactivated(request):
     """
     Informing a user that their account has been deactivated.
@@ -1142,12 +1155,25 @@ def reset_password(request):
     """
         Displays the reset password form.
 
-        We wrap the default Django view to add autofocus to the email field.
+        We wrap the default Django view to add autofocus to the email field,
+        and a custom redirect if unconfirmed users try to reset their password.
     """
     class OurPasswordResetForm(PasswordResetForm):
         def __init__(self, *args, **kwargs):
             super(PasswordResetForm, self).__init__(*args, **kwargs)
             self.fields['email'].widget.attrs['autofocus'] = ''
+
+    if request.method == "POST":
+        try:
+            target_user = LinkUser.objects.get(email=request.POST.get('email'))
+        except LinkUser.DoesNotExist:
+            target_user = None
+        if target_user:
+            if not target_user.is_confirmed:
+                request.session['email'] = target_user.email
+                return HttpResponseRedirect(reverse('user_management_not_active'))
+            if not target_user.is_active:
+                return HttpResponseRedirect(reverse('user_management_account_is_deactivated'))
 
     return auth_views.password_reset(request, password_reset_form=OurPasswordResetForm)
 
