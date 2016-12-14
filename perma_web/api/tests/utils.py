@@ -21,6 +21,8 @@ import multiprocessing
 from multiprocessing import Process
 from contextlib import contextmanager
 from django.test.client import MULTIPART_CONTENT
+import urlparse
+import json
 
 TEST_ASSETS_DIR = os.path.join(settings.PROJECT_ROOT, "perma/tests/assets")
 
@@ -51,6 +53,17 @@ class TestHTTPServer(HTTPServer):
         except socket.error:
             pass
         self.socket.close()
+
+
+class TestHTTPRequestHandler(SimpleHTTPRequestHandler):
+    """Subclass SimpleHTTPRequestHandler to permit the sending of custom headers"""
+    def end_headers(self):
+        response_headers = urlparse.parse_qs(urlparse.urlparse(self.path).query).get('response_headers')
+        if response_headers:
+            headers = json.loads(response_headers[0])
+            for header, value in headers:
+                self.send_header(header, value)
+        return SimpleHTTPRequestHandler.end_headers(self)
 
 
 class PermaTestApiClient(TestApiClient):
@@ -152,7 +165,7 @@ class ApiResourceTestCaseMixin(ResourceTestCaseMixin, SimpleTestCase):
             copy_file_or_dir(os.path.join(settings.PROJECT_ROOT, TEST_ASSETS_DIR, source_file), target_url)
 
         # start server
-        cls._httpd = TestHTTPServer(('', cls.server_port), SimpleHTTPRequestHandler)
+        cls._httpd = TestHTTPServer(('', cls.server_port), TestHTTPRequestHandler)
         cls._httpd._BaseServer__is_shut_down = multiprocessing.Event()
         cls._server_process = Process(target=cls._httpd.serve_forever)
         cls._server_process.start()
