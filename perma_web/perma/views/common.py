@@ -11,9 +11,8 @@ from urllib import urlencode
 
 from django.core.files.storage import default_storage
 from django.forms import widgets
-from django.template import RequestContext
 from django.http import HttpResponseForbidden
-from django.shortcuts import render_to_response, render, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, StreamingHttpResponse
 from django.core.urlresolvers import reverse
 from django.conf import settings
@@ -272,8 +271,7 @@ def contact(request):
                 # redirect to a new URL:
                 return HttpResponseRedirect(reverse('contact_thanks'))
         else:
-            context = RequestContext(request, {'form': form})
-            return render_to_response('contact.html', context)
+            return render(request, 'contact.html', {'form': form})
 
     else:
 
@@ -305,8 +303,7 @@ def contact(request):
             )
         )
 
-        context = RequestContext(request, {'form': form})
-        return render_to_response('contact.html', context)
+        return render(request, 'contact.html', {'form': form})
 
 def contact_thanks(request):
     """
