@@ -14,6 +14,7 @@ from django.db.models import Q
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.utils.decorators import available_attrs
+from django.contrib.auth.decorators import login_required
 
 
 logger = logging.getLogger(__name__)
@@ -41,6 +42,7 @@ def user_passes_test_or_403(test_func):
     returns True if the user passes.
     """
     def decorator(view_func):
+        @login_required()
         @wraps(view_func, assigned=available_attrs(view_func))
         def _wrapped_view(request, *args, **kwargs):
             if not test_func(request.user):

@@ -58,29 +58,23 @@ valid_org_sorts = ['name', '-name', 'link_count', '-link_count', '-date_created'
 
 class RequireOrgOrRegOrAdminUser(object):
     """ Mixin for class-based views that requires user to be an org user, registrar user, or admin. """
-    @method_decorator(login_required)
     @method_decorator(user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_organization_user or user.is_staff))
     def dispatch(self, request, *args, **kwargs):
         return super(RequireOrgOrRegOrAdminUser, self).dispatch(request, *args, **kwargs)
 
 class RequireRegOrAdminUser(object):
     """ Mixin for class-based views that requires user to be a registrar user or admin. """
-    @method_decorator(login_required)
     @method_decorator(user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_staff))
     def dispatch(self, request, *args, **kwargs):
         return super(RequireRegOrAdminUser, self).dispatch(request, *args, **kwargs)
 
 class RequireAdminUser(object):
     """ Mixin for class-based views that requires user to be an admin. """
-    @method_decorator(login_required)
     @method_decorator(user_passes_test_or_403(lambda user: user.is_staff))
     def dispatch(self, request, *args, **kwargs):
         return super(RequireAdminUser, self).dispatch(request, *args, **kwargs)
 
 
-
-
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff)
 def stats(request, stat_type=None):
 
@@ -189,7 +183,7 @@ def stats(request, stat_type=None):
     else:
         return render(request, 'user_management/stats.html', locals())
 
-@login_required
+
 @user_passes_test_or_403(lambda user: user.is_staff)
 def manage_registrar(request):
     """
@@ -243,7 +237,7 @@ def manage_registrar(request):
     })
 
 
-@login_required
+
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
 def manage_single_registrar(request, registrar_id):
     """ Edit details for a registrar. """
@@ -268,7 +262,6 @@ def manage_single_registrar(request, registrar_id):
     })
 
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff)
 def approve_pending_registrar(request, registrar_id):
     """ Perma admins can approve account requests from libraries """
@@ -300,7 +293,6 @@ def approve_pending_registrar(request, registrar_id):
         'this_page': 'users_registrars'})
 
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def manage_organization(request):
     """
@@ -363,7 +355,6 @@ def manage_organization(request):
     })
 
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def manage_single_organization(request, org_id):
     """ Edit organization details. """
@@ -389,7 +380,6 @@ def manage_single_organization(request, org_id):
     })
 
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def manage_single_organization_delete(request, org_id):
     """
@@ -415,76 +405,58 @@ def manage_single_organization_delete(request, org_id):
     })
 
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff)
 def manage_admin_user(request):
     return list_users_in_group(request, 'admin_user')
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_admin_user_delete(request, user_id):
     return delete_user_in_group(request, user_id, 'admin_user')
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user())
 def manage_registrar_user(request):
     return list_users_in_group(request, 'registrar_user')
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_registrar_user(request, user_id):
     return edit_user_in_group(request, user_id, 'registrar_user')
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_registrar_user_delete(request, user_id):
     return delete_user_in_group(request, user_id, 'registrar_user')
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_registrar_user_reactivate(request, user_id):
     return reactive_user_in_group(request, user_id, 'registrar_user')
 
-
-
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff)
 def manage_user(request):
     return list_users_in_group(request, 'user')
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_user(request, user_id):
     return edit_user_in_group(request, user_id, 'user')
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_user_delete(request, user_id):
     return delete_user_in_group(request, user_id, 'user')
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_user_reactivate(request, user_id):
     return reactive_user_in_group(request, user_id, 'user')
 
-
-
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def manage_organization_user(request):
     return list_users_in_group(request, 'organization_user')
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def manage_single_organization_user(request, user_id):
     return edit_user_in_group(request, user_id, 'organization_user')
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_organization_user_delete(request, user_id):
     return delete_user_in_group(request, user_id, 'organization_user')
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_organization_user_reactivate(request, user_id):
     return reactive_user_in_group(request, user_id, 'organization_user')
@@ -798,7 +770,6 @@ class AddRegularUser(RequireAdminUser, BaseAddUserToGroup):
         return self.is_new, "User already exists."
 
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_organization_user)
 def organization_user_leave_organization(request, org_id):
     try:
@@ -824,7 +795,6 @@ def organization_user_leave_organization(request, org_id):
     return render_to_response('user_management/user_leave_confirm.html', context)
 
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff)
 def delete_user_in_group(request, user_id, group_name):
     """
@@ -852,7 +822,6 @@ def delete_user_in_group(request, user_id, group_name):
     return render_to_response('user_management/user_delete_confirm.html', context)
 
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_organization_user or user.is_staff)
 def manage_single_organization_user_remove(request, user_id):
     """
@@ -875,7 +844,6 @@ def manage_single_organization_user_remove(request, user_id):
     return HttpResponseRedirect(reverse('user_management_manage_organization_user'))
 
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_registrar_user())
 def manage_single_registrar_user_remove(request, user_id):
     """
@@ -906,7 +874,6 @@ def manage_single_registrar_user_remove(request, user_id):
     return render_to_response('user_management/user_remove_registrar_confirm.html', context)
 
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff)
 def manage_single_admin_user_remove(request, user_id):
     """
@@ -933,7 +900,6 @@ def manage_single_admin_user_remove(request, user_id):
     return render_to_response('user_management/user_remove_admin_confirm.html', context)
 
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff)
 def reactive_user_in_group(request, user_id, group_name):
     """
@@ -990,7 +956,6 @@ def settings_password(request):
     return render_to_response('user_management/settings-password.html', context)
 
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_organization_user or user.has_registrar_pending())
 def settings_affiliations(request):
     """
@@ -1011,7 +976,6 @@ def settings_affiliations(request):
         'orgs_by_registrar': orgs_by_registrar})
 
 
-@login_required
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
 def settings_organizations_change_privacy(request, org_id):
     try:
@@ -1081,7 +1045,6 @@ def not_active(request):
 
 
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
-@login_required()
 def resend_activation(request, user_id):
     """
     Sends a user another account activation email.
