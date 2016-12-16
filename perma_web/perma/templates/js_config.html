@@ -1,10 +1,10 @@
 <script>
-    var settings = {
-        API_VERSION: {{ API_VERSION }},
-        STATIC_URL: "{{ STATIC_URL }}",
-        MEDIA_URL: "{{ MEDIA_URL }}",
-        //ROLLBAR_ACCESS_TOKEN: "{{ ROLLBAR_CLIENT_ACCESS_TOKEN }}",
-        DEBUG: {{ DEBUG|lower }}
-    },
-    api_path = "/api/v" + settings.API_VERSION
+  var settings = {
+    API_VERSION: {{ API_VERSION }},
+    STATIC_URL: "{{ STATIC_URL }}",
+    MEDIA_URL: "{{ MEDIA_URL }}",
+    //ROLLBAR_ACCESS_TOKEN: "{{ ROLLBAR_CLIENT_ACCESS_TOKEN }}",
+    DEBUG: {{ DEBUG|lower }}
+  },
+  api_path = "/api/v" + settings.API_VERSION
 </script>

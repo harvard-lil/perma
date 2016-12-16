@@ -12,4 +12,3 @@ try:
     DATABASES['default']['OPTIONS']['ssl']['ca'] = os.path.join(heroku_dir, 'amazon-rds-combined-ca-bundle.pem')
 except KeyError:
     pass  # not using RDS
-

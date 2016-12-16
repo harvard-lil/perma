@@ -3,11 +3,11 @@
 {% block title %} | Add user to registrar{% endblock %}
 
 {% block adminContent %}
+
   <h3 class="body-bh">Add {{ user_email }} to registrar</h3>
+
   {% if not form %}
-
     <p>{{ error_message }}</p>
-
   {% else %}
 
     {% if object.id %}
@@ -17,9 +17,9 @@
         {% if object.is_organization_user %}
           <p><b>WARNING:</b> This user is currently a member of the following organizations. Upgrading them to a registrar will REPLACE these affiliations:</p>
           <ul>
-          {% for org in object.organizations.all %}
-            <li>{{ org }} (registrar: {{ org.registrar }})</li>
-          {% endfor %}
+            {% for org in object.organizations.all %}
+              <li>{{ org }} (registrar: {{ org.registrar }})</li>
+            {% endfor %}
           </ul>
         {% elif object.is_registrar_user %}
           <p><b>WARNING:</b> This user is already a member of <b>{{ object.registrar }}</b>. Submitting this form will REPLACE that affiliation.</p>

@@ -7530,12 +7530,12 @@ img {
 
 /*
 @font-face {
-    font-family: "Inconsolata";
-    font-style: normal;
-    font-weight: 400;
-    src: url('../fonts/RobotoSlab-Regular.eot');
-    src: local("Roboto Slab Regular"), local("RobotoSlab-Regular"), url('../fonts/RobotoSlab-Regular.eot?#iefix') format("embedded-opentype"), url('../fonts/RobotoSlab-Regular.woff') format("woff"), url('../fonts/RobotoSlab-Regular.ttf') format("truetype");
-    }
+  font-family: "Inconsolata";
+  font-style: normal;
+  font-weight: 400;
+  src: url('../fonts/RobotoSlab-Regular.eot');
+  src: local("Roboto Slab Regular"), local("RobotoSlab-Regular"), url('../fonts/RobotoSlab-Regular.eot?#iefix') format("embedded-opentype"), url('../fonts/RobotoSlab-Regular.woff') format("woff"), url('../fonts/RobotoSlab-Regular.ttf') format("truetype");
+}
 */
 
 @keyframes success-bg {

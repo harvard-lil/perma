@@ -12,7 +12,7 @@ Handlebars.registerHelper ('truncatechars', function (str, len) {
 
         if ( new_str == '' ) new_str = str.substr ( 0, len );
 
-        return new Handlebars.SafeString ( new_str +'...' ); 
+        return new Handlebars.SafeString ( new_str +'...' );
     }
     return str;
 });

@@ -1,60 +1,60 @@
 <div class="container cont-full-bleed overview">
-	<div class="container cont-full-bleed cont-sm-fixed">
-		<div class="row row-no-bleed">
-			<div class="col col-sm-by5 overview-module col-no-gutter{% if request.path == "/docs" %} _active{% endif %}">
-				{% if request.path == "/docs" %}
-				<div class="overview-module-content">
-				{% else %}
-				<a class="overview-module-content" href="{% url 'docs' %}">
-				{% endif %}
-					<strong class="overview-module-title">Getting Started</strong>
-					<p class="overview-module-description">An introduction to Perma.cc, why it exists, and how to <span class="_noWrap">use it.</span></p>
-				{% if request.path == "/docs" %}</div>{% else %}</a>{% endif %}
-			</div>
+  <div class="container cont-full-bleed cont-sm-fixed">
+    <div class="row row-no-bleed">
+      <div class="col col-sm-by5 overview-module col-no-gutter{% if request.path == "/docs" %} _active{% endif %}">
+        {% if request.path == "/docs" %}
+        <div class="overview-module-content">
+        {% else %}
+        <a class="overview-module-content" href="{% url 'docs' %}">
+        {% endif %}
+          <strong class="overview-module-title">Getting Started</strong>
+          <p class="overview-module-description">An introduction to Perma.cc, why it exists, and how to <span class="_noWrap">use it.</span></p>
+        {% if request.path == "/docs" %}</div>{% else %}</a>{% endif %}
+      </div>
 
-			<div class="col col-sm-by5 overview-module col-no-gutter{% if request.path == "/docs/perma-link-creation" %} _active{% endif %}">
-				{% if request.path == "/docs/perma-link-creation" %}
-				<div class="overview-module-content">
-				{% else %}
-				<a class="overview-module-content" href="{% url 'docs_perma_link_creation' %}">
-				{% endif %}
-					<strong class="overview-module-title">Perma Records and Links</strong>
-					<p class="overview-module-description">Learn about the links and records you can create with Perma.cc.</p>
-				{% if request.path == "/docs/perma-link-creation" %}</div>{% else %}</a>{% endif %}
-			</div>
+      <div class="col col-sm-by5 overview-module col-no-gutter{% if request.path == "/docs/perma-link-creation" %} _active{% endif %}">
+        {% if request.path == "/docs/perma-link-creation" %}
+        <div class="overview-module-content">
+        {% else %}
+        <a class="overview-module-content" href="{% url 'docs_perma_link_creation' %}">
+        {% endif %}
+          <strong class="overview-module-title">Perma Records and Links</strong>
+          <p class="overview-module-description">Learn about the links and records you can create with Perma.cc.</p>
+        {% if request.path == "/docs/perma-link-creation" %}</div>{% else %}</a>{% endif %}
+      </div>
 
-			<div class="col col-sm-by5 overview-module col-no-gutter{% if request.path == "/docs/libraries" %} _active{% endif %}">
-				{% if request.path == "/docs/libraries" %}
-				<div class="overview-module-content">
-				{% else %}
-				<a class="overview-module-content" href="{% url 'docs_libraries' %}">
-				{% endif %}
-					<strong class="overview-module-title">For Libraries</strong>
-					<p class="overview-module-description">Learn about the special role of libraries in supporting Perma.cc.</p>
-				{% if request.path == "/docs/libraries" %}</div>{% else %}</a>{% endif %}
-			</div>
+      <div class="col col-sm-by5 overview-module col-no-gutter{% if request.path == "/docs/libraries" %} _active{% endif %}">
+        {% if request.path == "/docs/libraries" %}
+        <div class="overview-module-content">
+        {% else %}
+        <a class="overview-module-content" href="{% url 'docs_libraries' %}">
+        {% endif %}
+          <strong class="overview-module-title">For Libraries</strong>
+          <p class="overview-module-description">Learn about the special role of libraries in supporting Perma.cc.</p>
+        {% if request.path == "/docs/libraries" %}</div>{% else %}</a>{% endif %}
+      </div>
 
-			<div class="col col-sm-by5 overview-module col-no-gutter{% if request.path == "/docs/organizations" %} _active{% endif %}">
-				{% if request.path == "/docs/organizations" %}
-				<div class="overview-module-content">
-				{% else %}
-				<a class="overview-module-content" href="{% url 'docs_organizations' %}">
-				{% endif %}
-					<strong class="overview-module-title">For Organizations</strong>
-					<p class="overview-module-description">Learn how journals, courts and other organizations can use Perma.cc.</p>
-				{% if request.path == "/docs/organizations" %}</div>{% else %}</a>{% endif %}
-			</div>
+      <div class="col col-sm-by5 overview-module col-no-gutter{% if request.path == "/docs/organizations" %} _active{% endif %}">
+        {% if request.path == "/docs/organizations" %}
+        <div class="overview-module-content">
+        {% else %}
+        <a class="overview-module-content" href="{% url 'docs_organizations' %}">
+        {% endif %}
+          <strong class="overview-module-title">For Organizations</strong>
+          <p class="overview-module-description">Learn how journals, courts and other organizations can use Perma.cc.</p>
+        {% if request.path == "/docs/organizations" %}</div>{% else %}</a>{% endif %}
+      </div>
 
-			<div class="col col-sm-by5 overview-module col-no-gutter{% if request.path == "/docs/faq" %} _active{% endif %}">
-				{% if request.path == "/docs/faq" %}
-				<div class="overview-module-content">
-				{% else %}
-				<a class="overview-module-content" href="{% url 'docs_faq' %}">
-				{% endif %}
-					<strong class="overview-module-title">FAQ</strong>
-					<p class="overview-module-description">Answers to your common questions about Perma.cc.</p>
-				{% if request.path == "/docs/faq" %}</div>{% else %}</a>{% endif %}
-			</div>
-		</div>
-	</div>
+      <div class="col col-sm-by5 overview-module col-no-gutter{% if request.path == "/docs/faq" %} _active{% endif %}">
+        {% if request.path == "/docs/faq" %}
+        <div class="overview-module-content">
+        {% else %}
+        <a class="overview-module-content" href="{% url 'docs_faq' %}">
+        {% endif %}
+          <strong class="overview-module-title">FAQ</strong>
+          <p class="overview-module-description">Answers to your common questions about Perma.cc.</p>
+        {% if request.path == "/docs/faq" %}</div>{% else %}</a>{% endif %}
+      </div>
+    </div>
+  </div>
 </div>

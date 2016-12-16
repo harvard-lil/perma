@@ -1,32 +1,32 @@
 // Animation
 
 @-webkit-keyframes success-bg {
-    0% {background-color: $color-highlight;}
-    20% {background-color: $color-highlight;}
-    100% {background-color: white;}
+  0% {background-color: $color-highlight;}
+  20% {background-color: $color-highlight;}
+  100% {background-color: white;}
 }
 @keyframes success-bg {
-    0% {background-color: $color-highlight;}
-    20% {background-color: $color-highlight;}
-    100% {background-color: white;}
+  0% {background-color: $color-highlight;}
+  20% {background-color: $color-highlight;}
+  100% {background-color: white;}
 }
 @-webkit-keyframes breathe-blue {
-    0% {border-color: $color-blue;}
-    30% {border-color: lighten($color-blue, 40%);}
-    45% {border-color: lighten($color-blue, 40%);}
-    100% {border-color: $color-blue;}
+  0% {border-color: $color-blue;}
+  30% {border-color: lighten($color-blue, 40%);}
+  45% {border-color: lighten($color-blue, 40%);}
+  100% {border-color: $color-blue;}
 }
 @keyframes breathe-blue {
-    0% {border-color: $color-blue;}
-    30% {border-color: lighten($color-blue, 40%);}
-    45% {border-color: lighten($color-blue, 40%);}
-    100% {border-color: $color-blue;}
+  0% {border-color: $color-blue;}
+  30% {border-color: lighten($color-blue, 40%);}
+  45% {border-color: lighten($color-blue, 40%);}
+  100% {border-color: $color-blue;}
 }
 @-webkit-keyframes fade-blue {
-    0% {border-color: $color-blue;}
-    100% {border-color: $color-black;}
+  0% {border-color: $color-blue;}
+  100% {border-color: $color-black;}
 }
 @keyframes fade-blue {
-    0% {border-color: $color-blue;}
-    100% {border-color: $color-black;}
+  0% {border-color: $color-blue;}
+  100% {border-color: $color-black;}
 }

@@ -3,14 +3,14 @@
 
 {% block adminContent %}
 
-<h3 class="body-bh">Delete {{ target_user.email }}</h3>
-<p class="page-dek">Yahowza! Do you really want to {% if target_user.is_confirmed %}deactivate {{ target_user.email }}{% else %}delete {{ target_user.email }} forever{% endif %}?</p>
-<form action="" method="POST">
-	{% csrf_token %}
-	<a class="btn cancel" href="../">Cancel</a>
-	<button type="submit" class="btn delete-confirm">
-	    {% if target_user.is_confirmed %}Deactivate{% else %}Delete {{ target_user.email }} forever{% endif %}
-	</button>
-</form>
+  <h3 class="body-bh">Delete {{ target_user.email }}</h3>
+  <p class="page-dek">Yahowza! Do you really want to {% if target_user.is_confirmed %}deactivate {{ target_user.email }}{% else %}delete {{ target_user.email }} forever{% endif %}?</p>
+  <form action="" method="POST">
+    {% csrf_token %}
+    <a class="btn cancel" href="../">Cancel</a>
+    <button type="submit" class="btn delete-confirm">
+      {% if target_user.is_confirmed %}Deactivate{% else %}Delete {{ target_user.email }} forever{% endif %}
+    </button>
+  </form>
 
 {% endblock %}

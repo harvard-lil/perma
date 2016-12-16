@@ -31,10 +31,10 @@
     </div>
 
     {% if request.user.is_staff and group_name == 'user' %}
-    <div class="col col-xs-3 col-no-gutter admin-data-point">
+      <div class="col col-xs-3 col-no-gutter admin-data-point">
         <p class="count-label">Deactivated Users</p>
         <p class="count-number">{{ deactivated_users }}</p>
-    </div>
+      </div>
     {% endif %}
 
     <div class="col {% if request.user.is_staff and group_name == 'user' %}col-xs-3{% else %}col-xs-4{% endif %} col col-no-gutter admin-data-point">
@@ -168,21 +168,18 @@
       </div><!-- sort filter bar -->
     </div><!-- admin found -->
   </div><!-- row -->
-    {% if users %}
-      {% for listed_user in users %}
-        {% if not listed_user.is_active %}
-          <div class="item-container muted">
-        {% else %}
-          <div class="item-container">
-        {% endif %}
+
+  {% if users %}
+    {% for listed_user in users %}
+      <div class="item-container {% if not listed_user.is_active %}muted{% endif %}">
         <div class="col col-sm-8 col-no-gutter">
           <div class="item-title">
-          {% if not listed_user.first_name and not listed_user.last_name %}
-            {{ listed_user.email }}
-          {% else %}
-            {{ listed_user.first_name }} {{ listed_user.last_name }}
-          {% endif %}
-          {% if listed_user == request.user %}(you){% endif %}
+            {% if not listed_user.first_name and not listed_user.last_name %}
+              {{ listed_user.email }}
+            {% else %}
+              {{ listed_user.first_name }} {{ listed_user.last_name }}
+            {% endif %}
+            {% if listed_user == request.user %}(you){% endif %}
           </div>
           <div class="item-subtitle">{{ listed_user.email }}</div>
           {% if not listed_user.is_confirmed %}
@@ -191,15 +188,15 @@
 
           {% if listed_user|visible_organizations:request.user %}
             <div class="item-affil">
-            {% for organization in listed_user|visible_organizations:request.user %}
-              <a href="{% url 'user_management_manage_organization' %}?q={{organization.name.split|join:'+'|lower}}">{{organization.name.strip}}</a>
-              {% include "user_management/includes/comma.html" %}
-            {% endfor %}
+              {% for organization in listed_user|visible_organizations:request.user %}
+                <a href="{% url 'user_management_manage_organization' %}?q={{organization.name.split|join:'+'|lower}}">{{organization.name.strip}}</a>
+                {% include "user_management/includes/comma.html" %}
+              {% endfor %}
             </div>
           {% endif %}
 
           {% if request.user.is_staff and listed_user.requested_account_type %}
-          <p class="item-org">Interested in a {{listed_user.requested_account_type}} account with {{listed_user.requested_account_note}}</p>
+            <p class="item-org">Interested in a {{listed_user.requested_account_type}} account with {{listed_user.requested_account_note}}</p>
           {% endif %}
 
           {% if group_name == 'registrar_user' and request.user.is_staff %}
@@ -266,7 +263,8 @@
           </p>
         </div>
       </div>
-      {% endfor %}
+    {% endfor %}
+
   {% else %}
     <p class="item-notification">No {{ pretty_group_name_plural|lower }} found.</p>
   {% endif %}

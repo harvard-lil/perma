@@ -3,11 +3,11 @@
 {% block title %} | Add user to organization{% endblock %}
 
 {% block adminContent %}
+
   <h3 class="body-bh">Add {{ user_email }} to Organization</h3>
+
   {% if not form %}
-
     <p>{{ error_message }}</p>
-
   {% else %}
 
     {% if object.id %}

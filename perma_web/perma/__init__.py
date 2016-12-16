@@ -7,5 +7,3 @@ from .celery import app as celery_app  # noqa
 
 # tell Django where to find the app config
 default_app_config = 'perma.apps.PermaConfig'
-
-

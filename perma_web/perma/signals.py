@@ -53,7 +53,7 @@ def update_link_count(sender, instance, **kwargs):
                 loaded_link.created_by.link_count -= 1
                 loaded_link.created_by.save()
 
-            decrement_link_count(loaded_link)    
+            decrement_link_count(loaded_link)
 
         # if org changed or we have a new link with an associated org, increment
         if instance.organization and loaded_link.organization != instance.organization:

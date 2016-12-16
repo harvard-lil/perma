@@ -1,239 +1,239 @@
 /////////////////////////
 
-//	dev()
-//	allows you to set an arbitrary max-width for your page for responsive testing
-//	ex: @include dev(320px);
+//  dev()
+//  allows you to set an arbitrary max-width for your page for responsive testing
+//  ex: @include dev(320px);
 
 @mixin dev($width){
-	html { background-color: #eee; }
-	body {
-	    max-width: #{$width}px;
-	}
+  html { background-color: #eee; }
+  body {
+    max-width: #{$width}px;
+  }
 }
 
 /////////////////////////
 
-//	respond()
-//	add a min-width media query at the nth value in $respond-breakpoints
-// 	ex:
-// 	h1 {
-// 		font-size: $size-large;
-// 		@include respond(3) {
-// 			font-size: $size-1xlarge;
-// 		} 
-//	}
+//  respond()
+//  add a min-width media query at the nth value in $respond-breakpoints
+//  ex:
+//  h1 {
+//    font-size: $size-large;
+//    @include respond(3) {
+//      font-size: $size-1xlarge;
+//    }
+//  }
 
 @mixin respond($n) {
-	@media only screen and (min-width: nth($respond-breakpoints, $n) + 1) {
-		@content;
-	}
+  @media only screen and (min-width: nth($respond-breakpoints, $n) + 1) {
+    @content;
+  }
 }
 
-//	these old respond()s are here because the new one seems to be broken with the django-pipeline compiler
+//  these old respond()s are here because the new one seems to be broken with the django-pipeline compiler
 
-$width-xmobile-respond: $width-mobile; 	// 320px;
-$width-tablet-respond: $width-xmobile; 	// 384px;
-$width-desktop-respond: $width-tablet; 	// 768px;
-$width-wide-respond: $width-desktop; 		// 990px;
-$width-max-respond: $width-wide; 			// 1200px;
+$width-xmobile-respond: $width-mobile;  // 320px;
+$width-tablet-respond: $width-xmobile;  // 384px;
+$width-desktop-respond: $width-tablet;  // 768px;
+$width-wide-respond: $width-desktop;    // 990px;
+$width-max-respond: $width-wide;      // 1200px;
 
 @mixin all-columns {
-	.col-xs-1, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9, .col-xs-10, .col-xs-11, .col-xs-12, .col-sm-1, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-sm-10, .col-sm-11, .col-sm-12, .col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12, .col-lg-1, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-lg-10, .col-lg-11, .col-lg-12 {
-		@content;
-	}
+  .col-xs-1, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9, .col-xs-10, .col-xs-11, .col-xs-12, .col-sm-1, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-sm-10, .col-sm-11, .col-sm-12, .col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12, .col-lg-1, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-lg-10, .col-lg-11, .col-lg-12 {
+    @content;
+  }
 }
 
 @mixin respond-mobile {
-	@media only screen and (max-width: 767px) {
-		@content;
-	}
+  @media only screen and (max-width: 767px) {
+    @content;
+  }
 }
 
 @mixin respond-xmobile {
-	@media only screen and (min-width: $width-xmobile-respond) {
-		@content;
-	}
+  @media only screen and (min-width: $width-xmobile-respond) {
+    @content;
+  }
 }
 
 @mixin respond-tablet {
-	@media only screen and (min-width: $width-tablet) {
-		@content;
-	}
+  @media only screen and (min-width: $width-tablet) {
+    @content;
+  }
 }
 
 @mixin respond-desktop {
-	@media only screen and (min-width: $width-desktop) {
-		@content;
-	}
+  @media only screen and (min-width: $width-desktop) {
+    @content;
+  }
 }
 
 @mixin respond-wide {
-	@media only screen and (min-width: $width-wide) {
-		@content;
-	}
+  @media only screen and (min-width: $width-wide) {
+    @content;
+  }
 }
 
 @mixin respond-max {
-	@media only screen and (min-width: $width-max) {
-		@content;
-	}
+  @media only screen and (min-width: $width-max) {
+    @content;
+  }
 }
 
 // mixins for links
 
 @mixin link-none($linkcolor){
-	color: $linkcolor;
-	text-decoration: none;
-	&:link { color: $linkcolor; }
-	&:visited { color: $linkcolor}
-	&:hover { color: $linkcolor; }
-	&:active { color: $linkcolor; }
+  color: $linkcolor;
+  text-decoration: none;
+  &:link { color: $linkcolor; }
+  &:visited { color: $linkcolor}
+  &:hover { color: $linkcolor; }
+  &:active { color: $linkcolor; }
 }
 
 @mixin link-highlight($linkcolor, $highlightcolor){
-	color: $linkcolor;
-	text-decoration: none;
-	&:link { color: $linkcolor; }
-	&:visited { color: $linkcolor}
-	&:hover { color: $highlightcolor; }
-	&:active { color: $linkcolor; }
+  color: $linkcolor;
+  text-decoration: none;
+  &:link { color: $linkcolor; }
+  &:visited { color: $linkcolor}
+  &:hover { color: $highlightcolor; }
+  &:active { color: $linkcolor; }
 }
 
 @mixin link-underline($linkcolor, $highlightcolor){
-	color: $linkcolor;
-	text-decoration: underline;
-	&:link { color: $linkcolor; }
-	&:visited { color: $linkcolor}
-	&:hover { color: $highlightcolor; }
-	&:active { color: $linkcolor; }
+  color: $linkcolor;
+  text-decoration: underline;
+  &:link { color: $linkcolor; }
+  &:visited { color: $linkcolor}
+  &:hover { color: $highlightcolor; }
+  &:active { color: $linkcolor; }
 }
 
 @mixin link-underline-on-hover($linkcolor, $highlightcolor){
-	color: $linkcolor;
-	text-decoration: none;
-	&:link { color: $linkcolor; }
-	&:visited { color: $linkcolor}
-	&:hover { 
-		color: $linkcolor; 
-		text-decoration: underline;
-	}
-	&:active { color: $highlightcolor; }
+  color: $linkcolor;
+  text-decoration: none;
+  &:link { color: $linkcolor; }
+  &:visited { color: $linkcolor}
+  &:hover {
+    color: $linkcolor;
+    text-decoration: underline;
+  }
+  &:active { color: $highlightcolor; }
 }
 
 @mixin fill-screen {
-	position: fixed;
-    border-radius: 0;
-    top: 0px;
-    bottom: 0px;
-    left: 0px;
-    right: 0px;
+  position: fixed;
+  border-radius: 0;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
 }
 
 @mixin style-card($border-color) {
-	-moz-box-shadow:	0 2px 4px rgba(0, 0, 0, 0.175);	
-	-webkit-box-shadow:	0 2px 4px rgba(0, 0, 0, 0.175);	
-	box-shadow: 			0 2px 4px rgba(0, 0, 0, 0.175);	
-	border: 1px solid $border-color;
-	border-radius: 2px;
-	background-clip: padding-box;
+  -moz-box-shadow:  0 2px 4px rgba(0, 0, 0, 0.175);
+  -webkit-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
+  box-shadow:       0 2px 4px rgba(0, 0, 0, 0.175);
+  border: 1px solid $border-color;
+  border-radius: 2px;
+  background-clip: padding-box;
 }
 
 @mixin hide-text {
-    text-indent: -10000px;
-    overflow: hidden;
+  text-indent: -10000px;
+  overflow: hidden;
 }
 
 @mixin fill-screen {
-	position: fixed;
-	width: 100%;
-    height: 100%;
-    border-radius: 0;
-    top: 0px;
-    bottom: 0px;
-    left: 0px;
-    right: 0px;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
 }
 
 @mixin link-dropdown-widths($dropdownTotal, $dropdownLabel) {
-	.label-affil {
-		width: $dropdownLabel;
-	}
-	.dropdown-affil,
-	.dropdown.open .selector-menu {
-    	width: $dropdownTotal - $dropdownLabel;
-	}
+  .label-affil {
+    width: $dropdownLabel;
+  }
+  .dropdown-affil,
+  .dropdown.open .selector-menu {
+    width: $dropdownTotal - $dropdownLabel;
+  }
 }
 
 @mixin affix-to-top {
-    position: fixed;
-    left: 0;
-    right: 0;
-    top: 0;
-    width: auto;
-    margin: auto;
-    max-width: none;
-    z-index: 10000;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  width: auto;
+  margin: auto;
+  max-width: none;
+  z-index: 10000;
 }
 
 @mixin affix-to-bottom {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 @mixin ui-chev-down {
-    content: '';
-    height: 9px;
-    width: 18px;
-    display: inline-block;
-    background-image: url('../img/ui/perma-ui-chev-down.png');
-    background-repeat: no-repeat;
-    background-size: 102px 9px;
-    background-position: -17px * 2;
-    top: -1px;
-	margin-left: $grid;
+  content: '';
+  height: 9px;
+  width: 18px;
+  display: inline-block;
+  background-image: url('../img/ui/perma-ui-chev-down.png');
+  background-repeat: no-repeat;
+  background-size: 102px 9px;
+  background-position: -17px * 2;
+  top: -1px;
+  margin-left: $grid;
 }
 
 @mixin style-dropdown-items {
-	& > li {
-	    list-style: none;
-	}
-	& > li > a, & > li button {
-		color: black;
-		font-family: $font-hed-alt;
-		padding: $half 12px $half $grid * 3;
-		font-size: $size-body;
-		text-align: right;
-		&:hover, &:focus {
-			background-color: $color-hover;
-			color: white;
-		}
-	}
+  & > li {
+    list-style: none;
+  }
+  & > li > a, & > li button {
+    color: black;
+    font-family: $font-hed-alt;
+    padding: $half 12px $half $grid * 3;
+    font-size: $size-body;
+    text-align: right;
+    &:hover, &:focus {
+      background-color: $color-hover;
+      color: white;
+    }
+  }
 
-	// styles for using form buttons instead of links in menu
-	& > li form {
-		margin: 0;
-        text-align: right;
-	}
-	& > li button {
-		font-weight: 400;
-		border: none;
-		background-color: transparent;
-        width: 100%;
-        border-radius: 0;
-	}
+  // styles for using form buttons instead of links in menu
+  & > li form {
+    margin: 0;
+    text-align: right;
+  }
+  & > li button {
+    font-weight: 400;
+    border: none;
+    background-color: transparent;
+    width: 100%;
+    border-radius: 0;
+  }
 }
 
 @mixin style-dropdown-structure {
-	@include style-card(black);
-    display: none;
-	position: relative;
-    float: none;
-    width: auto;
-	z-index: 1000;
-    padding: $grid 0;
-    margin: 2px 0 0;
-	margin-right: -7px;
-    background-color: white;
+  @include style-card(black);
+  display: none;
+  position: relative;
+  float: none;
+  width: auto;
+  z-index: 1000;
+  padding: $grid 0;
+  margin: 2px 0 0;
+  margin-right: -7px;
+  background-color: white;
 }

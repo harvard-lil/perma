@@ -5,164 +5,162 @@
 
 {% block dashboardContent %}
 
-	<h2 class="body-ah">Organizations {% if request.user.is_staff or request.user.is_registrar_user %}<span class="action"><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add<span class="_verbose"> organization</span></a></span></h2>
-		
-	<div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
-      <form method="post">
-        {% csrf_token %}
-        <h4 class="body-ch">Add an Organization</h4>
-				{% include "includes/fieldset.html" with form_classes="fg-inline" %}
-        <button type="submit" class="btn">Create new organization</button>
-      </form>
+  <h2 class="body-ah">Organizations {% if request.user.is_staff or request.user.is_registrar_user %}<span class="action"><a data-toggle="collapse" data-target="#add-member"><i class="icon-plus-sign"></i> add<span class="_verbose"> organization</span></a></span></h2>
+
+  <div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
+    <form method="post">
+      {% csrf_token %}
+      <h4 class="body-ch">Add an Organization</h4>
+          {% include "includes/fieldset.html" with form_classes="fg-inline" %}
+      <button type="submit" class="btn">Create new organization</button>
+    </form>
+  </div>
+  {% else %}
+  </h2>
+  {% endif %}
+
+  <div class="row row-no-bleed admin-data">
+    <div class="col col-xs-6 col-no-gutter admin-data-point">
+      <p class="count-label">Users</p>
+      <p class="count-number">{{ users_count }}</p>
     </div>
-    {% else %}
-    </h2>
-    {% endif %}
-
-    <div class="row row-no-bleed admin-data">
-        <div class="col col-xs-6 col-no-gutter admin-data-point">
-                <p class="count-label">Users</p>
-                <p class="count-number">{{ users_count }}</p>
-            </div>
-            {% comment %}
-            <div class="col col-no-gutter admin-data-point">
-                <p class="count-label">Deactivated Users</p>
-                <p class="count-number">{{ deactivated_users }}</p>
-            </div>
-            <div class="col col-no-gutter admin-data-point">
-                <p class="count-label">Unactivated Users</p>
-                <p class="count-number">{{ unactivated_users }}</p>
-            </div>
-            {% endcomment %}
-        <div class="col col-xs-6 col-no-gutter admin-data-point">
-            <p class="count-label">Organizations</p>
-            <p class="count-number">{{ orgs.paginator.count }}</p>
-        </div>
+    {% comment %}
+    <div class="col col-no-gutter admin-data-point">
+      <p class="count-label">Deactivated Users</p>
+      <p class="count-number">{{ deactivated_users }}</p>
     </div>
+    <div class="col col-no-gutter admin-data-point">
+      <p class="count-label">Unactivated Users</p>
+      <p class="count-number">{{ unactivated_users }}</p>
+    </div>
+    {% endcomment %}
+    <div class="col col-xs-6 col-no-gutter admin-data-point">
+      <p class="count-label">Organizations</p>
+      <p class="count-number">{{ orgs.paginator.count }}</p>
+    </div>
+  </div>
 
-	<div class="row">
-		<div class="col-sm-12">
-			{% include "user_management/includes/search_form.html" with search_placeholder="Search Organizations" %}
-		</div>
-	</div><!-- search -->
+  <div class="row">
+    <div class="col-sm-12">
+      {% include "user_management/includes/search_form.html" with search_placeholder="Search Organizations" %}
+    </div>
+  </div><!-- search -->
 
 
-     {% if search_query or registrar_filter %}
-        <div class="row">
-            <div class="col-sm-12">
-				<div class="remove-search-filters">
-					<span class="filters-title">Filters: </span>
-	                {% if registrar_filter %}<span class="filter-label">Registrar</span> <strong>{{registrar_filter.name}}</strong> {% endif %}
-	                {% if search_query %}<span class="filter-label">Search</span> <strong>{{search_query}}</strong>{% endif %}
-					<a class="action remove-filters" href="?sort=name"><i class="icon-remove-sign"></i> Clear all filters</a>
-				</div>
-            </div>
+  {% if search_query or registrar_filter %}
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="remove-search-filters">
+          <span class="filters-title">Filters: </span>
+          {% if registrar_filter %}<span class="filter-label">Registrar</span> <strong>{{registrar_filter.name}}</strong> {% endif %}
+          {% if search_query %}<span class="filter-label">Search</span> <strong>{{search_query}}</strong>{% endif %}
+          <a class="action remove-filters" href="?sort=name"><i class="icon-remove-sign"></i> Clear all filters</a>
         </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="row row-no-bleed">
+    <div class="col admin-found col-no-gutter">
+      <p class="sort-filter-count"><strong>Found:</strong> {{ orgs.paginator.count }} organization{{ orgs.paginator.count|pluralize }}</p>
+      <div class="sort-filter-bar">
+        <strong>Filter &amp; Sort:</strong>
+        <div class="dropdown">
+          <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
+            Sort <span class="caret"></span>
+          </a>
+
+          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+            <li>
+              <a {% if sort == 'name' %}class="selected" {% endif %}href="?{% current_query_string page='' sort="name" %}"><i class="icon-ok"></i> Name A - Z</a>
+              <a {% if sort == '-name' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-name" %}"><i class="icon-ok"></i> Name Z - A</a>
+              <a {% if sort == '-date_created' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-date_created" %}"><i class="icon-ok"></i> Newest</a>
+              <a {% if sort == 'date_created' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="date_created" %}"><i class="icon-ok"></i> Oldest</a>
+              <a {% if sort == '-last_active' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-last_active" %}"><i class="icon-ok"></i> Recently active</a>
+              <a {% if sort == 'last_active' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="=last_active" %}"><i class="icon-ok"></i> Least recently active</a>
+              <a {% if sort == '-link_count' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-link_count" %}"><i class="icon-ok"></i> Most links</a>
+              <a {% if sort == 'link_count' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="link_count" %}"><i class="icon-ok"></i> Least links</a><a {% if sort == '-org_users' %}class="selected" {% endif %} href="?sort=-org_users{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Most users</a>
+              <a {% if sort == 'org_users' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="org_users" %}"><i class="icon-ok"></i> Least users</a>
+            </li>
+          </ul>
+        </div>
+        {% if request.user.is_staff %}
+          <div class="dropdown">
+            <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
+              Registrar <span class="caret"></span>
+            </a>
+
+            <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+              <li>
+                {% if registrars %}
+                  {% for registrar in registrars %}
+                    {% if registrar_filter == registrar %}
+                      <a class="selected" href="?{% current_query_string registrar='' page='' %}"><i class="icon-ok"></i> {{registrar.name}}</a>
+                    {% else %}
+                      <a href="?{% current_query_string registrar=registrar.id page='' %}"><i class="icon-ok"></i> {{registrar.name}}</a>
+                    {% endif %}
+                  {% endfor %}
+                {% else %}
+                  <a href="">None</a>
+                {% endif %}
+              </li>
+            </ul>
+          </div>
         {% endif %}
-
+      </div>
+    </div>
+  </div>
+  {% if orgs %}
+    {% for org in orgs %}
+      <div class="item-container">
         <div class="row row-no-bleed">
-            <div class="col admin-found col-no-gutter">
-                <p class="sort-filter-count"><strong>Found:</strong> {{ orgs.paginator.count }} organization{{ orgs.paginator.count|pluralize }}</p>
-                <div class="sort-filter-bar">
-				<strong>Filter &amp; Sort:</strong>
-                <div class="dropdown">
-                  <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
-                    Sort <span class="caret"></span>
-                  </a>
-                
-                  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                    <li>
-                        <a {% if sort == 'name' %}class="selected" {% endif %}href="?{% current_query_string page='' sort="name" %}"><i class="icon-ok"></i> Name A - Z</a>
-                        <a {% if sort == '-name' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-name" %}"><i class="icon-ok"></i> Name Z - A</a>
-                        <a {% if sort == '-date_created' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-date_created" %}"><i class="icon-ok"></i> Newest</a>
-                        <a {% if sort == 'date_created' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="date_created" %}"><i class="icon-ok"></i> Oldest</a>
-                        <a {% if sort == '-last_active' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-last_active" %}"><i class="icon-ok"></i> Recently active</a>
-                        <a {% if sort == 'last_active' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="=last_active" %}"><i class="icon-ok"></i> Least recently active</a>
-                        <a {% if sort == '-link_count' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="-link_count" %}"><i class="icon-ok"></i> Most links</a>
-                        <a {% if sort == 'link_count' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="link_count" %}"><i class="icon-ok"></i> Least links</a><a {% if sort == '-org_users' %}class="selected" {% endif %} href="?sort=-org_users{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i class="icon-ok"></i> Most users</a>
-                        <a {% if sort == 'org_users' %}class="selected" {% endif %} href="?{% current_query_string page='' sort="org_users" %}"><i class="icon-ok"></i> Least users</a>
-                    </li>
-                  </ul>
-                </div>
-                {% if request.user.is_staff %}
-            <div class="dropdown">
-                  <a role="button" data-toggle="dropdown" data-target="#" href="/page.html">
-                    Registrar <span class="caret"></span>
-                  </a>
-                
-                
-                  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                    <li>
-                        {% if registrars %}
-                            {% for registrar in registrars %}
-                                {% if registrar_filter == registrar %}
-                                    <a class="selected" href="?{% current_query_string registrar='' page='' %}"><i class="icon-ok"></i> {{registrar.name}}</a>
-                                {% else %}
-                                    <a href="?{% current_query_string registrar=registrar.id page='' %}"><i class="icon-ok"></i> {{registrar.name}}</a>
-                                {% endif %}
-                            {% endfor %}
-                        {% else %}
-                            <a href="">None</a>
-                        {% endif %}
-                    </li>
-                  </ul>
-                </div>
+          <div class="col col-sm-8 col-no-gutter">
+            <div class="item-title"><a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">{% if org.default_to_private %}<span class="ui-private">[private]</span> {% endif %}{{ org.name }}</a></div>
+            {% if request.user.is_staff %}
+              <div class="item-affil"><a href="{% url 'user_management_manage_registrar' %}?q={{org.registrar.name.split|join:'+'|lower}}">{{ org.registrar }}</a></div>
             {% endif %}
+
+            <div class="row row-half-bleed item-count-groups">
+              <div class="col col-xs-12 col-md-4 col-half-gutter">
+                <div class="item-count-group">
+                  <strong class="list-count-number">{{ org.link_count|intcomma }}</strong>
+                  <span class="item-count-label">links</span>
+                </div>
+              </div>
+              <div class="col col-xs-12 col-md-4 col-half-gutter">
+                <div class="item-count-group">
+                  <strong class="list-count-number">{{ org.organization_users|default_if_none:"0" }}</strong>
+                  <span class="item-count-label">users <a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">View</a></span>
+                </div>
+              </div>
             </div>
-            </div>
+          </div>
+
+          <div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
+            {% if org.link_count < 1 %}
+              <a class="action" href="{% url 'user_management_manage_single_organization_delete' org.id %}">delete</a>
+            {% endif %}
+            <a class="action" href="{% url 'user_management_manage_single_organization' org.id %}">edit</a>
+            {% if request.user.is_staff %}
+              <a class="action" href="{% url 'admin:perma_organization_change' org.id %}">edit in admin console</a>
+            {% endif %}
+            <p class="item-activity">
+            created {{ org.date_created|date:'N j, Y' }}
+            <br>
+            {% if org.organization_users %}
+            last active {{ org.last_active|date:'N j, Y'}}
+            {% else %}
+            <span class="text-warning">no existing users</span>
+            {% endif %}
+            </p>
+          </div>
         </div>
-        {% if orgs %}
-          {% for org in orgs %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="item-notification">No organizations found.</p>
+  {% endif %}
 
-            <div class="item-container">
-		        <div class="row row-no-bleed">
-		            <div class="col col-sm-8 col-no-gutter">
-			            <div class="item-title"><a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">{% if org.default_to_private %}<span class="ui-private">[private]</span> {% endif %}{{ org.name }}</a></div>
-						{% if request.user.is_staff %}
-							<div class="item-affil"><a href="{% url 'user_management_manage_registrar' %}?q={{org.registrar.name.split|join:'+'|lower}}">{{ org.registrar }}</a></div>
-						{% endif %}
-
-			            <div class="row row-half-bleed item-count-groups">
-							<div class="col col-xs-12 col-md-4 col-half-gutter">
-				                <div class="item-count-group">
-									<strong class="list-count-number">{{ org.link_count|intcomma }}</strong>
-									<span class="item-count-label">links</span>
-				                </div>
-							</div>
-							<div class="col col-xs-12 col-md-4 col-half-gutter">
-				                <div class="item-count-group">
-					                <strong class="list-count-number">{{ org.organization_users|default_if_none:"0" }}</strong>
-					                <span class="item-count-label">users <a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">View</a></span>
-				                </div>
-			                </div>
-						</div>
-		            </div>
-
-		            <div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
-                        {% if org.link_count < 1 %}
-                            <a class="action" href="{% url 'user_management_manage_single_organization_delete' org.id %}">delete</a>
-                        {% endif %}
-			            <a class="action" href="{% url 'user_management_manage_single_organization' org.id %}">edit</a>
-			            {% if request.user.is_staff %}
-			                <a class="action" href="{% url 'admin:perma_organization_change' org.id %}">edit in admin console</a>
-			            {% endif %}
-						<p class="item-activity">
-						created {{ org.date_created|date:'N j, Y' }}
-						<br>
-						{% if org.organization_users %}
-						last active {{ org.last_active|date:'N j, Y'}}
-						{% else %}
-						<span class="text-warning">no existing users</span>
-						{% endif %}
-						</p>
-		            </div>
-	            </div>
-			</div>	
-          {% endfor %}
-    {% else %}
-        <p class="item-notification">No organizations found.</p>
-    {% endif %}
-
-    {% include "user_management/includes/paginator.html" with page=orgs %}
+  {% include "user_management/includes/paginator.html" with page=orgs %}
 
 {% endblock %}

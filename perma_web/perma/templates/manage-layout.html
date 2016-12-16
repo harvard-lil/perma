@@ -3,51 +3,51 @@
 {% block bodyFlags %}_admin{% endblock %}
 
 {% block mainContent %}
-	<div id="dashboard-container" class="container cont-fixed">    
-		<div class="row">
-		    <div class="col-sm-12">
-				{% if request.user.is_staff or request.user.is_registrar_user %}
-					<h1 class="page-title">Manage users and organizations</h1>
-				{% elif request.user.is_organization_user %}
-					<h1 class="page-title">Manage users</h1>
-				{% endif %}
-		    </div>
-		</div> <!-- end row -->
-		<div class="row admin-content">
-			{% if request.user.is_staff or request.user.is_registrar_user or request.user.is_organization_user %}
-			    <div class="col-sm-3">
-			
-			        <!-- Dashboard tabs -->
-			        <ul class="nav nav-pills nav-stacked">
-			
-			            <!-- Manage users -->
-			            {% if request.user.is_staff %}
-			                <li {% if this_page == "users_admin_users" %}class="active" {% endif %}><a href="{% url 'user_management_manage_admin_user' %}"><span>Admin users</span></a></li>
-			                <li {% if this_page == "users_registrars" %}class="active" {% endif %}><a href="{% url 'user_management_manage_registrar' %}"><span>Registrars</span></a></li>
-			            {% endif %}
-			
-			            {% if request.user.is_staff or request.user.is_registrar_user %}
-			            	<li {% if this_page == "users_registrar_users" %}class="active" {% endif %}><a href="{% url 'user_management_manage_registrar_user' %}"><span>Registrar users</span></a></li>
-			            {% endif %}
-			            <li {% if this_page == "users_orgs" %}class="active" {% endif %}><a href="{% url 'user_management_manage_organization' %}"><span>Organizations</span></a></li>
-			
-			            <!-- Org users -->
-			            <li {% if this_page == "users_organization_users" %}class="active" {% endif %}><a href="{% url 'user_management_manage_organization_user' %}"><span>Org users</span></a></li>
-			
-			            <!-- Regular users -->
-			            {% if request.user.is_staff %}
-			                <li {% if this_page == "users_users" %}class="active" {% endif %}><a href="{% url 'user_management_manage_user' %}"><span>Users</span></a></li>
-			            {% endif %}
-			        </ul><!--/#dashboard-tabs-->
-			    </div><!--/col-sm-3-->
-		    {% endif %}
+  <div id="dashboard-container" class="container cont-fixed">
+    <div class="row">
+      <div class="col-sm-12">
+        {% if request.user.is_staff or request.user.is_registrar_user %}
+          <h1 class="page-title">Manage users and organizations</h1>
+        {% elif request.user.is_organization_user %}
+          <h1 class="page-title">Manage users</h1>
+        {% endif %}
+      </div>
+    </div> <!-- end row -->
+    <div class="row admin-content">
+      {% if request.user.is_staff or request.user.is_registrar_user or request.user.is_organization_user %}
+        <div class="col-sm-3">
 
-		   <!-- Dashboard tab content -->
-		    <div class="tab-content col-sm-9">
-		        <div class="tab-pane active">
-			        {% block dashboardContent %}{% endblock dashboardContent %}
-		        </div><!--/.tab-pane-->
-		    </div><!--/.tab-content-->
-		</div><!-- end row -->
-	</div><!--/#dashboard-container-->
+          <!-- Dashboard tabs -->
+          <ul class="nav nav-pills nav-stacked">
+
+            <!-- Manage users -->
+            {% if request.user.is_staff %}
+              <li {% if this_page == "users_admin_users" %}class="active" {% endif %}><a href="{% url 'user_management_manage_admin_user' %}"><span>Admin users</span></a></li>
+              <li {% if this_page == "users_registrars" %}class="active" {% endif %}><a href="{% url 'user_management_manage_registrar' %}"><span>Registrars</span></a></li>
+            {% endif %}
+
+            {% if request.user.is_staff or request.user.is_registrar_user %}
+              <li {% if this_page == "users_registrar_users" %}class="active" {% endif %}><a href="{% url 'user_management_manage_registrar_user' %}"><span>Registrar users</span></a></li>
+            {% endif %}
+            <li {% if this_page == "users_orgs" %}class="active" {% endif %}><a href="{% url 'user_management_manage_organization' %}"><span>Organizations</span></a></li>
+
+            <!-- Org users -->
+            <li {% if this_page == "users_organization_users" %}class="active" {% endif %}><a href="{% url 'user_management_manage_organization_user' %}"><span>Org users</span></a></li>
+
+            <!-- Regular users -->
+            {% if request.user.is_staff %}
+              <li {% if this_page == "users_users" %}class="active" {% endif %}><a href="{% url 'user_management_manage_user' %}"><span>Users</span></a></li>
+            {% endif %}
+          </ul><!--/#dashboard-tabs-->
+        </div><!--/col-sm-3-->
+      {% endif %}
+
+      <!-- Dashboard tab content -->
+      <div class="tab-content col-sm-9">
+        <div class="tab-pane active">
+          {% block dashboardContent %}{% endblock dashboardContent %}
+        </div><!--/.tab-pane-->
+      </div><!--/.tab-content-->
+    </div><!-- end row -->
+  </div><!--/#dashboard-container-->
 {% endblock %}

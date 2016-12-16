@@ -2,30 +2,30 @@
 
 
 {% block dashboardContent %}
-	{% if orgs %}
-        <div class="orgs-list-container">
-            <h3 class="body-bh">Remove from organization</h3>
-            <p class="page-dek"><strong>{{ target_user.email }}</strong> is a member of the following organization{{ orgs|pluralize }}:</p>
-            <form action="{% url 'user_management_manage_single_organization_user_remove' user_id=target_user.id %}" method="POST">
-                {% csrf_token %}
-                {% for org in orgs %}
-                    <div class="settings-block">
-                        <p>{{ org.name }}</p>
-                        <button name="org" value="{{ org.id }}" class="btn btn-default btn-xs leave-org-btn" data-toggle="tooltip">Remove</button>
-                    </div>
-                {% endfor %}
-            </form>
-        </div>
-    {% endif %}
-	{% if request.user.is_staff %}
-        <h3 class="body-bh">Deactivate</h3>
-		<a href="{% url 'user_management_manage_single_user_delete' target_user.id %}">
-            <p class="page-dek"><strong>{{ target_user.email}}</strong>'s account was created on {{ target_user.date_joined}}. Last login occured on {{ target_user.last_login}}</p>
-            <span class="field-error">
-                <i class="icon-trash"></i>
+  {% if orgs %}
+    <div class="orgs-list-container">
+      <h3 class="body-bh">Remove from organization</h3>
+      <p class="page-dek"><strong>{{ target_user.email }}</strong> is a member of the following organization{{ orgs|pluralize }}:</p>
+      <form action="{% url 'user_management_manage_single_organization_user_remove' user_id=target_user.id %}" method="POST">
+        {% csrf_token %}
+        {% for org in orgs %}
+          <div class="settings-block">
+            <p>{{ org.name }}</p>
+            <button name="org" value="{{ org.id }}" class="btn btn-default btn-xs leave-org-btn" data-toggle="tooltip">Remove</button>
+          </div>
+        {% endfor %}
+      </form>
+    </div>
+  {% endif %}
+  {% if request.user.is_staff %}
+    <h3 class="body-bh">Deactivate</h3>
+    <a href="{% url 'user_management_manage_single_user_delete' target_user.id %}">
+      <p class="page-dek"><strong>{{ target_user.email}}</strong>'s account was created on {{ target_user.date_joined}}. Last login occured on {{ target_user.last_login}}</p>
+      <span class="field-error">
+        <i class="icon-trash"></i>
 
-                {% if target_user.is_confirmed %}Deactivate{% else %}Delete{% endif %} {{ target_user.email}}
-            </span>
-        </a>
-	{% endif %}
+        {% if target_user.is_confirmed %}Deactivate{% else %}Delete{% endif %} {{ target_user.email}}
+      </span>
+    </a>
+  {% endif %}
 {% endblock %}

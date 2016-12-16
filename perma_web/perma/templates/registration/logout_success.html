@@ -7,20 +7,20 @@ You have been logged out.
 
 {% block mainContent %}
 <div class="container cont-fixed">
-	<div class="row">
-		<div class="col-sm-12">	
-            <h1 class="page-title">You have been logged out.</h1>
-			<p class="page-dek">Logged out a bit too soon? No worries, <a href="{% url 'user_management_limited_login' %}">sign back in</a></p>
-		</div>
-	</div>
+  <div class="row">
+    <div class="col-sm-12">
+      <h1 class="page-title">You have been logged out.</h1>
+      <p class="page-dek">Logged out a bit too soon? No worries, <a href="{% url 'user_management_limited_login' %}">sign back in</a></p>
+    </div>
+  </div>
 </div>
 {% endblock mainContent %}
 
 {% block scripts %}
-    {{ block.super }}
+  {{ block.super }}
 
-    {# wipe javascript-based logged-in user data #}
-    <script>
-        localStorage.clear();
-    </script>
+  {# wipe javascript-based logged-in user data #}
+  <script>
+    localStorage.clear();
+  </script>
 {% endblock %}

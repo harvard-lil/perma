@@ -4,19 +4,20 @@
 
 
 {% block mainContent %}
-	{% if messages %}
-	    {% for message in messages %}
-	        <div class="alert alert-{% if message.level >= 30 %}danger{% else %}success{% endif %} popup-alert">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
-	    {% endfor %}
-	{% endif %}
 
-<div id="dashboard-container" class="container cont-full-bleed cont-sm-fixed-bleed">
-   <!-- Dashboard tab content -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{% if message.level >= 30 %}danger{% else %}success{% endif %} popup-alert">{% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div id="dashboard-container" class="container cont-full-bleed cont-sm-fixed-bleed">
+    <!-- Dashboard tab content -->
     <div class="tab-content col-sm-12">
-        <div class="tab-pane active">
-	        {% block confirm %}{% endblock %}
-        </div><!--/.tab-pane-->
+      <div class="tab-pane active">
+        {% block confirm %}{% endblock %}
+      </div><!--/.tab-pane-->
     </div><!--/.tab-content-->
-</div><!--/#dashboard-container-->
+  </div><!--/#dashboard-container-->
 
 {% endblock %}

@@ -103,7 +103,7 @@ Raphael.fn.USMap = function(){
     darkenState: function(state, increment) {
       drawnState = this.fetchStateBy2Letter(state);
       if(!drawnState) {return false}
-      hsl = Raphael.rgb2hsl(drawnState.attr('fill'));
+        hsl = Raphael.rgb2hsl(drawnState.attr('fill'));
 
       var newLightness = (hsl.l - increment <= 0) ? 0 : (hsl.l - increment);
       drawnState.darken(increment);
@@ -112,7 +112,7 @@ Raphael.fn.USMap = function(){
     fetchStateBy2Letter: function(state) {
       state = state.toLowerCase();
       if(state == 'in') {state = 'ind'}
-      return this.drawnStates[state];
+        return this.drawnStates[state];
     },
 
     convertCoords: function(lat, lng) {

@@ -1,40 +1,40 @@
 {% load render_bundle from webpack_loader %}<!DOCTYPE html>
 <html lang="en-us">
   <head>
-      <title>Perma.cc{% block title %}{% endblock %}</title>
+    <title>Perma.cc{% block title %}{% endblock %}</title>
 
-      {# currently 'edge' or nothing seems to be the best IE mode for modern sites -- see http://stackoverflow.com/a/8942455 #}
-      <meta http-equiv="x-ua-compatible" content="IE=edge">
+    {# currently 'edge' or nothing seems to be the best IE mode for modern sites -- see http://stackoverflow.com/a/8942455 #}
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
 
-      <meta charset="utf-8" />
-      <meta name="google" value="notranslate" />
-      <meta name="description" content="{% block meta_description %} Broken links are everywhere. Perma helps authors and journals create permanent links for citations in their published work.{% endblock %}">
-      <!--<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">-->
-      <!-- iOS9 viewport bug hack -->
-      <meta name="viewport" content="initial-scale=1.0001, minimum-scale=1.0001, maximum-scale=1.0001"/>
-      <!-- -->
+    <meta charset="utf-8" />
+    <meta name="google" value="notranslate" />
+    <meta name="description" content="{% block meta_description %} Broken links are everywhere. Perma helps authors and journals create permanent links for citations in their published work.{% endblock %}">
+    <!--<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">-->
+    <!-- iOS9 viewport bug hack -->
+    <meta name="viewport" content="initial-scale=1.0001, minimum-scale=1.0001, maximum-scale=1.0001"/>
+    <!-- -->
 
-      <meta name="twitter:card" content="summary" />
-      <meta name="twitter:site" content="@HarvardLIL" />
-      <meta name="twitter:title" content="Websites change. Perma Links don’t." />
-      <meta name="twitter:description" content="Perma.cc helps scholars, journals, courts, and others create permanent records of the web sources they cite." />
-      <meta name="twitter:image" content="{{ STATIC_URL }}img/create-step-4.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@HarvardLIL" />
+    <meta name="twitter:title" content="Websites change. Perma Links don’t." />
+    <meta name="twitter:description" content="Perma.cc helps scholars, journals, courts, and others create permanent records of the web sources they cite." />
+    <meta name="twitter:image" content="{{ STATIC_URL }}img/create-step-4.png" />
 
-      <meta property="og:title" content="Websites change. Perma Links don’t." />
-      <meta property="og:type" content="website" />
-      <meta property="og:site_name" content="Perma" />
-      <meta property="og:url" content="https:perma.cc/" />
-      <meta property="og:image" content="{{ STATIC_URL }}img/perma-infinity-landing.png" />
+    <meta property="og:title" content="Websites change. Perma Links don’t." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Perma" />
+    <meta property="og:url" content="https:perma.cc/" />
+    <meta property="og:image" content="{{ STATIC_URL }}img/perma-infinity-landing.png" />
 
-      {% block meta %}{% endblock %}
-      <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
-      {% render_bundle 'global-styles' 'css' %}
+    {% block meta %}{% endblock %}
+    <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
+    {% render_bundle 'global-styles' 'css' %}
 
-      {# Python variables for use in Javascript #}
-      {% include 'js_config.html' %}
+    {# Python variables for use in Javascript #}
+    {% include 'js_config.html' %}
 
-      {% block header_scripts %}{% endblock %}
-      {% block styles %}{% endblock %}
+    {% block header_scripts %}{% endblock %}
+    {% block styles %}{% endblock %}
 
   </head>
   <body class="{% block bodyFlags %}{% endblock bodyFlags %}">
