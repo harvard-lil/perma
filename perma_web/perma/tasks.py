@@ -216,7 +216,30 @@ def parse_response(response_text):
     response.begin()
     requests_response = requests.Response()
     requests_response.status_code = response.status
-    requests_response.headers = CaseInsensitiveDict(response.getheaders())
+
+    headers = CaseInsensitiveDict(response.getheaders())
+    # Reset headers['x-robots-tag'], so that we can handle the
+    # possibilility that multiple x-robots directives might be included
+    # https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag
+    # e.g.
+    # HTTP/1.1 200 OK
+    # Date: Tue, 25 May 2010 21:42:43 GMT
+    # (...)
+    # X-Robots-Tag: googlebot: nofollow
+    # X-Robots-Tag: otherbot: noindex, nofollow
+    # (...)
+    # Join with a semi-colon, not a comma, so that multiple agents can
+    # be recovered. As of 12/14/16, there doesn't appear to be any spec
+    # describing how to do this properly (since commas don't work).
+    # Since parsed response headers aren't archived, this convenience is
+    # fine. However, it's worth keeping track of the situation.
+    robots_directives = []
+    for directive in response.msg.getallmatchingheaders('x-robots-tag'):
+        robots_directives.append(directive.split(": ", 1)[1].replace("\n", "").replace("\r", ""))
+    headers['x-robots-tag'] = ";".join(robots_directives)
+
+    requests_response.headers = headers
+
     return requests_response
 
 def run_in_frames(browser, func, output_collector=None):
@@ -414,6 +437,7 @@ def proxy_capture(capture_job):
 
                     content_url = response.url
                     content_type = response.parsed_response.headers.get('content-type')
+                    robots_directives = response.parsed_response.headers.get('x-robots-tag')
                     have_html = content_type and content_type.startswith('text/html')
                     have_response = True
                     break
@@ -432,6 +456,30 @@ def proxy_capture(capture_job):
             time.sleep(1)
 
         print "Finished fetching url."
+
+        # check for x-robots-tag directives
+        progress = int(progress) + 1
+        display_progress(progress, "Checking x-robots-tag directives.")
+        if robots_directives:
+            darchive = False
+            for directive in robots_directives.split(";"):
+                parsed = directive.lower().split(":")
+                # respect tags that target all crawlers (no user-agent specified)
+                if len(parsed) == 1:
+                    if "noarchive" in parsed:
+                        darchive = True
+                # look for perma user-agent
+                elif len(parsed) == 2:
+                    if parsed[0] == "perma" and "noarchive" in parsed[1]:
+                        darchive = True
+                # if the directive is poorly formed, do our best
+                else:
+                    if "perma" in directive and "noarchive" in directive:
+                        darchive = True
+
+            if darchive:
+                save_fields(link, is_private=True, private_reason='policy')
+                print "x-robots-tag found, darchiving"
 
         # get favicon urls
         # Here we fetch everything in the page that's marked as a favicon, for archival purposes.

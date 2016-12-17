@@ -4,6 +4,8 @@ import os
 import dateutil.parser
 from django.conf import settings
 from surt import surt
+import json
+import urllib
 
 from .utils import ApiResourceTransactionTestCase, TEST_ASSETS_DIR
 from api.resources import LinkResource, CurrentUserLinkResource, PublicLinkResource
@@ -168,6 +170,80 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         link = Link.objects.get(guid=obj['guid'])
         self.assertTrue(link.is_private)
         self.assertEqual(link.private_reason, "policy")
+
+    def test_should_dark_archive_when_disallowed_in_xrobots_simple(self):
+        headers = urllib.quote(json.dumps([("x-robots-tag", "noarchive")]))
+        obj = self.successful_post(self.list_url,
+                                   data={'url': self.server_url + "/test.html?response_headers=" + headers},
+                                   user=self.org_user)
+
+        link = Link.objects.get(guid=obj['guid'])
+        self.assertTrue(link.is_private)
+        self.assertEqual(link.private_reason, "policy")
+
+    def test_should_dark_archive_when_disallowed_in_xrobots_perma(self):
+        headers = urllib.quote(json.dumps([("x-robots-tag", "perma: noarchive")]))
+        obj = self.successful_post(self.list_url,
+                                   data={'url': self.server_url + "/test.html?response_headers=" + headers},
+                                   user=self.org_user)
+
+        link = Link.objects.get(guid=obj['guid'])
+        self.assertTrue(link.is_private)
+        self.assertEqual(link.private_reason, "policy")
+
+    def test_should_dark_archive_when_disallowed_in_xrobots_multi(self):
+        headers = urllib.quote(json.dumps([
+            ("x-robots-tag", "noindex"),
+            ("x-robots-tag", "perma: noarchive"),
+            ("x-robots-tag", "noindex"),
+        ]))
+        obj = self.successful_post(self.list_url,
+                                   data={'url': self.server_url + "/test.html?response_headers=" + headers},
+                                   user=self.org_user)
+
+        link = Link.objects.get(guid=obj['guid'])
+        self.assertTrue(link.is_private)
+        self.assertEqual(link.private_reason, "policy")
+
+    def test_should_dark_archive_when_disallowed_in_xrobots_malformed(self):
+        headers = urllib.quote(json.dumps([
+            ("x-robots-tag", "noindex"),
+            ("x-robots-tag", "google: perma: noarchive"),
+            ("x-robots-tag", "noindex"),
+        ]))
+        obj = self.successful_post(self.list_url,
+                                   data={'url': self.server_url + "/test.html?response_headers=" + headers},
+                                   user=self.org_user)
+
+        link = Link.objects.get(guid=obj['guid'])
+        self.assertTrue(link.is_private)
+        self.assertEqual(link.private_reason, "policy")
+
+    def test_should_not_dark_archive_when_allowed_in_xrobots(self):
+        headers = urllib.quote(json.dumps([
+            ("x-robots-tag", "noindex"),
+            ("x-robots-tag", "perma: noindex"),
+            ("x-robots-tag", "noindex"),
+        ]))
+        obj = self.successful_post(self.list_url,
+                                   data={'url': self.server_url + "/test.html?response_headers=" + headers},
+                                   user=self.org_user)
+
+        link = Link.objects.get(guid=obj['guid'])
+        self.assertFalse(link.is_private)
+
+    def test_should_not_dark_archive_when_allowed_in_xrobots_complex(self):
+        headers = urllib.quote(json.dumps([
+            ("x-robots-tag", "noindex"),
+            ("x-robots-tag", "perma: noindex"),
+            ("x-robots-tag", "google: noarchive"),
+        ]))
+        obj = self.successful_post(self.list_url,
+                                   data={'url': self.server_url + "/test.html?response_headers=" + headers},
+                                   user=self.org_user)
+
+        link = Link.objects.get(guid=obj['guid'])
+        self.assertFalse(link.is_private)
 
     def test_should_accept_spaces_in_url(self):
         obj = self.successful_post(self.list_url,
