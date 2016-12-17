@@ -937,56 +937,56 @@ div.col-right {
 .col-sm-2col {
   @include respond-tablet {
     -webkit-column-count: 2;
-      -webkit-column-gap: 24px;
-      -webkit-column-rule: 1px solid rgba(0,0,0,.1);
+    -webkit-column-gap: 24px;
+    -webkit-column-rule: 1px solid rgba(0,0,0,.1);
     -moz-column-count: 2;
-      -moz-column-gap: 24px;
-      -moz-column-rule: 1px solid rgba(0,0,0,.1);
+    -moz-column-gap: 24px;
+    -moz-column-rule: 1px solid rgba(0,0,0,.1);
     column-count: 2;
-      column-gap: 24px;
-      column-rule: 1px solid rgba(0,0,0,.1);
+    column-gap: 24px;
+    column-rule: 1px solid rgba(0,0,0,.1);
   }
 }
 
 .col-sm-3col {
   @include respond-tablet {
     -webkit-column-count: 3;
-      -webkit-column-gap: 24px;
-      -webkit-column-rule: 1px solid rgba(0,0,0,.1);
+    -webkit-column-gap: 24px;
+    -webkit-column-rule: 1px solid rgba(0,0,0,.1);
     -moz-column-count: 3;
-      -moz-column-gap: 24px;
-      -moz-column-rule: 1px solid rgba(0,0,0,.1);
+    -moz-column-gap: 24px;
+    -moz-column-rule: 1px solid rgba(0,0,0,.1);
     column-count: 3;
-      column-gap: 24px;
-      column-rule: 1px solid rgba(0,0,0,.1);
+    column-gap: 24px;
+    column-rule: 1px solid rgba(0,0,0,.1);
   }
 }
 
 .col-md-4col {
   @include respond-desktop {
     -webkit-column-count: 4;
-      -webkit-column-gap: 24px;
-      -webkit-column-rule: 1px solid rgba(0,0,0,.1);
+    -webkit-column-gap: 24px;
+    -webkit-column-rule: 1px solid rgba(0,0,0,.1);
     -moz-column-count: 4;
-      -moz-column-gap: 24px;
-      -moz-column-rule: 1px solid rgba(0,0,0,.1);
+    -moz-column-gap: 24px;
+    -moz-column-rule: 1px solid rgba(0,0,0,.1);
     column-count: 4;
-      column-gap: 24px;
-      column-rule: 1px solid rgba(0,0,0,.1);
+    column-gap: 24px;
+    column-rule: 1px solid rgba(0,0,0,.1);
   }
 }
 
 .col-md-5col {
   @include respond-desktop {
     -webkit-column-count: 5;
-      -webkit-column-gap: 24px;
-      -webkit-column-rule: 1px solid rgba(0,0,0,.1);
+    -webkit-column-gap: 24px;
+    -webkit-column-rule: 1px solid rgba(0,0,0,.1);
     -moz-column-count: 5;
-      -moz-column-gap: 24px;
-      -moz-column-rule: 1px solid rgba(0,0,0,.1);
+    -moz-column-gap: 24px;
+    -moz-column-rule: 1px solid rgba(0,0,0,.1);
     column-count: 5;
-      column-gap: 24px;
-      column-rule: 1px solid rgba(0,0,0,.1);
+    column-gap: 24px;
+    column-rule: 1px solid rgba(0,0,0,.1);
   }
 }
 
@@ -1090,18 +1090,18 @@ div.col-right {
   }
   &.btn-small {
     padding: $half $grid;
-      font-size: 14px;
-      margin-top: 0px;
-      float: left;
-      clear: both;
-      margin-left: 0;
-      margin-bottom: $grid;
-      &.center {
-        float: none;
-        display: inline-block;
-        margin-top: 0;
-      }
+    font-size: 14px;
+    margin-top: 0px;
+    float: left;
+    clear: both;
+    margin-left: 0;
+    margin-bottom: $grid;
+    &.center {
+      float: none;
+      display: inline-block;
+      margin-top: 0;
     }
+  }
   &.delete-confirm {
     background-color: $color-error;
     &:hover, &:focus {
@@ -1309,11 +1309,11 @@ button {
       }
     }
     .personal-links {
-        background-color: $color-trans-lightgray;
-        a {
-          margin-top: 4px;
-          border-top: none;
-        }
+      background-color: $color-trans-lightgray;
+      a {
+        margin-top: 4px;
+        border-top: none;
+      }
     }
   }
   &.open {
@@ -1693,10 +1693,10 @@ body.modal-open {
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 3px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    -ms-border-radius: 3px;
-    margin-bottom: 10px;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  -ms-border-radius: 3px;
+  margin-bottom: 10px;
   display: inline;
   list-style-type: none;
   width: auto;
@@ -1863,7 +1863,7 @@ body.modal-open {
     height: auto;
     padding-left: 0;
     padding-right: 30px;
-      strong {
+    strong {
       font-weight: 300;
       color: $color-orange;
       &:after {
@@ -2186,8 +2186,8 @@ p.caption {
 
 ._image {
   box-shadow:	-1px 0 2px 0	rgba(0,0,0,0.12),
-          1px 0 2px 0	rgba(0,0,0,0.12),
-          0 1px 1px 0	rgba(0,0,0,0.24);
+  1px 0 2px 0	rgba(0,0,0,0.12),
+  0 1px 1px 0	rgba(0,0,0,0.24);
   border-radius: 2px;
   padding: $grid * 3 $double;
   margin: $double $double 0;
@@ -2273,7 +2273,7 @@ p.caption {
     position: relative;
     top: -1px;
     margin-left: 3px;
-  &:hover {
+    &:hover {
       background-color: $color-black;
     }
   }
@@ -2697,7 +2697,7 @@ p.caption {
   @include respond-tablet {
     width: 318px;
     height: 318px;
-   }
+  }
   @include respond-desktop {
     width: 448px;
     height: 448px;
@@ -2905,11 +2905,11 @@ textarea {
   margin: 0;
   padding: 0;
   li {
-  margin-bottom: 0;
-  line-height: 1.4;
-  & + li {
-    margin-top: 4px;
-  }
+    margin-bottom: 0;
+    line-height: 1.4;
+    & + li {
+      margin-top: 4px;
+    }
   }
 }
 
@@ -2941,20 +2941,20 @@ button#addlink,
 }
 
 .list-user {
-    &._isPrivate {
-        span.ui-private {
-          overflow: hidden;
-          display: inline-block;
-          text-indent: -10000px;
-          position: relative;
-          height: 16px;
-          width: 18px;
-          background-image: url('../img/ui/perma-ui-private.png');
-          background-repeat: no-repeat;
-          background-size: cover;
-          margin-right: 4px;
-          bottom: -2px;
-        }
+  &._isPrivate {
+    span.ui-private {
+      overflow: hidden;
+      display: inline-block;
+      text-indent: -10000px;
+      position: relative;
+      height: 16px;
+      width: 18px;
+      background-image: url('../img/ui/perma-ui-private.png');
+      background-repeat: no-repeat;
+      background-size: cover;
+      margin-right: 4px;
+      bottom: -2px;
+    }
   }
 }
 /////////////////////////////////////////
@@ -3580,7 +3580,7 @@ footer {
       padding-left: $double;
       padding-right: $double;
     }
-   }
+  }
   > .panel-heading {
     border-top-left-radius: 0;
     border-color: #DDD;
@@ -4305,38 +4305,38 @@ section {
 
 h6.image-hed {
   padding-bottom: $half;
-    font-size: 16px;
-    display: inline-block;
-    border-bottom: 2px solid $color-blue;
-    margin-bottom: $grid * 0;
-    padding-top: 0;
-    color: $color-blue;
-    font-weight: 900;
-    font-family: $font-hed-alt;
-    line-height: 1.4;
-    @include respond-tablet {
-      font-size: 22px;
-    }
-    @include respond-desktop {
-      font-size: 24px;
-    }
+  font-size: 16px;
+  display: inline-block;
+  border-bottom: 2px solid $color-blue;
+  margin-bottom: $grid * 0;
+  padding-top: 0;
+  color: $color-blue;
+  font-weight: 900;
+  font-family: $font-hed-alt;
+  line-height: 1.4;
+  @include respond-tablet {
+    font-size: 22px;
+  }
+  @include respond-desktop {
+    font-size: 24px;
+  }
 }
 
 .primary-img {
   padding-top: $double;
   padding-bottom: $grid * 3;
   @include respond-tablet {
-      padding-top: 11px;
-      padding-left: $grid;
-      padding-bottom: 0;
+    padding-top: 11px;
+    padding-left: $grid;
+    padding-bottom: 0;
   }
   @include respond-desktop {
-      padding-top: $grid * 3;
-      padding-left: $grid * 0;
+    padding-top: $grid * 3;
+    padding-left: $grid * 0;
   }
   @include respond-wide {
-      padding-top: $grid;
-      padding-left: $grid * 6
+    padding-top: $grid;
+    padding-left: $grid * 6
   }
 }
 
@@ -4351,12 +4351,12 @@ h6.image-hed {
 
 #minisxs {
   border-top: 1px solid $color-blue;
-    margin-top: $grid * 3;
+  margin-top: $grid * 3;
   padding: $grid * 2 $grid * 2 0;
   padding-bottom: $grid * 2;
   overflow: hidden;
   @include respond-tablet {
-      margin-top: $grid * 8;
+    margin-top: $grid * 8;
     padding: $grid * 4 $grid * 4 0;
   }
   @include respond-desktop {
@@ -4383,7 +4383,7 @@ h6.image-hed {
   @extend .container;
   max-width: $grid * 200;
   margin: 0 auto;
-    text-align: center;
+  text-align: center;
 
 }
 
@@ -4399,17 +4399,17 @@ p.caption-hero {
   margin-top: $grid * 3;
   span.num {
     display: inline-block;
-      padding: 0;
-      border: 1px solid;
-      position: relative;
-      bottom: 0;
-      border-radius: 3em;
-      width: 1.5em;
-      height: 1.5em;
-      text-align: center;
-      vertical-align: text-bottom;
-      font-size: 11px;
-      margin-right: .2em;
+    padding: 0;
+    border: 1px solid;
+    position: relative;
+    bottom: 0;
+    border-radius: 3em;
+    width: 1.5em;
+    height: 1.5em;
+    text-align: center;
+    vertical-align: text-bottom;
+    font-size: 11px;
+    margin-right: .2em;
   }
   @include respond-tablet {
     font-size: 21px;
@@ -4466,21 +4466,21 @@ a:hover {
 
 h1.section-title {
   font-weight: 300;
-    font-size: 32px;
-    padding-bottom: 24px;
+  font-size: 32px;
+  padding-bottom: 24px;
   @include respond-tablet {
     font-weight: 900;
     line-height: 1.2;
-      font-size: 40px;
-      padding-bottom: 12px;
+    font-size: 40px;
+    padding-bottom: 12px;
   }
   @include respond-desktop {
     font-size: 48px;
     padding-bottom: $grid;
   }
   @include respond-wide {
-      font-size: 56px;
-     }
+    font-size: 56px;
+  }
 }
 
 .section-title {
@@ -4488,7 +4488,7 @@ h1.section-title {
   font-size: 20px;
   @include respond-tablet {
     font-weight: 900;
-      font-size: 32px
+    font-size: 32px
   }
   @include respond-desktop {
     font-size: 36px;
@@ -4506,13 +4506,13 @@ h1.section-title {
 .section-subtitle {
   color: $color-black;
   font-size: 18px;
-    font-family: $font-hed-alt;
-    line-height: 1.42;
-    margin-top: $half;
-    margin-bottom: 0;
+  font-family: $font-hed-alt;
+  line-height: 1.42;
+  margin-top: $half;
+  margin-bottom: 0;
   @include respond-tablet {
-      line-height: 1.5;
-      font-size: 24px
+    line-height: 1.5;
+    font-size: 24px
   }
   @include respond-desktop {
     font-size: 32px;
@@ -4527,21 +4527,21 @@ h1.section-title {
 .section-ah,
 h3.section-ah {
   font-size: 18px;
-    font-family: $font-hed-alt;
+  font-family: $font-hed-alt;
   float: left;
-    padding: $half 0;
-    border-bottom: 1px solid #222;
-    margin: 2em 0 1em;
-    font-weight: 400;
-    clear: both;
-    line-height: 1.35;
+  padding: $half 0;
+  border-bottom: 1px solid #222;
+  margin: 2em 0 1em;
+  font-weight: 400;
+  clear: both;
+  line-height: 1.35;
   @include respond-desktop {
     font-size: 19px;
   }
 }
 
 .section-body {
-    font-family: $font-hed-alt;
+  font-family: $font-hed-alt;
   font-weight: 400;
   clear: both;
   @include respond-tablet {
@@ -4583,36 +4583,36 @@ h3.section-ah {
   padding-bottom: 6px;
   clear: both;
 //	border-bottom: 1px solid $color-blue;
-  margin-bottom: $double;
-  li {
+margin-bottom: $double;
+li {
 //		margin-top: 6px;
-    padding-top: 6px;
-    padding-left: 1.2em;
-    text-indent: -1.2em;
+padding-top: 6px;
+padding-left: 1.2em;
+text-indent: -1.2em;
 //		border-top: 1px solid $color-blue;
-    a.outside:before {
-      content: '➔';
-      display: inline-block;
-      width: 1.2em;
-      text-indent: 0;
-      color: $color-blue;
-    }
-    a strong {
-      text-decoration: underline;
-      @extend .style-standard-hover;
-    }
+a.outside:before {
+  content: '➔';
+  display: inline-block;
+  width: 1.2em;
+  text-indent: 0;
+  color: $color-blue;
+}
+a strong {
+  text-decoration: underline;
+  @extend .style-standard-hover;
+}
+}
+li + li {
+}
+strong {
+  font-weight: 700;
+}
+&.list-tight {
+  li {
+    padding-top: 0;
+    margin-top: 0;
   }
-  li + li {
-  }
-  strong {
-    font-weight: 700;
-  }
-  &.list-tight {
-    li {
-      padding-top: 0;
-      margin-top: 0;
-    }
-  }
+}
 }
 
 .section-break {
@@ -4644,9 +4644,9 @@ h3.section-ah {
 .figure-title  {
   font-family: $font-hed-alt;
   font-weight: 700;
-    font-size: 14px;
-    line-height: 1.4;
-    margin-top: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-top: 0;
 }
 
 .figure-title {
@@ -4818,45 +4818,45 @@ section .caption {
 }
 
 div.row-sxs {
-    border-bottom: 1px solid $color-blue;
-    margin-bottom: 0;
+  border-bottom: 1px solid $color-blue;
+  margin-bottom: 0;
+  padding-top: 0;
+  background-color: $color-background;
+  @include respond-tablet {
+    padding-top: $grid * 4;
+  }
+  & + .row-sxs {
     padding-top: 0;
-    background-color: $color-background;
     @include respond-tablet {
-      padding-top: $grid * 4;
+      padding-top: $grid * 7;
     }
-    & + .row-sxs {
-      padding-top: 0;
-      @include respond-tablet {
-        padding-top: $grid * 7;
-      }
-      @include respond-desktop {
-        padding-top: $grid * 10;
-      }
+    @include respond-desktop {
+      padding-top: $grid * 10;
     }
+  }
 }
 
 img.img-sxs {
   max-width: 100%;
-    @include respond-tablet {
-      max-width: $grid * 74;
-    }
+  @include respond-tablet {
+    max-width: $grid * 74;
+  }
   &.right {
-      @include respond-tablet {
-        margin: 0 0 0 auto;
-      }
+    @include respond-tablet {
+      margin: 0 0 0 auto;
+    }
   }
   &.left {
-      @include respond-tablet {
-        margin: 0 auto 0 0;
-      }
+    @include respond-tablet {
+      margin: 0 auto 0 0;
+    }
   }
 }
 
 .caption.caption-sxs {
-    color: #2C76EE;
-    font-size: 16px;
-    font-weight: 300;
+  color: #2C76EE;
+  font-size: 16px;
+  font-weight: 300;
   text-align: left;
   line-height: 1.4;
   margin-top: $grid;
@@ -4934,54 +4934,54 @@ img.img-sxs {
 }
 
 @-webkit-keyframes healthy {
-    0% {
-        background-image: url('../img/link-rot-healthy.gif');
+  0% {
+    background-image: url('../img/link-rot-healthy.gif');
   }
-    25% {
-        background-image: url('../img/link-rot-healthy-1.gif');
+  25% {
+    background-image: url('../img/link-rot-healthy-1.gif');
   }
-    50% {
-        background-image: url('../img/link-rot-healthy-2.gif');
+  50% {
+    background-image: url('../img/link-rot-healthy-2.gif');
   }
-    75% {
-        background-image: url('../img/link-rot-healthy-3.gif');
+  75% {
+    background-image: url('../img/link-rot-healthy-3.gif');
   }
-    100% {
-        background-image: url('../img/link-rot-healthy.gif');
+  100% {
+    background-image: url('../img/link-rot-healthy.gif');
   }
 }
 @-moz-keyframes healthy {
-    0% {
-        background-image: url('../img/link-rot-healthy.gif');
+  0% {
+    background-image: url('../img/link-rot-healthy.gif');
   }
-    25% {
-        background-image: url('../img/link-rot-healthy-1.gif');
+  25% {
+    background-image: url('../img/link-rot-healthy-1.gif');
   }
-    50% {
-        background-image: url('../img/link-rot-healthy-2.gif');
+  50% {
+    background-image: url('../img/link-rot-healthy-2.gif');
   }
-    75% {
-        background-image: url('../img/link-rot-healthy-3.gif');
+  75% {
+    background-image: url('../img/link-rot-healthy-3.gif');
   }
-    100% {
-        background-image: url('../img/link-rot-healthy.gif');
+  100% {
+    background-image: url('../img/link-rot-healthy.gif');
   }
 }
 @keyframes healthy {
-    0% {
-        background-image: url('../img/link-rot-healthy.gif');
+  0% {
+    background-image: url('../img/link-rot-healthy.gif');
   }
-    25% {
-        background-image: url('../img/link-rot-healthy-1.gif');
+  25% {
+    background-image: url('../img/link-rot-healthy-1.gif');
   }
-    50% {
-        background-image: url('../img/link-rot-healthy-2.gif');
+  50% {
+    background-image: url('../img/link-rot-healthy-2.gif');
   }
-    75% {
-        background-image: url('../img/link-rot-healthy-3.gif');
+  75% {
+    background-image: url('../img/link-rot-healthy-3.gif');
   }
-    100% {
-        background-image: url('../img/link-rot-healthy.gif');
+  100% {
+    background-image: url('../img/link-rot-healthy.gif');
   }
 }
 
@@ -5102,7 +5102,7 @@ section .caption {
   }
   @include respond-desktop {
     .content {
-    width: 70%;
+      width: 70%;
     }
   }
 }
@@ -5277,7 +5277,7 @@ section .caption {
     }
 
     .num-value {
-        width: 55px;
+      width: 55px;
       color: $color-white;
       float: left;
     }

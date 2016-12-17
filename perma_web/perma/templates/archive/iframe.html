@@ -1,33 +1,33 @@
 {% if capture.status == 'failed' %}
-	<div class="record-message">
-		<p class="record-message-primary">Capture failed.</p>
-		<p class="record-message-secondary">Perma was unable to archive the contents of this link.</p>
-        {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
-            <p class="record-message-secondary"><a href="?type=image">See the Screenshot View</a></p>
-        {% endif %}
-        <p class="record-message-secondary"><a href="{{link.submitted_url}}">View the live page</a></p>
-	<div>
-{% elif capture.status == 'pending' %}
-	<div class="record-message">
-		<p class="record-message-primary">Capture pending.</p>
-		<p class="record-message-secondary">Perma has not yet finished archiving the contents of this link.<br/>Please try again later.</p>
-	<div>
-{% elif capture.show_interstitial %}
-	<div class="record-message">
-		<p class="record-message-primary">Perma.cc can’t display this file type but you can view or download the archived file by clicking below.</p>
-		<p class="record-message-secondary">File type {{ capture.mime_type }}</p>
-	        <div><a href="{{ capture.playback_url_with_access_token }}" class="btn btn-primary">View/Download File</a></div>
-	<div>
-{% else %}
-    <div class="capture-wrapper">
-      <div class="h_iframe">
-        {% if capture.role == 'screenshot' %}
-          <img src="{{ capture.playback_url_with_access_token }}" style="display:block; margin: 0 auto;"/>
-        {% else %}
-          <iframe class="archive-iframe" src="{{ capture.playback_url_with_access_token }}" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}>
-            <p>Unable to create a live view of <a class="submitted_url" href="{{link.submitted_url}}">{{link.submitted_url}}</a></p>
-          </iframe>
-      </div>
-    </div>
+  <div class="record-message">
+    <p class="record-message-primary">Capture failed.</p>
+    <p class="record-message-secondary">Perma was unable to archive the contents of this link.</p>
+    {% if link.screenshot_capture and link.screenshot_capture.status == 'success' %}
+        <p class="record-message-secondary"><a href="?type=image">See the Screenshot View</a></p>
     {% endif %}
+    <p class="record-message-secondary"><a href="{{link.submitted_url}}">View the live page</a></p>
+  <div>
+{% elif capture.status == 'pending' %}
+  <div class="record-message">
+    <p class="record-message-primary">Capture pending.</p>
+    <p class="record-message-secondary">Perma has not yet finished archiving the contents of this link.<br/>Please try again later.</p>
+  <div>
+{% elif capture.show_interstitial %}
+  <div class="record-message">
+    <p class="record-message-primary">Perma.cc can’t display this file type but you can view or download the archived file by clicking below.</p>
+    <p class="record-message-secondary">File type {{ capture.mime_type }}</p>
+    <div><a href="{{ capture.playback_url_with_access_token }}" class="btn btn-primary">View/Download File</a></div>
+  <div>
+{% else %}
+  <div class="capture-wrapper">
+    <div class="h_iframe">
+      {% if capture.role == 'screenshot' %}
+        <img src="{{ capture.playback_url_with_access_token }}" style="display:block; margin: 0 auto;"/>
+      {% else %}
+        <iframe class="archive-iframe" src="{{ capture.playback_url_with_access_token }}" {% if capture.use_sandbox %}sandbox="allow-forms allow-scripts allow-top-navigation allow-same-origin" {% endif %}>
+          <p>Unable to create a live view of <a class="submitted_url" href="{{link.submitted_url}}">{{link.submitted_url}}</a></p>
+        </iframe>
+      {% endif %}
+    </div>
+  </div>
 {% endif %}

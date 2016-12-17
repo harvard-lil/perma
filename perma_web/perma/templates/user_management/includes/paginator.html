@@ -1,20 +1,20 @@
 {% load current_query_string %}
 {% if page.paginator.num_pages > 1 %}
-    <div class="pagination">
-        <ul class="pagination">
-            {% if page.has_previous %}
-                <li><a href="?{% current_query_string page=page.previous_page_number %}">&lt;</a></li>
-            {% endif %}
-            {% for i in page.paginator.page_range %}
-                {% ifequal i page.number %}
-                    <li class="active"><a href="">{{ i }}</a></li>
-                {% else %}
-                    <li><a href="?{% current_query_string page=i %}">{{ i }}</a></li>
-                {% endifequal %}
-            {% endfor %}
-            {% if page.has_next  %}
-                <li><a href="?{% current_query_string page=page.next_page_number %}">&gt;</a></li>
-            {% endif %}
-        </ul>
-    </div>
+  <div class="pagination">
+    <ul class="pagination">
+      {% if page.has_previous %}
+        <li><a href="?{% current_query_string page=page.previous_page_number %}">&lt;</a></li>
+      {% endif %}
+      {% for i in page.paginator.page_range %}
+        {% ifequal i page.number %}
+          <li class="active"><a href="">{{ i }}</a></li>
+        {% else %}
+          <li><a href="?{% current_query_string page=i %}">{{ i }}</a></li>
+        {% endifequal %}
+      {% endfor %}
+      {% if page.has_next  %}
+        <li><a href="?{% current_query_string page=page.next_page_number %}">&gt;</a></li>
+      {% endif %}
+    </ul>
+  </div>
 {% endif %}

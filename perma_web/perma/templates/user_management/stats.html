@@ -8,7 +8,7 @@
 
 {% block scripts %}
   {{ block.super }}
-	{% render_bundle 'admin-stats' %}
+  {% render_bundle 'admin-stats' %}
 {% endblock %}
 
 {% block templates %}
@@ -22,8 +22,8 @@
       </div>
 
       <div class="row">
-         <div class="col-sm-3">Private links (user directed):</div>
-         <div class="col-sm-9">{{ private_user_direction }} ({{ private_user_percentage_of_private }}% of private, {{ private_user_percentage_of_total }}% of total)</div>
+        <div class="col-sm-3">Private links (user directed):</div>
+        <div class="col-sm-9">{{ private_user_direction }} ({{ private_user_percentage_of_private }}% of private, {{ private_user_percentage_of_total }}% of total)</div>
       </div>
 
       <div class="row">
@@ -95,31 +95,31 @@
     </script>
 
     <script id="job_queue-template" type="text/x-handlebars-template">
-    <h3 class="body-ah">Capture jobs:</h3>
-    <div class="row">
-      <div class="col-sm-4">
-        <h4>In progress:</h4>
-        {{#each active_jobs}}
-          {{ link_id }} attempt {{ attempt }}<br/>
-          {{ email }}<br/>
-          Started {{ capture_start_time }}<br/>
-          Step {{ step_count }}: {{ step_description }}<br/><br/>
-        {{/each}}
+      <h3 class="body-ah">Capture jobs:</h3>
+      <div class="row">
+        <div class="col-sm-4">
+          <h4>In progress:</h4>
+          {{#each active_jobs}}
+            {{ link_id }} attempt {{ attempt }}<br/>
+            {{ email }}<br/>
+            Started {{ capture_start_time }}<br/>
+            Step {{ step_count }}: {{ step_description }}<br/><br/>
+          {{/each}}
+        </div>
+        <div class="col-sm-4">
+          <h4>Human requests:</h4>
+          {{#each job_queues.human }}
+            {{ email }}: {{ count }}
+          {{/each}}
+        </div>
+        <div class="col-sm-4">
+          <h4>API requests:</h4>
+          {{#each job_queues.robot }}
+            User {{@key}}: {{this}} waiting
+          {{/each}}
+        </div>
       </div>
-      <div class="col-sm-4">
-        <h4>Human requests:</h4>
-        {{#each job_queues.human }}
-          {{ email }}: {{ count }}
-        {{/each}}
-      </div>
-      <div class="col-sm-4">
-        <h4>API requests:</h4>
-        {{#each job_queues.robot }}
-          User {{@key}}: {{this}} waiting
-        {{/each}}
-      </div>
-    </div>
-  </script>
+    </script>
 
     <script id="celery-template" type="text/x-handlebars-template">
       <h3 class="body-ah">Celery task data:</h3>

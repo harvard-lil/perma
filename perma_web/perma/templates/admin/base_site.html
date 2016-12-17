@@ -4,38 +4,38 @@
 {% block title %}{{ title }} | {% trans 'Django site admin' %}{% endblock %}
 
 {% block extrahead %}
-    <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
-    <style>
-        #header {
-            background-color: #F7F7F7;
-            color: black;
-        }
-        #header a{
-            color: black !important;
-        }
-        #branding h1{
-            color:  #ff4100;
-        }
-    </style>
+  <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
+  <style>
+    #header {
+      background-color: #F7F7F7;
+      color: black;
+    }
+    #header a{
+      color: black !important;
+    }
+    #branding h1{
+      color:  #ff4100;
+    }
+  </style>
 {% endblock %}
 
 {% block branding %}
-    <h1 id="site-name">
-        <img src="{{ STATIC_URL }}img/infinity-logo2.png">
-        Perma Admin Console
-    </h1>
+  <h1 id="site-name">
+    <img src="{{ STATIC_URL }}img/infinity-logo2.png">
+    Perma Admin Console
+  </h1>
 {% endblock %}
 
 {% block userlinks %}
-    {% url 'django-admindocs-docroot' as docsroot %}
-    {% if docsroot %}
-        <a href="{{ docsroot }}">{% trans 'Documentation' %}</a> /
-    {% endif %}
-    {% if user.has_usable_password %}
-    <a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a> /
-    {% endif %}
-    <a href="{% url 'logout' %}">{% trans 'Log out' %}</a>
-    / <a href="{% url 'create_link' %}">Back to Dashboard</a>
+  {% url 'django-admindocs-docroot' as docsroot %}
+  {% if docsroot %}
+    <a href="{{ docsroot }}">{% trans 'Documentation' %}</a> /
+  {% endif %}
+  {% if user.has_usable_password %}
+  <a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a> /
+  {% endif %}
+  <a href="{% url 'logout' %}">{% trans 'Log out' %}</a>
+  / <a href="{% url 'create_link' %}">Back to Dashboard</a>
 {% endblock %}
 
 {% block nav-global %}{% endblock %}

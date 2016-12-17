@@ -23,25 +23,25 @@
     {% block styles %}{% endblock %}
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
-          <script src="{{ STATIC_URL }}vendor/html5shiv/html5shiv.js"></script>
-          <script src="{{ STATIC_URL }}vendor/respond/respond.js"></script>
-      <![endif]-->
+      <script src="{{ STATIC_URL }}vendor/html5shiv/html5shiv.js"></script>
+      <script src="{{ STATIC_URL }}vendor/respond/respond.js"></script>
+    <![endif]-->
   </head>
   <body>
-  {% block header %}{% endblock header %}
-  <section id="main-archive">
-    <div id="main-content" class="container-fluid">
-      <div class="row">
-        {% block mainContent %}
-        {% endblock mainContent %}
-      </div><!--/.row-->
-    </div><!--/#main-content"-->
-  </section><!--/#main-->
+    {% block header %}{% endblock header %}
+    <section id="main-archive">
+      <div id="main-content" class="container-fluid">
+        <div class="row">
+          {% block mainContent %}
+          {% endblock mainContent %}
+        </div><!--/.row-->
+      </div><!--/#main-content"-->
+    </section><!--/#main-->
 
-  {% block scripts %}
-  {% endblock %}
+    {% block scripts %}
+    {% endblock %}
 
-  {% block templates %}
-  {% endblock %}
+    {% block templates %}
+    {% endblock %}
   </body>
 </html>

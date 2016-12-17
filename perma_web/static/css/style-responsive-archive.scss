@@ -16,9 +16,9 @@ $color-trans-white: rgba(254,254,254,.65);
 $color-yellow: #d0a60f;
 
 @-webkit-keyframes success-bg {
-    0% {background-color: $color-highlight;}
-    20% {background-color: $color-highlight;}
-    100% {background-color: white;}
+  0% {background-color: $color-highlight;}
+  20% {background-color: $color-highlight;}
+  100% {background-color: white;}
 }
 
 html,body {
@@ -88,7 +88,7 @@ header {
   overflow: visible;
   font-family: $font-hed-alt;
   border-bottom: $grid solid #e5e5e5;
-    box-sizing: content-box;
+  box-sizing: content-box;
   @include respond-desktop {
   }
   &._isPrivate {
@@ -103,16 +103,16 @@ header {
       }
     }
     .title:before {
-        content: '';
-        display: inline-block;
-        position: relative;
-        height: 16px;
-        width: 18px;
-        background-image: url('../img/ui/perma-ui-private.png');
-        background-repeat: no-repeat;
-        background-size: cover;
-        margin-right: 4px;
-        bottom: -2px;
+      content: '';
+      display: inline-block;
+      position: relative;
+      height: 16px;
+      width: 18px;
+      background-image: url('../img/ui/perma-ui-private.png');
+      background-repeat: no-repeat;
+      background-size: cover;
+      margin-right: 4px;
+      bottom: -2px;
     }
     .navbar-toggle .icon-bar {
       background-color: $color-black;
@@ -127,7 +127,7 @@ header {
     }
     @include respond-tablet {
       .title:before {
-          bottom: 0;
+        bottom: 0;
       }
     }
   }
@@ -152,53 +152,55 @@ header {
 
 .record-message-primary {
   font-size: 24px;
-    font-weight: 300;
-    line-height: 1.2;
-    @include respond-tablet {
+  font-weight: 300;
+  line-height: 1.2;
+  @include respond-tablet {
     font-size: 36px;
-    }
+  }
 }
 
 .record-message-secondary {
   max-width: 35em;
-    margin: 0 auto;
-    font-size: 14px;
-    line-height: 1.5;
-    color: $color-trans-gray;
-    @include respond-tablet {
-      font-size: 16px;
+  margin: 0 auto;
+  font-size: 14px;
+  line-height: 1.5;
+  color: $color-trans-gray;
+  @include respond-tablet {
+    font-size: 16px;
+  }
+
+  a {
+    text-decoration: underline;
+    &:hover, &:focus {
+      color: $color-hover;
     }
-    a {
-      text-decoration: underline;
-      &:hover, &:focus {
-        color: $color-hover;
-      }
-      &:active {
-        color: $color-active;
-      }
+    &:active {
+      color: $color-active;
     }
+  }
 }
 
-
-
 .banner-status {
-    padding: 12px $grid * 2;
-    font-size: 14px;
-    font-weight: 400;
-    background-color: white;
-    color: $color-blue;
-    border-bottom: 1px solid $color-blue;
-    &._isNewRecord {
+  padding: 12px $grid * 2;
+  font-size: 14px;
+  font-weight: 400;
+  background-color: white;
+  color: $color-blue;
+  border-bottom: 1px solid $color-blue;
+
+  &._isNewRecord {
     -webkit-animation: success-bg .7s linear;
     animation: success-bg .7s linear;
     padding-top: 10px;
     padding-bottom: 10px;
+
     .success {
       position: relative;
       font-weight: bold;
       padding-top: $half;
       float: left;
       padding-left: $grid * 3;
+
       &:before {
         content: '';
         background-image: url('../img/ui/perma-ui-success.svg');
@@ -212,27 +214,29 @@ header {
         width: 20px;
         top: 3px;
         left: -1px;
-          @include respond-tablet {
+        @include respond-tablet {
           top: -6px;
           height: 27px;
           width: 27px;
-          }
-          @include respond-desktop {
+        }
+        @include respond-desktop {
           height: 32px;
           width: 32px;
           top: -6px;
           left: 0;
-          }
+        }
       }
-        @include respond-tablet {
-        padding-left: $grid * 4;
-        padding-top: 0;
-        float: none;
-        }
-        @include respond-desktop {
-        padding-left: $grid * 5;
-        }
+
+      @include respond-tablet {
+      padding-left: $grid * 4;
+      padding-top: 0;
+      float: none;
+      }
+      @include respond-desktop {
+      padding-left: $grid * 5;
+      }
     }
+
     .link-options {
       font-size: 13px;
       color: $color-trans-gray;
@@ -248,7 +252,8 @@ header {
         }
       }
     }
-    }
+  }
+
   strong {
     display: block;
     position: relative;
@@ -256,17 +261,19 @@ header {
       display: inline;
     }
   }
-    .action.new-link {
-        display: inline-block;
-      float: right;
-      font-size: 14px;
-      font-weight: 400;
-      padding: 2px 8px;
-      background-color: $color-blue;
-      color: white;
-      border-radius: 2px;
-      margin-top: 1px;
-      margin-right: -11px;
+
+  .action.new-link {
+    display: inline-block;
+    float: right;
+    font-size: 14px;
+    font-weight: 400;
+    padding: 2px 8px;
+    background-color: $color-blue;
+    color: white;
+    border-radius: 2px;
+    margin-top: 1px;
+    margin-right: -11px;
+
     &:hover {
       background-color: $color-hover;
     }
@@ -277,29 +284,32 @@ header {
         margin-top: 3px;
         margin-right: 0;
     }
-    }
+  }
+
   @include respond-tablet {
     .link-options .verbose {
-        display: inline-block;
-        width: 0;
-        height: 1em;
-        overflow: hidden;
-        text-indent: -1000px;
+      display: inline-block;
+      width: 0;
+      height: 1em;
+      overflow: hidden;
+      text-indent: -1000px;
     }
     .success {
       line-height: 29px;
     }
   }
+
   @include respond-desktop {
       padding: 12px $grid * 6;
       font-weight: 200;
   }
+
   @include respond-wide {
     .link-options .verbose {
-        display: inline;
-        width: auto;
-        height: auto;
-        text-indent: 0;
+      display: inline;
+      width: auto;
+      height: auto;
+      text-indent: 0;
     }
   }
 }
@@ -345,7 +355,9 @@ header {
   -o-user-select: none;
   user-select: none;
   box-shadow: none !important;
+
   @include link-highlight($color-white, $color-white);
+
   @include respond-tablet {
     white-space: nowrap;
     margin: $double 0;
@@ -357,12 +369,14 @@ header {
       margin-left: $double;
     }
   }
+
   &:hover, &:focus {
     background-color: $color-hover !important;
     text-decoration: none !important;
     border-color: transparent;
     color: white !important;
   }
+
   &:active {
     background-color: $color-black !important;
     border-color: transparent;
@@ -475,7 +489,6 @@ header .primary-segment {
   @include respond-desktop {
     float: left;
   }
-
 }
 
 .col._details {
@@ -525,7 +538,6 @@ header .primary-segment {
   .content {
     padding: 12px 0;
   }
-
 }
 
 .col._livepage {
@@ -595,16 +607,16 @@ a.about {
   line-height: 1.1;
   margin-bottom: 0;
   margin-left: -.075em;
-//	.logo:after {
-//		content: '';
-//		background-image: url('../img/perma-logo-white.svg');
-//		background-size: 28px auto;
-//		background-repeat: no-repeat;
-//		width: 32px;
-//		height: 13px;
-//		margin-left: 6px;
-//		display: inline-block;
-//	}
+  // .logo:after {
+  //   content: '';
+  //   background-image: url('../img/perma-logo-white.svg');
+  //   background-size: 28px auto;
+  //   background-repeat: no-repeat;
+  //   width: 32px;
+  //   height: 13px;
+  //   margin-left: 6px;
+  //   display: inline-block;
+  // }
   @media (min-width: 400px) {
     font-size: 18px;
   }
@@ -630,13 +642,13 @@ a.about {
     padding-bottom: 2px;
     vertical-align: baseline;
     ._verbose {
-        width: .7em;
-        @include respond-tablet {
-          display: inline;
-          width: auto;
-          height: auto;
-          text-indent: 0;
-        }
+      width: .7em;
+      @include respond-tablet {
+        display: inline;
+        width: auto;
+        height: auto;
+        text-indent: 0;
+      }
     }
     a {
       padding-bottom: 3px;
@@ -658,7 +670,7 @@ a.about {
     }
   }
   a.about {
-      vertical-align: baseline;
+    vertical-align: baseline;
     display: inline-block;
   }
   @include respond-tablet {
@@ -699,7 +711,7 @@ a.about {
   span {
     display: table-cell;
     vertical-align: middle;
-      &:after {
+    &:after {
       content: '';
       width: 9px;
       height: 17px;
@@ -711,7 +723,7 @@ a.about {
       background-repeat: no-repeat;
       background-size: 54px 17px;
       background-position: -9px * 5;
-      }
+    }
   }
   &:hover {
     background-color: white;
@@ -744,22 +756,22 @@ a.about {
   }
   &.navbar-link {
     padding-top: 16px;
-      padding-bottom: 16px;
-      padding-left: 28px;
-      padding-right: $double;
-      border-radius: 2px;
-      border: 1px solid $color-trans-lightgray;
+    padding-bottom: 16px;
+    padding-left: 28px;
+    padding-right: $double;
+    border-radius: 2px;
+    border: 1px solid $color-trans-lightgray;
   }
-    &:after {
-      content: '';
-      height: 9px;
-      width: 18px;
-      display: inline-block;
-      background-image: url('../img/ui/perma-ui-chev-down.png');
-      background-repeat: no-repeat;
-      background-size: 102px 9px;
-      background-position: -17px * 5;
-      top: -1px;
+  &:after {
+    content: '';
+    height: 9px;
+    width: 18px;
+    display: inline-block;
+    background-image: url('../img/ui/perma-ui-chev-down.png');
+    background-repeat: no-repeat;
+    background-size: 102px 9px;
+    background-position: -17px * 5;
+    top: -1px;
     margin-left: $grid;
   }
   &:hover {
@@ -859,22 +871,22 @@ li.dropdown {
 .dropdown-menu   { // review
   @include style-dropdown-items;
   position: relative;
-    float: none;
-    width: auto;
-    z-index: 1000;
-    display: none;
-    padding: 5px 0;
-    margin: 0;
-    font-size: 14px;
-    list-style: none;
-    background-color: white;
-    background-clip: padding-box;
+  float: none;
+  width: auto;
+  z-index: 1000;
+  display: none;
+  padding: 5px 0;
+  margin: 0;
+  font-size: 14px;
+  list-style: none;
+  background-color: white;
+  background-clip: padding-box;
   border-radius: 2px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.175);
   border-color: black;
   padding-top: $double;
   min-width: $grid * 27;
-    @include respond-tablet {
+  @include respond-tablet {
     position: absolute; // DEL WHEN FINAL
     top: 77px;
     margin-right: 0;
@@ -899,13 +911,13 @@ li.dropdown {
 
 .dropdown-header {
   font-family: $font-hed-alt;
-    font-weight: 400;
-    letter-spacing: 1px;
-    text-align: right;
-    padding-right: 11px;
-    padding-top: 7px;
-    color: $color-blue;
-    text-transform: uppercase;
+  font-weight: 400;
+  letter-spacing: 1px;
+  text-align: right;
+  padding-right: 11px;
+  padding-top: 7px;
+  color: $color-blue;
+  text-transform: uppercase;
   @include respond-tablet {
     padding-right: 20px;
   }
@@ -913,16 +925,16 @@ li.dropdown {
 
 ._expanded .navbar-create { // review
   margin: 0;
-    background-color: $color-blue;
-    color: white;
-    padding-top: $double !important;
-    padding-bottom: $double !important;
-    margin-top: $grid;
-    margin-bottom: $grid;
-    margin-right: $half;
-    margin-left: $half;
-    padding-right: 12px;
-    &:after {
+  background-color: $color-blue;
+  color: white;
+  padding-top: $double !important;
+  padding-bottom: $double !important;
+  margin-top: $grid;
+  margin-bottom: $grid;
+  margin-right: $half;
+  margin-left: $half;
+  padding-right: 12px;
+  &:after {
     content: '';
     width: 9px;
     height: 17px;
@@ -934,7 +946,7 @@ li.dropdown {
     background-repeat: no-repeat;
     background-position: -45px center;
     background-size: 54px 17px;
-    }
+  }
 }
 
 .navbar-create {
@@ -955,7 +967,7 @@ li.dropdown {
 }
 
 .navbar-collapse.in .dropdown-menu {
-    display: block;
+  display: block;
 }
 
 // undo-ing bootstrap
@@ -983,32 +995,32 @@ li.dropdown {
 
 .ui-tray {
   z-index: 100;
-    background-color: white;
-    border-bottom: 1px solid $color-blue;
-    color: $color-black;
-    position: absolute;
-    left: 0;
-    right: 0;
-    margin-top: 0;
-    border-top: none;
-    overflow: hidden;
-    box-sizing: border-box;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
-    height: auto !important;
-    display: none;
+  background-color: white;
+  border-bottom: 1px solid $color-blue;
+  color: $color-black;
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin-top: 0;
+  border-top: none;
+  overflow: hidden;
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.17);
+  height: auto !important;
+  display: none;
   @include respond-wide {
-      left: 18%;
-      width: 64%;
-      border: 1px solid $color-blue;
-      border-top: none;
-      border-bottom-left-radius: 2px;
-      border-bottom-right-radius: 2px;
+    left: 18%;
+    width: 64%;
+    border: 1px solid $color-blue;
+    border-top: none;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
   }
 }
 
 dl.tray-detail-group {
   padding: $double;
-    margin: 0;
+  margin: 0;
   & + .tray-detail-group {
     border-top: 1px solid $color-trans-lightgray;
   }
@@ -1063,26 +1075,26 @@ p.fp {
 
 ._verbose,
 .verbose {
-    display: inline-block;
-    width: 0;
-    height: 1em;
-    overflow: hidden;
-    text-indent: -1000px;
+  display: inline-block;
+  width: 0;
+  height: 1em;
+  overflow: hidden;
+  text-indent: -1000px;
   @include respond-tablet {
+    display: inline;
+    width: auto;
+    height: auto;
+    text-indent: 0;
+  }
+  &._toDesktop {
+    @include respond-tablet {
+      display: none;
+    }
+    @include respond-wide {
       display: inline;
       width: auto;
       height: auto;
       text-indent: 0;
-  }
-  &._toDesktop {
-    @include respond-tablet {
-        display: none;
-    }
-    @include respond-wide {
-        display: inline;
-        width: auto;
-        height: auto;
-        text-indent: 0;
     }
   }
 }
@@ -1107,7 +1119,7 @@ p.fp {
   }
   &.flag {
     float: right;
-      &:before {
+    &:before {
       content: '';
       width: 15px;
       height: 16px;
@@ -1122,10 +1134,10 @@ p.fp {
       background-position: -14px * 3;
       margin-top: -$half;
       margin-bottom: -$half;
-      }
-      &:active:before {
-        background-position: -14px * 5;
-      }
+    }
+    &:active:before {
+      background-position: -14px * 5;
+    }
   }
 }
 
@@ -1135,28 +1147,28 @@ p.fp {
   display: block;
   position: absolute;
   top: 8px;
-    right: 8px;
-    bottom: $grid;
-    width: 43px !important;
-    height: 43px !important;
-    border: none;
-    background-color: $color-background;
-    margin: 0;
-    border-radius: 2px;
-    z-index: 100;
-    @include respond-xmobile{
-      width: 51px !important;
-       height: 48px !important;
+  right: 8px;
+  bottom: $grid;
+  width: 43px !important;
+  height: 43px !important;
+  border: none;
+  background-color: $color-background;
+  margin: 0;
+  border-radius: 2px;
+  z-index: 100;
+  @include respond-xmobile{
+    width: 51px !important;
+    height: 48px !important;
    }
-    .icon-bar {
-      background-color: $color-blue;
-      display: block;
-      width: 22px;
-      height: 2px;
-      border-radius: 1px;
-      margin-right: auto;
-      margin-left: auto;
-      & + .icon-bar {
+  .icon-bar {
+    background-color: $color-blue;
+    display: block;
+    width: 22px;
+    height: 2px;
+    border-radius: 1px;
+    margin-right: auto;
+    margin-left: auto;
+    & + .icon-bar {
         margin-top: $half;
       }
     }
@@ -1166,20 +1178,20 @@ p.fp {
       .icon-bar {
         background-color: $color-white;
     }
+  }
+  &:active {
+    background-color: $color-black;
+    border-radius: 2px;
+    .icon-bar {
+      background-color: $color-white;
     }
-    &:active {
-      background-color: $color-black;
-      border-radius: 2px;
-      .icon-bar {
-        background-color: $color-white;
-    }
-    }
+  }
   &:focus {
     outline: none;
-      border-radius: 2px;
-      background-color: $color-white;
-      .icon-bar {
-        background-color: $color-blue;
+    border-radius: 2px;
+    background-color: $color-white;
+    .icon-bar {
+      background-color: $color-blue;
     }
   }
   @include respond-tablet {
@@ -1194,12 +1206,9 @@ p.fp {
 // when nav is open
 
 .collapsing {
-    -webkit-transition: none;
-    transition: none;
+  -webkit-transition: none;
+  transition: none;
 }
-
-
-
 
 // ui-activeDetails
 
@@ -1208,7 +1217,6 @@ p.fp {
     display: block;
   }
 }
-
 
 // iframe end
 

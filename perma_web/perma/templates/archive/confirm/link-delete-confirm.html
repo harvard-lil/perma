@@ -3,19 +3,19 @@
 {% load render_bundle from webpack_loader %}
 
 {% block confirm %}
-    <h1 class="body-bh">Delete Perma Link</h1>
-    <p class="page-dek">Do you really want to delete this Perma Link forever?</p>
-    <div class="centered-box">
-        <a href="{{ request.META.HTTP_REFERER }}" class="btn cancel">Cancel</a> <button type="submit" class="btn delete-confirm">Delete Perma Link</button>
-    </div>
+  <h1 class="body-bh">Delete Perma Link</h1>
+  <p class="page-dek">Do you really want to delete this Perma Link forever?</p>
+  <div class="centered-box">
+    <a href="{{ request.META.HTTP_REFERER }}" class="btn cancel">Cancel</a> <button type="submit" class="btn delete-confirm">Delete Perma Link</button>
+  </div>
 {% endblock %}
 
 {% block scripts %}
-    <script>
-        var url_link_browser = "{% url 'create_link' %}",
-            archive = {% as_json link %},
-        	refer_url = "{{ request.META.HTTP_REFERER }}";
-    </script>
+  <script>
+    var url_link_browser = "{% url 'create_link' %}",
+      archive = {% as_json link %},
+      refer_url = "{{ request.META.HTTP_REFERER }}";
+  </script>
 
-  	{% render_bundle 'link-delete-confirm' %}
+  {% render_bundle 'link-delete-confirm' %}
 {% endblock %}

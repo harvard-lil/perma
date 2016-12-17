@@ -94,69 +94,64 @@
   </div>
   {% if registrars %}
     {% for registrar in registrars %}
-      {% if registrar.status != "approved" %}
-        <div class="item-container muted ">
-      {% else %}
-        <div class="item-container">
-      {% endif %}
+      <div class="item-container {% if registrar.status != "approved" %}muted{% endif %}">
+        <div class="col col-sm-8 col-no-gutter">
+          <div class="item-title">
+            {{ registrar.name }}
+            {% if registrar.status == "pending" %}
+              <a class="text-warning" href="{% url 'user_management_approve_pending_registrar' registrar.id %}"> needs approval</a>
+            {% endif %}
+          </div>
+          <div class="item-subtitle">{{ registrar.email }}</div>
+          <div class="item-subtitle"><a href="{{ registrar.website }}">{{registrar.website}}</a></div>
+          <div class="row row-half-bleed item-count-groups">
+            <div class="col col-xs-12 col-md-4 col-half-gutter">
+              <div class="item-count-group">
+                <strong class="list-count-number">{{ registrar.link_count|intcomma }}</strong>
+                <span class="item-count-label">links</span>
+              </div>
+            </div>
+            <div class="col col-xs-12 col-md-4 col-half-gutter">
+              <div class="item-count-group">
+                <strong class="list-count-number">{{ registrar.orgs_count }}</strong>
+                <span class="item-count-label">org{{ registrar.orgs_count|pluralize }} <a href="{% url 'user_management_manage_organization' %}?registrar={{registrar.id}}">View</a></span>
+              </div>
+            </div>
+            <div class="col col-xs-12 col-md-4 col-half-gutter">
+              <div class="item-count-group">
+                <strong class="list-count-number right">{{ registrar.registrar_users }}</strong>
+                <span class="item-count-label">registrar users <a href="{% url 'user_management_manage_registrar_user' %}?registrar={{registrar.id}}">View</a></span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-    <div class="col col-sm-8 col-no-gutter">
-      <div class="item-title">
-        {{ registrar.name }}
-        {% if registrar.status == "pending" %}
-          <a class="text-warning" href="{% url 'user_management_approve_pending_registrar' registrar.id %}"> needs approval</a>
-        {% endif %}
-      </div>
-      <div class="item-subtitle">{{ registrar.email }}</div>
-      <div class="item-subtitle"><a href="{{ registrar.website }}">{{registrar.website}}</a></div>
-      <div class="row row-half-bleed item-count-groups">
-        <div class="col col-xs-12 col-md-4 col-half-gutter">
-          <div class="item-count-group">
-            <strong class="list-count-number">{{ registrar.link_count|intcomma }}</strong>
-            <span class="item-count-label">links</span>
-          </div>
-        </div>
-        <div class="col col-xs-12 col-md-4 col-half-gutter">
-          <div class="item-count-group">
-            <strong class="list-count-number">{{ registrar.orgs_count }}</strong>
-            <span class="item-count-label">org{{ registrar.orgs_count|pluralize }} <a href="{% url 'user_management_manage_organization' %}?registrar={{registrar.id}}">View</a></span>
-          </div>
-        </div>
-        <div class="col col-xs-12 col-md-4 col-half-gutter">
-          <div class="item-count-group">
-            <strong class="list-count-number right">{{ registrar.registrar_users }}</strong>
-            <span class="item-count-label">registrar users <a href="{% url 'user_management_manage_registrar_user' %}?registrar={{registrar.id}}">View</a></span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
-      {% if registrar.status != "approved" %}
-        <a class="action action-approve" href="{% url 'user_management_approve_pending_registrar' registrar.id %}">
-          {% if registrar.status == "pending" %}
-            Review and approve
+        <div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
+          {% if registrar.status != "approved" %}
+            <a class="action action-approve" href="{% url 'user_management_approve_pending_registrar' registrar.id %}">
+              {% if registrar.status == "pending" %}
+                Review and approve
+              {% else %}
+                Denied
+              {% endif %}
+            </a>
           {% else %}
-            Denied
+            <a class="action" href="{% url 'user_management_manage_single_registrar' registrar.id %}">edit</a>
+            {% if request.user.is_staff %}
+              <a class="action" href="{% url "admin:perma_registrar_change" registrar.id %}">edit in admin console</a>
+            {% endif %}
           {% endif %}
-        </a>
-      {% else %}
-        <a class="action" href="{% url 'user_management_manage_single_registrar' registrar.id %}">edit</a>
-        {% if request.user.is_staff %}
-          <a class="action" href="{% url "admin:perma_registrar_change" registrar.id %}">edit in admin console</a>
-        {% endif %}
-      {% endif %}
-      <p class="item-activity">
-        {% if registrar.status == "pending" %}requested{% else %}created{% endif %} {{ registrar.date_created|date:'N j, Y'}}
-        <br>
-        {% if registrar.last_active %}
-          last active {{ registrar.last_active|date:'N j, Y'}}
-        {% else %}
-          no activity
-        {% endif %}
-      </p>
-    </div>
-    </div>
+          <p class="item-activity">
+            {% if registrar.status == "pending" %}requested{% else %}created{% endif %} {{ registrar.date_created|date:'N j, Y'}}
+            <br>
+            {% if registrar.last_active %}
+              last active {{ registrar.last_active|date:'N j, Y'}}
+            {% else %}
+              no activity
+            {% endif %}
+          </p>
+        </div>
+      </div>
     {% endfor %}
   {% else %}
     <p class="item-notification">No registrars found.</p>
