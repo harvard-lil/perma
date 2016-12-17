@@ -23,8 +23,7 @@ from django.utils import timezone
 from django.utils.http import is_safe_url
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect, Http404, JsonResponse
-from django.template import RequestContext
-from django.shortcuts import render_to_response, get_object_or_404, resolve_url, render
+from django.shortcuts import get_object_or_404, resolve_url, render
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.template.context_processors import csrf
 from django.contrib import messages
@@ -609,10 +608,7 @@ def edit_user_in_group(request, user_id, group_name):
         'orgs': orgs,
     }
 
-
-    context = RequestContext(request, context)
-
-    return render_to_response('user_management/manage_single_user.html', context)
+    return render(request, 'user_management/manage_single_user.html', context)
 
 
 ### ADD USER TO GROUP ###
@@ -790,9 +786,7 @@ def organization_user_leave_organization(request, org_id):
         else:
             return HttpResponseRedirect(reverse('create_link'))
 
-    context = RequestContext(request, context)
-
-    return render_to_response('user_management/user_leave_confirm.html', context)
+    return render(request, 'user_management/user_leave_confirm.html', context)
 
 
 @user_passes_test_or_403(lambda user: user.is_staff)
@@ -817,9 +811,7 @@ def delete_user_in_group(request, user_id, group_name):
 
         return HttpResponseRedirect(reverse('user_management_manage_{group_name}'.format(group_name=group_name)))
 
-    context = RequestContext(request, context)
-
-    return render_to_response('user_management/user_delete_confirm.html', context)
+    return render(request, 'user_management/user_delete_confirm.html', context)
 
 
 @user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_organization_user or user.is_staff)
@@ -869,9 +861,7 @@ def manage_single_registrar_user_remove(request, user_id):
 
         return HttpResponseRedirect(reverse('user_management_manage_registrar_user'))
 
-    context = RequestContext(request, context)
-
-    return render_to_response('user_management/user_remove_registrar_confirm.html', context)
+    return render(request, 'user_management/user_remove_registrar_confirm.html', context)
 
 
 @user_passes_test_or_403(lambda user: user.is_staff)
@@ -895,9 +885,7 @@ def manage_single_admin_user_remove(request, user_id):
 
         return HttpResponseRedirect(reverse('user_management_manage_admin_user'))
 
-    context = RequestContext(request, context)
-
-    return render_to_response('user_management/user_remove_admin_confirm.html', context)
+    return render(request, 'user_management/user_remove_admin_confirm.html', context)
 
 
 @user_passes_test_or_403(lambda user: user.is_staff)
@@ -917,9 +905,7 @@ def reactive_user_in_group(request, user_id, group_name):
 
         return HttpResponseRedirect(reverse('user_management_manage_{group_name}'.format(group_name=group_name)))
 
-    context = RequestContext(request, context)
-
-    return render_to_response('user_management/user_reactivate_confirm.html', context)
+    return render(request, 'user_management/user_reactivate_confirm.html', context)
 
 
 @login_required
@@ -948,12 +934,8 @@ def settings_password(request):
     """
     Settings change password ...
     """
-
     context = {'next': request.get_full_path(), 'this_page': 'settings_password'}
-
-    context = RequestContext(request, context)
-
-    return render_to_response('user_management/settings-password.html', context)
+    return render(request, 'user_management/settings-password.html', context)
 
 
 @user_passes_test_or_403(lambda user: user.is_registrar_user() or user.is_organization_user or user.has_registrar_pending())
@@ -993,9 +975,7 @@ def settings_organizations_change_privacy(request, org_id):
         else:
             return HttpResponseRedirect(reverse('user_management_settings_affiliations'))
 
-    context = RequestContext(request, context)
-
-    return render_to_response('user_management/settings-organizations-change-privacy.html', context)
+    return render(request, 'user_management/settings-organizations-change-privacy.html', context)
 
 
 @login_required
@@ -1003,12 +983,8 @@ def settings_tools(request):
     """
     Settings tools ...
     """
-
     context = {'next': request.get_full_path(), 'this_page': 'settings_tools'}
-
-    context = RequestContext(request, context)
-
-    return render_to_response('user_management/settings-tools.html', context)
+    return render(request, 'user_management/settings-tools.html', context)
 
 
 @login_required
@@ -1041,7 +1017,7 @@ def not_active(request):
     else:
         context = {}
         context.update(csrf(request))
-        return render_to_response('registration/not_active.html', context, RequestContext(request))
+        return render(request, 'registration/not_active.html', context)
 
 
 @user_passes_test_or_403(lambda user: user.is_staff or user.is_registrar_user() or user.is_organization_user)
@@ -1055,11 +1031,12 @@ def resend_activation(request, user_id):
     email_new_user(request, target_user)
     return render(request, 'user_management/activation-email.html', {"email": target_user.email})
 
+
 def account_is_deactivated(request):
     """
     Informing a user that their account has been deactivated.
     """
-    return render_to_response('user_management/deactivated.html', RequestContext(request))
+    return render(request, 'user_management/deactivated.html')
 
 
 def get_sitewide_cookie_domain(request):
@@ -1193,8 +1170,6 @@ def libraries(request):
     """
     Info for libraries, allow them to request accounts
     """
-    context = {}
-
     if request.method == 'POST':
         registrar_form = RegistrarForm(request.POST, prefix = "b")
         registrar_form.fields['name'].label = "Library name"
@@ -1235,8 +1210,6 @@ def libraries(request):
                 request.user.pending_registrar = new_registrar
                 request.user.save()
                 return HttpResponseRedirect(reverse('user_management_settings_affiliations'))
-        else:
-            context.update({'user_form':user_form, 'registrar_form':registrar_form})
     else:
         request_data = request.session.get('request_data','')
         user_form = None
@@ -1251,9 +1224,8 @@ def libraries(request):
         registrar_form.fields['email'].label = "Library email"
         registrar_form.fields['website'].label = "Library website"
 
-    return render_to_response("registration/sign-up-libraries.html",
-        {'user_form':user_form, 'registrar_form':registrar_form},
-        RequestContext(request))
+    return render(request, "registration/sign-up-libraries.html",
+        {'user_form':user_form, 'registrar_form':registrar_form})
 
 @ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
 def sign_up(request):
@@ -1273,9 +1245,7 @@ def sign_up(request):
     else:
         form = UserForm()
 
-    return render_to_response("registration/sign-up.html",
-        {'form':form},
-        RequestContext(request))
+    return render(request, "registration/sign-up.html", {'form': form})
 
 
 @ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
@@ -1315,9 +1285,7 @@ def sign_up_courts(request):
     else:
         form = CreateUserFormWithCourt()
 
-    return render_to_response("registration/sign-up-courts.html",
-        {'form':form},
-        RequestContext(request))
+    return render(request, "registration/sign-up-courts.html", {'form': form})
 
 
 @ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
@@ -1339,9 +1307,7 @@ def sign_up_faculty(request):
     else:
         form = CreateUserFormWithUniversity()
 
-    return render_to_response("registration/sign-up-faculty.html",
-        {'form':form},
-        RequestContext(request))
+    return render(request, "registration/sign-up-faculty.html", {'form': form})
 
 
 @ratelimit(rate=settings.REGISTER_MINUTE_LIMIT, block=True, key=ratelimit_ip_key)
@@ -1363,9 +1329,7 @@ def sign_up_journals(request):
     else:
         form = CreateUserFormWithUniversity()
 
-    return render_to_response("registration/sign-up-journals.html",
-        {'form':form},
-        RequestContext(request))
+    return render(request, "registration/sign-up-journals.html", {'form': form})
 
 
 def register_email_code_password(request, code):
@@ -1376,7 +1340,7 @@ def register_email_code_password(request, code):
     try:
         user = LinkUser.objects.get(confirmation_code=code)
     except LinkUser.DoesNotExist:
-        return render_to_response('registration/set_password.html', {'no_code': True}, RequestContext(request))
+        return render(request, 'registration/set_password.html', {'no_code': True})
 
     # save password
     if request.method == "POST":
@@ -1391,28 +1355,28 @@ def register_email_code_password(request, code):
     else:
         form = SetPasswordForm(user=user)
 
-    return render_to_response('registration/set_password.html', {'form': form}, RequestContext(request))
+    return render(request, 'registration/set_password.html', {'form': form})
 
 
 def register_email_instructions(request):
     """
     After the user has registered, give the instructions for confirming
     """
-    return render_to_response('registration/check_email.html', RequestContext(request))
+    return render(request, 'registration/check_email.html')
 
 
 def register_library_instructions(request):
     """
     After the user requested a library account, give instructions
     """
-    return render_to_response('registration/check_email_library.html', RequestContext(request))
+    return render(request, 'registration/check_email_library.html')
 
 
 def court_request_response(request):
     """
     After the user has requested info about a court account
     """
-    return render_to_response('registration/court_request.html', RequestContext(request))
+    return render(request, 'registration/court_request.html')
 
 
 def email_new_user(request, user):
