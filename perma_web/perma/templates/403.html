@@ -1,0 +1,16 @@
+{% extends "base-responsive.html" %}
+{% block title %} | 403 Permission Denied{% endblock %}
+
+{% block mainContent %}
+<div class="container cont-fixed">
+  <div class="row">
+    <div class="col-xs-12">
+      <h1 class="page-title">Permission Denied</h1>
+      <p class="page-dek">
+        You don't appear to have access to the requested resource. If you
+        believe you reached this page in error, please <a href="{% url 'contact' %}?subject=Permission%20Denied">contact us</a>.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
