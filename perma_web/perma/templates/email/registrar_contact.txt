@@ -1,12 +1,11 @@
 {% extends "email/admin/contact.txt" %}
 {% block content %}
-One of your users sent you the following message using the Perma.cc contact form, http://perma.cc/contact.
+One of your users, {{ user.get_full_name }}, has sent you the following message via the Perma.cc website:
+
+{{ message }}
+
+----
+Reply to this message to follow up with the user.
 
 If you need help addressing their concerns, please contact info@perma.cc for assistance.
-
-
-
-Message from user
---------
-{{ message }}
 {% endblock%}
