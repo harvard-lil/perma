@@ -1,5 +1,5 @@
 <!-- Upload file modal -->
-<div  class="modal" id="archive-upload" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div  class="modal" id="archive-upload" tabindex="-1" role="dialog"  aria-hidden="true">
   <div class="modal-dialog modal-sm modal-new">
     <div class="modal-content">
       <div class="modal-header">
@@ -19,8 +19,8 @@
           {% if link.guid %}
             <div class="modal-actions">
               <div class="form-group">
-                <label class="control-label" for="file">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed, up to {{max_size}} MB</span></label>
-                <input  id="file_input" class="file" name="file" type="file" placeholder="example.png" accept=".png,.jpg,.jpeg,.gif,.pdf">
+                <label class="control-label" for="file_input">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed, up to {{max_size}} MB</span></label>
+                <input  id="file_input" class="file" name="file" type="file" accept=".png,.jpg,.jpeg,.gif,.pdf">
               </div>
               <button type="submit" id="updateLinky" class="btn btn-primary btn-large">Upload</button>
               <button type="button" class="btn cancel" data-dismiss="modal" aria-hidden="false">Cancel</button>
@@ -28,20 +28,19 @@
           {% else %}
             <div class="form-group">
               <label class="control-label" for="title">New Perma Link title <span class="label-instruction">The page title associated with this upload</span></label>
-              <input class="title" name="title" type="text" placeholder="Example Page Title">
+              <input id="title" class="title" name="title" type="text" placeholder="Example Page Title">
             </div>
             <div class="form-group">
                 <label class="control-label" for="url">New Perma Link URL <span class="label-instruction">The URL associated with this upload</span></label>
                 <input id="url" name="url" class="" type="text" placeholder="www.example.com">
             </div>
             <div class="form-group">
-              <label class="control-label" for="file">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed, up to {{max_size}} MB</span></label>
-              <input id="file_input" class="file" name="file" type="file" placeholder="example.png" accept=".png,.jpg,.jpeg,.gif,.pdf">
+              <label class="control-label" for="file_input">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed, up to {{max_size}} MB</span></label>
+              <input id="file_input" class="file" name="file" type="file"  accept=".png,.jpg,.jpeg,.gif,.pdf">
             </div>
             <button type="submit" id="uploadLinky" class="btn btn-primary btn-large">Create a Perma Link</button>
             <button type="button" class="btn cancel" data-dismiss="modal" aria-hidden="false">Cancel</button>
           {% endif %}
-          </div>
           {% csrf_token %}
           <p id="upload-error" class="field-error"></p>
         </form>

@@ -1018,7 +1018,7 @@ li.dropdown {
   }
 }
 
-dl.tray-detail-group {
+.tray-detail-group {
   padding: $double;
   margin: 0;
   & + .tray-detail-group {
@@ -1029,18 +1029,23 @@ dl.tray-detail-group {
   }
 }
 
-dt.tray-detail-title {
+.tray-detail-title {
   font-weight: 700;
   color: $color-blue;
 }
 
-dd.tray-detail-entry {
+.tray-detail-entry {
   font-size: 15px;
   font-weight: 400;
   margin-top: 2px;
   @include respond-tablet {
     font-size: 17px;
   }
+}
+
+input.tray-detail-entry {
+  display: block;
+  border: none;
 }
 
 p.fp {
@@ -1404,6 +1409,7 @@ body.modal-open {
     font-weight: 700;
   }
   .btn-file-upload-container {
+    display: block;
     margin-left: 5px;
   }
   .btn-sm {
