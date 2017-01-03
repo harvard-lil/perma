@@ -10134,6 +10134,15 @@ ol.tos {
   padding-left: 0;
 }
 
+ol.tos .top-level-paragraph {
+  margin-top: 16px;
+  margin-bottom: 48px;
+}
+
+ol.tos .top-level-paragraph ~ ul {
+  margin-top: -32px;
+}
+
 ol.tos ul ul {
   margin-top: 1em;
   margin-bottom: 1em;
@@ -10148,6 +10157,13 @@ ul.tos {
   ul.tos {
     margin-left: 24px;
   }
+}
+
+ul.tos-sublist {
+  padding-left: 0px;
+  margin-top: 16px;
+  margin-bottom: 48px;
+  margin-left: 24px;
 }
 
 .alpha-list {

@@ -6,25 +6,24 @@
     {# currently 'edge' or nothing seems to be the best IE mode for modern sites -- see http://stackoverflow.com/a/8942455 #}
     <meta http-equiv="x-ua-compatible" content="IE=edge">
 
-    <meta charset="utf-8" />
-    <meta name="google" value="notranslate" />
+    <meta charset="utf-8">
     <meta name="description" content="{% block meta_description %} Broken links are everywhere. Perma helps authors and journals create permanent links for citations in their published work.{% endblock %}">
     <!--<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">-->
     <!-- iOS9 viewport bug hack -->
-    <meta name="viewport" content="initial-scale=1.0001, minimum-scale=1.0001, maximum-scale=1.0001"/>
+    <meta name="viewport" content="initial-scale=1.0001, minimum-scale=1.0001, maximum-scale=1.0001">
     <!-- -->
 
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:site" content="@HarvardLIL" />
-    <meta name="twitter:title" content="Websites change. Perma Links don’t." />
-    <meta name="twitter:description" content="Perma.cc helps scholars, journals, courts, and others create permanent records of the web sources they cite." />
-    <meta name="twitter:image" content="{{ STATIC_URL }}img/create-step-4.png" />
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@HarvardLIL">
+    <meta name="twitter:title" content="Websites change. Perma Links don’t.">
+    <meta name="twitter:description" content="Perma.cc helps scholars, journals, courts, and others create permanent records of the web sources they cite.">
+    <meta name="twitter:image" content="{{ STATIC_URL }}img/create-step-4.png">
 
-    <meta property="og:title" content="Websites change. Perma Links don’t." />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Perma" />
-    <meta property="og:url" content="https:perma.cc/" />
-    <meta property="og:image" content="{{ STATIC_URL }}img/perma-infinity-landing.png" />
+    <meta property="og:title" content="Websites change. Perma Links don’t.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Perma">
+    <meta property="og:url" content="https:perma.cc/">
+    <meta property="og:image" content="{{ STATIC_URL }}img/perma-infinity-landing.png">
 
     {% block meta %}{% endblock %}
     <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">
@@ -48,7 +47,7 @@
               <span class="icon-bar"></span>
             </button>
             <div class="navbar-brand logo">
-              <a href="{% url 'landing' %}">Perma.cc<img class="infinity-logo" src="{{ STATIC_URL }}img/perma-logo-orange.svg"></a>
+              <a href="{% url 'landing' %}">Perma.cc<img alt="" class="infinity-logo" src="{{ STATIC_URL }}img/perma-logo-orange.svg"></a>
             </div>
           </div>
           {% include 'includes/upper_right_menu.html' %}

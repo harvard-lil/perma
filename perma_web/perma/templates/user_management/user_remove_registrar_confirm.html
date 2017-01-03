@@ -6,7 +6,7 @@
   <p class="page-dek">This user will no longer be able to create organizations and users on behalf of {{target_user.registrar.name}}.</p>
   <p>Do you really want to remove <strong>{{ target_user.email }}</strong> forever?</p>
   <form action="" method="POST">
-        {% csrf_token %}
-      <a class="btn cancel" href="../">Cancel</a> <button type="submit" class="btn delete-confirm">Remove {{ target_user.email }} forever</button>
+    {% csrf_token %}
+    <a class="btn cancel" href="../">Cancel</a> <button type="submit" class="btn delete-confirm">Remove {{ target_user.email }} forever</button>
   </form>
 {% endblock %}

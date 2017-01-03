@@ -21,7 +21,7 @@
   </div> <!-- row -->
   <div class="row">
     <div class="col-sm-6 contact-form">
-      <form action="{% url 'contact' %}" method="post" role="form">
+      <form action="{% url 'contact' %}" method="post">
         {% csrf_token %}
         {% include "includes/fieldset.html" with form_classes="fg-100" %}
         <button type="submit" class="btn">Send</button>

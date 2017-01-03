@@ -2086,6 +2086,16 @@ li.body-bh {
 ol.tos {
   margin-left: 0;
   padding-left: 0;
+
+  .top-level-paragraph {
+    margin-top: 16px;
+    margin-bottom: 48px;
+
+    & ~ ul {
+      margin-top: -32px;
+    }
+  }
+
   ul ul {
     margin-top: 1em;
     margin-bottom: 1em;
@@ -2098,6 +2108,14 @@ ul.tos {
   @include respond-tablet {
     margin-left: $grid * 3;
   }
+}
+
+ul.tos-sublist {
+  padding-left: 0px;
+  margin-top: 16px;
+  margin-bottom: 48px;
+  margin-left: 24px;
+
 }
 
 .alpha-list {
