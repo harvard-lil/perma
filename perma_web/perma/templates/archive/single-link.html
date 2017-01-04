@@ -110,49 +110,49 @@
 
     <div id="collapse-details" class="details-segment ui-tray row collapse">
       <div class="tray-details">
-        <dl class="tray-detail-group">
-          <dt class="tray-detail-title">Source page URL {% if capture.user_upload %}(unverified){% endif %}</dt>
-          <dd class="tray-detail-entry">{{link.submitted_url}}</dd>
-        </dl>
+        <div class="tray-detail-group">
+          <label class="tray-detail-title" for="source_url">Source page URL {% if capture.user_upload %}(unverified){% endif %}</label>
+          <input id="source_url" class="tray-detail-entry" value="{{link.submitted_url}}" readonly>
+        </div>
 
         {% if can_edit %}
-          <dl class="tray-detail-group">
-            <dt class="tray-detail-title">Title <span class="save-status"></span></dt>
-            <input name="title" class="form-control link-submitted-title" value="{{link.submitted_title}}">
-          </dl>
-          <dl class="tray-detail-group">
-            <dt class="tray-detail-title">Notes <span class="label-instruction _verbose"> (only visible to you{% if link.organization%} and your organization{% endif %})</span><span class="save-status"></span></dt>
-            <input name="notes" class="form-control link-notes" rows="2" value="{{link.notes}}"/>
-          </dl>
+          <div class="tray-detail-group">
+            <label for="submitted_title" class="tray-detail-title">Title <span class="label-instruction _verbose">&nbsp;</span><span class="save-status"></span></label>
+            <input id="submitted_title" name="title" class="form-control link-submitted-title" value="{{link.submitted_title}}">
+          </div>
+          <div class="tray-detail-group">
+            <label for="notes" class="tray-detail-title">Notes <span class="label-instruction _verbose"> (only visible to you{% if link.organization%} and your organization{% endif %})</span><span class="save-status"></span></label>
+            <input id="notes" name="notes" class="form-control link-notes"  value="{{link.notes}}"/>
+          </div>
           {% if can_delete %}
-            <dl class="tray-detail-group temporary-options">
+            <div class="tray-detail-group temporary-options">
               <form id="archive_upload_form">
-                <dt class="tray-detail-title" for="file">Upload file<span class="label-asterisk">*</span> <span class="label-instruction _verbose" style="display:block;"> This will replace the existing capture. GIF, JPG, PDF, and PNG up to {{max_size}} MB are allowed.</span></dt>
-                <input class="col-sm-10 file" name="file" type="file" placeholder="example.png" accept=".png,.jpg,.jpeg,.gif,.pdf">
+                <label class="tray-detail-title">Upload file<span class="label-asterisk">*</span> <span class="label-instruction _verbose" style="display:block;"> This will replace the existing capture. GIF, JPG, PDF, and PNG up to {{max_size}} MB are allowed.</span></label>
+                <input class="col-sm-10 file" name="file" type="file"  accept=".png,.jpg,.jpeg,.gif,.pdf">
                 <span class="btn-file-upload-container">
                   <button id="updateLinky" type="submit" class="blue-button btn-sm btn-file-upload">Upload</button>
                   <button id="cancelUpdateLinky" type="reset" class="btn-sm btn-file-upload">Cancel</button>
                 </span>
               </form>
-            </dl>
-            <dl class="tray-detail-group temporary-options">
-              <dt class="tray-detail-title">
+            </div>
+            <div class="tray-detail-group temporary-options">
+              <div class="tray-detail-title">
                 <a class="btn-delete btn-sm"
                   href="{% url 'user_delete_link' link.guid %}">
                   Delete<span class="_verbose"> record</span>
                 </a>
                 <span class="label-asterisk">*</span>
-              </dt>
-              <div class="label-instruction pull-right temporary-instructions">
-                <span class="label-asterisk">*</span> These options are only available for the first twenty-four hours.
               </div>
-            </dl>
+                <div class="label-instruction pull-right temporary-instructions">
+                  <span class="label-asterisk">*</span> These options are only available for the first twenty-four hours.
+                </div>
+            </div>
           {% endif %}
         {% else %}
-          <dl class="tray-detail-group">
+          <div class="tray-detail-group">
             <dt class="tray-detail-title">Title</dt>
             <dd class="tray-detail-entry">{{link.submitted_title}}</dd>
-          </dl>
+          </div>
         {% endif %}
         {% comment %}
           {% if link.organization %}
@@ -218,15 +218,6 @@
     {% include "archive/dark-archive.html" %}
   {% endif %}
 
-  <!-- Modals -->
-
-  <!-- delete -->
-  <!-- darchive -->
-  <!-- flag -->
-
-  {% if can_delete %}
-    {% include "archive/includes/upload_your_own.html" with current_user=request.user.id link=link %}
-  {% endif %}
 {% endblock %}
 
 {% block scripts %}

@@ -3361,7 +3361,7 @@ webpackJsonp([1],[
 	}
 	
 	function getLinkIDForFormElement(element) {
-	  return element.closest('.item-container').find('.item-row').attr('link_id');
+	  return element.closest('.item-container').find('.item-row').data('link_id');
 	}
 	
 	function setupLinksTableEventHandlers() {
@@ -3488,7 +3488,7 @@ webpackJsonp([1],[
 	  $.vakata.dnd.start(e, {
 	    jstree: true,
 	    obj: $(e.currentTarget),
-	    nodes: [{ id: $(e.currentTarget).attr('link_id') }]
+	    nodes: [{ id: $(e.currentTarget).data('link_id') }]
 	  }, '<div id="jstree-dnd" class="jstree-default"><i class="jstree-icon jstree-er"></i>[link]</div>');
 	
 	  // record drag start position so we can check how far we were dragged on mouseup
@@ -4541,7 +4541,7 @@ webpackJsonp([1],[
 	  return APIModule.request("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function (data) {
 	    $(window).trigger("FolderTreeModule.updateLinksRemaining", data.links_remaining);
 	    // once we're done moving the link, hide it from the current folder
-	    $('.item-row[link_id="' + linkID + '"]').closest('.item-container').remove();
+	    $('.item-row[data-link_id="' + linkID + '"]').closest('.item-container').remove();
 	  });
 	}
 	

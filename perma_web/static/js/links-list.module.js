@@ -37,7 +37,7 @@ function setupEventHandlers () {
 }
 
 function getLinkIDForFormElement (element) {
-  return element.closest('.item-container').find('.item-row').attr('link_id');
+  return element.closest('.item-container').find('.item-row').data('link_id');
 }
 
 function setupLinksTableEventHandlers () {
@@ -169,7 +169,7 @@ function handleMouseDown (e) {
     jstree: true,
     obj: $(e.currentTarget),
     nodes: [
-        {id: $(e.currentTarget).attr('link_id')}
+        {id: $(e.currentTarget).data('link_id')}
     ]
   }, '<div id="jstree-dnd" class="jstree-default"><i class="jstree-icon jstree-er"></i>[link]</div>');
 

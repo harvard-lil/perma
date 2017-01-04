@@ -22,7 +22,7 @@
     {% if not request.user.pending_registrar and not request.user.is_registrar_user %}
       <div class="col-sm-4 signup-learnMore-form">
         <h2 class="body-ah">Request library account</h2>
-        <form method="post" role="form">
+        <form method="post">
           {% csrf_token %}
           <h3 class="body-bh">Your library information</h3>
           {% include "includes/fieldset.html" with form=registrar_form %}
