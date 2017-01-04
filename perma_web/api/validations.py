@@ -101,6 +101,9 @@ class LinkValidation(DefaultValidation):
                         errors['url'] = "Couldn't load URL."
                     elif not self.is_valid_size(bundle.obj.headers):
                         errors['url'] = "Target page is too large (max size 1MB)."
+            except UnicodeError:
+                # see https://github.com/harvard-lil/perma/issues/1841
+                errors['url'] = "Unicode error while processing URL."
             except ValidationError:
                 errors['url'] = "Not a valid URL."
             except TooManyRedirects:

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 from .utils import TEST_ASSETS_DIR, ApiResourceTransactionTestCase
 from api.resources import LinkResource
@@ -34,6 +36,14 @@ class LinkValidationTestCase(ApiResourceTransactionTestCase):
     ########
     # URLs #
     ########
+    def test_should_fail_gracefully_if_passed_long_unicode(self):
+        '''
+            See https://github.com/harvard-lil/perma/issues/1841
+        '''
+        u = u"This is a block of text that contains 64 or more characters, including one or more unicode characters like ☃"
+        self.rejected_post(self.list_url,
+                           user=self.org_user,
+                           data={'url': u})
 
     @override_settings(BANNED_IP_RANGES=["0.0.0.0/8", "127.0.0.0/8"])
     def test_should_reject_invalid_ip(self):
