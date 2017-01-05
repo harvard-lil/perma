@@ -483,14 +483,14 @@ def proxy_capture(capture_job):
 
         # get all images in srcset tags
         def srcset_thread():
-            image_urls = []
+            image_urls = set()
             if have_html:
                 images = repeat_while_exception(lambda: browser.find_elements_by_css_selector('img[srcset], source[srcset]'),
                                                   timeout=10)
                 for img in images:
                     for src in img.get_attribute('srcset').split(','):
                         image_url = urlparse.urljoin(content_url, src.strip().split(' ')[0])
-                        image_urls.append(image_url)
+                        image_urls.add(image_url)
             if not image_urls:
                 return
 
