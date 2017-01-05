@@ -142,7 +142,7 @@ function showFolderContents (folderID, query) {
       if(links.length == requestCount){
         requestData.offset += requestCount;
         linkTable.find('.item-container:last').waypoint(function(direction) {
-          destroy();  // cancel waypoint
+          this.destroy();  // cancel waypoint
           linkTable.append('<div class="links-loading-more">Loading more ...</div>');
           getNextContents();
         }, {
