@@ -481,6 +481,24 @@ def proxy_capture(capture_job):
                 save_fields(link, is_private=True, private_reason='policy')
                 print "x-robots-tag found, darchiving"
 
+        # get all images in srcset tags
+        def srcset_thread():
+            image_urls = []
+            if have_html:
+                images = repeat_while_exception(lambda: browser.find_elements_by_css_selector('img[srcset], source[srcset]'),
+                                                  timeout=10)
+                for img in images:
+                    for src in img.get_attribute('srcset').split(','):
+                        image_url = urlparse.urljoin(content_url, src.strip().split(' ')[0])
+                        image_urls.append(image_url)
+            if not image_urls:
+                return
+
+            for image_url in image_urls:
+                image_response, e = get_url(image_url)
+
+        add_thread(thread_list, srcset_thread)
+
         # get favicon urls
         # Here we fetch everything in the page that's marked as a favicon, for archival purposes.
         # But we only record a favicon as our favicon_capture_url if it passes a mimetype whitelist.
