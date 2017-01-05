@@ -4,16 +4,16 @@ Dear {{ first_name }} {{ last_name }}:
 
 We're reaching out to all our registrar-partners with an update and important request. You are receiving this email because you are currently identified as a Registrar User for {{ registrar_name }}.
 
+Second, we need to confirm the contact info for your institution and its registrar users. Currently our records show that your general contact email is {{ registrar_email }} and that you have the following contact info:
+
+    General contact email: {{ registrar_email }}{% for user in registrar_users %}
+    {{ user.first_name }} {{ user.last_name }} - {{ user.email }}{% endfor %}
+
 First, below is an overview of Perma usage by those affiliated with your institution. If you have questions about these stats and the activity levels within your entity, please contact us.
 
     Perma Links created (total): {{ total_links }}
     Perma Links created (2017): {{ this_year_links }}
     Your most active organization: {{ most_active_org.name | default:"(no activity in your organizations this year)" }}
-
-Second, we need to confirm the contact info for your institution and its registrar users. Currently our records show that your general contact email is {{ registrar_email }} and that you have the following contact info:
-
-    General contact email: {{ registrar_email }}{% for user in registrar_users %}
-    {{ user.first_name }} {{ user.last_name }} - {{ user.email }}{% endfor %}
 
 If any of this information is wrong, please update your registrar user information at http://example.com and general contact email at http://example.com.
 
