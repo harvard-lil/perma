@@ -598,23 +598,30 @@ def proxy_capture(capture_job):
                     pass
             repeat_while_exception(scroll_browser)
 
-            # load audio/video/objects
-            if settings.ENABLE_AV_CAPTURE:
-                progress = int(progress) + 1
-                display_progress(progress, "Fetching audio/video objects")
-                with warn_on_exception("Error fetching audio/video objects"):
-                    # running in each frame ...
-                    def get_media_tags(browser):
+            # load media
+            progress = int(progress) + 1
+            display_progress(progress, "Fetching media")
+            with warn_on_exception("Error fetching media"):
+                # running in each frame ...
+                def get_media_tags(browser):
+                    url_set = []
+                    base_url = browser.current_url
 
-                        # fetch each audio/video/object/embed element
+                    def make_absolute_urls(urls):
+                        '''collect resource urls, converted to absolute urls relative to current browser frame'''
+                        return [urlparse.urljoin(base_url, url) for url in urls if url]
+
+                    # get all images in srcsets
+                    print("Fetching images in srcsets")
+                    for img in browser.find_elements_by_css_selector('img[srcset], source[srcset]'):
+                        urls = [src.strip().split(' ')[0] for src in img.get_attribute('srcset').split(',')]
+                        url_set.extend(make_absolute_urls(urls))
+
+                    # fetch each audio/video/object/embed element
+                    if settings.ENABLE_AV_CAPTURE:
+                        print("Fetching audio/video objects")
                         media_tags = sum((browser.find_elements_by_tag_name(tag_name) for tag_name in ('video', 'audio', 'object', 'embed')), [])
-                        if not media_tags:
-                            return []
-
-                        url_set = []
-                        base_url = browser.current_url
                         for tag in media_tags:
-
                             # for each tag, extract all resource urls
                             if tag.tag_name == 'object':
                                 # for <object>, get the data and archive attributes, prepended with codebase attribute if it exists,
@@ -631,15 +638,15 @@ def proxy_capture(capture_job):
                                 # for <audio>, <video>, and <embed>, get src attribute and any <source src="url"> elements
                                 urls = [tag.get_attribute('src')] + [source.get_attribute('src') for source in tag.find_elements_by_tag_name('source')]
 
-                            # collect resource urls, converted to absolute urls relative to current browser frame
-                            url_set.extend(urlparse.urljoin(base_url, url) for url in urls if url)
+                            url_set.extend(make_absolute_urls(urls))
 
-                        return url_set
-                    media_urls = run_in_frames(browser, get_media_tags)
+                    return url_set
 
-                    # grab all media urls that aren't already being grabbed
-                    for media_url in set(media_urls) - set(proxied_requests):
-                        add_thread(thread_list, ProxiedRequestThread(proxy_address, media_url))
+                media_urls = run_in_frames(browser, get_media_tags)
+
+                # grab all media urls that aren't already being grabbed
+                for media_url in set(media_urls) - set(proxied_requests):
+                    add_thread(thread_list, ProxiedRequestThread(proxy_address, media_url))
 
         # Wait AFTER_LOAD_TIMEOUT seconds for any requests to finish that are started within the next .5 seconds.
         progress = int(progress) + 1

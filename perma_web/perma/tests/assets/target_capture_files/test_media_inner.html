@@ -11,5 +11,12 @@
       <param name="quality" value="high"/>
       <embed src="test3.swf"></embed>
     </object>
+    <img srcset="test1.jpg 1x, test2.png 2x" src="test_fallback.jpg">
+    <picture>
+      <source media="(min-width: 600px)"
+              srcset="wide1.png 800w, wide2.png 1200w"
+              sizes="100vw">
+      <img src="narrow.png">
+    </picture>
   </body>
 </html>

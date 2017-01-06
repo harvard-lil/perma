@@ -253,12 +253,26 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         link = Link.objects.get(guid=obj['guid'])
         self.assertValidCapture(link.primary_capture)
 
+    def test_should_capture_all_srcset_images(self):
+        target_folder = self.org_user.root_folder
+        obj = self.successful_post(self.list_url,
+                                   data={
+                                       'url': self.server_url + "/test_media_outer.html",
+                                       'folder': target_folder.pk,
+                                   },
+                                   user=self.org_user)
+
+        # verify that all images in src and srcset were found and captured
+        expected_captures = ("test1.jpg", "test2.png", "test_fallback.jpg", "wide1.png", "wide2.png", "narrow.png")
+        for expected_capture in expected_captures:
+            self.assertEqual('200', CDXLine.objects.get(urlkey=surt(self.server_url + "/" + expected_capture), link_id=obj['guid']).parsed['status'])
+
     def test_should_capture_nested_audio_file(self):
         settings.ENABLE_AV_CAPTURE = True
         target_folder = self.org_user.root_folder
         obj = self.successful_post(self.list_url,
                                    data={
-                                       'url': self.server_url + "/test_wav_outer.html",
+                                       'url': self.server_url + "/test_media_outer.html",
                                        'folder': target_folder.pk,
                                    },
                                    user=self.org_user)
