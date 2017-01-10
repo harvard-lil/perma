@@ -869,12 +869,16 @@ def delete_from_internet_archive(self, link_guid):
 
 @shared_task()
 def upload_all_to_internet_archive():
-    # find all links created 48-24 hours ago
-    # include timezone
-    start_date = timezone.now() - timedelta(days=2)
-    end_date   = timezone.now() - timedelta(days=1)
+    """
+        Links to upload:
+        - links that have not started to upload
+        - links that have failed to upload but not failed permanently (those should not exist, but doesn't hurt to look)
+        - links that have previously been deleted from internet archive (is_private=True) but have since been made public
+    """
+    links = Link.objects.filter(Q(internet_archive_upload_status='not_started') |
+                                Q(internet_archive_upload_status='failed') | 
+                                Q(internet_archive_upload_status='deleted', is_private=False))
 
-    links = Link.objects.filter(Q(internet_archive_upload_status='not_started') | Q(internet_archive_upload_status='failed'), creation_timestamp__range=(start_date, end_date))
     for link in links:
         if link.can_upload_to_internet_archive():
             run_task(upload_to_internet_archive.s(link_guid=link.guid))
