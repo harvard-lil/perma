@@ -874,10 +874,12 @@ def upload_all_to_internet_archive():
         - links that have not started to upload
         - links that have failed to upload but not failed permanently (those should not exist, but doesn't hurt to look)
         - links that have previously been deleted from internet archive (is_private=True) but have since been made public
+        - only links that are older than 24 hours
     """
-    links = Link.objects.filter(Q(internet_archive_upload_status='not_started') |
-                                Q(internet_archive_upload_status='failed') | 
-                                Q(internet_archive_upload_status='deleted', is_private=False))
+    links = Link.objects.filter((Q(internet_archive_upload_status='not_started') |
+                                Q(internet_archive_upload_status='failed') |
+                                Q(internet_archive_upload_status='deleted', is_private=False)) &
+                                Q(creation_timestamp__lte=timezone.now()-timedelta(days=1)))
 
     for link in links:
         if link.can_upload_to_internet_archive():
