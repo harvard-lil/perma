@@ -5660,6 +5660,7 @@ li.dropdown {
 input.tray-detail-entry {
   display: block;
   border: none;
+  width: 100%;
 }
 
 p.fp {
