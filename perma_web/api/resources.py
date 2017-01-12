@@ -365,7 +365,7 @@ class BaseLinkResource(MultipartResource, DefaultResource):
 
     class Meta(DefaultResource.Meta):
         resource_name = 'archives'
-        queryset = Link.objects.order_by('-creation_timestamp').select_related('organization', 'organization__registrar').prefetch_related('captures')
+        queryset = Link.objects.order_by('-creation_timestamp').select_related('organization', 'organization__registrar', 'capture_job').prefetch_related('captures')
         validation = LinkValidation()
         filters = {
             'submitted_url':'icontains'
