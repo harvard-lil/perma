@@ -271,6 +271,7 @@ def upload_all_to_internet_archive(chunksize=100):
     from perma.tasks import upload_to_internet_archive
     from perma.models import Link
     from datetime import timedelta
+    from django.db.models import Q
 
     links = Link.objects.filter((Q(internet_archive_upload_status='not_started') |
                                 Q(internet_archive_upload_status='failed') |
