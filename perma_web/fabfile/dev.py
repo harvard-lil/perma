@@ -266,6 +266,32 @@ def test_internet_archive():
     print all_results
 
 @task
+def upload_all_to_internet_archive():
+    from django.utils import timezone
+    from perma.tasks import upload_to_internet_archive
+    from perma.models import Link
+    from datetime import timedelta
+
+    links = Link.objects.filter((Q(internet_archive_upload_status='not_started') |
+                                Q(internet_archive_upload_status='failed') |
+                                Q(internet_archive_upload_status='deleted', is_private=False)) &
+                                Q(creation_timestamp__lte=timezone.now()-timedelta(days=1), is_private=False, is_unlisted=False)
+                                ).order_by('creation_timestamp')
+
+    def link_queryset_iterator(queryset, chunksize=100):
+        idx = 0
+        count = queryset.count()
+        while idx < count:
+            new_idx = chunksize+idx
+            yield queryset[idx:new_idx]
+            idx = new_idx
+
+    link_queryset = link_queryset_iterator(links)
+
+    for link in link_queryset:
+        upload_to_internet_archive(link.guid)
+
+@task
 def regenerate_urlkeys(urlkey_prefix='file'):
     """
         Rewrite CDXLine urlkeys using the current version of the surt library.
