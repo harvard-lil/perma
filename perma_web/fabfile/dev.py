@@ -266,7 +266,7 @@ def test_internet_archive():
     print all_results
 
 @task
-def upload_all_to_internet_archive():
+def upload_all_to_internet_archive(chunksize=100):
     from django.utils import timezone
     from perma.tasks import upload_to_internet_archive
     from perma.models import Link
@@ -278,7 +278,7 @@ def upload_all_to_internet_archive():
                                 Q(creation_timestamp__lte=timezone.now()-timedelta(days=1), is_private=False, is_unlisted=False)
                                 ).order_by('creation_timestamp')
 
-    def link_queryset_iterator(queryset, chunksize=100):
+    def link_queryset_iterator(queryset, chunksize):
         idx = 0
         count = queryset.count()
         while idx < count:
