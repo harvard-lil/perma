@@ -346,6 +346,22 @@ class BaseLinkResource(MultipartResource, DefaultResource):
     title = fields.CharField(attribute='submitted_title', blank=True)
     warc_size = fields.IntegerField(attribute='warc_size', blank=True, null=True)
     captures = fields.ToManyField(CaptureResource, 'captures', readonly=True, full=True)
+    queue_time = fields.IntegerField(readonly=True, null=True)
+    capture_time = fields.IntegerField(readonly=True, null=True)
+
+    def dehydrate_queue_time(self, bundle):
+        try:
+            delta = bundle.obj.capture_job.capture_start_time - bundle.obj.creation_timestamp
+            return delta.seconds
+        except:
+            return None
+
+    def dehydrate_capture_time(self, bundle):
+        try:
+            delta = bundle.obj.capture_job.capture_end_time - bundle.obj.capture_job.capture_start_time
+            return delta.seconds
+        except:
+            return None
 
     class Meta(DefaultResource.Meta):
         resource_name = 'archives'
