@@ -131,6 +131,7 @@ function uploadNot (jqXHR) {
   }
 
   $('#upload-error').text('Upload failed. ' + reasons.join(". "));
+  DOMHelpers.toggleBtnDisable('#uploadLinky', false);
 }
 
 function uploadIt (data) {
@@ -336,6 +337,7 @@ function setupEventHandlers () {
 
   // When a user uploads their own capture
   $(document).on('submit', '#archive_upload_form', function() {
+    DOMHelpers.toggleBtnDisable('#uploadLinky', true);
     var extraUploadData = {},
       selectedFolder = ls.getCurrent().folderId;
     if(selectedFolder)
