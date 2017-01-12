@@ -355,6 +355,7 @@ webpackJsonp([1],[
 	  // If a user wants to upload their own screen capture, we display
 	  // a modal and the form in that modal is handled here
 	  $('#archive-upload').modal('hide');
+	
 	  window.location.href = '/' + data.guid;
 	}
 	
@@ -540,7 +541,6 @@ webpackJsonp([1],[
 	      success: uploadIt,
 	      error: uploadNot
 	    });
-	
 	    return false;
 	  });
 	
