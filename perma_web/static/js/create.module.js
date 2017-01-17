@@ -108,6 +108,8 @@ function uploadNot (jqXHR) {
     response = jqXHR.responseText;
   }
 
+  DOMHelpers.hideElement('.spinner');
+
   $('.js-warning').remove();
   $('.has-error').removeClass('has-error');
   if (response.archives) {
@@ -131,6 +133,8 @@ function uploadNot (jqXHR) {
   }
 
   $('#upload-error').text('Upload failed. ' + reasons.join(". "));
+  DOMHelpers.toggleBtnDisable('#uploadLinky', false);
+  DOMHelpers.toggleBtnDisable('.cancel', false);
 }
 
 function uploadIt (data) {
@@ -336,10 +340,14 @@ function setupEventHandlers () {
 
   // When a user uploads their own capture
   $(document).on('submit', '#archive_upload_form', function() {
+    DOMHelpers.toggleBtnDisable('#uploadLinky', true);
+    DOMHelpers.toggleBtnDisable('.cancel', true);
     var extraUploadData = {},
       selectedFolder = ls.getCurrent().folderId;
     if(selectedFolder)
       extraUploadData.folder = selectedFolder;
+    spinner = new Spinner({lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '300px'});
+    spinner.spin(this);
     $(this).ajaxSubmit({
                          data: extraUploadData,
                          success: uploadIt,
