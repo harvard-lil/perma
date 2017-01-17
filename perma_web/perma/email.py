@@ -80,14 +80,15 @@ def send_user_email_copy_admins(title, from_address, to_addresses, request, temp
 ### Collect user data, bundled for emails ###
 ###
 
-def registrar_users_plus_stats(destination=None):
+def registrar_users_plus_stats(destination=None, registrars=None):
     '''
         Returns all active registrar users plus assorted metadata as
         a list of dicts. If destination=cm, info is formatted for
         ingest by Campaign Monitor.
     '''
     users = []
-    registrars = Registrar.objects.all()
+    if type(registrars) == type(None):
+        registrars = Registrar.objects.all()
     for registrar in registrars:
         registrar_users = LinkUser.objects.filter(registrar = registrar.pk,
                                                   is_active = True,
