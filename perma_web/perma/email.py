@@ -87,7 +87,7 @@ def registrar_users_plus_stats(destination=None, registrars=None):
         ingest by Campaign Monitor.
     '''
     users = []
-    if type(registrars) == type(None):
+    if registrars is None:
         registrars = Registrar.objects.all()
     for registrar in registrars:
         registrar_users = LinkUser.objects.filter(registrar = registrar.pk,
