@@ -427,16 +427,33 @@ def read_playback_tests(*filepaths):
     print "Total:", err_count
 
 @task
-def ping_registrar_users():
+def ping_registrar_users(limit_to="", limit_by_tag="", exclude="", exclude_by_tag=""):
     '''
        Sends an email to our current registrar users. See templates/email/registrar_user_ping.txt
+
+       Arguments should be strings, with multiple values separated by semi-colons
+       e.g. fab ping_registrar_users:limit_to="14;27;30",exclude_by_tag="opted_out"
+
+       Limit filters are applied before exclude filters.
     '''
     import json, logging
     from django.http import HttpRequest
+    from perma.models import Registrar
     from perma.email import send_user_email, send_admin_email, registrar_users_plus_stats
 
     logger = logging.getLogger(__name__)
-    users = registrar_users_plus_stats()
+
+    registrars = Registrar.objects.all()
+    if limit_to:
+        registrars = registrars.filter(id__in=limit_to.split(";"))
+    if limit_by_tag:
+        registrars = registrars.filter(tags__name__in=limit_by_tag.split(";")).distinct()
+    if exclude:
+        registrars = registrars.exclude(id__in=exclude.split(";"))
+    if exclude_by_tag:
+        registrars = registrars.exclude(tags__name__in=exclude_by_tag.split(";")).distinct()
+
+    users = registrar_users_plus_stats(registrars=registrars)
     logger.info("Begin emailing registrar users.")
     send_count = 0
     failed_list = []

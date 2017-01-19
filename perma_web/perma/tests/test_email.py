@@ -8,7 +8,7 @@ from django.db.models.query import QuerySet
 from django.http import HttpRequest
 
 from perma.email import registrar_users_plus_stats, users_to_unsubscribe, send_user_email_copy_admins
-from perma.models import LinkUser, Organization
+from perma.models import LinkUser, Organization, Registrar
 
 from .utils import PermaTestCase
 
@@ -36,6 +36,7 @@ class EmailTestCase(PermaTestCase):
         '''
         r_list = registrar_users_plus_stats()
         self.assertEqual(type(r_list), list)
+        self.assertGreater(len(r_list), 0)
         for user in r_list:
             self.assertEqual(type(user), dict)
             expected_keys = [ 'email',
@@ -63,12 +64,22 @@ class EmailTestCase(PermaTestCase):
             for user in user['registrar_users']:
                 self.assertEqual(type(user), LinkUser)
 
+    def test_registrar_users_plus_stats_specific_registrars(self):
+        '''
+            Returns data in the expected format.
+        '''
+        r_list = registrar_users_plus_stats(registrars=Registrar.objects.filter(email='library@university.edu'))
+        self.assertEqual(type(r_list), list)
+        self.assertEqual(len(r_list), 1)
+        self.assertEqual(r_list[0]['registrar_email'], 'library@university.edu')
+
     def test_registrar_users_plus_stats_cm(self):
         '''
             Returns data in the expected format for Campaign Monitor.
         '''
         r_list = registrar_users_plus_stats(destination="cm")
         self.assertEqual(type(r_list), list)
+        self.assertGreater(len(r_list), 0)
         for user in r_list:
             self.assertEqual(type(user), dict)
             self.assertEqual(sorted(user.keys()), ['CustomFields','EmailAddress','Name' ])
