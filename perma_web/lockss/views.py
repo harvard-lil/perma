@@ -2,6 +2,7 @@ from urlparse import urljoin
 from wsgiref.util import FileWrapper
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
+import logging
 
 from django.utils import timezone
 from django.conf import settings
@@ -12,6 +13,7 @@ from django.shortcuts import get_object_or_404, render
 from perma.models import Link
 from .models import *
 
+logger = logging.getLogger(__name__)
 
 ### HELPERS ###
 
