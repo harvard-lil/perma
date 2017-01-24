@@ -44,6 +44,7 @@ class EmailTestCase(PermaTestCase):
                               'last_name',
                               'most_active_org',
                               'registrar_email',
+                              'registrar_id',
                               'registrar_name',
                               'registrar_users',
                               'this_year_links',
@@ -58,6 +59,7 @@ class EmailTestCase(PermaTestCase):
             self.assertTrue(perma_user.is_confirmed)
             self.assertEqual(type(user['total_links']), long)
             self.assertEqual(type(user['this_year_links']), int)
+            self.assertEqual(type(user['registrar_id']), long)
             self.assertIsInstance(user['most_active_org'], (Organization, type(None)))
             self.assertEqual(type(user['registrar_users']), QuerySet)
             self.assertGreaterEqual(len(user['registrar_users']), 1)
@@ -87,8 +89,9 @@ class EmailTestCase(PermaTestCase):
                 self.assertEqual(type(user[key]), unicode)
                 self.assertTrue(user[key])
             self.assertEqual(type(user['CustomFields']), list)
-            self.assertEqual(len(user['CustomFields']), 6)
+            self.assertEqual(len(user['CustomFields']), 7)
             custom_field_list = [ 'MostActiveOrg',
+                                  'RegistrarId',
                                   'RegistrarEmail',
                                   'RegistrarName',
                                   'RegistrarUsers',
