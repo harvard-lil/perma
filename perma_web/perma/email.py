@@ -97,6 +97,7 @@ def registrar_users_plus_stats(destination=None, registrars=None):
             users.append({ "first_name": user.first_name,
                            "last_name": user.last_name,
                            "email": user.email,
+                           "registrar_id": registrar.id,
                            "registrar_email": registrar.email,
                            "registrar_name": registrar.name,
                            "total_links": registrar.link_count,
@@ -135,6 +136,7 @@ def format_for_cm_registrar_users(users):
         formatted['Name'] = format_name(user)
         formatted['EmailAddress'] = user["email"]
         formatted['CustomFields'] = [
+            {"Key": "RegistrarId", "Value":  unicode(user["registrar_id"])},
             {"Key": "RegistrarEmail", "Value":  user["registrar_email"]},
             {"Key": "RegistrarName", "Value": user["registrar_name"]},
             {"Key": "TotalLinks", "Value": unicode(user["total_links"])},

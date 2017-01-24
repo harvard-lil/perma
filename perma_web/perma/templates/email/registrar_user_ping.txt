@@ -8,8 +8,8 @@ First, a request: We need to confirm the contact info for your institution and i
 
     General contact email: {{ registrar_email }}{% for user in registrar_users %}
     {{ user.first_name }} {{ user.last_name }} - {{ user.email }}{% endfor %}
-    
-If any of this information is wrong, please update your registrar user information at http://example.com and general contact email at http://example.com.
+
+If any of this information is wrong, please update your registrar user information at http://perma.cc/manage/registrar-users and general contact email at http://perma.cc/manage/registrars/{{ registrar_id }}.
 
 Second: Below is an overview of Perma usage by those affiliated with your institution. If you have questions about these stats and the activity levels within your entity, please contact us.
 
