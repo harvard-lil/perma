@@ -1,6 +1,7 @@
 import logging
 from createsend import Subscriber, List
 from collections import defaultdict
+from datetime import datetime
 
 from django.conf import settings
 from django.core.mail import EmailMessage, send_mail
@@ -80,13 +81,18 @@ def send_user_email_copy_admins(title, from_address, to_addresses, request, temp
 ### Collect user data, bundled for emails ###
 ###
 
-def registrar_users_plus_stats(destination=None, registrars=None):
+def registrar_users_plus_stats(destination=None, registrars=None, year=None):
     '''
         Returns all active registrar users plus assorted metadata as
         a list of dicts. If destination=cm, info is formatted for
-        ingest by Campaign Monitor.
+        ingest by Campaign Monitor. By default, uses stats from current
+        calendar year.
     '''
     users = []
+    if year is None:
+        year = datetime.now().year
+    start_time = datetime(year, 1, 1)
+    end_time = datetime(year + 1, 1, 1)
     if registrars is None:
         registrars = Registrar.objects.all()
     for registrar in registrars:
@@ -101,8 +107,8 @@ def registrar_users_plus_stats(destination=None, registrars=None):
                            "registrar_email": registrar.email,
                            "registrar_name": registrar.name,
                            "total_links": registrar.link_count,
-                           "this_year_links": registrar.link_count_this_year(),
-                           "most_active_org": registrar.most_active_org(),
+                           "year_links": registrar.link_count_in_time_period(start_time, end_time),
+                           "most_active_org": registrar.most_active_org_in_time_period(start_time, end_time),
                            "registrar_users": registrar_users })
     if destination == 'cm':
         return format_for_cm_registrar_users(users)
@@ -140,7 +146,7 @@ def format_for_cm_registrar_users(users):
             {"Key": "RegistrarEmail", "Value":  user["registrar_email"]},
             {"Key": "RegistrarName", "Value": user["registrar_name"]},
             {"Key": "TotalLinks", "Value": unicode(user["total_links"])},
-            {"Key": "ThisYearLinks", "Value": unicode(user["this_year_links"])},
+            {"Key": "YearLinks", "Value": unicode(user["year_links"])},
             {"Key": "MostActiveOrg", "Value": most_active_org_text},
             {"Key": "RegistrarUsers", "Value": format_registrar_users(user['registrar_users'])}
         ]

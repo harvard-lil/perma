@@ -14,8 +14,8 @@ If any of this information is wrong, please update your registrar user informati
 Second: Below is an overview of Perma usage by those affiliated with your institution. If you have questions about these stats and the activity levels within your entity, please contact us.
 
     Perma Links created (total): {{ total_links }}
-    Perma Links created (2017): {{ this_year_links }}
-    Your most active organization: {{ most_active_org.name | default:"(no activity in your organizations this year)" }}
+    Perma Links created ({{ year }}): {{ year_links }}
+    Your most active organization ({{ year }}): {{ most_active_org.name | default:"(no activity in your organizations)" }}
 
 Third: We've observed that many questions sent to us by users are best addressed by their respective Registrars. In coming weeks, we'll be making it easier for Perma users in your community to connect with you when they have basic questions about Perma. This, in turn, will give you more visibility into how your community is using this service. Our team will remain focused on improving the Perma service and working directly with you to make sure that it meets your community’s needs.
 
