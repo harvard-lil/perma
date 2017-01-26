@@ -62,6 +62,22 @@ def link_count_in_time_period(links, start_time=None, end_time=None):
             links = links.filter(creation_timestamp__lte=end_time)
     return links.count()
 
+def most_active_org_in_time_period(organizations, start_time=None, end_time=None):
+    if start_time and end_time and (start_time > end_time):
+        raise ValueError("specified end time is earlier than specified start time")
+    # unlike 'link_count_in_time_period', no special behavior required
+    # if start_time = end_time here. the end result is the same
+    else:
+        if start_time:
+            organizations = organizations.filter(links__creation_timestamp__gte=start_time)
+        if end_time:
+            organizations = organizations.filter(links__creation_timestamp__lte=end_time)
+        return organizations\
+            .annotate(num_links=Count('links'))\
+            .exclude(num_links=0)\
+            .order_by('-num_links')\
+            .first()
+
 # classes
 
 class DeletableManager(models.Manager):
@@ -131,12 +147,11 @@ class Registrar(models.Model):
     def link_count_this_year(self):
         return self.link_count_in_time_period(datetime(datetime.now().year, 1, 1))
 
-    def most_active_org(self):
-        return self.organizations\
-            .filter(links__creation_timestamp__gte=datetime(datetime.now().year, 1, 1))\
-            .annotate(num_links=Count('links'))\
-            .order_by('-num_links')\
-            .first()
+    def most_active_org_in_time_period(self, start_time=None, end_time=None):
+        return most_active_org_in_time_period(self.organizations, start_time, end_time)
+
+    def most_active_org_this_year(self):
+        return most_active_org_in_time_period(self.organizations, datetime(datetime.now().year, 1, 1))
 
     def active_registrar_users(self):
         return self.users.filter(is_active=True)

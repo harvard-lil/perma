@@ -427,7 +427,7 @@ def read_playback_tests(*filepaths):
     print "Total:", err_count
 
 @task
-def ping_registrar_users(limit_to="", limit_by_tag="", exclude="", exclude_by_tag=""):
+def ping_registrar_users(limit_to="", limit_by_tag="", exclude="", exclude_by_tag="", year=""):
     '''
        Sends an email to our current registrar users. See templates/email/registrar_user_ping.txt
 
@@ -437,6 +437,7 @@ def ping_registrar_users(limit_to="", limit_by_tag="", exclude="", exclude_by_ta
        Limit filters are applied before exclude filters.
     '''
     import json, logging
+    from datetime import datetime
     from django.http import HttpRequest
     from perma.models import Registrar
     from perma.email import send_user_email, send_admin_email, registrar_users_plus_stats
@@ -452,15 +453,22 @@ def ping_registrar_users(limit_to="", limit_by_tag="", exclude="", exclude_by_ta
         registrars = registrars.exclude(id__in=exclude.split(";"))
     if exclude_by_tag:
         registrars = registrars.exclude(tags__name__in=exclude_by_tag.split(";")).distinct()
+    if year:
+        year = int(year)
+    else:
+        year = datetime.now().year - 1
 
-    users = registrar_users_plus_stats(registrars=registrars)
+    users = registrar_users_plus_stats(registrars=registrars, year=year)
     logger.info("Begin emailing registrar users.")
     send_count = 0
     failed_list = []
     for user in users:
+        context = {}
+        context.update(user)
+        context["year"] = year
         succeeded = send_user_email(user['email'],
                                     'email/registrar_user_ping.txt',
-                                     user)
+                                     context)
         if succeeded:
             send_count += 1
         else:
