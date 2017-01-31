@@ -17,7 +17,9 @@ def run_django(port="0.0.0.0:8000"):
         Run django test server on open port, so it's accessible outside Vagrant.
     """
     commands = [
-        'celery -A perma worker --loglevel=info -B',
+        # This causes a documented memory leak: commented out for convenience.
+        # Turn on if you need it.
+        # 'celery -A perma worker --loglevel=info -B',
         'npm start'
     ]
 
