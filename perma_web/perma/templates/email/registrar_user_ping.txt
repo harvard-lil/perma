@@ -4,12 +4,12 @@ Dear {{ first_name }} {{ last_name }}:
 
 We're reaching out to you, our registrar-partners, with an important request and a few updates. You are receiving this email because you are currently identified as a Registrar User for {{ registrar_name }}.
 
-First, a request: We need to confirm the contact info for your institution and its registrar users. Currently our records show that your general contact email is {{ registrar_email }} and that you have the following contact info:
+First, a request: We need to confirm the contact info for your institution and its registrar users. Currently our records show that you have the following contact info:
 
     General contact email: {{ registrar_email }}{% for user in registrar_users %}
     {{ user.first_name }} {{ user.last_name }} - {{ user.email }}{% endfor %}
 
-If any of this information is wrong, please update your registrar user information at http://perma.cc/manage/registrar-users and general contact email at http://perma.cc/manage/registrars/{{ registrar_id }}.
+If any of this information is wrong, please update your user information at https://perma.cc/settings/profile and general contact email at http://perma.cc/manage/registrars/{{ registrar_id }}.
 
 Second: Below is an overview of Perma usage by those affiliated with your institution. If you have questions about these stats and the activity levels within your entity, please contact us.
 
@@ -17,9 +17,9 @@ Second: Below is an overview of Perma usage by those affiliated with your instit
     Perma Links created ({{ year }}): {{ year_links }}
     Your most active organization ({{ year }}): {{ most_active_org.name | default:"(no activity in your organizations)" }}
 
-Third: We've observed that many questions sent to us by users are best addressed by their respective Registrars. In coming weeks, we'll be making it easier for Perma users in your community to connect with you when they have basic questions about Perma. This, in turn, will give you more visibility into how your community is using this service. Our team will remain focused on improving the Perma service and working directly with you to make sure that it meets your community’s needs.
+Third: In coming weeks, we'll be making a change so that user questions submitted through the Perma site are emailed directly to you as their registrar user - hence the above confirmation of contact info. This will make it easier for users in your community to connect with you when they have basic questions about Perma and, in turn, give you more visibility into how your community is using this service. Our team will remain focused on improving the Perma service, will be cc'd on these emails and are available to assist with bugs or technical issues. For more on this change, see here: http://blogs.harvard.edu/perma/2017/01/31/improving-communication-between-registrars-and-users/
 
-Lastly: Our team has prepared a short Guide to Perma.cc for Journal Editors, which we hope you and the journals you support will find helpful. A PDF of the guide is attached, and we've also posted the text at http://example.com so that you can adapt it as needed. Please feel free to share this resource with your journals.
+Lastly: Our team has prepared a new series of guides for registrars and those they support; they are available both as PDFs and, if you'd like to adapt the text directly, on Google Docs. Find these guides for academic journals, faculty, and registrar users/librarians here: https://perma.cc/docs/libraries#user-resources. Take a look, and feel free to share these resources with those in your community.
 
 As always, we welcome your ideas and feedback, and thank you for supporting Perma.cc!
 
