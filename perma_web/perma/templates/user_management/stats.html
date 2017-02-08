@@ -62,8 +62,8 @@
             <th>Success</th>
             <th>Pending</th>
             <th>Failed</th>
-            <th>Average Capture Time</th>
-            <th>Average Queue Time</th>
+            <th>Capture Time (5% / 50% / 95%)</th>
+            <th>Queue Time (5% / 50% / 95%)</th>
             <th colspan="6">Top Users</th>
           </tr>
           {{#each days}}
@@ -73,8 +73,8 @@
               <td>{{ statuses.success }}</td>
               <td>{{ statuses.pending }}</td>
               <td>{{ statuses.failed }}</td>
-              <td>{{ capture_times.average_capture_time }}</td>
-              <td>{{ capture_times.average_wait_time }}</td>
+              <td>{{ capture_time_dist }}</td>
+              <td>{{ wait_time_dist }}</td>
               {{#each top_users}}
                 <td>{{ email }}</td>
                 <td>{{ links_count }}</td>

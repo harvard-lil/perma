@@ -98,16 +98,25 @@ def stats(request, stat_type=None):
                                    .filter(role='primary', link__creation_timestamp__gt=start_date, link__creation_timestamp__lt=end_date)
                                    .values('status')
                                    .annotate(count=Count('status')),
-                'capture_times': list(CaptureJob.objects
-                                                .filter(link__creation_timestamp__gt=start_date, link__creation_timestamp__lt=end_date)
-                                                .annotate(average_wait_time=RawSQL("avg(capture_start_time-creation_timestamp)", []))
-                                                .annotate(average_capture_time=RawSQL("avg(capture_end_time-capture_start_time)", []))[:1]
-                                                .values('average_capture_time', 'average_wait_time'))[0]
+                'capture_time_dist': '-',
+                'wait_time_dist': '-',
             }
+
+            # calculate 5%/50%/95% capture and wait timings
+            capture_time_fields = CaptureJob.objects.filter(
+                link__creation_timestamp__gt=start_date, link__creation_timestamp__lt=end_date
+            ).values(
+                'capture_start_time', 'link__creation_timestamp', 'capture_end_time'
+            )
+            if capture_time_fields:
+                ctf_len = len(capture_time_fields)
+                capture_times = sorted(c['capture_end_time']-c['capture_start_time'] for c in capture_time_fields)
+                wait_times = sorted(c['capture_start_time']-c['link__creation_timestamp'] for c in capture_time_fields)
+                day['capture_time_dist'] = " / ".join(str(i) for i in [capture_times[int(ctf_len*.05)], capture_times[int(ctf_len*.5)], capture_times[int(ctf_len*.95)]])
+                day['wait_time_dist'] = " / ".join(str(i) for i in [wait_times[int(ctf_len*.05)], wait_times[int(ctf_len*.5)], wait_times[int(ctf_len*.95)]])
+
             day['statuses'] = dict((x['status'], x['count']) for x in day['statuses'])
             day['link_count'] = sum(day['statuses'].values())
-            for k, v in day['capture_times'].items():
-                day['capture_times'][k] = round(float(v) if v else 0, 1)
             out['days'].append(day)
 
     elif stat_type == "emails":
