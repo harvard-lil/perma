@@ -4,21 +4,21 @@ Dear {{ first_name }} {{ last_name }}:
 
 We're reaching out to you, our registrar-partner, with an important request and a few updates. You are receiving this email because you're currently identified as a Registrar User for {{ registrar_name }}.
 
-*First, a request: We need to confirm the contact info for your institution and its registrar users. Our records show that you have the following contact info:
+* First, a request: We need to confirm the contact info for your institution and its registrar users. Our records show that you have the following contact info:
     General contact email: {{ registrar_email }}{% for user in registrar_users %}
     {{ user.first_name }} {{ user.last_name }} - {{ user.email }}{% endfor %}
     
 If any of this information is wrong, please update the general contact email at http://perma.cc/manage/registrars/2 and registrar user list at https://perma.cc/manage/registrar-users.
 
-*Second: Below is an overview of Perma usage by those affiliated with your institution. If you have questions about these stats and the activity levels within your entity, please contact us.
+* Second: Below is an overview of Perma usage by those affiliated with your institution. If you have questions about these stats and the activity levels within your entity, please contact us.
 
     Perma Links created (total): {{ total_links }}
     Perma Links created ({{ year }}): {{ year_links }}
     Your most active organization ({{ year }}): {{ most_active_org.name | default:"(no activity in your organizations)" }}
 
-*Third: In coming weeks, we'll be making a change so that user questions submitted through the Perma site are sent directly to you, their registrar user - hence the above confirmation of contact info. Our team will remain focused on improving Perma, will be cc'd on these emails and are available to assist with bugs or technical issues. For more on this change, see our blog post here: http://bit.ly/2kBtWo0
+* Third: In coming weeks, we'll be making a change so that user questions submitted through the Perma site are sent directly to you, their registrar user - hence the above confirmation of contact info. Our team will remain focused on improving Perma, will be cc'd on these emails and are available to assist with bugs or technical issues. For more on this change, see our blog post here: http://bit.ly/2kBtWo0
 
-*Lastly: Our team has prepared a series of guides for registrars and those they support, available both in PDF and on Google Docs, in case you'd like to adapt the text directly. Find guides for academic journals, faculty, and librarians/registrar users here: https://perma.cc/docs/libraries#user-resources. Please share these resources with those in your community!
+* Lastly: Our team has prepared a series of guides for registrars and those they support, available both in PDF and on Google Docs, in case you'd like to adapt the text directly. Find guides for academic journals, faculty, and librarians/registrar users here: https://perma.cc/docs/libraries#user-resources. Please share these resources with those in your community!
 
 As always, we welcome your ideas and feedback, and thank you for supporting Perma.cc!
 
