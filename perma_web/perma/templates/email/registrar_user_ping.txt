@@ -5,10 +5,11 @@ Dear {{ first_name }} {{ last_name }}:
 We're reaching out to you, our registrar-partner, with an important request and a few updates. You are receiving this email because you're currently identified as a Registrar User for {{ registrar_name }}.
 
 * First, a request: We need to confirm the contact info for your institution and its registrar users. Our records show that you have the following contact info:
+
     General contact email: {{ registrar_email }}{% for user in registrar_users %}
     {{ user.first_name }} {{ user.last_name }} - {{ user.email }}{% endfor %}
     
-If any of this information is wrong, please update the general contact email at http://perma.cc/manage/registrars/2 and registrar user list at https://perma.cc/manage/registrar-users.
+If any of this information is wrong, please update the general contact email at http://perma.cc/manage/registrars/{{ registrar_id }}, and registrar user list at https://perma.cc/manage/registrar-users.
 
 * Second: Below is an overview of Perma usage by those affiliated with your institution. If you have questions about these stats and the activity levels within your entity, please contact us.
 
