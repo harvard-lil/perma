@@ -110,10 +110,11 @@ def stats(request, stat_type=None):
             )
             if capture_time_fields:
                 ctf_len = len(capture_time_fields)
-                capture_times = sorted(c['capture_end_time']-c['capture_start_time'] for c in capture_time_fields)
-                wait_times = sorted(c['capture_start_time']-c['link__creation_timestamp'] for c in capture_time_fields)
-                day['capture_time_dist'] = " / ".join(str(i) for i in [capture_times[int(ctf_len*.05)], capture_times[int(ctf_len*.5)], capture_times[int(ctf_len*.95)]])
-                day['wait_time_dist'] = " / ".join(str(i) for i in [wait_times[int(ctf_len*.05)], wait_times[int(ctf_len*.5)], wait_times[int(ctf_len*.95)]])
+                if ctf_len == 3:
+                    capture_times = sorted(c['capture_end_time']-c['capture_start_time'] for c in capture_time_fields)
+                    wait_times = sorted(c['capture_start_time']-c['link__creation_timestamp'] for c in capture_time_fields)
+                    day['capture_time_dist'] = " / ".join(str(i) for i in [capture_times[int(ctf_len*.05)], capture_times[int(ctf_len*.5)], capture_times[int(ctf_len*.95)]])
+                    day['wait_time_dist'] = " / ".join(str(i) for i in [wait_times[int(ctf_len*.05)], wait_times[int(ctf_len*.5)], wait_times[int(ctf_len*.95)]])
 
             day['statuses'] = dict((x['status'], x['count']) for x in day['statuses'])
             day['link_count'] = sum(day['statuses'].values())
