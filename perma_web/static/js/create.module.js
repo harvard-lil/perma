@@ -416,11 +416,11 @@ export function init () {
 
       if (data.objects.length > 0) {
         var optgroup = data.objects[0].registrar;
+        $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
         data.objects.map(function (organization) {
           organizations[organization.id] = organization;
 
           if(organization.registrar !== optgroup) {
-            $organization_select.prepend("<li class='dropdown-header'>" + optgroup + "</li>");
             optgroup = organization.registrar;
             $organization_select.append("<li class='dropdown-header'>" + optgroup + "</li>");
           }
