@@ -107,7 +107,7 @@ def stats(request, stat_type=None):
                 link__creation_timestamp__gt=start_date, link__creation_timestamp__lt=end_date
             ).values(
                 'capture_start_time', 'link__creation_timestamp', 'capture_end_time'
-            )
+            ).exclude(capture_start_time=None).exclude(capture_end_time=None)
             if capture_time_fields:
                 ctf_len = len(capture_time_fields)
                 capture_times = sorted(c['capture_end_time']-c['capture_start_time'] for c in capture_time_fields)
