@@ -23,7 +23,9 @@ def django_url_prefix(request):
 
 def allow_by_ip(view_func):
     def authorize(request, *args, **kwargs):
-        user_ip = request.META.get('HTTP_X_REAL_IP', request.META['REMOTE_ADDR'])
+        # We are unsure if CloudFlare consistently uses HTTP_CF_CONNECTING_IP (current belief)
+        # or HTTP_X_REAL_IP (previous belief). Research and data needed.
+        user_ip = request.META.get('HTTP_CF_CONNECTING_IP', request.META['REMOTE_ADDR'])
         logger.warn(Mirror.get_cached_mirrors())
         for mirror in Mirror.get_cached_mirrors():
             logger.warn(user_ip)
