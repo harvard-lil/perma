@@ -263,7 +263,11 @@ class LinkUser(AbstractBaseUser):
 
     registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='users', help_text="If set, this user is a registrar user. This should not be set if org is set!")
     pending_registrar = models.ForeignKey(Registrar, blank=True, null=True, related_name='pending_users')
-    organizations = models.ManyToManyField(Organization, blank=True, related_name='users', help_text="If set, this user is an org user. This should not be set if registrar is set!")
+    organizations = models.ManyToManyField(Organization, blank=True, related_name='users',
+                                           help_text="If set, this user is an org user. This should not be set if registrar is set!<br><br>"
+                                                     "Note: <b>This list will include deleted orgs of which this user is a member.</b> This is a historical"
+                                                     " record and deleted org memberships cannot be removed.<br><br>"
+                                           )
     is_active = models.BooleanField(default=False)
     is_confirmed = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
