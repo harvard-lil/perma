@@ -4,13 +4,13 @@ from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
-from django.db.models import Count, Max
+from django.db.models import Count, Max, Q
 from django.db.models.sql.where import WhereNode
 
 from mptt.admin import MPTTModelAdmin
 from simple_history.admin import SimpleHistoryAdmin
 
-from .models import *
+from .models import Folder, Registrar, Organization, LinkUser, CaptureJob, Link, Capture
 from .admin_utils import new_class, InlineEditLinkMixin
 
 ### inlines ###
@@ -99,13 +99,17 @@ class LinkUserChangeForm(UserChangeForm):
     def __init__(self, *args, **kwargs):
         super(LinkUserChangeForm, self).__init__(*args, **kwargs)
 
+        # make sure that user's current organizations show even if they have been deleted
+        self.initial['organizations'] = Organization.objects.all_with_deleted().filter(users__id=kwargs['instance'].pk)
+        self.fields['organizations'].queryset = Organization.objects.all_with_deleted()\
+            .filter(Q(user_deleted=False)|Q(pk__in=self.initial['organizations']))
+
     def clean(self):
         cleaned_data = super(LinkUserChangeForm, self).clean()
 
         # check that we're not trying to set both a registrar and an org
         if cleaned_data.get('registrar') and cleaned_data.get('organization'):
             raise ValidationError("User may have either an org or registrar but not both.")
-
         return cleaned_data
 
 
