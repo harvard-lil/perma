@@ -581,12 +581,13 @@ class LinkQuerySet(QuerySet):
         return self.filter(is_unlisted=False, is_private=False)
 
     def visible_to_lockss(self):
+        """
+            expose the bundled WARC if any non-favicon capture succeeded
+        """
         return self.filter(
             archive_timestamp__lte=timezone.now(),
             captures__status='success',
             user_deleted=False
-        ).exclude(
-            archive_timestamp=None
         ).exclude(
             private_reason__in=['user', 'takedown']
         )
