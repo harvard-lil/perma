@@ -40,7 +40,7 @@ def allow_by_ip(view_func):
 
 @allow_by_ip
 def search(request):
-    updates = Link.objects.filter(archive_timestamp__lte=timezone.now()).exclude(archive_timestamp=None).order_by('archive_timestamp')
+    updates = Link.objects.visible_to_lockss().order_by('archive_timestamp')
 
     # apply from_date
     if 'updates_since' in request.GET:
