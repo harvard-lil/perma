@@ -1,0 +1,73 @@
+<map>
+  <entry>
+    <string>plugin_config_props</string>
+    <list>
+      <org.lockss.daemon.ConfigParamDescr>
+        <key>base_url</key>
+        <displayName>Base URL</displayName>
+        <description>Usually of the form http://&lt;journal-name&gt;.com/</description>
+        <type>3</type>
+        <size>40</size>
+        <definitional>true</definitional>
+        <defaultOnly>false</defaultOnly>
+      </org.lockss.daemon.ConfigParamDescr>
+      <org.lockss.daemon.ConfigParamDescr>
+        <key>year</key>
+        <displayName>Year</displayName>
+        <description>Four digit year (e.g., 2004)</description>
+        <type>4</type>
+        <size>4</size>
+        <definitional>true</definitional>
+        <defaultOnly>false</defaultOnly>
+      </org.lockss.daemon.ConfigParamDescr>
+      <org.lockss.daemon.ConfigParamDescr>
+        <key>month</key>
+        <displayName>Month</displayName>
+        <description>Archive creation month (between 1 and 12)</description>
+        <type>2</type>
+        <size>2</size>
+        <definitional>true</definitional>
+        <defaultOnly>false</defaultOnly>
+      </org.lockss.daemon.ConfigParamDescr>
+    </list>
+  </entry>
+  <entry>
+    <string>au_name</string>
+    <string>&quot;Perma Captures For %d-%.02d&quot;, year, month</string>
+  </entry>
+  <entry>
+    <string>au_permission_url</string>
+    <string>"%slockss/permission/", base_url</string>
+  </entry>
+  <entry>
+    <string>au_def_pause_time</string>
+    <long>1000</long>
+  </entry>
+  <entry>
+    <string>au_def_new_content_crawl</string>
+    <long>300000</long>
+  </entry>
+  <entry>
+    <string>plugin_name</string>
+    <string>Perma Plugin</string>
+  </entry>
+  <entry>
+    <string>plugin_notes</string>
+    <string>notes</string>
+  </entry>
+  <entry>
+    <string>plugin_identifier</string>
+    <string>cc.perma.plugin.PermaPlugin</string>
+  </entry>
+  <entry>
+    <string>au_crawlrules</string>
+    <list>
+      <string>4,&quot;^%s&quot;, base_url</string>
+      <string>1,&quot;^%slockss/fetch/.*\.warc\.gz&quot;, base_url</string>
+    </list>
+  </entry>
+  <entry>
+    <string>plugin_crawl_seed_factory</string>
+    <string>cc.perma.plugin.PermaCrawlSeedFactory</string>
+  </entry>
+</map>
