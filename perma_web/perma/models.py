@@ -580,6 +580,17 @@ class LinkQuerySet(QuerySet):
         """ Limit queryset to Links that can be publicly found by searching. """
         return self.filter(is_unlisted=False, is_private=False)
 
+    def visible_to_lockss(self):
+        return self.filter(
+            archive_timestamp__lte=timezone.now(),
+            captures__status='success',
+            user_deleted=False
+        ).exclude(
+            archive_timestamp=None
+        ).exclude(
+            private_reason__in=['user', 'takedown']
+        )
+
 
 LinkManager = DeletableManager.from_queryset(LinkQuerySet)
 
