@@ -590,7 +590,7 @@ class LinkQuerySet(QuerySet):
             user_deleted=False
         ).exclude(
             private_reason__in=['user', 'takedown']
-        )
+        ).distinct()
 
 
 LinkManager = DeletableManager.from_queryset(LinkQuerySet)
