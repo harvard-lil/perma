@@ -603,7 +603,7 @@ def proxy_capture(capture_job):
                         # to try the javascript method regardless.
                         meta_dict = [{"name": tag.get_attribute('name'), "content": tag.get_attribute("content")} for tag in meta_tags]
                     except:
-                        meta_dict = repeat_until_truthy(js_get_tags, sleep_time=1)
+                        meta_dict = repeat_until_truthy(js_get_tags, sleep_time=1, raise_after_timeout=False)
                         if not meta_dict:
                             # if still no meta tags at all, then this process has failed.
                             # default to private, and allow the user to override.
