@@ -584,10 +584,11 @@ class LinkQuerySet(QuerySet):
         """
             expose the bundled WARC if any non-favicon capture succeeded
         """
+        capture_filter = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
         return self.filter(
             archive_timestamp__lte=timezone.now(),
-            captures__status='success',
-            user_deleted=False
+            user_deleted=False,
+            captures__in=Capture.objects.filter(capture_filter)
         ).exclude(
             private_reason__in=['user', 'takedown']
         ).distinct()
@@ -617,7 +618,7 @@ class Link(DeletableModel):
     warc_size = models.IntegerField(blank=True, null=True)
 
     is_private = models.BooleanField(default=False)
-    private_reason = models.CharField(max_length=10, blank=True, null=True, choices=(('policy','Robots.txt or meta tag'),('user','At user direction'),('takedown','At request of content owner')))
+    private_reason = models.CharField(max_length=10, blank=True, null=True, choices=(('policy','Robots.txt or meta tag'),('user','At user direction'),('takedown','At request of content owner'),('failure','Analysis of meta tags failed')))
     is_unlisted = models.BooleanField(default=False)
 
     archive_timestamp = models.DateTimeField(blank=True, null=True, help_text="Date after which this link is eligible to be copied by the mirror network.")
