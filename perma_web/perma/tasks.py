@@ -216,12 +216,12 @@ def repeat_until_truthy(func, timeout=10, sleep_time=.1, raise_after_timeout=Tru
     end_time = time.time() + timeout
     result = None
     while not result:
-        result = func()
         if time.time() > end_time:
             if raise_after_timeout:
                 raise
             break
         time.sleep(sleep_time)
+        result = func()
     return result
 
 def parse_response(response_text):
