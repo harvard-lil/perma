@@ -607,7 +607,8 @@ def proxy_capture(capture_job):
                         if not meta_dict:
                             # if still no meta tags at all, then this process has failed.
                             # default to private, and allow the user to override.
-                            pass
+                            save_fields(link, is_private=True, private_reason='failure')
+                            print "Meta tag retrieval failure, darchiving"
 
                     # first look for <meta name='perma'>
                     meta_tag = next((tag for tag in meta_dict if tag['name'].lower()=='perma'), None)
