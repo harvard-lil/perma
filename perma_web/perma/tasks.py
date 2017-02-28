@@ -189,6 +189,12 @@ class ProxiedRequestThread(threading.Thread):
             self.pending_data = 0
 
 def repeat_while_exception(func, exception=Exception, timeout=10, sleep_time=.1, raise_after_timeout=True):
+    '''
+       Keep running a function until it completes without raising an exception,
+       or until "timeout" is reached.
+
+       Useful when retrieving page elements via Selenium.
+    '''
     end_time = time.time() + timeout
     while True:
         try:
@@ -199,6 +205,24 @@ def repeat_while_exception(func, exception=Exception, timeout=10, sleep_time=.1,
                     raise
                 return
             time.sleep(sleep_time)
+
+def repeat_until_truthy(func, timeout=10, sleep_time=.1, raise_after_timeout=True):
+    '''
+        Keep running a function until it returns a truthy value, or until
+        "timeout" is reached. No exception handling.
+
+        Useful when retrieving page elements via javascript run by Selenium.
+    '''
+    end_time = time.time() + timeout
+    result = None
+    while not result:
+        result = func()
+        if time.time() > end_time:
+            if raise_after_timeout:
+                raise
+            break
+        time.sleep(sleep_time)
+    return result
 
 def parse_response(response_text):
     """
@@ -549,18 +573,51 @@ def proxy_capture(capture_job):
             # check meta tags
             print "Checking meta tags."
             def meta_thread():
+
+                def js_get_tags():
+                    return browser.execute_script("""
+                        var meta_tags = document.getElementsByTagName('meta');
+                        var tags = [];
+                        for (var i = 0; i < meta_tags.length; i++){
+                            tags.push({"name":meta_tags[i].name, "content":meta_tags[i].content});
+                        }
+                        return tags
+                    """)
+
                 # get all meta tags
                 meta_tags = repeat_while_exception(lambda: browser.find_elements_by_tag_name('meta'),
                                                    timeout=10)
-                # first look for <meta name='perma'>
-                meta_tag = next((tag for tag in meta_tags if tag.get_attribute('name').lower()=='perma'), None)
-                # else look for <meta name='robots'>
-                if not meta_tag:
-                    meta_tag = next((tag for tag in meta_tags if tag.get_attribute('name').lower() == 'robots'), None)
-                # if we found a relevant meta tag, check for noarchive
-                if meta_tag and 'noarchive' in meta_tag.get_attribute("content").lower():
-                    save_fields(link, is_private=True, private_reason='policy')
-                    print "Meta found, darchiving"
+
+                # if that retrieves even one meta tag, we need to succeed at parsing
+                # them before we can confidently make a link public
+                if meta_tags:
+                    try:
+                        # assemble required attributes for processing.
+                        # this sometimes fails because javascript alters the DOM sufficiently
+                        # that the elements found above are no longer available by the time
+                        # we wish to iterate through them. in that case, a StaleElementReferenceException
+                        # is thrown.
+                        # http://www.seleniumhq.org/exceptions/stale_element_reference.jsp
+                        # but, since this is important to get right, catch all exceptions,
+                        # not just StaleElementReferenceException. If an exception is thrown, we want
+                        # to try the javascript method regardless.
+                        meta_dict = [{"name": tag.get_attribute('name'), "content": tag.get_attribute("content")} for tag in meta_tags]
+                    except:
+                        meta_dict = repeat_until_truthy(js_get_tags, sleep_time=1)
+                        if not meta_dict:
+                            # if still no meta tags at all, then this process has failed.
+                            # default to private, and allow the user to override.
+                            pass
+
+                    # first look for <meta name='perma'>
+                    meta_tag = next((tag for tag in meta_dict if tag['name'].lower()=='perma'), None)
+                    # else look for <meta name='robots'>
+                    if not meta_tag:
+                        meta_tag = next((tag for tag in meta_dict if tag['name'].lower() == 'robots'), None)
+                    # if we found a relevant meta tag, check for noarchive
+                    if meta_tag and 'noarchive' in meta_tag["content"].lower():
+                        save_fields(link, is_private=True, private_reason='policy')
+                        print "Meta found, darchiving"
             add_thread(thread_list, meta_thread)
 
             # scroll to bottom of page, in case that prompts anything else to load
