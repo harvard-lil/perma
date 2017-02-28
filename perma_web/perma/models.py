@@ -584,10 +584,11 @@ class LinkQuerySet(QuerySet):
         """
             expose the bundled WARC if any non-favicon capture succeeded
         """
+        capture_filter = (Q(role="primary") & Q(status="success")) | (Q(role="screenshot") & Q(status="success"))
         return self.filter(
             archive_timestamp__lte=timezone.now(),
-            captures__status='success',
-            user_deleted=False
+            user_deleted=False,
+            captures__in=Capture.objects.filter(capture_filter)
         ).exclude(
             private_reason__in=['user', 'takedown']
         ).distinct()
