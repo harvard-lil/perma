@@ -618,6 +618,11 @@ def proxy_capture(capture_job):
                     if meta_tag and 'noarchive' in meta_tag["content"].lower():
                         save_fields(link, is_private=True, private_reason='policy')
                         print "Meta found, darchiving"
+
+                    description_meta_tag = next((tag for tag in meta_list if tag['name'].lower() == 'description'), '')
+                    if description_meta_tag and description_meta_tag['content']:
+                        save_fields(link, submitted_description=description_meta_tag['content'])
+
             add_thread(thread_list, meta_thread)
 
             # scroll to bottom of page, in case that prompts anything else to load
