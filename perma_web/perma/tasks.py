@@ -206,7 +206,7 @@ def repeat_while_exception(func, exception=Exception, timeout=10, sleep_time=.1,
                 return
             time.sleep(sleep_time)
 
-def repeat_until_truthy(func, timeout=10, sleep_time=.1, raise_after_timeout=True):
+def repeat_until_truthy(func, timeout=10, sleep_time=.1):
     '''
         Keep running a function until it returns a truthy value, or until
         "timeout" is reached. No exception handling.
@@ -217,11 +217,9 @@ def repeat_until_truthy(func, timeout=10, sleep_time=.1, raise_after_timeout=Tru
     result = None
     while not result:
         if time.time() > end_time:
-            if raise_after_timeout:
-                raise
             break
-        time.sleep(sleep_time)
         result = func()
+        time.sleep(sleep_time)
     return result
 
 def parse_response(response_text):
@@ -591,6 +589,7 @@ def proxy_capture(capture_job):
                 # if that retrieves even one meta tag, we need to succeed at parsing
                 # them before we can confidently make a link public
                 if meta_tags:
+                    meta_list = None
                     try:
                         # assemble required attributes for processing.
                         # this sometimes fails because javascript alters the DOM sufficiently
@@ -601,20 +600,20 @@ def proxy_capture(capture_job):
                         # but, since this is important to get right, catch all exceptions,
                         # not just StaleElementReferenceException. If an exception is thrown, we want
                         # to try the javascript method regardless.
-                        meta_dict = [{"name": tag.get_attribute('name'), "content": tag.get_attribute("content")} for tag in meta_tags]
+                        meta_list = [{"name": tag.get_attribute('name'), "content": tag.get_attribute("content")} for tag in meta_tags]
                     except:
-                        meta_dict = repeat_until_truthy(js_get_tags, sleep_time=1, raise_after_timeout=False)
-                        if not meta_dict:
+                        meta_list = repeat_until_truthy(js_get_tags, sleep_time=1)
+                        if not meta_list:
                             # if still no meta tags at all, then this process has failed.
                             # default to private, and allow the user to override.
                             save_fields(link, is_private=True, private_reason='failure')
                             print "Meta tag retrieval failure, darchiving"
 
                     # first look for <meta name='perma'>
-                    meta_tag = next((tag for tag in meta_dict if tag['name'].lower()=='perma'), None)
+                    meta_tag = next((tag for tag in meta_list if tag['name'].lower()=='perma'), None)
                     # else look for <meta name='robots'>
                     if not meta_tag:
-                        meta_tag = next((tag for tag in meta_dict if tag['name'].lower() == 'robots'), None)
+                        meta_tag = next((tag for tag in meta_list if tag['name'].lower() == 'robots'), None)
                     # if we found a relevant meta tag, check for noarchive
                     if meta_tag and 'noarchive' in meta_tag["content"].lower():
                         save_fields(link, is_private=True, private_reason='policy')
