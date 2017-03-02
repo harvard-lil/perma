@@ -1,4 +1,3 @@
-import os
 from wsgiref.util import FileWrapper
 import logging
 from time import mktime
