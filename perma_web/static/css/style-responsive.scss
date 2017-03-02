@@ -3922,12 +3922,14 @@ footer {
     }
     label,
     .title-save-status,
+    .description-save-status,
     .notes-save-status {
       float: left;
       width: auto;
       padding-bottom: $grid;
     }
     .title-save-status,
+    .description-save-status,
     .notes-save-status {
       color: $color-orange;
       margin-top: 0;
