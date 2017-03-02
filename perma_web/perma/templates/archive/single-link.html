@@ -8,8 +8,24 @@
 
 {% block title %} | {{link.submitted_title}}{% endblock %}
 
+{% block meta_description %}{{link.submitted_description}}{% endblock %}
+
+
 {% block meta-head %}
   <meta name="robots" content="noindex, noimageindex">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ link_url }}">
+  <meta property="og:title" content="{{ link.submitted_title }}">
+  <meta property="og:description" content="{{ link.submitted_description }}">
+  <meta property="og:image" content="{{ request.get_host }}{{ STATIC_URL }}img/sharing/blue_logo.png">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="{{ link_url }}">
+  <meta name="twitter:title" content="{{ link.submitted_title }}">
+  <meta name="twitter:description" content="{{ link.submitted_description }}">
+  <meta name="twitter:image" content="{{ request.get_host }}{{ STATIC_URL }}img/sharing/blue_logo.png">
+
 {% endblock %}
 
 {% block header %}
