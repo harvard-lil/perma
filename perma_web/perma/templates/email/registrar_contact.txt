@@ -1,11 +1,13 @@
 {% extends "email/admin/contact.txt" %}
 {% block content %}
-One of your users, {{ user.get_full_name }}, has sent you the following message via the Perma.cc website:
-
 {{ message }}
 
 ----
-Reply to this message to follow up with the user.
+You are receiving this message because you are the registrar for {{user.email}}, a member of {{ organization_string }}.
 
-If you need help addressing their concerns, please contact info@perma.cc for assistance.
+Please follow up with the user by replying to this message.
+
+If you need help resolving this question, please contact us at info@perma.cc.
+
+Troubleshooting info:
 {% endblock%}

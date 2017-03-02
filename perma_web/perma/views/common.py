@@ -218,6 +218,22 @@ def contact(request):
                     affiliation_string = ', '.join(affiliations)
         return affiliation_string
 
+    def formatted_organization_list(registrar):
+        organization_string = ''
+        if request.user.is_organization_user:
+            orgs = [org.name for org in request.user.organizations.filter(registrar=registrar)]
+            org_count = len(orgs)
+            if org_count > 2:
+                organization_string = ", ".join(orgs[:-1]) + " and " + orgs[-1]
+            elif org_count == 2:
+                organization_string = "{} and {}".format(orgs[0], orgs[1])
+            elif org_count == 1:
+                organization_string = orgs[0]
+            else:
+                # this should never happen, consider raising an exception
+                organization_string = '(error retrieving organization list)'
+        return organization_string
+
     def handle_registrar_fields(form):
         if request.user.is_supported_by_registrar():
             registrars = set(org.registrar for org in request.user.organizations.all())
@@ -247,6 +263,7 @@ def contact(request):
             if request.user.is_supported_by_registrar():
                 # Send to all active registar users for registrar and cc Perma
                 reg_id = form.cleaned_data['registrar']
+                context["organization_string"] = formatted_organization_list(registrar=reg_id)
                 send_user_email_copy_admins(
                     subject,
                     from_address,
