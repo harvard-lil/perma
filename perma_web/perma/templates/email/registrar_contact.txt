@@ -3,7 +3,7 @@
 {{ message }}
 
 ----
-You are receiving this message because you are the registrar for {{user.email}}, a member of {PUT ORG LIST HERE!!}.
+You are receiving this message because you are the registrar for {{user.email}}, a member of {{ organization_string }}.
 
 Please follow up with the user by replying to this message.
 
