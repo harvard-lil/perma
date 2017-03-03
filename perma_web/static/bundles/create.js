@@ -4563,7 +4563,7 @@ webpackJsonp([1],{
 	      },
 	      "children": folder.has_children
 	    };
-	    if (folder.organization) jsTreeFolder.type = "shared_folder";
+	    if (folder.organization && !folder.parent) jsTreeFolder.type = "shared_folder";
 	    return jsTreeFolder;
 	  });
 	}

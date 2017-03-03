@@ -177,7 +177,7 @@ function apiFoldersToJsTreeFolders(apiFolders){
       },
       "children": folder.has_children
     };
-    if(folder.organization)
+    if(folder.organization && !folder.parent)
       jsTreeFolder.type = "shared_folder";
     return jsTreeFolder;
   });
