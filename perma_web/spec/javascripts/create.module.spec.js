@@ -36,7 +36,7 @@ describe("Test create.module.js", function() {
     });
     describe("getAll", function(){
       it("returns set folders on getAll", function(){
-        var setFolders = {1:{"folderId":27, "orgId":4}};
+        var setFolders = {1:{"folderIds":[27], "orgId":4}};
         spyOn(Helpers.jsonLocalStorage, "getItem").and.returnValue(setFolders);
         var folders = CreateModule.ls.getAll();
         expect(folders).toEqual(setFolders);
@@ -52,7 +52,7 @@ describe("Test create.module.js", function() {
     describe("getCurrent", function(){
       it("returns current user folder settings when they exist", function(){
         window.current_user = {id:1};
-        var setFolders = {1:{"folderId":27, "orgId":4}};
+        var setFolders = {1:{"folderIds":[27], "orgId":4}};
         spyOn(Helpers.jsonLocalStorage, "getItem").and.returnValue(setFolders);
         var folders = CreateModule.ls.getCurrent();
         expect(folders).toEqual(setFolders[1]);
@@ -60,7 +60,7 @@ describe("Test create.module.js", function() {
       });
       it("returns empty object when current user settings don't exist", function(){
         window.current_user = {id:1};
-        var setFolders = {2:{"folderId":27, "orgId":4}};
+        var setFolders = {2:{"folderIds":[27], "orgId":4}};
         spyOn(Helpers.jsonLocalStorage, "getItem").and.returnValue(setFolders);
         var folders = CreateModule.ls.getCurrent();
         expect(folders).toEqual({});
@@ -79,18 +79,16 @@ describe("Test create.module.js", function() {
       });
       it("sets current user folderId and orgId when they exist", function(){
         var orgId = 2, folderId = 37;
-        CreateModule.ls.setCurrent(orgId, folderId);
-        expect(Helpers.jsonLocalStorage.setItem).toHaveBeenCalledWith("perma_selection",{1:{"folderId":folderId,"orgId":orgId}});
+        CreateModule.ls.setCurrent(orgId, [folderId]);
+        expect(Helpers.jsonLocalStorage.setItem).toHaveBeenCalledWith("perma_selection",{1:{"folderIds":[folderId],"orgId":orgId}});
         CreateModule.updateLinker();
         expect(CreateModule.updateLinker).toHaveBeenCalled();
-        expect(Helpers.triggerOnWindow).toHaveBeenCalledWith("dropdown.selectionChange");
       });
       it("sets current user folderId to default if none is provided", function(){
         var orgId = 2;
         CreateModule.ls.setCurrent(orgId);
-        expect(Helpers.jsonLocalStorage.setItem).toHaveBeenCalledWith("perma_selection",{1:{"folderId":"default","orgId":orgId}});
+        expect(Helpers.jsonLocalStorage.setItem).toHaveBeenCalledWith("perma_selection",{1:{"folderIds":["default"],"orgId":orgId}});
         expect(CreateModule.updateLinker).toHaveBeenCalled();
-        expect(Helpers.triggerOnWindow).toHaveBeenCalledWith("dropdown.selectionChange");
       });
     });
   });
