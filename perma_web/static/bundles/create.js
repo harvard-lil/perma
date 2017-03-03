@@ -1,5 +1,6 @@
-webpackJsonp([1],[
-/* 0 */
+webpackJsonp([1],{
+
+/***/ 0:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -13,8 +14,8 @@ webpackJsonp([1],[
 	FolderTreeModule.init();
 
 /***/ },
-/* 1 */,
-/* 2 */
+
+/***/ 2:
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
@@ -81,7 +82,8 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 3 */
+
+/***/ 3:
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
@@ -125,7 +127,8 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 4 */
+
+/***/ 4:
 /***/ function(module, exports, __webpack_require__) {
 
 	/*!
@@ -159,7 +162,8 @@ webpackJsonp([1],[
 	d.push(e),this.push(this.source.functionCall("container.invokePartial","",d))},assignToHash:function(a){var b=this.popStack(),c=void 0,d=void 0,e=void 0;this.trackIds&&(e=this.popStack()),this.stringParams&&(d=this.popStack(),c=this.popStack());var f=this.hash;c&&(f.contexts[a]=c),d&&(f.types[a]=d),e&&(f.ids[a]=e),f.values[a]=b},pushId:function(a,b,c){"BlockParam"===a?this.pushStackLiteral("blockParams["+b[0]+"].path["+b[1]+"]"+(c?" + "+JSON.stringify("."+c):"")):"PathExpression"===a?this.pushString(b):"SubExpression"===a?this.pushStackLiteral("true"):this.pushStackLiteral("null")},compiler:e,compileChildren:function(a,b){for(var c=a.children,d=void 0,e=void 0,f=0,g=c.length;g>f;f++){d=c[f],e=new this.compiler;var h=this.matchExistingProgram(d);null==h?(this.context.programs.push(""),h=this.context.programs.length,d.index=h,d.name="program"+h,this.context.programs[h]=e.compile(d,b,this.context,!this.precompile),this.context.decorators[h]=e.decorators,this.context.environments[h]=d,this.useDepths=this.useDepths||e.useDepths,this.useBlockParams=this.useBlockParams||e.useBlockParams):(d.index=h,d.name="program"+h,this.useDepths=this.useDepths||d.useDepths,this.useBlockParams=this.useBlockParams||d.useBlockParams)}},matchExistingProgram:function(a){for(var b=0,c=this.context.environments.length;c>b;b++){var d=this.context.environments[b];if(d&&d.equals(a))return b}},programExpression:function(a){var b=this.environment.children[a],c=[b.index,"data",b.blockParams];return(this.useBlockParams||this.useDepths)&&c.push("blockParams"),this.useDepths&&c.push("depths"),"container.program("+c.join(", ")+")"},useRegister:function(a){this.registers[a]||(this.registers[a]=!0,this.registers.list.push(a))},push:function(a){return a instanceof d||(a=this.source.wrap(a)),this.inlineStack.push(a),a},pushStackLiteral:function(a){this.push(new d(a))},pushSource:function(a){this.pendingContent&&(this.source.push(this.appendToBuffer(this.source.quotedString(this.pendingContent),this.pendingLocation)),this.pendingContent=void 0),a&&this.source.push(a)},replaceStack:function(a){var b=["("],c=void 0,e=void 0,f=void 0;if(!this.isInline())throw new j["default"]("replaceStack on non-inline");var g=this.popStack(!0);if(g instanceof d)c=[g.value],b=["(",c],f=!0;else{e=!0;var h=this.incrStack();b=["((",this.push(h)," = ",g,")"],c=this.topStack()}var i=a.call(this,c);f||this.popStack(),e&&this.stackSlot--,this.push(b.concat(i,")"))},incrStack:function(){return this.stackSlot++,this.stackSlot>this.stackVars.length&&this.stackVars.push("stack"+this.stackSlot),this.topStackName()},topStackName:function(){return"stack"+this.stackSlot},flushInline:function(){var a=this.inlineStack;this.inlineStack=[];for(var b=0,c=a.length;c>b;b++){var e=a[b];if(e instanceof d)this.compileStack.push(e);else{var f=this.incrStack();this.pushSource([f," = ",e,";"]),this.compileStack.push(f)}}},isInline:function(){return this.inlineStack.length},popStack:function(a){var b=this.isInline(),c=(b?this.inlineStack:this.compileStack).pop();if(!a&&c instanceof d)return c.value;if(!b){if(!this.stackSlot)throw new j["default"]("Invalid stack pop");this.stackSlot--}return c},topStack:function(){var a=this.isInline()?this.inlineStack:this.compileStack,b=a[a.length-1];return b instanceof d?b.value:b},contextName:function(a){return this.useDepths&&a?"depths["+a+"]":"depth"+a},quotedString:function(a){return this.source.quotedString(a)},objectLiteral:function(a){return this.source.objectLiteral(a)},aliasable:function(a){var b=this.aliases[a];return b?(b.referenceCount++,b):(b=this.aliases[a]=this.source.wrap(a),b.aliasable=!0,b.referenceCount=1,b)},setupHelper:function(a,b,c){var d=[],e=this.setupHelperArgs(b,a,d,c),f=this.nameLookup("helpers",b,"helper"),g=this.aliasable(this.contextName(0)+" != null ? "+this.contextName(0)+" : {}");return{params:d,paramsInit:e,name:f,callParams:[g].concat(d)}},setupParams:function(a,b,c){var d={},e=[],f=[],g=[],h=!c,i=void 0;h&&(c=[]),d.name=this.quotedString(a),d.hash=this.popStack(),this.trackIds&&(d.hashIds=this.popStack()),this.stringParams&&(d.hashTypes=this.popStack(),d.hashContexts=this.popStack());var j=this.popStack(),k=this.popStack();(k||j)&&(d.fn=k||"container.noop",d.inverse=j||"container.noop");for(var l=b;l--;)i=this.popStack(),c[l]=i,this.trackIds&&(g[l]=this.popStack()),this.stringParams&&(f[l]=this.popStack(),e[l]=this.popStack());return h&&(d.args=this.source.generateArray(c)),this.trackIds&&(d.ids=this.source.generateArray(g)),this.stringParams&&(d.types=this.source.generateArray(f),d.contexts=this.source.generateArray(e)),this.options.data&&(d.data="data"),this.useBlockParams&&(d.blockParams="blockParams"),d},setupHelperArgs:function(a,b,c,d){var e=this.setupParams(a,b,c);return e=this.objectLiteral(e),d?(this.useRegister("options"),c.push("options"),["options=",e]):c?(c.push(e),""):e}},function(){for(var a="break else new var case finally return void catch for switch while continue function this with default if throw delete in try do instanceof typeof abstract enum int short boolean export interface static byte extends long super char final native synchronized class float package throws const goto private transient debugger implements protected volatile double import public let yield await null true false".split(" "),b=e.RESERVED_WORDS={},c=0,d=a.length;d>c;c++)b[a[c]]=!0}(),e.isValidJavaScriptVariableName=function(a){return!e.RESERVED_WORDS[a]&&/^[a-zA-Z_$][0-9a-zA-Z_$]*$/.test(a)},b["default"]=e,a.exports=b["default"]},function(a,b,c){"use strict";function d(a,b,c){if(f.isArray(a)){for(var d=[],e=0,g=a.length;g>e;e++)d.push(b.wrap(a[e],c));return d}return"boolean"==typeof a||"number"==typeof a?a+"":a}function e(a){this.srcFile=a,this.source=[]}b.__esModule=!0;var f=c(5),g=void 0;try{}catch(h){}g||(g=function(a,b,c,d){this.src="",d&&this.add(d)},g.prototype={add:function(a){f.isArray(a)&&(a=a.join("")),this.src+=a},prepend:function(a){f.isArray(a)&&(a=a.join("")),this.src=a+this.src},toStringWithSourceMap:function(){return{code:this.toString()}},toString:function(){return this.src}}),e.prototype={isEmpty:function(){return!this.source.length},prepend:function(a,b){this.source.unshift(this.wrap(a,b))},push:function(a,b){this.source.push(this.wrap(a,b))},merge:function(){var a=this.empty();return this.each(function(b){a.add(["  ",b,"\n"])}),a},each:function(a){for(var b=0,c=this.source.length;c>b;b++)a(this.source[b])},empty:function(){var a=this.currentLocation||{start:{}};return new g(a.start.line,a.start.column,this.srcFile)},wrap:function(a){var b=arguments.length<=1||void 0===arguments[1]?this.currentLocation||{start:{}}:arguments[1];return a instanceof g?a:(a=d(a,this,b),new g(b.start.line,b.start.column,this.srcFile,a))},functionCall:function(a,b,c){return c=this.generateList(c),this.wrap([a,b?"."+b+"(":"(",c,")"])},quotedString:function(a){return'"'+(a+"").replace(/\\/g,"\\\\").replace(/"/g,'\\"').replace(/\n/g,"\\n").replace(/\r/g,"\\r").replace(/\u2028/g,"\\u2028").replace(/\u2029/g,"\\u2029")+'"'},objectLiteral:function(a){var b=[];for(var c in a)if(a.hasOwnProperty(c)){var e=d(a[c],this);"undefined"!==e&&b.push([this.quotedString(c),":",e])}var f=this.generateList(b);return f.prepend("{"),f.add("}"),f},generateList:function(a){for(var b=this.empty(),c=0,e=a.length;e>c;c++)c&&b.add(","),b.add(d(a[c],this));return b},generateArray:function(a){var b=this.generateList(a);return b.prepend("["),b.add("]"),b}},b["default"]=e,a.exports=b["default"]}])});
 
 /***/ },
-/* 5 */
+
+/***/ 5:
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($, jQuery) {'use strict';
@@ -216,15 +220,14 @@ webpackJsonp([1],[
 	    var folders = ls.getAll();
 	    return folders[current_user.id] || {};
 	  },
-	  setCurrent: function setCurrent(orgId, folderId) {
-	    folderId = folderId ? folderId : 'default';
+	  setCurrent: function setCurrent(orgId, folderIds) {
+	    folderIds = folderIds ? folderIds : ['default'];
 	
 	    var selectedFolders = ls.getAll();
-	    selectedFolders[current_user.id] = { 'folderId': folderId, 'orgId': orgId };
+	    selectedFolders[current_user.id] = { 'folderIds': folderIds, 'orgId': orgId };
 	
 	    Helpers.jsonLocalStorage.setItem(localStorageKey, selectedFolders);
 	    exports.updateLinker(); // call via exports to enable Jasmine spyOn
-	    Helpers.triggerOnWindow("dropdown.selectionChange");
 	  }
 	};
 	
@@ -235,6 +238,18 @@ webpackJsonp([1],[
 	  var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
 	      results = regex.exec(location.search);
 	  return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+	}
+	
+	function getSelectedFolder() {
+	  // Look up the ID of the currently selected folder (if any) from localStorage.
+	  var folderIds = ls.getCurrent().folderIds;
+	  if (folderIds && folderIds.length) return folderIds[folderIds.length - 1];
+	  return null;
+	}
+	
+	function getSelectedOrg() {
+	  // Look up the ID of the currently selected org (if any) from localStorage.
+	  return ls.getCurrent().orgId;
 	}
 	
 	function linkIt(data) {
@@ -454,36 +469,37 @@ webpackJsonp([1],[
 	}
 	
 	function updateLinker() {
-	  var userSettings = ls.getCurrent();
-	  var currentOrg = userSettings.orgId;
+	  var currentOrg = getSelectedOrg();
 	  var organizationsExist = (0, _keys2.default)(organizations).length;
-	  if (!userSettings.folderId && organizationsExist) {
+	
+	  // if user has organizations available but hasn't picked one yet, require them to pick
+	  if (!getSelectedFolder() && organizationsExist) {
 	    $('#addlink').attr('disabled', 'disabled');
 	    return;
 	  }
 	
+	  // disable button if user is out of links
 	  if (!currentOrg && links_remaining < 1) {
 	    $('#addlink').attr('disabled', 'disabled');
 	  } else {
 	    $('#addlink').removeAttr('disabled');
 	  }
 	
+	  // UI indications that links saved to current org will default to private
 	  if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
 	    $('#addlink').text("Create Private Perma Link");
-	  } else {
-	    $('#addlink').text("Create Perma Link");
-	  }
-	
-	  if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
 	    $('#linker').addClass('_isPrivate');
-	    // add the little eye icon if org is private
+	    // add the little eye icon to the dropdown
 	    $('#organization_select_form').find('.dropdown-toggle > span').addClass('ui-private');
 	  } else {
+	    $('#addlink').text("Create Perma Link");
 	    $('#linker').removeClass('_isPrivate');
+	    $('#organization_select_form').find('.dropdown-toggle > span').removeClass('ui-private');
 	  }
 	
+	  // suggest switching folder if user has orgs and is running out of personal links
 	  var already_warned = Helpers.getCookie("suppress_link_warning");
-	  if (already_warned != "true" && currentOrg == 'None' && is_org_user == "True" && links_remaining == 3) {
+	  if (already_warned != "true" && !currentOrg && organizationsExist && links_remaining == 3) {
 	    var message = "Your personal links for the month are almost used up! Create more links in 'unlimited' folders.";
 	    Helpers.informUser(message, 'danger');
 	    Helpers.setCookie("suppress_link_warning", "true", 120);
@@ -532,7 +548,7 @@ webpackJsonp([1],[
 	    DOMHelpers.toggleBtnDisable('#uploadLinky', true);
 	    DOMHelpers.toggleBtnDisable('.cancel', true);
 	    var extraUploadData = {},
-	        selectedFolder = ls.getCurrent().folderId;
+	        selectedFolder = getSelectedFolder();
 	    if (selectedFolder) extraUploadData.folder = selectedFolder;
 	    spinner = new Spinner({ lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '300px' });
 	    spinner.spin(this);
@@ -556,7 +572,7 @@ webpackJsonp([1],[
 	      url: $this.find("input[name=url]").val(),
 	      human: true
 	    };
-	    var selectedFolder = ls.getCurrent().folderId;
+	    var selectedFolder = getSelectedFolder();
 	
 	    if (selectedFolder) linker_data.folder = selectedFolder;
 	
@@ -615,23 +631,25 @@ webpackJsonp([1],[
 	        if (organization.default_to_private) {
 	          opt_text += ' <span class="ui-private">(Private)</span>';
 	        }
-	        $organization_select.append("<li><a href='#' data-orgid='" + organization.id + "' data-orgfolderid='" + organization.shared_folder.id + "'>" + opt_text + " <span class='links-unlimited'>unlimited</span></a></li>");
+	        $organization_select.append("<li><a href='#' data-orgid='" + organization.id + "' data-folderid='" + organization.shared_folder.id + "'>" + opt_text + " <span class='links-unlimited'>unlimited</span></a></li>");
 	      });
 	
-	      $organization_select.append("<li class='personal-links'><a href='#'> Personal Links <span class='links-remaining'>" + links_remaining + "</span></a></li>");
+	      $organization_select.append("<li class='personal-links'><a href='#' data-folderid='" + current_user.top_level_folders[0].id + "'> Personal Links <span class='links-remaining'>" + links_remaining + "</span></a></li>");
 	      updateLinker();
 	    } else {
 	      // select My Folder for users with no orgs and no saved selections
-	      var selectedFolder = ls.getCurrent().folderId;
+	      var selectedFolder = getSelectedFolder();
 	      if (!selectedFolder) {
 	        ls.setCurrent();
+	        Helpers.triggerOnWindow("dropdown.selectionChange");
 	      }
 	    }
 	  });
 	
 	  // handle dropdown changes
 	  $organization_select.on('click', 'a', function () {
-	    ls.setCurrent(+$(this).attr('data-orgid'), +$(this).attr('data-orgfolderid'));
+	    ls.setCurrent(+$(this).attr('data-orgid'), [+$(this).attr('data-folderid')]);
+	    Helpers.triggerOnWindow("dropdown.selectionChange");
 	  });
 	
 	  // handle upload form button
@@ -643,10 +661,8 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1), __webpack_require__(1)))
 
 /***/ },
-/* 6 */,
-/* 7 */,
-/* 8 */,
-/* 9 */
+
+/***/ 9:
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -672,13 +688,15 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 10 */
+
+/***/ 10:
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = { "default": __webpack_require__(11), __esModule: true };
 
 /***/ },
-/* 11 */
+
+/***/ 11:
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(12);
@@ -686,66 +704,22 @@ webpackJsonp([1],[
 	module.exports = __webpack_require__(59).f('iterator');
 
 /***/ },
-/* 12 */,
-/* 13 */,
-/* 14 */,
-/* 15 */,
-/* 16 */,
-/* 17 */,
-/* 18 */,
-/* 19 */,
-/* 20 */,
-/* 21 */,
-/* 22 */,
-/* 23 */,
-/* 24 */,
-/* 25 */,
-/* 26 */,
-/* 27 */,
-/* 28 */,
-/* 29 */,
-/* 30 */,
-/* 31 */,
-/* 32 */,
-/* 33 */,
-/* 34 */,
-/* 35 */,
-/* 36 */,
-/* 37 */,
-/* 38 */,
-/* 39 */,
-/* 40 */,
-/* 41 */,
-/* 42 */,
-/* 43 */,
-/* 44 */,
-/* 45 */,
-/* 46 */,
-/* 47 */,
-/* 48 */,
-/* 49 */,
-/* 50 */,
-/* 51 */,
-/* 52 */,
-/* 53 */,
-/* 54 */,
-/* 55 */,
-/* 56 */,
-/* 57 */,
-/* 58 */,
-/* 59 */
+
+/***/ 59:
 /***/ function(module, exports, __webpack_require__) {
 
 	exports.f = __webpack_require__(52);
 
 /***/ },
-/* 60 */
+
+/***/ 60:
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = { "default": __webpack_require__(61), __esModule: true };
 
 /***/ },
-/* 61 */
+
+/***/ 61:
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(62);
@@ -755,7 +729,8 @@ webpackJsonp([1],[
 	module.exports = __webpack_require__(8).Symbol;
 
 /***/ },
-/* 62 */
+
+/***/ 62:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -995,7 +970,8 @@ webpackJsonp([1],[
 	setToStringTag(global.JSON, 'JSON', true);
 
 /***/ },
-/* 63 */
+
+/***/ 63:
 /***/ function(module, exports, __webpack_require__) {
 
 	var META     = __webpack_require__(48)('meta')
@@ -1053,7 +1029,8 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 64 */
+
+/***/ 64:
 /***/ function(module, exports, __webpack_require__) {
 
 	var global         = __webpack_require__(19)
@@ -1067,7 +1044,8 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 65 */
+
+/***/ 65:
 /***/ function(module, exports, __webpack_require__) {
 
 	var getKeys   = __webpack_require__(38)
@@ -1082,7 +1060,8 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 66 */
+
+/***/ 66:
 /***/ function(module, exports, __webpack_require__) {
 
 	// all enumerable object keys, includes symbols
@@ -1102,29 +1081,25 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 67 */
+
+/***/ 67:
 /***/ function(module, exports) {
 
 	exports.f = Object.getOwnPropertySymbols;
 
 /***/ },
-/* 68 */
+
+/***/ 68:
 /***/ function(module, exports) {
 
 	exports.f = {}.propertyIsEnumerable;
 
 /***/ },
-/* 69 */
-/***/ function(module, exports, __webpack_require__) {
 
-	// 7.2.2 IsArray(argument)
-	var cof = __webpack_require__(42);
-	module.exports = Array.isArray || function isArray(arg){
-	  return cof(arg) == 'Array';
-	};
+/***/ 69:
+[329, 42],
 
-/***/ },
-/* 70 */
+/***/ 70:
 /***/ function(module, exports, __webpack_require__) {
 
 	// fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
@@ -1149,7 +1124,8 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 71 */
+
+/***/ 71:
 /***/ function(module, exports, __webpack_require__) {
 
 	// 19.1.2.7 / 15.2.3.4 Object.getOwnPropertyNames(O)
@@ -1161,7 +1137,8 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 72 */
+
+/***/ 72:
 /***/ function(module, exports, __webpack_require__) {
 
 	var pIE            = __webpack_require__(68)
@@ -1182,34 +1159,29 @@ webpackJsonp([1],[
 	};
 
 /***/ },
-/* 73 */
+
+/***/ 73:
 /***/ function(module, exports) {
 
 
 
 /***/ },
-/* 74 */
+
+/***/ 74:
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(64)('asyncIterator');
 
 /***/ },
-/* 75 */
+
+/***/ 75:
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(64)('observable');
 
 /***/ },
-/* 76 */,
-/* 77 */,
-/* 78 */,
-/* 79 */,
-/* 80 */,
-/* 81 */,
-/* 82 */,
-/* 83 */,
-/* 84 */,
-/* 85 */
+
+/***/ 85:
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/**
@@ -1592,7 +1564,8 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 86 */
+
+/***/ 86:
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -2876,7 +2849,8 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 87 */
+
+/***/ 87:
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
@@ -3222,8 +3196,8 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 88 */,
-/* 89 */
+
+/***/ 89:
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
@@ -3298,20 +3272,8 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 90 */,
-/* 91 */,
-/* 92 */,
-/* 93 */,
-/* 94 */,
-/* 95 */,
-/* 96 */,
-/* 97 */,
-/* 98 */,
-/* 99 */,
-/* 100 */,
-/* 101 */,
-/* 102 */,
-/* 103 */
+
+/***/ 103:
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
@@ -3567,7 +3529,8 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 104 */
+
+/***/ 104:
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(__webpack_provided_window_dot_jQuery) {/*!
@@ -4235,7 +4198,8 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 105 */
+
+/***/ 105:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4297,7 +4261,8 @@ webpackJsonp([1],[
 	}
 
 /***/ },
-/* 106 */
+
+/***/ 106:
 /***/ function(module, exports) {
 
 	"use strict";
@@ -4405,7 +4370,8 @@ webpackJsonp([1],[
 	  } };
 
 /***/ },
-/* 107 */
+
+/***/ 107:
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
@@ -4425,21 +4391,21 @@ webpackJsonp([1],[
 	
 	__webpack_require__(108); // add jquery support for .tree
 	__webpack_require__(109);
+	__webpack_require__(116);
 	
 	var APIModule = __webpack_require__(89);
+	var CreateLinkModule = __webpack_require__(5);
 	
 	var allowedEventsCount = 0;
 	var lastSelectedFolder = null;
+	var foldersToSelect;
 	var folderTree = exports.folderTree = null;
 	
 	function init() {
+	  loadSavedFolderSelection();
 	  domTreeInit();
 	  setupEventHandlers();
-	
 	  folderTree.deselect_all();
-	
-	  var firstNode = getSelectedNode();
-	  if (firstNode) folderTree.select_node(firstNode);
 	}
 	
 	function setupEventHandlers() {
@@ -4475,31 +4441,42 @@ webpackJsonp([1],[
 	function handleSelectionChange() {
 	  folderTree.close_all();
 	  folderTree.deselect_all();
-	  var node = findNodeBySavedFolder();
-	  folderTree.select_node(node);
+	  loadSavedFolderSelection();
+	  selectSavedFolder();
 	}
 	
-	function findNodeBySavedFolder() {
-	  var selections = JSON.parse(localStorage.getItem("perma_selection")),
-	      folderData = folderTree._model.data,
-	      node;
-	  if (selections && selections[current_user.id] && selections[current_user.id].folderId === "default") {
-	    node = folderTree.get_node('ul > li:first');
-	    return node;
-	  }
+	function loadSavedFolderSelection() {
+	  foldersToSelect = CreateLinkModule.ls.getCurrent().folderIds;
+	}
 	
-	  if (selections && selections[current_user.id]) {
-	    for (var i in folderData) {
-	      if (folderData.hasOwnProperty(i) && folderData[i].data && folderData[i].data.folder_id === selections[current_user.id].folderId) {
-	        break;
+	function selectSavedFolder() {
+	  if (foldersToSelect && foldersToSelect.length) {
+	    if (foldersToSelect[0] === "default") {
+	      folderTree.select_node('ul > li:first');
+	      foldersToSelect = null;
+	    } else {
+	      var targetNode = getNodeByFolderID(foldersToSelect[foldersToSelect.length - 1]);
+	      if (targetNode) {
+	        folderTree.deselect_all();
+	        folderTree.select_node(targetNode);
+	        foldersToSelect = null;
 	      }
 	    }
 	  }
-	  return folderTree.get_node(i);
 	}
 	
 	function getSelectedNode() {
-	  return findNodeBySavedFolder();
+	  return folderTree.get_selected(true)[0];
+	}
+	
+	function getNodeByFolderID(folderId) {
+	  var folderData = folderTree._model.data;
+	  for (var i in folderData) {
+	    if (folderData.hasOwnProperty(i) && folderData[i].data && folderData[i].data.folder_id === folderId) {
+	      return folderTree.get_node(i);
+	    }
+	  }
+	  return null;
 	}
 	
 	function getSelectedFolderID() {
@@ -4512,25 +4489,25 @@ webpackJsonp([1],[
 	  }, 0);
 	}
 	
-	function getNodeData(node) {
+	function sendSelectionChangeEvent(node) {
 	  var data = {};
 	  if (node.data) {
 	    data.folderId = node.data.folder_id;
 	    data.orgId = node.data.organization_id;
 	    data.path = folderTree.get_path(node);
 	  }
-	  return data;
+	  $(window).trigger("FolderTreeModule.selectionChange", (0, _stringify2.default)(data));
 	}
 	
 	function setSelectedFolder(node) {
-	  var data = getNodeData(node);
-	  var savedSelections = JSON.parse(localStorage.getItem("perma_selection")) || {};
-	
-	  if (data.folderId || data.orgId) {
-	    savedSelections[current_user.id] = { 'folderId': data.folderId, 'orgId': data.orgId };
-	    localStorage.setItem("perma_selection", (0, _stringify2.default)(savedSelections));
+	  var data = node.data;
+	  if (data) {
+	    var folderIds = folderTree.get_path(node, false, true).map(function (id) {
+	      return folderTree.get_node(id).data.folder_id;
+	    });
+	    CreateLinkModule.ls.setCurrent(data.organization_id, folderIds);
 	  }
-	  $(window).trigger("FolderTreeModule.selectionChange", (0, _stringify2.default)(data));
+	  sendSelectionChangeEvent(node);
 	}
 	
 	function createFolder(parentFolderID, newName) {
@@ -4557,12 +4534,109 @@ webpackJsonp([1],[
 	  });
 	}
 	
+	function handleShowFoldersEvent(currentFolder, callback) {
+	  // This function gets called by jsTree with the current folder, and a callback to return subfolders.
+	  // We either fetch subfolders from the API, or if currentFolder.data is empty, show the root folders.
+	  var simpleCallback = function simpleCallback(callbackData) {
+	    return callback.call(folderTree, callbackData);
+	  };
+	
+	  if (currentFolder.data) {
+	    loadSingleFolder(currentFolder.data.folder_id, simpleCallback);
+	  } else {
+	    loadInitialFolders(apiFoldersToJsTreeFolders(current_user.top_level_folders), CreateLinkModule.ls.getCurrent().folderIds, simpleCallback);
+	  }
+	}
+	
+	function apiFoldersToJsTreeFolders(apiFolders) {
+	  // Helper to process a list of folders from our API into the form expected by jsTree.
+	  return apiFolders.map(function (folder) {
+	    var jsTreeFolder = {
+	      text: folder.name,
+	      data: {
+	        folder_id: folder.id,
+	        organization_id: folder.organization
+	      },
+	      li_attr: {
+	        "data-folder_id": folder.id,
+	        "data-organization_id": folder.organization
+	      },
+	      "children": folder.has_children
+	    };
+	    if (folder.organization) jsTreeFolder.type = "shared_folder";
+	    return jsTreeFolder;
+	  });
+	}
+	
+	function loadSingleFolder(folderId, callback) {
+	  // Grab a single folder ID from the server and pass back to jsTree.
+	  APIModule.request("GET", "/folders/" + folderId + "/folders/").done(function (data) {
+	    callback(apiFoldersToJsTreeFolders(data.objects));
+	  });
+	}
+	
+	function loadInitialFolders(preloadedData, subfoldersToPreload, callback) {
+	  // This runs once at startup. Starting from the list of the user's root folders, fetch any
+	  // subfolders in the tree that the user previously had open, and load the entire tree into jsTree at the end.
+	
+	  // simple case -- user has no folders selected
+	  if (!subfoldersToPreload) {
+	    callback(preloadedData);
+	    return;
+	  }
+	
+	  // User does have folders selected. First, have jquery fetch contents of all folders in the selected path:
+	  $.when.apply($, subfoldersToPreload.map(function (folderId) {
+	    return APIModule.request("GET", "/folders/" + folderId + "/folders/");
+	  }))
+	
+	  // When all API requests have returned, loop through the responses and build the folder tree:
+	  .done(function () {
+	    var apiResponses = arguments;
+	    var parentFolders = preloadedData;
+	
+	    // for each folder in the path ...
+	    for (var i = 0; i < subfoldersToPreload.length; i++) {
+	
+	      // find the parent folder to load subfolders into, and mark it opened:
+	      var folderId = subfoldersToPreload[i];
+	      var parentFolder = parentFolders.find(function (folder) {
+	        return folderId == folder.data.folder_id;
+	      });
+	      if (!parentFolder)
+	        // tree must have changed since last time user visited
+	        break;
+	      parentFolder.state = { opened: true };
+	
+	      // find the subfolders and load them in:
+	      var apiResponse = apiResponses[i][0];
+	      var subfolders = apiResponse ? apiResponse.objects : null; // if API response doesn't make sense, we'll just stop loading the tree here
+	      if (subfolders && subfolders.length) {
+	        parentFolder.children = apiFoldersToJsTreeFolders(subfolders);
+	
+	        // set the loaded subfolders as the target for the next pass through this loop
+	        parentFolders = parentFolder.children;
+	
+	        // if no subfolders, we're done
+	      } else {
+	        break;
+	      }
+	    }
+	
+	    // pass our folder tree to jsTree for display
+	    callback(preloadedData);
+	  });
+	}
+	
 	function domTreeInit() {
 	  $('#folder-tree').jstree({
 	    core: {
 	      strings: {
 	        'New node': 'New Folder'
 	      },
+	
+	      'data': handleShowFoldersEvent,
+	
 	      check_callback: function check_callback(operation, node, node_parent, node_position, more) {
 	        // Here we handle all actions on folders that have to be checked with the server.
 	        // That means we have to intercept the jsTree event, cancel it,
@@ -4594,9 +4668,7 @@ webpackJsonp([1],[
 	            renameFolder(node.data.folder_id, newName).done(function () {
 	              allowedEventsCount++;
 	              folderTree.rename_node(node, newName);
-	              var data = getNodeData(node);
-	              data = (0, _stringify2.default)(data);
-	              $(window).trigger("FolderTreeModule.selectionChange", data);
+	              sendSelectionChangeEvent(node);
 	            });
 	          } else if (operation == 'move_node') {
 	            var targetNode = getDropTarget();
@@ -4657,13 +4729,17 @@ webpackJsonp([1],[
 	    if (data.node.type == "default") data.instance.set_icon(data.node, "icon-folder-open-alt");
 	  }).on('close_node.jstree', function (e, data) {
 	    if (data.node.type == "default") data.instance.set_icon(data.node, "icon-folder-close-alt");
+	  }).on('load_node.jstree', function (e, data) {
+	    // when a new node is loaded, see if it should be selected based on a user's previous visit
+	    selectSavedFolder();
 	  });
 	  exports.folderTree = folderTree = $.jstree.reference('#folder-tree');
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 108 */
+
+/***/ 108:
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*globals jQuery, define, module, exports, require, window, document, postMessage */
@@ -12862,11 +12938,311 @@ webpackJsonp([1],[
 	}));
 
 /***/ },
-/* 109 */
+
+/***/ 109:
 /***/ function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
 
+/***/ },
+
+/***/ 116:
+/***/ function(module, exports, __webpack_require__) {
+
+	__webpack_require__(117);
+	module.exports = __webpack_require__(120).Array.find;
+
+/***/ },
+
+/***/ 117:
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	// 22.1.3.8 Array.prototype.find(predicate, thisArg = undefined)
+	var $export = __webpack_require__(118)
+	  , $find   = __webpack_require__(136)(5)
+	  , KEY     = 'find'
+	  , forced  = true;
+	// Shouldn't skip holes
+	if(KEY in [])Array(1)[KEY](function(){ forced = false; });
+	$export($export.P + $export.F * forced, 'Array', {
+	  find: function find(callbackfn/*, that = undefined */){
+	    return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+	  }
+	});
+	__webpack_require__(148)(KEY);
+
+/***/ },
+
+/***/ 118:
+/***/ function(module, exports, __webpack_require__) {
+
+	var global    = __webpack_require__(119)
+	  , core      = __webpack_require__(120)
+	  , hide      = __webpack_require__(121)
+	  , redefine  = __webpack_require__(131)
+	  , ctx       = __webpack_require__(134)
+	  , PROTOTYPE = 'prototype';
+	
+	var $export = function(type, name, source){
+	  var IS_FORCED = type & $export.F
+	    , IS_GLOBAL = type & $export.G
+	    , IS_STATIC = type & $export.S
+	    , IS_PROTO  = type & $export.P
+	    , IS_BIND   = type & $export.B
+	    , target    = IS_GLOBAL ? global : IS_STATIC ? global[name] || (global[name] = {}) : (global[name] || {})[PROTOTYPE]
+	    , exports   = IS_GLOBAL ? core : core[name] || (core[name] = {})
+	    , expProto  = exports[PROTOTYPE] || (exports[PROTOTYPE] = {})
+	    , key, own, out, exp;
+	  if(IS_GLOBAL)source = name;
+	  for(key in source){
+	    // contains in native
+	    own = !IS_FORCED && target && target[key] !== undefined;
+	    // export native or passed
+	    out = (own ? target : source)[key];
+	    // bind timers to global for call from export context
+	    exp = IS_BIND && own ? ctx(out, global) : IS_PROTO && typeof out == 'function' ? ctx(Function.call, out) : out;
+	    // extend global
+	    if(target)redefine(target, key, out, type & $export.U);
+	    // export
+	    if(exports[key] != out)hide(exports, key, exp);
+	    if(IS_PROTO && expProto[key] != out)expProto[key] = out;
+	  }
+	};
+	global.core = core;
+	// type bitmap
+	$export.F = 1;   // forced
+	$export.G = 2;   // global
+	$export.S = 4;   // static
+	$export.P = 8;   // proto
+	$export.B = 16;  // bind
+	$export.W = 32;  // wrap
+	$export.U = 64;  // safe
+	$export.R = 128; // real proto method for `library` 
+	module.exports = $export;
+
+/***/ },
+
+/***/ 119:
+19,
+
+/***/ 120:
+8,
+
+/***/ 121:
+[335, 122, 130, 126],
+
+/***/ 122:
+[336, 123, 125, 129, 126],
+
+/***/ 123:
+[337, 124],
+
+/***/ 124:
+25,
+
+/***/ 125:
+[338, 126, 127, 128],
+
+/***/ 126:
+[339, 127],
+
+/***/ 127:
+28,
+
+/***/ 128:
+[340, 124, 119],
+
+/***/ 129:
+[341, 124],
+
+/***/ 130:
+31,
+
+/***/ 131:
+/***/ function(module, exports, __webpack_require__) {
+
+	var global    = __webpack_require__(119)
+	  , hide      = __webpack_require__(121)
+	  , has       = __webpack_require__(132)
+	  , SRC       = __webpack_require__(133)('src')
+	  , TO_STRING = 'toString'
+	  , $toString = Function[TO_STRING]
+	  , TPL       = ('' + $toString).split(TO_STRING);
+	
+	__webpack_require__(120).inspectSource = function(it){
+	  return $toString.call(it);
+	};
+	
+	(module.exports = function(O, key, val, safe){
+	  var isFunction = typeof val == 'function';
+	  if(isFunction)has(val, 'name') || hide(val, 'name', key);
+	  if(O[key] === val)return;
+	  if(isFunction)has(val, SRC) || hide(val, SRC, O[key] ? '' + O[key] : TPL.join(String(key)));
+	  if(O === global){
+	    O[key] = val;
+	  } else {
+	    if(!safe){
+	      delete O[key];
+	      hide(O, key, val);
+	    } else {
+	      if(O[key])O[key] = val;
+	      else hide(O, key, val);
+	    }
+	  }
+	// add fake Function#toString for correct work wrapped methods / constructors with methods like LoDash isNative
+	})(Function.prototype, TO_STRING, function toString(){
+	  return typeof this == 'function' && this[SRC] || $toString.call(this);
+	});
+
+/***/ },
+
+/***/ 132:
+33,
+
+/***/ 133:
+48,
+
+/***/ 134:
+[334, 135],
+
+/***/ 135:
+21,
+
+/***/ 136:
+/***/ function(module, exports, __webpack_require__) {
+
+	// 0 -> Array#forEach
+	// 1 -> Array#map
+	// 2 -> Array#filter
+	// 3 -> Array#some
+	// 4 -> Array#every
+	// 5 -> Array#find
+	// 6 -> Array#findIndex
+	var ctx      = __webpack_require__(134)
+	  , IObject  = __webpack_require__(137)
+	  , toObject = __webpack_require__(139)
+	  , toLength = __webpack_require__(141)
+	  , asc      = __webpack_require__(143);
+	module.exports = function(TYPE, $create){
+	  var IS_MAP        = TYPE == 1
+	    , IS_FILTER     = TYPE == 2
+	    , IS_SOME       = TYPE == 3
+	    , IS_EVERY      = TYPE == 4
+	    , IS_FIND_INDEX = TYPE == 6
+	    , NO_HOLES      = TYPE == 5 || IS_FIND_INDEX
+	    , create        = $create || asc;
+	  return function($this, callbackfn, that){
+	    var O      = toObject($this)
+	      , self   = IObject(O)
+	      , f      = ctx(callbackfn, that, 3)
+	      , length = toLength(self.length)
+	      , index  = 0
+	      , result = IS_MAP ? create($this, length) : IS_FILTER ? create($this, 0) : undefined
+	      , val, res;
+	    for(;length > index; index++)if(NO_HOLES || index in self){
+	      val = self[index];
+	      res = f(val, index, O);
+	      if(TYPE){
+	        if(IS_MAP)result[index] = res;            // map
+	        else if(res)switch(TYPE){
+	          case 3: return true;                    // some
+	          case 5: return val;                     // find
+	          case 6: return index;                   // findIndex
+	          case 2: result.push(val);               // filter
+	        } else if(IS_EVERY)return false;          // every
+	      }
+	    }
+	    return IS_FIND_INDEX ? -1 : IS_SOME || IS_EVERY ? IS_EVERY : result;
+	  };
+	};
+
+/***/ },
+
+/***/ 137:
+[331, 138],
+
+/***/ 138:
+42,
+
+/***/ 139:
+[330, 140],
+
+/***/ 140:
+15,
+
+/***/ 141:
+[332, 142],
+
+/***/ 142:
+14,
+
+/***/ 143:
+/***/ function(module, exports, __webpack_require__) {
+
+	// 9.4.2.3 ArraySpeciesCreate(originalArray, length)
+	var speciesConstructor = __webpack_require__(144);
+	
+	module.exports = function(original, length){
+	  return new (speciesConstructor(original))(length);
+	};
+
+/***/ },
+
+/***/ 144:
+/***/ function(module, exports, __webpack_require__) {
+
+	var isObject = __webpack_require__(124)
+	  , isArray  = __webpack_require__(145)
+	  , SPECIES  = __webpack_require__(146)('species');
+	
+	module.exports = function(original){
+	  var C;
+	  if(isArray(original)){
+	    C = original.constructor;
+	    // cross-realm fallback
+	    if(typeof C == 'function' && (C === Array || isArray(C.prototype)))C = undefined;
+	    if(isObject(C)){
+	      C = C[SPECIES];
+	      if(C === null)C = undefined;
+	    }
+	  } return C === undefined ? Array : C;
+	};
+
+/***/ },
+
+/***/ 145:
+[329, 138],
+
+/***/ 146:
+[342, 147, 133, 119],
+
+/***/ 147:
+[333, 119],
+
+/***/ 148:
+/***/ function(module, exports, __webpack_require__) {
+
+	// 22.1.3.31 Array.prototype[@@unscopables]
+	var UNSCOPABLES = __webpack_require__(146)('unscopables')
+	  , ArrayProto  = Array.prototype;
+	if(ArrayProto[UNSCOPABLES] == undefined)__webpack_require__(121)(ArrayProto, UNSCOPABLES, {});
+	module.exports = function(key){
+	  ArrayProto[UNSCOPABLES][key] = true;
+	};
+
+/***/ },
+
+/***/ 329:
+/***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
+
+	// 7.2.2 IsArray(argument)
+	var cof = __webpack_require__(__webpack_module_template_argument_0__);
+	module.exports = Array.isArray || function isArray(arg){
+	  return cof(arg) == 'Array';
+	};
+
 /***/ }
-]);
+
+});
 //# sourceMappingURL=create.js.map

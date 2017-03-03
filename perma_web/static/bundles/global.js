@@ -12,7 +12,28 @@
 /******/ 			installedChunks[chunkId] = 0;
 /******/ 		}
 /******/ 		for(moduleId in moreModules) {
-/******/ 			modules[moduleId] = moreModules[moduleId];
+/******/ 			var _m = moreModules[moduleId];
+/******/
+/******/ 			// Check if module is deduplicated
+/******/ 			switch(typeof _m) {
+/******/ 			case "object":
+/******/ 				// Module can be created from a template
+/******/ 				modules[moduleId] = (function(_m) {
+/******/ 					var args = _m.slice(1), templateId = _m[0];
+/******/ 					return function (a,b,c) {
+/******/ 						modules[templateId].apply(this, [a,b,c].concat(args));
+/******/ 					};
+/******/ 				}(_m));
+/******/ 				break;
+/******/ 			case "function":
+/******/ 				// Normal module
+/******/ 				modules[moduleId] = _m;
+/******/ 				break;
+/******/ 			default:
+/******/ 				// Module is a copy of another module
+/******/ 				modules[moduleId] = modules[_m];
+/******/ 				break;
+/******/ 			}
 /******/ 		}
 /******/ 		if(parentJsonpFunction) parentJsonpFunction(chunkIds, moreModules);
 /******/ 		while(callbacks.length)
@@ -94,20 +115,43 @@
 /******/ 	return __webpack_require__(0);
 /******/ })
 /************************************************************************/
-/******/ ([
+/******/ ((function(modules) {
+	// Check all modules for deduplicated modules
+	for(var i in modules) {
+		if(Object.prototype.hasOwnProperty.call(modules, i)) {
+			switch(typeof modules[i]) {
+			case "function": break;
+			case "object":
+				// Module can be created from a template
+				modules[i] = (function(_m) {
+					var args = _m.slice(1), fn = modules[_m[0]];
+					return function (a,b,c) {
+						fn.apply(this, [a,b,c].concat(args));
+					};
+				}(modules[i]));
+				break;
+			default:
+				// Module is a copy of another module
+				modules[i] = modules[modules[i]];
+				break;
+			}
+		}
+	}
+	return modules;
+}([
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
 	
-	var FastClick = __webpack_require__(116);
+	var FastClick = __webpack_require__(149);
 	
 	var ErrorHandler = __webpack_require__(90);
 	var Helpers = __webpack_require__(88);
 	
-	__webpack_require__(117); // make menus work
-	__webpack_require__(118); // make menu toggle for small screen work
-	__webpack_require__(119); // make carousels work
+	__webpack_require__(150); // make menus work
+	__webpack_require__(151); // make menu toggle for small screen work
+	__webpack_require__(152); // make carousels work
 	
 	// We used to use modernizr but have currently dropped it.
 	// If we want to include it again this is where to put it --
@@ -10229,30 +10273,7 @@
 
 /***/ },
 /* 20 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// optional / simple context binding
-	var aFunction = __webpack_require__(21);
-	module.exports = function(fn, that, length){
-	  aFunction(fn);
-	  if(that === undefined)return fn;
-	  switch(length){
-	    case 1: return function(a){
-	      return fn.call(that, a);
-	    };
-	    case 2: return function(a, b){
-	      return fn.call(that, a, b);
-	    };
-	    case 3: return function(a, b, c){
-	      return fn.call(that, a, b, c);
-	    };
-	  }
-	  return function(/* ...args */){
-	    return fn.apply(that, arguments);
-	  };
-	};
-
-/***/ },
+[334, 21],
 /* 21 */
 /***/ function(module, exports) {
 
@@ -10263,49 +10284,11 @@
 
 /***/ },
 /* 22 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var dP         = __webpack_require__(23)
-	  , createDesc = __webpack_require__(31);
-	module.exports = __webpack_require__(27) ? function(object, key, value){
-	  return dP.f(object, key, createDesc(1, value));
-	} : function(object, key, value){
-	  object[key] = value;
-	  return object;
-	};
-
-/***/ },
+[335, 23, 31, 27],
 /* 23 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var anObject       = __webpack_require__(24)
-	  , IE8_DOM_DEFINE = __webpack_require__(26)
-	  , toPrimitive    = __webpack_require__(30)
-	  , dP             = Object.defineProperty;
-	
-	exports.f = __webpack_require__(27) ? Object.defineProperty : function defineProperty(O, P, Attributes){
-	  anObject(O);
-	  P = toPrimitive(P, true);
-	  anObject(Attributes);
-	  if(IE8_DOM_DEFINE)try {
-	    return dP(O, P, Attributes);
-	  } catch(e){ /* empty */ }
-	  if('get' in Attributes || 'set' in Attributes)throw TypeError('Accessors not supported!');
-	  if('value' in Attributes)O[P] = Attributes.value;
-	  return O;
-	};
-
-/***/ },
+[336, 24, 26, 30, 27],
 /* 24 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var isObject = __webpack_require__(25);
-	module.exports = function(it){
-	  if(!isObject(it))throw TypeError(it + ' is not an object!');
-	  return it;
-	};
-
-/***/ },
+[337, 25],
 /* 25 */
 /***/ function(module, exports) {
 
@@ -10315,22 +10298,9 @@
 
 /***/ },
 /* 26 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = !__webpack_require__(27) && !__webpack_require__(28)(function(){
-	  return Object.defineProperty(__webpack_require__(29)('div'), 'a', {get: function(){ return 7; }}).a != 7;
-	});
-
-/***/ },
+[338, 27, 28, 29],
 /* 27 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// Thank's IE8 for his funny defineProperty
-	module.exports = !__webpack_require__(28)(function(){
-	  return Object.defineProperty({}, 'a', {get: function(){ return 7; }}).a != 7;
-	});
-
-/***/ },
+[339, 28],
 /* 28 */
 /***/ function(module, exports) {
 
@@ -10344,34 +10314,9 @@
 
 /***/ },
 /* 29 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var isObject = __webpack_require__(25)
-	  , document = __webpack_require__(19).document
-	  // in old IE typeof document.createElement is 'object'
-	  , is = isObject(document) && isObject(document.createElement);
-	module.exports = function(it){
-	  return is ? document.createElement(it) : {};
-	};
-
-/***/ },
+[340, 25, 19],
 /* 30 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// 7.1.1 ToPrimitive(input [, PreferredType])
-	var isObject = __webpack_require__(25);
-	// instead of the ES6 spec version, we didn't implement @@toPrimitive case
-	// and the second argument - flag - preferred type is a string
-	module.exports = function(it, S){
-	  if(!isObject(it))return it;
-	  var fn, val;
-	  if(S && typeof (fn = it.toString) == 'function' && !isObject(val = fn.call(it)))return val;
-	  if(typeof (fn = it.valueOf) == 'function' && !isObject(val = fn.call(it)))return val;
-	  if(!S && typeof (fn = it.toString) == 'function' && !isObject(val = fn.call(it)))return val;
-	  throw TypeError("Can't convert object to primitive value");
-	};
-
-/***/ },
+[341, 25],
 /* 31 */
 /***/ function(module, exports) {
 
@@ -10535,15 +10480,7 @@
 
 /***/ },
 /* 41 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// fallback for non-array-like ES3 and non-enumerable old V8 strings
-	var cof = __webpack_require__(42);
-	module.exports = Object('z').propertyIsEnumerable(0) ? Object : function(it){
-	  return cof(it) == 'String' ? it.split('') : Object(it);
-	};
-
-/***/ },
+[331, 42],
 /* 42 */
 /***/ function(module, exports) {
 
@@ -10581,16 +10518,7 @@
 
 /***/ },
 /* 44 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// 7.1.15 ToLength
-	var toInteger = __webpack_require__(14)
-	  , min       = Math.min;
-	module.exports = function(it){
-	  return it > 0 ? min(toInteger(it), 0x1fffffffffffff) : 0; // pow(2, 53) - 1 == 9007199254740991
-	};
-
-/***/ },
+[332, 14],
 /* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -10614,16 +10542,7 @@
 
 /***/ },
 /* 47 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var global = __webpack_require__(19)
-	  , SHARED = '__core-js_shared__'
-	  , store  = global[SHARED] || (global[SHARED] = {});
-	module.exports = function(key){
-	  return store[key] || (store[key] = {});
-	};
-
-/***/ },
+[333, 19],
 /* 48 */
 /***/ function(module, exports) {
 
@@ -10662,21 +10581,7 @@
 
 /***/ },
 /* 52 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var store      = __webpack_require__(47)('wks')
-	  , uid        = __webpack_require__(48)
-	  , Symbol     = __webpack_require__(19).Symbol
-	  , USE_SYMBOL = typeof Symbol == 'function';
-	
-	var $exports = module.exports = function(name){
-	  return store[name] || (store[name] =
-	    USE_SYMBOL && Symbol[name] || (USE_SYMBOL ? Symbol : uid)('Symbol.' + name));
-	};
-	
-	$exports.store = store;
-
-/***/ },
+[342, 47, 48, 19],
 /* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -10696,15 +10601,7 @@
 
 /***/ },
 /* 54 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// 7.1.13 ToObject(argument)
-	var defined = __webpack_require__(15);
-	module.exports = function(it){
-	  return Object(defined(it));
-	};
-
-/***/ },
+[330, 15],
 /* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -12058,7 +11955,40 @@
 /* 113 */,
 /* 114 */,
 /* 115 */,
-/* 116 */
+/* 116 */,
+/* 117 */,
+/* 118 */,
+/* 119 */,
+/* 120 */,
+/* 121 */,
+/* 122 */,
+/* 123 */,
+/* 124 */,
+/* 125 */,
+/* 126 */,
+/* 127 */,
+/* 128 */,
+/* 129 */,
+/* 130 */,
+/* 131 */,
+/* 132 */,
+/* 133 */,
+/* 134 */,
+/* 135 */,
+/* 136 */,
+/* 137 */,
+/* 138 */,
+/* 139 */,
+/* 140 */,
+/* 141 */,
+/* 142 */,
+/* 143 */,
+/* 144 */,
+/* 145 */,
+/* 146 */,
+/* 147 */,
+/* 148 */,
+/* 149 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;;(function () {
@@ -12905,7 +12835,7 @@
 
 
 /***/ },
-/* 117 */
+/* 150 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
@@ -13077,7 +13007,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 118 */
+/* 151 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
@@ -13296,7 +13226,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
-/* 119 */
+/* 152 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(jQuery) {/* ========================================================================
@@ -13539,6 +13469,356 @@
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
+/***/ },
+/* 153 */,
+/* 154 */,
+/* 155 */,
+/* 156 */,
+/* 157 */,
+/* 158 */,
+/* 159 */,
+/* 160 */,
+/* 161 */,
+/* 162 */,
+/* 163 */,
+/* 164 */,
+/* 165 */,
+/* 166 */,
+/* 167 */,
+/* 168 */,
+/* 169 */,
+/* 170 */,
+/* 171 */,
+/* 172 */,
+/* 173 */,
+/* 174 */,
+/* 175 */,
+/* 176 */,
+/* 177 */,
+/* 178 */,
+/* 179 */,
+/* 180 */,
+/* 181 */,
+/* 182 */,
+/* 183 */,
+/* 184 */,
+/* 185 */,
+/* 186 */,
+/* 187 */,
+/* 188 */,
+/* 189 */,
+/* 190 */,
+/* 191 */,
+/* 192 */,
+/* 193 */,
+/* 194 */,
+/* 195 */,
+/* 196 */,
+/* 197 */,
+/* 198 */,
+/* 199 */,
+/* 200 */,
+/* 201 */,
+/* 202 */,
+/* 203 */,
+/* 204 */,
+/* 205 */,
+/* 206 */,
+/* 207 */,
+/* 208 */,
+/* 209 */,
+/* 210 */,
+/* 211 */,
+/* 212 */,
+/* 213 */,
+/* 214 */,
+/* 215 */,
+/* 216 */,
+/* 217 */,
+/* 218 */,
+/* 219 */,
+/* 220 */,
+/* 221 */,
+/* 222 */,
+/* 223 */,
+/* 224 */,
+/* 225 */,
+/* 226 */,
+/* 227 */,
+/* 228 */,
+/* 229 */,
+/* 230 */,
+/* 231 */,
+/* 232 */,
+/* 233 */,
+/* 234 */,
+/* 235 */,
+/* 236 */,
+/* 237 */,
+/* 238 */,
+/* 239 */,
+/* 240 */,
+/* 241 */,
+/* 242 */,
+/* 243 */,
+/* 244 */,
+/* 245 */,
+/* 246 */,
+/* 247 */,
+/* 248 */,
+/* 249 */,
+/* 250 */,
+/* 251 */,
+/* 252 */,
+/* 253 */,
+/* 254 */,
+/* 255 */,
+/* 256 */,
+/* 257 */,
+/* 258 */,
+/* 259 */,
+/* 260 */,
+/* 261 */,
+/* 262 */,
+/* 263 */,
+/* 264 */,
+/* 265 */,
+/* 266 */,
+/* 267 */,
+/* 268 */,
+/* 269 */,
+/* 270 */,
+/* 271 */,
+/* 272 */,
+/* 273 */,
+/* 274 */,
+/* 275 */,
+/* 276 */,
+/* 277 */,
+/* 278 */,
+/* 279 */,
+/* 280 */,
+/* 281 */,
+/* 282 */,
+/* 283 */,
+/* 284 */,
+/* 285 */,
+/* 286 */,
+/* 287 */,
+/* 288 */,
+/* 289 */,
+/* 290 */,
+/* 291 */,
+/* 292 */,
+/* 293 */,
+/* 294 */,
+/* 295 */,
+/* 296 */,
+/* 297 */,
+/* 298 */,
+/* 299 */,
+/* 300 */,
+/* 301 */,
+/* 302 */,
+/* 303 */,
+/* 304 */,
+/* 305 */,
+/* 306 */,
+/* 307 */,
+/* 308 */,
+/* 309 */,
+/* 310 */,
+/* 311 */,
+/* 312 */,
+/* 313 */,
+/* 314 */,
+/* 315 */,
+/* 316 */,
+/* 317 */,
+/* 318 */,
+/* 319 */,
+/* 320 */,
+/* 321 */,
+/* 322 */,
+/* 323 */,
+/* 324 */,
+/* 325 */,
+/* 326 */,
+/* 327 */,
+/* 328 */,
+/* 329 */,
+/* 330 */
+/***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
+
+	// 7.1.13 ToObject(argument)
+	var defined = __webpack_require__(__webpack_module_template_argument_0__);
+	module.exports = function(it){
+	  return Object(defined(it));
+	};
+
+/***/ },
+/* 331 */
+/***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
+
+	// fallback for non-array-like ES3 and non-enumerable old V8 strings
+	var cof = __webpack_require__(__webpack_module_template_argument_0__);
+	module.exports = Object('z').propertyIsEnumerable(0) ? Object : function(it){
+	  return cof(it) == 'String' ? it.split('') : Object(it);
+	};
+
+/***/ },
+/* 332 */
+/***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
+
+	// 7.1.15 ToLength
+	var toInteger = __webpack_require__(__webpack_module_template_argument_0__)
+	  , min       = Math.min;
+	module.exports = function(it){
+	  return it > 0 ? min(toInteger(it), 0x1fffffffffffff) : 0; // pow(2, 53) - 1 == 9007199254740991
+	};
+
+/***/ },
+/* 333 */
+/***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
+
+	var global = __webpack_require__(__webpack_module_template_argument_0__)
+	  , SHARED = '__core-js_shared__'
+	  , store  = global[SHARED] || (global[SHARED] = {});
+	module.exports = function(key){
+	  return store[key] || (store[key] = {});
+	};
+
+/***/ },
+/* 334 */
+/***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
+
+	// optional / simple context binding
+	var aFunction = __webpack_require__(__webpack_module_template_argument_0__);
+	module.exports = function(fn, that, length){
+	  aFunction(fn);
+	  if(that === undefined)return fn;
+	  switch(length){
+	    case 1: return function(a){
+	      return fn.call(that, a);
+	    };
+	    case 2: return function(a, b){
+	      return fn.call(that, a, b);
+	    };
+	    case 3: return function(a, b, c){
+	      return fn.call(that, a, b, c);
+	    };
+	  }
+	  return function(/* ...args */){
+	    return fn.apply(that, arguments);
+	  };
+	};
+
+/***/ },
+/* 335 */
+/***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__, __webpack_module_template_argument_1__, __webpack_module_template_argument_2__) {
+
+	var dP         = __webpack_require__(__webpack_module_template_argument_0__)
+	  , createDesc = __webpack_require__(__webpack_module_template_argument_1__);
+	module.exports = __webpack_require__(__webpack_module_template_argument_2__) ? function(object, key, value){
+	  return dP.f(object, key, createDesc(1, value));
+	} : function(object, key, value){
+	  object[key] = value;
+	  return object;
+	};
+
+/***/ },
+/* 336 */
+/***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__, __webpack_module_template_argument_1__, __webpack_module_template_argument_2__, __webpack_module_template_argument_3__) {
+
+	var anObject       = __webpack_require__(__webpack_module_template_argument_0__)
+	  , IE8_DOM_DEFINE = __webpack_require__(__webpack_module_template_argument_1__)
+	  , toPrimitive    = __webpack_require__(__webpack_module_template_argument_2__)
+	  , dP             = Object.defineProperty;
+	
+	exports.f = __webpack_require__(__webpack_module_template_argument_3__) ? Object.defineProperty : function defineProperty(O, P, Attributes){
+	  anObject(O);
+	  P = toPrimitive(P, true);
+	  anObject(Attributes);
+	  if(IE8_DOM_DEFINE)try {
+	    return dP(O, P, Attributes);
+	  } catch(e){ /* empty */ }
+	  if('get' in Attributes || 'set' in Attributes)throw TypeError('Accessors not supported!');
+	  if('value' in Attributes)O[P] = Attributes.value;
+	  return O;
+	};
+
+/***/ },
+/* 337 */
+/***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
+
+	var isObject = __webpack_require__(__webpack_module_template_argument_0__);
+	module.exports = function(it){
+	  if(!isObject(it))throw TypeError(it + ' is not an object!');
+	  return it;
+	};
+
+/***/ },
+/* 338 */
+/***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__, __webpack_module_template_argument_1__, __webpack_module_template_argument_2__) {
+
+	module.exports = !__webpack_require__(__webpack_module_template_argument_0__) && !__webpack_require__(__webpack_module_template_argument_1__)(function(){
+	  return Object.defineProperty(__webpack_require__(__webpack_module_template_argument_2__)('div'), 'a', {get: function(){ return 7; }}).a != 7;
+	});
+
+/***/ },
+/* 339 */
+/***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
+
+	// Thank's IE8 for his funny defineProperty
+	module.exports = !__webpack_require__(__webpack_module_template_argument_0__)(function(){
+	  return Object.defineProperty({}, 'a', {get: function(){ return 7; }}).a != 7;
+	});
+
+/***/ },
+/* 340 */
+/***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__, __webpack_module_template_argument_1__) {
+
+	var isObject = __webpack_require__(__webpack_module_template_argument_0__)
+	  , document = __webpack_require__(__webpack_module_template_argument_1__).document
+	  // in old IE typeof document.createElement is 'object'
+	  , is = isObject(document) && isObject(document.createElement);
+	module.exports = function(it){
+	  return is ? document.createElement(it) : {};
+	};
+
+/***/ },
+/* 341 */
+/***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
+
+	// 7.1.1 ToPrimitive(input [, PreferredType])
+	var isObject = __webpack_require__(__webpack_module_template_argument_0__);
+	// instead of the ES6 spec version, we didn't implement @@toPrimitive case
+	// and the second argument - flag - preferred type is a string
+	module.exports = function(it, S){
+	  if(!isObject(it))return it;
+	  var fn, val;
+	  if(S && typeof (fn = it.toString) == 'function' && !isObject(val = fn.call(it)))return val;
+	  if(typeof (fn = it.valueOf) == 'function' && !isObject(val = fn.call(it)))return val;
+	  if(!S && typeof (fn = it.toString) == 'function' && !isObject(val = fn.call(it)))return val;
+	  throw TypeError("Can't convert object to primitive value");
+	};
+
+/***/ },
+/* 342 */
+/***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__, __webpack_module_template_argument_1__, __webpack_module_template_argument_2__) {
+
+	var store      = __webpack_require__(__webpack_module_template_argument_0__)('wks')
+	  , uid        = __webpack_require__(__webpack_module_template_argument_1__)
+	  , Symbol     = __webpack_require__(__webpack_module_template_argument_2__).Symbol
+	  , USE_SYMBOL = typeof Symbol == 'function';
+	
+	var $exports = module.exports = function(name){
+	  return store[name] || (store[name] =
+	    USE_SYMBOL && Symbol[name] || (USE_SYMBOL ? Symbol : uid)('Symbol.' + name));
+	};
+	
+	$exports.store = store;
+
 /***/ }
-/******/ ]);
+/******/ ])));
 //# sourceMappingURL=global.js.map

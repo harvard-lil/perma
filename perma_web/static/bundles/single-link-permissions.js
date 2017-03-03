@@ -5,7 +5,7 @@ webpackJsonp([9],{
 
 	/* WEBPACK VAR INJECTION */(function($) {'use strict';
 	
-	var SingleLinkModule = __webpack_require__(185);
+	var SingleLinkModule = __webpack_require__(218);
 	var DOMHelpers = __webpack_require__(2);
 	var APIModule = __webpack_require__(89);
 	var Helpers = __webpack_require__(88);
@@ -960,7 +960,7 @@ webpackJsonp([9],{
 
 /***/ },
 
-/***/ 185:
+/***/ 218:
 /***/ function(module, exports) {
 
 	"use strict";
