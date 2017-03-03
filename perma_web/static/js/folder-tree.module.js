@@ -1,22 +1,21 @@
 require('jstree');  // add jquery support for .tree
 require('jstree-css/default/style.min.css');
+require('core-js/fn/array/find');
 
 var APIModule = require('./helpers/api.module.js');
+var CreateLinkModule = require('./create.module.js');
 
 
 var allowedEventsCount = 0;
 var lastSelectedFolder = null;
+var foldersToSelect;
 export var folderTree = null;
 
 export function init () {
+  loadSavedFolderSelection();
   domTreeInit();
-  setupEventHandlers ();
-
+  setupEventHandlers();
   folderTree.deselect_all();
-
-  var firstNode = getSelectedNode();
-  if (firstNode)
-    folderTree.select_node(firstNode);
 }
 
 function setupEventHandlers () {
@@ -55,31 +54,42 @@ function setupEventHandlers () {
 function handleSelectionChange () {
   folderTree.close_all();
   folderTree.deselect_all();
-  var node = findNodeBySavedFolder();
-  folderTree.select_node(node);
+  loadSavedFolderSelection();
+  selectSavedFolder();
 }
 
-function findNodeBySavedFolder () {
-  var selections = JSON.parse(localStorage.getItem("perma_selection")),
-    folderData = folderTree._model.data,
-    node;
-  if (selections && selections[current_user.id] && selections[current_user.id].folderId === "default") {
-    node = folderTree.get_node('ul > li:first');
-    return node;
-  }
+function loadSavedFolderSelection(){
+  foldersToSelect = CreateLinkModule.ls.getCurrent().folderIds;
+}
 
-  if (selections && selections[current_user.id]) {
-    for(var i in folderData) {
-      if(folderData.hasOwnProperty(i) && folderData[i].data && folderData[i].data.folder_id === selections[current_user.id].folderId) {
-        break;
+function selectSavedFolder(){
+  if(foldersToSelect && foldersToSelect.length){
+    if(foldersToSelect[0] === "default"){
+      folderTree.select_node('ul > li:first');
+      foldersToSelect = null;
+    }else{
+      var targetNode = getNodeByFolderID(foldersToSelect[foldersToSelect.length - 1]);
+      if(targetNode){
+        folderTree.deselect_all();
+        folderTree.select_node(targetNode);
+        foldersToSelect = null;
       }
     }
   }
-  return folderTree.get_node(i);
 }
 
 function getSelectedNode () {
-  return findNodeBySavedFolder();
+  return folderTree.get_selected(true)[0];
+}
+
+function getNodeByFolderID (folderId) {
+  var folderData = folderTree._model.data;
+  for(var i in folderData) {
+    if(folderData.hasOwnProperty(i) && folderData[i].data && folderData[i].data.folder_id === folderId) {
+      return folderTree.get_node(i);
+    }
+  }
+  return null;
 }
 
 function getSelectedFolderID () {
@@ -92,27 +102,26 @@ function editNodeName (node) {
   }, 0);
 }
 
-function getNodeData (node) {
+function sendSelectionChangeEvent (node) {
   var data = {};
   if (node.data) {
     data.folderId = node.data.folder_id;
     data.orgId = node.data.organization_id;
     data.path = folderTree.get_path(node);
   }
-  return data;
-}
-
-function setSelectedFolder (node) {
-  var data = getNodeData(node);
-  var savedSelections = JSON.parse(localStorage.getItem("perma_selection")) || {};
-
-  if (data.folderId || data.orgId) {
-    savedSelections[current_user.id] = {'folderId' : data.folderId, 'orgId' : data.orgId };
-    localStorage.setItem("perma_selection",JSON.stringify(savedSelections));
-  }
   $(window).trigger("FolderTreeModule.selectionChange", JSON.stringify(data) );
 }
 
+function setSelectedFolder (node) {
+  var data = node.data;
+  if (data) {
+    var folderIds = folderTree.get_path(node, false, true).map(function(id){
+      return folderTree.get_node(id).data.folder_id;
+    });
+    CreateLinkModule.ls.setCurrent(data.organization_id, folderIds);
+  }
+  sendSelectionChangeEvent(node);
+}
 
 function createFolder (parentFolderID, newName) {
   return APIModule.request("POST", "/folders/" + parentFolderID + "/folders/", {name: newName});
@@ -138,6 +147,98 @@ function moveLink (folderID, linkID) {
   });
 }
 
+function handleShowFoldersEvent(currentFolder, callback){
+  // This function gets called by jsTree with the current folder, and a callback to return subfolders.
+  // We either fetch subfolders from the API, or if currentFolder.data is empty, show the root folders.
+  var simpleCallback = (callbackData) => callback.call(folderTree, callbackData);
+
+  if(currentFolder.data){
+    loadSingleFolder(currentFolder.data.folder_id, simpleCallback);
+  }else{
+    loadInitialFolders(
+      apiFoldersToJsTreeFolders(current_user.top_level_folders),
+      CreateLinkModule.ls.getCurrent().folderIds,
+      simpleCallback);
+  }
+}
+
+function apiFoldersToJsTreeFolders(apiFolders){
+  // Helper to process a list of folders from our API into the form expected by jsTree.
+  return apiFolders.map(function(folder){
+    var jsTreeFolder = {
+      text: folder.name,
+      data: {
+        folder_id: folder.id,
+        organization_id: folder.organization,
+      },
+      li_attr: {
+        "data-folder_id": folder.id,
+        "data-organization_id": folder.organization,
+      },
+      "children": folder.has_children
+    };
+    if(folder.organization)
+      jsTreeFolder.type = "shared_folder";
+    return jsTreeFolder;
+  });
+}
+
+function loadSingleFolder(folderId, callback){
+  // Grab a single folder ID from the server and pass back to jsTree.
+  APIModule.request("GET", "/folders/" + folderId + "/folders/").done(function(data){
+    callback(apiFoldersToJsTreeFolders(data.objects));
+  });
+}
+
+function loadInitialFolders(preloadedData, subfoldersToPreload, callback){
+  // This runs once at startup. Starting from the list of the user's root folders, fetch any
+  // subfolders in the tree that the user previously had open, and load the entire tree into jsTree at the end.
+
+  // simple case -- user has no folders selected
+  if(!subfoldersToPreload){
+    callback(preloadedData);
+    return;
+  }
+
+  // User does have folders selected. First, have jquery fetch contents of all folders in the selected path:
+  $.when.apply($, subfoldersToPreload.map(folderId => APIModule.request("GET", "/folders/" + folderId + "/folders/")))
+
+  // When all API requests have returned, loop through the responses and build the folder tree:
+  .done(function(){
+    var apiResponses = arguments;
+    var parentFolders = preloadedData;
+
+    // for each folder in the path ...
+    for(var i=0; i<subfoldersToPreload.length; i++){
+
+      // find the parent folder to load subfolders into, and mark it opened:
+      var folderId = subfoldersToPreload[i];
+      var parentFolder = parentFolders.find(folder => folderId == folder.data.folder_id);
+      if(!parentFolder)
+        // tree must have changed since last time user visited
+        break;
+      parentFolder.state = {opened: true};
+
+      // find the subfolders and load them in:
+      var apiResponse = apiResponses[i][0];
+      var subfolders = apiResponse ? apiResponse.objects : null;  // if API response doesn't make sense, we'll just stop loading the tree here
+      if(subfolders && subfolders.length){
+        parentFolder.children = apiFoldersToJsTreeFolders(subfolders);
+
+        // set the loaded subfolders as the target for the next pass through this loop
+        parentFolders = parentFolder.children;
+
+      // if no subfolders, we're done
+      }else{
+        break;
+      }
+    }
+
+    // pass our folder tree to jsTree for display
+    callback(preloadedData);
+  });
+}
+
 function domTreeInit () {
   $('#folder-tree')
     .jstree({
@@ -145,6 +246,9 @@ function domTreeInit () {
         strings: {
           'New node': 'New Folder'
         },
+
+        'data' : handleShowFoldersEvent,
+
         check_callback: function (operation, node, node_parent, node_position, more) {
           // Here we handle all actions on folders that have to be checked with the server.
           // That means we have to intercept the jsTree event, cancel it,
@@ -177,9 +281,7 @@ function domTreeInit () {
                 .done(function () {
                   allowedEventsCount++;
                   folderTree.rename_node(node, newName);
-                  var data = getNodeData(node);
-                  data = JSON.stringify(data);
-                  $(window).trigger("FolderTreeModule.selectionChange", data );
+                  sendSelectionChangeEvent(node);
                 });
             } else if (operation == 'move_node') {
               var targetNode = getDropTarget();
@@ -245,6 +347,10 @@ function domTreeInit () {
     }).on('close_node.jstree', function (e, data) {
       if(data.node.type=="default")
         data.instance.set_icon(data.node, "icon-folder-close-alt");
+
+    }).on('load_node.jstree', function (e, data) {
+      // when a new node is loaded, see if it should be selected based on a user's previous visit
+      selectSavedFolder();
     });
   folderTree = $.jstree.reference('#folder-tree');
 }

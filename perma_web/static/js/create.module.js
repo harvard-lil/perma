@@ -23,15 +23,14 @@ export var ls = {
     var folders = ls.getAll();
     return folders[current_user.id] || {};
   },
-  setCurrent: function (orgId, folderId) {
-    folderId = folderId ? folderId : 'default';
+  setCurrent: function (orgId, folderIds) {
+    folderIds = folderIds ? folderIds : ['default'];
 
     var selectedFolders = ls.getAll();
-    selectedFolders[current_user.id] = {'folderId': folderId, 'orgId': orgId};
+    selectedFolders[current_user.id] = {'folderIds': folderIds, 'orgId': orgId};
 
     Helpers.jsonLocalStorage.setItem(localStorageKey, selectedFolders);
     exports.updateLinker();  // call via exports to enable Jasmine spyOn
-    Helpers.triggerOnWindow("dropdown.selectionChange");
   }
 };
 
@@ -42,6 +41,19 @@ function getParameterByName (name) {
   var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
     results = regex.exec(location.search);
   return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+function getSelectedFolder(){
+  // Look up the ID of the currently selected folder (if any) from localStorage.
+  var folderIds = ls.getCurrent().folderIds;
+  if(folderIds && folderIds.length)
+    return folderIds[folderIds.length - 1];
+  return null;
+}
+
+function getSelectedOrg(){
+  // Look up the ID of the currently selected org (if any) from localStorage.
+  return ls.getCurrent().orgId;
 }
 
 function linkIt (data) {
@@ -248,40 +260,43 @@ export function populateWithUrl () {
 }
 
 export function updateLinker () {
-  var userSettings = ls.getCurrent();
-  var currentOrg = userSettings.orgId;
+  var currentOrg = getSelectedOrg();
   var organizationsExist = Object.keys(organizations).length;
-  if (!userSettings.folderId && organizationsExist) {
+
+  // if user has organizations available but hasn't picked one yet, require them to pick
+  if (!getSelectedFolder() && organizationsExist) {
     $('#addlink').attr('disabled', 'disabled');
     return;
   }
 
+  // disable button if user is out of links
   if (!currentOrg && links_remaining < 1) {
     $('#addlink').attr('disabled', 'disabled');
   } else {
     $('#addlink').removeAttr('disabled');
   }
 
+  // UI indications that links saved to current org will default to private
   if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
     $('#addlink').text("Create Private Perma Link");
-  } else {
-    $('#addlink').text("Create Perma Link");
-  }
-
-  if (organizations[currentOrg] && organizations[currentOrg]['default_to_private']) {
     $('#linker').addClass('_isPrivate');
-    // add the little eye icon if org is private
+    // add the little eye icon to the dropdown
     $('#organization_select_form')
       .find('.dropdown-toggle > span')
       .addClass('ui-private');
   } else {
+    $('#addlink').text("Create Perma Link");
     $('#linker').removeClass('_isPrivate')
+    $('#organization_select_form')
+      .find('.dropdown-toggle > span')
+      .removeClass('ui-private');
   }
 
+  // suggest switching folder if user has orgs and is running out of personal links
   var already_warned = Helpers.getCookie("suppress_link_warning");
   if (already_warned != "true" &&
-      currentOrg == 'None' &&
-      is_org_user == "True" &&
+      !currentOrg &&
+      organizationsExist &&
       links_remaining == 3){
     var message = "Your personal links for the month are almost used up! Create more links in 'unlimited' folders."
     Helpers.informUser(message, 'danger');
@@ -343,7 +358,7 @@ function setupEventHandlers () {
     DOMHelpers.toggleBtnDisable('#uploadLinky', true);
     DOMHelpers.toggleBtnDisable('.cancel', true);
     var extraUploadData = {},
-      selectedFolder = ls.getCurrent().folderId;
+      selectedFolder = getSelectedFolder();
     if(selectedFolder)
       extraUploadData.folder = selectedFolder;
     spinner = new Spinner({lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '300px'});
@@ -367,7 +382,7 @@ function setupEventHandlers () {
       url: $this.find("input[name=url]").val(),
       human: true
     };
-    var selectedFolder = ls.getCurrent().folderId;
+    var selectedFolder = getSelectedFolder();
 
     if(selectedFolder)
       linker_data.folder = selectedFolder;
@@ -428,21 +443,25 @@ export function init () {
           if (organization.default_to_private) {
             opt_text += ' <span class="ui-private">(Private)</span>';
           }
-          $organization_select.append("<li><a href='#' data-orgid='"+organization.id+"' data-orgfolderid='"+organization.shared_folder.id+"'>" + opt_text + " <span class='links-unlimited'>unlimited</span></a></li>");
+          $organization_select.append("<li><a href='#' data-orgid='"+organization.id+"' data-folderid='"+organization.shared_folder.id+"'>" + opt_text + " <span class='links-unlimited'>unlimited</span></a></li>");
         });
 
-        $organization_select.append("<li class='personal-links'><a href='#'> Personal Links <span class='links-remaining'>" + links_remaining + "</span></a></li>");
+        $organization_select.append("<li class='personal-links'><a href='#' data-folderid='"+current_user.top_level_folders[0].id+"'> Personal Links <span class='links-remaining'>" + links_remaining + "</span></a></li>");
         updateLinker();
       } else {
         // select My Folder for users with no orgs and no saved selections
-        var selectedFolder = ls.getCurrent().folderId;
-        if (!selectedFolder) { ls.setCurrent(); }
+        var selectedFolder = getSelectedFolder();
+        if (!selectedFolder) {
+          ls.setCurrent();
+          Helpers.triggerOnWindow("dropdown.selectionChange");
+        }
       }
     });
 
   // handle dropdown changes
   $organization_select.on('click', 'a', function(){
-    ls.setCurrent(+$(this).attr('data-orgid'), +$(this).attr('data-orgfolderid'));
+    ls.setCurrent(+$(this).attr('data-orgid'), [+$(this).attr('data-folderid')]);
+    Helpers.triggerOnWindow("dropdown.selectionChange");
   });
 
   // handle upload form button
