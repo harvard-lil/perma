@@ -54,6 +54,7 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
         self.logged_out_fields = [
             'title',
+            'description',
             'url',
             'guid',
             'creation_timestamp',
@@ -73,7 +74,8 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
 
         self.post_data = {
             'url': self.server_url + "/test.html",
-            'title': 'This is a test page'
+            'title': 'This is a test page',
+            'description': 'This is a test description'
         }
 
     def assertValidCapture(self, capture):
@@ -126,6 +128,8 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.assertTrue(len(cdxlines) > 0)
         self.assertFalse(link.is_private)
         self.assertEqual(link.submitted_title, "Test title.")
+
+        self.assertEqual(link.submitted_description, "Test description.")
 
         # check folder
         self.assertTrue(link.folders.filter(pk=target_folder.pk).exists())
@@ -326,7 +330,8 @@ class LinkResourceTestCase(ApiResourceTransactionTestCase):
         self.successful_patch(self.unrelated_link_detail_url,
                               user=self.unrelated_link.created_by,
                               data={'notes': 'These are new notes',
-                                    'title': 'This is a new title'})
+                                    'title': 'This is a new title',
+                                    'description': 'This is a new description'})
 
     def test_should_reject_updates_to_disallowed_fields(self):
         result = self.rejected_patch(self.unrelated_link_detail_url,

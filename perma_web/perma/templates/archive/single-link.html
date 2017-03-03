@@ -8,8 +8,24 @@
 
 {% block title %} | {{link.submitted_title}}{% endblock %}
 
+{% block meta_description %}{{link.submitted_description}}{% endblock %}
+
+
 {% block meta-head %}
   <meta name="robots" content="noindex, noimageindex">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ link_url }}">
+  <meta property="og:title" content="{{ link.submitted_title }}">
+  <meta property="og:description" content="{{ link.submitted_description }}">
+  <meta property="og:image" content="{{ request.get_host }}{{ STATIC_URL }}img/sharing/blue_logo.png">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="{{ link_url }}">
+  <meta name="twitter:title" content="{{ link.submitted_title }}">
+  <meta name="twitter:description" content="{{ link.submitted_description }}">
+  <meta name="twitter:image" content="{{ request.get_host }}{{ STATIC_URL }}img/sharing/blue_logo.png">
+
 {% endblock %}
 
 {% block header %}
@@ -121,6 +137,10 @@
             <input id="submitted_title" name="title" class="form-control link-submitted-title" value="{{link.submitted_title}}">
           </div>
           <div class="tray-detail-group">
+            <label for="submitted_description" class="tray-detail-title">Description<span class="save-status"></span></label>
+            <input id="submitted_description" name="description" class="form-control link-submitted-description" value="{{link.submitted_description}}"/>
+          </div>
+          <div class="tray-detail-group">
             <label for="notes" class="tray-detail-title">Notes <span class="label-instruction _verbose"> (only visible to you{% if link.organization%} and your organization{% endif %})</span><span class="save-status"></span></label>
             <input id="notes" name="notes" class="form-control link-notes"  value="{{link.notes}}"/>
           </div>
@@ -152,6 +172,10 @@
           <div class="tray-detail-group">
             <dt class="tray-detail-title">Title</dt>
             <dd class="tray-detail-entry">{{link.submitted_title}}</dd>
+          </div>
+          <div class="tray-detail-group">
+            <dt class="tray-detail-title">Description</dt>
+            <dd class="tray-detail-entry">{{link.submitted_description}}</dd>
           </div>
         {% endif %}
         {% comment %}

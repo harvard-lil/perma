@@ -14,16 +14,16 @@
     <!-- -->
 
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:site" content="@HarvardLIL">
-    <meta name="twitter:title" content="Websites change. Perma Links don’t.">
+    <meta name="twitter:site" content="@permacc">
+    <meta name="twitter:title" content="Websites change. Perma Links don't.">
     <meta name="twitter:description" content="Perma.cc helps scholars, journals, courts, and others create permanent records of the web sources they cite.">
-    <meta name="twitter:image" content="{{ STATIC_URL }}img/create-step-4.png">
+    <meta name="twitter:image" content="{{ request.get_host }}{{ STATIC_URL }}img/create-step-4.png">
 
-    <meta property="og:title" content="Websites change. Perma Links don’t.">
+    <meta property="og:title" content="Websites change. Perma Links don't.">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Perma">
-    <meta property="og:url" content="https:perma.cc/">
-    <meta property="og:image" content="{{ STATIC_URL }}img/perma-infinity-landing.png">
+    <meta property="og:url" content="{{ request.get_host }}">
+    <meta property="og:image" content="{{ request.get_host }}{{ STATIC_URL }}img/sharing/blue_logo.png">
 
     {% block meta %}{% endblock %}
     <link href="{{ STATIC_URL }}img/favicon.ico" rel="shortcut icon" type="image/x-icon">

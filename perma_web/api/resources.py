@@ -344,6 +344,7 @@ class BaseLinkResource(MultipartResource, DefaultResource):
     creation_timestamp = fields.DateTimeField(attribute='creation_timestamp', readonly=True)
     url = fields.CharField(attribute='submitted_url')
     title = fields.CharField(attribute='submitted_title', blank=True)
+    description = fields.CharField(attribute='submitted_description', blank=True, null=True)
     warc_size = fields.IntegerField(attribute='warc_size', blank=True, null=True)
     captures = fields.ToManyField(CaptureResource, 'captures', readonly=True, full=True)
     queue_time = fields.IntegerField(readonly=True, null=True)
@@ -478,7 +479,7 @@ class AuthenticatedLinkResource(BaseLinkResource):
     class Meta(BaseLinkResource.Meta):
         authorization = AuthenticatedLinkAuthorization()
         queryset = BaseLinkResource.Meta.queryset.select_related('created_by',)
-        allowed_update_fields = ['title', 'notes', 'is_private', 'private_reason', 'folder', 'file']
+        allowed_update_fields = ['title', 'description', 'notes', 'is_private', 'private_reason', 'folder', 'file']
 
     def get_search_filters(self, search_query):
         return (super(AuthenticatedLinkResource, self).get_search_filters(search_query) |

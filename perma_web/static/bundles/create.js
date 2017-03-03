@@ -3400,6 +3400,10 @@ webpackJsonp([1],[
 	      // update display title when saved
 	      textarea.closest('.item-container').find('.item-title span').text(data.title);
 	    });
+	  }).on('input', '.link-description', function () {
+	    var textarea = $(this);
+	    var guid = getLinkIDForFormElement(textarea);
+	    LinkHelpers.saveInput(guid, textarea, textarea.prevAll('.description-save-status'), 'description');
 	  })
 	
 	  // handle move-to-folder dropdown

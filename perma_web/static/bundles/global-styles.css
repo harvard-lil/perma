@@ -12485,6 +12485,7 @@ footer #boilerplate a {
 
 .row.item-details .form-group label,
 .row.item-details .form-group .title-save-status,
+.row.item-details .form-group .description-save-status,
 .row.item-details .form-group .notes-save-status {
   float: left;
   width: auto;
@@ -12492,6 +12493,7 @@ footer #boilerplate a {
 }
 
 .row.item-details .form-group .title-save-status,
+.row.item-details .form-group .description-save-status,
 .row.item-details .form-group .notes-save-status {
   color: #DD671A;
   margin-top: 0;

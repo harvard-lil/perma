@@ -167,6 +167,8 @@ def single_linky(request, guid):
     # Provide the max upload size, in case the upload form is used
     max_size = settings.MAX_ARCHIVE_FILE_SIZE / 1024 / 1024
 
+    protocol = "https://" if settings.SECURE_SSL_REDIRECT else "http://"
+
     context = {
         'link': link,
         'can_view': request.user.can_view(link),
@@ -174,16 +176,15 @@ def single_linky(request, guid):
         'can_delete': request.user.can_delete(link),
         'can_toggle_private': request.user.can_toggle_private(link),
         'capture': capture,
-        'next': request.get_full_path(),
         'serve_type': serve_type,
         'new_record': new_record,
         'this_page': 'single_link',
-        'max_size': max_size
+        'max_size': max_size,
+        'link_url': protocol + settings.HOST + '/' + link.guid,
     }
 
     response = render(request, 'archive/single-link.html', context)
     date_header = format_date_time(mktime(link.creation_timestamp.timetuple()))
-    protocol = "https://" if settings.SECURE_SSL_REDIRECT else "http://"
     link_memento  = protocol + settings.HOST + '/' + link.guid
     link_timegate = protocol + settings.WARC_HOST + settings.TIMEGATE_WARC_ROUTE + '/' + link.safe_url
     link_timemap  = protocol + settings.WARC_HOST + settings.WARC_ROUTE + '/timemap/*/' + link.safe_url

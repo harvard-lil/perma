@@ -140,10 +140,10 @@ class LinkUserAdmin(UserAdmin):
 
 
 class LinkAdmin(SimpleHistoryAdmin):
-    list_display = ['guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp','user_deleted']
-    search_fields = ['guid', 'submitted_url', 'submitted_title']
+    list_display = ['guid', 'submitted_url', 'submitted_title', 'submitted_description', 'created_by', 'creation_timestamp','user_deleted']
+    search_fields = ['guid', 'submitted_url', 'submitted_title', 'submitted_description']
     fieldsets = (
-        (None, {'fields': ('guid', 'submitted_url', 'submitted_title', 'created_by', 'creation_timestamp', 'warc_size', 'replacement_link')}),
+        (None, {'fields': ('guid', 'submitted_url', 'submitted_title', 'submitted_description', 'created_by', 'creation_timestamp', 'warc_size', 'replacement_link')}),
         ('Visibility', {'fields': ('is_private', 'private_reason', 'is_unlisted',)}),
         ('User Delete', {'fields': ('user_deleted', 'user_deleted_timestamp',)}),
         ('Organization', {'fields': ('folders', 'notes')}),
