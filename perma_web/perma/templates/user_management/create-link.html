@@ -1,5 +1,5 @@
 {% extends "base-responsive.html" %}
-{% load mptt_tags as_json %}
+{% load as_json %}
 {% load render_bundle from webpack_loader %}
 
 {% block title %} | Create a Perma link{% endblock %}
@@ -96,23 +96,7 @@
         <a href="#" class="pull-right edit-folder icon-edit" title="Rename Selected Folder"></a>
         <a href="#" class="pull-right new-folder icon-plus" title="New Folder"></a>
       </div>
-      <div id="folder-tree">
-        <ul>
-          {% for tree in request.user.all_folder_trees %}
-            {% recursetree tree %}
-              <li data-folder_id="{{ node.pk }}" data-organization_id="{{ node.organization_id }}" data-jstree='{ {% if node.pk == folder.id %}"selected":true,{% endif %}{% if node.is_shared_folder %}"type":"shared_folder"{% endif %} }'>
-                <a href="#" target="folder-contents">{{ node.name }}</a>
-                {% if not node.is_leaf_node %}
-                  <ul>
-                    {{ children }}
-                  </ul>
-                {% endif %}
-              </li>
-            {% endrecursetree %}
-          {% endfor %}
-
-        </ul>
-      </div>
+      <div id="folder-tree"></div>
     </div>
 
     <div class="col-md-9 col-links">
@@ -144,7 +128,6 @@
     var contact_url = "{% url 'contact' %}",
         links_remaining = "{{links_remaining}}",
         current_user = {% as_json request.user %},
-        is_org_user = "{{ request.user.is_organization_user }}",
         host = "{{ request.get_host }}";
   </script>
 
