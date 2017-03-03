@@ -310,15 +310,18 @@ class LinkUser(AbstractBaseUser):
     def __unicode__(self):
         return self.email
 
+    def top_level_folders(self):
+        """
+            Get top level folders for this user, including personal folder and shared folders.
+        """
+        orgs = self.get_orgs().select_related('shared_folder')
+        return [self.root_folder] + [org.shared_folder for org in orgs if org]
+
     def all_folder_trees(self):
         """
-            Get all folders for this user, including shared folders
+            Get all folders for this user, including personal folders and shared folders.
         """
-
-        orgs = self.get_orgs().select_related('shared_folder')
-
-        return [self.root_folder.get_descendants(include_self=True)] + \
-            ([org.shared_folder.get_descendants(include_self=True) for org in orgs if org])
+        return [folder.get_descendants(include_self=True) for folder in self.top_level_folders()]
 
     def get_orgs(self):
         """
@@ -354,8 +357,8 @@ class LinkUser(AbstractBaseUser):
         self.save()
 
     def as_json(self, request=None):
-        from api.resources import LinkUserResource
-        return LinkUserResource().as_json(self, request)
+        from api.resources import CurrentUserResource
+        return CurrentUserResource().as_json(self, request)
 
     ### permissions ###
 

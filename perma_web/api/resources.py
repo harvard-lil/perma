@@ -215,6 +215,8 @@ class FolderResource(DefaultResource):
     id = fields.IntegerField(attribute='id')
     name = fields.CharField(attribute='name')
     parent = fields.ForeignKey('api.resources.FolderResource', 'parent', null=True, blank=True)
+    has_children = fields.BooleanField(readonly=True)
+    organization = fields.ForeignKey(OrganizationResource, 'organization', blank=True, null=True, readonly=True)
 
     class Meta(DefaultResource.Meta):
         resource_name = 'folders'
@@ -229,8 +231,14 @@ class FolderResource(DefaultResource):
         folders = fields.ToManyField('api.resources.FolderResource', 'children', full=True, readonly=True)
         archives = fields.ToManyField('api.resources.LinkResource', 'links', full=True, readonly=True)
 
+    def dehydrate_has_children(self, bundle):
+        return not bundle.obj.is_leaf_node()
+
     def dehydrate_parent(self, bundle):
         return self.foreign_key_to_id(bundle, 'parent')
+
+    def dehydrate_organization(self, bundle):
+        return self.foreign_key_to_id(bundle, 'organization')
 
     def prepend_urls(self):
         return [
@@ -709,6 +717,10 @@ class LinkResource(AuthenticatedLinkResource):
 
 
 class CurrentUserResource(LinkUserResource):
+    top_level_folders = fields.ToManyField(FolderResource,
+                                           lambda bundle: bundle.request.user.top_level_folders(),
+                                           readonly=True, full=True)
+
     class Meta(DefaultResource.Meta):
         resource_name = 'user'
         queryset = LinkUser.objects.all()[:0] # needed for /schema to render
