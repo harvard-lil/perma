@@ -180,7 +180,8 @@ def single_linky(request, guid):
         'new_record': new_record,
         'this_page': 'single_link',
         'max_size': max_size,
-        'link_url': protocol + settings.HOST + '/' + link.guid,
+        'link_url': settings.HOST + '/' + link.guid,
+        'protocol': protocol,
     }
 
     response = render(request, 'archive/single-link.html', context)
