@@ -8,6 +8,4 @@ You are receiving this message because you are the registrar for {{user.email}},
 Please follow up with the user by replying to this message.
 
 If you need help resolving this question, please contact us at info@perma.cc.
-
-Troubleshooting info:
 {% endblock%}
