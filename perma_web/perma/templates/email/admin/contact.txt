@@ -6,9 +6,9 @@ This is a message from the Perma.cc contact form, http://perma.cc/contact
 Message from user
 --------
 {{ message }}
-{% endblock%}
-{% block footer %}
+{% endblock%}{% block footer %}
 ----
+Troubleshooting Info:
 User email: {{ from_address }}
 Affiliations: {{ affiliation_string | default:"(none)" }}
 Referring Page: {{ referer }}
