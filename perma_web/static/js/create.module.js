@@ -6,33 +6,13 @@ var Helpers = require('./helpers/general.helpers.js');
 var DOMHelpers = require('./helpers/dom.helpers.js');
 var HandlebarsHelpers = require('./helpers/handlebars.helpers.js');
 var APIModule = require('./helpers/api.module.js');
+var FolderTreeModule = require('./folder-tree.module.js');
 
 var newGUID = null;
 var refreshIntervalIds = [];
 var spinner;
 var organizations = {};
-var localStorageKey = Helpers.variables.localStorageKey;
 
-
-export var ls = {
-  getAll: function () {
-    var folders = Helpers.jsonLocalStorage.getItem(localStorageKey);
-    return folders || {};
-  },
-  getCurrent: function () {
-    var folders = ls.getAll();
-    return folders[current_user.id] || {};
-  },
-  setCurrent: function (orgId, folderIds) {
-    folderIds = folderIds ? folderIds : ['default'];
-
-    var selectedFolders = ls.getAll();
-    selectedFolders[current_user.id] = {'folderIds': folderIds, 'orgId': orgId};
-
-    Helpers.jsonLocalStorage.setItem(localStorageKey, selectedFolders);
-    exports.updateLinker();  // call via exports to enable Jasmine spyOn
-  }
-};
 
 // Get parameter by name
 // from https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
@@ -41,19 +21,6 @@ function getParameterByName (name) {
   var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
     results = regex.exec(location.search);
   return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-}
-
-function getSelectedFolder(){
-  // Look up the ID of the currently selected folder (if any) from localStorage.
-  var folderIds = ls.getCurrent().folderIds;
-  if(folderIds && folderIds.length)
-    return folderIds[folderIds.length - 1];
-  return null;
-}
-
-function getSelectedOrg(){
-  // Look up the ID of the currently selected org (if any) from localStorage.
-  return ls.getCurrent().orgId;
 }
 
 function linkIt (data) {
@@ -259,12 +226,15 @@ export function populateWithUrl () {
   }
 }
 
+// This handles the dropdown menu for selecting a folder, which only appears for
+// org users, registrar users, and admins, and alters related UI elements depending
+// on what has been selected.
 export function updateLinker () {
-  var currentOrg = getSelectedOrg();
+  var currentOrg = FolderTreeModule.getSavedOrg();
   var organizationsExist = Object.keys(organizations).length;
 
   // if user has organizations available but hasn't picked one yet, require them to pick
-  if (!getSelectedFolder() && organizationsExist) {
+  if (!FolderTreeModule.getSavedFolder() && organizationsExist) {
     $('#addlink').attr('disabled', 'disabled');
     return;
   }
@@ -304,6 +274,14 @@ export function updateLinker () {
   }
 }
 
+function handleSelectionChange (data) {
+  updateLinker();
+
+  if (data && data.path) {
+    updateAffiliationPath(data.orgId, data.path);
+  }
+}
+
 function updateAffiliationPath (currentOrg, path) {
 
   var stringPath = path.join(" &gt; ");
@@ -332,14 +310,6 @@ export function updateLinksRemaining (links_num) {
   DOMHelpers.changeText('.links-remaining', links_remaining);
 }
 
-function handleSelectionChange (data) {
-  updateLinker();
-
-  if (data && data.path) {
-    updateAffiliationPath(data.orgId, data.path);
-  }
-}
-
 
 function setupEventHandlers () {
   $(window)
@@ -358,7 +328,7 @@ function setupEventHandlers () {
     DOMHelpers.toggleBtnDisable('#uploadLinky', true);
     DOMHelpers.toggleBtnDisable('.cancel', true);
     var extraUploadData = {},
-      selectedFolder = getSelectedFolder();
+      selectedFolder = FolderTreeModule.getSavedFolder();
     if(selectedFolder)
       extraUploadData.folder = selectedFolder;
     spinner = new Spinner({lines: 15, length: 2, width: 2, radius: 9, corners: 0, color: '#2D76EE', trail: 50, top: '300px'});
@@ -382,7 +352,7 @@ function setupEventHandlers () {
       url: $this.find("input[name=url]").val(),
       human: true
     };
-    var selectedFolder = getSelectedFolder();
+    var selectedFolder = FolderTreeModule.getSavedFolder();
 
     if(selectedFolder)
       linker_data.folder = selectedFolder;
@@ -448,19 +418,12 @@ export function init () {
 
         $organization_select.append("<li class='personal-links'><a href='#' data-folderid='"+current_user.top_level_folders[0].id+"'> Personal Links <span class='links-remaining'>" + links_remaining + "</span></a></li>");
         updateLinker();
-      } else {
-        // select My Folder for users with no orgs and no saved selections
-        var selectedFolder = getSelectedFolder();
-        if (!selectedFolder) {
-          ls.setCurrent();
-          Helpers.triggerOnWindow("dropdown.selectionChange");
-        }
       }
     });
 
   // handle dropdown changes
   $organization_select.on('click', 'a', function(){
-    ls.setCurrent(+$(this).attr('data-orgid'), [+$(this).attr('data-folderid')]);
+    FolderTreeModule.ls.setCurrent(+$(this).attr('data-orgid'), [+$(this).attr('data-folderid')]);
     Helpers.triggerOnWindow("dropdown.selectionChange");
   });
 

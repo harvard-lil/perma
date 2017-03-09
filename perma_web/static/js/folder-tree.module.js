@@ -1,105 +1,101 @@
 require('jstree');  // add jquery support for .tree
-require('jstree-css/default/style.min.css');
 require('core-js/fn/array/find');
+require('jstree-css/default/style.min.css');
 
 var APIModule = require('./helpers/api.module.js');
-var CreateLinkModule = require('./create.module.js');
+var Helpers = require('./helpers/general.helpers.js');
 
-
+var localStorageKey = Helpers.variables.localStorageKey;
 var allowedEventsCount = 0;
 var lastSelectedFolder = null;
-var foldersToSelect;
 export var folderTree = null;
 
 export function init () {
-  loadSavedFolderSelection();
   domTreeInit();
   setupEventHandlers();
   folderTree.deselect_all();
 }
 
-function setupEventHandlers () {
-  $(window)
-    .on('dropdown.selectionChange', handleSelectionChange)
-    .on('LinksListModule.moveLink', function(evt, data) {
-      data = JSON.parse(data);
-      moveLink(data.folderId, data.linkId);
-    });
-
-  // set body class during drag'n'drop
-  $(document).on('dnd_start.vakata', function (e, data) {
-    $('body').addClass("dragging");
-
-  }).on('dnd_stop.vakata', function (e, data) {
-    $('body').removeClass("dragging");
-  });
-
-  // folder buttons
-  $('a.new-folder').on('click', function () {
-    folderTree.create_node(getSelectedNode(), {}, "last");
-    return false;
-  });
-  $('a.edit-folder').on('click', function () {
-    editNodeName(getSelectedNode());
-    return false;
-  });
-  $('a.delete-folder').on('click', function () {
-    var node = getSelectedNode();
-    if (!confirm("Really delete folder '" + node.text.trim() + "'?")) return false;
-    folderTree.delete_node(node);
-    return false;
-  });
-}
-
-function handleSelectionChange () {
-  folderTree.close_all();
-  folderTree.deselect_all();
-  loadSavedFolderSelection();
-  selectSavedFolder();
-}
-
-function loadSavedFolderSelection(){
-  foldersToSelect = CreateLinkModule.ls.getCurrent().folderIds;
-}
-
-function selectSavedFolder(){
-  if(foldersToSelect && foldersToSelect.length){
-    if(foldersToSelect[0] === "default"){
-      folderTree.select_node('ul > li:first');
-      foldersToSelect = null;
-    }else{
-      var targetNode = getNodeByFolderID(foldersToSelect[foldersToSelect.length - 1]);
-      if(targetNode){
-        folderTree.deselect_all();
-        folderTree.select_node(targetNode);
-        foldersToSelect = null;
-      }
-    }
+// When a user selects a folder, we store that choice in Local Storage
+// and attempt to reselect on subsequent page loads.
+export var ls = {
+  // This data structure was built such that multiple users' last-used folders could be
+  // stored simultaneously. At present, this feature is not in use: when a user logs out,
+  // local storage is cleared. getAll remains in the codebase, with getCurrent, in case we ever
+  // decide to change that behavior (not recommended at present due to the complications it may
+  // introduce to user support: we don't want to have to walk people through clearing local
+  // storage if unexpected behavior surfaces)
+  getAll: function () {
+    var folders = Helpers.jsonLocalStorage.getItem(localStorageKey);
+    return folders || {};
+  },
+  getCurrent: function () {
+    var folders = ls.getAll();
+    return folders[current_user.id] || {};
+  },
+  setCurrent: function (orgId, folderIds) {
+    var selectedFolders = ls.getAll();
+    selectedFolders[current_user.id] = {'folderIds': folderIds, 'orgId': orgId};
+    Helpers.jsonLocalStorage.setItem(localStorageKey, selectedFolders);
+    Helpers.triggerOnWindow("FolderTreeModule.selectionChange", selectedFolders[current_user.id]);
   }
+};
+
+export function getSavedFolder(){
+  // Look up the ID of the previously selected folder (if any) from localStorage.
+  var folderIds = ls.getCurrent().folderIds;
+  if(folderIds && folderIds.length)
+    return folderIds[folderIds.length - 1];
+  return null;
+}
+export function getSavedOrg(){
+  // Look up the ID of the previously selected folder's org (if any) from localStorage.
+  return ls.getCurrent().orgId;
 }
 
 function getSelectedNode () {
   return folderTree.get_selected(true)[0];
 }
 
+function getSelectedFolderID () {
+  return getSelectedNode().data.folder_id;
+}
+
 function getNodeByFolderID (folderId) {
   var folderData = folderTree._model.data;
   for(var i in folderData) {
-    if(folderData.hasOwnProperty(i) && folderData[i].data && folderData[i].data.folder_id === folderId) {
-      return folderTree.get_node(i);
+    if(folderData.hasOwnProperty(i) &&
+       folderData[i].data &&
+       folderData[i].data.folder_id === folderId) {
+        return folderTree.get_node(i);
     }
   }
   return null;
 }
 
-function getSelectedFolderID () {
-  return getSelectedNode().data.folder_id;
+function handleSelectionChange () {
+  folderTree.close_all();
+  folderTree.deselect_all();
+  selectSavedFolder();
 }
 
-function editNodeName (node) {
-  setTimeout(function () {
-    folderTree.edit(node);
-  }, 0);
+function selectSavedFolder(){
+  var folderToSelect = getSavedFolder();
+  if(!folderToSelect && current_user.top_level_folders.length == 1){
+    folderToSelect = current_user.top_level_folders[0].id
+  }
+  folderTree.select_node(getNodeByFolderID(folderToSelect));
+}
+
+function setSavedFolder (node) {
+  var data = node.data;
+  if (data) {
+    var folderIds = folderTree.get_path(node, false, true).map(function(id){
+      return folderTree.get_node(id).data.folder_id;
+    });
+    ls.setCurrent(data.organization_id, folderIds);
+  }
+  sendSelectionChangeEvent(node);
 }
 
 function sendSelectionChangeEvent (node) {
@@ -112,41 +108,6 @@ function sendSelectionChangeEvent (node) {
   $(window).trigger("FolderTreeModule.selectionChange", JSON.stringify(data) );
 }
 
-function setSelectedFolder (node) {
-  var data = node.data;
-  if (data) {
-    var folderIds = folderTree.get_path(node, false, true).map(function(id){
-      return folderTree.get_node(id).data.folder_id;
-    });
-    CreateLinkModule.ls.setCurrent(data.organization_id, folderIds);
-  }
-  sendSelectionChangeEvent(node);
-}
-
-function createFolder (parentFolderID, newName) {
-  return APIModule.request("POST", "/folders/" + parentFolderID + "/folders/", {name: newName});
-}
-
-function renameFolder (folderID, newName) {
-  return APIModule.request("PATCH", "/folders/" + folderID + "/", {name: newName});
-}
-
-function moveFolder (parentID, childID) {
-  return APIModule.request("PUT", "/folders/" + parentID + "/folders/" + childID + "/");
-}
-
-function deleteFolder (folderID) {
-  return APIModule.request("DELETE", "/folders/" + folderID + "/");
-}
-
-function moveLink (folderID, linkID) {
-  return APIModule.request("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function(data){
-    $(window).trigger("FolderTreeModule.updateLinksRemaining", data.links_remaining);
-    // once we're done moving the link, hide it from the current folder
-    $('.item-row[data-link_id="'+linkID+'"]').closest('.item-container').remove();
-  });
-}
-
 function handleShowFoldersEvent(currentFolder, callback){
   // This function gets called by jsTree with the current folder, and a callback to return subfolders.
   // We either fetch subfolders from the API, or if currentFolder.data is empty, show the root folders.
@@ -154,10 +115,11 @@ function handleShowFoldersEvent(currentFolder, callback){
 
   if(currentFolder.data){
     loadSingleFolder(currentFolder.data.folder_id, simpleCallback);
-  }else{
+  } else {
+    //select default for users with no orgs and no saved selections
     loadInitialFolders(
       apiFoldersToJsTreeFolders(current_user.top_level_folders),
-      CreateLinkModule.ls.getCurrent().folderIds,
+      ls.getCurrent().folderIds,
       simpleCallback);
   }
 }
@@ -200,8 +162,9 @@ function loadInitialFolders(preloadedData, subfoldersToPreload, callback){
     return;
   }
 
-  // User does have folders selected. First, have jquery fetch contents of all folders in the selected path:
-  $.when.apply($, subfoldersToPreload.map(folderId => APIModule.request("GET", "/folders/" + folderId + "/folders/")))
+  // User does have folders selected. First, have jquery fetch contents of all folders in the selected path.
+  // Set requestArgs["error"] to null to prevent a 404 from propagating up to the user, and the folder list remains pending.)
+  $.when.apply($, subfoldersToPreload.map(folderId => APIModule.request("GET", "/folders/" + folderId + "/folders/", null, {"error": null})))
 
   // When all API requests have returned, loop through the responses and build the folder tree:
   .done(function(){
@@ -235,6 +198,10 @@ function loadInitialFolders(preloadedData, subfoldersToPreload, callback){
     }
 
     // pass our folder tree to jsTree for display
+    callback(preloadedData);
+  })
+  .fail(function(){
+    localStorage.clear();
     callback(preloadedData);
   });
 }
@@ -274,7 +241,7 @@ function domTreeInit () {
               moveLink(targetNode.data.folder_id, node.id);
             }
           } else {
-              // internal folder action
+            // internal folder action
             if (operation == 'rename_node') {
               var newName = node_position;
               renameFolder(node.data.folder_id, newName)
@@ -337,7 +304,7 @@ function domTreeInit () {
       }
 
       var lastSelectedNode = data.node;
-      setSelectedFolder(lastSelectedNode);
+      setSavedFolder(lastSelectedNode);
 
     // handle open/close folder icon
     }).on('open_node.jstree', function (e, data) {
@@ -349,10 +316,73 @@ function domTreeInit () {
         data.instance.set_icon(data.node, "icon-folder-close-alt");
 
     }).on('load_node.jstree', function (e, data) {
-      // when a new node is loaded, see if it should be selected based on a user's previous visit
+      // when a new node is loaded, see if it should be selected based on a user's previous visit.
+      // (without this, doesn't select saved folders on load.)
       selectSavedFolder();
+
     });
   folderTree = $.jstree.reference('#folder-tree');
 }
 
+function createFolder (parentFolderID, newName) {
+  return APIModule.request("POST", "/folders/" + parentFolderID + "/folders/", {name: newName});
+}
 
+function renameFolder (folderID, newName) {
+  return APIModule.request("PATCH", "/folders/" + folderID + "/", {name: newName});
+}
+
+function moveFolder (parentID, childID) {
+  return APIModule.request("PUT", "/folders/" + parentID + "/folders/" + childID + "/");
+}
+
+function deleteFolder (folderID) {
+  return APIModule.request("DELETE", "/folders/" + folderID + "/");
+}
+
+function moveLink (folderID, linkID) {
+  return APIModule.request("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function(data){
+    $(window).trigger("FolderTreeModule.updateLinksRemaining", data.links_remaining);
+    // once we're done moving the link, hide it from the current folder
+    $('.item-row[data-link_id="'+linkID+'"]').closest('.item-container').remove();
+  });
+}
+
+function setupEventHandlers () {
+  $(window)
+    .on('dropdown.selectionChange', handleSelectionChange)
+    .on('LinksListModule.moveLink', function(evt, data) {
+      data = JSON.parse(data);
+      moveLink(data.folderId, data.linkId);
+    });
+
+  // set body class during drag'n'drop
+  $(document).on('dnd_start.vakata', function (e, data) {
+    $('body').addClass("dragging");
+
+  }).on('dnd_stop.vakata', function (e, data) {
+    $('body').removeClass("dragging");
+  });
+
+  // folder buttons
+  $('a.new-folder').on('click', function () {
+    folderTree.create_node(getSelectedNode(), {}, "last");
+    return false;
+  });
+  $('a.edit-folder').on('click', function () {
+    editNodeName(getSelectedNode());
+    return false;
+  });
+  $('a.delete-folder').on('click', function () {
+    var node = getSelectedNode();
+    if (!confirm("Really delete folder '" + node.text.trim() + "'?")) return false;
+    folderTree.delete_node(node);
+    return false;
+  });
+}
+
+function editNodeName (node) {
+  setTimeout(function () {
+    folderTree.edit(node);
+  }, 0);
+}

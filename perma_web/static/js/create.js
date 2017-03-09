@@ -1,7 +1,7 @@
-var CreateModule = require('./create.module.js');
 var LinkListModule = require('./links-list.module.js');
 var FolderTreeModule = require('./folder-tree.module.js');
+var CreateLinkModule = require('./create.module.js');
 
-CreateModule.init();
-LinkListModule.init();
 FolderTreeModule.init();
+LinkListModule.init();
+CreateLinkModule.init();
