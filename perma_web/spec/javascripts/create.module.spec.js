@@ -1,6 +1,6 @@
 var DOMHelpers = require('../../static/js/helpers/dom.helpers');
 var Helpers = require('../../static/js/helpers/general.helpers');
-var CreateLinkModule = require('../../static/js/create.module');
+var CreateLinkModule = require('../../static/js/create-link.module');
 
 var localStorage;
 var current_user;

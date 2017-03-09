@@ -5,7 +5,7 @@
 // var APIModule = require('../../static/js/helpers/api.module');
 var Helpers = require('../../static/js/helpers/general.helpers');
 var FolderTreeModule = require('../../static/js/folder-tree.module');
-var CreateLinkModule = require('../../static/js/create.module');
+var CreateLinkModule = require('../../static/js/create-link.module');
 var localStorageKey = Helpers.variables.localStorageKey;
 var allowedEventsCount = 0;
 var lastSelectedFolder = null;
